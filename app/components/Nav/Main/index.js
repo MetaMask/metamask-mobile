@@ -246,7 +246,10 @@ const Main = props => {
 
 				newSwapsTransactions[transactionMeta.id].gasUsed = receipt.gasUsed;
 				if (tokensReceived) {
-					newSwapsTransactions[transactionMeta.id].destinationAmount = tokensReceived;
+					newSwapsTransactions[transactionMeta.id].receivedDestinationAmount = new BigNumber(
+						tokensReceived,
+						16
+					).toString(10);
 				}
 				TransactionController.update({ swapsTransactions: newSwapsTransactions });
 
@@ -269,13 +272,15 @@ const Main = props => {
 				delete newSwapsTransactions[transactionMeta.id].paramsForAnalytics;
 
 				InteractionManager.runAfterInteractions(() => {
-					Analytics.trackEventWithParameters(event, {
+					const parameters = {
 						...analyticsParams,
 						time_to_mine: timeToMine,
 						estimated_vs_used_gasRatio: estimatedVsUsedGasRatio,
 						quote_vs_executionRatio: quoteVsExecutionRatio,
-						token_to_amount_received: tokenToAmountReceived
-					});
+						token_to_amount_received: tokenToAmountReceived.toString()
+					};
+					Analytics.trackEventWithParameters(event, {});
+					Analytics.trackEventWithParameters(event, parameters, true);
 				});
 			} catch (e) {
 				Logger.error(e, ANALYTICS_EVENT_OPTS.SWAP_TRACKING_FAILED);

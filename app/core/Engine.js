@@ -14,10 +14,11 @@ import {
 	PreferencesController,
 	TokenBalancesController,
 	TokenRatesController,
+	TransactionController,
 	TypedMessageManager
 } from '@metamask/controllers';
 
-import { TransactionController, SwapsController } from '@estebanmino/controllers';
+import { SwapsController } from '@estebanmino/controllers';
 
 import AsyncStorage from '@react-native-community/async-storage';
 
@@ -31,7 +32,6 @@ import NotificationManager from './NotificationManager';
 import contractMap from '@metamask/contract-metadata';
 import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
-import { MAINNET } from '../constants/network';
 
 const EMPTY = 'EMPTY';
 
@@ -117,7 +117,7 @@ class Engine {
 					new TokenRatesController(),
 					new TransactionController(),
 					new TypedMessageManager(),
-					new SwapsController()
+					new SwapsController({ clientId: AppConstants.SWAPS.CLIENT_ID })
 				],
 				initialState
 			);
@@ -126,8 +126,7 @@ class Engine {
 				AssetsController: assets,
 				KeyringController: keyring,
 				NetworkController: network,
-				TransactionController: transaction,
-				PreferencesController: preferences
+				TransactionController: transaction
 			} = this.datamodel.context;
 
 			assets.setApiKey(process.env.MM_OPENSEA_KEY);
@@ -144,24 +143,6 @@ class Engine {
 			});
 			this.configureControllersOnNetworkChange();
 			Engine.instance = this;
-
-			if (AppConstants.SWAPS.ACTIVE) {
-				const swapsTestInState = preferences.state.frequentRpcList.find(({ chainId }) => chainId === 1337);
-				if (!swapsTestInState) {
-					preferences.addToFrequentRpcList(
-						'https://ganache-testnet.airswap-dev.codefi.network/',
-						'1337',
-						'ETH',
-						'Swaps Test Network'
-					);
-					network.setRpcTarget(
-						'https://ganache-testnet.airswap-dev.codefi.network/',
-						'1337',
-						'ETH',
-						'Swaps Test Network'
-					);
-				}
-			}
 		}
 		return Engine.instance;
 	}
@@ -217,7 +198,7 @@ class Engine {
 			//Fetch txs and get the new lastIncomingTxBlock number
 			const newlastIncomingTxBlock = await TransactionController.fetchAll(selectedAddress, {
 				blockNumber,
-				alethioApiKey: process.env.MM_ALETHIO_KEY
+				etherscanApiKey: process.env.MM_ETHERSCAN_KEY
 			});
 			// Check if it's a newer block and store it so next time we ask for the newer txs only
 			if (
@@ -372,19 +353,24 @@ class Engine {
 		Object.keys(preferences.accountTokens).forEach(address => {
 			const checksummedAddress = toChecksumAddress(address);
 			allTokens[checksummedAddress] = {};
-			Object.keys(preferences.accountTokens[address]).forEach(
-				networkType =>
-					(allTokens[checksummedAddress][networkType] =
-						networkType !== MAINNET
-							? preferences.accountTokens[address][networkType]
-							: preferences.accountTokens[address][networkType]
-									.filter(({ address }) =>
-										contractMap[toChecksumAddress(address)]
-											? contractMap[toChecksumAddress(address)].erc20
-											: true
-									)
-									.map(token => ({ ...token, address: toChecksumAddress(token.address) })))
-			);
+			Object.keys(preferences.accountTokens[address]).forEach(chainId => {
+				const network = Object.values(Networks).find(
+					({ hexChainId: networkChainId }) => networkChainId === chainId
+				);
+				const networkType = network?.networkType;
+				// !networkType this will probably happen on custom rpc networks
+				if (!networkType) return;
+				allTokens[checksummedAddress][networkType] =
+					chainId !== `0x1`
+						? preferences.accountTokens[address][chainId]
+						: preferences.accountTokens[address][chainId]
+								.filter(({ address }) =>
+									contractMap[toChecksumAddress(address)]
+										? contractMap[toChecksumAddress(address)].erc20
+										: true
+								)
+								.map(token => ({ ...token, address: toChecksumAddress(token.address) }));
+			});
 		});
 		await AssetsController.update({ allTokens });
 

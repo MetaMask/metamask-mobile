@@ -40,6 +40,7 @@ import SettingsNotification from '../SettingsNotification';
 import WhatsNewModal from '../WhatsNewModal';
 import InvalidCustomNetworkAlert from '../InvalidCustomNetworkAlert';
 import { RPC } from '../../../constants/network';
+import { findBottomTabRouteNameFromNavigatorState, findRouteNameFromNavigatorState } from '../../../util/general';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -408,9 +409,9 @@ class DrawerView extends PureComponent {
 	}
 
 	componentDidUpdate() {
-		const route = this.findRouteNameFromNavigatorState(this.props.navigation.state);
+		const route = findRouteNameFromNavigatorState(this.props.navigation.state);
 		if (!this.props.passwordSet || !this.props.seedphraseBackedUp) {
-			const bottomTab = this.findBottomTabRouteNameFromNavigatorState(this.props.navigation.state);
+			const bottomTab = findBottomTabRouteNameFromNavigatorState(this.props.navigation.state);
 			if (['SetPasswordFlow', 'Webview', 'LockScreen'].includes(bottomTab)) {
 				// eslint-disable-next-line react/no-did-update-set-state
 				this.state.showProtectWalletModal && this.setState({ showProtectWalletModal: false });
@@ -796,24 +797,6 @@ class DrawerView extends PureComponent {
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SHARE_PUBLIC_ADDRESS);
 	};
 
-	findRouteNameFromNavigatorState({ routes }) {
-		let route = routes[routes.length - 1];
-		while (route.index !== undefined) {
-			route = route.routes[route.index];
-		}
-		return route.routeName;
-	}
-
-	findBottomTabRouteNameFromNavigatorState({ routes }) {
-		let route = routes[routes.length - 1];
-		let routeName;
-		while (route.index !== undefined) {
-			routeName = route.routeName;
-			route = route.routes[route.index];
-		}
-		return routeName;
-	}
-
 	closeInvalidCustomNetworkAlert = () => {
 		this.setState({ invalidCustomNetwork: null });
 	};
@@ -892,7 +875,7 @@ class DrawerView extends PureComponent {
 		}
 		this.currentBalance = fiatBalance;
 		const fiatBalanceStr = renderFiat(this.currentBalance, currentCurrency);
-		const currentRoute = this.findRouteNameFromNavigatorState(this.props.navigation.state);
+		const currentRoute = findRouteNameFromNavigatorState(this.props.navigation.state);
 		return (
 			<View style={styles.wrapper} testID={'drawer-screen'}>
 				<ScrollView>

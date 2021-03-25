@@ -579,6 +579,7 @@
 		"ok": "Ok",
 		"cancel": "Cancel",
 		"error": "Error",
+		"attempting_to_scan_with_wallet_locked": "Looks like you're trying to scan a QR code, you need to unlock your wallet to be able to use it.",
 		"attempting_sync_from_wallet_error": "Looks like you're trying to sync with the extension. In order to do so, you will need to erase your current wallet. \n\nOnce you've erased or reinstalled a fresh version of the app, select the option to \"Sync with MetaMask Extension\". Important! Before erasing your wallet, make sure you've backed up your recovery phrase."
 	},
 	"action_view": {
@@ -674,6 +675,7 @@
 		"gas_price": "Gas Price: (GWEI)",
 		"save": "Save",
 		"warning_gas_limit": "Gas limit must be greater than 20999 and less than 7920027",
+		"warning_gas_limit_estimated": "Estimated gas limit is {{gas}}, use it as minimum value",
 		"cost_explanation": "The network fee covers the cost of processing your transaction on the Ethereum network. MetaMask does not profit from this fee. The higher the fee the better chances of your transaction getting processed."
 	},
 	"spend_limit_edition": {
@@ -1425,6 +1427,12 @@
 			"review_audits": "Review our official contracts audit",
 			"start_swapping": "Start swapping"
 		},
+		"feature_off_title": "Temporarily unavailable",
+		"feature_off_body": "MetaMask Swaps is undergoing maintenance. Please check back later.",
+		"wrong_network_title": "Swaps not available",
+		"wrong_network_body": "You’re only able to swap tokens on the Ethereum Main Network.",
+		"unallowed_asset_title": "Can’t swap this token",
+		"unallowed_asset_body": "Some tokens with unique mechanics are currently not supported for swapping.",
 		"convert_from": "Convert from",
 		"convert_to": "Convert to",
 		"verify": "Verify",

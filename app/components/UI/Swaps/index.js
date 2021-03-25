@@ -5,9 +5,16 @@ import { connect } from 'react-redux';
 import { NavigationContext } from 'react-navigation';
 import { View as AnimatableView } from 'react-native-animatable';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
+import numberToBN from 'number-to-bn';
 import Logger from '../../../util/Logger';
-import { toChecksumAddress } from 'ethereumjs-util';
-import { balanceToFiat, fromTokenMinimalUnitString, toTokenMinimalUnit, weiToFiat } from '../../../util/number';
+import {
+	balanceToFiat,
+	fromTokenMinimalUnitString,
+	renderFromTokenMinimalUnit,
+	toTokenMinimalUnit,
+	weiToFiat
+} from '../../../util/number';
+import { safeToChecksumAddress } from '../../../util/address';
 import { swapsUtils } from '@estebanmino/controllers';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 
@@ -26,7 +33,7 @@ import AppConstants from '../../../core/AppConstants';
 import { getEtherscanAddressUrl } from '../../../util/etherscan';
 import { strings } from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
-import { setQuotesNavigationsParams } from './utils';
+import { setQuotesNavigationsParams, isSwapsETH } from './utils';
 import { getSwapsAmountNavbar } from '../Navbar';
 
 import Onboarding from './components/Onboarding';
@@ -125,6 +132,8 @@ const styles = StyleSheet.create({
 
 const SWAPS_ETH_ADDRESS = swapsUtils.ETH_SWAPS_TOKEN_ADDRESS;
 const TOKEN_MINIMUM_SOURCES = 1;
+const MAX_TOP_ASSETS = 20;
+
 function SwapsAmountView({
 	swapsTokens,
 	accounts,
@@ -154,6 +163,8 @@ function SwapsAmountView({
 	);
 	const [destinationToken, setDestinationToken] = useState(null);
 	const [hasDismissedTokenAlert, setHasDismissedTokenAlert] = useState(true);
+	const [contractBalance, setContractBalance] = useState(null);
+	const [contractBalanceAsUnits, setContractBalanceAsUnits] = useState(numberToBN(0));
 
 	const [isSourceModalVisible, toggleSourceModal] = useModalHandler(false);
 	const [isDestinationModalVisible, toggleDestinationModal] = useModalHandler(false);
@@ -173,12 +184,14 @@ function SwapsAmountView({
 				if (liveness) {
 					// Triggered when a user enters the MetaMask Swap feature
 					InteractionManager.runAfterInteractions(() => {
-						Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAPS_OPENED, {
+						const parameters = {
 							source: initialSource === SWAPS_ETH_ADDRESS ? 'MainView' : 'TokenView',
 							activeCurrency: swapsTokens?.find(
 								token => token.address?.toLowerCase() === initialSource.toLowerCase()
 							)?.symbol
-						});
+						};
+						Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAPS_OPENED, {});
+						Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAPS_OPENED, parameters, true);
 					});
 				} else {
 					navigation.pop();
@@ -237,6 +250,26 @@ function SwapsAmountView({
 		setHasDismissedTokenAlert(false);
 	}, [destinationToken]);
 
+	const isTokenInBalances =
+		sourceToken && !isSwapsETH(sourceToken) ? safeToChecksumAddress(sourceToken.address) in balances : false;
+
+	useEffect(() => {
+		(async () => {
+			if (sourceToken && !isSwapsETH(sourceToken) && !isTokenInBalances) {
+				setContractBalance(null);
+				setContractBalanceAsUnits(numberToBN(0));
+				const { AssetsContractController } = Engine.context;
+				try {
+					const balance = await AssetsContractController.getBalanceOf(sourceToken.address, selectedAddress);
+					setContractBalanceAsUnits(balance);
+					setContractBalance(renderFromTokenMinimalUnit(balance, sourceToken.decimals));
+				} catch (e) {
+					// Don't validate balance if error
+				}
+			}
+		})();
+	}, [isTokenInBalances, selectedAddress, sourceToken]);
+
 	const hasInvalidDecimals = useMemo(() => {
 		if (sourceToken) {
 			return amount?.split('.')[1]?.length > sourceToken.decimals;
@@ -249,8 +282,12 @@ function SwapsAmountView({
 		hasInvalidDecimals,
 		sourceToken
 	]);
-	const balance = useBalance(accounts, balances, selectedAddress, sourceToken);
-	const balanceAsUnits = useBalance(accounts, balances, selectedAddress, sourceToken, { asUnits: true });
+	const controllerBalance = useBalance(accounts, balances, selectedAddress, sourceToken);
+	const controllerBalanceAsUnits = useBalance(accounts, balances, selectedAddress, sourceToken, { asUnits: true });
+
+	const balance = isSwapsETH(sourceToken) || isTokenInBalances ? controllerBalance : contractBalance;
+	const balanceAsUnits =
+		isSwapsETH(sourceToken) || isTokenInBalances ? controllerBalanceAsUnits : contractBalanceAsUnits;
 	const hasBalance = useMemo(() => {
 		if (!balanceAsUnits || !sourceToken) {
 			return false;
@@ -271,10 +308,10 @@ function SwapsAmountView({
 			return undefined;
 		}
 		let balanceFiat;
-		if (sourceToken.address === SWAPS_ETH_ADDRESS) {
+		if (isSwapsETH(sourceToken)) {
 			balanceFiat = weiToFiat(toTokenMinimalUnit(amount, sourceToken?.decimals), conversionRate, currentCurrency);
 		} else {
-			const sourceAddress = toChecksumAddress(sourceToken.address);
+			const sourceAddress = safeToChecksumAddress(sourceToken.address);
 			const exchangeRate = sourceAddress in tokenExchangeRates ? tokenExchangeRates[sourceAddress] : undefined;
 			balanceFiat = balanceToFiat(amount, conversionRate, exchangeRate, currentCurrency);
 		}
@@ -282,27 +319,41 @@ function SwapsAmountView({
 	}, [amount, conversionRate, currentCurrency, hasInvalidDecimals, sourceToken, tokenExchangeRates]);
 
 	const destinationTokenHasEnoughOcurrances = useMemo(() => {
-		if (!destinationToken || destinationToken?.address === SWAPS_ETH_ADDRESS) {
+		if (!destinationToken || isSwapsETH(destinationToken)) {
 			return true;
 		}
 		return destinationToken?.occurances > TOKEN_MINIMUM_SOURCES;
 	}, [destinationToken]);
 
 	/* Navigation handler */
-	const handleGetQuotesPress = useCallback(() => {
+	const handleGetQuotesPress = useCallback(async () => {
 		if (hasInvalidDecimals) {
 			return;
+		}
+		if (!isSwapsETH(sourceToken) && !isTokenInBalances && !balanceAsUnits?.isZero()) {
+			const { AssetsController } = Engine.context;
+			const { address, symbol, decimals } = sourceToken;
+			await AssetsController.addToken(address, symbol, decimals);
 		}
 		return navigation.navigate(
 			'SwapsQuotesView',
 			setQuotesNavigationsParams(
 				sourceToken?.address,
 				destinationToken?.address,
-				toTokenMinimalUnit(amount, sourceToken?.decimals).toString(),
+				toTokenMinimalUnit(amount, sourceToken?.decimals).toString(10),
 				slippage
 			)
 		);
-	}, [amount, destinationToken, hasInvalidDecimals, navigation, slippage, sourceToken]);
+	}, [
+		amount,
+		balanceAsUnits,
+		destinationToken,
+		hasInvalidDecimals,
+		isTokenInBalances,
+		navigation,
+		slippage,
+		sourceToken
+	]);
 
 	/* Keypad Handlers */
 	const handleKeypadChange = useCallback(
@@ -336,7 +387,7 @@ function SwapsAmountView({
 		if (!sourceToken || !balanceAsUnits) {
 			return;
 		}
-		setAmount(fromTokenMinimalUnitString(balanceAsUnits.toString(), sourceToken.decimals));
+		setAmount(fromTokenMinimalUnitString(balanceAsUnits.toString(10), sourceToken.decimals));
 	}, [balanceAsUnits, sourceToken]);
 
 	const handleSlippageChange = useCallback(value => {
@@ -430,7 +481,7 @@ function SwapsAmountView({
 									strings('swaps.available_to_swap', {
 										asset: `${balance} ${sourceToken.symbol}`
 									})}
-								{sourceToken.address !== SWAPS_ETH_ADDRESS && hasBalance && (
+								{!isSwapsETH(sourceToken) && hasBalance && (
 									<Text style={styles.linkText} onPress={handleUseMax}>
 										{' '}
 										{strings('swaps.use_max')}
@@ -468,13 +519,13 @@ function SwapsAmountView({
 						dismiss={toggleDestinationModal}
 						title={strings('swaps.convert_to')}
 						tokens={swapsTokens}
-						initialTokens={[swapsUtils.ETH_SWAPS_TOKEN_OBJECT, ...tokensTopAssets.slice(0, 5)]}
+						initialTokens={[swapsUtils.ETH_SWAPS_TOKEN_OBJECT, ...tokensTopAssets.slice(0, MAX_TOP_ASSETS)]}
 						onItemPress={handleDestinationTokenPress}
 						excludeAddresses={[sourceToken?.address]}
 					/>
 				</View>
 				<View>
-					{Boolean(destinationToken) && destinationToken.symbol !== 'ETH' ? (
+					{Boolean(destinationToken) && !isSwapsETH(destinationToken) ? (
 						destinationTokenHasEnoughOcurrances ? (
 							<TouchableOpacity onPress={handleVerifyPress} style={styles.verifyToken}>
 								<Text small centered>

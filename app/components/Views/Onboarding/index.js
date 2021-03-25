@@ -217,7 +217,11 @@ class Onboarding extends PureComponent {
 		/**
 		 * unset loading status
 		 */
-		unsetLoading: PropTypes.func
+		unsetLoading: PropTypes.func,
+		/**
+		 * loadings msg
+		 */
+		loadingMsg: PropTypes.string
 	};
 
 	notificationAnimated = new Animated.Value(100);
@@ -272,7 +276,7 @@ class Onboarding extends PureComponent {
 		InteractionManager.runAfterInteractions(() => {
 			PreventScreenshot.forbid();
 			if (this.props.navigation.getParam('delete', false)) {
-				this.props.setLoading();
+				this.props.setLoading(strings('onboarding.delete_current'));
 				setTimeout(() => {
 					this.showNotification();
 					this.props.unsetLoading();
@@ -284,9 +288,8 @@ class Onboarding extends PureComponent {
 	componentWillUnmount() {
 		this.mounted = false;
 		this.pubnubWrapper && this.pubnubWrapper.disconnectWebsockets();
-		InteractionManager.runAfterInteractions(() => {
-			PreventScreenshot.allow();
-		});
+		this.props.unsetLoading();
+		InteractionManager.runAfterInteractions(PreventScreenshot.allow);
 	}
 
 	async checkIfExistingUser() {
@@ -302,7 +305,7 @@ class Onboarding extends PureComponent {
 
 	initWebsockets() {
 		this.loading = true;
-		this.mounted && this.props.setLoading();
+		this.mounted && this.props.setLoading(strings('sync_with_extension.please_wait'));
 
 		this.pubnubWrapper.addMessageListener(
 			() => {
@@ -332,6 +335,7 @@ class Onboarding extends PureComponent {
 			await this.pubnubWrapper.startSync();
 			return true;
 		} catch (e) {
+			this.props.unsetLoading();
 			if (!firstAttempt) {
 				this.props.navigation.goBack();
 				if (e.message === 'Sync::timeout') {
@@ -436,6 +440,7 @@ class Onboarding extends PureComponent {
 			this.done = true;
 			this.dataToSync = null;
 			this.props.navigation.push('SyncWithExtensionSuccess');
+			this.props.unsetLoading();
 		} catch (e) {
 			Logger.error(e, 'Sync::disconnect');
 			Alert.alert(strings('sync_with_extension.error_title'), strings('sync_with_extension.error_message'));
@@ -563,19 +568,14 @@ class Onboarding extends PureComponent {
 		this.setState({ warningModalVisible: !warningModalVisible });
 	};
 
-	renderLoader() {
-		const is_delete = this.props.navigation.getParam('delete', false);
-		return (
-			<View style={styles.wrapper}>
-				<View style={styles.loader}>
-					<ActivityIndicator size="small" />
-					<Text style={styles.loadingText}>
-						{is_delete ? strings('onboarding.delete_current') : strings('sync_with_extension.please_wait')}
-					</Text>
-				</View>
+	renderLoader = () => (
+		<View style={styles.wrapper}>
+			<View style={styles.loader}>
+				<ActivityIndicator size="small" />
+				<Text style={styles.loadingText}>{this.props.loadingMsg}</Text>
 			</View>
-		);
-	}
+		</View>
+	);
 
 	renderContent() {
 		return (
@@ -713,11 +713,12 @@ const mapStateToProps = state => ({
 	selectedAddress: state?.engine?.backgroundState?.PreferencesController?.selectedAddress,
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	passwordSet: state.user.passwordSet,
-	loading: state.user.loadingSet
+	loading: state.user.loadingSet,
+	loadingMsg: state.user.loadingMsg
 });
 
 const mapDispatchToProps = dispatch => ({
-	setLoading: () => dispatch(loadingSet()),
+	setLoading: msg => dispatch(loadingSet(msg)),
 	unsetLoading: () => dispatch(loadingUnset()),
 	passwordHasBeenSet: () => dispatch(passwordSet()),
 	setLockTime: time => dispatch(setLockTime(time)),
