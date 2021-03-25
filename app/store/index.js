@@ -14,22 +14,26 @@ const MigratedStorage = {
 
 			if (res) {
 				// Using new storage system
+				console.log('Filesystem');
 				return res;
 			}
-		} catch (e) {
-			//
-		}
-
-		// Using old storage system, should only happen once
-		try {
-			const res = await AsyncStorage.getItem(key);
-			//AsyncStorage.setItem(key, ''); // clear old storage
-			return res;
-		} catch (error) {
-			Logger.error(error, { message: 'Failed to run migration' });
+		} catch {
+			// Using old storage system, should only happen once
+			try {
+				const res = await AsyncStorage.getItem(key);
+				if (res) {
+					// Using old storage system
+					console.log('AsyncStorage');
+					return res;
+				}
+			} catch (error) {
+				Logger.error(error, { message: 'Failed to run migration' });
+				throw new Error('Failed async storage storage fetch.');
+			}
 		}
 	},
 	setItem(key, value) {
+		console.log('SET');
 		return FilesystemStorage.setItem(key, value);
 	},
 	removeItem(key) {
