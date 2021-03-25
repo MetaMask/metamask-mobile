@@ -19,30 +19,20 @@ const MigratedStorage = {
 					return res;
 				}
 			} catch {
-				// Using old storage system, should only happen once
-				try {
-					const res = await AsyncStorage.getItem(key);
-					if (res) {
-						// Using old storage system
-						return res;
-					}
-				} catch (error) {
-					Logger.error(error, { message: 'Failed to run migration' });
-					throw new Error('Failed async storage storage fetch.');
-				}
+				//Fail silently
 			}
-		} else {
-			// Using old storage system, should only happen once
-			try {
-				const res = await AsyncStorage.getItem(key);
-				if (res) {
-					// Using old storage system
-					return res;
-				}
-			} catch (error) {
-				Logger.error(error, { message: 'Failed to run migration' });
-				throw new Error('Failed async storage storage fetch.');
+		}
+
+		// Using old storage system, should only happen once
+		try {
+			const res = await AsyncStorage.getItem(key);
+			if (res) {
+				// Using old storage system
+				return res;
 			}
+		} catch (error) {
+			Logger.error(error, { message: 'Failed to run migration' });
+			throw new Error('Failed async storage storage fetch.');
 		}
 	},
 	async setItem(key, value) {
