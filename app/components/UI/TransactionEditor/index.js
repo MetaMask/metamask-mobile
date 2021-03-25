@@ -626,22 +626,29 @@ class TransactionEditor extends PureComponent {
 
 	handleFetchBasicEstimates = async () => {
 		const { chainId } = this.props;
+
+		if (!isMainnetByChainId(chainId)) {
+			return this.setState({ basicGasEstimates: null, ready: true });
+		}
+
 		this.setState({ ready: false });
-		const basicGasEstimates = await getBasicGasEstimates();
-		if (isMainnetByChainId(chainId)) {
+		try {
+			const basicGasEstimates = await getBasicGasEstimates();
 			this.handleGasFeeSelection(
 				this.props.transaction.gas,
 				apiEstimateModifiedToWEI(basicGasEstimates.averageGwei)
 			);
+			this.setState({ basicGasEstimates, ready: true });
+		} catch (e) {
+			return this.setState({ basicGasEstimates: null, ready: true });
 		}
-		this.setState({ basicGasEstimates, ready: true });
 	};
 
 	render = () => {
-		const { mode, transactionConfirmed, transaction, onModeChange, chainId } = this.props;
+		const { mode, transactionConfirmed, transaction, onModeChange } = this.props;
 		const { basicGasEstimates, ready, gasError, over } = this.state;
 		const paymentChannelTransaction = transaction ? transaction.paymentChannelTransaction : false;
-		const isMainnet = isMainnetByChainId(chainId);
+
 		return (
 			<React.Fragment>
 				{mode === EDIT && paymentChannelTransaction && <ConfirmSend transaction={transaction} />}
@@ -663,7 +670,6 @@ class TransactionEditor extends PureComponent {
 								gasPrice={transaction.gasPrice}
 								gasError={gasError}
 								mode={mode}
-								onlyAdvanced={!isMainnet}
 							/>
 						</AnimatedTransactionModal>
 					</KeyboardAwareScrollView>

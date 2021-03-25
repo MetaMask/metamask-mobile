@@ -126,10 +126,18 @@ class Approve extends PureComponent {
 	handleFetchBasicEstimates = async () => {
 		const { chainId } = this.props;
 		this.setState({ ready: false });
-		const basicGasEstimates = await getBasicGasEstimates();
-		if (isMainnetByChainId(chainId))
+
+		if (!isMainnetByChainId(chainId)) {
+			return this.setState({ basicGasEstimates: null, ready: true });
+		}
+
+		try {
+			const basicGasEstimates = await getBasicGasEstimates();
 			this.handleSetGasFee(this.props.transaction.gas, apiEstimateModifiedToWEI(basicGasEstimates.averageGwei));
-		this.setState({ basicGasEstimates, ready: true });
+			this.setState({ basicGasEstimates, ready: true });
+		} catch (e) {
+			return this.setState({ basicGasEstimates: null, ready: true });
+		}
 	};
 
 	trackApproveEvent = event => {
@@ -241,9 +249,8 @@ class Approve extends PureComponent {
 
 	render = () => {
 		const { gasError, basicGasEstimates, mode, ready, over } = this.state;
-		const { transaction, chainId } = this.props;
+		const { transaction } = this.props;
 		if (!transaction.id) return null;
-		const isMainnet = isMainnetByChainId(chainId);
 		return (
 			<Modal
 				isVisible={this.props.modalVisible}
@@ -274,7 +281,6 @@ class Approve extends PureComponent {
 							gasPrice={transaction.gasPrice}
 							gasError={gasError}
 							mode={mode}
-							onlyAdvanced={!isMainnet}
 						/>
 					</AnimatedTransactionModal>
 				</KeyboardAwareScrollView>

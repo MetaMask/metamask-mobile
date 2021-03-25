@@ -13,6 +13,7 @@ import { safeToChecksumAddress } from '../../../util/address';
 import Radio from '../Radio';
 import StyledButton from '../../UI/StyledButton';
 import Device from '../../../util/Device';
+import { isMainnetByChainId } from '../../../util/networks';
 
 const styles = StyleSheet.create({
 	root: {
@@ -297,9 +298,9 @@ class CustomGas extends PureComponent {
 		 */
 		toAdvancedFrom: PropTypes.string,
 		/**
-		 * If true, will not show the slow, normal, fast options, only the advanced option (for all networks other than mainnet)
+		 * Current network chain id
 		 */
-		onlyAdvanced: PropTypes.bool
+		chainId: PropTypes.string
 	};
 
 	state = {
@@ -317,10 +318,10 @@ class CustomGas extends PureComponent {
 	};
 
 	componentDidMount = async () => {
-		const { gas, gasPrice, toggleAdvancedCustomGas, onlyAdvanced } = this.props;
+		const { gas, gasPrice, toggleAdvancedCustomGas } = this.props;
 		const warningSufficientFunds = this.hasSufficientFunds(gas, gasPrice);
 		const { ticker } = this.props;
-		if ((ticker && ticker !== 'ETH') || onlyAdvanced) {
+		if ((ticker && ticker !== 'ETH') || this.onlyAdvanced()) {
 			toggleAdvancedCustomGas(true);
 		}
 
@@ -593,14 +594,14 @@ class CustomGas extends PureComponent {
 
 	renderCustomGasInput = () => {
 		const { customGasLimitBN, customGasPriceBNWei, customGasPriceBN } = this.state;
-		const { generateTransform, onlyAdvanced } = this.props;
+		const { generateTransform } = this.props;
 		const totalGas = customGasLimitBN && customGasLimitBN.mul(customGasPriceBNWei);
 		const ticker = getTicker(this.props.ticker);
 		return (
 			<Animated.View
 				style={[
 					styles.advancedOptionsContainer,
-					onlyAdvanced ? {} : generateTransform('editToAdvanced', [Device.getDeviceWidth(), 0])
+					this.onlyAdvanced() ? {} : generateTransform('editToAdvanced', [Device.getDeviceWidth(), 0])
 				]}
 				onLayout={this.saveGasInputHeight}
 			>
@@ -656,6 +657,14 @@ class CustomGas extends PureComponent {
 		!this.state.gasInputHeight && this.setState({ gasInputHeight: event.nativeEvent.layout.height });
 	};
 
+	onlyAdvanced = () => {
+		const { chainId, basicGasEstimates } = this.props;
+		const isNotMainnet = !isMainnetByChainId(chainId);
+		// Check if either no basicGasEstimates were provided or less than 3 options were provided (for example, only the average gas price)
+		const noBasicGasEstimates = !basicGasEstimates || Object.keys(basicGasEstimates).length < 3;
+		return isNotMainnet || noBasicGasEstimates;
+	};
+
 	render = () => {
 		const { warningGasLimit, warningGasPrice, warningSufficientFunds } = this.state;
 		const {
@@ -665,8 +674,7 @@ class CustomGas extends PureComponent {
 			advancedCustomGas,
 			generateTransform,
 			mode,
-			toAdvancedFrom,
-			onlyAdvanced
+			toAdvancedFrom
 		} = this.props;
 		let buttonStyle;
 
@@ -686,7 +694,7 @@ class CustomGas extends PureComponent {
 						<Text style={styles.customGasModalTitleText}>{strings('transaction.edit_network_fee')}</Text>
 						<IonicIcon name={'ios-arrow-back'} size={24} color={colors.white} />
 					</View>
-					{onlyAdvanced ? null : (
+					{this.onlyAdvanced() ? null : (
 						<View style={styles.optionsContainer}>
 							<TouchableOpacity
 								style={[styles.basicButton, advancedCustomGas ? null : styles.optionSelected]}
@@ -705,7 +713,7 @@ class CustomGas extends PureComponent {
 					)}
 				</View>
 
-				{onlyAdvanced ? null : this.renderCustomGasSelector()}
+				{this.onlyAdvanced() ? null : this.renderCustomGasSelector()}
 				{this.renderCustomGasInput()}
 
 				<Animated.View style={Device.isIos() && buttonStyle}>
@@ -735,7 +743,8 @@ const mapStateToProps = (state, props) => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	transaction: props.customTransaction || getNormalizedTxState(state)
+	transaction: props.customTransaction || getNormalizedTxState(state),
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId
 });
 
 export default connect(mapStateToProps)(CustomGas);

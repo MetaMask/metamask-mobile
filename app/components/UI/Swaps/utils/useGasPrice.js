@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { getBasicGasEstimates } from '../../../../util/custom-gas';
+import { getBasicGasEstimatesWithHardcodedFallback } from '../../../../util/custom-gas';
 import Logger from '../../../../util/Logger';
 
 function useGasPrice() {
@@ -7,7 +7,7 @@ function useGasPrice() {
 
 	const getGasPrice = useCallback(async () => {
 		try {
-			const gasEstimates = await getBasicGasEstimates();
+			const gasEstimates = await getBasicGasEstimatesWithHardcodedFallback();
 			setGasPrice(gasEstimates);
 		} catch (error) {
 			Logger.log('Swaps: Error while trying to get gas estimates', error);

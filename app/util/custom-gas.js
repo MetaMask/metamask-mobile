@@ -129,7 +129,7 @@ export async function fetchBasicGasEstimates() {
  *
  * @returns {Object} - Object containing formatted wait times
  */
-export async function getBasicGasEstimates() {
+export async function getBasicGasEstimatesWithHardcodedFallback() {
 	const {
 		CUSTOM_GAS: { AVERAGE_GAS, FAST_GAS, LOW_GAS }
 	} = TransactionTypes;
@@ -153,6 +153,28 @@ export async function getBasicGasEstimates() {
 		average = AVERAGE_GAS;
 		safeLow = LOW_GAS;
 		fast = FAST_GAS;
+	}
+
+	return {
+		averageGwei: convertApiValueToGWEI(average),
+		fastGwei: convertApiValueToGWEI(fast),
+		safeLowGwei: convertApiValueToGWEI(safeLow)
+	};
+}
+
+/**
+ * Sanitize gas estimates into formatted wait times
+ *
+ * @returns {Object} - Object containing formatted wait times
+ */
+export async function getBasicGasEstimates() {
+	const basicGasEstimates = await fetchBasicGasEstimates();
+
+	// Handle api failure returning same gas prices
+	const { average, fast, safeLow } = basicGasEstimates;
+
+	if (average === fast && average === safeLow) {
+		throw new Error('Api returned same gas prices');
 	}
 
 	return {

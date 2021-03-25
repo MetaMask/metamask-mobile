@@ -63,9 +63,6 @@ const EDIT = 'edit';
 const REVIEW = 'review';
 
 const { hexToBN, BNToHex } = util;
-const {
-	CUSTOM_GAS: { AVERAGE_GAS, FAST_GAS, LOW_GAS }
-} = TransactionTypes;
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -396,10 +393,20 @@ class Confirm extends PureComponent {
 	};
 
 	handleFetchBasicEstimates = async () => {
+		const { chainId } = this.props;
 		this.setState({ ready: false });
-		const basicGasEstimates = await getBasicGasEstimates();
-		this.handleSetGasFee(this.props.transaction.gas, apiEstimateModifiedToWEI(basicGasEstimates.averageGwei));
-		this.setState({ basicGasEstimates, ready: true });
+
+		if (!isMainnetByChainId(chainId)) {
+			return this.setState({ basicGasEstimates: null, ready: true });
+		}
+
+		try {
+			const basicGasEstimates = await getBasicGasEstimates();
+			this.handleSetGasFee(this.props.transaction.gas, apiEstimateModifiedToWEI(basicGasEstimates.averageGwei));
+			this.setState({ basicGasEstimates, ready: true });
+		} catch (e) {
+			return this.setState({ basicGasEstimates: null, ready: true });
+		}
 	};
 
 	prepareTransaction = async () => {
@@ -417,7 +424,8 @@ class Confirm extends PureComponent {
 		const { TransactionController } = Engine.context;
 		const { value, data, to, from } = transaction;
 		const { chainId } = this.props;
-		let estimation;
+		let estimation, basicGasEstimates;
+
 		try {
 			estimation = await TransactionController.estimateGas({
 				value,
@@ -425,26 +433,33 @@ class Confirm extends PureComponent {
 				data,
 				to
 			});
-		} catch (e) {
-			estimation = { gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT };
-		}
-		let basicGasEstimates;
-		try {
-			if (isMainnetByChainId(chainId)) {
-				basicGasEstimates = await fetchBasicGasEstimates();
-			} else {
-				basicGasEstimates = {
-					average: getValueFromWeiHex({
-						value: estimation.gasPrice.toString(16),
-						numberOfDecimals: 4,
-						toDenomination: 'GWEI'
-					})
-				};
-			}
+			basicGasEstimates = {
+				average: getValueFromWeiHex({
+					value: estimation.gasPrice.toString(16),
+					numberOfDecimals: 4,
+					toDenomination: 'GWEI'
+				})
+			};
 		} catch (error) {
-			Logger.log('Error while trying to get gas limit estimates', error);
-			basicGasEstimates = { average: AVERAGE_GAS, safeLow: LOW_GAS, fast: FAST_GAS };
+			estimation = {
+				gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT,
+				gasPrice: TransactionTypes.CUSTOM_GAS.AVERAGE_GAS
+			};
+			basicGasEstimates = {
+				average: estimation.gasPrice
+			};
+			Logger.log('Error while trying to get gas price from the network', error);
 		}
+
+		if (isMainnetByChainId(chainId)) {
+			try {
+				basicGasEstimates = await fetchBasicGasEstimates();
+			} catch (error) {
+				Logger.log('Error while trying to get gas limit estimates', error);
+				// Will use gas price from network that was fetched above
+			}
+		}
+
 		return {
 			gas: hexToBN(estimation.gas),
 			gasPrice: toWei(convertApiValueToGWEI(basicGasEstimates.average), 'gwei')
@@ -845,10 +860,8 @@ class Confirm extends PureComponent {
 	renderCustomGasModal = () => {
 		const { basicGasEstimates, gasError, ready, mode, gasSpeedSelected } = this.state;
 		const {
-			transaction: { gas, gasPrice },
-			chainId
+			transaction: { gas, gasPrice }
 		} = this.props;
-		const isMainnet = isMainnetByChainId(chainId);
 		return (
 			<Modal
 				isVisible
@@ -875,7 +888,6 @@ class Confirm extends PureComponent {
 							mode={mode}
 							onPress={this.handleSetGasSpeed}
 							gasSpeedSelected={gasSpeedSelected}
-							onlyAdvanced={!isMainnet}
 						/>
 					</AnimatedTransactionModal>
 				</KeyboardAwareScrollView>

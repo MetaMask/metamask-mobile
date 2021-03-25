@@ -55,6 +55,7 @@ import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import { isMainnetByChainId } from '../../../../util/networks';
+import Logger from '../../../../util/Logger';
 
 const { hexToBN, BNToHex } = util;
 
@@ -664,24 +665,34 @@ class Amount extends PureComponent {
 				from,
 				to: transactionTo
 			});
-		} catch (e) {
-			estimation = { gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT };
-		}
-		try {
-			if (isMainnetByChainId(chainId)) {
-				basicGasEstimates = await fetchBasicGasEstimates();
-			} else {
-				basicGasEstimates = {
-					average: getValueFromWeiHex({
-						value: estimation.gasPrice.toString(16),
-						numberOfDecimals: 4,
-						toDenomination: 'GWEI'
-					})
-				};
-			}
+
+			basicGasEstimates = {
+				average: getValueFromWeiHex({
+					value: estimation.gasPrice.toString(16),
+					numberOfDecimals: 4,
+					toDenomination: 'GWEI'
+				})
+			};
 		} catch (error) {
-			basicGasEstimates = { average: 20 };
+			estimation = {
+				gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT,
+				gasPrice: TransactionTypes.CUSTOM_GAS.AVERAGE_GAS
+			};
+			basicGasEstimates = {
+				average: estimation.gasPrice
+			};
+			Logger.log('Error while trying to get gas price from the network', error);
 		}
+
+		if (isMainnetByChainId(chainId)) {
+			try {
+				basicGasEstimates = await fetchBasicGasEstimates();
+			} catch (error) {
+				Logger.log('Error while trying to get gas limit estimates', error);
+				// Will use gas price from network that was fetched above
+			}
+		}
+
 		const gas = hexToBN(estimation.gas);
 		const gasPrice = toWei(convertApiValueToGWEI(basicGasEstimates.average), 'gwei');
 		return gas.mul(gasPrice);
