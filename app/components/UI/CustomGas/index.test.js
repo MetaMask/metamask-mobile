@@ -25,7 +25,8 @@ describe('CustomGas', () => {
 					},
 					NetworkController: {
 						provider: {
-							ticker: 'ETH'
+							ticker: 'ETH',
+							chainId: '1'
 						}
 					}
 				}
