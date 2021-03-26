@@ -165,8 +165,8 @@ class TransactionElement extends PureComponent {
 		const incoming = safeToChecksumAddress(tx.transaction.to) === selectedAddress;
 		const selfSent = incoming && safeToChecksumAddress(tx.transaction.from) === selectedAddress;
 		return `${
-			(!incoming || selfSent) && tx.transaction.nonce
-				? `#${parseInt(tx.transaction.nonce, 16)} - ${toDateFormat(tx.time)} from this device`
+			(!incoming || selfSent) && tx.origin
+				? `#${parseInt(tx.transaction.nonce, 16)} - ${toDateFormat(tx.time)} from ${tx.origin}`
 				: `${toDateFormat(tx.time)} 
 			`
 		}`;
@@ -180,18 +180,17 @@ class TransactionElement extends PureComponent {
 		const { tx, importTime } = this.props;
 		if (tx.insertImportTime) {
 			return (
-				<View>
-					<TouchableOpacity onPress={this.onPressImportWalletTip}>
-						<View style={styles.listDivider} />
-						<ListItem.Body sytle={styles.importRowBody}>
-							<Text style={fontStyles.thin}>
-								{`${strings('transactions.import_wallet_row')} `}
-								<FAIcon name="info-circle" style={styles.infoIcon} />
-							</Text>
-							<ListItem.Date>{toDateFormat(importTime)}</ListItem.Date>
-						</ListItem.Body>
+				//TODO
+				<>
+					<TouchableOpacity onPress={this.onPressImportWalletTip} style={styles.importRowBody}>
+						<Text style={fontStyles.thin} alignContent="center">
+							{`${strings('transactions.import_wallet_row')} `}
+							<FAIcon name="info-circle" style={styles.infoIcon} />
+						</Text>
+						<ListItem.Date>{toDateFormat(importTime)}</ListItem.Date>
 					</TouchableOpacity>
-				</View>
+					<View style={styles.listDivider} />
+				</>
 			);
 		}
 	};
@@ -238,6 +237,7 @@ class TransactionElement extends PureComponent {
 		const renderTxActions = status === 'submitted' || status === 'approved';
 		return (
 			<View>
+				{this.renderImportTime()}
 				<ListItem>
 					<ListItem.Date>{this.renderTxTime()}</ListItem.Date>
 					<ListItem.Content>
@@ -260,7 +260,6 @@ class TransactionElement extends PureComponent {
 						</ListItem.Actions>
 					)}
 				</ListItem>
-				{this.renderImportTime()}
 			</View>
 		);
 	};

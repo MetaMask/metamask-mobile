@@ -284,7 +284,7 @@ class ImportFromSeed extends PureComponent {
 				await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
 				this.setState({ loading: false });
 				this.props.passwordSet();
-				console.log(Date.now());
+				console.log('SET WALLET IMPORT TIME', Date.now());
 				this.props.importTimeSet(Date.now());
 				this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 				this.props.seedphraseBackedUp();

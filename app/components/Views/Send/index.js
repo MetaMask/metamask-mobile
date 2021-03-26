@@ -314,7 +314,6 @@ class Send extends PureComponent {
 			if (gasPrice) {
 				newTxMeta.gasPrice = toBN(gas);
 			}
-
 			// TODO: We should add here support for sending tokens
 			// or calling smart contract functions
 		}
@@ -330,7 +329,6 @@ class Send extends PureComponent {
 
 		newTxMeta.from = selectedAddress;
 		newTxMeta.transactionFromName = identities[selectedAddress].name;
-
 		this.props.setTransactionObject(newTxMeta);
 		this.mounted && this.setState({ ready: true, transactionKey: Date.now() });
 	};

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import Icon from 'react-native-vector-icons/Feather';
@@ -18,6 +19,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/Device';
+import { importTimeSet } from '../../../actions/user';
 import { importAccountFromPrivateKey } from '../../../util/address';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 
@@ -117,12 +119,17 @@ const styles = StyleSheet.create({
 /**
  * View that's displayed the first time a user receives funds
  */
-export default class ImportPrivateKey extends PureComponent {
+class ImportPrivateKey extends PureComponent {
 	static propTypes = {
 		/**
 		/* navigation object required to push and pop other views
 		*/
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * The action to set the import wallet time
+		 * in the redux store
+		 */
+		importTimeSet: PropTypes.func
 	};
 
 	state = {
@@ -157,6 +164,8 @@ export default class ImportPrivateKey extends PureComponent {
 		// Import private key
 		try {
 			await importAccountFromPrivateKey(this.state.privateKey);
+			console.log('SET WALLET IMPORT TIME', Date.now());
+			this.props.importTimeSet(Date.now());
 			this.props.navigation.navigate('ImportPrivateKeySuccess');
 			this.setState({ loading: false, privateKey: '' });
 		} catch (e) {
@@ -264,3 +273,12 @@ export default class ImportPrivateKey extends PureComponent {
 		);
 	}
 }
+
+const mapDispatchToProps = dispatch => ({
+	importTimeSet: importTime => dispatch(importTimeSet(importTime))
+});
+
+export default connect(
+	null,
+	mapDispatchToProps
+)(ImportPrivateKey);

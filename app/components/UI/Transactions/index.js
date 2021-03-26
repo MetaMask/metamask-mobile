@@ -288,6 +288,7 @@ class Transactions extends PureComponent {
 	 * @returns transactions to be displayed with import flag inserted
 	 */
 	insertImportWalletFlag = transactions => {
+		//TODO
 		let insertPointFound = false;
 		transactions.forEach(tx => {
 			if (this.props.importWalletTime >= tx.time && !insertPointFound) {
