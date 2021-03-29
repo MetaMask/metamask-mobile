@@ -64,6 +64,7 @@
   },
   "resolutions": {
     "**/elliptic": "^6.5.4",
+    "**/y18n": "^3.2.2",
     "**/optimist/minimist": "^1.2.5",
     "react-native-level-fs/**/bl": "^1.2.3",
     "react-native-level-fs/**/semver": "^4.3.2"
