@@ -503,7 +503,9 @@
 		"invalid_hex_number_leading_zeros": "Invalid hexadecimal number. Remove any leading zeros.",
 		"invalid_number": "Invalid number. Enter a decimal or '0x'-prefixed hexadecimal number.",
 		"invalid_number_leading_zeros": "Invalid number. Remove any leading zeros.",
-		"invalid_number_range": "Invalid number. Enter a number between 1 and %{maxSafeChainId}"
+		"invalid_number_range": "Invalid number. Enter a number between 1 and %{maxSafeChainId}",
+		"hide_zero_balance_tokens_title": "Hide Tokens Without Balance",
+		"hide_zero_balance_tokens_desc": "Prevents tokens with no balance from displaying in your token listing."
 	},
 	"app_information": {
 		"title": "Information",

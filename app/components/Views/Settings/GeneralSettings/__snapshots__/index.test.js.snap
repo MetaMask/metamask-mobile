@@ -548,7 +548,7 @@ exports[`GeneralSettings should render correctly 1`] = `
           }
         }
       >
-        Hide Zero-Balance Tokens
+        Hide Tokens Without Balance
       </Text>
       <Text
         style={

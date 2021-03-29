@@ -275,10 +275,8 @@ class Settings extends PureComponent {
 						</View>
 					</View>
 					<View style={styles.setting}>
-						<Text style={styles.title}>Hide Zero-Balance Tokens</Text>
-						<Text style={styles.desc}>
-							Prevents tokens with no balance from displaying in your token listing.
-						</Text>
+						<Text style={styles.title}>{strings('app_settings.hide_zero_balance_tokens_title')}</Text>
+						<Text style={styles.desc}>{strings('app_settings.hide_zero_balance_tokens_desc')}</Text>
 						<View style={styles.marginTop}>
 							<Switch
 								value={hideZeroBalanceTokens}
