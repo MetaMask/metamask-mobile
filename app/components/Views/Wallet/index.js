@@ -248,17 +248,20 @@ class Wallet extends PureComponent {
 	);
 }
 
-const mapStateToProps = state => ({
-	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
-	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	identities: state.engine.backgroundState.PreferencesController.identities,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	tokens: state.engine.backgroundState.AssetsController.tokens,
-	collectibles: state.engine.backgroundState.AssetsController.collectibles,
-	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	wizardStep: state.wizard.step
-});
+const mapStateToProps = state => () => {
+	const { tokens } = state.engine.backgroundState.AssetsController;
+	return {
+		accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+		conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+		currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+		identities: state.engine.backgroundState.PreferencesController.identities,
+		selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+		tokens: state.settings.hideZeroBalanceTokens ? tokens.filter(token => Number(token.balance) > 0) : tokens,
+		collectibles: state.engine.backgroundState.AssetsController.collectibles,
+		ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+		wizardStep: state.wizard.step
+	};
+};
 
 const mapDispatchToProps = dispatch => ({
 	showTransactionNotification: args => dispatch(showTransactionNotification(args)),
