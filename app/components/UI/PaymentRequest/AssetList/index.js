@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	textSymbol: {
-		...fontStyles.bold,
+		...fontStyles.normal,
 		paddingBottom: 4,
 		fontSize: 16
 	},

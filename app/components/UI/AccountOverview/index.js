@@ -236,7 +236,7 @@ class AccountOverview extends PureComponent {
 		});
 	};
 
-	onReceive = () => this.props.toggleReceiveModal(getEther());
+	onReceive = () => this.props.toggleReceiveModal();
 
 	onSend = () => {
 		const { newAssetTransaction, navigation } = this.props;
