@@ -64,5 +64,8 @@ export default {
 		POLL_COUNT_LIMIT: 3,
 		DEFAULT_SLIPPAGE: 3
 	},
-	MAX_SAFE_CHAIN_ID: 4503599627370476
+	MAX_SAFE_CHAIN_ID: 4503599627370476,
+	URLS: {
+		TERMS_AND_CONDITIONS: 'https://consensys.net/terms-of-use/'
+	}
 };

@@ -804,7 +804,7 @@ function SwapsQuotesView({
 	const handleTermsPress = useCallback(
 		() =>
 			navigation.navigate('Webview', {
-				url: 'https://metamask.io/terms.html'
+				url: AppConstants.URLS.TERMS_AND_CONDITIONS
 			}),
 		[navigation]
 	);

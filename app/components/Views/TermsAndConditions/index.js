@@ -3,8 +3,7 @@ import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-
-const TERMS_AND_CONDITIONS = 'https://metamask.io/terms.html';
+import AppConstants from '../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -36,7 +35,7 @@ export default class TermsAndConditions extends PureComponent {
 	press = () => {
 		const { navigation } = this.props;
 		navigation.navigate('Webview', {
-			url: TERMS_AND_CONDITIONS,
+			url: AppConstants.URLS.TERMS_AND_CONDITIONS,
 			title: strings('terms_and_conditions.title')
 		});
 	};
