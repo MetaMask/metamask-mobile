@@ -618,7 +618,7 @@
 		"could_not_resolve_ens": "ENS를 확인할 수 없음",
 		"asset": "자산",
 		"balance": "잔액",
-		"not_enough_for_gas": "거래 수수료를 결제할 계정에 ETH가 없습니다. ETH를 구매하거나 다른 계정에서 입금하세요.",
+		"not_enough_for_gas": "거래 수수료를 결제할 계정에 {{ticker}}가 없습니다. {{ticker}}를 구매하거나 다른 계정에서 입금하세요.",
 		"send": "보내기",
 		"confirmed": "확인됨",
 		"pending": "보류 중",
