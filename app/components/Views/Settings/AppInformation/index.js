@@ -104,7 +104,7 @@ export default class AppInformation extends PureComponent {
 	};
 
 	onPrivacyPolicy = () => {
-		const url = 'https://metamask.io/privacy.html';
+		const url = AppConstants.URLS.PRIVACY_POLICY;
 		this.goTo(url, strings('app_information.privacy_policy'));
 	};
 

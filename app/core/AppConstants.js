@@ -66,6 +66,7 @@ export default {
 	},
 	MAX_SAFE_CHAIN_ID: 4503599627370476,
 	URLS: {
-		TERMS_AND_CONDITIONS: 'https://consensys.net/terms-of-use/'
+		TERMS_AND_CONDITIONS: 'https://consensys.net/terms-of-use/',
+		PRIVACY_POLICY: 'https://metamask.io/privacy.html'
 	}
 };
