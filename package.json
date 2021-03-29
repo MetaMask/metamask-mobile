@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "private": true,
   "scripts": {
     "watch": "./scripts/build.sh watcher watch",
@@ -56,12 +56,10 @@
   "lint-staged": {
     "*.js": [
       "prettier --write",
-      "eslint --ignore-path=.prettierignore",
-      "git add"
+      "eslint --ignore-path=.prettierignore"
     ],
     "*.json": [
-      "prettier --write",
-      "git add"
+      "prettier --write"
     ]
   },
   "resolutions": {
@@ -74,7 +72,7 @@
     "@estebanmino/controllers": "^3.3.17",
     "@exodus/react-native-payments": "https://github.com/wachunei/react-native-payments.git#package-json-hack",
     "@metamask/contract-metadata": "^1.23.0",
-    "@metamask/controllers": "^6.1.0",
+    "@metamask/controllers": "^6.1.1",
     "@react-native-community/async-storage": "1.12.1",
     "@react-native-community/blur": "^3.6.0",
     "@react-native-community/checkbox": "^0.4.2",
@@ -93,7 +91,7 @@
     "axios": "^0.21.1",
     "babel-plugin-transform-inline-environment-variables": "0.4.3",
     "babel-plugin-transform-remove-console": "6.9.4",
-    "base-64": "0.1.0",
+    "base-64": "1.0.0",
     "bignumber.js": "8.1.1",
     "buffer": "5.2.1",
     "compare-versions": "^3.6.0",
@@ -101,7 +99,7 @@
     "dnode": "1.2.2",
     "eth-ens-namehash": "2.0.8",
     "eth-json-rpc-errors": "^2.0.2",
-    "eth-json-rpc-filters": "4.1.1",
+    "eth-json-rpc-filters": "4.2.2",
     "eth-json-rpc-infura": "5.1.0",
     "eth-json-rpc-middleware": "4.3.0",
     "eth-url-parser": "1.0.2",
@@ -116,7 +114,7 @@
     "fuse.js": "3.4.4",
     "https-browserify": "0.0.1",
     "is-url": "^1.2.4",
-    "json-rpc-engine": "5.1.5",
+    "json-rpc-engine": "^6.1.0",
     "json-rpc-middleware-stream": "2.1.1",
     "lottie-react-native": "git+https://github.com/MetaMask/lottie-react-native.git#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106",
     "multihashes": "0.4.14",
@@ -207,7 +205,7 @@
     "assert": "1.4.1",
     "babel-core": "7.0.0-bridge.0",
     "babel-eslint": "10.0.3",
-    "babel-jest": "^25.2.6",
+    "babel-jest": "^26.6.3",
     "concat-cli": "4.0.0",
     "detox": "17.3.1",
     "enzyme": "3.9.0",
@@ -223,7 +221,7 @@
     "jest": "^25.2.7",
     "jest-serializer": "24.4.0",
     "jetifier": "^1.6.6",
-    "lint-staged": "8.1.5",
+    "lint-staged": "10.5.4",
     "metro": "^0.59.0",
     "metro-react-native-babel-preset": "^0.59.0",
     "octonode": "0.9.5",

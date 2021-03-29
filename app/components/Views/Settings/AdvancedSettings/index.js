@@ -18,7 +18,7 @@ import { Buffer } from 'buffer';
 import Logger from '../../../../util/Logger';
 import ipfsGateways from '../../../../util/ipfs-gateways.json';
 import SelectComponent from '../../../UI/SelectComponent';
-import timeoutFetch from '../../../../util/general';
+import { timeoutFetch } from '../../../../util/general';
 import Device from '../../../../util/Device';
 
 const HASH_TO_TEST = 'Qmaisz6NMhDB51cCvNWa1GMS7LU1pAxdF4Ld6Ft9kZEP2a';
