@@ -538,7 +538,7 @@ class SendFlow extends PureComponent {
 	};
 
 	render = () => {
-		const { isPaymentChannelTransaction } = this.props;
+		const { isPaymentChannelTransaction, ticker } = this.props;
 		const {
 			fromSelectedAddress,
 			fromAccountName,
@@ -614,7 +614,9 @@ class SendFlow extends PureComponent {
 									<WarningMessage
 										warningMessage={
 											<>
-												{strings('transaction.not_enough_for_gas')}
+												{strings('transaction.not_enough_for_gas', {
+													ticker: getTicker(ticker)
+												})}
 
 												{this.renderBuyEth()}
 											</>
