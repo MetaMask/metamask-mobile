@@ -75,6 +75,7 @@ export const migrations = {
 	},
 	4: state => {
 		const { allCollectibleContracts, allCollectibles, allTokens } = state.engine.backgroundState.AssetsController;
+		const { frequentRpcList } = state.engine.backgroundState.PreferencesController;
 
 		const newAllCollectibleContracts = {};
 		const newAllCollectibles = {};
@@ -85,6 +86,10 @@ export const migrations = {
 			Object.keys(allTokens[address]).forEach(networkType => {
 				if (NetworksChainId[networkType]) {
 					newAllTokens[address][NetworksChainId[networkType]] = allTokens[address][networkType];
+				} else {
+					frequentRpcList.forEach(({ chainId }) => {
+						newAllTokens[address][chainId] = allTokens[address][networkType];
+					});
 				}
 			});
 		});
@@ -94,6 +99,10 @@ export const migrations = {
 			Object.keys(allCollectibles[address]).forEach(networkType => {
 				if (NetworksChainId[networkType]) {
 					newAllCollectibles[address][NetworksChainId[networkType]] = allCollectibles[address][networkType];
+				} else {
+					frequentRpcList.forEach(({ chainId }) => {
+						newAllCollectibles[address][chainId] = allCollectibles[address][networkType];
+					});
 				}
 			});
 		});
@@ -104,6 +113,10 @@ export const migrations = {
 				if (NetworksChainId[networkType]) {
 					newAllCollectibleContracts[address][NetworksChainId[networkType]] =
 						allCollectibleContracts[address][networkType];
+				} else {
+					frequentRpcList.forEach(({ chainId }) => {
+						newAllCollectibleContracts[address][chainId] = allCollectibleContracts[address][networkType];
+					});
 				}
 			});
 		});
