@@ -151,7 +151,7 @@ class Settings extends PureComponent {
 		 */
 		selectedAddress: PropTypes.string,
 		/**
-		 * A bool that represents if the user wants to see zero balance token
+		 * A bool that represents if the user wants to hide zero balance token
 		 */
 		hideZeroBalanceTokens: PropTypes.bool,
 		/**
