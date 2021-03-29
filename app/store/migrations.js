@@ -72,7 +72,50 @@ export const migrations = {
 			};
 		}
 		return state;
+	},
+	4: state => {
+		const { allCollectibleContracts, allCollectibles, allTokens } = state.engine.backgroundState.AssetsController;
+
+		const newAllCollectibleContracts = {};
+		const newAllCollectibles = {};
+		const newAllTokens = {};
+
+		Object.keys(allTokens).forEach(address => {
+			newAllTokens[address] = {};
+			Object.keys(allTokens[address]).forEach(networkType => {
+				if (NetworksChainId[networkType]) {
+					newAllTokens[address][NetworksChainId[networkType]] = allTokens[address][networkType];
+				}
+			});
+		});
+
+		Object.keys(allCollectibles).forEach(address => {
+			newAllCollectibles[address] = {};
+			Object.keys(allCollectibles[address]).forEach(networkType => {
+				if (NetworksChainId[networkType]) {
+					newAllCollectibles[address][NetworksChainId[networkType]] = allCollectibles[address][networkType];
+				}
+			});
+		});
+
+		Object.keys(allCollectibleContracts).forEach(address => {
+			newAllCollectibleContracts[address] = {};
+			Object.keys(allCollectibleContracts[address]).forEach(networkType => {
+				if (NetworksChainId[networkType]) {
+					newAllCollectibleContracts[address][NetworksChainId[networkType]] =
+						allCollectibleContracts[address][networkType];
+				}
+			});
+		});
+
+		state.engine.backgroundState.AssetsController = {
+			...state.engine.backgroundState.AssetsController,
+			allTokens: newAllTokens,
+			allCollectibles: newAllCollectibles,
+			allCollectibleContracts: newAllCollectibleContracts
+		};
+		return state;
 	}
 };
 
-export const version = 3;
+export const version = 4;
