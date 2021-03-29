@@ -35,7 +35,6 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import StyledButton from '../StyledButton';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { generateETHLink, generateERC20Link, generateUniversalLinkRequest } from '../../../util/payment-link-generator';
-import NetworkList from '../../../util/networks';
 import Device from '../../../util/Device';
 import currencySymbols from '../../../util/currency-symbols.json';
 
@@ -50,7 +49,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 24
 	},
 	title: {
-		...fontStyles.bold,
+		...fontStyles.normal,
 		fontSize: 16
 	},
 	searchWrapper: {
@@ -80,7 +79,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		backgroundColor: colors.white,
 		borderWidth: 0,
-		fontSize: 32,
+		fontSize: 24,
 		paddingBottom: 0,
 		paddingRight: 0,
 		paddingLeft: 0,
@@ -88,7 +87,7 @@ const styles = StyleSheet.create({
 	},
 	eth: {
 		...fontStyles.normal,
-		fontSize: 32,
+		fontSize: 24,
 		paddingTop: Device.isAndroid() ? 3 : 0,
 		paddingLeft: 10,
 		textTransform: 'uppercase'
@@ -175,7 +174,7 @@ const styles = StyleSheet.create({
 	},
 	currencySymbol: {
 		...fontStyles.normal,
-		fontSize: 32
+		fontSize: 24
 	},
 	currencySymbolSmall: {
 		...fontStyles.normal,
@@ -261,9 +260,9 @@ class PaymentRequest extends PureComponent {
 		 */
 		tokens: PropTypes.array,
 		/**
-		 * A string representing the network name
+		 * A string representing the chainId
 		 */
-		networkType: PropTypes.string
+		chainId: PropTypes.string
 	};
 
 	amountInput = React.createRef();
@@ -279,7 +278,6 @@ class PaymentRequest extends PureComponent {
 		secondaryAmount: undefined,
 		symbol: undefined,
 		showError: false,
-		chainId: '',
 		inputWidth: { width: '99%' }
 	};
 
@@ -287,12 +285,10 @@ class PaymentRequest extends PureComponent {
 	 * Set chainId, internalPrimaryCurrency and receiveAssets, if there is an asset set to this payment request chose it automatically, to state
 	 */
 	componentDidMount = () => {
-		const { primaryCurrency, navigation, networkType } = this.props;
+		const { primaryCurrency, navigation } = this.props;
 		const receiveAsset = navigation && navigation.getParam('receiveAsset', undefined);
-		const chainId = Object.keys(NetworkList).indexOf(networkType) > -1 && NetworkList[networkType].networkId;
 		this.setState({
 			internalPrimaryCurrency: primaryCurrency,
-			chainId,
 			inputWidth: { width: '100%' }
 		});
 		if (receiveAsset) {
@@ -356,10 +352,10 @@ class PaymentRequest extends PureComponent {
 	 * Either top picks and user's assets are available to select
 	 */
 	renderSelectAssets = () => {
-		const { tokens } = this.props;
-		const { chainId, inputWidth } = this.state;
+		const { tokens, chainId } = this.props;
+		const { inputWidth } = this.state;
 		let results;
-		if (chainId === 1) {
+		if (chainId === '1') {
 			results = this.state.searchInputValue ? this.state.results : defaultAssets;
 		} else {
 			results = defaultEth;
@@ -374,7 +370,7 @@ class PaymentRequest extends PureComponent {
 				<View>
 					<Text style={styles.title}>{strings('payment_request.choose_asset')}</Text>
 				</View>
-				{chainId === 1 && (
+				{chainId === '1' && (
 					<View style={styles.searchWrapper}>
 						<TextInput
 							style={[styles.searchInput, inputWidth]}
@@ -534,8 +530,8 @@ class PaymentRequest extends PureComponent {
 	 * If there is an error, an error message will be set to display on the view
 	 */
 	onNext = () => {
-		const { selectedAddress, navigation } = this.props;
-		const { cryptoAmount, selectedAsset, chainId } = this.state;
+		const { selectedAddress, navigation, chainId } = this.props;
+		const { cryptoAmount, selectedAsset } = this.state;
 		try {
 			let eth_link;
 			if (selectedAsset.isETH) {
@@ -697,7 +693,7 @@ const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	primaryCurrency: state.settings.primaryCurrency,
-	networkType: state.engine.backgroundState.NetworkController.provider.type
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId
 });
 
 export default connect(mapStateToProps)(PaymentRequest);
