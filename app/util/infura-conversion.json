@@ -29,6 +29,13 @@
 			}
 		},
 		{
+			"symbol": "ethnzd",
+			"quote": {
+				"code": "nzd",
+				"name": "New Zealand Dollar"
+			}
+		},
+		{
 			"symbol": "ethphp",
 			"quote": {
 				"code": "php",
