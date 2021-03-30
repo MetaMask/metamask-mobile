@@ -1675,7 +1675,6 @@ export const BrowserTab = props => {
 			animationOutTiming={300}
 			onSwipeComplete={onAddCustomNetworkReject}
 			onBackdropPress={onAddCustomNetworkReject}
-			swipeDirection={'down'}
 		>
 			<AddCustomNetwork
 				onCancel={onAddCustomNetworkReject}
