@@ -317,17 +317,14 @@ class ApproveTransactionReview extends PureComponent {
 		const isDapp = !Object.values(AppConstants.DEEPLINKS).includes(transaction.origin);
 		const params = {
 			dapp_host_name: transaction.origin,
-			dapp_url: activeTabUrl,
+			dapp_url: isDapp ? activeTabUrl : undefined,
 			network_name: type,
 			chain_id: chainId,
 			active_currency: tokenSymbol,
-			// ANALYTICS_TODO
-			asset_type: tokenSymbol === 'ETH' ? 'ETH' : 'ERC20',
 			//token_count
 			//permission_requested
 			referral_type: isDapp ? 'dapp' : transaction.origin
 		};
-
 		// Send analytics params to parent component so it's available when cancelling and confirming
 		onSetAnalyticsParams && onSetAnalyticsParams(params);
 

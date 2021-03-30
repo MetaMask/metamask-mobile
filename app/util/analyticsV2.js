@@ -1,4 +1,4 @@
-const generateOpt = name => ({ name });
+const generateOpt = name => ({ category: name });
 
 export const ANALYTICS_EVENTS_V2 = {
 	// Approval
