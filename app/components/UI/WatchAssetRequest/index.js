@@ -9,6 +9,9 @@ import { renderFromTokenMinimalUnit } from '../../../util/number';
 import TokenImage from '../../UI/TokenImage';
 import Device from '../../../util/Device';
 import Engine from '../../../core/Engine';
+import URL from 'url-parse';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENTS_V2 from '../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	root: {
@@ -96,7 +99,32 @@ class WatchAssetRequest extends PureComponent {
 		/**
 		 * Object containing token balances in the format address => balance
 		 */
-		contractBalances: PropTypes.object
+		contractBalances: PropTypes.object,
+		/**
+		 * Object containing current page title, url, and icon href
+		 */
+		currentPageInformation: PropTypes.object
+	};
+
+	getAnalyticsParams = () => {
+		const {
+			suggestedAssetMeta: { asset },
+			currentPageInformation
+		} = this.props;
+
+		const { NetworkController } = Engine.context;
+		const { chainId, type } = NetworkController.state.provider;
+
+		const url = new URL(currentPageInformation.url);
+		return {
+			token_address: asset.address,
+			token_symbol: asset.symbol,
+			dapp_host_name: url.host,
+			dapp_url: currentPageInformation.url,
+			network_name: type,
+			chain_id: chainId,
+			source: 'Dapp suggested (watchAsset)'
+		};
 	};
 
 	componentWillUnmount = async () => {
@@ -108,6 +136,7 @@ class WatchAssetRequest extends PureComponent {
 	onConfirm = async () => {
 		const { onConfirm, suggestedAssetMeta } = this.props;
 		const { AssetsController } = Engine.context;
+		Analytics.trackEventWithParameters(ANALYTICS_EVENTS_V2.TOKEN_ADDED, this.getAnalyticsParams());
 		await AssetsController.acceptWatchAsset(suggestedAssetMeta.id);
 		onConfirm && onConfirm();
 	};

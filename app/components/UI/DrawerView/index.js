@@ -41,6 +41,7 @@ import WhatsNewModal from '../WhatsNewModal';
 import InvalidCustomNetworkAlert from '../InvalidCustomNetworkAlert';
 import { RPC } from '../../../constants/network';
 import { findBottomTabRouteNameFromNavigatorState, findRouteNameFromNavigatorState } from '../../../util/general';
+import ANALYTICS_EVENTS_V2 from '../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -525,7 +526,7 @@ class DrawerView extends PureComponent {
 	showWallet = () => {
 		this.props.navigation.navigate('WalletTabHome');
 		this.hideDrawer();
-		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_WALLET);
+		this.trackEvent(ANALYTICS_EVENTS_V2.WALLET_OPENED);
 	};
 
 	goToTransactionHistory = () => {

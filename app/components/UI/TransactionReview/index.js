@@ -9,7 +9,8 @@ import {
 	getNormalizedTxState,
 	APPROVE_FUNCTION_SIGNATURE,
 	decodeTransferData,
-	getTicker
+	getTicker,
+	getActiveTabUrl
 } from '../../../util/transactions';
 import {
 	weiToFiat,
@@ -31,6 +32,7 @@ import TransactionHeader from '../TransactionHeader';
 import AccountInfoCard from '../AccountInfoCard';
 import ActionView from '../ActionView';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
+import ANALYTICS_EVENTS_V2 from '../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	tabUnderlineStyle: {
@@ -155,7 +157,19 @@ class TransactionReview extends PureComponent {
 		/**
 		 * True if transaction is over the available funds
 		 */
-		over: PropTypes.bool
+		over: PropTypes.bool,
+		/**
+		 * Active tab URL, the currently active tab url
+		 */
+		activeTabUrl: PropTypes.string,
+		/**
+		 * A string representing the network chainId
+		 */
+		chainId: PropTypes.string,
+		/**
+		 * A string representing the network networkType
+		 */
+		networkType: PropTypes.string
 	};
 
 	state = {
@@ -167,6 +181,21 @@ class TransactionReview extends PureComponent {
 		assetAmount: undefined,
 		conversionRate: undefined,
 		fiatValue: undefined
+	};
+
+	getAnalyticsParams = () => {
+		const { activeTabUrl, chainId, transaction, networkType } = this.props;
+		const { selectedAsset } = transaction;
+		return {
+			dapp_host_name: transaction.origin,
+			dapp_url: activeTabUrl,
+			network_name: networkType,
+			chain_id: chainId,
+			active_currency: selectedAsset.symbol,
+			asset_type: transaction.assetType
+			//token_count
+			//permission_requested
+		};
 	};
 
 	componentDidMount = async () => {
@@ -194,7 +223,7 @@ class TransactionReview extends PureComponent {
 		}
 		this.setState({ error, actionKey, showHexData, assetAmount, conversionRate, fiatValue, approveTransaction });
 		InteractionManager.runAfterInteractions(() => {
-			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.TRANSACTIONS_CONFIRM_STARTED);
+			Analytics.trackEventWithParameters(ANALYTICS_EVENTS_V2.DAPP_TRANSACTION_STARTED, this.getAnalyticsParams());
 		});
 	};
 
@@ -280,6 +309,15 @@ class TransactionReview extends PureComponent {
 		return url;
 	}
 
+	onCancel = () => {
+		Analytics.trackEventWithParameters(ANALYTICS_EVENTS_V2.DAPP_TRANSACTION_CANCELLED, this.getAnalyticsParams());
+		this.props.onCancel();
+	};
+	onConfirm = () => {
+		Analytics.trackEventWithParameters(ANALYTICS_EVENTS_V2.DAPP_TRANSACTION_CONFIRMED, this.getAnalyticsParams());
+		this.props.onConfirm();
+	};
+
 	render = () => {
 		const {
 			transactionConfirmed,
@@ -309,8 +347,8 @@ class TransactionReview extends PureComponent {
 						<ActionView
 							confirmButtonMode="confirm"
 							cancelText={strings('transaction.reject')}
-							onCancelPress={this.props.onCancel}
-							onConfirmPress={this.props.onConfirm}
+							onCancelPress={this.onCancel}
+							onConfirmPress={this.onConfirm}
 							confirmed={transactionConfirmed}
 							confirmDisabled={error !== undefined}
 						>
@@ -361,7 +399,10 @@ const mapStateToProps = state => ({
 	showHexData: state.settings.showHexData,
 	transaction: getNormalizedTxState(state),
 	browser: state.browser,
-	primaryCurrency: state.settings.primaryCurrency
+	primaryCurrency: state.settings.primaryCurrency,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+	activeTabUrl: getActiveTabUrl(state),
+	networkType: state.engine.backgroundState.NetworkController.provider.type
 });
 
 export default connect(mapStateToProps)(TransactionReview);

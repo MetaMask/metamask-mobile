@@ -13,6 +13,8 @@ import { safeToChecksumAddress } from '../../../util/address';
 import Radio from '../Radio';
 import StyledButton from '../../UI/StyledButton';
 import Device from '../../../util/Device';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENTS_V2 from '../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	root: {
@@ -295,7 +297,19 @@ class CustomGas extends PureComponent {
 		/**
 		 * review or edit
 		 */
-		toAdvancedFrom: PropTypes.string
+		toAdvancedFrom: PropTypes.string,
+		/**
+		 * (For analytics purposes) View (Approve, Transfer, Confirm) where this component is being used
+		 */
+		view: PropTypes.string.isRequired,
+		/**
+		 * A string representing the network chainId
+		 */
+		chainId: PropTypes.string,
+		/**
+		 * A string representing the network type
+		 */
+		networkType: PropTypes.string
 	};
 
 	state = {
@@ -455,6 +469,20 @@ class CustomGas extends PureComponent {
 		});
 	};
 
+	getAnalyticsParams = () => {
+		const { advancedCustomGas, chainId, networkType, view } = this.props;
+		const { gasSpeedSelected } = this.state;
+		return {
+			//dapp_name
+			//dapp_url
+			network_name: networkType,
+			chain_id: chainId,
+			//active_currency
+			function_type: view,
+			gas_mode: advancedCustomGas ? 'Advanced' : 'Basic',
+			speed_set: advancedCustomGas ? undefined : gasSpeedSelected
+		};
+	};
 	//Handle gas fee selection when save button is pressed instead of everytime a change is made, otherwise cannot switch back to review mode if there is an error
 	saveCustomGasSelection = () => {
 		const { gasSpeedSelected, customGasLimit, customGasPriceBNWei } = this.state;
@@ -475,6 +503,9 @@ class CustomGas extends PureComponent {
 			if (gasSpeedSelected === 'average') handleGasFeeSelection(gas, apiEstimateModifiedToWEI(averageGwei), mode);
 			if (gasSpeedSelected === 'fast') handleGasFeeSelection(gas, apiEstimateModifiedToWEI(fastGwei), mode);
 		}
+
+		Analytics.trackEventWithParameters(ANALYTICS_EVENTS_V2.GAS_FEE_CHANGED, this.getAnalyticsParams());
+
 		review();
 	};
 
@@ -724,7 +755,9 @@ const mapStateToProps = (state, props) => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	transaction: props.customTransaction || getNormalizedTxState(state)
+	transaction: props.customTransaction || getNormalizedTxState(state),
+	networkType: state.engine.backgroundState.NetworkController.provider.type,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId
 });
 
 export default connect(mapStateToProps)(CustomGas);

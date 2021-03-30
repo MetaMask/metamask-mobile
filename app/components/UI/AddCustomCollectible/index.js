@@ -9,6 +9,8 @@ import ActionView from '../ActionView';
 import { isSmartContractAddress } from '../../../util/transactions';
 import Device from '../../../util/Device';
 import { connect } from 'react-redux';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENTS_V2 from '../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -72,6 +74,17 @@ class AddCustomCollectible extends PureComponent {
 		this.mounted = false;
 	};
 
+	getAnalyticsParams = () => {
+		const { NetworkController } = Engine.context;
+		const { chainId, type } = NetworkController.state.provider;
+		const { address } = this.state;
+		return {
+			collectible_address: address,
+			network_name: type,
+			chain_id: chainId
+		};
+	};
+
 	addCollectible = async () => {
 		if (!(await this.validateCustomCollectible())) return;
 		const isOwner = await this.validateCollectibleOwnership();
@@ -82,6 +95,9 @@ class AddCustomCollectible extends PureComponent {
 		const { AssetsController } = Engine.context;
 		const { address, tokenId } = this.state;
 		AssetsController.addCollectible(address, tokenId);
+
+		Analytics.trackEventWithParameters(ANALYTICS_EVENTS_V2.COLLECTIBLE_ADDED, this.getAnalyticsParams());
+
 		this.props.navigation.goBack();
 	};
 

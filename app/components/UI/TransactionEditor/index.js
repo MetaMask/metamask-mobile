@@ -651,6 +651,7 @@ class TransactionEditor extends PureComponent {
 								gasPrice={transaction.gasPrice}
 								gasError={gasError}
 								mode={mode}
+								view={'Transaction'}
 							/>
 						</AnimatedTransactionModal>
 					</KeyboardAwareScrollView>

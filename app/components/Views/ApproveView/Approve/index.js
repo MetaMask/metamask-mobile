@@ -20,6 +20,7 @@ import NotificationManager from '../../../../core/NotificationManager';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import Logger from '../../../../util/Logger';
+import { ANALYTICS_EVENTS_V2 } from '../../../../util/analyticsV2';
 
 const { BNToHex, hexToBN } = util;
 
@@ -206,7 +207,7 @@ class Approve extends PureComponent {
 			const updatedTx = { ...fullTx, transaction };
 			await TransactionController.updateTransaction(updatedTx);
 			await TransactionController.approveTransaction(transaction.id);
-			this.trackApproveEvent(ANALYTICS_EVENT_OPTS.DAPP_APPROVE_SCREEN_APPROVE);
+			Analytics.trackEventWithParameters(ANALYTICS_EVENTS_V2.APPROVAL_COMPLETED, this.state.analyticsParams);
 		} catch (error) {
 			Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
 			Logger.error(error, 'error while trying to send transaction (Approve)');
@@ -215,7 +216,7 @@ class Approve extends PureComponent {
 	};
 
 	onCancel = () => {
-		this.trackApproveEvent(ANALYTICS_EVENT_OPTS.DAPP_APPROVE_SCREEN_CANCEL);
+		Analytics.trackEventWithParameters(ANALYTICS_EVENTS_V2.APPROVAL_CANCELLED, this.state.analyticsParams);
 		this.props.toggleApproveModal(false);
 	};
 
@@ -230,6 +231,10 @@ class Approve extends PureComponent {
 				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SEND_FLOW_ADJUSTS_TRANSACTION_FEE);
 			});
 		}
+	};
+
+	setAnalyticsParams = analyticsParams => {
+		this.setState({ analyticsParams });
 	};
 
 	render = () => {
@@ -258,6 +263,7 @@ class Approve extends PureComponent {
 							onCancel={this.onCancel}
 							onConfirm={this.onConfirm}
 							over={over}
+							onSetAnalyticsParams={this.setAnalyticsParams}
 						/>
 						<CustomGas
 							handleGasFeeSelection={this.handleSetGasFee}
@@ -266,6 +272,7 @@ class Approve extends PureComponent {
 							gasPrice={transaction.gasPrice}
 							gasError={gasError}
 							mode={mode}
+							view={'Approve'}
 						/>
 					</AnimatedTransactionModal>
 				</KeyboardAwareScrollView>
@@ -280,8 +287,7 @@ const mapStateToProps = state => ({
 	transaction: getNormalizedTxState(state),
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts || {}).length,
-	tokensLength: state.engine.backgroundState.AssetsController.tokens.length,
-	providerType: state.engine.backgroundState.NetworkController.provider.type
+	tokensLength: state.engine.backgroundState.AssetsController.tokens.length
 });
 
 const mapDispatchToProps = dispatch => ({

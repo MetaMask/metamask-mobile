@@ -1656,6 +1656,11 @@ export const BrowserTab = props => {
 				onCancel={onCancelWatchAsset}
 				onConfirm={onCancelWatchAsset}
 				suggestedAssetMeta={suggestedAssetMeta}
+				currentPageInformation={{
+					title: title.current,
+					url: getMaskedUrl(url.current),
+					icon: icon.current
+				}}
 			/>
 		</Modal>
 	);

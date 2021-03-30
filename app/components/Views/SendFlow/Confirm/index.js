@@ -57,6 +57,7 @@ import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { capitalize } from '../../../../util/format';
 import { isMainNet, getNetworkName } from '../../../../util/networks';
+import ANALYTICS_EVENTS_V2 from '../../../../util/analyticsV2';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -327,8 +328,21 @@ class Confirm extends PureComponent {
 		over: false
 	};
 
+	getAnalyticsParams = () => {
+		const { selectedAsset } = this.props;
+		const { NetworkController } = Engine.context;
+		const { chainId, type } = NetworkController.state.provider;
+		return {
+			activeCurrency: selectedAsset.symbol,
+			network_name: type,
+			chain_id: chainId
+		};
+	};
+
 	componentDidMount = async () => {
 		// For analytics
+		Analytics.trackEventWithParameters(ANALYTICS_EVENTS_V2.SEND_TRANSACTION_STARTED, this.getAnalyticsParams());
+
 		const { navigation, providerType } = this.props;
 		await this.handleFetchBasicEstimates();
 		navigation.setParams({ providerType });
@@ -735,7 +749,6 @@ class Confirm extends PureComponent {
 		const {
 			transactionState: { assetType },
 			navigation,
-			providerType,
 			resetTransaction
 		} = this.props;
 		this.setState({ transactionConfirmed: true });
@@ -767,9 +780,10 @@ class Confirm extends PureComponent {
 					assetType
 				});
 				this.checkRemoveCollectible();
-				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SEND_FLOW_CONFIRM_SEND, {
-					network: providerType
-				});
+				Analytics.trackEventWithParameters(
+					ANALYTICS_EVENTS_V2.SEND_TRANSACTION_COMPLETED,
+					this.getAnalyticsParams()
+				);
 				resetTransaction();
 				navigation && navigation.dismiss();
 			});
@@ -857,6 +871,7 @@ class Confirm extends PureComponent {
 							mode={mode}
 							onPress={this.handleSetGasSpeed}
 							gasSpeedSelected={gasSpeedSelected}
+							view={'SendTo (Confirm)'}
 						/>
 					</AnimatedTransactionModal>
 				</KeyboardAwareScrollView>
