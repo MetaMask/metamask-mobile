@@ -279,7 +279,7 @@ class Transactions extends PureComponent {
 	};
 
 	/**
-	 * Function processes the transactions by combining submitted and confirmed and tagging row that should display import value
+	 * Function processes the transactions and tags the row that should display import/add date
 	 * @returns transactions to be displayed with import flag inserted
 	 */
 	processTransactions = transactions => {
@@ -288,6 +288,8 @@ class Transactions extends PureComponent {
 
 		let insertPointFound = false;
 
+		/** checks all transactions to find the first one that is less than the account
+		import/added time and flags the transaction to display */
 		flaggedTransactions.forEach(tx => {
 			if (tx.time <= time && !insertPointFound) {
 				insertPointFound = true;
@@ -297,6 +299,7 @@ class Transactions extends PureComponent {
 			}
 		});
 
+		//if the insertpoint is not found add it to the last transaction
 		if (!insertPointFound) flaggedTransactions[flaggedTransactions.length - 1].insertImportTime = true;
 
 		return flaggedTransactions;

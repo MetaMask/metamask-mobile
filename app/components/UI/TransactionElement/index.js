@@ -245,7 +245,7 @@ class TransactionElement extends PureComponent {
 		const { value, fiatValue = false, actionKey } = transactionElement;
 		const renderTxActions = status === 'submitted' || status === 'approved';
 		return (
-			<View>
+			<>
 				{accounts[selectedAddress].importTime > time && this.renderImportTime()}
 				<ListItem>
 					<ListItem.Date>{this.renderTxTime()}</ListItem.Date>
@@ -270,7 +270,7 @@ class TransactionElement extends PureComponent {
 					)}
 				</ListItem>
 				{accounts[selectedAddress].importTime <= time && this.renderImportTime()}
-			</View>
+			</>
 		);
 	};
 
