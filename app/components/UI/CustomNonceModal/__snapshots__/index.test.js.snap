@@ -165,7 +165,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
           upper={false}
         >
           Current suggested nonce:
-
+           
           <Text
             black={false}
             blue={false}
