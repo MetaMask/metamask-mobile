@@ -65,7 +65,7 @@ class DeeplinkManager {
 			txParams.value = '0x0';
 			const value = Number(uint256).toString(16);
 			txParams.data = generateApproveData({ spender: address, value });
-			TransactionController.addTransaction(txParams, origin);
+			TransactionController.addTransaction(txParams, origin, AppConstants.TX_CONFIRMED_LOCAL);
 		}
 	}
 

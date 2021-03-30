@@ -7,6 +7,7 @@ import { EventEmitter } from 'events';
 import AsyncStorage from '@react-native-community/async-storage';
 import { CLIENT_OPTIONS, WALLET_CONNECT_ORIGIN } from '../util/walletconnect';
 import { WALLETCONNECT_SESSIONS } from '../constants/storage';
+import { AppConstants } from '../core/AppConstants';
 
 const hub = new EventEmitter();
 let connectors = [];
@@ -118,7 +119,8 @@ class WalletConnect {
 						txParams.data = payload.params[0].data;
 						const hash = await (await TransactionController.addTransaction(
 							txParams,
-							meta ? WALLET_CONNECT_ORIGIN + meta.url : undefined
+							meta ? WALLET_CONNECT_ORIGIN + meta.url : undefined,
+							AppConstants.TX_CONFIRMED_LOCAL
 						)).result;
 						this.walletConnector.approveRequest({
 							id: payload.id,

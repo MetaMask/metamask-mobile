@@ -40,22 +40,24 @@ const styles = StyleSheet.create({
 		width: 28,
 		height: 28
 	},
-	listDivider: {
-		height: 1,
-		flex: 1,
-		backgroundColor: colors.grey000
-	},
 	summaryWrapper: {
 		padding: 15
 	},
-	importText: {
+	fromDeviceText: {
 		color: colors.fontSecondary,
 		fontSize: 14,
 		marginBottom: 10,
 		...fontStyles.normal
 	},
+	importText: {
+		color: colors.fontSecondary,
+		fontSize: 14,
+		...fontStyles.bold,
+		alignContent: 'center'
+	},
 	importRowBody: {
 		alignItems: 'center',
+		backgroundColor: colors.grey000,
 		paddingTop: 10
 	}
 });
@@ -109,9 +111,9 @@ class TransactionElement extends PureComponent {
 		swapsTransactions: PropTypes.object,
 		swapsTokens: PropTypes.arrayOf(PropTypes.object),
 		/**
-		 * String that is the time the wallet was imported
+		 * The account list form the AccountTrackerController
 		 */
-		importTime: PropTypes.number
+		accounts: PropTypes.object
 	};
 
 	state = {
@@ -165,31 +167,36 @@ class TransactionElement extends PureComponent {
 		const incoming = safeToChecksumAddress(tx.transaction.to) === selectedAddress;
 		const selfSent = incoming && safeToChecksumAddress(tx.transaction.from) === selectedAddress;
 		return `${
-			(!incoming || selfSent) && tx.origin
-				? `#${parseInt(tx.transaction.nonce, 16)} - ${toDateFormat(tx.time)} from ${tx.origin}`
+			(!incoming || selfSent) && tx.confirmedLocal
+				? `#${parseInt(tx.transaction.nonce, 16)} - ${toDateFormat(tx.time)} ${strings(
+						'transactions.from_device_label'
+						// eslint-disable-next-line no-mixed-spaces-and-tabs
+				  )}`
 				: `${toDateFormat(tx.time)} 
 			`
 		}`;
 	};
 
 	/**
-	 * Function that evaluates tx to see if the Import Wallet Transaction time needs to be imported.
-	 * @returns Wallet import view
+	 * Function that evaluates tx to see if the Added Wallet label should be rendered.
+	 * @returns Account added to wallet view
 	 */
 	renderImportTime = () => {
-		const { tx, importTime } = this.props;
-		if (tx.insertImportTime) {
+		const {
+			tx: { insertImportTime },
+			accounts,
+			selectedAddress
+		} = this.props;
+		if (insertImportTime) {
 			return (
-				//TODO
 				<>
 					<TouchableOpacity onPress={this.onPressImportWalletTip} style={styles.importRowBody}>
-						<Text style={fontStyles.thin} alignContent="center">
+						<Text style={styles.importText}>
 							{`${strings('transactions.import_wallet_row')} `}
 							<FAIcon name="info-circle" style={styles.infoIcon} />
 						</Text>
-						<ListItem.Date>{toDateFormat(importTime)}</ListItem.Date>
+						<ListItem.Date>{toDateFormat(accounts[selectedAddress].importTime)}</ListItem.Date>
 					</TouchableOpacity>
-					<View style={styles.listDivider} />
 				</>
 			);
 		}
@@ -231,13 +238,15 @@ class TransactionElement extends PureComponent {
 	 */
 	renderTxElement = transactionElement => {
 		const {
-			tx: { status }
+			accounts,
+			selectedAddress,
+			tx: { time, status }
 		} = this.props;
 		const { value, fiatValue = false, actionKey } = transactionElement;
 		const renderTxActions = status === 'submitted' || status === 'approved';
 		return (
 			<View>
-				{this.renderImportTime()}
+				{accounts[selectedAddress].importTime > time && this.renderImportTime()}
 				<ListItem>
 					<ListItem.Date>{this.renderTxTime()}</ListItem.Date>
 					<ListItem.Content>
@@ -260,6 +269,7 @@ class TransactionElement extends PureComponent {
 						</ListItem.Actions>
 					)}
 				</ListItem>
+				{accounts[selectedAddress].importTime <= time && this.renderImportTime()}
 			</View>
 		);
 	};
@@ -356,7 +366,7 @@ class TransactionElement extends PureComponent {
 							<DetailsModal.CloseIcon onPress={this.onCloseImportWalletModal} />
 						</DetailsModal.Header>
 						<View style={styles.summaryWrapper}>
-							<Text style={styles.importText}>{strings('transactions.import_wallet_tip')}</Text>
+							<Text style={styles.fromDeviceText}>{strings('transactions.import_wallet_tip')}</Text>
 						</View>
 					</DetailsModal>
 				</Modal>
@@ -370,6 +380,6 @@ const mapStateToProps = state => ({
 	primaryCurrency: state.settings.primaryCurrency,
 	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {},
 	swapsTokens: state.engine.backgroundState.SwapsController.tokens,
-	importTime: state.user.importTime
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts
 });
 export default connect(mapStateToProps)(TransactionElement);

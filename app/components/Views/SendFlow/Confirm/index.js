@@ -16,6 +16,7 @@ import { connect } from 'react-redux';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import { AddressFrom, AddressTo } from '../AddressInputs';
 import PropTypes from 'prop-types';
+import AppConstants from '../../../../core/AppConstants';
 import {
 	renderFromWei,
 	renderFromTokenMinimalUnit,
@@ -751,7 +752,8 @@ class Confirm extends PureComponent {
 			}
 			const { result, transactionMeta } = await TransactionController.addTransaction(
 				transaction,
-				TransactionTypes.MMM
+				TransactionTypes.MMM,
+				AppConstants.TX_CONFIRMED_LOCAL
 			);
 
 			await TransactionController.approveTransaction(transactionMeta.id);

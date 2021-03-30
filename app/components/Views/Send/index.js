@@ -6,6 +6,7 @@ import Engine from '../../../core/Engine';
 import EditAmount from '../../Views/SendFlow/Amount';
 import ConfirmSend from '../../Views/SendFlow/Confirm';
 import { toBN, BNToHex, hexToBN, fromWei, fromTokenMinimalUnit } from '../../../util/number';
+import { AppConstants } from '../../../core/AppConstants';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
@@ -481,7 +482,8 @@ class Send extends PureComponent {
 			}
 			const { result, transactionMeta } = await TransactionController.addTransaction(
 				transaction,
-				TransactionTypes.MMM
+				TransactionTypes.MMM,
+				AppConstants.TX_CONFIRMED_LOCAL
 			);
 
 			await TransactionController.approveTransaction(transactionMeta.id);

@@ -118,11 +118,7 @@ class Transactions extends PureComponent {
 		/**
 		 * Indicates whether third party API mode is enabled
 		 */
-		thirdPartyApiMode: PropTypes.bool,
-		/**
-		 * String that is the time the wallet was imported
-		 */
-		importWalletTime: PropTypes.number
+		thirdPartyApiMode: PropTypes.bool
 	};
 
 	static defaultProps = {
@@ -283,22 +279,27 @@ class Transactions extends PureComponent {
 	};
 
 	/**
-	 * Function that parses all transactions and inserts a import wallet flag
-	 * @param {*} transactions transactions to be displayed
+	 * Function processes the transactions by combining submitted and confirmed and tagging row that should display import value
 	 * @returns transactions to be displayed with import flag inserted
 	 */
-	insertImportWalletFlag = transactions => {
-		//TODO
+	processTransactions = transactions => {
+		const flaggedTransactions = transactions;
+		const time = this.props.accounts[this.props.selectedAddress].importTime;
+
 		let insertPointFound = false;
-		transactions.forEach(tx => {
-			if (this.props.importWalletTime >= tx.time && !insertPointFound) {
-				tx.insertImportTime = true;
+
+		flaggedTransactions.forEach(tx => {
+			if (tx.time <= time && !insertPointFound) {
 				insertPointFound = true;
+				tx.insertImportTime = true;
 			} else {
 				tx.insertImportTime = false;
 			}
 		});
-		return transactions;
+
+		if (!insertPointFound) flaggedTransactions[flaggedTransactions.length - 1].insertImportTime = true;
+
+		return flaggedTransactions;
 	};
 
 	renderItem = ({ item, index }) => (
@@ -334,12 +335,13 @@ class Transactions extends PureComponent {
 			submittedTransactions && submittedTransactions.length
 				? submittedTransactions.concat(confirmedTransactions)
 				: this.props.transactions;
+
 		return (
 			<View style={styles.wrapper} testID={'transactions-screen'}>
 				<FlatList
 					ref={this.flatList}
 					getItemLayout={this.getItemLayout}
-					data={this.insertImportWalletFlag(transactions)}
+					data={this.processTransactions(transactions)}
 					extraData={this.state}
 					keyExtractor={this.keyExtractor}
 					refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
@@ -390,6 +392,7 @@ class Transactions extends PureComponent {
 
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	tokens: state.engine.backgroundState.AssetsController.tokens.reduce((tokens, token) => {
 		tokens[token.address] = token;
 		return tokens;
@@ -398,8 +401,7 @@ const mapStateToProps = state => ({
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
-	importWalletTime: state.user.importTime
+	thirdPartyApiMode: state.privacy.thirdPartyApiMode
 });
 
 const mapDispatchToProps = dispatch => ({

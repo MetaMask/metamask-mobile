@@ -5,8 +5,7 @@ const initialState = {
 	passwordSet: false,
 	seedphraseBackedUp: false,
 	backUpSeedphraseVisible: false,
-	protectWalletModalVisible: false,
-	importTime: undefined
+	protectWalletModalVisible: false
 };
 
 const userReducer = (state = initialState, action) => {
@@ -70,11 +69,6 @@ const userReducer = (state = initialState, action) => {
 			return {
 				...state,
 				protectWalletModalVisible: false
-			};
-		case 'IMPORT_TIME_SET':
-			return {
-				...state,
-				importTime: action.importTime
 			};
 		default:
 			return state;

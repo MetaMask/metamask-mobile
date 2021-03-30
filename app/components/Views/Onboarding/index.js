@@ -35,7 +35,7 @@ import Device from '../../../util/Device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
 import Animated, { Easing } from 'react-native-reanimated';
 import ElevatedView from 'react-native-elevated-view';
-import { importTimeSet, passwordSet, seedphraseBackedUp, loadingSet, loadingUnset } from '../../../actions/user';
+import { passwordSet, seedphraseBackedUp, loadingSet, loadingUnset } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import AppConstants from '../../../core/AppConstants';
 import AnimatedFox from 'react-native-animated-fox';
@@ -201,11 +201,6 @@ class Onboarding extends PureComponent {
 		 * in the redux store
 		 */
 		setLockTime: PropTypes.func,
-		/**
-		 * The action to set the import wallet time
-		 * in the redux store
-		 */
-		importTimeSet: PropTypes.func,
 		/**
 		 * The action to update the seedphrase backed up flag
 		 * in the redux store
@@ -442,8 +437,6 @@ class Onboarding extends PureComponent {
 			this.props.seedphraseBackedUp();
 			this.done = true;
 			this.dataToSync = null;
-			console.log('SET WALLET IMPORT TIME', Date.now());
-			this.props.importTimeSet(Date.now());
 			this.props.navigation.push('SyncWithExtensionSuccess');
 			this.props.unsetLoading();
 		} catch (e) {
@@ -731,7 +724,6 @@ const mapDispatchToProps = dispatch => ({
 	unsetLoading: () => dispatch(loadingUnset()),
 	passwordHasBeenSet: () => dispatch(passwordSet()),
 	setLockTime: time => dispatch(setLockTime(time)),
-	importTimeSet: importTime => dispatch(importTimeSet(importTime)),
 	seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
 	saveOnboardingEvent: event => dispatch(saveOnboardingEvent(event))
 });

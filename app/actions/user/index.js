@@ -4,17 +4,6 @@ export function passwordSet() {
 	};
 }
 
-/**
- * Sets the import time of the wallet
- * @param {*} importTime - time the wallet was imported
- */
-export function importTimeSet(importTime) {
-	return {
-		type: 'IMPORT_TIME_SET',
-		importTime
-	};
-}
-
 export function passwordUnset() {
 	return {
 		type: 'PASSWORD_UNSET'

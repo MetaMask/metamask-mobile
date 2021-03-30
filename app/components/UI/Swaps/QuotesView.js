@@ -550,7 +550,8 @@ function SwapsQuotesView({
 			try {
 				const { transactionMeta } = await TransactionController.addTransaction(
 					approvalTransaction,
-					process.env.MM_FOX_CODE
+					process.env.MM_FOX_CODE,
+					AppConstants.TX_CONFIRMED_LOCAL
 				);
 				approvalTransactionMetaId = transactionMeta.id;
 				newSwapsTransactions[transactionMeta.id] = {
@@ -569,7 +570,8 @@ function SwapsQuotesView({
 		try {
 			const { transactionMeta } = await TransactionController.addTransaction(
 				selectedQuote.trade,
-				process.env.MM_FOX_CODE
+				process.env.MM_FOX_CODE,
+				AppConstants.TX_CONFIRMED_LOCAL
 			);
 			updateSwapsTransactions(transactionMeta, approvalTransactionMetaId, newSwapsTransactions);
 		} catch (e) {

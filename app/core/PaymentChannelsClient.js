@@ -130,7 +130,11 @@ class PaymentChannelsClient {
 					};
 
 					try {
-						const signedTx = await TransactionController.addTransaction(normalizedTxMeta);
+						const signedTx = await TransactionController.addTransaction(
+							normalizedTxMeta,
+							undefined,
+							AppConstants.TX_CONFIRMED_LOCAL
+						);
 						const hash = await signedTx.result;
 
 						return new Promise(resolve => {

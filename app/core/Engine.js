@@ -87,7 +87,8 @@ class Engine {
 									try {
 										const hash = await (await TransactionController.addTransaction(
 											payload.params[0],
-											payload.origin
+											payload.origin,
+											AppConstants.TX_CONFIRMED_LOCAL
 										)).result;
 										end(undefined, hash);
 									} catch (error) {
