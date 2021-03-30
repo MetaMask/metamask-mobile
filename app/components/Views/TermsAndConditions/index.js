@@ -1,15 +1,11 @@
 import React, { PureComponent } from 'react';
-import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
+import { Text, StyleSheet, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 
 const styles = StyleSheet.create({
-	mainWrapper: {
-		backgroundColor: colors.transparent,
-		alignSelf: 'center'
-	},
 	text: {
 		...fontStyles.normal,
 		color: colors.grey500,
@@ -42,14 +38,12 @@ export default class TermsAndConditions extends PureComponent {
 
 	render() {
 		return (
-			<View style={styles.mainWrapper}>
-				<TouchableOpacity onPress={this.press}>
-					<Text style={styles.text}>
-						{strings('terms_and_conditions.description')}
-						<Text style={styles.link}>{strings('terms_and_conditions.terms')}</Text>.
-					</Text>
-				</TouchableOpacity>
-			</View>
+			<TouchableOpacity onPress={this.press}>
+				<Text style={styles.text}>
+					{strings('terms_and_conditions.description')}
+					<Text style={styles.link}>{strings('terms_and_conditions.terms')}</Text>.
+				</Text>
+			</TouchableOpacity>
 		);
 	}
 }
