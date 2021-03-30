@@ -27,7 +27,7 @@ import {
 	isDecimal,
 	toBN
 } from '../../../../util/number';
-import { getTicker, decodeTransferData, getNormalizedTxState, getProposedNonce } from '../../../../util/transactions';
+import { getTicker, decodeTransferData, getNormalizedTxState } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
 import { util } from '@metamask/controllers';
 import { prepareTransaction, resetTransaction } from '../../../../actions/transaction';
@@ -318,11 +318,7 @@ class Confirm extends PureComponent {
 		/**
 		 * ETH or fiat, depending on user setting
 		 */
-		primaryCurrency: PropTypes.string,
-		/**
-		 * proposedNonce based on the state of transactions
-		 */
-		proposedNonce: PropTypes.number
+		primaryCurrency: PropTypes.string
 	};
 
 	state = {
@@ -347,13 +343,26 @@ class Confirm extends PureComponent {
 		paymentChannelReady: false,
 		mode: REVIEW,
 		over: false,
-		nonceValue: this.props.proposedNonce
+		nonceValue: undefined,
+		proposedNonce: undefined
+	};
+
+	getNetworkNonce = async () => {
+		const { TransactionController } = Engine.context;
+		const { from } = this.props.transaction;
+		const networkNonce = await util.query(TransactionController.ethQuery, 'getTransactionCount', [from, 'pending']);
+		const proposedNonce = parseInt(networkNonce, 16);
+		this.setState({
+			nonceValue: proposedNonce,
+			proposedNonce
+		});
 	};
 
 	componentDidMount = async () => {
 		// For analytics
 		const { navigation, providerType } = this.props;
 		await this.handleFetchBasicEstimates();
+		await this.getNetworkNonce();
 		navigation.setParams({ providerType });
 		this.parseTransactionData();
 		this.prepareTransaction();
@@ -890,7 +899,7 @@ class Confirm extends PureComponent {
 	};
 
 	renderCustomNonceModal = () => {
-		const { proposedNonce } = this.props;
+		const { proposedNonce } = this.state;
 		return (
 			<CustomNonceModal
 				proposedNonce={proposedNonce}
@@ -1134,7 +1143,6 @@ const mapStateToProps = state => ({
 	isPaymentChannelTransaction: state.transaction.paymentChannelTransaction,
 	selectedAsset: state.transaction.selectedAsset,
 	transactionState: state.transaction,
-	proposedNonce: getProposedNonce(state),
 	primaryCurrency: state.settings.primaryCurrency
 });
 

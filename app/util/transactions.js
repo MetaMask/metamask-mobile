@@ -6,7 +6,6 @@ import contractMap from '@metamask/contract-metadata';
 import { safeToChecksumAddress } from './address';
 import { util } from '@metamask/controllers';
 import { swapsUtils } from '@estebanmino/controllers';
-import { toLowerCaseCompare } from '../util/general';
 import { hexToBN } from './number';
 import AppConstants from '../core/AppConstants';
 const { SAI_ADDRESS } = AppConstants;
@@ -424,27 +423,6 @@ export function validateTransactionActionBalance(transaction, rate, accounts) {
 export function getNormalizedTxState(state) {
 	return { ...state.transaction, ...state.transaction.transaction };
 }
-
-export const getProposedNonce = ({
-	engine: {
-		backgroundState: { PreferencesController, TransactionController }
-	}
-}) => {
-	const { selectedAddress } = PreferencesController;
-	const { transactions } = TransactionController;
-
-	const nonces = transactions
-		.filter(
-			({ status, transaction: { from } }) => status === 'confirmed' && toLowerCaseCompare(from, selectedAddress)
-		)
-		.map(({ transaction }) => {
-			const { nonce } = transaction;
-			return parseInt(nonce, 16);
-		})
-		.filter(nonce => !isNaN(nonce));
-
-	return Math.max(...nonces) + 1;
-};
 
 export const getActiveTabUrl = ({ browser = {} }) =>
 	browser.tabs && browser.activeTab && browser.tabs.find(({ id }) => id === browser.activeTab)?.url;
