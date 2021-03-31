@@ -46,7 +46,15 @@ const styles = StyleSheet.create({
 	addressToInformation: {
 		flex: 1,
 		flexDirection: 'row',
-		alignItems: 'center'
+		alignItems: 'center',
+		position: 'relative'
+	},
+	exclamation: {
+		backgroundColor: colors.white,
+		borderRadius: 12,
+		position: 'absolute',
+		bottom: 8,
+		left: 20
 	},
 	address: {
 		flexDirection: 'column',
@@ -180,7 +188,8 @@ export const AddressTo = props => {
 		onSubmit,
 		onInputBlur,
 		inputWidth,
-		confusableCollection
+		confusableCollection,
+		displayExclamation
 	} = props;
 	return (
 		<View style={styles.wrapper}>
@@ -221,6 +230,11 @@ export const AddressTo = props => {
 				<View style={[styles.selectWrapper, highlighted ? styles.borderHighlighted : styles.borderOpaque]}>
 					<View style={styles.addressToInformation}>
 						<Identicon address={toSelectedAddress} diameter={30} />
+						{displayExclamation && (
+							<View style={styles.exclamation}>
+								<FontAwesome color={colors.red} name="exclamation-circle" size={14} />
+							</View>
+						)}
 						<View style={styles.toInputWrapper}>
 							<View style={[styles.address, styles.checkAddress]}>
 								{toAddressName && (
@@ -311,7 +325,11 @@ AddressTo.propTypes = {
 	/**
 	 * Array of confusables
 	 */
-	confusableCollection: PropTypes.array
+	confusableCollection: PropTypes.array,
+	/**
+	 * Display Exclamation Icon
+	 */
+	displayExclamation: PropTypes.bool
 };
 
 export const AddressFrom = props => {
