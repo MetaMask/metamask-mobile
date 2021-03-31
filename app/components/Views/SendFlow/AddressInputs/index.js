@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, TextInput, TouchableOpacity } from 'react-native';
 import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -7,6 +7,7 @@ import PropTypes from 'prop-types';
 import Identicon from '../../../UI/Identicon';
 import { renderShortAddress } from '../../../../util/address';
 import { strings } from '../../../../../locales/i18n';
+import Text from '../../../Base/Text';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -119,6 +120,36 @@ const styles = StyleSheet.create({
 	}
 });
 
+const AddressName = ({ toAddressName, confusableCollection = [] }) => {
+	if (confusableCollection.length) {
+		const T = toAddressName.split('').map((char, index) => {
+			if (confusableCollection.includes(char)) {
+				return (
+					<Text red key={index}>
+						{char}
+					</Text>
+				);
+			}
+			return <Text key={index}>{char}</Text>;
+		});
+		return (
+			<Text style={styles.textAddress} numberOfLines={1}>
+				{T}
+			</Text>
+		);
+	}
+	return (
+		<Text style={styles.textAddress} numberOfLines={1}>
+			{toAddressName}
+		</Text>
+	);
+};
+
+AddressName.propTypes = {
+	toAddressName: PropTypes.string,
+	confusableCollection: PropTypes.array
+};
+
 export const AddressTo = props => {
 	const {
 		addressToReady,
@@ -132,7 +163,8 @@ export const AddressTo = props => {
 		onInputFocus,
 		onSubmit,
 		onInputBlur,
-		inputWidth
+		inputWidth,
+		confusableCollection
 	} = props;
 	return (
 		<View style={styles.wrapper}>
@@ -176,9 +208,10 @@ export const AddressTo = props => {
 						<View style={styles.toInputWrapper}>
 							<View style={[styles.address, styles.checkAddress]}>
 								{toAddressName && (
-									<Text style={styles.textAddress} numberOfLines={1}>
-										{toAddressName}
-									</Text>
+									<AddressName
+										toAddressName={toAddressName}
+										confusableCollection={confusableCollection}
+									/>
 								)}
 								<View style={styles.addressWrapper}>
 									<Text
@@ -258,7 +291,11 @@ AddressTo.propTypes = {
 	 * Input width to solve android paste bug
 	 * https://github.com/facebook/react-native/issues/9958
 	 */
-	inputWidth: PropTypes.object
+	inputWidth: PropTypes.object,
+	/**
+	 * Array of confusables
+	 */
+	confusableCollection: PropTypes.array
 };
 
 export const AddressFrom = props => {

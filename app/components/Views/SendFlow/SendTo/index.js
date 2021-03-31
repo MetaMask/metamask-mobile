@@ -240,7 +240,7 @@ class SendFlow extends PureComponent {
 		toEnsName: undefined,
 		addToAddressToAddressBook: false,
 		alias: undefined,
-		isConfusable: false,
+		confusableCollection: [],
 		inputWidth: { width: '99%' }
 	};
 
@@ -317,7 +317,7 @@ class SendFlow extends PureComponent {
 		const { AssetsContractController } = Engine.context;
 		const { addressBook, network, identities, providerType } = this.props;
 		const networkAddressBook = addressBook[network] || {};
-		let addressError, toAddressName, toEnsName, errorContinue, isOnlyWarning, isConfusable;
+		let addressError, toAddressName, toEnsName, errorContinue, isOnlyWarning, confusableCollection;
 		let [addToAddressToAddressBook, toSelectedAddressReady] = [false, false];
 		if (isValidAddress(toSelectedAddress)) {
 			const checksummedToSelectedAddress = toChecksumAddress(toSelectedAddress);
@@ -374,8 +374,11 @@ class SendFlow extends PureComponent {
 			toEnsName = toSelectedAddress;
 			// confusables
 			const key = 'similarTo';
-			const collection = confusables(toEnsName).filter(result => key in result);
-			isConfusable = !!collection.length;
+			const collection = confusables(toEnsName)
+				.filter(result => key in result)
+				.map(result => result.point);
+			console.log({ collection });
+			confusableCollection = collection;
 			const resolvedAddress = await doENSLookup(toSelectedAddress, network);
 			if (resolvedAddress) {
 				const checksummedResolvedAddress = toChecksumAddress(resolvedAddress);
@@ -400,7 +403,7 @@ class SendFlow extends PureComponent {
 			toEnsName,
 			errorContinue,
 			isOnlyWarning,
-			isConfusable
+			confusableCollection
 		});
 	};
 
@@ -581,7 +584,7 @@ class SendFlow extends PureComponent {
 			inputWidth,
 			errorContinue,
 			isOnlyWarning,
-			isConfusable
+			confusableCollection
 		} = this.state;
 
 		return (
@@ -606,6 +609,7 @@ class SendFlow extends PureComponent {
 						onInputBlur={this.onToInputFocus}
 						onSubmit={this.onTransactionDirectionSet}
 						inputWidth={inputWidth}
+						confusableCollection={confusableCollection}
 					/>
 				</View>
 
@@ -628,7 +632,7 @@ class SendFlow extends PureComponent {
 									/>
 								</View>
 							)}
-							{isConfusable && (
+							{!!confusableCollection.length && (
 								<View style={styles.confusabeError}>
 									<View style={styles.warningIcon}>
 										<Icon size={16} color={colors.red} name="exclamation-triangle" />
