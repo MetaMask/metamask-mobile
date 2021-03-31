@@ -15,6 +15,7 @@ import { TRANSACTION_TYPES } from '../../../util/transactions';
 import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
 import DetailsModal from '../../Base/DetailsModal';
+import { ConfirmedDeviceTransaction } from '@metamask/controllers/';
 
 const styles = StyleSheet.create({
 	row: {
@@ -167,7 +168,7 @@ class TransactionElement extends PureComponent {
 		const incoming = safeToChecksumAddress(tx.transaction.to) === selectedAddress;
 		const selfSent = incoming && safeToChecksumAddress(tx.transaction.from) === selectedAddress;
 		return `${
-			(!incoming || selfSent) && tx.confirmedLocal
+			(!incoming || selfSent) && tx.deviceConfirmedOn === ConfirmedDeviceTransaction.MM_MOBILE
 				? `#${parseInt(tx.transaction.nonce, 16)} - ${toDateFormat(tx.time)} ${strings(
 						'transactions.from_device_label'
 						// eslint-disable-next-line no-mixed-spaces-and-tabs
@@ -339,7 +340,7 @@ class TransactionElement extends PureComponent {
 					<DetailsModal>
 						<DetailsModal.Header>
 							<DetailsModal.Title onPress={this.onCloseDetailsModal}>
-								{transactionElement.actionKey}
+								{transactionElement?.actionKey}
 							</DetailsModal.Title>
 							<DetailsModal.CloseIcon onPress={this.onCloseDetailsModal} />
 						</DetailsModal.Header>

@@ -36,7 +36,6 @@
 		48AD4B0AABCB447B99B85DC4 /* Roboto-Black.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 684F2C84313849199863B5FE /* Roboto-Black.ttf */; };
 		49D8E62C506F4A63889EEC7F /* branch.json in Resources */ = {isa = PBXBuildFile; fileRef = FE3C9A2458A1416290DEDAD4 /* branch.json */; };
 		4CEFC9E34A8D4288BFE2F85A /* Roboto-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = BB8BA2D3C0354D6090B56A8A /* Roboto-Light.ttf */; };
-		533F46199D84249CE057ABE2 /* libPods-MetaMask.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 16C1F4442184DDC707694FC8 /* libPods-MetaMask.a */; };
 		650F2B9D24DC5FF200C3B9C4 /* libRCTAesForked.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 650F2B9C24DC5FEC00C3B9C4 /* libRCTAesForked.a */; };
 		654378B0243E2ADC00571B9C /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = 654378AF243E2ADC00571B9C /* File.swift */; };
 		7C0226ABD9694AEDBAF3016F /* Roboto-ThinItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CF552F79C77A4184A690513A /* Roboto-ThinItalic.ttf */; };
@@ -44,6 +43,7 @@
 		813214A2220E40C7BBB5ED9E /* Roboto-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A783D1CD7D27456796FE2E1B /* Roboto-Bold.ttf */; };
 		887E75FB64A54509A08D6C50 /* Roboto-LightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E020F42F788744B3BCE17F05 /* Roboto-LightItalic.ttf */; };
 		8DEB44A7E7EF48E1B3298910 /* EuclidCircularB-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = CE0434C5FB7C4C6F9FEBDCE2 /* EuclidCircularB-Medium.otf */; };
+		8F24036CB356C6465E07CB50 /* libPods-MetaMask.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 789B8FA040E544968673792F /* libPods-MetaMask.a */; };
 		BF39E5BAE0F34F9091FF6AC0 /* EuclidCircularB-Semibold.otf in Resources */ = {isa = PBXBuildFile; fileRef = A8DE9C5BC0714D648276E123 /* EuclidCircularB-Semibold.otf */; };
 		CD13D926E1E84D9ABFE672C0 /* Roboto-BlackItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3E2492C67CF345CABD7B8601 /* Roboto-BlackItalic.ttf */; };
 		D171C39A8BD44DBEB6B68480 /* EuclidCircularB-MediumItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 42CBA652072F4BE2A8B815C1 /* EuclidCircularB-MediumItalic.otf */; };
@@ -186,12 +186,12 @@
 		15F7796422A1BC8C00B1DF8C /* RCTAnalytics.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = RCTAnalytics.m; path = MetaMask/NativeModules/RCTAnalytics/RCTAnalytics.m; sourceTree = "<group>"; };
 		15FDD82721B7642B006B7C35 /* debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = debug.xcconfig; sourceTree = "<group>"; };
 		15FDD86021B76461006B7C35 /* release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = release.xcconfig; sourceTree = "<group>"; };
-		16C1F4442184DDC707694FC8 /* libPods-MetaMask.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MetaMask.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		178440FE3F1C4F4180D14622 /* libTcpSockets.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libTcpSockets.a; sourceTree = "<group>"; };
 		1C516951C09F43CB97129B66 /* Octicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Octicons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Octicons.ttf"; sourceTree = "<group>"; };
 		1F06D56A2D2F41FB9345D16F /* Lottie.framework */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = wrapper.framework; name = Lottie.framework; path = System/Library/Frameworks/Lottie.framework; sourceTree = SDKROOT; };
 		278065D027394AD9B2906E38 /* libBVLinearGradient.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libBVLinearGradient.a; sourceTree = "<group>"; };
 		2D16E6891FA4F8E400B85C8A /* libReact.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libReact.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		327DD2DF6994E9948B4D7E0F /* Pods-MetaMask.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask.release.xcconfig"; path = "Target Support Files/Pods-MetaMask/Pods-MetaMask.release.xcconfig"; sourceTree = "<group>"; };
 		3E2492C67CF345CABD7B8601 /* Roboto-BlackItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-BlackItalic.ttf"; path = "../app/fonts/Roboto-BlackItalic.ttf"; sourceTree = "<group>"; };
 		42C239E9FAA64BD9A34B8D8A /* MaterialCommunityIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialCommunityIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf"; sourceTree = "<group>"; };
 		42C6DDE3B80F47AFA9C9D4F5 /* Foundation.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Foundation.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Foundation.ttf"; sourceTree = "<group>"; };
@@ -209,6 +209,7 @@
 		654378AF243E2ADC00571B9C /* File.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = File.swift; sourceTree = "<group>"; };
 		67FBD519E04742E0AF191782 /* EuclidCircularB-Bold.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "EuclidCircularB-Bold.otf"; path = "../app/fonts/EuclidCircularB-Bold.otf"; sourceTree = "<group>"; };
 		684F2C84313849199863B5FE /* Roboto-Black.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-Black.ttf"; path = "../app/fonts/Roboto-Black.ttf"; sourceTree = "<group>"; };
+		789B8FA040E544968673792F /* libPods-MetaMask.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MetaMask.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7FF1597C0ACA4902B86140B2 /* Zocial.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Zocial.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Zocial.ttf"; sourceTree = "<group>"; };
 		8E369AC13A2049B6B21E5120 /* libRCTSearchApi.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRCTSearchApi.a; sourceTree = "<group>"; };
 		9499B01ECAC44DA29AC44E80 /* EuclidCircularB-SemiboldItalic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "EuclidCircularB-SemiboldItalic.otf"; path = "../app/fonts/EuclidCircularB-SemiboldItalic.otf"; sourceTree = "<group>"; };
@@ -218,9 +219,9 @@
 		A98029A3662F4C1391489A6B /* EuclidCircularB-Light.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "EuclidCircularB-Light.otf"; path = "../app/fonts/EuclidCircularB-Light.otf"; sourceTree = "<group>"; };
 		A98DB430A7DA47EFB97EDF8B /* FontAwesome5_Solid.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Solid.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Solid.ttf"; sourceTree = "<group>"; };
 		AA9EDF17249955C7005D89EE /* MetaMaskDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = MetaMaskDebug.entitlements; path = MetaMask/MetaMaskDebug.entitlements; sourceTree = "<group>"; };
-		AC1AA419B381E8ACD80D5D6F /* Pods-MetaMask.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask.release.xcconfig"; path = "Target Support Files/Pods-MetaMask/Pods-MetaMask.release.xcconfig"; sourceTree = "<group>"; };
 		BB8BA2D3C0354D6090B56A8A /* Roboto-Light.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-Light.ttf"; path = "../app/fonts/Roboto-Light.ttf"; sourceTree = "<group>"; };
 		BF485CDA047B4D52852B87F5 /* EvilIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = EvilIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/EvilIcons.ttf"; sourceTree = "<group>"; };
+		BF8DE2E5A176599FCD8A7CFD /* Pods-MetaMask.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask.debug.xcconfig"; path = "Target Support Files/Pods-MetaMask/Pods-MetaMask.debug.xcconfig"; sourceTree = "<group>"; };
 		C752564A28B44392AEE16BD5 /* Roboto-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-Medium.ttf"; path = "../app/fonts/Roboto-Medium.ttf"; sourceTree = "<group>"; };
 		C9FD3FB1258A41A5A0546C83 /* Roboto-BoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-BoldItalic.ttf"; path = "../app/fonts/Roboto-BoldItalic.ttf"; sourceTree = "<group>"; };
 		CE0434C5FB7C4C6F9FEBDCE2 /* EuclidCircularB-Medium.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "EuclidCircularB-Medium.otf"; path = "../app/fonts/EuclidCircularB-Medium.otf"; sourceTree = "<group>"; };
@@ -232,7 +233,6 @@
 		E9629905BA1940ADA4189921 /* Feather.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Feather.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Feather.ttf"; sourceTree = "<group>"; };
 		EBC2B6371CD846D28B9FAADF /* FontAwesome5_Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Regular.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Regular.ttf"; sourceTree = "<group>"; };
 		EF1C01B7F08047F9B8ADCFBA /* config.json */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = config.json; path = ../app/fonts/config.json; sourceTree = "<group>"; };
-		F3DAD5B14646D2263C1EE0C8 /* Pods-MetaMask.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask.debug.xcconfig"; path = "Target Support Files/Pods-MetaMask/Pods-MetaMask.debug.xcconfig"; sourceTree = "<group>"; };
 		F562CA6B28AA4A67AA29B61C /* MaterialIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialIcons.ttf"; sourceTree = "<group>"; };
 		F564570593ED4F3FB10BD348 /* EuclidCircularB-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "EuclidCircularB-Regular.otf"; path = "../app/fonts/EuclidCircularB-Regular.otf"; sourceTree = "<group>"; };
 		F79EAC4A7BF74E458277AFA4 /* EuclidCircularB-LightItalic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "EuclidCircularB-LightItalic.otf"; path = "../app/fonts/EuclidCircularB-LightItalic.otf"; sourceTree = "<group>"; };
@@ -250,7 +250,7 @@
 				15ACC9FC22655C3A0063978B /* Lottie.framework in Frameworks */,
 				15F7795E22A1B7B500B1DF8C /* Mixpanel.framework in Frameworks */,
 				153F84CA2319B8FD00C19B63 /* Branch.framework in Frameworks */,
-				533F46199D84249CE057ABE2 /* libPods-MetaMask.a in Frameworks */,
+				8F24036CB356C6465E07CB50 /* libPods-MetaMask.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -358,7 +358,7 @@
 			children = (
 				153C1A742217BCDC0088EFE0 /* JavaScriptCore.framework */,
 				2D16E6891FA4F8E400B85C8A /* libReact.a */,
-				16C1F4442184DDC707694FC8 /* libPods-MetaMask.a */,
+				789B8FA040E544968673792F /* libPods-MetaMask.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -460,8 +460,8 @@
 		AA342D524556DBBE26F5997C /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				F3DAD5B14646D2263C1EE0C8 /* Pods-MetaMask.debug.xcconfig */,
-				AC1AA419B381E8ACD80D5D6F /* Pods-MetaMask.release.xcconfig */,
+				BF8DE2E5A176599FCD8A7CFD /* Pods-MetaMask.debug.xcconfig */,
+				327DD2DF6994E9948B4D7E0F /* Pods-MetaMask.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -473,7 +473,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "MetaMask" */;
 			buildPhases = (
-				2FFD31BBA872C8C3AAF74CB9 /* [CP] Check Pods Manifest.lock */,
+				72868E350C2B4E37DD67D4DA /* [CP] Check Pods Manifest.lock */,
 				65E00B0A247EA25400E5AC88 /* Start Packager */,
 				15FDD86321B76696006B7C35 /* Override xcconfig files */,
 				13B07F871A680F5B00A75B9A /* Sources */,
@@ -481,7 +481,8 @@
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				15ACCA0022655C3A0063978B /* Embed Frameworks */,
-				C8AEA4C51D9FB67083B71029 /* [CP] Copy Pods Resources */,
+				EAB5EA58FA7C5E5C8C11F1C0 /* [CP] Embed Pods Frameworks */,
+				84D295E70E7158158F0F4201 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -703,7 +704,26 @@
 			shellPath = /bin/sh;
 			shellScript = "if [ -e ../.ios.env ]\nthen\n    cp -rf ../.ios.env debug.xcconfig\n    cp -rf ../.ios.env release.xcconfig\nelse\n    cp -rf ../.ios.env.example debug.xcconfig\n    cp -rf ../.ios.env.example release.xcconfig\nfi\n\n";
 		};
-		2FFD31BBA872C8C3AAF74CB9 /* [CP] Check Pods Manifest.lock */ = {
+		65E00B0A247EA25400E5AC88 /* Start Packager */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Start Packager";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "export RCT_METRO_PORT=\"${RCT_METRO_PORT:=8081}\"\necho \"export RCT_METRO_PORT=${RCT_METRO_PORT}\" > \"${SRCROOT}/../node_modules/react-native/scripts/.packager.env\"\nif [ -z \"${RCT_NO_LAUNCH_PACKAGER+xxx}\" ] ; then\n  if nc -w 5 -z localhost ${RCT_METRO_PORT} ; then\n    if ! curl -s \"http://localhost:${RCT_METRO_PORT}/status\" | grep -q \"packager-status:running\" ; then\n      echo \"Port ${RCT_METRO_PORT} already in use, packager is either not running or not running correctly\"\n      exit 2\n    fi\n  else\n    open \"$SRCROOT/../node_modules/react-native/scripts/launchPackager.command\" || echo \"Can't start packager automatically\"\n  fi\nfi\n";
+			showEnvVarsInLog = 0;
+		};
+		72868E350C2B4E37DD67D4DA /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -725,26 +745,7 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		65E00B0A247EA25400E5AC88 /* Start Packager */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Start Packager";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "export RCT_METRO_PORT=\"${RCT_METRO_PORT:=8081}\"\necho \"export RCT_METRO_PORT=${RCT_METRO_PORT}\" > \"${SRCROOT}/../node_modules/react-native/scripts/.packager.env\"\nif [ -z \"${RCT_NO_LAUNCH_PACKAGER+xxx}\" ] ; then\n  if nc -w 5 -z localhost ${RCT_METRO_PORT} ; then\n    if ! curl -s \"http://localhost:${RCT_METRO_PORT}/status\" | grep -q \"packager-status:running\" ; then\n      echo \"Port ${RCT_METRO_PORT} already in use, packager is either not running or not running correctly\"\n      exit 2\n    fi\n  else\n    open \"$SRCROOT/../node_modules/react-native/scripts/launchPackager.command\" || echo \"Can't start packager automatically\"\n  fi\nfi\n";
-			showEnvVarsInLog = 0;
-		};
-		C8AEA4C51D9FB67083B71029 /* [CP] Copy Pods Resources */ = {
+		84D295E70E7158158F0F4201 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -790,6 +791,24 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-MetaMask/Pods-MetaMask-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		EAB5EA58FA7C5E5C8C11F1C0 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-MetaMask/Pods-MetaMask-frameworks.sh",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/OpenSSL/OpenSSL.framework/OpenSSL",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/OpenSSL.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-MetaMask/Pods-MetaMask-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -841,7 +860,7 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = F3DAD5B14646D2263C1EE0C8 /* Pods-MetaMask.debug.xcconfig */;
+			baseConfigurationReference = BF8DE2E5A176599FCD8A7CFD /* Pods-MetaMask.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_OPTIMIZATION = time;
@@ -849,7 +868,7 @@
 				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMaskDebug.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 601;
+				CURRENT_PROJECT_VERSION = 605;
 				DEAD_CODE_STRIPPING = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 48XVW22RCG;
@@ -882,7 +901,7 @@
 					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
 				);
 				LLVM_LTO = YES;
-				MARKETING_VERSION = 2.0.0;
+				MARKETING_VERSION = 2.0.1;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = (
 					"$(inherited)",
@@ -905,7 +924,7 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = AC1AA419B381E8ACD80D5D6F /* Pods-MetaMask.release.xcconfig */;
+			baseConfigurationReference = 327DD2DF6994E9948B4D7E0F /* Pods-MetaMask.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_OPTIMIZATION = time;
@@ -913,7 +932,7 @@
 				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMask.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 601;
+				CURRENT_PROJECT_VERSION = 605;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 48XVW22RCG;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -945,7 +964,7 @@
 					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
 				);
 				LLVM_LTO = YES;
-				MARKETING_VERSION = 2.0.0;
+				MARKETING_VERSION = 2.0.1;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
 					"$(inherited)",

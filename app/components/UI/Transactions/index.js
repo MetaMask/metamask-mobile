@@ -172,7 +172,8 @@ class Transactions extends PureComponent {
 	scrollToIndex = index => {
 		if (!this.scrolling && (this.props.headerHeight || index)) {
 			this.scrolling = true;
-			this.flatList.current.scrollToIndex({ index, animated: true });
+			// eslint-disable-next-line no-unused-expressions
+			this.flatList?.current?.scrollToIndex({ index, animated: true });
 			setTimeout(() => {
 				this.scrolling = false;
 			}, 300);

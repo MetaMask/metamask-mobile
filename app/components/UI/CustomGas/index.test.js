@@ -44,6 +44,7 @@ describe('CustomGas', () => {
 				generateTransform={generateTransform}
 				gas={new BN(0)}
 				gasPrice={new BN(0)}
+				warningGasPriceHigh=""
 			/>,
 			{
 				context: { store: mockStore(initialState) }

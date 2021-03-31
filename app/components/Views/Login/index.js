@@ -333,7 +333,8 @@ class Login extends PureComponent {
 		const { KeyringController } = Engine.context;
 		try {
 			await Engine.resetState();
-			await KeyringController.createNewVaultAndKeychain('');
+			await KeyringController.createNewVaultAndKeychain(`${Date.now()}`);
+			await KeyringController.setLocked();
 			this.deleteExistingUser();
 		} catch (error) {
 			Logger.log(error, `Failed to createNewVaultAndKeychain: ${error}`);

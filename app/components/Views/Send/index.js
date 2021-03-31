@@ -6,7 +6,6 @@ import Engine from '../../../core/Engine';
 import EditAmount from '../../Views/SendFlow/Amount';
 import ConfirmSend from '../../Views/SendFlow/Confirm';
 import { toBN, BNToHex, hexToBN, fromWei, fromTokenMinimalUnit } from '../../../util/number';
-import { AppConstants } from '../../../core/AppConstants';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
@@ -30,6 +29,7 @@ import { isENS } from '../../../util/address';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { MAINNET } from '../../../constants/network';
 import BigNumber from 'bignumber.js';
+import { ConfirmedDeviceTransaction } from '@metamask/controllers/';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -483,7 +483,7 @@ class Send extends PureComponent {
 			const { result, transactionMeta } = await TransactionController.addTransaction(
 				transaction,
 				TransactionTypes.MMM,
-				AppConstants.TX_CONFIRMED_LOCAL
+				ConfirmedDeviceTransaction.MM_MOBILE
 			);
 
 			await TransactionController.approveTransaction(transactionMeta.id);

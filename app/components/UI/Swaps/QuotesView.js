@@ -8,6 +8,7 @@ import FAIcon from 'react-native-vector-icons/FontAwesome';
 import BigNumber from 'bignumber.js';
 import { NavigationContext } from 'react-navigation';
 import { swapsUtils, util } from '@estebanmino/controllers';
+import { ConfirmedDeviceTransaction } from '@metamask/controllers/';
 
 import {
 	BNToHex,
@@ -308,6 +309,8 @@ function SwapsQuotesView({
 	const [apiGasPrice] = useGasPrice();
 	const [customGasPrice, setCustomGasPrice] = useState(null);
 	const [customGasLimit, setCustomGasLimit] = useState(null);
+	const [warningGasPriceHigh, setWarningGasPriceHigh] = useState(null);
+
 	// TODO: use this variable in the future when calculating savings
 	const [isSaving] = useState(false);
 	const [isInFetch, setIsInFetch] = useState(false);
@@ -551,7 +554,7 @@ function SwapsQuotesView({
 				const { transactionMeta } = await TransactionController.addTransaction(
 					approvalTransaction,
 					process.env.MM_FOX_CODE,
-					AppConstants.TX_CONFIRMED_LOCAL
+					ConfirmedDeviceTransaction.MM_MOBILE
 				);
 				approvalTransactionMetaId = transactionMeta.id;
 				newSwapsTransactions[transactionMeta.id] = {
@@ -571,7 +574,7 @@ function SwapsQuotesView({
 			const { transactionMeta } = await TransactionController.addTransaction(
 				selectedQuote.trade,
 				process.env.MM_FOX_CODE,
-				AppConstants.TX_CONFIRMED_LOCAL
+				ConfirmedDeviceTransaction.MM_MOBILE
 			);
 			updateSwapsTransactions(transactionMeta, approvalTransactionMetaId, newSwapsTransactions);
 		} catch (e) {
@@ -659,10 +662,11 @@ function SwapsQuotesView({
 	]);
 
 	const onHandleGasFeeSelection = useCallback(
-		(customGasLimit, customGasPrice, details) => {
+		(customGasLimit, customGasPrice, warningGasPriceHigh, details) => {
 			const { SwapsController } = Engine.context;
 			const newGasLimit = new BigNumber(customGasLimit);
 			const newGasPrice = new BigNumber(customGasPrice);
+			setWarningGasPriceHigh(warningGasPriceHigh);
 			if (newGasPrice.toString(16) !== gasPrice) {
 				setCustomGasPrice(newGasPrice);
 				SwapsController.updateQuotesWithGasPrice(newGasPrice.toString(16));
@@ -1037,7 +1041,13 @@ function SwapsQuotesView({
 						</Alert>
 					</View>
 				)}
-
+				{!!warningGasPriceHigh && !(!hasEnoughTokenBalance || !hasEnoughEthBalance) && (
+					<View style={styles.alertBar}>
+						<Alert small type="error">
+							<Text reset>{warningGasPriceHigh}</Text>
+						</Alert>
+					</View>
+				)}
 				{!!selectedQuote && hasEnoughTokenBalance && hasEnoughEthBalance && shouldDisplaySlippage && (
 					<View style={styles.alertBar}>
 						<ActionAlert

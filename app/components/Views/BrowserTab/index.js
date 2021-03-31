@@ -55,7 +55,7 @@ import OnboardingWizard from '../../UI/OnboardingWizard';
 import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 import { resemblesAddress } from '../../../util/address';
 
-import createAsyncMiddleware from 'json-rpc-engine/src/createAsyncMiddleware';
+import { createAsyncMiddleware } from 'json-rpc-engine';
 import { ethErrors } from 'eth-json-rpc-errors';
 
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
@@ -127,7 +127,8 @@ const styles = StyleSheet.create({
 	},
 	option: {
 		paddingVertical: 10,
-		height: 44,
+		height: 'auto',
+		minHeight: 44,
 		paddingHorizontal: 15,
 		backgroundColor: colors.white,
 		flexDirection: 'row',
@@ -142,6 +143,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		marginTop: 3,
 		color: colors.blue,
+		flex: 1,
 		...fontStyles.fontPrimary
 	},
 	optionIconWrapper: {
@@ -1483,7 +1485,7 @@ export const BrowserTab = props => {
 					<View style={styles.optionIconWrapper}>
 						<Icon name="refresh" size={15} style={styles.optionIcon} />
 					</View>
-					<Text style={styles.optionText} numberOfLines={1}>
+					<Text style={styles.optionText} numberOfLines={2}>
 						{strings('browser.reload')}
 					</Text>
 				</Button>
@@ -1492,7 +1494,7 @@ export const BrowserTab = props => {
 						<View style={styles.optionIconWrapper}>
 							<Icon name="star" size={16} style={styles.optionIcon} />
 						</View>
-						<Text style={styles.optionText} numberOfLines={1}>
+						<Text style={styles.optionText} numberOfLines={2}>
 							{strings('browser.add_to_favorites')}
 						</Text>
 					</Button>
@@ -1501,7 +1503,7 @@ export const BrowserTab = props => {
 					<View style={styles.optionIconWrapper}>
 						<Icon name="share" size={15} style={styles.optionIcon} />
 					</View>
-					<Text style={styles.optionText} numberOfLines={1}>
+					<Text style={styles.optionText} numberOfLines={2}>
 						{strings('browser.share')}
 					</Text>
 				</Button>
@@ -1509,7 +1511,7 @@ export const BrowserTab = props => {
 					<View style={styles.optionIconWrapper}>
 						<Icon name="expand" size={16} style={styles.optionIcon} />
 					</View>
-					<Text style={styles.optionText} numberOfLines={1}>
+					<Text style={styles.optionText} numberOfLines={2}>
 						{strings('browser.open_in_browser')}
 					</Text>
 				</Button>
@@ -1559,7 +1561,7 @@ export const BrowserTab = props => {
 								<View style={styles.optionIconWrapper}>
 									<MaterialCommunityIcon name="earth" size={18} style={styles.optionIcon} />
 								</View>
-								<Text style={styles.optionText} numberOfLines={1}>
+								<Text style={styles.optionText} numberOfLines={2}>
 									{strings('browser.switch_network')}
 								</Text>
 							</Button>

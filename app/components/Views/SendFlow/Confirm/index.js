@@ -16,7 +16,6 @@ import { connect } from 'react-redux';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import { AddressFrom, AddressTo } from '../AddressInputs';
 import PropTypes from 'prop-types';
-import AppConstants from '../../../../core/AppConstants';
 import {
 	renderFromWei,
 	renderFromTokenMinimalUnit,
@@ -31,7 +30,7 @@ import {
 } from '../../../../util/number';
 import { getTicker, decodeTransferData, getNormalizedTxState } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
-import { util } from '@metamask/controllers';
+import { util, ConfirmedDeviceTransaction } from '@metamask/controllers';
 import { prepareTransaction, resetTransaction } from '../../../../actions/transaction';
 import {
 	fetchBasicGasEstimates,
@@ -314,6 +313,7 @@ class Confirm extends PureComponent {
 		fromSelectedAddress: this.props.transactionState.transaction.from,
 		hexDataModalVisible: false,
 		gasError: undefined,
+		warningGasPriceHigh: undefined,
 		ready: false,
 		transactionValue: undefined,
 		transactionValueFiat: undefined,
@@ -562,17 +562,19 @@ class Confirm extends PureComponent {
 		);
 	};
 
-	handleSetGasFee = (customGas, customGasPrice) => {
+	handleSetGasFee = (customGas, customGasPrice, warningGasPriceHigh) => {
 		const { prepareTransaction, transactionState } = this.props;
 		let transaction = transactionState.transaction;
 		transaction = { ...transaction, gas: customGas, gasPrice: customGasPrice };
 		prepareTransaction(transaction);
+		this.setState({ warningGasPriceHigh });
 		setTimeout(() => {
 			this.parseTransactionData();
 			this.setState({
 				errorMessage: undefined
 			});
 		}, 100);
+
 		this.onModeChange(REVIEW);
 	};
 
@@ -753,7 +755,7 @@ class Confirm extends PureComponent {
 			const { result, transactionMeta } = await TransactionController.addTransaction(
 				transaction,
 				TransactionTypes.MMM,
-				AppConstants.TX_CONFIRMED_LOCAL
+				ConfirmedDeviceTransaction.MM_MOBILE
 			);
 
 			await TransactionController.approveTransaction(transactionMeta.id);
@@ -953,6 +955,7 @@ class Confirm extends PureComponent {
 			errorMessage,
 			transactionConfirmed,
 			paymentChannelBalance,
+			warningGasPriceHigh,
 			mode,
 			over
 		} = this.state;
@@ -1017,6 +1020,7 @@ class Confirm extends PureComponent {
 							gasEstimationReady={gasEstimationReady}
 							edit={this.edit}
 							over={over}
+							warningGasPriceHigh={warningGasPriceHigh}
 						/>
 					)}
 					{errorMessage && (
@@ -1028,6 +1032,11 @@ class Confirm extends PureComponent {
 									<Text style={[styles.error, styles.underline]}>{errorLinkText}</Text>
 								)}
 							</TouchableOpacity>
+						</View>
+					)}
+					{!!warningGasPriceHigh && (
+						<View style={styles.errorWrapper}>
+							<Text style={styles.error}>{warningGasPriceHigh}</Text>
 						</View>
 					)}
 					<View style={styles.actionsWrapper}>

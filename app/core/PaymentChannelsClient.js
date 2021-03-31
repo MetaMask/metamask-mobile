@@ -15,6 +15,7 @@ import byteArrayToHex from '../util/bytes';
 import Networks from '../util/networks';
 import { LAST_KNOWN_INSTANT_PAYMENT_ID } from '../constants/storage';
 import { MAINNET, RINKEBY } from '../constants/network';
+import { ConfirmedDeviceTransaction } from '@metamask/controllers/';
 
 const {
 	CONNEXT: { CONTRACTS }
@@ -133,7 +134,7 @@ class PaymentChannelsClient {
 						const signedTx = await TransactionController.addTransaction(
 							normalizedTxMeta,
 							undefined,
-							AppConstants.TX_CONFIRMED_LOCAL
+							ConfirmedDeviceTransaction.MM_MOBILE
 						);
 						const hash = await signedTx.result;
 
