@@ -936,7 +936,7 @@ class Confirm extends PureComponent {
 						gasEstimationReady={gasEstimationReady}
 						edit={this.edit}
 						over={over}
-            warningGasPriceHigh={warningGasPriceHigh}
+						warningGasPriceHigh={warningGasPriceHigh}
 					/>
 					{errorMessage && (
 						<View style={styles.errorWrapper}>
