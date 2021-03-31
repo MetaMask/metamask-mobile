@@ -183,9 +183,15 @@ class TransactionEditor extends PureComponent {
 	 *
 	 * @param {object} gasLimit - BN object containing gasLimit value
 	 * @param {object} gasPrice - BN object containing gasPrice value
+	 * @param {object} warningGasPriceHigh - string object warning for custom gas price set higher than 'Fast'
 	 */
-	handleGasFeeSelection = (gasLimit, gasPrice) => {
-		this.props.setTransactionObject({ gas: gasLimit, gasPrice });
+	handleGasFeeSelection = (gasLimit, gasPrice, warningGasPriceHigh) => {
+		const transactionObject = {
+			gas: gasLimit,
+			gasPrice,
+			warningGasPriceHigh
+		};
+		this.props.setTransactionObject(transactionObject);
 	};
 
 	/**
@@ -588,8 +594,8 @@ class TransactionEditor extends PureComponent {
 		return amountError || gasError || toAddressError;
 	};
 
-	updateGas = async (gas, gasLimit) => {
-		await this.handleGasFeeSelection(gas, gasLimit);
+	updateGas = async (gas, gasLimit, warningGasPriceHigh) => {
+		this.handleGasFeeSelection(gas, gasLimit, warningGasPriceHigh);
 		const gasError = this.validateGas();
 		this.setState({ gasError });
 	};
