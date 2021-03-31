@@ -7,7 +7,6 @@ import {
 	StyleSheet,
 	View,
 	TouchableOpacity,
-	Text,
 	TextInput,
 	SafeAreaView,
 	InteractionManager,
@@ -34,6 +33,9 @@ import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { allowedToBuy } from '../../../UI/FiatOrders';
 import NetworkList from '../../../../util/networks';
+import { confusables } from 'unicode-confusables';
+import Text from '../../../Base/Text';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const { hexToBN } = util;
 const styles = StyleSheet.create({
@@ -125,12 +127,32 @@ const styles = StyleSheet.create({
 		marginBottom: 32
 	},
 	buyEth: {
-		...fontStyles.bold,
 		color: colors.black,
 		textDecorationLine: 'underline'
 	},
-	bold: {
-		...fontStyles.bold
+	confusabeError: {
+		display: 'flex',
+		flexDirection: 'row',
+		margin: 16,
+		padding: 16,
+		borderWidth: 1,
+		borderColor: colors.red,
+		backgroundColor: colors.red000,
+		borderRadius: 8
+	},
+	confusableTitle: {
+		marginTop: -3,
+		color: colors.red,
+		...fontStyles.bold,
+		fontSize: 14
+	},
+	confusableMsg: {
+		color: colors.red,
+		fontSize: 12,
+		lineHeight: 16
+	},
+	warningIcon: {
+		paddingRight: 8
 	}
 });
 
@@ -218,6 +240,7 @@ class SendFlow extends PureComponent {
 		toEnsName: undefined,
 		addToAddressToAddressBook: false,
 		alias: undefined,
+		isConfusable: false,
 		inputWidth: { width: '99%' }
 	};
 
@@ -294,7 +317,7 @@ class SendFlow extends PureComponent {
 		const { AssetsContractController } = Engine.context;
 		const { addressBook, network, identities, providerType } = this.props;
 		const networkAddressBook = addressBook[network] || {};
-		let addressError, toAddressName, toEnsName, errorContinue, isOnlyWarning;
+		let addressError, toAddressName, toEnsName, errorContinue, isOnlyWarning, isConfusable;
 		let [addToAddressToAddressBook, toSelectedAddressReady] = [false, false];
 		if (isValidAddress(toSelectedAddress)) {
 			const checksummedToSelectedAddress = toChecksumAddress(toSelectedAddress);
@@ -324,7 +347,7 @@ class SendFlow extends PureComponent {
 						addressError = (
 							<Text>
 								<Text>{strings('transaction.tokenContractAddressWarning_1')}</Text>
-								<Text style={styles.bold}>{strings('transaction.tokenContractAddressWarning_2')}</Text>
+								<Text bold>{strings('transaction.tokenContractAddressWarning_2')}</Text>
 								<Text>{strings('transaction.tokenContractAddressWarning_3')}</Text>
 							</Text>
 						);
@@ -349,6 +372,10 @@ class SendFlow extends PureComponent {
 			*/
 		} else if (isENS(toSelectedAddress)) {
 			toEnsName = toSelectedAddress;
+			// confusables
+			const key = 'similarTo';
+			const collection = confusables(toEnsName).filter(result => key in result);
+			isConfusable = !!collection.length;
 			const resolvedAddress = await doENSLookup(toSelectedAddress, network);
 			if (resolvedAddress) {
 				const checksummedResolvedAddress = toChecksumAddress(resolvedAddress);
@@ -372,7 +399,8 @@ class SendFlow extends PureComponent {
 			toSelectedAddressName: toAddressName,
 			toEnsName,
 			errorContinue,
-			isOnlyWarning
+			isOnlyWarning,
+			isConfusable
 		});
 	};
 
@@ -530,7 +558,7 @@ class SendFlow extends PureComponent {
 		return (
 			<>
 				{'\n'}
-				<Text style={styles.buyEth} onPress={this.goToBuy}>
+				<Text bold style={styles.buyEth} onPress={this.goToBuy}>
 					{strings('fiat_on_ramp.buy_eth')}
 				</Text>
 			</>
@@ -552,8 +580,10 @@ class SendFlow extends PureComponent {
 			toInputHighlighted,
 			inputWidth,
 			errorContinue,
-			isOnlyWarning
+			isOnlyWarning,
+			isConfusable
 		} = this.state;
+
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'send-screen'}>
 				<View style={styles.imputWrapper}>
@@ -596,6 +626,21 @@ class SendFlow extends PureComponent {
 										onContinue={this.onTransactionDirectionSet}
 										isOnlyWarning={!!isOnlyWarning}
 									/>
+								</View>
+							)}
+							{isConfusable && (
+								<View style={styles.confusabeError}>
+									<View style={styles.warningIcon}>
+										<Icon size={16} color={colors.red} name="exclamation-triangle" />
+									</View>
+									<View>
+										<Text style={styles.confusableTitle}>
+											{strings('transaction.confusable_title')}
+										</Text>
+										<Text style={styles.confusableMsg}>
+											{strings('transaction.confusable_msg')}
+										</Text>
+									</View>
 								</View>
 							)}
 							{addToAddressToAddressBook && (
