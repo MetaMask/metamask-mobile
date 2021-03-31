@@ -120,13 +120,25 @@ const styles = StyleSheet.create({
 	}
 });
 
+const zeroWidthPoints = new Set([
+	'\u200b', // zero width space
+	'\u200c', // zero width non-joiner
+	'\u200d', // zero width joiner
+	'\ufeff', // zero width no-break space
+	'\u2028', // line separator
+	'\u2029' // paragraph separator,
+]);
+
+const checkZeroWidth = str => zeroWidthPoints.has(str) || /\s/g.test(str);
+
 const AddressName = ({ toAddressName, confusableCollection = [] }) => {
 	if (confusableCollection.length) {
 		const T = toAddressName.split('').map((char, index) => {
 			if (confusableCollection.includes(char)) {
+				const replacement = checkZeroWidth(char) ? '?' : char;
 				return (
 					<Text red key={index}>
-						{char}
+						{replacement}
 					</Text>
 				);
 			}
