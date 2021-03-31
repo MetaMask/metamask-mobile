@@ -960,6 +960,7 @@ class Confirm extends PureComponent {
 						toAddressName={transactionToName}
 						onToSelectedAddressChange={this.onToSelectedAddressChange}
 						confusableCollection={collection}
+						displayExclamation={!!collection.length}
 					/>
 				</View>
 
