@@ -111,10 +111,11 @@ const styles = StyleSheet.create({
 	alertIcon: {
 		fontSize: 20,
 		...fontStyles.bold,
-		color: colors.yellow
+		color: colors.yellow,
+		marginRight: 6
 	},
-	alertTextContainer: {
-		paddingLeft: 6
+	alertText: {
+		lineHeight: 18
 	}
 });
 
@@ -239,21 +240,19 @@ const AddCustomNetwork = ({ customNetworkInformation, currentPageInformation, na
 				style={styles.alertContainer}
 				renderIcon={() => <EvilIcons name="bell" style={styles.alertIcon} />}
 			>
-				<View style={styles.alertTextContainer}>
-					<Text primary noMargin style={styles.alertText}>
-						<Text primary bold noMargin>
-							{alertText}
-							{'\n'}
-						</Text>
-						<Text primary noMargin>
-							{strings('add_custom_network.alert_recommend')}{' '}
-							<Text primary link noMargin onPress={openHowToVerifyCustomNetworks}>
-								{strings('add_custom_network.alert_verify')}
-							</Text>
-							.
-						</Text>
+				<Text primary noMargin style={styles.alertText}>
+					<Text primary bold noMargin>
+						{alertText}
+						{'\n'}
 					</Text>
-				</View>
+					<Text primary noMargin>
+						{strings('add_custom_network.alert_recommend')}{' '}
+						<Text primary link noMargin onPress={openHowToVerifyCustomNetworks}>
+							{strings('add_custom_network.alert_verify')}
+						</Text>
+						.
+					</Text>
+				</Text>
 			</Alert>
 		);
 	};

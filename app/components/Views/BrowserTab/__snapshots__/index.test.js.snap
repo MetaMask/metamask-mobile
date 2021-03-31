@@ -361,7 +361,6 @@ exports[`Browser should render correctly 1`] = `
           "landscape",
         ]
       }
-      swipeDirection="down"
       swipeThreshold={100}
       useNativeDriver={false}
     >
