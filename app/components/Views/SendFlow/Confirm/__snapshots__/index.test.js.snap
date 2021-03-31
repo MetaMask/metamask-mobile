@@ -26,6 +26,8 @@ exports[`Confirm should render correctly 1`] = `
     />
     <AddressTo
       addressToReady={true}
+      confusableCollection={Array []}
+      displayExclamation={false}
       toSelectedAddress=""
     />
   </View>

@@ -305,6 +305,7 @@ class Confirm extends PureComponent {
 	};
 
 	state = {
+		confusableCollection: [],
 		gasSpeedSelected: 'average',
 		gasEstimationReady: false,
 		customGas: undefined,
@@ -329,10 +330,22 @@ class Confirm extends PureComponent {
 		over: false
 	};
 
+	handleConfusables = async () => {
+		const { transactionToName } = this.props.transactionState;
+		const key = 'similarTo';
+		const confusableCollection =
+			transactionToName &&
+			confusables(transactionToName)
+				.filter(result => key in result)
+				.map(result => result.point);
+		await this.setState({ confusableCollection });
+	};
+
 	componentDidMount = async () => {
 		// For analytics
 		const { navigation, providerType } = this.props;
 		await this.handleFetchBasicEstimates();
+		await this.handleConfusables();
 		navigation.setParams({ providerType });
 		this.parseTransactionData();
 		this.prepareTransaction();
@@ -956,15 +969,10 @@ class Confirm extends PureComponent {
 			transactionConfirmed,
 			paymentChannelBalance,
 			warningGasPriceHigh,
+			confusableCollection,
 			mode,
 			over
 		} = this.state;
-
-		// confusables
-		const key = 'similarTo';
-		const collection = confusables(transactionToName)
-			.filter(result => key in result)
-			.map(result => result.point);
 
 		const is_main_net = isMainNet(network);
 		const errorPress = is_main_net ? this.buyEth : this.gotoFaucet;
@@ -986,8 +994,8 @@ class Confirm extends PureComponent {
 						toSelectedAddress={transactionTo}
 						toAddressName={transactionToName}
 						onToSelectedAddressChange={this.onToSelectedAddressChange}
-						confusableCollection={collection}
-						displayExclamation={!!collection.length}
+						confusableCollection={confusableCollection}
+						displayExclamation={!!confusableCollection.length}
 					/>
 				</View>
 
