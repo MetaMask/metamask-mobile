@@ -33,9 +33,9 @@ import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { allowedToBuy } from '../../../UI/FiatOrders';
 import NetworkList from '../../../../util/networks';
-import { confusables } from 'unicode-confusables';
 import Text from '../../../Base/Text';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { collectConfusables } from '../../../../util/validators';
 
 const { hexToBN } = util;
 const styles = StyleSheet.create({
@@ -352,13 +352,7 @@ class SendFlow extends PureComponent {
 			*/
 		} else if (isENS(toSelectedAddress)) {
 			toEnsName = toSelectedAddress;
-			// confusables
-			const key = 'similarTo';
-			const collection = confusables(toEnsName)
-				.filter(result => key in result)
-				.map(result => result.point);
-
-			confusableCollection = collection;
+			confusableCollection = collectConfusables(toEnsName);
 			const resolvedAddress = await doENSLookup(toSelectedAddress, network);
 			if (resolvedAddress) {
 				const checksummedResolvedAddress = toChecksumAddress(resolvedAddress);

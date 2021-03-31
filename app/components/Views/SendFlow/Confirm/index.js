@@ -57,6 +57,7 @@ import { isMainNet, getNetworkName, getNetworkNonce } from '../../../../util/net
 import Text from '../../../Base/Text';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { confusables } from 'unicode-confusables';
+import { collectConfusables } from '../../../../util/validators';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -372,13 +373,7 @@ class Confirm extends PureComponent {
 
 	handleConfusables = async () => {
 		const { transactionToName } = this.props.transactionState;
-		const key = 'similarTo';
-		const confusableCollection =
-			transactionToName &&
-			confusables(transactionToName)
-				.filter(result => key in result)
-				.map(result => result.point);
-		await this.setState({ confusableCollection });
+		await this.setState({ confusableCollection: collectConfusables(transactionToName) });
 	};
 
 	componentDidMount = async () => {
