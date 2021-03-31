@@ -12,6 +12,9 @@ describe('Transactions', () => {
 		const initialState = {
 			engine: {
 				backgroundState: {
+					PreferencesController: {
+						selectedAddress: '0x0'
+					},
 					AccountTrackerController: {
 						accounts: {}
 					},

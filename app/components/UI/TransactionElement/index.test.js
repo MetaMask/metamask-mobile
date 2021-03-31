@@ -10,6 +10,9 @@ describe('TransactionElement', () => {
 		const initialState = {
 			engine: {
 				backgroundState: {
+					AccountTrackerController: {
+						accounts: {}
+					},
 					CurrencyRateController: {
 						currentCurrency: 'usd',
 						conversionRate: 0.1
