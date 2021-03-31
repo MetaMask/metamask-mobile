@@ -144,7 +144,11 @@ const AddressName = ({ toAddressName, confusableCollection = [] }) => {
 					</Text>
 				);
 			}
-			return <Text key={index}>{char}</Text>;
+			return (
+				<Text black key={index}>
+					{char}
+				</Text>
+			);
 		});
 		return (
 			<Text style={styles.textAddress} numberOfLines={1}>

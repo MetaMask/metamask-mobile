@@ -57,6 +57,7 @@ import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { capitalize } from '../../../../util/format';
 import { isMainNet, getNetworkName } from '../../../../util/networks';
+import { confusables } from 'unicode-confusables';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -959,6 +960,12 @@ class Confirm extends PureComponent {
 			over
 		} = this.state;
 
+		// confusables
+		const key = 'similarTo';
+		const collection = confusables(transactionToName)
+			.filter(result => key in result)
+			.map(result => result.point);
+
 		const is_main_net = isMainNet(network);
 		const errorPress = is_main_net ? this.buyEth : this.gotoFaucet;
 		const networkName = capitalize(getNetworkName(network));
@@ -979,6 +986,7 @@ class Confirm extends PureComponent {
 						toSelectedAddress={transactionTo}
 						toAddressName={transactionToName}
 						onToSelectedAddressChange={this.onToSelectedAddressChange}
+						confusableCollection={collection}
 					/>
 				</View>
 

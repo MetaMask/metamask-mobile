@@ -19,6 +19,9 @@ const style = StyleSheet.create({
 	red: {
 		color: colors.red
 	},
+	black: {
+		color: colors.black
+	},
 	bold: fontStyles.bold,
 	green: {
 		color: colors.green400
@@ -62,6 +65,7 @@ const Text = ({
 	bold,
 	green,
 	red,
+	black,
 	primary,
 	small,
 	upper,
@@ -82,6 +86,7 @@ const Text = ({
 			bold && style.bold,
 			green && style.green,
 			red && style.red,
+			black && style.black,
 			primary && style.primary,
 			disclaimer && [style.small, style.disclaimer],
 			small && style.small,
@@ -104,6 +109,7 @@ Text.defaultProps = {
 	bold: false,
 	green: false,
 	red: false,
+	black: false,
 	primary: false,
 	disclaimer: false,
 	modal: false,
@@ -140,6 +146,10 @@ Text.propTypes = {
 	 * Makes text red
 	 */
 	red: PropTypes.bool,
+	/**
+	 * Makes text black
+	 */
+	black: PropTypes.bool,
 	/**
 	 * Makes text fontPrimary color
 	 */
