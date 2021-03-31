@@ -87,6 +87,8 @@ class Approve extends PureComponent {
 		ticker: PropTypes.string
 	};
 
+	analyticsParams = {};
+
 	state = {
 		approved: false,
 		gasError: undefined,
@@ -207,7 +209,7 @@ class Approve extends PureComponent {
 			const updatedTx = { ...fullTx, transaction };
 			await TransactionController.updateTransaction(updatedTx);
 			await TransactionController.approveTransaction(transaction.id);
-			AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_COMPLETED, this.state.analyticsParams);
+			AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_COMPLETED, this.analyticsParams);
 		} catch (error) {
 			Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
 			Logger.error(error, 'error while trying to send transaction (Approve)');
@@ -216,7 +218,7 @@ class Approve extends PureComponent {
 	};
 
 	onCancel = () => {
-		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_CANCELLED, this.state.analyticsParams);
+		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_CANCELLED, this.analyticsParams);
 		this.props.toggleApproveModal(false);
 	};
 
@@ -234,7 +236,7 @@ class Approve extends PureComponent {
 	};
 
 	setAnalyticsParams = analyticsParams => {
-		this.setState({ analyticsParams });
+		this.analyticsParams = analyticsParams;
 	};
 
 	render = () => {

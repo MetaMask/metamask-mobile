@@ -1,5 +1,6 @@
 import Analytics from '../core/Analytics';
 import Logger from './Logger';
+import { InteractionManager } from 'react-native';
 
 const generateOpt = name => ({ category: name });
 
@@ -46,39 +47,41 @@ export const ANALYTICS_EVENTS_V2 = {
  */
 export const logV2 = (eventName, params) => {
 	try {
-		if (!params) {
-			Analytics.trackEvent(eventName);
-		}
-
-		const userParams = {};
-		const anonymousParams = {};
-		for (const key in params) {
-			const property = params[key];
-
-			// Non-anonymous properties
-			if (typeof property === 'string' || property instanceof String) {
-				userParams[key] = property;
+		InteractionManager.runAfterInteractions(() => {
+			if (!params) {
+				Analytics.trackEvent(eventName);
 			}
 
-			if (typeof property === 'object') {
-				// Anonymous properties
-				if (property.anonymous) {
-					anonymousParams[key] = property.value;
-				} else {
-					userParams[key] = property.value;
+			const userParams = {};
+			const anonymousParams = {};
+			for (const key in params) {
+				const property = params[key];
+
+				// Non-anonymous properties
+				if (typeof property === 'string' || property instanceof String) {
+					userParams[key] = property;
+				}
+
+				if (typeof property === 'object') {
+					// Anonymous properties
+					if (property.anonymous) {
+						anonymousParams[key] = property.value;
+					} else {
+						userParams[key] = property.value;
+					}
 				}
 			}
-		}
 
-		// Log all non-anonymous properties
-		if (Object.keys(userParams).length) {
-			Analytics.trackEventWithParameters(eventName, userParams);
-		}
+			// Log all non-anonymous properties
+			if (Object.keys(userParams).length) {
+				Analytics.trackEventWithParameters(eventName, userParams);
+			}
 
-		// Log all anonymous properties
-		if (Object.keys(anonymousParams).length) {
-			Analytics.trackEventWithParameters(eventName, anonymousParams, true);
-		}
+			// Log all anonymous properties
+			if (Object.keys(anonymousParams).length) {
+				Analytics.trackEventWithParameters(eventName, anonymousParams, true);
+			}
+		});
 	} catch (error) {
 		Logger.error(error, 'Error logging analytics');
 	}

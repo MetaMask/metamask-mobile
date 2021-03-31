@@ -278,17 +278,22 @@ class ApproveTransactionReview extends PureComponent {
 		const totalGas = gas?.mul(gasPrice);
 		const { name: method } = await getMethodData(data);
 
-		this.setState({
-			host,
-			method,
-			originalApproveAmount: approveAmount,
-			tokenSymbol,
-			token: { symbol: tokenSymbol, decimals: tokenDecimals },
-			totalGas: renderFromWei(totalGas),
-			totalGasFiat: weiToFiatNumber(totalGas, conversionRate),
-			spenderAddress
-		});
-		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_STARTED, this.getAnalyticsParams());
+		this.setState(
+			{
+				host,
+				method,
+				originalApproveAmount: approveAmount,
+				tokenSymbol,
+				token: { symbol: tokenSymbol, decimals: tokenDecimals },
+				totalGas: renderFromWei(totalGas),
+				totalGasFiat: weiToFiatNumber(totalGas, conversionRate),
+				spenderAddress,
+				encodedAmount
+			},
+			() => {
+				AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_STARTED, this.getAnalyticsParams());
+			}
+		);
 	};
 
 	componentDidUpdate(previousProps) {
@@ -311,18 +316,19 @@ class ApproveTransactionReview extends PureComponent {
 
 	getAnalyticsParams = () => {
 		const { activeTabUrl, transaction, onSetAnalyticsParams } = this.props;
-		const { tokenSymbol } = this.state;
+		const { tokenSymbol, originalApproveAmount, encodedAmount } = this.state;
 		const { NetworkController } = Engine.context;
 		const { chainId, type } = NetworkController.state.provider;
 		const isDapp = !Object.values(AppConstants.DEEPLINKS).includes(transaction.origin);
+		const unlimited = encodedAmount === 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
 		const params = {
 			dapp_host_name: transaction.origin,
 			dapp_url: isDapp ? activeTabUrl : undefined,
 			network_name: type,
 			chain_id: chainId,
 			active_currency: { value: tokenSymbol, anonymous: true },
-			//token_count
-			//permission_requested
+			number_tokens_requested: { value: originalApproveAmount, anonymous: true },
+			unlimited_permission_requested: { value: unlimited, anonymous: true },
 			referral_type: { value: isDapp ? 'dapp' : transaction.origin, anonymous: true }
 		};
 		// Send analytics params to parent component so it's available when cancelling and confirming
@@ -428,6 +434,7 @@ class ApproveTransactionReview extends PureComponent {
 			spendLimitCustomValue,
 			originalApproveAmount
 		} = this.state;
+
 		return (
 			<EditPermission
 				host={host}
@@ -453,7 +460,6 @@ class ApproveTransactionReview extends PureComponent {
 			originalApproveAmount,
 			transaction: { to, data }
 		} = this.state;
-
 		return (
 			<TransactionReviewDetailsCard
 				toggleViewDetails={this.toggleViewDetails}
@@ -482,12 +488,12 @@ class ApproveTransactionReview extends PureComponent {
 
 	onCancelPress = () => {
 		const { onCancel } = this.props;
-		onCancel && onCancel(this.getAnalyticsParams());
+		onCancel && onCancel();
 	};
 
 	onConfirmPress = () => {
 		const { onConfirm } = this.props;
-		onConfirm && onConfirm(this.getAnalyticsParams());
+		onConfirm && onConfirm();
 	};
 
 	gotoFaucet = () => {
