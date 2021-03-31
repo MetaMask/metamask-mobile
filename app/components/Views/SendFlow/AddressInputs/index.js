@@ -134,7 +134,9 @@ const checkZeroWidth = str => zeroWidthPoints.has(str) || /\s/g.test(str);
 const AddressName = ({ toAddressName, confusableCollection = [] }) => {
 	if (confusableCollection.length) {
 		const T = toAddressName.split('').map((char, index) => {
+			// if text has a confusable highlight it red
 			if (confusableCollection.includes(char)) {
+				// if the confusable is zero width, replace it with `?`
 				const replacement = checkZeroWidth(char) ? '?' : char;
 				return (
 					<Text red key={index}>
