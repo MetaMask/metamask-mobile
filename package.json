@@ -66,6 +66,7 @@
   },
   "resolutions": {
     "**/elliptic": "^6.5.4",
+    "pubnub/**/netmask": "^2.0.1",
     "**/optimist/minimist": "^1.2.5",
     "react-native-level-fs/**/bl": "^1.2.3",
     "react-native-level-fs/**/semver": "^4.3.2"
