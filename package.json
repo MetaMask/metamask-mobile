@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "private": true,
   "scripts": {
     "watch": "./scripts/build.sh watcher watch",
@@ -56,16 +56,16 @@
   "lint-staged": {
     "*.js": [
       "prettier --write",
-      "eslint --ignore-path=.prettierignore",
-      "git add"
+      "eslint --ignore-path=.prettierignore"
     ],
     "*.json": [
-      "prettier --write",
-      "git add"
+      "prettier --write"
     ]
   },
   "resolutions": {
     "**/elliptic": "^6.5.4",
+    "**/y18n": "^3.2.2",
+    "pubnub/**/netmask": "^2.0.1",
     "**/optimist/minimist": "^1.2.5",
     "react-native-level-fs/**/bl": "^1.2.3",
     "react-native-level-fs/**/semver": "^4.3.2"
@@ -117,7 +117,7 @@
     "fuse.js": "3.4.4",
     "https-browserify": "0.0.1",
     "is-url": "^1.2.4",
-    "json-rpc-engine": "5.1.5",
+    "json-rpc-engine": "^6.1.0",
     "json-rpc-middleware-stream": "2.1.1",
     "lottie-react-native": "git+https://github.com/MetaMask/lottie-react-native.git#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106",
     "multihashes": "0.4.14",
@@ -139,7 +139,7 @@
     "react-native-animatable": "^1.3.3",
     "react-native-animated-fox": "git+https://github.com/MetaMask/react-native-animated-fox.git#16e38d54d829709e497f196e31fa8ff00cdf2aa9",
     "react-native-background-timer": "2.1.1",
-    "react-native-branch": "5.0.0",
+    "react-native-branch": "5.0.1",
     "react-native-browser-polyfill": "0.1.2",
     "react-native-button": "git+https://github.com/MetaMask/react-native-button.git#fd79f4d6c8ced4086ba6e3021b6ed6d4a3e19cf7",
     "react-native-camera": "^3.36.0",
