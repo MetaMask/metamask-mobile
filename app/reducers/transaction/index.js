@@ -13,6 +13,7 @@ const initialState = {
 		to: undefined,
 		value: undefined
 	},
+	warningGasPriceHigh: undefined,
 	transactionTo: undefined,
 	transactionToName: undefined,
 	transactionFromName: undefined,
@@ -87,7 +88,6 @@ const transactionReducer = (state = initialState, action) => {
 				action.transaction.assetType = assetType;
 			}
 			const txMeta = getTxMeta(action.transaction);
-
 			return {
 				...state,
 				transaction: {
