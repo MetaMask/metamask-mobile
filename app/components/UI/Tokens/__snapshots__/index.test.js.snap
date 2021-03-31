@@ -1,6 +1,104 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+      "minHeight": 500,
+    }
+  }
+  testID="tokens"
+>
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "backgroundColor": "#FFFFFF",
+        "justifyContent": "center",
+        "marginTop": 50,
+      }
+    }
+  >
+    <Text
+      style={
+        Object {
+          "color": "#AAAAAA",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 20,
+          "fontWeight": "400",
+        }
+      }
+    >
+      You don't have any tokens!
+    </Text>
+  </View>
+  <ActionSheet
+    cancelButtonIndex={1}
+    destructiveButtonIndex={0}
+    onPress={[Function]}
+    options={
+      Array [
+        "Remove",
+        "Cancel",
+      ]
+    }
+    title="Do you want to remove this token?"
+  />
+</View>
+`;
+
 exports[`Tokens should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+      "minHeight": 500,
+    }
+  }
+  testID="tokens"
+>
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "backgroundColor": "#FFFFFF",
+        "justifyContent": "center",
+        "marginTop": 50,
+      }
+    }
+  >
+    <Text
+      style={
+        Object {
+          "color": "#AAAAAA",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 20,
+          "fontWeight": "400",
+        }
+      }
+    >
+      You don't have any tokens!
+    </Text>
+  </View>
+  <ActionSheet
+    cancelButtonIndex={1}
+    destructiveButtonIndex={0}
+    onPress={[Function]}
+    options={
+      Array [
+        "Remove",
+        "Cancel",
+      ]
+    }
+    title="Do you want to remove this token?"
+  />
+</View>
+`;
+
+exports[`Tokens should show all balance tokens when hideZeroBalanceTokens setting is off 1`] = `
 <View
   style={
     Object {

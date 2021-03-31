@@ -79,10 +79,11 @@ describe('Tokens', () => {
 		const wrapper = shallow(<Tokens />, {
 			context: { store: mockStore(initialState) }
 		});
+		expect(wrapper.dive()).toMatchSnapshot();
 		expect(wrapper.find('AssetElement').length).toEqual(2);
 	});
 
-	it('should show all balance tokens when hideZeroBalanceTokens setting is offs', () => {
+	it('should show all balance tokens when hideZeroBalanceTokens setting is off', () => {
 		const initialState = {
 			engine: {
 				backgroundState: {
@@ -114,13 +115,14 @@ describe('Tokens', () => {
 			},
 			settings: {
 				primaryCurrency: 'usd',
-				hideZeroBalanceTokens: true
+				hideZeroBalanceTokens: false
 			}
 		};
 
 		const wrapper = shallow(<Tokens />, {
 			context: { store: mockStore(initialState) }
 		});
+		expect(wrapper.dive()).toMatchSnapshot();
 		expect(wrapper.find('AssetElement').length).toEqual(3);
 	});
 });

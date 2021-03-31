@@ -564,7 +564,13 @@ exports[`GeneralSettings should render correctly 1`] = `
       >
         Prevents tokens with no balance from displaying in your token listing.
       </Text>
-      <View>
+      <View
+        style={
+          Object {
+            "marginTop": 18,
+          }
+        }
+      >
         <Switch
           ios_backgroundColor="#f2f3f4"
           onValueChange={[Function]}

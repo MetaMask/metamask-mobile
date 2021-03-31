@@ -53,6 +53,9 @@ const styles = StyleSheet.create({
 		lineHeight: 20,
 		marginTop: 12
 	},
+	marginTop: {
+		marginTop: 18
+	},
 	picker: {
 		borderColor: colors.grey200,
 		borderRadius: 5,
