@@ -333,9 +333,16 @@ class Confirm extends PureComponent {
 		const { NetworkController } = Engine.context;
 		const { chainId, type } = NetworkController.state.provider;
 		return {
-			activeCurrency: { value: selectedAsset.symbol, anonymous: true },
+			active_currency: { value: selectedAsset.symbol, anonymous: true },
 			network_name: type,
 			chain_id: chainId
+		};
+	};
+
+	getGasAnalyticsParams = () => {
+		const { selectedAsset } = this.props;
+		return {
+			active_currency: { value: selectedAsset.symbol, anonymous: true }
 		};
 	};
 
@@ -869,6 +876,7 @@ class Confirm extends PureComponent {
 							onPress={this.handleSetGasSpeed}
 							gasSpeedSelected={gasSpeedSelected}
 							view={'SendTo (Confirm)'}
+							analyticsParams={this.getGasAnalyticsParams()}
 						/>
 					</AnimatedTransactionModal>
 				</KeyboardAwareScrollView>

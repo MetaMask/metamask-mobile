@@ -308,7 +308,11 @@ class CustomGas extends PureComponent {
 		/**
 		 * A string representing the network type
 		 */
-		networkType: PropTypes.string
+		networkType: PropTypes.string,
+		/**
+		 * Extra analytics params to be send with the gas analytics
+		 */
+		analyticsParams: PropTypes.object
 	};
 
 	state = {
@@ -469,19 +473,18 @@ class CustomGas extends PureComponent {
 	};
 
 	getAnalyticsParams = () => {
-		const { advancedCustomGas, chainId, networkType, view } = this.props;
+		const { advancedCustomGas, chainId, networkType, view, analyticsParams } = this.props;
 		const { gasSpeedSelected } = this.state;
 		return {
-			//dapp_name
-			//dapp_url
+			...(analyticsParams || {}),
 			network_name: networkType,
 			chain_id: chainId,
-			//active_currency
 			function_type: { value: view, anonymous: true },
 			gas_mode: { value: advancedCustomGas ? 'Advanced' : 'Basic', anonymous: true },
 			speed_set: { value: advancedCustomGas ? undefined : gasSpeedSelected, anonymous: true }
 		};
 	};
+
 	//Handle gas fee selection when save button is pressed instead of everytime a change is made, otherwise cannot switch back to review mode if there is an error
 	saveCustomGasSelection = () => {
 		const { gasSpeedSelected, customGasLimit, customGasPriceBNWei } = this.state;
@@ -503,9 +506,8 @@ class CustomGas extends PureComponent {
 			if (gasSpeedSelected === 'fast') handleGasFeeSelection(gas, apiEstimateModifiedToWEI(fastGwei), mode);
 		}
 
-		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.GAS_FEE_CHANGED, this.getAnalyticsParams());
-
 		review();
+		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.GAS_FEE_CHANGED, this.getAnalyticsParams());
 	};
 
 	renderCustomGasSelector = () => {
