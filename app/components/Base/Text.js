@@ -46,6 +46,9 @@ const style = StyleSheet.create({
 	},
 	underline: {
 		textDecorationLine: 'underline'
+	},
+	noMargin: {
+		marginVertical: 0
 	}
 });
 
@@ -64,6 +67,7 @@ const Text = ({
 	strikethrough,
 	underline,
 	style: externalStyle,
+	noMargin,
 	...props
 }) => (
 	<RNText
@@ -81,6 +85,7 @@ const Text = ({
 			link && style.link,
 			strikethrough && style.strikethrough,
 			underline && style.underline,
+			noMargin && style.noMargin,
 			externalStyle
 		]}
 		{...props}
@@ -159,6 +164,10 @@ Text.propTypes = {
 	 * Applies a underline decoration
 	 */
 	underline: PropTypes.bool,
+	/**
+	 * Removes the vertical margin
+	 */
+	noMargin: PropTypes.bool,
 	/**
 	 * Any other external style defined in props will be applied
 	 */
