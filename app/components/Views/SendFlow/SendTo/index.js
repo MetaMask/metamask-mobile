@@ -377,7 +377,7 @@ class SendFlow extends PureComponent {
 			const collection = confusables(toEnsName)
 				.filter(result => key in result)
 				.map(result => result.point);
-			console.log({ collection });
+
 			confusableCollection = collection;
 			const resolvedAddress = await doENSLookup(toSelectedAddress, network);
 			if (resolvedAddress) {
