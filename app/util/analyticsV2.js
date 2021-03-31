@@ -54,20 +54,22 @@ export const logV2 = (eventName, params) => {
 
 			const userParams = {};
 			const anonymousParams = {};
+
 			for (const key in params) {
 				const property = params[key];
 
-				// Non-anonymous properties
 				if (typeof property === 'string' || property instanceof String) {
+					// Non-anonymous properties - add to both
 					userParams[key] = property;
-				}
-
-				if (typeof property === 'object') {
-					// Anonymous properties
+					anonymousParams[key] = property;
+				} else if (typeof property === 'object') {
 					if (property.anonymous) {
+						// Anonymous property - add only to anonymous params
 						anonymousParams[key] = property.value;
 					} else {
+						// Non-anonymous property - add to both
 						userParams[key] = property.value;
+						anonymousParams[key] = property.value;
 					}
 				}
 			}
