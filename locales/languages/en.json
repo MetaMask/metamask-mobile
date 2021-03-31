@@ -1591,5 +1591,32 @@
 		"hint": "You can find the chain IDs of most popular networks on ",
 		"edit_network_button": "Edit network",
 		"cancel": "Cancel"
+	},
+	"switch_custom_network": {
+		"title_existing_network": "This site would like to switch the network",
+		"title_new_network": "New network added",
+		"switch_warning": "This will switch the selected network within MetaMask to a prevously added network:",
+		"available": "is now available in the network selector.",
+		"cancel": "Cancel",
+		"switch": "Switch Network"
+	},
+	"add_custom_network": {
+		"title": "Allow this site to add a network?",
+		"warning": "This allows this network to be used within MetaMask.",
+		"warning_subtext_1": "MetaMask does not verify custom networks or their security.",
+		"warning_subtext_2": "Learn about",
+		"warning_subtext_3": "scams and network security risks",
+		"display_name": "Display name",
+		"chain_id": "Chain ID",
+		"network_url": "Network URL",
+		"currency_symbol": "Currency symbol",
+		"block_explorer_url": "Block explorer URL",
+		"details_title": "Network details",
+		"cancel": "Cancel",
+		"approve": "Approve",
+		"unrecognized_chain": "This custom network is not recongized",
+		"invalid_chain": "The %{rpcUrl} for this Chain ID does not match the chainid.network listing",
+		"alert_recommend": "We recommend you",
+		"alert_verify": "verify the chain ID"
 	}
 }
