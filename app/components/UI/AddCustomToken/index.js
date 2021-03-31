@@ -7,8 +7,7 @@ import { strings } from '../../../../locales/i18n';
 import { isValidAddress } from 'ethereumjs-util';
 import ActionView from '../ActionView';
 import { isSmartContractAddress } from '../../../util/transactions';
-import Analytics from '../../../core/Analytics';
-import ANALYTICS_EVENTS_V2 from '../../../util/analyticsV2';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -57,8 +56,8 @@ export default class AddCustomToken extends PureComponent {
 		const { chainId, type } = NetworkController.state.provider;
 		const { address, symbol } = this.state;
 		return {
-			token_address: address,
-			token_symbol: symbol,
+			token_address: { value: address, anonymous: true },
+			token_symbol: { value: symbol, anonymous: true },
 			network_name: type,
 			chain_id: chainId,
 			source: 'Custom token'
@@ -71,7 +70,7 @@ export default class AddCustomToken extends PureComponent {
 		const { address, symbol, decimals } = this.state;
 		await AssetsController.addToken(address, symbol, decimals);
 
-		Analytics.trackEventWithParameters(ANALYTICS_EVENTS_V2.TOKEN_ADDED, this.getAnalyticsParams());
+		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.TOKEN_ADDED, this.getAnalyticsParams());
 
 		// Clear state before closing
 		this.setState(

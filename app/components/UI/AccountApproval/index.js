@@ -8,9 +8,8 @@ import AccountInfoCard from '../AccountInfoCard';
 import { strings } from '../../../../locales/i18n';
 import { colors, fontStyles } from '../../../styles/common';
 import Device from '../../../util/Device';
-import Analytics from '../../../core/Analytics';
 import NotificationManager from '../../../core/NotificationManager';
-import ANALYTICS_EVENTS_V2 from '../../../util/analyticsV2';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import URL from 'url-parse';
 const styles = StyleSheet.create({
 	root: {
@@ -105,8 +104,8 @@ class AccountApproval extends PureComponent {
 		const { currentPageInformation, chainId, networkType } = this.props;
 		const url = new URL(currentPageInformation.url);
 		return {
-			dapp_host_name: url.host,
-			dapp_url: currentPageInformation.url,
+			dapp_host_name: { value: url.host, anonymous: true },
+			dapp_url: { value: currentPageInformation.url, anonymous: true },
 			network_name: networkType,
 			chain_id: chainId
 		};
@@ -114,7 +113,7 @@ class AccountApproval extends PureComponent {
 
 	componentDidMount = () => {
 		InteractionManager.runAfterInteractions(() => {
-			Analytics.trackEventWithParameters(ANALYTICS_EVENTS_V2.CONNECT_REQUEST_STARTED, this.getAnalyticsParams());
+			AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.CONNECT_REQUEST_STARTED, this.getAnalyticsParams());
 		});
 	};
 
@@ -139,7 +138,7 @@ class AccountApproval extends PureComponent {
 	 */
 	onConfirm = () => {
 		this.props.onConfirm();
-		Analytics.trackEventWithParameters(ANALYTICS_EVENTS_V2.CONNECT_REQUEST_COMPLETED, this.getAnalyticsParams());
+		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.CONNECT_REQUEST_COMPLETED, this.getAnalyticsParams());
 		this.showWalletConnectNotification(true);
 	};
 
@@ -147,7 +146,7 @@ class AccountApproval extends PureComponent {
 	 * Calls onConfirm callback and analytics to track connect canceled event
 	 */
 	onCancel = () => {
-		Analytics.trackEventWithParameters(ANALYTICS_EVENTS_V2.CONNECT_REQUEST_CANCELLED, this.getAnalyticsParams());
+		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.CONNECT_REQUEST_CANCELLED, this.getAnalyticsParams());
 
 		this.props.onCancel();
 		this.showWalletConnectNotification();

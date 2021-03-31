@@ -20,7 +20,7 @@ import NotificationManager from '../../../../core/NotificationManager';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import Logger from '../../../../util/Logger';
-import { ANALYTICS_EVENTS_V2 } from '../../../../util/analyticsV2';
+import AnalyticsV2 from '../../../../util/analyticsV2';
 
 const { BNToHex, hexToBN } = util;
 
@@ -207,7 +207,7 @@ class Approve extends PureComponent {
 			const updatedTx = { ...fullTx, transaction };
 			await TransactionController.updateTransaction(updatedTx);
 			await TransactionController.approveTransaction(transaction.id);
-			Analytics.trackEventWithParameters(ANALYTICS_EVENTS_V2.APPROVAL_COMPLETED, this.state.analyticsParams);
+			AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_COMPLETED, this.state.analyticsParams);
 		} catch (error) {
 			Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
 			Logger.error(error, 'error while trying to send transaction (Approve)');
@@ -216,7 +216,7 @@ class Approve extends PureComponent {
 	};
 
 	onCancel = () => {
-		Analytics.trackEventWithParameters(ANALYTICS_EVENTS_V2.APPROVAL_CANCELLED, this.state.analyticsParams);
+		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_CANCELLED, this.state.analyticsParams);
 		this.props.toggleApproveModal(false);
 	};
 

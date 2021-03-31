@@ -9,8 +9,7 @@ import Device from '../../../util/Device';
 import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
-import Analytics from '../../../core/Analytics';
-import ANALYTICS_EVENTS_V2 from '../../../util/analyticsV2';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import URL from 'url-parse';
 
 const styles = StyleSheet.create({
@@ -82,8 +81,8 @@ export default class TypedSign extends PureComponent {
 		const { chainId, type } = NetworkController.state.provider;
 		const url = new URL(currentPageInformation.url);
 		return {
-			dapp_host_name: url.host,
-			dapp_url: currentPageInformation.url,
+			dapp_host_name: { value: url.host, anonymous: true },
+			dapp_url: { value: currentPageInformation.url, anonymous: true },
 			network_name: type,
 			chain_id: chainId,
 			sign_type: 'typed',
@@ -92,7 +91,7 @@ export default class TypedSign extends PureComponent {
 	};
 
 	componentDidMount = () => {
-		Analytics.trackEventWithParameters(ANALYTICS_EVENTS_V2.SIGN_REQUEST_STARTED, this.getAnalyticsParams());
+		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_STARTED, this.getAnalyticsParams());
 	};
 
 	showWalletConnectNotification = (messageParams = {}, confirmation = false) => {
@@ -130,13 +129,13 @@ export default class TypedSign extends PureComponent {
 	};
 
 	cancelSignature = () => {
-		Analytics.trackEventWithParameters(ANALYTICS_EVENTS_V2.SIGN_REQUEST_CANCELLED, this.getAnalyticsParams());
+		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_CANCELLED, this.getAnalyticsParams());
 		this.rejectMessage();
 		this.props.onCancel();
 	};
 
 	confirmSignature = () => {
-		Analytics.trackEventWithParameters(ANALYTICS_EVENTS_V2.SIGN_REQUEST_COMPLETED, this.getAnalyticsParams());
+		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_COMPLETED, this.getAnalyticsParams());
 		this.signMessage();
 		this.props.onConfirm();
 	};

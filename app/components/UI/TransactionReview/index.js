@@ -32,7 +32,7 @@ import TransactionHeader from '../TransactionHeader';
 import AccountInfoCard from '../AccountInfoCard';
 import ActionView from '../ActionView';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
-import ANALYTICS_EVENTS_V2 from '../../../util/analyticsV2';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	tabUnderlineStyle: {
@@ -187,12 +187,12 @@ class TransactionReview extends PureComponent {
 		const { activeTabUrl, chainId, transaction, networkType } = this.props;
 		const { selectedAsset } = transaction;
 		return {
-			dapp_host_name: transaction.origin,
-			dapp_url: activeTabUrl,
+			dapp_host_name: { value: transaction.origin, anonymous: true },
+			dapp_url: { value: activeTabUrl, anonymous: true },
 			network_name: networkType,
 			chain_id: chainId,
-			active_currency: selectedAsset.symbol,
-			asset_type: transaction.assetType
+			active_currency: { value: selectedAsset.symbol, anonymous: true },
+			asset_type: { value: transaction.assetType, anonymous: true }
 			//token_count
 			//permission_requested
 		};
@@ -223,7 +223,7 @@ class TransactionReview extends PureComponent {
 		}
 		this.setState({ error, actionKey, showHexData, assetAmount, conversionRate, fiatValue, approveTransaction });
 		InteractionManager.runAfterInteractions(() => {
-			Analytics.trackEventWithParameters(ANALYTICS_EVENTS_V2.DAPP_TRANSACTION_STARTED, this.getAnalyticsParams());
+			AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.DAPP_TRANSACTION_STARTED, this.getAnalyticsParams());
 		});
 	};
 
@@ -310,11 +310,11 @@ class TransactionReview extends PureComponent {
 	}
 
 	onCancel = () => {
-		Analytics.trackEventWithParameters(ANALYTICS_EVENTS_V2.DAPP_TRANSACTION_CANCELLED, this.getAnalyticsParams());
+		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.DAPP_TRANSACTION_CANCELLED, this.getAnalyticsParams());
 		this.props.onCancel();
 	};
 	onConfirm = () => {
-		Analytics.trackEventWithParameters(ANALYTICS_EVENTS_V2.DAPP_TRANSACTION_CONFIRMED, this.getAnalyticsParams());
+		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.DAPP_TRANSACTION_CONFIRMED, this.getAnalyticsParams());
 		this.props.onConfirm();
 	};
 

@@ -10,8 +10,7 @@ import TokenImage from '../../UI/TokenImage';
 import Device from '../../../util/Device';
 import Engine from '../../../core/Engine';
 import URL from 'url-parse';
-import Analytics from '../../../core/Analytics';
-import ANALYTICS_EVENTS_V2 from '../../../util/analyticsV2';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	root: {
@@ -117,8 +116,8 @@ class WatchAssetRequest extends PureComponent {
 
 		const url = new URL(currentPageInformation.url);
 		return {
-			token_address: asset.address,
-			token_symbol: asset.symbol,
+			token_address: { value: asset.address, anonymous: true },
+			token_symbol: { value: asset.symbol, anonymous: true },
 			dapp_host_name: url.host,
 			dapp_url: currentPageInformation.url,
 			network_name: type,
@@ -136,7 +135,7 @@ class WatchAssetRequest extends PureComponent {
 	onConfirm = async () => {
 		const { onConfirm, suggestedAssetMeta } = this.props;
 		const { AssetsController } = Engine.context;
-		Analytics.trackEventWithParameters(ANALYTICS_EVENTS_V2.TOKEN_ADDED, this.getAnalyticsParams());
+		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.TOKEN_ADDED, this.getAnalyticsParams());
 		await AssetsController.acceptWatchAsset(suggestedAssetMeta.id);
 		onConfirm && onConfirm();
 	};

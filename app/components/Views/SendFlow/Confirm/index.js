@@ -57,7 +57,7 @@ import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { capitalize } from '../../../../util/format';
 import { isMainNet, getNetworkName } from '../../../../util/networks';
-import ANALYTICS_EVENTS_V2 from '../../../../util/analyticsV2';
+import AnalyticsV2 from '../../../../util/analyticsV2';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -333,7 +333,7 @@ class Confirm extends PureComponent {
 		const { NetworkController } = Engine.context;
 		const { chainId, type } = NetworkController.state.provider;
 		return {
-			activeCurrency: selectedAsset.symbol,
+			activeCurrency: { value: selectedAsset.symbol, anonymous: true },
 			network_name: type,
 			chain_id: chainId
 		};
@@ -341,7 +341,7 @@ class Confirm extends PureComponent {
 
 	componentDidMount = async () => {
 		// For analytics
-		Analytics.trackEventWithParameters(ANALYTICS_EVENTS_V2.SEND_TRANSACTION_STARTED, this.getAnalyticsParams());
+		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_STARTED, this.getAnalyticsParams());
 
 		const { navigation, providerType } = this.props;
 		await this.handleFetchBasicEstimates();
@@ -780,10 +780,7 @@ class Confirm extends PureComponent {
 					assetType
 				});
 				this.checkRemoveCollectible();
-				Analytics.trackEventWithParameters(
-					ANALYTICS_EVENTS_V2.SEND_TRANSACTION_COMPLETED,
-					this.getAnalyticsParams()
-				);
+				AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_COMPLETED, this.getAnalyticsParams());
 				resetTransaction();
 				navigation && navigation.dismiss();
 			});

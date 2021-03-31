@@ -13,8 +13,7 @@ import { safeToChecksumAddress } from '../../../util/address';
 import Radio from '../Radio';
 import StyledButton from '../../UI/StyledButton';
 import Device from '../../../util/Device';
-import Analytics from '../../../core/Analytics';
-import ANALYTICS_EVENTS_V2 from '../../../util/analyticsV2';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	root: {
@@ -478,9 +477,9 @@ class CustomGas extends PureComponent {
 			network_name: networkType,
 			chain_id: chainId,
 			//active_currency
-			function_type: view,
-			gas_mode: advancedCustomGas ? 'Advanced' : 'Basic',
-			speed_set: advancedCustomGas ? undefined : gasSpeedSelected
+			function_type: { value: view, anonymous: true },
+			gas_mode: { value: advancedCustomGas ? 'Advanced' : 'Basic', anonymous: true },
+			speed_set: { value: advancedCustomGas ? undefined : gasSpeedSelected, anonymous: true }
 		};
 	};
 	//Handle gas fee selection when save button is pressed instead of everytime a change is made, otherwise cannot switch back to review mode if there is an error
@@ -504,7 +503,7 @@ class CustomGas extends PureComponent {
 			if (gasSpeedSelected === 'fast') handleGasFeeSelection(gas, apiEstimateModifiedToWEI(fastGwei), mode);
 		}
 
-		Analytics.trackEventWithParameters(ANALYTICS_EVENTS_V2.GAS_FEE_CHANGED, this.getAnalyticsParams());
+		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.GAS_FEE_CHANGED, this.getAnalyticsParams());
 
 		review();
 	};

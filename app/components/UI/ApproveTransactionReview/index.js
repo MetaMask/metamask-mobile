@@ -26,7 +26,7 @@ import {
 import { showAlert } from '../../../actions/alert';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
-import { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import TransactionHeader from '../../UI/TransactionHeader';
 import AccountInfoCard from '../../UI/AccountInfoCard';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
@@ -288,7 +288,7 @@ class ApproveTransactionReview extends PureComponent {
 			totalGasFiat: weiToFiatNumber(totalGas, conversionRate),
 			spenderAddress
 		});
-		Analytics.trackEventWithParameters(ANALYTICS_EVENTS_V2.APPROVAL_STARTED, this.getAnalyticsParams());
+		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_STARTED, this.getAnalyticsParams());
 	};
 
 	componentDidUpdate(previousProps) {
@@ -320,10 +320,10 @@ class ApproveTransactionReview extends PureComponent {
 			dapp_url: isDapp ? activeTabUrl : undefined,
 			network_name: type,
 			chain_id: chainId,
-			active_currency: tokenSymbol,
+			active_currency: { value: tokenSymbol, anonymous: true },
 			//token_count
 			//permission_requested
-			referral_type: isDapp ? 'dapp' : transaction.origin
+			referral_type: { value: isDapp ? 'dapp' : transaction.origin, anonymous: true }
 		};
 		// Send analytics params to parent component so it's available when cancelling and confirming
 		onSetAnalyticsParams && onSetAnalyticsParams(params);
@@ -417,7 +417,7 @@ class ApproveTransactionReview extends PureComponent {
 		const newApprovalTransaction = { ...transaction, data: approvalData };
 		setTransactionObject(newApprovalTransaction);
 		this.toggleEditPermission();
-		Analytics.trackEventWithParameters(ANALYTICS_EVENTS_V2.APPROVAL_PERMISSION_UPDATED, this.getAnalyticsParams());
+		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_PERMISSION_UPDATED, this.getAnalyticsParams());
 	};
 
 	renderEditPermission = () => {

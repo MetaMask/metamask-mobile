@@ -41,7 +41,7 @@ import WhatsNewModal from '../WhatsNewModal';
 import InvalidCustomNetworkAlert from '../InvalidCustomNetworkAlert';
 import { RPC } from '../../../constants/network';
 import { findBottomTabRouteNameFromNavigatorState, findRouteNameFromNavigatorState } from '../../../util/general';
-import ANALYTICS_EVENTS_V2 from '../../../util/analyticsV2';
+import { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	wrapper: {
