@@ -57,7 +57,7 @@ import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { capitalize } from '../../../../util/format';
 import { isMainNet, getNetworkName } from '../../../../util/networks';
-import { confusables } from 'unicode-confusables';
+import { collectConfusables } from '../../../../util/validators';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -332,13 +332,7 @@ class Confirm extends PureComponent {
 
 	handleConfusables = async () => {
 		const { transactionToName } = this.props.transactionState;
-		const key = 'similarTo';
-		const confusableCollection =
-			transactionToName &&
-			confusables(transactionToName)
-				.filter(result => key in result)
-				.map(result => result.point);
-		await this.setState({ confusableCollection });
+		await this.setState({ confusableCollection: collectConfusables(transactionToName) });
 	};
 
 	componentDidMount = async () => {
