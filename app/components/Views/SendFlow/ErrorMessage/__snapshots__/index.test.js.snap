@@ -23,6 +23,7 @@ exports[`ErrorMessage should render correctly 1`] = `
 >
   <View>
     <Text
+      black={false}
       bold={false}
       centered={false}
       disclaimer={false}
@@ -30,6 +31,7 @@ exports[`ErrorMessage should render correctly 1`] = `
       link={false}
       modal={false}
       primary={false}
+      red={false}
       reset={false}
       right={false}
       small={true}

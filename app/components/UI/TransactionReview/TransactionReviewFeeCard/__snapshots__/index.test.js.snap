@@ -18,6 +18,7 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
 >
   <SummaryRow>
     <Text
+      black={false}
       bold={true}
       centered={false}
       disclaimer={false}
@@ -25,6 +26,7 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
       link={false}
       modal={false}
       primary={true}
+      red={false}
       reset={false}
       right={false}
       small={false}
@@ -35,6 +37,7 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
       Amount
     </Text>
     <Text
+      black={false}
       bold={true}
       centered={false}
       disclaimer={false}
@@ -42,6 +45,7 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
       link={false}
       modal={false}
       primary={true}
+      red={false}
       reset={false}
       right={false}
       small={false}
@@ -53,6 +57,7 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
   <SummaryRow>
     <SummaryCol>
       <Text
+        black={false}
         bold={true}
         centered={false}
         disclaimer={false}
@@ -60,6 +65,7 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
         link={false}
         modal={false}
         primary={true}
+        red={false}
         reset={false}
         right={false}
         small={false}
@@ -73,6 +79,7 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
         disabled={true}
       >
         <Text
+          black={false}
           bold={true}
           centered={false}
           disclaimer={false}
@@ -80,6 +87,7 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
           link={true}
           modal={false}
           primary={false}
+          red={false}
           reset={false}
           right={false}
           small={false}
@@ -111,6 +119,7 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
   <SummarySeparator />
   <SummaryRow>
     <Text
+      black={false}
       bold={true}
       centered={false}
       disclaimer={false}
@@ -118,6 +127,7 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
       link={false}
       modal={false}
       primary={true}
+      red={false}
       reset={false}
       right={false}
       small={false}

@@ -21,6 +21,7 @@ exports[`TransactionDetails should render correctly 1`] = `
         Date
       </DetailsModalSectionTitle>
       <Text
+        black={false}
         bold={false}
         centered={false}
         disclaimer={false}
@@ -28,6 +29,7 @@ exports[`TransactionDetails should render correctly 1`] = `
         link={false}
         modal={false}
         primary={true}
+        red={false}
         reset={false}
         right={false}
         small={true}
@@ -47,6 +49,7 @@ exports[`TransactionDetails should render correctly 1`] = `
         From
       </DetailsModalSectionTitle>
       <Text
+        black={false}
         bold={false}
         centered={false}
         disclaimer={false}
@@ -54,6 +57,7 @@ exports[`TransactionDetails should render correctly 1`] = `
         link={false}
         modal={false}
         primary={true}
+        red={false}
         reset={false}
         right={false}
         small={true}
@@ -74,6 +78,7 @@ exports[`TransactionDetails should render correctly 1`] = `
         To
       </DetailsModalSectionTitle>
       <Text
+        black={false}
         bold={false}
         centered={false}
         disclaimer={false}
@@ -81,6 +86,7 @@ exports[`TransactionDetails should render correctly 1`] = `
         link={false}
         modal={false}
         primary={true}
+        red={false}
         reset={false}
         right={false}
         small={true}
