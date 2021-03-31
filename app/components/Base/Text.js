@@ -19,10 +19,10 @@ const style = StyleSheet.create({
 	red: {
 		color: colors.red
 	},
-	bold: fontStyles.bold,
 	black: {
 		color: colors.black
 	},
+	bold: fontStyles.bold,
 	blue: {
 		color: colors.blue
 	},
@@ -92,6 +92,7 @@ const Text = ({
 			black && style.black,
 			blue && style.blue,
 			red && style.red,
+			black && style.black,
 			primary && style.primary,
 			disclaimer && [style.small, style.disclaimer],
 			small && style.small,
