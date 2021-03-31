@@ -55,7 +55,7 @@ import OnboardingWizard from '../../UI/OnboardingWizard';
 import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 import { resemblesAddress } from '../../../util/address';
 
-import createAsyncMiddleware from 'json-rpc-engine/src/createAsyncMiddleware';
+import { createAsyncMiddleware } from 'json-rpc-engine';
 import { ethErrors } from 'eth-json-rpc-errors';
 
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
