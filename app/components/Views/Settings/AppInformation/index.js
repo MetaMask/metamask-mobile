@@ -14,6 +14,7 @@ import { colors, fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
+import AppConstants from '../../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -103,12 +104,12 @@ export default class AppInformation extends PureComponent {
 	};
 
 	onPrivacyPolicy = () => {
-		const url = 'https://metamask.io/privacy.html';
+		const url = AppConstants.URLS.PRIVACY_POLICY;
 		this.goTo(url, strings('app_information.privacy_policy'));
 	};
 
 	onTermsOfUse = () => {
-		const url = 'https://metamask.io/terms.html';
+		const url = AppConstants.URLS.TERMS_AND_CONDITIONS;
 		this.goTo(url, strings('app_information.terms_of_use'));
 	};
 
