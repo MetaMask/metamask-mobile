@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
 
 const AddressName = ({ toAddressName, confusableCollection = [] }) => {
 	if (confusableCollection.length) {
-		const T = toAddressName.split('').map((char, index) => {
+		const Texts = toAddressName.split('').map((char, index) => {
 			// if text has a confusable highlight it red
 			if (confusableCollection.includes(char)) {
 				// if the confusable is zero width, replace it with `?`
@@ -150,7 +150,7 @@ const AddressName = ({ toAddressName, confusableCollection = [] }) => {
 		});
 		return (
 			<Text style={styles.textAddress} numberOfLines={1}>
-				{T}
+				{Texts}
 			</Text>
 		);
 	}
