@@ -22,3 +22,14 @@ export const collectConfusables = ensName => {
 		.map(result => result.point);
 	return collection;
 };
+
+const zeroWidthPoints = new Set([
+	'\u200b', // zero width space
+	'\u200c', // zero width non-joiner
+	'\u200d', // zero width joiner
+	'\ufeff', // zero width no-break space
+	'\u2028', // line separator
+	'\u2029' // paragraph separator,
+]);
+
+export const hasZeroWidthPoints = char => zeroWidthPoints.has(char);
