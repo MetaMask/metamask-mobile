@@ -213,6 +213,9 @@ const styles = StyleSheet.create({
 	over: {
 		color: colors.red,
 		...fontStyles.bold
+	},
+	text: {
+		lineHeight: 20
 	}
 });
 
@@ -990,7 +993,7 @@ class Confirm extends PureComponent {
 					isVisible={warningModalVisible}
 					toggleModal={this.toggleWarningModal}
 					title={strings('transaction.confusable_title')}
-					body={<Text>{strings('transaction.confusable_msg')}</Text>}
+					body={<Text style={styles.text}>{strings('transaction.confusable_msg')}</Text>}
 				/>
 
 				<ScrollView style={baseStyles.flexGrow} ref={this.setScrollViewRef}>

@@ -561,6 +561,8 @@ class SendFlow extends PureComponent {
 			confusableCollection
 		} = this.state;
 
+		const displayConfusableWarning = confusableCollection && !!confusableCollection.length;
+
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'send-screen'}>
 				<View style={styles.imputWrapper}>
@@ -606,7 +608,7 @@ class SendFlow extends PureComponent {
 									/>
 								</View>
 							)}
-							{!!confusableCollection.length && (
+							{displayConfusableWarning && (
 								<View style={styles.confusabeError}>
 									<View style={styles.warningIcon}>
 										<Icon size={16} color={colors.red} name="exclamation-triangle" />
