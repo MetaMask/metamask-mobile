@@ -87,13 +87,7 @@ module.exports = {
 			}
 		],
 		'no-unsafe-negation': 2,
-		'no-unused-expressions': [
-			2,
-			{
-				allowTernary: true,
-				allowShortCircuit: true
-			}
-		],
+		'no-unused-expressions': 'off',
 		'no-use-before-define': [2, 'nofunc'],
 		'no-useless-call': 2,
 		'no-useless-computed-key': 2,
