@@ -544,6 +544,7 @@ class SendFlow extends PureComponent {
 
 	render = () => {
 		const { ticker } = this.props;
+		const { addressBook, network } = this.props;
 		const {
 			fromSelectedAddress,
 			fromAccountName,
@@ -561,7 +562,9 @@ class SendFlow extends PureComponent {
 			confusableCollection
 		} = this.state;
 
-		const displayConfusableWarning = confusableCollection && !!confusableCollection.length;
+		const checksummedAddress = toSelectedAddress && toChecksumAddress(toSelectedAddress);
+		const existingContact = checksummedAddress && addressBook[network] && addressBook[network][checksummedAddress];
+		const displayConfusableWarning = !existingContact && confusableCollection && !!confusableCollection.length;
 
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'send-screen'}>
