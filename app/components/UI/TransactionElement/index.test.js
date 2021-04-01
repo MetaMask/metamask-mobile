@@ -10,8 +10,9 @@ describe('TransactionElement', () => {
 		const initialState = {
 			engine: {
 				backgroundState: {
-					AccountTrackerController: {
-						accounts: {}
+					PreferencesController: {
+						selectedAddress: '0x0',
+						identities: { '0xbar': { name: 'Account 1', address: '0x0', importTime: Date.now() } }
 					},
 					CurrencyRateController: {
 						currentCurrency: 'usd',

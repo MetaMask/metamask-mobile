@@ -13,7 +13,8 @@ describe('Transactions', () => {
 			engine: {
 				backgroundState: {
 					PreferencesController: {
-						selectedAddress: '0x0'
+						selectedAddress: '0x0',
+						identities: { '0xbar': { name: 'Account 1', address: '0x0', importTime: Date.now() } }
 					},
 					AccountTrackerController: {
 						accounts: {}
