@@ -8,6 +8,7 @@ import Identicon from '../../../UI/Identicon';
 import { renderShortAddress } from '../../../../util/address';
 import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
+import { hasZeroWidthPoints } from '../../../../util/validators';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -128,22 +129,13 @@ const styles = StyleSheet.create({
 	}
 });
 
-const zeroWidthPoints = new Set([
-	'\u200b', // zero width space
-	'\u200c', // zero width non-joiner
-	'\u200d', // zero width joiner
-	'\ufeff', // zero width no-break space
-	'\u2028', // line separator
-	'\u2029' // paragraph separator,
-]);
-
 const AddressName = ({ toAddressName, confusableCollection = [] }) => {
 	if (confusableCollection.length) {
 		const T = toAddressName.split('').map((char, index) => {
 			// if text has a confusable highlight it red
 			if (confusableCollection.includes(char)) {
 				// if the confusable is zero width, replace it with `?`
-				const replacement = zeroWidthPoints.has(char) ? '?' : char;
+				const replacement = hasZeroWidthPoints(char) ? '?' : char;
 				return (
 					<Text red key={index}>
 						{replacement}
