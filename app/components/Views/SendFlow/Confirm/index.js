@@ -56,8 +56,8 @@ import { capitalize } from '../../../../util/general';
 import { isMainNet, getNetworkName, getNetworkNonce } from '../../../../util/networks';
 import Text from '../../../Base/Text';
 import AnalyticsV2 from '../../../../util/analyticsV2';
-import { confusables } from 'unicode-confusables';
 import { collectConfusables } from '../../../../util/validators';
+import InfoModal from '../../../UI/Swaps/components/InfoModal';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -213,30 +213,6 @@ const styles = StyleSheet.create({
 	over: {
 		color: colors.red,
 		...fontStyles.bold
-	},
-	modal: {
-		margin: 0,
-		width: '100%'
-	},
-	confusableWarning: {
-		alignSelf: 'center',
-		backgroundColor: colors.white,
-		width: '80%',
-		borderRadius: 6,
-		minHeight: 200,
-		padding: 15
-	},
-	confusableTitle: {
-		color: colors.black,
-		...fontStyles.bold,
-		fontSize: 16,
-		lineHeight: 18
-	},
-	confusableMsg: {
-		marginTop: 10,
-		color: colors.black,
-		fontSize: 14,
-		lineHeight: 18
 	}
 });
 
@@ -1010,25 +986,12 @@ class Confirm extends PureComponent {
 					<AdressToComponentWrap />
 				</View>
 
-				<Modal
+				<InfoModal
 					isVisible={warningModalVisible}
-					animationIn="slideInUp"
-					animationOut="slideOutDown"
-					style={styles.modal}
-					backdropOpacity={0.7}
-					animationInTiming={600}
-					animationOutTiming={600}
-					onBackdropPress={this.toggleWarningModal}
-					onBackButtonPress={this.toggleWarningModal}
-					onSwipeComplete={this.toggleWarningModal}
-					swipeDirection={'down'}
-					propagateSwipe
-				>
-					<View style={styles.confusableWarning}>
-						<Text style={styles.confusableTitle}>{strings('transaction.confusable_title')}</Text>
-						<Text style={styles.confusableMsg}>{strings('transaction.confusable_msg')}</Text>
-					</View>
-				</Modal>
+					toggleModal={this.toggleWarningModal}
+					title={strings('transaction.confusable_title')}
+					body={<Text>{strings('transaction.confusable_msg')}</Text>}
+				/>
 
 				<ScrollView style={baseStyles.flexGrow} ref={this.setScrollViewRef}>
 					{!selectedAsset.tokenId ? (
