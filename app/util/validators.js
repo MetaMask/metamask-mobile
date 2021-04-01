@@ -17,9 +17,10 @@ export const { isValidMnemonic } = ethers.utils;
 
 export const collectConfusables = ensName => {
 	const key = 'similarTo';
-	const collection = confusables(ensName)
-		.filter(result => key in result)
-		.map(result => result.point);
+	const collection = confusables(ensName).reduce(
+		(total, current) => (key in current ? [...total, current.point] : total),
+		[]
+	);
 	return collection;
 };
 
