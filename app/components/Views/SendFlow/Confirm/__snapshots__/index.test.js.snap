@@ -24,13 +24,122 @@ exports[`Confirm should render correctly 1`] = `
       fromAccountAddress="0x1"
       onPressIcon={null}
     />
-    <AddressTo
-      addressToReady={true}
-      confusableCollection={Array []}
-      displayExclamation={false}
-      toSelectedAddress=""
-    />
+    <AdressToComponentWrap />
   </View>
+  <ReactNativeModal
+    animationIn="slideInUp"
+    animationInTiming={600}
+    animationOut="slideOutDown"
+    animationOutTiming={600}
+    avoidKeyboard={false}
+    backdropColor="black"
+    backdropOpacity={0.7}
+    backdropTransitionInTiming={300}
+    backdropTransitionOutTiming={300}
+    coverScreen={true}
+    customBackdrop={null}
+    deviceHeight={null}
+    deviceWidth={null}
+    hasBackdrop={true}
+    hideModalContentWhileAnimating={false}
+    isVisible={false}
+    onBackButtonPress={[Function]}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalShow={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
+    onSwipeComplete={[Function]}
+    propagateSwipe={true}
+    scrollHorizontal={false}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    style={
+      Object {
+        "margin": 0,
+        "width": "100%",
+      }
+    }
+    supportedOrientations={
+      Array [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeDirection="down"
+    swipeThreshold={100}
+    useNativeDriver={false}
+  >
+    <View
+      style={
+        Object {
+          "alignSelf": "center",
+          "backgroundColor": "#FFFFFF",
+          "borderRadius": 6,
+          "minHeight": 200,
+          "padding": 15,
+          "width": "80%",
+        }
+      }
+    >
+      <Text
+        black={false}
+        bold={false}
+        centered={false}
+        disclaimer={false}
+        green={false}
+        link={false}
+        modal={false}
+        primary={false}
+        red={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontSize": 16,
+            "fontWeight": "600",
+            "lineHeight": 18,
+          }
+        }
+        underline={false}
+        upper={false}
+      >
+        Check the recipient address
+      </Text>
+      <Text
+        black={false}
+        bold={false}
+        centered={false}
+        disclaimer={false}
+        green={false}
+        link={false}
+        modal={false}
+        primary={false}
+        red={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
+        style={
+          Object {
+            "color": "#000000",
+            "fontSize": 14,
+            "lineHeight": 18,
+            "marginTop": 10,
+          }
+        }
+        underline={false}
+        upper={false}
+      >
+        We have detected a confusable character in the ENS name. Check the ENS name to avoid a potential scam.
+      </Text>
+    </View>
+  </ReactNativeModal>
   <ScrollView
     style={
       Object {
@@ -47,6 +156,19 @@ exports[`Confirm should render correctly 1`] = `
       }
     >
       <Text
+        black={false}
+        bold={false}
+        centered={false}
+        disclaimer={false}
+        green={false}
+        link={false}
+        modal={false}
+        primary={false}
+        red={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
         style={
           Object {
             "color": "#6a737d",
@@ -58,10 +180,25 @@ exports[`Confirm should render correctly 1`] = `
             "textTransform": "uppercase",
           }
         }
+        underline={false}
+        upper={false}
       >
         Amount
       </Text>
       <Text
+        black={false}
+        bold={false}
+        centered={false}
+        disclaimer={false}
+        green={false}
+        link={false}
+        modal={false}
+        primary={false}
+        red={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
         style={
           Object {
             "color": "#000000",
@@ -72,8 +209,23 @@ exports[`Confirm should render correctly 1`] = `
           }
         }
         testID="confirm-txn-amount"
+        underline={false}
+        upper={false}
       />
       <Text
+        black={false}
+        bold={false}
+        centered={false}
+        disclaimer={false}
+        green={false}
+        link={false}
+        modal={false}
+        primary={false}
+        red={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
         style={
           Object {
             "color": "#6a737d",
@@ -85,6 +237,8 @@ exports[`Confirm should render correctly 1`] = `
             "textTransform": "uppercase",
           }
         }
+        underline={false}
+        upper={false}
       />
     </View>
     <TransactionReviewFeeCard
@@ -92,9 +246,45 @@ exports[`Confirm should render correctly 1`] = `
       fiat=""
       gasEstimationReady={false}
       over={false}
-      totalFiat={<Text />}
+      totalFiat={
+        <Text
+          black={false}
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          green={false}
+          link={false}
+          modal={false}
+          primary={false}
+          red={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
+          underline={false}
+          upper={false}
+        />
+      }
       totalGasFiat=""
-      totalValue={<Text />}
+      totalValue={
+        <Text
+          black={false}
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          green={false}
+          link={false}
+          modal={false}
+          primary={false}
+          red={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
+          underline={false}
+          upper={false}
+        />
+      }
       transactionValue=""
     />
     <View
@@ -113,6 +303,19 @@ exports[`Confirm should render correctly 1`] = `
         }
       >
         <Text
+          black={false}
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          green={false}
+          link={false}
+          modal={false}
+          primary={false}
+          red={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
               "alignSelf": "center",
@@ -122,6 +325,8 @@ exports[`Confirm should render correctly 1`] = `
               "fontWeight": "400",
             }
           }
+          underline={false}
+          upper={false}
         >
           Hex Data
         </Text>
@@ -306,6 +511,19 @@ exports[`Confirm should render correctly 1`] = `
         }
       >
         <Text
+          black={false}
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          green={false}
+          link={false}
+          modal={false}
+          primary={false}
+          red={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
               "alignItems": "center",
@@ -318,15 +536,32 @@ exports[`Confirm should render correctly 1`] = `
               "textAlign": "center",
             }
           }
+          underline={false}
+          upper={false}
         >
           Hex Data
         </Text>
         <Text
+          black={false}
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          green={false}
+          link={false}
+          modal={false}
+          primary={false}
+          red={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
               "textAlign": "justify",
             }
           }
+          underline={false}
+          upper={false}
         >
           0x
         </Text>
