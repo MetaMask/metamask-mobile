@@ -94,6 +94,10 @@ class TransactionElement extends PureComponent {
 		 */
 		selectedAddress: PropTypes.string,
 		/**
+		/* Identities object required to get import time name
+		*/
+		identities: PropTypes.object,
+		/**
 		 * Current element of the list index
 		 */
 		i: PropTypes.number,
@@ -110,11 +114,7 @@ class TransactionElement extends PureComponent {
 		 */
 		onCancelAction: PropTypes.func,
 		swapsTransactions: PropTypes.object,
-		swapsTokens: PropTypes.arrayOf(PropTypes.object),
-		/**
-		 * The account list form the AccountTrackerController
-		 */
-		accounts: PropTypes.object
+		swapsTokens: PropTypes.arrayOf(PropTypes.object)
 	};
 
 	state = {
@@ -185,7 +185,7 @@ class TransactionElement extends PureComponent {
 	renderImportTime = () => {
 		const {
 			tx: { insertImportTime },
-			accounts,
+			identities,
 			selectedAddress
 		} = this.props;
 		if (insertImportTime) {
@@ -196,7 +196,7 @@ class TransactionElement extends PureComponent {
 							{`${strings('transactions.import_wallet_row')} `}
 							<FAIcon name="info-circle" style={styles.infoIcon} />
 						</Text>
-						<ListItem.Date>{toDateFormat(accounts[selectedAddress].importTime)}</ListItem.Date>
+						<ListItem.Date>{toDateFormat(identities[selectedAddress].importTime)}</ListItem.Date>
 					</TouchableOpacity>
 				</>
 			);
@@ -239,15 +239,16 @@ class TransactionElement extends PureComponent {
 	 */
 	renderTxElement = transactionElement => {
 		const {
-			accounts,
+			identities,
 			selectedAddress,
 			tx: { time, status }
 		} = this.props;
 		const { value, fiatValue = false, actionKey } = transactionElement;
 		const renderTxActions = status === 'submitted' || status === 'approved';
+		const accountImportTime = identities[selectedAddress].importTime;
 		return (
 			<>
-				{accounts[selectedAddress].importTime > time && this.renderImportTime()}
+				{accountImportTime > time && this.renderImportTime()}
 				<ListItem>
 					<ListItem.Date>{this.renderTxTime()}</ListItem.Date>
 					<ListItem.Content>
@@ -270,7 +271,7 @@ class TransactionElement extends PureComponent {
 						</ListItem.Actions>
 					)}
 				</ListItem>
-				{accounts[selectedAddress].importTime <= time && this.renderImportTime()}
+				{accountImportTime <= time && this.renderImportTime()}
 			</>
 		);
 	};
@@ -377,10 +378,11 @@ class TransactionElement extends PureComponent {
 }
 
 const mapStateToProps = state => ({
-	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+	identities: state.engine.backgroundState.PreferencesController.identities,
 	primaryCurrency: state.settings.primaryCurrency,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {},
 	swapsTokens: state.engine.backgroundState.SwapsController.tokens,
-	accounts: state.engine.backgroundState.AccountTrackerController.accounts
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker
 });
 export default connect(mapStateToProps)(TransactionElement);

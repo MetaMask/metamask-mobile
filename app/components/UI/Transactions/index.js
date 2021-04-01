@@ -91,6 +91,10 @@ class Transactions extends PureComponent {
 		 */
 		selectedAddress: PropTypes.string,
 		/**
+		/* Identities object required to get account name
+		*/
+		identities: PropTypes.object,
+		/**
 		 * ETH to current currency conversion rate
 		 */
 		conversionRate: PropTypes.number,
@@ -285,8 +289,7 @@ class Transactions extends PureComponent {
 	 */
 	processTransactions = transactions => {
 		const flaggedTransactions = transactions;
-		const time = this.props.accounts[this.props.selectedAddress].importTime;
-
+		const time = this.props.identities[this.props.selectedAddress].importTime;
 		let insertPointFound = false;
 
 		/** checks all transactions to find the first one that is less than the account
@@ -396,16 +399,17 @@ class Transactions extends PureComponent {
 
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	tokens: state.engine.backgroundState.AssetsController.tokens.reduce((tokens, token) => {
-		tokens[token.address] = token;
-		return tokens;
-	}, {}),
 	collectibleContracts: state.engine.backgroundState.AssetsController.collectibleContracts,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	thirdPartyApiMode: state.privacy.thirdPartyApiMode
+	identities: state.engine.backgroundState.PreferencesController.identities,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
+	tokens: state.engine.backgroundState.AssetsController.tokens.reduce((tokens, token) => {
+		tokens[token.address] = token;
+		return tokens;
+	}, {})
 });
 
 const mapDispatchToProps = dispatch => ({
