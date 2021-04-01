@@ -197,6 +197,9 @@ const styles = StyleSheet.create({
 	termsButton: {
 		marginTop: 10,
 		marginBottom: 6
+	},
+	text: {
+		lineHeight: 20
 	}
 });
 
@@ -1293,20 +1296,20 @@ function SwapsQuotesView({
 				isVisible={isUpdateModalVisible}
 				toggleModal={toggleUpdateModal}
 				title={strings('swaps.quotes_update_often')}
-				body={<Text>{strings('swaps.quotes_update_often_text')}</Text>}
+				body={<Text style={styles.text}>{strings('swaps.quotes_update_often_text')}</Text>}
 			/>
 			<InfoModal
 				isVisible={isPriceDifferenceModalVisible}
 				toggleModal={togglePriceDifferenceModal}
 				title={strings('swaps.price_difference_title')}
-				body={<Text>{strings('swaps.price_difference_body')}</Text>}
+				body={<Text style={styles.text}>{strings('swaps.price_difference_body')}</Text>}
 			/>
 			<InfoModal
 				isVisible={isFeeModalVisible}
 				toggleModal={toggleFeeModal}
 				title={strings('swaps.metamask_swap_fee')}
 				body={
-					<Text>
+					<Text style={styles.text}>
 						{strings('swaps.fee_text.get_the')} <Text bold>{strings('swaps.fee_text.best_price')}</Text>{' '}
 						{strings('swaps.fee_text.from_the')} <Text bold>{strings('swaps.fee_text.top_liquidity')}</Text>{' '}
 						{strings('swaps.fee_text.fee_is_applied', {
