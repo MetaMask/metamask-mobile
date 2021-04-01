@@ -146,7 +146,11 @@ class AssetOverview extends PureComponent {
 		/**
 		 * Object that contains swaps tokens addresses as key
 		 */
-		swapsTokens: PropTypes.object
+		swapsTokens: PropTypes.object,
+		/**
+		 * Network ticker
+		 */
+		ticker: PropTypes.string
 	};
 
 	onReceive = () => {
@@ -162,9 +166,9 @@ class AssetOverview extends PureComponent {
 	};
 
 	onSend = async () => {
-		const { asset } = this.props;
+		const { asset, ticker } = this.props;
 		if (asset.isETH) {
-			this.props.newAssetTransaction(getEther());
+			this.props.newAssetTransaction(getEther(ticker));
 			this.props.navigation.navigate('SendFlowView');
 		} else {
 			this.props.newAssetTransaction(asset);
@@ -320,6 +324,7 @@ const mapStateToProps = state => ({
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	swapsIsLive: swapsLivenessSelector(state),
 	swapsTokens: swapsTokensObjectSelector(state)
 });

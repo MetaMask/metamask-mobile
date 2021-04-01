@@ -20,7 +20,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { renderFiat } from '../../../util/number';
 import { renderAccountName } from '../../../util/address';
 import { isMainNet } from '../../../util/networks';
-import { getEther, getTicker } from '../../../util/transactions';
+import { getEther } from '../../../util/transactions';
 
 import Identicon from '../Identicon';
 import AssetActionButton from '../AssetActionButton';
@@ -244,7 +244,7 @@ class AccountOverview extends PureComponent {
 
 	onSend = () => {
 		const { newAssetTransaction, navigation, ticker } = this.props;
-		newAssetTransaction(getEther(getTicker(ticker)));
+		newAssetTransaction(getEther(ticker));
 		navigation.navigate('SendFlowView');
 	};
 
