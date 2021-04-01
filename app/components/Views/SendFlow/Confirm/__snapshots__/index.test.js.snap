@@ -42,6 +42,11 @@ exports[`Confirm should render correctly 1`] = `
         right={false}
         small={false}
         strikethrough={false}
+        style={
+          Object {
+            "lineHeight": 20,
+          }
+        }
         underline={false}
         upper={false}
       >
