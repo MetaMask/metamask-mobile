@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
 		height: Device.isIos() ? 90 : 45
 	},
 	termsAndConditions: {
-		paddingVertical: 30
+		paddingBottom: 30
 	},
 	title: {
 		fontSize: 24,
@@ -622,15 +622,17 @@ class Onboarding extends PureComponent {
 	}
 
 	handleSimpleNotification = () => {
-		const title = strings('onboarding.success');
-		const description = strings('onboarding.your_wallet');
-
+		if (!this.props.navigation.getParam('delete', false)) return;
 		return (
 			<ElevatedView style={styles.modalTypeView} elevation={100}>
 				<Animated.View
 					style={[styles.notificationContainer, { transform: [{ translateY: this.notificationAnimated }] }]}
 				>
-					<BaseNotification closeButtonDisabled status="success" data={{ title, description }} />
+					<BaseNotification
+						closeButtonDisabled
+						status="success"
+						data={{ title: strings('onboarding.success'), description: strings('onboarding.your_wallet') }}
+					/>
 				</Animated.View>
 			</ElevatedView>
 		);

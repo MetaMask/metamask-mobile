@@ -331,6 +331,7 @@ class Confirm extends PureComponent {
 		fromSelectedAddress: this.props.transactionState.transaction.from,
 		hexDataModalVisible: false,
 		gasError: undefined,
+		warningGasPriceHigh: undefined,
 		ready: false,
 		transactionValue: undefined,
 		transactionValueFiat: undefined,
@@ -593,17 +594,19 @@ class Confirm extends PureComponent {
 		);
 	};
 
-	handleSetGasFee = (customGas, customGasPrice) => {
+	handleSetGasFee = (customGas, customGasPrice, warningGasPriceHigh) => {
 		const { prepareTransaction, transactionState } = this.props;
 		let transaction = transactionState.transaction;
 		transaction = { ...transaction, gas: customGas, gasPrice: customGasPrice };
 		prepareTransaction(transaction);
+		this.setState({ warningGasPriceHigh });
 		setTimeout(() => {
 			this.parseTransactionData();
 			this.setState({
 				errorMessage: undefined
 			});
 		}, 100);
+
 		this.onModeChange(REVIEW);
 	};
 
@@ -1002,6 +1005,7 @@ class Confirm extends PureComponent {
 			errorMessage,
 			transactionConfirmed,
 			paymentChannelBalance,
+			warningGasPriceHigh,
 			mode,
 			over,
 			nonceValue
@@ -1067,6 +1071,7 @@ class Confirm extends PureComponent {
 							gasEstimationReady={gasEstimationReady}
 							edit={() => this.edit(EDIT)}
 							over={over}
+							warningGasPriceHigh={warningGasPriceHigh}
 						/>
 					)}
 					{errorMessage && (
@@ -1078,6 +1083,11 @@ class Confirm extends PureComponent {
 									<Text style={[styles.error, styles.underline]}>{errorLinkText}</Text>
 								)}
 							</TouchableOpacity>
+						</View>
+					)}
+					{!!warningGasPriceHigh && (
+						<View style={styles.errorWrapper}>
+							<Text style={styles.error}>{warningGasPriceHigh}</Text>
 						</View>
 					)}
 					<View style={styles.actionsWrapper}>

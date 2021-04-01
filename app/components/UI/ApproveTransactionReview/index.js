@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
 		color: colors.blue,
 		fontSize: 12,
 		lineHeight: 16,
-		marginTop: 20,
+		marginTop: 8,
 		textAlign: 'center'
 	},
 	actionTouchable: {
@@ -115,7 +115,6 @@ const styles = StyleSheet.create({
 		textAlign: 'right'
 	},
 	errorWrapper: {
-		// marginHorizontal: 24,
 		marginTop: 12,
 		paddingHorizontal: 10,
 		paddingVertical: 8,
@@ -205,6 +204,10 @@ class ApproveTransactionReview extends PureComponent {
 		 * Error coming from gas component
 		 */
 		gasError: PropTypes.string,
+		/**
+		 * Warning coming from high gas set in CustomGas component
+		 */
+		warningGasPriceHigh: PropTypes.string,
 		/**
 		 * Primary currency, either ETH or Fiat
 		 */
@@ -485,7 +488,8 @@ class ApproveTransactionReview extends PureComponent {
 			activeTabUrl,
 			transaction: { origin },
 			network,
-			over
+			over,
+			warningGasPriceHigh
 		} = this.props;
 		const is_main_net = isMainNet(network);
 		const isFiat = primaryCurrency.toLowerCase() === 'fiat';
@@ -564,18 +568,6 @@ class ApproveTransactionReview extends PureComponent {
 														</View>
 													</View>
 												</TouchableOpacity>
-												{!gasError && (
-													<TouchableOpacity
-														style={styles.actionTouchable}
-														onPress={this.toggleViewDetails}
-													>
-														<View style={styles.viewDetailsWrapper}>
-															<Text style={styles.viewDetailsText}>
-																{strings('spend_limit_edition.view_details')}
-															</Text>
-														</View>
-													</TouchableOpacity>
-												)}
 												{gasError && (
 													<View style={styles.errorWrapper}>
 														<TouchableOpacity onPress={errorPress}>
@@ -588,6 +580,23 @@ class ApproveTransactionReview extends PureComponent {
 															)}
 														</TouchableOpacity>
 													</View>
+												)}
+												{!!warningGasPriceHigh && (
+													<View style={styles.errorWrapper}>
+														<Text style={styles.error}>{warningGasPriceHigh}</Text>
+													</View>
+												)}
+												{!gasError && (
+													<TouchableOpacity
+														style={styles.actionTouchable}
+														onPress={this.toggleViewDetails}
+													>
+														<View>
+															<Text style={styles.viewDetailsText}>
+																{strings('spend_limit_edition.view_details')}
+															</Text>
+														</View>
+													</TouchableOpacity>
 												)}
 											</View>
 										</View>
