@@ -1,10 +1,11 @@
 import React, { PureComponent } from 'react';
-import { Image, Text, View, StyleSheet } from 'react-native';
+import { Text, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import StyledButton from '../../StyledButton';
 import AssetIcon from '../../AssetIcon';
 import { colors, fontStyles } from '../../../../styles/common';
 import Identicon from '../../Identicon';
+import NetworkMainAssetLogo from '../../NetworkMainAssetLogo';
 
 const styles = StyleSheet.create({
 	item: {
@@ -70,10 +71,10 @@ export default class AssetList extends PureComponent {
 	 */
 	renderLogo = asset => {
 		const { logo, address, isETH } = asset;
-		if (!logo) {
+		if (!logo && !isETH) {
 			return <Identicon address={address} />;
 		} else if (isETH) {
-			return <Image source={logo} style={styles.ethLogo} />;
+			return <NetworkMainAssetLogo big style={styles.ethLogo} />;
 		}
 		return <AssetIcon logo={logo} />;
 	};

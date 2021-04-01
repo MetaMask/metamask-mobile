@@ -201,11 +201,9 @@ const fuse = new Fuse(contractList, {
 	keys: [{ name: 'name', weight: 0.5 }, { name: 'symbol', weight: 0.5 }]
 });
 
-const ethLogo = require('../../../images/eth-logo.png'); // eslint-disable-line
 const defaultEth = {
 	symbol: 'ETH',
 	name: 'Ether',
-	logo: ethLogo,
 	isETH: true
 };
 const defaultAssets = [

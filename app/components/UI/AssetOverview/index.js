@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Image, InteractionManager, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { InteractionManager, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
 import { swapsUtils } from '@estebanmino/controllers';
 import AssetIcon from '../AssetIcon';
@@ -22,6 +22,7 @@ import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { allowedToBuy } from '../FiatOrders';
 import AssetSwapButton from '../Swaps/components/AssetSwapButton';
+import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -82,8 +83,6 @@ const styles = StyleSheet.create({
 		color: colors.blue
 	}
 });
-
-const ethLogo = require('../../../images/eth-logo.png'); // eslint-disable-line
 
 /**
  * View that displays the information of a specific asset (Token or ETH)
@@ -190,7 +189,7 @@ class AssetOverview extends PureComponent {
 			asset: { address, image, logo, isETH }
 		} = this.props;
 		if (isETH) {
-			return <Image source={ethLogo} style={styles.ethLogo} />;
+			return <NetworkMainAssetLogo biggest style={styles.ethLogo} />;
 		}
 		const watchedAsset = image !== undefined;
 		return logo || image ? (
