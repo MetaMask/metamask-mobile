@@ -58,7 +58,6 @@ import Text from '../../../Base/Text';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { confusables } from 'unicode-confusables';
 import { collectConfusables } from '../../../../util/validators';
-import Text from '../../../Base/Text';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
