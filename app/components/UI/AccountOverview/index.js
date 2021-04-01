@@ -20,7 +20,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { renderFiat } from '../../../util/number';
 import { renderAccountName } from '../../../util/address';
 import { isMainNet } from '../../../util/networks';
-import { getEther } from '../../../util/transactions';
+import { getEther, getTicker } from '../../../util/transactions';
 
 import Identicon from '../Identicon';
 import AssetActionButton from '../AssetActionButton';
@@ -159,7 +159,11 @@ class AccountOverview extends PureComponent {
 		/**
 		 * Wether Swaps feature is live or not
 		 */
-		swapsIsLive: PropTypes.bool
+		swapsIsLive: PropTypes.bool,
+		/**
+		 * Current provider ticker
+		 */
+		ticker: PropTypes.string
 	};
 
 	state = {
@@ -239,8 +243,8 @@ class AccountOverview extends PureComponent {
 	onReceive = () => this.props.toggleReceiveModal();
 
 	onSend = () => {
-		const { newAssetTransaction, navigation } = this.props;
-		newAssetTransaction(getEther());
+		const { newAssetTransaction, navigation, ticker } = this.props;
+		newAssetTransaction(getEther(getTicker(ticker)));
 		navigation.navigate('SendFlowView');
 	};
 
@@ -372,6 +376,7 @@ const mapStateToProps = state => ({
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	swapsIsLive: swapsLivenessSelector(state)
 });
 
