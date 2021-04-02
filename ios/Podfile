@@ -8,9 +8,9 @@ def react_native_post_install(installer)
 	  .map{ |t| t.user_project }
 	  .uniq{ |p| p.path }
 	  .push(installer.pods_project)
-  
+
 	arm_value = `/usr/sbin/sysctl -n hw.optional.arm64 2>&1`.to_i
-  
+
 	projects.each do |project|
 	  project.build_configurations.each do |config|
 		if arm_value == 1 then
@@ -19,7 +19,7 @@ def react_native_post_install(installer)
 		  config.build_settings["EXCLUDED_ARCHS[sdk=iphonesimulator*]"] = "arm64"
 		end
 	  end
-  
+
 	  project.save()
 	end
   end
@@ -33,8 +33,8 @@ target 'MetaMask' do
 
   # Pods for MetaMask
   pod 'React-RCTPushNotification', :path => '../node_modules/react-native/Libraries/PushNotificationIOS'
-  
-  use_flipper!({ 'Flipper' => '0.82.0' })
+
+  use_flipper!({ 'Flipper-Folly' => '2.3.0' })
   post_install do |installer|
 	react_native_post_install(installer)
 	# Enables Flipper.
