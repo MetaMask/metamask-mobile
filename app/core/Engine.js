@@ -152,7 +152,7 @@ class Engine {
 			AccountTrackerController,
 			AssetsContractController,
 			AssetsDetectionController,
-			NetworkController: { provider },
+			NetworkController: { provider, state: NetworkControllerState },
 			TransactionController,
 			SwapsController
 		} = this.datamodel.context;
@@ -160,8 +160,10 @@ class Engine {
 		provider.sendAsync = provider.sendAsync.bind(provider);
 		AccountTrackerController.configure({ provider });
 		AssetsContractController.configure({ provider });
+
 		SwapsController.configure({
 			provider,
+			chainId: NetworkControllerState?.provider?.chainId,
 			pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
 			quotePollingInterval: AppConstants.SWAPS.POLLING_INTERVAL
 		});
