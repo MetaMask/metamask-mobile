@@ -19,6 +19,7 @@ import {
 	toWei,
 	weiToFiat
 } from '../../../util/number';
+import { isMainNet } from '../../../util/networks';
 import { safeToChecksumAddress } from '../../../util/address';
 import { getErrorMessage, getFetchParams, getQuotesNavigationsParams, isSwapsNativeAsset } from './utils';
 import { colors } from '../../../styles/common';
@@ -253,6 +254,7 @@ function SwapsQuotesView({
 	currentCurrency,
 	conversionRate,
 	chainId,
+	ticker,
 	isInPolling,
 	quotesLastFetched,
 	pollingCyclesLeft,
@@ -1025,17 +1027,18 @@ function SwapsQuotesView({
 											sourceToken.symbol
 											// eslint-disable-next-line no-mixed-spaces-and-tabs
 									  } `
-									: `${renderFromWei(missingEthBalance)} ETH `}
+									: `${renderFromWei(missingEthBalance)} ${ticker} `}
 							</Text>
 							{!hasEnoughTokenBalance
 								? `${strings('swaps.more_to_complete')} `
 								: `${strings('swaps.more_gas_to_complete')} `}
-							{(sourceToken.address === swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS ||
-								(hasEnoughTokenBalance && !hasEnoughEthBalance)) && (
-								<Text link underline small onPress={buyEth}>
-									{strings('swaps.buy_more_eth')}
-								</Text>
-							)}
+							{isMainNet(chainId) &&
+								(sourceToken.address === swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS ||
+									(hasEnoughTokenBalance && !hasEnoughEthBalance)) && (
+									<Text link underline small onPress={buyEth}>
+										{strings('swaps.buy_more_eth')}
+									</Text>
+								)}
 						</Alert>
 					</View>
 				)}
@@ -1207,7 +1210,7 @@ function SwapsQuotesView({
 								</View>
 								<View style={styles.quotesFiatColumn}>
 									<Text primary bold>
-										{renderFromWei(toWei(selectedQuoteValue?.ethFee))} ETH
+										{renderFromWei(toWei(selectedQuoteValue?.ethFee))} {ticker}
 									</Text>
 									<Text primary bold upper>
 										{`  ${weiToFiat(
@@ -1231,7 +1234,9 @@ function SwapsQuotesView({
 									</View>
 								</View>
 								<View style={styles.quotesFiatColumn}>
-									<Text>{renderFromWei(toWei(selectedQuoteValue?.maxEthFee || '0x0'))} ETH</Text>
+									<Text>
+										{renderFromWei(toWei(selectedQuoteValue?.maxEthFee || '0x0'))} {ticker}
+									</Text>
 									<Text upper>
 										{`  ${weiToFiat(
 											toWei(selectedQuoteValue?.maxEthFee),
@@ -1324,6 +1329,7 @@ function SwapsQuotesView({
 				destinationToken={destinationToken}
 				selectedQuote={selectedQuoteId}
 				showOverallValue={hasConversionRate}
+				ticker={ticker}
 			/>
 
 			<TransactionsEditionModal
@@ -1377,6 +1383,10 @@ SwapsQuotesView.propTypes = {
 	 * Chain Id
 	 */
 	chainId: PropTypes.string,
+	/**
+	 * Native asset ticker
+	 */
+	ticker: PropTypes.string,
 	isInPolling: PropTypes.bool,
 	quotesLastFetched: PropTypes.number,
 	topAggId: PropTypes.string,
@@ -1396,6 +1406,7 @@ SwapsQuotesView.propTypes = {
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	balances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
