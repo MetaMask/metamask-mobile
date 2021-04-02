@@ -3,8 +3,8 @@ import BigNumber from 'bignumber.js';
 import { swapsUtils } from '@estebanmino/controllers';
 import { strings } from '../../../../../locales/i18n';
 
-export function isSwapsETH(token) {
-	return Boolean(token) && token?.address === swapsUtils.ETH_SWAPS_TOKEN_ADDRESS;
+export function isSwapsNativeAsset(token) {
+	return Boolean(token) && token?.address === swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS;
 }
 
 /**

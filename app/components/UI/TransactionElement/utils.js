@@ -25,7 +25,7 @@ import contractMap from '@metamask/contract-metadata';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { swapsUtils } from '@estebanmino/controllers';
 
-const { ETH_SWAPS_TOKEN_ADDRESS, SWAPS_CONTRACT_ADDRESS } = swapsUtils;
+const { NATIVE_SWAPS_TOKEN_ADDRESS, SWAPS_CONTRACT_ADDRESS } = swapsUtils;
 
 function calculateTotalGas(gas, gasPrice) {
 	const gasBN = hexToBN(gas);
@@ -605,13 +605,13 @@ function decodeSwapsTx(args) {
 	}
 
 	const sourceExchangeRate =
-		sourceToken.address === ETH_SWAPS_TOKEN_ADDRESS
+		sourceToken.address === NATIVE_SWAPS_TOKEN_ADDRESS
 			? 1
 			: contractExchangeRates[safeToChecksumAddress(sourceToken.address)];
 	const renderSourceTokenFiatNumber = balanceToFiatNumber(decimalSourceAmount, conversionRate, sourceExchangeRate);
 
 	const destinationExchangeRate =
-		destinationToken.address === ETH_SWAPS_TOKEN_ADDRESS
+		destinationToken.address === NATIVE_SWAPS_TOKEN_ADDRESS
 			? 1
 			: contractExchangeRates[safeToChecksumAddress(destinationToken.address)];
 	const renderDestinationTokenFiatNumber = balanceToFiatNumber(
@@ -688,6 +688,7 @@ export default async function decodeTransaction(args) {
 	const actionKey = await getActionKey(tx, selectedAddress, ticker);
 	let transactionElement, transactionDetails;
 
+	// TODO(swaps-bsc): replace with contract by chainId
 	if (tx.transaction.to === SWAPS_CONTRACT_ADDRESS || swapsTransactions[tx.id]) {
 		const [transactionElement, transactionDetails] = decodeSwapsTx({ ...args, actionKey });
 		if (transactionElement && transactionDetails) return [transactionElement, transactionDetails];

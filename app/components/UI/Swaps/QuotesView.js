@@ -20,7 +20,7 @@ import {
 	weiToFiat
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
-import { getErrorMessage, getFetchParams, getQuotesNavigationsParams, isSwapsETH } from './utils';
+import { getErrorMessage, getFetchParams, getQuotesNavigationsParams, isSwapsNativeAsset } from './utils';
 import { colors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 
@@ -208,7 +208,7 @@ async function resetAndStartPolling({ slippage, sourceToken, destinationToken, s
 	const contractExchangeRates = TokenRatesController.state.contractExchangeRates;
 	// ff the token is not in the wallet, we'll add it
 	if (
-		destinationToken.address !== swapsUtils.ETH_SWAPS_TOKEN_ADDRESS &&
+		destinationToken.address !== swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS &&
 		!contractExchangeRates[safeToChecksumAddress(destinationToken.address)]
 	) {
 		const { address, symbol, decimals } = destinationToken;
@@ -252,6 +252,7 @@ function SwapsQuotesView({
 	selectedAddress,
 	currentCurrency,
 	conversionRate,
+	chainId,
 	isInPolling,
 	quotesLastFetched,
 	pollingCyclesLeft,
@@ -279,7 +280,7 @@ function SwapsQuotesView({
 
 	const hasConversionRate =
 		Boolean(destinationToken) &&
-		(isSwapsETH(destinationToken) ||
+		(isSwapsNativeAsset(destinationToken) ||
 			Boolean(
 				Engine.context.TokenRatesController.state.contractExchangeRates?.[
 					safeToChecksumAddress(destinationToken.address)
@@ -372,7 +373,7 @@ function SwapsQuotesView({
 		const hasEnoughTokenBalance = tokenBalanceBN.gte(sourceBN);
 		const missingTokenBalance = hasEnoughTokenBalance ? null : sourceBN.minus(tokenBalanceBN);
 
-		const ethAmountBN = sourceToken.address === swapsUtils.ETH_SWAPS_TOKEN_ADDRESS ? sourceBN : new BigNumber(0);
+		const ethAmountBN = sourceToken.address === swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS ? sourceBN : new BigNumber(0);
 		const ethBalanceBN = new BigNumber(accounts[selectedAddress].balance);
 		const gasBN = toWei(selectedQuoteValue?.maxEthFee || '0');
 		const hasEnoughEthBalance = ethBalanceBN.gte(ethAmountBN.plus(gasBN));
@@ -1019,7 +1020,7 @@ function SwapsQuotesView({
 						<Alert small type="info">
 							{`${strings('swaps.you_need')} `}
 							<Text reset bold>
-								{!hasEnoughTokenBalance && sourceToken.address !== swapsUtils.ETH_SWAPS_TOKEN_ADDRESS
+								{!hasEnoughTokenBalance && sourceToken.address !== swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS
 									? `${renderFromTokenMinimalUnit(missingTokenBalance, sourceToken.decimals)} ${
 											sourceToken.symbol
 											// eslint-disable-next-line no-mixed-spaces-and-tabs
@@ -1029,7 +1030,7 @@ function SwapsQuotesView({
 							{!hasEnoughTokenBalance
 								? `${strings('swaps.more_to_complete')} `
 								: `${strings('swaps.more_gas_to_complete')} `}
-							{(sourceToken.address === swapsUtils.ETH_SWAPS_TOKEN_ADDRESS ||
+							{(sourceToken.address === swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS ||
 								(hasEnoughTokenBalance && !hasEnoughEthBalance)) && (
 								<Text link underline small onPress={buyEth}>
 									{strings('swaps.buy_more_eth')}
@@ -1342,6 +1343,7 @@ function SwapsQuotesView({
 				)?.toString(10)}
 				selectedQuote={selectedQuote}
 				sourceToken={sourceToken}
+				chainId={chainId}
 			/>
 		</ScreenView>
 	);
@@ -1371,6 +1373,10 @@ SwapsQuotesView.propTypes = {
 	 * A string that represents the selected address
 	 */
 	selectedAddress: PropTypes.string,
+	/**
+	 * Chain Id
+	 */
+	chainId: PropTypes.string,
 	isInPolling: PropTypes.bool,
 	quotesLastFetched: PropTypes.number,
 	topAggId: PropTypes.string,
@@ -1389,6 +1395,7 @@ SwapsQuotesView.propTypes = {
 
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	balances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,

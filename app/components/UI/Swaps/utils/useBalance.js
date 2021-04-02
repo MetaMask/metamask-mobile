@@ -9,7 +9,7 @@ function useBalance(accounts, balances, selectedAddress, sourceToken, { asUnits 
 		if (!sourceToken) {
 			return null;
 		}
-		if (sourceToken.address === swapsUtils.ETH_SWAPS_TOKEN_ADDRESS) {
+		if (sourceToken.address === swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS) {
 			if (asUnits) {
 				// Controller stores balances in hex for ETH
 				return numberToBN((accounts[selectedAddress] && accounts[selectedAddress].balance) || 0);

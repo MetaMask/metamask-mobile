@@ -10,18 +10,18 @@ import useInterval from '../../hooks/useInterval';
 const SWAPS_ACTIVE = AppConstants.SWAPS.ACTIVE;
 const POLLING_FREQUENCY = AppConstants.SWAPS.LIVENESS_POLLING_FREQUENCY;
 
-function SwapLiveness({ isLive, setLiveness }) {
+function SwapLiveness({ isLive, chainId, setLiveness }) {
 	const [hasMountChecked, setHasMountChecked] = useState(false);
 
 	const checkLiveness = useCallback(async () => {
 		try {
-			const { mobile_active: liveness } = await swapsUtils.fetchSwapsFeatureLiveness();
-			setLiveness(liveness);
+			const { mobile_active: liveness } = await swapsUtils.fetchSwapsFeatureLiveness(chainId);
+			setLiveness(liveness, chainId);
 		} catch (error) {
 			Logger.error(error, 'Swaps: error while fetching swaps liveness');
-			setLiveness(false);
+			setLiveness(false, chainId);
 		}
-	}, [setLiveness]);
+	}, [setLiveness, chainId]);
 
 	// Check on mount
 	useEffect(() => {
@@ -62,11 +62,12 @@ function SwapLiveness({ isLive, setLiveness }) {
 }
 
 const mapStateToProps = state => ({
-	isLive: swapsLivenessSelector(state)
+	isLive: swapsLivenessSelector(state),
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId
 });
 
 const mapDispatchToProps = dispatch => ({
-	setLiveness: liveness => dispatch(setSwapsLiveness(liveness))
+	setLiveness: (liveness, chainId) => dispatch(setSwapsLiveness(liveness, chainId))
 });
 
 export default connect(

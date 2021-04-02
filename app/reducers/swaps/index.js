@@ -1,3 +1,4 @@
+import { util } from '@estebanmino/controllers';
 import { createSelector } from 'reselect';
 
 // * Constants
@@ -6,7 +7,7 @@ export const SWAPS_SET_HAS_ONBOARDED = 'SWAPS_SET_HAS_ONBOARDED';
 const MAX_TOKENS_WITH_BALANCE = 5;
 
 // * Action Creator
-export const setSwapsLiveness = live => ({ type: SWAPS_SET_LIVENESS, payload: live });
+export const setSwapsLiveness = (live, chainId) => ({ type: SWAPS_SET_LIVENESS, payload: { live, chainId } });
 export const setSwapsHasOnboarded = hasOnboarded => ({ type: SWAPS_SET_HAS_ONBOARDED, payload: hasOnboarded });
 
 // * Selectors
@@ -15,7 +16,11 @@ export const setSwapsHasOnboarded = hasOnboarded => ({ type: SWAPS_SET_HAS_ONBOA
  * Returns the swaps liveness state
  */
 
-export const swapsLivenessSelector = state => state.swaps.isLive;
+export const swapsLivenessSelector = state => {
+	const chainId = state.engine.backgroundState.NetworkController.provider.chainId;
+	const key = util.toChainIdKey(chainId);
+	return state.swaps[key]?.isLive || false;
+};
 
 /**
  * Returns the swaps onboarded state
@@ -106,16 +111,26 @@ export const swapsTopAssetsSelector = createSelector(
 
 // * Reducer
 export const initialState = {
-	isLive: true,
-	hasOnboarded: false
+	isLive: true, // TODO: should we remove it?
+	hasOnboarded: false,
+
+	[util.toChainIdKey('1')]: {
+		isLive: true
+	}
 };
 
 function swapsReducer(state = initialState, action) {
 	switch (action.type) {
 		case SWAPS_SET_LIVENESS: {
+			const { live, chainId } = action.payload;
+			const key = util.toChainIdKey(chainId);
+			const data = state[key];
 			return {
 				...state,
-				isLive: Boolean(action.payload)
+				[key]: {
+					...data,
+					isLive: live
+				}
 			};
 		}
 		case SWAPS_SET_HAS_ONBOARDED: {

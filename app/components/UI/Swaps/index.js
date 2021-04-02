@@ -33,7 +33,7 @@ import AppConstants from '../../../core/AppConstants';
 import { getEtherscanAddressUrl } from '../../../util/etherscan';
 import { strings } from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
-import { setQuotesNavigationsParams, isSwapsETH } from './utils';
+import { setQuotesNavigationsParams, isSwapsNativeAsset } from './utils';
 import { getSwapsAmountNavbar } from '../Navbar';
 
 import Onboarding from './components/Onboarding';
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-const SWAPS_ETH_ADDRESS = swapsUtils.ETH_SWAPS_TOKEN_ADDRESS;
+const SWAPS_NATIVE_ADDRESS = swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS;
 const TOKEN_MINIMUM_SOURCES = 1;
 const MAX_TOP_ASSETS = 20;
 
@@ -138,6 +138,7 @@ function SwapsAmountView({
 	swapsTokens,
 	accounts,
 	selectedAddress,
+	chainId,
 	balances,
 	tokensWithBalance,
 	tokensTopAssets,
@@ -149,7 +150,7 @@ function SwapsAmountView({
 	setLiveness
 }) {
 	const navigation = useContext(NavigationContext);
-	const initialSource = navigation.getParam('sourceToken', SWAPS_ETH_ADDRESS);
+	const initialSource = navigation.getParam('sourceToken', SWAPS_NATIVE_ADDRESS);
 	const [amount, setAmount] = useState('0');
 	const [slippage, setSlippage] = useState(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
 	const [isInitialLoadingTokens, setInitialLoadingTokens] = useState(false);
@@ -179,13 +180,13 @@ function SwapsAmountView({
 	useEffect(() => {
 		(async () => {
 			try {
-				const { mobile_active: liveness } = await swapsUtils.fetchSwapsFeatureLiveness();
-				setLiveness(liveness);
+				const { mobile_active: liveness } = await swapsUtils.fetchSwapsFeatureLiveness(chainId);
+				setLiveness(liveness, chainId);
 				if (liveness) {
 					// Triggered when a user enters the MetaMask Swap feature
 					InteractionManager.runAfterInteractions(() => {
 						const parameters = {
-							source: initialSource === SWAPS_ETH_ADDRESS ? 'MainView' : 'TokenView',
+							source: initialSource === SWAPS_NATIVE_ADDRESS ? 'MainView' : 'TokenView',
 							activeCurrency: swapsTokens?.find(
 								token => token.address?.toLowerCase() === initialSource.toLowerCase()
 							)?.symbol
@@ -198,12 +199,12 @@ function SwapsAmountView({
 				}
 			} catch (error) {
 				Logger.error(error, 'Swaps: error while fetching swaps liveness');
-				setLiveness(false);
+				setLiveness(false, chainId);
 				navigation.pop();
 			}
 		})();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [initialSource, navigation, setLiveness]);
+	}, [initialSource, chainId, navigation, setLiveness]);
 
 	const keypadViewRef = useRef(null);
 
@@ -251,11 +252,13 @@ function SwapsAmountView({
 	}, [destinationToken]);
 
 	const isTokenInBalances =
-		sourceToken && !isSwapsETH(sourceToken) ? safeToChecksumAddress(sourceToken.address) in balances : false;
+		sourceToken && !isSwapsNativeAsset(sourceToken)
+			? safeToChecksumAddress(sourceToken.address) in balances
+			: false;
 
 	useEffect(() => {
 		(async () => {
-			if (sourceToken && !isSwapsETH(sourceToken) && !isTokenInBalances) {
+			if (sourceToken && !isSwapsNativeAsset(sourceToken) && !isTokenInBalances) {
 				setContractBalance(null);
 				setContractBalanceAsUnits(numberToBN(0));
 				const { AssetsContractController } = Engine.context;
@@ -285,9 +288,9 @@ function SwapsAmountView({
 	const controllerBalance = useBalance(accounts, balances, selectedAddress, sourceToken);
 	const controllerBalanceAsUnits = useBalance(accounts, balances, selectedAddress, sourceToken, { asUnits: true });
 
-	const balance = isSwapsETH(sourceToken) || isTokenInBalances ? controllerBalance : contractBalance;
+	const balance = isSwapsNativeAsset(sourceToken) || isTokenInBalances ? controllerBalance : contractBalance;
 	const balanceAsUnits =
-		isSwapsETH(sourceToken) || isTokenInBalances ? controllerBalanceAsUnits : contractBalanceAsUnits;
+		isSwapsNativeAsset(sourceToken) || isTokenInBalances ? controllerBalanceAsUnits : contractBalanceAsUnits;
 	const hasBalance = useMemo(() => {
 		if (!balanceAsUnits || !sourceToken) {
 			return false;
@@ -308,7 +311,7 @@ function SwapsAmountView({
 			return undefined;
 		}
 		let balanceFiat;
-		if (isSwapsETH(sourceToken)) {
+		if (isSwapsNativeAsset(sourceToken)) {
 			balanceFiat = weiToFiat(toTokenMinimalUnit(amount, sourceToken?.decimals), conversionRate, currentCurrency);
 		} else {
 			const sourceAddress = safeToChecksumAddress(sourceToken.address);
@@ -319,7 +322,7 @@ function SwapsAmountView({
 	}, [amount, conversionRate, currentCurrency, hasInvalidDecimals, sourceToken, tokenExchangeRates]);
 
 	const destinationTokenHasEnoughOcurrances = useMemo(() => {
-		if (!destinationToken || isSwapsETH(destinationToken)) {
+		if (!destinationToken || isSwapsNativeAsset(destinationToken)) {
 			return true;
 		}
 		return destinationToken?.occurances > TOKEN_MINIMUM_SOURCES;
@@ -330,7 +333,7 @@ function SwapsAmountView({
 		if (hasInvalidDecimals) {
 			return;
 		}
-		if (!isSwapsETH(sourceToken) && !isTokenInBalances && !balanceAsUnits?.isZero()) {
+		if (!isSwapsNativeAsset(sourceToken) && !isTokenInBalances && !balanceAsUnits?.isZero()) {
 			const { AssetsController } = Engine.context;
 			const { address, symbol, decimals } = sourceToken;
 			await AssetsController.addToken(address, symbol, decimals);
@@ -481,7 +484,7 @@ function SwapsAmountView({
 									strings('swaps.available_to_swap', {
 										asset: `${balance} ${sourceToken.symbol}`
 									})}
-								{!isSwapsETH(sourceToken) && hasBalance && (
+								{!isSwapsNativeAsset(sourceToken) && hasBalance && (
 									<Text style={styles.linkText} onPress={handleUseMax}>
 										{' '}
 										{strings('swaps.use_max')}
@@ -519,13 +522,16 @@ function SwapsAmountView({
 						dismiss={toggleDestinationModal}
 						title={strings('swaps.convert_to')}
 						tokens={swapsTokens}
-						initialTokens={[swapsUtils.ETH_SWAPS_TOKEN_OBJECT, ...tokensTopAssets.slice(0, MAX_TOP_ASSETS)]}
+						initialTokens={[
+							swapsUtils.getNativeSwapsToken(chainId),
+							...tokensTopAssets.slice(0, MAX_TOP_ASSETS)
+						]}
 						onItemPress={handleDestinationTokenPress}
 						excludeAddresses={[sourceToken?.address]}
 					/>
 				</View>
 				<View>
-					{Boolean(destinationToken) && !isSwapsETH(destinationToken) ? (
+					{Boolean(destinationToken) && !isSwapsNativeAsset(destinationToken) ? (
 						destinationTokenHasEnoughOcurrances ? (
 							<TouchableOpacity onPress={handleVerifyPress} style={styles.verifyToken}>
 								<Text small centered>
@@ -673,6 +679,10 @@ SwapsAmountView.propTypes = {
 	 */
 	setHasOnboarded: PropTypes.func,
 	/**
+	 * Chain Id
+	 */
+	chainId: PropTypes.string,
+	/**
 	 * Function to set liveness
 	 */
 	setLiveness: PropTypes.func
@@ -686,6 +696,7 @@ const mapStateToProps = state => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	tokensWithBalance: swapsTokensWithBalanceSelector(state),
 	tokensTopAssets: swapsTopAssetsSelector(state),
 	userHasOnboarded: swapsHasOnboardedSelector(state)

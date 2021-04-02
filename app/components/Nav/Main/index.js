@@ -289,10 +289,10 @@ const Main = props => {
 			// if approval data includes metaswap contract
 			// if destination address is metaswap contract
 			if (
-				to === safeToChecksumAddress(swapsUtils.SWAPS_CONTRACT_ADDRESS) ||
+				to === safeToChecksumAddress(swapsUtils.getSwapsContractAddress(props.chainId)) ||
 				(data &&
 					data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
-					decodeApproveData(data).spenderAddress === swapsUtils.SWAPS_CONTRACT_ADDRESS)
+					decodeApproveData(data).spenderAddress === swapsUtils.getSwapsContractAddress(props.chainId))
 			) {
 				if (transactionMeta.origin === process.env.MM_FOX_CODE) {
 					autoSign(transactionMeta);
@@ -361,6 +361,7 @@ const Main = props => {
 		},
 		[
 			props.tokens,
+			props.chainId,
 			setEtherTransaction,
 			setTransactionObject,
 			toggleApproveModal,
@@ -709,13 +710,18 @@ Main.propTypes = {
 	/**
 	 * Selected address
 	 */
-	selectedAddress: PropTypes.string
+	selectedAddress: PropTypes.string,
+	/**
+	 * Chain id
+	 */
+	chainId: PropTypes.string
 };
 
 const mapStateToProps = state => ({
 	lockTime: state.settings.lockTime,
 	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	isPaymentRequest: state.transaction.paymentRequest,
 	dappTransactionModalVisible: state.modals.dappTransactionModalVisible,

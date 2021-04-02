@@ -257,7 +257,7 @@ class AccountOverview extends PureComponent {
 
 	goToSwaps = () =>
 		this.props.navigation.navigate('Swaps', {
-			sourceToken: swapsUtils.ETH_SWAPS_TOKEN_ADDRESS
+			sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS
 		});
 
 	render() {

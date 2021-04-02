@@ -123,7 +123,7 @@ function TokenSelectModal({
 			const itemAddress = safeToChecksumAddress(item.address);
 
 			let balance, balanceFiat;
-			if (item.address === swapsUtils.ETH_SWAPS_TOKEN_ADDRESS) {
+			if (item.address === swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS) {
 				balance = renderFromWei(accounts[selectedAddress] && accounts[selectedAddress].balance);
 				balanceFiat = weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency);
 			} else {

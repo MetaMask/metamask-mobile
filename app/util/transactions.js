@@ -255,6 +255,7 @@ export async function isCollectibleAddress(address, tokenId) {
 export async function getTransactionActionKey(transaction) {
 	const { transaction: { data, to } = {} } = transaction;
 	if (!to) return CONTRACT_METHOD_DEPLOY;
+	// TODO(swaps-bsc): replace with contract by chainId
 	if (to === SWAPS_CONTRACT_ADDRESS) return SWAPS_TRANSACTION_ACTION_KEY;
 	let ret;
 	// if data in transaction try to get method data
