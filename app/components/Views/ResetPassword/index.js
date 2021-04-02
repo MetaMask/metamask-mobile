@@ -400,6 +400,7 @@ class ResetPassword extends PureComponent {
 		const { originalPassword, password: newPassword } = this.state;
 		const { KeyringController, PreferencesController } = Engine.context;
 		const seedPhrase = await this.getSeedPhrase();
+		const oldIdentities = PreferencesController.state.identities;
 
 		let importedAccounts = [];
 		try {
@@ -444,6 +445,12 @@ class ResetPassword extends PureComponent {
 
 		// Reset preferencesControllerState
 		preferencesControllerState = PreferencesController.state;
+
+		//Persist old account names
+		for (const id in preferencesControllerState.identities) {
+			const oldName = oldIdentities[id].name;
+			if (oldName) preferencesControllerState.identities[id].name = oldName;
+		}
 
 		// Set preferencesControllerState again
 		await PreferencesController.update(preferencesControllerState);
