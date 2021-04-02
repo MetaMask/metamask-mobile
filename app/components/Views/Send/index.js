@@ -29,7 +29,7 @@ import { isENS } from '../../../util/address';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { MAINNET } from '../../../constants/network';
 import BigNumber from 'bignumber.js';
-import { ConfirmedDeviceTransaction } from '@metamask/controllers/';
+import { WalletDevice } from '@metamask/controllers/';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -483,7 +483,7 @@ class Send extends PureComponent {
 			const { result, transactionMeta } = await TransactionController.addTransaction(
 				transaction,
 				TransactionTypes.MMM,
-				ConfirmedDeviceTransaction.MM_MOBILE
+				WalletDevice.MM_MOBILE
 			);
 
 			await TransactionController.approveTransaction(transactionMeta.id);

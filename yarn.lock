@@ -1424,9 +1424,9 @@
   resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-1.23.0.tgz#c70be7f3eaeeb791651ce793b7cdc230e9780b18"
   integrity sha512-oTUqL9dtXtbng60DZMRsBmZ5HiOUUfEsZjuswOJ0yHO24YsW0ktCcgCJVYPv1HcOsF0SVrRtG4rtrvOl4nY+HA==
 
-"@metamask/controllers@./metamask-controllers-v6.2.15-seth.tgz":
-  version "6.2.15-seth"
-  resolved "./metamask-controllers-v6.2.15-seth.tgz#5d40cc4c0e4bca271032a0de00c4cd3c4c3b75bb"
+"@metamask/controllers@./metamask-controllers-v6.2.16-seth.tgz":
+  version "6.2.16-seth"
+  resolved "./metamask-controllers-v6.2.16-seth.tgz#ad932e77f91ab3516a1f66d915b7bccecbaaa87d"
   dependencies:
     "@metamask/contract-metadata" "^1.23.0"
     "@types/uuid" "^8.3.0"

@@ -10,7 +10,7 @@ import Engine from './Engine';
 import { generateApproveData } from '../util/transactions';
 import { strings } from '../../locales/i18n';
 import { getNetworkTypeById } from '../util/networks';
-import { ConfirmedDeviceTransaction } from '@metamask/controllers/';
+import { WalletDevice } from '@metamask/controllers/';
 
 class DeeplinkManager {
 	constructor(_navigation) {
@@ -66,7 +66,7 @@ class DeeplinkManager {
 			txParams.value = '0x0';
 			const value = Number(uint256).toString(16);
 			txParams.data = generateApproveData({ spender: address, value });
-			TransactionController.addTransaction(txParams, origin, ConfirmedDeviceTransaction.MM_MOBILE);
+			TransactionController.addTransaction(txParams, origin, WalletDevice.MM_MOBILE);
 		}
 	}
 

@@ -8,7 +8,7 @@ import FAIcon from 'react-native-vector-icons/FontAwesome';
 import BigNumber from 'bignumber.js';
 import { NavigationContext } from 'react-navigation';
 import { swapsUtils, util } from '@estebanmino/controllers';
-import { ConfirmedDeviceTransaction } from '@metamask/controllers/';
+import { WalletDevice } from '@metamask/controllers/';
 
 import {
 	BNToHex,
@@ -554,7 +554,7 @@ function SwapsQuotesView({
 				const { transactionMeta } = await TransactionController.addTransaction(
 					approvalTransaction,
 					process.env.MM_FOX_CODE,
-					ConfirmedDeviceTransaction.MM_MOBILE
+					WalletDevice.MM_MOBILE
 				);
 				approvalTransactionMetaId = transactionMeta.id;
 				newSwapsTransactions[transactionMeta.id] = {
@@ -574,7 +574,7 @@ function SwapsQuotesView({
 			const { transactionMeta } = await TransactionController.addTransaction(
 				selectedQuote.trade,
 				process.env.MM_FOX_CODE,
-				ConfirmedDeviceTransaction.MM_MOBILE
+				WalletDevice.MM_MOBILE
 			);
 			updateSwapsTransactions(transactionMeta, approvalTransactionMetaId, newSwapsTransactions);
 		} catch (e) {

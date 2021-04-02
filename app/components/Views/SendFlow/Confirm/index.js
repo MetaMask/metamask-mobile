@@ -30,7 +30,7 @@ import {
 } from '../../../../util/number';
 import { getTicker, decodeTransferData, getNormalizedTxState } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
-import { util, ConfirmedDeviceTransaction } from '@metamask/controllers';
+import { util, WalletDevice } from '@metamask/controllers';
 import { prepareTransaction, resetTransaction } from '../../../../actions/transaction';
 import {
 	fetchBasicGasEstimates,
@@ -755,7 +755,7 @@ class Confirm extends PureComponent {
 			const { result, transactionMeta } = await TransactionController.addTransaction(
 				transaction,
 				TransactionTypes.MMM,
-				ConfirmedDeviceTransaction.MM_MOBILE
+				WalletDevice.MM_MOBILE
 			);
 
 			await TransactionController.approveTransaction(transactionMeta.id);

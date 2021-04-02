@@ -16,7 +16,7 @@ import {
 	TokenRatesController,
 	TransactionController,
 	TypedMessageManager,
-	ConfirmedDeviceTransaction
+	WalletDevice
 } from '@metamask/controllers';
 
 import { SwapsController } from '@estebanmino/controllers';
@@ -89,7 +89,7 @@ class Engine {
 										const hash = await (await TransactionController.addTransaction(
 											payload.params[0],
 											payload.origin,
-											ConfirmedDeviceTransaction.MM_MOBILE
+											WalletDevice.MM_MOBILE
 										)).result;
 										end(undefined, hash);
 									} catch (error) {
