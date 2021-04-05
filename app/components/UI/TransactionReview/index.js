@@ -125,6 +125,10 @@ class TransactionReview extends PureComponent {
 		 */
 		ticker: PropTypes.string,
 		/**
+		 * Chain id
+		 */
+		chainId: PropTypes.string,
+		/**
 		 * ETH or fiat, depending on user setting
 		 */
 		primaryCurrency: PropTypes.string,
@@ -174,14 +178,15 @@ class TransactionReview extends PureComponent {
 			validate,
 			transaction,
 			transaction: { data, to },
-			tokens
+			tokens,
+			chainId
 		} = this.props;
 		let { showHexData } = this.props;
 		let assetAmount, conversionRate, fiatValue;
 		showHexData = showHexData || data;
 		const approveTransaction = data && data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE;
 		const error = validate && (await validate());
-		const actionKey = await getTransactionReviewActionKey(transaction);
+		const actionKey = await getTransactionReviewActionKey(transaction, chainId);
 		if (approveTransaction) {
 			let contract = contractMap[safeToChecksumAddress(to)];
 			if (!contract) {
@@ -358,6 +363,7 @@ const mapStateToProps = state => ({
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	showHexData: state.settings.showHexData,
 	transaction: getNormalizedTxState(state),
 	browser: state.browser,

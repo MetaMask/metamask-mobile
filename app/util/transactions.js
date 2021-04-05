@@ -41,7 +41,7 @@ export const TRANSACTION_TYPES = {
 	APPROVE: 'transaction_approve'
 };
 
-const { SWAPS_CONTRACT_ADDRESS } = swapsUtils;
+const { getSwapsContractAddress } = swapsUtils;
 /**
  * Utility class with the single responsibility
  * of caching CollectibleAddresses
@@ -250,13 +250,13 @@ export async function isCollectibleAddress(address, tokenId) {
  * Returns corresponding transaction action key
  *
  * @param {object} transaction - Transaction object
+ * @param {string} chainId - Current chainId
  * @returns {string} - Corresponding transaction action key
  */
-export async function getTransactionActionKey(transaction) {
+export async function getTransactionActionKey(transaction, chainId) {
 	const { transaction: { data, to } = {} } = transaction;
 	if (!to) return CONTRACT_METHOD_DEPLOY;
-	// TODO(swaps-bsc): replace with contract by chainId
-	if (to === SWAPS_CONTRACT_ADDRESS) return SWAPS_TRANSACTION_ACTION_KEY;
+	if (to === getSwapsContractAddress(chainId)) return SWAPS_TRANSACTION_ACTION_KEY;
 	let ret;
 	// if data in transaction try to get method data
 	if (data && data !== '0x') {
@@ -283,7 +283,7 @@ export async function getTransactionActionKey(transaction) {
  * @param {string} selectedAddress - Current account public address
  * @returns {string} - Transaction type message
  */
-export async function getActionKey(tx, selectedAddress, ticker) {
+export async function getActionKey(tx, selectedAddress, ticker, chainId) {
 	if (tx && tx.isTransfer) {
 		const selfSent = safeToChecksumAddress(tx.transaction.from) === selectedAddress;
 		const translationKey = selfSent ? 'transactions.self_sent_unit' : 'transactions.received_unit';
@@ -291,7 +291,7 @@ export async function getActionKey(tx, selectedAddress, ticker) {
 		if (tx.transferInformation.contractAddress === SAI_ADDRESS.toLowerCase()) tx.transferInformation.symbol = 'SAI';
 		return strings(translationKey, { unit: tx.transferInformation.symbol });
 	}
-	const actionKey = await getTransactionActionKey(tx);
+	const actionKey = await getTransactionActionKey(tx, chainId);
 	if (actionKey === SEND_ETHER_ACTION_KEY) {
 		const incoming = safeToChecksumAddress(tx.transaction.to) === selectedAddress;
 		const selfSent = incoming && safeToChecksumAddress(tx.transaction.from) === selectedAddress;
@@ -320,10 +320,11 @@ export async function getActionKey(tx, selectedAddress, ticker) {
  * Returns corresponding transaction function type
  *
  * @param {object} tx - Transaction object
+ * @param {string} chainId - Current chainId
  * @returns {string} - Transaction function type
  */
-export async function getTransactionReviewActionKey(transaction) {
-	const actionKey = await getTransactionActionKey({ transaction });
+export async function getTransactionReviewActionKey(transaction, chainId) {
+	const actionKey = await getTransactionActionKey({ transaction }, chainId);
 	const transactionReviewActionKey = reviewActionKeys[actionKey];
 	if (transactionReviewActionKey) {
 		return transactionReviewActionKey;
