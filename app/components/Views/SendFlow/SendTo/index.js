@@ -518,6 +518,7 @@ class SendFlow extends PureComponent {
 	};
 
 	render = () => {
+		const { ticker } = this.props;
 		const {
 			fromSelectedAddress,
 			fromAccountName,

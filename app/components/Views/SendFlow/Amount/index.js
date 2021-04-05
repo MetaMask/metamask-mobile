@@ -388,7 +388,8 @@ class Amount extends PureComponent {
 			ticker,
 			transactionState: { readableValue },
 			navigation,
-			providerType
+			providerType,
+			selectedAsset
 		} = this.props;
 		// For analytics
 		navigation.setParams({ providerType });
@@ -397,6 +398,7 @@ class Amount extends PureComponent {
 		this.collectibles = this.processCollectibles();
 		this.amountInput && this.amountInput.current && this.amountInput.current.focus();
 		this.onInputChange(readableValue);
+		this.handleSelectedAssetBalance(selectedAsset);
 
 		const estimatedTotalGas = await this.estimateTransactionTotalGas();
 		this.setState({
