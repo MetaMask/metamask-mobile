@@ -1,5 +1,3 @@
-// TODO(swaps-bsc): Use controllers
-import { util } from '@estebanmino/controllers';
 import { createSelector } from 'reselect';
 
 // * Constants
@@ -19,8 +17,7 @@ export const setSwapsHasOnboarded = hasOnboarded => ({ type: SWAPS_SET_HAS_ONBOA
 
 export const swapsLivenessSelector = state => {
 	const chainId = state.engine.backgroundState.NetworkController.provider.chainId;
-	const key = util.toChainIdKey(chainId);
-	return state.swaps[key]?.isLive || false;
+	return state.swaps[chainId]?.isLive || false;
 };
 
 /**
@@ -115,7 +112,7 @@ export const initialState = {
 	isLive: true, // TODO: should we remove it?
 	hasOnboarded: false,
 
-	[util.toChainIdKey('1')]: {
+	'1': {
 		isLive: true
 	}
 };
@@ -124,11 +121,10 @@ function swapsReducer(state = initialState, action) {
 	switch (action.type) {
 		case SWAPS_SET_LIVENESS: {
 			const { live, chainId } = action.payload;
-			const key = util.toChainIdKey(chainId);
-			const data = state[key];
+			const data = state[chainId];
 			return {
 				...state,
-				[key]: {
+				[chainId]: {
 					...data,
 					isLive: live
 				}
