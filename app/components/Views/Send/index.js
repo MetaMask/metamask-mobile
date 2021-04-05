@@ -345,7 +345,7 @@ class Send extends PureComponent {
 	 */
 	handleNetworkSwitch = switchToChainId => {
 		const { frequentRpcList } = this.props;
-		const rpc = frequentRpcList.find(({ chainId }) => chainId === switchToChainId);
+		const rpc = frequentRpcList.find(({ chainId }) => `${chainId}` === `${switchToChainId}`);
 		if (rpc) {
 			const { rpcUrl, chainId, ticker, nickname } = rpc;
 			const { NetworkController, CurrencyRateController } = Engine.context;
