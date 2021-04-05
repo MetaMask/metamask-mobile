@@ -161,7 +161,7 @@ const TransactionHeader = props => {
 			</View>
 			<View style={styles.networkContainer}>
 				{renderNetworkStatusIndicator()}
-				<Text style={styles.network}>{props.nickname}</Text>
+				<Text style={styles.network}>{props.nickname || networkList[props.networkType]?.shortName}</Text>
 			</View>
 		</View>
 	);
