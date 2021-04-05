@@ -314,9 +314,9 @@
 		"description_content_2": "MetaMask…",
 		"action_description_1": "Siempre le permitirá optar por no participar a través de Configuración",
 		"action_description_2": "Enviará eventos de vistas de página y clics anónimos",
-		"action_description_3": "Nunca recopilará claves, direcciones, transacciones, saldos, hashes o cualquier otra información personal",
-		"action_description_4": "Nunca recopilará su dirección IP",
-		"action_description_5": "Nunca venderá datos con afán de lucro. ¡Jamás!"
+		"action_description_4": "Nunca recopilará claves, direcciones, transacciones, saldos, hashes o cualquier otra información personal",
+		"action_description_5": "Nunca recopilará su dirección IP",
+		"action_description_6": "Nunca venderá datos con afán de lucro. ¡Jamás!"
 	},
 	"token": {
 		"token_symbol": "Símbolo del token",

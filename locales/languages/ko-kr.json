@@ -313,9 +313,9 @@
 		"description_content_2": "MetaMask에서는...",
 		"action_description_1": "언제든 설정을 통해 옵트아웃이 가능합니다.",
 		"action_description_2": "익명화된 클릭 및 페이지뷰 이벤트를 보냅니다.",
-		"action_description_3": "키, 주소, 거래, 잔액, 해시 또는 개인 정보는 절대 수집하지 않습니다.",
-		"action_description_4": "IP 주소를 수집하지 않습니다.",
-		"action_description_5": "수익을 위해 데이터를 판매하지 않습니다. 절대!"
+		"action_description_4": "키, 주소, 거래, 잔액, 해시 또는 개인 정보는 절대 수집하지 않습니다.",
+		"action_description_5": "IP 주소를 수집하지 않습니다.",
+		"action_description_6": "수익을 위해 데이터를 판매하지 않습니다. 절대!"
 	},
 	"token": {
 		"token_symbol": "토큰 기호",

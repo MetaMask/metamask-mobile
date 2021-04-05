@@ -121,8 +121,8 @@ class OptinMetrics extends PureComponent {
 		clearOnboardingEvents: PropTypes.func
 	};
 
-	actionsList = [1, 2, 3, 4, 5].map(value => ({
-		action: value <= 2 ? 0 : 1,
+	actionsList = [1, 2, 3, 4, 5, 6].map(value => ({
+		action: value <= 3 ? 0 : 1,
 		description: strings(`privacy_policy.action_description_${value}`)
 	}));
 
