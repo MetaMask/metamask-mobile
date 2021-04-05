@@ -506,9 +506,6 @@ class EthInput extends PureComponent {
 	 * @returns {object} - View object to render as input field
 	 */
 	renderTokenInput = (image, currency, secondaryAmount, secondaryCurrency) => {
-		const {
-			transaction: { paymentChannelTransaction }
-		} = this.props;
 		const { readableValue, assets } = this.state;
 		const selectAssets = assets && assets.length > 1;
 		return (
@@ -555,7 +552,7 @@ class EthInput extends PureComponent {
 							style={styles.switch}
 						/>
 					)}
-					{!paymentChannelTransaction && selectAssets && (
+					{selectAssets && (
 						<MaterialIcon
 							onPress={this.onFocus}
 							name={'arrow-drop-down'}
