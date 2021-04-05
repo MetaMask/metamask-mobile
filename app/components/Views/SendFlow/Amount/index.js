@@ -9,7 +9,6 @@ import {
 	TextInput,
 	KeyboardAvoidingView,
 	FlatList,
-	Image,
 	InteractionManager,
 	ScrollView
 } from 'react-native';
@@ -41,7 +40,6 @@ import {
 } from '../../../../util/number';
 import { getTicker, generateTransferData, getEther } from '../../../../util/transactions';
 import { util } from '@metamask/controllers';
-import FadeIn from 'react-native-fade-in-image';
 import ErrorMessage from '../ErrorMessage';
 import { fetchBasicGasEstimates, convertApiValueToGWEI } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
@@ -54,12 +52,11 @@ import { BN } from 'ethereumjs-util';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
+import NetworkMainAssetLogo from '../../../UI/NetworkMainAssetLogo';
 
 const { hexToBN, BNToHex } = util;
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
-
-const ethLogo = require('../../../../images/eth-logo.png'); // eslint-disable-line
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -239,10 +236,6 @@ const styles = StyleSheet.create({
 		textAlign: 'right',
 		textTransform: 'uppercase'
 	},
-	ethLogo: {
-		width: 36,
-		height: 36
-	},
 	errorMessageWrapper: {
 		marginVertical: 16
 	},
@@ -395,7 +388,8 @@ class Amount extends PureComponent {
 			ticker,
 			transactionState: { readableValue },
 			navigation,
-			providerType
+			providerType,
+			selectedAsset
 		} = this.props;
 		// For analytics
 		navigation.setParams({ providerType });
@@ -404,6 +398,7 @@ class Amount extends PureComponent {
 		this.collectibles = this.processCollectibles();
 		this.amountInput && this.amountInput.current && this.amountInput.current.focus();
 		this.onInputChange(readableValue);
+		this.handleSelectedAssetBalance(selectedAsset);
 
 		const estimatedTotalGas = await this.estimateTransactionTotalGas();
 		this.setState({
@@ -808,9 +803,7 @@ class Amount extends PureComponent {
 			>
 				<View style={styles.assetElement}>
 					{token.isETH ? (
-						<FadeIn placeholderStyle={{ backgroundColor: colors.white }}>
-							<Image source={ethLogo} style={styles.ethLogo} />
-						</FadeIn>
+						<NetworkMainAssetLogo big />
 					) : (
 						<TokenImage asset={token} iconStyle={styles.tokenImage} containerStyle={styles.tokenImage} />
 					)}
