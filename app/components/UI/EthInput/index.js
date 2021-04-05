@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Keyboard, ScrollView, StyleSheet, Text, TextInput, View, Image } from 'react-native';
+import { Keyboard, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import {
@@ -24,6 +24,7 @@ import SelectableAsset from './SelectableAsset';
 import { getTicker, getNormalizedTxState } from '../../../util/transactions';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Device from '../../../util/Device';
+import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 
 const styles = StyleSheet.create({
 	root: {
@@ -126,8 +127,6 @@ const styles = StyleSheet.create({
 		paddingVertical: 6
 	}
 });
-
-const ethLogo = require('../../../images/eth-logo.png'); // eslint-disable-line
 
 /**
  * Form component that allows users to type an amount of ETH and its fiat value is rendered dynamically
@@ -328,7 +327,7 @@ class EthInput extends PureComponent {
 		const assetsObject = {
 			ETH: () => {
 				const subTitle = renderFromWei(accounts[selectedAddress].balance) + ' ' + getTicker(ticker);
-				const icon = <Image source={ethLogo} style={styles.logo} />;
+				const icon = <NetworkMainAssetLogo big style={styles.logo} />;
 				return { title: getTicker(ticker), subTitle, icon };
 			},
 			ERC20: () => {
@@ -594,7 +593,7 @@ class EthInput extends PureComponent {
 					secondaryCurrency = getTicker(ticker);
 					currency = currentCurrency;
 				}
-				const image = <Image source={ethLogo} style={styles.logo} />;
+				const image = <NetworkMainAssetLogo big style={styles.logo} />;
 				return this.renderTokenInput(image, currency, secondaryAmount, secondaryCurrency);
 			},
 			ERC20: () => {

@@ -236,7 +236,7 @@ class SendFlow extends PureComponent {
 		//Fills in to address and sets the transaction if coming from QR code scan
 		const targetAddress = navigation.getParam('txMeta', null)?.target_address;
 		if (targetAddress) {
-			this.props.newAssetTransaction(getEther());
+			this.props.newAssetTransaction(getEther(ticker));
 			this.onToSelectedAddressChange(targetAddress);
 		}
 	};
@@ -260,7 +260,7 @@ class SendFlow extends PureComponent {
 		const fromAccountName = ens || name;
 		PreferencesController.setSelectedAddress(accountAddress);
 		// If new account doesn't have the asset
-		this.props.setSelectedAsset(getEther());
+		this.props.setSelectedAsset(getEther(ticker));
 		this.setState({
 			fromAccountName,
 			fromAccountBalance,
@@ -518,6 +518,7 @@ class SendFlow extends PureComponent {
 	};
 
 	render = () => {
+		const { ticker } = this.props;
 		const {
 			fromSelectedAddress,
 			fromAccountName,
@@ -593,7 +594,9 @@ class SendFlow extends PureComponent {
 									<WarningMessage
 										warningMessage={
 											<>
-												{strings('transaction.not_enough_for_gas')}
+												{strings('transaction.not_enough_for_gas', {
+													ticker: getTicker(ticker)
+												})}
 
 												{this.renderBuyEth()}
 											</>

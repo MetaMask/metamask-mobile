@@ -19,6 +19,8 @@ exports[`TokenIcon component should Render correctly 2`] = `
       },
       undefined,
       undefined,
+      undefined,
+      undefined,
     ]
   }
 />
@@ -46,6 +48,8 @@ exports[`TokenIcon component should Render correctly 3`] = `
           "textAlignVertical": "center",
         },
         undefined,
+        undefined,
+        undefined,
       ]
     }
     underline={false}
@@ -71,6 +75,8 @@ exports[`TokenIcon component should Render correctly 4`] = `
         "height": 24,
         "width": 24,
       },
+      undefined,
+      undefined,
       undefined,
       undefined,
     ]
@@ -105,6 +111,8 @@ exports[`TokenIcon component should Render correctly 6`] = `
         "width": 36,
       },
       undefined,
+      undefined,
+      undefined,
     ]
   }
 />
@@ -136,6 +144,8 @@ exports[`TokenIcon component should Render correctly 7`] = `
         Object {
           "fontSize": 22,
         },
+        undefined,
+        undefined,
       ]
     }
     underline={false}
@@ -166,6 +176,8 @@ exports[`TokenIcon component should Render correctly 8`] = `
         "height": 36,
         "width": 36,
       },
+      undefined,
+      undefined,
       undefined,
     ]
   }
