@@ -119,7 +119,8 @@ class AccountElement extends PureComponent {
 
 	render() {
 		const { disabled, updatedBalanceFromStore } = this.props;
-		const { address, ticker, name, isSelected, isImported, balanceError } = this.props.item;
+		const { address, name, isSelected, isImported, balanceError } = this.props.item;
+		const { ticker } = this.props;
 		const selected = isSelected ? <Icon name="check-circle" size={30} color={colors.blue} /> : null;
 		const imported = isImported ? (
 			<View style={styles.importedWrapper}>

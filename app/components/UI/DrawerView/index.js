@@ -482,7 +482,7 @@ class DrawerView extends PureComponent {
 	};
 
 	onSend = async () => {
-		this.props.newAssetTransaction(getEther());
+		this.props.newAssetTransaction(getEther(this.props.ticker));
 		this.props.navigation.navigate('SendFlowView');
 		this.hideDrawer();
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SEND);
