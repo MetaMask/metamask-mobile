@@ -283,6 +283,7 @@ class TransactionElement extends PureComponent {
 
 const mapStateToProps = state => ({
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	primaryCurrency: state.settings.primaryCurrency,
 	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {},
 	swapsTokens: state.engine.backgroundState.SwapsController.tokens
