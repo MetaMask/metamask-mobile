@@ -393,8 +393,7 @@ class Amount extends PureComponent {
 		const {
 			tokens,
 			ticker,
-			selectedAsset,
-			transactionState: { readableValue, paymentRequest, paymentChannelTransaction },
+			transactionState: { readableValue },
 			navigation,
 			providerType
 		} = this.props;
@@ -405,21 +404,12 @@ class Amount extends PureComponent {
 		this.collectibles = this.processCollectibles();
 		this.amountInput && this.amountInput.current && this.amountInput.current.focus();
 		this.onInputChange(readableValue);
-		// if collectible don't do this
 
-		if (paymentChannelTransaction || paymentRequest || !selectedAsset.tokenId) {
-			this.handleSelectedAssetBalance(
-				selectedAsset,
-				paymentChannelTransaction ? selectedAsset.assetBalance : null
-			);
-		}
-		if (!paymentChannelTransaction) {
-			const estimatedTotalGas = await this.estimateTransactionTotalGas();
-			this.setState({
-				estimatedTotalGas,
-				inputValue: readableValue
-			});
-		}
+		const estimatedTotalGas = await this.estimateTransactionTotalGas();
+		this.setState({
+			estimatedTotalGas,
+			inputValue: readableValue
+		});
 	};
 
 	validateCollectibleOwnership = async () => {
@@ -534,7 +524,7 @@ class Amount extends PureComponent {
 	updateTransaction = (value = 0) => {
 		const {
 			selectedAsset,
-			transactionState: { transaction, paymentChannelTransaction, transactionTo },
+			transactionState: { transaction, transactionTo },
 			setTransactionObject,
 			selectedAddress
 		} = this.props;
@@ -560,7 +550,7 @@ class Amount extends PureComponent {
 			transactionObject.value = '0x0';
 		}
 
-		if (paymentChannelTransaction || selectedAsset.erc20) {
+		if (selectedAsset.erc20) {
 			transactionObject.readableValue = value;
 		}
 
@@ -571,8 +561,7 @@ class Amount extends PureComponent {
 		const {
 			prepareTransaction,
 			selectedAsset,
-			transactionState: { transaction, transactionTo, paymentChannelTransaction },
-			setTransactionObject
+			transactionState: { transaction, transactionTo }
 		} = this.props;
 
 		if (selectedAsset.isETH) {
@@ -593,15 +582,7 @@ class Amount extends PureComponent {
 			transaction.to = selectedAsset.address;
 			transaction.value = '0x0';
 		}
-
-		if (paymentChannelTransaction) {
-			setTransactionObject({
-				...transaction,
-				readableValue: value
-			});
-		} else {
-			prepareTransaction(transaction);
-		}
+		prepareTransaction(transaction);
 	};
 
 	/**
@@ -612,20 +593,11 @@ class Amount extends PureComponent {
 	 * @returns - Whether there is an error with the amount
 	 */
 	validateAmount = inputValue => {
-		const {
-			accounts,
-			selectedAddress,
-			contractBalances,
-			selectedAsset,
-			transactionState: { paymentChannelTransaction }
-		} = this.props;
+		const { accounts, selectedAddress, contractBalances, selectedAsset } = this.props;
 		const { estimatedTotalGas } = this.state;
 		let weiBalance, weiInput, amountError;
 		if (isDecimal(inputValue)) {
-			if (paymentChannelTransaction) {
-				weiBalance = toWei(Number(selectedAsset.assetBalance));
-				weiInput = toWei(inputValue);
-			} else if (selectedAsset.isETH) {
+			if (selectedAsset.isETH) {
 				weiBalance = hexToBN(accounts[selectedAddress].balance);
 				weiInput = toWei(inputValue).add(estimatedTotalGas);
 			} else {
@@ -678,14 +650,11 @@ class Amount extends PureComponent {
 			contractBalances,
 			selectedAsset,
 			conversionRate,
-			contractExchangeRates,
-			transactionState: { paymentChannelTransaction }
+			contractExchangeRates
 		} = this.props;
 		const { internalPrimaryCurrencyIsCrypto, estimatedTotalGas } = this.state;
 		let input;
-		if (paymentChannelTransaction) {
-			input = selectedAsset.assetBalance;
-		} else if (selectedAsset.isETH) {
+		if (selectedAsset.isETH) {
 			const balanceBN = hexToBN(accounts[selectedAddress].balance);
 			const realMaxValue = balanceBN.sub(estimatedTotalGas);
 			const maxValue = balanceBN.isZero() || realMaxValue.isNeg() ? new BN(0) : realMaxValue;
@@ -1023,7 +992,7 @@ class Amount extends PureComponent {
 		const { estimatedTotalGas } = this.state;
 		const {
 			selectedAsset,
-			transactionState: { paymentChannelTransaction, isPaymentRequest }
+			transactionState: { isPaymentRequest }
 		} = this.props;
 
 		return (
@@ -1035,29 +1004,27 @@ class Amount extends PureComponent {
 							<View style={styles.action}>
 								<TouchableOpacity
 									style={styles.actionDropdown}
-									disabled={paymentChannelTransaction || isPaymentRequest}
+									disabled={isPaymentRequest}
 									onPress={this.toggleAssetsModal}
 								>
 									<Text style={styles.textDropdown}>
 										{selectedAsset.symbol || strings('wallet.collectible')}
 									</Text>
-									{!paymentChannelTransaction && (
-										<View styles={styles.arrow}>
-											<Ionicons
-												name="ios-arrow-down"
-												size={16}
-												color={colors.white}
-												style={styles.iconDropdown}
-											/>
-										</View>
-									)}
+									<View styles={styles.arrow}>
+										<Ionicons
+											name="ios-arrow-down"
+											size={16}
+											color={colors.white}
+											style={styles.iconDropdown}
+										/>
+									</View>
 								</TouchableOpacity>
 							</View>
 							<View style={[styles.actionBorder, styles.actionMax]}>
 								{!selectedAsset.tokenId && (
 									<TouchableOpacity
 										style={styles.actionMaxTouchable}
-										disabled={!paymentChannelTransaction && !estimatedTotalGas}
+										disabled={!estimatedTotalGas}
 										onPress={this.useMax}
 									>
 										<Text style={styles.maxText}>{strings('transaction.use_max')}</Text>
@@ -1079,7 +1046,7 @@ class Amount extends PureComponent {
 						<StyledButton
 							type={'confirm'}
 							containerStyle={styles.buttonNext}
-							disabled={!paymentChannelTransaction && !estimatedTotalGas}
+							disabled={!estimatedTotalGas}
 							onPress={this.onNext}
 							testID={'txn-amount-next-button'}
 						>

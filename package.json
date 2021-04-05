@@ -97,7 +97,6 @@
     "bignumber.js": "8.1.1",
     "buffer": "5.2.1",
     "compare-versions": "^3.6.0",
-    "connext": "4.2.5",
     "content-hash": "2.5.2",
     "dnode": "1.2.2",
     "eth-ens-namehash": "2.0.8",
