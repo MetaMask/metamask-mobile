@@ -152,8 +152,6 @@ const TransactionHeader = props => {
 		return <Text style={styles.domainUrl}>{title}</Text>;
 	};
 
-	const networkName = networkList[props.networkType].shortName;
-
 	return (
 		<View style={styles.transactionHeader}>
 			{renderTopIcon()}
@@ -163,7 +161,7 @@ const TransactionHeader = props => {
 			</View>
 			<View style={styles.networkContainer}>
 				{renderNetworkStatusIndicator()}
-				<Text style={styles.network}>{networkName}</Text>
+				<Text style={styles.network}>{props.nickname}</Text>
 			</View>
 		</View>
 	);
@@ -177,11 +175,16 @@ TransactionHeader.propTypes = {
 	/**
 	 * String representing the selected network
 	 */
-	networkType: PropTypes.string
+	networkType: PropTypes.string,
+	/**
+	 * Provider name
+	 */
+	nickname: PropTypes.string
 };
 
 const mapStateToProps = state => ({
-	networkType: state.engine.backgroundState.NetworkController.provider.type
+	networkType: state.engine.backgroundState.NetworkController.provider.type,
+	nickname: state.engine.backgroundState.NetworkController.provider.nickname
 });
 
 export default connect(mapStateToProps)(TransactionHeader);
