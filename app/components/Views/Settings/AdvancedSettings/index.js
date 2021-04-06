@@ -226,14 +226,7 @@ class AdvancedSettings extends PureComponent {
 	};
 
 	render = () => {
-		const {
-			showHexData,
-			showCustomNonce,
-			setShowHexData,
-			setShowCustomNonce,
-			ipfsGateway,
-			paymentChannelsEnabled
-		} = this.props;
+		const { showHexData, showCustomNonce, setShowHexData, setShowCustomNonce, ipfsGateway } = this.props;
 		const { resetModalVisible, onlineIpfsGateways } = this.state;
 		return (
 			<SafeAreaView style={baseStyles.flexGrow}>
@@ -332,7 +325,6 @@ const mapStateToProps = state => ({
 	ipfsGateway: state.engine.backgroundState.PreferencesController.ipfsGateway,
 	showHexData: state.settings.showHexData,
 	showCustomNonce: state.settings.showCustomNonce,
-	paymentChannelsEnabled: state.settings.paymentChannelsEnabled,
 	fullState: state
 });
 

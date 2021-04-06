@@ -908,7 +908,7 @@ class Confirm extends PureComponent {
 
 	render = () => {
 		const { transactionToName, selectedAsset, paymentRequest } = this.props.transactionState;
-		const { showHexData, showCustomNonce, isPaymentChannelTransaction, primaryCurrency, network } = this.props;
+		const { showHexData, showCustomNonce, primaryCurrency, network } = this.props;
 		const {
 			gasEstimationReady,
 			fromAccountBalance,
@@ -977,21 +977,19 @@ class Confirm extends PureComponent {
 							</View>
 						</View>
 					)}
-					{!isPaymentChannelTransaction && (
-						<TransactionReviewFeeCard
-							totalGasFiat={transactionFeeFiat}
-							totalGasEth={transactionFee}
-							totalFiat={transactionTotalAmountFiat}
-							fiat={transactionValueFiat}
-							totalValue={transactionTotalAmount}
-							transactionValue={transactionValue}
-							primaryCurrency={primaryCurrency}
-							gasEstimationReady={gasEstimationReady}
-							edit={() => this.edit(EDIT)}
-							over={over}
-							warningGasPriceHigh={warningGasPriceHigh}
-						/>
-					)}
+					<TransactionReviewFeeCard
+						totalGasFiat={transactionFeeFiat}
+						totalGasEth={transactionFee}
+						totalFiat={transactionTotalAmountFiat}
+						fiat={transactionValueFiat}
+						totalValue={transactionTotalAmount}
+						transactionValue={transactionValue}
+						primaryCurrency={primaryCurrency}
+						gasEstimationReady={gasEstimationReady}
+						edit={() => this.edit(EDIT)}
+						over={over}
+						warningGasPriceHigh={warningGasPriceHigh}
+					/>
 					{errorMessage && (
 						<View style={styles.errorWrapper}>
 							<TouchableOpacity onPress={errorPress}>
@@ -1023,7 +1021,7 @@ class Confirm extends PureComponent {
 								</Text>
 							</TouchableOpacity>
 						)}
-						{!isPaymentChannelTransaction && showHexData && (
+						{showHexData && (
 							<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleHexDataModal}>
 								<Text style={styles.actionText}>{strings('transaction.hex_data')}</Text>
 							</TouchableOpacity>
