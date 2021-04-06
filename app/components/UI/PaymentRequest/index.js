@@ -35,9 +35,10 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import StyledButton from '../StyledButton';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { generateETHLink, generateERC20Link, generateUniversalLinkRequest } from '../../../util/payment-link-generator';
-import NetworkList from '../../../util/networks';
 import Device from '../../../util/Device';
 import currencySymbols from '../../../util/currency-symbols.json';
+import { NetworksChainId } from '@metamask/controllers';
+import { getTicker } from '../../../util/transactions';
 
 const KEYBOARD_OFFSET = 120;
 const styles = StyleSheet.create({
@@ -50,7 +51,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 24
 	},
 	title: {
-		...fontStyles.bold,
+		...fontStyles.normal,
 		fontSize: 16
 	},
 	searchWrapper: {
@@ -80,7 +81,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		backgroundColor: colors.white,
 		borderWidth: 0,
-		fontSize: 32,
+		fontSize: 24,
 		paddingBottom: 0,
 		paddingRight: 0,
 		paddingLeft: 0,
@@ -88,7 +89,7 @@ const styles = StyleSheet.create({
 	},
 	eth: {
 		...fontStyles.normal,
-		fontSize: 32,
+		fontSize: 24,
 		paddingTop: Device.isAndroid() ? 3 : 0,
 		paddingLeft: 10,
 		textTransform: 'uppercase'
@@ -175,7 +176,7 @@ const styles = StyleSheet.create({
 	},
 	currencySymbol: {
 		...fontStyles.normal,
-		fontSize: 32
+		fontSize: 24
 	},
 	currencySymbolSmall: {
 		...fontStyles.normal,
@@ -200,17 +201,13 @@ const fuse = new Fuse(contractList, {
 	keys: [{ name: 'name', weight: 0.5 }, { name: 'symbol', weight: 0.5 }]
 });
 
-const ethLogo = require('../../../images/eth-logo.png'); // eslint-disable-line
-const defaultEth = [
-	{
-		symbol: 'ETH',
-		name: 'Ether',
-		logo: ethLogo,
-		isETH: true
-	}
-];
+const defaultEth = {
+	symbol: 'ETH',
+	name: 'Ether',
+	isETH: true
+};
 const defaultAssets = [
-	...defaultEth,
+	defaultEth,
 	{
 		address: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
 		decimals: 18,
@@ -261,9 +258,13 @@ class PaymentRequest extends PureComponent {
 		 */
 		tokens: PropTypes.array,
 		/**
-		 * A string representing the network name
+		 * A string representing the chainId
 		 */
-		networkType: PropTypes.string
+		chainId: PropTypes.string,
+		/**
+		 * Current provider ticker
+		 */
+		ticker: PropTypes.string
 	};
 
 	amountInput = React.createRef();
@@ -279,7 +280,6 @@ class PaymentRequest extends PureComponent {
 		secondaryAmount: undefined,
 		symbol: undefined,
 		showError: false,
-		chainId: '',
 		inputWidth: { width: '99%' }
 	};
 
@@ -287,12 +287,10 @@ class PaymentRequest extends PureComponent {
 	 * Set chainId, internalPrimaryCurrency and receiveAssets, if there is an asset set to this payment request chose it automatically, to state
 	 */
 	componentDidMount = () => {
-		const { primaryCurrency, navigation, networkType } = this.props;
+		const { primaryCurrency, navigation } = this.props;
 		const receiveAsset = navigation && navigation.getParam('receiveAsset', undefined);
-		const chainId = Object.keys(NetworkList).indexOf(networkType) > -1 && NetworkList[networkType].networkId;
 		this.setState({
 			internalPrimaryCurrency: primaryCurrency,
-			chainId,
 			inputWidth: { width: '100%' }
 		});
 		if (receiveAsset) {
@@ -356,14 +354,18 @@ class PaymentRequest extends PureComponent {
 	 * Either top picks and user's assets are available to select
 	 */
 	renderSelectAssets = () => {
-		const { tokens } = this.props;
-		const { chainId, inputWidth } = this.state;
+		const { tokens, chainId, ticker } = this.props;
+		const { inputWidth } = this.state;
 		let results;
-		if (chainId === 1) {
+
+		if (chainId === '1') {
 			results = this.state.searchInputValue ? this.state.results : defaultAssets;
+		} else if (Object.values(NetworksChainId).find(value => value === chainId)) {
+			results = [defaultEth];
 		} else {
-			results = defaultEth;
+			results = [{ ...defaultEth, symbol: getTicker(ticker), name: '' }];
 		}
+
 		const userTokens = tokens.map(token => {
 			const contract = contractList.find(contractToken => contractToken.address === token.address);
 			if (contract) return contract;
@@ -374,7 +376,7 @@ class PaymentRequest extends PureComponent {
 				<View>
 					<Text style={styles.title}>{strings('payment_request.choose_asset')}</Text>
 				</View>
-				{chainId === 1 && (
+				{chainId === '1' && (
 					<View style={styles.searchWrapper}>
 						<TextInput
 							style={[styles.searchInput, inputWidth]}
@@ -534,8 +536,8 @@ class PaymentRequest extends PureComponent {
 	 * If there is an error, an error message will be set to display on the view
 	 */
 	onNext = () => {
-		const { selectedAddress, navigation } = this.props;
-		const { cryptoAmount, selectedAsset, chainId } = this.state;
+		const { selectedAddress, navigation, chainId } = this.props;
+		const { cryptoAmount, selectedAsset } = this.state;
 		try {
 			let eth_link;
 			if (selectedAsset.isETH) {
@@ -616,7 +618,7 @@ class PaymentRequest extends PureComponent {
 									</Text>
 								</View>
 								<View style={styles.secondaryAmount}>
-									{internalPrimaryCurrency === 'ETH' && (
+									{secondaryAmount && internalPrimaryCurrency === 'ETH' && (
 										<Text style={styles.currencySymbolSmall}>{currencySymbol}</Text>
 									)}
 									{secondaryAmount && (
@@ -697,7 +699,8 @@ const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	primaryCurrency: state.settings.primaryCurrency,
-	networkType: state.engine.backgroundState.NetworkController.provider.type
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId
 });
 
 export default connect(mapStateToProps)(PaymentRequest);

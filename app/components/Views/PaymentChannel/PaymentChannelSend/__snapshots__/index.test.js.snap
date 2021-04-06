@@ -1,8 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`PaymentChannelSend should render correctly 1`] = `
-<PaymentChannelSend
-  resetTransaction={[Function]}
-  transaction={Object {}}
-/>
-`;

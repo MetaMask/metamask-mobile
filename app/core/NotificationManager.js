@@ -439,34 +439,5 @@ export default {
 	},
 	showSimpleNotification(data) {
 		return instance?.showSimpleNotification(data);
-	},
-	showInstantPaymentNotification(type) {
-		setTimeout(() => {
-			const notification = {
-				type,
-				autoHide: type.indexOf('success') !== -1,
-				transaction: {
-					paymentChannelTransaction: true
-				}
-			};
-			if (notification.autoHide) {
-				notification.duration = 5000;
-			}
-
-			return instance._showNotification(notification);
-		}, 300);
-	},
-	showIncomingPaymentNotification: amount => {
-		instance._showNotification({
-			type: 'received_payment',
-			transaction: {
-				amount,
-				assetType: '',
-				paymentChannelTransaction: true
-			},
-			callback: () => instance.goTo('PaymentChannelHome'),
-			autoHide: true,
-			duration: 5000
-		});
 	}
 };
