@@ -296,7 +296,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
               underline={false}
               upper={false}
             >
-              Warning: You may encounter issues with future transactions if you continue. Used with caution.
+              Warning: You may encounter issues with future transactions if you continue. Use with caution.
             </Text>
           </View>
           <Text
@@ -324,7 +324,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
             underline={false}
             upper={false}
           >
-            This is an advanced feature used to cancel or speed up older transactions.
+            This is an advanced feature used to cancel or speed up any pending transactions.
           </Text>
           <Text
             black={false}
@@ -351,7 +351,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
             underline={false}
             upper={false}
           >
-            Think of the nonce as the transaction number of an account. Every accounts nonce begins with 0 for the first transaction and continues in sequential order.
+            Think of the nonce as the transaction number of an account. Every account's nonce begins with 0 for the first transaction and continues in sequential order.
           </Text>
         </View>
       </View>
