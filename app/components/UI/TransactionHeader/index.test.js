@@ -13,7 +13,8 @@ describe('TransactionHeader', () => {
 				backgroundState: {
 					NetworkController: {
 						provider: {
-							type: ROPSTEN
+							type: ROPSTEN,
+							nickname: 'Ropsten'
 						}
 					}
 				}

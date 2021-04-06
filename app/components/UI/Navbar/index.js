@@ -341,7 +341,7 @@ export function getTransactionOptionsTitle(_title, navigation) {
 	const leftAction = () => modeChange('edit');
 	const rightAction = () => navigation.pop();
 	const rightText = strings('transaction.cancel');
-	const title = transactionMode === 'edit' && routeName !== 'PaymentChannelDeposit' ? 'transaction.edit' : _title;
+	const title = transactionMode === 'edit' ? 'transaction.edit' : _title;
 	return {
 		headerTitle: <NavbarTitle title={title} disableNetwork />,
 		headerLeft:
@@ -363,7 +363,7 @@ export function getTransactionOptionsTitle(_title, navigation) {
 				<View />
 			),
 		headerRight:
-			routeName === 'Send' || routeName === 'PaymentChannelDeposit' ? (
+			routeName === 'Send' ? (
 				// eslint-disable-next-line react/jsx-no-bind
 				<TouchableOpacity onPress={rightAction} style={styles.closeButton} testID={'send-back-button'}>
 					<Text style={styles.closeButtonText}>{rightText}</Text>
@@ -382,12 +382,6 @@ export function getApproveNavbar(title) {
 	};
 }
 
-const sendTitleToPaymentChannelTitleMap = {
-	'send.send_to': 'payment_channel.insta_pay_send_to',
-	'send.amount': 'payment_channel.insta_pay_amount',
-	'send.confirm': 'payment_channel.insta_pay_confirm'
-};
-
 /**
  * Function that returns the navigation options
  * This is used by views in send flow
@@ -404,14 +398,10 @@ export function getSendFlowTitle(title, navigation, screenProps) {
 		});
 		navigation.dismiss();
 	};
-	const { routeName } = navigation.state;
-	const leftAction =
-		screenProps.isPaymentChannelTransaction && routeName === 'Confirm'
-			? () => navigation.navigate('Amount')
-			: () => navigation.pop();
+	const leftAction = () => navigation.pop();
 	const canGoBack = title !== 'send.send_to' && !screenProps.isPaymentRequest;
 
-	const titleToRender = screenProps.isPaymentChannelTransaction ? sendTitleToPaymentChannelTitleMap[title] : title;
+	const titleToRender = title;
 
 	return {
 		headerTitle: <NavbarTitle title={titleToRender} disableNetwork />,
@@ -432,28 +422,6 @@ export function getSendFlowTitle(title, navigation, screenProps) {
 	};
 }
 
-/**
- * Function that returns the navigation options for InstaPay screend
- *
- * @param {string} title - Title name to use with strings
- * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
- */
-export function getInstaPayNavigations(title, navigation) {
-	return {
-		headerTitle: <NavbarTitle title={title} disableNetwork />,
-		headerLeft: (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
-				<IonicIcon
-					name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
-					size={Device.isAndroid() ? 24 : 28}
-					style={styles.backIcon}
-				/>
-			</TouchableOpacity>
-		),
-		headerRight: <View />
-	};
-}
 /**
  * Function that returns the navigation options
  * This is used by views that will show our custom navbar

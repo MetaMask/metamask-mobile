@@ -3,7 +3,6 @@ import React, { PureComponent } from 'react';
 import { ActivityIndicator, SafeAreaView, StyleSheet, Switch, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import PaymentChannelsClient from '../../../../core/PaymentChannelsClient';
 import ActionModal from '../../../UI/ActionModal';
 import Engine from '../../../../core/Engine';
 import StyledButton from '../../../UI/StyledButton';
@@ -107,10 +106,6 @@ class AdvancedSettings extends PureComponent {
 		 * Indicates whether hex data should be shown in transaction editor
 		 */
 		showHexData: PropTypes.bool,
-		/**
-		 * Indicates whether InstaPay is ON or OFF
-		 */
-		paymentChannelsEnabled: PropTypes.bool,
 		/**
 		 * Called to toggle show hex data
 		 */
@@ -225,34 +220,6 @@ class AdvancedSettings extends PureComponent {
 		}
 	};
 
-	downloadInstapayStateLogs = async () => {
-		const appName = await getApplicationName();
-		const appVersion = await getVersion();
-		const buildNumber = await getBuildNumber();
-		const path = RNFS.DocumentDirectoryPath + `/instapay-logs-v${appVersion}-(${buildNumber}).json`;
-
-		try {
-			const dump = PaymentChannelsClient.dump();
-			dump.connext = !!dump.connext;
-			delete dump.ethprovider;
-			const data = JSON.stringify(dump);
-
-			let url = `data:text/plain;base64,${new Buffer(data).toString('base64')}`;
-			// // Android accepts attachements as BASE64
-			if (Device.isIos()) {
-				await RNFS.writeFile(path, data, 'utf8');
-				url = path;
-			}
-			await Share.open({
-				subject: `${appName} Instapay logs -  v${appVersion} (${buildNumber})`,
-				title: `${appName} Instapay logs -  v${appVersion} (${buildNumber})`,
-				url
-			});
-		} catch (err) {
-			Logger.error(err, 'Instapay log error');
-		}
-	};
-
 	setIpfsGateway = ipfsGateway => {
 		const { PreferencesController } = Engine.context;
 		PreferencesController.setIpfsGateway(ipfsGateway);
@@ -354,19 +321,6 @@ class AdvancedSettings extends PureComponent {
 								{strings('app_settings.state_logs_button')}
 							</StyledButton>
 						</View>
-						{paymentChannelsEnabled && (
-							<View style={styles.setting}>
-								<Text style={styles.title}>{strings('app_settings.instapay_state_logs')}</Text>
-								<Text style={styles.desc}>{strings('app_settings.instapay_state_logs_desc')}</Text>
-								<StyledButton
-									type="info"
-									onPress={this.downloadInstapayStateLogs}
-									containerStyle={styles.marginTop}
-								>
-									{strings('app_settings.instapay_state_logs_button')}
-								</StyledButton>
-							</View>
-						)}
 					</View>
 				</KeyboardAwareScrollView>
 			</SafeAreaView>

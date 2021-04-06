@@ -33,13 +33,6 @@ export function setPrimaryCurrency(primaryCurrency) {
 	};
 }
 
-export function setEnablePaymentChannels(paymentChannelsEnabled) {
-	return {
-		type: 'SET_ENABLE_PAYMENT_CHANNELS',
-		paymentChannelsEnabled
-	};
-}
-
 export function setUseBlockieIcon(useBlockieIcon) {
 	return {
 		type: 'SET_USE_BLOCKIE_ICON',

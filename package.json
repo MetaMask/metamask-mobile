@@ -97,7 +97,6 @@
     "bignumber.js": "8.1.1",
     "buffer": "5.2.1",
     "compare-versions": "^3.6.0",
-    "connext": "4.2.5",
     "content-hash": "2.5.2",
     "dnode": "1.2.2",
     "eth-ens-namehash": "2.0.8",
@@ -190,7 +189,9 @@
     "redux": "4.0.1",
     "redux-mock-store": "1.5.3",
     "redux-persist": "5.10.0",
+    "redux-persist-filesystem-storage": "^3.0.0",
     "reselect": "^4.0.0",
+    "rn-fetch-blob": "^0.12.0",
     "stream-browserify": "1.0.0",
     "through2": "3.0.1",
     "url": "0.11.0",
@@ -285,7 +286,7 @@
       "^.+\\.js$": "<rootDir>jest.preprocessor.js"
     },
     "transformIgnorePatterns": [
-      "node_modules/(?!(react-native|@react-navigation|@react-native-community|react-navigation|react-navigation-redux-helpers|@sentry))"
+      "node_modules/(?!(react-native|rn-fetch|redux-persist-filesystem|@react-navigation|@react-native-community|react-navigation|react-navigation-redux-helpers|@sentry))"
     ],
     "snapshotSerializers": [
       "enzyme-to-json/serializer"
