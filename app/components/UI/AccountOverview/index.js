@@ -19,8 +19,8 @@ import Device from '../../../util/Device';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { renderFiat } from '../../../util/number';
 import { renderAccountName } from '../../../util/address';
-import { isMainNet } from '../../../util/networks';
 import { getEther } from '../../../util/transactions';
+import { isSwapsAllowed } from '../Swaps/utils';
 
 import Identicon from '../Identicon';
 import AssetActionButton from '../AssetActionButton';
@@ -358,7 +358,7 @@ class AccountOverview extends PureComponent {
 							{AppConstants.SWAPS.ACTIVE && (
 								<AssetSwapButton
 									isFeatureLive={swapsIsLive}
-									isNetworkAllowed={AppConstants.SWAPS.ONLY_MAINNET ? isMainNet(chainId) : true}
+									isNetworkAllowed={isSwapsAllowed(chainId)}
 									onPress={this.goToSwaps}
 									isAssetAllowed
 								/>

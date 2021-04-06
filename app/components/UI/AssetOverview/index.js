@@ -14,7 +14,7 @@ import { renderFromTokenMinimalUnit, balanceToFiat, renderFromWei, weiToFiat, he
 import { safeToChecksumAddress } from '../../../util/address';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
-import { isMainNet } from '../../../util/networks';
+import { isSwapsAllowed } from '../Swaps/utils';
 import { swapsLivenessSelector, swapsTokensObjectSelector } from '../../../reducers/swaps';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
@@ -303,7 +303,7 @@ class AssetOverview extends PureComponent {
 						{AppConstants.SWAPS.ACTIVE && (
 							<AssetSwapButton
 								isFeatureLive={swapsIsLive}
-								isNetworkAllowed={AppConstants.SWAPS.ONLY_MAINNET ? isMainNet(chainId) : true}
+								isNetworkAllowed={isSwapsAllowed(chainId)}
 								isAssetAllowed={isETH || address?.toLowerCase() in swapsTokens}
 								onPress={this.goToSwaps}
 							/>

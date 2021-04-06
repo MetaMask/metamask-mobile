@@ -704,7 +704,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
 	setHasOnboarded: hasOnboarded => dispatch(setSwapsHasOnboarded(hasOnboarded)),
-	setLiveness: liveness => dispatch(setSwapsLiveness(liveness))
+	setLiveness: (liveness, chainId) => dispatch(setSwapsLiveness(liveness, chainId))
 });
 
 export default connect(

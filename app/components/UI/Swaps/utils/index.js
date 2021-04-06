@@ -2,6 +2,20 @@ import { useMemo } from 'react';
 import BigNumber from 'bignumber.js';
 import { swapsUtils } from '@estebanmino/controllers';
 import { strings } from '../../../../../locales/i18n';
+import AppConstants from '../../../../core/AppConstants';
+
+const { ETH_CHAIN_ID, BSC_CHAIN_ID, SWAPS_TESTNET_CHAIN_ID } = swapsUtils;
+
+export function isSwapsAllowed(chainId) {
+	if (!AppConstants.SWAPS.ACTIVE) {
+		return false;
+	}
+	const allowedChainIds = [ETH_CHAIN_ID, BSC_CHAIN_ID];
+	if (!AppConstants.SWAPS.ONLY_MAINNET) {
+		allowedChainIds.push(SWAPS_TESTNET_CHAIN_ID);
+	}
+	return allowedChainIds.includes(chainId);
+}
 
 export function isSwapsNativeAsset(token) {
 	return Boolean(token) && token?.address === swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS;
