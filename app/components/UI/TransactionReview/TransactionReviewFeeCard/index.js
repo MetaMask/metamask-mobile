@@ -63,7 +63,11 @@ class TransactionReviewFeeCard extends PureComponent {
 		/**
 		 * True if transaction is over the available funds
 		 */
-		over: PropTypes.bool
+		over: PropTypes.bool,
+		/**
+		 * True if transaction is gas price is higher than the "FAST" value
+		 */
+		warningGasPriceHigh: PropTypes.string
 	};
 
 	renderIfGasEstimationReady = children => {
@@ -88,7 +92,8 @@ class TransactionReviewFeeCard extends PureComponent {
 			primaryCurrency,
 			gasEstimationReady,
 			edit,
-			over
+			over,
+			warningGasPriceHigh
 		} = this.props;
 		let amount;
 		let networkFee;
@@ -127,9 +132,8 @@ class TransactionReviewFeeCard extends PureComponent {
 							</Text>
 						</TouchableOpacity>
 					</Summary.Col>
-
 					{this.renderIfGasEstimationReady(
-						<Text primary bold upper>
+						<Text primary bold upper style={warningGasPriceHigh ? styles.over : styles.primary}>
 							{networkFee}
 						</Text>
 					)}
