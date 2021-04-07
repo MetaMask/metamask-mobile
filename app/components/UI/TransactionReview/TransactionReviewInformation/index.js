@@ -214,8 +214,8 @@ class TransactionReviewInformation extends PureComponent {
 	};
 
 	getNetworkNonce = async () => {
-		const { setNonce, setProposedNonce, nonce } = this.props;
-		if (!nonce) {
+		const { setNonce, setProposedNonce, proposedNonce } = this.props;
+		if (!proposedNonce) {
 			const { TransactionController } = Engine.context;
 			const { from } = this.props.transaction;
 			const networkNonce = await util.query(TransactionController.ethQuery, 'getTransactionCount', [
