@@ -609,9 +609,9 @@ class TransactionEditor extends PureComponent {
 		const { transaction, activeTabUrl } = this.props;
 		const { selectedAsset } = transaction;
 		return {
-			dapp_host_name: transaction.origin,
+			dapp_host_name: transaction?.origin,
 			dapp_url: activeTabUrl,
-			active_currency: { value: selectedAsset.symbol, anonymous: true }
+			active_currency: { value: selectedAsset?.symbol, anonymous: true }
 		};
 	};
 

@@ -327,7 +327,7 @@ class Confirm extends PureComponent {
 		const { NetworkController } = Engine.context;
 		const { chainId, type } = NetworkController.state.provider;
 		return {
-			active_currency: { value: selectedAsset.symbol, anonymous: true },
+			active_currency: { value: selectedAsset?.symbol, anonymous: true },
 			network_name: type,
 			chain_id: chainId
 		};

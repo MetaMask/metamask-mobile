@@ -241,9 +241,9 @@ class Approve extends PureComponent {
 		const { analyticsParams } = this.state;
 
 		return {
-			dapp_host_name: analyticsParams.dapp_host_name,
-			dapp_url: analyticsParams.dapp_url,
-			active_currency: { value: analyticsParams.active_currency, anonymous: true }
+			dapp_host_name: analyticsParams?.dapp_host_name,
+			dapp_url: analyticsParams?.dapp_url,
+			active_currency: { value: analyticsParams?.active_currency, anonymous: true }
 		};
 	};
 

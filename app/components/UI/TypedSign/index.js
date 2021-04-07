@@ -81,12 +81,12 @@ export default class TypedSign extends PureComponent {
 		const { chainId, type } = NetworkController.state.provider;
 		const url = new URL(currentPageInformation.url);
 		return {
-			dapp_host_name: url.host,
-			dapp_url: currentPageInformation.url,
+			dapp_host_name: url?.host,
+			dapp_url: currentPageInformation?.url,
 			network_name: type,
 			chain_id: chainId,
 			sign_type: 'typed',
-			version: messageParams.version
+			version: messageParams?.version
 		};
 	};
 
