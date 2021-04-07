@@ -24,6 +24,7 @@ import { capitalize } from '../../../../util/general';
 import Engine from '../../../../core/Engine';
 import { util } from '@metamask/controllers';
 import CustomNonceModal from '../../../UI/CustomNonceModal';
+import { setNonce, setProposedNonce } from '../../../../actions/transaction';
 
 const styles = StyleSheet.create({
 	overviewAlert: {
@@ -188,15 +189,21 @@ class TransactionReviewInformation extends PureComponent {
 		 * Network id
 		 */
 		network: PropTypes.string,
-		showCustomNonce: PropTypes.bool
+		showCustomNonce: PropTypes.bool,
+		/**
+		 * Set transaction nonce
+		 */
+		setNonce: PropTypes.func,
+		/**
+		 * Set proposed nonce (from network)
+		 */
+		setProposedNonce: PropTypes.func
 	};
 
 	state = {
 		toFocused: false,
 		amountError: '',
 		actionKey: strings('transactions.tx_review_confirm'),
-		nonceValue: undefined,
-		proposedNonce: undefined,
 		nonceModalVisible: false
 	};
 
@@ -205,31 +212,32 @@ class TransactionReviewInformation extends PureComponent {
 	};
 
 	getNetworkNonce = async () => {
-		const { TransactionController } = Engine.context;
-		const { from } = this.props.transaction;
-		const networkNonce = await util.query(TransactionController.ethQuery, 'getTransactionCount', [from, 'pending']);
-		const proposedNonce = parseInt(networkNonce, 16);
-		this.setState({
-			nonceValue: proposedNonce,
-			proposedNonce
-		});
+		const { setNonce, setProposedNonce } = this.props;
+		const { nonce } = this.props.transaction;
+		if (!nonce) {
+			const { TransactionController } = Engine.context;
+			const { from } = this.props.transaction;
+			const networkNonce = await util.query(TransactionController.ethQuery, 'getTransactionCount', [
+				from,
+				'pending'
+			]);
+			const proposedNonce = parseInt(networkNonce, 16);
+			setNonce(proposedNonce);
+			setProposedNonce(proposedNonce);
+		}
 	};
 
 	toggleNonceModal = () => this.setState(state => ({ nonceModalVisible: !state.nonceModalVisible }));
 
-	saveNonceValue = nonceValue =>
-		this.setState({
-			nonceValue
-		});
-
 	renderCustomNonceModal = () => {
-		const { proposedNonce } = this.state;
+		const { proposedNonce, nonce } = this.props.transaction;
+		const { setNonce } = this.props;
 		return (
 			<CustomNonceModal
 				proposedNonce={proposedNonce}
-				nonceValue={this.state.nonceValue}
+				nonceValue={nonce}
 				close={() => this.toggleNonceModal()}
-				save={this.saveNonceValue}
+				save={setNonce}
 			/>
 		);
 	};
@@ -346,7 +354,8 @@ class TransactionReviewInformation extends PureComponent {
 	};
 
 	render() {
-		const { amountError, nonceValue, nonceModalVisible } = this.state;
+		const { amountError, nonceModalVisible } = this.state;
+		const { nonce } = this.props.transaction;
 		const {
 			fiatValue,
 			assetAmount,
@@ -389,7 +398,7 @@ class TransactionReviewInformation extends PureComponent {
 					over={over}
 					warningGasPriceHigh={warningGasPriceHigh}
 					showCustomNonce={showCustomNonce}
-					nonceValue={nonceValue}
+					nonceValue={nonce}
 					onNonceEdit={this.toggleNonceModal}
 				/>
 				{!!amountError && (
@@ -439,4 +448,12 @@ const mapStateToProps = state => ({
 	showCustomNonce: state.settings.showCustomNonce
 });
 
-export default connect(mapStateToProps)(withNavigation(TransactionReviewInformation));
+const mapDispatchToProps = dispatch => ({
+	setNonce: nonce => dispatch(setNonce(nonce)),
+	setProposedNonce: nonce => dispatch(setProposedNonce(nonce))
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(withNavigation(TransactionReviewInformation));
