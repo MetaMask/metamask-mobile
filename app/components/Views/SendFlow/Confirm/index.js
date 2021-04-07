@@ -24,7 +24,6 @@ import {
 	weiToFiatNumber,
 	balanceToFiatNumber,
 	renderFiatAddition,
-	toWei,
 	isDecimal,
 	toBN
 } from '../../../../util/number';
@@ -33,10 +32,9 @@ import StyledButton from '../../../UI/StyledButton';
 import { util } from '@metamask/controllers';
 import { prepareTransaction, resetTransaction } from '../../../../actions/transaction';
 import {
-	fetchBasicGasEstimates,
-	convertApiValueToGWEI,
 	apiEstimateModifiedToWEI,
-	getBasicGasEstimates
+	getGasPriceByChainId,
+	getBasicGasEstimatesByChainId
 } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
@@ -62,9 +60,6 @@ const EDIT = 'edit';
 const REVIEW = 'review';
 
 const { hexToBN, BNToHex } = util;
-const {
-	CUSTOM_GAS: { AVERAGE_GAS, FAST_GAS, LOW_GAS }
-} = TransactionTypes;
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -398,9 +393,11 @@ class Confirm extends PureComponent {
 
 	handleFetchBasicEstimates = async () => {
 		this.setState({ ready: false });
-		const basicGasEstimates = await getBasicGasEstimates();
-		this.handleSetGasFee(this.props.transaction.gas, apiEstimateModifiedToWEI(basicGasEstimates.averageGwei));
-		this.setState({ basicGasEstimates, ready: true });
+		const basicGasEstimates = await getBasicGasEstimatesByChainId();
+		if (basicGasEstimates) {
+			this.handleSetGasFee(this.props.transaction.gas, apiEstimateModifiedToWEI(basicGasEstimates.averageGwei));
+		}
+		return this.setState({ basicGasEstimates, ready: true });
 	};
 
 	prepareTransaction = async () => {
@@ -415,30 +412,14 @@ class Confirm extends PureComponent {
 	};
 
 	estimateGas = async transaction => {
-		const { TransactionController } = Engine.context;
 		const { value, data, to, from } = transaction;
-		let estimation;
-		try {
-			estimation = await TransactionController.estimateGas({
-				value,
-				from,
-				data,
-				to
-			});
-		} catch (e) {
-			estimation = { gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT };
-		}
-		let basicGasEstimates;
-		try {
-			basicGasEstimates = await fetchBasicGasEstimates();
-		} catch (error) {
-			Logger.log('Error while trying to get gas limit estimates', error);
-			basicGasEstimates = { average: AVERAGE_GAS, safeLow: LOW_GAS, fast: FAST_GAS };
-		}
-		return {
-			gas: hexToBN(estimation.gas),
-			gasPrice: toWei(convertApiValueToGWEI(basicGasEstimates.average), 'gwei')
-		};
+
+		return await getGasPriceByChainId({
+			value,
+			from,
+			data,
+			to
+		});
 	};
 
 	parseTransactionData = () => {

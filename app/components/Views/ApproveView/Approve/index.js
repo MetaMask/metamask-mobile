@@ -14,7 +14,7 @@ import { setTransactionObject } from '../../../../actions/transaction';
 import { util } from '@metamask/controllers';
 import { isBN, renderFromWei } from '../../../../util/number';
 import { getNormalizedTxState, getTicker } from '../../../../util/transactions';
-import { getBasicGasEstimates, apiEstimateModifiedToWEI } from '../../../../util/custom-gas';
+import { apiEstimateModifiedToWEI, getBasicGasEstimatesByChainId } from '../../../../util/custom-gas';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import NotificationManager from '../../../../core/NotificationManager';
 import Analytics from '../../../../core/Analytics';
@@ -123,9 +123,11 @@ class Approve extends PureComponent {
 
 	handleFetchBasicEstimates = async () => {
 		this.setState({ ready: false });
-		const basicGasEstimates = await getBasicGasEstimates();
-		this.handleSetGasFee(this.props.transaction.gas, apiEstimateModifiedToWEI(basicGasEstimates.averageGwei));
-		this.setState({ basicGasEstimates, ready: true });
+		const basicGasEstimates = await getBasicGasEstimatesByChainId();
+		if (basicGasEstimates) {
+			this.handleSetGasFee(this.props.transaction.gas, apiEstimateModifiedToWEI(basicGasEstimates.averageGwei));
+		}
+		return this.setState({ basicGasEstimates, ready: true });
 	};
 
 	trackApproveEvent = event => {
