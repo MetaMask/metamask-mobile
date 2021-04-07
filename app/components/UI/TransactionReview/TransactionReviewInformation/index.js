@@ -19,10 +19,8 @@ import TransactionReviewFeeCard from '../TransactionReviewFeeCard';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { withNavigation } from 'react-navigation';
-import { getNetworkName, isMainNet } from '../../../../util/networks';
+import { getNetworkName, getNetworkNonce, isMainNet } from '../../../../util/networks';
 import { capitalize } from '../../../../util/general';
-import Engine from '../../../../core/Engine';
-import { util } from '@metamask/controllers';
 import CustomNonceModal from '../../../UI/CustomNonceModal';
 import { setNonce, setProposedNonce } from '../../../../actions/transaction';
 
@@ -208,15 +206,12 @@ class TransactionReviewInformation extends PureComponent {
 	};
 
 	componentDidMount = async () => {
-		await this.getNetworkNonce();
+		await this.setNetworkNonce();
 	};
 
-	getNetworkNonce = async () => {
-		const { setNonce, setProposedNonce } = this.props;
-		const { TransactionController } = Engine.context;
-		const { from } = this.props.transaction;
-		const networkNonce = await util.query(TransactionController.ethQuery, 'getTransactionCount', [from, 'pending']);
-		const proposedNonce = parseInt(networkNonce, 16);
+	setNetworkNonce = async () => {
+		const { setNonce, setProposedNonce, transaction } = this.props;
+		const proposedNonce = await getNetworkNonce(transaction);
 		setNonce(proposedNonce);
 		setProposedNonce(proposedNonce);
 	};

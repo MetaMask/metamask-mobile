@@ -55,7 +55,7 @@ import TransactionTypes from '../../../../core/TransactionTypes';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { capitalize } from '../../../../util/general';
-import { isMainNet, getNetworkName } from '../../../../util/networks';
+import { isMainNet, getNetworkName, getNetworkNonce } from '../../../../util/networks';
 import Text from '../../../Base/Text';
 
 const EDIT = 'edit';
@@ -335,12 +335,9 @@ class Confirm extends PureComponent {
 		over: false
 	};
 
-	getNetworkNonce = async () => {
-		const { setNonce, setProposedNonce } = this.props;
-		const { TransactionController } = Engine.context;
-		const { from } = this.props.transaction;
-		const networkNonce = await util.query(TransactionController.ethQuery, 'getTransactionCount', [from, 'pending']);
-		const proposedNonce = parseInt(networkNonce, 16);
+	setNetworkNonce = async () => {
+		const { setNonce, setProposedNonce, transaction } = this.props;
+		const proposedNonce = await getNetworkNonce(transaction);
 		setNonce(proposedNonce);
 		setProposedNonce(proposedNonce);
 	};
@@ -349,7 +346,7 @@ class Confirm extends PureComponent {
 		// For analytics
 		const { navigation, providerType } = this.props;
 		await this.handleFetchBasicEstimates();
-		await this.getNetworkNonce();
+		await this.setNetworkNonce();
 		navigation.setParams({ providerType });
 		this.parseTransactionData();
 		this.prepareTransaction();
