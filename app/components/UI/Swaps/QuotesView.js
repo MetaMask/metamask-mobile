@@ -308,6 +308,8 @@ function SwapsQuotesView({
 	const [apiGasPrice] = useGasPrice();
 	const [customGasPrice, setCustomGasPrice] = useState(null);
 	const [customGasLimit, setCustomGasLimit] = useState(null);
+	const [warningGasPriceHigh, setWarningGasPriceHigh] = useState(null);
+
 	// TODO: use this variable in the future when calculating savings
 	const [isSaving] = useState(false);
 	const [isInFetch, setIsInFetch] = useState(false);
@@ -657,10 +659,11 @@ function SwapsQuotesView({
 	]);
 
 	const onHandleGasFeeSelection = useCallback(
-		(customGasLimit, customGasPrice, details) => {
+		(customGasLimit, customGasPrice, warningGasPriceHigh, details) => {
 			const { SwapsController } = Engine.context;
 			const newGasLimit = new BigNumber(customGasLimit);
 			const newGasPrice = new BigNumber(customGasPrice);
+			setWarningGasPriceHigh(warningGasPriceHigh);
 			if (newGasPrice.toString(16) !== gasPrice) {
 				setCustomGasPrice(newGasPrice);
 				SwapsController.updateQuotesWithGasPrice(newGasPrice.toString(16));
@@ -804,7 +807,7 @@ function SwapsQuotesView({
 	const handleTermsPress = useCallback(
 		() =>
 			navigation.navigate('Webview', {
-				url: 'https://metamask.io/terms.html'
+				url: AppConstants.URLS.TERMS_AND_CONDITIONS
 			}),
 		[navigation]
 	);
@@ -1035,7 +1038,13 @@ function SwapsQuotesView({
 						</Alert>
 					</View>
 				)}
-
+				{!!warningGasPriceHigh && !(!hasEnoughTokenBalance || !hasEnoughEthBalance) && (
+					<View style={styles.alertBar}>
+						<Alert small type="error">
+							<Text reset>{warningGasPriceHigh}</Text>
+						</Alert>
+					</View>
+				)}
 				{!!selectedQuote && hasEnoughTokenBalance && hasEnoughEthBalance && shouldDisplaySlippage && (
 					<View style={styles.alertBar}>
 						<ActionAlert

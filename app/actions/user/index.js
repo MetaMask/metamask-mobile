@@ -46,9 +46,10 @@ export function protectWalletModalNotVisible() {
 	};
 }
 
-export function loadingSet() {
+export function loadingSet(loadingMsg) {
 	return {
-		type: 'LOADING_SET'
+		type: 'LOADING_SET',
+		loadingMsg
 	};
 }
 

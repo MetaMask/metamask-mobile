@@ -3,7 +3,16 @@ import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import AddressList from './../AddressList';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, TouchableOpacity, Text, TextInput, SafeAreaView, InteractionManager } from 'react-native';
+import {
+	StyleSheet,
+	View,
+	TouchableOpacity,
+	Text,
+	TextInput,
+	SafeAreaView,
+	InteractionManager,
+	ScrollView
+} from 'react-native';
 import { AddressFrom, AddressTo } from './../AddressInputs';
 import Modal from 'react-native-modal';
 import AccountList from '../../../UI/AccountList';
@@ -111,6 +120,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'flex-end'
 	},
 	warningContainer: {
+		marginTop: 20,
 		marginHorizontal: 24,
 		marginBottom: 32
 	},
@@ -181,15 +191,7 @@ class SendFlow extends PureComponent {
 		/**
 		 * Network provider type as mainnet
 		 */
-		providerType: PropTypes.string,
-		/**
-		 * Indicates whether the current transaction is a payment channel transaction
-		 */
-		isPaymentChannelTransaction: PropTypes.bool,
-		/**
-		 * Selected asset from current transaction state
-		 */
-		selectedAsset: PropTypes.object
+		providerType: PropTypes.string
 	};
 
 	addressToInputRef = React.createRef();
@@ -212,25 +214,13 @@ class SendFlow extends PureComponent {
 	};
 
 	componentDidMount = async () => {
-		const {
-			addressBook,
-			selectedAddress,
-			accounts,
-			ticker,
-			network,
-			isPaymentChannelTransaction,
-			selectedAsset,
-			navigation,
-			providerType
-		} = this.props;
+		const { addressBook, selectedAddress, accounts, ticker, network, navigation, providerType } = this.props;
 		const { fromAccountName } = this.state;
 		// For analytics
 		navigation.setParams({ providerType });
 		const networkAddressBook = addressBook[network] || {};
 		const ens = await doENSReverseLookup(selectedAddress, network);
-		const fromAccountBalance = isPaymentChannelTransaction
-			? `${selectedAsset.assetBalance} ${selectedAsset.symbol}`
-			: `${renderFromWei(accounts[selectedAddress].balance)} ${getTicker(ticker)}`;
+		const fromAccountBalance = `${renderFromWei(accounts[selectedAddress].balance)} ${getTicker(ticker)}`;
 
 		setTimeout(() => {
 			this.setState({
@@ -246,7 +236,7 @@ class SendFlow extends PureComponent {
 		//Fills in to address and sets the transaction if coming from QR code scan
 		const targetAddress = navigation.getParam('txMeta', null)?.target_address;
 		if (targetAddress) {
-			this.props.newAssetTransaction(getEther());
+			this.props.newAssetTransaction(getEther(ticker));
 			this.onToSelectedAddressChange(targetAddress);
 		}
 	};
@@ -270,7 +260,7 @@ class SendFlow extends PureComponent {
 		const fromAccountName = ens || name;
 		PreferencesController.setSelectedAddress(accountAddress);
 		// If new account doesn't have the asset
-		this.props.setSelectedAsset(getEther());
+		this.props.setSelectedAsset(getEther(ticker));
 		this.setState({
 			fromAccountName,
 			fromAccountBalance,
@@ -528,7 +518,7 @@ class SendFlow extends PureComponent {
 	};
 
 	render = () => {
-		const { isPaymentChannelTransaction } = this.props;
+		const { ticker } = this.props;
 		const {
 			fromSelectedAddress,
 			fromAccountName,
@@ -548,7 +538,7 @@ class SendFlow extends PureComponent {
 			<SafeAreaView style={styles.wrapper} testID={'send-screen'}>
 				<View style={styles.imputWrapper}>
 					<AddressFrom
-						onPressIcon={isPaymentChannelTransaction ? null : this.toggleFromAccountModal}
+						onPressIcon={this.toggleFromAccountModal}
 						fromAccountAddress={fromSelectedAddress}
 						fromAccountName={fromAccountName}
 						fromAccountBalance={fromAccountBalance}
@@ -568,26 +558,26 @@ class SendFlow extends PureComponent {
 						inputWidth={inputWidth}
 					/>
 				</View>
-				{addressError && (
-					<View style={styles.addressErrorWrapper} testID={'address-error'}>
-						<ErrorMessage
-							errorMessage={addressError}
-							errorContinue={!!errorContinue}
-							onContinue={this.onTransactionDirectionSet}
-							isOnlyWarning={!!isOnlyWarning}
-						/>
-					</View>
-				)}
 
-				<View style={baseStyles.flexGrow}>
-					{!toSelectedAddressReady ? (
-						<AddressList
-							inputSearch={toSelectedAddress}
-							onAccountPress={this.onToSelectedAddressChange}
-							onAccountLongPress={dummy}
-						/>
-					) : (
-						<View style={styles.nextActionWrapper}>
+				{!toSelectedAddressReady ? (
+					<AddressList
+						inputSearch={toSelectedAddress}
+						onAccountPress={this.onToSelectedAddressChange}
+						onAccountLongPress={dummy}
+					/>
+				) : (
+					<View style={styles.nextActionWrapper}>
+						<ScrollView>
+							{addressError && (
+								<View style={styles.addressErrorWrapper} testID={'address-error'}>
+									<ErrorMessage
+										errorMessage={addressError}
+										errorContinue={!!errorContinue}
+										onContinue={this.onTransactionDirectionSet}
+										isOnlyWarning={!!isOnlyWarning}
+									/>
+								</View>
+							)}
 							{addToAddressToAddressBook && (
 								<TouchableOpacity
 									style={styles.myAccountsTouchable}
@@ -599,36 +589,38 @@ class SendFlow extends PureComponent {
 									</Text>
 								</TouchableOpacity>
 							)}
-							<View style={styles.footerContainer} testID={'no-eth-message'}>
-								{!isPaymentChannelTransaction && balanceIsZero && (
-									<View style={styles.warningContainer}>
-										<WarningMessage
-											warningMessage={
-												<>
-													{strings('transaction.not_enough_for_gas')}
+							{balanceIsZero && (
+								<View style={styles.warningContainer}>
+									<WarningMessage
+										warningMessage={
+											<>
+												{strings('transaction.not_enough_for_gas', {
+													ticker: getTicker(ticker)
+												})}
 
-													{this.renderBuyEth()}
-												</>
-											}
-										/>
-									</View>
-								)}
-								{!errorContinue && (
-									<View style={styles.buttonNextWrapper}>
-										<StyledButton
-											type={'confirm'}
-											containerStyle={styles.buttonNext}
-											onPress={this.onTransactionDirectionSet}
-											testID={'address-book-next-button'}
-										>
-											{strings('address_book.next')}
-										</StyledButton>
-									</View>
-								)}
-							</View>
+												{this.renderBuyEth()}
+											</>
+										}
+									/>
+								</View>
+							)}
+						</ScrollView>
+						<View style={styles.footerContainer} testID={'no-eth-message'}>
+							{!errorContinue && (
+								<View style={styles.buttonNextWrapper}>
+									<StyledButton
+										type={'confirm'}
+										containerStyle={styles.buttonNext}
+										onPress={this.onTransactionDirectionSet}
+										testID={'address-book-next-button'}
+									>
+										{strings('address_book.next')}
+									</StyledButton>
+								</View>
+							)}
 						</View>
-					)}
-				</View>
+					</View>
+				)}
 
 				{this.renderFromAccountModal()}
 				{this.renderAddToAddressBookModal()}
@@ -646,8 +638,7 @@ const mapStateToProps = state => ({
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	network: state.engine.backgroundState.NetworkController.network,
-	providerType: state.engine.backgroundState.NetworkController.provider.type,
-	isPaymentChannelTransaction: state.transaction.paymentChannelTransaction
+	providerType: state.engine.backgroundState.NetworkController.provider.type
 });
 
 const mapDispatchToProps = dispatch => ({

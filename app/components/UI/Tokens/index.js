@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Alert, Image, TouchableOpacity, StyleSheet, Text, View, InteractionManager } from 'react-native';
+import { Alert, TouchableOpacity, StyleSheet, Text, View, InteractionManager } from 'react-native';
 import TokenImage from '../TokenImage';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors, fontStyles } from '../../../styles/common';
@@ -10,13 +10,13 @@ import ActionSheet from 'react-native-actionsheet';
 import { renderFromTokenMinimalUnit, balanceToFiat } from '../../../util/number';
 import Engine from '../../../core/Engine';
 import AssetElement from '../AssetElement';
-import FadeIn from 'react-native-fade-in-image';
 import { connect } from 'react-redux';
 import { safeToChecksumAddress } from '../../../util/address';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import StyledButton from '../StyledButton';
 import { allowedToBuy } from '../FiatOrders';
+import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -93,8 +93,6 @@ const styles = StyleSheet.create({
 		marginRight: 20
 	}
 });
-
-const ethLogo = require('../../../images/eth-logo.png'); // eslint-disable-line
 
 /**
  * View that renders a list of ERC-20 Tokens
@@ -199,9 +197,7 @@ class Tokens extends PureComponent {
 				asset={asset}
 			>
 				{asset.isETH ? (
-					<FadeIn placeholderStyle={{ backgroundColor: colors.white }}>
-						<Image source={ethLogo} style={styles.ethLogo} testID={'eth-logo'} />
-					</FadeIn>
+					<NetworkMainAssetLogo big style={styles.ethLogo} testID={'eth-logo'} />
 				) : (
 					<TokenImage asset={asset} containerStyle={styles.ethLogo} />
 				)}

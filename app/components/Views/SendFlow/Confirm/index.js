@@ -24,7 +24,6 @@ import {
 	weiToFiatNumber,
 	balanceToFiatNumber,
 	renderFiatAddition,
-	toWei,
 	isDecimal,
 	toBN
 } from '../../../../util/number';
@@ -38,7 +37,6 @@ import {
 	getBasicGasEstimatesByChainId
 } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
-import PaymentChannelsClient from '../../../../core/PaymentChannelsClient';
 import Logger from '../../../../util/Logger';
 import AccountList from '../../../UI/AccountList';
 import AnimatedTransactionModal from '../../../UI/AnimatedTransactionModal';
@@ -282,10 +280,6 @@ class Confirm extends PureComponent {
 		 */
 		keyrings: PropTypes.array,
 		/**
-		 * Indicates whether the current transaction is a payment channel transaction
-		 */
-		isPaymentChannelTransaction: PropTypes.bool,
-		/**
 		 * Selected asset from current transaction state
 		 */
 		selectedAsset: PropTypes.object,
@@ -309,6 +303,7 @@ class Confirm extends PureComponent {
 		fromSelectedAddress: this.props.transactionState.transaction.from,
 		hexDataModalVisible: false,
 		gasError: undefined,
+		warningGasPriceHigh: undefined,
 		ready: false,
 		transactionValue: undefined,
 		transactionValueFiat: undefined,
@@ -317,8 +312,6 @@ class Confirm extends PureComponent {
 		transactionTotalAmountFiat: undefined,
 		errorMessage: undefined,
 		fromAccountModalVisible: false,
-		paymentChannelBalance: this.props.selectedAsset.assetBalance,
-		paymentChannelReady: false,
 		mode: REVIEW,
 		over: false
 	};
@@ -330,15 +323,6 @@ class Confirm extends PureComponent {
 		navigation.setParams({ providerType });
 		this.parseTransactionData();
 		this.prepareTransaction();
-
-		PaymentChannelsClient.hub.on('state::change', paymentChannelState => {
-			if (paymentChannelState.balance !== this.state.paymentChannelBalance || !this.state.paymentChannelReady) {
-				this.setState({
-					paymentChannelBalance: paymentChannelState.balance,
-					paymentChannelReady: true
-				});
-			}
-		});
 	};
 
 	componentDidUpdate = (prevProps, prevState) => {
@@ -427,11 +411,9 @@ class Confirm extends PureComponent {
 			transactionState: {
 				selectedAsset,
 				transactionTo: to,
-				transaction: { from, value, gas, gasPrice, data },
-				readableValue
+				transaction: { from, value, gas, gasPrice, data }
 			},
-			ticker,
-			isPaymentChannelTransaction
+			ticker
 		} = this.props;
 		const { fromSelectedAddress, over } = this.state;
 		let fromAccountBalance,
@@ -446,11 +428,7 @@ class Confirm extends PureComponent {
 		const parsedTicker = getTicker(ticker);
 		const transactionFee = `${renderFromWei(weiTransactionFee)} ${parsedTicker}`;
 
-		if (isPaymentChannelTransaction) {
-			fromAccountBalance = `${selectedAsset.assetBalance} ${selectedAsset.symbol}`;
-			transactionValue = `${readableValue} ${selectedAsset.symbol}`;
-			transactionTo = to;
-		} else if (selectedAsset.isETH) {
+		if (selectedAsset.isETH) {
 			fromAccountBalance = `${renderFromWei(accounts[fromSelectedAddress].balance)} ${parsedTicker}`;
 			transactionValue = `${renderFromWei(value)} ${parsedTicker}`;
 			transactionValueFiat = weiToFiat(valueBN, conversionRate, currentCurrency);
@@ -537,23 +515,25 @@ class Confirm extends PureComponent {
 				this.validateAmount({
 					...this.props.transactionState.transaction,
 					from: fromSelectedAddress,
-					value: isPaymentChannelTransaction ? readableValue : value
+					value
 				});
 			}
 		);
 	};
 
-	handleSetGasFee = (customGas, customGasPrice) => {
+	handleSetGasFee = (customGas, customGasPrice, warningGasPriceHigh) => {
 		const { prepareTransaction, transactionState } = this.props;
 		let transaction = transactionState.transaction;
 		transaction = { ...transaction, gas: customGas, gasPrice: customGasPrice };
 		prepareTransaction(transaction);
+		this.setState({ warningGasPriceHigh });
 		setTimeout(() => {
 			this.parseTransactionData();
 			this.setState({
 				errorMessage: undefined
 			});
 		}, 100);
+
 		this.onModeChange(REVIEW);
 	};
 
@@ -615,25 +595,13 @@ class Confirm extends PureComponent {
 			selectedAsset,
 			transactionState: {
 				ticker,
-				paymentChannelTransaction,
 				transaction: { value, gas, gasPrice }
 			}
 		} = this.props;
 		const selectedAddress = transaction.from;
 		let weiBalance, weiInput, errorMessage;
 		if (isDecimal(value)) {
-			if (paymentChannelTransaction) {
-				weiBalance = toWei(Number(selectedAsset.assetBalance));
-				weiInput = toWei(value);
-				if (!weiBalance.gte(weiInput)) {
-					this.setState({ over: true });
-					const amount = renderFromWei(weiInput.sub(weiBalance));
-					const tokenSymbol = getTicker(ticker);
-					errorMessage = strings('transaction.insufficient_amount', { amount, tokenSymbol });
-				} else {
-					this.setState({ over: false });
-				}
-			} else if (selectedAsset.isETH || selectedAsset.tokenId) {
+			if (selectedAsset.isETH || selectedAsset.tokenId) {
 				const totalGas = gas ? gas.mul(gasPrice) : toBN('0x0');
 				weiBalance = hexToBN(accounts[selectedAddress].balance);
 				weiInput = hexToBN(value).add(totalGas);
@@ -663,53 +631,6 @@ class Confirm extends PureComponent {
 			}
 		});
 		return !!errorMessage;
-	};
-
-	onPaymentChannelSend = async () => {
-		this.setState({ transactionConfirmed: true });
-		const {
-			navigation,
-			transactionState: { readableValue, transactionTo }
-		} = this.props;
-		if (this.sending) {
-			return;
-		}
-		if (this.validateAmount({ value: readableValue })) {
-			this.setState({ transactionConfirmed: false });
-			return;
-		}
-		try {
-			const params = {
-				sendRecipient: transactionTo,
-				sendAmount: readableValue
-			};
-
-			if (isNaN(params.sendAmount) || params.sendAmount.trim() === '') {
-				Alert.alert(strings('payment_channel.error'), strings('payment_channel.enter_the_amount'));
-				return false;
-			}
-
-			if (!params.sendRecipient) {
-				Alert.alert(strings('payment_channel.error'), strings('payment_channel.enter_the_recipient'));
-			}
-
-			Logger.log('Sending ', params);
-			this.sending = true;
-			await PaymentChannelsClient.send(params);
-			this.sending = false;
-
-			Logger.log('Send succesful');
-			this.props.resetTransaction();
-			navigation.navigate('PaymentChannelHome');
-		} catch (e) {
-			let msg = strings('payment_channel.unknown_error');
-			if (e.message === 'insufficient_balance') {
-				msg = strings('payment_channel.insufficient_balance');
-			}
-			Alert.alert(strings('payment_channel.error'), msg);
-			Logger.log('buy error error', e);
-			this.sending = false;
-		}
 	};
 
 	onNext = async () => {
@@ -917,7 +838,7 @@ class Confirm extends PureComponent {
 
 	render = () => {
 		const { transactionToName, selectedAsset, paymentRequest } = this.props.transactionState;
-		const { showHexData, isPaymentChannelTransaction, primaryCurrency, network } = this.props;
+		const { showHexData, primaryCurrency, network } = this.props;
 		const {
 			gasEstimationReady,
 			fromAccountBalance,
@@ -932,7 +853,7 @@ class Confirm extends PureComponent {
 			transactionTotalAmountFiat = <Text />,
 			errorMessage,
 			transactionConfirmed,
-			paymentChannelBalance,
+			warningGasPriceHigh,
 			mode,
 			over
 		} = this.state;
@@ -950,7 +871,7 @@ class Confirm extends PureComponent {
 						onPressIcon={!paymentRequest ? null : this.toggleFromAccountModal}
 						fromAccountAddress={fromSelectedAddress}
 						fromAccountName={fromAccountName}
-						fromAccountBalance={isPaymentChannelTransaction ? paymentChannelBalance : fromAccountBalance}
+						fromAccountBalance={fromAccountBalance}
 					/>
 					<AddressTo
 						addressToReady
@@ -985,20 +906,19 @@ class Confirm extends PureComponent {
 							</View>
 						</View>
 					)}
-					{!isPaymentChannelTransaction && (
-						<TransactionReviewFeeCard
-							totalGasFiat={transactionFeeFiat}
-							totalGasEth={transactionFee}
-							totalFiat={transactionTotalAmountFiat}
-							fiat={transactionValueFiat}
-							totalValue={transactionTotalAmount}
-							transactionValue={transactionValue}
-							primaryCurrency={primaryCurrency}
-							gasEstimationReady={gasEstimationReady}
-							edit={this.edit}
-							over={over}
-						/>
-					)}
+					<TransactionReviewFeeCard
+						totalGasFiat={transactionFeeFiat}
+						totalGasEth={transactionFee}
+						totalFiat={transactionTotalAmountFiat}
+						fiat={transactionValueFiat}
+						totalValue={transactionTotalAmount}
+						transactionValue={transactionValue}
+						primaryCurrency={primaryCurrency}
+						gasEstimationReady={gasEstimationReady}
+						edit={this.edit}
+						over={over}
+						warningGasPriceHigh={warningGasPriceHigh}
+					/>
 					{errorMessage && (
 						<View style={styles.errorWrapper}>
 							<TouchableOpacity onPress={errorPress}>
@@ -1010,8 +930,13 @@ class Confirm extends PureComponent {
 							</TouchableOpacity>
 						</View>
 					)}
+					{!!warningGasPriceHigh && (
+						<View style={styles.errorWrapper}>
+							<Text style={styles.error}>{warningGasPriceHigh}</Text>
+						</View>
+					)}
 					<View style={styles.actionsWrapper}>
-						{!isPaymentChannelTransaction && showHexData && (
+						{showHexData && (
 							<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleHexDataModal}>
 								<Text style={styles.actionText}>{strings('transaction.hex_data')}</Text>
 							</TouchableOpacity>
@@ -1023,7 +948,7 @@ class Confirm extends PureComponent {
 						type={'confirm'}
 						disabled={!gasEstimationReady || Boolean(errorMessage)}
 						containerStyle={styles.buttonNext}
-						onPress={isPaymentChannelTransaction ? this.onPaymentChannelSend : this.onNext}
+						onPress={this.onNext}
 						testID={'txn-confirm-send-button'}
 					>
 						{transactionConfirmed ? (
@@ -1054,7 +979,6 @@ const mapStateToProps = state => ({
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
 	transaction: getNormalizedTxState(state),
-	isPaymentChannelTransaction: state.transaction.paymentChannelTransaction,
 	selectedAsset: state.transaction.selectedAsset,
 	transactionState: state.transaction,
 	primaryCurrency: state.settings.primaryCurrency

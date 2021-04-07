@@ -55,13 +55,17 @@ import OnboardingWizard from '../../UI/OnboardingWizard';
 import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 import { resemblesAddress } from '../../../util/address';
 
-import createAsyncMiddleware from 'json-rpc-engine/src/createAsyncMiddleware';
+import { createAsyncMiddleware } from 'json-rpc-engine';
 import { ethErrors } from 'eth-json-rpc-errors';
 
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import { getVersion } from 'react-native-device-info';
 import ErrorBoundary from '../ErrorBoundary';
 import { RPC } from '../../../constants/network';
+
+import RPCMethods from '../../../core/RPCMethods';
+import AddCustomNetwork from '../../UI/AddCustomNetwork';
+import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
@@ -127,7 +131,8 @@ const styles = StyleSheet.create({
 	},
 	option: {
 		paddingVertical: 10,
-		height: 44,
+		height: 'auto',
+		minHeight: 44,
 		paddingHorizontal: 15,
 		backgroundColor: colors.white,
 		flexDirection: 'row',
@@ -142,6 +147,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		marginTop: 3,
 		color: colors.blue,
+		flex: 1,
 		...fontStyles.fontPrimary
 	},
 	optionIconWrapper: {
@@ -245,6 +251,11 @@ export const BrowserTab = props => {
 	const [watchAsset, setWatchAsset] = useState(false);
 	const [suggestedAssetMeta, setSuggestedAssetMeta] = useState(undefined);
 
+	const [customNetworkToAdd, setCustomNetworkToAdd] = useState(null);
+	const [showAddCustomNetworkDialog, setShowAddCustomNetworkDialog] = useState(false);
+	const [customNetworkToSwitch, setCustomNetworkToSwitch] = useState(null);
+	const [showSwitchCustomNetworkDialog, setShowSwitchCustomNetworkDialog] = useState(undefined);
+
 	const webviewRef = useRef(null);
 	const inputRef = useRef(null);
 
@@ -255,6 +266,8 @@ export const BrowserTab = props => {
 	const backgroundBridges = useRef([]);
 	const approvalRequest = useRef(null);
 	const fromHomepage = useRef(false);
+	const addCustomNetworkRequest = useRef(null);
+	const switchCustomNetworkRequest = useRef(null);
 
 	/**
 	 * Gets the url to be displayed to the user
@@ -457,7 +470,6 @@ export const BrowserTab = props => {
 						}
 					}
 				},
-
 				eth_accounts: async () => {
 					res.result = await getAccounts();
 				},
@@ -718,7 +730,20 @@ export const BrowserTab = props => {
 				 * For now, we need to respond to this method to not throw errors on
 				 * the page, and we implement it as a no-op.
 				 */
-				metamask_logWeb3ShimUsage: () => (res.result = null)
+				metamask_logWeb3ShimUsage: () => (res.result = null),
+				wallet_addEthereumChain: () =>
+					RPCMethods.wallet_addEthereumChain({
+						req,
+						res,
+						showAddCustomNetworkDialog,
+						showSwitchCustomNetworkDialog,
+						addCustomNetworkRequest,
+						switchCustomNetworkRequest,
+						setCustomNetworkToSwitch,
+						setShowSwitchCustomNetworkDialog,
+						setCustomNetworkToAdd,
+						setShowAddCustomNetworkDialog
+					})
 			};
 
 			if (!rpcMethods[req.method]) {
@@ -1483,7 +1508,7 @@ export const BrowserTab = props => {
 					<View style={styles.optionIconWrapper}>
 						<Icon name="refresh" size={15} style={styles.optionIcon} />
 					</View>
-					<Text style={styles.optionText} numberOfLines={1}>
+					<Text style={styles.optionText} numberOfLines={2}>
 						{strings('browser.reload')}
 					</Text>
 				</Button>
@@ -1492,7 +1517,7 @@ export const BrowserTab = props => {
 						<View style={styles.optionIconWrapper}>
 							<Icon name="star" size={16} style={styles.optionIcon} />
 						</View>
-						<Text style={styles.optionText} numberOfLines={1}>
+						<Text style={styles.optionText} numberOfLines={2}>
 							{strings('browser.add_to_favorites')}
 						</Text>
 					</Button>
@@ -1501,7 +1526,7 @@ export const BrowserTab = props => {
 					<View style={styles.optionIconWrapper}>
 						<Icon name="share" size={15} style={styles.optionIcon} />
 					</View>
-					<Text style={styles.optionText} numberOfLines={1}>
+					<Text style={styles.optionText} numberOfLines={2}>
 						{strings('browser.share')}
 					</Text>
 				</Button>
@@ -1509,7 +1534,7 @@ export const BrowserTab = props => {
 					<View style={styles.optionIconWrapper}>
 						<Icon name="expand" size={16} style={styles.optionIcon} />
 					</View>
-					<Text style={styles.optionText} numberOfLines={1}>
+					<Text style={styles.optionText} numberOfLines={2}>
 						{strings('browser.open_in_browser')}
 					</Text>
 				</Button>
@@ -1559,7 +1584,7 @@ export const BrowserTab = props => {
 								<View style={styles.optionIconWrapper}>
 									<MaterialCommunityIcon name="earth" size={18} style={styles.optionIcon} />
 								</View>
-								<Text style={styles.optionText} numberOfLines={1}>
+								<Text style={styles.optionText} numberOfLines={2}>
 									{strings('browser.switch_network')}
 								</Text>
 							</Button>
@@ -1625,6 +1650,84 @@ export const BrowserTab = props => {
 			</Modal>
 		);
 	};
+
+	const onAddCustomNetworkReject = () => {
+		setShowAddCustomNetworkDialog(false);
+		addCustomNetworkRequest?.current?.resolve?.(false);
+	};
+
+	const onAddCustomNetworkConfirm = () => {
+		setShowAddCustomNetworkDialog(false);
+		addCustomNetworkRequest?.current?.resolve?.(true);
+	};
+
+	/**
+	 * Render the modal that asks the user to approve/reject connections to a dapp
+	 */
+	const renderAddCustomNetworkModal = () => (
+		<Modal
+			isVisible={showAddCustomNetworkDialog}
+			animationIn="slideInUp"
+			animationOut="slideOutDown"
+			style={styles.bottomModal}
+			backdropOpacity={0.7}
+			animationInTiming={300}
+			animationOutTiming={300}
+			onSwipeComplete={onAddCustomNetworkReject}
+			onBackdropPress={onAddCustomNetworkReject}
+		>
+			<AddCustomNetwork
+				onCancel={onAddCustomNetworkReject}
+				onConfirm={onAddCustomNetworkConfirm}
+				currentPageInformation={{
+					title: title.current,
+					url: getMaskedUrl(url.current),
+					icon: icon.current
+				}}
+				customNetworkInformation={customNetworkToAdd}
+			/>
+		</Modal>
+	);
+
+	const onSwitchCustomNetworkReject = () => {
+		setShowSwitchCustomNetworkDialog(undefined);
+		switchCustomNetworkRequest?.current?.resolve?.(false);
+	};
+
+	const onSwitchCustomNetworkConfirm = () => {
+		setShowSwitchCustomNetworkDialog(undefined);
+		switchCustomNetworkRequest?.current?.resolve?.(true);
+	};
+
+	/**
+	 * Render the modal that asks the user to approve/reject connections to a dapp
+	 */
+	const renderSwitchCustomNetworkModal = () => (
+		<Modal
+			isVisible={!!showSwitchCustomNetworkDialog}
+			animationIn="slideInUp"
+			animationOut="slideOutDown"
+			style={styles.bottomModal}
+			backdropOpacity={0.7}
+			animationInTiming={300}
+			animationOutTiming={300}
+			onSwipeComplete={onSwitchCustomNetworkReject}
+			onBackdropPress={onSwitchCustomNetworkReject}
+			swipeDirection={'down'}
+		>
+			<SwitchCustomNetwork
+				onCancel={onSwitchCustomNetworkReject}
+				onConfirm={onSwitchCustomNetworkConfirm}
+				currentPageInformation={{
+					title: title.current,
+					url: getMaskedUrl(url.current),
+					icon: icon.current
+				}}
+				customNetworkInformation={customNetworkToSwitch}
+				type={showSwitchCustomNetworkDialog}
+			/>
+		</Modal>
+	);
 
 	/**
 	 * On rejection addinga an asset
@@ -1715,6 +1818,8 @@ export const BrowserTab = props => {
 				{isTabActive() && renderOptions()}
 				{isTabActive() && renderBottomBar()}
 				{isTabActive() && renderOnboardingWizard()}
+				{isTabActive() && renderAddCustomNetworkModal()}
+				{isTabActive() && renderSwitchCustomNetworkModal()}
 			</View>
 		</ErrorBoundary>
 	);

@@ -8,6 +8,7 @@ import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import Device from '../../../util/Device';
 import { connect } from 'react-redux';
 import { backUpSeedphraseAlertNotVisible } from '../../../actions/user';
+import { findBottomTabRouteNameFromNavigatorState, findRouteNameFromNavigatorState } from '../../../util/general';
 
 const BROWSER_ROUTE = 'BrowserView';
 
@@ -41,6 +42,8 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		color: colors.blue,
 		marginLeft: 14,
+		flex: 1,
+		textAlign: 'right',
 		...fontStyles.normal
 	},
 	touchableView: {
@@ -52,12 +55,17 @@ const styles = StyleSheet.create({
 	modalViewNotInBrowserView: {
 		bottom: Device.isIphoneX() ? 20 : 10
 	},
-	buttonsWrapper: { flexDirection: 'row-reverse', alignContent: 'flex-end' }
+	buttonsWrapper: {
+		flexDirection: 'row-reverse',
+		alignContent: 'flex-end',
+		flex: 1
+	},
+	dismissButton: {
+		flex: 1
+	}
 });
 
 const BLOCKED_LIST = [
-	'PaymentChannelDeposit',
-	'PaymentChannelSend',
 	'ImportPrivateKey',
 	'Send',
 	'SendTo',
@@ -105,8 +113,8 @@ class BackupAlert extends PureComponent {
 
 	componentDidUpdate = async prevProps => {
 		if (prevProps.navigation.state !== this.props.navigation.state) {
-			const currentRouteName = this.findRouteNameFromNavigatorState(this.props.navigation.state);
-			const currentTabRouteName = this.findBottomTabRouteNameFromNavigatorState(this.props.navigation.state);
+			const currentRouteName = findRouteNameFromNavigatorState(this.props.navigation.state);
+			const currentTabRouteName = findBottomTabRouteNameFromNavigatorState(this.props.navigation.state);
 
 			const inBrowserView = currentRouteName === BROWSER_ROUTE;
 			const blockedView =
@@ -115,22 +123,6 @@ class BackupAlert extends PureComponent {
 			this.setState({ inBrowserView, blockedView });
 		}
 	};
-
-	findBottomTabRouteNameFromNavigatorState({ routes }) {
-		let route = routes[routes.length - 1];
-		let routeName;
-		while (route.index !== undefined) {
-			routeName = route.routeName;
-			route = route.routes[route.index];
-		}
-		return routeName;
-	}
-
-	findRouteNameFromNavigatorState({ routes }) {
-		let route = routes[routes.length - 1];
-		while (route.index !== undefined) route = route.routes[route.index];
-		return route.routeName;
-	}
 
 	goToBackupFlow = () => {
 		this.props.navigation.navigate('AccountBackupStep1');
@@ -166,7 +158,7 @@ class BackupAlert extends PureComponent {
 									{strings('backup_alert.right_button')}
 								</Text>
 							</TouchableOpacity>
-							<TouchableOpacity onPress={this.onDismiss}>
+							<TouchableOpacity onPress={this.onDismiss} style={styles.dismissButton}>
 								<Text style={styles.backupAlertMessage} testID={'notification-remind-later-button'}>
 									{strings('backup_alert.left_button')}
 								</Text>

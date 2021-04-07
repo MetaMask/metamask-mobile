@@ -2,7 +2,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import Approve from './';
 import configureMockStore from 'redux-mock-store';
-import { BN } from '@metamask/controllers';
+import { BN } from 'ethereumjs-util';
 
 const mockStore = configureMockStore();
 

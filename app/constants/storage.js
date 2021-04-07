@@ -18,10 +18,6 @@ export const LAST_INCOMING_TX_BLOCK_INFO = `${prefix}lastIncomingTxBlockInfo`;
 export const PUSH_NOTIFICATIONS_PROMPT_COUNT = `${prefix}pushNotificationsPromptCount`;
 export const PUSH_NOTIFICATIONS_PROMPT_TIME = `${prefix}pushNotificationsPromptTime`;
 
-export const LAST_KNOWN_INSTANT_PAYMENT_ID = `${prefix}lastKnownInstantPaymentID`;
-
-export const PAYMENT_CHANNEL_FIRST_TIME = `${prefix}paymentChannelFirstTime`;
-
 export const LANGUAGE = `${prefix}language`;
 
 export const ENCRYPTION_LIB = `${prefix}encryptionLib`;

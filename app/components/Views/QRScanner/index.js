@@ -10,6 +10,7 @@ import { strings } from '../../../../locales/i18n';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager';
 import AppConstants from '../../../core/AppConstants';
 import { failedSeedPhraseRequirements, isValidMnemonic } from '../../../util/validators';
+import Engine from '../../../core/Engine';
 
 const styles = StyleSheet.create({
 	container: {
@@ -103,6 +104,22 @@ export default class QrScanner extends PureComponent {
 				this.props.navigation.goBack();
 			}
 		} else {
+			if (!failedSeedPhraseRequirements(content) && isValidMnemonic(content)) {
+				this.shouldReadBarCode = false;
+				data = { seed: content };
+				this.end(data, content);
+				return;
+			}
+
+			const { KeyringController } = Engine.context;
+			const isUnlocked = KeyringController.isUnlocked();
+
+			if (!isUnlocked) {
+				this.props.navigation.goBack();
+				Alert.alert(strings('qr_scanner.error'), strings('qr_scanner.attempting_to_scan_with_wallet_locked'));
+				this.mounted = false;
+				return;
+			}
 			// Let ethereum:address go forward
 			if (content.split('ethereum:').length > 1 && !parse(content).function_name) {
 				this.shouldReadBarCode = false;
@@ -112,13 +129,6 @@ export default class QrScanner extends PureComponent {
 				this.mounted = false;
 				this.props.navigation.goBack();
 				this.props.navigation.state.params.onScanSuccess(data, content);
-				return;
-			}
-
-			if (!failedSeedPhraseRequirements(content) && isValidMnemonic(content)) {
-				this.shouldReadBarCode = false;
-				data = { seed: content };
-				this.end(data, content);
 				return;
 			}
 
