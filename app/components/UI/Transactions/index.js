@@ -23,7 +23,6 @@ import { renderFromWei } from '../../../util/number';
 import Device from '../../../util/Device';
 import TransactionActionModal from '../TransactionActionModal';
 import { validateTransactionActionBalance } from '../../../util/transactions';
-import { isMainnetByChainId } from '../../../util/networks';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -119,11 +118,7 @@ class Transactions extends PureComponent {
 		/**
 		 * Indicates whether third party API mode is enabled
 		 */
-		thirdPartyApiMode: PropTypes.bool,
-		/**
-		 * Current network chain id
-		 */
-		chainId: PropTypes.string
+		thirdPartyApiMode: PropTypes.bool
 	};
 
 	static defaultProps = {
@@ -283,30 +278,25 @@ class Transactions extends PureComponent {
 		this.onCancelCompleted();
 	};
 
-	renderItem = ({ item, index }) => {
-		const { chainId } = this.props;
-		const isMainnet = isMainnetByChainId(chainId);
-		return (
-			<TransactionElement
-				tx={item}
-				i={index}
-				assetSymbol={this.props.assetSymbol}
-				onSpeedUpAction={this.onSpeedUpAction}
-				onCancelAction={this.onCancelAction}
-				testID={'txn-item'}
-				onPressItem={this.toggleDetailsView}
-				selectedAddress={this.props.selectedAddress}
-				tokens={this.props.tokens}
-				collectibleContracts={this.props.collectibleContracts}
-				contractExchangeRates={this.props.contractExchangeRates}
-				exchangeRate={this.props.exchangeRate}
-				conversionRate={this.props.conversionRate}
-				currentCurrency={this.props.currentCurrency}
-				navigation={this.props.navigation}
-				hideTxActions={!isMainnet}
-			/>
-		);
-	};
+	renderItem = ({ item, index }) => (
+		<TransactionElement
+			tx={item}
+			i={index}
+			assetSymbol={this.props.assetSymbol}
+			onSpeedUpAction={this.onSpeedUpAction}
+			onCancelAction={this.onCancelAction}
+			testID={'txn-item'}
+			onPressItem={this.toggleDetailsView}
+			selectedAddress={this.props.selectedAddress}
+			tokens={this.props.tokens}
+			collectibleContracts={this.props.collectibleContracts}
+			contractExchangeRates={this.props.contractExchangeRates}
+			exchangeRate={this.props.exchangeRate}
+			conversionRate={this.props.conversionRate}
+			currentCurrency={this.props.currentCurrency}
+			navigation={this.props.navigation}
+		/>
+	);
 
 	render = () => {
 		if (!this.state.ready || this.props.loading) {
@@ -386,8 +376,7 @@ const mapStateToProps = state => ({
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
-	chainId: state.engine.backgroundState.NetworkController.provider.chainId
+	thirdPartyApiMode: state.privacy.thirdPartyApiMode
 });
 
 const mapDispatchToProps = dispatch => ({

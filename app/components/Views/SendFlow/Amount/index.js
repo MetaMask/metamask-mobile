@@ -43,19 +43,16 @@ import { getTicker, generateTransferData, getEther } from '../../../../util/tran
 import { util } from '@metamask/controllers';
 import FadeIn from 'react-native-fade-in-image';
 import ErrorMessage from '../ErrorMessage';
-import { fetchBasicGasEstimates, convertApiValueToGWEI, getValueFromWeiHex } from '../../../../util/custom-gas';
+import { getGasPriceByChainId } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
 import CollectibleImage from '../../../UI/CollectibleImage';
 import collectiblesTransferInformation from '../../../../util/collectibles-transfer';
 import { strings } from '../../../../../locales/i18n';
-import TransactionTypes from '../../../../core/TransactionTypes';
 import Device from '../../../../util/Device';
 import { BN } from 'ethereumjs-util';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
-import { isMainnetByChainId } from '../../../../util/networks';
-import Logger from '../../../../util/Logger';
 
 const { hexToBN, BNToHex } = util;
 
@@ -373,11 +370,7 @@ class Amount extends PureComponent {
 		/**
 		 * function to call when the 'Next' button is clicked
 		 */
-		onConfirm: PropTypes.func,
-		/**
-		 * Current network chain id
-		 */
-		chainId: PropTypes.string
+		onConfirm: PropTypes.func
 	};
 
 	state = {
@@ -653,48 +646,15 @@ class Amount extends PureComponent {
 	 * Estimate transaction gas with information available
 	 */
 	estimateTransactionTotalGas = async () => {
-		const { TransactionController } = Engine.context;
-		const { chainId } = this.props;
 		const {
 			transaction: { from },
 			transactionTo
 		} = this.props.transactionState;
-		let estimation, basicGasEstimates;
-		try {
-			estimation = await TransactionController.estimateGas({
-				from,
-				to: transactionTo
-			});
+		const { gas, gasPrice } = await getGasPriceByChainId({
+			from,
+			to: transactionTo
+		});
 
-			basicGasEstimates = {
-				average: getValueFromWeiHex({
-					value: estimation.gasPrice.toString(16),
-					numberOfDecimals: 4,
-					toDenomination: 'GWEI'
-				})
-			};
-		} catch (error) {
-			estimation = {
-				gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT,
-				gasPrice: TransactionTypes.CUSTOM_GAS.AVERAGE_GAS
-			};
-			basicGasEstimates = {
-				average: estimation.gasPrice
-			};
-			Logger.log('Error while trying to get gas price from the network', error);
-		}
-
-		if (isMainnetByChainId(chainId)) {
-			try {
-				basicGasEstimates = await fetchBasicGasEstimates();
-			} catch (error) {
-				Logger.log('Error while trying to get gas limit estimates', error);
-				// Will use gas price from network that was fetched above
-			}
-		}
-
-		const gas = hexToBN(estimation.gas);
-		const gasPrice = toWei(convertApiValueToGWEI(basicGasEstimates.average), 'gwei');
 		return gas.mul(gasPrice);
 	};
 
@@ -1052,6 +1012,7 @@ class Amount extends PureComponent {
 			selectedAsset,
 			transactionState: { paymentChannelTransaction, isPaymentRequest }
 		} = this.props;
+
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'amount-screen'}>
 				<ScrollView style={styles.scrollWrapper}>
@@ -1133,8 +1094,7 @@ const mapStateToProps = (state, ownProps) => ({
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	transactionState: ownProps.transaction || state.transaction,
-	selectedAsset: state.transaction.selectedAsset,
-	chainId: state.engine.backgroundState.NetworkController.provider.chainId
+	selectedAsset: state.transaction.selectedAsset
 });
 
 const mapDispatchToProps = dispatch => ({

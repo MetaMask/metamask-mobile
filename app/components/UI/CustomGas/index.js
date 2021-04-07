@@ -321,7 +321,7 @@ class CustomGas extends PureComponent {
 		const { gas, gasPrice, toggleAdvancedCustomGas } = this.props;
 		const warningSufficientFunds = this.hasSufficientFunds(gas, gasPrice);
 		const { ticker } = this.props;
-		if ((ticker && ticker !== 'ETH') || this.onlyAdvanced()) {
+		if (this.onlyAdvanced()) {
 			toggleAdvancedCustomGas(true);
 		}
 
@@ -449,7 +449,7 @@ class CustomGas extends PureComponent {
 		const gasPriceBNWei = apiEstimateModifiedToWEI(gasPrice);
 		const warningSufficientFunds = this.hasSufficientFunds(customGasLimitBN, gasPriceBNWei);
 		let warningGasPrice;
-		if (parseInt(gasPrice) < parseInt(this.props.basicGasEstimates.safeLowGwei))
+		if (this.props.basicGasEstimates && parseInt(gasPrice) < parseInt(this.props.basicGasEstimates.safeLowGwei))
 			warningGasPrice = strings('transaction.low_gas_price');
 		if (!value || value === '' || !isDecimal(value) || value <= 0)
 			warningGasPrice = strings('transaction.invalid_gas_price');
@@ -466,19 +466,16 @@ class CustomGas extends PureComponent {
 	//Handle gas fee selection when save button is pressed instead of everytime a change is made, otherwise cannot switch back to review mode if there is an error
 	saveCustomGasSelection = () => {
 		const { gasSpeedSelected, customGasLimit, customGasPriceBNWei } = this.state;
-		const {
-			review,
-			gas,
-			handleGasFeeSelection,
-			advancedCustomGas,
-			basicGasEstimates: { fastGwei, averageGwei, safeLowGwei }
-		} = this.props;
+		const { review, gas, handleGasFeeSelection, advancedCustomGas } = this.props;
 		if (advancedCustomGas) {
 			handleGasFeeSelection(new BN(customGasLimit), customGasPriceBNWei, {
 				mode: 'advanced'
 			});
 		} else {
 			const mode = { mode: gasSpeedSelected };
+			const {
+				basicGasEstimates: { fastGwei, averageGwei, safeLowGwei }
+			} = this.props;
 			if (gasSpeedSelected === 'slow') handleGasFeeSelection(gas, apiEstimateModifiedToWEI(safeLowGwei), mode);
 			if (gasSpeedSelected === 'average') handleGasFeeSelection(gas, apiEstimateModifiedToWEI(averageGwei), mode);
 			if (gasSpeedSelected === 'fast') handleGasFeeSelection(gas, apiEstimateModifiedToWEI(fastGwei), mode);

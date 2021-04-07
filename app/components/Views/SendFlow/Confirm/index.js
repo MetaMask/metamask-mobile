@@ -33,11 +33,9 @@ import StyledButton from '../../../UI/StyledButton';
 import { util } from '@metamask/controllers';
 import { prepareTransaction, resetTransaction } from '../../../../actions/transaction';
 import {
-	fetchBasicGasEstimates,
-	convertApiValueToGWEI,
 	apiEstimateModifiedToWEI,
-	getBasicGasEstimates,
-	getValueFromWeiHex
+	getGasPriceByChainId,
+	getBasicGasEstimatesByChainId
 } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
 import PaymentChannelsClient from '../../../../core/PaymentChannelsClient';
@@ -57,7 +55,7 @@ import TransactionTypes from '../../../../core/TransactionTypes';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { capitalize } from '../../../../util/format';
-import { isMainNet, getNetworkName, isMainnetByChainId } from '../../../../util/networks';
+import { isMainNet, getNetworkName } from '../../../../util/networks';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -298,11 +296,7 @@ class Confirm extends PureComponent {
 		/**
 		 * ETH or fiat, depending on user setting
 		 */
-		primaryCurrency: PropTypes.string,
-		/**
-		 * Current network chain id
-		 */
-		chainId: PropTypes.string
+		primaryCurrency: PropTypes.string
 	};
 
 	state = {
@@ -393,20 +387,12 @@ class Confirm extends PureComponent {
 	};
 
 	handleFetchBasicEstimates = async () => {
-		const { chainId } = this.props;
 		this.setState({ ready: false });
-
-		if (!isMainnetByChainId(chainId)) {
-			return this.setState({ basicGasEstimates: null, ready: true });
-		}
-
-		try {
-			const basicGasEstimates = await getBasicGasEstimates();
+		const basicGasEstimates = await getBasicGasEstimatesByChainId();
+		if (basicGasEstimates) {
 			this.handleSetGasFee(this.props.transaction.gas, apiEstimateModifiedToWEI(basicGasEstimates.averageGwei));
-			this.setState({ basicGasEstimates, ready: true });
-		} catch (e) {
-			return this.setState({ basicGasEstimates: null, ready: true });
 		}
+		return this.setState({ basicGasEstimates, ready: true });
 	};
 
 	prepareTransaction = async () => {
@@ -421,49 +407,14 @@ class Confirm extends PureComponent {
 	};
 
 	estimateGas = async transaction => {
-		const { TransactionController } = Engine.context;
 		const { value, data, to, from } = transaction;
-		const { chainId } = this.props;
-		let estimation, basicGasEstimates;
 
-		try {
-			estimation = await TransactionController.estimateGas({
-				value,
-				from,
-				data,
-				to
-			});
-			basicGasEstimates = {
-				average: getValueFromWeiHex({
-					value: estimation.gasPrice.toString(16),
-					numberOfDecimals: 4,
-					toDenomination: 'GWEI'
-				})
-			};
-		} catch (error) {
-			estimation = {
-				gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT,
-				gasPrice: TransactionTypes.CUSTOM_GAS.AVERAGE_GAS
-			};
-			basicGasEstimates = {
-				average: estimation.gasPrice
-			};
-			Logger.log('Error while trying to get gas price from the network', error);
-		}
-
-		if (isMainnetByChainId(chainId)) {
-			try {
-				basicGasEstimates = await fetchBasicGasEstimates();
-			} catch (error) {
-				Logger.log('Error while trying to get gas limit estimates', error);
-				// Will use gas price from network that was fetched above
-			}
-		}
-
-		return {
-			gas: hexToBN(estimation.gas),
-			gasPrice: toWei(convertApiValueToGWEI(basicGasEstimates.average), 'gwei')
-		};
+		return await getGasPriceByChainId({
+			value,
+			from,
+			data,
+			to
+		});
 	};
 
 	parseTransactionData = () => {
@@ -1106,8 +1057,7 @@ const mapStateToProps = state => ({
 	isPaymentChannelTransaction: state.transaction.paymentChannelTransaction,
 	selectedAsset: state.transaction.selectedAsset,
 	transactionState: state.transaction,
-	primaryCurrency: state.settings.primaryCurrency,
-	chainId: state.engine.backgroundState.NetworkController.provider.chainId
+	primaryCurrency: state.settings.primaryCurrency
 });
 
 const mapDispatchToProps = dispatch => ({

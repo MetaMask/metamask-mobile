@@ -85,11 +85,7 @@ class TransactionDetails extends PureComponent {
 		 * A string representing the network name
 		 */
 		showSpeedUpModal: PropTypes.func,
-		showCancelModal: PropTypes.func,
-		/**
-		 * Boolean to hide speed up and cancel actions
-		 */
-		hideTxActions: PropTypes.bool
+		showCancelModal: PropTypes.func
 	};
 
 	state = {
@@ -176,10 +172,9 @@ class TransactionDetails extends PureComponent {
 				status,
 				time,
 				transaction: { nonce }
-			},
-			hideTxActions
+			}
 		} = this.props;
-		const renderTxActions = !hideTxActions && (status === 'submitted' || status === 'approved');
+		const renderTxActions = status === 'submitted' || status === 'approved';
 		const { rpcBlockExplorer } = this.state;
 		return (
 			<DetailsModal.Body>

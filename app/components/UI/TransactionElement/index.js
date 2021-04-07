@@ -88,11 +88,7 @@ class TransactionElement extends PureComponent {
 		 */
 		onCancelAction: PropTypes.func,
 		swapsTransactions: PropTypes.object,
-		swapsTokens: PropTypes.arrayOf(PropTypes.object),
-		/**
-		 * Boolean to hide speed up and cancel actions
-		 */
-		hideTxActions: PropTypes.bool
+		swapsTokens: PropTypes.arrayOf(PropTypes.object)
 	};
 
 	state = {
@@ -177,11 +173,10 @@ class TransactionElement extends PureComponent {
 	 */
 	renderTxElement = transactionElement => {
 		const {
-			tx: { status },
-			hideTxActions
+			tx: { status }
 		} = this.props;
 		const { value, fiatValue = false, actionKey } = transactionElement;
-		const renderTxActions = !hideTxActions && (status === 'submitted' || status === 'approved');
+		const renderTxActions = status === 'submitted' || status === 'approved';
 		return (
 			<ListItem>
 				<ListItem.Date>{this.renderTxTime()}</ListItem.Date>
@@ -249,7 +244,7 @@ class TransactionElement extends PureComponent {
 	);
 
 	render() {
-		const { tx, hideTxActions } = this.props;
+		const { tx } = this.props;
 		const { detailsModalVisible, transactionElement, transactionDetails } = this.state;
 
 		if (!transactionElement || !transactionDetails) return null;
@@ -281,7 +276,6 @@ class TransactionElement extends PureComponent {
 							transactionObject={tx}
 							transactionDetails={transactionDetails}
 							navigation={this.props.navigation}
-							hideTxActions={hideTxActions}
 							close={this.onCloseDetailsModal}
 						/>
 					</DetailsModal>

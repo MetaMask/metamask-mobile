@@ -14,13 +14,12 @@ import { setTransactionObject } from '../../../../actions/transaction';
 import { util } from '@metamask/controllers';
 import { isBN, renderFromWei } from '../../../../util/number';
 import { getNormalizedTxState, getTicker } from '../../../../util/transactions';
-import { getBasicGasEstimates, apiEstimateModifiedToWEI } from '../../../../util/custom-gas';
+import { apiEstimateModifiedToWEI, getBasicGasEstimatesByChainId } from '../../../../util/custom-gas';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import NotificationManager from '../../../../core/NotificationManager';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import Logger from '../../../../util/Logger';
-import { isMainnetByChainId } from '../../../../util/networks';
 
 const { BNToHex, hexToBN } = util;
 
@@ -84,11 +83,7 @@ class Approve extends PureComponent {
 		/**
 		 * Current selected ticker
 		 */
-		ticker: PropTypes.string,
-		/**
-		 * Current network chain id
-		 */
-		chainId: PropTypes.string
+		ticker: PropTypes.string
 	};
 
 	state = {
@@ -124,20 +119,12 @@ class Approve extends PureComponent {
 	};
 
 	handleFetchBasicEstimates = async () => {
-		const { chainId } = this.props;
 		this.setState({ ready: false });
-
-		if (!isMainnetByChainId(chainId)) {
-			return this.setState({ basicGasEstimates: null, ready: true });
-		}
-
-		try {
-			const basicGasEstimates = await getBasicGasEstimates();
+		const basicGasEstimates = await getBasicGasEstimatesByChainId();
+		if (basicGasEstimates) {
 			this.handleSetGasFee(this.props.transaction.gas, apiEstimateModifiedToWEI(basicGasEstimates.averageGwei));
-			this.setState({ basicGasEstimates, ready: true });
-		} catch (e) {
-			return this.setState({ basicGasEstimates: null, ready: true });
 		}
+		return this.setState({ basicGasEstimates, ready: true });
 	};
 
 	trackApproveEvent = event => {
@@ -251,6 +238,7 @@ class Approve extends PureComponent {
 		const { gasError, basicGasEstimates, mode, ready, over } = this.state;
 		const { transaction } = this.props;
 		if (!transaction.id) return null;
+
 		return (
 			<Modal
 				isVisible={this.props.modalVisible}
@@ -296,8 +284,7 @@ const mapStateToProps = state => ({
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts || {}).length,
 	tokensLength: state.engine.backgroundState.AssetsController.tokens.length,
-	providerType: state.engine.backgroundState.NetworkController.provider.type,
-	chainId: state.engine.backgroundState.NetworkController.provider.chainId
+	providerType: state.engine.backgroundState.NetworkController.provider.type
 });
 
 const mapDispatchToProps = dispatch => ({

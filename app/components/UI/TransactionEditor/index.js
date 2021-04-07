@@ -11,7 +11,7 @@ import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { generateTransferData, getNormalizedTxState, getTicker } from '../../../util/transactions';
-import { getBasicGasEstimates, apiEstimateModifiedToWEI } from '../../../util/custom-gas';
+import { apiEstimateModifiedToWEI, getBasicGasEstimatesByChainId } from '../../../util/custom-gas';
 import { setTransactionObject } from '../../../actions/transaction';
 import Engine from '../../../core/Engine';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
@@ -20,7 +20,6 @@ import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
 import { safeToChecksumAddress } from '../../../util/address';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { MAINNET } from '../../../constants/network';
-import { isMainnetByChainId } from '../../../util/networks';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -96,11 +95,7 @@ class TransactionEditor extends PureComponent {
 		/**
 		 * Current selected ticker
 		 */
-		ticker: PropTypes.string,
-		/**
-		 * Current network chain id
-		 */
-		chainId: PropTypes.string
+		ticker: PropTypes.string
 	};
 
 	state = {
@@ -625,23 +620,15 @@ class TransactionEditor extends PureComponent {
 	};
 
 	handleFetchBasicEstimates = async () => {
-		const { chainId } = this.props;
-
-		if (!isMainnetByChainId(chainId)) {
-			return this.setState({ basicGasEstimates: null, ready: true });
-		}
-
 		this.setState({ ready: false });
-		try {
-			const basicGasEstimates = await getBasicGasEstimates();
+		const basicGasEstimates = await getBasicGasEstimatesByChainId();
+		if (basicGasEstimates) {
 			this.handleGasFeeSelection(
 				this.props.transaction.gas,
 				apiEstimateModifiedToWEI(basicGasEstimates.averageGwei)
 			);
-			this.setState({ basicGasEstimates, ready: true });
-		} catch (e) {
-			return this.setState({ basicGasEstimates: null, ready: true });
 		}
+		return this.setState({ basicGasEstimates, ready: true });
 	};
 
 	render = () => {
@@ -687,8 +674,7 @@ const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	transaction: getNormalizedTxState(state),
-	chainId: state.engine.backgroundState.NetworkController.provider.chainId
+	transaction: getNormalizedTxState(state)
 });
 
 const mapDispatchToProps = dispatch => ({
