@@ -76,7 +76,7 @@ export default class MessageSign extends PureComponent {
 	};
 
 	componentDidMount = () => {
-		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_STARTED, this.getAnalyticsParams());
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_STARTED, this.getAnalyticsParams());
 	};
 
 	showWalletConnectNotification = (messageParams = {}, confirmation = false) => {
@@ -113,13 +113,13 @@ export default class MessageSign extends PureComponent {
 	};
 
 	cancelSignature = () => {
-		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_CANCELLED, this.getAnalyticsParams());
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_CANCELLED, this.getAnalyticsParams());
 		this.rejectMessage();
 		this.props.onCancel();
 	};
 
 	confirmSignature = () => {
-		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_COMPLETED, this.getAnalyticsParams());
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_COMPLETED, this.getAnalyticsParams());
 		this.signMessage();
 		this.props.onConfirm();
 	};

@@ -135,7 +135,7 @@ class WatchAssetRequest extends PureComponent {
 	onConfirm = async () => {
 		const { onConfirm, suggestedAssetMeta } = this.props;
 		const { AssetsController } = Engine.context;
-		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.TOKEN_ADDED, this.getAnalyticsParams());
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.TOKEN_ADDED, this.getAnalyticsParams());
 		await AssetsController.acceptWatchAsset(suggestedAssetMeta.id);
 		onConfirm && onConfirm();
 	};

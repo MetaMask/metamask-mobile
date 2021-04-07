@@ -549,7 +549,7 @@ class CustomGas extends PureComponent {
 		}
 
 		review();
-		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.GAS_FEE_CHANGED, this.getAnalyticsParams());
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.GAS_FEE_CHANGED, this.getAnalyticsParams());
 	};
 
 	renderCustomGasSelector = () => {

@@ -103,7 +103,7 @@ class Approval extends PureComponent {
 		AppState.addEventListener('change', this.handleAppStateChange);
 		navigation && navigation.setParams({ mode: REVIEW, dispatch: this.onModeChange });
 
-		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.DAPP_TRANSACTION_STARTED, this.getAnalyticsParams());
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.DAPP_TRANSACTION_STARTED, this.getAnalyticsParams());
 	};
 
 	/**
@@ -203,7 +203,7 @@ class Approval extends PureComponent {
 		this.props.toggleDappTransactionModal();
 		this.state.mode === REVIEW && this.trackOnCancel();
 		this.showWalletConnectNotification();
-		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.DAPP_TRANSACTION_CANCELLED, this.getAnalyticsParams());
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.DAPP_TRANSACTION_CANCELLED, this.getAnalyticsParams());
 	};
 
 	/**
@@ -248,7 +248,7 @@ class Approval extends PureComponent {
 			Logger.error(error, 'error while trying to send transaction (Approval)');
 			this.setState({ transactionHandled: false });
 		}
-		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.DAPP_TRANSACTION_CONFIRMED, this.getAnalyticsParams());
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.DAPP_TRANSACTION_CONFIRMED, this.getAnalyticsParams());
 	};
 
 	/**

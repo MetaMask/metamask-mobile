@@ -70,7 +70,7 @@ export default class AddCustomToken extends PureComponent {
 		const { address, symbol, decimals } = this.state;
 		await AssetsController.addToken(address, symbol, decimals);
 
-		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.TOKEN_ADDED, this.getAnalyticsParams());
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.TOKEN_ADDED, this.getAnalyticsParams());
 
 		// Clear state before closing
 		this.setState(

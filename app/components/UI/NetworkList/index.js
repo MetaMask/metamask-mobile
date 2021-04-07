@@ -152,7 +152,7 @@ export class NetworkList extends PureComponent {
 						Engine.refreshTransactionHistory();
 					}, 1000);
 
-				AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_SWITCHED, {
+				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_SWITCHED, {
 					network_name: type,
 					chain_id: String(Networks[type].chainId),
 					source: 'Settings'
@@ -188,7 +188,7 @@ export class NetworkList extends PureComponent {
 		CurrencyRateController.configure({ nativeCurrency: ticker });
 		NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
 
-		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_SWITCHED, {
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_SWITCHED, {
 			rpc_url: rpcUrl,
 			chain_id: chainId,
 			source: 'Settings',

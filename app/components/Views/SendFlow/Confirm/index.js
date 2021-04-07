@@ -349,7 +349,7 @@ class Confirm extends PureComponent {
 
 	componentDidMount = async () => {
 		// For analytics
-		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_STARTED, this.getAnalyticsParams());
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_STARTED, this.getAnalyticsParams());
 
 		const { navigation, providerType } = this.props;
 		await this.handleFetchBasicEstimates();
@@ -790,7 +790,10 @@ class Confirm extends PureComponent {
 					assetType
 				});
 				this.checkRemoveCollectible();
-				AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_COMPLETED, this.getAnalyticsParams());
+				AnalyticsV2.trackEvent(
+					AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_COMPLETED,
+					this.getAnalyticsParams()
+				);
 				resetTransaction();
 				navigation && navigation.dismiss();
 			});

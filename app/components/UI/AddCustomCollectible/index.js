@@ -95,7 +95,7 @@ class AddCustomCollectible extends PureComponent {
 		const { address, tokenId } = this.state;
 		AssetsController.addCollectible(address, tokenId);
 
-		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.COLLECTIBLE_ADDED, this.getAnalyticsParams());
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.COLLECTIBLE_ADDED, this.getAnalyticsParams());
 
 		this.props.navigation.goBack();
 	};

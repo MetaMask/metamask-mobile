@@ -113,7 +113,7 @@ class AccountApproval extends PureComponent {
 
 	componentDidMount = () => {
 		InteractionManager.runAfterInteractions(() => {
-			AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.CONNECT_REQUEST_STARTED, this.getAnalyticsParams());
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.CONNECT_REQUEST_STARTED, this.getAnalyticsParams());
 		});
 	};
 
@@ -138,7 +138,7 @@ class AccountApproval extends PureComponent {
 	 */
 	onConfirm = () => {
 		this.props.onConfirm();
-		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.CONNECT_REQUEST_COMPLETED, this.getAnalyticsParams());
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.CONNECT_REQUEST_COMPLETED, this.getAnalyticsParams());
 		this.showWalletConnectNotification(true);
 	};
 
@@ -146,7 +146,7 @@ class AccountApproval extends PureComponent {
 	 * Calls onConfirm callback and analytics to track connect canceled event
 	 */
 	onCancel = () => {
-		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.CONNECT_REQUEST_CANCELLED, this.getAnalyticsParams());
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.CONNECT_REQUEST_CANCELLED, this.getAnalyticsParams());
 
 		this.props.onCancel();
 		this.showWalletConnectNotification();

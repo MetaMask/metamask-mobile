@@ -294,7 +294,7 @@ class ApproveTransactionReview extends PureComponent {
 				encodedAmount
 			},
 			() => {
-				AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_STARTED, this.getAnalyticsParams());
+				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_STARTED, this.getAnalyticsParams());
 			}
 		);
 	};
@@ -426,7 +426,7 @@ class ApproveTransactionReview extends PureComponent {
 		const newApprovalTransaction = { ...transaction, data: approvalData };
 		setTransactionObject(newApprovalTransaction);
 		this.toggleEditPermission();
-		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_PERMISSION_UPDATED, this.getAnalyticsParams());
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_PERMISSION_UPDATED, this.getAnalyticsParams());
 	};
 
 	renderEditPermission = () => {

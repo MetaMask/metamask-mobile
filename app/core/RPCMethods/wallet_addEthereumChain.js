@@ -122,7 +122,7 @@ const wallet_addEthereumChain = async ({
 		};
 
 		if (!switchCustomNetworkApprove) {
-			AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_REQUEST_REJECTED, analyticsParams);
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_REQUEST_REJECTED, analyticsParams);
 			throw ethErrors.provider.userRejectedRequest();
 		}
 
@@ -134,7 +134,7 @@ const wallet_addEthereumChain = async ({
 			existingNetwork.nickname
 		);
 
-		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_SWITCHED, analyticsParams);
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_SWITCHED, analyticsParams);
 
 		res.result = null;
 		return;
@@ -238,7 +238,7 @@ const wallet_addEthereumChain = async ({
 		network_name: 'rpc'
 	};
 
-	AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_REQUESTED, analyticsParamsAdd);
+	AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_REQUESTED, analyticsParamsAdd);
 
 	setCustomNetworkToAdd(requestData);
 	setShowAddCustomNetworkDialog(true);
@@ -248,7 +248,7 @@ const wallet_addEthereumChain = async ({
 	});
 
 	if (!addCustomNetworkApprove) {
-		AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_REQUEST_REJECTED, analyticsParamsAdd);
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_REQUEST_REJECTED, analyticsParamsAdd);
 		throw ethErrors.provider.userRejectedRequest();
 	}
 
@@ -256,7 +256,7 @@ const wallet_addEthereumChain = async ({
 		blockExplorerUrl: firstValidBlockExplorerUrl
 	});
 
-	AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_ADDED, analyticsParamsAdd);
+	AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_ADDED, analyticsParamsAdd);
 
 	InteractionManager.runAfterInteractions(() => {
 		setCustomNetworkToSwitch(requestData);

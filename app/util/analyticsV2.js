@@ -45,7 +45,7 @@ export const ANALYTICS_EVENTS_V2 = {
  * @param {String} eventName
  * @param {Object} params
  */
-export const logV2 = (eventName, params) => {
+export const trackEventV2 = (eventName, params) => {
 	try {
 		InteractionManager.runAfterInteractions(() => {
 			if (!params) {
@@ -91,5 +91,5 @@ export const logV2 = (eventName, params) => {
 
 export default {
 	ANALYTICS_EVENTS: ANALYTICS_EVENTS_V2,
-	log: logV2
+	trackEvent: trackEventV2
 };

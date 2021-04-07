@@ -278,7 +278,7 @@ class NetworkSettings extends PureComponent {
 				block_explorer_url: blockExplorerUrl,
 				network_name: 'rpc'
 			};
-			AnalyticsV2.log(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_ADDED, analyticsParamsAdd);
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_ADDED, analyticsParamsAdd);
 
 			navigation.navigate('WalletView');
 		}
