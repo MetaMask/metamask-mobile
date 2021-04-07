@@ -183,12 +183,8 @@ class TransactionElement extends PureComponent {
 	 * @returns Account added to wallet view
 	 */
 	renderImportTime = () => {
-		const {
-			tx: { insertImportTime },
-			identities,
-			selectedAddress
-		} = this.props;
-		if (insertImportTime) {
+		const { tx, identities, selectedAddress } = this.props;
+		if (tx.insertImportTime && identities[selectedAddress].importTime) {
 			return (
 				<>
 					<TouchableOpacity onPress={this.onPressImportWalletTip} style={styles.importRowBody}>

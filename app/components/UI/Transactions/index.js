@@ -294,14 +294,13 @@ class Transactions extends PureComponent {
 
 		/** checks all transactions to find the first one that is less than the account
 		import/added time and flags the transaction to display */
-		flaggedTransactions.forEach(tx => {
+		for (const tx in flaggedTransactions) {
 			if (tx.time <= time && !insertPointFound) {
 				insertPointFound = true;
 				tx.insertImportTime = true;
-			} else {
-				tx.insertImportTime = false;
+				break;
 			}
-		});
+		}
 
 		//if the insertpoint is not found add it to the last transaction
 		if (!insertPointFound) flaggedTransactions[flaggedTransactions.length - 1].insertImportTime = true;
