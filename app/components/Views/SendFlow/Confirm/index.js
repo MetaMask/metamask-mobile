@@ -110,18 +110,6 @@ const styles = StyleSheet.create({
 	actionTouchable: {
 		padding: 12
 	},
-	customNonce: {
-		borderWidth: 1,
-		borderColor: colors.grey050,
-		borderRadius: 8,
-		paddingVertical: 14,
-		paddingHorizontal: 16,
-		display: 'flex',
-		flexDirection: 'row'
-	},
-	nonceNumber: {
-		marginLeft: 'auto'
-	},
 	actionText: {
 		...fontStyles.normal,
 		color: colors.blue,
@@ -989,6 +977,9 @@ class Confirm extends PureComponent {
 						edit={() => this.edit(EDIT)}
 						over={over}
 						warningGasPriceHigh={warningGasPriceHigh}
+						showCustomNonce={showCustomNonce}
+						nonceValue={nonceValue}
+						onNonceEdit={() => this.edit(EDIT_NONCE)}
 					/>
 					{errorMessage && (
 						<View style={styles.errorWrapper}>
@@ -1007,20 +998,6 @@ class Confirm extends PureComponent {
 						</View>
 					)}
 					<View style={styles.actionsWrapper}>
-						{showCustomNonce && (
-							<TouchableOpacity style={styles.customNonce} onPress={() => this.edit(EDIT_NONCE)}>
-								<Text bold black>
-									{strings('transaction.custom_nonce')}
-								</Text>
-								<Text bold link>
-									{'  '}
-									{strings('transaction.edit')}
-								</Text>
-								<Text bold black style={styles.nonceNumber}>
-									{nonceValue}
-								</Text>
-							</TouchableOpacity>
-						)}
 						{showHexData && (
 							<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleHexDataModal}>
 								<Text style={styles.actionText}>{strings('transaction.hex_data')}</Text>
