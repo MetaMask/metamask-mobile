@@ -21,6 +21,9 @@ import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { withNavigation } from 'react-navigation';
 import { getNetworkName, isMainNet } from '../../../../util/networks';
 import { capitalize } from '../../../../util/general';
+import Engine from '../../../../core/Engine';
+import { util } from '@metamask/controllers';
+import CustomNonceModal from '../../../UI/CustomNonceModal';
 
 const styles = StyleSheet.create({
 	overviewAlert: {
@@ -184,13 +187,51 @@ class TransactionReviewInformation extends PureComponent {
 		/**
 		 * Network id
 		 */
-		network: PropTypes.string
+		network: PropTypes.string,
+		showCustomNonce: PropTypes.bool
 	};
 
 	state = {
 		toFocused: false,
 		amountError: '',
-		actionKey: strings('transactions.tx_review_confirm')
+		actionKey: strings('transactions.tx_review_confirm'),
+		nonceValue: undefined,
+		proposedNonce: undefined,
+		nonceModalVisible: false
+	};
+
+	componentDidMount = async () => {
+		await this.getNetworkNonce();
+	};
+
+	getNetworkNonce = async () => {
+		const { TransactionController } = Engine.context;
+		const { from } = this.props.transaction;
+		const networkNonce = await util.query(TransactionController.ethQuery, 'getTransactionCount', [from, 'pending']);
+		const proposedNonce = parseInt(networkNonce, 16);
+		this.setState({
+			nonceValue: proposedNonce,
+			proposedNonce
+		});
+	};
+
+	toggleNonceModal = () => this.setState(state => ({ nonceModalVisible: !state.nonceModalVisible }));
+
+	saveNonceValue = nonceValue =>
+		this.setState({
+			nonceValue
+		});
+
+	renderCustomNonceModal = () => {
+		const { proposedNonce } = this.state;
+		return (
+			<CustomNonceModal
+				proposedNonce={proposedNonce}
+				nonceValue={this.state.nonceValue}
+				close={() => this.toggleNonceModal()}
+				save={this.saveNonceValue}
+			/>
+		);
 	};
 
 	getTotalFiat = (asset, totalGas, conversionRate, exchangeRate, currentCurrency, amountToken) => {
@@ -305,7 +346,7 @@ class TransactionReviewInformation extends PureComponent {
 	};
 
 	render() {
-		const { amountError } = this.state;
+		const { amountError, nonceValue, nonceModalVisible } = this.state;
 		const {
 			fiatValue,
 			assetAmount,
@@ -318,7 +359,8 @@ class TransactionReviewInformation extends PureComponent {
 			ticker,
 			error,
 			over,
-			network
+			network,
+			showCustomNonce
 		} = this.props;
 		const is_main_net = isMainNet(network);
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
@@ -333,6 +375,7 @@ class TransactionReviewInformation extends PureComponent {
 
 		return (
 			<React.Fragment>
+				{nonceModalVisible && this.renderCustomNonceModal()}
 				<TransactionReviewFeeCard
 					totalGasFiat={totalGasFiat}
 					totalGasEth={totalGasEth}
@@ -345,6 +388,9 @@ class TransactionReviewInformation extends PureComponent {
 					edit={this.edit}
 					over={over}
 					warningGasPriceHigh={warningGasPriceHigh}
+					showCustomNonce={showCustomNonce}
+					nonceValue={nonceValue}
+					onNonceEdit={this.toggleNonceModal}
 				/>
 				{!!amountError && (
 					<View style={styles.overviewAlert}>
@@ -370,7 +416,7 @@ class TransactionReviewInformation extends PureComponent {
 						<Text style={styles.error}>{warningGasPriceHigh}</Text>
 					</View>
 				)}
-				{!over && (
+				{!over && !showCustomNonce && (
 					<View style={styles.viewDataWrapper}>
 						<TouchableOpacity style={styles.viewDataButton} onPress={toggleDataView}>
 							<Text style={styles.viewDataText}>{strings('transaction.view_data')}</Text>
@@ -389,7 +435,8 @@ const mapStateToProps = state => ({
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	transaction: getNormalizedTxState(state),
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	primaryCurrency: state.settings.primaryCurrency
+	primaryCurrency: state.settings.primaryCurrency,
+	showCustomNonce: state.settings.showCustomNonce
 });
 
 export default connect(mapStateToProps)(withNavigation(TransactionReviewInformation));

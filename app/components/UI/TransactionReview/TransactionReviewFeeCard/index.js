@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
 		color: colors.red
 	},
 	customNonce: {
-		marginTop: 24,
+		marginTop: 10,
 		marginHorizontal: 24,
 		borderWidth: 1,
 		borderColor: colors.grey050,
@@ -115,8 +115,6 @@ class TransactionReviewFeeCard extends PureComponent {
 			nonceValue,
 			onNonceEdit
 		} = this.props;
-
-		console.log(nonceValue);
 
 		let amount;
 		let networkFee;
