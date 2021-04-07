@@ -9,8 +9,8 @@ import { isValidAddress, toChecksumAddress, BN, addHexPrefix } from 'ethereumjs-
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { generateTransferData, getNormalizedTxState, getTicker } from '../../../util/transactions';
-import { apiEstimateModifiedToWEI, getBasicGasEstimatesByChainId } from '../../../util/custom-gas';
+import { generateTransferData, getNormalizedTxState, getTicker, getActiveTabUrl } from '../../../util/transactions';
+import { getBasicGasEstimatesByChainId, apiEstimateModifiedToWEI } from '../../../util/custom-gas';
 import { setTransactionObject } from '../../../actions/transaction';
 import Engine from '../../../core/Engine';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
@@ -93,7 +93,11 @@ class TransactionEditor extends PureComponent {
 		/**
 		 * Current selected ticker
 		 */
-		ticker: PropTypes.string
+		ticker: PropTypes.string,
+		/**
+		 * Active tab URL, the currently active tab url
+		 */
+		activeTabUrl: PropTypes.string
 	};
 
 	state = {
@@ -606,6 +610,16 @@ class TransactionEditor extends PureComponent {
 		return this.setState({ basicGasEstimates, ready: true });
 	};
 
+	getGasAnalyticsParams = () => {
+		const { transaction, activeTabUrl } = this.props;
+		const { selectedAsset } = transaction;
+		return {
+			dapp_host_name: transaction?.origin,
+			dapp_url: activeTabUrl,
+			active_currency: { value: selectedAsset?.symbol, anonymous: true }
+		};
+	};
+
 	render = () => {
 		const { mode, transactionConfirmed, transaction, onModeChange } = this.props;
 		const { basicGasEstimates, ready, gasError, over } = this.state;
@@ -628,6 +642,8 @@ class TransactionEditor extends PureComponent {
 							gasPrice={transaction.gasPrice}
 							gasError={gasError}
 							mode={mode}
+							view={'Transaction'}
+							analyticsParams={this.getGasAnalyticsParams()}
 						/>
 					</AnimatedTransactionModal>
 				</KeyboardAwareScrollView>
@@ -644,7 +660,8 @@ const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	transaction: getNormalizedTxState(state)
+	transaction: getNormalizedTxState(state),
+	activeTabUrl: getActiveTabUrl(state)
 });
 
 const mapDispatchToProps = dispatch => ({

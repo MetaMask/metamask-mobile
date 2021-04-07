@@ -54,6 +54,7 @@ import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { capitalize } from '../../../../util/format';
 import { isMainNet, getNetworkName } from '../../../../util/networks';
+import AnalyticsV2 from '../../../../util/analyticsV2';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -316,8 +317,28 @@ class Confirm extends PureComponent {
 		over: false
 	};
 
+	getAnalyticsParams = () => {
+		const { selectedAsset } = this.props;
+		const { NetworkController } = Engine.context;
+		const { chainId, type } = NetworkController?.state?.provider || {};
+		return {
+			active_currency: { value: selectedAsset?.symbol, anonymous: true },
+			network_name: type,
+			chain_id: chainId
+		};
+	};
+
+	getGasAnalyticsParams = () => {
+		const { selectedAsset } = this.props;
+		return {
+			active_currency: { value: selectedAsset.symbol, anonymous: true }
+		};
+	};
+
 	componentDidMount = async () => {
 		// For analytics
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_STARTED, this.getAnalyticsParams());
+
 		const { navigation, providerType } = this.props;
 		await this.handleFetchBasicEstimates();
 		navigation.setParams({ providerType });
@@ -638,7 +659,6 @@ class Confirm extends PureComponent {
 		const {
 			transactionState: { assetType },
 			navigation,
-			providerType,
 			resetTransaction
 		} = this.props;
 		this.setState({ transactionConfirmed: true });
@@ -670,9 +690,10 @@ class Confirm extends PureComponent {
 					assetType
 				});
 				this.checkRemoveCollectible();
-				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SEND_FLOW_CONFIRM_SEND, {
-					network: providerType
-				});
+				AnalyticsV2.trackEvent(
+					AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_COMPLETED,
+					this.getAnalyticsParams()
+				);
 				resetTransaction();
 				navigation && navigation.dismiss();
 			});
@@ -760,6 +781,8 @@ class Confirm extends PureComponent {
 							mode={mode}
 							onPress={this.handleSetGasSpeed}
 							gasSpeedSelected={gasSpeedSelected}
+							view={'SendTo (Confirm)'}
+							analyticsParams={this.getGasAnalyticsParams()}
 						/>
 					</AnimatedTransactionModal>
 				</KeyboardAwareScrollView>
