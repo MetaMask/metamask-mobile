@@ -134,6 +134,7 @@ exports[`Confirm should render correctly 1`] = `
       edit={[Function]}
       fiat=""
       gasEstimationReady={false}
+      onNonceEdit={[Function]}
       over={false}
       totalFiat={
         <Text
