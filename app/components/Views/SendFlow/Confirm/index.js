@@ -309,7 +309,9 @@ class Confirm extends PureComponent {
 		/**
 		 * Set proposed nonce (from network)
 		 */
-		setProposedNonce: PropTypes.func
+		setProposedNonce: PropTypes.func,
+		nonce: PropTypes.number,
+		proposedNonce: PropTypes.number
 	};
 
 	state = {
@@ -348,6 +350,8 @@ class Confirm extends PureComponent {
 			const proposedNonce = parseInt(networkNonce, 16);
 			setNonce(proposedNonce);
 			setProposedNonce(proposedNonce);
+		} else {
+			Promise.resolve();
 		}
 	};
 
@@ -608,14 +612,15 @@ class Confirm extends PureComponent {
 	prepareTransactionToSend = () => {
 		const {
 			transactionState: { transaction },
-			showCustomNonce
+			showCustomNonce,
+			nonce
 		} = this.props;
 		const { fromSelectedAddress } = this.state;
 		const transactionToSend = { ...transaction };
 		transactionToSend.gas = BNToHex(transaction.gas);
 		transactionToSend.gasPrice = BNToHex(transaction.gasPrice);
 		transactionToSend.from = fromSelectedAddress;
-		if (showCustomNonce) transactionToSend.nonce = BNToHex(transaction.nonce);
+		if (showCustomNonce && nonce) transactionToSend.nonce = BNToHex(nonce);
 		return transactionToSend;
 	};
 
@@ -819,7 +824,7 @@ class Confirm extends PureComponent {
 	};
 
 	renderCustomNonceModal = () => {
-		const { proposedNonce, nonce } = this.props.transaction;
+		const { proposedNonce, nonce } = this.props;
 		const { setNonce } = this.props;
 		return (
 			<CustomNonceModal

@@ -197,7 +197,9 @@ class TransactionReviewInformation extends PureComponent {
 		/**
 		 * Set proposed nonce (from network)
 		 */
-		setProposedNonce: PropTypes.func
+		setProposedNonce: PropTypes.func,
+		nonce: PropTypes.number,
+		proposedNonce: PropTypes.number
 	};
 
 	state = {
@@ -212,8 +214,7 @@ class TransactionReviewInformation extends PureComponent {
 	};
 
 	getNetworkNonce = async () => {
-		const { setNonce, setProposedNonce } = this.props;
-		const { nonce } = this.props.transaction;
+		const { setNonce, setProposedNonce, nonce } = this.props;
 		if (!nonce) {
 			const { TransactionController } = Engine.context;
 			const { from } = this.props.transaction;
@@ -224,13 +225,15 @@ class TransactionReviewInformation extends PureComponent {
 			const proposedNonce = parseInt(networkNonce, 16);
 			setNonce(proposedNonce);
 			setProposedNonce(proposedNonce);
+		} else {
+			Promise.resolve();
 		}
 	};
 
 	toggleNonceModal = () => this.setState(state => ({ nonceModalVisible: !state.nonceModalVisible }));
 
 	renderCustomNonceModal = () => {
-		const { proposedNonce, nonce } = this.props.transaction;
+		const { proposedNonce, nonce } = this.props;
 		const { setNonce } = this.props;
 		return (
 			<CustomNonceModal

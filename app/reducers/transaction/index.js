@@ -11,9 +11,7 @@ const initialState = {
 		gas: undefined,
 		gasPrice: undefined,
 		to: undefined,
-		value: undefined,
-		proposedNonce: undefined,
-		nonce: undefined
+		value: undefined
 	},
 	warningGasPriceHigh: undefined,
 	transactionTo: undefined,
@@ -24,7 +22,9 @@ const initialState = {
 	paymentRequest: undefined,
 	readableValue: undefined,
 	id: undefined,
-	type: undefined
+	type: undefined,
+	proposedNonce: undefined,
+	nonce: undefined
 };
 
 const getAssetType = selectedAsset => {
@@ -62,12 +62,12 @@ const transactionReducer = (state = initialState, action) => {
 		case 'SET_NONCE':
 			return {
 				...state,
-				transaction: { ...state.transaction, nonce: action.nonce }
+				nonce: action.nonce
 			};
 		case 'SET_PROPOSED_NONCE':
 			return {
 				...state,
-				transaction: { ...state.transaction, proposedNonce: action.proposedNonce }
+				proposedNonce: action.proposedNonce
 			};
 		case 'SET_RECIPIENT':
 			return {

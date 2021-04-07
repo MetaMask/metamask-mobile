@@ -132,7 +132,7 @@ class TransactionReviewFeeCard extends PureComponent {
 			equivalentTotalAmount = totalValue;
 		}
 		return (
-			<>
+			<View>
 				<Summary style={styles.overview}>
 					<Summary.Row>
 						<Text primary bold>
@@ -185,7 +185,7 @@ class TransactionReviewFeeCard extends PureComponent {
 						</Text>
 					</TouchableOpacity>
 				)}
-			</>
+			</View>
 		);
 	}
 }

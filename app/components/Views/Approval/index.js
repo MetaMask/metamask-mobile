@@ -63,7 +63,8 @@ class Approval extends PureComponent {
 		 * Tells whether or not dApp transaction modal is visible
 		 */
 		dappTransactionModalVisible: PropTypes.bool,
-		showCustomNonce: PropTypes.bool
+		showCustomNonce: PropTypes.bool,
+		nonce: PropTypes.number
 	};
 
 	state = {
@@ -191,10 +192,11 @@ class Approval extends PureComponent {
 		const {
 			transactions,
 			transaction: { assetType, selectedAsset },
-			showCustomNonce
+			showCustomNonce,
+			nonce
 		} = this.props;
 		let { transaction } = this.props;
-		if (showCustomNonce) transaction.nonce = BNToHex(transaction.nonce);
+		if (showCustomNonce && nonce) transaction.nonce = BNToHex(nonce);
 		try {
 			if (assetType === 'ETH') {
 				transaction = this.prepareTransaction(transaction);
