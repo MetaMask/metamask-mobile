@@ -309,9 +309,7 @@ class Confirm extends PureComponent {
 		/**
 		 * Set proposed nonce (from network)
 		 */
-		setProposedNonce: PropTypes.func,
-		nonce: PropTypes.number,
-		proposedNonce: PropTypes.number
+		setProposedNonce: PropTypes.func
 	};
 
 	state = {
@@ -338,20 +336,13 @@ class Confirm extends PureComponent {
 	};
 
 	getNetworkNonce = async () => {
-		const { setNonce, setProposedNonce, proposedNonce } = this.props;
-		if (!proposedNonce) {
-			const { TransactionController } = Engine.context;
-			const { from } = this.props.transaction;
-			const networkNonce = await util.query(TransactionController.ethQuery, 'getTransactionCount', [
-				from,
-				'pending'
-			]);
-			const proposedNonce = parseInt(networkNonce, 16);
-			setNonce(proposedNonce);
-			setProposedNonce(proposedNonce);
-		} else {
-			Promise.resolve();
-		}
+		const { setNonce, setProposedNonce } = this.props;
+		const { TransactionController } = Engine.context;
+		const { from } = this.props.transaction;
+		const networkNonce = await util.query(TransactionController.ethQuery, 'getTransactionCount', [from, 'pending']);
+		const proposedNonce = parseInt(networkNonce, 16);
+		setNonce(proposedNonce);
+		setProposedNonce(proposedNonce);
 	};
 
 	componentDidMount = async () => {
@@ -611,10 +602,10 @@ class Confirm extends PureComponent {
 	prepareTransactionToSend = () => {
 		const {
 			transactionState: { transaction },
-			showCustomNonce,
-			nonce
+			showCustomNonce
 		} = this.props;
 		const { fromSelectedAddress } = this.state;
+		const { nonce } = this.props.transaction;
 		const transactionToSend = { ...transaction };
 		transactionToSend.gas = BNToHex(transaction.gas);
 		transactionToSend.gasPrice = BNToHex(transaction.gasPrice);
@@ -823,8 +814,8 @@ class Confirm extends PureComponent {
 	};
 
 	renderCustomNonceModal = () => {
-		const { proposedNonce, nonce } = this.props;
 		const { setNonce } = this.props;
+		const { proposedNonce, nonce } = this.props.transaction;
 		return (
 			<CustomNonceModal
 				proposedNonce={proposedNonce}
