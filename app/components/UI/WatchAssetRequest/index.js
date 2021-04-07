@@ -112,7 +112,7 @@ class WatchAssetRequest extends PureComponent {
 		} = this.props;
 
 		const { NetworkController } = Engine.context;
-		const { chainId, type } = NetworkController.state.provider;
+		const { chainId, type } = NetworkController?.state?.provider || {};
 
 		const url = new URL(currentPageInformation?.url);
 		return {

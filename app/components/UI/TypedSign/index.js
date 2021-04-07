@@ -78,7 +78,7 @@ export default class TypedSign extends PureComponent {
 	getAnalyticsParams = () => {
 		const { currentPageInformation, messageParams } = this.props;
 		const { NetworkController } = Engine.context;
-		const { chainId, type } = NetworkController.state.provider;
+		const { chainId, type } = NetworkController?.state?.provider || {};
 		const url = new URL(currentPageInformation.url);
 		return {
 			dapp_host_name: url?.host,

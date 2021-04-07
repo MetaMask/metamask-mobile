@@ -69,7 +69,7 @@ export default class PersonalSign extends PureComponent {
 	getAnalyticsParams = () => {
 		const { currentPageInformation } = this.props;
 		const { NetworkController } = Engine.context;
-		const { chainId, type } = NetworkController.state.provider;
+		const { chainId, type } = NetworkController?.state?.provider || {};
 		const url = new URL(currentPageInformation.url);
 		return {
 			dapp_host_name: url?.host,

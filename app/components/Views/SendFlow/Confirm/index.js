@@ -325,7 +325,7 @@ class Confirm extends PureComponent {
 	getAnalyticsParams = () => {
 		const { selectedAsset } = this.props;
 		const { NetworkController } = Engine.context;
-		const { chainId, type } = NetworkController.state.provider;
+		const { chainId, type } = NetworkController?.state?.provider || {};
 		return {
 			active_currency: { value: selectedAsset?.symbol, anonymous: true },
 			network_name: type,
