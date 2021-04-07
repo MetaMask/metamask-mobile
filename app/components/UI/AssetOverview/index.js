@@ -12,6 +12,7 @@ import { toggleReceiveModal } from '../../../actions/modals';
 import { connect } from 'react-redux';
 import { renderFromTokenMinimalUnit, balanceToFiat, renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
+import { isMainNet } from '../../../util/networks';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { isSwapsAllowed } from '../Swaps/utils';
@@ -249,12 +250,16 @@ class AssetOverview extends PureComponent {
 		let balance, balanceFiat;
 		if (isETH) {
 			balance = renderFromWei(accounts[selectedAddress] && accounts[selectedAddress].balance);
-			balanceFiat = weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency);
+			balanceFiat = isMainNet(chainId)
+				? weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency)
+				: null;
 		} else {
 			const exchangeRate = itemAddress in tokenExchangeRates ? tokenExchangeRates[itemAddress] : undefined;
 			balance =
 				itemAddress in tokenBalances ? renderFromTokenMinimalUnit(tokenBalances[itemAddress], decimals) : 0;
-			balanceFiat = balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
+			balanceFiat = isMainNet(chainId)
+				? balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency)
+				: null;
 		}
 		// choose balances depending on 'primaryCurrency'
 		if (primaryCurrency === 'ETH') {
@@ -275,7 +280,7 @@ class AssetOverview extends PureComponent {
 							<Text style={styles.amount} testID={'token-amount'}>
 								{mainBalance}
 							</Text>
-							<Text style={styles.amountFiat}>{secondaryBalance}</Text>
+							{secondaryBalance && <Text style={styles.amountFiat}>{secondaryBalance}</Text>}
 						</>
 					)}
 				</View>
