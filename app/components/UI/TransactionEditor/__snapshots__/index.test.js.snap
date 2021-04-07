@@ -29,9 +29,20 @@ exports[`TransactionEditor should render correctly 1`] = `
         validate={[Function]}
       />
       <Connect(CustomGas)
+        analyticsParams={
+          Object {
+            "active_currency": Object {
+              "anonymous": true,
+              "value": undefined,
+            },
+            "dapp_host_name": undefined,
+            "dapp_url": undefined,
+          }
+        }
         basicGasEstimates={Object {}}
         gasError=""
         handleGasFeeSelection={[Function]}
+        view="Transaction"
       />
     </AnimatedTransactionModal>
   </KeyboardAwareScrollView>

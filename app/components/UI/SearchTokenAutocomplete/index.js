@@ -7,6 +7,7 @@ import ActionView from '../ActionView';
 import AssetSearch from '../AssetSearch';
 import AssetList from '../AssetList';
 import Engine from '../../../core/Engine';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -44,10 +45,30 @@ export default class SearchTokenAutocomplete extends PureComponent {
 		this.setState({ selectedAsset: asset });
 	};
 
+	componentDidMount = () => {
+		this.getAnalyticsParams();
+	};
+
+	getAnalyticsParams = () => {
+		const { NetworkController } = Engine.context;
+		const { chainId, type } = NetworkController?.state?.provider || {};
+		const { address, symbol } = this.state.selectedAsset;
+		return {
+			token_address: { value: address, anonymous: true },
+			token_symbol: { value: symbol, anonymous: true },
+			network_name: type,
+			chain_id: chainId,
+			source: 'Add token dropdown'
+		};
+	};
+
 	addToken = async () => {
 		const { AssetsController } = Engine.context;
 		const { address, symbol, decimals } = this.state.selectedAsset;
 		await AssetsController.addToken(address, symbol, decimals);
+
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.TOKEN_ADDED, this.getAnalyticsParams());
+
 		// Clear state before closing
 		this.setState(
 			{
