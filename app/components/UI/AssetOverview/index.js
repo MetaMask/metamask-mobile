@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Image, InteractionManager, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { InteractionManager, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
 import { swapsUtils } from '@estebanmino/controllers';
 import AssetIcon from '../AssetIcon';
@@ -22,6 +22,7 @@ import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { allowedToBuy } from '../FiatOrders';
 import AssetSwapButton from '../Swaps/components/AssetSwapButton';
+import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -82,8 +83,6 @@ const styles = StyleSheet.create({
 		color: colors.blue
 	}
 });
-
-const ethLogo = require('../../../images/eth-logo.png'); // eslint-disable-line
 
 /**
  * View that displays the information of a specific asset (Token or ETH)
@@ -147,7 +146,11 @@ class AssetOverview extends PureComponent {
 		/**
 		 * Object that contains swaps tokens addresses as key
 		 */
-		swapsTokens: PropTypes.object
+		swapsTokens: PropTypes.object,
+		/**
+		 * Network ticker
+		 */
+		ticker: PropTypes.string
 	};
 
 	onReceive = () => {
@@ -163,9 +166,9 @@ class AssetOverview extends PureComponent {
 	};
 
 	onSend = async () => {
-		const { asset } = this.props;
+		const { asset, ticker } = this.props;
 		if (asset.isETH) {
-			this.props.newAssetTransaction(getEther());
+			this.props.newAssetTransaction(getEther(ticker));
 			this.props.navigation.navigate('SendFlowView');
 		} else {
 			this.props.newAssetTransaction(asset);
@@ -190,7 +193,7 @@ class AssetOverview extends PureComponent {
 			asset: { address, image, logo, isETH }
 		} = this.props;
 		if (isETH) {
-			return <Image source={ethLogo} style={styles.ethLogo} />;
+			return <NetworkMainAssetLogo biggest style={styles.ethLogo} />;
 		}
 		const watchedAsset = image !== undefined;
 		return logo || image ? (
@@ -321,6 +324,7 @@ const mapStateToProps = state => ({
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	swapsIsLive: swapsLivenessSelector(state),
 	swapsTokens: swapsTokensObjectSelector(state)
 });

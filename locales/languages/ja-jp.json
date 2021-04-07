@@ -618,7 +618,7 @@
 		"could_not_resolve_ens": "ENS を解決できませんでした",
 		"asset": "資産",
 		"balance": "残高",
-		"not_enough_for_gas": "トランザクション手数料の支払い用にアカウントにあるのは 0 ETH です。ETH を購入するか、別のアカウントから入金してください。",
+		"not_enough_for_gas": "トランザクション手数料の支払い用にアカウントにあるのは 0 {{ticker}} です。{{ticker}} を購入するか、別のアカウントから入金してください。",
 		"send": "送金",
 		"confirmed": "確認済み",
 		"pending": "保留中",
