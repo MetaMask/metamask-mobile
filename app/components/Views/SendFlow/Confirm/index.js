@@ -30,7 +30,7 @@ import {
 import { getTicker, decodeTransferData, getNormalizedTxState } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
 import { util } from '@metamask/controllers';
-import { prepareTransaction, resetTransaction } from '../../../../actions/transaction';
+import { prepareTransaction, resetTransaction, setNonce, setProposedNonce } from '../../../../actions/transaction';
 import {
 	fetchBasicGasEstimates,
 	convertApiValueToGWEI,
@@ -301,7 +301,15 @@ class Confirm extends PureComponent {
 		/**
 		 * ETH or fiat, depending on user setting
 		 */
-		primaryCurrency: PropTypes.string
+		primaryCurrency: PropTypes.string,
+		/**
+		 * Set transaction nonce
+		 */
+		setNonce: PropTypes.func,
+		/**
+		 * Set proposed nonce (from network)
+		 */
+		setProposedNonce: PropTypes.func
 	};
 
 	state = {
@@ -324,20 +332,23 @@ class Confirm extends PureComponent {
 		errorMessage: undefined,
 		fromAccountModalVisible: false,
 		mode: REVIEW,
-		over: false,
-		nonceValue: undefined,
-		proposedNonce: undefined
+		over: false
 	};
 
 	getNetworkNonce = async () => {
-		const { TransactionController } = Engine.context;
-		const { from } = this.props.transaction;
-		const networkNonce = await util.query(TransactionController.ethQuery, 'getTransactionCount', [from, 'pending']);
-		const proposedNonce = parseInt(networkNonce, 16);
-		this.setState({
-			nonceValue: proposedNonce,
-			proposedNonce
-		});
+		const { setNonce, setProposedNonce } = this.props;
+		const { nonce } = this.props.transaction;
+		if (!nonce) {
+			const { TransactionController } = Engine.context;
+			const { from } = this.props.transaction;
+			const networkNonce = await util.query(TransactionController.ethQuery, 'getTransactionCount', [
+				from,
+				'pending'
+			]);
+			const proposedNonce = parseInt(networkNonce, 16);
+			setNonce(proposedNonce);
+			setProposedNonce(proposedNonce);
+		}
 	};
 
 	componentDidMount = async () => {
@@ -599,13 +610,12 @@ class Confirm extends PureComponent {
 			transactionState: { transaction },
 			showCustomNonce
 		} = this.props;
-		const { nonceValue } = this.state;
 		const { fromSelectedAddress } = this.state;
 		const transactionToSend = { ...transaction };
 		transactionToSend.gas = BNToHex(transaction.gas);
 		transactionToSend.gasPrice = BNToHex(transaction.gasPrice);
 		transactionToSend.from = fromSelectedAddress;
-		if (showCustomNonce) transactionToSend.nonce = BNToHex(nonceValue);
+		if (showCustomNonce) transactionToSend.nonce = BNToHex(transaction.nonce);
 		return transactionToSend;
 	};
 
@@ -809,21 +819,17 @@ class Confirm extends PureComponent {
 	};
 
 	renderCustomNonceModal = () => {
-		const { proposedNonce } = this.state;
+		const { proposedNonce, nonce } = this.props.transaction;
+		const { setNonce } = this.props;
 		return (
 			<CustomNonceModal
 				proposedNonce={proposedNonce}
-				nonceValue={this.state.nonceValue}
+				nonceValue={nonce}
 				close={() => this.review()}
-				save={this.saveNonceValue}
+				save={setNonce}
 			/>
 		);
 	};
-
-	saveNonceValue = nonceValue =>
-		this.setState({
-			nonceValue
-		});
 
 	renderHexDataModal = () => {
 		const { hexDataModalVisible } = this.state;
@@ -897,6 +903,7 @@ class Confirm extends PureComponent {
 	render = () => {
 		const { transactionToName, selectedAsset, paymentRequest } = this.props.transactionState;
 		const { showHexData, showCustomNonce, primaryCurrency, network } = this.props;
+		const { nonce } = this.props.transaction;
 		const {
 			gasEstimationReady,
 			fromAccountBalance,
@@ -913,8 +920,7 @@ class Confirm extends PureComponent {
 			transactionConfirmed,
 			warningGasPriceHigh,
 			mode,
-			over,
-			nonceValue
+			over
 		} = this.state;
 
 		const is_main_net = isMainNet(network);
@@ -978,7 +984,7 @@ class Confirm extends PureComponent {
 						over={over}
 						warningGasPriceHigh={warningGasPriceHigh}
 						showCustomNonce={showCustomNonce}
-						nonceValue={nonceValue}
+						nonceValue={nonce}
 						onNonceEdit={() => this.edit(EDIT_NONCE)}
 					/>
 					{errorMessage && (
@@ -1050,7 +1056,9 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
 	prepareTransaction: transaction => dispatch(prepareTransaction(transaction)),
-	resetTransaction: () => dispatch(resetTransaction())
+	resetTransaction: () => dispatch(resetTransaction()),
+	setNonce: nonce => dispatch(setNonce(nonce)),
+	setProposedNonce: nonce => dispatch(setProposedNonce(nonce))
 });
 
 export default connect(
