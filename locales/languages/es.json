@@ -621,7 +621,7 @@
 		"could_not_resolve_ens": "No se pudo resolver ENS",
 		"asset": "Activo",
 		"balance": "Saldo",
-		"not_enough_for_gas": "Tiene 0 ETH en su cuenta para pagar las cuotas de transacción. Compre algunos ETH o deposítelos desde otra cuenta.",
+		"not_enough_for_gas": "Tiene {{ticker}} en su cuenta para pagar las cuotas de transacción. Compre algunos {{ticker}} o deposítelos desde otra cuenta.",
 		"send": "Enviar",
 		"confirmed": "Confirmado",
 		"pending": "Pendiente",

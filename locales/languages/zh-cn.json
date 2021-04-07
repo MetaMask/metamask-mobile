@@ -618,7 +618,7 @@
 		"could_not_resolve_ens": "无法解析 ENS",
 		"asset": "资产",
 		"balance": "余额",
-		"not_enough_for_gas": "您的账户中有 0 ETH 可用于支付交易费。购买一些 ETH 或从其他账户存入。",
+		"not_enough_for_gas": "您的账户中有 0 {{ticker}} 可用于支付交易费。购买一些 {{ticker}} 或从其他账户存入。",
 		"send": "发送",
 		"confirmed": "已确认",
 		"pending": "待处理",

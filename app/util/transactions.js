@@ -24,19 +24,13 @@ export const TRANSFER_FROM_ACTION_KEY = 'transferfrom';
 export const UNKNOWN_FUNCTION_KEY = 'unknownFunction';
 export const SMART_CONTRACT_INTERACTION_ACTION_KEY = 'smartContractInteraction';
 export const SWAPS_TRANSACTION_ACTION_KEY = 'swapsTransaction';
-export const CONNEXT_DEPOSIT_ACTION_KEY = 'connextdeposit';
 
 export const TRANSFER_FUNCTION_SIGNATURE = '0xa9059cbb';
 export const TRANSFER_FROM_FUNCTION_SIGNATURE = '0x23b872dd';
 export const APPROVE_FUNCTION_SIGNATURE = '0x095ea7b3';
-export const CONNEXT_DEPOSIT = '0xea682e37';
 export const CONTRACT_CREATION_SIGNATURE = '0x60a060405260046060527f48302e31';
 
 export const TRANSACTION_TYPES = {
-	PAYMENT_CHANNEL_DEPOSIT: 'payment_channel_deposit',
-	PAYMENT_CHANNEL_WITHDRAW: 'payment_channel_withdraw',
-	PAYMENT_CHANNEL_SENT: 'payment_channel_sent',
-	PAYMENT_CHANNEL_RECEIVED: 'payment_channel_received',
 	SENT: 'transaction_sent',
 	SENT_TOKEN: 'transaction_sent_token',
 	SENT_COLLECTIBLE: 'transaction_sent_collectible',
@@ -65,8 +59,7 @@ const reviewActionKeys = {
 	[DEPLOY_CONTRACT_ACTION_KEY]: strings('transactions.tx_review_contract_deployment'),
 	[TRANSFER_FROM_ACTION_KEY]: strings('transactions.tx_review_transfer_from'),
 	[SMART_CONTRACT_INTERACTION_ACTION_KEY]: strings('transactions.tx_review_unknown'),
-	[APPROVE_ACTION_KEY]: strings('transactions.tx_review_approve'),
-	[CONNEXT_DEPOSIT_ACTION_KEY]: strings('transactions.tx_review_instant_payment_deposit')
+	[APPROVE_ACTION_KEY]: strings('transactions.tx_review_approve')
 };
 
 /**
@@ -78,8 +71,7 @@ const actionKeys = {
 	[DEPLOY_CONTRACT_ACTION_KEY]: strings('transactions.contract_deploy'),
 	[SMART_CONTRACT_INTERACTION_ACTION_KEY]: strings('transactions.smart_contract_interaction'),
 	[SWAPS_TRANSACTION_ACTION_KEY]: strings('transactions.swaps_transaction'),
-	[APPROVE_ACTION_KEY]: strings('transactions.approve'),
-	[CONNEXT_DEPOSIT_ACTION_KEY]: strings('transactions.instant_payment_deposit')
+	[APPROVE_ACTION_KEY]: strings('transactions.approve')
 };
 
 /**
@@ -198,8 +190,6 @@ export async function getMethodData(data) {
 		return { name: TOKEN_METHOD_TRANSFER_FROM };
 	} else if (fourByteSignature === APPROVE_FUNCTION_SIGNATURE) {
 		return { name: TOKEN_METHOD_APPROVE };
-	} else if (fourByteSignature === CONNEXT_DEPOSIT) {
-		return { name: CONNEXT_METHOD_DEPOSIT };
 	} else if (data.substr(0, 32) === CONTRACT_CREATION_SIGNATURE) {
 		return { name: CONTRACT_METHOD_DEPLOY };
 	}
@@ -290,10 +280,9 @@ export async function getTransactionActionKey(transaction) {
  *
  * @param {object} tx - Transaction object
  * @param {string} selectedAddress - Current account public address
- * @param {bool} paymentChannelTransaction - Whether is a payment channel transaction
  * @returns {string} - Transaction type message
  */
-export async function getActionKey(tx, selectedAddress, ticker, paymentChannelTransaction) {
+export async function getActionKey(tx, selectedAddress, ticker) {
 	if (tx && tx.isTransfer) {
 		const selfSent = safeToChecksumAddress(tx.transaction.from) === selectedAddress;
 		const translationKey = selfSent ? 'transactions.self_sent_unit' : 'transactions.received_unit';
@@ -303,7 +292,6 @@ export async function getActionKey(tx, selectedAddress, ticker, paymentChannelTr
 	}
 	const actionKey = await getTransactionActionKey(tx);
 	if (actionKey === SEND_ETHER_ACTION_KEY) {
-		ticker = paymentChannelTransaction ? strings('unit.sai') : ticker;
 		const incoming = safeToChecksumAddress(tx.transaction.to) === selectedAddress;
 		const selfSent = incoming && safeToChecksumAddress(tx.transaction.from) === selectedAddress;
 		return incoming

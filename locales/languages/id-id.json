@@ -618,7 +618,7 @@
 		"could_not_resolve_ens": "Tidak dapat menyelesaikan ENS",
 		"asset": "Aset",
 		"balance": "Saldo",
-		"not_enough_for_gas": "Anda memiliki 0 ETH di akun Anda untuk membayar biaya transaksi. Beli beberapa ETH atau deposit dari akun lain.",
+		"not_enough_for_gas": "Anda memiliki 0 {{ticker}} di akun Anda untuk membayar biaya transaksi. Beli beberapa {{ticker}} atau deposit dari akun lain.",
 		"send": "Kirim",
 		"confirmed": "Dikonfirmasikan",
 		"pending": "Tunda",

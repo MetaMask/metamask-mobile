@@ -618,7 +618,7 @@
 		"could_not_resolve_ens": "Không phân giải được ENS",
 		"asset": "Tài sản",
 		"balance": "Số dư",
-		"not_enough_for_gas": "Bạn có 0 ETH trong tài khoản của mình để thanh toán phí giao dịch. Hãy mua ETH hoặc nộp vào từ tài khoản khác.",
+		"not_enough_for_gas": "Bạn có 0 {{ticker}} trong tài khoản của mình để thanh toán phí giao dịch. Hãy mua {{ticker}} hoặc nộp vào từ tài khoản khác.",
 		"send": "Gửi",
 		"confirmed": "Đã xác nhận",
 		"pending": "Đang chờ xử lý",

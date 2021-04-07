@@ -618,7 +618,7 @@
 		"could_not_resolve_ens": "Hindi maresolba ang ENS",
 		"asset": "Asset",
 		"balance": "Balanse",
-		"not_enough_for_gas": "Mayroon kang 0 ETH sa iyong account para ipambayad sa mga bayarin sa transaksyon. Bumili ng ETH o mag-deposit mula sa ibang account.",
+		"not_enough_for_gas": "Mayroon kang 0 {{ticker}} sa iyong account para ipambayad sa mga bayarin sa transaksyon. Bumili ng {{ticker}} o mag-deposit mula sa ibang account.",
 		"send": "Magpadala",
 		"confirmed": "Nakumpirma",
 		"pending": "Nakabinbin",
