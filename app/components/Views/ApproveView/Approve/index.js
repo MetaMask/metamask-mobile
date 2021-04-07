@@ -243,7 +243,7 @@ class Approve extends PureComponent {
 		return {
 			dapp_host_name: analyticsParams.dapp_host_name,
 			dapp_url: analyticsParams.dapp_url,
-			active_currency: analyticsParams.active_currency
+			active_currency: { value: analyticsParams.active_currency, anonymous: true }
 		};
 	};
 

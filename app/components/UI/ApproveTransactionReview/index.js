@@ -331,8 +331,8 @@ class ApproveTransactionReview extends PureComponent {
 			chain_id: chainId,
 			active_currency: { value: tokenSymbol, anonymous: true },
 			number_tokens_requested: { value: originalApproveAmount, anonymous: true },
-			unlimited_permission_requested: { value: unlimited, anonymous: true },
-			referral_type: { value: isDapp ? 'dapp' : transaction.origin, anonymous: true }
+			unlimited_permission_requested: unlimited,
+			referral_type: isDapp ? 'dapp' : transaction.origin
 		};
 		// Send analytics params to parent component so it's available when cancelling and confirming
 		onSetAnalyticsParams && onSetAnalyticsParams(params);

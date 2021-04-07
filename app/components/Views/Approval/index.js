@@ -167,8 +167,8 @@ class Approval extends PureComponent {
 		const { activeTabUrl, chainId, transaction, networkType } = this.props;
 		const { selectedAsset } = transaction;
 		return {
-			dapp_host_name: { value: transaction.origin, anonymous: true },
-			dapp_url: { value: activeTabUrl, anonymous: true },
+			dapp_host_name: transaction.origin,
+			dapp_url: activeTabUrl,
 			network_name: networkType,
 			chain_id: chainId,
 			active_currency: { value: selectedAsset.symbol, anonymous: true },

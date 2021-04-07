@@ -104,8 +104,8 @@ class AccountApproval extends PureComponent {
 		const { currentPageInformation, chainId, networkType } = this.props;
 		const url = new URL(currentPageInformation.url);
 		return {
-			dapp_host_name: { value: url.host, anonymous: true },
-			dapp_url: { value: currentPageInformation.url, anonymous: true },
+			dapp_host_name: url.host,
+			dapp_url: currentPageInformation.url,
 			network_name: networkType,
 			chain_id: chainId
 		};

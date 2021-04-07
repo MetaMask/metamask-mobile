@@ -116,8 +116,8 @@ class WatchAssetRequest extends PureComponent {
 
 		const url = new URL(currentPageInformation.url);
 		return {
-			token_address: { value: asset.address, anonymous: true },
-			token_symbol: { value: asset.symbol, anonymous: true },
+			token_address: asset.address,
+			token_symbol: asset.symbol,
 			dapp_host_name: url.host,
 			dapp_url: currentPageInformation.url,
 			network_name: type,
