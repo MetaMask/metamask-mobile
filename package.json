@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "private": true,
   "scripts": {
     "watch": "./scripts/build.sh watcher watch",
@@ -56,16 +56,15 @@
   "lint-staged": {
     "*.js": [
       "prettier --write",
-      "eslint --ignore-path=.prettierignore",
-      "git add"
+      "eslint --ignore-path=.prettierignore"
     ],
     "*.json": [
-      "prettier --write",
-      "git add"
+      "prettier --write"
     ]
   },
   "resolutions": {
     "**/elliptic": "^6.5.4",
+    "**/y18n": "^3.2.2",
     "pubnub/**/netmask": "^2.0.1",
     "**/optimist/minimist": "^1.2.5",
     "react-native-level-fs/**/bl": "^1.2.3",
@@ -117,7 +116,7 @@
     "fuse.js": "3.4.4",
     "https-browserify": "0.0.1",
     "is-url": "^1.2.4",
-    "json-rpc-engine": "5.1.5",
+    "json-rpc-engine": "^6.1.0",
     "json-rpc-middleware-stream": "2.1.1",
     "lottie-react-native": "git+https://github.com/MetaMask/lottie-react-native.git#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106",
     "multihashes": "0.4.14",
@@ -132,7 +131,6 @@
     "qs": "6.7.0",
     "query-string": "^6.12.1",
     "react": "16.13.1",
-    "react-devtools": "^4.10.1",
     "react-native": "^0.63.4",
     "react-native-actionsheet": "beefe/react-native-actionsheet#107/head",
     "react-native-aes-crypto": "^1.3.9",
