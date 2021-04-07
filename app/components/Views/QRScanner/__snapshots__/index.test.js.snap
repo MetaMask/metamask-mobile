@@ -21,7 +21,7 @@ exports[`QrScanner should render correctly 1`] = `
     androidRecordAudioPermissionOptions={null}
     autoFocus={1}
     barCodeTypes={Array []}
-    cameraId=""
+    cameraId={null}
     captureAudio={false}
     exposure={-1}
     faceDetectionClassifications={0}
@@ -79,7 +79,6 @@ exports[`QrScanner should render correctly 1`] = `
     permissionDialogTitle=""
     pictureSize="None"
     playSoundOnCapture={false}
-    playSoundOnRecord={false}
     ratio="4:3"
     style={
       Object {
