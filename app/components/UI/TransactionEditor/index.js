@@ -10,7 +10,7 @@ import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { generateTransferData, getNormalizedTxState, getTicker } from '../../../util/transactions';
-import { getBasicGasEstimates, apiEstimateModifiedToWEI } from '../../../util/custom-gas';
+import { apiEstimateModifiedToWEI, getBasicGasEstimatesByChainId } from '../../../util/custom-gas';
 import { setTransactionObject } from '../../../actions/transaction';
 import Engine from '../../../core/Engine';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
@@ -596,9 +596,14 @@ class TransactionEditor extends PureComponent {
 
 	handleFetchBasicEstimates = async () => {
 		this.setState({ ready: false });
-		const basicGasEstimates = await getBasicGasEstimates();
-		this.handleGasFeeSelection(this.props.transaction.gas, apiEstimateModifiedToWEI(basicGasEstimates.averageGwei));
-		this.setState({ basicGasEstimates, ready: true });
+		const basicGasEstimates = await getBasicGasEstimatesByChainId();
+		if (basicGasEstimates) {
+			this.handleGasFeeSelection(
+				this.props.transaction.gas,
+				apiEstimateModifiedToWEI(basicGasEstimates.averageGwei)
+			);
+		}
+		return this.setState({ basicGasEstimates, ready: true });
 	};
 
 	render = () => {
