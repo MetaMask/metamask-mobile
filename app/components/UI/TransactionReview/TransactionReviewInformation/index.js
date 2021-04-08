@@ -228,7 +228,7 @@ class TransactionReviewInformation extends PureComponent {
 			<CustomNonceModal
 				proposedNonce={proposedNonce}
 				nonceValue={nonce}
-				close={() => this.toggleNonceModal()}
+				close={this.toggleNonceModal}
 				save={setNonce}
 			/>
 		);
