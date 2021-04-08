@@ -201,12 +201,14 @@ workflows:
               only:
                 - master
                 - develop
+                - feature/node-14-confusables
       - prep-node-deps:
           filters:
             branches:
               ignore:
                 - master
                 - develop
+                - feature/node-14-confusables
       - lint:
           requires:
             - prep-node-deps
