@@ -64,6 +64,9 @@ class Approval extends PureComponent {
 		 * Tells whether or not dApp transaction modal is visible
 		 */
 		dappTransactionModalVisible: PropTypes.bool,
+		/**
+		 * Indicates whether custom nonce should be shown in transaction editor
+		 */
 		showCustomNonce: PropTypes.bool,
 		nonce: PropTypes.number,
 		/**

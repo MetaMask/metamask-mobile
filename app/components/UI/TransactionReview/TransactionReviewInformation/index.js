@@ -187,6 +187,9 @@ class TransactionReviewInformation extends PureComponent {
 		 * Network id
 		 */
 		network: PropTypes.string,
+		/**
+		 * Indicates whether custom nonce should be shown in transaction editor
+		 */
 		showCustomNonce: PropTypes.bool,
 		/**
 		 * Set transaction nonce

@@ -82,8 +82,17 @@ class TransactionReviewFeeCard extends PureComponent {
 		 * True if transaction is gas price is higher than the "FAST" value
 		 */
 		warningGasPriceHigh: PropTypes.string,
+		/**
+		 * Indicates whether custom nonce should be shown in transaction editor
+		 */
 		showCustomNonce: PropTypes.bool,
+		/**
+		 * Current nonce
+		 */
 		nonceValue: PropTypes.number,
+		/**
+		 * Function called when editing nonce
+		 */
 		onNonceEdit: PropTypes.func
 	};
 
