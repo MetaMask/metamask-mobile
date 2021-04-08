@@ -175,6 +175,8 @@ class Wallet extends PureComponent {
 			ticker
 		} = this.props;
 
+		console.log(accounts);
+
 		let balance = 0;
 		let assets = tokens;
 		if (accounts[selectedAddress]) {

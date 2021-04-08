@@ -37,6 +37,7 @@ import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { EXISTING_USER, TRUE, BIOMETRY_CHOICE_DISABLED } from '../../../constants/storage';
 import { getPasswordStrengthWord, passwordRequirementsMet } from '../../../util/password';
 import NotificationManager from '../../../core/NotificationManager';
+import { syncPrefs } from '../../../util/sync';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -400,7 +401,7 @@ class ResetPassword extends PureComponent {
 		const { originalPassword, password: newPassword } = this.state;
 		const { KeyringController, PreferencesController } = Engine.context;
 		const seedPhrase = await this.getSeedPhrase();
-		const oldIdentities = PreferencesController.state.identities;
+		const oldPrefs = PreferencesController.state;
 
 		let importedAccounts = [];
 		try {
@@ -427,7 +428,6 @@ class ResetPassword extends PureComponent {
 		const hdKeyring = KeyringController.state.keyrings[0];
 		const existingAccountCount = hdKeyring.accounts.length;
 		const selectedAddress = this.props.selectedAddress;
-		let preferencesControllerState = PreferencesController.state;
 
 		// Create previous accounts again
 		for (let i = 0; i < existingAccountCount - 1; i++) {
@@ -443,17 +443,12 @@ class ResetPassword extends PureComponent {
 			Logger.error(e, 'error while trying to import accounts on recreate vault');
 		}
 
-		// Reset preferencesControllerState
-		preferencesControllerState = PreferencesController.state;
-
-		//Persist old account names
-		for (const id in preferencesControllerState.identities) {
-			const oldName = oldIdentities[id].name;
-			if (oldName) preferencesControllerState.identities[id].name = oldName;
-		}
+		//Persist old account/identities names
+		const preferencesControllerState = PreferencesController.state;
+		const prefUpdates = syncPrefs(oldPrefs, preferencesControllerState);
 
 		// Set preferencesControllerState again
-		await PreferencesController.update(preferencesControllerState);
+		await PreferencesController.update(prefUpdates);
 		// Reselect previous selected account if still available
 		if (hdKeyring.accounts.includes(selectedAddress)) {
 			PreferencesController.setSelectedAddress(selectedAddress);

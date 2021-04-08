@@ -1,5 +1,6 @@
 import Engine from './Engine';
 import Logger from '../util/Logger';
+import { syncPrefs, syncAccounts } from '../util/sync';
 
 /**
  * Returns current vault seed phrase
@@ -20,7 +21,7 @@ export const getSeedPhrase = async (password = '') => {
 export const recreateVaultWithSamePassword = async (password = '', selectedAddress) => {
 	const { KeyringController, PreferencesController, AccountTrackerController } = Engine.context;
 	const seedPhrase = await getSeedPhrase(password);
-	const oldIdentities = PreferencesController.state.identities;
+	const oldPrefs = PreferencesController.state;
 	const oldAccounts = AccountTrackerController.accounts;
 
 	let importedAccounts = [];
@@ -61,25 +62,15 @@ export const recreateVaultWithSamePassword = async (password = '', selectedAddre
 
 	//Persist old account/identities names
 	const preferencesControllerState = PreferencesController.state;
-	if (oldIdentities) {
-		for (const id in preferencesControllerState.identities) {
-			const oldName = oldIdentities[id].name;
-			if (oldName) preferencesControllerState.identities[id].name = oldName;
-		}
-	}
+	const prefUpdates = syncPrefs(oldPrefs, preferencesControllerState);
 
 	//Persist old account data
 	const accounts = AccountTrackerController.accounts;
-	if (oldAccounts) {
-		for (const account in accounts) {
-			const oldAccount = oldAccounts[account];
-			if (oldAccount) accounts[account] = oldAccount;
-		}
-	}
+	const updateAccounts = syncAccounts(oldAccounts, accounts);
 
 	// Set preferencesControllerState again
-	await PreferencesController.update(preferencesControllerState);
-	await AccountTrackerController.update(accounts);
+	await PreferencesController.update(prefUpdates);
+	await AccountTrackerController.update(updateAccounts);
 
 	// Reselect previous selected account if still available
 	if (hdKeyring.accounts.includes(selectedAddress)) {
