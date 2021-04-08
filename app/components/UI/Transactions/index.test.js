@@ -28,6 +28,11 @@ describe('Transactions', () => {
 					CurrencyRateController: {
 						currentCurrency: 'USD',
 						conversionRate: 1
+					},
+					NetworkController: {
+						provider: {
+							chainId: '1'
+						}
 					}
 				}
 			},
