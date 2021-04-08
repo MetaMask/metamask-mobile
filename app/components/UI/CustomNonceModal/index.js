@@ -116,8 +116,8 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 		onChangeText(newValue > 1 ? newValue : 1);
 	};
 
-	const saveAndClose = value => {
-		save(value);
+	const saveAndClose = () => {
+		save(nonce);
 		close();
 	};
 
@@ -161,7 +161,7 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 								style={styles.nonceInput}
 								value={String(nonce)}
 								numberOfLines={1}
-								onSubmitEditing={() => saveAndClose(nonce)}
+								onSubmitEditing={saveAndClose}
 							/>
 						</View>
 						<Text centered style={styles.currentSuggested}>
