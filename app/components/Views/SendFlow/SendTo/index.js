@@ -191,15 +191,7 @@ class SendFlow extends PureComponent {
 		/**
 		 * Network provider type as mainnet
 		 */
-		providerType: PropTypes.string,
-		/**
-		 * Indicates whether the current transaction is a payment channel transaction
-		 */
-		isPaymentChannelTransaction: PropTypes.bool,
-		/**
-		 * Selected asset from current transaction state
-		 */
-		selectedAsset: PropTypes.object
+		providerType: PropTypes.string
 	};
 
 	addressToInputRef = React.createRef();
@@ -222,25 +214,13 @@ class SendFlow extends PureComponent {
 	};
 
 	componentDidMount = async () => {
-		const {
-			addressBook,
-			selectedAddress,
-			accounts,
-			ticker,
-			network,
-			isPaymentChannelTransaction,
-			selectedAsset,
-			navigation,
-			providerType
-		} = this.props;
+		const { addressBook, selectedAddress, accounts, ticker, network, navigation, providerType } = this.props;
 		const { fromAccountName } = this.state;
 		// For analytics
 		navigation.setParams({ providerType });
 		const networkAddressBook = addressBook[network] || {};
 		const ens = await doENSReverseLookup(selectedAddress, network);
-		const fromAccountBalance = isPaymentChannelTransaction
-			? `${selectedAsset.assetBalance} ${selectedAsset.symbol}`
-			: `${renderFromWei(accounts[selectedAddress].balance)} ${getTicker(ticker)}`;
+		const fromAccountBalance = `${renderFromWei(accounts[selectedAddress].balance)} ${getTicker(ticker)}`;
 
 		setTimeout(() => {
 			this.setState({
@@ -256,7 +236,7 @@ class SendFlow extends PureComponent {
 		//Fills in to address and sets the transaction if coming from QR code scan
 		const targetAddress = navigation.getParam('txMeta', null)?.target_address;
 		if (targetAddress) {
-			this.props.newAssetTransaction(getEther());
+			this.props.newAssetTransaction(getEther(ticker));
 			this.onToSelectedAddressChange(targetAddress);
 		}
 	};
@@ -280,7 +260,7 @@ class SendFlow extends PureComponent {
 		const fromAccountName = ens || name;
 		PreferencesController.setSelectedAddress(accountAddress);
 		// If new account doesn't have the asset
-		this.props.setSelectedAsset(getEther());
+		this.props.setSelectedAsset(getEther(ticker));
 		this.setState({
 			fromAccountName,
 			fromAccountBalance,
@@ -538,7 +518,7 @@ class SendFlow extends PureComponent {
 	};
 
 	render = () => {
-		const { isPaymentChannelTransaction } = this.props;
+		const { ticker } = this.props;
 		const {
 			fromSelectedAddress,
 			fromAccountName,
@@ -558,7 +538,7 @@ class SendFlow extends PureComponent {
 			<SafeAreaView style={styles.wrapper} testID={'send-screen'}>
 				<View style={styles.imputWrapper}>
 					<AddressFrom
-						onPressIcon={isPaymentChannelTransaction ? null : this.toggleFromAccountModal}
+						onPressIcon={this.toggleFromAccountModal}
 						fromAccountAddress={fromSelectedAddress}
 						fromAccountName={fromAccountName}
 						fromAccountBalance={fromAccountBalance}
@@ -609,12 +589,14 @@ class SendFlow extends PureComponent {
 									</Text>
 								</TouchableOpacity>
 							)}
-							{!isPaymentChannelTransaction && balanceIsZero && (
+							{balanceIsZero && (
 								<View style={styles.warningContainer}>
 									<WarningMessage
 										warningMessage={
 											<>
-												{strings('transaction.not_enough_for_gas')}
+												{strings('transaction.not_enough_for_gas', {
+													ticker: getTicker(ticker)
+												})}
 
 												{this.renderBuyEth()}
 											</>
@@ -656,8 +638,7 @@ const mapStateToProps = state => ({
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	network: state.engine.backgroundState.NetworkController.network,
-	providerType: state.engine.backgroundState.NetworkController.provider.type,
-	isPaymentChannelTransaction: state.transaction.paymentChannelTransaction
+	providerType: state.engine.backgroundState.NetworkController.provider.type
 });
 
 const mapDispatchToProps = dispatch => ({

@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "private": true,
   "scripts": {
     "watch": "./scripts/build.sh watcher watch",
@@ -74,7 +74,7 @@
     "@estebanmino/controllers": "^3.3.17",
     "@exodus/react-native-payments": "https://github.com/wachunei/react-native-payments.git#package-json-hack",
     "@metamask/contract-metadata": "^1.23.0",
-    "@metamask/controllers": "^6.1.1",
+    "@metamask/controllers": "^7.0.0",
     "@react-native-community/async-storage": "1.12.1",
     "@react-native-community/blur": "^3.6.0",
     "@react-native-community/checkbox": "^0.4.2",
@@ -97,7 +97,6 @@
     "bignumber.js": "8.1.1",
     "buffer": "5.2.1",
     "compare-versions": "^3.6.0",
-    "connext": "4.2.5",
     "content-hash": "2.5.2",
     "dnode": "1.2.2",
     "eth-ens-namehash": "2.0.8",

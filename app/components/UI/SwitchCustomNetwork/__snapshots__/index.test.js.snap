@@ -96,7 +96,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
         underline={false}
         upper={false}
       >
-        "undefined"
+        ""
       </Text>
       <Text
         bold={false}

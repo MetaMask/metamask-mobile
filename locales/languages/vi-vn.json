@@ -313,9 +313,9 @@
 		"description_content_2": "MetaMask sẽ...",
 		"action_description_1": "Luôn cho phép bạn chọn không tham gia thông qua phần Cài đặt",
 		"action_description_2": "Gửi các lượt nhấp và xem trang đã được ẩn danh",
-		"action_description_3": "Không bao giờ thu thập mã khóa, địa chỉ, giao dịch, số dư, mã băm hoặc bất kỳ thông tin cá nhân nào",
-		"action_description_4": "Không bao giờ thu thập địa chỉ IP của bạn",
-		"action_description_5": "Không bao giờ bán dữ liệu để thu lợi. Tuyệt đối không bao giờ!"
+		"action_description_4": "Không bao giờ thu thập mã khóa, địa chỉ, giao dịch, số dư, mã băm hoặc bất kỳ thông tin cá nhân nào",
+		"action_description_5": "Không bao giờ thu thập địa chỉ IP của bạn",
+		"action_description_6": "Không bao giờ bán dữ liệu để thu lợi. Tuyệt đối không bao giờ!"
 	},
 	"token": {
 		"token_symbol": "Ký hiệu token",
@@ -618,7 +618,7 @@
 		"could_not_resolve_ens": "Không phân giải được ENS",
 		"asset": "Tài sản",
 		"balance": "Số dư",
-		"not_enough_for_gas": "Bạn có 0 ETH trong tài khoản của mình để thanh toán phí giao dịch. Hãy mua ETH hoặc nộp vào từ tài khoản khác.",
+		"not_enough_for_gas": "Bạn có 0 {{ticker}} trong tài khoản của mình để thanh toán phí giao dịch. Hãy mua {{ticker}} hoặc nộp vào từ tài khoản khác.",
 		"send": "Gửi",
 		"confirmed": "Đã xác nhận",
 		"pending": "Đang chờ xử lý",
