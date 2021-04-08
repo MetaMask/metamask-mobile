@@ -36,8 +36,9 @@
     "test:e2e:ios": "detox build -c ios.sim.release && detox test -c ios.sim.release",
     "test:e2e:android": "detox build -c android.emu.debug && detox test -c android.emu.debug",
     "postinstall": "./scripts/postinstall.sh",
-    "sourcemaps:android": "node_modules/.bin/react-native bundle --platform android --entry-file index.js --dev false --reset-cache --bundle-output /tmp/bundle.android.js --assets-dest /tmp/ --sourcemap-output sourcemaps/android/index.js.map",
-    "sourcemaps:ios": "node_modules/.bin/react-native bundle --platform ios --entry-file index.js --dev false --reset-cache --bundle-output /tmp/bundle.ios.js --assets-dest /tmp/ --sourcemap-output sourcemaps/ios/index.js.map",
+    "sourcemaps:confusables": "jq -n --arg greeting world '{\"hello\":$greeting}' > node_modules/unicode-confusables/data/confusables.json",
+    "sourcemaps:android": "yarn sourcemaps:confusables && node_modules/.bin/react-native bundle --platform android --entry-file index.js --dev false --reset-cache --bundle-output /tmp/bundle.android.js --assets-dest /tmp/ --sourcemap-output sourcemaps/android/index.js.map",
+    "sourcemaps:ios": "yarn sourcemaps:confusables && node_modules/.bin/react-native bundle --platform ios --entry-file index.js --dev false --reset-cache --bundle-output /tmp/bundle.ios.js --assets-dest /tmp/ --sourcemap-output sourcemaps/ios/index.js.map",
     "stacktrace:android": "stack-beautifier sourcemaps/android/index.js.map -t sourcemaps/trace.txt",
     "stacktrace:ios": "stack-beautifier sourcemaps/ios/index.js.map -t sourcemaps/trace.txt",
     "update-changelog": "./scripts/auto-changelog.sh"
