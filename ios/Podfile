@@ -29,18 +29,23 @@ target 'MetaMask' do
   # Comment the next line if you don't want to use dynamic frameworks
   # use_frameworks!
 
-  use_react_native!(:path => config["reactNativePath"])
+	use_react_native!(
+    :path => config[:reactNativePath],
+    # to enable hermes on iOS, change `false` to `true` and then install pods
+    :hermes_enabled => true
+  )
+
 
   # Pods for MetaMask
   pod 'React-RCTPushNotification', :path => '../node_modules/react-native/Libraries/PushNotificationIOS'
 
-  use_flipper!({ 'Flipper-Folly' => '2.3.0' })
+  use_flipper!()
   post_install do |installer|
-	react_native_post_install(installer)
-	# Enables Flipper.
-    #
-    # Note that if you have use_frameworks! enabled, Flipper will not work and
-    # you should disable these next few lines.
-    flipper_post_install(installer)
+		react_native_post_install(installer)
+		# Enables Flipper.
+		#
+		# Note that if you have use_frameworks! enabled, Flipper will not work and
+		# you should disable these next few lines.
+		flipper_post_install(installer)
   end
 end
