@@ -38,7 +38,6 @@ import {
 	decodeApproveData
 } from '../../../util/transactions';
 import { BN } from 'ethereumjs-util';
-import { safeToChecksumAddress } from '../../../util/address';
 import Logger from '../../../util/Logger';
 import contractMap from '@metamask/contract-metadata';
 import MessageSign from '../../UI/MessageSign';
@@ -283,16 +282,17 @@ const Main = props => {
 		async transactionMeta => {
 			if (transactionMeta.origin === TransactionTypes.MMM) return;
 
-			const to = safeToChecksumAddress(transactionMeta.transaction.to);
+			const to = transactionMeta.transaction.to?.toLowerCase();
 			const { data } = transactionMeta.transaction;
 
 			// if approval data includes metaswap contract
 			// if destination address is metaswap contract
 			if (
-				to === safeToChecksumAddress(swapsUtils.getSwapsContractAddress(props.chainId)) ||
+				to === swapsUtils.getSwapsContractAddress(props.chainId) ||
 				(data &&
 					data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
-					decodeApproveData(data).spenderAddress === swapsUtils.getSwapsContractAddress(props.chainId))
+					decodeApproveData(data).spenderAddress?.toLowerCase() ===
+						swapsUtils.getSwapsContractAddress(props.chainId))
 			) {
 				if (transactionMeta.origin === process.env.MM_FOX_CODE) {
 					autoSign(transactionMeta);
