@@ -41,6 +41,7 @@ import WhatsNewModal from '../WhatsNewModal';
 import InvalidCustomNetworkAlert from '../InvalidCustomNetworkAlert';
 import { RPC } from '../../../constants/network';
 import { findBottomTabRouteNameFromNavigatorState, findRouteNameFromNavigatorState } from '../../../util/general';
+import { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -223,10 +224,6 @@ const styles = StyleSheet.create({
 		fontSize: 10,
 		...fontStyles.bold
 	},
-	instapayLogo: {
-		width: 24,
-		height: 24
-	},
 	protectWalletContainer: {
 		backgroundColor: colors.white,
 		paddingTop: 24,
@@ -266,8 +263,6 @@ const ICON_IMAGES = {
 	wallet: require('../../../images/wallet-icon.png'),
 	'selected-wallet': require('../../../images/selected-wallet-icon.png')
 };
-const instapay_logo_selected = require('../../../images/mm-instapay-selected.png'); // eslint-disable-line
-const instapay_logo = require('../../../images/mm-instapay.png'); // eslint-disable-line
 
 /**
  * View component that displays the MetaMask fox
@@ -351,14 +346,6 @@ class DrawerView extends PureComponent {
 		 * Frequent RPC list from PreferencesController
 		 */
 		frequentRpcList: PropTypes.array,
-		/**
-		/* flag that determines the state of payment channels
-		*/
-		paymentChannelsEnabled: PropTypes.bool,
-		/**
-		 * Current provider type
-		 */
-		providerType: PropTypes.string,
 		/**
 		 * Array of ERC20 assets
 		 */
@@ -496,7 +483,7 @@ class DrawerView extends PureComponent {
 	};
 
 	onSend = async () => {
-		this.props.newAssetTransaction(getEther());
+		this.props.newAssetTransaction(getEther(this.props.ticker));
 		this.props.navigation.navigate('SendFlowView');
 		this.hideDrawer();
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SEND);
@@ -508,24 +495,10 @@ class DrawerView extends PureComponent {
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_BROWSER);
 	};
 
-	goToPaymentChannel = () => {
-		const { providerType } = this.props;
-		if (AppConstants.CONNEXT.SUPPORTED_NETWORKS.indexOf(providerType) !== -1) {
-			this.props.navigation.navigate('PaymentChannelHome');
-			this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_INSTAPAY);
-		} else {
-			Alert.alert(
-				strings('experimental_settings.network_not_supported'),
-				strings('experimental_settings.switch_network')
-			);
-		}
-		this.hideDrawer();
-	};
-
 	showWallet = () => {
 		this.props.navigation.navigate('WalletTabHome');
 		this.hideDrawer();
-		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_WALLET);
+		this.trackEvent(ANALYTICS_EVENTS_V2.WALLET_OPENED);
 	};
 
 	goToTransactionHistory = () => {
@@ -691,8 +664,7 @@ class DrawerView extends PureComponent {
 			network: {
 				provider: { type, rpcTarget }
 			},
-			frequentRpcList,
-			paymentChannelsEnabled
+			frequentRpcList
 		} = this.props;
 		let blockExplorer, blockExplorerName;
 		if (type === RPC) {
@@ -714,12 +686,6 @@ class DrawerView extends PureComponent {
 					selectedIcon: this.getSelectedImageIcon('wallet'),
 					action: this.showWallet,
 					routeNames: ['WalletView', 'Asset', 'AddAsset', 'Collectible', 'CollectibleView']
-				},
-				paymentChannelsEnabled && {
-					name: strings('drawer.insta_pay'),
-					icon: <Image source={instapay_logo} style={styles.instapayLogo} />,
-					selectedIcon: <Image source={instapay_logo_selected} style={styles.instapayLogo} />,
-					action: this.goToPaymentChannel
 				},
 				{
 					name: strings('drawer.transaction_history'),
@@ -1097,8 +1063,6 @@ const mapStateToProps = state => ({
 	passwordSet: state.user.passwordSet,
 	wizard: state.wizard,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	providerType: state.engine.backgroundState.NetworkController.provider.type,
-	paymentChannelsEnabled: state.settings.paymentChannelsEnabled,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	collectibles: state.engine.backgroundState.AssetsController.collectibles,

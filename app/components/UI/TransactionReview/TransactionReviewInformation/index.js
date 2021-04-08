@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
 		marginHorizontal: 24,
 		marginTop: 12,
 		paddingHorizontal: 10,
-		paddingVertical: 8,
+		paddingVertical: 6,
 		backgroundColor: colors.red000,
 		borderColor: colors.red,
 		borderRadius: 8,
@@ -312,7 +312,7 @@ class TransactionReviewInformation extends PureComponent {
 			primaryCurrency,
 			toggleDataView,
 			ready,
-			transaction: { gas, gasPrice },
+			transaction: { gas, gasPrice, warningGasPriceHigh },
 			currentCurrency,
 			conversionRate,
 			ticker,
@@ -344,6 +344,7 @@ class TransactionReviewInformation extends PureComponent {
 					gasEstimationReady={ready}
 					edit={this.edit}
 					over={over}
+					warningGasPriceHigh={warningGasPriceHigh}
 				/>
 				{!!amountError && (
 					<View style={styles.overviewAlert}>
@@ -362,6 +363,11 @@ class TransactionReviewInformation extends PureComponent {
 								<Text style={[styles.error, styles.underline]}>{errorLinkText}</Text>
 							)}
 						</TouchableOpacity>
+					</View>
+				)}
+				{!!warningGasPriceHigh && (
+					<View style={styles.errorWrapper}>
+						<Text style={styles.error}>{warningGasPriceHigh}</Text>
 					</View>
 				)}
 				{!over && (

@@ -136,6 +136,7 @@ function TransactionsEditionModal({
 							mode={'edit'}
 							customTransaction={selectedQuote.trade}
 							hideSlow
+							view={'Swaps'}
 						/>
 					</AnimatedTransactionModal>
 				)}
