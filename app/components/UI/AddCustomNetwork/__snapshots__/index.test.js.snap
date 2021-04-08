@@ -16,6 +16,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
   <ScrollView>
     <Connect(TransactionHeader) />
     <Text
+      black={false}
       bold={true}
       centered={true}
       disclaimer={false}
@@ -24,6 +25,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
       modal={false}
       noMargin={true}
       primary={true}
+      red={false}
       reset={false}
       right={false}
       small={false}
@@ -43,6 +45,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
       Allow this site to add a network?
     </Text>
     <Text
+      black={false}
       bold={false}
       centered={true}
       disclaimer={false}
@@ -51,6 +54,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
       modal={false}
       noMargin={true}
       primary={true}
+      red={false}
       reset={false}
       right={false}
       small={false}
@@ -69,6 +73,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
       This allows this network to be used within MetaMask.
     </Text>
     <Text
+      black={false}
       bold={false}
       centered={true}
       disclaimer={false}
@@ -77,6 +82,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
       modal={false}
       noMargin={true}
       primary={true}
+      red={false}
       reset={false}
       right={false}
       small={false}
@@ -93,6 +99,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
       upper={false}
     >
       <Text
+        black={false}
         bold={true}
         centered={false}
         disclaimer={false}
@@ -101,6 +108,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
         modal={false}
         noMargin={true}
         primary={true}
+        red={false}
         reset={false}
         right={false}
         small={false}
@@ -110,9 +118,10 @@ exports[`AddCustomNetwork should render correctly 1`] = `
       >
         MetaMask does not verify custom networks or their security.
       </Text>
-
+       
       Learn about
       <Text
+        black={false}
         bold={false}
         centered={false}
         disclaimer={false}
@@ -122,6 +131,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
         noMargin={true}
         onPress={[Function]}
         primary={true}
+        red={false}
         reset={false}
         right={false}
         small={false}
@@ -129,7 +139,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
         underline={false}
         upper={false}
       >
-
+         
         scams and network security risks
       </Text>
       .
@@ -154,6 +164,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
         }
       >
         <Text
+          black={false}
           bold={false}
           centered={false}
           disclaimer={false}
@@ -162,6 +173,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           modal={false}
           noMargin={true}
           primary={true}
+          red={false}
           reset={false}
           right={false}
           small={true}
@@ -177,6 +189,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           Display name
         </Text>
         <Text
+          black={false}
           bold={true}
           centered={false}
           disclaimer={false}
@@ -185,6 +198,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           modal={false}
           noMargin={true}
           primary={true}
+          red={false}
           reset={false}
           right={true}
           small={false}
@@ -208,6 +222,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
         }
       >
         <Text
+          black={false}
           bold={false}
           centered={false}
           disclaimer={false}
@@ -216,6 +231,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           modal={false}
           noMargin={true}
           primary={true}
+          red={false}
           reset={false}
           right={false}
           small={true}
@@ -231,6 +247,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           Chain ID
         </Text>
         <Text
+          black={false}
           bold={true}
           centered={false}
           disclaimer={false}
@@ -239,6 +256,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           modal={false}
           noMargin={true}
           primary={true}
+          red={false}
           reset={false}
           right={true}
           small={false}
@@ -261,6 +279,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
         }
       >
         <Text
+          black={false}
           bold={false}
           centered={false}
           disclaimer={false}
@@ -269,6 +288,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           modal={false}
           noMargin={true}
           primary={true}
+          red={false}
           reset={false}
           right={false}
           small={true}
@@ -284,6 +304,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           Network URL
         </Text>
         <Text
+          black={false}
           bold={true}
           centered={false}
           disclaimer={false}
@@ -292,6 +313,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           modal={false}
           noMargin={true}
           primary={true}
+          red={false}
           reset={false}
           right={true}
           small={false}
@@ -318,6 +340,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
     >
       <View>
         <Text
+          black={false}
           bold={true}
           centered={true}
           disclaimer={false}
@@ -326,6 +349,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           modal={false}
           noMargin={true}
           primary={false}
+          red={false}
           reset={false}
           right={false}
           small={false}
