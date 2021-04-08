@@ -313,9 +313,9 @@
 		"description_content_2": "Gagawin ng MetaMask ang sumusunod...",
 		"action_description_1": "Palagi kang papayagang mag-opt out sa pamamagitan ng Mga Setting",
 		"action_description_2": "Magpapadala ng mga anonymous na kaganapang pag-click at pagtingin sa page",
-		"action_description_3": "Huwag kailanman mangolekta ng mga key, address, transaksyon, balanse, hash, o anumang personal na impormasyon",
-		"action_description_4": "Huwag kailanman kolektahin ang iyong IP address",
-		"action_description_5": "Huwag kailanman magbenta ng data para pagkakitaan. Kahit kailan!"
+		"action_description_4": "Huwag kailanman mangolekta ng mga key, address, transaksyon, balanse, hash, o anumang personal na impormasyon",
+		"action_description_5": "Huwag kailanman kolektahin ang iyong IP address",
+		"action_description_6": "Huwag kailanman magbenta ng data para pagkakitaan. Kahit kailan!"
 	},
 	"token": {
 		"token_symbol": "Simbolo ng Token",
@@ -618,7 +618,7 @@
 		"could_not_resolve_ens": "Hindi maresolba ang ENS",
 		"asset": "Asset",
 		"balance": "Balanse",
-		"not_enough_for_gas": "Mayroon kang 0 ETH sa iyong account para ipambayad sa mga bayarin sa transaksyon. Bumili ng ETH o mag-deposit mula sa ibang account.",
+		"not_enough_for_gas": "Mayroon kang 0 {{ticker}} sa iyong account para ipambayad sa mga bayarin sa transaksyon. Bumili ng {{ticker}} o mag-deposit mula sa ibang account.",
 		"send": "Magpadala",
 		"confirmed": "Nakumpirma",
 		"pending": "Nakabinbin",

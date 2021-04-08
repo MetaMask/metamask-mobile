@@ -313,9 +313,9 @@
 		"description_content_2": "MetaMask akan...",
 		"action_description_1": "Selalu izinkan Anda untuk menyisih melalui Pengaturan",
 		"action_description_2": "Kirim kejadian pageview & klik anonim",
-		"action_description_3": "Jangan mengumpulkan kunci, alamat, transaksi, saldo, hash, atau informasi pribadi lainnya",
-		"action_description_4": "Jangan mengumpulkan alamat IP Anda",
-		"action_description_5": "Jangan menjual data untuk mendapatkan keuntungan. Selamanya!"
+		"action_description_4": "Jangan mengumpulkan kunci, alamat, transaksi, saldo, hash, atau informasi pribadi lainnya",
+		"action_description_5": "Jangan mengumpulkan alamat IP Anda",
+		"action_description_6": "Jangan menjual data untuk mendapatkan keuntungan. Selamanya!"
 	},
 	"token": {
 		"token_symbol": "Simbol Token",
@@ -618,7 +618,7 @@
 		"could_not_resolve_ens": "Tidak dapat menyelesaikan ENS",
 		"asset": "Aset",
 		"balance": "Saldo",
-		"not_enough_for_gas": "Anda memiliki 0 ETH di akun Anda untuk membayar biaya transaksi. Beli beberapa ETH atau deposit dari akun lain.",
+		"not_enough_for_gas": "Anda memiliki 0 {{ticker}} di akun Anda untuk membayar biaya transaksi. Beli beberapa {{ticker}} atau deposit dari akun lain.",
 		"send": "Kirim",
 		"confirmed": "Dikonfirmasikan",
 		"pending": "Tunda",

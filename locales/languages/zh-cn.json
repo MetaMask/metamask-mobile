@@ -313,9 +313,9 @@
 		"description_content_2": "MetaMask...",
 		"action_description_1": "始终允许您通过“设置”选择退出",
 		"action_description_2": "发送匿名化点击和页面浏览事件",
-		"action_description_3": "决不收集密钥、地址、交易、余额、哈希或任何个人信息",
-		"action_description_4": "决不收集您的 IP 地址",
-		"action_description_5": "决不出售数据牟利。绝对不会！"
+		"action_description_4": "决不收集密钥、地址、交易、余额、哈希或任何个人信息",
+		"action_description_5": "决不收集您的 IP 地址",
+		"action_description_6": "决不出售数据牟利。绝对不会！"
 	},
 	"token": {
 		"token_symbol": "代币符号",
@@ -618,7 +618,7 @@
 		"could_not_resolve_ens": "无法解析 ENS",
 		"asset": "资产",
 		"balance": "余额",
-		"not_enough_for_gas": "您的账户中有 0 ETH 可用于支付交易费。购买一些 ETH 或从其他账户存入。",
+		"not_enough_for_gas": "您的账户中有 0 {{ticker}} 可用于支付交易费。购买一些 {{ticker}} 或从其他账户存入。",
 		"send": "发送",
 		"confirmed": "已确认",
 		"pending": "待处理",
