@@ -19,6 +19,7 @@ exports[`ReceiveRequest should render correctly 1`] = `
     }
   >
     <Text
+      black={false}
       bold={false}
       centered={false}
       disclaimer={false}
@@ -26,6 +27,7 @@ exports[`ReceiveRequest should render correctly 1`] = `
       link={false}
       modal={false}
       primary={false}
+      red={false}
       reset={false}
       right={false}
       small={false}
@@ -59,6 +61,7 @@ exports[`ReceiveRequest should render correctly 1`] = `
       <Component />
     </ModalHandler>
     <Text
+      black={false}
       bold={false}
       centered={false}
       disclaimer={false}
@@ -66,6 +69,7 @@ exports[`ReceiveRequest should render correctly 1`] = `
       link={false}
       modal={false}
       primary={false}
+      red={false}
       reset={false}
       right={false}
       small={false}
@@ -91,6 +95,7 @@ exports[`ReceiveRequest should render correctly 1`] = `
       testID="account-address"
     >
       <Text
+        black={false}
         bold={false}
         centered={false}
         disclaimer={false}
@@ -98,6 +103,7 @@ exports[`ReceiveRequest should render correctly 1`] = `
         link={false}
         modal={false}
         primary={false}
+        red={false}
         reset={false}
         right={false}
         small={false}
@@ -111,6 +117,7 @@ exports[`ReceiveRequest should render correctly 1`] = `
         />
       </Text>
       <Text
+        black={false}
         bold={false}
         centered={false}
         disclaimer={false}
@@ -118,6 +125,7 @@ exports[`ReceiveRequest should render correctly 1`] = `
         link={false}
         modal={false}
         primary={false}
+        red={false}
         reset={false}
         right={false}
         small={true}

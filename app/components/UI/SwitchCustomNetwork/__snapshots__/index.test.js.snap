@@ -14,6 +14,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
   }
 >
   <Text
+    black={false}
     bold={true}
     centered={true}
     disclaimer={false}
@@ -22,6 +23,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
     modal={false}
     noMargin={true}
     primary={true}
+    red={false}
     reset={false}
     right={false}
     small={false}
@@ -41,6 +43,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
     New network added
   </Text>
   <Text
+    black={false}
     bold={false}
     centered={false}
     disclaimer={false}
@@ -49,6 +52,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
     modal={false}
     noMargin={true}
     primary={true}
+    red={false}
     reset={false}
     right={false}
     small={false}
@@ -66,6 +70,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
     upper={false}
   >
     <Text
+      black={false}
       bold={false}
       centered={false}
       disclaimer={false}
@@ -73,6 +78,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
       link={false}
       modal={false}
       primary={false}
+      red={false}
       reset={false}
       right={false}
       small={false}
@@ -81,6 +87,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
       upper={false}
     >
       <Text
+        black={false}
         bold={true}
         centered={false}
         disclaimer={false}
@@ -89,6 +96,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
         modal={false}
         noMargin={true}
         primary={true}
+        red={false}
         reset={false}
         right={false}
         small={false}
@@ -99,6 +107,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
         ""
       </Text>
       <Text
+        black={false}
         bold={false}
         centered={false}
         disclaimer={false}
@@ -107,6 +116,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
         modal={false}
         noMargin={true}
         primary={false}
+        red={false}
         reset={false}
         right={false}
         small={false}

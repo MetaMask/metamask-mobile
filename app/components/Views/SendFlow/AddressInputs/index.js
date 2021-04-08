@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, TextInput, TouchableOpacity } from 'react-native';
 import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -7,6 +7,8 @@ import PropTypes from 'prop-types';
 import Identicon from '../../../UI/Identicon';
 import { renderShortAddress } from '../../../../util/address';
 import { strings } from '../../../../../locales/i18n';
+import Text from '../../../Base/Text';
+import { hasZeroWidthPoints } from '../../../../util/validators';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -45,7 +47,15 @@ const styles = StyleSheet.create({
 	addressToInformation: {
 		flex: 1,
 		flexDirection: 'row',
-		alignItems: 'center'
+		alignItems: 'center',
+		position: 'relative'
+	},
+	exclamation: {
+		backgroundColor: colors.white,
+		borderRadius: 12,
+		position: 'absolute',
+		bottom: 8,
+		left: 20
 	},
 	address: {
 		flexDirection: 'column',
@@ -119,6 +129,43 @@ const styles = StyleSheet.create({
 	}
 });
 
+const AddressName = ({ toAddressName, confusableCollection = [] }) => {
+	if (confusableCollection.length) {
+		const Texts = toAddressName.split('').map((char, index) => {
+			// if text has a confusable highlight it red
+			if (confusableCollection.includes(char)) {
+				// if the confusable is zero width, replace it with `?`
+				const replacement = hasZeroWidthPoints(char) ? '?' : char;
+				return (
+					<Text red key={index}>
+						{replacement}
+					</Text>
+				);
+			}
+			return (
+				<Text black key={index}>
+					{char}
+				</Text>
+			);
+		});
+		return (
+			<Text style={styles.textAddress} numberOfLines={1}>
+				{Texts}
+			</Text>
+		);
+	}
+	return (
+		<Text style={styles.textAddress} numberOfLines={1}>
+			{toAddressName}
+		</Text>
+	);
+};
+
+AddressName.propTypes = {
+	toAddressName: PropTypes.string,
+	confusableCollection: PropTypes.array
+};
+
 export const AddressTo = props => {
 	const {
 		addressToReady,
@@ -132,7 +179,9 @@ export const AddressTo = props => {
 		onInputFocus,
 		onSubmit,
 		onInputBlur,
-		inputWidth
+		inputWidth,
+		confusableCollection,
+		displayExclamation
 	} = props;
 	return (
 		<View style={styles.wrapper}>
@@ -173,12 +222,18 @@ export const AddressTo = props => {
 				<View style={[styles.selectWrapper, highlighted ? styles.borderHighlighted : styles.borderOpaque]}>
 					<View style={styles.addressToInformation}>
 						<Identicon address={toSelectedAddress} diameter={30} />
+						{displayExclamation && (
+							<View style={styles.exclamation}>
+								<FontAwesome color={colors.red} name="exclamation-circle" size={14} />
+							</View>
+						)}
 						<View style={styles.toInputWrapper}>
 							<View style={[styles.address, styles.checkAddress]}>
 								{toAddressName && (
-									<Text style={styles.textAddress} numberOfLines={1}>
-										{toAddressName}
-									</Text>
+									<AddressName
+										toAddressName={toAddressName}
+										confusableCollection={confusableCollection}
+									/>
 								)}
 								<View style={styles.addressWrapper}>
 									<Text
@@ -258,7 +313,15 @@ AddressTo.propTypes = {
 	 * Input width to solve android paste bug
 	 * https://github.com/facebook/react-native/issues/9958
 	 */
-	inputWidth: PropTypes.object
+	inputWidth: PropTypes.object,
+	/**
+	 * Array of confusables
+	 */
+	confusableCollection: PropTypes.array,
+	/**
+	 * Display Exclamation Icon
+	 */
+	displayExclamation: PropTypes.bool
 };
 
 export const AddressFrom = props => {

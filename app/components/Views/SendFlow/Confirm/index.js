@@ -6,7 +6,6 @@ import {
 	SafeAreaView,
 	View,
 	Alert,
-	Text,
 	ScrollView,
 	TouchableOpacity,
 	ActivityIndicator
@@ -54,6 +53,9 @@ import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { capitalize } from '../../../../util/format';
 import { isMainNet, getNetworkName } from '../../../../util/networks';
+import { collectConfusables } from '../../../../util/validators';
+import Text from '../../../Base/Text';
+import InfoModal from '../../../UI/Swaps/components/InfoModal';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 
 const EDIT = 'edit';
@@ -209,6 +211,9 @@ const styles = StyleSheet.create({
 	over: {
 		color: colors.red,
 		...fontStyles.bold
+	},
+	text: {
+		lineHeight: 20
 	}
 });
 
@@ -295,6 +300,7 @@ class Confirm extends PureComponent {
 	};
 
 	state = {
+		confusableCollection: [],
 		gasSpeedSelected: 'average',
 		gasEstimationReady: false,
 		customGas: undefined,
@@ -313,9 +319,19 @@ class Confirm extends PureComponent {
 		transactionTotalAmountFiat: undefined,
 		errorMessage: undefined,
 		fromAccountModalVisible: false,
+		paymentChannelBalance: this.props.selectedAsset.assetBalance,
+		paymentChannelReady: false,
+		warningModalVisible: false,
 		mode: REVIEW,
 		over: false
 	};
+
+	handleConfusables = async () => {
+		const { transactionToName } = this.props.transactionState;
+		await this.setState({ confusableCollection: collectConfusables(transactionToName) });
+	};
+
+	toggleWarningModal = () => this.setState(state => ({ warningModalVisible: !state.warningModalVisible }));
 
 	getAnalyticsParams = () => {
 		const { selectedAsset } = this.props;
@@ -341,6 +357,7 @@ class Confirm extends PureComponent {
 
 		const { navigation, providerType } = this.props;
 		await this.handleFetchBasicEstimates();
+		await this.handleConfusables();
 		navigation.setParams({ providerType });
 		this.parseTransactionData();
 		this.prepareTransaction();
@@ -877,9 +894,31 @@ class Confirm extends PureComponent {
 			errorMessage,
 			transactionConfirmed,
 			warningGasPriceHigh,
+			confusableCollection,
 			mode,
-			over
+			over,
+			warningModalVisible
 		} = this.state;
+
+		const AdressToComponent = () => (
+			<AddressTo
+				addressToReady
+				toSelectedAddress={transactionTo}
+				toAddressName={transactionToName}
+				onToSelectedAddressChange={this.onToSelectedAddressChange}
+				confusableCollection={confusableCollection}
+				displayExclamation={!!confusableCollection.length}
+			/>
+		);
+
+		const AdressToComponentWrap = () =>
+			confusableCollection.length ? (
+				<TouchableOpacity onPress={this.toggleWarningModal}>
+					<AdressToComponent />
+				</TouchableOpacity>
+			) : (
+				<AdressToComponent />
+			);
 
 		const is_main_net = isMainNet(network);
 		const errorPress = is_main_net ? this.buyEth : this.gotoFaucet;
@@ -896,13 +935,15 @@ class Confirm extends PureComponent {
 						fromAccountName={fromAccountName}
 						fromAccountBalance={fromAccountBalance}
 					/>
-					<AddressTo
-						addressToReady
-						toSelectedAddress={transactionTo}
-						toAddressName={transactionToName}
-						onToSelectedAddressChange={this.onToSelectedAddressChange}
-					/>
+					<AdressToComponentWrap />
 				</View>
+
+				<InfoModal
+					isVisible={warningModalVisible}
+					toggleModal={this.toggleWarningModal}
+					title={strings('transaction.confusable_title')}
+					body={<Text style={styles.text}>{strings('transaction.confusable_msg')}</Text>}
+				/>
 
 				<ScrollView style={baseStyles.flexGrow} ref={this.setScrollViewRef}>
 					{!selectedAsset.tokenId ? (

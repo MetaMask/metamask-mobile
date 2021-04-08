@@ -25,6 +25,7 @@ exports[`TokenSelectButton component should Render correctly 1`] = `
       <TokenIcon />
     </View>
     <Text
+      black={false}
       bold={false}
       centered={false}
       disclaimer={false}
@@ -32,6 +33,7 @@ exports[`TokenSelectButton component should Render correctly 1`] = `
       link={false}
       modal={false}
       primary={true}
+      red={false}
       reset={false}
       right={false}
       small={false}
@@ -85,6 +87,7 @@ exports[`TokenSelectButton component should Render correctly 2`] = `
       />
     </View>
     <Text
+      black={false}
       bold={false}
       centered={false}
       disclaimer={false}
@@ -92,6 +95,7 @@ exports[`TokenSelectButton component should Render correctly 2`] = `
       link={false}
       modal={false}
       primary={true}
+      red={false}
       reset={false}
       right={false}
       small={false}
@@ -145,6 +149,7 @@ exports[`TokenSelectButton component should Render correctly 3`] = `
       />
     </View>
     <Text
+      black={false}
       bold={false}
       centered={false}
       disclaimer={false}
@@ -152,6 +157,7 @@ exports[`TokenSelectButton component should Render correctly 3`] = `
       link={false}
       modal={false}
       primary={true}
+      red={false}
       reset={false}
       right={false}
       small={false}
@@ -206,6 +212,7 @@ exports[`TokenSelectButton component should Render correctly 4`] = `
       />
     </View>
     <Text
+      black={false}
       bold={false}
       centered={false}
       disclaimer={false}
@@ -213,6 +220,7 @@ exports[`TokenSelectButton component should Render correctly 4`] = `
       link={false}
       modal={false}
       primary={true}
+      red={false}
       reset={false}
       right={false}
       small={false}
@@ -269,6 +277,7 @@ exports[`TokenSelectButton component should Render correctly 5`] = `
       />
     </View>
     <Text
+      black={false}
       bold={false}
       centered={false}
       disclaimer={false}
@@ -276,6 +285,7 @@ exports[`TokenSelectButton component should Render correctly 5`] = `
       link={false}
       modal={false}
       primary={true}
+      red={false}
       reset={false}
       right={false}
       small={false}
