@@ -1355,6 +1355,8 @@
 		"verify_on": "Always verify the token address on",
 		"verify_address_on": "Verify token address on",
 		"only_verified_on": "{{symbol}} is only verified on {{occurances}} source.",
+		"block_explorer": "block explorer",
+		"a_block_explorer": "a block explorer",
 		"token_verification": "Token verification",
 		"token_multiple": "Multiple tokens can use the same name and symbol.",
 		"token_check": "Check",

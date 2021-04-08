@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import etherscanLink from '@metamask/etherscan-link';
 import { RPC } from '../../../../constants/network';
 import { findBlockExplorerForRpc, getBlockExplorerName } from '../../../../util/networks';
+import { strings } from '../../../../../locales/i18n';
 
 function useBlockExplorer(provider, frequentRpcList) {
 	const [explorer, setExplorer] = useState({ name: '', value: null, isValid: false, isRPC: false });
@@ -17,8 +18,8 @@ function useBlockExplorer(provider, frequentRpcList) {
 				if (!['http:', 'https:'].includes(url.protocol)) {
 					throw new Error('Block explorer URL is not a valid http(s) protocol');
 				}
-				// TODO(swaps-bsc): Use default block explorer string
-				const name = getBlockExplorerName(blockExplorer) || 'Block Explorer';
+
+				const name = getBlockExplorerName(blockExplorer) || strings('swaps.block_explorer');
 				setExplorer({ name, value: blockExplorer, isValid: true, isRPC: true });
 			} catch {
 				setExplorer({ name: '', value: null, isValid: false, isRPC: false });

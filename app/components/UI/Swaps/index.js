@@ -30,7 +30,6 @@ import Device from '../../../util/Device';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 
-import { getEtherscanAddressUrl } from '../../../util/etherscan';
 import { strings } from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
 import { setQuotesNavigationsParams, isSwapsNativeAsset } from './utils';
@@ -47,6 +46,7 @@ import TokenSelectButton from './components/TokenSelectButton';
 import TokenSelectModal from './components/TokenSelectModal';
 import SlippageModal from './components/SlippageModal';
 import useBalance from './utils/useBalance';
+import useBlockExplorer from './utils/useBlockExplorer';
 import InfoModal from './components/InfoModal';
 
 const styles = StyleSheet.create({
@@ -139,6 +139,8 @@ function SwapsAmountView({
 	accounts,
 	selectedAddress,
 	chainId,
+	provider,
+	frequentRpcList,
 	balances,
 	tokensWithBalance,
 	tokensTopAssets,
@@ -150,6 +152,7 @@ function SwapsAmountView({
 	setLiveness
 }) {
 	const navigation = useContext(NavigationContext);
+	const explorer = useBlockExplorer(provider, frequentRpcList);
 	const initialSource = navigation.getParam('sourceToken', SWAPS_NATIVE_ADDRESS);
 	const [amount, setAmount] = useState('0');
 	const [slippage, setSlippage] = useState(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
@@ -407,10 +410,10 @@ function SwapsAmountView({
 		}
 		hideTokenVerificationModal();
 		navigation.navigate('Webview', {
-			url: getEtherscanAddressUrl('mainnet', destinationToken.address),
+			url: explorer.token(destinationToken.address),
 			title: strings('swaps.verify')
 		});
-	}, [destinationToken, hideTokenVerificationModal, navigation]);
+	}, [explorer, destinationToken, hideTokenVerificationModal, navigation]);
 
 	const handleAmountPress = useCallback(() => keypadViewRef?.current?.shake?.(), []);
 
@@ -533,15 +536,22 @@ function SwapsAmountView({
 				<View>
 					{Boolean(destinationToken) && !isSwapsNativeAsset(destinationToken) ? (
 						destinationTokenHasEnoughOcurrances ? (
-							<TouchableOpacity onPress={handleVerifyPress} style={styles.verifyToken}>
+							<TouchableOpacity
+								onPress={explorer.isValid ? handleVerifyPress : undefined}
+								style={styles.verifyToken}
+							>
 								<Text small centered>
 									<Text reset bold>
 										{strings('swaps.verified_on_sources', { sources: destinationToken.occurances })}
 									</Text>
 									{` ${strings('swaps.verify_on')} `}
-									<Text reset link>
-										Etherscan
-									</Text>
+									{explorer.isValid ? (
+										<Text reset link>
+											{explorer.name}
+										</Text>
+									) : (
+										strings('swaps.a_block_explorer')
+									)}
 									.
 								</Text>
 							</TouchableOpacity>
@@ -554,7 +564,7 @@ function SwapsAmountView({
 								onInfoPress={toggleTokenVerificationModal}
 							>
 								{textStyle => (
-									<TouchableOpacity onPress={handleVerifyPress}>
+									<TouchableOpacity onPress={explorer.isValid ? handleVerifyPress : undefined}>
 										<Text style={textStyle} bold centered>
 											{strings('swaps.only_verified_on', {
 												symbol: destinationToken.symbol,
@@ -563,9 +573,13 @@ function SwapsAmountView({
 										</Text>
 										<Text style={textStyle} centered>
 											{`${strings('swaps.verify_address_on')} `}
-											<Text reset link>
-												Etherscan
-											</Text>
+											{explorer.isValid ? (
+												<Text reset link>
+													{explorer.name}
+												</Text>
+											) : (
+												strings('swaps.a_block_explorer')
+											)}
 											.
 										</Text>
 									</TouchableOpacity>
@@ -623,9 +637,13 @@ function SwapsAmountView({
 					<Text>
 						{strings('swaps.token_multiple')}
 						{` ${strings('swaps.token_check')} `}
-						<Text reset link onPress={handleVerifyPress}>
-							Etherscan
-						</Text>
+						{explorer.isValid ? (
+							<Text reset link onPress={handleVerifyPress}>
+								{explorer.name}
+							</Text>
+						) : (
+							strings('swaps.a_block_explorer')
+						)}
 						{` ${strings('swaps.token_to_verify')}`}
 					</Text>
 				}
@@ -679,9 +697,17 @@ SwapsAmountView.propTypes = {
 	 */
 	setHasOnboarded: PropTypes.func,
 	/**
+	 * Current Network provider
+	 */
+	provider: PropTypes.object,
+	/**
 	 * Chain Id
 	 */
 	chainId: PropTypes.string,
+	/**
+	 * Frequent RPC list from PreferencesController
+	 */
+	frequentRpcList: PropTypes.array,
 	/**
 	 * Function to set liveness
 	 */
@@ -696,6 +722,8 @@ const mapStateToProps = state => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	provider: state.engine.backgroundState.NetworkController.provider,
+	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	tokensWithBalance: swapsTokensWithBalanceSelector(state),
 	tokensTopAssets: swapsTopAssetsSelector(state),
