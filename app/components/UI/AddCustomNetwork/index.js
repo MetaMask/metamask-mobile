@@ -9,7 +9,6 @@ import Device from '../../../util/Device';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Alert from '../../Base/Alert';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
-import { withNavigation } from 'react-navigation';
 import Text from '../../Base/Text';
 
 const styles = StyleSheet.create({
@@ -122,7 +121,7 @@ const styles = StyleSheet.create({
 /**
  * Account access approval component
  */
-const AddCustomNetwork = ({ customNetworkInformation, currentPageInformation, navigation, onCancel, onConfirm }) => {
+const AddCustomNetwork = ({ customNetworkInformation, currentPageInformation, onCancel, onConfirm }) => {
 	const [viewDetails, setViewDetails] = useState(false);
 
 	/**
@@ -326,11 +325,7 @@ AddCustomNetwork.propTypes = {
 	/**
 	 * Object containing info of the network to add
 	 */
-	customNetworkInformation: PropTypes.object,
-	/**
-	 * Object that represents the navigator
-	 */
-	navigation: PropTypes.object
+	customNetworkInformation: PropTypes.object
 };
 
-export default withNavigation(AddCustomNetwork);
+export default AddCustomNetwork;

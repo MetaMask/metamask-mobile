@@ -74,6 +74,15 @@ export const getAllNetworks = () => NetworkListKeys.filter(name => name !== RPC)
 
 export const isMainNet = network => network?.provider?.type === MAINNET || network === String(1);
 
+export const getDecimalChainId = chainId => {
+	if (!chainId || typeof chainId !== 'string' || !chainId.startsWith('0x')) {
+		return chainId;
+	}
+	return parseInt(chainId, 16).toString(10);
+};
+
+export const isMainnetByChainId = chainId => getDecimalChainId(String(chainId)) === String(1);
+
 export const getNetworkName = id => NetworkListKeys.find(key => NetworkList[key].networkId === Number(id));
 
 export function getNetworkTypeById(id) {
