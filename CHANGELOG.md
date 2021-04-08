@@ -1,5 +1,27 @@
 # Changelog
 
+## Current Develop Branch
+
+## v2.1.0 - Apr 12 2021
+- [#2456](https://github.com/MetaMask/metamask-mobile/pull/2456): Analytics v2 (priority 1)
+- [#2408](https://github.com/MetaMask/metamask-mobile/pull/2408): Fix/gas estimations
+- [#2479](https://github.com/MetaMask/metamask-mobile/pull/2479): remove controllers tgz
+- [#2441](https://github.com/MetaMask/metamask-mobile/pull/2441): Improvement/assets by chainid
+- [#2442](https://github.com/MetaMask/metamask-mobile/pull/2442): Improvement/chain ticker
+- [#2372](https://github.com/MetaMask/metamask-mobile/pull/2372): Remove instapay
+- [#2467](https://github.com/MetaMask/metamask-mobile/pull/2467): Fix iOS build
+- [#2084](https://github.com/MetaMask/metamask-mobile/pull/2084): Migrate from AsyncStorage to FileStorage
+- [#2443](https://github.com/MetaMask/metamask-mobile/pull/2443): Update terms and privacy links
+- [#2318](https://github.com/MetaMask/metamask-mobile/pull/2318): Add custom network rpc API
+- [#2306](https://github.com/MetaMask/metamask-mobile/pull/2306): Feature/high gas warn
+- [#2463](https://github.com/MetaMask/metamask-mobile/pull/2463): update pods
+- [#2448](https://github.com/MetaMask/metamask-mobile/pull/2448): Add resolution for netmask
+- [#2445](https://github.com/MetaMask/metamask-mobile/pull/2445): Add resolution for y18n
+- [#2404](https://github.com/MetaMask/metamask-mobile/pull/2404): Bump react-native-branch from 5.0.0 to 5.0.1
+- [#2439](https://github.com/MetaMask/metamask-mobile/pull/2439): json-rpc-engine@6.1.0
+- [#2413](https://github.com/MetaMask/metamask-mobile/pull/2413): remove "git add" per husky warning
+- [#2431](https://github.com/MetaMask/metamask-mobile/pull/2431): Update BN import
+
 ## v2.0.1 - Mar 24 2021
 - [#2430](https://github.com/MetaMask/metamask-mobile/pull/2430): Fix/send to style
 - [#2426](https://github.com/MetaMask/metamask-mobile/pull/2426): bugfix/allow seedphrases when locked

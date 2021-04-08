@@ -41,12 +41,11 @@ import {
 import { getTicker, generateTransferData, getEther } from '../../../../util/transactions';
 import { util } from '@metamask/controllers';
 import ErrorMessage from '../ErrorMessage';
-import { fetchBasicGasEstimates, convertApiValueToGWEI } from '../../../../util/custom-gas';
+import { getGasPriceByChainId } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
 import CollectibleImage from '../../../UI/CollectibleImage';
 import collectiblesTransferInformation from '../../../../util/collectibles-transfer';
 import { strings } from '../../../../../locales/i18n';
-import TransactionTypes from '../../../../core/TransactionTypes';
 import Device from '../../../../util/Device';
 import { BN } from 'ethereumjs-util';
 import Analytics from '../../../../core/Analytics';
@@ -614,27 +613,15 @@ class Amount extends PureComponent {
 	 * Estimate transaction gas with information available
 	 */
 	estimateTransactionTotalGas = async () => {
-		const { TransactionController } = Engine.context;
 		const {
 			transaction: { from },
 			transactionTo
 		} = this.props.transactionState;
-		let estimation, basicGasEstimates;
-		try {
-			estimation = await TransactionController.estimateGas({
-				from,
-				to: transactionTo
-			});
-		} catch (e) {
-			estimation = { gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT };
-		}
-		try {
-			basicGasEstimates = await fetchBasicGasEstimates();
-		} catch (error) {
-			basicGasEstimates = { average: 20 };
-		}
-		const gas = hexToBN(estimation.gas);
-		const gasPrice = toWei(convertApiValueToGWEI(basicGasEstimates.average), 'gwei');
+		const { gas, gasPrice } = await getGasPriceByChainId({
+			from,
+			to: transactionTo
+		});
+
 		return gas.mul(gasPrice);
 	};
 

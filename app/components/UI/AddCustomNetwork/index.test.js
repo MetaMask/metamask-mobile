@@ -4,7 +4,7 @@ import { shallow } from 'enzyme';
 
 describe('AddCustomNetwork', () => {
 	it('should render correctly', () => {
-		const wrapper = shallow(<AddCustomNetwork />);
+		const wrapper = shallow(<AddCustomNetwork customNetworkInformation={{ chainName: '', chainId: '' }} />);
 		expect(wrapper).toMatchSnapshot();
 	});
 });
