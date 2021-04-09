@@ -50,16 +50,20 @@ export default class SearchTokenAutocomplete extends PureComponent {
 	};
 
 	getAnalyticsParams = () => {
-		const { NetworkController } = Engine.context;
-		const { chainId, type } = NetworkController?.state?.provider || {};
-		const { address, symbol } = this.state.selectedAsset || {};
-		return {
-			token_address: address,
-			token_symbol: symbol,
-			network_name: type,
-			chain_id: chainId,
-			source: 'Add token dropdown'
-		};
+		try {
+			const { NetworkController } = Engine.context;
+			const { chainId, type } = NetworkController?.state?.provider || {};
+			const { address, symbol } = this.state.selectedAsset || {};
+			return {
+				token_address: address,
+				token_symbol: symbol,
+				network_name: type,
+				chain_id: chainId,
+				source: 'Add token dropdown'
+			};
+		} catch (error) {
+			return {};
+		}
 	};
 
 	addToken = async () => {

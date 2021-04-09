@@ -33,7 +33,6 @@ export const ANALYTICS_EVENTS_V2 = {
 	NETWORK_ADDED: generateOpt('Network Added'),
 	NETWORK_REQUESTED: generateOpt('Network Requested'),
 	NETWORK_REQUEST_REJECTED: generateOpt('Network Request Rejected'),
-	NETWORK_SWITCH_REJECTED: generateOpt('Network Switch Rejected'),
 	// Send transaction
 	SEND_TRANSACTION_STARTED: generateOpt('Send Transaction Started'),
 	SEND_TRANSACTION_COMPLETED: generateOpt('Send Transaction Completed')

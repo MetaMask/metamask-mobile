@@ -67,18 +67,22 @@ export default class PersonalSign extends PureComponent {
 	};
 
 	getAnalyticsParams = () => {
-		const { currentPageInformation } = this.props;
-		const { NetworkController } = Engine.context;
-		const { chainId, type } = NetworkController?.state?.provider || {};
-		const url = new URL(currentPageInformation?.url);
+		try {
+			const { currentPageInformation } = this.props;
+			const { NetworkController } = Engine.context;
+			const { chainId, type } = NetworkController?.state?.provider || {};
+			const url = new URL(currentPageInformation?.url);
 
-		return {
-			dapp_host_name: url?.host,
-			dapp_url: currentPageInformation?.url,
-			network_name: type,
-			chain_id: chainId,
-			sign_type: 'personal'
-		};
+			return {
+				dapp_host_name: url?.host,
+				dapp_url: currentPageInformation?.url,
+				network_name: type,
+				chain_id: chainId,
+				sign_type: 'personal'
+			};
+		} catch (error) {
+			return {};
+		}
 	};
 
 	componentDidMount = () => {

@@ -512,16 +512,20 @@ class CustomGas extends PureComponent {
 	};
 
 	getAnalyticsParams = () => {
-		const { advancedCustomGas, chainId, networkType, view, analyticsParams } = this.props;
-		const { gasSpeedSelected } = this.state;
-		return {
-			...(analyticsParams || {}),
-			network_name: networkType,
-			chain_id: chainId,
-			function_type: view,
-			gas_mode: advancedCustomGas ? 'Advanced' : 'Basic',
-			speed_set: advancedCustomGas ? undefined : gasSpeedSelected
-		};
+		try {
+			const { advancedCustomGas, chainId, networkType, view, analyticsParams } = this.props;
+			const { gasSpeedSelected } = this.state;
+			return {
+				...(analyticsParams || {}),
+				network_name: networkType,
+				chain_id: chainId,
+				function_type: view,
+				gas_mode: advancedCustomGas ? 'Advanced' : 'Basic',
+				speed_set: advancedCustomGas ? undefined : gasSpeedSelected
+			};
+		} catch (error) {
+			return {};
+		}
 	};
 
 	//Handle gas fee selection when save button is pressed instead of everytime a change is made, otherwise cannot switch back to review mode if there is an error
