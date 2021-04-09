@@ -18,22 +18,30 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "prepublishOnly": "yarn lint && yarn build",
-    "lint": "eslint . --ext js,json,d.ts,ts",
-    "lint:fix": "yarn lint --fix",
+    "lint:eslint": "eslint . --cache --ext js,ts",
+    "lint:json": "prettier '**/*.json' --ignore-path .gitignore",
+    "lint": "yarn lint:eslint && yarn lint:json --check",
+    "lint:fix": "yarn lint:eslint --fix && yarn lint:json --write",
     "build": "tsc --project ."
   },
   "devDependencies": {
-    "@metamask/eslint-config": "^5.0.0",
+    "@metamask/eslint-config": "^6.0.0",
+    "@metamask/eslint-config-jest": "^6.0.0",
+    "@metamask/eslint-config-nodejs": "^6.0.0",
+    "@metamask/eslint-config-typescript": "^6.0.0",
     "@types/jest": "^26.0.13",
-    "@typescript-eslint/eslint-plugin": "^4.19.0",
-    "@typescript-eslint/parser": "^4.19.0",
-    "eslint": "^7.22.0",
+    "@typescript-eslint/eslint-plugin": "^4.21.0",
+    "@typescript-eslint/parser": "^4.21.0",
+    "eslint": "^7.23.0",
+    "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-import": "^2.22.1",
-    "eslint-plugin-json": "^2.1.2",
+    "eslint-plugin-jest": "^24.3.4",
     "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^3.3.1",
     "jest": "^26.4.2",
+    "prettier": "^2.2.1",
     "ts-jest": "^26.3.0",
     "ts-node": "^9.0.0",
-    "typescript": "^4.0.2"
+    "typescript": "^4.2.4"
   }
 }

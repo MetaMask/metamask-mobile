@@ -3,9 +3,7 @@
     "declaration": true,
     "esModuleInterop": true,
     "inlineSources": true,
-    "lib": [
-      "ES2017"
-    ],
+    "lib": ["ES2017"],
     "module": "ES6",
     "moduleResolution": "Node",
     "outDir": "dist",
@@ -14,7 +12,5 @@
     "strict": true,
     "target": "ES2017"
   },
-  "include": [
-    "./src/*.ts"
-  ]
+  "include": ["./src/*.ts"]
 }
