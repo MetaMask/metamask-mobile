@@ -6,11 +6,11 @@ import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Fuse from 'fuse.js';
 import { connect } from 'react-redux';
-import { swapsUtils } from '@metamask/swaps-controller';
 
 import Device from '../../../../util/Device';
 import { balanceToFiat, hexToBN, renderFromTokenMinimalUnit, renderFromWei, weiToFiat } from '../../../../util/number';
 import { safeToChecksumAddress } from '../../../../util/address';
+import { isSwapsNativeAsset } from '../utils';
 import { strings } from '../../../../../locales/i18n';
 import { colors, fontStyles } from '../../../../styles/common';
 
@@ -123,7 +123,7 @@ function TokenSelectModal({
 			const itemAddress = safeToChecksumAddress(item.address);
 
 			let balance, balanceFiat;
-			if (item.address === swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS) {
+			if (isSwapsNativeAsset(item)) {
 				balance = renderFromWei(accounts[selectedAddress] && accounts[selectedAddress].balance);
 				balanceFiat = weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency);
 			} else {

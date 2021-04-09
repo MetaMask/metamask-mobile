@@ -375,7 +375,7 @@ function SwapsQuotesView({
 		const hasEnoughTokenBalance = tokenBalanceBN.gte(sourceBN);
 		const missingTokenBalance = hasEnoughTokenBalance ? null : sourceBN.minus(tokenBalanceBN);
 
-		const ethAmountBN = sourceToken.address === swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS ? sourceBN : new BigNumber(0);
+		const ethAmountBN = isSwapsNativeAsset(sourceToken) ? sourceBN : new BigNumber(0);
 		const ethBalanceBN = new BigNumber(accounts[selectedAddress].balance);
 		const gasBN = toWei(selectedQuoteValue?.maxEthFee || '0');
 		const hasEnoughEthBalance = ethBalanceBN.gte(ethAmountBN.plus(gasBN));
@@ -1033,7 +1033,7 @@ function SwapsQuotesView({
 								? `${strings('swaps.more_to_complete')} `
 								: `${strings('swaps.more_gas_to_complete')} `}
 							{isMainNet(chainId) &&
-								(sourceToken.address === swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS ||
+								(isSwapsNativeAsset(sourceToken) ||
 									(hasEnoughTokenBalance && !hasEnoughEthBalance)) && (
 									<Text link underline small onPress={buyEth}>
 										{strings('swaps.buy_more_eth')}

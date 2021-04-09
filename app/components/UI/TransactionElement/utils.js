@@ -24,8 +24,9 @@ import {
 import contractMap from '@metamask/contract-metadata';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { swapsUtils } from '@metamask/swaps-controller';
+import { isSwapsNativeAsset } from '../Swaps/utils';
 
-const { NATIVE_SWAPS_TOKEN_ADDRESS, getSwapsContractAddress } = swapsUtils;
+const { getSwapsContractAddress } = swapsUtils;
 
 function calculateTotalGas(gas, gasPrice) {
 	const gasBN = hexToBN(gas);
@@ -604,16 +605,14 @@ function decodeSwapsTx(args) {
 		);
 	}
 
-	const sourceExchangeRate =
-		sourceToken.address === NATIVE_SWAPS_TOKEN_ADDRESS
-			? 1
-			: contractExchangeRates[safeToChecksumAddress(sourceToken.address)];
+	const sourceExchangeRate = isSwapsNativeAsset(sourceToken)
+		? 1
+		: contractExchangeRates[safeToChecksumAddress(sourceToken.address)];
 	const renderSourceTokenFiatNumber = balanceToFiatNumber(decimalSourceAmount, conversionRate, sourceExchangeRate);
 
-	const destinationExchangeRate =
-		destinationToken.address === NATIVE_SWAPS_TOKEN_ADDRESS
-			? 1
-			: contractExchangeRates[safeToChecksumAddress(destinationToken.address)];
+	const destinationExchangeRate = isSwapsNativeAsset(destinationToken)
+		? 1
+		: contractExchangeRates[safeToChecksumAddress(destinationToken.address)];
 	const renderDestinationTokenFiatNumber = balanceToFiatNumber(
 		decimalDestinationAmount,
 		conversionRate,
