@@ -77,9 +77,7 @@ class AddCustomCollectible extends PureComponent {
 		try {
 			const { NetworkController } = Engine.context;
 			const { chainId, type } = NetworkController?.state?.provider || {};
-			const { address } = this.state;
 			return {
-				collectible_address: { value: address, anonymous: true },
 				network_name: type,
 				chain_id: chainId
 			};
