@@ -127,11 +127,11 @@ const Main = props => {
 	const onUnapprovedMessage = (messageParams, type) => {
 		const { title: currentPageTitle, url: currentPageUrl } = messageParams.meta;
 		delete messageParams.meta;
-		setSignMessage(true);
 		setSignMessageParams(messageParams);
 		setSignType(type);
 		setCurrentPageTitle(currentPageTitle);
 		setCurrentPageUrl(currentPageUrl);
+		setSignMessage(true);
 	};
 
 	const connectionChangeHandler = useCallback(

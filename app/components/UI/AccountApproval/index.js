@@ -101,14 +101,18 @@ class AccountApproval extends PureComponent {
 	};
 
 	getAnalyticsParams = () => {
-		const { currentPageInformation, chainId, networkType } = this.props;
-		const url = new URL(currentPageInformation.url);
-		return {
-			dapp_host_name: url?.host,
-			dapp_url: currentPageInformation?.url,
-			network_name: networkType,
-			chain_id: chainId
-		};
+		try {
+			const { currentPageInformation, chainId, networkType } = this.props;
+			const url = new URL(currentPageInformation?.url);
+			return {
+				dapp_host_name: url?.host,
+				dapp_url: currentPageInformation?.url,
+				network_name: networkType,
+				chain_id: chainId
+			};
+		} catch (error) {
+			return {};
+		}
 	};
 
 	componentDidMount = () => {
