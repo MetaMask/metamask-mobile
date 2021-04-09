@@ -1961,7 +1961,7 @@ const mapStateToProps = state => ({
 	networkProvider: state.engine.backgroundState.NetworkController.provider,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	network: state.engine.backgroundState.NetworkController.network,
-	selectedAddress: state.engine.backgroundState.PreferencesController?.selectedAddress?.toLowerCase(),
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress?.toLowerCase(),
 	privacyMode: state.privacy.privacyMode,
 	searchEngine: state.settings.searchEngine,
 	whitelist: state.browser.whitelist,
