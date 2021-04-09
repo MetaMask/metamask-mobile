@@ -1022,7 +1022,7 @@ function SwapsQuotesView({
 						<Alert small type="info">
 							{`${strings('swaps.you_need')} `}
 							<Text reset bold>
-								{!hasEnoughTokenBalance && sourceToken.address !== swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS
+								{!hasEnoughTokenBalance && !isSwapsNativeAsset(sourceToken)
 									? `${renderFromTokenMinimalUnit(missingTokenBalance, sourceToken.decimals)} ${
 											sourceToken.symbol
 											// eslint-disable-next-line no-mixed-spaces-and-tabs
