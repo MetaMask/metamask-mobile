@@ -339,21 +339,29 @@ class Confirm extends PureComponent {
 	};
 
 	getAnalyticsParams = () => {
-		const { selectedAsset } = this.props;
-		const { NetworkController } = Engine.context;
-		const { chainId, type } = NetworkController?.state?.provider || {};
-		return {
-			active_currency: { value: selectedAsset?.symbol, anonymous: true },
-			network_name: type,
-			chain_id: chainId
-		};
+		try {
+			const { selectedAsset } = this.props;
+			const { NetworkController } = Engine.context;
+			const { chainId, type } = NetworkController?.state?.provider || {};
+			return {
+				active_currency: { value: selectedAsset?.symbol, anonymous: true },
+				network_name: type,
+				chain_id: chainId
+			};
+		} catch (error) {
+			return {};
+		}
 	};
 
 	getGasAnalyticsParams = () => {
-		const { selectedAsset } = this.props;
-		return {
-			active_currency: { value: selectedAsset.symbol, anonymous: true }
-		};
+		try {
+			const { selectedAsset } = this.props;
+			return {
+				active_currency: { value: selectedAsset.symbol, anonymous: true }
+			};
+		} catch (error) {
+			return {};
+		}
 	};
 
 	componentDidMount = async () => {
