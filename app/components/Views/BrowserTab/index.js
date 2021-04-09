@@ -418,7 +418,7 @@ export const BrowserTab = props => {
 				const { privacyMode, selectedAddress } = props;
 				const isEnabled = !privacyMode || approvedHosts[hostname];
 
-				return isEnabled && selectedAddress ? [selectedAddress.toLowerCase()] : [];
+				return isEnabled && selectedAddress ? [selectedAddress] : [];
 			};
 
 			const rpcMethods = {
@@ -464,7 +464,7 @@ export const BrowserTab = props => {
 						});
 
 						if (approved) {
-							res.result = selectedAddress ? [selectedAddress.toLowerCase()] : [];
+							res.result = selectedAddress ? [selectedAddress] : [];
 						} else {
 							throw ethErrors.provider.userRejectedRequest('User denied account authorization.');
 						}
@@ -1961,7 +1961,7 @@ const mapStateToProps = state => ({
 	networkProvider: state.engine.backgroundState.NetworkController.provider,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	network: state.engine.backgroundState.NetworkController.network,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	selectedAddress: state.engine.backgroundState.PreferencesController?.selectedAddress?.toLowerCase(),
 	privacyMode: state.privacy.privacyMode,
 	searchEngine: state.settings.searchEngine,
 	whitelist: state.browser.whitelist,
