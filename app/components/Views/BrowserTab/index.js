@@ -418,7 +418,7 @@ export const BrowserTab = props => {
 				const { privacyMode, selectedAddress } = props;
 				const isEnabled = !privacyMode || approvedHosts[hostname];
 
-				return isEnabled && selectedAddress ? [selectedAddress?.toLowerCase()] : [];
+				return isEnabled && selectedAddress ? [selectedAddress.toLowerCase()] : [];
 			};
 
 			const rpcMethods = {
@@ -464,7 +464,7 @@ export const BrowserTab = props => {
 						});
 
 						if (approved) {
-							res.result = [selectedAddress?.toLowerCase()];
+							res.result = selectedAddress ? [selectedAddress.toLowerCase()] : [];
 						} else {
 							throw ethErrors.provider.userRejectedRequest('User denied account authorization.');
 						}
