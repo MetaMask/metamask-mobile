@@ -1,4 +1,4 @@
-import { swapsUtils } from '@estebanmino/controllers';
+import { swapsUtils } from '@metamask/swaps-controller';
 import { useMemo } from 'react';
 import numberToBN from 'number-to-bn';
 import { renderFromTokenMinimalUnit, renderFromWei } from '../../../../util/number';

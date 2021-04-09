@@ -1,4 +1,4 @@
-import { swapsUtils } from '@estebanmino/controllers';
+import { swapsUtils } from '@metamask/swaps-controller';
 import { useCallback, useEffect, useState } from 'react';
 import { AppState } from 'react-native';
 import { connect } from 'react-redux';

@@ -15,7 +15,7 @@ import {
 	weiToFiat
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
-import { swapsUtils } from '@estebanmino/controllers';
+import { swapsUtils } from '@metamask/swaps-controller';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 
 import {

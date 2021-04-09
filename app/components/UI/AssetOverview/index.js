@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import { InteractionManager, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
-import { swapsUtils } from '@estebanmino/controllers';
+import { swapsUtils } from '@metamask/swaps-controller';
 import AssetIcon from '../AssetIcon';
 import Identicon from '../Identicon';
 import AssetActionButton from '../AssetActionButton';

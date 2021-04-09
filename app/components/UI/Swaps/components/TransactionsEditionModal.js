@@ -9,7 +9,7 @@ import CustomGas from '../../CustomGas';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import EditPermission from '../../ApproveTransactionReview/EditPermission';
 import { decodeApproveData, generateApproveData } from '../../../../util/transactions';
-import { swapsUtils } from '@estebanmino/controllers';
+import { swapsUtils } from '@metamask/swaps-controller';
 import AnimatedTransactionModal from '../../AnimatedTransactionModal';
 
 const EDIT_MODE_GAS = 'EDIT_MODE_GAS';

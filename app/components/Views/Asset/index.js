@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import { ActivityIndicator, InteractionManager, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { swapsUtils } from '@estebanmino/controllers/';
+import { swapsUtils } from '@metamask/swaps-controller/';
 
 import { colors } from '../../../styles/common';
 import AssetOverview from '../../UI/AssetOverview';

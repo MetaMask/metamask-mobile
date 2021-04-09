@@ -23,7 +23,7 @@ import {
 } from '../../../util/transactions';
 import contractMap from '@metamask/contract-metadata';
 import { toChecksumAddress } from 'ethereumjs-util';
-import { swapsUtils } from '@estebanmino/controllers';
+import { swapsUtils } from '@metamask/swaps-controller';
 
 const { NATIVE_SWAPS_TOKEN_ADDRESS, getSwapsContractAddress } = swapsUtils;
 
