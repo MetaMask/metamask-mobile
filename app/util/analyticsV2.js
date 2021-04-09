@@ -33,7 +33,6 @@ export const ANALYTICS_EVENTS_V2 = {
 	NETWORK_ADDED: generateOpt('Network Added'),
 	NETWORK_REQUESTED: generateOpt('Network Requested'),
 	NETWORK_REQUEST_REJECTED: generateOpt('Network Request Rejected'),
-	NETWORK_SWITCH_REJECTED: generateOpt('Network Switch Rejected'),
 	// Send transaction
 	SEND_TRANSACTION_STARTED: generateOpt('Send Transaction Started'),
 	SEND_TRANSACTION_COMPLETED: generateOpt('Send Transaction Completed')
@@ -58,11 +57,7 @@ export const trackEventV2 = (eventName, params) => {
 			for (const key in params) {
 				const property = params[key];
 
-				if (typeof property === 'string' || property instanceof String) {
-					// Non-anonymous properties - add to both
-					userParams[key] = property;
-					anonymousParams[key] = property;
-				} else if (typeof property === 'object') {
+				if (typeof property === 'object') {
 					if (property.anonymous) {
 						// Anonymous property - add only to anonymous params
 						anonymousParams[key] = property.value;
@@ -71,6 +66,10 @@ export const trackEventV2 = (eventName, params) => {
 						userParams[key] = property.value;
 						anonymousParams[key] = property.value;
 					}
+				} else {
+					// Non-anonymous properties - add to both
+					userParams[key] = property;
+					anonymousParams[key] = property;
 				}
 			}
 
