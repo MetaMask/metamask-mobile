@@ -3,6 +3,7 @@
 ## Current Develop Branch
 
 ## v2.1.0 - Apr 12 2021
+- [#2487](https://github.com/MetaMask/metamask-mobile/pull/2487): Fix/analytics v1 priority1
 - [#2456](https://github.com/MetaMask/metamask-mobile/pull/2456): Analytics v2 (priority 1)
 - [#2408](https://github.com/MetaMask/metamask-mobile/pull/2408): Fix/gas estimations
 - [#2479](https://github.com/MetaMask/metamask-mobile/pull/2479): remove controllers tgz

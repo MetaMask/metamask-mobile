@@ -106,24 +106,28 @@ class WatchAssetRequest extends PureComponent {
 	};
 
 	getAnalyticsParams = () => {
-		const {
-			suggestedAssetMeta: { asset },
-			currentPageInformation
-		} = this.props;
+		try {
+			const {
+				suggestedAssetMeta: { asset },
+				currentPageInformation
+			} = this.props;
 
-		const { NetworkController } = Engine.context;
-		const { chainId, type } = NetworkController?.state?.provider || {};
+			const { NetworkController } = Engine.context;
+			const { chainId, type } = NetworkController?.state?.provider || {};
 
-		const url = new URL(currentPageInformation?.url);
-		return {
-			token_address: asset?.address,
-			token_symbol: asset?.symbol,
-			dapp_host_name: url?.host,
-			dapp_url: currentPageInformation?.url,
-			network_name: type,
-			chain_id: chainId,
-			source: 'Dapp suggested (watchAsset)'
-		};
+			const url = new URL(currentPageInformation?.url);
+			return {
+				token_address: asset?.address,
+				token_symbol: asset?.symbol,
+				dapp_host_name: url?.host,
+				dapp_url: currentPageInformation?.url,
+				network_name: type,
+				chain_id: chainId,
+				source: 'Dapp suggested (watchAsset)'
+			};
+		} catch (error) {
+			return {};
+		}
 	};
 
 	componentWillUnmount = async () => {
