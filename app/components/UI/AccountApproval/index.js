@@ -102,7 +102,7 @@ class AccountApproval extends PureComponent {
 
 	getAnalyticsParams = () => {
 		const { currentPageInformation, chainId, networkType } = this.props;
-		const url = new URL(currentPageInformation.url);
+		const url = new URL(currentPageInformation?.url);
 		return {
 			dapp_host_name: url?.host,
 			dapp_url: currentPageInformation?.url,

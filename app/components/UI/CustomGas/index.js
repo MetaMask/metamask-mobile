@@ -518,9 +518,9 @@ class CustomGas extends PureComponent {
 			...(analyticsParams || {}),
 			network_name: networkType,
 			chain_id: chainId,
-			function_type: { value: view, anonymous: true },
-			gas_mode: { value: advancedCustomGas ? 'Advanced' : 'Basic', anonymous: true },
-			speed_set: { value: advancedCustomGas ? undefined : gasSpeedSelected, anonymous: true }
+			function_type: view,
+			gas_mode: advancedCustomGas ? 'Advanced' : 'Basic',
+			speed_set: advancedCustomGas ? undefined : gasSpeedSelected
 		};
 	};
 

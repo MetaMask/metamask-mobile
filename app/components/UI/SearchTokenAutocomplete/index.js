@@ -52,10 +52,10 @@ export default class SearchTokenAutocomplete extends PureComponent {
 	getAnalyticsParams = () => {
 		const { NetworkController } = Engine.context;
 		const { chainId, type } = NetworkController?.state?.provider || {};
-		const { address, symbol } = this.state.selectedAsset;
+		const { address, symbol } = this.state.selectedAsset || {};
 		return {
-			token_address: { value: address, anonymous: true },
-			token_symbol: { value: symbol, anonymous: true },
+			token_address: address,
+			token_symbol: symbol,
 			network_name: type,
 			chain_id: chainId,
 			source: 'Add token dropdown'

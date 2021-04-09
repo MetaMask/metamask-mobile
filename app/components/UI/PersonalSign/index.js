@@ -70,7 +70,8 @@ export default class PersonalSign extends PureComponent {
 		const { currentPageInformation } = this.props;
 		const { NetworkController } = Engine.context;
 		const { chainId, type } = NetworkController?.state?.provider || {};
-		const url = new URL(currentPageInformation.url);
+		const url = new URL(currentPageInformation?.url);
+
 		return {
 			dapp_host_name: url?.host,
 			dapp_url: currentPageInformation?.url,
@@ -118,14 +119,14 @@ export default class PersonalSign extends PureComponent {
 	};
 
 	cancelSignature = () => {
-		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_CANCELLED, this.getAnalyticsParams());
 		this.rejectMessage();
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_CANCELLED, this.getAnalyticsParams());
 		this.props.onCancel();
 	};
 
 	confirmSignature = () => {
-		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_COMPLETED, this.getAnalyticsParams());
 		this.signMessage();
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_COMPLETED, this.getAnalyticsParams());
 		this.props.onConfirm();
 	};
 

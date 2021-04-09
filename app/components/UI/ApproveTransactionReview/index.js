@@ -322,7 +322,7 @@ class ApproveTransactionReview extends PureComponent {
 		const { tokenSymbol, originalApproveAmount, encodedAmount } = this.state;
 		const { NetworkController } = Engine.context;
 		const { chainId, type } = NetworkController?.state?.provider || {};
-		const isDapp = !Object.values(AppConstants.DEEPLINKS).includes(transaction.origin);
+		const isDapp = !Object.values(AppConstants.DEEPLINKS).includes(transaction?.origin);
 		const unlimited = encodedAmount === 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
 		const params = {
 			dapp_host_name: transaction?.origin,

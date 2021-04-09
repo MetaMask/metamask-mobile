@@ -56,8 +56,8 @@ export default class AddCustomToken extends PureComponent {
 		const { chainId, type } = NetworkController?.state?.provider || {};
 		const { address, symbol } = this.state;
 		return {
-			token_address: { value: address, anonymous: true },
-			token_symbol: { value: symbol, anonymous: true },
+			token_address: address,
+			token_symbol: symbol,
 			network_name: type,
 			chain_id: chainId,
 			source: 'Custom token'
