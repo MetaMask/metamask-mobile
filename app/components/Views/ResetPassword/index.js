@@ -451,7 +451,7 @@ class ResetPassword extends PureComponent {
 		if (hdKeyring.accounts.includes(selectedAddress)) {
 			PreferencesController.setSelectedAddress(selectedAddress);
 		} else {
-			PreferencesController.setSelectedAddress(hdKeyring[0]);
+			PreferencesController.setSelectedAddress(hdKeyring.accounts[0]);
 		}
 	};
 
