@@ -52,16 +52,20 @@ export default class AddCustomToken extends PureComponent {
 	};
 
 	getAnalyticsParams = () => {
-		const { NetworkController } = Engine.context;
-		const { chainId, type } = NetworkController?.state?.provider || {};
-		const { address, symbol } = this.state;
-		return {
-			token_address: { value: address, anonymous: true },
-			token_symbol: { value: symbol, anonymous: true },
-			network_name: type,
-			chain_id: chainId,
-			source: 'Custom token'
-		};
+		try {
+			const { NetworkController } = Engine.context;
+			const { chainId, type } = NetworkController?.state?.provider || {};
+			const { address, symbol } = this.state;
+			return {
+				token_address: address,
+				token_symbol: symbol,
+				network_name: type,
+				chain_id: chainId,
+				source: 'Custom token'
+			};
+		} catch (error) {
+			return {};
+		}
 	};
 
 	addToken = async () => {
