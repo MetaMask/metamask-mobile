@@ -10,8 +10,8 @@ import Engine from './Engine';
 import { getAllNetworks } from '../util/networks';
 import Logger from '../util/Logger';
 import AppConstants from './AppConstants';
+import { createEngineStream } from 'json-rpc-middleware-stream';
 
-const createEngineStream = require('json-rpc-middleware-stream/engineStream');
 const createFilterMiddleware = require('eth-json-rpc-filters');
 const createSubscriptionManager = require('eth-json-rpc-filters/subscriptionManager');
 const providerAsMiddleware = require('eth-json-rpc-middleware/providerAsMiddleware');
