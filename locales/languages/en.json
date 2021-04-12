@@ -142,7 +142,12 @@
 		"you_can_only": "You can ONLY recover this wallet with your ",
 		"recovery_phrase": "Recovery Phrase ",
 		"metamask_does_not": "MetaMask does not have your recovery phrase.",
-		"i_understand": "I understand, continue"
+		"i_understand": "I understand, continue",
+		"passcode_not_set_error": "Error: Passcode not set.",
+		"wrong_password_error": "Error: Decrypt failed",
+		"wrong_password_error_android": "Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
+		"vault_error": "Error: Cannot unlock without a previous vault.",
+		"clean_vault_error": "MetaMask encountered an error due to reaching a storage limit. The local data has been corrupted. Please reinstall MetaMask and restore with your seed phrase."
 	},
 	"enter_password": {
 		"title": "Enter your password",
