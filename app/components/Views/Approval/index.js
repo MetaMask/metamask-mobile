@@ -11,11 +11,12 @@ import { connect } from 'react-redux';
 import NotificationManager from '../../../core/NotificationManager';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
-import { getTransactionReviewActionKey, getNormalizedTxState } from '../../../util/transactions';
+import { getTransactionReviewActionKey, getNormalizedTxState, getActiveTabUrl } from '../../../util/transactions';
 import { strings } from '../../../../locales/i18n';
 import { safeToChecksumAddress } from '../../../util/address';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import Logger from '../../../util/Logger';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -62,7 +63,15 @@ class Approval extends PureComponent {
 		/**
 		 * Tells whether or not dApp transaction modal is visible
 		 */
-		dappTransactionModalVisible: PropTypes.bool
+		dappTransactionModalVisible: PropTypes.bool,
+		/**
+		 * Active tab URL, the currently active tab url
+		 */
+		activeTabUrl: PropTypes.string,
+		/**
+		 * A string representing the network chainId
+		 */
+		chainId: PropTypes.string
 	};
 
 	state = {
@@ -93,7 +102,8 @@ class Approval extends PureComponent {
 		const { navigation } = this.props;
 		AppState.addEventListener('change', this.handleAppStateChange);
 		navigation && navigation.setParams({ mode: REVIEW, dispatch: this.onModeChange });
-		this.trackConfirmScreen();
+
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.DAPP_TRANSACTION_STARTED, this.getAnalyticsParams());
 	};
 
 	/**
@@ -153,6 +163,23 @@ class Approval extends PureComponent {
 		};
 	};
 
+	getAnalyticsParams = () => {
+		try {
+			const { activeTabUrl, chainId, transaction, networkType } = this.props;
+			const { selectedAsset } = transaction;
+			return {
+				dapp_host_name: transaction?.origin,
+				dapp_url: activeTabUrl,
+				network_name: networkType,
+				chain_id: chainId,
+				active_currency: { value: selectedAsset?.symbol, anonymous: true },
+				asset_type: { value: transaction?.assetType, anonymous: true }
+			};
+		} catch (error) {
+			return {};
+		}
+	};
+
 	/**
 	 * Transaction state is erased, ready to create a new clean transaction
 	 */
@@ -180,6 +207,7 @@ class Approval extends PureComponent {
 		this.props.toggleDappTransactionModal();
 		this.state.mode === REVIEW && this.trackOnCancel();
 		this.showWalletConnectNotification();
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.DAPP_TRANSACTION_CANCELLED, this.getAnalyticsParams());
 	};
 
 	/**
@@ -224,7 +252,7 @@ class Approval extends PureComponent {
 			Logger.error(error, 'error while trying to send transaction (Approval)');
 			this.setState({ transactionHandled: false });
 		}
-		this.trackOnConfirm();
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.DAPP_TRANSACTION_CONFIRMED, this.getAnalyticsParams());
 	};
 
 	/**
@@ -313,7 +341,9 @@ class Approval extends PureComponent {
 const mapStateToProps = state => ({
 	transaction: getNormalizedTxState(state),
 	transactions: state.engine.backgroundState.TransactionController.transactions,
-	networkType: state.engine.backgroundState.NetworkController.provider.type
+	networkType: state.engine.backgroundState.NetworkController.provider.type,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+	activeTabUrl: getActiveTabUrl(state)
 });
 
 const mapDispatchToProps = dispatch => ({

@@ -29,7 +29,8 @@ describe('TransactionEditor', () => {
 					},
 					NetworkController: {
 						provider: {
-							type: 'mainnet'
+							type: 'mainnet',
+							chainId: '1'
 						}
 					}
 				}

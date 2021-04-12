@@ -13,6 +13,8 @@ import { safeToChecksumAddress } from '../../../util/address';
 import Radio from '../Radio';
 import StyledButton from '../../UI/StyledButton';
 import Device from '../../../util/Device';
+import AnalyticsV2 from '../../../util/analyticsV2';
+import { isMainnetByChainId } from '../../../util/networks';
 
 const styles = StyleSheet.create({
 	root: {
@@ -66,6 +68,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		alignSelf: 'center',
+		textAlign: 'center',
 		width: '100%',
 		marginBottom: 10
 	},
@@ -78,11 +81,13 @@ const styles = StyleSheet.create({
 		borderRadius: 8,
 		borderWidth: 1,
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
+		flexWrap: 'wrap'
 	},
 	warningText: {
 		color: colors.red,
 		fontSize: 12,
+		textAlign: 'center',
 		...fontStyles.normal
 	},
 	invisible: {
@@ -180,6 +185,20 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 		backgroundColor: colors.white,
 		borderColor: colors.grey100,
+		color: colors.black,
+		borderRadius: 8,
+		borderWidth: 1,
+		fontSize: 14,
+		paddingHorizontal: 10,
+		paddingVertical: 8,
+		position: 'relative'
+	},
+	gasInputError: {
+		flex: 1,
+		...fontStyles.bold,
+		backgroundColor: colors.white,
+		borderColor: colors.grey100,
+		color: colors.red,
 		borderRadius: 8,
 		borderWidth: 1,
 		fontSize: 14,
@@ -295,7 +314,23 @@ class CustomGas extends PureComponent {
 		/**
 		 * review or edit
 		 */
-		toAdvancedFrom: PropTypes.string
+		toAdvancedFrom: PropTypes.string,
+		/**
+		 * (For analytics purposes) View (Approve, Transfer, Confirm) where this component is being used
+		 */
+		view: PropTypes.string.isRequired,
+		/**
+		 * A string representing the network chainId
+		 */
+		chainId: PropTypes.string,
+		/**
+		 * A string representing the network type
+		 */
+		networkType: PropTypes.string,
+		/**
+		 * Extra analytics params to be send with the gas analytics
+		 */
+		analyticsParams: PropTypes.object
 	};
 
 	state = {
@@ -307,6 +342,7 @@ class CustomGas extends PureComponent {
 		customGasLimitBN: this.props.gas,
 		warningGasLimit: '',
 		warningGasPrice: '',
+		warningGasPriceHigh: '',
 		warningSufficientFunds: '',
 		headerHeight: null,
 		gasInputHeight: null
@@ -316,7 +352,10 @@ class CustomGas extends PureComponent {
 		const { gas, gasPrice, toggleAdvancedCustomGas } = this.props;
 		const warningSufficientFunds = this.hasSufficientFunds(gas, gasPrice);
 		const { ticker } = this.props;
-		if (ticker && ticker !== 'ETH') toggleAdvancedCustomGas(true);
+		if (this.onlyAdvanced()) {
+			toggleAdvancedCustomGas(true);
+		}
+
 		//Applies ISF error if present before any gas modifications
 		this.setState({ warningSufficientFunds, advancedCustomGas: ticker && ticker !== 'ETH' });
 	};
@@ -355,7 +394,8 @@ class CustomGas extends PureComponent {
 		this.setState({
 			gasSpeedSelected: 'fast',
 			customGasPrice: fastGwei,
-			customGasPriceBNWei: gasPriceBN
+			customGasPriceBNWei: gasPriceBN,
+			warningGasPriceHigh: ''
 		});
 	};
 
@@ -369,7 +409,8 @@ class CustomGas extends PureComponent {
 		this.setState({
 			gasSpeedSelected: 'average',
 			customGasPrice: averageGwei,
-			customGasPriceBNWei: gasPriceBN
+			customGasPriceBNWei: gasPriceBN,
+			warningGasPriceHigh: ''
 		});
 	};
 
@@ -383,7 +424,8 @@ class CustomGas extends PureComponent {
 		this.setState({
 			gasSpeedSelected: 'slow',
 			customGasPrice: safeLowGwei,
-			customGasPriceBNWei: gasPriceBN
+			customGasPriceBNWei: gasPriceBN,
+			warningGasPriceHigh: ''
 		});
 	};
 
@@ -436,13 +478,26 @@ class CustomGas extends PureComponent {
 	onGasPriceChange = value => {
 		const { customGasLimitBN } = this.state;
 		//Added because apiEstimateModifiedToWEI doesn't like empty strings
-		const gasPrice = value === '' ? '0' : value;
+		const gasPrice = value === '' ? '0' : value.replace(' ', '').replace(',', '.');
 		const gasPriceBN = new BN(gasPrice);
 		const gasPriceBNWei = apiEstimateModifiedToWEI(gasPrice);
 		const warningSufficientFunds = this.hasSufficientFunds(customGasLimitBN, gasPriceBNWei);
 		let warningGasPrice;
-		if (parseInt(gasPrice) < parseInt(this.props.basicGasEstimates.safeLowGwei))
-			warningGasPrice = strings('transaction.low_gas_price');
+		let warningGasPriceHigh = '';
+		if (this.props.basicGasEstimates) {
+			if (parseInt(gasPrice) < parseInt(this.props.basicGasEstimates.safeLowGwei))
+				warningGasPrice = strings('transaction.low_gas_price');
+			//Warning should be displayed when the gas fee is 1.5 times higher than the fast rate
+			if (parseInt(gasPrice) > parseInt(this.props.basicGasEstimates.fastGwei) * 1.5) {
+				const currentGasPrice = getRenderableFiatGasFee(
+					gasPrice,
+					this.props.conversionRate,
+					this.props.currentCurrency,
+					customGasLimitBN
+				);
+				warningGasPriceHigh = strings('transaction.high_gas_price', { currentGasPrice });
+			}
+		}
 		if (!value || value === '' || !isDecimal(value) || value <= 0)
 			warningGasPrice = strings('transaction.invalid_gas_price');
 		if (gasPriceBNWei && !isBN(gasPriceBNWei)) warningGasPrice = strings('transaction.invalid_gas_price');
@@ -451,31 +506,57 @@ class CustomGas extends PureComponent {
 			customGasPriceBNWei: gasPriceBNWei,
 			customGasPriceBN: gasPriceBN,
 			warningGasPrice,
+			warningGasPriceHigh,
 			warningSufficientFunds
 		});
 	};
 
+	getAnalyticsParams = () => {
+		try {
+			const { advancedCustomGas, chainId, networkType, view, analyticsParams } = this.props;
+			const { gasSpeedSelected } = this.state;
+			return {
+				...(analyticsParams || {}),
+				network_name: networkType,
+				chain_id: chainId,
+				function_type: view,
+				gas_mode: advancedCustomGas ? 'Advanced' : 'Basic',
+				speed_set: advancedCustomGas ? undefined : gasSpeedSelected
+			};
+		} catch (error) {
+			return {};
+		}
+	};
+
 	//Handle gas fee selection when save button is pressed instead of everytime a change is made, otherwise cannot switch back to review mode if there is an error
 	saveCustomGasSelection = () => {
-		const { gasSpeedSelected, customGasLimit, customGasPriceBNWei } = this.state;
-		const {
-			review,
-			gas,
-			handleGasFeeSelection,
-			advancedCustomGas,
-			basicGasEstimates: { fastGwei, averageGwei, safeLowGwei }
-		} = this.props;
+		const { gasSpeedSelected, customGasLimit, customGasPrice } = this.state;
+		const { review, gas, handleGasFeeSelection, advancedCustomGas } = this.props;
 		if (advancedCustomGas) {
-			handleGasFeeSelection(new BN(customGasLimit), customGasPriceBNWei, {
-				mode: 'advanced'
-			});
+			handleGasFeeSelection(
+				new BN(customGasLimit),
+				apiEstimateModifiedToWEI(customGasPrice),
+				this.state.warningGasPriceHigh,
+				{
+					mode: 'advanced'
+				}
+			);
 		} else {
 			const mode = { mode: gasSpeedSelected };
-			if (gasSpeedSelected === 'slow') handleGasFeeSelection(gas, apiEstimateModifiedToWEI(safeLowGwei), mode);
-			if (gasSpeedSelected === 'average') handleGasFeeSelection(gas, apiEstimateModifiedToWEI(averageGwei), mode);
-			if (gasSpeedSelected === 'fast') handleGasFeeSelection(gas, apiEstimateModifiedToWEI(fastGwei), mode);
+			const {
+				basicGasEstimates: { fastGwei, averageGwei, safeLowGwei }
+			} = this.props;
+			const noGasWarning = '';
+			if (gasSpeedSelected === 'slow')
+				handleGasFeeSelection(gas, apiEstimateModifiedToWEI(safeLowGwei), noGasWarning, mode);
+			if (gasSpeedSelected === 'average')
+				handleGasFeeSelection(gas, apiEstimateModifiedToWEI(averageGwei), noGasWarning, mode);
+			if (gasSpeedSelected === 'fast')
+				handleGasFeeSelection(gas, apiEstimateModifiedToWEI(fastGwei), noGasWarning, mode);
 		}
+
 		review();
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.GAS_FEE_CHANGED, this.getAnalyticsParams());
 	};
 
 	renderCustomGasSelector = () => {
@@ -585,15 +666,16 @@ class CustomGas extends PureComponent {
 	};
 
 	renderCustomGasInput = () => {
-		const { customGasLimitBN, customGasPriceBNWei, customGasPriceBN } = this.state;
+		const { customGasLimitBN, customGasPriceBNWei, customGasPriceBN, warningGasPriceHigh } = this.state;
 		const { generateTransform } = this.props;
 		const totalGas = customGasLimitBN && customGasLimitBN.mul(customGasPriceBNWei);
 		const ticker = getTicker(this.props.ticker);
+
 		return (
 			<Animated.View
 				style={[
 					styles.advancedOptionsContainer,
-					generateTransform('editToAdvanced', [Device.getDeviceWidth(), 0])
+					this.onlyAdvanced() ? {} : generateTransform('editToAdvanced', [Device.getDeviceWidth(), 0])
 				]}
 				onLayout={this.saveGasInputHeight}
 			>
@@ -619,7 +701,7 @@ class CustomGas extends PureComponent {
 					<Text style={styles.advancedOptionsText}>{strings('custom_gas.gas_price')}</Text>
 					<TextInput
 						keyboardType="numeric"
-						style={styles.gasInput}
+						style={warningGasPriceHigh ? styles.gasInputError : styles.gasInput}
 						onChangeText={this.onGasPriceChange}
 						value={customGasPriceBN ? customGasPriceBN.toString() : ''}
 					/>
@@ -630,9 +712,10 @@ class CustomGas extends PureComponent {
 	};
 
 	renderGasError = () => {
-		const { warningGasLimit, warningGasPrice, warningSufficientFunds } = this.state;
+		const { warningGasLimit, warningGasPrice, warningGasPriceHigh, warningSufficientFunds } = this.state;
 		const { gasError } = this.props;
-		const gasErrorMessage = warningGasPrice || warningGasLimit || warningSufficientFunds || gasError;
+		const gasErrorMessage =
+			warningGasPrice || warningGasLimit || warningSufficientFunds || warningGasPriceHigh || gasError;
 		return (
 			<View style={styles.warningWrapper}>
 				<View style={[styles.warningTextWrapper, !gasErrorMessage ? styles.invisible : null]}>
@@ -647,6 +730,14 @@ class CustomGas extends PureComponent {
 
 	saveGasInputHeight = event => {
 		!this.state.gasInputHeight && this.setState({ gasInputHeight: event.nativeEvent.layout.height });
+	};
+
+	onlyAdvanced = () => {
+		const { chainId, basicGasEstimates } = this.props;
+		const isNotMainnet = !isMainnetByChainId(chainId);
+		// Check if either no basicGasEstimates were provided or less than 3 options were provided (for example, only the average gas price)
+		const noBasicGasEstimates = !basicGasEstimates || Object.keys(basicGasEstimates).length < 3;
+		return isNotMainnet || noBasicGasEstimates;
 	};
 
 	render = () => {
@@ -678,23 +769,26 @@ class CustomGas extends PureComponent {
 						<Text style={styles.customGasModalTitleText}>{strings('transaction.edit_network_fee')}</Text>
 						<IonicIcon name={'ios-arrow-back'} size={24} color={colors.white} />
 					</View>
-					<View style={styles.optionsContainer}>
-						<TouchableOpacity
-							style={[styles.basicButton, advancedCustomGas ? null : styles.optionSelected]}
-							onPress={this.toggleEditionOption}
-						>
-							<Text style={styles.textOptions}>{strings('custom_gas.basic_options')}</Text>
-						</TouchableOpacity>
-						<TouchableOpacity
-							style={[styles.basicButton, advancedCustomGas ? styles.optionSelected : null]}
-							onPress={this.toggleEditionOption}
-						>
-							<Text style={styles.textOptions}>{strings('custom_gas.advanced_options')}</Text>
-						</TouchableOpacity>
-					</View>
+					{this.onlyAdvanced() ? null : (
+						<View style={styles.optionsContainer}>
+							<TouchableOpacity
+								style={[styles.basicButton, advancedCustomGas ? null : styles.optionSelected]}
+								onPress={this.toggleEditionOption}
+							>
+								<Text style={styles.textOptions}>{strings('custom_gas.basic_options')}</Text>
+							</TouchableOpacity>
+
+							<TouchableOpacity
+								style={[styles.basicButton, advancedCustomGas ? styles.optionSelected : null]}
+								onPress={this.toggleEditionOption}
+							>
+								<Text style={styles.textOptions}>{strings('custom_gas.advanced_options')}</Text>
+							</TouchableOpacity>
+						</View>
+					)}
 				</View>
 
-				{this.renderCustomGasSelector()}
+				{this.onlyAdvanced() ? null : this.renderCustomGasSelector()}
 				{this.renderCustomGasInput()}
 
 				<Animated.View style={Device.isIos() && buttonStyle}>
@@ -724,7 +818,9 @@ const mapStateToProps = (state, props) => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	transaction: props.customTransaction || getNormalizedTxState(state)
+	transaction: props.customTransaction || getNormalizedTxState(state),
+	networkType: state.engine.backgroundState.NetworkController.provider.type,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId
 });
 
 export default connect(mapStateToProps)(CustomGas);

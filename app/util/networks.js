@@ -72,6 +72,15 @@ export const getAllNetworks = () => NetworkListKeys.filter(name => name !== RPC)
 
 export const isMainNet = network => network?.provider?.type === MAINNET || network === String(1);
 
+export const getDecimalChainId = chainId => {
+	if (!chainId || typeof chainId !== 'string' || !chainId.startsWith('0x')) {
+		return chainId;
+	}
+	return parseInt(chainId, 16).toString(10);
+};
+
+export const isMainnetByChainId = chainId => getDecimalChainId(String(chainId)) === String(1);
+
 export const getNetworkName = id => NetworkListKeys.find(key => NetworkList[key].networkId === Number(id));
 
 export function getNetworkTypeById(id) {
@@ -130,6 +139,29 @@ export function getBlockExplorerName(blockExplorerUrl) {
 	return tempBlockExplorerName[0].toUpperCase() + tempBlockExplorerName.slice(1);
 }
 
+/**
+ * Checks whether the given number primitive chain ID is safe.
+ * Because some cryptographic libraries we use expect the chain ID to be a
+ * number primitive, it must not exceed a certain size.
+ *
+ * @param {number} chainId - The chain ID to check for safety.
+ * @returns {boolean} Whether the given chain ID is safe.
+ */
 export function isSafeChainId(chainId) {
 	return Number.isSafeInteger(chainId) && chainId > 0 && chainId <= AppConstants.MAX_SAFE_CHAIN_ID;
+}
+
+/**
+ * Checks whether the given value is a 0x-prefixed, non-zero, non-zero-padded,
+ * hexadecimal string.
+ *
+ * @param {any} value - The value to check.
+ * @returns {boolean} True if the value is a correctly formatted hex string,
+ * false otherwise.
+ */
+export function isPrefixedFormattedHexString(value) {
+	if (typeof value !== 'string') {
+		return false;
+	}
+	return /^0x[1-9a-f]+[0-9a-f]*$/iu.test(value);
 }
