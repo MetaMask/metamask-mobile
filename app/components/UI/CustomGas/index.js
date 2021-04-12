@@ -330,7 +330,11 @@ class CustomGas extends PureComponent {
 		/**
 		 * Extra analytics params to be send with the gas analytics
 		 */
-		analyticsParams: PropTypes.object
+		analyticsParams: PropTypes.object,
+		/**
+		 * The currently selected gas speed
+		 */
+		gasSpeedSelected: PropTypes.string
 	};
 
 	state = {
