@@ -241,7 +241,7 @@ class Engine {
 		let ethFiat = 0;
 		let tokenFiat = 0;
 		if (accounts[selectedAddress]) {
-			const decimalsToShow = currentCurrency === 'usd' && 2;
+			const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
 			ethFiat = weiToFiatNumber(accounts[selectedAddress].balance, conversionRate, decimalsToShow);
 		}
 		if (tokens.length > 0) {
