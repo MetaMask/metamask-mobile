@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
 });
 
 const Main = props => {
-	const [connected, setConnected] = useState(false);
+	const [connected, setConnected] = useState(true);
 	const [forceReload, setForceReload] = useState(false);
 	const [signMessage, setSignMessage] = useState(false);
 	const [signMessageParams, setSignMessageParams] = useState({ data: '' });
@@ -138,13 +138,31 @@ const Main = props => {
 	const connectionChangeHandler = useCallback(
 		state => {
 			// Show the modal once the status changes to offline
-			if (connected && !state.isConnected) {
+			if (connected && state && !state?.isConnected) {
 				props.navigation.navigate('OfflineModeView');
+				setConnected(state.isConnected);
 			}
-			setConnected(state.isConnected);
 		},
 		[connected, props.navigation]
 	);
+
+	const checkInfuraService = useCallback(async () => {
+		let res;
+		try {
+			res = await fetch('https://www.xyz.cl/', {
+				headers: {},
+				referrerPolicy: 'no-referrer-when-downgrade',
+				body: null,
+				method: 'GET',
+				mode: 'cors'
+			});
+		} catch (e) {
+			props.navigation.navigate('OfflineModeView');
+		}
+		if (res?.status === 451) {
+			props.navigation.navigate('OfflineModeView');
+		}
+	}, [props.navigation]);
 
 	const initializeWalletConnect = () => {
 		WalletConnect.hub.on('walletconnectSessionRequest', peerInfo => {
@@ -592,7 +610,7 @@ const Main = props => {
 				removeNotificationById: props.removeNotificationById
 			});
 			pollForIncomingTransactions();
-
+			checkInfuraService();
 			removeConnectionStatusListener.current = NetInfo.addEventListener(connectionChangeHandler);
 		}, 1000);
 
