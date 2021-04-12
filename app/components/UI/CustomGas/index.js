@@ -338,7 +338,7 @@ class CustomGas extends PureComponent {
 	};
 
 	state = {
-		gasSpeedSelected: this?.props?.gasSpeedSelected || 'average',
+		gasSpeedSelected: this.props.gasSpeedSelected || 'average',
 		customGasPrice: '10',
 		customGasLimit: fromWei(this.props.gas, 'wei'),
 		customGasPriceBNWei: this.props.gasPrice,
