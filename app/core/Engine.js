@@ -175,6 +175,16 @@ class Engine {
 				})
 			];
 
+			// set initial state
+			// TODO: Pass initial state into each controller constructor instead
+			// This is being set post-construction for now to ensure it's functionally equivalent with
+			// how the `ComponsedController` used to set initial state.
+			for (const controller of controllers) {
+				if (initialState[controller.name]) {
+					controller.update(this.cachedState[controller.name]);
+				}
+			}
+
 			this.datamodel = new ComposableController(controllers, initialState);
 			this.context = controllers.reduce((context, controller) => {
 				context[controller.name] = controller;
