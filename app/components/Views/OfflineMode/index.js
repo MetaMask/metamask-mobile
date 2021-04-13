@@ -69,10 +69,12 @@ const OfflineMode = ({ navigation }) => {
 					<Text bold centered style={styles.title}>
 						{strings('offline_mode.title')}
 					</Text>
-					<Text centered style={styles.text}>{`Unable to connect to the blockchain host.`}</Text>
+					<Text centered style={styles.text}>
+						{strings('offline_mode.text')}
+					</Text>
 					<TouchableOpacity onPress={learnMore}>
 						<Text link centered bold style={styles.learnMoreText}>
-							{'Learn more'}
+							{strings('offline_mode.learn_more')}
 						</Text>
 					</TouchableOpacity>
 				</View>
