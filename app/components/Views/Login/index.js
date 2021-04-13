@@ -301,6 +301,7 @@ class Login extends PureComponent {
 			} else {
 				this.props.setOnboardingWizardStep(1);
 				this.props.navigation.navigate('HomeNav');
+				//Test Comment - more specific test details
 			}
 			this.setState({ loading: false });
 		} catch (e) {
