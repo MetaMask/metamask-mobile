@@ -146,20 +146,13 @@ const Main = props => {
 		[connected, props.navigation]
 	);
 
-	const checkInfuraService = useCallback(async () => {
-		let res;
+	const checkProviderStatus = useCallback(async () => {
+		let query;
 		try {
-			res = await fetch('https://www.xyz.cl/', {
-				headers: {},
-				referrerPolicy: 'no-referrer-when-downgrade',
-				body: null,
-				method: 'GET',
-				mode: 'cors'
-			});
+			const { TransactionController } = Engine.context;
+			query = await util.query(TransactionController.ethQuery, 'blockNumber', []);
 		} catch (e) {
-			props.navigation.navigate('OfflineModeView');
-		}
-		if (res?.status === 451) {
+			console.log(' query', query);
 			props.navigation.navigate('OfflineModeView');
 		}
 	}, [props.navigation]);
@@ -610,7 +603,7 @@ const Main = props => {
 				removeNotificationById: props.removeNotificationById
 			});
 			pollForIncomingTransactions();
-			checkInfuraService();
+			checkProviderStatus();
 			removeConnectionStatusListener.current = NetInfo.addEventListener(connectionChangeHandler);
 		}, 1000);
 
