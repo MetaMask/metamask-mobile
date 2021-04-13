@@ -147,12 +147,10 @@ const Main = props => {
 	);
 
 	const checkProviderStatus = useCallback(async () => {
-		let query;
 		try {
 			const { TransactionController } = Engine.context;
-			query = await util.query(TransactionController.ethQuery, 'blockNumber', []);
+			await util.query(TransactionController.ethQuery, 'blockNumber', []);
 		} catch (e) {
-			console.log(' query', query);
 			props.navigation.navigate('OfflineModeView');
 		}
 	}, [props.navigation]);
