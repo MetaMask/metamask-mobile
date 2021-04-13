@@ -27,7 +27,7 @@ import Engine from '../../../core/Engine';
 import Device from '../../../util/Device';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import { getOnboardingNavbarOptions } from '../../UI/Navbar';
+import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import SecureKeychain from '../../../core/SecureKeychain';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '../../../core/AppConstants';
@@ -252,7 +252,8 @@ const CONFIRM_PASSWORD = 'confirm_password';
  * View where users can set their password for the first time
  */
 class ResetPassword extends PureComponent {
-	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
+	static navigationOptions = ({ navigation }) =>
+		getNavigationOptionsTitle(strings('password_reset.change_password'), navigation);
 
 	static propTypes = {
 		/**
@@ -453,7 +454,7 @@ class ResetPassword extends PureComponent {
 		if (hdKeyring.accounts.includes(selectedAddress)) {
 			PreferencesController.setSelectedAddress(selectedAddress);
 		} else {
-			PreferencesController.setSelectedAddress(hdKeyring[0]);
+			PreferencesController.setSelectedAddress(hdKeyring.accounts[0]);
 		}
 	};
 
