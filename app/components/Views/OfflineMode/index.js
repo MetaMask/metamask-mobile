@@ -11,6 +11,7 @@ import { getOfflineModalNavbar } from '../../UI/Navbar';
 import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/Device';
 import AppConstants from '../../../core/AppConstants';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
 const styles = StyleSheet.create({
 	container: {
@@ -25,7 +26,6 @@ const styles = StyleSheet.create({
 	content: {
 		flex: 1,
 		marginHorizontal: 18,
-		alignSelf: 'center',
 		justifyContent: 'center',
 		marginVertical: 30
 	},
@@ -39,6 +39,12 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		color: colors.fontPrimary,
 		...fontStyles.normal
+	},
+	learnMoreText: {
+		marginTop: 30
+	},
+	buttonContainer: {
+		marginHorizontal: 18
 	}
 });
 
@@ -63,17 +69,16 @@ const OfflineMode = ({ navigation }) => {
 					<Text bold centered style={styles.title}>
 						{strings('offline_mode.title')}
 					</Text>
-					<Text
-						centered
-						style={styles.text}
-					>{`MetaMask is unable to reach our hosted blockchain connection. Visit this guide to review possible reasons.`}</Text>
+					<Text centered style={styles.text}>{`Unable to connect to the blockchain host.`}</Text>
+					<TouchableOpacity onPress={learnMore}>
+						<Text link centered bold style={styles.learnMoreText}>
+							{'Learn more'}
+						</Text>
+					</TouchableOpacity>
 				</View>
-				<View>
-					<StyledButton type={'normal'} onPress={tryAgain}>
+				<View style={styles.buttonContainer}>
+					<StyledButton type={'blue'} onPress={tryAgain}>
 						{strings('offline_mode.try_again')}
-					</StyledButton>
-					<StyledButton type={'blue'} onPress={learnMore}>
-						{'Learn more'}
 					</StyledButton>
 				</View>
 			</View>
