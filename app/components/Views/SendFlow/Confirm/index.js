@@ -24,7 +24,6 @@ import {
 	weiToFiatNumber,
 	balanceToFiatNumber,
 	renderFiatAddition,
-	toWei,
 	isDecimal,
 	toBN
 } from '../../../../util/number';
@@ -33,10 +32,9 @@ import StyledButton from '../../../UI/StyledButton';
 import { util, WalletDevice } from '@metamask/controllers';
 import { prepareTransaction, resetTransaction } from '../../../../actions/transaction';
 import {
-	fetchBasicGasEstimates,
-	convertApiValueToGWEI,
 	apiEstimateModifiedToWEI,
-	getBasicGasEstimates
+	getGasPriceByChainId,
+	getBasicGasEstimatesByChainId
 } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
@@ -56,14 +54,12 @@ import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { capitalize } from '../../../../util/format';
 import { isMainNet, getNetworkName } from '../../../../util/networks';
+import AnalyticsV2 from '../../../../util/analyticsV2';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
 
 const { hexToBN, BNToHex } = util;
-const {
-	CUSTOM_GAS: { AVERAGE_GAS, FAST_GAS, LOW_GAS }
-} = TransactionTypes;
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -321,8 +317,28 @@ class Confirm extends PureComponent {
 		over: false
 	};
 
+	getAnalyticsParams = () => {
+		const { selectedAsset } = this.props;
+		const { NetworkController } = Engine.context;
+		const { chainId, type } = NetworkController?.state?.provider || {};
+		return {
+			active_currency: { value: selectedAsset?.symbol, anonymous: true },
+			network_name: type,
+			chain_id: chainId
+		};
+	};
+
+	getGasAnalyticsParams = () => {
+		const { selectedAsset } = this.props;
+		return {
+			active_currency: { value: selectedAsset.symbol, anonymous: true }
+		};
+	};
+
 	componentDidMount = async () => {
 		// For analytics
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_STARTED, this.getAnalyticsParams());
+
 		const { navigation, providerType } = this.props;
 		await this.handleFetchBasicEstimates();
 		navigation.setParams({ providerType });
@@ -377,9 +393,11 @@ class Confirm extends PureComponent {
 
 	handleFetchBasicEstimates = async () => {
 		this.setState({ ready: false });
-		const basicGasEstimates = await getBasicGasEstimates();
-		this.handleSetGasFee(this.props.transaction.gas, apiEstimateModifiedToWEI(basicGasEstimates.averageGwei));
-		this.setState({ basicGasEstimates, ready: true });
+		const basicGasEstimates = await getBasicGasEstimatesByChainId();
+		if (basicGasEstimates) {
+			this.handleSetGasFee(this.props.transaction.gas, apiEstimateModifiedToWEI(basicGasEstimates.averageGwei));
+		}
+		return this.setState({ basicGasEstimates, ready: true });
 	};
 
 	prepareTransaction = async () => {
@@ -394,30 +412,14 @@ class Confirm extends PureComponent {
 	};
 
 	estimateGas = async transaction => {
-		const { TransactionController } = Engine.context;
 		const { value, data, to, from } = transaction;
-		let estimation;
-		try {
-			estimation = await TransactionController.estimateGas({
-				value,
-				from,
-				data,
-				to
-			});
-		} catch (e) {
-			estimation = { gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT };
-		}
-		let basicGasEstimates;
-		try {
-			basicGasEstimates = await fetchBasicGasEstimates();
-		} catch (error) {
-			Logger.log('Error while trying to get gas limit estimates', error);
-			basicGasEstimates = { average: AVERAGE_GAS, safeLow: LOW_GAS, fast: FAST_GAS };
-		}
-		return {
-			gas: hexToBN(estimation.gas),
-			gasPrice: toWei(convertApiValueToGWEI(basicGasEstimates.average), 'gwei')
-		};
+
+		return await getGasPriceByChainId({
+			value,
+			from,
+			data,
+			to
+		});
 	};
 
 	parseTransactionData = () => {
@@ -657,7 +659,6 @@ class Confirm extends PureComponent {
 		const {
 			transactionState: { assetType },
 			navigation,
-			providerType,
 			resetTransaction
 		} = this.props;
 		this.setState({ transactionConfirmed: true });
@@ -690,9 +691,10 @@ class Confirm extends PureComponent {
 					assetType
 				});
 				this.checkRemoveCollectible();
-				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SEND_FLOW_CONFIRM_SEND, {
-					network: providerType
-				});
+				AnalyticsV2.trackEvent(
+					AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_COMPLETED,
+					this.getAnalyticsParams()
+				);
 				resetTransaction();
 				navigation && navigation.dismiss();
 			});
@@ -780,6 +782,8 @@ class Confirm extends PureComponent {
 							mode={mode}
 							onPress={this.handleSetGasSpeed}
 							gasSpeedSelected={gasSpeedSelected}
+							view={'SendTo (Confirm)'}
+							analyticsParams={this.getGasAnalyticsParams()}
 						/>
 					</AnimatedTransactionModal>
 				</KeyboardAwareScrollView>
