@@ -11086,10 +11086,10 @@ react-native-sensors@5.3.0:
   dependencies:
     rxjs ">= 6"
 
-react-native-share@^3.2.0:
-  version "3.3.2"
-  resolved "https://registry.yarnpkg.com/react-native-share/-/react-native-share-3.3.2.tgz#06d1d3f14ba8eeb95e7e94e4db6a286e9902bd29"
-  integrity sha512-Pvkr62TiCX511RMPL+wvy9Fofre4HQnvUT5zzgPPN3vszP/C8lUb7cmFu/8x5U14t3JQg+xW/svNK5eKNebJKw==
+react-native-share@^5.2.2:
+  version "5.2.2"
+  resolved "https://registry.yarnpkg.com/react-native-share/-/react-native-share-5.2.2.tgz#7161fd37bc861e6a63df5d5c5fafbff10c7ff5e5"
+  integrity sha512-Jn92T+fXzq8ZIfiZllznFYrhDQoFUcMZ6vO0oXgQJYR5leVZuesqy8II3taWLtQzbAD5tl4Y+EaNYo7Z6TNGTw==
 
 "react-native-splash-screen@git+https://github.com/MetaMask/react-native-splash-screen.git":
   version "3.2.0"
