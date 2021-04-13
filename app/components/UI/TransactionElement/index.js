@@ -197,6 +197,7 @@ class TransactionElement extends PureComponent {
 				</>
 			);
 		}
+		return null;
 	};
 
 	renderTxElementIcon = (transactionElement, status) => {
