@@ -330,11 +330,15 @@ class CustomGas extends PureComponent {
 		/**
 		 * Extra analytics params to be send with the gas analytics
 		 */
-		analyticsParams: PropTypes.object
+		analyticsParams: PropTypes.object,
+		/**
+		 * The currently selected gas speed
+		 */
+		gasSpeedSelected: PropTypes.string
 	};
 
 	state = {
-		gasSpeedSelected: this?.props?.gasSpeedSelected || 'average',
+		gasSpeedSelected: this.props.gasSpeedSelected || 'average',
 		customGasPrice: '10',
 		customGasLimit: fromWei(this.props.gas, 'wei'),
 		customGasPriceBNWei: this.props.gasPrice,
@@ -512,16 +516,20 @@ class CustomGas extends PureComponent {
 	};
 
 	getAnalyticsParams = () => {
-		const { advancedCustomGas, chainId, networkType, view, analyticsParams } = this.props;
-		const { gasSpeedSelected } = this.state;
-		return {
-			...(analyticsParams || {}),
-			network_name: networkType,
-			chain_id: chainId,
-			function_type: { value: view, anonymous: true },
-			gas_mode: { value: advancedCustomGas ? 'Advanced' : 'Basic', anonymous: true },
-			speed_set: { value: advancedCustomGas ? undefined : gasSpeedSelected, anonymous: true }
-		};
+		try {
+			const { advancedCustomGas, chainId, networkType, view, analyticsParams } = this.props;
+			const { gasSpeedSelected } = this.state;
+			return {
+				...(analyticsParams || {}),
+				network_name: networkType,
+				chain_id: chainId,
+				function_type: view,
+				gas_mode: advancedCustomGas ? 'Advanced' : 'Basic',
+				speed_set: advancedCustomGas ? undefined : gasSpeedSelected
+			};
+		} catch (error) {
+			return {};
+		}
 	};
 
 	//Handle gas fee selection when save button is pressed instead of everytime a change is made, otherwise cannot switch back to review mode if there is an error
