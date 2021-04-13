@@ -1,8 +1,8 @@
 'use strict';
-import React, { PureComponent } from 'react';
+import React from 'react';
 import { SafeAreaView, Image, Text, View, StyleSheet } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
-import { colors } from '../../../styles/common';
+import { colors, fontStyles } from '../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
 import StyledButton from '../../UI/StyledButton';
@@ -24,11 +24,11 @@ const styles = StyleSheet.create({
 		alignSelf: 'center',
 		justifyContent: 'center',
 		marginTop: 80,
-		marginBottom: 10
+		marginBottom: 30
 	},
 	content: {
-		width: 300,
-		height: 125,
+		flex: 1,
+		marginHorizontal: 18,
 		alignSelf: 'center',
 		justifyContent: 'center'
 	},
@@ -37,64 +37,61 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		color: colors.fontPrimary,
 		textAlign: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
+		...fontStyles.normal
 	},
 	title: {
-		fontSize: 17,
+		fontSize: 18,
 		color: colors.fontPrimary,
 		textAlign: 'center',
 		justifyContent: 'center',
-		marginBottom: 10
-	},
-	button: {
-		alignSelf: 'center',
-		width: 150,
-		height: 50
+		marginBottom: 10,
+		...fontStyles.bold
 	}
 });
 
 const astronautImage = require('../../../images/astronaut.png'); // eslint-disable-line import/no-commonjs
 
-/**
- * View that wraps the Offline mode screen
- */
-export default class OfflineMode extends PureComponent {
-	static navigationOptions = ({ navigation }) => getOfflineModalNavbar(navigation);
-
-	static propTypes = {
-		/**
-		 * Object that represents the navigator
-		 */
-		navigation: PropTypes.object
-	};
-
-	goBack = () => {
-		this.props.navigation.goBack();
-	};
-
-	tryAgain = () => {
+const OfflineMode = ({ navigation }) => {
+	const tryAgain = () => {
 		NetInfo.isConnected.fetch().then(isConnected => {
 			if (isConnected) {
-				this.props.navigation.pop();
+				navigation.pop();
 			}
 		});
 	};
 
-	render() {
-		return (
-			<View style={styles.container}>
-				<SafeAreaView style={styles.innerView}>
-					<Image source={astronautImage} style={styles.frame} />
-					<View style={styles.content}>
-						<Text style={styles.title}>{strings('offline_mode.title')}</Text>
-						<Text style={styles.text}>{strings('offline_mode.text')}</Text>
-						<StyledButton type={'normal'} onPress={this.tryAgain} containerStyle={styles.button}>
+	return (
+		<View style={styles.container}>
+			<SafeAreaView style={styles.innerView}>
+				<Image source={astronautImage} style={styles.frame} />
+				<View style={styles.content}>
+					<Text style={styles.title}>{strings('offline_mode.title')}</Text>
+					<Text
+						style={styles.text}
+					>{`MetaMask is unable to reach our hosted blockchain connection. Visit this guide to review possible reasons.`}</Text>
+					<View>
+						<StyledButton type={'normal'} onPress={tryAgain}>
 							{strings('offline_mode.try_again')}
 						</StyledButton>
+						<StyledButton type={'blue'} onPress={tryAgain}>
+							{'Learn more'}
+						</StyledButton>
 					</View>
-				</SafeAreaView>
-				{Device.isAndroid() && <AndroidBackHandler customBackPress={this.tryAgain} />}
-			</View>
-		);
-	}
-}
+				</View>
+			</SafeAreaView>
+			{Device.isAndroid() && <AndroidBackHandler customBackPress={tryAgain} />}
+		</View>
+	);
+};
+
+OfflineMode.navigationOptions = ({ navigation }) => getOfflineModalNavbar(navigation);
+
+OfflineMode.propTypes = {
+	/**
+	 * Object that represents the navigator
+	 */
+	navigation: PropTypes.object
+};
+
+export default OfflineMode;
