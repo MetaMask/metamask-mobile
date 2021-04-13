@@ -181,7 +181,7 @@ class Engine {
 			// how the `ComponsedController` used to set initial state.
 			for (const controller of controllers) {
 				if (initialState[controller.name]) {
-					controller.update(this.cachedState[controller.name]);
+					controller.update(initialState[controller.name]);
 				}
 			}
 
