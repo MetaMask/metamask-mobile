@@ -51,12 +51,12 @@ const styles = StyleSheet.create({
 const astronautImage = require('../../../images/astronaut.png'); // eslint-disable-line import/no-commonjs
 
 const OfflineMode = ({ navigation }) => {
+	const netinfo = NetInfo.useNetInfo();
+
 	const tryAgain = () => {
-		NetInfo.isConnected.fetch().then(isConnected => {
-			if (isConnected) {
-				navigation.pop();
-			}
-		});
+		if (netinfo?.isConnected) {
+			navigation.pop();
+		}
 	};
 
 	const learnMore = () => navigation.navigate('SimpleWebview', { url: AppConstants.URLS.CONNECTIVITY_ISSUES });
