@@ -199,7 +199,7 @@
     "url": "0.11.0",
     "url-parse": "1.4.4",
     "valid-url": "1.0.9",
-    "vm-browserify": "0.0.4",
+    "vm-browserify": "1.1.2",
     "web3-provider-engine": "^16.0.1",
     "zxcvbn": "4.4.2"
   },
