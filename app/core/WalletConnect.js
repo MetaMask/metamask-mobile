@@ -130,43 +130,7 @@ class WalletConnect {
 							error
 						});
 					}
-				} else if (payload.method === 'eth_sign') {
-					const { MessageManager } = Engine.context;
-					let rawSig = null;
-					try {
-						if (payload.params[2]) {
-							throw new Error('Autosign is not currently supported');
-							// Leaving this in case we want to enable it in the future
-							// once WCIP-4 is defined: https://github.com/WalletConnect/WCIPs/issues/4
-							// rawSig = await KeyringController.signPersonalMessage({
-							// 	data: payload.params[1],
-							// 	from: payload.params[0]
-							// });
-						} else {
-							const data = payload.params[1];
-							const from = payload.params[0];
-							rawSig = await MessageManager.addUnapprovedMessageAsync({
-								data,
-								from,
-								meta: {
-									title: meta && meta.name,
-									url: meta && meta.url,
-									icon: meta && meta.icons && meta.icons[0]
-								},
-								origin: WALLET_CONNECT_ORIGIN
-							});
-						}
-						this.walletConnector.approveRequest({
-							id: payload.id,
-							result: rawSig
-						});
-					} catch (error) {
-						this.walletConnector.rejectRequest({
-							id: payload.id,
-							error
-						});
-					}
-				} else if (payload.method === 'personal_sign') {
+				} else if (payload.method === 'personal_sign' || payload.method === 'eth_sign') {
 					const { PersonalMessageManager } = Engine.context;
 					let rawSig = null;
 					try {
