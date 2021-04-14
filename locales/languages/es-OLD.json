@@ -1088,7 +1088,7 @@
 	},
 	"offline_mode": {
 		"title": "Sin Conexión",
-		"text": "Revisa tu conexión de internet e intenta nuevamente",
+		"text": "No se puede conectar al host de blockchain.",
 		"try_again": "Intentar de nuevo"
 	},
 	"walletconnect_return_modal": {
