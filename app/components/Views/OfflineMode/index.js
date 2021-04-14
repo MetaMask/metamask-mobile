@@ -11,7 +11,8 @@ import { getOfflineModalNavbar } from '../../UI/Navbar';
 import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/Device';
 import AppConstants from '../../../core/AppConstants';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import { connect } from 'react-redux';
+import { getInfuraBlockedSelector } from '../../../reducers/infuraAvailability';
 
 const styles = StyleSheet.create({
 	container: {
@@ -40,9 +41,6 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		...fontStyles.normal
 	},
-	learnMoreText: {
-		marginTop: 30
-	},
 	buttonContainer: {
 		marginHorizontal: 18
 	}
@@ -50,7 +48,7 @@ const styles = StyleSheet.create({
 
 const astronautImage = require('../../../images/astronaut.png'); // eslint-disable-line import/no-commonjs
 
-const OfflineMode = ({ navigation }) => {
+const OfflineMode = ({ navigation, infuraBlocked }) => {
 	const netinfo = NetInfo.useNetInfo();
 
 	const tryAgain = () => {
@@ -59,7 +57,17 @@ const OfflineMode = ({ navigation }) => {
 		}
 	};
 
-	const learnMore = () => navigation.navigate('SimpleWebview', { url: AppConstants.URLS.CONNECTIVITY_ISSUES });
+	const learnMore = () => {
+		navigation.navigate('SimpleWebview', { url: AppConstants.URLS.CONNECTIVITY_ISSUES });
+	};
+
+	const action = () => {
+		if (infuraBlocked) {
+			learnMore();
+		} else {
+			tryAgain();
+		}
+	};
 
 	return (
 		<SafeAreaView style={styles.container}>
@@ -70,17 +78,12 @@ const OfflineMode = ({ navigation }) => {
 						{strings('offline_mode.title')}
 					</Text>
 					<Text centered style={styles.text}>
-						{strings('offline_mode.text')}
+						{strings(`offline_mode.${infuraBlocked ? 'infura_blocked_text' : 'text'}`)}
 					</Text>
-					<TouchableOpacity onPress={learnMore}>
-						<Text link centered bold style={styles.learnMoreText}>
-							{strings('offline_mode.learn_more')}
-						</Text>
-					</TouchableOpacity>
 				</View>
 				<View style={styles.buttonContainer}>
-					<StyledButton type={'blue'} onPress={tryAgain}>
-						{strings('offline_mode.try_again')}
+					<StyledButton type={'blue'} onPress={action}>
+						{strings(`offline_mode.${infuraBlocked ? 'learn_more' : 'try_again'}`)}
 					</StyledButton>
 				</View>
 			</View>
@@ -95,7 +98,15 @@ OfflineMode.propTypes = {
 	/**
 	 * Object that represents the navigator
 	 */
-	navigation: PropTypes.object
+	navigation: PropTypes.object,
+	/**
+	 * Whether infura was blocked or not
+	 */
+	infuraBlocked: PropTypes.bool
 };
 
-export default OfflineMode;
+const mapStateToProps = state => ({
+	infuraBlocked: getInfuraBlockedSelector(state)
+});
+
+export default connect(mapStateToProps)(OfflineMode);

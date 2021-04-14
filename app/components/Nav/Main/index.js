@@ -63,7 +63,7 @@ import SwapsLiveness from '../../UI/Swaps/SwapsLiveness';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import BigNumber from 'bignumber.js';
-import { NetworksChainId } from '@metamask/controllers';
+import { setInfuraAvailabilityBlocked, setInfuraAvailabilityNotBlocked } from '../../../actions/infuraAvailability';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -147,17 +147,27 @@ const Main = props => {
 	);
 
 	const checkInfuraAvailability = useCallback(async () => {
-		if (props.chainId === NetworksChainId.mainnet && props.providerType !== 'rpc') {
+		if (props.providerType !== 'rpc') {
 			try {
 				const { TransactionController } = Engine.context;
 				await util.query(TransactionController.ethQuery, 'blockNumber', []);
+				props.setInfuraAvailabilityNotBlocked();
 			} catch (e) {
 				if (e?.message === AppConstants.ERRORS.INFURA_BLOCKED_MESSAGE) {
 					props.navigation.navigate('OfflineModeView');
+					props.setInfuraAvailabilityBlocked();
 				}
 			}
+		} else {
+			props.setInfuraAvailabilityNotBlocked();
 		}
-	}, [props.navigation, props.providerType, props.chainId]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [
+		props.navigation,
+		props.providerType,
+		props.setInfuraAvailabilityBlocked,
+		props.setInfuraAvailabilityNotBlocked
+	]);
 
 	const initializeWalletConnect = () => {
 		WalletConnect.hub.on('walletconnectSessionRequest', peerInfo => {
@@ -724,13 +734,17 @@ Main.propTypes = {
 	 */
 	selectedAddress: PropTypes.string,
 	/**
-	 * Network provider chainId
-	 */
-	chainId: PropTypes.string,
-	/**
 	 * Network provider type
 	 */
-	providerType: PropTypes.string
+	providerType: PropTypes.string,
+	/**
+	 * Dispatch infura availability blocked
+	 */
+	setInfuraAvailabilityBlocked: PropTypes.func,
+	/**
+	 * Dispatch infura availability not blocked
+	 */
+	setInfuraAvailabilityNotBlocked: PropTypes.func
 };
 
 const mapStateToProps = state => ({
@@ -742,7 +756,6 @@ const mapStateToProps = state => ({
 	dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
 	approveModalVisible: state.modals.approveModalVisible,
 	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {},
-	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	providerType: state.engine.backgroundState.NetworkController.provider.type
 });
 
@@ -754,7 +767,9 @@ const mapDispatchToProps = dispatch => ({
 	hideCurrentNotification: () => dispatch(hideCurrentNotification()),
 	removeNotificationById: id => dispatch(removeNotificationById(id)),
 	toggleDappTransactionModal: (show = null) => dispatch(toggleDappTransactionModal(show)),
-	toggleApproveModal: show => dispatch(toggleApproveModal(show))
+	toggleApproveModal: show => dispatch(toggleApproveModal(show)),
+	setInfuraAvailabilityBlocked: () => dispatch(setInfuraAvailabilityBlocked()),
+	setInfuraAvailabilityNotBlocked: () => dispatch(setInfuraAvailabilityNotBlocked())
 });
 
 export default connect(
