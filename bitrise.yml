@@ -6,7 +6,7 @@ trigger_map:
 # - push_branch: 'develop'
 #   workflow: ci
 - pull_request_source_branch: '*'
-  workflow: deploy
+  workflow: ci
 workflows:
   code_setup:
     steps:
