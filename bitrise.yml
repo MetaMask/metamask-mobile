@@ -19,23 +19,27 @@ workflows:
     - yarn@0:
         inputs:
         - command: install
-        title: yarn install
+        title: Yarn Install
     - script@1:
         inputs:
-        - script_file_path: ./scripts/yarn-audit.sh
-        title: yarn audit deps
+        - script_file_path: "./scripts/yarn-audit.sh"
+        title: Audit Dependencies
     - yarn@0:
-        title: yarn lint
+        title: Lint
         inputs:
         - args: ''
-        - command: lint 
+        - command: lint
         is_always_run: true
     - yarn@0:
         inputs:
         - args: ''
-        - command: 'test:unit --silent -w 3'
-        title: 'yarn test:unit'
+        - command: test:unit --silent -w 3
+        title: Unit Test
         is_always_run: true
+    - script@1:
+        inputs:
+        - script_file_path: "./node_modules/bin/codecov"
+        title: Code Coverage
   deploy:
     description: >
       ## Configure Android part of the deploy workflow
