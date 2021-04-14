@@ -31,7 +31,7 @@ workflows:
             set -x
 
             # write your script here
-            yarn audit
+            ./yarn-audit.sh
 
             # or run a script from your repository, like:
             # bash ./path/to/script.sh
