@@ -172,3 +172,17 @@ export function setCollectibleContractTransaction(collectible) {
 		collectible
 	};
 }
+
+export function setNonce(nonce) {
+	return {
+		type: 'SET_NONCE',
+		nonce
+	};
+}
+
+export function setProposedNonce(proposedNonce) {
+	return {
+		type: 'SET_PROPOSED_NONCE',
+		proposedNonce
+	};
+}
