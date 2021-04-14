@@ -40,9 +40,7 @@ workflows:
     description: >
       ## Configure Android part of the deploy workflow
 
-
       To generate a signed APK:
-
 
       1. Open the **Workflow** tab of your project on Bitrise.io
 
