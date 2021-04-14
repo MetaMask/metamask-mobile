@@ -91,39 +91,6 @@ exports[`OfflineMode should render correctly 1`] = `
       >
         Unable to connect to the blockchain host.
       </Text>
-      <TouchableOpacity
-        activeOpacity={0.2}
-        delayLongPress={600}
-        extraButtonProps={
-          Object {
-            "rippleColor": "transparent",
-          }
-        }
-        onPress={[Function]}
-      >
-        <Text
-          bold={true}
-          centered={true}
-          disclaimer={false}
-          green={false}
-          link={true}
-          modal={false}
-          primary={false}
-          reset={false}
-          right={false}
-          small={false}
-          strikethrough={false}
-          style={
-            Object {
-              "marginTop": 30,
-            }
-          }
-          underline={false}
-          upper={false}
-        >
-          Learn more
-        </Text>
-      </TouchableOpacity>
     </View>
     <View
       style={
