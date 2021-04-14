@@ -256,11 +256,11 @@ workflows:
         title: Build iOS Pre-Release Bundle
         is_always_run: false
     - deploy-to-bitrise-io@1: {}
-    
+
 app:
   envs:
   - opts:
-git       is_expand: false
+      is_expand: false
     PROJECT_LOCATION: android
   - opts:
       is_expand: false
