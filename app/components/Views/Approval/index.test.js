@@ -9,6 +9,9 @@ const mockStore = configureMockStore();
 describe('Approval', () => {
 	it('should render correctly', () => {
 		const initialState = {
+			settings: {
+				showCustomNonce: false
+			},
 			transaction: {
 				value: '',
 				data: '',
