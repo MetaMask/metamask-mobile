@@ -3,10 +3,10 @@ format_version: '8'
 default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
 trigger_map:
-# - push_branch: 'develop'
-#   workflow: ci
-- pull_request_source_branch: '*'
+- push_branch: 'bitrise_yml_new'
   workflow: deploy
+# - pull_request_source_branch: '*'
+#   workflow: deploy
 workflows:
   code_setup:
     steps:
@@ -249,17 +249,7 @@ workflows:
         inputs:
         - content: |-
             #!/usr/bin/env bash 
-            
-            touch .env
-            echo "MM_SENTRY_AUTH_TOKEN=$MM_SENTRY_AUTH_TOKEN" >> .env
-            echo "MM_PUBNUB_PUB_KEY=$MM_PUBNUB_PUB_KEY" >> .env
-            echo "MM_PUBNUB_SUB_KEY=$MM_PUBNUB_SUB_KEY" >> .env
-            echo "MM_OPENSEA_KEY=$MM_OPENSEA_KEY" >> .env
-            echo "MM_INFURA_PROJECT_ID=$MM_INFURA_PROJECT_ID" >> .env
-            echo "MM_FOX_CODE=$MM_FOX_CODE" >> .env
-            echo "MM_MIXPANEL_TOKEN=$MM_MIXPANEL_TOKEN" >> .env
-            echo "MM_BRANCH_KEY_LIVE=$MM_BRANCH_KEY_LIVE" >> .env
-          
+                      
             jq 'del(.engines)' package.json > new.json && mv new.json package.json
             node -v
             METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
@@ -269,7 +259,7 @@ workflows:
 app:
   envs:
   - opts:
-      is_expand: false
+git       is_expand: false
     PROJECT_LOCATION: android
   - opts:
       is_expand: false
