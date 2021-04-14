@@ -42,6 +42,7 @@ workflows:
   ci:
     before_run:
     - code_setup
+    steps:
     - yarn@0:
         inputs:
         - args: ''
