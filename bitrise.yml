@@ -22,7 +22,7 @@ workflows:
         title: Yarn Install
     - script@1:
         inputs:
-        - content: |-
+          - content: |-
             #!/usr/bin/env bash
             # fail if any commands fails
             set -e
