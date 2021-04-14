@@ -1288,7 +1288,7 @@
 	},
 	"offline_mode": {
 		"title": "オフラインです",
-		"text": "インターネット接続を確認して、もう一度実行してください",
+		"text": "ブロックチェーンホストに接続できません。",
 		"try_again": "再試行"
 	},
 	"payment_channel_request": {

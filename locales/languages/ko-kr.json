@@ -1288,7 +1288,7 @@
 	},
 	"offline_mode": {
 		"title": "오프라인 상태입니다.",
-		"text": "인터넷 연결을 확인하고 다시 시도하세요.",
+		"text": "블록 체인 호스트에 연결할 수 없습니다.",
 		"try_again": "다시 시도"
 	},
 	"payment_channel_request": {
