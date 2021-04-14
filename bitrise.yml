@@ -22,14 +22,20 @@ workflows:
         title: Yarn Install
     - script@1:
         inputs:
-          - content: |-
+        - content: |-
             #!/usr/bin/env bash
             # fail if any commands fails
             set -e
             # debug log
             set -x
 
+            # write your script here
             yarn audit
+
+            # or run a script from your repository, like:
+            # bash ./path/to/script.sh
+            # not just bash, e.g.:
+            # ruby ./path/to/script.rb
           - script_file_path: "./scripts/yarn-audit.sh"
         title: Audit Dependencies
     # - yarn@0:
