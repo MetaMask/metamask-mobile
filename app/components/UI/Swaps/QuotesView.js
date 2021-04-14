@@ -49,7 +49,6 @@ import useModalHandler from '../../Base/hooks/useModalHandler';
 import useBalance from './utils/useBalance';
 import useGasPrice from './utils/useGasPrice';
 import { decodeApproveData } from '../../../util/transactions';
-import Logger from '../../../util/Logger';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
 const EDIT_MODE_GAS = 'EDIT_MODE_GAS';
@@ -769,7 +768,6 @@ function SwapsQuotesView({
 				slippage,
 				custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
 			};
-			Logger.error(error?.description, `Swaps: ${error?.key}`);
 			if (error?.key === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR) {
 				InteractionManager.runAfterInteractions(() => {
 					const parameters = {
@@ -784,6 +782,11 @@ function SwapsQuotesView({
 					const parameters = { data };
 					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.NO_QUOTES_AVAILABLE, {});
 					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.NO_QUOTES_AVAILABLE, parameters, true);
+				});
+			} else {
+				Analytics.trackEventWithParameters(`Swaps: ${error?.key}`, {
+					error: true,
+					description: error?.description
 				});
 			}
 		},

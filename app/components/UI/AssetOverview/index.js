@@ -208,7 +208,7 @@ class AssetOverview extends PureComponent {
 		try {
 			await SwapsController.fetchTokenWithCache();
 		} catch (error) {
-			Logger.error(error, 'Swaps: error while fetching tokens with catche in AssetOverview');
+			Logger.error(error, 'Swaps: error while fetching tokens with cache in AssetOverview');
 		}
 	};
 
