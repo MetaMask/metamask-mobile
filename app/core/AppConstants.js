@@ -68,5 +68,8 @@ export default {
 		TERMS_AND_CONDITIONS: 'https://consensys.net/terms-of-use/',
 		PRIVACY_POLICY: 'https://consensys.net/privacy-policy/',
 		CONNECTIVITY_ISSUES: 'https://metamask.zendesk.com/hc/en-us/articles/360015489191-Infura-Connectivity-Issues'
+	},
+	ERRORS: {
+		INFURA_BLOCKED_MESSAGE: 'EthQuery - RPC Error - This service is not available in your country'
 	}
 };

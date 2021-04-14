@@ -63,6 +63,7 @@ import SwapsLiveness from '../../UI/Swaps/SwapsLiveness';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import BigNumber from 'bignumber.js';
+import { NetworksChainId } from '@metamask/controllers';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -79,7 +80,6 @@ const styles = StyleSheet.create({
 		margin: 0
 	}
 });
-
 const Main = props => {
 	const [connected, setConnected] = useState(true);
 	const [forceReload, setForceReload] = useState(false);
@@ -146,14 +146,18 @@ const Main = props => {
 		[connected, props.navigation]
 	);
 
-	const checkProviderStatus = useCallback(async () => {
-		try {
-			const { TransactionController } = Engine.context;
-			await util.query(TransactionController.ethQuery, 'blockNumber', []);
-		} catch (e) {
-			props.navigation.navigate('OfflineModeView');
+	const checkInfuraAvailability = useCallback(async () => {
+		if (props.chainId === NetworksChainId.mainnet && props.providerType !== 'rpc') {
+			try {
+				const { TransactionController } = Engine.context;
+				await util.query(TransactionController.ethQuery, 'blockNumber', []);
+			} catch (e) {
+				if (e?.message === AppConstants.ERRORS.INFURA_BLOCKED_MESSAGE) {
+					props.navigation.navigate('OfflineModeView');
+				}
+			}
 		}
-	}, [props.navigation]);
+	}, [props.navigation, props.providerType, props.chainId]);
 
 	const initializeWalletConnect = () => {
 		WalletConnect.hub.on('walletconnectSessionRequest', peerInfo => {
@@ -601,7 +605,7 @@ const Main = props => {
 				removeNotificationById: props.removeNotificationById
 			});
 			pollForIncomingTransactions();
-			checkProviderStatus();
+			checkInfuraAvailability();
 			removeConnectionStatusListener.current = NetInfo.addEventListener(connectionChangeHandler);
 		}, 1000);
 
@@ -718,7 +722,15 @@ Main.propTypes = {
 	/**
 	 * Selected address
 	 */
-	selectedAddress: PropTypes.string
+	selectedAddress: PropTypes.string,
+	/**
+	 * Network provider chainId
+	 */
+	chainId: PropTypes.string,
+	/**
+	 * Network provider type
+	 */
+	providerType: PropTypes.string
 };
 
 const mapStateToProps = state => ({
@@ -729,7 +741,9 @@ const mapStateToProps = state => ({
 	isPaymentRequest: state.transaction.paymentRequest,
 	dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
 	approveModalVisible: state.modals.approveModalVisible,
-	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {}
+	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {},
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+	providerType: state.engine.backgroundState.NetworkController.provider.type
 });
 
 const mapDispatchToProps = dispatch => ({
