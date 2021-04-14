@@ -1288,7 +1288,7 @@
 	},
 	"offline_mode": {
 		"title": "Você está offline",
-		"text": "Verifique a conexão com a internet e tente novamente",
+		"text": "Não foi possível conectar ao host blockchain.",
 		"try_again": "Tente novamente"
 	},
 	"payment_channel_request": {
