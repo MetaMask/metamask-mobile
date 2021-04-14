@@ -41,8 +41,6 @@ exports[`OfflineMode should render correctly 1`] = `
       }
     >
       <Text
-        black={false}
-        blue={false}
         bold={true}
         centered={true}
         disclaimer={false}
@@ -69,8 +67,6 @@ exports[`OfflineMode should render correctly 1`] = `
         You're offline
       </Text>
       <Text
-        black={false}
-        blue={false}
         bold={false}
         centered={true}
         disclaimer={false}
