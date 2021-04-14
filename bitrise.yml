@@ -259,8 +259,6 @@ workflows:
             echo "MM_FOX_CODE=$MM_FOX_CODE" >> .env
             echo "MM_MIXPANEL_TOKEN=$MM_MIXPANEL_TOKEN" >> .env
             echo "MM_BRANCH_KEY_LIVE=$MM_BRANCH_KEY_LIVE" >> .env
-            echo "WYRE_ACCOUNT_ID=$WYRE_ACCOUNT_ID" >> .env
-            echo "MM_FABRIC_API_KEY=$MM_FABRIC_API_KEY" >> .env
           
             jq 'del(.engines)' package.json > new.json && mv new.json package.json
             node -v
