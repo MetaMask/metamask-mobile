@@ -256,6 +256,7 @@ workflows:
         title: Build iOS Pre-Release Bundle
         is_always_run: false
     - deploy-to-bitrise-io@1: {}
+    
 app:
   envs:
   - opts:
