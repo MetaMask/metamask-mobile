@@ -19,7 +19,7 @@ workflows:
     - yarn@0:
         inputs:
         - cache_local_deps: 'yes'
-        - command: install --network-concurrency 1
+        - command: install --network-timeout 300000 --frozen-lockfile --network-concurrency 1
         title: Yarn Install
     # - script@1:
     #     inputs:
@@ -249,6 +249,17 @@ workflows:
         inputs:
         - content: |-
             #!/usr/bin/env bash 
+            
+            $MM_SENTRY_AUTH_TOKEN
+            $MM_PUBNUB_PUB_KEY
+            $MM_PUBNUB_SUB_KEY
+            $MM_OPENSEA_KEY
+            $MM_INFURA_PROJECT_ID
+            $MM_FOX_CODE 
+            $MM_MIXPANEL_TOKEN 
+            $MM_BRANCH_KEY_LIVE
+            $MM_FABRIC_API_KEY
+            
             jq 'del(.engines)' package.json > new.json && mv new.json package.json
             node -v
             METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
