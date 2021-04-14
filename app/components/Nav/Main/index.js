@@ -737,7 +737,8 @@ Main.propTypes = {
 	/**
 	 * Chain id
 	 */
-	chainId: PropTypes.string
+	chainId: PropTypes.string,
+	/**
 	 * Network provider type
 	 */
 	providerType: PropTypes.string,
