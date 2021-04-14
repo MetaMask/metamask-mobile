@@ -3,8 +3,8 @@ format_version: '8'
 default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
 trigger_map:
-- push_branch: '*'
-  workflow: ci
+# - push_branch: '*'
+#   workflow: ci
 - pull_request_source_branch: '*'
   workflow: ci
 workflows:
@@ -18,7 +18,8 @@ workflows:
         - node_version: ''
     - yarn@0:
         inputs:
-        - command: install
+        - cache_local_deps: 'yes'
+        - command: install --network-concurrency 1
         title: Yarn Install
     - script@1:
         inputs:
