@@ -5,24 +5,30 @@ import ActionModal from '../ActionModal';
 import { fontStyles, colors } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { protectWalletModalNotVisible } from '../../../actions/user';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
+import scaling from '../../../util/scaling';
 
 const protectWalletImage = require('../../../images/protect-wallet.jpg'); // eslint-disable-line
 
 const styles = StyleSheet.create({
 	wrapper: {
 		marginTop: 24,
-		marginHorizontal: 24
+		marginHorizontal: 24,
+		flex: 1
 	},
 	title: {
 		...fontStyles.bold,
 		color: colors.black,
 		textAlign: 'center',
-		fontSize: 20
+		fontSize: 20,
+		flex: 1
 	},
 	imageWrapper: { flexDirection: 'column', alignItems: 'center', marginBottom: 12, marginTop: 30 },
-	image: { width: 135, height: 160 },
+	image: {
+		width: scaling.scale(135, { baseModel: 1 }),
+		height: scaling.scale(160, { baseModel: 1 })
+	},
 	text: {
 		...fontStyles.normal,
 		color: colors.black,
@@ -31,9 +37,7 @@ const styles = StyleSheet.create({
 		marginBottom: 24
 	},
 	closeIcon: {
-		position: 'absolute',
-		right: 0,
-		top: -2
+		padding: 5
 	},
 	learnMoreText: {
 		textAlign: 'center',
@@ -41,6 +45,17 @@ const styles = StyleSheet.create({
 		color: colors.blue,
 		marginBottom: 14,
 		fontSize: 14
+	},
+	modalXIcon: {
+		fontSize: 16
+	},
+	titleWrapper: {
+		flexDirection: 'row',
+		justifyContent: 'center',
+		alignItems: 'center'
+	},
+	auxCenter: {
+		width: 26
 	}
 });
 
@@ -92,14 +107,15 @@ class ProtectYourWalletModal extends PureComponent {
 			>
 				<View style={styles.wrapper} testID={'protect-wallet-modal'}>
 					<View style={styles.titleWrapper}>
+						<View style={styles.auxCenter} />
 						<Text style={styles.title}>{strings('protect_wallet_modal.title')}</Text>
-
-						<Ionicons
+						<TouchableOpacity
 							onPress={this.props.protectWalletModalNotVisible}
-							name={'ios-close'}
-							size={32}
 							style={styles.closeIcon}
-						/>
+							hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
+						>
+							<Icon name="times" style={styles.modalXIcon} />
+						</TouchableOpacity>
 					</View>
 					<View style={styles.imageWrapper}>
 						<Image source={protectWalletImage} style={styles.image} />

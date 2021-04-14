@@ -1,6 +1,7 @@
 /* eslint-disable import/no-commonjs */
 import URL from 'url-parse';
 import { NetworksChainId } from '@metamask/controllers';
+import { JsonRpcEngine } from 'json-rpc-engine';
 import { JS_POST_MESSAGE_TO_PROVIDER, JS_IFRAME_POST_MESSAGE_TO_PROVIDER } from '../util/browserScripts';
 import MobilePortStream from './MobilePortStream';
 import { setupMultiplex } from '../util/streams';
@@ -9,9 +10,8 @@ import Engine from './Engine';
 import { getAllNetworks } from '../util/networks';
 import Logger from '../util/Logger';
 import AppConstants from './AppConstants';
+import { createEngineStream } from 'json-rpc-middleware-stream';
 
-const RpcEngine = require('json-rpc-engine');
-const createEngineStream = require('json-rpc-middleware-stream/engineStream');
 const createFilterMiddleware = require('eth-json-rpc-filters');
 const createSubscriptionManager = require('eth-json-rpc-filters/subscriptionManager');
 const providerAsMiddleware = require('eth-json-rpc-middleware/providerAsMiddleware');
@@ -178,7 +178,7 @@ export class BackgroundBridge extends EventEmitter {
 	setupProviderEngine() {
 		const origin = this.hostname;
 		// setup json rpc engine stack
-		const engine = new RpcEngine();
+		const engine = new JsonRpcEngine();
 		const provider = this.provider;
 
 		const blockTracker = this.blockTracker;

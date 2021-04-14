@@ -142,15 +142,11 @@ class TransactionElement extends PureComponent {
 		const isFailedTransaction = status === 'cancelled' || status === 'failed';
 		let icon;
 		switch (transactionType) {
-			case TRANSACTION_TYPES.PAYMENT_CHANNEL_DEPOSIT:
-			case TRANSACTION_TYPES.PAYMENT_CHANNEL_SENT:
 			case TRANSACTION_TYPES.SENT_TOKEN:
 			case TRANSACTION_TYPES.SENT_COLLECTIBLE:
 			case TRANSACTION_TYPES.SENT:
 				icon = isFailedTransaction ? transactionIconSentFailed : transactionIconSent;
 				break;
-			case TRANSACTION_TYPES.PAYMENT_CHANNEL_WITHDRAW:
-			case TRANSACTION_TYPES.PAYMENT_CHANNEL_RECEIVED:
 			case TRANSACTION_TYPES.RECEIVED_TOKEN:
 			case TRANSACTION_TYPES.RECEIVED_COLLECTIBLE:
 			case TRANSACTION_TYPES.RECEIVED:
@@ -268,7 +264,7 @@ class TransactionElement extends PureComponent {
 					<DetailsModal>
 						<DetailsModal.Header>
 							<DetailsModal.Title onPress={this.onCloseDetailsModal}>
-								{transactionElement.actionKey}
+								{transactionElement?.actionKey}
 							</DetailsModal.Title>
 							<DetailsModal.CloseIcon onPress={this.onCloseDetailsModal} />
 						</DetailsModal.Header>

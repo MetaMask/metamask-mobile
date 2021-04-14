@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "2.0.0",
+  "version": "2.1.1",
   "private": true,
   "scripts": {
     "watch": "./scripts/build.sh watcher watch",
@@ -22,6 +22,8 @@
     "build:announce": "node ./scripts/metamask-bot-build-announce.js",
     "build:android:release": "./scripts/build.sh android release",
     "build:android:release:e2e": "./scripts/build.sh android releaseE2E",
+    "build:android:checksum": "./scripts/checksum.sh",
+    "build:android:checksum:verify": "shasum -a 512 -c sha512sums.txt",
     "build:android:pre-release": "./scripts/build.sh android release --pre",
     "build:android:pre-release:bundle": "GENERATE_BUNDLE=true ./scripts/build.sh android release --pre",
     "build:ios:release": "./scripts/build.sh ios release",
@@ -56,16 +58,16 @@
   "lint-staged": {
     "*.js": [
       "prettier --write",
-      "eslint --ignore-path=.prettierignore",
-      "git add"
+      "eslint --ignore-path=.prettierignore"
     ],
     "*.json": [
-      "prettier --write",
-      "git add"
+      "prettier --write"
     ]
   },
   "resolutions": {
     "**/elliptic": "^6.5.4",
+    "**/y18n": "^3.2.2",
+    "pubnub/**/netmask": "^2.0.1",
     "**/optimist/minimist": "^1.2.5",
     "react-native-level-fs/**/bl": "^1.2.3",
     "react-native-level-fs/**/semver": "^4.3.2"
@@ -74,14 +76,14 @@
     "@estebanmino/controllers": "^3.3.17",
     "@exodus/react-native-payments": "https://github.com/wachunei/react-native-payments.git#package-json-hack",
     "@metamask/contract-metadata": "^1.23.0",
-    "@metamask/controllers": "^6.1.0",
+    "@metamask/controllers": "^7.0.0",
     "@react-native-community/async-storage": "1.12.1",
     "@react-native-community/blur": "^3.6.0",
     "@react-native-community/checkbox": "^0.4.2",
     "@react-native-community/clipboard": "^1.2.2",
     "@react-native-community/cookies": "^4.0.1",
     "@react-native-community/masked-view": "^0.1.10",
-    "@react-native-community/netinfo": "4.1.5",
+    "@react-native-community/netinfo": "6.0.0",
     "@react-native-community/viewpager": "^3.3.0",
     "@rnhooks/keyboard": "^0.0.3",
     "@sentry/integrations": "5.13.0",
@@ -93,16 +95,15 @@
     "axios": "^0.21.1",
     "babel-plugin-transform-inline-environment-variables": "0.4.3",
     "babel-plugin-transform-remove-console": "6.9.4",
-    "base-64": "0.1.0",
+    "base-64": "1.0.0",
     "bignumber.js": "8.1.1",
     "buffer": "5.2.1",
     "compare-versions": "^3.6.0",
-    "connext": "4.2.5",
     "content-hash": "2.5.2",
     "dnode": "1.2.2",
     "eth-ens-namehash": "2.0.8",
     "eth-json-rpc-errors": "^2.0.2",
-    "eth-json-rpc-filters": "4.1.1",
+    "eth-json-rpc-filters": "4.2.2",
     "eth-json-rpc-infura": "5.1.0",
     "eth-json-rpc-middleware": "4.3.0",
     "eth-url-parser": "1.0.2",
@@ -117,8 +118,8 @@
     "fuse.js": "3.4.4",
     "https-browserify": "0.0.1",
     "is-url": "^1.2.4",
-    "json-rpc-engine": "5.1.5",
-    "json-rpc-middleware-stream": "2.1.1",
+    "json-rpc-engine": "^6.1.0",
+    "json-rpc-middleware-stream": "3.0.0",
     "lottie-react-native": "git+https://github.com/MetaMask/lottie-react-native.git#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106",
     "multihashes": "0.4.14",
     "number-to-bn": "1.7.0",
@@ -139,7 +140,7 @@
     "react-native-animatable": "^1.3.3",
     "react-native-animated-fox": "git+https://github.com/MetaMask/react-native-animated-fox.git#16e38d54d829709e497f196e31fa8ff00cdf2aa9",
     "react-native-background-timer": "2.1.1",
-    "react-native-branch": "5.0.0",
+    "react-native-branch": "5.0.1",
     "react-native-browser-polyfill": "0.1.2",
     "react-native-button": "git+https://github.com/MetaMask/react-native-button.git#fd79f4d6c8ced4086ba6e3021b6ed6d4a3e19cf7",
     "react-native-camera": "^3.36.0",
@@ -171,7 +172,7 @@
     "react-native-scrollable-tab-view": "^1.0.0",
     "react-native-search-api": "ombori/react-native-search-api#8/head",
     "react-native-sensors": "5.3.0",
-    "react-native-share": "^3.2.0",
+    "react-native-share": "^5.2.2",
     "react-native-splash-screen": "git+https://github.com/MetaMask/react-native-splash-screen.git",
     "react-native-step-indicator": "^1.0.3",
     "react-native-svg": "12.1.0",
@@ -190,13 +191,15 @@
     "redux": "4.0.1",
     "redux-mock-store": "1.5.3",
     "redux-persist": "5.10.0",
+    "redux-persist-filesystem-storage": "^3.0.0",
     "reselect": "^4.0.0",
+    "rn-fetch-blob": "^0.12.0",
     "stream-browserify": "1.0.0",
     "through2": "3.0.1",
     "url": "0.11.0",
     "url-parse": "1.4.4",
     "valid-url": "1.0.9",
-    "vm-browserify": "0.0.4",
+    "vm-browserify": "1.1.2",
     "web3-provider-engine": "^16.0.1",
     "zxcvbn": "4.4.2"
   },
@@ -207,8 +210,8 @@
     "@react-native-community/eslint-config": "^1.1.0",
     "assert": "1.4.1",
     "babel-core": "7.0.0-bridge.0",
-    "babel-eslint": "10.0.3",
-    "babel-jest": "^25.2.6",
+    "babel-eslint": "10.1.0",
+    "babel-jest": "^26.6.3",
     "concat-cli": "4.0.0",
     "detox": "17.3.1",
     "enzyme": "3.9.0",
@@ -217,14 +220,14 @@
     "eslint": "^6.5.1",
     "eslint-config-react-native": "4.0.0",
     "eslint-plugin-import": "2.18.2",
-    "eslint-plugin-prettier": "^3.3.0",
+    "eslint-plugin-prettier": "^3.3.1",
     "eslint-plugin-react": "7.16.0",
     "eslint-plugin-react-native": "3.7.0",
     "husky": "1.3.1",
     "jest": "^25.2.7",
-    "jest-serializer": "24.4.0",
+    "jest-serializer": "26.6.2",
     "jetifier": "^1.6.6",
-    "lint-staged": "8.1.5",
+    "lint-staged": "10.5.4",
     "metro": "^0.59.0",
     "metro-react-native-babel-preset": "^0.59.0",
     "octonode": "0.9.5",
@@ -285,7 +288,7 @@
       "^.+\\.js$": "<rootDir>jest.preprocessor.js"
     },
     "transformIgnorePatterns": [
-      "node_modules/(?!(react-native|@react-navigation|@react-native-community|react-navigation|react-navigation-redux-helpers|@sentry))"
+      "node_modules/(?!(react-native|rn-fetch|redux-persist-filesystem|@react-navigation|@react-native-community|react-navigation|react-navigation-redux-helpers|@sentry))"
     ],
     "snapshotSerializers": [
       "enzyme-to-json/serializer"

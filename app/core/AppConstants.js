@@ -31,7 +31,6 @@ export default {
 	SAI_ADDRESS: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
 	HOMEPAGE_URL: 'https://home.metamask.io/',
 	ZERO_ADDRESS: '0x0000000000000000000000000000000000000000',
-	INSTAPAY_GAS_PONDERATOR: 1.2,
 	USER_AGENT: Device.isAndroid()
 		? 'Mozilla/5.0 (Linux; Android 10; Android SDK built for x86 Build/OSM1.180201.023) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.92 Mobile Safari/537.36'
 		: 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/76.0.3809.123 Mobile/15E148 Safari/605.1',
@@ -64,5 +63,13 @@ export default {
 		POLL_COUNT_LIMIT: 3,
 		DEFAULT_SLIPPAGE: 3
 	},
-	MAX_SAFE_CHAIN_ID: 4503599627370476
+	MAX_SAFE_CHAIN_ID: 4503599627370476,
+	URLS: {
+		TERMS_AND_CONDITIONS: 'https://consensys.net/terms-of-use/',
+		PRIVACY_POLICY: 'https://consensys.net/privacy-policy/',
+		CONNECTIVITY_ISSUES: 'https://metamask.zendesk.com/hc/en-us/articles/360059386712'
+	},
+	ERRORS: {
+		INFURA_BLOCKED_MESSAGE: 'EthQuery - RPC Error - This service is not available in your country'
+	}
 };

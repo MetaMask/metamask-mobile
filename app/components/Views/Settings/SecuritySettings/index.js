@@ -125,6 +125,7 @@ const styles = StyleSheet.create({
 	warningText: {
 		color: colors.black,
 		fontSize: 12,
+		flex: 1,
 		...fontStyles.normal
 	},
 	warningTextRed: {
@@ -138,7 +139,7 @@ const styles = StyleSheet.create({
 		color: colors.blue
 	},
 	viewHint: {
-		marginLeft: 'auto'
+		padding: 5
 	}
 });
 
@@ -227,7 +228,8 @@ class Settings extends PureComponent {
 		seedphraseBackedUp: PropTypes.bool
 	};
 
-	static navigationOptions = ({ navigation }) => getNavigationOptionsTitle(strings('app_settings.back'), navigation);
+	static navigationOptions = ({ navigation }) =>
+		getNavigationOptionsTitle(strings('app_settings.security_title'), navigation);
 
 	state = {
 		approvalModalVisible: false,

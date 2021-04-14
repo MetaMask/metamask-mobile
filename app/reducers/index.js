@@ -13,6 +13,7 @@ import onboardingReducer from './onboarding';
 import fiatOrders from './fiatOrders';
 import swapsReducer from './swaps';
 import notificationReducer from './notification';
+import infuraAvailabilityReducer from './infuraAvailability';
 import { combineReducers } from 'redux';
 
 const rootReducer = combineReducers({
@@ -30,7 +31,8 @@ const rootReducer = combineReducers({
 	onboarding: onboardingReducer,
 	notification: notificationReducer,
 	swaps: swapsReducer,
-	fiatOrders
+	fiatOrders,
+	infuraAvailability: infuraAvailabilityReducer
 });
 
 export default rootReducer;

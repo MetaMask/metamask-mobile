@@ -25,6 +25,8 @@ exports[`TokenSelectButton component should Render correctly 1`] = `
       <TokenIcon />
     </View>
     <Text
+      black={false}
+      blue={false}
       bold={false}
       centered={false}
       disclaimer={false}
@@ -85,6 +87,8 @@ exports[`TokenSelectButton component should Render correctly 2`] = `
       />
     </View>
     <Text
+      black={false}
+      blue={false}
       bold={false}
       centered={false}
       disclaimer={false}
@@ -145,6 +149,8 @@ exports[`TokenSelectButton component should Render correctly 3`] = `
       />
     </View>
     <Text
+      black={false}
+      blue={false}
       bold={false}
       centered={false}
       disclaimer={false}
@@ -206,6 +212,8 @@ exports[`TokenSelectButton component should Render correctly 4`] = `
       />
     </View>
     <Text
+      black={false}
+      blue={false}
       bold={false}
       centered={false}
       disclaimer={false}
@@ -269,6 +277,8 @@ exports[`TokenSelectButton component should Render correctly 5`] = `
       />
     </View>
     <Text
+      black={false}
+      blue={false}
       bold={false}
       centered={false}
       disclaimer={false}

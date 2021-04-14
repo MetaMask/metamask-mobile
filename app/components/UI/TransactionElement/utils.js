@@ -1,4 +1,3 @@
-import AppConstants from '../../../core/AppConstants';
 import {
 	hexToBN,
 	weiToFiat,
@@ -27,87 +26,11 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import { swapsUtils } from '@estebanmino/controllers';
 
 const { ETH_SWAPS_TOKEN_ADDRESS, SWAPS_CONTRACT_ADDRESS } = swapsUtils;
-const {
-	CONNEXT: { CONTRACTS }
-} = AppConstants;
 
 function calculateTotalGas(gas, gasPrice) {
 	const gasBN = hexToBN(gas);
 	const gasPriceBN = hexToBN(gasPrice);
 	return isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
-}
-
-function decodePaymentChannelTx(args) {
-	const {
-		tx: {
-			networkID,
-			transaction: { to }
-		}
-	} = args;
-	const contract = CONTRACTS[networkID];
-	const isDeposit = contract && to && to.toLowerCase() === contract.toLowerCase();
-	if (isDeposit) return decodeConfirmTx(args, true);
-	return decodeTransferPaymentChannel(args);
-}
-
-function decodeTransferPaymentChannel(args) {
-	const {
-		tx: {
-			transaction: { value, from, to }
-		},
-		conversionRate,
-		currentCurrency,
-		exchangeRate,
-		actionKey,
-		primaryCurrency,
-		selectedAddress
-	} = args;
-	const totalSAI = hexToBN(value);
-	const readableTotalSAI = renderFromWei(totalSAI);
-	const renderTotalSAI = `${readableTotalSAI} ${strings('unit.sai')}`;
-	const renderTotalSAIFiat = balanceToFiat(parseFloat(renderTotalSAI), conversionRate, exchangeRate, currentCurrency);
-
-	const renderFrom = renderFullAddress(from);
-	const renderTo = renderFullAddress(to);
-
-	let transactionDetails = {
-		renderFrom,
-		renderTo,
-		renderValue: renderTotalSAI
-	};
-
-	if (primaryCurrency === 'ETH') {
-		transactionDetails = {
-			...transactionDetails,
-			summaryAmount: renderTotalSAI,
-			summaryTotalAmount: renderTotalSAI,
-			summarySecondaryTotalAmount: renderTotalSAIFiat
-		};
-	} else {
-		transactionDetails = {
-			...transactionDetails,
-			summaryAmount: renderTotalSAIFiat,
-			summaryTotalAmount: renderTotalSAIFiat,
-			summarySecondaryTotalAmount: renderTotalSAI
-		};
-	}
-
-	let transactionType;
-	if (renderFrom === selectedAddress) transactionType = TRANSACTION_TYPES.PAYMENT_CHANNEL_SENT;
-	else if (renderTo === selectedAddress) transactionType = TRANSACTION_TYPES.PAYMENT_CHANNEL_RECEIVED;
-	else transactionType = TRANSACTION_TYPES.PAYMENT_CHANNEL_WITHDRAW;
-
-	const transactionElement = {
-		renderFrom,
-		renderTo,
-		actionKey,
-		value: renderTotalSAI,
-		fiatValue: renderTotalSAIFiat,
-		paymentChannelTransaction: true,
-		transactionType
-	};
-
-	return [transactionElement, transactionDetails];
 }
 
 function getTokenTransfer(args) {
@@ -535,7 +458,7 @@ function decodeDeploymentTx(args) {
 	return [transactionElement, transactionDetails];
 }
 
-function decodeConfirmTx(args, paymentChannelTransaction) {
+function decodeConfirmTx(args) {
 	const {
 		tx: {
 			transaction: { value, gas, gasPrice, from, to },
@@ -564,8 +487,7 @@ function decodeConfirmTx(args, paymentChannelTransaction) {
 		symbol = contractMap[renderTo].symbol;
 	}
 	let transactionType;
-	if (paymentChannelTransaction) transactionType = TRANSACTION_TYPES.PAYMENT_CHANNEL_DEPOSIT;
-	else if (actionKey === strings('transactions.approve')) transactionType = TRANSACTION_TYPES.APPROVE;
+	if (actionKey === strings('transactions.approve')) transactionType = TRANSACTION_TYPES.APPROVE;
 	else if (actionKey === strings('transactions.swaps_transaction'))
 		transactionType = TRANSACTION_TYPES.SITE_INTERACTION;
 	else if (
@@ -581,7 +503,6 @@ function decodeConfirmTx(args, paymentChannelTransaction) {
 		actionKey: symbol ? `${symbol} ${actionKey}` : actionKey,
 		value: renderTotalEth,
 		fiatValue: renderTotalEthFiat,
-		paymentChannelTransaction,
 		transactionType
 	};
 	let transactionDetails = {
@@ -643,13 +564,17 @@ function decodeSwapsTx(args) {
 	const renderTo = renderFullAddress(to);
 	const ticker = getTicker(args.ticker);
 	const totalEthGas = renderFromWei(totalGas);
-
 	const decimalSourceAmount =
 		swapTransaction.sourceAmount &&
 		renderFromTokenMinimalUnit(swapTransaction.sourceAmount, swapTransaction.sourceToken.decimals);
 	const decimalDestinationAmount =
 		swapTransaction.destinationToken.decimals &&
-		renderFromTokenMinimalUnit(swapTransaction.destinationAmount, swapTransaction.destinationToken.decimals);
+		renderFromTokenMinimalUnit(
+			!!swapTransaction?.receivedDestinationAmount && swapTransaction?.receivedDestinationAmount > 0
+				? swapTransaction.receivedDestinationAmount
+				: swapTransaction.destinationAmount,
+			swapTransaction.destinationToken.decimals
+		);
 	const cryptoSummaryTotalAmount =
 		sourceToken.symbol === 'ETH'
 			? `${Number(totalEthGas) + Number(decimalSourceAmount)} ${ticker}`
@@ -659,7 +584,6 @@ function decodeSwapsTx(args) {
 
 	const isSwap = swapTransaction.action === 'swap';
 	let notificationKey, actionKey, value, fiatValue;
-
 	if (isSwap) {
 		actionKey = strings('swaps.transaction_label.swap', {
 			sourceToken: sourceToken.symbol,
@@ -672,7 +596,7 @@ function decodeSwapsTx(args) {
 	} else {
 		actionKey = strings('swaps.transaction_label.approve', {
 			sourceToken: sourceToken.symbol,
-			upTo: renderFromTokenMinimalUnit(hexToBN(swapTransaction.upTo), sourceToken.decimals)
+			upTo: renderFromTokenMinimalUnit(swapTransaction.upTo, sourceToken.decimals)
 		});
 		notificationKey = strings(
 			`swaps.notification_label.${tx.status === 'submitted' ? 'approve_pending' : 'approve_confirmed'}`,
@@ -705,7 +629,6 @@ function decodeSwapsTx(args) {
 			fiatValue = addCurrencySymbol(renderDestinationTokenFiatNumber, currentCurrency);
 		}
 	}
-
 	const transactionElement = {
 		renderTo,
 		renderFrom,
@@ -760,18 +683,16 @@ function decodeSwapsTx(args) {
  */
 export default async function decodeTransaction(args) {
 	const { tx, selectedAddress, ticker, swapsTransactions = {} } = args;
-	const { paymentChannelTransaction, isTransfer } = tx || {};
+	const { isTransfer } = tx || {};
 
-	const actionKey = await getActionKey(tx, selectedAddress, ticker, paymentChannelTransaction);
+	const actionKey = await getActionKey(tx, selectedAddress, ticker);
 	let transactionElement, transactionDetails;
 
 	if (tx.transaction.to === SWAPS_CONTRACT_ADDRESS || swapsTransactions[tx.id]) {
 		const [transactionElement, transactionDetails] = decodeSwapsTx({ ...args, actionKey });
 		if (transactionElement && transactionDetails) return [transactionElement, transactionDetails];
 	}
-	if (paymentChannelTransaction) {
-		[transactionElement, transactionDetails] = decodePaymentChannelTx({ ...args, actionKey });
-	} else if (isTransfer) {
+	if (isTransfer) {
 		[transactionElement, transactionDetails] = decodeIncomingTransfer({ ...args, actionKey });
 	} else {
 		switch (actionKey) {

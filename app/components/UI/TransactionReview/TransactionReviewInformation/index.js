@@ -19,8 +19,10 @@ import TransactionReviewFeeCard from '../TransactionReviewFeeCard';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { withNavigation } from 'react-navigation';
-import { getNetworkName, isMainNet } from '../../../../util/networks';
-import { capitalize } from '../../../../util/format';
+import { getNetworkName, getNetworkNonce, isMainNet } from '../../../../util/networks';
+import { capitalize } from '../../../../util/general';
+import CustomNonceModal from '../../../UI/CustomNonceModal';
+import { setNonce, setProposedNonce } from '../../../../actions/transaction';
 
 const styles = StyleSheet.create({
 	overviewAlert: {
@@ -95,7 +97,7 @@ const styles = StyleSheet.create({
 		marginHorizontal: 24,
 		marginTop: 12,
 		paddingHorizontal: 10,
-		paddingVertical: 8,
+		paddingVertical: 6,
 		backgroundColor: colors.red000,
 		borderColor: colors.red,
 		borderRadius: 8,
@@ -184,13 +186,52 @@ class TransactionReviewInformation extends PureComponent {
 		/**
 		 * Network id
 		 */
-		network: PropTypes.string
+		network: PropTypes.string,
+		/**
+		 * Indicates whether custom nonce should be shown in transaction editor
+		 */
+		showCustomNonce: PropTypes.bool,
+		/**
+		 * Set transaction nonce
+		 */
+		setNonce: PropTypes.func,
+		/**
+		 * Set proposed nonce (from network)
+		 */
+		setProposedNonce: PropTypes.func
 	};
 
 	state = {
 		toFocused: false,
 		amountError: '',
-		actionKey: strings('transactions.tx_review_confirm')
+		actionKey: strings('transactions.tx_review_confirm'),
+		nonceModalVisible: false
+	};
+
+	componentDidMount = async () => {
+		await this.setNetworkNonce();
+	};
+
+	setNetworkNonce = async () => {
+		const { setNonce, setProposedNonce, transaction } = this.props;
+		const proposedNonce = await getNetworkNonce(transaction);
+		setNonce(proposedNonce);
+		setProposedNonce(proposedNonce);
+	};
+
+	toggleNonceModal = () => this.setState(state => ({ nonceModalVisible: !state.nonceModalVisible }));
+
+	renderCustomNonceModal = () => {
+		const { setNonce } = this.props;
+		const { proposedNonce, nonce } = this.props.transaction;
+		return (
+			<CustomNonceModal
+				proposedNonce={proposedNonce}
+				nonceValue={nonce}
+				close={this.toggleNonceModal}
+				save={setNonce}
+			/>
+		);
 	};
 
 	getTotalFiat = (asset, totalGas, conversionRate, exchangeRate, currentCurrency, amountToken) => {
@@ -305,20 +346,22 @@ class TransactionReviewInformation extends PureComponent {
 	};
 
 	render() {
-		const { amountError } = this.state;
+		const { amountError, nonceModalVisible } = this.state;
+		const { nonce } = this.props.transaction;
 		const {
 			fiatValue,
 			assetAmount,
 			primaryCurrency,
 			toggleDataView,
 			ready,
-			transaction: { gas, gasPrice },
+			transaction: { gas, gasPrice, warningGasPriceHigh },
 			currentCurrency,
 			conversionRate,
 			ticker,
 			error,
 			over,
-			network
+			network,
+			showCustomNonce
 		} = this.props;
 		const is_main_net = isMainNet(network);
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
@@ -333,6 +376,7 @@ class TransactionReviewInformation extends PureComponent {
 
 		return (
 			<React.Fragment>
+				{nonceModalVisible && this.renderCustomNonceModal()}
 				<TransactionReviewFeeCard
 					totalGasFiat={totalGasFiat}
 					totalGasEth={totalGasEth}
@@ -344,6 +388,10 @@ class TransactionReviewInformation extends PureComponent {
 					gasEstimationReady={ready}
 					edit={this.edit}
 					over={over}
+					warningGasPriceHigh={warningGasPriceHigh}
+					showCustomNonce={showCustomNonce}
+					nonceValue={nonce}
+					onNonceEdit={this.toggleNonceModal}
 				/>
 				{!!amountError && (
 					<View style={styles.overviewAlert}>
@@ -364,7 +412,12 @@ class TransactionReviewInformation extends PureComponent {
 						</TouchableOpacity>
 					</View>
 				)}
-				{!over && (
+				{!!warningGasPriceHigh && (
+					<View style={styles.errorWrapper}>
+						<Text style={styles.error}>{warningGasPriceHigh}</Text>
+					</View>
+				)}
+				{!over && !showCustomNonce && (
 					<View style={styles.viewDataWrapper}>
 						<TouchableOpacity style={styles.viewDataButton} onPress={toggleDataView}>
 							<Text style={styles.viewDataText}>{strings('transaction.view_data')}</Text>
@@ -383,7 +436,16 @@ const mapStateToProps = state => ({
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	transaction: getNormalizedTxState(state),
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	primaryCurrency: state.settings.primaryCurrency
+	primaryCurrency: state.settings.primaryCurrency,
+	showCustomNonce: state.settings.showCustomNonce
 });
 
-export default connect(mapStateToProps)(withNavigation(TransactionReviewInformation));
+const mapDispatchToProps = dispatch => ({
+	setNonce: nonce => dispatch(setNonce(nonce)),
+	setProposedNonce: nonce => dispatch(setProposedNonce(nonce))
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(withNavigation(TransactionReviewInformation));

@@ -308,6 +308,8 @@ function SwapsQuotesView({
 	const [apiGasPrice] = useGasPrice();
 	const [customGasPrice, setCustomGasPrice] = useState(null);
 	const [customGasLimit, setCustomGasLimit] = useState(null);
+	const [warningGasPriceHigh, setWarningGasPriceHigh] = useState(null);
+
 	// TODO: use this variable in the future when calculating savings
 	const [isSaving] = useState(false);
 	const [isInFetch, setIsInFetch] = useState(false);
@@ -320,7 +322,17 @@ function SwapsQuotesView({
 
 		const orderedAggregators = hasConversionRate
 			? Object.values(quoteValues).sort((a, b) => Number(b.overallValueOfQuote) - Number(a.overallValueOfQuote))
-			: Object.values(quotes).sort((a, b) => new BigNumber(b.destinationAmount).comparedTo(a.destinationAmount));
+			: Object.values(quotes).sort((a, b) => {
+					const comparison = new BigNumber(b.destinationAmount).comparedTo(a.destinationAmount);
+					if (comparison === 0) {
+						// If the  destination amount is the same, we sort by fees ascending
+						return (
+							Number(quoteValues[a.aggregator]?.ethFee) - Number(quoteValues[b.aggregator]?.ethFee) || 0
+						);
+					}
+					return comparison;
+					// eslint-disable-next-line no-mixed-spaces-and-tabs
+			  });
 
 		return orderedAggregators.map(quoteValue => quotes[quoteValue.aggregator]);
 	}, [hasConversionRate, quoteValues, quotes]);
@@ -547,7 +559,7 @@ function SwapsQuotesView({
 					action: 'approval',
 					sourceToken: { address: sourceToken.address, decimals: sourceToken.decimals },
 					destinationToken: { swaps: 'swaps' },
-					upTo: decodeApproveData(approvalTransaction.data).encodedAmount
+					upTo: new BigNumber(decodeApproveData(approvalTransaction.data).encodedAmount, 16).toString(10)
 				};
 			} catch (e) {
 				// send analytics
@@ -647,10 +659,11 @@ function SwapsQuotesView({
 	]);
 
 	const onHandleGasFeeSelection = useCallback(
-		(customGasLimit, customGasPrice, details) => {
+		(customGasLimit, customGasPrice, warningGasPriceHigh, details) => {
 			const { SwapsController } = Engine.context;
 			const newGasLimit = new BigNumber(customGasLimit);
 			const newGasPrice = new BigNumber(customGasPrice);
+			setWarningGasPriceHigh(warningGasPriceHigh);
 			if (newGasPrice.toString(16) !== gasPrice) {
 				setCustomGasPrice(newGasPrice);
 				SwapsController.updateQuotesWithGasPrice(newGasPrice.toString(16));
@@ -794,7 +807,7 @@ function SwapsQuotesView({
 	const handleTermsPress = useCallback(
 		() =>
 			navigation.navigate('Webview', {
-				url: 'https://metamask.io/terms.html'
+				url: AppConstants.URLS.TERMS_AND_CONDITIONS
 			}),
 		[navigation]
 	);
@@ -1025,7 +1038,13 @@ function SwapsQuotesView({
 						</Alert>
 					</View>
 				)}
-
+				{!!warningGasPriceHigh && !(!hasEnoughTokenBalance || !hasEnoughEthBalance) && (
+					<View style={styles.alertBar}>
+						<Alert small type="error">
+							<Text reset>{warningGasPriceHigh}</Text>
+						</Alert>
+					</View>
+				)}
 				{!!selectedQuote && hasEnoughTokenBalance && hasEnoughEthBalance && shouldDisplaySlippage && (
 					<View style={styles.alertBar}>
 						<ActionAlert

@@ -106,18 +106,6 @@ export function prepareFullTransaction({
  *
  * @param {object} transaction - New transaction object
  */
-export function setPaymentChannelTransaction(asset) {
-	return {
-		type: 'SET_PAYMENT_CHANNEL_TRANSACTION',
-		asset
-	};
-}
-
-/**
- * Sets any attribute in transaction object
- *
- * @param {object} transaction - New transaction object
- */
 export function setTransactionObject(transaction) {
 	return {
 		type: 'SET_TRANSACTION_OBJECT',
@@ -182,5 +170,19 @@ export function setCollectibleContractTransaction(collectible) {
 	return {
 		type: 'SET_COLLECTIBLE_CONTRACT_TRANSACTION',
 		collectible
+	};
+}
+
+export function setNonce(nonce) {
+	return {
+		type: 'SET_NONCE',
+		nonce
+	};
+}
+
+export function setProposedNonce(proposedNonce) {
+	return {
+		type: 'SET_PROPOSED_NONCE',
+		proposedNonce
 	};
 }

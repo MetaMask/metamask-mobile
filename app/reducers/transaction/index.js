@@ -13,16 +13,18 @@ const initialState = {
 		to: undefined,
 		value: undefined
 	},
+	warningGasPriceHigh: undefined,
 	transactionTo: undefined,
 	transactionToName: undefined,
 	transactionFromName: undefined,
 	transactionValue: undefined,
 	symbol: undefined,
-	paymentChannelTransaction: undefined,
 	paymentRequest: undefined,
 	readableValue: undefined,
 	id: undefined,
-	type: undefined
+	type: undefined,
+	proposedNonce: undefined,
+	nonce: undefined
 };
 
 const getAssetType = selectedAsset => {
@@ -57,6 +59,16 @@ const transactionReducer = (state = initialState, action) => {
 				selectedAsset: action.selectedAsset,
 				assetType: action.assetType
 			};
+		case 'SET_NONCE':
+			return {
+				...state,
+				nonce: action.nonce
+			};
+		case 'SET_PROPOSED_NONCE':
+			return {
+				...state,
+				proposedNonce: action.proposedNonce
+			};
 		case 'SET_RECIPIENT':
 			return {
 				...state,
@@ -87,7 +99,6 @@ const transactionReducer = (state = initialState, action) => {
 				action.transaction.assetType = assetType;
 			}
 			const txMeta = getTxMeta(action.transaction);
-
 			return {
 				...state,
 				transaction: {
@@ -105,17 +116,6 @@ const transactionReducer = (state = initialState, action) => {
 				type: 'TOKENS_TRANSACTION',
 				selectedAsset: action.asset,
 				assetType
-			};
-		}
-		case 'SET_PAYMENT_CHANNEL_TRANSACTION': {
-			const selectedAsset = action.asset;
-			const assetType = getAssetType(selectedAsset);
-			return {
-				...state,
-				type: 'PAYMENT_CHANNEL_TRANSACTION',
-				selectedAsset: action.asset,
-				assetType,
-				paymentChannelTransaction: true
 			};
 		}
 		case 'SET_ETHER_TRANSACTION':

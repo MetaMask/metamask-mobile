@@ -26,6 +26,7 @@ import {
 import { showAlert } from '../../../actions/alert';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import TransactionHeader from '../../UI/TransactionHeader';
 import AccountInfoCard from '../../UI/AccountInfoCard';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
@@ -35,7 +36,8 @@ import AppConstants from '../../../core/AppConstants';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { withNavigation } from 'react-navigation';
 import { getNetworkName, isMainNet } from '../../../util/networks';
-import { capitalize } from '../../../util/format';
+import scaling from '../../../util/scaling';
+import { capitalize } from '../../../util/general';
 import EditPermission from './EditPermission';
 
 const { hexToBN } = util;
@@ -59,7 +61,7 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		...fontStyles.bold,
-		fontSize: 24,
+		fontSize: scaling.scale(24),
 		textAlign: 'center',
 		color: colors.black,
 		lineHeight: 34,
@@ -92,7 +94,7 @@ const styles = StyleSheet.create({
 		color: colors.blue,
 		fontSize: 12,
 		lineHeight: 16,
-		marginTop: 20,
+		marginTop: 8,
 		textAlign: 'center'
 	},
 	actionTouchable: {
@@ -114,7 +116,6 @@ const styles = StyleSheet.create({
 		textAlign: 'right'
 	},
 	errorWrapper: {
-		// marginHorizontal: 24,
 		marginTop: 12,
 		paddingHorizontal: 10,
 		paddingVertical: 8,
@@ -205,6 +206,10 @@ class ApproveTransactionReview extends PureComponent {
 		 */
 		gasError: PropTypes.string,
 		/**
+		 * Warning coming from high gas set in CustomGas component
+		 */
+		warningGasPriceHigh: PropTypes.string,
+		/**
 		 * Primary currency, either ETH or Fiat
 		 */
 		primaryCurrency: PropTypes.string,
@@ -223,7 +228,11 @@ class ApproveTransactionReview extends PureComponent {
 		/**
 		 * True if transaction is over the available funds
 		 */
-		over: PropTypes.bool
+		over: PropTypes.bool,
+		/**
+		 * Function to set analytics params
+		 */
+		onSetAnalyticsParams: PropTypes.func
 	};
 
 	state = {
@@ -272,16 +281,22 @@ class ApproveTransactionReview extends PureComponent {
 		const totalGas = gas?.mul(gasPrice);
 		const { name: method } = await getMethodData(data);
 
-		this.setState({
-			host,
-			method,
-			originalApproveAmount: approveAmount,
-			tokenSymbol,
-			token: { symbol: tokenSymbol, decimals: tokenDecimals },
-			totalGas: renderFromWei(totalGas),
-			totalGasFiat: weiToFiatNumber(totalGas, conversionRate),
-			spenderAddress
-		});
+		this.setState(
+			{
+				host,
+				method,
+				originalApproveAmount: approveAmount,
+				tokenSymbol,
+				token: { symbol: tokenSymbol, decimals: tokenDecimals },
+				totalGas: renderFromWei(totalGas),
+				totalGasFiat: weiToFiatNumber(totalGas, conversionRate),
+				spenderAddress,
+				encodedAmount
+			},
+			() => {
+				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_STARTED, this.getAnalyticsParams());
+			}
+		);
 	};
 
 	componentDidUpdate(previousProps) {
@@ -301,6 +316,33 @@ class ApproveTransactionReview extends PureComponent {
 			});
 		}
 	}
+
+	getAnalyticsParams = () => {
+		try {
+			const { activeTabUrl, transaction, onSetAnalyticsParams } = this.props;
+			const { tokenSymbol, originalApproveAmount, encodedAmount } = this.state;
+			const { NetworkController } = Engine.context;
+			const { chainId, type } = NetworkController?.state?.provider || {};
+			const isDapp = !Object.values(AppConstants.DEEPLINKS).includes(transaction?.origin);
+			const unlimited = encodedAmount === 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+			const params = {
+				dapp_host_name: transaction?.origin,
+				dapp_url: isDapp ? activeTabUrl : undefined,
+				network_name: type,
+				chain_id: chainId,
+				active_currency: { value: tokenSymbol, anonymous: true },
+				number_tokens_requested: { value: originalApproveAmount, anonymous: true },
+				unlimited_permission_requested: unlimited,
+				referral_type: isDapp ? 'dapp' : transaction?.origin
+			};
+			// Send analytics params to parent component so it's available when cancelling and confirming
+			onSetAnalyticsParams && onSetAnalyticsParams(params);
+
+			return params;
+		} catch (error) {
+			return {};
+		}
+	};
 
 	trackApproveEvent = event => {
 		const { transaction, tokensLength, accountsLength, providerType } = this.props;
@@ -388,6 +430,7 @@ class ApproveTransactionReview extends PureComponent {
 		const newApprovalTransaction = { ...transaction, data: approvalData };
 		setTransactionObject(newApprovalTransaction);
 		this.toggleEditPermission();
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_PERMISSION_UPDATED, this.getAnalyticsParams());
 	};
 
 	renderEditPermission = () => {
@@ -398,6 +441,7 @@ class ApproveTransactionReview extends PureComponent {
 			spendLimitCustomValue,
 			originalApproveAmount
 		} = this.state;
+
 		return (
 			<EditPermission
 				host={host}
@@ -423,7 +467,6 @@ class ApproveTransactionReview extends PureComponent {
 			originalApproveAmount,
 			transaction: { to, data }
 		} = this.state;
-
 		return (
 			<TransactionReviewDetailsCard
 				toggleViewDetails={this.toggleViewDetails}
@@ -455,6 +498,11 @@ class ApproveTransactionReview extends PureComponent {
 		onCancel && onCancel();
 	};
 
+	onConfirmPress = () => {
+		const { onConfirm } = this.props;
+		onConfirm && onConfirm();
+	};
+
 	gotoFaucet = () => {
 		const mmFaucetUrl = 'https://faucet.metamask.io/';
 		InteractionManager.runAfterInteractions(() => {
@@ -484,7 +532,8 @@ class ApproveTransactionReview extends PureComponent {
 			activeTabUrl,
 			transaction: { origin },
 			network,
-			over
+			over,
+			warningGasPriceHigh
 		} = this.props;
 		const is_main_net = isMainNet(network);
 		const isFiat = primaryCurrency.toLowerCase() === 'fiat';
@@ -529,8 +578,8 @@ class ApproveTransactionReview extends PureComponent {
 									confirmButtonMode="confirm"
 									cancelText={strings('transaction.reject')}
 									confirmText={strings('transactions.approve')}
-									onCancelPress={this.props.onCancel}
-									onConfirmPress={this.props.onConfirm}
+									onCancelPress={this.onCancelPress}
+									onConfirmPress={this.onConfirmPress}
 								>
 									<View style={styles.actionViewChildren}>
 										<TouchableOpacity
@@ -563,18 +612,6 @@ class ApproveTransactionReview extends PureComponent {
 														</View>
 													</View>
 												</TouchableOpacity>
-												{!gasError && (
-													<TouchableOpacity
-														style={styles.actionTouchable}
-														onPress={this.toggleViewDetails}
-													>
-														<View style={styles.viewDetailsWrapper}>
-															<Text style={styles.viewDetailsText}>
-																{strings('spend_limit_edition.view_details')}
-															</Text>
-														</View>
-													</TouchableOpacity>
-												)}
 												{gasError && (
 													<View style={styles.errorWrapper}>
 														<TouchableOpacity onPress={errorPress}>
@@ -587,6 +624,23 @@ class ApproveTransactionReview extends PureComponent {
 															)}
 														</TouchableOpacity>
 													</View>
+												)}
+												{!!warningGasPriceHigh && (
+													<View style={styles.errorWrapper}>
+														<Text style={styles.error}>{warningGasPriceHigh}</Text>
+													</View>
+												)}
+												{!gasError && (
+													<TouchableOpacity
+														style={styles.actionTouchable}
+														onPress={this.toggleViewDetails}
+													>
+														<View>
+															<Text style={styles.viewDetailsText}>
+																{strings('spend_limit_edition.view_details')}
+															</Text>
+														</View>
+													</TouchableOpacity>
 												)}
 											</View>
 										</View>

@@ -1,6 +1,44 @@
 # Changelog
 
+## Current Develop Branch
+
+## v2.1.1 - Apr 14 2021
+- [#2520](https://github.com/MetaMask/metamask-mobile/pull/2520): Check provider status
+
+## v2.1.0 - Apr 12 2021
+- [#2487](https://github.com/MetaMask/metamask-mobile/pull/2487): Fix/analytics v1 priority1
+- [#2456](https://github.com/MetaMask/metamask-mobile/pull/2456): Analytics v2 (priority 1)
+- [#2408](https://github.com/MetaMask/metamask-mobile/pull/2408): Fix/gas estimations
+- [#2479](https://github.com/MetaMask/metamask-mobile/pull/2479): remove controllers tgz
+- [#2441](https://github.com/MetaMask/metamask-mobile/pull/2441): Improvement/assets by chainid
+- [#2442](https://github.com/MetaMask/metamask-mobile/pull/2442): Improvement/chain ticker
+- [#2372](https://github.com/MetaMask/metamask-mobile/pull/2372): Remove instapay
+- [#2467](https://github.com/MetaMask/metamask-mobile/pull/2467): Fix iOS build
+- [#2084](https://github.com/MetaMask/metamask-mobile/pull/2084): Migrate from AsyncStorage to FileStorage
+- [#2443](https://github.com/MetaMask/metamask-mobile/pull/2443): Update terms and privacy links
+- [#2318](https://github.com/MetaMask/metamask-mobile/pull/2318): Add custom network rpc API
+- [#2306](https://github.com/MetaMask/metamask-mobile/pull/2306): Feature/high gas warn
+- [#2463](https://github.com/MetaMask/metamask-mobile/pull/2463): update pods
+- [#2448](https://github.com/MetaMask/metamask-mobile/pull/2448): Add resolution for netmask
+- [#2445](https://github.com/MetaMask/metamask-mobile/pull/2445): Add resolution for y18n
+- [#2404](https://github.com/MetaMask/metamask-mobile/pull/2404): Bump react-native-branch from 5.0.0 to 5.0.1
+- [#2439](https://github.com/MetaMask/metamask-mobile/pull/2439): json-rpc-engine@6.1.0
+- [#2413](https://github.com/MetaMask/metamask-mobile/pull/2413): remove "git add" per husky warning
+- [#2431](https://github.com/MetaMask/metamask-mobile/pull/2431): Update BN import
+
+## v2.0.1 - Mar 24 2021
+- [#2430](https://github.com/MetaMask/metamask-mobile/pull/2430): Fix/send to style
+- [#2426](https://github.com/MetaMask/metamask-mobile/pull/2426): bugfix/allow seedphrases when locked
+- [#2422](https://github.com/MetaMask/metamask-mobile/pull/2422): bugfix/delete wallet with random password
+- [#2417](https://github.com/MetaMask/metamask-mobile/pull/2417): Bugfix/sync improvements
+- [#2418](https://github.com/MetaMask/metamask-mobile/pull/2418): V2 fixes
+- [#2156](https://github.com/MetaMask/metamask-mobile/pull/2156): Translations with update script
+
 ## v2.0.0 - Mar 16 2021
+- [#2383](https://github.com/MetaMask/metamask-mobile/pull/2383): swaps/received destination amount
+- [#2379](https://github.com/MetaMask/metamask-mobile/pull/2379): Swaps/fix decode tx render amounts
+- [#2377](https://github.com/MetaMask/metamask-mobile/pull/2377): bugfix/dont modify local transactions
+- [#2376](https://github.com/MetaMask/metamask-mobile/pull/2376): Swaps: Sort quotes by asc fees when destination amount is the same
 - [#2370](https://github.com/MetaMask/metamask-mobile/pull/2370): bugfix/swaps bugs
 - [#2321](https://github.com/MetaMask/metamask-mobile/pull/2321): Swaps v1
 - [#2365](https://github.com/MetaMask/metamask-mobile/pull/2365): bugfix/transactions filtering

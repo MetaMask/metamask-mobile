@@ -1,0 +1,198 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SwitchCustomNetwork should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "borderTopLeftRadius": 20,
+      "borderTopRightRadius": 20,
+      "minHeight": 200,
+      "paddingBottom": 20,
+      "paddingTop": 24,
+    }
+  }
+>
+  <Text
+    black={false}
+    blue={false}
+    bold={true}
+    centered={true}
+    disclaimer={false}
+    green={false}
+    link={false}
+    modal={false}
+    noMargin={true}
+    primary={true}
+    reset={false}
+    right={false}
+    small={false}
+    strikethrough={false}
+    style={
+      Object {
+        "fontSize": 24,
+        "marginBottom": 16,
+        "marginLeft": 24,
+        "marginRight": 24,
+        "marginTop": 16,
+      }
+    }
+    underline={false}
+    upper={false}
+  >
+    New network added
+  </Text>
+  <Text
+    black={false}
+    blue={false}
+    bold={false}
+    centered={false}
+    disclaimer={false}
+    green={false}
+    link={false}
+    modal={false}
+    noMargin={true}
+    primary={true}
+    reset={false}
+    right={false}
+    small={false}
+    strikethrough={false}
+    style={
+      Object {
+        "fontSize": 13,
+        "paddingBottom": 16,
+        "paddingHorizontal": 24,
+        "textAlign": "center",
+        "width": "100%",
+      }
+    }
+    underline={false}
+    upper={false}
+  >
+    <Text
+      black={false}
+      blue={false}
+      bold={false}
+      centered={false}
+      disclaimer={false}
+      green={false}
+      link={false}
+      modal={false}
+      primary={false}
+      reset={false}
+      right={false}
+      small={false}
+      strikethrough={false}
+      underline={false}
+      upper={false}
+    >
+      <Text
+        black={false}
+        blue={false}
+        bold={true}
+        centered={false}
+        disclaimer={false}
+        green={false}
+        link={false}
+        modal={false}
+        noMargin={true}
+        primary={true}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
+        underline={false}
+        upper={false}
+      >
+        ""
+      </Text>
+      <Text
+        black={false}
+        blue={false}
+        bold={false}
+        centered={false}
+        disclaimer={false}
+        green={false}
+        link={false}
+        modal={false}
+        noMargin={true}
+        primary={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
+        underline={false}
+        upper={false}
+      >
+         
+        is now available in the network selector.
+      </Text>
+    </Text>
+  </Text>
+  <View
+    style={
+      Object {
+        "flex": 0,
+        "flexDirection": "row",
+        "marginTop": 20,
+        "padding": 24,
+      }
+    }
+  >
+    <StyledButton
+      containerStyle={
+        Array [
+          Object {
+            "flex": 1,
+          },
+          Object {
+            "marginRight": 8,
+          },
+        ]
+      }
+      disabledContainerStyle={
+        Object {
+          "opacity": 0.6,
+        }
+      }
+      onPress={[Function]}
+      styleDisabled={
+        Object {
+          "opacity": 0.6,
+        }
+      }
+      testID="connect-cancel-button"
+      type="cancel"
+    >
+      Cancel
+    </StyledButton>
+    <StyledButton
+      containerStyle={
+        Array [
+          Object {
+            "flex": 1,
+          },
+          Object {
+            "marginLeft": 8,
+          },
+        ]
+      }
+      disabledContainerStyle={
+        Object {
+          "opacity": 0.6,
+        }
+      }
+      onPress={[Function]}
+      styleDisabled={
+        Object {
+          "opacity": 0.6,
+        }
+      }
+      testID="connect-approve-button"
+      type="confirm"
+    >
+      Switch Network
+    </StyledButton>
+  </View>
+</View>
+`;

@@ -33,7 +33,7 @@ import contractMap from '@metamask/contract-metadata';
 import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
 
-const EMPTY = 'EMPTY';
+const NON_EMPTY = 'NON_EMPTY';
 
 const encryptor = new Encryptor();
 let currentChainId;
@@ -79,7 +79,7 @@ class Engine {
 					new PersonalMessageManager(),
 					new MessageManager(),
 					new NetworkController({
-						infuraProjectId: process.env.MM_INFURA_PROJECT_ID || EMPTY,
+						infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
 						providerConfig: {
 							static: {
 								eth_sendTransaction: async (payload, next, end) => {
@@ -235,13 +235,14 @@ class Engine {
 			TokenRatesController
 		} = this.datamodel.context;
 		const { selectedAddress } = PreferencesController.state;
-		const { conversionRate } = CurrencyRateController.state;
+		const { conversionRate, currentCurrency } = CurrencyRateController.state;
 		const { accounts } = AccountTrackerController.state;
 		const { tokens } = AssetsController.state;
 		let ethFiat = 0;
 		let tokenFiat = 0;
 		if (accounts[selectedAddress]) {
-			ethFiat = weiToFiatNumber(accounts[selectedAddress].balance, conversionRate);
+			const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
+			ethFiat = weiToFiatNumber(accounts[selectedAddress].balance, conversionRate, decimalsToShow);
 		}
 		if (tokens.length > 0) {
 			const { contractBalances: tokenBalances } = TokenBalancesController.state;
