@@ -1249,7 +1249,6 @@
 	"offline_mode": {
 		"title": "You're offline",
 		"text": "Unable to connect to the blockchain host.",
-		"infura_blocked_text": "MetaMask is unable to reach our hosted blockchain connection. Review possible reasons.",
 		"try_again": "Try again",
 		"learn_more": "Learn more"
 	},

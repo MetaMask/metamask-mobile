@@ -78,7 +78,7 @@ const OfflineMode = ({ navigation, infuraBlocked }) => {
 						{strings('offline_mode.title')}
 					</Text>
 					<Text centered style={styles.text}>
-						{strings(`offline_mode.${infuraBlocked ? 'infura_blocked_text' : 'text'}`)}
+						{strings(`offline_mode.text}`)}
 					</Text>
 				</View>
 				<View style={styles.buttonContainer}>
