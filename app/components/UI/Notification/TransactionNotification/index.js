@@ -94,7 +94,6 @@ function TransactionNotification(props) {
 		accounts,
 		currentNotification,
 		isInBrowserView,
-		navigation,
 		notificationAnimated,
 		onClose,
 		transactions,
@@ -252,7 +251,6 @@ function TransactionNotification(props) {
 							<TransactionDetails
 								transactionObject={tx}
 								transactionDetails={transactionDetails}
-								navigation={navigation}
 								close={onCloseDetails}
 								showSpeedUpModal={onSpeedUpPress}
 								showCancelModal={onCancelPress}
@@ -321,10 +319,6 @@ TransactionNotification.propTypes = {
 	 * Map of accounts to information objects including balances
 	 */
 	accounts: PropTypes.object,
-	/**
-    /* navigation object required to push new views
-    */
-	navigation: PropTypes.object,
 	/**
 	 * An array that represents the user transactions on chain
 	 */

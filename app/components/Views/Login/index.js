@@ -44,6 +44,7 @@ import { passwordRequirementsMet } from '../../../util/password';
 import ErrorBoundary from '../ErrorBoundary';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import Analytics from '../../../core/Analytics';
 
 const isTextDelete = text => String(text).toLowerCase() === 'delete';
 const deviceHeight = Device.getDeviceHeight();
@@ -311,6 +312,12 @@ class Login extends PureComponent {
 				error.toLowerCase() === WRONG_PASSWORD_ERROR_ANDROID.toLowerCase()
 			) {
 				this.setState({ loading: false, error: strings('login.invalid_password') });
+
+				Analytics.trackEventWithParameters('Invalid password', {
+					error: true
+				});
+
+				return;
 			} else if (error === PASSCODE_NOT_SET_ERROR) {
 				Alert.alert(
 					'Security Alert',

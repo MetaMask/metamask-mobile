@@ -8,6 +8,7 @@ import SecureKeychain from '../../../core/SecureKeychain';
 import { baseStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import { NavigationActions } from 'react-navigation';
+import Analytics from '../../../core/Analytics';
 
 const LOGO_SIZE = 175;
 const styles = StyleSheet.create({
@@ -129,7 +130,10 @@ class LockScreen extends PureComponent {
 			if (this.unlockAttempts <= 3) {
 				this.unlockKeychain();
 			} else {
-				Logger.error(error, { message: 'Lockscreen:maxAttemptsReached', attemptNumber: this.unlockAttempts });
+				Analytics.trackEventWithParameters('Lockscreen:maxAttemptsReached', {
+					error: true,
+					attemptNumber: this.unlockAttempts
+				});
 				this.props.navigation.navigate('Login');
 			}
 		}

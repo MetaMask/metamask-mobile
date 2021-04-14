@@ -393,8 +393,13 @@ class Settings extends PureComponent {
 		} catch (e) {
 			if (e.message === 'Invalid password') {
 				Alert.alert(strings('app_settings.invalid_password'), strings('app_settings.invalid_password_message'));
+				Analytics.trackEventWithParameters('Invalid password', {
+					error: true,
+					view: 'SecuritySettings'
+				});
+			} else {
+				Logger.error(e, 'SecuritySettings:biometrics');
 			}
-			Logger.error(e, 'SecuritySettings:biometrics');
 			this.setState({ [type]: !enabled, loading: false });
 		}
 	};
