@@ -22,9 +22,6 @@ workflows:
         title: Yarn Install
     - script@1:
         inputs:
-          - content: |+
-            #!/bin/bash
-            yarn audit
           - script_file_path: "./scripts/yarn-audit.sh"
         title: Audit Dependencies
     - yarn@0:
