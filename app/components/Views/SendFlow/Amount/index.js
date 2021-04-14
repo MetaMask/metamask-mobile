@@ -397,7 +397,7 @@ class Amount extends PureComponent {
 		this.collectibles = this.processCollectibles();
 		this.amountInput && this.amountInput.current && this.amountInput.current.focus();
 		this.onInputChange(readableValue);
-		this.handleSelectedAssetBalance(selectedAsset);
+		!selectedAsset.tokenId && this.handleSelectedAssetBalance(selectedAsset);
 
 		const estimatedTotalGas = await this.estimateTransactionTotalGas();
 		this.setState({
@@ -733,7 +733,6 @@ class Amount extends PureComponent {
 	handleSelectedAssetBalance = ({ address, decimals, symbol, isETH }, renderableBalance) => {
 		const { accounts, selectedAddress, contractBalances } = this.props;
 		let currentBalance;
-
 		if (renderableBalance) {
 			currentBalance = `${renderableBalance} ${symbol}`;
 		} else if (isETH) {
