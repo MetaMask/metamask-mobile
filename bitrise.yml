@@ -30,14 +30,8 @@ workflows:
             # debug log
             set -x
 
-            # write your script here
-            ./yarn-audit.sh
-
             # or run a script from your repository, like:
-            # bash ./path/to/script.sh
-            # not just bash, e.g.:
-            # ruby ./path/to/script.rb
-        - script_file_path: ./scripts/yarn-audit.sh
+            bash ./scripts/yarn-audit.sh
         title: Audit Dependencies
     # - yarn@0:
     #     title: Lint
