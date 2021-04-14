@@ -52,18 +52,20 @@ workflows:
     - yarn@0:
         inputs:
         - args: ''
-        - command: install codecov
+        - command: add codecov
         title: Install Code Coverage
         is_always_run: false
     - script@1:
         inputs:
         - script_file_path: "./node_modules/bin/codecov"
         title: Code Coverage
+        is_always_run: false
     - script@1:
         inputs:
         - content: |-
             #!/usr/bin/env bash echo 'weew - everything passed!'
         title: All Tests Passed
+        is_always_run: false
   deploy:
     description: >
       ## Configure Android part of the deploy workflow
@@ -169,15 +171,9 @@ workflows:
 
       The next change in your repository that matches any of your trigger map
       event will start **deploy** workflow.
+    before_run:
+    - code_setup
     steps:
-    - activate-ssh-key@4:
-        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
-    - git-clone@4: {}
-    - script@1:
-        title: Do anything with Script step
-    - yarn@0:
-        inputs:
-        - command: install
     - install-missing-android-tools@2:
         inputs:
         - gradlew_path: $PROJECT_LOCATION/gradlew
