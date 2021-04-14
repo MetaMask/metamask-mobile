@@ -6,7 +6,7 @@ trigger_map:
 # - push_branch: 'develop'
 #   workflow: ci
 - pull_request_source_branch: '*'
-  workflow: ci
+  workflow: deploy
 workflows:
   code_setup:
     steps:
@@ -21,24 +21,24 @@ workflows:
         - cache_local_deps: 'yes'
         - command: install --network-concurrency 1
         title: Yarn Install
-    - script@1:
-        inputs:
-        - content: |-
-            #!/usr/bin/env bash
-            # fail if any commands fails
-            set -e
-            # debug log
-            set -x
+    # - script@1:
+    #     inputs:
+    #     - content: |-
+    #         #!/usr/bin/env bash
+    #         # fail if any commands fails
+    #         set -e
+    #         # debug log
+    #         set -x
 
-            # or run a script from your repository, like:
-            ./scripts/yarn-audit.sh
-        title: Audit Dependencies
-    - yarn@0:
-        title: Lint
-        inputs:
-        - args: ''
-        - command: lint
-        is_always_run: true
+    #         # or run a script from your repository, like:
+    #         ./scripts/yarn-audit.sh
+    #     title: Audit Dependencies
+    # - yarn@0:
+    #     title: Lint
+    #     inputs:
+    #     - args: ''
+    #     - command: lint
+    #     is_always_run: true
   ci:
     before_run:
     - code_setup
@@ -49,6 +49,46 @@ workflows:
         - command: test:unit --silent
         title: Unit Test
         is_always_run: false
+    - script@1:
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash echo 'weew - everything passed!'
+        title: All Tests Passed
+        is_always_run: false
+  e2e:
+    before_run:
+    - code_setup
+    steps:
+    - yarn@0:
+        inputs:
+        - cache_local_deps: 'yes'
+        - command: global add detox-cli
+        title: Install Detox CLI
+    - script:
+        inputs:
+        - content: |-
+            # Add cache directory to environment variable
+            envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
+            envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
+        title: Set Env Path for caching deps
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            brew tap wix/brew
+        title: Detox Setup
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            detox build --configuration ios.sim.release
+        title: Detox - Build Release App
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            detox test -R 1 --configuration ios.sim.release -l verbose
+        title: Run E2E Tests
     - yarn@0:
         inputs:
         - args: ''
@@ -68,46 +108,6 @@ workflows:
             ./node_modules/.bin/codecov
         title: Code Coverage
         is_always_run: false
-    - script@1:
-        inputs:
-        - content: |-
-            #!/usr/bin/env bash echo 'weew - everything passed!'
-        title: All Tests Passed
-        is_always_run: false
-# e2e:
-#     before_run:
-#     - code_setup
-#     steps:
-#     - yarn@0:
-#         inputs:
-#         - cache_local_deps: 'yes'
-#         - command: global add detox-cli
-#         title: Install Detox CLI
-#     - script:
-#         inputs:
-#         - content: |-
-#             # Add cache directory to environment variable
-#             envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
-#             envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
-#         title: Set Env Path for caching deps
-#     - script@1:
-#         inputs:
-#         - content: |-
-#             #!/bin/bash
-#             brew tap wix/brew
-#         title: Detox Setup
-#     - script@1:
-#         inputs:
-#         - content: |-
-#             #!/bin/bash
-#             detox build --configuration ios.sim.release
-#         title: Detox - Build Release App
-#     - script@1:
-#         inputs:
-#         - content: |-
-#             #!/bin/bash
-#             detox test -R 1 --configuration ios.sim.release -l verbose
-#         title: Run E2E Tests
   deploy:
     description: >
       ## Configure Android part of the deploy workflow
