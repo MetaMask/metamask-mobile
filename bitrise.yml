@@ -6,7 +6,7 @@ trigger_map:
 # - push_branch: 'develop'
 #   workflow: ci
 - pull_request_source_branch: '*'
-  workflow: ci
+  workflow: deploy
 workflows:
   code_setup:
     steps:
@@ -31,7 +31,7 @@ workflows:
             set -x
 
             # or run a script from your repository, like:
-            bash ./scripts/yarn-audit.sh
+            ./scripts/yarn-audit.sh
         title: Audit Dependencies
     - yarn@0:
         title: Lint
@@ -57,7 +57,15 @@ workflows:
         is_always_run: false
     - script@1:
         inputs:
-        - script_file_path: "./node_modules/.bin/codecov"
+        - content: |-
+            #!/usr/bin/env bash
+            # fail if any commands fails
+            set -e
+            # debug log
+            set -x
+
+            # or run a script from your repository, like:
+            ../node_modules/.bin/codecov
         title: Code Coverage
         is_always_run: false
     - script@1:
@@ -100,154 +108,154 @@ workflows:
 #             #!/bin/bash
 #             detox test -R 1 --configuration ios.sim.release -l verbose
 #         title: Run E2E Tests
-#   deploy:
-#     description: >
-#       ## Configure Android part of the deploy workflow
+  deploy:
+    description: >
+      ## Configure Android part of the deploy workflow
 
-#       To generate a signed APK:
+      To generate a signed APK:
 
-#       1. Open the **Workflow** tab of your project on Bitrise.io
+      1. Open the **Workflow** tab of your project on Bitrise.io
 
-#       1. Add **Sign APK step right after Android Build step**
+      1. Add **Sign APK step right after Android Build step**
 
-#       1. Click on **Code Signing** tab
+      1. Click on **Code Signing** tab
 
-#       1. Find the **ANDROID KEYSTORE FILE** section
+      1. Find the **ANDROID KEYSTORE FILE** section
 
-#       1. Click or drop your file on the upload file field
+      1. Click or drop your file on the upload file field
 
-#       1. Fill the displayed 3 input fields:
+      1. Fill the displayed 3 input fields:
 
-#       1. **Keystore password**
+      1. **Keystore password**
 
-#       1. **Keystore alias**
+      1. **Keystore alias**
 
-#       1. **Private key password**
+      1. **Private key password**
 
-#       1. Click on **[Save metadata]** button
-
-
-#       That's it! From now on, **Sign APK** step will receive your uploaded
-#       files.
+      1. Click on **[Save metadata]** button
 
 
-#       ## Configure iOS part of the deploy workflow
+      That's it! From now on, **Sign APK** step will receive your uploaded
+      files.
 
 
-#       To generate IPA:
+      ## Configure iOS part of the deploy workflow
 
 
-#       1. Open the **Workflow** tab of your project on Bitrise.io
-
-#       1. Click on **Code Signing** tab
-
-#       1. Find the **PROVISIONING PROFILE** section
-
-#       1. Click or drop your file on the upload file field
-
-#       1. Find the **CODE SIGNING IDENTITY** section
-
-#       1. Click or drop your file on the upload file field
-
-#       1. Click on **Workflows** tab
-
-#       1. Select deploy workflow
-
-#       1. Select **Xcode Archive & Export for iOS** step
-
-#       1. Open **Force Build Settings** input group
-
-#       1. Specify codesign settings
-
-#       Set **Force code signing with Development Team**, **Force code signing
-#       with Code Signing Identity**  
-
-#       and **Force code signing with Provisioning Profile** inputs regarding to
-#       the uploaded codesigning files
-
-#       1. Specify manual codesign style
-
-#       If the codesigning files, are generated manually on the Apple Developer
-#       Portal,  
-
-#       you need to explicitly specify to use manual coedsign settings  
-
-#       (as ejected rn projects have xcode managed codesigning turned on).  
-
-#       To do so, add 'CODE_SIGN_STYLE="Manual"' to 'Additional options for
-#       xcodebuild call' input
+      To generate IPA:
 
 
-#       ## To run this workflow
+      1. Open the **Workflow** tab of your project on Bitrise.io
+
+      1. Click on **Code Signing** tab
+
+      1. Find the **PROVISIONING PROFILE** section
+
+      1. Click or drop your file on the upload file field
+
+      1. Find the **CODE SIGNING IDENTITY** section
+
+      1. Click or drop your file on the upload file field
+
+      1. Click on **Workflows** tab
+
+      1. Select deploy workflow
+
+      1. Select **Xcode Archive & Export for iOS** step
+
+      1. Open **Force Build Settings** input group
+
+      1. Specify codesign settings
+
+      Set **Force code signing with Development Team**, **Force code signing
+      with Code Signing Identity**  
+
+      and **Force code signing with Provisioning Profile** inputs regarding to
+      the uploaded codesigning files
+
+      1. Specify manual codesign style
+
+      If the codesigning files, are generated manually on the Apple Developer
+      Portal,  
+
+      you need to explicitly specify to use manual coedsign settings  
+
+      (as ejected rn projects have xcode managed codesigning turned on).  
+
+      To do so, add 'CODE_SIGN_STYLE="Manual"' to 'Additional options for
+      xcodebuild call' input
 
 
-#       If you want to run this workflow manually:
+      ## To run this workflow
 
 
-#       1. Open the app's build list page
-
-#       2. Click on **[Start/Schedule a Build]** button
-
-#       3. Select **deploy** in **Workflow** dropdown input
-
-#       4. Click **[Start Build]** button
+      If you want to run this workflow manually:
 
 
-#       Or if you need this workflow to be started by a GIT event:
+      1. Open the app's build list page
+
+      2. Click on **[Start/Schedule a Build]** button
+
+      3. Select **deploy** in **Workflow** dropdown input
+
+      4. Click **[Start Build]** button
 
 
-#       1. Click on **Triggers** tab
-
-#       2. Setup your desired event (push/tag/pull) and select **deploy** workflow
-
-#       3. Click on **[Done]** and then **[Save]** buttons
+      Or if you need this workflow to be started by a GIT event:
 
 
-#       The next change in your repository that matches any of your trigger map
-#       event will start **deploy** workflow.
-#     before_run:
-#     - code_setup
-#     steps:
-#     - install-missing-android-tools@2:
-#         inputs:
-#         - gradlew_path: $PROJECT_LOCATION/gradlew
-#     - android-build@0:
-#         inputs:
-#         - project_location: $PROJECT_LOCATION
-#     - certificate-and-profile-installer@1: {}
-#     - xcode-archive@3:
-#         inputs:
-#         - project_path: $BITRISE_PROJECT_PATH
-#         - scheme: $BITRISE_SCHEME
-#         - export_method: $BITRISE_EXPORT_METHOD
-#         - configuration: Release
-#     - deploy-to-bitrise-io@1: {}
-#     - certificate-and-profile-installer@1: {}
-#     - cocoapods-install@2: {}
-#     - xcode-archive@3:
-#         inputs:
-#         - project_path: $BITRISE_PROJECT_PATH
-#         - scheme: $BITRISE_SCHEME
-#         - export_method: $BITRISE_EXPORT_METHOD
-#         - configuration: Release
-#     - deploy-to-bitrise-io@1: {}
-#     - certificate-and-profile-installer@1: {}
-#     - cocoapods-install@2: {}
-#     - xcode-archive@3:
-#         inputs:
-#         - project_path: $BITRISE_PROJECT_PATH
-#         - scheme: $BITRISE_SCHEME
-#         - export_method: $BITRISE_EXPORT_METHOD
-#         - configuration: Release
-#     - deploy-to-bitrise-io@1: {}
-#     - certificate-and-profile-installer@1: {}
-#     - xcode-archive@3:
-#         inputs:
-#         - project_path: $BITRISE_PROJECT_PATH
-#         - scheme: $BITRISE_SCHEME
-#         - export_method: $BITRISE_EXPORT_METHOD
-#         - configuration: Release
-#     - deploy-to-bitrise-io@1: {}
+      1. Click on **Triggers** tab
+
+      2. Setup your desired event (push/tag/pull) and select **deploy** workflow
+
+      3. Click on **[Done]** and then **[Save]** buttons
+
+
+      The next change in your repository that matches any of your trigger map
+      event will start **deploy** workflow.
+    before_run:
+    - code_setup
+    steps:
+    - install-missing-android-tools@2:
+        inputs:
+        - gradlew_path: $PROJECT_LOCATION/gradlew
+    - android-build@0:
+        inputs:
+        - project_location: $PROJECT_LOCATION
+    - certificate-and-profile-installer@1: {}
+    - xcode-archive@3:
+        inputs:
+        - project_path: $BITRISE_PROJECT_PATH
+        - scheme: $BITRISE_SCHEME
+        - export_method: $BITRISE_EXPORT_METHOD
+        - configuration: Release
+    - deploy-to-bitrise-io@1: {}
+    - certificate-and-profile-installer@1: {}
+    - cocoapods-install@2: {}
+    - xcode-archive@3:
+        inputs:
+        - project_path: $BITRISE_PROJECT_PATH
+        - scheme: $BITRISE_SCHEME
+        - export_method: $BITRISE_EXPORT_METHOD
+        - configuration: Release
+    - deploy-to-bitrise-io@1: {}
+    - certificate-and-profile-installer@1: {}
+    - cocoapods-install@2: {}
+    - xcode-archive@3:
+        inputs:
+        - project_path: $BITRISE_PROJECT_PATH
+        - scheme: $BITRISE_SCHEME
+        - export_method: $BITRISE_EXPORT_METHOD
+        - configuration: Release
+    - deploy-to-bitrise-io@1: {}
+    - certificate-and-profile-installer@1: {}
+    - xcode-archive@3:
+        inputs:
+        - project_path: $BITRISE_PROJECT_PATH
+        - scheme: $BITRISE_SCHEME
+        - export_method: $BITRISE_EXPORT_METHOD
+        - configuration: Release
+    - deploy-to-bitrise-io@1: {}
 app:
   envs:
   - opts:
