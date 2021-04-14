@@ -153,7 +153,7 @@ const Main = props => {
 				await util.query(TransactionController.ethQuery, 'blockNumber', []);
 				props.setInfuraAvailabilityNotBlocked();
 			} catch (e) {
-				if (e?.message === AppConstants.ERRORS.INFURA_BLOCKED_MESSAGE) {
+				if (e.message === AppConstants.ERRORS.INFURA_BLOCKED_MESSAGE) {
 					props.navigation.navigate('OfflineModeView');
 					props.setInfuraAvailabilityBlocked();
 				}
