@@ -8,7 +8,7 @@ trigger_map:
 - pull_request_source_branch: '*'
   workflow: ci
 workflows:
-  ci:
+  code_setup:
     steps:
     - activate-ssh-key@4:
         run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
@@ -33,28 +33,36 @@ workflows:
             # or run a script from your repository, like:
             bash ./scripts/yarn-audit.sh
         title: Audit Dependencies
-    # - yarn@0:
-    #     title: Lint
-    #     inputs:
-    #     - args: ''
-    #     - command: lint
-    #     is_always_run: true
-    # - yarn@0:
-    #     inputs:
-    #     - args: ''
-    #     - command: test:unit --silent
-    #     title: Unit Test
-    #     is_always_run: true
-    # - yarn@0:
-    #     inputs:
-    #     - args: ''
-    #     - command: install codecov
-    #     title: Install Code Coverage
-    #     is_always_run: false
-    # - script@1:
-    #     inputs:
-    #     - script_file_path: "./node_modules/bin/codecov"
-    #     title: Code Coverage
+    - yarn@0:
+        title: Lint
+        inputs:
+        - args: ''
+        - command: lint
+        is_always_run: true
+  ci:
+    before_run:
+    - code_setup
+    - yarn@0:
+        inputs:
+        - args: ''
+        - command: test:unit --silent
+        title: Unit Test
+        is_always_run: false
+    - yarn@0:
+        inputs:
+        - args: ''
+        - command: install codecov
+        title: Install Code Coverage
+        is_always_run: false
+    - script@1:
+        inputs:
+        - script_file_path: "./node_modules/bin/codecov"
+        title: Code Coverage
+    - script@1:
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash echo 'weew - everything passed!'
+        title: All Tests Passed
   deploy:
     description: >
       ## Configure Android part of the deploy workflow
