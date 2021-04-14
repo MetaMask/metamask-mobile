@@ -3,6 +3,8 @@ format_version: '8'
 default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
 trigger_map:
+# - push_branch: 'develop'
+#   workflow: ci
 - pull_request_source_branch: '*'
   workflow: ci
 workflows:
@@ -49,7 +51,7 @@ workflows:
         is_always_run: false
     - yarn@0:
         inputs:
-        - cache_local_deps: 'yes'
+        - args: ''
         - command: add codecov
         title: Install Code Coverage
         is_always_run: false
