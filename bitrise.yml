@@ -22,7 +22,10 @@ workflows:
         title: Yarn Install
     - script@1:
         inputs:
-        - script_file_path: "./scripts/yarn-audit.sh"
+          - content: |+
+            #!/bin/bash
+            yarn audit
+          - script_file_path: "./scripts/yarn-audit.sh"
         title: Audit Dependencies
     - yarn@0:
         title: Lint
@@ -33,9 +36,15 @@ workflows:
     - yarn@0:
         inputs:
         - args: ''
-        - command: test:unit --silent -w 3
+        - command: test:unit --silent
         title: Unit Test
         is_always_run: true
+    - yarn@0:
+        inputs:
+        - args: ''
+        - command: install codecov
+        title: Install Code Coverage
+        is_always_run: false
     - script@1:
         inputs:
         - script_file_path: "./node_modules/bin/codecov"
