@@ -8,7 +8,7 @@ trigger_map:
 - pull_request_source_branch: '*'
   workflow: ci
 workflows:
-  setup:
+  ci:
     steps:
     - activate-ssh-key@4:
         run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
