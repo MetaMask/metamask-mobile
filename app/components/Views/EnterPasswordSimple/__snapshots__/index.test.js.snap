@@ -51,7 +51,7 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#000000",
+                "color": "#24292E",
                 "fontSize": 16,
                 "marginBottom": 15,
               }
