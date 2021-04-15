@@ -225,23 +225,23 @@ buildAndroidRelease(){
 	fi
 
 	# GENERATE APK
-	cd android && ./gradlew assembleRelease --no-daemon --max-workers 2
+	cd android && ./gradlew assembleDebug --no-daemon --max-workers 2
 
-	# GENERATE BUNDLE
-	if [ "$GENERATE_BUNDLE" = true ] ; then
-		./gradlew bundleRelease
-	fi
+	# # GENERATE BUNDLE
+	# if [ "$GENERATE_BUNDLE" = true ] ; then
+	# 	./gradlew bundleDebug
+	# fi
 
-	if [ "$PRE_RELEASE" = true ] ; then
-		# Generate sourcemaps
-		yarn sourcemaps:android
-		# Generate checksum
-		yarn build:android:checksum
-	fi
+	# if [ "$PRE_RELEASE" = true ] ; then
+	# 	# Generate sourcemaps
+	# 	yarn sourcemaps:android
+	# 	# Generate checksum
+	# 	yarn build:android:checksum
+	# fi
 
-	if [ "$PRE_RELEASE" = false ] ; then
-		adb install app/build/outputs/apk/release/app-release.apk
-	fi
+	# if [ "$PRE_RELEASE" = false ] ; then
+	# 	adb install app/build/outputs/apk/release/app-release.apk
+	# fi
 }
 
 buildAndroidReleaseE2E(){
