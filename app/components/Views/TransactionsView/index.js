@@ -7,6 +7,7 @@ import Engine from '../../../core/Engine';
 import { showAlert } from '../../../actions/alert';
 import Transactions from '../../UI/Transactions';
 import { safeToChecksumAddress } from '../../../util/address';
+import { addAccountTimeFlagFilter } from '../../../util/transactions';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -33,7 +34,10 @@ const TransactionsView = ({
 	const filterTransactions = useCallback(() => {
 		const network = Engine.context.NetworkController.state.network;
 		if (network === 'loading') return;
+
 		let accountAddedTimeInsertPointFound = false;
+		const addedAccountTime = identities[selectedAddress]?.importTime;
+
 		const ethFilter = tx => {
 			const {
 				transaction: { from, to },
@@ -54,14 +58,6 @@ const TransactionsView = ({
 			return false;
 		};
 
-		const accountAddedTimeFlagFilter = transaction => {
-			const time = identities[selectedAddress]?.importTime;
-			if (transaction.time <= time && !accountAddedTimeInsertPointFound) {
-				accountAddedTimeInsertPointFound = true;
-				transaction.insertImportTime = true;
-			}
-		};
-
 		const submittedTxs = [];
 		const newPendingTxs = [];
 		const confirmedTxs = [];
@@ -71,6 +67,10 @@ const TransactionsView = ({
 		const allTransactions = allTransactionsSorted.filter(tx => {
 			const filter = ethFilter(tx);
 			if (!filter) return false;
+
+			tx.insertImportTime = addAccountTimeFlagFilter(tx, addedAccountTime, accountAddedTimeInsertPointFound);
+			if (tx.insertImportTime) accountAddedTimeInsertPointFound = true;
+
 			switch (tx.status) {
 				case 'submitted':
 				case 'signed':
@@ -84,7 +84,6 @@ const TransactionsView = ({
 					confirmedTxs.push(tx);
 					break;
 			}
-			accountAddedTimeFlagFilter(tx);
 			return filter;
 		});
 
@@ -150,8 +149,8 @@ TransactionsView.propTypes = {
 	*/
 	identities: PropTypes.object,
 	/**
-		/* navigation object required to push new views
-		*/
+	/* navigation object required to push new views
+	*/
 	navigation: PropTypes.object,
 	/**
 	 * A string that represents the selected address
