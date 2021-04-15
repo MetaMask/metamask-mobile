@@ -282,10 +282,10 @@ workflows:
         - node_version: ''
     - change-android-versioncode-and-versionname@1:
         inputs:
-        - version_code_offset: '1'
-        - new_version_code: '50'
-        - new_version_name: '"2.1.0"'
-        - build_gradle_path: $PROJECT_LOCATION/app/build.gradle
+        - build_gradle_path: $PROJECT_LOCATION_ANDROID/app/build.gradle
+    - set-xcode-build-number@1:
+        inputs:
+        - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
 app:
   envs:
   - opts:
