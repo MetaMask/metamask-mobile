@@ -91,10 +91,6 @@ class Transactions extends PureComponent {
 		 */
 		selectedAddress: PropTypes.string,
 		/**
-		/* Identities object required to get account name
-		*/
-		identities: PropTypes.object,
-		/**
 		 * ETH to current currency conversion rate
 		 */
 		conversionRate: PropTypes.number,
@@ -283,31 +279,6 @@ class Transactions extends PureComponent {
 		this.onCancelCompleted();
 	};
 
-	/**
-	 * Function processes the transactions and tags the row that should display import/add date
-	 * @returns transactions to be displayed with import flag inserted
-	 */
-	processTransactions = transactions => {
-		const flaggedTransactions = transactions;
-		const time = this.props.identities[this.props.selectedAddress].importTime;
-		let insertPointFound = false;
-
-		/** checks all transactions to find the first one that is less than the account
-		import/added time and flags the transaction to display */
-		for (const tx in flaggedTransactions) {
-			if (tx.time <= time && !insertPointFound) {
-				insertPointFound = true;
-				tx.insertImportTime = true;
-				break;
-			}
-		}
-
-		//if the insertpoint is not found add it to the last transaction
-		if (!insertPointFound) flaggedTransactions[flaggedTransactions.length - 1].insertImportTime = true;
-
-		return flaggedTransactions;
-	};
-
 	renderItem = ({ item, index }) => (
 		<TransactionElement
 			tx={item}
@@ -347,7 +318,7 @@ class Transactions extends PureComponent {
 				<FlatList
 					ref={this.flatList}
 					getItemLayout={this.getItemLayout}
-					data={this.processTransactions(transactions)}
+					data={transactions}
 					extraData={this.state}
 					keyExtractor={this.keyExtractor}
 					refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
@@ -402,7 +373,6 @@ const mapStateToProps = state => ({
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	identities: state.engine.backgroundState.PreferencesController.identities,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
 	tokens: state.engine.backgroundState.AssetsController.tokens.reduce((tokens, token) => {

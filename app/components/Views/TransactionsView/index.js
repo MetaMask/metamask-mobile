@@ -18,6 +18,7 @@ const TransactionsView = ({
 	navigation,
 	conversionRate,
 	selectedAddress,
+	identities,
 	networkType,
 	currentCurrency,
 	transactions,
@@ -52,6 +53,25 @@ const TransactionsView = ({
 			return false;
 		};
 
+		const addImportTimeFlagToTransactions = transactions => {
+			if (transactions && transactions.length) {
+				const time = identities[selectedAddress].importTime;
+				let insertPointFound = false;
+				/** checks all transactions to find the first one that is less than the account
+				import/added time and flags the transaction to display */
+				for (const tx in transactions) {
+					if (transactions[tx].time <= time && !insertPointFound) {
+						insertPointFound = true;
+						transactions[tx].insertImportTime = true;
+						break;
+					}
+				}
+
+				//if the insertpoint is not found add it to the last transaction
+				if (!insertPointFound) transactions[transactions.length - 1].insertImportTime = true;
+			}
+		};
+
 		const submittedTxs = [];
 		const newPendingTxs = [];
 		const confirmedTxs = [];
@@ -84,11 +104,12 @@ const TransactionsView = ({
 			return !alreadySubmitted;
 		});
 
+		addImportTimeFlagToTransactions(allTransactions);
 		setAllTransactions(allTransactions);
 		setSubmittedTxs(submittedTxsFiltered);
 		setConfirmedTxs(confirmedTxs);
 		setLoading(false);
-	}, [transactions, selectedAddress, tokens, chainId]);
+	}, [transactions, identities, selectedAddress, tokens, chainId]);
 
 	useEffect(() => {
 		setLoading(true);
@@ -130,6 +151,10 @@ TransactionsView.propTypes = {
 	 */
 	currentCurrency: PropTypes.string,
 	/**
+	/* Identities object required to get account name
+	*/
+	identities: PropTypes.object,
+	/**
 		/* navigation object required to push new views
 		*/
 	navigation: PropTypes.object,
@@ -160,6 +185,7 @@ const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
+	identities: state.engine.backgroundState.PreferencesController.identities,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId
