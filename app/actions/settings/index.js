@@ -12,6 +12,13 @@ export function setShowHexData(showHexData) {
 	};
 }
 
+export function setShowCustomNonce(showCustomNonce) {
+	return {
+		type: 'SET_SHOW_CUSTOM_NONCE',
+		showCustomNonce
+	};
+}
+
 export function setLockTime(lockTime) {
 	return {
 		type: 'SET_LOCK_TIME',

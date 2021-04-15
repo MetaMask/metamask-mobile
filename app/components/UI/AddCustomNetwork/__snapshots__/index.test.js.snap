@@ -16,6 +16,8 @@ exports[`AddCustomNetwork should render correctly 1`] = `
   <ScrollView>
     <Connect(TransactionHeader) />
     <Text
+      black={false}
+      blue={false}
       bold={true}
       centered={true}
       disclaimer={false}
@@ -43,6 +45,8 @@ exports[`AddCustomNetwork should render correctly 1`] = `
       Allow this site to add a network?
     </Text>
     <Text
+      black={false}
+      blue={false}
       bold={false}
       centered={true}
       disclaimer={false}
@@ -69,6 +73,8 @@ exports[`AddCustomNetwork should render correctly 1`] = `
       This allows this network to be used within MetaMask.
     </Text>
     <Text
+      black={false}
+      blue={false}
       bold={false}
       centered={true}
       disclaimer={false}
@@ -93,6 +99,8 @@ exports[`AddCustomNetwork should render correctly 1`] = `
       upper={false}
     >
       <Text
+        black={false}
+        blue={false}
         bold={true}
         centered={false}
         disclaimer={false}
@@ -113,6 +121,8 @@ exports[`AddCustomNetwork should render correctly 1`] = `
        
       Learn about
       <Text
+        black={false}
+        blue={false}
         bold={false}
         centered={false}
         disclaimer={false}
@@ -154,6 +164,8 @@ exports[`AddCustomNetwork should render correctly 1`] = `
         }
       >
         <Text
+          black={false}
+          blue={false}
           bold={false}
           centered={false}
           disclaimer={false}
@@ -177,6 +189,8 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           Display name
         </Text>
         <Text
+          black={false}
+          blue={false}
           bold={true}
           centered={false}
           disclaimer={false}
@@ -208,6 +222,8 @@ exports[`AddCustomNetwork should render correctly 1`] = `
         }
       >
         <Text
+          black={false}
+          blue={false}
           bold={false}
           centered={false}
           disclaimer={false}
@@ -231,6 +247,8 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           Chain ID
         </Text>
         <Text
+          black={false}
+          blue={false}
           bold={true}
           centered={false}
           disclaimer={false}
@@ -261,6 +279,8 @@ exports[`AddCustomNetwork should render correctly 1`] = `
         }
       >
         <Text
+          black={false}
+          blue={false}
           bold={false}
           centered={false}
           disclaimer={false}
@@ -284,6 +304,8 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           Network URL
         </Text>
         <Text
+          black={false}
+          blue={false}
           bold={true}
           centered={false}
           disclaimer={false}
@@ -318,6 +340,8 @@ exports[`AddCustomNetwork should render correctly 1`] = `
     >
       <View>
         <Text
+          black={false}
+          blue={false}
           bold={true}
           centered={true}
           disclaimer={false}

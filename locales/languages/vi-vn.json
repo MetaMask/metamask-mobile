@@ -1288,7 +1288,7 @@
 	},
 	"offline_mode": {
 		"title": "Bạn đang không kết nối mạng",
-		"text": "Hãy kiểm tra kết nối internet của bạn và thử lại",
+		"text": "Không thể kết nối với máy chủ lưu trữ chuỗi khối.",
 		"try_again": "Thử lại"
 	},
 	"payment_channel_request": {
