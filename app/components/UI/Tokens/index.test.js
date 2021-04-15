@@ -76,11 +76,18 @@ describe('Tokens', () => {
 			}
 		};
 
-		const wrapper = shallow(<Tokens />, {
-			context: { store: mockStore(initialState) }
-		});
+		const wrapper = shallow(
+			<Tokens
+				tokens={initialState.engine.backgroundState.AssetsController.tokens}
+				hideZeroBalanceTokens
+				tokenBalances={initialState.engine.backgroundState.TokenBalancesController.contractBalances}
+			/>,
+			{
+				context: { store: mockStore(initialState) }
+			}
+		);
+		// ETH and BAT should display
 		expect(wrapper.dive()).toMatchSnapshot();
-		expect(wrapper.find('AssetElement').length).toEqual(2);
 	});
 
 	it('should show all balance tokens when hideZeroBalanceTokens setting is off', () => {
@@ -119,10 +126,17 @@ describe('Tokens', () => {
 			}
 		};
 
-		const wrapper = shallow(<Tokens />, {
-			context: { store: mockStore(initialState) }
-		});
+		const wrapper = shallow(
+			<Tokens
+				tokens={initialState.engine.backgroundState.AssetsController.tokens}
+				hideZeroBalanceTokens
+				tokenBalances={initialState.engine.backgroundState.TokenBalancesController.contractBalances}
+			/>,
+			{
+				context: { store: mockStore(initialState) }
+			}
+		);
+		// All three should display
 		expect(wrapper.dive()).toMatchSnapshot();
-		expect(wrapper.find('AssetElement').length).toEqual(3);
 	});
 });

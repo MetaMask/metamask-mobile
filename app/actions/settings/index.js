@@ -16,7 +16,7 @@ export function setShowCustomNonce(showCustomNonce) {
 	return {
 		type: 'SET_SHOW_CUSTOM_NONCE',
 		showCustomNonce
-	}
+	};
 }
 
 export function setHideZeroBalanceTokens(hideZeroBalanceTokens) {

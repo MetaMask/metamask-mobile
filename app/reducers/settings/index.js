@@ -36,7 +36,7 @@ const settingsReducer = (state = initialState, action) => {
 			return {
 				...state,
 				showCustomNonce: action.showCustomNonce
-			}
+			};
 		case 'SET_HIDE_ZERO_BALANCE_TOKENS':
 			return {
 				...state,
