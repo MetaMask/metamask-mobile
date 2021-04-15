@@ -289,9 +289,11 @@ workflows:
         - node_version: ''
     - change-android-versioncode-and-versionname@1:
         inputs:
+        - new_version_name: $VERSION_NAME
         - build_gradle_path: $PROJECT_LOCATION_ANDROID/app/build.gradle
     - set-xcode-build-number@1:
         inputs:
+        - build_short_version_string: $VERSION_NAME
         - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
 app:
   envs:
@@ -319,3 +321,6 @@ app:
   - opts:
       is_expand: false
     PROJECT_LOCATION_IOS: ios
+  - opts:
+      is_expand: false
+    VERSION_NAME: "'2.1.1'"
