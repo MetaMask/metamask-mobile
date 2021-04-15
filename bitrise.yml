@@ -306,3 +306,9 @@ app:
   - opts:
       is_expand: false
     BITRISE_EXPORT_METHOD: enterprise
+- opts:
+      is_expand: false
+    PROJECT_LOCATION_ANDROID: android
+  - opts:
+      is_expand: false
+    PROJECT_LOCATION_IOS: ios
