@@ -274,9 +274,14 @@ workflows:
     # Notify on Slack
   bump_version_minor:
     steps:
+    - activate-ssh-key@4:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - git-clone@4: {}
+    - nvm@1:
+        inputs:
+        - node_version: ''
     - change-android-versioncode-and-versionname@1:
         inputs:
-        - version_code_offset: '1'
         - build_gradle_path: $PROJECT_LOCATION/app/build.gradle
 app:
   envs:
