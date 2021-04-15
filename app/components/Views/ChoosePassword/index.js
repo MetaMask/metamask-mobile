@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
 	},
 	showMatchingPasswords: {
 		position: 'absolute',
-		top: 62,
+		top: 52,
 		right: 17,
 		alignSelf: 'flex-end'
 	}
