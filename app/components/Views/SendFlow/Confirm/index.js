@@ -263,6 +263,10 @@ class Confirm extends PureComponent {
 		 */
 		prepareTransaction: PropTypes.func,
 		/**
+		 * Chain Id
+		 */
+		chainId: PropTypes.string,
+		/**
 		 * Network id
 		 */
 		network: PropTypes.string,
@@ -906,7 +910,7 @@ class Confirm extends PureComponent {
 
 	render = () => {
 		const { transactionToName, selectedAsset, paymentRequest } = this.props.transactionState;
-		const { showHexData, showCustomNonce, primaryCurrency, network } = this.props;
+		const { showHexData, showCustomNonce, primaryCurrency, network, chainId } = this.props;
 		const { nonce } = this.props.transaction;
 		const {
 			gasEstimationReady,
@@ -957,7 +961,7 @@ class Confirm extends PureComponent {
 							<Text style={styles.textAmount} testID={'confirm-txn-amount'}>
 								{transactionValue}
 							</Text>
-							<Text style={styles.textAmountLabel}>{transactionValueFiat}</Text>
+							{isMainNet(chainId) && <Text style={styles.textAmountLabel}>{transactionValueFiat}</Text>}
 						</View>
 					) : (
 						<View style={styles.amountWrapper}>
@@ -978,7 +982,7 @@ class Confirm extends PureComponent {
 					<TransactionReviewFeeCard
 						totalGasFiat={transactionFeeFiat}
 						totalGasEth={transactionFee}
-						totalFiat={transactionTotalAmountFiat}
+						totalFiat={isMainNet(chainId) ? transactionTotalAmountFiat : <Text />}
 						fiat={transactionValueFiat}
 						totalValue={transactionTotalAmount}
 						transactionValue={transactionValue}
@@ -1050,6 +1054,7 @@ const mapStateToProps = state => ({
 	providerType: state.engine.backgroundState.NetworkController.provider.type,
 	showHexData: state.settings.showHexData,
 	showCustomNonce: state.settings.showCustomNonce,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
 	transaction: getNormalizedTxState(state),
