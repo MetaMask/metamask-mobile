@@ -290,7 +290,7 @@ app:
   envs:
   - opts:
       is_expand: false
-    PROJECT_LOCATION: androi d
+    PROJECT_LOCATION: android
   - opts:
       is_expand: false
     MODULE: app
