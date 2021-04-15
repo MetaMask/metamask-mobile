@@ -6,7 +6,6 @@ import {
 	SafeAreaView,
 	View,
 	Alert,
-	Text,
 	ScrollView,
 	TouchableOpacity,
 	ActivityIndicator
@@ -30,7 +29,7 @@ import {
 import { getTicker, decodeTransferData, getNormalizedTxState } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
 import { util } from '@metamask/controllers';
-import { prepareTransaction, resetTransaction } from '../../../../actions/transaction';
+import { prepareTransaction, resetTransaction, setNonce, setProposedNonce } from '../../../../actions/transaction';
 import {
 	apiEstimateModifiedToWEI,
 	getGasPriceByChainId,
@@ -39,6 +38,7 @@ import {
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import AccountList from '../../../UI/AccountList';
+import CustomNonceModal from '../../../UI/CustomNonceModal';
 import AnimatedTransactionModal from '../../../UI/AnimatedTransactionModal';
 import TransactionReviewFeeCard from '../../../UI/TransactionReview/TransactionReviewFeeCard';
 import CustomGas from '../../../UI/CustomGas';
@@ -52,11 +52,13 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
-import { capitalize } from '../../../../util/format';
-import { isMainNet, getNetworkName } from '../../../../util/networks';
+import { capitalize } from '../../../../util/general';
+import { isMainNet, getNetworkName, getNetworkNonce } from '../../../../util/networks';
+import Text from '../../../Base/Text';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 
 const EDIT = 'edit';
+const EDIT_NONCE = 'edit_nonce';
 const REVIEW = 'review';
 
 const { hexToBN, BNToHex } = util;
@@ -269,6 +271,10 @@ class Confirm extends PureComponent {
 		 */
 		showHexData: PropTypes.bool,
 		/**
+		 * Indicates whether custom nonce should be shown in transaction editor
+		 */
+		showCustomNonce: PropTypes.bool,
+		/**
 		 * Network provider type as mainnet
 		 */
 		providerType: PropTypes.string,
@@ -291,7 +297,15 @@ class Confirm extends PureComponent {
 		/**
 		 * ETH or fiat, depending on user setting
 		 */
-		primaryCurrency: PropTypes.string
+		primaryCurrency: PropTypes.string,
+		/**
+		 * Set transaction nonce
+		 */
+		setNonce: PropTypes.func,
+		/**
+		 * Set proposed nonce (from network)
+		 */
+		setProposedNonce: PropTypes.func
 	};
 
 	state = {
@@ -317,22 +331,37 @@ class Confirm extends PureComponent {
 		over: false
 	};
 
+	setNetworkNonce = async () => {
+		const { setNonce, setProposedNonce, transaction } = this.props;
+		const proposedNonce = await getNetworkNonce(transaction);
+		setNonce(proposedNonce);
+		setProposedNonce(proposedNonce);
+	};
+
 	getAnalyticsParams = () => {
-		const { selectedAsset } = this.props;
-		const { NetworkController } = Engine.context;
-		const { chainId, type } = NetworkController?.state?.provider || {};
-		return {
-			active_currency: { value: selectedAsset?.symbol, anonymous: true },
-			network_name: type,
-			chain_id: chainId
-		};
+		try {
+			const { selectedAsset } = this.props;
+			const { NetworkController } = Engine.context;
+			const { chainId, type } = NetworkController?.state?.provider || {};
+			return {
+				active_currency: { value: selectedAsset?.symbol, anonymous: true },
+				network_name: type,
+				chain_id: chainId
+			};
+		} catch (error) {
+			return {};
+		}
 	};
 
 	getGasAnalyticsParams = () => {
-		const { selectedAsset } = this.props;
-		return {
-			active_currency: { value: selectedAsset.symbol, anonymous: true }
-		};
+		try {
+			const { selectedAsset } = this.props;
+			return {
+				active_currency: { value: selectedAsset.symbol, anonymous: true }
+			};
+		} catch (error) {
+			return {};
+		}
 	};
 
 	componentDidMount = async () => {
@@ -341,6 +370,7 @@ class Confirm extends PureComponent {
 
 		const { navigation, providerType } = this.props;
 		await this.handleFetchBasicEstimates();
+		await this.setNetworkNonce();
 		navigation.setParams({ providerType });
 		this.parseTransactionData();
 		this.prepareTransaction();
@@ -378,8 +408,8 @@ class Confirm extends PureComponent {
 		this.onModeChange(REVIEW);
 	};
 
-	edit = () => {
-		this.onModeChange(EDIT);
+	edit = MODE => {
+		this.onModeChange(MODE);
 	};
 
 	onModeChange = mode => {
@@ -578,13 +608,16 @@ class Confirm extends PureComponent {
 
 	prepareTransactionToSend = () => {
 		const {
-			transactionState: { transaction }
+			transactionState: { transaction },
+			showCustomNonce
 		} = this.props;
 		const { fromSelectedAddress } = this.state;
+		const { nonce } = this.props.transaction;
 		const transactionToSend = { ...transaction };
 		transactionToSend.gas = BNToHex(transaction.gas);
 		transactionToSend.gasPrice = BNToHex(transaction.gasPrice);
 		transactionToSend.from = fromSelectedAddress;
+		if (showCustomNonce && nonce) transactionToSend.nonce = BNToHex(nonce);
 		return transactionToSend;
 	};
 
@@ -676,7 +709,6 @@ class Confirm extends PureComponent {
 				transaction,
 				TransactionTypes.MMM
 			);
-
 			await TransactionController.approveTransaction(transactionMeta.id);
 			await new Promise(resolve => resolve(result));
 
@@ -790,6 +822,19 @@ class Confirm extends PureComponent {
 		);
 	};
 
+	renderCustomNonceModal = () => {
+		const { setNonce } = this.props;
+		const { proposedNonce, nonce } = this.props.transaction;
+		return (
+			<CustomNonceModal
+				proposedNonce={proposedNonce}
+				nonceValue={nonce}
+				close={() => this.review()}
+				save={setNonce}
+			/>
+		);
+	};
+
 	renderHexDataModal = () => {
 		const { hexDataModalVisible } = this.state;
 		const { data } = this.props.transactionState.transaction;
@@ -861,7 +906,8 @@ class Confirm extends PureComponent {
 
 	render = () => {
 		const { transactionToName, selectedAsset, paymentRequest } = this.props.transactionState;
-		const { showHexData, primaryCurrency, network } = this.props;
+		const { showHexData, showCustomNonce, primaryCurrency, network } = this.props;
+		const { nonce } = this.props.transaction;
 		const {
 			gasEstimationReady,
 			fromAccountBalance,
@@ -938,9 +984,12 @@ class Confirm extends PureComponent {
 						transactionValue={transactionValue}
 						primaryCurrency={primaryCurrency}
 						gasEstimationReady={gasEstimationReady}
-						edit={this.edit}
+						edit={() => this.edit(EDIT)}
 						over={over}
 						warningGasPriceHigh={warningGasPriceHigh}
+						showCustomNonce={showCustomNonce}
+						nonceValue={nonce}
+						onNonceEdit={() => this.edit(EDIT_NONCE)}
 					/>
 					{errorMessage && (
 						<View style={styles.errorWrapper}>
@@ -983,6 +1032,7 @@ class Confirm extends PureComponent {
 				</View>
 				{this.renderFromAccountModal()}
 				{mode === EDIT && this.renderCustomGasModal()}
+				{mode === EDIT_NONCE && this.renderCustomNonceModal()}
 				{this.renderHexDataModal()}
 			</SafeAreaView>
 		);
@@ -999,6 +1049,7 @@ const mapStateToProps = state => ({
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	providerType: state.engine.backgroundState.NetworkController.provider.type,
 	showHexData: state.settings.showHexData,
+	showCustomNonce: state.settings.showCustomNonce,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
 	transaction: getNormalizedTxState(state),
@@ -1009,7 +1060,9 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
 	prepareTransaction: transaction => dispatch(prepareTransaction(transaction)),
-	resetTransaction: () => dispatch(resetTransaction())
+	resetTransaction: () => dispatch(resetTransaction()),
+	setNonce: nonce => dispatch(setNonce(nonce)),
+	setProposedNonce: nonce => dispatch(setProposedNonce(nonce))
 });
 
 export default connect(

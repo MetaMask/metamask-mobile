@@ -23,6 +23,8 @@ exports[`ErrorMessage should render correctly 1`] = `
 >
   <View>
     <Text
+      black={false}
+      blue={false}
       bold={false}
       centered={false}
       disclaimer={false}

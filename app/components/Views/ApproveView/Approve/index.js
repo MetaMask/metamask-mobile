@@ -240,13 +240,17 @@ class Approve extends PureComponent {
 	};
 
 	getGasAnalyticsParams = () => {
-		const { analyticsParams } = this.state;
+		try {
+			const { analyticsParams } = this.state;
 
-		return {
-			dapp_host_name: analyticsParams?.dapp_host_name,
-			dapp_url: analyticsParams?.dapp_url,
-			active_currency: { value: analyticsParams?.active_currency, anonymous: true }
-		};
+			return {
+				dapp_host_name: analyticsParams?.dapp_host_name,
+				dapp_url: analyticsParams?.dapp_url,
+				active_currency: { value: analyticsParams?.active_currency, anonymous: true }
+			};
+		} catch (error) {
+			return {};
+		}
 	};
 
 	render = () => {

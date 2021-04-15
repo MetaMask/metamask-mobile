@@ -63,6 +63,7 @@ import SwapsLiveness from '../../UI/Swaps/SwapsLiveness';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import BigNumber from 'bignumber.js';
+import { setInfuraAvailabilityBlocked, setInfuraAvailabilityNotBlocked } from '../../../actions/infuraAvailability';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -79,9 +80,8 @@ const styles = StyleSheet.create({
 		margin: 0
 	}
 });
-
 const Main = props => {
-	const [connected, setConnected] = useState(false);
+	const [connected, setConnected] = useState(true);
 	const [forceReload, setForceReload] = useState(false);
 	const [signMessage, setSignMessage] = useState(false);
 	const [signMessageParams, setSignMessageParams] = useState({ data: '' });
@@ -128,23 +128,46 @@ const Main = props => {
 	const onUnapprovedMessage = (messageParams, type) => {
 		const { title: currentPageTitle, url: currentPageUrl } = messageParams.meta;
 		delete messageParams.meta;
-		setSignMessage(true);
 		setSignMessageParams(messageParams);
 		setSignType(type);
 		setCurrentPageTitle(currentPageTitle);
 		setCurrentPageUrl(currentPageUrl);
+		setSignMessage(true);
 	};
 
 	const connectionChangeHandler = useCallback(
 		state => {
 			// Show the modal once the status changes to offline
-			if (connected && !state.isConnected) {
+			if (connected && state && !state.isConnected) {
 				props.navigation.navigate('OfflineModeView');
+				setConnected(state.isConnected);
 			}
-			setConnected(state.isConnected);
 		},
 		[connected, props.navigation]
 	);
+
+	const checkInfuraAvailability = useCallback(async () => {
+		if (props.providerType !== 'rpc') {
+			try {
+				const { TransactionController } = Engine.context;
+				await util.query(TransactionController.ethQuery, 'blockNumber', []);
+				props.setInfuraAvailabilityNotBlocked();
+			} catch (e) {
+				if (e.message === AppConstants.ERRORS.INFURA_BLOCKED_MESSAGE) {
+					props.navigation.navigate('OfflineModeView');
+					props.setInfuraAvailabilityBlocked();
+				}
+			}
+		} else {
+			props.setInfuraAvailabilityNotBlocked();
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [
+		props.navigation,
+		props.providerType,
+		props.setInfuraAvailabilityBlocked,
+		props.setInfuraAvailabilityNotBlocked
+	]);
 
 	const initializeWalletConnect = () => {
 		WalletConnect.hub.on('walletconnectSessionRequest', peerInfo => {
@@ -592,7 +615,7 @@ const Main = props => {
 				removeNotificationById: props.removeNotificationById
 			});
 			pollForIncomingTransactions();
-
+			checkInfuraAvailability();
 			removeConnectionStatusListener.current = NetInfo.addEventListener(connectionChangeHandler);
 		}, 1000);
 
@@ -709,7 +732,19 @@ Main.propTypes = {
 	/**
 	 * Selected address
 	 */
-	selectedAddress: PropTypes.string
+	selectedAddress: PropTypes.string,
+	/**
+	 * Network provider type
+	 */
+	providerType: PropTypes.string,
+	/**
+	 * Dispatch infura availability blocked
+	 */
+	setInfuraAvailabilityBlocked: PropTypes.func,
+	/**
+	 * Dispatch infura availability not blocked
+	 */
+	setInfuraAvailabilityNotBlocked: PropTypes.func
 };
 
 const mapStateToProps = state => ({
@@ -720,7 +755,8 @@ const mapStateToProps = state => ({
 	isPaymentRequest: state.transaction.paymentRequest,
 	dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
 	approveModalVisible: state.modals.approveModalVisible,
-	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {}
+	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {},
+	providerType: state.engine.backgroundState.NetworkController.provider.type
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -731,7 +767,9 @@ const mapDispatchToProps = dispatch => ({
 	hideCurrentNotification: () => dispatch(hideCurrentNotification()),
 	removeNotificationById: id => dispatch(removeNotificationById(id)),
 	toggleDappTransactionModal: (show = null) => dispatch(toggleDappTransactionModal(show)),
-	toggleApproveModal: show => dispatch(toggleApproveModal(show))
+	toggleApproveModal: show => dispatch(toggleApproveModal(show)),
+	setInfuraAvailabilityBlocked: () => dispatch(setInfuraAvailabilityBlocked()),
+	setInfuraAvailabilityNotBlocked: () => dispatch(setInfuraAvailabilityNotBlocked())
 });
 
 export default connect(

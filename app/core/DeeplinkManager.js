@@ -63,7 +63,10 @@ class DeeplinkManager {
 			txParams.to = `${target_address}`;
 			txParams.from = `${PreferencesController.state.selectedAddress}`;
 			txParams.value = '0x0';
-			const value = Number(uint256).toString(16);
+			const uint256Number = Number(uint256);
+			if (Number.isNaN(uint256Number)) throw new Error('The parameter uint256 should be a number');
+			if (!Number.isInteger(uint256Number)) throw new Error('The parameter uint256 should be an integer');
+			const value = uint256Number.toString(16);
 			txParams.data = generateApproveData({ spender: address, value });
 			TransactionController.addTransaction(txParams, origin);
 		}
