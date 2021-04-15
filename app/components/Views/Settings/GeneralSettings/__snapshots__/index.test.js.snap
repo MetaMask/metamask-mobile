@@ -675,7 +675,7 @@ exports[`GeneralSettings should render correctly 1`] = `
                   "marginHorizontal": 10,
                 },
                 Object {
-                  "color": "#000000",
+                  "color": "#24292E",
                 },
               ]
             }
