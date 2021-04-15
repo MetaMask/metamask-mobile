@@ -232,7 +232,15 @@ workflows:
         title: Build Android Pre-Release Bundle
         is_always_run: false
     # - sign-APK@1.4.1: {}
-    - deploy-to-bitrise-io@1.9.4: {}
+    - deploy-to-bitrise-io@1.9.4:
+        inputs:
+        - deploy_path: app/build/outputs/apk/release/    
+    - deploy-to-bitrise-io@1.9.4:
+        inputs:
+        - deploy_path: app/build/outputs/bundle/release/   
+    - deploy-to-bitrise-io@1.9.4:
+        inputs:
+        - deploy_path: sourcemaps/android      
     # Segment Out iOS
     # - certificate-and-profile-installer@1: {}
     # - script@1:
