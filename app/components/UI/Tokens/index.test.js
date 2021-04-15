@@ -77,11 +77,7 @@ describe('Tokens', () => {
 		};
 
 		const wrapper = shallow(
-			<Tokens
-				tokens={initialState.engine.backgroundState.AssetsController.tokens}
-				hideZeroBalanceTokens
-				tokenBalances={initialState.engine.backgroundState.TokenBalancesController.contractBalances}
-			/>,
+			<Tokens tokens={initialState.engine.backgroundState.AssetsController.tokens} hideZeroBalanceTokens />,
 			{
 				context: { store: mockStore(initialState) }
 			}
@@ -127,11 +123,7 @@ describe('Tokens', () => {
 		};
 
 		const wrapper = shallow(
-			<Tokens
-				tokens={initialState.engine.backgroundState.AssetsController.tokens}
-				hideZeroBalanceTokens
-				tokenBalances={initialState.engine.backgroundState.TokenBalancesController.contractBalances}
-			/>,
+			<Tokens tokens={initialState.engine.backgroundState.AssetsController.tokens} hideZeroBalanceTokens />,
 			{
 				context: { store: mockStore(initialState) }
 			}
