@@ -299,7 +299,7 @@ app:
     VARIANT: ''
   - opts:
       is_expand: false
-    BITRISE_PROJECT_PATH: ios/MetaMask.xcworkspace
+    BITRISE_PROJECT_PATH: ios/MetaMas k.xcworkspace
   - opts:
       is_expand: false
     BITRISE_SCHEME: MetaMask
