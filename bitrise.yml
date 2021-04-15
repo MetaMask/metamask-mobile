@@ -284,7 +284,7 @@ workflows:
         inputs:
         - version_code_offset: '1'
         - new_version_code: '50'
-        - new_version_name: 2.1.1
+        - new_version_name: '"2.1.1"'
         - build_gradle_path: $PROJECT_LOCATION/app/build.gradle
 app:
   envs:
