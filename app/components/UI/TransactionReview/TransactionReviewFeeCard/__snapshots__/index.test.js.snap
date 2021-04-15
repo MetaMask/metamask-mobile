@@ -69,7 +69,7 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
       >
         Network fee
       </Text>
-      <TouchableOpacity
+      <ForwardRef
         disabled={true}
       >
         <Text
@@ -90,7 +90,7 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
             
           Edit
         </Text>
-      </TouchableOpacity>
+      </ForwardRef>
     </SummaryCol>
     <View
       style={

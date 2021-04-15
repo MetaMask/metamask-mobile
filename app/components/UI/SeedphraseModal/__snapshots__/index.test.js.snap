@@ -59,7 +59,7 @@ exports[`SeedphraseModal should render correctly 1`] = `
       >
         What is a ‘Seed phrase’
       </Text>
-      <TouchableOpacity
+      <ForwardRef
         hitSlop={
           Object {
             "bottom": 10,
@@ -85,7 +85,7 @@ exports[`SeedphraseModal should render correctly 1`] = `
             }
           }
         />
-      </TouchableOpacity>
+      </ForwardRef>
     </View>
     <View>
       <Text

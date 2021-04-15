@@ -26,14 +26,14 @@ exports[`TransactionReviewData should render correctly 1`] = `
       }
     }
   >
-    <TouchableOpacity>
+    <ForwardRef>
       <Icon
         allowFontScaling={false}
         color="#000000"
         name="ios-arrow-back"
         size={24}
       />
-    </TouchableOpacity>
+    </ForwardRef>
     <Text
       style={
         Object {

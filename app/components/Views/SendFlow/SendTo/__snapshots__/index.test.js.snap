@@ -209,6 +209,7 @@ exports[`SendTo should render correctly 1`] = `
               }
             >
               <TextInput
+                allowFontScaling={true}
                 autoCapitalize="none"
                 autoCorrect={false}
                 autoFocus={true}
@@ -216,6 +217,7 @@ exports[`SendTo should render correctly 1`] = `
                 onChangeText={[Function]}
                 placeholder="e.g. Vitalik B."
                 placeholderTextColor="#d6d9dc"
+                rejectResponderTermination={true}
                 spellCheck={false}
                 style={
                   Object {
@@ -226,6 +228,7 @@ exports[`SendTo should render correctly 1`] = `
                   }
                 }
                 testID="address-alias-input"
+                underlineColorAndroid="transparent"
               />
             </View>
           </View>

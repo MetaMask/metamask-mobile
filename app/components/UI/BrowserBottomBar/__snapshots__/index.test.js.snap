@@ -15,7 +15,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     }
   }
 >
-  <TouchableOpacity
+  <ForwardRef
     disabled={false}
     onPress={[Function]}
     style={
@@ -48,8 +48,8 @@ exports[`BrowserBottomBar should render correctly 1`] = `
         ]
       }
     />
-  </TouchableOpacity>
-  <TouchableOpacity
+  </ForwardRef>
+  <ForwardRef
     disabled={true}
     onPress={[Function]}
     style={
@@ -84,8 +84,8 @@ exports[`BrowserBottomBar should render correctly 1`] = `
         ]
       }
     />
-  </TouchableOpacity>
-  <TouchableOpacity
+  </ForwardRef>
+  <ForwardRef
     onPress={[Function]}
     style={
       Object {
@@ -114,8 +114,8 @@ exports[`BrowserBottomBar should render correctly 1`] = `
         }
       }
     />
-  </TouchableOpacity>
-  <TouchableOpacity
+  </ForwardRef>
+  <ForwardRef
     onPress={[Function]}
     style={
       Object {
@@ -140,8 +140,8 @@ exports[`BrowserBottomBar should render correctly 1`] = `
         }
       }
     />
-  </TouchableOpacity>
-  <TouchableOpacity
+  </ForwardRef>
+  <ForwardRef
     style={
       Object {
         "alignItems": "center",
@@ -169,8 +169,8 @@ exports[`BrowserBottomBar should render correctly 1`] = `
         }
       }
     />
-  </TouchableOpacity>
-  <TouchableOpacity
+  </ForwardRef>
+  <ForwardRef
     onPress={[Function]}
     style={
       Object {
@@ -199,6 +199,6 @@ exports[`BrowserBottomBar should render correctly 1`] = `
         }
       }
     />
-  </TouchableOpacity>
+  </ForwardRef>
 </ElevatedView>
 `;

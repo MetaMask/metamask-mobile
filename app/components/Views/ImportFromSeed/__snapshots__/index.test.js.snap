@@ -89,7 +89,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
             ]
           }
         >
-          <TouchableOpacity
+          <ForwardRef
             onPress={[Function]}
           >
             <Text
@@ -104,7 +104,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
             >
               Show
             </Text>
-          </TouchableOpacity>
+          </ForwardRef>
         </View>
       </View>
       <OutlinedTextField
@@ -143,7 +143,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
         underlineColorAndroid="transparent"
         value=""
       />
-      <TouchableOpacity
+      <ForwardRef
         onPress={[Function]}
         style={
           Object {
@@ -165,7 +165,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
           name="qrcode"
           size={20}
         />
-      </TouchableOpacity>
+      </ForwardRef>
       <View
         style={
           Object {
@@ -213,7 +213,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
               ]
             }
           >
-            <TouchableOpacity
+            <ForwardRef
               onPress={[Function]}
             >
               <Text
@@ -228,7 +228,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
               >
                 Show
               </Text>
-            </TouchableOpacity>
+            </ForwardRef>
           </View>
         </View>
         <OutlinedTextField

@@ -75,7 +75,7 @@ exports[`ReceiveRequest should render correctly 1`] = `
     >
       Scan address to receive payment
     </Text>
-    <TouchableOpacity
+    <ForwardRef
       onPress={[Function]}
       style={
         Object {
@@ -138,7 +138,7 @@ exports[`ReceiveRequest should render correctly 1`] = `
       >
         Copy
       </Text>
-      <TouchableOpacity
+      <ForwardRef
         onPress={[Function]}
       >
         <Icon
@@ -147,8 +147,8 @@ exports[`ReceiveRequest should render correctly 1`] = `
           name="share-apple"
           size={25}
         />
-      </TouchableOpacity>
-    </TouchableOpacity>
+      </ForwardRef>
+    </ForwardRef>
     <View
       style={
         Object {

@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AddressElement should render correctly 1`] = `
-<TouchableOpacity
+<ForwardRef
   onLongPress={[Function]}
   onPress={[Function]}
   style={
@@ -46,5 +46,5 @@ exports[`AddressElement should render correctly 1`] = `
       }
     />
   </View>
-</TouchableOpacity>
+</ForwardRef>
 `;

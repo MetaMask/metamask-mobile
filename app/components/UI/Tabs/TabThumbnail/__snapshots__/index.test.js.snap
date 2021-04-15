@@ -10,7 +10,7 @@ exports[`TabThumbnail should render correctly 1`] = `
     }
   }
 >
-  <TouchableOpacity
+  <ForwardRef
     onPress={[Function]}
     style={
       Array [
@@ -86,7 +86,7 @@ exports[`TabThumbnail should render correctly 1`] = `
           about:blank
         </Text>
       </View>
-      <TouchableOpacity
+      <ForwardRef
         onPress={[Function]}
         style={
           Object {
@@ -113,7 +113,7 @@ exports[`TabThumbnail should render correctly 1`] = `
             }
           }
         />
-      </TouchableOpacity>
+      </ForwardRef>
     </View>
     <View
       style={
@@ -146,6 +146,6 @@ exports[`TabThumbnail should render correctly 1`] = `
         }
       />
     </View>
-  </TouchableOpacity>
+  </ForwardRef>
 </ElevatedView>
 `;

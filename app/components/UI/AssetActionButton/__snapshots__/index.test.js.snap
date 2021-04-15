@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AssetActionButtons should render correctly 1`] = `
-<TouchableOpacity
+<ForwardRef
   style={
     Array [
       Object {
@@ -52,11 +52,11 @@ exports[`AssetActionButtons should render correctly 1`] = `
     underline={false}
     upper={false}
   />
-</TouchableOpacity>
+</ForwardRef>
 `;
 
 exports[`AssetActionButtons should render type add correctly 1`] = `
-<TouchableOpacity
+<ForwardRef
   style={
     Array [
       Object {
@@ -107,11 +107,11 @@ exports[`AssetActionButtons should render type add correctly 1`] = `
     underline={false}
     upper={false}
   />
-</TouchableOpacity>
+</ForwardRef>
 `;
 
 exports[`AssetActionButtons should render type information correctly 1`] = `
-<TouchableOpacity
+<ForwardRef
   style={
     Array [
       Object {
@@ -162,11 +162,11 @@ exports[`AssetActionButtons should render type information correctly 1`] = `
     underline={false}
     upper={false}
   />
-</TouchableOpacity>
+</ForwardRef>
 `;
 
 exports[`AssetActionButtons should render type receive correctly 1`] = `
-<TouchableOpacity
+<ForwardRef
   style={
     Array [
       Object {
@@ -217,11 +217,11 @@ exports[`AssetActionButtons should render type receive correctly 1`] = `
     underline={false}
     upper={false}
   />
-</TouchableOpacity>
+</ForwardRef>
 `;
 
 exports[`AssetActionButtons should render type send correctly 1`] = `
-<TouchableOpacity
+<ForwardRef
   style={
     Array [
       Object {
@@ -272,11 +272,11 @@ exports[`AssetActionButtons should render type send correctly 1`] = `
     underline={false}
     upper={false}
   />
-</TouchableOpacity>
+</ForwardRef>
 `;
 
 exports[`AssetActionButtons should render type swap correctly 1`] = `
-<TouchableOpacity
+<ForwardRef
   style={
     Array [
       Object {
@@ -327,5 +327,5 @@ exports[`AssetActionButtons should render type swap correctly 1`] = `
     underline={false}
     upper={false}
   />
-</TouchableOpacity>
+</ForwardRef>
 `;

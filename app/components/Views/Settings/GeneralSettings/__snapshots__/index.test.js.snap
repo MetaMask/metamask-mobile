@@ -573,7 +573,7 @@ exports[`GeneralSettings should render correctly 1`] = `
           }
         }
       >
-        <TouchableOpacity
+        <ForwardRef
           onPress={[Function]}
           style={
             Object {
@@ -620,8 +620,8 @@ exports[`GeneralSettings should render correctly 1`] = `
           >
             Jazzicons
           </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </ForwardRef>
+        <ForwardRef
           onPress={[Function]}
           style={
             Object {
@@ -682,7 +682,7 @@ exports[`GeneralSettings should render correctly 1`] = `
           >
             Blockies
           </Text>
-        </TouchableOpacity>
+        </ForwardRef>
       </View>
     </View>
   </View>

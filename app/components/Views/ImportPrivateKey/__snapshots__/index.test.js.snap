@@ -42,7 +42,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
       }
       testID="import-account-screen"
     >
-      <TouchableOpacity
+      <ForwardRef
         onPress={[Function]}
         style={
           Object {
@@ -65,7 +65,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
             }
           }
         />
-      </TouchableOpacity>
+      </ForwardRef>
       <View
         style={
           Object {
@@ -178,6 +178,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
           </Text>
         </View>
         <TextInput
+          allowFontScaling={true}
           autoCapitalize="none"
           blurOnSubmit={true}
           multiline={true}
@@ -186,6 +187,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
           onSubmitEditing={[Function]}
           placeholder="e.g. 3a1076bf45ab87712ad64ccb3b10217737f7faacbf2872e88fdd9a537d8fe266"
           placeholderTextColor="#d6d9dc"
+          rejectResponderTermination={true}
           returnKeyType="next"
           style={
             Array [
@@ -209,6 +211,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
             ]
           }
           testID="input-private-key"
+          underlineColorAndroid="transparent"
           value=""
         />
         <View
@@ -220,7 +223,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
             }
           }
         >
-          <TouchableOpacity
+          <ForwardRef
             onPress={[Function]}
           >
             <Text
@@ -233,7 +236,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
             >
               or Scan a QR Code
             </Text>
-          </TouchableOpacity>
+          </ForwardRef>
         </View>
       </View>
     </View>

@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TokenSelectButton component should Render correctly 1`] = `
-<TouchableOpacity>
+<ForwardRef>
   <View
     style={
       Object {
@@ -55,11 +55,11 @@ exports[`TokenSelectButton component should Render correctly 1`] = `
       }
     />
   </View>
-</TouchableOpacity>
+</ForwardRef>
 `;
 
 exports[`TokenSelectButton component should Render correctly 2`] = `
-<TouchableOpacity>
+<ForwardRef>
   <View
     style={
       Object {
@@ -115,11 +115,11 @@ exports[`TokenSelectButton component should Render correctly 2`] = `
       }
     />
   </View>
-</TouchableOpacity>
+</ForwardRef>
 `;
 
 exports[`TokenSelectButton component should Render correctly 3`] = `
-<TouchableOpacity>
+<ForwardRef>
   <View
     style={
       Object {
@@ -175,11 +175,11 @@ exports[`TokenSelectButton component should Render correctly 3`] = `
       }
     />
   </View>
-</TouchableOpacity>
+</ForwardRef>
 `;
 
 exports[`TokenSelectButton component should Render correctly 4`] = `
-<TouchableOpacity>
+<ForwardRef>
   <View
     style={
       Object {
@@ -236,11 +236,11 @@ exports[`TokenSelectButton component should Render correctly 4`] = `
       }
     />
   </View>
-</TouchableOpacity>
+</ForwardRef>
 `;
 
 exports[`TokenSelectButton component should Render correctly 5`] = `
-<TouchableOpacity
+<ForwardRef
   onPress={[MockFunction]}
 >
   <View
@@ -299,5 +299,5 @@ exports[`TokenSelectButton component should Render correctly 5`] = `
       }
     />
   </View>
-</TouchableOpacity>
+</ForwardRef>
 `;

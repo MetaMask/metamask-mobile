@@ -16,7 +16,7 @@ exports[`GenericButton should render correctly on android 1`] = `
 `;
 
 exports[`GenericButton should render correctly on iOS 1`] = `
-<TouchableOpacity
+<ForwardRef
   delayPressIn={50}
 />
 `;

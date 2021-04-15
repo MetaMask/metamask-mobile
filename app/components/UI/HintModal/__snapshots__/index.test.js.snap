@@ -53,7 +53,7 @@ exports[`HintModal should render correctly 1`] = `
         >
           Recovery hint
         </Text>
-        <TouchableOpacity
+        <ForwardRef
           onPress={[Function]}
         >
           <Icon
@@ -61,7 +61,7 @@ exports[`HintModal should render correctly 1`] = `
             name="x"
             size={16}
           />
-        </TouchableOpacity>
+        </ForwardRef>
       </View>
       <Text
         style={
@@ -86,9 +86,11 @@ exports[`HintModal should render correctly 1`] = `
         Do not use this to write your seed phrase.
       </Text>
       <TextInput
+        allowFontScaling={true}
         multiline={true}
         onChangeText={[Function]}
         placeholder="e.g. Mom's house"
+        rejectResponderTermination={true}
         style={
           Object {
             "borderColor": "#6a737d",
@@ -100,6 +102,7 @@ exports[`HintModal should render correctly 1`] = `
           }
         }
         textAlignVertical="top"
+        underlineColorAndroid="transparent"
         value="hint"
       />
     </View>

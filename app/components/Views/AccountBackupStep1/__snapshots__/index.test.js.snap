@@ -146,7 +146,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
             }
           }
         >
-          <TouchableOpacity
+          <ForwardRef
             hitSlop={
               Object {
                 "bottom": 10,
@@ -178,7 +178,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
             >
               Remind me later
             </Text>
-          </TouchableOpacity>
+          </ForwardRef>
           <Text
             style={
               Object {

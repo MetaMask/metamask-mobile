@@ -77,7 +77,7 @@ exports[`SignatureRequest should render correctly 1`] = `
             operation="signing"
           />
         </View>
-        <TouchableOpacity
+        <ForwardRef
           onPress={null}
           style={
             Object {
@@ -134,7 +134,7 @@ exports[`SignatureRequest should render correctly 1`] = `
               }
             }
           />
-        </TouchableOpacity>
+        </ForwardRef>
       </View>
     </View>
   </ActionView>

@@ -65,7 +65,7 @@ exports[`WhatsNewModal should render correctly 1`] = `
             }
           }
         >
-          <TouchableOpacity
+          <ForwardRef
             hitSlop={
               Object {
                 "bottom": 10,
@@ -81,7 +81,7 @@ exports[`WhatsNewModal should render correctly 1`] = `
               name="times"
               size={16}
             />
-          </TouchableOpacity>
+          </ForwardRef>
         </View>
       </View>
     </View>

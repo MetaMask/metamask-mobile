@@ -102,7 +102,7 @@ exports[`Confirm should render correctly 1`] = `
         }
       }
     >
-      <TouchableOpacity
+      <ForwardRef
         onPress={[Function]}
         style={
           Object {
@@ -123,7 +123,7 @@ exports[`Confirm should render correctly 1`] = `
         >
           Hex Data
         </Text>
-      </TouchableOpacity>
+      </ForwardRef>
     </View>
   </ScrollView>
   <View
@@ -272,7 +272,7 @@ exports[`Confirm should render correctly 1`] = `
         }
       }
     >
-      <TouchableOpacity
+      <ForwardRef
         onPress={[Function]}
         style={
           Object {
@@ -289,7 +289,7 @@ exports[`Confirm should render correctly 1`] = `
           name="ios-close"
           size={28}
         />
-      </TouchableOpacity>
+      </ForwardRef>
       <View
         style={
           Object {

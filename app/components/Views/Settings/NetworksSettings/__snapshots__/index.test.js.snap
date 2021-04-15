@@ -15,7 +15,7 @@ exports[`NetworksSettings should render correctly 1`] = `
 >
   <ScrollView>
     <View>
-      <TouchableOpacity
+      <ForwardRef
         key="network-mainnet"
         onPress={[Function]}
         style={
@@ -65,7 +65,7 @@ exports[`NetworksSettings should render correctly 1`] = `
             </Text>
           </View>
         </View>
-      </TouchableOpacity>
+      </ForwardRef>
     </View>
     <Text
       style={
@@ -80,7 +80,7 @@ exports[`NetworksSettings should render correctly 1`] = `
     >
       Other Networks
     </Text>
-    <TouchableOpacity
+    <ForwardRef
       key="network-0"
       onLongPress={[Function]}
       onPress={[Function]}
@@ -126,8 +126,8 @@ exports[`NetworksSettings should render correctly 1`] = `
           </Text>
         </View>
       </View>
-    </TouchableOpacity>
-    <TouchableOpacity
+    </ForwardRef>
+    <ForwardRef
       key="network-1"
       onLongPress={[Function]}
       onPress={[Function]}
@@ -173,8 +173,8 @@ exports[`NetworksSettings should render correctly 1`] = `
           </Text>
         </View>
       </View>
-    </TouchableOpacity>
-    <TouchableOpacity
+    </ForwardRef>
+    <ForwardRef
       key="network-2"
       onLongPress={[Function]}
       onPress={[Function]}
@@ -220,8 +220,8 @@ exports[`NetworksSettings should render correctly 1`] = `
           </Text>
         </View>
       </View>
-    </TouchableOpacity>
-    <TouchableOpacity
+    </ForwardRef>
+    <ForwardRef
       key="network-3"
       onLongPress={[Function]}
       onPress={[Function]}
@@ -267,7 +267,7 @@ exports[`NetworksSettings should render correctly 1`] = `
           </Text>
         </View>
       </View>
-    </TouchableOpacity>
+    </ForwardRef>
     <View>
       <Text
         style={
@@ -282,7 +282,7 @@ exports[`NetworksSettings should render correctly 1`] = `
       >
         RPC Networks
       </Text>
-      <TouchableOpacity
+      <ForwardRef
         key="network-0"
         onLongPress={[Function]}
         onPress={[Function]}
@@ -330,7 +330,7 @@ exports[`NetworksSettings should render correctly 1`] = `
             />
           </View>
         </View>
-      </TouchableOpacity>
+      </ForwardRef>
     </View>
   </ScrollView>
   <StyledButton

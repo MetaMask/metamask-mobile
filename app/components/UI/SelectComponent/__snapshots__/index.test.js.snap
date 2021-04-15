@@ -15,7 +15,7 @@ exports[`SelectComponent should render correctly 1`] = `
       }
     }
   >
-    <TouchableOpacity
+    <ForwardRef
       onPress={[Function]}
     >
       <View
@@ -57,7 +57,7 @@ exports[`SelectComponent should render correctly 1`] = `
           }
         />
       </View>
-    </TouchableOpacity>
+    </ForwardRef>
     <ReactNativeModal
       animationIn="slideInUp"
       animationInTiming={300}
@@ -153,7 +153,7 @@ exports[`SelectComponent should render correctly 1`] = `
               }
             }
           >
-            <TouchableOpacity
+            <ForwardRef
               key="key 1"
               onPress={[Function]}
               style={
@@ -179,8 +179,8 @@ exports[`SelectComponent should render correctly 1`] = `
               >
                 option 1
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+            </ForwardRef>
+            <ForwardRef
               key="key 2"
               onPress={[Function]}
               style={
@@ -206,7 +206,7 @@ exports[`SelectComponent should render correctly 1`] = `
               >
                 option 2
               </Text>
-            </TouchableOpacity>
+            </ForwardRef>
           </View>
         </ScrollView>
       </View>

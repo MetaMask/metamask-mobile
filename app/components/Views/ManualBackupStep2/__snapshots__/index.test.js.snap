@@ -128,7 +128,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
               1
               .
             </Text>
-            <TouchableOpacity
+            <ForwardRef
               onPress={[Function]}
               style={
                 Array [
@@ -161,7 +161,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
                   }
                 }
               />
-            </TouchableOpacity>
+            </ForwardRef>
           </View>
           <View
             key="word_1"
@@ -178,7 +178,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
               2
               .
             </Text>
-            <TouchableOpacity
+            <ForwardRef
               onPress={[Function]}
               style={
                 Array [
@@ -208,7 +208,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
                   }
                 }
               />
-            </TouchableOpacity>
+            </ForwardRef>
           </View>
           <View
             key="word_2"
@@ -225,7 +225,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
               3
               .
             </Text>
-            <TouchableOpacity
+            <ForwardRef
               onPress={[Function]}
               style={
                 Array [
@@ -255,7 +255,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
                   }
                 }
               />
-            </TouchableOpacity>
+            </ForwardRef>
           </View>
           <View
             key="word_3"
@@ -272,7 +272,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
               4
               .
             </Text>
-            <TouchableOpacity
+            <ForwardRef
               onPress={[Function]}
               style={
                 Array [
@@ -302,7 +302,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
                   }
                 }
               />
-            </TouchableOpacity>
+            </ForwardRef>
           </View>
           <View
             key="word_4"
@@ -319,7 +319,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
               5
               .
             </Text>
-            <TouchableOpacity
+            <ForwardRef
               onPress={[Function]}
               style={
                 Array [
@@ -349,7 +349,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
                   }
                 }
               />
-            </TouchableOpacity>
+            </ForwardRef>
           </View>
           <View
             key="word_5"
@@ -366,7 +366,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
               6
               .
             </Text>
-            <TouchableOpacity
+            <ForwardRef
               onPress={[Function]}
               style={
                 Array [
@@ -396,7 +396,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
                   }
                 }
               />
-            </TouchableOpacity>
+            </ForwardRef>
           </View>
         </View>
         <View
@@ -424,7 +424,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
               7
               .
             </Text>
-            <TouchableOpacity
+            <ForwardRef
               onPress={[Function]}
               style={
                 Array [
@@ -454,7 +454,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
                   }
                 }
               />
-            </TouchableOpacity>
+            </ForwardRef>
           </View>
           <View
             key="word_7"
@@ -471,7 +471,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
               8
               .
             </Text>
-            <TouchableOpacity
+            <ForwardRef
               onPress={[Function]}
               style={
                 Array [
@@ -501,7 +501,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
                   }
                 }
               />
-            </TouchableOpacity>
+            </ForwardRef>
           </View>
           <View
             key="word_8"
@@ -518,7 +518,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
               9
               .
             </Text>
-            <TouchableOpacity
+            <ForwardRef
               onPress={[Function]}
               style={
                 Array [
@@ -548,7 +548,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
                   }
                 }
               />
-            </TouchableOpacity>
+            </ForwardRef>
           </View>
           <View
             key="word_9"
@@ -565,7 +565,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
               10
               .
             </Text>
-            <TouchableOpacity
+            <ForwardRef
               onPress={[Function]}
               style={
                 Array [
@@ -595,7 +595,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
                   }
                 }
               />
-            </TouchableOpacity>
+            </ForwardRef>
           </View>
           <View
             key="word_10"
@@ -612,7 +612,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
               11
               .
             </Text>
-            <TouchableOpacity
+            <ForwardRef
               onPress={[Function]}
               style={
                 Array [
@@ -642,7 +642,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
                   }
                 }
               />
-            </TouchableOpacity>
+            </ForwardRef>
           </View>
           <View
             key="word_11"
@@ -659,7 +659,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
               12
               .
             </Text>
-            <TouchableOpacity
+            <ForwardRef
               onPress={[Function]}
               style={
                 Array [
@@ -689,7 +689,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
                   }
                 }
               />
-            </TouchableOpacity>
+            </ForwardRef>
           </View>
         </View>
       </View>
@@ -702,7 +702,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
           }
         }
       >
-        <TouchableOpacity
+        <ForwardRef
           key="selectableWord_0"
           onPress={[Function]}
           style={
@@ -738,8 +738,8 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
           >
             abstract
           </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </ForwardRef>
+        <ForwardRef
           key="selectableWord_1"
           onPress={[Function]}
           style={
@@ -775,8 +775,8 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
           >
             accident
           </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </ForwardRef>
+        <ForwardRef
           key="selectableWord_2"
           onPress={[Function]}
           style={
@@ -812,8 +812,8 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
           >
             acoustic
           </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </ForwardRef>
+        <ForwardRef
           key="selectableWord_3"
           onPress={[Function]}
           style={
@@ -849,8 +849,8 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
           >
             announce
           </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </ForwardRef>
+        <ForwardRef
           key="selectableWord_4"
           onPress={[Function]}
           style={
@@ -886,8 +886,8 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
           >
             artefact
           </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </ForwardRef>
+        <ForwardRef
           key="selectableWord_5"
           onPress={[Function]}
           style={
@@ -923,8 +923,8 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
           >
             attitude
           </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </ForwardRef>
+        <ForwardRef
           key="selectableWord_6"
           onPress={[Function]}
           style={
@@ -960,8 +960,8 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
           >
             bachelor
           </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </ForwardRef>
+        <ForwardRef
           key="selectableWord_7"
           onPress={[Function]}
           style={
@@ -997,8 +997,8 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
           >
             broccoli
           </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </ForwardRef>
+        <ForwardRef
           key="selectableWord_8"
           onPress={[Function]}
           style={
@@ -1034,8 +1034,8 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
           >
             business
           </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </ForwardRef>
+        <ForwardRef
           key="selectableWord_9"
           onPress={[Function]}
           style={
@@ -1071,8 +1071,8 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
           >
             category
           </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </ForwardRef>
+        <ForwardRef
           key="selectableWord_10"
           onPress={[Function]}
           style={
@@ -1108,8 +1108,8 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
           >
             champion
           </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </ForwardRef>
+        <ForwardRef
           key="selectableWord_11"
           onPress={[Function]}
           style={
@@ -1145,7 +1145,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
           >
             cinnamon
           </Text>
-        </TouchableOpacity>
+        </ForwardRef>
       </View>
     </View>
   </ActionView>

@@ -113,6 +113,7 @@ exports[`ChoosePasswordSimple should render correctly 1`] = `
             New Password
           </ForwardRef(AnimatedComponentWrapper)>
           <TextInput
+            allowFontScaling={true}
             autoCapitalize="none"
             onBlur={[Function]}
             onChangeText={[Function]}
@@ -120,6 +121,7 @@ exports[`ChoosePasswordSimple should render correctly 1`] = `
             onSubmitEditing={[Function]}
             placeholder=""
             placeholderTextColor="#d6d9dc"
+            rejectResponderTermination={true}
             returnKeyType="next"
             secureTextEntry={true}
             style={
@@ -139,7 +141,7 @@ exports[`ChoosePasswordSimple should render correctly 1`] = `
             underlineColorAndroid="#d6d9dc"
             value=""
           />
-          <TouchableOpacity
+          <ForwardRef
             onPress={[Function]}
             style={
               Object {
@@ -166,7 +168,7 @@ exports[`ChoosePasswordSimple should render correctly 1`] = `
             >
               Show
             </Text>
-          </TouchableOpacity>
+          </ForwardRef>
           <Text
             style={
               Object {
@@ -222,6 +224,7 @@ exports[`ChoosePasswordSimple should render correctly 1`] = `
             Confirm password
           </ForwardRef(AnimatedComponentWrapper)>
           <TextInput
+            allowFontScaling={true}
             autoCapitalize="none"
             onBlur={[Function]}
             onChangeText={[Function]}
@@ -229,6 +232,7 @@ exports[`ChoosePasswordSimple should render correctly 1`] = `
             onSubmitEditing={[Function]}
             placeholder=""
             placeholderTextColor="#d6d9dc"
+            rejectResponderTermination={true}
             returnKeyType="done"
             secureTextEntry={true}
             style={

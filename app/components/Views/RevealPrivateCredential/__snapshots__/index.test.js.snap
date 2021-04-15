@@ -108,10 +108,12 @@ exports[`RevealPrivateCredential should render correctly 1`] = `
             Enter password to continue
           </Text>
           <TextInput
+            allowFontScaling={true}
             onChangeText={[Function]}
             onSubmitEditing={[Function]}
             placeholder="Password"
             placeholderTextColor="#d6d9dc"
+            rejectResponderTermination={true}
             secureTextEntry={true}
             style={
               Object {
@@ -122,6 +124,7 @@ exports[`RevealPrivateCredential should render correctly 1`] = `
               }
             }
             testID="private-credential-password-text-input"
+            underlineColorAndroid="transparent"
           />
           <Text
             style={

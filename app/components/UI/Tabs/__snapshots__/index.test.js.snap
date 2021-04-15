@@ -60,7 +60,7 @@ exports[`Tabs should render correctly 1`] = `
       }
     }
   >
-    <TouchableOpacity
+    <ForwardRef
       style={
         Array [
           Object {
@@ -90,7 +90,7 @@ exports[`Tabs should render correctly 1`] = `
       >
         Close All
       </Text>
-    </TouchableOpacity>
+    </ForwardRef>
     <View
       style={
         Object {
@@ -101,7 +101,7 @@ exports[`Tabs should render correctly 1`] = `
         }
       }
     >
-      <TouchableOpacity
+      <ForwardRef
         onPress={[Function]}
         style={
           Object {
@@ -131,9 +131,9 @@ exports[`Tabs should render correctly 1`] = `
             }
           }
         />
-      </TouchableOpacity>
+      </ForwardRef>
     </View>
-    <TouchableOpacity
+    <ForwardRef
       style={
         Array [
           Object {
@@ -168,7 +168,7 @@ exports[`Tabs should render correctly 1`] = `
       >
         Done
       </Text>
-    </TouchableOpacity>
+    </ForwardRef>
   </View>
 </View>
 `;

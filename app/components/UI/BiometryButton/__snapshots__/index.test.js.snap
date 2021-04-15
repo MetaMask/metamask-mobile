@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`BiometryButton should render correctly 1`] = `
-<TouchableOpacity
+<ForwardRef
   hitSlop={
     Object {
       "bottom": 10,
@@ -22,5 +22,5 @@ exports[`BiometryButton should render correctly 1`] = `
       }
     }
   />
-</TouchableOpacity>
+</ForwardRef>
 `;

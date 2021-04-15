@@ -24,14 +24,14 @@ exports[`CustomGas should render correctly 1`] = `
         }
       }
     >
-      <TouchableOpacity>
+      <ForwardRef>
         <Icon
           allowFontScaling={false}
           color="#000000"
           name="ios-arrow-back"
           size={24}
         />
-      </TouchableOpacity>
+      </ForwardRef>
       <Text
         style={
           Object {
@@ -62,7 +62,7 @@ exports[`CustomGas should render correctly 1`] = `
         }
       }
     >
-      <TouchableOpacity
+      <ForwardRef
         onPress={[Function]}
         style={
           Array [
@@ -94,8 +94,8 @@ exports[`CustomGas should render correctly 1`] = `
         >
           Basic
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
+      </ForwardRef>
+      <ForwardRef
         onPress={[Function]}
         style={
           Array [
@@ -122,7 +122,7 @@ exports[`CustomGas should render correctly 1`] = `
         >
           Advanced
         </Text>
-      </TouchableOpacity>
+      </ForwardRef>
     </View>
   </View>
   <ForwardRef(AnimatedComponentWrapper)
@@ -152,7 +152,7 @@ exports[`CustomGas should render correctly 1`] = `
         }
       }
     >
-      <TouchableOpacity
+      <ForwardRef
         key="safeLow"
         onPress={[Function]}
         style={
@@ -241,8 +241,8 @@ exports[`CustomGas should render correctly 1`] = `
         >
           $0
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
+      </ForwardRef>
+      <ForwardRef
         key="average"
         onPress={[Function]}
         style={
@@ -332,8 +332,8 @@ exports[`CustomGas should render correctly 1`] = `
         >
           $0
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
+      </ForwardRef>
+      <ForwardRef
         key="fast"
         onPress={[Function]}
         style={
@@ -422,7 +422,7 @@ exports[`CustomGas should render correctly 1`] = `
         >
           $0
         </Text>
-      </TouchableOpacity>
+      </ForwardRef>
     </View>
     <Text
       style={
@@ -526,8 +526,10 @@ exports[`CustomGas should render correctly 1`] = `
         Gas Limit:
       </Text>
       <TextInput
+        allowFontScaling={true}
         keyboardType="numeric"
         onChangeText={[Function]}
+        rejectResponderTermination={true}
         style={
           Object {
             "backgroundColor": "#FFFFFF",
@@ -544,6 +546,7 @@ exports[`CustomGas should render correctly 1`] = `
             "position": "relative",
           }
         }
+        underlineColorAndroid="transparent"
         value="0"
       />
     </View>
@@ -572,8 +575,10 @@ exports[`CustomGas should render correctly 1`] = `
         Gas Price: (GWEI)
       </Text>
       <TextInput
+        allowFontScaling={true}
         keyboardType="numeric"
         onChangeText={[Function]}
+        rejectResponderTermination={true}
         style={
           Object {
             "backgroundColor": "#FFFFFF",
@@ -590,6 +595,7 @@ exports[`CustomGas should render correctly 1`] = `
             "position": "relative",
           }
         }
+        underlineColorAndroid="transparent"
         value="0"
       />
     </View>

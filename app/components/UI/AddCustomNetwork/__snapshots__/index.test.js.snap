@@ -307,7 +307,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
         />
       </View>
     </View>
-    <TouchableOpacity
+    <ForwardRef
       onPress={[Function]}
       style={
         Object {
@@ -342,7 +342,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           View details
         </Text>
       </View>
-    </TouchableOpacity>
+    </ForwardRef>
     <View
       style={
         Object {

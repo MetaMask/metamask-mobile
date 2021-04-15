@@ -16,7 +16,7 @@ exports[`AddressList should render correctly 1`] = `
       }
     }
   >
-    <TouchableOpacity
+    <ForwardRef
       onPress={[Function]}
       style={
         Object {
@@ -45,7 +45,7 @@ exports[`AddressList should render correctly 1`] = `
       >
         Transfer between my accounts
       </Text>
-    </TouchableOpacity>
+    </ForwardRef>
   </ScrollView>
 </View>
 `;

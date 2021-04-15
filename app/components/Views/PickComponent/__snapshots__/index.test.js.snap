@@ -16,7 +16,7 @@ exports[`PickComponent should render correctly 1`] = `
       }
     }
   >
-    <TouchableOpacity
+    <ForwardRef
       onPress={[Function]}
       style={
         Object {
@@ -50,7 +50,7 @@ exports[`PickComponent should render correctly 1`] = `
       >
         Text First
       </Text>
-    </TouchableOpacity>
+    </ForwardRef>
   </View>
   <View
     style={
@@ -59,7 +59,7 @@ exports[`PickComponent should render correctly 1`] = `
       }
     }
   >
-    <TouchableOpacity
+    <ForwardRef
       onPress={[Function]}
       style={
         Object {
@@ -91,7 +91,7 @@ exports[`PickComponent should render correctly 1`] = `
       >
         Text Second
       </Text>
-    </TouchableOpacity>
+    </ForwardRef>
   </View>
 </View>
 `;

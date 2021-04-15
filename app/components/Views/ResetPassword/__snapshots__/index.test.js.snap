@@ -165,10 +165,12 @@ exports[`ChoosePassword should render correctly 1`] = `
                 Show
               </Text>
               <TextInput
+                allowFontScaling={true}
                 autoCapitalize="none"
                 onChangeText={[Function]}
                 onSubmitEditing={[Function]}
                 placeholder=""
+                rejectResponderTermination={true}
                 returnKeyType="next"
                 secureTextEntry={true}
                 style={
@@ -189,6 +191,7 @@ exports[`ChoosePassword should render correctly 1`] = `
                   ]
                 }
                 testID="input-password"
+                underlineColorAndroid="transparent"
                 value=""
               />
               <Text
@@ -228,11 +231,13 @@ exports[`ChoosePassword should render correctly 1`] = `
                 Confirm password
               </Text>
               <TextInput
+                allowFontScaling={true}
                 autoCapitalize="none"
                 onChangeText={[Function]}
                 onSubmitEditing={[Function]}
                 placeholder=""
                 placeholderTextColor="#d6d9dc"
+                rejectResponderTermination={true}
                 returnKeyType="done"
                 secureTextEntry={true}
                 style={
@@ -253,6 +258,7 @@ exports[`ChoosePassword should render correctly 1`] = `
                   ]
                 }
                 testID="input-password-confirm"
+                underlineColorAndroid="transparent"
                 value=""
               />
               <View

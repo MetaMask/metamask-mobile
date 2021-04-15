@@ -48,6 +48,7 @@ exports[`ContactForm should render correctly 1`] = `
         Name
       </Text>
       <TextInput
+        allowFontScaling={true}
         autoCapitalize="none"
         autoCorrect={false}
         editable={true}
@@ -56,6 +57,7 @@ exports[`ContactForm should render correctly 1`] = `
         onSubmitEditing={[Function]}
         placeholder="Name"
         placeholderTextColor="#d6d9dc"
+        rejectResponderTermination={true}
         spellCheck={false}
         style={
           Array [
@@ -76,6 +78,7 @@ exports[`ContactForm should render correctly 1`] = `
           ]
         }
         testID="contact-name-input"
+        underlineColorAndroid="transparent"
       />
       <Text
         style={
@@ -118,6 +121,7 @@ exports[`ContactForm should render correctly 1`] = `
           }
         >
           <TextInput
+            allowFontScaling={true}
             autoCapitalize="none"
             autoCorrect={false}
             editable={true}
@@ -126,6 +130,7 @@ exports[`ContactForm should render correctly 1`] = `
             onSubmitEditing={[Function]}
             placeholder="Public address (0x), or ENS"
             placeholderTextColor="#d6d9dc"
+            rejectResponderTermination={true}
             spellCheck={false}
             style={
               Array [
@@ -140,9 +145,10 @@ exports[`ContactForm should render correctly 1`] = `
               ]
             }
             testID="contact-address-input"
+            underlineColorAndroid="transparent"
           />
         </View>
-        <TouchableOpacity
+        <ForwardRef
           onPress={[Function]}
           style={
             Object {
@@ -162,7 +168,7 @@ exports[`ContactForm should render correctly 1`] = `
               }
             }
           />
-        </TouchableOpacity>
+        </ForwardRef>
       </View>
       <Text
         style={
@@ -205,6 +211,7 @@ exports[`ContactForm should render correctly 1`] = `
           }
         >
           <TextInput
+            allowFontScaling={true}
             autoCapitalize="none"
             autoCorrect={false}
             editable={true}
@@ -213,6 +220,7 @@ exports[`ContactForm should render correctly 1`] = `
             onChangeText={[Function]}
             placeholder="Memo"
             placeholderTextColor="#d6d9dc"
+            rejectResponderTermination={true}
             spellCheck={false}
             style={
               Array [
@@ -227,6 +235,7 @@ exports[`ContactForm should render correctly 1`] = `
               ]
             }
             testID="contact-memo-input"
+            underlineColorAndroid="transparent"
           />
         </View>
       </View>

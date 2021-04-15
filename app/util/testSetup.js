@@ -120,8 +120,8 @@ NativeModules.PlatformConstants = {
 	forceTouchAvailable: false
 };
 
-jest.mock('react-native/Libraries/Components/Touchable/TouchableOpacity', () => 'TouchableOpacity');
-jest.mock('react-native/Libraries/Components/Touchable/TouchableHighlight', () => 'TouchableHighlight');
-jest.mock('react-native/Libraries/Components/TextInput/TextInput', () => 'TextInput');
+// jest.mock('react-native/Libraries/Components/Touchable/TouchableOpacity', () => 'TouchableOpacity');
+// jest.mock('react-native/Libraries/Components/Touchable/TouchableHighlight', () => 'TouchableHighlight');
+// jest.mock('react-native/Libraries/Components/TextInput/TextInput', () => 'TextInput');
 
-jest.mock('react-native/Libraries/Animated/src/NativeAnimatedHelper');
+// jest.mock('react-native/Libraries/Animated/src/NativeAnimatedHelper');

@@ -43,11 +43,13 @@ exports[`AddCustomToken should render correctly 1`] = `
           Token Address
         </Text>
         <TextInput
+          allowFontScaling={true}
           onBlur={[Function]}
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder="0x..."
           placeholderTextColor="#d6d9dc"
+          rejectResponderTermination={true}
           returnKeyType="next"
           style={
             Object {
@@ -60,6 +62,7 @@ exports[`AddCustomToken should render correctly 1`] = `
             }
           }
           testID="input-token-address"
+          underlineColorAndroid="transparent"
           value=""
         />
         <Text
@@ -92,11 +95,13 @@ exports[`AddCustomToken should render correctly 1`] = `
           Token Symbol
         </Text>
         <TextInput
+          allowFontScaling={true}
           onBlur={[Function]}
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder="GNO"
           placeholderTextColor="#d6d9dc"
+          rejectResponderTermination={true}
           returnKeyType="next"
           style={
             Object {
@@ -109,6 +114,7 @@ exports[`AddCustomToken should render correctly 1`] = `
             }
           }
           testID="input-token-symbol"
+          underlineColorAndroid="transparent"
           value=""
         />
         <Text
@@ -140,6 +146,7 @@ exports[`AddCustomToken should render correctly 1`] = `
           Token of Precision
         </Text>
         <TextInput
+          allowFontScaling={true}
           keyboardType="numeric"
           maxLength={2}
           onBlur={[Function]}
@@ -147,6 +154,7 @@ exports[`AddCustomToken should render correctly 1`] = `
           onSubmitEditing={[Function]}
           placeholder="18"
           placeholderTextColor="#d6d9dc"
+          rejectResponderTermination={true}
           returnKeyType="done"
           style={
             Object {
@@ -159,6 +167,7 @@ exports[`AddCustomToken should render correctly 1`] = `
             }
           }
           testID="input-token-decimals"
+          underlineColorAndroid="transparent"
           value=""
         />
         <Text

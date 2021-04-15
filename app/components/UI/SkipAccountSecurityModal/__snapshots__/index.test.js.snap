@@ -30,7 +30,7 @@ exports[`HintModal should render correctly 1`] = `
       }
     }
   >
-    <TouchableOpacity
+    <ForwardRef
       hitSlop={
         Object {
           "bottom": 10,
@@ -57,7 +57,7 @@ exports[`HintModal should render correctly 1`] = `
           }
         }
       />
-    </TouchableOpacity>
+    </ForwardRef>
     <Image
       resizeMethod="auto"
       source={

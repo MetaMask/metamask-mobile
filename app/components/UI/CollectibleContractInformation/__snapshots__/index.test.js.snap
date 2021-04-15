@@ -155,7 +155,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
         }
       }
     >
-      <TouchableOpacity
+      <ForwardRef
         onPress={[Function]}
         style={
           Object {
@@ -203,7 +203,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
             }
           />
         </View>
-      </TouchableOpacity>
+      </ForwardRef>
     </View>
   </ScrollView>
   <View
@@ -218,7 +218,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
       }
     }
   >
-    <TouchableOpacity
+    <ForwardRef
       onPress={[Function]}
       style={
         Object {
@@ -242,7 +242,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
       >
         Close
       </Text>
-    </TouchableOpacity>
+    </ForwardRef>
   </View>
 </ForwardRef(SafeAreaView)>
 `;

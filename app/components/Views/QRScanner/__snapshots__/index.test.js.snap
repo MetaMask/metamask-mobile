@@ -98,7 +98,7 @@ exports[`QrScanner should render correctly 1`] = `
         }
       }
     >
-      <TouchableOpacity
+      <ForwardRef
         onPress={[Function]}
         style={
           Object {
@@ -115,7 +115,7 @@ exports[`QrScanner should render correctly 1`] = `
           name="ios-close"
           size={50}
         />
-      </TouchableOpacity>
+      </ForwardRef>
       <Image
         source={
           Object {

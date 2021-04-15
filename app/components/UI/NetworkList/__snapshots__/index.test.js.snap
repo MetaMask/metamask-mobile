@@ -44,7 +44,7 @@ exports[`NetworkList should render correctly 1`] = `
     }
   >
     <View>
-      <TouchableOpacity
+      <ForwardRef
         key="network-mainnet"
         onPress={[Function]}
         style={
@@ -132,7 +132,7 @@ exports[`NetworkList should render correctly 1`] = `
             </Text>
           </View>
         </View>
-      </TouchableOpacity>
+      </ForwardRef>
     </View>
     <View
       style={
@@ -160,7 +160,7 @@ exports[`NetworkList should render correctly 1`] = `
         Other Networks
       </Text>
     </View>
-    <TouchableOpacity
+    <ForwardRef
       key="network-0"
       onPress={[Function]}
       style={
@@ -219,8 +219,8 @@ exports[`NetworkList should render correctly 1`] = `
           Ropsten Test Network
         </Text>
       </View>
-    </TouchableOpacity>
-    <TouchableOpacity
+    </ForwardRef>
+    <ForwardRef
       key="network-1"
       onPress={[Function]}
       style={
@@ -279,8 +279,8 @@ exports[`NetworkList should render correctly 1`] = `
           Kovan Test Network
         </Text>
       </View>
-    </TouchableOpacity>
-    <TouchableOpacity
+    </ForwardRef>
+    <ForwardRef
       key="network-2"
       onPress={[Function]}
       style={
@@ -339,8 +339,8 @@ exports[`NetworkList should render correctly 1`] = `
           Rinkeby Test Network
         </Text>
       </View>
-    </TouchableOpacity>
-    <TouchableOpacity
+    </ForwardRef>
+    <ForwardRef
       key="network-3"
       onPress={[Function]}
       style={
@@ -399,8 +399,8 @@ exports[`NetworkList should render correctly 1`] = `
           Goerli Test Network
         </Text>
       </View>
-    </TouchableOpacity>
-    <TouchableOpacity
+    </ForwardRef>
+    <ForwardRef
       key="network-0"
       onPress={[Function]}
       style={
@@ -459,7 +459,7 @@ exports[`NetworkList should render correctly 1`] = `
           }
         />
       </View>
-    </TouchableOpacity>
+    </ForwardRef>
   </ScrollView>
   <View
     style={
@@ -473,7 +473,7 @@ exports[`NetworkList should render correctly 1`] = `
       }
     }
   >
-    <TouchableOpacity
+    <ForwardRef
       onPress={[Function]}
       style={
         Object {
@@ -497,7 +497,7 @@ exports[`NetworkList should render correctly 1`] = `
       >
         Close
       </Text>
-    </TouchableOpacity>
+    </ForwardRef>
   </View>
 </ForwardRef(SafeAreaView)>
 `;

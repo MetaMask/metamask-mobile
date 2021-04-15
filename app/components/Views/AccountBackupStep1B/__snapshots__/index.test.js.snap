@@ -111,7 +111,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
             </Text>
           </Text>
         </View>
-        <TouchableOpacity
+        <ForwardRef
           onPress={[Function]}
           style={
             Object {
@@ -143,7 +143,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
           >
             Why is it important?
           </Text>
-        </TouchableOpacity>
+        </ForwardRef>
       </View>
       <View
         style={
@@ -433,7 +433,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         >
           Protect your wallet
         </Text>
-        <TouchableOpacity
+        <ForwardRef
           hitSlop={
             Object {
               "bottom": 10,
@@ -460,7 +460,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
               }
             }
           />
-        </TouchableOpacity>
+        </ForwardRef>
       </View>
       <View
         style={
@@ -509,7 +509,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
              It’s the only way to recover your wallet if you get locked out of the app or get a new device.
           </Text>
         </Text>
-        <TouchableOpacity
+        <ForwardRef
           hitSlop={
             Object {
               "bottom": 10,
@@ -535,7 +535,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
           >
             Learn More
           </Text>
-        </TouchableOpacity>
+        </ForwardRef>
       </View>
     </View>
   </ActionModal>

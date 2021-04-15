@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AssetElement should render correctly 1`] = `
-<TouchableOpacity
+<ForwardRef
   onLongPress={[Function]}
   onPress={[Function]}
   style={
@@ -35,5 +35,5 @@ exports[`AssetElement should render correctly 1`] = `
       }
     />
   </View>
-</TouchableOpacity>
+</ForwardRef>
 `;

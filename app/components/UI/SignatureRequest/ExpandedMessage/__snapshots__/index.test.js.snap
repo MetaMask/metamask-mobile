@@ -13,7 +13,7 @@ exports[`ExpandedMessage should render correctly 1`] = `
     }
   }
 >
-  <TouchableOpacity
+  <ForwardRef
     style={
       Object {
         "alignItems": "center",
@@ -55,7 +55,7 @@ exports[`ExpandedMessage should render correctly 1`] = `
         }
       }
     />
-  </TouchableOpacity>
+  </ForwardRef>
   <View
     style={
       Object {

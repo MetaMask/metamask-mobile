@@ -28,9 +28,11 @@ exports[`AssetSearch should render correctly 1`] = `
     }
   />
   <TextInput
+    allowFontScaling={true}
     onChangeText={[Function]}
     placeholder="Search Tokens"
     placeholderTextColor="#d6d9dc"
+    rejectResponderTermination={true}
     style={
       Array [
         Object {
@@ -43,6 +45,7 @@ exports[`AssetSearch should render correctly 1`] = `
       ]
     }
     testID="input-search-asset"
+    underlineColorAndroid="transparent"
     value=""
   />
 </View>

@@ -471,7 +471,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             </Text>
           </View>
         </View>
-        <TouchableOpacity
+        <ForwardRef
           onPress={[Function]}
           style={
             Object {
@@ -579,7 +579,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
               </StyledButton>
             </View>
           </View>
-        </TouchableOpacity>
+        </ForwardRef>
       </View>
     </View>
   </ActionView>
