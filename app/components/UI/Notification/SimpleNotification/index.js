@@ -28,17 +28,18 @@ const styles = StyleSheet.create({
 
 function SimpleNotification({ isInBrowserView, notificationAnimated, hideCurrentNotification, currentNotification }) {
 	return (
-		<ElevatedView style={[styles.modalTypeView, isInBrowserView && styles.modalTypeViewBrowser]} elevation={100}>
-			<Animated.View
-				style={[styles.notificationContainer, { transform: [{ translateY: notificationAnimated }] }]}
+		<Animated.View style={[styles.notificationContainer, { transform: [{ translateY: notificationAnimated }] }]}>
+			<ElevatedView
+				style={[styles.modalTypeView, isInBrowserView && styles.modalTypeViewBrowser]}
+				elevation={100}
 			>
 				<BaseNotification
 					status={currentNotification.status}
 					data={{ title: currentNotification.title, description: currentNotification.description }}
 					onHide={hideCurrentNotification}
 				/>
-			</Animated.View>
-		</ElevatedView>
+			</ElevatedView>
+		</Animated.View>
 	);
 }
 
