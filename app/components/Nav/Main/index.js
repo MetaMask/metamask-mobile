@@ -271,7 +271,7 @@ const Main = props => {
 				await TransactionController.approveTransaction(transactionMeta.id);
 			} catch (error) {
 				Alert.alert(strings('transactions.transaction_error'), error && error.message, [
-					{ text: strings('navigation.ok') }
+					{ text: strings('naviga tion.ok') }
 				]);
 				Logger.error(error, 'error while trying to send transaction (Main)');
 			}
