@@ -278,7 +278,8 @@ class Login extends PureComponent {
 			// Restore vault with user entered password
 			await KeyringController.submitPassword(this.state.password);
 			const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
-			if (encryptionLib !== ORIGINAL) {
+			const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+			if (encryptionLib !== ORIGINAL && existingUser) {
 				await recreateVaultWithSamePassword(this.state.password, this.props.selectedAddress);
 				await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
 			}
