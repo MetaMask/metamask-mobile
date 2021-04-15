@@ -209,7 +209,7 @@ async function resetAndStartPolling({ slippage, sourceToken, destinationToken, s
 	const contractExchangeRates = TokenRatesController.state.contractExchangeRates;
 	// ff the token is not in the wallet, we'll add it
 	if (
-		destinationToken.address !== swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS &&
+		!isSwapsNativeAsset(destinationToken) &&
 		!contractExchangeRates[safeToChecksumAddress(destinationToken.address)]
 	) {
 		const { address, symbol, decimals } = destinationToken;
