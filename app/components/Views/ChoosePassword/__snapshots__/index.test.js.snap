@@ -244,7 +244,7 @@ exports[`ChoosePassword should render correctly 1`] = `
                 "alignSelf": "flex-end",
                 "position": "absolute",
                 "right": 17,
-                "top": 62,
+                "top": 52,
               }
             }
           />
