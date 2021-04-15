@@ -5,6 +5,8 @@ project_type: react-native
 trigger_map:
 - push_branch: 'bitrise_yml_new'
   workflow: deploy
+- push_branch: 'bitrise-yml-bump-version'
+  workflow: bump_version_minor
 # - pull_request_source_branch: '*'
 #   workflow: ci_test
 workflows:
@@ -277,6 +279,20 @@ workflows:
     # - deploy-to-bitrise-io@1: {}
     # Need to deploy to Bitrise 
     # Notify on Slack
+  bump_version_minor:
+    steps:
+    - activate-ssh-key@4:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - git-clone@4: {}
+    - nvm@1:
+        inputs:
+        - node_version: ''
+    - change-android-versioncode-and-versionname@1:
+        inputs:
+        - build_gradle_path: $PROJECT_LOCATION_ANDROID/app/build.gradle
+    - set-xcode-build-number@1:
+        inputs:
+        - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
 
 app:
   envs:
@@ -298,3 +314,9 @@ app:
   - opts:
       is_expand: false
     BITRISE_EXPORT_METHOD: enterprise
+  - opts:
+      is_expand: false
+    PROJECT_LOCATION_ANDROID: android
+  - opts:
+      is_expand: false
+    PROJECT_LOCATION_IOS: ios
