@@ -260,7 +260,7 @@ class Approval extends PureComponent {
 			Logger.error(error, 'error while trying to send transaction (Approval)');
 			this.setState({ transactionHandled: false });
 		}
-		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.DAPP_TRANSACTION_CONFIRMED, this.getAnalyticsParams());
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.DAPP_TRANSACTION_COMPLETED, this.getAnalyticsParams());
 	};
 
 	/**
