@@ -3,6 +3,8 @@ format_version: '8'
 default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
 trigger_map:
+- push_branch: 'bitrise_yml_new'
+  workflow: deploy
 - push_branch: 'bitrise-yml-bump-version'
   workflow: bump_version_minor
 # - pull_request_source_branch: '*'
@@ -228,19 +230,24 @@ workflows:
             #!/usr/bin/env bash 
             jq 'del(.engines)' package.json > new.json && mv new.json package.json
             node -v
-            METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle
+            METAMASK_ENVIRONMENT='production' yarn build:android
         title: Build Android Pre-Release Bundle
         is_always_run: false
     # - sign-APK@1.4.1: {}
     - deploy-to-bitrise-io@1.9.4:
         inputs:
-        - deploy_path: app/build/outputs/apk/release/    
-    - deploy-to-bitrise-io@1.9.4:
-        inputs:
-        - deploy_path: app/build/outputs/bundle/release/   
-    - deploy-to-bitrise-io@1.9.4:
-        inputs:
-        - deploy_path: sourcemaps/android      
+        - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/debug/    
+    # - deploy-to-bitrise-io@1.9.4:
+    #     inputs:
+    #     - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/debug/   
+    # - deploy-to-bitrise-io@1.9.4:
+    #     inputs:
+    #     - deploy_path: sourcemaps/android    
+    # - yarn@0:
+    #     inputs:
+    #     - command: build:announce
+    #     title: Accouncing pre-release
+    #     is_always_run: false      
     # Segment Out iOS
     # - certificate-and-profile-installer@1: {}
     # - script@1:
@@ -306,7 +313,7 @@ app:
   - opts:
       is_expand: false
     BITRISE_EXPORT_METHOD: enterprise
-- opts:
+  - opts:
       is_expand: false
     PROJECT_LOCATION_ANDROID: android
   - opts:
