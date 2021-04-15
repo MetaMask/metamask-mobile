@@ -2,6 +2,9 @@
 
 ## Current Develop Branch
 
+## v2.1.1 - Apr 14 2021
+- [#2520](https://github.com/MetaMask/metamask-mobile/pull/2520): Check provider status
+
 ## v2.1.0 - Apr 12 2021
 - [#2487](https://github.com/MetaMask/metamask-mobile/pull/2487): Fix/analytics v1 priority1
 - [#2456](https://github.com/MetaMask/metamask-mobile/pull/2456): Analytics v2 (priority 1)
