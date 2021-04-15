@@ -272,7 +272,12 @@ workflows:
     # - deploy-to-bitrise-io@1: {}
     # Need to deploy to Bitrise 
     # Notify on Slack
-
+  bump_version_minor:
+    steps:
+    - change-android-versioncode-and-versionname@1:
+        inputs:
+        - version_code_offset: '1'
+        - build_gradle_path: $BITRISE_SOURCE_DIR/android/app/build.gradle
 app:
   envs:
   - opts:
