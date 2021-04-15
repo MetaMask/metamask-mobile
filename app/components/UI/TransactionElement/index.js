@@ -14,6 +14,7 @@ import { TRANSACTION_TYPES } from '../../../util/transactions';
 import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
 import DetailsModal from '../../Base/DetailsModal';
+import { isMainNet } from '../../../util/networks';
 
 const styles = StyleSheet.create({
 	row: {
@@ -88,7 +89,11 @@ class TransactionElement extends PureComponent {
 		 */
 		onCancelAction: PropTypes.func,
 		swapsTransactions: PropTypes.object,
-		swapsTokens: PropTypes.arrayOf(PropTypes.object)
+		swapsTokens: PropTypes.arrayOf(PropTypes.object),
+		/**
+		 * Chain Id
+		 */
+		chainId: PropTypes.string
 	};
 
 	state = {
@@ -169,7 +174,8 @@ class TransactionElement extends PureComponent {
 	 */
 	renderTxElement = transactionElement => {
 		const {
-			tx: { status }
+			tx: { status },
+			chainId
 		} = this.props;
 		const { value, fiatValue = false, actionKey } = transactionElement;
 		const renderTxActions = status === 'submitted' || status === 'approved';
@@ -185,7 +191,7 @@ class TransactionElement extends PureComponent {
 					{Boolean(value) && (
 						<ListItem.Amounts>
 							<ListItem.Amount>{value}</ListItem.Amount>
-							<ListItem.FiatAmount>{fiatValue}</ListItem.FiatAmount>
+							{isMainNet(chainId) && <ListItem.FiatAmount>{fiatValue}</ListItem.FiatAmount>}
 						</ListItem.Amounts>
 					)}
 				</ListItem.Content>
