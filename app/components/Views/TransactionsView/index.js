@@ -33,6 +33,7 @@ const TransactionsView = ({
 	const filterTransactions = useCallback(() => {
 		const network = Engine.context.NetworkController.state.network;
 		if (network === 'loading') return;
+		let accountAddedTimeInsertPointFound = false;
 		const ethFilter = tx => {
 			const {
 				transaction: { from, to },
@@ -53,22 +54,11 @@ const TransactionsView = ({
 			return false;
 		};
 
-		const addImportTimeFlagToTransactions = transactions => {
-			if (transactions && transactions.length) {
-				const time = identities[selectedAddress].importTime;
-				let insertPointFound = false;
-				/** checks all transactions to find the first one that is less than the account
-				import/added time and flags the transaction to display */
-				for (const tx in transactions) {
-					if (transactions[tx].time <= time && !insertPointFound) {
-						insertPointFound = true;
-						transactions[tx].insertImportTime = true;
-						break;
-					}
-				}
-
-				//if the insertpoint is not found add it to the last transaction
-				if (!insertPointFound) transactions[transactions.length - 1].insertImportTime = true;
+		const accountAddedTimeFlagFilter = transaction => {
+			const time = identities[selectedAddress]?.importTime;
+			if (transaction.time <= time && !accountAddedTimeInsertPointFound) {
+				accountAddedTimeInsertPointFound = true;
+				transaction.insertImportTime = true;
 			}
 		};
 
@@ -94,6 +84,7 @@ const TransactionsView = ({
 					confirmedTxs.push(tx);
 					break;
 			}
+			accountAddedTimeFlagFilter(tx);
 			return filter;
 		});
 
@@ -104,7 +95,11 @@ const TransactionsView = ({
 			return !alreadySubmitted;
 		});
 
-		addImportTimeFlagToTransactions(allTransactions);
+		//if the account added insertpoint is not found add it to the last transaction
+		if (!accountAddedTimeInsertPointFound && allTransactions && allTransactions.length) {
+			allTransactions[allTransactions.length - 1].insertImportTime = true;
+		}
+
 		setAllTransactions(allTransactions);
 		setSubmittedTxs(submittedTxsFiltered);
 		setConfirmedTxs(confirmedTxs);
