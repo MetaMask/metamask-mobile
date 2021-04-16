@@ -76,10 +76,15 @@ workflows:
             brew tap wix/brew
             brew install --HEAD applesimutils
             echo $IOS_ENV | tr "|" "\n" > .ios.env
-            pod update 
-            pod install
+        title: Run E2E Tests
+    - cocoapods-install@2: {}
+    - xcode-build-for-simulator@0: {}
+    - script:
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash 
             detox clean-framework-cache && detox build-framework-cache
-            detox build --configuration ios.sim.release && detox test --configuration ios.sim.release --cleanup --workers 2
+            detox test --configuration ios.sim.release --cleanup --workers 2
         title: Run E2E Tests
     # - yarn@0:
     #     inputs:
@@ -285,31 +290,4 @@ workflows:
         - build_short_version_string: $VERSION_NAME
         - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
 app:
-  envs:
-  - opts:
-      is_expand: false
-    PROJECT_LOCATION: android
-  - opts:
-      is_expand: false
-    MODULE: app
-  - opts:
-      is_expand: false
-    VARIANT: ''
-  - opts:
-      is_expand: false
-    BITRISE_PROJECT_PATH: ios/MetaMask.xcworkspace
-  - opts:
-      is_expand: false
-    BITRISE_SCHEME: MetaMask
-  - opts:
-      is_expand: false
-    BITRISE_EXPORT_METHOD: enterprise
-  - opts:
-      is_expand: false
-    PROJECT_LOCATION_ANDROID: android
-  - opts:
-      is_expand: false
-    PROJECT_LOCATION_IOS: ios
-  - opts:
-      is_expand: false
-    VERSION_NAME: "'2.1.1'"
+
