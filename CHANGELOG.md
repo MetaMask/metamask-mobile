@@ -2,6 +2,9 @@
 
 ## Current Develop Branch
 
+## v2.1.2 - Apr 16 2021
+- [#2538](https://github.com/MetaMask/metamask-mobile/pull/2538): fix/connection change handler
+
 ## v2.1.1 - Apr 14 2021
 - [#2520](https://github.com/MetaMask/metamask-mobile/pull/2520): Check provider status
 
