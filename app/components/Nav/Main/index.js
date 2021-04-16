@@ -565,6 +565,14 @@ const Main = props => {
 		}
 	});
 
+	// unapprovedTransaction effect
+	useEffect(() => {
+		Engine.context.TransactionController.hub.on('unapprovedTransaction', onUnapprovedTransaction);
+		return () => {
+			Engine.context.TransactionController.hub.removeListener('unapprovedTransaction', onUnapprovedTransaction);
+		};
+	}, [onUnapprovedTransaction]);
+
 	useEffect(() => {
 		initializeWalletConnect();
 		AppState.addEventListener('change', handleAppStateChange);
@@ -592,8 +600,6 @@ const Main = props => {
 				}
 			}
 		});
-
-		Engine.context.TransactionController.hub.on('unapprovedTransaction', onUnapprovedTransaction);
 
 		Engine.context.MessageManager.hub.on('unapprovedMessage', messageParams =>
 			onUnapprovedMessage(messageParams, 'eth')
@@ -625,7 +631,6 @@ const Main = props => {
 			lockManager.current.stopListening();
 			Engine.context.PersonalMessageManager.hub.removeAllListeners();
 			Engine.context.TypedMessageManager.hub.removeAllListeners();
-			Engine.context.TransactionController.hub.removeListener('unapprovedTransaction', onUnapprovedTransaction);
 			WalletConnect.hub.removeAllListeners();
 			removeConnectionStatusListener.current && removeConnectionStatusListener.current();
 		};
