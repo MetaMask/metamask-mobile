@@ -76,11 +76,16 @@ workflows:
             brew tap wix/brew
             brew install --HEAD applesimutils
             echo $IOS_ENV | tr "|" "\n" > .ios.env
-            pod update 
-            pod install
             detox clean-framework-cache && detox build-framework-cache
-            detox build --configuration ios.sim.release && detox test --configuration ios.sim.release --cleanup --workers 2
         title: Run E2E Tests
+    - cocoapods-install@2: {}
+    - xcode-build-for-simulator@0: {}
+    - script:
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash 
+            detox test --configuration ios.sim.release --cleanup --workers 2
+        title: Run E2E Tests     
     # - yarn@0:
     #     inputs:
     #     - args: ''
