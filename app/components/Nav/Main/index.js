@@ -137,14 +137,17 @@ const Main = props => {
 
 	const connectionChangeHandler = useCallback(
 		state => {
-			const { isConnected } = state || { isConnected: false };
+			if (!state) return;
+			const { isConnected } = state;
 			// Show the modal once the status changes to offline
 			if (connected && !isConnected) {
 				props.navigation.navigate('OfflineModeView');
-				setConnected(state.isConnected);
+			}
+			if (connected !== isConnected) {
+				setConnected(isConnected);
 			}
 		},
-		[connected, props.navigation]
+		[connected, setConnected, props.navigation]
 	);
 
 	const checkInfuraAvailability = useCallback(async () => {
