@@ -106,7 +106,7 @@ workflows:
         inputs:
         - content: |-
             #!/bin/bash
-            detox test -R 1 --configuration ios.sim.release -l verbose
+            detox test -c ios.sim.release -l verbose
         title: Run E2E Tests  
     # - yarn@0:
     #     inputs:
