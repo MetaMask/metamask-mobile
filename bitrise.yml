@@ -4,7 +4,7 @@ default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
 trigger_map:
 - push_branch: 'bitrise_yml_new'
-  workflow: deploy
+  workflow: e2e
 - push_branch: 'bitrise-yml-bump-version'
   workflow: bump_version_minor
 # - pull_request_source_branch: '*'
@@ -92,25 +92,25 @@ workflows:
             #!/bin/bash
             detox test -R 1 --configuration ios.sim.release -l verbose
         title: Run E2E Tests
-    - yarn@0:
-        inputs:
-        - args: ''
-        - command: add codecov
-        title: Install Code Coverage
-        is_always_run: false
-    - script@1:
-        inputs:
-        - content: |-
-            #!/usr/bin/env bash
-            # fail if any commands fails
-            set -e
-            # debug log
-            set -x
+    # - yarn@0:
+    #     inputs:
+    #     - args: ''
+    #     - command: add codecov
+    #     title: Install Code Coverage
+    #     is_always_run: false
+    # - script@1:
+    #     inputs:
+    #     - content: |-
+    #         #!/usr/bin/env bash
+    #         # fail if any commands fails
+    #         set -e
+    #         # debug log
+    #         set -x
 
-            # or run a script from your repository, like:
-            ./node_modules/.bin/codecov
-        title: Code Coverage
-        is_always_run: false
+    #         # or run a script from your repository, like:
+    #         ./node_modules/.bin/codecov
+    #     title: Code Coverage
+    #     is_always_run: false
   deploy:
     description: >
       ## Configure Android part of the deploy workflow
