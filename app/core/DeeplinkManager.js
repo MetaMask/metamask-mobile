@@ -10,6 +10,7 @@ import Engine from './Engine';
 import { generateApproveData } from '../util/transactions';
 import { strings } from '../../locales/i18n';
 import { getNetworkTypeById } from '../util/networks';
+import { WalletDevice } from '@metamask/controllers/';
 
 class DeeplinkManager {
 	constructor(_navigation) {
@@ -68,7 +69,7 @@ class DeeplinkManager {
 			if (!Number.isInteger(uint256Number)) throw new Error('The parameter uint256 should be an integer');
 			const value = uint256Number.toString(16);
 			txParams.data = generateApproveData({ spender: address, value });
-			TransactionController.addTransaction(txParams, origin);
+			TransactionController.addTransaction(txParams, origin, WalletDevice.MM_MOBILE);
 		}
 	}
 
