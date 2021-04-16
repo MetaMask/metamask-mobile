@@ -30,25 +30,24 @@ workflows:
             curl -sL https://sentry.io/get-cli/ | bash
         title: Install Sentry CLI
         is_always_run: false
-    # Commented out for speed of build during testing    
-    # - script@1:
-    #     inputs:
-    #     - content: |-
-    #         #!/usr/bin/env bash
-    #         # fail if any commands fails
-    #         set -e
-    #         # debug log
-    #         set -x
+    - script@1:
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            # fail if any commands fails
+            set -e
+            # debug log
+            set -x
 
-    #         # or run a script from your repository, like:
-    #         ./scripts/yarn-audit.sh
-    #     title: Audit Dependencies
-    # - yarn@0:
-    #     title: Lint
-    #     inputs:
-    #     - args: ''
-    #     - command: lint
-    #     is_always_run: true
+            # or run a script from your repository, like:
+            ./scripts/yarn-audit.sh
+        title: Audit Dependencies
+    - yarn@0:
+        title: Lint
+        inputs:
+        - args: ''
+        - command: lint
+        is_always_run: true
   ci_test:
     before_run:
     - code_setup
@@ -67,7 +66,7 @@ workflows:
         is_always_run: false
   e2e:
     before_run:
-    - ci_test
+    - code_setup
     steps:
     - script@1:
         inputs:
@@ -108,6 +107,11 @@ workflows:
             #!/bin/bash
             detox test -c ios.sim.release -l verbose
         title: Run E2E Tests  
+    - deploy-to-bitrise-io@1.9.4:
+        inputs:
+        - deploy_path: $PROJECT_LOCATION_IOS/build/
+        is_always_run: true
+    # Do we need to do these steps?
     # - yarn@0:
     #     inputs:
     #     - args: ''
@@ -292,7 +296,9 @@ workflows:
     #         METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
     #     title: Build iOS Pre-Release Bundle
     #     is_always_run: false
-    # - deploy-to-bitrise-io@1: {}
+    # - deploy-to-bitrise-io@1.9.4:
+    #     inputs:
+    #     - deploy_path: $PROJECT_LOCATION_IOS/build/
     # Need to deploy to Bitrise 
     # Notify on Slack
   bump_version_minor:
