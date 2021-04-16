@@ -137,8 +137,9 @@ const Main = props => {
 
 	const connectionChangeHandler = useCallback(
 		state => {
+			const { isConnected } = state || { isConnected: false };
 			// Show the modal once the status changes to offline
-			if (connected && state && !state.isConnected) {
+			if (connected && !isConnected) {
 				props.navigation.navigate('OfflineModeView');
 				setConnected(state.isConnected);
 			}
