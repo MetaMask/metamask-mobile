@@ -99,7 +99,7 @@ export const trackEventV2 = (eventName, params) => {
  */
 export const trackErrorAsAnalytics = (view, errorMessage, otherInfo) => {
 	try {
-		Analytics.trackEventWithParameters(generateOpt('Error occured'), {
+		Analytics.trackEventWithParameters(generateOpt('Error occurred'), {
 			error: true,
 			view,
 			errorMessage,
