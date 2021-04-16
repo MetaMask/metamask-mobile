@@ -143,7 +143,7 @@ const Main = props => {
 			if (connected && isConnected === false) {
 				props.navigation.navigate('OfflineModeView');
 			}
-			if (connected !== isConnected) {
+			if (connected !== isConnected && isConnected !== null) {
 				setConnected(isConnected);
 			}
 		},
