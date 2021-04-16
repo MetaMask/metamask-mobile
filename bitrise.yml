@@ -23,6 +23,13 @@ workflows:
         - cache_local_deps: 'yes'
         - command: install --network-timeout 300000 --frozen-lockfile --network-concurrency 1
         title: Yarn Install
+    - script@1:
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash 
+            curl -sL https://sentry.io/get-cli/ | bash
+        title: Install Sentry CLI
+        is_always_run: false
     # Commented out for speed of build during testing    
     # - script@1:
     #     inputs:
@@ -62,6 +69,14 @@ workflows:
     before_run:
     - ci_test
     steps:
+    - script@1:
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash 
+            sudo gem install bundler:1.17.1
+            sudo gem install faraday:1.3.0
+        title: Install Bundler
+        is_always_run: false
     - yarn@0:
         inputs:
         - cache_local_deps: 'yes'
