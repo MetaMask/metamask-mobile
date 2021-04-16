@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Logger from '../../../util/Logger';
-import Analytics from '../../../core/Analytics';
+import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 
 class ComponentErrorBoundary extends React.Component {
 	state = { error: null };
@@ -36,7 +36,7 @@ class ComponentErrorBoundary extends React.Component {
 		const { componentLabel, dontTrackAsError } = this.props;
 
 		if (dontTrackAsError) {
-			return Analytics.trackEventWithParameters(componentLabel + ' Error', { error: true });
+			return trackErrorAsAnalytics(`Component Error Boundary: ${componentLabel}`, error?.message);
 		}
 		Logger.error(error, { View: this.props.componentLabel, ...errorInfo });
 	}

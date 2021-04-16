@@ -49,6 +49,7 @@ import useModalHandler from '../../Base/hooks/useModalHandler';
 import useBalance from './utils/useBalance';
 import useGasPrice from './utils/useGasPrice';
 import { decodeApproveData } from '../../../util/transactions';
+import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
 const EDIT_MODE_GAS = 'EDIT_MODE_GAS';
@@ -784,10 +785,7 @@ function SwapsQuotesView({
 					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.NO_QUOTES_AVAILABLE, parameters, true);
 				});
 			} else {
-				Analytics.trackEventWithParameters(`Swaps: ${error?.key}`, {
-					error: true,
-					description: error?.description
-				});
+				trackErrorAsAnalytics(`Swaps: ${error?.key}`, error?.description);
 			}
 		},
 		[sourceToken, sourceAmount, destinationToken, hasEnoughTokenBalance, slippage]

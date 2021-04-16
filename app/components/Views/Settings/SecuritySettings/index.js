@@ -43,6 +43,7 @@ import {
 import CookieManager from '@react-native-community/cookies';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import HintModal from '../../../UI/HintModal';
+import { trackErrorAsAnalytics } from '../../../../util/analyticsV2';
 
 const isIos = Device.isIos();
 
@@ -393,10 +394,7 @@ class Settings extends PureComponent {
 		} catch (e) {
 			if (e.message === 'Invalid password') {
 				Alert.alert(strings('app_settings.invalid_password'), strings('app_settings.invalid_password_message'));
-				Analytics.trackEventWithParameters('Invalid password', {
-					error: true,
-					view: 'SecuritySettings'
-				});
+				trackErrorAsAnalytics('SecuritySettings: Invalid password', e?.message);
 			} else {
 				Logger.error(e, 'SecuritySettings:biometrics');
 			}
