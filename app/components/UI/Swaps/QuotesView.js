@@ -49,7 +49,7 @@ import InfoModal from './components/InfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import useBalance from './utils/useBalance';
 import useGasPrice from './utils/useGasPrice';
-import { decodeApproveData } from '../../../util/transactions';
+import { decodeApproveData, getTicker } from '../../../util/transactions';
 import Logger from '../../../util/Logger';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
@@ -1027,7 +1027,7 @@ function SwapsQuotesView({
 											sourceToken.symbol
 											// eslint-disable-next-line no-mixed-spaces-and-tabs
 									  } `
-									: `${renderFromWei(missingEthBalance)} ${ticker} `}
+									: `${renderFromWei(missingEthBalance)} ${getTicker(ticker)} `}
 							</Text>
 							{!hasEnoughTokenBalance
 								? `${strings('swaps.more_to_complete')} `
@@ -1210,7 +1210,7 @@ function SwapsQuotesView({
 								</View>
 								<View style={styles.quotesFiatColumn}>
 									<Text primary bold>
-										{renderFromWei(toWei(selectedQuoteValue?.ethFee))} {ticker}
+										{renderFromWei(toWei(selectedQuoteValue?.ethFee))} {getTicker(ticker)}
 									</Text>
 									<Text primary bold upper>
 										{`  ${weiToFiat(
@@ -1235,7 +1235,8 @@ function SwapsQuotesView({
 								</View>
 								<View style={styles.quotesFiatColumn}>
 									<Text>
-										{renderFromWei(toWei(selectedQuoteValue?.maxEthFee || '0x0'))} {ticker}
+										{renderFromWei(toWei(selectedQuoteValue?.maxEthFee || '0x0'))}{' '}
+										{getTicker(ticker)}
 									</Text>
 									<Text upper>
 										{`  ${weiToFiat(
@@ -1329,7 +1330,7 @@ function SwapsQuotesView({
 				destinationToken={destinationToken}
 				selectedQuote={selectedQuoteId}
 				showOverallValue={hasConversionRate}
-				ticker={ticker}
+				ticker={getTicker(ticker)}
 			/>
 
 			<TransactionsEditionModal
