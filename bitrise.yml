@@ -60,7 +60,7 @@ workflows:
         is_always_run: false
   e2e:
     before_run:
-    - code_setup
+    - ci_test
     steps:
     - yarn@0:
         inputs:
@@ -70,22 +70,29 @@ workflows:
     - script:
         inputs:
         - content: |-
-            #!/usr/bin/env bash 
-            brew update
-            brew install watchman
-            brew tap wix/brew
-            brew install --HEAD applesimutils
-            echo $IOS_ENV | tr "|" "\n" > .ios.env
-            detox clean-framework-cache && detox build-framework-cache
-        title: Run E2E Tests
-    - cocoapods-install@2: {}
-    - xcode-build-for-simulator@0: {}
-    - script:
+            # Add cache directory to environment variable
+            envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
+            envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
+        title: Set Env Path for caching deps
+    - script@1:
         inputs:
         - content: |-
-            #!/usr/bin/env bash 
-            detox test --configuration ios.sim.release --cleanup --workers 2
-        title: Run E2E Tests     
+            #!/bin/bash
+            brew tap wix/brew
+        title: Detox Setup
+    - cocoapods-install@2: {}
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            detox build --configuration ios.sim.release
+        title: Detox - Build Release App
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            detox test -R 1 --configuration ios.sim.release -l verbose
+        title: Run E2E Tests  
     # - yarn@0:
     #     inputs:
     #     - args: ''
