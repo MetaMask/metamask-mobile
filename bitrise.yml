@@ -23,6 +23,7 @@ workflows:
         - cache_local_deps: 'yes'
         - command: install --network-timeout 300000 --frozen-lockfile --network-concurrency 1
         title: Yarn Install
+    - cocoapods-install@2: {}
     # Commented out for speed of build during testing    
     # - script@1:
     #     inputs:
