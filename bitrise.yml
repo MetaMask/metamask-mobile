@@ -71,27 +71,14 @@ workflows:
     - script:
         inputs:
         - content: |-
-            # Add cache directory to environment variable
-            envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
-            envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
-        title: Set Env Path for caching deps
-    - script@1:
-        inputs:
-        - content: |-
-            #!/bin/bash
+            #!/usr/bin/env bash 
+            brew update
+            brew install watchman
             brew tap wix/brew
-        title: Detox Setup
-    - script@1:
-        inputs:
-        - content: |-
-            #!/bin/bash
-            detox build --configuration ios.sim.release
-        title: Detox - Build Release App
-    - script@1:
-        inputs:
-        - content: |-
-            #!/bin/bash
-            detox test -R 1 --configuration ios.sim.release -l verbose
+            brew install --HEAD applesimutils
+            echo $IOS_ENV | tr "|" "\n" > .ios.env
+            detox clean-framework-cache && detox build-framework-cache
+            detox build --configuration ios.sim.release && detox test --configuration ios.sim.release --cleanup --workers 2
         title: Run E2E Tests
     # - yarn@0:
     #     inputs:
