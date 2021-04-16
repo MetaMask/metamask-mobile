@@ -25,5 +25,5 @@ elif [ "$1" ==  "patch" ] ; then
     patch=$(($PATCH +  1));
     version=$MAJOR'.'$MINOR'.'$patch
 fi
-sed -i '' -e "s/VERSION_NAME: [0-9].[0-9].[0-9]/VERSION_NAME: $version/" bitrise.yml
+sed -i '' -e 's/VERSION_NAME: [0-9]\{1,\}.[0-9]\{1,\}.[0-9]\{1,\}/VERSION_NAME: '$version'/' bitrise.yml
 echo $version
