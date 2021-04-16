@@ -62,7 +62,6 @@ workflows:
     before_run:
     - code_setup
     steps:
-    - cocoapods-install@2: {}
     - yarn@0:
         inputs:
         - cache_local_deps: 'yes'
@@ -77,6 +76,8 @@ workflows:
             brew tap wix/brew
             brew install --HEAD applesimutils
             echo $IOS_ENV | tr "|" "\n" > .ios.env
+            pod update 
+            pod install
             detox clean-framework-cache && detox build-framework-cache
             detox build --configuration ios.sim.release && detox test --configuration ios.sim.release --cleanup --workers 2
         title: Run E2E Tests
