@@ -8,7 +8,6 @@
 - [#2536](https://github.com/MetaMask/metamask-mobile/pull/2536): Change Send Feedback to Request a Feature and update link
 - [#2485](https://github.com/MetaMask/metamask-mobile/pull/2485): Fix notification so it doesn't block terms + conditions
 - [#2469](https://github.com/MetaMask/metamask-mobile/pull/2469): Bug/persists old account names
-- Merge pull request from GHSA-3hjh-69hq-6wgp
 - [#2534](https://github.com/MetaMask/metamask-mobile/pull/2534): Fix typo
 - [#2373](https://github.com/MetaMask/metamask-mobile/pull/2373): use contract metadata version from package
 - [#2520](https://github.com/MetaMask/metamask-mobile/pull/2520): Check infura availability
