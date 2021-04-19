@@ -3,14 +3,14 @@ format_version: '8'
 default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
 trigger_map:
-- push_branch: '*'
-  workflow: ci_test
 - push_branch: 'bitrise_yml_new'
   workflow: e2e_test
 - push_branch: 'develop'
   workflow: test_release
 - push_branch: 'bitrise-yml-bump-version'
   workflow: bump_version_minor
+- push_branch: '*'
+  workflow: ci_test
 # - pull_request_source_branch: '*'
 #   workflow: ci_test
 # Will use this for the release and deploy to store
