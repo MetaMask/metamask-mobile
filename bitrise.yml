@@ -3,12 +3,18 @@ format_version: '8'
 default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
 trigger_map:
-- push_branch: 'bitrise_yml_new'
-  workflow: e2e
+- push_branch: '*'
+  workflow: ci_test
+- push_branch: 'develop'
+  workflow: test_release
 - push_branch: 'bitrise-yml-bump-version'
   workflow: bump_version_minor
 # - pull_request_source_branch: '*'
 #   workflow: ci_test
+# Will use this for the release and deploy to store
+# - pull_request_source_branch: "*"
+#   workflow: workflow_tests
+#   pull_request_target_branch: develop
 workflows:
   code_setup:
     steps:
@@ -23,13 +29,6 @@ workflows:
         - cache_local_deps: 'yes'
         - command: install --network-timeout 300000 --frozen-lockfile --network-concurrency 1
         title: Yarn Install
-    - script@1:
-        inputs:
-        - content: |-
-            #!/usr/bin/env bash 
-            curl -sL https://sentry.io/get-cli/ | bash
-        title: Install Sentry CLI
-        is_always_run: false
     - script@1:
         inputs:
         - content: |-
@@ -76,6 +75,13 @@ workflows:
             sudo gem install faraday:1.3.0
         title: Install Bundler
         is_always_run: false
+    - script@1:
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash 
+            curl -sL https://sentry.io/get-cli/ | bash
+        title: Install Sentry CLI
+        is_always_run: false  
     - yarn@0:
         inputs:
         - cache_local_deps: 'yes'
@@ -101,17 +107,24 @@ workflows:
             #!/bin/bash
             detox build --configuration ios.sim.release
         title: Detox - Build Release App
+    # Need to find away to fail but still continue
     # - script@1:
     #     inputs:
     #     - content: |-
     #         #!/bin/bash
     #         detox test -c ios.sim.release -l verbose
     #     title: Run E2E Tests  
+    - script@1:
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash echo 'weew - everything passed!'
+        title: All Tests Passed
+        is_always_run: false
     # - deploy-to-bitrise-io@1.9.4:
     #     inputs:
     #     - deploy_path: $PROJECT_LOCATION_IOS/build/
     #     is_always_run: true
-    # Do we need to do these steps?
+    # Do we need these steps?
     # - yarn@0:
     #     inputs:
     #     - args: ''
@@ -131,12 +144,8 @@ workflows:
     #         ./node_modules/.bin/codecov
     #     title: Code Coverage
     #     is_always_run: false
-  deploy:
-    before_run:
-    - code_setup
+  android_test_release_step:
     steps:
-    # Insert e2e before building release
-    # Segment Out Android
     - install-missing-android-tools@2:
         inputs:
         - gradlew_path: $PROJECT_LOCATION/gradlew
@@ -159,44 +168,49 @@ workflows:
     - deploy-to-bitrise-io@1.9.4:
         inputs:
         - deploy_path: sourcemaps/android    
-    # - yarn@0:
-    #     inputs:
-    #     - command: build:announce
-    #     title: Accouncing pre-release
-    #     is_always_run: false      
-    # Segment Out iOS
-    # - certificate-and-profile-installer@1: {}
-    # - script@1:
-    #     inputs:
-    #     - content: |-
-    #         #!/usr/bin/env bash 
-    #         curl -sL https://sentry.io/get-cli/ | bash
-    #     title: Install Sentry CLI
-    #     is_always_run: false
-    # - script@1:
-    #     inputs:
-    #     - content: |-
-    #         #!/usr/bin/env bash 
-    #         sudo gem install bundler:1.17.1
-    #         sudo gem install faraday:1.3.0
-    #     title: Install Bundler
-    #     is_always_run: false
-    # - cocoapods-install@2: {}
-    # - script@1:
-    #     inputs:
-    #     - content: |-
-    #         #!/usr/bin/env bash 
+  ios_test_release_step:
+    steps:
+    - certificate-and-profile-installer@1: {}
+    - script@1:
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash 
+            curl -sL https://sentry.io/get-cli/ | bash
+        title: Install Sentry CLI
+        is_always_run: false
+    - script@1:
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash 
+            sudo gem install bundler:1.17.1
+            sudo gem install faraday:1.3.0
+        title: Install Bundler
+        is_always_run: false
+    - cocoapods-install@2: {}
+    - script@1:
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash 
                       
-    #         jq 'del(.engines)' package.json > new.json && mv new.json package.json
-    #         node -v
-    #         METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
-    #     title: Build iOS Pre-Release Bundle
-    #     is_always_run: false
-    # - deploy-to-bitrise-io@1.9.4:
-    #     inputs:
-    #     - deploy_path: $PROJECT_LOCATION_IOS/build/
-    # Need to deploy to Bitrise 
-    # Notify on Slack
+            jq 'del(.engines)' package.json > new.json && mv new.json package.json
+            node -v
+            METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
+        title: Build iOS Pre-Release Bundle
+        is_always_run: false
+    - deploy-to-bitrise-io@1.9.4:
+        inputs:
+        - deploy_path: $PROJECT_LOCATION_IOS/build/
+  test_release:
+    before_run:
+    - ci_test
+    - android_test_release_step
+    - ios_test_release_step
+    steps:
+    - yarn@0:
+        inputs:
+        - command: build:announce
+        title: Accouncing pre-release
+        is_always_run: false      
   bump_version_minor:
     steps:
     - activate-ssh-key@4:
