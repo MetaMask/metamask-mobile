@@ -77,13 +77,13 @@ workflows:
         - cache_local_deps: 'yes'
         - command: global add detox-cli
         title: Install Detox CLI
-    # - script:
-    #     inputs:
-    #     - content: |-
-    #         # Add cache directory to environment variable
-    #         envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
-    #         envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
-    #     title: Set Env Path for caching deps
+    - script:
+        inputs:
+        - content: |-
+            # Add cache directory to environment variable
+            envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
+            envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
+        title: Set Env Path for caching deps
     - cocoapods-install@2: {}
     - yarn@0:
         inputs:
