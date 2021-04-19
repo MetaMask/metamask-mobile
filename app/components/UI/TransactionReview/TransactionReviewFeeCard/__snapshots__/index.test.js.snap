@@ -1,58 +1,18 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TransactionReviewFeeCard should render correctly 1`] = `
-<View
-  style={
-    Array [
-      Object {
-        "borderColor": "#D8D8D8",
-        "borderRadius": 8,
-        "borderWidth": 1,
-        "padding": 16,
-      },
+<View>
+  <Summary
+    style={
       Object {
         "marginHorizontal": 24,
-      },
-    ]
-  }
->
-  <SummaryRow>
-    <Text
-      bold={true}
-      centered={false}
-      disclaimer={false}
-      green={false}
-      link={false}
-      modal={false}
-      primary={true}
-      reset={false}
-      right={false}
-      small={false}
-      strikethrough={false}
-      underline={false}
-      upper={false}
-    >
-      Amount
-    </Text>
-    <Text
-      bold={true}
-      centered={false}
-      disclaimer={false}
-      green={false}
-      link={false}
-      modal={false}
-      primary={true}
-      reset={false}
-      right={false}
-      small={false}
-      strikethrough={false}
-      underline={false}
-      upper={true}
-    />
-  </SummaryRow>
-  <SummaryRow>
-    <SummaryCol>
+      }
+    }
+  >
+    <SummaryRow>
       <Text
+        black={false}
+        blue={false}
         bold={true}
         centered={false}
         disclaimer={false}
@@ -67,19 +27,38 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
         underline={false}
         upper={false}
       >
-        Network fee
+        Amount
       </Text>
-      <TouchableOpacity
-        disabled={true}
-      >
+      <Text
+        black={false}
+        blue={false}
+        bold={true}
+        centered={false}
+        disclaimer={false}
+        green={false}
+        link={false}
+        modal={false}
+        primary={true}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
+        underline={false}
+        upper={true}
+      />
+    </SummaryRow>
+    <SummaryRow>
+      <SummaryCol>
         <Text
+          black={false}
+          blue={false}
           bold={true}
           centered={false}
           disclaimer={false}
           green={false}
-          link={true}
+          link={false}
           modal={false}
-          primary={false}
+          primary={true}
           reset={false}
           right={false}
           small={false}
@@ -87,69 +66,94 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
           underline={false}
           upper={false}
         >
-            
-          Edit
+          Network fee
         </Text>
-      </TouchableOpacity>
-    </SummaryCol>
-    <View
-      style={
-        Object {
-          "backgroundColor": "#FFFFFF",
-          "height": 10,
+        <TouchableOpacity
+          disabled={true}
+        >
+          <Text
+            black={false}
+            blue={false}
+            bold={true}
+            centered={false}
+            disclaimer={false}
+            green={false}
+            link={true}
+            modal={false}
+            primary={false}
+            reset={false}
+            right={false}
+            small={false}
+            strikethrough={false}
+            underline={false}
+            upper={false}
+          >
+              
+            Edit
+          </Text>
+        </TouchableOpacity>
+      </SummaryCol>
+      <View
+        style={
+          Object {
+            "backgroundColor": "#FFFFFF",
+            "height": 10,
+          }
         }
-      }
+      >
+        <ActivityIndicator
+          animating={true}
+          color="#999999"
+          hidesWhenStopped={true}
+          size="small"
+        />
+      </View>
+    </SummaryRow>
+    <SummarySeparator />
+    <SummaryRow>
+      <Text
+        black={false}
+        blue={false}
+        bold={true}
+        centered={false}
+        disclaimer={false}
+        green={false}
+        link={false}
+        modal={false}
+        primary={true}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
+        style={null}
+        underline={false}
+        upper={false}
+      >
+        Total
+         
+        Amount
+      </Text>
+    </SummaryRow>
+    <SummaryRow
+      end={true}
+      last={true}
     >
-      <ActivityIndicator
-        animating={true}
-        color="#999999"
-        hidesWhenStopped={true}
-        size="small"
-      />
-    </View>
-  </SummaryRow>
-  <SummarySeparator />
-  <SummaryRow>
-    <Text
-      bold={true}
-      centered={false}
-      disclaimer={false}
-      green={false}
-      link={false}
-      modal={false}
-      primary={true}
-      reset={false}
-      right={false}
-      small={false}
-      strikethrough={false}
-      style={null}
-      underline={false}
-      upper={false}
-    >
-      Total
-       
-      Amount
-    </Text>
-  </SummaryRow>
-  <SummaryRow
-    end={true}
-    last={true}
-  >
-    <View
-      style={
-        Object {
-          "backgroundColor": "#FFFFFF",
-          "height": 10,
+      <View
+        style={
+          Object {
+            "backgroundColor": "#FFFFFF",
+            "height": 10,
+          }
         }
-      }
-    >
-      <ActivityIndicator
-        animating={true}
-        color="#999999"
-        hidesWhenStopped={true}
-        size="small"
-      />
-    </View>
-  </SummaryRow>
+      >
+        <ActivityIndicator
+          animating={true}
+          color="#999999"
+          hidesWhenStopped={true}
+          size="small"
+        />
+      </View>
+    </SummaryRow>
+  </Summary>
 </View>
 `;

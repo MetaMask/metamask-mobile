@@ -408,6 +408,17 @@ export function validateTransactionActionBalance(transaction, rate, accounts) {
 	}
 }
 
+/**
+ * Return a boolen if the transaction should be flagged to add the account added label
+ *
+ * @param {object} transaction - Transaction object get time
+ * @param {object} addedAccountTime - Time the account was added to the wallet
+ * @param {object} accountAddedTimeInsertPointFound - Flag to see if the import time was already found
+ */
+export function addAccountTimeFlagFilter(transaction, addedAccountTime, accountAddedTimeInsertPointFound) {
+	return transaction.time <= addedAccountTime && !accountAddedTimeInsertPointFound;
+}
+
 export function getNormalizedTxState(state) {
 	return { ...state.transaction, ...state.transaction.transaction };
 }
