@@ -29,17 +29,10 @@ workflows:
         - cache_local_deps: 'yes'
         - command: install --network-timeout 300000 --frozen-lockfile --network-concurrency 1
         title: Yarn Install
-    - script@1:
+    - yarn@0:
         inputs:
-        - content: |-
-            #!/usr/bin/env bash
-            # fail if any commands fails
-            set -e
-            # debug log
-            set -x
-
-            # or run a script from your repository, like:
-            ./scripts/yarn-audit.sh
+        - cache_local_deps: 'yes'
+        - command: audit
         title: Audit Dependencies
     - yarn@0:
         title: Lint
@@ -60,7 +53,8 @@ workflows:
     - script@1:
         inputs:
         - content: |-
-            #!/usr/bin/env bash echo 'weew - everything passed!'
+            #!/usr/bin/env bash 
+            echo 'weew - everything passed!'
         title: All Tests Passed
         is_always_run: false
   e2e:
