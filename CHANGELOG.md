@@ -2,6 +2,9 @@
 
 ## Current Develop Branch
 
+## v2.1.3 - Apr 19 2021
+- [#2548](https://github.com/MetaMask/metamask-mobile/pull/2548): Hotfix analytics try catch
+
 ## v2.1.2 - Apr 16 2021
 - [#2538](https://github.com/MetaMask/metamask-mobile/pull/2538): fix/connection change handler
 
