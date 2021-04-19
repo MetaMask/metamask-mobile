@@ -369,7 +369,6 @@ class ApproveTransactionReview extends PureComponent {
 
 	toggleEditPermission = () => {
 		const { editPermissionVisible } = this.state;
-		this.onPressSpendLimitUnlimitedSelected();
 		!editPermissionVisible && this.trackApproveEvent(ANALYTICS_EVENT_OPTS.DAPP_APPROVE_SCREEN_EDIT_PERMISSION);
 		this.setState({ editPermissionVisible: !editPermissionVisible });
 	};
