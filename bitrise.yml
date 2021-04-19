@@ -5,6 +5,8 @@ project_type: react-native
 trigger_map:
 - push_branch: '*'
   workflow: ci_test
+- push_branch: 'bitrise_yml_new'
+  workflow: e2e_test
 - push_branch: 'develop'
   workflow: test_release
 - push_branch: 'bitrise-yml-bump-version'
@@ -57,7 +59,7 @@ workflows:
             echo 'weew - everything passed!'
         title: All Tests Passed
         is_always_run: false
-  e2e:
+  e2e_test:
     before_run:
     - code_setup
     steps:
@@ -67,47 +69,27 @@ workflows:
             #!/usr/bin/env bash 
             sudo gem install bundler:1.17.1
             sudo gem install faraday:1.3.0
-        title: Install Bundler
+            curl -sL https://sentry.io/get-cli/
+        title: Install Test Dependencies (Bundler & Sentry)
         is_always_run: false
-    - script@1:
-        inputs:
-        - content: |-
-            #!/usr/bin/env bash 
-            curl -sL https://sentry.io/get-cli/ | bash
-        title: Install Sentry CLI
-        is_always_run: false  
     - yarn@0:
         inputs:
         - cache_local_deps: 'yes'
         - command: global add detox-cli
         title: Install Detox CLI
-    - script:
-        inputs:
-        - content: |-
-            # Add cache directory to environment variable
-            envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
-            envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
-        title: Set Env Path for caching deps
-    - script@1:
-        inputs:
-        - content: |-
-            #!/bin/bash
-            brew tap wix/brew
-        title: Detox Setup
-    - cocoapods-install@2: {}
-    - script@1:
-        inputs:
-        - content: |-
-            #!/bin/bash
-            detox build --configuration ios.sim.release
-        title: Detox - Build Release App
-    # Need to find away to fail but still continue
-    # - script@1:
+    # - script:
     #     inputs:
     #     - content: |-
-    #         #!/bin/bash
-    #         detox test -c ios.sim.release -l verbose
-    #     title: Run E2E Tests  
+    #         # Add cache directory to environment variable
+    #         envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
+    #         envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
+    #     title: Set Env Path for caching deps
+    - cocoapods-install@2: {}
+    - yarn@0:
+        inputs:
+        - cache_local_deps: 'yes'
+        - command: test:e2e:ios
+        title: E2E Tests on iOS
     - script@1:
         inputs:
         - content: |-
