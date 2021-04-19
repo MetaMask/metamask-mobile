@@ -1,7 +1,8 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { TouchableHighlight, StyleSheet, Image } from 'react-native';
-import { colors } from '../../../styles/common';
+import { TouchableOpacity, TouchableHighlight, StyleSheet, Image, Text, View } from 'react-native';
+import { colors, fontStyles } from '../../../styles/common';
+import FAIcon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
 import { toDateFormat } from '../../../util/date';
 import TransactionDetails from './TransactionDetails';
@@ -15,6 +16,7 @@ import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
 import DetailsModal from '../../Base/DetailsModal';
 import { isMainNet } from '../../../util/networks';
+import { WalletDevice } from '@metamask/controllers/';
 
 const styles = StyleSheet.create({
 	row: {
@@ -39,6 +41,26 @@ const styles = StyleSheet.create({
 	icon: {
 		width: 28,
 		height: 28
+	},
+	summaryWrapper: {
+		padding: 15
+	},
+	fromDeviceText: {
+		color: colors.fontSecondary,
+		fontSize: 14,
+		marginBottom: 10,
+		...fontStyles.normal
+	},
+	importText: {
+		color: colors.fontSecondary,
+		fontSize: 14,
+		...fontStyles.bold,
+		alignContent: 'center'
+	},
+	importRowBody: {
+		alignItems: 'center',
+		backgroundColor: colors.grey000,
+		paddingTop: 10
 	}
 });
 
@@ -73,6 +95,10 @@ class TransactionElement extends PureComponent {
 		 */
 		selectedAddress: PropTypes.string,
 		/**
+		/* Identities object required to get import time name
+		*/
+		identities: PropTypes.object,
+		/**
 		 * Current element of the list index
 		 */
 		i: PropTypes.number,
@@ -101,6 +127,7 @@ class TransactionElement extends PureComponent {
 		cancelIsOpen: false,
 		speedUpIsOpen: false,
 		detailsModalVisible: false,
+		importModalVisible: false,
 		transactionGas: { gasBN: undefined, gasPriceBN: undefined, gasTotal: undefined },
 		transactionElement: undefined,
 		transactionDetails: undefined
@@ -129,6 +156,14 @@ class TransactionElement extends PureComponent {
 		this.setState({ detailsModalVisible: true });
 	};
 
+	onPressImportWalletTip = () => {
+		this.setState({ importModalVisible: true });
+	};
+
+	onCloseImportWalletModal = () => {
+		this.setState({ importModalVisible: false });
+	};
+
 	onCloseDetailsModal = () => {
 		this.setState({ detailsModalVisible: false });
 	};
@@ -138,8 +173,36 @@ class TransactionElement extends PureComponent {
 		const incoming = safeToChecksumAddress(tx.transaction.to) === selectedAddress;
 		const selfSent = incoming && safeToChecksumAddress(tx.transaction.from) === selectedAddress;
 		return `${
-			(!incoming || selfSent) && tx.transaction.nonce ? `#${parseInt(tx.transaction.nonce, 16)}  - ` : ''
-		}${toDateFormat(tx.time)}`;
+			(!incoming || selfSent) && tx.deviceConfirmedOn === WalletDevice.MM_MOBILE
+				? `#${parseInt(tx.transaction.nonce, 16)} - ${toDateFormat(tx.time)} ${strings(
+						'transactions.from_device_label'
+						// eslint-disable-next-line no-mixed-spaces-and-tabs
+				  )}`
+				: `${toDateFormat(tx.time)}
+			`
+		}`;
+	};
+
+	/**
+	 * Function that evaluates tx to see if the Added Wallet label should be rendered.
+	 * @returns Account added to wallet view
+	 */
+	renderImportTime = () => {
+		const { tx, identities, selectedAddress } = this.props;
+		if (tx.insertImportTime && identities[selectedAddress].importTime) {
+			return (
+				<>
+					<TouchableOpacity onPress={this.onPressImportWalletTip} style={styles.importRowBody}>
+						<Text style={styles.importText}>
+							{`${strings('transactions.import_wallet_row')} `}
+							<FAIcon name="info-circle" style={styles.infoIcon} />
+						</Text>
+						<ListItem.Date>{toDateFormat(identities[selectedAddress].importTime)}</ListItem.Date>
+					</TouchableOpacity>
+				</>
+			);
+		}
+		return null;
 	};
 
 	renderTxElementIcon = (transactionElement, status) => {
@@ -174,34 +237,41 @@ class TransactionElement extends PureComponent {
 	 */
 	renderTxElement = transactionElement => {
 		const {
-			tx: { status },
-			chainId
+			identities,
+			chainId,
+			selectedAddress,
+			tx: { time, status }
 		} = this.props;
 		const { value, fiatValue = false, actionKey } = transactionElement;
 		const renderTxActions = status === 'submitted' || status === 'approved';
+		const accountImportTime = identities[selectedAddress].importTime;
 		return (
-			<ListItem>
-				<ListItem.Date>{this.renderTxTime()}</ListItem.Date>
-				<ListItem.Content>
-					<ListItem.Icon>{this.renderTxElementIcon(transactionElement, status)}</ListItem.Icon>
-					<ListItem.Body>
-						<ListItem.Title numberOfLines={1}>{actionKey}</ListItem.Title>
-						<StatusText status={status} />
-					</ListItem.Body>
-					{Boolean(value) && (
-						<ListItem.Amounts>
-							<ListItem.Amount>{value}</ListItem.Amount>
-							{isMainNet(chainId) && <ListItem.FiatAmount>{fiatValue}</ListItem.FiatAmount>}
-						</ListItem.Amounts>
+			<>
+				{accountImportTime > time && this.renderImportTime()}
+				<ListItem>
+					<ListItem.Date>{this.renderTxTime()}</ListItem.Date>
+					<ListItem.Content>
+						<ListItem.Icon>{this.renderTxElementIcon(transactionElement, status)}</ListItem.Icon>
+						<ListItem.Body>
+							<ListItem.Title numberOfLines={1}>{actionKey}</ListItem.Title>
+							<StatusText status={status} />
+						</ListItem.Body>
+						{Boolean(value) && (
+							<ListItem.Amounts>
+								<ListItem.Amount>{value}</ListItem.Amount>
+								{isMainNet(chainId) && <ListItem.FiatAmount>{fiatValue}</ListItem.FiatAmount>}
+							</ListItem.Amounts>
+						)}
+					</ListItem.Content>
+					{!!renderTxActions && (
+						<ListItem.Actions>
+							{this.renderSpeedUpButton()}
+							{this.renderCancelButton()}
+						</ListItem.Actions>
 					)}
-				</ListItem.Content>
-				{!!renderTxActions && (
-					<ListItem.Actions>
-						{this.renderSpeedUpButton()}
-						{this.renderCancelButton()}
-					</ListItem.Actions>
-				)}
-			</ListItem>
+				</ListItem>
+				{accountImportTime <= time && this.renderImportTime()}
+			</>
 		);
 	};
 
@@ -247,7 +317,7 @@ class TransactionElement extends PureComponent {
 
 	render() {
 		const { tx } = this.props;
-		const { detailsModalVisible, transactionElement, transactionDetails } = this.state;
+		const { detailsModalVisible, importModalVisible, transactionElement, transactionDetails } = this.state;
 
 		if (!transactionElement || !transactionDetails) return null;
 		return (
@@ -282,6 +352,25 @@ class TransactionElement extends PureComponent {
 						/>
 					</DetailsModal>
 				</Modal>
+				<Modal
+					isVisible={importModalVisible}
+					onBackdropPress={this.onCloseImportWalletModal}
+					onBackButtonPress={this.onCloseImportWalletModal}
+					onSwipeComplete={this.onCloseImportWalletModal}
+					swipeDirection={'down'}
+				>
+					<DetailsModal>
+						<DetailsModal.Header>
+							<DetailsModal.Title onPress={this.onCloseImportWalletModal}>
+								{strings('transactions.import_wallet_label')}
+							</DetailsModal.Title>
+							<DetailsModal.CloseIcon onPress={this.onCloseImportWalletModal} />
+						</DetailsModal.Header>
+						<View style={styles.summaryWrapper}>
+							<Text style={styles.fromDeviceText}>{strings('transactions.import_wallet_tip')}</Text>
+						</View>
+					</DetailsModal>
+				</Modal>
 			</>
 		);
 	}
@@ -290,7 +379,9 @@ class TransactionElement extends PureComponent {
 const mapStateToProps = state => ({
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+	identities: state.engine.backgroundState.PreferencesController.identities,
 	primaryCurrency: state.settings.primaryCurrency,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {},
 	swapsTokens: state.engine.backgroundState.SwapsController.tokens
 });

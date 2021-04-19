@@ -10,6 +10,7 @@ import Transactions from '../../UI/Transactions';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import Engine from '../../../core/Engine';
 import { safeToChecksumAddress } from '../../../util/address';
+import { addAccountTimeFlagFilter } from '../../../util/transactions';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -47,6 +48,10 @@ class Asset extends PureComponent {
 		/* Selected currency
 		*/
 		currentCurrency: PropTypes.string,
+		/**
+		/* Identities object required to get account name
+		*/
+		identities: PropTypes.object,
 		/**
 		 * A string that represents the selected address
 		 */
@@ -176,6 +181,8 @@ class Asset extends PureComponent {
 
 	normalizeTransactions() {
 		if (this.isNormalizing) return;
+		let accountAddedTimeInsertPointFound = false;
+		const addedAccountTime = this.props.identities[this.props.selectedAddress]?.importTime;
 		this.isNormalizing = true;
 		let submittedTxs = [];
 		const newPendingTxs = [];
@@ -185,6 +192,12 @@ class Asset extends PureComponent {
 			const txs = transactions.filter(tx => {
 				const filerResult = this.filter(tx);
 				if (filerResult) {
+					tx.insertImportTime = addAccountTimeFlagFilter(
+						tx,
+						addedAccountTime,
+						accountAddedTimeInsertPointFound
+					);
+					if (tx.insertImportTime) accountAddedTimeInsertPointFound = true;
 					switch (tx.status) {
 						case 'submitted':
 						case 'signed':
@@ -212,6 +225,11 @@ class Asset extends PureComponent {
 				submittedNonces.push(transaction.transaction.nonce);
 				return !alreadySubmitted;
 			});
+
+			//if the account added insertpoint is not found add it to the last transaction
+			if (!accountAddedTimeInsertPointFound && txs && txs.length) {
+				txs[txs.length - 1].insertImportTime = true;
+			}
 
 			// To avoid extra re-renders we want to set the new txs only when
 			// there's a new tx in the history or the status of one of the existing txs changed
@@ -297,6 +315,7 @@ const mapStateToProps = state => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	identities: state.engine.backgroundState.PreferencesController.identities,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
