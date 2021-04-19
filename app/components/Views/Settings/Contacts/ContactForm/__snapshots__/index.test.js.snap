@@ -130,7 +130,7 @@ exports[`ContactForm should render correctly 1`] = `
             style={
               Array [
                 Object {
-                  "color": "#000000",
+                  "color": "#24292E",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontWeight": "400",
                   "padding": 0,
@@ -217,7 +217,7 @@ exports[`ContactForm should render correctly 1`] = `
             style={
               Array [
                 Object {
-                  "color": "#000000",
+                  "color": "#24292E",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontWeight": "400",
                   "padding": 0,

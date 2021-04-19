@@ -19,6 +19,8 @@ exports[`ReceiveRequest should render correctly 1`] = `
     }
   >
     <Text
+      black={false}
+      blue={false}
       bold={false}
       centered={false}
       disclaimer={false}
@@ -59,6 +61,8 @@ exports[`ReceiveRequest should render correctly 1`] = `
       <Component />
     </ModalHandler>
     <Text
+      black={false}
+      blue={false}
       bold={false}
       centered={false}
       disclaimer={false}
@@ -91,6 +95,8 @@ exports[`ReceiveRequest should render correctly 1`] = `
       testID="account-address"
     >
       <Text
+        black={false}
+        blue={false}
         bold={false}
         centered={false}
         disclaimer={false}
@@ -111,6 +117,8 @@ exports[`ReceiveRequest should render correctly 1`] = `
         />
       </Text>
       <Text
+        black={false}
+        blue={false}
         bold={false}
         centered={false}
         disclaimer={false}

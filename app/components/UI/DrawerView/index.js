@@ -573,7 +573,10 @@ class DrawerView extends PureComponent {
 
 	submitFeedback = () => {
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SEND_FEEDBACK);
-		this.goToBrowserUrl('https://metamask.zendesk.com/hc/en-us/requests/new', strings('drawer.metamask_support'));
+		this.goToBrowserUrl(
+			'https://community.metamask.io/c/feature-requests-ideas/',
+			strings('drawer.request_feature')
+		);
 	};
 
 	showHelp = () => {
@@ -722,7 +725,7 @@ class DrawerView extends PureComponent {
 					action: this.showHelp
 				},
 				{
-					name: strings('drawer.submit_feedback'),
+					name: strings('drawer.request_feature'),
 					icon: this.getFeatherIcon('message-square'),
 					action: this.submitFeedback
 				},
