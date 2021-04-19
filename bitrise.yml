@@ -83,6 +83,7 @@ workflows:
             # Add cache directory to environment variable
             envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
             envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
+            brew tap wix/brew
         title: Set Env Path for caching deps
     - cocoapods-install@2: {}
     - yarn@0:
