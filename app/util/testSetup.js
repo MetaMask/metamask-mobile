@@ -1,6 +1,7 @@
 import Adapter from 'enzyme-adapter-react-16';
 import Enzyme from 'enzyme';
 import Engine from '../core/Engine';
+
 import NotificationManager from '../core/NotificationManager';
 import { NativeModules } from 'react-native';
 import mockAsyncStorage from '../../node_modules/@react-native-community/async-storage/jest/async-storage-mock';
@@ -125,3 +126,10 @@ jest.mock('react-native/Libraries/Components/Touchable/TouchableHighlight', () =
 jest.mock('react-native/Libraries/Components/TextInput/TextInput', () => 'TextInput');
 
 jest.mock('react-native/Libraries/Animated/src/NativeAnimatedHelper');
+
+jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
+	runAfterInteractions: jest.fn(),
+	createInteractionHandle: jest.fn(),
+	clearInteractionHandle: jest.fn(),
+	setDeadline: jest.fn()
+}));

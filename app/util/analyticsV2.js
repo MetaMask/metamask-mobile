@@ -45,8 +45,8 @@ export const ANALYTICS_EVENTS_V2 = {
  * @param {Object} params
  */
 export const trackEventV2 = (eventName, params) => {
-	try {
-		InteractionManager.runAfterInteractions(() => {
+	InteractionManager.runAfterInteractions(() => {
+		try {
 			if (!params) {
 				Analytics.trackEvent(eventName);
 			}
@@ -57,7 +57,7 @@ export const trackEventV2 = (eventName, params) => {
 			for (const key in params) {
 				const property = params[key];
 
-				if (typeof property === 'object') {
+				if (property && typeof property === 'object') {
 					if (property.anonymous) {
 						// Anonymous property - add only to anonymous params
 						anonymousParams[key] = property.value;
@@ -82,10 +82,10 @@ export const trackEventV2 = (eventName, params) => {
 			if (Object.keys(anonymousParams).length) {
 				Analytics.trackEventWithParameters(eventName, anonymousParams, true);
 			}
-		});
-	} catch (error) {
-		Logger.error(error, 'Error logging analytics');
-	}
+		} catch (error) {
+			Logger.error(error, 'Error logging analytics');
+		}
+	});
 };
 
 export default {
