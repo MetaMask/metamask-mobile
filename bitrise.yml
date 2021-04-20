@@ -127,7 +127,10 @@ workflows:
     before_run:
     - code_setup
     steps:
-    - generic-file-storage@0: {}
+    - file-downloader:
+      inputs:
+      - source: "$BITRISEIO_ANDROID_KEYSTORE_URL"
+      - destination: "$PROJECT_LOCATION_ANDROID/keystores/release.keystore"
     - install-missing-android-tools@2:
         inputs:
         - gradlew_path: $PROJECT_LOCATION/gradlew
