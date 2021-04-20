@@ -372,9 +372,9 @@ class Confirm extends PureComponent {
 		// For analytics
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_STARTED, this.getAnalyticsParams());
 
-		const { navigation, providerType } = this.props;
+		const { showCustomNonce, navigation, providerType } = this.props;
 		await this.handleFetchBasicEstimates();
-		await this.setNetworkNonce();
+		showCustomNonce && (await this.setNetworkNonce());
 		navigation.setParams({ providerType });
 		this.parseTransactionData();
 		this.prepareTransaction();
