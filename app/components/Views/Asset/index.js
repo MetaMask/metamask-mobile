@@ -189,8 +189,8 @@ class Asset extends PureComponent {
 		if (transactions.length) {
 			transactions.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
 			const txs = transactions.filter(tx => {
-				const filerResult = this.filter(tx);
-				if (filerResult) {
+				const filterResult = this.filter(tx);
+				if (filterResult) {
 					tx.insertImportTime = addAccountTimeFlagFilter(
 						tx,
 						addedAccountTime,
@@ -211,7 +211,7 @@ class Asset extends PureComponent {
 							break;
 					}
 				}
-				return filerResult;
+				return filterResult;
 			});
 
 			const submittedNonces = [];
