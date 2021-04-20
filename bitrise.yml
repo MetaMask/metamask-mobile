@@ -25,26 +25,15 @@ workflows:
     - activate-ssh-key@4:
         run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
     - git-clone@4: {}
+    - file-downloader@1:
+        inputs:
+        - source: $BITRISEIO_ANDROID_KEYSTORE_URL
+        - destination: android/keystores/
     - script@1:
         inputs:
         - content: >-
             #!/bin/bash
-            set -ex
-
-            # specify local download path
-            export file_local_path=android/keystores/release.keystore
-            
-            # download the file
-            wget -O "$file_local_path" "$BITRISEIO_ANDROID_KEYSTORE_URL"
-            echo "file downloaded to: $file_local_path"
-
             cd android/keystores/ && ls -a
-
-            # OPTIONALLY: export the file's local path, to be able to use it in
-            subsequent steps as an input value
-
-            # envman add --key BITRISEIO_MY_FILE_LOCAL_PATH --value
-            "$file_local_path"
         title: Download keystore    
     # - nvm@1:
     #     inputs:
