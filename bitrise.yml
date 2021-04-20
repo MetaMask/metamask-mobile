@@ -4,7 +4,7 @@ default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
 trigger_map:
 - push_branch: 'bitrise_yml_new'
-  workflow: code_setup
+  workflow: android_test_release_step
 - push_branch: 'develop'
   workflow: test_release
 - push_branch: 'test-android-build'
@@ -25,35 +25,25 @@ workflows:
     - activate-ssh-key@4:
         run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
     - git-clone@4: {}
-    - file-downloader@1:
+    - nvm@1:
         inputs:
-        - source: $BITRISEIO_ANDROID_KEYSTORE_URL
-        - destination: android/keystores/release.keystore
-    - script@1:
+        - node_version: ''
+    - yarn@0:
         inputs:
-        - content: >-
-            #!/bin/bash
-            cd android/keystores/ && ls -a
-        title: Download keystore    
-    # - nvm@1:
-    #     inputs:
-    #     - node_version: ''
-    # - yarn@0:
-    #     inputs:
-    #     - cache_local_deps: 'yes'
-    #     - command: install --network-timeout 300000 --frozen-lockfile --network-concurrency 1
-    #     title: Yarn Install
-    # - yarn@0:
-    #     inputs:
-    #     - cache_local_deps: 'yes'
-    #     - command: audit:ci
-    #     title: Audit Dependencies
-    # - yarn@0:
-    #     title: Lint
-    #     inputs:
-    #     - args: ''
-    #     - command: lint
-    #     is_always_run: true
+        - cache_local_deps: 'yes'
+        - command: install --network-timeout 300000 --frozen-lockfile --network-concurrency 1
+        title: Yarn Install
+    - yarn@0:
+        inputs:
+        - cache_local_deps: 'yes'
+        - command: audit:ci
+        title: Audit Dependencies
+    - yarn@0:
+        title: Lint
+        inputs:
+        - args: ''
+        - command: lint
+        is_always_run: true
   ci_test:
     before_run:
     - code_setup
@@ -137,7 +127,10 @@ workflows:
     before_run:
     - code_setup
     steps:
-   
+    - file-downloader@1:
+        inputs:
+        - source: $BITRISEIO_ANDROID_KEYSTORE_URL
+        - destination: android/keystores/release.keystore
     - install-missing-android-tools@2:
         inputs:
         - gradlew_path: $PROJECT_LOCATION/gradlew
@@ -150,7 +143,6 @@ workflows:
             METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle
         title: Build Android Pre-Release Bundle
         is_always_run: false
-    # - sign-APK@1.4.1: {}
     - deploy-to-bitrise-io@1.9.4:
         inputs:
         - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/debug/    
