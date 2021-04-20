@@ -87,17 +87,17 @@ workflows:
             envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
             brew tap wix/brew
         title: Set Env Path for caching deps
-  # e2e_test:
-  #   before_run:
-  #   - ios_e2e_test
-  #   - android_e2e_test
-  #   - script@1:
-  #       inputs:
-  #       - content: |-
-  #           #!/usr/bin/env bash echo 'weew - everything passed!'
-  #       title: All Tests Passed
-  #       is_always_run: false
-  # ios_e2e_test:
+  e2e_test:
+    before_run:
+    - ios_e2e_test
+    - android_e2e_test
+    - script@1:
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash echo 'weew - everything passed!'
+        title: All Tests Passed
+        is_always_run: false
+  ios_e2e_test:
     before_run:
     - e2e_setup
     steps:
@@ -107,7 +107,7 @@ workflows:
         - cache_local_deps: 'yes'
         - command: test:e2e:ios
         title: E2E Tests on iOS
-  # android_e2e_test:
+  android_e2e_test:
     before_run:
     - e2e_setup
     steps:
