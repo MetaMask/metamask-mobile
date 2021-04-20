@@ -383,6 +383,7 @@ class Engine {
 			const checksummedAddress = toChecksumAddress(address);
 			if (accounts.hd.includes(checksummedAddress) || accounts.simpleKeyPair.includes(checksummedAddress)) {
 				updatedPref.identities[checksummedAddress] = preferences.identities[address];
+				updatedPref.identities[checksummedAddress].importTime = Date.now();
 			}
 		});
 		await PreferencesController.update(updatedPref);
