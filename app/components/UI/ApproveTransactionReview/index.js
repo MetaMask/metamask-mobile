@@ -454,7 +454,6 @@ class ApproveTransactionReview extends PureComponent {
 		return (
 			<EditPermission
 				host={host}
-				minimumSpendLimit={minimumSpendLimit}
 				spendLimitUnlimitedSelected={spendLimitUnlimitedSelected}
 				tokenSymbol={tokenSymbol}
 				spendLimitCustomValue={_spendLimitCustomValue}
