@@ -61,7 +61,6 @@ workflows:
             echo 'weew - everything passed!'
         title: All Tests Passed
         is_always_run: false
-
   e2e_setup:
     before_run:
     - code_setup
