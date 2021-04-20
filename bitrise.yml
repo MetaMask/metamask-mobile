@@ -38,12 +38,12 @@ workflows:
         - cache_local_deps: 'yes'
         - command: audit:ci
         title: Audit Dependencies
-    - yarn@0:
-        title: Lint
-        inputs:
-        - args: ''
-        - command: lint
-        is_always_run: true
+    # - yarn@0:
+    #     title: Lint
+    #     inputs:
+    #     - cache_local_deps: 'yes'
+    #     - command: lint
+    #     is_always_run: true
   ci_test:
     before_run:
     - code_setup
@@ -145,10 +145,10 @@ workflows:
         is_always_run: false
     - deploy-to-bitrise-io@1.9.4:
         inputs:
-        - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/debug/    
+        - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/release/    
     - deploy-to-bitrise-io@1.9.4:
         inputs:
-        - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/debug/   
+        - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/release/   
     - deploy-to-bitrise-io@1.9.4:
         inputs:
         - deploy_path: sourcemaps/android    
