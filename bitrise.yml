@@ -4,7 +4,7 @@ default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
 trigger_map:
 - push_branch: 'bitrise_yml_new'
-  workflow: e2e_test
+  workflow: code_setup:
 - push_branch: 'develop'
   workflow: test_release
 - push_branch: 'test-android-build'
@@ -33,10 +33,12 @@ workflows:
 
             # specify local download path
             export file_local_path=android/keystores/release.keystore
-
+            
             # download the file
             wget -O "$file_local_path" "$BITRISEIO_ANDROID_KEYSTORE_URL"
             echo "file downloaded to: $file_local_path"
+
+            cd android/keystores/ && ls -a
 
             # OPTIONALLY: export the file's local path, to be able to use it in
             subsequent steps as an input value
@@ -44,25 +46,25 @@ workflows:
             # envman add --key BITRISEIO_MY_FILE_LOCAL_PATH --value
             "$file_local_path"
         title: Download keystore    
-    - nvm@1:
-        inputs:
-        - node_version: ''
-    - yarn@0:
-        inputs:
-        - cache_local_deps: 'yes'
-        - command: install --network-timeout 300000 --frozen-lockfile --network-concurrency 1
-        title: Yarn Install
-    - yarn@0:
-        inputs:
-        - cache_local_deps: 'yes'
-        - command: audit:ci
-        title: Audit Dependencies
-    - yarn@0:
-        title: Lint
-        inputs:
-        - args: ''
-        - command: lint
-        is_always_run: true
+    # - nvm@1:
+    #     inputs:
+    #     - node_version: ''
+    # - yarn@0:
+    #     inputs:
+    #     - cache_local_deps: 'yes'
+    #     - command: install --network-timeout 300000 --frozen-lockfile --network-concurrency 1
+    #     title: Yarn Install
+    # - yarn@0:
+    #     inputs:
+    #     - cache_local_deps: 'yes'
+    #     - command: audit:ci
+    #     title: Audit Dependencies
+    # - yarn@0:
+    #     title: Lint
+    #     inputs:
+    #     - args: ''
+    #     - command: lint
+    #     is_always_run: true
   ci_test:
     before_run:
     - code_setup
