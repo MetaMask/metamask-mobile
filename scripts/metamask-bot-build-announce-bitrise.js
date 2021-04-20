@@ -16,14 +16,14 @@ start().catch(console.error);
 
 async function start() {
 	const content = {
-		text: `NEW BUILDS AVAILABLE! Including <${BITRISEIO_PULL_REQUEST_REPOSITORY_URL}|#${BITRISE_PULL_REQUEST} - ${BITRISE_GIT_MESSAGE}>`,
+		text: `THIS IS A TEST FOR THE NEW BITRISE INTEGRATION - NEW BUILDS AVAILABLE! Including <${BITRISEIO_PULL_REQUEST_REPOSITORY_URL}|#${BITRISE_PULL_REQUEST} - ${BITRISE_GIT_MESSAGE}>`,
 		attachments: [
 			{
 				title_link: IOS_APP_LINK,
 				title: 'iOS',
 				text: 'Install via Bitrise',
 				thumb_url:
-					'https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Apple-Apple.svg/488px-Apple-Apple.svg.png'
+					'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/202px-Apple_logo_black.svg.png'
 			},
 			{
 				title_link: ANDROID_APK_LINK,

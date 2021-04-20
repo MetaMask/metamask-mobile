@@ -145,13 +145,16 @@ workflows:
         is_always_run: false
     - deploy-to-bitrise-io@1.9.4:
         inputs:
-        - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/release/    
+        - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/release/
+        title: Bitrise Deploy APK 
     - deploy-to-bitrise-io@1.9.4:
         inputs:
-        - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/release/   
+        - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/release/  
+        title: Bitrise Deploy AAR 
     - deploy-to-bitrise-io@1.9.4:
         inputs:
-        - deploy_path: sourcemaps/android    
+        - deploy_path: sourcemaps/android
+        title: Bitrise Deploy Sourcemaps
   ios_test_release_step:
     steps:
     - certificate-and-profile-installer@1: {}
