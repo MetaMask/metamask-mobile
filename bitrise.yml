@@ -7,6 +7,8 @@ trigger_map:
   workflow: e2e_test
 - push_branch: 'develop'
   workflow: test_release
+- push_branch: 'test-android-build'
+  workflow: android_test_release_step
 - push_branch: 'bitrise-yml-bump-version'
   workflow: bump_version_minor
 - push_branch: '*'
