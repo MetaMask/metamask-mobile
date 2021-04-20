@@ -122,6 +122,8 @@ workflows:
     #     title: Code Coverage
     #     is_always_run: false
   android_test_release_step:
+    before_run:
+    - code_setup
     steps:
     - install-missing-android-tools@2:
         inputs:
