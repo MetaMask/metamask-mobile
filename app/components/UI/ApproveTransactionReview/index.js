@@ -418,16 +418,22 @@ class ApproveTransactionReview extends PureComponent {
 			spendLimitCustomValue,
 			transaction
 		} = this.state;
-		const uint = toTokenMinimalUnit(
-			spendLimitUnlimitedSelected ? originalApproveAmount : spendLimitCustomValue,
-			token.decimals
-		).toString();
-		const approvalData = generateApproveData({
-			spender: spenderAddress,
-			value: Number(uint).toString(16)
-		});
-		const newApprovalTransaction = { ...transaction, data: approvalData };
-		setTransactionObject(newApprovalTransaction);
+
+		try {
+			const uint = toTokenMinimalUnit(
+				spendLimitUnlimitedSelected ? originalApproveAmount : spendLimitCustomValue,
+				token.decimals
+			).toString(10);
+
+			const approvalData = generateApproveData({
+				spender: spenderAddress,
+				value: Number(uint).toString(16)
+			});
+			const newApprovalTransaction = { ...transaction, data: approvalData };
+			setTransactionObject(newApprovalTransaction);
+		} catch (e) {
+			//
+		}
 		this.toggleEditPermission();
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_PERMISSION_UPDATED, this.getAnalyticsParams());
 	};
@@ -441,25 +447,17 @@ class ApproveTransactionReview extends PureComponent {
 			originalApproveAmount
 		} = this.state;
 
-		const {
-			transaction: { transaction }
-		} = this.props;
-		console.log('transaction', transaction);
-
-		console.log('state', {
-			host,
-			spendLimitUnlimitedSelected,
-			tokenSymbol,
-			spendLimitCustomValue,
-			originalApproveAmount
-		});
+		const minimumSpendLimit = '1';
+		const _spendLimitCustomValue =
+			typeof spendLimitCustomValue === 'undefined' ? minimumSpendLimit : spendLimitCustomValue;
 
 		return (
 			<EditPermission
 				host={host}
+				minimumSpendLimit={minimumSpendLimit}
 				spendLimitUnlimitedSelected={spendLimitUnlimitedSelected}
 				tokenSymbol={tokenSymbol}
-				spendLimitCustomValue={spendLimitCustomValue}
+				spendLimitCustomValue={_spendLimitCustomValue}
 				originalApproveAmount={originalApproveAmount}
 				onSetApprovalAmount={this.onEditPermissionSetAmount}
 				onSpendLimitCustomValueChange={this.onSpendLimitCustomValueChange}
@@ -593,9 +591,11 @@ class ApproveTransactionReview extends PureComponent {
 			viewData,
 			tokenSymbol,
 			originalApproveAmount,
+			spendLimitUnlimitedSelected,
 			spendLimitCustomValue,
 			transaction: { to, data }
 		} = this.state;
+		const allowance = (!spendLimitUnlimitedSelected && spendLimitCustomValue) || originalApproveAmount;
 		return (
 			<TransactionReviewDetailsCard
 				toggleViewDetails={this.toggleViewDetails}
@@ -603,7 +603,7 @@ class ApproveTransactionReview extends PureComponent {
 				copyContractAddress={this.copyContractAddress}
 				address={renderShortAddress(to)}
 				host={host}
-				allowance={spendLimitCustomValue || originalApproveAmount}
+				allowance={allowance}
 				tokenSymbol={tokenSymbol}
 				data={data}
 				method={method}
