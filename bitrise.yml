@@ -63,6 +63,16 @@ workflows:
         is_always_run: false
   e2e_test:
     before_run:
+    - ios_e2e_test
+    - android_e2e_test
+    - script@1:
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash echo 'weew - everything passed!'
+        title: All Tests Passed
+        is_always_run: false
+  e2e_setup:
+    before_run:
     - code_setup
     steps:
     - script@1:
@@ -87,18 +97,28 @@ workflows:
             envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
             brew tap wix/brew
         title: Set Env Path for caching deps
+  ios_e2e_test:
+    before_run:
+    - e2e_setup
+    steps:
     - cocoapods-install@2: {}
     - yarn@0:
         inputs:
         - cache_local_deps: 'yes'
         - command: test:e2e:ios
         title: E2E Tests on iOS
-    - script@1:
+  android_e2e_test:
+    before_run:
+    - e2e_setup
+    steps:
+    - install-missing-android-tools@2:
         inputs:
-        - content: |-
-            #!/usr/bin/env bash echo 'weew - everything passed!'
-        title: All Tests Passed
-        is_always_run: false
+        - gradlew_path: $PROJECT_LOCATION/gradlew
+    - yarn@0:
+        inputs:
+        - cache_local_deps: 'yes'
+        - command: test:e2e:android
+        title: E2E Tests on Android
     # - deploy-to-bitrise-io@1.9.4:
     #     inputs:
     #     - deploy_path: $PROJECT_LOCATION_IOS/build/
