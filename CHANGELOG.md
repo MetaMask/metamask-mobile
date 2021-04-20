@@ -1,6 +1,8 @@
 # Changelog
 
-## Current Develop Branch
+## v2.2.0 - Apr 21 2021
+- [#2546](https://github.com/MetaMask/metamask-mobile/pull/2546): Fix analytics try catch
+- [#2543](https://github.com/MetaMask/metamask-mobile/pull/2543): Only get nonce from the network if the feature is enabled
 - [#2460](https://github.com/MetaMask/metamask-mobile/pull/2460): Feature/tx local state logs
 - [#2540](https://github.com/MetaMask/metamask-mobile/pull/2540): bump v2.1.2
 - [#2538](https://github.com/MetaMask/metamask-mobile/pull/2538): fix/connection change handler
