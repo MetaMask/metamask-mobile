@@ -187,6 +187,7 @@ class Asset extends PureComponent {
 		const confirmedTxs = [];
 		const { chainId, transactions } = this.props;
 		if (transactions.length) {
+			transactions.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
 			const txs = transactions.filter(tx => {
 				const filerResult = this.filter(tx);
 				if (filerResult) {
@@ -213,10 +214,6 @@ class Asset extends PureComponent {
 				return filerResult;
 			});
 
-			txs.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
-			submittedTxs.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
-			confirmedTxs.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
-
 			const submittedNonces = [];
 			submittedTxs = submittedTxs.filter(transaction => {
 				const alreadySubmitted = submittedNonces.includes(transaction.transaction.nonce);
@@ -228,7 +225,6 @@ class Asset extends PureComponent {
 			if (!accountAddedTimeInsertPointFound && txs && txs.length) {
 				txs[txs.length - 1].insertImportTime = true;
 			}
-
 			// To avoid extra re-renders we want to set the new txs only when
 			// there's a new tx in the history or the status of one of the existing txs changed
 			if (
