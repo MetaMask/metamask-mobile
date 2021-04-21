@@ -11,4 +11,4 @@ jobs:
       startsWith(github.event.pull_request.head.ref, 'release/')
     steps:
     - name: Bump script
-      uses: ../../scripts/bump-version.sh
+      run: ../../scripts/bump-version.sh github.event.pull_request.head.ref
