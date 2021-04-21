@@ -3,9 +3,10 @@ on:
   push:
     branches:
       - develop
-  [create, pull_request]:
+  pull_request:
     branches:
       - develop
+    types: [opened]
 jobs:
   bump-version-name:
     runs-on: ubuntu-latest
@@ -24,7 +25,7 @@ jobs:
         git diff
     - uses: EndBug/add-and-commit@v7
       with:
-        # The arguments for the `git add` command (see the paragraph below for more info)
+        # The arguments for the `git a dd` command (see the paragraph below for more info)
         # Default: '.'
         add: 'bitrise.yml'
 
