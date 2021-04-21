@@ -15,6 +15,5 @@ jobs:
         echo github.event.pull_request.head.ref
         echo "${ORIGIN_BRANCH}"
         echo "${{ github.base_ref }}"
-        ls -R | grep ":$" | sed -e 's/:$//' -e 's/[^-][^\/]*\//--/g' -e 's/^/   /' -e 's/-/|/'
         ./scripts/bump-version.sh  "${{ github.base_ref }}"
 
