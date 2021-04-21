@@ -208,6 +208,7 @@
   "devDependencies": {
     "@babel/core": "^7.8.4",
     "@babel/runtime": "^7.8.4",
+    "@lavamoat/allow-scripts": "^1.0.5",
     "@metamask/mobile-provider": "^2.0.1",
     "@react-native-community/eslint-config": "^1.1.0",
     "assert": "1.4.1",
@@ -341,5 +342,22 @@
     "assets": [
       "./app/fonts"
     ]
+  },
+  "lavamoat": {
+    "allowScripts": {
+      "@lavamoat/preinstall-always-fail": false,
+      "core-js-pure": false,
+      "detox": false,
+      "dtrace-provider": false,
+      "husky": false,
+      "core-js": false,
+      "fsevents": false,
+      "keccak": false,
+      "secp256k1": false,
+      "sha3": false,
+      "scrypt": false,
+      "@sentry/cli": false,
+      "better-sqlite3": false
+    }
   }
 }
