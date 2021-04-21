@@ -24,7 +24,7 @@ jobs:
         git diff
     - uses: EndBug/add-and-commit@v7
       with:
-        # The arguments for the `git add` command (see the paragraph below for more info)
+        # The arguments for the `g it add` command (see the paragraph below for more info)
         # Default: '.'
         add: 'bitrise.yml'
 
