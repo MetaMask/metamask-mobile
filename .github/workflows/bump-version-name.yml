@@ -6,8 +6,6 @@ on:
 jobs:
   bump-version-name:
     runs-on: ubuntu-latest
-    env:
-      ORIGIN_BRANCH: ${{ github.event }}
     steps:
     - name: Checkout
       uses: actions/checkout@v1
