@@ -58,7 +58,7 @@ jobs:
 
         # The arguments for the `git rm` command (see the paragraph below for more info)
         # Default: ''
-        # remove: './dir/old_file.js'
+        # remove: './dir/ol d_file.js'
 
         # Whether to use the --signoff option on `git commit` (only `true` and `false` are accepted)
         # Default: false
