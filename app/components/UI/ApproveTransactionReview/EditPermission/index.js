@@ -9,7 +9,7 @@ import ConnectHeader from '../../ConnectHeader';
 import Device from '../../../../util/Device';
 import ErrorMessage from '../../../Views/SendFlow/ErrorMessage';
 
-const MINIMUM_VALUE = '1';
+export const MINIMUM_VALUE = '1';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -256,4 +256,3 @@ EditPermission.propTypes = {
 };
 
 export default EditPermission;
-export { MINIMUM_VALUE };
