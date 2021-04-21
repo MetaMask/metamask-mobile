@@ -19,9 +19,9 @@
     "test:watch": "jest --watch",
     "prepublishOnly": "yarn build && yarn lint && yarn test",
     "lint:eslint": "eslint . --cache --ext js,ts",
-    "lint:json": "prettier '**/*.json' --ignore-path .gitignore",
-    "lint": "yarn lint:eslint && yarn lint:json --check",
-    "lint:fix": "yarn lint:eslint --fix && yarn lint:json --write",
+    "lint:misc": "prettier '**/*.json' '**/*.md' '**/*.yml' --single-quote --ignore-path .gitignore",
+    "lint": "yarn lint:eslint && yarn lint:misc --check",
+    "lint:fix": "yarn lint:eslint --fix && yarn lint:misc --write",
     "build": "tsc --project ."
   },
   "devDependencies": {
