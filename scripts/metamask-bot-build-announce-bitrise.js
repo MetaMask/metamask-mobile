@@ -3,7 +3,7 @@
 const request = require('request-promise');
 
 const ANDROID_APK_LINK = process.env.BITRISE_PUBLIC_INSTALL_PAGE_URL;
-const ANDROID_AAB_LINK = process.env.BITRISE_PUBLIC_INSTALL_PAGE_URL;
+const ANDROID_AAB_LINK = process.env.$BITRISE_BUILD_URL + '#?tab=artifacts';
 // const IOS_APP_LINK = process.env.IOS_APP_LINK;
 const SLACK_TOKEN = process.env.MM_SLACK_TOKEN;
 const SLACK_SECRET = process.env.MM_SLACK_SECRET;
@@ -27,7 +27,7 @@ async function start() {
 			},
 			{
 				title_link: ANDROID_APK_LINK,
-				title: 'Android',
+				title: 'Android APK',
 				text: 'Download APK via Bitrise',
 				thumb_url:
 					'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Android_robot.svg/511px-Android_robot.svg.png'
