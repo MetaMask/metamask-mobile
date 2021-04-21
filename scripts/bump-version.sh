@@ -32,3 +32,4 @@ echo $version
 echo "BRANCH"
 echo $1
 sed -i '' -e 's/VERSION_NAME: [0-9]\{1,\}.[0-9]\{1,\}.[0-9]\{1,\}/VERSION_NAME: '$version'/' bitrise.yml
+echo $1
