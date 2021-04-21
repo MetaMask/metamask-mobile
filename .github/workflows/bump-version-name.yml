@@ -7,7 +7,7 @@ jobs:
   bump-version-name:
     runs-on: ubuntu-latest
     env:
-      ORIGIN_BRANCH: ${{ github.event.pull_request.head.ref }}
+      ORIGIN_BRANCH: ${{ github.base_ref }}
     steps:
     - name: Checkout
       uses: actions/checkout@v1
