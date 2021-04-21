@@ -87,16 +87,6 @@ workflows:
             envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
             brew tap wix/brew
         title: Set Env Path for caching deps
-  e2e_test:
-    before_run:
-    - ios_e2e_test
-    - android_e2e_test
-    - script@1:
-        inputs:
-        - content: |-
-            #!/usr/bin/env bash echo 'weew - everything passed!'
-        title: All Tests Passed
-        is_always_run: false
   ios_e2e_test:
     before_run:
     - e2e_setup
@@ -143,6 +133,16 @@ workflows:
     #         ./node_modules/.bin/codecov
     #     title: Code Coverage
     #     is_always_run: false
+  e2e_test:
+    before_run:
+    - ios_e2e_test
+    - android_e2e_test
+    - script@1:
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash echo 'weew - everything passed!'
+        title: All Tests Passed
+        is_always_run: false
   android_test_release_step:
     before_run:
     - code_setup
