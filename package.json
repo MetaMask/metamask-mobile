@@ -52,7 +52,8 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged"
+      "pre-commit": "lint-staged",
+      "pre-merge-commit": "yarn ./scripts/bump-version.sh"
     }
   },
   "lint-staged": {

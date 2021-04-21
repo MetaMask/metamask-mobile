@@ -10,8 +10,8 @@ MAJOR=$(awk -F. '{print $1}' <<< $versionName)
 MINOR=$(awk -F. '{print $2}' <<< $versionName)
 PATCH=$(awk -F. '{print $3}' <<< $versionName)
 version='a'
-# branchName=$(git rev-parse --symbolic --abbrev-ref HEAD)
-branchName='release/aaa-patch'
+branchName=$(git rev-parse --symbolic --abbrev-ref HEAD)
+# branchName='release/aaa-patch'
 version=$MAJOR'.'$MINOR'.'$PATCH
 
 if [[ $branchName == *"release/"* ]] ; then
