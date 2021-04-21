@@ -447,7 +447,10 @@ class ApproveTransactionReview extends PureComponent {
 			originalApproveAmount
 		} = this.state;
 
-		const minimumSpendLimit = '1';
+		const {
+			defaultProps: { minimumSpendLimit }
+		} = EditPermission;
+
 		const _spendLimitCustomValue =
 			typeof spendLimitCustomValue === 'undefined' ? minimumSpendLimit : spendLimitCustomValue;
 
