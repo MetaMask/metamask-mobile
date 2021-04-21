@@ -15,8 +15,5 @@ jobs:
         echo "${ORIGIN_BRANCH}"
         echo "${{ github.base_ref }}"
         ./scripts/bump-version.sh  "${{ github.base_ref }}"
-        git config --global user.name estebanmino
-        git config --global user.email efmino@uc.cl
-        git add .
-        git commit -m "Bump version name"
+        git diff
 
