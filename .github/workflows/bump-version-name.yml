@@ -2,7 +2,7 @@ name: Bump version name
 on:
   push:
     branches:
-      - bitrise-yml-bump-version
+      - develop
 jobs:
   bump-version-name:
     runs-on: ubuntu-latest
