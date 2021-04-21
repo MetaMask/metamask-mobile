@@ -9,14 +9,15 @@ trigger_map:
   workflow: test_release
 - push_branch: 'bitrise-yml-bump-version'
   workflow: bump_version_minor
+- pull_request_source_branch: "*"
+  workflow: test_release
+  pull_request_target_branch: bitrise_yml_new
 - push_branch: '*'
   workflow: ci_test
 - pull_request_source_branch: '*'
   workflow: ci_test
 # Will use this for the release and deploy to store
-- pull_request_source_branch: "*"
-  workflow: test_release
-  pull_request_target_branch: bitrise_yml_new
+
 - pull_request_source_branch: "*"
   workflow: ci_test
   pull_request_target_branch: develop
