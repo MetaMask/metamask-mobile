@@ -10,4 +10,10 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v1
     - name: Bump script
-      run: ./scripts/bump-version.sh ${ github.event.pull_request.head.ref }
+      run: |
+        echo "variables"
+        echo github.event.pull_request.head.ref
+        echo ${github.event.pull_request.head.ref}
+        echo ${{github.event.pull_request.head.ref}}
+        echo ${ github.event.pull_request.head.ref }
+        ./scripts/bump-version.sh ${ github.event.pull_request.head.ref }
