@@ -14,7 +14,7 @@ jobs:
         echo github.event.pull_request.head.ref
         echo "${ORIGIN_BRANCH}"
         echo "${{ github.base_ref }}"
-        ./scripts/bump-version.sh  release/fake-major
+        ./scripts/bump-version.sh  "${{ github.base_ref }}"
         git diff
     - uses: EndBug/add-and-commit@v7
       with:
