@@ -6,6 +6,7 @@ on:
   pull_request:
     branches:
       - develop
+    types: [closed]
 jobs:
   bump-version-name:
     runs-on: ubuntu-latest
