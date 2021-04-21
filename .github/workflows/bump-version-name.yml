@@ -24,7 +24,7 @@ jobs:
 
         # The name of the user that will be displayed as the author of the commit
         # Default: author of the commit that triggered the run
-        author_name: Your Name
+        author_name: estebanmino
 
         # The email of the user that will be displayed as the author of the commit
         # Default: author of the commit that triggered the run
