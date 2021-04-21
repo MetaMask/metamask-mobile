@@ -61,88 +61,64 @@ workflows:
             echo 'weew - everything passed!'
         title: All Tests Passed
         is_always_run: false
-  e2e_setup:
-    before_run:
-    - code_setup
-    steps:
-    - script@1:
-        inputs:
-        - content: |-
-            #!/usr/bin/env bash 
-            sudo gem install bundler:1.17.1
-            sudo gem install faraday:1.3.0
-            curl -sL https://sentry.io/get-cli/
-        title: Install Test Dependencies (Bundler & Sentry)
-        is_always_run: false
-    - yarn@0:
-        inputs:
-        - cache_local_deps: 'yes'
-        - command: global add detox-cli
-        title: Install Detox CLI
-    - script:
-        inputs:
-        - content: |-
-            # Add cache directory to environment variable
-            envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
-            envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
-            brew tap wix/brew
-        title: Set Env Path for caching deps
-  ios_e2e_test:
-    before_run:
-    - e2e_setup
-    steps:
-    - cocoapods-install@2: {}
-    - yarn@0:
-        inputs:
-        - cache_local_deps: 'yes'
-        - command: test:e2e:ios
-        title: E2E Tests on iOS
-  android_e2e_test:
-    before_run:
-    - e2e_setup
-    steps:
-    - install-missing-android-tools@2:
-        inputs:
-        - gradlew_path: $PROJECT_LOCATION/gradlew
-    - yarn@0:
-        inputs:
-        - cache_local_deps: 'yes'
-        - command: test:e2e:android
-        title: E2E Tests on Android
-    # - deploy-to-bitrise-io@1.9.4:
-    #     inputs:
-    #     - deploy_path: $PROJECT_LOCATION_IOS/build/
-    #     is_always_run: true
-    # Do we need these steps?
-    # - yarn@0:
-    #     inputs:
-    #     - args: ''
-    #     - command: add codecov
-    #     title: Install Code Coverage
-    #     is_always_run: false
-    # - script@1:
-    #     inputs:
-    #     - content: |-
-    #         #!/usr/bin/env bash
-    #         # fail if any commands fails
-    #         set -e
-    #         # debug log
-    #         set -x
-
-    #         # or run a script from your repository, like:
-    #         ./node_modules/.bin/codecov
-    #     title: Code Coverage
-    #     is_always_run: false
-  e2e_test:
-    before_run:
-    - ios_e2e_test
-    - android_e2e_test
-    - script@1:
-        inputs:
-        - content: |-
-            #!/usr/bin/env bash echo 'weew - everything passed!'
-        title: All Tests Passed
-        is_always_run: false
+  # e2e_setup:
+  #   before_run:
+  #   - code_setup
+  #   steps:
+  #   - script@1:
+  #       inputs:
+  #       - content: |-
+  #           #!/usr/bin/env bash 
+  #           sudo gem install bundler:1.17.1
+  #           sudo gem install faraday:1.3.0
+  #           curl -sL https://sentry.io/get-cli/
+  #       title: Install Test Dependencies (Bundler & Sentry)
+  #       is_always_run: false
+  #   - yarn@0:
+  #       inputs:
+  #       - cache_local_deps: 'yes'
+  #       - command: global add detox-cli
+  #       title: Install Detox CLI
+  #   - script:
+  #       inputs:
+  #       - content: |-
+  #           # Add cache directory to environment variable
+  #           envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
+  #           envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
+  #           brew tap wix/brew
+  #       title: Set Env Path for caching deps
+  # ios_e2e_test:
+  #   before_run:
+  #   - e2e_setup
+  #   steps:
+  #   - cocoapods-install@2: {}
+  #   - yarn@0:
+  #       inputs:
+  #       - cache_local_deps: 'yes'
+  #       - command: test:e2e:ios
+  #       title: E2E Tests on iOS
+  # android_e2e_test:
+  #   before_run:
+  #   - e2e_setup
+  #   steps:
+  #   - install-missing-android-tools@2:
+  #       inputs:
+  #       - gradlew_path: $PROJECT_LOCATION/gradlew
+  #   - yarn@0:
+  #       inputs:
+  #       - cache_local_deps: 'yes'
+  #       - command: test:e2e:android
+  #       title: E2E Tests on Android
+  # e2e_test:
+  #   before_run:
+  #   - ios_e2e_test
+  #   - android_e2e_test
+  #   - script@1:
+  #       inputs:
+  #       - content: |-
+  #           #!/usr/bin/env bash echo 'weew - everything passed!'
+  #       title: All Tests Passed
+  #       is_always_run: false
   android_test_release_step:
     before_run:
     - code_setup
