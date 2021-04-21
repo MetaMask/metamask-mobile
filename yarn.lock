@@ -1571,10 +1571,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/safe-event-emitter/-/safe-event-emitter-2.0.0.tgz#af577b477c683fad17c619a78208cede06f9605c"
   integrity sha512-/kSXhY692qiV1MXu6EeOZvg5nECLclxNXcKCxJ3cXQgYuRymRHpdx/t7JXfsK+JLjwA1e1c1/SBrlQYpusC29Q==
 
-"@metamask/swaps-controller@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/swaps-controller/-/swaps-controller-2.0.0.tgz#730eee67363736745842ab350aa8b771c709d289"
-  integrity sha512-ruCi8zPYF6JJOY5N/6QpbCNyIZmxQVwcOYbey5h8dQJ8MO9ag2dn+Cz7FJUHUwn28zBUbXOUnpRkYVWuOAodQA==
+"@metamask/swaps-controller@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/swaps-controller/-/swaps-controller-2.0.1.tgz#b75aad7ec4c6a3d97d2d869564035561d13b0938"
+  integrity sha512-LEyNpQVF/0++tWu0yRJn2FJ+0ADmvnaNdkjUQef9rlOoFUCsN4OMFYivYnA5pe//VM0SCWXxMUP5gY+oYdjIVg==
   dependencies:
     "@metamask/contract-metadata" "^1.22.0"
     abort-controller "^3.0.0"
