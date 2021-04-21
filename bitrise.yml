@@ -1,0 +1,326 @@
+---
+format_version: '8'
+default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
+project_type: react-native
+trigger_map:
+- push_branch: 'bitrise_yml_new'
+  workflow: deploy
+- push_branch: 'bitrise-yml-bump-version'
+  workflow: bump_version_minor
+# - pull_request_source_branch: '*'
+#   workflow: ci_test
+workflows:
+  code_setup:
+    steps:
+    - activate-ssh-key@4:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - git-clone@4: {}
+    - nvm@1:
+        inputs:
+        - node_version: ''
+    - yarn@0:
+        inputs:
+        - cache_local_deps: 'yes'
+        - command: install --network-timeout 300000 --frozen-lockfile --network-concurrency 1
+        title: Yarn Install
+    # Commented out for speed of build during testing    
+    # - script@1:
+    #     inputs:
+    #     - content: |-
+    #         #!/usr/bin/env bash
+    #         # fail if any commands fails
+    #         set -e
+    #         # debug log
+    #         set -x
+
+    #         # or run a script from your repository, like:
+    #         ./scripts/yarn-audit.sh
+    #     title: Audit Dependencies
+    # - yarn@0:
+    #     title: Lint
+    #     inputs:
+    #     - args: ''
+    #     - command: lint
+    #     is_always_run: true
+  ci_test:
+    before_run:
+    - code_setup
+    steps:
+    - yarn@0:
+        inputs:
+        - args: ''
+        - command: test:unit --silent
+        title: Unit Test
+        is_always_run: false
+    - script@1:
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash echo 'weew - everything passed!'
+        title: All Tests Passed
+        is_always_run: false
+  e2e:
+    before_run:
+    - code_setup
+    steps:
+    - yarn@0:
+        inputs:
+        - cache_local_deps: 'yes'
+        - command: global add detox-cli
+        title: Install Detox CLI
+    - script:
+        inputs:
+        - content: |-
+            # Add cache directory to environment variable
+            envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
+            envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
+        title: Set Env Path for caching deps
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            brew tap wix/brew
+        title: Detox Setup
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            detox build --configuration ios.sim.release
+        title: Detox - Build Release App
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            detox test -R 1 --configuration ios.sim.release -l verbose
+        title: Run E2E Tests
+    - yarn@0:
+        inputs:
+        - args: ''
+        - command: add codecov
+        title: Install Code Coverage
+        is_always_run: false
+    - script@1:
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            # fail if any commands fails
+            set -e
+            # debug log
+            set -x
+
+            # or run a script from your repository, like:
+            ./node_modules/.bin/codecov
+        title: Code Coverage
+        is_always_run: false
+  deploy:
+    description: >
+      ## Configure Android part of the deploy workflow
+
+      To generate a signed APK:
+
+      1. Open the **Workflow** tab of your project on Bitrise.io
+
+      1. Add **Sign APK step right after Android Build step**
+
+      1. Click on **Code Signing** tab
+
+      1. Find the **ANDROID KEYSTORE FILE** section
+
+      1. Click or drop your file on the upload file field
+
+      1. Fill the displayed 3 input fields:
+
+      1. **Keystore password**
+
+      1. **Keystore alias**
+
+      1. **Private key password**
+
+      1. Click on **[Save metadata]** button
+
+
+      That's it! From now on, **Sign APK** step will receive your uploaded
+      files.
+
+
+      ## Configure iOS part of the deploy workflow
+
+
+      To generate IPA:
+
+
+      1. Open the **Workflow** tab of your project on Bitrise.io
+
+      1. Click on **Code Signing** tab
+
+      1. Find the **PROVISIONING PROFILE** section
+
+      1. Click or drop your file on the upload file field
+
+      1. Find the **CODE SIGNING IDENTITY** section
+
+      1. Click or drop your file on the upload file field
+
+      1. Click on **Workflows** tab
+
+      1. Select deploy workflow
+
+      1. Select **Xcode Archive & Export for iOS** step
+
+      1. Open **Force Build Settings** input group
+
+      1. Specify codesign settings
+
+      Set **Force code signing with Development Team**, **Force code signing
+      with Code Signing Identity**  
+
+      and **Force code signing with Provisioning Profile** inputs regarding to
+      the uploaded codesigning files
+
+      1. Specify manual codesign style
+
+      If the codesigning files, are generated manually on the Apple Developer
+      Portal,  
+
+      you need to explicitly specify to use manual coedsign settings  
+
+      (as ejected rn projects have xcode managed codesigning turned on).  
+
+      To do so, add 'CODE_SIGN_STYLE="Manual"' to 'Additional options for
+      xcodebuild call' input
+
+
+      ## To run this workflow
+
+
+      If you want to run this workflow manually:
+
+
+      1. Open the app's build list page
+
+      2. Click on **[Start/Schedule a Build]** button
+
+      3. Select **deploy** in **Workflow** dropdown input
+
+      4. Click **[Start Build]** button
+
+
+      Or if you need this workflow to be started by a GIT event:
+
+
+      1. Click on **Triggers** tab
+
+      2. Setup your desired event (push/tag/pull) and select **deploy** workflow
+
+      3. Click on **[Done]** and then **[Save]** buttons
+
+
+      The next change in your repository that matches any of your trigger map
+      event will start **deploy** workflow.
+    before_run:
+    - code_setup
+    steps:
+    # Insert e2e before building release
+    # Segment Out Android
+    - install-missing-android-tools@2:
+        inputs:
+        - gradlew_path: $PROJECT_LOCATION/gradlew
+    - script@1:
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash 
+            jq 'del(.engines)' package.json > new.json && mv new.json package.json
+            node -v
+            METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle
+        title: Build Android Pre-Release Bundle
+        is_always_run: false
+    # - sign-APK@1.4.1: {}
+    - deploy-to-bitrise-io@1.9.4:
+        inputs:
+        - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/debug/    
+    - deploy-to-bitrise-io@1.9.4:
+        inputs:
+        - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/debug/   
+    - deploy-to-bitrise-io@1.9.4:
+        inputs:
+        - deploy_path: sourcemaps/android    
+    # - yarn@0:
+    #     inputs:
+    #     - command: build:announce
+    #     title: Accouncing pre-release
+    #     is_always_run: false      
+    # Segment Out iOS
+    # - certificate-and-profile-installer@1: {}
+    # - script@1:
+    #     inputs:
+    #     - content: |-
+    #         #!/usr/bin/env bash 
+    #         curl -sL https://sentry.io/get-cli/ | bash
+    #     title: Install Sentry CLI
+    #     is_always_run: false
+    # - script@1:
+    #     inputs:
+    #     - content: |-
+    #         #!/usr/bin/env bash 
+    #         sudo gem install bundler:1.17.1
+    #         sudo gem install faraday:1.3.0
+    #     title: Install Bundler
+    #     is_always_run: false
+    # - cocoapods-install@2: {}
+    # - script@1:
+    #     inputs:
+    #     - content: |-
+    #         #!/usr/bin/env bash 
+                      
+    #         jq 'del(.engines)' package.json > new.json && mv new.json package.json
+    #         node -v
+    #         METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
+    #     title: Build iOS Pre-Release Bundle
+    #     is_always_run: false
+    # - deploy-to-bitrise-io@1: {}
+    # Need to deploy to Bitrise 
+    # Notify on Slack
+  bump_version_minor:
+    steps:
+    - activate-ssh-key@4:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - git-clone@4: {}
+    - nvm@1:
+        inputs:
+        - node_version: ''
+    - change-android-versioncode-and-versionname@1:
+        inputs:
+        - new_version_name: $VERSION_NAME
+        - build_gradle_path: $PROJECT_LOCATION_ANDROID/app/build.gradle
+    - set-xcode-build-number@1:
+        inputs:
+        - build_short_version_string: $VERSION_NAME
+        - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
+app:
+  envs:
+  - opts:
+      is_expand: false
+    PROJECT_LOCATION: android
+  - opts:
+      is_expand: false
+    MODULE: app
+  - opts:
+      is_expand: false
+    VARIANT: ''
+  - opts:
+      is_expand: false
+    BITRISE_PROJECT_PATH: ios/MetaMask.xcworkspace
+  - opts:
+      is_expand: false
+    BITRISE_SCHEME: MetaMask
+  - opts:
+      is_expand: false
+    BITRISE_EXPORT_METHOD: enterprise
+  - opts:
+      is_expand: false
+    PROJECT_LOCATION_ANDROID: android
+  - opts:
+      is_expand: false
+    PROJECT_LOCATION_IOS: ios
+  - opts:
+      is_expand: false
+    VERSION_NAME: 1.0.0
