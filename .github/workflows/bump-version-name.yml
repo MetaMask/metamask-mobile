@@ -14,5 +14,5 @@ jobs:
         echo "variables"
         echo github.event.pull_request.head.ref
         echo "${ORIGIN_BRANCH}"
-        echo "${{ github.action }}"
+        echo "${{ github.event_name }}"
         ./scripts/bump-version.sh ${ORIGIN_BRANCH}
