@@ -6,6 +6,9 @@ on:
 jobs:
   bump-version-name:
     runs-on: ubuntu-latest
+    if: |
+      github.event.pull_request.merged == true &&
+      startsWith(github.event.pull_request.head.ref, 'release/')
     steps:
     - name: Bump script
-      uses: yarn ../../scripts/bump-version.sh
+      uses: yarn ../../scripts/bump-version.sh github.event.pull_request.head.ref
