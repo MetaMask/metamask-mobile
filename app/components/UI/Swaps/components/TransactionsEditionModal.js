@@ -132,6 +132,7 @@ function TransactionsEditionModal({
 							basicGasEstimates={apiGasPrice}
 							gas={hexToBN(gasLimit)}
 							gasPrice={hexToBN(gasPrice)}
+							minimumGasPrice={hexToBN(gasPrice)}
 							minimumGasLimit={minimumGasLimit}
 							gasError={null}
 							mode={'edit'}
