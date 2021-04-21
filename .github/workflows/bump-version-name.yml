@@ -14,5 +14,4 @@ jobs:
         echo "variables"
         echo github.event.pull_request.head.ref
         echo "${GITHUB_REF##*/}"
-        echo pull-request
         ./scripts/bump-version.sh ${GITHUB_REF##*/}
