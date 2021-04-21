@@ -7,18 +7,17 @@ trigger_map:
   workflow: test_release
 - push_branch: 'develop'
   workflow: test_release
-- push_branch: 'test-android-build'
-  workflow: android_test_release_step
 - push_branch: 'bitrise-yml-bump-version'
   workflow: bump_version_minor
 - push_branch: '*'
   workflow: ci_test
-# - pull_request_source_branch: '*'
-#   workflow: ci_test
+- pull_request_source_branch: '*'
+  workflow: ci_test
 # Will use this for the release and deploy to store
-# - pull_request_source_branch: "*"
-#   workflow: workflow_tests
-#   pull_request_target_branch: develop
+- pull_request_source_branch: "*"
+  workflow: ci_test
+  pull_request_target_branch: develop
+
 workflows:
   code_setup:
     steps:
@@ -146,7 +145,7 @@ workflows:
         title: Bitrise Deploy APK 
     - deploy-to-bitrise-io@1.9.4:
         inputs:
-        - deploy_path: $PROJECT_LOCATION/app/build/outputs/pk/release/sha512sums.txt
+        - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/release/sha512sums.txt
         title: Bitrise Deploy Checksum
     - deploy-to-bitrise-io@1.9.4:
         inputs:
