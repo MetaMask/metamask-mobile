@@ -5,8 +5,10 @@ project_type: react-native
 trigger_map:
 - push_branch: 'bitrise_yml_new'
   workflow: test_release
-- push_branch: 'develop'
+- push_branch: 'develop', 'main'
   workflow: test_release
+- push_branch: '*'
+  workflow: ci_test
 - push_branch: 'bitrise-yml-bump-version'
   workflow: bump_version_minor
 - pull_request_source_branch: "*"
@@ -124,8 +126,6 @@ workflows:
         title: All Tests Passed
         is_always_run: false
   android_test_release_step:
-    before_run:
-    - code_setup
     steps:
     - file-downloader@1:
         inputs:
@@ -160,8 +160,6 @@ workflows:
         - deploy_path: sourcemaps/android/index.js.map
         title: Bitrise Deploy Sourcemaps
   ios_test_release_step:
-    before_run:
-    - code_setup
     steps:
     - certificate-and-profile-installer@1: {}
     - script@1:
@@ -194,7 +192,7 @@ workflows:
         - deploy_path: $PROJECT_LOCATION_IOS/build/
   test_release:
     before_run:
-    # - ci_test
+    - code_setup
     - android_test_release_step
     # - ios_test_release_step
     steps:
