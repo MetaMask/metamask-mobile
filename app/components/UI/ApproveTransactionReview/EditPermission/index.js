@@ -9,6 +9,8 @@ import ConnectHeader from '../../ConnectHeader';
 import Device from '../../../../util/Device';
 import ErrorMessage from '../../../Views/SendFlow/ErrorMessage';
 
+const MINIMUM_VALUE = '1';
+
 const styles = StyleSheet.create({
 	wrapper: {
 		paddingHorizontal: 24,
@@ -236,7 +238,7 @@ function EditPermission({
 	);
 }
 EditPermission.defaultProps = {
-	minimumSpendLimit: '1'
+	minimumSpendLimit: MINIMUM_VALUE
 };
 
 EditPermission.propTypes = {
@@ -254,3 +256,4 @@ EditPermission.propTypes = {
 };
 
 export default EditPermission;
+export { MINIMUM_VALUE };

@@ -38,7 +38,7 @@ import { withNavigation } from 'react-navigation';
 import { getNetworkName, isMainNet } from '../../../util/networks';
 import scaling from '../../../util/scaling';
 import { capitalize } from '../../../util/general';
-import EditPermission from './EditPermission';
+import EditPermission, { MINIMUM_VALUE } from './EditPermission';
 
 const { hexToBN } = util;
 const styles = StyleSheet.create({
@@ -447,12 +447,7 @@ class ApproveTransactionReview extends PureComponent {
 			originalApproveAmount
 		} = this.state;
 
-		const {
-			defaultProps: { minimumSpendLimit }
-		} = EditPermission;
-
-		const _spendLimitCustomValue =
-			typeof spendLimitCustomValue === 'undefined' ? minimumSpendLimit : spendLimitCustomValue;
+		const _spendLimitCustomValue = spendLimitCustomValue ?? MINIMUM_VALUE;
 
 		return (
 			<EditPermission
