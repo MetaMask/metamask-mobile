@@ -1,0 +1,11 @@
+name: Bump version name
+on:
+  push:
+    branches:
+      - bitrise-yml-bump-version
+jobs:
+  bump-version-name:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Bump script
+      uses: yarn ../../scripts/bump-version.sh
