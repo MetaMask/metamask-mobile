@@ -6,6 +6,8 @@ on:
 jobs:
   bump-version-name:
     runs-on: ubuntu-latest
+    env:
+      ORIGIN_BRANCH: ${{ github.event.pull_request.head.ref }}
     steps:
     - name: Checkout
       uses: actions/checkout@v1
@@ -13,5 +15,5 @@ jobs:
       run: |
         echo "variables"
         echo github.event.pull_request.head.ref
-        echo "${GITHUB_REF##*/}"
-        ./scripts/bump-version.sh ${GITHUB_REF##*/}
+        echo "${ORIGIN_BRANCH}"
+        ./scripts/bump-version.sh ${ORIGIN_BRANCH}
