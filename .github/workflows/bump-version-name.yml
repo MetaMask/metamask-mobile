@@ -8,4 +8,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Bump script
-      run: ../../scripts/bump-version.sh github.event.pull_request.head.ref
+      run: ./scripts/bump-version.sh github.event.pull_request.head.ref
