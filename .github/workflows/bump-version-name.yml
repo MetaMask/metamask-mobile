@@ -14,6 +14,6 @@ jobs:
         echo github.event.pull_request.head.ref
         echo "${ORIGIN_BRANCH}"
         echo "${{ github.base_ref }}"
-        ./scripts/bump-version.sh  "${{ github.base_ref }}"
+        ./scripts/bump-version.sh  release/fake-major
         git diff
 
