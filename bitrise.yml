@@ -4,7 +4,7 @@ default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
 trigger_map:
 - push_branch: 'bitrise_yml_new'
-  workflow: android_test_release_step
+  workflow: test_release
 - push_branch: 'develop'
   workflow: test_release
 - push_branch: 'test-android-build'
@@ -142,15 +142,19 @@ workflows:
         is_always_run: false
     - deploy-to-bitrise-io@1.9.4:
         inputs:
-        - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/release/
+        - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/release/app-release.apk
         title: Bitrise Deploy APK 
     - deploy-to-bitrise-io@1.9.4:
         inputs:
-        - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/release/  
-        title: Bitrise Deploy AAR 
+        - deploy_path: $PROJECT_LOCATION/app/build/outputs/pk/release/sha512sums.txt
+        title: Bitrise Deploy Checksum
     - deploy-to-bitrise-io@1.9.4:
         inputs:
-        - deploy_path: sourcemaps/android
+        - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/release/app-release.aab
+        title: Bitrise Deploy AAB 
+    - deploy-to-bitrise-io@1.9.4:
+        inputs:
+        - deploy_path: sourcemaps/android/index.js.map
         title: Bitrise Deploy Sourcemaps
   ios_test_release_step:
     before_run:
@@ -187,9 +191,9 @@ workflows:
         - deploy_path: $PROJECT_LOCATION_IOS/build/
   test_release:
     before_run:
-    - ci_test
+    # - ci_test
     - android_test_release_step
-    - ios_test_release_step
+    # - ios_test_release_step
     steps:
     - yarn@0:
         inputs:
