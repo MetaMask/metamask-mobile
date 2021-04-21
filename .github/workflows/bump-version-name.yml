@@ -12,9 +12,9 @@ jobs:
       run: |
         echo "variables"
         echo github.event.pull_request.head.ref
-        echo "${ORIGIN_BRANCH}"
+        echo "${GITHUB_REF##*/}"
         echo "${{ github.base_ref }}"
-        ./scripts/bump-version.sh  "${{ github.base_ref }}"
+        ./scripts/bump-version.sh  "${GITHUB_REF##*/}"
         git diff
     - uses: EndBug/add-and-commit@v7
       with:
