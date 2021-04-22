@@ -207,7 +207,7 @@ buildIosReleaseE2E(){
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
 		fi
-		xcodebuild -workspace ios/MetaMask.xcworkspace -scheme MetaMask -configuration Release -sdk iphonesimulator -derivedDataPath ios/build
+		xcodebuild -workspace ios/MetaMask.xcworkspace -scheme MetaMask -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build
 	fi
 }
 
@@ -225,7 +225,7 @@ buildAndroidRelease(){
 	fi
 
 	# GENERATE APK
-	cd android && ./gradlew assembleDebug --no-daemon --max-workers 2
+	cd android && ./gradlew assembleRelease --no-daemon --max-workers 2
 
 	# # GENERATE BUNDLE
 	# if [ "$GENERATE_BUNDLE" = true ] ; then
