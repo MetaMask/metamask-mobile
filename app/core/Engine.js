@@ -242,8 +242,8 @@ class Engine {
 		const { tokens } = AssetsController.state;
 		let ethFiat = 0;
 		let tokenFiat = 0;
+		const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
 		if (accounts[selectedAddress]) {
-			const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
 			ethFiat = weiToFiatNumber(accounts[selectedAddress].balance, conversionRate, decimalsToShow);
 		}
 		if (tokens.length > 0) {
@@ -256,7 +256,12 @@ class Engine {
 					(item.address in tokenBalances
 						? renderFromTokenMinimalUnit(tokenBalances[item.address], item.decimals)
 						: undefined);
-				const tokenBalanceFiat = balanceToFiatNumber(tokenBalance, conversionRate, exchangeRate);
+				const tokenBalanceFiat = balanceToFiatNumber(
+					tokenBalance,
+					conversionRate,
+					exchangeRate,
+					decimalsToShow
+				);
 				tokenFiat += tokenBalanceFiat;
 			});
 		}
@@ -383,6 +388,7 @@ class Engine {
 			const checksummedAddress = toChecksumAddress(address);
 			if (accounts.hd.includes(checksummedAddress) || accounts.simpleKeyPair.includes(checksummedAddress)) {
 				updatedPref.identities[checksummedAddress] = preferences.identities[address];
+				updatedPref.identities[checksummedAddress].importTime = Date.now();
 			}
 		});
 		await PreferencesController.update(updatedPref);

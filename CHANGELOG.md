@@ -1,6 +1,10 @@
 # Changelog
 
-## Current Develop Branch
+## v2.2.0 - Apr 21 2021
+- [#2547](https://github.com/MetaMask/metamask-mobile/pull/2547): Include decimalsToShow in balanceToFiatNumber
+- [#2554](https://github.com/MetaMask/metamask-mobile/pull/2554): Bug fix/sync import time
+- [#2546](https://github.com/MetaMask/metamask-mobile/pull/2546): Fix analytics try catch
+- [#2543](https://github.com/MetaMask/metamask-mobile/pull/2543): Only get nonce from the network if the feature is enabled
 - [#2460](https://github.com/MetaMask/metamask-mobile/pull/2460): Feature/tx local state logs
 - [#2540](https://github.com/MetaMask/metamask-mobile/pull/2540): bump v2.1.2
 - [#2538](https://github.com/MetaMask/metamask-mobile/pull/2538): fix/connection change handler
@@ -21,6 +25,9 @@
 - [#2406](https://github.com/MetaMask/metamask-mobile/pull/2406): Bump eslint-plugin-prettier from 3.3.0 to 3.3.1
 - [#2403](https://github.com/MetaMask/metamask-mobile/pull/2403): Bump babel-eslint from 10.0.3 to 10.1.0
 - [#2381](https://github.com/MetaMask/metamask-mobile/pull/2381): Display correct number of decimals for 'usd' fiat
+
+## v2.1.3 - Apr 19 2021
+- [#2548](https://github.com/MetaMask/metamask-mobile/pull/2548): Hotfix analytics try catch
 
 ## v2.1.2 - Apr 16 2021
 - [#2538](https://github.com/MetaMask/metamask-mobile/pull/2538): fix/connection change handler
