@@ -186,9 +186,9 @@ workflows:
         - deploy_path: $PROJECT_LOCATION_IOS/build/
   test_release:
     before_run:
-    - code_setup
     # - ci_test
     # - android_test_release_step
+    - e2e_setup
     - ios_test_release_step
     steps:
     - yarn@0:
