@@ -178,7 +178,7 @@ workflows:
             #!/usr/bin/env bash 
             jq 'del(.engines)' package.json > new.json && mv new.json package.json
             node -v
-            METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
+            METAMASK_ENVIRONMENT='production' yarn build:ios:release:e2e
         title: Build iOS Pre-Release Bundle
         is_always_run: false
     - deploy-to-bitrise-io@1.9.4:
