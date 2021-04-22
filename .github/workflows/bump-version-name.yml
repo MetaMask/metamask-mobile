@@ -11,8 +11,6 @@ on:
 jobs:
   bump-version-name:
     runs-on: ubuntu-latest
-    if: |
-      startsWith(github.event.pull_request.head.ref, 'release/')
     steps:
     - uses: actions/checkout@v2
     - name: Bump script
