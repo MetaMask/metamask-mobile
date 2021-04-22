@@ -18,55 +18,11 @@ jobs:
         BASE_REF: ${{ github.base_ref }}
         HEAD_REF: ${{ github.head_ref }}
       run: |
-        echo "variables"
-        echo github.event.pull_request.head.ref
-        echo "$HEAD_REF"
-        ./scripts/bump-version.sh  "$HEAD_REF"
+        ./scripts/bump-version.sh "$HEAD_REF"
         git diff
-    - uses: EndBug/add-and-commit@v7
-      with:
-        # The arguments for the `git a dd` command (see the paragraph below for more info)
-        # Default: '.'
-        add: 'bitrise.yml'
-
-        # The name of the user that will be displayed as the author of the commit
-        # Default: author of the commit that triggered the run
-        author_name: estebanmino
-
-        # The email of the user that will be displayed as the author of the commit
-        # Default: author of the commit that triggered the run
-        author_email: efmino@uc.cl
-
-        # Name of the branch to use, if different from the one that triggered the workflow
-        # Default: the branch that triggered the run
-        # branch: some-branch
-
-        # The local path to the directory where your repository is located. You should use actions/checkout first to set it up
-        # Default: '.'
-        # cwd: './path/to/the/repo'
-
-        # The message for the commit
-        # Default: 'Commit from GitHub Actions (name of the workflow)'
-        message: 'Bump version name'
-
-        # The flag used on the pull strategy. Use NO-PULL to avoid the action pulling at all.
-        # Default: '--no-rebase'
-        # pull_strategy: 'NO-PULL or --no-rebase or --no-ff or --rebase'
-
-        # Whether to push the commit and, if any, its tags to the repo. It can also be used to set the git push arguments (see the paragraph below for more info)
-        # Default: true
-        # push: false
-
-        # The arguments for the `git rm` command (see the paragraph below for more info)
-        # Default: ''
-        # remove: './dir/ol d_file.js'
-
-        # Whether to use the --signoff option on `git commit` (only `true` and `false` are accepted)
-        # Default: false
-        # signoff: true
-
-        # Arguments for the git tag command (the tag name always needs to be the first word not preceded by an hyphen)
-        # Default: ''
-        tag: 'v1.0.0 --force'
-
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git add .
+        git commit -m "Bump version name"
+        git push origin HEAD:"$HEAD_REF" --force
 
