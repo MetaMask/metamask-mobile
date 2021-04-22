@@ -13,6 +13,7 @@ trigger_map:
   workflow: ci_test
 - pull_request_source_branch: '*'
   workflow: ci_test
+
 # Will use this for the release and deploy to store
 - pull_request_source_branch: "*"
   workflow: ci_test
@@ -26,7 +27,7 @@ workflows:
     - git-clone@4: {}
     - nvm@1:
         inputs:
-        - node_version: ''
+        - node_version: '14'
     - yarn@0:
         inputs:
         - cache_local_deps: 'yes'
