@@ -822,7 +822,11 @@
 		"address_from_balance": "Balance:",
 		"status": "Status",
 		"date": "Date",
-		"nonce": "Nonce"
+		"nonce": "Nonce",
+		"from_device_label": "from this device",
+		"import_wallet_row": "Account added to this device",
+		"import_wallet_label": "Account Added",
+		"import_wallet_tip": "All future transactions made from this device will include a label \"from this device\" next to the timestamp. For transactions dated before adding the account, this history will not indicate which outgoing transactions originated from this device."
 	},
 	"address_book": {
 		"recents": "Recents",

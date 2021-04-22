@@ -209,7 +209,8 @@ class TransactionReviewInformation extends PureComponent {
 	};
 
 	componentDidMount = async () => {
-		await this.setNetworkNonce();
+		const { showCustomNonce } = this.props;
+		showCustomNonce && (await this.setNetworkNonce());
 	};
 
 	setNetworkNonce = async () => {
