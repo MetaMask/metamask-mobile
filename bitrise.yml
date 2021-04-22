@@ -13,6 +13,7 @@ trigger_map:
   workflow: ci_test
 - pull_request_source_branch: '*'
   workflow: ci_test
+  
 # Will use this for the release and deploy to store
 - pull_request_source_branch: "*"
   workflow: ci_test
