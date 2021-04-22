@@ -70,6 +70,15 @@ export function createLoggerMiddleware(opts) {
 					if (containsUserRejectedError(error.message, error.code)) {
 						//TODO After merging PR 2529, use return trackErrorAsAnalytics(`Error in RPC response: User rejected`, error.message);
 					} else {
+						/**
+						 * Example of a rpc error:
+						 * { "code":-32603,
+						 *   "message":"Internal JSON-RPC error.",
+						 *   "data":{"code":-32000,"message":"gas required exceeds allowance (59956966) or always failing transaction"}
+						 * }
+						 * This will make the error log to sentry with the title "gas required exceeds allowance (59956966) or always failing transaction"
+						 * making it easier to differentiate each error.
+						 */
 						let errorToLog = error;
 						const errorParams = {
 							message: 'Error in RPC response',
