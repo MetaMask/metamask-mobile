@@ -7,8 +7,6 @@ trigger_map:
   workflow: test_release
 - push_branch: 'develop'
   workflow: test_release
-- push_branch: 'bitrise-yml-bump-version'
-  workflow: bump_version_minor
 - push_branch: '*'
   workflow: ci_test
 - pull_request_source_branch: '*'
@@ -176,8 +174,8 @@ workflows:
     - yarn@0:
         inputs:
         - cache_local_deps: 'yes'
-        - command: sourcemaps:ios
-        title: iOS Sourcemaps
+        - command: release:ios
+        title: iOS Sourcemaps & Build
     - xcode-archive@3:
         inputs:
         - export_method: enterprise
@@ -185,9 +183,8 @@ workflows:
     # - deploy-to-itunesconnect-application-loader@1: {}
   test_release:
     before_run:
-    # - ci_test
-    # - android_test_release_step
     - code_setup
+    # - android_test_release_step
     - ios_test_release_step
     steps:
     # - yarn@0:
