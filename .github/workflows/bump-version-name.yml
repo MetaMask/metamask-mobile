@@ -6,8 +6,8 @@ on:
   pull_request:
     branches:
       - develop
-      - bitrise-yml-bump-version
-      # - main
+      - main
+      - bitrise_yml_new
     # types: [opened]
 jobs:
   bump-version-name:
