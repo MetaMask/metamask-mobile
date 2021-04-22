@@ -171,11 +171,15 @@ workflows:
         title: Install Bundler
         is_always_run: false
     - cocoapods-install@2: {}
-    - yarn@0:
+    - script@1:
         inputs:
-        - cache_local_deps: 'yes'
-        - command: release:ios
+        - content: |-
+            #!/usr/bin/env bash 
+            jq 'del(.engines)' package.json > new.json && mv new.json package.json
+            node -v
+            METAMASK_ENVIRONMENT='production' yarn release:ios
         title: iOS Sourcemaps & Build
+        is_always_run: false
     - xcode-archive@3:
         inputs:
         - export_method: enterprise
