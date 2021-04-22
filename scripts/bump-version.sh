@@ -25,12 +25,12 @@ if [[ $1 == *"release/"* ]] ; then
         patch=$(($PATCH +  1));
         version=$MAJOR'.'$MINOR'.'$patch
     fi
+
+    echo "Bumping versionName to"
+    echo $version
+
+    sed -i -e 's/VERSION_NAME: [0-9]\{1,\}.[0-9]\{1,\}.[0-9]\{1,\}/VERSION_NAME: '$version'/' bitrise.yml
+    sed -i -e 's/"version": "[0-9]\{1,\}.[0-9]\{1,\}.[0-9]\{1,\}"/"version": "'$version'"/' package.json
+
+    echo "Bumping versionName finished"
 fi
-
-echo "Bumping versionName to"
-echo $version
-
-sed -i -e 's/VERSION_NAME: [0-9]\{1,\}.[0-9]\{1,\}.[0-9]\{1,\}/VERSION_NAME: '$version'/' bitrise.yml
-sed -i -e 's/"version": "[0-9]\{1,\}.[0-9]\{1,\}.[0-9]\{1,\}"/"version": "'$version'"/' package.json
-
-echo "Bumping versionName finished"
