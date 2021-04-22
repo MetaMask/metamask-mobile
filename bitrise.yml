@@ -120,8 +120,6 @@ workflows:
         title: All Tests Passed
         is_always_run: false
   android_test_release_step:
-    before_run:
-    - code_setup
     steps:
     - file-downloader@1:
         inputs:
@@ -156,8 +154,6 @@ workflows:
         - deploy_path: sourcemaps/android/index.js.map
         title: Bitrise Deploy Sourcemaps
   ios_test_release_step:
-    before_run:
-    - code_setup
     steps:
     - certificate-and-profile-installer@1: {}
     - script@1:
@@ -190,9 +186,10 @@ workflows:
         - deploy_path: $PROJECT_LOCATION_IOS/build/
   test_release:
     before_run:
+    - code_setup
     # - ci_test
-    - android_test_release_step
-    # - ios_test_release_step
+    # - android_test_release_step
+    - ios_test_release_step
     steps:
     - yarn@0:
         inputs:
