@@ -207,7 +207,7 @@ buildIosReleaseE2E(){
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
 		fi
-		xcodebuild -workspace ios/MetaMask.xcworkspace -scheme MetaMask -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build
+		xcodebuild -workspace ios/MetaMask.xcworkspace -scheme MetaMask -configuration Release -sdk iphonesimulator -derivedDataPath ios/build
 	fi
 }
 
@@ -217,31 +217,24 @@ buildAndroidRelease(){
 	fi
 	prebuild_android
 
-	if [ "$PRE_RELEASE" = true ] ; then
-		TARGET="android/app/build.gradle"
-		sed -i'' -e 's/getPassword("mm","mm-upload-key")/"ANDROID_KEY"/' $TARGET;
-		sed -i'' -e "s/ANDROID_KEY/$ANDROID_KEY/" $TARGET;
-		echo "$ANDROID_KEYSTORE" | base64 --decode > android/keystores/release.keystore
-	fi
-
 	# GENERATE APK
 	cd android && ./gradlew assembleRelease --no-daemon --max-workers 2
 
 	# # GENERATE BUNDLE
-	# if [ "$GENERATE_BUNDLE" = true ] ; then
-	# 	./gradlew bundleDebug
-	# fi
+	if [ "$GENERATE_BUNDLE" = true ] ; then
+		./gradlew bundleRelease
+	fi
 
-	# if [ "$PRE_RELEASE" = true ] ; then
-	# 	# Generate sourcemaps
-	# 	yarn sourcemaps:android
-	# 	# Generate checksum
-	# 	yarn build:android:checksum
-	# fi
+	if [ "$PRE_RELEASE" = true ] ; then
+		# Generate sourcemaps
+		yarn sourcemaps:android
+		# Generate checksum
+		yarn build:android:checksum
+	fi
 
-	# if [ "$PRE_RELEASE" = false ] ; then
-	# 	adb install app/build/outputs/apk/release/app-release.apk
-	# fi
+	if [ "$PRE_RELEASE" = false ] ; then
+		adb install app/build/outputs/apk/release/app-release.apk
+	fi
 }
 
 buildAndroidReleaseE2E(){
