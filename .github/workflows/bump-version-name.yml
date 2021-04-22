@@ -12,7 +12,7 @@ on:
 jobs:
   bump-version-name:
     runs-on: ubuntu-latest
-    if: "contains(github.head_ref, 'release/'')"
+    if: "contains(github.head_ref, 'release/')"
     steps:
     - uses: actions/checkout@v2
     - name: Bump script
