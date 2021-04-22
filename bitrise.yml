@@ -7,15 +7,10 @@ trigger_map:
   workflow: test_release
 - push_branch: 'develop'
   workflow: test_release
-- push_branch: '*'
-  workflow: ci_test
+- push_branch: 'main'
+  workflow: test_release
 - pull_request_source_branch: '*'
   workflow: ci_test
-
-# Will use this for the release and deploy to store
-- pull_request_source_branch: "*"
-  workflow: ci_test
-  pull_request_target_branch: develop
 
 workflows:
   code_setup:
@@ -26,6 +21,7 @@ workflows:
     - nvm@1:
         inputs:
         - node_version: '14'
+    - cache-pull@2: {}
     - yarn@0:
         inputs:
         - cache_local_deps: 'yes'
@@ -36,12 +32,13 @@ workflows:
         - cache_local_deps: 'yes'
         - command: audit:ci
         title: Audit Dependencies
-    # - yarn@0:
-    #     title: Lint
-    #     inputs:
-    #     - cache_local_deps: 'yes'
-    #     - command: lint
-    #     is_always_run: true
+    - yarn@0:
+        title: Lint
+        inputs:
+        - cache_local_deps: 'yes'
+        - command: lint
+        is_always_run: true
+    - cache-push@2: {}
   ci_test:
     before_run:
     - code_setup
@@ -188,8 +185,8 @@ workflows:
   test_release:
     before_run:
     - code_setup
-    # - android_test_release_step
     - ios_test_release_step
+    - android_test_release_step
     steps:
     # - yarn@0:
     #     inputs:
