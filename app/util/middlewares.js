@@ -71,14 +71,25 @@ export function createLoggerMiddleware(opts) {
 						//TODO After merging PR 2529, use return trackErrorAsAnalytics(`Error in RPC response: User rejected`, error.message);
 					} else {
 						let errorToLog = error;
-						if (error.data && error.data.message) {
-							errorToLog = new Error(error.data.message);
+						const errorParams = {
+							message: 'Error in RPC response',
+							orginalError: error,
+							res: resWithoutError
+						};
+
+						if (error.message) {
+							errorToLog = new Error(error.message);
 						}
-						Logger.error(errorToLog, {
-							message: error.message,
-							res: resWithoutError,
-							data: error.data
-						});
+
+						if (error.data) {
+							errorParams.data = error.data;
+
+							if (error.data.message) {
+								errorToLog = new Error(error.data.message);
+							}
+						}
+
+						Logger.error(errorToLog, errorParams);
 					}
 				}
 			}
