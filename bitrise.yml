@@ -172,20 +172,25 @@ workflows:
         title: Install Bundler
         is_always_run: false
     - cocoapods-install@2: {}
+    - yarn@0:
+        inputs:
+        - cache_local_deps: 'yes'
+        - command: sourcemaps:ios
+        title: iOS Sourcemaps
     - xcode-archive@3:
         inputs:
         - export_method: enterprise
         - configuration: Release
-    - deploy-to-bitrise-io@1.9.4:
-        inputs:
-        - deploy_path: $PROJECT_LOCATION_IOS/build/Build/Products/Release-iphonesimulator/MetaMask.app
-        title: Upload app artifacts
-    - deploy-to-bitrise-io@1.9.4:
-        inputs:
-        - deploy_path: $PROJECT_LOCATION_IOS/build/
-    - deploy-to-bitrise-io@1.9.4:
-        inputs:
-        - deploy_path: $PROJECT_LOCATION_IOS/build/Build/Products/*
+    # - deploy-to-bitrise-io@1.9.4:
+    #     inputs:
+    #     - deploy_path: $PROJECT_LOCATION_IOS/build/Build/Products/Release-iphonesimulator/MetaMask.app
+    #     title: Upload app artifacts
+    # - deploy-to-bitrise-io@1.9.4:
+    #     inputs:
+    #     - deploy_path: $PROJECT_LOCATION_IOS/build/
+    # - deploy-to-bitrise-io@1.9.4:
+    #     inputs:
+    #     - deploy_path: $PROJECT_LOCATION_IOS/build/Build/Products/*
   test_release:
     before_run:
     # - ci_test
