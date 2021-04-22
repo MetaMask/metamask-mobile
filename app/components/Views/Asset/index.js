@@ -9,6 +9,7 @@ import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import Engine from '../../../core/Engine';
 import { safeToChecksumAddress } from '../../../util/address';
 import { SWAPS_CONTRACT_ADDRESS } from '@estebanmino/controllers/dist/swaps/SwapsUtil';
+import { addAccountTimeFlagFilter } from '../../../util/transactions';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -46,6 +47,10 @@ class Asset extends PureComponent {
 		/* Selected currency
 		*/
 		currentCurrency: PropTypes.string,
+		/**
+		/* Identities object required to get account name
+		*/
+		identities: PropTypes.object,
 		/**
 		 * A string that represents the selected address
 		 */
@@ -174,15 +179,24 @@ class Asset extends PureComponent {
 
 	normalizeTransactions() {
 		if (this.isNormalizing) return;
+		let accountAddedTimeInsertPointFound = false;
+		const addedAccountTime = this.props.identities[this.props.selectedAddress]?.importTime;
 		this.isNormalizing = true;
 		let submittedTxs = [];
 		const newPendingTxs = [];
 		const confirmedTxs = [];
 		const { chainId, transactions } = this.props;
 		if (transactions.length) {
+			transactions.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
 			const txs = transactions.filter(tx => {
-				const filerResult = this.filter(tx);
-				if (filerResult) {
+				const filterResult = this.filter(tx);
+				if (filterResult) {
+					tx.insertImportTime = addAccountTimeFlagFilter(
+						tx,
+						addedAccountTime,
+						accountAddedTimeInsertPointFound
+					);
+					if (tx.insertImportTime) accountAddedTimeInsertPointFound = true;
 					switch (tx.status) {
 						case 'submitted':
 						case 'signed':
@@ -197,12 +211,8 @@ class Asset extends PureComponent {
 							break;
 					}
 				}
-				return filerResult;
+				return filterResult;
 			});
-
-			txs.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
-			submittedTxs.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
-			confirmedTxs.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
 
 			const submittedNonces = [];
 			submittedTxs = submittedTxs.filter(transaction => {
@@ -211,6 +221,10 @@ class Asset extends PureComponent {
 				return !alreadySubmitted;
 			});
 
+			//if the account added insertpoint is not found add it to the last transaction
+			if (!accountAddedTimeInsertPointFound && txs && txs.length) {
+				txs[txs.length - 1].insertImportTime = true;
+			}
 			// To avoid extra re-renders we want to set the new txs only when
 			// there's a new tx in the history or the status of one of the existing txs changed
 			if (
@@ -295,6 +309,7 @@ const mapStateToProps = state => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	identities: state.engine.backgroundState.PreferencesController.identities,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	transactions: state.engine.backgroundState.TransactionController.transactions,

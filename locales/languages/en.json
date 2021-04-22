@@ -229,7 +229,7 @@
 		"coming_soon": "Coming soon...",
 		"wallet": "Wallet",
 		"transaction_history": "Transaction History",
-		"submit_feedback": "Send Feedback",
+		"request_feature": "Request a Feature",
 		"submit_feedback_message": "Choose the type of feedback to send.",
 		"submit_bug": "Bug Report",
 		"submit_general_feedback": "General",
@@ -430,6 +430,8 @@
 		"privacy_mode_desc": "Websites must request access to view your account information.",
 		"show_hex_data": "Show Hex Data",
 		"show_hex_data_desc": "Select this to show the hex data field on the send screen.",
+		"show_custom_nonce": "Customize transaction nonce",
+		"custom_nonce_desc": "Turn this on to change the nonce (transaction number) on confirmation screens. This is an advanced feature, use cautiously.",
 		"accounts_identicon_title": "Account Identicon",
 		"accounts_identicon_desc": "Jazzicons and Blockies are two different styles of unique icons that help you identify an account at a glance.",
 		"jazzicons": "Jazzicons",
@@ -591,6 +593,7 @@
 		"reject": "Reject",
 		"edit": "Edit",
 		"cancel": "Cancel",
+		"save": "Save",
 		"speedup": "Speed up",
 		"from": "From",
 		"gas_fee": "Network fee",
@@ -598,6 +601,12 @@
 		"gas_fee_average": "AVERAGE",
 		"gas_fee_slow": "SLOW",
 		"hex_data": "Hex Data",
+		"custom_nonce": "Nonce",
+		"this_is_an_advanced": "This is an advanced feature used to cancel or speed up any pending transactions.",
+		"current_suggested_nonce": "Current suggested nonce:",
+		"edit_transaction_nonce": "Edit transaction nonce",
+		"think_of_the_nonce": "Think of the nonce as the transaction number of an account. Every account's nonce begins with 0 for the first transaction and continues in sequential order.",
+		"nonce_warning": "Warning: You may encounter issues with future transactions if you continue. Use with caution.",
 		"review_details": "DETAILS",
 		"review_data": "DATA",
 		"data": "Data",
@@ -813,7 +822,11 @@
 		"address_from_balance": "Balance:",
 		"status": "Status",
 		"date": "Date",
-		"nonce": "Nonce"
+		"nonce": "Nonce",
+		"from_device_label": "from this device",
+		"import_wallet_row": "Account added to this device",
+		"import_wallet_label": "Account Added",
+		"import_wallet_tip": "All future transactions made from this device will include a label \"from this device\" next to the timestamp. For transactions dated before adding the account, this history will not indicate which outgoing transactions originated from this device."
 	},
 	"address_book": {
 		"recents": "Recents",
@@ -1248,8 +1261,9 @@
 	},
 	"offline_mode": {
 		"title": "You're offline",
-		"text": "Check your internet connection and try again",
-		"try_again": "Try again"
+		"text": "Unable to connect to the blockchain host.",
+		"try_again": "Try again",
+		"learn_more": "Learn more"
 	},
 	"walletconnect_return_modal": {
 		"title": "You're all set!",
