@@ -8,7 +8,7 @@ on:
       - develop
       - main
       - bitrise_yml_new
-    # types: [opened]
+    types: [opened]
 jobs:
   bump-version-name:
     runs-on: ubuntu-latest

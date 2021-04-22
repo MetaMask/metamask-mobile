@@ -323,4 +323,4 @@ app:
     PROJECT_LOCATION_IOS: ios
   - opts:
       is_expand: false
-    VERSION_NAME: 1.0.1
+    VERSION_NAME: 2.2.0
