@@ -181,21 +181,12 @@ workflows:
         inputs:
         - export_method: enterprise
         - configuration: Release
-    # - deploy-to-bitrise-io@1.9.4:
-    #     inputs:
-    #     - deploy_path: $PROJECT_LOCATION_IOS/build/Build/Products/Release-iphonesimulator/MetaMask.app
-    #     title: Upload app artifacts
-    # - deploy-to-bitrise-io@1.9.4:
-    #     inputs:
-    #     - deploy_path: $PROJECT_LOCATION_IOS/build/
-    # - deploy-to-bitrise-io@1.9.4:
-    #     inputs:
-    #     - deploy_path: $PROJECT_LOCATION_IOS/build/Build/Products/*
+    # - deploy-to-itunesconnect-application-loader@1: {}
   test_release:
     before_run:
     # - ci_test
     # - android_test_release_step
-    - e2e_setup
+    - code_setup
     - ios_test_release_step
     steps:
     # - yarn@0:
@@ -257,4 +248,3 @@ app:
   - opts:
       is_expand: false
     IOS_APP_LINK: ''
-    
