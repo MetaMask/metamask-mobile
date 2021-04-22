@@ -1,0 +1,29 @@
+name: Bump version name
+on:
+  # push:
+  #   branches:
+  #     - develop
+  pull_request:
+    branches:
+      - develop
+      - main
+      - bitrise_yml_new
+    types: [opened]
+jobs:
+  bump-version-name:
+    runs-on: ubuntu-latest
+    if: contains(github.head_ref, "release/")
+    steps:
+    - uses: actions/checkout@v2
+    - name: Bump script
+      env:
+        HEAD_REF: ${{ github.head_ref }}
+      run: |
+        ./scripts/bump-version.sh "$HEAD_REF"
+        git diff
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git add bitrise.yml
+        git add package.json
+        git commit -m "Bump version name"
+        git push origin HEAD:"$HEAD_REF" --force
