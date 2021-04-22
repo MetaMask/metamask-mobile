@@ -1,14 +1,28 @@
 name: Bump version name
 on:
-  push:
+  # push:
+  #   branches:
+  #     - develop
+  pull_request:
     branches:
-      - bitrise-yml-bump-version
+      - develop
+      - main
+    types: [opened]
 jobs:
   bump-version-name:
     runs-on: ubuntu-latest
-    if: |
-      github.event.pull_request.merged == true &&
-      startsWith(github.event.pull_request.head.ref, 'release/')
     steps:
+    - uses: actions/checkout@v2
     - name: Bump script
-      uses: ../../scripts/bump-version.sh github.event.pull_request.head.ref
+      env:
+        GITHUB_CONTEXT: ${{ toJSON(github) }}
+        BASE_REF: ${{ github.base_ref }}
+        HEAD_REF: ${{ github.head_ref }}
+      run: |
+        ./scripts/bump-version.sh "$HEAD_REF"
+        git diff
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git add .
+        git commit -m "Bump version name"
+        git push origin HEAD:"$HEAD_REF" --force
