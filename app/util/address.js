@@ -68,7 +68,7 @@ export async function importAccountFromPrivateKey(private_key) {
  */
 export function isENS(name) {
 	const rec = name && name.split('.');
-	if (!rec || rec.length === 1 || !AppConstants.supportedTLDs.includes(rec[rec.length - 1].toLowerCase())) {
+	if (!rec || rec.length === 1 || !AppConstants.supportedTLDs.includes(rec[rec.length - 1])) {
 		return false;
 	}
 	return true;
