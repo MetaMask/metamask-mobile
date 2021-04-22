@@ -1,8 +1,8 @@
 name: Bump version name
 on:
-  push:
-    branches:
-      - develop
+  # push:
+  #   branches:
+  #     - develop
   pull_request:
     branches:
       - develop
