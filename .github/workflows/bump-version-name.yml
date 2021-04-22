@@ -28,4 +28,3 @@ jobs:
         git add .
         git commit -m "Bump version name"
         git push origin HEAD:"$HEAD_REF" --force
-
