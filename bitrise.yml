@@ -181,9 +181,25 @@ workflows:
             METAMASK_ENVIRONMENT='production' yarn build:ios:release:e2e
         title: Build iOS Pre-Release Bundle
         is_always_run: false
+    - script@1:
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash 
+            jq 'del(.engines)' package.json > new.json && mv new.json package.json
+            node -v
+            METAMASK_ENVIRONMENT='production' yarn build:ios:release
+        title: Build iOS Release Bundle
+        is_always_run: false
+    - deploy-to-bitrise-io@1.9.4:
+        inputs:
+        - deploy_path: $PROJECT_LOCATION_IOS/build/Build/Products/Release-iphonesimulator/MetaMask.app
+        title: Upload app artifacts
     - deploy-to-bitrise-io@1.9.4:
         inputs:
         - deploy_path: $PROJECT_LOCATION_IOS/build/
+    - deploy-to-bitrise-io@1.9.4:
+        inputs:
+        - deploy_path: $PROJECT_LOCATION_IOS/build/Build/Products/*
   test_release:
     before_run:
     # - ci_test
@@ -191,11 +207,11 @@ workflows:
     - e2e_setup
     - ios_test_release_step
     steps:
-    - yarn@0:
-        inputs:
-        - command: build:announce
-        title: Accouncing pre-release
-        is_always_run: false      
+    # - yarn@0:
+    #     inputs:
+    #     - command: build:announce
+    #     title: Accouncing pre-release
+    #     is_always_run: false      
   bump_version_minor:
     steps:
     - activate-ssh-key@4:
