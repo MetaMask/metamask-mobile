@@ -27,7 +27,7 @@ if [[ $1 == *"release/"* ]] ; then
     fi
 fi
 
-echo "Bumping versionName to "
+echo "Bumping versionName to"
 echo $version
 
 sed -i -e 's/VERSION_NAME: [0-9]\{1,\}.[0-9]\{1,\}.[0-9]\{1,\}/VERSION_NAME: '$version'/' bitrise.yml
