@@ -21,7 +21,7 @@ exports[`TransactionReviewSummary should render correctly 1`] = `
           "borderColor": "#848c96",
           "borderRadius": 12,
           "borderWidth": 1,
-          "color": "#000000",
+          "color": "#24292E",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 10,
           "fontWeight": "400",

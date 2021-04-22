@@ -1288,7 +1288,7 @@
 	},
 	"offline_mode": {
 		"title": "Anda sedang offline",
-		"text": "Periksa koneksi internet Anda dan coba lagi",
+		"text": "Tidak dapat terhubung ke host blockchain.",
 		"try_again": "Coba lagi"
 	},
 	"payment_channel_request": {

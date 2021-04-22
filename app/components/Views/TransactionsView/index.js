@@ -7,6 +7,7 @@ import Engine from '../../../core/Engine';
 import { showAlert } from '../../../actions/alert';
 import Transactions from '../../UI/Transactions';
 import { safeToChecksumAddress } from '../../../util/address';
+import { addAccountTimeFlagFilter } from '../../../util/transactions';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -18,6 +19,7 @@ const TransactionsView = ({
 	navigation,
 	conversionRate,
 	selectedAddress,
+	identities,
 	networkType,
 	currentCurrency,
 	transactions,
@@ -32,6 +34,10 @@ const TransactionsView = ({
 	const filterTransactions = useCallback(() => {
 		const network = Engine.context.NetworkController.state.network;
 		if (network === 'loading') return;
+
+		let accountAddedTimeInsertPointFound = false;
+		const addedAccountTime = identities[selectedAddress]?.importTime;
+
 		const ethFilter = tx => {
 			const {
 				transaction: { from, to },
@@ -61,6 +67,10 @@ const TransactionsView = ({
 		const allTransactions = allTransactionsSorted.filter(tx => {
 			const filter = ethFilter(tx);
 			if (!filter) return false;
+
+			tx.insertImportTime = addAccountTimeFlagFilter(tx, addedAccountTime, accountAddedTimeInsertPointFound);
+			if (tx.insertImportTime) accountAddedTimeInsertPointFound = true;
+
 			switch (tx.status) {
 				case 'submitted':
 				case 'signed':
@@ -84,15 +94,19 @@ const TransactionsView = ({
 			return !alreadySubmitted;
 		});
 
+		//if the account added insertpoint is not found add it to the last transaction
+		if (!accountAddedTimeInsertPointFound && allTransactions && allTransactions.length) {
+			allTransactions[allTransactions.length - 1].insertImportTime = true;
+		}
+
 		setAllTransactions(allTransactions);
 		setSubmittedTxs(submittedTxsFiltered);
 		setConfirmedTxs(confirmedTxs);
 		setLoading(false);
-	}, [transactions, selectedAddress, tokens, chainId]);
+	}, [transactions, identities, selectedAddress, tokens, chainId]);
 
 	useEffect(() => {
 		setLoading(true);
-
 		/*
 		Since this screen is always mounted and computations happen on this screen everytime the user changes network
 		using the InteractionManager will help by giving enough time for any animations/screen transactions before it starts
@@ -131,8 +145,12 @@ TransactionsView.propTypes = {
 	 */
 	currentCurrency: PropTypes.string,
 	/**
-		/* navigation object required to push new views
-		*/
+	/* Identities object required to get account name
+	*/
+	identities: PropTypes.object,
+	/**
+	/* navigation object required to push new views
+	*/
 	navigation: PropTypes.object,
 	/**
 	 * A string that represents the selected address
@@ -161,6 +179,7 @@ const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
+	identities: state.engine.backgroundState.PreferencesController.identities,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId

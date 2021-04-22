@@ -16,6 +16,20 @@ const styles = StyleSheet.create({
 	},
 	over: {
 		color: colors.red
+	},
+	customNonce: {
+		marginTop: 10,
+		marginHorizontal: 24,
+		borderWidth: 1,
+		borderColor: colors.grey050,
+		borderRadius: 8,
+		paddingVertical: 14,
+		paddingHorizontal: 16,
+		display: 'flex',
+		flexDirection: 'row'
+	},
+	nonceNumber: {
+		marginLeft: 'auto'
 	}
 });
 
@@ -67,7 +81,19 @@ class TransactionReviewFeeCard extends PureComponent {
 		/**
 		 * True if transaction is gas price is higher than the "FAST" value
 		 */
-		warningGasPriceHigh: PropTypes.string
+		warningGasPriceHigh: PropTypes.string,
+		/**
+		 * Indicates whether custom nonce should be shown in transaction editor
+		 */
+		showCustomNonce: PropTypes.bool,
+		/**
+		 * Current nonce
+		 */
+		nonceValue: PropTypes.number,
+		/**
+		 * Function called when editing nonce
+		 */
+		onNonceEdit: PropTypes.func
 	};
 
 	renderIfGasEstimationReady = children => {
@@ -93,8 +119,12 @@ class TransactionReviewFeeCard extends PureComponent {
 			gasEstimationReady,
 			edit,
 			over,
-			warningGasPriceHigh
+			warningGasPriceHigh,
+			showCustomNonce,
+			nonceValue,
+			onNonceEdit
 		} = this.props;
+
 		let amount;
 		let networkFee;
 		let totalAmount;
@@ -111,44 +141,60 @@ class TransactionReviewFeeCard extends PureComponent {
 			equivalentTotalAmount = totalValue;
 		}
 		return (
-			<Summary style={styles.overview}>
-				<Summary.Row>
-					<Text primary bold>
-						{strings('transaction.amount')}
-					</Text>
-					<Text primary bold upper>
-						{amount}
-					</Text>
-				</Summary.Row>
-				<Summary.Row>
-					<Summary.Col>
+			<View>
+				<Summary style={styles.overview}>
+					<Summary.Row>
 						<Text primary bold>
-							{strings('transaction.gas_fee')}
+							{strings('transaction.amount')}
 						</Text>
-						<TouchableOpacity onPress={edit} disabled={!gasEstimationReady}>
-							<Text link bold>
-								{'  '}
-								{strings('transaction.edit')}
+						<Text primary bold upper>
+							{amount}
+						</Text>
+					</Summary.Row>
+					<Summary.Row>
+						<Summary.Col>
+							<Text primary bold>
+								{strings('transaction.gas_fee')}
 							</Text>
-						</TouchableOpacity>
-					</Summary.Col>
-					{this.renderIfGasEstimationReady(
-						<Text primary bold upper style={warningGasPriceHigh ? styles.over : styles.primary}>
-							{networkFee}
+							<TouchableOpacity onPress={edit} disabled={!gasEstimationReady}>
+								<Text link bold>
+									{'  '}
+									{strings('transaction.edit')}
+								</Text>
+							</TouchableOpacity>
+						</Summary.Col>
+						{this.renderIfGasEstimationReady(
+							<Text primary bold upper style={warningGasPriceHigh ? styles.over : styles.primary}>
+								{networkFee}
+							</Text>
+						)}
+					</Summary.Row>
+					<Summary.Separator />
+					<Summary.Row>
+						<Text primary bold style={(over && styles.over) || null}>
+							{strings('transaction.total')} {strings('transaction.amount')}
 						</Text>
-					)}
-				</Summary.Row>
-				<Summary.Separator />
-				<Summary.Row>
-					<Text primary bold style={(over && styles.over) || null}>
-						{strings('transaction.total')} {strings('transaction.amount')}
-					</Text>
-					{!!totalFiat && this.renderIfGasEstimationReady(totalAmount)}
-				</Summary.Row>
-				<Summary.Row end last>
-					{this.renderIfGasEstimationReady(<Text bold>{equivalentTotalAmount}</Text>)}
-				</Summary.Row>
-			</Summary>
+						{!!totalFiat && this.renderIfGasEstimationReady(totalAmount)}
+					</Summary.Row>
+					<Summary.Row end last>
+						{this.renderIfGasEstimationReady(<Text bold>{equivalentTotalAmount}</Text>)}
+					</Summary.Row>
+				</Summary>
+				{showCustomNonce && (
+					<TouchableOpacity style={styles.customNonce} onPress={onNonceEdit}>
+						<Text bold black>
+							{strings('transaction.custom_nonce')}
+						</Text>
+						<Text bold link>
+							{'  '}
+							{strings('transaction.edit')}
+						</Text>
+						<Text bold black style={styles.nonceNumber}>
+							{nonceValue}
+						</Text>
+					</TouchableOpacity>
+				)}
+			</View>
 		);
 	}
 }
