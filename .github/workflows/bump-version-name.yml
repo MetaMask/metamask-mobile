@@ -13,12 +13,11 @@ on:
 jobs:
   bump-version-name:
     runs-on: ubuntu-latest
+    if: contains(github.head_ref, "release/")
     steps:
     - uses: actions/checkout@v2
     - name: Bump script
       env:
-        GITHUB_CONTEXT: ${{ toJSON(github) }}
-        BASE_REF: ${{ github.base_ref }}
         HEAD_REF: ${{ github.head_ref }}
       run: |
         ./scripts/bump-version.sh "$HEAD_REF"
