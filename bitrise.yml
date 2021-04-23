@@ -210,21 +210,18 @@ workflows:
         title: Deploy iOS IPA
     - deploy-to-bitrise-io@1:
         inputs:
-        - deploy_path: ios/build/dSYMs/MetaMask.dSYM
+        - deploy_path: ios/build/MetaMask.xcarchive/dSYMs/MetaMask.dSYM
         title: Deploy Symbols File
     - deploy-to-bitrise-io@1:
         inputs:
         - deploy_path: sourcemaps/ios/index.js.map
         title: Deploy Source Map
-    # - deploy-to-itunesconnect-deliver@2:
-    #     inputs:
-    #     - ipa_path: ios/build/output/MetaMask.ipa
+    - deploy-to-itunesconnect-deliver@2:
+        inputs:
+        - ipa_path: ios/build/output/MetaMask.ipa
   test_release:
     before_run:
-    - code_setup
-    - bump_version
-    - android_test_release_step
-    - ios_test_release_step
+    - start_release_builds
     steps:
     # - yarn@0:
     #     inputs:
@@ -259,7 +256,7 @@ app:
     PROJECT_LOCATION_IOS: ios
   - opts:
       is_expand: false
-    VERSION_NAME: 2.2.0
+    VERSION_NAME: 2.1.0
   - opts:
       is_expand: false
     ANDROID_APK_LINK: ''
