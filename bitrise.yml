@@ -2,6 +2,7 @@
 format_version: '8'
 default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
+#Test Comment
 trigger_map:
 - push_branch: 'bitrise_yml_new'
   workflow: test_release
@@ -270,7 +271,7 @@ app:
     PROJECT_LOCATION_IOS: ios
   - opts:
       is_expand: false
-    VERSION_NAME: 2.2.0
+    VERSION_NAME: 2.2.1
   - opts:
       is_expand: false
     ANDROID_APK_LINK: ''
