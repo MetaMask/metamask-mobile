@@ -221,7 +221,10 @@ workflows:
         - ipa_path: ios/build/output/MetaMask.ipa
   test_release:
     before_run:
-    - start_release_builds
+    - code_setup
+    - bump_version
+    - android_test_release_step
+    - ios_test_release_step
     steps:
     # - yarn@0:
     #     inputs:
