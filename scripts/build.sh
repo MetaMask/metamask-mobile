@@ -180,7 +180,7 @@ buildIosRelease(){
 		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
 		echo "Build started..."
 		brew install watchman
-		cd ios && bundle install && xcodebuild -workspace ios/MetaMask.xcworkspace -scheme MetaMask -configuration Release COMIPLER_INDEX_STORE_ENABLE=NO archive -archivePath ios/build/MetaMask.xcarchive -destination generic/platform=ios 
+		cd ios && bundle install && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask -configuration Release COMIPLER_INDEX_STORE_ENABLE=NO archive -archivePath build/MetaMask.xcarchive -destination generic/platform=ios 
 		# Generate sourcemaps
 		yarn sourcemaps:ios
 	else
@@ -200,7 +200,7 @@ buildIosReleaseE2E(){
 		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
 		echo "Build started..."
 		brew install watchman
-		cd ios && bundle install && xcodebuild -workspace ios/MetaMask.xcworkspace -scheme MetaMask -configuration Release COMIPLER_INDEX_STORE_ENABLE=NO archive -archivePath ios/build/MetaMask.xcarchive -destination generic/platform=ios 
+		cd ios && bundle install && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask -configuration Release COMIPLER_INDEX_STORE_ENABLE=NO archive -archivePath build/MetaMask.xcarchive -destination generic/platform=ios 
 		# Generate sourcemaps
 		yarn sourcemaps:ios
 	else
