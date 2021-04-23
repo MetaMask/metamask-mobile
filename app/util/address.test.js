@@ -10,4 +10,7 @@ describe('isENS', () => {
 	it('should return true for ens', () => {
 		expect(isENS('rickycodes.eth')).toBe(true);
 	});
+	it('should return true for ens', () => {
+		expect(isENS('ricky.eth.eth')).toBe(true);
+	});
 });

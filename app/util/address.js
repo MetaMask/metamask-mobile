@@ -69,9 +69,9 @@ export async function importAccountFromPrivateKey(private_key) {
  */
 export function isENS(name) {
 	const { supportedTLDs } = AppConstants;
-	const indexOf = name && name.indexOf('.');
-	const tld = indexOf && indexOf >= 0 && tlc(name.substr(name.indexOf('.') + 1, name.length - 1));
-	if (indexOf && tld && supportedTLDs.includes(tld)) return true;
+	const index = name && name.lastIndexOf('.');
+	const tld = index && index >= 0 && tlc(name.substr(index + 1, name.length - 1));
+	if (index && tld && supportedTLDs.includes(tld)) return true;
 	return false;
 }
 
