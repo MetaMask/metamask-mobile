@@ -175,12 +175,12 @@ workflows:
         inputs:
         - deploy_path: sourcemaps/android/index.js.map
         title: Bitrise Deploy Sourcemaps
-    # - google-play-deploy@3:
-    #     inputs:
-    #     - app_path: $PROJECT_LOCATION/app/build/outputs/bundle/release/app-release.aab
-    #     - track: internal
-    #     - service_account_json_key_path: NEEDS TO BE UPDATED
-    #     - package_name: "io.metamask"
+    - google-play-deploy@3:
+        inputs:
+        - app_path: $PROJECT_LOCATION/app/build/outputs/bundle/release/app-release.aab
+        - track: internal
+        - service_account_json_key_path: $BITRISEIO_BITRISEIO_SERVICE_ACCOUNT_JSON_KEY_URL_URL
+        - package_name: $MM_ANDROID_PACKAGE_NAME
     envs:
     - opts:
         is_expand: false
@@ -270,7 +270,7 @@ app:
     PROJECT_LOCATION_IOS: ios
   - opts:
       is_expand: false
-    VERSION_NAME: 2.3.0
+    VERSION_NAME: 2.2.0
   - opts:
       is_expand: false
     ANDROID_APK_LINK: ''
