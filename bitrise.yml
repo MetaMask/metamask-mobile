@@ -216,9 +216,9 @@ workflows:
         inputs:
         - deploy_path: sourcemaps/ios/index.js.map
         title: Deploy Source Map
-    # - deploy-to-itunesconnect-deliver@2:
-    #     inputs:
-    #     - ipa_path: ios/build/output/MetaMask.ipa
+    - deploy-to-itunesconnect-deliver@2:
+        inputs:
+        - ipa_path: ios/build/output/MetaMask.ipa
   test_release:
     before_run:
     - code_setup
@@ -226,11 +226,11 @@ workflows:
     - ios_test_release_step
     - android_test_release_step
     steps:
-    # - yarn@0:
-    #     inputs:
-    #     - command: build:announce
-    #     title: Accouncing pre-release
-    #     is_always_run: false
+    - yarn@0:
+        inputs:
+        - command: build:announce
+        title: Accouncing pre-release
+        is_always_run: false
 app:
   envs:
   - opts:
