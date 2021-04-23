@@ -4,7 +4,7 @@ default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
 trigger_map:
 - push_branch: 'slack_test'
-  workflow: test_release
+  workflow: code_setup
 - push_branch: 'develop'
   workflow: test_release
 - push_branch: 'main'
@@ -18,27 +18,32 @@ workflows:
     - activate-ssh-key@4:
         run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
     - git-clone@4: {}
-    - nvm@1:
-        inputs:
-        - node_version: '14'
-    - cache-pull@2: {}
     - yarn@0:
         inputs:
-        - cache_local_deps: 'yes'
-        - command: install --network-timeout 300000 --frozen-lockfile --network-concurrency 1
-        title: Yarn Install
-    - yarn@0:
-        inputs:
-        - cache_local_deps: 'yes'
-        - command: audit:ci
-        title: Audit Dependencies
-    - yarn@0:
-        title: Lint
-        inputs:
-        - cache_local_deps: 'yes'
-        - command: lint
-        is_always_run: true
-    - cache-push@2: {}
+        - command: build:announce
+        title: Accouncing pre-release
+        is_always_run: false
+    # - nvm@1:
+    #     inputs:
+    #     - node_version: '14'
+    # - cache-pull@2: {}
+    # - yarn@0:
+    #     inputs:
+    #     - cache_local_deps: 'yes'
+    #     - command: install --network-timeout 300000 --frozen-lockfile --network-concurrency 1
+    #     title: Yarn Install
+    # - yarn@0:
+    #     inputs:
+    #     - cache_local_deps: 'yes'
+    #     - command: audit:ci
+    #     title: Audit Dependencies
+    # - yarn@0:
+    #     title: Lint
+    #     inputs:
+    #     - cache_local_deps: 'yes'
+    #     - command: lint
+    #     is_always_run: true
+    # - cache-push@2: {}
   ci_test:
     before_run:
     - code_setup
