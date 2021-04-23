@@ -65,6 +65,9 @@ module.exports = {
 			files: ['app/**/*.js'],
 			plugins: ['react-native'],
 			extends: ['@react-native-community'],
+			rules: {
+				'no-console': ['warn', { allow: ['warn', 'error'] }],
+			},
 		},
 		{
 			files: ['app/**/*.js'],

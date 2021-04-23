@@ -49,7 +49,7 @@
     "singleQuote": true,
     "tabWidth": 4,
     "useTabs": true,
-	"trailingComma": "all"
+    "trailingComma": "all"
   },
   "husky": {
     "hooks": {
@@ -227,7 +227,7 @@
     "eslint": "^7.24.0",
     "eslint-config-react-native": "4.0.0",
     "eslint-plugin-babel": "^5.3.1",
-    "eslint-plugin-import": "2.18.2",
+    "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-jest": "^24.3.5",
     "eslint-plugin-mocha": "^8.1.0",
     "eslint-plugin-node": "^11.1.0",
