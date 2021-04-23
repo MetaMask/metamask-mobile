@@ -18,10 +18,11 @@ start().catch(console.error);
 async function getPRInfo() {
 	const client = github.client(GITHUB_TOKEN);
 	const REPO = client.repo(`${BITRISEIO_GIT_REPOSITORY_OWNER}/${CIRCLE_PROJECT_REPONAME}`);
-	console.log(REPO);
 	const response = await REPO.prsAsync({ state: 'closed' });
-	console.log(response);
 	const PR = response[0].find(obj => obj.merge_commit_sha === BITRISE_GIT_COMMIT);
+	console.log('BITRISE_GIT_COMMIT', BITRISE_GIT_COMMIT);
+	console.log('PR', PR);
+
 	if (PR) {
 		return { title: PR.title, number: PR.number, url: PR.html_url };
 	}
