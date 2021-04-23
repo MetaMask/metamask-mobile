@@ -220,7 +220,8 @@ workflows:
     before_run:
     - code_setup
     - bump_version
-    - start_release_builds
+    - android_test_release_step
+    - ios_test_release_step
     steps:
     # - yarn@0:
     #     inputs:
