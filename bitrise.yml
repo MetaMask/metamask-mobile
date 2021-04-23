@@ -44,22 +44,6 @@ workflows:
     #     - cache_local_deps: 'yes'
     #     - command: lint
     #     is_always_run: true
-=======
-        - cache_local_deps: 'yes'
-        - command: install --network-timeout 300000 --frozen-lockfile --network-concurrency 1
-        title: Yarn Install
-    - yarn@0:
-        inputs:
-        - cache_local_deps: 'yes'
-        - command: audit:ci
-        title: Audit Dependencies
-    - yarn@0:
-        title: Lint
-        inputs:
-        - cache_local_deps: 'yes'
-        - command: lint
-        is_always_run: true
->>>>>>> bitrise_yml_new
     # - cache-push@2: {}
   ci_test:
     before_run:
@@ -244,15 +228,9 @@ workflows:
   test_release:
     before_run:
     - code_setup
-<<<<<<< HEAD
     # - bump_version
     # - android_test_release_step
     # - ios_test_release_step
-=======
-    - bump_version
-    - ios_test_release_step
-    - android_test_release_step
->>>>>>> bitrise_yml_new
     steps:
     - yarn@0:
         inputs:
