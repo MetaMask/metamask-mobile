@@ -176,6 +176,16 @@ workflows:
         inputs:
         - deploy_path: sourcemaps/android/index.js.map
         title: Bitrise Deploy Sourcemaps
+    # - google-play-deploy@3:
+    #     inputs:
+    #     - app_path: $PROJECT_LOCATION/app/build/outputs/bundle/release/app-release.aab
+    #     - track: internal
+    #     - service_account_json_key_path: NEEDS TO BE UPDATED
+    #     - package_name: $MM_ANDROID_PACKAGE_NAME
+    envs:
+    - opts:
+        is_expand: false
+      MM_ANDROID_PACKAGE_NAME: io.metamask
   ios_test_release_step:
     steps:
     - certificate-and-profile-installer@1: {}
@@ -218,6 +228,8 @@ workflows:
         title: Deploy Source Map
     - deploy-to-itunesconnect-deliver@2:
         inputs:
+        - bundle_id: io.metamask.MetaMask
+        - app_id: '1438144202'
         - ipa_path: ios/build/output/MetaMask.ipa
   test_release:
     before_run:
@@ -269,3 +281,6 @@ app:
   - opts:
       is_expand: false
     IOS_APP_LINK: ''
+
+
+    
