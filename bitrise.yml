@@ -11,7 +11,7 @@ trigger_map:
   workflow: test_release
 - pull_request_source_branch: '*'
   workflow: ci_test
-
+#New Test
 workflows:
   code_setup:
     steps:
@@ -271,7 +271,7 @@ app:
     PROJECT_LOCATION_IOS: ios
   - opts:
       is_expand: false
-    VERSION_NAME: 2.1.0
+    VERSION_NAME: 2.2.0
   - opts:
       is_expand: false
     ANDROID_APK_LINK: ''
