@@ -115,6 +115,16 @@ workflows:
             #!/usr/bin/env bash echo 'weew - everything passed!'
         title: All Tests Passed
         is_always_run: false
+  bump_version:
+    steps:
+    - change-android-versioncode-and-versionname@1:
+        inputs:
+        - new_version_name: $VERSION_NAME
+        - build_gradle_path: $PROJECT_LOCATION_ANDROID/app/build.gradle
+    - set-xcode-build-number@1:
+        inputs:
+        - build_short_version_string: $VERSION_NAME
+        - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
   android_test_release_step:
     steps:
     - file-downloader@1:
@@ -195,30 +205,15 @@ workflows:
   test_release:
     before_run:
     - code_setup
-    # - android_test_release_step
-    - ios_test_release_step
+    - bump_version
+    - android_test_release_step
+    # - ios_test_release_step
     steps:
     # - yarn@0:
     #     inputs:
     #     - command: build:announce
     #     title: Accouncing pre-release
-    #     is_always_run: false      
-  bump_version_minor:
-    steps:
-    - activate-ssh-key@4:
-        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
-    - git-clone@4: {}
-    - nvm@1:
-        inputs:
-        - node_version: ''
-    - change-android-versioncode-and-versionname@1:
-        inputs:
-        - new_version_name: $VERSION_NAME
-        - build_gradle_path: $PROJECT_LOCATION_ANDROID/app/build.gradle
-    - set-xcode-build-number@1:
-        inputs:
-        - build_short_version_string: $VERSION_NAME
-        - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
+    #     is_always_run: false
 app:
   envs:
   - opts:
