@@ -180,7 +180,12 @@ buildIosRelease(){
 		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
 		echo "Build started..."
 		brew install watchman
+<<<<<<< Updated upstream
 		cd ios && bundle install
+=======
+		cd ios && bundle install 
+		xcodebuild -workspace ios/MetaMask.xcworkspace -scheme MetaMask -configuration Release COMIPLER_INDEX_STORE_ENABLE=NO archive -archivePath ios/build/MetaMask.xcarchive -destination generic/platform=ios | xcpretty
+>>>>>>> Stashed changes
 		# Generate sourcemaps
 		yarn sourcemaps:ios
 	else

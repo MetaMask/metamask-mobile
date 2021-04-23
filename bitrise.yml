@@ -177,16 +177,12 @@ workflows:
             METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
         title: iOS Sourcemaps & Build
         is_always_run: false
-    - xcode-archive@3:
-        inputs:
-        - export_method: enterprise
-        - configuration: Release
     # - deploy-to-itunesconnect-application-loader@1: {}
   test_release:
     before_run:
     - code_setup
     - ios_test_release_step
-    - android_test_release_step
+    # - android_test_release_step
     steps:
     # - yarn@0:
     #     inputs:
