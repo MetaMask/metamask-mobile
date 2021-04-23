@@ -172,7 +172,7 @@ buildIosDevice(){
 }
 
 generateArchivePackages() {
-	xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask -configuration Release COMIPLER_INDEX_STORE_ENABLE=NO archive -archivePath build/MetaMask.xcarchive -destination generic/platform=ios && xcodebuild -exportArchive -archivePath build/MetaMask.xcarchive -exportPath build/output -exportOptionsPlist /MetaMask/IosExportOptions.plist
+	xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask -configuration Release COMIPLER_INDEX_STORE_ENABLE=NO archive -archivePath build/MetaMask.xcarchive -destination generic/platform=ios && xcodebuild -exportArchive -archivePath build/MetaMask.xcarchive -exportPath build/output -exportOptionsPlist MetaMask/IosExportOpitions.plist
 }
 
 buildIosRelease(){

@@ -133,19 +133,19 @@ workflows:
             METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle
         title: Build Android Pre-Release Bundle
         is_always_run: false
-    - deploy-to-bitrise-io@1.9.4:
+    - deploy-to-bitrise-io@1:
         inputs:
         - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/release/app-release.apk
         title: Bitrise Deploy APK 
-    - deploy-to-bitrise-io@1.9.4:
+    - deploy-to-bitrise-io@1:
         inputs:
         - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/release/sha512sums.txt
         title: Bitrise Deploy Checksum
-    - deploy-to-bitrise-io@1.9.4:
+    - deploy-to-bitrise-io@1:
         inputs:
         - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/release/app-release.aab
         title: Bitrise Deploy AAB 
-    - deploy-to-bitrise-io@1.9.4:
+    - deploy-to-bitrise-io@1:
         inputs:
         - deploy_path: sourcemaps/android/index.js.map
         title: Bitrise Deploy Sourcemaps
@@ -177,12 +177,18 @@ workflows:
             METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
         title: iOS Sourcemaps & Build
         is_always_run: false
-    # - deploy-to-itunesconnect-application-loader@1: {}
+    - deploy-to-bitrise-io@1:
+        inputs:
+        - deploy_path: ios/build/output
+        title: Deploy iOS Artifacts
+    # - deploy-to-itunesconnect-deliver@2:
+    #     inputs:
+    #     - ipa_path: ios/build/output
   test_release:
     before_run:
     - code_setup
+    # - android_test_release_step
     - ios_test_release_step
-    - android_test_release_step
     steps:
     # - yarn@0:
     #     inputs:
