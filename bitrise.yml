@@ -3,7 +3,7 @@ format_version: '8'
 default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
 trigger_map:
-- push_branch: 'bitrise_yml_new'
+- push_branch: 'slack_test'
   workflow: test_release
 - push_branch: 'develop'
   workflow: test_release
@@ -222,15 +222,15 @@ workflows:
   test_release:
     before_run:
     - code_setup
-    - bump_version
-    - android_test_release_step
-    - ios_test_release_step
+    # - bump_version
+    # - android_test_release_step
+    # - ios_test_release_step
     steps:
-    # - yarn@0:
-    #     inputs:
-    #     - command: build:announce
-    #     title: Accouncing pre-release
-    #     is_always_run: false
+    - yarn@0:
+        inputs:
+        - command: build:announce
+        title: Accouncing pre-release
+        is_always_run: false
 app:
   envs:
   - opts:
