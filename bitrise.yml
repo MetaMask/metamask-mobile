@@ -181,7 +181,7 @@ workflows:
     #     - app_path: $PROJECT_LOCATION/app/build/outputs/bundle/release/app-release.aab
     #     - track: internal
     #     - service_account_json_key_path: NEEDS TO BE UPDATED
-    #     - package_name: $MM_ANDROID_PACKAGE_NAME
+    #     - package_name: "io.metamask"
     envs:
     - opts:
         is_expand: false
