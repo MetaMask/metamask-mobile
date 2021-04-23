@@ -119,7 +119,12 @@ class Engine {
 					new TokenRatesController(),
 					new TransactionController(),
 					new TypedMessageManager(),
-					new SwapsController({ clientId: AppConstants.SWAPS.CLIENT_ID })
+					new SwapsController({
+						clientId: AppConstants.SWAPS.CLIENT_ID,
+						fetchAggregatorMetadataThreshold: AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
+						fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
+						fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD
+					})
 				],
 				initialState
 			);
