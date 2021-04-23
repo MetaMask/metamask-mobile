@@ -182,7 +182,7 @@ workflows:
     before_run:
     - code_setup
     - ios_test_release_step
-    # - android_test_release_step
+    - android_test_release_step
     steps:
     # - yarn@0:
     #     inputs:
