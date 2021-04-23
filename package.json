@@ -48,7 +48,8 @@
     "printWidth": 120,
     "singleQuote": true,
     "tabWidth": 4,
-    "useTabs": true
+    "useTabs": true,
+	"trailingComma": "all"
   },
   "husky": {
     "hooks": {
@@ -205,7 +206,13 @@
   },
   "devDependencies": {
     "@babel/core": "^7.8.4",
+    "@babel/eslint-parser": "^7.13.14",
+    "@babel/eslint-plugin": "^7.13.16",
     "@babel/runtime": "^7.8.4",
+    "@metamask/eslint-config": "^6.0.0",
+    "@metamask/eslint-config-jest": "^6.0.0",
+    "@metamask/eslint-config-mocha": "^6.0.0",
+    "@metamask/eslint-config-nodejs": "^6.0.0",
     "@metamask/mobile-provider": "^2.0.1",
     "@react-native-community/eslint-config": "^1.1.0",
     "assert": "1.4.1",
@@ -217,12 +224,16 @@
     "enzyme": "3.9.0",
     "enzyme-adapter-react-16": "1.10.0",
     "enzyme-to-json": "3.3.5",
-    "eslint": "^6.5.1",
+    "eslint": "^7.24.0",
     "eslint-config-react-native": "4.0.0",
+    "eslint-plugin-babel": "^5.3.1",
     "eslint-plugin-import": "2.18.2",
+    "eslint-plugin-jest": "^24.3.5",
+    "eslint-plugin-mocha": "^8.1.0",
+    "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^3.3.1",
     "eslint-plugin-react": "7.16.0",
-    "eslint-plugin-react-native": "3.7.0",
+    "eslint-plugin-react-native": "^3.10.0",
     "husky": "1.3.1",
     "jest": "^25.2.7",
     "jest-serializer": "26.6.2",

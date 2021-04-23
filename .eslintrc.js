@@ -1,7 +1,23 @@
 module.exports = {
 	root: true,
-	parser: 'babel-eslint',
-	extends: ['@react-native-community', 'eslint:recommended', 'plugin:import/warnings', 'plugin:react/recommended'],
+	parser: '@babel/eslint-parser',
+	parserOptions: {
+		sourceType: 'module',
+		ecmaVersion: 2017,
+		ecmaFeatures: {
+			experimentalObjectRestSpread: true,
+			impliedStrict: true,
+			modules: true,
+			blockBindings: true,
+			arrowFunctions: true,
+			objectLiteralShorthandMethods: true,
+			objectLiteralShorthandProperties: true,
+			templateStrings: true,
+			classes: true,
+			jsx: true,
+		},
+	},
+
 	globals: {
 		process: true,
 		beforeAll: true,
@@ -17,116 +33,111 @@ module.exports = {
 		beforeEach: true,
 		device: true,
 		waitFor: true,
-		__DEV__: true
+		__DEV__: true,
 	},
+
+	extends: ['@metamask/eslint-config', '@metamask/eslint-config-nodejs', 'prettier'],
+
+	plugins: ['@babel', 'import', 'prettier'],
+
 	rules: {
-		'no-catch-shadow': 0,
-		'no-console': ['warn', { allow: ['warn', 'error'] }],
-		quotes: [
-			'error',
-			'single',
-			{
-				avoidEscape: true,
-				allowTemplateLiterals: true
-			}
-		],
-		'comma-dangle': 0,
-		curly: 0,
-		'no-shadow': 0,
-		'no-bitwise': 0,
-		'class-methods-use-this': 0,
-		'eol-last': 1,
-		'import/no-named-as-default': 0,
-		'no-invalid-this': 0,
-		'no-new': 0,
-		'react/jsx-handler-names': 0,
-		'react/no-did-mount-set-state': 0,
-		'react/prefer-stateless-function': 0,
-		'require-atomic-updates': 0,
-		'array-callback-return': 2,
-		'arrow-body-style': 2,
-		'dot-notation': 2,
-		eqeqeq: 2,
-		'import/no-amd': 2,
-		'import/no-commonjs': 2,
-		'import/no-duplicates': 2,
-		'import/no-extraneous-dependencies': 2,
-		'import/no-mutable-exports': 2,
-		'import/no-namespace': 2,
-		'import/no-nodejs-modules': 2,
-		'import/prefer-default-export': 2,
-		'no-alert': 2,
-		'no-constant-condition': [
-			2,
-			{
-				checkLoops: false
-			}
-		],
-		'no-duplicate-imports': 2,
-		'no-empty-function': 2,
-		'no-else-return': 2,
-		'no-eval': 2,
-		'no-extend-native': 2,
-		'no-extra-bind': 2,
-		'no-global-assign': 2,
-		'no-implicit-globals': 2,
-		'no-implied-eval': 2,
-		'no-lonely-if': 2,
-		'no-loop-func': 2,
-		'no-new-func': 2,
-		'no-new-wrappers': 2,
-		'no-proto': 2,
-		'no-script-url': 2,
-		'no-self-compare': 2,
-		'no-throw-literal': 2,
-		'no-unmodified-loop-condition': 2,
-		'no-unneeded-ternary': [
-			2,
-			{
-				defaultAssignment: false
-			}
-		],
-		'no-unsafe-negation': 2,
-		'no-unused-expressions': 'off',
-		'no-use-before-define': [2, 'nofunc'],
-		'no-useless-call': 2,
-		'no-useless-computed-key': 2,
-		'no-useless-concat': 2,
-		'no-useless-constructor': 2,
-		'no-useless-rename': 2,
-		'no-var': 2,
-		'no-with': 2,
-		'object-shorthand': 2,
-		'operator-assignment': 2,
-		'prefer-arrow-callback': 2,
-		'prefer-const': 2,
-		'prefer-rest-params': 2,
-		'prefer-spread': 2,
-		'import/no-unresolved': 2,
-		'eslint-comments/no-unlimited-disable': 0,
-		'eslint-comments/no-unused-disable': 0,
-		'react-native/no-color-literals': 2,
-		'react-native/no-inline-styles': 2,
-		'react-native/no-unused-styles': 2,
-		'react-native/split-platform-components': 2,
-		'react/jsx-boolean-value': 2,
-		'react/jsx-key': 1,
-		'react/jsx-no-bind': 0,
-		'react/jsx-pascal-case': 2,
-		'react/jsx-wrap-multilines': 2,
-		'react/no-danger': 2,
-		'react/no-did-update-set-state': 2,
-		'react/no-find-dom-node': 2,
-		'react/no-multi-comp': [
-			2,
-			{
-				ignoreStateless: true
-			}
-		],
-		'react/no-render-return-value': 2,
-		'react/no-string-refs': 2,
-		'react/no-unused-prop-types': 2,
-		'react/prefer-es6-class': 2,
-		radix: 0
-	}
+		'default-param-last': 'off',
+		'prefer-object-spread': 'error',
+		'require-atomic-updates': 'off',
+
+		'import/no-unassigned-import': 'off',
+
+		'no-invalid-this': 'off',
+		'@babel/no-invalid-this': 'error',
+
+		// Prettier handles this
+		'@babel/semi': 'off',
+
+		'node/no-process-env': 'off',
+
+		// TODO: re-enable these rules
+		'node/no-sync': 'off',
+		'node/no-unpublished-import': 'off',
+		'node/no-unpublished-require': 'off',
+	},
+	overrides: [
+		{
+			files: ['app/**/*.js'],
+			plugins: ['react-native'],
+			extends: ['@react-native-community'],
+		},
+		{
+			files: ['app/**/*.js'],
+			plugins: ['react'],
+			extends: ['plugin:react/recommended', 'plugin:react-hooks/recommended'],
+			rules: {
+				'react/no-unused-prop-types': 'error',
+				'react/no-unused-state': 'error',
+				'react/jsx-boolean-value': 'error',
+				'react/jsx-curly-brace-presence': ['error', { props: 'never', children: 'never' }],
+				'react/no-deprecated': 'error',
+				'react/default-props-match-prop-types': 'error',
+				'react/jsx-no-duplicate-props': 'error',
+			},
+		},
+		{
+			files: ['e2e/**/*.spec.js'],
+			extends: ['@metamask/eslint-config-mocha'],
+			rules: {
+				'mocha/no-hooks-for-single-case': 'off',
+				'mocha/no-setup-in-describe': 'off',
+			},
+		},
+		{
+			files: ['**/*.test.js'],
+			excludedFiles: ['app/**/*.test.js', 'app/__mocks__/*.js'],
+			extends: ['@metamask/eslint-config-mocha'],
+			rules: {
+				'mocha/no-setup-in-describe': 'off',
+			},
+		},
+		{
+			files: ['**/__snapshots__/*.snap'],
+			plugins: ['jest'],
+			rules: {
+				'jest/no-large-snapshots': ['error', { maxSize: 50, inlineMaxSize: 50 }],
+			},
+		},
+		{
+			files: ['app/**/*.test.js', 'app/__mocks__/*.js'],
+			extends: ['@metamask/eslint-config-jest'],
+			rules: {
+				'jest/no-restricted-matchers': 'off',
+				'import/unambiguous': 'off',
+			},
+		},
+		{
+			files: [
+				'.eslintrc.js',
+				'babel.config.js',
+				'nyc.config.js',
+				'stylelint.config.js',
+				'app/scripts/runLockdown.js',
+				'development/**/*.js',
+				'test/e2e/**/*.js',
+				'test/lib/wait-until-called.js',
+				'test/env.js',
+				'test/setup.js',
+				'jest.config.js',
+			],
+			parserOptions: {
+				sourceType: 'script',
+			},
+		},
+	],
+
+	settings: {
+		react: {
+			version: 'detect',
+		},
+		// ESLint doesn't find React Native components
+		// Remove this setting when this issue is fixed.
+		// https://github.com/facebook/react-native/issues/28549
+		'import/ignore': ['react-native'],
+	},
 };
