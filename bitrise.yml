@@ -24,7 +24,6 @@ workflows:
     # - cache-pull@2: {}
     - yarn@0:
         inputs:
-<<<<<<< HEAD
         - command: build:announce
         title: Accouncing pre-release
         is_always_run: false
