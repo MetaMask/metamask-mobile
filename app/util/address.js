@@ -2,6 +2,7 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import Engine from '../core/Engine';
 import AppConstants from '../core/AppConstants';
 import { strings } from '../../locales/i18n';
+import { tlc } from '../util/general';
 
 /**
  * Returns full checksummed address
@@ -67,11 +68,11 @@ export async function importAccountFromPrivateKey(private_key) {
  * @returns {boolean} - Returns a boolean indicating if it is valid
  */
 export function isENS(name) {
-	const rec = name && name.split('.');
-	if (!rec || rec.length === 1 || !AppConstants.supportedTLDs.includes(rec[rec.length - 1].toLowerCase())) {
-		return false;
-	}
-	return true;
+	const { supportedTLDs } = AppConstants;
+	const indexOf = name && name.indexOf('.');
+	const tld = indexOf && indexOf >= 0 && tlc(name.substr(name.indexOf('.') + 1, name.length - 1));
+	if (indexOf && tld && supportedTLDs.includes(tld)) return true;
+	return false;
 }
 
 /**
