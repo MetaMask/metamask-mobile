@@ -57,6 +57,9 @@ workflows:
         title: All Tests Passed
         is_always_run: false
   start_release_builds:
+    before_run:
+    - code_setup
+    - bump_version
     steps:
     - build-router-start@0:
         inputs:
