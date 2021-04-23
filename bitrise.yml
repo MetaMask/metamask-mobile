@@ -21,7 +21,7 @@ workflows:
     - nvm@1:
         inputs:
         - node_version: '14'
-    # - cache-pull@2: {}
+    - cache-pull@2: {}
     - yarn@0:
         inputs:
         - command: build:announce
