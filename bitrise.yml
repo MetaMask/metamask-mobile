@@ -56,6 +56,20 @@ workflows:
             echo 'weew - everything passed!'
         title: All Tests Passed
         is_always_run: false
+  start_release_builds:
+    steps:
+    - build-router-start@0:
+        inputs:
+        - workflows: |-
+            android_test_release_step
+            ios_test_release_step
+        - wait_for_builds: 'true'
+        - abort_on_fail: 'yes'
+        - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
+    - build-router-wait@0:
+        inputs:
+        - abort_on_fail: 'yes'
+        - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
   e2e_setup:
     before_run:
     - code_setup
@@ -206,8 +220,7 @@ workflows:
     before_run:
     - code_setup
     - bump_version
-    - android_test_release_step
-    # - ios_test_release_step
+    - start_release_builds
     steps:
     # - yarn@0:
     #     inputs:
