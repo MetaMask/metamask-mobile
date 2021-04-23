@@ -4,13 +4,9 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
 
-const {
-	ETH_CHAIN_ID,
-	/*BSC_CHAIN_ID,*/
-	SWAPS_TESTNET_CHAIN_ID
-} = swapsUtils;
+const { ETH_CHAIN_ID, BSC_CHAIN_ID, SWAPS_TESTNET_CHAIN_ID } = swapsUtils;
 
-const allowedChainIds = [ETH_CHAIN_ID /*, BSC_CHAIN_ID */];
+const allowedChainIds = [ETH_CHAIN_ID, BSC_CHAIN_ID];
 
 export function isSwapsAllowed(chainId) {
 	if (!AppConstants.SWAPS.ACTIVE) {
