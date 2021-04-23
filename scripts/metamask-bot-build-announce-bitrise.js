@@ -21,7 +21,7 @@ async function getPRInfo() {
 	const response = await REPO.prsAsync({ state: 'closed' });
 	const PR = response[0].find(obj => obj.merge_commit_sha === BITRISE_GIT_COMMIT);
 	console.log('BITRISE_GIT_COMMIT', BITRISE_GIT_COMMIT);
-	console.log('PR', PR);
+	console.log('RESPONSE', response[0]);
 
 	if (PR) {
 		return { title: PR.title, number: PR.number, url: PR.html_url };
