@@ -1,5 +1,6 @@
 import Engine from './Engine';
 import Logger from '../util/Logger';
+import { syncPrefs, syncAccounts } from '../util/sync';
 
 /**
  * Returns current vault seed phrase
@@ -18,8 +19,10 @@ export const getSeedPhrase = async (password = '') => {
  * @param password - Password to recreate and set the vault with
  */
 export const recreateVaultWithSamePassword = async (password = '', selectedAddress) => {
-	const { KeyringController, PreferencesController } = Engine.context;
+	const { KeyringController, PreferencesController, AccountTrackerController } = Engine.context;
 	const seedPhrase = await getSeedPhrase(password);
+	const oldPrefs = PreferencesController.state;
+	const oldAccounts = AccountTrackerController.accounts;
 
 	let importedAccounts = [];
 	try {
@@ -42,7 +45,6 @@ export const recreateVaultWithSamePassword = async (password = '', selectedAddre
 	// Get props to restore vault
 	const hdKeyring = KeyringController.state.keyrings[0];
 	const existingAccountCount = hdKeyring.accounts.length;
-	let preferencesControllerState = PreferencesController.state;
 
 	// Create previous accounts again
 	for (let i = 0; i < existingAccountCount - 1; i++) {
@@ -58,11 +60,18 @@ export const recreateVaultWithSamePassword = async (password = '', selectedAddre
 		Logger.error(e, 'error while trying to import accounts on recreate vault');
 	}
 
-	// Reset preferencesControllerState
-	preferencesControllerState = PreferencesController.state;
+	//Persist old account/identities names
+	const preferencesControllerState = PreferencesController.state;
+	const prefUpdates = syncPrefs(oldPrefs, preferencesControllerState);
+
+	//Persist old account data
+	const accounts = AccountTrackerController.accounts;
+	const updateAccounts = syncAccounts(oldAccounts, accounts);
 
 	// Set preferencesControllerState again
-	await PreferencesController.update(preferencesControllerState);
+	await PreferencesController.update(prefUpdates);
+	await AccountTrackerController.update(updateAccounts);
+
 	// Reselect previous selected account if still available
 	if (hdKeyring.accounts.includes(selectedAddress)) {
 		PreferencesController.setSelectedAddress(selectedAddress);

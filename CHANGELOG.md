@@ -1,6 +1,36 @@
 # Changelog
 
-## Current Develop Branch
+## v2.2.0 - Apr 21 2021
+- [#2547](https://github.com/MetaMask/metamask-mobile/pull/2547): Include decimalsToShow in balanceToFiatNumber
+- [#2554](https://github.com/MetaMask/metamask-mobile/pull/2554): Bug fix/sync import time
+- [#2546](https://github.com/MetaMask/metamask-mobile/pull/2546): Fix analytics try catch
+- [#2543](https://github.com/MetaMask/metamask-mobile/pull/2543): Only get nonce from the network if the feature is enabled
+- [#2460](https://github.com/MetaMask/metamask-mobile/pull/2460): Feature/tx local state logs
+- [#2540](https://github.com/MetaMask/metamask-mobile/pull/2540): bump v2.1.2
+- [#2538](https://github.com/MetaMask/metamask-mobile/pull/2538): fix/connection change handler
+- [#2375](https://github.com/MetaMask/metamask-mobile/pull/2375): Style updates
+- [#2536](https://github.com/MetaMask/metamask-mobile/pull/2536): Change Send Feedback to Request a Feature and update link
+- [#2485](https://github.com/MetaMask/metamask-mobile/pull/2485): Fix notification so it doesn't block terms + conditions
+- [#2469](https://github.com/MetaMask/metamask-mobile/pull/2469): Bug/persists old account names
+- [#2534](https://github.com/MetaMask/metamask-mobile/pull/2534): Fix typo
+- [#2373](https://github.com/MetaMask/metamask-mobile/pull/2373): use contract metadata version from package
+- [#2520](https://github.com/MetaMask/metamask-mobile/pull/2520): Check infura availability
+- [#2371](https://github.com/MetaMask/metamask-mobile/pull/2371): Feature/custom nonce
+- [#2521](https://github.com/MetaMask/metamask-mobile/pull/2521): Bump v2.1.1
+- [#2493](https://github.com/MetaMask/metamask-mobile/pull/2493): rename master to main
+- [#2447](https://github.com/MetaMask/metamask-mobile/pull/2447): Bump vm-browserify from 0.0.4 to 1.1.2
+- [#2501](https://github.com/MetaMask/metamask-mobile/pull/2501): Bump jest-serializer from 24.4.0 to 26.6.2
+- [#2499](https://github.com/MetaMask/metamask-mobile/pull/2499): Bump react-native-share from 3.3.2 to 5.2.2
+- [#2411](https://github.com/MetaMask/metamask-mobile/pull/2411): Bump json-rpc-middleware-stream from 2.1.1 to 3.0.0
+- [#2406](https://github.com/MetaMask/metamask-mobile/pull/2406): Bump eslint-plugin-prettier from 3.3.0 to 3.3.1
+- [#2403](https://github.com/MetaMask/metamask-mobile/pull/2403): Bump babel-eslint from 10.0.3 to 10.1.0
+- [#2381](https://github.com/MetaMask/metamask-mobile/pull/2381): Display correct number of decimals for 'usd' fiat
+
+## v2.1.3 - Apr 19 2021
+- [#2548](https://github.com/MetaMask/metamask-mobile/pull/2548): Hotfix analytics try catch
+
+## v2.1.2 - Apr 16 2021
+- [#2538](https://github.com/MetaMask/metamask-mobile/pull/2538): fix/connection change handler
 
 ## v2.1.1 - Apr 14 2021
 - [#2520](https://github.com/MetaMask/metamask-mobile/pull/2520): Check provider status

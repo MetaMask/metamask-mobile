@@ -28,7 +28,7 @@ import {
 } from '../../../../util/number';
 import { getTicker, decodeTransferData, getNormalizedTxState } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
-import { util } from '@metamask/controllers';
+import { util, WalletDevice } from '@metamask/controllers';
 import { prepareTransaction, resetTransaction, setNonce, setProposedNonce } from '../../../../actions/transaction';
 import {
 	apiEstimateModifiedToWEI,
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
 		marginVertical: 3
 	},
 	textAmount: {
-		fontFamily: 'Roboto-Light',
+		...fontStyles.normal,
 		fontWeight: fontStyles.light.fontWeight,
 		color: colors.black,
 		fontSize: 44,
@@ -368,9 +368,9 @@ class Confirm extends PureComponent {
 		// For analytics
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_STARTED, this.getAnalyticsParams());
 
-		const { navigation, providerType } = this.props;
+		const { showCustomNonce, navigation, providerType } = this.props;
 		await this.handleFetchBasicEstimates();
-		await this.setNetworkNonce();
+		showCustomNonce && (await this.setNetworkNonce());
 		navigation.setParams({ providerType });
 		this.parseTransactionData();
 		this.prepareTransaction();
@@ -707,7 +707,8 @@ class Confirm extends PureComponent {
 			}
 			const { result, transactionMeta } = await TransactionController.addTransaction(
 				transaction,
-				TransactionTypes.MMM
+				TransactionTypes.MMM,
+				WalletDevice.MM_MOBILE
 			);
 			await TransactionController.approveTransaction(transactionMeta.id);
 			await new Promise(resolve => resolve(result));

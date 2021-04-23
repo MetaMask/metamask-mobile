@@ -624,17 +624,17 @@ class Onboarding extends PureComponent {
 	handleSimpleNotification = () => {
 		if (!this.props.navigation.getParam('delete', false)) return;
 		return (
-			<ElevatedView style={styles.modalTypeView} elevation={100}>
-				<Animated.View
-					style={[styles.notificationContainer, { transform: [{ translateY: this.notificationAnimated }] }]}
-				>
+			<Animated.View
+				style={[styles.notificationContainer, { transform: [{ translateY: this.notificationAnimated }] }]}
+			>
+				<ElevatedView style={styles.modalTypeView} elevation={100}>
 					<BaseNotification
 						closeButtonDisabled
 						status="success"
 						data={{ title: strings('onboarding.success'), description: strings('onboarding.your_wallet') }}
 					/>
-				</Animated.View>
-			</ElevatedView>
+				</ElevatedView>
+			</Animated.View>
 		);
 	};
 

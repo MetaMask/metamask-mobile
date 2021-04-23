@@ -306,13 +306,13 @@ class Transactions extends PureComponent {
 		if (!this.props.transactions.length) {
 			return this.renderEmpty();
 		}
-
 		const { submittedTransactions, confirmedTransactions, header } = this.props;
 		const { cancelConfirmDisabled, speedUpConfirmDisabled } = this.state;
 		const transactions =
 			submittedTransactions && submittedTransactions.length
 				? submittedTransactions.concat(confirmedTransactions)
 				: this.props.transactions;
+
 		return (
 			<View style={styles.wrapper} testID={'transactions-screen'}>
 				<FlatList
@@ -369,15 +369,16 @@ class Transactions extends PureComponent {
 
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	tokens: state.engine.backgroundState.AssetsController.tokens.reduce((tokens, token) => {
-		tokens[token.address] = token;
-		return tokens;
-	}, {}),
 	collectibleContracts: state.engine.backgroundState.AssetsController.collectibleContracts,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	thirdPartyApiMode: state.privacy.thirdPartyApiMode
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
+	tokens: state.engine.backgroundState.AssetsController.tokens.reduce((tokens, token) => {
+		tokens[token.address] = token;
+		return tokens;
+	}, {})
 });
 
 const mapDispatchToProps = dispatch => ({
