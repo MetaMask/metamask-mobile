@@ -229,14 +229,14 @@ workflows:
     - deploy-to-itunesconnect-deliver@2:
         inputs:
         - bundle_id: io.metamask.MetaMask
-        - app_id: '1438144202'
+        # - app_id: '1438144202'
         - ipa_path: ios/build/output/MetaMask.ipa
   test_release:
     before_run:
     - code_setup
     - bump_version
-    # - ios_test_release_step
-    - android_test_release_step
+    - ios_test_release_step
+    # - android_test_release_step
     steps:
     - yarn@0:
         inputs:
