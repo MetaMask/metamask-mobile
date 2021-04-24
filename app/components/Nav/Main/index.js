@@ -57,7 +57,8 @@ import AccountApproval from '../../UI/AccountApproval';
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
-import { swapsUtils, util } from '@metamask/swaps-controller';
+import { swapsUtils } from '@metamask/swaps-controller';
+import { util } from '@metamask/controllers';
 import SwapsLiveness from '../../UI/Swaps/SwapsLiveness';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
@@ -237,12 +238,12 @@ const Main = props => {
 					.div(gasEstimate)
 					.times(100)
 					.toFixed(2)}%`;
-				const quoteVsExecutionRatio = `${util
+				const quoteVsExecutionRatio = `${swapsUtils
 					.calcTokenAmount(tokensReceived || '0x0', swapTransaction.destinationTokenDecimals)
 					.div(swapTransaction.destinationAmount)
 					.times(100)
 					.toFixed(2)}%`;
-				const tokenToAmountReceived = util.calcTokenAmount(
+				const tokenToAmountReceived = swapsUtils.calcTokenAmount(
 					tokensReceived,
 					swapTransaction.destinationToken.decimals
 				);
