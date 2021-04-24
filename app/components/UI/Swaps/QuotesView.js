@@ -7,8 +7,8 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import FAIcon from 'react-native-vector-icons/FontAwesome';
 import BigNumber from 'bignumber.js';
 import { NavigationContext } from 'react-navigation';
-import { swapsUtils, util } from '@metamask/swaps-controller';
-import { WalletDevice } from '@metamask/controllers/';
+import { swapsUtils } from '@metamask/swaps-controller';
+import { WalletDevice, util } from '@metamask/controllers/';
 
 import {
 	BNToHex,
@@ -684,7 +684,7 @@ function SwapsQuotesView({
 						speed_set: details.mode === 'advanced' ? undefined : details.mode,
 						gas_mode: details.mode === 'advanced' ? 'Advanced' : 'Basic',
 						gas_fees: weiToFiat(
-							toWei(util.calcTokenAmount(newGasLimit.times(newGasPrice), 18)),
+							toWei(swapsUtils.calcTokenAmount(newGasLimit.times(newGasPrice), 18)),
 							conversionRate,
 							currentCurrency
 						)

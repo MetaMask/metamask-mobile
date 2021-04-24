@@ -77,7 +77,7 @@
     "@metamask/contract-metadata": "^1.23.0",
     "@metamask/controllers": "^7.0.0",
     "@metamask/etherscan-link": "^2.0.0",
-    "@metamask/swaps-controller": "^2.0.1",
+    "@metamask/swaps-controller": "^4.0.0",
     "@react-native-community/async-storage": "1.12.1",
     "@react-native-community/blur": "^3.6.0",
     "@react-native-community/checkbox": "^0.4.2",
