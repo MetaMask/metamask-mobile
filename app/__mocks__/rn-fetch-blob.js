@@ -9,6 +9,7 @@ export default {
 	config: noop,
 	session: noop,
 	fs: {
+		writeFile: () => Promise.resolve(),
 		exists: () => Promise.resolve(),
 		dirs: {
 			CacheDir: noop,
