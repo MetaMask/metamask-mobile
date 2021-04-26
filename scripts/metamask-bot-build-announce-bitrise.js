@@ -5,7 +5,7 @@ const github = require('octonode');
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const ANDROID_APK_LINK = process.env.BITRISE_PUBLIC_INSTALL_PAGE_URL;
-const ANDROID_AAB_LINK = process.env.BITRISE_PUBLIC_INSTALL_PAGE_URL;
+const ANDROID_AAB_LINK = process.env.BITRISE_BUILD_URL;
 const GIT_PROJECT_REPONAME = 'metamask-mobile';
 const BITRISEIO_GIT_REPOSITORY_OWNER = process.env.BITRISEIO_GIT_REPOSITORY_OWNER;
 const SLACK_TOKEN = process.env.MM_SLACK_TOKEN;
@@ -20,8 +20,6 @@ async function getPRInfo() {
 	const REPO = client.repo(`${BITRISEIO_GIT_REPOSITORY_OWNER}/${GIT_PROJECT_REPONAME}`);
 	const response = await REPO.prsAsync({ state: 'closed' });
 	const PR = response[0].find(obj => obj.merge_commit_sha === BITRISE_GIT_COMMIT);
-	console.log('BITRISE_GIT_COMMIT', BITRISE_GIT_COMMIT);
-	console.log('RESPONSE', response[0]);
 
 	if (PR) {
 		return { title: PR.title, number: PR.number, url: PR.html_url };
@@ -30,18 +28,14 @@ async function getPRInfo() {
 
 async function start() {
 	const PR_INFO = await getPRInfo();
-	console.log('PR_URL', PR_INFO.url);
-	console.log('BITRISE_GIT_COMMIT', BITRISE_GIT_COMMIT);
 
 	const content = {
-		text: `THIS IS A TEST FOR THE NEW BITRISE INTEGRATION - NEW BUILDS AVAILABLE! Including <${PR_INFO.url}|#${
-			PR_INFO.number
-		} - ${PR_INFO.title}>`,
+		text: `NEW BUILDS AVAILABLE! Including <${PR_INFO.url}|#${PR_INFO.number} - ${PR_INFO.title}>`,
 		attachments: [
 			{
 				title_link: 'itms-beta://beta.itunes.apple.com/v1/app/1438144202',
 				title: 'iOS',
-				text: 'Install via Bitrise',
+				text: 'Install via TestFlight',
 				thumb_url:
 					'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/202px-Apple_logo_black.svg.png'
 			},

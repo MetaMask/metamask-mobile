@@ -2,10 +2,7 @@
 format_version: '8'
 default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
-#Test Comment
 trigger_map:
-- push_branch: 'bitrise_yml_new'
-  workflow: test_release
 - push_branch: 'develop'
   workflow: test_release
 - push_branch: 'main'
@@ -21,7 +18,6 @@ workflows:
     - nvm@1:
         inputs:
         - node_version: '14'
-    # - cache-pull@2: {}
     - yarn@0:
         inputs:
         - cache_local_deps: 'yes'
@@ -38,7 +34,6 @@ workflows:
         - cache_local_deps: 'yes'
         - command: lint
         is_always_run: true
-    # - cache-push@2: {}
   ci_test:
     before_run:
     - code_setup
@@ -269,7 +264,7 @@ app:
     PROJECT_LOCATION_IOS: ios
   - opts:
       is_expand: false
-    VERSION_NAME: 2.2.2
+    VERSION_NAME: 2.2.1
   - opts:
       is_expand: false
     ANDROID_APK_LINK: ''
