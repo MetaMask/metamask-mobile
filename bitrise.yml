@@ -7,6 +7,8 @@ trigger_map:
   workflow: test_release
 - push_branch: 'main'
   workflow: test_release
+- push_branch: '*'
+  workflow: ci_test
 - pull_request_source_branch: '*'
   workflow: ci_test
 workflows:
@@ -116,17 +118,6 @@ workflows:
             envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
             brew tap wix/brew
         title: Set Env Path for caching deps
-  ios_e2e_test:
-    before_run:
-    - e2e_setup
-    steps:
-    - cocoapods-install@2: {}
-    - yarn@0:
-        inputs:
-        - cache_local_deps: 'yes'
-        - command: test:e2e:ios
-        title: E2E Tests on iOS
-        is_always_run: true
   android_e2e_test:
     before_run:
     - e2e_setup
@@ -140,9 +131,19 @@ workflows:
         - command: test:e2e:android
         title: E2E Tests on Android
         is_always_run: true
-  e2e_test:
+  ios_e2e_test:
     before_run:
     - android_e2e_test
+    steps:
+    - cocoapods-install@2: {}
+    - yarn@0:
+        inputs:
+        - cache_local_deps: 'yes'
+        - command: test:e2e:ios
+        title: E2E Tests on iOS
+        is_always_run: true
+  e2e_test:
+    before_run:
     - ios_e2e_test
     steps:
     - script@1:
