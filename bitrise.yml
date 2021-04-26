@@ -111,11 +111,15 @@ workflows:
     - install-missing-android-tools@2:
         inputs:
         - gradlew_path: $PROJECT_LOCATION/gradlew
-    - yarn@0:
+    - script@1:
         inputs:
-        - cache_local_deps: 'yes'
-        - command: start:android:e2e
+        - content: |-
+            #!/usr/bin/env bash 
+            jq 'del(.engines)' package.json > new.json && mv new.json package.json
+            node -v
+            yarn start:android:e2e
         title: E2E Tests on Android
+        is_always_run: false
   e2e_test:
     before_run:
     - android_e2e_test
