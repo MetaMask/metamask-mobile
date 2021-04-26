@@ -58,6 +58,7 @@ import Text from '../../../Base/Text';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { collectConfusables } from '../../../../util/validators';
 import InfoModal from '../../../UI/Swaps/components/InfoModal';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -235,6 +236,10 @@ class Confirm extends PureComponent {
 		 * Map of accounts to information objects including balances
 		 */
 		accounts: PropTypes.object,
+		/**
+		 * Map representing the address book
+		 */
+		addressBook: PropTypes.object,
 		/**
 		 * Object containing token balances in the format address => balance
 		 */
@@ -926,7 +931,7 @@ class Confirm extends PureComponent {
 
 	render = () => {
 		const { transactionToName, selectedAsset, paymentRequest } = this.props.transactionState;
-		const { showHexData, showCustomNonce, primaryCurrency, network, chainId } = this.props;
+		const { addressBook, showHexData, showCustomNonce, primaryCurrency, network, chainId } = this.props;
 		const { nonce } = this.props.transaction;
 		const {
 			gasEstimationReady,
@@ -949,19 +954,23 @@ class Confirm extends PureComponent {
 			warningModalVisible
 		} = this.state;
 
+		const checksummedAddress = transactionTo && toChecksumAddress(transactionTo);
+		const existingContact = checksummedAddress && addressBook[network] && addressBook[network][checksummedAddress];
+		const displayExclamation = !existingContact && !!confusableCollection.length;
+
 		const AdressToComponent = () => (
 			<AddressTo
 				addressToReady
 				toSelectedAddress={transactionTo}
 				toAddressName={transactionToName}
 				onToSelectedAddressChange={this.onToSelectedAddressChange}
-				confusableCollection={confusableCollection}
-				displayExclamation={!!confusableCollection.length}
+				confusableCollection={(!existingContact && confusableCollection) || []}
+				displayExclamation={displayExclamation}
 			/>
 		);
 
 		const AdressToComponentWrap = () =>
-			confusableCollection.length ? (
+			!existingContact && confusableCollection.length ? (
 				<TouchableOpacity onPress={this.toggleWarningModal}>
 					<AdressToComponent />
 				</TouchableOpacity>
@@ -1085,6 +1094,7 @@ class Confirm extends PureComponent {
 
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	addressBook: state.engine.backgroundState.AddressBookController.addressBook,
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,

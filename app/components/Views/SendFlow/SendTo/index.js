@@ -599,7 +599,7 @@ class SendFlow extends PureComponent {
 						onInputBlur={this.onToInputFocus}
 						onSubmit={this.onTransactionDirectionSet}
 						inputWidth={inputWidth}
-						confusableCollection={confusableCollection}
+						confusableCollection={(!existingContact && confusableCollection) || []}
 					/>
 				</View>
 
