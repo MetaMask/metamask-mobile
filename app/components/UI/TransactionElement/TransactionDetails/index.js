@@ -3,7 +3,12 @@ import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, View } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
-import { getNetworkTypeById, findBlockExplorerForRpc, getBlockExplorerName } from '../../../../util/networks';
+import {
+	getNetworkTypeById,
+	findBlockExplorerForRpc,
+	getBlockExplorerName,
+	isMainNet
+} from '../../../../util/networks';
 import { getEtherscanTransactionUrl, getEtherscanBaseUrl } from '../../../../util/etherscan';
 import Logger from '../../../../util/Logger';
 import { connect } from 'react-redux';
@@ -61,6 +66,10 @@ class TransactionDetails extends PureComponent {
 		/* navigation object required to push new views
 		*/
 		navigation: PropTypes.object,
+		/**
+		 * Chain Id
+		 */
+		chainId: PropTypes.string,
 		/**
 		 * Object representing the selected the selected network
 		 */
@@ -166,6 +175,7 @@ class TransactionDetails extends PureComponent {
 
 	render = () => {
 		const {
+			chainId,
 			transactionDetails,
 			transactionObject,
 			transactionObject: {
@@ -223,7 +233,9 @@ class TransactionDetails extends PureComponent {
 						amount={transactionDetails.summaryAmount}
 						fee={transactionDetails.summaryFee}
 						totalAmount={transactionDetails.summaryTotalAmount}
-						secondaryTotalAmount={transactionDetails.summarySecondaryTotalAmount}
+						secondaryTotalAmount={
+							isMainNet(chainId) ? transactionDetails.summarySecondaryTotalAmount : undefined
+						}
 						gasEstimationReady
 						transactionType={transactionDetails.transactionType}
 					/>
@@ -247,6 +259,7 @@ class TransactionDetails extends PureComponent {
 
 const mapStateToProps = state => ({
 	network: state.engine.backgroundState.NetworkController,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList
 });
 export default connect(mapStateToProps)(TransactionDetails);

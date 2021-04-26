@@ -12,7 +12,6 @@ import {
 import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import ENS from 'ethjs-ens';
 import GlobalAlert from '../../UI/GlobalAlert';
 import BackgroundTimer from 'react-native-background-timer';
 import Approval from '../../Views/Approval';
@@ -24,25 +23,21 @@ import I18n, { strings } from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
 import LockManager from '../../../core/LockManager';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import { BNToHex, hexToBN, fromWei, renderFromTokenMinimalUnit } from '../../../util/number';
+import { hexToBN, fromWei, renderFromTokenMinimalUnit } from '../../../util/number';
 import { setEtherTransaction, setTransactionObject } from '../../../actions/transaction';
 import PersonalSign from '../../UI/PersonalSign';
 import TypedSign from '../../UI/TypedSign';
 import Modal from 'react-native-modal';
 import WalletConnect from '../../../core/WalletConnect';
-import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
-import Networks from '../../../util/networks';
 import Device from '../../../util/Device';
 import {
-	CONNEXT_DEPOSIT,
 	getMethodData,
 	TOKEN_METHOD_TRANSFER,
 	decodeTransferData,
 	APPROVE_FUNCTION_SIGNATURE,
 	decodeApproveData
 } from '../../../util/transactions';
-import { BN, isValidAddress } from 'ethereumjs-util';
-import { isENS, safeToChecksumAddress } from '../../../util/address';
+import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
 import contractMap from '@metamask/contract-metadata';
 import MessageSign from '../../UI/MessageSign';
@@ -61,13 +56,13 @@ import { toggleDappTransactionModal, toggleApproveModal } from '../../../actions
 import AccountApproval from '../../UI/AccountApproval';
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
-import PaymentChannelApproval from '../../UI/PaymentChannelApproval';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
-import { swapsUtils, util } from '@estebanmino/controllers';
+import { swapsUtils, util } from '@metamask/swaps-controller';
 import SwapsLiveness from '../../UI/Swaps/SwapsLiveness';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import BigNumber from 'bignumber.js';
+import { setInfuraAvailabilityBlocked, setInfuraAvailabilityNotBlocked } from '../../../actions/infuraAvailability';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -84,9 +79,8 @@ const styles = StyleSheet.create({
 		margin: 0
 	}
 });
-
 const Main = props => {
-	const [connected, setConnected] = useState(false);
+	const [connected, setConnected] = useState(true);
 	const [forceReload, setForceReload] = useState(false);
 	const [signMessage, setSignMessage] = useState(false);
 	const [signMessageParams, setSignMessageParams] = useState({ data: '' });
@@ -97,19 +91,12 @@ const Main = props => {
 	const [currentPageTitle, setCurrentPageTitle] = useState('');
 	const [currentPageUrl, setCurrentPageUrl] = useState('');
 
-	const [paymentChannelRequest, setPaymentChannelRequest] = useState(false);
-	const [paymentChannelRequestLoading, setPaymentChannelRequestLoading] = useState(false);
-	const [paymentChannelRequestCompleted, setPaymentChannelRequestCompleted] = useState(false);
-	const [paymentChannelRequestInfo, setPaymentChannelRequestInfo] = useState({});
-	const [paymentChannelBalance, setPaymentChannelBalance] = useState(null);
-	const [paymentChannelReady, setPaymentChannelReady] = useState(false);
 	const [showRemindLaterModal, setShowRemindLaterModal] = useState(false);
 	const [skipCheckbox, setSkipCheckbox] = useState(false);
 
 	const backgroundMode = useRef(false);
 	const locale = useRef(I18n.locale);
 	const lockManager = useRef();
-	const paymentChannelsEnabled = useRef(props.paymentChannelsEnabled);
 	const removeConnectionStatusListener = useRef();
 
 	const setTransactionObject = props.setTransactionObject;
@@ -140,23 +127,50 @@ const Main = props => {
 	const onUnapprovedMessage = (messageParams, type) => {
 		const { title: currentPageTitle, url: currentPageUrl } = messageParams.meta;
 		delete messageParams.meta;
-		setSignMessage(true);
 		setSignMessageParams(messageParams);
 		setSignType(type);
 		setCurrentPageTitle(currentPageTitle);
 		setCurrentPageUrl(currentPageUrl);
+		setSignMessage(true);
 	};
 
 	const connectionChangeHandler = useCallback(
 		state => {
+			if (!state) return;
+			const { isConnected } = state;
 			// Show the modal once the status changes to offline
-			if (connected && !state.isConnected) {
+			if (connected && isConnected === false) {
 				props.navigation.navigate('OfflineModeView');
 			}
-			setConnected(state.isConnected);
+			if (connected !== isConnected && isConnected !== null) {
+				setConnected(isConnected);
+			}
 		},
-		[connected, props.navigation]
+		[connected, setConnected, props.navigation]
 	);
+
+	const checkInfuraAvailability = useCallback(async () => {
+		if (props.providerType !== 'rpc') {
+			try {
+				const { TransactionController } = Engine.context;
+				await util.query(TransactionController.ethQuery, 'blockNumber', []);
+				props.setInfuraAvailabilityNotBlocked();
+			} catch (e) {
+				if (e.message === AppConstants.ERRORS.INFURA_BLOCKED_MESSAGE) {
+					props.navigation.navigate('OfflineModeView');
+					props.setInfuraAvailabilityBlocked();
+				}
+			}
+		} else {
+			props.setInfuraAvailabilityNotBlocked();
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [
+		props.navigation,
+		props.providerType,
+		props.setInfuraAvailabilityBlocked,
+		props.setInfuraAvailabilityNotBlocked
+	]);
 
 	const initializeWalletConnect = () => {
 		WalletConnect.hub.on('walletconnectSessionRequest', peerInfo => {
@@ -165,41 +179,6 @@ const Main = props => {
 		});
 		WalletConnect.init();
 	};
-
-	const paymentChannelDepositSign = useCallback(
-		async transactionMeta => {
-			const { TransactionController } = Engine.context;
-			try {
-				TransactionController.hub.once(`${transactionMeta.id}:finished`, transactionMeta => {
-					if (transactionMeta.status === 'submitted') {
-						props.navigation.pop();
-						NotificationManager.watchSubmittedTransaction({
-							...transactionMeta,
-							assetType: transactionMeta.transaction.assetType
-						});
-					} else {
-						throw transactionMeta.error;
-					}
-				});
-
-				const fullTx = props.transactions.find(({ id }) => id === transactionMeta.id);
-				const gasPrice = BNToHex(
-					hexToBN(transactionMeta.transaction.gasPrice)
-						.mul(new BN(AppConstants.INSTAPAY_GAS_PONDERATOR * 10))
-						.div(new BN(10))
-				);
-				const updatedTx = { ...fullTx, transaction: { ...transactionMeta.transaction, gasPrice } };
-				await TransactionController.updateTransaction(updatedTx);
-				await TransactionController.approveTransaction(transactionMeta.id);
-			} catch (error) {
-				Alert.alert(strings('transactions.transaction_error'), error && error.message, [
-					{ text: strings('navigation.ok') }
-				]);
-				Logger.error(error, 'error while trying to send transaction (Main)');
-			}
-		},
-		[props.navigation, props.transactions]
-	);
 
 	const trackSwaps = useCallback(
 		async (event, transactionMeta) => {
@@ -330,29 +309,21 @@ const Main = props => {
 		async transactionMeta => {
 			if (transactionMeta.origin === TransactionTypes.MMM) return;
 
-			const to = safeToChecksumAddress(transactionMeta.transaction.to);
-			const networkId = Networks[props.providerType].networkId;
+			const to = transactionMeta.transaction.to?.toLowerCase();
 			const { data } = transactionMeta.transaction;
 
 			// if approval data includes metaswap contract
 			// if destination address is metaswap contract
 			if (
-				to === safeToChecksumAddress(swapsUtils.SWAPS_CONTRACT_ADDRESS) ||
+				to === swapsUtils.getSwapsContractAddress(props.chainId) ||
 				(data &&
 					data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
-					decodeApproveData(data).spenderAddress === swapsUtils.SWAPS_CONTRACT_ADDRESS)
+					decodeApproveData(data).spenderAddress?.toLowerCase() ===
+						swapsUtils.getSwapsContractAddress(props.chainId))
 			) {
 				if (transactionMeta.origin === process.env.MM_FOX_CODE) {
 					autoSign(transactionMeta);
 				}
-			} else if (
-				props.paymentChannelsEnabled &&
-				AppConstants.CONNEXT.SUPPORTED_NETWORKS.includes(props.providerType) &&
-				transactionMeta.transaction.data &&
-				transactionMeta.transaction.data.substr(0, 10) === CONNEXT_DEPOSIT &&
-				to === AppConstants.CONNEXT.CONTRACTS[networkId]
-			) {
-				await paymentChannelDepositSign(transactionMeta);
 			} else {
 				const {
 					transaction: { value, gas, gasPrice, data }
@@ -416,10 +387,8 @@ const Main = props => {
 			}
 		},
 		[
-			paymentChannelDepositSign,
-			props.paymentChannelsEnabled,
-			props.providerType,
 			props.tokens,
+			props.chainId,
 			setEtherTransaction,
 			setTransactionObject,
 			toggleApproveModal,
@@ -572,172 +541,6 @@ const Main = props => {
 	const renderApproveModal = () =>
 		props.approveModalVisible && <Approve modalVisible toggleApproveModal={props.toggleApproveModal} />;
 
-	const initiatePaymentChannelRequest = useCallback(
-		({ amount, to }) => {
-			setTransactionObject({
-				selectedAsset: {
-					address: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
-					decimals: 18,
-					logo: 'sai.svg',
-					symbol: 'SAI',
-					assetBalance: paymentChannelBalance
-				},
-				value: amount,
-				readableValue: amount,
-				transactionTo: to,
-				from: props.selectedAddress,
-				transactionFromName: props.identities[props.selectedAddress].name,
-				paymentChannelTransaction: true,
-				type: 'PAYMENT_CHANNEL_TRANSACTION'
-			});
-
-			props.navigation.navigate('Confirm');
-		},
-		[paymentChannelBalance, props.identities, props.navigation, props.selectedAddress, setTransactionObject]
-	);
-
-	const onPaymentChannelStateChange = useCallback(
-		state => {
-			if (state.balance !== paymentChannelBalance || !paymentChannelReady) {
-				setPaymentChannelBalance(state.balance);
-				setPaymentChannelReady(true);
-			}
-		},
-		[paymentChannelBalance, paymentChannelReady]
-	);
-
-	const initializePaymentChannels = useCallback(() => {
-		PaymentChannelsClient.init(props.selectedAddress);
-		PaymentChannelsClient.hub.on('state::change', onPaymentChannelStateChange);
-		PaymentChannelsClient.hub.on('payment::request', async request => {
-			const validRequest = { ...request };
-			// Validate amount
-			if (isNaN(request.amount)) {
-				Alert.alert(
-					strings('payment_channel_request.title_error'),
-					strings('payment_channel_request.amount_error_message')
-				);
-				return;
-			}
-
-			const isAddress = !request.to || request.to.substring(0, 2).toLowerCase() === '0x';
-			const isInvalidAddress = isAddress && !isValidAddress(request.to);
-
-			// Validate address
-			if (isInvalidAddress || (!isAddress && !isENS(request.to))) {
-				Alert.alert(
-					strings('payment_channel_request.title_error'),
-					strings('payment_channel_request.address_error_message')
-				);
-				return;
-			}
-
-			// Check if ENS and resolve the address before sending
-			if (isENS(request.to)) {
-				InteractionManager.runAfterInteractions(async () => {
-					const {
-						state: { network },
-						provider
-					} = Engine.context.NetworkController;
-					const ensProvider = new ENS({ provider, network });
-					try {
-						const resolvedAddress = await ensProvider.lookup(request.to.trim());
-						if (isValidAddress(resolvedAddress)) {
-							validRequest.to = resolvedAddress;
-							validRequest.ensName = request.to;
-							initiatePaymentChannelRequest(validRequest);
-							return;
-						}
-					} catch (e) {
-						Logger.log('Error with payment request', request);
-					}
-					Alert.alert(
-						strings('payment_channel_request.title_error'),
-						strings('payment_channel_request.address_error_message')
-					);
-
-					setPaymentChannelRequest(false);
-					setPaymentChannelRequestInfo(null);
-				});
-			} else {
-				initiatePaymentChannelRequest(validRequest);
-			}
-		});
-
-		PaymentChannelsClient.hub.on('payment::complete', () => {
-			// show the success screen
-			setPaymentChannelRequestCompleted(true);
-			// hide the modal and reset state
-			setTimeout(() => {
-				setPaymentChannelRequest(false);
-				setPaymentChannelRequestLoading(false);
-				setPaymentChannelRequestInfo({});
-				setTimeout(() => {
-					setPaymentChannelRequestCompleted(false);
-				}, 1500);
-			}, 800);
-		});
-
-		PaymentChannelsClient.hub.on('payment::error', error => {
-			if (error === 'INVALID_ENS_NAME') {
-				Alert.alert(
-					strings('payment_channel_request.title_error'),
-					strings('payment_channel_request.address_error_message')
-				);
-			} else if (error.indexOf('insufficient_balance') !== -1) {
-				Alert.alert(
-					strings('payment_channel_request.error'),
-					strings('payment_channel_request.balance_error_message')
-				);
-			}
-
-			// hide the modal and reset state
-			setTimeout(() => {
-				setTimeout(() => {
-					setPaymentChannelRequest(false);
-					setPaymentChannelRequestLoading(false);
-					setPaymentChannelRequestInfo({});
-					setTimeout(() => {
-						setPaymentChannelRequestCompleted(false);
-					});
-				}, 800);
-			}, 800);
-		});
-	}, [initiatePaymentChannelRequest, onPaymentChannelStateChange, props.selectedAddress]);
-
-	const onPaymentChannelRequestApproval = () => {
-		PaymentChannelsClient.hub.emit('payment::confirm', paymentChannelRequestInfo);
-		setPaymentChannelRequestLoading(true);
-	};
-
-	const onPaymentChannelRequestRejected = () => {
-		setPaymentChannelRequestLoading(false);
-		setTimeout(() => setPaymentChannelRequestInfo({}), 1000);
-	};
-
-	const renderPaymentChannelRequestApproval = () => (
-		<Modal
-			isVisible={paymentChannelRequest}
-			animationIn="slideInUp"
-			animationOut="slideOutDown"
-			style={styles.bottomModal}
-			backdropOpacity={0.7}
-			animationInTiming={300}
-			animationOutTiming={300}
-			onSwipeComplete={onPaymentChannelRequestRejected}
-			onBackButtonPress={onPaymentChannelRequestRejected}
-			swipeDirection={'down'}
-		>
-			<PaymentChannelApproval
-				onCancel={onPaymentChannelRequestRejected}
-				onConfirm={onPaymentChannelRequestApproval}
-				info={paymentChannelRequestInfo}
-				loading={paymentChannelRequestLoading}
-				complete={paymentChannelRequestCompleted}
-			/>
-		</Modal>
-	);
-
 	const toggleRemindLater = () => {
 		setShowRemindLaterModal(!showRemindLaterModal);
 	};
@@ -764,15 +567,15 @@ const Main = props => {
 		if (prevLockTime !== props.lockTime) {
 			lockManager.current && lockManager.current.updateLockTime(props.lockTime);
 		}
-		if (props.paymentChannelsEnabled !== paymentChannelsEnabled.current) {
-			paymentChannelsEnabled.current = props.paymentChannelsEnabled;
-			if (props.paymentChannelsEnabled) {
-				initializePaymentChannels();
-			} else {
-				PaymentChannelsClient.stop();
-			}
-		}
 	});
+
+	// unapprovedTransaction effect
+	useEffect(() => {
+		Engine.context.TransactionController.hub.on('unapprovedTransaction', onUnapprovedTransaction);
+		return () => {
+			Engine.context.TransactionController.hub.removeListener('unapprovedTransaction', onUnapprovedTransaction);
+		};
+	}, [onUnapprovedTransaction]);
 
 	useEffect(() => {
 		initializeWalletConnect();
@@ -802,8 +605,6 @@ const Main = props => {
 			}
 		});
 
-		Engine.context.TransactionController.hub.on('unapprovedTransaction', onUnapprovedTransaction);
-
 		Engine.context.MessageManager.hub.on('unapprovedMessage', messageParams =>
 			onUnapprovedMessage(messageParams, 'eth')
 		);
@@ -825,12 +626,7 @@ const Main = props => {
 				removeNotificationById: props.removeNotificationById
 			});
 			pollForIncomingTransactions();
-
-			// Only if enabled under settings
-			if (props.paymentChannelsEnabled) {
-				initializePaymentChannels();
-			}
-
+			checkInfuraAvailability();
 			removeConnectionStatusListener.current = NetInfo.addEventListener(connectionChangeHandler);
 		}, 1000);
 
@@ -839,10 +635,7 @@ const Main = props => {
 			lockManager.current.stopListening();
 			Engine.context.PersonalMessageManager.hub.removeAllListeners();
 			Engine.context.TypedMessageManager.hub.removeAllListeners();
-			Engine.context.TransactionController.hub.removeListener('unapprovedTransaction', onUnapprovedTransaction);
 			WalletConnect.hub.removeAllListeners();
-			PaymentChannelsClient.hub.removeAllListeners();
-			PaymentChannelsClient.stop();
 			removeConnectionStatusListener.current && removeConnectionStatusListener.current();
 		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -855,7 +648,6 @@ const Main = props => {
 					<MainNavigator
 						navigation={props.navigation}
 						screenProps={{
-							isPaymentChannelTransaction: props.isPaymentChannelTransaction,
 							isPaymentRequest: props.isPaymentRequest
 						}}
 					/>
@@ -882,7 +674,6 @@ const Main = props => {
 			{renderWalletConnectSessionRequestModal()}
 			{renderDappTransactionModal()}
 			{renderApproveModal()}
-			{renderPaymentChannelRequestApproval()}
 		</React.Fragment>
 	);
 };
@@ -949,45 +740,38 @@ Main.propTypes = {
 	*/
 	approveModalVisible: PropTypes.bool,
 	/**
-	 * Flag that determines if payment channels are enabled
-	 */
-	paymentChannelsEnabled: PropTypes.bool,
-	/**
 	 * Selected address
 	 */
 	selectedAddress: PropTypes.string,
 	/**
-	 * List of transactions
+	 * Chain id
 	 */
-	transactions: PropTypes.array,
+	chainId: PropTypes.string,
 	/**
-	 * A string representing the network name
+	 * Network provider type
 	 */
 	providerType: PropTypes.string,
 	/**
-	 * Indicates whether the current transaction is a payment channel transaction
+	 * Dispatch infura availability blocked
 	 */
-	isPaymentChannelTransaction: PropTypes.bool,
+	setInfuraAvailabilityBlocked: PropTypes.func,
 	/**
-	/* Identities object required to get account name
-	*/
-	identities: PropTypes.object
+	 * Dispatch infura availability not blocked
+	 */
+	setInfuraAvailabilityNotBlocked: PropTypes.func
 };
 
 const mapStateToProps = state => ({
 	lockTime: state.settings.lockTime,
 	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
-	transactions: state.engine.backgroundState.TransactionController.transactions,
-	paymentChannelsEnabled: state.settings.paymentChannelsEnabled,
-	providerType: state.engine.backgroundState.NetworkController.provider.type,
-	isPaymentChannelTransaction: state.transaction.paymentChannelTransaction,
 	isPaymentRequest: state.transaction.paymentRequest,
-	identities: state.engine.backgroundState.PreferencesController.identities,
 	dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
 	approveModalVisible: state.modals.approveModalVisible,
-	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {}
+	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {},
+	providerType: state.engine.backgroundState.NetworkController.provider.type
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -998,7 +782,9 @@ const mapDispatchToProps = dispatch => ({
 	hideCurrentNotification: () => dispatch(hideCurrentNotification()),
 	removeNotificationById: id => dispatch(removeNotificationById(id)),
 	toggleDappTransactionModal: (show = null) => dispatch(toggleDappTransactionModal(show)),
-	toggleApproveModal: show => dispatch(toggleApproveModal(show))
+	toggleApproveModal: show => dispatch(toggleApproveModal(show)),
+	setInfuraAvailabilityBlocked: () => dispatch(setInfuraAvailabilityBlocked()),
+	setInfuraAvailabilityNotBlocked: () => dispatch(setInfuraAvailabilityNotBlocked())
 });
 
 export default connect(

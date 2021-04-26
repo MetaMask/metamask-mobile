@@ -5,7 +5,6 @@ const initialState = {
 	searchEngine: AppConstants.DEFAULT_SEARCH_ENGINE,
 	primaryCurrency: 'ETH',
 	lockTime: -1, // Disabled by default
-	paymentChannelsEnabled: false,
 	useBlockieIcon: true
 };
 
@@ -31,6 +30,11 @@ const settingsReducer = (state = initialState, action) => {
 				...state,
 				showHexData: action.showHexData
 			};
+		case 'SET_SHOW_CUSTOM_NONCE':
+			return {
+				...state,
+				showCustomNonce: action.showCustomNonce
+			};
 		case 'SET_USE_BLOCKIE_ICON':
 			return {
 				...state,
@@ -40,11 +44,6 @@ const settingsReducer = (state = initialState, action) => {
 			return {
 				...state,
 				primaryCurrency: action.primaryCurrency
-			};
-		case 'SET_ENABLE_PAYMENT_CHANNELS':
-			return {
-				...state,
-				paymentChannelsEnabled: action.paymentChannelsEnabled
 			};
 		default:
 			return state;

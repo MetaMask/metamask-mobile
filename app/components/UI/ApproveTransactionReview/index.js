@@ -26,6 +26,7 @@ import {
 import { showAlert } from '../../../actions/alert';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import TransactionHeader from '../../UI/TransactionHeader';
 import AccountInfoCard from '../../UI/AccountInfoCard';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
@@ -35,8 +36,8 @@ import AppConstants from '../../../core/AppConstants';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { withNavigation } from 'react-navigation';
 import { getNetworkName, isMainNet } from '../../../util/networks';
-import { capitalize } from '../../../util/format';
 import scaling from '../../../util/scaling';
+import { capitalize } from '../../../util/general';
 import EditPermission from './EditPermission';
 
 const { hexToBN } = util;
@@ -227,7 +228,11 @@ class ApproveTransactionReview extends PureComponent {
 		/**
 		 * True if transaction is over the available funds
 		 */
-		over: PropTypes.bool
+		over: PropTypes.bool,
+		/**
+		 * Function to set analytics params
+		 */
+		onSetAnalyticsParams: PropTypes.func
 	};
 
 	state = {
@@ -276,16 +281,22 @@ class ApproveTransactionReview extends PureComponent {
 		const totalGas = gas?.mul(gasPrice);
 		const { name: method } = await getMethodData(data);
 
-		this.setState({
-			host,
-			method,
-			originalApproveAmount: approveAmount,
-			tokenSymbol,
-			token: { symbol: tokenSymbol, decimals: tokenDecimals },
-			totalGas: renderFromWei(totalGas),
-			totalGasFiat: weiToFiatNumber(totalGas, conversionRate),
-			spenderAddress
-		});
+		this.setState(
+			{
+				host,
+				method,
+				originalApproveAmount: approveAmount,
+				tokenSymbol,
+				token: { symbol: tokenSymbol, decimals: tokenDecimals },
+				totalGas: renderFromWei(totalGas),
+				totalGasFiat: weiToFiatNumber(totalGas, conversionRate),
+				spenderAddress,
+				encodedAmount
+			},
+			() => {
+				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_STARTED, this.getAnalyticsParams());
+			}
+		);
 	};
 
 	componentDidUpdate(previousProps) {
@@ -305,6 +316,33 @@ class ApproveTransactionReview extends PureComponent {
 			});
 		}
 	}
+
+	getAnalyticsParams = () => {
+		try {
+			const { activeTabUrl, transaction, onSetAnalyticsParams } = this.props;
+			const { tokenSymbol, originalApproveAmount, encodedAmount } = this.state;
+			const { NetworkController } = Engine.context;
+			const { chainId, type } = NetworkController?.state?.provider || {};
+			const isDapp = !Object.values(AppConstants.DEEPLINKS).includes(transaction?.origin);
+			const unlimited = encodedAmount === 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+			const params = {
+				dapp_host_name: transaction?.origin,
+				dapp_url: isDapp ? activeTabUrl : undefined,
+				network_name: type,
+				chain_id: chainId,
+				active_currency: { value: tokenSymbol, anonymous: true },
+				number_tokens_requested: { value: originalApproveAmount, anonymous: true },
+				unlimited_permission_requested: unlimited,
+				referral_type: isDapp ? 'dapp' : transaction?.origin
+			};
+			// Send analytics params to parent component so it's available when cancelling and confirming
+			onSetAnalyticsParams && onSetAnalyticsParams(params);
+
+			return params;
+		} catch (error) {
+			return {};
+		}
+	};
 
 	trackApproveEvent = event => {
 		const { transaction, tokensLength, accountsLength, providerType } = this.props;
@@ -392,6 +430,7 @@ class ApproveTransactionReview extends PureComponent {
 		const newApprovalTransaction = { ...transaction, data: approvalData };
 		setTransactionObject(newApprovalTransaction);
 		this.toggleEditPermission();
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_PERMISSION_UPDATED, this.getAnalyticsParams());
 	};
 
 	renderEditPermission = () => {
@@ -402,6 +441,7 @@ class ApproveTransactionReview extends PureComponent {
 			spendLimitCustomValue,
 			originalApproveAmount
 		} = this.state;
+
 		return (
 			<EditPermission
 				host={host}
@@ -427,7 +467,6 @@ class ApproveTransactionReview extends PureComponent {
 			originalApproveAmount,
 			transaction: { to, data }
 		} = this.state;
-
 		return (
 			<TransactionReviewDetailsCard
 				toggleViewDetails={this.toggleViewDetails}
@@ -457,6 +496,11 @@ class ApproveTransactionReview extends PureComponent {
 	onCancelPress = () => {
 		const { onCancel } = this.props;
 		onCancel && onCancel();
+	};
+
+	onConfirmPress = () => {
+		const { onConfirm } = this.props;
+		onConfirm && onConfirm();
 	};
 
 	gotoFaucet = () => {
@@ -534,8 +578,8 @@ class ApproveTransactionReview extends PureComponent {
 									confirmButtonMode="confirm"
 									cancelText={strings('transaction.reject')}
 									confirmText={strings('transactions.approve')}
-									onCancelPress={this.props.onCancel}
-									onConfirmPress={this.props.onConfirm}
+									onCancelPress={this.onCancelPress}
+									onConfirmPress={this.onConfirmPress}
 								>
 									<View style={styles.actionViewChildren}>
 										<TouchableOpacity

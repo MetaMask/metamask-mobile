@@ -8,6 +8,8 @@ import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
 import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
+import URL from 'url-parse';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	expandedMessage: {
@@ -59,6 +61,28 @@ export default class MessageSign extends PureComponent {
 		truncateMessage: false
 	};
 
+	getAnalyticsParams = () => {
+		try {
+			const { currentPageInformation } = this.props;
+			const { NetworkController } = Engine.context;
+			const { chainId, type } = NetworkController?.state?.provider || {};
+			const url = new URL(currentPageInformation?.url);
+			return {
+				dapp_host_name: url?.host,
+				dapp_url: currentPageInformation?.url,
+				network_name: type,
+				chain_id: chainId,
+				sign_type: 'eth'
+			};
+		} catch (error) {
+			return {};
+		}
+	};
+
+	componentDidMount = () => {
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_STARTED, this.getAnalyticsParams());
+	};
+
 	showWalletConnectNotification = (messageParams = {}, confirmation = false) => {
 		InteractionManager.runAfterInteractions(() => {
 			messageParams.origin &&
@@ -94,11 +118,13 @@ export default class MessageSign extends PureComponent {
 
 	cancelSignature = () => {
 		this.rejectMessage();
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_CANCELLED, this.getAnalyticsParams());
 		this.props.onCancel();
 	};
 
 	confirmSignature = () => {
 		this.signMessage();
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_COMPLETED, this.getAnalyticsParams());
 		this.props.onConfirm();
 	};
 

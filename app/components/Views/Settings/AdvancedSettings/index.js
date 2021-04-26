@@ -3,13 +3,12 @@ import React, { PureComponent } from 'react';
 import { ActivityIndicator, SafeAreaView, StyleSheet, Switch, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import PaymentChannelsClient from '../../../../core/PaymentChannelsClient';
 import ActionModal from '../../../UI/ActionModal';
 import Engine from '../../../../core/Engine';
 import StyledButton from '../../../UI/StyledButton';
 import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
-import { setShowHexData } from '../../../../actions/settings';
+import { setShowCustomNonce, setShowHexData } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
 import { getApplicationName, getVersion, getBuildNumber } from 'react-native-device-info';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
@@ -108,13 +107,17 @@ class AdvancedSettings extends PureComponent {
 		 */
 		showHexData: PropTypes.bool,
 		/**
-		 * Indicates whether InstaPay is ON or OFF
-		 */
-		paymentChannelsEnabled: PropTypes.bool,
-		/**
 		 * Called to toggle show hex data
 		 */
 		setShowHexData: PropTypes.func,
+		/**
+		 * Called to toggle show custom nonce
+		 */
+		setShowCustomNonce: PropTypes.func,
+		/**
+		 * Indicates whether custom nonce should be shown in transaction editor
+		 */
+		showCustomNonce: PropTypes.bool,
 		/**
 		 * Entire redux state used to generate state logs
 		 */
@@ -180,10 +183,6 @@ class AdvancedSettings extends PureComponent {
 		this.setState({ resetModalVisible: false });
 	};
 
-	toggleShowHexData = showHexData => {
-		this.props.setShowHexData(showHexData);
-	};
-
 	downloadStateLogs = async () => {
 		const appName = await getApplicationName();
 		const appVersion = await getVersion();
@@ -221,41 +220,13 @@ class AdvancedSettings extends PureComponent {
 		}
 	};
 
-	downloadInstapayStateLogs = async () => {
-		const appName = await getApplicationName();
-		const appVersion = await getVersion();
-		const buildNumber = await getBuildNumber();
-		const path = RNFS.DocumentDirectoryPath + `/instapay-logs-v${appVersion}-(${buildNumber}).json`;
-
-		try {
-			const dump = PaymentChannelsClient.dump();
-			dump.connext = !!dump.connext;
-			delete dump.ethprovider;
-			const data = JSON.stringify(dump);
-
-			let url = `data:text/plain;base64,${new Buffer(data).toString('base64')}`;
-			// // Android accepts attachements as BASE64
-			if (Device.isIos()) {
-				await RNFS.writeFile(path, data, 'utf8');
-				url = path;
-			}
-			await Share.open({
-				subject: `${appName} Instapay logs -  v${appVersion} (${buildNumber})`,
-				title: `${appName} Instapay logs -  v${appVersion} (${buildNumber})`,
-				url
-			});
-		} catch (err) {
-			Logger.error(err, 'Instapay log error');
-		}
-	};
-
 	setIpfsGateway = ipfsGateway => {
 		const { PreferencesController } = Engine.context;
 		PreferencesController.setIpfsGateway(ipfsGateway);
 	};
 
 	render = () => {
-		const { showHexData, ipfsGateway, paymentChannelsEnabled } = this.props;
+		const { showHexData, showCustomNonce, setShowHexData, setShowCustomNonce, ipfsGateway } = this.props;
 		const { resetModalVisible, onlineIpfsGateways } = this.state;
 		return (
 			<SafeAreaView style={baseStyles.flexGrow}>
@@ -314,7 +285,19 @@ class AdvancedSettings extends PureComponent {
 							<View style={styles.marginTop}>
 								<Switch
 									value={showHexData}
-									onValueChange={this.toggleShowHexData}
+									onValueChange={setShowHexData}
+									trackColor={Device.isIos() && { true: colors.blue, false: colors.grey000 }}
+									ios_backgroundColor={colors.grey000}
+								/>
+							</View>
+						</View>
+						<View style={styles.setting}>
+							<Text style={styles.title}>{strings('app_settings.show_custom_nonce')}</Text>
+							<Text style={styles.desc}>{strings('app_settings.custom_nonce_desc')}</Text>
+							<View style={styles.marginTop}>
+								<Switch
+									value={showCustomNonce}
+									onValueChange={setShowCustomNonce}
 									trackColor={Device.isIos() && { true: colors.blue, false: colors.grey000 }}
 									ios_backgroundColor={colors.grey000}
 								/>
@@ -331,19 +314,6 @@ class AdvancedSettings extends PureComponent {
 								{strings('app_settings.state_logs_button')}
 							</StyledButton>
 						</View>
-						{paymentChannelsEnabled && (
-							<View style={styles.setting}>
-								<Text style={styles.title}>{strings('app_settings.instapay_state_logs')}</Text>
-								<Text style={styles.desc}>{strings('app_settings.instapay_state_logs_desc')}</Text>
-								<StyledButton
-									type="info"
-									onPress={this.downloadInstapayStateLogs}
-									containerStyle={styles.marginTop}
-								>
-									{strings('app_settings.instapay_state_logs_button')}
-								</StyledButton>
-							</View>
-						)}
 					</View>
 				</KeyboardAwareScrollView>
 			</SafeAreaView>
@@ -354,12 +324,13 @@ class AdvancedSettings extends PureComponent {
 const mapStateToProps = state => ({
 	ipfsGateway: state.engine.backgroundState.PreferencesController.ipfsGateway,
 	showHexData: state.settings.showHexData,
-	paymentChannelsEnabled: state.settings.paymentChannelsEnabled,
+	showCustomNonce: state.settings.showCustomNonce,
 	fullState: state
 });
 
 const mapDispatchToProps = dispatch => ({
-	setShowHexData: showHexData => dispatch(setShowHexData(showHexData))
+	setShowHexData: showHexData => dispatch(setShowHexData(showHexData)),
+	setShowCustomNonce: showCustomNonce => dispatch(setShowCustomNonce(showCustomNonce))
 });
 
 export default connect(

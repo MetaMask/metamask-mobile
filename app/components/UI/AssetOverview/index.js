@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
-import { Image, InteractionManager, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { InteractionManager, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
-import { swapsUtils } from '@estebanmino/controllers';
+import { swapsUtils } from '@metamask/swaps-controller';
 import AssetIcon from '../AssetIcon';
 import Identicon from '../Identicon';
 import AssetActionButton from '../AssetActionButton';
@@ -12,9 +12,10 @@ import { toggleReceiveModal } from '../../../actions/modals';
 import { connect } from 'react-redux';
 import { renderFromTokenMinimalUnit, balanceToFiat, renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
+import { isMainNet } from '../../../util/networks';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
-import { isMainNet } from '../../../util/networks';
+import { isSwapsAllowed } from '../Swaps/utils';
 import { swapsLivenessSelector, swapsTokensObjectSelector } from '../../../reducers/swaps';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
@@ -22,6 +23,7 @@ import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { allowedToBuy } from '../FiatOrders';
 import AssetSwapButton from '../Swaps/components/AssetSwapButton';
+import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -82,8 +84,6 @@ const styles = StyleSheet.create({
 		color: colors.blue
 	}
 });
-
-const ethLogo = require('../../../images/eth-logo.png'); // eslint-disable-line
 
 /**
  * View that displays the information of a specific asset (Token or ETH)
@@ -147,7 +147,11 @@ class AssetOverview extends PureComponent {
 		/**
 		 * Object that contains swaps tokens addresses as key
 		 */
-		swapsTokens: PropTypes.object
+		swapsTokens: PropTypes.object,
+		/**
+		 * Network ticker
+		 */
+		ticker: PropTypes.string
 	};
 
 	onReceive = () => {
@@ -163,9 +167,9 @@ class AssetOverview extends PureComponent {
 	};
 
 	onSend = async () => {
-		const { asset } = this.props;
+		const { asset, ticker } = this.props;
 		if (asset.isETH) {
-			this.props.newAssetTransaction(getEther());
+			this.props.newAssetTransaction(getEther(ticker));
 			this.props.navigation.navigate('SendFlowView');
 		} else {
 			this.props.newAssetTransaction(asset);
@@ -175,7 +179,7 @@ class AssetOverview extends PureComponent {
 
 	goToSwaps = () => {
 		this.props.navigation.navigate('Swaps', {
-			sourceToken: this.props.asset.isETH ? swapsUtils.ETH_SWAPS_TOKEN_ADDRESS : this.props.asset.address
+			sourceToken: this.props.asset.isETH ? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS : this.props.asset.address
 		});
 	};
 
@@ -190,7 +194,7 @@ class AssetOverview extends PureComponent {
 			asset: { address, image, logo, isETH }
 		} = this.props;
 		if (isETH) {
-			return <Image source={ethLogo} style={styles.ethLogo} />;
+			return <NetworkMainAssetLogo biggest style={styles.ethLogo} />;
 		}
 		const watchedAsset = image !== undefined;
 		return logo || image ? (
@@ -246,12 +250,16 @@ class AssetOverview extends PureComponent {
 		let balance, balanceFiat;
 		if (isETH) {
 			balance = renderFromWei(accounts[selectedAddress] && accounts[selectedAddress].balance);
-			balanceFiat = weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency);
+			balanceFiat = isMainNet(chainId)
+				? weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency)
+				: null;
 		} else {
 			const exchangeRate = itemAddress in tokenExchangeRates ? tokenExchangeRates[itemAddress] : undefined;
 			balance =
 				itemAddress in tokenBalances ? renderFromTokenMinimalUnit(tokenBalances[itemAddress], decimals) : 0;
-			balanceFiat = balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
+			balanceFiat = isMainNet(chainId)
+				? balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency)
+				: null;
 		}
 		// choose balances depending on 'primaryCurrency'
 		if (primaryCurrency === 'ETH') {
@@ -272,7 +280,7 @@ class AssetOverview extends PureComponent {
 							<Text style={styles.amount} testID={'token-amount'}>
 								{mainBalance}
 							</Text>
-							<Text style={styles.amountFiat}>{secondaryBalance}</Text>
+							{secondaryBalance && <Text style={styles.amountFiat}>{secondaryBalance}</Text>}
 						</>
 					)}
 				</View>
@@ -300,7 +308,7 @@ class AssetOverview extends PureComponent {
 						{AppConstants.SWAPS.ACTIVE && (
 							<AssetSwapButton
 								isFeatureLive={swapsIsLive}
-								isNetworkAllowed={AppConstants.SWAPS.ONLY_MAINNET ? isMainNet(chainId) : true}
+								isNetworkAllowed={isSwapsAllowed(chainId)}
 								isAssetAllowed={isETH || address?.toLowerCase() in swapsTokens}
 								onPress={this.goToSwaps}
 							/>
@@ -321,6 +329,7 @@ const mapStateToProps = state => ({
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	swapsIsLive: swapsLivenessSelector(state),
 	swapsTokens: swapsTokensObjectSelector(state)
 });

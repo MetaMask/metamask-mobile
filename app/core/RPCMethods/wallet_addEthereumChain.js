@@ -6,6 +6,7 @@ import Engine from '../Engine';
 import { ethErrors } from 'eth-json-rpc-errors';
 import { isPrefixedFormattedHexString, isSafeChainId } from '../../util/networks';
 import URL from 'url-parse';
+import AnalyticsV2 from '../../util/analyticsV2';
 
 const wallet_addEthereumChain = async ({
 	req,
@@ -111,7 +112,19 @@ const wallet_addEthereumChain = async ({
 			switchCustomNetworkRequest.current = { resolve, reject };
 		});
 
-		if (!switchCustomNetworkApprove) throw ethErrors.provider.userRejectedRequest();
+		const analyticsParams = {
+			rpc_url: existingNetwork?.rpcUrl,
+			chain_id: _chainId,
+			source: 'Custom Network API',
+			symbol: existingNetwork?.ticker,
+			block_explorer_url: existingNetwork?.blockExplorerUrl,
+			network_name: 'rpc'
+		};
+
+		if (!switchCustomNetworkApprove) {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_REQUEST_REJECTED, analyticsParams);
+			throw ethErrors.provider.userRejectedRequest();
+		}
 
 		CurrencyRateController.configure({ nativeCurrency: existingNetwork.ticker });
 		NetworkController.setRpcTarget(
@@ -120,6 +133,9 @@ const wallet_addEthereumChain = async ({
 			existingNetwork.ticker,
 			existingNetwork.nickname
 		);
+
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_SWITCHED, analyticsParams);
+
 		res.result = null;
 		return;
 	}
@@ -213,6 +229,17 @@ const wallet_addEthereumChain = async ({
 	}
 	requestData.alert = alert;
 
+	const analyticsParamsAdd = {
+		rpc_url: firstValidRPCUrl,
+		chain_id: chainIdDecimal,
+		source: 'Custom Network API',
+		symbol: ticker,
+		block_explorer_url: firstValidBlockExplorerUrl,
+		network_name: 'rpc'
+	};
+
+	AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_REQUESTED, analyticsParamsAdd);
+
 	setCustomNetworkToAdd(requestData);
 	setShowAddCustomNetworkDialog(true);
 
@@ -220,11 +247,16 @@ const wallet_addEthereumChain = async ({
 		addCustomNetworkRequest.current = { resolve, reject };
 	});
 
-	if (!addCustomNetworkApprove) throw ethErrors.provider.userRejectedRequest();
+	if (!addCustomNetworkApprove) {
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_REQUEST_REJECTED, analyticsParamsAdd);
+		throw ethErrors.provider.userRejectedRequest();
+	}
 
 	PreferencesController.addToFrequentRpcList(firstValidRPCUrl, chainIdDecimal, ticker, _chainName, {
 		blockExplorerUrl: firstValidBlockExplorerUrl
 	});
+
+	AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_ADDED, analyticsParamsAdd);
 
 	InteractionManager.runAfterInteractions(() => {
 		setCustomNetworkToSwitch(requestData);

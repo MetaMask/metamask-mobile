@@ -2,6 +2,8 @@ import { colors } from '../styles/common';
 import URL from 'url-parse';
 import AppConstants from '../core/AppConstants';
 import { MAINNET, ROPSTEN, KOVAN, RINKEBY, GOERLI, RPC } from '../../app/constants/network';
+import { util } from '@metamask/controllers';
+import Engine from '../core/Engine';
 
 /**
  * List of the supported networks
@@ -71,6 +73,15 @@ export default NetworkList;
 export const getAllNetworks = () => NetworkListKeys.filter(name => name !== RPC);
 
 export const isMainNet = network => network?.provider?.type === MAINNET || network === String(1);
+
+export const getDecimalChainId = chainId => {
+	if (!chainId || typeof chainId !== 'string' || !chainId.startsWith('0x')) {
+		return chainId;
+	}
+	return parseInt(chainId, 16).toString(10);
+};
+
+export const isMainnetByChainId = chainId => getDecimalChainId(String(chainId)) === String(1);
 
 export const getNetworkName = id => NetworkListKeys.find(key => NetworkList[key].networkId === Number(id));
 
@@ -156,3 +167,9 @@ export function isPrefixedFormattedHexString(value) {
 	}
 	return /^0x[1-9a-f]+[0-9a-f]*$/iu.test(value);
 }
+
+export const getNetworkNonce = async ({ from }) => {
+	const { TransactionController } = Engine.context;
+	const networkNonce = await util.query(TransactionController.ethQuery, 'getTransactionCount', [from, 'pending']);
+	return parseInt(networkNonce, 16);
+};

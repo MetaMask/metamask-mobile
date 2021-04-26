@@ -13,7 +13,6 @@ import { connect } from 'react-redux';
 import { resetTransaction, setTransactionObject } from '../../../actions/transaction';
 import { toggleDappTransactionModal } from '../../../actions/modals';
 import NotificationManager from '../../../core/NotificationManager';
-import NetworkList, { getNetworkTypeById } from '../../../util/networks';
 import contractMap from '@metamask/contract-metadata';
 import { showAlert } from '../../../actions/alert';
 import Analytics from '../../../core/Analytics';
@@ -29,6 +28,7 @@ import { isENS } from '../../../util/address';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { MAINNET } from '../../../constants/network';
 import BigNumber from 'bignumber.js';
+import { WalletDevice } from '@metamask/controllers/';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -109,7 +109,11 @@ class Send extends PureComponent {
 		/**
 		/* dApp transaction modal visible or not
 		*/
-		dappTransactionModalVisible: PropTypes.bool
+		dappTransactionModalVisible: PropTypes.bool,
+		/**
+		 * A list of custom RPCs to provide the user
+		 */
+		frequentRpcList: PropTypes.array
 	};
 
 	state = {
@@ -314,7 +318,6 @@ class Send extends PureComponent {
 			if (gasPrice) {
 				newTxMeta.gasPrice = toBN(gas);
 			}
-
 			// TODO: We should add here support for sending tokens
 			// or calling smart contract functions
 		}
@@ -330,7 +333,6 @@ class Send extends PureComponent {
 
 		newTxMeta.from = selectedAddress;
 		newTxMeta.transactionFromName = identities[selectedAddress].name;
-
 		this.props.setTransactionObject(newTxMeta);
 		this.mounted && this.setState({ ready: true, transactionKey: Date.now() });
 	};
@@ -338,20 +340,21 @@ class Send extends PureComponent {
 	/**
 	 * Method in charge of changing network if is needed
 	 *
-	 * @param chainId - Corresponding id for network
+	 * @param switchToChainId - Corresponding chain id for new network
 	 */
-	handleNetworkSwitch = chainId => {
-		const { networkType } = this.props;
-		const newNetworkType = getNetworkTypeById(chainId);
-		if (newNetworkType && networkType !== newNetworkType) {
+	handleNetworkSwitch = switchToChainId => {
+		const { frequentRpcList } = this.props;
+		const rpc = frequentRpcList.find(({ chainId }) => chainId === switchToChainId);
+		if (rpc) {
+			const { rpcUrl, chainId, ticker, nickname } = rpc;
 			const { NetworkController, CurrencyRateController } = Engine.context;
-			CurrencyRateController.configure({ nativeCurrency: 'ETH' });
-			NetworkController.setProviderType(newNetworkType);
+			CurrencyRateController.configure({ nativeCurrency: ticker });
+			NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
 			this.props.showAlert({
 				isVisible: true,
 				autodismiss: 5000,
 				content: 'clipboard-alert',
-				data: { msg: strings('send.warn_network_change') + NetworkList[newNetworkType].name }
+				data: { msg: strings('send.warn_network_change') + nickname }
 			});
 		}
 	};
@@ -483,7 +486,8 @@ class Send extends PureComponent {
 			}
 			const { result, transactionMeta } = await TransactionController.addTransaction(
 				transaction,
-				TransactionTypes.MMM
+				TransactionTypes.MMM,
+				WalletDevice.MM_MOBILE
 			);
 
 			await TransactionController.approveTransaction(transactionMeta.id);
@@ -652,6 +656,7 @@ class Send extends PureComponent {
 const mapStateToProps = state => ({
 	addressBook: state.engine.backgroundState.AddressBookController.addressBook,
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList,
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	transaction: state.transaction,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,

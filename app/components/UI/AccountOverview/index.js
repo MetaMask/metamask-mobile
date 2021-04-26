@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { ScrollView, TextInput, StyleSheet, Text, View, TouchableOpacity, InteractionManager } from 'react-native';
 import Clipboard from '@react-native-community/clipboard';
-import { swapsUtils } from '@estebanmino/controllers';
+import { swapsUtils } from '@metamask/swaps-controller';
 import { connect } from 'react-redux';
 import Engine from '../../../core/Engine';
 import Analytics from '../../../core/Analytics';
@@ -21,6 +21,7 @@ import { renderFiat } from '../../../util/number';
 import { renderAccountName } from '../../../util/address';
 import { isMainNet } from '../../../util/networks';
 import { getEther } from '../../../util/transactions';
+import { isSwapsAllowed } from '../Swaps/utils';
 
 import Identicon from '../Identicon';
 import AssetActionButton from '../AssetActionButton';
@@ -159,7 +160,11 @@ class AccountOverview extends PureComponent {
 		/**
 		 * Wether Swaps feature is live or not
 		 */
-		swapsIsLive: PropTypes.bool
+		swapsIsLive: PropTypes.bool,
+		/**
+		 * Current provider ticker
+		 */
+		ticker: PropTypes.string
 	};
 
 	state = {
@@ -236,11 +241,11 @@ class AccountOverview extends PureComponent {
 		});
 	};
 
-	onReceive = () => this.props.toggleReceiveModal(getEther());
+	onReceive = () => this.props.toggleReceiveModal();
 
 	onSend = () => {
-		const { newAssetTransaction, navigation } = this.props;
-		newAssetTransaction(getEther());
+		const { newAssetTransaction, navigation, ticker } = this.props;
+		newAssetTransaction(getEther(ticker));
 		navigation.navigate('SendFlowView');
 	};
 
@@ -253,7 +258,7 @@ class AccountOverview extends PureComponent {
 
 	goToSwaps = () =>
 		this.props.navigation.navigate('Swaps', {
-			sourceToken: swapsUtils.ETH_SWAPS_TOKEN_ADDRESS
+			sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS
 		});
 
 	render() {
@@ -327,7 +332,7 @@ class AccountOverview extends PureComponent {
 								</TouchableOpacity>
 							)}
 						</View>
-						<Text style={styles.amountFiat}>{fiatBalance}</Text>
+						{isMainNet(chainId) && <Text style={styles.amountFiat}>{fiatBalance}</Text>}
 						<TouchableOpacity style={styles.addressWrapper} onPress={this.copyAccountToClipboard}>
 							<EthereumAddress address={address} style={styles.address} type={'short'} />
 						</TouchableOpacity>
@@ -354,7 +359,7 @@ class AccountOverview extends PureComponent {
 							{AppConstants.SWAPS.ACTIVE && (
 								<AssetSwapButton
 									isFeatureLive={swapsIsLive}
-									isNetworkAllowed={AppConstants.SWAPS.ONLY_MAINNET ? isMainNet(chainId) : true}
+									isNetworkAllowed={isSwapsAllowed(chainId)}
 									onPress={this.goToSwaps}
 									isAssetAllowed
 								/>
@@ -372,6 +377,7 @@ const mapStateToProps = state => ({
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	swapsIsLive: swapsLivenessSelector(state)
 });
 

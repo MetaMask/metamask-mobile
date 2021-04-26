@@ -10,10 +10,10 @@ describe('swaps reducer', () => {
 
 	it('should set liveness', () => {
 		const initalState = reducer(undefined, emptyAction);
-		const notLiveState = reducer(initalState, { type: SWAPS_SET_LIVENESS, payload: false });
-		expect(notLiveState.isLive).toBe(false);
-		const liveState = reducer(initalState, { type: SWAPS_SET_LIVENESS, payload: true });
-		expect(liveState.isLive).toBe(true);
+		const notLiveState = reducer(initalState, { type: SWAPS_SET_LIVENESS, payload: { live: false, chainId: 1 } });
+		expect(notLiveState['1'].isLive).toBe(false);
+		const liveState = reducer(initalState, { type: SWAPS_SET_LIVENESS, payload: { live: true, chainId: 1 } });
+		expect(liveState['1'].isLive).toBe(true);
 	});
 
 	it('should set has onboarded', () => {

@@ -15,10 +15,11 @@ import {
 	TokenBalancesController,
 	TokenRatesController,
 	TransactionController,
-	TypedMessageManager
+	TypedMessageManager,
+	WalletDevice
 } from '@metamask/controllers';
 
-import { SwapsController } from '@estebanmino/controllers';
+import { SwapsController } from '@metamask/swaps-controller';
 
 import AsyncStorage from '@react-native-community/async-storage';
 
@@ -33,7 +34,7 @@ import contractMap from '@metamask/contract-metadata';
 import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
 
-const EMPTY = 'EMPTY';
+const NON_EMPTY = 'NON_EMPTY';
 
 const encryptor = new Encryptor();
 let currentChainId;
@@ -79,7 +80,7 @@ class Engine {
 					new PersonalMessageManager(),
 					new MessageManager(),
 					new NetworkController({
-						infuraProjectId: process.env.MM_INFURA_PROJECT_ID || EMPTY,
+						infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
 						providerConfig: {
 							static: {
 								eth_sendTransaction: async (payload, next, end) => {
@@ -87,7 +88,8 @@ class Engine {
 									try {
 										const hash = await (await TransactionController.addTransaction(
 											payload.params[0],
-											payload.origin
+											payload.origin,
+											WalletDevice.MM_MOBILE
 										)).result;
 										end(undefined, hash);
 									} catch (error) {
@@ -117,7 +119,12 @@ class Engine {
 					new TokenRatesController(),
 					new TransactionController(),
 					new TypedMessageManager(),
-					new SwapsController({ clientId: AppConstants.SWAPS.CLIENT_ID })
+					new SwapsController({
+						clientId: AppConstants.SWAPS.CLIENT_ID,
+						fetchAggregatorMetadataThreshold: AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
+						fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
+						fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD
+					})
 				],
 				initialState
 			);
@@ -152,7 +159,7 @@ class Engine {
 			AccountTrackerController,
 			AssetsContractController,
 			AssetsDetectionController,
-			NetworkController: { provider },
+			NetworkController: { provider, state: NetworkControllerState },
 			TransactionController,
 			SwapsController
 		} = this.datamodel.context;
@@ -160,8 +167,10 @@ class Engine {
 		provider.sendAsync = provider.sendAsync.bind(provider);
 		AccountTrackerController.configure({ provider });
 		AssetsContractController.configure({ provider });
+
 		SwapsController.configure({
 			provider,
+			chainId: NetworkControllerState?.provider?.chainId,
 			pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
 			quotePollingInterval: AppConstants.SWAPS.POLLING_INTERVAL
 		});
@@ -235,13 +244,14 @@ class Engine {
 			TokenRatesController
 		} = this.datamodel.context;
 		const { selectedAddress } = PreferencesController.state;
-		const { conversionRate } = CurrencyRateController.state;
+		const { conversionRate, currentCurrency } = CurrencyRateController.state;
 		const { accounts } = AccountTrackerController.state;
 		const { tokens } = AssetsController.state;
 		let ethFiat = 0;
 		let tokenFiat = 0;
+		const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
 		if (accounts[selectedAddress]) {
-			ethFiat = weiToFiatNumber(accounts[selectedAddress].balance, conversionRate);
+			ethFiat = weiToFiatNumber(accounts[selectedAddress].balance, conversionRate, decimalsToShow);
 		}
 		if (tokens.length > 0) {
 			const { contractBalances: tokenBalances } = TokenBalancesController.state;
@@ -253,7 +263,12 @@ class Engine {
 					(item.address in tokenBalances
 						? renderFromTokenMinimalUnit(tokenBalances[item.address], item.decimals)
 						: undefined);
-				const tokenBalanceFiat = balanceToFiatNumber(tokenBalance, conversionRate, exchangeRate);
+				const tokenBalanceFiat = balanceToFiatNumber(
+					tokenBalance,
+					conversionRate,
+					exchangeRate,
+					decimalsToShow
+				);
 				tokenFiat += tokenBalanceFiat;
 			});
 		}
@@ -380,6 +395,7 @@ class Engine {
 			const checksummedAddress = toChecksumAddress(address);
 			if (accounts.hd.includes(checksummedAddress) || accounts.simpleKeyPair.includes(checksummedAddress)) {
 				updatedPref.identities[checksummedAddress] = preferences.identities[address];
+				updatedPref.identities[checksummedAddress].importTime = Date.now();
 			}
 		});
 		await PreferencesController.update(updatedPref);

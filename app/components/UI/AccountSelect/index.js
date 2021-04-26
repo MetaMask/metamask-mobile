@@ -7,8 +7,6 @@ import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { hexToBN, weiToFiat, renderFromWei } from '../../../util/number';
 import { getTicker } from '../../../util/transactions';
-import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
-import { strings } from '../../../../locales/i18n';
 import { safeToChecksumAddress } from '../../../util/address';
 
 const styles = StyleSheet.create({
@@ -130,11 +128,7 @@ class AccountSelect extends PureComponent {
 		/**
 		 * Current provider ticker
 		 */
-		ticker: PropTypes.string,
-		/**
-		 * Transaction object associated with this transaction
-		 */
-		transaction: PropTypes.object
+		ticker: PropTypes.string
 	};
 
 	static defaultProps = {
@@ -161,21 +155,12 @@ class AccountSelect extends PureComponent {
 	}
 
 	renderOption(account, onPress) {
-		const {
-			conversionRate,
-			currentCurrency,
-			primaryCurrency,
-			ticker,
-			transaction: { paymentChannelTransaction }
-		} = this.props;
+		const { conversionRate, currentCurrency, primaryCurrency, ticker } = this.props;
 		const balance = hexToBN(account.balance);
 
 		// render balances according to selected 'primaryCurrency'
 		let mainBalance, secondaryBalance;
-		if (paymentChannelTransaction) {
-			const state = PaymentChannelsClient.getState();
-			mainBalance = `${state.balance} ${strings('unit.sai')}`;
-		} else if (primaryCurrency === 'ETH') {
+		if (primaryCurrency === 'ETH') {
 			mainBalance = `${renderFromWei(balance)} ${getTicker(ticker)}`;
 			secondaryBalance = weiToFiat(balance, conversionRate, currentCurrency);
 		} else {
@@ -236,8 +221,7 @@ const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	primaryCurrency: state.settings.primaryCurrency,
-	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	transaction: state.transaction
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker
 });
 
 export default connect(mapStateToProps)(AccountSelect);

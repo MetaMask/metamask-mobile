@@ -12,6 +12,13 @@ export function setShowHexData(showHexData) {
 	};
 }
 
+export function setShowCustomNonce(showCustomNonce) {
+	return {
+		type: 'SET_SHOW_CUSTOM_NONCE',
+		showCustomNonce
+	};
+}
+
 export function setLockTime(lockTime) {
 	return {
 		type: 'SET_LOCK_TIME',
@@ -23,13 +30,6 @@ export function setPrimaryCurrency(primaryCurrency) {
 	return {
 		type: 'SET_PRIMARY_CURRENCY',
 		primaryCurrency
-	};
-}
-
-export function setEnablePaymentChannels(paymentChannelsEnabled) {
-	return {
-		type: 'SET_ENABLE_PAYMENT_CHANNELS',
-		paymentChannelsEnabled
 	};
 }
 

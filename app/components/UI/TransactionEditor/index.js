@@ -1,22 +1,20 @@
 import React, { PureComponent } from 'react';
 import { StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
-import ConfirmSend from '../../Views/SendFlow/Confirm';
 import AnimatedTransactionModal from '../AnimatedTransactionModal';
 import TransactionReview from '../TransactionReview';
 import CustomGas from '../CustomGas';
-import { isBN, hexToBN, toBN, isDecimal, fromWei, renderFromWei } from '../../../util/number';
+import { isBN, hexToBN, toBN, fromWei, renderFromWei } from '../../../util/number';
 import { isValidAddress, toChecksumAddress, BN, addHexPrefix } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { generateTransferData, getNormalizedTxState, getTicker } from '../../../util/transactions';
-import { getBasicGasEstimates, apiEstimateModifiedToWEI } from '../../../util/custom-gas';
+import { generateTransferData, getNormalizedTxState, getTicker, getActiveTabUrl } from '../../../util/transactions';
+import { getBasicGasEstimatesByChainId, apiEstimateModifiedToWEI } from '../../../util/custom-gas';
 import { setTransactionObject } from '../../../actions/transaction';
 import Engine from '../../../core/Engine';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import contractMap from '@metamask/contract-metadata';
-import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
 import { safeToChecksumAddress } from '../../../util/address';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { MAINNET } from '../../../constants/network';
@@ -95,7 +93,11 @@ class TransactionEditor extends PureComponent {
 		/**
 		 * Current selected ticker
 		 */
-		ticker: PropTypes.string
+		ticker: PropTypes.string,
+		/**
+		 * Active tab URL, the currently active tab url
+		 */
+		activeTabUrl: PropTypes.string
 	};
 
 	state = {
@@ -358,11 +360,8 @@ class TransactionEditor extends PureComponent {
 	 */
 	validateAmount = async (allowEmpty = true) => {
 		const {
-			transaction: { assetType, paymentChannelTransaction }
+			transaction: { assetType }
 		} = this.props;
-		if (paymentChannelTransaction) {
-			return this.validatePaymentChannelAmount(allowEmpty);
-		}
 		const validations = {
 			ETH: () => this.validateEtherAmount(allowEmpty),
 			ERC20: async () => await this.validateTokenAmount(allowEmpty),
@@ -475,30 +474,6 @@ class TransactionEditor extends PureComponent {
 	};
 
 	/**
-	 * Validates payment request transaction
-	 *
-	 * @param {bool} allowEmpty - Whether the validation allows empty amount or not
-	 * @returns {string} - String containing error message whether the Ether transaction amount is valid or not
-	 */
-	validatePaymentChannelAmount = allowEmpty => {
-		let error;
-		if (!allowEmpty) {
-			const {
-				transaction: { value, readableValue, from }
-			} = this.props;
-			if (!value || !from || !readableValue) {
-				return strings('transaction.invalid_amount');
-			}
-			if (value && !isBN(value)) return strings('transaction.invalid_amount');
-			const state = PaymentChannelsClient.getState();
-			if (isDecimal(state.balance) && parseFloat(readableValue) > parseFloat(state.balance)) {
-				return strings('transaction.insufficient');
-			}
-		}
-		return error;
-	};
-
-	/**
 	 * Validates transaction gas
 	 *
 	 * @returns {string} - String containing error message whether the transaction gas is valid or not
@@ -506,10 +481,8 @@ class TransactionEditor extends PureComponent {
 	validateGas = () => {
 		let error;
 		const {
-			transaction: { gas, gasPrice, from, paymentChannelTransaction }
+			transaction: { gas, gasPrice, from }
 		} = this.props;
-		// If its handling a payment request transaction it won't do any gas validation
-		if (paymentChannelTransaction) return;
 		if (!gas) return strings('transaction.invalid_gas');
 		if (gas && !isBN(gas)) return strings('transaction.invalid_gas');
 		if (!gasPrice) return strings('transaction.invalid_gas_price');
@@ -627,40 +600,57 @@ class TransactionEditor extends PureComponent {
 
 	handleFetchBasicEstimates = async () => {
 		this.setState({ ready: false });
-		const basicGasEstimates = await getBasicGasEstimates();
-		this.handleGasFeeSelection(this.props.transaction.gas, apiEstimateModifiedToWEI(basicGasEstimates.averageGwei));
-		this.setState({ basicGasEstimates, ready: true });
+		const basicGasEstimates = await getBasicGasEstimatesByChainId();
+		if (basicGasEstimates) {
+			this.handleGasFeeSelection(
+				this.props.transaction.gas,
+				apiEstimateModifiedToWEI(basicGasEstimates.averageGwei)
+			);
+		}
+		return this.setState({ basicGasEstimates, ready: true });
+	};
+
+	getGasAnalyticsParams = () => {
+		try {
+			const { transaction, activeTabUrl } = this.props;
+			const { selectedAsset } = transaction;
+			return {
+				dapp_host_name: transaction?.origin,
+				dapp_url: activeTabUrl,
+				active_currency: { value: selectedAsset?.symbol, anonymous: true }
+			};
+		} catch (error) {
+			return {};
+		}
 	};
 
 	render = () => {
 		const { mode, transactionConfirmed, transaction, onModeChange } = this.props;
 		const { basicGasEstimates, ready, gasError, over } = this.state;
-		const paymentChannelTransaction = transaction ? transaction.paymentChannelTransaction : false;
 		return (
 			<React.Fragment>
-				{mode === EDIT && paymentChannelTransaction && <ConfirmSend transaction={transaction} />}
-				{!paymentChannelTransaction && (
-					<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
-						<AnimatedTransactionModal onModeChange={onModeChange} ready={ready} review={this.review}>
-							<TransactionReview
-								onCancel={this.onCancel}
-								onConfirm={this.onConfirm}
-								validate={this.validate}
-								ready={ready}
-								transactionConfirmed={transactionConfirmed}
-								over={over}
-							/>
-							<CustomGas
-								handleGasFeeSelection={this.updateGas}
-								basicGasEstimates={basicGasEstimates}
-								gas={transaction.gas}
-								gasPrice={transaction.gasPrice}
-								gasError={gasError}
-								mode={mode}
-							/>
-						</AnimatedTransactionModal>
-					</KeyboardAwareScrollView>
-				)}
+				<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
+					<AnimatedTransactionModal onModeChange={onModeChange} ready={ready} review={this.review}>
+						<TransactionReview
+							onCancel={this.onCancel}
+							onConfirm={this.onConfirm}
+							validate={this.validate}
+							ready={ready}
+							transactionConfirmed={transactionConfirmed}
+							over={over}
+						/>
+						<CustomGas
+							handleGasFeeSelection={this.updateGas}
+							basicGasEstimates={basicGasEstimates}
+							gas={transaction.gas}
+							gasPrice={transaction.gasPrice}
+							gasError={gasError}
+							mode={mode}
+							view={'Transaction'}
+							analyticsParams={this.getGasAnalyticsParams()}
+						/>
+					</AnimatedTransactionModal>
+				</KeyboardAwareScrollView>
 			</React.Fragment>
 		);
 	};
@@ -674,7 +664,8 @@ const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	transaction: getNormalizedTxState(state)
+	transaction: getNormalizedTxState(state),
+	activeTabUrl: getActiveTabUrl(state)
 });
 
 const mapDispatchToProps = dispatch => ({
