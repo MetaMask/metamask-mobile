@@ -1094,7 +1094,7 @@ class Confirm extends PureComponent {
 
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	addressBook: state.engine.backgroundState.AddressBookController.addressBook,
+	addressBook: state.engine.backgroundState.AddressBookController?.addressBook,
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
