@@ -19,7 +19,7 @@
     "start:ios:e2e": "./scripts/build.sh ios debugE2E",
     "start:ios:device": "./scripts/build.sh ios debug --device",
     "start:android": "./scripts/build.sh android debug",
-    "start:android:e2e": "./scripts/build.sh android debugE2E",
+    "start:android:e2e": "./scripts/build.sh android debugE2E --pre",
     "build:announce": "node ./scripts/metamask-bot-build-announce-bitrise.js",
     "build:android:release": "./scripts/build.sh android release",
     "build:android:release:e2e": "./scripts/build.sh android releaseE2E",
