@@ -8,6 +8,7 @@ import { util } from '@metamask/controllers';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { hexToBN } from './number';
 import AppConstants from '../core/AppConstants';
+import { isMainnetByChainId } from './networks';
 const { SAI_ADDRESS } = AppConstants;
 
 export const TOKEN_METHOD_TRANSFER = 'transfer';
@@ -210,13 +211,14 @@ export async function getMethodData(data) {
  * Returns wether the given address is a contract
  *
  * @param {string} address - Ethereum address
+ * @param {string} chainId - Current chainId
  * @returns {boolean} - Whether the given address is a contract
  */
-export async function isSmartContractAddress(address) {
+export async function isSmartContractAddress(address, chainId) {
 	if (!address) return false;
 	address = toChecksumAddress(address);
 	// If in contract map we don't need to cache it
-	if (contractMap[address]) {
+	if (isMainnetByChainId(chainId) && contractMap[address]) {
 		return Promise.resolve(true);
 	}
 	const { TransactionController } = Engine.context;
