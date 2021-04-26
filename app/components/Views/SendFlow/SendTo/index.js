@@ -35,7 +35,7 @@ import { allowedToBuy } from '../../../UI/FiatOrders';
 import NetworkList from '../../../../util/networks';
 import Text from '../../../Base/Text';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { collectConfusables } from '../../../../util/validators';
+import { collectConfusables, hasZeroWidthPoints } from '../../../../util/validators';
 
 const { hexToBN } = util;
 const styles = StyleSheet.create({
@@ -133,12 +133,17 @@ const styles = StyleSheet.create({
 	confusabeError: {
 		display: 'flex',
 		flexDirection: 'row',
+		justifyContent: 'space-between',
 		margin: 16,
 		padding: 16,
 		borderWidth: 1,
 		borderColor: colors.red,
 		backgroundColor: colors.red000,
 		borderRadius: 8
+	},
+	confusabeWarning: {
+		borderColor: colors.yellow,
+		backgroundColor: colors.yellow100
 	},
 	confusableTitle: {
 		marginTop: -3,
@@ -149,10 +154,14 @@ const styles = StyleSheet.create({
 	confusableMsg: {
 		color: colors.red,
 		fontSize: 12,
-		lineHeight: 16
+		lineHeight: 16,
+		paddingRight: 10
+	},
+	black: {
+		color: colors.black
 	},
 	warningIcon: {
-		paddingRight: 8
+		marginRight: 8
 	}
 });
 
@@ -565,6 +574,8 @@ class SendFlow extends PureComponent {
 		const checksummedAddress = toSelectedAddress && toChecksumAddress(toSelectedAddress);
 		const existingContact = checksummedAddress && addressBook[network] && addressBook[network][checksummedAddress];
 		const displayConfusableWarning = !existingContact && confusableCollection && !!confusableCollection.length;
+		const displayAsWarning =
+			confusableCollection && confusableCollection.length && !confusableCollection.some(hasZeroWidthPoints);
 
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'send-screen'}>
@@ -612,15 +623,19 @@ class SendFlow extends PureComponent {
 								</View>
 							)}
 							{displayConfusableWarning && (
-								<View style={styles.confusabeError}>
+								<View style={[styles.confusabeError, displayAsWarning && styles.confusabeWarning]}>
 									<View style={styles.warningIcon}>
-										<Icon size={16} color={colors.red} name="exclamation-triangle" />
+										<Icon
+											size={16}
+											color={displayAsWarning ? colors.black : colors.red}
+											name="exclamation-triangle"
+										/>
 									</View>
 									<View>
-										<Text style={styles.confusableTitle}>
+										<Text style={[styles.confusableTitle, displayAsWarning && styles.black]}>
 											{strings('transaction.confusable_title')}
 										</Text>
-										<Text style={styles.confusableMsg}>
+										<Text style={[styles.confusableMsg, displayAsWarning && styles.black]}>
 											{strings('transaction.confusable_msg')}
 										</Text>
 									</View>
