@@ -234,7 +234,7 @@ workflows:
     - code_setup
     - bump_version
     - ios_test_release_step
-    # - android_test_release_step
+    - android_test_release_step
     steps:
     - yarn@0:
         inputs:
@@ -269,7 +269,7 @@ app:
     PROJECT_LOCATION_IOS: ios
   - opts:
       is_expand: false
-    VERSION_NAME: 2.2.1
+    VERSION_NAME: 2.2.2
   - opts:
       is_expand: false
     ANDROID_APK_LINK: ''

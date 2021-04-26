@@ -137,7 +137,8 @@ function QuotesModal({
 	conversionRate,
 	currentCurrency,
 	quoteValues,
-	showOverallValue
+	showOverallValue,
+	ticker
 }) {
 	const bestOverallValue = quoteValues[quotes[0].aggregator].overallValueOfQuote;
 	const [displayDetails, setDisplayDetails] = useState(false);
@@ -290,7 +291,7 @@ function QuotesModal({
 										<Text primary>
 											{renderFromWei(toWei(selectedDetailsQuoteValues.ethFee))}{' '}
 											<Text reset bold>
-												ETH
+												{ticker}
 											</Text>{' '}
 											<Text>
 												(~
@@ -466,6 +467,10 @@ QuotesModal.propTypes = {
 	 * Currency code of the currently-active currency
 	 */
 	currentCurrency: PropTypes.string,
+	/**
+	 * Native asset ticker
+	 */
+	ticker: PropTypes.string,
 	quoteValues: PropTypes.object,
 	showOverallValue: PropTypes.bool
 };

@@ -15,6 +15,7 @@ import { TRANSACTION_TYPES } from '../../../util/transactions';
 import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
 import DetailsModal from '../../Base/DetailsModal';
+import { isMainNet } from '../../../util/networks';
 import { WalletDevice } from '@metamask/controllers/';
 
 const styles = StyleSheet.create({
@@ -114,7 +115,11 @@ class TransactionElement extends PureComponent {
 		 */
 		onCancelAction: PropTypes.func,
 		swapsTransactions: PropTypes.object,
-		swapsTokens: PropTypes.arrayOf(PropTypes.object)
+		swapsTokens: PropTypes.arrayOf(PropTypes.object),
+		/**
+		 * Chain Id
+		 */
+		chainId: PropTypes.string
 	};
 
 	state = {
@@ -173,7 +178,7 @@ class TransactionElement extends PureComponent {
 						'transactions.from_device_label'
 						// eslint-disable-next-line no-mixed-spaces-and-tabs
 				  )}`
-				: `${toDateFormat(tx.time)} 
+				: `${toDateFormat(tx.time)}
 			`
 		}`;
 	};
@@ -233,6 +238,7 @@ class TransactionElement extends PureComponent {
 	renderTxElement = transactionElement => {
 		const {
 			identities,
+			chainId,
 			selectedAddress,
 			tx: { time, status }
 		} = this.props;
@@ -253,7 +259,7 @@ class TransactionElement extends PureComponent {
 						{Boolean(value) && (
 							<ListItem.Amounts>
 								<ListItem.Amount>{value}</ListItem.Amount>
-								<ListItem.FiatAmount>{fiatValue}</ListItem.FiatAmount>
+								{isMainNet(chainId) && <ListItem.FiatAmount>{fiatValue}</ListItem.FiatAmount>}
 							</ListItem.Amounts>
 						)}
 					</ListItem.Content>
@@ -371,11 +377,12 @@ class TransactionElement extends PureComponent {
 }
 
 const mapStateToProps = state => ({
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	primaryCurrency: state.settings.primaryCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {},
-	swapsTokens: state.engine.backgroundState.SwapsController.tokens,
-	ticker: state.engine.backgroundState.NetworkController.provider.ticker
+	swapsTokens: state.engine.backgroundState.SwapsController.tokens
 });
 export default connect(mapStateToProps)(TransactionElement);
