@@ -1,8 +1,9 @@
 {
   "name": "metamask",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "private": true,
   "scripts": {
+    "audit:ci": "./scripts/yarn-audit.sh audit dependencies",
     "watch": "./scripts/build.sh watcher watch",
     "watch:clean": "./scripts/build.sh watcher clean",
     "clean:ios": "rm -rf ios/build",
@@ -19,7 +20,7 @@
     "start:ios:device": "./scripts/build.sh ios debug --device",
     "start:android": "./scripts/build.sh android debug",
     "start:android:e2e": "./scripts/build.sh android debugE2E",
-    "build:announce": "node ./scripts/metamask-bot-build-announce.js",
+    "build:announce": "node ./scripts/metamask-bot-build-announce-bitrise.js",
     "build:android:release": "./scripts/build.sh android release",
     "build:android:release:e2e": "./scripts/build.sh android releaseE2E",
     "build:android:checksum": "./scripts/checksum.sh",
@@ -99,6 +100,7 @@
     "base-64": "1.0.0",
     "bignumber.js": "8.1.1",
     "buffer": "5.2.1",
+    "codecov": "^3.8.1",
     "compare-versions": "^3.6.0",
     "content-hash": "2.5.2",
     "dnode": "1.2.2",
