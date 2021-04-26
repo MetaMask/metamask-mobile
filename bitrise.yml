@@ -102,7 +102,7 @@ workflows:
     - yarn@0:
         inputs:
         - cache_local_deps: 'yes'
-        - command: test:e2e:ios
+        - command: start:ios:e2e
         title: E2E Tests on iOS
   android_e2e_test:
     before_run:
@@ -114,7 +114,7 @@ workflows:
     - yarn@0:
         inputs:
         - cache_local_deps: 'yes'
-        - command: test:e2e:android
+        - command: start:android:e2e
         title: E2E Tests on Android
   e2e_test:
     before_run:
