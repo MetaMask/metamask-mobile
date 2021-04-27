@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import CollectibleImage from '../CollectibleImage';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Device from '../../../util/Device';
+import { NavigationContext } from 'react-navigation';
 
 const DEVICE_WIDTH = Device.getDeviceWidth();
 
@@ -48,7 +49,14 @@ const styles = StyleSheet.create({
  * Customizable view to render assets in lists
  */
 export default function CollectibleContractElement({ asset, contractCollectibles }) {
+	const navigation = useContext(NavigationContext);
 	const [collectiblesGrid, setCollectiblesGrid] = useState([]);
+
+	const onPressCollectible = collectible =>
+		navigation.navigate('CollectibleView', {
+			...collectible,
+			contractName: asset.name
+		});
 
 	const splitIntoSubArrays = (array, count) => {
 		const newArray = [];
@@ -59,7 +67,10 @@ export default function CollectibleContractElement({ asset, contractCollectibles
 	};
 
 	useEffect(() => {
-		const temp = splitIntoSubArrays(contractCollectibles.concat(contractCollectibles), 3);
+		const temp = splitIntoSubArrays(
+			contractCollectibles.concat(contractCollectibles).concat(contractCollectibles),
+			3
+		);
 		setCollectiblesGrid(temp);
 	}, [contractCollectibles, setCollectiblesGrid]);
 
@@ -83,16 +94,18 @@ export default function CollectibleContractElement({ asset, contractCollectibles
 			<View style={styles.grid}>
 				{collectiblesGrid.map((row, i) => (
 					<View key={i} style={styles.collectiblesRowContainer}>
-						{row.map(({ name, address, tokenId, image }, index) => (
-							<View key={address + tokenId} styles={styles.collectibleBox}>
-								<CollectibleImage
-									iconStyle={styles.collectibleIcon}
-									containerStyle={[
-										styles.collectibleIcon,
-										index - (1 % 3) === 0 && styles.collectibleInTheMiddle
-									]}
-									collectible={{ name, address, tokenId, image }}
-								/>
+						{row.map((collectible, index) => (
+							<View key={collectible.address + collectible.tokenId} styles={styles.collectibleBox}>
+								<TouchableOpacity onPress={() => onPressCollectible(collectible)}>
+									<CollectibleImage
+										iconStyle={styles.collectibleIcon}
+										containerStyle={[
+											styles.collectibleIcon,
+											index - (1 % 3) === 0 && styles.collectibleInTheMiddle
+										]}
+										collectible={collectible}
+									/>
+								</TouchableOpacity>
 							</View>
 						))}
 					</View>
