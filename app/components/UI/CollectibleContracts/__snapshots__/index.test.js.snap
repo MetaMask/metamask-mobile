@@ -12,7 +12,7 @@ exports[`CollectibleContracts should render correctly 1`] = `
   testID="collectible-contracts"
 >
   <View>
-    <AssetElement
+    <CollectibleContractElement
       asset={
         Object {
           "address": "0x0",
@@ -25,103 +25,48 @@ exports[`CollectibleContracts should render correctly 1`] = `
       }
       key="0x0"
       onPress={[Function]}
-    >
-      <View
-        style={
-          Object {
-            "flex": 1,
-            "flexDirection": "row",
-          }
-        }
-      >
-        <CollectibleImage
-          collectible={
-            Object {
-              "address": "0x0",
-              "image": "logo",
-              "name": "name",
-            }
-          }
-        />
-        <View
-          style={
-            Object {
-              "flex": 1,
-              "marginLeft": 20,
-              "marginTop": 8,
-            }
-          }
-        >
-          <Text
-            style={
-              Object {
-                "color": "#000000",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 16,
-                "fontWeight": "400",
-              }
-            }
-          >
-            name
-          </Text>
-          <Text
-            style={
-              Object {
-                "color": "#848c96",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 12,
-                "fontWeight": "400",
-              }
-            }
-          >
-            0
-             
-            NM
-          </Text>
-        </View>
-      </View>
-    </AssetElement>
-    <View
-      key="collectible-contracts-footer"
+    />
+  </View>
+  <View
+    key="collectible-contracts-footer"
+    style={
+      Object {
+        "flex": 1,
+        "paddingBottom": 30,
+      }
+    }
+  >
+    <TouchableOpacity
+      onPress={[Function]}
       style={
         Object {
-          "flex": 1,
-          "paddingBottom": 30,
+          "alignItems": "center",
+          "flexDirection": "row",
+          "justifyContent": "center",
+          "margin": 20,
         }
       }
+      testID="add-collectible-button"
     >
-      <TouchableOpacity
-        onPress={[Function]}
+      <Icon
+        allowFontScaling={false}
+        color="#037dd6"
+        name="plus"
+        size={16}
+      />
+      <Text
         style={
           Object {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "justifyContent": "center",
-            "margin": 20,
+            "color": "#037dd6",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 15,
+            "fontWeight": "400",
           }
         }
-        testID="add-collectible-button"
       >
-        <Icon
-          allowFontScaling={false}
-          color="#037dd6"
-          name="plus"
-          size={16}
-        />
-        <Text
-          style={
-            Object {
-              "color": "#037dd6",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 15,
-              "fontWeight": "400",
-            }
-          }
-        >
-          ADD COLLECTIBLES
-        </Text>
-      </TouchableOpacity>
-    </View>
+        ADD COLLECTIBLES
+      </Text>
+    </TouchableOpacity>
   </View>
 </View>
 `;
