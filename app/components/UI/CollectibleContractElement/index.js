@@ -32,11 +32,11 @@ const styles = StyleSheet.create({
 		width: (DEVICE_WIDTH - 30 - 16) / 3,
 		height: (DEVICE_WIDTH - 30 - 16) / 3
 	},
+	collectibleInTheMiddle: { marginHorizontal: 8 },
 	collectiblesRowContainer: {
 		flex: 1,
 		flexDirection: 'row',
-		marginTop: 15,
-		justifyContent: 'space-between'
+		marginTop: 15
 	},
 	collectibleBox: {
 		flex: 1,
@@ -48,10 +48,20 @@ const styles = StyleSheet.create({
  * Customizable view to render assets in lists
  */
 export default function CollectibleContractElement({ asset, contractCollectibles }) {
-	const [collectiblesToRender, setCollectiblesToRender] = useState([]);
+	const [collectiblesGrid, setCollectiblesGrid] = useState([]);
+
+	const splitIntoSubArrays = (array, count) => {
+		const newArray = [];
+		while (array.length > 0) {
+			newArray.push(array.splice(0, count));
+		}
+		return newArray;
+	};
+
 	useEffect(() => {
-		setCollectiblesToRender(contractCollectibles.concat(contractCollectibles));
-	}, [contractCollectibles, setCollectiblesToRender]);
+		const temp = splitIntoSubArrays(contractCollectibles.concat(contractCollectibles), 3);
+		setCollectiblesGrid(temp);
+	}, [contractCollectibles, setCollectiblesGrid]);
 
 	return (
 		<View style={styles.itemWrapper}>
@@ -70,14 +80,21 @@ export default function CollectibleContractElement({ asset, contractCollectibles
 					</Text>
 				</View>
 			</View>
-			<View style={styles.collectiblesRowContainer}>
-				{collectiblesToRender.map(({ name, address, tokenId, image }) => (
-					<View key={address + tokenId} styles={styles.collectibleBox}>
-						<CollectibleImage
-							iconStyle={styles.collectibleIcon}
-							containerStyle={styles.collectibleIcon}
-							collectible={{ name, address, tokenId, image }}
-						/>
+			<View style={styles.grid}>
+				{collectiblesGrid.map((row, i) => (
+					<View key={i} style={styles.collectiblesRowContainer}>
+						{row.map(({ name, address, tokenId, image }, index) => (
+							<View key={address + tokenId} styles={styles.collectibleBox}>
+								<CollectibleImage
+									iconStyle={styles.collectibleIcon}
+									containerStyle={[
+										styles.collectibleIcon,
+										index - (1 % 3) === 0 && styles.collectibleInTheMiddle
+									]}
+									collectible={{ name, address, tokenId, image }}
+								/>
+							</View>
+						))}
 					</View>
 				))}
 			</View>
