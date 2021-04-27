@@ -117,7 +117,7 @@
 		<activity android:name="com.mixpanel.android.takeoverinapp.TakeoverInAppActivity"
 		android:theme="@style/com_mixpanel_android_TakeoverInAppActivityTheme"/>
 		<!--SENTRY-->
-		<meta-data android:name="io.sentry.anr.timeout-interval-mills" android:value="10000" />
+		<meta-data android:name="io.sentry.anr.timeout-interval-mills" android:value="8000" />
 
 		<!-- Branch install referrer tracking (optional) -->
 		<receiver android:name="io.branch.referral.InstallListener" android:exported="true">
