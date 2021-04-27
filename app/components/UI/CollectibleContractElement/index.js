@@ -87,7 +87,12 @@ export default function CollectibleContractElement({ asset, contractCollectibles
 		<View style={styles.itemWrapper}>
 			<TouchableOpacity onPress={toggleCollectibles} style={styles.titleContainer}>
 				<View style={styles.verticalAlignedContainer}>
-					<Icon name="ios-arrow-down" size={12} color={colors.fontTertiary} style={styles.arrowIcon} />
+					<Icon
+						name={`ios-arrow-${collectiblesVisible ? 'up' : 'down'}`}
+						size={12}
+						color={colors.fontTertiary}
+						style={styles.arrowIcon}
+					/>
 				</View>
 				<CollectibleImage
 					iconStyle={styles.collectibleContractIcon}
