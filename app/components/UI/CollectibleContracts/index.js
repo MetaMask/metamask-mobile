@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, Text, View, InteractionManager } from 'react-native';
 import { connect } from 'react-redux';
@@ -67,60 +67,32 @@ const styles = StyleSheet.create({
  * View that renders a list of CollectibleContract
  * also known as ERC-721 Tokens
  */
-class CollectibleContracts extends PureComponent {
-	static propTypes = {
-		/**
-		 * Array of collectibleContract objects
-		 */
-		collectibleContracts: PropTypes.array,
-		/**
-		 * Array of collectibles objects
-		 */
-		collectibles: PropTypes.array,
-		/**
-		 * Navigation object required to push
-		 * the Asset detail view
-		 */
-		navigation: PropTypes.object
-	};
+function CollectibleContracts({ collectibleContracts, collectibles, navigation }) {
+	const onItemPress = collectibleContract => navigation.push('Collectible', collectibleContract);
 
-	renderEmpty = () => (
-		<View style={styles.emptyView}>
-			<Text style={styles.text}>{strings('wallet.no_collectibles')}</Text>
-			{this.renderFooter()}
-		</View>
-	);
-
-	onItemPress = collectibleContract => {
-		this.props.navigation.push('Collectible', collectibleContract);
-	};
-
-	goToAddCollectible = () => {
-		this.props.navigation.push('AddAsset', { assetType: 'collectible' });
+	const goToAddCollectible = () => {
+		navigation.push('AddAsset', { assetType: 'collectible' });
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_ADD_COLLECTIBLES);
 		});
 	};
 
-	renderFooter = () => (
+	const renderFooter = () => (
 		<View style={styles.footer} key={'collectible-contracts-footer'}>
-			<TouchableOpacity style={styles.add} onPress={this.goToAddCollectible} testID={'add-collectible-button'}>
+			<TouchableOpacity style={styles.add} onPress={goToAddCollectible} testID={'add-collectible-button'}>
 				<Icon name="plus" size={16} color={colors.blue} />
 				<Text style={styles.addText}>{strings('wallet.add_collectibles')}</Text>
 			</TouchableOpacity>
 		</View>
 	);
 
-	renderItem = item => {
+	const renderItem = item => {
 		const { address, name, logo, symbol } = item;
 		const collectibleAmount =
-			(this.props.collectibles &&
-				this.props.collectibles.filter(
-					collectible => collectible.address.toLowerCase() === address.toLowerCase()
-				).length) ||
+			collectibles?.filter(collectible => collectible.address.toLowerCase() === address.toLowerCase()).length ||
 			0;
 		return (
-			<AssetElement onPress={this.onItemPress} asset={item} key={address}>
+			<AssetElement onPress={onItemPress} asset={item} key={address}>
 				<View style={styles.itemWrapper}>
 					<CollectibleImage collectible={{ address, name, image: logo }} />
 					<View style={styles.rows}>
@@ -134,30 +106,37 @@ class CollectibleContracts extends PureComponent {
 		);
 	};
 
-	handleOnItemPress = collectibleContract => {
-		this.onItemPress(collectibleContract);
-	};
+	const renderList = () => <View>{collectibleContracts.map(item => renderItem(item))}</View>;
 
-	renderList() {
-		const { collectibleContracts } = this.props;
+	const renderEmpty = () => (
+		<View style={styles.emptyView}>
+			<Text style={styles.text}>{strings('wallet.no_collectibles')}</Text>
+		</View>
+	);
 
-		return (
-			<View>
-				{collectibleContracts.map(item => this.renderItem(item))}
-				{this.renderFooter()}
-			</View>
-		);
-	}
-
-	render = () => {
-		const { collectibleContracts } = this.props;
-		return (
-			<View style={styles.wrapper} testID={'collectible-contracts'}>
-				{collectibleContracts && collectibleContracts.length ? this.renderList() : this.renderEmpty()}
-			</View>
-		);
-	};
+	return (
+		<View style={styles.wrapper} testID={'collectible-contracts'}>
+			{collectibleContracts?.length ? renderList() : renderEmpty()}
+			{renderFooter()}
+		</View>
+	);
 }
+
+CollectibleContracts.propTypes = {
+	/**
+	 * Array of collectibleContract objects
+	 */
+	collectibleContracts: PropTypes.array,
+	/**
+	 * Array of collectibles objects
+	 */
+	collectibles: PropTypes.array,
+	/**
+	 * Navigation object required to push
+	 * the Asset detail view
+	 */
+	navigation: PropTypes.object
+};
 
 const mapStateToProps = state => ({
 	collectibleContracts: state.engine.backgroundState.AssetsController.collectibleContracts,
