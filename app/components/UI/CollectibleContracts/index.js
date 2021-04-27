@@ -5,8 +5,7 @@ import { connect } from 'react-redux';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import CollectibleImage from '../CollectibleImage';
-import AssetElement from '../AssetElement';
+import CollectibleContractElement from '../CollectibleContractElement';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 
@@ -41,25 +40,6 @@ const styles = StyleSheet.create({
 	footer: {
 		flex: 1,
 		paddingBottom: 30
-	},
-	rows: {
-		flex: 1,
-		marginLeft: 20,
-		marginTop: 8
-	},
-	name: {
-		fontSize: 16,
-		color: colors.fontPrimary,
-		...fontStyles.normal
-	},
-	amount: {
-		fontSize: 12,
-		color: colors.grey400,
-		...fontStyles.normal
-	},
-	itemWrapper: {
-		flex: 1,
-		flexDirection: 'row'
 	}
 });
 
@@ -86,27 +66,21 @@ function CollectibleContracts({ collectibleContracts, collectibles, navigation }
 		</View>
 	);
 
-	const renderItem = item => {
-		const { address, name, logo, symbol } = item;
-		const collectibleAmount =
-			collectibles?.filter(collectible => collectible.address.toLowerCase() === address.toLowerCase()).length ||
-			0;
+	const renderCollectibleContract = item => {
+		const contractCollectibles = collectibles?.filter(
+			collectible => collectible.address.toLowerCase() === item.address.toLowerCase()
+		);
 		return (
-			<AssetElement onPress={onItemPress} asset={item} key={address}>
-				<View style={styles.itemWrapper}>
-					<CollectibleImage collectible={{ address, name, image: logo }} />
-					<View style={styles.rows}>
-						<Text style={styles.name}>{name}</Text>
-						<Text style={styles.amount}>
-							{collectibleAmount} {symbol}
-						</Text>
-					</View>
-				</View>
-			</AssetElement>
+			<CollectibleContractElement
+				onPress={onItemPress}
+				asset={item}
+				key={item.address}
+				contractCollectibles={contractCollectibles}
+			/>
 		);
 	};
 
-	const renderList = () => <View>{collectibleContracts.map(item => renderItem(item))}</View>;
+	const renderList = () => <View>{collectibleContracts.map(item => renderCollectibleContract(item))}</View>;
 
 	const renderEmpty = () => (
 		<View style={styles.emptyView}>
