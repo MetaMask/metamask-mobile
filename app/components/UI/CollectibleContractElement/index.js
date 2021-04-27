@@ -33,7 +33,11 @@ const styles = StyleSheet.create({
 		width: (DEVICE_WIDTH - 30 - 16) / 3,
 		height: (DEVICE_WIDTH - 30 - 16) / 3
 	},
-	collectibleInTheMiddle: { marginHorizontal: 8 },
+	collectibleInTheMiddle: {
+		width: (DEVICE_WIDTH - 30 - 16) / 3,
+		height: (DEVICE_WIDTH - 30 - 16) / 3,
+		marginHorizontal: 8
+	},
 	collectiblesRowContainer: {
 		flex: 1,
 		flexDirection: 'row',
@@ -82,7 +86,7 @@ export default function CollectibleContractElement({ asset, contractCollectibles
 				</View>
 				<CollectibleImage
 					iconStyle={styles.collectibleContractIcon}
-					containerStyle={[styles.collectibleContractIcon, styles.collectibleContractIconContainer]}
+					containerStyle={{ ...styles.collectibleContractIcon, ...styles.collectibleContractIconContainer }}
 					collectible={{ ...asset, image: asset.logo }}
 				/>
 				<View style={styles.verticalAlignedContainer}>
@@ -95,14 +99,18 @@ export default function CollectibleContractElement({ asset, contractCollectibles
 				{collectiblesGrid.map((row, i) => (
 					<View key={i} style={styles.collectiblesRowContainer}>
 						{row.map((collectible, index) => (
-							<View key={collectible.address + collectible.tokenId} styles={styles.collectibleBox}>
+							<View
+								key={collectible.address + collectible.tokenId + i + index}
+								styles={styles.collectibleBox}
+							>
 								<TouchableOpacity onPress={() => onPressCollectible(collectible)}>
 									<CollectibleImage
 										iconStyle={styles.collectibleIcon}
-										containerStyle={[
-											styles.collectibleIcon,
-											index - (1 % 3) === 0 && styles.collectibleInTheMiddle
-										]}
+										containerStyle={
+											index - (1 % 3) === 0
+												? styles.collectibleInTheMiddle
+												: styles.collectibleIcon
+										}
 										collectible={collectible}
 									/>
 								</TouchableOpacity>
