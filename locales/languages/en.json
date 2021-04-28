@@ -596,7 +596,7 @@
 		"save": "Save",
 		"speedup": "Speed up",
 		"from": "From",
-		"gas_fee": "Network fee",
+		"gas_fee": "Gas fee",
 		"gas_fee_fast": "FAST",
 		"gas_fee_average": "AVERAGE",
 		"gas_fee_slow": "SLOW",
@@ -645,13 +645,13 @@
 		"speedup_tx_title": "Attempt to speed up?",
 		"speedup_tx_message": "Submitting this attempt does not guarantee your original transaction will be accelerated. If the speed up attempt is successful, you will be charged the transaction fee above.",
 		"nevermind": "Nevermind",
-		"edit_network_fee": "Edit Network Fee",
+		"edit_network_fee": "Edit Gas Fee",
 		"gas_cancel_fee": "Gas Cancellation Fee",
 		"gas_speedup_fee": "Gas Speed Up fee",
 		"use_max": "Use max",
 		"set_gas": "Set",
 		"cancel_gas": "Cancel",
-		"transaction_fee": "Network fee",
+		"transaction_fee": "Gas fee",
 		"transaction_fee_less": "No fee",
 		"total_amount": "Total amount",
 		"view_data": "View Data",
@@ -682,7 +682,7 @@
 		"save": "Save",
 		"warning_gas_limit": "Gas limit must be greater than 20999 and less than 7920027",
 		"warning_gas_limit_estimated": "Estimated gas limit is {{gas}}, use it as minimum value",
-		"cost_explanation": "The network fee covers the cost of processing your transaction on the Ethereum network. MetaMask does not profit from this fee. The higher the fee the better chances of your transaction getting processed."
+		"cost_explanation": "The gas fee covers the cost of processing your transaction on the Ethereum network. MetaMask does not profit from this fee. The higher the fee the better chances of your transaction getting processed."
 	},
 	"spend_limit_edition": {
 		"save": "Save",
@@ -1443,7 +1443,7 @@
 		"rate": "Rate",
 		"quote_details_max_slippage": "Max slippage",
 		"source": "Source",
-		"estimated_network_fees": "Estimated network fees",
+		"estimated_network_fees": "Estimated gas fees",
 		"guaranteed_amount": "Guaranteed amount",
 		"quote_source_dex": {
 			"1": "This quote comes directly from a",
