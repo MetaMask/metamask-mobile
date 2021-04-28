@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
 import RemoteImage from '../../Base/RemoteImage';
@@ -24,11 +24,20 @@ const styles = StyleSheet.create({
  */
 export default function CollectibleImage({ collectible, small, big, iconStyle }) {
 	const [fallbackImage, setFallbackImage] = useState(null);
+	const [sourceUri, serSourceUri] = useState(null);
 
 	const fallback = () => {
 		const { address, tokenId } = collectible;
 		setFallbackImage(`https://storage.opensea.io/${address.toLowerCase()}/${tokenId}.png`);
 	};
+
+	useEffect(() => {
+		let source = collectible.image;
+		if (small && collectible.imagePreview && collectible.imagePreview !== '') {
+			source = collectible.imagePreview;
+		}
+		serSourceUri(source);
+	}, [collectible, small, big, serSourceUri]);
 
 	return (
 		<View style={[styles.container, { backgroundColor: `#${collectible.backgroundColor}` }]}>
@@ -37,7 +46,7 @@ export default function CollectibleImage({ collectible, small, big, iconStyle })
 					fadeIn
 					resizeMode={'contain'}
 					placeholderStyle={{ backgroundColor: colors.white }}
-					source={{ uri: fallbackImage || collectible.image }}
+					source={{ uri: fallbackImage || sourceUri }}
 					style={[small && styles.smallImage, big && styles.bigImage]}
 					onError={fallback}
 				/>
