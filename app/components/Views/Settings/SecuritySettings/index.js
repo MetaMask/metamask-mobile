@@ -39,16 +39,17 @@ import {
 	BIOMETRY_CHOICE_DISABLED,
 	SEED_PHRASE_HINTS
 } from '../../../../constants/storage';
-import Video /* TextTrackType */ from 'react-native-video';
+import Video, { TextTrackType } from 'react-native-video';
 
 import CookieManager from '@react-native-community/cookies';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import HintModal from '../../../UI/HintModal';
 import { trackErrorAsAnalytics } from '../../../../util/analyticsV2';
 
-const VIDEO_URI = 'https://www.w3schools.com/html/mov_bbb.mp4';
-// const VTT_URI =
-// 	'https://github.com/MetaMask/metamask-extension/blob/develop/app/images/videos/recovery-onboarding/subtitles-en.vtt';
+// eslint-disable-next-line import/no-commonjs
+const vid = require('../../../../../app/videos/mov_bbb.mp4');
+const VTT_URI =
+	'https://github.com/MetaMask/metamask-extension/blob/develop/app/images/videos/recovery-onboarding/subtitles-en.vtt';
 
 const isIos = Device.isIos();
 
@@ -150,13 +151,8 @@ const styles = StyleSheet.create({
 	videoContainer: {
 		width: '100%',
 		height: 200,
-		flex: 1,
-		backgroundColor: colors.red
+		flex: 1
 	}
-	// video: {
-	// 	width: '100%',
-	// 	height: '100%'
-	// }
 });
 
 const Heading = ({ children, first }) => (
@@ -553,7 +549,19 @@ class Settings extends PureComponent {
 						</Text>
 						<View style={styles.videoContainer}>
 							<Video
-								source={{ uri: VIDEO_URI }}
+								source={vid}
+								textTracks={[
+									{
+										title: 'English CC',
+										language: 'en',
+										type: TextTrackType.VTT,
+										uri: VTT_URI
+									}
+								]}
+								selectedTextTrack={{
+									type: 'language',
+									value: 'en'
+								}}
 								style={StyleSheet.absoluteFill}
 								controls
 								resizeMode={'contain'}
