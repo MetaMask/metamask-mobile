@@ -76,10 +76,7 @@ export default function CollectibleContractElement({ asset, contractCollectibles
 	};
 
 	useEffect(() => {
-		const temp = splitIntoSubArrays(
-			contractCollectibles.concat(contractCollectibles).concat(contractCollectibles),
-			3
-		);
+		const temp = splitIntoSubArrays(contractCollectibles, 3);
 		setCollectiblesGrid(temp);
 	}, [contractCollectibles, setCollectiblesGrid]);
 
