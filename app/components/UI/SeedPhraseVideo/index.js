@@ -13,6 +13,7 @@ const styles = StyleSheet.create({
 // eslint-disable-next-line import/no-commonjs
 const vid = require('../../../../app/videos/placeholder.mp4');
 const VTT_URI =
+	// TODO: can we load this asset as local resource? (like above)
 	'https://github.com/MetaMask/metamask-extension/blob/develop/app/images/videos/recovery-onboarding/subtitles-en.vtt';
 
 const SeedPhraseVideo = () => (
