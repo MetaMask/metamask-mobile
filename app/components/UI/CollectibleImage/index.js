@@ -6,6 +6,9 @@ import Identicon from '../Identicon';
 import { colors } from '../../../styles/common';
 
 const styles = StyleSheet.create({
+	container: {
+		borderRadius: 8
+	},
 	smallImage: {
 		width: 50,
 		height: 50
@@ -26,9 +29,9 @@ export default function CollectibleImage({ collectible, small, big, iconStyle })
 		const { address, tokenId } = collectible;
 		setFallbackImage(`https://storage.opensea.io/${address.toLowerCase()}/${tokenId}.png`);
 	};
-	console.log('backgroundColor', collectible.backgroundColor);
+
 	return (
-		<View style={{ backgroundColor: `#${collectible.backgroundColor}` }}>
+		<View style={[styles.container, { backgroundColor: `#${collectible.backgroundColor}` }]}>
 			{collectible?.image?.length !== 0 ? (
 				<RemoteImage
 					fadeIn
