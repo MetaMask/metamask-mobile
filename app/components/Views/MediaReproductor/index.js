@@ -11,14 +11,13 @@ const styles = StyleSheet.create({
 	}
 });
 
-function MediaReproductor({ uri, style }) {
+function MediaReproductor({ uri, style, onError }) {
 	const [muted, setMuted] = useState(true);
 
-	const onBuffer = () => console.log('s');
-	const onError = () => console.log('s');
 	const toggleMuted = () => setMuted(!muted);
+
 	return (
-		<View>
+		<View style={style}>
 			<TouchableWithoutFeedback onPress={toggleMuted}>
 				<View>
 					<Video
@@ -26,10 +25,10 @@ function MediaReproductor({ uri, style }) {
 						ref={ref => {
 							this.player = ref;
 						}}
-						onBuffer={onBuffer}
 						onError={onError}
 						style={style}
 						muted={muted}
+						repeat
 					/>
 					<Entypo
 						name={`sound${muted ? '-mute' : ''}`}
@@ -45,7 +44,12 @@ function MediaReproductor({ uri, style }) {
 
 MediaReproductor.propTypes = {
 	uri: PropTypes.string,
-	style: PropTypes.object
+	style: PropTypes.object,
+	onError: PropTypes.func
+};
+
+MediaReproductor.defaultProps = {
+	onError: () => ''
 };
 
 export default MediaReproductor;
