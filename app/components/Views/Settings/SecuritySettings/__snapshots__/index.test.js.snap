@@ -63,6 +63,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           Protect your wallet
         </Text>
       </Text>
+      <SeedPhraseVideo />
       <Text
         style={
           Object {
@@ -75,7 +76,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         }
       >
-        Protect your wallet by saving your seed phrase in various places like on a piece of paper, password manager and/or the cloud.
+        Protect your wallet by saving your Secret Recovery phrase in various places like on a piece of paper, password manager and/or the cloud.
       </Text>
       <SettingsNotification
         isHighlighted={false}
