@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import RemoteImage from '../../Base/RemoteImage';
 import Identicon from '../Identicon';
 import { colors } from '../../../styles/common';
-import MediaReproductor from '../../Views/MediaReproductor';
+import MediaPlayer from '../../Views/MediaPlayer';
 
 const styles = StyleSheet.create({
 	listWrapper: {
@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
 /**
  * View that renders an ERC-721 Token image
  */
-export default function CollectibleMediaReproductor({ collectible, renderFull, containerStyle, iconStyle }) {
+export default function CollectibleMediaPlayer({ collectible, renderFull, containerStyle, iconStyle }) {
 	const [fallbackImage, setFallbackImage] = useState(null);
 
 	const fallback = () => {
@@ -45,7 +45,7 @@ export default function CollectibleMediaReproductor({ collectible, renderFull, c
 	return (
 		<View style={renderFull ? styles.fullWrapper : [styles.listWrapper, containerStyle]}>
 			{!fallbackImage && collectible?.animation?.length !== 0 && (
-				<MediaReproductor
+				<MediaPlayer
 					uri={collectible.animation}
 					style={renderFull ? styles.fullImage : [styles.listImage, iconStyle]}
 					onError={mediaFallback}
@@ -67,7 +67,7 @@ export default function CollectibleMediaReproductor({ collectible, renderFull, c
 	);
 }
 
-CollectibleMediaReproductor.propTypes = {
+CollectibleMediaPlayer.propTypes = {
 	/**
 	 * Collectible object (in this case ERC721 token)
 	 */

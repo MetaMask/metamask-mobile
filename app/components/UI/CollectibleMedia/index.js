@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
 import RemoteImage from '../../Base/RemoteImage';
 import Identicon from '../Identicon';
-import MediaReproductor from '../../Views/MediaReproductor';
+import MediaPlayer from '../../Views/MediaPlayer';
 
 const styles = StyleSheet.create({
 	container: {
@@ -40,7 +40,7 @@ export default function CollectibleMedia({ collectible, small, big }) {
 
 	let child;
 	if (big && collectible.animation) {
-		child = <MediaReproductor uri={collectible.animation} style={styles.bigImage} />;
+		child = <MediaPlayer uri={collectible.animation} style={styles.bigImage} />;
 	} else if (sourceUri) {
 		child = (
 			<RemoteImage

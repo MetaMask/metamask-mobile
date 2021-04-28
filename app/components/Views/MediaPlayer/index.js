@@ -11,45 +11,53 @@ const styles = StyleSheet.create({
 	}
 });
 
-function MediaReproductor({ uri, style, onError }) {
+function MediaPlayer({ uri, style, onError }) {
 	const [muted, setMuted] = useState(true);
 
 	const toggleMuted = () => setMuted(!muted);
 
 	return (
 		<View style={style}>
-			<TouchableWithoutFeedback onPress={toggleMuted}>
-				<View>
-					<Video
-						source={{ uri }}
-						ref={ref => {
-							this.player = ref;
-						}}
-						onError={onError}
-						style={style}
-						muted={muted}
-						repeat
-					/>
+			<View>
+				<Video
+					source={{ uri }}
+					ref={ref => {
+						this.player = ref;
+					}}
+					onError={onError}
+					style={style}
+					muted={muted}
+					repeat
+				/>
+				<TouchableWithoutFeedback onPress={toggleMuted}>
 					<Entypo
 						name={`sound${muted ? '-mute' : ''}`}
 						size={20}
 						color={colors.orange}
 						style={styles.mutedIcon}
 					/>
-				</View>
-			</TouchableWithoutFeedback>
+				</TouchableWithoutFeedback>
+				<TouchableWithoutFeedback onPress={toggleMuted}>
+					<Entypo
+						name={`sound${muted ? '-mute' : ''}`}
+						size={20}
+						color={colors.orange}
+						style={styles.mutedIcon}
+					/>
+				</TouchableWithoutFeedback>
+			</View>
 		</View>
 	);
 }
 
-MediaReproductor.propTypes = {
+MediaPlayer.propTypes = {
 	uri: PropTypes.string,
 	style: PropTypes.object,
 	onError: PropTypes.func
 };
 
-MediaReproductor.defaultProps = {
+MediaPlayer.defaultProps = {
 	onError: () => null
 };
 
-export default MediaReproductor;
+export default MediaPlayer;
