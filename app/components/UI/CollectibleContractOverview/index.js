@@ -97,7 +97,7 @@ class CollectibleContractOverview extends PureComponent {
 		const {
 			collectibleContract: { logo, address }
 		} = this.props;
-		return <CollectibleImage collectible={{ address, image: logo }} />;
+		return <CollectibleImage small collectible={{ address, image: logo }} />;
 	};
 
 	render() {

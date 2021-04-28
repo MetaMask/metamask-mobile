@@ -828,6 +828,7 @@ class Amount extends PureComponent {
 			>
 				<View style={styles.assetElement}>
 					<CollectibleImage
+						small
 						collectible={collectible}
 						iconStyle={styles.tokenImage}
 						containerStyle={styles.tokenImage}
@@ -966,6 +967,7 @@ class Amount extends PureComponent {
 			<View style={styles.collectibleInputWrapper}>
 				<View style={styles.collectibleInputImageWrapper}>
 					<CollectibleImage
+						small
 						containerStyle={styles.collectibleImage}
 						iconStyle={styles.collectibleImage}
 						collectible={selectedAsset}

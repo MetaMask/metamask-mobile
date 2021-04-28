@@ -60,7 +60,7 @@ export default class CollectibleOverview extends PureComponent {
 
 	renderImage = () => {
 		const { collectible } = this.props;
-		return <CollectibleImage renderFull collectible={collectible} />;
+		return <CollectibleImage big collectible={collectible} />;
 	};
 
 	render = () => {

@@ -344,7 +344,7 @@ class EthInput extends PureComponent {
 				const subTitle =
 					strings('collectible.collectible_token_id') + strings('unit.colon') + ' ' + asset.tokenId;
 				const icon = (
-					<CollectibleImage collectible={asset} containerStyle={styles.logo} iconStyle={styles.logo} />
+					<CollectibleImage small collectible={asset} containerStyle={styles.logo} iconStyle={styles.logo} />
 				);
 				return { title, subTitle, icon };
 			}
@@ -630,6 +630,7 @@ class EthInput extends PureComponent {
 							subTitle={`${strings('unit.token_id')}${selectedAsset.tokenId}`}
 							icon={
 								<CollectibleImage
+									small
 									collectible={selectedAsset}
 									containerStyle={styles.logo}
 									iconStyle={styles.logo}

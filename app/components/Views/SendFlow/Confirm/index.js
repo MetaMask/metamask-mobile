@@ -969,6 +969,7 @@ class Confirm extends PureComponent {
 							<Text style={styles.textAmountLabel}>{strings('transaction.asset')}</Text>
 							<View style={styles.collectibleImageWrapper}>
 								<CollectibleImage
+									small
 									iconStyle={styles.collectibleImage}
 									containerStyle={styles.collectibleImage}
 									collectible={selectedAsset}

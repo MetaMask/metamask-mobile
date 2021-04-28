@@ -6,24 +6,11 @@ import Identicon from '../Identicon';
 import { colors } from '../../../styles/common';
 
 const styles = StyleSheet.create({
-	listWrapper: {
-		width: 50,
-		height: 50,
-		borderRadius: 10,
-		overflow: 'hidden'
-	},
-	fullWrapper: {
-		width: 260,
-		height: 260,
-		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'center'
-	},
-	listImage: {
+	smallImage: {
 		width: 50,
 		height: 50
 	},
-	fullImage: {
+	bigImage: {
 		height: 260,
 		width: 260
 	}
@@ -32,23 +19,23 @@ const styles = StyleSheet.create({
 /**
  * View that renders an ERC-721 Token image
  */
-export default function CollectibleImage({ collectible, renderFull, containerStyle, iconStyle }) {
+export default function CollectibleImage({ collectible, small, big, iconStyle }) {
 	const [fallbackImage, setFallbackImage] = useState(null);
 
 	const fallback = () => {
 		const { address, tokenId } = collectible;
 		setFallbackImage(`https://storage.opensea.io/${address.toLowerCase()}/${tokenId}.png`);
 	};
-
+	console.log('backgroundColor', collectible.backgroundColor);
 	return (
-		<View style={renderFull ? styles.fullWrapper : [styles.listWrapper, containerStyle]}>
+		<View style={{ backgroundColor: `#${collectible.backgroundColor}` }}>
 			{collectible?.image?.length !== 0 ? (
 				<RemoteImage
 					fadeIn
 					resizeMode={'contain'}
 					placeholderStyle={{ backgroundColor: colors.white }}
 					source={{ uri: fallbackImage || collectible.image }}
-					style={renderFull ? styles.fullImage : [styles.listImage, iconStyle]}
+					style={[small && styles.smallImage, big && styles.bigImage]}
 					onError={fallback}
 				/>
 			) : (
@@ -64,15 +51,9 @@ CollectibleImage.propTypes = {
 	 */
 	collectible: PropTypes.object,
 	/**
-	 * Whether collectible image has to render in full size
-	 */
-	renderFull: PropTypes.bool,
-	/**
-	 * Container view style
-	 */
-	containerStyle: PropTypes.object,
-	/**
 	 * Image style
 	 */
-	iconStyle: PropTypes.object
+	iconStyle: PropTypes.object,
+	small: PropTypes.bool,
+	big: PropTypes.bool
 };

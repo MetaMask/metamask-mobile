@@ -123,7 +123,7 @@ export default class Collectibles extends PureComponent {
 	renderItem = ({ item }) => (
 		<AssetElement onPress={this.onItemPress} onLongPress={this.showRemoveMenu} asset={item}>
 			<View style={styles.itemWrapper}>
-				<CollectibleImage collectible={item} />
+				<CollectibleImage small collectible={item} />
 				<View style={styles.rows}>
 					<Text style={styles.name}>{item.name}</Text>
 					<Text style={styles.tokenId} numberOfLines={1}>

@@ -122,7 +122,7 @@ class CollectibleContracts extends PureComponent {
 		return (
 			<AssetElement onPress={this.onItemPress} asset={item} key={address}>
 				<View style={styles.itemWrapper}>
-					<CollectibleImage collectible={{ address, name, image: logo }} />
+					<CollectibleImage small collectible={{ address, name, image: logo }} />
 					<View style={styles.rows}>
 						<Text style={styles.name}>{name}</Text>
 						<Text style={styles.amount}>
