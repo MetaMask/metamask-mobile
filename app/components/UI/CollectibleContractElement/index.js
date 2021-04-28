@@ -49,6 +49,14 @@ const styles = StyleSheet.create({
 	}
 });
 
+const splitIntoSubArrays = (array, count) => {
+	const newArray = [];
+	while (array.length > 0) {
+		newArray.push(array.splice(0, count));
+	}
+	return newArray;
+};
+
 /**
  * Customizable view to render assets in lists
  */
@@ -61,19 +69,34 @@ export default function CollectibleContractElement({ asset, contractCollectibles
 		setCollectiblesVisible(!collectiblesVisible);
 	}, [collectiblesVisible, setCollectiblesVisible]);
 
-	const onPressCollectible = collectible =>
-		navigation.navigate('CollectibleView', {
-			...collectible,
-			contractName: asset.name
-		});
+	const onPressCollectible = useCallback(
+		collectible =>
+			navigation.navigate('CollectibleView', {
+				...collectible,
+				contractName: asset.name
+			}),
+		[asset.name, navigation]
+	);
 
-	const splitIntoSubArrays = (array, count) => {
-		const newArray = [];
-		while (array.length > 0) {
-			newArray.push(array.splice(0, count));
-		}
-		return newArray;
-	};
+	const renderCollectible = useCallback(
+		(collectible, index) => {
+			const onPress = () => onPressCollectible(collectible);
+			return (
+				<View key={collectible.address + collectible.tokenId} styles={styles.collectibleBox}>
+					<TouchableOpacity onPress={onPress}>
+						<CollectibleImage
+							iconStyle={styles.collectibleIcon}
+							containerStyle={
+								index - (1 % 3) === 0 ? styles.collectibleInTheMiddle : styles.collectibleIcon
+							}
+							collectible={collectible}
+						/>
+					</TouchableOpacity>
+				</View>
+			);
+		},
+		[onPressCollectible]
+	);
 
 	useEffect(() => {
 		const temp = splitIntoSubArrays(contractCollectibles, 3);
@@ -106,24 +129,7 @@ export default function CollectibleContractElement({ asset, contractCollectibles
 				<View style={styles.grid}>
 					{collectiblesGrid.map((row, i) => (
 						<View key={i} style={styles.collectiblesRowContainer}>
-							{row.map((collectible, index) => (
-								<View
-									key={collectible.address + collectible.tokenId + i + index}
-									styles={styles.collectibleBox}
-								>
-									<TouchableOpacity onPress={() => onPressCollectible(collectible)}>
-										<CollectibleImage
-											iconStyle={styles.collectibleIcon}
-											containerStyle={
-												index - (1 % 3) === 0
-													? styles.collectibleInTheMiddle
-													: styles.collectibleIcon
-											}
-											collectible={collectible}
-										/>
-									</TouchableOpacity>
-								</View>
-							))}
+							{row.map((collectible, index) => renderCollectible(collectible, index))}
 						</View>
 					))}
 				</View>
