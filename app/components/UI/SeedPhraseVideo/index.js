@@ -4,8 +4,10 @@ import Video, { TextTrackType } from 'react-native-video';
 
 const styles = StyleSheet.create({
 	videoContainer: {
+		borderRadius: 8,
+		overflow: 'hidden',
 		width: '100%',
-		height: 200,
+		height: 180,
 		flex: 1
 	}
 });
@@ -34,7 +36,7 @@ const SeedPhraseVideo = () => (
 			}}
 			style={StyleSheet.absoluteFill}
 			controls
-			resizeMode={'contain'}
+			resizeMode="cover"
 		/>
 	</View>
 );
