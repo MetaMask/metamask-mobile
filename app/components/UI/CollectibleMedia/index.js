@@ -22,13 +22,11 @@ const styles = StyleSheet.create({
 /**
  * View that renders an ERC-721 Token image
  */
-export default function CollectibleImage({ collectible, small, big }) {
-	const [fallbackImage, setFallbackImage] = useState(null);
+export default function CollectibleMedia({ collectible, small, big }) {
 	const [sourceUri, serSourceUri] = useState(null);
 
 	const fallback = () => {
-		const { address, tokenId } = collectible;
-		setFallbackImage(`https://storage.opensea.io/${address.toLowerCase()}/${tokenId}.png`);
+		serSourceUri(null);
 	};
 
 	useEffect(() => {
@@ -48,7 +46,7 @@ export default function CollectibleImage({ collectible, small, big }) {
 			<RemoteImage
 				fadeIn
 				resizeMode={'contain'}
-				source={{ uri: fallbackImage || sourceUri }}
+				source={{ uri: sourceUri }}
 				style={[small && styles.smallImage, big && styles.bigImage]}
 				onError={fallback}
 			/>
@@ -59,7 +57,7 @@ export default function CollectibleImage({ collectible, small, big }) {
 	return <View style={[styles.container, { backgroundColor: `#${collectible.backgroundColor}` }]}>{child}</View>;
 }
 
-CollectibleImage.propTypes = {
+CollectibleMedia.propTypes = {
 	/**
 	 * Collectible object (in this case ERC721 token)
 	 */

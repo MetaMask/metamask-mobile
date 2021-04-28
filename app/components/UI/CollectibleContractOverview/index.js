@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import CollectibleImage from '../CollectibleImage';
+import CollectibleMedia from '../CollectibleMedia';
 import AssetActionButton from '../AssetActionButton';
 import Device from '../../../util/Device';
 import { toggleCollectibleContractModal } from '../../../actions/modals';
@@ -97,7 +97,7 @@ class CollectibleContractOverview extends PureComponent {
 		const {
 			collectibleContract: { logo, address }
 		} = this.props;
-		return <CollectibleImage small collectible={{ address, image: logo }} />;
+		return <CollectibleMedia small collectible={{ address, image: logo }} />;
 	};
 
 	render() {

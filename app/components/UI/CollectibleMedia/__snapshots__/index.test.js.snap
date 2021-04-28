@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`CollectibleImage should render correctly 1`] = `
+exports[`CollectibleMedia should render correctly 1`] = `
 <View
   style={
     Array [

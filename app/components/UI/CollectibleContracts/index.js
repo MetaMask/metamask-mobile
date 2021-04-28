@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import CollectibleImage from '../CollectibleImage';
+import CollectibleMedia from '../CollectibleMedia';
 import AssetElement from '../AssetElement';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
@@ -122,7 +122,7 @@ class CollectibleContracts extends PureComponent {
 		return (
 			<AssetElement onPress={this.onItemPress} asset={item} key={address}>
 				<View style={styles.itemWrapper}>
-					<CollectibleImage small collectible={{ address, name, image: logo }} />
+					<CollectibleMedia small collectible={{ address, name, image: logo }} />
 					<View style={styles.rows}>
 						<Text style={styles.name}>{name}</Text>
 						<Text style={styles.amount}>

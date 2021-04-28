@@ -34,7 +34,7 @@ exports[`CollectibleContracts should render correctly 1`] = `
           }
         }
       >
-        <CollectibleImage
+        <CollectibleMedia
           collectible={
             Object {
               "address": "0x0",
