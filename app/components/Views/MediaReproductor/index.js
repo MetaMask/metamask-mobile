@@ -49,7 +49,7 @@ MediaReproductor.propTypes = {
 };
 
 MediaReproductor.defaultProps = {
-	onError: () => ''
+	onError: () => null
 };
 
 export default MediaReproductor;
