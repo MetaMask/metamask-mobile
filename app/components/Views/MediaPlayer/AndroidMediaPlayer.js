@@ -286,7 +286,7 @@ export default class VideoPlayer extends PureComponent {
 		// Video
 		resizeMode: this.props.resizeMode,
 		paused: this.props.paused,
-		muted: this.props.muted,
+		muted: true,
 		volume: this.props.volume,
 		rate: this.props.rate,
 		// Controls
@@ -513,18 +513,6 @@ export default class VideoPlayer extends PureComponent {
 	};
 
 	/**
-    | -------------------------------------------------------
-    | Methods
-    | -------------------------------------------------------
-    |
-    | These are all of our functions that interact with
-    | various parts of the class. Anything from
-    | calculating time remaining in a video
-    | to handling control operations.
-    |
-    */
-
-	/**
 	 * Set a timeout when the controls are shown
 	 * that hides them after a length of time.
 	 * Default is 15s
@@ -723,36 +711,6 @@ export default class VideoPlayer extends PureComponent {
 	};
 
 	/**
-	 * Calculate the time to show in the timer area
-	 * based on if they want to see time remaining
-	 * or duration. Formatted to look as 00:00.
-	 */
-	//   calculateTime = () => {
-	//     if (this.state.showTimeRemaining) {
-	//       const time = this.state.duration - this.state.currentTime;
-	//       return `-${this.formatTime(time)}`;
-	//     }
-
-	//     return this.formatTime(this.state.currentTime);
-	//   }
-
-	/**
-   * Format a time string as mm:ss
-   *
-   * @param {int} time time in milliseconds
-   * @return {string} formatted time string in mm:ss format
-//    */
-	//   formatTime(time = 0) {
-	//     const symbol = this.state.showRemainingTime ? '-' : '';
-	//     time = Math.min(Math.max(time, 0), this.state.duration);
-
-	//     const formattedMinutes = padStart(Math.floor(time / 60).toFixed(0), 2, 0);
-	//     const formattedSeconds = padStart(Math.floor(time % 60).toFixed(0), 2, 0);
-
-	//     return `${symbol}${formattedMinutes}:${formattedSeconds}`;
-	//   }
-
-	/**
 	 * Set the position of the seekbar's components
 	 * (both fill and handle) according to the
 	 * position supplied.
@@ -819,49 +777,11 @@ export default class VideoPlayer extends PureComponent {
 	};
 
 	/**
-    | -------------------------------------------------------
-    | React Component functions
-    | -------------------------------------------------------
-    |
-    | Here we're initializing our listeners and getting
-    | the component ready using the built-in React
-    | Component methods
-    |
-    */
-
-	/**
-	 * Before mounting, init our seekbar and volume bar
-	 * pan responders.
-	 */
-	UNSAFE_componentWillMount = () => {
-		this.initSeekPanResponder();
-	};
-
-	/**
-	 * To allow basic playback management from the outside
-	 * we have to handle possible props changes to state changes
-	 */
-	UNSAFE_componentWillReceiveProps = nextProps => {
-		if (this.state.paused !== nextProps.paused) {
-			this.setState({
-				paused: nextProps.paused
-			});
-		}
-
-		if (this.styles.videoStyle !== nextProps.videoStyle) {
-			this.styles.videoStyle = nextProps.videoStyle;
-		}
-
-		if (this.styles.containerStyle !== nextProps.style) {
-			this.styles.containerStyle = nextProps.style;
-		}
-	};
-
-	/**
 	 * Upon mounting, calculate the position of the volume
 	 * bar based on the volume property supplied to it.
 	 */
 	componentDidMount = () => {
+		this.initSeekPanResponder();
 		this.mounted = true;
 	};
 
@@ -951,18 +871,6 @@ export default class VideoPlayer extends PureComponent {
 			}
 		});
 	};
-
-	/**
-    | -------------------------------------------------------
-    | Rendering
-    | -------------------------------------------------------
-    |
-    | This section contains all of our render
-    | In addition to the typical React render func
-    | we also have all the render methods for
-    | the controls.
-    |
-    */
 
 	/**
 	 * Standard render control function that handles
@@ -1116,17 +1024,6 @@ export default class VideoPlayer extends PureComponent {
 	};
 
 	/**
-   * Show our timer.
-//    */
-	//   renderTimer = () => {
-	//     return this.renderControl(
-	//       <Text style={styles.controls.timerText}>{this.calculateTime()}</Text>,
-	//       this.toggleTimer,
-	//       styles.controls.timer,
-	//     );
-	//   }
-
-	/**
 	 * Show loading icon
 	 */
 	renderLoader = () => {
@@ -1177,16 +1074,11 @@ export default class VideoPlayer extends PureComponent {
 			<View style={[styles.player.container, this.styles.containerStyle]}>
 				<Video
 					ref={videoPlayer => (this.player.ref = videoPlayer)}
-					resizeMode={this.state.resizeMode}
 					paused={this.state.paused}
 					muted={this.state.muted}
 					rate={this.state.rate}
 					onLoadStart={this.events.onLoadStart}
 					onProgress={this.onProgress}
-					onError={this.events.onError}
-					onLoad={this.events.onLoad}
-					onEnd={this.events.onEnd}
-					onSeek={this.events.onSeek}
 					style={[styles.player.video, this.styles.videoStyle]}
 					source={this.props.source}
 				/>
