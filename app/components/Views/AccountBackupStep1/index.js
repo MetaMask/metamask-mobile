@@ -17,8 +17,6 @@ import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import SeedPhraseVideo from '../../UI/SeedPhraseVideo';
 
-const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
-
 const styles = StyleSheet.create({
 	mainWrapper: {
 		backgroundColor: colors.white,
@@ -184,12 +182,6 @@ const AccountBackupStep1 = props => {
 					<View style={styles.content}>
 						<Text style={styles.title}>{strings('account_backup_step_1.title')}</Text>
 						<SeedPhraseVideo />
-						{/* <Image
-							source={explain_backup_seedphrase}
-							style={styles.image}
-							resizeMethod={'auto'}
-							testID={'carousel-one-image'}
-						/> */}
 						<View style={styles.text}>
 							<Text style={styles.label}>
 								{strings('account_backup_step_1.info_text_1_1')}{' '}
