@@ -247,7 +247,6 @@ export default class VideoPlayer extends PureComponent {
 		onExitFullscreen: PropTypes.func,
 		onLoadStart: PropTypes.func,
 		onLoad: PropTypes.func,
-		onProgress: PropTypes.func,
 
 		controlTimeout: PropTypes.func,
 		scrubbing: PropTypes.bool,
@@ -419,7 +418,8 @@ export default class VideoPlayer extends PureComponent {
 	 * @param {object} data The video meta data
 	 */
 	onLoad = (data = {}) => {
-		this.setState({ duration: data.duration, loading: false });
+		console.log('-- ONLOAD', data.duration);
+		this.setState({ duration: data.playableDuration, loading: false });
 
 		if (this.state.showControls) {
 			this.setControlTimeout();
@@ -436,18 +436,13 @@ export default class VideoPlayer extends PureComponent {
 	 *
 	 * @param {object} data The video meta data
 	 */
-	onProgress = (data = {}) => {
+	onProgress = data => {
 		const { scrubbing, seeking } = this.state;
 		if (!scrubbing) {
 			if (!seeking) {
-				const position = this.calculateSeekerPosition();
-				this.setSeekerPosition(position);
+				const position = data.currentTime / data.playableDuration;
+				this.setSeekerPosition(position * this.player.seekerWidth);
 			}
-
-			if (typeof this.props.onProgress === 'function') {
-				this.props.onProgress(data);
-			}
-
 			this.setState({ currentTime: data.currentTime });
 		}
 	};
@@ -766,7 +761,6 @@ export default class VideoPlayer extends PureComponent {
 	 */
 	setSeekerPosition = (position = 0) => {
 		position = this.constrainToSeekerMinMax(position);
-
 		if (!this.state.seeking) {
 			this.setState({ seekerFillWidth: position, seekerPosition: position, seekerOffset: position });
 		} else {
@@ -799,6 +793,7 @@ export default class VideoPlayer extends PureComponent {
 	 */
 	calculateSeekerPosition = () => {
 		const percent = this.state.currentTime / this.state.duration;
+		console.log('percent', this.state.currentTime, this.state.duration);
 		return this.player.seekerWidth * percent;
 	};
 
@@ -824,58 +819,6 @@ export default class VideoPlayer extends PureComponent {
 	};
 
 	/**
-	 * Set the position of the volume slider
-	 *
-	 * @param {float} position position of the volume handle in px
-	 */
-	setVolumePosition = (position = 0) => {
-		// const state = this.state;
-		// position = this.constrainToVolumeMinMax(position);
-		// state.volumePosition = position + this.player.iconOffset;
-		// state.volumeFillWidth = position;
-		// state.volumeTrackWidth = this.player.volumeWidth - state.volumeFillWidth;
-		// if (state.volumeFillWidth < 0) {
-		//   state.volumeFillWidth = 0;
-		// }
-		// if (state.volumeTrackWidth > 150) {
-		//   state.volumeTrackWidth = 150;
-		// }
-		// this.setState(state);
-	};
-
-	/**
-	 * Constrain the volume bar to the min/max of
-	 * its track's width.
-	 *
-	 * @param {float} val position of the volume handle in px
-	 * @return {float} contrained position of the volume handle in px
-	 */
-	constrainToVolumeMinMax = (val = 0) => {
-		if (val <= 0) {
-			return 0;
-		} else if (val >= this.player.volumeWidth + 9) {
-			return this.player.volumeWidth + 9;
-		}
-		return val;
-	};
-
-	/**
-	 * Get the volume based on the position of the
-	 * volume object.
-	 *
-	 * @return {float} volume level based on volume handle position
-	 */
-	calculateVolumeFromVolumePosition = () => this.state.volumePosition / this.player.volumeWidth;
-
-	/**
-	 * Get the position of the volume handle based
-	 * on the volume
-	 *
-	 * @return {float} volume handle position in px based on volume
-	 */
-	calculateVolumePositionFromVolume = () => this.player.volumeWidth * this.state.volume;
-
-	/**
     | -------------------------------------------------------
     | React Component functions
     | -------------------------------------------------------
@@ -892,7 +835,6 @@ export default class VideoPlayer extends PureComponent {
 	 */
 	UNSAFE_componentWillMount = () => {
 		this.initSeekPanResponder();
-		this.initVolumePanResponder();
 	};
 
 	/**
@@ -920,11 +862,7 @@ export default class VideoPlayer extends PureComponent {
 	 * bar based on the volume property supplied to it.
 	 */
 	componentDidMount = () => {
-		const position = this.calculateVolumePositionFromVolume();
-		this.setVolumePosition(position);
 		this.mounted = true;
-
-		this.setState({ volumeOffset: position });
 	};
 
 	/**
@@ -1015,45 +953,6 @@ export default class VideoPlayer extends PureComponent {
 	};
 
 	/**
-	 * Initialize the volume pan responder.
-	 */
-	initVolumePanResponder = () => {
-		this.player.volumePanResponder = PanResponder.create({
-			onStartShouldSetPanResponder: (evt, gestureState) => true,
-			onMoveShouldSetPanResponder: (evt, gestureState) => true,
-			onPanResponderGrant: (evt, gestureState) => {
-				this.clearControlTimeout();
-			},
-
-			/**
-			 * Update the volume as we change the position.
-			 * If we go to 0 then turn on the mute prop
-			 * to avoid that weird static-y sound.
-			 */
-			onPanResponderMove: (evt, gestureState) => {
-				const position = this.state.volumeOffset + gestureState.dx;
-
-				this.setVolumePosition(position);
-				const volume = this.calculateVolumeFromVolumePosition();
-
-				if (this.state.volume <= 0) {
-					this.setState({ volume, muted: true });
-				} else {
-					this.setState({ volume, muted: false });
-				}
-			},
-
-			/**
-			 * Update the offset...
-			 */
-			onPanResponderRelease: (evt, gestureState) => {
-				this.setControlTimeout();
-				this.setState({ volumeOffset: this.state.volumePosition });
-			}
-		});
-	};
-
-	/**
     | -------------------------------------------------------
     | Rendering
     | -------------------------------------------------------
@@ -1121,22 +1020,6 @@ export default class VideoPlayer extends PureComponent {
 			</Animated.View>
 		);
 	};
-
-	/**
-	 * Render the volume slider and attach the pan handlers
-	 */
-	renderVolume = () => (
-		<View style={styles.volume.container}>
-			<View style={[styles.volume.fill, { width: this.state.volumeFillWidth }]} />
-			<View style={[styles.volume.track, { width: this.state.volumeTrackWidth }]} />
-			<View
-				style={[styles.volume.handle, { left: this.state.volumePosition }]}
-				{...this.player.volumePanResponder.panHandlers}
-			>
-				<FA5Icon name={'volume-up'} />
-			</View>
-		</View>
-	);
 
 	/**
 	 * Render fullscreen toggle and set icon based on the fullscreen state.
@@ -1293,15 +1176,13 @@ export default class VideoPlayer extends PureComponent {
 		>
 			<View style={[styles.player.container, this.styles.containerStyle]}>
 				<Video
-					{...this.props}
 					ref={videoPlayer => (this.player.ref = videoPlayer)}
 					resizeMode={this.state.resizeMode}
-					volume={this.state.volume}
 					paused={this.state.paused}
 					muted={this.state.muted}
 					rate={this.state.rate}
 					onLoadStart={this.events.onLoadStart}
-					onProgress={this.events.onProgress}
+					onProgress={this.onProgress}
 					onError={this.events.onError}
 					onLoad={this.events.onLoad}
 					onEnd={this.events.onEnd}
@@ -1317,9 +1198,3 @@ export default class VideoPlayer extends PureComponent {
 		</TouchableWithoutFeedback>
 	);
 }
-
-/**
- * This object houses our styles. There's player
- * specific styles and control specific ones.
- * And then there's volume/seeker styles.
- */
