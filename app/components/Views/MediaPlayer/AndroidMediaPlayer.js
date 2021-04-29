@@ -282,14 +282,9 @@ export default class VideoPlayer extends PureComponent {
 		volume: this.props.volume,
 		// Controls
 		isFullscreen: this.props.isFullScreen || this.props.resizeMode === 'cover' || false,
-		showTimeRemaining: true,
-		volumeTrackWidth: 0,
-		volumeFillWidth: 0,
 		seekerFillWidth: 0,
 		showControls: this.props.showOnStart,
-		volumePosition: 0,
 		seekerPosition: 0,
-		volumeOffset: 0,
 		seekerOffset: 0,
 		seeking: false,
 		originallyPaused: false,
@@ -298,14 +293,6 @@ export default class VideoPlayer extends PureComponent {
 		currentTime: 0,
 		error: false,
 		duration: 0
-	};
-
-	/**
-	 * Any options that can be set at init.
-	 */
-	opts = {
-		repeat: this.props.repeat,
-		title: this.props.title
 	};
 
 	/**
@@ -355,21 +342,7 @@ export default class VideoPlayer extends PureComponent {
 		videoStyle: this.props.videoStyle || {},
 		containerStyle: this.props.style || {}
 	};
-	/**
-    | -------------------------------------------------------
-    | Events
-    | -------------------------------------------------------
-    |
-    | These are the events that the <Video> component uses
-    | and can be overridden by assigning it as a prop.
-    | It is suggested that you override onEnd.
-    |
-    */
 
-	/**
-	 * When load starts we display a loading icon
-	 * and show the controls.
-	 */
 	onLoadStart = args => {
 		this.loadAnimation();
 		this.setState({ loading: true });
@@ -379,13 +352,6 @@ export default class VideoPlayer extends PureComponent {
 		}
 	};
 
-	/**
-	 * When load is finished we hide the load icon
-	 * and hide the controls. We also set the
-	 * video duration.
-	 *
-	 * @param {object} data The video meta data
-	 */
 	onLoad = (data = {}) => {
 		console.log('-- ONLOAD', data.duration);
 		this.setState({ duration: data.playableDuration, loading: false });
@@ -399,12 +365,6 @@ export default class VideoPlayer extends PureComponent {
 		}
 	};
 
-	/**
-	 * For onprogress we fire listeners that
-	 * update our seekbar and timer.
-	 *
-	 * @param {object} data The video meta data
-	 */
 	onProgress = data => {
 		const { scrubbing, seeking } = this.state;
 		if (!scrubbing) {
@@ -416,11 +376,6 @@ export default class VideoPlayer extends PureComponent {
 		}
 	};
 
-	/**
-	 * For onSeek we clear scrubbing if set.
-	 *
-	 * @param {object} data The video meta data
-	 */
 	onSeek = (data = {}) => {
 		if (this.state.scrubbing) {
 			// Seeking may be false here if the user released the seek bar while the player was still processing
@@ -434,30 +389,12 @@ export default class VideoPlayer extends PureComponent {
 		}
 	};
 
-	/**
-	 * It is suggested that you override this
-	 * command so your app knows what to do.
-	 * Either close the video or go to a
-	 * new page.
-	 */
 	onEnd = () => null;
 
-	/**
-	 * Set the error state to true which then
-	 * changes our renderError function
-	 *
-	 * @param {object} err  Err obj returned from <Video> component
-	 */
 	onError = () => {
 		this.setState({ error: true, loading: false });
 	};
 
-	/**
-	 * This is a single and double tap listener
-	 * when the user taps the screen anywhere.
-	 * One tap toggles controls and/or toggles pause,
-	 * two toggles fullscreen mode.
-	 */
 	onScreenTouch = () => {
 		if (this.player.tapActionTimeout) {
 			clearTimeout(this.player.tapActionTimeout);
@@ -481,37 +418,21 @@ export default class VideoPlayer extends PureComponent {
 		}
 	};
 
-	/**
-	 * Set a timeout when the controls are shown
-	 * that hides them after a length of time.
-	 * Default is 15s
-	 */
 	setControlTimeout = () => {
 		this.player.controlTimeout = setTimeout(() => {
 			this.hideControls();
 		}, this.player.controlTimeoutDelay);
 	};
 
-	/**
-	 * Clear the hide controls timeout.
-	 */
 	clearControlTimeout = () => {
 		clearTimeout(this.player.controlTimeout);
 	};
 
-	/**
-	 * Reset the timer completely
-	 */
 	resetControlTimeout = () => {
 		this.clearControlTimeout();
 		this.setControlTimeout();
 	};
 
-	/**
-	 * Animation to hide controls. We fade the
-	 * display to 0 then move them off the
-	 * screen so they're not interactable
-	 */
 	hideControlAnimation = () => {
 		Animated.parallel([
 			Animated.timing(this.animations.topControl.opacity, {
@@ -537,11 +458,6 @@ export default class VideoPlayer extends PureComponent {
 		]).start();
 	};
 
-	/**
-	 * Animation to show controls...opposite of
-	 * above...move onto the screen and then
-	 * fade in.
-	 */
 	showControlAnimation = () => {
 		Animated.parallel([
 			Animated.timing(this.animations.topControl.opacity, {
@@ -567,9 +483,6 @@ export default class VideoPlayer extends PureComponent {
 		]).start();
 	};
 
-	/**
-	 * Loop animation to spin loader icon. If not loading then stop loop.
-	 */
 	loadAnimation = () => {
 		if (this.state.loading) {
 			Animated.sequence([
@@ -589,10 +502,6 @@ export default class VideoPlayer extends PureComponent {
 		}
 	};
 
-	/**
-	 * Function to hide the controls. Sets our
-	 * state then calls the animation.
-	 */
 	hideControls = () => {
 		if (this.mounted) {
 			this.hideControlAnimation();
@@ -602,10 +511,6 @@ export default class VideoPlayer extends PureComponent {
 		}
 	};
 
-	/**
-	 * Function to toggle controls based on
-	 * current state.
-	 */
 	toggleControls = () => {
 		if (this.state.showControls) {
 			this.showControlAnimation();
@@ -620,11 +525,6 @@ export default class VideoPlayer extends PureComponent {
 		this.setState({ showControls: !this.state.showControls });
 	};
 
-	/**
-	 * Toggle fullscreen changes resizeMode on
-	 * the <Video> component then updates the
-	 * isFullscreen state.
-	 */
 	toggleFullscreen = () => {
 		if (this.props.toggleResizeModeOnFullscreen) {
 			//   state.resizeMode = this.state.isFullscreen === true ? 'cover' : 'contain';
@@ -639,9 +539,6 @@ export default class VideoPlayer extends PureComponent {
 		// this.setState({isFullscreen: !this.state.isFullscreen});
 	};
 
-	/**
-	 * Toggle playing state on <Video> component
-	 */
 	togglePlayPause = () => {
 		if (this.state.paused) {
 			typeof this.onPause === 'function' && this.onPause();
@@ -652,25 +549,10 @@ export default class VideoPlayer extends PureComponent {
 		this.setState({ paused: !this.state.paused });
 	};
 
-	/**
-	 * Toggle between showing time remaining or
-	 * video duration in the timer control
-	 */
-	toggleTimer = () => {
-		this.setState({ showTimeRemaining: !this.state.showTimeRemaining });
-	};
-
 	toggleMuted = () => {
 		this.setState({ muted: !this.state.muted });
 	};
 
-	/**
-	 * Set the position of the seekbar's components
-	 * (both fill and handle) according to the
-	 * position supplied.
-	 *
-	 * @param {float} position position in px of seeker handle}
-	 */
 	setSeekerPosition = (position = 0) => {
 		position = this.constrainToSeekerMinMax(position);
 		if (!this.state.seeking) {
@@ -680,14 +562,6 @@ export default class VideoPlayer extends PureComponent {
 		}
 	};
 
-	/**
-	 * Constrain the location of the seeker to the
-	 * min/max value based on how big the
-	 * seeker is.
-	 *
-	 * @param {float} val position of seeker handle in px
-	 * @return {float} constrained position of seeker handle in px
-	 */
 	constrainToSeekerMinMax = (val = 0) => {
 		if (val <= 0) {
 			return 0;
@@ -697,60 +571,32 @@ export default class VideoPlayer extends PureComponent {
 		return val;
 	};
 
-	/**
-	 * Calculate the position that the seeker should be
-	 * at along its track.
-	 *
-	 * @return {float} position of seeker handle in px based on currentTime
-	 */
 	calculateSeekerPosition = () => {
 		const percent = this.state.currentTime / this.state.duration;
 		console.log('percent', this.state.currentTime, this.state.duration);
 		return this.player.seekerWidth * percent;
 	};
 
-	/**
-	 * Return the time that the video should be at
-	 * based on where the seeker handle is.
-	 *
-	 * @return {float} time in ms based on seekerPosition.
-	 */
 	calculateTimeFromSeekerPosition = () => {
 		const percent = this.state.seekerPosition / this.player.seekerWidth;
 		return this.state.duration * percent;
 	};
 
-	/**
-	 * Seek to a time in the video.
-	 *
-	 * @param {float} time time to seek to in ms
-	 */
 	seekTo = (time = 0) => {
 		this.player.ref.seek(time);
 		this.setState({ currentTime: time });
 	};
 
-	/**
-	 * Upon mounting, calculate the position of the volume
-	 * bar based on the volume property supplied to it.
-	 */
 	componentDidMount = () => {
 		this.initSeekPanResponder();
 		this.mounted = true;
 	};
 
-	/**
-	 * When the component is about to unmount kill the
-	 * timeout less it fire in the prev/next scene
-	 */
 	componentWillUnmount = () => {
 		this.mounted = false;
 		this.clearControlTimeout();
 	};
 
-	/**
-	 * Get our seekbar responder going
-	 */
 	initSeekPanResponder = () => {
 		this.player.seekPanResponder = PanResponder.create({
 			// Ask to be the responder.
@@ -826,12 +672,6 @@ export default class VideoPlayer extends PureComponent {
 		});
 	};
 
-	/**
-	 * Standard render control function that handles
-	 * everything except the sliders. Adds a
-	 * consistent <TouchableHighlight>
-	 * wrapper and styling.
-	 */
 	renderControl = (children, callback, style = {}) => (
 		<TouchableHighlight
 			underlayColor="transparent"
@@ -846,15 +686,8 @@ export default class VideoPlayer extends PureComponent {
 		</TouchableHighlight>
 	);
 
-	/**
-	 * Renders an empty control, used to disable a control without breaking the view layout.
-	 */
 	renderNullControl = () => <View style={[styles.controls.control]} />;
 
-	/**
-	 * Groups the top bar controls together in an animated
-	 * view and spaces them out.
-	 */
 	renderTopControls = () => {
 		const fullscreenControl = this.props.disableFullscreen ? this.renderNullControl() : this.renderFullscreen();
 
@@ -883,9 +716,6 @@ export default class VideoPlayer extends PureComponent {
 		);
 	};
 
-	/**
-	 * Render fullscreen toggle and set icon based on the fullscreen state.
-	 */
 	renderFullscreen = () => {
 		const source = this.state.isFullscreen === true ? 'compress' : 'expand';
 		return this.renderControl(<FontAwesome name={source} />, this.toggleFullscreen, styles.controls.fullscreen);
@@ -900,9 +730,6 @@ export default class VideoPlayer extends PureComponent {
 		);
 	};
 
-	/**
-	 * Render bottom control group and wrap it in a holder
-	 */
 	renderBottomControls = () => {
 		const seekbarControl = this.renderSeekbar();
 		const playPauseControl = this.renderPlayPause();
@@ -935,9 +762,6 @@ export default class VideoPlayer extends PureComponent {
 		);
 	};
 
-	/**
-	 * Render the seekbar and attach its handlers
-	 */
 	renderSeekbar = () => (
 		<View style={styles.seekbar.container} collapsable={false} {...this.player.seekPanResponder.panHandlers}>
 			<View
@@ -962,9 +786,6 @@ export default class VideoPlayer extends PureComponent {
 		</View>
 	);
 
-	/**
-	 * Render the play/pause button and show the respective icon
-	 */
 	renderPlayPause = () => {
 		const source = this.state.paused === true ? 'play' : 'pause';
 		return this.renderControl(
@@ -974,9 +795,6 @@ export default class VideoPlayer extends PureComponent {
 		);
 	};
 
-	/**
-	 * Show loading icon
-	 */
 	renderLoader = () => {
 		if (this.state.loading) {
 			return (
@@ -1014,9 +832,6 @@ export default class VideoPlayer extends PureComponent {
 		return null;
 	};
 
-	/**
-	 * Provide all of our options and render the whole component.
-	 */
 	render = () => (
 		<TouchableWithoutFeedback
 			onPress={this.onScreenTouch}
