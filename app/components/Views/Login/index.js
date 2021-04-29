@@ -520,6 +520,7 @@ class Login extends PureComponent {
 						<View style={styles.field}>
 							<Text style={styles.label}>{strings('login.password')}</Text>
 							<OutlinedTextField
+								style={styles.input}
 								placeholder={'Password'}
 								testID={'login-password-input'}
 								returnKeyType={'done'}
