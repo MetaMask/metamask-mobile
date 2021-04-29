@@ -222,19 +222,16 @@ export default class VideoPlayer extends PureComponent {
 		toggleResizeModeOnFullscreen: PropTypes.bool,
 		controlAnimationTiming: PropTypes.number,
 		doubleTapTime: PropTypes.number,
-		playInBackground: PropTypes.bool,
-		playWhenInactive: PropTypes.bool,
+
 		resizeMode: PropTypes.string,
-		isFullscreen: PropTypes.bool,
+		isFullScreen: PropTypes.bool,
 		showOnStart: PropTypes.bool,
 		paused: PropTypes.bool,
 		repeat: PropTypes.bool,
 		muted: PropTypes.bool,
 		volume: PropTypes.number,
 		title: PropTypes.string,
-		rate: PropTypes.number,
 
-		isFullScreen: PropTypes.bool,
 		onError: PropTypes.func,
 		onEnd: PropTypes.func,
 		onEnterFullscreen: PropTypes.func,
@@ -243,7 +240,6 @@ export default class VideoPlayer extends PureComponent {
 		onPause: PropTypes.func,
 		onPlay: PropTypes.func,
 
-		onBack: PropTypes.func,
 		onExitFullscreen: PropTypes.func,
 		onLoadStart: PropTypes.func,
 		onLoad: PropTypes.func,
@@ -255,7 +251,6 @@ export default class VideoPlayer extends PureComponent {
 		style: PropTypes.object,
 		disableFullscreen: PropTypes.bool,
 
-		seekColor: PropTypes.string,
 		source: PropTypes.string,
 
 		navigator: PropTypes.object
@@ -265,8 +260,6 @@ export default class VideoPlayer extends PureComponent {
 		toggleResizeModeOnFullscreen: true,
 		controlAnimationTiming: 500,
 		doubleTapTime: 130,
-		playInBackground: false,
-		playWhenInactive: false,
 		resizeMode: 'contain',
 		isFullscreen: false,
 		showOnStart: true,
@@ -274,8 +267,7 @@ export default class VideoPlayer extends PureComponent {
 		repeat: false,
 		muted: false,
 		volume: 1,
-		title: '',
-		rate: 1
+		title: ''
 	};
 
 	/**
@@ -288,7 +280,6 @@ export default class VideoPlayer extends PureComponent {
 		paused: this.props.paused,
 		muted: true,
 		volume: this.props.volume,
-		rate: this.props.rate,
 		// Controls
 		isFullscreen: this.props.isFullScreen || this.props.resizeMode === 'cover' || false,
 		showTimeRemaining: true,
@@ -313,30 +304,8 @@ export default class VideoPlayer extends PureComponent {
 	 * Any options that can be set at init.
 	 */
 	opts = {
-		playWhenInactive: this.props.playWhenInactive,
-		playInBackground: this.props.playInBackground,
 		repeat: this.props.repeat,
 		title: this.props.title
-	};
-
-	/**
-	 * Our app listeners and associated methods
-	 */
-	events = {
-		onError: this.props.onError || this._onError,
-		onBack: this.props.onBack || this.onBack,
-		onEnd: this.props.onEnd || this.onEnd,
-		onScreenTouch: this._onScreenTouch,
-		onEnterFullscreen: this.props.onEnterFullscreen,
-		onExitFullscreen: this.props.onExitFullscreen,
-		onShowControls: this.props.onShowControls,
-		onHideControls: this.props.onHideControls,
-		onLoadStart: this._onLoadStart,
-		onProgress: this._onProgress,
-		onSeek: this._onSeek,
-		onLoad: this._onLoad,
-		onPause: this.props.onPause,
-		onPlay: this.props.onPlay
 	};
 
 	/**
@@ -519,7 +488,7 @@ export default class VideoPlayer extends PureComponent {
 	 */
 	setControlTimeout = () => {
 		this.player.controlTimeout = setTimeout(() => {
-			this._hideControls();
+			this.hideControls();
 		}, this.player.controlTimeoutDelay);
 	};
 
@@ -624,10 +593,10 @@ export default class VideoPlayer extends PureComponent {
 	 * Function to hide the controls. Sets our
 	 * state then calls the animation.
 	 */
-	_hideControls = () => {
+	hideControls = () => {
 		if (this.mounted) {
 			this.hideControlAnimation();
-			typeof this.events.onHideControls === 'function' && this.events.onHideControls();
+			typeof this.onHideControls === 'function' && this.onHideControls();
 
 			this.setState({ showControls: false });
 		}
@@ -637,15 +606,15 @@ export default class VideoPlayer extends PureComponent {
 	 * Function to toggle controls based on
 	 * current state.
 	 */
-	_toggleControls = () => {
+	toggleControls = () => {
 		if (this.state.showControls) {
 			this.showControlAnimation();
 			this.setControlTimeout();
-			typeof this.events.onShowControls === 'function' && this.events.onShowControls();
+			typeof this.onShowControls === 'function' && this.onShowControls();
 		} else {
 			this.hideControlAnimation();
 			this.clearControlTimeout();
-			typeof this.events.onHideControls === 'function' && this.events.onHideControls();
+			typeof this.onHideControls === 'function' && this.onHideControls();
 		}
 
 		this.setState({ showControls: !this.state.showControls });
@@ -656,15 +625,15 @@ export default class VideoPlayer extends PureComponent {
 	 * the <Video> component then updates the
 	 * isFullscreen state.
 	 */
-	_toggleFullscreen = () => {
+	toggleFullscreen = () => {
 		if (this.props.toggleResizeModeOnFullscreen) {
 			//   state.resizeMode = this.state.isFullscreen === true ? 'cover' : 'contain';
 		}
 
 		if (this.state.isFullscreen) {
-			typeof this.events.onEnterFullscreen === 'function' && this.events.onEnterFullscreen();
+			typeof this.onEnterFullscreen === 'function' && this.onEnterFullscreen();
 		} else {
-			typeof this.events.onExitFullscreen === 'function' && this.events.onExitFullscreen();
+			typeof this.onExitFullscreen === 'function' && this.onExitFullscreen();
 		}
 
 		// this.setState({isFullscreen: !this.state.isFullscreen});
@@ -675,9 +644,9 @@ export default class VideoPlayer extends PureComponent {
 	 */
 	togglePlayPause = () => {
 		if (this.state.paused) {
-			typeof this.events.onPause === 'function' && this.events.onPause();
+			typeof this.onPause === 'function' && this.onPause();
 		} else {
-			typeof this.events.onPlay === 'function' && this.events.onPlay();
+			typeof this.onPlay === 'function' && this.onPlay();
 		}
 
 		this.setState({ paused: !this.state.paused });
@@ -693,21 +662,6 @@ export default class VideoPlayer extends PureComponent {
 
 	toggleMuted = () => {
 		this.setState({ muted: !this.state.muted });
-	};
-
-	/**
-	 * The default 'onBack' function pops the navigator
-	 * and as such the video player requires a
-	 * navigator prop by default.
-	 */
-	onBack = () => {
-		if (this.props.navigator && this.props.navigator.pop) {
-			this.props.navigator.pop();
-		} else {
-			console.warn(
-				'Warning: onBack requires navigator property to function. Either modify the onBack prop or pass a navigator prop'
-			);
-		}
 	};
 
 	/**
@@ -860,7 +814,7 @@ export default class VideoPlayer extends PureComponent {
 				const time = this.calculateTimeFromSeekerPosition();
 				if (time >= this.state.duration && !this.state.loading) {
 					this.setState({ paused: true });
-					//   this.events.onEnd();
+					//   this.onEnd();
 				} else if (this.state.scrubbing) {
 					this.setState({ seeking: false });
 				} else {
@@ -996,17 +950,14 @@ export default class VideoPlayer extends PureComponent {
 						styles.seekbar.fill,
 						{
 							width: this.state.seekerFillWidth,
-							backgroundColor: this.props.seekColor || '#FFF'
+							backgroundColor: colors.white
 						}
 					]}
 					pointerEvents={'none'}
 				/>
 			</View>
 			<View style={[styles.seekbar.handle, { left: this.state.seekerPosition }]} pointerEvents={'none'}>
-				<View
-					style={[styles.seekbar.circle, { backgroundColor: this.props.seekColor || '#FFF' }]}
-					pointerEvents={'none'}
-				/>
+				<View style={[styles.seekbar.circle, { backgroundColor: colors.white }]} pointerEvents={'none'} />
 			</View>
 		</View>
 	);
@@ -1068,7 +1019,7 @@ export default class VideoPlayer extends PureComponent {
 	 */
 	render = () => (
 		<TouchableWithoutFeedback
-			onPress={this.events.onScreenTouch}
+			onPress={this.onScreenTouch}
 			style={[styles.player.container, this.styles.containerStyle]}
 		>
 			<View style={[styles.player.container, this.styles.containerStyle]}>
@@ -1076,8 +1027,7 @@ export default class VideoPlayer extends PureComponent {
 					ref={videoPlayer => (this.player.ref = videoPlayer)}
 					paused={this.state.paused}
 					muted={this.state.muted}
-					rate={this.state.rate}
-					onLoadStart={this.events.onLoadStart}
+					onLoadStart={this.onLoadStart}
 					onProgress={this.onProgress}
 					style={[styles.player.video, this.styles.videoStyle]}
 					source={this.props.source}
