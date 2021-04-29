@@ -181,8 +181,6 @@ const styles = {
 export default function VideoPlayer({
 	controlAnimationTiming,
 	doubleTapTime,
-	onPause,
-	onPlay,
 	controlTimeout,
 	tapAnywhereToPause,
 	disableFullscreen,
@@ -212,24 +210,24 @@ export default function VideoPlayer({
 		controlTimeoutDelay: controlTimeout || 15000,
 		controlTimeout: null,
 		tapActionTimeout: null,
-		scrubbingTimeStep: scrubbing || 0,
+		scrubbingTimeStep: 100,
 		tapAnywhereToPause
 	};
 
 	const animations = {
 		bottomControl: {
-			marginBottom: new Animated.Value(0),
-			opacity: new Animated.Value(1)
+			marginBottom: useRef(new Animated.Value(0)).current,
+			opacity: useRef(new Animated.Value(1)).current
 		},
 		topControl: {
-			marginTop: new Animated.Value(0),
-			opacity: new Animated.Value(1)
+			marginTop: useRef(new Animated.Value(0)).current,
+			opacity: useRef(new Animated.Value(1)).current
 		},
 		video: {
-			opacity: new Animated.Value(1)
+			opacity: useRef(new Animated.Value(1)).current
 		},
 		loader: {
-			rotate: new Animated.Value(0),
+			rotate: useRef(new Animated.Value(0)).current,
 			MAX_VALUE: 360
 		}
 	};
@@ -329,14 +327,7 @@ export default function VideoPlayer({
 
 	const toggleFullscreen = () => null;
 
-	const togglePlayPause = () => {
-		if (paused) {
-			typeof onPause === 'function' && onPause();
-		} else {
-			typeof onPlay === 'function' && onPlay();
-		}
-		setPaused(!paused);
-	};
+	const togglePlayPause = () => setPaused(!paused);
 
 	const toggleMuted = () => setMuted(!muted);
 
@@ -355,13 +346,11 @@ export default function VideoPlayer({
 	const updateSeekerPosition = useCallback(
 		(position = 0) => {
 			position = constrainToSeekerMinMax(position);
-			if (!seeking) {
-				setSeekerOffset(position);
-			}
 			setSeekerFillWidth(position);
 			setSeekerPosition(position);
+			setSeekerOffset(position);
 		},
-		[constrainToSeekerMinMax, seeking]
+		[constrainToSeekerMinMax]
 	);
 
 	const loadAnimation = () => {
@@ -427,7 +416,6 @@ export default function VideoPlayer({
 		if (player.tapActionTimeout) {
 			clearTimeout(player.tapActionTimeout);
 			player.tapActionTimeout = 0;
-			toggleFullscreen();
 			if (showControls) {
 				resetControlTimeout();
 			}
@@ -499,7 +487,7 @@ export default function VideoPlayer({
 						if (time < duration && timeDifference >= player.scrubbingTimeStep) {
 							setScrubbing(true);
 							setTimeout(() => {
-								videoRef.current.seek(time, player.scrubbingTimeStep);
+								seekTo(time);
 							}, 1);
 						}
 					}
@@ -719,8 +707,6 @@ export default function VideoPlayer({
 VideoPlayer.propTypes = {
 	controlAnimationTiming: PropTypes.number,
 	doubleTapTime: PropTypes.number,
-	onPause: PropTypes.func,
-	onPlay: PropTypes.func,
 	controlTimeout: PropTypes.func,
 	tapAnywhereToPause: PropTypes.bool,
 	disableFullscreen: PropTypes.bool,
@@ -729,5 +715,5 @@ VideoPlayer.propTypes = {
 
 VideoPlayer.defaultProps = {
 	controlAnimationTiming: 500,
-	doubleTapTime: 130
+	doubleTapTime: 100
 };
