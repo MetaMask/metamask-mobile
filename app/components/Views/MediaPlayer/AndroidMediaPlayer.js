@@ -179,18 +179,12 @@ const styles = {
 };
 
 export default function VideoPlayer({
-	toggleResizeModeOnFullscreen,
 	controlAnimationTiming,
 	doubleTapTime,
-	onEnd,
-	onEnterFullscreen,
-	onShowControls,
 	onPause,
 	onPlay,
-	onExitFullscreen,
 	controlTimeout,
 	tapAnywhereToPause,
-	style,
 	disableFullscreen,
 	source
 }) {
@@ -513,14 +507,11 @@ export default function VideoPlayer({
 
 				/**
 				 * On release we update the time and seek to it in the video.
-				 * If you seek to the end of the video we fire the
-				 * onEnd callback
 				 */
 				onPanResponderRelease: (evt, gestureState) => {
 					const time = calculateTimeFromSeekerPosition();
 					if (time >= duration && !loading) {
 						setPaused(true);
-						// onEnd();
 					} else if (scrubbing) {
 						setSeeking(false);
 					} else {
@@ -726,24 +717,17 @@ export default function VideoPlayer({
 }
 
 VideoPlayer.propTypes = {
-	toggleResizeModeOnFullscreen: PropTypes.bool,
 	controlAnimationTiming: PropTypes.number,
 	doubleTapTime: PropTypes.number,
-	onEnd: PropTypes.func,
-	onEnterFullscreen: PropTypes.func,
-	onShowControls: PropTypes.func,
 	onPause: PropTypes.func,
 	onPlay: PropTypes.func,
-	onExitFullscreen: PropTypes.func,
 	controlTimeout: PropTypes.func,
 	tapAnywhereToPause: PropTypes.bool,
-	style: PropTypes.object,
 	disableFullscreen: PropTypes.bool,
 	source: PropTypes.object
 };
 
 VideoPlayer.defaultProps = {
-	toggleResizeModeOnFullscreen: true,
 	controlAnimationTiming: 500,
 	doubleTapTime: 130
 };
