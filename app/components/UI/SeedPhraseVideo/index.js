@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
 		left: 0,
 		top: 0,
 		backgroundColor: colors.grey,
-		opacity: 0.3,
+		opacity: 0.2,
 		width: '100%',
 		height: '100%'
 	}
@@ -64,12 +64,8 @@ const SeedPhraseVideo = () => {
 							fill="none"
 							xmlns="http://www.w3.org/2000/svg"
 						>
-							<Circle cx="156" cy="88" r="43" fill="white" fill-opacity="0.7" />
-							<Path
-								d="M185 87.5L140.75 107.852L140.75 67.1484L185 87.5Z"
-								fill="black"
-								fill-opacity="0.3"
-							/>
+							<Circle cx="156" cy="88" r="43" fill="white" />
+							<Path d="M185 87.5L140.75 107.852L140.75 67.1484L185 87.5Z" fill="black" />
 						</Svg>
 					</TouchableOpacity>
 					<Image
