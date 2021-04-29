@@ -117,9 +117,6 @@ const styles = {
 			marginRight: 12,
 			marginBottom: 0
 		},
-		volume: {
-			flexDirection: 'row'
-		},
 		fullscreen: {
 			flexDirection: 'row'
 		},
@@ -127,15 +124,6 @@ const styles = {
 			position: 'relative',
 			width: 80,
 			zIndex: 0
-		},
-		title: {
-			alignItems: 'center',
-			flex: 0.6,
-			flexDirection: 'column',
-			padding: 0
-		},
-		titleText: {
-			textAlign: 'center'
 		},
 		timer: {
 			width: 80
@@ -147,33 +135,6 @@ const styles = {
 		toggleIcon: {
 			width: 25,
 			height: 25
-		}
-	}),
-	volume: StyleSheet.create({
-		container: {
-			alignItems: 'center',
-			justifyContent: 'flex-start',
-			flexDirection: 'row',
-			height: 1,
-			marginLeft: 20,
-			marginRight: 20,
-			width: 150
-		},
-		track: {
-			height: 1,
-			marginLeft: 7
-		},
-		fill: {
-			height: 1
-		},
-		handle: {
-			position: 'absolute',
-			marginTop: -24,
-			marginLeft: -24,
-			padding: 16
-		},
-		icon: {
-			marginLeft: 7
 		}
 	}),
 	seekbar: StyleSheet.create({
@@ -222,16 +183,8 @@ export default class VideoPlayer extends PureComponent {
 		toggleResizeModeOnFullscreen: PropTypes.bool,
 		controlAnimationTiming: PropTypes.number,
 		doubleTapTime: PropTypes.number,
-
 		resizeMode: PropTypes.string,
 		isFullScreen: PropTypes.bool,
-		showOnStart: PropTypes.bool,
-		paused: PropTypes.bool,
-		repeat: PropTypes.bool,
-		muted: PropTypes.bool,
-		volume: PropTypes.number,
-		title: PropTypes.string,
-
 		onError: PropTypes.func,
 		onEnd: PropTypes.func,
 		onEnterFullscreen: PropTypes.func,
@@ -239,20 +192,15 @@ export default class VideoPlayer extends PureComponent {
 		onHideControls: PropTypes.func,
 		onPause: PropTypes.func,
 		onPlay: PropTypes.func,
-
 		onExitFullscreen: PropTypes.func,
 		onLoadStart: PropTypes.func,
 		onLoad: PropTypes.func,
-
 		controlTimeout: PropTypes.func,
 		scrubbing: PropTypes.bool,
 		tapAnywhereToPause: PropTypes.bool,
 		style: PropTypes.object,
 		disableFullscreen: PropTypes.bool,
-
-		source: PropTypes.string,
-
-		navigator: PropTypes.object
+		source: PropTypes.string
 	};
 
 	static defaultProps = {
@@ -260,25 +208,17 @@ export default class VideoPlayer extends PureComponent {
 		controlAnimationTiming: 500,
 		doubleTapTime: 130,
 		resizeMode: 'contain',
-		isFullscreen: false,
-		showOnStart: true,
-		paused: false,
-		repeat: false,
-		muted: false,
-		volume: 1,
-		title: ''
+		isFullscreen: false
 	};
 
 	state = {
 		// Video
 		resizeMode: this.props.resizeMode,
-		paused: this.props.paused,
+		paused: false,
 		muted: true,
-		volume: this.props.volume,
 		// Controls
 		isFullscreen: this.props.isFullScreen || this.props.resizeMode === 'cover' || false,
 		seekerFillWidth: 0,
-		showControls: this.props.showOnStart,
 		seekerPosition: 0,
 		seekerOffset: 0,
 		seeking: false,
@@ -332,7 +272,6 @@ export default class VideoPlayer extends PureComponent {
 	};
 
 	onLoad = (data = {}) => {
-		console.log('-- ONLOAD', data.duration);
 		this.setState({ duration: data.playableDuration, loading: false });
 
 		if (this.state.showControls) {
@@ -550,7 +489,6 @@ export default class VideoPlayer extends PureComponent {
 
 	calculateSeekerPosition = () => {
 		const percent = this.state.currentTime / this.state.duration;
-		console.log('percent', this.state.currentTime, this.state.duration);
 		return this.player.seekerWidth * percent;
 	};
 
@@ -820,6 +758,7 @@ export default class VideoPlayer extends PureComponent {
 					onProgress={this.onProgress}
 					style={[styles.player.video]}
 					source={this.props.source}
+					repeat
 				/>
 				{this.renderError()}
 				{this.renderLoader()}
