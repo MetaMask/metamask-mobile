@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Video from 'react-native-video';
 import PropTypes from 'prop-types';
 import {
@@ -178,73 +178,51 @@ const styles = {
 	actionSeeker: { flex: 1 }
 };
 
-export default class VideoPlayer extends PureComponent {
-	static propTypes = {
-		toggleResizeModeOnFullscreen: PropTypes.bool,
-		controlAnimationTiming: PropTypes.number,
-		doubleTapTime: PropTypes.number,
-		resizeMode: PropTypes.string,
-		isFullScreen: PropTypes.bool,
-		onError: PropTypes.func,
-		onEnd: PropTypes.func,
-		onEnterFullscreen: PropTypes.func,
-		onShowControls: PropTypes.func,
-		onHideControls: PropTypes.func,
-		onPause: PropTypes.func,
-		onPlay: PropTypes.func,
-		onExitFullscreen: PropTypes.func,
-		onLoadStart: PropTypes.func,
-		onLoad: PropTypes.func,
-		controlTimeout: PropTypes.func,
-		scrubbing: PropTypes.bool,
-		tapAnywhereToPause: PropTypes.bool,
-		style: PropTypes.object,
-		disableFullscreen: PropTypes.bool,
-		source: PropTypes.string
-	};
+export default function VideoPlayer({
+	toggleResizeModeOnFullscreen,
+	controlAnimationTiming,
+	doubleTapTime,
+	onEnd,
+	onEnterFullscreen,
+	onShowControls,
+	onPause,
+	onPlay,
+	onExitFullscreen,
+	controlTimeout,
+	tapAnywhereToPause,
+	style,
+	disableFullscreen,
+	source
+}) {
+	const [paused, setPaused] = useState(false);
+	const [muted, setMuted] = useState(true);
+	const [seekerFillWidth, setSeekerFillWidth] = useState(0);
+	const [seekerPosition, setSeekerPosition] = useState(0);
+	const [seekerOffset, setSeekerOffset] = useState(0);
+	const [seeking, setSeeking] = useState(false);
+	const [originallyPaused, setOriginallyPaused] = useState(false);
+	const [scrubbing, setScrubbing] = useState(false);
+	const [loading, setLoading] = useState(false);
+	const [currentTime, setCurrentTime] = useState(0);
+	const [error] = useState(false);
+	const [duration, setDuration] = useState(0);
+	const [showControls, setShowControls] = useState(true);
+	const [seekerWidth, setSeekerWidth] = useState(0);
 
-	static defaultProps = {
-		toggleResizeModeOnFullscreen: true,
-		controlAnimationTiming: 500,
-		doubleTapTime: 130,
-		resizeMode: 'contain',
-		isFullscreen: false
-	};
-
-	state = {
-		// Video
-		resizeMode: this.props.resizeMode,
-		paused: false,
-		muted: true,
-		// Controls
-		isFullscreen: this.props.isFullScreen || this.props.resizeMode === 'cover' || false,
-		seekerFillWidth: 0,
-		seekerPosition: 0,
-		seekerOffset: 0,
-		seeking: false,
-		originallyPaused: false,
-		scrubbing: false,
-		loading: false,
-		currentTime: 0,
-		error: false,
-		duration: 0
-	};
+	const videoRef = useRef();
 
 	/**
 	 * Player information
 	 */
-	player = {
-		controlTimeoutDelay: this.props.controlTimeout || 15000,
-		seekPanResponder: PanResponder,
+	const player = {
+		controlTimeoutDelay: controlTimeout || 15000,
 		controlTimeout: null,
 		tapActionTimeout: null,
-		seekerWidth: 0,
-		ref: Video,
-		scrubbingTimeStep: this.props.scrubbing || 0,
-		tapAnywhereToPause: this.props.tapAnywhereToPause
+		scrubbingTimeStep: scrubbing || 0,
+		tapAnywhereToPause
 	};
 
-	animations = {
+	const animations = {
 		bottomControl: {
 			marginBottom: new Animated.Value(0),
 			opacity: new Animated.Value(1)
@@ -262,337 +240,321 @@ export default class VideoPlayer extends PureComponent {
 		}
 	};
 
-	onLoadStart = args => {
-		this.loadAnimation();
-		this.setState({ loading: true });
+	const hideControlAnimation = useCallback(() => {
+		Animated.parallel([
+			Animated.timing(animations.topControl.opacity, {
+				toValue: 0,
+				duration: controlAnimationTiming,
+				useNativeDriver: false
+			}),
+			Animated.timing(animations.topControl.marginTop, {
+				toValue: -100,
+				duration: controlAnimationTiming,
+				useNativeDriver: false
+			}),
+			Animated.timing(animations.bottomControl.opacity, {
+				toValue: 0,
+				duration: controlAnimationTiming,
+				useNativeDriver: false
+			}),
+			Animated.timing(animations.bottomControl.marginBottom, {
+				toValue: -100,
+				duration: controlAnimationTiming,
+				useNativeDriver: false
+			})
+		]).start();
+	}, [
+		controlAnimationTiming,
+		animations.bottomControl.opacity,
+		animations.bottomControl.marginBottom,
+		animations.topControl.opacity,
+		animations.topControl.marginTop
+	]);
 
-		if (typeof this.props.onLoadStart === 'function') {
-			this.props.onLoadStart(args);
-		}
+	const showControlAnimation = useCallback(() => {
+		Animated.parallel([
+			Animated.timing(animations.topControl.opacity, {
+				toValue: 1,
+				useNativeDriver: false,
+				duration: controlAnimationTiming
+			}),
+			Animated.timing(animations.topControl.marginTop, {
+				toValue: 0,
+				useNativeDriver: false,
+				duration: controlAnimationTiming
+			}),
+			Animated.timing(animations.bottomControl.opacity, {
+				toValue: 1,
+				useNativeDriver: false,
+				duration: controlAnimationTiming
+			}),
+			Animated.timing(animations.bottomControl.marginBottom, {
+				toValue: 0,
+				useNativeDriver: false,
+				duration: controlAnimationTiming
+			})
+		]).start();
+	}, [
+		controlAnimationTiming,
+		animations.bottomControl.opacity,
+		animations.bottomControl.marginBottom,
+		animations.topControl.opacity,
+		animations.topControl.marginTop
+	]);
+
+	const hideControls = useCallback(() => {
+		hideControlAnimation();
+		setShowControls(false);
+	}, [hideControlAnimation]);
+
+	const setControlTimeout = useCallback(() => {
+		player.controlTimeout = setTimeout(() => {
+			hideControls();
+		}, player.controlTimeoutDelay);
+	}, [player.controlTimeout, player.controlTimeoutDelay, hideControls]);
+
+	const clearControlTimeout = useCallback(() => {
+		clearTimeout(player.controlTimeout);
+	}, [player.controlTimeout]);
+
+	const resetControlTimeout = () => {
+		clearControlTimeout();
+		setControlTimeout();
 	};
 
-	onLoad = (data = {}) => {
-		this.setState({ duration: data.playableDuration, loading: false });
-
-		if (this.state.showControls) {
-			this.setControlTimeout();
-		}
-
-		if (typeof this.props.onLoad === 'function') {
-			this.props.onLoad(data);
-		}
-	};
-
-	onProgress = data => {
-		const { scrubbing, seeking } = this.state;
-		if (!scrubbing) {
-			if (!seeking) {
-				const position = data.currentTime / data.playableDuration;
-				this.setSeekerPosition(position * this.player.seekerWidth);
-			}
-			this.setState({ currentTime: data.currentTime });
-		}
-	};
-
-	onSeek = (data = {}) => {
-		if (this.state.scrubbing) {
-			if (!this.state.seeking) {
-				this.setControlTimeout();
-				this.setState({ scrubbing: false, currentTime: data.currentTime, paused: this.state.originallyPaused });
-			} else {
-				this.setState({ scrubbing: false, currentTime: data.currentTime });
-			}
-		}
-	};
-
-	onEnd = () => null;
-
-	onError = () => {
-		this.setState({ error: true, loading: false });
-	};
-
-	onScreenTouch = () => {
-		if (this.player.tapActionTimeout) {
-			clearTimeout(this.player.tapActionTimeout);
-			this.player.tapActionTimeout = 0;
-			this.toggleFullscreen();
-			const state = this.state;
-			if (state.showControls) {
-				this.resetControlTimeout();
-			}
+	const toggleControls = () => {
+		if (showControls) {
+			showControlAnimation();
+			setControlTimeout();
 		} else {
-			this.player.tapActionTimeout = setTimeout(() => {
-				const state = this.state;
-				if (this.player.tapAnywhereToPause && state.showControls) {
-					this.togglePlayPause();
-					this.resetControlTimeout();
-				} else {
-					this.toggleControls();
-				}
-				this.player.tapActionTimeout = 0;
-			}, this.props.doubleTapTime);
+			hideControlAnimation();
+			clearControlTimeout();
 		}
+		setShowControls(!showControls);
 	};
 
-	setControlTimeout = () => {
-		this.player.controlTimeout = setTimeout(() => {
-			this.hideControls();
-		}, this.player.controlTimeoutDelay);
+	const toggleFullscreen = () => null;
+
+	const togglePlayPause = () => {
+		if (paused) {
+			typeof onPause === 'function' && onPause();
+		} else {
+			typeof onPlay === 'function' && onPlay();
+		}
+		setPaused(!paused);
 	};
 
-	clearControlTimeout = () => {
-		clearTimeout(this.player.controlTimeout);
-	};
+	const toggleMuted = () => setMuted(!muted);
 
-	resetControlTimeout = () => {
-		this.clearControlTimeout();
-		this.setControlTimeout();
-	};
+	const constrainToSeekerMinMax = useCallback(
+		(val = 0) => {
+			if (val <= 0) {
+				return 0;
+			} else if (val >= seekerWidth) {
+				return seekerWidth;
+			}
+			return val;
+		},
+		[seekerWidth]
+	);
 
-	hideControlAnimation = () => {
-		Animated.parallel([
-			Animated.timing(this.animations.topControl.opacity, {
-				toValue: 0,
-				duration: this.props.controlAnimationTiming,
-				useNativeDriver: false
-			}),
-			Animated.timing(this.animations.topControl.marginTop, {
-				toValue: -100,
-				duration: this.props.controlAnimationTiming,
-				useNativeDriver: false
-			}),
-			Animated.timing(this.animations.bottomControl.opacity, {
-				toValue: 0,
-				duration: this.props.controlAnimationTiming,
-				useNativeDriver: false
-			}),
-			Animated.timing(this.animations.bottomControl.marginBottom, {
-				toValue: -100,
-				duration: this.props.controlAnimationTiming,
-				useNativeDriver: false
-			})
-		]).start();
-	};
+	const updateSeekerPosition = useCallback(
+		(position = 0) => {
+			position = constrainToSeekerMinMax(position);
+			if (!seeking) {
+				setSeekerOffset(position);
+			}
+			setSeekerFillWidth(position);
+			setSeekerPosition(position);
+		},
+		[constrainToSeekerMinMax, seeking]
+	);
 
-	showControlAnimation = () => {
-		Animated.parallel([
-			Animated.timing(this.animations.topControl.opacity, {
-				toValue: 1,
-				useNativeDriver: false,
-				duration: this.props.controlAnimationTiming
-			}),
-			Animated.timing(this.animations.topControl.marginTop, {
-				toValue: 0,
-				useNativeDriver: false,
-				duration: this.props.controlAnimationTiming
-			}),
-			Animated.timing(this.animations.bottomControl.opacity, {
-				toValue: 1,
-				useNativeDriver: false,
-				duration: this.props.controlAnimationTiming
-			}),
-			Animated.timing(this.animations.bottomControl.marginBottom, {
-				toValue: 0,
-				useNativeDriver: false,
-				duration: this.props.controlAnimationTiming
-			})
-		]).start();
-	};
-
-	loadAnimation = () => {
-		if (this.state.loading) {
+	const loadAnimation = () => {
+		if (loading) {
 			Animated.sequence([
-				Animated.timing(this.animations.loader.rotate, {
-					toValue: this.animations.loader.MAX_VALUE,
+				Animated.timing(animations.loader.rotate, {
+					toValue: animations.loader.MAX_VALUE,
 					duration: 1500,
 					easing: Easing.linear,
 					useNativeDriver: false
 				}),
-				Animated.timing(this.animations.loader.rotate, {
+				Animated.timing(animations.loader.rotate, {
 					toValue: 0,
 					duration: 0,
 					easing: Easing.linear,
 					useNativeDriver: false
 				})
-			]).start(this.loadAnimation);
+			]).start(loadAnimation);
 		}
 	};
 
-	hideControls = () => {
-		if (this.mounted) {
-			this.hideControlAnimation();
-			typeof this.onHideControls === 'function' && this.onHideControls();
+	const onLoadStart = () => {
+		loadAnimation();
+		setLoading(true);
+	};
 
-			this.setState({ showControls: false });
+	const onLoad = (data = {}) => {
+		setDuration(data.duration);
+		setLoading(false);
+
+		if (showControls) {
+			setControlTimeout();
 		}
 	};
 
-	toggleControls = () => {
-		if (this.state.showControls) {
-			this.showControlAnimation();
-			this.setControlTimeout();
-			typeof this.onShowControls === 'function' && this.onShowControls();
+	const onProgress = data => {
+		if (!scrubbing) {
+			if (!seeking) {
+				const position = data.currentTime / data.playableDuration;
+				updateSeekerPosition(position * seekerWidth);
+			}
+			setCurrentTime(data.currentTime);
+		}
+	};
+
+	const onSeek = (data = {}) => {
+		if (scrubbing) {
+			if (!seeking) {
+				setControlTimeout();
+				setPaused(originallyPaused);
+			}
+			setScrubbing(false);
+			setCurrentTime(data.currentTime);
+		}
+	};
+
+	// const onError = () => {
+	// 	setError(true)
+	// 	setLoading(false)
+	// };
+
+	const onScreenTouch = () => {
+		if (player.tapActionTimeout) {
+			clearTimeout(player.tapActionTimeout);
+			player.tapActionTimeout = 0;
+			toggleFullscreen();
+			if (showControls) {
+				resetControlTimeout();
+			}
 		} else {
-			this.hideControlAnimation();
-			this.clearControlTimeout();
-			typeof this.onHideControls === 'function' && this.onHideControls();
-		}
-
-		this.setState({ showControls: !this.state.showControls });
-	};
-
-	toggleFullscreen = () => {
-		if (this.props.toggleResizeModeOnFullscreen) {
-			//   state.resizeMode = this.state.isFullscreen === true ? 'cover' : 'contain';
-		}
-
-		if (this.state.isFullscreen) {
-			typeof this.onEnterFullscreen === 'function' && this.onEnterFullscreen();
-		} else {
-			typeof this.onExitFullscreen === 'function' && this.onExitFullscreen();
-		}
-
-		// this.setState({isFullscreen: !this.state.isFullscreen});
-	};
-
-	togglePlayPause = () => {
-		if (this.state.paused) {
-			typeof this.onPause === 'function' && this.onPause();
-		} else {
-			typeof this.onPlay === 'function' && this.onPlay();
-		}
-
-		this.setState({ paused: !this.state.paused });
-	};
-
-	toggleMuted = () => {
-		this.setState({ muted: !this.state.muted });
-	};
-
-	setSeekerPosition = (position = 0) => {
-		position = this.constrainToSeekerMinMax(position);
-		if (!this.state.seeking) {
-			this.setState({ seekerFillWidth: position, seekerPosition: position, seekerOffset: position });
-		} else {
-			this.setState({ seekerFillWidth: position, seekerPosition: position });
-		}
-	};
-
-	constrainToSeekerMinMax = (val = 0) => {
-		if (val <= 0) {
-			return 0;
-		} else if (val >= this.player.seekerWidth) {
-			return this.player.seekerWidth;
-		}
-		return val;
-	};
-
-	calculateSeekerPosition = () => {
-		const percent = this.state.currentTime / this.state.duration;
-		return this.player.seekerWidth * percent;
-	};
-
-	calculateTimeFromSeekerPosition = () => {
-		const percent = this.state.seekerPosition / this.player.seekerWidth;
-		return this.state.duration * percent;
-	};
-
-	seekTo = (time = 0) => {
-		this.player.ref.seek(time);
-		this.setState({ currentTime: time });
-	};
-
-	componentDidMount = () => {
-		this.initSeekPanResponder();
-		this.mounted = true;
-	};
-
-	componentWillUnmount = () => {
-		this.mounted = false;
-		this.clearControlTimeout();
-	};
-
-	initSeekPanResponder = () => {
-		this.player.seekPanResponder = PanResponder.create({
-			// Ask to be the responder.
-			onStartShouldSetPanResponder: (evt, gestureState) => true,
-			onMoveShouldSetPanResponder: (evt, gestureState) => true,
-
-			/**
-			 * When we start the pan tell the machine that we're
-			 * seeking. This stops it from updating the seekbar
-			 * position in the onProgress listener.
-			 */
-			onPanResponderGrant: (evt, gestureState) => {
-				const state = this.state;
-				this.clearControlTimeout();
-				const position = evt.nativeEvent.locationX;
-				this.setSeekerPosition(position);
-				if (this.player.scrubbingTimeStep > 0) {
-					state.paused = true;
-					this.setState({
-						paused: true,
-						seeking: true,
-						originallyPaused: this.state.paused,
-						scrubbing: false
-					});
+			player.tapActionTimeout = setTimeout(() => {
+				if (player.tapAnywhereToPause && showControls) {
+					togglePlayPause();
+					resetControlTimeout();
 				} else {
-					this.setState({
-						paused: false,
-						seeking: true,
-						originallyPaused: this.state.paused,
-						scrubbing: false
-					});
+					toggleControls();
 				}
-			},
+				player.tapActionTimeout = 0;
+			}, doubleTapTime);
+		}
+	};
 
-			/**
-			 * When panning, update the seekbar position, duh.
-			 */
-			onPanResponderMove: (evt, gestureState) => {
-				const position = this.state.seekerOffset + gestureState.dx;
-				this.setSeekerPosition(position);
+	// const calculateSeekerPosition = () => {
+	// 	const percent = currentTime / duration;
+	// 	return seekerWidth * percent;
+	// };
 
-				if (this.player.scrubbingTimeStep > 0 && !this.state.loading && !this.state.scrubbing) {
-					const time = this.calculateTimeFromSeekerPosition();
-					const timeDifference = Math.abs(this.state.currentTime - time) * 1000;
+	const calculateTimeFromSeekerPosition = useCallback(() => {
+		const percent = seekerPosition / seekerWidth;
+		return duration * percent;
+	}, [seekerPosition, seekerWidth, duration]);
 
-					if (time < this.state.duration && timeDifference >= this.player.scrubbingTimeStep) {
-						this.setState({ scrubbing: true });
-						setTimeout(() => {
-							this.player.ref.seek(time, this.player.scrubbingTimeStep);
-						}, 1);
+	const seekTo = (time = 0) => {
+		videoRef.current.seek(time);
+		setCurrentTime(time);
+	};
+
+	const seekPanResponder = useMemo(
+		() =>
+			PanResponder.create({
+				// Ask to be the responder.
+				onStartShouldSetPanResponder: (evt, gestureState) => true,
+				onMoveShouldSetPanResponder: (evt, gestureState) => true,
+
+				/**
+				 * When we start the pan tell the machine that we're
+				 * seeking. This stops it from updating the seekbar
+				 * position in the onProgress listener.
+				 */
+				onPanResponderGrant: (evt, gestureState) => {
+					clearControlTimeout();
+					const position = evt.nativeEvent.locationX;
+					updateSeekerPosition(position);
+					if (player.scrubbingTimeStep > 0) {
+						setPaused(true);
+					} else {
+						setPaused(false);
+					}
+					setSeeking(true);
+					setOriginallyPaused(paused);
+					setScrubbing(false);
+				},
+
+				/**
+				 * When panning, update the seekbar position, duh.
+				 */
+				onPanResponderMove: (evt, gestureState) => {
+					const position = seekerOffset + gestureState.dx;
+					updateSeekerPosition(position);
+
+					if (player.scrubbingTimeStep > 0 && !loading && !scrubbing) {
+						const time = calculateTimeFromSeekerPosition();
+						const timeDifference = Math.abs(currentTime - time) * 1000;
+
+						if (time < duration && timeDifference >= player.scrubbingTimeStep) {
+							setScrubbing(true);
+							setTimeout(() => {
+								videoRef.current.seek(time, player.scrubbingTimeStep);
+							}, 1);
+						}
+					}
+				},
+
+				/**
+				 * On release we update the time and seek to it in the video.
+				 * If you seek to the end of the video we fire the
+				 * onEnd callback
+				 */
+				onPanResponderRelease: (evt, gestureState) => {
+					const time = calculateTimeFromSeekerPosition();
+					if (time >= duration && !loading) {
+						setPaused(true);
+						// onEnd();
+					} else if (scrubbing) {
+						setSeeking(false);
+					} else {
+						seekTo(time);
+						setControlTimeout();
+						setPaused(originallyPaused);
+						setSeeking(false);
 					}
 				}
-			},
+			}),
+		[
+			clearControlTimeout,
+			updateSeekerPosition,
+			calculateTimeFromSeekerPosition,
+			currentTime,
+			duration,
+			loading,
+			originallyPaused,
+			paused,
+			player.scrubbingTimeStep,
+			scrubbing,
+			seekerOffset,
+			setControlTimeout
+		]
+	);
 
-			/**
-			 * On release we update the time and seek to it in the video.
-			 * If you seek to the end of the video we fire the
-			 * onEnd callback
-			 */
-			onPanResponderRelease: (evt, gestureState) => {
-				const time = this.calculateTimeFromSeekerPosition();
-				if (time >= this.state.duration && !this.state.loading) {
-					this.setState({ paused: true });
-					//   this.onEnd();
-				} else if (this.state.scrubbing) {
-					this.setState({ seeking: false });
-				} else {
-					this.seekTo(time);
-					this.setControlTimeout();
-					this.setState({ paused: this.state.originallyPaused, seeking: false });
-				}
-			}
-		});
-	};
+	useEffect(() => clearControlTimeout(), [clearControlTimeout]);
 
-	renderControl = (children, callback, style = {}) => (
+	const renderControl = (children, callback, style = {}) => (
 		<TouchableHighlight
 			underlayColor="transparent"
 			activeOpacity={0.3}
 			onPress={() => {
-				this.resetControlTimeout();
+				resetControlTimeout();
 				callback();
 			}}
 			style={[styles.controls.control, style]}
@@ -601,117 +563,55 @@ export default class VideoPlayer extends PureComponent {
 		</TouchableHighlight>
 	);
 
-	renderNullControl = () => <View style={[styles.controls.control]} />;
+	const renderNullControl = () => <View style={[styles.controls.control]} />;
 
-	renderTopControls = () => {
-		const fullscreenControl = this.props.disableFullscreen ? this.renderNullControl() : this.renderFullscreen();
+	const renderFullscreen = () =>
+		renderControl(<FontAwesome name={'expand'} />, toggleFullscreen, styles.controls.fullscreen);
 
-		return (
-			<Animated.View
-				style={[
-					styles.controls.top,
-					{
-						opacity: this.animations.topControl.opacity,
-						marginTop: this.animations.topControl.marginTop
-					}
-				]}
-			>
-				<View
-					style={[styles.controls.column, { backgroundColor: colors.grey400 }]}
-					imageStyle={[styles.controls.vignette]}
-				>
-					<SafeAreaView style={styles.controls.topControlGroup}>
-						<View style={styles.controls.pullRight}>
-							{/* {volumeControl} */}
-							{fullscreenControl}
-						</View>
-					</SafeAreaView>
-				</View>
-			</Animated.View>
-		);
-	};
-
-	renderFullscreen = () => {
-		const source = this.state.isFullscreen === true ? 'compress' : 'expand';
-		return this.renderControl(<FontAwesome name={source} />, this.toggleFullscreen, styles.controls.fullscreen);
-	};
-
-	renderMuteUnmuteControl = () => {
-		const source = this.state.muted === true ? 'volume-off' : 'volume-up';
-		return this.renderControl(
+	const renderMuteUnmuteControl = () => {
+		const source = muted === true ? 'volume-off' : 'volume-up';
+		return renderControl(
 			<FA5Icon style={styles.controls.toggleIcon} size={20} name={source} />,
-			this.toggleMuted,
+			toggleMuted,
 			styles.controls.playPause
 		);
 	};
 
-	renderBottomControls = () => {
-		const seekbarControl = this.renderSeekbar();
-		const playPauseControl = this.renderPlayPause();
-		const muteUnmuteControl = this.renderMuteUnmuteControl();
-
-		return (
-			<Animated.View
-				style={[
-					styles.controls.bottom,
-					{
-						opacity: this.animations.bottomControl.opacity,
-						marginBottom: this.animations.bottomControl.marginBottom
-					}
-				]}
-			>
-				<View
-					style={[styles.controls.column, { backgroundColor: colors.grey400 }]}
-					imageStyle={[styles.controls.vignette]}
-				>
-					<SafeAreaView style={[styles.controls.row, styles.controls.bottomControlGroup]}>
-						<View style={styles.actionButton}>{playPauseControl}</View>
-						<View style={[styles.actionSeeker, styles.actionButton]}>{seekbarControl}</View>
-						<View style={styles.actionButton}>
-							{/* {timerControl} */}
-							{muteUnmuteControl}
-						</View>
-					</SafeAreaView>
-				</View>
-			</Animated.View>
-		);
-	};
-
-	renderSeekbar = () => (
-		<View style={styles.seekbar.container} collapsable={false} {...this.player.seekPanResponder.panHandlers}>
+	const renderSeekbar = () => (
+		<View style={styles.seekbar.container} collapsable={false} {...seekPanResponder.panHandlers}>
 			<View
 				style={styles.seekbar.track}
-				onLayout={event => (this.player.seekerWidth = event.nativeEvent.layout.width)}
+				onLayout={event => setSeekerWidth(event.nativeEvent.layout.width)}
 				pointerEvents={'none'}
 			>
 				<View
 					style={[
 						styles.seekbar.fill,
 						{
-							width: this.state.seekerFillWidth,
+							width: seekerFillWidth,
 							backgroundColor: colors.white
 						}
 					]}
 					pointerEvents={'none'}
 				/>
 			</View>
-			<View style={[styles.seekbar.handle, { left: this.state.seekerPosition }]} pointerEvents={'none'}>
+			<View style={[styles.seekbar.handle, { left: seekerPosition }]} pointerEvents={'none'}>
 				<View style={[styles.seekbar.circle, { backgroundColor: colors.white }]} pointerEvents={'none'} />
 			</View>
 		</View>
 	);
 
-	renderPlayPause = () => {
-		const source = this.state.paused === true ? 'play' : 'pause';
-		return this.renderControl(
+	const renderPlayPause = () => {
+		const source = paused === true ? 'play' : 'pause';
+		return renderControl(
 			<FA5Icon styles={styles.controls.toggleIcon} size={20} name={source} />,
-			this.togglePlayPause,
+			togglePlayPause,
 			styles.controls.playPause
 		);
 	};
 
-	renderLoader = () => {
-		if (this.state.loading) {
+	const renderLoader = () => {
+		if (loading) {
 			return (
 				<View style={styles.loader.container}>
 					<Animated.Image
@@ -720,7 +620,7 @@ export default class VideoPlayer extends PureComponent {
 							{
 								transform: [
 									{
-										rotate: this.animations.loader.rotate.interpolate({
+										rotate: animations.loader.rotate.interpolate({
 											inputRange: [0, 360],
 											outputRange: ['0deg', '360deg']
 										})
@@ -735,8 +635,8 @@ export default class VideoPlayer extends PureComponent {
 		return null;
 	};
 
-	renderError = () => {
-		if (this.state.error) {
+	const renderError = () => {
+		if (error) {
 			return (
 				<View style={styles.error.container}>
 					<Image style={styles.error.icon} />
@@ -747,24 +647,103 @@ export default class VideoPlayer extends PureComponent {
 		return null;
 	};
 
-	render = () => (
-		<TouchableWithoutFeedback onPress={this.onScreenTouch} style={[styles.player.container]}>
+	const renderTopControls = () => {
+		const fullscreenControl = disableFullscreen ? renderNullControl() : renderFullscreen();
+
+		return (
+			<Animated.View
+				style={[
+					styles.controls.top,
+					{
+						opacity: animations.topControl.opacity,
+						marginTop: animations.topControl.marginTop
+					}
+				]}
+			>
+				<View
+					style={[styles.controls.column, { backgroundColor: colors.grey400 }]}
+					imageStyle={[styles.controls.vignette]}
+				>
+					<SafeAreaView style={styles.controls.topControlGroup}>
+						<View style={styles.controls.pullRight}>{fullscreenControl}</View>
+					</SafeAreaView>
+				</View>
+			</Animated.View>
+		);
+	};
+
+	const renderBottomControls = () => {
+		const seekbarControl = renderSeekbar();
+		const playPauseControl = renderPlayPause();
+		const muteUnmuteControl = renderMuteUnmuteControl();
+
+		return (
+			<Animated.View
+				style={[
+					styles.controls.bottom,
+					{
+						opacity: animations.bottomControl.opacity,
+						marginBottom: animations.bottomControl.marginBottom
+					}
+				]}
+			>
+				<View
+					style={[styles.controls.column, { backgroundColor: colors.grey400 }]}
+					imageStyle={[styles.controls.vignette]}
+				>
+					<SafeAreaView style={[styles.controls.row, styles.controls.bottomControlGroup]}>
+						<View style={styles.actionButton}>{playPauseControl}</View>
+						<View style={[styles.actionSeeker, styles.actionButton]}>{seekbarControl}</View>
+						<View style={styles.actionButton}>{muteUnmuteControl}</View>
+					</SafeAreaView>
+				</View>
+			</Animated.View>
+		);
+	};
+
+	return (
+		<TouchableWithoutFeedback onPress={onScreenTouch} style={[styles.player.container]}>
 			<View style={[styles.player.container]}>
 				<Video
-					ref={videoPlayer => (this.player.ref = videoPlayer)}
-					paused={this.state.paused}
-					muted={this.state.muted}
-					onLoadStart={this.onLoadStart}
-					onProgress={this.onProgress}
+					ref={videoRef}
+					paused={paused}
+					muted={muted}
+					onLoad={onLoad}
+					onSeek={onSeek}
+					onLoadStart={onLoadStart}
+					onProgress={onProgress}
 					style={[styles.player.video]}
-					source={this.props.source}
+					source={source}
 					repeat
 				/>
-				{this.renderError()}
-				{this.renderLoader()}
-				{this.renderTopControls()}
-				{this.renderBottomControls()}
+				{renderError()}
+				{renderLoader()}
+				{renderTopControls()}
+				{renderBottomControls()}
 			</View>
 		</TouchableWithoutFeedback>
 	);
 }
+
+VideoPlayer.propTypes = {
+	toggleResizeModeOnFullscreen: PropTypes.bool,
+	controlAnimationTiming: PropTypes.number,
+	doubleTapTime: PropTypes.number,
+	onEnd: PropTypes.func,
+	onEnterFullscreen: PropTypes.func,
+	onShowControls: PropTypes.func,
+	onPause: PropTypes.func,
+	onPlay: PropTypes.func,
+	onExitFullscreen: PropTypes.func,
+	controlTimeout: PropTypes.func,
+	tapAnywhereToPause: PropTypes.bool,
+	style: PropTypes.object,
+	disableFullscreen: PropTypes.bool,
+	source: PropTypes.object
+};
+
+VideoPlayer.defaultProps = {
+	toggleResizeModeOnFullscreen: true,
+	controlAnimationTiming: 500,
+	doubleTapTime: 130
+};
