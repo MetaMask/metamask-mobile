@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import Video, { TextTrackType } from 'react-native-video';
+import { TextTrackType } from 'react-native-video';
+import VideoPlayer from 'react-native-video-controls';
 import Logger from '../../../util/Logger';
 
 const styles = StyleSheet.create({
@@ -17,14 +18,17 @@ const styles = StyleSheet.create({
 // eslint-disable-next-line import/no-commonjs
 const vid = require('../../../../app/videos/recovery-phrase.mp4');
 const VTT_URI =
-	// TODO: can we load this asset as local resource? (like above)
 	'https://github.com/MetaMask/metamask-extension/blob/develop/app/images/videos/recovery-onboarding/subtitles-en.vtt';
 
 const SeedPhraseVideo = () => {
-	const onError = e => Logger.error(e, 'Video failed.');
+	const onError = e => Logger.error(e, 'Video failed');
+	const onPlay = () => Logger.log('User clicked play');
 	return (
 		<View style={styles.videoContainer}>
-			<Video
+			<VideoPlayer
+				paused // paused to start
+				disableFullscreen
+				disableBack
 				source={vid}
 				textTracks={[
 					{
@@ -39,8 +43,8 @@ const SeedPhraseVideo = () => {
 					value: 'en'
 				}}
 				style={StyleSheet.absoluteFill}
-				controls
 				onError={onError}
+				onPlay={onPlay}
 				resizeMode="cover"
 			/>
 		</View>
