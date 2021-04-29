@@ -1,4 +1,4 @@
-name: Build and Test
+name: Build, Lint, and Test
 
 on:
   push:
@@ -6,8 +6,8 @@ on:
   pull_request:
 
 jobs:
-  build-test:
-    name: Build and Test
+  build-lint-test:
+    name: Build, Lint, and Test
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -26,7 +26,7 @@ jobs:
     name: All jobs pass
     runs-on: ubuntu-20.04
     needs:
-      - build-test
+      - build-lint-test
     steps:
       - uses: actions/checkout@v2
       - run: echo "Great success!"
