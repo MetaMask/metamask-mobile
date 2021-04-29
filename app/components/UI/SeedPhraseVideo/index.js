@@ -5,6 +5,7 @@ import VideoPlayer from 'react-native-video-controls';
 import { colors } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import scaling from '../../../util/scaling';
+import Svg, { Circle, Path } from 'react-native-svg';
 
 const styles = StyleSheet.create({
 	videoContainer: {
@@ -56,7 +57,20 @@ const SeedPhraseVideo = () => {
 			{!isPlaying ? (
 				<>
 					<TouchableOpacity style={styles.cover} onPress={onPlay}>
-						<></>
+						<Svg
+							width="311"
+							height="176"
+							viewBox="0 0 311 176"
+							fill="none"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<Circle cx="156" cy="88" r="43" fill="white" fill-opacity="0.7" />
+							<Path
+								d="M185 87.5L140.75 107.852L140.75 67.1484L185 87.5Z"
+								fill="black"
+								fill-opacity="0.3"
+							/>
+						</Svg>
 					</TouchableOpacity>
 					<Image
 						source={explain_backup_seedphrase}
