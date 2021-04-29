@@ -247,7 +247,6 @@ export default class VideoPlayer extends PureComponent {
 		controlTimeout: PropTypes.func,
 		scrubbing: PropTypes.bool,
 		tapAnywhereToPause: PropTypes.bool,
-		videoStyle: PropTypes.object,
 		style: PropTypes.object,
 		disableFullscreen: PropTypes.bool,
 
@@ -270,10 +269,6 @@ export default class VideoPlayer extends PureComponent {
 		title: ''
 	};
 
-	/**
-	 * All of our values that are updated by the
-	 * methods and listeners in this class
-	 */
 	state = {
 		// Video
 		resizeMode: this.props.resizeMode,
@@ -300,31 +295,23 @@ export default class VideoPlayer extends PureComponent {
 	 */
 	player = {
 		controlTimeoutDelay: this.props.controlTimeout || 15000,
-		volumePanResponder: PanResponder,
 		seekPanResponder: PanResponder,
 		controlTimeout: null,
 		tapActionTimeout: null,
-		volumeWidth: 150,
-		iconOffset: 0,
 		seekerWidth: 0,
 		ref: Video,
 		scrubbingTimeStep: this.props.scrubbing || 0,
 		tapAnywhereToPause: this.props.tapAnywhereToPause
 	};
 
-	/**
-	 * Various animations
-	 */
-	initialValue = this.props.showOnStart ? 1 : 0;
-
 	animations = {
 		bottomControl: {
 			marginBottom: new Animated.Value(0),
-			opacity: new Animated.Value(this.initialValue)
+			opacity: new Animated.Value(1)
 		},
 		topControl: {
 			marginTop: new Animated.Value(0),
-			opacity: new Animated.Value(this.initialValue)
+			opacity: new Animated.Value(1)
 		},
 		video: {
 			opacity: new Animated.Value(1)
@@ -333,14 +320,6 @@ export default class VideoPlayer extends PureComponent {
 			rotate: new Animated.Value(0),
 			MAX_VALUE: 360
 		}
-	};
-
-	/**
-	 * Various styles that be added...
-	 */
-	styles = {
-		videoStyle: this.props.videoStyle || {},
-		containerStyle: this.props.style || {}
 	};
 
 	onLoadStart = args => {
@@ -378,8 +357,6 @@ export default class VideoPlayer extends PureComponent {
 
 	onSeek = (data = {}) => {
 		if (this.state.scrubbing) {
-			// Seeking may be false here if the user released the seek bar while the player was still processing
-			// the last seek command. In this case, perform the steps that have been postponed.
 			if (!this.state.seeking) {
 				this.setControlTimeout();
 				this.setState({ scrubbing: false, currentTime: data.currentTime, paused: this.state.originallyPaused });
@@ -833,18 +810,15 @@ export default class VideoPlayer extends PureComponent {
 	};
 
 	render = () => (
-		<TouchableWithoutFeedback
-			onPress={this.onScreenTouch}
-			style={[styles.player.container, this.styles.containerStyle]}
-		>
-			<View style={[styles.player.container, this.styles.containerStyle]}>
+		<TouchableWithoutFeedback onPress={this.onScreenTouch} style={[styles.player.container]}>
+			<View style={[styles.player.container]}>
 				<Video
 					ref={videoPlayer => (this.player.ref = videoPlayer)}
 					paused={this.state.paused}
 					muted={this.state.muted}
 					onLoadStart={this.onLoadStart}
 					onProgress={this.onProgress}
-					style={[styles.player.video, this.styles.videoStyle]}
+					style={[styles.player.video]}
 					source={this.props.source}
 				/>
 				{this.renderError()}
