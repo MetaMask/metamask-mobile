@@ -1,0 +1,15 @@
+diff --git a/node_modules/unicode-confusables/data/confusables.json b/node_modules/unicode-confusables/data/confusables.json
+index 855e49c..b0b8a0b 100644
+--- a/node_modules/unicode-confusables/data/confusables.json
++++ b/node_modules/unicode-confusables/data/confusables.json
+@@ -157,8 +157,8 @@
+  "໊": "๊",
+  "໋": "๋",
+  "꙯": "⃩",
+- " ": " ",
+- " ": " ",
++ "\u2028": " ",
++ "\u2029": " ",
+  " ": " ",
+  " ": " ",
+  " ": " ",
