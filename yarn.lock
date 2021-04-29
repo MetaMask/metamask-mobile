@@ -1539,12 +1539,17 @@
   resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-1.23.0.tgz#c70be7f3eaeeb791651ce793b7cdc230e9780b18"
   integrity sha512-oTUqL9dtXtbng60DZMRsBmZ5HiOUUfEsZjuswOJ0yHO24YsW0ktCcgCJVYPv1HcOsF0SVrRtG4rtrvOl4nY+HA==
 
-"@metamask/controllers@^7.0.0":
-  version "7.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-7.0.0.tgz#8daecd284faa897ca1f112a3f6f28d6936dac674"
-  integrity sha512-vb2/wgGfJFMUa4Ej67FMkV94s0vp765t2vwOt8EOxhWfmEP2v9myc2B95L5jJJZZgvCk2ojaV11CrFF4ookLng==
+"@metamask/contract-metadata@^1.24.0":
+  version "1.25.0"
+  resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-1.25.0.tgz#442ace91fb40165310764b68d8096d0017bb0492"
+  integrity sha512-yhmYB9CQPv0dckNcPoWDcgtrdUp0OgK0uvkRE5QIBv4b3qENI1/03BztvK2ijbTuMlORUpjPq7/1MQDUPoRPVw==
+
+"@metamask/controllers@^8.0.0":
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-8.0.0.tgz#42ac5aaef67a03d3fe599a67a36597e01902ca8d"
+  integrity sha512-TrteMifsCxV1g3WHcSD1X98fF4hKep3sXZNGfrvkPqa8mrF03hJke21WBSTRtvJ3vkNLRWgi+5I6lVXFTzbYuQ==
   dependencies:
-    "@metamask/contract-metadata" "^1.23.0"
+    "@metamask/contract-metadata" "^1.24.0"
     "@types/uuid" "^8.3.0"
     async-mutex "^0.2.6"
     babel-runtime "^6.26.0"
