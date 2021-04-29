@@ -167,7 +167,7 @@ class NetworksSettings extends PureComponent {
 		const { frequentRpcList } = this.props;
 		if (frequentRpcList.length > 0) {
 			return (
-				<View>
+				<View testID={'rpc-networks'}>
 					<Text style={styles.sectionLabel}>{strings('app_settings.network_rpc_networks')}</Text>
 					{this.renderRpcNetworks()}
 				</View>

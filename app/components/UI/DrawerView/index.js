@@ -902,6 +902,8 @@ class DrawerView extends PureComponent {
 							type={'rounded-normal'}
 							onPress={this.onSend}
 							containerStyle={[styles.button, styles.leftButton]}
+							a
+							testID={'drawer-send-button'}
 						>
 							<View style={styles.buttonContent}>
 								<MaterialIcon

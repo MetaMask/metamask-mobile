@@ -215,7 +215,7 @@
     "babel-eslint": "10.1.0",
     "babel-jest": "^26.6.3",
     "concat-cli": "4.0.0",
-    "detox": "17.3.1",
+    "detox": "17.14.9",
     "enzyme": "3.9.0",
     "enzyme-adapter-react-16": "1.10.0",
     "enzyme-to-json": "3.3.5",

@@ -1413,12 +1413,17 @@ export const BrowserTab = props => {
 							onPress={() => (!autocompleteValue ? setShowUrlModal(false) : setAutocompleteValue(''))}
 							style={styles.iconCloseButton}
 						>
-							<MaterialIcon name="close" size={20} style={[styles.icon, styles.iconClose]} />
+							<MaterialIcon
+								name="close"
+								size={20}
+								style={[styles.icon, styles.iconClose]}
+								testID={'android-cancel-url-button'}
+							/>
 						</TouchableOpacity>
 					) : (
 						<TouchableOpacity
 							style={styles.cancelButton}
-							testID={'cancel-url-button'}
+							testID={'ios-cancel-url-button'}
 							onPress={toggleUrlModal}
 						>
 							<Text style={styles.cancelButtonText}>{strings('browser.cancel')}</Text>
