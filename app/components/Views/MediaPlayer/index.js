@@ -1,59 +1,24 @@
-import React, { useState } from 'react';
-import Video from 'react-native-video';
+import React from 'react';
 import PropTypes from 'prop-types';
-import { View, TouchableWithoutFeedback, StyleSheet } from 'react-native';
-import Entypo from 'react-native-vector-icons/Entypo';
-import { colors } from '../../../styles/common';
+import { View } from 'react-native';
+import AndroidMediaPlayer from './AndroidMediaPlayer';
 
-const styles = StyleSheet.create({
-	mutedIcon: {
-		marginTop: -20
-	}
-});
+// const styles = StyleSheet.create({
 
-function MediaPlayer({ uri, style, onError }) {
-	const [muted, setMuted] = useState(true);
+// });
 
-	const toggleMuted = () => setMuted(!muted);
-
+function MediaPlayer({ uri, style }) {
 	return (
-		<View style={style}>
-			<View>
-				<Video
-					source={{ uri }}
-					ref={ref => {
-						this.player = ref;
-					}}
-					onError={onError}
-					style={style}
-					muted={muted}
-					repeat
-				/>
-				<TouchableWithoutFeedback onPress={toggleMuted}>
-					<Entypo
-						name={`sound${muted ? '-mute' : ''}`}
-						size={20}
-						color={colors.orange}
-						style={styles.mutedIcon}
-					/>
-				</TouchableWithoutFeedback>
-				<TouchableWithoutFeedback onPress={toggleMuted}>
-					<Entypo
-						name={`sound${muted ? '-mute' : ''}`}
-						size={20}
-						color={colors.orange}
-						style={styles.mutedIcon}
-					/>
-				</TouchableWithoutFeedback>
-			</View>
+		<View style={[style]}>
+			<AndroidMediaPlayer source={{ uri }} />
 		</View>
 	);
 }
 
 MediaPlayer.propTypes = {
 	uri: PropTypes.string,
-	style: PropTypes.object,
-	onError: PropTypes.func
+	style: PropTypes.object
+	// onError: PropTypes.func
 };
 
 MediaPlayer.defaultProps = {
