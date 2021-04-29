@@ -64,16 +64,12 @@ const styles = {
 		row: {
 			flexDirection: 'row',
 			alignItems: 'center',
-			justifyContent: 'space-between',
-			height: null,
-			width: null
+			justifyContent: 'space-between'
 		},
 		column: {
 			flexDirection: 'column',
 			alignItems: 'center',
-			justifyContent: 'space-between',
-			height: null,
-			width: null
+			justifyContent: 'space-between'
 		},
 		vignette: {
 			resizeMode: 'stretch'
@@ -96,25 +92,19 @@ const styles = {
 			justifyContent: 'flex-start'
 		},
 		bottom: {
-			alignItems: 'stretch',
-			flex: 2,
+			flex: 1,
 			justifyContent: 'flex-end'
 		},
 		topControlGroup: {
 			alignSelf: 'stretch',
 			alignItems: 'center',
 			justifyContent: 'space-between',
-			flexDirection: 'row',
-			width: null,
-			margin: 12,
-			marginBottom: 18
+			flexDirection: 'row'
 		},
 		bottomControlGroup: {
 			alignSelf: 'stretch',
 			alignItems: 'center',
 			justifyContent: 'space-between',
-			marginLeft: 12,
-			marginRight: 12,
 			marginBottom: 0
 		},
 		fullscreen: {
@@ -122,7 +112,6 @@ const styles = {
 		},
 		playPause: {
 			position: 'relative',
-			width: 80,
 			zIndex: 0
 		},
 		timer: {
@@ -195,7 +184,6 @@ export default function VideoPlayer({
 	const [originallyPaused, setOriginallyPaused] = useState(false);
 	const [scrubbing, setScrubbing] = useState(false);
 	const [loading, setLoading] = useState(false);
-	const [currentTime, setCurrentTime] = useState(0);
 	const [error] = useState(false);
 	const [duration, setDuration] = useState(0);
 	const [showControls, setShowControls] = useState(true);
@@ -210,7 +198,6 @@ export default function VideoPlayer({
 		controlTimeoutDelay: controlTimeout || 15000,
 		controlTimeout: null,
 		tapActionTimeout: null,
-		scrubbingTimeStep: 100,
 		tapAnywhereToPause
 	};
 
@@ -392,7 +379,6 @@ export default function VideoPlayer({
 				const position = data.currentTime / data.playableDuration;
 				updateSeekerPosition(position * seekerWidth);
 			}
-			setCurrentTime(data.currentTime);
 		}
 	};
 
@@ -403,7 +389,6 @@ export default function VideoPlayer({
 				setPaused(originallyPaused);
 			}
 			setScrubbing(false);
-			setCurrentTime(data.currentTime);
 		}
 	};
 
@@ -444,7 +429,6 @@ export default function VideoPlayer({
 
 	const seekTo = (time = 0) => {
 		videoRef.current.seek(time);
-		setCurrentTime(time);
 	};
 
 	const seekPanResponder = useMemo(
@@ -463,11 +447,7 @@ export default function VideoPlayer({
 					clearControlTimeout();
 					const position = evt.nativeEvent.locationX;
 					updateSeekerPosition(position);
-					if (player.scrubbingTimeStep > 0) {
-						setPaused(true);
-					} else {
-						setPaused(false);
-					}
+					setPaused(false);
 					setSeeking(true);
 					setOriginallyPaused(paused);
 					setScrubbing(false);
@@ -480,11 +460,10 @@ export default function VideoPlayer({
 					const position = seekerOffset + gestureState.dx;
 					updateSeekerPosition(position);
 
-					if (player.scrubbingTimeStep > 0 && !loading && !scrubbing) {
+					if (!loading && !scrubbing) {
 						const time = calculateTimeFromSeekerPosition();
-						const timeDifference = Math.abs(currentTime - time) * 1000;
 
-						if (time < duration && timeDifference >= player.scrubbingTimeStep) {
+						if (time < duration) {
 							setScrubbing(true);
 							setTimeout(() => {
 								seekTo(time);
@@ -514,12 +493,10 @@ export default function VideoPlayer({
 			clearControlTimeout,
 			updateSeekerPosition,
 			calculateTimeFromSeekerPosition,
-			currentTime,
 			duration,
 			loading,
 			originallyPaused,
 			paused,
-			player.scrubbingTimeStep,
 			scrubbing,
 			seekerOffset,
 			setControlTimeout
