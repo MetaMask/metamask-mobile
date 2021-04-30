@@ -178,6 +178,7 @@ function TransactionNotification(props) {
 			const {
 				selectedAddress,
 				ticker,
+				chainId,
 				conversionRate,
 				currentCurrency,
 				exchangeRate,
@@ -193,6 +194,7 @@ function TransactionNotification(props) {
 				tx,
 				selectedAddress,
 				ticker,
+				chainId,
 				conversionRate,
 				currentCurrency,
 				exchangeRate,
@@ -333,6 +335,10 @@ TransactionNotification.propTypes = {
 	 */
 	ticker: PropTypes.string,
 	/**
+	 * Current provider chainId
+	 */
+	chainId: PropTypes.string,
+	/**
 	 * ETH to current currency conversion rate
 	 */
 	conversionRate: PropTypes.number,
@@ -368,6 +374,7 @@ const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	tokens: state.engine.backgroundState.AssetsController.tokens.reduce((tokens, token) => {
 		tokens[token.address] = token;
 		return tokens;

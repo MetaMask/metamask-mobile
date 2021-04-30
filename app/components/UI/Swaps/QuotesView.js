@@ -7,7 +7,8 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import FAIcon from 'react-native-vector-icons/FontAwesome';
 import BigNumber from 'bignumber.js';
 import { NavigationContext } from 'react-navigation';
-import { swapsUtils, util } from '@estebanmino/controllers';
+import { swapsUtils, util } from '@metamask/swaps-controller';
+import { WalletDevice } from '@metamask/controllers/';
 
 import {
 	BNToHex,
@@ -19,8 +20,9 @@ import {
 	toWei,
 	weiToFiat
 } from '../../../util/number';
+import { isMainNet } from '../../../util/networks';
 import { safeToChecksumAddress } from '../../../util/address';
-import { getErrorMessage, getFetchParams, getQuotesNavigationsParams, isSwapsETH } from './utils';
+import { getErrorMessage, getFetchParams, getQuotesNavigationsParams, isSwapsNativeAsset } from './utils';
 import { colors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 
@@ -48,8 +50,8 @@ import InfoModal from './components/InfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import useBalance from './utils/useBalance';
 import useGasPrice from './utils/useGasPrice';
-import { decodeApproveData } from '../../../util/transactions';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
+import { decodeApproveData, getTicker } from '../../../util/transactions';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
 const EDIT_MODE_GAS = 'EDIT_MODE_GAS';
@@ -197,6 +199,9 @@ const styles = StyleSheet.create({
 	termsButton: {
 		marginTop: 10,
 		marginBottom: 6
+	},
+	text: {
+		lineHeight: 20
 	}
 });
 
@@ -208,7 +213,7 @@ async function resetAndStartPolling({ slippage, sourceToken, destinationToken, s
 	const contractExchangeRates = TokenRatesController.state.contractExchangeRates;
 	// ff the token is not in the wallet, we'll add it
 	if (
-		destinationToken.address !== swapsUtils.ETH_SWAPS_TOKEN_ADDRESS &&
+		!isSwapsNativeAsset(destinationToken) &&
 		!contractExchangeRates[safeToChecksumAddress(destinationToken.address)]
 	) {
 		const { address, symbol, decimals } = destinationToken;
@@ -252,6 +257,8 @@ function SwapsQuotesView({
 	selectedAddress,
 	currentCurrency,
 	conversionRate,
+	chainId,
+	ticker,
 	isInPolling,
 	quotesLastFetched,
 	pollingCyclesLeft,
@@ -279,7 +286,7 @@ function SwapsQuotesView({
 
 	const hasConversionRate =
 		Boolean(destinationToken) &&
-		(isSwapsETH(destinationToken) ||
+		(isSwapsNativeAsset(destinationToken) ||
 			Boolean(
 				Engine.context.TokenRatesController.state.contractExchangeRates?.[
 					safeToChecksumAddress(destinationToken.address)
@@ -372,7 +379,7 @@ function SwapsQuotesView({
 		const hasEnoughTokenBalance = tokenBalanceBN.gte(sourceBN);
 		const missingTokenBalance = hasEnoughTokenBalance ? null : sourceBN.minus(tokenBalanceBN);
 
-		const ethAmountBN = sourceToken.address === swapsUtils.ETH_SWAPS_TOKEN_ADDRESS ? sourceBN : new BigNumber(0);
+		const ethAmountBN = isSwapsNativeAsset(sourceToken) ? sourceBN : new BigNumber(0);
 		const ethBalanceBN = new BigNumber(accounts[selectedAddress].balance);
 		const gasBN = toWei(selectedQuoteValue?.maxEthFee || '0');
 		const hasEnoughEthBalance = ethBalanceBN.gte(ethAmountBN.plus(gasBN));
@@ -552,7 +559,8 @@ function SwapsQuotesView({
 			try {
 				const { transactionMeta } = await TransactionController.addTransaction(
 					approvalTransaction,
-					process.env.MM_FOX_CODE
+					process.env.MM_FOX_CODE,
+					WalletDevice.MM_MOBILE
 				);
 				approvalTransactionMetaId = transactionMeta.id;
 				newSwapsTransactions[transactionMeta.id] = {
@@ -571,7 +579,8 @@ function SwapsQuotesView({
 		try {
 			const { transactionMeta } = await TransactionController.addTransaction(
 				selectedQuote.trade,
-				process.env.MM_FOX_CODE
+				process.env.MM_FOX_CODE,
+				WalletDevice.MM_MOBILE
 			);
 			updateSwapsTransactions(transactionMeta, approvalTransactionMetaId, newSwapsTransactions);
 		} catch (e) {
@@ -1020,22 +1029,23 @@ function SwapsQuotesView({
 						<Alert small type="info">
 							{`${strings('swaps.you_need')} `}
 							<Text reset bold>
-								{!hasEnoughTokenBalance && sourceToken.address !== swapsUtils.ETH_SWAPS_TOKEN_ADDRESS
+								{!hasEnoughTokenBalance && !isSwapsNativeAsset(sourceToken)
 									? `${renderFromTokenMinimalUnit(missingTokenBalance, sourceToken.decimals)} ${
 											sourceToken.symbol
 											// eslint-disable-next-line no-mixed-spaces-and-tabs
 									  } `
-									: `${renderFromWei(missingEthBalance)} ETH `}
+									: `${renderFromWei(missingEthBalance)} ${getTicker(ticker)} `}
 							</Text>
 							{!hasEnoughTokenBalance
 								? `${strings('swaps.more_to_complete')} `
 								: `${strings('swaps.more_gas_to_complete')} `}
-							{(sourceToken.address === swapsUtils.ETH_SWAPS_TOKEN_ADDRESS ||
-								(hasEnoughTokenBalance && !hasEnoughEthBalance)) && (
-								<Text link underline small onPress={buyEth}>
-									{strings('swaps.buy_more_eth')}
-								</Text>
-							)}
+							{isMainNet(chainId) &&
+								(isSwapsNativeAsset(sourceToken) ||
+									(hasEnoughTokenBalance && !hasEnoughEthBalance)) && (
+									<Text link underline small onPress={buyEth}>
+										{strings('swaps.buy_more_eth')}
+									</Text>
+								)}
 						</Alert>
 					</View>
 				)}
@@ -1207,7 +1217,7 @@ function SwapsQuotesView({
 								</View>
 								<View style={styles.quotesFiatColumn}>
 									<Text primary bold>
-										{renderFromWei(toWei(selectedQuoteValue?.ethFee))} ETH
+										{renderFromWei(toWei(selectedQuoteValue?.ethFee))} {getTicker(ticker)}
 									</Text>
 									<Text primary bold upper>
 										{`  ${weiToFiat(
@@ -1231,7 +1241,10 @@ function SwapsQuotesView({
 									</View>
 								</View>
 								<View style={styles.quotesFiatColumn}>
-									<Text>{renderFromWei(toWei(selectedQuoteValue?.maxEthFee || '0x0'))} ETH</Text>
+									<Text>
+										{renderFromWei(toWei(selectedQuoteValue?.maxEthFee || '0x0'))}{' '}
+										{getTicker(ticker)}
+									</Text>
 									<Text upper>
 										{`  ${weiToFiat(
 											toWei(selectedQuoteValue?.maxEthFee),
@@ -1294,20 +1307,20 @@ function SwapsQuotesView({
 				isVisible={isUpdateModalVisible}
 				toggleModal={toggleUpdateModal}
 				title={strings('swaps.quotes_update_often')}
-				body={<Text>{strings('swaps.quotes_update_often_text')}</Text>}
+				body={<Text style={styles.text}>{strings('swaps.quotes_update_often_text')}</Text>}
 			/>
 			<InfoModal
 				isVisible={isPriceDifferenceModalVisible}
 				toggleModal={togglePriceDifferenceModal}
 				title={strings('swaps.price_difference_title')}
-				body={<Text>{strings('swaps.price_difference_body')}</Text>}
+				body={<Text style={styles.text}>{strings('swaps.price_difference_body')}</Text>}
 			/>
 			<InfoModal
 				isVisible={isFeeModalVisible}
 				toggleModal={toggleFeeModal}
 				title={strings('swaps.metamask_swap_fee')}
 				body={
-					<Text>
+					<Text style={styles.text}>
 						{strings('swaps.fee_text.get_the')} <Text bold>{strings('swaps.fee_text.best_price')}</Text>{' '}
 						{strings('swaps.fee_text.from_the')} <Text bold>{strings('swaps.fee_text.top_liquidity')}</Text>{' '}
 						{strings('swaps.fee_text.fee_is_applied', {
@@ -1324,6 +1337,7 @@ function SwapsQuotesView({
 				destinationToken={destinationToken}
 				selectedQuote={selectedQuoteId}
 				showOverallValue={hasConversionRate}
+				ticker={getTicker(ticker)}
 			/>
 
 			<TransactionsEditionModal
@@ -1343,6 +1357,7 @@ function SwapsQuotesView({
 				)?.toString(10)}
 				selectedQuote={selectedQuote}
 				sourceToken={sourceToken}
+				chainId={chainId}
 			/>
 		</ScreenView>
 	);
@@ -1372,6 +1387,14 @@ SwapsQuotesView.propTypes = {
 	 * A string that represents the selected address
 	 */
 	selectedAddress: PropTypes.string,
+	/**
+	 * Chain Id
+	 */
+	chainId: PropTypes.string,
+	/**
+	 * Native asset ticker
+	 */
+	ticker: PropTypes.string,
 	isInPolling: PropTypes.bool,
 	quotesLastFetched: PropTypes.number,
 	topAggId: PropTypes.string,
@@ -1390,6 +1413,8 @@ SwapsQuotesView.propTypes = {
 
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	balances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,

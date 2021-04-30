@@ -1292,7 +1292,7 @@
 	},
 	"offline_mode": {
 		"title": "Está desconectado",
-		"text": "Compruebe la conexión a Internet y vuelva a intentarlo",
+		"text": "No se puede conectar al host de blockchain.",
 		"try_again": "Vuelva a intentarlo"
 	},
 	"payment_channel_request": {

@@ -38,7 +38,6 @@ import {
 	decodeApproveData
 } from '../../../util/transactions';
 import { BN } from 'ethereumjs-util';
-import { safeToChecksumAddress } from '../../../util/address';
 import Logger from '../../../util/Logger';
 import contractMap from '@metamask/contract-metadata';
 import MessageSign from '../../UI/MessageSign';
@@ -58,11 +57,12 @@ import AccountApproval from '../../UI/AccountApproval';
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
-import { swapsUtils, util } from '@estebanmino/controllers';
+import { swapsUtils, util } from '@metamask/swaps-controller';
 import SwapsLiveness from '../../UI/Swaps/SwapsLiveness';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import BigNumber from 'bignumber.js';
+import { setInfuraAvailabilityBlocked, setInfuraAvailabilityNotBlocked } from '../../../actions/infuraAvailability';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -79,9 +79,8 @@ const styles = StyleSheet.create({
 		margin: 0
 	}
 });
-
 const Main = props => {
-	const [connected, setConnected] = useState(false);
+	const [connected, setConnected] = useState(true);
 	const [forceReload, setForceReload] = useState(false);
 	const [signMessage, setSignMessage] = useState(false);
 	const [signMessageParams, setSignMessageParams] = useState({ data: '' });
@@ -137,14 +136,41 @@ const Main = props => {
 
 	const connectionChangeHandler = useCallback(
 		state => {
+			if (!state) return;
+			const { isConnected } = state;
 			// Show the modal once the status changes to offline
-			if (connected && !state.isConnected) {
+			if (connected && isConnected === false) {
 				props.navigation.navigate('OfflineModeView');
 			}
-			setConnected(state.isConnected);
+			if (connected !== isConnected && isConnected !== null) {
+				setConnected(isConnected);
+			}
 		},
-		[connected, props.navigation]
+		[connected, setConnected, props.navigation]
 	);
+
+	const checkInfuraAvailability = useCallback(async () => {
+		if (props.providerType !== 'rpc') {
+			try {
+				const { TransactionController } = Engine.context;
+				await util.query(TransactionController.ethQuery, 'blockNumber', []);
+				props.setInfuraAvailabilityNotBlocked();
+			} catch (e) {
+				if (e.message === AppConstants.ERRORS.INFURA_BLOCKED_MESSAGE) {
+					props.navigation.navigate('OfflineModeView');
+					props.setInfuraAvailabilityBlocked();
+				}
+			}
+		} else {
+			props.setInfuraAvailabilityNotBlocked();
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [
+		props.navigation,
+		props.providerType,
+		props.setInfuraAvailabilityBlocked,
+		props.setInfuraAvailabilityNotBlocked
+	]);
 
 	const initializeWalletConnect = () => {
 		WalletConnect.hub.on('walletconnectSessionRequest', peerInfo => {
@@ -283,16 +309,17 @@ const Main = props => {
 		async transactionMeta => {
 			if (transactionMeta.origin === TransactionTypes.MMM) return;
 
-			const to = safeToChecksumAddress(transactionMeta.transaction.to);
+			const to = transactionMeta.transaction.to?.toLowerCase();
 			const { data } = transactionMeta.transaction;
 
 			// if approval data includes metaswap contract
 			// if destination address is metaswap contract
 			if (
-				to === safeToChecksumAddress(swapsUtils.SWAPS_CONTRACT_ADDRESS) ||
+				to === swapsUtils.getSwapsContractAddress(props.chainId) ||
 				(data &&
 					data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
-					decodeApproveData(data).spenderAddress === swapsUtils.SWAPS_CONTRACT_ADDRESS)
+					decodeApproveData(data).spenderAddress?.toLowerCase() ===
+						swapsUtils.getSwapsContractAddress(props.chainId))
 			) {
 				if (transactionMeta.origin === process.env.MM_FOX_CODE) {
 					autoSign(transactionMeta);
@@ -361,6 +388,7 @@ const Main = props => {
 		},
 		[
 			props.tokens,
+			props.chainId,
 			setEtherTransaction,
 			setTransactionObject,
 			toggleApproveModal,
@@ -541,6 +569,14 @@ const Main = props => {
 		}
 	});
 
+	// unapprovedTransaction effect
+	useEffect(() => {
+		Engine.context.TransactionController.hub.on('unapprovedTransaction', onUnapprovedTransaction);
+		return () => {
+			Engine.context.TransactionController.hub.removeListener('unapprovedTransaction', onUnapprovedTransaction);
+		};
+	}, [onUnapprovedTransaction]);
+
 	useEffect(() => {
 		initializeWalletConnect();
 		AppState.addEventListener('change', handleAppStateChange);
@@ -569,8 +605,6 @@ const Main = props => {
 			}
 		});
 
-		Engine.context.TransactionController.hub.on('unapprovedTransaction', onUnapprovedTransaction);
-
 		Engine.context.MessageManager.hub.on('unapprovedMessage', messageParams =>
 			onUnapprovedMessage(messageParams, 'eth')
 		);
@@ -592,7 +626,7 @@ const Main = props => {
 				removeNotificationById: props.removeNotificationById
 			});
 			pollForIncomingTransactions();
-
+			checkInfuraAvailability();
 			removeConnectionStatusListener.current = NetInfo.addEventListener(connectionChangeHandler);
 		}, 1000);
 
@@ -601,7 +635,6 @@ const Main = props => {
 			lockManager.current.stopListening();
 			Engine.context.PersonalMessageManager.hub.removeAllListeners();
 			Engine.context.TypedMessageManager.hub.removeAllListeners();
-			Engine.context.TransactionController.hub.removeListener('unapprovedTransaction', onUnapprovedTransaction);
 			WalletConnect.hub.removeAllListeners();
 			removeConnectionStatusListener.current && removeConnectionStatusListener.current();
 		};
@@ -709,18 +742,36 @@ Main.propTypes = {
 	/**
 	 * Selected address
 	 */
-	selectedAddress: PropTypes.string
+	selectedAddress: PropTypes.string,
+	/**
+	 * Chain id
+	 */
+	chainId: PropTypes.string,
+	/**
+	 * Network provider type
+	 */
+	providerType: PropTypes.string,
+	/**
+	 * Dispatch infura availability blocked
+	 */
+	setInfuraAvailabilityBlocked: PropTypes.func,
+	/**
+	 * Dispatch infura availability not blocked
+	 */
+	setInfuraAvailabilityNotBlocked: PropTypes.func
 };
 
 const mapStateToProps = state => ({
 	lockTime: state.settings.lockTime,
 	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	isPaymentRequest: state.transaction.paymentRequest,
 	dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
 	approveModalVisible: state.modals.approveModalVisible,
-	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {}
+	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {},
+	providerType: state.engine.backgroundState.NetworkController.provider.type
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -731,7 +782,9 @@ const mapDispatchToProps = dispatch => ({
 	hideCurrentNotification: () => dispatch(hideCurrentNotification()),
 	removeNotificationById: id => dispatch(removeNotificationById(id)),
 	toggleDappTransactionModal: (show = null) => dispatch(toggleDappTransactionModal(show)),
-	toggleApproveModal: show => dispatch(toggleApproveModal(show))
+	toggleApproveModal: show => dispatch(toggleApproveModal(show)),
+	setInfuraAvailabilityBlocked: () => dispatch(setInfuraAvailabilityBlocked()),
+	setInfuraAvailabilityNotBlocked: () => dispatch(setInfuraAvailabilityNotBlocked())
 });
 
 export default connect(

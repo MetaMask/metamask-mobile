@@ -8,7 +8,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors, fontStyles } from '../../../styles/common';
-import { hasBlockExplorer, findBlockExplorerForRpc, getBlockExplorerName } from '../../../util/networks';
+import { hasBlockExplorer, findBlockExplorerForRpc, getBlockExplorerName, isMainNet } from '../../../util/networks';
 import Identicon from '../Identicon';
 import StyledButton from '../StyledButton';
 import AccountList from '../AccountList';
@@ -339,6 +339,10 @@ class DrawerView extends PureComponent {
 		 */
 		wizard: PropTypes.object,
 		/**
+		 * Chain Id
+		 */
+		chainId: PropTypes.string,
+		/**
 		 * Current provider ticker
 		 */
 		ticker: PropTypes.string,
@@ -573,7 +577,10 @@ class DrawerView extends PureComponent {
 
 	submitFeedback = () => {
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SEND_FEEDBACK);
-		this.goToBrowserUrl('https://metamask.zendesk.com/hc/en-us/requests/new', strings('drawer.metamask_support'));
+		this.goToBrowserUrl(
+			'https://community.metamask.io/c/feature-requests-ideas/',
+			strings('drawer.request_feature')
+		);
 	};
 
 	showHelp = () => {
@@ -722,7 +729,7 @@ class DrawerView extends PureComponent {
 					action: this.showHelp
 				},
 				{
-					name: strings('drawer.submit_feedback'),
+					name: strings('drawer.request_feature'),
 					icon: this.getFeatherIcon('message-square'),
 					action: this.submitFeedback
 				},
@@ -827,6 +834,7 @@ class DrawerView extends PureComponent {
 			selectedAddress,
 			keyrings,
 			currentCurrency,
+			chainId,
 			ticker,
 			seedphraseBackedUp
 		} = this.props;
@@ -873,7 +881,7 @@ class DrawerView extends PureComponent {
 									</Text>
 									<Icon name="caret-down" size={24} style={styles.caretDown} />
 								</View>
-								<Text style={styles.accountBalance}>{fiatBalanceStr}</Text>
+								{isMainNet(chainId) && <Text style={styles.accountBalance}>{fiatBalanceStr}</Text>}
 								<EthereumAddress
 									address={account.address}
 									style={styles.accountAddress}
@@ -1062,6 +1070,7 @@ const mapStateToProps = state => ({
 	receiveModalVisible: state.modals.receiveModalVisible,
 	passwordSet: state.user.passwordSet,
 	wizard: state.wizard,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,

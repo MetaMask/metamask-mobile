@@ -27,6 +27,7 @@ exports[`SendTo should render correctly 1`] = `
     />
     <AddressTo
       addressToReady={false}
+      confusableCollection={Array []}
       inputRef={
         Object {
           "current": null,
@@ -160,19 +161,49 @@ exports[`SendTo should render correctly 1`] = `
           }
         >
           <Text
+            black={false}
+            blue={false}
+            bold={false}
+            centered={false}
+            disclaimer={false}
+            green={false}
+            link={false}
+            modal={false}
+            primary={false}
+            red={false}
+            reset={false}
+            right={false}
+            small={false}
+            strikethrough={false}
             style={
               Object {
-                "color": "#000000",
+                "color": "#24292E",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 24,
                 "fontWeight": "400",
                 "marginBottom": 24,
               }
             }
+            underline={false}
+            upper={false}
           >
             Add to address book
           </Text>
           <Text
+            black={false}
+            blue={false}
+            bold={false}
+            centered={false}
+            disclaimer={false}
+            green={false}
+            link={false}
+            modal={false}
+            primary={false}
+            red={false}
+            reset={false}
+            right={false}
+            small={false}
+            strikethrough={false}
             style={
               Object {
                 "color": "#5B5D67",
@@ -182,6 +213,8 @@ exports[`SendTo should render correctly 1`] = `
                 "marginBottom": 24,
               }
             }
+            underline={false}
+            upper={false}
           >
             Enter an alias
           </Text>
@@ -219,7 +252,7 @@ exports[`SendTo should render correctly 1`] = `
                 spellCheck={false}
                 style={
                   Object {
-                    "color": "#000000",
+                    "color": "#24292E",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 20,
                     "fontWeight": "400",
