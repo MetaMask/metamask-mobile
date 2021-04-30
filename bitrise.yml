@@ -135,13 +135,14 @@ workflows:
     before_run:
     - android_e2e_test
     steps:
-    - cocoapods-install@2: {}
+    - cocoapods-install@2:
+        is_always_run: true
     - yarn@0:
         inputs:
         - cache_local_deps: 'yes'
         - command: test:e2e:ios
         title: E2E Tests on iOS
-        is_always_run: true
+        is_always_run: false
   e2e_test:
     before_run:
     - ios_e2e_test
