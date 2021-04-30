@@ -144,7 +144,13 @@ const styles = StyleSheet.create({
 	}
 });
 
-export default function VideoPlayer({ controlAnimationTiming, controlTimeoutDelay, source }) {
+export default function VideoPlayer({
+	controlsAnimationTiming,
+	controlsToggleTiming,
+	source,
+	displayTopControls,
+	displayBottomControls
+}) {
 	const [paused, setPaused] = useState(false);
 	const [muted, setMuted] = useState(false);
 	const [seekerFillWidth, setSeekerFillWidth] = useState(0);
@@ -161,7 +167,7 @@ export default function VideoPlayer({ controlAnimationTiming, controlTimeoutDela
 
 	const videoRef = useRef();
 
-	const controlTimeout = useRef();
+	const controlsTimeout = useRef();
 
 	const animations = {
 		bottomControl: {
@@ -185,27 +191,27 @@ export default function VideoPlayer({ controlAnimationTiming, controlTimeoutDela
 		Animated.parallel([
 			Animated.timing(animations.topControl.opacity, {
 				toValue: 0,
-				duration: controlAnimationTiming,
+				duration: controlsAnimationTiming,
 				useNativeDriver: false
 			}),
 			Animated.timing(animations.topControl.marginTop, {
 				toValue: -100,
-				duration: controlAnimationTiming,
+				duration: controlsAnimationTiming,
 				useNativeDriver: false
 			}),
 			Animated.timing(animations.bottomControl.opacity, {
 				toValue: 0,
-				duration: controlAnimationTiming,
+				duration: controlsAnimationTiming,
 				useNativeDriver: false
 			}),
 			Animated.timing(animations.bottomControl.marginBottom, {
 				toValue: -100,
-				duration: controlAnimationTiming,
+				duration: controlsAnimationTiming,
 				useNativeDriver: false
 			})
 		]).start();
 	}, [
-		controlAnimationTiming,
+		controlsAnimationTiming,
 		animations.bottomControl.opacity,
 		animations.bottomControl.marginBottom,
 		animations.topControl.opacity,
@@ -217,56 +223,48 @@ export default function VideoPlayer({ controlAnimationTiming, controlTimeoutDela
 		hideControlAnimation();
 	}, [hideControlAnimation]);
 
+	const resetControlsTimeout = useCallback(() => {
+		clearTimeout(controlsTimeout.current);
+		controlsTimeout.current = setTimeout(() => {
+			hideControls();
+		}, controlsToggleTiming);
+	}, [controlsToggleTiming, hideControls]);
+
 	const showControlAnimation = useCallback(() => {
 		Animated.parallel([
 			Animated.timing(animations.topControl.opacity, {
 				toValue: 1,
 				useNativeDriver: false,
-				duration: controlAnimationTiming
+				duration: controlsAnimationTiming
 			}),
 			Animated.timing(animations.topControl.marginTop, {
 				toValue: 0,
 				useNativeDriver: false,
-				duration: controlAnimationTiming
+				duration: controlsAnimationTiming
 			}),
 			Animated.timing(animations.bottomControl.opacity, {
 				toValue: 1,
 				useNativeDriver: false,
-				duration: controlAnimationTiming
+				duration: controlsAnimationTiming
 			}),
 			Animated.timing(animations.bottomControl.marginBottom, {
 				toValue: 0,
 				useNativeDriver: false,
-				duration: controlAnimationTiming
+				duration: controlsAnimationTiming
 			})
-		]).start(() => setTimeout(() => hideControls, controlAnimationTiming));
+		]).start(() => resetControlsTimeout());
 	}, [
-		controlAnimationTiming,
-		hideControls,
+		controlsAnimationTiming,
 		animations.bottomControl.opacity,
 		animations.bottomControl.marginBottom,
 		animations.topControl.opacity,
-		animations.topControl.marginTop
+		animations.topControl.marginTop,
+		resetControlsTimeout
 	]);
-
-	const setControlTimeout = useCallback(() => {
-		controlTimeout.current = setTimeout(() => hideControls(), controlTimeoutDelay);
-	}, [controlTimeout, controlTimeoutDelay, hideControls]);
-
-	const clearControlTimeout = useCallback(() => {
-		clearTimeout(controlTimeout.current);
-	}, [controlTimeout]);
-
-	const resetControlTimeout = () => {
-		clearControlTimeout();
-		setControlTimeout();
-	};
 
 	const toggleControls = () => {
 		if (showControls) {
 			showControlAnimation();
-		} else {
-			hideControlAnimation();
 		}
 		setShowControls(!showControls);
 	};
@@ -327,10 +325,6 @@ export default function VideoPlayer({ controlAnimationTiming, controlTimeoutDela
 	const onLoad = (data = {}) => {
 		setDuration(data.duration);
 		setLoading(false);
-
-		if (showControls) {
-			setControlTimeout();
-		}
 	};
 
 	const onProgress = (data = {}) => {
@@ -343,7 +337,6 @@ export default function VideoPlayer({ controlAnimationTiming, controlTimeoutDela
 	const onSeek = (data = {}) => {
 		if (scrubbing) {
 			if (!seeking) {
-				setControlTimeout();
 				setPaused(originallyPaused);
 			}
 			setScrubbing(false);
@@ -351,6 +344,7 @@ export default function VideoPlayer({ controlAnimationTiming, controlTimeoutDela
 	};
 
 	const onScreenTouch = () => {
+		resetControlsTimeout();
 		if (showControls) {
 			toggleControls();
 		}
@@ -378,7 +372,6 @@ export default function VideoPlayer({ controlAnimationTiming, controlTimeoutDela
 				 * position in the onProgress listener.
 				 */
 				onPanResponderGrant: (evt, gestureState) => {
-					clearControlTimeout();
 					const position = evt.nativeEvent.locationX;
 					updateSeekerPosition(position);
 					setPaused(false);
@@ -417,14 +410,12 @@ export default function VideoPlayer({ controlAnimationTiming, controlTimeoutDela
 						setSeeking(false);
 					} else {
 						seekTo(time);
-						setControlTimeout();
 						setPaused(originallyPaused);
 						setSeeking(false);
 					}
 				}
 			}),
 		[
-			clearControlTimeout,
 			updateSeekerPosition,
 			calculateTimeFromSeekerPosition,
 			duration,
@@ -432,18 +423,14 @@ export default function VideoPlayer({ controlAnimationTiming, controlTimeoutDela
 			originallyPaused,
 			paused,
 			scrubbing,
-			seekerOffset,
-			setControlTimeout
+			seekerOffset
 		]
 	);
-
-	useEffect(() => clearControlTimeout(), [clearControlTimeout]);
 
 	const renderControl = (children, callback, style = {}) => (
 		<TouchableHighlight
 			underlayColor="transparent"
 			onPress={() => {
-				resetControlTimeout();
 				callback();
 			}}
 			style={[styles.controlsControl, style]}
@@ -463,6 +450,8 @@ export default function VideoPlayer({ controlAnimationTiming, controlTimeoutDela
 		);
 
 	const onLayoutSeekerWidth = event => setSeekerWidth(event.nativeEvent.layout.width);
+
+	useEffect(() => clearTimeout(controlsTimeout.current), []);
 
 	const renderSeekbar = () => (
 		<View style={styles.seekbarContainer} collapsable={false} {...seekPanResponder.panHandlers}>
@@ -583,20 +572,25 @@ export default function VideoPlayer({ controlAnimationTiming, controlTimeoutDela
 				/>
 				{renderError()}
 				{renderLoader()}
-				{renderTopControls()}
-				{renderBottomControls()}
+				{displayTopControls && renderTopControls()}
+				{displayBottomControls && renderBottomControls()}
 			</View>
 		</TouchableWithoutFeedback>
 	);
 }
 
 VideoPlayer.propTypes = {
-	controlAnimationTiming: PropTypes.number,
+	controlsAnimationTiming: PropTypes.number,
+	controlsToggleTiming: PropTypes.number,
 	source: PropTypes.object,
-	controlTimeoutDelay: PropTypes.number
+	displayTopControls: PropTypes.bool,
+	displayBottomControls: PropTypes.bool
 };
 
 VideoPlayer.defaultProps = {
 	doubleTapTime: 100,
-	controlAnimationTiming: 500
+	controlsAnimationTiming: 500,
+	controlsToggleTiming: 5000,
+	displayTopControls: false,
+	displayBottomControls: true
 };
