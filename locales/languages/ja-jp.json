@@ -313,9 +313,9 @@
 		"description_content_2": "MetaMask が実行する内容...",
 		"action_description_1": "お客様がいつでも設定からオプトアウトできるようにします",
 		"action_description_2": "匿名化されたクリック イベントとページビュー イベントを送信します",
-		"action_description_3": "キー、アドレス、トランザクション、残高、ハッシュなど、いかなる個人情報も収集しません",
-		"action_description_4": "お客様の IP アドレスを収集することはありません",
-		"action_description_5": "営利目的でデータを販売することは決してありません。"
+		"action_description_4": "キー、アドレス、トランザクション、残高、ハッシュなど、いかなる個人情報も収集しません",
+		"action_description_5": "お客様の IP アドレスを収集することはありません",
+		"action_description_6": "営利目的でデータを販売することは決してありません。"
 	},
 	"token": {
 		"token_symbol": "トークン シンボル",
@@ -1288,7 +1288,7 @@
 	},
 	"offline_mode": {
 		"title": "オフラインです",
-		"text": "インターネット接続を確認して、もう一度実行してください",
+		"text": "ブロックチェーンホストに接続できません。",
 		"try_again": "再試行"
 	},
 	"payment_channel_request": {

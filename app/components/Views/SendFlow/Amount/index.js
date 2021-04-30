@@ -41,18 +41,18 @@ import {
 import { getTicker, generateTransferData, getEther } from '../../../../util/transactions';
 import { util } from '@metamask/controllers';
 import ErrorMessage from '../ErrorMessage';
-import { fetchBasicGasEstimates, convertApiValueToGWEI } from '../../../../util/custom-gas';
+import { getGasPriceByChainId } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
 import CollectibleImage from '../../../UI/CollectibleImage';
 import collectiblesTransferInformation from '../../../../util/collectibles-transfer';
 import { strings } from '../../../../../locales/i18n';
-import TransactionTypes from '../../../../core/TransactionTypes';
 import Device from '../../../../util/Device';
 import { BN } from 'ethereumjs-util';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import NetworkMainAssetLogo from '../../../UI/NetworkMainAssetLogo';
+import { isMainNet } from '../../../../util/networks';
 
 const { hexToBN, BNToHex } = util;
 
@@ -91,6 +91,7 @@ const styles = StyleSheet.create({
 		flex: 0.8
 	},
 	actionDropdown: {
+		...fontStyles.normal,
 		backgroundColor: colors.blue,
 		paddingHorizontal: 16,
 		paddingVertical: 2,
@@ -128,7 +129,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'row'
 	},
 	inputCurrencyText: {
-		fontFamily: 'Roboto-Light',
+		...fontStyles.normal,
 		fontWeight: fontStyles.light.fontWeight,
 		color: colors.black,
 		fontSize: 44,
@@ -139,10 +140,11 @@ const styles = StyleSheet.create({
 		textTransform: 'uppercase'
 	},
 	textInput: {
-		fontFamily: 'Roboto-Light',
+		...fontStyles.normal,
 		fontWeight: fontStyles.light.fontWeight,
 		fontSize: 44,
-		textAlign: 'center'
+		textAlign: 'center',
+		color: colors.black
 	},
 	switch: {
 		flex: 1,
@@ -330,6 +332,10 @@ class Amount extends PureComponent {
 		 */
 		tokens: PropTypes.array,
 		/**
+		 * Chain Id
+		 */
+		chainId: PropTypes.string,
+		/**
 		 * Current provider ticker
 		 */
 		ticker: PropTypes.string,
@@ -398,7 +404,7 @@ class Amount extends PureComponent {
 		this.collectibles = this.processCollectibles();
 		this.amountInput && this.amountInput.current && this.amountInput.current.focus();
 		this.onInputChange(readableValue);
-		this.handleSelectedAssetBalance(selectedAsset);
+		!selectedAsset.tokenId && this.handleSelectedAssetBalance(selectedAsset);
 
 		const estimatedTotalGas = await this.estimateTransactionTotalGas();
 		this.setState({
@@ -614,27 +620,15 @@ class Amount extends PureComponent {
 	 * Estimate transaction gas with information available
 	 */
 	estimateTransactionTotalGas = async () => {
-		const { TransactionController } = Engine.context;
 		const {
 			transaction: { from },
 			transactionTo
 		} = this.props.transactionState;
-		let estimation, basicGasEstimates;
-		try {
-			estimation = await TransactionController.estimateGas({
-				from,
-				to: transactionTo
-			});
-		} catch (e) {
-			estimation = { gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT };
-		}
-		try {
-			basicGasEstimates = await fetchBasicGasEstimates();
-		} catch (error) {
-			basicGasEstimates = { average: 20 };
-		}
-		const gas = hexToBN(estimation.gas);
-		const gasPrice = toWei(convertApiValueToGWEI(basicGasEstimates.average), 'gwei');
+		const { gas, gasPrice } = await getGasPriceByChainId({
+			from,
+			to: transactionTo
+		});
+
 		return gas.mul(gasPrice);
 	};
 
@@ -675,7 +669,7 @@ class Amount extends PureComponent {
 	};
 
 	onInputChange = (inputValue, selectedAsset, useMax) => {
-		const { contractExchangeRates, conversionRate, currentCurrency, ticker } = this.props;
+		const { contractExchangeRates, conversionRate, currentCurrency, chainId, ticker } = this.props;
 		const { internalPrimaryCurrencyIsCrypto } = this.state;
 		let inputValueConversion, renderableInputValueConversion, hasExchangeRate, comma;
 		// Remove spaces from input
@@ -689,7 +683,7 @@ class Amount extends PureComponent {
 		const processedInputValue = isDecimal(inputValue) ? handleWeiNumber(inputValue) : '0';
 		selectedAsset = selectedAsset || this.props.selectedAsset;
 		if (selectedAsset.isETH) {
-			hasExchangeRate = !!conversionRate;
+			hasExchangeRate = isMainNet(chainId) ? !!conversionRate : false;
 			if (internalPrimaryCurrencyIsCrypto) {
 				inputValueConversion = `${weiToFiatNumber(toWei(processedInputValue), conversionRate)}`;
 				renderableInputValueConversion = `${weiToFiat(
@@ -703,7 +697,7 @@ class Amount extends PureComponent {
 			}
 		} else {
 			const exchangeRate = contractExchangeRates[selectedAsset.address];
-			hasExchangeRate = !!exchangeRate;
+			hasExchangeRate = isMainNet(chainId) ? !!exchangeRate : false;
 			// If !hasExchangeRate we have to handle crypto amount
 			if (internalPrimaryCurrencyIsCrypto || !hasExchangeRate) {
 				inputValueConversion = `${balanceToFiatNumber(processedInputValue, conversionRate, exchangeRate)}`;
@@ -746,7 +740,6 @@ class Amount extends PureComponent {
 	handleSelectedAssetBalance = ({ address, decimals, symbol, isETH }, renderableBalance) => {
 		const { accounts, selectedAddress, contractBalances } = this.props;
 		let currentBalance;
-
 		if (renderableBalance) {
 			currentBalance = `${renderableBalance} ${symbol}`;
 		} else if (isETH) {
@@ -778,6 +771,7 @@ class Amount extends PureComponent {
 	renderToken = (token, index) => {
 		const {
 			accounts,
+			chainId,
 			selectedAddress,
 			conversionRate,
 			currentCurrency,
@@ -788,11 +782,15 @@ class Amount extends PureComponent {
 		const { address, decimals, symbol } = token;
 		if (token.isETH) {
 			balance = renderFromWei(accounts[selectedAddress].balance);
-			balanceFiat = weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency);
+			balanceFiat = isMainNet(chainId)
+				? weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency)
+				: null;
 		} else {
 			balance = renderFromTokenMinimalUnit(contractBalances[address], decimals);
 			const exchangeRate = contractExchangeRates[address];
-			balanceFiat = balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
+			balanceFiat = isMainNet(chainId)
+				? balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency)
+				: null;
 		}
 		return (
 			<TouchableOpacity
@@ -1064,6 +1062,7 @@ const mapStateToProps = (state, ownProps) => ({
 	providerType: state.engine.backgroundState.NetworkController.provider.type,
 	primaryCurrency: state.settings.primaryCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	transactionState: ownProps.transaction || state.transaction,

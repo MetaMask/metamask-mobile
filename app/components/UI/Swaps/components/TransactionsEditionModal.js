@@ -9,12 +9,11 @@ import CustomGas from '../../CustomGas';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import EditPermission from '../../ApproveTransactionReview/EditPermission';
 import { decodeApproveData, generateApproveData } from '../../../../util/transactions';
-import { swapsUtils } from '@estebanmino/controllers';
+import { swapsUtils } from '@metamask/swaps-controller';
 import AnimatedTransactionModal from '../../AnimatedTransactionModal';
 
 const EDIT_MODE_GAS = 'EDIT_MODE_GAS';
 const EDIT_MODE_APPROVE_AMOUNT = 'EDIT_MODE_APPROVE_AMOUNT';
-const SWAPS_CONTRACT_ADDRESS = swapsUtils.SWAPS_CONTRACT_ADDRESS;
 
 const styles = StyleSheet.create({
 	keyboardAwareWrapper: {
@@ -40,7 +39,8 @@ function TransactionsEditionModal({
 	selectedQuote,
 	sourceToken,
 	minimumSpendLimit,
-	minimumGasLimit
+	minimumGasLimit,
+	chainId
 }) {
 	/* Approval transaction if any */
 	const [approvalTransactionAmount, setApprovalTransactionAmount] = useState(null);
@@ -62,7 +62,7 @@ function TransactionsEditionModal({
 			sourceToken.decimals
 		).toString(10);
 		const approvalData = generateApproveData({
-			spender: SWAPS_CONTRACT_ADDRESS,
+			spender: swapsUtils.getSwapsContractAddress(chainId),
 			value: Number(uint).toString(16)
 		});
 		const newApprovalTransaction = { ...approvalTransaction, data: approvalData };
@@ -75,6 +75,7 @@ function TransactionsEditionModal({
 		approvalCustomValue,
 		approvalTransaction,
 		sourceToken,
+		chainId,
 		onCancelEditQuoteTransactions
 	]);
 
@@ -131,11 +132,13 @@ function TransactionsEditionModal({
 							basicGasEstimates={apiGasPrice}
 							gas={hexToBN(gasLimit)}
 							gasPrice={hexToBN(gasPrice)}
+							minimumGasPrice={hexToBN(gasPrice)}
 							minimumGasLimit={minimumGasLimit}
 							gasError={null}
 							mode={'edit'}
 							customTransaction={selectedQuote.trade}
 							hideSlow
+							view={'Swaps'}
 						/>
 					</AnimatedTransactionModal>
 				)}
@@ -157,7 +160,8 @@ TransactionsEditionModal.propTypes = {
 	onHandleGasFeeSelection: PropTypes.func,
 	setApprovalTransaction: PropTypes.func,
 	selectedQuote: PropTypes.object,
-	sourceToken: PropTypes.object
+	sourceToken: PropTypes.object,
+	chainId: PropTypes.string
 };
 
 const mapStateToProps = state => ({

@@ -14,12 +14,13 @@ import { setTransactionObject } from '../../../../actions/transaction';
 import { util } from '@metamask/controllers';
 import { isBN, renderFromWei } from '../../../../util/number';
 import { getNormalizedTxState, getTicker } from '../../../../util/transactions';
-import { getBasicGasEstimates, apiEstimateModifiedToWEI } from '../../../../util/custom-gas';
+import { apiEstimateModifiedToWEI, getBasicGasEstimatesByChainId } from '../../../../util/custom-gas';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import NotificationManager from '../../../../core/NotificationManager';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import Logger from '../../../../util/Logger';
+import AnalyticsV2 from '../../../../util/analyticsV2';
 
 const { BNToHex, hexToBN } = util;
 
@@ -92,7 +93,8 @@ class Approve extends PureComponent {
 		warningGasPriceHigh: undefined,
 		ready: false,
 		mode: REVIEW,
-		over: false
+		over: false,
+		analyticsParams: {}
 	};
 
 	componentDidMount = () => {
@@ -121,9 +123,11 @@ class Approve extends PureComponent {
 
 	handleFetchBasicEstimates = async () => {
 		this.setState({ ready: false });
-		const basicGasEstimates = await getBasicGasEstimates();
-		this.handleSetGasFee(this.props.transaction.gas, apiEstimateModifiedToWEI(basicGasEstimates.averageGwei));
-		this.setState({ basicGasEstimates, ready: true });
+		const basicGasEstimates = await getBasicGasEstimatesByChainId();
+		if (basicGasEstimates) {
+			this.handleSetGasFee(this.props.transaction.gas, apiEstimateModifiedToWEI(basicGasEstimates.averageGwei));
+		}
+		return this.setState({ basicGasEstimates, ready: true });
 	};
 
 	trackApproveEvent = event => {
@@ -205,7 +209,7 @@ class Approve extends PureComponent {
 			const updatedTx = { ...fullTx, transaction };
 			await TransactionController.updateTransaction(updatedTx);
 			await TransactionController.approveTransaction(transaction.id);
-			this.trackApproveEvent(ANALYTICS_EVENT_OPTS.DAPP_APPROVE_SCREEN_APPROVE);
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_COMPLETED, this.state.analyticsParams);
 		} catch (error) {
 			Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
 			Logger.error(error, 'error while trying to send transaction (Approve)');
@@ -214,7 +218,7 @@ class Approve extends PureComponent {
 	};
 
 	onCancel = () => {
-		this.trackApproveEvent(ANALYTICS_EVENT_OPTS.DAPP_APPROVE_SCREEN_CANCEL);
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_CANCELLED, this.state.analyticsParams);
 		this.props.toggleApproveModal(false);
 	};
 
@@ -231,10 +235,29 @@ class Approve extends PureComponent {
 		}
 	};
 
+	setAnalyticsParams = analyticsParams => {
+		this.setState({ analyticsParams });
+	};
+
+	getGasAnalyticsParams = () => {
+		try {
+			const { analyticsParams } = this.state;
+
+			return {
+				dapp_host_name: analyticsParams?.dapp_host_name,
+				dapp_url: analyticsParams?.dapp_url,
+				active_currency: { value: analyticsParams?.active_currency, anonymous: true }
+			};
+		} catch (error) {
+			return {};
+		}
+	};
+
 	render = () => {
 		const { gasError, basicGasEstimates, mode, ready, over, warningGasPriceHigh } = this.state;
 		const { transaction } = this.props;
 		if (!transaction.id) return null;
+
 		return (
 			<Modal
 				isVisible={this.props.modalVisible}
@@ -258,6 +281,7 @@ class Approve extends PureComponent {
 							onCancel={this.onCancel}
 							onConfirm={this.onConfirm}
 							over={over}
+							onSetAnalyticsParams={this.setAnalyticsParams}
 						/>
 						<CustomGas
 							handleGasFeeSelection={this.handleSetGasFee}
@@ -266,6 +290,8 @@ class Approve extends PureComponent {
 							gasPrice={transaction.gasPrice}
 							gasError={gasError}
 							mode={mode}
+							view={'Approve'}
+							analyticsParams={this.getGasAnalyticsParams()}
 						/>
 					</AnimatedTransactionModal>
 				</KeyboardAwareScrollView>
@@ -280,8 +306,7 @@ const mapStateToProps = state => ({
 	transaction: getNormalizedTxState(state),
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts || {}).length,
-	tokensLength: state.engine.backgroundState.AssetsController.tokens.length,
-	providerType: state.engine.backgroundState.NetworkController.provider.type
+	tokensLength: state.engine.backgroundState.AssetsController.tokens.length
 });
 
 const mapDispatchToProps = dispatch => ({

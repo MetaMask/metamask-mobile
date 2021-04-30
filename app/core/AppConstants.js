@@ -61,11 +61,18 @@ export default {
 		CLIENT_ID: 'mobile',
 		LIVENESS_POLLING_FREQUENCY: 5 * 60 * 1000,
 		POLL_COUNT_LIMIT: 3,
-		DEFAULT_SLIPPAGE: 3
+		DEFAULT_SLIPPAGE: 3,
+		CACHE_AGGREGATOR_METADATA_THRESHOLD: 5 * 60 * 1000,
+		CACHE_TOKENS_THRESHOLD: 5 * 60 * 1000,
+		CACHE_TOP_ASSETS_THRESHOLD: 5 * 60 * 1000
 	},
 	MAX_SAFE_CHAIN_ID: 4503599627370476,
 	URLS: {
 		TERMS_AND_CONDITIONS: 'https://consensys.net/terms-of-use/',
-		PRIVACY_POLICY: 'https://consensys.net/privacy-policy/'
+		PRIVACY_POLICY: 'https://consensys.net/privacy-policy/',
+		CONNECTIVITY_ISSUES: 'https://metamask.zendesk.com/hc/en-us/articles/360059386712'
+	},
+	ERRORS: {
+		INFURA_BLOCKED_MESSAGE: 'EthQuery - RPC Error - This service is not available in your country'
 	}
 };

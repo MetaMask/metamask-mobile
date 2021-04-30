@@ -313,9 +313,9 @@
 		"description_content_2": "O MetaMask...",
 		"action_description_1": "Sempre permitirá que você cancele o envio dos dados, via Configurações",
 		"action_description_2": "Enviará eventos anonimizados de cliques e visualização de página",
-		"action_description_3": "Jamais coletará chaves, endereços, transações, saldos, hashes ou qualquer outra informação pessoal",
-		"action_description_4": "Jamais coletará seu endereço IP",
-		"action_description_5": "Nunca venderá dados em troca de lucro. Jamais!"
+		"action_description_4": "Jamais coletará chaves, endereços, transações, saldos, hashes ou qualquer outra informação pessoal",
+		"action_description_5": "Jamais coletará seu endereço IP",
+		"action_description_6": "Nunca venderá dados em troca de lucro. Jamais!"
 	},
 	"token": {
 		"token_symbol": "Símbolo do token",
@@ -1288,7 +1288,7 @@
 	},
 	"offline_mode": {
 		"title": "Você está offline",
-		"text": "Verifique a conexão com a internet e tente novamente",
+		"text": "Não foi possível conectar ao host blockchain.",
 		"try_again": "Tente novamente"
 	},
 	"payment_channel_request": {

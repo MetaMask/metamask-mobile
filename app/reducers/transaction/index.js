@@ -22,7 +22,9 @@ const initialState = {
 	paymentRequest: undefined,
 	readableValue: undefined,
 	id: undefined,
-	type: undefined
+	type: undefined,
+	proposedNonce: undefined,
+	nonce: undefined
 };
 
 const getAssetType = selectedAsset => {
@@ -56,6 +58,16 @@ const transactionReducer = (state = initialState, action) => {
 				...initialState,
 				selectedAsset: action.selectedAsset,
 				assetType: action.assetType
+			};
+		case 'SET_NONCE':
+			return {
+				...state,
+				nonce: action.nonce
+			};
+		case 'SET_PROPOSED_NONCE':
+			return {
+				...state,
+				proposedNonce: action.proposedNonce
 			};
 		case 'SET_RECIPIENT':
 			return {

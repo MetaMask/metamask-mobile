@@ -1,82 +1,111 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`OfflineMode should render correctly 1`] = `
-<View
+<ForwardRef(SafeAreaView)
   style={
     Object {
-      "backgroundColor": "#FFFFFF",
       "flex": 1,
     }
   }
 >
-  <ForwardRef(SafeAreaView)
+  <Image
+    source={
+      Object {
+        "testUri": "../../../app/images/astronaut.png",
+      }
+    }
+    style={
+      Object {
+        "alignSelf": "center",
+        "height": 200,
+        "marginTop": 60,
+        "width": 200,
+      }
+    }
+  />
+  <View
     style={
       Object {
         "flex": 1,
+        "justifyContent": "center",
+        "marginHorizontal": 18,
+        "marginVertical": 30,
       }
     }
   >
-    <Image
-      source={
-        Object {
-          "testUri": "../../../app/images/astronaut.png",
-        }
-      }
-      style={
-        Object {
-          "alignSelf": "center",
-          "height": 200,
-          "justifyContent": "center",
-          "marginBottom": 10,
-          "marginTop": 80,
-          "width": 200,
-        }
-      }
-    />
     <View
       style={
         Object {
-          "alignSelf": "center",
-          "height": 125,
-          "justifyContent": "center",
-          "width": 300,
+          "flex": 1,
         }
       }
     >
       <Text
+        black={false}
+        blue={false}
+        bold={true}
+        centered={true}
+        disclaimer={false}
+        green={false}
+        link={false}
+        modal={false}
+        primary={false}
+        red={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
         style={
           Object {
             "color": "#000000",
-            "fontSize": 17,
-            "justifyContent": "center",
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontSize": 18,
+            "fontWeight": "600",
             "marginBottom": 10,
-            "textAlign": "center",
           }
         }
+        underline={false}
+        upper={false}
       >
         You're offline
       </Text>
       <Text
+        black={false}
+        blue={false}
+        bold={false}
+        centered={true}
+        disclaimer={false}
+        green={false}
+        link={false}
+        modal={false}
+        primary={false}
+        red={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
         style={
           Object {
             "color": "#000000",
-            "flex": 1,
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 12,
-            "justifyContent": "center",
-            "textAlign": "center",
+            "fontWeight": "400",
           }
         }
+        underline={false}
+        upper={false}
       >
-        Check your internet connection and try again
+        Unable to connect to the blockchain host.
       </Text>
-      <StyledButton
-        containerStyle={
-          Object {
-            "alignSelf": "center",
-            "height": 50,
-            "width": 150,
-          }
+    </View>
+    <View
+      style={
+        Object {
+          "marginHorizontal": 18,
         }
+      }
+    >
+      <StyledButton
         disabledContainerStyle={
           Object {
             "opacity": 0.6,
@@ -88,11 +117,11 @@ exports[`OfflineMode should render correctly 1`] = `
             "opacity": 0.6,
           }
         }
-        type="normal"
+        type="blue"
       >
         Try again
       </StyledButton>
     </View>
-  </ForwardRef(SafeAreaView)>
-</View>
+  </View>
+</ForwardRef(SafeAreaView)>
 `;

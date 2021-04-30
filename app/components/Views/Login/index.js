@@ -85,7 +85,8 @@ const styles = StyleSheet.create({
 		flexDirection: 'column'
 	},
 	label: {
-		fontSize: 14,
+		color: colors.black,
+		fontSize: 16,
 		marginBottom: 12,
 		...fontStyles.normal
 	},
@@ -114,10 +115,16 @@ const styles = StyleSheet.create({
 	biometryLabel: {
 		flex: 1,
 		fontSize: 16,
+		color: colors.black,
 		...fontStyles.normal
 	},
 	biometrySwitch: {
 		flex: 0
+	},
+	input: {
+		...fontStyles.normal,
+		fontSize: 16,
+		paddingTop: 2
 	},
 	cant: {
 		width: 280,
@@ -278,7 +285,8 @@ class Login extends PureComponent {
 			// Restore vault with user entered password
 			await KeyringController.submitPassword(this.state.password);
 			const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
-			if (encryptionLib !== ORIGINAL) {
+			const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+			if (encryptionLib !== ORIGINAL && existingUser) {
 				await recreateVaultWithSamePassword(this.state.password, this.props.selectedAddress);
 				await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
 			}
@@ -477,6 +485,7 @@ class Login extends PureComponent {
 					<View style={styles.areYouSure}>
 						<Text style={[styles.heading, styles.delete]}>{strings('login.type_delete')}</Text>
 						<OutlinedTextField
+							style={styles.input}
 							autoFocus
 							returnKeyType={'done'}
 							onChangeText={this.checkDelete}
@@ -511,6 +520,7 @@ class Login extends PureComponent {
 						<View style={styles.field}>
 							<Text style={styles.label}>{strings('login.password')}</Text>
 							<OutlinedTextField
+								style={styles.input}
 								placeholder={'Password'}
 								testID={'login-password-input'}
 								returnKeyType={'done'}
