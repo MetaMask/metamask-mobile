@@ -23,6 +23,7 @@ exports[`CollectibleContracts should render correctly 1`] = `
           "totalSupply": 10,
         }
       }
+      collectiblesVisible={true}
       key="0x0"
       onPress={[Function]}
     />
