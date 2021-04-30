@@ -19,10 +19,8 @@ import { colors } from '../../../styles/common';
 
 const styles = StyleSheet.create({
 	playerContainer: {
-		overflow: 'hidden',
 		flex: 1,
-		alignSelf: 'stretch',
-		justifyContent: 'space-between'
+		overflow: 'hidden'
 	},
 	playerVideo: {
 		overflow: 'hidden',
@@ -148,7 +146,7 @@ const styles = StyleSheet.create({
 
 export default function VideoPlayer({ controlAnimationTiming, controlTimeoutDelay, source }) {
 	const [paused, setPaused] = useState(false);
-	const [muted, setMuted] = useState(true);
+	const [muted, setMuted] = useState(false);
 	const [seekerFillWidth, setSeekerFillWidth] = useState(0);
 	const [seekerPosition, setSeekerPosition] = useState(0);
 	const [seekerOffset, setSeekerOffset] = useState(0);
@@ -168,11 +166,11 @@ export default function VideoPlayer({ controlAnimationTiming, controlTimeoutDela
 	const animations = {
 		bottomControl: {
 			marginBottom: useRef(new Animated.Value(0)).current,
-			opacity: useRef(new Animated.Value(1)).current
+			opacity: useRef(new Animated.Value(0)).current
 		},
 		topControl: {
 			marginTop: useRef(new Animated.Value(0)).current,
-			opacity: useRef(new Animated.Value(1)).current
+			opacity: useRef(new Animated.Value(0)).current
 		},
 		video: {
 			opacity: useRef(new Animated.Value(1)).current
@@ -292,7 +290,8 @@ export default function VideoPlayer({ controlAnimationTiming, controlTimeoutDela
 	);
 
 	const updateSeekerPosition = useCallback(
-		(position = 0) => {
+		position => {
+			if (!position) return;
 			position = constrainToSeekerMinMax(position);
 			setSeekerFillWidth(position);
 			setSeekerPosition(position);
@@ -334,12 +333,10 @@ export default function VideoPlayer({ controlAnimationTiming, controlTimeoutDela
 		}
 	};
 
-	const onProgress = data => {
-		if (!scrubbing) {
-			if (!seeking) {
-				const position = data.currentTime / data.playableDuration;
-				updateSeekerPosition(position * seekerWidth);
-			}
+	const onProgress = (data = {}) => {
+		if (!scrubbing && !seeking) {
+			const position = data.currentTime / data.playableDuration;
+			updateSeekerPosition(position * seekerWidth);
 		}
 	};
 
@@ -353,7 +350,11 @@ export default function VideoPlayer({ controlAnimationTiming, controlTimeoutDela
 		}
 	};
 
-	const onScreenTouch = () => toggleControls();
+	const onScreenTouch = () => {
+		if (showControls) {
+			toggleControls();
+		}
+	};
 
 	const calculateTimeFromSeekerPosition = useCallback(() => {
 		const percent = seekerPosition / seekerWidth;
@@ -461,16 +462,14 @@ export default function VideoPlayer({ controlAnimationTiming, controlTimeoutDela
 			styles.controlsMuteUnmute
 		);
 
+	const onLayoutSeekerWidth = event => setSeekerWidth(event.nativeEvent.layout.width);
+
 	const renderSeekbar = () => (
 		<View style={styles.seekbarContainer} collapsable={false} {...seekPanResponder.panHandlers}>
 			<View style={styles.seekbarTrack}>
 				<View style={[styles.seekbarFill, styles.seekbarPermanentFill]} />
 			</View>
-			<View
-				style={styles.seekbarTrack}
-				onLayout={event => setSeekerWidth(event.nativeEvent.layout.width)}
-				pointerEvents={'none'}
-			>
+			<View style={styles.seekbarTrack} onLayout={onLayoutSeekerWidth} pointerEvents={'none'}>
 				<View
 					style={[
 						styles.seekbarFill,
@@ -577,8 +576,9 @@ export default function VideoPlayer({ controlAnimationTiming, controlTimeoutDela
 					onSeek={onSeek}
 					onLoadStart={onLoadStart}
 					onProgress={onProgress}
-					style={styles.playerVideo}
+					style={[styles.playerVideo]}
 					source={source}
+					resizeMode="cover"
 					repeat
 				/>
 				{renderError()}
@@ -598,5 +598,5 @@ VideoPlayer.propTypes = {
 
 VideoPlayer.defaultProps = {
 	doubleTapTime: 100,
-	controlAnimationTiming: 5000
+	controlAnimationTiming: 500
 };
