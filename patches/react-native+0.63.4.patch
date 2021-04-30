@@ -1,0 +1,34 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
+index 4bbbca3..e4ed43c 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
+@@ -90,6 +90,11 @@ public class ReactTextInputManager extends BaseViewManager<ReactEditText, Layout
+     Spacing.ALL, Spacing.LEFT, Spacing.RIGHT, Spacing.TOP, Spacing.BOTTOM,
+   };
+ 
++  /*
++  * Taken from EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING
++  * We can't use that value directly as it was only added on Oreo, but we can apply the value anyway.
++  */
++  private static final int IME_FLAG_NO_PERSONALIZED_LEARNING = 0x1000000
+   private static final int FOCUS_TEXT_INPUT = 1;
+   private static final int BLUR_TEXT_INPUT = 2;
+   private static final int SET_MOST_RECENT_EVENT_COUNT = 3;
+@@ -107,6 +112,7 @@ public class ReactTextInputManager extends BaseViewManager<ReactEditText, Layout
+           | InputType.TYPE_TEXT_FLAG_CAP_WORDS
+           | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS;
+ 
++  private static final String KEYBOARD_TYPE_EMAIL_ADDRESS = "email-address";
+   private static final String KEYBOARD_TYPE_EMAIL_ADDRESS = "email-address";
+   private static final String KEYBOARD_TYPE_NUMERIC = "numeric";
+   private static final String KEYBOARD_TYPE_DECIMAL_PAD = "decimal-pad";
+@@ -711,6 +717,9 @@ public class ReactTextInputManager extends BaseViewManager<ReactEditText, Layout
+ 
+   @ReactProp(name = "secureTextEntry", defaultBoolean = false)
+   public void setSecureTextEntry(ReactEditText view, boolean password) {
++    if(password)
++      view.setImeOptions(IME_FLAG_NO_PERSONALIZED_LEARNING)
++
+     updateStagedInputTypeFlag(
+         view,
+         password
