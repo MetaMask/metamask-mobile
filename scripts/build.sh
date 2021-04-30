@@ -158,6 +158,7 @@ buildAndroidRunE2E(){
 	then
 		source $ANDROID_ENV_FILE
 	fi
+	avdmanager create avd -n Pixel_3_API_29 -k "system-images;android-29;google_apis_playstore;x86" -d 32 --force
 	emulator -list-avds || cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug && cd ..
 }
 
