@@ -326,6 +326,7 @@ class AccountOverview extends PureComponent {
 												: { borderColor: colors.white }
 										]}
 										numberOfLines={1}
+										testID={'edit-account-label'}
 									>
 										{name}
 									</Text>

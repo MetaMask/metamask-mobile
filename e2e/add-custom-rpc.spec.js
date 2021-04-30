@@ -129,30 +129,21 @@ describe('Custom RPC Tests', () => {
 		await TestHelpers.tap('open-networks-button');
 		// Check that networks list is visible
 		await TestHelpers.checkIfVisible('networks-list');
-		// Swipe down on networks list
-		await TestHelpers.swipe('networks-list', 'up');
 		// Check that our network is added
 		await TestHelpers.checkIfElementHasString('other-network-name', 'xDai');
-
-		// iOS change networks tests
-		if (device.getPlatform() === 'ios') {
-			// Change to Rinkeby Network
-			await TestHelpers.tapByText(RINKEBY);
-			// Check that we are on correct network
-			await TestHelpers.checkIfElementHasString('network-name', RINKEBY);
-			// Tap to prompt network list
-			await TestHelpers.tap('open-networks-button');
-			// Check that networks list is visible
-			await TestHelpers.checkIfVisible('networks-list');
-			// Swipe down on networks list
-			await TestHelpers.swipe('networks-list', 'up');
-			// Change to back to xDai Network
-			await TestHelpers.tapByText('xDai');
-		} else {
-			// Close list
-			await TestHelpers.tapByText('Close');
-		}
-
+		// Change to Rinkeby Network
+		await TestHelpers.tapByText(RINKEBY);
+		// Check that we are on correct network
+		await TestHelpers.checkIfElementHasString('network-name', RINKEBY);
+		// Tap to prompt network list
+		await TestHelpers.tap('open-networks-button');
+		// Check that networks list is visible
+		await TestHelpers.checkIfVisible('networks-list');
+		// Swipe up on networks list
+		await TestHelpers.swipe('other-networks-scroll', 'up', 'fast');
+		await TestHelpers.delay(1000);
+		// Change to back to xDai Network
+		await TestHelpers.tapByText('xDai');
 		// Check that we are on the wallet screen
 		await TestHelpers.checkIfVisible('wallet-screen');
 		// Check that we are on correct network
@@ -171,22 +162,21 @@ describe('Custom RPC Tests', () => {
 		// Check that we are on the networks screen
 		await TestHelpers.checkIfVisible('networks-screen');
 		// Tap on xDai to remove network
-		await element(by.text('xDai')).longPress();
-		// Tap remove
+		await TestHelpers.tapAndLongPressAtIndex('rpc-networks', 0);
+		//Remove xDAI and verify removed on wallet view
+		//Tap remove
 		await TestHelpers.tapByText('Remove');
-
 		// Go back to wallet screen
 		if (device.getPlatform() === 'ios') {
 			// Tap on back arrow
-			await TestHelpers.tapAtPoint('networks-screen', { x: 25, y: -22 });
+			await TestHelpers.tap('nav-ios-back');
 			// Tap close
 			await TestHelpers.tapByText('Close');
 		} else {
 			// Go Back for android
-			await device.pressBack();
-			await device.pressBack();
+			await TestHelpers.tap('nav-android-back');
+			await TestHelpers.tap('nav-android-back');
 		}
-
 		// Check that we are on the wallet screen
 		await TestHelpers.checkIfExists('wallet-screen');
 		// Check that we are on Mainnet
