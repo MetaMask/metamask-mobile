@@ -670,7 +670,13 @@
 		"tokenContractAddressWarning_2": "token contract address",
 		"tokenContractAddressWarning_3": ". If you send tokens to this address, you will lose them.",
 		"smartContractAddressWarning": "This address is a smart contract address. Please make sure you understand what this address is for, otherwise you risk losing your funds.",
-		"continueError": "I understand the risks, continue"
+		"continueError": "I understand the risks, continue",
+		"gas_education_title_ethereum": "Ethereum gas fees",
+		"gas_education_title": "Gas fees",
+		"gas_education_1": "Gas fees are paid to crypto miners who process transactions on the Ethereum network.",
+		"gas_education_2": "MetaMask does not profit from gas fees.",
+		"gas_education_3": "Gas fees fluctuate based on network traffic and transaction complexitity.",
+		"gas_education_learn_more": "Learn more about gas fees"
 	},
 	"custom_gas": {
 		"total": "Total",

@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'row'
 	},
 	gasInfoIcon: {
-		paddingLeft: 2
+		paddingHorizontal: 2
 	},
 	amountContainer: {
 		flex: 1
@@ -53,6 +53,12 @@ const styles = StyleSheet.create({
 	},
 	fiatContainer: {
 		width: 66
+	},
+	hitSlop: {
+		top: 10,
+		left: 10,
+		bottom: 10,
+		right: 10
 	}
 });
 
@@ -142,29 +148,36 @@ class TransactionReviewFeeCard extends PureComponent {
 
 	toggleGasTooltip = () => this.setState(state => ({ showGasTooltip: !state.showGasTooltip }));
 
-	renderGasTooltip = () => (
-		<InfoModal
-			isVisible={this.state.showGasTooltip}
-			title="Ethereum gas fees"
-			toggleModal={this.toggleGasTooltip}
-			body={
-				<View>
-					<Text grey infoModal>
-						Gas fees are paid to crypto miners who process transactions on the Ethereum network.{' '}
-						<Text bold>MetaMask does not profit from gas fees.</Text>
-					</Text>
-					<Text grey infoModal>
-						Gas fees fluctuate based on network traffic and transaction complexitity.
-					</Text>
-					<TouchableOpacity onPress={this.openLinkAboutGas}>
-						<Text grey link infoModal>
-							Learn more about gas fees
+	renderGasTooltip = () => {
+		const isMainnet = isMainnetByChainId(this.props.chainId);
+		return (
+			<InfoModal
+				isVisible={this.state.showGasTooltip}
+				title={
+					isMainnet
+						? strings('transaction.gas_education_title_ethereum')
+						: strings('transaction.gas_education_title')
+				}
+				toggleModal={this.toggleGasTooltip}
+				body={
+					<View>
+						<Text grey infoModal>
+							{strings('transaction.gas_education_1')}{' '}
+							<Text bold>{strings('transaction.gas_education_2')}</Text>
 						</Text>
-					</TouchableOpacity>
-				</View>
-			}
-		/>
-	);
+						<Text grey infoModal>
+							{strings('transaction.gas_education_3')}
+						</Text>
+						<TouchableOpacity onPress={this.openLinkAboutGas}>
+							<Text grey link infoModal>
+								{strings('transaction.gas_education_learn_more')}
+							</Text>
+						</TouchableOpacity>
+					</View>
+				}
+			/>
+		);
+	};
 
 	render() {
 		const {
@@ -226,7 +239,11 @@ class TransactionReviewFeeCard extends PureComponent {
 								<Text primary bold>
 									{strings('transaction.gas_fee')}
 								</Text>
-								<TouchableOpacity style={styles.gasInfoIcon} onPress={this.toggleGasTooltip}>
+								<TouchableOpacity
+									style={styles.gasInfoIcon}
+									onPress={this.toggleGasTooltip}
+									hitSlop={styles.hitSlop}
+								>
 									<MaterialIcon name="info" size={13} style={{ color: colors.blue }} />
 								</TouchableOpacity>
 							</View>
