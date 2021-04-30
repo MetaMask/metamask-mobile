@@ -95,9 +95,12 @@ const styles = StyleSheet.create({
 	controlsFullscreen: {
 		flexDirection: 'row'
 	},
-	controlsPlayPause: {},
+	controlsPlayPause: {
+		left: 1
+	},
 	controlsMuteUnmute: {
-		width: '120%'
+		left: -1,
+		width: '110%'
 	},
 	seekbarContainer: {
 		alignSelf: 'stretch',
@@ -113,7 +116,12 @@ const styles = StyleSheet.create({
 	},
 	seekbarFill: {
 		height: 4,
-		width: '100%'
+		width: '100%',
+		borderRadius: 2
+	},
+	seekbarPermanentFill: {
+		width: '100%',
+		backgroundColor: colors.grey400
 	},
 	seekbarHandle: {
 		marginLeft: -10,
@@ -455,6 +463,9 @@ export default function VideoPlayer({ controlAnimationTiming, controlTimeoutDela
 
 	const renderSeekbar = () => (
 		<View style={styles.seekbarContainer} collapsable={false} {...seekPanResponder.panHandlers}>
+			<View style={styles.seekbarTrack}>
+				<View style={[styles.seekbarFill, styles.seekbarPermanentFill]} />
+			</View>
 			<View
 				style={styles.seekbarTrack}
 				onLayout={event => setSeekerWidth(event.nativeEvent.layout.width)}
@@ -471,6 +482,7 @@ export default function VideoPlayer({ controlAnimationTiming, controlTimeoutDela
 					pointerEvents={'none'}
 				/>
 			</View>
+
 			<View style={[styles.seekbarHandle, { left: seekerPosition }]} pointerEvents={'none'}>
 				<View style={[styles.seekbarCircle, { backgroundColor: colors.white }]} pointerEvents={'none'} />
 			</View>
@@ -586,5 +598,5 @@ VideoPlayer.propTypes = {
 
 VideoPlayer.defaultProps = {
 	doubleTapTime: 100,
-	controlAnimationTiming: 500000
+	controlAnimationTiming: 5000
 };
