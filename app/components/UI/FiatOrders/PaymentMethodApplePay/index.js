@@ -1,13 +1,13 @@
 import React, { useContext, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { View, StyleSheet, Image, TouchableOpacity, InteractionManager } from 'react-native';
+import { View, StyleSheet, Image, TouchableOpacity, InteractionManager, ActivityIndicator } from 'react-native';
 import { NavigationContext } from 'react-navigation';
 import { connect } from 'react-redux';
 import NotificationManager from '../../../../core/NotificationManager';
 import Device from '../../../../util/Device';
 import Logger from '../../../../util/Logger';
 import { setLockTime } from '../../../../actions/settings';
-import { strings } from '../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../locales/i18n';
 import { getNotificationDetails } from '..';
 
 import {
@@ -22,11 +22,12 @@ import {
 import ScreenView from '../components/ScreenView';
 import { getPaymentMethodApplePayNavbar } from '../../Navbar';
 import AccountBar from '../components/AccountBar';
-import Keypad, { Keys } from '../../../Base/Keypad';
+import Keypad, { KEYS } from '../../../Base/Keypad';
 import Text from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
 import { colors, fontStyles } from '../../../../styles/common';
 import { protectWalletModalVisible } from '../../../../actions/user';
+import { addFiatOrder, fiatOrdersCurrencySelector, setFiatOrdersCurrency } from '../../../../reducers/fiatOrders';
 
 //* styles and components  */
 
@@ -138,7 +139,9 @@ function PaymentMethodApplePay({
 	setLockTime,
 	selectedAddress,
 	network,
+	selectedCurrency,
 	addOrder,
+	setFiatOrdersCurrency,
 	protectWalletModalVisible
 }) {
 	const navigation = useContext(NavigationContext);
@@ -153,7 +156,7 @@ function PaymentMethodApplePay({
 	const disabledButton = amount === '0' || isUnderMinimum || isOverMaximum;
 
 	const handleWyreTerms = useWyreTerms(navigation);
-	const rates = useWyreRates(network, 'USDETH');
+	const rates = useWyreRates(network, `${selectedCurrency}ETH`);
 	const [pay, ABORTED, , , , fee] = useWyreApplePay(roundAmount, selectedAddress, network);
 
 	const handlePressApplePay = useCallback(async () => {
@@ -191,7 +194,7 @@ function PaymentMethodApplePay({
 	const handleQuickAmountPress = useCallback(amount => setAmount(amount), []);
 	const handleKeypadChange = useCallback(
 		(value, key) => {
-			if (isOverMaximum && key !== Keys.BACK) {
+			if (isOverMaximum && ![KEYS.BACK, KEYS.INITIAL].includes(key)) {
 				return;
 			}
 			if (value === amount) {
@@ -201,6 +204,16 @@ function PaymentMethodApplePay({
 			setAmount(value);
 		},
 		[amount, isOverMaximum]
+	);
+
+	const formatCurrency = useCallback(
+		number =>
+			Intl.NumberFormat(I18n.locale, {
+				style: 'currency',
+				currency: selectedCurrency,
+				currencyDisplay: 'symbol'
+			}).format(number),
+		[selectedCurrency]
 	);
 
 	return (
@@ -217,10 +230,10 @@ function PaymentMethodApplePay({
 						${amount}
 					</Text>
 					{!(isUnderMinimum || isOverMaximum) &&
-						(rates ? (
+						(rates && rates?.[selectedCurrency] ? (
 							<Text>
 								{roundAmount === '0' ? (
-									`$${rates.USD.toFixed(2)} ≈ 1 ETH`
+									`${formatCurrency(rates[selectedCurrency])}  ≈ 1 ETH`
 								) : (
 									<>
 										{strings('fiat_on_ramp.wyre_estimated', {
@@ -231,7 +244,8 @@ function PaymentMethodApplePay({
 								)}
 							</Text>
 						) : (
-							<Text>{strings('fiat_on_ramp.wyre_loading_rates')}</Text>
+							/* <Text>{strings('fiat_on_ramp.wyre_loading_rates')}</Text> */
+							<ActivityIndicator size="small" />
 						))}
 					{isUnderMinimum && (
 						<Text>{strings('fiat_on_ramp.wyre_minimum_deposit', { amount: `$${minAmount}` })}</Text>
@@ -324,6 +338,14 @@ PaymentMethodApplePay.propTypes = {
 	 */
 	network: PropTypes.string.isRequired,
 	/**
+	 * Currently selected network
+	 */
+	selectedCurrency: PropTypes.string.isRequired,
+	/**
+	 * Function to dispatch setting a fiat order currency to the state
+	 */
+	setFiatOrdersCurrency: PropTypes.func.isRequired,
+	/**
 	 * Function to dispatch adding a new fiat order to the state
 	 */
 	addOrder: PropTypes.func.isRequired,
@@ -338,12 +360,14 @@ PaymentMethodApplePay.navigationOptions = ({ navigation }) => getPaymentMethodAp
 const mapStateToProps = state => ({
 	lockTime: state.settings.lockTime,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	network: state.engine.backgroundState.NetworkController.network
+	network: state.engine.backgroundState.NetworkController.network,
+	selectedCurrency: fiatOrdersCurrencySelector(state)
 });
 
 const mapDispatchToProps = dispatch => ({
 	setLockTime: time => dispatch(setLockTime(time)),
-	addOrder: order => dispatch({ type: 'FIAT_ADD_ORDER', payload: order }),
+	addOrder: order => dispatch(addFiatOrder(order)),
+	setFiatOrdersCurrency: currency => dispatch(setFiatOrdersCurrency(currency)),
 	protectWalletModalVisible: () => dispatch(protectWalletModalVisible())
 });
 export default connect(

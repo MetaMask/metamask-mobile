@@ -44,9 +44,9 @@ const WyreApplePayPaymentMethod = ({ onPress }) => {
 				<PaymentMethod.Terms>
 					<ApplePayMark />
 					<ModalHandler>
-						{({ isVisible, toggleModal }) => (
+						{({ isVisible, showModal, hideModal }) => (
 							<>
-								<TouchableOpacity onPress={toggleModal}>
+								<TouchableOpacity onPress={showModal}>
 									<PaymentMethod.InfoIconLine>
 										<Text bold small>
 											{strings('fiat_on_ramp.wyre_us_only')}
@@ -61,7 +61,7 @@ const WyreApplePayPaymentMethod = ({ onPress }) => {
 
 								<PaymentMethod.Modal
 									isVisible={isVisible}
-									dismiss={toggleModal}
+									dismiss={hideModal}
 									title={strings('fiat_on_ramp.modal_wyre_support')}
 								>
 									<Text modal>
@@ -71,7 +71,7 @@ const WyreApplePayPaymentMethod = ({ onPress }) => {
 											link
 											// eslint-disable-next-line react/jsx-no-bind
 											onPress={() => {
-												toggleModal();
+												hideModal();
 												handleWyreTerms();
 											}}
 										>

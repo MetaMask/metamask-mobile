@@ -45,9 +45,9 @@ const TransakPaymentMethod = ({ onPress }) => (
 			<PaymentMethod.Terms>
 				<TransakLogo />
 				<ModalHandler>
-					{({ isVisible, toggleModal }) => (
+					{({ isVisible, showModal, hideModal }) => (
 						<>
-							<TouchableOpacity onPress={toggleModal}>
+							<TouchableOpacity onPress={showModal}>
 								<PaymentMethod.InfoIconLine>
 									<Text bold small>
 										59 {strings('fiat_on_ramp.countries')}
@@ -57,7 +57,7 @@ const TransakPaymentMethod = ({ onPress }) => (
 							</TouchableOpacity>
 							<PaymentMethod.Modal
 								isVisible={isVisible}
-								dismiss={toggleModal}
+								dismiss={hideModal}
 								title={strings('fiat_on_ramp.modal_transak_support')}
 							>
 								<Text modal>{strings('fiat_on_ramp.transak_modal_text')}</Text>
