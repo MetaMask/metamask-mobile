@@ -26,6 +26,9 @@ const style = StyleSheet.create({
 	green: {
 		color: colors.green400
 	},
+	grey: {
+		color: colors.grey500
+	},
 	primary: {
 		color: colors.fontPrimary
 	},
@@ -43,6 +46,10 @@ const style = StyleSheet.create({
 		color: colors.fontPrimary,
 		fontSize: 16,
 		lineHeight: 30
+	},
+	infoModal: {
+		lineHeight: 20,
+		marginVertical: 6
 	},
 	link: {
 		color: colors.blue
@@ -66,10 +73,12 @@ const Text = ({
 	green,
 	black,
 	blue,
+	grey,
 	primary,
 	small,
 	upper,
 	modal,
+	infoModal,
 	disclaimer,
 	link,
 	strikethrough,
@@ -87,11 +96,13 @@ const Text = ({
 			green && style.green,
 			black && style.black,
 			blue && style.blue,
+			grey && style.grey,
 			primary && style.primary,
 			disclaimer && [style.small, style.disclaimer],
 			small && style.small,
 			upper && style.upper,
 			modal && style.modal,
+			infoModal && style.infoModal,
 			link && style.link,
 			strikethrough && style.strikethrough,
 			underline && style.underline,
@@ -151,6 +162,10 @@ Text.propTypes = {
 	 */
 	blue: PropTypes.bool,
 	/**
+	 * Makes text grey
+	 */
+	grey: PropTypes.bool,
+	/**
 	 * Makes text fontPrimary color
 	 */
 	primary: PropTypes.bool,
@@ -164,6 +179,11 @@ Text.propTypes = {
 	 * Used in modals
 	 */
 	modal: PropTypes.bool,
+	/**
+	 * Makes text with bigger line height
+	 * Used in modals with information text
+	 */
+	infoModal: PropTypes.bool,
 	/**
 	 * Makes text small
 	 */
