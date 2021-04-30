@@ -165,14 +165,6 @@ export default function VideoPlayer({
 
 	const controlTimeout = useRef();
 
-	/**
-	 * Player information
-	 */
-	const player = {
-		tapActionTimeout: null,
-		tapAnywhereToPause
-	};
-
 	const animations = {
 		bottomControl: {
 			marginBottom: useRef(new Animated.Value(0)).current,
@@ -368,23 +360,8 @@ export default function VideoPlayer({
 	// };
 
 	const onScreenTouch = () => {
-		if (player.tapActionTimeout) {
-			clearTimeout(player.tapActionTimeout);
-			player.tapActionTimeout = 0;
-			if (showControls) {
-				resetControlTimeout();
-			}
-		} else {
-			player.tapActionTimeout = setTimeout(() => {
-				if (player.tapAnywhereToPause && showControls) {
-					togglePlayPause();
-					resetControlTimeout();
-				} else {
-					toggleControls();
-				}
-				player.tapActionTimeout = 0;
-			}, doubleTapTime);
-		}
+		toggleControls();
+		resetControlTimeout();
 	};
 
 	// const calculateSeekerPosition = () => {
