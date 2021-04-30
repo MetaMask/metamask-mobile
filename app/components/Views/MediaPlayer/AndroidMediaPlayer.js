@@ -95,9 +95,9 @@ const styles = StyleSheet.create({
 	controlsFullscreen: {
 		flexDirection: 'row'
 	},
-	controlsPlayPause: {
-		position: 'relative',
-		zIndex: 0
+	controlsPlayPause: {},
+	controlsMuteUnmute: {
+		width: '120%'
 	},
 	seekbarContainer: {
 		alignSelf: 'stretch',
@@ -129,9 +129,8 @@ const styles = StyleSheet.create({
 	actionButton: {
 		width: 44,
 		height: 44,
-		backgroundColor: colors.grey500,
-		borderRadius: 8,
-		opacity: 0.5
+		backgroundColor: colors.greytransparent100,
+		borderRadius: 8
 	},
 	actionSeeker: {
 		flex: 1,
@@ -139,14 +138,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-export default function VideoPlayer({
-	controlAnimationTiming,
-	doubleTapTime,
-	tapAnywhereToPause,
-	disableFullscreen,
-	controlTimeoutDelay,
-	source
-}) {
+export default function VideoPlayer({ controlAnimationTiming, controlTimeoutDelay, source }) {
 	const [paused, setPaused] = useState(false);
 	const [muted, setMuted] = useState(true);
 	const [seekerFillWidth, setSeekerFillWidth] = useState(0);
@@ -214,6 +206,11 @@ export default function VideoPlayer({
 		animations.topControl.marginTop
 	]);
 
+	const hideControls = useCallback(() => {
+		setShowControls(true);
+		hideControlAnimation();
+	}, [hideControlAnimation]);
+
 	const showControlAnimation = useCallback(() => {
 		Animated.parallel([
 			Animated.timing(animations.topControl.opacity, {
@@ -236,19 +233,15 @@ export default function VideoPlayer({
 				useNativeDriver: false,
 				duration: controlAnimationTiming
 			})
-		]).start();
+		]).start(() => setTimeout(() => hideControls, controlAnimationTiming));
 	}, [
 		controlAnimationTiming,
+		hideControls,
 		animations.bottomControl.opacity,
 		animations.bottomControl.marginBottom,
 		animations.topControl.opacity,
 		animations.topControl.marginTop
 	]);
-
-	const hideControls = useCallback(() => {
-		hideControlAnimation();
-		setShowControls(false);
-	}, [hideControlAnimation]);
 
 	const setControlTimeout = useCallback(() => {
 		controlTimeout.current = setTimeout(() => hideControls(), controlTimeoutDelay);
@@ -266,10 +259,8 @@ export default function VideoPlayer({
 	const toggleControls = () => {
 		if (showControls) {
 			showControlAnimation();
-			setControlTimeout();
 		} else {
 			hideControlAnimation();
-			clearControlTimeout();
 		}
 		setShowControls(!showControls);
 	};
@@ -354,20 +345,7 @@ export default function VideoPlayer({
 		}
 	};
 
-	// const onError = () => {
-	// 	setError(true)
-	// 	setLoading(false)
-	// };
-
-	const onScreenTouch = () => {
-		toggleControls();
-		resetControlTimeout();
-	};
-
-	// const calculateSeekerPosition = () => {
-	// 	const percent = currentTime / duration;
-	// 	return seekerWidth * percent;
-	// };
+	const onScreenTouch = () => toggleControls();
 
 	const calculateTimeFromSeekerPosition = useCallback(() => {
 		const percent = seekerPosition / seekerWidth;
@@ -470,9 +448,9 @@ export default function VideoPlayer({
 
 	const renderMuteUnmuteControl = () =>
 		renderControl(
-			<FA5Icon color={colors.white} size={18} name={`volume-${muted ? 'off' : 'up'}`} />,
+			<FA5Icon color={colors.white} size={18} name={`volume-${muted ? 'mute' : 'up'}`} />,
 			toggleMuted,
-			styles.controlsPlayPause
+			styles.controlsMuteUnmute
 		);
 
 	const renderSeekbar = () => (
@@ -507,28 +485,27 @@ export default function VideoPlayer({
 		);
 
 	const renderLoader = () => {
-		if (loading) {
-			return (
-				<View style={styles.loaderContainer}>
-					<Animated.Image
-						style={{
-							transform: [
-								{
-									rotate: animations.loader.rotate.interpolate({
-										inputRange: [0, 360],
-										outputRange: ['0deg', '360deg']
-									})
-								}
-							]
-						}}
-					/>
-				</View>
-			);
-		}
-		return null;
+		if (!loading) return;
+		return (
+			<View style={styles.loaderContainer}>
+				<Animated.Image
+					style={{
+						transform: [
+							{
+								rotate: animations.loader.rotate.interpolate({
+									inputRange: [0, 360],
+									outputRange: ['0deg', '360deg']
+								})
+							}
+						]
+					}}
+				/>
+			</View>
+		);
 	};
 
 	const renderError = () => {
+		if (!error) return;
 		if (error) {
 			return (
 				<View style={styles.errorContainer}>
@@ -537,55 +514,45 @@ export default function VideoPlayer({
 				</View>
 			);
 		}
-		return null;
 	};
 
-	const renderTopControls = () => {
-		const fullscreenControl = renderFullscreen();
-		return (
-			<Animated.View
-				style={[
-					styles.controlsTop,
-					{
-						opacity: animations.topControl.opacity,
-						marginTop: animations.topControl.marginTop
-					}
-				]}
-			>
-				<View style={[styles.controlsColumn]}>
-					<SafeAreaView style={styles.controlsTopControlGroup}>
-						<View style={[styles.actionButton, styles.controlsPullRight]}>{fullscreenControl}</View>
-					</SafeAreaView>
-				</View>
-			</Animated.View>
-		);
-	};
+	const renderTopControls = () => (
+		<Animated.View
+			style={[
+				styles.controlsTop,
+				{
+					opacity: animations.topControl.opacity,
+					marginTop: animations.topControl.marginTop
+				}
+			]}
+		>
+			<View style={[styles.controlsColumn]}>
+				<SafeAreaView style={styles.controlsTopControlGroup}>
+					<View style={[styles.actionButton, styles.controlsPullRight]}>{renderFullscreen()}</View>
+				</SafeAreaView>
+			</View>
+		</Animated.View>
+	);
 
-	const renderBottomControls = () => {
-		const seekbarControl = renderSeekbar();
-		const playPauseControl = renderPlayPause();
-		const muteUnmuteControl = renderMuteUnmuteControl();
-
-		return (
-			<Animated.View
-				style={[
-					styles.controlsBottom,
-					{
-						opacity: animations.bottomControl.opacity,
-						marginBottom: animations.bottomControl.marginBottom
-					}
-				]}
-			>
-				<View style={[styles.controlsColumn]}>
-					<SafeAreaView style={[styles.controlsRow, styles.controlsBottomControlGroup]}>
-						<View style={styles.actionButton}>{playPauseControl}</View>
-						<View style={[styles.actionButton, styles.actionSeeker]}>{seekbarControl}</View>
-						<View style={styles.actionButton}>{muteUnmuteControl}</View>
-					</SafeAreaView>
-				</View>
-			</Animated.View>
-		);
-	};
+	const renderBottomControls = () => (
+		<Animated.View
+			style={[
+				styles.controlsBottom,
+				{
+					opacity: animations.bottomControl.opacity,
+					marginBottom: animations.bottomControl.marginBottom
+				}
+			]}
+		>
+			<View style={[styles.controlsColumn]}>
+				<SafeAreaView style={[styles.controlsRow, styles.controlsBottomControlGroup]}>
+					<View style={styles.actionButton}>{renderPlayPause()}</View>
+					<View style={[styles.actionButton, styles.actionSeeker]}>{renderSeekbar()}</View>
+					<View style={styles.actionButton}>{renderMuteUnmuteControl()}</View>
+				</SafeAreaView>
+			</View>
+		</Animated.View>
+	);
 
 	return (
 		<TouchableWithoutFeedback onPress={onScreenTouch} style={[styles.playerContainer]}>
@@ -598,7 +565,7 @@ export default function VideoPlayer({
 					onSeek={onSeek}
 					onLoadStart={onLoadStart}
 					onProgress={onProgress}
-					style={[styles.playerVideo]}
+					style={styles.playerVideo}
 					source={source}
 					repeat
 				/>
@@ -613,15 +580,11 @@ export default function VideoPlayer({
 
 VideoPlayer.propTypes = {
 	controlAnimationTiming: PropTypes.number,
-	doubleTapTime: PropTypes.number,
-	tapAnywhereToPause: PropTypes.bool,
-	disableFullscreen: PropTypes.bool,
 	source: PropTypes.object,
 	controlTimeoutDelay: PropTypes.number
 };
 
 VideoPlayer.defaultProps = {
-	controlAnimationTiming: 500,
 	doubleTapTime: 100,
-	controlTimeoutDelay: 5000
+	controlAnimationTiming: 500000
 };
