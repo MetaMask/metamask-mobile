@@ -77,7 +77,8 @@ const styles = StyleSheet.create({
 	},
 	controlsBottom: {
 		flex: 1,
-		justifyContent: 'flex-end'
+		justifyContent: 'flex-end',
+		padding: 4
 	},
 	controlsTopControlGroup: {
 		alignSelf: 'stretch',
@@ -98,6 +99,7 @@ const styles = StyleSheet.create({
 	},
 	controlsMuteUnmute: {
 		left: -1,
+		top: -1,
 		width: '110%'
 	},
 	seekbarContainer: {
