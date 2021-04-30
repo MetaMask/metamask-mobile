@@ -21,6 +21,7 @@ import StatusText from '../../../Base/StatusText';
 import Text from '../../../Base/Text';
 import DetailsModal from '../../../Base/DetailsModal';
 import { RPC } from '../../../../constants/network';
+import { withNavigation } from 'react-navigation';
 
 const styles = StyleSheet.create({
 	viewOnEtherscan: {
@@ -262,4 +263,4 @@ const mapStateToProps = state => ({
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList
 });
-export default connect(mapStateToProps)(TransactionDetails);
+export default connect(mapStateToProps)(withNavigation(TransactionDetails));

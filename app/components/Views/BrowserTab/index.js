@@ -66,6 +66,7 @@ import { RPC } from '../../../constants/network';
 import RPCMethods from '../../../core/RPCMethods';
 import AddCustomNetwork from '../../UI/AddCustomNetwork';
 import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
+import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
@@ -913,8 +914,13 @@ export const BrowserTab = props => {
 					ensIgnoreList.push(hostname);
 					return { url: fullUrl, reload: true };
 				}
-				Logger.error(err, 'Failed to resolve ENS name');
-				Alert.alert(strings('browser.error'), strings('browser.failed_to_resolve_ens_name'));
+				if (err?.message?.startsWith('EnsIpfsResolver - no known ens-ipfs registry for chainId')) {
+					trackErrorAsAnalytics('Browser: Failed to resolve ENS name for chainId', err?.message);
+				} else {
+					Logger.error(err, 'Failed to resolve ENS name');
+				}
+
+				Alert.alert(strings('browser.failed_to_resolve_ens_name'), err.message);
 				goBack();
 			}
 		},
