@@ -344,9 +344,10 @@ export default function VideoPlayer({
 	};
 
 	const onScreenTouch = () => {
-		resetControlsTimeout();
 		if (showControls) {
 			toggleControls();
+		} else {
+			resetControlsTimeout();
 		}
 	};
 
