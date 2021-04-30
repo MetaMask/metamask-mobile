@@ -59,7 +59,7 @@ import { createAsyncMiddleware } from 'json-rpc-engine';
 import { ethErrors } from 'eth-json-rpc-errors';
 
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
-import { getVersion } from 'react-native-device-info';
+import { getVersion, isEmulatorSync } from 'react-native-device-info';
 import ErrorBoundary from '../ErrorBoundary';
 import { RPC } from '../../../constants/network';
 
@@ -994,7 +994,7 @@ export const BrowserTab = props => {
 	 * Handle keyboard hide
 	 */
 	const keyboardDidHide = useCallback(() => {
-		if (!isTabActive()) return false;
+		if (!isTabActive() || isEmulatorSync()) return false;
 		if (!fromHomepage.current) {
 			if (showUrlModal) {
 				hideUrlModal();
