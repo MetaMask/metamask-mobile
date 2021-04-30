@@ -253,6 +253,10 @@ class CustomGas extends PureComponent {
 		 */
 		gasPrice: PropTypes.object,
 		/**
+		 * Object BN containing mininum gas price
+		 */
+		minimumGasPrice: PropTypes.object,
+		/**
 		 * Callback to modify parent state
 		 */
 		onPress: PropTypes.func,
@@ -488,6 +492,11 @@ class CustomGas extends PureComponent {
 		const warningSufficientFunds = this.hasSufficientFunds(customGasLimitBN, gasPriceBNWei);
 		let warningGasPrice;
 		let warningGasPriceHigh = '';
+		if (this.onlyAdvanced() && this.props.minimumGasPrice) {
+			if (parseInt(gasPrice) < parseInt(fromWei(this.props.minimumGasPrice, 'gwei'))) {
+				warningGasPrice = strings('transaction.low_gas_price');
+			}
+		}
 		if (this.props.basicGasEstimates) {
 			if (parseInt(gasPrice) < parseInt(this.props.basicGasEstimates.safeLowGwei))
 				warningGasPrice = strings('transaction.low_gas_price');

@@ -42,6 +42,7 @@ exports[`NetworkList should render correctly 1`] = `
         "flex": 1,
       }
     }
+    testID="other-networks-scroll"
   >
     <View>
       <TouchableOpacity

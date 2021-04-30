@@ -38,7 +38,6 @@ import {
 	decodeApproveData
 } from '../../../util/transactions';
 import { BN } from 'ethereumjs-util';
-import { safeToChecksumAddress } from '../../../util/address';
 import Logger from '../../../util/Logger';
 import contractMap from '@metamask/contract-metadata';
 import MessageSign from '../../UI/MessageSign';
@@ -58,7 +57,7 @@ import AccountApproval from '../../UI/AccountApproval';
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
-import { swapsUtils, util } from '@estebanmino/controllers';
+import { swapsUtils, util } from '@metamask/swaps-controller';
 import SwapsLiveness from '../../UI/Swaps/SwapsLiveness';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
@@ -310,16 +309,17 @@ const Main = props => {
 		async transactionMeta => {
 			if (transactionMeta.origin === TransactionTypes.MMM) return;
 
-			const to = safeToChecksumAddress(transactionMeta.transaction.to);
+			const to = transactionMeta.transaction.to?.toLowerCase();
 			const { data } = transactionMeta.transaction;
 
 			// if approval data includes metaswap contract
 			// if destination address is metaswap contract
 			if (
-				to === safeToChecksumAddress(swapsUtils.SWAPS_CONTRACT_ADDRESS) ||
+				to === swapsUtils.getSwapsContractAddress(props.chainId) ||
 				(data &&
 					data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
-					decodeApproveData(data).spenderAddress === swapsUtils.SWAPS_CONTRACT_ADDRESS)
+					decodeApproveData(data).spenderAddress?.toLowerCase() ===
+						swapsUtils.getSwapsContractAddress(props.chainId))
 			) {
 				if (transactionMeta.origin === process.env.MM_FOX_CODE) {
 					autoSign(transactionMeta);
@@ -388,6 +388,7 @@ const Main = props => {
 		},
 		[
 			props.tokens,
+			props.chainId,
 			setEtherTransaction,
 			setTransactionObject,
 			toggleApproveModal,
@@ -568,6 +569,14 @@ const Main = props => {
 		}
 	});
 
+	// unapprovedTransaction effect
+	useEffect(() => {
+		Engine.context.TransactionController.hub.on('unapprovedTransaction', onUnapprovedTransaction);
+		return () => {
+			Engine.context.TransactionController.hub.removeListener('unapprovedTransaction', onUnapprovedTransaction);
+		};
+	}, [onUnapprovedTransaction]);
+
 	useEffect(() => {
 		initializeWalletConnect();
 		AppState.addEventListener('change', handleAppStateChange);
@@ -595,8 +604,6 @@ const Main = props => {
 				}
 			}
 		});
-
-		Engine.context.TransactionController.hub.on('unapprovedTransaction', onUnapprovedTransaction);
 
 		Engine.context.MessageManager.hub.on('unapprovedMessage', messageParams =>
 			onUnapprovedMessage(messageParams, 'eth')
@@ -628,7 +635,6 @@ const Main = props => {
 			lockManager.current.stopListening();
 			Engine.context.PersonalMessageManager.hub.removeAllListeners();
 			Engine.context.TypedMessageManager.hub.removeAllListeners();
-			Engine.context.TransactionController.hub.removeListener('unapprovedTransaction', onUnapprovedTransaction);
 			WalletConnect.hub.removeAllListeners();
 			removeConnectionStatusListener.current && removeConnectionStatusListener.current();
 		};
@@ -738,6 +744,10 @@ Main.propTypes = {
 	 */
 	selectedAddress: PropTypes.string,
 	/**
+	 * Chain id
+	 */
+	chainId: PropTypes.string,
+	/**
 	 * Network provider type
 	 */
 	providerType: PropTypes.string,
@@ -755,6 +765,7 @@ const mapStateToProps = state => ({
 	lockTime: state.settings.lockTime,
 	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	isPaymentRequest: state.transaction.paymentRequest,
 	dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
