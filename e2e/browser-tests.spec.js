@@ -3,7 +3,7 @@ import TestHelpers from './helpers';
 
 const ENS_Example = 'https://brunobarbieri.eth';
 const ENS_TLD = 'https://inbox.mailchain.xyz';
-const UNISWAP = 'https://uniswap.eth';
+const UNISWAP = 'https://uniswap.exchange';
 const PASSWORD = '12345678';
 
 describe('Browser Tests', () => {
@@ -95,42 +95,46 @@ describe('Browser Tests', () => {
 	});
 
 	it('should go to first explore tab and navigate back to homepage', async () => {
-		// Tap on first category
-		if (device.getPlatform() === 'android') {
+		// This can only be done on Android since we removed option for iOS due to Appstore
+		if (!device.getPlatform() === 'android') {
+			// Tap on first category
 			await TestHelpers.tapAtPoint('browser-screen', { x: 100, y: 425 });
-		} else {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 100, y: 450 });
+			// Tap on first option
+			await TestHelpers.tapAtPoint('browser-screen', { x: 80, y: 100 });
+			// Tap back button
+			await TestHelpers.waitAndTap('go-back-button');
+			// Tap back button
+			await TestHelpers.waitAndTap('go-back-button');
+			// Wait for page to load
+			await TestHelpers.delay(1000);
+			// Check that we are on the browser screen
+			await TestHelpers.checkIfVisible('browser-screen');
 		}
-		// Tap on first option
-		await TestHelpers.tapAtPoint('browser-screen', { x: 80, y: 100 });
-		// Tap back button
-		await TestHelpers.waitAndTap('go-back-button');
-		// Tap back button
-		await TestHelpers.waitAndTap('go-back-button');
-		// Wait for page to load
-		await TestHelpers.delay(1000);
-		// Check that we are on the browser screen
-		await TestHelpers.checkIfVisible('browser-screen');
 	});
 
 	it('should go to uniswap', async () => {
 		// Tap on home on bottom navbar
-		await TestHelpers.tap('home-button');
+		// await TestHelpers.tap('home-button');
 		// Wait for page to load
-		await TestHelpers.delay(1000);
+		await TestHelpers.delay(3000);
 		// Tap on search in bottom navbar
 		await TestHelpers.tap('search-button');
 		// Navigate to URL
 		if (device.getPlatform() === 'ios') {
+			await TestHelpers.clearField('url-input');
 			await TestHelpers.typeTextAndHideKeyboard('url-input', UNISWAP);
+			await TestHelpers.delay(2000);
 		} else {
+			await TestHelpers.tap('android-cancel-url-button');
 			await TestHelpers.replaceTextInField('url-input', UNISWAP);
 			await element(by.id('url-input')).tapReturnKey();
 		}
 		// Wait for page to load
 		await TestHelpers.delay(5000);
-		// Check that the dapp title is correct
-		await TestHelpers.checkIfElementWithTextIsVisible('uniswap.eth', 0);
+		if (device.getPlatform() === 'android') {
+			// Check that the dapp title is correct
+			await TestHelpers.checkIfElementWithTextIsVisible('app.uniswap.org', 0);
+		}
 		// Tap on CANCEL button
 		await TestHelpers.tap('connect-cancel-button');
 
@@ -139,7 +143,11 @@ describe('Browser Tests', () => {
 		// Wait for page to load
 		await TestHelpers.delay(3000);
 		await TestHelpers.tap('connect-cancel-button');
-
+		// Android has weird behavior where the URL modal stays open, so this closes it
+		// Close URL modal
+		if (device.getPlatform() === 'android') {
+			await device.pressBack();
+		}
 		// Check that we are still on the browser screen
 		await TestHelpers.checkIfVisible('browser-screen');
 	});
@@ -166,7 +174,10 @@ describe('Browser Tests', () => {
 		await TestHelpers.checkIfVisible('browser-screen');
 		// Tap on Favorites tab
 		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 274, y: 227 });
+			// Tap on options
+			await TestHelpers.waitAndTap('options-button');
+			// Open new tab
+			await TestHelpers.tapByText('New tab');
 			await TestHelpers.tapAtPoint('browser-screen', { x: 174, y: 281 });
 			await TestHelpers.delay(1500);
 		} else {
@@ -220,7 +231,7 @@ describe('Browser Tests', () => {
 		await TestHelpers.checkIfVisible('browser-screen');
 		// Tap on empowr from search results
 		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 20, y: 245 });
+			await TestHelpers.tapAtPoint('browser-screen', { x: 60, y: 270 });
 		} else {
 			await TestHelpers.tapAtPoint('browser-screen', { x: 56, y: 284 });
 			await TestHelpers.delay(700);

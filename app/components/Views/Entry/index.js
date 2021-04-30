@@ -76,7 +76,7 @@ const Entry = props => {
 
 	const animation = useRef(null);
 	const animationName = useRef(null);
-	const opacity = new Animated.Value(1);
+	const opacity = useRef(new Animated.Value(1)).current;
 
 	const onAnimationFinished = useCallback(() => {
 		Animated.timing(opacity, {

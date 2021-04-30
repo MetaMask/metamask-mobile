@@ -94,7 +94,6 @@ function TransactionNotification(props) {
 		accounts,
 		currentNotification,
 		isInBrowserView,
-		navigation,
 		notificationAnimated,
 		onClose,
 		transactions,
@@ -179,6 +178,7 @@ function TransactionNotification(props) {
 			const {
 				selectedAddress,
 				ticker,
+				chainId,
 				conversionRate,
 				currentCurrency,
 				exchangeRate,
@@ -194,6 +194,7 @@ function TransactionNotification(props) {
 				tx,
 				selectedAddress,
 				ticker,
+				chainId,
 				conversionRate,
 				currentCurrency,
 				exchangeRate,
@@ -252,7 +253,6 @@ function TransactionNotification(props) {
 							<TransactionDetails
 								transactionObject={tx}
 								transactionDetails={transactionDetails}
-								navigation={navigation}
 								close={onCloseDetails}
 								showSpeedUpModal={onSpeedUpPress}
 								showCancelModal={onCancelPress}
@@ -322,10 +322,6 @@ TransactionNotification.propTypes = {
 	 */
 	accounts: PropTypes.object,
 	/**
-    /* navigation object required to push new views
-    */
-	navigation: PropTypes.object,
-	/**
 	 * An array that represents the user transactions on chain
 	 */
 	transactions: PropTypes.array,
@@ -338,6 +334,10 @@ TransactionNotification.propTypes = {
 	 * Current provider ticker
 	 */
 	ticker: PropTypes.string,
+	/**
+	 * Current provider chainId
+	 */
+	chainId: PropTypes.string,
 	/**
 	 * ETH to current currency conversion rate
 	 */
@@ -374,6 +374,7 @@ const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	tokens: state.engine.backgroundState.AssetsController.tokens.reduce((tokens, token) => {
 		tokens[token.address] = token;
 		return tokens;
