@@ -94,15 +94,13 @@ describe('Start Exploring', () => {
 		// Ensure step 3 is shown correctly
 		await TestHelpers.checkIfVisible('step3-title');
 		// Focus into account 1 name
-		await TestHelpers.tapAndLongPress('account-label');
-		// Clear text
-		await TestHelpers.clearField('account-label-text-input');
-		// Change account name
 		if (device.getPlatform() === 'android') {
+			await TestHelpers.tapAndLongPress('edit-account-label');
+			// Clear text
+			await TestHelpers.clearField('account-label-text-input');
+			// Change account name
 			await TestHelpers.replaceTextInField('account-label-text-input', ACCOUNT);
 			await element(by.id('account-label-text-input')).tapReturnKey();
-		} else {
-			await TestHelpers.typeTextAndHideKeyboard('account-label-text-input', ACCOUNT);
 		}
 		// Check that Got it! CTA is visible and tap it
 		if (!device.getPlatform() === 'android') {
@@ -131,6 +129,14 @@ describe('Start Exploring', () => {
 		await TestHelpers.checkIfVisible('step6-title');
 		// Tap on Back
 		await TestHelpers.tapByText('Back');
+		// Ensure step 5 is shown correctly
+		await TestHelpers.checkIfVisible('step5-title');
+		// Tap on Back
+		await TestHelpers.tapByText('Back');
+		// Ensure step 4 is shown correctly
+		await TestHelpers.checkIfVisible('step4-title');
+		// Check that Got it! CTA is visible and tap it
+		await TestHelpers.tapByText('Got it!');
 		// Ensure step 5 is shown correctly
 		await TestHelpers.checkIfVisible('step5-title');
 		// Check that Got it! CTA is visible and tap it
