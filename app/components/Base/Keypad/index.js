@@ -1,10 +1,10 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import PropTypes from 'prop-types';
 import Keypad from './components';
-import rules from './rules';
 import { KEYS } from './constants';
+import useCurrency from './useCurrency';
 function KeypadComponent({ onChange, value, currency }) {
-	const handler = useMemo(() => rules[currency?.toLowerCase() || 'native'] || rules.native, [currency]);
+	const { handler, decimalSeparator } = useCurrency(currency);
 	const handleKeypadPress = useCallback(
 		pressedKey => {
 			const newValue = handler(value, pressedKey);
@@ -22,7 +22,10 @@ function KeypadComponent({ onChange, value, currency }) {
 	const handleKeypadPress8 = useCallback(() => handleKeypadPress(KEYS.DIGIT_8), [handleKeypadPress]);
 	const handleKeypadPress9 = useCallback(() => handleKeypadPress(KEYS.DIGIT_9), [handleKeypadPress]);
 	const handleKeypadPress0 = useCallback(() => handleKeypadPress(KEYS.DIGIT_0), [handleKeypadPress]);
-	const handleKeypadPressPeriod = useCallback(() => handleKeypadPress(KEYS.PERIOD), [handleKeypadPress]);
+	const handleKeypadPressPeriod = useCallback(() => decimalSeparator && handleKeypadPress(KEYS.PERIOD), [
+		decimalSeparator,
+		handleKeypadPress
+	]);
 	const handleKeypadPressBack = useCallback(() => handleKeypadPress(KEYS.BACK), [handleKeypadPress]);
 	const handleKeypadLongPressBack = useCallback(() => handleKeypadPress(KEYS.INITIAL), [handleKeypadPress]);
 
@@ -44,7 +47,7 @@ function KeypadComponent({ onChange, value, currency }) {
 				<Keypad.Button onPress={handleKeypadPress9}>9</Keypad.Button>
 			</Keypad.Row>
 			<Keypad.Row>
-				<Keypad.Button onPress={handleKeypadPressPeriod}>.</Keypad.Button>
+				<Keypad.Button onPress={handleKeypadPressPeriod}>{decimalSeparator}</Keypad.Button>
 				<Keypad.Button onPress={handleKeypadPress0}>0</Keypad.Button>
 				<Keypad.DeleteButton
 					onPress={handleKeypadPressBack}

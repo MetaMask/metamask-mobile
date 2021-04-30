@@ -1,3 +1,5 @@
+import createKeypadRule from './createKeypadRule';
+
 export const KEYS = {
 	DIGIT_1: '1',
 	DIGIT_2: '2',
@@ -14,5 +16,30 @@ export const KEYS = {
 	INITIAL: 'INITIAL'
 };
 
-// TODO: remove this extra property
-export const TODO = 'remove this';
+export const CURRENCIES = {
+	default: {
+		handler: createKeypadRule({ decimalSeparator: '.' }),
+		symbol: null,
+		decimalSeparator: '.'
+	},
+	native: {
+		handler: createKeypadRule({ decimalSeparator: '.' }),
+		symbol: null,
+		decimalSeparator: '.'
+	},
+	USD: {
+		handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
+		symbol: '$',
+		decimalSeparator: '.'
+	},
+	JPY: {
+		handler: createKeypadRule({ decimalSeparator: null }),
+		symbol: '¥',
+		decimalSeparator: null
+	},
+	CLP: {
+		handler: createKeypadRule({ decimalSeparator: null }),
+		symbol: '$',
+		decimalSeparator: null
+	}
+};

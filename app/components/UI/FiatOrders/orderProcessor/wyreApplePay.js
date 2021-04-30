@@ -116,6 +116,15 @@ export const WYRE_MIN_FEE = 5;
 export const WYRE_FEE_PERCENT = WYRE_IS_PROMOTION ? 0 : WYRE_REGULAR_FEE_PERCENT;
 export const WYRE_FEE_FLAT = WYRE_IS_PROMOTION ? 0 : WYRE_REGULAR_FEE_FLAT;
 
+export const SUPPORTED_COUNTRIES = {
+	US: {
+		name: 'United States',
+		code: 'US',
+		currency: 'USD',
+		label: '🇺🇸'
+	}
+};
+
 const getMerchantIdentifier = network => (network === '1' ? WYRE_MERCHANT_ID : WYRE_MERCHANT_ID_TEST);
 const getPartnerId = network => (network === '1' ? WYRE_ACCOUNT_ID : WYRE_ACCOUNT_ID_TEST);
 
@@ -272,31 +281,31 @@ const PAYMENT_REQUEST_COMPLETE = {
 	FAIL: 'fail'
 };
 
-const getMethodData = network => [
+const getMethodData = (currency, network) => [
 	{
 		supportedMethods: ['apple-pay'],
 		data: {
 			countryCode: 'US',
-			currencyCode: USD_CURRENCY_CODE,
+			currencyCode: currency,
 			supportedNetworks: ['visa', 'mastercard', 'discover'],
 			merchantIdentifier: getMerchantIdentifier(network)
 		}
 	}
 ];
 
-const getPaymentDetails = (cryptoCurrency, amount, fee, total) => ({
+const getPaymentDetails = (cryptoCurrency, currency, amount, fee, total) => ({
 	displayItems: [
 		{
-			amount: { currency: USD_CURRENCY_CODE, value: `${amount}` },
+			amount: { currency, value: `${amount}` },
 			label: strings('fiat_on_ramp.wyre_purchase', { currency: cryptoCurrency })
 		},
 		{
-			amount: { currency: USD_CURRENCY_CODE, value: `${fee}` },
+			amount: { currency, value: `${fee}` },
 			label: strings('fiat_on_ramp.Fee')
 		}
 	],
 	total: {
-		amount: { currency: USD_CURRENCY_CODE, value: `${total}` },
+		amount: { currency, value: `${total}` },
 		label: strings('fiat_on_ramp.wyre_total_label')
 	}
 });
@@ -386,7 +395,7 @@ export function useWyreRates(network, currencies) {
 	return rates;
 }
 
-export function useWyreApplePay(amount, address, network) {
+export function useWyreApplePay(amount, address, currency, network) {
 	const flatFee = useMemo(() => WYRE_FEE_FLAT.toFixed(2), []);
 	const percentFee = useMemo(() => WYRE_FEE_PERCENT.toFixed(2), []);
 	const percentFeeAmount = useMemo(() => ((Number(amount) * Number(percentFee)) / 100).toFixed(2), [
@@ -399,8 +408,9 @@ export function useWyreApplePay(amount, address, network) {
 		return totalFee < WYRE_MIN_FEE ? WYRE_MIN_FEE : totalFee.toFixed(2);
 	}, [flatFee, percentFeeAmount]);
 	const total = useMemo(() => Number(amount) + Number(fee), [amount, fee]);
-	const methodData = useMemo(() => getMethodData(network), [network]);
-	const paymentDetails = useMemo(() => getPaymentDetails(ETH_CURRENCY_CODE, amount, fee, total), [
+	const methodData = useMemo(() => getMethodData(currency, network), [currency, network]);
+	const paymentDetails = useMemo(() => getPaymentDetails(ETH_CURRENCY_CODE, currency, amount, fee, total), [
+		currency,
 		amount,
 		fee,
 		total

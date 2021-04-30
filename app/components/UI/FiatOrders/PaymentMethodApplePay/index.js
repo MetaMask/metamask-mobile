@@ -1,4 +1,4 @@
-import React, { useContext, useState, useCallback } from 'react';
+import React, { useContext, useState, useCallback, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet, Image, TouchableOpacity, InteractionManager, ActivityIndicator } from 'react-native';
 import { NavigationContext } from 'react-navigation';
@@ -28,6 +28,7 @@ import StyledButton from '../../StyledButton';
 import { colors, fontStyles } from '../../../../styles/common';
 import { protectWalletModalVisible } from '../../../../actions/user';
 import { addFiatOrder, fiatOrdersCurrencySelector, setFiatOrdersCurrency } from '../../../../reducers/fiatOrders';
+import useCurrency from '../../../Base/Keypad/useCurrency';
 
 //* styles and components  */
 
@@ -108,12 +109,13 @@ ApplePay.propTypes = {
 	disabled: PropTypes.bool
 };
 
-const QuickAmount = ({ amount, current, ...props }) => {
+const QuickAmount = ({ amount, current, currencySymbol, ...props }) => {
 	const selected = amount === current;
 	return (
 		<TouchableOpacity style={[styles.quickAmount, selected && styles.quickAmountSelected]} {...props}>
 			<Text bold={selected} style={[selected && styles.quickAmountSelectedText]}>
-				${amount}
+				{currencySymbol}
+				{amount}
 			</Text>
 		</TouchableOpacity>
 	);
@@ -121,7 +123,8 @@ const QuickAmount = ({ amount, current, ...props }) => {
 
 QuickAmount.propTypes = {
 	amount: PropTypes.string,
-	current: PropTypes.string
+	current: PropTypes.string,
+	currencySymbol: PropTypes.string
 };
 
 //* Constants */
@@ -146,6 +149,7 @@ function PaymentMethodApplePay({
 }) {
 	const navigation = useContext(NavigationContext);
 	const [amount, setAmount] = useState('0');
+	const { symbol: currencySymbol } = useCurrency(selectedCurrency);
 	const roundAmount =
 		hasZerosAsDecimals.test(amount) || hasZeroAsFirstDecimal.test(amount) || hasPeriodWithoutDecimal.test(amount)
 			? amount.split('.')[0]
@@ -157,7 +161,7 @@ function PaymentMethodApplePay({
 
 	const handleWyreTerms = useWyreTerms(navigation);
 	const rates = useWyreRates(network, `${selectedCurrency}ETH`);
-	const [pay, ABORTED, , , , fee] = useWyreApplePay(roundAmount, selectedAddress, network);
+	const [pay, ABORTED, , , , fee] = useWyreApplePay(roundAmount, selectedAddress, selectedCurrency, network);
 
 	const handlePressApplePay = useCallback(async () => {
 		const prevLockTime = lockTime;
@@ -216,6 +220,10 @@ function PaymentMethodApplePay({
 		[selectedCurrency]
 	);
 
+	useEffect(() => {
+		setAmount('0');
+	}, [selectedCurrency]);
+
 	return (
 		<ScreenView contentContainerStyle={styles.screen}>
 			<View>
@@ -227,7 +235,8 @@ function PaymentMethodApplePay({
 						numberOfLines={1}
 						adjustsFontSizeToFit
 					>
-						${amount}
+						{currencySymbol}
+						{amount}
 					</Text>
 					{!(isUnderMinimum || isOverMaximum) &&
 						(rates && rates?.[selectedCurrency] ? (
@@ -248,11 +257,17 @@ function PaymentMethodApplePay({
 							<ActivityIndicator size="small" />
 						))}
 					{isUnderMinimum && (
-						<Text>{strings('fiat_on_ramp.wyre_minimum_deposit', { amount: `$${minAmount}` })}</Text>
+						<Text>
+							{strings('fiat_on_ramp.wyre_minimum_deposit', {
+								amount: `${currencySymbol || ''}${minAmount}`
+							})}
+						</Text>
 					)}
 					{isOverMaximum && (
 						<Text style={styles.amountError}>
-							{strings('fiat_on_ramp.wyre_maximum_deposit', { amount: `$${maxAmount}` })}
+							{strings('fiat_on_ramp.wyre_maximum_deposit', {
+								amount: `${currencySymbol || ''}${maxAmount}`
+							})}
 						</Text>
 					)}
 				</View>
@@ -263,6 +278,7 @@ function PaymentMethodApplePay({
 								key={quickAmount}
 								amount={quickAmount}
 								current={roundAmount}
+								currencySymbol={currencySymbol}
 								// eslint-disable-next-line react/jsx-no-bind
 								onPress={() => handleQuickAmountPress(quickAmount)}
 							/>
@@ -271,7 +287,7 @@ function PaymentMethodApplePay({
 				)}
 			</View>
 			<View style={styles.content}>
-				<Keypad currency="usd" onChange={handleKeypadChange} value={amount} />
+				<Keypad currency={selectedCurrency} onChange={handleKeypadChange} value={amount} />
 				<View style={styles.buttonContainer}>
 					<StyledButton
 						type="blue"
