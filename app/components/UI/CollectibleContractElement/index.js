@@ -8,6 +8,7 @@ import Device from '../../../util/Device';
 import { NavigationContext } from 'react-navigation';
 
 const DEVICE_WIDTH = Device.getDeviceWidth();
+const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
 
 const styles = StyleSheet.create({
 	itemWrapper: {
@@ -30,12 +31,10 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	collectibleIcon: {
-		width: (DEVICE_WIDTH - 30 - 16) / 3,
-		height: (DEVICE_WIDTH - 30 - 16) / 3
+		width: COLLECTIBLE_WIDTH,
+		height: COLLECTIBLE_WIDTH
 	},
 	collectibleInTheMiddle: {
-		width: (DEVICE_WIDTH - 30 - 16) / 3,
-		height: (DEVICE_WIDTH - 30 - 16) / 3,
 		marginHorizontal: 8
 	},
 	collectiblesRowContainer: {
@@ -86,9 +85,7 @@ export default function CollectibleContractElement({ asset, contractCollectibles
 					<TouchableOpacity onPress={onPress}>
 						<CollectibleImage
 							iconStyle={styles.collectibleIcon}
-							containerStyle={
-								index - (1 % 3) === 0 ? styles.collectibleInTheMiddle : styles.collectibleIcon
-							}
+							containerStyle={[styles.collectibleIcon, index === 1 ? styles.collectibleInTheMiddle : {}]}
 							collectible={collectible}
 						/>
 					</TouchableOpacity>
@@ -99,7 +96,7 @@ export default function CollectibleContractElement({ asset, contractCollectibles
 	);
 
 	useEffect(() => {
-		const temp = splitIntoSubArrays(contractCollectibles, 3);
+		const temp = splitIntoSubArrays(contractCollectibles.concat(contractCollectibles), 3);
 		setCollectiblesGrid(temp);
 	}, [contractCollectibles, setCollectiblesGrid]);
 
