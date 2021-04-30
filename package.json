@@ -75,7 +75,7 @@
   "dependencies": {
     "@exodus/react-native-payments": "https://github.com/wachunei/react-native-payments.git#package-json-hack",
     "@metamask/contract-metadata": "^1.23.0",
-    "@metamask/controllers": "../gaba/metamask-controllers-v8.0.1.tgz",
+    "@metamask/controllers": "./metamask-controllers-v8.0.2.tgz",
     "@metamask/etherscan-link": "^2.0.0",
     "@metamask/swaps-controller": "^4.0.0",
     "@react-native-community/async-storage": "1.12.1",
