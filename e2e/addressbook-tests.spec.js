@@ -2,6 +2,7 @@
 import TestHelpers from './helpers';
 
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
+const TETHER_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
 const MYTH_ADDRESS = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
 const MEMO = 'Test adding ENS';
 const PASSWORD = '12345678';
@@ -84,12 +85,12 @@ describe('Addressbook Tests', () => {
 	it('should go to send view', async () => {
 		// Check that we are on the wallet screen
 		await TestHelpers.checkIfVisible('wallet-screen');
-		// Tap on ETH asset
-		await TestHelpers.waitAndTap('eth-logo');
-		// Check that we are on the token overview screen
-		await TestHelpers.checkIfVisible('token-asset-overview');
+		// Open Drawer
+		await TestHelpers.tap('hamburger-menu-button-wallet');
+		// Check that the drawer is visbile
+		await TestHelpers.checkIfVisible('drawer-screen');
 		// Tap on Send button
-		await TestHelpers.tapByText('SEND');
+		await TestHelpers.tap('drawer-send-button');
 		// Check that we are on the send screen
 		await TestHelpers.checkIfVisible('send-screen');
 		// Make sure view with my accounts visible
@@ -97,15 +98,26 @@ describe('Addressbook Tests', () => {
 	});
 
 	it('should input a valid address to send to', async () => {
-		// Input incorrect address
+		// Input incorrect address Currently commented out until https://github.com/MetaMask/metamask-mobile/issues/2533 is fixed
+		// if (device.getPlatform() === 'android') {
+		// 	await TestHelpers.replaceTextInField('txn-to-address-input', INVALID_ADDRESS);
+		// 	await element(by.id('txn-to-address-input')).tapReturnKey();
+		// } else {
+		// 	await TestHelpers.typeTextAndHideKeyboard('txn-to-address-input', INVALID_ADDRESS);
+		// }
+		// // Check that the error is displayed
+		// await TestHelpers.checkIfVisible('address-error');
+		//Input token address to test for error
 		if (device.getPlatform() === 'android') {
-			await TestHelpers.replaceTextInField('txn-to-address-input', INVALID_ADDRESS);
-			await element(by.id('txn-to-address-input')).tapReturnKey();
+			await TestHelpers.replaceTextInField('txn-to-address-input', TETHER_ADDRESS);
 		} else {
-			await TestHelpers.typeTextAndHideKeyboard('txn-to-address-input', INVALID_ADDRESS);
+			await TestHelpers.typeTextAndHideKeyboard('txn-to-address-input', TETHER_ADDRESS);
 		}
 		// Check that the error is displayed
 		await TestHelpers.checkIfVisible('address-error');
+		// Tap x to remove address
+		await TestHelpers.tap('clear-address-button');
+		await TestHelpers.delay(1000);
 		// Input valid myth address
 		if (device.getPlatform() === 'android') {
 			await TestHelpers.replaceTextInField('txn-to-address-input', MYTH_ADDRESS);
@@ -142,8 +154,6 @@ describe('Addressbook Tests', () => {
 	it('should go to settings then select contacts', async () => {
 		// Tap on cancel button
 		await TestHelpers.tap('send-cancel-button');
-		// Tap on back button to proceed to wallet view
-		await TestHelpers.tap('asset-back-button');
 		// Check that we are on the wallet screen
 		await TestHelpers.checkIfVisible('wallet-screen');
 		// Open Drawer
@@ -186,11 +196,10 @@ describe('Addressbook Tests', () => {
 		await TestHelpers.replaceTextInField('contact-memo-input', MEMO);
 		// Tap add contact button
 		if (device.getPlatform() === 'android') {
-			await TestHelpers.tapByText('Add contact');
-			await TestHelpers.delay(1000);
-			await TestHelpers.tapByText('Add contact');
-		} else {
 			await TestHelpers.tap('contact-add-contact-button');
+			await TestHelpers.delay(700);
+			await TestHelpers.tap('contact-add-contact-button');
+		} else {
 			await TestHelpers.tap('contact-add-contact-button');
 		}
 		// Check that we are on the contacts screen
@@ -208,6 +217,9 @@ describe('Addressbook Tests', () => {
 		await TestHelpers.replaceTextInField('contact-name-input', 'Moon');
 		// Tap on Edit contact button
 		await TestHelpers.tapByText('Edit contact');
+		if (device.getPlatform() === 'ios') {
+			await TestHelpers.tapByText('Edit contact');
+		}
 		// Check that we are on the contacts screen
 		await TestHelpers.checkIfVisible('contacts-screen');
 		// Check that Ibrahim address is saved in the address book
@@ -223,8 +235,11 @@ describe('Addressbook Tests', () => {
 		await TestHelpers.tapByText('Edit');
 		// Tap on Delete
 		await TestHelpers.tapByText('Delete');
-		// Tap on Delete
-		await TestHelpers.tapByText('Delete');
+		if (device.getPlatform() === 'ios') {
+			await TestHelpers.tapByText('Delete', 1);
+		} else {
+			await TestHelpers.tapByText('Delete');
+		}
 		// Ensure Moon is not visible
 		await TestHelpers.checkIfElementWithTextIsNotVisible('Moon');
 	});
@@ -234,7 +249,7 @@ describe('Addressbook Tests', () => {
 		await TestHelpers.tap('title-back-arrow-button');
 		// tap to get out of settings view
 		if (device.getPlatform() === 'android') {
-			await device.pressBack();
+			await TestHelpers.tap('nav-android-back');
 		} else {
 			await TestHelpers.tapByText('Close');
 		}

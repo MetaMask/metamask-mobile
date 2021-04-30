@@ -83,10 +83,6 @@ class TransactionElement extends PureComponent {
 	static propTypes = {
 		assetSymbol: PropTypes.string,
 		/**
-		/* navigation object required to push new views
-		*/
-		navigation: PropTypes.object,
-		/**
 		 * Asset object (in this case ERC721 token)
 		 */
 		tx: PropTypes.object,
@@ -347,7 +343,6 @@ class TransactionElement extends PureComponent {
 						<TransactionDetails
 							transactionObject={tx}
 							transactionDetails={transactionDetails}
-							navigation={this.props.navigation}
 							close={this.onCloseDetailsModal}
 						/>
 					</DetailsModal>
