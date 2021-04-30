@@ -66,7 +66,7 @@ function CollectibleContracts({ collectibleContracts, collectibles, navigation }
 		</View>
 	);
 
-	const renderCollectibleContract = item => {
+	const renderCollectibleContract = (item, index) => {
 		const contractCollectibles = collectibles?.filter(
 			collectible => collectible.address.toLowerCase() === item.address.toLowerCase()
 		);
@@ -76,11 +76,14 @@ function CollectibleContracts({ collectibleContracts, collectibles, navigation }
 				asset={item}
 				key={item.address}
 				contractCollectibles={contractCollectibles}
+				collectiblesVisible={index === 0}
 			/>
 		);
 	};
 
-	const renderList = () => <View>{collectibleContracts.map(item => renderCollectibleContract(item))}</View>;
+	const renderList = () => (
+		<View>{collectibleContracts.map((item, index) => renderCollectibleContract(item, index))}</View>
+	);
 
 	const renderEmpty = () => (
 		<View style={styles.emptyView}>

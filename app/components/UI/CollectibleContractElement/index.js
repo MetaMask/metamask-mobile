@@ -59,10 +59,14 @@ const splitIntoSubArrays = (array, count) => {
 /**
  * Customizable view to render assets in lists
  */
-export default function CollectibleContractElement({ asset, contractCollectibles }) {
+export default function CollectibleContractElement({
+	asset,
+	contractCollectibles,
+	collectiblesVisible: propsCollectiblesVisible
+}) {
 	const navigation = useContext(NavigationContext);
 	const [collectiblesGrid, setCollectiblesGrid] = useState([]);
-	const [collectiblesVisible, setCollectiblesVisible] = useState(true);
+	const [collectiblesVisible, setCollectiblesVisible] = useState(propsCollectiblesVisible);
 
 	const toggleCollectibles = useCallback(() => {
 		setCollectiblesVisible(!collectiblesVisible);
@@ -143,5 +147,9 @@ CollectibleContractElement.propTypes = {
 	/**
 	 * Array of collectibles
 	 */
-	contractCollectibles: PropTypes.array
+	contractCollectibles: PropTypes.array,
+	/**
+	 * Whether the collectibles are visible or not
+	 */
+	collectiblesVisible: PropTypes.bool
 };
