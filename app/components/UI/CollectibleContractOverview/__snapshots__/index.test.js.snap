@@ -29,6 +29,7 @@ exports[`CollectibleContractOverview should render correctly 1`] = `
           "image": undefined,
         }
       }
+      small={true}
     />
   </View>
   <View

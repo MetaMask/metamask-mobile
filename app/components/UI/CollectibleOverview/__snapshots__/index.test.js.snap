@@ -20,6 +20,7 @@ exports[`CollectibleOverview should render correctly 1`] = `
   >
     <View>
       <CollectibleMedia
+        big={true}
         collectible={
           Object {
             "address": "0x06012c8cf97BEaD5deAe237070F9587f8E7A266d",
@@ -27,7 +28,6 @@ exports[`CollectibleOverview should render correctly 1`] = `
             "tokenId": 6904,
           }
         }
-        renderFull={true}
       />
     </View>
   </View>

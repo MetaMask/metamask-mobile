@@ -5,38 +5,16 @@ exports[`CollectibleMedia should render correctly 1`] = `
   style={
     Array [
       Object {
-        "borderRadius": 10,
-        "height": 50,
-        "overflow": "hidden",
-        "width": 50,
+        "borderRadius": 8,
       },
-      undefined,
+      Object {
+        "backgroundColor": "#undefined",
+      },
     ]
   }
 >
-  <RemoteImage
-    fadeIn={true}
-    onError={[Function]}
-    placeholderStyle={
-      Object {
-        "backgroundColor": "#FFFFFF",
-      }
-    }
-    resizeMode="contain"
-    source={
-      Object {
-        "uri": "IMAGE",
-      }
-    }
-    style={
-      Array [
-        Object {
-          "height": 50,
-          "width": 50,
-        },
-        undefined,
-      ]
-    }
+  <Connect(Component)
+    address="0x123123"
   />
 </View>
 `;

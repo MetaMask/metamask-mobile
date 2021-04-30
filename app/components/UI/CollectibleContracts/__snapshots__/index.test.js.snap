@@ -42,6 +42,7 @@ exports[`CollectibleContracts should render correctly 1`] = `
               "name": "name",
             }
           }
+          small={true}
         />
         <View
           style={
