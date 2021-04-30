@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
-import { View, StyleSheet, ActivityIndicator, TouchableOpacity, InteractionManager } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, TouchableOpacity, InteractionManager, Linking } from 'react-native';
 import { connect } from 'react-redux';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -20,7 +20,7 @@ import {
 	toWei,
 	weiToFiat
 } from '../../../util/number';
-import { isMainNet } from '../../../util/networks';
+import { isMainNet, isMainnetByChainId } from '../../../util/networks';
 import { safeToChecksumAddress } from '../../../util/address';
 import { getErrorMessage, getFetchParams, getQuotesNavigationsParams, isSwapsNativeAsset } from './utils';
 import { colors } from '../../../styles/common';
@@ -168,7 +168,8 @@ const styles = StyleSheet.create({
 	quotesLegend: {
 		flexDirection: 'row',
 		flexWrap: 'wrap',
-		marginRight: 2
+		marginRight: 2,
+		alignItems: 'center'
 	},
 	quotesFiatColumn: {
 		flex: 1,
@@ -199,6 +200,18 @@ const styles = StyleSheet.create({
 	termsButton: {
 		marginTop: 10,
 		marginBottom: 6
+	},
+	gasInfoContainer: {
+		paddingHorizontal: 2
+	},
+	gasInfoIcon: {
+		color: colors.blue
+	},
+	hitSlop: {
+		top: 10,
+		left: 10,
+		bottom: 10,
+		right: 10
 	}
 });
 
@@ -300,6 +313,7 @@ function SwapsQuotesView({
 	const [trackedRequestedQuotes, setTrackedRequestedQuotes] = useState(false);
 	const [trackedReceivedQuotes, setTrackedReceivedQuotes] = useState(false);
 	const [trackedError, setTrackedError] = useState(false);
+	const [showGasTooltip, setShowGasTooltip] = useState(false);
 
 	/* Selected quote, initially topAggId (see effects) */
 	const [selectedQuoteId, setSelectedQuoteId] = useState(null);
@@ -972,6 +986,43 @@ function SwapsQuotesView({
 		handleQuotesErrorMetric(error);
 	}, [error, handleQuotesErrorMetric, trackedError]);
 
+	const openLinkAboutGas = () => Linking.openURL('https://ethereum.org/en/developers/docs/gas/');
+
+	const toggleGasTooltip = () => setShowGasTooltip(showGasTooltip => !showGasTooltip);
+
+	const renderGasTooltip = () => {
+		const isMainnet = isMainnetByChainId(chainId);
+		return (
+			<InfoModal
+				isVisible={showGasTooltip}
+				title={strings(`swaps.gas_education_title`)}
+				toggleModal={toggleGasTooltip}
+				body={
+					<View>
+						<Text grey infoModal>
+							{strings('swaps.gas_education_1')}
+							{strings(`swaps.gas_education_2${isMainnet ? '_ethereum' : ''}`)}{' '}
+							<Text bold>{strings('swaps.gas_education_3')}</Text>
+						</Text>
+						<Text grey infoModal>
+							{strings('swaps.gas_education_4')} <Text bold>{strings('swaps.gas_education_5')} </Text>
+							{strings('swaps.gas_education_6')}
+						</Text>
+						<Text grey infoModal>
+							<Text bold>{strings('swaps.gas_education_7')} </Text>
+							{strings('swaps.gas_education_8')}
+						</Text>
+						<TouchableOpacity onPress={openLinkAboutGas}>
+							<Text grey link infoModal>
+								{strings('swaps.gas_education_learn_more')}
+							</Text>
+						</TouchableOpacity>
+					</View>
+				}
+			/>
+		);
+	};
+
 	/* Rendering */
 	if (isFirstLoad || (!error?.key && !selectedQuote)) {
 		return (
@@ -1209,6 +1260,17 @@ function SwapsQuotesView({
 										<Text primary bold>
 											{strings('swaps.estimated_gas_fee')}
 										</Text>
+										<TouchableOpacity
+											style={styles.gasInfoContainer}
+											onPress={toggleGasTooltip}
+											hitSlop={styles.hitSlop}
+										>
+											<MaterialCommunityIcons
+												name="information"
+												size={13}
+												style={styles.gasInfoIcon}
+											/>
+										</TouchableOpacity>
 									</View>
 								</View>
 								<View style={styles.quotesFiatColumn}>
@@ -1355,6 +1417,7 @@ function SwapsQuotesView({
 				sourceToken={sourceToken}
 				chainId={chainId}
 			/>
+			{renderGasTooltip()}
 		</ScreenView>
 	);
 }

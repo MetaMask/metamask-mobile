@@ -673,9 +673,11 @@
 		"continueError": "I understand the risks, continue",
 		"gas_education_title_ethereum": "Ethereum gas fees",
 		"gas_education_title": "Gas fees",
-		"gas_education_1": "Gas fees are paid to crypto miners who process transactions on the Ethereum network.",
-		"gas_education_2": "MetaMask does not profit from gas fees.",
-		"gas_education_3": "Gas fees fluctuate based on network traffic and transaction complexitity.",
+		"gas_education_1": "Gas fees are paid to crypto miners who process transactions on the ",
+		"gas_education_2_ethereum": "Ethereum network.",
+		"gas_education_2": "network.",
+		"gas_education_3": "MetaMask does not profit from gas fees.",
+		"gas_education_4": "Gas fees fluctuate based on network traffic and transaction complexitity.",
 		"gas_education_learn_more": "Learn more about gas fees"
 	},
 	"custom_gas": {
@@ -1484,7 +1486,18 @@
 			"swap_confirmed": "Swap complete ({{sourceToken}} to {{destinationToken}})",
 			"approve_pending": "Approving {{sourceToken}} for swaps",
 			"approve_confirmed": "{{sourceToken}} approved for swaps"
-		}
+		},
+		"gas_education_title": "Estimated gas fees",
+		"gas_education_1": "Gas fees are paid to crypto miners who process transactions on the ",
+		"gas_education_2_ethereum": "Ethereum network.",
+		"gas_education_2": "network.",
+		"gas_education_3": "MetaMask does not profit from gas fees.",
+		"gas_education_4": "The",
+		"gas_education_5": "“Estimated gas fee”",
+		"gas_education_6": "is what we expect the actual fee to be. The exact amount depends on network conditions.",
+		"gas_education_7": "“Max gas fee”",
+		"gas_education_8": "is the most you’ll spend. When the network is volatile this can be a large amount.",
+		"gas_education_learn_more": "Learn more about gas fees"
 	},
 	"protect_wallet_modal": {
 		"title": "Protect your wallet",

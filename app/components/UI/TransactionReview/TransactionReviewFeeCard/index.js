@@ -8,7 +8,7 @@ import Text from '../../../Base/Text';
 import InfoModal from '../../../UI/Swaps/components/InfoModal';
 import { isMainnetByChainId } from '../../../../util/networks';
 import { connect } from 'react-redux';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const styles = StyleSheet.create({
 	overview: {
@@ -41,8 +41,11 @@ const styles = StyleSheet.create({
 		flex: 1,
 		flexDirection: 'row'
 	},
-	gasInfoIcon: {
+	gasInfoContainer: {
 		paddingHorizontal: 2
+	},
+	gasInfoIcon: {
+		color: colors.blue
 	},
 	amountContainer: {
 		flex: 1
@@ -153,20 +156,17 @@ class TransactionReviewFeeCard extends PureComponent {
 		return (
 			<InfoModal
 				isVisible={this.state.showGasTooltip}
-				title={
-					isMainnet
-						? strings('transaction.gas_education_title_ethereum')
-						: strings('transaction.gas_education_title')
-				}
+				title={strings(`transaction.gas_education_title${isMainnet ? '_ethereum' : ''}`)}
 				toggleModal={this.toggleGasTooltip}
 				body={
 					<View>
 						<Text grey infoModal>
-							{strings('transaction.gas_education_1')}{' '}
-							<Text bold>{strings('transaction.gas_education_2')}</Text>
+							{strings('transaction.gas_education_1')}
+							{strings(`transaction.gas_education_2${isMainnet ? '_ethereum' : ''}`)}{' '}
+							<Text bold>{strings('transaction.gas_education_3')}</Text>
 						</Text>
 						<Text grey infoModal>
-							{strings('transaction.gas_education_3')}
+							{strings('transaction.gas_education_4')}
 						</Text>
 						<TouchableOpacity onPress={this.openLinkAboutGas}>
 							<Text grey link infoModal>
@@ -240,11 +240,11 @@ class TransactionReviewFeeCard extends PureComponent {
 									{strings('transaction.gas_fee')}
 								</Text>
 								<TouchableOpacity
-									style={styles.gasInfoIcon}
+									style={styles.gasInfoContainer}
 									onPress={this.toggleGasTooltip}
 									hitSlop={styles.hitSlop}
 								>
-									<MaterialIcon name="info" size={13} style={{ color: colors.blue }} />
+									<MaterialCommunityIcons name="information" size={13} style={styles.gasInfoIcon} />
 								</TouchableOpacity>
 							</View>
 						</View>
