@@ -5,10 +5,6 @@ import AndroidMediaPlayer from './AndroidMediaPlayer';
 import Video from 'react-native-video';
 import Device from '../../../util/Device';
 
-// const styles = StyleSheet.create({
-
-// });
-
 function MediaPlayer({ uri, style }) {
 	return (
 		<View style={[style]}>
