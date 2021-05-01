@@ -21,7 +21,8 @@ import {
 
 import ScreenView from '../components/ScreenView';
 import { getPaymentMethodApplePayNavbar } from '../../Navbar';
-import AccountBar from '../components/AccountBar';
+import AccountSelector from '../components/AccountSelector';
+import CountrySelector from '../components/CountrySelector';
 import Keypad, { KEYS } from '../../../Base/Keypad';
 import Text from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
@@ -37,8 +38,18 @@ const styles = StyleSheet.create({
 		flexGrow: 1,
 		justifyContent: 'space-between'
 	},
+	selectors: {
+		flexDirection: 'row',
+		marginTop: Device.isIphone5() ? 12 : 18,
+		marginHorizontal: 25,
+		justifyContent: 'space-between',
+		alignItems: 'center'
+	},
+	spacer: {
+		minWidth: 8
+	},
 	amountContainer: {
-		margin: Device.isIphone5() ? 0 : 10,
+		margin: Device.isIphone5() ? 0 : 12,
 		padding: Device.isMediumDevice() ? (Device.isIphone5() ? 5 : 10) : 15,
 		alignItems: 'center',
 		justifyContent: 'center'
@@ -227,7 +238,11 @@ function PaymentMethodApplePay({
 	return (
 		<ScreenView contentContainerStyle={styles.screen}>
 			<View>
-				<AccountBar />
+				<View style={styles.selectors}>
+					<AccountSelector />
+					<View style={styles.spacer} />
+					<CountrySelector selectedCurrency={selectedCurrency} setCurrency={setFiatOrdersCurrency} />
+				</View>
 				<View style={styles.amountContainer}>
 					<Text
 						title

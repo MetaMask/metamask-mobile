@@ -5,9 +5,7 @@ function hasDecimals(decimalPlaces) {
 	return new RegExp(`^\\d+\\.\\d{${decimalPlaces}}$`, 'g');
 }
 
-export default function createKeypadRule(
-	{ decimalSeparator = null, decimals = null } = { decimalSeparator: null, decimals: null }
-) {
+export default function createKeypadRule({ decimalSeparator = null, decimals = null } = {}) {
 	return function handler(currentAmount, inputKey) {
 		switch (inputKey) {
 			case KEYS.PERIOD: {
