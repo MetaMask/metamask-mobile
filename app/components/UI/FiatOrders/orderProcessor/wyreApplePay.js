@@ -5,6 +5,7 @@ import AppConstants from '../../../../core/AppConstants';
 import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
 import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../../../reducers/fiatOrders';
+import useCurrency from '../../../Base/Keypad/useCurrency';
 
 //* env vars
 
@@ -117,11 +118,35 @@ export const WYRE_FEE_PERCENT = WYRE_IS_PROMOTION ? 0 : WYRE_REGULAR_FEE_PERCENT
 export const WYRE_FEE_FLAT = WYRE_IS_PROMOTION ? 0 : WYRE_REGULAR_FEE_FLAT;
 
 export const SUPPORTED_COUNTRIES = {
+	AT: {
+		code: 'AT',
+		currency: 'EUR',
+		label: '🇦🇹',
+		name: 'Austria'
+	},
+	AU: {
+		code: 'AU',
+		currency: 'AUD',
+		label: '🇦🇺',
+		name: 'Australia'
+	},
+	GB: {
+		code: 'GB',
+		currency: 'GBP',
+		label: '🇬🇧',
+		name: 'United Kingdom'
+	},
+	JP: {
+		code: 'JP',
+		currency: 'JPY',
+		label: '🇯🇵',
+		name: 'Japan'
+	},
 	US: {
-		name: 'United States',
 		code: 'US',
 		currency: 'USD',
-		label: '🇺🇸'
+		label: '🇺🇸',
+		name: 'United States'
 	}
 };
 
@@ -375,6 +400,14 @@ const createPayload = (network, amount, address, paymentDetails) => {
 };
 
 // * Hooks */
+
+export function useCountryCurrency(country) {
+	const currency = useMemo(() => SUPPORTED_COUNTRIES[country]?.currency, [country]);
+	return {
+		...useCurrency(currency),
+		currency
+	};
+}
 
 export function useWyreRates(network, currencies) {
 	const [rates, setRates] = useState(null);

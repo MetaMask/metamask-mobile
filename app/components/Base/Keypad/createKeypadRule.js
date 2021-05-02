@@ -1,25 +1,27 @@
 import { KEYS } from './constants';
 
 const hasOneDigit = /^\d$/;
-function hasDecimals(decimalPlaces) {
-	return new RegExp(`^\\d+\\.\\d{${decimalPlaces}}$`, 'g');
+function hasDecimals(separator, decimalPlaces) {
+	return new RegExp(`^\\d+\\${separator}\\d{${decimalPlaces}}$`, 'g');
 }
 
 export default function createKeypadRule({ decimalSeparator = null, decimals = null } = {}) {
 	return function handler(currentAmount, inputKey) {
+		if (!currentAmount) {
+			currentAmount = '0';
+		}
+
 		switch (inputKey) {
 			case KEYS.PERIOD: {
-				if (!decimalSeparator || decimals === 0) {
+				if (!decimalSeparator || decimals === 0 || decimals === false) {
 					return currentAmount;
 				}
+
 				if (currentAmount.includes(decimalSeparator)) {
 					return currentAmount;
 				}
-				if (currentAmount === '0') {
-					return `${currentAmount}${decimalSeparator}`;
-				}
 
-				return `${currentAmount}.`;
+				return `${currentAmount}${decimalSeparator}`;
 			}
 			case KEYS.BACK: {
 				if (currentAmount === '0') {
@@ -34,16 +36,7 @@ export default function createKeypadRule({ decimalSeparator = null, decimals = n
 			case KEYS.INITIAL: {
 				return '0';
 			}
-			case KEYS.DIGIT_0: {
-				if (currentAmount === '0') {
-					return currentAmount;
-				}
-				if (hasDecimals(decimals).test(currentAmount)) {
-					return currentAmount;
-				}
-
-				return `${currentAmount}${inputKey}`;
-			}
+			case KEYS.DIGIT_0:
 			case KEYS.DIGIT_1:
 			case KEYS.DIGIT_2:
 			case KEYS.DIGIT_3:
@@ -56,7 +49,8 @@ export default function createKeypadRule({ decimalSeparator = null, decimals = n
 				if (currentAmount === '0') {
 					return inputKey;
 				}
-				if (hasDecimals(2).test(currentAmount)) {
+
+				if (hasDecimals(decimalSeparator, decimals).test(currentAmount)) {
 					return currentAmount;
 				}
 

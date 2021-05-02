@@ -17,29 +17,44 @@ export const KEYS = {
 };
 
 export const CURRENCIES = {
-	default: {
-		handler: createKeypadRule({ decimalSeparator: '.' }),
-		symbol: null,
-		decimalSeparator: '.'
-	},
-	native: {
-		handler: createKeypadRule({ decimalSeparator: '.' }),
-		symbol: null,
-		decimalSeparator: '.'
-	},
-	USD: {
+	AUD: {
+		decimalSeparator: '.',
 		handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
-		symbol: '$',
-		decimalSeparator: '.'
-	},
-	JPY: {
-		handler: createKeypadRule({ decimalSeparator: null }),
-		symbol: '¥',
-		decimalSeparator: null
+		symbol: '$'
 	},
 	CLP: {
+		decimalSeparator: null,
 		handler: createKeypadRule({ decimalSeparator: null }),
-		symbol: '$',
-		decimalSeparator: null
+		symbol: '$'
+	},
+	default: {
+		decimalSeparator: '.',
+		handler: createKeypadRule({ decimalSeparator: '.' }),
+		symbol: null
+	},
+	EUR: {
+		decimalSeparator: ',',
+		handler: createKeypadRule({ decimalSeparator: ',', decimals: 2 }),
+		symbol: '€'
+	},
+	GBP: {
+		decimalSeparator: '.',
+		handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
+		symbol: '£'
+	},
+	JPY: {
+		decimalSeparator: null,
+		handler: createKeypadRule({ decimalSeparator: null }),
+		symbol: '¥'
+	},
+	native: {
+		decimalSeparator: '.',
+		handler: createKeypadRule({ decimalSeparator: '.' }),
+		symbol: null
+	},
+	USD: {
+		decimalSeparator: '.',
+		handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
+		symbol: '$'
 	}
 };

@@ -1,4 +1,4 @@
-import React, { useContext, useState, useCallback, useEffect } from 'react';
+import React, { useContext, useState, useCallback, useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet, Image, TouchableOpacity, InteractionManager, ActivityIndicator } from 'react-native';
 import { NavigationContext } from 'react-navigation';
@@ -16,7 +16,8 @@ import {
 	useWyreApplePay,
 	WyreException,
 	WYRE_IS_PROMOTION,
-	WYRE_FEE_PERCENT
+	WYRE_FEE_PERCENT,
+	useCountryCurrency
 } from '../orderProcessor/wyreApplePay';
 
 import ScreenView from '../components/ScreenView';
@@ -28,8 +29,7 @@ import Text from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
 import { colors, fontStyles } from '../../../../styles/common';
 import { protectWalletModalVisible } from '../../../../actions/user';
-import { addFiatOrder, fiatOrdersCurrencySelector, setFiatOrdersCurrency } from '../../../../reducers/fiatOrders';
-import useCurrency from '../../../Base/Keypad/useCurrency';
+import { addFiatOrder, fiatOrdersCountrySelector, setFiatOrdersCountry } from '../../../../reducers/fiatOrders';
 
 //* styles and components  */
 
@@ -153,18 +153,27 @@ function PaymentMethodApplePay({
 	setLockTime,
 	selectedAddress,
 	network,
-	selectedCurrency,
+	selectedCountry,
 	addOrder,
-	setFiatOrdersCurrency,
+	setFiatOrdersCountry,
 	protectWalletModalVisible
 }) {
 	const navigation = useContext(NavigationContext);
 	const [amount, setAmount] = useState('0');
-	const { symbol: currencySymbol } = useCurrency(selectedCurrency);
-	const roundAmount =
-		hasZerosAsDecimals.test(amount) || hasZeroAsFirstDecimal.test(amount) || hasPeriodWithoutDecimal.test(amount)
-			? amount.split('.')[0]
-			: amount;
+	const { symbol: currencySymbol, decimalSeparator, currency: selectedCurrency } = useCountryCurrency(
+		selectedCountry
+	);
+	const amountWithPeriod = useMemo(() => amount.replace(decimalSeparator, '.'), [amount, decimalSeparator]);
+	const roundAmount = useMemo(
+		() =>
+			hasZerosAsDecimals.test(amountWithPeriod) ||
+			hasZeroAsFirstDecimal.test(amountWithPeriod) ||
+			hasPeriodWithoutDecimal.test(amountWithPeriod)
+				? amountWithPeriod.split('.')[0]
+				: amountWithPeriod,
+		[amountWithPeriod]
+	);
+
 	const isUnderMinimum = (amount !== '0' || Number(roundAmount) !== 0) && Number(roundAmount) < minAmount;
 
 	const isOverMaximum = Number(roundAmount) > maxAmount;
@@ -236,12 +245,12 @@ function PaymentMethodApplePay({
 	}, [selectedCurrency]);
 
 	return (
-		<ScreenView contentContainerStyle={styles.screen}>
+		<ScreenView contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
 			<View>
 				<View style={styles.selectors}>
 					<AccountSelector />
 					<View style={styles.spacer} />
-					<CountrySelector selectedCurrency={selectedCurrency} setCurrency={setFiatOrdersCurrency} />
+					<CountrySelector selectedCountry={selectedCountry} setCountry={setFiatOrdersCountry} />
 				</View>
 				<View style={styles.amountContainer}>
 					<Text
@@ -262,7 +271,7 @@ function PaymentMethodApplePay({
 									<>
 										{strings('fiat_on_ramp.wyre_estimated', {
 											currency: 'ETH',
-											amount: (amount * rates.ETH).toFixed(5)
+											amount: (amountWithPeriod * rates.ETH).toFixed(5)
 										})}
 									</>
 								)}
@@ -369,13 +378,13 @@ PaymentMethodApplePay.propTypes = {
 	 */
 	network: PropTypes.string.isRequired,
 	/**
-	 * Currently selected network
+	 * Currently selected country
 	 */
-	selectedCurrency: PropTypes.string.isRequired,
+	selectedCountry: PropTypes.string.isRequired,
 	/**
-	 * Function to dispatch setting a fiat order currency to the state
+	 * Function to dispatch setting a fiat order country to the state
 	 */
-	setFiatOrdersCurrency: PropTypes.func.isRequired,
+	setFiatOrdersCountry: PropTypes.func.isRequired,
 	/**
 	 * Function to dispatch adding a new fiat order to the state
 	 */
@@ -392,13 +401,13 @@ const mapStateToProps = state => ({
 	lockTime: state.settings.lockTime,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	network: state.engine.backgroundState.NetworkController.network,
-	selectedCurrency: fiatOrdersCurrencySelector(state)
+	selectedCountry: fiatOrdersCountrySelector(state)
 });
 
 const mapDispatchToProps = dispatch => ({
 	setLockTime: time => dispatch(setLockTime(time)),
 	addOrder: order => dispatch(addFiatOrder(order)),
-	setFiatOrdersCurrency: currency => dispatch(setFiatOrdersCurrency(currency)),
+	setFiatOrdersCountry: countryCode => dispatch(setFiatOrdersCountry(countryCode)),
 	protectWalletModalVisible: () => dispatch(protectWalletModalVisible())
 });
 export default connect(
