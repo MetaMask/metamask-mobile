@@ -39,6 +39,7 @@ import { getNetworkName, isMainNet } from '../../../util/networks';
 import scaling from '../../../util/scaling';
 import { capitalize } from '../../../util/general';
 import EditPermission, { MINIMUM_VALUE } from './EditPermission';
+import Logger from '../../../util/Logger';
 
 const { hexToBN } = util;
 const styles = StyleSheet.create({
@@ -431,8 +432,8 @@ class ApproveTransactionReview extends PureComponent {
 			});
 			const newApprovalTransaction = { ...transaction, data: approvalData };
 			setTransactionObject(newApprovalTransaction);
-		} catch (e) {
-			//
+		} catch (err) {
+			Logger.log('Failed to setTransactionObject', err);
 		}
 		this.toggleEditPermission();
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_PERMISSION_UPDATED, this.getAnalyticsParams());
