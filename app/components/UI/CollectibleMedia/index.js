@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, ViewPropTypes } from 'react-native';
 import RemoteImage from '../../Base/RemoteImage';
 import Identicon from '../Identicon';
 import MediaPlayer from '../../Views/MediaPlayer';
@@ -16,45 +16,51 @@ const styles = StyleSheet.create({
 	bigImage: {
 		height: 260,
 		width: 260
+	},
+	image: {
+		borderRadius: 12
 	}
 });
 
 /**
  * View that renders an ERC-721 Token image
  */
-export default function CollectibleMedia({ collectible, small, big }) {
-	const [sourceUri, serSourceUri] = useState(null);
+export default function CollectibleMedia({ collectible, renderAnimation, style, small, big }) {
+	const [sourceUri, setSourceUri] = useState(null);
 
-	const fallback = () => {
-		serSourceUri(null);
-	};
+	const fallback = () => setSourceUri(null);
 
 	useEffect(() => {
-		let source = collectible.image;
-		if (small && collectible.imagePreview && collectible.imagePreview !== '') {
-			source = collectible.imagePreview;
+		const { image, imagePreview } = collectible;
+		if (small && imagePreview && imagePreview !== '') setSourceUri(imagePreview);
+		else setSourceUri(image);
+	}, [collectible, small, big, setSourceUri]);
+
+	const renderMedia = useCallback(() => {
+		if (renderAnimation && collectible.animation) {
+			return <MediaPlayer uri={collectible.animation} style={styles.bigImage} />;
+		} else if (sourceUri) {
+			return (
+				<RemoteImage
+					fadeIn
+					resizeMode={'contain'}
+					source={{ uri: sourceUri }}
+					style={[styles.image, small && styles.smallImage, big && styles.bigImage, style]}
+					onError={fallback}
+				/>
+			);
 		}
-
-		serSourceUri(source);
-	}, [collectible, small, big, serSourceUri]);
-
-	let child;
-	if (big && collectible.animation) {
-		child = <MediaPlayer uri={collectible.animation} style={styles.bigImage} />;
-	} else if (sourceUri) {
-		child = (
-			<RemoteImage
-				fadeIn
-				resizeMode={'contain'}
-				source={{ uri: sourceUri }}
-				style={[small && styles.smallImage, big && styles.bigImage]}
-				onError={fallback}
+		return (
+			<Identicon
+				diameter={(big && styles.bigImage.width) || styles.smallImage.width}
+				address={collectible.address + collectible.tokenId}
 			/>
 		);
-	} else {
-		child = <Identicon address={collectible.address + collectible.tokenId} />;
-	}
-	return <View style={[styles.container, { backgroundColor: `#${collectible.backgroundColor}` }]}>{child}</View>;
+	}, [collectible, sourceUri, renderAnimation, style, small, big]);
+
+	return (
+		<View style={[styles.container, { backgroundColor: `#${collectible.backgroundColor}` }]}>{renderMedia()}</View>
+	);
 }
 
 CollectibleMedia.propTypes = {
@@ -62,6 +68,20 @@ CollectibleMedia.propTypes = {
 	 * Collectible object (in this case ERC721 token)
 	 */
 	collectible: PropTypes.object,
+	/**
+	 * Whether is small size or not
+	 */
 	small: PropTypes.bool,
-	big: PropTypes.bool
+	/**
+	 * Whether is big size or not
+	 */
+	big: PropTypes.bool,
+	/**
+	 * Whether render animation or not, if any
+	 */
+	renderAnimation: PropTypes.bool,
+	/**
+	 * Custom style object
+	 */
+	style: ViewPropTypes.style
 };
