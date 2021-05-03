@@ -50,8 +50,8 @@ import InfoModal from './components/InfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import useBalance from './utils/useBalance';
 import useGasPrice from './utils/useGasPrice';
+import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { decodeApproveData, getTicker } from '../../../util/transactions';
-import Logger from '../../../util/Logger';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
 const EDIT_MODE_GAS = 'EDIT_MODE_GAS';
@@ -199,6 +199,9 @@ const styles = StyleSheet.create({
 	termsButton: {
 		marginTop: 10,
 		marginBottom: 6
+	},
+	text: {
+		lineHeight: 20
 	}
 });
 
@@ -775,7 +778,6 @@ function SwapsQuotesView({
 				slippage,
 				custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
 			};
-			Logger.error(error?.description, `Swaps: ${error?.key}`);
 			if (error?.key === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR) {
 				InteractionManager.runAfterInteractions(() => {
 					const parameters = {
@@ -791,6 +793,8 @@ function SwapsQuotesView({
 					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.NO_QUOTES_AVAILABLE, {});
 					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.NO_QUOTES_AVAILABLE, parameters, true);
 				});
+			} else {
+				trackErrorAsAnalytics(`Swaps: ${error?.key}`, error?.description);
 			}
 		},
 		[sourceToken, sourceAmount, destinationToken, hasEnoughTokenBalance, slippage]
@@ -1303,20 +1307,20 @@ function SwapsQuotesView({
 				isVisible={isUpdateModalVisible}
 				toggleModal={toggleUpdateModal}
 				title={strings('swaps.quotes_update_often')}
-				body={<Text>{strings('swaps.quotes_update_often_text')}</Text>}
+				body={<Text style={styles.text}>{strings('swaps.quotes_update_often_text')}</Text>}
 			/>
 			<InfoModal
 				isVisible={isPriceDifferenceModalVisible}
 				toggleModal={togglePriceDifferenceModal}
 				title={strings('swaps.price_difference_title')}
-				body={<Text>{strings('swaps.price_difference_body')}</Text>}
+				body={<Text style={styles.text}>{strings('swaps.price_difference_body')}</Text>}
 			/>
 			<InfoModal
 				isVisible={isFeeModalVisible}
 				toggleModal={toggleFeeModal}
 				title={strings('swaps.metamask_swap_fee')}
 				body={
-					<Text>
+					<Text style={styles.text}>
 						{strings('swaps.fee_text.get_the')} <Text bold>{strings('swaps.fee_text.best_price')}</Text>{' '}
 						{strings('swaps.fee_text.from_the')} <Text bold>{strings('swaps.fee_text.top_liquidity')}</Text>{' '}
 						{strings('swaps.fee_text.fee_is_applied', {

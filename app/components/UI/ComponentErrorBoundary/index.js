@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Logger from '../../../util/Logger';
+import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 
 class ComponentErrorBoundary extends React.Component {
 	state = { error: null };
@@ -17,7 +18,11 @@ class ComponentErrorBoundary extends React.Component {
 		/**
 		 * Function to be called when there is an error
 		 */
-		onError: PropTypes.func
+		onError: PropTypes.func,
+		/**
+		 * Will not track as an error, but still log to analytics
+		 */
+		dontTrackAsError: PropTypes.bool
 	};
 
 	static getDerivedStateFromError(error) {
@@ -28,6 +33,11 @@ class ComponentErrorBoundary extends React.Component {
 		// eslint-disable-next-line no-unused-expressions
 		this.props.onError?.();
 
+		const { componentLabel, dontTrackAsError } = this.props;
+
+		if (dontTrackAsError) {
+			return trackErrorAsAnalytics(`Component Error Boundary: ${componentLabel}`, error?.message);
+		}
 		Logger.error(error, { View: this.props.componentLabel, ...errorInfo });
 	}
 
