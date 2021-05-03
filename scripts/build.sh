@@ -239,7 +239,7 @@ buildAndroidRelease(){
 		yarn build:android:checksum
 	fi
 
-	if [ "$PRE_RELEASE" = false ] ; then
+	if [ "$PRE_RELEASE" = false ] ; thengit 
 		adb install app/build/outputs/apk/release/app-release.apk
 	fi
 }
