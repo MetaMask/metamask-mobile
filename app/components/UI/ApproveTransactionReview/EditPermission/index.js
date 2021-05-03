@@ -114,7 +114,7 @@ function EditPermission({
 	}));
 
 	const displayErrorMessage = useMemo(
-		() => !spendLimitUnlimitedSelected && minimumSpendLimit > spendLimitCustomValue,
+		() => !spendLimitUnlimitedSelected && Number(minimumSpendLimit) > spendLimitCustomValue,
 		[spendLimitUnlimitedSelected, spendLimitCustomValue, minimumSpendLimit]
 	);
 
