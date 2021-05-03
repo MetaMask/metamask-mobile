@@ -268,7 +268,9 @@ exports[`NetworksSettings should render correctly 1`] = `
         </View>
       </View>
     </TouchableOpacity>
-    <View>
+    <View
+      testID="rpc-networks"
+    >
       <Text
         style={
           Object {
