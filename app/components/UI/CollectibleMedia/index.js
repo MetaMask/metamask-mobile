@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, ViewPropTypes } from 'react-native';
+import { StyleSheet, View, ViewPropTypes, Text } from 'react-native';
 import RemoteImage from '../../Base/RemoteImage';
-import Identicon from '../Identicon';
 import MediaPlayer from '../../Views/MediaPlayer';
+import { colors, fontStyles } from '../../../styles/common';
 
 const styles = StyleSheet.create({
 	container: {
@@ -19,6 +19,22 @@ const styles = StyleSheet.create({
 	},
 	image: {
 		borderRadius: 12
+	},
+	textContainer: {
+		flex: 1,
+		alignItems: 'center',
+		justifyContent: 'center',
+		backgroundColor: colors.grey100,
+		borderRadius: 8
+	},
+	text: {
+		...fontStyles.normal
+	},
+	textBig: {
+		fontSize: 24
+	},
+	textSmall: {
+		fontSize: 12
 	}
 });
 
@@ -51,10 +67,11 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 			);
 		}
 		return (
-			<Identicon
-				diameter={(big && styles.bigImage.width) || styles.smallImage.width}
-				address={collectible.address + collectible.tokenId}
-			/>
+			<View style={[styles.textContainer, style, small && styles.smallImage, big && styles.bigImage]}>
+				<Text style={[styles.text, small && styles.textSmall, big && styles.textBig]}>{`#${
+					collectible.tokenId
+				}`}</Text>
+			</View>
 		);
 	}, [collectible, sourceUri, renderAnimation, style, small, big]);
 
