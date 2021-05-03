@@ -232,8 +232,9 @@ class SignatureRequest extends PureComponent {
 		let expandedHeight;
 		if (Device.isMediumDevice()) {
 			expandedHeight = styles.expandedHeight2;
-		} else if (type === 'ethSign' && Device.isMediumDevice()) {
-			expandedHeight = styles.expandedHeight1;
+			if (type === 'ethSign') {
+				expandedHeight = styles.expandedHeight1;
+			}
 		}
 		return (
 			<View style={[styles.root, expandedHeight]}>
