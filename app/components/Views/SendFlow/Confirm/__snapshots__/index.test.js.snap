@@ -24,11 +24,40 @@ exports[`Confirm should render correctly 1`] = `
       fromAccountAddress="0x1"
       onPressIcon={null}
     />
-    <AddressTo
-      addressToReady={true}
-      toSelectedAddress=""
-    />
+    <AdressToComponentWrap />
   </View>
+  <InfoModal
+    body={
+      <Text
+        black={false}
+        blue={false}
+        bold={false}
+        centered={false}
+        disclaimer={false}
+        green={false}
+        link={false}
+        modal={false}
+        primary={false}
+        red={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
+        style={
+          Object {
+            "lineHeight": 20,
+          }
+        }
+        underline={false}
+        upper={false}
+      >
+        We have detected a confusable character in the ENS name. Check the ENS name to avoid a potential scam.
+      </Text>
+    }
+    isVisible={false}
+    title="Check the recipient address"
+    toggleModal={[Function]}
+  />
   <ScrollView
     style={
       Object {
@@ -54,6 +83,7 @@ exports[`Confirm should render correctly 1`] = `
         link={false}
         modal={false}
         primary={false}
+        red={false}
         reset={false}
         right={false}
         small={false}
@@ -84,6 +114,7 @@ exports[`Confirm should render correctly 1`] = `
         link={false}
         modal={false}
         primary={false}
+        red={false}
         reset={false}
         right={false}
         small={false}
@@ -119,6 +150,7 @@ exports[`Confirm should render correctly 1`] = `
           link={false}
           modal={false}
           primary={false}
+          red={false}
           reset={false}
           right={false}
           small={false}
@@ -139,6 +171,7 @@ exports[`Confirm should render correctly 1`] = `
           link={false}
           modal={false}
           primary={false}
+          red={false}
           reset={false}
           right={false}
           small={false}
@@ -174,6 +207,7 @@ exports[`Confirm should render correctly 1`] = `
           link={false}
           modal={false}
           primary={false}
+          red={false}
           reset={false}
           right={false}
           small={false}
@@ -382,6 +416,7 @@ exports[`Confirm should render correctly 1`] = `
           link={false}
           modal={false}
           primary={false}
+          red={false}
           reset={false}
           right={false}
           small={false}
@@ -413,6 +448,7 @@ exports[`Confirm should render correctly 1`] = `
           link={false}
           modal={false}
           primary={false}
+          red={false}
           reset={false}
           right={false}
           small={false}

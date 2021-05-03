@@ -269,7 +269,7 @@ export class NetworkList extends PureComponent {
 					{strings('networks.title')}
 				</Text>
 			</View>
-			<ScrollView style={styles.networksWrapper}>
+			<ScrollView style={styles.networksWrapper} testID={'other-networks-scroll'}>
 				{this.renderMainnet()}
 				<View style={styles.otherNetworksHeader}>
 					<Text style={styles.otherNetworksText} testID={'other-network-name'}>

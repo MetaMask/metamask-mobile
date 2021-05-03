@@ -608,11 +608,11 @@ export function getClosableNavigationOptions(title, backButtonText, navigation) 
 			...fontStyles.normal
 		},
 		headerLeft: Device.isIos() ? (
-			<TouchableOpacity onPress={navigationPop} style={styles.closeButton}>
+			<TouchableOpacity onPress={navigationPop} style={styles.closeButton} testID={'nav-ios-back'}>
 				<Text style={styles.closeButtonText}>{backButtonText}</Text>
 			</TouchableOpacity>
 		) : (
-			<TouchableOpacity onPress={navigationPop} style={styles.backButton}>
+			<TouchableOpacity onPress={navigationPop} style={styles.backButton} testID={'nav-android-back'}>
 				<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
 			</TouchableOpacity>
 		)
