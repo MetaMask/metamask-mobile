@@ -1,13 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { View } from 'react-native';
+import { View, ViewPropTypes } from 'react-native';
 import AndroidMediaPlayer from './AndroidMediaPlayer';
 import Video from 'react-native-video';
 import Device from '../../../util/Device';
 
 function MediaPlayer({ uri, style }) {
 	return (
-		<View style={[style]}>
+		<View style={style}>
 			{Device.isAndroid() ? (
 				<AndroidMediaPlayer source={{ uri }} />
 			) : (
@@ -18,9 +18,14 @@ function MediaPlayer({ uri, style }) {
 }
 
 MediaPlayer.propTypes = {
+	/**
+	 * Media URI
+	 */
 	uri: PropTypes.string,
-	style: PropTypes.object
-	// onError: PropTypes.func
+	/**
+	 * Custom style object
+	 */
+	style: ViewPropTypes.style
 };
 
 MediaPlayer.defaultProps = {
