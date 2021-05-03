@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 import { StyleSheet, View, Image, TouchableOpacity } from 'react-native';
 import { TextTrackType } from 'react-native-video';
 import VideoPlayer from 'react-native-video-controls';
@@ -44,7 +45,7 @@ const vid = require('../../../../app/videos/recovery-phrase.mp4');
 const VTT_URI =
 	'https://github.com/MetaMask/metamask-extension/blob/develop/app/images/videos/recovery-onboarding/subtitles-en.vtt';
 
-const SeedPhraseVideo = () => {
+const SeedPhraseVideo = ({ style }) => {
 	const [isPlaying, setPlaying] = useState(false);
 	const onError = e => Logger.error(e, 'Video failed');
 	const onPlay = () => {
@@ -53,7 +54,7 @@ const SeedPhraseVideo = () => {
 	};
 
 	return (
-		<View style={styles.videoContainer}>
+		<View style={style ? [styles.videoContainer, style] : styles.videoContainer}>
 			{!isPlaying ? (
 				<>
 					<TouchableOpacity style={styles.cover} onPress={onPlay}>
@@ -100,6 +101,10 @@ const SeedPhraseVideo = () => {
 			)}
 		</View>
 	);
+};
+
+SeedPhraseVideo.propTypes = {
+	style: PropTypes.object
 };
 
 export default SeedPhraseVideo;

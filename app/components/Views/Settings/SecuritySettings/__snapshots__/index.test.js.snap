@@ -63,7 +63,13 @@ exports[`SecuritySettings should render correctly 1`] = `
           Protect your wallet
         </Text>
       </Text>
-      <SeedPhraseVideo />
+      <SeedPhraseVideo
+        style={
+          Object {
+            "marginTop": 10,
+          }
+        }
+      />
       <Text
         style={
           Object {
