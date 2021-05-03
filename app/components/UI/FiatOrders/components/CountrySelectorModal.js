@@ -14,7 +14,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import Fuse from 'fuse.js';
 
 import Device from '../../../../util/Device';
-// import { strings } from '../../../../../locales/i18n';
+import { strings } from '../../../../../locales/i18n';
 
 import Text from '../../../Base/Text';
 import ListItem from '../../../Base/ListItem';
@@ -124,10 +124,10 @@ function CountrySelectorModal({ isVisible, dismiss, countries, onItemPress }) {
 	const renderEmptyList = useMemo(
 		() => (
 			<View style={styles.emptyList}>
-				<Text>No results</Text>
+				<Text>{strings('fiat_on_ramp.no_countries_result', { searchString })}</Text>
 			</View>
 		),
-		[]
+		[searchString]
 	);
 
 	return (
@@ -146,10 +146,10 @@ function CountrySelectorModal({ isVisible, dismiss, countries, onItemPress }) {
 				<ModalDragger />
 				<View style={styles.modalTitle}>
 					<Text bold centered primary>
-						Supported countries
+						{strings('fiat_on_ramp.supported_countries')}
 					</Text>
 					<Text centered small>
-						Select the country where your card is registered (not where you are located).
+						{strings('fiat_on_ramp.select_card_country')}
 					</Text>
 				</View>
 				<TouchableWithoutFeedback onPress={handleSearchPress}>
@@ -158,7 +158,7 @@ function CountrySelectorModal({ isVisible, dismiss, countries, onItemPress }) {
 						<TextInput
 							ref={searchInput}
 							style={styles.input}
-							placeholder={'Search for a country'}
+							placeholder={strings('fiat_on_ramp.search_country')}
 							placeholderTextColor={colors.grey500}
 							value={searchString}
 							onChangeText={handleSearchTextChange}

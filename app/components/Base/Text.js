@@ -42,7 +42,7 @@ const style = StyleSheet.create({
 	modal: {
 		color: colors.fontPrimary,
 		fontSize: 16,
-		lineHeight: 30
+		lineHeight: 16 * 1.4
 	},
 	link: {
 		color: colors.blue

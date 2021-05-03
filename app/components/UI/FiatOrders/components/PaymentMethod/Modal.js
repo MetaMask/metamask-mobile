@@ -9,6 +9,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Title from '../Title';
 import { colors } from '../../../../../styles/common';
 import StyledButton from '../../../StyledButton';
+import Device from '../../../../../util/Device';
 
 const styles = StyleSheet.create({
 	modalView: {
@@ -29,7 +30,7 @@ const styles = StyleSheet.create({
 	modal: {
 		margin: 0,
 		width: '100%',
-		padding: 25
+		padding: Device.isIphone5() ? 15 : 25
 	},
 	title: {
 		width: '100%',
