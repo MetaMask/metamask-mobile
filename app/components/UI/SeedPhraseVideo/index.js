@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Image, TouchableOpacity } from 'react-native';
-import { TextTrackType } from 'react-native-video';
 import VideoPlayer from 'react-native-video-controls';
 import { colors } from '../../../styles/common';
 import Logger from '../../../util/Logger';
@@ -42,8 +41,6 @@ const explain_backup_seedphrase = require('../../../images/explain-backup-seedph
 
 // eslint-disable-next-line import/no-commonjs
 const vid = require('../../../../app/videos/recovery-phrase.mp4');
-const VTT_URI =
-	'https://github.com/MetaMask/metamask-extension/blob/develop/app/images/videos/recovery-onboarding/subtitles-en.vtt';
 
 const SeedPhraseVideo = ({ style }) => {
 	const [isPlaying, setPlaying] = useState(false);
@@ -81,18 +78,6 @@ const SeedPhraseVideo = ({ style }) => {
 					disableFullscreen
 					disableBack
 					source={vid}
-					textTracks={[
-						{
-							title: 'English CC',
-							language: 'en',
-							type: TextTrackType.VTT,
-							uri: VTT_URI
-						}
-					]}
-					selectedTextTrack={{
-						type: 'language',
-						value: 'en'
-					}}
 					style={StyleSheet.absoluteFill}
 					onError={onError}
 					onPlay={onPlay}
