@@ -6,8 +6,11 @@ import MediaPlayer from '../../Views/MediaPlayer';
 import { colors, fontStyles } from '../../../styles/common';
 
 const styles = StyleSheet.create({
-	container: {
-		borderRadius: 8
+	container(backgroundColor) {
+		return {
+			borderRadius: 8,
+			backgroundColor: `#${backgroundColor}`
+		};
 	},
 	smallImage: {
 		width: 50,
@@ -75,9 +78,7 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 		);
 	}, [collectible, sourceUri, renderAnimation, style, small, big]);
 
-	return (
-		<View style={[styles.container, { backgroundColor: `#${collectible.backgroundColor}` }]}>{renderMedia()}</View>
-	);
+	return <View style={styles.container(collectible.backgroundColor)}>{renderMedia()}</View>;
 }
 
 CollectibleMedia.propTypes = {
