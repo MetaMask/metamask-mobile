@@ -118,29 +118,197 @@ export const WYRE_FEE_PERCENT = WYRE_IS_PROMOTION ? 0 : WYRE_REGULAR_FEE_PERCENT
 export const WYRE_FEE_FLAT = WYRE_IS_PROMOTION ? 0 : WYRE_REGULAR_FEE_FLAT;
 
 export const SUPPORTED_COUNTRIES = {
-	AT: {
-		code: 'AT',
-		currency: 'EUR',
-		label: '🇦🇹',
-		name: 'Austria'
-	},
 	AU: {
 		code: 'AU',
 		currency: 'AUD',
 		label: '🇦🇺',
 		name: 'Australia'
 	},
-	GB: {
-		code: 'GB',
-		currency: 'GBP',
-		label: '🇬🇧',
-		name: 'United Kingdom'
+	AT: {
+		code: 'AT',
+		currency: 'EUR',
+		label: '🇦🇹',
+		name: 'Austria'
+	},
+	BE: {
+		code: 'BE',
+		currency: 'EUR',
+		label: '🇧🇪',
+		name: 'Belgium'
+	},
+	BR: {
+		code: 'BR',
+		currency: 'BRL',
+		label: '🇧🇷',
+		name: 'Brazil'
+	},
+	CA: {
+		code: 'CA',
+		currency: 'CAD',
+		label: '🇨🇦',
+		name: 'Canada'
+	},
+	CY: {
+		code: 'CY',
+		currency: 'EUR',
+		label: '🇨🇾',
+		name: 'Cyprus'
+	},
+	CZ: {
+		code: 'CZ',
+		currency: 'CZK',
+		label: '🇨🇿',
+		name: 'Czech Republic'
+	},
+	DK: {
+		code: 'DK',
+		currency: 'DKK',
+		label: '🇩🇰',
+		name: 'Denmark'
+	},
+	EE: {
+		code: 'EE',
+		currency: 'EUR',
+		label: '🇪🇪',
+		name: 'Estonia'
+	},
+	FI: {
+		code: 'FI',
+		currency: 'EUR',
+		label: '🇫🇮',
+		name: 'Finland'
+	},
+	FR: {
+		code: 'FR',
+		currency: 'EUR',
+		label: '🇫🇷',
+		name: 'France'
+	},
+	DE: {
+		code: 'DE',
+		currency: 'EUR',
+		label: '🇩🇪',
+		name: 'Germany'
+	},
+	GR: {
+		code: 'GR',
+		currency: 'EUR',
+		label: '🇬🇷',
+		name: 'Greece'
+	},
+	HK: {
+		code: 'HK',
+		currency: 'HKD',
+		label: '🇭🇰',
+		name: 'Hong Kong'
+	},
+	IS: {
+		code: 'IS',
+		currency: 'ISK',
+		label: '🇮🇸',
+		name: 'Iceland'
+	},
+	IE: {
+		code: 'IE',
+		currency: 'EUR',
+		label: '🇮🇪',
+		name: 'Ireland'
+	},
+	IT: {
+		code: 'IT',
+		currency: 'EUR',
+		label: '🇮🇹',
+		name: 'Italy'
 	},
 	JP: {
 		code: 'JP',
 		currency: 'JPY',
 		label: '🇯🇵',
 		name: 'Japan'
+	},
+	LV: {
+		code: 'LV',
+		currency: 'EUR',
+		label: '🇱🇻',
+		name: 'Latvia'
+	},
+	LU: {
+		code: 'LU',
+		currency: 'EUR',
+		label: '🇱🇺',
+		name: 'Luxembourg'
+	},
+	NL: {
+		code: 'NL',
+		currency: 'EUR',
+		label: '🇳🇱',
+		name: 'Netherlands'
+	},
+	NZ: {
+		code: 'NZ',
+		currency: 'NZD',
+		label: '🇳🇿',
+		name: 'New Zealand'
+	},
+	NO: {
+		code: 'NO',
+		currency: 'NOK',
+		label: '🇳🇴',
+		name: 'Norway'
+	},
+	PL: {
+		code: 'PL',
+		currency: 'PLN',
+		label: '🇵🇱',
+		name: 'Poland'
+	},
+	PT: {
+		code: 'PT',
+		currency: 'EUR',
+		label: '🇵🇹',
+		name: 'Portugal'
+	},
+	SG: {
+		code: 'SG',
+		currency: 'SGD',
+		label: '🇸🇬',
+		name: 'Singapore'
+	},
+	SK: {
+		code: 'SK',
+		currency: 'EUR',
+		label: '🇸🇰',
+		name: 'Slovakia'
+	},
+	SI: {
+		code: 'SI',
+		currency: 'EUR',
+		label: '🇸🇮',
+		name: 'Slovenia'
+	},
+	ES: {
+		code: 'ES',
+		currency: 'EUR',
+		label: '🇪🇸',
+		name: 'Spain'
+	},
+	SE: {
+		code: 'SE',
+		currency: 'SEK',
+		label: '🇸🇪',
+		name: 'Sweden'
+	},
+	CH: {
+		code: 'CH',
+		currency: 'CHF',
+		label: '🇨🇭',
+		name: 'Switzerland'
+	},
+	GB: {
+		code: 'GB',
+		currency: 'GBP',
+		label: '🇬🇧',
+		name: 'United Kingdom'
 	},
 	US: {
 		code: 'US',
@@ -163,17 +331,18 @@ const wyreTestAPI = axios.create({
 	baseURL: WYRE_API_ENDPOINT_TEST
 });
 
-const getRates = network => (network === '1' ? wyreAPI : wyreTestAPI).get(`v3/rates`, { params: { as: 'PRICED' } });
+const getWyreAPI = network => (network === '1' ? wyreAPI : wyreTestAPI);
+
+const getRates = network => getWyreAPI(network).get(`v3/rates`, { params: { as: 'PRICED' } });
 const createFiatOrder = (network, payload) =>
-	(network === '1' ? wyreAPI : wyreTestAPI).post('v3/apple-pay/process/partner', payload, {
+	getWyreAPI(network).post('v3/apple-pay/process/partner', payload, {
 		// * This promise will always be resolved, use response.status to handle errors
 		validateStatus: status => status >= 200,
 		// * Apple Pay timeouts at ~30s without throwing error, we want to catch that before and throw
 		timeout: 25000
 	});
-const getOrderStatus = (network, orderId) => (network === '1' ? wyreAPI : wyreTestAPI).get(`v3/orders/${orderId}`);
-const getTransferStatus = (network, transferId) =>
-	(network === '1' ? wyreAPI : wyreTestAPI).get(`v2/transfer/${transferId}/track`);
+const getOrderStatus = (network, orderId) => getWyreAPI(network).get(`v3/orders/${orderId}`);
+const getTransferStatus = (network, transferId) => getWyreAPI(network).get(`v2/transfer/${transferId}/track`);
 
 //* Helpers
 
@@ -410,20 +579,28 @@ export function useCountryCurrency(country) {
 }
 
 export function useWyreRates(network, currencies) {
-	const [rates, setRates] = useState(null);
-
+	const [rates, setRates] = useState([]);
 	useEffect(() => {
 		async function getWyreRates() {
 			try {
+				setRates([]);
 				const { data } = await getRates(network);
-				const rates = data[currencies];
+				const rates = [];
+				currencies.forEach(pair => {
+					if (pair.length % 2 === 0 && pair.slice(0, pair.length / 2) === pair.slice(pair.length / 2)) {
+						rates.push({ [pair.slice(pair.length / 2)]: 1 });
+					} else {
+						rates.push(data[pair]);
+					}
+				});
+
 				setRates(rates);
 			} catch (error) {
 				Logger.error(error, 'FiatOrders::WyreAppleyPay error while fetching wyre rates');
 			}
 		}
 		getWyreRates();
-	}, [currencies, network]);
+	}, [network, currencies]);
 
 	return rates;
 }

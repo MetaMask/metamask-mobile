@@ -82,6 +82,10 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		minWidth: 49
 	},
+	quickAmountPlaceholder: {
+		backgroundColor: colors.grey000,
+		borderColor: colors.grey000
+	},
 	quickAmountSelected: {
 		backgroundColor: colors.blue,
 		borderColor: colors.blue
@@ -120,7 +124,14 @@ ApplePay.propTypes = {
 	disabled: PropTypes.bool
 };
 
-const QuickAmount = ({ amount, current, currencySymbol, ...props }) => {
+const QuickAmount = ({ amount, current, currencySymbol, placeholder, ...props }) => {
+	if (placeholder) {
+		return (
+			<View style={[styles.quickAmount, styles.quickAmountPlaceholder]} {...props}>
+				<Text> </Text>
+			</View>
+		);
+	}
 	const selected = amount === current;
 	return (
 		<TouchableOpacity style={[styles.quickAmount, selected && styles.quickAmountSelected]} {...props}>
@@ -135,14 +146,15 @@ const QuickAmount = ({ amount, current, currencySymbol, ...props }) => {
 QuickAmount.propTypes = {
 	amount: PropTypes.string,
 	current: PropTypes.string,
-	currencySymbol: PropTypes.string
+	currencySymbol: PropTypes.string,
+	placeholder: PropTypes.bool
 };
 
 //* Constants */
 
-const quickAmounts = ['50', '100', '250'];
-const minAmount = 50;
-const maxAmount = 250;
+const QUICK_AMOUNTS = ['50', '100', '250'];
+const MIN_AMOUNT = 50;
+const MAX_AMOUNT = 250;
 
 const hasZeroAsFirstDecimal = /^\d+\.0$/;
 const hasZerosAsDecimals = /^\d+\.00$/;
@@ -174,15 +186,30 @@ function PaymentMethodApplePay({
 		[amountWithPeriod]
 	);
 
+	const wyreCurrencies = useMemo(() => [`${selectedCurrency}ETH`, `USD${selectedCurrency}`], [selectedCurrency]);
+	const [ratesETH, ratesUSD] = useWyreRates(network, wyreCurrencies);
+	const quickAmounts = useMemo(() => {
+		if (!ratesUSD || !ratesUSD[selectedCurrency]) {
+			return [];
+		}
+		return QUICK_AMOUNTS.map(amount => String(Math.ceil(amount * ratesUSD[selectedCurrency])));
+	}, [ratesUSD, selectedCurrency]);
+
+	const [minAmount, maxAmount] = useMemo(() => {
+		if (!ratesUSD || !ratesUSD[selectedCurrency]) {
+			return [MIN_AMOUNT, MAX_AMOUNT];
+		}
+		return [MIN_AMOUNT, MAX_AMOUNT].map(amount => String(Math.ceil(amount * ratesUSD[selectedCurrency])));
+	}, [ratesUSD, selectedCurrency]);
+
 	const isUnderMinimum = (amount !== '0' || Number(roundAmount) !== 0) && Number(roundAmount) < minAmount;
 
 	const isOverMaximum = Number(roundAmount) > maxAmount;
 	const disabledButton = amount === '0' || isUnderMinimum || isOverMaximum;
 
 	const handleWyreTerms = useWyreTerms(navigation);
-	const rates = useWyreRates(network, `${selectedCurrency}ETH`);
-	const [pay, ABORTED, , , , fee] = useWyreApplePay(roundAmount, selectedAddress, selectedCurrency, network);
 
+	const [pay, ABORTED, , , , fee] = useWyreApplePay(roundAmount, selectedAddress, selectedCurrency, network);
 	const handlePressApplePay = useCallback(async () => {
 		const prevLockTime = lockTime;
 		setLockTime(-1);
@@ -263,15 +290,15 @@ function PaymentMethodApplePay({
 						{amount}
 					</Text>
 					{!(isUnderMinimum || isOverMaximum) &&
-						(rates && rates?.[selectedCurrency] ? (
+						(ratesETH && ratesETH?.[selectedCurrency] ? (
 							<Text>
 								{roundAmount === '0' ? (
-									`${formatCurrency(rates[selectedCurrency])}  ≈ 1 ETH`
+									`${formatCurrency(ratesETH[selectedCurrency])}  ≈ 1 ETH`
 								) : (
 									<>
 										{strings('fiat_on_ramp.wyre_estimated', {
 											currency: 'ETH',
-											amount: (amountWithPeriod * rates.ETH).toFixed(5)
+											amount: (amountWithPeriod * ratesETH.ETH).toFixed(5)
 										})}
 									</>
 								)}
@@ -295,7 +322,7 @@ function PaymentMethodApplePay({
 						</Text>
 					)}
 				</View>
-				{quickAmounts.length > 0 && (
+				{quickAmounts.length > 0 ? (
 					<View style={styles.quickAmounts}>
 						{quickAmounts.map(quickAmount => (
 							<QuickAmount
@@ -307,6 +334,12 @@ function PaymentMethodApplePay({
 								onPress={() => handleQuickAmountPress(quickAmount)}
 							/>
 						))}
+					</View>
+				) : (
+					<View style={styles.quickAmounts}>
+						<QuickAmount placeholder />
+						<QuickAmount placeholder />
+						<QuickAmount placeholder />
 					</View>
 				)}
 			</View>
