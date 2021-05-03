@@ -3,18 +3,42 @@
 exports[`CollectibleMedia should render correctly 1`] = `
 <View
   style={
-    Array [
-      Object {
-        "borderRadius": 8,
-      },
-      Object {
-        "backgroundColor": "#undefined",
-      },
-    ]
+    Object {
+      "backgroundColor": "#undefined",
+      "borderRadius": 8,
+    }
   }
 >
-  <Connect(Component)
-    address="0x123123"
-  />
+  <View
+    style={
+      Array [
+        Object {
+          "alignItems": "center",
+          "backgroundColor": "#d6d9dc",
+          "borderRadius": 8,
+          "flex": 1,
+          "justifyContent": "center",
+        },
+        undefined,
+        undefined,
+        undefined,
+      ]
+    }
+  >
+    <Text
+      style={
+        Array [
+          Object {
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontWeight": "400",
+          },
+          undefined,
+          undefined,
+        ]
+      }
+    >
+      #123
+    </Text>
+  </View>
 </View>
 `;

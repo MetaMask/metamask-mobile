@@ -28,6 +28,7 @@ exports[`CollectibleOverview should render correctly 1`] = `
             "tokenId": 6904,
           }
         }
+        renderAnimation={true}
       />
     </View>
   </View>
