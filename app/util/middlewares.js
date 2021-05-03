@@ -1,4 +1,5 @@
 import Logger from './Logger';
+import { trackErrorAsAnalytics } from './analyticsV2';
 
 /**
  * List of rpc errors caused by the user rejecting a certain action.
@@ -68,7 +69,7 @@ export function createLoggerMiddleware(opts) {
 				const { error, ...resWithoutError } = res;
 				if (error) {
 					if (containsUserRejectedError(error.message, error.code)) {
-						//TODO After merging PR 2529, use return trackErrorAsAnalytics(`Error in RPC response: User rejected`, error.message);
+						trackErrorAsAnalytics(`Error in RPC response: User rejected`, error.message);
 					} else {
 						/**
 						 * Example of a rpc error:
