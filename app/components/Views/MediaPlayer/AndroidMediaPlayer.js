@@ -154,7 +154,7 @@ export default function VideoPlayer({
 	displayBottomControls
 }) {
 	const [paused, setPaused] = useState(false);
-	const [muted, setMuted] = useState(false);
+	const [muted, setMuted] = useState(true);
 	const [seekerFillWidth, setSeekerFillWidth] = useState(0);
 	const [seekerPosition, setSeekerPosition] = useState(0);
 	const [seekerOffset, setSeekerOffset] = useState(0);

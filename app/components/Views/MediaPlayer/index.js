@@ -11,7 +11,7 @@ function MediaPlayer({ uri, style }) {
 			{Device.isAndroid() ? (
 				<AndroidMediaPlayer source={{ uri }} />
 			) : (
-				<Video style={style} source={{ uri }} controls />
+				<Video style={style} muted source={{ uri }} controls />
 			)}
 		</View>
 	);
