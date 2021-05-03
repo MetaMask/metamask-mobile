@@ -8,7 +8,7 @@ const PASSWORD = '12345678';
 
 describe('Custom RPC Tests', () => {
 	beforeEach(() => {
-		jest.setTimeout(170000);
+		jest.setTimeout(320000);
 	});
 
 	it('should create new wallet and dismiss tutorial', async () => {

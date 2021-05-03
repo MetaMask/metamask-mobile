@@ -16,7 +16,7 @@ const Incorrect_Password2 = `12345679`;
 
 describe('Import seedphrase flow', () => {
 	beforeEach(() => {
-		jest.setTimeout(150000);
+		jest.setTimeout(30000);
 	});
 
 	it('should import via seed phrase and validate in settings', async () => {

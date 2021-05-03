@@ -3,6 +3,8 @@ format_version: '8'
 default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
 trigger_map:
+- push_branch: 'feature/bitrise_e2e'
+  workflow: e2e_test
 - push_branch: 'develop'
   workflow: test_release
 - push_branch: 'main'

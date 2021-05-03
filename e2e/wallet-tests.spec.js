@@ -14,7 +14,7 @@ const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
 describe('Wallet Tests', () => {
 	beforeEach(() => {
-		jest.setTimeout(150000);
+		jest.setTimeout(30000);
 	});
 
 	it('should import wallet via seed phrase', async () => {

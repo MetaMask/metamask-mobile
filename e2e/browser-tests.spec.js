@@ -8,7 +8,7 @@ const PASSWORD = '12345678';
 
 describe('Browser Tests', () => {
 	beforeEach(() => {
-		jest.setTimeout(150000);
+		jest.setTimeout(30000);
 	});
 
 	it('should create new wallet and dismiss tutorial', async () => {

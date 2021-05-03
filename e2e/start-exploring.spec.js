@@ -6,7 +6,7 @@ const PASSWORD = '12345678';
 
 describe('Start Exploring', () => {
 	beforeEach(() => {
-		jest.setTimeout(150000);
+		jest.setTimeout(30000);
 	});
 
 	it('should show the onboarding screen', async () => {
