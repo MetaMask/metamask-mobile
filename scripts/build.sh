@@ -167,7 +167,7 @@ buildIosSimulator(){
 
 buildIosSimulatorE2E(){
 	prebuild_ios
-	xcodebuild -workspace ios/MetaMask.xcworkspace -scheme MetaMask -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build
+	xcodebuild -workspace ios/MetaMask.xcworkspace -scheme MetaMask -configuration Debug -sdk iphonesimulator14.5 -derivedDataPath ios/build
 }
 
 buildIosDevice(){
@@ -195,7 +195,7 @@ buildIosRelease(){
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
 		fi
-		./node_modules/.bin/react-native run-ios  --configuration Release --simulator "iPhone 11 Pro"
+		./node_modules/.bin/react-native run-ios --configuration Release --simulator "iPhone 11 Pro"
 	fi
 }
 
@@ -215,7 +215,7 @@ buildIosReleaseE2E(){
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
 		fi
-		xcodebuild -workspace ios/MetaMask.xcworkspace -scheme MetaMask -configuration Release -sdk iphonesimulator -derivedDataPath ios/build
+		xcodebuild -workspace ios/MetaMask.xcworkspace -scheme MetaMask -configuration Release -sdk iphonesimulator14.5 -derivedDataPath ios/build
 	fi
 }
 
