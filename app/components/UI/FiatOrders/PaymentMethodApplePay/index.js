@@ -11,13 +11,12 @@ import I18n, { strings } from '../../../../../locales/i18n';
 import { getNotificationDetails } from '..';
 
 import {
+	useCountryCurrency,
+	useWyreOrderQuotation,
 	useWyreTerms,
 	useWyreRates,
 	useWyreApplePay,
-	WyreException,
-	WYRE_IS_PROMOTION,
-	WYRE_FEE_PERCENT,
-	useCountryCurrency
+	WyreException
 } from '../orderProcessor/wyreApplePay';
 
 import ScreenView from '../components/ScreenView';
@@ -186,8 +185,10 @@ function PaymentMethodApplePay({
 		[amountWithPeriod]
 	);
 
+	const handleWyreTerms = useWyreTerms(navigation);
 	const wyreCurrencies = useMemo(() => [`${selectedCurrency}ETH`, `USD${selectedCurrency}`], [selectedCurrency]);
 	const [ratesETH, ratesUSD] = useWyreRates(network, wyreCurrencies);
+
 	const quickAmounts = useMemo(() => {
 		if (!ratesUSD || !ratesUSD[selectedCurrency]) {
 			return [];
@@ -207,14 +208,25 @@ function PaymentMethodApplePay({
 	const isOverMaximum = Number(roundAmount) > maxAmount;
 	const disabledButton = amount === '0' || isUnderMinimum || isOverMaximum;
 
-	const handleWyreTerms = useWyreTerms(navigation);
+	const [isLoadingQuotation, quotation] = useWyreOrderQuotation(
+		network,
+		roundAmount,
+		selectedCurrency,
+		selectedAddress,
+		selectedCountry,
+		!disabledButton,
+		1000
+	);
 
-	const [pay, ABORTED, , , , fee] = useWyreApplePay(roundAmount, selectedAddress, selectedCurrency, network);
+	const [pay, ABORTED] = useWyreApplePay(selectedAddress, selectedCurrency, network);
 	const handlePressApplePay = useCallback(async () => {
+		if (!quotation) {
+			return;
+		}
 		const prevLockTime = lockTime;
 		setLockTime(-1);
 		try {
-			const order = await pay();
+			const order = await pay(roundAmount, quotation?.fees?.[selectedCurrency]);
 			if (order !== ABORTED) {
 				if (order) {
 					addOrder(order);
@@ -240,7 +252,18 @@ function PaymentMethodApplePay({
 		} finally {
 			setLockTime(prevLockTime);
 		}
-	}, [ABORTED, addOrder, lockTime, navigation, pay, setLockTime, protectWalletModalVisible]);
+	}, [
+		quotation,
+		lockTime,
+		setLockTime,
+		pay,
+		roundAmount,
+		selectedCurrency,
+		ABORTED,
+		addOrder,
+		navigation,
+		protectWalletModalVisible
+	]);
 
 	const handleQuickAmountPress = useCallback(amount => setAmount(amount), []);
 	const handleKeypadChange = useCallback(
@@ -290,15 +313,18 @@ function PaymentMethodApplePay({
 						{amount}
 					</Text>
 					{!(isUnderMinimum || isOverMaximum) &&
-						(ratesETH && ratesETH?.[selectedCurrency] ? (
+						(!isLoadingQuotation && ratesETH && ratesETH?.[selectedCurrency] ? (
 							<Text>
-								{roundAmount === '0' ? (
-									`${formatCurrency(ratesETH[selectedCurrency])}  ≈ 1 ETH`
-								) : (
+								{roundAmount === '0' && `${formatCurrency(ratesETH[selectedCurrency])}  ≈ 1 ETH`}
+
+								{roundAmount !== '0' && (
 									<>
 										{strings('fiat_on_ramp.wyre_estimated', {
 											currency: 'ETH',
-											amount: (amountWithPeriod * ratesETH.ETH).toFixed(5)
+											amount: (quotation
+												? quotation.destAmount
+												: amountWithPeriod * ratesETH.ETH
+											).toFixed(5)
 										})}
 									</>
 								)}
@@ -324,9 +350,9 @@ function PaymentMethodApplePay({
 				</View>
 				{quickAmounts.length > 0 ? (
 					<View style={styles.quickAmounts}>
-						{quickAmounts.map(quickAmount => (
+						{quickAmounts.map((quickAmount, i) => (
 							<QuickAmount
-								key={quickAmount}
+								key={i}
 								amount={quickAmount}
 								current={roundAmount}
 								currencySymbol={currencySymbol}
@@ -348,7 +374,7 @@ function PaymentMethodApplePay({
 				<View style={styles.buttonContainer}>
 					<StyledButton
 						type="blue"
-						disabled={disabledButton}
+						disabled={disabledButton || isLoadingQuotation || !quotation}
 						containerStyle={styles.applePayButton}
 						onPress={handlePressApplePay}
 					>
@@ -362,24 +388,18 @@ function PaymentMethodApplePay({
 						<ApplePay disabled={disabledButton} />
 					</StyledButton>
 					<Text centered>
-						{WYRE_IS_PROMOTION && (
+						{disabledButton || !quotation ? (
 							<Text>
-								{WYRE_FEE_PERCENT}% {strings('fiat_on_ramp.fee')} (
-								{strings('fiat_on_ramp.limited_time')})
+								<Text bold> </Text>
 							</Text>
-						)}
-						{!WYRE_IS_PROMOTION && (
-							<>
-								{disabledButton ? (
-									<Text>
-										<Text bold> </Text>
-									</Text>
-								) : (
-									<Text>
-										<Text bold>{strings('fiat_on_ramp.plus_fee', { fee: `$${fee}` })}</Text>
-									</Text>
-								)}
-							</>
+						) : (
+							<Text>
+								<Text bold>
+									{strings('fiat_on_ramp.plus_fee', {
+										fee: formatCurrency(quotation?.fees?.[selectedCurrency])
+									})}
+								</Text>
+							</Text>
 						)}
 					</Text>
 					<TouchableOpacity onPress={handleWyreTerms}>

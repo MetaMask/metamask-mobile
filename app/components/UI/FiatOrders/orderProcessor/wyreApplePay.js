@@ -116,6 +116,7 @@ export const WYRE_REGULAR_FEE_FLAT = 0.3;
 export const WYRE_MIN_FEE = 5;
 export const WYRE_FEE_PERCENT = WYRE_IS_PROMOTION ? 0 : WYRE_REGULAR_FEE_PERCENT;
 export const WYRE_FEE_FLAT = WYRE_IS_PROMOTION ? 0 : WYRE_REGULAR_FEE_FLAT;
+const ETH_CURRENCY_CODE = 'ETH';
 
 export const SUPPORTED_COUNTRIES = {
 	AU: {
@@ -343,6 +344,21 @@ const createFiatOrder = (network, payload) =>
 	});
 const getOrderStatus = (network, orderId) => getWyreAPI(network).get(`v3/orders/${orderId}`);
 const getTransferStatus = (network, transferId) => getWyreAPI(network).get(`v2/transfer/${transferId}/track`);
+export const getOrderQuotation = (network, { amount, currency, address, country = 'US' }, cancelToken) =>
+	getWyreAPI(network).post(
+		`v3/orders/quote/partner`,
+		{
+			sourceAmount: amount,
+			amountIncludeFees: false,
+			sourceCurrency: currency,
+			destCurrency: ETH_CURRENCY_CODE,
+			dest: `ethereum:${address}`,
+			accountId: getPartnerId(network),
+			country,
+			walletType: 'APPLE_PAY'
+		},
+		{ cancelToken }
+	);
 
 //* Helpers
 
@@ -464,9 +480,6 @@ export async function processWyreApplePayOrder(order) {
 
 //* Payment Request */
 
-const USD_CURRENCY_CODE = 'USD';
-const ETH_CURRENCY_CODE = 'ETH';
-
 const ABORTED = 'ABORTED';
 
 const PAYMENT_REQUEST_COMPLETE = {
@@ -511,7 +524,7 @@ const paymentOptions = {
 	merchantCapabilities: ['debit']
 };
 
-const createPayload = (network, amount, address, paymentDetails) => {
+const createPayload = (network, amount, address, currency, paymentDetails) => {
 	const {
 		billingContact: { postalAddress, name },
 		paymentData,
@@ -550,7 +563,7 @@ const createPayload = (network, amount, address, paymentDetails) => {
 				dest,
 				destCurrency: ETH_CURRENCY_CODE,
 				referrerAccountId: partnerId,
-				sourceCurrency: USD_CURRENCY_CODE
+				sourceCurrency: currency
 			},
 			paymentObject: {
 				billingContact: formattedBillingContact,
@@ -581,8 +594,10 @@ export function useCountryCurrency(country) {
 export function useWyreRates(network, currencies) {
 	const [rates, setRates] = useState([]);
 	useEffect(() => {
+		let cancelTokenSource;
 		async function getWyreRates() {
 			try {
+				cancelTokenSource = axios.CancelToken.source();
 				setRates([]);
 				const { data } = await getRates(network);
 				const rates = [];
@@ -596,64 +611,97 @@ export function useWyreRates(network, currencies) {
 
 				setRates(rates);
 			} catch (error) {
+				setRates([]);
 				Logger.error(error, 'FiatOrders::WyreAppleyPay error while fetching wyre rates');
 			}
 		}
 		getWyreRates();
+		return () => {
+			cancelTokenSource?.cancel();
+		};
 	}, [network, currencies]);
 
 	return rates;
 }
 
-export function useWyreApplePay(amount, address, currency, network) {
-	const flatFee = useMemo(() => WYRE_FEE_FLAT.toFixed(2), []);
-	const percentFee = useMemo(() => WYRE_FEE_PERCENT.toFixed(2), []);
-	const percentFeeAmount = useMemo(() => ((Number(amount) * Number(percentFee)) / 100).toFixed(2), [
-		amount,
-		percentFee
-	]);
-	const fee = useMemo(() => {
-		const totalFee = Number(percentFeeAmount) + Number(flatFee);
+export function useWyreOrderQuotation(network, amount, currency, address, country, getQuote, delay) {
+	const [isLoading, setIsLoading] = useState(false);
+	const [quotation, setQuotation] = useState(null);
+	useEffect(() => {
+		let cancelTokenSource;
+		(async () => {
+			if (getQuote) {
+				try {
+					cancelTokenSource = axios.CancelToken.source();
+					setIsLoading(true);
+					setQuotation(null);
+					await new Promise(resolve => setTimeout(resolve, delay));
+					const { data: quotation } = await getOrderQuotation(
+						network,
+						{
+							amount,
+							currency,
+							address,
+							country
+						},
+						cancelTokenSource.token
+					);
+					setQuotation(quotation);
+					setIsLoading(false);
+				} catch (error) {
+					setQuotation(null);
+					setIsLoading(false);
+				}
+			} else {
+				setIsLoading(false);
+				setQuotation(null);
+			}
+		})();
+		return () => {
+			cancelTokenSource?.cancel();
+			setQuotation(null);
+			setIsLoading(false);
+		};
+	}, [network, amount, currency, address, country, getQuote, delay]);
 
-		return totalFee < WYRE_MIN_FEE ? WYRE_MIN_FEE : totalFee.toFixed(2);
-	}, [flatFee, percentFeeAmount]);
-	const total = useMemo(() => Number(amount) + Number(fee), [amount, fee]);
-	const methodData = useMemo(() => getMethodData(currency, network), [currency, network]);
-	const paymentDetails = useMemo(() => getPaymentDetails(ETH_CURRENCY_CODE, currency, amount, fee, total), [
-		currency,
-		amount,
-		fee,
-		total
-	]);
+	return [isLoading, quotation];
+}
 
-	const showRequest = useCallback(async () => {
-		const paymentRequest = new PaymentRequest(methodData, paymentDetails, paymentOptions);
-		try {
-			const paymentResponse = await paymentRequest.show();
-			if (!paymentResponse) {
-				throw new Error('Payment Request Failed: empty apple pay response');
+export function useWyreApplePay(address, currency, network) {
+	const showRequest = useCallback(
+		async (amount, fee) => {
+			const total = Number(amount) + Number(fee);
+			const methodData = getMethodData(currency, network);
+			const paymentDetails = getPaymentDetails(ETH_CURRENCY_CODE, currency, amount, fee, total);
+			const paymentRequest = new PaymentRequest(methodData, paymentDetails, paymentOptions);
+			try {
+				const paymentResponse = await paymentRequest.show();
+				if (!paymentResponse) {
+					throw new Error('Payment Request Failed: empty apple pay response');
+				}
+				const payload = createPayload(network, total, address, currency, paymentResponse.details);
+				const { data, status } = await createFiatOrder(network, payload);
+				if (status >= 200 && status < 300) {
+					paymentResponse.complete(PAYMENT_REQUEST_COMPLETE.SUCCESS);
+					return { ...wyreOrderToFiatOrder(data), network };
+				}
+				paymentResponse.complete(PAYMENT_REQUEST_COMPLETE.FAIL);
+				throw new WyreException(data.message, data.type, data.exceptionId);
+			} catch (error) {
+				if (error.message.includes('AbortError')) {
+					return ABORTED;
+				}
+				if (paymentRequest && paymentRequest.abort) {
+					paymentRequest.abort();
+				}
+				Logger.error(error, { message: 'FiatOrders::WyreApplePayPayment error while creating order' });
+				throw error;
 			}
-			const payload = createPayload(network, total, address, paymentResponse.details);
-			const { data, status } = await createFiatOrder(network, payload);
-			if (status >= 200 && status < 300) {
-				paymentResponse.complete(PAYMENT_REQUEST_COMPLETE.SUCCESS);
-				return { ...wyreOrderToFiatOrder(data), network };
-			}
-			paymentResponse.complete(PAYMENT_REQUEST_COMPLETE.FAIL);
-			throw new WyreException(data.message, data.type, data.exceptionId);
-		} catch (error) {
-			if (error.message.includes('AbortError')) {
-				return ABORTED;
-			}
-			if (paymentRequest && paymentRequest.abort) {
-				paymentRequest.abort();
-			}
-			Logger.error(error, { message: 'FiatOrders::WyreApplePayPayment error while creating order' });
-			throw error;
-		}
-	}, [address, methodData, network, paymentDetails, total]);
+		},
+		[address, currency, network]
+	);
 
-	return [showRequest, ABORTED, percentFee, flatFee, percentFeeAmount, fee, total];
+	return [showRequest, ABORTED];
 }
 
 export function useWyreTerms(navigation) {
