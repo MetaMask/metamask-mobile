@@ -106,7 +106,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             ]
           }
         >
-          Important! Seed phrase not backed up
+          Important! Secret recovery phrase not backed up
         </Text>
       </SettingsNotification>
       <StyledButton
@@ -164,7 +164,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         }
       >
-        Choose a strong password to unlock MetaMask app on your device. If you lose this password, you will need your seedphrase to re-import your wallet.
+        Choose a strong password to unlock MetaMask app on your device. If you lose this password, you will need your Secret recovery phrase to re-import your wallet.
       </Text>
       <StyledButton
         containerStyle={
