@@ -124,6 +124,10 @@ workflows:
     before_run:
     - e2e_setup
     steps:
+    - file-downloader@1:
+        inputs:
+        - source: $BITRISEIO_ANDROID_KEYSTORE_URL
+        - destination: android/keystores/release.keystore
     - install-missing-android-tools@2:
         inputs:
         - gradlew_path: $PROJECT_LOCATION/gradlew
