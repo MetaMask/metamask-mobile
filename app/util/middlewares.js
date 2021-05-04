@@ -41,7 +41,7 @@ export function createOriginMiddleware(opts) {
  */
 function containsUserRejectedError(errorMessage, errorCode) {
 	try {
-		if (!errorMessage || !errorMessage.includes || !errorMessage.toLowerCase) return false;
+		if (!errorMessage || !(typeof errorMessage === 'string')) return false;
 
 		const userRejectedErrorMessage = USER_REJECTED_ERRORS.some(userRejectedError =>
 			errorMessage.toLowerCase().includes(userRejectedError.toLowerCase())
