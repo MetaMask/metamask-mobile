@@ -66,17 +66,17 @@ workflows:
         - cache_local_deps: 'yes'
         - command: install --network-timeout 300000 --frozen-lockfile --network-concurrency 1
         title: Yarn Install
-    - yarn@0:
-        inputs:
-        - cache_local_deps: 'yes'
-        - command: audit:ci
-        title: Audit Dependencies
-    - yarn@0:
-        title: Lint
-        inputs:
-        - cache_local_deps: 'yes'
-        - command: lint
-        is_always_run: true
+    # - yarn@0:
+    #     inputs:
+    #     - cache_local_deps: 'yes'
+    #     - command: audit:ci
+    #     title: Audit Dependencies
+    # - yarn@0:
+    #     title: Lint
+    #     inputs:
+    #     - cache_local_deps: 'yes'
+    #     - command: lint
+    #     is_always_run: true
   start_release_builds:
     before_run:
     - code_setup
