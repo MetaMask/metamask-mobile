@@ -546,7 +546,7 @@
 	},
 	"password_reset": {
 		"password_title": "Password",
-		"password_desc": "Choose a strong password to unlock MetaMask app on your device. If you lose this password, you will need your seedphrase to re-import your wallet.",
+		"password_desc": "Choose a strong password to unlock MetaMask app on your device. If you lose this password, you will need your Secret recovery phrase to re-import your wallet.",
 		"password_learn_more": "Learn more.",
 		"change_password": "Change password"
 	},
@@ -1098,7 +1098,7 @@
 		"tip_1": "Keep multiple backups of your Secret Recovery phrase",
 		"tip_2": "Store the phrase in a trusted password manager and paper backups in a safe place",
 		"tip_3": "Never share this phrase with anyone",
-		"disclaimer": "* You can find your seedphrase if you go to ",
+		"disclaimer": "* You can find your Secret recovery phrase if you go to ",
 		"disclaimer_bold": "Settings > Security & Privacy",
 		"cta_text": "GOT IT!",
 		"modal_title": "Congratulations!",
@@ -1132,7 +1132,7 @@
 		"congratulations": "Congratulations",
 		"success": "You’ve successfully protected your wallet. Remember to keep your Secret Recovery phrase safe, it's your responsibility!",
 		"hint": "Leave yourself a hint?",
-		"recover": "MetaMask cannot recover your wallet should you lose it. You can find your seedphrase in Settings > Security & Privacy.",
+		"recover": "MetaMask cannot recover your wallet should you lose it. You can find your Secret recovery phrase in Settings > Security & Privacy.",
 		"learn": "Learn more",
 		"done": "Done",
 		"recovery_hint": "Recovery hint",
