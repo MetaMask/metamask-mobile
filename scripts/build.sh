@@ -142,9 +142,6 @@ prebuild_android(){
 	if [ -e $ANDROID_ENV_FILE ]
 	then
 		source $ANDROID_ENV_FILE
-	else 
-		source .android.env	
-	fi
 }
 
 buildAndroidRun(){
@@ -154,7 +151,8 @@ buildAndroidRun(){
 
 buildAndroidRunE2E(){
 	prebuild_android
-	avdmanager create avd -n Pixel_3_API_29 -k "system-images;android-29;google_apis;x86_64" -d 32 --force
+	avdmanager list device
+	avdmanager create avd -n Pixel_3_API_29 -k "system-images;android-29;google_apis;x86" -d 32 --force
 	$ANDROID_HOME/tools/emulator -verbose -no-audio -no-boot-anim -port 10450 @Pixel_3_API_29
 	sleep 15
 	$ANDROID_HOME/tools/emulator -list-avds 
@@ -249,7 +247,7 @@ buildAndroidRelease(){
 buildAndroidReleaseE2E(){
 	prebuild_android
 	avdmanager list device
-	avdmanager create avd -n Pixel_3_API_29 -k "system-images;android-29;google_apis;x86_64" -d 32 --force
+	avdmanager create avd -n Pixel_3_API_29 -k "system-images;android-29;google_apis;x86" -d 32 --force
 	$ANDROID_HOME/tools/emulator -verbose -no-audio -no-boot-anim -port 10450 @Pixel_3_API_29
 	sleep 15
 	$ANDROID_HOME/tools/emulator -list-avds 
