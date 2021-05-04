@@ -250,9 +250,8 @@ buildAndroidReleaseE2E(){
 	prebuild_android
 	avdmanager list device
 	avdmanager create avd -n Pixel_3_API_29 -k "system-images;android-29;google_apis;x86" -d pixel_3 --force
-	$ANDROID_HOME/tools/emulator -verbose -no-audio -no-boot-anim -port 10450 @Pixel_3_API_29
+	$ANDROID_HOME/tools/emulator -avd Pixel_3_API_29
 	sleep 15
-	$ANDROID_HOME/tools/emulator -list-avds 
 	cd android && ./gradlew assembleRelease assembleAndroidTest -DtestBuildType=release && adb devics && cd ..
 }
 
