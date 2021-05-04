@@ -134,7 +134,7 @@ workflows:
     - avd-manager@1:
         inputs:
         - api_level: '29'
-        - profile: pixel_3
+        - profile: pixel
     - wait-for-android-emulator@1: {}
     - script@1.1.5:
         inputs:
