@@ -108,10 +108,7 @@ function EditPermission({
 	onPressSpendLimitCustomSelected,
 	toggleEditPermission
 }) {
-	const [initialState] = useState(() => ({
-		spendLimitUnlimitedSelected,
-		spendLimitCustomValue
-	}));
+	const [initialState] = useState({ spendLimitUnlimitedSelected, spendLimitCustomValue });
 
 	const displayErrorMessage = useMemo(
 		() => !spendLimitUnlimitedSelected && Number(minimumSpendLimit) > spendLimitCustomValue,
