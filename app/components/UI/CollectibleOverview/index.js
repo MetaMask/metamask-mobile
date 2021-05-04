@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import CollectibleImage from '../CollectibleImage';
+import CollectibleMedia from '../CollectibleMedia';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -60,7 +60,7 @@ export default class CollectibleOverview extends PureComponent {
 
 	renderImage = () => {
 		const { collectible } = this.props;
-		return <CollectibleImage renderFull collectible={collectible} />;
+		return <CollectibleMedia big renderAnimation collectible={collectible} />;
 	};
 
 	render = () => {

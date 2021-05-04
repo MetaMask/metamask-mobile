@@ -46,7 +46,7 @@ import { doENSReverseLookup } from '../../../../util/ENSUtils';
 import NotificationManager from '../../../../core/NotificationManager';
 import { strings } from '../../../../../locales/i18n';
 import collectiblesTransferInformation from '../../../../util/collectibles-transfer';
-import CollectibleImage from '../../../UI/CollectibleImage';
+import CollectibleMedia from '../../../UI/CollectibleMedia';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionTypes from '../../../../core/TransactionTypes';
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
 	actionsWrapper: {
 		margin: 24
 	},
-	collectibleImageWrapper: {
+	CollectibleMediaWrapper: {
 		flexDirection: 'column',
 		alignItems: 'center',
 		margin: 16
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
 		marginTop: 8,
 		textAlign: 'center'
 	},
-	collectibleImage: {
+	CollectibleMedia: {
 		height: 120,
 		width: 120
 	},
@@ -1015,10 +1015,11 @@ class Confirm extends PureComponent {
 					) : (
 						<View style={styles.amountWrapper}>
 							<Text style={styles.textAmountLabel}>{strings('transaction.asset')}</Text>
-							<View style={styles.collectibleImageWrapper}>
-								<CollectibleImage
-									iconStyle={styles.collectibleImage}
-									containerStyle={styles.collectibleImage}
+							<View style={styles.CollectibleMediaWrapper}>
+								<CollectibleMedia
+									small
+									iconStyle={styles.CollectibleMedia}
+									containerStyle={styles.CollectibleMedia}
 									collectible={selectedAsset}
 								/>
 							</View>

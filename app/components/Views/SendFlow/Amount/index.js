@@ -43,7 +43,7 @@ import { util } from '@metamask/controllers';
 import ErrorMessage from '../ErrorMessage';
 import { getGasPriceByChainId } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
-import CollectibleImage from '../../../UI/CollectibleImage';
+import CollectibleMedia from '../../../UI/CollectibleMedia';
 import collectiblesTransferInformation from '../../../../util/collectibles-transfer';
 import { strings } from '../../../../../locales/i18n';
 import Device from '../../../../util/Device';
@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
 	errorMessageWrapper: {
 		marginVertical: 16
 	},
-	collectibleImage: {
+	CollectibleMedia: {
 		width: 120,
 		height: 120
 	},
@@ -827,7 +827,8 @@ class Amount extends PureComponent {
 				onPress={() => this.pickSelectedAsset(collectible)}
 			>
 				<View style={styles.assetElement}>
-					<CollectibleImage
+					<CollectibleMedia
+						small
 						collectible={collectible}
 						iconStyle={styles.tokenImage}
 						containerStyle={styles.tokenImage}
@@ -965,9 +966,10 @@ class Amount extends PureComponent {
 		return (
 			<View style={styles.collectibleInputWrapper}>
 				<View style={styles.collectibleInputImageWrapper}>
-					<CollectibleImage
-						containerStyle={styles.collectibleImage}
-						iconStyle={styles.collectibleImage}
+					<CollectibleMedia
+						small
+						containerStyle={styles.CollectibleMedia}
+						iconStyle={styles.CollectibleMedia}
 						collectible={selectedAsset}
 					/>
 				</View>

@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
-import CollectibleImage from '../CollectibleImage';
+import CollectibleMedia from '../CollectibleMedia';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Device from '../../../util/Device';
 import { NavigationContext } from 'react-navigation';
@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
 		paddingTop: 15
 	},
 	collectibleContractIcon: { width: 30, height: 30 },
-	collectibleContractIconContainer: { marginHorizontal: 8 },
+	collectibleContractIconContainer: { marginHorizontal: 8, borderRadius: 30 },
 	titleContainer: {
 		flex: 1,
 		flexDirection: 'row'
@@ -87,11 +87,9 @@ export default function CollectibleContractElement({
 			return (
 				<View key={collectible.address + collectible.tokenId} styles={styles.collectibleBox}>
 					<TouchableOpacity onPress={onPress}>
-						<CollectibleImage
-							iconStyle={styles.collectibleIcon}
-							containerStyle={[styles.collectibleIcon, index === 1 ? styles.collectibleInTheMiddle : {}]}
-							collectible={collectible}
-						/>
+						<View style={index === 1 ? styles.collectibleInTheMiddle : {}}>
+							<CollectibleMedia style={styles.collectibleIcon} collectible={collectible} />
+						</View>
 					</TouchableOpacity>
 				</View>
 			);
@@ -115,11 +113,13 @@ export default function CollectibleContractElement({
 						style={styles.arrowIcon}
 					/>
 				</View>
-				<CollectibleImage
-					iconStyle={styles.collectibleContractIcon}
-					containerStyle={{ ...styles.collectibleContractIcon, ...styles.collectibleContractIconContainer }}
-					collectible={{ ...asset, image: asset.logo }}
-				/>
+				<View style={styles.collectibleContractIconContainer}>
+					<CollectibleMedia
+						iconStyle={styles.collectibleContractIcon}
+						collectible={{ ...asset, image: asset.logo }}
+						small
+					/>
+				</View>
 				<View style={styles.verticalAlignedContainer}>
 					<Text numberOfLines={1} style={styles.titleText}>
 						{asset.name}

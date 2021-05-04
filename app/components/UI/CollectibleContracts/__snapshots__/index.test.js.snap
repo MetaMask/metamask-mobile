@@ -65,7 +65,7 @@ exports[`CollectibleContracts should render correctly 1`] = `
           }
         }
       >
-        ADD COLLECTIBLES
+        ADD NFTs
       </Text>
     </TouchableOpacity>
   </View>
