@@ -59,6 +59,9 @@ const styles = StyleSheet.create({
 		fontSize: Device.isIphone5() ? 48 : 48,
 		height: Device.isIphone5() ? 50 : 60
 	},
+	amountDescription: {
+		minHeight: 22
+	},
 	amountError: {
 		color: colors.red
 	},
@@ -312,41 +315,43 @@ function PaymentMethodApplePay({
 						{currencySymbol}
 						{amount}
 					</Text>
-					{!(isUnderMinimum || isOverMaximum) &&
-						(!isLoadingQuotation && ratesETH && ratesETH?.[selectedCurrency] ? (
-							<Text>
-								{roundAmount === '0' && `${formatCurrency(ratesETH[selectedCurrency])}  ≈ 1 ETH`}
+					<View style={styles.amountDescription}>
+						{!(isUnderMinimum || isOverMaximum) &&
+							(!isLoadingQuotation && ratesETH && ratesETH?.[selectedCurrency] ? (
+								<Text>
+									{roundAmount === '0' && `${formatCurrency(ratesETH[selectedCurrency])}  ≈ 1 ETH`}
 
-								{roundAmount !== '0' && (
-									<>
-										{strings('fiat_on_ramp.wyre_estimated', {
-											currency: 'ETH',
-											amount: (quotation
-												? quotation.destAmount
-												: amountWithPeriod * ratesETH.ETH
-											).toFixed(5)
-										})}
-									</>
-								)}
+									{roundAmount !== '0' && (
+										<>
+											{strings('fiat_on_ramp.wyre_estimated', {
+												currency: 'ETH',
+												amount: (quotation
+													? quotation.destAmount
+													: amountWithPeriod * ratesETH.ETH
+												).toFixed(5)
+											})}
+										</>
+									)}
+								</Text>
+							) : (
+								/* <Text>{strings('fiat_on_ramp.wyre_loading_rates')}</Text> */
+								<ActivityIndicator size="small" />
+							))}
+						{isUnderMinimum && (
+							<Text>
+								{strings('fiat_on_ramp.wyre_minimum_deposit', {
+									amount: `${currencySymbol || ''}${minAmount}`
+								})}
 							</Text>
-						) : (
-							/* <Text>{strings('fiat_on_ramp.wyre_loading_rates')}</Text> */
-							<ActivityIndicator size="small" />
-						))}
-					{isUnderMinimum && (
-						<Text>
-							{strings('fiat_on_ramp.wyre_minimum_deposit', {
-								amount: `${currencySymbol || ''}${minAmount}`
-							})}
-						</Text>
-					)}
-					{isOverMaximum && (
-						<Text style={styles.amountError}>
-							{strings('fiat_on_ramp.wyre_maximum_deposit', {
-								amount: `${currencySymbol || ''}${maxAmount}`
-							})}
-						</Text>
-					)}
+						)}
+						{isOverMaximum && (
+							<Text style={styles.amountError}>
+								{strings('fiat_on_ramp.wyre_maximum_deposit', {
+									amount: `${currencySymbol || ''}${maxAmount}`
+								})}
+							</Text>
+						)}
+					</View>
 				</View>
 				{quickAmounts.length > 0 ? (
 					<View style={styles.quickAmounts}>
