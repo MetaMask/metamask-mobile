@@ -157,6 +157,8 @@ buildAndroidRunE2E(){
 	if [ -e $ANDROID_ENV_FILE ]
 	then
 		source $ANDROID_ENV_FILE
+	else 
+		source .android.env	
 	fi
 	avdmanager create avd -n Pixel_3_API_29 -k "system-images;android-29;google_apis;x86" -d 32 --force
 	$ANDROID_HOME/tools/emulator -verbose -no-audio -no-boot-anim -port 10450 @Pixel_3_API_29
@@ -251,7 +253,16 @@ buildAndroidRelease(){
 
 buildAndroidReleaseE2E(){
 	prebuild_android
-	source .android.env && cd android && ./gradlew assembleRelease assembleAndroidTest -DtestBuildType=release && cd ..
+	if [ -e $ANDROID_ENV_FILE ]
+	then
+		source $ANDROID_ENV_FILE
+	else 
+		source .android.env	
+	fi
+	avdmanager create avd -n Pixel_3_API_29 -k "system-images;android-29;google_apis;x86" -d 32 --force
+	$ANDROID_HOME/tools/emulator -verbose -no-audio -no-boot-anim -port 10450 @Pixel_3_API_29
+	sleep 15
+	$ANDROID_HOME/tools/emulator -list-avds || cd android && ./gradlew assembleRelease assembleAndroidTest -DtestBuildType=release && cd ..
 }
 
 buildAndroid() {
