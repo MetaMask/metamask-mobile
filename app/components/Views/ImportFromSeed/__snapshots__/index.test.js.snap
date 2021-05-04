@@ -75,7 +75,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
               }
             }
           >
-            Seed phrase
+            Secret recovery phrase
           </Text>
         </View>
         <View

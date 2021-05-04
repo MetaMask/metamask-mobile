@@ -57,7 +57,7 @@ exports[`SeedphraseModal should render correctly 1`] = `
           }
         }
       >
-        What is a ‘Seed phrase’
+        What is a ‘Secret recovery phrase’
       </Text>
       <TouchableOpacity
         hitSlop={
