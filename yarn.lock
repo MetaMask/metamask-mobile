@@ -4568,6 +4568,11 @@ elliptic@6.5.3, elliptic@^6.0.0, elliptic@^6.4.0, elliptic@^6.5.2, elliptic@^6.5
     minimalistic-assert "^1.0.1"
     minimalistic-crypto-utils "^1.0.1"
 
+eme-encryption-scheme-polyfill@^2.0.1:
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/eme-encryption-scheme-polyfill/-/eme-encryption-scheme-polyfill-2.0.3.tgz#2ca6e06480e06cceb5e50efd27943ac46c959878"
+  integrity sha512-44CNFMsqzHdKHrzWxlS7xZ8KUHn5XutBqpmCuWzNIynmAyFInHrrD3ozv/RvK9ZhgV6QY6Easx8EWAmxteNodg==
+
 emoji-regex@^7.0.1:
   version "7.0.3"
   resolved "https://registry.yarnpkg.com/emoji-regex/-/emoji-regex-7.0.3.tgz#933a04052860c85e83c122479c4748a8e4c72156"
@@ -8315,6 +8320,11 @@ keccakjs@^0.2.0:
     browserify-sha3 "^0.0.4"
     sha3 "^1.2.2"
 
+keymirror@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/keymirror/-/keymirror-0.1.1.tgz#918889ea13f8d0a42e7c557250eee713adc95c35"
+  integrity sha1-kYiJ6hP40KQufFVyUO7nE63JXDU=
+
 keyvaluestorage-interface@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/keyvaluestorage-interface/-/keyvaluestorage-interface-1.0.0.tgz#13ebdf71f5284ad54be94bd1ad9ed79adad515ff"
@@ -8674,15 +8684,15 @@ lodash@^4.0.0, lodash@^4.15.0, lodash@^4.17.10, lodash@^4.17.11, lodash@^4.17.12
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.19.tgz#e48ddedbe30b3321783c5b4301fbd353bc1e4a4b"
   integrity sha512-JNvd8XER9GQX0v2qJgsaN/mzFCNA5BRe/j8JN9d+tWyGLSodKQHKFicdwNYzWwI3wjRnaKPsGj1XkBjx/F96DQ==
 
+lodash@^4.16.4, lodash@^4.17.21:
+  version "4.17.21"
+  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
+  integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
+
 lodash@^4.17.19:
   version "4.17.20"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.20.tgz#b44a9b6297bcb698f1c51a3545a2b3b368d59c52"
   integrity sha512-PlhdFcillOINfeV7Ni6oF1TAEayyZBoZ8bcshTHqOYJYlrqzRK5hagpagky5o4HfCzzd1TRkXPMFq6cKk9rGmA==
-
-lodash@^4.17.21:
-  version "4.17.21"
-  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
-  integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
 
 log-symbols@^2.2.0:
   version "2.2.0"
@@ -11178,6 +11188,22 @@ react-native-vector-icons@6.4.2:
     prop-types "^15.6.2"
     yargs "^13.2.2"
 
+react-native-video-controls@^2.7.1:
+  version "2.7.1"
+  resolved "https://registry.yarnpkg.com/react-native-video-controls/-/react-native-video-controls-2.7.1.tgz#52bd22ea83a964c9bf1e741e7ed6380ad0e28f1e"
+  integrity sha512-yoquLUx2x7EJOnDNGw0H4bb0gO4Io+ziFSDoDGGJqaT15IaXIiD+GCvCDbW9gLcUxsyLDwCr65sx8Yt2ZMvbCg==
+  dependencies:
+    lodash "^4.16.4"
+
+react-native-video@^5.1.1:
+  version "5.1.1"
+  resolved "https://registry.yarnpkg.com/react-native-video/-/react-native-video-5.1.1.tgz#89a7989efeb8d404611c06154d1da227a745d7d8"
+  integrity sha512-zee8gRUrjPWRoZSEBiMebClqu1iAuCQNLjzqpmXFrRWEoJj7azM3BPqLQWJgsnfLiYUYGySeApC/G60THM5+tw==
+  dependencies:
+    keymirror "^0.1.1"
+    prop-types "^15.7.2"
+    shaka-player "^2.5.9"
+
 react-native-view-shot@^3.1.2:
   version "3.1.2"
   resolved "https://registry.yarnpkg.com/react-native-view-shot/-/react-native-view-shot-3.1.2.tgz#8c8e84c67a4bc8b603e697dbbd59dbc9b4f84825"
@@ -12111,6 +12137,13 @@ sha3@^1.2.2:
   integrity sha512-KgLGmJGrmNB4JWVsAV11Yk6KbvsAiygWJc7t5IebWva/0NukNrjJqhtKhzy3Eiv2AKuGvhZZt7dt1mDo7HkoiQ==
   dependencies:
     nan "2.13.2"
+
+shaka-player@^2.5.9:
+  version "2.5.22"
+  resolved "https://registry.yarnpkg.com/shaka-player/-/shaka-player-2.5.22.tgz#64b4547b742b2a3a022be9fbe0686d944f9d0300"
+  integrity sha512-PAoeNLUQ/hT/9dY7QvNFgIiDtXSqbYVFuXXtLHh7ytVVqTvI/p4HLwfYShiR+sE/sbsDOr9D5l9D/ztLPhxgtw==
+  dependencies:
+    eme-encryption-scheme-polyfill "^2.0.1"
 
 shebang-command@^1.2.0:
   version "1.2.0"
