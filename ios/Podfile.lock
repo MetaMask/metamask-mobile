@@ -271,8 +271,8 @@ PODS:
     - React
   - react-native-cookies (4.0.1):
     - React
-  - react-native-netinfo (4.1.5):
-    - React
+  - react-native-netinfo (6.0.0):
+    - React-Core
   - react-native-randombytes (3.5.3):
     - React
   - react-native-safe-area-context (3.1.9):
@@ -381,18 +381,18 @@ PODS:
     - React-Core
   - RNSensors (5.3.0):
     - React
-  - RNSentry (1.3.3):
-    - React
-    - Sentry (~> 4.4.0)
-  - RNShare (3.3.2):
-    - React
+  - RNSentry (2.4.2):
+    - React-Core
+    - Sentry (= 6.1.4)
+  - RNShare (5.2.2):
+    - React-Core
   - RNSVG (12.1.0):
     - React
   - RNVectorIcons (6.4.2):
     - React
-  - Sentry (4.4.3):
-    - Sentry/Core (= 4.4.3)
-  - Sentry/Core (4.4.3)
+  - Sentry (6.1.4):
+    - Sentry/Core (= 6.1.4)
+  - Sentry/Core (6.1.4)
   - TcpSockets (4.0.0):
     - CocoaAsyncSocket
     - React
@@ -666,7 +666,7 @@ SPEC CHECKSUMS:
   react-native-branch: f630e0e399c64230463246469ca0817e4f821b78
   react-native-camera: 8016138a8348b889e22c95b23f668a234f124335
   react-native-cookies: ff2e6865dff2e5feeca8f1ed082ae7898e4fa912
-  react-native-netinfo: 0e563248a4b9a99c33ec29bd03c2d50767db22a6
+  react-native-netinfo: e849fc21ca2f4128a5726c801a82fc6f4a6db50d
   react-native-randombytes: 3638d24759d67c68f6ccba60c52a7a8a8faa6a23
   react-native-safe-area-context: b6e0e284002381d2ff29fa4fff42b4d8282e3c94
   react-native-splash-screen: 200d11d188e2e78cea3ad319964f6142b6384865
@@ -699,11 +699,11 @@ SPEC CHECKSUMS:
   RNReanimated: e03f7425cb7a38dcf1b644d680d1bfc91c3337ad
   RNScreens: 45c457af3d2ee9e08fc01e70da87e653d46b1198
   RNSensors: c363d486c879e181905dea84a2535e49af1c2d25
-  RNSentry: 86baf0c87120cd5eb491d073989f8cbc1a2174c6
-  RNShare: bd6518701db274b8ba282b33620885f2225a5bcf
+  RNSentry: e86fb2e2fec0365644f4b582938bf66be515acce
+  RNShare: 5cfe16bfd42cd2c4869a7692462181ac8cc15a6d
   RNSVG: ce9d996113475209013317e48b05c21ee988d42e
   RNVectorIcons: 6607bd3a30291d0edb56f9bbe7ae411ee2b928b0
-  Sentry: 14bdd673870e8cf64932b149fad5bbbf39a9b390
+  Sentry: 9d055e2de30a77685e86b219acf02e59b82091fc
   TcpSockets: a8eb6b5867fe643e6cfed5db2e4de62f4d1e8fd0
   Yoga: 4bd86afe9883422a7c4028c00e34790f560923d6
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a

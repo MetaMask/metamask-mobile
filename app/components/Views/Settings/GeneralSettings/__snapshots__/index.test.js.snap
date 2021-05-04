@@ -248,6 +248,11 @@ exports[`GeneralSettings should render correctly 1`] = `
                 "value": "nmr",
               },
               Object {
+                "key": "nzd",
+                "label": "NZD - New Zealand Dollar",
+                "value": "nzd",
+              },
+              Object {
                 "key": "omg",
                 "label": "OMG - OmiseGO",
                 "value": "omg",

@@ -28,6 +28,7 @@ import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import Branch from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
+import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 
 /**
  * Stack navigator responsible for the onboarding process
@@ -186,7 +187,11 @@ class App extends PureComponent {
 
 	handleDeeplinks = async ({ error, params, uri }) => {
 		if (error) {
-			Logger.error(error, 'Deeplink: Error from Branch');
+			if (error === 'Trouble reaching the Branch servers, please try again shortly.') {
+				trackErrorAsAnalytics('Branch: Trouble reaching servers', error);
+			} else {
+				Logger.error(error, 'Deeplink: Error from Branch');
+			}
 		}
 		const deeplink = params['+non_branch_link'] || uri || null;
 		try {
