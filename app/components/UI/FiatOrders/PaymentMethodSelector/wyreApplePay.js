@@ -92,10 +92,41 @@ const WyreApplePayPaymentMethod = ({ onPress }) => {
 						<View style={styles.countryList}>
 							<ScrollView contentContainerStyle={styles.countryList}>
 								<View style={styles.countryCol}>
-									<Text primary>Algeria 🇩🇿</Text>
+									<Text primary>Australia 🇦🇺</Text>
+									<Text primary>Austria 🇦🇹</Text>
+									<Text primary>Belgium 🇧🇪</Text>
+									<Text primary>Brazil 🇧🇷</Text>
+									<Text primary>Canada 🇨🇦</Text>
+									<Text primary>Cyprus 🇨🇾</Text>
+									<Text primary>Czech Republic 🇨🇿</Text>
+									<Text primary>Denmark 🇩🇰</Text>
+									<Text primary>Estonia 🇪🇪</Text>
+									<Text primary>Finland 🇫🇮</Text>
+									<Text primary>France 🇫🇷</Text>
+									<Text primary>Germany 🇩🇪</Text>
+									<Text primary>Greece 🇬🇷</Text>
+									<Text primary>Hong Kong 🇭🇰</Text>
+									<Text primary>Iceland 🇮🇸</Text>
+									<Text primary>Ireland 🇮🇪</Text>
+									<Text primary>Italy 🇮🇹</Text>
 								</View>
 								<View style={styles.countryCol}>
 									<Text primary>Japan 🇯🇵</Text>
+									<Text primary>Latvia 🇱🇻</Text>
+									<Text primary>Luxembourg 🇱🇺</Text>
+									<Text primary>Netherlands 🇳🇱</Text>
+									<Text primary>New Zealand 🇳🇿</Text>
+									<Text primary>Norway 🇳🇴</Text>
+									<Text primary>Poland 🇵🇱</Text>
+									<Text primary>Portugal 🇵🇹</Text>
+									<Text primary>Singapore 🇸🇬</Text>
+									<Text primary>Slovakia 🇸🇰</Text>
+									<Text primary>Slovenia 🇸🇮</Text>
+									<Text primary>Spain 🇪🇸</Text>
+									<Text primary>Sweden 🇸🇪</Text>
+									<Text primary>Switzerland 🇨🇭</Text>
+									<Text primary>United Kingdom 🇬🇧</Text>
+									<Text primary>United States 🇺🇸</Text>
 								</View>
 							</ScrollView>
 						</View>
