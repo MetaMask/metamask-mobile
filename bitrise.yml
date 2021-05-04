@@ -131,12 +131,13 @@ workflows:
     - install-missing-android-tools@2:
         inputs:
         - gradlew_path: $PROJECT_LOCATION/gradlew
-    - yarn@0:
+    - script@1.1.5:
         inputs:
-        - cache_local_deps: 'yes'
-        - command: test:e2e:android
-        title: E2E Tests on Android
-        is_always_run: true
+        - content: |-
+            #!/bin/bash
+            detox build --configuration android.sim.release
+            detox test --configuration android.sim.release --cleanup
+        title: Detox - Build and Test Release App
   ios_e2e_test:
     before_run:
     - android_e2e_test
