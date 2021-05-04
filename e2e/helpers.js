@@ -52,7 +52,13 @@ export default class TestHelpers {
 
 	static async tapAndLongPress(elementId) {
 		await TestHelpers.tap(elementId);
-		return element(by.id(elementId)).longPress();
+		return element(by.id(elementId)).longPress(2000);
+	}
+
+	static async tapAndLongPressAtIndex(elementId, index) {
+		return element(by.id(elementId, index))
+			.atIndex(index || 0)
+			.longPress(2000);
 	}
 
 	static async replaceTextInField(elementId, text) {
@@ -71,8 +77,8 @@ export default class TestHelpers {
 			.tap();
 	}
 
-	static async swipe(elementId, direction) {
-		await element(by.id(elementId)).swipe(direction);
+	static async swipe(elementId, direction, speed, percentage) {
+		await element(by.id(elementId)).swipe(direction, speed, percentage);
 	}
 
 	static async scrollTo(scrollviewId, edge) {

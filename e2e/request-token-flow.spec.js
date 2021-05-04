@@ -90,7 +90,7 @@ describe('Request Token Flow', () => {
 		await TestHelpers.checkIfVisible('receive-request-screen');
 	});
 
-	it('should request ETH', async () => {
+	it('should request DAI', async () => {
 		// Tap on request payment button
 		await TestHelpers.tap('request-payment-button');
 		// Tap on ETH
@@ -110,9 +110,13 @@ describe('Request Token Flow', () => {
 			await TestHelpers.typeTextAndHideKeyboard('request-search-asset-input', 'DAI');
 		} else {
 			await TestHelpers.replaceTextInField('request-search-asset-input', 'DAI');
+			await TestHelpers.delay(1000);
 		}
 		// Select DAI from search results
 		await TestHelpers.tapByText('DAI', 1);
+		if (device.getPlatform() === 'ios') {
+			await TestHelpers.tapByText('DAI', 1);
+		}
 		// Request 5.50 DAI
 		await TestHelpers.typeTextAndHideKeyboard('request-amount-input', 5.5);
 		// Make sure we're on the right screen
