@@ -22,3 +22,8 @@
 -keep class com.facebook.crypto.** {
    *;
 } 
+
+##########
+# BlurView
+##########
+-dontnote eightbitlab.com.blurview.**

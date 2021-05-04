@@ -168,7 +168,7 @@ buildIosSimulator(){
 
 buildIosSimulatorE2E(){
 	prebuild_ios
-	xcodebuild -workspace ios/MetaMask.xcworkspace -scheme MetaMask -configuration Debug -sdk iphonesimulator14.1 -derivedDataPath ios/build
+	xcodebuild -workspace ios/MetaMask.xcworkspace -scheme MetaMask -configuration Debug -sdk iphonesimulator14.4 -derivedDataPath ios/build
 }
 
 buildIosDevice(){
@@ -216,7 +216,7 @@ buildIosReleaseE2E(){
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
 		fi
-		xcodebuild -workspace ios/MetaMask.xcworkspace -scheme MetaMask -configuration Release -sdk iphonesimulator14.1 -derivedDataPath ios/build
+		xcodebuild -workspace ios/MetaMask.xcworkspace -scheme MetaMask -configuration Release -sdk iphonesimulator14.4 -derivedDataPath ios/build
 	fi
 }
 
