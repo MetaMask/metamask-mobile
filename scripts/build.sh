@@ -158,7 +158,7 @@ buildAndroidRunE2E(){
 	$ANDROID_HOME/tools/emulator -verbose -no-audio -no-boot-anim -port 10450 @Pixel_3_API_29
 	sleep 15
 	$ANDROID_HOME/tools/emulator -list-avds 
-	cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug && cd ..
+	cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug && adb devics && cd ..
 }
 
 buildIosSimulator(){
@@ -253,7 +253,7 @@ buildAndroidReleaseE2E(){
 	$ANDROID_HOME/tools/emulator -verbose -no-audio -no-boot-anim -port 10450 @Pixel_3_API_29
 	sleep 15
 	$ANDROID_HOME/tools/emulator -list-avds 
-	cd android && ./gradlew assembleRelease assembleAndroidTest -DtestBuildType=release && cd ..
+	cd android && ./gradlew assembleRelease assembleAndroidTest -DtestBuildType=release && adb devics && cd ..
 }
 
 buildAndroid() {
