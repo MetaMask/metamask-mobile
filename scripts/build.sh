@@ -139,9 +139,10 @@ prebuild_android(){
 	# Copy fonts with iconset
 	yes | cp -rf ./app/fonts/Metamask.ttf ./android/app/src/main/assets/fonts/Metamask.ttf
 	
-	if [ -e $ANDROID_ENV_FILE ]; then
+	if [ -e $ANDROID_ENV_FILE ]
+	then
 		source $ANDROID_ENV_FILE
-	if
+	fi
 }
 
 buildAndroidRun(){
