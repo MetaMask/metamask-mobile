@@ -13,6 +13,8 @@ PRE_RELEASE=false
 JS_ENV_FILE=".js.env"
 ANDROID_ENV_FILE=".android.env"
 IOS_ENV_FILE=".ios.env"
+ANDROID_EMU_NAME="Pixel_3_API_29"
+ANDROID_EMU_TYPE="pixel_3"
 
 envFileMissing() {
 	FILE="$1"
@@ -154,10 +156,11 @@ buildAndroidRun(){
 buildAndroidRunE2E(){
 	prebuild_android
 	avdmanager list device
-	avdmanager create avd -n Pixel_3_API_29 -k "system-images;android-29;google_apis;x86" -d pixel_3 --force
-	$ANDROID_HOME/tools/emulator -avd Pixel_3_API_29
+	avdmanager create avd -n $ANDROID_EMU_NAME -k "system-images;android-29;google_apis;x86" -d $ANDROID_EMU_TYPE --force
+	cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug && cd ..
+	$ANDROID_HOME/tools/emulator -avd $ANDROID_EMU_NAME
 	sleep 15
-	cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug && adb devices && cd ..
+	adb devices 
 }
 
 buildIosSimulator(){
@@ -248,8 +251,8 @@ buildAndroidRelease(){
 buildAndroidReleaseE2E(){
 	prebuild_android
 	avdmanager list device
-	avdmanager create avd -n Pixel_3_API_29 -k "system-images;android-29;google_apis;x86" -d pixel_3 --force
-	$ANDROID_HOME/tools/emulator -avd Pixel_3_API_29
+	avdmanager create avd -n $ANDROID_EMU_NAME -k "system-images;android-29;google_apis;x86" -d $ANDROID_EMU_TYPE --force
+	$ANDROID_HOME/tools/emulator -avd $ANDROID_EMU_NAME
 	sleep 15
 	cd android && ./gradlew assembleRelease assembleAndroidTest -DtestBuildType=release && adb devics && cd ..
 }
