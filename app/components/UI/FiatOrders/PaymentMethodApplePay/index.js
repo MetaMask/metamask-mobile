@@ -390,7 +390,13 @@ function PaymentMethodApplePay({
 					<Text centered>
 						{disabledButton || !quotation ? (
 							<Text>
-								<Text bold> </Text>
+								<Text bold>
+									{strings(
+										selectedCountry === 'US'
+											? 'fiat_on_ramp.wyre_fees_us_fee'
+											: 'fiat_on_ramp.wyre_fees_outside_us_fee'
+									)}
+								</Text>
 							</Text>
 						) : (
 							<Text>
