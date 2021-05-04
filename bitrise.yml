@@ -131,12 +131,17 @@ workflows:
     - install-missing-android-tools@2:
         inputs:
         - gradlew_path: $PROJECT_LOCATION/gradlew
+    - avd-manager@1:
+        inputs:
+        - api_level: '29'
+        - profile: pixel_3
+    - wait-for-android-emulator@1: {}
     - script@1.1.5:
         inputs:
         - content: |-
             #!/bin/bash
-            detox build --configuration android.sim.release
-            detox test --configuration android.sim.release --cleanup
+            detox build --configuration android.sim.debug
+            detox test --configuration android.sim.debug --cleanup
         title: Detox - Build and Test Release App
   ios_e2e_test:
     before_run:
