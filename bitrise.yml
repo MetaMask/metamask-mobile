@@ -107,13 +107,6 @@ workflows:
             curl -sL https://sentry.io/get-cli/
         title: Install Test Dependencies (Bundler & Sentry)
         is_always_run: false
-    - script@1:
-        inputs:
-        - content: |-
-            #!/usr/bin/env bash 
-            curl -sL https://sentry.io/get-cli/ | bash
-        title: Install Sentry CLI
-        is_always_run: false
     - yarn@0:
         inputs:
         - cache_local_deps: 'yes'
@@ -127,7 +120,6 @@ workflows:
             envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
             brew tap wix/brew
         title: Set Env Path for caching deps
-
   android_e2e_test:
     before_run:
     - e2e_setup
