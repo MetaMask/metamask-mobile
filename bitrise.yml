@@ -58,14 +58,15 @@ workflows:
     - activate-ssh-key@4:
         run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
     - git-clone@4: {}
+    - cache-pull@2: {}
     - nvm@1:
         inputs:
         - node_version: '14'
     - yarn@0:
         inputs:
-        - cache_local_deps: 'yes'
         - command: install --network-timeout 300000 --frozen-lockfile --network-concurrency 1
         title: Yarn Install
+    - cache-push@2: {}
     # - yarn@0:
     #     inputs:
     #     - cache_local_deps: 'yes'
