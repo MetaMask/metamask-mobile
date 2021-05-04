@@ -159,9 +159,9 @@ buildAndroidRunE2E(){
 		source $ANDROID_ENV_FILE
 	fi
 	avdmanager create avd -n Pixel_3_API_29 -k "system-images;android-29;google_apis;x86" -d 32 --force
-	~/Library/Android/sdk/tools/emulator -verbose -no-audio -no-boot-anim -port 10450 @Pixel_3_API_29
+	$ANDROID_HOME/tools/emulator -verbose -no-audio -no-boot-anim -port 10450 @Pixel_3_API_29
 	sleep 15
-	~/Library/Android/sdk/tools/emulator -list-avds || cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug && cd ..
+	$ANDROID_HOME/tools/emulator -list-avds || cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug && cd ..
 }
 
 buildIosSimulator(){
