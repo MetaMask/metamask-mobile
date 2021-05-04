@@ -115,14 +115,7 @@ const getDescription = (status, { amount = null }) => {
 /**
  * BaseNotification component used to render in-app notifications
  */
-const BaseNotification = ({
-	status,
-	data = null,
-	data: { description = null, title = null },
-	onPress,
-	onHide,
-	autoDismiss
-}) => (
+const BaseNotification = ({ status, data = null, data: { description = null, title = null }, onPress, onHide }) => (
 	<View style={baseStyles.flexGrow}>
 		<TouchableOpacity
 			style={styles.defaultFlashFloating}
@@ -138,7 +131,7 @@ const BaseNotification = ({
 				<Text style={styles.flashText}>{!description ? getDescription(status, data) : description}</Text>
 			</View>
 			<View>
-				{autoDismiss && (
+				{onHide && (
 					<TouchableOpacity style={styles.closeTouchable} onPress={onHide}>
 						<IonicIcon name="ios-close" size={36} style={styles.closeIcon} />
 					</TouchableOpacity>
@@ -152,12 +145,7 @@ BaseNotification.propTypes = {
 	status: PropTypes.string,
 	data: PropTypes.object,
 	onPress: PropTypes.func,
-	onHide: PropTypes.func,
-	autoDismiss: PropTypes.bool
-};
-
-BaseNotification.defaultProps = {
-	autoDismiss: false
+	onHide: PropTypes.func
 };
 
 export default BaseNotification;
