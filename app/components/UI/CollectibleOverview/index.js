@@ -12,6 +12,8 @@ import AntIcons from 'react-native-vector-icons/AntDesign';
 import Device from '../../../util/Device';
 import { toLocaleDate } from '../../../util/date';
 import { renderFromWei } from '../../../util/number';
+import { renderShortAddress } from '../../../util/address';
+import etherscanLink from '@metamask/etherscan-link';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -98,11 +100,9 @@ const styles = StyleSheet.create({
  * View that displays the information of a specific ERC-721 Token
  */
 const CollectibleOverview = ({ collectible, tradable, onSend, navigation }) => {
-	const renderImage = () => <CollectibleMedia big renderAnimation collectible={collectible} />;
-
 	const openLink = url => navigation.navigate('SimpleWebview', { url });
 
-	const renderCollectibleInfoRow = (key, value, isLink) => {
+	const renderCollectibleInfoRow = (key, value, onPress) => {
 		if (!value) return null;
 		return (
 			<View style={styles.collectibleInfoContainer} key={key}>
@@ -112,13 +112,13 @@ const CollectibleOverview = ({ collectible, tradable, onSend, navigation }) => {
 				<Text
 					noMargin
 					big
-					link={isLink}
-					black={!isLink}
+					link={!!onPress}
+					black={!onPress}
 					right
 					style={styles.collectibleInfoValue}
 					numberOfLines={1}
 					ellipsizeMode="middle"
-					onPress={isLink ? () => openLink(value) : null}
+					onPress={onPress}
 				>
 					{value}
 				</Text>
@@ -136,9 +136,17 @@ const CollectibleOverview = ({ collectible, tradable, onSend, navigation }) => {
 			strings('collectible.collectible_last_price_sold'),
 			collectible?.lastSale?.total_price && `${renderFromWei(collectible?.lastSale?.total_price)} ETH`
 		),
-		renderCollectibleInfoRow(strings('collectible.collectible_source'), collectible?.imageOriginal, true),
-		renderCollectibleInfoRow(strings('collectible.collectible_link'), collectible?.externalLink, true),
-		renderCollectibleInfoRow(strings('collectible.collectible_asset_contract'), collectible?.address, true)
+		renderCollectibleInfoRow(strings('collectible.collectible_source'), collectible?.imageOriginal, () =>
+			openLink(collectible?.imageOriginal)
+		),
+		renderCollectibleInfoRow(strings('collectible.collectible_link'), collectible?.externalLink, () =>
+			openLink(collectible?.imageOriginal)
+		),
+		renderCollectibleInfoRow(
+			strings('collectible.collectible_asset_contract'),
+			renderShortAddress(collectible?.address),
+			() => openLink(etherscanLink.createTokenTrackerLink(collectible?.address, 1))
+		)
 	];
 
 	const addCollectibleToFavorites = () => {
@@ -151,11 +159,10 @@ const CollectibleOverview = ({ collectible, tradable, onSend, navigation }) => {
 
 	// TODO: Get favorited status here or directly from props
 	const favorited = false;
-
 	return (
 		<View style={styles.wrapper}>
 			<View style={styles.basicsWrapper}>
-				<View>{renderImage()}</View>
+				<CollectibleMedia big renderAnimation collectible={collectible} />
 			</View>
 
 			<View style={styles.informationWrapper}>
