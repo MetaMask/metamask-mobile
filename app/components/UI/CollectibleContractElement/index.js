@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useContext, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../styles/common';
 import CollectibleMedia from '../CollectibleMedia';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -71,10 +72,11 @@ const splitIntoSubArrays = (array, count) => {
 /**
  * Customizable view to render assets in lists
  */
-export default function CollectibleContractElement({
+function CollectibleContractElement({
 	asset,
 	contractCollectibles,
-	collectiblesVisible: propsCollectiblesVisible
+	collectiblesVisible: propsCollectiblesVisible,
+	collectibleContracts
 }) {
 	const navigation = useContext(NavigationContext);
 	const [collectiblesGrid, setCollectiblesGrid] = useState([]);
@@ -88,7 +90,7 @@ export default function CollectibleContractElement({
 		collectible =>
 			navigation.navigate('CollectibleView', {
 				...collectible,
-				contractName: asset.name
+				contractName: collectible.name || asset.name
 			}),
 		[asset.name, navigation]
 	);
@@ -96,24 +98,25 @@ export default function CollectibleContractElement({
 	const renderCollectible = useCallback(
 		(collectible, index) => {
 			const onPress = () => onPressCollectible(collectible);
+			const name =
+				collectible.name || collectibleContracts.find(({ address }) => address === collectible.address)?.name;
 			return (
 				<View key={collectible.address + collectible.tokenId} styles={styles.collectibleBox}>
 					<TouchableOpacity onPress={onPress}>
 						<View style={index === 1 ? styles.collectibleInTheMiddle : {}}>
-							<CollectibleMedia style={styles.collectibleIcon} collectible={collectible} />
+							<CollectibleMedia style={styles.collectibleIcon} collectible={{ ...collectible, name }} />
 						</View>
 					</TouchableOpacity>
 				</View>
 			);
 		},
-		[onPressCollectible]
+		[collectibleContracts, onPressCollectible]
 	);
 
 	useEffect(() => {
 		const temp = splitIntoSubArrays(contractCollectibles, 3);
 		setCollectiblesGrid(temp);
 	}, [contractCollectibles, setCollectiblesGrid]);
-
 	return (
 		<View style={styles.itemWrapper}>
 			<TouchableOpacity onPress={toggleCollectibles} style={styles.titleContainer}>
@@ -169,5 +172,12 @@ CollectibleContractElement.propTypes = {
 	/**
 	 * Whether the collectibles are visible or not
 	 */
-	collectiblesVisible: PropTypes.bool
+	collectiblesVisible: PropTypes.bool,
+	collectibleContracts: PropTypes.array
 };
+
+const mapStateToProps = state => ({
+	collectibleContracts: state.engine.backgroundState.AssetsController.collectibleContracts
+});
+
+export default connect(mapStateToProps)(CollectibleContractElement);
