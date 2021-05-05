@@ -4,7 +4,7 @@ default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
 trigger_map:
 - push_branch: 'feature/e2e_bitrise'
-  workflow: e2e_test
+  workflow: start_e2e_tests
 - push_branch: 'develop'
   workflow: test_release
 - push_branch: 'main'
@@ -14,11 +14,15 @@ trigger_map:
 - pull_request_source_branch: '*'
   workflow: ci_test
 workflows:
-  ci_test:
+  setup:
     steps:
     - activate-ssh-key@4:
         run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
     - git-clone@4: {}
+  code_setup_cache:
+    before_run:
+        - setup
+    steps:
     - cache-pull@2: {}
     - nvm@1:
         inputs:
@@ -39,25 +43,11 @@ workflows:
         - cache_local_deps: 'yes'
         - command: lint
         is_always_run: true
-    - yarn@0:
-        inputs:
-        - args: ''
-        - command: test:unit --silent
-        title: Unit Test
-        is_always_run: false
     - cache-push@2: {}
-    - script@1:
-        inputs:
-        - content: |-
-            #!/usr/bin/env bash 
-            echo 'weew - everything passed!'
-        title: All Tests Passed
-        is_always_run: false
   code_setup:
+    before_run:
+        - setup
     steps:
-    - activate-ssh-key@4:
-        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
-    - git-clone@4: {}
     - nvm@1:
         inputs:
         - node_version: '14'
@@ -77,6 +67,23 @@ workflows:
         - cache_local_deps: 'yes'
         - command: lint
         is_always_run: true
+  ci_test:
+    before_run:
+    - code_setup_cache
+    steps:
+    - yarn@0:
+        inputs:
+        - args: ''
+        - command: test:unit --silent
+        title: Unit Test
+        is_always_run: false
+    - script@1:
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash 
+            echo 'weew - everything passed!'
+        title: All Tests Passed
+        is_always_run: false
   start_release_builds:
     before_run:
     - code_setup
@@ -95,41 +102,22 @@ workflows:
         - abort_on_fail: 'yes'
         - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
   e2e_setup:
-    before_run:
-    - code_setup
     steps:
     - script@1:
         inputs:
         - content: |-
             #!/usr/bin/env bash 
-            sudo gem install bundler:1.17.1
-            sudo gem install faraday:1.3.0
             curl -sL https://sentry.io/get-cli/
-        title: Install Test Dependencies (Bundler & Sentry)
-        is_always_run: false
-    - script@1:
-        inputs:
-        - content: |-
-            #!/usr/bin/env bash 
-            curl -sL https://sentry.io/get-cli/ | bash
-        title: Install Sentry CLI
+        title: Install Test Dependencies (Sentry)
         is_always_run: false
     - yarn@0:
         inputs:
         - cache_local_deps: 'yes'
         - command: global add detox-cli
         title: Install Detox CLI
-    - script:
-        inputs:
-        - content: |-
-            # Add cache directory to environment variable
-            envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
-            envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
-            brew tap wix/brew
-        title: Set Env Path for caching deps
   android_e2e_test:
     before_run:
-    - e2e_setup
+    - code_setup
     steps:
     - install-missing-android-tools@2:
         inputs:
@@ -144,23 +132,42 @@ workflows:
         - cache_local_deps: 'yes'
         - command: test:e2e:android
         title: E2E Tests on Android
-        is_always_run: true
+        is_always_run: false
   ios_e2e_test:
     before_run:
-    - android_e2e_test
+    - code_setup_cache
     steps:
+    - script:
+        inputs:
+        - content: |-
+            # Add cache directory to environment variable
+            envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
+            envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
+            brew tap wix/brew
+        title: Set Env Path for caching deps
     - cocoapods-install@2:
-        is_always_run: true
+        is_always_run: false
     - yarn@0:
         inputs:
         - cache_local_deps: 'yes'
         - command: test:e2e:ios
         title: E2E Tests on iOS
-        is_always_run: true
-  e2e_test:
+        is_always_run: false
+  start_e2e_tests:
     before_run:
-    - ios_e2e_test
+    - e2e_setup
     steps:
+    - build-router-start@0:
+        inputs:
+        - workflows: |-
+            android_e2e_test
+            ios_e2e_test
+        - wait_for_builds: 'true'
+        - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
+    - build-router-wait@0:
+        inputs:
+        - abort_on_fail: 'yes'
+        - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
     - script@1:
         inputs:
         - content: |-
@@ -231,14 +238,6 @@ workflows:
             curl -sL https://sentry.io/get-cli/ | bash
         title: Install Sentry CLI
         is_always_run: false
-    - script@1:
-        inputs:
-        - content: |-
-            #!/usr/bin/env bash 
-            sudo gem install bundler:1.17.1
-            sudo gem install faraday:1.3.0
-        title: Install Bundler
-        is_always_run: false
     - cocoapods-install@2: {}
     - script@1:
         inputs:
@@ -304,7 +303,7 @@ app:
     PROJECT_LOCATION_IOS: ios
   - opts:
       is_expand: false
-    VERSION_NAME: 2.2.1
+    VERSION_NAME: 2.3.0
   - opts:
       is_expand: false
     ANDROID_APK_LINK: ''

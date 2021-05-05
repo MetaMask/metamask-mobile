@@ -136,7 +136,11 @@ class Tokens extends PureComponent {
 		/**
 		 * Chain id
 		 */
-		chainId: PropTypes.string
+		chainId: PropTypes.string,
+		/**
+		 * A bool that represents if the user wants to hide zero balance token
+		 */
+		hideZeroBalanceTokens: PropTypes.bool
 	};
 
 	actionSheet = null;
@@ -258,11 +262,18 @@ class Tokens extends PureComponent {
 	}
 
 	renderList() {
-		const { tokens } = this.props;
+		const { tokens, hideZeroBalanceTokens, tokenBalances } = this.props;
+		const tokensToDisplay = hideZeroBalanceTokens
+			? tokens.filter(token => {
+					const { address, symbol } = token;
+					return (tokenBalances[address] && !tokenBalances[address].isZero()) || symbol === 'ETH';
+					// eslint-disable-next-line no-mixed-spaces-and-tabs
+			  })
+			: tokens;
 
 		return (
 			<View>
-				{tokens.map(item => this.renderItem(item))}
+				{tokensToDisplay.map(item => this.renderItem(item))}
 				{this.renderBuyEth()}
 				{this.renderFooter()}
 			</View>
@@ -317,7 +328,8 @@ const mapStateToProps = state => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	primaryCurrency: state.settings.primaryCurrency,
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
-	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates
+	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+	hideZeroBalanceTokens: state.settings.hideZeroBalanceTokens
 });
 
 export default connect(mapStateToProps)(Tokens);
