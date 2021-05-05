@@ -58,6 +58,7 @@ workflows:
     - activate-ssh-key@4:
         run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
     - git-clone@4: {}
+    - cache-pull@2: {}
     - nvm@1:
         inputs:
         - node_version: '14'
@@ -76,6 +77,7 @@ workflows:
     #     - cache_local_deps: 'yes'
     #     - command: lint
     #     is_always_run: true
+    - cache-push@2: {}
   start_release_builds:
     before_run:
     - code_setup
@@ -145,7 +147,8 @@ workflows:
         title: Detox - Build and Test Release App
   ios_e2e_test:
     before_run:
-    - android_e2e_test
+    - e2e_setup
+    # - android_e2e_test
     steps:
     - cocoapods-install@2:
         is_always_run: true
