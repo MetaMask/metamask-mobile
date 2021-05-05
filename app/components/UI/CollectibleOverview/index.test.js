@@ -7,7 +7,23 @@ const mockStore = configureMockStore();
 
 describe('CollectibleOverview', () => {
 	it('should render correctly', () => {
-		const initialState = {};
+		const initialState = {
+			collectibles: {
+				favorites: {}
+			},
+			engine: {
+				backgroundState: {
+					NetworkController: {
+						provider: {
+							chainId: 1
+						}
+					},
+					PreferencesController: {
+						selectedAddress: '0x1'
+					}
+				}
+			}
+		};
 
 		const wrapper = shallow(
 			<CollectibleOverview
