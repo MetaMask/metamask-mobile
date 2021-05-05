@@ -1,6 +1,7 @@
 import './shim.js';
 
 import 'react-native-gesture-handler';
+import 'react-native-url-polyfill/auto';
 
 import crypto from 'crypto'; // eslint-disable-line import/no-nodejs-modules, no-unused-vars
 require('react-native-browser-polyfill'); // eslint-disable-line import/no-commonjs
@@ -15,9 +16,10 @@ import { name } from './app.json';
 // List of warnings that we're ignoring
 LogBox.ignoreLogs([
 	'{}',
-	// Uncomment the below line to run browser-tests.spec.js in debug mode
+	// Uncomment the below lines (21 and 22) to run browser-tests.spec.js in debug mode
 	// in e2e tests until issue https://github.com/MetaMask/metamask-mobile/issues/1395 is resolved
 	//"Error in RPC response",
+	// 'User rejected account access',
 	"Can't perform a React state update",
 	'Error evaluating injectedJavaScript',
 	'createErrorFromErrorData',

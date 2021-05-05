@@ -1,122 +1,37 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TransactionDetails should render correctly 1`] = `
-<DetailsModalBody>
-  <DetailsModalSection
-    borderBottom={true}
-  >
-    <DetailsModalColumn>
-      <DetailsModalSectionTitle>
-        Status
-      </DetailsModalSectionTitle>
-      <StatusText
-        context="transaction"
-        status="confirmed"
-      />
-    </DetailsModalColumn>
-    <DetailsModalColumn
-      end={true}
-    >
-      <DetailsModalSectionTitle>
-        Date
-      </DetailsModalSectionTitle>
-      <Text
-        black={false}
-        blue={false}
-        bold={false}
-        centered={false}
-        disclaimer={false}
-        green={false}
-        link={false}
-        modal={false}
-        primary={true}
-        reset={false}
-        right={false}
-        small={true}
-        strikethrough={false}
-        underline={false}
-        upper={false}
-      >
-        [missing "en.date.months.NaN" translation] NaN at NaN:NaNam
-      </Text>
-    </DetailsModalColumn>
-  </DetailsModalSection>
-  <DetailsModalSection
-    borderBottom={false}
-  >
-    <DetailsModalColumn>
-      <DetailsModalSectionTitle>
-        From
-      </DetailsModalSectionTitle>
-      <Text
-        black={false}
-        blue={false}
-        bold={false}
-        centered={false}
-        disclaimer={false}
-        green={false}
-        link={false}
-        modal={false}
-        primary={true}
-        reset={false}
-        right={false}
-        small={true}
-        strikethrough={false}
-        underline={false}
-        upper={false}
-      >
-        <Connect(EthereumAddress)
-          address="0x0"
-          type="short"
-        />
-      </Text>
-    </DetailsModalColumn>
-    <DetailsModalColumn
-      end={true}
-    >
-      <DetailsModalSectionTitle>
-        To
-      </DetailsModalSectionTitle>
-      <Text
-        black={false}
-        blue={false}
-        bold={false}
-        centered={false}
-        disclaimer={false}
-        green={false}
-        link={false}
-        modal={false}
-        primary={true}
-        reset={false}
-        right={false}
-        small={true}
-        strikethrough={false}
-        underline={false}
-        upper={false}
-      >
-        <Connect(EthereumAddress)
-          address="0x1"
-          type="short"
-        />
-      </Text>
-    </DetailsModalColumn>
-  </DetailsModalSection>
-  <View
-    style={
-      Array [
-        Object {
-          "marginVertical": 8,
-        },
-        Object {
-          "marginBottom": 24,
-          "marginTop": 12,
-        },
-      ]
+<withNavigation(TransactionDetails)
+  dispatch={[Function]}
+  frequentRpcList={Array []}
+  network={
+    Object {
+      "provider": Object {
+        "rpcTarget": "",
+        "type": "rpc",
+      },
     }
-  >
-    <TransactionSummary
-      gasEstimationReady={true}
-    />
-  </View>
-</DetailsModalBody>
+  }
+  transactionDetails={
+    Object {
+      "renderFrom": "0x0",
+      "renderGas": "21000",
+      "renderGasPrice": "2",
+      "renderTo": "0x1",
+      "renderTotalValue": "2 TKN / 0.001 ETH",
+      "renderTotalValueFiat": "",
+      "renderValue": "2 TKN",
+      "transactionHash": "0x2",
+    }
+  }
+  transactionObject={
+    Object {
+      "networkID": "1",
+      "status": "confirmed",
+      "transaction": Object {
+        "nonce": "",
+      },
+    }
+  }
+/>
 `;

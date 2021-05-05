@@ -52,6 +52,7 @@ import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import NetworkMainAssetLogo from '../../../UI/NetworkMainAssetLogo';
+import { isMainNet } from '../../../../util/networks';
 
 const { hexToBN, BNToHex } = util;
 
@@ -330,6 +331,10 @@ class Amount extends PureComponent {
 		 * An array that represents the user tokens
 		 */
 		tokens: PropTypes.array,
+		/**
+		 * Chain Id
+		 */
+		chainId: PropTypes.string,
 		/**
 		 * Current provider ticker
 		 */
@@ -664,7 +669,7 @@ class Amount extends PureComponent {
 	};
 
 	onInputChange = (inputValue, selectedAsset, useMax) => {
-		const { contractExchangeRates, conversionRate, currentCurrency, ticker } = this.props;
+		const { contractExchangeRates, conversionRate, currentCurrency, chainId, ticker } = this.props;
 		const { internalPrimaryCurrencyIsCrypto } = this.state;
 		let inputValueConversion, renderableInputValueConversion, hasExchangeRate, comma;
 		// Remove spaces from input
@@ -678,7 +683,7 @@ class Amount extends PureComponent {
 		const processedInputValue = isDecimal(inputValue) ? handleWeiNumber(inputValue) : '0';
 		selectedAsset = selectedAsset || this.props.selectedAsset;
 		if (selectedAsset.isETH) {
-			hasExchangeRate = !!conversionRate;
+			hasExchangeRate = isMainNet(chainId) ? !!conversionRate : false;
 			if (internalPrimaryCurrencyIsCrypto) {
 				inputValueConversion = `${weiToFiatNumber(toWei(processedInputValue), conversionRate)}`;
 				renderableInputValueConversion = `${weiToFiat(
@@ -692,7 +697,7 @@ class Amount extends PureComponent {
 			}
 		} else {
 			const exchangeRate = contractExchangeRates[selectedAsset.address];
-			hasExchangeRate = !!exchangeRate;
+			hasExchangeRate = isMainNet(chainId) ? !!exchangeRate : false;
 			// If !hasExchangeRate we have to handle crypto amount
 			if (internalPrimaryCurrencyIsCrypto || !hasExchangeRate) {
 				inputValueConversion = `${balanceToFiatNumber(processedInputValue, conversionRate, exchangeRate)}`;
@@ -766,6 +771,7 @@ class Amount extends PureComponent {
 	renderToken = (token, index) => {
 		const {
 			accounts,
+			chainId,
 			selectedAddress,
 			conversionRate,
 			currentCurrency,
@@ -776,11 +782,15 @@ class Amount extends PureComponent {
 		const { address, decimals, symbol } = token;
 		if (token.isETH) {
 			balance = renderFromWei(accounts[selectedAddress].balance);
-			balanceFiat = weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency);
+			balanceFiat = isMainNet(chainId)
+				? weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency)
+				: null;
 		} else {
 			balance = renderFromTokenMinimalUnit(contractBalances[address], decimals);
 			const exchangeRate = contractExchangeRates[address];
-			balanceFiat = balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
+			balanceFiat = isMainNet(chainId)
+				? balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency)
+				: null;
 		}
 		return (
 			<TouchableOpacity
@@ -1052,6 +1062,7 @@ const mapStateToProps = (state, ownProps) => ({
 	providerType: state.engine.backgroundState.NetworkController.provider.type,
 	primaryCurrency: state.settings.primaryCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	transactionState: ownProps.transaction || state.transaction,
