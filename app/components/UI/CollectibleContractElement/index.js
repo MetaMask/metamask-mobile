@@ -97,9 +97,10 @@ function CollectibleContractElement({
 
 	const renderCollectible = useCallback(
 		(collectible, index) => {
-			const onPress = () => onPressCollectible(collectible);
 			const name =
 				collectible.name || collectibleContracts.find(({ address }) => address === collectible.address)?.name;
+
+			const onPress = () => onPressCollectible({ ...collectible, name });
 			return (
 				<View key={collectible.address + collectible.tokenId} styles={styles.collectibleBox}>
 					<TouchableOpacity onPress={onPress}>
