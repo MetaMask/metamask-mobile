@@ -57,7 +57,7 @@ exports[`SeedphraseModal should render correctly 1`] = `
           }
         }
       >
-        What is a ‘Seed phrase’
+        What is a ‘Secret recovery phrase’
       </Text>
       <TouchableOpacity
         hitSlop={
@@ -101,7 +101,7 @@ exports[`SeedphraseModal should render correctly 1`] = `
           }
         }
       >
-        A seed phrase is a set of twelve words that contains all the information about your wallet, including your funds. It’s like a secret code used to access your entire wallet.
+        A Secret Recovery phrase is a set of twelve words that contains all the information about your wallet, including your funds. It’s like a secret code used to access your entire wallet.
       </Text>
       <Text
         style={
@@ -116,7 +116,7 @@ exports[`SeedphraseModal should render correctly 1`] = `
           }
         }
       >
-        You must keep your seed phrase secret and safe. If someone gets your seed phrase, they’ll gain control over your accounts.
+        You must keep your Secret Recovery phrase secret and safe. If someone gets your Secret Recovery phrase, they’ll gain control over your accounts.
       </Text>
       <Text
         style={
