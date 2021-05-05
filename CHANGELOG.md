@@ -1,6 +1,7 @@
 # Changelog
 
 ## v.2.3.0 - May 5 2021
+- [#2444](https://github.com/MetaMask/metamask-mobile/pull/2444): Implement 'hide zero balance token' setting for token balances on home screen
 - [#2605](https://github.com/MetaMask/metamask-mobile/pull/2605): Feature/update seed phrase wording
 - [#2564](https://github.com/MetaMask/metamask-mobile/pull/2564): Improve rpc errors logging and removing user rejected errors
 - [#2556](https://github.com/MetaMask/metamask-mobile/pull/2556): Fix/respect custom spend limit on dapp approve modal
