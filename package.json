@@ -269,7 +269,7 @@
         "build": "yarn start:android:e2e",
         "type": "android.emulator",
         "device": {
-          "avdName": "Pixel_3_API_29"
+          "avdName": "emulator"
         }
       },
       "android.emu.release": {
@@ -277,7 +277,7 @@
         "build": "METAMASK_ENVIRONMENT='production' yarn build:android:release:e2e",
         "type": "android.emulator",
         "device": {
-          "avdName": "Pixel_3_API_29"
+          "avdName": "emulator"
         }
       }
     },
