@@ -190,7 +190,7 @@ export default class CollectibleOverview extends PureComponent {
 
 		// TODO: Get favorited status here or directly from props
 		const favorited = false;
-		console.log(collectible);
+
 		return (
 			<View style={styles.wrapper}>
 				<View style={styles.basicsWrapper}>
