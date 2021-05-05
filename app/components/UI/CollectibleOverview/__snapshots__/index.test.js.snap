@@ -36,35 +36,249 @@ exports[`CollectibleOverview should render correctly 1`] = `
     style={
       Object {
         "flex": 1,
-        "paddingHorizontal": 30,
+        "paddingHorizontal": 16,
       }
     }
   >
     <Text
+      black={false}
+      blue={false}
+      bold={true}
+      centered={false}
+      disclaimer={false}
+      green={false}
+      link={false}
+      modal={false}
+      noMargin={true}
+      primary={true}
+      red={false}
+      reset={false}
+      right={false}
+      small={false}
+      strikethrough={false}
       style={
         Object {
-          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 24,
-          "fontWeight": "400",
+          "marginBottom": 3,
         }
       }
+      underline={false}
+      upper={false}
     >
       Leopard
     </Text>
     <Text
+      black={false}
+      blue={false}
+      bold={false}
+      centered={false}
+      disclaimer={false}
+      green={false}
+      link={false}
+      modal={false}
+      noMargin={true}
+      primary={true}
+      red={false}
+      reset={false}
+      right={false}
+      small={false}
+      strikethrough={false}
       style={
         Object {
-          "color": "#848c96",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 12,
-          "fontWeight": "400",
-          "marginTop": 8,
+          "fontSize": 16,
+          "marginTop": 3,
         }
       }
+      underline={false}
+      upper={false}
     >
       #
       6904
     </Text>
+    <View
+      style={
+        Object {
+          "flexDirection": "row",
+          "marginTop": 16,
+        }
+      }
+    >
+      <StyledButton
+        containerStyle={
+          Object {
+            "alignItems": "center",
+            "borderWidth": 2,
+            "height": 54,
+            "justifyContent": "center",
+            "marginRight": 9,
+            "width": 54,
+          }
+        }
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        type="rounded-normal"
+      >
+        <Text
+          black={false}
+          blue={false}
+          bold={true}
+          centered={false}
+          disclaimer={false}
+          green={false}
+          link={true}
+          modal={false}
+          noMargin={true}
+          primary={false}
+          red={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
+          underline={false}
+          upper={false}
+        >
+          <Icon
+            allowFontScaling={false}
+            name="share-apple"
+            size={32}
+          />
+        </Text>
+      </StyledButton>
+      <StyledButton
+        containerStyle={
+          Object {
+            "alignItems": "center",
+            "borderWidth": 2,
+            "height": 54,
+            "justifyContent": "center",
+            "marginRight": 9,
+            "width": 54,
+          }
+        }
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        type="rounded-normal"
+      >
+        <Text
+          black={false}
+          blue={false}
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          green={false}
+          link={true}
+          modal={false}
+          noMargin={true}
+          primary={false}
+          red={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
+          underline={false}
+          upper={false}
+        >
+          <Icon
+            allowFontScaling={false}
+            name="staro"
+            size={24}
+          />
+        </Text>
+      </StyledButton>
+    </View>
+    <View
+      style={
+        Object {
+          "marginTop": 24,
+        }
+      }
+    >
+      <View
+        key="Asset contract"
+        style={
+          Object {
+            "flexDirection": "row",
+            "marginBottom": 12,
+          }
+        }
+      >
+        <Text
+          big={true}
+          black={true}
+          blue={false}
+          bold={true}
+          centered={false}
+          disclaimer={false}
+          green={false}
+          link={false}
+          modal={false}
+          noMargin={true}
+          primary={false}
+          red={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
+          style={
+            Object {
+              "paddingRight": 10,
+            }
+          }
+          underline={false}
+          upper={false}
+        >
+          Asset contract
+        </Text>
+        <Text
+          big={true}
+          black={false}
+          blue={false}
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          ellipsizeMode="middle"
+          green={false}
+          link={true}
+          modal={false}
+          noMargin={true}
+          numberOfLines={1}
+          onPress={[Function]}
+          primary={false}
+          red={false}
+          reset={false}
+          right={true}
+          small={false}
+          strikethrough={false}
+          style={
+            Object {
+              "flex": 1,
+            }
+          }
+          underline={false}
+          upper={false}
+        >
+          0x06012c8cf97BEaD5deAe237070F9587f8E7A266d
+        </Text>
+      </View>
+    </View>
   </View>
 </View>
 `;

@@ -34,52 +34,10 @@ exports[`CollectibleView should render correctly 1`] = `
             },
           }
         }
+        onSend={[Function]}
+        tradable={true}
       />
     </View>
   </ScrollView>
-  <View
-    style={
-      Object {
-        "flex": 0.1,
-        "height": 4,
-        "paddingVertical": 15,
-      }
-    }
-  >
-    <StyledButton
-      containerStyle={
-        Object {
-          "flexDirection": "row",
-          "marginHorizontal": 16,
-        }
-      }
-      disabledContainerStyle={
-        Object {
-          "opacity": 0.6,
-        }
-      }
-      onPress={[Function]}
-      styleDisabled={
-        Object {
-          "opacity": 0.6,
-        }
-      }
-      type="confirm"
-    >
-      <Text
-        style={
-          Object {
-            "color": "#FFFFFF",
-            "fontFamily": "EuclidCircularB-Bold",
-            "fontSize": 15,
-            "fontWeight": "600",
-            "marginLeft": 8,
-          }
-        }
-      >
-        SEND
-      </Text>
-    </StyledButton>
-  </View>
 </ForwardRef(SafeAreaView)>
 `;
