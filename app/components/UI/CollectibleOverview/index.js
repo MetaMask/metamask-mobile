@@ -101,8 +101,18 @@ export default class CollectibleOverview extends PureComponent {
 		 * Object that represents the collectible to be displayed
 		 */
 		collectible: PropTypes.object,
+		/**
+		 * Represents if the collectible is tradable (can be sent)
+		 */
 		tradable: PropTypes.bool,
-		onSend: PropTypes.func
+		/**
+		 * Function called when user presses the Send button
+		 */
+		onSend: PropTypes.func,
+		/**
+		 * Object that represents the navigator
+		 */
+		navigation: PropTypes.object
 	};
 
 	renderImage = () => {
@@ -110,8 +120,15 @@ export default class CollectibleOverview extends PureComponent {
 		return <CollectibleMedia big renderAnimation collectible={collectible} />;
 	};
 
+	openLink = url => {
+		this.props.navigation.navigate('BrowserView', {
+			newTabUrl: url
+		});
+	};
+
 	renderCollectibleInfoRow = (key, value, isLink) => {
 		if (!value) return null;
+
 		return (
 			<View style={styles.collectibleInfoContainer} key={key}>
 				<Text noMargin black bold big style={styles.collectibleInfoKey}>
@@ -121,10 +138,12 @@ export default class CollectibleOverview extends PureComponent {
 					noMargin
 					big
 					link={isLink}
+					black={!isLink}
 					right
 					style={styles.collectibleInfoValue}
 					numberOfLines={1}
 					ellipsizeMode="middle"
+					onPress={isLink ? () => this.openLink(value) : null}
 				>
 					{value}
 				</Text>
@@ -135,11 +154,20 @@ export default class CollectibleOverview extends PureComponent {
 	renderCollectibleInfo = () => {
 		const { collectible } = this.props;
 		return [
-			this.renderCollectibleInfoRow('Source', collectible?.imageOriginal, true),
-			this.renderCollectibleInfoRow('Link', collectible?.externalLink, true),
-			this.renderCollectibleInfoRow('Last Sold'),
-			this.renderCollectibleInfoRow('Asset contract', collectible?.address, true)
+			this.renderCollectibleInfoRow(strings('collectible.collectible_last_sold'), 'test'),
+			this.renderCollectibleInfoRow(strings('collectible.collectible_last_price_sold'), 'test'),
+			this.renderCollectibleInfoRow(strings('collectible.collectible_source'), collectible?.imageOriginal, true),
+			this.renderCollectibleInfoRow(strings('collectible.collectible_link'), collectible?.externalLink, true),
+			this.renderCollectibleInfoRow(strings('collectible.collectible_asset_contract'), collectible?.address, true)
 		];
+	};
+
+	addCollectibleToFavorites = () => {
+		// TODO: Add collectible to favorites was pressed
+	};
+
+	shareCollectible = () => {
+		// TODO: Share collectible was pressed
 	};
 
 	render = () => {
@@ -150,7 +178,7 @@ export default class CollectibleOverview extends PureComponent {
 			onSend
 		} = this.props;
 
-		// TODO: Add favorited status here or directly from props
+		// TODO: Get favorited status here or directly from props
 		const favorited = false;
 
 		return (
@@ -196,12 +224,20 @@ export default class CollectibleOverview extends PureComponent {
 								</Text>
 							</StyledButton>
 						)}
-						<StyledButton type={'rounded-normal'} containerStyle={styles.iconButtons}>
+						<StyledButton
+							type={'rounded-normal'}
+							containerStyle={styles.iconButtons}
+							onPress={this.shareCollectible}
+						>
 							<Text bold link noMargin>
 								<EvilIcons name={Device.isIos() ? 'share-apple' : 'share-google'} size={32} />
 							</Text>
 						</StyledButton>
-						<StyledButton type={'rounded-normal'} containerStyle={styles.iconButtons}>
+						<StyledButton
+							type={'rounded-normal'}
+							containerStyle={styles.iconButtons}
+							onPress={this.addCollectibleToFavorites}
+						>
 							<Text link noMargin>
 								<AntIcons name={favorited ? 'star' : 'staro'} size={24} />
 							</Text>
