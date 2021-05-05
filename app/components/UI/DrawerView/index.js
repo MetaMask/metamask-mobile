@@ -799,7 +799,7 @@ class DrawerView extends PureComponent {
 
 	renderProtectModal = () => (
 		<Modal
-			isVisible={false}
+			isVisible={this.state.showProtectWalletModal}
 			animationIn="slideInUp"
 			animationOut="slideOutDown"
 			style={styles.bottomModal}
