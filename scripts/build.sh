@@ -192,7 +192,7 @@ buildIosRelease(){
 		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
 		echo "Build started..."
 		brew install watchman
-		cd ios && bundle install
+		cd ios
 		generateArchivePackages
 		# Generate sourcemaps
 		yarn sourcemaps:ios
@@ -213,7 +213,7 @@ buildIosReleaseE2E(){
 		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
 		echo "Build started..."
 		brew install watchman
-		cd ios && bundle install 
+		cd ios 
 		generateArchivePackages 
 		# Generate sourcemaps
 		yarn sourcemaps:ios
