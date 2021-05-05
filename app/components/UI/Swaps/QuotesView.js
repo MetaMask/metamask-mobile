@@ -52,6 +52,7 @@ import useBalance from './utils/useBalance';
 import useGasPrice from './utils/useGasPrice';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { decodeApproveData, getTicker } from '../../../util/transactions';
+import { toLowerCaseCompare } from '../../../util/general';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
 const EDIT_MODE_GAS = 'EDIT_MODE_GAS';
@@ -279,10 +280,8 @@ function SwapsQuotesView({
 	);
 
 	/* Get tokens from the tokens list */
-	const sourceToken = swapsTokens?.find(token => token.address?.toLowerCase() === sourceTokenAddress.toLowerCase());
-	const destinationToken = swapsTokens?.find(
-		token => token.address?.toLowerCase() === destinationTokenAddress.toLowerCase()
-	);
+	const sourceToken = swapsTokens?.find(token => toLowerCaseCompare(token.address, sourceTokenAddress));
+	const destinationToken = swapsTokens?.find(token => toLowerCaseCompare(token.address, destinationTokenAddress));
 
 	const hasConversionRate =
 		Boolean(destinationToken) &&
