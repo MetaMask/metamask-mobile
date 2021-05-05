@@ -126,7 +126,7 @@ Text.defaultProps = {
 	disclaimer: false,
 	modal: false,
 	small: false,
-	big: false,
+	big: undefined,
 	upper: false,
 	link: false,
 	strikethrough: false,
