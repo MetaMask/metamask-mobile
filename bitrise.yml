@@ -104,6 +104,7 @@ workflows:
   android_e2e_test:
     before_run:
     - code_setup
+    - e2e_setup
     steps:
     - install-missing-android-tools@2:
         inputs:
@@ -122,6 +123,7 @@ workflows:
   ios_e2e_test:
     before_run:
     - code_setup_cache
+    - e2e_setup
     steps:
     - script:
         inputs:
@@ -140,8 +142,6 @@ workflows:
         title: E2E Tests on iOS
         is_always_run: false
   start_e2e_tests:
-    before_run:
-    - e2e_setup
     steps:
     - build-router-start@0:
         inputs:
