@@ -18,10 +18,15 @@ describe('tlc', () => {
 });
 
 describe('toLowerCaseCompare', () => {
-	it('compare two things', () => {
+	it('compares two things', () => {
 		expect(toLowerCaseCompare('A', 'A')).toEqual(true);
 		expect(toLowerCaseCompare('aBCDefH', 'abcdefh')).toEqual(true);
 		expect(toLowerCaseCompare('A', 'B')).toEqual(false);
 		expect(toLowerCaseCompare('aBCDefH', 'abcdefi')).toEqual(false);
+		// cases where a or b are undefined
+		expect(toLowerCaseCompare({}.undefined, 'A')).toEqual(false);
+		expect(toLowerCaseCompare('A', {}.undefined)).toEqual(false);
+		expect(toLowerCaseCompare(undefined, 'A')).toEqual(false);
+		expect(toLowerCaseCompare('A', undefined)).toEqual(false);
 	});
 });
