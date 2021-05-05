@@ -145,6 +145,7 @@ prebuild_android(){
 			source $ANDROID_ENV_FILE
 		fi
 	fi
+	$ANDROID_HOME/tools/emulator -list-avds
 }
 
 buildAndroidRun(){
