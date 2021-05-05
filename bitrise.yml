@@ -160,7 +160,7 @@ workflows:
             #!/usr/bin/env bash echo 'weew - everything passed!'
         title: All Tests Passed
         is_always_run: false
-# Build & Deploy Steps
+# Parallel Build & Deploy Steps
   start_release_builds:
     steps:
     - build-router-start@0:
@@ -276,6 +276,7 @@ workflows:
     # - deploy-to-itunesconnect-application-loader@1:
     #     inputs:
     #     - ipa_path: ios/build/output/MetaMask.ipa
+# Series Build Steps
 #   test_release:
 #     before_run:
 #     - code_setup
