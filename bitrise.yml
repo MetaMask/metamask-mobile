@@ -134,6 +134,11 @@ workflows:
     - install-missing-android-tools@2:
         inputs:
         - gradlew_path: $PROJECT_LOCATION/gradlew
+    - avd-manager@1:
+        inputs:
+        - api_level: '29'
+        - profile: pixel
+    - wait-for-android-emulator@1: {}
     - yarn@0:
         inputs:
         - cache_local_deps: 'yes'
