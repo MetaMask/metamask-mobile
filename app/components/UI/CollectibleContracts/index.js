@@ -114,10 +114,10 @@ class CollectibleContracts extends PureComponent {
 
 	renderItem = item => {
 		const { address, name, logo, symbol } = item;
+		const { collectibles = undefined } = this.props;
 		const collectibleAmount =
-			(this.props.collectibles &&
-				this.props.collectibles.filter(collectible => toLowerCaseCompare(collectible.address, address))
-					.length) ||
+			(collectibles &&
+				collectibles.filter(collectible => toLowerCaseCompare(collectible.address, address)).length) ||
 			0;
 		return (
 			<AssetElement onPress={this.onItemPress} asset={item} key={address}>
