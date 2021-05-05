@@ -12,6 +12,10 @@ const styles = StyleSheet.create({
 			backgroundColor: `#${backgroundColor}`
 		};
 	},
+	tinyImage: {
+		width: 32,
+		height: 32
+	},
 	smallImage: {
 		width: 50,
 		height: 50
@@ -44,7 +48,7 @@ const styles = StyleSheet.create({
 /**
  * View that renders an ERC-721 Token image
  */
-export default function CollectibleMedia({ collectible, renderAnimation, style, small, big }) {
+export default function CollectibleMedia({ collectible, renderAnimation, style, tiny, small, big }) {
 	const [sourceUri, setSourceUri] = useState(null);
 
 	const fallback = () => setSourceUri(null);
@@ -64,19 +68,33 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 					fadeIn
 					resizeMode={'contain'}
 					source={{ uri: sourceUri }}
-					style={[styles.image, small && styles.smallImage, big && styles.bigImage, style]}
+					style={[
+						styles.image,
+						tiny && styles.tinyImage,
+						small && styles.smallImage,
+						big && styles.bigImage,
+						style
+					]}
 					onError={fallback}
 				/>
 			);
 		}
 		return (
-			<View style={[styles.textContainer, style, small && styles.smallImage, big && styles.bigImage]}>
-				<Text style={[styles.text, small && styles.textSmall, big && styles.textBig]}>{`#${
+			<View
+				style={[
+					styles.textContainer,
+					style,
+					tiny && styles.tinyImage,
+					small && styles.smallImage,
+					big && styles.bigImage
+				]}
+			>
+				<Text style={[styles.text, (tiny || small) && styles.textSmall, big && styles.textBig]}>{`#${
 					collectible.tokenId
 				}`}</Text>
 			</View>
 		);
-	}, [collectible, sourceUri, renderAnimation, style, small, big]);
+	}, [collectible, sourceUri, renderAnimation, style, tiny, small, big]);
 
 	return <View style={styles.container(collectible.backgroundColor)}>{renderMedia()}</View>;
 }
@@ -86,6 +104,10 @@ CollectibleMedia.propTypes = {
 	 * Collectible object (in this case ERC721 token)
 	 */
 	collectible: PropTypes.object,
+	/**
+	 * Whether is tiny size or not
+	 */
+	tiny: PropTypes.bool,
 	/**
 	 * Whether is small size or not
 	 */

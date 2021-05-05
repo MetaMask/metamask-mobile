@@ -358,7 +358,12 @@
 		"ownership_error_title": "Ooops! Something happened.",
 		"ownership_error": "You are not the owner of this collectible, so you can't add it.",
 		"powered_by_opensea": "Powered by",
-		"id_placeholder": "Enter the collectible ID"
+		"id_placeholder": "Enter the collectible ID",
+		"collectible_last_sold": "Last sold",
+		"collectible_last_price_sold": "Last price sold",
+		"collectible_source": "Source",
+		"collectible_link": "Link",
+		"collectible_asset_contract": "Asset contract"
 	},
 	"transfer": {
 		"title": "Transfer",
