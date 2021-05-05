@@ -3,6 +3,8 @@ format_version: '8'
 default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
 trigger_map:
+- push_branch: 'feature/e2e_bitrise'
+  workflow: e2e_test
 - push_branch: 'develop'
   workflow: test_release
 - push_branch: 'main'
@@ -125,7 +127,6 @@ workflows:
             envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
             brew tap wix/brew
         title: Set Env Path for caching deps
-
   android_e2e_test:
     before_run:
     - e2e_setup
