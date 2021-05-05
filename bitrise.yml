@@ -14,6 +14,7 @@ trigger_map:
 - pull_request_source_branch: '*'
   workflow: ci_test
 workflows:
+# Code Setups
   setup:
     steps:
     - activate-ssh-key@4:
@@ -67,6 +68,7 @@ workflows:
         - cache_local_deps: 'yes'
         - command: lint
         is_always_run: true
+# CI Steps
   ci_test:
     before_run:
     - code_setup_cache
@@ -84,23 +86,7 @@ workflows:
             echo 'weew - everything passed!'
         title: All Tests Passed
         is_always_run: false
-  start_release_builds:
-    before_run:
-    - code_setup
-    - bump_version
-    steps:
-    - build-router-start@0:
-        inputs:
-        - workflows: |-
-            android_test_release_step
-            ios_test_release_step
-        - wait_for_builds: 'true'
-        - abort_on_fail: 'yes'
-        - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-    - build-router-wait@0:
-        inputs:
-        - abort_on_fail: 'yes'
-        - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
+# E2E Steps
   e2e_setup:
     steps:
     - script@1:
@@ -174,6 +160,24 @@ workflows:
             #!/usr/bin/env bash echo 'weew - everything passed!'
         title: All Tests Passed
         is_always_run: false
+# Build & Deploy Steps
+  start_release_builds:
+    before_run:
+    - code_setup
+    - bump_version
+    steps:
+    - build-router-start@0:
+        inputs:
+        - workflows: |-
+            android_test_release_step
+            ios_test_release_step
+        - wait_for_builds: 'true'
+        - abort_on_fail: 'yes'
+        - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
+    - build-router-wait@0:
+        inputs:
+        - abort_on_fail: 'yes'
+        - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
   bump_version:
     steps:
     - change-android-versioncode-and-versionname@1:
