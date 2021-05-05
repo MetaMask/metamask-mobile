@@ -1,11 +1,13 @@
 import React, { useEffect, useState, useContext, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, TouchableOpacity } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import CollectibleMedia from '../CollectibleMedia';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Device from '../../../util/Device';
 import { NavigationContext } from 'react-navigation';
+import AntIcons from 'react-native-vector-icons/AntDesign';
+import Text from '../../Base/Text';
 
 const DEVICE_WIDTH = Device.getDeviceWidth();
 const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
@@ -45,6 +47,16 @@ const styles = StyleSheet.create({
 	collectibleBox: {
 		flex: 1,
 		flexDirection: 'row'
+	},
+	favoritesLogoWrapper: {
+		flex: 1,
+		flexDirection: 'row',
+		justifyContent: 'center',
+		alignItems: 'center',
+		backgroundColor: colors.yellow,
+		width: 32,
+		height: 32,
+		borderRadius: 16
 	}
 });
 
@@ -114,11 +126,17 @@ export default function CollectibleContractElement({
 					/>
 				</View>
 				<View style={styles.collectibleContractIconContainer}>
-					<CollectibleMedia
-						iconStyle={styles.collectibleContractIcon}
-						collectible={{ ...asset, image: asset.logo }}
-						tiny
-					/>
+					{!asset.favorites ? (
+						<CollectibleMedia
+							iconStyle={styles.collectibleContractIcon}
+							collectible={{ ...asset, image: asset.logo }}
+							tiny
+						/>
+					) : (
+						<View style={styles.favoritesLogoWrapper}>
+							<AntIcons color={colors.white} name={'star'} size={24} />
+						</View>
+					)}
 				</View>
 				<View style={styles.verticalAlignedContainer}>
 					<Text numberOfLines={1} style={styles.titleText}>

@@ -26,7 +26,7 @@ const fiatOrderReducer = (state = initialState, action) => {
 					...state.favorites,
 					[selectedAddress]: {
 						...selectedAddressCollectibles,
-						[chainId]: collectibles
+						[chainId]: collectibles.slice()
 					}
 				}
 			};
@@ -45,7 +45,7 @@ const fiatOrderReducer = (state = initialState, action) => {
 					...state.favorites,
 					[selectedAddress]: {
 						...selectedAddressCollectibles,
-						[chainId]: collectibles
+						[chainId]: collectibles.slice()
 					}
 				}
 			};

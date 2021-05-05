@@ -105,16 +105,15 @@ const styles = StyleSheet.create({
 const CollectibleOverview = ({
 	chainId,
 	collectible,
-	favoriteCollectibles,
 	selectedAddress,
 	tradable,
 	onSend,
 	navigation,
 	addFavoriteCollectible,
-	removeFavoriteCollectible
+	removeFavoriteCollectible,
+	isInFavorites
 }) => {
 	const openLink = url => navigation.navigate('SimpleWebview', { url });
-	const favorited = isCollectibleInFavorites(favoriteCollectibles, selectedAddress, chainId, collectible);
 
 	const renderCollectibleInfoRow = (key, value, onPress) => {
 		if (!value) return null;
@@ -164,7 +163,7 @@ const CollectibleOverview = ({
 	];
 
 	const collectibleToFavorites = () => {
-		if (!favorited) {
+		if (!isInFavorites) {
 			addFavoriteCollectible(selectedAddress, chainId, collectible);
 		} else {
 			removeFavoriteCollectible(selectedAddress, chainId, collectible);
@@ -235,7 +234,7 @@ const CollectibleOverview = ({
 						onPress={collectibleToFavorites}
 					>
 						<Text link noMargin>
-							<AntIcons name={favorited ? 'star' : 'staro'} size={24} />
+							<AntIcons name={isInFavorites ? 'star' : 'staro'} size={24} />
 						</Text>
 					</StyledButton>
 				</View>
@@ -268,10 +267,6 @@ CollectibleOverview.propTypes = {
 	 */
 	collectible: PropTypes.object,
 	/**
-	 * Array of collectibles objects
-	 */
-	favoriteCollectibles: PropTypes.object,
-	/**
 	 * Represents if the collectible is tradable (can be sent)
 	 */
 	tradable: PropTypes.bool,
@@ -294,14 +289,28 @@ CollectibleOverview.propTypes = {
 	/**
 	 * Dispatch remove collectible from favorites action
 	 */
-	removeFavoriteCollectible: PropTypes.func
+	removeFavoriteCollectible: PropTypes.func,
+	/**
+	 * Whether the current collectible is favorited
+	 */
+	isInFavorites: PropTypes.bool
 };
 
-const mapStateToProps = state => ({
-	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-	favoriteCollectibles: state.collectibles.favorites,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
-});
+const mapStateToProps = (state, props) => {
+	const chainId = state.engine.backgroundState.NetworkController.provider.chainId;
+	const selectedAddress = state.engine.backgroundState.PreferencesController.selectedAddress;
+	const isInFavorites = isCollectibleInFavorites(
+		state.collectibles.favorites,
+		selectedAddress,
+		chainId,
+		props.collectible
+	);
+	return {
+		chainId,
+		selectedAddress,
+		isInFavorites
+	};
+};
 
 const mapDispatchToProps = dispatch => ({
 	addFavoriteCollectible: (selectedAddress, chainId, collectible) =>
