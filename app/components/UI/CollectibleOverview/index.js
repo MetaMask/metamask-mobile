@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 import { colors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import CollectibleMedia from '../CollectibleMedia';
@@ -99,7 +100,7 @@ const styles = StyleSheet.create({
 /**
  * View that displays the information of a specific ERC-721 Token
  */
-const CollectibleOverview = ({ collectible, tradable, onSend, navigation }) => {
+const CollectibleOverview = ({ chainId, collectible, tradable, onSend, navigation }) => {
 	const openLink = url => navigation.navigate('SimpleWebview', { url });
 
 	const renderCollectibleInfoRow = (key, value, onPress) => {
@@ -140,12 +141,12 @@ const CollectibleOverview = ({ collectible, tradable, onSend, navigation }) => {
 			openLink(collectible?.imageOriginal)
 		),
 		renderCollectibleInfoRow(strings('collectible.collectible_link'), collectible?.externalLink, () =>
-			openLink(collectible?.imageOriginal)
+			openLink(collectible?.externalLink)
 		),
 		renderCollectibleInfoRow(
 			strings('collectible.collectible_asset_contract'),
 			renderShortAddress(collectible?.address),
-			() => openLink(etherscanLink.createTokenTrackerLink(collectible?.address, 1))
+			() => openLink(etherscanLink.createTokenTrackerLink(collectible?.address, chainId))
 		)
 	];
 
@@ -242,6 +243,10 @@ const CollectibleOverview = ({ collectible, tradable, onSend, navigation }) => {
 
 CollectibleOverview.propTypes = {
 	/**
+	 * Chain id
+	 */
+	chainId: PropTypes.string,
+	/**
 	 * Object that represents the collectible to be displayed
 	 */
 	collectible: PropTypes.object,
@@ -259,4 +264,8 @@ CollectibleOverview.propTypes = {
 	navigation: PropTypes.object
 };
 
-export default CollectibleOverview;
+const mapStateToProps = state => ({
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId
+});
+
+export default connect(mapStateToProps)(CollectibleOverview);
