@@ -5,7 +5,8 @@ const initialState = {
 	searchEngine: AppConstants.DEFAULT_SEARCH_ENGINE,
 	primaryCurrency: 'ETH',
 	lockTime: -1, // Disabled by default
-	useBlockieIcon: true
+	useBlockieIcon: true,
+	hideZeroBalanceTokens: false
 };
 
 const settingsReducer = (state = initialState, action) => {
@@ -34,6 +35,11 @@ const settingsReducer = (state = initialState, action) => {
 			return {
 				...state,
 				showCustomNonce: action.showCustomNonce
+			};
+		case 'SET_HIDE_ZERO_BALANCE_TOKENS':
+			return {
+				...state,
+				hideZeroBalanceTokens: action.hideZeroBalanceTokens
 			};
 		case 'SET_USE_BLOCKIE_ICON':
 			return {
