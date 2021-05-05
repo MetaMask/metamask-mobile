@@ -140,8 +140,8 @@ workflows:
         inputs:
         - content: |-
             #!/bin/bash
-            detox build --configuration android.sim.debug
-            detox test --configuration android.sim.debug --cleanup
+            detox build --configuration android.emu.debug
+            detox test --configuration android.emu.debug --cleanup
         title: Detox - Build and Test Release App
   ios_e2e_test:
     before_run:
