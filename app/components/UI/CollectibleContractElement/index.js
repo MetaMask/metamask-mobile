@@ -13,7 +13,7 @@ const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
 const styles = StyleSheet.create({
 	itemWrapper: {
 		paddingHorizontal: 15,
-		paddingTop: 15
+		paddingTop: 24
 	},
 	collectibleContractIcon: { width: 30, height: 30 },
 	collectibleContractIconContainer: { marginHorizontal: 8, borderRadius: 30 },
@@ -26,9 +26,9 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	titleText: {
-		fontSize: 16,
+		fontSize: 18,
 		color: colors.grey500,
-		...fontStyles.normal
+		...fontStyles.bold
 	},
 	collectibleIcon: {
 		width: COLLECTIBLE_WIDTH,
@@ -109,7 +109,7 @@ export default function CollectibleContractElement({
 					<Icon
 						name={`ios-arrow-${collectiblesVisible ? 'up' : 'down'}`}
 						size={12}
-						color={colors.fontTertiary}
+						color={colors.black}
 						style={styles.arrowIcon}
 					/>
 				</View>
@@ -117,7 +117,7 @@ export default function CollectibleContractElement({
 					<CollectibleMedia
 						iconStyle={styles.collectibleContractIcon}
 						collectible={{ ...asset, image: asset.logo }}
-						small
+						tiny
 					/>
 				</View>
 				<View style={styles.verticalAlignedContainer}>
