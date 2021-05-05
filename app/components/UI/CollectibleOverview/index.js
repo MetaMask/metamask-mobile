@@ -10,6 +10,8 @@ import StyledButton from '../../UI/StyledButton';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import AntIcons from 'react-native-vector-icons/AntDesign';
 import Device from '../../../util/Device';
+import { toLocaleDate } from '../../../util/date';
+import { renderFromWei } from '../../../util/number';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -153,9 +155,17 @@ export default class CollectibleOverview extends PureComponent {
 
 	renderCollectibleInfo = () => {
 		const { collectible } = this.props;
+
 		return [
-			this.renderCollectibleInfoRow(strings('collectible.collectible_last_sold'), 'test'),
-			this.renderCollectibleInfoRow(strings('collectible.collectible_last_price_sold'), 'test'),
+			this.renderCollectibleInfoRow(
+				strings('collectible.collectible_last_sold'),
+				collectible?.lastSale?.event_timestamp &&
+					toLocaleDate(new Date(collectible?.lastSale?.event_timestamp)).toString()
+			),
+			this.renderCollectibleInfoRow(
+				strings('collectible.collectible_last_price_sold'),
+				collectible?.lastSale?.total_price && `${renderFromWei(collectible?.lastSale?.total_price)} ETH`
+			),
 			this.renderCollectibleInfoRow(strings('collectible.collectible_source'), collectible?.imageOriginal, true),
 			this.renderCollectibleInfoRow(strings('collectible.collectible_link'), collectible?.externalLink, true),
 			this.renderCollectibleInfoRow(strings('collectible.collectible_asset_contract'), collectible?.address, true)
@@ -180,7 +190,7 @@ export default class CollectibleOverview extends PureComponent {
 
 		// TODO: Get favorited status here or directly from props
 		const favorited = false;
-
+		console.log(collectible);
 		return (
 			<View style={styles.wrapper}>
 				<View style={styles.basicsWrapper}>
