@@ -15,6 +15,8 @@ import { toLocaleDate } from '../../../util/date';
 import { renderFromWei } from '../../../util/number';
 import { renderShortAddress } from '../../../util/address';
 import etherscanLink from '@metamask/etherscan-link';
+import { addFavoriteCollectible, removeFavoriteCollectible } from '../../../actions/collectibles';
+import { isCollectibleInFavorites } from '../../../reducers/collectibles';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -100,8 +102,19 @@ const styles = StyleSheet.create({
 /**
  * View that displays the information of a specific ERC-721 Token
  */
-const CollectibleOverview = ({ chainId, collectible, tradable, onSend, navigation }) => {
+const CollectibleOverview = ({
+	chainId,
+	collectible,
+	favoriteCollectibles,
+	selectedAddress,
+	tradable,
+	onSend,
+	navigation,
+	addFavoriteCollectible,
+	removeFavoriteCollectible
+}) => {
 	const openLink = url => navigation.navigate('SimpleWebview', { url });
+	const favorited = isCollectibleInFavorites(favoriteCollectibles, selectedAddress, chainId, collectible);
 
 	const renderCollectibleInfoRow = (key, value, onPress) => {
 		if (!value) return null;
@@ -150,16 +163,20 @@ const CollectibleOverview = ({ chainId, collectible, tradable, onSend, navigatio
 		)
 	];
 
-	const addCollectibleToFavorites = () => {
-		// TODO: Add collectible to favorites was pressed
+	const collectibleToFavorites = () => {
+		if (!favorited) {
+			addFavoriteCollectible(selectedAddress, chainId, collectible);
+		} else {
+			removeFavoriteCollectible(selectedAddress, chainId, collectible);
+		}
 	};
 
 	const shareCollectible = () => {
-		// TODO: Share collectible was pressed
+		//
 	};
 
 	// TODO: Get favorited status here or directly from props
-	const favorited = false;
+
 	return (
 		<View style={styles.wrapper}>
 			<View style={styles.basicsWrapper}>
@@ -215,7 +232,7 @@ const CollectibleOverview = ({ chainId, collectible, tradable, onSend, navigatio
 					<StyledButton
 						type={'rounded-normal'}
 						containerStyle={styles.iconButtons}
-						onPress={addCollectibleToFavorites}
+						onPress={collectibleToFavorites}
 					>
 						<Text link noMargin>
 							<AntIcons name={favorited ? 'star' : 'staro'} size={24} />
@@ -251,6 +268,10 @@ CollectibleOverview.propTypes = {
 	 */
 	collectible: PropTypes.object,
 	/**
+	 * Array of collectibles objects
+	 */
+	favoriteCollectibles: PropTypes.object,
+	/**
 	 * Represents if the collectible is tradable (can be sent)
 	 */
 	tradable: PropTypes.bool,
@@ -261,11 +282,35 @@ CollectibleOverview.propTypes = {
 	/**
 	 * Object that represents the navigator
 	 */
-	navigation: PropTypes.object
+	navigation: PropTypes.object,
+	/**
+	 * Selected address
+	 */
+	selectedAddress: PropTypes.string,
+	/**
+	 * Dispatch add collectible to favorites action
+	 */
+	addFavoriteCollectible: PropTypes.func,
+	/**
+	 * Dispatch remove collectible from favorites action
+	 */
+	removeFavoriteCollectible: PropTypes.func
 };
 
 const mapStateToProps = state => ({
-	chainId: state.engine.backgroundState.NetworkController.provider.chainId
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+	favoriteCollectibles: state.collectibles.favorites,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
 });
 
-export default connect(mapStateToProps)(CollectibleOverview);
+const mapDispatchToProps = dispatch => ({
+	addFavoriteCollectible: (selectedAddress, chainId, collectible) =>
+		dispatch(addFavoriteCollectible(selectedAddress, chainId, collectible)),
+	removeFavoriteCollectible: (selectedAddress, chainId, collectible) =>
+		dispatch(removeFavoriteCollectible(selectedAddress, chainId, collectible))
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(CollectibleOverview);

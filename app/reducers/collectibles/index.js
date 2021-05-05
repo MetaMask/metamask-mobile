@@ -1,6 +1,11 @@
 export const getFavoritesCollectibles = (collectibles, selectedAddress, chainId) =>
 	collectibles[selectedAddress]?.[chainId] || [];
 
+export const isCollectibleInFavorites = (collectibles, selectedAddress, chainId, collectible) =>
+	collectibles[selectedAddress]?.[chainId]?.find(
+		({ tokenId, address }) => collectible.tokenId === tokenId && collectible.address === address
+	);
+
 export const ADD_FAVORITE_COLLECTIBLE = 'ADD_FAVORITE_COLLECTIBLE';
 export const REMOVE_FAVORITE_COLLECTIBLE = 'REMOVE_FAVORITE_COLLECTIBLE';
 
