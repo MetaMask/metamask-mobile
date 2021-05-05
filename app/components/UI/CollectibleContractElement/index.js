@@ -13,7 +13,7 @@ const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
 const styles = StyleSheet.create({
 	itemWrapper: {
 		paddingHorizontal: 15,
-		paddingTop: 24
+		paddingBottom: 16
 	},
 	collectibleContractIcon: { width: 30, height: 30 },
 	collectibleContractIconContainer: { marginHorizontal: 8, borderRadius: 30 },
@@ -27,8 +27,8 @@ const styles = StyleSheet.create({
 	},
 	titleText: {
 		fontSize: 18,
-		color: colors.grey500,
-		...fontStyles.bold
+		color: colors.black,
+		...fontStyles.normal
 	},
 	collectibleIcon: {
 		width: COLLECTIBLE_WIDTH,

@@ -13,7 +13,8 @@ const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
 		flex: 1,
-		minHeight: 500
+		minHeight: 500,
+		marginTop: 16
 	},
 	emptyView: {
 		backgroundColor: colors.white,
