@@ -11,9 +11,11 @@ describe('capitalize', () => {
 });
 
 describe('tlc', () => {
+	const o = {};
 	it('should coerce a string toLowerCase', () => {
 		expect(tlc('aBCDefH')).toEqual('abcdefh');
-		expect(tlc(NaN)).toEqual('nan');
+		expect(tlc(NaN)).toEqual(undefined);
+		expect(tlc(o.p)).toEqual(undefined);
 	});
 });
 

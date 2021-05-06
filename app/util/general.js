@@ -1,4 +1,4 @@
-export const tlc = str => String(str).toLowerCase();
+export const tlc = str => str?.toLowerCase?.();
 
 /**
  * Fetch that fails after timeout
