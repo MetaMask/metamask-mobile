@@ -18,19 +18,17 @@ exports[`CollectibleOverview should render correctly 1`] = `
       }
     }
   >
-    <View>
-      <CollectibleMedia
-        big={true}
-        collectible={
-          Object {
-            "address": "0x06012c8cf97BEaD5deAe237070F9587f8E7A266d",
-            "name": "Leopard",
-            "tokenId": 6904,
-          }
+    <CollectibleMedia
+      big={true}
+      collectible={
+        Object {
+          "address": "0x06012c8cf97BEaD5deAe237070F9587f8E7A266d",
+          "name": "Leopard",
+          "tokenId": 6904,
         }
-        renderAnimation={true}
-      />
-    </View>
+      }
+      renderAnimation={true}
+    />
   </View>
   <View
     style={
@@ -275,7 +273,7 @@ exports[`CollectibleOverview should render correctly 1`] = `
           underline={false}
           upper={false}
         >
-          0x06012c8cf97BEaD5deAe237070F9587f8E7A266d
+          0x0601...266d
         </Text>
       </View>
     </View>

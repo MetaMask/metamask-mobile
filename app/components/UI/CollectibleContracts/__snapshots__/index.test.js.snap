@@ -6,27 +6,34 @@ exports[`CollectibleContracts should render correctly 1`] = `
     Object {
       "backgroundColor": "#FFFFFF",
       "flex": 1,
+      "marginTop": 16,
       "minHeight": 500,
     }
   }
   testID="collectible-contracts"
 >
-  <View>
-    <CollectibleContractElement
-      asset={
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "backgroundColor": "#FFFFFF",
+        "justifyContent": "center",
+        "marginTop": 50,
+      }
+    }
+  >
+    <Text
+      style={
         Object {
-          "address": "0x0",
-          "description": "description",
-          "logo": "logo",
-          "name": "name",
-          "symbol": "NM",
-          "totalSupply": 10,
+          "color": "#AAAAAA",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 20,
+          "fontWeight": "400",
         }
       }
-      collectiblesVisible={true}
-      key="0x0"
-      onPress={[Function]}
-    />
+    >
+      You don't have any collectibles!
+    </Text>
   </View>
   <View
     key="collectible-contracts-footer"

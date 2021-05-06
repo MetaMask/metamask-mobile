@@ -242,7 +242,7 @@ class Tokens extends PureComponent {
 		const hasTokensBalance =
 			hasTokens &&
 			tokens.some(
-				token => !token.isETH && tokenBalances[token.address] && !tokenBalances[token.address]?.isZero()
+				token => !token.isETH && tokenBalances[token.address] && !tokenBalances[token.address]?.isZero?.()
 			);
 
 		return (

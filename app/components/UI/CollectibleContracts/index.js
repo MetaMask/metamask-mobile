@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, Text, View, InteractionManager } from 'react-native';
 import { connect } from 'react-redux';
@@ -9,12 +9,14 @@ import CollectibleContractElement from '../CollectibleContractElement';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import CollectibleModal from '../CollectibleModal';
+import { favoritesCollectiblesObjectSelector } from '../../../reducers/collectibles';
 
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
 		flex: 1,
-		minHeight: 500
+		minHeight: 500,
+		marginTop: 16
 	},
 	emptyView: {
 		backgroundColor: colors.white,
@@ -48,17 +50,15 @@ const styles = StyleSheet.create({
  * View that renders a list of CollectibleContract
  * also known as ERC-721 Tokens
  */
-function CollectibleContracts({ collectibleContracts, collectibles, navigation }) {
+const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, favoriteCollectibles }) => {
 	const [collectible, setCollectible] = useState(null);
 	const [contractName, setContractName] = useState(null);
 	const [showCollectibleModal, setShowCollectibleModal] = useState(null);
-
-	const onItemPress = (collectible, contractName) => {
+	const onItemPress = useCallback((collectible, contractName) => {
 		setCollectible(collectible);
 		setContractName(contractName);
 		setShowCollectibleModal(true);
-	};
-
+	}, []);
 	const hideCollectibleModal = () => {
 		setShowCollectibleModal(false);
 	};
@@ -79,23 +79,51 @@ function CollectibleContracts({ collectibleContracts, collectibles, navigation }
 		</View>
 	);
 
-	const renderCollectibleContract = (item, index) => {
-		const contractCollectibles = collectibles?.filter(
-			collectible => collectible.address.toLowerCase() === item.address.toLowerCase()
+	const renderCollectibleContract = useCallback(
+		(item, index) => {
+			const contractCollectibles = collectibles?.filter(
+				collectible => collectible.address.toLowerCase() === item.address.toLowerCase()
+			);
+			return (
+				<CollectibleContractElement
+					onPress={onItemPress}
+					asset={item}
+					key={item.address}
+					contractCollectibles={contractCollectibles}
+					collectiblesVisible={index === 0}
+				/>
+			);
+		},
+		[collectibles, onItemPress]
+	);
+
+	const renderFavoriteCollectibles = useCallback(() => {
+		const filteredCollectibles = favoriteCollectibles.map(collectible =>
+			collectibles.find(
+				({ tokenId, address }) => collectible.tokenId === tokenId && collectible.address === address
+			)
 		);
 		return (
-			<CollectibleContractElement
-				onPress={onItemPress}
-				asset={item}
-				key={item.address}
-				contractCollectibles={contractCollectibles}
-				collectiblesVisible={index === 0}
-			/>
+			Boolean(filteredCollectibles.length) && (
+				<CollectibleContractElement
+					onPress={onItemPress}
+					asset={{ name: 'Favorites', favorites: true }}
+					key={'Favorites'}
+					contractCollectibles={filteredCollectibles}
+					collectiblesVisible
+				/>
+			)
 		);
-	};
+	}, [favoriteCollectibles, collectibles, onItemPress]);
 
-	const renderList = () => (
-		<View>{collectibleContracts.map((item, index) => renderCollectibleContract(item, index))}</View>
+	const renderList = useCallback(
+		() => (
+			<View>
+				{renderFavoriteCollectibles()}
+				<View>{collectibleContracts?.map((item, index) => renderCollectibleContract(item, index))}</View>
+			</View>
+		),
+		[collectibleContracts, renderFavoriteCollectibles, renderCollectibleContract]
 	);
 
 	const renderEmpty = () => (
@@ -106,7 +134,7 @@ function CollectibleContracts({ collectibleContracts, collectibles, navigation }
 
 	return (
 		<View style={styles.wrapper} testID={'collectible-contracts'}>
-			{collectibleContracts?.length ? renderList() : renderEmpty()}
+			{collectibles.length ? renderList() : renderEmpty()}
 			{renderFooter()}
 			{collectible && contractName && (
 				<CollectibleModal
@@ -118,7 +146,7 @@ function CollectibleContracts({ collectibleContracts, collectibles, navigation }
 			)}
 		</View>
 	);
-}
+};
 
 CollectibleContracts.propTypes = {
 	/**
@@ -133,12 +161,17 @@ CollectibleContracts.propTypes = {
 	 * Navigation object required to push
 	 * the Asset detail view
 	 */
-	navigation: PropTypes.object
+	navigation: PropTypes.object,
+	/**
+	 * Object of collectibles
+	 */
+	favoriteCollectibles: PropTypes.array
 };
 
 const mapStateToProps = state => ({
 	collectibleContracts: state.engine.backgroundState.AssetsController.collectibleContracts,
-	collectibles: state.engine.backgroundState.AssetsController.collectibles
+	collectibles: state.engine.backgroundState.AssetsController.collectibles,
+	favoriteCollectibles: favoritesCollectiblesObjectSelector(state)
 });
 
 export default connect(mapStateToProps)(CollectibleContracts);

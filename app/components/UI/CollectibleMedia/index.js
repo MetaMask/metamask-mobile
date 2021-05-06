@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, ViewPropTypes, Text } from 'react-native';
+import { StyleSheet, View, ViewPropTypes } from 'react-native';
 import RemoteImage from '../../Base/RemoteImage';
 import MediaPlayer from '../../Views/MediaPlayer';
-import { colors, fontStyles } from '../../../styles/common';
+import { colors } from '../../../styles/common';
 import scaling from '../../../util/scaling';
 import Device from '../../../util/Device';
+import Text from '../../Base/Text';
 
 const styles = StyleSheet.create({
 	container(backgroundColor) {
@@ -40,14 +41,8 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.grey100,
 		borderRadius: 8
 	},
-	text: {
-		...fontStyles.normal
-	},
-	textBig: {
-		fontSize: 24
-	},
-	textSmall: {
-		fontSize: 12
+	textWrapper: {
+		textAlign: 'center'
 	}
 });
 
@@ -97,7 +92,7 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 					cover && styles.cover
 				]}
 			>
-				<Text style={[styles.text, (tiny || small) && styles.textSmall, big && styles.textBig]}>{`#${
+				<Text big={big} small={tiny || small} style={styles.textWrapper}>{`${collectible.name || ''} #${
 					collectible.tokenId
 				}`}</Text>
 			</View>
