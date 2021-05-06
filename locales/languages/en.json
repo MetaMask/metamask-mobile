@@ -272,6 +272,8 @@
 		"no_collectibles": "Don’t see your NFT?",
 		"add_tokens": "ADD TOKENS",
 		"no_tokens": "You don't have any tokens!",
+		"no_nfts_yet": "No NFTs yet",
+		"learn_more": "Learn more",
 		"add_collectibles": "ADD NFTs",
 		"no_transactions": "You have no transactions!",
 		"send_button": "Send",

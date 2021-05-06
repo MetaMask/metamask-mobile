@@ -142,10 +142,10 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 					resizeMode={'contain'}
 				/>
 				<Text center style={styles.emptyTitleText} bold>
-					{'No NFTs yet'}
+					{strings('wallet.no_nfts_yet')}
 				</Text>
 				<Text center big link onPress={goToLearnMore}>
-					{'Learn more'}
+					{strings('wallet.learn_more')}
 				</Text>
 			</View>
 			<Text big style={styles.emptyText}>
