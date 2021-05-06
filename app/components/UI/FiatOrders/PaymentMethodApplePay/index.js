@@ -229,7 +229,10 @@ function PaymentMethodApplePay({
 		const prevLockTime = lockTime;
 		setLockTime(-1);
 		try {
-			const order = await pay(roundAmount, quotation?.fees?.[selectedCurrency]);
+			const order = await pay(
+				roundAmount,
+				quotation.fees[selectedCurrency] + quotation.fees.ETH / quotation.exchangeRate
+			);
 			if (order !== ABORTED) {
 				if (order) {
 					addOrder(order);
@@ -407,7 +410,10 @@ function PaymentMethodApplePay({
 							<Text>
 								<Text bold>
 									{strings('fiat_on_ramp.plus_fee', {
-										fee: formatCurrency(quotation?.fees?.[selectedCurrency])
+										fee: formatCurrency(
+											quotation.fees[selectedCurrency] +
+												quotation.fees.ETH / quotation.exchangeRate
+										)
 									})}
 								</Text>
 							</Text>
