@@ -3,8 +3,8 @@ format_version: '8'
 default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
 trigger_map:
-# - push_branch: 'bitrise_yml_new'
-#   workflow: start_e2e_tests
+- push_branch: 'bitrise_yml_new'
+  workflow: start_release_builds
 # - push_branch: 'develop'
 #   workflow: test_release
 # - push_branch: 'main'
@@ -36,7 +36,7 @@ workflows:
     - yarn@0:
         inputs:
         - cache_local_deps: 'yes'
-        - command: audit:ci
+        - command: audit
         title: Audit Dependencies
     - yarn@0:
         title: Lint
