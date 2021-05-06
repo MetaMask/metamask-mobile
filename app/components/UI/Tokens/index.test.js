@@ -60,7 +60,6 @@ describe('Tokens', () => {
 					},
 					TokenBalancesController: {
 						contractBalances: {
-							'0x0': new BN(0),
 							'0x01': new BN(2),
 							'0x02': new BN(0)
 						}
@@ -76,12 +75,9 @@ describe('Tokens', () => {
 			}
 		};
 
-		const wrapper = shallow(
-			<Tokens tokens={initialState.engine.backgroundState.AssetsController.tokens} hideZeroBalanceTokens />,
-			{
-				context: { store: mockStore(initialState) }
-			}
-		);
+		const wrapper = shallow(<Tokens tokens={initialState.engine.backgroundState.AssetsController.tokens} />, {
+			context: { store: mockStore(initialState) }
+		});
 		// ETH and BAT should display
 		expect(wrapper.dive()).toMatchSnapshot();
 	});
@@ -106,7 +102,6 @@ describe('Tokens', () => {
 					},
 					TokenBalancesController: {
 						contractBalances: {
-							'0x0': new BN(0),
 							'0x01': new BN(2),
 							'0x02': new BN(0)
 						}
@@ -122,12 +117,9 @@ describe('Tokens', () => {
 			}
 		};
 
-		const wrapper = shallow(
-			<Tokens tokens={initialState.engine.backgroundState.AssetsController.tokens} hideZeroBalanceTokens />,
-			{
-				context: { store: mockStore(initialState) }
-			}
-		);
+		const wrapper = shallow(<Tokens tokens={initialState.engine.backgroundState.AssetsController.tokens} />, {
+			context: { store: mockStore(initialState) }
+		});
 		// All three should display
 		expect(wrapper.dive()).toMatchSnapshot();
 	});
