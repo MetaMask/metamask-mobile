@@ -2,7 +2,6 @@
 
 ## v.2.3.0 - May 5 2021
 - [#2633](https://github.com/MetaMask/metamask-mobile/pull/2633): Address yarn audit
-- updated change log
 - [#2625](https://github.com/MetaMask/metamask-mobile/pull/2625): Fix isZero is undefined
 - [#2444](https://github.com/MetaMask/metamask-mobile/pull/2444): Implement 'hide zero balance token' setting for token balances on home screen
 - [#2621](https://github.com/MetaMask/metamask-mobile/pull/2621): RC v2.3.0
