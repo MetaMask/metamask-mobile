@@ -5,10 +5,10 @@ project_type: react-native
 trigger_map:
 - push_branch: 'bitrise_yml_new'
   workflow: start_release_builds
-# - push_branch: 'develop'
-#   workflow: test_release
-# - push_branch: 'main'
-#   workflow: test_release
+- push_branch: 'develop'
+  workflow: test_release
+- push_branch: 'main'
+  workflow: test_release
 - push_branch: '*'
   workflow: ci_test
 - pull_request_source_branch: '*'
