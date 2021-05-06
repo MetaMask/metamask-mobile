@@ -12,7 +12,8 @@ describe('CollectibleModal', () => {
 		const wrapper = shallow(
 			<CollectibleModal
 				navigation={{ state: { params: { address: '0x1' } } }}
-				asset={{ name: 'Leopard', tokenId: 6904, address: '0x123' }}
+				collectible={{ name: 'Leopard', tokenId: 6904, address: '0x123' }}
+				contractName={'Opensea'}
 			/>,
 			{
 				context: { store: mockStore(initialState) }

@@ -7,7 +7,6 @@ import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import { newAssetTransaction } from '../../../actions/transaction';
 import Modal from 'react-native-modal';
-import { withNavigation } from 'react-navigation';
 const styles = StyleSheet.create({
 	root: {
 		flex: 1,
@@ -104,4 +103,4 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
 	null,
 	mapDispatchToProps
-)(withNavigation(CollectibleModal));
+)(CollectibleModal);

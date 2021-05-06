@@ -142,6 +142,7 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 					collectible={collectible}
 					contractName={contractName}
 					onHide={hideCollectibleModal}
+					navigation={navigation}
 				/>
 			)}
 		</View>
