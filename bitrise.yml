@@ -231,10 +231,10 @@ workflows:
     #     - track: internal
     #     - service_account_json_key_path: $BITRISEIO_BITRISEIO_SERVICE_ACCOUNT_JSON_KEY_URL_URL
     #     - package_name: $MM_ANDROID_PACKAGE_NAME
-    envs:
-    - opts:
-        is_expand: false
-      MM_ANDROID_PACKAGE_NAME: io.metamask
+    # envs:
+    # - opts:
+    #     is_expand: false
+    #   MM_ANDROID_PACKAGE_NAME: io.metamask
   ios_test_release_step:
     before_run:
     - code_setup_cache
