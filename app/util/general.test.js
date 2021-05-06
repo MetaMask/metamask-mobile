@@ -31,7 +31,9 @@ describe('toLowerCaseCompare', () => {
 		expect(toLowerCaseCompare('A', o.p)).toEqual(false);
 		expect(toLowerCaseCompare(undefined, 'A')).toEqual(false);
 		expect(toLowerCaseCompare('A', undefined)).toEqual(false);
-		// case where a and b are both undefined
+		// case where a and b are both undefined, null or false
 		expect(toLowerCaseCompare(undefined, undefined)).toEqual(false);
+		expect(toLowerCaseCompare(null, null)).toEqual(false);
+		expect(toLowerCaseCompare(false, false)).toEqual(false);
 	});
 });

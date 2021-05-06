@@ -36,6 +36,6 @@ export function findRouteNameFromNavigatorState({ routes }) {
 export const capitalize = str => (str && str.charAt(0).toUpperCase() + str.slice(1)) || false;
 
 export const toLowerCaseCompare = (a, b) => {
-	if (typeof a === 'undefined' && typeof b === 'undefined') return false;
+	if (!a && !b) return false;
 	return tlc(a) === tlc(b);
 };
