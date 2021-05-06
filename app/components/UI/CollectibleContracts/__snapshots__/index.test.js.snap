@@ -16,23 +16,113 @@ exports[`CollectibleContracts should render correctly 1`] = `
     style={
       Object {
         "alignItems": "center",
-        "backgroundColor": "#FFFFFF",
         "justifyContent": "center",
-        "marginTop": 50,
+        "marginTop": 40,
       }
     }
   >
-    <Text
+    <View
       style={
         Object {
-          "color": "#AAAAAA",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 20,
-          "fontWeight": "400",
+          "alignItems": "center",
+          "flex": 1,
+          "justifyContent": "center",
+          "marginBottom": 42,
         }
       }
     >
-      You don't have any collectibles!
+      <Image
+        resizeMode="contain"
+        source={
+          Object {
+            "testUri": "../../../app/images/no-nfts-placeholder.png",
+          }
+        }
+        style={
+          Object {
+            "height": 76,
+            "marginBottom": 12,
+            "width": 76,
+          }
+        }
+      />
+      <Text
+        black={false}
+        blue={false}
+        bold={true}
+        center={true}
+        centered={false}
+        disclaimer={false}
+        green={false}
+        link={false}
+        modal={false}
+        primary={false}
+        red={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
+        style={
+          Object {
+            "color": "#bbc0c5",
+            "fontSize": 24,
+          }
+        }
+        underline={false}
+        upper={false}
+      >
+        No NFTs yet
+      </Text>
+      <Text
+        big={true}
+        black={false}
+        blue={false}
+        bold={false}
+        center={true}
+        centered={false}
+        disclaimer={false}
+        green={false}
+        link={true}
+        modal={false}
+        onPress={[Function]}
+        primary={false}
+        red={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
+        underline={false}
+        upper={false}
+      >
+        Learn more
+      </Text>
+    </View>
+    <Text
+      big={true}
+      black={false}
+      blue={false}
+      bold={false}
+      centered={false}
+      disclaimer={false}
+      green={false}
+      link={false}
+      modal={false}
+      primary={false}
+      red={false}
+      reset={false}
+      right={false}
+      small={false}
+      strikethrough={false}
+      style={
+        Object {
+          "color": "#bbc0c5",
+          "marginBottom": 8,
+        }
+      }
+      underline={false}
+      upper={false}
+    >
+      Don’t see your NFT?
     </Text>
   </View>
   <View
@@ -51,7 +141,6 @@ exports[`CollectibleContracts should render correctly 1`] = `
           "alignItems": "center",
           "flexDirection": "row",
           "justifyContent": "center",
-          "margin": 20,
         }
       }
       testID="add-collectible-button"
@@ -63,6 +152,20 @@ exports[`CollectibleContracts should render correctly 1`] = `
         size={16}
       />
       <Text
+        black={false}
+        blue={false}
+        bold={false}
+        centered={false}
+        disclaimer={false}
+        green={false}
+        link={false}
+        modal={false}
+        primary={false}
+        red={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
         style={
           Object {
             "color": "#037dd6",
@@ -71,6 +174,8 @@ exports[`CollectibleContracts should render correctly 1`] = `
             "fontWeight": "400",
           }
         }
+        underline={false}
+        upper={false}
       >
         ADD NFTs
       </Text>
