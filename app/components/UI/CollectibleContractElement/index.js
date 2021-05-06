@@ -1,11 +1,14 @@
 import React, { useEffect, useState, useContext, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../styles/common';
 import CollectibleMedia from '../CollectibleMedia';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Device from '../../../util/Device';
 import { NavigationContext } from 'react-navigation';
+import AntIcons from 'react-native-vector-icons/AntDesign';
+import Text from '../../Base/Text';
 
 const DEVICE_WIDTH = Device.getDeviceWidth();
 const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
@@ -13,7 +16,7 @@ const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
 const styles = StyleSheet.create({
 	itemWrapper: {
 		paddingHorizontal: 15,
-		paddingTop: 24
+		paddingBottom: 16
 	},
 	collectibleContractIcon: { width: 30, height: 30 },
 	collectibleContractIconContainer: { marginHorizontal: 8, borderRadius: 30 },
@@ -27,8 +30,8 @@ const styles = StyleSheet.create({
 	},
 	titleText: {
 		fontSize: 18,
-		color: colors.grey500,
-		...fontStyles.bold
+		color: colors.black,
+		...fontStyles.normal
 	},
 	collectibleIcon: {
 		width: COLLECTIBLE_WIDTH,
@@ -45,6 +48,16 @@ const styles = StyleSheet.create({
 	collectibleBox: {
 		flex: 1,
 		flexDirection: 'row'
+	},
+	favoritesLogoWrapper: {
+		flex: 1,
+		flexDirection: 'row',
+		justifyContent: 'center',
+		alignItems: 'center',
+		backgroundColor: colors.yellow,
+		width: 32,
+		height: 32,
+		borderRadius: 16
 	}
 });
 
@@ -59,10 +72,11 @@ const splitIntoSubArrays = (array, count) => {
 /**
  * Customizable view to render assets in lists
  */
-export default function CollectibleContractElement({
+function CollectibleContractElement({
 	asset,
 	contractCollectibles,
-	collectiblesVisible: propsCollectiblesVisible
+	collectiblesVisible: propsCollectiblesVisible,
+	collectibleContracts
 }) {
 	const navigation = useContext(NavigationContext);
 	const [collectiblesGrid, setCollectiblesGrid] = useState([]);
@@ -76,32 +90,34 @@ export default function CollectibleContractElement({
 		collectible =>
 			navigation.navigate('CollectibleView', {
 				...collectible,
-				contractName: asset.name
+				contractName: collectible.name || asset.name
 			}),
 		[asset.name, navigation]
 	);
 
 	const renderCollectible = useCallback(
 		(collectible, index) => {
-			const onPress = () => onPressCollectible(collectible);
+			const name =
+				collectible.name || collectibleContracts.find(({ address }) => address === collectible.address)?.name;
+
+			const onPress = () => onPressCollectible({ ...collectible, name });
 			return (
 				<View key={collectible.address + collectible.tokenId} styles={styles.collectibleBox}>
 					<TouchableOpacity onPress={onPress}>
 						<View style={index === 1 ? styles.collectibleInTheMiddle : {}}>
-							<CollectibleMedia style={styles.collectibleIcon} collectible={collectible} />
+							<CollectibleMedia style={styles.collectibleIcon} collectible={{ ...collectible, name }} />
 						</View>
 					</TouchableOpacity>
 				</View>
 			);
 		},
-		[onPressCollectible]
+		[collectibleContracts, onPressCollectible]
 	);
 
 	useEffect(() => {
 		const temp = splitIntoSubArrays(contractCollectibles, 3);
 		setCollectiblesGrid(temp);
 	}, [contractCollectibles, setCollectiblesGrid]);
-
 	return (
 		<View style={styles.itemWrapper}>
 			<TouchableOpacity onPress={toggleCollectibles} style={styles.titleContainer}>
@@ -114,11 +130,17 @@ export default function CollectibleContractElement({
 					/>
 				</View>
 				<View style={styles.collectibleContractIconContainer}>
-					<CollectibleMedia
-						iconStyle={styles.collectibleContractIcon}
-						collectible={{ ...asset, image: asset.logo }}
-						tiny
-					/>
+					{!asset.favorites ? (
+						<CollectibleMedia
+							iconStyle={styles.collectibleContractIcon}
+							collectible={{ ...asset, image: asset.logo }}
+							tiny
+						/>
+					) : (
+						<View style={styles.favoritesLogoWrapper}>
+							<AntIcons color={colors.white} name={'star'} size={24} />
+						</View>
+					)}
 				</View>
 				<View style={styles.verticalAlignedContainer}>
 					<Text numberOfLines={1} style={styles.titleText}>
@@ -151,5 +173,12 @@ CollectibleContractElement.propTypes = {
 	/**
 	 * Whether the collectibles are visible or not
 	 */
-	collectiblesVisible: PropTypes.bool
+	collectiblesVisible: PropTypes.bool,
+	collectibleContracts: PropTypes.array
 };
+
+const mapStateToProps = state => ({
+	collectibleContracts: state.engine.backgroundState.AssetsController.collectibleContracts
+});
+
+export default connect(mapStateToProps)(CollectibleContractElement);

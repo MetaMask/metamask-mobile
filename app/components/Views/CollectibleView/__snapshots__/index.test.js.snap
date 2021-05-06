@@ -19,7 +19,7 @@ exports[`CollectibleView should render correctly 1`] = `
     <View
       testID="asset"
     >
-      <CollectibleOverview
+      <Connect(CollectibleOverview)
         collectible={
           Object {
             "address": "0x1",

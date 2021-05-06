@@ -27,18 +27,29 @@ exports[`CollectibleMedia should render correctly 1`] = `
     }
   >
     <Text
+      black={false}
+      blue={false}
+      bold={false}
+      centered={false}
+      disclaimer={false}
+      green={false}
+      link={false}
+      modal={false}
+      primary={false}
+      red={false}
+      reset={false}
+      right={false}
+      small={false}
+      strikethrough={false}
       style={
-        Array [
-          Object {
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontWeight": "400",
-          },
-          undefined,
-          undefined,
-        ]
+        Object {
+          "textAlign": "center",
+        }
       }
+      underline={false}
+      upper={false}
     >
-      #123
+      NAME #123
     </Text>
   </View>
 </View>
