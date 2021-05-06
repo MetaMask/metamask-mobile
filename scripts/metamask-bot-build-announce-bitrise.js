@@ -5,7 +5,6 @@ const github = require('octonode');
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const ANDROID_APK_LINK = process.env.BITRISE_PUBLIC_INSTALL_PAGE_URL;
-const ANDROID_AAB_LINK = process.env.BITRISE_BUILD_URL;
 const GIT_PROJECT_REPONAME = 'metamask-mobile';
 const BITRISEIO_GIT_REPOSITORY_OWNER = process.env.BITRISEIO_GIT_REPOSITORY_OWNER;
 const SLACK_TOKEN = process.env.MM_SLACK_TOKEN;
@@ -43,13 +42,6 @@ async function start() {
 				title_link: ANDROID_APK_LINK,
 				title: 'Android',
 				text: 'Download APK via Bitrise',
-				thumb_url:
-					'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Android_robot.svg/511px-Android_robot.svg.png'
-			},
-			{
-				title_link: ANDROID_AAB_LINK,
-				title: 'Android App Bundle',
-				text: 'Download AAB via Bitrise',
 				thumb_url:
 					'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Android_robot.svg/511px-Android_robot.svg.png'
 			}
