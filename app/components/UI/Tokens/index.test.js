@@ -46,7 +46,7 @@ describe('Tokens', () => {
 				backgroundState: {
 					AssetsController: {
 						tokens: [
-							{ symbol: 'ETH', address: '0x0', decimals: 18 },
+							{ symbol: 'ETH', address: '0x0', decimals: 18, isETH: true },
 							{ symbol: 'BAT', address: '0x01', decimals: 18 },
 							{ symbol: 'LINK', address: '0x02', decimals: 18 }
 						]
@@ -92,7 +92,7 @@ describe('Tokens', () => {
 				backgroundState: {
 					AssetsController: {
 						tokens: [
-							{ symbol: 'ETH', address: '0x0', decimals: 18 },
+							{ symbol: 'ETH', address: '0x0', decimals: 18, isETH: true },
 							{ symbol: 'BAT', address: '0x01', decimals: 18 },
 							{ symbol: 'LINK', address: '0x02', decimals: 18 }
 						]
