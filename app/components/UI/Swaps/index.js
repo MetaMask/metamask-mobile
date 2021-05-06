@@ -22,6 +22,7 @@ import {
 	setSwapsHasOnboarded,
 	setSwapsLiveness,
 	swapsHasOnboardedSelector,
+	swapsTokensSelector,
 	swapsTokensWithBalanceSelector,
 	swapsTopAssetsSelector
 } from '../../../reducers/swaps';
@@ -715,7 +716,7 @@ SwapsAmountView.propTypes = {
 };
 
 const mapStateToProps = state => ({
-	swapsTokens: state.engine.backgroundState.SwapsController.tokens,
+	swapsTokens: swapsTokensSelector(state),
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	balances: state.engine.backgroundState.TokenBalancesController.contractBalances,
