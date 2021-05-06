@@ -1,16 +1,16 @@
 import React from 'react';
-import CollectibleView from './';
+import CollectibleModal from '.';
 import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
 
 const mockStore = configureMockStore();
 
-describe('CollectibleView', () => {
+describe('CollectibleModal', () => {
 	it('should render correctly', () => {
 		const initialState = {};
 
 		const wrapper = shallow(
-			<CollectibleView
+			<CollectibleModal
 				navigation={{ state: { params: { address: '0x1' } } }}
 				asset={{ name: 'Leopard', tokenId: 6904, address: '0x123' }}
 			/>,

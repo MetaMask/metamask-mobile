@@ -1,11 +1,10 @@
-import React, { useEffect, useState, useContext, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import CollectibleMedia from '../CollectibleMedia';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Device from '../../../util/Device';
-import { NavigationContext } from 'react-navigation';
 
 const DEVICE_WIDTH = Device.getDeviceWidth();
 const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
@@ -62,9 +61,9 @@ const splitIntoSubArrays = (array, count) => {
 export default function CollectibleContractElement({
 	asset,
 	contractCollectibles,
-	collectiblesVisible: propsCollectiblesVisible
+	collectiblesVisible: propsCollectiblesVisible,
+	onPress
 }) {
-	const navigation = useContext(NavigationContext);
 	const [collectiblesGrid, setCollectiblesGrid] = useState([]);
 	const [collectiblesVisible, setCollectiblesVisible] = useState(propsCollectiblesVisible);
 
@@ -72,29 +71,17 @@ export default function CollectibleContractElement({
 		setCollectiblesVisible(!collectiblesVisible);
 	}, [collectiblesVisible, setCollectiblesVisible]);
 
-	const onPressCollectible = useCallback(
-		collectible =>
-			navigation.navigate('CollectibleView', {
-				...collectible,
-				contractName: asset.name
-			}),
-		[asset.name, navigation]
-	);
-
 	const renderCollectible = useCallback(
-		(collectible, index) => {
-			const onPress = () => onPressCollectible(collectible);
-			return (
-				<View key={collectible.address + collectible.tokenId} styles={styles.collectibleBox}>
-					<TouchableOpacity onPress={onPress}>
-						<View style={index === 1 ? styles.collectibleInTheMiddle : {}}>
-							<CollectibleMedia style={styles.collectibleIcon} collectible={collectible} />
-						</View>
-					</TouchableOpacity>
-				</View>
-			);
-		},
-		[onPressCollectible]
+		(collectible, index) => (
+			<View key={collectible.address + collectible.tokenId} styles={styles.collectibleBox}>
+				<TouchableOpacity onPress={() => onPress(collectible, asset.name)}>
+					<View style={index === 1 ? styles.collectibleInTheMiddle : {}}>
+						<CollectibleMedia style={styles.collectibleIcon} collectible={collectible} />
+					</View>
+				</TouchableOpacity>
+			</View>
+		),
+		[onPress, asset.name]
 	);
 
 	useEffect(() => {
@@ -151,5 +138,9 @@ CollectibleContractElement.propTypes = {
 	/**
 	 * Whether the collectibles are visible or not
 	 */
-	collectiblesVisible: PropTypes.bool
+	collectiblesVisible: PropTypes.bool,
+	/**
+	 * Called when the collectible is pressed
+	 */
+	onPress: PropTypes.func
 };

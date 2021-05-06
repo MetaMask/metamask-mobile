@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, Text, View, InteractionManager } from 'react-native';
 import { connect } from 'react-redux';
@@ -8,6 +8,7 @@ import { strings } from '../../../../locales/i18n';
 import CollectibleContractElement from '../CollectibleContractElement';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import CollectibleModal from '../CollectibleModal';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -48,7 +49,19 @@ const styles = StyleSheet.create({
  * also known as ERC-721 Tokens
  */
 function CollectibleContracts({ collectibleContracts, collectibles, navigation }) {
-	const onItemPress = collectibleContract => navigation.push('Collectible', collectibleContract);
+	const [collectible, setCollectible] = useState(null);
+	const [contractName, setContractName] = useState(null);
+	const [showCollectibleModal, setShowCollectibleModal] = useState(null);
+
+	const onItemPress = (collectible, contractName) => {
+		setCollectible(collectible);
+		setContractName(contractName);
+		setShowCollectibleModal(true);
+	};
+
+	const hideCollectibleModal = () => {
+		setShowCollectibleModal(false);
+	};
 
 	const goToAddCollectible = () => {
 		navigation.push('AddAsset', { assetType: 'collectible' });
@@ -95,6 +108,14 @@ function CollectibleContracts({ collectibleContracts, collectibles, navigation }
 		<View style={styles.wrapper} testID={'collectible-contracts'}>
 			{collectibleContracts?.length ? renderList() : renderEmpty()}
 			{renderFooter()}
+			{collectible && contractName && (
+				<CollectibleModal
+					visible={showCollectibleModal}
+					collectible={collectible}
+					contractName={contractName}
+					onHide={hideCollectibleModal}
+				/>
+			)}
 		</View>
 	);
 }

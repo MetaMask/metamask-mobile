@@ -4,6 +4,8 @@ import { StyleSheet, View, ViewPropTypes, Text } from 'react-native';
 import RemoteImage from '../../Base/RemoteImage';
 import MediaPlayer from '../../Views/MediaPlayer';
 import { colors, fontStyles } from '../../../styles/common';
+import scaling from '../../../util/scaling';
+import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
 	container(backgroundColor) {
@@ -23,6 +25,10 @@ const styles = StyleSheet.create({
 	bigImage: {
 		height: 260,
 		width: 260
+	},
+	cover: {
+		height: scaling.scale(244, { baseModel: 2 }),
+		minWidth: Device.getDeviceWidth()
 	},
 	image: {
 		borderRadius: 12
@@ -48,7 +54,7 @@ const styles = StyleSheet.create({
 /**
  * View that renders an ERC-721 Token image
  */
-export default function CollectibleMedia({ collectible, renderAnimation, style, tiny, small, big }) {
+export default function CollectibleMedia({ collectible, renderAnimation, style, tiny, small, big, cover }) {
 	const [sourceUri, setSourceUri] = useState(null);
 
 	const fallback = () => setSourceUri(null);
@@ -61,18 +67,19 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 
 	const renderMedia = useCallback(() => {
 		if (renderAnimation && collectible.animation) {
-			return <MediaPlayer uri={collectible.animation} style={styles.bigImage} />;
+			return <MediaPlayer uri={collectible.animation} style={cover ? styles.cover : styles.bigImage} />;
 		} else if (sourceUri) {
 			return (
 				<RemoteImage
 					fadeIn
-					resizeMode={'contain'}
+					resizeMode={cover ? 'cover' : 'contain'}
 					source={{ uri: sourceUri }}
 					style={[
 						styles.image,
 						tiny && styles.tinyImage,
 						small && styles.smallImage,
 						big && styles.bigImage,
+						cover && styles.cover,
 						style
 					]}
 					onError={fallback}
@@ -86,7 +93,8 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 					style,
 					tiny && styles.tinyImage,
 					small && styles.smallImage,
-					big && styles.bigImage
+					big && styles.bigImage,
+					cover && styles.cover
 				]}
 			>
 				<Text style={[styles.text, (tiny || small) && styles.textSmall, big && styles.textBig]}>{`#${
@@ -94,7 +102,7 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 				}`}</Text>
 			</View>
 		);
-	}, [collectible, sourceUri, renderAnimation, style, tiny, small, big]);
+	}, [collectible, sourceUri, renderAnimation, style, tiny, small, big, cover]);
 
 	return <View style={styles.container(collectible.backgroundColor)}>{renderMedia()}</View>;
 }
@@ -120,6 +128,10 @@ CollectibleMedia.propTypes = {
 	 * Whether render animation or not, if any
 	 */
 	renderAnimation: PropTypes.bool,
+	/**
+	 * Whether the media should cover the whole screen width
+	 */
+	cover: PropTypes.bool,
 	/**
 	 * Custom style object
 	 */
