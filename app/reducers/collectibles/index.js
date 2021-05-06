@@ -1,9 +1,23 @@
-export const getFavoritesCollectibles = (collectibles, selectedAddress, chainId) =>
-	collectibles[selectedAddress]?.[chainId] || [];
+import { createSelector } from 'reselect';
 
-export const isCollectibleInFavorites = (collectibles, selectedAddress, chainId, collectible) =>
+const getFavoritesCollectibles = (favoriteCollectibles, selectedAddress, chainId) =>
+	favoriteCollectibles[selectedAddress]?.[chainId] || [];
+
+export const favoritesCollectiblesSelector = state => {
+	const favoriteCollectibles = state.collectibles.favorites;
+	const selectedAddress = state.engine.backgroundState.PreferencesController.selectedAddress;
+	const chainId = state.engine.backgroundState.NetworkController.provider.chainId;
+	return favoriteCollectibles[selectedAddress]?.[chainId] || [];
+};
+
+export const favoritesCollectiblesObjectSelector = createSelector(
+	favoritesCollectiblesSelector,
+	favoriteCollectibles => favoriteCollectibles
+);
+
+export const isCollectibleInFavorites = (favoriteCollectibles, collectible) =>
 	Boolean(
-		collectibles[selectedAddress]?.[chainId]?.find(
+		favoriteCollectibles.find(
 			({ tokenId, address }) => collectible.tokenId === tokenId && collectible.address === address
 		)
 	);

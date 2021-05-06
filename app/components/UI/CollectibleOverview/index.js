@@ -16,7 +16,7 @@ import { renderFromWei } from '../../../util/number';
 import { renderShortAddress } from '../../../util/address';
 import etherscanLink from '@metamask/etherscan-link';
 import { addFavoriteCollectible, removeFavoriteCollectible } from '../../../actions/collectibles';
-import { isCollectibleInFavorites } from '../../../reducers/collectibles';
+import { favoritesCollectiblesObjectSelector, isCollectibleInFavorites } from '../../../reducers/collectibles';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -297,21 +297,13 @@ CollectibleOverview.propTypes = {
 };
 
 const mapStateToProps = (state, props) => {
-	const chainId = state.engine.backgroundState.NetworkController.provider.chainId;
-	const selectedAddress = state.engine.backgroundState.PreferencesController.selectedAddress;
-	const isInFavorites = isCollectibleInFavorites(
-		state.collectibles.favorites,
-		selectedAddress,
-		chainId,
-		props.collectible
-	);
+	const favoriteCollectibles = favoritesCollectiblesObjectSelector(state);
 	return {
-		chainId,
-		selectedAddress,
-		isInFavorites
+		chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+		selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+		isInFavorites: isCollectibleInFavorites(favoriteCollectibles, props.collectible)
 	};
 };
-
 const mapDispatchToProps = dispatch => ({
 	addFavoriteCollectible: (selectedAddress, chainId, collectible) =>
 		dispatch(addFavoriteCollectible(selectedAddress, chainId, collectible)),

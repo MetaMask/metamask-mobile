@@ -8,7 +8,7 @@ import { strings } from '../../../../locales/i18n';
 import CollectibleContractElement from '../CollectibleContractElement';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
-import { getFavoritesCollectibles } from '../../../reducers/collectibles';
+import { favoritesCollectiblesObjectSelector } from '../../../reducers/collectibles';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -111,7 +111,7 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 		() => (
 			<View>
 				{renderFavoriteCollectibles()}
-				<View>{collectibleContracts.map((item, index) => renderCollectibleContract(item, index))}</View>
+				<View>{collectibleContracts?.map((item, index) => renderCollectibleContract(item, index))}</View>
 			</View>
 		),
 		[collectibleContracts, renderFavoriteCollectibles, renderCollectibleContract]
@@ -151,14 +151,10 @@ CollectibleContracts.propTypes = {
 	favoriteCollectibles: PropTypes.array
 };
 
-const mapStateToProps = state => {
-	const chainId = state.engine.backgroundState.NetworkController.provider.chainId;
-	const selectedAddress = state.engine.backgroundState.PreferencesController.selectedAddress;
-	return {
-		collectibleContracts: state.engine.backgroundState.AssetsController.collectibleContracts,
-		collectibles: state.engine.backgroundState.AssetsController.collectibles,
-		favoriteCollectibles: getFavoritesCollectibles(state.collectibles.favorites, selectedAddress, chainId)
-	};
-};
+const mapStateToProps = state => ({
+	collectibleContracts: state.engine.backgroundState.AssetsController.collectibleContracts,
+	collectibles: state.engine.backgroundState.AssetsController.collectibles,
+	favoriteCollectibles: favoritesCollectiblesObjectSelector(state)
+});
 
 export default connect(mapStateToProps)(CollectibleContracts);
