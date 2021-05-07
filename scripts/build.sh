@@ -158,7 +158,7 @@ buildAndroidRunE2E(){
 
 buildIosSimulator(){
 	prebuild_ios
-	react-native run-ios --simulator "iPhone 12 Pro"
+	react-native run-ios --simulator "iPhone 11 Pro"
 }
 
 buildIosSimulatorE2E(){
@@ -187,7 +187,7 @@ buildIosRelease(){
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
 		fi
-		./node_modules/.bin/react-native run-ios  --configuration Release --simulator "iPhone 12 Pro"
+		./node_modules/.bin/react-native run-ios  --configuration Release --simulator "iPhone 11 Pro"
 	fi
 }
 
