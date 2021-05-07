@@ -84,6 +84,7 @@ export default class Device {
 
 	static isIphone12() {
 		const model = getModel();
-		return model === 'iPhone 12' || model === 'iPhone 12 Pro' || model === 'iPhone 12 Pro Max';
+		const models = [ 'iPhone 12', 'iPhone 12 Pro', 'iPhone 12 Pro Max' ];
+		return models.includes(model);
 	}
 }
