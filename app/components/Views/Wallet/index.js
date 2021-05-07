@@ -181,7 +181,7 @@ class Wallet extends PureComponent {
 			balance = renderFromWei(accounts[selectedAddress].balance);
 			assets = [
 				{
-					name: 'Ether',
+					name: 'Ether', // FIXME: use 'Ether' for mainnet only, what should it be for custom networks?
 					symbol: getTicker(ticker),
 					isETH: true,
 					balance,
