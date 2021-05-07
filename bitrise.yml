@@ -165,7 +165,7 @@ workflows:
         inputs:
         - content: |-
             #!/usr/bin/env bash 
-            mkdir artifacts
+            mkdir $BITRISE_SOURCE_DIR/artifacts
         title: Make artifacts directory
     - build-router-start@0:
         inputs:
