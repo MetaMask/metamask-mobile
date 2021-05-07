@@ -185,8 +185,8 @@ class TransactionElement extends PureComponent {
 	 */
 	renderImportTime = () => {
 		const { tx, identities, selectedAddress } = this.props;
-		const importTime = identities[selectedAddress]?.importTime;
-		if (tx.insertImportTime && importTime) {
+		const accountImportTime = identities[selectedAddress]?.importTime;
+		if (tx.insertImportTime && accountImportTime) {
 			return (
 				<>
 					<TouchableOpacity onPress={this.onPressImportWalletTip} style={styles.importRowBody}>
@@ -194,7 +194,7 @@ class TransactionElement extends PureComponent {
 							{`${strings('transactions.import_wallet_row')} `}
 							<FAIcon name="info-circle" style={styles.infoIcon} />
 						</Text>
-						<ListItem.Date>{toDateFormat(importTime)}</ListItem.Date>
+						<ListItem.Date>{toDateFormat(accountImportTime)}</ListItem.Date>
 					</TouchableOpacity>
 				</>
 			);
