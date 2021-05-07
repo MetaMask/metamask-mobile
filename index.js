@@ -53,7 +53,8 @@ LogBox.ignoreLogs([
 	'componentWillUpdate',
 	'componentWillReceiveProps',
 	'getNode()',
-	'VirtualizedLists should never be nested inside plain ScrollViews'
+	'VirtualizedLists should never be nested inside plain ScrollViews',
+	"Deprecation in 'navigationOptions'"
 ]);
 
 /**

@@ -128,7 +128,8 @@ const styles = StyleSheet.create({
 	},
 	metamaskNameTransparentWrapper: {
 		alignItems: 'center',
-		flex: 1
+		flex: 1,
+		borderWidth: 0
 	},
 	metamaskNameWrapper: {
 		marginLeft: Device.isAndroid() ? 20 : 0

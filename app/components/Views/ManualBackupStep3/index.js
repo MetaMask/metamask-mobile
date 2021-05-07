@@ -18,12 +18,12 @@ import { ONBOARDING_WIZARD, METRICS_OPT_IN, SEED_PHRASE_HINTS } from '../../../c
 
 const styles = StyleSheet.create({
 	mainWrapper: {
-		marginTop: 40,
-		backgroundColor: colors.white,
-		flex: 1
+		flex: 1,
+		backgroundColor: colors.white
 	},
 	wrapper: {
 		flex: 1,
+		marginTop: 50,
 		paddingHorizontal: 50
 	},
 	onBoardingWrapper: {
