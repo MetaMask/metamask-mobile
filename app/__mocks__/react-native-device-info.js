@@ -1,18 +1,4 @@
-export default {
-	getModel: jest.fn().mockImplementation(() => {
-		// eslint-disable-next-line no-console
-		console.log('getModel');
-	}),
-	getApplicationName: jest.fn().mockImplementation(() => {
-		// eslint-disable-next-line no-console
-		console.log('getApplicationName');
-	}),
-	getVersion: jest.fn().mockImplementation(() => {
-		// eslint-disable-next-line no-console
-		console.log('getVersion');
-	}),
-	getBuildNumber: jest.fn().mockImplementation(() => {
-		// eslint-disable-next-line no-console
-		console.log('getBuildNumber');
-	})
-};
+export const getModel = () => Promise.resolve('iPhone 12');
+export const getApplicationName = () => Promise.resolve('applicationName');
+export const getVersion = () => Promise.resolve('version');
+export const getBuildNumber = () => Promise.resolve('500');
