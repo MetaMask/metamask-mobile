@@ -67,7 +67,8 @@ import { setInfuraAvailabilityBlocked, setInfuraAvailabilityNotBlocked } from '.
 
 const styles = StyleSheet.create({
 	flex: {
-		flex: 1
+		flex: 1,
+		marginTop: Device.isIphone12() ? 20 : 0
 	},
 	loader: {
 		backgroundColor: colors.white,
