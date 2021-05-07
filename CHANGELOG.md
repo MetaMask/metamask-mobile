@@ -1,6 +1,10 @@
 # Changelog
 
-## v.2.3.0 - May 5 2021
+## Current Develop Branch
+- [#2645](https://github.com/MetaMask/metamask-mobile/pull/2645): Safe navbar for iphone 12
+- [#2643](https://github.com/MetaMask/metamask-mobile/pull/2643): Fix undefined is not an object identities[selectedAddress].importTime
+- [#2639](https://github.com/MetaMask/metamask-mobile/pull/2639): Exclude native asset from hiding when balance is zero
+- [#2631](https://github.com/MetaMask/metamask-mobile/pull/2631): updated change log
 - [#2633](https://github.com/MetaMask/metamask-mobile/pull/2633): Address yarn audit
 - [#2625](https://github.com/MetaMask/metamask-mobile/pull/2625): Fix isZero is undefined
 - [#2444](https://github.com/MetaMask/metamask-mobile/pull/2444): Implement 'hide zero balance token' setting for token balances on home screen
