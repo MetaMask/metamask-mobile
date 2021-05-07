@@ -161,12 +161,6 @@ workflows:
 # Parallel Build & Deploy Steps
   start_release_builds:
     steps:
-    - script@1:
-        inputs:
-        - content: |-
-            #!/usr/bin/env bash 
-            mkdir $BITRISE_SOURCE_DIR/artifacts
-        title: Make artifacts directory
     - build-router-start@0:
         inputs:
         - workflows: |-
@@ -178,11 +172,11 @@ workflows:
     - build-router-wait@0:
         inputs:
         - abort_on_fail: 'yes'
-        - build_artifacts_save_path: $BITRISE_SOURCE_DIR/artifacts
+        - build_artifacts_save_path: $BITRISE_DEPLOY_DIR
         - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
     - deploy-to-bitrise-io@1:
         inputs:
-        - deploy_path: $BITRISE_SOURCE_DIR/artifacts
+        - deploy_path: $BITRISE_DEPLOY_DIR
         title: Bitrise Deploy Artifacts
   android_test_release_step:
     before_run:
