@@ -1,5 +1,37 @@
 # Changelog
 
+## v.2.3.0 - May 5 2021
+- [#2633](https://github.com/MetaMask/metamask-mobile/pull/2633): Address yarn audit
+- [#2625](https://github.com/MetaMask/metamask-mobile/pull/2625): Fix isZero is undefined
+- [#2444](https://github.com/MetaMask/metamask-mobile/pull/2444): Implement 'hide zero balance token' setting for token balances on home screen
+- [#2621](https://github.com/MetaMask/metamask-mobile/pull/2621): RC v2.3.0
+- [#2605](https://github.com/MetaMask/metamask-mobile/pull/2605): Feature/update seed phrase wording
+- [#2564](https://github.com/MetaMask/metamask-mobile/pull/2564): Improve rpc errors logging and removing user rejected errors
+- [#2556](https://github.com/MetaMask/metamask-mobile/pull/2556): Fix/respect custom spend limit on dapp approve modal
+- [#2614](https://github.com/MetaMask/metamask-mobile/pull/2614): updated lock files
+- [#2586](https://github.com/MetaMask/metamask-mobile/pull/2586): Upgrade swaps-controller v4
+- [#2613](https://github.com/MetaMask/metamask-mobile/pull/2613): remove typo
+- [#2603](https://github.com/MetaMask/metamask-mobile/pull/2603): Bugfix/android anr
+- [#2565](https://github.com/MetaMask/metamask-mobile/pull/2565): This will fix sentry errors with no title by using the extra info as a title
+- [#2552](https://github.com/MetaMask/metamask-mobile/pull/2552): Upgrade wallet connect
+- [#2607](https://github.com/MetaMask/metamask-mobile/pull/2607): Detox/Fix failing tests
+- [#2604](https://github.com/MetaMask/metamask-mobile/pull/2604): Don't hide url modal on emulator
+- [#2529](https://github.com/MetaMask/metamask-mobile/pull/2529): Move some errors to analytics instead of sentry
+- [#2446](https://github.com/MetaMask/metamask-mobile/pull/2446): Add New Zealand Dollar to currency options
+- [#2464](https://github.com/MetaMask/metamask-mobile/pull/2464): Feature/confusables
+- [#2610](https://github.com/MetaMask/metamask-mobile/pull/2610): fix typeface on login text field
+- [#2416](https://github.com/MetaMask/metamask-mobile/pull/2416): Replace controller context
+- [#2590](https://github.com/MetaMask/metamask-mobile/pull/2590): Fix adding custom token in custom network
+- [#2470](https://github.com/MetaMask/metamask-mobile/pull/2470): only add custom tokens if not in mainnet
+- [#2524](https://github.com/MetaMask/metamask-mobile/pull/2524): Address yarn lints
+- [#2588](https://github.com/MetaMask/metamask-mobile/pull/2588): Upgrade .nvmrc to node v14
+- [#2514](https://github.com/MetaMask/metamask-mobile/pull/2514): Swaps: Add cache thresholds configuration
+- [#2468](https://github.com/MetaMask/metamask-mobile/pull/2468): Swaps: BSC Support
+- [#2539](https://github.com/MetaMask/metamask-mobile/pull/2539): Use node 14
+- [#2568](https://github.com/MetaMask/metamask-mobile/pull/2568): resolve isENS without case sensitivity (#2545)
+- [#2566](https://github.com/MetaMask/metamask-mobile/pull/2566): Revert "resolve isENS without case sensitivity (#2545)"
+- [#2545](https://github.com/MetaMask/metamask-mobile/pull/2545): resolve isENS without case sensitivity
+
 ## v2.2.0 - Apr 21 2021
 - [#2547](https://github.com/MetaMask/metamask-mobile/pull/2547): Include decimalsToShow in balanceToFiatNumber
 - [#2554](https://github.com/MetaMask/metamask-mobile/pull/2554): Bug fix/sync import time

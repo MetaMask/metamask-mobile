@@ -44,6 +44,7 @@ import CookieManager from '@react-native-community/cookies';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import HintModal from '../../../UI/HintModal';
 import { trackErrorAsAnalytics } from '../../../../util/analyticsV2';
+import SeedPhraseVideo from '../../../UI/SeedPhraseVideo';
 
 const isIos = Device.isIos();
 
@@ -141,6 +142,9 @@ const styles = StyleSheet.create({
 	},
 	viewHint: {
 		padding: 5
+	},
+	seedPhraseVideo: {
+		marginTop: 10
 	}
 });
 
@@ -536,6 +540,7 @@ class Settings extends PureComponent {
 							) : null}
 							<Text style={styles.title}>{strings('app_settings.protect_title')}</Text>
 						</Text>
+						<SeedPhraseVideo style={styles.seedPhraseVideo} />
 						<Text style={styles.desc}>{strings('app_settings.protect_desc')}</Text>
 						<SettingsNotification isWarning={!seedphraseBackedUp}>
 							<Text
