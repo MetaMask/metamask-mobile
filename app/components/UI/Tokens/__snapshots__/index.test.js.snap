@@ -16,30 +16,22 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
       asset={
         Object {
           "address": "0x0",
-          "balance": "0",
+          "balance": 0,
           "balanceFiat": undefined,
           "decimals": 18,
+          "isETH": true,
           "logo": undefined,
           "symbol": "ETH",
         }
       }
       key="0x0"
-      onLongPress={[Function]}
+      onLongPress={null}
       onPress={[Function]}
       testID="asset"
     >
-      <Connect(TokenImage)
-        asset={
-          Object {
-            "address": "0x0",
-            "balance": "0",
-            "balanceFiat": undefined,
-            "decimals": 18,
-            "logo": undefined,
-            "symbol": "ETH",
-          }
-        }
-        containerStyle={
+      <Connect(NetworkMainAssetLogo)
+        big={true}
+        style={
           Object {
             "height": 50,
             "marginRight": 20,
@@ -47,6 +39,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
             "width": 50,
           }
         }
+        testID="eth-logo"
       />
       <View
         style={
@@ -286,30 +279,22 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
       asset={
         Object {
           "address": "0x0",
-          "balance": "0",
+          "balance": 0,
           "balanceFiat": undefined,
           "decimals": 18,
+          "isETH": true,
           "logo": undefined,
           "symbol": "ETH",
         }
       }
       key="0x0"
-      onLongPress={[Function]}
+      onLongPress={null}
       onPress={[Function]}
       testID="asset"
     >
-      <Connect(TokenImage)
-        asset={
-          Object {
-            "address": "0x0",
-            "balance": "0",
-            "balanceFiat": undefined,
-            "decimals": 18,
-            "logo": undefined,
-            "symbol": "ETH",
-          }
-        }
-        containerStyle={
+      <Connect(NetworkMainAssetLogo)
+        big={true}
+        style={
           Object {
             "height": 50,
             "marginRight": 20,
@@ -317,6 +302,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
             "width": 50,
           }
         }
+        testID="eth-logo"
       />
       <View
         style={
