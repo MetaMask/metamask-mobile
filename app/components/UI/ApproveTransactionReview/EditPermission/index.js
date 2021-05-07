@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState, useEffect } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
@@ -8,6 +8,8 @@ import { strings } from '../../../../../locales/i18n';
 import ConnectHeader from '../../ConnectHeader';
 import Device from '../../../../util/Device';
 import ErrorMessage from '../../../Views/SendFlow/ErrorMessage';
+
+export const MINIMUM_VALUE = '1';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -106,15 +108,14 @@ function EditPermission({
 	onPressSpendLimitCustomSelected,
 	toggleEditPermission
 }) {
-	const [approvalSet, setApprovalSet] = useState(false);
+	const [initialState] = useState({ spendLimitUnlimitedSelected, spendLimitCustomValue });
 
 	const displayErrorMessage = useMemo(
-		() => !spendLimitUnlimitedSelected && minimumSpendLimit > spendLimitCustomValue,
+		() => !spendLimitUnlimitedSelected && Number(minimumSpendLimit) > spendLimitCustomValue,
 		[spendLimitUnlimitedSelected, spendLimitCustomValue, minimumSpendLimit]
 	);
 
 	const onSetApprovalAmount = useCallback(() => {
-		setApprovalSet(true);
 		if (!spendLimitUnlimitedSelected && !spendLimitCustomValue) {
 			onPressSpendLimitUnlimitedSelected();
 		} else {
@@ -122,17 +123,26 @@ function EditPermission({
 		}
 	}, [spendLimitUnlimitedSelected, spendLimitCustomValue, onPressSpendLimitUnlimitedSelected, setApprovalAmount]);
 
-	useEffect(
-		() =>
-			function cleanup() {
-				if (!spendLimitUnlimitedSelected && !approvalSet) onPressSpendLimitUnlimitedSelected();
-			},
-		[spendLimitUnlimitedSelected, approvalSet, onPressSpendLimitUnlimitedSelected]
-	);
+	const onBackPress = useCallback(() => {
+		const { spendLimitUnlimitedSelected, spendLimitCustomValue } = initialState;
+		if (spendLimitUnlimitedSelected) {
+			onPressSpendLimitUnlimitedSelected();
+		} else {
+			onPressSpendLimitCustomSelected();
+		}
+		onSpendLimitCustomValueChange(spendLimitCustomValue);
+		toggleEditPermission();
+	}, [
+		initialState,
+		onPressSpendLimitCustomSelected,
+		onPressSpendLimitUnlimitedSelected,
+		onSpendLimitCustomValueChange,
+		toggleEditPermission
+	]);
 
 	return (
 		<View style={styles.wrapper}>
-			<ConnectHeader action={toggleEditPermission} title={strings('spend_limit_edition.title')} />
+			<ConnectHeader action={onBackPress} title={strings('spend_limit_edition.title')} />
 			<View>
 				<Text style={styles.spendLimitTitle}>{strings('spend_limit_edition.spend_limit')}</Text>
 				<Text style={styles.spendLimitSubtitle}>
@@ -225,7 +235,7 @@ function EditPermission({
 	);
 }
 EditPermission.defaultProps = {
-	minimumSpendLimit: '1'
+	minimumSpendLimit: MINIMUM_VALUE
 };
 
 EditPermission.propTypes = {

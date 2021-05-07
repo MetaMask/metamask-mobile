@@ -40,7 +40,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
           Array [
             "Create password",
             "Secure wallet",
-            "Confirm seed phrase",
+            "Confirm Secret Recovery phrase",
           ]
         }
       />
@@ -68,21 +68,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
         >
           Secure your wallet
         </Text>
-        <Image
-          resizeMethod="auto"
-          source={
-            Object {
-              "testUri": "../../../app/images/explain-backup-seedphrase.png",
-            }
-          }
-          style={
-            Object {
-              "height": 162,
-              "width": 138,
-            }
-          }
-          testID="carousel-one-image"
-        />
+        <SeedPhraseVideo />
         <View
           style={
             Object {
@@ -113,7 +99,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                 }
               }
             >
-              seed phrase
+              Secret Recovery phrase
             </Text>
              
             in a place you trust.
