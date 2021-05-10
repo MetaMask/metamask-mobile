@@ -17,6 +17,7 @@ import { renderShortAddress } from '../../../util/address';
 import etherscanLink from '@metamask/etherscan-link';
 import { addFavoriteCollectible, removeFavoriteCollectible } from '../../../actions/collectibles';
 import { favoritesCollectiblesObjectSelector, isCollectibleInFavorites } from '../../../reducers/collectibles';
+import Share from 'react-native-share';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -184,7 +185,10 @@ const CollectibleOverview = ({
 	};
 
 	const shareCollectible = () => {
-		//
+		if (!collectible?.externalLink) return;
+		Share.open({
+			message: `Check out my NFT! ${collectible.externalLink}\nShared via MetaMask.io`
+		});
 	};
 
 	return (
@@ -238,15 +242,18 @@ const CollectibleOverview = ({
 									</Text>
 								</StyledButton>
 							)}
-							<StyledButton
-								type={'rounded-normal'}
-								containerStyle={styles.iconButtons}
-								onPress={shareCollectible}
-							>
-								<Text bold link noMargin>
-									<EvilIcons name={Device.isIos() ? 'share-apple' : 'share-google'} size={32} />
-								</Text>
-							</StyledButton>
+							{collectible?.externalLink && (
+								<StyledButton
+									type={'rounded-normal'}
+									containerStyle={styles.iconButtons}
+									onPress={shareCollectible}
+								>
+									<Text bold link noMargin>
+										<EvilIcons name={Device.isIos() ? 'share-apple' : 'share-google'} size={32} />
+									</Text>
+								</StyledButton>
+							)}
+
 							<StyledButton
 								type={'rounded-normal'}
 								containerStyle={styles.iconButtons}
