@@ -961,8 +961,6 @@ class Confirm extends PureComponent {
 		const existingContact = checksummedAddress && addressBook[network] && addressBook[network][checksummedAddress];
 		const displayExclamation = !existingContact && !!confusableCollection.length;
 
-		console.log({ confusableCollection });
-
 		const AdressToComponent = () => (
 			<AddressTo
 				addressToReady
