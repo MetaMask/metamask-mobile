@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { TouchableOpacity, StyleSheet, Text, View, InteractionManager } from 'react-native';
+import { TouchableOpacity, StyleSheet, View, InteractionManager, Image } from 'react-native';
 import { connect } from 'react-redux';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors, fontStyles } from '../../../styles/common';
@@ -10,6 +10,8 @@ import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import CollectibleModal from '../CollectibleModal';
 import { favoritesCollectiblesObjectSelector } from '../../../reducers/collectibles';
+import Text from '../../Base/Text';
+import AppConstants from '../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -19,18 +21,11 @@ const styles = StyleSheet.create({
 		marginTop: 16
 	},
 	emptyView: {
-		backgroundColor: colors.white,
 		justifyContent: 'center',
 		alignItems: 'center',
-		marginTop: 50
-	},
-	text: {
-		fontSize: 20,
-		color: colors.fontTertiary,
-		...fontStyles.normal
+		marginTop: 40
 	},
 	add: {
-		margin: 20,
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'center'
@@ -43,6 +38,25 @@ const styles = StyleSheet.create({
 	footer: {
 		flex: 1,
 		paddingBottom: 30
+	},
+	emptyContainer: {
+		flex: 1,
+		marginBottom: 42,
+		justifyContent: 'center',
+		alignItems: 'center'
+	},
+	emptyImageContainer: {
+		width: 76,
+		height: 76,
+		marginBottom: 12
+	},
+	emptyTitleText: {
+		fontSize: 24,
+		color: colors.grey200
+	},
+	emptyText: {
+		color: colors.grey200,
+		marginBottom: 8
 	}
 });
 
@@ -126,9 +140,26 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 		[collectibleContracts, renderFavoriteCollectibles, renderCollectibleContract]
 	);
 
+	const goToLearnMore = () => navigation.navigate('SimpleWebview', { url: AppConstants.URLS.NFT });
+
 	const renderEmpty = () => (
 		<View style={styles.emptyView}>
-			<Text style={styles.text}>{strings('wallet.no_collectibles')}</Text>
+			<View style={styles.emptyContainer}>
+				<Image
+					style={styles.emptyImageContainer}
+					source={require('../../../images/no-nfts-placeholder.png')}
+					resizeMode={'contain'}
+				/>
+				<Text center style={styles.emptyTitleText} bold>
+					{strings('wallet.no_nfts_yet')}
+				</Text>
+				<Text center big link onPress={goToLearnMore}>
+					{strings('wallet.learn_more')}
+				</Text>
+			</View>
+			<Text big style={styles.emptyText}>
+				{strings('wallet.no_collectibles')}
+			</Text>
 		</View>
 	);
 
