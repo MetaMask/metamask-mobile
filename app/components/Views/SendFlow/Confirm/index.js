@@ -382,7 +382,10 @@ class Confirm extends PureComponent {
 
 	handleConfusables = async () => {
 		const { transactionToName = undefined } = this.props.transactionState;
-		if (transactionToName) await this.setState({ confusableCollection: collectConfusables(transactionToName) });
+		const isOwnAccount = transactionToName.indexOf('Account') >= 0;
+		if (transactionToName && !isOwnAccount) {
+			await this.setState({ confusableCollection: collectConfusables(transactionToName) });
+		}
 	};
 
 	toggleWarningModal = () => this.setState(state => ({ warningModalVisible: !state.warningModalVisible }));
@@ -957,6 +960,8 @@ class Confirm extends PureComponent {
 		const checksummedAddress = transactionTo && toChecksumAddress(transactionTo);
 		const existingContact = checksummedAddress && addressBook[network] && addressBook[network][checksummedAddress];
 		const displayExclamation = !existingContact && !!confusableCollection.length;
+
+		console.log({ confusableCollection });
 
 		const AdressToComponent = () => (
 			<AddressTo
