@@ -31,11 +31,11 @@ workflows:
         - cache_local_deps: 'yes'
         - command: install --network-timeout 300000 --frozen-lockfile --network-concurrency 1
         title: Yarn Install
-    - yarn@0:
-        inputs:
-        - cache_local_deps: 'yes'
-        - command:  audit:ci
-        title: Audit Dependencies
+    # - yarn@0:
+    #     inputs:
+    #     - cache_local_deps: 'yes'
+    #     - command:  audit:ci
+    #     title: Audit Dependencies
     - yarn@0:
         title: Lint
         inputs:
@@ -55,11 +55,11 @@ workflows:
         - cache_local_deps: 'yes'
         - command: install --network-timeout 300000 --frozen-lockfile --network-concurrency 1
         title: Yarn Install
-    - yarn@0:
-        inputs:
-        - cache_local_deps: 'yes'
-        - command: audit:ci
-        title: Audit Dependencies
+    # - yarn@0:
+    #     inputs:
+    #     - cache_local_deps: 'yes'
+    #     - command: audit:ci
+    #     title: Audit Dependencies
     - yarn@0:
         title: Lint
         inputs:
