@@ -23,6 +23,7 @@ exports[`CollectibleMedia should render correctly 1`] = `
         undefined,
         undefined,
         undefined,
+        undefined,
       ]
     }
   >
