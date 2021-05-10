@@ -381,8 +381,8 @@ class Confirm extends PureComponent {
 	};
 
 	handleConfusables = async () => {
-		const { transactionToName } = this.props.transactionState;
-		await this.setState({ confusableCollection: collectConfusables(transactionToName) });
+		const { transactionToName = undefined } = this.props.transactionState;
+		if (transactionToName) await this.setState({ confusableCollection: collectConfusables(transactionToName) });
 	};
 
 	toggleWarningModal = () => this.setState(state => ({ warningModalVisible: !state.warningModalVisible }));
