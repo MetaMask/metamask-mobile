@@ -123,13 +123,11 @@ const CollectibleOverview = ({
 	selectedAddress,
 	tradable,
 	onSend,
-	navigation,
 	addFavoriteCollectible,
 	removeFavoriteCollectible,
-	isInFavorites
+	isInFavorites,
+	openLink
 }) => {
-	const openLink = url => navigation.navigate('SimpleWebview', { url });
-
 	const renderCollectibleInfoRow = (key, value, onPress) => {
 		if (!value) return null;
 		return (
@@ -188,8 +186,6 @@ const CollectibleOverview = ({
 	const shareCollectible = () => {
 		//
 	};
-
-	// TODO: Get favorited status here or directly from props
 
 	return (
 		<View style={styles.wrapper}>
@@ -300,10 +296,6 @@ CollectibleOverview.propTypes = {
 	 */
 	onSend: PropTypes.func,
 	/**
-	 * Object that represents the navigator
-	 */
-	navigation: PropTypes.object,
-	/**
 	 * Selected address
 	 */
 	selectedAddress: PropTypes.string,
@@ -318,7 +310,11 @@ CollectibleOverview.propTypes = {
 	/**
 	 * Whether the current collectible is favorited
 	 */
-	isInFavorites: PropTypes.bool
+	isInFavorites: PropTypes.bool,
+	/**
+	 * Function to open a link on a webview
+	 */
+	openLink: PropTypes.func.isRequired
 };
 
 const mapStateToProps = (state, props) => {

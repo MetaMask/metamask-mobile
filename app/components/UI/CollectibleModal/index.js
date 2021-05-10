@@ -44,6 +44,11 @@ const CollectibleModal = ({ contractName, collectible, onHide, visible, navigati
 		return tradable;
 	};
 
+	const openLink = url => {
+		onHide();
+		navigation.navigate('SimpleWebview', { url });
+	};
+
 	return (
 		<Modal
 			isVisible={visible}
@@ -61,6 +66,7 @@ const CollectibleModal = ({ contractName, collectible, onHide, visible, navigati
 						collectible={{ ...collectible, contractName }}
 						tradable={isTradable()}
 						onSend={onSend}
+						openLink={openLink}
 					/>
 				</View>
 			</SafeAreaView>
