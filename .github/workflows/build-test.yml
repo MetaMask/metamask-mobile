@@ -29,5 +29,4 @@ jobs:
     needs:
       - build-lint-test
     steps:
-      - uses: actions/checkout@v2
       - run: echo "Great success!"
