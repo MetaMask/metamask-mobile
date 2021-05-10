@@ -138,6 +138,7 @@ prebuild_android(){
 	yes | cp -rf app/core/InpageBridgeWeb3.js android/app/src/main/assets/.
 	# Copy fonts with iconset
 	yes | cp -rf ./app/fonts/Metamask.ttf ./android/app/src/main/assets/fonts/Metamask.ttf
+	
 	if [ "$PRE_RELEASE" = false ] ; then
 		if [ -e $ANDROID_ENV_FILE ]
 		then
@@ -153,7 +154,11 @@ buildAndroidRun(){
 
 buildAndroidRunE2E(){
 	prebuild_android
-	source .android.env && cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug && cd ..
+	if [ -e $ANDROID_ENV_FILE ]
+	then
+		source $ANDROID_ENV_FILE
+	fi
+	cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug && cd ..
 }
 
 buildIosSimulator(){
@@ -171,6 +176,10 @@ buildIosDevice(){
 	react-native run-ios --device
 }
 
+generateArchivePackages() {
+	xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask -configuration Release COMIPLER_INDEX_STORE_ENABLE=NO archive -archivePath build/MetaMask.xcarchive -destination generic/platform=ios && xcodebuild -exportArchive -archivePath build/MetaMask.xcarchive -exportPath build/output -exportOptionsPlist MetaMask/IosExportOpitions.plist
+}
+
 buildIosRelease(){
 	prebuild_ios
 
@@ -180,7 +189,8 @@ buildIosRelease(){
 		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
 		echo "Build started..."
 		brew install watchman
-		cd ios && bundle install && bundle exec fastlane prerelease
+		cd ios
+		generateArchivePackages
 		# Generate sourcemaps
 		yarn sourcemaps:ios
 	else
@@ -200,7 +210,8 @@ buildIosReleaseE2E(){
 		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
 		echo "Build started..."
 		brew install watchman
-		cd ios && bundle install && bundle exec fastlane prerelease
+		cd ios 
+		generateArchivePackages 
 		# Generate sourcemaps
 		yarn sourcemaps:ios
 	else
@@ -217,17 +228,10 @@ buildAndroidRelease(){
 	fi
 	prebuild_android
 
-	if [ "$PRE_RELEASE" = true ] ; then
-		TARGET="android/app/build.gradle"
-		sed -i'' -e 's/getPassword("mm","mm-upload-key")/"ANDROID_KEY"/' $TARGET;
-		sed -i'' -e "s/ANDROID_KEY/$ANDROID_KEY/" $TARGET;
-		echo "$ANDROID_KEYSTORE" | base64 --decode > android/keystores/release.keystore
-	fi
-
 	# GENERATE APK
 	cd android && ./gradlew assembleRelease --no-daemon --max-workers 2
 
-	# GENERATE BUNDLE
+	# # GENERATE BUNDLE
 	if [ "$GENERATE_BUNDLE" = true ] ; then
 		./gradlew bundleRelease
 	fi
