@@ -191,7 +191,7 @@ jobs:
           destination: sourcemaps-ios
       - store_artifacts:  
           path: ios/output/gym
-          destination: Build Artifacts
+          destination: output
 workflows:
   full_test:
     jobs:
