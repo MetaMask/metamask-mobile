@@ -192,9 +192,9 @@ android {
 		def pass = getPassword("mm","mm-upload-key")
 		release {
 			storeFile file('../keystores/release.keystore')
-			storePassword pass
-			keyAlias 'key0'
-			keyPassword pass
+			storePassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PASSWORD")
+			keyAlias System.getenv("BITRISEIO_ANDROID_KEYSTORE_ALIAS")
+			keyPassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD")
 		}
 		debug {
             storeFile file('debug.keystore')
