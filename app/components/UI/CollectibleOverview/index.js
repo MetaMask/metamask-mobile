@@ -195,7 +195,7 @@ const CollectibleOverview = ({
 		<View style={styles.wrapper}>
 			<View style={styles.basicsWrapper}>
 				<View style={styles.titleWrapper}>
-					<View style={styles.dragger} testID={'account-list-dragger'} />
+					<View style={styles.dragger} />
 				</View>
 				<CollectibleMedia cover renderAnimation collectible={collectible} style={styles.noRound} />
 			</View>

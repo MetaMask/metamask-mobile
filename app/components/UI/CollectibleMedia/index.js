@@ -35,7 +35,6 @@ const styles = StyleSheet.create({
 		borderRadius: 12
 	},
 	textContainer: {
-		flex: 1,
 		alignItems: 'center',
 		justifyContent: 'center',
 		backgroundColor: colors.grey100,
