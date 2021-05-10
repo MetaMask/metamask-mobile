@@ -380,13 +380,13 @@ class Confirm extends PureComponent {
 		}
 	};
 
-	handleConfusables = async () => {
+	handleConfusables = () => {
 		const { identities, transactionState } = this.props;
 		const accountNames = Object.keys(identities).map(hash => identities[hash].name);
 		const { transactionToName = undefined } = transactionState;
 		const isOwnAccount = accountNames.includes(transactionToName);
 		if (transactionToName && !isOwnAccount) {
-			await this.setState({ confusableCollection: collectConfusables(transactionToName) });
+			this.setState({ confusableCollection: collectConfusables(transactionToName) });
 		}
 	};
 
@@ -399,8 +399,8 @@ class Confirm extends PureComponent {
 		const { showCustomNonce, navigation, providerType } = this.props;
 		await this.handleFetchBasicEstimates();
 		showCustomNonce && (await this.setNetworkNonce());
-		await this.handleConfusables();
 		navigation.setParams({ providerType });
+		this.handleConfusables();
 		this.parseTransactionData();
 		this.prepareTransaction();
 	};
