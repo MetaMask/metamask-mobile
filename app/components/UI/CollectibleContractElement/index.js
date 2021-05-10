@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, TouchableOpacity } from 'react-native';
 import { connect } from 'react-redux';
@@ -6,7 +6,6 @@ import { colors, fontStyles } from '../../../styles/common';
 import CollectibleMedia from '../CollectibleMedia';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Device from '../../../util/Device';
-import { NavigationContext } from 'react-navigation';
 import AntIcons from 'react-native-vector-icons/AntDesign';
 import Text from '../../Base/Text';
 
@@ -76,9 +75,9 @@ function CollectibleContractElement({
 	asset,
 	contractCollectibles,
 	collectiblesVisible: propsCollectiblesVisible,
+	onPress,
 	collectibleContracts
 }) {
-	const navigation = useContext(NavigationContext);
 	const [collectiblesGrid, setCollectiblesGrid] = useState([]);
 	const [collectiblesVisible, setCollectiblesVisible] = useState(propsCollectiblesVisible);
 
@@ -86,14 +85,10 @@ function CollectibleContractElement({
 		setCollectiblesVisible(!collectiblesVisible);
 	}, [collectiblesVisible, setCollectiblesVisible]);
 
-	const onPressCollectible = useCallback(
-		collectible =>
-			navigation.navigate('CollectibleView', {
-				...collectible,
-				contractName: collectible.name || asset.name
-			}),
-		[asset.name, navigation]
-	);
+	const onPressCollectible = useCallback(collectible => onPress(collectible, collectible.name || asset.name), [
+		asset.name,
+		onPress
+	]);
 
 	const renderCollectible = useCallback(
 		(collectible, index) => {
@@ -174,6 +169,10 @@ CollectibleContractElement.propTypes = {
 	 * Whether the collectibles are visible or not
 	 */
 	collectiblesVisible: PropTypes.bool,
+	/**
+	 * Called when the collectible is pressed
+	 */
+	onPress: PropTypes.func,
 	collectibleContracts: PropTypes.array
 };
 

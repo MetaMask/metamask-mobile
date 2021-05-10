@@ -11,15 +11,36 @@ exports[`CollectibleOverview should render correctly 1`] = `
   <View
     style={
       Object {
-        "alignItems": "center",
-        "flex": 1,
-        "justifyContent": "center",
-        "padding": 25,
+        "marginBottom": 16,
       }
     }
   >
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "height": 20,
+          "justifyContent": "center",
+          "position": "absolute",
+          "width": "100%",
+          "zIndex": 100,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "backgroundColor": "#FFFFFF",
+            "borderRadius": 4,
+            "height": 5,
+            "opacity": 0.7,
+            "width": 48,
+          }
+        }
+        testID="account-list-dragger"
+      />
+    </View>
     <CollectibleMedia
-      big={true}
       collectible={
         Object {
           "address": "0x06012c8cf97BEaD5deAe237070F9587f8E7A266d",
@@ -27,200 +48,33 @@ exports[`CollectibleOverview should render correctly 1`] = `
           "tokenId": 6904,
         }
       }
+      cover={true}
       renderAnimation={true}
+      style={
+        Object {
+          "borderRadius": 0,
+        }
+      }
     />
   </View>
-  <View
+  <ScrollView
     style={
       Object {
         "flex": 1,
-        "paddingHorizontal": 16,
       }
     }
   >
-    <Text
-      black={false}
-      blue={false}
-      bold={true}
-      centered={false}
-      disclaimer={false}
-      green={false}
-      link={false}
-      modal={false}
-      noMargin={true}
-      primary={true}
-      red={false}
-      reset={false}
-      right={false}
-      small={false}
-      strikethrough={false}
-      style={
-        Object {
-          "fontSize": 24,
-          "marginBottom": 3,
-        }
-      }
-      underline={false}
-      upper={false}
-    >
-      Leopard
-    </Text>
-    <Text
-      black={false}
-      blue={false}
-      bold={false}
-      centered={false}
-      disclaimer={false}
-      green={false}
-      link={false}
-      modal={false}
-      noMargin={true}
-      primary={true}
-      red={false}
-      reset={false}
-      right={false}
-      small={false}
-      strikethrough={false}
-      style={
-        Object {
-          "fontSize": 16,
-          "marginTop": 3,
-        }
-      }
-      underline={false}
-      upper={false}
-    >
-      #
-      6904
-    </Text>
-    <View
-      style={
-        Object {
-          "flexDirection": "row",
-          "marginTop": 16,
-        }
-      }
-    >
-      <StyledButton
-        containerStyle={
-          Object {
-            "alignItems": "center",
-            "borderWidth": 2,
-            "height": 54,
-            "justifyContent": "center",
-            "marginRight": 9,
-            "width": 54,
-          }
-        }
-        disabledContainerStyle={
-          Object {
-            "opacity": 0.6,
-          }
-        }
-        onPress={[Function]}
-        styleDisabled={
-          Object {
-            "opacity": 0.6,
-          }
-        }
-        type="rounded-normal"
-      >
-        <Text
-          black={false}
-          blue={false}
-          bold={true}
-          centered={false}
-          disclaimer={false}
-          green={false}
-          link={true}
-          modal={false}
-          noMargin={true}
-          primary={false}
-          red={false}
-          reset={false}
-          right={false}
-          small={false}
-          strikethrough={false}
-          underline={false}
-          upper={false}
-        >
-          <Icon
-            allowFontScaling={false}
-            name="share-apple"
-            size={32}
-          />
-        </Text>
-      </StyledButton>
-      <StyledButton
-        containerStyle={
-          Object {
-            "alignItems": "center",
-            "borderWidth": 2,
-            "height": 54,
-            "justifyContent": "center",
-            "marginRight": 9,
-            "width": 54,
-          }
-        }
-        disabledContainerStyle={
-          Object {
-            "opacity": 0.6,
-          }
-        }
-        onPress={[Function]}
-        styleDisabled={
-          Object {
-            "opacity": 0.6,
-          }
-        }
-        type="rounded-normal"
-      >
-        <Text
-          black={false}
-          blue={false}
-          bold={false}
-          centered={false}
-          disclaimer={false}
-          green={false}
-          link={true}
-          modal={false}
-          noMargin={true}
-          primary={false}
-          red={false}
-          reset={false}
-          right={false}
-          small={false}
-          strikethrough={false}
-          underline={false}
-          upper={false}
-        >
-          <Icon
-            allowFontScaling={false}
-            name="staro"
-            size={24}
-          />
-        </Text>
-      </StyledButton>
-    </View>
-    <View
-      style={
-        Object {
-          "marginTop": 24,
-        }
-      }
-    >
+    <TouchableWithoutFeedback>
       <View
-        key="Asset contract"
         style={
           Object {
-            "flexDirection": "row",
-            "marginBottom": 12,
+            "flex": 1,
+            "paddingHorizontal": 16,
           }
         }
       >
         <Text
-          big={true}
-          black={true}
+          black={false}
           blue={false}
           bold={true}
           centered={false}
@@ -229,7 +83,7 @@ exports[`CollectibleOverview should render correctly 1`] = `
           link={false}
           modal={false}
           noMargin={true}
-          primary={false}
+          primary={true}
           red={false}
           reset={false}
           right={false}
@@ -237,46 +91,229 @@ exports[`CollectibleOverview should render correctly 1`] = `
           strikethrough={false}
           style={
             Object {
-              "paddingRight": 10,
+              "fontSize": 24,
+              "marginBottom": 3,
             }
           }
           underline={false}
           upper={false}
         >
-          Asset contract
+          Leopard
         </Text>
         <Text
-          big={true}
           black={false}
           blue={false}
           bold={false}
           centered={false}
           disclaimer={false}
-          ellipsizeMode="middle"
           green={false}
-          link={true}
+          link={false}
           modal={false}
           noMargin={true}
-          numberOfLines={1}
-          onPress={[Function]}
-          primary={false}
+          primary={true}
           red={false}
           reset={false}
-          right={true}
+          right={false}
           small={false}
           strikethrough={false}
           style={
             Object {
-              "flex": 1,
+              "fontSize": 16,
+              "marginTop": 3,
             }
           }
           underline={false}
           upper={false}
         >
-          0x0601...266d
+          #
+          6904
         </Text>
+        <View
+          style={
+            Object {
+              "flexDirection": "row",
+              "marginTop": 16,
+            }
+          }
+        >
+          <StyledButton
+            containerStyle={
+              Object {
+                "alignItems": "center",
+                "borderWidth": 2,
+                "height": 54,
+                "justifyContent": "center",
+                "marginRight": 9,
+                "width": 54,
+              }
+            }
+            disabledContainerStyle={
+              Object {
+                "opacity": 0.6,
+              }
+            }
+            onPress={[Function]}
+            styleDisabled={
+              Object {
+                "opacity": 0.6,
+              }
+            }
+            type="rounded-normal"
+          >
+            <Text
+              black={false}
+              blue={false}
+              bold={true}
+              centered={false}
+              disclaimer={false}
+              green={false}
+              link={true}
+              modal={false}
+              noMargin={true}
+              primary={false}
+              red={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
+              underline={false}
+              upper={false}
+            >
+              <Icon
+                allowFontScaling={false}
+                name="share-apple"
+                size={32}
+              />
+            </Text>
+          </StyledButton>
+          <StyledButton
+            containerStyle={
+              Object {
+                "alignItems": "center",
+                "borderWidth": 2,
+                "height": 54,
+                "justifyContent": "center",
+                "marginRight": 9,
+                "width": 54,
+              }
+            }
+            disabledContainerStyle={
+              Object {
+                "opacity": 0.6,
+              }
+            }
+            onPress={[Function]}
+            styleDisabled={
+              Object {
+                "opacity": 0.6,
+              }
+            }
+            type="rounded-normal"
+          >
+            <Text
+              black={false}
+              blue={false}
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              green={false}
+              link={true}
+              modal={false}
+              noMargin={true}
+              primary={false}
+              red={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
+              underline={false}
+              upper={false}
+            >
+              <Icon
+                allowFontScaling={false}
+                name="staro"
+                size={24}
+              />
+            </Text>
+          </StyledButton>
+        </View>
+        <View
+          style={
+            Object {
+              "marginTop": 24,
+            }
+          }
+        >
+          <View
+            key="Asset contract"
+            style={
+              Object {
+                "flexDirection": "row",
+                "marginBottom": 12,
+              }
+            }
+          >
+            <Text
+              big={true}
+              black={true}
+              blue={false}
+              bold={true}
+              centered={false}
+              disclaimer={false}
+              green={false}
+              link={false}
+              modal={false}
+              noMargin={true}
+              primary={false}
+              red={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
+              style={
+                Object {
+                  "paddingRight": 10,
+                }
+              }
+              underline={false}
+              upper={false}
+            >
+              Asset contract
+            </Text>
+            <Text
+              big={true}
+              black={false}
+              blue={false}
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              ellipsizeMode="middle"
+              green={false}
+              link={true}
+              modal={false}
+              noMargin={true}
+              numberOfLines={1}
+              onPress={[Function]}
+              primary={false}
+              red={false}
+              reset={false}
+              right={true}
+              small={false}
+              strikethrough={false}
+              style={
+                Object {
+                  "flex": 1,
+                }
+              }
+              underline={false}
+              upper={false}
+            >
+              0x0601...266d
+            </Text>
+          </View>
+        </View>
       </View>
-    </View>
-  </View>
+    </TouchableWithoutFeedback>
+  </ScrollView>
 </View>
 `;
