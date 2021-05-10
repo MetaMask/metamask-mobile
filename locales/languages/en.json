@@ -425,6 +425,7 @@
 		"clear": "CLEAR",
 		"protect_cta": "Protect",
 		"protect_title": "Protect your wallet",
+		"video_failed": "Video Failed to Load.",
 		"protect_desc": "Protect your wallet by saving your Secret Recovery phrase in various places like on a piece of paper, password manager and/or the cloud.",
 		"seedphrase_not_backed_up": "Important! Secret recovery phrase not backed up",
 		"seedphrase_backed_up": "Secret recovery phrase backed up",
