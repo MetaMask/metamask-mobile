@@ -187,7 +187,9 @@ const CollectibleOverview = ({
 	const shareCollectible = () => {
 		if (!collectible?.externalLink) return;
 		Share.open({
-			message: `Check out my NFT! ${collectible.externalLink}\nShared via MetaMask.io`
+			message: `${strings('collectible.share_check_out_nft')} ${collectible.externalLink}\n${strings(
+				'collectible.share_via'
+			)} MetaMask.io`
 		});
 	};
 
