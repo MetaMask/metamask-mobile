@@ -482,6 +482,7 @@
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				15ACCA0022655C3A0063978B /* Embed Frameworks */,
 				B6E9B4C4CCD9D5D5F8286546 /* [CP] Copy Pods Resources */,
+				E6592E2316CF5BDDE356F00E /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -790,6 +791,24 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-MetaMask/Pods-MetaMask-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		E6592E2316CF5BDDE356F00E /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-MetaMask/Pods-MetaMask-frameworks.sh",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/OpenSSL/OpenSSL.framework/OpenSSL",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/OpenSSL.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-MetaMask/Pods-MetaMask-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
