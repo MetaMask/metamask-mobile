@@ -1,6 +1,17 @@
 # Changelog
 
 ## v.2.3.0 - May 5 2021
+- [#2663](https://github.com/MetaMask/metamask-mobile/pull/2663): Load video over the network
+- [#2656](https://github.com/MetaMask/metamask-mobile/pull/2656): Fix Balance undefined for deeplink payment requests
+- [#2657](https://github.com/MetaMask/metamask-mobile/pull/2657): Fix missing seed phrase updates
+- [#2645](https://github.com/MetaMask/metamask-mobile/pull/2645): Safe navbar for iphone 12
+- [#2643](https://github.com/MetaMask/metamask-mobile/pull/2643): Fix undefined is not an object identities[selectedAddress].importTime
+- [#2639](https://github.com/MetaMask/metamask-mobile/pull/2639): Exclude native asset from hiding when balance is zero
+- [#2631](https://github.com/MetaMask/metamask-mobile/pull/2631): updated change log
+- [#2633](https://github.com/MetaMask/metamask-mobile/pull/2633): Address yarn audit
+- [#2625](https://github.com/MetaMask/metamask-mobile/pull/2625): Fix isZero is undefined
+- [#2444](https://github.com/MetaMask/metamask-mobile/pull/2444): Implement 'hide zero balance token' setting for token balances on home screen
+- [#2621](https://github.com/MetaMask/metamask-mobile/pull/2621): RC v2.3.0
 - [#2605](https://github.com/MetaMask/metamask-mobile/pull/2605): Feature/update seed phrase wording
 - [#2564](https://github.com/MetaMask/metamask-mobile/pull/2564): Improve rpc errors logging and removing user rejected errors
 - [#2556](https://github.com/MetaMask/metamask-mobile/pull/2556): Fix/respect custom spend limit on dapp approve modal
@@ -27,6 +38,8 @@
 - [#2568](https://github.com/MetaMask/metamask-mobile/pull/2568): resolve isENS without case sensitivity (#2545)
 - [#2566](https://github.com/MetaMask/metamask-mobile/pull/2566): Revert "resolve isENS without case sensitivity (#2545)"
 - [#2545](https://github.com/MetaMask/metamask-mobile/pull/2545): resolve isENS without case sensitivity
+
+
 ## v2.2.0 - Apr 21 2021
 - [#2547](https://github.com/MetaMask/metamask-mobile/pull/2547): Include decimalsToShow in balanceToFiatNumber
 - [#2554](https://github.com/MetaMask/metamask-mobile/pull/2554): Bug fix/sync import time
