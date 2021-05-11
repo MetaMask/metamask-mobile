@@ -370,7 +370,9 @@
 		"collectible_last_price_sold": "Last price sold",
 		"collectible_source": "Source",
 		"collectible_link": "Link",
-		"collectible_asset_contract": "Asset contract"
+		"collectible_asset_contract": "Asset contract",
+		"share_check_out_nft": "Check out my NFT!",
+		"share_via": "Shared via"
 	},
 	"transfer": {
 		"title": "Transfer",
