@@ -27,7 +27,13 @@ describe('CollectibleOverview', () => {
 
 		const wrapper = shallow(
 			<CollectibleOverview
-				collectible={{ name: 'Leopard', tokenId: 6904, address: '0x06012c8cf97BEaD5deAe237070F9587f8E7A266d' }}
+				collectible={{
+					name: 'Leopard',
+					tokenId: 6904,
+					address: '0x06012c8cf97BEaD5deAe237070F9587f8E7A266d',
+					externalLink: 'https://nft.example.com',
+					tradable: true
+				}}
 			/>,
 			{
 				context: { store: mockStore(initialState) }

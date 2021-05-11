@@ -17,6 +17,7 @@ import { renderShortAddress } from '../../../util/address';
 import etherscanLink from '@metamask/etherscan-link';
 import { addFavoriteCollectible, removeFavoriteCollectible } from '../../../actions/collectibles';
 import { favoritesCollectiblesObjectSelector, isCollectibleInFavorites } from '../../../reducers/collectibles';
+import Share from 'react-native-share';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -123,13 +124,11 @@ const CollectibleOverview = ({
 	selectedAddress,
 	tradable,
 	onSend,
-	navigation,
 	addFavoriteCollectible,
 	removeFavoriteCollectible,
-	isInFavorites
+	isInFavorites,
+	openLink
 }) => {
-	const openLink = url => navigation.navigate('SimpleWebview', { url });
-
 	const renderCollectibleInfoRow = (key, value, onPress) => {
 		if (!value) return null;
 		return (
@@ -186,10 +185,13 @@ const CollectibleOverview = ({
 	};
 
 	const shareCollectible = () => {
-		//
+		if (!collectible?.externalLink) return;
+		Share.open({
+			message: `${strings('collectible.share_check_out_nft')} ${collectible.externalLink}\n${strings(
+				'collectible.share_via'
+			)} MetaMask.io`
+		});
 	};
-
-	// TODO: Get favorited status here or directly from props
 
 	return (
 		<View style={styles.wrapper}>
@@ -242,15 +244,18 @@ const CollectibleOverview = ({
 									</Text>
 								</StyledButton>
 							)}
-							<StyledButton
-								type={'rounded-normal'}
-								containerStyle={styles.iconButtons}
-								onPress={shareCollectible}
-							>
-								<Text bold link noMargin>
-									<EvilIcons name={Device.isIos() ? 'share-apple' : 'share-google'} size={32} />
-								</Text>
-							</StyledButton>
+							{collectible?.externalLink && (
+								<StyledButton
+									type={'rounded-normal'}
+									containerStyle={styles.iconButtons}
+									onPress={shareCollectible}
+								>
+									<Text bold link noMargin>
+										<EvilIcons name={Device.isIos() ? 'share-apple' : 'share-google'} size={32} />
+									</Text>
+								</StyledButton>
+							)}
+
 							<StyledButton
 								type={'rounded-normal'}
 								containerStyle={styles.iconButtons}
@@ -300,10 +305,6 @@ CollectibleOverview.propTypes = {
 	 */
 	onSend: PropTypes.func,
 	/**
-	 * Object that represents the navigator
-	 */
-	navigation: PropTypes.object,
-	/**
 	 * Selected address
 	 */
 	selectedAddress: PropTypes.string,
@@ -318,7 +319,11 @@ CollectibleOverview.propTypes = {
 	/**
 	 * Whether the current collectible is favorited
 	 */
-	isInFavorites: PropTypes.bool
+	isInFavorites: PropTypes.bool,
+	/**
+	 * Function to open a link on a webview
+	 */
+	openLink: PropTypes.func.isRequired
 };
 
 const mapStateToProps = (state, props) => {

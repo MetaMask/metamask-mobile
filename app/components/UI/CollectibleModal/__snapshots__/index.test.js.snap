@@ -83,6 +83,7 @@ exports[`CollectibleModal should render correctly 1`] = `
           }
         }
         onSend={[Function]}
+        openLink={[Function]}
         tradable={true}
       />
     </View>
