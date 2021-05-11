@@ -1,6 +1,9 @@
 # Changelog
 
-## Current Develop Branch v.2.3.0 - May 5 2021
+## v.2.3.0 - May 5 2021
+- [#2674](https://github.com/MetaMask/metamask-mobile/pull/2674): Fix deploy contract and create token testnets
+- [#2669](https://github.com/MetaMask/metamask-mobile/pull/2669): Key off accounts
+- [#2670](https://github.com/MetaMask/metamask-mobile/pull/2670): Bump hosted-git-info from 2.8.8 to 2.8.9
 - [#2667](https://github.com/MetaMask/metamask-mobile/pull/2667): added export of iOS artifacts
 - [#2664](https://github.com/MetaMask/metamask-mobile/pull/2664): updated version code and change logs
 - [#2663](https://github.com/MetaMask/metamask-mobile/pull/2663): Load video over the network
