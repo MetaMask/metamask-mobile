@@ -317,11 +317,12 @@ const Main = props => {
 			// if approval data includes metaswap contract
 			// if destination address is metaswap contract
 			if (
-				to === swapsUtils.getSwapsContractAddress(props.chainId) ||
-				(data &&
-					data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
-					decodeApproveData(data).spenderAddress?.toLowerCase() ===
-						swapsUtils.getSwapsContractAddress(props.chainId))
+				to &&
+				(to === swapsUtils.getSwapsContractAddress(props.chainId) ||
+					(data &&
+						data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
+						decodeApproveData(data).spenderAddress?.toLowerCase() ===
+							swapsUtils.getSwapsContractAddress(props.chainId)))
 			) {
 				if (transactionMeta.origin === process.env.MM_FOX_CODE) {
 					autoSign(transactionMeta);
