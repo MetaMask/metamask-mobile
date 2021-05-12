@@ -1,5 +1,5 @@
-import React, { useLayoutEffect, useRef, useState } from 'react';
-import { StyleSheet, View, ScrollView, TouchableWithoutFeedback } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, View, ScrollView, TouchableWithoutFeedback, Easing, Animated } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { baseStyles, colors } from '../../../styles/common';
@@ -19,12 +19,11 @@ import { favoritesCollectiblesObjectSelector, isCollectibleInFavorites } from '.
 import Share from 'react-native-share';
 import { PanGestureHandler } from 'react-native-gesture-handler';
 
-const DEVICE_HEIGHT = Device.getDeviceHeight();
-
 const styles = StyleSheet.create({
 	wrapper: {
 		borderRadius: 8,
-		backgroundColor: colors.white
+		backgroundColor: colors.white,
+		marginTop: -80
 	},
 	informationWrapper: {
 		flex: 1,
@@ -125,11 +124,10 @@ const CollectibleOverview = ({
 	isInFavorites,
 	openLink
 }) => {
-	const [marginTop, setMarginTop] = useState(-80);
-	const [draggerPosition, setDraggerPosition] = useState(0);
 	const [headerHeight, setHeaderHeight] = useState();
+	const [wrapperHeight, setWrapperHeight] = useState();
 
-	const draggerRef = useRef();
+	const positionAnimated = new Animated.Value(0);
 
 	const renderCollectibleInfoRow = (key, value, onPress) => {
 		if (!value) return null;
@@ -201,26 +199,40 @@ const CollectibleOverview = ({
 		}
 	}) => setHeaderHeight(height);
 
+	const onWrapperLayout = ({
+		nativeEvent: {
+			layout: { height }
+		}
+	}) => setWrapperHeight(height);
+
 	const handleGesture = evt => {
-		const newMargin = evt.nativeEvent.absoluteY - draggerPosition;
-		if (newMargin > -80 && evt.nativeEvent.absoluteY < DEVICE_HEIGHT - headerHeight) setMarginTop(newMargin);
+		if (evt.nativeEvent.translationY > 0) {
+			Animated.timing(positionAnimated, {
+				toValue: wrapperHeight - headerHeight + 20,
+				duration: 250,
+				easing: Easing.ease,
+				useNativeDriver: true
+			}).start();
+		} else {
+			Animated.timing(positionAnimated, {
+				toValue: 0,
+				duration: 250,
+				easing: Easing.ease,
+				useNativeDriver: true
+			}).start();
+		}
 	};
 
-	useLayoutEffect(() => {
-		setTimeout(() => {
-			draggerRef.current.measure((w, h, draggerY) => {
-				setDraggerPosition(draggerY);
-			});
-		}, 500);
-	}, []);
-
 	return (
-		<View style={baseStyles.flexGrow}>
-			<ScrollView style={[styles.wrapper, { marginTop }]}>
+		<Animated.View
+			onLayout={onWrapperLayout}
+			style={[baseStyles.flexGrow, { transform: [{ translateY: positionAnimated }] }]}
+		>
+			<ScrollView style={styles.wrapper}>
 				<TouchableWithoutFeedback>
 					<View>
 						<PanGestureHandler onGestureEvent={handleGesture}>
-							<View style={styles.titleWrapper} ref={draggerRef}>
+							<View style={styles.titleWrapper}>
 								<View style={styles.dragger} />
 							</View>
 						</PanGestureHandler>
@@ -309,7 +321,7 @@ const CollectibleOverview = ({
 					</View>
 				</TouchableWithoutFeedback>
 			</ScrollView>
-		</View>
+		</Animated.View>
 	);
 };
 
