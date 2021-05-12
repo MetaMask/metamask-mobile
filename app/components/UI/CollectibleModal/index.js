@@ -7,15 +7,11 @@ import collectiblesTransferInformation from '../../../util/collectibles-transfer
 import { newAssetTransaction } from '../../../actions/transaction';
 import Modal from 'react-native-modal';
 import CollectibleMedia from '../CollectibleMedia';
+
 const styles = StyleSheet.create({
 	root: {
 		flex: 1,
-		maxHeight: '85%',
-		overflow: 'hidden'
-	},
-	wrapper: {
-		flex: 1,
-		borderRadius: 20
+		maxHeight: '85%'
 	},
 	bottomModal: {
 		justifyContent: 'flex-end',
@@ -62,21 +58,18 @@ const CollectibleModal = ({ contractName, collectible, onHide, visible, navigati
 			onBackButtonPress={onHide}
 			onSwipeComplete={onHide}
 			swipeDirection={'down'}
-			propagateSwipe
 		>
 			<View style={styles.root}>
 				<View style={styles.collectibleMediaWrapper}>
 					<CollectibleMedia cover renderAnimation collectible={collectible} style={styles.noRound} />
 				</View>
-				<View style={styles.wrapper}>
-					<CollectibleOverview
-						navigation={navigation}
-						collectible={{ ...collectible, contractName }}
-						tradable={isTradable()}
-						onSend={onSend}
-						openLink={openLink}
-					/>
-				</View>
+				<CollectibleOverview
+					navigation={navigation}
+					collectible={{ ...collectible, contractName }}
+					tradable={isTradable()}
+					onSend={onSend}
+					openLink={openLink}
+				/>
 			</View>
 		</Modal>
 	);

@@ -17,13 +17,12 @@ import etherscanLink from '@metamask/etherscan-link';
 import { addFavoriteCollectible, removeFavoriteCollectible } from '../../../actions/collectibles';
 import { favoritesCollectiblesObjectSelector, isCollectibleInFavorites } from '../../../reducers/collectibles';
 import Share from 'react-native-share';
-import { PanGestureHandler } from 'react-native-gesture-handler';
+import { PanGestureHandler, gestureHandlerRootHOC } from 'react-native-gesture-handler';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		borderRadius: 8,
-		backgroundColor: colors.white,
-		marginTop: -80
+		flex: 1,
+		flexGrow: 1
 	},
 	informationWrapper: {
 		flex: 1,
@@ -98,7 +97,6 @@ const styles = StyleSheet.create({
 		width: '100%',
 		alignItems: 'center',
 		justifyContent: 'center',
-		zIndex: 100,
 		paddingVertical: 16,
 		backgroundColor: colors.white
 	},
@@ -206,21 +204,14 @@ const CollectibleOverview = ({
 	}) => setWrapperHeight(height);
 
 	const handleGesture = evt => {
-		if (evt.nativeEvent.translationY > 0) {
-			Animated.timing(positionAnimated, {
-				toValue: wrapperHeight - headerHeight + 20,
-				duration: 250,
-				easing: Easing.ease,
-				useNativeDriver: true
-			}).start();
-		} else {
-			Animated.timing(positionAnimated, {
-				toValue: 0,
-				duration: 250,
-				easing: Easing.ease,
-				useNativeDriver: true
-			}).start();
-		}
+		if (evt.nativeEvent.velocityY === 0) return;
+		const toValue = evt.nativeEvent.velocityY > 0 ? wrapperHeight - headerHeight - 60 : 0;
+		Animated.timing(positionAnimated, {
+			toValue,
+			duration: 250,
+			easing: Easing.ease,
+			useNativeDriver: true
+		}).start();
 	};
 
 	return (
@@ -228,96 +219,94 @@ const CollectibleOverview = ({
 			onLayout={onWrapperLayout}
 			style={[baseStyles.flexGrow, { transform: [{ translateY: positionAnimated }] }]}
 		>
+			<PanGestureHandler activeOffsetY={[0, 0]} activeOffsetX={[0, 0]} onGestureEvent={handleGesture}>
+				<View style={styles.titleWrapper}>
+					<View style={styles.dragger} />
+				</View>
+			</PanGestureHandler>
 			<ScrollView style={styles.wrapper}>
 				<TouchableWithoutFeedback>
-					<View>
-						<PanGestureHandler onGestureEvent={handleGesture}>
-							<View style={styles.titleWrapper}>
-								<View style={styles.dragger} />
-							</View>
-						</PanGestureHandler>
-						<View style={styles.informationWrapper}>
-							<View onLayout={onHeaderLayout}>
-								{collectible?.creator && (
-									<View style={styles.userContainer}>
-										<RemoteImage
-											fadeIn
-											placeholderStyle={{ backgroundColor: colors.white }}
-											source={{ uri: collectible.creator.profile_img_url }}
-											style={styles.userImage}
-										/>
-										<View style={styles.userInfoContainer}>
-											{collectible.creator.user?.username && (
-												<Text black bold noMargin big style={styles.username}>
-													{collectible.creator.user.username}
-												</Text>
-											)}
-											<Text black noMargin small>
-												{collectible.contractName}
+					<View style={styles.informationWrapper}>
+						<View onLayout={onHeaderLayout}>
+							{collectible?.creator && (
+								<View style={styles.userContainer}>
+									<RemoteImage
+										fadeIn
+										placeholderStyle={{ backgroundColor: colors.white }}
+										source={{ uri: collectible.creator.profile_img_url }}
+										style={styles.userImage}
+									/>
+									<View style={styles.userInfoContainer}>
+										{collectible.creator.user?.username && (
+											<Text black bold noMargin big style={styles.username}>
+												{collectible.creator.user.username}
 											</Text>
-										</View>
-									</View>
-								)}
-								<Text bold primary noMargin style={styles.name}>
-									{collectible.name}
-								</Text>
-								<Text primary noMargin style={styles.tokenId}>
-									{strings('unit.token_id')}
-									{collectible.tokenId}
-								</Text>
-
-								<View style={styles.buttonContainer}>
-									{tradable && (
-										<StyledButton
-											onPress={onSend}
-											type={'rounded-normal'}
-											containerStyle={styles.sendButton}
-										>
-											<Text link big bold noMargin>
-												{strings('asset_overview.send_button')}
-											</Text>
-										</StyledButton>
-									)}
-									{collectible?.externalLink && (
-										<StyledButton
-											type={'rounded-normal'}
-											containerStyle={styles.iconButtons}
-											onPress={shareCollectible}
-										>
-											<Text bold link noMargin>
-												<EvilIcons
-													name={Device.isIos() ? 'share-apple' : 'share-google'}
-													size={32}
-												/>
-											</Text>
-										</StyledButton>
-									)}
-									<StyledButton
-										type={'rounded-normal'}
-										containerStyle={styles.iconButtons}
-										onPress={collectibleToFavorites}
-									>
-										<Text link noMargin>
-											<AntIcons name={isInFavorites ? 'star' : 'staro'} size={24} />
-										</Text>
-									</StyledButton>
-								</View>
-							</View>
-
-							{collectible?.description && (
-								<View style={styles.information}>
-									<View style={styles.row}>
-										<Text noMargin black bold big>
-											{strings('collectible.collectible_description')}
-										</Text>
-										<Text noMargin black style={styles.content}>
-											{collectible.description}
+										)}
+										<Text black noMargin small>
+											{collectible.contractName}
 										</Text>
 									</View>
 								</View>
 							)}
-							<View style={styles.information}>{renderCollectibleInfo()}</View>
+							<Text bold primary noMargin style={styles.name}>
+								{collectible.name}
+							</Text>
+							<Text primary noMargin style={styles.tokenId}>
+								{strings('unit.token_id')}
+								{collectible.tokenId}
+							</Text>
+
+							<View style={styles.buttonContainer}>
+								{tradable && (
+									<StyledButton
+										onPress={onSend}
+										type={'rounded-normal'}
+										containerStyle={styles.sendButton}
+									>
+										<Text link big bold noMargin>
+											{strings('asset_overview.send_button')}
+										</Text>
+									</StyledButton>
+								)}
+								{collectible?.externalLink && (
+									<StyledButton
+										type={'rounded-normal'}
+										containerStyle={styles.iconButtons}
+										onPress={shareCollectible}
+									>
+										<Text bold link noMargin>
+											<EvilIcons
+												name={Device.isIos() ? 'share-apple' : 'share-google'}
+												size={32}
+											/>
+										</Text>
+									</StyledButton>
+								)}
+								<StyledButton
+									type={'rounded-normal'}
+									containerStyle={styles.iconButtons}
+									onPress={collectibleToFavorites}
+								>
+									<Text link noMargin>
+										<AntIcons name={isInFavorites ? 'star' : 'staro'} size={24} />
+									</Text>
+								</StyledButton>
+							</View>
 						</View>
+
+						{collectible?.description && (
+							<View style={styles.information}>
+								<View style={styles.row}>
+									<Text noMargin black bold big>
+										{strings('collectible.collectible_description')}
+									</Text>
+									<Text noMargin black style={styles.content}>
+										{collectible.description}
+									</Text>
+								</View>
+							</View>
+						)}
+						<View style={styles.information}>{renderCollectibleInfo()}</View>
 					</View>
 				</TouchableWithoutFeedback>
 			</ScrollView>
@@ -382,4 +371,4 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
 	mapStateToProps,
 	mapDispatchToProps
-)(CollectibleOverview);
+)(gestureHandlerRootHOC(CollectibleOverview));
