@@ -5,7 +5,6 @@ import RemoteImage from '../../Base/RemoteImage';
 import MediaPlayer from '../../Views/MediaPlayer';
 import { colors } from '../../../styles/common';
 import scaling from '../../../util/scaling';
-import Device from '../../../util/Device';
 import Text from '../../Base/Text';
 
 const styles = StyleSheet.create({
@@ -28,8 +27,7 @@ const styles = StyleSheet.create({
 		width: 260
 	},
 	cover: {
-		height: scaling.scale(244, { baseModel: 2 }),
-		minWidth: Device.getDeviceWidth()
+		height: scaling.scale(244, { baseModel: 2 })
 	},
 	image: {
 		borderRadius: 12

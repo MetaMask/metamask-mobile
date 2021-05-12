@@ -1,26 +1,31 @@
 import React from 'react';
-import { View, StyleSheet, SafeAreaView } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import CollectibleOverview from '../../UI/CollectibleOverview';
-import { colors } from '../../../styles/common';
 import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import { newAssetTransaction } from '../../../actions/transaction';
 import Modal from 'react-native-modal';
+import CollectibleMedia from '../CollectibleMedia';
 const styles = StyleSheet.create({
 	root: {
 		flex: 1,
-		backgroundColor: colors.white,
-		maxHeight: '90%',
-		borderRadius: 20,
+		maxHeight: '85%',
 		overflow: 'hidden'
 	},
 	wrapper: {
-		flex: 1
+		flex: 1,
+		borderRadius: 20
 	},
 	bottomModal: {
 		justifyContent: 'flex-end',
 		margin: 0
+	},
+	noRound: {
+		borderRadius: 0
+	},
+	collectibleMediaWrapper: {
+		marginHorizontal: 16
 	}
 });
 
@@ -59,8 +64,11 @@ const CollectibleModal = ({ contractName, collectible, onHide, visible, navigati
 			swipeDirection={'down'}
 			propagateSwipe
 		>
-			<SafeAreaView style={styles.root}>
-				<View style={styles.wrapper} testID={'asset'}>
+			<View style={styles.root}>
+				<View style={styles.collectibleMediaWrapper}>
+					<CollectibleMedia cover renderAnimation collectible={collectible} style={styles.noRound} />
+				</View>
+				<View style={styles.wrapper}>
 					<CollectibleOverview
 						navigation={navigation}
 						collectible={{ ...collectible, contractName }}
@@ -69,7 +77,7 @@ const CollectibleModal = ({ contractName, collectible, onHide, visible, navigati
 						openLink={openLink}
 					/>
 				</View>
-			</SafeAreaView>
+			</View>
 		</Modal>
 	);
 };
