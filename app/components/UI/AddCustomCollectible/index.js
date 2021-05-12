@@ -10,6 +10,7 @@ import { isSmartContractAddress } from '../../../util/transactions';
 import Device from '../../../util/Device';
 import { connect } from 'react-redux';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import { toLowerCaseCompare } from '../../../util/general';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -168,8 +169,7 @@ class AddCustomCollectible extends PureComponent {
 		const { selectedAddress } = this.props;
 		try {
 			const owner = await AssetsContractController.getOwnerOf(address, tokenId);
-			const isOwner = owner.toLowerCase() === selectedAddress.toLowerCase();
-			return isOwner;
+			return toLowerCaseCompare(owner, selectedAddress);
 		} catch (e) {
 			return false;
 		}
