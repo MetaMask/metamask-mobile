@@ -2,6 +2,7 @@ import { createSelector } from 'reselect';
 import contractMetadata from '@metamask/contract-metadata';
 import { isMainnetByChainId } from '../../util/networks';
 import { safeToChecksumAddress } from '../../util/address';
+import { toLowerCaseCompare } from '../../util/general';
 
 // * Constants
 export const SWAPS_SET_LIVENESS = 'SWAPS_SET_LIVENESS';
@@ -134,7 +135,7 @@ export const swapsTopAssetsSelector = createSelector(
 			return [];
 		}
 		const result = topAssets
-			.map(({ address }) => tokens?.find(token => token.address.toLowerCase() === address.toLowerCase()))
+			.map(({ address }) => tokens?.find(token => toLowerCaseCompare(token.address, address)))
 			.filter(Boolean);
 		return addMetadata(chainId, result);
 	}

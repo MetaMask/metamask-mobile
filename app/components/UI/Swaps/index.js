@@ -49,6 +49,7 @@ import SlippageModal from './components/SlippageModal';
 import useBalance from './utils/useBalance';
 import useBlockExplorer from './utils/useBlockExplorer';
 import InfoModal from './components/InfoModal';
+import { toLowerCaseCompare } from '../../../util/general';
 
 const styles = StyleSheet.create({
 	screen: {
@@ -160,11 +161,11 @@ function SwapsAmountView({
 	const [isInitialLoadingTokens, setInitialLoadingTokens] = useState(false);
 	const [, setLoadingTokens] = useState(false);
 	const [isSourceSet, setIsSourceSet] = useState(() =>
-		Boolean(swapsTokens?.find(token => token.address?.toLowerCase() === initialSource.toLowerCase()))
+		Boolean(swapsTokens?.find(token => toLowerCaseCompare(token.address, initialSource)))
 	);
 
 	const [sourceToken, setSourceToken] = useState(() =>
-		swapsTokens?.find(token => token.address?.toLowerCase() === initialSource.toLowerCase())
+		swapsTokens?.find(token => toLowerCaseCompare(token.address, initialSource))
 	);
 	const [destinationToken, setDestinationToken] = useState(null);
 	const [hasDismissedTokenAlert, setHasDismissedTokenAlert] = useState(true);
@@ -191,9 +192,8 @@ function SwapsAmountView({
 					InteractionManager.runAfterInteractions(() => {
 						const parameters = {
 							source: initialSource === SWAPS_NATIVE_ADDRESS ? 'MainView' : 'TokenView',
-							activeCurrency: swapsTokens?.find(
-								token => token.address?.toLowerCase() === initialSource.toLowerCase()
-							)?.symbol
+							activeCurrency: swapsTokens?.find(token => toLowerCaseCompare(token.address, initialSource))
+								?.symbol
 						};
 						Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAPS_OPENED, {});
 						Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAPS_OPENED, parameters, true);
@@ -247,7 +247,7 @@ function SwapsAmountView({
 	useEffect(() => {
 		if (!isSourceSet && initialSource && swapsTokens && !sourceToken) {
 			setIsSourceSet(true);
-			setSourceToken(swapsTokens.find(token => token.address?.toLowerCase() === initialSource.toLowerCase()));
+			setSourceToken(swapsTokens.find(token => toLowerCaseCompare(token.address, initialSource)));
 		}
 	}, [initialSource, isSourceSet, sourceToken, swapsTokens]);
 
