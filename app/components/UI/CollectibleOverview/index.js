@@ -24,7 +24,8 @@ const styles = StyleSheet.create({
 		flex: 1,
 		backgroundColor: colors.white,
 		borderTopEndRadius: 8,
-		borderTopStartRadius: 8
+		borderTopStartRadius: 8,
+		marginTop: -80
 	},
 	informationWrapper: {
 		flex: 1,
@@ -121,7 +122,9 @@ const CollectibleOverview = ({
 	addFavoriteCollectible,
 	removeFavoriteCollectible,
 	isInFavorites,
-	openLink
+	openLink,
+	onTouchStart,
+	onTouchEnd
 }) => {
 	const [headerHeight, setHeaderHeight] = useState(0);
 	const [wrapperHeight, setWrapperHeight] = useState(0);
@@ -234,6 +237,8 @@ const CollectibleOverview = ({
 	return (
 		<Animated.View
 			onLayout={onWrapperLayout}
+			onTouchStart={onTouchStart}
+			onTouchEnd={onTouchEnd}
 			style={[styles.wrapper, { transform: [{ translateY: positionAnimated }] }]}
 		>
 			<PanGestureHandler activeOffsetY={[0, 0]} activeOffsetX={[0, 0]} onGestureEvent={handleGesture}>
@@ -241,7 +246,7 @@ const CollectibleOverview = ({
 					<View style={styles.dragger} />
 				</View>
 			</PanGestureHandler>
-			<ScrollView style={styles.wrapper}>
+			<ScrollView>
 				<TouchableWithoutFeedback>
 					<View style={styles.informationWrapper}>
 						<View onLayout={onHeaderLayout}>
@@ -367,7 +372,15 @@ CollectibleOverview.propTypes = {
 	/**
 	 * Function to open a link on a webview
 	 */
-	openLink: PropTypes.func.isRequired
+	openLink: PropTypes.func.isRequired,
+	/**
+	 * View on touch start callback
+	 */
+	onTouchStart: PropTypes.func.isRequired,
+	/**
+	 * View onn touch end callback
+	 */
+	onTouchEnd: PropTypes.func.isRequired
 };
 
 const mapStateToProps = (state, props) => {

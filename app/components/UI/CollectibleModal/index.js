@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import CollectibleOverview from '../../UI/CollectibleOverview';
@@ -29,13 +29,15 @@ const styles = StyleSheet.create({
  * View that displays a specific collectible asset
  */
 const CollectibleModal = ({ contractName, collectible, onHide, visible, navigation, newAssetTransaction }) => {
-	const onSend = async () => {
+	const [swippable, setSwippable] = useState('down');
+
+	const onSend = useCallback(async () => {
 		onHide();
 		newAssetTransaction({ contractName, ...collectible });
 		navigation.navigate('SendFlowView');
-	};
+	}, [contractName, collectible, newAssetTransaction, onHide, navigation]);
 
-	const isTradable = () => {
+	const isTradable = useCallback(() => {
 		const lowerAddress = collectible.address.toLowerCase();
 		const tradable =
 			lowerAddress in collectiblesTransferInformation
@@ -43,12 +45,16 @@ const CollectibleModal = ({ contractName, collectible, onHide, visible, navigati
 				: true;
 
 		return tradable;
-	};
+	}, [collectible.address]);
 
 	const openLink = url => {
 		onHide();
 		navigation.navigate('SimpleWebview', { url });
 	};
+
+	const onTouchStart = useCallback(() => setSwippable(null), []);
+
+	const onTouchEnd = useCallback(() => setSwippable('down'), []);
 
 	return (
 		<Modal
@@ -57,13 +63,16 @@ const CollectibleModal = ({ contractName, collectible, onHide, visible, navigati
 			onBackdropPress={onHide}
 			onBackButtonPress={onHide}
 			onSwipeComplete={onHide}
-			swipeDirection={'down'}
+			swipeDirection={swippable}
+			propagateSwipe
 		>
 			<View style={styles.root}>
 				<View style={styles.collectibleMediaWrapper}>
 					<CollectibleMedia cover renderAnimation collectible={collectible} style={styles.noRound} />
 				</View>
 				<CollectibleOverview
+					onTouchStart={onTouchStart}
+					onTouchEnd={onTouchEnd}
 					navigation={navigation}
 					collectible={{ ...collectible, contractName }}
 					tradable={isTradable()}
