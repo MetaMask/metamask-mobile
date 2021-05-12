@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, View, ScrollView, TouchableWithoutFeedback, Easing, Animated } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -125,8 +125,7 @@ const CollectibleOverview = ({
 }) => {
 	const [headerHeight, setHeaderHeight] = useState(0);
 	const [wrapperHeight, setWrapperHeight] = useState(0);
-
-	const positionAnimated = new Animated.Value(0);
+	const positionAnimated = useRef(new Animated.Value(0)).current;
 
 	const renderCollectibleInfoRow = useCallback((key, value, onPress) => {
 		if (!value) return null;
