@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, View, ScrollView, TouchableWithoutFeedback, Easing, Animated } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -123,12 +123,12 @@ const CollectibleOverview = ({
 	isInFavorites,
 	openLink
 }) => {
-	const [headerHeight, setHeaderHeight] = useState();
-	const [wrapperHeight, setWrapperHeight] = useState();
+	const [headerHeight, setHeaderHeight] = useState(0);
+	const [wrapperHeight, setWrapperHeight] = useState(0);
 
 	const positionAnimated = new Animated.Value(0);
 
-	const renderCollectibleInfoRow = (key, value, onPress) => {
+	const renderCollectibleInfoRow = useCallback((key, value, onPress) => {
 		if (!value) return null;
 		return (
 			<View style={styles.collectibleInfoContainer} key={key}>
@@ -150,7 +150,7 @@ const CollectibleOverview = ({
 				</Text>
 			</View>
 		);
-	};
+	}, []);
 
 	const renderCollectibleInfo = () => [
 		renderCollectibleInfoRow(
@@ -175,58 +175,73 @@ const CollectibleOverview = ({
 		)
 	];
 
-	const collectibleToFavorites = () => {
-		if (!isInFavorites) {
-			addFavoriteCollectible(selectedAddress, chainId, collectible);
-		} else {
-			removeFavoriteCollectible(selectedAddress, chainId, collectible);
-		}
-	};
+	const collectibleToFavorites = useCallback(() => {
+		const action = isInFavorites ? removeFavoriteCollectible : addFavoriteCollectible;
+		action(selectedAddress, chainId, collectible);
+	}, [selectedAddress, chainId, collectible, isInFavorites, addFavoriteCollectible, removeFavoriteCollectible]);
 
-	const shareCollectible = () => {
+	const shareCollectible = useCallback(() => {
 		if (!collectible?.externalLink) return;
 		Share.open({
 			message: `${strings('collectible.share_check_out_nft')} ${collectible.externalLink}\n${strings(
 				'collectible.share_via'
 			)} MetaMask.io`
 		});
-	};
+	}, [collectible.externalLink]);
 
-	const onHeaderLayout = ({
-		nativeEvent: {
-			layout: { height }
-		}
-	}) => setHeaderHeight(height);
+	const onHeaderLayout = useCallback(
+		({
+			nativeEvent: {
+				layout: { height }
+			}
+		}) => setHeaderHeight(height),
+		[]
+	);
 
-	const onWrapperLayout = ({
-		nativeEvent: {
-			layout: { height }
-		}
-	}) => setWrapperHeight(height);
+	const onWrapperLayout = useCallback(
+		({
+			nativeEvent: {
+				layout: { height }
+			}
+		}) => setWrapperHeight(height),
+		[]
+	);
+
+	const animateViewPosition = useCallback(
+		(toValue, duration) => {
+			Animated.timing(positionAnimated, {
+				toValue,
+				duration,
+				easing: Easing.ease,
+				useNativeDriver: true
+			}).start();
+		},
+		[positionAnimated]
+	);
 
 	const handleGesture = evt => {
 		if (evt.nativeEvent.velocityY === 0) return;
 		const toValue = evt.nativeEvent.velocityY > 0 ? wrapperHeight - headerHeight - 60 : 0;
-		Animated.timing(positionAnimated, {
-			toValue,
-			duration: 250,
-			easing: Easing.ease,
-			useNativeDriver: true
-		}).start();
+		animateViewPosition(toValue, 250);
 	};
+
+	useEffect(() => {
+		if (headerHeight !== 0 && wrapperHeight !== 0) {
+			const toValue = wrapperHeight - headerHeight - 60;
+			animateViewPosition(toValue, 0);
+		}
+	}, [headerHeight, wrapperHeight, animateViewPosition]);
 
 	return (
 		<Animated.View
 			onLayout={onWrapperLayout}
 			style={[styles.wrapper, { transform: [{ translateY: positionAnimated }] }]}
 		>
-			<TouchableWithoutFeedback>
-				<PanGestureHandler activeOffsetY={[0, 0]} activeOffsetX={[0, 0]} onGestureEvent={handleGesture}>
-					<View style={styles.titleWrapper}>
-						<View style={styles.dragger} />
-					</View>
-				</PanGestureHandler>
-			</TouchableWithoutFeedback>
+			<PanGestureHandler activeOffsetY={[0, 0]} activeOffsetX={[0, 0]} onGestureEvent={handleGesture}>
+				<View style={styles.titleWrapper}>
+					<View style={styles.dragger} />
+				</View>
+			</PanGestureHandler>
 			<ScrollView style={styles.wrapper}>
 				<TouchableWithoutFeedback>
 					<View style={styles.informationWrapper}>
