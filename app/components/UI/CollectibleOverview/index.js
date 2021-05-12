@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, View, ScrollView, TouchableWithoutFeedback, Easing, Animated } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { baseStyles, colors } from '../../../styles/common';
+import { colors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Text from '../../Base/Text';
 import RemoteImage from '../../Base/RemoteImage';
@@ -22,7 +22,9 @@ import { PanGestureHandler, gestureHandlerRootHOC } from 'react-native-gesture-h
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
-		flexGrow: 1
+		backgroundColor: colors.white,
+		borderTopEndRadius: 8,
+		borderTopStartRadius: 8
 	},
 	informationWrapper: {
 		flex: 1,
@@ -97,8 +99,7 @@ const styles = StyleSheet.create({
 		width: '100%',
 		alignItems: 'center',
 		justifyContent: 'center',
-		paddingVertical: 16,
-		backgroundColor: colors.white
+		paddingVertical: 16
 	},
 	dragger: {
 		width: 48,
@@ -217,13 +218,15 @@ const CollectibleOverview = ({
 	return (
 		<Animated.View
 			onLayout={onWrapperLayout}
-			style={[baseStyles.flexGrow, { transform: [{ translateY: positionAnimated }] }]}
+			style={[styles.wrapper, { transform: [{ translateY: positionAnimated }] }]}
 		>
-			<PanGestureHandler activeOffsetY={[0, 0]} activeOffsetX={[0, 0]} onGestureEvent={handleGesture}>
-				<View style={styles.titleWrapper}>
-					<View style={styles.dragger} />
-				</View>
-			</PanGestureHandler>
+			<TouchableWithoutFeedback>
+				<PanGestureHandler activeOffsetY={[0, 0]} activeOffsetX={[0, 0]} onGestureEvent={handleGesture}>
+					<View style={styles.titleWrapper}>
+						<View style={styles.dragger} />
+					</View>
+				</PanGestureHandler>
+			</TouchableWithoutFeedback>
 			<ScrollView style={styles.wrapper}>
 				<TouchableWithoutFeedback>
 					<View style={styles.informationWrapper}>
