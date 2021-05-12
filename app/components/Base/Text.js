@@ -16,10 +16,13 @@ const style = StyleSheet.create({
 	right: {
 		textAlign: 'right'
 	},
-	bold: fontStyles.bold,
+	red: {
+		color: colors.red
+	},
 	black: {
 		color: colors.black
 	},
+	bold: fontStyles.bold,
 	blue: {
 		color: colors.blue
 	},
@@ -74,6 +77,7 @@ const Text = ({
 	black,
 	blue,
 	grey,
+	red,
 	primary,
 	small,
 	upper,
@@ -97,6 +101,8 @@ const Text = ({
 			black && style.black,
 			blue && style.blue,
 			grey && style.grey,
+			red && style.red,
+			black && style.black,
 			primary && style.primary,
 			disclaimer && [style.small, style.disclaimer],
 			small && style.small,
@@ -121,6 +127,7 @@ Text.defaultProps = {
 	green: false,
 	black: false,
 	blue: false,
+	red: false,
 	primary: false,
 	disclaimer: false,
 	modal: false,
@@ -165,6 +172,10 @@ Text.propTypes = {
 	 * Makes text grey
 	 */
 	grey: PropTypes.bool,
+	/**
+	 * Makes text red
+	 */
+	red: PropTypes.bool,
 	/**
 	 * Makes text fontPrimary color
 	 */

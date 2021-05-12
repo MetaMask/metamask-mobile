@@ -38,7 +38,8 @@ import { withNavigation } from 'react-navigation';
 import { getNetworkName, isMainNet } from '../../../util/networks';
 import scaling from '../../../util/scaling';
 import { capitalize } from '../../../util/general';
-import EditPermission from './EditPermission';
+import EditPermission, { MINIMUM_VALUE } from './EditPermission';
+import Logger from '../../../util/Logger';
 
 const { hexToBN } = util;
 const styles = StyleSheet.create({
@@ -369,7 +370,6 @@ class ApproveTransactionReview extends PureComponent {
 
 	toggleEditPermission = () => {
 		const { editPermissionVisible } = this.state;
-		this.onPressSpendLimitUnlimitedSelected();
 		!editPermissionVisible && this.trackApproveEvent(ANALYTICS_EVENT_OPTS.DAPP_APPROVE_SCREEN_EDIT_PERMISSION);
 		this.setState({ editPermissionVisible: !editPermissionVisible });
 	};
@@ -419,16 +419,22 @@ class ApproveTransactionReview extends PureComponent {
 			spendLimitCustomValue,
 			transaction
 		} = this.state;
-		const uint = toTokenMinimalUnit(
-			spendLimitUnlimitedSelected ? originalApproveAmount : spendLimitCustomValue,
-			token.decimals
-		).toString();
-		const approvalData = generateApproveData({
-			spender: spenderAddress,
-			value: Number(uint).toString(16)
-		});
-		const newApprovalTransaction = { ...transaction, data: approvalData };
-		setTransactionObject(newApprovalTransaction);
+
+		try {
+			const uint = toTokenMinimalUnit(
+				spendLimitUnlimitedSelected ? originalApproveAmount : spendLimitCustomValue,
+				token.decimals
+			).toString(10);
+
+			const approvalData = generateApproveData({
+				spender: spenderAddress,
+				value: Number(uint).toString(16)
+			});
+			const newApprovalTransaction = { ...transaction, data: approvalData };
+			setTransactionObject(newApprovalTransaction);
+		} catch (err) {
+			Logger.log('Failed to setTransactionObject', err);
+		}
 		this.toggleEditPermission();
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_PERMISSION_UPDATED, this.getAnalyticsParams());
 	};
@@ -442,12 +448,14 @@ class ApproveTransactionReview extends PureComponent {
 			originalApproveAmount
 		} = this.state;
 
+		const _spendLimitCustomValue = spendLimitCustomValue ?? MINIMUM_VALUE;
+
 		return (
 			<EditPermission
 				host={host}
 				spendLimitUnlimitedSelected={spendLimitUnlimitedSelected}
 				tokenSymbol={tokenSymbol}
-				spendLimitCustomValue={spendLimitCustomValue}
+				spendLimitCustomValue={_spendLimitCustomValue}
 				originalApproveAmount={originalApproveAmount}
 				onSetApprovalAmount={this.onEditPermissionSetAmount}
 				onSpendLimitCustomValueChange={this.onSpendLimitCustomValueChange}
@@ -458,6 +466,122 @@ class ApproveTransactionReview extends PureComponent {
 		);
 	};
 
+	renderDetails = () => {
+		const { host, tokenSymbol, totalGas, totalGasFiat, ticker, spenderAddress } = this.state;
+
+		const {
+			primaryCurrency,
+			currentCurrency,
+			gasError,
+			activeTabUrl,
+			transaction: { origin },
+			network,
+			over,
+			warningGasPriceHigh
+		} = this.props;
+		const is_main_net = isMainNet(network);
+		const isFiat = primaryCurrency.toLowerCase() === 'fiat';
+		const currencySymbol = currencySymbols[currentCurrency];
+		const totalGasFiatRounded = Math.round(totalGasFiat * 100) / 100;
+		const originIsDeeplink = origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
+		const errorPress = is_main_net ? this.buyEth : this.gotoFaucet;
+		const networkName = capitalize(getNetworkName(network));
+		const errorLinkText = is_main_net
+			? strings('transaction.buy_more_eth')
+			: strings('transaction.get_ether', { networkName });
+
+		return (
+			<>
+				<View style={styles.section} testID={'approve-screen'}>
+					<TransactionHeader
+						currentPageInformation={{ origin, spenderAddress, title: host, url: activeTabUrl }}
+					/>
+					<Text style={styles.title} testID={'allow-access'}>
+						{strings(
+							`spend_limit_edition.${originIsDeeplink ? 'allow_to_address_access' : 'allow_to_access'}`,
+							{ tokenSymbol }
+						)}
+					</Text>
+					<Text style={styles.explanation}>
+						{`${strings(
+							`spend_limit_edition.${originIsDeeplink ? 'you_trust_this_address' : 'you_trust_this_site'}`
+						)}`}
+					</Text>
+					<View style={styles.actionViewWrapper}>
+						<ActionView
+							confirmButtonMode="confirm"
+							cancelText={strings('transaction.reject')}
+							confirmText={strings('transactions.approve')}
+							onCancelPress={this.onCancelPress}
+							onConfirmPress={this.onConfirmPress}
+						>
+							<View style={styles.actionViewChildren}>
+								<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleEditPermission}>
+									<Text style={styles.editPermissionText}>
+										{strings('spend_limit_edition.edit_permission')}
+									</Text>
+								</TouchableOpacity>
+								<View style={styles.paddingHorizontal}>
+									<AccountInfoCard />
+									<View style={styles.section}>
+										<TouchableOpacity onPress={this.edit}>
+											<View style={styles.networkFee}>
+												<Text style={styles.sectionLeft}>
+													{strings('transaction.transaction_fee')}
+												</Text>
+												<Text style={styles.sectionRight}>
+													{isFiat && currencySymbol}
+													{isFiat ? totalGasFiatRounded : totalGas} {!isFiat && ticker}
+												</Text>
+												<View style={styles.networkFeeArrow}>
+													<IonicIcon
+														name="ios-arrow-forward"
+														size={16}
+														color={colors.grey00}
+													/>
+												</View>
+											</View>
+										</TouchableOpacity>
+										{gasError && (
+											<View style={styles.errorWrapper}>
+												<TouchableOpacity onPress={errorPress}>
+													<Text style={styles.error}>{gasError}</Text>
+													{/* only show buy more on mainnet */}
+													{over && is_main_net && (
+														<Text style={[styles.error, styles.underline]}>
+															{errorLinkText}
+														</Text>
+													)}
+												</TouchableOpacity>
+											</View>
+										)}
+										{!!warningGasPriceHigh && (
+											<View style={styles.errorWrapper}>
+												<Text style={styles.error}>{warningGasPriceHigh}</Text>
+											</View>
+										)}
+										{!gasError && (
+											<TouchableOpacity
+												style={styles.actionTouchable}
+												onPress={this.toggleViewDetails}
+											>
+												<View>
+													<Text style={styles.viewDetailsText}>
+														{strings('spend_limit_edition.view_details')}
+													</Text>
+												</View>
+											</TouchableOpacity>
+										)}
+									</View>
+								</View>
+							</View>
+						</ActionView>
+					</View>
+				</View>
+			</>
+		);
+	};
+
 	renderTransactionReview = () => {
 		const {
 			host,
@@ -465,8 +589,11 @@ class ApproveTransactionReview extends PureComponent {
 			viewData,
 			tokenSymbol,
 			originalApproveAmount,
+			spendLimitUnlimitedSelected,
+			spendLimitCustomValue,
 			transaction: { to, data }
 		} = this.state;
+		const allowance = (!spendLimitUnlimitedSelected && spendLimitCustomValue) || originalApproveAmount;
 		return (
 			<TransactionReviewDetailsCard
 				toggleViewDetails={this.toggleViewDetails}
@@ -474,7 +601,7 @@ class ApproveTransactionReview extends PureComponent {
 				copyContractAddress={this.copyContractAddress}
 				address={renderShortAddress(to)}
 				host={host}
-				allowance={originalApproveAmount}
+				allowance={allowance}
 				tokenSymbol={tokenSymbol}
 				data={data}
 				method={method}
@@ -514,142 +641,15 @@ class ApproveTransactionReview extends PureComponent {
 	};
 
 	render = () => {
-		const {
-			host,
-			tokenSymbol,
-			viewDetails,
-			totalGas,
-			totalGasFiat,
-			editPermissionVisible,
-			ticker,
-			spenderAddress
-		} = this.state;
-
-		const {
-			primaryCurrency,
-			currentCurrency,
-			gasError,
-			activeTabUrl,
-			transaction: { origin },
-			network,
-			over,
-			warningGasPriceHigh
-		} = this.props;
-		const is_main_net = isMainNet(network);
-		const isFiat = primaryCurrency.toLowerCase() === 'fiat';
-		const currencySymbol = currencySymbols[currentCurrency];
-		const totalGasFiatRounded = Math.round(totalGasFiat * 100) / 100;
-		const originIsDeeplink = origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
-		const errorPress = is_main_net ? this.buyEth : this.gotoFaucet;
-		const networkName = capitalize(getNetworkName(network));
-		const errorLinkText = is_main_net
-			? strings('transaction.buy_more_eth')
-			: strings('transaction.get_ether', { networkName });
+		const { viewDetails, editPermissionVisible } = this.state;
 
 		return (
 			<View>
-				{viewDetails ? (
-					this.renderTransactionReview()
-				) : editPermissionVisible ? (
-					this.renderEditPermission()
-				) : (
-					<>
-						<View style={styles.section} testID={'approve-screen'}>
-							<TransactionHeader
-								currentPageInformation={{ origin, spenderAddress, title: host, url: activeTabUrl }}
-							/>
-							<Text style={styles.title} testID={'allow-access'}>
-								{strings(
-									`spend_limit_edition.${
-										originIsDeeplink ? 'allow_to_address_access' : 'allow_to_access'
-									}`,
-									{ tokenSymbol }
-								)}
-							</Text>
-							<Text style={styles.explanation}>
-								{`${strings(
-									`spend_limit_edition.${
-										originIsDeeplink ? 'you_trust_this_address' : 'you_trust_this_site'
-									}`
-								)}`}
-							</Text>
-							<View style={styles.actionViewWrapper}>
-								<ActionView
-									confirmButtonMode="confirm"
-									cancelText={strings('transaction.reject')}
-									confirmText={strings('transactions.approve')}
-									onCancelPress={this.onCancelPress}
-									onConfirmPress={this.onConfirmPress}
-								>
-									<View style={styles.actionViewChildren}>
-										<TouchableOpacity
-											style={styles.actionTouchable}
-											onPress={this.toggleEditPermission}
-										>
-											<Text style={styles.editPermissionText}>
-												{strings('spend_limit_edition.edit_permission')}
-											</Text>
-										</TouchableOpacity>
-										<View style={styles.paddingHorizontal}>
-											<AccountInfoCard />
-											<View style={styles.section}>
-												<TouchableOpacity onPress={this.edit}>
-													<View style={styles.networkFee}>
-														<Text style={styles.sectionLeft}>
-															{strings('transaction.transaction_fee')}
-														</Text>
-														<Text style={styles.sectionRight}>
-															{isFiat && currencySymbol}
-															{isFiat ? totalGasFiatRounded : totalGas}{' '}
-															{!isFiat && ticker}
-														</Text>
-														<View style={styles.networkFeeArrow}>
-															<IonicIcon
-																name="ios-arrow-forward"
-																size={16}
-																color={colors.grey00}
-															/>
-														</View>
-													</View>
-												</TouchableOpacity>
-												{gasError && (
-													<View style={styles.errorWrapper}>
-														<TouchableOpacity onPress={errorPress}>
-															<Text style={styles.error}>{gasError}</Text>
-															{/* only show buy more on mainnet */}
-															{over && is_main_net && (
-																<Text style={[styles.error, styles.underline]}>
-																	{errorLinkText}
-																</Text>
-															)}
-														</TouchableOpacity>
-													</View>
-												)}
-												{!!warningGasPriceHigh && (
-													<View style={styles.errorWrapper}>
-														<Text style={styles.error}>{warningGasPriceHigh}</Text>
-													</View>
-												)}
-												{!gasError && (
-													<TouchableOpacity
-														style={styles.actionTouchable}
-														onPress={this.toggleViewDetails}
-													>
-														<View>
-															<Text style={styles.viewDetailsText}>
-																{strings('spend_limit_edition.view_details')}
-															</Text>
-														</View>
-													</TouchableOpacity>
-												)}
-											</View>
-										</View>
-									</View>
-								</ActionView>
-							</View>
-						</View>
-					</>
-				)}
+				{viewDetails
+					? this.renderTransactionReview()
+					: editPermissionVisible
+					? this.renderEditPermission()
+					: this.renderDetails()}
 			</View>
 		);
 	};

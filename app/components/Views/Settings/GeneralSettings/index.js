@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import { StyleSheet, Text, ScrollView, View, Image, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, ScrollView, Switch, View, Image, TouchableOpacity } from 'react-native';
 import { connect } from 'react-redux';
 
 import Engine from '../../../../core/Engine';
@@ -9,9 +9,15 @@ import SelectComponent from '../../../UI/SelectComponent';
 import infuraCurrencies from '../../../../util/infura-conversion.json';
 import { colors, fontStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
-import { setSearchEngine, setPrimaryCurrency, setUseBlockieIcon } from '../../../../actions/settings';
+import {
+	setSearchEngine,
+	setPrimaryCurrency,
+	setUseBlockieIcon,
+	setHideZeroBalanceTokens
+} from '../../../../actions/settings';
 import PickComponent from '../../PickComponent';
 import { toDataUrl } from '../../../../util/blockies.js';
+import Device from '../../../../util/Device';
 import Jazzicon from 'react-native-jazzicon';
 
 const diameter = 40;
@@ -46,6 +52,9 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		lineHeight: 20,
 		marginTop: 12
+	},
+	marginTop: {
+		marginTop: 18
 	},
 	picker: {
 		borderColor: colors.grey200,
@@ -143,7 +152,15 @@ class Settings extends PureComponent {
 		/**
 		 * A string that represents the selected address
 		 */
-		selectedAddress: PropTypes.string
+		selectedAddress: PropTypes.string,
+		/**
+		 * A bool that represents if the user wants to hide zero balance token
+		 */
+		hideZeroBalanceTokens: PropTypes.bool,
+		/**
+		 * Called to toggle zero balance token display
+		 */
+		setHideZeroBalanceTokens: PropTypes.func
 	};
 
 	static navigationOptions = ({ navigation }) =>
@@ -174,6 +191,10 @@ class Settings extends PureComponent {
 		this.props.setPrimaryCurrency(primaryCurrency);
 	};
 
+	toggleHideZeroBalanceTokens = toggleHideZeroBalanceTokens => {
+		this.props.setHideZeroBalanceTokens(toggleHideZeroBalanceTokens);
+	};
+
 	componentDidMount = () => {
 		const languages = getLanguages();
 		this.setState({ languages });
@@ -189,7 +210,14 @@ class Settings extends PureComponent {
 	};
 
 	render() {
-		const { currentCurrency, primaryCurrency, useBlockieIcon, setUseBlockieIcon, selectedAddress } = this.props;
+		const {
+			currentCurrency,
+			primaryCurrency,
+			useBlockieIcon,
+			setUseBlockieIcon,
+			selectedAddress,
+			hideZeroBalanceTokens
+		} = this.props;
 		return (
 			<ScrollView style={styles.wrapper}>
 				<View style={styles.inner}>
@@ -250,6 +278,18 @@ class Settings extends PureComponent {
 						</View>
 					</View>
 					<View style={styles.setting}>
+						<Text style={styles.title}>{strings('app_settings.hide_zero_balance_tokens_title')}</Text>
+						<Text style={styles.desc}>{strings('app_settings.hide_zero_balance_tokens_desc')}</Text>
+						<View style={styles.marginTop}>
+							<Switch
+								value={hideZeroBalanceTokens}
+								onValueChange={this.toggleHideZeroBalanceTokens}
+								trackColor={Device.isIos() && { true: colors.blue, false: colors.grey000 }}
+								ios_backgroundColor={colors.grey000}
+							/>
+						</View>
+					</View>
+					<View style={styles.setting}>
 						<Text style={styles.title}>{strings('app_settings.accounts_identicon_title')}</Text>
 						<Text style={styles.desc}>{strings('app_settings.accounts_identicon_desc')}</Text>
 						<View style={styles.identicon_container}>
@@ -282,13 +322,15 @@ const mapStateToProps = state => ({
 	searchEngine: state.settings.searchEngine,
 	primaryCurrency: state.settings.primaryCurrency,
 	useBlockieIcon: state.settings.useBlockieIcon,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	hideZeroBalanceTokens: state.settings.hideZeroBalanceTokens
 });
 
 const mapDispatchToProps = dispatch => ({
 	setSearchEngine: searchEngine => dispatch(setSearchEngine(searchEngine)),
 	setPrimaryCurrency: primaryCurrency => dispatch(setPrimaryCurrency(primaryCurrency)),
-	setUseBlockieIcon: useBlockieIcon => dispatch(setUseBlockieIcon(useBlockieIcon))
+	setUseBlockieIcon: useBlockieIcon => dispatch(setUseBlockieIcon(useBlockieIcon)),
+	setHideZeroBalanceTokens: hideZeroBalanceTokens => dispatch(setHideZeroBalanceTokens(hideZeroBalanceTokens))
 });
 
 export default connect(

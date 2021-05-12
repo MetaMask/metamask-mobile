@@ -44,6 +44,7 @@ import { passwordRequirementsMet } from '../../../util/password';
 import ErrorBoundary from '../ErrorBoundary';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 
 const isTextDelete = text => String(text).toLowerCase() === 'delete';
 const deviceHeight = Device.getDeviceHeight();
@@ -182,13 +183,11 @@ const styles = StyleSheet.create({
 	}
 });
 
-/* TODO: we should have translation strings for these */
-const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
-const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
-const WRONG_PASSWORD_ERROR_ANDROID = 'Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT';
-const VAULT_ERROR = 'Error: Cannot unlock without a previous vault.';
-const CLEAN_VAULT_ERROR =
-	'MetaMask encountered an error due to reaching a storage limit. The local data has been corrupted. Please reinstall MetaMask and restore with your seed phrase.';
+const PASSCODE_NOT_SET_ERROR = strings('login.passcode_not_set_error');
+const WRONG_PASSWORD_ERROR = strings('login.wrong_password_error');
+const WRONG_PASSWORD_ERROR_ANDROID = strings('login.wrong_password_error_android');
+const VAULT_ERROR = strings('login.vault_error');
+const CLEAN_VAULT_ERROR = strings('login.clean_vault_error');
 
 /**
  * View where returning users can authenticate
@@ -319,6 +318,10 @@ class Login extends PureComponent {
 				error.toLowerCase() === WRONG_PASSWORD_ERROR_ANDROID.toLowerCase()
 			) {
 				this.setState({ loading: false, error: strings('login.invalid_password') });
+
+				trackErrorAsAnalytics('Login: Invalid Password', error);
+
+				return;
 			} else if (error === PASSCODE_NOT_SET_ERROR) {
 				Alert.alert(
 					'Security Alert',
@@ -520,6 +523,7 @@ class Login extends PureComponent {
 						<View style={styles.field}>
 							<Text style={styles.label}>{strings('login.password')}</Text>
 							<OutlinedTextField
+								style={styles.input}
 								placeholder={'Password'}
 								testID={'login-password-input'}
 								returnKeyType={'done'}

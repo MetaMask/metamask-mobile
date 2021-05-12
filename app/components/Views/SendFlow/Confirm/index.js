@@ -56,6 +56,9 @@ import { capitalize } from '../../../../util/general';
 import { isMainNet, getNetworkName, getNetworkNonce } from '../../../../util/networks';
 import Text from '../../../Base/Text';
 import AnalyticsV2 from '../../../../util/analyticsV2';
+import { collectConfusables } from '../../../../util/validators';
+import InfoModal from '../../../UI/Swaps/components/InfoModal';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -206,6 +209,9 @@ const styles = StyleSheet.create({
 	over: {
 		color: colors.red,
 		...fontStyles.bold
+	},
+	text: {
+		lineHeight: 20
 	}
 });
 
@@ -225,6 +231,10 @@ class Confirm extends PureComponent {
 		 * Map of accounts to information objects including balances
 		 */
 		accounts: PropTypes.object,
+		/**
+		 * Map representing the address book
+		 */
+		addressBook: PropTypes.object,
 		/**
 		 * Object containing token balances in the format address => balance
 		 */
@@ -308,6 +318,7 @@ class Confirm extends PureComponent {
 	};
 
 	state = {
+		confusableCollection: [],
 		gasSpeedSelected: 'average',
 		gasEstimationReady: false,
 		customGas: undefined,
@@ -326,6 +337,7 @@ class Confirm extends PureComponent {
 		transactionTotalAmountFiat: undefined,
 		errorMessage: undefined,
 		fromAccountModalVisible: false,
+		warningModalVisible: false,
 		mode: REVIEW,
 		over: false
 	};
@@ -363,6 +375,18 @@ class Confirm extends PureComponent {
 		}
 	};
 
+	handleConfusables = () => {
+		const { identities = undefined, transactionState } = this.props;
+		const { transactionToName = undefined } = transactionState;
+		const accountNames = (identities && Object.keys(identities).map(hash => identities[hash].name)) || [];
+		const isOwnAccount = accountNames.includes(transactionToName);
+		if (transactionToName && !isOwnAccount) {
+			this.setState({ confusableCollection: collectConfusables(transactionToName) });
+		}
+	};
+
+	toggleWarningModal = () => this.setState(state => ({ warningModalVisible: !state.warningModalVisible }));
+
 	componentDidMount = async () => {
 		// For analytics
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_STARTED, this.getAnalyticsParams());
@@ -371,6 +395,7 @@ class Confirm extends PureComponent {
 		await this.handleFetchBasicEstimates();
 		showCustomNonce && (await this.setNetworkNonce());
 		navigation.setParams({ providerType });
+		this.handleConfusables();
 		this.parseTransactionData();
 		this.prepareTransaction();
 	};
@@ -906,7 +931,7 @@ class Confirm extends PureComponent {
 
 	render = () => {
 		const { transactionToName, selectedAsset, paymentRequest } = this.props.transactionState;
-		const { showHexData, showCustomNonce, primaryCurrency, network, chainId } = this.props;
+		const { addressBook, showHexData, showCustomNonce, primaryCurrency, network, chainId } = this.props;
 		const { nonce } = this.props.transaction;
 		const {
 			gasEstimationReady,
@@ -923,9 +948,35 @@ class Confirm extends PureComponent {
 			errorMessage,
 			transactionConfirmed,
 			warningGasPriceHigh,
+			confusableCollection,
 			mode,
-			over
+			over,
+			warningModalVisible
 		} = this.state;
+
+		const checksummedAddress = transactionTo && toChecksumAddress(transactionTo);
+		const existingContact = checksummedAddress && addressBook[network] && addressBook[network][checksummedAddress];
+		const displayExclamation = !existingContact && !!confusableCollection.length;
+
+		const AdressToComponent = () => (
+			<AddressTo
+				addressToReady
+				toSelectedAddress={transactionTo}
+				toAddressName={transactionToName}
+				onToSelectedAddressChange={this.onToSelectedAddressChange}
+				confusableCollection={(!existingContact && confusableCollection) || []}
+				displayExclamation={displayExclamation}
+			/>
+		);
+
+		const AdressToComponentWrap = () =>
+			!existingContact && confusableCollection.length ? (
+				<TouchableOpacity onPress={this.toggleWarningModal}>
+					<AdressToComponent />
+				</TouchableOpacity>
+			) : (
+				<AdressToComponent />
+			);
 
 		const is_main_net = isMainNet(network);
 		const errorPress = is_main_net ? this.buyEth : this.gotoFaucet;
@@ -942,13 +993,15 @@ class Confirm extends PureComponent {
 						fromAccountName={fromAccountName}
 						fromAccountBalance={fromAccountBalance}
 					/>
-					<AddressTo
-						addressToReady
-						toSelectedAddress={transactionTo}
-						toAddressName={transactionToName}
-						onToSelectedAddressChange={this.onToSelectedAddressChange}
-					/>
+					<AdressToComponentWrap />
 				</View>
+
+				<InfoModal
+					isVisible={warningModalVisible}
+					toggleModal={this.toggleWarningModal}
+					title={strings('transaction.confusable_title')}
+					body={<Text style={styles.text}>{strings('transaction.confusable_msg')}</Text>}
+				/>
 
 				<ScrollView style={baseStyles.flexGrow} ref={this.setScrollViewRef}>
 					{!selectedAsset.tokenId ? (
@@ -1041,6 +1094,7 @@ class Confirm extends PureComponent {
 
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	addressBook: state.engine.backgroundState.AddressBookController?.addressBook,
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,

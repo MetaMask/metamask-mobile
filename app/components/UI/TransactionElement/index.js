@@ -83,10 +83,6 @@ class TransactionElement extends PureComponent {
 	static propTypes = {
 		assetSymbol: PropTypes.string,
 		/**
-		/* navigation object required to push new views
-		*/
-		navigation: PropTypes.object,
-		/**
 		 * Asset object (in this case ERC721 token)
 		 */
 		tx: PropTypes.object,
@@ -189,7 +185,8 @@ class TransactionElement extends PureComponent {
 	 */
 	renderImportTime = () => {
 		const { tx, identities, selectedAddress } = this.props;
-		if (tx.insertImportTime && identities[selectedAddress].importTime) {
+		const accountImportTime = identities[selectedAddress]?.importTime;
+		if (tx.insertImportTime && accountImportTime) {
 			return (
 				<>
 					<TouchableOpacity onPress={this.onPressImportWalletTip} style={styles.importRowBody}>
@@ -197,7 +194,7 @@ class TransactionElement extends PureComponent {
 							{`${strings('transactions.import_wallet_row')} `}
 							<FAIcon name="info-circle" style={styles.infoIcon} />
 						</Text>
-						<ListItem.Date>{toDateFormat(identities[selectedAddress].importTime)}</ListItem.Date>
+						<ListItem.Date>{toDateFormat(accountImportTime)}</ListItem.Date>
 					</TouchableOpacity>
 				</>
 			);
@@ -244,7 +241,7 @@ class TransactionElement extends PureComponent {
 		} = this.props;
 		const { value, fiatValue = false, actionKey } = transactionElement;
 		const renderTxActions = status === 'submitted' || status === 'approved';
-		const accountImportTime = identities[selectedAddress].importTime;
+		const accountImportTime = identities[selectedAddress]?.importTime;
 		return (
 			<>
 				{accountImportTime > time && this.renderImportTime()}
@@ -347,7 +344,6 @@ class TransactionElement extends PureComponent {
 						<TransactionDetails
 							transactionObject={tx}
 							transactionDetails={transactionDetails}
-							navigation={this.props.navigation}
 							close={this.onCloseDetailsModal}
 						/>
 					</DetailsModal>
