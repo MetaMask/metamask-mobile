@@ -64,6 +64,8 @@ import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import BigNumber from 'bignumber.js';
 import { setInfuraAvailabilityBlocked, setInfuraAvailabilityNotBlocked } from '../../../actions/infuraAvailability';
+import { isSwapsContract } from '../../UI/Swaps/utils';
+import { toLowerCaseCompare } from '../../../util/general';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -318,11 +320,13 @@ const Main = props => {
 			// if destination address is metaswap contract
 			if (
 				to &&
-				(to === swapsUtils.getSwapsContractAddress(props.chainId) ||
+				// TODO: replace with wETH contract once swaps-controller exposes the variable
+				((toLowerCaseCompare(to, '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2') &&
+					transactionMeta.origin === process.env.MM_FOX_CODE) ||
+					isSwapsContract(to, props.chainId) ||
 					(data &&
 						data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
-						decodeApproveData(data).spenderAddress?.toLowerCase() ===
-							swapsUtils.getSwapsContractAddress(props.chainId)))
+						isSwapsContract(decodeApproveData(data).spenderAddress?.toLowerCase(), props.chainId)))
 			) {
 				if (transactionMeta.origin === process.env.MM_FOX_CODE) {
 					autoSign(transactionMeta);
