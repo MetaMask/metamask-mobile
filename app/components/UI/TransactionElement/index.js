@@ -15,6 +15,7 @@ import { TRANSACTION_TYPES } from '../../../util/transactions';
 import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
 import DetailsModal from '../../Base/DetailsModal';
+import { isMainNet } from '../../../util/networks';
 import { WalletDevice } from '@metamask/controllers/';
 
 const styles = StyleSheet.create({
@@ -82,10 +83,6 @@ class TransactionElement extends PureComponent {
 	static propTypes = {
 		assetSymbol: PropTypes.string,
 		/**
-		/* navigation object required to push new views
-		*/
-		navigation: PropTypes.object,
-		/**
 		 * Asset object (in this case ERC721 token)
 		 */
 		tx: PropTypes.object,
@@ -114,7 +111,11 @@ class TransactionElement extends PureComponent {
 		 */
 		onCancelAction: PropTypes.func,
 		swapsTransactions: PropTypes.object,
-		swapsTokens: PropTypes.arrayOf(PropTypes.object)
+		swapsTokens: PropTypes.arrayOf(PropTypes.object),
+		/**
+		 * Chain Id
+		 */
+		chainId: PropTypes.string
 	};
 
 	state = {
@@ -173,7 +174,7 @@ class TransactionElement extends PureComponent {
 						'transactions.from_device_label'
 						// eslint-disable-next-line no-mixed-spaces-and-tabs
 				  )}`
-				: `${toDateFormat(tx.time)} 
+				: `${toDateFormat(tx.time)}
 			`
 		}`;
 	};
@@ -184,7 +185,8 @@ class TransactionElement extends PureComponent {
 	 */
 	renderImportTime = () => {
 		const { tx, identities, selectedAddress } = this.props;
-		if (tx.insertImportTime && identities[selectedAddress].importTime) {
+		const accountImportTime = identities[selectedAddress]?.importTime;
+		if (tx.insertImportTime && accountImportTime) {
 			return (
 				<>
 					<TouchableOpacity onPress={this.onPressImportWalletTip} style={styles.importRowBody}>
@@ -192,7 +194,7 @@ class TransactionElement extends PureComponent {
 							{`${strings('transactions.import_wallet_row')} `}
 							<FAIcon name="info-circle" style={styles.infoIcon} />
 						</Text>
-						<ListItem.Date>{toDateFormat(identities[selectedAddress].importTime)}</ListItem.Date>
+						<ListItem.Date>{toDateFormat(accountImportTime)}</ListItem.Date>
 					</TouchableOpacity>
 				</>
 			);
@@ -233,12 +235,13 @@ class TransactionElement extends PureComponent {
 	renderTxElement = transactionElement => {
 		const {
 			identities,
+			chainId,
 			selectedAddress,
 			tx: { time, status }
 		} = this.props;
 		const { value, fiatValue = false, actionKey } = transactionElement;
 		const renderTxActions = status === 'submitted' || status === 'approved';
-		const accountImportTime = identities[selectedAddress].importTime;
+		const accountImportTime = identities[selectedAddress]?.importTime;
 		return (
 			<>
 				{accountImportTime > time && this.renderImportTime()}
@@ -253,7 +256,7 @@ class TransactionElement extends PureComponent {
 						{Boolean(value) && (
 							<ListItem.Amounts>
 								<ListItem.Amount>{value}</ListItem.Amount>
-								<ListItem.FiatAmount>{fiatValue}</ListItem.FiatAmount>
+								{isMainNet(chainId) && <ListItem.FiatAmount>{fiatValue}</ListItem.FiatAmount>}
 							</ListItem.Amounts>
 						)}
 					</ListItem.Content>
@@ -341,7 +344,6 @@ class TransactionElement extends PureComponent {
 						<TransactionDetails
 							transactionObject={tx}
 							transactionDetails={transactionDetails}
-							navigation={this.props.navigation}
 							close={this.onCloseDetailsModal}
 						/>
 					</DetailsModal>
@@ -371,11 +373,12 @@ class TransactionElement extends PureComponent {
 }
 
 const mapStateToProps = state => ({
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	primaryCurrency: state.settings.primaryCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {},
-	swapsTokens: state.engine.backgroundState.SwapsController.tokens,
-	ticker: state.engine.backgroundState.NetworkController.provider.ticker
+	swapsTokens: state.engine.backgroundState.SwapsController.tokens
 });
 export default connect(mapStateToProps)(TransactionElement);

@@ -181,7 +181,7 @@ exports[`Browser should render correctly 1`] = `
               "marginTop": 7,
             }
           }
-          testID="cancel-url-button"
+          testID="ios-cancel-url-button"
         >
           <Text
             style={

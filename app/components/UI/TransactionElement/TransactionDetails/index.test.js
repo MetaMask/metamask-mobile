@@ -52,6 +52,6 @@ describe('TransactionDetails', () => {
 				context: { store: mockStore(initialState) }
 			}
 		);
-		expect(wrapper.dive()).toMatchSnapshot();
+		expect(wrapper).toMatchSnapshot();
 	});
 });

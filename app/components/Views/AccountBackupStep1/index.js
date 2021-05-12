@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView, TouchableOpacity, Text, View, SafeAreaView, StyleSheet, Image, BackHandler } from 'react-native';
+import { ScrollView, TouchableOpacity, Text, View, SafeAreaView, StyleSheet, BackHandler } from 'react-native';
 import PropTypes from 'prop-types';
 import AsyncStorage from '@react-native-community/async-storage';
 import { colors, fontStyles } from '../../../styles/common';
@@ -15,8 +15,7 @@ import Engine from '../../../core/Engine';
 import { ONBOARDING_WIZARD, METRICS_OPT_IN } from '../../../constants/storage';
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
-
-const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
+import SeedPhraseVideo from '../../UI/SeedPhraseVideo';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -96,10 +95,6 @@ const styles = StyleSheet.create({
 	},
 	ctaContainer: {
 		marginBottom: 30
-	},
-	image: {
-		width: scaling.scale(138),
-		height: scaling.scale(162)
 	}
 });
 
@@ -186,12 +181,7 @@ const AccountBackupStep1 = props => {
 					<OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} currentStep={1} />
 					<View style={styles.content}>
 						<Text style={styles.title}>{strings('account_backup_step_1.title')}</Text>
-						<Image
-							source={explain_backup_seedphrase}
-							style={styles.image}
-							resizeMethod={'auto'}
-							testID={'carousel-one-image'}
-						/>
+						<SeedPhraseVideo />
 						<View style={styles.text}>
 							<Text style={styles.label}>
 								{strings('account_backup_step_1.info_text_1_1')}{' '}

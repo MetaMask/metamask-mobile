@@ -1,5 +1,219 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+      "minHeight": 500,
+    }
+  }
+  testID="tokens"
+>
+  <View>
+    <AssetElement
+      asset={
+        Object {
+          "address": "0x0",
+          "balance": 0,
+          "balanceFiat": undefined,
+          "decimals": 18,
+          "isETH": true,
+          "logo": undefined,
+          "symbol": "ETH",
+        }
+      }
+      key="0x0"
+      onLongPress={null}
+      onPress={[Function]}
+      testID="asset"
+    >
+      <Connect(NetworkMainAssetLogo)
+        big={true}
+        style={
+          Object {
+            "height": 50,
+            "marginRight": 20,
+            "overflow": "hidden",
+            "width": 50,
+          }
+        }
+        testID="eth-logo"
+      />
+      <View
+        style={
+          Object {
+            "flex": 1,
+            "justifyContent": "center",
+          }
+        }
+        testID="balance"
+      >
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "textTransform": "uppercase",
+            }
+          }
+        >
+          0 ETH
+        </Text>
+      </View>
+    </AssetElement>
+    <AssetElement
+      asset={
+        Object {
+          "address": "0x01",
+          "balance": "< 0.00001",
+          "balanceFiat": undefined,
+          "decimals": 18,
+          "logo": undefined,
+          "symbol": "BAT",
+        }
+      }
+      key="0x01"
+      onLongPress={[Function]}
+      onPress={[Function]}
+      testID="asset"
+    >
+      <Connect(TokenImage)
+        asset={
+          Object {
+            "address": "0x01",
+            "balance": "< 0.00001",
+            "balanceFiat": undefined,
+            "decimals": 18,
+            "logo": undefined,
+            "symbol": "BAT",
+          }
+        }
+        containerStyle={
+          Object {
+            "height": 50,
+            "marginRight": 20,
+            "overflow": "hidden",
+            "width": 50,
+          }
+        }
+      />
+      <View
+        style={
+          Object {
+            "flex": 1,
+            "justifyContent": "center",
+          }
+        }
+        testID="balance"
+      >
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "textTransform": "uppercase",
+            }
+          }
+        >
+          &lt; 0.00001 BAT
+        </Text>
+      </View>
+    </AssetElement>
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "justifyContent": "center",
+          "marginHorizontal": 50,
+          "marginTop": 35,
+        }
+      }
+    >
+      <StyledButton
+        containerStyle={
+          Object {
+            "width": "100%",
+          }
+        }
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        type="blue"
+      >
+        Buy ETH
+      </StyledButton>
+    </View>
+    <View
+      key="tokens-footer"
+      style={
+        Object {
+          "flex": 1,
+          "paddingBottom": 30,
+        }
+      }
+    >
+      <TouchableOpacity
+        onPress={[Function]}
+        style={
+          Object {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "justifyContent": "center",
+            "margin": 20,
+          }
+        }
+        testID="add-token-button"
+      >
+        <Icon
+          allowFontScaling={false}
+          color="#037dd6"
+          name="plus"
+          size={16}
+        />
+        <Text
+          style={
+            Object {
+              "color": "#037dd6",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 15,
+              "fontWeight": "400",
+            }
+          }
+        >
+          ADD TOKENS
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+  <ActionSheet
+    cancelButtonIndex={1}
+    destructiveButtonIndex={0}
+    onPress={[Function]}
+    options={
+      Array [
+        "Remove",
+        "Cancel",
+      ]
+    }
+    title="Do you want to remove this token?"
+  />
+</View>
+`;
+
 exports[`Tokens should render correctly 1`] = `
 <View
   style={
@@ -33,6 +247,280 @@ exports[`Tokens should render correctly 1`] = `
     >
       You don't have any tokens!
     </Text>
+  </View>
+  <ActionSheet
+    cancelButtonIndex={1}
+    destructiveButtonIndex={0}
+    onPress={[Function]}
+    options={
+      Array [
+        "Remove",
+        "Cancel",
+      ]
+    }
+    title="Do you want to remove this token?"
+  />
+</View>
+`;
+
+exports[`Tokens should show all balance tokens when hideZeroBalanceTokens setting is off 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+      "minHeight": 500,
+    }
+  }
+  testID="tokens"
+>
+  <View>
+    <AssetElement
+      asset={
+        Object {
+          "address": "0x0",
+          "balance": 0,
+          "balanceFiat": undefined,
+          "decimals": 18,
+          "isETH": true,
+          "logo": undefined,
+          "symbol": "ETH",
+        }
+      }
+      key="0x0"
+      onLongPress={null}
+      onPress={[Function]}
+      testID="asset"
+    >
+      <Connect(NetworkMainAssetLogo)
+        big={true}
+        style={
+          Object {
+            "height": 50,
+            "marginRight": 20,
+            "overflow": "hidden",
+            "width": 50,
+          }
+        }
+        testID="eth-logo"
+      />
+      <View
+        style={
+          Object {
+            "flex": 1,
+            "justifyContent": "center",
+          }
+        }
+        testID="balance"
+      >
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "textTransform": "uppercase",
+            }
+          }
+        >
+          0 ETH
+        </Text>
+      </View>
+    </AssetElement>
+    <AssetElement
+      asset={
+        Object {
+          "address": "0x01",
+          "balance": "< 0.00001",
+          "balanceFiat": undefined,
+          "decimals": 18,
+          "logo": undefined,
+          "symbol": "BAT",
+        }
+      }
+      key="0x01"
+      onLongPress={[Function]}
+      onPress={[Function]}
+      testID="asset"
+    >
+      <Connect(TokenImage)
+        asset={
+          Object {
+            "address": "0x01",
+            "balance": "< 0.00001",
+            "balanceFiat": undefined,
+            "decimals": 18,
+            "logo": undefined,
+            "symbol": "BAT",
+          }
+        }
+        containerStyle={
+          Object {
+            "height": 50,
+            "marginRight": 20,
+            "overflow": "hidden",
+            "width": 50,
+          }
+        }
+      />
+      <View
+        style={
+          Object {
+            "flex": 1,
+            "justifyContent": "center",
+          }
+        }
+        testID="balance"
+      >
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "textTransform": "uppercase",
+            }
+          }
+        >
+          &lt; 0.00001 BAT
+        </Text>
+      </View>
+    </AssetElement>
+    <AssetElement
+      asset={
+        Object {
+          "address": "0x02",
+          "balance": "0",
+          "balanceFiat": undefined,
+          "decimals": 18,
+          "logo": undefined,
+          "symbol": "LINK",
+        }
+      }
+      key="0x02"
+      onLongPress={[Function]}
+      onPress={[Function]}
+      testID="asset"
+    >
+      <Connect(TokenImage)
+        asset={
+          Object {
+            "address": "0x02",
+            "balance": "0",
+            "balanceFiat": undefined,
+            "decimals": 18,
+            "logo": undefined,
+            "symbol": "LINK",
+          }
+        }
+        containerStyle={
+          Object {
+            "height": 50,
+            "marginRight": 20,
+            "overflow": "hidden",
+            "width": 50,
+          }
+        }
+      />
+      <View
+        style={
+          Object {
+            "flex": 1,
+            "justifyContent": "center",
+          }
+        }
+        testID="balance"
+      >
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "textTransform": "uppercase",
+            }
+          }
+        >
+          0 LINK
+        </Text>
+      </View>
+    </AssetElement>
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "justifyContent": "center",
+          "marginHorizontal": 50,
+          "marginTop": 35,
+        }
+      }
+    >
+      <StyledButton
+        containerStyle={
+          Object {
+            "width": "100%",
+          }
+        }
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        type="blue"
+      >
+        Buy ETH
+      </StyledButton>
+    </View>
+    <View
+      key="tokens-footer"
+      style={
+        Object {
+          "flex": 1,
+          "paddingBottom": 30,
+        }
+      }
+    >
+      <TouchableOpacity
+        onPress={[Function]}
+        style={
+          Object {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "justifyContent": "center",
+            "margin": 20,
+          }
+        }
+        testID="add-token-button"
+      >
+        <Icon
+          allowFontScaling={false}
+          color="#037dd6"
+          name="plus"
+          size={16}
+        />
+        <Text
+          style={
+            Object {
+              "color": "#037dd6",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 15,
+              "fontWeight": "400",
+            }
+          }
+        >
+          ADD TOKENS
+        </Text>
+      </TouchableOpacity>
+    </View>
   </View>
   <ActionSheet
     cancelButtonIndex={1}
