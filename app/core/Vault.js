@@ -76,6 +76,6 @@ export const recreateVaultWithSamePassword = async (password = '', selectedAddre
 	if (hdKeyring.accounts.includes(selectedAddress)) {
 		PreferencesController.setSelectedAddress(selectedAddress);
 	} else {
-		PreferencesController.setSelectedAddress(hdKeyring[0]);
+		PreferencesController.setSelectedAddress(hdKeyring.accounts[0]);
 	}
 };
