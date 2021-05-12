@@ -9,7 +9,7 @@ function MediaPlayer({ uri, style }) {
 	return (
 		<View style={style}>
 			{Device.isAndroid() ? (
-				<AndroidMediaPlayer source={{ uri }} />
+				<AndroidMediaPlayer style={style} source={{ uri }} />
 			) : (
 				<Video style={style} muted source={{ uri }} controls />
 			)}

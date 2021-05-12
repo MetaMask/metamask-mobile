@@ -11,7 +11,8 @@ import {
 	Easing,
 	Image,
 	View,
-	Text
+	Text,
+	ViewPropTypes
 } from 'react-native';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -28,7 +29,8 @@ const styles = StyleSheet.create({
 		top: 0,
 		right: 0,
 		bottom: 0,
-		left: 0
+		left: 0,
+		backgroundColor: colors.black
 	},
 	errorContainer: {
 		position: 'absolute',
@@ -151,7 +153,8 @@ export default function VideoPlayer({
 	controlsToggleTiming,
 	source,
 	displayTopControls,
-	displayBottomControls
+	displayBottomControls,
+	style
 }) {
 	const [paused, setPaused] = useState(false);
 	const [muted, setMuted] = useState(true);
@@ -568,9 +571,9 @@ export default function VideoPlayer({
 					onSeek={onSeek}
 					onLoadStart={onLoadStart}
 					onProgress={onProgress}
-					style={[styles.playerVideo]}
+					style={[style, styles.playerVideo]}
 					source={source}
-					resizeMode="cover"
+					resizeMode="contain"
 					repeat
 				/>
 				{renderError()}
@@ -587,7 +590,8 @@ VideoPlayer.propTypes = {
 	controlsToggleTiming: PropTypes.number,
 	source: PropTypes.object,
 	displayTopControls: PropTypes.bool,
-	displayBottomControls: PropTypes.bool
+	displayBottomControls: PropTypes.bool,
+	style: ViewPropTypes.style
 };
 
 VideoPlayer.defaultProps = {

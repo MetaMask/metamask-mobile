@@ -40,6 +40,9 @@ const styles = StyleSheet.create({
 	},
 	textWrapper: {
 		textAlign: 'center'
+	},
+	mediaPlayer: {
+		height: 300
 	}
 });
 
@@ -59,7 +62,7 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 
 	const renderMedia = useCallback(() => {
 		if (renderAnimation && collectible.animation) {
-			return <MediaPlayer uri={collectible.animation} style={cover ? styles.cover : styles.bigImage} />;
+			return <MediaPlayer uri={collectible.animation} style={[styles.mediaPlayer, style]} />;
 		} else if (sourceUri) {
 			return (
 				<RemoteImage

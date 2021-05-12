@@ -17,8 +17,8 @@ const styles = StyleSheet.create({
 		justifyContent: 'flex-end',
 		margin: 0
 	},
-	noRound: {
-		borderRadius: 0
+	round: {
+		borderRadius: 12
 	},
 	collectibleMediaWrapper: {
 		marginHorizontal: 16
@@ -68,7 +68,7 @@ const CollectibleModal = ({ contractName, collectible, onHide, visible, navigati
 		>
 			<View style={styles.root}>
 				<View style={styles.collectibleMediaWrapper}>
-					<CollectibleMedia cover renderAnimation collectible={collectible} style={styles.noRound} />
+					<CollectibleMedia cover renderAnimation collectible={collectible} style={styles.round} />
 				</View>
 				<CollectibleOverview
 					onTouchStart={onTouchStart}
