@@ -59,7 +59,13 @@ const swapsControllerTokens = state => state.engine.backgroundState.SwapsControl
 export const swapsTokensSelector = createSelector(
 	chainIdSelector,
 	swapsControllerTokens,
-	(chainId, tokens) => addMetadata(chainId, tokens)
+	(chainId, tokens) => {
+		if (!tokens) {
+			return [];
+		}
+
+		return addMetadata(chainId, tokens);
+	}
 );
 
 const topAssets = state => state.engine.backgroundState.SwapsController.topAssets;
