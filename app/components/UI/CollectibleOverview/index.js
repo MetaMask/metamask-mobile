@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { StyleSheet, View, ScrollView, TouchableWithoutFeedback, Easing, Animated, SafeAreaView } from 'react-native';
+import { StyleSheet, View, Easing, Animated, SafeAreaView } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { baseStyles, colors } from '../../../styles/common';
@@ -21,7 +21,7 @@ import { PanGestureHandler, gestureHandlerRootHOC } from 'react-native-gesture-h
 
 const styles = StyleSheet.create({
 	wrapper: {
-		flex: 1,
+		flex: 0,
 		backgroundColor: colors.white,
 		borderTopEndRadius: 8,
 		borderTopStartRadius: 8
@@ -123,6 +123,7 @@ const CollectibleOverview = ({
 }) => {
 	const [headerHeight, setHeaderHeight] = useState(0);
 	const [wrapperHeight, setWrapperHeight] = useState(0);
+	const [position, setPosition] = useState(-1);
 	const positionAnimated = useRef(new Animated.Value(0)).current;
 
 	const renderCollectibleInfoRow = useCallback((key, value, onPress) => {
@@ -191,8 +192,8 @@ const CollectibleOverview = ({
 			nativeEvent: {
 				layout: { height }
 			}
-		}) => setHeaderHeight(height),
-		[]
+		}) => headerHeight === 0 && setHeaderHeight(height),
+		[headerHeight]
 	);
 
 	const onWrapperLayout = useCallback(
@@ -200,8 +201,8 @@ const CollectibleOverview = ({
 			nativeEvent: {
 				layout: { height }
 			}
-		}) => setWrapperHeight(height),
-		[]
+		}) => wrapperHeight === 0 && setWrapperHeight(height),
+		[wrapperHeight]
 	);
 
 	const animateViewPosition = useCallback(
@@ -218,14 +219,23 @@ const CollectibleOverview = ({
 
 	const handleGesture = evt => {
 		if (evt.nativeEvent.velocityY === 0) return;
-		const toValue = evt.nativeEvent.velocityY > 0 ? wrapperHeight - headerHeight - 60 : 0;
-		onTranslation(toValue !== 0);
-		animateViewPosition(toValue, 250);
+		const toValue = evt.nativeEvent.velocityY > 0 ? wrapperHeight - headerHeight - 40 : 0;
+		if (toValue !== position) {
+			onTranslation(toValue !== 0);
+			setPosition(toValue);
+			animateViewPosition(toValue, 250);
+		}
 	};
+
+	const gestureHandlerWrapper = child => (
+		<PanGestureHandler activeOffsetY={[0, 0]} activeOffsetX={[0, 0]} onGestureEvent={handleGesture}>
+			{child}
+		</PanGestureHandler>
+	);
 
 	useEffect(() => {
 		if (headerHeight !== 0 && wrapperHeight !== 0) {
-			const toValue = wrapperHeight - headerHeight - 60;
+			const toValue = wrapperHeight - headerHeight - 40;
 			animateViewPosition(toValue, 0);
 		}
 	}, [headerHeight, wrapperHeight, animateViewPosition]);
@@ -238,16 +248,16 @@ const CollectibleOverview = ({
 			onTouchCancel={onTouchEnd}
 			style={[styles.wrapper, { transform: [{ translateY: positionAnimated }] }]}
 		>
-			<PanGestureHandler activeOffsetY={[0, 0]} activeOffsetX={[0, 0]} onGestureEvent={handleGesture}>
+			{gestureHandlerWrapper(
 				<View style={styles.titleWrapper}>
 					<View style={styles.dragger} />
 				</View>
-			</PanGestureHandler>
-			<ScrollView style={baseStyles.flexGrow}>
-				<SafeAreaView>
-					<TouchableWithoutFeedback>
-						<View style={styles.informationWrapper}>
-							<View onLayout={onHeaderLayout}>
+			)}
+			<SafeAreaView>
+				<View style={styles.informationWrapper}>
+					<View onLayout={onHeaderLayout}>
+						{gestureHandlerWrapper(
+							<View>
 								{collectible?.creator && (
 									<View style={styles.userContainer}>
 										<RemoteImage
@@ -275,62 +285,61 @@ const CollectibleOverview = ({
 									{strings('unit.token_id')}
 									{collectible.tokenId}
 								</Text>
+							</View>
+						)}
 
-								<View style={styles.buttonContainer}>
-									{tradable && (
-										<StyledButton
-											onPress={onSend}
-											type={'rounded-normal'}
-											containerStyle={[baseStyles.flexGrow, styles.button, styles.leftButton]}
-										>
-											<Text link big bold noMargin>
-												{strings('asset_overview.send_button')}
-											</Text>
-										</StyledButton>
-									)}
-									{collectible?.externalLink && (
-										<StyledButton
-											type={'rounded-normal'}
-											containerStyle={[styles.button, styles.iconButtons, styles.leftButton]}
-											onPress={shareCollectible}
-										>
-											<Text bold link noMargin>
-												<EvilIcons
-													name={Device.isIos() ? 'share-apple' : 'share-google'}
-													size={32}
-												/>
-											</Text>
-										</StyledButton>
-									)}
-									<StyledButton
-										type={'rounded-normal'}
-										containerStyle={[styles.button, styles.iconButtons]}
-										onPress={collectibleToFavorites}
-									>
-										<Text link noMargin>
-											<AntIcons name={isInFavorites ? 'star' : 'staro'} size={24} />
-										</Text>
-									</StyledButton>
+						<View style={styles.buttonContainer}>
+							{tradable && (
+								<StyledButton
+									onPress={onSend}
+									type={'rounded-normal'}
+									containerStyle={[baseStyles.flexGrow, styles.button, styles.leftButton]}
+								>
+									<Text link big bold noMargin>
+										{strings('asset_overview.send_button')}
+									</Text>
+								</StyledButton>
+							)}
+							{collectible?.externalLink && (
+								<StyledButton
+									type={'rounded-normal'}
+									containerStyle={[styles.button, styles.iconButtons, styles.leftButton]}
+									onPress={shareCollectible}
+								>
+									<Text bold link noMargin>
+										<EvilIcons name={Device.isIos() ? 'share-apple' : 'share-google'} size={32} />
+									</Text>
+								</StyledButton>
+							)}
+							<StyledButton
+								type={'rounded-normal'}
+								containerStyle={[styles.button, styles.iconButtons]}
+								onPress={collectibleToFavorites}
+							>
+								<Text link noMargin>
+									<AntIcons name={isInFavorites ? 'star' : 'staro'} size={24} />
+								</Text>
+							</StyledButton>
+						</View>
+					</View>
+
+					{gestureHandlerWrapper(
+						collectible?.description && (
+							<View style={styles.information}>
+								<View style={styles.row}>
+									<Text noMargin black bold big>
+										{strings('collectible.collectible_description')}
+									</Text>
+									<Text noMargin black style={styles.content}>
+										{collectible.description}
+									</Text>
 								</View>
 							</View>
-
-							{collectible?.description && (
-								<View style={styles.information}>
-									<View style={styles.row}>
-										<Text noMargin black bold big>
-											{strings('collectible.collectible_description')}
-										</Text>
-										<Text noMargin black style={styles.content}>
-											{collectible.description}
-										</Text>
-									</View>
-								</View>
-							)}
-							<View style={styles.information}>{renderCollectibleInfo()}</View>
-						</View>
-					</TouchableWithoutFeedback>
-				</SafeAreaView>
-			</ScrollView>
+						)
+					)}
+					{gestureHandlerWrapper(<View style={styles.information}>{renderCollectibleInfo()}</View>)}
+				</View>
+			</SafeAreaView>
 		</Animated.View>
 	);
 };
@@ -401,4 +410,8 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
 	mapStateToProps,
 	mapDispatchToProps
-)(gestureHandlerRootHOC(CollectibleOverview));
+)(
+	Device.isIos()
+		? CollectibleOverview
+		: gestureHandlerRootHOC(CollectibleOverview, { flex: 0, zIndex: 0, elevation: 0 })
+);

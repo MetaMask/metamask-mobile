@@ -11,7 +11,7 @@ import Device from '../../../util/Device';
 const styles = StyleSheet.create({
 	container(backgroundColor) {
 		return {
-			flex: 1,
+			flex: 0,
 			backgroundColor: `#${backgroundColor}`
 		};
 	},

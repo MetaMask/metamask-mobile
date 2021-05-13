@@ -7,31 +7,31 @@ import collectiblesTransferInformation from '../../../util/collectibles-transfer
 import { newAssetTransaction } from '../../../actions/transaction';
 import Modal from 'react-native-modal';
 import CollectibleMedia from '../CollectibleMedia';
-import Device from '../../../util/Device';
 
-const IS_IOS = Device.isIos();
 const styles = StyleSheet.create({
-	root: {
-		flex: 1,
-		maxHeight: '90%'
-	},
 	bottomModal: {
-		justifyContent: 'flex-end',
-		margin: 0
+		margin: 0,
+		flex: 1,
+		zIndex: 20,
+		elevation: 20
 	},
 	round: {
 		borderRadius: 12
 	},
 	collectibleMediaWrapper: {
-		flex: IS_IOS ? 0 : 1,
-		marginHorizontal: 16,
-		marginBottom: IS_IOS ? '30%' : '0%'
-	},
-	collectibleOverviewWrapper: {
 		flex: 1,
-		elevation: 5,
-		marginTop: '-20%'
+		marginHorizontal: 16,
+		marginTop: '20%',
+		// overflow: 'scroll',
+		overflow: 'hidden'
+		// overflow: 'visible',
 	}
+	// collectibleOverviewWrapper: {
+	// 	flex: 0,
+	// 	elevation: 1,
+	// 	zIndex: 1
+	// 	// marginTop: '80%'
+	// }
 });
 
 /**
@@ -39,7 +39,8 @@ const styles = StyleSheet.create({
  */
 const CollectibleModal = ({ contractName, collectible, onHide, visible, navigation, newAssetTransaction }) => {
 	const [swippable, setSwippable] = useState('down');
-	const [mediaZIndex, setMediaZIndex] = useState(9999);
+	const [mediaZIndex, setMediaZIndex] = useState(10);
+	const [overviewZIndex, setOverviewZIndex] = useState(20);
 
 	const onSend = useCallback(async () => {
 		onHide();
@@ -75,9 +76,13 @@ const CollectibleModal = ({ contractName, collectible, onHide, visible, navigati
 	const onCollectibleOverviewTranslation = moveUp => {
 		if (moveUp) {
 			setTimeout(() => {
-				setMediaZIndex(9999);
-			}, 1000);
-		} else setMediaZIndex(0);
+				setMediaZIndex(20);
+				setOverviewZIndex(10);
+			}, 500);
+		} else {
+			setMediaZIndex(0);
+			setOverviewZIndex(10);
+		}
 	};
 
 	return (
@@ -90,22 +95,20 @@ const CollectibleModal = ({ contractName, collectible, onHide, visible, navigati
 			swipeDirection={swippable}
 			propagateSwipe
 		>
-			<View style={styles.root}>
-				<View style={[styles.collectibleMediaWrapper, { zIndex: mediaZIndex, elevation: mediaZIndex }]}>
-					<CollectibleMedia cover renderAnimation collectible={collectible} style={styles.round} />
-				</View>
-				<View style={styles.collectibleOverviewWrapper}>
-					<CollectibleOverview
-						onTouchStart={onTouchStart}
-						onTouchEnd={onTouchEnd}
-						navigation={navigation}
-						collectible={{ ...collectible, contractName }}
-						tradable={isTradable()}
-						onSend={onSend}
-						openLink={openLink}
-						onTranslation={onCollectibleOverviewTranslation}
-					/>
-				</View>
+			<View style={[styles.collectibleMediaWrapper, { zIndex: mediaZIndex, elevation: mediaZIndex }]}>
+				<CollectibleMedia cover renderAnimation collectible={collectible} style={styles.round} />
+			</View>
+			<View style={{ zIndex: overviewZIndex, elevation: overviewZIndex }}>
+				<CollectibleOverview
+					onTouchStart={onTouchStart}
+					onTouchEnd={onTouchEnd}
+					navigation={navigation}
+					collectible={{ ...collectible, contractName }}
+					tradable={isTradable()}
+					onSend={onSend}
+					openLink={openLink}
+					onTranslation={onCollectibleOverviewTranslation}
+				/>
 			</View>
 		</Modal>
 	);

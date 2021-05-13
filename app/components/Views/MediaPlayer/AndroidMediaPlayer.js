@@ -20,10 +20,14 @@ import { baseStyles, colors } from '../../../styles/common';
 
 const styles = StyleSheet.create({
 	playerContainer: {
-		flex: 1,
-		overflow: 'hidden'
+		flex: 0,
+		overflow: 'hidden',
+		backgroundColor: colors.red,
+		zIndex: 99999,
+		elevation: 99999
 	},
 	playerVideo: {
+		flex: 1,
 		overflow: 'hidden',
 		position: 'absolute',
 		top: 0,
@@ -34,7 +38,6 @@ const styles = StyleSheet.create({
 		borderRadius: 12
 	},
 	errorContainer: {
-		position: 'absolute',
 		top: 0,
 		right: 0,
 		bottom: 0,
@@ -47,7 +50,6 @@ const styles = StyleSheet.create({
 	},
 	errorText: {},
 	loaderContainer: {
-		position: 'absolute',
 		top: 0,
 		right: 0,
 		bottom: 0,
@@ -531,7 +533,6 @@ export default function VideoPlayer({
 			</View>
 		</Animated.View>
 	);
-
 	return (
 		<TouchableNativeFeedback onPress={onScreenTouch} style={[styles.playerContainer, style]}>
 			<View style={baseStyles.flexGrow}>
@@ -543,7 +544,7 @@ export default function VideoPlayer({
 					onSeek={onSeek}
 					onLoadStart={onLoadStart}
 					onProgress={onProgress}
-					style={[styles.playerVideo]}
+					style={styles.playerVideo}
 					source={source}
 					resizeMode="contain"
 					repeat
