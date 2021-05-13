@@ -24,8 +24,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		backgroundColor: colors.white,
 		borderTopEndRadius: 8,
-		borderTopStartRadius: 8,
-		marginTop: -80
+		borderTopStartRadius: 8
 	},
 	informationWrapper: {
 		flex: 1,
@@ -239,6 +238,7 @@ const CollectibleOverview = ({
 			onLayout={onWrapperLayout}
 			onTouchStart={onTouchStart}
 			onTouchEnd={onTouchEnd}
+			onTouchCancel={onTouchEnd}
 			style={[styles.wrapper, { transform: [{ translateY: positionAnimated }] }]}
 		>
 			<PanGestureHandler activeOffsetY={[0, 0]} activeOffsetX={[0, 0]} onGestureEvent={handleGesture}>

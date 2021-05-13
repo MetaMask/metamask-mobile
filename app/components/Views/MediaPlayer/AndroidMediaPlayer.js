@@ -561,8 +561,8 @@ export default function VideoPlayer({
 	);
 
 	return (
-		<TouchableWithoutFeedback onPress={onScreenTouch} style={[styles.playerContainer]}>
-			<View style={[styles.playerContainer]}>
+		<TouchableWithoutFeedback onPress={onScreenTouch} style={styles.playerContainer}>
+			<View>
 				<Video
 					ref={videoRef}
 					paused={paused}
@@ -571,7 +571,7 @@ export default function VideoPlayer({
 					onSeek={onSeek}
 					onLoadStart={onLoadStart}
 					onProgress={onProgress}
-					style={[style, styles.playerVideo]}
+					style={[styles.playerVideo, style]}
 					source={source}
 					resizeMode="contain"
 					repeat

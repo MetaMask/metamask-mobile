@@ -21,7 +21,8 @@ const styles = StyleSheet.create({
 		borderRadius: 12
 	},
 	collectibleMediaWrapper: {
-		marginHorizontal: 16
+		marginHorizontal: 16,
+		marginBottom: '-30%'
 	}
 });
 
