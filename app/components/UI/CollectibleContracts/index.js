@@ -9,6 +9,7 @@ import CollectibleImage from '../CollectibleImage';
 import AssetElement from '../AssetElement';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { toLowerCaseCompare } from '../../../util/general';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -113,11 +114,10 @@ class CollectibleContracts extends PureComponent {
 
 	renderItem = item => {
 		const { address, name, logo, symbol } = item;
+		const { collectibles = undefined } = this.props;
 		const collectibleAmount =
-			(this.props.collectibles &&
-				this.props.collectibles.filter(
-					collectible => collectible.address.toLowerCase() === address.toLowerCase()
-				).length) ||
+			(collectibles &&
+				collectibles.filter(collectible => toLowerCaseCompare(collectible.address, address)).length) ||
 			0;
 		return (
 			<AssetElement onPress={this.onItemPress} asset={item} key={address}>

@@ -106,7 +106,7 @@ function TokenSelectModal({
 				distance: 100,
 				maxPatternLength: 32,
 				minMatchCharLength: 1,
-				keys: ['symbol', 'address']
+				keys: ['symbol', 'address', 'name']
 			}),
 		[filteredTokens]
 	);
@@ -142,6 +142,7 @@ function TokenSelectModal({
 							</ListItem.Icon>
 							<ListItem.Body>
 								<ListItem.Title>{item.symbol}</ListItem.Title>
+								{item.name && <Text>{item.name}</Text>}
 							</ListItem.Body>
 							<ListItem.Amounts>
 								<ListItem.Amount>{balance}</ListItem.Amount>
