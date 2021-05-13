@@ -1,5 +1,10 @@
 # Changelog
 ## v.2.3.0 - May 5 2021
+- [#2674](https://github.com/MetaMask/metamask-mobile/pull/2674): Fix deploy contract and create token testnets
+- [#2669](https://github.com/MetaMask/metamask-mobile/pull/2669): Key off accounts
+- [#2670](https://github.com/MetaMask/metamask-mobile/pull/2670): Bump hosted-git-info from 2.8.8 to 2.8.9
+- [#2667](https://github.com/MetaMask/metamask-mobile/pull/2667): added export of iOS artifacts
+- [#2664](https://github.com/MetaMask/metamask-mobile/pull/2664): updated version code and change logs
 - [#2663](https://github.com/MetaMask/metamask-mobile/pull/2663): Load video over the network
 - [#2656](https://github.com/MetaMask/metamask-mobile/pull/2656): Fix Balance undefined for deeplink payment requests
 - [#2657](https://github.com/MetaMask/metamask-mobile/pull/2657): Fix missing seed phrase updates
@@ -37,7 +42,6 @@
 - [#2568](https://github.com/MetaMask/metamask-mobile/pull/2568): resolve isENS without case sensitivity (#2545)
 - [#2566](https://github.com/MetaMask/metamask-mobile/pull/2566): Revert "resolve isENS without case sensitivity (#2545)"
 - [#2545](https://github.com/MetaMask/metamask-mobile/pull/2545): resolve isENS without case sensitivity
-
 
 ## v2.2.0 - Apr 21 2021
 - [#2547](https://github.com/MetaMask/metamask-mobile/pull/2547): Include decimalsToShow in balanceToFiatNumber
