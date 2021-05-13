@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, View, ScrollView, TouchableWithoutFeedback, Easing, Animated, SafeAreaView } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { colors } from '../../../styles/common';
+import { baseStyles, colors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Text from '../../Base/Text';
 import RemoteImage from '../../Base/RemoteImage';
@@ -27,7 +27,6 @@ const styles = StyleSheet.create({
 		borderTopStartRadius: 8
 	},
 	informationWrapper: {
-		flex: 1,
 		paddingHorizontal: 16
 	},
 	information: {
@@ -123,7 +122,8 @@ const CollectibleOverview = ({
 	isInFavorites,
 	openLink,
 	onTouchStart,
-	onTouchEnd
+	onTouchEnd,
+	onTranslation
 }) => {
 	const [headerHeight, setHeaderHeight] = useState(0);
 	const [wrapperHeight, setWrapperHeight] = useState(0);
@@ -223,6 +223,7 @@ const CollectibleOverview = ({
 	const handleGesture = evt => {
 		if (evt.nativeEvent.velocityY === 0) return;
 		const toValue = evt.nativeEvent.velocityY > 0 ? wrapperHeight - headerHeight - 60 : 0;
+		onTranslation(toValue !== 0);
 		animateViewPosition(toValue, 250);
 	};
 
@@ -246,7 +247,7 @@ const CollectibleOverview = ({
 					<View style={styles.dragger} />
 				</View>
 			</PanGestureHandler>
-			<ScrollView>
+			<ScrollView style={baseStyles.flexGrow}>
 				<SafeAreaView>
 					<TouchableWithoutFeedback>
 						<View style={styles.informationWrapper}>
@@ -382,7 +383,8 @@ CollectibleOverview.propTypes = {
 	/**
 	 * View onn touch end callback
 	 */
-	onTouchEnd: PropTypes.func.isRequired
+	onTouchEnd: PropTypes.func.isRequired,
+	onTranslation: PropTypes.func
 };
 
 const mapStateToProps = (state, props) => {

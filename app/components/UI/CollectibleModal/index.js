@@ -31,6 +31,7 @@ const styles = StyleSheet.create({
  */
 const CollectibleModal = ({ contractName, collectible, onHide, visible, navigation, newAssetTransaction }) => {
 	const [swippable, setSwippable] = useState('down');
+	const [mediaZIndex, setMediaZIndex] = useState(9999);
 
 	const onSend = useCallback(async () => {
 		onHide();
@@ -57,6 +58,20 @@ const CollectibleModal = ({ contractName, collectible, onHide, visible, navigati
 
 	const onTouchEnd = useCallback(() => setSwippable('down'), []);
 
+	/**
+	 * Method that moves the collectible media up or down in the screen depending on
+	 * the animation status, to be able to interact with videos
+	 *
+	 * @param {boolean} moveUp
+	 */
+	const onCollectibleOverviewTranslation = moveUp => {
+		if (moveUp) {
+			setTimeout(() => {
+				setMediaZIndex(9999);
+			}, 500);
+		} else setMediaZIndex(0);
+	};
+
 	return (
 		<Modal
 			isVisible={visible}
@@ -68,7 +83,7 @@ const CollectibleModal = ({ contractName, collectible, onHide, visible, navigati
 			propagateSwipe
 		>
 			<View style={styles.root}>
-				<View style={styles.collectibleMediaWrapper}>
+				<View style={[styles.collectibleMediaWrapper, { zIndex: mediaZIndex }]}>
 					<CollectibleMedia cover renderAnimation collectible={collectible} style={styles.round} />
 				</View>
 				<CollectibleOverview
@@ -79,6 +94,7 @@ const CollectibleModal = ({ contractName, collectible, onHide, visible, navigati
 					tradable={isTradable()}
 					onSend={onSend}
 					openLink={openLink}
+					onTranslation={onCollectibleOverviewTranslation}
 				/>
 			</View>
 		</Modal>
