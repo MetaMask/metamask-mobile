@@ -45,48 +45,70 @@ exports[`CollectibleModal should render correctly 1`] = `
   swipeThreshold={100}
   useNativeDriver={false}
 >
-  <ForwardRef(SafeAreaView)
+  <View
     style={
       Object {
-        "backgroundColor": "#FFFFFF",
-        "borderRadius": 20,
         "flex": 1,
         "maxHeight": "90%",
-        "overflow": "hidden",
       }
     }
   >
     <View
       style={
-        Object {
-          "flex": 1,
-        }
+        Array [
+          Object {
+            "flex": 0,
+            "marginBottom": "30%",
+            "marginHorizontal": 16,
+          },
+          Object {
+            "zIndex": 9999,
+          },
+        ]
       }
-      testID="asset"
     >
-      <Connect(CollectibleOverview)
+      <CollectibleMedia
         collectible={
           Object {
             "address": "0x123",
-            "contractName": "Opensea",
             "name": "Leopard",
             "tokenId": 6904,
           }
         }
-        navigation={
+        cover={true}
+        renderAnimation={true}
+        style={
           Object {
-            "state": Object {
-              "params": Object {
-                "address": "0x1",
-              },
-            },
+            "borderRadius": 12,
           }
         }
-        onSend={[Function]}
-        openLink={[Function]}
-        tradable={true}
       />
     </View>
-  </ForwardRef(SafeAreaView)>
+    <Connect(gestureHandlerRootHOC(CollectibleOverview))
+      collectible={
+        Object {
+          "address": "0x123",
+          "contractName": "Opensea",
+          "name": "Leopard",
+          "tokenId": 6904,
+        }
+      }
+      navigation={
+        Object {
+          "state": Object {
+            "params": Object {
+              "address": "0x1",
+            },
+          },
+        }
+      }
+      onSend={[Function]}
+      onTouchEnd={[Function]}
+      onTouchStart={[Function]}
+      onTranslation={[Function]}
+      openLink={[Function]}
+      tradable={true}
+    />
+  </View>
 </ReactNativeModal>
 `;

@@ -121,7 +121,8 @@ const styles = StyleSheet.create({
 	seekbarFill: {
 		height: 4,
 		width: '100%',
-		borderRadius: 2
+		borderRadius: 2,
+		backgroundColor: colors.white
 	},
 	seekbarPermanentFill: {
 		width: '100%',
@@ -269,6 +270,7 @@ export default function VideoPlayer({
 	const updateSeekerPosition = useCallback(
 		position => {
 			if (!position) return;
+			console.log('position', position);
 			position = constrainToSeekerMinMax(position);
 			setSeekerFillWidth(position);
 			setSeekerPosition(position);
@@ -307,8 +309,8 @@ export default function VideoPlayer({
 	};
 
 	const onProgress = (data = {}) => {
-		if (!scrubbing && !seeking) {
-			const position = data.currentTime / data.playableDuration;
+		if (!scrubbing && !seeking && data?.seekableDuration > 0) {
+			const position = data.currentTime / data.seekableDuration;
 			updateSeekerPosition(position * seekerWidth);
 		}
 	};
@@ -443,8 +445,7 @@ export default function VideoPlayer({
 					style={[
 						styles.seekbarFill,
 						{
-							width: seekerFillWidth,
-							backgroundColor: colors.white
+							width: seekerFillWidth
 						}
 					]}
 					pointerEvents={'none'}

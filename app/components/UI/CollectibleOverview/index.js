@@ -64,7 +64,8 @@ const styles = StyleSheet.create({
 	},
 	button: {
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
+		borderWidth: 1.5
 	},
 	iconButtons: {
 		width: 54,
