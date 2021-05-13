@@ -50,6 +50,7 @@ import TransakWebView from '../../UI/FiatOrders/TransakWebView';
 import ActivityView from '../../Views/ActivityView';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
+import GasEducationCarousel from '../../Views/GasEducationCarousel';
 
 const styles = StyleSheet.create({
 	headerLogo: {
@@ -267,7 +268,8 @@ export default createStackNavigator(
 			screen: createStackNavigator({
 				PaymentMethodSelector: { screen: PaymentMethodSelector },
 				PaymentMethodApplePay: { screen: PaymentMethodApplePay },
-				TransakFlow: { screen: TransakWebView }
+				TransakFlow: { screen: TransakWebView },
+				GasEducationCarousel: { screen: GasEducationCarousel }
 			})
 		},
 		Swaps: {

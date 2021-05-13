@@ -1356,7 +1356,31 @@
 		"failed": "Failed",
 		"cancelled": "Canceled",
 		"amount": "Amount",
-		"total_amount": "Total amount"
+		"total_amount": "Total amount",
+		"gas_education_carousel": {
+			"step_1": {
+				"title": "Before you purchase ETH, understand gas fees",
+				"average_gas_fee": "Current average gas fee:",
+				"subtitle_1": "If you plan to swap or transfer your ETH, purchase extra to cover gas fees.",
+				"subtitle_2": "Gas fees for transactions are separate from the cost of purchasing ETH.",
+				"subtitle_3": "MetaMask does not profit from gas fees."
+			},
+			"step_2": {
+				"title": "What are gas fees?",
+				"subtitle_1": "Gas powers transactions on the Ethereum network. It’s a fee paid in ETH to the crypto miners who process your transactions.",
+				"subtitle_2": "MetaMask does not profit from gas fees.",
+				"learn_more": "Learn more about gas fees"
+			},
+			"step_3": {
+				"title": "How much do I need?",
+				"subtitle_1": "Gas fees fluctuate based on network traffic and type of transaction.",
+				"subtitle_2": "A complex transaction like “swapping” may cost 5x - 10x more than a “send” transaction.",
+				"subtitle_3": "The best way to estimate gas fees is to",
+				"subtitle_4": "try the transaction first",
+				"subtitle_5": "and see how much gas costs.",
+				"cta": "Continue to purchase ETH"
+			}
+		}
 	},
 	"swaps": {
 		"onboarding": {
