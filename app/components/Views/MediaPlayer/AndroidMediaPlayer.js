@@ -270,7 +270,6 @@ export default function VideoPlayer({
 	const updateSeekerPosition = useCallback(
 		position => {
 			if (!position) return;
-			console.log('position', position);
 			position = constrainToSeekerMinMax(position);
 			setSeekerFillWidth(position);
 			setSeekerPosition(position);

@@ -26,6 +26,11 @@ const styles = StyleSheet.create({
 		flex: IS_IOS ? 0 : 1,
 		marginHorizontal: 16,
 		marginBottom: IS_IOS ? '30%' : '0%'
+	},
+	collectibleOverviewWrapper: {
+		flex: 1,
+		elevation: 5,
+		marginTop: '-20%'
 	}
 });
 
@@ -86,19 +91,21 @@ const CollectibleModal = ({ contractName, collectible, onHide, visible, navigati
 			propagateSwipe
 		>
 			<View style={styles.root}>
-				<View style={[styles.collectibleMediaWrapper, { zIndex: mediaZIndex }]}>
+				<View style={[styles.collectibleMediaWrapper, { zIndex: mediaZIndex, elevation: mediaZIndex }]}>
 					<CollectibleMedia cover renderAnimation collectible={collectible} style={styles.round} />
 				</View>
-				<CollectibleOverview
-					onTouchStart={onTouchStart}
-					onTouchEnd={onTouchEnd}
-					navigation={navigation}
-					collectible={{ ...collectible, contractName }}
-					tradable={isTradable()}
-					onSend={onSend}
-					openLink={openLink}
-					onTranslation={onCollectibleOverviewTranslation}
-				/>
+				<View style={styles.collectibleOverviewWrapper}>
+					<CollectibleOverview
+						onTouchStart={onTouchStart}
+						onTouchEnd={onTouchEnd}
+						navigation={navigation}
+						collectible={{ ...collectible, contractName }}
+						tradable={isTradable()}
+						onSend={onSend}
+						openLink={openLink}
+						onTranslation={onCollectibleOverviewTranslation}
+					/>
+				</View>
 			</View>
 		</Modal>
 	);
