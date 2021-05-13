@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { StyleSheet, View, ScrollView, TouchableWithoutFeedback, Easing, Animated } from 'react-native';
+import { StyleSheet, View, ScrollView, TouchableWithoutFeedback, Easing, Animated, SafeAreaView } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { colors } from '../../../styles/common';
@@ -247,90 +247,92 @@ const CollectibleOverview = ({
 				</View>
 			</PanGestureHandler>
 			<ScrollView>
-				<TouchableWithoutFeedback>
-					<View style={styles.informationWrapper}>
-						<View onLayout={onHeaderLayout}>
-							{collectible?.creator && (
-								<View style={styles.userContainer}>
-									<RemoteImage
-										fadeIn
-										placeholderStyle={{ backgroundColor: colors.white }}
-										source={{ uri: collectible.creator.profile_img_url }}
-										style={styles.userImage}
-									/>
-									<View style={styles.userInfoContainer}>
-										{collectible.creator.user?.username && (
-											<Text black bold noMargin big style={styles.username}>
-												{collectible.creator.user.username}
+				<SafeAreaView>
+					<TouchableWithoutFeedback>
+						<View style={styles.informationWrapper}>
+							<View onLayout={onHeaderLayout}>
+								{collectible?.creator && (
+									<View style={styles.userContainer}>
+										<RemoteImage
+											fadeIn
+											placeholderStyle={{ backgroundColor: colors.white }}
+											source={{ uri: collectible.creator.profile_img_url }}
+											style={styles.userImage}
+										/>
+										<View style={styles.userInfoContainer}>
+											{collectible.creator.user?.username && (
+												<Text black bold noMargin big style={styles.username}>
+													{collectible.creator.user.username}
+												</Text>
+											)}
+											<Text black noMargin small>
+												{collectible.contractName}
 											</Text>
-										)}
-										<Text black noMargin small>
-											{collectible.contractName}
+										</View>
+									</View>
+								)}
+								<Text bold primary noMargin style={styles.name}>
+									{collectible.name}
+								</Text>
+								<Text primary noMargin style={styles.tokenId}>
+									{strings('unit.token_id')}
+									{collectible.tokenId}
+								</Text>
+
+								<View style={styles.buttonContainer}>
+									{tradable && (
+										<StyledButton
+											onPress={onSend}
+											type={'rounded-normal'}
+											containerStyle={styles.sendButton}
+										>
+											<Text link big bold noMargin>
+												{strings('asset_overview.send_button')}
+											</Text>
+										</StyledButton>
+									)}
+									{collectible?.externalLink && (
+										<StyledButton
+											type={'rounded-normal'}
+											containerStyle={styles.iconButtons}
+											onPress={shareCollectible}
+										>
+											<Text bold link noMargin>
+												<EvilIcons
+													name={Device.isIos() ? 'share-apple' : 'share-google'}
+													size={32}
+												/>
+											</Text>
+										</StyledButton>
+									)}
+									<StyledButton
+										type={'rounded-normal'}
+										containerStyle={styles.iconButtons}
+										onPress={collectibleToFavorites}
+									>
+										<Text link noMargin>
+											<AntIcons name={isInFavorites ? 'star' : 'staro'} size={24} />
+										</Text>
+									</StyledButton>
+								</View>
+							</View>
+
+							{collectible?.description && (
+								<View style={styles.information}>
+									<View style={styles.row}>
+										<Text noMargin black bold big>
+											{strings('collectible.collectible_description')}
+										</Text>
+										<Text noMargin black style={styles.content}>
+											{collectible.description}
 										</Text>
 									</View>
 								</View>
 							)}
-							<Text bold primary noMargin style={styles.name}>
-								{collectible.name}
-							</Text>
-							<Text primary noMargin style={styles.tokenId}>
-								{strings('unit.token_id')}
-								{collectible.tokenId}
-							</Text>
-
-							<View style={styles.buttonContainer}>
-								{tradable && (
-									<StyledButton
-										onPress={onSend}
-										type={'rounded-normal'}
-										containerStyle={styles.sendButton}
-									>
-										<Text link big bold noMargin>
-											{strings('asset_overview.send_button')}
-										</Text>
-									</StyledButton>
-								)}
-								{collectible?.externalLink && (
-									<StyledButton
-										type={'rounded-normal'}
-										containerStyle={styles.iconButtons}
-										onPress={shareCollectible}
-									>
-										<Text bold link noMargin>
-											<EvilIcons
-												name={Device.isIos() ? 'share-apple' : 'share-google'}
-												size={32}
-											/>
-										</Text>
-									</StyledButton>
-								)}
-								<StyledButton
-									type={'rounded-normal'}
-									containerStyle={styles.iconButtons}
-									onPress={collectibleToFavorites}
-								>
-									<Text link noMargin>
-										<AntIcons name={isInFavorites ? 'star' : 'staro'} size={24} />
-									</Text>
-								</StyledButton>
-							</View>
+							<View style={styles.information}>{renderCollectibleInfo()}</View>
 						</View>
-
-						{collectible?.description && (
-							<View style={styles.information}>
-								<View style={styles.row}>
-									<Text noMargin black bold big>
-										{strings('collectible.collectible_description')}
-									</Text>
-									<Text noMargin black style={styles.content}>
-										{collectible.description}
-									</Text>
-								</View>
-							</View>
-						)}
-						<View style={styles.information}>{renderCollectibleInfo()}</View>
-					</View>
-				</TouchableWithoutFeedback>
+					</TouchableWithoutFeedback>
+				</SafeAreaView>
 			</ScrollView>
 		</Animated.View>
 	);

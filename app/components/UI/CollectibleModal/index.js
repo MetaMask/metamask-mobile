@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
 	},
 	collectibleMediaWrapper: {
 		marginHorizontal: 16,
-		marginBottom: '-30%'
+		marginBottom: '30%'
 	}
 });
 

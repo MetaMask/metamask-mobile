@@ -6,11 +6,12 @@ import MediaPlayer from '../../Views/MediaPlayer';
 import { colors } from '../../../styles/common';
 import scaling from '../../../util/scaling';
 import Text from '../../Base/Text';
+import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
 	container(backgroundColor) {
 		return {
-			borderRadius: 8,
+			flex: 1,
 			backgroundColor: `#${backgroundColor}`
 		};
 	},
@@ -27,7 +28,7 @@ const styles = StyleSheet.create({
 		width: 260
 	},
 	cover: {
-		height: scaling.scale(244, { baseModel: 2 })
+		height: scaling.scale(Device.getDeviceWidth(), { baseModel: 2 })
 	},
 	image: {
 		borderRadius: 12
@@ -42,7 +43,7 @@ const styles = StyleSheet.create({
 		textAlign: 'center'
 	},
 	mediaPlayer: {
-		height: 300
+		minHeight: 200
 	}
 });
 
@@ -62,7 +63,9 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 
 	const renderMedia = useCallback(() => {
 		if (renderAnimation && collectible.animation) {
-			return <MediaPlayer uri={collectible.animation} style={[styles.mediaPlayer, style]} />;
+			return (
+				<MediaPlayer uri={collectible.animation} style={[styles.mediaPlayer, cover && styles.cover, style]} />
+			);
 		} else if (sourceUri) {
 			return (
 				<RemoteImage
