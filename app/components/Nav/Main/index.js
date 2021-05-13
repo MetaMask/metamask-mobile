@@ -57,7 +57,8 @@ import AccountApproval from '../../UI/AccountApproval';
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
-import { swapsUtils, util } from '@metamask/swaps-controller';
+import { swapsUtils } from '@metamask/swaps-controller';
+import { util } from '@metamask/controllers';
 import SwapsLiveness from '../../UI/Swaps/SwapsLiveness';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
@@ -66,7 +67,8 @@ import { setInfuraAvailabilityBlocked, setInfuraAvailabilityNotBlocked } from '.
 
 const styles = StyleSheet.create({
 	flex: {
-		flex: 1
+		flex: 1,
+		marginTop: Device.isIphone12() ? 20 : 0
 	},
 	loader: {
 		backgroundColor: colors.white,
@@ -237,12 +239,12 @@ const Main = props => {
 					.div(gasEstimate)
 					.times(100)
 					.toFixed(2)}%`;
-				const quoteVsExecutionRatio = `${util
+				const quoteVsExecutionRatio = `${swapsUtils
 					.calcTokenAmount(tokensReceived || '0x0', swapTransaction.destinationTokenDecimals)
 					.div(swapTransaction.destinationAmount)
 					.times(100)
 					.toFixed(2)}%`;
-				const tokenToAmountReceived = util.calcTokenAmount(
+				const tokenToAmountReceived = swapsUtils.calcTokenAmount(
 					tokensReceived,
 					swapTransaction.destinationToken.decimals
 				);
@@ -315,11 +317,12 @@ const Main = props => {
 			// if approval data includes metaswap contract
 			// if destination address is metaswap contract
 			if (
-				to === swapsUtils.getSwapsContractAddress(props.chainId) ||
-				(data &&
-					data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
-					decodeApproveData(data).spenderAddress?.toLowerCase() ===
-						swapsUtils.getSwapsContractAddress(props.chainId))
+				to &&
+				(to === swapsUtils.getSwapsContractAddress(props.chainId) ||
+					(data &&
+						data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
+						decodeApproveData(data).spenderAddress?.toLowerCase() ===
+							swapsUtils.getSwapsContractAddress(props.chainId)))
 			) {
 				if (transactionMeta.origin === process.env.MM_FOX_CODE) {
 					autoSign(transactionMeta);

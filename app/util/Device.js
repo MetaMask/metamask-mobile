@@ -1,6 +1,7 @@
 'use strict';
 
 import { Dimensions, Platform } from 'react-native';
+import { getModel } from 'react-native-device-info';
 
 export default class Device {
 	static getDeviceWidth() {
@@ -79,5 +80,11 @@ export default class Device {
 
 	static isMediumDevice() {
 		return this.getDeviceHeight() < 736;
+	}
+
+	static isIphone12() {
+		const model = getModel();
+		const models = ['iPhone 12', 'iPhone 12 Pro', 'iPhone 12 Pro Max'];
+		return models.includes(model);
 	}
 }

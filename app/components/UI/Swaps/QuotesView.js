@@ -7,8 +7,8 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import FAIcon from 'react-native-vector-icons/FontAwesome';
 import BigNumber from 'bignumber.js';
 import { NavigationContext } from 'react-navigation';
-import { swapsUtils, util } from '@metamask/swaps-controller';
-import { WalletDevice } from '@metamask/controllers/';
+import { swapsUtils } from '@metamask/swaps-controller';
+import { WalletDevice, util } from '@metamask/controllers/';
 
 import {
 	BNToHex,
@@ -50,8 +50,10 @@ import InfoModal from './components/InfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import useBalance from './utils/useBalance';
 import useGasPrice from './utils/useGasPrice';
+import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { decodeApproveData, getTicker } from '../../../util/transactions';
-import Logger from '../../../util/Logger';
+import { toLowerCaseCompare } from '../../../util/general';
+import { swapsTokensSelector } from '../../../reducers/swaps';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
 const EDIT_MODE_GAS = 'EDIT_MODE_GAS';
@@ -199,6 +201,9 @@ const styles = StyleSheet.create({
 	termsButton: {
 		marginTop: 10,
 		marginBottom: 6
+	},
+	text: {
+		lineHeight: 20
 	}
 });
 
@@ -276,10 +281,8 @@ function SwapsQuotesView({
 	);
 
 	/* Get tokens from the tokens list */
-	const sourceToken = swapsTokens?.find(token => token.address?.toLowerCase() === sourceTokenAddress.toLowerCase());
-	const destinationToken = swapsTokens?.find(
-		token => token.address?.toLowerCase() === destinationTokenAddress.toLowerCase()
-	);
+	const sourceToken = swapsTokens?.find(token => toLowerCaseCompare(token.address, sourceTokenAddress));
+	const destinationToken = swapsTokens?.find(token => toLowerCaseCompare(token.address, destinationTokenAddress));
 
 	const hasConversionRate =
 		Boolean(destinationToken) &&
@@ -684,7 +687,7 @@ function SwapsQuotesView({
 						speed_set: details.mode === 'advanced' ? undefined : details.mode,
 						gas_mode: details.mode === 'advanced' ? 'Advanced' : 'Basic',
 						gas_fees: weiToFiat(
-							toWei(util.calcTokenAmount(newGasLimit.times(newGasPrice), 18)),
+							toWei(swapsUtils.calcTokenAmount(newGasLimit.times(newGasPrice), 18)),
 							conversionRate,
 							currentCurrency
 						)
@@ -775,7 +778,6 @@ function SwapsQuotesView({
 				slippage,
 				custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
 			};
-			Logger.error(error?.description, `Swaps: ${error?.key}`);
 			if (error?.key === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR) {
 				InteractionManager.runAfterInteractions(() => {
 					const parameters = {
@@ -791,6 +793,8 @@ function SwapsQuotesView({
 					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.NO_QUOTES_AVAILABLE, {});
 					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.NO_QUOTES_AVAILABLE, parameters, true);
 				});
+			} else {
+				trackErrorAsAnalytics(`Swaps: ${error?.key}`, error?.description);
 			}
 		},
 		[sourceToken, sourceAmount, destinationToken, hasEnoughTokenBalance, slippage]
@@ -1303,20 +1307,20 @@ function SwapsQuotesView({
 				isVisible={isUpdateModalVisible}
 				toggleModal={toggleUpdateModal}
 				title={strings('swaps.quotes_update_often')}
-				body={<Text>{strings('swaps.quotes_update_often_text')}</Text>}
+				body={<Text style={styles.text}>{strings('swaps.quotes_update_often_text')}</Text>}
 			/>
 			<InfoModal
 				isVisible={isPriceDifferenceModalVisible}
 				toggleModal={togglePriceDifferenceModal}
 				title={strings('swaps.price_difference_title')}
-				body={<Text>{strings('swaps.price_difference_body')}</Text>}
+				body={<Text style={styles.text}>{strings('swaps.price_difference_body')}</Text>}
 			/>
 			<InfoModal
 				isVisible={isFeeModalVisible}
 				toggleModal={toggleFeeModal}
 				title={strings('swaps.metamask_swap_fee')}
 				body={
-					<Text>
+					<Text style={styles.text}>
 						{strings('swaps.fee_text.get_the')} <Text bold>{strings('swaps.fee_text.best_price')}</Text>{' '}
 						{strings('swaps.fee_text.from_the')} <Text bold>{strings('swaps.fee_text.top_liquidity')}</Text>{' '}
 						{strings('swaps.fee_text.fee_is_applied', {
@@ -1415,7 +1419,6 @@ const mapStateToProps = state => ({
 	balances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	swapsTokens: state.engine.backgroundState.SwapsController.tokens,
 	isInPolling: state.engine.backgroundState.SwapsController.isInPolling,
 	quotesLastFetched: state.engine.backgroundState.SwapsController.quotesLastFetched,
 	pollingCyclesLeft: state.engine.backgroundState.SwapsController.pollingCyclesLeft,
@@ -1426,7 +1429,8 @@ const mapStateToProps = state => ({
 	approvalTransaction: state.engine.backgroundState.SwapsController.approvalTransaction,
 	error: state.engine.backgroundState.SwapsController.error,
 	quoteRefreshSeconds: state.engine.backgroundState.SwapsController.quoteRefreshSeconds,
-	usedGasPrice: state.engine.backgroundState.SwapsController.usedGasPrice
+	usedGasPrice: state.engine.backgroundState.SwapsController.usedGasPrice,
+	swapsTokens: swapsTokensSelector(state)
 });
 
 export default connect(mapStateToProps)(SwapsQuotesView);
