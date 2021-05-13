@@ -5,7 +5,7 @@
 	<key>provisioningProfiles</key>
 	<dict>
 		<key>io.metamask.MetaMask</key>
-		<string>match AppStore io.metamask.MetaMask</string>
+		<string>Bitrise AppStore io.metamask.MetaMask</string>
 	</dict>
 	<key>uploadSymbols</key>
 	<true/>
