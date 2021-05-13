@@ -62,21 +62,16 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		marginTop: 16
 	},
-	sendButton: {
-		height: 54,
-		flex: 1,
+	button: {
 		alignItems: 'center',
-		justifyContent: 'center',
-		borderWidth: 2,
-		marginRight: 9
+		justifyContent: 'center'
 	},
 	iconButtons: {
 		width: 54,
-		height: 54,
-		alignItems: 'center',
-		justifyContent: 'center',
-		borderWidth: 2,
-		marginRight: 9
+		height: 54
+	},
+	leftButton: {
+		marginRight: 16
 	},
 	collectibleInfoContainer: {
 		flexDirection: 'row',
@@ -285,7 +280,7 @@ const CollectibleOverview = ({
 										<StyledButton
 											onPress={onSend}
 											type={'rounded-normal'}
-											containerStyle={styles.sendButton}
+											containerStyle={[baseStyles.flexGrow, styles.button, styles.leftButton]}
 										>
 											<Text link big bold noMargin>
 												{strings('asset_overview.send_button')}
@@ -295,7 +290,7 @@ const CollectibleOverview = ({
 									{collectible?.externalLink && (
 										<StyledButton
 											type={'rounded-normal'}
-											containerStyle={styles.iconButtons}
+											containerStyle={[styles.button, styles.iconButtons, styles.leftButton]}
 											onPress={shareCollectible}
 										>
 											<Text bold link noMargin>
@@ -308,7 +303,7 @@ const CollectibleOverview = ({
 									)}
 									<StyledButton
 										type={'rounded-normal'}
-										containerStyle={styles.iconButtons}
+										containerStyle={[styles.button, styles.iconButtons]}
 										onPress={collectibleToFavorites}
 									>
 										<Text link noMargin>
