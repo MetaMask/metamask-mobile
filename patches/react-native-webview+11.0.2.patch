@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
-index 2190ae7..c2414ce 100644
+index 2190ae7..e93ac41 100644
 --- a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
 +++ b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
 @@ -1,5 +1,27 @@
@@ -80,7 +80,7 @@ index 2190ae7..c2414ce 100644
      setupWebChromeClient(reactContext, webView);
      reactContext.addLifecycleEventListener(webView);
      mWebViewConfig.configWebView(webView);
-@@ -246,9 +284,96 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -246,9 +284,107 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        }
      });
  
@@ -102,6 +102,17 @@ index 2190ae7..c2414ce 100644
      return webView;
    }
  
++  @Override
++  public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
++    InputConnection inputConnection = new BaseInputConnection(this, false);
++    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
++      outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING;
++    }
++    outAttrs.imeOptions = EditorInfo.IME_ACTION_DONE;
++    outAttrs.inputType = InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD;
++    return inputConnection;
++  }
++
 +  private Boolean urlStringLooksInvalid(String urlString) {
 +    return urlString == null ||
 +       urlString.trim().equals("") ||
@@ -177,7 +188,7 @@ index 2190ae7..c2414ce 100644
    @ReactProp(name = "javaScriptEnabled")
    public void setJavaScriptEnabled(WebView view, boolean enabled) {
      view.getSettings().setJavaScriptEnabled(enabled);
-@@ -778,8 +903,94 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -778,8 +914,94 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      }
    }
  
@@ -236,7 +247,7 @@ index 2190ae7..c2414ce 100644
 +        if (scriptWasInjected || !hasJS) {
 +            return pageIS.read();
 +        }
-+
+ 
 +        if (!scriptWasInjected && headWasFound) {
 +            int nextByte = scriptIS.read();
 +            if (nextByte == -1) {
@@ -268,12 +279,12 @@ index 2190ae7..c2414ce 100644
 +  }
 +
 +  protected class RNCWebViewClient extends WebViewClient {
- 
++
 +    protected static final String REACT_CLASS = "RNCWebViewClient";
      protected boolean mLastLoadFailed = false;
      protected @Nullable
      ReadableArray mUrlPrefixesForDefaultIntent;
-@@ -808,9 +1019,6 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -808,9 +1030,6 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        super.onPageStarted(webView, url, favicon);
        mLastLoadFailed = false;
  
@@ -283,7 +294,7 @@ index 2190ae7..c2414ce 100644
        dispatchEvent(
          webView,
          new TopLoadingStartEvent(
-@@ -818,6 +1026,16 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -818,6 +1037,16 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
            createWebViewEvent(webView, url)));
      }
  
@@ -300,7 +311,7 @@ index 2190ae7..c2414ce 100644
      @Override
      public boolean shouldOverrideUrlLoading(WebView view, String url) {
        final RNCWebView rncWebView = (RNCWebView) view;
-@@ -870,6 +1088,21 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -870,6 +1099,21 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      @TargetApi(Build.VERSION_CODES.N)
      @Override
      public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
