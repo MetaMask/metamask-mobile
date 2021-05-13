@@ -18,11 +18,12 @@
     "setup": "yarn install && yarn allow-scripts",
     "test": "jest",
     "test:watch": "jest --watch",
-    "prepublishOnly": "yarn build && yarn lint && yarn test",
+    "prepublishOnly": "yarn build:clean && yarn lint && yarn test",
     "lint:eslint": "eslint . --cache --ext js,ts",
     "lint:misc": "prettier '**/*.json' '**/*.md' '**/*.yml' --single-quote --ignore-path .gitignore",
     "lint": "yarn lint:eslint && yarn lint:misc --check",
     "lint:fix": "yarn lint:eslint --fix && yarn lint:misc --write",
+    "build:clean": "rimraf dist && yarn build",
     "build": "tsc --project ."
   },
   "devDependencies": {
@@ -42,6 +43,7 @@
     "eslint-plugin-prettier": "^3.3.1",
     "jest": "^26.4.2",
     "prettier": "^2.2.1",
+    "rimraf": "^3.0.2",
     "ts-jest": "^26.3.0",
     "typescript": "^4.2.4"
   },
