@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Video from 'react-native-video';
 import PropTypes from 'prop-types';
 import {
-	TouchableWithoutFeedback,
 	TouchableHighlight,
 	PanResponder,
 	StyleSheet,
@@ -12,11 +11,12 @@ import {
 	Image,
 	View,
 	Text,
-	ViewPropTypes
+	ViewPropTypes,
+	TouchableNativeFeedback
 } from 'react-native';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { colors } from '../../../styles/common';
+import { baseStyles, colors } from '../../../styles/common';
 
 const styles = StyleSheet.create({
 	playerContainer: {
@@ -30,7 +30,8 @@ const styles = StyleSheet.create({
 		right: 0,
 		bottom: 0,
 		left: 0,
-		backgroundColor: colors.black
+		backgroundColor: colors.black,
+		borderRadius: 12
 	},
 	errorContainer: {
 		position: 'absolute',
@@ -80,7 +81,8 @@ const styles = StyleSheet.create({
 	controlsBottom: {
 		flex: 1,
 		justifyContent: 'flex-end',
-		padding: 4
+		padding: 4,
+		overflow: 'hidden'
 	},
 	controlsTopControlGroup: {
 		alignSelf: 'stretch',
@@ -199,29 +201,13 @@ export default function VideoPlayer({
 				duration: controlsAnimationTiming,
 				useNativeDriver: false
 			}),
-			Animated.timing(animations.topControl.marginTop, {
-				toValue: -100,
-				duration: controlsAnimationTiming,
-				useNativeDriver: false
-			}),
 			Animated.timing(animations.bottomControl.opacity, {
 				toValue: 0,
 				duration: controlsAnimationTiming,
 				useNativeDriver: false
-			}),
-			Animated.timing(animations.bottomControl.marginBottom, {
-				toValue: -100,
-				duration: controlsAnimationTiming,
-				useNativeDriver: false
 			})
 		]).start();
-	}, [
-		controlsAnimationTiming,
-		animations.bottomControl.opacity,
-		animations.bottomControl.marginBottom,
-		animations.topControl.opacity,
-		animations.topControl.marginTop
-	]);
+	}, [controlsAnimationTiming, animations.bottomControl.opacity, animations.topControl.opacity]);
 
 	const hideControls = useCallback(() => {
 		setShowControls(true);
@@ -242,18 +228,8 @@ export default function VideoPlayer({
 				useNativeDriver: false,
 				duration: controlsAnimationTiming
 			}),
-			Animated.timing(animations.topControl.marginTop, {
-				toValue: 0,
-				useNativeDriver: false,
-				duration: controlsAnimationTiming
-			}),
 			Animated.timing(animations.bottomControl.opacity, {
 				toValue: 1,
-				useNativeDriver: false,
-				duration: controlsAnimationTiming
-			}),
-			Animated.timing(animations.bottomControl.marginBottom, {
-				toValue: 0,
 				useNativeDriver: false,
 				duration: controlsAnimationTiming
 			})
@@ -261,9 +237,7 @@ export default function VideoPlayer({
 	}, [
 		controlsAnimationTiming,
 		animations.bottomControl.opacity,
-		animations.bottomControl.marginBottom,
 		animations.topControl.opacity,
-		animations.topControl.marginTop,
 		resetControlsTimeout
 	]);
 
@@ -527,8 +501,7 @@ export default function VideoPlayer({
 			style={[
 				styles.controlsTop,
 				{
-					opacity: animations.topControl.opacity,
-					marginTop: animations.topControl.marginTop
+					opacity: animations.topControl.opacity
 				}
 			]}
 		>
@@ -545,8 +518,7 @@ export default function VideoPlayer({
 			style={[
 				styles.controlsBottom,
 				{
-					opacity: animations.bottomControl.opacity,
-					marginBottom: animations.bottomControl.marginBottom
+					opacity: animations.bottomControl.opacity
 				}
 			]}
 		>
@@ -561,8 +533,8 @@ export default function VideoPlayer({
 	);
 
 	return (
-		<TouchableWithoutFeedback onPress={onScreenTouch} style={styles.playerContainer}>
-			<View>
+		<TouchableNativeFeedback onPress={onScreenTouch} style={[styles.playerContainer, style]}>
+			<View style={baseStyles.flexGrow}>
 				<Video
 					ref={videoRef}
 					paused={paused}
@@ -571,7 +543,7 @@ export default function VideoPlayer({
 					onSeek={onSeek}
 					onLoadStart={onLoadStart}
 					onProgress={onProgress}
-					style={[styles.playerVideo, style]}
+					style={[styles.playerVideo]}
 					source={source}
 					resizeMode="contain"
 					repeat
@@ -581,7 +553,7 @@ export default function VideoPlayer({
 				{displayTopControls && renderTopControls()}
 				{displayBottomControls && renderBottomControls()}
 			</View>
-		</TouchableWithoutFeedback>
+		</TouchableNativeFeedback>
 	);
 }
 

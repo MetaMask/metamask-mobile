@@ -7,11 +7,13 @@ import collectiblesTransferInformation from '../../../util/collectibles-transfer
 import { newAssetTransaction } from '../../../actions/transaction';
 import Modal from 'react-native-modal';
 import CollectibleMedia from '../CollectibleMedia';
+import Device from '../../../util/Device';
 
+const IS_IOS = Device.isIos();
 const styles = StyleSheet.create({
 	root: {
 		flex: 1,
-		maxHeight: '85%'
+		maxHeight: '90%'
 	},
 	bottomModal: {
 		justifyContent: 'flex-end',
@@ -21,8 +23,9 @@ const styles = StyleSheet.create({
 		borderRadius: 12
 	},
 	collectibleMediaWrapper: {
+		flex: IS_IOS ? 0 : 1,
 		marginHorizontal: 16,
-		marginBottom: '30%'
+		marginBottom: IS_IOS ? '30%' : '0%'
 	}
 });
 
@@ -68,7 +71,7 @@ const CollectibleModal = ({ contractName, collectible, onHide, visible, navigati
 		if (moveUp) {
 			setTimeout(() => {
 				setMediaZIndex(9999);
-			}, 500);
+			}, 1000);
 		} else setMediaZIndex(0);
 	};
 

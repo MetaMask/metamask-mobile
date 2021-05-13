@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
 		textAlign: 'center'
 	},
 	mediaPlayer: {
-		minHeight: 200
+		minHeight: 10
 	}
 });
 
