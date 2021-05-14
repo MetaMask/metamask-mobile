@@ -22,7 +22,6 @@ const styles = StyleSheet.create({
 	playerContainer: {
 		flex: 0,
 		overflow: 'hidden',
-		backgroundColor: colors.red,
 		zIndex: 99999,
 		elevation: 99999
 	},
