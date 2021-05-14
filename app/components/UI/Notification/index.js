@@ -21,7 +21,7 @@ function Notification(props) {
 		removeCurrentNotification
 	} = props;
 
-	const notificationAnimated = useRef(new Animated.Value(100)).current;
+	const notificationAnimated = useRef(new Animated.Value(200)).current;
 
 	const usePrevious = value => {
 		const ref = useRef();
@@ -51,10 +51,11 @@ function Notification(props) {
 
 	useEffect(
 		() => () => {
-			removeCurrentNotification();
+			animatedTimingStart(notificationAnimated, 200);
 			hideCurrentNotification();
+			removeCurrentNotification();
 		},
-		[hideCurrentNotification, removeCurrentNotification]
+		[notificationAnimated, animatedTimingStart, hideCurrentNotification, removeCurrentNotification]
 	);
 
 	useEffect(() => {
