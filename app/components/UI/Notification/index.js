@@ -49,7 +49,7 @@ function Notification(props) {
 		return route?.routeName === BROWSER_ROUTE;
 	}, [navigation.state]);
 
-	useEffect(() => () => removeCurrentNotification(), [hideCurrentNotification, removeCurrentNotification]);
+	useEffect(() => () => removeCurrentNotification(), [removeCurrentNotification]);
 
 	useEffect(() => {
 		if (!prevNotificationIsVisible && currentNotificationIsVisible) {

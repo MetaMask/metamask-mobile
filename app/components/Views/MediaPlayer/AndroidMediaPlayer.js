@@ -15,6 +15,7 @@ import {
 	TouchableNativeFeedback
 } from 'react-native';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
+import AntIcon from 'react-native-vector-icons/AntDesign';
 import { baseStyles, colors } from '../../../styles/common';
 
 const styles = StyleSheet.create({
@@ -156,6 +157,7 @@ export default function VideoPlayer({
 	source,
 	displayTopControls,
 	displayBottomControls,
+	onClose,
 	style
 }) {
 	const [paused, setPaused] = useState(false);
@@ -248,9 +250,9 @@ export default function VideoPlayer({
 		setShowControls(!showControls);
 	};
 
-	const togglePlayPause = () => setPaused(!paused);
+	const togglePlayPause = useCallback(() => setPaused(!paused), [paused]);
 
-	const toggleMuted = () => setMuted(!muted);
+	const toggleMuted = useCallback(() => setMuted(!muted), [muted]);
 
 	const constrainToSeekerMinMax = useCallback(
 		(val = 0) => {
@@ -417,48 +419,57 @@ export default function VideoPlayer({
 		</TouchableHighlight>
 	);
 
-	const renderMuteUnmuteControl = () =>
-		renderControl(
-			<FA5Icon color={colors.white} size={18} name={`volume-${muted ? 'mute' : 'up'}`} />,
-			toggleMuted,
-			styles.controlsMuteUnmute
-		);
+	const renderMuteUnmuteControl = useCallback(
+		() =>
+			renderControl(
+				<FA5Icon color={colors.white} size={18} name={`volume-${muted ? 'mute' : 'up'}`} />,
+				toggleMuted,
+				styles.controlsMuteUnmute
+			),
+		[muted, toggleMuted]
+	);
 
-	const onLayoutSeekerWidth = event => setSeekerWidth(event.nativeEvent.layout.width);
+	const onLayoutSeekerWidth = useCallback(event => setSeekerWidth(event.nativeEvent.layout.width), []);
 
 	useEffect(() => clearTimeout(controlsTimeout.current), []);
 
-	const renderSeekbar = () => (
-		<View style={styles.seekbarContainer} collapsable={false} {...seekPanResponder.panHandlers}>
-			<View style={styles.seekbarTrack}>
-				<View style={[styles.seekbarFill, styles.seekbarPermanentFill]} />
-			</View>
-			<View style={styles.seekbarTrack} onLayout={onLayoutSeekerWidth} pointerEvents={'none'}>
-				<View
-					style={[
-						styles.seekbarFill,
-						{
-							width: seekerFillWidth
-						}
-					]}
-					pointerEvents={'none'}
-				/>
-			</View>
+	const renderSeekbar = useCallback(
+		() => (
+			<View style={styles.seekbarContainer} collapsable={false} {...seekPanResponder.panHandlers}>
+				<View style={styles.seekbarTrack}>
+					<View style={[styles.seekbarFill, styles.seekbarPermanentFill]} />
+				</View>
+				<View style={styles.seekbarTrack} onLayout={onLayoutSeekerWidth} pointerEvents={'none'}>
+					<View
+						style={[
+							styles.seekbarFill,
+							{
+								width: seekerFillWidth
+							}
+						]}
+						pointerEvents={'none'}
+					/>
+				</View>
 
-			<View style={[styles.seekbarHandle, { left: seekerPosition }]} pointerEvents={'none'}>
-				<View style={[styles.seekbarCircle, { backgroundColor: colors.white }]} pointerEvents={'none'} />
+				<View style={[styles.seekbarHandle, { left: seekerPosition }]} pointerEvents={'none'}>
+					<View style={[styles.seekbarCircle, { backgroundColor: colors.white }]} pointerEvents={'none'} />
+				</View>
 			</View>
-		</View>
+		),
+		[seekerPosition, seekPanResponder.panHandlers, seekerFillWidth, onLayoutSeekerWidth]
 	);
 
-	const renderPlayPause = () =>
-		renderControl(
-			<FA5Icon color={colors.white} size={16} name={paused ? 'play' : 'pause'} />,
-			togglePlayPause,
-			styles.controlsPlayPause
-		);
+	const renderPlayPause = useCallback(
+		() =>
+			renderControl(
+				<FA5Icon color={colors.white} size={16} name={paused ? 'play' : 'pause'} />,
+				togglePlayPause,
+				styles.controlsPlayPause
+			),
+		[paused, togglePlayPause]
+	);
 
-	const renderLoader = () => {
+	const renderLoader = useCallback(() => {
 		if (!loading) return;
 		return (
 			<View style={styles.loaderContainer}>
@@ -476,7 +487,7 @@ export default function VideoPlayer({
 				/>
 			</View>
 		);
-	};
+	}, [loading, animations.loader.rotate]);
 
 	const renderError = () => {
 		if (!error) return;
@@ -490,6 +501,11 @@ export default function VideoPlayer({
 		}
 	};
 
+	const renderClose = useCallback(
+		() => renderControl(<AntIcon color={colors.white} size={16} name={'close'} />, onClose, {}),
+		[onClose]
+	);
+
 	const renderTopControls = () => (
 		<Animated.View
 			style={[
@@ -501,9 +517,7 @@ export default function VideoPlayer({
 		>
 			<View style={[styles.controlsColumn]}>
 				<SafeAreaView style={[styles.controlsRow, styles.controlsTopControlGroup]}>
-					<View style={styles.actionButton}>
-						<Text>{'X'}</Text>
-					</View>
+					<View style={styles.actionButton}>{renderClose()}</View>
 				</SafeAreaView>
 			</View>
 		</Animated.View>
@@ -545,7 +559,7 @@ export default function VideoPlayer({
 				/>
 				{renderError()}
 				{renderLoader()}
-				{displayTopControls && renderTopControls()}
+				{onClose && displayTopControls && renderTopControls()}
 				{displayBottomControls && renderBottomControls()}
 			</View>
 		</TouchableNativeFeedback>
@@ -558,6 +572,7 @@ VideoPlayer.propTypes = {
 	source: PropTypes.object,
 	displayTopControls: PropTypes.bool,
 	displayBottomControls: PropTypes.bool,
+	onClose: PropTypes.func,
 	style: ViewPropTypes.style
 };
 

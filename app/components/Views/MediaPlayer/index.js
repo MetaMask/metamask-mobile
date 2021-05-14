@@ -5,11 +5,11 @@ import AndroidMediaPlayer from './AndroidMediaPlayer';
 import Video from 'react-native-video';
 import Device from '../../../util/Device';
 
-function MediaPlayer({ uri, style }) {
+function MediaPlayer({ uri, style, onClose }) {
 	if (Device.isAndroid())
 		return (
 			<View style={style}>
-				<AndroidMediaPlayer source={{ uri }} />
+				<AndroidMediaPlayer onClose={onClose} source={{ uri }} />
 			</View>
 		);
 	return <Video style={style} muted source={{ uri }} controls />;
@@ -23,7 +23,11 @@ MediaPlayer.propTypes = {
 	/**
 	 * Custom style object
 	 */
-	style: ViewPropTypes.style
+	style: ViewPropTypes.style,
+	/**
+	 * On close callback
+	 */
+	onClose: PropTypes.func
 };
 
 MediaPlayer.defaultProps = {

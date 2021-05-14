@@ -91,7 +91,13 @@ const CollectibleModal = ({ contractName, collectible, onHide, visible, navigati
 			propagateSwipe
 		>
 			<View coverScreen style={[styles.collectibleMediaWrapper, { zIndex: mediaZIndex, elevation: mediaZIndex }]}>
-				<CollectibleMedia cover renderAnimation collectible={collectible} style={styles.round} />
+				<CollectibleMedia
+					onClose={onHide}
+					cover
+					renderAnimation
+					collectible={collectible}
+					style={styles.round}
+				/>
 			</View>
 			<View style={[baseStyles.flexStatic, { zIndex: overviewZIndex, elevation: overviewZIndex }]}>
 				<CollectibleOverview
