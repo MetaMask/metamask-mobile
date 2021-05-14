@@ -15,7 +15,6 @@ import {
 	TouchableNativeFeedback
 } from 'react-native';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { baseStyles, colors } from '../../../styles/common';
 
 const styles = StyleSheet.create({
@@ -70,36 +69,34 @@ const styles = StyleSheet.create({
 	controlsControl: {
 		padding: 14
 	},
-	controlsPullRight: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center'
-	},
+	// controlsPullRight: {
+	// 	flexDirection: 'row',
+	// 	alignItems: 'center',
+	// 	justifyContent: 'center'
+	// },
 	controlsTop: {
 		flex: 1,
-		alignItems: 'stretch',
-		justifyContent: 'flex-start'
+		justifyContent: 'flex-start',
+		padding: 4
 	},
 	controlsBottom: {
 		flex: 1,
 		justifyContent: 'flex-end',
-		padding: 4,
-		overflow: 'hidden'
+		padding: 4
 	},
 	controlsTopControlGroup: {
-		alignSelf: 'stretch',
+		alignSelf: 'flex-end',
 		alignItems: 'center',
-		justifyContent: 'space-between',
-		flexDirection: 'row'
+		justifyContent: 'space-between'
 	},
 	controlsBottomControlGroup: {
 		alignSelf: 'stretch',
 		alignItems: 'center',
 		justifyContent: 'space-between'
 	},
-	controlsFullscreen: {
-		flexDirection: 'row'
-	},
+	// controlsFullscreen: {
+	// 	flexDirection: 'row'
+	// },
 	controlsPlayPause: {
 		left: 1
 	},
@@ -250,8 +247,6 @@ export default function VideoPlayer({
 		}
 		setShowControls(!showControls);
 	};
-
-	const toggleFullscreen = () => null;
 
 	const togglePlayPause = () => setPaused(!paused);
 
@@ -422,9 +417,6 @@ export default function VideoPlayer({
 		</TouchableHighlight>
 	);
 
-	const renderFullscreen = () =>
-		renderControl(<FontAwesome name={'expand'} />, toggleFullscreen, styles.controlsFullscreen);
-
 	const renderMuteUnmuteControl = () =>
 		renderControl(
 			<FA5Icon color={colors.white} size={18} name={`volume-${muted ? 'mute' : 'up'}`} />,
@@ -503,13 +495,15 @@ export default function VideoPlayer({
 			style={[
 				styles.controlsTop,
 				{
-					opacity: animations.topControl.opacity
+					opacity: animations.bottomControl.opacity
 				}
 			]}
 		>
 			<View style={[styles.controlsColumn]}>
-				<SafeAreaView style={styles.controlsTopControlGroup}>
-					<View style={[styles.actionButton, styles.controlsPullRight]}>{renderFullscreen()}</View>
+				<SafeAreaView style={[styles.controlsRow, styles.controlsTopControlGroup]}>
+					<View style={styles.actionButton}>
+						<Text>{'X'}</Text>
+					</View>
 				</SafeAreaView>
 			</View>
 		</Animated.View>
@@ -571,6 +565,6 @@ VideoPlayer.defaultProps = {
 	doubleTapTime: 100,
 	controlsAnimationTiming: 500,
 	controlsToggleTiming: 5000,
-	displayTopControls: false,
+	displayTopControls: true,
 	displayBottomControls: true
 };
