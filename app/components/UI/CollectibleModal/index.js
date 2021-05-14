@@ -12,8 +12,7 @@ import { baseStyles } from '../../../styles/common';
 const styles = StyleSheet.create({
 	bottomModal: {
 		justifyContent: 'flex-end',
-		margin: 0,
-		flex: 1
+		margin: 0
 	},
 	round: {
 		borderRadius: 12
@@ -74,7 +73,7 @@ const CollectibleModal = ({ contractName, collectible, onHide, visible, navigati
 			setTimeout(() => {
 				setMediaZIndex(20);
 				setOverviewZIndex(10);
-			}, 500);
+			}, 250);
 		} else {
 			setMediaZIndex(0);
 			setOverviewZIndex(10);

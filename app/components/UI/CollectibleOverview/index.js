@@ -24,7 +24,8 @@ const styles = StyleSheet.create({
 		flex: 0,
 		backgroundColor: colors.white,
 		borderTopEndRadius: 8,
-		borderTopStartRadius: 8
+		borderTopStartRadius: 8,
+		marginTop: '10%'
 	},
 	informationWrapper: {
 		paddingHorizontal: 16
@@ -325,12 +326,12 @@ const CollectibleOverview = ({
 
 					{gestureHandlerWrapper(
 						collectible?.description && (
-							<View style={styles.information}>
+							<View style={[styles.information]}>
 								<View style={styles.row}>
 									<Text noMargin black bold big>
 										{strings('collectible.collectible_description')}
 									</Text>
-									<Text noMargin black style={styles.content}>
+									<Text noMargin black style={[styles.content]}>
 										{collectible.description}
 									</Text>
 								</View>
