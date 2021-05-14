@@ -7,31 +7,27 @@ import collectiblesTransferInformation from '../../../util/collectibles-transfer
 import { newAssetTransaction } from '../../../actions/transaction';
 import Modal from 'react-native-modal';
 import CollectibleMedia from '../CollectibleMedia';
+import { baseStyles } from '../../../styles/common';
 
 const styles = StyleSheet.create({
 	bottomModal: {
+		justifyContent: 'flex-end',
 		margin: 0,
-		flex: 1,
-		zIndex: 20,
-		elevation: 20
+		flex: 1
 	},
 	round: {
 		borderRadius: 12
 	},
 	collectibleMediaWrapper: {
-		flex: 1,
+		position: 'absolute',
+		top: 0,
+		left: 0,
+		right: 0,
 		marginHorizontal: 16,
 		marginTop: '20%',
-		// overflow: 'scroll',
-		overflow: 'hidden'
-		// overflow: 'visible',
+		marginBottom: '0%',
+		overflow: 'visible'
 	}
-	// collectibleOverviewWrapper: {
-	// 	flex: 0,
-	// 	elevation: 1,
-	// 	zIndex: 1
-	// 	// marginTop: '80%'
-	// }
 });
 
 /**
@@ -39,8 +35,8 @@ const styles = StyleSheet.create({
  */
 const CollectibleModal = ({ contractName, collectible, onHide, visible, navigation, newAssetTransaction }) => {
 	const [swippable, setSwippable] = useState('down');
-	const [mediaZIndex, setMediaZIndex] = useState(10);
-	const [overviewZIndex, setOverviewZIndex] = useState(20);
+	const [mediaZIndex, setMediaZIndex] = useState(20);
+	const [overviewZIndex, setOverviewZIndex] = useState(10);
 
 	const onSend = useCallback(async () => {
 		onHide();
@@ -95,10 +91,10 @@ const CollectibleModal = ({ contractName, collectible, onHide, visible, navigati
 			swipeDirection={swippable}
 			propagateSwipe
 		>
-			<View style={[styles.collectibleMediaWrapper, { zIndex: mediaZIndex, elevation: mediaZIndex }]}>
+			<View coverScreen style={[styles.collectibleMediaWrapper, { zIndex: mediaZIndex, elevation: mediaZIndex }]}>
 				<CollectibleMedia cover renderAnimation collectible={collectible} style={styles.round} />
 			</View>
-			<View style={{ zIndex: overviewZIndex, elevation: overviewZIndex }}>
+			<View style={[baseStyles.flexStatic, { zIndex: overviewZIndex, elevation: overviewZIndex }]}>
 				<CollectibleOverview
 					onTouchStart={onTouchStart}
 					onTouchEnd={onTouchEnd}
