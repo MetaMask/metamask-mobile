@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { StyleSheet, View, Easing, Animated, SafeAreaView, ScrollView } from 'react-native';
+import { StyleSheet, View, Easing, Animated, SafeAreaView, ScrollView, TouchableWithoutFeedback } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { baseStyles, colors } from '../../../styles/common';
@@ -106,7 +106,9 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.grey100
 	},
 	scrollableDescription: {
-		maxHeight: Device.getDeviceHeight() / 5,
+		maxHeight: Device.getDeviceHeight() / 5
+	},
+	description: {
 		marginTop: 8
 	}
 });
@@ -354,11 +356,23 @@ const CollectibleOverview = ({
 									</Text>
 								</View>
 							)}
-							<ScrollView bounces={false} style={styles.scrollableDescription}>
-								<Text noMargin black style={styles.content}>
-									{collectible.description}
-								</Text>
-							</ScrollView>
+							{collectible?.description?.length > 300 ? (
+								<ScrollView bounces={false} style={[styles.description, styles.scrollableDescription]}>
+									<TouchableWithoutFeedback>
+										<Text noMargin black style={styles.content}>
+											{collectible.description}
+										</Text>
+									</TouchableWithoutFeedback>
+								</ScrollView>
+							) : (
+								gestureHandlerWrapper(
+									<View style={styles.description}>
+										<Text noMargin black style={styles.content}>
+											{collectible.description}
+										</Text>
+									</View>
+								)
+							)}
 						</View>
 					</View>
 				) : (
