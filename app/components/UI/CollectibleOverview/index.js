@@ -21,6 +21,7 @@ import { PanGestureHandler, gestureHandlerRootHOC } from 'react-native-gesture-h
 import AppConstants from '../../../core/AppConstants';
 
 const ANIMATION_VELOCITY = 250;
+const ANIMATION_OFFSET = Device.isIos() ? 30 : 50;
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -131,7 +132,10 @@ const CollectibleOverview = ({
 	const [position, setPosition] = useState(0);
 	const positionAnimated = useRef(new Animated.Value(0)).current;
 
-	const translationHeight = useMemo(() => wrapperHeight - headerHeight - 40, [headerHeight, wrapperHeight]);
+	const translationHeight = useMemo(() => wrapperHeight - headerHeight - ANIMATION_OFFSET, [
+		headerHeight,
+		wrapperHeight
+	]);
 	const animating = useRef(false);
 
 	const renderCollectibleInfoRow = useCallback((key, value, onPress) => {
