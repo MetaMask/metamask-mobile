@@ -30,17 +30,17 @@ const styles = StyleSheet.create({
 		borderTopEndRadius: 8,
 		borderTopStartRadius: 8
 	},
-	informationWrapper: {
+	generalContainer: {
 		paddingHorizontal: 16
 	},
 	information: {
-		marginTop: 24
+		paddingTop: 24
 	},
 	content: {
 		lineHeight: 22
 	},
 	row: {
-		marginVertical: 12
+		paddingVertical: 6
 	},
 	name: {
 		fontSize: Device.isSmallDevice() ? 16 : 24,
@@ -51,7 +51,6 @@ const styles = StyleSheet.create({
 		marginTop: 3
 	},
 	userContainer: {
-		marginBottom: 16,
 		flexDirection: 'row'
 	},
 	userImage: {
@@ -79,6 +78,7 @@ const styles = StyleSheet.create({
 	},
 	collectibleInfoContainer: {
 		flexDirection: 'row',
+		marginHorizontal: 16,
 		marginBottom: 12
 	},
 	collectibleInfoKey: {
@@ -277,93 +277,94 @@ const CollectibleOverview = ({
 				</View>
 			)}
 			<SafeAreaView>
-				<View style={styles.informationWrapper}>
-					<View onLayout={onHeaderLayout}>
-						{gestureHandlerWrapper(
-							<View>
-								{collectible?.creator && (
-									<View style={styles.userContainer}>
-										<RemoteImage
-											fadeIn
-											placeholderStyle={{ backgroundColor: colors.white }}
-											source={{ uri: collectible.creator.profile_img_url }}
-											style={styles.userImage}
-										/>
-										<View style={styles.userInfoContainer}>
-											{collectible.creator.user?.username && (
-												<Text black bold noMargin big style={styles.username}>
-													{collectible.creator.user.username}
-												</Text>
-											)}
-											<Text black noMargin small>
-												{collectible.contractName}
+				<View onLayout={onHeaderLayout}>
+					{gestureHandlerWrapper(
+						<View style={styles.generalContainer}>
+							{collectible?.creator && (
+								<View style={styles.userContainer}>
+									<RemoteImage
+										fadeIn
+										placeholderStyle={{ backgroundColor: colors.white }}
+										source={{ uri: collectible.creator.profile_img_url }}
+										style={styles.userImage}
+									/>
+									<View style={styles.userInfoContainer}>
+										{collectible.creator.user?.username && (
+											<Text black bold noMargin big style={styles.username}>
+												{collectible.creator.user.username}
 											</Text>
-										</View>
+										)}
+										<Text black noMargin small>
+											{collectible.contractName}
+										</Text>
 									</View>
-								)}
-								<Text bold primary noMargin style={styles.name}>
-									{collectible.name}
-								</Text>
-								<Text primary noMargin style={styles.tokenId}>
-									{strings('unit.token_id')}
-									{collectible.tokenId}
-								</Text>
-							</View>
-						)}
+								</View>
+							)}
+							<Text bold primary noMargin style={styles.name}>
+								{collectible.name}
+							</Text>
+							<Text primary noMargin style={styles.tokenId}>
+								{strings('unit.token_id')}
+								{collectible.tokenId}
+							</Text>
+						</View>
+					)}
 
-						<View style={styles.buttonContainer}>
-							{tradable && (
-								<StyledButton
-									onPress={onSend}
-									type={'rounded-normal'}
-									containerStyle={[baseStyles.flexGrow, styles.button, styles.leftButton]}
-								>
-									<Text link big bold noMargin>
-										{strings('asset_overview.send_button')}
-									</Text>
-								</StyledButton>
-							)}
-							{collectible?.externalLink && (
-								<StyledButton
-									type={'rounded-normal'}
-									containerStyle={[styles.button, styles.iconButtons, styles.leftButton]}
-									onPress={shareCollectible}
-								>
-									<Text bold link noMargin>
-										<EvilIcons name={Device.isIos() ? 'share-apple' : 'share-google'} size={32} />
-									</Text>
-								</StyledButton>
-							)}
+					<View style={[styles.generalContainer, styles.buttonContainer]}>
+						{tradable && (
 							<StyledButton
+								onPress={onSend}
 								type={'rounded-normal'}
-								containerStyle={[styles.button, styles.iconButtons]}
-								onPress={collectibleToFavorites}
+								containerStyle={[baseStyles.flexGrow, styles.button, styles.leftButton]}
 							>
-								<Text link noMargin>
-									<AntIcons name={isInFavorites ? 'star' : 'staro'} size={24} />
+								<Text link big bold noMargin>
+									{strings('asset_overview.send_button')}
 								</Text>
 							</StyledButton>
+						)}
+						{collectible?.externalLink && (
+							<StyledButton
+								type={'rounded-normal'}
+								containerStyle={[styles.button, styles.iconButtons, styles.leftButton]}
+								onPress={shareCollectible}
+							>
+								<Text bold link noMargin>
+									<EvilIcons name={Device.isIos() ? 'share-apple' : 'share-google'} size={32} />
+								</Text>
+							</StyledButton>
+						)}
+						<StyledButton
+							type={'rounded-normal'}
+							containerStyle={[styles.button, styles.iconButtons]}
+							onPress={collectibleToFavorites}
+						>
+							<Text link noMargin>
+								<AntIcons name={isInFavorites ? 'star' : 'staro'} size={24} />
+							</Text>
+						</StyledButton>
+					</View>
+				</View>
+				{collectible?.description ? (
+					<View style={styles.information}>
+						<View style={[styles.generalContainer, styles.row]}>
+							{gestureHandlerWrapper(
+								<View>
+									<Text noMargin black bold big>
+										{strings('collectible.collectible_description')}
+									</Text>
+								</View>
+							)}
+							<ScrollView bounces={false} style={styles.scrollableDescription}>
+								<Text noMargin black style={styles.content}>
+									{collectible.description}
+								</Text>
+							</ScrollView>
 						</View>
 					</View>
-
-					{collectible?.description ? (
-						<View style={[styles.information]}>
-							<View style={styles.row}>
-								<Text noMargin black bold big>
-									{strings('collectible.collectible_description')}
-								</Text>
-								<ScrollView bounces={false} style={styles.scrollableDescription}>
-									<Text noMargin black style={styles.content}>
-										{collectible.description}
-									</Text>
-								</ScrollView>
-							</View>
-						</View>
-					) : (
-						<View />
-					)}
-					{gestureHandlerWrapper(<View style={styles.information}>{renderCollectibleInfo()}</View>)}
-				</View>
+				) : (
+					<View />
+				)}
+				{gestureHandlerWrapper(<View style={styles.information}>{renderCollectibleInfo()}</View>)}
 			</SafeAreaView>
 		</Animated.View>
 	);
