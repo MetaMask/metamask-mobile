@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View, Easing, Animated, SafeAreaView } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -18,6 +18,9 @@ import { addFavoriteCollectible, removeFavoriteCollectible } from '../../../acti
 import { favoritesCollectiblesObjectSelector, isCollectibleInFavorites } from '../../../reducers/collectibles';
 import Share from 'react-native-share';
 import { PanGestureHandler, gestureHandlerRootHOC } from 'react-native-gesture-handler';
+import AppConstants from '../../../core/AppConstants';
+
+const ANIMATION_VELOCITY = 250;
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -118,14 +121,18 @@ const CollectibleOverview = ({
 	removeFavoriteCollectible,
 	isInFavorites,
 	openLink,
+	onHide,
 	onTouchStart,
 	onTouchEnd,
 	onTranslation
 }) => {
 	const [headerHeight, setHeaderHeight] = useState(0);
 	const [wrapperHeight, setWrapperHeight] = useState(0);
-	const [position, setPosition] = useState(-1);
+	const [position, setPosition] = useState(0);
 	const positionAnimated = useRef(new Animated.Value(0)).current;
+
+	const translationHeight = useMemo(() => wrapperHeight - headerHeight - 40, [headerHeight, wrapperHeight]);
+	const animating = useRef(false);
 
 	const renderCollectibleInfoRow = useCallback((key, value, onPress) => {
 		if (!value) return null;
@@ -184,7 +191,7 @@ const CollectibleOverview = ({
 		Share.open({
 			message: `${strings('collectible.share_check_out_nft')} ${collectible.externalLink}\n${strings(
 				'collectible.share_via'
-			)} MetaMask.io`
+			)} ${AppConstants.SHORT_HOMEPAGE_URL}`
 		});
 	}, [collectible.externalLink]);
 
@@ -208,25 +215,35 @@ const CollectibleOverview = ({
 
 	const animateViewPosition = useCallback(
 		(toValue, duration) => {
+			animating.current = true;
 			Animated.timing(positionAnimated, {
 				toValue,
 				duration,
 				easing: Easing.ease,
 				useNativeDriver: true
-			}).start();
+			}).start(() => {
+				setPosition(toValue);
+				animating.current = false;
+			});
 		},
 		[positionAnimated]
 	);
 
-	const handleGesture = evt => {
-		if (evt.nativeEvent.velocityY === 0) return;
-		const toValue = evt.nativeEvent.velocityY > 0 ? wrapperHeight - headerHeight - 40 : 0;
-		if (toValue !== position) {
-			onTranslation(toValue !== 0);
-			setPosition(toValue);
-			animateViewPosition(toValue, 250);
-		}
-	};
+	const handleGesture = useCallback(
+		evt => {
+			// we don't want to trigger the animation again when the view is being animated
+			if (evt.nativeEvent.velocityY === 0 || animating.current) return;
+			const toValue = evt.nativeEvent.velocityY > 0 ? translationHeight : 0;
+			if (toValue !== position) {
+				onTranslation(toValue !== 0);
+				animateViewPosition(toValue, ANIMATION_VELOCITY);
+			} else if (position !== 0) {
+				// if the modal is on bottom position we want to hide everyhing
+				onHide();
+			}
+		},
+		[translationHeight, position, onTranslation, animateViewPosition, onHide]
+	);
 
 	const gestureHandlerWrapper = child => (
 		<PanGestureHandler activeOffsetY={[0, 0]} activeOffsetX={[0, 0]} onGestureEvent={handleGesture}>
@@ -236,10 +253,9 @@ const CollectibleOverview = ({
 
 	useEffect(() => {
 		if (headerHeight !== 0 && wrapperHeight !== 0) {
-			const toValue = wrapperHeight - headerHeight - 40;
-			animateViewPosition(toValue, 0);
+			animateViewPosition(translationHeight, 0);
 		}
-	}, [headerHeight, wrapperHeight, animateViewPosition]);
+	}, [headerHeight, wrapperHeight, translationHeight, animateViewPosition]);
 
 	return (
 		<Animated.View
@@ -390,7 +406,14 @@ CollectibleOverview.propTypes = {
 	 * View onn touch end callback
 	 */
 	onTouchEnd: PropTypes.func.isRequired,
-	onTranslation: PropTypes.func
+	/**
+	 * callback to trigger when modal is being animated
+	 */
+	onTranslation: PropTypes.func,
+	/**
+	 * callback to trigger when modal is dragged down in bottom position
+	 */
+	onHide: PropTypes.func
 };
 
 const mapStateToProps = (state, props) => {

@@ -103,6 +103,7 @@ const CollectibleModal = ({ contractName, collectible, onHide, visible, navigati
 					onSend={onSend}
 					openLink={openLink}
 					onTranslation={onCollectibleOverviewTranslation}
+					onHide={onHide}
 				/>
 			</View>
 		</Modal>
