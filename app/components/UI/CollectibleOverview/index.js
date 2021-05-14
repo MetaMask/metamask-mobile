@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { StyleSheet, View, Easing, Animated, SafeAreaView } from 'react-native';
+import { StyleSheet, View, Easing, Animated, SafeAreaView, ScrollView } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { baseStyles, colors } from '../../../styles/common';
@@ -28,8 +28,7 @@ const styles = StyleSheet.create({
 		flex: 0,
 		backgroundColor: colors.white,
 		borderTopEndRadius: 8,
-		borderTopStartRadius: 8,
-		marginTop: '10%'
+		borderTopStartRadius: 8
 	},
 	informationWrapper: {
 		paddingHorizontal: 16
@@ -38,11 +37,10 @@ const styles = StyleSheet.create({
 		marginTop: 24
 	},
 	content: {
-		paddingTop: 8,
 		lineHeight: 22
 	},
 	row: {
-		marginVertical: 10
+		marginVertical: 12
 	},
 	name: {
 		fontSize: Device.isSmallDevice() ? 16 : 24,
@@ -106,6 +104,10 @@ const styles = StyleSheet.create({
 		height: 5,
 		borderRadius: 4,
 		backgroundColor: colors.grey100
+	},
+	scrollableDescription: {
+		maxHeight: Device.getDeviceHeight() / 5,
+		marginTop: 8
 	}
 });
 
@@ -344,21 +346,21 @@ const CollectibleOverview = ({
 						</View>
 					</View>
 
-					{gestureHandlerWrapper(
-						collectible?.description ? (
-							<View style={[styles.information]}>
-								<View style={styles.row}>
-									<Text noMargin black bold big>
-										{strings('collectible.collectible_description')}
-									</Text>
-									<Text noMargin black style={[styles.content]}>
+					{collectible?.description ? (
+						<View style={[styles.information]}>
+							<View style={styles.row}>
+								<Text noMargin black bold big>
+									{strings('collectible.collectible_description')}
+								</Text>
+								<ScrollView bounces={false} style={styles.scrollableDescription}>
+									<Text noMargin black style={styles.content}>
 										{collectible.description}
 									</Text>
-								</View>
+								</ScrollView>
 							</View>
-						) : (
-							<View />
-						)
+						</View>
+					) : (
+						<View />
 					)}
 					{gestureHandlerWrapper(<View style={styles.information}>{renderCollectibleInfo()}</View>)}
 				</View>
