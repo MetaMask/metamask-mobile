@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
 		marginVertical: 10
 	},
 	name: {
-		fontSize: 24,
+		fontSize: Device.isSmallDevice() ? 16 : 24,
 		marginBottom: 3
 	},
 	tokenId: {
@@ -341,7 +341,7 @@ const CollectibleOverview = ({
 					</View>
 
 					{gestureHandlerWrapper(
-						collectible?.description && (
+						collectible?.description ? (
 							<View style={[styles.information]}>
 								<View style={styles.row}>
 									<Text noMargin black bold big>
@@ -352,6 +352,8 @@ const CollectibleOverview = ({
 									</Text>
 								</View>
 							</View>
+						) : (
+							<View />
 						)
 					)}
 					{gestureHandlerWrapper(<View style={styles.information}>{renderCollectibleInfo()}</View>)}
