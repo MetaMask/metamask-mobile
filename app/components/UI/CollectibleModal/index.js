@@ -8,6 +8,7 @@ import { newAssetTransaction } from '../../../actions/transaction';
 import Modal from 'react-native-modal';
 import CollectibleMedia from '../CollectibleMedia';
 import { baseStyles } from '../../../styles/common';
+import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
 	bottomModal: {
@@ -23,7 +24,7 @@ const styles = StyleSheet.create({
 		left: 0,
 		right: 0,
 		marginHorizontal: 16,
-		marginTop: '20%',
+		marginTop: Device.isLargeDevice() ? '20%' : '10%',
 		marginBottom: '0%',
 		overflow: 'visible'
 	}

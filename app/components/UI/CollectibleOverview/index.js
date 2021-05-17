@@ -21,7 +21,7 @@ import { PanGestureHandler, gestureHandlerRootHOC } from 'react-native-gesture-h
 import AppConstants from '../../../core/AppConstants';
 
 const ANIMATION_VELOCITY = 250;
-const ANIMATION_OFFSET = Device.isIos() ? 30 : 50;
+const ANIMATION_OFFSET = Device.hasNotch() ? 30 : 50;
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -51,7 +51,8 @@ const styles = StyleSheet.create({
 		marginTop: 3
 	},
 	userContainer: {
-		flexDirection: 'row'
+		flexDirection: 'row',
+		paddingBottom: 16
 	},
 	userImage: {
 		width: 38,
@@ -290,19 +291,19 @@ const CollectibleOverview = ({
 										source={{ uri: collectible.creator.profile_img_url }}
 										style={styles.userImage}
 									/>
-									<View style={styles.userInfoContainer}>
+									<View numberOfLines={1} style={styles.userInfoContainer}>
 										{collectible.creator.user?.username && (
 											<Text black bold noMargin big style={styles.username}>
 												{collectible.creator.user.username}
 											</Text>
 										)}
-										<Text black noMargin small>
+										<Text numberOfLines={1} black noMargin small>
 											{collectible.contractName}
 										</Text>
 									</View>
 								</View>
 							)}
-							<Text bold primary noMargin style={styles.name}>
+							<Text numberOfLines={2} bold primary noMargin style={styles.name}>
 								{collectible.name}
 							</Text>
 							<Text primary noMargin style={styles.tokenId}>
