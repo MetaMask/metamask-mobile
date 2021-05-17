@@ -72,13 +72,13 @@ export const getNotificationDetails = fiatOrder => {
 	}
 };
 
-function FiatOrders({ pendingOrders, dispatch }) {
+function FiatOrders({ pendingOrders, updateFiatOrder }) {
 	useInterval(
 		async () => {
 			await Promise.all(
 				pendingOrders.map(async order => {
 					const updatedOrder = await processOrder(order);
-					dispatch(updateFiatOrder(updatedOrder));
+					updateFiatOrder(updatedOrder);
 					if (updatedOrder.state !== order.state) {
 						InteractionManager.runAfterInteractions(() =>
 							NotificationManager.showSimpleNotification(getNotificationDetails(updatedOrder))
@@ -97,11 +97,18 @@ FiatOrders.propTypes = {
 	orders: PropTypes.array,
 	selectedAddress: PropTypes.string,
 	network: PropTypes.string,
-	dispatch: PropTypes.func
+	updateFiatOrder: PropTypes.func
 };
 
 const mapStateToProps = state => ({
 	pendingOrders: getPendingOrders(state)
 });
 
-export default connect(mapStateToProps)(FiatOrders);
+const mapDispatchToProps = dispatch => ({
+	updateFiatOrder: order => dispatch(updateFiatOrder(order))
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(FiatOrders);
