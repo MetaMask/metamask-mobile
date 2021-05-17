@@ -24,7 +24,7 @@ exports[`ChoosePassword should render correctly 1`] = `
         Array [
           "Create password",
           "Secure wallet",
-          "Confirm Recovery Phrase",
+          "Confirm Secret Recovery Phrase",
         ]
       }
     />
