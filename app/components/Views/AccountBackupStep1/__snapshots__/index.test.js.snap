@@ -40,7 +40,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
           Array [
             "Create password",
             "Secure wallet",
-            "Confirm Secret Recovery phrase",
+            "Confirm Recovery Phrase",
           ]
         }
       />
@@ -99,7 +99,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                 }
               }
             >
-              Secret Recovery phrase
+              Secret Recovery Phrase
             </Text>
              
             in a place you trust.

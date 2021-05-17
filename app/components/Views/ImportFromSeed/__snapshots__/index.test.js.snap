@@ -75,7 +75,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
               }
             }
           >
-            Secret recovery phrase
+            Recovery Phrase
           </Text>
         </View>
         <View
@@ -136,7 +136,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
         lineWidth={1}
         onChangeText={[Function]}
         onSubmitEditing={[Function]}
-        placeholder="Enter your Secret Recovery phrase here"
+        placeholder="Enter your Secret Recovery Phrase"
         returnKeyType="next"
         secureTextEntry={true}
         style={
