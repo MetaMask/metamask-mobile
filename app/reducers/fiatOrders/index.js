@@ -79,27 +79,27 @@ export const getProviderName = provider => {
 
 const ordersSelector = state => state.fiatOrders.orders || [];
 const selectedAddressSelector = state => state.engine.backgroundState.PreferencesController.selectedAddress;
-const networkSelector = state => state.engine.backgroundState.NetworkController.network;
+const chainIdSelector = state => state.engine.backgroundState.NetworkController.provider.chainId;
 
 export const fiatOrdersCountrySelector = state => state.fiatOrders.selectedCountry;
 
 export const getOrders = createSelector(
 	ordersSelector,
 	selectedAddressSelector,
-	networkSelector,
-	(orders, selectedAddress, network) =>
-		orders.filter(order => order.account === selectedAddress && order.network === network)
+	chainIdSelector,
+	(orders, selectedAddress, chainId) =>
+		orders.filter(order => order.account === selectedAddress && order.network === chainId)
 );
 
 export const getPendingOrders = createSelector(
 	ordersSelector,
 	selectedAddressSelector,
-	networkSelector,
-	(orders, selectedAddress, network) =>
+	chainIdSelector,
+	(orders, selectedAddress, chainId) =>
 		orders.filter(
 			order =>
 				order.account === selectedAddress &&
-				order.network === network &&
+				order.network === chainId &&
 				order.state === FIAT_ORDER_STATES.PENDING
 		)
 );
