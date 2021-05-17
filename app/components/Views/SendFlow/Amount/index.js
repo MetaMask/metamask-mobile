@@ -27,7 +27,6 @@ import {
 	renderFromWei,
 	weiToFiat,
 	fromWei,
-	fromTokenMinimalUnit,
 	toWei,
 	isDecimal,
 	toTokenMinimalUnit,
@@ -36,7 +35,8 @@ import {
 	weiToFiatNumber,
 	balanceToFiatNumber,
 	getCurrencySymbol,
-	handleWeiNumber
+	handleWeiNumber,
+	fromTokenMinimalUnitString
 } from '../../../../util/number';
 import { getTicker, generateTransferData, getEther } from '../../../../util/transactions';
 import { util } from '@metamask/controllers';
@@ -657,10 +657,16 @@ class Amount extends PureComponent {
 		} else {
 			const exchangeRate = contractExchangeRates[selectedAsset.address];
 			if (internalPrimaryCurrencyIsCrypto || !exchangeRate) {
-				input = fromTokenMinimalUnit(contractBalances[selectedAsset.address], selectedAsset.decimals);
+				input = fromTokenMinimalUnitString(
+					contractBalances[selectedAsset.address]?.toString(10),
+					selectedAsset.decimals
+				);
 			} else {
 				input = `${balanceToFiatNumber(
-					fromTokenMinimalUnit(contractBalances[selectedAsset.address], selectedAsset.decimals),
+					fromTokenMinimalUnitString(
+						contractBalances[selectedAsset.address]?.toString(10),
+						selectedAsset.decimals
+					),
 					conversionRate,
 					exchangeRate
 				)}`;
