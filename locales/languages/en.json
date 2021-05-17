@@ -308,6 +308,7 @@
 	},
 	"add_asset": {
 		"title": "Add Asset",
+		"title_nft": "Add NFT",
 		"search_token": "SEARCH",
 		"custom_token": "CUSTOM TOKEN",
 		"tokens": {
