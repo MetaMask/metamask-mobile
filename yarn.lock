@@ -1581,10 +1581,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/etherscan-link/-/etherscan-link-2.0.0.tgz#89035736515a39532ba1142d87b9a8c2b4f920f1"
   integrity sha512-/YS32hS2UTTxs0KyUmAgaDj1w4dzAvOrT+p4TJtpICeH3E/k51r2FO0Or7WJJI/mpzTqNKgcH5yyS2oCtupGiA==
 
-"@metamask/mobile-provider@^2.0.1":
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-2.0.1.tgz#892f883deafe49200a3ae57d85237016ded63c12"
-  integrity sha512-iSpWT80RqlxPs3IcXrC8yfkO88ICxDkVp9hVILDdKD3rEnl4xv8QGqi3nt9iaaEW1OziGW+nY4Oq7bWzTSIf8A==
+"@metamask/mobile-provider@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-2.1.0.tgz#685b2f6a55d24197af3f26de4dd0bb78e10ac83e"
+  integrity sha512-VuVUIZ5jEQmLaU8SJC8692crxtNncsxyR9q5j1J6epyMHUU75WTtQdq7VSsu1ghkmP9NXNAz3inlWOGsbT8lLA==
 
 "@metamask/safe-event-emitter@^2.0.0":
   version "2.0.0"
