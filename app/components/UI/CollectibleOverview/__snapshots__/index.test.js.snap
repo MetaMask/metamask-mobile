@@ -94,6 +94,7 @@ exports[`CollectibleOverview should render correctly 1`] = `
             link={false}
             modal={false}
             noMargin={true}
+            numberOfLines={2}
             primary={true}
             red={false}
             reset={false}
