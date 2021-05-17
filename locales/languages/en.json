@@ -1566,5 +1566,9 @@
 		"invalid_chain": "The %{rpcUrl} for this Chain ID does not match the chainid.network listing",
 		"alert_recommend": "We recommend you",
 		"alert_verify": "verify the chain ID"
+	},
+	"media_player": {
+		"loading": "Loading...",
+		"not_found": "Media not found"
 	}
 }

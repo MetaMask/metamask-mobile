@@ -4,6 +4,7 @@ import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { colors } from '../../../styles/common';
 import Text from '../../Base/Text';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
+import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	container: {
@@ -38,7 +39,7 @@ function Loader({ error }) {
 				</View>
 				<View style={styles.item}>
 					<Text style={styles.text} black>
-						{error ? 'Media not found' : 'Loading...'}
+						{strings(`media_player.${error ? 'not_found' : 'loading'}`)}
 					</Text>
 				</View>
 			</View>
