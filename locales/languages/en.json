@@ -435,6 +435,7 @@
 		"clear": "CLEAR",
 		"protect_cta": "Protect",
 		"protect_title": "Protect your wallet",
+		"video_failed": "Video Failed to Load.",
 		"protect_desc": "Protect your wallet by saving your Secret Recovery phrase in various places like on a piece of paper, password manager and/or the cloud.",
 		"seedphrase_not_backed_up": "Important! Secret recovery phrase not backed up",
 		"seedphrase_backed_up": "Secret recovery phrase backed up",
@@ -1062,7 +1063,7 @@
 		"cancel_backup_title": "Cancel Backup",
 		"cancel_backup_message": "We highly recommend you save your Secret Recovery phrase in order to restore your wallet.",
 		"cancel_backup_ok": "Yes, I'll take the risk",
-		"cancel_backup_no": "No, back up Seed Phrase",
+		"cancel_backup_no": "No, back up Secret Recovery Phrase",
 		"title": "Grab a pen and paper",
 		"info": "Next step is to write your Secret Recovery phrase down.",
 		"info_2_1": "You will be asked to ",
@@ -1074,7 +1075,7 @@
 		"cancel_backup_title": "Cancel Backup",
 		"cancel_backup_message": "We highly recommend you save your Secret Recovery phrase in order to restore your wallet.",
 		"cancel_backup_ok": "Yes, I'll take the risk",
-		"cancel_backup_no": "No, back up Seed Phrase",
+		"cancel_backup_no": "No, back up Secret Recovery Phrase",
 		"title": "Is anyone watching?",
 		"info_text": "Make sure no other human or robot is watching your screen. If your Secret Recovery phrase is copied, it can be used on other devices to steal your funds",
 		"cta_text": "NO ONE'S WATCHING ME"
@@ -1083,7 +1084,7 @@
 		"cancel_backup_title": "Cancel Backup",
 		"cancel_backup_message": "We highly recommend you save your Secret Recovery phrase in order to restore your wallet.",
 		"cancel_backup_ok": "Yes, I'll take the risk",
-		"cancel_backup_no": "No, back up Seed Phrase",
+		"cancel_backup_no": "No, back up Secret Recovery Phrase",
 		"back": "Back",
 		"title": "Your Secret Recovery phrase",
 		"info_text_1": "Carefully write down these words on paper. Their order matters.",
@@ -1116,7 +1117,7 @@
 		"modal_title": "Congratulations!",
 		"modal_text": "You are all backed up and ready to go!",
 		"modal_button": "DONE",
-		"copy_seed_phrase": "COPY SEED PHRASE TO CLIPBOARD"
+		"copy_seed_phrase": "COPY SECRET RECOVERY PHRASE TO CLIPBOARD"
 	},
 	"manual_backup": {
 		"progressOne": "Create Password",

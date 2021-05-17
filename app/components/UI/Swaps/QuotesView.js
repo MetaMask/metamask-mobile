@@ -52,6 +52,8 @@ import useBalance from './utils/useBalance';
 import useGasPrice from './utils/useGasPrice';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { decodeApproveData, getTicker } from '../../../util/transactions';
+import { toLowerCaseCompare } from '../../../util/general';
+import { swapsTokensSelector } from '../../../reducers/swaps';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
 const EDIT_MODE_GAS = 'EDIT_MODE_GAS';
@@ -279,10 +281,8 @@ function SwapsQuotesView({
 	);
 
 	/* Get tokens from the tokens list */
-	const sourceToken = swapsTokens?.find(token => token.address?.toLowerCase() === sourceTokenAddress.toLowerCase());
-	const destinationToken = swapsTokens?.find(
-		token => token.address?.toLowerCase() === destinationTokenAddress.toLowerCase()
-	);
+	const sourceToken = swapsTokens?.find(token => toLowerCaseCompare(token.address, sourceTokenAddress));
+	const destinationToken = swapsTokens?.find(token => toLowerCaseCompare(token.address, destinationTokenAddress));
 
 	const hasConversionRate =
 		Boolean(destinationToken) &&
@@ -1419,7 +1419,6 @@ const mapStateToProps = state => ({
 	balances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	swapsTokens: state.engine.backgroundState.SwapsController.tokens,
 	isInPolling: state.engine.backgroundState.SwapsController.isInPolling,
 	quotesLastFetched: state.engine.backgroundState.SwapsController.quotesLastFetched,
 	pollingCyclesLeft: state.engine.backgroundState.SwapsController.pollingCyclesLeft,
@@ -1430,7 +1429,8 @@ const mapStateToProps = state => ({
 	approvalTransaction: state.engine.backgroundState.SwapsController.approvalTransaction,
 	error: state.engine.backgroundState.SwapsController.error,
 	quoteRefreshSeconds: state.engine.backgroundState.SwapsController.quoteRefreshSeconds,
-	usedGasPrice: state.engine.backgroundState.SwapsController.usedGasPrice
+	usedGasPrice: state.engine.backgroundState.SwapsController.usedGasPrice,
+	swapsTokens: swapsTokensSelector(state)
 });
 
 export default connect(mapStateToProps)(SwapsQuotesView);

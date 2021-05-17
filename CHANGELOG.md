@@ -1,6 +1,18 @@
 # Changelog
 
 ## v.2.3.0 - May 5 2021
+- [#2674](https://github.com/MetaMask/metamask-mobile/pull/2674): Fix deploy contract and create token testnets
+- [#2669](https://github.com/MetaMask/metamask-mobile/pull/2669): Key off accounts
+- [#2670](https://github.com/MetaMask/metamask-mobile/pull/2670): Bump hosted-git-info from 2.8.8 to 2.8.9
+- [#2667](https://github.com/MetaMask/metamask-mobile/pull/2667): added export of iOS artifacts
+- [#2664](https://github.com/MetaMask/metamask-mobile/pull/2664): updated version code and change logs
+- [#2663](https://github.com/MetaMask/metamask-mobile/pull/2663): Load video over the network
+- [#2656](https://github.com/MetaMask/metamask-mobile/pull/2656): Fix Balance undefined for deeplink payment requests
+- [#2657](https://github.com/MetaMask/metamask-mobile/pull/2657): Fix missing seed phrase updates
+- [#2645](https://github.com/MetaMask/metamask-mobile/pull/2645): Safe navbar for iphone 12
+- [#2643](https://github.com/MetaMask/metamask-mobile/pull/2643): Fix undefined is not an object identities[selectedAddress].importTime
+- [#2639](https://github.com/MetaMask/metamask-mobile/pull/2639): Exclude native asset from hiding when balance is zero
+- [#2631](https://github.com/MetaMask/metamask-mobile/pull/2631): updated change log
 - [#2633](https://github.com/MetaMask/metamask-mobile/pull/2633): Address yarn audit
 - [#2625](https://github.com/MetaMask/metamask-mobile/pull/2625): Fix isZero is undefined
 - [#2444](https://github.com/MetaMask/metamask-mobile/pull/2444): Implement 'hide zero balance token' setting for token balances on home screen

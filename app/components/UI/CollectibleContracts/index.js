@@ -12,6 +12,7 @@ import CollectibleModal from '../CollectibleModal';
 import { favoritesCollectiblesObjectSelector } from '../../../reducers/collectibles';
 import Text from '../../Base/Text';
 import AppConstants from '../../../core/AppConstants';
+import { toLowerCaseCompare } from '../../../util/general';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -95,8 +96,8 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 
 	const renderCollectibleContract = useCallback(
 		(item, index) => {
-			const contractCollectibles = collectibles?.filter(
-				collectible => collectible.address.toLowerCase() === item.address.toLowerCase()
+			const contractCollectibles = collectibles?.filter(collectible =>
+				toLowerCaseCompare(collectible.address, item.address)
 			);
 			return (
 				<CollectibleContractElement
