@@ -189,6 +189,9 @@ jobs:
       - store_artifacts:
           path: sourcemaps/ios
           destination: sourcemaps-ios
+      - store_artifacts:  
+          path: ios/output/gym
+          destination: output
 workflows:
   full_test:
     jobs:

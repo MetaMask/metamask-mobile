@@ -1,4 +1,4 @@
-export const tlc = str => String(str).toLowerCase();
+export const tlc = str => str?.toLowerCase?.();
 
 /**
  * Fetch that fails after timeout
@@ -35,4 +35,7 @@ export function findRouteNameFromNavigatorState({ routes }) {
 }
 export const capitalize = str => (str && str.charAt(0).toUpperCase() + str.slice(1)) || false;
 
-export const toLowerCaseCompare = (a, b) => tlc(a) === tlc(b);
+export const toLowerCaseCompare = (a, b) => {
+	if (!a && !b) return false;
+	return tlc(a) === tlc(b);
+};

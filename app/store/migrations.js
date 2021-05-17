@@ -1,6 +1,7 @@
 import { NetworksChainId } from '@metamask/controllers';
 import AppConstants from '../core/AppConstants';
 import { getAllNetworks, isSafeChainId } from '../util/networks';
+import { toLowerCaseCompare } from '../util/general';
 
 export const migrations = {
 	// Needed after https://github.com/MetaMask/controllers/pull/152
@@ -21,7 +22,7 @@ export const migrations = {
 		const tokens = state.engine.backgroundState.AssetsController.tokens;
 		const migratedTokens = [];
 		tokens.forEach(token => {
-			if (token.symbol === 'DAI' && token.address.toLowerCase() === AppConstants.SAI_ADDRESS.toLowerCase()) {
+			if (token.symbol === 'DAI' && toLowerCaseCompare(token.address, AppConstants.SAI_ADDRESS)) {
 				token.symbol = 'SAI';
 			}
 			migratedTokens.push(token);
