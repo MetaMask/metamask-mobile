@@ -193,7 +193,8 @@ function SwapsAmountView({
 						const parameters = {
 							source: initialSource === SWAPS_NATIVE_ADDRESS ? 'MainView' : 'TokenView',
 							activeCurrency: swapsTokens?.find(token => toLowerCaseCompare(token.address, initialSource))
-								?.symbol
+								?.symbol,
+							chain_id: chainId
 						};
 						Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAPS_OPENED, {});
 						Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAPS_OPENED, parameters, true);
