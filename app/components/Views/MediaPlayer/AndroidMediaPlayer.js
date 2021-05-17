@@ -157,6 +157,8 @@ export default function VideoPlayer({
 	displayTopControls,
 	displayBottomControls,
 	onClose,
+	onError,
+	onLoad: propsOnLoad,
 	style
 }) {
 	const [paused, setPaused] = useState(false);
@@ -301,6 +303,7 @@ export default function VideoPlayer({
 	};
 
 	const onLoad = (data = {}) => {
+		propsOnLoad();
 		setDuration(data.duration);
 		setLoading(false);
 	};
@@ -548,6 +551,7 @@ export default function VideoPlayer({
 					paused={paused}
 					muted={muted}
 					onLoad={onLoad}
+					onError={onError}
 					onSeek={onSeek}
 					onLoadStart={onLoadStart}
 					onProgress={onProgress}
@@ -572,6 +576,8 @@ VideoPlayer.propTypes = {
 	displayTopControls: PropTypes.bool,
 	displayBottomControls: PropTypes.bool,
 	onClose: PropTypes.func,
+	onLoad: PropTypes.func,
+	onError: PropTypes.func,
 	style: ViewPropTypes.style
 };
 

@@ -1,18 +1,40 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { ViewPropTypes, View } from 'react-native';
+import { ViewPropTypes, View, StyleSheet } from 'react-native';
 import AndroidMediaPlayer from './AndroidMediaPlayer';
 import Video from 'react-native-video';
 import Device from '../../../util/Device';
+import Loader from './Loader';
+
+const styles = StyleSheet.create({
+	loaderContainer: {
+		position: 'absolute',
+		zIndex: 999,
+		width: '100%'
+	}
+});
 
 function MediaPlayer({ uri, style, onClose }) {
-	if (Device.isAndroid())
-		return (
-			<View style={style}>
-				<AndroidMediaPlayer onClose={onClose} source={{ uri }} />
-			</View>
-		);
-	return <Video style={style} muted source={{ uri }} controls />;
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState(false);
+
+	const onLoad = () => setLoading(false);
+	const onError = () => setError(true);
+
+	return (
+		<View style={style}>
+			{loading && (
+				<View style={[styles.loaderContainer, style]}>
+					<Loader error={error} />
+				</View>
+			)}
+			{Device.isAndroid() ? (
+				<AndroidMediaPlayer onLoad={onLoad} onError={onError} onClose={onClose} source={{ uri }} />
+			) : (
+				<Video onLoad={onLoad} onError={onError} style={style} muted source={{ uri }} controls />
+			)}
+		</View>
+	);
 }
 
 MediaPlayer.propTypes = {
