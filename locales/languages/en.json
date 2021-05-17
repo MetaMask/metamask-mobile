@@ -171,7 +171,7 @@
 		"strength_strong": "Strong",
 		"show": "Show",
 		"hide": "Hide",
-		"seed_phrase": "Recovery Phrase",
+		"seed_phrase": "Secret Recovery Phrase",
 		"must_be_at_least": "Must be at least {{number}} characters",
 		"remember_me": "Remember me",
 		"security_alert_title": "Security Alert",
@@ -179,7 +179,7 @@
 		"i_understand": "I understand that MetaMask cannot recover this password for me.",
 		"learn_more": "Learn more.",
 		"secure": "Secure wallet",
-		"confirm": "Confirm Recovery Phrase"
+		"confirm": "Confirm Secret Recovery Phrase"
 	},
 	"reset_password": {
 		"title": "Change password",
