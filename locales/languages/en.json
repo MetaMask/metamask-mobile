@@ -141,7 +141,7 @@
 		"this_action": "This action cannot be undone.",
 		"you_can_only": "You can ONLY recover this wallet with your ",
 		"recovery_phrase": "Secret Recovery Phrase ",
-		"metamask_does_not": "MetaMask does not have your recovery phrase.",
+		"metamask_does_not": "MetaMask does not have your Secret Recovery Phrase.",
 		"i_understand": "I understand, continue",
 		"passcode_not_set_error": "Error: Passcode not set.",
 		"wrong_password_error": "Error: Decrypt failed",
@@ -586,7 +586,7 @@
 		"cancel": "Cancel",
 		"error": "Error",
 		"attempting_to_scan_with_wallet_locked": "Looks like you're trying to scan a QR code, you need to unlock your wallet to be able to use it.",
-		"attempting_sync_from_wallet_error": "Looks like you're trying to sync with the extension. In order to do so, you will need to erase your current wallet. \n\nOnce you've erased or reinstalled a fresh version of the app, select the option to \"Sync with MetaMask Extension\". Important! Before erasing your wallet, make sure you've backed up your recovery phrase."
+		"attempting_sync_from_wallet_error": "Looks like you're trying to sync with the extension. In order to do so, you will need to erase your current wallet. \n\nOnce you've erased or reinstalled a fresh version of the app, select the option to \"Sync with MetaMask Extension\". Important! Before erasing your wallet, make sure you've backed up your Secret Recovery Phrase."
 	},
 	"action_view": {
 		"cancel": "Cancel",
