@@ -25,7 +25,7 @@ function MediaPlayer({ uri, style, onClose }) {
 		<View style={style}>
 			{loading && (
 				<View style={[styles.loaderContainer, style]}>
-					<Loader error={error} />
+					<Loader error={error} onClose={onClose} />
 				</View>
 			)}
 			{Device.isAndroid() ? (

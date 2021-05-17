@@ -1,9 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { colors } from '../../../styles/common';
 import Text from '../../Base/Text';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
+import AntIcon from 'react-native-vector-icons/AntDesign';
 import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
@@ -23,12 +24,21 @@ const styles = StyleSheet.create({
 	},
 	text: {
 		fontSize: 16
+	},
+	closeButton: {
+		alignSelf: 'flex-end',
+		padding: 14,
+		width: 44,
+		height: 44
 	}
 });
 
-function Loader({ error }) {
+function Loader({ error, onClose }) {
 	return (
 		<View style={styles.container}>
+			<TouchableOpacity onPress={onClose} style={styles.closeButton}>
+				<AntIcon color={colors.white} size={16} name={'close'} />
+			</TouchableOpacity>
 			<View style={styles.content}>
 				<View style={styles.item}>
 					{error ? (
@@ -48,7 +58,8 @@ function Loader({ error }) {
 }
 
 Loader.propTypes = {
-	error: PropTypes.bool
+	error: PropTypes.bool,
+	onClose: PropTypes.func
 };
 
 Loader.defaultProps = {
