@@ -801,7 +801,7 @@ function SwapsQuotesView({
 				});
 			} else if (error?.key === swapsUtils.SwapsError.QUOTES_NOT_AVAILABLE_ERROR) {
 				InteractionManager.runAfterInteractions(() => {
-					const parameters = { data };
+					const parameters = { ...data };
 					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.NO_QUOTES_AVAILABLE, {});
 					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.NO_QUOTES_AVAILABLE, parameters, true);
 				});
