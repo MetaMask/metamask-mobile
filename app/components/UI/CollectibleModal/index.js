@@ -1,26 +1,32 @@
-import React from 'react';
-import { View, StyleSheet, SafeAreaView } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import CollectibleOverview from '../../UI/CollectibleOverview';
-import { colors } from '../../../styles/common';
 import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import { newAssetTransaction } from '../../../actions/transaction';
 import Modal from 'react-native-modal';
+import CollectibleMedia from '../CollectibleMedia';
+import { baseStyles } from '../../../styles/common';
+import Device from '../../../util/Device';
+
 const styles = StyleSheet.create({
-	root: {
-		flex: 1,
-		backgroundColor: colors.white,
-		maxHeight: '90%',
-		borderRadius: 20,
-		overflow: 'hidden'
-	},
-	wrapper: {
-		flex: 1
-	},
 	bottomModal: {
 		justifyContent: 'flex-end',
 		margin: 0
+	},
+	round: {
+		borderRadius: 12
+	},
+	collectibleMediaWrapper: {
+		position: 'absolute',
+		top: 0,
+		left: 0,
+		right: 0,
+		marginHorizontal: 16,
+		marginTop: Device.isLargeDevice() ? '20%' : '10%',
+		marginBottom: '0%',
+		overflow: 'visible'
 	}
 });
 
@@ -28,13 +34,17 @@ const styles = StyleSheet.create({
  * View that displays a specific collectible asset
  */
 const CollectibleModal = ({ contractName, collectible, onHide, visible, navigation, newAssetTransaction }) => {
-	const onSend = async () => {
+	const [swippable, setSwippable] = useState('down');
+	const [mediaZIndex, setMediaZIndex] = useState(20);
+	const [overviewZIndex, setOverviewZIndex] = useState(10);
+
+	const onSend = useCallback(async () => {
 		onHide();
 		newAssetTransaction({ contractName, ...collectible });
 		navigation.navigate('SendFlowView');
-	};
+	}, [contractName, collectible, newAssetTransaction, onHide, navigation]);
 
-	const isTradable = () => {
+	const isTradable = useCallback(() => {
 		const lowerAddress = collectible.address.toLowerCase();
 		const tradable =
 			lowerAddress in collectiblesTransferInformation
@@ -42,11 +52,33 @@ const CollectibleModal = ({ contractName, collectible, onHide, visible, navigati
 				: true;
 
 		return tradable;
-	};
+	}, [collectible.address]);
 
 	const openLink = url => {
 		onHide();
 		navigation.navigate('SimpleWebview', { url });
+	};
+
+	const onTouchStart = useCallback(() => setSwippable(null), []);
+
+	const onTouchEnd = useCallback(() => setSwippable('down'), []);
+
+	/**
+	 * Method that moves the collectible media up or down in the screen depending on
+	 * the animation status, to be able to interact with videos
+	 *
+	 * @param {boolean} moveUp
+	 */
+	const onCollectibleOverviewTranslation = moveUp => {
+		if (moveUp) {
+			setTimeout(() => {
+				setMediaZIndex(20);
+				setOverviewZIndex(10);
+			}, 250);
+		} else {
+			setMediaZIndex(0);
+			setOverviewZIndex(10);
+		}
 	};
 
 	return (
@@ -56,20 +88,31 @@ const CollectibleModal = ({ contractName, collectible, onHide, visible, navigati
 			onBackdropPress={onHide}
 			onBackButtonPress={onHide}
 			onSwipeComplete={onHide}
-			swipeDirection={'down'}
+			swipeDirection={swippable}
 			propagateSwipe
 		>
-			<SafeAreaView style={styles.root}>
-				<View style={styles.wrapper} testID={'asset'}>
-					<CollectibleOverview
-						navigation={navigation}
-						collectible={{ ...collectible, contractName }}
-						tradable={isTradable()}
-						onSend={onSend}
-						openLink={openLink}
-					/>
-				</View>
-			</SafeAreaView>
+			<View coverScreen style={[styles.collectibleMediaWrapper, { zIndex: mediaZIndex, elevation: mediaZIndex }]}>
+				<CollectibleMedia
+					onClose={onHide}
+					cover
+					renderAnimation
+					collectible={collectible}
+					style={styles.round}
+				/>
+			</View>
+			<View style={[baseStyles.flexStatic, { zIndex: overviewZIndex, elevation: overviewZIndex }]}>
+				<CollectibleOverview
+					onTouchStart={onTouchStart}
+					onTouchEnd={onTouchEnd}
+					navigation={navigation}
+					collectible={{ ...collectible, contractName }}
+					tradable={isTradable()}
+					onSend={onSend}
+					openLink={openLink}
+					onTranslation={onCollectibleOverviewTranslation}
+					onHide={onHide}
+				/>
+			</View>
 		</Modal>
 	);
 };

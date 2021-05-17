@@ -45,48 +45,82 @@ exports[`CollectibleModal should render correctly 1`] = `
   swipeThreshold={100}
   useNativeDriver={false}
 >
-  <ForwardRef(SafeAreaView)
+  <View
+    coverScreen={true}
     style={
-      Object {
-        "backgroundColor": "#FFFFFF",
-        "borderRadius": 20,
-        "flex": 1,
-        "maxHeight": "90%",
-        "overflow": "hidden",
-      }
+      Array [
+        Object {
+          "left": 0,
+          "marginBottom": "0%",
+          "marginHorizontal": 16,
+          "marginTop": "20%",
+          "overflow": "visible",
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        },
+        Object {
+          "elevation": 20,
+          "zIndex": 20,
+        },
+      ]
     }
   >
-    <View
-      style={
+    <CollectibleMedia
+      collectible={
         Object {
-          "flex": 1,
+          "address": "0x123",
+          "name": "Leopard",
+          "tokenId": 6904,
         }
       }
-      testID="asset"
-    >
-      <Connect(CollectibleOverview)
-        collectible={
-          Object {
-            "address": "0x123",
-            "contractName": "Opensea",
-            "name": "Leopard",
-            "tokenId": 6904,
-          }
+      cover={true}
+      renderAnimation={true}
+      style={
+        Object {
+          "borderRadius": 12,
         }
-        navigation={
-          Object {
-            "state": Object {
-              "params": Object {
-                "address": "0x1",
-              },
+      }
+    />
+  </View>
+  <View
+    style={
+      Array [
+        Object {
+          "flex": 0,
+        },
+        Object {
+          "elevation": 10,
+          "zIndex": 10,
+        },
+      ]
+    }
+  >
+    <Connect(CollectibleOverview)
+      collectible={
+        Object {
+          "address": "0x123",
+          "contractName": "Opensea",
+          "name": "Leopard",
+          "tokenId": 6904,
+        }
+      }
+      navigation={
+        Object {
+          "state": Object {
+            "params": Object {
+              "address": "0x1",
             },
-          }
+          },
         }
-        onSend={[Function]}
-        openLink={[Function]}
-        tradable={true}
-      />
-    </View>
-  </ForwardRef(SafeAreaView)>
+      }
+      onSend={[Function]}
+      onTouchEnd={[Function]}
+      onTouchStart={[Function]}
+      onTranslation={[Function]}
+      openLink={[Function]}
+      tradable={true}
+    />
+  </View>
 </ReactNativeModal>
 `;

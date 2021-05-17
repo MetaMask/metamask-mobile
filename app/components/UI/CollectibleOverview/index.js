@@ -1,10 +1,9 @@
-import React from 'react';
-import { StyleSheet, View, ScrollView, TouchableWithoutFeedback } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { StyleSheet, View, Easing, Animated, SafeAreaView, ScrollView, TouchableWithoutFeedback } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { colors } from '../../../styles/common';
+import { baseStyles, colors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import CollectibleMedia from '../CollectibleMedia';
 import Text from '../../Base/Text';
 import RemoteImage from '../../Base/RemoteImage';
 import StyledButton from '../../UI/StyledButton';
@@ -18,30 +17,33 @@ import etherscanLink from '@metamask/etherscan-link';
 import { addFavoriteCollectible, removeFavoriteCollectible } from '../../../actions/collectibles';
 import { favoritesCollectiblesObjectSelector, isCollectibleInFavorites } from '../../../reducers/collectibles';
 import Share from 'react-native-share';
+import { PanGestureHandler, gestureHandlerRootHOC } from 'react-native-gesture-handler';
+import AppConstants from '../../../core/AppConstants';
+
+const ANIMATION_VELOCITY = 250;
+const ANIMATION_OFFSET = Device.hasNotch() ? 30 : 50;
 
 const styles = StyleSheet.create({
 	wrapper: {
-		flex: 1
+		flex: 0,
+		backgroundColor: colors.white,
+		borderTopEndRadius: 8,
+		borderTopStartRadius: 8
 	},
-	basicsWrapper: {
-		marginBottom: 16
-	},
-	informationWrapper: {
-		flex: 1,
+	generalContainer: {
 		paddingHorizontal: 16
 	},
 	information: {
-		marginTop: 24
+		paddingTop: 24
 	},
 	content: {
-		paddingTop: 8,
 		lineHeight: 22
 	},
 	row: {
-		marginVertical: 10
+		paddingVertical: 6
 	},
 	name: {
-		fontSize: 24,
+		fontSize: Device.isSmallDevice() ? 16 : 24,
 		marginBottom: 3
 	},
 	tokenId: {
@@ -49,8 +51,8 @@ const styles = StyleSheet.create({
 		marginTop: 3
 	},
 	userContainer: {
-		marginBottom: 16,
-		flexDirection: 'row'
+		flexDirection: 'row',
+		paddingBottom: 16
 	},
 	userImage: {
 		width: 38,
@@ -63,24 +65,21 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		marginTop: 16
 	},
-	sendButton: {
-		height: 54,
-		flex: 1,
+	button: {
 		alignItems: 'center',
 		justifyContent: 'center',
-		borderWidth: 2,
-		marginRight: 9
+		borderWidth: 1.5
 	},
 	iconButtons: {
 		width: 54,
-		height: 54,
-		alignItems: 'center',
-		justifyContent: 'center',
-		borderWidth: 2,
-		marginRight: 9
+		height: 54
+	},
+	leftButton: {
+		marginRight: 16
 	},
 	collectibleInfoContainer: {
 		flexDirection: 'row',
+		marginHorizontal: 16,
 		marginBottom: 12
 	},
 	collectibleInfoKey: {
@@ -99,19 +98,19 @@ const styles = StyleSheet.create({
 		width: '100%',
 		alignItems: 'center',
 		justifyContent: 'center',
-		position: 'absolute',
-		zIndex: 100,
-		height: 20
+		paddingVertical: 16
 	},
 	dragger: {
 		width: 48,
 		height: 5,
 		borderRadius: 4,
-		backgroundColor: colors.white,
-		opacity: 0.7
+		backgroundColor: colors.grey100
 	},
-	noRound: {
-		borderRadius: 0
+	scrollableDescription: {
+		maxHeight: Device.getDeviceHeight() / 5
+	},
+	description: {
+		marginTop: 8
 	}
 });
 
@@ -127,9 +126,24 @@ const CollectibleOverview = ({
 	addFavoriteCollectible,
 	removeFavoriteCollectible,
 	isInFavorites,
-	openLink
+	openLink,
+	onHide,
+	onTouchStart,
+	onTouchEnd,
+	onTranslation
 }) => {
-	const renderCollectibleInfoRow = (key, value, onPress) => {
+	const [headerHeight, setHeaderHeight] = useState(0);
+	const [wrapperHeight, setWrapperHeight] = useState(0);
+	const [position, setPosition] = useState(0);
+	const positionAnimated = useRef(new Animated.Value(0)).current;
+
+	const translationHeight = useMemo(() => wrapperHeight - headerHeight - ANIMATION_OFFSET, [
+		headerHeight,
+		wrapperHeight
+	]);
+	const animating = useRef(false);
+
+	const renderCollectibleInfoRow = useCallback((key, value, onPress) => {
 		if (!value) return null;
 		return (
 			<View style={styles.collectibleInfoContainer} key={key}>
@@ -151,7 +165,7 @@ const CollectibleOverview = ({
 				</Text>
 			</View>
 		);
-	};
+	}, []);
 
 	const renderCollectibleInfo = () => [
 		renderCollectibleInfoRow(
@@ -176,114 +190,198 @@ const CollectibleOverview = ({
 		)
 	];
 
-	const collectibleToFavorites = () => {
-		if (!isInFavorites) {
-			addFavoriteCollectible(selectedAddress, chainId, collectible);
-		} else {
-			removeFavoriteCollectible(selectedAddress, chainId, collectible);
-		}
-	};
+	const collectibleToFavorites = useCallback(() => {
+		const action = isInFavorites ? removeFavoriteCollectible : addFavoriteCollectible;
+		action(selectedAddress, chainId, collectible);
+	}, [selectedAddress, chainId, collectible, isInFavorites, addFavoriteCollectible, removeFavoriteCollectible]);
 
-	const shareCollectible = () => {
+	const shareCollectible = useCallback(() => {
 		if (!collectible?.externalLink) return;
 		Share.open({
 			message: `${strings('collectible.share_check_out_nft')} ${collectible.externalLink}\n${strings(
 				'collectible.share_via'
-			)} MetaMask.io`
+			)} ${AppConstants.SHORT_HOMEPAGE_URL}`
 		});
-	};
+	}, [collectible.externalLink]);
+
+	const onHeaderLayout = useCallback(
+		({
+			nativeEvent: {
+				layout: { height }
+			}
+		}) => headerHeight === 0 && setHeaderHeight(height),
+		[headerHeight]
+	);
+
+	const onWrapperLayout = useCallback(
+		({
+			nativeEvent: {
+				layout: { height }
+			}
+		}) => wrapperHeight === 0 && setWrapperHeight(height),
+		[wrapperHeight]
+	);
+
+	const animateViewPosition = useCallback(
+		(toValue, duration) => {
+			animating.current = true;
+			Animated.timing(positionAnimated, {
+				toValue,
+				duration,
+				easing: Easing.ease,
+				useNativeDriver: true
+			}).start(() => {
+				setPosition(toValue);
+				animating.current = false;
+			});
+		},
+		[positionAnimated]
+	);
+
+	const handleGesture = useCallback(
+		evt => {
+			// we don't want to trigger the animation again when the view is being animated
+			if (evt.nativeEvent.velocityY === 0 || animating.current) return;
+			const toValue = evt.nativeEvent.velocityY > 0 ? translationHeight : 0;
+			if (toValue !== position) {
+				onTranslation(toValue !== 0);
+				animateViewPosition(toValue, ANIMATION_VELOCITY);
+			} else if (position !== 0) {
+				// if the modal is on bottom position we want to hide everyhing
+				onHide();
+			}
+		},
+		[translationHeight, position, onTranslation, animateViewPosition, onHide]
+	);
+
+	const gestureHandlerWrapper = child => (
+		<PanGestureHandler activeOffsetY={[0, 0]} activeOffsetX={[0, 0]} onGestureEvent={handleGesture}>
+			{child}
+		</PanGestureHandler>
+	);
+
+	useEffect(() => {
+		if (headerHeight !== 0 && wrapperHeight !== 0) {
+			animateViewPosition(translationHeight, 0);
+		}
+	}, [headerHeight, wrapperHeight, translationHeight, animateViewPosition]);
 
 	return (
-		<View style={styles.wrapper}>
-			<View style={styles.basicsWrapper}>
+		<Animated.View
+			onLayout={onWrapperLayout}
+			onTouchStart={onTouchStart}
+			onTouchEnd={onTouchEnd}
+			onTouchCancel={onTouchEnd}
+			style={[styles.wrapper, { transform: [{ translateY: positionAnimated }] }]}
+		>
+			{gestureHandlerWrapper(
 				<View style={styles.titleWrapper}>
-					<View style={styles.dragger} testID={'account-list-dragger'} />
+					<View style={styles.dragger} />
 				</View>
-				<CollectibleMedia cover renderAnimation collectible={collectible} style={styles.noRound} />
-			</View>
-			<ScrollView style={styles.wrapper}>
-				<TouchableWithoutFeedback>
-					<View style={styles.informationWrapper}>
-						{collectible?.creator && (
-							<View style={styles.userContainer}>
-								<RemoteImage
-									fadeIn
-									placeholderStyle={{ backgroundColor: colors.white }}
-									source={{ uri: collectible.creator.profile_img_url }}
-									style={styles.userImage}
-								/>
-								<View style={styles.userInfoContainer}>
-									{collectible.creator.user?.username && (
-										<Text black bold noMargin big style={styles.username}>
-											{collectible.creator.user.username}
+			)}
+			<SafeAreaView>
+				<View onLayout={onHeaderLayout}>
+					{gestureHandlerWrapper(
+						<View style={styles.generalContainer}>
+							{collectible?.creator && (
+								<View style={styles.userContainer}>
+									<RemoteImage
+										fadeIn
+										placeholderStyle={{ backgroundColor: colors.white }}
+										source={{ uri: collectible.creator.profile_img_url }}
+										style={styles.userImage}
+									/>
+									<View numberOfLines={1} style={styles.userInfoContainer}>
+										{collectible.creator.user?.username && (
+											<Text black bold noMargin big style={styles.username}>
+												{collectible.creator.user.username}
+											</Text>
+										)}
+										<Text numberOfLines={1} black noMargin small>
+											{collectible.contractName}
 										</Text>
-									)}
-									<Text black noMargin small>
-										{collectible.contractName}
-									</Text>
+									</View>
 								</View>
-							</View>
-						)}
-						<Text bold primary noMargin style={styles.name}>
-							{collectible.name}
-						</Text>
-						<Text primary noMargin style={styles.tokenId}>
-							{strings('unit.token_id')}
-							{collectible.tokenId}
-						</Text>
-
-						<View style={styles.buttonContainer}>
-							{tradable && (
-								<StyledButton
-									onPress={onSend}
-									type={'rounded-normal'}
-									containerStyle={styles.sendButton}
-								>
-									<Text link big bold noMargin>
-										{strings('asset_overview.send_button')}
-									</Text>
-								</StyledButton>
 							)}
-							{collectible?.externalLink && (
-								<StyledButton
-									type={'rounded-normal'}
-									containerStyle={styles.iconButtons}
-									onPress={shareCollectible}
-								>
-									<Text bold link noMargin>
-										<EvilIcons name={Device.isIos() ? 'share-apple' : 'share-google'} size={32} />
-									</Text>
-								</StyledButton>
-							)}
+							<Text numberOfLines={2} bold primary noMargin style={styles.name}>
+								{collectible.name}
+							</Text>
+							<Text primary noMargin style={styles.tokenId}>
+								{strings('unit.token_id')}
+								{collectible.tokenId}
+							</Text>
+						</View>
+					)}
 
+					<View style={[styles.generalContainer, styles.buttonContainer]}>
+						{tradable && (
 							<StyledButton
+								onPress={onSend}
 								type={'rounded-normal'}
-								containerStyle={styles.iconButtons}
-								onPress={collectibleToFavorites}
+								containerStyle={[baseStyles.flexGrow, styles.button, styles.leftButton]}
 							>
-								<Text link noMargin>
-									<AntIcons name={isInFavorites ? 'star' : 'staro'} size={24} />
+								<Text link big bold noMargin>
+									{strings('asset_overview.send_button')}
 								</Text>
 							</StyledButton>
-						</View>
-
-						{collectible?.description && (
-							<View style={styles.information}>
-								<View style={styles.row}>
+						)}
+						{collectible?.externalLink && (
+							<StyledButton
+								type={'rounded-normal'}
+								containerStyle={[styles.button, styles.iconButtons, styles.leftButton]}
+								onPress={shareCollectible}
+							>
+								<Text bold link noMargin>
+									<EvilIcons name={Device.isIos() ? 'share-apple' : 'share-google'} size={32} />
+								</Text>
+							</StyledButton>
+						)}
+						<StyledButton
+							type={'rounded-normal'}
+							containerStyle={[styles.button, styles.iconButtons]}
+							onPress={collectibleToFavorites}
+						>
+							<Text link noMargin>
+								<AntIcons name={isInFavorites ? 'star' : 'staro'} size={24} />
+							</Text>
+						</StyledButton>
+					</View>
+				</View>
+				{collectible?.description ? (
+					<View style={styles.information}>
+						<View style={[styles.generalContainer, styles.row]}>
+							{gestureHandlerWrapper(
+								<View>
 									<Text noMargin black bold big>
 										{strings('collectible.collectible_description')}
 									</Text>
-									<Text noMargin black style={styles.content}>
-										{collectible.description}
-									</Text>
 								</View>
-							</View>
-						)}
-						<View style={styles.information}>{renderCollectibleInfo()}</View>
+							)}
+							{collectible?.description?.length > 300 ? (
+								<ScrollView bounces={false} style={[styles.description, styles.scrollableDescription]}>
+									<TouchableWithoutFeedback>
+										<Text noMargin black style={styles.content}>
+											{collectible.description}
+										</Text>
+									</TouchableWithoutFeedback>
+								</ScrollView>
+							) : (
+								gestureHandlerWrapper(
+									<View style={styles.description}>
+										<Text noMargin black style={styles.content}>
+											{collectible.description}
+										</Text>
+									</View>
+								)
+							)}
+						</View>
 					</View>
-				</TouchableWithoutFeedback>
-			</ScrollView>
-		</View>
+				) : (
+					<View />
+				)}
+				{gestureHandlerWrapper(<View style={styles.information}>{renderCollectibleInfo()}</View>)}
+			</SafeAreaView>
+		</Animated.View>
 	);
 };
 
@@ -323,7 +421,23 @@ CollectibleOverview.propTypes = {
 	/**
 	 * Function to open a link on a webview
 	 */
-	openLink: PropTypes.func.isRequired
+	openLink: PropTypes.func.isRequired,
+	/**
+	 * View on touch start callback
+	 */
+	onTouchStart: PropTypes.func.isRequired,
+	/**
+	 * View onn touch end callback
+	 */
+	onTouchEnd: PropTypes.func.isRequired,
+	/**
+	 * callback to trigger when modal is being animated
+	 */
+	onTranslation: PropTypes.func,
+	/**
+	 * callback to trigger when modal is dragged down in bottom position
+	 */
+	onHide: PropTypes.func
 };
 
 const mapStateToProps = (state, props) => {
@@ -344,4 +458,8 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
 	mapStateToProps,
 	mapDispatchToProps
-)(CollectibleOverview);
+)(
+	Device.isIos()
+		? CollectibleOverview
+		: gestureHandlerRootHOC(CollectibleOverview, { flex: 0, zIndex: 0, elevation: 0 })
+);

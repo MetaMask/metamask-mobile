@@ -5,13 +5,13 @@ import RemoteImage from '../../Base/RemoteImage';
 import MediaPlayer from '../../Views/MediaPlayer';
 import { colors } from '../../../styles/common';
 import scaling from '../../../util/scaling';
-import Device from '../../../util/Device';
 import Text from '../../Base/Text';
+import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
 	container(backgroundColor) {
 		return {
-			borderRadius: 8,
+			flex: 0,
 			backgroundColor: `#${backgroundColor}`
 		};
 	},
@@ -28,14 +28,12 @@ const styles = StyleSheet.create({
 		width: 260
 	},
 	cover: {
-		height: scaling.scale(244, { baseModel: 2 }),
-		minWidth: Device.getDeviceWidth()
+		height: scaling.scale(Device.getDeviceWidth(), { baseModel: 2 })
 	},
 	image: {
 		borderRadius: 12
 	},
 	textContainer: {
-		flex: 1,
 		alignItems: 'center',
 		justifyContent: 'center',
 		backgroundColor: colors.grey100,
@@ -43,13 +41,16 @@ const styles = StyleSheet.create({
 	},
 	textWrapper: {
 		textAlign: 'center'
+	},
+	mediaPlayer: {
+		minHeight: 10
 	}
 });
 
 /**
  * View that renders an ERC-721 Token image
  */
-export default function CollectibleMedia({ collectible, renderAnimation, style, tiny, small, big, cover }) {
+export default function CollectibleMedia({ collectible, renderAnimation, style, tiny, small, big, cover, onClose }) {
 	const [sourceUri, setSourceUri] = useState(null);
 
 	const fallback = () => setSourceUri(null);
@@ -62,7 +63,13 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 
 	const renderMedia = useCallback(() => {
 		if (renderAnimation && collectible.animation) {
-			return <MediaPlayer uri={collectible.animation} style={cover ? styles.cover : styles.bigImage} />;
+			return (
+				<MediaPlayer
+					onClose={onClose}
+					uri={collectible.animation}
+					style={[styles.mediaPlayer, cover && styles.cover, style]}
+				/>
+			);
 		} else if (sourceUri) {
 			return (
 				<RemoteImage
@@ -97,7 +104,7 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 				}`}</Text>
 			</View>
 		);
-	}, [collectible, sourceUri, renderAnimation, style, tiny, small, big, cover]);
+	}, [collectible, sourceUri, onClose, renderAnimation, style, tiny, small, big, cover]);
 
 	return <View style={styles.container(collectible.backgroundColor)}>{renderMedia()}</View>;
 }
@@ -130,5 +137,9 @@ CollectibleMedia.propTypes = {
 	/**
 	 * Custom style object
 	 */
-	style: ViewPropTypes.style
+	style: ViewPropTypes.style,
+	/**
+	 * On close callback
+	 */
+	onClose: PropTypes.func
 };

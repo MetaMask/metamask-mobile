@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Video from 'react-native-video';
 import PropTypes from 'prop-types';
 import {
-	TouchableWithoutFeedback,
 	TouchableHighlight,
 	PanResponder,
 	StyleSheet,
@@ -11,27 +10,33 @@ import {
 	Easing,
 	Image,
 	View,
-	Text
+	Text,
+	ViewPropTypes,
+	TouchableNativeFeedback
 } from 'react-native';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { colors } from '../../../styles/common';
+import AntIcon from 'react-native-vector-icons/AntDesign';
+import { baseStyles, colors } from '../../../styles/common';
 
 const styles = StyleSheet.create({
 	playerContainer: {
-		flex: 1,
-		overflow: 'hidden'
+		flex: 0,
+		overflow: 'hidden',
+		zIndex: 99999,
+		elevation: 99999
 	},
 	playerVideo: {
+		flex: 1,
 		overflow: 'hidden',
 		position: 'absolute',
 		top: 0,
 		right: 0,
 		bottom: 0,
-		left: 0
+		left: 0,
+		backgroundColor: colors.black,
+		borderRadius: 12
 	},
 	errorContainer: {
-		position: 'absolute',
 		top: 0,
 		right: 0,
 		bottom: 0,
@@ -44,7 +49,6 @@ const styles = StyleSheet.create({
 	},
 	errorText: {},
 	loaderContainer: {
-		position: 'absolute',
 		top: 0,
 		right: 0,
 		bottom: 0,
@@ -65,15 +69,15 @@ const styles = StyleSheet.create({
 	controlsControl: {
 		padding: 14
 	},
-	controlsPullRight: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center'
-	},
+	// controlsPullRight: {
+	// 	flexDirection: 'row',
+	// 	alignItems: 'center',
+	// 	justifyContent: 'center'
+	// },
 	controlsTop: {
 		flex: 1,
-		alignItems: 'stretch',
-		justifyContent: 'flex-start'
+		justifyContent: 'flex-start',
+		padding: 4
 	},
 	controlsBottom: {
 		flex: 1,
@@ -81,19 +85,18 @@ const styles = StyleSheet.create({
 		padding: 4
 	},
 	controlsTopControlGroup: {
-		alignSelf: 'stretch',
+		alignSelf: 'flex-end',
 		alignItems: 'center',
-		justifyContent: 'space-between',
-		flexDirection: 'row'
+		justifyContent: 'space-between'
 	},
 	controlsBottomControlGroup: {
 		alignSelf: 'stretch',
 		alignItems: 'center',
 		justifyContent: 'space-between'
 	},
-	controlsFullscreen: {
-		flexDirection: 'row'
-	},
+	// controlsFullscreen: {
+	// 	flexDirection: 'row'
+	// },
 	controlsPlayPause: {
 		left: 1
 	},
@@ -117,7 +120,8 @@ const styles = StyleSheet.create({
 	seekbarFill: {
 		height: 4,
 		width: '100%',
-		borderRadius: 2
+		borderRadius: 2,
+		backgroundColor: colors.white
 	},
 	seekbarPermanentFill: {
 		width: '100%',
@@ -151,7 +155,11 @@ export default function VideoPlayer({
 	controlsToggleTiming,
 	source,
 	displayTopControls,
-	displayBottomControls
+	displayBottomControls,
+	onClose,
+	onError,
+	onLoad: propsOnLoad,
+	style
 }) {
 	const [paused, setPaused] = useState(false);
 	const [muted, setMuted] = useState(true);
@@ -196,29 +204,13 @@ export default function VideoPlayer({
 				duration: controlsAnimationTiming,
 				useNativeDriver: false
 			}),
-			Animated.timing(animations.topControl.marginTop, {
-				toValue: -100,
-				duration: controlsAnimationTiming,
-				useNativeDriver: false
-			}),
 			Animated.timing(animations.bottomControl.opacity, {
 				toValue: 0,
 				duration: controlsAnimationTiming,
 				useNativeDriver: false
-			}),
-			Animated.timing(animations.bottomControl.marginBottom, {
-				toValue: -100,
-				duration: controlsAnimationTiming,
-				useNativeDriver: false
 			})
 		]).start();
-	}, [
-		controlsAnimationTiming,
-		animations.bottomControl.opacity,
-		animations.bottomControl.marginBottom,
-		animations.topControl.opacity,
-		animations.topControl.marginTop
-	]);
+	}, [controlsAnimationTiming, animations.bottomControl.opacity, animations.topControl.opacity]);
 
 	const hideControls = useCallback(() => {
 		setShowControls(true);
@@ -239,18 +231,8 @@ export default function VideoPlayer({
 				useNativeDriver: false,
 				duration: controlsAnimationTiming
 			}),
-			Animated.timing(animations.topControl.marginTop, {
-				toValue: 0,
-				useNativeDriver: false,
-				duration: controlsAnimationTiming
-			}),
 			Animated.timing(animations.bottomControl.opacity, {
 				toValue: 1,
-				useNativeDriver: false,
-				duration: controlsAnimationTiming
-			}),
-			Animated.timing(animations.bottomControl.marginBottom, {
-				toValue: 0,
 				useNativeDriver: false,
 				duration: controlsAnimationTiming
 			})
@@ -258,9 +240,7 @@ export default function VideoPlayer({
 	}, [
 		controlsAnimationTiming,
 		animations.bottomControl.opacity,
-		animations.bottomControl.marginBottom,
 		animations.topControl.opacity,
-		animations.topControl.marginTop,
 		resetControlsTimeout
 	]);
 
@@ -271,11 +251,9 @@ export default function VideoPlayer({
 		setShowControls(!showControls);
 	};
 
-	const toggleFullscreen = () => null;
+	const togglePlayPause = useCallback(() => setPaused(!paused), [paused]);
 
-	const togglePlayPause = () => setPaused(!paused);
-
-	const toggleMuted = () => setMuted(!muted);
+	const toggleMuted = useCallback(() => setMuted(!muted), [muted]);
 
 	const constrainToSeekerMinMax = useCallback(
 		(val = 0) => {
@@ -325,13 +303,14 @@ export default function VideoPlayer({
 	};
 
 	const onLoad = (data = {}) => {
+		propsOnLoad();
 		setDuration(data.duration);
 		setLoading(false);
 	};
 
 	const onProgress = (data = {}) => {
-		if (!scrubbing && !seeking) {
-			const position = data.currentTime / data.playableDuration;
+		if (!scrubbing && !seeking && data?.seekableDuration > 0) {
+			const position = data.currentTime / data.seekableDuration;
 			updateSeekerPosition(position * seekerWidth);
 		}
 	};
@@ -442,52 +421,57 @@ export default function VideoPlayer({
 		</TouchableHighlight>
 	);
 
-	const renderFullscreen = () =>
-		renderControl(<FontAwesome name={'expand'} />, toggleFullscreen, styles.controlsFullscreen);
+	const renderMuteUnmuteControl = useCallback(
+		() =>
+			renderControl(
+				<FA5Icon color={colors.white} size={18} name={`volume-${muted ? 'mute' : 'up'}`} />,
+				toggleMuted,
+				styles.controlsMuteUnmute
+			),
+		[muted, toggleMuted]
+	);
 
-	const renderMuteUnmuteControl = () =>
-		renderControl(
-			<FA5Icon color={colors.white} size={18} name={`volume-${muted ? 'mute' : 'up'}`} />,
-			toggleMuted,
-			styles.controlsMuteUnmute
-		);
-
-	const onLayoutSeekerWidth = event => setSeekerWidth(event.nativeEvent.layout.width);
+	const onLayoutSeekerWidth = useCallback(event => setSeekerWidth(event.nativeEvent.layout.width), []);
 
 	useEffect(() => clearTimeout(controlsTimeout.current), []);
 
-	const renderSeekbar = () => (
-		<View style={styles.seekbarContainer} collapsable={false} {...seekPanResponder.panHandlers}>
-			<View style={styles.seekbarTrack}>
-				<View style={[styles.seekbarFill, styles.seekbarPermanentFill]} />
-			</View>
-			<View style={styles.seekbarTrack} onLayout={onLayoutSeekerWidth} pointerEvents={'none'}>
-				<View
-					style={[
-						styles.seekbarFill,
-						{
-							width: seekerFillWidth,
-							backgroundColor: colors.white
-						}
-					]}
-					pointerEvents={'none'}
-				/>
-			</View>
+	const renderSeekbar = useCallback(
+		() => (
+			<View style={styles.seekbarContainer} collapsable={false} {...seekPanResponder.panHandlers}>
+				<View style={styles.seekbarTrack}>
+					<View style={[styles.seekbarFill, styles.seekbarPermanentFill]} />
+				</View>
+				<View style={styles.seekbarTrack} onLayout={onLayoutSeekerWidth} pointerEvents={'none'}>
+					<View
+						style={[
+							styles.seekbarFill,
+							{
+								width: seekerFillWidth
+							}
+						]}
+						pointerEvents={'none'}
+					/>
+				</View>
 
-			<View style={[styles.seekbarHandle, { left: seekerPosition }]} pointerEvents={'none'}>
-				<View style={[styles.seekbarCircle, { backgroundColor: colors.white }]} pointerEvents={'none'} />
+				<View style={[styles.seekbarHandle, { left: seekerPosition }]} pointerEvents={'none'}>
+					<View style={[styles.seekbarCircle, { backgroundColor: colors.white }]} pointerEvents={'none'} />
+				</View>
 			</View>
-		</View>
+		),
+		[seekerPosition, seekPanResponder.panHandlers, seekerFillWidth, onLayoutSeekerWidth]
 	);
 
-	const renderPlayPause = () =>
-		renderControl(
-			<FA5Icon color={colors.white} size={16} name={paused ? 'play' : 'pause'} />,
-			togglePlayPause,
-			styles.controlsPlayPause
-		);
+	const renderPlayPause = useCallback(
+		() =>
+			renderControl(
+				<FA5Icon color={colors.white} size={16} name={paused ? 'play' : 'pause'} />,
+				togglePlayPause,
+				styles.controlsPlayPause
+			),
+		[paused, togglePlayPause]
+	);
 
-	const renderLoader = () => {
+	const renderLoader = useCallback(() => {
 		if (!loading) return;
 		return (
 			<View style={styles.loaderContainer}>
@@ -505,7 +489,7 @@ export default function VideoPlayer({
 				/>
 			</View>
 		);
-	};
+	}, [loading, animations.loader.rotate]);
 
 	const renderError = () => {
 		if (!error) return;
@@ -519,19 +503,23 @@ export default function VideoPlayer({
 		}
 	};
 
+	const renderClose = useCallback(
+		() => renderControl(<AntIcon color={colors.white} size={16} name={'close'} />, onClose, {}),
+		[onClose]
+	);
+
 	const renderTopControls = () => (
 		<Animated.View
 			style={[
 				styles.controlsTop,
 				{
-					opacity: animations.topControl.opacity,
-					marginTop: animations.topControl.marginTop
+					opacity: animations.bottomControl.opacity
 				}
 			]}
 		>
 			<View style={[styles.controlsColumn]}>
-				<SafeAreaView style={styles.controlsTopControlGroup}>
-					<View style={[styles.actionButton, styles.controlsPullRight]}>{renderFullscreen()}</View>
+				<SafeAreaView style={[styles.controlsRow, styles.controlsTopControlGroup]}>
+					<View style={styles.actionButton}>{renderClose()}</View>
 				</SafeAreaView>
 			</View>
 		</Animated.View>
@@ -542,8 +530,7 @@ export default function VideoPlayer({
 			style={[
 				styles.controlsBottom,
 				{
-					opacity: animations.bottomControl.opacity,
-					marginBottom: animations.bottomControl.marginBottom
+					opacity: animations.bottomControl.opacity
 				}
 			]}
 		>
@@ -556,29 +543,29 @@ export default function VideoPlayer({
 			</View>
 		</Animated.View>
 	);
-
 	return (
-		<TouchableWithoutFeedback onPress={onScreenTouch} style={[styles.playerContainer]}>
-			<View style={[styles.playerContainer]}>
+		<TouchableNativeFeedback onPress={onScreenTouch} style={[styles.playerContainer, style]}>
+			<View style={baseStyles.flexGrow}>
 				<Video
 					ref={videoRef}
 					paused={paused}
 					muted={muted}
 					onLoad={onLoad}
+					onError={onError}
 					onSeek={onSeek}
 					onLoadStart={onLoadStart}
 					onProgress={onProgress}
-					style={[styles.playerVideo]}
+					style={styles.playerVideo}
 					source={source}
-					resizeMode="cover"
+					resizeMode="contain"
 					repeat
 				/>
 				{renderError()}
 				{renderLoader()}
-				{displayTopControls && renderTopControls()}
+				{onClose && displayTopControls && renderTopControls()}
 				{displayBottomControls && renderBottomControls()}
 			</View>
-		</TouchableWithoutFeedback>
+		</TouchableNativeFeedback>
 	);
 }
 
@@ -587,13 +574,17 @@ VideoPlayer.propTypes = {
 	controlsToggleTiming: PropTypes.number,
 	source: PropTypes.object,
 	displayTopControls: PropTypes.bool,
-	displayBottomControls: PropTypes.bool
+	displayBottomControls: PropTypes.bool,
+	onClose: PropTypes.func,
+	onLoad: PropTypes.func,
+	onError: PropTypes.func,
+	style: ViewPropTypes.style
 };
 
 VideoPlayer.defaultProps = {
 	doubleTapTime: 100,
 	controlsAnimationTiming: 500,
 	controlsToggleTiming: 5000,
-	displayTopControls: false,
+	displayTopControls: true,
 	displayBottomControls: true
 };
