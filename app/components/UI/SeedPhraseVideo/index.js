@@ -58,6 +58,10 @@ const SeedPhraseVideo = ({ style }) => {
 	const [isPlaying, setPlaying] = useState(false);
 	const [isError, setError] = useState(false);
 
+	const reset = () => {
+		setPlaying(false);
+	};
+
 	const onError = e => {
 		Logger.error(e, FAILED_TO_LOAD_MSG);
 		setError(true);
@@ -102,12 +106,14 @@ const SeedPhraseVideo = ({ style }) => {
 				</>
 			) : (
 				<VideoPlayer
+					ignoreSilentSwitch="ignore"
 					disableFullscreen
 					disableBack
 					source={{ uri: video_source_uri }}
 					style={StyleSheet.absoluteFill}
 					onError={onError}
 					onPlay={onPlay}
+					onEnd={reset}
 					resizeMode="cover"
 				/>
 			)}
