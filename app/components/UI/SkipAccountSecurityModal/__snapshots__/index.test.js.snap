@@ -130,7 +130,7 @@ exports[`HintModal should render correctly 1`] = `
         }
         testID="skip-backup-text"
       >
-        I understand that if I lose my Secret Recovery phrase I will not be able to access my wallet.
+        I understand that if I lose my Secret Recovery Phrase I will not be able to access my wallet.
       </Text>
     </View>
   </View>
