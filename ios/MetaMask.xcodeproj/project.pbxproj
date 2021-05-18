@@ -958,7 +958,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "io.metamask.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = MetaMask;
-				PROVISIONING_PROFILE_SPECIFIER = "Bitrise2 AppStore io.metamask.MetaMask";
+				PROVISIONING_PROFILE_SPECIFIER = "Bitrise AppStore io.metamask.MetaMask";
 				SWIFT_OBJC_BRIDGING_HEADER = "MetaMask-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
