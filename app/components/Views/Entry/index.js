@@ -85,7 +85,7 @@ const Entry = props => {
 			useNativeDriver: true,
 			isInteraction: false
 		}).start(() => {
-			if (viewToGo !== 'WalletView' || viewToGo !== 'Onboarding') {
+			if (!!viewToGo && (viewToGo !== 'WalletView' || viewToGo !== 'Onboarding')) {
 				props.navigation.navigate(viewToGo);
 			} else if (viewToGo === 'Onboarding') {
 				props.navigation.navigate('OnboardingRootNav');
