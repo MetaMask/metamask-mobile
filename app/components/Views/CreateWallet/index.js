@@ -139,7 +139,7 @@ class CreateWallet extends PureComponent {
 			this.props.setLockTime(-1);
 			this.props.seedphraseNotBackedUp();
 			setTimeout(() => {
-				if (metricsOptIn) {
+				if (!metricsOptIn) {
 					this.props.navigation.navigate('OptinMetrics');
 				} else if (onboardingWizard) {
 					this.props.navigation.navigate('HomeNav');
