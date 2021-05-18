@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Image, TouchableOpacity } from 'react-native';
 import VideoPlayer from 'react-native-video-controls';
@@ -58,19 +58,21 @@ const SeedPhraseVideo = ({ style }) => {
 	const [isPlaying, setPlaying] = useState(false);
 	const [isError, setError] = useState(false);
 
-	const reset = () => {
-		setPlaying(false);
-	};
+	const reset = useCallback(() => setPlaying(false), [setPlaying]);
 
-	const onError = e => {
-		Logger.error(e, FAILED_TO_LOAD_MSG);
-		setError(true);
-		setPlaying(false);
-	};
-	const onPlay = () => {
+	const onError = useCallback(
+		e => {
+			Logger.error(e, FAILED_TO_LOAD_MSG);
+			setError(true);
+			setPlaying(false);
+		},
+		[setError, setPlaying]
+	);
+
+	const onPlay = useCallback(() => {
 		Logger.log('User clicked play');
 		setPlaying(true);
-	};
+	}, [setPlaying]);
 
 	return (
 		<View style={style ? [styles.videoContainer, style] : styles.videoContainer}>
