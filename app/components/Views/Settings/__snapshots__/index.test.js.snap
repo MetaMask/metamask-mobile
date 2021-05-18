@@ -17,7 +17,7 @@ exports[`Settings should render correctly 1`] = `
     title="General"
   />
   <SettingsDrawer
-    description="Privacy settings, MetaMetrics, private key and wallet Secret Recovery phrase"
+    description="Privacy settings, MetaMetrics, private key and wallet Secret Recovery Phrase"
     onPress={[Function]}
     title="Security & Privacy"
     warning={false}
