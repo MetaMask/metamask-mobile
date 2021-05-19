@@ -90,7 +90,7 @@ function CollectibleContractElement({
 		setCollectiblesVisible(!collectiblesVisible);
 	}, [collectiblesVisible, setCollectiblesVisible]);
 
-	const onPressCollectible = useCallback(collectible => onPress(collectible, collectible.name || asset.name), [
+	const onPressCollectible = useCallback(collectible => onPress(collectible, asset.name || collectible.name), [
 		asset.name,
 		onPress
 	]);
@@ -113,7 +113,6 @@ function CollectibleContractElement({
 		(collectible, index) => {
 			const name =
 				collectible.name || collectibleContracts.find(({ address }) => address === collectible.address)?.name;
-
 			const onPress = () => onPressCollectible({ ...collectible, name });
 			const onLongPress = () => onLongPressCollectible({ ...collectible, name });
 			return (
