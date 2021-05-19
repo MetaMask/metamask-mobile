@@ -62,7 +62,7 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 	}, [collectible, small, big, setSourceUri]);
 
 	const renderMedia = useCallback(() => {
-		if (renderAnimation && collectible.animation) {
+		if (renderAnimation && collectible.animation && collectible.animation.includes('.mp4')) {
 			return (
 				<MediaPlayer
 					onClose={onClose}
