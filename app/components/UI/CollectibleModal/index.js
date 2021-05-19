@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
 		top: 0,
 		left: 0,
 		right: 0,
-		margin: 16,
+		marginHorizontal: 16,
 		marginTop: Device.hasNotch() ? 36 : 16,
 		maxHeight: Device.getDeviceHeight() / 2,
 		overflow: 'visible'

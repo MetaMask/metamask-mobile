@@ -74,7 +74,7 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 			return (
 				<RemoteImage
 					fadeIn
-					resizeMode={cover ? 'cover' : 'contain'}
+					resizeMode={'contain'}
 					source={{ uri: sourceUri }}
 					style={[
 						styles.image,
