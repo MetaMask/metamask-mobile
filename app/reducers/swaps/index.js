@@ -63,13 +63,14 @@ const swapsControllerAndUserTokens = createSelector(
 	tokensSelectors,
 	(swapsTokens, tokens) => {
 		const values = [...(swapsTokens || []), ...(tokens || [])]
-			.reduce((map, token) => {
+			.reduce((map, { balanceError, image, ...token }) => {
 				const key = token.address.toLowerCase();
 
 				if (!map.has(key)) {
 					map.set(key, {
 						occurances: 0,
 						...token,
+						decimals: Number(token.decimals),
 						address: key
 					});
 				}
