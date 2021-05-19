@@ -329,7 +329,7 @@ const CollectibleOverview = ({
 							<StyledButton
 								type={'rounded-normal'}
 								containerStyle={[styles.button, styles.iconButtons, styles.leftButton]}
-								onPress={shareCollectible}
+								onPressOut={shareCollectible}
 							>
 								<Text bold link noMargin>
 									<EvilIcons name={Device.isIos() ? 'share-apple' : 'share-google'} size={32} />
@@ -339,7 +339,7 @@ const CollectibleOverview = ({
 						<StyledButton
 							type={'rounded-normal'}
 							containerStyle={[styles.button, styles.iconButtons]}
-							onPress={collectibleToFavorites}
+							onPressOut={collectibleToFavorites}
 						>
 							<Text link noMargin>
 								<AntIcons name={isInFavorites ? 'star' : 'staro'} size={24} />

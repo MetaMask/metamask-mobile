@@ -42,6 +42,10 @@ export default class StyledButton extends PureComponent {
 		 */
 		onPress: PropTypes.func,
 		/**
+		 * Function to be called on press out
+		 */
+		onPressOut: PropTypes.func,
+		/**
 		 * Type of the button
 		 */
 		type: PropTypes.string,
@@ -99,6 +103,7 @@ export default class StyledButton extends PureComponent {
 
 		if (!this.props.disabled) {
 			touchableProps.onPress = this.props.onPress;
+			touchableProps.onPressOut = this.props.onPressOut;
 		}
 
 		return (
