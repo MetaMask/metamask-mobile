@@ -40,7 +40,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
           Array [
             "Create password",
             "Secure wallet",
-            "Confirm Secret Recovery phrase",
+            "Confirm Secret Recovery Phrase",
           ]
         }
       />
@@ -107,7 +107,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                 }
               }
             >
-              Secret Recovery phrase.
+              Secret Recovery Phrase.
             </Text>
           </Text>
         </View>
@@ -189,7 +189,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
             }
           }
         >
-          Write down your Secret Recovery phrase on a piece of paper and store in a safe place.
+          Write down your Secret Recovery Phrase on a piece of paper and store in a safe place.
         </Text>
         <Text
           style={
@@ -496,7 +496,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
             }
           }
         >
-          Don’t risk losing your funds. Protect your wallet by saving your Secret Recovery phrase in a place you trust.
+          Don’t risk losing your funds. Protect your wallet by saving your Secret Recovery Phrase in a place you trust.
           <Text
             style={
               Object {

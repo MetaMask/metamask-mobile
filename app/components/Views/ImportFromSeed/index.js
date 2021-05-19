@@ -72,10 +72,11 @@ const styles = StyleSheet.create({
 		alignItems: 'flex-end'
 	},
 	fieldCol: {
-		width: '50%'
+		width: '70%'
 	},
 	fieldColRight: {
-		flexDirection: 'row-reverse'
+		flexDirection: 'row-reverse',
+		width: '30%'
 	},
 	label: {
 		color: colors.black,
