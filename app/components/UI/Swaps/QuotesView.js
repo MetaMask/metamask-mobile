@@ -512,7 +512,8 @@ function SwapsQuotesView({
 					available_quotes: allQuotes.length,
 					network_fees_USD: weiToFiat(toWei(selectedQuoteValue?.ethFee), conversionRate, currentCurrency),
 					network_fees_ETH: renderFromWei(toWei(selectedQuoteValue?.ethFee)),
-					other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote
+					other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote,
+					chain_id: chainId
 				},
 				paramsForAnalytics: {
 					sentAt: currentBlock.timestamp,
@@ -524,6 +525,7 @@ function SwapsQuotesView({
 			TransactionController.update({ swapsTransactions: newSwapsTransactions });
 		},
 		[
+			chainId,
 			accounts,
 			selectedAddress,
 			currentCurrency,
@@ -558,7 +560,8 @@ function SwapsQuotesView({
 				available_quotes: allQuotes,
 				other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote,
 				network_fees_USD: weiToFiat(toWei(selectedQuoteValue?.ethFee), conversionRate, 'usd'),
-				network_fees_ETH: renderFromWei(toWei(selectedQuoteValue?.ethFee))
+				network_fees_ETH: renderFromWei(toWei(selectedQuoteValue?.ethFee)),
+				chain_id: chainId
 			};
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAP_STARTED, {});
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAP_STARTED, parameters, true);
@@ -603,6 +606,7 @@ function SwapsQuotesView({
 
 		navigation.dismiss();
 	}, [
+		chainId,
 		navigation,
 		selectedQuote,
 		approvalTransaction,
@@ -660,12 +664,14 @@ function SwapsQuotesView({
 				other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote,
 				gas_fees: weiToFiat(toWei(selectedQuoteValue?.ethFee), conversionRate, currentCurrency),
 				custom_spend_limit_set: originalAmount !== currentAmount,
-				custom_spend_limit_amount: currentAmount
+				custom_spend_limit_amount: currentAmount,
+				chain_id: chainId
 			};
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.EDIT_SPEND_LIMIT_OPENED, {});
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.EDIT_SPEND_LIMIT_OPENED, parameters, true);
 		});
 	}, [
+		chainId,
 		allQuotes,
 		approvalTransaction,
 		conversionRate,
@@ -704,14 +710,15 @@ function SwapsQuotesView({
 							toWei(swapsUtils.calcTokenAmount(newGasLimit.times(newGasPrice), 18)),
 							conversionRate,
 							currentCurrency
-						)
+						),
+						chain_id: chainId
 					};
 					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.GAS_FEES_CHANGED, {});
 					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.GAS_FEES_CHANGED, parameters, true);
 				});
 			}
 		},
-		[conversionRate, currentCurrency, gasLimit, gasPrice]
+		[chainId, conversionRate, currentCurrency, gasLimit, gasPrice]
 	);
 
 	const handleQuotesReceivedMetric = useCallback(() => {
@@ -729,12 +736,14 @@ function SwapsQuotesView({
 				best_quote_source: selectedQuote.aggregator,
 				network_fees_USD: weiToFiat(toWei(selectedQuoteValue.ethFee), conversionRate, 'usd'),
 				network_fees_ETH: renderFromWei(toWei(selectedQuoteValue.ethFee)),
-				available_quotes: allQuotes.length
+				available_quotes: allQuotes.length,
+				chain_id: chainId
 			};
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_RECEIVED, {});
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_RECEIVED, parameters, true);
 		});
 	}, [
+		chainId,
 		sourceToken,
 		sourceAmount,
 		destinationToken,
@@ -763,12 +772,14 @@ function SwapsQuotesView({
 				best_quote_source: selectedQuote.aggregator,
 				network_fees_USD: weiToFiat(toWei(selectedQuoteValue.ethFee), conversionRate, 'usd'),
 				network_fees_ETH: renderFromWei(toWei(selectedQuoteValue.ethFee)),
-				available_quotes: allQuotes.length
+				available_quotes: allQuotes.length,
+				chain_id: chainId
 			};
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.ALL_AVAILABLE_QUOTES_OPENED, {});
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.ALL_AVAILABLE_QUOTES_OPENED, parameters, true);
 		});
 	}, [
+		chainId,
 		selectedQuote,
 		selectedQuoteValue,
 		toggleQuotesModal,
@@ -790,7 +801,8 @@ function SwapsQuotesView({
 				token_to: destinationToken.symbol,
 				request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
 				slippage,
-				custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
+				custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
+				chain_id: chainId
 			};
 			if (error?.key === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR) {
 				InteractionManager.runAfterInteractions(() => {
@@ -803,7 +815,7 @@ function SwapsQuotesView({
 				});
 			} else if (error?.key === swapsUtils.SwapsError.QUOTES_NOT_AVAILABLE_ERROR) {
 				InteractionManager.runAfterInteractions(() => {
-					const parameters = { data };
+					const parameters = { ...data };
 					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.NO_QUOTES_AVAILABLE, {});
 					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.NO_QUOTES_AVAILABLE, parameters, true);
 				});
@@ -811,7 +823,7 @@ function SwapsQuotesView({
 				trackErrorAsAnalytics(`Swaps: ${error?.key}`, error?.description);
 			}
 		},
-		[sourceToken, sourceAmount, destinationToken, hasEnoughTokenBalance, slippage]
+		[chainId, sourceToken, sourceAmount, destinationToken, hasEnoughTokenBalance, slippage]
 	);
 
 	const handleSlippageAlertPress = useCallback(() => {
@@ -953,7 +965,8 @@ function SwapsQuotesView({
 			token_from_amount: fromTokenMinimalUnitString(sourceAmount, sourceToken.decimals),
 			token_to: destinationToken.symbol,
 			request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
-			custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE
+			custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
+			chain_id: chainId
 		};
 		navigation.setParams({ requestedTrade: data });
 		navigation.setParams({ selectedQuote: undefined });
@@ -963,6 +976,7 @@ function SwapsQuotesView({
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_REQUESTED, data, true);
 		});
 	}, [
+		chainId,
 		destinationToken,
 		hasEnoughTokenBalance,
 		isInFetch,
