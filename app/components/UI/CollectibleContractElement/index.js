@@ -140,7 +140,7 @@ function CollectibleContractElement({
 			<TouchableOpacity onPress={toggleCollectibles} style={styles.titleContainer}>
 				<View style={styles.verticalAlignedContainer}>
 					<Icon
-						name={`ios-arrow-${collectiblesVisible ? 'up' : 'down'}`}
+						name={`ios-arrow-${collectiblesVisible ? 'down' : 'forward'}`}
 						size={12}
 						color={colors.black}
 						style={styles.arrowIcon}
