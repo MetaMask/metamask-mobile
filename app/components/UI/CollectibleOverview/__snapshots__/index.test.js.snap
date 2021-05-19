@@ -177,7 +177,7 @@ exports[`CollectibleOverview should render correctly 1`] = `
               "opacity": 0.6,
             }
           }
-          onPress={[Function]}
+          onPressOut={[Function]}
           styleDisabled={
             Object {
               "opacity": 0.6,
@@ -230,7 +230,7 @@ exports[`CollectibleOverview should render correctly 1`] = `
               "opacity": 0.6,
             }
           }
-          onPress={[Function]}
+          onPressOut={[Function]}
           styleDisabled={
             Object {
               "opacity": 0.6,
