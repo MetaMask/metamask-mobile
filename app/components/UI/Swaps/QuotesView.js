@@ -990,7 +990,8 @@ function SwapsQuotesView({
 		handleQuotesErrorMetric(error);
 	}, [error, handleQuotesErrorMetric, trackedError]);
 
-	const openLinkAboutGas = () => Linking.openURL('https://ethereum.org/en/developers/docs/gas/');
+	const openLinkAboutGas = () =>
+		Linking.openURL('https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172');
 
 	const toggleGasTooltip = () => setShowGasTooltip(showGasTooltip => !showGasTooltip);
 

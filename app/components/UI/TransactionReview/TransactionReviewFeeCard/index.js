@@ -147,7 +147,8 @@ class TransactionReviewFeeCard extends PureComponent {
 		);
 	};
 
-	openLinkAboutGas = () => Linking.openURL('https://ethereum.org/en/developers/docs/gas/');
+	openLinkAboutGas = () =>
+		Linking.openURL('https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172');
 
 	toggleGasTooltip = () => this.setState(state => ({ showGasTooltip: !state.showGasTooltip }));
 
