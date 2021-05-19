@@ -90,10 +90,13 @@ function CollectibleContractElement({
 		setCollectiblesVisible(!collectiblesVisible);
 	}, [collectiblesVisible, setCollectiblesVisible]);
 
-	const onPressCollectible = useCallback(collectible => onPress(collectible, asset.name || collectible.name), [
-		asset.name,
-		onPress
-	]);
+	const onPressCollectible = useCallback(
+		collectible => {
+			const contractName = collectibleContracts.find(({ address }) => address === collectible.address)?.name;
+			onPress(collectible, contractName || collectible.name);
+		},
+		[collectibleContracts, onPress]
+	);
 
 	const onLongPressCollectible = useCallback(collectible => {
 		actionSheetRef.current.show();
