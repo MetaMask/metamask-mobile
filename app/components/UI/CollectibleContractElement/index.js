@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Alert } from 'react-native';
 import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../styles/common';
 import CollectibleMedia from '../CollectibleMedia';
@@ -8,6 +8,9 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import Device from '../../../util/Device';
 import AntIcons from 'react-native-vector-icons/AntDesign';
 import Text from '../../Base/Text';
+import ActionSheet from 'react-native-actionsheet';
+import { strings } from '../../../../locales/i18n';
+import Engine from '../../../core/Engine';
 
 const DEVICE_WIDTH = Device.getDeviceWidth();
 const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
@@ -80,6 +83,8 @@ function CollectibleContractElement({
 }) {
 	const [collectiblesGrid, setCollectiblesGrid] = useState([]);
 	const [collectiblesVisible, setCollectiblesVisible] = useState(propsCollectiblesVisible);
+	const actionSheetRef = useRef();
+	const collectibleToRemove = useRef(null);
 
 	const toggleCollectibles = useCallback(() => {
 		setCollectiblesVisible(!collectiblesVisible);
@@ -90,15 +95,30 @@ function CollectibleContractElement({
 		onPress
 	]);
 
+	const onLongPressCollectible = useCallback(collectible => {
+		actionSheetRef.current.show();
+		collectibleToRemove.current = collectible;
+	}, []);
+
+	const removeCollectible = () => {
+		const { AssetsController } = Engine.context;
+		AssetsController.removeAndIgnoreCollectible(
+			collectibleToRemove.current.address,
+			collectibleToRemove.current.tokenId
+		);
+		Alert.alert(strings('wallet.collectible_removed_title'), strings('wallet.collectible_removed_desc'));
+	};
+
 	const renderCollectible = useCallback(
 		(collectible, index) => {
 			const name =
 				collectible.name || collectibleContracts.find(({ address }) => address === collectible.address)?.name;
 
 			const onPress = () => onPressCollectible({ ...collectible, name });
+			const onLongPress = () => onLongPressCollectible({ ...collectible, name });
 			return (
 				<View key={collectible.address + collectible.tokenId} styles={styles.collectibleBox}>
-					<TouchableOpacity onPress={onPress}>
+					<TouchableOpacity onPress={onPress} onLongPress={onLongPress}>
 						<View style={index === 1 ? styles.collectibleInTheMiddle : {}}>
 							<CollectibleMedia style={styles.collectibleIcon} collectible={{ ...collectible, name }} />
 						</View>
@@ -106,7 +126,7 @@ function CollectibleContractElement({
 				</View>
 			);
 		},
-		[collectibleContracts, onPressCollectible]
+		[collectibleContracts, onPressCollectible, onLongPressCollectible]
 	);
 
 	useEffect(() => {
@@ -152,6 +172,15 @@ function CollectibleContractElement({
 					))}
 				</View>
 			)}
+			<ActionSheet
+				ref={actionSheetRef}
+				title={strings('wallet.remove_collectible_title')}
+				options={[strings('wallet.remove'), strings('wallet.cancel')]}
+				cancelButtonIndex={1}
+				destructiveButtonIndex={0}
+				// eslint-disable-next-line react/jsx-no-bind
+				onPress={index => (index === 0 ? removeCollectible() : null)}
+			/>
 		</View>
 	);
 }
