@@ -204,12 +204,14 @@ workflows:
               only:
                 - main
                 - develop
+                - refactor/wyre-onramp
       - prep-node-deps:
           filters:
             branches:
               ignore:
                 - main
                 - develop
+                - refactor/wyre-onramp
       - lint:
           requires:
             - prep-node-deps
