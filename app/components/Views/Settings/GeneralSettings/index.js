@@ -173,7 +173,7 @@ class Settings extends PureComponent {
 
 	selectCurrency = async currency => {
 		const { CurrencyRateController } = Engine.context;
-		CurrencyRateController.configure({ currentCurrency: currency });
+		CurrencyRateController.setCurrentCurrency(currency);
 	};
 
 	selectLanguage = language => {
