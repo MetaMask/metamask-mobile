@@ -94,9 +94,6 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'space-between'
 	},
-	// controlsFullscreen: {
-	// 	flexDirection: 'row'
-	// },
 	controlsPlayPause: {
 		left: 1
 	},
@@ -558,6 +555,7 @@ export default function VideoPlayer({
 					style={styles.playerVideo}
 					source={source}
 					resizeMode="contain"
+					ignoreSilentSwitch="ignore"
 					repeat
 				/>
 				{renderError()}
