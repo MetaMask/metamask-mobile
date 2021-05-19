@@ -568,10 +568,16 @@ function SwapsAmountView({
 								{textStyle => (
 									<TouchableOpacity onPress={explorer.isValid ? handleVerifyPress : undefined}>
 										<Text style={textStyle} bold centered>
-											{strings('swaps.only_verified_on', {
-												symbol: destinationToken.symbol,
-												occurances: destinationToken.occurances
-											})}
+											{!destinationToken.occurances
+												? strings('swaps.not_verified', {
+														symbol: destinationToken.symbol
+														// eslint-disable-next-line no-mixed-spaces-and-tabs
+												  })
+												: strings('swaps.only_verified_on', {
+														symbol: destinationToken.symbol,
+														occurances: destinationToken.occurances
+														// eslint-disable-next-line no-mixed-spaces-and-tabs
+												  })}
 										</Text>
 										<Text style={textStyle} centered>
 											{`${strings('swaps.verify_address_on')} `}
