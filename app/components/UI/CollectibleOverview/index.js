@@ -135,6 +135,11 @@ const CollectibleOverview = ({
 	]);
 	const animating = useRef(false);
 
+	const renderScrollableDescription = useMemo(() => {
+		const maxLength = IS_SMALL_DEVICE ? 150 : 300;
+		return collectible?.description?.length > maxLength;
+	}, [collectible.description]);
+
 	const renderCollectibleInfoRow = useCallback((key, value, onPress) => {
 		if (!value) return null;
 		return (
@@ -349,7 +354,7 @@ const CollectibleOverview = ({
 									</Text>
 								</View>
 							)}
-							{collectible?.description?.length > 300 ? (
+							{renderScrollableDescription ? (
 								<ScrollView bounces={false} style={[styles.description, styles.scrollableDescription]}>
 									<TouchableWithoutFeedback>
 										<Text noMargin black style={styles.collectibleDescription}>
