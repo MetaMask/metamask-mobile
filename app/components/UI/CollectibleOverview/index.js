@@ -296,7 +296,7 @@ const CollectibleOverview = ({
 								</View>
 							)}
 							<Text numberOfLines={2} bold primary noMargin style={styles.name}>
-								{collectible.name + collectible.name + collectible.name}
+								{collectible.name}
 							</Text>
 							<Text primary noMargin big>
 								{strings('unit.token_id')}

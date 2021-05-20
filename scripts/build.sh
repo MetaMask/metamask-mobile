@@ -158,7 +158,7 @@ buildAndroidRunE2E(){
 
 buildIosSimulator(){
 	prebuild_ios
-	react-native run-ios --simulator "iPhone 11 Pro"
+	react-native run-ios --simulator "iPhone SE"
 }
 
 buildIosSimulatorE2E(){
