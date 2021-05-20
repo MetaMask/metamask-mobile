@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Video from 'react-native-video';
 import PropTypes from 'prop-types';
 import {
-	TouchableHighlight,
 	PanResponder,
 	StyleSheet,
 	Animated,
@@ -407,7 +406,7 @@ export default function VideoPlayer({
 	);
 
 	const renderControl = (children, callback, style = {}) => (
-		<TouchableHighlight
+		<TouchableNativeFeedback
 			underlayColor="transparent"
 			onPress={() => {
 				callback();
@@ -415,7 +414,7 @@ export default function VideoPlayer({
 			style={[styles.controlsControl, style]}
 		>
 			{children}
-		</TouchableHighlight>
+		</TouchableNativeFeedback>
 	);
 
 	const renderMuteUnmuteControl = useCallback(
