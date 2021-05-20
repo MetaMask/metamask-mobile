@@ -13,6 +13,7 @@ export const ACTIONS = {
 	REPLACE_NOTIFICATION_BY_ID: 'REPLACE_NOTIFICATION_BY_ID',
 	REMOVE_NOTIFICATION_BY_ID: 'REMOVE_NOTIFICATION_BY_ID',
 	REMOVE_CURRENT_NOTIFICATION: 'REMOVE_CURRENT_NOTIFICATION',
+	REMOVE_NOT_VISIBLE_NOTIFICATIONS: 'REMOVE_NOT_VISIBLE_NOTIFICATIONS',
 	SHOW_SIMPLE_NOTIFICATION: 'SHOW_SIMPLE_NOTIFICATION',
 	SHOW_TRANSACTION_NOTIFICATION: 'SHOW_TRANSACTION_NOTIFICATION'
 };
@@ -170,6 +171,17 @@ const notificationReducer = (state = initialState, action) => {
 					status: action.status,
 					type: TRANSACTION
 				})
+			};
+		}
+		case ACTIONS.REMOVE_NOT_VISIBLE_NOTIFICATIONS: {
+			const visibleNotifications =
+				notifications?.reduce(
+					(newNotifications, notification) => notification.isVisible && newNotifications.concat(notification),
+					[]
+				) || [];
+			return {
+				...state,
+				notifications: visibleNotifications
 			};
 		}
 		default:
