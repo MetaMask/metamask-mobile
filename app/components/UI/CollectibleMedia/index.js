@@ -108,7 +108,7 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 			</View>
 		);
 	}, [collectible, sourceUri, onClose, renderAnimation, style, tiny, small, big, cover]);
-	console.log('collectible.backgroundColor', collectible);
+
 	return <View style={styles.container(collectible.backgroundColor)}>{renderMedia()}</View>;
 }
 
