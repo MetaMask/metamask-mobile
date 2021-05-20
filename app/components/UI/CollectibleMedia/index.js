@@ -8,6 +8,8 @@ import scaling from '../../../util/scaling';
 import Text from '../../Base/Text';
 import Device from '../../../util/Device';
 
+const MEDIA_WIDTH_MARGIN = Device.isMediumDevice() ? 32 : 0;
+
 const styles = StyleSheet.create({
 	container(backgroundColor) {
 		return {
@@ -28,7 +30,7 @@ const styles = StyleSheet.create({
 		width: 260
 	},
 	cover: {
-		height: scaling.scale(Device.getDeviceWidth() - 32, { baseModel: 2 })
+		height: scaling.scale(Device.getDeviceWidth() - MEDIA_WIDTH_MARGIN, { baseModel: 2 })
 	},
 	image: {
 		borderRadius: 12
