@@ -7,7 +7,7 @@ import collectiblesTransferInformation from '../../../util/collectibles-transfer
 import { newAssetTransaction } from '../../../actions/transaction';
 import Modal from 'react-native-modal';
 import CollectibleMedia from '../CollectibleMedia';
-import { baseStyles, colors } from '../../../styles/common';
+import { baseStyles } from '../../../styles/common';
 import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
@@ -24,11 +24,9 @@ const styles = StyleSheet.create({
 		left: 0,
 		right: 0,
 		marginHorizontal: 16,
-		marginVertical: Device.hasNotch() ? 36 : 16,
-		paddingHorizontal: 10,
-		height: 200,
-		overflow: 'visible',
-		backgroundColor: colors.blue000
+		marginTop: Device.hasNotch() ? 36 : 16,
+		maxHeight: Device.getDeviceHeight() / 2,
+		overflow: 'visible'
 	}
 });
 
