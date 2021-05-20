@@ -14,6 +14,7 @@ const styles = StyleSheet.create({
 	container(backgroundColor) {
 		return {
 			flex: 0,
+			borderRadius: 12,
 			backgroundColor: `#${backgroundColor}`
 		};
 	},
@@ -107,7 +108,7 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 			</View>
 		);
 	}, [collectible, sourceUri, onClose, renderAnimation, style, tiny, small, big, cover]);
-
+	console.log('collectible.backgroundColor', collectible);
 	return <View style={styles.container(collectible.backgroundColor)}>{renderMedia()}</View>;
 }
 

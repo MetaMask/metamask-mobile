@@ -7,7 +7,7 @@ import collectiblesTransferInformation from '../../../util/collectibles-transfer
 import { newAssetTransaction } from '../../../actions/transaction';
 import Modal from 'react-native-modal';
 import CollectibleMedia from '../CollectibleMedia';
-import { baseStyles } from '../../../styles/common';
+import { baseStyles, colors } from '../../../styles/common';
 import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
@@ -25,7 +25,8 @@ const styles = StyleSheet.create({
 		right: 0,
 		marginHorizontal: 16,
 		marginTop: Device.hasNotch() ? 36 : 16,
-		overflow: 'visible'
+		borderRadius: 12,
+		backgroundColor: colors.transparent
 	}
 });
 
