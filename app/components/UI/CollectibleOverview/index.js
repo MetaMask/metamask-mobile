@@ -313,7 +313,7 @@ const CollectibleOverview = ({
 					<View style={[styles.generalContainer, styles.buttonContainer]}>
 						{tradable && (
 							<StyledButton
-								onPress={onSend}
+								onPressOut={onSend}
 								type={'rounded-normal'}
 								containerStyle={[baseStyles.flexGrow, styles.button, styles.leftButton]}
 							>
