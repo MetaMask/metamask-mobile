@@ -11,7 +11,8 @@ import {
 	View,
 	Text,
 	ViewPropTypes,
-	TouchableNativeFeedback
+	TouchableNativeFeedback,
+	TouchableHighlight
 } from 'react-native';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import AntIcon from 'react-native-vector-icons/AntDesign';
@@ -68,11 +69,6 @@ const styles = StyleSheet.create({
 	controlsControl: {
 		padding: 14
 	},
-	// controlsPullRight: {
-	// 	flexDirection: 'row',
-	// 	alignItems: 'center',
-	// 	justifyContent: 'center'
-	// },
 	controlsTop: {
 		flex: 1,
 		justifyContent: 'flex-start',
@@ -406,15 +402,9 @@ export default function VideoPlayer({
 	);
 
 	const renderControl = (children, callback, style = {}) => (
-		<TouchableNativeFeedback
-			underlayColor="transparent"
-			onPress={() => {
-				callback();
-			}}
-			style={[styles.controlsControl, style]}
-		>
+		<TouchableHighlight underlayColor="transparent" onPress={callback} style={[styles.controlsControl, style]}>
 			{children}
-		</TouchableNativeFeedback>
+		</TouchableHighlight>
 	);
 
 	const renderMuteUnmuteControl = useCallback(

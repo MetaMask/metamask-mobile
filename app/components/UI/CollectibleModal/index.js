@@ -25,7 +25,6 @@ const styles = StyleSheet.create({
 		right: 0,
 		marginHorizontal: 16,
 		marginTop: Device.hasNotch() ? 36 : 16,
-		maxHeight: Device.getDeviceHeight() / 2,
 		overflow: 'visible'
 	}
 });
@@ -91,7 +90,7 @@ const CollectibleModal = ({ contractName, collectible, onHide, visible, navigati
 			swipeDirection={swippable}
 			propagateSwipe
 		>
-			<View coverScreen style={[styles.collectibleMediaWrapper, { zIndex: mediaZIndex, elevation: mediaZIndex }]}>
+			<View style={[styles.collectibleMediaWrapper, { zIndex: mediaZIndex, elevation: mediaZIndex }]}>
 				<CollectibleMedia
 					onClose={onHide}
 					cover

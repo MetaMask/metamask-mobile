@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
 		width: 260
 	},
 	cover: {
-		height: scaling.scale(Device.getDeviceWidth(), { baseModel: 2 })
+		height: scaling.scale(Device.getDeviceWidth() - 32, { baseModel: 2 })
 	},
 	image: {
 		borderRadius: 12
