@@ -126,7 +126,7 @@ const wallet_addEthereumChain = async ({
 			throw ethErrors.provider.userRejectedRequest();
 		}
 
-		CurrencyRateController.configure({ nativeCurrency: existingNetwork.ticker });
+		CurrencyRateController.setNativeCurrency(existingNetwork.ticker);
 		NetworkController.setRpcTarget(
 			existingNetwork.rpcUrl,
 			chainIdDecimal,
@@ -269,7 +269,7 @@ const wallet_addEthereumChain = async ({
 
 	if (!switchCustomNetworkApprove) throw ethErrors.provider.userRejectedRequest();
 
-	CurrencyRateController.configure({ nativeCurrency: ticker });
+	CurrencyRateController.setNativeCurrency(ticker);
 	NetworkController.setRpcTarget(firstValidRPCUrl, chainIdDecimal, ticker, _chainName);
 
 	res.result = null;

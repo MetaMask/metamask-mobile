@@ -486,7 +486,10 @@ class CustomGas extends PureComponent {
 	onGasPriceChange = value => {
 		const { customGasLimitBN } = this.state;
 		//Added because apiEstimateModifiedToWEI doesn't like empty strings
-		const gasPrice = value === '' ? '0' : value.replace(' ', '').replace(',', '.');
+		const gasPrice = value === '' ? '0' : value.replace(/\s|[a-zA-Z]/, '').replace(',', '.');
+		if (!/^\d+$|^\d+\.\d+$/g.test(gasPrice)) {
+			return;
+		}
 		const gasPriceBN = new BN(gasPrice);
 		const gasPriceBNWei = apiEstimateModifiedToWEI(gasPrice);
 		const warningSufficientFunds = this.hasSufficientFunds(customGasLimitBN, gasPriceBNWei);
