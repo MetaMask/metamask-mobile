@@ -5,6 +5,7 @@ exports[`CollectibleMedia should render correctly 1`] = `
   style={
     Object {
       "backgroundColor": "#undefined",
+      "borderRadius": 12,
       "flex": 0,
     }
   }

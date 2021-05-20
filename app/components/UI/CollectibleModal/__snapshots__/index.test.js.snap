@@ -49,10 +49,11 @@ exports[`CollectibleModal should render correctly 1`] = `
     style={
       Array [
         Object {
+          "backgroundColor": "transparent",
+          "borderRadius": 12,
           "left": 0,
           "marginHorizontal": 16,
           "marginTop": 36,
-          "overflow": "visible",
           "position": "absolute",
           "right": 0,
           "top": 0,
