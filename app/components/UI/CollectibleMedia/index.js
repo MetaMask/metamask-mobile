@@ -4,9 +4,7 @@ import { StyleSheet, View, ViewPropTypes } from 'react-native';
 import RemoteImage from '../../Base/RemoteImage';
 import MediaPlayer from '../../Views/MediaPlayer';
 import { colors } from '../../../styles/common';
-import scaling from '../../../util/scaling';
 import Text from '../../Base/Text';
-import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
 	container(backgroundColor) {
@@ -28,7 +26,7 @@ const styles = StyleSheet.create({
 		width: 260
 	},
 	cover: {
-		height: scaling.scale(Device.getDeviceWidth(), { baseModel: 2 })
+		height: '100%'
 	},
 	image: {
 		borderRadius: 12
