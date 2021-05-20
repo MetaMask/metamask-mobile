@@ -113,6 +113,7 @@ exports[`CollectibleOverview should render correctly 1`] = `
             Leopard
           </Text>
           <Text
+            big={true}
             black={false}
             blue={false}
             bold={false}
@@ -128,12 +129,6 @@ exports[`CollectibleOverview should render correctly 1`] = `
             right={false}
             small={false}
             strikethrough={false}
-            style={
-              Object {
-                "fontSize": 16,
-                "marginTop": 3,
-              }
-            }
             underline={false}
             upper={false}
           >
@@ -294,7 +289,7 @@ exports[`CollectibleOverview should render correctly 1`] = `
           style={
             Object {
               "flexDirection": "row",
-              "marginBottom": 12,
+              "marginBottom": 8,
               "marginHorizontal": 16,
             }
           }
@@ -362,7 +357,7 @@ exports[`CollectibleOverview should render correctly 1`] = `
           style={
             Object {
               "flexDirection": "row",
-              "marginBottom": 12,
+              "marginBottom": 8,
               "marginHorizontal": 16,
             }
           }
