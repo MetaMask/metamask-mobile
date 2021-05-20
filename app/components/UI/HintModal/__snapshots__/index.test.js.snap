@@ -83,7 +83,7 @@ exports[`HintModal should render correctly 1`] = `
           }
         }
       >
-        Do not use this to write your Secret Recovery phrase.
+        Do not use this to write your Secret Recovery Phrase.
       </Text>
       <TextInput
         multiline={true}
