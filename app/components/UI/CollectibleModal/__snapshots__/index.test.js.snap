@@ -46,14 +46,12 @@ exports[`CollectibleModal should render correctly 1`] = `
   useNativeDriver={false}
 >
   <View
-    coverScreen={true}
     style={
       Array [
         Object {
           "left": 0,
           "marginHorizontal": 16,
           "marginTop": 36,
-          "maxHeight": 667,
           "overflow": "visible",
           "position": "absolute",
           "right": 0,
