@@ -31,7 +31,6 @@ import AppConstants from '../../../core/AppConstants';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import URL from 'url-parse';
 import EthereumAddress from '../EthereumAddress';
-import { NavigationActions } from 'react-navigation';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { protectWalletModalVisible } from '../../../actions/user';
@@ -523,11 +522,7 @@ class DrawerView extends PureComponent {
 		await SecureKeychain.resetGenericPassword();
 		await KeyringController.setLocked();
 		if (!passwordSet) {
-			this.props.navigation.navigate(
-				'OnboardingRootNav',
-				{},
-				NavigationActions.navigate({ routeName: 'Onboarding' })
-			);
+			this.props.navigation.navigate('Onboarding');
 		} else {
 			this.props.navigation.navigate('Login');
 		}
