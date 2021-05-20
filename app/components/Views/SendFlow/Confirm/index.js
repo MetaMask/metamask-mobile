@@ -28,7 +28,7 @@ import {
 } from '../../../../util/number';
 import { getTicker, decodeTransferData, getNormalizedTxState } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
-import { util, WalletDevice } from '@metamask/controllers';
+import { util, WalletDevice, NetworksChainId } from '@metamask/controllers';
 import { prepareTransaction, resetTransaction, setNonce, setProposedNonce } from '../../../../actions/transaction';
 import {
 	apiEstimateModifiedToWEI,
@@ -59,6 +59,7 @@ import AnalyticsV2 from '../../../../util/analyticsV2';
 import { collectConfusables } from '../../../../util/validators';
 import InfoModal from '../../../UI/Swaps/components/InfoModal';
 import { toChecksumAddress } from 'ethereumjs-util';
+import { removeFavoriteCollectible } from '../../../../actions/collectibles';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -656,10 +657,12 @@ class Confirm extends PureComponent {
 	checkRemoveCollectible = () => {
 		const {
 			transactionState: { selectedAsset, assetType },
-			network
+			chainId
 		} = this.props;
-		if (assetType === 'ERC721' && network !== 1) {
+		const { fromSelectedAddress } = this.state;
+		if (assetType === 'ERC721' && chainId !== NetworksChainId.mainnet) {
 			const { AssetsController } = Engine.context;
+			removeFavoriteCollectible(fromSelectedAddress, chainId, selectedAsset);
 			AssetsController.removeCollectible(selectedAsset.address, selectedAsset.tokenId);
 		}
 	};
@@ -1123,7 +1126,9 @@ const mapDispatchToProps = dispatch => ({
 	prepareTransaction: transaction => dispatch(prepareTransaction(transaction)),
 	resetTransaction: () => dispatch(resetTransaction()),
 	setNonce: nonce => dispatch(setNonce(nonce)),
-	setProposedNonce: nonce => dispatch(setProposedNonce(nonce))
+	setProposedNonce: nonce => dispatch(setProposedNonce(nonce)),
+	removeFavoriteCollectible: (selectedAddress, chainId, collectible) =>
+		dispatch(removeFavoriteCollectible(selectedAddress, chainId, collectible))
 });
 
 export default connect(
