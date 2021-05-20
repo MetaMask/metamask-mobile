@@ -600,3 +600,12 @@ export const conversionUtil = (
 		invertConversionRate,
 		value: value || '0'
 	});
+
+export const toHexadecimal = decimal => {
+	if (!decimal) return decimal;
+	if (decimal !== typeof 'string') {
+		decimal = String(decimal);
+	}
+	if (decimal.startsWith('0x')) return decimal;
+	return parseInt(decimal, 10).toString(16);
+};
