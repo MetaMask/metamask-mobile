@@ -21,7 +21,10 @@ import { PanGestureHandler, gestureHandlerRootHOC } from 'react-native-gesture-h
 import AppConstants from '../../../core/AppConstants';
 
 const ANIMATION_VELOCITY = 250;
-const ANIMATION_OFFSET = Device.hasNotch() ? 30 : 50;
+const HAS_NOTCH = Device.hasNotch();
+const ANIMATION_OFFSET = HAS_NOTCH ? 30 : 50;
+const IS_SMALL_DEVICE = Device.isSmallDevice();
+const VERTICAL_ALIGNMENT = IS_SMALL_DEVICE ? 12 : 16;
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -34,10 +37,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 16
 	},
 	information: {
-		paddingTop: 24
-	},
-	content: {
-		lineHeight: 22
+		paddingTop: HAS_NOTCH ? 24 : VERTICAL_ALIGNMENT
 	},
 	row: {
 		paddingVertical: 6
@@ -45,10 +45,6 @@ const styles = StyleSheet.create({
 	name: {
 		fontSize: Device.isSmallDevice() ? 16 : 24,
 		marginBottom: 3
-	},
-	tokenId: {
-		fontSize: 16,
-		marginTop: 3
 	},
 	userContainer: {
 		flexDirection: 'row',
@@ -58,12 +54,11 @@ const styles = StyleSheet.create({
 		width: 38,
 		height: 38,
 		borderRadius: 100,
-		marginRight: 8,
-		marginTop: 2
+		marginRight: 8
 	},
 	buttonContainer: {
 		flexDirection: 'row',
-		marginTop: 16
+		marginTop: VERTICAL_ALIGNMENT
 	},
 	button: {
 		alignItems: 'center',
@@ -80,16 +75,13 @@ const styles = StyleSheet.create({
 	collectibleInfoContainer: {
 		flexDirection: 'row',
 		marginHorizontal: 16,
-		marginBottom: 12
+		marginBottom: 8
 	},
 	collectibleInfoKey: {
 		paddingRight: 10
 	},
-	collectibleInfoValue: {
-		flex: 1
-	},
-	username: {
-		marginBottom: 2
+	collectibleDescription: {
+		lineHeight: 22
 	},
 	userInfoContainer: {
 		justifyContent: 'center'
@@ -98,7 +90,7 @@ const styles = StyleSheet.create({
 		width: '100%',
 		alignItems: 'center',
 		justifyContent: 'center',
-		paddingVertical: 16
+		paddingVertical: VERTICAL_ALIGNMENT
 	},
 	dragger: {
 		width: 48,
@@ -143,20 +135,25 @@ const CollectibleOverview = ({
 	]);
 	const animating = useRef(false);
 
+	const renderScrollableDescription = useMemo(() => {
+		const maxLength = IS_SMALL_DEVICE ? 150 : 300;
+		return collectible?.description?.length > maxLength;
+	}, [collectible.description]);
+
 	const renderCollectibleInfoRow = useCallback((key, value, onPress) => {
 		if (!value) return null;
 		return (
 			<View style={styles.collectibleInfoContainer} key={key}>
-				<Text noMargin black bold big style={styles.collectibleInfoKey}>
+				<Text noMargin black bold big={!IS_SMALL_DEVICE} style={styles.collectibleInfoKey}>
 					{key}
 				</Text>
 				<Text
 					noMargin
-					big
+					big={!IS_SMALL_DEVICE}
 					link={!!onPress}
 					black={!onPress}
 					right
-					style={styles.collectibleInfoValue}
+					style={baseStyles.flexGrow}
 					numberOfLines={1}
 					ellipsizeMode="middle"
 					onPress={onPress}
@@ -293,7 +290,7 @@ const CollectibleOverview = ({
 									/>
 									<View numberOfLines={1} style={styles.userInfoContainer}>
 										{collectible.creator.user?.username && (
-											<Text black bold noMargin big style={styles.username}>
+											<Text black bold noMargin big={!IS_SMALL_DEVICE}>
 												{collectible.creator.user.username}
 											</Text>
 										)}
@@ -306,7 +303,7 @@ const CollectibleOverview = ({
 							<Text numberOfLines={2} bold primary noMargin style={styles.name}>
 								{collectible.name}
 							</Text>
-							<Text primary noMargin style={styles.tokenId}>
+							<Text primary noMargin big>
 								{strings('unit.token_id')}
 								{collectible.tokenId}
 							</Text>
@@ -316,11 +313,11 @@ const CollectibleOverview = ({
 					<View style={[styles.generalContainer, styles.buttonContainer]}>
 						{tradable && (
 							<StyledButton
-								onPress={onSend}
+								onPressOut={onSend}
 								type={'rounded-normal'}
 								containerStyle={[baseStyles.flexGrow, styles.button, styles.leftButton]}
 							>
-								<Text link big bold noMargin>
+								<Text link big={!IS_SMALL_DEVICE} bold noMargin>
 									{strings('asset_overview.send_button')}
 								</Text>
 							</StyledButton>
@@ -329,7 +326,7 @@ const CollectibleOverview = ({
 							<StyledButton
 								type={'rounded-normal'}
 								containerStyle={[styles.button, styles.iconButtons, styles.leftButton]}
-								onPress={shareCollectible}
+								onPressOut={shareCollectible}
 							>
 								<Text bold link noMargin>
 									<EvilIcons name={Device.isIos() ? 'share-apple' : 'share-google'} size={32} />
@@ -339,7 +336,7 @@ const CollectibleOverview = ({
 						<StyledButton
 							type={'rounded-normal'}
 							containerStyle={[styles.button, styles.iconButtons]}
-							onPress={collectibleToFavorites}
+							onPressOut={collectibleToFavorites}
 						>
 							<Text link noMargin>
 								<AntIcons name={isInFavorites ? 'star' : 'staro'} size={24} />
@@ -352,15 +349,15 @@ const CollectibleOverview = ({
 						<View style={[styles.generalContainer, styles.row]}>
 							{gestureHandlerWrapper(
 								<View>
-									<Text noMargin black bold big>
+									<Text noMargin black bold big={!IS_SMALL_DEVICE}>
 										{strings('collectible.collectible_description')}
 									</Text>
 								</View>
 							)}
-							{collectible?.description?.length > 300 ? (
+							{renderScrollableDescription ? (
 								<ScrollView bounces={false} style={[styles.description, styles.scrollableDescription]}>
 									<TouchableWithoutFeedback>
-										<Text noMargin black style={styles.content}>
+										<Text noMargin black style={styles.collectibleDescription}>
 											{collectible.description}
 										</Text>
 									</TouchableWithoutFeedback>
@@ -368,7 +365,7 @@ const CollectibleOverview = ({
 							) : (
 								gestureHandlerWrapper(
 									<View style={styles.description}>
-										<Text noMargin black style={styles.content}>
+										<Text noMargin black style={styles.collectibleDescription}>
 											{collectible.description}
 										</Text>
 									</View>

@@ -8,6 +8,8 @@ import scaling from '../../../util/scaling';
 import Text from '../../Base/Text';
 import Device from '../../../util/Device';
 
+const MEDIA_WIDTH_MARGIN = Device.isMediumDevice() ? 32 : 0;
+
 const styles = StyleSheet.create({
 	container(backgroundColor) {
 		return {
@@ -28,7 +30,7 @@ const styles = StyleSheet.create({
 		width: 260
 	},
 	cover: {
-		height: scaling.scale(Device.getDeviceWidth(), { baseModel: 2 })
+		height: scaling.scale(Device.getDeviceWidth() - MEDIA_WIDTH_MARGIN, { baseModel: 2 })
 	},
 	image: {
 		borderRadius: 12
@@ -62,7 +64,7 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 	}, [collectible, small, big, setSourceUri]);
 
 	const renderMedia = useCallback(() => {
-		if (renderAnimation && collectible.animation) {
+		if (renderAnimation && collectible.animation && collectible.animation.includes('.mp4')) {
 			return (
 				<MediaPlayer
 					onClose={onClose}
@@ -74,7 +76,7 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 			return (
 				<RemoteImage
 					fadeIn
-					resizeMode={cover ? 'cover' : 'contain'}
+					resizeMode={'contain'}
 					source={{ uri: sourceUri }}
 					style={[
 						styles.image,

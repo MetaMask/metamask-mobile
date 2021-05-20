@@ -474,15 +474,14 @@
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "MetaMask" */;
 			buildPhases = (
 				3A69DA795191C6C1052D3A0E /* [CP] Check Pods Manifest.lock */,
-				65E00B0A247EA25400E5AC88 /* Start Packager */,
 				15FDD86321B76696006B7C35 /* Override xcconfig files */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				15ACCA0022655C3A0063978B /* Embed Frameworks */,
-				B6E9B4C4CCD9D5D5F8286546 /* [CP] Copy Pods Resources */,
 				E6592E2316CF5BDDE356F00E /* [CP] Embed Pods Frameworks */,
+				3ED2CA9CC9B444827EBF0256 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -726,7 +725,7 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		4FCCC3E24354F87526737553 /* [CP] Copy Pods Resources */ = {
+		3ED2CA9CC9B444827EBF0256 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (

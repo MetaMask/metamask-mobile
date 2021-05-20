@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Video from 'react-native-video';
 import PropTypes from 'prop-types';
 import {
-	TouchableHighlight,
 	PanResponder,
 	StyleSheet,
 	Animated,
@@ -12,7 +11,8 @@ import {
 	View,
 	Text,
 	ViewPropTypes,
-	TouchableNativeFeedback
+	TouchableNativeFeedback,
+	TouchableHighlight
 } from 'react-native';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import AntIcon from 'react-native-vector-icons/AntDesign';
@@ -69,11 +69,6 @@ const styles = StyleSheet.create({
 	controlsControl: {
 		padding: 14
 	},
-	// controlsPullRight: {
-	// 	flexDirection: 'row',
-	// 	alignItems: 'center',
-	// 	justifyContent: 'center'
-	// },
 	controlsTop: {
 		flex: 1,
 		justifyContent: 'flex-start',
@@ -94,9 +89,6 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'space-between'
 	},
-	// controlsFullscreen: {
-	// 	flexDirection: 'row'
-	// },
 	controlsPlayPause: {
 		left: 1
 	},
@@ -410,13 +402,7 @@ export default function VideoPlayer({
 	);
 
 	const renderControl = (children, callback, style = {}) => (
-		<TouchableHighlight
-			underlayColor="transparent"
-			onPress={() => {
-				callback();
-			}}
-			style={[styles.controlsControl, style]}
-		>
+		<TouchableHighlight underlayColor="transparent" onPress={callback} style={[styles.controlsControl, style]}>
 			{children}
 		</TouchableHighlight>
 	);

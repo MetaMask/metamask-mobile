@@ -31,7 +31,15 @@ function MediaPlayer({ uri, style, onClose }) {
 			{Device.isAndroid() ? (
 				<AndroidMediaPlayer onLoad={onLoad} onError={onError} onClose={onClose} source={{ uri }} />
 			) : (
-				<Video onLoad={onLoad} onError={onError} style={style} muted source={{ uri }} controls />
+				<Video
+					onLoad={onLoad}
+					onError={onError}
+					style={style}
+					muted
+					source={{ uri }}
+					controls
+					ignoreSilentSwitch="ignore"
+				/>
 			)}
 		</View>
 	);
