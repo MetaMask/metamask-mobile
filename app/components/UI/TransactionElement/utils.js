@@ -342,8 +342,8 @@ function decodeTransferFromTx(args) {
 	}
 
 	const totalGas = calculateTotalGas(gas, gasPrice);
-	const renderCollectible = collectible?.name
-		? `${strings('unit.token_id')}${tokenId} ${collectible?.name}`
+	const renderCollectible = collectible?.symbol
+		? `${strings('unit.token_id')}${tokenId} ${collectible?.symbol}`
 		: `${strings('unit.token_id')}${tokenId}`;
 
 	const renderFrom = renderFullAddress(addressFrom);
