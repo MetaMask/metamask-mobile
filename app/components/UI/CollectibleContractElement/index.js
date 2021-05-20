@@ -117,7 +117,7 @@ function CollectibleContractElement({
 			const name =
 				collectible.name || collectibleContracts.find(({ address }) => address === collectible.address)?.name;
 			const onPress = () => onPressCollectible({ ...collectible, name });
-			const onLongPress = () => onLongPressCollectible({ ...collectible, name });
+			const onLongPress = () => (!asset.favorites ? onLongPressCollectible({ ...collectible, name }) : null);
 			return (
 				<View key={collectible.address + collectible.tokenId} styles={styles.collectibleBox}>
 					<TouchableOpacity onPress={onPress} onLongPress={onLongPress}>
@@ -128,13 +128,14 @@ function CollectibleContractElement({
 				</View>
 			);
 		},
-		[collectibleContracts, onPressCollectible, onLongPressCollectible]
+		[asset.favorites, collectibleContracts, onPressCollectible, onLongPressCollectible]
 	);
 
 	useEffect(() => {
 		const temp = splitIntoSubArrays(contractCollectibles, 3);
 		setCollectiblesGrid(temp);
 	}, [contractCollectibles, setCollectiblesGrid]);
+
 	return (
 		<View style={styles.itemWrapper}>
 			<TouchableOpacity onPress={toggleCollectibles} style={styles.titleContainer}>
