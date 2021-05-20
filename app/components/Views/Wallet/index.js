@@ -123,7 +123,7 @@ class Wallet extends PureComponent {
 			const actions = [
 				AssetsDetectionController.detectAssets(),
 				AccountTrackerController.refresh(),
-				CurrencyRateController.poll(),
+				CurrencyRateController.start(),
 				TokenRatesController.poll()
 			];
 			await Promise.all(actions);
