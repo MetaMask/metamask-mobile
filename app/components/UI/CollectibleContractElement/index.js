@@ -11,6 +11,7 @@ import Text from '../../Base/Text';
 import ActionSheet from 'react-native-actionsheet';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
+import { removeFavoriteCollectible } from '../../../actions/collectibles';
 
 const DEVICE_WIDTH = Device.getDeviceWidth();
 const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
@@ -79,7 +80,10 @@ function CollectibleContractElement({
 	contractCollectibles,
 	collectiblesVisible: propsCollectiblesVisible,
 	onPress,
-	collectibleContracts
+	collectibleContracts,
+	chainId,
+	selectedAddress,
+	removeFavoriteCollectible
 }) {
 	const [collectiblesGrid, setCollectiblesGrid] = useState([]);
 	const [collectiblesVisible, setCollectiblesVisible] = useState(propsCollectiblesVisible);
@@ -105,6 +109,7 @@ function CollectibleContractElement({
 
 	const removeCollectible = () => {
 		const { AssetsController } = Engine.context;
+		removeFavoriteCollectible(selectedAddress, chainId, collectibleToRemove.current);
 		AssetsController.removeAndIgnoreCollectible(
 			collectibleToRemove.current.address,
 			collectibleToRemove.current.tokenId
@@ -205,11 +210,33 @@ CollectibleContractElement.propTypes = {
 	 * Called when the collectible is pressed
 	 */
 	onPress: PropTypes.func,
-	collectibleContracts: PropTypes.array
+	collectibleContracts: PropTypes.array,
+	/**
+	 * Selected address
+	 */
+	selectedAddress: PropTypes.string,
+	/**
+	 * Chain id
+	 */
+	chainId: PropTypes.string,
+	/**
+	 * Dispatch remove collectible from favorites action
+	 */
+	removeFavoriteCollectible: PropTypes.func
 };
 
 const mapStateToProps = state => ({
-	collectibleContracts: state.engine.backgroundState.AssetsController.collectibleContracts
+	collectibleContracts: state.engine.backgroundState.AssetsController.collectibleContracts,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
 });
 
-export default connect(mapStateToProps)(CollectibleContractElement);
+const mapDispatchToProps = dispatch => ({
+	removeFavoriteCollectible: (selectedAddress, chainId, collectible) =>
+		dispatch(removeFavoriteCollectible(selectedAddress, chainId, collectible))
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(CollectibleContractElement);
