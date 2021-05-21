@@ -56,6 +56,7 @@
 - [#2514](https://github.com/MetaMask/metamask-mobile/pull/2514): Swaps: Add cache thresholds configuration
 - [#2468](https://github.com/MetaMask/metamask-mobile/pull/2468): Swaps: BSC Support
 - [#2539](https://github.com/MetaMask/metamask-mobile/pull/2539): Use node 14
+- [#2568](https://github.com/MetaMask/metamask-mobile/pull/2568): resolve isENS without case sensitivity (#2545)
 
 ## v2.2.0 - Apr 21 2021
 - [#2547](https://github.com/MetaMask/metamask-mobile/pull/2547): Include decimalsToShow in balanceToFiatNumber
