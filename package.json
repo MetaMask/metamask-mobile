@@ -8,7 +8,7 @@
     "clean:ios": "rm -rf ios/build",
     "pod:install": "command -v pod && (cd ios/ && pod install && cd ..) || echo \"pod command not found\"",
     "clean:android": "rm -rf android/app/build",
-    "clean:node": "rm -rf node_modules && yarn install",
+    "clean:node": "rm -rf node_modules && yarn install && yarn allow-scripts",
     "clean": "yarn clean:ios && yarn clean:android && yarn clean:node && yarn pod:install",
     "clean-android": "yarn clean:android && yarn clean:node",
     "lint": "eslint '**/*.js' --ignore-path=.prettierignore",
@@ -213,6 +213,8 @@
   "devDependencies": {
     "@babel/core": "^7.8.4",
     "@babel/runtime": "^7.8.4",
+    "@lavamoat/allow-scripts": "^1.0.6",
+    "@lavamoat/preinstall-always-fail": "^1.0.0",
     "@metamask/mobile-provider": "^2.0.1",
     "@react-native-community/eslint-config": "^1.1.0",
     "assert": "1.4.1",
@@ -346,5 +348,21 @@
     "assets": [
       "./app/fonts"
     ]
+  },
+  "lavamoat": {
+    "allowScripts": {
+      "core-js-pure": false,
+      "detox": true,
+      "dtrace-provider": false,
+      "husky": false,
+      "core-js": false,
+      "fsevents": false,
+      "keccak": false,
+      "secp256k1": false,
+      "sha3": false,
+      "@sentry/cli": true,
+      "@lavamoat/preinstall-always-fail": false,
+      "scrypt": false
+    }
   }
 }
