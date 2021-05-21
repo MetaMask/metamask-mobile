@@ -205,27 +205,27 @@ workflows:
               only:
                 - main
                 - develop
-      - prep-node-deps:
-          filters:
-            branches:
-              ignore:
-                - main
-                - develop
-      - lint:
-          requires:
-            - prep-node-deps
-      - test-unit:
-          requires:
-            - prep-node-deps
+      # - prep-node-deps:
+      #     filters:
+      #       branches:
+      #         ignore:
+      #           - main
+      #           - develop
+      # - lint:
+      #     requires:
+      #       - prep-node-deps
+      # - test-unit:
+      #     requires:
+      #       - prep-node-deps
     #   - test-e2e-ios:
     #       requires:
     #         - prep-node-deps
     #         - test-unit
-      - all-tests-pass:
-          requires:
-            - test-deps
-            - lint
-            - test-unit
+      # - all-tests-pass:
+      #     requires:
+      #       - test-deps
+      #       - lint
+      #       - test-unit
     #       - test-e2e-ios
     #   - upload-coverage:
     #       requires:
