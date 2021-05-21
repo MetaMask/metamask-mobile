@@ -37,7 +37,7 @@ exports[`Collectibles should render correctly 1`] = `
           }
         }
       >
-        You don't have any collectibles!
+        Don’t see your NFT?
       </Text>
     </View>
   </ScrollView>
