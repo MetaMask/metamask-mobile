@@ -22,13 +22,14 @@ exports[`CollectibleContractOverview should render correctly 1`] = `
       }
     }
   >
-    <CollectibleImage
+    <CollectibleMedia
       collectible={
         Object {
           "address": "0x123",
           "image": undefined,
         }
       }
+      small={true}
     />
   </View>
   <View

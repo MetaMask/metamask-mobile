@@ -50,7 +50,8 @@ import {
 	showTransactionNotification,
 	hideCurrentNotification,
 	showSimpleNotification,
-	removeNotificationById
+	removeNotificationById,
+	removeNotVisibleNotifications
 } from '../../../actions/notification';
 import { toggleDappTransactionModal, toggleApproveModal } from '../../../actions/modals';
 import AccountApproval from '../../UI/AccountApproval';
@@ -572,6 +573,15 @@ const Main = props => {
 		}
 	});
 
+	// Remove all notifications that aren't visible
+	useEffect(
+		() => {
+			props.removeNotVisibleNotifications();
+		},
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[]
+	);
+
 	// unapprovedTransaction effect
 	useEffect(() => {
 		Engine.context.TransactionController.hub.on('unapprovedTransaction', onUnapprovedTransaction);
@@ -761,7 +771,11 @@ Main.propTypes = {
 	/**
 	 * Dispatch infura availability not blocked
 	 */
-	setInfuraAvailabilityNotBlocked: PropTypes.func
+	setInfuraAvailabilityNotBlocked: PropTypes.func,
+	/**
+	 * Remove not visible notifications from state
+	 */
+	removeNotVisibleNotifications: PropTypes.func
 };
 
 const mapStateToProps = state => ({
@@ -787,7 +801,8 @@ const mapDispatchToProps = dispatch => ({
 	toggleDappTransactionModal: (show = null) => dispatch(toggleDappTransactionModal(show)),
 	toggleApproveModal: show => dispatch(toggleApproveModal(show)),
 	setInfuraAvailabilityBlocked: () => dispatch(setInfuraAvailabilityBlocked()),
-	setInfuraAvailabilityNotBlocked: () => dispatch(setInfuraAvailabilityNotBlocked())
+	setInfuraAvailabilityNotBlocked: () => dispatch(setInfuraAvailabilityNotBlocked()),
+	removeNotVisibleNotifications: () => dispatch(removeNotVisibleNotifications())
 });
 
 export default connect(

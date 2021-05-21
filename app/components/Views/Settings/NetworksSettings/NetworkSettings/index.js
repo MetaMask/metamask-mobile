@@ -264,7 +264,7 @@ class NetworkSettings extends PureComponent {
 			const url = new URL(rpcUrl);
 			const decimalChainId = this.getDecimalChainId(chainId);
 			!isprivateConnection(url.hostname) && url.set('protocol', 'https:');
-			CurrencyRateController.configure({ nativeCurrency: ticker });
+			CurrencyRateController.setNativeCurrency(ticker);
 			PreferencesController.addToFrequentRpcList(url.href, decimalChainId, ticker, nickname, {
 				blockExplorerUrl
 			});

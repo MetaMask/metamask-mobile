@@ -24,7 +24,6 @@ import { strings } from '../../../../locales/i18n';
 import SecureKeychain from '../../../core/SecureKeychain';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import setOnboardingWizardStep from '../../../actions/wizard';
-import { NavigationActions } from 'react-navigation';
 import { connect } from 'react-redux';
 import Device from '../../../util/Device';
 import { OutlinedTextField } from 'react-native-material-textfield';
@@ -45,8 +44,9 @@ import ErrorBoundary from '../ErrorBoundary';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
+import { tlc, toLowerCaseCompare } from '../../../util/general';
 
-const isTextDelete = text => String(text).toLowerCase() === 'delete';
+const isTextDelete = text => tlc(text) === 'delete';
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
 
@@ -314,8 +314,8 @@ class Login extends PureComponent {
 			// Should we force people to enable passcode / biometrics?
 			const error = e.toString();
 			if (
-				error.toLowerCase() === WRONG_PASSWORD_ERROR.toLowerCase() ||
-				error.toLowerCase() === WRONG_PASSWORD_ERROR_ANDROID.toLowerCase()
+				toLowerCaseCompare(error, WRONG_PASSWORD_ERROR) ||
+				toLowerCaseCompare(error, WRONG_PASSWORD_ERROR_ANDROID)
 			) {
 				this.setState({ loading: false, error: strings('login.invalid_password') });
 
@@ -328,7 +328,7 @@ class Login extends PureComponent {
 					'In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)'
 				);
 				this.setState({ loading: false });
-			} else if (error.toLowerCase() === VAULT_ERROR.toLowerCase()) {
+			} else if (toLowerCaseCompare(error, VAULT_ERROR)) {
 				this.setState({
 					loading: false,
 					error: CLEAN_VAULT_ERROR
@@ -355,11 +355,7 @@ class Login extends PureComponent {
 	deleteExistingUser = async () => {
 		try {
 			await AsyncStorage.removeItem(EXISTING_USER);
-			this.props.navigation.navigate(
-				'OnboardingRootNav',
-				{},
-				NavigationActions.navigate({ routeName: 'Onboarding', params: { delete: true } })
-			);
+			this.props.navigation.navigate('Onboarding', { delete: true });
 		} catch (error) {
 			Logger.log(error, `Failed to remove key: ${EXISTING_USER} from AsyncStorage`);
 		}

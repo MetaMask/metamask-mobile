@@ -1,34 +1,32 @@
-import React, { PureComponent } from 'react';
+import React, { useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { TouchableOpacity, StyleSheet, Text, View, InteractionManager } from 'react-native';
+import { TouchableOpacity, StyleSheet, View, InteractionManager, Image } from 'react-native';
 import { connect } from 'react-redux';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import CollectibleImage from '../CollectibleImage';
-import AssetElement from '../AssetElement';
+import CollectibleContractElement from '../CollectibleContractElement';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import CollectibleModal from '../CollectibleModal';
+import { favoritesCollectiblesObjectSelector } from '../../../reducers/collectibles';
+import Text from '../../Base/Text';
+import AppConstants from '../../../core/AppConstants';
+import { toLowerCaseCompare } from '../../../util/general';
 
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
 		flex: 1,
-		minHeight: 500
+		minHeight: 500,
+		marginTop: 16
 	},
 	emptyView: {
-		backgroundColor: colors.white,
 		justifyContent: 'center',
 		alignItems: 'center',
-		marginTop: 50
-	},
-	text: {
-		fontSize: 20,
-		color: colors.fontTertiary,
-		...fontStyles.normal
+		marginTop: 40
 	},
 	add: {
-		margin: 20,
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'center'
@@ -42,24 +40,24 @@ const styles = StyleSheet.create({
 		flex: 1,
 		paddingBottom: 30
 	},
-	rows: {
+	emptyContainer: {
 		flex: 1,
-		marginLeft: 20,
-		marginTop: 8
+		marginBottom: 42,
+		justifyContent: 'center',
+		alignItems: 'center'
 	},
-	name: {
-		fontSize: 16,
-		color: colors.fontPrimary,
-		...fontStyles.normal
+	emptyImageContainer: {
+		width: 76,
+		height: 76,
+		marginBottom: 12
 	},
-	amount: {
-		fontSize: 12,
-		color: colors.grey400,
-		...fontStyles.normal
+	emptyTitleText: {
+		fontSize: 24,
+		color: colors.grey200
 	},
-	itemWrapper: {
-		flex: 1,
-		flexDirection: 'row'
+	emptyText: {
+		color: colors.grey200,
+		marginBottom: 8
 	}
 });
 
@@ -67,101 +65,146 @@ const styles = StyleSheet.create({
  * View that renders a list of CollectibleContract
  * also known as ERC-721 Tokens
  */
-class CollectibleContracts extends PureComponent {
-	static propTypes = {
-		/**
-		 * Array of collectibleContract objects
-		 */
-		collectibleContracts: PropTypes.array,
-		/**
-		 * Array of collectibles objects
-		 */
-		collectibles: PropTypes.array,
-		/**
-		 * Navigation object required to push
-		 * the Asset detail view
-		 */
-		navigation: PropTypes.object
+const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, favoriteCollectibles }) => {
+	const [collectible, setCollectible] = useState(null);
+	const [contractName, setContractName] = useState(null);
+	const [showCollectibleModal, setShowCollectibleModal] = useState(null);
+	const onItemPress = useCallback((collectible, contractName) => {
+		setCollectible(collectible);
+		setContractName(contractName);
+		setShowCollectibleModal(true);
+	}, []);
+	const hideCollectibleModal = () => {
+		setShowCollectibleModal(false);
 	};
 
-	renderEmpty = () => (
-		<View style={styles.emptyView}>
-			<Text style={styles.text}>{strings('wallet.no_collectibles')}</Text>
-			{this.renderFooter()}
-		</View>
-	);
-
-	onItemPress = collectibleContract => {
-		this.props.navigation.push('Collectible', collectibleContract);
-	};
-
-	goToAddCollectible = () => {
-		this.props.navigation.push('AddAsset', { assetType: 'collectible' });
+	const goToAddCollectible = () => {
+		navigation.push('AddAsset', { assetType: 'collectible' });
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_ADD_COLLECTIBLES);
 		});
 	};
 
-	renderFooter = () => (
+	const renderFooter = () => (
 		<View style={styles.footer} key={'collectible-contracts-footer'}>
-			<TouchableOpacity style={styles.add} onPress={this.goToAddCollectible} testID={'add-collectible-button'}>
+			<TouchableOpacity style={styles.add} onPress={goToAddCollectible} testID={'add-collectible-button'}>
 				<Icon name="plus" size={16} color={colors.blue} />
 				<Text style={styles.addText}>{strings('wallet.add_collectibles')}</Text>
 			</TouchableOpacity>
 		</View>
 	);
 
-	renderItem = item => {
-		const { address, name, logo, symbol } = item;
-		const collectibleAmount =
-			(this.props.collectibles &&
-				this.props.collectibles.filter(
-					collectible => collectible.address.toLowerCase() === address.toLowerCase()
-				).length) ||
-			0;
-		return (
-			<AssetElement onPress={this.onItemPress} asset={item} key={address}>
-				<View style={styles.itemWrapper}>
-					<CollectibleImage collectible={{ address, name, image: logo }} />
-					<View style={styles.rows}>
-						<Text style={styles.name}>{name}</Text>
-						<Text style={styles.amount}>
-							{collectibleAmount} {symbol}
-						</Text>
-					</View>
-				</View>
-			</AssetElement>
+	const renderCollectibleContract = useCallback(
+		(item, index) => {
+			const contractCollectibles = collectibles?.filter(collectible =>
+				toLowerCaseCompare(collectible.address, item.address)
+			);
+			return (
+				<CollectibleContractElement
+					onPress={onItemPress}
+					asset={item}
+					key={item.address}
+					contractCollectibles={contractCollectibles}
+					collectiblesVisible={index === 0}
+				/>
+			);
+		},
+		[collectibles, onItemPress]
+	);
+
+	const renderFavoriteCollectibles = useCallback(() => {
+		const filteredCollectibles = favoriteCollectibles.map(collectible =>
+			collectibles.find(
+				({ tokenId, address }) => collectible.tokenId === tokenId && collectible.address === address
+			)
 		);
-	};
-
-	handleOnItemPress = collectibleContract => {
-		this.onItemPress(collectibleContract);
-	};
-
-	renderList() {
-		const { collectibleContracts } = this.props;
-
 		return (
+			Boolean(filteredCollectibles.length) && (
+				<CollectibleContractElement
+					onPress={onItemPress}
+					asset={{ name: 'Favorites', favorites: true }}
+					key={'Favorites'}
+					contractCollectibles={filteredCollectibles}
+					collectiblesVisible
+				/>
+			)
+		);
+	}, [favoriteCollectibles, collectibles, onItemPress]);
+
+	const renderList = useCallback(
+		() => (
 			<View>
-				{collectibleContracts.map(item => this.renderItem(item))}
-				{this.renderFooter()}
+				{renderFavoriteCollectibles()}
+				<View>{collectibleContracts?.map((item, index) => renderCollectibleContract(item, index))}</View>
 			</View>
-		);
-	}
+		),
+		[collectibleContracts, renderFavoriteCollectibles, renderCollectibleContract]
+	);
 
-	render = () => {
-		const { collectibleContracts } = this.props;
-		return (
-			<View style={styles.wrapper} testID={'collectible-contracts'}>
-				{collectibleContracts && collectibleContracts.length ? this.renderList() : this.renderEmpty()}
+	const goToLearnMore = () => navigation.navigate('SimpleWebview', { url: AppConstants.URLS.NFT });
+
+	const renderEmpty = () => (
+		<View style={styles.emptyView}>
+			<View style={styles.emptyContainer}>
+				<Image
+					style={styles.emptyImageContainer}
+					source={require('../../../images/no-nfts-placeholder.png')}
+					resizeMode={'contain'}
+				/>
+				<Text center style={styles.emptyTitleText} bold>
+					{strings('wallet.no_nfts_yet')}
+				</Text>
+				<Text center big link onPress={goToLearnMore}>
+					{strings('wallet.learn_more')}
+				</Text>
 			</View>
-		);
-	};
-}
+			<Text big style={styles.emptyText}>
+				{strings('wallet.no_collectibles')}
+			</Text>
+		</View>
+	);
+
+	return (
+		<View style={styles.wrapper} testID={'collectible-contracts'}>
+			{collectibles.length ? renderList() : renderEmpty()}
+			{renderFooter()}
+			{collectible && contractName && (
+				<CollectibleModal
+					visible={showCollectibleModal}
+					collectible={collectible}
+					contractName={contractName}
+					onHide={hideCollectibleModal}
+					navigation={navigation}
+				/>
+			)}
+		</View>
+	);
+};
+
+CollectibleContracts.propTypes = {
+	/**
+	 * Array of collectibleContract objects
+	 */
+	collectibleContracts: PropTypes.array,
+	/**
+	 * Array of collectibles objects
+	 */
+	collectibles: PropTypes.array,
+	/**
+	 * Navigation object required to push
+	 * the Asset detail view
+	 */
+	navigation: PropTypes.object,
+	/**
+	 * Object of collectibles
+	 */
+	favoriteCollectibles: PropTypes.array
+};
 
 const mapStateToProps = state => ({
 	collectibleContracts: state.engine.backgroundState.AssetsController.collectibleContracts,
-	collectibles: state.engine.backgroundState.AssetsController.collectibles
+	collectibles: state.engine.backgroundState.AssetsController.collectibles,
+	favoriteCollectibles: favoritesCollectiblesObjectSelector(state)
 });
 
 export default connect(mapStateToProps)(CollectibleContracts);

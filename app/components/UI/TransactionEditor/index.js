@@ -18,6 +18,7 @@ import contractMap from '@metamask/contract-metadata';
 import { safeToChecksumAddress } from '../../../util/address';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { MAINNET } from '../../../constants/network';
+import { toLowerCaseCompare } from '../../../util/general';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -380,7 +381,7 @@ class TransactionEditor extends PureComponent {
 		const { selectedAddress } = this.props;
 		try {
 			const owner = await AssetsContractController.getOwnerOf(address, tokenId);
-			const isOwner = owner.toLowerCase() === selectedAddress.toLowerCase();
+			const isOwner = toLowerCaseCompare(owner, selectedAddress);
 			if (!isOwner) {
 				return strings('transaction.invalid_collectible_ownership');
 			}

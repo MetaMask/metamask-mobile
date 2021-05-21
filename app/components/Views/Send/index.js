@@ -348,7 +348,7 @@ class Send extends PureComponent {
 		if (rpc) {
 			const { rpcUrl, chainId, ticker, nickname } = rpc;
 			const { NetworkController, CurrencyRateController } = Engine.context;
-			CurrencyRateController.configure({ nativeCurrency: ticker });
+			CurrencyRateController.setNativeCurrency(ticker);
 			NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
 			this.props.showAlert({
 				isVisible: true,
