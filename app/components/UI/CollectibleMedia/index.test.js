@@ -1,11 +1,11 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import CollectibleImage from './';
+import CollectibleMedia from './';
 
-describe('CollectibleImage', () => {
+describe('CollectibleMedia', () => {
 	it('should render correctly', () => {
 		const wrapper = shallow(
-			<CollectibleImage collectible={{ name: 'NAME', image: 'IMAGE', tokenId: 123, address: '0x123' }} />
+			<CollectibleMedia collectible={{ name: 'NAME', image: 'IMAGE', tokenId: 123, address: '0x123' }} />
 		);
 		expect(wrapper).toMatchSnapshot();
 	});
