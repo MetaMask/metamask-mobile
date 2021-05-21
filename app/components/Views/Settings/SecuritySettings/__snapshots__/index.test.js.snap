@@ -44,6 +44,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
+            "marginBottom": 10,
           }
         }
       >
@@ -57,6 +58,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               "fontSize": 20,
               "fontWeight": "400",
               "lineHeight": 20,
+              "marginBottom": 10,
             }
           }
         >
@@ -64,11 +66,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         </Text>
       </Text>
       <SeedPhraseVideo
-        style={
-          Object {
-            "marginTop": 10,
-          }
-        }
+        onClose={[Function]}
       />
       <Text
         style={
@@ -147,6 +145,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
+            "marginBottom": 10,
           }
         }
       >
@@ -204,6 +203,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
+            "marginBottom": 10,
           }
         }
       >
@@ -300,6 +300,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
+            "marginBottom": 10,
           }
         }
       >
@@ -365,6 +366,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
+            "marginBottom": 10,
           }
         }
       >
@@ -422,6 +424,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
+            "marginBottom": 10,
           }
         }
       >
@@ -480,6 +483,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
+            "marginBottom": 10,
           }
         }
       >
@@ -537,6 +541,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
+            "marginBottom": 10,
           }
         }
       >
@@ -592,6 +597,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
+            "marginBottom": 10,
           }
         }
       >
@@ -648,6 +654,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
+            "marginBottom": 10,
           }
         }
       >

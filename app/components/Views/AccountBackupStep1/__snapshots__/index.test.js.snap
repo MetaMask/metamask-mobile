@@ -68,7 +68,9 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
         >
           Secure your wallet
         </Text>
-        <SeedPhraseVideo />
+        <SeedPhraseVideo
+          onClose={[Function]}
+        />
         <View
           style={
             Object {
