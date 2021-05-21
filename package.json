@@ -77,7 +77,7 @@
   "dependencies": {
     "@exodus/react-native-payments": "https://github.com/wachunei/react-native-payments.git#package-json-hack",
     "@metamask/contract-metadata": "^1.23.0",
-    "@metamask/controllers": "^9.0.0",
+    "@metamask/controllers": "9.1.0",
     "@metamask/etherscan-link": "^2.0.0",
     "@metamask/swaps-controller": "^4.0.0",
     "@react-native-community/async-storage": "1.12.1",
@@ -156,7 +156,7 @@
     "react-native-fade-in-image": "1.4.1",
     "react-native-flash-message": "0.1.11",
     "react-native-fs": "^2.16.6",
-    "react-native-gesture-handler": "^1.8.0",
+    "react-native-gesture-handler": "^1.10.3",
     "react-native-i18n": "2.0.15",
     "react-native-jazzicon": "^0.1.2",
     "react-native-keyboard-aware-scroll-view": "^0.9.3",
