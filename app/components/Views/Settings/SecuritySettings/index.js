@@ -504,6 +504,8 @@ class Settings extends PureComponent {
 		);
 	};
 
+	onBack = () => this.props.navigation.goBack();
+
 	render = () => {
 		const { approvedHosts, seedphraseBackedUp, browserHistory, privacyMode, thirdPartyApiMode } = this.props;
 		const {
@@ -538,7 +540,7 @@ class Settings extends PureComponent {
 							) : null}
 							<Text style={styles.title}>{strings('app_settings.protect_title')}</Text>
 						</Text>
-						<SeedPhraseVideo />
+						<SeedPhraseVideo onClose={this.onBack} />
 						<Text style={styles.desc}>{strings('app_settings.protect_desc')}</Text>
 						<SettingsNotification isWarning={!seedphraseBackedUp}>
 							<Text

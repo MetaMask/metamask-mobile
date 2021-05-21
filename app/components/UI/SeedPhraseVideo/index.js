@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
 const video_source_uri =
 	'https://github.com/MetaMask/metamask-mobile/blob/develop/app/videos/recovery-phrase.mp4?raw=true';
 
-const SeedPhraseVideo = ({ style }) => {
+const SeedPhraseVideo = ({ style, onClose }) => {
 	const [error, setError] = useState(false);
 	const [loading, setLoading] = useState(true);
 
@@ -30,14 +30,19 @@ const SeedPhraseVideo = ({ style }) => {
 	const onError = useCallback(() => setError(true), [setError]);
 
 	return (
-		<View style={[styles.videoContainer, style]}>
+		<View style={styles.videoContainer}>
 			{loading && (
 				<View style={[styles.loaderContainer, style]}>
-					<Loader error={error} />
+					<Loader error={error} onClose={onClose} />
 				</View>
 			)}
 			{Device.isAndroid() ? (
-				<AndroidMediaPlayer onLoad={onLoad} onError={onError} source={{ uri: video_source_uri }} />
+				<AndroidMediaPlayer
+					onLoad={onLoad}
+					onError={onError}
+					onClose={onClose}
+					source={{ uri: video_source_uri }}
+				/>
 			) : (
 				<Video
 					onLoad={onLoad}
@@ -54,7 +59,8 @@ const SeedPhraseVideo = ({ style }) => {
 };
 
 SeedPhraseVideo.propTypes = {
-	style: PropTypes.object
+	style: PropTypes.object,
+	onClose: PropTypes.func
 };
 
 export default SeedPhraseVideo;
