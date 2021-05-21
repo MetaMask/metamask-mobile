@@ -119,6 +119,7 @@ function CollectibleContractElement({
 
 	const renderCollectible = useCallback(
 		(collectible, index) => {
+			if (!collectible) return null;
 			const name =
 				collectible.name || collectibleContracts.find(({ address }) => address === collectible.address)?.name;
 			const onPress = () => onPressCollectible({ ...collectible, name });
