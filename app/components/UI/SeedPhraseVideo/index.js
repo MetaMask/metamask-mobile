@@ -1,26 +1,24 @@
 import React, { useCallback, useState } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Image, TouchableOpacity } from 'react-native';
-import VideoPlayer from 'react-native-video-controls';
-import { colors, fontStyles } from '../../../styles/common';
+import { colors } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import scaling from '../../../util/scaling';
 import Svg, { Circle, Path } from 'react-native-svg';
-import Text from '../../Base/Text';
 import { strings } from '../../../../locales/i18n';
+import AndroidMediaPlayer from '../../Views/MediaPlayer/AndroidMediaPlayer';
+import Video from 'react-native-video';
+import Device from '../../../util/Device';
+import Loader from '../../Views/MediaPlayer/Loader';
 
 const styles = StyleSheet.create({
 	videoContainer: {
-		justifyContent: 'center',
-		alignItems: 'center',
-		position: 'relative',
-		borderRadius: 8,
-		overflow: 'hidden',
-		width: '100%',
-		height: 180
+		height: 240,
+		width: '100%'
 	},
 	image: {
-		zIndex: 0,
+		alignSelf: 'center',
+		marginTop: 30,
 		width: scaling.scale(138),
 		height: scaling.scale(162)
 	},
@@ -32,17 +30,15 @@ const styles = StyleSheet.create({
 		left: 0,
 		top: 0,
 		backgroundColor: colors.grey,
+		borderRadius: 8,
 		opacity: 0.2,
 		width: '100%',
 		height: '100%'
 	},
-	errorWrapper: {
-		justifyContent: 'center',
-		alignItems: 'center'
-	},
-	errorText: {
-		...fontStyles.normal,
-		color: colors.red
+	loaderContainer: {
+		position: 'absolute',
+		zIndex: 999,
+		width: '100%'
 	}
 });
 
@@ -56,9 +52,11 @@ const video_source_uri =
 
 const SeedPhraseVideo = ({ style }) => {
 	const [isPlaying, setPlaying] = useState(false);
-	const [isError, setError] = useState(false);
+	const [error, setError] = useState(false);
+	const [loading, setLoading] = useState(false);
 
 	const reset = useCallback(() => setPlaying(false), [setPlaying]);
+	const onLoad = useCallback(() => setLoading(false), [setLoading]);
 
 	const onError = useCallback(
 		e => {
@@ -72,20 +70,20 @@ const SeedPhraseVideo = ({ style }) => {
 	const onPlay = useCallback(() => {
 		Logger.log('User clicked play');
 		setPlaying(true);
+		setLoading(true);
 	}, [setPlaying]);
 
 	return (
 		<View style={style ? [styles.videoContainer, style] : styles.videoContainer}>
 			{!isPlaying ? (
 				<>
-					{isError ? (
-						<View style={styles.errorWrapper}>
-							<Text style={styles.errorText}>{FAILED_TO_LOAD_MSG}</Text>
+					{loading ? (
+						<View style={[styles.loaderContainer, style]}>
+							<Loader error={error} onClose={reset} />
 						</View>
 					) : (
 						<>
 							<TouchableOpacity style={styles.cover} onPress={onPlay}>
-								{isError ? <></> : <></>}
 								<Svg
 									width="311"
 									height="176"
@@ -106,17 +104,22 @@ const SeedPhraseVideo = ({ style }) => {
 						</>
 					)}
 				</>
-			) : (
-				<VideoPlayer
-					ignoreSilentSwitch="ignore"
-					disableFullscreen
-					disableBack
-					source={{ uri: video_source_uri }}
-					style={StyleSheet.absoluteFill}
+			) : Device.isAndroid() ? (
+				<AndroidMediaPlayer
+					onLoad={onLoad}
 					onError={onError}
-					onPlay={onPlay}
-					onEnd={reset}
-					resizeMode="cover"
+					onClose={reset}
+					source={{ uri: video_source_uri }}
+				/>
+			) : (
+				<Video
+					onLoad={onLoad}
+					onError={onError}
+					style={style}
+					muted
+					source={{ uri: video_source_uri }}
+					controls
+					ignoreSilentSwitch="ignore"
 				/>
 			)}
 		</View>
