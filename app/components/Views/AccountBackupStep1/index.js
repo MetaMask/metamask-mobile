@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		fontSize: 24,
-		marginBottom: 40,
+		marginBottom: 24,
 		color: colors.fontPrimary,
 		textAlign: 'center',
 		...fontStyles.bold

@@ -38,28 +38,36 @@ exports[`SecuritySettings should render correctly 1`] = `
     >
       <Text
         style={
-          Object {
-            "color": "#000000",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 20,
-            "fontWeight": "400",
-            "lineHeight": 20,
-            "marginBottom": 10,
-          }
-        }
-      >
-        <WarningIcon />
-         
-        <Text
-          style={
+          Array [
             Object {
               "color": "#000000",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 20,
               "fontWeight": "400",
               "lineHeight": 20,
+            },
+            Object {
               "marginBottom": 10,
-            }
+            },
+          ]
+        }
+      >
+        <WarningIcon />
+         
+        <Text
+          style={
+            Array [
+              Object {
+                "color": "#000000",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 20,
+                "fontWeight": "400",
+                "lineHeight": 20,
+              },
+              Object {
+                "marginBottom": 10,
+              },
+            ]
           }
         >
           Protect your wallet
@@ -145,7 +153,6 @@ exports[`SecuritySettings should render correctly 1`] = `
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
-            "marginBottom": 10,
           }
         }
       >
@@ -203,7 +210,6 @@ exports[`SecuritySettings should render correctly 1`] = `
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
-            "marginBottom": 10,
           }
         }
       >
@@ -300,7 +306,6 @@ exports[`SecuritySettings should render correctly 1`] = `
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
-            "marginBottom": 10,
           }
         }
       >
@@ -366,7 +371,6 @@ exports[`SecuritySettings should render correctly 1`] = `
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
-            "marginBottom": 10,
           }
         }
       >
@@ -424,7 +428,6 @@ exports[`SecuritySettings should render correctly 1`] = `
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
-            "marginBottom": 10,
           }
         }
       >
@@ -483,7 +486,6 @@ exports[`SecuritySettings should render correctly 1`] = `
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
-            "marginBottom": 10,
           }
         }
       >
@@ -541,7 +543,6 @@ exports[`SecuritySettings should render correctly 1`] = `
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
-            "marginBottom": 10,
           }
         }
       >
@@ -597,7 +598,6 @@ exports[`SecuritySettings should render correctly 1`] = `
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
-            "marginBottom": 10,
           }
         }
       >
@@ -654,7 +654,6 @@ exports[`SecuritySettings should render correctly 1`] = `
             "fontSize": 20,
             "fontWeight": "400",
             "lineHeight": 20,
-            "marginBottom": 10,
           }
         }
       >

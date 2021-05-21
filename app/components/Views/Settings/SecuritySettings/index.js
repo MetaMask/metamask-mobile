@@ -59,7 +59,9 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		color: colors.fontPrimary,
 		fontSize: 20,
-		lineHeight: 20,
+		lineHeight: 20
+	},
+	bump: {
 		marginBottom: 10
 	},
 	heading: {
@@ -532,13 +534,13 @@ class Settings extends PureComponent {
 				<View style={styles.inner}>
 					<Heading first>{strings('app_settings.security_heading')}</Heading>
 					<View style={[styles.setting, styles.firstSetting]}>
-						<Text style={styles.title}>
+						<Text style={[styles.title, styles.bump]}>
 							{!seedphraseBackedUp ? (
 								<>
 									<WarningIcon />{' '}
 								</>
 							) : null}
-							<Text style={styles.title}>{strings('app_settings.protect_title')}</Text>
+							<Text style={[styles.title, styles.bump]}>{strings('app_settings.protect_title')}</Text>
 						</Text>
 						<SeedPhraseVideo onClose={this.onBack} />
 						<Text style={styles.desc}>{strings('app_settings.protect_desc')}</Text>
