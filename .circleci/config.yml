@@ -195,15 +195,16 @@ jobs:
 workflows:
   full_test:
     jobs:
-      - test-deps:
-          requires:
-            - prep-node-deps
-      # - prep-deps:
-      #     filters:
-      #       branches:
-      #         only:
-      #           - main
-      #           - develop
+      # Disables CI testing
+      # - test-deps:
+      #     requires:
+      #       - prep-node-deps
+      - prep-deps:
+          filters:
+            branches:
+              only:
+                - main
+                - develop
       - prep-node-deps:
           filters:
             branches:
