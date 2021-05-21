@@ -1,0 +1,64 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#	 https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#	 https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+default_platform(:ios)
+
+ENV["DELIVER_ITMSTRANSPORTER_ADDITIONAL_UPLOAD_PARAMETERS"] = "-t DAV"
+
+platform :ios do
+
+	desc "Submit a new Beta Build to Testflight"
+	lane :beta do
+		# Ensure that your git status is not dirty
+  		ensure_git_status_clean
+
+		match(type: "appstore", force: true, readonly: false)
+		gym(
+			clean: true,
+			scheme: "MetaMask",
+			configuration: "Release",
+			export_method: "app-store",
+			output_name: "MetaMask"
+		)
+		upload_to_testflight(
+      		skip_submission: true,
+			skip_waiting_for_build_processing: true,
+      		apple_id: "1438144202",
+      		username: "mobile.admin@metamask.io"
+		)
+
+	end
+
+	desc "Pre-release via CircleCI"
+	lane :prerelease do
+		setup_circle_ci
+
+		match(type: "appstore", force: true, readonly: false)
+		gym(
+			clean: true,
+			scheme: "MetaMask",
+			configuration: "Release",
+			export_method: "app-store",
+			output_name: "MetaMask"
+		)
+		upload_to_testflight(
+      		skip_submission: true,
+			skip_waiting_for_build_processing: true,
+      		apple_id: "1438144202",
+      		username: "mobile.admin@metamask.io"
+		)
+
+	end
+end
