@@ -154,11 +154,7 @@ buildAndroidRun(){
 
 buildAndroidRunE2E(){
 	prebuild_android
-	if [ -e $ANDROID_ENV_FILE ]
-	then
-		source $ANDROID_ENV_FILE
-	fi
-	cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug && cd ..
+	source .android.env && cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug && cd ..
 }
 
 buildIosSimulator(){
@@ -189,8 +185,7 @@ buildIosRelease(){
 		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
 		echo "Build started..."
 		brew install watchman
-		cd ios
-		generateArchivePackages
+		cd ios && bundle install && bundle exec fastlane prerelease
 		# Generate sourcemaps
 		yarn sourcemaps:ios
 	else
@@ -210,8 +205,7 @@ buildIosReleaseE2E(){
 		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
 		echo "Build started..."
 		brew install watchman
-		cd ios 
-		generateArchivePackages 
+		cd ios && bundle install && bundle exec fastlane prerelease
 		# Generate sourcemaps
 		yarn sourcemaps:ios
 	else
@@ -228,10 +222,17 @@ buildAndroidRelease(){
 	fi
 	prebuild_android
 
+	if [ "$PRE_RELEASE" = true ] ; then
+ 		TARGET="android/app/build.gradle"
+ 		sed -i'' -e 's/getPassword("mm","mm-upload-key")/"ANDROID_KEY"/' $TARGET;
+ 		sed -i'' -e "s/ANDROID_KEY/$ANDROID_KEY/" $TARGET;
+ 		echo "$ANDROID_KEYSTORE" | base64 --decode > android/keystores/release.keystore
+ 	fi
+
 	# GENERATE APK
 	cd android && ./gradlew assembleRelease --no-daemon --max-workers 2
 
-	# # GENERATE BUNDLE
+	# GENERATE BUNDLE
 	if [ "$GENERATE_BUNDLE" = true ] ; then
 		./gradlew bundleRelease
 	fi
