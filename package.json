@@ -357,7 +357,7 @@
       "dtrace-provider": false,
       "husky": false,
       "core-js": false,
-      "fsevents": false,
+      "fsevents": true,
       "keccak": false,
       "secp256k1": false,
       "sha3": false,
