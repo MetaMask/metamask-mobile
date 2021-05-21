@@ -5,7 +5,7 @@ import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import ActionSheet from 'react-native-actionsheet';
 import Engine from '../../../core/Engine';
-import CollectibleImage from '../CollectibleImage';
+import CollectibleMedia from '../CollectibleMedia';
 import AssetElement from '../AssetElement';
 
 const styles = StyleSheet.create({
@@ -123,7 +123,7 @@ export default class Collectibles extends PureComponent {
 	renderItem = ({ item }) => (
 		<AssetElement onPress={this.onItemPress} onLongPress={this.showRemoveMenu} asset={item}>
 			<View style={styles.itemWrapper}>
-				<CollectibleImage collectible={item} />
+				<CollectibleMedia small collectible={item} />
 				<View style={styles.rows}>
 					<Text style={styles.name}>{item.name}</Text>
 					<Text style={styles.tokenId} numberOfLines={1}>

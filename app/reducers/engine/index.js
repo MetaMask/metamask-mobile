@@ -39,7 +39,7 @@ function initalizeEngine(state = {}) {
 		store.dispatch({ type: 'UPDATE_BG_STATE', key: 'AssetsDetectionController' });
 	});
 
-	Engine.context.CurrencyRateController.subscribe(() => {
+	Engine.controllerMessenger.subscribe(`${Engine.context.CurrencyRateController.name}:stateChange`, () => {
 		store.dispatch({ type: 'UPDATE_BG_STATE', key: 'CurrencyRateController' });
 	});
 

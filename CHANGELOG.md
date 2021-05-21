@@ -1,4 +1,20 @@
 # Changelog
+## Current Develop Branch
+
+## v.2.4.0 - May 21 2021
+- [#2618](https://github.com/MetaMask/metamask-mobile/pull/2618): Collectibles experience
+- [#2698](https://github.com/MetaMask/metamask-mobile/pull/2698): bugfix: navigation routeName is null
+- [#2692](https://github.com/MetaMask/metamask-mobile/pull/2692): Fix custom gas crash
+- [#2649](https://github.com/MetaMask/metamask-mobile/pull/2649): Migrate to new CurrencyRateController
+- [#2697](https://github.com/MetaMask/metamask-mobile/pull/2697): Set ignoreSilentSwitch and reset the video onEnd
+- [#2691](https://github.com/MetaMask/metamask-mobile/pull/2691): Feature/update casing secret recovery phrase
+- [#2694](https://github.com/MetaMask/metamask-mobile/pull/2694): Swaps: Add chainId to swaps analytics
+- [#2687](https://github.com/MetaMask/metamask-mobile/pull/2687): bufix: stuck notification
+- [#2689](https://github.com/MetaMask/metamask-mobile/pull/2689): Fix "use max" in send flow
+- [#2672](https://github.com/MetaMask/metamask-mobile/pull/2672): Fix xcode upgrade
+- [#2640](https://github.com/MetaMask/metamask-mobile/pull/2640): Swaps: Add name from metadata to swaps tokens
+- [#2628](https://github.com/MetaMask/metamask-mobile/pull/2628): Feature/use toLowerCaseCompare
+
 ## v.2.3.0 - May 5 2021
 - [#2674](https://github.com/MetaMask/metamask-mobile/pull/2674): Fix deploy contract and create token testnets
 - [#2669](https://github.com/MetaMask/metamask-mobile/pull/2669): Key off accounts
@@ -40,8 +56,6 @@
 - [#2468](https://github.com/MetaMask/metamask-mobile/pull/2468): Swaps: BSC Support
 - [#2539](https://github.com/MetaMask/metamask-mobile/pull/2539): Use node 14
 - [#2568](https://github.com/MetaMask/metamask-mobile/pull/2568): resolve isENS without case sensitivity (#2545)
-- [#2566](https://github.com/MetaMask/metamask-mobile/pull/2566): Revert "resolve isENS without case sensitivity (#2545)"
-- [#2545](https://github.com/MetaMask/metamask-mobile/pull/2545): resolve isENS without case sensitivity
 
 ## v2.2.0 - Apr 21 2021
 - [#2547](https://github.com/MetaMask/metamask-mobile/pull/2547): Include decimalsToShow in balanceToFiatNumber

@@ -8,8 +8,6 @@ import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
-// eslint-disable-next-line import/named
-import { NavigationActions } from 'react-navigation';
 import Device from '../../../util/Device';
 
 const IMAGE_3_RATIO = 215 / 315;
@@ -121,11 +119,7 @@ export default class OnboardingCarousel extends PureComponent {
 		currentTab: 1
 	};
 
-	onPresGetStarted = () => {
-		const { navigation } = this.props;
-		navigation &&
-			navigation.navigate('OnboardingRootNav', {}, NavigationActions.navigate({ routeName: 'Onboarding' }));
-	};
+	onPresGetStarted = () => this.props.navigation.navigate('Onboarding');
 
 	renderTabBar = () => <View />;
 
