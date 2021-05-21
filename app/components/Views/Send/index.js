@@ -445,6 +445,7 @@ class Send extends PureComponent {
 	 */
 	removeCollectible = () => {
 		const { selectedAsset, assetType, providerType } = this.props.transaction;
+		console.log('--- checkRemoveCollectible 2', providerType, selectedAsset);
 		if (assetType === 'ERC721' && providerType !== MAINNET) {
 			const { AssetsController } = Engine.context;
 			AssetsController.removeCollectible(selectedAsset.address, selectedAsset.tokenId);

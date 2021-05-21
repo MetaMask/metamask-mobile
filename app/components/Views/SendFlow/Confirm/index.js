@@ -659,6 +659,7 @@ class Confirm extends PureComponent {
 			transactionState: { selectedAsset, assetType },
 			chainId
 		} = this.props;
+		console.log('--- checkRemoveCollectible', chainId, selectedAsset);
 		const { fromSelectedAddress } = this.state;
 		if (assetType === 'ERC721' && chainId !== NetworksChainId.mainnet) {
 			const { AssetsController } = Engine.context;
