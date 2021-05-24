@@ -119,7 +119,7 @@ class NavbarBrowserTitle extends PureComponent {
 		return (
 			<TouchableOpacity onPress={this.onTitlePress} style={styles.wrapper}>
 				<View style={styles.currentUrlWrapper}>
-					{icon && <Image style={styles.siteIcon} source={{ uri: icon }} />}
+					{!!icon && <Image style={styles.siteIcon} source={{ uri: icon }} />}
 					<Text
 						numberOfLines={1}
 						ellipsizeMode={'head'}
