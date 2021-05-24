@@ -43,11 +43,11 @@ function Notification(props) {
 	}, []);
 
 	const isInBrowserView = useMemo(() => {
-		const routes = navigation.state.routes;
+		const routes = navigation.dangerouslyGetState().routes;
 		let route = routes[routes.length - 1];
 		while (route.index !== undefined) route = route.routes[route.index];
 		return route?.routeName === BROWSER_ROUTE;
-	}, [navigation.state]);
+	}, [navigation]);
 
 	useEffect(
 		() => () => {

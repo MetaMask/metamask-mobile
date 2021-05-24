@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { View, StyleSheet } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { connect } from 'react-redux';
-import { NavigationContext } from 'react-navigation';
+import { NavigationContext } from '@react-navigation/native';
 import { getHasOrders } from '../../../reducers/fiatOrders';
 
 import getNavbarOptions from '../../UI/Navbar';

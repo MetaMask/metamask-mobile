@@ -21,7 +21,7 @@ import StatusText from '../../../Base/StatusText';
 import Text from '../../../Base/Text';
 import DetailsModal from '../../../Base/DetailsModal';
 import { RPC } from '../../../../constants/network';
-import { withNavigation } from 'react-navigation';
+import { withNavigation } from '@react-navigation/compat';
 
 const styles = StyleSheet.create({
 	viewOnEtherscan: {

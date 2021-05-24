@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { NavigationContext } from 'react-navigation';
+import { NavigationContext } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
 import { useWyreTerms } from '../orderProcessor/wyreApplePay';
 

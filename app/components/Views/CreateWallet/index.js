@@ -21,7 +21,7 @@ import { setLockTime } from '../../../actions/settings';
 import { connect } from 'react-redux';
 import setOnboardingWizardStep from '../../../actions/wizard';
 // eslint-disable-next-line import/named
-import { NavigationActions, withNavigationFocus } from 'react-navigation';
+import { NavigationActions, withNavigationFocus } from '@react-navigation/compat';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import Device from '../../../util/Device';
 import {

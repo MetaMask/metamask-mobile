@@ -4,7 +4,7 @@ import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import StyledButton from '../StyledButton';
 import PropTypes from 'prop-types';
-import { withNavigation } from 'react-navigation';
+import { withNavigation } from '@react-navigation/compat';
 
 const styles = StyleSheet.create({
 	wrapper: {

@@ -7,7 +7,7 @@ import Engine from '../../../core/Engine';
 import SecureKeychain from '../../../core/SecureKeychain';
 import { baseStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
-import { NavigationActions } from 'react-navigation';
+import { NavigationActions } from '@react-navigation/compat';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 
 const LOGO_SIZE = 175;

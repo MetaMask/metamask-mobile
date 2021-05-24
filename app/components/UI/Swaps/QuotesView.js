@@ -6,7 +6,7 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
 import BigNumber from 'bignumber.js';
-import { NavigationContext } from 'react-navigation';
+import { NavigationContext } from '@react-navigation/native';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { WalletDevice, util } from '@metamask/controllers/';
 

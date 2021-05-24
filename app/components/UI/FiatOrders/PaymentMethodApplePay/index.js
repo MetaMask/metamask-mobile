@@ -1,7 +1,7 @@
 import React, { useContext, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet, Image, TouchableOpacity, InteractionManager } from 'react-native';
-import { NavigationContext } from 'react-navigation';
+import { NavigationContext } from '@react-navigation/native';
 import { connect } from 'react-redux';
 import NotificationManager from '../../../../core/NotificationManager';
 import Device from '../../../../util/Device';

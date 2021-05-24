@@ -34,7 +34,7 @@ import TransactionReviewDetailsCard from '../../UI/TransactionReview/Transaction
 import Device from '../../../util/Device';
 import AppConstants from '../../../core/AppConstants';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
-import { withNavigation } from 'react-navigation';
+import { withNavigation } from '@react-navigation/compat';
 import { getNetworkName, isMainNet } from '../../../util/networks';
 import scaling from '../../../util/scaling';
 import { capitalize } from '../../../util/general';

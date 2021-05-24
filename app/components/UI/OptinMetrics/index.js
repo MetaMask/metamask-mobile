@@ -19,7 +19,7 @@ import { strings } from '../../../../locales/i18n';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { connect } from 'react-redux';
 // eslint-disable-next-line import/named
-import { NavigationActions, withNavigationFocus } from 'react-navigation';
+import { NavigationActions, withNavigationFocus } from '@react-navigation/compat';
 import StyledButton from '../StyledButton';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';

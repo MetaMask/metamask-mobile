@@ -1,7 +1,7 @@
 import React, { useContext, useCallback } from 'react';
 import { InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
-import { NavigationContext } from 'react-navigation';
+import { NavigationContext } from '@react-navigation/native';
 import { connect } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import Analytics from '../../../../core/Analytics';
