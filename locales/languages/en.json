@@ -272,12 +272,14 @@
 		"title": "Wallet",
 		"tokens": "TOKENS",
 		"collectible": "Collectible",
-		"collectibles": "COLLECTIBLES",
+		"collectibles": "NFTs",
 		"transactions": "TRANSACTIONS",
-		"no_collectibles": "You don't have any collectibles!",
+		"no_collectibles": "Don’t see your NFT?",
 		"add_tokens": "ADD TOKENS",
 		"no_tokens": "You don't have any tokens!",
-		"add_collectibles": "ADD COLLECTIBLES",
+		"no_nfts_yet": "No NFTs yet",
+		"learn_more": "Learn more",
+		"add_collectibles": "ADD NFTs",
 		"no_transactions": "You have no transactions!",
 		"send_button": "Send",
 		"deposit_button": "Deposit",
@@ -287,7 +289,7 @@
 		"token_removed_title": "Token removed!",
 		"token_removed_desc": "If you change your mind, you can add it back by tapping on \"+ ADD TOKENS\"",
 		"collectible_removed_title": "Collectible removed!",
-		"collectible_removed_desc": "If you change your mind, you can add it back by tapping on \"+ ADD COLLECTIBLES\"",
+		"collectible_removed_desc": "If you change your mind, you can add it back by tapping on \"+ ADD NFTs\"",
 		"remove": "Remove",
 		"cancel": "Cancel",
 		"yes": "Yes",
@@ -306,6 +308,7 @@
 	},
 	"add_asset": {
 		"title": "Add Asset",
+		"title_nft": "Add NFT",
 		"search_token": "SEARCH",
 		"custom_token": "CUSTOM TOKEN",
 		"tokens": {
@@ -363,7 +366,14 @@
 		"ownership_error_title": "Ooops! Something happened.",
 		"ownership_error": "You are not the owner of this collectible, so you can't add it.",
 		"powered_by_opensea": "Powered by",
-		"id_placeholder": "Enter the collectible ID"
+		"id_placeholder": "Enter the collectible ID",
+		"collectible_last_sold": "Last sold",
+		"collectible_last_price_sold": "Last price sold",
+		"collectible_source": "Source",
+		"collectible_link": "Link",
+		"collectible_asset_contract": "Asset contract",
+		"share_check_out_nft": "Check out my NFT!",
+		"share_via": "Shared via"
 	},
 	"transfer": {
 		"title": "Transfer",
@@ -1558,5 +1568,9 @@
 		"invalid_chain": "The %{rpcUrl} for this Chain ID does not match the chainid.network listing",
 		"alert_recommend": "We recommend you",
 		"alert_verify": "verify the chain ID"
+	},
+	"media_player": {
+		"loading": "Loading...",
+		"not_found": "Media not found"
 	}
 }

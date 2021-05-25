@@ -357,7 +357,7 @@ class Engine {
 
 			let tokenFound = false;
 			tokens.forEach(token => {
-				if (tokenBalances[token.address] && !tokenBalances[token.address].isZero()) {
+				if (tokenBalances[token.address] && !tokenBalances[token.address]?.isZero()) {
 					tokenFound = true;
 				}
 			});
