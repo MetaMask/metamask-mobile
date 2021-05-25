@@ -27,7 +27,6 @@ import {
 	renderFromWei,
 	weiToFiat,
 	fromWei,
-	fromTokenMinimalUnit,
 	toWei,
 	isDecimal,
 	toTokenMinimalUnit,
@@ -36,14 +35,15 @@ import {
 	weiToFiatNumber,
 	balanceToFiatNumber,
 	getCurrencySymbol,
-	handleWeiNumber
+	handleWeiNumber,
+	fromTokenMinimalUnitString
 } from '../../../../util/number';
 import { getTicker, generateTransferData, getEther } from '../../../../util/transactions';
 import { util } from '@metamask/controllers';
 import ErrorMessage from '../ErrorMessage';
 import { getGasPriceByChainId } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
-import CollectibleImage from '../../../UI/CollectibleImage';
+import CollectibleMedia from '../../../UI/CollectibleMedia';
 import collectiblesTransferInformation from '../../../../util/collectibles-transfer';
 import { strings } from '../../../../../locales/i18n';
 import Device from '../../../../util/Device';
@@ -52,6 +52,8 @@ import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import NetworkMainAssetLogo from '../../../UI/NetworkMainAssetLogo';
+import { isMainNet } from '../../../../util/networks';
+import { toLowerCaseCompare } from '../../../../util/general';
 
 const { hexToBN, BNToHex } = util;
 
@@ -240,7 +242,7 @@ const styles = StyleSheet.create({
 	errorMessageWrapper: {
 		marginVertical: 16
 	},
-	collectibleImage: {
+	CollectibleMedia: {
 		width: 120,
 		height: 120
 	},
@@ -331,6 +333,10 @@ class Amount extends PureComponent {
 		 */
 		tokens: PropTypes.array,
 		/**
+		 * Chain Id
+		 */
+		chainId: PropTypes.string,
+		/**
 		 * Current provider ticker
 		 */
 		ticker: PropTypes.string,
@@ -418,7 +424,7 @@ class Amount extends PureComponent {
 		} = this.props;
 		try {
 			const owner = await AssetsContractController.getOwnerOf(address, tokenId);
-			const isOwner = owner.toLowerCase() === selectedAddress.toLowerCase();
+			const isOwner = toLowerCaseCompare(owner, selectedAddress);
 			if (!isOwner) {
 				return strings('transaction.invalid_collectible_ownership');
 			}
@@ -651,10 +657,16 @@ class Amount extends PureComponent {
 		} else {
 			const exchangeRate = contractExchangeRates[selectedAsset.address];
 			if (internalPrimaryCurrencyIsCrypto || !exchangeRate) {
-				input = fromTokenMinimalUnit(contractBalances[selectedAsset.address], selectedAsset.decimals);
+				input = fromTokenMinimalUnitString(
+					contractBalances[selectedAsset.address]?.toString(10),
+					selectedAsset.decimals
+				);
 			} else {
 				input = `${balanceToFiatNumber(
-					fromTokenMinimalUnit(contractBalances[selectedAsset.address], selectedAsset.decimals),
+					fromTokenMinimalUnitString(
+						contractBalances[selectedAsset.address]?.toString(10),
+						selectedAsset.decimals
+					),
 					conversionRate,
 					exchangeRate
 				)}`;
@@ -664,7 +676,7 @@ class Amount extends PureComponent {
 	};
 
 	onInputChange = (inputValue, selectedAsset, useMax) => {
-		const { contractExchangeRates, conversionRate, currentCurrency, ticker } = this.props;
+		const { contractExchangeRates, conversionRate, currentCurrency, chainId, ticker } = this.props;
 		const { internalPrimaryCurrencyIsCrypto } = this.state;
 		let inputValueConversion, renderableInputValueConversion, hasExchangeRate, comma;
 		// Remove spaces from input
@@ -678,7 +690,7 @@ class Amount extends PureComponent {
 		const processedInputValue = isDecimal(inputValue) ? handleWeiNumber(inputValue) : '0';
 		selectedAsset = selectedAsset || this.props.selectedAsset;
 		if (selectedAsset.isETH) {
-			hasExchangeRate = !!conversionRate;
+			hasExchangeRate = isMainNet(chainId) ? !!conversionRate : false;
 			if (internalPrimaryCurrencyIsCrypto) {
 				inputValueConversion = `${weiToFiatNumber(toWei(processedInputValue), conversionRate)}`;
 				renderableInputValueConversion = `${weiToFiat(
@@ -692,7 +704,7 @@ class Amount extends PureComponent {
 			}
 		} else {
 			const exchangeRate = contractExchangeRates[selectedAsset.address];
-			hasExchangeRate = !!exchangeRate;
+			hasExchangeRate = isMainNet(chainId) ? !!exchangeRate : false;
 			// If !hasExchangeRate we have to handle crypto amount
 			if (internalPrimaryCurrencyIsCrypto || !hasExchangeRate) {
 				inputValueConversion = `${balanceToFiatNumber(processedInputValue, conversionRate, exchangeRate)}`;
@@ -766,6 +778,7 @@ class Amount extends PureComponent {
 	renderToken = (token, index) => {
 		const {
 			accounts,
+			chainId,
 			selectedAddress,
 			conversionRate,
 			currentCurrency,
@@ -776,11 +789,15 @@ class Amount extends PureComponent {
 		const { address, decimals, symbol } = token;
 		if (token.isETH) {
 			balance = renderFromWei(accounts[selectedAddress].balance);
-			balanceFiat = weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency);
+			balanceFiat = isMainNet(chainId)
+				? weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency)
+				: null;
 		} else {
 			balance = renderFromTokenMinimalUnit(contractBalances[address], decimals);
 			const exchangeRate = contractExchangeRates[address];
-			balanceFiat = balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
+			balanceFiat = isMainNet(chainId)
+				? balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency)
+				: null;
 		}
 		return (
 			<TouchableOpacity
@@ -817,7 +834,8 @@ class Amount extends PureComponent {
 				onPress={() => this.pickSelectedAsset(collectible)}
 			>
 				<View style={styles.assetElement}>
-					<CollectibleImage
+					<CollectibleMedia
+						small
 						collectible={collectible}
 						iconStyle={styles.tokenImage}
 						containerStyle={styles.tokenImage}
@@ -955,9 +973,10 @@ class Amount extends PureComponent {
 		return (
 			<View style={styles.collectibleInputWrapper}>
 				<View style={styles.collectibleInputImageWrapper}>
-					<CollectibleImage
-						containerStyle={styles.collectibleImage}
-						iconStyle={styles.collectibleImage}
+					<CollectibleMedia
+						small
+						containerStyle={styles.CollectibleMedia}
+						iconStyle={styles.CollectibleMedia}
 						collectible={selectedAsset}
 					/>
 				</View>
@@ -1052,6 +1071,7 @@ const mapStateToProps = (state, ownProps) => ({
 	providerType: state.engine.backgroundState.NetworkController.provider.type,
 	primaryCurrency: state.settings.primaryCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	transactionState: ownProps.transaction || state.transaction,

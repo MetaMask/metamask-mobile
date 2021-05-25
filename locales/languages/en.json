@@ -43,7 +43,7 @@
 		"warning_text_1": "Your current wallet and accounts will be",
 		"warning_text_2": "removed",
 		"warning_text_3": "if you proceed.",
-		"warning_text_4": "You can ONLY recover them with your wallet’s seed phrase. MetaMask cannot help you recover it.",
+		"warning_text_4": "You can ONLY recover them with your wallet’s Secret Recovery Phrase. MetaMask cannot help you recover it.",
 		"warning_proceed": "Remove wallet & proceed",
 		"warning_cancel": "Cancel",
 		"step1": "Wallet setup",
@@ -123,7 +123,7 @@
 		"sync_help_step_four": "4. Scan the QR Code to start syncing",
 		"sync_from_browser_extension_button": "Sync with MetaMask extension",
 		"or": "OR",
-		"import_from_seed_button": "Import using seed phrase"
+		"import_from_seed_button": "Import using Secret Recovery Phrase"
 	},
 	"login": {
 		"title": "Welcome Back!",
@@ -140,9 +140,14 @@
 		"removed_from": "removed from this app permanently. ",
 		"this_action": "This action cannot be undone.",
 		"you_can_only": "You can ONLY recover this wallet with your ",
-		"recovery_phrase": "Recovery Phrase ",
-		"metamask_does_not": "MetaMask does not have your recovery phrase.",
-		"i_understand": "I understand, continue"
+		"recovery_phrase": "Secret Recovery Phrase ",
+		"metamask_does_not": "MetaMask does not have your Secret Recovery Phrase.",
+		"i_understand": "I understand, continue",
+		"passcode_not_set_error": "Error: Passcode not set.",
+		"wrong_password_error": "Error: Decrypt failed",
+		"wrong_password_error_android": "Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
+		"vault_error": "Error: Cannot unlock without a previous vault.",
+		"clean_vault_error": "MetaMask encountered an error due to reaching a storage limit. The local data has been corrupted. Please reinstall MetaMask and restore with your Secret Recovery Phrase."
 	},
 	"enter_password": {
 		"title": "Enter your password",
@@ -157,7 +162,7 @@
 		"password": "New Password",
 		"confirm_password": "Confirm password",
 		"create_button": "Create password",
-		"import_with_seed_phrase": "Import with seed phrase",
+		"import_with_seed_phrase": "Import with Secret Recovery Phrase",
 		"password_length_error": "The password needs to be at least 8 characters long",
 		"password_dont_match": "Passwords don't match",
 		"password_strength": "Password strength:",
@@ -166,7 +171,7 @@
 		"strength_strong": "Strong",
 		"show": "Show",
 		"hide": "Hide",
-		"seed_phrase": "Seed phrase",
+		"seed_phrase": "Secret Recovery Phrase",
 		"must_be_at_least": "Must be at least {{number}} characters",
 		"remember_me": "Remember me",
 		"security_alert_title": "Security Alert",
@@ -174,7 +179,7 @@
 		"i_understand": "I understand that MetaMask cannot recover this password for me.",
 		"learn_more": "Learn more.",
 		"secure": "Secure wallet",
-		"confirm": "Confirm seed phrase"
+		"confirm": "Confirm Secret Recovery Phrase"
 	},
 	"reset_password": {
 		"title": "Change password",
@@ -182,7 +187,7 @@
 		"password": "New Password",
 		"confirm_password": "Confirm password",
 		"reset_button": "Reset password",
-		"import_with_seed_phrase": "Import with seed phrase",
+		"import_with_seed_phrase": "Import with Secret Recovery Phrase",
 		"password_length_error": "The password needs to be at least 8 characters long",
 		"password_dont_match": "Passwords don't match",
 		"password_strength": "Password strength:",
@@ -191,7 +196,7 @@
 		"strength_strong": "Strong",
 		"show": "Show",
 		"hide": "Hide",
-		"seed_phrase": "Seed phrase",
+		"seed_phrase": "Secret Recovery Phrase",
 		"must_be_at_least": "Must be at least {{number}} characters",
 		"remember_me": "Remember me",
 		"security_alert_title": "Security Alert",
@@ -199,24 +204,24 @@
 		"i_understand": "I understand that MetaMask cannot recover this password for me.",
 		"learn_more": "Learn more.",
 		"secure": "Secure wallet",
-		"confirm": "Confirm seed phrase",
+		"confirm": "Confirm Secret Recovery Phrase",
 		"password_updated": "Password updated",
 		"successfully_changed": "Your password has been successfully changed"
 	},
 	"import_from_seed": {
 		"title": "Import from seed",
-		"seed_phrase_placeholder": "Enter your seed phrase here",
+		"seed_phrase_placeholder": "Enter your Secret Recovery Phrase",
 		"new_password": "New Password",
 		"confirm_password": "Confirm password",
 		"import_button": "IMPORT",
 		"cancel_button": "Cancel",
 		"password_length_error": "The password needs to be at least 8 characters long",
 		"password_dont_match": "Passwords don't match",
-		"seed_phrase_requirements": "Seed phrases contain 12, 15, 18, 21, or 24 words",
-		"invalid_seed_phrase": "Invalid seed phrase",
+		"seed_phrase_requirements": "Secret Recovery Phrases contain 12, 15, 18, 21, or 24 words",
+		"invalid_seed_phrase": "Invalid Secret Recovery Phrase",
 		"error": "Error",
 		"invalid_qr_code_title": "Invalid QR Code",
-		"invalid_qr_code_message": "This QR code doesn't represent a valid seed phrase"
+		"invalid_qr_code_message": "This QR code doesn't represent a valid Secret Recovery Phrase"
 	},
 	"bottom_tab_bar": {
 		"dapps": "ÐApps",
@@ -267,12 +272,14 @@
 		"title": "Wallet",
 		"tokens": "TOKENS",
 		"collectible": "Collectible",
-		"collectibles": "COLLECTIBLES",
+		"collectibles": "NFTs",
 		"transactions": "TRANSACTIONS",
-		"no_collectibles": "You don't have any collectibles!",
+		"no_collectibles": "Don’t see your NFT?",
 		"add_tokens": "ADD TOKENS",
 		"no_tokens": "You don't have any tokens!",
-		"add_collectibles": "ADD COLLECTIBLES",
+		"no_nfts_yet": "No NFTs yet",
+		"learn_more": "Learn more",
+		"add_collectibles": "ADD NFTs",
 		"no_transactions": "You have no transactions!",
 		"send_button": "Send",
 		"deposit_button": "Deposit",
@@ -282,14 +289,14 @@
 		"token_removed_title": "Token removed!",
 		"token_removed_desc": "If you change your mind, you can add it back by tapping on \"+ ADD TOKENS\"",
 		"collectible_removed_title": "Collectible removed!",
-		"collectible_removed_desc": "If you change your mind, you can add it back by tapping on \"+ ADD COLLECTIBLES\"",
+		"collectible_removed_desc": "If you change your mind, you can add it back by tapping on \"+ ADD NFTs\"",
 		"remove": "Remove",
 		"cancel": "Cancel",
 		"yes": "Yes",
 		"private_key_detected": "Private key detected",
 		"do_you_want_to_import_this_account": "Do you want to import this account?",
 		"error": "Error",
-		"logout_to_import_seed": "You need to log out first in order to import a seed phrase.",
+		"logout_to_import_seed": "You need to log out first in order to import a Secret Recovery Phrase.",
 		"ready_to_explore": "Ready to start exploring blockchain applications?",
 		"unable_to_load": "Unable to load balance"
 	},
@@ -301,6 +308,7 @@
 	},
 	"add_asset": {
 		"title": "Add Asset",
+		"title_nft": "Add NFT",
 		"search_token": "SEARCH",
 		"custom_token": "CUSTOM TOKEN",
 		"tokens": {
@@ -358,7 +366,14 @@
 		"ownership_error_title": "Ooops! Something happened.",
 		"ownership_error": "You are not the owner of this collectible, so you can't add it.",
 		"powered_by_opensea": "Powered by",
-		"id_placeholder": "Enter the collectible ID"
+		"id_placeholder": "Enter the collectible ID",
+		"collectible_last_sold": "Last sold",
+		"collectible_last_price_sold": "Last price sold",
+		"collectible_source": "Source",
+		"collectible_link": "Link",
+		"collectible_asset_contract": "Asset contract",
+		"share_check_out_nft": "Check out my NFT!",
+		"share_via": "Shared via"
 	},
 	"transfer": {
 		"title": "Transfer",
@@ -420,9 +435,10 @@
 		"clear": "CLEAR",
 		"protect_cta": "Protect",
 		"protect_title": "Protect your wallet",
-		"protect_desc": "Protect your wallet by saving your seed phrase in various places like on a piece of paper, password manager and/or the cloud.",
-		"seedphrase_not_backed_up": "Important! Seed phrase not backed up",
-		"seedphrase_backed_up": "Seed phrase backed up",
+		"video_failed": "Video Failed to Load.",
+		"protect_desc": "Protect your wallet by saving your Secret Recovery Phrase in various places like on a piece of paper, password manager and/or the cloud.",
+		"seedphrase_not_backed_up": "Important! Secret Recovery Phrase not backed up",
+		"seedphrase_backed_up": "Secret Recovery Phrase backed up",
 		"back_up_now": "Back up now",
 		"back_up_again": "Back up again",
 		"view_hint": "View hint",
@@ -444,7 +460,7 @@
 		"contacts_desc": "Add, edit, remove, and manage your accounts",
 		"security_title": "Security & Privacy",
 		"back": "Back",
-		"security_desc": "Privacy settings, MetaMetrics, private key and wallet seed phrase",
+		"security_desc": "Privacy settings, MetaMetrics, private key and wallet Secret Recovery Phrase",
 		"networks_title": "Networks",
 		"networks_desc": "Add and edit custom RPC networks",
 		"network_name_label": "Network Name",
@@ -503,7 +519,9 @@
 		"invalid_hex_number_leading_zeros": "Invalid hexadecimal number. Remove any leading zeros.",
 		"invalid_number": "Invalid number. Enter a decimal or '0x'-prefixed hexadecimal number.",
 		"invalid_number_leading_zeros": "Invalid number. Remove any leading zeros.",
-		"invalid_number_range": "Invalid number. Enter a number between 1 and %{maxSafeChainId}"
+		"invalid_number_range": "Invalid number. Enter a number between 1 and %{maxSafeChainId}",
+		"hide_zero_balance_tokens_title": "Hide Tokens Without Balance",
+		"hide_zero_balance_tokens_desc": "Prevents tokens with no balance from displaying in your token listing."
 	},
 	"app_information": {
 		"title": "Information",
@@ -516,22 +534,22 @@
 		"contact_us": "Contact Us"
 	},
 	"reveal_credential": {
-		"seed_phrase_title": "Reveal seed phrase",
+		"seed_phrase_title": "Reveal Secret Recovery Phrase",
 		"private_key_title": "Show private key",
 		"show_private_key": "Show private key",
 		"private_key_title_for_account": "Show private key for \"{{accountName}}\"",
 		"cancel": "Cancel",
 		"confirm": "Next",
-		"seed_phrase_explanation": "If you ever change browsers or move computers, you will need this seed phrase to access your accounts. Save them somewhere safe and secret.",
+		"seed_phrase_explanation": "If you ever change browsers or move computers, you will need this Secret Recovery Phrase to access your accounts. Save them somewhere safe and secret.",
 		"private_key_explanation": "Save it somewhere safe and secret.",
 		"private_key_warning": "This is the private key for the current selected account: {{accountName}}. Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.",
 		"seed_phrase_warning_explanation": "DO NOT share this phrase with anyone! These words can be used to steal all your accounts.",
 		"private_key_warning_explanation": "Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.",
-		"seed_phrase": "Your seed phrase",
+		"seed_phrase": "Your Secret Recovery Phrase",
 		"private_key": "Your private key",
 		"copy_to_clipboard": "Copy to clipboard",
 		"enter_password": "Enter password to continue",
-		"seed_phrase_copied": "Seed phrase copied to clipboard",
+		"seed_phrase_copied": "Secret Recovery Phrase copied to clipboard",
 		"private_key_copied": "Private key copied to clipboard",
 		"warning_incorrect_password": "Incorrect password",
 		"unknown_error": "Couldn't unlock your account. Please try again.",
@@ -541,7 +559,7 @@
 	},
 	"password_reset": {
 		"password_title": "Password",
-		"password_desc": "Choose a strong password to unlock MetaMask app on your device. If you lose this password, you will need your seedphrase to re-import your wallet.",
+		"password_desc": "Choose a strong password to unlock MetaMask app on your device. If you lose this password, you will need your Secret Recovery Phrase to re-import your wallet.",
 		"password_learn_more": "Learn more.",
 		"change_password": "Change password"
 	},
@@ -578,7 +596,7 @@
 		"cancel": "Cancel",
 		"error": "Error",
 		"attempting_to_scan_with_wallet_locked": "Looks like you're trying to scan a QR code, you need to unlock your wallet to be able to use it.",
-		"attempting_sync_from_wallet_error": "Looks like you're trying to sync with the extension. In order to do so, you will need to erase your current wallet. \n\nOnce you've erased or reinstalled a fresh version of the app, select the option to \"Sync with MetaMask Extension\". Important! Before erasing your wallet, make sure you've backed up your recovery phrase."
+		"attempting_sync_from_wallet_error": "Looks like you're trying to sync with the extension. In order to do so, you will need to erase your current wallet. \n\nOnce you've erased or reinstalled a fresh version of the app, select the option to \"Sync with MetaMask Extension\". Important! Before erasing your wallet, make sure you've backed up your Secret Recovery Phrase."
 	},
 	"action_view": {
 		"cancel": "Cancel",
@@ -670,7 +688,9 @@
 		"tokenContractAddressWarning_2": "token contract address",
 		"tokenContractAddressWarning_3": ". If you send tokens to this address, you will lose them.",
 		"smartContractAddressWarning": "This address is a smart contract address. Please make sure you understand what this address is for, otherwise you risk losing your funds.",
-		"continueError": "I understand the risks, continue"
+		"continueError": "I understand the risks, continue",
+		"confusable_title": "Check the recipient address",
+		"confusable_msg": "We have detected a confusable character in the ENS name. Check the ENS name to avoid a potential scam."
 	},
 	"custom_gas": {
 		"total": "Total",
@@ -875,13 +895,13 @@
 		"outdated_qr_code": "Expired QR Code",
 		"outdated_qr_code_desc": "This seems to be an expired QR code!  Please try scanning a new one",
 		"something_wrong": "Ooops! Something went wrong...",
-		"something_wrong_desc": "We are having issues while trying to sync your wallet. Please try again later or import your wallet using your seed phrase",
+		"something_wrong_desc": "We are having issues while trying to sync your wallet. Please try again later or import your wallet using your Secret Recovery Phrase",
 		"allow_biometrics_title": "Do you want to enable {{biometrics}}?",
 		"allow_biometrics_desc": "You can use {{biometrics}} to authenticate on MetaMask"
 	},
 	"sync_with_extension_success": {
 		"title": "Wallet imported",
-		"sync_complete_1": "Just remember, MetaMask cannot recover your seed phrase should you lose it. You can find the seed phrase in",
+		"sync_complete_1": "Just remember, MetaMask cannot recover your Secret Recovery Phrase should you lose it. You can find the Secret Recovery Phrase in",
 		"sync_complete_2": "Settings > Security & Privacy",
 		"button_continue": "Done",
 		"password_tip": "The password to unlock your mobile wallet is the same one you set for the extension.",
@@ -965,7 +985,7 @@
 	},
 	"import_private_key": {
 		"title": "Import Account",
-		"description_one": "Imported accounts are viewable in your wallet but are not recoverable with your MetaMask seed phrase.",
+		"description_one": "Imported accounts are viewable in your wallet but are not recoverable with your MetaMask Secret Recovery Phrase.",
 		"learn_more_here": "Learn more about imported accounts here.",
 		"subtitle": "Paste your private key string",
 		"cta_text": "IMPORT",
@@ -991,7 +1011,7 @@
 		"step_1": "Step 1:",
 		"step_1_description": "Create password",
 		"step_2": "Step 2:",
-		"step_2_description": "Save wallet seed phrase",
+		"step_2_description": "Save wallet Secret Recovery Phrase",
 		"info_text_1": "Take a few moments to finish setting up your MetaMask wallet.",
 		"info_text_2": "This will ensure only you can access your funds and will let you recover your wallet if you lose your device",
 		"cta_text": "Create Password",
@@ -1002,7 +1022,7 @@
 		"remind_me_later_subtext": "(Not recommended)",
 		"title": "Secure your wallet",
 		"info_text_1_1": "Don’t risk losing your funds. Protect your wallet by saving your",
-		"info_text_1_2": "seed phrase",
+		"info_text_1_2": "Secret Recovery Phrase",
 		"info_text_1_3": "in a place you trust.",
 		"info_text_1_4": "It’s the only way to recover your wallet if you get locked out of the app or get a new device.",
 		"cta_text": "Start",
@@ -1010,21 +1030,21 @@
 		"skip_button_cancel": "Secure now",
 		"skip_button_confirm": "Skip",
 		"skip_title": "Skip account security?",
-		"skip_check": "I understand that if I lose my seed phrase I will not be able to access my wallet.",
-		"what_is_seedphrase_title": "What is a ‘Seed phrase’",
-		"what_is_seedphrase_text_1": "A seed phrase is a set of twelve words that contains all the information about your wallet, including your funds. It’s like a secret code used to access your entire wallet.",
-		"what_is_seedphrase_text_2": "You must keep your seed phrase secret and safe. If someone gets your seed phrase, they’ll gain control over your accounts.",
+		"skip_check": "I understand that if I lose my Secret Recovery Phrase I will not be able to access my wallet.",
+		"what_is_seedphrase_title": "What is a ‘Secret Recovery Phrase’",
+		"what_is_seedphrase_text_1": "A Secret Recovery Phrase is a set of twelve words that contains all the information about your wallet, including your funds. It’s like a secret code used to access your entire wallet.",
+		"what_is_seedphrase_text_2": "You must keep your Secret Recovery Phrase secret and safe. If someone gets your Secret Recovery Phrase, they’ll gain control over your accounts.",
 		"what_is_seedphrase_text_3": "Save it in a place where only you can access it. If you lose it, not even MetaMask can help you recover it."
 	},
 	"account_backup_step_1B": {
 		"title": "Secure your wallet",
 		"subtitle_1": "Secure your wallet's",
-		"subtitle_2": "seed phrase.",
+		"subtitle_2": "Secret Recovery Phrase.",
 		"cta_text": "Start",
 		"learn_more": "Learn More",
 		"why_important": "Why is it important?",
 		"manual_title": "Manual",
-		"manual_subtitle": "Write down your seed phrase on a piece of paper and store in a safe place.",
+		"manual_subtitle": "Write down your Secret Recovery Phrase on a piece of paper and store in a safe place.",
 		"manual_security": "Security level: Very strong",
 		"risks_title": "Risks are:",
 		"risks_1": "You lose it",
@@ -1036,16 +1056,16 @@
 		"tips_2": "Store in a safe",
 		"tips_3": "Store in multiple secret places",
 		"why_secure_title": "Protect your wallet",
-		"why_secure_1": "Don’t risk losing your funds. Protect your wallet by saving your seed phrase in a place you trust.",
+		"why_secure_1": "Don’t risk losing your funds. Protect your wallet by saving your Secret Recovery Phrase in a place you trust.",
 		"why_secure_2": " It’s the only way to recover your wallet if you get locked out of the app or get a new device."
 	},
 	"account_backup_step_2": {
 		"cancel_backup_title": "Cancel Backup",
-		"cancel_backup_message": "We highly recommend you save your seed phrase in order to restore your wallet.",
+		"cancel_backup_message": "We highly recommend you save your Secret Recovery Phrase in order to restore your wallet.",
 		"cancel_backup_ok": "Yes, I'll take the risk",
-		"cancel_backup_no": "No, back up Seed Phrase",
+		"cancel_backup_no": "No, back up Secret Recovery Phrase",
 		"title": "Grab a pen and paper",
-		"info": "Next step is to write your seed phrase down.",
+		"info": "Next step is to write your Secret Recovery Phrase down.",
 		"info_2_1": "You will be asked to ",
 		"info_2_2": "re-enter",
 		"info_2_3": " it for confirmation",
@@ -1053,20 +1073,20 @@
 	},
 	"account_backup_step_3": {
 		"cancel_backup_title": "Cancel Backup",
-		"cancel_backup_message": "We highly recommend you save your seed phrase in order to restore your wallet.",
+		"cancel_backup_message": "We highly recommend you save your Secret Recovery Phrase in order to restore your wallet.",
 		"cancel_backup_ok": "Yes, I'll take the risk",
-		"cancel_backup_no": "No, back up Seed Phrase",
+		"cancel_backup_no": "No, back up Secret Recovery Phrase",
 		"title": "Is anyone watching?",
-		"info_text": "Make sure no other human or robot is watching your screen. If your seed phrase is copied, it can be used on other devices to steal your funds",
+		"info_text": "Make sure no other human or robot is watching your screen. If your Secret Recovery Phrase is copied, it can be used on other devices to steal your funds",
 		"cta_text": "NO ONE'S WATCHING ME"
 	},
 	"account_backup_step_4": {
 		"cancel_backup_title": "Cancel Backup",
-		"cancel_backup_message": "We highly recommend you save your seed phrase in order to restore your wallet.",
+		"cancel_backup_message": "We highly recommend you save your Secret Recovery Phrase in order to restore your wallet.",
 		"cancel_backup_ok": "Yes, I'll take the risk",
-		"cancel_backup_no": "No, back up Seed Phrase",
+		"cancel_backup_no": "No, back up Secret Recovery Phrase",
 		"back": "Back",
-		"title": "Your seed phrase",
+		"title": "Your Secret Recovery Phrase",
 		"info_text_1": "Carefully write down these words on paper. Their order matters.",
 		"info_text_2": "You'll be asked to re-enter it on the next screen",
 		"cta_text": "I'VE COPIED THE PHRASE",
@@ -1078,37 +1098,37 @@
 		"error_title": "Oops!",
 		"error_message": "The order of the words is incorrect. Please make sure you wrote it down correctly and go to the previous screen if it is necessary",
 		"back": "Back",
-		"title": "Confirm seed phrase",
+		"title": "Confirm Secret Recovery Phrase",
 		"info_text": "Insert each word in the order it was presented to you on the previous screen.",
 		"cta_text": "CONFIRM PHRASE",
-		"modal_title": "Seed phrase confirmed!",
+		"modal_title": "Secret Recovery Phrase confirmed!",
 		"modal_text": "This was to ensure you follow this security measure",
 		"modal_button": "NEXT"
 	},
 	"account_backup_step_6": {
 		"title": "Security Tips",
-		"info_text": "MetaMask cannot recover your seed phrase if you lose it",
-		"tip_1": "Keep multiple backups of your seed phrase",
+		"info_text": "MetaMask cannot recover your Secret Recovery Phrase if you lose it",
+		"tip_1": "Keep multiple backups of your Secret Recovery Phrase",
 		"tip_2": "Store the phrase in a trusted password manager and paper backups in a safe place",
 		"tip_3": "Never share this phrase with anyone",
-		"disclaimer": "* You can find your seedphrase if you go to ",
+		"disclaimer": "* You can find your Secret Recovery Phrase if you go to ",
 		"disclaimer_bold": "Settings > Security & Privacy",
 		"cta_text": "GOT IT!",
 		"modal_title": "Congratulations!",
 		"modal_text": "You are all backed up and ready to go!",
 		"modal_button": "DONE",
-		"copy_seed_phrase": "COPY SEED PHRASE TO CLIPBOARD"
+		"copy_seed_phrase": "COPY Secret Recovery Phrase TO CLIPBOARD"
 	},
 	"manual_backup": {
 		"progressOne": "Create Password",
 		"progressTwo": "Secure wallet",
-		"progressThree": "Confirm seed phrase"
+		"progressThree": "Confirm Secret Recovery Phrase"
 	},
 	"manual_backup_step_1": {
-		"action": "Write down your seed phrase",
-		"info": "This is your seed phrase. Write it down on a paper and keep it in a safe place. You'll be asked to re-enter this phrase (in order) on the next step.",
+		"action": "Write down your Secret Recovery Phrase",
+		"info": "This is your Secret Recovery Phrase. Write it down on a paper and keep it in a safe place. You'll be asked to re-enter this phrase (in order) on the next step.",
 		"continue": "Continue",
-		"reveal": "Tap to reveal your seed phrase",
+		"reveal": "Tap to reveal your Secret Recovery Phrase",
 		"watching": "Make sure no one is watching your screen.",
 		"view": "View",
 		"confirm_password": "Confirm your password",
@@ -1116,21 +1136,21 @@
 		"confirm": "CONFIRM"
 	},
 	"manual_backup_step_2": {
-		"action": "Confirm seed phrase",
+		"action": "Confirm Secret Recovery Phrase",
 		"info": "Select each word in the order it was presented to you.",
 		"complete": "Complete Backup",
 		"success": "Success"
 	},
 	"manual_backup_step_3": {
 		"congratulations": "Congratulations",
-		"success": "You’ve successfully protected your wallet. Remember to keep your seed phrase safe, it's your responsibility!",
+		"success": "You’ve successfully protected your wallet. Remember to keep your Secret Recovery Phrase safe, it's your responsibility!",
 		"hint": "Leave yourself a hint?",
-		"recover": "MetaMask cannot recover your wallet should you lose it. You can find your seedphrase in Settings > Security & Privacy.",
+		"recover": "MetaMask cannot recover your wallet should you lose it. You can find your Secret Recovery Phrase in Settings > Security & Privacy.",
 		"learn": "Learn more",
 		"done": "Done",
 		"recovery_hint": "Recovery hint",
 		"leave_hint": "Leave yourself a hint. Write the location / where you saved it to remind yourself how you can access it. This information does not leave your device.",
-		"no_seedphrase": "Do not use this to write your seed phrase.",
+		"no_seedphrase": "Do not use this to write your Secret Recovery Phrase.",
 		"example": "e.g. Mom's house",
 		"save": "Save",
 		"cancel": "Cancel"
@@ -1186,8 +1206,8 @@
 	},
 	"protect_your_wallet_modal": {
 		"title": "Protect your wallet",
-		"body_for_password": "Protect your wallet by setting a password and saving your seed phrase (required).",
-		"body_for_seedphrase": "Now that value was added to your wallet, protect your wallet by setting a password and saving your seed phrase (required).",
+		"body_for_password": "Protect your wallet by setting a password and saving your Secret Recovery Phrase (required).",
+		"body_for_seedphrase": "Now that value was added to your wallet, protect your wallet by setting a password and saving your Secret Recovery Phrase (required).",
 		"button": "Protect wallet"
 	},
 	"payment_request": {
@@ -1369,6 +1389,8 @@
 		"verify_on": "Always verify the token address on",
 		"verify_address_on": "Verify token address on",
 		"only_verified_on": "{{symbol}} is only verified on {{occurances}} source.",
+		"block_explorer": "block explorer",
+		"a_block_explorer": "a block explorer",
 		"token_verification": "Token verification",
 		"token_multiple": "Multiple tokens can use the same name and symbol.",
 		"token_check": "Check",
@@ -1482,7 +1504,7 @@
 		"title": "Protect your wallet",
 		"top_button": "Protect wallet",
 		"bottom_button": "Remind me later",
-		"text": "Don’t risk losing your funds. Protect your wallet by saving your seed phrase in a place you trust.",
+		"text": "Don’t risk losing your funds. Protect your wallet by saving your Secret Recovery Phrase in a place you trust.",
 		"text_bold": "It’s the only way to recover your wallet if you get locked out of the app or get a new device.",
 		"action": "Learn more"
 	},
@@ -1502,15 +1524,15 @@
 		"submit_ticket_6": "here.",
 		"submit_ticket_7": "Please include the error message and the screenshot.",
 		"save_seedphrase_1": "If this error persists,",
-		"save_seedphrase_2": "save your seed phrase",
-		"save_seedphrase_3": "& re-install the app. Note: you can NOT restore your wallet without your seed phrase.",
+		"save_seedphrase_2": "save your Secret Recovery Phrase",
+		"save_seedphrase_3": "& re-install the app. Note: you can NOT restore your wallet without your Secret Recovery Phrase.",
 		"copied_clipboard": "Copied to clipboard",
 		"ok": "OK"
 	},
 	"whats_new": {
 		"title": "See what's new",
 		"feature_security_settings_title": "Improved security settings",
-		"feature_security_settings_text": "You can now change your MetaMask app password & review how to backup your wallet seed phrase from Settings > Security & Privacy.",
+		"feature_security_settings_text": "You can now change your MetaMask app password & review how to backup your wallet Secret Recovery Phrase from Settings > Security & Privacy.",
 		"feature_security_settings_button": "View in Settings"
 	},
 	"invalid_network": {
@@ -1546,5 +1568,9 @@
 		"invalid_chain": "The %{rpcUrl} for this Chain ID does not match the chainid.network listing",
 		"alert_recommend": "We recommend you",
 		"alert_verify": "verify the chain ID"
+	},
+	"media_player": {
+		"loading": "Loading...",
+		"not_found": "Media not found"
 	}
 }

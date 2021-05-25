@@ -23,9 +23,11 @@ import {
 } from '../../../util/transactions';
 import contractMap from '@metamask/contract-metadata';
 import { toChecksumAddress } from 'ethereumjs-util';
-import { swapsUtils } from '@estebanmino/controllers';
+import { swapsUtils } from '@metamask/swaps-controller';
+import { isSwapsNativeAsset } from '../Swaps/utils';
+import { toLowerCaseCompare } from '../../../util/general';
 
-const { ETH_SWAPS_TOKEN_ADDRESS, SWAPS_CONTRACT_ADDRESS } = swapsUtils;
+const { getSwapsContractAddress } = swapsUtils;
 
 function calculateTotalGas(gas, gasPrice) {
 	const gasBN = hexToBN(gas);
@@ -137,9 +139,7 @@ function getCollectibleTransfer(args) {
 	let actionKey;
 	const [, tokenId] = decodeTransferData('transfer', data);
 	const ticker = getTicker(args.ticker);
-	const collectible = collectibleContracts.find(
-		collectible => collectible.address.toLowerCase() === to.toLowerCase()
-	);
+	const collectible = collectibleContracts.find(collectible => toLowerCaseCompare(collectible.address, to));
 	if (collectible) {
 		actionKey = `${strings('transactions.sent')} ${collectible.name}`;
 	} else {
@@ -335,17 +335,15 @@ function decodeTransferFromTx(args) {
 		selectedAddress
 	} = args;
 	const [addressFrom, addressTo, tokenId] = decodeTransferData('transferFrom', data);
-	const collectible = collectibleContracts.find(
-		collectible => collectible.address.toLowerCase() === to.toLowerCase()
-	);
+	const collectible = collectibleContracts.find(collectible => toLowerCaseCompare(collectible.address, to));
 	let actionKey = args.actionKey;
 	if (collectible) {
 		actionKey = `${strings('transactions.sent')} ${collectible.name}`;
 	}
 
 	const totalGas = calculateTotalGas(gas, gasPrice);
-	const renderCollectible = collectible
-		? `${strings('unit.token_id')}${tokenId} ${collectible.symbol}`
+	const renderCollectible = collectible?.symbol
+		? `${strings('unit.token_id')}${tokenId} ${collectible?.symbol}`
 		: `${strings('unit.token_id')}${tokenId}`;
 
 	const renderFrom = renderFullAddress(addressFrom);
@@ -604,16 +602,14 @@ function decodeSwapsTx(args) {
 		);
 	}
 
-	const sourceExchangeRate =
-		sourceToken.address === ETH_SWAPS_TOKEN_ADDRESS
-			? 1
-			: contractExchangeRates[safeToChecksumAddress(sourceToken.address)];
+	const sourceExchangeRate = isSwapsNativeAsset(sourceToken)
+		? 1
+		: contractExchangeRates[safeToChecksumAddress(sourceToken.address)];
 	const renderSourceTokenFiatNumber = balanceToFiatNumber(decimalSourceAmount, conversionRate, sourceExchangeRate);
 
-	const destinationExchangeRate =
-		destinationToken.address === ETH_SWAPS_TOKEN_ADDRESS
-			? 1
-			: contractExchangeRates[safeToChecksumAddress(destinationToken.address)];
+	const destinationExchangeRate = isSwapsNativeAsset(destinationToken)
+		? 1
+		: contractExchangeRates[safeToChecksumAddress(destinationToken.address)];
 	const renderDestinationTokenFiatNumber = balanceToFiatNumber(
 		decimalDestinationAmount,
 		conversionRate,
@@ -682,13 +678,13 @@ function decodeSwapsTx(args) {
  * currentCurrency, exchangeRate, contractExchangeRates, collectibleContracts, tokens
  */
 export default async function decodeTransaction(args) {
-	const { tx, selectedAddress, ticker, swapsTransactions = {} } = args;
+	const { tx, selectedAddress, ticker, chainId, swapsTransactions = {} } = args;
 	const { isTransfer } = tx || {};
 
-	const actionKey = await getActionKey(tx, selectedAddress, ticker);
+	const actionKey = await getActionKey(tx, selectedAddress, ticker, chainId);
 	let transactionElement, transactionDetails;
 
-	if (tx.transaction.to === SWAPS_CONTRACT_ADDRESS || swapsTransactions[tx.id]) {
+	if (tx.transaction.to?.toLowerCase() === getSwapsContractAddress(chainId) || swapsTransactions[tx.id]) {
 		const [transactionElement, transactionDetails] = decodeSwapsTx({ ...args, actionKey });
 		if (transactionElement && transactionDetails) return [transactionElement, transactionDetails];
 	}

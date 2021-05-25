@@ -123,7 +123,7 @@ class Wallet extends PureComponent {
 			const actions = [
 				AssetsDetectionController.detectAssets(),
 				AccountTrackerController.refresh(),
-				CurrencyRateController.poll(),
+				CurrencyRateController.start(),
 				TokenRatesController.poll()
 			];
 			await Promise.all(actions);
@@ -181,7 +181,7 @@ class Wallet extends PureComponent {
 			balance = renderFromWei(accounts[selectedAddress].balance);
 			assets = [
 				{
-					name: 'Ether',
+					name: 'Ether', // FIXME: use 'Ether' for mainnet only, what should it be for custom networks?
 					symbol: getTicker(ticker),
 					isETH: true,
 					balance,

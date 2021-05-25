@@ -145,7 +145,7 @@ export class NetworkList extends PureComponent {
 			this.props.onClose(false);
 			InteractionManager.runAfterInteractions(() => {
 				const { NetworkController, CurrencyRateController } = Engine.context;
-				CurrencyRateController.configure({ nativeCurrency: 'ETH' });
+				CurrencyRateController.setNativeCurrency('ETH');
 				NetworkController.setProviderType(type);
 				this.props.thirdPartyApiMode &&
 					setTimeout(() => {
@@ -185,7 +185,7 @@ export class NetworkList extends PureComponent {
 			return;
 		}
 
-		CurrencyRateController.configure({ nativeCurrency: ticker });
+		CurrencyRateController.setNativeCurrency(ticker);
 		NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
 
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_SWITCHED, {
@@ -269,7 +269,7 @@ export class NetworkList extends PureComponent {
 					{strings('networks.title')}
 				</Text>
 			</View>
-			<ScrollView style={styles.networksWrapper}>
+			<ScrollView style={styles.networksWrapper} testID={'other-networks-scroll'}>
 				{this.renderMainnet()}
 				<View style={styles.otherNetworksHeader}>
 					<Text style={styles.otherNetworksText} testID={'other-network-name'}>

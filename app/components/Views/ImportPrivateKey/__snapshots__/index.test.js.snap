@@ -121,7 +121,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
               }
             }
           >
-            Imported accounts are viewable in your wallet but are not recoverable with your MetaMask seed phrase.
+            Imported accounts are viewable in your wallet but are not recoverable with your MetaMask Secret Recovery Phrase.
           </Text>
         </View>
         <View

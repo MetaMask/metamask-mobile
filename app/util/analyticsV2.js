@@ -88,7 +88,30 @@ export const trackEventV2 = (eventName, params) => {
 	});
 };
 
+/**
+ * This functions logs errors to analytics instead of sentry.
+ * The objective is to log errors (that are not errors from our side) like “Invalid Password”.
+ * An error like this generally means a user inserted the wrong password, so logging to sentry doesn't make sense.
+ * But we still want to log this to analytics so that we are aware of a rapid increase which may mean it's an error from our side, for example, an error with the encryption library.
+ * @param {String} type
+ * @param {String} errorMessage
+ * @param {String} otherInfo
+ */
+export const trackErrorAsAnalytics = (type, errorMessage, otherInfo) => {
+	try {
+		Analytics.trackEventWithParameters(generateOpt('Error occurred'), {
+			error: true,
+			type,
+			errorMessage,
+			otherInfo
+		});
+	} catch (error) {
+		Logger.error(error, 'Error logging analytics - trackErrorAsAnalytics');
+	}
+};
+
 export default {
 	ANALYTICS_EVENTS: ANALYTICS_EVENTS_V2,
-	trackEvent: trackEventV2
+	trackEvent: trackEventV2,
+	trackErrorAsAnalytics
 };

@@ -248,6 +248,11 @@ exports[`GeneralSettings should render correctly 1`] = `
                 "value": "nmr",
               },
               Object {
+                "key": "nzd",
+                "label": "NZD - New Zealand Dollar",
+                "value": "nzd",
+              },
+              Object {
                 "key": "omg",
                 "label": "OMG - OmiseGO",
                 "value": "omg",
@@ -529,6 +534,59 @@ exports[`GeneralSettings should render correctly 1`] = `
           }
         }
       />
+    </View>
+    <View
+      style={
+        Object {
+          "marginTop": 50,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 20,
+            "fontWeight": "400",
+            "lineHeight": 20,
+          }
+        }
+      >
+        Hide Tokens Without Balance
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 12,
+          }
+        }
+      >
+        Prevents tokens with no balance from displaying in your token listing.
+      </Text>
+      <View
+        style={
+          Object {
+            "marginTop": 18,
+          }
+        }
+      >
+        <Switch
+          ios_backgroundColor="#f2f3f4"
+          onValueChange={[Function]}
+          trackColor={
+            Object {
+              "false": "#f2f3f4",
+              "true": "#037dd6",
+            }
+          }
+        />
+      </View>
     </View>
     <View
       style={

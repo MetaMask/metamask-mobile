@@ -8,7 +8,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors, fontStyles } from '../../../styles/common';
-import { hasBlockExplorer, findBlockExplorerForRpc, getBlockExplorerName } from '../../../util/networks';
+import { hasBlockExplorer, findBlockExplorerForRpc, getBlockExplorerName, isMainNet } from '../../../util/networks';
 import Identicon from '../Identicon';
 import StyledButton from '../StyledButton';
 import AccountList from '../AccountList';
@@ -31,7 +31,6 @@ import AppConstants from '../../../core/AppConstants';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import URL from 'url-parse';
 import EthereumAddress from '../EthereumAddress';
-import { NavigationActions } from 'react-navigation';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { protectWalletModalVisible } from '../../../actions/user';
@@ -339,6 +338,10 @@ class DrawerView extends PureComponent {
 		 */
 		wizard: PropTypes.object,
 		/**
+		 * Chain Id
+		 */
+		chainId: PropTypes.string,
+		/**
 		 * Current provider ticker
 		 */
 		ticker: PropTypes.string,
@@ -407,7 +410,7 @@ class DrawerView extends PureComponent {
 			let tokenFound = false;
 
 			this.props.tokens.forEach(token => {
-				if (this.props.tokenBalances[token.address] && !this.props.tokenBalances[token.address].isZero()) {
+				if (this.props.tokenBalances[token.address] && !this.props.tokenBalances[token.address]?.isZero()) {
 					tokenFound = true;
 				}
 			});
@@ -519,11 +522,7 @@ class DrawerView extends PureComponent {
 		await SecureKeychain.resetGenericPassword();
 		await KeyringController.setLocked();
 		if (!passwordSet) {
-			this.props.navigation.navigate(
-				'OnboardingRootNav',
-				{},
-				NavigationActions.navigate({ routeName: 'Onboarding' })
-			);
+			this.props.navigation.navigate('Onboarding');
 		} else {
 			this.props.navigation.navigate('Login');
 		}
@@ -688,7 +687,7 @@ class DrawerView extends PureComponent {
 					icon: this.getImageIcon('wallet'),
 					selectedIcon: this.getSelectedImageIcon('wallet'),
 					action: this.showWallet,
-					routeNames: ['WalletView', 'Asset', 'AddAsset', 'Collectible', 'CollectibleView']
+					routeNames: ['WalletView', 'Asset', 'AddAsset', 'Collectible']
 				},
 				{
 					name: strings('drawer.transaction_history'),
@@ -830,6 +829,7 @@ class DrawerView extends PureComponent {
 			selectedAddress,
 			keyrings,
 			currentCurrency,
+			chainId,
 			ticker,
 			seedphraseBackedUp
 		} = this.props;
@@ -876,7 +876,7 @@ class DrawerView extends PureComponent {
 									</Text>
 									<Icon name="caret-down" size={24} style={styles.caretDown} />
 								</View>
-								<Text style={styles.accountBalance}>{fiatBalanceStr}</Text>
+								{isMainNet(chainId) && <Text style={styles.accountBalance}>{fiatBalanceStr}</Text>}
 								<EthereumAddress
 									address={account.address}
 									style={styles.accountAddress}
@@ -897,6 +897,7 @@ class DrawerView extends PureComponent {
 							type={'rounded-normal'}
 							onPress={this.onSend}
 							containerStyle={[styles.button, styles.leftButton]}
+							testID={'drawer-send-button'}
 						>
 							<View style={styles.buttonContent}>
 								<MaterialIcon
@@ -1065,6 +1066,7 @@ const mapStateToProps = state => ({
 	receiveModalVisible: state.modals.receiveModalVisible,
 	passwordSet: state.user.passwordSet,
 	wizard: state.wizard,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,

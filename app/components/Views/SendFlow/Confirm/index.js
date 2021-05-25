@@ -28,7 +28,7 @@ import {
 } from '../../../../util/number';
 import { getTicker, decodeTransferData, getNormalizedTxState } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
-import { util, WalletDevice } from '@metamask/controllers';
+import { util, WalletDevice, NetworksChainId } from '@metamask/controllers';
 import { prepareTransaction, resetTransaction, setNonce, setProposedNonce } from '../../../../actions/transaction';
 import {
 	apiEstimateModifiedToWEI,
@@ -46,7 +46,7 @@ import { doENSReverseLookup } from '../../../../util/ENSUtils';
 import NotificationManager from '../../../../core/NotificationManager';
 import { strings } from '../../../../../locales/i18n';
 import collectiblesTransferInformation from '../../../../util/collectibles-transfer';
-import CollectibleImage from '../../../UI/CollectibleImage';
+import CollectibleMedia from '../../../UI/CollectibleMedia';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionTypes from '../../../../core/TransactionTypes';
@@ -56,6 +56,10 @@ import { capitalize } from '../../../../util/general';
 import { isMainNet, getNetworkName, getNetworkNonce } from '../../../../util/networks';
 import Text from '../../../Base/Text';
 import AnalyticsV2 from '../../../../util/analyticsV2';
+import { collectConfusables } from '../../../../util/validators';
+import InfoModal from '../../../UI/Swaps/components/InfoModal';
+import { toChecksumAddress } from 'ethereumjs-util';
+import { removeFavoriteCollectible } from '../../../../actions/collectibles';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -115,7 +119,7 @@ const styles = StyleSheet.create({
 	actionsWrapper: {
 		margin: 24
 	},
-	collectibleImageWrapper: {
+	CollectibleMediaWrapper: {
 		flexDirection: 'column',
 		alignItems: 'center',
 		margin: 16
@@ -133,7 +137,7 @@ const styles = StyleSheet.create({
 		marginTop: 8,
 		textAlign: 'center'
 	},
-	collectibleImage: {
+	CollectibleMedia: {
 		height: 120,
 		width: 120
 	},
@@ -211,6 +215,9 @@ const styles = StyleSheet.create({
 	over: {
 		color: colors.red,
 		...fontStyles.bold
+	},
+	text: {
+		lineHeight: 20
 	}
 });
 
@@ -230,6 +237,10 @@ class Confirm extends PureComponent {
 		 * Map of accounts to information objects including balances
 		 */
 		accounts: PropTypes.object,
+		/**
+		 * Map representing the address book
+		 */
+		addressBook: PropTypes.object,
 		/**
 		 * Object containing token balances in the format address => balance
 		 */
@@ -262,6 +273,10 @@ class Confirm extends PureComponent {
 		 * Set transaction object to be sent
 		 */
 		prepareTransaction: PropTypes.func,
+		/**
+		 * Chain Id
+		 */
+		chainId: PropTypes.string,
 		/**
 		 * Network id
 		 */
@@ -309,6 +324,7 @@ class Confirm extends PureComponent {
 	};
 
 	state = {
+		confusableCollection: [],
 		gasSpeedSelected: 'average',
 		gasEstimationReady: false,
 		customGas: undefined,
@@ -327,6 +343,7 @@ class Confirm extends PureComponent {
 		transactionTotalAmountFiat: undefined,
 		errorMessage: undefined,
 		fromAccountModalVisible: false,
+		warningModalVisible: false,
 		mode: REVIEW,
 		over: false
 	};
@@ -364,6 +381,18 @@ class Confirm extends PureComponent {
 		}
 	};
 
+	handleConfusables = () => {
+		const { identities = undefined, transactionState } = this.props;
+		const { transactionToName = undefined } = transactionState;
+		const accountNames = (identities && Object.keys(identities).map(hash => identities[hash].name)) || [];
+		const isOwnAccount = accountNames.includes(transactionToName);
+		if (transactionToName && !isOwnAccount) {
+			this.setState({ confusableCollection: collectConfusables(transactionToName) });
+		}
+	};
+
+	toggleWarningModal = () => this.setState(state => ({ warningModalVisible: !state.warningModalVisible }));
+
 	componentDidMount = async () => {
 		// For analytics
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_STARTED, this.getAnalyticsParams());
@@ -372,6 +401,7 @@ class Confirm extends PureComponent {
 		await this.handleFetchBasicEstimates();
 		showCustomNonce && (await this.setNetworkNonce());
 		navigation.setParams({ providerType });
+		this.handleConfusables();
 		this.parseTransactionData();
 		this.prepareTransaction();
 	};
@@ -627,10 +657,12 @@ class Confirm extends PureComponent {
 	checkRemoveCollectible = () => {
 		const {
 			transactionState: { selectedAsset, assetType },
-			network
+			chainId
 		} = this.props;
-		if (assetType === 'ERC721' && network !== 1) {
+		const { fromSelectedAddress } = this.state;
+		if (assetType === 'ERC721' && chainId !== NetworksChainId.mainnet) {
 			const { AssetsController } = Engine.context;
+			removeFavoriteCollectible(fromSelectedAddress, chainId, selectedAsset);
 			AssetsController.removeCollectible(selectedAsset.address, selectedAsset.tokenId);
 		}
 	};
@@ -907,7 +939,7 @@ class Confirm extends PureComponent {
 
 	render = () => {
 		const { transactionToName, selectedAsset, paymentRequest } = this.props.transactionState;
-		const { showHexData, showCustomNonce, primaryCurrency, network } = this.props;
+		const { addressBook, showHexData, showCustomNonce, primaryCurrency, network, chainId } = this.props;
 		const { nonce } = this.props.transaction;
 		const {
 			gasEstimationReady,
@@ -924,9 +956,35 @@ class Confirm extends PureComponent {
 			errorMessage,
 			transactionConfirmed,
 			warningGasPriceHigh,
+			confusableCollection,
 			mode,
-			over
+			over,
+			warningModalVisible
 		} = this.state;
+
+		const checksummedAddress = transactionTo && toChecksumAddress(transactionTo);
+		const existingContact = checksummedAddress && addressBook[network] && addressBook[network][checksummedAddress];
+		const displayExclamation = !existingContact && !!confusableCollection.length;
+
+		const AdressToComponent = () => (
+			<AddressTo
+				addressToReady
+				toSelectedAddress={transactionTo}
+				toAddressName={transactionToName}
+				onToSelectedAddressChange={this.onToSelectedAddressChange}
+				confusableCollection={(!existingContact && confusableCollection) || []}
+				displayExclamation={displayExclamation}
+			/>
+		);
+
+		const AdressToComponentWrap = () =>
+			!existingContact && confusableCollection.length ? (
+				<TouchableOpacity onPress={this.toggleWarningModal}>
+					<AdressToComponent />
+				</TouchableOpacity>
+			) : (
+				<AdressToComponent />
+			);
 
 		const is_main_net = isMainNet(network);
 		const errorPress = is_main_net ? this.buyEth : this.gotoFaucet;
@@ -943,13 +1001,15 @@ class Confirm extends PureComponent {
 						fromAccountName={fromAccountName}
 						fromAccountBalance={fromAccountBalance}
 					/>
-					<AddressTo
-						addressToReady
-						toSelectedAddress={transactionTo}
-						toAddressName={transactionToName}
-						onToSelectedAddressChange={this.onToSelectedAddressChange}
-					/>
+					<AdressToComponentWrap />
 				</View>
+
+				<InfoModal
+					isVisible={warningModalVisible}
+					toggleModal={this.toggleWarningModal}
+					title={strings('transaction.confusable_title')}
+					body={<Text style={styles.text}>{strings('transaction.confusable_msg')}</Text>}
+				/>
 
 				<ScrollView style={baseStyles.flexGrow} ref={this.setScrollViewRef}>
 					{!selectedAsset.tokenId ? (
@@ -958,15 +1018,16 @@ class Confirm extends PureComponent {
 							<Text style={styles.textAmount} testID={'confirm-txn-amount'}>
 								{transactionValue}
 							</Text>
-							<Text style={styles.textAmountLabel}>{transactionValueFiat}</Text>
+							{isMainNet(chainId) && <Text style={styles.textAmountLabel}>{transactionValueFiat}</Text>}
 						</View>
 					) : (
 						<View style={styles.amountWrapper}>
 							<Text style={styles.textAmountLabel}>{strings('transaction.asset')}</Text>
-							<View style={styles.collectibleImageWrapper}>
-								<CollectibleImage
-									iconStyle={styles.collectibleImage}
-									containerStyle={styles.collectibleImage}
+							<View style={styles.CollectibleMediaWrapper}>
+								<CollectibleMedia
+									small
+									iconStyle={styles.CollectibleMedia}
+									containerStyle={styles.CollectibleMedia}
 									collectible={selectedAsset}
 								/>
 							</View>
@@ -979,7 +1040,7 @@ class Confirm extends PureComponent {
 					<TransactionReviewFeeCard
 						totalGasFiat={transactionFeeFiat}
 						totalGasEth={transactionFee}
-						totalFiat={transactionTotalAmountFiat}
+						totalFiat={isMainNet(chainId) ? transactionTotalAmountFiat : <Text />}
 						fiat={transactionValueFiat}
 						totalValue={transactionTotalAmount}
 						transactionValue={transactionValue}
@@ -1042,6 +1103,7 @@ class Confirm extends PureComponent {
 
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	addressBook: state.engine.backgroundState.AddressBookController?.addressBook,
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
@@ -1051,6 +1113,7 @@ const mapStateToProps = state => ({
 	providerType: state.engine.backgroundState.NetworkController.provider.type,
 	showHexData: state.settings.showHexData,
 	showCustomNonce: state.settings.showCustomNonce,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
 	transaction: getNormalizedTxState(state),
@@ -1063,7 +1126,9 @@ const mapDispatchToProps = dispatch => ({
 	prepareTransaction: transaction => dispatch(prepareTransaction(transaction)),
 	resetTransaction: () => dispatch(resetTransaction()),
 	setNonce: nonce => dispatch(setNonce(nonce)),
-	setProposedNonce: nonce => dispatch(setProposedNonce(nonce))
+	setProposedNonce: nonce => dispatch(setProposedNonce(nonce)),
+	removeFavoriteCollectible: (selectedAddress, chainId, collectible) =>
+		dispatch(removeFavoriteCollectible(selectedAddress, chainId, collectible))
 });
 
 export default connect(

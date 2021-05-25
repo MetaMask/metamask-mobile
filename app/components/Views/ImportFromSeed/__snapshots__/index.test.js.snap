@@ -60,7 +60,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
         <View
           style={
             Object {
-              "width": "50%",
+              "width": "70%",
             }
           }
         >
@@ -75,17 +75,18 @@ exports[`ImportFromSeed should render correctly 1`] = `
               }
             }
           >
-            Seed phrase
+            Secret Recovery Phrase
           </Text>
         </View>
         <View
           style={
             Array [
               Object {
-                "width": "50%",
+                "width": "70%",
               },
               Object {
                 "flexDirection": "row-reverse",
+                "width": "30%",
               },
             ]
           }
@@ -136,7 +137,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
         lineWidth={1}
         onChangeText={[Function]}
         onSubmitEditing={[Function]}
-        placeholder="Enter your seed phrase here"
+        placeholder="Enter your Secret Recovery Phrase"
         returnKeyType="next"
         secureTextEntry={true}
         style={
@@ -195,7 +196,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
           <View
             style={
               Object {
-                "width": "50%",
+                "width": "70%",
               }
             }
           >
@@ -217,10 +218,11 @@ exports[`ImportFromSeed should render correctly 1`] = `
             style={
               Array [
                 Object {
-                  "width": "50%",
+                  "width": "70%",
                 },
                 Object {
                   "flexDirection": "row-reverse",
+                  "width": "30%",
                 },
               ]
             }

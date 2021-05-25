@@ -61,7 +61,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
           }
         }
       >
-        Confirm seed phrase
+        Confirm Secret Recovery Phrase
       </Text>
       <View
         style={

@@ -6,11 +6,11 @@ import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Fuse from 'fuse.js';
 import { connect } from 'react-redux';
-import { swapsUtils } from '@estebanmino/controllers';
 
 import Device from '../../../../util/Device';
 import { balanceToFiat, hexToBN, renderFromTokenMinimalUnit, renderFromWei, weiToFiat } from '../../../../util/number';
 import { safeToChecksumAddress } from '../../../../util/address';
+import { isSwapsNativeAsset } from '../utils';
 import { strings } from '../../../../../locales/i18n';
 import { colors, fontStyles } from '../../../../styles/common';
 
@@ -106,7 +106,7 @@ function TokenSelectModal({
 				distance: 100,
 				maxPatternLength: 32,
 				minMatchCharLength: 1,
-				keys: ['symbol', 'address']
+				keys: ['symbol', 'address', 'name']
 			}),
 		[filteredTokens]
 	);
@@ -123,7 +123,7 @@ function TokenSelectModal({
 			const itemAddress = safeToChecksumAddress(item.address);
 
 			let balance, balanceFiat;
-			if (item.address === swapsUtils.ETH_SWAPS_TOKEN_ADDRESS) {
+			if (isSwapsNativeAsset(item)) {
 				balance = renderFromWei(accounts[selectedAddress] && accounts[selectedAddress].balance);
 				balanceFiat = weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency);
 			} else {
@@ -142,6 +142,7 @@ function TokenSelectModal({
 							</ListItem.Icon>
 							<ListItem.Body>
 								<ListItem.Title>{item.symbol}</ListItem.Title>
+								{item.name && <Text>{item.name}</Text>}
 							</ListItem.Body>
 							<ListItem.Amounts>
 								<ListItem.Amount>{balance}</ListItem.Amount>

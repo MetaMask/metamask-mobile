@@ -8,6 +8,7 @@ import { showAlert } from '../../../actions/alert';
 import Transactions from '../../UI/Transactions';
 import { safeToChecksumAddress } from '../../../util/address';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
+import { toLowerCaseCompare } from '../../../util/general';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -50,8 +51,8 @@ const TransactionsView = ({
 				tx.status !== 'unapproved'
 			) {
 				if (isTransfer)
-					return tokens.find(
-						({ address }) => address.toLowerCase() === transferInformation.contractAddress.toLowerCase()
+					return tokens.find(({ address }) =>
+						toLowerCaseCompare(address, transferInformation.contractAddress)
 					);
 				return true;
 			}

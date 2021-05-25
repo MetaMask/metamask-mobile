@@ -19,6 +19,13 @@ export function setShowCustomNonce(showCustomNonce) {
 	};
 }
 
+export function setHideZeroBalanceTokens(hideZeroBalanceTokens) {
+	return {
+		type: 'SET_HIDE_ZERO_BALANCE_TOKENS',
+		hideZeroBalanceTokens
+	};
+}
+
 export function setLockTime(lockTime) {
 	return {
 		type: 'SET_LOCK_TIME',

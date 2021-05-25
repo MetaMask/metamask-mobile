@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import { SafeAreaView, StyleSheet } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
+import { connect } from 'react-redux';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import AddCustomToken from '../../UI/AddCustomToken';
 import SearchTokenAutocomplete from '../../UI/SearchTokenAutocomplete';
@@ -9,6 +10,7 @@ import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
 import AddCustomCollectible from '../../UI/AddCustomCollectible';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
+import { NetworksChainId } from '@metamask/controllers';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -32,8 +34,13 @@ const styles = StyleSheet.create({
 /**
  * PureComponent that provides ability to add assets.
  */
-export default class AddAsset extends PureComponent {
-	static navigationOptions = ({ navigation }) => getNetworkNavbarOptions('add_asset.title', true, navigation);
+class AddAsset extends PureComponent {
+	static navigationOptions = ({ navigation }) =>
+		getNetworkNavbarOptions(
+			`add_asset.${navigation.state.params.assetType === 'token' ? 'title' : 'title_nft'}`,
+			true,
+			navigation
+		);
 
 	state = {
 		address: '',
@@ -45,7 +52,11 @@ export default class AddAsset extends PureComponent {
 		/**
 		/* navigation object required to push new views
 		*/
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * Chain id
+		 */
+		chainId: PropTypes.string
 	};
 
 	renderTabBar() {
@@ -74,11 +85,13 @@ export default class AddAsset extends PureComponent {
 			<SafeAreaView style={styles.wrapper} testID={`add-${assetType}-screen`}>
 				{assetType === 'token' ? (
 					<ScrollableTabView renderTabBar={this.renderTabBar}>
-						<SearchTokenAutocomplete
-							navigation={navigation}
-							tabLabel={strings('add_asset.search_token')}
-							testID={'tab-search-token'}
-						/>
+						{NetworksChainId.mainnet === this.props.chainId && (
+							<SearchTokenAutocomplete
+								navigation={navigation}
+								tabLabel={strings('add_asset.search_token')}
+								testID={'tab-search-token'}
+							/>
+						)}
 						<AddCustomToken
 							navigation={navigation}
 							tabLabel={strings('add_asset.custom_token')}
@@ -96,3 +109,9 @@ export default class AddAsset extends PureComponent {
 		);
 	};
 }
+
+const mapStateToProps = state => ({
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId
+});
+
+export default connect(mapStateToProps)(AddAsset);

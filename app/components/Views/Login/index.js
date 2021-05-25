@@ -24,7 +24,6 @@ import { strings } from '../../../../locales/i18n';
 import SecureKeychain from '../../../core/SecureKeychain';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import setOnboardingWizardStep from '../../../actions/wizard';
-import { NavigationActions } from 'react-navigation';
 import { connect } from 'react-redux';
 import Device from '../../../util/Device';
 import { OutlinedTextField } from 'react-native-material-textfield';
@@ -44,8 +43,10 @@ import { passwordRequirementsMet } from '../../../util/password';
 import ErrorBoundary from '../ErrorBoundary';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
+import { tlc, toLowerCaseCompare } from '../../../util/general';
 
-const isTextDelete = text => String(text).toLowerCase() === 'delete';
+const isTextDelete = text => tlc(text) === 'delete';
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
 
@@ -182,13 +183,11 @@ const styles = StyleSheet.create({
 	}
 });
 
-/* TODO: we should have translation strings for these */
-const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
-const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
-const WRONG_PASSWORD_ERROR_ANDROID = 'Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT';
-const VAULT_ERROR = 'Error: Cannot unlock without a previous vault.';
-const CLEAN_VAULT_ERROR =
-	'MetaMask encountered an error due to reaching a storage limit. The local data has been corrupted. Please reinstall MetaMask and restore with your seed phrase.';
+const PASSCODE_NOT_SET_ERROR = strings('login.passcode_not_set_error');
+const WRONG_PASSWORD_ERROR = strings('login.wrong_password_error');
+const WRONG_PASSWORD_ERROR_ANDROID = strings('login.wrong_password_error_android');
+const VAULT_ERROR = strings('login.vault_error');
+const CLEAN_VAULT_ERROR = strings('login.clean_vault_error');
 
 /**
  * View where returning users can authenticate
@@ -315,17 +314,21 @@ class Login extends PureComponent {
 			// Should we force people to enable passcode / biometrics?
 			const error = e.toString();
 			if (
-				error.toLowerCase() === WRONG_PASSWORD_ERROR.toLowerCase() ||
-				error.toLowerCase() === WRONG_PASSWORD_ERROR_ANDROID.toLowerCase()
+				toLowerCaseCompare(error, WRONG_PASSWORD_ERROR) ||
+				toLowerCaseCompare(error, WRONG_PASSWORD_ERROR_ANDROID)
 			) {
 				this.setState({ loading: false, error: strings('login.invalid_password') });
+
+				trackErrorAsAnalytics('Login: Invalid Password', error);
+
+				return;
 			} else if (error === PASSCODE_NOT_SET_ERROR) {
 				Alert.alert(
 					'Security Alert',
 					'In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)'
 				);
 				this.setState({ loading: false });
-			} else if (error.toLowerCase() === VAULT_ERROR.toLowerCase()) {
+			} else if (toLowerCaseCompare(error, VAULT_ERROR)) {
 				this.setState({
 					loading: false,
 					error: CLEAN_VAULT_ERROR
@@ -352,11 +355,7 @@ class Login extends PureComponent {
 	deleteExistingUser = async () => {
 		try {
 			await AsyncStorage.removeItem(EXISTING_USER);
-			this.props.navigation.navigate(
-				'OnboardingRootNav',
-				{},
-				NavigationActions.navigate({ routeName: 'Onboarding', params: { delete: true } })
-			);
+			this.props.navigation.navigate('Onboarding', { delete: true });
 		} catch (error) {
 			Logger.log(error, `Failed to remove key: ${EXISTING_USER} from AsyncStorage`);
 		}
@@ -520,6 +519,7 @@ class Login extends PureComponent {
 						<View style={styles.field}>
 							<Text style={styles.label}>{strings('login.password')}</Text>
 							<OutlinedTextField
+								style={styles.input}
 								placeholder={'Password'}
 								testID={'login-password-input'}
 								returnKeyType={'done'}

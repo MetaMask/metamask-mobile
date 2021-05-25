@@ -253,6 +253,10 @@ class CustomGas extends PureComponent {
 		 */
 		gasPrice: PropTypes.object,
 		/**
+		 * Object BN containing mininum gas price
+		 */
+		minimumGasPrice: PropTypes.object,
+		/**
 		 * Callback to modify parent state
 		 */
 		onPress: PropTypes.func,
@@ -482,12 +486,20 @@ class CustomGas extends PureComponent {
 	onGasPriceChange = value => {
 		const { customGasLimitBN } = this.state;
 		//Added because apiEstimateModifiedToWEI doesn't like empty strings
-		const gasPrice = value === '' ? '0' : value.replace(' ', '').replace(',', '.');
+		const gasPrice = value === '' ? '0' : value.replace(/\s|[a-zA-Z]/, '').replace(',', '.');
+		if (!/^\d+$|^\d+\.\d+$/g.test(gasPrice)) {
+			return;
+		}
 		const gasPriceBN = new BN(gasPrice);
 		const gasPriceBNWei = apiEstimateModifiedToWEI(gasPrice);
 		const warningSufficientFunds = this.hasSufficientFunds(customGasLimitBN, gasPriceBNWei);
 		let warningGasPrice;
 		let warningGasPriceHigh = '';
+		if (this.onlyAdvanced() && this.props.minimumGasPrice) {
+			if (parseInt(gasPrice) < parseInt(fromWei(this.props.minimumGasPrice, 'gwei'))) {
+				warningGasPrice = strings('transaction.low_gas_price');
+			}
+		}
 		if (this.props.basicGasEstimates) {
 			if (parseInt(gasPrice) < parseInt(this.props.basicGasEstimates.safeLowGwei))
 				warningGasPrice = strings('transaction.low_gas_price');

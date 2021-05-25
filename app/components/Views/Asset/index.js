@@ -2,14 +2,16 @@ import React, { PureComponent } from 'react';
 import { ActivityIndicator, InteractionManager, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import { swapsUtils } from '@metamask/swaps-controller/';
+
 import { colors } from '../../../styles/common';
 import AssetOverview from '../../UI/AssetOverview';
 import Transactions from '../../UI/Transactions';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import Engine from '../../../core/Engine';
 import { safeToChecksumAddress } from '../../../util/address';
-import { SWAPS_CONTRACT_ADDRESS } from '@estebanmino/controllers/dist/swaps/SwapsUtil';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
+import { toLowerCaseCompare } from '../../../util/general';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -143,8 +145,8 @@ class Asset extends PureComponent {
 			tx.status !== 'unapproved'
 		) {
 			if (isTransfer)
-				return this.props.tokens.find(
-					({ address }) => address.toLowerCase() === transferInformation.contractAddress.toLowerCase()
+				return this.props.tokens.find(({ address }) =>
+					toLowerCaseCompare(address, transferInformation.contractAddress)
 				);
 			return true;
 		}
@@ -168,7 +170,8 @@ class Asset extends PureComponent {
 			if (isTransfer) return this.navAddress === transferInformation.contractAddress.toLowerCase();
 			if (
 				swapsTransactions[tx.id] &&
-				(to?.toLowerCase() === SWAPS_CONTRACT_ADDRESS || to?.toLowerCase() === this.navAddress)
+				(to?.toLowerCase() === swapsUtils.getSwapsContractAddress(chainId) ||
+					to?.toLowerCase() === this.navAddress)
 			) {
 				const { destinationToken, sourceToken } = swapsTransactions[tx.id];
 				return destinationToken.address === this.navAddress || sourceToken.address === this.navAddress;
