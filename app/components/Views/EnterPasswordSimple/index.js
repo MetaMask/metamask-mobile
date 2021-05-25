@@ -65,7 +65,7 @@ export default class EnterPasswordSimple extends PureComponent {
 		if (!passwordRequirementsMet(this.state.password)) {
 			Alert.alert(strings('enter_password.error'), strings('choose_password.password_length_error'));
 		} else {
-			this.props.navigation.state.params.onPasswordSet(this.state.password);
+			this.props.route.params.onPasswordSet(this.state.password);
 			this.props.navigation.pop();
 			return;
 		}

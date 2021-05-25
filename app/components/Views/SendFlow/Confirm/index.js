@@ -224,8 +224,8 @@ const styles = StyleSheet.create({
  * View that wraps the wraps the "Send" screen
  */
 class Confirm extends PureComponent {
-	static navigationOptions = ({ navigation, screenProps }) =>
-		getSendFlowTitle('send.confirm', navigation, screenProps);
+	static navigationOptions = ({ navigation, screenProps, route }) =>
+		getSendFlowTitle('send.confirm', navigation, screenProps, route);
 
 	static propTypes = {
 		/**

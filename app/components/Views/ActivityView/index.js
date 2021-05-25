@@ -54,8 +54,8 @@ ActivityView.propTypes = {
 	hasOrders: PropTypes.bool
 };
 
-ActivityView.navigationOptions = ({ navigation }) => {
-	const title = navigation.getParam('hasOrders', false) ? 'activity_view.title' : 'transactions_view.title';
+ActivityView.navigationOptions = ({ navigation, route }) => {
+	const title = route.params?.hasOrders ?? false ? 'activity_view.title' : 'transactions_view.title';
 	return getNavbarOptions(title, navigation);
 };
 

@@ -8,7 +8,7 @@ import Logger from '../../../util/Logger';
 import { baseStyles } from '../../../styles/common';
 
 export default class SimpleWebview extends PureComponent {
-	static navigationOptions = ({ navigation }) => getWebviewNavbar(navigation);
+	static navigationOptions = ({ navigation, route }) => getWebviewNavbar(navigation, route);
 
 	static propTypes = {
 		/**
@@ -23,8 +23,8 @@ export default class SimpleWebview extends PureComponent {
 	};
 
 	share = () => {
-		const { navigation } = this.props;
-		const url = navigation && navigation.getParam('url', null);
+		const { route } = this.props;
+		const url = route.params?.url ?? null;
 		if (url) {
 			Share.open({
 				url
@@ -35,7 +35,7 @@ export default class SimpleWebview extends PureComponent {
 	};
 
 	render() {
-		const uri = this.props.navigation.getParam('url', null);
+		const uri = this.props.route.params?.url ?? null;
 		if (uri) {
 			return (
 				<View style={baseStyles.flexGrow}>

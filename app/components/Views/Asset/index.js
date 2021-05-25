@@ -93,16 +93,16 @@ class Asset extends PureComponent {
 	navSymbol = undefined;
 	navAddress = undefined;
 
-	static navigationOptions = ({ navigation }) =>
-		getNetworkNavbarOptions(navigation.getParam('symbol', ''), false, navigation);
+	static navigationOptions = ({ navigation, route }) =>
+		getNetworkNavbarOptions(route.params?.symbol ?? '', false, navigation);
 
 	componentDidMount() {
 		InteractionManager.runAfterInteractions(() => {
 			this.normalizeTransactions();
 			this.mounted = true;
 		});
-		this.navSymbol = this.props.navigation.getParam('symbol', '').toLowerCase();
-		this.navAddress = this.props.navigation.getParam('address', '').toLowerCase();
+		this.navSymbol = (this.props.route.params?.symbol ?? '').toLowerCase();
+		this.navAddress = (this.props.route.params?.address ?? '').toLowerCase();
 		if (this.navSymbol.toUpperCase() !== 'ETH' && this.navAddress !== '') {
 			this.filter = this.noEthFilter;
 		} else {

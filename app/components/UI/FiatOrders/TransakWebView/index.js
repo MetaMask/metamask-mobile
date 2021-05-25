@@ -13,7 +13,7 @@ import { baseStyles } from '../../../../styles/common';
 import { protectWalletModalVisible } from '../../../../actions/user';
 
 class TransakWebView extends PureComponent {
-	static navigationOptions = ({ navigation }) => getTransakWebviewNavbar(navigation);
+	static navigationOptions = ({ navigation, route }) => getTransakWebviewNavbar(navigation, route);
 
 	static propTypes = {
 		navigation: PropTypes.object,
@@ -44,7 +44,7 @@ class TransakWebView extends PureComponent {
 	};
 
 	render() {
-		const uri = this.props.navigation.getParam('url', null);
+		const uri = this.props.route.params?.url ?? null;
 		if (uri) {
 			return (
 				<View style={baseStyles.flexGrow}>

@@ -126,8 +126,8 @@ class NetworkSettings extends PureComponent {
 	getOtherNetworks = () => allNetworks.slice(1);
 
 	componentDidMount = () => {
-		const { navigation, frequentRpcList } = this.props;
-		const network = navigation.getParam('network', undefined);
+		const { navigation, route, frequentRpcList } = this.props;
+		const network = route.params?.network ?? undefined;
 		let blockExplorerUrl, chainId, nickname, ticker, editable, rpcUrl;
 		// If no navigation param, user clicked on add network
 		if (network) {

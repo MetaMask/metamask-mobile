@@ -170,7 +170,7 @@ class ChoosePasswordSimple extends PureComponent {
 		if (error) {
 			Alert.alert('Error', error);
 		} else {
-			this.props.navigation.state.params.onPasswordSet(this.state.password);
+			this.props.route.params.onPasswordSet(this.state.password);
 			this.props.navigation.pop();
 			return;
 		}

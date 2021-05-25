@@ -111,8 +111,8 @@ class SyncWithExtensionSuccess extends PureComponent {
 		setOnboardingWizardStep: PropTypes.func
 	};
 
-	static navigationOptions = ({ navigation }) => ({
-		...getOnboardingNavbarOptions(navigation),
+	static navigationOptions = ({ navigation, route }) => ({
+		...getOnboardingNavbarOptions(navigation, route),
 		headerLeft: <View />
 	});
 

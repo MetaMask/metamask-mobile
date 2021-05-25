@@ -160,7 +160,7 @@ const WhatsNewModal = props => {
 
 	useEffect(() => {
 		if (props.enabled && !!featuresToShow) {
-			const route = findRouteNameFromNavigatorState(props.navigation.state);
+			const route = findRouteNameFromNavigatorState(props.navigation.dangerouslyGetState());
 			if (route === 'WalletView') {
 				InteractionManager.runAfterInteractions(() => {
 					setShow(true);
@@ -169,7 +169,7 @@ const WhatsNewModal = props => {
 		} else {
 			setShow(false);
 		}
-	}, [featuresToShow, props.enabled, props.navigation.state]);
+	}, [featuresToShow, props.enabled, props.navigation]);
 
 	return (
 		<ActionModal

@@ -288,8 +288,8 @@ const styles = StyleSheet.create({
  * View that wraps the wraps the "Send" screen
  */
 class Amount extends PureComponent {
-	static navigationOptions = ({ navigation, screenProps }) =>
-		getSendFlowTitle('send.amount', navigation, screenProps);
+	static navigationOptions = ({ navigation, screenProps, route }) =>
+		getSendFlowTitle('send.amount', navigation, screenProps, route);
 
 	static propTypes = {
 		/**

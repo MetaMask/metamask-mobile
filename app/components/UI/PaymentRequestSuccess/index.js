@@ -181,11 +181,11 @@ class PaymentRequestSuccess extends PureComponent {
 	 * Sets payment request link, amount and symbol of the asset to state
 	 */
 	componentDidMount = () => {
-		const { navigation } = this.props;
-		const link = navigation && navigation.getParam('link', '');
-		const qrLink = navigation && navigation.getParam('qrLink', '');
-		const amount = navigation && navigation.getParam('amount', '');
-		const symbol = navigation && navigation.getParam('symbol', '');
+		const { route } = this.props;
+		const link = route?.params?.link ?? '';
+		const qrLink = route?.params?.qrLink ?? '';
+		const amount = route?.params?.amount ?? '';
+		const symbol = route?.params?.symbol ?? '';
 		this.setState({ link, qrLink, amount, symbol });
 	};
 

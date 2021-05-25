@@ -75,7 +75,7 @@ class ManualBackupStep3 extends PureComponent {
 
 	constructor(props) {
 		super(props);
-		this.steps = props.navigation.getParam('steps', undefined);
+		this.steps = props.route.params?.steps ?? undefined;
 	}
 
 	state = {
@@ -116,7 +116,7 @@ class ManualBackupStep3 extends PureComponent {
 		});
 
 	isHintSeedPhrase = hintText => {
-		const words = this.props.navigation.getParam('words');
+		const words = this.props.route.params?.words;
 		if (words) {
 			const lower = string => String(string).toLowerCase();
 			return lower(hintText) === lower(words.join(' '));

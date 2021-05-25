@@ -51,8 +51,8 @@ class CollectibleView extends PureComponent {
 		newAssetTransaction: PropTypes.func
 	};
 
-	static navigationOptions = ({ navigation }) =>
-		getNetworkNavbarOptions(navigation.getParam('contractName', ''), false, navigation);
+	static navigationOptions = ({ navigation, route }) =>
+		getNetworkNavbarOptions(route.params?.contractName ?? '', false, navigation);
 
 	onSend = async () => {
 		const {

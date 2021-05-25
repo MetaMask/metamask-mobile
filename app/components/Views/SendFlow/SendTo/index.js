@@ -171,8 +171,8 @@ const dummy = () => true;
  * View that wraps the wraps the "Send" screen
  */
 class SendFlow extends PureComponent {
-	static navigationOptions = ({ navigation, screenProps }) =>
-		getSendFlowTitle('send.send_to', navigation, screenProps);
+	static navigationOptions = ({ navigation, screenProps, route }) =>
+		getSendFlowTitle('send.send_to', navigation, screenProps, route);
 
 	static propTypes = {
 		/**
@@ -246,7 +246,7 @@ class SendFlow extends PureComponent {
 	};
 
 	componentDidMount = async () => {
-		const { addressBook, selectedAddress, accounts, ticker, network, navigation, providerType } = this.props;
+		const { addressBook, selectedAddress, accounts, ticker, network, navigation, providerType, route } = this.props;
 		const { fromAccountName } = this.state;
 		// For analytics
 		navigation.setParams({ providerType });
@@ -266,7 +266,7 @@ class SendFlow extends PureComponent {
 			this.addressToInputRef && this.addressToInputRef.current && this.addressToInputRef.current.focus();
 		}
 		//Fills in to address and sets the transaction if coming from QR code scan
-		const targetAddress = navigation.getParam('txMeta', null)?.target_address;
+		const targetAddress = (route.params?.txMeta ?? null)?.target_address;
 		if (targetAddress) {
 			this.props.newAssetTransaction(getEther(ticker));
 			this.onToSelectedAddressChange(targetAddress);

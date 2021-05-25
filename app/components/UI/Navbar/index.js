@@ -217,15 +217,18 @@ export function getNavigationOptionsTitle(title, navigation) {
  * @param {Object} navigation - Navigation object required to push new views
  * @returns {Object} - Corresponding navbar options
  */
-export function getEditableOptions(title, navigation) {
+export function getEditableOptions(title, navigation, route) {
 	function navigationPop() {
 		navigation.pop();
 	}
-	const rightAction = navigation.getParam('dispatch', () => {
-		'';
-	});
-	const editMode = navigation.getParam('editMode', '') === 'edit';
-	const addMode = navigation.getParam('mode', '') === 'add';
+	const rightAction =
+		route.params?.dispatch ??
+		function() {
+			'';
+		};
+
+	const editMode = route.params?.editMode ?? '' === 'edit';
+	const addMode = route.params?.mode ?? '' === 'add';
 	return {
 		title,
 		headerTitleStyle: {
@@ -263,8 +266,8 @@ export function getEditableOptions(title, navigation) {
  * @param {Object} navigation - Navigation object required to push new views
  * @returns {Object} - Corresponding navbar options containing title, headerLeft and headerRight
  */
-export function getPaymentRequestOptionsTitle(title, navigation) {
-	const goBack = navigation.getParam('dispatch', undefined);
+export function getPaymentRequestOptionsTitle(title, navigation, route) {
+	const goBack = route.params?.dispatch ?? undefined;
 	return {
 		title,
 		headerTitleStyle: {
@@ -330,14 +333,16 @@ export function getPaymentRequestSuccessOptionsTitle(navigation) {
  * @param {string} title - Title in string format
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
-export function getTransactionOptionsTitle(_title, navigation) {
-	const transactionMode = navigation.getParam('mode', '');
-	const { routeName } = navigation.state;
+export function getTransactionOptionsTitle(_title, navigation, route) {
+	const transactionMode = route.params?.mode ?? '';
+	const { routeName } = navigation.dangerouslyGetState();
 	const leftText = transactionMode === 'edit' ? strings('transaction.cancel') : strings('transaction.edit');
-	const disableModeChange = navigation.getParam('disableModeChange');
-	const modeChange = navigation.getParam('dispatch', () => {
-		'';
-	});
+	const disableModeChange = route.params?.disableModeChange;
+	const modeChange =
+		route.params?.dispatch ??
+		function() {
+			'';
+		};
 	const leftAction = () => modeChange('edit');
 	const rightAction = () => navigation.pop();
 	const rightText = strings('transaction.cancel');
@@ -389,9 +394,9 @@ export function getApproveNavbar(title) {
  * @param {string} title - Title in string format
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
-export function getSendFlowTitle(title, navigation, screenProps) {
+export function getSendFlowTitle(title, navigation, screenProps, route) {
 	const rightAction = () => {
-		const providerType = navigation.getParam('providerType', '');
+		const providerType = route.params?.providerType ?? '';
 		trackEventWithParameters(ANALYTICS_EVENT_OPTS.SEND_FLOW_CANCEL, {
 			view: title.split('.')[1],
 			network: providerType
@@ -430,21 +435,21 @@ export function getSendFlowTitle(title, navigation, screenProps) {
  * @param {Object} navigation - Navigation object required to push new views
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerLeft and headerRight
  */
-export function getBrowserViewNavbarOptions(navigation) {
-	const url = navigation.getParam('url', '');
+export function getBrowserViewNavbarOptions(navigation, route) {
+	const url = route.params?.url ?? '';
 	let hostname = null;
 	let isHttps = false;
 
 	const isHomepage = url => getHost(url) === getHost(HOMEPAGE_URL);
-	const error = navigation.getParam('error', '');
-	const icon = navigation.getParam('icon', null);
+	const error = route.params?.error ?? '';
+	const icon = route.params?.icon ?? null;
 
 	if (url && !isHomepage(url)) {
 		isHttps = url && url.toLowerCase().substr(0, 6) === 'https:';
 		const urlObj = new URL(url);
 		hostname = urlObj.hostname.toLowerCase().replace(/^www\./, '');
 		if (isGatewayUrl(urlObj) && url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) === -1) {
-			const ensUrl = navigation.getParam('currentEnsName', '');
+			const ensUrl = route.params?.currentEnsName ?? '';
 			if (ensUrl) {
 				hostname = ensUrl.toLowerCase().replace(/^www\./, '');
 			}
@@ -507,8 +512,8 @@ export function getModalNavbarOptions(title) {
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
  */
-export function getOnboardingNavbarOptions(navigation, { headerLeft } = {}) {
-	const headerLeftHide = headerLeft || navigation.getParam('headerLeft');
+export function getOnboardingNavbarOptions(navigation, { headerLeft } = {}, route) {
+	const headerLeftHide = headerLeft || route.params?.headerLeft;
 
 	return {
 		headerStyle: {
@@ -757,11 +762,13 @@ export function getNetworkNavbarOptions(title, translate, navigation) {
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle and headerTitle
  */
-export function getWebviewNavbar(navigation) {
-	const title = navigation.getParam('title', '');
-	const share = navigation.getParam('dispatch', () => {
-		'';
-	});
+export function getWebviewNavbar(navigation, route) {
+	const title = route.params?.title ?? '';
+	const share =
+		route.params?.dispatch ??
+		function() {
+			'';
+		};
 	return {
 		headerTitle: <Text style={styles.centeredTitle}>{title}</Text>,
 		headerLeft: Device.isAndroid() ? (
@@ -832,8 +839,8 @@ export function getPaymentMethodApplePayNavbar(navigation) {
 	};
 }
 
-export function getTransakWebviewNavbar(navigation) {
-	const title = navigation.getParam('title', '');
+export function getTransakWebviewNavbar(navigation, route) {
+	const title = route.params?.title ?? '';
 	return {
 		title,
 		headerTitleStyle: {
@@ -855,8 +862,8 @@ export function getTransakWebviewNavbar(navigation) {
 	};
 }
 
-export function getSwapsAmountNavbar(navigation) {
-	const title = navigation.getParam('title', 'Swap');
+export function getSwapsAmountNavbar(navigation, route) {
+	const title = route.params?.title ?? 'Swap';
 	const rightAction = navigation.dismiss;
 
 	return {
@@ -870,14 +877,14 @@ export function getSwapsAmountNavbar(navigation) {
 		)
 	};
 }
-export function getSwapsQuotesNavbar(navigation) {
-	const title = navigation.getParam('title', 'Swap');
-	const leftActionText = navigation.getParam('leftAction', strings('navigation.back'));
+export function getSwapsQuotesNavbar(navigation, route) {
+	const title = route.params?.title ?? 'Swap';
+	const leftActionText = route.params?.leftAction ?? strings('navigation.back');
 
 	const leftAction = () => {
-		const trade = navigation.getParam('requestedTrade');
-		const selectedQuote = navigation.getParam('selectedQuote');
-		const quoteBegin = navigation.getParam('quoteBegin');
+		const trade = route.params?.requestedTrade;
+		const selectedQuote = route.params?.selectedQuote;
+		const quoteBegin = route.params?.quoteBegin;
 		if (!selectedQuote) {
 			InteractionManager.runAfterInteractions(() => {
 				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_REQUEST_CANCELLED, {
@@ -890,9 +897,9 @@ export function getSwapsQuotesNavbar(navigation) {
 	};
 
 	const rightAction = () => {
-		const trade = navigation.getParam('requestedTrade');
-		const selectedQuote = navigation.getParam('selectedQuote');
-		const quoteBegin = navigation.getParam('quoteBegin');
+		const trade = route.params?.requestedTrade;
+		const selectedQuote = route.params?.selectedQuote;
+		const quoteBegin = route.params?.quoteBegin;
 		if (!selectedQuote) {
 			InteractionManager.runAfterInteractions(() => {
 				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_REQUEST_CANCELLED, {

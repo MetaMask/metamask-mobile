@@ -400,9 +400,9 @@ class DrawerView extends PureComponent {
 	}
 
 	componentDidUpdate() {
-		const route = findRouteNameFromNavigatorState(this.props.navigation.state);
+		const route = findRouteNameFromNavigatorState(this.props.navigation.dangerouslyGetState());
 		if (!this.props.passwordSet || !this.props.seedphraseBackedUp) {
-			const bottomTab = findBottomTabRouteNameFromNavigatorState(this.props.navigation.state);
+			const bottomTab = findBottomTabRouteNameFromNavigatorState(this.props.navigation.dangerouslyGetState());
 			if (['SetPasswordFlow', 'Webview', 'LockScreen'].includes(bottomTab)) {
 				// eslint-disable-next-line react/no-did-update-set-state
 				this.state.showProtectWalletModal && this.setState({ showProtectWalletModal: false });
@@ -849,7 +849,7 @@ class DrawerView extends PureComponent {
 		}
 		this.currentBalance = fiatBalance;
 		const fiatBalanceStr = renderFiat(this.currentBalance, currentCurrency);
-		const currentRoute = findRouteNameFromNavigatorState(this.props.navigation.state);
+		const currentRoute = findRouteNameFromNavigatorState(this.props.navigation.dangerouslyGetState());
 		return (
 			<View style={styles.wrapper} testID={'drawer-screen'}>
 				<ScrollView>

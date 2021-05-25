@@ -6,7 +6,7 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
 import BigNumber from 'bignumber.js';
-import { NavigationContext } from '@react-navigation/native';
+import { NavigationContext, useRoute } from '@react-navigation/native';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { WalletDevice, util } from '@metamask/controllers/';
 
@@ -274,10 +274,11 @@ function SwapsQuotesView({
 	usedGasPrice
 }) {
 	const navigation = useContext(NavigationContext);
+	const route = useRoute();
 	/* Get params from navigation */
 	const { sourceTokenAddress, destinationTokenAddress, sourceAmount, slippage } = useMemo(
-		() => getQuotesNavigationsParams(navigation),
-		[navigation]
+		() => getQuotesNavigationsParams(navigation, route),
+		[navigation, route]
 	);
 
 	/* Get tokens from the tokens list */
@@ -1377,7 +1378,7 @@ function SwapsQuotesView({
 	);
 }
 
-SwapsQuotesView.navigationOptions = ({ navigation }) => getSwapsQuotesNavbar(navigation);
+SwapsQuotesView.navigationOptions = ({ navigation, route }) => getSwapsQuotesNavbar(navigation, route);
 
 SwapsQuotesView.propTypes = {
 	swapsTokens: PropTypes.arrayOf(PropTypes.object),

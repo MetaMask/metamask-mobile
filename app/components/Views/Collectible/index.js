@@ -50,8 +50,8 @@ class Collectible extends PureComponent {
 		collectibles: []
 	};
 
-	static navigationOptions = ({ navigation }) =>
-		getNetworkNavbarOptions(navigation.getParam('name', ''), false, navigation);
+	static navigationOptions = ({ navigation, route }) =>
+		getNetworkNavbarOptions(route.params?.name ?? '', false, navigation);
 
 	onRefresh = async () => {
 		this.setState({ refreshing: true });

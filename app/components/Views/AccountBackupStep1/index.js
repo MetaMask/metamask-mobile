@@ -128,7 +128,7 @@ const AccountBackupStep1 = props => {
 	);
 
 	const goNext = () => {
-		props.navigation.navigate('AccountBackupStep1B', { ...props.navigation.state.params });
+		props.navigation.navigate('AccountBackupStep1B', { ...props.route.params });
 	};
 
 	const showRemindLater = () => {
@@ -249,8 +249,8 @@ AccountBackupStep1.propTypes = {
 	navigation: PropTypes.object
 };
 
-AccountBackupStep1.navigationOptions = ({ navigation }) => ({
-	...getOnboardingNavbarOptions(navigation, { headerLeft: <View /> }),
+AccountBackupStep1.navigationOptions = ({ navigation, route }) => ({
+	...getOnboardingNavbarOptions(navigation, { headerLeft: <View /> }, route),
 	gesturesEnabled: false
 });
 

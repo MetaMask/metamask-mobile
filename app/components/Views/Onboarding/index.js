@@ -169,8 +169,8 @@ const createStep = step => ({
  * View that is displayed to first time (new) users
  */
 class Onboarding extends PureComponent {
-	static navigationOptions = ({ navigation }) =>
-		navigation.getParam('delete', null)
+	static navigationOptions = ({ navigation, route }) =>
+		route.params?.delete ?? null
 			? getTransparentOnboardingNavbarOptions(navigation)
 			: getTransparentBackOnboardingNavbarOptions(navigation);
 
@@ -275,7 +275,7 @@ class Onboarding extends PureComponent {
 		this.checkIfExistingUser();
 		InteractionManager.runAfterInteractions(() => {
 			PreventScreenshot.forbid();
-			if (this.props.navigation.getParam('delete', false)) {
+			if (this.props.route.params?.delete ?? false) {
 				this.props.setLoading(strings('onboarding.delete_current'));
 				setTimeout(() => {
 					this.showNotification();
@@ -622,7 +622,7 @@ class Onboarding extends PureComponent {
 	}
 
 	handleSimpleNotification = () => {
-		if (!this.props.navigation.getParam('delete', false)) return;
+		if (!this.props.route.params?.delete ?? false) return;
 		return (
 			<Animated.View
 				style={[styles.notificationContainer, { transform: [{ translateY: this.notificationAnimated }] }]}

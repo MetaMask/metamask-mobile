@@ -91,7 +91,11 @@ class NavbarBrowserTitle extends PureComponent {
 	};
 
 	onTitlePress = () => {
-		const showUrlModal = this.props.navigation.getParam('showUrlModal', () => null);
+		const showUrlModal =
+			this.props.route.params?.showUrlModal ??
+			function() {
+				'';
+			};
 		showUrlModal({ urlInput: this.props.url });
 	};
 

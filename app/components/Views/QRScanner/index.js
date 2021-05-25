@@ -69,16 +69,16 @@ export default class QrScanner extends PureComponent {
 
 	goBack = () => {
 		this.props.navigation.goBack();
-		if (this.props.navigation.state.params.onScanError) {
-			this.props.navigation.state.params.onScanError('USER_CANCELLED');
+		if (this.props.route.params.onScanError) {
+			this.props.route.params.onScanError('USER_CANCELLED');
 		}
 	};
 
 	end = (data, content) => {
-		const { navigation } = this.props;
+		const { navigation, route } = this.props;
 		this.mounted = false;
 		navigation.goBack();
-		navigation.state.params.onScanSuccess(data, content);
+		route.params.onScanSuccess(data, content);
 	};
 
 	onBarCodeRead = response => {
@@ -92,9 +92,9 @@ export default class QrScanner extends PureComponent {
 		if (content.split('metamask-sync:').length > 1) {
 			this.shouldReadBarCode = false;
 			data = { content };
-			if (this.props.navigation.state.params.onStartScan) {
-				this.props.navigation.state.params.onStartScan(data).then(() => {
-					this.props.navigation.state.params.onScanSuccess(data);
+			if (this.props.route.params.onStartScan) {
+				this.props.route.params.onStartScan(data).then(() => {
+					this.props.route.params.onScanSuccess(data);
 				});
 				this.mounted = false;
 				this.props.navigation.goBack();
@@ -128,7 +128,7 @@ export default class QrScanner extends PureComponent {
 				data = { ...data, action };
 				this.mounted = false;
 				this.props.navigation.goBack();
-				this.props.navigation.state.params.onScanSuccess(data, content);
+				this.props.route.params.onScanSuccess(data, content);
 				return;
 			}
 
@@ -165,8 +165,8 @@ export default class QrScanner extends PureComponent {
 	onError = error => {
 		this.props.navigation.goBack();
 		InteractionManager.runAfterInteractions(() => {
-			if (this.props.navigation.state.params.onScanError && error) {
-				this.props.navigation.state.params.onScanError(error.message);
+			if (this.props.route.params.onScanError && error) {
+				this.props.route.params.onScanError(error.message);
 			}
 		});
 	};

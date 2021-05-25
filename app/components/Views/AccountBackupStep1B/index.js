@@ -195,7 +195,7 @@ const AccountBackupStep1B = props => {
 	const [showWhatIsSeedphraseModal, setWhatIsSeedphraseModal] = useState(false);
 
 	const goNext = () => {
-		props.navigation.navigate('ManualBackupStep1', { ...props.navigation.state.params });
+		props.navigation.navigate('ManualBackupStep1', { ...props.route.params });
 	};
 
 	const learnMore = () => {
@@ -327,6 +327,6 @@ AccountBackupStep1B.propTypes = {
 	navigation: PropTypes.object
 };
 
-AccountBackupStep1B.navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
+AccountBackupStep1B.navigationOptions = ({ navigation, route }) => getOnboardingNavbarOptions(navigation, route);
 
 export default AccountBackupStep1B;

@@ -57,20 +57,18 @@ const OnboardingNav = () => (
  * Parent Stack navigator that allows the
  * child OnboardingNav navigator to push modals on top of it
  */
+const SimpleWebviewScreen = () => (
+	<Stack.Navigator mode={'modal'}>
+		<Stack.Screen name="SimpleWebview" component={SimpleWebview} />
+	</Stack.Navigator>
+);
+
 const OnboardingRootNav = () => (
 	<Stack.Navigator mode={'modal'}>
 		<Stack.Screen name="OnboardingNav" component={OnboardingNav} header={null} />
 		<Stack.Screen name="SyncWithExtensionSuccess" component={SyncWithExtensionSuccess} />
 		<Stack.Screen name="QRScanner" component={QRScanner} header={null} />
-		<Stack.Screen
-			name="Webview"
-			header={null}
-			component={() => (
-				<Stack.Navigator mode={'modal'}>
-					<Stack.Screen name="SimpleWebview" component={SimpleWebview} />
-				</Stack.Navigator>
-			)}
-		/>
+		<Stack.Screen name="Webview" header={null} component={SimpleWebviewScreen} />
 	</Stack.Navigator>
 );
 

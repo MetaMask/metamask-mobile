@@ -199,7 +199,7 @@ const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
  * View where users can set their password for the first time
  */
 class ChoosePassword extends PureComponent {
-	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
+	static navigationOptions = ({ navigation, route }) => getOnboardingNavbarOptions(navigation, route);
 
 	static propTypes = {
 		/**
@@ -307,7 +307,7 @@ class ChoosePassword extends PureComponent {
 		try {
 			this.setState({ loading: true });
 
-			const previous_screen = this.props.navigation.getParam(PREVIOUS_SCREEN);
+			const previous_screen = this.props.route.params?.[PREVIOUS_SCREEN];
 
 			if (previous_screen === ONBOARDING) {
 				await this.createNewVaultAndKeychain(password);
@@ -516,7 +516,7 @@ class ChoosePassword extends PureComponent {
 		} = this.state;
 		const passwordsMatch = password !== '' && password === confirmPassword;
 		const canSubmit = passwordsMatch && isSelected;
-		const previousScreen = this.props.navigation.getParam(PREVIOUS_SCREEN);
+		const previousScreen = this.props.route.params?.[PREVIOUS_SCREEN];
 		const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
 
 		return (

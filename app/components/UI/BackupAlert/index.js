@@ -112,9 +112,11 @@ class BackupAlert extends PureComponent {
 	};
 
 	componentDidUpdate = async prevProps => {
-		if (prevProps.navigation.state !== this.props.navigation.state) {
-			const currentRouteName = findRouteNameFromNavigatorState(this.props.navigation.state);
-			const currentTabRouteName = findBottomTabRouteNameFromNavigatorState(this.props.navigation.state);
+		if (prevProps.navigation.dangerouslyGetState() !== this.props.navigation.dangerouslyGetState()) {
+			const currentRouteName = findRouteNameFromNavigatorState(this.props.navigation.dangerouslyGetState());
+			const currentTabRouteName = findBottomTabRouteNameFromNavigatorState(
+				this.props.navigation.dangerouslyGetState()
+			);
 
 			const inBrowserView = currentRouteName === BROWSER_ROUTE;
 			const blockedView =

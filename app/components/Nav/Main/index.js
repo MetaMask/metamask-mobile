@@ -555,7 +555,7 @@ const Main = props => {
 
 	const skipAccountModalSecureNow = () => {
 		toggleRemindLater();
-		props.navigation.navigate('AccountBackupStep1B', { ...props.navigation.state.params });
+		props.navigation.navigate('AccountBackupStep1B', { ...props.route.params });
 	};
 
 	const skipAccountModalSkip = () => {
