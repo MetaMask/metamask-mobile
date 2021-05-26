@@ -591,7 +591,7 @@ function SwapsQuotesView({
 			// send analytics
 		}
 
-		navigation.dismiss();
+		navigation.dangerouslyGetParent().pop();
 	}, [
 		chainId,
 		navigation,

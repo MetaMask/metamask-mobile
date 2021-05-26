@@ -102,9 +102,9 @@ const TransactionsHome = () => (
 
 const HomeTabs = () => (
 	<Tab.Navigator>
-		<Tab.Screen name="WalletTabHome" component={WalletTabHome} />
-		<Tab.Screen name="BrowserTabHome" component={BrowserTabHome} />
-		<Tab.Screen name="TransactionsHome" component={TransactionsHome} />
+		<Tab.Screen name="WalletTabHome" component={WalletTabHome} options={{ tabBarVisible: false }} />
+		<Tab.Screen name="BrowserTabHome" component={BrowserTabHome} options={{ tabBarVisible: false }} />
+		<Tab.Screen name="TransactionsHome" component={TransactionsHome} options={{ tabBarVisible: false }} />
 	</Tab.Navigator>
 );
 

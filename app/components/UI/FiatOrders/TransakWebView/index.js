@@ -36,7 +36,7 @@ class TransakWebView extends PureComponent {
 			const order = handleTransakRedirect(navState.url, this.props.network);
 			this.props.addOrder(order);
 			this.props.protectWalletModalVisible();
-			this.props.navigation.dismiss();
+			this.props.navigation.dangerouslyGetParent().pop();
 			InteractionManager.runAfterInteractions(() =>
 				NotificationManager.showSimpleNotification(getNotificationDetails(order))
 			);

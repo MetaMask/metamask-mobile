@@ -164,7 +164,7 @@ function PaymentMethodApplePay({
 			if (order !== ABORTED) {
 				if (order) {
 					addOrder(order);
-					navigation.dismiss();
+					navigation.dangerouslyGetParent().pop();
 					protectWalletModalVisible();
 					InteractionManager.runAfterInteractions(() =>
 						NotificationManager.showSimpleNotification(getNotificationDetails(order))

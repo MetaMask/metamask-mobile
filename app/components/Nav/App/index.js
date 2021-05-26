@@ -102,17 +102,14 @@ const OnboardingRootNav = () => (
  */
 
 const HomeNav = () => (
-	<Drawer.Navigator>
+	<Drawer.Navigator
+		drawerContent={props => <DrawerView {...props} />}
+		drawerStyle={{
+			backgroundColor: 'rgba(0, 0, 0, 0.5)',
+			width: 315
+		}}
+	>
 		<Drawer.Screen name="Main" component={Main} />
-		<Drawer.Screen
-			name="DrawerView"
-			component={DrawerView}
-			// eslint-disable-next-line
-			drawerStyle={{
-				backgroundColor: 'rgba(0, 0, 0, 0.5)',
-				width: 315
-			}}
-		/>
 	</Drawer.Navigator>
 );
 

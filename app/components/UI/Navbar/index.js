@@ -407,7 +407,7 @@ export function getSendFlowTitle(title, navigation, screenProps, route) {
 			view: title.split('.')[1],
 			network: providerType
 		});
-		navigation.dismiss();
+		navigation.dangerouslyGetParent().pop();
 	};
 	const leftAction = () => navigation.pop();
 	const canGoBack = title !== 'send.send_to' && !screenProps.isPaymentRequest;
@@ -809,7 +809,7 @@ export function getWebviewNavbar(navigation, route) {
 }
 
 export function getPaymentSelectorMethodNavbar(navigation) {
-	const rightAction = navigation.dismiss;
+	const rightAction = navigation.dangerouslyGetParent().pop;
 
 	return {
 		headerTitle: () => <Text style={styles.centeredTitle}>{strings('fiat_on_ramp.purchase_method')}</Text>,
@@ -833,7 +833,7 @@ export function getPaymentMethodApplePayNavbar(navigation) {
 		},
 		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.dismiss()} style={styles.closeButton}>
+			<TouchableOpacity onPress={() => navigation.dangerouslyGetParent().pop()} style={styles.closeButton}>
 				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
 			</TouchableOpacity>
 		),
@@ -878,7 +878,7 @@ export function getTransakWebviewNavbar(navigation, route) {
 
 export function getSwapsAmountNavbar(navigation, route) {
 	const title = route.params?.title ?? 'Swap';
-	const rightAction = navigation.dismiss;
+	const rightAction = navigation.dangerouslyGetParent().pop;
 
 	return {
 		headerTitle: () => <NavbarTitle title={title} disableNetwork translate={false} />,
@@ -922,7 +922,7 @@ export function getSwapsQuotesNavbar(navigation, route) {
 				});
 			});
 		}
-		navigation.dismiss();
+		navigation.dangerouslyGetParent().pop();
 	};
 
 	return {
