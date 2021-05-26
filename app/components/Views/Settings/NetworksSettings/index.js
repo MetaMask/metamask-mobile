@@ -105,7 +105,7 @@ class NetworksSettings extends PureComponent {
 
 	switchToMainnet = () => {
 		const { NetworkController, CurrencyRateController } = Engine.context;
-		CurrencyRateController.configure({ nativeCurrency: 'ETH' });
+		CurrencyRateController.setNativeCurrency('ETH');
 		NetworkController.setProviderType(MAINNET);
 		this.props.thirdPartyApiMode &&
 			setTimeout(() => {
