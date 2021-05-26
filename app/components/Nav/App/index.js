@@ -39,17 +39,41 @@ const Drawer = createDrawerNavigator();
  */
 const OnboardingNav = () => (
 	<Stack.Navigator initialRouteName="OnboardingCarousel">
-		<Stack.Screen name="Onboarding" component={Onboarding} />
-		<Stack.Screen name="OnboardingCarousel" component={OnboardingCarousel} />
-		<Stack.Screen name="CreateWallet" component={CreateWallet} />
-		<Stack.Screen name="ChoosePassword" component={ChoosePassword} />
-		<Stack.Screen name="AccountBackupStep1" component={AccountBackupStep1} />
-		<Stack.Screen name="AccountBackupStep1B" component={AccountBackupStep1B} />
-		<Stack.Screen name="ManualBackupStep1" component={ManualBackupStep1} />
-		<Stack.Screen name="ManualBackupStep2" component={ManualBackupStep2} />
-		<Stack.Screen name="ManualBackupStep3" component={ManualBackupStep3} />
-		<Stack.Screen name="ImportFromSeed" component={ImportFromSeed} />
-		<Stack.Screen name="OptinMetrics" component={OptinMetrics} />
+		<Stack.Screen name="Onboarding" component={Onboarding} options={Onboarding.navigationOptions} />
+		<Stack.Screen
+			name="OnboardingCarousel"
+			component={OnboardingCarousel}
+			options={OnboardingCarousel.navigationOptions}
+		/>
+		<Stack.Screen name="CreateWallet" component={CreateWallet} options={CreateWallet.navigationOptions} />
+		<Stack.Screen name="ChoosePassword" component={ChoosePassword} options={ChoosePassword.navigationOptions} />
+		<Stack.Screen
+			name="AccountBackupStep1"
+			component={AccountBackupStep1}
+			options={AccountBackupStep1.navigationOptions}
+		/>
+		<Stack.Screen
+			name="AccountBackupStep1B"
+			component={AccountBackupStep1B}
+			options={AccountBackupStep1B.navigationOptions}
+		/>
+		<Stack.Screen
+			name="ManualBackupStep1"
+			component={ManualBackupStep1}
+			options={ManualBackupStep1.navigationOptions}
+		/>
+		<Stack.Screen
+			name="ManualBackupStep2"
+			component={ManualBackupStep2}
+			options={ManualBackupStep2.navigationOptions}
+		/>
+		<Stack.Screen
+			name="ManualBackupStep3"
+			component={ManualBackupStep3}
+			options={ManualBackupStep3.navigationOptions}
+		/>
+		<Stack.Screen name="ImportFromSeed" component={ImportFromSeed} options={ImportFromSeed.navigationOptions} />
+		<Stack.Screen name="OptinMetrics" component={OptinMetrics} options={OptinMetrics.navigationOptions} />
 	</Stack.Navigator>
 );
 
@@ -64,8 +88,8 @@ const SimpleWebviewScreen = () => (
 );
 
 const OnboardingRootNav = () => (
-	<Stack.Navigator mode={'modal'}>
-		<Stack.Screen name="OnboardingNav" component={OnboardingNav} header={null} />
+	<Stack.Navigator mode="modal" screenOptions={{ headerShown: false }}>
+		<Stack.Screen name="OnboardingNav" component={OnboardingNav} />
 		<Stack.Screen name="SyncWithExtensionSuccess" component={SyncWithExtensionSuccess} />
 		<Stack.Screen name="QRScanner" component={QRScanner} header={null} />
 		<Stack.Screen name="Webview" header={null} component={SimpleWebviewScreen} />
@@ -115,7 +139,7 @@ DrawerStatusTracker.init();
  */
 
 const AppNavigator = () => (
-	<Stack.Navigator>
+	<Stack.Navigator screenOptions={{ headerShown: false }} mode="modal">
 		<Stack.Screen name="Entry" component={Entry} />
 		<Stack.Screen name="HomeNav" component={HomeNav} />
 		<Stack.Screen name="OnboardingRootNav" component={OnboardingRootNav} />

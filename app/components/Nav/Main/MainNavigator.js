@@ -67,21 +67,30 @@ const styles = StyleSheet.create({
 
 const WalletTabHome = () => (
 	<Stack.Navigator>
-		<Stack.Screen name="WalletView" component={Wallet} />
-		<Stack.Screen name="Asset" component={Asset} />
+		<Stack.Screen name="WalletView" component={Wallet} options={Wallet.navigationOptions} />
+		<Stack.Screen name="Asset" component={Asset} options={Asset.navigationOptions} />
 		<Stack.Screen name="AddAsset" component={AddAsset} options={AddAsset.navigationOptions} />
 
-		<Stack.Screen name="Collectible" component={Collectible} />
+		<Stack.Screen name="Collectible" component={Collectible} options={Collectible.navigationOptions} />
 
-		<Stack.Screen name="CollectibleView" component={CollectibleView} />
+		<Stack.Screen name="CollectibleView" component={CollectibleView} options={CollectibleView.navigationOptions} />
 
-		<Stack.Screen name="RevealPrivateCredentialView" component={RevealPrivateCredential} />
+		<Stack.Screen
+			name="RevealPrivateCredentialView"
+			component={RevealPrivateCredential}
+			options={RevealPrivateCredential.navigationOptions}
+		/>
 	</Stack.Navigator>
 );
 
 const BrowserTabHome = () => (
 	<Stack.Navigator>
-		<Stack.Screen name="BrowserView" component={Browser} gestureEnabled={false} />
+		<Stack.Screen
+			name="BrowserView"
+			component={Browser}
+			gestureEnabled={false}
+			options={Browser.navigationOptions}
+		/>
 	</Stack.Navigator>
 );
 
@@ -101,30 +110,75 @@ const HomeTabs = () => (
 
 const Webview = () => (
 	<Stack.Navigator>
-		<Stack.Screen name="SimpleWebview" component={SimpleWebview} mode={'modal'} />
+		<Stack.Screen
+			name="SimpleWebview"
+			component={SimpleWebview}
+			mode={'modal'}
+			options={SimpleWebview.navigationOptions}
+		/>
 	</Stack.Navigator>
 );
 
 const SettingsView = () => (
 	<Stack.Navigator>
-		<Stack.Screen name="Settings" component={Settings} />
-		<Stack.Screen name="GeneralSettings" component={GeneralSettings} />
-		<Stack.Screen name="AdvancedSettings" component={AdvancedSettings} />
-		<Stack.Screen name="SecuritySettings" component={SecuritySettings} />
-		<Stack.Screen name="ExperimentalSettings" component={ExperimentalSettings} />
-		<Stack.Screen name="NetworksSettings" component={NetworksSettings} />
-		<Stack.Screen name="NetworkSettings" component={NetworkSettings} />
-		<Stack.Screen name="CompanySettings" component={AppInformation} />
-		<Stack.Screen name="ContactsSettings" component={Contacts} />
-		<Stack.Screen name="ContactForm" component={ContactForm} />
+		<Stack.Screen name="Settings" component={Settings} options={Settings.navigationOptions} />
+		<Stack.Screen name="GeneralSettings" component={GeneralSettings} options={GeneralSettings.navigationOptions} />
+		<Stack.Screen
+			name="AdvancedSettings"
+			component={AdvancedSettings}
+			options={AdvancedSettings.navigationOptions}
+		/>
+		<Stack.Screen
+			name="SecuritySettings"
+			component={SecuritySettings}
+			options={SecuritySettings.navigationOptions}
+		/>
+		<Stack.Screen
+			name="ExperimentalSettings"
+			component={ExperimentalSettings}
+			options={ExperimentalSettings.navigationOptions}
+		/>
+		<Stack.Screen
+			name="NetworksSettings"
+			component={NetworksSettings}
+			options={NetworksSettings.navigationOptions}
+		/>
+		<Stack.Screen name="NetworkSettings" component={NetworkSettings} options={NetworkSettings.navigationOptions} />
+		<Stack.Screen name="CompanySettings" component={AppInformation} options={AppInformation.navigationOptions} />
+		<Stack.Screen name="ContactsSettings" component={Contacts} options={Contacts.navigationOptions} />
+		<Stack.Screen name="ContactForm" component={ContactForm} options={ContactForm.navigationOptions} />
 		<Stack.Screen name="RevealPrivateCredentialView" component={RevealPrivateCredential} />
-		<Stack.Screen name="WalletConnectSessionsView" component={WalletConnectSessions} />
-		<Stack.Screen name="ChoosePasswordSimple" component={ChoosePasswordSimple} />
-		<Stack.Screen name="ResetPassword" component={ResetPassword} />
-		<Stack.Screen name="ManualBackupStep1" component={ManualBackupStep1} />
-		<Stack.Screen name="ManualBackupStep2" component={ManualBackupStep2} />
-		<Stack.Screen name="ManualBackupStep3" component={ManualBackupStep3} />
-		<Stack.Screen name="EnterPasswordSimple" component={EnterPasswordSimple} />
+		<Stack.Screen
+			name="WalletConnectSessionsView"
+			component={WalletConnectSessions}
+			options={WalletConnectSessions.navigationOptions}
+		/>
+		<Stack.Screen
+			name="ChoosePasswordSimple"
+			component={ChoosePasswordSimple}
+			options={ChoosePasswordSimple.navigationOptions}
+		/>
+		<Stack.Screen name="ResetPassword" component={ResetPassword} options={ResetPassword.navigationOptions} />
+		<Stack.Screen
+			name="ManualBackupStep1"
+			component={ManualBackupStep1}
+			options={ManualBackupStep1.navigationOptions}
+		/>
+		<Stack.Screen
+			name="ManualBackupStep2"
+			component={ManualBackupStep2}
+			options={ManualBackupStep2.navigationOptions}
+		/>
+		<Stack.Screen
+			name="ManualBackupStep3"
+			component={ManualBackupStep3}
+			options={ManualBackupStep3.navigationOptions}
+		/>
+		<Stack.Screen
+			name="EnterPasswordSimple"
+			component={EnterPasswordSimple}
+			options={EnterPasswordSimple.navigationOptions}
+		/>
 	</Stack.Navigator>
 );
 
@@ -137,34 +191,34 @@ const ImportPrivateKeyView = () => (
 
 const SendView = () => (
 	<Stack.Navigator>
-		<Stack.Screen name="Send" component={Send} />
+		<Stack.Screen name="Send" component={Send} options={Send.navigationOptions} />
 		<Stack.Screen name="ImportPrivateKeySuccess" component={ImportPrivateKeySuccess} />
 	</Stack.Navigator>
 );
 
 const SendFlowView = () => (
 	<Stack.Navigator>
-		<Stack.Screen name="SendTo" component={SendTo} />
-		<Stack.Screen name="Amount" component={Amount} />
-		<Stack.Screen name="Confirm" component={Confirm} />
+		<Stack.Screen name="SendTo" component={SendTo} options={SendTo.navigationOptions} />
+		<Stack.Screen name="Amount" component={Amount} options={Amount.navigationOptions} />
+		<Stack.Screen name="Confirm" component={Confirm} options={Confirm.navigationOptions} />
 	</Stack.Navigator>
 );
 
 const ApprovalView = () => (
 	<Stack.Navigator>
-		<Stack.Screen name="Approval" component={Approval} />
+		<Stack.Screen name="Approval" component={Approval} options={Approval.navigationOptions} />
 	</Stack.Navigator>
 );
 
 const ApproveView = () => (
 	<Stack.Navigator>
-		<Stack.Screen name="Approve" component={Approve} />
+		<Stack.Screen name="Approve" component={Approve} options={Approve.navigationOptions} />
 	</Stack.Navigator>
 );
 
 const AddBookmarkView = () => (
 	<Stack.Navigator>
-		<Stack.Screen name="AddBookmark" component={AddBookmark} />
+		<Stack.Screen name="AddBookmark" component={AddBookmark} options={AddBookmark.navigationOptions} />
 	</Stack.Navigator>
 );
 
@@ -176,8 +230,12 @@ const OfflineModeView = () => (
 
 const PaymentRequestView = () => (
 	<Stack.Navigator>
-		<Stack.Screen name="PaymentRequest" component={PaymentRequest} />
-		<Stack.Screen name="PaymentRequestSuccess" component={PaymentRequestSuccess} />
+		<Stack.Screen name="PaymentRequest" component={PaymentRequest} options={PaymentRequest.navigationOptions} />
+		<Stack.Screen
+			name="PaymentRequestSuccess"
+			component={PaymentRequestSuccess}
+			options={PaymentRequestSuccess.navigationOptions}
+		/>
 	</Stack.Navigator>
 );
 
@@ -198,14 +256,26 @@ const Swaps = () => (
 
 const SetPasswordFlow = () => (
 	<Stack.Navigator>
-		<Stack.Screen name="ChoosePassword" component={ChoosePassword} />
+		<Stack.Screen name="ChoosePassword" component={ChoosePassword} options={ChoosePassword.navigationOptions} />
 		<Stack.Screen name="AccountBackupStep1" component={AccountBackupStep1} />
 		<Stack.Screen name="AccountBackupStep1" component={AccountBackupStep1} />
 		<Stack.Screen name="AccountBackupStep1" component={AccountBackupStep1} />
 		<Stack.Screen name="AccountBackupStep1B" component={AccountBackupStep1B} />
-		<Stack.Screen name="ManualBackupStep1" component={ManualBackupStep1} />
-		<Stack.Screen name="ManualBackupStep2" component={ManualBackupStep2} />
-		<Stack.Screen name="ManualBackupStep3" component={ManualBackupStep3} />
+		<Stack.Screen
+			name="ManualBackupStep1"
+			component={ManualBackupStep1}
+			options={ManualBackupStep1.navigationOptions}
+		/>
+		<Stack.Screen
+			name="ManualBackupStep2"
+			component={ManualBackupStep2}
+			options={ManualBackupStep2.navigationOptions}
+		/>
+		<Stack.Screen
+			name="ManualBackupStep3"
+			component={ManualBackupStep3}
+			options={ManualBackupStep3.navigationOptions}
+		/>
 	</Stack.Navigator>
 );
 

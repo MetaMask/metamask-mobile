@@ -123,8 +123,7 @@ export default class OnboardingCarousel extends PureComponent {
 
 	onPresGetStarted = () => {
 		const { navigation } = this.props;
-		navigation &&
-			navigation.navigate('OnboardingRootNav', {}, NavigationActions.navigate({ routeName: 'Onboarding' }));
+		navigation && navigation.navigate('Onboarding');
 	};
 
 	renderTabBar = () => <View />;

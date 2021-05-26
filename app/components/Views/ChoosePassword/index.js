@@ -269,7 +269,7 @@ class ChoosePassword extends PureComponent {
 		if (!prevLoading && loading) {
 			// update navigationOptions
 			navigation.setParams({
-				headerLeft: <View />
+				headerLeft: () => <View />
 			});
 		}
 	}
@@ -306,7 +306,6 @@ class ChoosePassword extends PureComponent {
 		}
 		try {
 			this.setState({ loading: true });
-
 			const previous_screen = this.props.route.params?.[PREVIOUS_SCREEN];
 
 			if (previous_screen === ONBOARDING) {

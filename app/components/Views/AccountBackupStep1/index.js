@@ -250,7 +250,7 @@ AccountBackupStep1.propTypes = {
 };
 
 AccountBackupStep1.navigationOptions = ({ navigation, route }) => ({
-	...getOnboardingNavbarOptions(navigation, { headerLeft: <View /> }, route),
+	...getOnboardingNavbarOptions(navigation, route, { headerLeft: () => <View /> }),
 	gesturesEnabled: false
 });
 

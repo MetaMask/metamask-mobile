@@ -163,8 +163,8 @@ export default function getNavbarOptions(title, navigation, disableNetwork = fal
 	}
 
 	return {
-		headerTitle: <NavbarTitle title={title} disableNetwork={disableNetwork} />,
-		headerLeft: (
+		headerTitle: () => <NavbarTitle title={title} disableNetwork={disableNetwork} />,
+		headerLeft: () => (
 			<TouchableOpacity onPress={onPress} style={styles.backButton}>
 				<IonicIcon
 					name={Device.isAndroid() ? 'md-menu' : 'ios-menu'}
@@ -173,7 +173,7 @@ export default function getNavbarOptions(title, navigation, disableNetwork = fal
 				/>
 			</TouchableOpacity>
 		),
-		headerRight: <AccountRightButton />
+		headerRight: () => <AccountRightButton />
 	};
 }
 
@@ -197,7 +197,7 @@ export function getNavigationOptionsTitle(title, navigation) {
 			...fontStyles.normal
 		},
 		headerTintColor: colors.blue,
-		headerLeft: (
+		headerLeft: () => (
 			<TouchableOpacity onPress={navigationPop} style={styles.backButton} testID={'title-back-arrow-button'}>
 				<IonicIcon
 					name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
@@ -237,7 +237,7 @@ export function getEditableOptions(title, navigation, route) {
 			...fontStyles.normal
 		},
 		headerTintColor: colors.blue,
-		headerLeft: (
+		headerLeft: () => (
 			<TouchableOpacity onPress={navigationPop} style={styles.backButton} testID={'edit-contact-back-button'}>
 				<IonicIcon
 					name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
@@ -246,15 +246,16 @@ export function getEditableOptions(title, navigation, route) {
 				/>
 			</TouchableOpacity>
 		),
-		headerRight: !addMode ? (
-			<TouchableOpacity onPress={rightAction} style={styles.backButton}>
-				<Text style={styles.closeButtonText}>
-					{editMode ? strings('address_book.edit') : strings('address_book.cancel')}
-				</Text>
-			</TouchableOpacity>
-		) : (
-			<View />
-		)
+		headerRight: () =>
+			!addMode ? (
+				<TouchableOpacity onPress={rightAction} style={styles.backButton}>
+					<Text style={styles.closeButtonText}>
+						{editMode ? strings('address_book.edit') : strings('address_book.cancel')}
+					</Text>
+				</TouchableOpacity>
+			) : (
+				<View />
+			)
 	};
 }
 
@@ -276,19 +277,24 @@ export function getPaymentRequestOptionsTitle(title, navigation, route) {
 			...fontStyles.normal
 		},
 		headerTintColor: colors.blue,
-		headerLeft: goBack ? (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={goBack} style={styles.backButton} testID={'request-search-asset-back-button'}>
-				<IonicIcon
-					name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
-					size={Device.isAndroid() ? 24 : 28}
-					style={styles.backIcon}
-				/>
-			</TouchableOpacity>
-		) : (
-			<View />
-		),
-		headerRight: (
+		headerLeft: () =>
+			goBack ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity
+					onPress={goBack}
+					style={styles.backButton}
+					testID={'request-search-asset-back-button'}
+				>
+					<IonicIcon
+						name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
+						size={Device.isAndroid() ? 24 : 28}
+						style={styles.backIcon}
+					/>
+				</TouchableOpacity>
+			) : (
+				<View />
+			),
+		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
 				<IonicIcon name={'ios-close'} size={38} style={[styles.backIcon, styles.backIconIOS]} />
@@ -312,8 +318,8 @@ export function getPaymentRequestSuccessOptionsTitle(navigation) {
 			borderBottomWidth: 0
 		},
 		headerTintColor: colors.blue,
-		headerLeft: <View />,
-		headerRight: (
+		headerLeft: () => <View />,
+		headerRight: () => (
 			<TouchableOpacity
 				// eslint-disable-next-line react/jsx-no-bind
 				onPress={() => navigation.pop()}
@@ -348,8 +354,8 @@ export function getTransactionOptionsTitle(_title, navigation, route) {
 	const rightText = strings('transaction.cancel');
 	const title = transactionMode === 'edit' ? 'transaction.edit' : _title;
 	return {
-		headerTitle: <NavbarTitle title={title} disableNetwork />,
-		headerLeft:
+		headerTitle: () => <NavbarTitle title={title} disableNetwork />,
+		headerLeft: () =>
 			transactionMode !== 'edit' ? (
 				<TouchableOpacity
 					disabled={disableModeChange}
@@ -367,7 +373,7 @@ export function getTransactionOptionsTitle(_title, navigation, route) {
 			) : (
 				<View />
 			),
-		headerRight:
+		headerRight: () =>
 			routeName === 'Send' ? (
 				// eslint-disable-next-line react/jsx-no-bind
 				<TouchableOpacity onPress={rightAction} style={styles.closeButton} testID={'send-back-button'}>
@@ -381,9 +387,9 @@ export function getTransactionOptionsTitle(_title, navigation, route) {
 
 export function getApproveNavbar(title) {
 	return {
-		headerTitle: <NavbarTitle title={title} disableNetwork />,
-		headerLeft: <View />,
-		headerRight: <View />
+		headerTitle: () => <NavbarTitle title={title} disableNetwork />,
+		headerLeft: () => <View />,
+		headerRight: () => <View />
 	};
 }
 
@@ -409,21 +415,22 @@ export function getSendFlowTitle(title, navigation, screenProps, route) {
 	const titleToRender = title;
 
 	return {
-		headerTitle: <NavbarTitle title={titleToRender} disableNetwork />,
-		headerRight: (
+		headerTitle: () => <NavbarTitle title={titleToRender} disableNetwork />,
+		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={rightAction} style={styles.closeButton} testID={'send-cancel-button'}>
 				<Text style={styles.closeButtonText}>{strings('transaction.cancel')}</Text>
 			</TouchableOpacity>
 		),
-		headerLeft: canGoBack ? (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={leftAction} style={styles.closeButton}>
-				<Text style={styles.closeButtonText}>{strings('transaction.back')}</Text>
-			</TouchableOpacity>
-		) : (
-			<View />
-		)
+		headerLeft: () =>
+			canGoBack ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={leftAction} style={styles.closeButton}>
+					<Text style={styles.closeButtonText}>{strings('transaction.back')}</Text>
+				</TouchableOpacity>
+			) : (
+				<View />
+			)
 	};
 }
 
@@ -465,7 +472,7 @@ export function getBrowserViewNavbarOptions(navigation, route) {
 	}
 
 	return {
-		headerLeft: (
+		headerLeft: () => (
 			<TouchableOpacity onPress={onPress} style={styles.hamburgerButton} testID={'hamburger-menu-button-browser'}>
 				<IonicIcon
 					name={Device.isAndroid() ? 'md-menu' : 'ios-menu'}
@@ -474,7 +481,7 @@ export function getBrowserViewNavbarOptions(navigation, route) {
 				/>
 			</TouchableOpacity>
 		),
-		headerTitle: (
+		headerTitle: () => (
 			<NavbarBrowserTitle
 				error={!!error}
 				icon={url && !isHomepage(url) ? icon : null}
@@ -484,7 +491,7 @@ export function getBrowserViewNavbarOptions(navigation, route) {
 				https={isHttps}
 			/>
 		),
-		headerRight: (
+		headerRight: () => (
 			<View style={styles.browserRightButton}>
 				<AccountRightButton />
 			</View>
@@ -501,7 +508,7 @@ export function getBrowserViewNavbarOptions(navigation, route) {
  */
 export function getModalNavbarOptions(title) {
 	return {
-		headerTitle: <ModalNavbarTitle title={title} />
+		headerTitle: () => <ModalNavbarTitle title={title} />
 	};
 }
 
@@ -512,7 +519,7 @@ export function getModalNavbarOptions(title) {
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
  */
-export function getOnboardingNavbarOptions(navigation, { headerLeft } = {}, route) {
+export function getOnboardingNavbarOptions(navigation, route, { headerLeft } = {}) {
 	const headerLeftHide = headerLeft || route.params?.headerLeft;
 
 	return {
@@ -522,14 +529,14 @@ export function getOnboardingNavbarOptions(navigation, { headerLeft } = {}, rout
 			backgroundColor: colors.white,
 			borderBottomWidth: 0
 		},
-		headerTitle: (
+		headerTitle: () => (
 			<View style={styles.metamaskNameTransparentWrapper}>
 				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
 			</View>
 		),
 		headerBackTitle: strings('navigation.back'),
-		headerRight: <View />,
-		headerLeft: headerLeftHide
+		headerRight: () => <View />,
+		headerLeft: () => headerLeftHide
 	};
 }
 
@@ -541,13 +548,13 @@ export function getOnboardingNavbarOptions(navigation, { headerLeft } = {}, rout
 export function getTransparentOnboardingNavbarOptions() {
 	return {
 		headerTransparent: true,
-		headerTitle: (
+		headerTitle: () => (
 			<View style={styles.metamaskNameTransparentWrapper}>
 				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
 			</View>
 		),
-		headerLeft: <View />,
-		headerRight: <View />
+		headerLeft: () => <View />,
+		headerRight: () => <View />
 	};
 }
 
@@ -559,13 +566,13 @@ export function getTransparentOnboardingNavbarOptions() {
 export function getTransparentBackOnboardingNavbarOptions() {
 	return {
 		headerTransparent: true,
-		headerTitle: (
+		headerTitle: () => (
 			<View style={styles.metamaskNameTransparentWrapper}>
 				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
 			</View>
 		),
 		headerBackTitle: strings('navigation.back'),
-		headerRight: <View />
+		headerRight: () => <View />
 	};
 }
 
@@ -584,7 +591,7 @@ export function getOptinMetricsNavbarOptions() {
 			borderBottomWidth: 0,
 			height: 100
 		},
-		headerLeft: (
+		headerLeft: () => (
 			<View style={styles.optinHeaderLeft}>
 				<View style={styles.metamaskNameWrapper}>
 					<Image source={metamask_fox} style={styles.metamaskFox} resizeMethod={'auto'} />
@@ -612,15 +619,16 @@ export function getClosableNavigationOptions(title, backButtonText, navigation) 
 			fontSize: 20,
 			...fontStyles.normal
 		},
-		headerLeft: Device.isIos() ? (
-			<TouchableOpacity onPress={navigationPop} style={styles.closeButton} testID={'nav-ios-back'}>
-				<Text style={styles.closeButtonText}>{backButtonText}</Text>
-			</TouchableOpacity>
-		) : (
-			<TouchableOpacity onPress={navigationPop} style={styles.backButton} testID={'nav-android-back'}>
-				<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
-			</TouchableOpacity>
-		)
+		headerLeft: () =>
+			Device.isIos() ? (
+				<TouchableOpacity onPress={navigationPop} style={styles.closeButton} testID={'nav-ios-back'}>
+					<Text style={styles.closeButtonText}>{backButtonText}</Text>
+				</TouchableOpacity>
+			) : (
+				<TouchableOpacity onPress={navigationPop} style={styles.backButton} testID={'nav-android-back'}>
+					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
+				</TouchableOpacity>
+			)
 	};
 }
 
@@ -638,18 +646,20 @@ export function getOfflineModalNavbar(navigation) {
 			backgroundColor: colors.white,
 			borderBottomWidth: 0
 		},
-		headerLeft: Device.isAndroid() ? (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
-				<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
-			</TouchableOpacity>
-		) : null,
-		headerRight: Device.isIos() ? (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
-				<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
-			</TouchableOpacity>
-		) : null
+		headerLeft: () =>
+			Device.isAndroid() ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
+				</TouchableOpacity>
+			) : null,
+		headerRight: () =>
+			Device.isIos() ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+					<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
+				</TouchableOpacity>
+			) : null
 	};
 }
 
@@ -710,8 +720,8 @@ export function getWalletNavbarOptions(title, navigation) {
 	}
 
 	return {
-		headerTitle: <NavbarTitle title={title} />,
-		headerLeft: (
+		headerTitle: () => <NavbarTitle title={title} />,
+		headerLeft: () => (
 			<TouchableOpacity onPress={openDrawer} style={styles.backButton} testID={'hamburger-menu-button-wallet'}>
 				<IonicIcon
 					name={Device.isAndroid() ? 'md-menu' : 'ios-menu'}
@@ -720,7 +730,7 @@ export function getWalletNavbarOptions(title, navigation) {
 				/>
 			</TouchableOpacity>
 		),
-		headerRight: (
+		headerRight: () => (
 			<TouchableOpacity
 				style={styles.infoButton}
 				// eslint-disable-next-line
@@ -742,8 +752,8 @@ export function getWalletNavbarOptions(title, navigation) {
  */
 export function getNetworkNavbarOptions(title, translate, navigation) {
 	return {
-		headerTitle: <NavbarTitle title={title} translate={translate} />,
-		headerLeft: (
+		headerTitle: () => <NavbarTitle title={title} translate={translate} />,
+		headerLeft: () => (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton} testID={'asset-back-button'}>
 				<IonicIcon
@@ -753,7 +763,7 @@ export function getNetworkNavbarOptions(title, translate, navigation) {
 				/>
 			</TouchableOpacity>
 		),
-		headerRight: <View />
+		headerRight: () => <View />
 	};
 }
 
@@ -770,29 +780,31 @@ export function getWebviewNavbar(navigation, route) {
 			'';
 		};
 	return {
-		headerTitle: <Text style={styles.centeredTitle}>{title}</Text>,
-		headerLeft: Device.isAndroid() ? (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
-				<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
-			</TouchableOpacity>
-		) : (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
-				<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
-			</TouchableOpacity>
-		),
-		headerRight: Device.isAndroid() ? (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => share()} style={styles.backButton}>
-				<MaterialCommunityIcon name="share-variant" size={24} style={styles.backIcon} />
-			</TouchableOpacity>
-		) : (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => share()} style={styles.backButton}>
-				<EvilIcons name="share-apple" size={32} style={[styles.backIcon, styles.shareIconIOS]} />
-			</TouchableOpacity>
-		)
+		headerTitle: () => <Text style={styles.centeredTitle}>{title}</Text>,
+		headerLeft: () =>
+			Device.isAndroid() ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
+				</TouchableOpacity>
+			) : (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+					<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
+				</TouchableOpacity>
+			),
+		headerRight: () =>
+			Device.isAndroid() ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => share()} style={styles.backButton}>
+					<MaterialCommunityIcon name="share-variant" size={24} style={styles.backIcon} />
+				</TouchableOpacity>
+			) : (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => share()} style={styles.backButton}>
+					<EvilIcons name="share-apple" size={32} style={[styles.backIcon, styles.shareIconIOS]} />
+				</TouchableOpacity>
+			)
 	};
 }
 
@@ -800,9 +812,9 @@ export function getPaymentSelectorMethodNavbar(navigation) {
 	const rightAction = navigation.dismiss;
 
 	return {
-		headerTitle: <Text style={styles.centeredTitle}>{strings('fiat_on_ramp.purchase_method')}</Text>,
-		headerLeft: <View />,
-		headerRight: (
+		headerTitle: () => <Text style={styles.centeredTitle}>{strings('fiat_on_ramp.purchase_method')}</Text>,
+		headerLeft: () => <View />,
+		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={rightAction} style={styles.closeButton}>
 				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
@@ -819,23 +831,24 @@ export function getPaymentMethodApplePayNavbar(navigation) {
 			color: colors.fontPrimary,
 			...fontStyles.normal
 		},
-		headerRight: (
+		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={() => navigation.dismiss()} style={styles.closeButton}>
 				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
 			</TouchableOpacity>
 		),
-		headerLeft: Device.isAndroid() ? (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
-				<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
-			</TouchableOpacity>
-		) : (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
-				<Text style={styles.closeButtonText}>{strings('navigation.back')}</Text>
-			</TouchableOpacity>
-		)
+		headerLeft: () =>
+			Device.isAndroid() ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
+				</TouchableOpacity>
+			) : (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
+					<Text style={styles.closeButtonText}>{strings('navigation.back')}</Text>
+				</TouchableOpacity>
+			)
 	};
 }
 
@@ -848,17 +861,18 @@ export function getTransakWebviewNavbar(navigation, route) {
 			color: colors.fontPrimary,
 			...fontStyles.normal
 		},
-		headerLeft: Device.isAndroid() ? (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
-				<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
-			</TouchableOpacity>
-		) : (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
-				<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
-			</TouchableOpacity>
-		)
+		headerLeft: () =>
+			Device.isAndroid() ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
+				</TouchableOpacity>
+			) : (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+					<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
+				</TouchableOpacity>
+			)
 	};
 }
 
@@ -867,9 +881,9 @@ export function getSwapsAmountNavbar(navigation, route) {
 	const rightAction = navigation.dismiss;
 
 	return {
-		headerTitle: <NavbarTitle title={title} disableNetwork translate={false} />,
-		headerLeft: <View />,
-		headerRight: (
+		headerTitle: () => <NavbarTitle title={title} disableNetwork translate={false} />,
+		headerLeft: () => <View />,
+		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={rightAction} style={styles.closeButton}>
 				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
@@ -912,19 +926,20 @@ export function getSwapsQuotesNavbar(navigation, route) {
 	};
 
 	return {
-		headerTitle: <NavbarTitle title={title} disableNetwork translate={false} />,
-		headerLeft: Device.isAndroid() ? (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={leftAction} style={styles.backButton}>
-				<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
-			</TouchableOpacity>
-		) : (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={leftAction} style={styles.closeButton}>
-				<Text style={styles.closeButtonText}>{leftActionText}</Text>
-			</TouchableOpacity>
-		),
-		headerRight: (
+		headerTitle: () => <NavbarTitle title={title} disableNetwork translate={false} />,
+		headerLeft: () =>
+			Device.isAndroid() ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={leftAction} style={styles.backButton}>
+					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
+				</TouchableOpacity>
+			) : (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={leftAction} style={styles.closeButton}>
+					<Text style={styles.closeButtonText}>{leftActionText}</Text>
+				</TouchableOpacity>
+			),
+		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={rightAction} style={styles.closeButton}>
 				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>

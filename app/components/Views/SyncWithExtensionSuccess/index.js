@@ -113,7 +113,7 @@ class SyncWithExtensionSuccess extends PureComponent {
 
 	static navigationOptions = ({ navigation, route }) => ({
 		...getOnboardingNavbarOptions(navigation, route),
-		headerLeft: <View />
+		headerLeft: () => <View />
 	});
 
 	iconSpringVal = new Animated.Value(0.4);
