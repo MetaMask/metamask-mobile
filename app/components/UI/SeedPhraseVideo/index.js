@@ -5,10 +5,11 @@ import AndroidMediaPlayer from '../../Views/MediaPlayer/AndroidMediaPlayer';
 import Video from 'react-native-video';
 import Device from '../../../util/Device';
 import Loader from '../../Views/MediaPlayer/Loader';
+import scaling from '../../../util/scaling';
 
 const styles = StyleSheet.create({
 	videoContainer: {
-		height: 240,
+		height: scaling.scale(240),
 		width: '100%'
 	},
 	loaderContainer: {
