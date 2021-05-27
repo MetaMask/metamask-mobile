@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Image, View } from 'react-native';
+import { Image, View, ViewPropTypes } from 'react-native';
 import { toDataUrl } from '../../../util/blockies.js';
 import FadeIn from 'react-native-fade-in-image';
 import { colors } from '../../../styles/common.js';
@@ -55,7 +55,7 @@ Identicon.propTypes = {
 	/**
 	 * Custom style to apply to image
 	 */
-	customStyle: PropTypes.object,
+	customStyle: ViewPropTypes.style,
 	/**
 	 * True if render is happening without fade in
 	 */

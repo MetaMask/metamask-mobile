@@ -42,6 +42,10 @@ export default class StyledButton extends PureComponent {
 		 */
 		onPress: PropTypes.func,
 		/**
+		 * Function to be called on press out
+		 */
+		onPressOut: PropTypes.func,
+		/**
 		 * Type of the button
 		 */
 		type: PropTypes.string,
@@ -58,7 +62,17 @@ export default class StyledButton extends PureComponent {
 	};
 
 	render = () => {
-		const { type, onPress, style, children, disabled, styleDisabled, testID, disabledContainerStyle } = this.props;
+		const {
+			type,
+			onPress,
+			onPressOut,
+			style,
+			children,
+			disabled,
+			styleDisabled,
+			testID,
+			disabledContainerStyle
+		} = this.props;
 		const { fontStyle, containerStyle } = getStyles(type);
 
 		return (
@@ -68,6 +82,7 @@ export default class StyledButton extends PureComponent {
 				styleDisabled={disabled ? styleDisabled : null}
 				disabledContainerStyle={disabled ? disabledContainerStyle : null}
 				onPress={onPress}
+				onPressOut={onPressOut}
 				style={[...fontStyle, style]}
 				containerStyle={[...containerStyle, this.props.containerStyle]}
 			>
