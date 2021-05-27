@@ -171,8 +171,7 @@ const dummy = () => true;
  * View that wraps the wraps the "Send" screen
  */
 class SendFlow extends PureComponent {
-	static navigationOptions = ({ navigation, screenProps, route }) =>
-		getSendFlowTitle('send.send_to', navigation, screenProps, route);
+	static navigationOptions = ({ navigation, route }) => getSendFlowTitle('send.send_to', navigation, route);
 
 	static propTypes = {
 		/**
@@ -246,10 +245,20 @@ class SendFlow extends PureComponent {
 	};
 
 	componentDidMount = async () => {
-		const { addressBook, selectedAddress, accounts, ticker, network, navigation, providerType, route } = this.props;
+		const {
+			addressBook,
+			selectedAddress,
+			accounts,
+			ticker,
+			network,
+			navigation,
+			providerType,
+			route,
+			isPaymentRequest
+		} = this.props;
 		const { fromAccountName } = this.state;
 		// For analytics
-		navigation.setParams({ providerType });
+		navigation.setParams({ providerType, isPaymentRequest });
 		const networkAddressBook = addressBook[network] || {};
 		const ens = await doENSReverseLookup(selectedAddress, network);
 		const fromAccountBalance = `${renderFromWei(accounts[selectedAddress].balance)} ${getTicker(ticker)}`;
@@ -701,7 +710,8 @@ const mapStateToProps = state => ({
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	network: state.engine.backgroundState.NetworkController.network,
-	providerType: state.engine.backgroundState.NetworkController.provider.type
+	providerType: state.engine.backgroundState.NetworkController.provider.type,
+	isPaymentRequest: state.transaction.paymentRequest
 });
 
 const mapDispatchToProps = dispatch => ({

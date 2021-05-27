@@ -657,16 +657,7 @@ const Main = props => {
 	return (
 		<React.Fragment>
 			<View style={styles.flex}>
-				{!forceReload ? (
-					<MainNavigator
-						navigation={props.navigation}
-						screenProps={{
-							isPaymentRequest: props.isPaymentRequest
-						}}
-					/>
-				) : (
-					renderLoader()
-				)}
+				{!forceReload ? <MainNavigator navigation={props.navigation} /> : renderLoader()}
 				<GlobalAlert />
 				<FadeOutOverlay />
 				<Notification navigation={props.navigation} />

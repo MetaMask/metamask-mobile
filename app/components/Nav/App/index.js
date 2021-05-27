@@ -150,12 +150,6 @@ const AppNavigator = createSwitchNavigator(
 	}
 );
 
-const AppContainer = () => (
-	<NavigationContainer>
-		<AppNavigator />
-	</NavigationContainer>
-);
-
 class App extends PureComponent {
 	unsubscribeFromBranch;
 
@@ -198,11 +192,13 @@ class App extends PureComponent {
 
 	render() {
 		return (
-			<AppContainer
+			<NavigationContainer
 				ref={nav => {
 					this.navigator = nav;
 				}}
-			/>
+			>
+				<AppNavigator />
+			</NavigationContainer>
 		);
 	}
 }

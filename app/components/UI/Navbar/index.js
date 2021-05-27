@@ -341,7 +341,7 @@ export function getPaymentRequestSuccessOptionsTitle(navigation) {
  */
 export function getTransactionOptionsTitle(_title, navigation, route) {
 	const transactionMode = route.params?.mode ?? '';
-	const { name } = navigation.dangerouslyGetState();
+	const { name } = route;
 	const leftText = transactionMode === 'edit' ? strings('transaction.cancel') : strings('transaction.edit');
 	const disableModeChange = route.params?.disableModeChange;
 	const modeChange =
@@ -400,7 +400,7 @@ export function getApproveNavbar(title) {
  * @param {string} title - Title in string format
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
-export function getSendFlowTitle(title, navigation, screenProps, route) {
+export function getSendFlowTitle(title, navigation, route) {
 	const rightAction = () => {
 		const providerType = route.params?.providerType ?? '';
 		trackEventWithParameters(ANALYTICS_EVENT_OPTS.SEND_FLOW_CANCEL, {
@@ -410,7 +410,8 @@ export function getSendFlowTitle(title, navigation, screenProps, route) {
 		navigation.dangerouslyGetParent().pop();
 	};
 	const leftAction = () => navigation.pop();
-	const canGoBack = title !== 'send.send_to' && !screenProps.isPaymentRequest;
+
+	const canGoBack = title !== 'send.send_to' && !route?.params?.isPaymentRequest;
 
 	const titleToRender = title;
 

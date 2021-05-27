@@ -288,8 +288,7 @@ const styles = StyleSheet.create({
  * View that wraps the wraps the "Send" screen
  */
 class Amount extends PureComponent {
-	static navigationOptions = ({ navigation, screenProps, route }) =>
-		getSendFlowTitle('send.amount', navigation, screenProps, route);
+	static navigationOptions = ({ navigation, route }) => getSendFlowTitle('send.amount', navigation, route);
 
 	static propTypes = {
 		/**
@@ -396,10 +395,11 @@ class Amount extends PureComponent {
 			transactionState: { readableValue },
 			navigation,
 			providerType,
-			selectedAsset
+			selectedAsset,
+			isPaymentRequest
 		} = this.props;
 		// For analytics
-		navigation.setParams({ providerType });
+		navigation.setParams({ providerType, isPaymentRequest });
 
 		this.tokens = [getEther(ticker), ...tokens];
 		this.collectibles = this.processCollectibles();
@@ -1073,7 +1073,8 @@ const mapStateToProps = (state, ownProps) => ({
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	transactionState: ownProps.transaction || state.transaction,
-	selectedAsset: state.transaction.selectedAsset
+	selectedAsset: state.transaction.selectedAsset,
+	isPaymentRequest: state.transaction.paymentRequest
 });
 
 const mapDispatchToProps = dispatch => ({

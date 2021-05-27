@@ -38,7 +38,8 @@ class DeeplinkManager {
 			const txMeta = { ...ethUrl, source: url };
 			if (ethUrl.parameters?.value) {
 				this.navigation.navigate('SendView', {
-					txMeta: { ...txMeta, action: 'send-eth' }
+					screen: 'Send',
+					params: { txMeta: { ...txMeta, action: 'send-eth' } }
 				});
 			} else {
 				this.navigation.navigate('SendFlowView', { txMeta });
@@ -87,6 +88,7 @@ class DeeplinkManager {
 	}
 
 	parse(url, { browserCallBack, origin, onHandled }) {
+		console.log(url);
 		const urlObj = new URL(url);
 		let params;
 

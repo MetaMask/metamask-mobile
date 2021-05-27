@@ -201,7 +201,8 @@ class Send extends PureComponent {
 		const {
 			route,
 			transaction: { assetType, selectedAsset },
-			contractBalances
+			contractBalances,
+			navigation
 		} = this.props;
 		if (prevRoute && route) {
 			const prevTxMeta = prevRoute.params?.txMeta ?? null;

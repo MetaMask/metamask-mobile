@@ -224,8 +224,7 @@ const styles = StyleSheet.create({
  * View that wraps the wraps the "Send" screen
  */
 class Confirm extends PureComponent {
-	static navigationOptions = ({ navigation, screenProps, route }) =>
-		getSendFlowTitle('send.confirm', navigation, screenProps, route);
+	static navigationOptions = ({ navigation, route }) => getSendFlowTitle('send.confirm', navigation, route);
 
 	static propTypes = {
 		/**
@@ -396,10 +395,10 @@ class Confirm extends PureComponent {
 		// For analytics
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_STARTED, this.getAnalyticsParams());
 
-		const { showCustomNonce, navigation, providerType } = this.props;
+		const { showCustomNonce, navigation, providerType, isPaymentRequest } = this.props;
 		await this.handleFetchBasicEstimates();
 		showCustomNonce && (await this.setNetworkNonce());
-		navigation.setParams({ providerType });
+		navigation.setParams({ providerType, isPaymentRequest });
 		this.handleConfusables();
 		this.parseTransactionData();
 		this.prepareTransaction();
@@ -1115,7 +1114,8 @@ const mapStateToProps = state => ({
 	transaction: getNormalizedTxState(state),
 	selectedAsset: state.transaction.selectedAsset,
 	transactionState: state.transaction,
-	primaryCurrency: state.settings.primaryCurrency
+	primaryCurrency: state.settings.primaryCurrency,
+	isPaymentRequest: state.transaction.paymentRequest
 });
 
 const mapDispatchToProps = dispatch => ({
