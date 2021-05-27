@@ -5,6 +5,9 @@ import { shallow } from 'enzyme';
 import { ROPSTEN } from '../../../constants/network';
 
 const mockStore = configureMockStore();
+const navigation = { state: { params: { address: '0x1' } } };
+// noop
+navigation.setParams = params => ({ ...params });
 
 describe('Approval', () => {
 	it('should render correctly', () => {
@@ -39,7 +42,7 @@ describe('Approval', () => {
 			}
 		};
 
-		const wrapper = shallow(<Approval />, {
+		const wrapper = shallow(<Approval navigation={navigation} />, {
 			context: { store: mockStore(initialState) }
 		});
 		expect(wrapper.dive()).toMatchSnapshot();
