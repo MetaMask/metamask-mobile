@@ -268,9 +268,7 @@ class Asset extends PureComponent {
 	render = () => {
 		const { loading, transactions, submittedTxs, confirmedTxs, transactionsUpdated } = this.state;
 		const {
-			navigation: {
-				state: { params }
-			},
+			route: { params },
 			navigation,
 			conversionRate,
 			currentCurrency,

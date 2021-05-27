@@ -69,10 +69,8 @@ class AddAsset extends PureComponent {
 
 	render = () => {
 		const {
-			navigation: {
-				state: {
-					params: { assetType, collectibleContract }
-				}
+			route: {
+				params: { assetType, collectibleContract }
 			},
 			navigation
 		} = this.props;

@@ -56,9 +56,7 @@ class CollectibleView extends PureComponent {
 
 	onSend = async () => {
 		const {
-			navigation: {
-				state: { params }
-			}
+			route: { params }
 		} = this.props;
 		this.props.newAssetTransaction(params);
 		this.props.navigation.navigate('SendFlowView');
@@ -66,9 +64,7 @@ class CollectibleView extends PureComponent {
 
 	render() {
 		const {
-			navigation: {
-				state: { params }
-			},
+			route: { params },
 			navigation
 		} = this.props;
 		const collectible = params;

@@ -66,9 +66,7 @@ class Collectible extends PureComponent {
 
 	render = () => {
 		const {
-			navigation: {
-				state: { params }
-			},
+			route: { params },
 			navigation,
 			collectibleContractModalVisible
 		} = this.props;
