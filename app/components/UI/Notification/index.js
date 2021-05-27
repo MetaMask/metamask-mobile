@@ -46,7 +46,7 @@ function Notification(props) {
 		const routes = navigation.dangerouslyGetState().routes;
 		let route = routes[routes.length - 1];
 		while (route.index !== undefined) route = route.routes[route.index];
-		return route?.routeName === BROWSER_ROUTE;
+		return route?.name === BROWSER_ROUTE;
 	}, [navigation]);
 
 	useEffect(

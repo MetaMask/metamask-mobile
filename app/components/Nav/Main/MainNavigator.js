@@ -96,7 +96,7 @@ const BrowserTabHome = () => (
 
 const TransactionsHome = () => (
 	<Stack.Navigator>
-		<Stack.Screen name="TransactionsView" component={ActivityView} />
+		<Stack.Screen name="TransactionsView" component={ActivityView} options={ActivityView.navigationOptions} />
 	</Stack.Navigator>
 );
 
@@ -304,7 +304,7 @@ const SetPasswordFlow = () => (
 );
 
 const MainNavigator = () => (
-	<Stack.Navigator headerMode={'none'}>
+	<Stack.Navigator headerMode={'none'} mode={'modal'}>
 		<Stack.Screen name="Home" tabBarVisible={false} component={HomeTabs} />
 		<Stack.Screen name="Webview" component={Webview} />
 		<Stack.Screen name="SettingsView" component={SettingsView} />
@@ -317,7 +317,7 @@ const MainNavigator = () => (
 		<Stack.Screen name="OfflineModeView" component={OfflineModeView} />
 		<Stack.Screen name="QRScanner" component={QrScanner} />
 		<Stack.Screen name="LockScreen" component={LockScreen} />
-		<Stack.Screen name="PaymentRequestView" mode={'modal'} component={PaymentRequestView} />
+		<Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
 		<Stack.Screen name="FiatOnRamp" component={FiatOnRamp} />
 		<Stack.Screen name="Swaps" component={Swaps} />
 		<Stack.Screen

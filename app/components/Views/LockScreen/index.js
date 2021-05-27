@@ -123,7 +123,7 @@ class LockScreen extends PureComponent {
 				this.props.navigation.navigate(
 					'OnboardingRootNav',
 					{},
-					NavigationActions.navigate({ routeName: 'Onboarding' })
+					NavigationActions.navigate({ name: 'Onboarding' })
 				);
 			}
 		} catch (error) {

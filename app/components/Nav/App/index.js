@@ -161,8 +161,8 @@ class App extends PureComponent {
 
 	componentDidMount = () => {
 		SharedDeeplinkManager.init({
-			navigate: (routeName, opts) => {
-				this.navigator.dispatch(CommonActions.navigate({ routeName, params: opts }));
+			navigate: (name, opts) => {
+				this.navigator.dispatch(CommonActions.navigate({ name, params: opts }));
 			}
 		});
 		if (!this.unsubscribeFromBranch) {

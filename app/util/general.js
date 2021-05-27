@@ -18,12 +18,12 @@ export function timeoutFetch(url, options, timeout = 500) {
 
 export function findBottomTabRouteNameFromNavigatorState({ routes }) {
 	let route = routes?.[routes.length - 1];
-	let routeName;
+	let name;
 	while (route.index !== undefined) {
-		routeName = route?.routeName;
+		name = route?.name;
 		route = route?.routes?.[route.index];
 	}
-	return routeName;
+	return name;
 }
 
 export function findRouteNameFromNavigatorState({ routes }) {
@@ -31,7 +31,7 @@ export function findRouteNameFromNavigatorState({ routes }) {
 	while (route.index !== undefined) {
 		route = route?.routes?.[route.index];
 	}
-	return route?.routeName;
+	return route?.name;
 }
 export const capitalize = str => (str && str.charAt(0).toUpperCase() + str.slice(1)) || false;
 

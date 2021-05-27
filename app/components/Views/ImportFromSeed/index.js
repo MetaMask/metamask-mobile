@@ -292,7 +292,7 @@ class ImportFromSeed extends PureComponent {
 					this.props.navigation.navigate(
 						'ManualBackupStep3',
 						{},
-						NavigationActions.navigate({ routeName: 'OptinMetrics' })
+						NavigationActions.navigate({ name: 'OptinMetrics' })
 					);
 				} else if (onboardingWizard) {
 					this.props.navigation.navigate('ManualBackupStep3');
@@ -301,7 +301,7 @@ class ImportFromSeed extends PureComponent {
 					this.props.navigation.navigate(
 						'ManualBackupStep3',
 						{},
-						NavigationActions.navigate({ routeName: 'WalletView' })
+						NavigationActions.navigate({ name: 'WalletView' })
 					);
 				}
 				await importAdditionalAccounts();

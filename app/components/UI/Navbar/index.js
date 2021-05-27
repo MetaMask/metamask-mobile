@@ -341,7 +341,7 @@ export function getPaymentRequestSuccessOptionsTitle(navigation) {
  */
 export function getTransactionOptionsTitle(_title, navigation, route) {
 	const transactionMode = route.params?.mode ?? '';
-	const { routeName } = navigation.dangerouslyGetState();
+	const { name } = navigation.dangerouslyGetState();
 	const leftText = transactionMode === 'edit' ? strings('transaction.cancel') : strings('transaction.edit');
 	const disableModeChange = route.params?.disableModeChange;
 	const modeChange =
@@ -374,7 +374,7 @@ export function getTransactionOptionsTitle(_title, navigation, route) {
 				<View />
 			),
 		headerRight: () =>
-			routeName === 'Send' ? (
+			name === 'Send' ? (
 				// eslint-disable-next-line react/jsx-no-bind
 				<TouchableOpacity onPress={rightAction} style={styles.closeButton} testID={'send-back-button'}>
 					<Text style={styles.closeButtonText}>{rightText}</Text>
@@ -809,14 +809,12 @@ export function getWebviewNavbar(navigation, route) {
 }
 
 export function getPaymentSelectorMethodNavbar(navigation) {
-	const rightAction = navigation.dangerouslyGetParent().pop;
-
 	return {
 		headerTitle: () => <Text style={styles.centeredTitle}>{strings('fiat_on_ramp.purchase_method')}</Text>,
 		headerLeft: () => <View />,
 		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={rightAction} style={styles.closeButton}>
+			<TouchableOpacity onPress={() => navigation.dangerouslyGetParent().pop()} style={styles.closeButton}>
 				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
 			</TouchableOpacity>
 		)
@@ -878,14 +876,12 @@ export function getTransakWebviewNavbar(navigation, route) {
 
 export function getSwapsAmountNavbar(navigation, route) {
 	const title = route.params?.title ?? 'Swap';
-	const rightAction = navigation.dangerouslyGetParent().pop;
-
 	return {
 		headerTitle: () => <NavbarTitle title={title} disableNetwork translate={false} />,
 		headerLeft: () => <View />,
 		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={rightAction} style={styles.closeButton}>
+			<TouchableOpacity onPress={() => navigation.dangerouslyGetParent().pop()} style={styles.closeButton}>
 				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
 			</TouchableOpacity>
 		)

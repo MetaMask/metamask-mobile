@@ -155,7 +155,7 @@ const WhatsNewModal = props => {
 		while (route.index !== undefined) {
 			route = route.routes[route.index];
 		}
-		return route?.routeName;
+		return route?.name;
 	};
 
 	useEffect(() => {
