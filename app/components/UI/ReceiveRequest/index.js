@@ -157,7 +157,7 @@ class ReceiveRequest extends PureComponent {
 			Alert.alert(strings('fiat_on_ramp.network_not_supported'), strings('fiat_on_ramp.switch_network'));
 		} else {
 			toggleReceiveModal();
-			navigation.navigate('PaymentMethodSelector');
+			navigation.navigate('FiatOnRamp');
 			InteractionManager.runAfterInteractions(() => {
 				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
 			});

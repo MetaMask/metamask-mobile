@@ -530,7 +530,7 @@ class SendFlow extends PureComponent {
 	};
 
 	goToBuy = () => {
-		this.props.navigation.navigate('PaymentMethodSelector');
+		this.props.navigation.navigate('FiatOnRamp');
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
 		});

@@ -26,6 +26,7 @@ import Logger from '../../../util/Logger';
 import Branch from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
+import { createSwitchNavigator } from '@react-navigation/compat';
 
 import { NavigationContainer, CommonActions } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -135,15 +136,18 @@ DrawerStatusTracker.init();
  * which top level view to show
  */
 
-const AppNavigator = () => (
-	<Stack.Navigator screenOptions={{ headerShown: false }} mode="modal">
-		<Stack.Screen name="Entry" component={Entry} />
-		<Stack.Screen name="HomeNav" component={HomeNav} />
-		<Stack.Screen name="OnboardingRootNav" component={OnboardingRootNav} />
-		<Stack.Screen name="Login" component={Login} />
-		<Stack.Screen name="OnboardingCarousel" component={OnboardingCarousel} />
-		<Stack.Screen name="LockScreen" component={LockScreen} />
-	</Stack.Navigator>
+const AppNavigator = createSwitchNavigator(
+	{
+		Entry,
+		HomeNav,
+		OnboardingRootNav,
+		Login,
+		OnboardingCarousel,
+		LockScreen
+	},
+	{
+		initialRouteName: 'Entry'
+	}
 );
 
 const AppContainer = () => (

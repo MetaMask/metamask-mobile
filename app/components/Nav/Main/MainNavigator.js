@@ -240,27 +240,51 @@ const PaymentRequestView = () => (
 );
 
 const FiatOnRamp = () => (
-	<Stack.Navigator>
-		<Stack.Screen name="PaymentMethodSelector" component={PaymentMethodSelector} />
-		<Stack.Screen name="PaymentMethodApplePay" component={PaymentMethodApplePay} />
+	<Stack.Navigator initialRouteName="PaymentMethodSelector">
+		<Stack.Screen
+			name="PaymentMethodSelector"
+			component={PaymentMethodSelector}
+			options={PaymentMethodSelector.navigationOptions}
+		/>
+		<Stack.Screen
+			name="PaymentMethodApplePay"
+			component={PaymentMethodApplePay}
+			options={PaymentMethodApplePay.navigationOptions}
+		/>
 		<Stack.Screen name="TransakFlow" component={TransakWebView} options={TransakWebView.navigationOptions} />
 	</Stack.Navigator>
 );
 
 const Swaps = () => (
 	<Stack.Navigator>
-		<Stack.Screen name="SwapsAmountView" component={SwapsAmountView} />
-		<Stack.Screen name="SwapsQuotesView" component={SwapsQuotesView} />
+		<Stack.Screen name="SwapsAmountView" component={SwapsAmountView} options={SwapsAmountView.navigationOptions} />
+		<Stack.Screen name="SwapsQuotesView" component={SwapsQuotesView} options={SwapsQuotesView.navigationOptions} />
 	</Stack.Navigator>
 );
 
 const SetPasswordFlow = () => (
 	<Stack.Navigator>
 		<Stack.Screen name="ChoosePassword" component={ChoosePassword} options={ChoosePassword.navigationOptions} />
-		<Stack.Screen name="AccountBackupStep1" component={AccountBackupStep1} />
-		<Stack.Screen name="AccountBackupStep1" component={AccountBackupStep1} />
-		<Stack.Screen name="AccountBackupStep1" component={AccountBackupStep1} />
-		<Stack.Screen name="AccountBackupStep1B" component={AccountBackupStep1B} />
+		<Stack.Screen
+			name="AccountBackupStep1"
+			component={AccountBackupStep1}
+			options={AccountBackupStep1.navigationOptions}
+		/>
+		<Stack.Screen
+			name="AccountBackupStep1"
+			component={AccountBackupStep1}
+			options={AccountBackupStep1.navigationOptions}
+		/>
+		<Stack.Screen
+			name="AccountBackupStep1"
+			component={AccountBackupStep1}
+			options={AccountBackupStep1.navigationOptions}
+		/>
+		<Stack.Screen
+			name="AccountBackupStep1B"
+			component={AccountBackupStep1B}
+			options={AccountBackupStep1B.navigationOptions}
+		/>
 		<Stack.Screen
 			name="ManualBackupStep1"
 			component={ManualBackupStep1}
@@ -280,7 +304,7 @@ const SetPasswordFlow = () => (
 );
 
 const MainNavigator = () => (
-	<Stack.Navigator mode={'modal'} headerMode={'none'}>
+	<Stack.Navigator headerMode={'none'}>
 		<Stack.Screen name="Home" tabBarVisible={false} component={HomeTabs} />
 		<Stack.Screen name="Webview" component={Webview} />
 		<Stack.Screen name="SettingsView" component={SettingsView} />

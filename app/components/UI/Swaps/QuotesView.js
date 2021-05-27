@@ -821,7 +821,7 @@ function SwapsQuotesView({
 	}, [selectedQuote]);
 
 	const buyEth = useCallback(() => {
-		navigation.navigate('PaymentMethodSelector');
+		navigation.navigate('FiatOnRamp');
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST);
 		});
