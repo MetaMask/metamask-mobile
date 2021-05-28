@@ -7,6 +7,13 @@ const defaultTokenMetadata = {
 	metadata: null
 };
 
+// TODO: change this with a multi chain endpoint in the future
+const SWAPS_TOKEN_API = {
+	'1': 'https://api.metaswap.codefi.network',
+	'1337': 'https://metaswap-api.airswap-dev.codefi.network',
+	'56': 'https://bsc-api.metaswap.codefi.network'
+};
+
 function useFetchTokenMetadata(address, chainId) {
 	const [isLoading, setIsLoading] = useState(false);
 	const [tokenMetadata, setTokenMetadata] = useState(defaultTokenMetadata);
@@ -22,26 +29,23 @@ function useFetchTokenMetadata(address, chainId) {
 				cancelTokenSource = axios.CancelToken.source();
 				setTokenMetadata(defaultTokenMetadata);
 				setIsLoading(true);
-				// const { data } = await axios.get('URL HERE', { cancelToken: cancelTokenSource.token() });
-				const data = await new Promise((resolve, reject) => {
-					setTimeout(() => {
-						resolve({
-							address: '0x6b175474e89094c44da98b954eedeac495271d0f',
-							name: 'test token',
-							symbol: 'TSTTKN',
-							decimals: 9
-						});
-						// reject('bummer, network error :(');
-					}, 700);
+				const { data } = await axios.request({
+					url: '/token',
+					baseURL: SWAPS_TOKEN_API[chainId],
+					params: {
+						address
+					},
+					cancelToken: cancelTokenSource.token
 				});
-				setIsLoading(false);
-				// if (isAToken) { // API data should let me know if it is a token or not
-				setTokenMetadata({ error: false, valid: true, metadata: data }); // is a token
-				// } else {
-				// setTokenMetadata({ error: false, valid: false, metadata: null }); // is an address
-				// }
+				setTokenMetadata({ error: false, valid: true, metadata: data });
 			} catch (error) {
-				setTokenMetadata({ ...defaultTokenMetadata, error: true });
+				// Address is not an ERC20
+				if (error?.response?.status === 422) {
+					setTokenMetadata({ error: false, valid: false, metadata: null });
+				} else {
+					setTokenMetadata({ ...defaultTokenMetadata, error: true });
+				}
+			} finally {
 				setIsLoading(false);
 			}
 		}
@@ -52,7 +56,7 @@ function useFetchTokenMetadata(address, chainId) {
 			setIsLoading(false);
 			setTokenMetadata(defaultTokenMetadata);
 		};
-	}, [address]);
+	}, [address, chainId]);
 
 	return [isLoading, tokenMetadata];
 }
