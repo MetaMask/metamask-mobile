@@ -142,7 +142,7 @@ class SyncWithExtensionSuccess extends PureComponent {
 		// Check if user passed through metrics opt-in screen
 		const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
 		if (!metricsOptIn) {
-			this.props.navigation.navigate('OptinMetrics');
+			this.props.navigation.navigate('OnboardingNav', { screen: 'OptinMetrics' });
 		} else if (onboardingWizard) {
 			this.props.navigation.navigate('HomeNav');
 		} else {

@@ -187,8 +187,11 @@ class AssetOverview extends PureComponent {
 	};
 
 	goToBrowserUrl(url) {
-		this.props.navigation.navigate('BrowserView', {
-			newTabUrl: url
+		this.props.navigation.navigate('BrowserTabHome', {
+			screen: 'BrowserView',
+			params: {
+				newTabUrl: url
+			}
 		});
 	}
 

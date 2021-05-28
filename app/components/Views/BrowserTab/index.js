@@ -626,7 +626,7 @@ export const BrowserTab = props => {
 
 				wallet_scanQRCode: () =>
 					new Promise((resolve, reject) => {
-						this.props.navigation.navigate('QRScanner', {
+						props.navigation.navigate('QRScanner', {
 							onScanSuccess: data => {
 								const regex = new RegExp(req.params[0]);
 								if (regex && !regex.exec(data)) {
