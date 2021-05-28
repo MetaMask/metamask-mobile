@@ -559,7 +559,7 @@ function SwapsAmountView({
 							</TouchableOpacity>
 						) : (
 							<ActionAlert
-								type="warning"
+								type={!destinationToken.occurances ? 'error' : 'warning'}
 								style={styles.tokenAlert}
 								action={hasDismissedTokenAlert ? null : strings('swaps.continue')}
 								onPress={handleDimissTokenAlert}
@@ -569,7 +569,7 @@ function SwapsAmountView({
 									<TouchableOpacity onPress={explorer.isValid ? handleVerifyPress : undefined}>
 										<Text style={textStyle} bold centered>
 											{!destinationToken.occurances
-												? strings('swaps.not_verified', {
+												? strings('swaps.added_manually', {
 														symbol: destinationToken.symbol
 														// eslint-disable-next-line no-mixed-spaces-and-tabs
 												  })
@@ -579,17 +579,31 @@ function SwapsAmountView({
 														// eslint-disable-next-line no-mixed-spaces-and-tabs
 												  })}
 										</Text>
-										<Text style={textStyle} centered>
-											{`${strings('swaps.verify_address_on')} `}
-											{explorer.isValid ? (
-												<Text reset link>
-													{explorer.name}
-												</Text>
-											) : (
-												strings('swaps.a_block_explorer')
-											)}
-											.
-										</Text>
+										{!destinationToken.occurances ? (
+											<Text style={textStyle} centered>
+												{`${strings('swaps.verify_this_token_on')} `}
+												{explorer.isValid ? (
+													<Text reset link>
+														{explorer.name}
+													</Text>
+												) : (
+													strings('swaps.a_block_explorer')
+												)}
+												{` ${strings('swaps.make_sure_trade')}`}
+											</Text>
+										) : (
+											<Text style={textStyle} centered>
+												{`${strings('swaps.verify_address_on')} `}
+												{explorer.isValid ? (
+													<Text reset link>
+														{explorer.name}
+													</Text>
+												) : (
+													strings('swaps.a_block_explorer')
+												)}
+												.
+											</Text>
+										)}
 									</TouchableOpacity>
 								)}
 							</ActionAlert>
