@@ -156,9 +156,9 @@ class PaymentRequestSuccess extends PureComponent {
 
 	static propTypes = {
 		/**
-		 * Object that represents the navigator
+		 * Object that represents the current route info like params passed to it
 		 */
-		navigation: PropTypes.object,
+		route: PropTypes.object,
 		/**
 		/* Triggers global alert
 		*/

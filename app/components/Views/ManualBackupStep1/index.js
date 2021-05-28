@@ -221,7 +221,11 @@ export default class ManualBackupStep1 extends PureComponent {
 		/**
 		/* navigation object required to push and pop other views
 		*/
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	steps = MANUAL_BACKUP_STEPS;

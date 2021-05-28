@@ -370,7 +370,11 @@ class Amount extends PureComponent {
 		/**
 		 * function to call when the 'Next' button is clicked
 		 */
-		onConfirm: PropTypes.func
+		onConfirm: PropTypes.func,
+		/**
+		 * Indicates whether the current transaction is a deep link transaction
+		 */
+		isPaymentRequest: PropTypes.bool
 	};
 
 	state = {

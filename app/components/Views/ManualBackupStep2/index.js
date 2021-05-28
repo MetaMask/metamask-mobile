@@ -160,7 +160,11 @@ class ManualBackupStep2 extends PureComponent {
 		 * The action to update the seedphrase backed up flag
 		 * in the redux store
 		 */
-		seedphraseBackedUp: PropTypes.func
+		seedphraseBackedUp: PropTypes.func,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	constructor(props) {
@@ -247,7 +251,7 @@ class ManualBackupStep2 extends PureComponent {
 	};
 
 	goNext = () => {
-		const { seedphraseBackedUp, route } = this.props;
+		const { seedphraseBackedUp, route, navigation } = this.props;
 		if (this.validateWords()) {
 			seedphraseBackedUp();
 			InteractionManager.runAfterInteractions(() => {

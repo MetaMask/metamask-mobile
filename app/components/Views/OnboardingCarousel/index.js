@@ -8,8 +8,6 @@ import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
-// eslint-disable-next-line import/named
-import { NavigationActions } from '@react-navigation/compat';
 import Device from '../../../util/Device';
 
 const IMAGE_3_RATIO = 215 / 315;

@@ -51,7 +51,11 @@ class AddAsset extends PureComponent {
 		/**
 		 * Chain id
 		 */
-		chainId: PropTypes.string
+		chainId: PropTypes.string,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	renderTabBar() {

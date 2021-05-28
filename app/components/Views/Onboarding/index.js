@@ -221,7 +221,11 @@ class Onboarding extends PureComponent {
 		/**
 		 * loadings msg
 		 */
-		loadingMsg: PropTypes.string
+		loadingMsg: PropTypes.string,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	notificationAnimated = new Animated.Value(100);

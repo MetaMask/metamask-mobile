@@ -111,7 +111,11 @@ class ContactForm extends PureComponent {
 		/**
 		 * Map representing the address book
 		 */
-		addressBook: PropTypes.object
+		addressBook: PropTypes.object,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	state = {

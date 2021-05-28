@@ -19,7 +19,7 @@ import Main from '../Main';
 import DrawerView from '../../UI/DrawerView';
 import OptinMetrics from '../../UI/OptinMetrics';
 import SimpleWebview from '../../Views/SimpleWebview';
-import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
+//import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
