@@ -1,11 +1,22 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useContext, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, TextInput, SafeAreaView, TouchableOpacity, View, TouchableWithoutFeedback } from 'react-native';
+import {
+	StyleSheet,
+	TextInput,
+	SafeAreaView,
+	TouchableOpacity,
+	View,
+	TouchableWithoutFeedback,
+	ActivityIndicator
+} from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
+import { NavigationContext } from 'react-navigation';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
+import FAIcon from 'react-native-vector-icons/FontAwesome5';
 import Fuse from 'fuse.js';
 import { connect } from 'react-redux';
+import { isValidAddress } from 'ethereumjs-util';
 
 import Device from '../../../../util/Device';
 import { balanceToFiat, hexToBN, renderFromTokenMinimalUnit, renderFromWei, weiToFiat } from '../../../../util/number';
@@ -18,6 +29,11 @@ import Text from '../../../Base/Text';
 import ListItem from '../../../Base/ListItem';
 import ModalDragger from '../../../Base/ModalDragger';
 import TokenIcon from './TokenIcon';
+import Alert from '../../../Base/Alert';
+import useBlockExplorer from '../utils/useBlockExplorer';
+import useFetchTokenMetadata from '../utils/useFetchTokenMetadata';
+import useModalHandler from '../../../Base/hooks/useModalHandler';
+import TokenImportModal from './TokenImportModal';
 
 const styles = StyleSheet.create({
 	modal: {
@@ -62,6 +78,32 @@ const styles = StyleSheet.create({
 	emptyList: {
 		marginVertical: 10,
 		marginHorizontal: 30
+	},
+	importButton: {
+		paddingVertical: 6,
+		paddingHorizontal: 10,
+		backgroundColor: colors.blue,
+		borderRadius: 100
+	},
+	importButtonText: {
+		color: colors.white
+	},
+	loadingIndicator: {
+		margin: 10
+	},
+	loadingTokenView: {
+		marginVertical: 10,
+		marginHorizontal: 30,
+		justifyContent: 'center',
+		alignItems: 'center',
+		flexDirection: 'row'
+	},
+	footer: {
+		padding: 30
+	},
+	footerIcon: {
+		paddingTop: 4,
+		paddingRight: 8
 	}
 });
 
@@ -80,22 +122,32 @@ function TokenSelectModal({
 	currentCurrency,
 	conversionRate,
 	tokenExchangeRates,
+	chainId,
+	provider,
+	frequentRpcList,
 	balances
 }) {
+	const navigation = useContext(NavigationContext);
 	const searchInput = useRef(null);
 	const list = useRef();
 	const [searchString, setSearchString] = useState('');
+	const explorer = useBlockExplorer(provider, frequentRpcList);
+	const [isTokenImportVisible, , showTokenImportModal, hideTokenImportModal] = useModalHandler(false);
 
-	const filteredTokens = useMemo(() => tokens?.filter(token => !excludeAddresses.includes(token.address)), [
-		tokens,
+	const excludedAddresses = useMemo(() => excludeAddresses.filter(Boolean).map(address => address.toLowerCase()), [
 		excludeAddresses
 	]);
+
+	const filteredTokens = useMemo(
+		() => tokens?.filter(token => !excludedAddresses.includes(token.address?.toLowerCase())),
+		[tokens, excludedAddresses]
+	);
 	const filteredInitialTokens = useMemo(
 		() =>
 			initialTokens?.length > 0
-				? initialTokens.filter(token => !excludeAddresses.includes(token.address))
+				? initialTokens.filter(token => !excludedAddresses.includes(token.address?.toLowerCase()))
 				: filteredTokens,
-		[excludeAddresses, filteredTokens, initialTokens]
+		[excludedAddresses, filteredTokens, initialTokens]
 	);
 	const tokenFuse = useMemo(
 		() =>
@@ -116,6 +168,19 @@ function TokenSelectModal({
 				? tokenFuse.search(searchString)?.slice(0, MAX_TOKENS_RESULTS)
 				: filteredInitialTokens,
 		[searchString, tokenFuse, filteredInitialTokens]
+	);
+
+	const shouldFetchToken = useMemo(
+		() =>
+			tokenSearchResults.length === 0 &&
+			isValidAddress(searchString) &&
+			!excludedAddresses.includes(searchString?.toLowerCase()),
+		[excludedAddresses, searchString, tokenSearchResults.length]
+	);
+
+	const [loadingTokenMetadata, tokenMetadata] = useFetchTokenMetadata(
+		shouldFetchToken ? searchString : null,
+		chainId
 	);
 
 	const renderItem = useCallback(
@@ -158,6 +223,58 @@ function TokenSelectModal({
 
 	const handleSearchPress = () => searchInput?.current?.focus();
 
+	const handleShowImportToken = useCallback(() => {
+		searchInput?.current?.blur();
+		showTokenImportModal();
+	}, [showTokenImportModal]);
+
+	const handlePressImportToken = useCallback(
+		item => {
+			hideTokenImportModal();
+			onItemPress(item);
+		},
+		[hideTokenImportModal, onItemPress]
+	);
+
+	const handleBlockExplorerPress = useCallback(() => {
+		navigation.navigate('Webview', {
+			url: explorer.token(shouldFetchToken ? searchString : ''),
+			title: strings(shouldFetchToken ? 'swaps.verify' : 'swaps.find_token_address')
+		});
+		dismiss();
+	}, [dismiss, explorer, navigation, searchString, shouldFetchToken]);
+
+	const renderFooter = useMemo(
+		() => (
+			<View style={[styles.resultRow, styles.footer]}>
+				<Alert
+					renderIcon={() => (
+						<FAIcon name="info-circle" style={styles.footerIcon} color={colors.blue} size={15} />
+					)}
+				>
+					{textStyle => (
+						<Text style={textStyle}>
+							<Text reset bold>
+								{strings('swaps.manually_add_token')}
+							</Text>
+							{` ${strings('swaps.by_copy_pasting')}`}
+							{explorer.isValid && (
+								<Text reset>
+									{` ${strings('swaps.token_address_can_be_found')} `}
+									<Text reset link underline onPress={handleBlockExplorerPress}>
+										{explorer.name}
+									</Text>
+									.
+								</Text>
+							)}
+						</Text>
+					)}
+				</Alert>
+			</View>
+		),
+		[explorer.isValid, explorer.name, handleBlockExplorerPress]
+	);
+
 	const renderEmptyList = useMemo(
 		() => (
 			<View style={styles.emptyList}>
@@ -171,6 +288,11 @@ function TokenSelectModal({
 		setSearchString(text);
 		if (list.current) list.current.scrollToOffset({ animated: false, y: 0 });
 	}, []);
+
+	const handleClearSearch = useCallback(() => {
+		setSearchString('');
+		searchInput?.current?.focus();
+	}, [setSearchString]);
 
 	return (
 		<Modal
@@ -200,18 +322,93 @@ function TokenSelectModal({
 							value={searchString}
 							onChangeText={handleSearchTextChange}
 						/>
+						{searchString.length > 0 && (
+							<TouchableOpacity onPress={handleClearSearch}>
+								<Icon
+									name="ios-close-circle"
+									size={20}
+									style={styles.searchIcon}
+									color={colors.grey300}
+								/>
+							</TouchableOpacity>
+						)}
 					</View>
 				</TouchableWithoutFeedback>
-				<FlatList
-					ref={list}
-					style={styles.resultsView}
-					keyboardDismissMode="none"
-					keyboardShouldPersistTaps="always"
-					data={tokenSearchResults}
-					renderItem={renderItem}
-					keyExtractor={item => item.address}
-					ListEmptyComponent={renderEmptyList}
-				/>
+				{shouldFetchToken ? (
+					<View style={styles.resultsView}>
+						{loadingTokenMetadata ? (
+							<View style={styles.loadingTokenView}>
+								<ActivityIndicator style={styles.loadingIndicator} />
+								<Text>{strings('swaps.gathering_token_details')}</Text>
+							</View>
+						) : tokenMetadata.error ? (
+							<View style={styles.emptyList}>
+								<Text>{strings('swaps.error_gathering_token_details')}</Text>
+							</View>
+						) : tokenMetadata.valid ? (
+							<View style={styles.resultRow}>
+								<ListItem>
+									<ListItem.Content>
+										<ListItem.Icon>
+											<TokenIcon
+												medium
+												icon={tokenMetadata.metadata.iconUrl}
+												symbol={tokenMetadata.metadata.symbol}
+											/>
+										</ListItem.Icon>
+										<ListItem.Body>
+											<ListItem.Title>{tokenMetadata.metadata.symbol}</ListItem.Title>
+											{tokenMetadata.metadata.name && <Text>{tokenMetadata.metadata.name}</Text>}
+										</ListItem.Body>
+										<ListItem.Amounts>
+											<TouchableOpacity
+												style={styles.importButton}
+												onPress={handleShowImportToken}
+											>
+												<Text small style={styles.importButtonText}>
+													{strings('swaps.Import')}
+												</Text>
+											</TouchableOpacity>
+										</ListItem.Amounts>
+									</ListItem.Content>
+								</ListItem>
+								<TokenImportModal
+									isVisible={isTokenImportVisible}
+									dismiss={hideTokenImportModal}
+									token={tokenMetadata.metadata}
+									onPressImport={() => handlePressImportToken(tokenMetadata.metadata)}
+								/>
+							</View>
+						) : (
+							<View style={styles.emptyList}>
+								<Text>
+									{strings('swaps.invalid_token_contract_address')}
+									{explorer.isValid && (
+										<Text reset>
+											{` ${strings('swaps.please_verify_on_explorer')} `}
+											<Text reset link underline onPress={handleBlockExplorerPress}>
+												{explorer.name}
+											</Text>
+											.
+										</Text>
+									)}
+								</Text>
+							</View>
+						)}
+					</View>
+				) : (
+					<FlatList
+						ref={list}
+						style={styles.resultsView}
+						keyboardDismissMode="none"
+						keyboardShouldPersistTaps="always"
+						data={tokenSearchResults}
+						renderItem={renderItem}
+						keyExtractor={item => item.address}
+						ListEmptyComponent={renderEmptyList}
+						ListFooterComponent={renderFooter}
+					/>
+				)}
 			</SafeAreaView>
 		</Modal>
 	);
@@ -248,7 +445,19 @@ TokenSelectModal.propTypes = {
 	/**
 	 * An object containing token exchange rates in the format address => exchangeRate
 	 */
-	tokenExchangeRates: PropTypes.object
+	tokenExchangeRates: PropTypes.object,
+	/**
+	 * Chain Id
+	 */
+	chainId: PropTypes.string,
+	/**
+	 * Current Network provider
+	 */
+	provider: PropTypes.object,
+	/**
+	 * Frequent RPC list from PreferencesController
+	 */
+	frequentRpcList: PropTypes.array
 };
 
 const mapStateToProps = state => ({
@@ -257,7 +466,10 @@ const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	balances: state.engine.backgroundState.TokenBalancesController.contractBalances,
-	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates
+	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+	provider: state.engine.backgroundState.NetworkController.provider,
+	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList
 });
 
 export default connect(mapStateToProps)(TokenSelectModal);
