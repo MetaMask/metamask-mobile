@@ -1021,6 +1021,7 @@ class DrawerView extends PureComponent {
 				</Modal>
 				<Modal isVisible={!!invalidCustomNetwork}>
 					<InvalidCustomNetworkAlert
+						navigation={this.props.navigation}
 						network={invalidCustomNetwork}
 						onClose={this.closeInvalidCustomNetworkAlert}
 					/>

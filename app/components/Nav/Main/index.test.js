@@ -6,7 +6,7 @@ import Main from './';
 
 describe('Main', () => {
 	it('should render correctly', () => {
-		const MainAppContainer = (
+		const MainAppContainer = () => (
 			<NavigationContainer>
 				<Main />
 			</NavigationContainer>

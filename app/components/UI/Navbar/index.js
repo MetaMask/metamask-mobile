@@ -563,6 +563,7 @@ export function getOptinMetricsNavbarOptions() {
 			borderBottomWidth: 0,
 			height: 100
 		},
+		title: null,
 		headerLeft: () => (
 			<View style={styles.optinHeaderLeft}>
 				<View style={styles.metamaskNameWrapper}>

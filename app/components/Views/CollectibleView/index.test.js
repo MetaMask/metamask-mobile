@@ -11,7 +11,7 @@ describe('CollectibleView', () => {
 
 		const wrapper = shallow(
 			<CollectibleView
-				navigation={{ state: { params: { address: '0x1' } } }}
+				route={{ params: { address: '0x1' } }}
 				asset={{ name: 'Leopard', tokenId: 6904, address: '0x123' }}
 			/>,
 			{

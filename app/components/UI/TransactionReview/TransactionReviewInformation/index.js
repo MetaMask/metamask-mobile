@@ -18,7 +18,6 @@ import { getTicker, getNormalizedTxState } from '../../../../util/transactions';
 import TransactionReviewFeeCard from '../TransactionReviewFeeCard';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
-import { withNavigation } from '@react-navigation/compat';
 import { getNetworkName, getNetworkNonce, isMainNet } from '../../../../util/networks';
 import { capitalize } from '../../../../util/general';
 import CustomNonceModal from '../../../UI/CustomNonceModal';
@@ -449,4 +448,4 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
 	mapStateToProps,
 	mapDispatchToProps
-)(withNavigation(TransactionReviewInformation));
+)(TransactionReviewInformation);

@@ -25,15 +25,6 @@ exports[`CollectibleView should render correctly 1`] = `
             "address": "0x1",
           }
         }
-        navigation={
-          Object {
-            "state": Object {
-              "params": Object {
-                "address": "0x1",
-              },
-            },
-          }
-        }
       />
     </View>
   </ScrollView>

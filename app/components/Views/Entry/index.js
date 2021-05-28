@@ -85,7 +85,12 @@ const Entry = props => {
 			useNativeDriver: true,
 			isInteraction: false
 		}).start(() => {
-			if (viewToGo !== 'WalletView' || viewToGo !== 'Onboarding') {
+			if (viewToGo === 'OptinMetrics') {
+				props.navigation.navigate('OnboardingRootNav', {
+					screen: 'OnboardingNav',
+					params: { screen: 'OptinMetrics' }
+				});
+			} else if (viewToGo !== 'WalletView' || viewToGo !== 'Onboarding') {
 				props.navigation.navigate(viewToGo);
 			} else if (viewToGo === 'Onboarding') {
 				props.navigation.navigate('OnboardingRootNav');

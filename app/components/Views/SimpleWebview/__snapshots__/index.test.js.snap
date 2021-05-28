@@ -19,10 +19,7 @@ exports[`SimpleWebview should render correctly 1`] = `
     }
     source={
       Object {
-        "uri": Object {
-          "title": "etherscan",
-          "url": "https://etherscan.io",
-        },
+        "uri": "https://etherscan.io",
       }
     }
     useSharedProcessPool={true}

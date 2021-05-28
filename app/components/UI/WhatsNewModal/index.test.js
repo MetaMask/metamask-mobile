@@ -4,7 +4,7 @@ import WhatsNewModal from './';
 
 describe('WhatsNewModal', () => {
 	it('should render correctly', () => {
-		const wrapper = shallow(<WhatsNewModal navigation={{}} />);
+		const wrapper = shallow(<WhatsNewModal navigation={{}} route={{}} />);
 		expect(wrapper).toMatchSnapshot();
 	});
 });
