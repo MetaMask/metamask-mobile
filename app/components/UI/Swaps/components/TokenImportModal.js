@@ -74,14 +74,7 @@ function TokenImportModal({ isVisible, dismiss, token, onPressImport }) {
 							<FAIcon name="info-circle" style={styles.alertIcon} color={colors.red} size={15} />
 						)}
 					>
-						{textStyle => (
-							<Text style={textStyle}>
-								<Text reset bold>
-									{strings('swaps.add_at_your_own_risk')}
-								</Text>
-								{`\n${strings('swaps.add_warning')}`}
-							</Text>
-						)}
+						{textStyle => <Text style={textStyle}>{strings('swaps.add_warning')}</Text>}
 					</Alert>
 					<Text bold primary centered style={styles.title}>
 						{strings('swaps.import_token')}

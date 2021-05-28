@@ -255,9 +255,9 @@ function TokenSelectModal({
 					{textStyle => (
 						<Text style={textStyle}>
 							<Text reset bold>
-								{strings('swaps.manually_add_token')}
+								{strings('swaps.cant_find_token')}
 							</Text>
-							{` ${strings('swaps.by_copy_pasting')}`}
+							{` ${strings('swaps.manually_pasting')}`}
 							{explorer.isValid && (
 								<Text reset>
 									{` ${strings('swaps.token_address_can_be_found')} `}
