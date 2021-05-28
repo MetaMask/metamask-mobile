@@ -115,12 +115,12 @@ const HomeNav = () => (
 	</Drawer.Navigator>
 );
 
+// Is this necessary?
 /**
  * Drawer status tracking
- */
-//const defaultGetStateForAction = HomeNav.router.getStateForAction;
+const defaultGetStateForAction = HomeNav.router.getStateForAction;
 DrawerStatusTracker.init();
-/*HomeNav.router.getStateForAction = (action, state) => {
+HomeNav.router.getStateForAction = (action, state) => {
 	if (action) {
 		if (action.type === 'Navigation/MARK_DRAWER_SETTLING' && action.willShow) {
 			DrawerStatusTracker.setStatus('open');
@@ -130,7 +130,8 @@ DrawerStatusTracker.init();
 	}
 
 	return defaultGetStateForAction(action, state);
-};*/
+};
+*/
 
 /**
  * Top level switch navigator which decides

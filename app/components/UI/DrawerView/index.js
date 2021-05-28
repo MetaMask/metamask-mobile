@@ -402,7 +402,19 @@ class DrawerView extends PureComponent {
 	componentDidUpdate() {
 		const route = findRouteNameFromNavigatorState(this.props.navigation.dangerouslyGetState());
 		if (!this.props.passwordSet || !this.props.seedphraseBackedUp) {
-			if (['SetPasswordFlow', 'Webview', 'LockScreen'].includes(route)) {
+			if (
+				[
+					'SetPasswordFlow',
+					'ChoosePassword',
+					'AccountBackupStep1',
+					'AccountBackupStep1B',
+					'ManualBackupStep1',
+					'ManualBackupStep2',
+					'ManualBackupStep3',
+					'Webview',
+					'LockScreen'
+				].includes(route)
+			) {
 				// eslint-disable-next-line react/no-did-update-set-state
 				this.state.showProtectWalletModal && this.setState({ showProtectWalletModal: false });
 				return;
@@ -792,7 +804,7 @@ class DrawerView extends PureComponent {
 
 	onSecureWalletModalAction = () => {
 		this.setState({ showProtectWalletModal: false });
-		this.props.navigation.navigate(this.props.passwordSet ? 'AccountBackupStep1' : 'SetPasswordFlow');
+		this.props.navigation.navigate('SetPasswordFlow', this.props.passwordSet && { screen: 'AccountBackupStep1' });
 	};
 
 	renderProtectModal = () => (

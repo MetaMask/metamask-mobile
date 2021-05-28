@@ -488,6 +488,7 @@ export function getBrowserViewNavbarOptions(navigation, route) {
 				error={!!error}
 				icon={url && !isHomepage(url) ? icon : null}
 				navigation={navigation}
+				route={route}
 				url={url}
 				hostname={hostname}
 				https={isHttps}
@@ -538,7 +539,7 @@ export function getOnboardingNavbarOptions(navigation, route, { headerLeft } = {
 		),
 		headerBackTitle: strings('navigation.back'),
 		headerRight: () => <View />,
-		headerLeft: () => headerLeftHide
+		headerLeft: headerLeftHide
 	};
 }
 
