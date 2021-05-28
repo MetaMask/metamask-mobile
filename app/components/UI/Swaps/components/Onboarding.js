@@ -64,7 +64,10 @@ function Onboarding({ setHasOnboarded }) {
 
 	const handleReviewAuditsPress = useCallback(() => {
 		navigation.navigate('Webview', {
-			url: 'https://consensys.net/diligence/audits/2020/08/metaswap/'
+			screen: 'SimpleWebview',
+			params: {
+				url: 'https://consensys.net/diligence/audits/2020/08/metaswap/'
+			}
 		});
 	}, [navigation]);
 

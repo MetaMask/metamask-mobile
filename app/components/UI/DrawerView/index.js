@@ -586,8 +586,11 @@ class DrawerView extends PureComponent {
 
 	goToBrowserUrl(url, title) {
 		this.props.navigation.navigate('Webview', {
-			url,
-			title
+			screen: 'SimpleWebview',
+			params: {
+				url,
+				title
+			}
 		});
 		this.hideDrawer();
 	}
@@ -610,7 +613,7 @@ class DrawerView extends PureComponent {
 
 	onImportAccount = () => {
 		this.toggleAccountsModal();
-		this.props.navigation.navigate('ImportPrivateKey');
+		this.props.navigation.navigate('ImportPrivateKeyView');
 		this.hideDrawer();
 	};
 

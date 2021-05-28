@@ -440,8 +440,11 @@ export function useWyreTerms(navigation) {
 	const handleWyreTerms = useCallback(
 		() =>
 			navigation.navigate('Webview', {
-				url: 'https://www.sendwyre.com/user-agreement/',
-				title: strings('fiat_on_ramp.wyre_user_agreement')
+				screen: 'SimpleWebview',
+				params: {
+					url: 'https://www.sendwyre.com/user-agreement/',
+					title: strings('fiat_on_ramp.wyre_user_agreement')
+				}
 			}),
 		[navigation]
 	);

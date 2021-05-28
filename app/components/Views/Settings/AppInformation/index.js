@@ -97,8 +97,11 @@ export default class AppInformation extends PureComponent {
 	goTo = (url, title) => {
 		InteractionManager.runAfterInteractions(() => {
 			this.props.navigation.navigate('Webview', {
-				url,
-				title
+				screen: 'SimpleWebview',
+				params: {
+					url,
+					title
+				}
 			});
 		});
 	};

@@ -414,8 +414,11 @@ function SwapsAmountView({
 		}
 		hideTokenVerificationModal();
 		navigation.navigate('Webview', {
-			url: explorer.token(destinationToken.address),
-			title: strings('swaps.verify')
+			screen: 'SimpleWebview',
+			params: {
+				url: explorer.token(destinationToken.address),
+				title: strings('swaps.verify')
+			}
 		});
 	}, [explorer, destinationToken, hideTokenVerificationModal, navigation]);
 

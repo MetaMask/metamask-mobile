@@ -59,7 +59,7 @@ const InvalidCustomNetworkAlert = props => {
 
 	const openLink = () => {
 		closeModal();
-		props.navigation.navigate('SimpleWebview', { url: 'https://chainid.network' });
+		props.navigation.navigate('Webview', { screen: 'SimpleWebview', params: { url: 'https://chainid.network' } });
 	};
 
 	return (

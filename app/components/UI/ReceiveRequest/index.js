@@ -199,7 +199,10 @@ class ReceiveRequest extends PureComponent {
 
 	onReceive = () => {
 		this.props.toggleReceiveModal();
-		this.props.navigation.navigate('PaymentRequestView', { receiveAsset: this.props.receiveAsset });
+		this.props.navigation.navigate('PaymentRequestView', {
+			screen: 'PaymentRequest',
+			params: { receiveAsset: this.props.receiveAsset }
+		});
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST);
 		});

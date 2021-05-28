@@ -201,8 +201,11 @@ const AccountBackupStep1B = props => {
 	const learnMore = () => {
 		setWhySecureWalletModal(false);
 		props.navigation.navigate('Webview', {
-			url: 'https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-Tips',
-			title: strings('drawer.metamask_support')
+			screen: 'SimpleWebview',
+			params: {
+				url: 'https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-Tips',
+				title: strings('drawer.metamask_support')
+			}
 		});
 	};
 

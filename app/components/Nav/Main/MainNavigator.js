@@ -85,12 +85,7 @@ const WalletTabHome = () => (
 
 const BrowserTabHome = () => (
 	<Stack.Navigator>
-		<Stack.Screen
-			name="BrowserView"
-			component={Browser}
-			gestureEnabled={false}
-			options={Browser.navigationOptions}
-		/>
+		<Stack.Screen name="BrowserView" component={Browser} options={Browser.navigationOptions} />
 	</Stack.Navigator>
 );
 
@@ -183,7 +178,11 @@ const SettingsView = () => (
 );
 
 const ImportPrivateKeyView = () => (
-	<Stack.Navigator>
+	<Stack.Navigator
+		screenOptions={{
+			headerShown: false
+		}}
+	>
 		<Stack.Screen name="ImportPrivateKey" component={ImportPrivateKey} />
 		<Stack.Screen name="ImportPrivateKeySuccess" component={ImportPrivateKeySuccess} />
 	</Stack.Navigator>
@@ -192,7 +191,6 @@ const ImportPrivateKeyView = () => (
 const SendView = () => (
 	<Stack.Navigator>
 		<Stack.Screen name="Send" component={Send} options={Send.navigationOptions} />
-		<Stack.Screen name="ImportPrivateKeySuccess" component={ImportPrivateKeySuccess} />
 	</Stack.Navigator>
 );
 
@@ -304,11 +302,16 @@ const SetPasswordFlow = () => (
 );
 
 const MainNavigator = () => (
-	<Stack.Navigator headerMode={'none'} mode={'modal'}>
+	<Stack.Navigator
+		screenOptions={{
+			headerShown: false
+		}}
+		mode={'modal'}
+	>
 		<Stack.Screen name="Home" tabBarVisible={false} component={HomeTabs} />
 		<Stack.Screen name="Webview" component={Webview} />
 		<Stack.Screen name="SettingsView" component={SettingsView} />
-		<Stack.Screen name="ImportPrivateKeyView" headerMode={'none'} component={ImportPrivateKeyView} />
+		<Stack.Screen name="ImportPrivateKeyView" component={ImportPrivateKeyView} />
 		<Stack.Screen name="SendView" component={SendView} />
 		<Stack.Screen name="SendFlowView" component={SendFlowView} />
 		<Stack.Screen name="ApprovalView" component={ApprovalView} />

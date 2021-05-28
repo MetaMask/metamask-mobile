@@ -473,6 +473,7 @@ export function getBrowserViewNavbarOptions(navigation, route) {
 	}
 
 	return {
+		gestureEnabled: false,
 		headerLeft: () => (
 			<TouchableOpacity onPress={onPress} style={styles.hamburgerButton} testID={'hamburger-menu-button-browser'}>
 				<IonicIcon

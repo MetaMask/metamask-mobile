@@ -87,8 +87,11 @@ class ProtectYourWalletModal extends PureComponent {
 	onLearnMore = () => {
 		this.props.protectWalletModalNotVisible();
 		this.props.navigation.navigate('Webview', {
-			url: 'https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-Tips',
-			title: strings('protect_wallet_modal.title')
+			screen: 'SimpleWebview',
+			params: {
+				url: 'https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-Tips',
+				title: strings('protect_wallet_modal.title')
+			}
 		});
 	};
 

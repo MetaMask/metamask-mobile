@@ -111,8 +111,11 @@ class ManualBackupStep3 extends PureComponent {
 
 	learnMore = () =>
 		this.props.navigation.navigate('Webview', {
-			url: 'https://support.metamask.io',
-			title: strings('drawer.metamask_support')
+			screen: 'SimpleWebview',
+			params: {
+				url: 'https://support.metamask.io',
+				title: strings('drawer.metamask_support')
+			}
 		});
 
 	isHintSeedPhrase = hintText => {

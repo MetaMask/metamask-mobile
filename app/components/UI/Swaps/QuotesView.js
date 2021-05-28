@@ -830,7 +830,10 @@ function SwapsQuotesView({
 	const handleTermsPress = useCallback(
 		() =>
 			navigation.navigate('Webview', {
-				url: AppConstants.URLS.TERMS_AND_CONDITIONS
+				screen: 'SimpleWebview',
+				params: {
+					url: AppConstants.URLS.TERMS_AND_CONDITIONS
+				}
 			}),
 		[navigation]
 	);

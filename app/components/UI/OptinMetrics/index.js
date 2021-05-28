@@ -212,8 +212,11 @@ class OptinMetrics extends PureComponent {
 	 */
 	onPressPolicy = () => {
 		this.props.navigation.navigate('Webview', {
-			url: AppConstants.URLS.PRIVACY_POLICY,
-			title: strings('privacy_policy.title')
+			screen: 'SimpleWebview',
+			params: {
+				url: AppConstants.URLS.PRIVACY_POLICY,
+				title: strings('privacy_policy.title')
+			}
 		});
 	};
 
