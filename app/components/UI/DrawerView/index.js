@@ -40,7 +40,7 @@ import SettingsNotification from '../SettingsNotification';
 import WhatsNewModal from '../WhatsNewModal';
 import InvalidCustomNetworkAlert from '../InvalidCustomNetworkAlert';
 import { RPC } from '../../../constants/network';
-import { findBottomTabRouteNameFromNavigatorState, findRouteNameFromNavigatorState } from '../../../util/general';
+import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
@@ -402,8 +402,7 @@ class DrawerView extends PureComponent {
 	componentDidUpdate() {
 		const route = findRouteNameFromNavigatorState(this.props.navigation.dangerouslyGetState());
 		if (!this.props.passwordSet || !this.props.seedphraseBackedUp) {
-			const bottomTab = findBottomTabRouteNameFromNavigatorState(this.props.navigation.dangerouslyGetState());
-			if (['SetPasswordFlow', 'Webview', 'LockScreen'].includes(bottomTab)) {
+			if (['SetPasswordFlow', 'Webview', 'LockScreen'].includes(route)) {
 				// eslint-disable-next-line react/no-did-update-set-state
 				this.state.showProtectWalletModal && this.setState({ showProtectWalletModal: false });
 				return;

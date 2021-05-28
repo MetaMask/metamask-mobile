@@ -8,7 +8,7 @@ import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import Device from '../../../util/Device';
 import { connect } from 'react-redux';
 import { backUpSeedphraseAlertNotVisible } from '../../../actions/user';
-import { findBottomTabRouteNameFromNavigatorState, findRouteNameFromNavigatorState } from '../../../util/general';
+import { findRouteNameFromNavigatorState } from '../../../util/general';
 
 const BROWSER_ROUTE = 'BrowserView';
 
@@ -114,13 +114,10 @@ class BackupAlert extends PureComponent {
 	componentDidUpdate = async prevProps => {
 		if (prevProps.navigation.dangerouslyGetState() !== this.props.navigation.dangerouslyGetState()) {
 			const currentRouteName = findRouteNameFromNavigatorState(this.props.navigation.dangerouslyGetState());
-			const currentTabRouteName = findBottomTabRouteNameFromNavigatorState(
-				this.props.navigation.dangerouslyGetState()
-			);
 
 			const inBrowserView = currentRouteName === BROWSER_ROUTE;
 			const blockedView =
-				BLOCKED_LIST.find(path => currentRouteName.includes(path)) || currentTabRouteName === 'SetPasswordFlow';
+				BLOCKED_LIST.find(path => currentRouteName.includes(path)) || currentRouteName === 'SetPasswordFlow';
 			// eslint-disable-next-line react/no-did-update-set-state
 			this.setState({ inBrowserView, blockedView });
 		}

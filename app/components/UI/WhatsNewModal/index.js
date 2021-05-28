@@ -20,6 +20,7 @@ import { CURRENT_APP_VERSION, LAST_APP_VERSION, WHATS_NEW_APP_VERSION_SEEN } fro
 import compareVersions from 'compare-versions';
 import scaling from '../../../util/scaling';
 import PropTypes from 'prop-types';
+import { findRouteNameFromNavigatorState } from '../../../util/general';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -148,14 +149,6 @@ const WhatsNewModal = props => {
 	const callButton = feature => {
 		closeModal();
 		feature.buttonPress && feature.buttonPress(props);
-	};
-
-	const findRouteNameFromNavigatorState = ({ routes }) => {
-		let route = routes[routes.length - 1];
-		while (route.index !== undefined) {
-			route = route.routes[route.index];
-		}
-		return route?.name;
 	};
 
 	useEffect(() => {

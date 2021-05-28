@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
  */
 
 const WalletTabHome = () => (
-	<Stack.Navigator>
+	<Stack.Navigator initialRouteName={'WalletView'}>
 		<Stack.Screen name="WalletView" component={Wallet} options={Wallet.navigationOptions} />
 		<Stack.Screen name="Asset" component={Asset} options={Asset.navigationOptions} />
 		<Stack.Screen name="AddAsset" component={AddAsset} options={AddAsset.navigationOptions} />
@@ -96,7 +96,7 @@ const TransactionsHome = () => (
 );
 
 const HomeTabs = () => (
-	<Tab.Navigator>
+	<Tab.Navigator initialRouteName={'WalletView'}>
 		<Tab.Screen name="WalletTabHome" component={WalletTabHome} options={{ tabBarVisible: false }} />
 		<Tab.Screen name="BrowserTabHome" component={BrowserTabHome} options={{ tabBarVisible: false }} />
 		<Tab.Screen name="TransactionsHome" component={TransactionsHome} options={{ tabBarVisible: false }} />
@@ -307,6 +307,7 @@ const MainNavigator = () => (
 			headerShown: false
 		}}
 		mode={'modal'}
+		initialRouteName={'Home'}
 	>
 		<Stack.Screen name="Home" tabBarVisible={false} component={HomeTabs} />
 		<Stack.Screen name="Webview" component={Webview} />
