@@ -57,7 +57,11 @@ export default class QrScanner extends PureComponent {
 		/**
 		 * Object that represents the navigator
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	mounted = false;

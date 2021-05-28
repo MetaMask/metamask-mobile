@@ -61,10 +61,6 @@ const styles = StyleSheet.create({
 class NavbarBrowserTitle extends PureComponent {
 	static propTypes = {
 		/**
-		 * Object representing the navigator
-		 */
-		navigation: PropTypes.object,
-		/**
 		 * String representing the current url
 		 */
 		url: PropTypes.string,
@@ -87,7 +83,11 @@ class NavbarBrowserTitle extends PureComponent {
 		/**
 		 * Website icon
 		 */
-		icon: PropTypes.string
+		icon: PropTypes.string,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	onTitlePress = () => {

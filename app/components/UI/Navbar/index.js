@@ -1,3 +1,4 @@
+/* eslint-disable react/display-name */
 import React from 'react';
 import NavbarTitle from '../NavbarTitle';
 import ModalNavbarTitle from '../ModalNavbarTitle';
@@ -35,11 +36,6 @@ const trackEventWithParameters = (event, params) => {
 };
 
 const styles = StyleSheet.create({
-	rightButton: {
-		marginTop: 7,
-		marginRight: 12,
-		marginBottom: 12
-	},
 	metamaskName: {
 		width: 122,
 		height: 15
@@ -48,10 +44,6 @@ const styles = StyleSheet.create({
 		width: 40,
 		height: 40,
 		marginRight: 10
-	},
-	closeIcon: {
-		paddingLeft: Device.isAndroid() ? 22 : 18,
-		color: colors.blue
 	},
 	backIcon: {
 		color: colors.blue
@@ -86,30 +78,14 @@ const styles = StyleSheet.create({
 	infoIcon: {
 		color: colors.blue
 	},
-	flex: {
-		flex: 1
-	},
 	closeButtonText: {
 		color: colors.blue,
 		fontSize: 14,
 		...fontStyles.normal
 	},
-	title: {
-		fontSize: 18,
-		...fontStyles.normal
-	},
-	titleWrapper: {
-		alignItems: 'center',
-		flex: 1
-	},
 	browserRightButton: {
 		flex: 1,
 		marginRight: Device.isAndroid() ? 10 : 0
-	},
-	tabIconAndroidWrapper: {
-		alignItems: 'center',
-		width: 36,
-		marginLeft: 5
 	},
 	disabled: {
 		opacity: 0.3
@@ -118,13 +94,6 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		marginHorizontal: Device.isIos() ? 20 : 0
-	},
-	tabIconAndroid: {
-		marginTop: 13,
-		marginLeft: 0,
-		marginRight: 3,
-		width: 24,
-		height: 24
 	},
 	metamaskNameTransparentWrapper: {
 		alignItems: 'center',

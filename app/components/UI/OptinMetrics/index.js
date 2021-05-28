@@ -29,7 +29,8 @@ import AppConstants from '../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	root: {
-		...baseStyles.flexGrow
+		...baseStyles.flexGrow,
+		backgroundColor: colors.white
 	},
 	checkIcon: {
 		color: colors.green500

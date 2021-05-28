@@ -246,10 +246,15 @@ AccountBackupStep1.propTypes = {
 	/**
 	/* navigation object required to push and pop other views
 	*/
-	navigation: PropTypes.object
+	navigation: PropTypes.object,
+	/**
+	 * Object that represents the current route info like params passed to it
+	 */
+	route: PropTypes.object
 };
 
 AccountBackupStep1.navigationOptions = ({ navigation, route }) => ({
+	// eslint-disable-next-line react/display-name
 	...getOnboardingNavbarOptions(navigation, route, { headerLeft: () => <View /> }),
 	gesturesEnabled: false
 });

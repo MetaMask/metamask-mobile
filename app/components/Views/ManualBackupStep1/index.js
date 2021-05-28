@@ -237,6 +237,7 @@ export default class ManualBackupStep1 extends PureComponent {
 
 	async componentDidMount() {
 		this.words = this.props.route.params?.words ?? [];
+
 		if (!this.words.length) {
 			try {
 				const credentials = await SecureKeychain.getGenericPassword();

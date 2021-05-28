@@ -42,7 +42,11 @@ export default class AddBookmark extends PureComponent {
 		/**
 		/* navigation object required to push new views
 		*/
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	componentDidMount() {
@@ -50,7 +54,7 @@ export default class AddBookmark extends PureComponent {
 	}
 
 	loadInitialValues() {
-		const { navigation, route } = this.props;
+		const { route } = this.props;
 		this.setState({
 			title: route.params?.title ?? '',
 			url: route.params?.url ?? ''

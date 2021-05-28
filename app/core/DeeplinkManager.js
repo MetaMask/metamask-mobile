@@ -89,7 +89,6 @@ class DeeplinkManager {
 	}
 
 	parse(url, { browserCallBack, origin, onHandled }) {
-		console.log(url);
 		const urlObj = new URL(url);
 		let params;
 

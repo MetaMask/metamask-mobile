@@ -170,7 +170,11 @@ class RevealPrivateCredential extends PureComponent {
 		/**
 		 * Cancel function to be called when cancel button is clicked. If not provided, we go to previous screen on cancel
 		 */
-		cancel: PropTypes.func
+		cancel: PropTypes.func,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	async componentDidMount() {

@@ -14,7 +14,11 @@ export default class SimpleWebview extends PureComponent {
 		/**
 		 * react-navigation object used to switch between screens
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	componentDidMount = () => {

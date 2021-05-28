@@ -28,7 +28,11 @@ class TransakWebView extends PureComponent {
 		/**
 		 * Prompts protect wallet modal
 		 */
-		protectWalletModalVisible: PropTypes.func
+		protectWalletModalVisible: PropTypes.func,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	handleNavigationStateChange = async navState => {

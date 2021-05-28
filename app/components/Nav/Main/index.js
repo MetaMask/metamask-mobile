@@ -720,10 +720,6 @@ Main.propTypes = {
 	hideCurrentNotification: PropTypes.func,
 	removeNotificationById: PropTypes.func,
 	/**
-	 * Indicates whether the current transaction is a deep link transaction
-	 */
-	isPaymentRequest: PropTypes.bool,
-	/**
 	 * Indicates whether third party API mode is enabled
 	 */
 	thirdPartyApiMode: PropTypes.bool,
@@ -766,7 +762,11 @@ Main.propTypes = {
 	/**
 	 * Remove not visible notifications from state
 	 */
-	removeNotVisibleNotifications: PropTypes.func
+	removeNotVisibleNotifications: PropTypes.func,
+	/**
+	 * Object that represents the current route info like params passed to it
+	 */
+	route: PropTypes.object
 };
 
 const mapStateToProps = state => ({
@@ -775,7 +775,6 @@ const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
-	isPaymentRequest: state.transaction.paymentRequest,
 	dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
 	approveModalVisible: state.modals.approveModalVisible,
 	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {},

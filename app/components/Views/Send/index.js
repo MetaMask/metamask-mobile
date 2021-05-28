@@ -113,7 +113,11 @@ class Send extends PureComponent {
 		/**
 		 * A list of custom RPCs to provide the user
 		 */
-		frequentRpcList: PropTypes.array
+		frequentRpcList: PropTypes.array,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	state = {

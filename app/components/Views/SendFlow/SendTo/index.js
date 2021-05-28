@@ -221,7 +221,11 @@ class SendFlow extends PureComponent {
 		/**
 		 * Network provider type as mainnet
 		 */
-		providerType: PropTypes.string
+		providerType: PropTypes.string,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	addressToInputRef = React.createRef();

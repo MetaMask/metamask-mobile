@@ -228,7 +228,11 @@ class ChoosePassword extends PureComponent {
 		/**
 		 * Action to reset the flag seedphraseBackedUp in redux
 		 */
-		seedphraseNotBackedUp: PropTypes.func
+		seedphraseNotBackedUp: PropTypes.func,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	state = {
@@ -495,8 +499,11 @@ class ChoosePassword extends PureComponent {
 
 	learnMore = () => {
 		this.props.navigation.push('Webview', {
-			url: 'https://metamask.zendesk.com/hc/en-us/articles/360039616872-How-can-I-reset-my-password-',
-			title: 'metamask.zendesk.com'
+			screen: 'SimpleWebview',
+			params: {
+				url: 'https://metamask.zendesk.com/hc/en-us/articles/360039616872-How-can-I-reset-my-password-',
+				title: 'metamask.zendesk.com'
+			}
 		});
 	};
 

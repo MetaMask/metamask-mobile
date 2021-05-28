@@ -53,7 +53,11 @@ class Browser extends PureComponent {
 		/**
 		 * ID of the active tab
 		 */
-		activeTab: PropTypes.number
+		activeTab: PropTypes.number,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 	static navigationOptions = ({ navigation, route }) => getBrowserViewNavbarOptions(navigation, route);
 

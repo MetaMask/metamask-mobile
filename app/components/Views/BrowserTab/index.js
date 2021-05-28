@@ -1458,24 +1458,27 @@ export const BrowserTab = props => {
 	const addBookmark = () => {
 		toggleOptionsIfNeeded();
 		props.navigation.push('AddBookmarkView', {
-			title: title.current || '',
-			url: getMaskedUrl(url.current),
-			onAddBookmark: async ({ name, url }) => {
-				props.addBookmark({ name, url });
-				if (Device.isIos()) {
-					const item = {
-						uniqueIdentifier: url,
-						title: name || getMaskedUrl(url),
-						contentDescription: `Launch ${name || url} on MetaMask`,
-						keywords: [name.split(' '), url, 'dapp'],
-						thumbnail: {
-							uri: icon.current || `https://api.faviconkit.com/${getHost(url)}/256`
+			screen: 'AddBookmark',
+			params: {
+				title: title.current || '',
+				url: getMaskedUrl(url.current),
+				onAddBookmark: async ({ name, url }) => {
+					props.addBookmark({ name, url });
+					if (Device.isIos()) {
+						const item = {
+							uniqueIdentifier: url,
+							title: name || getMaskedUrl(url),
+							contentDescription: `Launch ${name || url} on MetaMask`,
+							keywords: [name.split(' '), url, 'dapp'],
+							thumbnail: {
+								uri: icon.current || `https://api.faviconkit.com/${getHost(url)}/256`
+							}
+						};
+						try {
+							SearchApi.indexSpotlightItem(item);
+						} catch (e) {
+							Logger.error(e, 'Error adding to spotlight');
 						}
-					};
-					try {
-						SearchApi.indexSpotlightItem(item);
-					} catch (e) {
-						Logger.error(e, 'Error adding to spotlight');
 					}
 				}
 			}

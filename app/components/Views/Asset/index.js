@@ -73,7 +73,11 @@ class Asset extends PureComponent {
 		 * Indicates whether third party API mode is enabled
 		 */
 		thirdPartyApiMode: PropTypes.bool,
-		swapsTransactions: PropTypes.object
+		swapsTransactions: PropTypes.object,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	state = {
