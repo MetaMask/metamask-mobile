@@ -7,7 +7,7 @@ import collectiblesTransferInformation from '../../../util/collectibles-transfer
 import { newAssetTransaction } from '../../../actions/transaction';
 import Modal from 'react-native-modal';
 import CollectibleMedia from '../CollectibleMedia';
-import { baseStyles, colors } from '../../../styles/common';
+import { baseStyles } from '../../../styles/common';
 import Device from '../../../util/Device';
 
 const COLLECTIBLE_WRAPPER_MARGIN_TOP = Device.hasNotch() ? '20%' : Device.isMediumDevice() ? 16 : '10%';
@@ -27,8 +27,7 @@ const styles = StyleSheet.create({
 		right: 0,
 		marginHorizontal: 16,
 		marginTop: COLLECTIBLE_WRAPPER_MARGIN_TOP,
-		borderRadius: 12,
-		backgroundColor: colors.red
+		borderRadius: 12
 	}
 });
 
