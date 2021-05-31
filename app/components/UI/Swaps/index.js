@@ -33,7 +33,7 @@ import AppConstants from '../../../core/AppConstants';
 
 import { strings } from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
-import { setQuotesNavigationsParams, isSwapsNativeAsset } from './utils';
+import { setQuotesNavigationsParams, isSwapsNativeAsset, isDynamicToken } from './utils';
 import { getSwapsAmountNavbar } from '../Navbar';
 
 import Onboarding from './components/Onboarding';
@@ -559,7 +559,11 @@ function SwapsAmountView({
 							</TouchableOpacity>
 						) : (
 							<ActionAlert
-								type={!destinationToken.occurances ? 'error' : 'warning'}
+								type={
+									!destinationToken.occurances || isDynamicToken(destinationToken)
+										? 'error'
+										: 'warning'
+								}
 								style={styles.tokenAlert}
 								action={hasDismissedTokenAlert ? null : strings('swaps.continue')}
 								onPress={handleDimissTokenAlert}
@@ -568,7 +572,7 @@ function SwapsAmountView({
 								{textStyle => (
 									<TouchableOpacity onPress={explorer.isValid ? handleVerifyPress : undefined}>
 										<Text style={textStyle} bold centered>
-											{!destinationToken.occurances
+											{!destinationToken.occurances || isDynamicToken(destinationToken)
 												? strings('swaps.added_manually', {
 														symbol: destinationToken.symbol
 														// eslint-disable-next-line no-mixed-spaces-and-tabs
@@ -579,7 +583,7 @@ function SwapsAmountView({
 														// eslint-disable-next-line no-mixed-spaces-and-tabs
 												  })}
 										</Text>
-										{!destinationToken.occurances ? (
+										{!destinationToken.occurances || isDynamicToken(destinationToken) ? (
 											<Text style={textStyle} centered>
 												{`${strings('swaps.verify_this_token_on')} `}
 												{explorer.isValid ? (
