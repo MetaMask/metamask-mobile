@@ -1,0 +1,50 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
+index 4bbbca3..b12b9b1 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
+@@ -29,6 +29,7 @@ import android.view.View;
+ import android.view.inputmethod.EditorInfo;
+ import android.widget.EditText;
+ import android.widget.TextView;
++import android.util.Log;
+ import androidx.annotation.Nullable;
+ import androidx.core.content.ContextCompat;
+ import androidx.core.view.ViewCompat;
+@@ -90,6 +91,11 @@ public class ReactTextInputManager extends BaseViewManager<ReactEditText, Layout
+     Spacing.ALL, Spacing.LEFT, Spacing.RIGHT, Spacing.TOP, Spacing.BOTTOM,
+   };
+ 
++  /*
++  * Taken from EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING
++  * We can't use that value directly as it was only added on Oreo, but we can apply the value anyway.
++  */
++  private static final int IME_FLAG_NO_PERSONALIZED_LEARNING = 0x1000000
+   private static final int FOCUS_TEXT_INPUT = 1;
+   private static final int BLUR_TEXT_INPUT = 2;
+   private static final int SET_MOST_RECENT_EVENT_COUNT = 3;
+@@ -107,6 +113,7 @@ public class ReactTextInputManager extends BaseViewManager<ReactEditText, Layout
+           | InputType.TYPE_TEXT_FLAG_CAP_WORDS
+           | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS;
+ 
++  private static final String KEYBOARD_TYPE_EMAIL_ADDRESS = "email-address";
+   private static final String KEYBOARD_TYPE_EMAIL_ADDRESS = "email-address";
+   private static final String KEYBOARD_TYPE_NUMERIC = "numeric";
+   private static final String KEYBOARD_TYPE_DECIMAL_PAD = "decimal-pad";
+@@ -126,6 +133,7 @@ public class ReactTextInputManager extends BaseViewManager<ReactEditText, Layout
+   @Override
+   public ReactEditText createViewInstance(ThemedReactContext context) {
+     ReactEditText editText = new ReactEditText(context);
++    editText.setImeOptions(IME_FLAG_NO_PERSONALIZED_LEARNING);
+     int inputType = editText.getInputType();
+     editText.setInputType(inputType & (~InputType.TYPE_TEXT_FLAG_MULTI_LINE));
+     editText.setReturnKeyType("done");
+@@ -711,6 +719,9 @@ public class ReactTextInputManager extends BaseViewManager<ReactEditText, Layout
+ 
+   @ReactProp(name = "secureTextEntry", defaultBoolean = false)
+   public void setSecureTextEntry(ReactEditText view, boolean password) {
++    Log.i("Test", view.getImeOptions());
++    FLog.i("Test", view.getImeOptions());
++
+     updateStagedInputTypeFlag(
+         view,
+         password
