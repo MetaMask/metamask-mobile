@@ -168,7 +168,7 @@ describe('Wallet Tests', () => {
 		// Check that we are on the wallet screen
 		await TestHelpers.checkIfVisible('wallet-screen');
 		// Tap on COLLECTIBLES tab
-		await TestHelpers.tapByText('COLLECTIBLES');
+		await TestHelpers.tapByText('NFTs');
 		// Tap on the add collectibles button
 		await TestHelpers.waitAndTap('add-collectible-button');
 		// Check that we are on the add collectible asset screen

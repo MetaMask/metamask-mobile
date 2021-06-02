@@ -38,6 +38,9 @@ const style = StyleSheet.create({
 	small: {
 		fontSize: 12
 	},
+	big: {
+		fontSize: 16
+	},
 	upper: {
 		textTransform: 'uppercase'
 	},
@@ -80,6 +83,7 @@ const Text = ({
 	red,
 	primary,
 	small,
+	big,
 	upper,
 	modal,
 	infoModal,
@@ -106,6 +110,7 @@ const Text = ({
 			primary && style.primary,
 			disclaimer && [style.small, style.disclaimer],
 			small && style.small,
+			big && style.big,
 			upper && style.upper,
 			modal && style.modal,
 			infoModal && style.infoModal,
@@ -132,6 +137,7 @@ Text.defaultProps = {
 	disclaimer: false,
 	modal: false,
 	small: false,
+	big: undefined,
 	upper: false,
 	link: false,
 	strikethrough: false,
@@ -199,6 +205,10 @@ Text.propTypes = {
 	 * Makes text small
 	 */
 	small: PropTypes.bool,
+	/**
+	 * Makes text big
+	 */
+	big: PropTypes.bool,
 	/**
 	 * Makes text uppercase
 	 */
