@@ -346,7 +346,7 @@ class CustomGas extends PureComponent {
 	};
 
 	state = {
-		gasSpeedSelected: this.props.gasSpeedSelected || 'average',
+		gasSpeedSelected: this.props.gasSpeedSelected || AVERAGE,
 		customGasPrice: '10',
 		customGasLimit: fromWei(this.props.gas, 'wei'),
 		customGasPriceBNWei: this.props.gasPrice,
@@ -408,7 +408,6 @@ class CustomGas extends PureComponent {
 			[SLOW]: safeLowGwei
 		};
 		const gwei = speedMap[speed];
-		console.log({ speed, gwei });
 		const gasPriceBN = apiEstimateModifiedToWEI(gwei);
 		this.setState({
 			gasSpeedSelected: speed,
@@ -544,11 +543,11 @@ class CustomGas extends PureComponent {
 				basicGasEstimates: { fastGwei, averageGwei, safeLowGwei }
 			} = this.props;
 			const noGasWarning = '';
-			if (gasSpeedSelected === 'slow')
+			if (gasSpeedSelected === SLOW)
 				handleGasFeeSelection(gas, apiEstimateModifiedToWEI(safeLowGwei), noGasWarning, mode);
-			if (gasSpeedSelected === 'average')
+			if (gasSpeedSelected === AVERAGE)
 				handleGasFeeSelection(gas, apiEstimateModifiedToWEI(averageGwei), noGasWarning, mode);
-			if (gasSpeedSelected === 'fast')
+			if (gasSpeedSelected === FAST)
 				handleGasFeeSelection(gas, apiEstimateModifiedToWEI(fastGwei), noGasWarning, mode);
 		}
 
