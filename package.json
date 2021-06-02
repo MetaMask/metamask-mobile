@@ -120,6 +120,7 @@
     "events": "3.0.0",
     "fuse.js": "3.4.4",
     "https-browserify": "0.0.1",
+    "improved-yarn-audit": "^2.3.3",
     "is-url": "^1.2.4",
     "json-rpc-engine": "^6.1.0",
     "json-rpc-middleware-stream": "3.0.0",
