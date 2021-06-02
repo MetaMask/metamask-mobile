@@ -138,6 +138,7 @@ prebuild_android(){
 	yes | cp -rf app/core/InpageBridgeWeb3.js android/app/src/main/assets/.
 	# Copy fonts with iconset
 	yes | cp -rf ./app/fonts/Metamask.ttf ./android/app/src/main/assets/fonts/Metamask.ttf
+	
 	if [ "$PRE_RELEASE" = false ] ; then
 		if [ -e $ANDROID_ENV_FILE ]
 		then
@@ -169,6 +170,10 @@ buildIosSimulatorE2E(){
 buildIosDevice(){
 	prebuild_ios
 	react-native run-ios --device
+}
+
+generateArchivePackages() {
+	xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask -configuration Release COMIPLER_INDEX_STORE_ENABLE=NO archive -archivePath build/MetaMask.xcarchive -destination generic/platform=ios && xcodebuild -exportArchive -archivePath build/MetaMask.xcarchive -exportPath build/output -exportOptionsPlist MetaMask/IosExportOpitions.plist
 }
 
 buildIosRelease(){
