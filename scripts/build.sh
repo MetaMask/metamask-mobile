@@ -223,11 +223,11 @@ buildAndroidRelease(){
 	prebuild_android
 
 	if [ "$PRE_RELEASE" = true ] ; then
- 		TARGET="android/app/build.gradle"
- 		sed -i'' -e 's/getPassword("mm","mm-upload-key")/"ANDROID_KEY"/' $TARGET;
- 		sed -i'' -e "s/ANDROID_KEY/$ANDROID_KEY/" $TARGET;
- 		echo "$ANDROID_KEYSTORE" | base64 --decode > android/keystores/release.keystore
- 	fi
+		TARGET="android/app/build.gradle"
+		sed -i'' -e 's/getPassword("mm","mm-upload-key")/"ANDROID_KEY"/' $TARGET;
+		sed -i'' -e "s/ANDROID_KEY/$ANDROID_KEY/" $TARGET;
+		echo "$ANDROID_KEYSTORE" | base64 --decode > android/keystores/release.keystore
+	fi
 
 	# GENERATE APK
 	cd android && ./gradlew assembleRelease --no-daemon --max-workers 2
