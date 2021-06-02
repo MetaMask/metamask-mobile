@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		fontSize: 24,
-		marginBottom: 40,
+		marginBottom: 24,
 		color: colors.fontPrimary,
 		textAlign: 'center',
 		...fontStyles.bold
@@ -181,7 +181,7 @@ const AccountBackupStep1 = props => {
 					<OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} currentStep={1} />
 					<View style={styles.content}>
 						<Text style={styles.title}>{strings('account_backup_step_1.title')}</Text>
-						<SeedPhraseVideo />
+						<SeedPhraseVideo onClose={skip} />
 						<View style={styles.text}>
 							<Text style={styles.label}>
 								{strings('account_backup_step_1.info_text_1_1')}{' '}
