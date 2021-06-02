@@ -349,7 +349,8 @@ function SwapsAmountView({
 				sourceToken?.address,
 				destinationToken?.address,
 				toTokenMinimalUnit(amount, sourceToken?.decimals).toString(10),
-				slippage
+				slippage,
+				[sourceToken, destinationToken]
 			)
 		);
 	}, [

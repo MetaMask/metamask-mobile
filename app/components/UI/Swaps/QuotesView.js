@@ -275,14 +275,18 @@ function SwapsQuotesView({
 }) {
 	const navigation = useContext(NavigationContext);
 	/* Get params from navigation */
-	const { sourceTokenAddress, destinationTokenAddress, sourceAmount, slippage } = useMemo(
+	const { sourceTokenAddress, destinationTokenAddress, sourceAmount, slippage, tokens } = useMemo(
 		() => getQuotesNavigationsParams(navigation),
 		[navigation]
 	);
 
 	/* Get tokens from the tokens list */
-	const sourceToken = swapsTokens?.find(token => toLowerCaseCompare(token.address, sourceTokenAddress));
-	const destinationToken = swapsTokens?.find(token => toLowerCaseCompare(token.address, destinationTokenAddress));
+	const sourceToken = [...swapsTokens, ...tokens].find(token =>
+		toLowerCaseCompare(token.address, sourceTokenAddress)
+	);
+	const destinationToken = [...swapsTokens, ...tokens].find(token =>
+		toLowerCaseCompare(token.address, destinationTokenAddress)
+	);
 
 	const hasConversionRate =
 		Boolean(destinationToken) &&
