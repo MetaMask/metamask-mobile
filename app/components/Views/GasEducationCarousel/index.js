@@ -11,44 +11,45 @@ import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import Text from '../../Base/Text';
 import { getBasicGasEstimates, getRenderableFiatGasFee } from '../../../util/custom-gas';
 import { connect } from 'react-redux';
+import Device from '../../../util/Device';
 
 const IMAGE_3_RATIO = 281 / 354;
 const IMAGE_2_RATIO = 353 / 416;
 const IMAGE_1_RATIO = 295 / 354;
 const DEVICE_WIDTH = Dimensions.get('window').width;
 
-const IMG_PADDING = 200;
+const IMG_PADDING = Device.isIphone5() ? 220 : 200;
 
 const styles = StyleSheet.create({
 	scroll: {
 		flexGrow: 1
 	},
 	wrapper: {
-		paddingVertical: 30,
+		paddingVertical: Device.isIphone5() ? 15 : 30,
 		flex: 1
 	},
 	title: {
 		fontSize: 24,
-		marginBottom: 14,
+		marginBottom: Device.isIphone5() ? 8 : 14,
 		justifyContent: 'center',
 		textAlign: 'center'
 	},
 	subtitle: {
 		fontSize: 14,
-		marginBottom: 14,
+		marginBottom: Device.isIphone5() ? 8 : 14,
 		justifyContent: 'center',
 		textAlign: 'center',
 		lineHeight: 20
 	},
 	subheader: {
 		fontSize: 16,
-		marginBottom: 14,
+		marginBottom: Device.isIphone5() ? 8 : 14,
 		lineHeight: 22.5,
 		justifyContent: 'center',
 		textAlign: 'center'
 	},
 	link: {
-		marginTop: 24,
+		marginTop: Device.isIphone5() ? 12 : 24,
 		fontSize: 14,
 		justifyContent: 'center',
 		textAlign: 'center',
@@ -96,7 +97,7 @@ const styles = StyleSheet.create({
 	progessContainer: {
 		flexDirection: 'row',
 		alignSelf: 'center',
-		marginVertical: 36
+		marginVertical: Device.isIphone5() ? 18 : 36
 	},
 	tab: {
 		margin: 32
@@ -249,7 +250,7 @@ const GasEducationCarousel = ({ navigation, conversionRate, currentCurrency }) =
 
 						<View style={styles.progessContainer}>
 							{[1, 2, 3].map(i => (
-								<View key={i} style={[styles.circle, currentTab === i ? styles.solidCircle : {}]} />
+								<View key={i} style={[styles.circle, currentTab === i && styles.solidCircle]} />
 							))}
 						</View>
 					</View>

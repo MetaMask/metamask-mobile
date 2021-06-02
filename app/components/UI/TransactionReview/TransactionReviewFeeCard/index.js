@@ -252,7 +252,7 @@ class TransactionReviewFeeCard extends PureComponent {
 						{this.renderIfGasEstimationReady(
 							<View style={styles.valuesContainer}>
 								<TouchableOpacity style={styles.amountContainer} onPress={edit}>
-									<Text upper right link underline style={warningGasPriceHigh && styles.over}>
+									<Text upper right link underline style={[warningGasPriceHigh && styles.over]}>
 										{networkFee}
 									</Text>
 								</TouchableOpacity>
