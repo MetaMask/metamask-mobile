@@ -16,6 +16,10 @@ import Device from '../../../util/Device';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { isMainnetByChainId } from '../../../util/networks';
 
+const FAST = 'fast';
+const AVERAGE = 'average';
+const SLOW = 'slow';
+
 const styles = StyleSheet.create({
 	root: {
 		paddingHorizontal: 24,
@@ -392,46 +396,23 @@ class CustomGas extends PureComponent {
 		return '';
 	};
 
-	onPressGasFast = () => {
+	onPressGas = speed => {
 		const {
 			onPress,
-			basicGasEstimates: { fastGwei }
+			basicGasEstimates: { averageGwei, fastGwei, safeLowGwei }
 		} = this.props;
-		onPress && onPress('fast');
-		const gasPriceBN = apiEstimateModifiedToWEI(fastGwei);
+		onPress && onPress(speed);
+		const speedMap = {
+			[FAST]: fastGwei,
+			[AVERAGE]: averageGwei,
+			[SLOW]: safeLowGwei
+		};
+		const gwei = speedMap[speed];
+		console.log({ speed, gwei });
+		const gasPriceBN = apiEstimateModifiedToWEI(gwei);
 		this.setState({
-			gasSpeedSelected: 'fast',
-			customGasPrice: fastGwei,
-			customGasPriceBNWei: gasPriceBN,
-			warningGasPriceHigh: ''
-		});
-	};
-
-	onPressGasAverage = () => {
-		const {
-			onPress,
-			basicGasEstimates: { averageGwei }
-		} = this.props;
-		onPress && onPress('average');
-		const gasPriceBN = apiEstimateModifiedToWEI(averageGwei);
-		this.setState({
-			gasSpeedSelected: 'average',
-			customGasPrice: averageGwei,
-			customGasPriceBNWei: gasPriceBN,
-			warningGasPriceHigh: ''
-		});
-	};
-
-	onPressGasSlow = () => {
-		const {
-			onPress,
-			basicGasEstimates: { safeLowGwei }
-		} = this.props;
-		onPress && onPress('slow');
-		const gasPriceBN = apiEstimateModifiedToWEI(safeLowGwei);
-		this.setState({
-			gasSpeedSelected: 'slow',
-			customGasPrice: safeLowGwei,
+			gasSpeedSelected: speed,
+			customGasPrice: gwei,
 			customGasPriceBNWei: gasPriceBN,
 			warningGasPriceHigh: ''
 		});
@@ -590,9 +571,9 @@ class CustomGas extends PureComponent {
 		} = this.props;
 		const ticker = getTicker(this.props.ticker);
 		const topOffset = { top: headerHeight };
-		const gasFastSelected = gasSpeedSelected === 'fast';
-		const gasAverageSelected = gasSpeedSelected === 'average';
-		const gasSlowSelected = gasSpeedSelected === 'slow';
+		const gasFastSelected = gasSpeedSelected === FAST;
+		const gasAverageSelected = gasSpeedSelected === AVERAGE;
+		const gasSlowSelected = gasSpeedSelected === SLOW;
 		return (
 			<Animated.View
 				style={[
@@ -607,7 +588,7 @@ class CustomGas extends PureComponent {
 						!hideSlow && (
 							<TouchableOpacity
 								key={'safeLow'}
-								onPress={this.onPressGasSlow}
+								onPress={() => this.onPressGas(SLOW)}
 								style={[styles.selector, gasSlowSelected && styles.selectorSelected]}
 							>
 								<View style={styles.titleContainer}>
@@ -626,8 +607,8 @@ class CustomGas extends PureComponent {
 						),
 						!hideAverage && (
 							<TouchableOpacity
-								key={'average'}
-								onPress={this.onPressGasAverage}
+								key={AVERAGE}
+								onPress={() => this.onPressGas(AVERAGE)}
 								style={[styles.selector, gasAverageSelected && styles.selectorSelected]}
 							>
 								<View style={styles.titleContainer}>
@@ -646,8 +627,8 @@ class CustomGas extends PureComponent {
 						),
 						!hideFast && (
 							<TouchableOpacity
-								key={'fast'}
-								onPress={this.onPressGasFast}
+								key={FAST}
+								onPress={() => this.onPressGas(FAST)}
 								style={[styles.selector, gasFastSelected && styles.selectorSelected]}
 							>
 								<View style={styles.titleContainer}>
