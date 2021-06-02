@@ -22,6 +22,11 @@ export function isSwapsNativeAsset(token) {
 	return Boolean(token) && token?.address === swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS;
 }
 
+export function isSwapsContract(contract, chainId) {
+	if (!contract) return false;
+	return contract === swapsUtils.getSwapsContractAddress(chainId);
+}
+
 /**
  * Sets required parameters for Swaps Quotes View
  * @param {string} sourceTokenAddress Token contract address used as swaps source
