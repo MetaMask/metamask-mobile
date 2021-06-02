@@ -22,7 +22,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
         Array [
           "Create Password",
           "Secure wallet",
-          "Confirm Secret Recovery phrase",
+          "Confirm Secret Recovery Phrase",
         ]
       }
     />
@@ -61,7 +61,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
           }
         }
       >
-        Write down your Secret Recovery phrase
+        Write down your Secret Recovery Phrase
       </Text>
       <View
         style={
@@ -83,7 +83,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             }
           }
         >
-          This is your Secret Recovery phrase. Write it down on a paper and keep it in a safe place. You'll be asked to re-enter this phrase (in order) on the next step.
+          This is your Secret Recovery Phrase. Write it down on a paper and keep it in a safe place. You'll be asked to re-enter this phrase (in order) on the next step.
         </Text>
       </View>
       <View
@@ -538,7 +538,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                 }
               }
             >
-              Tap to reveal your Secret Recovery phrase
+              Tap to reveal your Secret Recovery Phrase
             </Text>
             <Text
               style={

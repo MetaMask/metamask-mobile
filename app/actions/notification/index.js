@@ -70,3 +70,9 @@ export function showTransactionNotification({ autodismiss, transaction, status }
 		status
 	};
 }
+
+export function removeNotVisibleNotifications() {
+	return {
+		type: 'REMOVE_NOT_VISIBLE_NOTIFICATIONS'
+	};
+}

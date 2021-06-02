@@ -18,8 +18,7 @@ import { getOptinMetricsNavbarOptions } from '../Navbar';
 import { strings } from '../../../../locales/i18n';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { connect } from 'react-redux';
-// eslint-disable-next-line import/named
-import { NavigationActions, withNavigationFocus } from 'react-navigation';
+import { withNavigationFocus } from 'react-navigation';
 import StyledButton from '../StyledButton';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
@@ -155,7 +154,7 @@ class OptinMetrics extends PureComponent {
 			this.props.navigation.navigate('HomeNav');
 		} else {
 			this.props.setOnboardingWizardStep(1);
-			this.props.navigation.navigate('HomeNav', {}, NavigationActions.navigate({ routeName: 'WalletView' }));
+			this.props.navigation.navigate('WalletView');
 		}
 	};
 

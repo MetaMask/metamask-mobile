@@ -35,7 +35,12 @@ const styles = StyleSheet.create({
  * PureComponent that provides ability to add assets.
  */
 class AddAsset extends PureComponent {
-	static navigationOptions = ({ navigation }) => getNetworkNavbarOptions('add_asset.title', true, navigation);
+	static navigationOptions = ({ navigation }) =>
+		getNetworkNavbarOptions(
+			`add_asset.${navigation.state.params.assetType === 'token' ? 'title' : 'title_nft'}`,
+			true,
+			navigation
+		);
 
 	state = {
 		address: '',
