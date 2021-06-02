@@ -352,18 +352,18 @@
   },
   "lavamoat": {
     "allowScripts": {
-      "core-js-pure": false,
       "detox": true,
-      "dtrace-provider": false,
-      "husky": false,
-      "core-js": false,
-      "fsevents": true,
-      "keccak": false,
-      "secp256k1": false,
-      "sha3": false,
       "@sentry/cli": true,
       "@lavamoat/preinstall-always-fail": false,
-      "scrypt": false
+      "core-js": false,
+      "core-js-pure": false,
+      "dtrace-provider": false,
+      "fsevents": false,
+      "husky": false,
+      "keccak": false,
+      "scrypt": false,
+      "secp256k1": false,
+      "sha3": false
     }
   }
 }
