@@ -153,10 +153,13 @@ QuickAmount.propTypes = {
 };
 
 //* Constants */
-
-const QUICK_AMOUNTS = ['50', '100', '250'];
-const MIN_AMOUNT = 50;
-const MAX_AMOUNT = 250;
+const US = 'US';
+const US_QUICK_AMOUNTS = ['50', '100', '250'];
+const US_MIN_AMOUNT = 50;
+const US_MAX_AMOUNT = 400;
+const NON_US_QUICK_AMOUNTS = ['50', '100', '250'];
+const NON_US_MIN_AMOUNT = 50;
+const NON_US_MAX_AMOUNT = 800;
 
 const hasZeroAsFirstDecimal = /^\d+\.0$/;
 const hasZerosAsDecimals = /^\d+\.00$/;
@@ -196,15 +199,18 @@ function PaymentMethodApplePay({
 		if (!ratesUSD || !ratesUSD[selectedCurrency]) {
 			return [];
 		}
-		return QUICK_AMOUNTS.map(amount => String(Math.ceil(amount * ratesUSD[selectedCurrency])));
-	}, [ratesUSD, selectedCurrency]);
+		const quickAmounts = selectedCountry === US ? US_QUICK_AMOUNTS : NON_US_QUICK_AMOUNTS;
+		return quickAmounts.map(amount => String(Math.ceil(amount * ratesUSD[selectedCurrency])));
+	}, [ratesUSD, selectedCountry, selectedCurrency]);
 
 	const [minAmount, maxAmount] = useMemo(() => {
 		if (!ratesUSD || !ratesUSD[selectedCurrency]) {
-			return [MIN_AMOUNT, MAX_AMOUNT];
+			return [US_MIN_AMOUNT, US_MAX_AMOUNT];
 		}
-		return [MIN_AMOUNT, MAX_AMOUNT].map(amount => String(Math.ceil(amount * ratesUSD[selectedCurrency])));
-	}, [ratesUSD, selectedCurrency]);
+		const minMaxAmounts =
+			selectedCountry === US ? [US_MIN_AMOUNT, US_MAX_AMOUNT] : [NON_US_MIN_AMOUNT, NON_US_MAX_AMOUNT];
+		return minMaxAmounts.map(amount => String(Math.ceil(amount * ratesUSD[selectedCurrency])));
+	}, [ratesUSD, selectedCountry, selectedCurrency]);
 
 	const isUnderMinimum = (amount !== '0' || Number(roundAmount) !== 0) && Number(roundAmount) < minAmount;
 
