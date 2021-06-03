@@ -1572,5 +1572,10 @@
 	"media_player": {
 		"loading": "로드 중...",
 		"not_found": "미디어를 찾을 수 없음"
+	},
+	"secret_phrase_video_subtitle": {
+		"title": "KO KR CC",
+		"language": "ko-kr",
+		"uri": "https://github.com/MetaMask/metamask-mobile/blob/feature/secret_recovery_translations/app/videos/subtitles/subtitles-ko-kr.vtt"
 	}
 }
