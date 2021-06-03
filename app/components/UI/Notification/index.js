@@ -12,15 +12,13 @@ const { TRANSACTION, SIMPLE } = notificationTypes;
 
 const BROWSER_ROUTE = 'BrowserView';
 
-function Notification(props) {
-	const {
-		currentNotification,
-		currentNotificationIsVisible,
-		navigation,
-		hideCurrentNotification,
-		removeCurrentNotification
-	} = props;
-
+function Notification({
+	currentNotification,
+	currentNotificationIsVisible,
+	navigation,
+	hideCurrentNotification,
+	removeCurrentNotification
+}) {
 	const notificationAnimated = useRef(new Animated.Value(200)).current;
 
 	const usePrevious = value => {
@@ -77,7 +75,7 @@ function Notification(props) {
 		notificationAnimated
 	]);
 
-	if (!currentNotification?.type) return null;
+	if (!currentNotification?.type || !currentNotificationIsVisible) return null;
 	if (currentNotification.type === TRANSACTION)
 		return (
 			<TransactionNotification
