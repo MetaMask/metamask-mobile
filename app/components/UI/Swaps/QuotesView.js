@@ -1310,18 +1310,18 @@ function SwapsQuotesView({
 								<View style={styles.quotesDescription}>
 									<View style={styles.quotesLegend}>
 										<Text>{strings('swaps.max_gas_fee')} </Text>
-										{!unableToSwap && (
-											<TouchableOpacity onPress={onEditQuoteTransactionsGas}>
-												<Text link>{strings('swaps.edit')}</Text>
-											</TouchableOpacity>
-										)}
 									</View>
 								</View>
 								<View style={styles.quotesFiatColumn}>
-									<Text>
-										{renderFromWei(toWei(selectedQuoteValue?.maxEthFee || '0x0'))}{' '}
-										{getTicker(ticker)}
-									</Text>
+									<TouchableOpacity
+										disabled={unableToSwap}
+										onPress={unableToSwap ? undefined : onEditQuoteTransactionsGas}
+									>
+										<Text link={!unableToSwap} underline={!unableToSwap}>
+											{renderFromWei(toWei(selectedQuoteValue?.maxEthFee || '0x0'))}{' '}
+											{getTicker(ticker)}
+										</Text>
+									</TouchableOpacity>
 									<Text upper>
 										{`  ${weiToFiat(
 											toWei(selectedQuoteValue?.maxEthFee),
