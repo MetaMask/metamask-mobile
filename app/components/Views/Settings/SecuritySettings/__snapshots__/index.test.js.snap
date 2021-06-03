@@ -38,37 +38,43 @@ exports[`SecuritySettings should render correctly 1`] = `
     >
       <Text
         style={
-          Object {
-            "color": "#000000",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 20,
-            "fontWeight": "400",
-            "lineHeight": 20,
-          }
-        }
-      >
-        <WarningIcon />
-         
-        <Text
-          style={
+          Array [
             Object {
               "color": "#000000",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 20,
               "fontWeight": "400",
               "lineHeight": 20,
-            }
+            },
+            Object {
+              "marginBottom": 10,
+            },
+          ]
+        }
+      >
+        <WarningIcon />
+         
+        <Text
+          style={
+            Array [
+              Object {
+                "color": "#000000",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 20,
+                "fontWeight": "400",
+                "lineHeight": 20,
+              },
+              Object {
+                "marginBottom": 10,
+              },
+            ]
           }
         >
           Protect your wallet
         </Text>
       </Text>
       <SeedPhraseVideo
-        style={
-          Object {
-            "marginTop": 10,
-          }
-        }
+        onClose={[Function]}
       />
       <Text
         style={
