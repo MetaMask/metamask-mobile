@@ -233,6 +233,12 @@ export const SUPPORTED_COUNTRIES = {
 		label: '🇱🇻',
 		name: 'Latvia'
 	},
+	LT: {
+		code: 'LT',
+		currency: 'EUR',
+		label: '🇱🇹',
+		name: 'Lithuania'
+	},
 	LU: {
 		code: 'LU',
 		currency: 'EUR',

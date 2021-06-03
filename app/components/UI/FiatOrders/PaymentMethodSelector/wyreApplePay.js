@@ -113,6 +113,7 @@ const WyreApplePayPaymentMethod = ({ onPress }) => {
 								<View style={styles.countryCol}>
 									<Text primary>Japan 🇯🇵</Text>
 									<Text primary>Latvia 🇱🇻</Text>
+									<Text primary>Lithuania 🇱🇹</Text>
 									<Text primary>Luxembourg 🇱🇺</Text>
 									<Text primary>Netherlands 🇳🇱</Text>
 									<Text primary>New Zealand 🇳🇿</Text>
