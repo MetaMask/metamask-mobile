@@ -7,7 +7,8 @@ import {
 	TouchableOpacity,
 	View,
 	TouchableWithoutFeedback,
-	ActivityIndicator
+	ActivityIndicator,
+	InteractionManager
 } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { NavigationContext } from 'react-navigation';
@@ -34,6 +35,8 @@ import useBlockExplorer from '../utils/useBlockExplorer';
 import useFetchTokenMetadata from '../utils/useFetchTokenMetadata';
 import useModalHandler from '../../../Base/hooks/useModalHandler';
 import TokenImportModal from './TokenImportModal';
+import Analytics from '../../../../core/Analytics';
+import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 
 const styles = StyleSheet.create({
 	modal: {
@@ -230,10 +233,18 @@ function TokenSelectModal({
 
 	const handlePressImportToken = useCallback(
 		item => {
+			const { address, symbol } = item;
+			InteractionManager.runAfterInteractions(() => {
+				Analytics.trackEventWithParameters(
+					ANALYTICS_EVENT_OPTS.CUSTOM_TOKEN_IMPORTED,
+					{ address, symbol, chain_id: chainId },
+					true
+				);
+			});
 			hideTokenImportModal();
 			onItemPress(item);
 		},
-		[hideTokenImportModal, onItemPress]
+		[chainId, hideTokenImportModal, onItemPress]
 	);
 
 	const handleBlockExplorerPress = useCallback(() => {
