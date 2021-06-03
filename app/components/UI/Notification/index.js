@@ -31,13 +31,13 @@ function Notification({
 
 	const prevNotificationIsVisible = usePrevious(currentNotificationIsVisible);
 
-	const animatedTimingStart = useCallback((animatedRef, toValue) => {
+	const animatedTimingStart = useCallback((animatedRef, toValue, callback) => {
 		Animated.timing(animatedRef, {
 			toValue,
 			duration: 500,
 			easing: Easing.linear,
 			useNativeDriver: true
-		}).start();
+		}).start(({ finished }) => finished && callback?.());
 	}, []);
 
 	const isInBrowserView = useMemo(() => {
@@ -49,9 +49,8 @@ function Notification({
 
 	useEffect(
 		() => () => {
-			animatedTimingStart(notificationAnimated, 200);
+			animatedTimingStart(notificationAnimated, 200, removeCurrentNotification);
 			hideCurrentNotification();
-			removeCurrentNotification();
 		},
 		[notificationAnimated, animatedTimingStart, hideCurrentNotification, removeCurrentNotification]
 	);
@@ -59,10 +58,9 @@ function Notification({
 	useEffect(() => {
 		if (!prevNotificationIsVisible && currentNotificationIsVisible) {
 			animatedTimingStart(notificationAnimated, 0);
+			hideCurrentNotification();
 			setTimeout(() => {
-				animatedTimingStart(notificationAnimated, 200);
-				hideCurrentNotification();
-				setTimeout(() => removeCurrentNotification(), 500);
+				animatedTimingStart(notificationAnimated, 200, removeCurrentNotification);
 			}, currentNotification.autodismiss || 5000);
 		}
 	}, [
@@ -75,7 +73,7 @@ function Notification({
 		notificationAnimated
 	]);
 
-	if (!currentNotification?.type || !currentNotificationIsVisible) return null;
+	if (!currentNotification?.type) return null;
 	if (currentNotification.type === TRANSACTION)
 		return (
 			<TransactionNotification
