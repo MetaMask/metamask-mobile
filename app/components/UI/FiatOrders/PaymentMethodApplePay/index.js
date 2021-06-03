@@ -209,7 +209,8 @@ function PaymentMethodApplePay({
 	const isUnderMinimum = (amount !== '0' || Number(roundAmount) !== 0) && Number(roundAmount) < minAmount;
 
 	const isOverMaximum = Number(roundAmount) > maxAmount;
-	const disabledButton = amount === '0' || isUnderMinimum || isOverMaximum;
+
+	const validAmount = amount !== '0' && !isUnderMinimum && !isOverMaximum;
 
 	const [isLoadingQuotation, quotation] = useWyreOrderQuotation(
 		network,
@@ -217,9 +218,11 @@ function PaymentMethodApplePay({
 		selectedCurrency,
 		selectedAddress,
 		selectedCountry,
-		!disabledButton,
+		validAmount,
 		1000
 	);
+
+	const disabledButton = !validAmount || isLoadingQuotation || !quotation;
 
 	const [pay, ABORTED] = useWyreApplePay(selectedAddress, selectedCurrency, network);
 	const handlePressApplePay = useCallback(async () => {
@@ -382,7 +385,7 @@ function PaymentMethodApplePay({
 				<View style={styles.buttonContainer}>
 					<StyledButton
 						type="blue"
-						disabled={disabledButton || isLoadingQuotation || !quotation}
+						disabled={disabledButton}
 						containerStyle={styles.applePayButton}
 						onPress={handlePressApplePay}
 					>
@@ -396,7 +399,7 @@ function PaymentMethodApplePay({
 						<ApplePay disabled={disabledButton} />
 					</StyledButton>
 					<Text centered>
-						{disabledButton || !quotation ? (
+						{disabledButton ? (
 							<Text>
 								<Text bold>
 									{strings(
