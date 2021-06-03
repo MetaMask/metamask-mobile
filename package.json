@@ -66,7 +66,6 @@
     ]
   },
   "resolutions": {
-    "**/ws": "^7.4.6",
     "**/lodash": "^4.17.21",
     "**/ua-parser-js": "^0.7.24",
     "**/elliptic": "^6.5.4",
@@ -122,6 +121,7 @@
     "events": "3.0.0",
     "fuse.js": "3.4.4",
     "https-browserify": "0.0.1",
+    "improved-yarn-audit": "^2.3.3",
     "is-url": "^1.2.4",
     "json-rpc-engine": "^6.1.0",
     "json-rpc-middleware-stream": "3.0.0",
@@ -214,7 +214,7 @@
   "devDependencies": {
     "@babel/core": "^7.8.4",
     "@babel/runtime": "^7.8.4",
-    "@metamask/mobile-provider": "^2.0.1",
+    "@metamask/mobile-provider": "^2.1.0",
     "@react-native-community/eslint-config": "^1.1.0",
     "assert": "1.4.1",
     "babel-core": "7.0.0-bridge.0",
