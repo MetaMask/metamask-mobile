@@ -36,7 +36,8 @@ import {
 	balanceToFiatNumber,
 	getCurrencySymbol,
 	handleWeiNumber,
-	fromTokenMinimalUnitString
+	fromTokenMinimalUnitString,
+	toHexadecimal
 } from '../../../../util/number';
 import { getTicker, generateTransferData, getEther } from '../../../../util/transactions';
 import { util } from '@metamask/controllers';
@@ -509,7 +510,7 @@ class Amount extends PureComponent {
 			collectibleTransferTransactionProperties.data = generateTransferData('transferFrom', {
 				fromAddress: transaction.from,
 				toAddress: transactionTo,
-				tokenId: selectedAsset.tokenId
+				tokenId: toHexadecimal(selectedAsset.tokenId)
 			});
 		} else if (collectibleTransferInformation.tradable && collectibleTransferInformation.method === 'transfer') {
 			collectibleTransferTransactionProperties.data = generateTransferData('transfer', {

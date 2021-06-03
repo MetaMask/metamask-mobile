@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import AnimatedTransactionModal from '../AnimatedTransactionModal';
 import TransactionReview from '../TransactionReview';
 import CustomGas from '../CustomGas';
-import { isBN, hexToBN, toBN, fromWei, renderFromWei } from '../../../util/number';
+import { isBN, hexToBN, toBN, fromWei, renderFromWei, toHexadecimal } from '../../../util/number';
 import { isValidAddress, toChecksumAddress, BN, addHexPrefix } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
@@ -328,7 +328,7 @@ class TransactionEditor extends PureComponent {
 					return generateTransferData('transferFrom', {
 						fromAddress: from,
 						toAddress: to,
-						tokenId: selectedAsset.tokenId
+						tokenId: toHexadecimal(selectedAsset.tokenId)
 					});
 				} else if (
 					collectibleTransferInformation.tradable &&
