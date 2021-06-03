@@ -26,6 +26,7 @@ export const colors = {
 	grey050: '#D8D8D8',
 	grey000: '#f2f3f4',
 	greytransparent: 'rgba(36, 41, 46, 0.6)',
+	greytransparent100: 'rgba(115, 115, 115, 0.5)',
 	grey: '#333333',
 	red: '#D73A49',
 	red000: '#fcf2f3',

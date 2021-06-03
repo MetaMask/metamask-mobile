@@ -4,6 +4,7 @@ import {
 	AssetsContractController,
 	AssetsController,
 	AssetsDetectionController,
+	ControllerMessenger,
 	ComposableController,
 	CurrencyRateController,
 	KeyringController,
@@ -60,11 +61,6 @@ class Engine {
 	 */
 	constructor(initialState = {}) {
 		if (!Engine.instance) {
-			const { nativeCurrency, currentCurrency } = initialState.CurrencyRateController || {
-				nativeCurrency: 'eth',
-				currentCurrency: 'usd'
-			};
-
 			const preferencesController = new PreferencesController(
 				{},
 				{
@@ -107,10 +103,12 @@ class Engine {
 				getAssetSymbol: assetsContractController.getAssetSymbol.bind(assetsContractController),
 				getCollectibleTokenURI: assetsContractController.getCollectibleTokenURI.bind(assetsContractController)
 			});
+			this.controllerMessenger = new ControllerMessenger();
 			const currencyRateController = new CurrencyRateController({
-				nativeCurrency,
-				currentCurrency
+				messenger: this.controllerMessenger,
+				state: initialState.CurrencyRateController
 			});
+			currencyRateController.start();
 
 			const controllers = [
 				new KeyringController(
@@ -159,7 +157,8 @@ class Engine {
 				),
 				new TokenRatesController({
 					onAssetsStateChange: listener => assetsController.subscribe(listener),
-					onCurrencyRateStateChange: listener => currencyRateController.subscribe(listener)
+					onCurrencyRateStateChange: listener =>
+						this.controllerMessenger.subscribe(`${currencyRateController.name}:stateChange`, listener)
 				}),
 				new TransactionController({
 					getNetworkState: () => networkController.state,
@@ -179,13 +178,16 @@ class Engine {
 			// TODO: Pass initial state into each controller constructor instead
 			// This is being set post-construction for now to ensure it's functionally equivalent with
 			// how the `ComponsedController` used to set initial state.
+			//
+			// The check for `controller.subscribe !== undefined` is to filter out BaseControllerV2
+			// controllers. They should be initialized via the constructor instead.
 			for (const controller of controllers) {
-				if (initialState[controller.name]) {
+				if (initialState[controller.name] && controller.subscribe !== undefined) {
 					controller.update(initialState[controller.name]);
 				}
 			}
 
-			this.datamodel = new ComposableController(controllers, initialState);
+			this.datamodel = new ComposableController(controllers, this.controllerMessenger);
 			this.context = controllers.reduce((context, controller) => {
 				context[controller.name] = controller;
 				return context;
@@ -353,7 +355,7 @@ class Engine {
 
 			let tokenFound = false;
 			tokens.forEach(token => {
-				if (tokenBalances[token.address] && !tokenBalances[token.address].isZero()) {
+				if (tokenBalances[token.address] && !tokenBalances[token.address]?.isZero()) {
 					tokenFound = true;
 				}
 			});
@@ -492,6 +494,9 @@ let instance;
 export default {
 	get context() {
 		return instance && instance.context;
+	},
+	get controllerMessenger() {
+		return instance && instance.controllerMessenger;
 	},
 	get state() {
 		const {

@@ -40,7 +40,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
           Array [
             "Create password",
             "Secure wallet",
-            "Confirm Secret Recovery phrase",
+            "Confirm Secret Recovery Phrase",
           ]
         }
       />
@@ -61,14 +61,16 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 24,
               "fontWeight": "600",
-              "marginBottom": 40,
+              "marginBottom": 24,
               "textAlign": "center",
             }
           }
         >
           Secure your wallet
         </Text>
-        <SeedPhraseVideo />
+        <SeedPhraseVideo
+          onClose={[Function]}
+        />
         <View
           style={
             Object {
@@ -99,7 +101,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                 }
               }
             >
-              Secret Recovery phrase
+              Secret Recovery Phrase
             </Text>
              
             in a place you trust.

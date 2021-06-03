@@ -19,7 +19,8 @@ import {
 	balanceToFiat,
 	balanceToFiatNumber,
 	renderFiat,
-	handleWeiNumber
+	handleWeiNumber,
+	toHexadecimal
 } from './number';
 import numberToBN from 'number-to-bn';
 
@@ -356,5 +357,15 @@ describe('Number utils :: renderFiat', () => {
 	it('renderFiat', () => {
 		expect(renderFiat(0.1, 'usd')).toEqual('$0.1');
 		expect(renderFiat(0.0010000001, 'usd')).toEqual('$0.001');
+	});
+});
+
+describe('toHexadecimal', () => {
+	it('should convert to hexadecimal', () => {
+		expect(toHexadecimal('001')).toEqual('1');
+		expect(toHexadecimal('0x01')).toEqual('0x01');
+		expect(toHexadecimal(2)).toEqual('2');
+		expect(toHexadecimal()).toEqual(undefined);
+		expect(toHexadecimal(1232)).toEqual('4d0');
 	});
 });
