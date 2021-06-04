@@ -71,6 +71,7 @@ exports[`Main should render correctly 1`] = `
             },
             "FiatOnRamp": Object {
               "childRouters": Object {
+                "GasEducationCarousel": null,
                 "PaymentMethodApplePay": null,
                 "PaymentMethodSelector": null,
                 "TransakFlow": null,
@@ -401,6 +402,7 @@ exports[`Main should render correctly 1`] = `
               },
               "FiatOnRamp": Object {
                 "childRouters": Object {
+                  "GasEducationCarousel": null,
                   "PaymentMethodApplePay": null,
                   "PaymentMethodSelector": null,
                   "TransakFlow": null,

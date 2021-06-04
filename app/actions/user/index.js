@@ -58,3 +58,9 @@ export function loadingUnset() {
 		type: 'LOADING_UNSET'
 	};
 }
+
+export function setGasEducationCarouselSeen() {
+	return {
+		type: 'SET_GAS_EDUCATION_CAROUSEL_SEEN'
+	};
+}
