@@ -51,7 +51,7 @@ const style = StyleSheet.create({
 	modal: {
 		color: colors.fontPrimary,
 		fontSize: 16,
-		lineHeight: 30
+		lineHeight: 22.4 // 1.4 * fontSize
 	},
 	infoModal: {
 		lineHeight: 20,
