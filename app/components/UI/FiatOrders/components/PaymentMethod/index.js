@@ -6,6 +6,7 @@ import { colors, fontStyles } from '../../../../../styles/common';
 import Text from '../../../../Base/Text';
 import InfoIcon from '../InfoIcon';
 import Modal from './Modal';
+import Device from '../../../../../util/Device';
 
 const style = StyleSheet.create({
 	container: {
@@ -14,11 +15,13 @@ const style = StyleSheet.create({
 		borderColor: colors.blue,
 		paddingVertical: 15,
 		paddingHorizontal: 20,
-		marginHorizontal: 25,
+		marginHorizontal: Device.isIphone5() ? 15 : 25,
 		marginVertical: 12
 	},
-	content: {
-		flexDirection: 'row'
+	title: {
+		flexDirection: 'row',
+		width: '100%',
+		justifyContent: 'space-between'
 	},
 	badgeWrapper: {
 		position: 'absolute',
@@ -38,22 +41,15 @@ const style = StyleSheet.create({
 		overflow: 'hidden',
 		...fontStyles.bold
 	},
-	details: {
-		flex: 2
-	},
-	terms: {
-		flex: 1,
-		alignItems: 'flex-end',
-		justifyContent: 'space-between',
-		marginLeft: 20
-	},
+	details: {},
 	infoIconLine: {
 		alignItems: 'center',
 		flexDirection: 'row',
-		justifyContent: 'flex-end'
+		flexWrap: 'wrap'
 	},
 	infoIcon: {
-		marginLeft: 2
+		margin: 5,
+		color: colors.grey200
 	}
 });
 
@@ -77,21 +73,16 @@ const Badge = props => (
 	</View>
 );
 
+const Title = props => <View style={style.title} {...props} />;
 const Content = props => <View style={style.content} {...props} />;
 const Details = props => <View style={style.details} {...props} />;
-const Terms = props => <View style={style.terms} {...props} />;
 const InfoIconLine = props => <View style={style.infoIconLine} {...props} />;
-
-const PaymentMethodInfoIcon = props => (
-	<View style={style.infoIcon}>
-		<InfoIcon size={16} {...props} />
-	</View>
-);
+const PaymentMethodInfoIcon = props => <InfoIcon size={16} style={style.infoIcon} {...props} />;
 
 PaymentMethod.Badge = Badge;
+PaymentMethod.Title = Title;
 PaymentMethod.Content = Content;
 PaymentMethod.Details = Details;
-PaymentMethod.Terms = Terms;
 PaymentMethod.InfoIconLine = InfoIconLine;
 PaymentMethod.InfoIcon = PaymentMethodInfoIcon;
 PaymentMethod.Modal = Modal;
