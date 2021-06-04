@@ -419,6 +419,9 @@ export function handleWeiNumber(wei) {
  */
 export function fiatNumberToWei(fiat, conversionRate) {
 	const floatFiatConverted = parseFloat(fiat) / conversionRate;
+	if (!floatFiatConverted || isNaN(floatFiatConverted) || floatFiatConverted === Infinity) {
+		return '0x0';
+	}
 	const base = Math.pow(10, 18);
 	let weiNumber = Math.trunc(base * floatFiatConverted);
 	// avoid decimals
@@ -600,3 +603,12 @@ export const conversionUtil = (
 		invertConversionRate,
 		value: value || '0'
 	});
+
+export const toHexadecimal = decimal => {
+	if (!decimal) return decimal;
+	if (decimal !== typeof 'string') {
+		decimal = String(decimal);
+	}
+	if (decimal.startsWith('0x')) return decimal;
+	return parseInt(decimal, 10).toString(16);
+};
