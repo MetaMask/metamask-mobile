@@ -174,11 +174,7 @@ const notificationReducer = (state = initialState, action) => {
 			};
 		}
 		case ACTIONS.REMOVE_NOT_VISIBLE_NOTIFICATIONS: {
-			const visibleNotifications =
-				notifications?.reduce(
-					(newNotifications, notification) => notification.isVisible && newNotifications.concat(notification),
-					[]
-				) || [];
+			const visibleNotifications = notifications?.filter(notification => notification.isVisible) || [];
 			return {
 				...state,
 				notifications: visibleNotifications
