@@ -147,7 +147,7 @@
 		"wrong_password_error": "Kesalahan: Dekrip gagal",
 		"wrong_password_error_android": "Kesalahan: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
 		"vault_error": "Kesalahan: Tidak dapat membuka kunci tanpa vault sebelumnya.",
-		"clean_vault_error": "MetaMask mengalami kesalahan karena mencapai batas penyimpanan. Data lokal sudah rusak. Instal ulang MetaMask dan pulihkan dengan Frasa Pemulihan Rahasia Anda."
+		"clean_vault_error": "MetaMask mengalami kesalahan karena mencapai batas penyimpanan. Data lokal sudah rusak. Harap instal ulang MetaMask dan pulihkan dengan frasa Pemulihan Rahasia Anda."
 	},
 	"enter_password": {
 		"title": "Masukkan kata sandi Anda",
@@ -210,18 +210,18 @@
 	},
 	"import_from_seed": {
 		"title": "Impor dari frasa pemulihan",
-		"seed_phrase_placeholder": "Masukkan Frasa Pemulihan Rahasia Anda",
+		"seed_phrase_placeholder": "Masukkan frasa Pemulihan Rahasia Anda di sini",
 		"new_password": "Kata Sandi Baru",
 		"confirm_password": "Konfirmasikan kata sandi",
 		"import_button": "IMPOR",
 		"cancel_button": "Batal",
 		"password_length_error": "Panjang kata sandi sekurangnya harus 8 karakter",
 		"password_dont_match": "Kata sandi tidak cocok",
-		"seed_phrase_requirements": "Frasa Pemulihan Rahasia berisi 12, 15, 18, 21, atau 24 kata",
+		"seed_phrase_requirements": "Frasa pemulihan rahasia berisi 12, 15, 18, 21, atau 24 kata",
 		"invalid_seed_phrase": "Frasa Pemulihan Rahasia Tidak Valid",
 		"error": "Kesalahan",
 		"invalid_qr_code_title": "Kode QR Tidak Valid",
-		"invalid_qr_code_message": "Kode QR ini tidak mewakili Frasa Pemulihan Rahasia yang valid"
+		"invalid_qr_code_message": "Kode QR ini tidak mewakili frasa Pemulihan Rahasia yang valid"
 	},
 	"bottom_tab_bar": {
 		"dapps": "ÐApps",
@@ -436,9 +436,9 @@
 		"protect_cta": "Lindungi",
 		"protect_title": "Lindungi dompet Anda",
 		"video_failed": "Video Gagal Dimuat.",
-		"protect_desc": "Lindungi dompet Anda dengan menyimpan Frasa Pemulihan Rahasia di berbagai tempat seperti di selembar kertas, pengelola kata sandi, dan/atau cloud.",
-		"seedphrase_not_backed_up": "Penting! Frasa Pemulihan Rahasia tidak dicadangkan",
-		"seedphrase_backed_up": "Frasa Pemulihan Rahasia dicadangkan",
+		"protect_desc": "Lindungi dompet Anda dengan menyimpan frasa Pemulihan Rahasia di berbagai tempat seperti di selembar kertas, pengelola kata sandi, dan/atau cloud.",
+		"seedphrase_not_backed_up": "Penting! Frasa pemulihan rahasia tidak dicadangkan",
+		"seedphrase_backed_up": "Frasa pemulihan rahasia dicadangkan",
 		"back_up_now": "Cadangkan sekarang",
 		"back_up_again": "Cadangkan lagi",
 		"view_hint": "Lihat petunjuk",
@@ -1031,15 +1031,15 @@
 		"skip_button_confirm": "Lewatkan",
 		"skip_title": "Lewatkan keamanan akun?",
 		"skip_check": "Saya mengerti bahwa jika Frasa Pemulihan Rahasia hilang, saya tidak akan dapat mengakses dompet saya.",
-		"what_is_seedphrase_title": "Apa yang dimaksud dengan 'Frasa Pemulihan Rahasia'",
+		"what_is_seedphrase_title": "Apa itu 'frasa Pemulihan Rahasia'",
 		"what_is_seedphrase_text_1": "Frasa Pemulihan Rahasia adalah satu set dua belas kata yang berisi semua informasi tentang dompet, termasuk dana Anda. Seperti kode rahasia yang digunakan untuk mengakses seluruh dompet Anda.",
-		"what_is_seedphrase_text_2": "Anda harus menjaga Frasa Pemulihan Rahasia tetap aman dan rahasia. Jika seseorang mendapatkan Frasa Pemulihan Rahasia Anda, mereka akan mendapatkan kontrol atas akun Anda.",
+		"what_is_seedphrase_text_2": "Anda harus menjaga frasa Pemulihan Rahasia tetap aman dan rahasia. Jika seseorang mendapatkan frasa Pemulihan Rahasia Anda, mereka akan mendapatkan kontrol atas akun Anda.",
 		"what_is_seedphrase_text_3": "Simpan di tempat yang hanya Anda dapat mengaksesnya. Jika hilang, MetaMask pun tidak dapat membantu Anda memulihkannya."
 	},
 	"account_backup_step_1B": {
 		"title": "Amankan dompet Anda",
 		"subtitle_1": "Amankan",
-		"subtitle_2": "Frasa Pemulihan Rahasia",
+		"subtitle_2": "Frasa Pemulihan Rahasia.",
 		"cta_text": "Mulai",
 		"learn_more": "Pelajari Selengkapnya",
 		"why_important": "Mengapa ini penting?",
@@ -1056,16 +1056,16 @@
 		"tips_2": "Simpan di tempat aman",
 		"tips_3": "Simpan di beberapa tempat rahasia",
 		"why_secure_title": "Lindungi dompet Anda",
-		"why_secure_1": "Jangan ambil risiko kehilangan dana Anda. Lindungi dompet Anda dengan menyimpan Frasa Pemulihan Rahasia di tempat yang Anda percayai.",
+		"why_secure_1": "Jangan ambil risiko kehilangan dana Anda. Lindungi dompet Anda dengan menyimpan frasa Pemulihan Rahasia di tempat yang Anda percayai.",
 		"why_secure_2": " Ini satu-satunya cara untuk memulihkan dompet jika aplikasi Anda terkunci atau dapatkan perangkat baru."
 	},
 	"account_backup_step_2": {
 		"cancel_backup_title": "Batalkan Cadangan",
-		"cancel_backup_message": "Kami sangat merekomendasikan agar Anda menyimpan Frasa Pemulihan Rahasia untuk memulihkan dompet Anda.",
+		"cancel_backup_message": "Kami sangat merekomendasikan agar Anda menyimpan frasa Pemulihan Rahasia untuk memulihkan dompet Anda.",
 		"cancel_backup_ok": "Ya, saya akan mengambil risiko tersebut",
 		"cancel_backup_no": "Tidak, cadangkan Frasa Pemulihan Rahasia",
 		"title": "Ambil pulpen dan kertas",
-		"info": "Langkah berikutnya adalah menuliskan Frasa Pemulihan Rahasia Anda.",
+		"info": "Langkah berikutnya adalah menuliskan frasa Pemulihan Rahasia Anda.",
 		"info_2_1": "Anda akan diminta untuk ",
 		"info_2_2": "memasukkannya kembali",
 		"info_2_3": " untuk konfirmasi",
@@ -1073,16 +1073,16 @@
 	},
 	"account_backup_step_3": {
 		"cancel_backup_title": "Batalkan Cadangan",
-		"cancel_backup_message": "Kami sangat merekomendasikan agar Anda menyimpan Frasa Pemulihan Rahasia untuk memulihkan dompet Anda.",
+		"cancel_backup_message": "Kami sangat merekomendasikan agar Anda menyimpan frasa Pemulihan Rahasia untuk memulihkan dompet Anda.",
 		"cancel_backup_ok": "Ya, saya akan mengambil risiko tersebut",
 		"cancel_backup_no": "Tidak, cadangkan Frasa Pemulihan Rahasia",
 		"title": "Apa ada orang yang melihat?",
-		"info_text": "Pastikan tidak ada orang lain atau robot yang melihat layar Anda. Jika disalin, Frasa Pemulihan Rahasia Anda dapat digunakan di perangkat lain untuk mencuri dana Anda",
+		"info_text": "Pastikan tidak ada orang lain atau robot yang melihat layar Anda. Jika disalin, frasa Pemulihan Rahasia Anda dapat digunakan di perangkat lain untuk mencuri dana Anda",
 		"cta_text": "TIDAK ADA SEORANG PUN YANG MELIHAT SAYA"
 	},
 	"account_backup_step_4": {
 		"cancel_backup_title": "Batalkan Cadangan",
-		"cancel_backup_message": "Kami sangat merekomendasikan agar Anda menyimpan Frasa Pemulihan Rahasia untuk memulihkan dompet Anda.",
+		"cancel_backup_message": "Kami sangat merekomendasikan agar Anda menyimpan frasa Pemulihan Rahasia untuk memulihkan dompet Anda.",
 		"cancel_backup_ok": "Ya, saya akan mengambil risiko tersebut",
 		"cancel_backup_no": "Tidak, cadangkan Frasa Pemulihan Rahasia",
 		"back": "Kembali",
@@ -1098,37 +1098,37 @@
 		"error_title": "Ups!",
 		"error_message": "Urutan kata-katanya salah. Pastikan Anda menuliskannya dengan benar dan buka layar sebelumnya jika perlu",
 		"back": "Kembali",
-		"title": "Konfirmasikan Frasa Pemulihan Rahasia",
+		"title": "Konfirmasikan frasa Pemulihan Rahasia",
 		"info_text": "Masukkan setiap kata dalam urutan yang disajikan kepada Anda pada layar sebelumnya.",
 		"cta_text": "KONFIRMASIKAN FRASA",
-		"modal_title": "Frasa Pemulihan Rahasia dikonfirmasi!",
+		"modal_title": "Frasa pemulihan rahasia dikonfirmasi!",
 		"modal_text": "Ini untuk memastikan Anda mengikuti tindakan keamanan ini",
 		"modal_button": "BERIKUTNYA"
 	},
 	"account_backup_step_6": {
 		"title": "Kiat Keamanan",
-		"info_text": "MetaMask tidak dapat memulihkan Frasa Pemulihan Rahasia jika Anda menghilangkannya",
-		"tip_1": "Simpan beberapa cadangan Frasa Pemulihan Rahasia Anda",
+		"info_text": "MetaMask tidak dapat memulihkan frasa Pemulihan Rahasia jika Anda menghilangkannya",
+		"tip_1": "Simpan beberapa cadangan frasa Pemulihan Rahasia Anda",
 		"tip_2": "Simpan frasa di pengelola kata sandi tepercaya dan kertas cadangan di tempat yang aman",
 		"tip_3": "Jangan bagikan frasa ini kepada siapa pun",
-		"disclaimer": "* Anda dapat menemukan Frasa Pemulihan Rahasia jika Anda membuka ",
+		"disclaimer": "* Anda dapat menemukan frasa Pemulihan rahasia jika Anda membuka ",
 		"disclaimer_bold": "Pengaturan > Keamanan & Privasi",
 		"cta_text": "MENGERTI!",
 		"modal_title": "Selamat!",
 		"modal_text": "Anda sudah siap dan mulai!",
 		"modal_button": "SELESAI",
-		"copy_seed_phrase": "MENYALIN Frasa Pemulihan Rahasia KE CLIPBOARD"
+		"copy_seed_phrase": "MENYALIN FRASA PEMULIHAN RAHASIA KE CLIPBOARD"
 	},
 	"manual_backup": {
 		"progressOne": "Buat Kata Sandi",
 		"progressTwo": "Amankan dompet",
-		"progressThree": "Konfirmasikan Frasa Pemulihan Rahasia"
+		"progressThree": "Konfirmasikan frasa Pemulihan Rahasia"
 	},
 	"manual_backup_step_1": {
-		"action": "Menuliskan Frasa Pemulihan Rahasia Anda",
-		"info": "Ini adalah Frasa Pemulihan Rahasia Anda. Tuliskan pada selembar kertas dan simpan di tempat yang aman. Anda akan diminta untuk memasukkan kembali frasa ini (sesuai urutan) di langkah berikutnya.",
+		"action": "Menuliskan frasa Pemulihan Rahasia Anda",
+		"info": "Ini frasa Pemulihan Rahasia Anda. Tuliskan pada selembar kertas dan simpan di tempat yang aman. Anda akan diminta untuk memasukkan kembali frasa ini (sesuai urutan) di langkah berikutnya.",
 		"continue": "Lanjutkan",
-		"reveal": "Ketuk untuk mengungkapkan Frasa Pemulihan Rahasia Anda",
+		"reveal": "Ketuk untuk mengungkapkan frasa Pemulihan Rahasia Anda",
 		"watching": "Pastikan tidak ada orang lain yang melihat layar Anda.",
 		"view": "Lihat",
 		"confirm_password": "Konfirmasikan kata sandi",
@@ -1136,21 +1136,21 @@
 		"confirm": "KONFIRMASIKAN"
 	},
 	"manual_backup_step_2": {
-		"action": "Konfirmasikan Frasa Pemulihan Rahasia",
+		"action": "Konfirmasikan frasa Pemulihan Rahasia",
 		"info": "Pilih setiap kata dalam urutan yang disajikan kepada Anda.",
 		"complete": "Selesaikan Pencadangan",
 		"success": "Berhasil"
 	},
 	"manual_backup_step_3": {
 		"congratulations": "Selamat",
-		"success": "Anda berhasil melindungi dompet Anda. Ingatlah untuk menjaga Frasa Pemulihan Rahasia Anda tetap aman, ini tanggung jawab Anda!",
+		"success": "Anda berhasil melindungi dompet Anda. Ingatlah untuk menjaga frasa Pemulihan Rahasia Anda tetap aman, ini tanggung jawab Anda!",
 		"hint": "Tinggalkan petunjuk untuk Anda?",
-		"recover": "MetaMask tidak dapat memulihkan dompet jika Anda menghilangkannya. Anda dapat menemukan Frasa Pemulihan Rahasia Anda di Pengaturan > Keamanan & Privasi.",
+		"recover": "MetaMask tidak dapat memulihkan dompet jika Anda menghilangkannya. Anda dapat menemukan frasa Pemulihan rahasia Anda di Pengaturan > Keamanan & Privasi.",
 		"learn": "Pelajari selengkapnya",
 		"done": "Selesai",
 		"recovery_hint": "Petunjuk pemulihan",
 		"leave_hint": "Tinggalkan petunjuk untuk Anda. Tuliskan letak / tempat Anda menyimpannya untuk mengingatkan bagaimana Anda bisa mengaksesnya. Informasi ini tidak meninggalkan perangkat Anda.",
-		"no_seedphrase": "Jangan gunakan ini untuk menuliskan Frasa Pemulihan Rahasia Anda.",
+		"no_seedphrase": "Jangan gunakan ini untuk menuliskan frasa Pemulihan Rahasia Anda.",
 		"example": "contoh, Rumah ibu",
 		"save": "Simpan",
 		"cancel": "Batal"
@@ -1206,8 +1206,8 @@
 	},
 	"protect_your_wallet_modal": {
 		"title": "Lindungi dompet Anda",
-		"body_for_password": "Lindungi dompet Anda dengan mengatur kata sandi dan menyimpan Frasa Pemulihan Rahasia Anda (wajib).",
-		"body_for_seedphrase": "Sekarang setelah nilai ditambahkan ke dompet, lindungi dompet Anda dengan mengatur kata sandi dan menyimpan Frasa Pemulihan Rahasia Anda (wajib).",
+		"body_for_password": "Lindungi dompet Anda dengan mengatur kata sandi dan menyimpan frasa Pemulihan Rahasia Anda (wajib).",
+		"body_for_seedphrase": "Sekarang setelah nilai ditambahkan ke dompet, lindungi dompet Anda dengan mengatur kata sandi dan menyimpan frasa Pemulihan Rahasia Anda (wajib).",
 		"button": "Lindungi dompet"
 	},
 	"payment_request": {
@@ -1504,7 +1504,7 @@
 		"title": "Lindungi dompet Anda",
 		"top_button": "Lindungi dompet",
 		"bottom_button": "Ingatkan saya nanti",
-		"text": "Jangan ambil risiko kehilangan dana Anda. Lindungi dompet Anda dengan menyimpan Frasa Pemulihan Rahasia di tempat yang Anda percayai.",
+		"text": "Jangan ambil risiko kehilangan dana Anda. Lindungi dompet Anda dengan menyimpan frasa Pemulihan Rahasia di tempat yang Anda percayai.",
 		"text_bold": "Ini satu-satunya cara untuk memulihkan dompet jika aplikasi Anda terkunci atau dapatkan perangkat baru.",
 		"action": "Pelajari selengkapnya"
 	},
@@ -1524,15 +1524,15 @@
 		"submit_ticket_6": "di sini.",
 		"submit_ticket_7": "Sertakan pesan kesalahan dan tangkapan layarnya.",
 		"save_seedphrase_1": "Jika kesalahan ini masih ada,",
-		"save_seedphrase_2": "menyimpan Frasa Pemulihan Rahasia Anda",
-		"save_seedphrase_3": "& instal ulang aplikasi. Catatan: Anda TIDAK dapat memulihkan dompet tanpa Frasa Pemulihan Rahasia Anda.",
+		"save_seedphrase_2": "menyimpan frasa Pemulihan Rahasia Anda",
+		"save_seedphrase_3": "& instal ulang aplikasi. Catatan: Anda TIDAK dapat memulihkan dompet tanpa frasa Pemulihan Rahasia Anda.",
 		"copied_clipboard": "Disalin ke clipboard",
 		"ok": "Oke"
 	},
 	"whats_new": {
 		"title": "Lihat apa yang baru",
 		"feature_security_settings_title": "Pengaturan keamanan ditingkatkan",
-		"feature_security_settings_text": "Sekarang Anda dapat mengubah kata sandi aplikasi MetaMask & meninjau cara mencadangkan Frasa Pemulihan Rahasia dompet Anda dari Pengaturan > Keamanan & Privasi.",
+		"feature_security_settings_text": "Sekarang Anda dapat mengubah kata sandi aplikasi MetaMask & meninjau cara mencadangkan frasa Pemulihan Rahasia dompet Anda dari Pengaturan > Keamanan & Privasi.",
 		"feature_security_settings_button": "Lihat di Pengaturan"
 	},
 	"invalid_network": {

@@ -210,7 +210,7 @@
 	},
 	"import_from_seed": {
 		"title": "Nhập từ cụm mật khẩu gốc",
-		"seed_phrase_placeholder": "Nhập Cụm mật khẩu khôi phục bí mật của bạn",
+		"seed_phrase_placeholder": "Nhập Cụm mật khẩu khôi phục bí mật của bạn vào đây",
 		"new_password": "Mật khẩu mới",
 		"confirm_password": "Xác nhận mật khẩu",
 		"import_button": "NHẬP",
@@ -436,8 +436,8 @@
 		"protect_cta": "Bảo vệ",
 		"protect_title": "Bảo vệ ví của bạn",
 		"video_failed": "Không tải được video.",
-		"protect_desc": "Bảo vệ ví của bạn bằng cách lưu Cụm mật khẩu khôi phục bí mật ở nhiều nơi, chẳng hạn như trên một tờ giấy, trình quản lý mật khẩu và/hoặc đám mây.",
-		"seedphrase_not_backed_up": "Quan trọng! Chưa sao lưu Cụm mật khẩu khôi phục bí mật",
+		"protect_desc": "Bảo vệ ví của bạn bằng cách lưu Cụm mật khẩu khôi phục bí mật ở nhiều nơi, chẳng hạn như trên một mảnh giấy, trình quản lý mật khẩu và/hoặc đám mây.",
+		"seedphrase_not_backed_up": "Quan trọng! Cụm mật khẩu khôi phục bí mật chưa được sao lưu",
 		"seedphrase_backed_up": "Đã sao lưu cụm mật khẩu khôi phục bí mật",
 		"back_up_now": "Sao lưu ngay",
 		"back_up_again": "Sao lưu lại",
@@ -460,7 +460,7 @@
 		"contacts_desc": "Thêm, chỉnh sửa, xóa và quản lý các tài khoản của bạn",
 		"security_title": "Bảo mật và quyền riêng tư",
 		"back": "Quay lại",
-		"security_desc": "Các tùy chọn cài đặt quyền riêng tư, MetaMetrics, mã khóa riêng tư và Cụm mật khẩu khôi phục bí mật của ví",
+		"security_desc": "Các tùy chọn cài đặt quyền riêng tư, MetaMetrics, khóa riêng tư và Cụm mật khẩu khôi phục bí mật của ví",
 		"networks_title": "Mạng",
 		"networks_desc": "Thêm và chỉnh sửa mạng RPC tùy chỉnh",
 		"network_name_label": "Tên mạng",
@@ -901,7 +901,7 @@
 	},
 	"sync_with_extension_success": {
 		"title": "Đã nhập ví",
-		"sync_complete_1": "Xin lưu ý rằng MetaMask không thể khôi phục Cụm mật khẩu khôi phục bí mật của bạn nếu bạn bị mất. Bạn có thể tìm thấy Cụm mật khẩu khôi phục bí mật trong phần",
+		"sync_complete_1": "Xin lưu ý rằng MetaMask không thể khôi phục Cụm mật khẩu khôi phục bí mật của bạn nếu bạn bị mất. Bạn có thể tìm thấy Cụm mật khẩu khôi phục bí mật trong",
 		"sync_complete_2": "Cài đặt > Bảo mật và quyền riêng tư",
 		"button_continue": "Hoàn tất",
 		"password_tip": "Mật khẩu để mở khóa ví trên thiết bị di động của bạn giống với mật khẩu bạn đã đặt cho tiện ích.",
@@ -985,7 +985,7 @@
 	},
 	"import_private_key": {
 		"title": "Nhập tài khoản",
-		"description_one": "Bạn có thể xem các tài khoản đã nhập trong ví của bạn nhưng không thể khôi phục chúng bằng Cụm mật khẩu khôi phục bí mật mà bạn dùng trên MetaMask.",
+		"description_one": "Các tài khoản đã nhập có thể xem được trong ví của bạn nhưng không thể khôi phục bằng Cụm mật khẩu khôi phục bí mật do MetaMask cấp cho bạn.",
 		"learn_more_here": "Tìm hiểu thêm về các tài khoản đã nhập tại đây.",
 		"subtitle": "Dán chuỗi khóa riêng tư của bạn",
 		"cta_text": "NHẬP",
@@ -1032,14 +1032,14 @@
 		"skip_title": "Bỏ qua bước bảo mật tài khoản?",
 		"skip_check": "Tôi hiểu rằng nếu bị mất Cụm mật khẩu khôi phục bí mật, tôi sẽ không thể truy cập ví của mình.",
 		"what_is_seedphrase_title": "“Cụm mật khẩu khôi phục bí mật” là gì",
-		"what_is_seedphrase_text_1": "Cụm mật khẩu khôi phục bí mật gồm có 12 từ chứa toàn bộ thông tin về ví của bạn, bao gồm cả số tiền của bạn. Đây giống như một mã bí mật dùng để truy cập toàn bộ ví của bạn.",
+		"what_is_seedphrase_text_1": "Cụm mật khẩu khôi phục bí mật là tập hợp gồm 12 từ chứa toàn bộ thông tin về ví của bạn, bao gồm cả số tiền của bạn. Đây giống như một mã bí mật dùng để truy cập toàn bộ ví của bạn.",
 		"what_is_seedphrase_text_2": "Bạn phải lưu giữ Cụm mật khẩu khôi phục bí mật ở nơi an toàn và bí mật. Nếu ai đó biết Cụm mật khẩu khôi phục bí mật của bạn, họ có thể kiểm soát các tài khoản của bạn.",
 		"what_is_seedphrase_text_3": "Hãy lưu ở nơi mà bạn có thể lấy để sử dụng. Nếu bạn làm mất thì ngay cả MetaMask cũng không thể giúp bạn khôi phục."
 	},
 	"account_backup_step_1B": {
 		"title": "Bảo mật cho ví của bạn",
 		"subtitle_1": "Bảo mật cho Cụm mật khẩu gốc",
-		"subtitle_2": "của ví.",
+		"subtitle_2": "Cụm mật khẩu khôi phục bí mật.",
 		"cta_text": "Bắt đầu",
 		"learn_more": "Tìm hiểu thêm",
 		"why_important": "Tại sao thông tin này lại quan trọng?",
@@ -1056,7 +1056,7 @@
 		"tips_2": "Lưu giữ trong két sắt",
 		"tips_3": "Lưu giữ ở nhiều nơi bí mật",
 		"why_secure_title": "Bảo vệ ví của bạn",
-		"why_secure_1": "Đừng mạo hiểm để mất tiền của bạn. Hãy bảo vệ ví của bạn bằng cách lưu giữ Cụm mật khẩu khôi phục bí mật ở nơi bạn tin tưởng.",
+		"why_secure_1": "Đừng mạo hiểm để mất tiền của bạn. Hãy bảo vệ ví của bạn bằng cách lưu giữ Cụm mật khẩu khôi phục bí mật ở nơi bạn tin cậy.",
 		"why_secure_2": " Đây là cách duy nhất để khôi phục ví của bạn nếu bạn không thể đăng nhập ứng dụng hoặc dùng thiết bị mới."
 	},
 	"account_backup_step_2": {
@@ -1126,7 +1126,7 @@
 	},
 	"manual_backup_step_1": {
 		"action": "Ghi lại Cụm mật khẩu khôi phục bí mật của bạn",
-		"info": "Đây là Cụm mật khẩu khôi phục bí mật của bạn. Hãy ghi ra giấy và lưu giữ ở nơi an toàn. Hệ thống sẽ yêu cầu bạn nhập lại cụm mật khẩu này (theo đúng thứ tự) ở bước tiếp theo.",
+		"info": "Đây là Cụm mật khẩu khôi phục bí mật của bạn. Hãy ghi lại ra giấy và lưu giữ ở nơi an toàn. Hệ thống sẽ yêu cầu bạn nhập lại cụm mật khẩu này (theo đúng thứ tự) ở bước tiếp theo.",
 		"continue": "Tiếp tục",
 		"reveal": "Nhấn để hiển thị Cụm mật khẩu khôi phục bí mật của bạn",
 		"watching": "Đảm bảo rằng không có ai đang theo dõi màn hình của bạn.",
@@ -1145,7 +1145,7 @@
 		"congratulations": "Chúc mừng bạn",
 		"success": "Bạn đã bảo vệ thành công ví của mình. Hãy nhớ lưu giữ an toàn Cụm mật khẩu khôi phục bí mật của bạn. Đây là trách nhiệm của bạn!",
 		"hint": "Để lại gợi ý cho bạn?",
-		"recover": "MetaMask không thể khôi phục ví của bạn nếu bạn bị mất cụm mật khẩu này. Bạn có thể tìm thấy Cụm mật khẩu khôi phục bí mật của mình trong phần Cài đặt > Bảo mật và quyền riêng tư.",
+		"recover": "MetaMask không thể khôi phục ví của bạn nếu bạn bị mất cụm mật khẩu gốc. Bạn có thể tìm thấy Cụm mật khẩu khôi phục bí mật của mình trong phần Cài đặt > Bảo mật và quyền riêng tư.",
 		"learn": "Tìm hiểu thêm",
 		"done": "Hoàn tất",
 		"recovery_hint": "Gợi ý khôi phục",
@@ -1504,7 +1504,7 @@
 		"title": "Bảo vệ ví của bạn",
 		"top_button": "Bảo vệ ví",
 		"bottom_button": "Nhắc tôi sau",
-		"text": "Đừng mạo hiểm để mất tiền của bạn. Hãy bảo vệ ví của bạn bằng cách lưu giữ Cụm mật khẩu khôi phục bí mật ở nơi bạn tin tưởng.",
+		"text": "Đừng mạo hiểm để mất tiền của bạn. Hãy bảo vệ ví của bạn bằng cách lưu giữ Cụm mật khẩu khôi phục bí mật ở nơi bạn tin cậy.",
 		"text_bold": "Đây là cách duy nhất để khôi phục ví của bạn nếu bạn không thể đăng nhập ứng dụng hoặc dùng thiết bị mới.",
 		"action": "Tìm hiểu thêm"
 	},
@@ -1524,7 +1524,7 @@
 		"submit_ticket_6": "tại đây.",
 		"submit_ticket_7": "Vui lòng gửi kèm thông báo lỗi và ảnh chụp màn hình.",
 		"save_seedphrase_1": "Nếu lỗi vẫn tiếp diễn,",
-		"save_seedphrase_2": "hãy lưu Cụm mật khẩu khôi phục bí mật của bạn",
+		"save_seedphrase_2": "lưu Cụm mật khẩu khôi phục bí mật của bạn",
 		"save_seedphrase_3": "và cài đặt lại ứng dụng. Lưu ý: bạn KHÔNG thể khôi phục ví của mình nếu không có Cụm mật khẩu khôi phục bí mật.",
 		"copied_clipboard": "Đã sao chép vào khay nhớ tạm",
 		"ok": "OK"

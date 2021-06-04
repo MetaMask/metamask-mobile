@@ -43,7 +43,7 @@
 		"warning_text_1": "Si continúa, se quitará",
 		"warning_text_2": "su cartera y",
 		"warning_text_3": "sus cuentas actuales.",
-		"warning_text_4": "Podrá recuperarlas SOLO con la frase secreta de recuperación de la cartera. MetaMask no puede ayudarlo a recuperarla.",
+		"warning_text_4": "Podrá recuperarlas ÚNICAMENTE con la frase secreta de recuperación de su cartera. MetaMask no puede ayudarlo a recuperarla.",
 		"warning_proceed": "Quitar cartera y continuar",
 		"warning_cancel": "Cancelar",
 		"step1": "Configuración de cartera",
@@ -210,7 +210,7 @@
 	},
 	"import_from_seed": {
 		"title": "Importar desde la frase de recuperación",
-		"seed_phrase_placeholder": "Ingrese la frase secreta de recuperación",
+		"seed_phrase_placeholder": "Ingrese aquí su frase secreta de recuperación.",
 		"new_password": "Nueva contraseña",
 		"confirm_password": "Confirmar contraseña",
 		"import_button": "IMPORTAR",
@@ -218,10 +218,10 @@
 		"password_length_error": "La contraseña debe tener al menos 8 caracteres",
 		"password_dont_match": "Las contraseñas no coinciden",
 		"seed_phrase_requirements": "Las frases secretas de recuperación contienen 12, 15, 18, 21 o 24 palabras",
-		"invalid_seed_phrase": "Frase secreta de recuperación no válida",
+		"invalid_seed_phrase": "Frase secreta de recuperación no válida.",
 		"error": "Error",
 		"invalid_qr_code_title": "Código QR no válido",
-		"invalid_qr_code_message": "Este código QR no representa ninguna frase secreta de recuperación válida"
+		"invalid_qr_code_message": "Este código QR no representa ninguna frase secreta de recuperación válida."
 	},
 	"bottom_tab_bar": {
 		"dapps": "ÐApps",
@@ -436,9 +436,9 @@
 		"protect_cta": "Proteger",
 		"protect_title": "Proteger su cartera",
 		"video_failed": "No se pudo cargar el video.",
-		"protect_desc": "Para proteger la cartera, guarde la frase secreta de recuperación en distintos lugares, como en un trozo de papel, un administrador de contraseñas o en la nube.",
-		"seedphrase_not_backed_up": "Importante: La frase secreta de recuperación no tiene copia de seguridad",
-		"seedphrase_backed_up": "Se creó una copia de seguridad de la frase secreta de recuperación",
+		"protect_desc": "Para proteger su cartera, guarde la frase secreta de recuperación en distintos lugares, como en un trozo de papel, un administrador de contraseñas o en la nube.",
+		"seedphrase_not_backed_up": "Importante: La frase secreta de recuperación no tiene copia de seguridad.",
+		"seedphrase_backed_up": "Se creó una copia de seguridad de la frase secreta de recuperación.",
 		"back_up_now": "Crear copia de seguridad ahora",
 		"back_up_again": "Volver a crear copia de seguridad",
 		"view_hint": "Ver pista",
@@ -549,7 +549,7 @@
 		"private_key": "Su clave privada",
 		"copy_to_clipboard": "Copiar al Portapapeles",
 		"enter_password": "Escribir contraseña para continuar",
-		"seed_phrase_copied": "Se copió su frase secreta de recuperación en el portapapeles",
+		"seed_phrase_copied": "Se copió al portapapeles su frase secreta de recuperación.",
 		"private_key_copied": "Clave privada copiada en el Portapapeles",
 		"warning_incorrect_password": "Contraseña incorrecta",
 		"unknown_error": "No se pudo desbloquear la cuenta. Vuelva a intentarlo.",
@@ -895,7 +895,7 @@
 		"outdated_qr_code": "Código QR expirado",
 		"outdated_qr_code_desc": "Este parece ser un código QR expirado.  Intente escanear uno nuevo",
 		"something_wrong": "¡Ups! se produjo un error…",
-		"something_wrong_desc": "Encontramos algunos problemas al intentar sincronizar su cartera. Vuelva a intentarlo más tarde o importe la cartera con la frase secreta de recuperación",
+		"something_wrong_desc": "Encontramos algunos problemas al intentar sincronizar su cartera. Vuelva a intentarlo más tarde o importe su cartera con la frase secreta de recuperación.",
 		"allow_biometrics_title": "¿Quiere habilitar {{biometrics}}?",
 		"allow_biometrics_desc": "Puede usar {{biometrics}} para autenticarse en MetaMask"
 	},
@@ -1039,7 +1039,7 @@
 	"account_backup_step_1B": {
 		"title": "Proteger su cartera",
 		"subtitle_1": "Proteja la frase",
-		"subtitle_2": "secreta de recuperación de la cartera.",
+		"subtitle_2": "Frase secreta de recuperación.",
 		"cta_text": "Iniciar",
 		"learn_more": "Más información",
 		"why_important": "¿Por qué es importante?",
@@ -1101,23 +1101,23 @@
 		"title": "Confirmar frase secreta de recuperación",
 		"info_text": "Inserte cada palabra en el orden que vio en la pantalla anterior.",
 		"cta_text": "CONFIRMAR FRASE",
-		"modal_title": "Se confirmó la frase secreta de recuperación",
+		"modal_title": "Se confirmó su frase secreta de recuperación.",
 		"modal_text": "Esto es para garantizar que usted sigue esta medida de seguridad",
 		"modal_button": "SIGUIENTE"
 	},
 	"account_backup_step_6": {
 		"title": "Sugerencias de seguridad",
-		"info_text": "MetaMask no podrá recuperar la frase secreta de recuperación si usted llegara a perderla.",
-		"tip_1": "Conserve varias copias de seguridad de la frase secreta de recuperación",
+		"info_text": "MetaMask no podrá recuperar la frase secreta de recuperación si llegara a perderla.",
+		"tip_1": "Conserve varias copias de seguridad de la frase secreta de recuperación.",
 		"tip_2": "Guarde la frase en un administrador de contraseñas de confianza y en varios papeles en un lugar seguro",
 		"tip_3": "No comparta esta frase con nadie",
-		"disclaimer": "* Puede encontrar la frase secreta de recuperación en ",
+		"disclaimer": "* Puede encontrar la frase secreta de recuperación si va a ",
 		"disclaimer_bold": "Configuración > Seguridad y privacidad",
 		"cta_text": "ENTENDIDO",
 		"modal_title": "Felicitaciones",
 		"modal_text": "Ya creó sus copias de seguridad y está listo para empezar.",
 		"modal_button": "HECHO",
-		"copy_seed_phrase": "COPIAR frase secreta de recuperación EN EL PORTAPAPELES"
+		"copy_seed_phrase": "COPIAR FRASE SECRETA DE RECUPERACIÓN EN EL PORTAPAPELES"
 	},
 	"manual_backup": {
 		"progressOne": "Crear contraseña",
@@ -1125,10 +1125,10 @@
 		"progressThree": "Confirmar frase secreta de recuperación"
 	},
 	"manual_backup_step_1": {
-		"action": "Anote la frase secreta de recuperación",
+		"action": "Anote su frase secreta de recuperación.",
 		"info": "Esta es su frase secreta de recuperación. Anótela en un papel y guárdela en un lugar seguro. Se le pedirá que vuelva a escribir esta frase (en orden) en el paso siguiente.",
 		"continue": "Continuar",
-		"reveal": "Toque para conocer la frase secreta de recuperación",
+		"reveal": "Toque para conocer su frase secreta de recuperación.",
 		"watching": "Asegúrese de que no haya nadie mirando la pantalla.",
 		"view": "Ver",
 		"confirm_password": "Confirmar la contraseña",
@@ -1145,12 +1145,12 @@
 		"congratulations": "Felicitaciones",
 		"success": "Protegió correctamente su cartera. Recuerde guardar la frase secreta de recuperación en un lugar seguro; es su responsabilidad.",
 		"hint": "¿Quiere dejarse una pista?",
-		"recover": "MetaMask no podrá recuperar su cartera si llegara a perderla. Puede encontrar la frase secreta de recuperación en Configuración > Seguridad y privacidad.",
+		"recover": "MetaMask no podrá recuperar su cartera si llegara a perderla. Puede encontrar la frase secreta de recuperación en Settings (Configuración) > Security & Privacy (Seguridad y privacidad).",
 		"learn": "Más información",
 		"done": "Hecho",
 		"recovery_hint": "Pista de recuperación",
 		"leave_hint": "Déjese una pista. Escriba el lugar donde guardó la frase para que recuerde cómo puede encontrarla. Esta información no sale del dispositivo.",
-		"no_seedphrase": "No use esto para escribir la frase secreta de recuperación",
+		"no_seedphrase": "No use esto para escribir la frase secreta de recuperación.",
 		"example": "p. ej., la casa de mamá",
 		"save": "Guardar",
 		"cancel": "Cancelar"
@@ -1206,8 +1206,8 @@
 	},
 	"protect_your_wallet_modal": {
 		"title": "Proteger su cartera",
-		"body_for_password": "Para proteger la cartera, establezca una contraseña y guarde la frase secreta de recuperación (obligatorio).",
-		"body_for_seedphrase": "Ahora que se agregó valor a su cartera, para protegerla, establezca una contraseña y guarde la frase secreta de recuperación (obligatorio).",
+		"body_for_password": "Para proteger la cartera, establezca una contraseña y guarde la frase secreta de recuperación (requerido).",
+		"body_for_seedphrase": "Ahora que se agregó valor a su cartera, para protegerla, establezca una contraseña y guarde la frase secreta de recuperación (requerido).",
 		"button": "Proteger cartera"
 	},
 	"payment_request": {
@@ -1524,15 +1524,15 @@
 		"submit_ticket_6": "aquí.",
 		"submit_ticket_7": "Incluya el mensaje de error y la captura de pantalla.",
 		"save_seedphrase_1": "Si este error persiste,",
-		"save_seedphrase_2": "guarde la frase secreta de recuperación",
-		"save_seedphrase_3": "y vuelva a instalar la aplicación. Nota: NO puede restaurar la cartera si no tiene la frase secreta de recuperación.",
+		"save_seedphrase_2": "guarde su frase secreta de recuperación",
+		"save_seedphrase_3": "y vuelva a instalar la aplicación. Nota: NO puede restaurar su cartera si no tiene la frase secreta de recuperación.",
 		"copied_clipboard": "Copiado en el Portapapeles",
 		"ok": "Aceptar"
 	},
 	"whats_new": {
 		"title": "Ver las novedades",
 		"feature_security_settings_title": "Configuración de seguridad mejorada",
-		"feature_security_settings_text": "Ahora puede cambiar la contraseña de la aplicación MetaMask y aprender a crear una copia de seguridad de la frase secreta de recuperación de su cartera en Configuración > Seguridad y privacidad.",
+		"feature_security_settings_text": "Ahora puede cambiar la contraseña de la aplicación MetaMask y revisar cómo crear una copia de seguridad de la frase secreta de recuperación de su cartera en Settings (Configuración) > Security & Privacy (Seguridad y privacidad).",
 		"feature_security_settings_button": "Ver en Configuración"
 	},
 	"invalid_network": {

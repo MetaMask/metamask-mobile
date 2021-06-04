@@ -210,14 +210,14 @@
 	},
 	"import_from_seed": {
 		"title": "시드 구문에서 가져오기",
-		"seed_phrase_placeholder": "계정 시드 구문 입력",
+		"seed_phrase_placeholder": "여기에서 계정 시드 구문 입력",
 		"new_password": "새 암호",
 		"confirm_password": "암호 확인",
 		"import_button": "가져오기",
 		"cancel_button": "취소",
 		"password_length_error": "암호는 8자 이상이어야 합니다.",
 		"password_dont_match": "암호가 일치하지 않습니다.",
-		"seed_phrase_requirements": "시드 구문에 12, 15, 18, 21 또는 24단어 포함",
+		"seed_phrase_requirements": "계정 시드 구문에 12, 15, 18, 21 또는 24단어 포함",
 		"invalid_seed_phrase": "잘못된 계정 시드 구문",
 		"error": "오류",
 		"invalid_qr_code_title": "잘못된 QR 코드",
@@ -436,9 +436,9 @@
 		"protect_cta": "보호",
 		"protect_title": "지갑 보호",
 		"video_failed": "동영상을 불러오지 못했습니다.",
-		"protect_desc": "메모지, 암호 관리자 및/또는 클라우드 등 다양한 곳에 계정 시드 구문을 저장하여 지갑을 보호하십시오.",
-		"seedphrase_not_backed_up": "중요! 계정 시드 구문 백업되지 않음",
-		"seedphrase_backed_up": "계정 시드 구문 백업됨",
+		"protect_desc": "메모지, 암호 관리자 및/또는 클라우드 등 다양한 곳에 계정 시드 구문을 저장하여 지갑을 보호하세요.",
+		"seedphrase_not_backed_up": "중요! 백업되지 않은 계정 시드 구문",
+		"seedphrase_backed_up": "백업된 계정 시드 구문",
 		"back_up_now": "지금 백업",
 		"back_up_again": "다시 백업",
 		"view_hint": "힌트 보기",
@@ -549,7 +549,7 @@
 		"private_key": "비공개 키",
 		"copy_to_clipboard": "클립보드에 복사",
 		"enter_password": "계속하려면 암호 입력",
-		"seed_phrase_copied": "계정 시드 구문이 클립보드에 복사됨",
+		"seed_phrase_copied": "클립보드에 복사된 계정 시드 구문",
 		"private_key_copied": "비공개 키가 클립보드에 복사됨",
 		"warning_incorrect_password": "잘못된 암호",
 		"unknown_error": "계정 잠금을 해제할 수 없습니다. 다시 시도하세요.",
@@ -559,7 +559,7 @@
 	},
 	"password_reset": {
 		"password_title": "암호",
-		"password_desc": "장치에서 MetaMask 앱의 잠금을 해제할 강력한 암호를 선택하십시오. 이 암호를 잊는 경우, 지갑을 다시 가져오려면 계정 시드 구문이 필요합니다.",
+		"password_desc": "장치에서 MetaMask 앱의 잠금을 해제할 강력한 암호를 선택하십시오. 이 암호를 잊은 경우, 지갑을 다시 가져오려면 계정 시드 구문이 필요합니다.",
 		"password_learn_more": "자세한 내용을 알아보십시오.",
 		"change_password": "암호 변경"
 	},
@@ -895,13 +895,13 @@
 		"outdated_qr_code": "만료된 QR 코드",
 		"outdated_qr_code_desc": "만료된 QR 코드인 것 같습니다!  새로운 코드를 스캔해 보세요.",
 		"something_wrong": "이런! 문제가 발생했습니다...",
-		"something_wrong_desc": "지갑을 동기화하는 동안 문제가 발생했습니다. 나중에 다시 시도하거나 계정 시드 구문을 사용하여 지갑을 가져오십시오.",
+		"something_wrong_desc": "지갑을 동기화하는 동안 문제가 발생했습니다. 나중에 다시 시도하거나 계정 시드 구문을 사용하여 지갑을 가져오세요.",
 		"allow_biometrics_title": "{{biometrics}}을(를) 활성화할까요?",
 		"allow_biometrics_desc": "MetaMask에서 {{biometrics}}을(를) 사용하여 인증할 수 있습니다."
 	},
 	"sync_with_extension_success": {
 		"title": "지갑 가져옴",
-		"sync_complete_1": "계정 시드 구문을 잊은 경우, MetaMask에서 복구할 수 없으니 잘 기억하시기 바랍니다. 다음 설정에서 계정 시드 구문을 찾을 수 있습니다.",
+		"sync_complete_1": "계정 시드 구문을 잊은 경우, MetaMask가 복구할 수 없으니 잘 기억하세요. 다음 설정에서 계정 시드 구문을 찾을 수 있습니다.",
 		"sync_complete_2": "설정 > 보안 및 개인정보 보호",
 		"button_continue": "완료",
 		"password_tip": "모바일 지갑의 잠금을 해제하는 암호는 확장 프로그램에 설정한 것과 동일합니다.",
@@ -1033,13 +1033,13 @@
 		"skip_check": "계정 시드 구문을 분실하면 내 지갑에 액세스할 수 없음을 알고 있습니다.",
 		"what_is_seedphrase_title": "'계정 시드 구문'이란",
 		"what_is_seedphrase_text_1": "계정 시드 구문은 자금을 포함해 지갑에 대한 모든 정보가 담긴 12개의 단어 조합입니다. 전체 지갑에 액세스하는 데 사용되는 비밀 코드와 같습니다.",
-		"what_is_seedphrase_text_2": "계정 시드 구문은 기밀로 안전하게 보관해야 합니다. 다른 사람이 귀하의 계정 시드 구문을 알아내면, 계정을 제어할 수 있습니다.",
+		"what_is_seedphrase_text_2": "계정 시드 구문을 기밀로 안전하게 보관해야 합니다. 다른 사람이 귀하의 계정 시드 구문을 알아내면, 계정을 제어할 수 있습니다.",
 		"what_is_seedphrase_text_3": "본인만 접근할 수 있는 곳에 보관하세요. 분실할 경우, MetaMask도 복구를 도울 수 없습니다."
 	},
 	"account_backup_step_1B": {
 		"title": "지갑 보호하기",
 		"subtitle_1": "지갑의",
-		"subtitle_2": "계정 시드 구문을 안전하게 보호하십시오.",
+		"subtitle_2": "계정 시드 구문입니다.",
 		"cta_text": "시작",
 		"learn_more": "자세히 알아보기",
 		"why_important": "왜 중요할까요?",
@@ -1056,7 +1056,7 @@
 		"tips_2": "금고에 보관",
 		"tips_3": "여러 비밀 장소에 보관",
 		"why_secure_title": "지갑 보호",
-		"why_secure_1": "자산을 잃을 위험이 없습니다. 믿을 수 있는 곳에 계정 시드 구문을 보관하여 지갑을 보호하십시오.",
+		"why_secure_1": "자산을 잃을 위험이 없습니다. 믿을 수 있는 곳에 계정 시드 구문을 보관하여 지갑을 보호하세요.",
 		"why_secure_2": " 앱이 잠기거나 새 장치를 구입할 경우 지갑을 복구할 수 있는 유일한 방법입니다."
 	},
 	"account_backup_step_2": {
@@ -1065,7 +1065,7 @@
 		"cancel_backup_ok": "예, 위험을 감수하겠습니다.",
 		"cancel_backup_no": "아니요. 백업된 계정 시드 구문 백업",
 		"title": "펜과 종이 준비",
-		"info": "다음 단계는 본인의 계정 시드 구문을 적어두는 것입니다.",
+		"info": "다음 단계는 본인의 계정 시드 구문을 적는 것입니다.",
 		"info_2_1": "확인을 위해 ",
 		"info_2_2": "다시 입력하라는",
 		"info_2_3": " 요청이 표시됩니다.",
@@ -1077,7 +1077,7 @@
 		"cancel_backup_ok": "예, 위험을 감수하겠습니다.",
 		"cancel_backup_no": "아니요. 백업된 계정 시드 구문 백업",
 		"title": "보는 사람이 있습니까?",
-		"info_text": "다른 사람이나 로봇이 화면을 보지 못하도록 하십시오. 계정 시드 구문이 복사되면, 다른 장치에서 귀하의 자금을 훔치는 데 사용될 수 있습니다.",
+		"info_text": "다른 사람이나 로봇이 화면을 보지 못하도록 하십시오. 계정 시드 구문이 복사되면, 다른 장치에서 귀하의 자금을 훔치는 데 사용할 수 있습니다.",
 		"cta_text": "아무도 보고 있지 않음"
 	},
 	"account_backup_step_4": {
@@ -1101,23 +1101,23 @@
 		"title": "계정 시드 구문 확인",
 		"info_text": "이전 화면에 표시된 순서대로 각 단어를 입력하세요.",
 		"cta_text": "구문 확인",
-		"modal_title": "계정 시드 구문이 확인되었습니다!",
+		"modal_title": "계정 시드 구문 확인!",
 		"modal_text": "이 보안 조치를 따르도록 보장하기 위함입니다.",
 		"modal_button": "다음"
 	},
 	"account_backup_step_6": {
 		"title": "보안 팁",
-		"info_text": "계정 시드 구문을 잊은 경우, MetaMask가 복구해드릴 수 없습니다.",
-		"tip_1": "계정 시드 구문을 여러 곳에 백업하십시오.",
+		"info_text": "계정 시드 구문을 잊은 경우, MetaMask가 복구할 수 없습니다.",
+		"tip_1": "계정 시드 구문을 여러 곳에 백업하세요.",
 		"tip_2": "믿을 만한 암호 관리자에 구문을 저장하고 안전한 곳에 메모해두세요.",
 		"tip_3": "이 구문은 누구에게도 공유하지 마세요.",
-		"disclaimer": "* 다음 위치에서 계정 시드 구문을 찾을 수 있습니다. ",
+		"disclaimer": "* 다음 설정에서 계정 시드 구문을 찾을 수 있습니다. ",
 		"disclaimer_bold": "설정 > 보안 및 개인정보 보호",
 		"cta_text": "알겠습니다!",
 		"modal_title": "축하합니다!",
 		"modal_text": "모든 백업을 마치고 시작할 준비가 되었습니다!",
 		"modal_button": "완료",
-		"copy_seed_phrase": "계정 시드 구문을 클립보드에 복사"
+		"copy_seed_phrase": "계정 시드 구문 클립보드에 복사"
 	},
 	"manual_backup": {
 		"progressOne": "암호 생성",
@@ -1128,7 +1128,7 @@
 		"action": "계정 시드 구문 기록",
 		"info": "계정 시드 구문입니다. 메모지에 적어 안전한 장소에 보관하십시오. 다음 단계에 이 구문을 (순서대로) 다시 입력하라는 메시지가 표시됩니다.",
 		"continue": "계속",
-		"reveal": "계정 시드 구문을 표시하려면 탭",
+		"reveal": "계정 시드 구문을 공개하려면 탭",
 		"watching": "아무도 화면을 보지 못하도록 하세요.",
 		"view": "보기",
 		"confirm_password": "암호 확인",
@@ -1139,7 +1139,7 @@
 		"action": "계정 시드 구문 확인",
 		"info": "표시된 순서대로 각 단어를 선택하세요.",
 		"complete": "백업 완료",
-		"success": "성공"
+		"success": "지갑을 보호했습니다. 계정 시드 구문을 안전하게 보관할 책임은 귀하에게 있습니다."
 	},
 	"manual_backup_step_3": {
 		"congratulations": "축하합니다.",
@@ -1206,8 +1206,8 @@
 	},
 	"protect_your_wallet_modal": {
 		"title": "지갑 보호",
-		"body_for_password": "암호를 설정하고 계정 시드 구문을 저장하여 지갑을 보호하십시오(필수).",
-		"body_for_seedphrase": "이제 지갑에 값이 추가되었으므로 암호를 설정하고 계정 시드 구문을 저장하여 지갑을 보호하십시오(필수).",
+		"body_for_password": "암호를 설정하고 계정 시드 구문을 저장하여 지갑을 보호하세요(필수).",
+		"body_for_seedphrase": "이제 지갑에 값이 추가되었으므로 암호를 설정하고 계정 시드 구문을 저장하여 지갑을 보호하세요(필수).",
 		"button": "지갑 보호"
 	},
 	"payment_request": {
@@ -1504,7 +1504,7 @@
 		"title": "지갑 보호",
 		"top_button": "지갑 보호",
 		"bottom_button": "나중에 알림",
-		"text": "자산을 잃을 위험이 없습니다. 믿을 수 있는 곳에 계정 시드 구문을 보관하여 지갑을 보호하십시오.",
+		"text": "자산을 잃을 위험이 없습니다. 믿을 수 있는 곳에 계정 시드 구문을 보관하여 지갑을 보호하세요.",
 		"text_bold": "앱이 잠기거나 새 장치를 구입할 경우 지갑을 복구할 수 있는 유일한 방법입니다.",
 		"action": "자세히 알아보기"
 	},
@@ -1524,7 +1524,7 @@
 		"submit_ticket_6": "티켓을 제출합니다.",
 		"submit_ticket_7": "오류 메시지와 스크린샷을 포함하세요.",
 		"save_seedphrase_1": "이 오류가 지속되면",
-		"save_seedphrase_2": "계정 시드 구문을 저장하고",
+		"save_seedphrase_2": "계정 시드 구문 저장",
 		"save_seedphrase_3": "앱을 재설치하세요. 참고: 계정 시드 구문이 없으면, 지갑을 복구할 수 없습니다.",
 		"copied_clipboard": "클립보드에 복사",
 		"ok": "확인"

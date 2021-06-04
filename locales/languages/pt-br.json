@@ -147,7 +147,7 @@
 		"wrong_password_error": "Erro: Falha ao descriptografar",
 		"wrong_password_error_android": "Erro: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
 		"vault_error": "Erro: Não é possível desbloquear sem um cofre anterior.",
-		"clean_vault_error": "O MetaMask encontrou um erro devido ao alcance de um limite de armazenamento. Os dados locais foram corrompidos. Reinstale o MetaMask e restaure com sua Frase de Recuperação Secreta."
+		"clean_vault_error": "O MetaMask encontrou um erro devido ao alcance de um limite de armazenamento. Os dados locais foram corrompidos. Reinstale o MetaMask e restaure a sua frase de recuperação secreta."
 	},
 	"enter_password": {
 		"title": "Informe sua senha",
@@ -162,7 +162,7 @@
 		"password": "Nova senha",
 		"confirm_password": "Confirmar a senha",
 		"create_button": "Criar senha",
-		"import_with_seed_phrase": "Importe com a Frase de Recuperação Secreta",
+		"import_with_seed_phrase": "Importe com a frase de recuperação secreta",
 		"password_length_error": "A senha precisa ter pelo menos 8 caracteres de comprimento",
 		"password_dont_match": "As senhas são diferentes",
 		"password_strength": "Força da senha:",
@@ -179,7 +179,7 @@
 		"i_understand": "Eu entendo que o MetaMask não consegue recuperar essa senha por mim.",
 		"learn_more": "Saiba mais.",
 		"secure": "Proteger carteira",
-		"confirm": "Confirmar Frase de Recuperação Secreta"
+		"confirm": "Confirmar frase de recuperação secreta"
 	},
 	"reset_password": {
 		"title": "Alterar a senha",
@@ -187,7 +187,7 @@
 		"password": "Nova senha",
 		"confirm_password": "Confirmar a senha",
 		"reset_button": "Redefinir a senha",
-		"import_with_seed_phrase": "Importe com a Frase de Recuperação Secreta",
+		"import_with_seed_phrase": "Importe com a frase de recuperação secreta",
 		"password_length_error": "A senha precisa ter pelo menos 8 caracteres de comprimento",
 		"password_dont_match": "As senhas são diferentes",
 		"password_strength": "Força da senha:",
@@ -204,24 +204,24 @@
 		"i_understand": "Eu entendo que o MetaMask não consegue recuperar essa senha por mim.",
 		"learn_more": "Saiba mais.",
 		"secure": "Proteger carteira",
-		"confirm": "Confirmar Frase de Recuperação Secreta",
+		"confirm": "Confirmar frase de recuperação secreta",
 		"password_updated": "Senha atualizada",
 		"successfully_changed": "Sua senha foi alterada"
 	},
 	"import_from_seed": {
 		"title": "Importar da frase de recuperação",
-		"seed_phrase_placeholder": "Insira a sua Frase de Recuperação Secreta",
+		"seed_phrase_placeholder": "Insira a sua frase de recuperação secreta aqui",
 		"new_password": "Nova senha",
 		"confirm_password": "Confirmar a senha",
 		"import_button": "IMPORTAR",
 		"cancel_button": "Cancelar",
 		"password_length_error": "A senha precisa ter pelo menos 8 caracteres de comprimento",
 		"password_dont_match": "As senhas são diferentes",
-		"seed_phrase_requirements": "As Frases de recuperação secreta contêm 12, 15, 18, 21 ou 24 palavras",
+		"seed_phrase_requirements": "As frases de recuperação secreta contêm 12, 15, 18, 21 ou 24 palavras",
 		"invalid_seed_phrase": "Frase de recuperação secreta inválida",
 		"error": "Erro",
 		"invalid_qr_code_title": "Código QR inválido",
-		"invalid_qr_code_message": "Este código QR não representa uma Frase de Recuperação Secreta válida"
+		"invalid_qr_code_message": "Este código QR não representa uma frase de recuperação válida"
 	},
 	"bottom_tab_bar": {
 		"dapps": "ÐApps",
@@ -540,16 +540,16 @@
 		"private_key_title_for_account": "Mostrar chave privada para \"{{accountName}}\"",
 		"cancel": "Cancelar",
 		"confirm": "Próximo",
-		"seed_phrase_explanation": "Se você alguma vez mudou de navegador ou trocou de computador, precisará dessa Frase de recuperação secreta para acessar suas contas. Salve-as em um lugar seguro e secreto.",
+		"seed_phrase_explanation": "Caso você venha a trocar de navegador ou computador, precisará dessa frase de recuperação secreta para acessar as suas contas. Salve-as em um lugar seguro e secreto.",
 		"private_key_explanation": "Salve-a em um lugar seguro e secreto.",
 		"private_key_warning": "Essa é uma chave privada para a conta selecionada no momento: {{accountName}}. Jamais revele essa chave. Qualquer pessoa com sua chave privada consegue ter controle total da sua conta, inclusive transferir seus fundos.",
 		"seed_phrase_warning_explanation": "NÃO compartilhe essa frase com ninguém! Essas palavras podem ser usadas para roubar todas as suas contas.",
 		"private_key_warning_explanation": "Jamais revele essa chave. Qualquer pessoa com sua chave privada consegue ter controle total da sua conta, inclusive transferir seus fundos.",
-		"seed_phrase": "A sua Frase de Recuperação Secreta",
+		"seed_phrase": "A sua frase de recuperação secreta",
 		"private_key": "Sua chave privada",
 		"copy_to_clipboard": "Copiar para área de transferência",
 		"enter_password": "Informe a senha para continuar",
-		"seed_phrase_copied": "Frase de Recuperação Secreta copiada para a área de transferência",
+		"seed_phrase_copied": "Frase de recuperação secreta copiada para a área de transferência",
 		"private_key_copied": "Chave privada copiada para área de transferência",
 		"warning_incorrect_password": "Senha incorreta",
 		"unknown_error": "Não foi possível desbloquear sua conta. Tente novamente.",
@@ -1032,19 +1032,19 @@
 		"skip_title": "Pular segurança da conta?",
 		"skip_check": "Entendo que, se perder a minha Frase de Recuperação Secreta, não conseguirei mais acessar a minha carteira.",
 		"what_is_seedphrase_title": "O que é uma “Frase de Recuperação Secreta”",
-		"what_is_seedphrase_text_1": "A Frase de Recuperação Secreta é um conjunto de doze palavras que contém todas as informações sobre a sua carteira, inclusive sobre os seus fundos. É como um código secreto usado para acessar sua carteira toda.",
-		"what_is_seedphrase_text_2": "Você precisa manter o sigilo e proteger a sua Frase de Recuperação Secreta. Se alguém conseguir a sua Frase de Recuperação Secreta, essa pessoa ganhará controle sobre as suas contas.",
+		"what_is_seedphrase_text_1": "A frase de recuperação secreta é um conjunto de doze palavras que contém todas as informações sobre a sua carteira, inclusive sobre os seus fundos. É como um código secreto usado para acessar a sua carteira toda.",
+		"what_is_seedphrase_text_2": "Você precisa manter o sigilo e proteger a sua frase de recuperação secreta. Se alguém conseguir a sua frase de recuperação secreta, essa pessoa ganhará controle sobre as suas contas.",
 		"what_is_seedphrase_text_3": "Salve-a em um local onde só você tenha acesso. Se você perdê-la, nem mesmo o MetaMask conseguirá ajudar você a recuperá-la."
 	},
 	"account_backup_step_1B": {
 		"title": "Proteger sua carteira",
 		"subtitle_1": "Proteja a frase de recuperação",
-		"subtitle_2": "Frase de Recuperação Secreta.",
+		"subtitle_2": "Frase de recuperação secreta.",
 		"cta_text": "Iniciar",
 		"learn_more": "Saiba mais",
 		"why_important": "Por que é importante?",
 		"manual_title": "Manual",
-		"manual_subtitle": "Anote a Frase de Recuperação Secreta em um papel e guarde em um local seguro.",
+		"manual_subtitle": "Anote a frase de recuperação secreta em um papel e guarde em um local seguro.",
 		"manual_security": "Nível de segurança: Fortíssimo",
 		"risks_title": "Os riscos são:",
 		"risks_1": "Você a perde",
@@ -1056,16 +1056,16 @@
 		"tips_2": "Guarde dentro de um cofre",
 		"tips_3": "Guarde em vários locais secretos",
 		"why_secure_title": "Proteja sua carteira",
-		"why_secure_1": "Não se arrisque a perder seus fundos. Proteja a sua carteira ao salvar a Frase de Recuperação Secreta em um local de confiança.",
+		"why_secure_1": "Não se arrisque a perder os seus fundos. Proteja a sua carteira ao salvar a frase de recuperação secreta em um local de confiança.",
 		"why_secure_2": " É a única forma de recuperar sua carteira se você for bloqueado do aplicativo ou trocar de dispositivo."
 	},
 	"account_backup_step_2": {
 		"cancel_backup_title": "Cancelar backup",
-		"cancel_backup_message": "Recomendamos enfaticamente que você salve a Frase de Recuperação Secreta para restaurar a sua carteira.",
+		"cancel_backup_message": "Recomendamos enfaticamente que você salve a frase de recuperação secreta para restaurar a sua carteira.",
 		"cancel_backup_ok": "Sim, vou assumir o risco",
 		"cancel_backup_no": "Não, faça uma cópia de segurança da frase de recuperação secreta",
 		"title": "Pegue papel e caneta",
-		"info": "A próxima etapa é anotar a sua Frase de Recuperação Secreta.",
+		"info": "A próxima etapa é anotar a sua frase de recuperação secreta.",
 		"info_2_1": "Será solicitado que você a ",
 		"info_2_2": "insira novamente",
 		"info_2_3": " para confirmação",
@@ -1073,20 +1073,20 @@
 	},
 	"account_backup_step_3": {
 		"cancel_backup_title": "Cancelar backup",
-		"cancel_backup_message": "Recomendamos enfaticamente que você salve a Frase de Recuperação Secreta para restaurar a sua carteira.",
+		"cancel_backup_message": "Recomendamos enfaticamente que você salve a frase de recuperação secreta para restaurar a sua carteira.",
 		"cancel_backup_ok": "Sim, vou assumir o risco",
 		"cancel_backup_no": "Não, faça uma cópia de segurança da frase de recuperação secreta",
 		"title": "Alguém está observando?",
-		"info_text": "Certifique-se de que não haja outra pessoa ou robô olhando a sua tela. Se a Frase de Recuperação Secreta for copiada, ela poderá ser usada em outros dispositivos para roubar os seus fundos",
+		"info_text": "Certifique-se de que não haja outra pessoa ou robô olhando a sua tela. Se a frase de recuperação secreta for copiada, ela poderá ser usada em outros dispositivos para roubar os seus fundos",
 		"cta_text": "NINGUÉM ESTÁ ME OBSERVANDO"
 	},
 	"account_backup_step_4": {
 		"cancel_backup_title": "Cancelar backup",
-		"cancel_backup_message": "Recomendamos enfaticamente que você salve a Frase de Recuperação Secreta para restaurar a sua carteira.",
+		"cancel_backup_message": "Recomendamos enfaticamente que você salve a frase de recuperação secreta para restaurar a sua carteira.",
 		"cancel_backup_ok": "Sim, vou assumir o risco",
 		"cancel_backup_no": "Não, faça uma cópia de segurança da frase de recuperação secreta",
 		"back": "Voltar",
-		"title": "A sua Frase de Recuperação Secreta",
+		"title": "A sua frase de recuperação secreta",
 		"info_text_1": "Anote com atenção estas palavras em um papel. A ordem delas é importante.",
 		"info_text_2": "Você será convidado a informá-las novamente na próxima tela",
 		"cta_text": "EU COPIEI A FRASE",
@@ -1098,37 +1098,37 @@
 		"error_title": "Ops!",
 		"error_message": "A ordem das palavras está incorreta. Não se esqueça de anotar corretamente e voltar para a tela anterior, se necessário",
 		"back": "Voltar",
-		"title": "Confirmar Frase de Recuperação Secreta",
+		"title": "Confirmar frase de recuperação secreta",
 		"info_text": "Insira cada palavra na ordem em que foi apresentada na tela anterior.",
 		"cta_text": "CONFIRMAR FRASE",
-		"modal_title": "Frase de Recuperação Secreta confirmada!",
+		"modal_title": "Frase de recuperação secreta confirmada!",
 		"modal_text": "Isso serviu para garantir que você seguiu esta medida de segurança",
 		"modal_button": "PRÓXIMO"
 	},
 	"account_backup_step_6": {
 		"title": "Dicas de segurança",
-		"info_text": "O MetaMask não poderá recuperar a sua Frase de Recuperação Secreta caso você a perca",
-		"tip_1": "Mantenha várias cópias de segurança da sua Frase de Recuperação Secreta",
+		"info_text": "O MetaMask não poderá recuperar a sua frase de recuperação secreta caso você a perca",
+		"tip_1": "Mantenha várias cópias de segurança da sua frase de recuperação secreta",
 		"tip_2": "Guarde a frase em um gerenciador de senhas de confiança e em cópias de segurança em papel, guardadas em um local seguro",
 		"tip_3": "Nunca compartilhe essa frase com ninguém",
-		"disclaimer": "* A sua Frase de Recuperação Secreta pode ser encontrada se você for a ",
+		"disclaimer": "* A sua frase de recuperação secreta pode ser encontrada se você for a ",
 		"disclaimer_bold": "Configurações > Segurança e Privacidade",
 		"cta_text": "ENTENDI!",
 		"modal_title": "Parabéns!",
 		"modal_text": "Você fez o backup e está tudo pronto!",
 		"modal_button": "CONCLUÍDO",
-		"copy_seed_phrase": "COPIE A Frase de Recuperação Secreta PARA A ÁREA DE TRANSFERÊNCIA"
+		"copy_seed_phrase": "COPIE A FRASE DE RECUPERAÇÃO SECRETA PARA A ÁREA DE TRANSFERÊNCIA"
 	},
 	"manual_backup": {
 		"progressOne": "Criar senha",
 		"progressTwo": "Proteger carteira",
-		"progressThree": "Confirmar Frase de Recuperação Secreta"
+		"progressThree": "Confirmar frase de recuperação secreta"
 	},
 	"manual_backup_step_1": {
-		"action": "Anote a sua Frase de Recuperação Secreta",
-		"info": "Essa é a sua Frase de Recuperação Secreta. Anote-a em um papel e guarde-a em um local seguro. Você precisará informar novamente essa frase (na ordem) na próxima etapa.",
+		"action": "Anote a sua frase de recuperação secreta",
+		"info": "Essa é a sua frase de recuperação secreta. Anote-a em um papel e guarde-a em um local seguro. Você precisará informar novamente essa frase (na ordem) na próxima etapa.",
 		"continue": "Continuar",
-		"reveal": "Toque para revelar a sua Frase de Recuperação Secreta",
+		"reveal": "Toque para revelar a sua frase de recuperação secreta",
 		"watching": "Verifique se não há ninguém observando sua tela.",
 		"view": "Exibir",
 		"confirm_password": "Confirme sua senha",
@@ -1136,21 +1136,21 @@
 		"confirm": "CONFIRMAR"
 	},
 	"manual_backup_step_2": {
-		"action": "Confirmar Frase de Recuperação Secreta",
+		"action": "Confirmar frase de recuperação secreta",
 		"info": "Selecione as palavras na ordem em que foram apresentadas a você.",
 		"complete": "Concluir backup",
 		"success": "Sucesso"
 	},
 	"manual_backup_step_3": {
 		"congratulations": "Parabéns",
-		"success": "Você conseguiu proteger sua carteira. Lembre-se de manter protegida a sua Frase de Recuperação Secreta. É sua responsabilidade!",
+		"success": "Você conseguiu proteger a sua carteira. Lembre-se de manter protegida a sua frase de recuperação secreta. É sua responsabilidade!",
 		"hint": "Deixar uma dica?",
-		"recover": "O MetaMask não poderá recuperar a sua carteira caso você a perca. A sua Frase de Recuperação Secreta pode ser encontrada em Configurações > Segurança e Privacidade.",
+		"recover": "O MetaMask não poderá recuperar a sua carteira caso você a perca. A sua frase de recuperação secreta pode ser encontrada em Configurações > Segurança e privacidade.",
 		"learn": "Saiba mais",
 		"done": "Concluído",
 		"recovery_hint": "Dica de recuperação",
 		"leave_hint": "Deixe uma dica. Anote o local onde você a salvou para se lembrar como acessá-la. Não deixe essa informação no seu dispositivo.",
-		"no_seedphrase": "Não use essa informação para anotar a sua Frase de Recuperação Secreta.",
+		"no_seedphrase": "Não use essa informação para anotar a sua frase de recuperação secreta.",
 		"example": "por ex., casa da minha mãe",
 		"save": "Salvar",
 		"cancel": "Cancelar"
@@ -1207,7 +1207,7 @@
 	"protect_your_wallet_modal": {
 		"title": "Proteja sua carteira",
 		"body_for_password": "Proteja a sua carteira ao definir uma senha e salvar a Frase de Recuperação Secreta (obrigatório).",
-		"body_for_seedphrase": "Agora que um valor foi adicionado à sua carteira, proteja-a definindo uma senha e salvando a sua Frase de Recuperação Secreta (obrigatório).",
+		"body_for_seedphrase": "Agora que um valor foi adicionado à sua carteira, proteja-a definindo uma senha e salvando a sua frase de recuperação secreta (obrigatório).",
 		"button": "Proteger carteira"
 	},
 	"payment_request": {
@@ -1281,7 +1281,7 @@
 	},
 	"offline_mode": {
 		"title": "Você está offline",
-		"text": "Não foi possível conectar-se com o servidor blockchain.",
+		"text": "Não se arrisque a perder os seus fundos. Proteja a sua carteira ao salvar a frase de recuperação secreta em um local de confiança.",
 		"try_again": "Tente novamente",
 		"learn_more": "Saiba mais"
 	},
@@ -1525,14 +1525,14 @@
 		"submit_ticket_7": "Inclua a mensagem de erro e a captura de tela.",
 		"save_seedphrase_1": "Se o erro persistir,",
 		"save_seedphrase_2": "salve a sua Frase de Recuperação Secreta",
-		"save_seedphrase_3": "e reinstale o app. Nota: NÃO é possível restaurar a carteira sem a Frase de Recuperação Secreta.",
+		"save_seedphrase_3": "e reinstale o app. Nota: NÃO é possível restaurar a carteira sem a frase de recuperação secreta.",
 		"copied_clipboard": "Copiada para a área de transferência",
 		"ok": "OK"
 	},
 	"whats_new": {
 		"title": "Confira as novidades",
 		"feature_security_settings_title": "Configurações de segurança aperfeiçoadas",
-		"feature_security_settings_text": "Agora você pode alterar a senha do app MetaMask e ver como fazer uma cópia de segurança da Frase de Recuperação Secreta da sua carteira em Configurações > Segurança e Privacidade.",
+		"feature_security_settings_text": "Agora você pode alterar a senha do app MetaMask e ver como fazer uma cópia de segurança da frase de recuperação secreta da sua carteira em Configurações > Segurança e privacidade.",
 		"feature_security_settings_button": "Exibir em Configurações"
 	},
 	"invalid_network": {

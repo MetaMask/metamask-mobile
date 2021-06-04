@@ -210,7 +210,7 @@
 	},
 	"import_from_seed": {
 		"title": "सीड से आयात करें",
-		"seed_phrase_placeholder": "अपना गुप्त रिकवरी फ्रेज़ दर्ज करें",
+		"seed_phrase_placeholder": "अपना गुप्त रिकवरी फ्रेज़ यहां दर्ज करें",
 		"new_password": "नया पासवर्ड",
 		"confirm_password": "पासवर्ड की पुष्टि करें",
 		"import_button": "आयात करें",

@@ -54,7 +54,7 @@ const SeedPhraseVideo = ({ style, onClose }) => {
 					onClose={onClose}
 					source={{ uri: video_source_uri }}
 					text_tracks={subtitle_source_tracks}
-					selected_text={{ type: 'index', value: 0 }}
+					selected_text={{ type: 'language', value: strings('secret_phrase_video_subtitle.language') }}
 				/>
 			) : (
 				<Video
@@ -65,7 +65,7 @@ const SeedPhraseVideo = ({ style, onClose }) => {
 					source={{ uri: video_source_uri }}
 					controls
 					textTracks={subtitle_source_tracks}
-					selectedTextTrack={{ type: 'index', value: 0 }}
+					selectedTextTrack={{ type: 'language', value: strings('secret_phrase_video_subtitle.language') }}
 					ignoreSilentSwitch="ignore"
 				/>
 			)}
