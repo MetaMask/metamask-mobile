@@ -1361,7 +1361,7 @@
 			"purchase_completed_title": "Your purchase of {{amount}} {{currency}} was successful!",
 			"purchase_completed_description": "Your {{currency}} is now available",
 			"purchase_pending_title": "Processing your purchase of {{currency}}",
-			"purchase_pending_description": "Your deposit is in progress"
+			"purchase_pending_description": "This should only take a few minutes..."
 		},
 		"date": "Date",
 		"from": "From",
