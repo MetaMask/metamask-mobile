@@ -33,7 +33,7 @@ import AppConstants from '../../../core/AppConstants';
 
 import { strings } from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
-import { setQuotesNavigationsParams, isSwapsNativeAsset } from './utils';
+import { setQuotesNavigationsParams, isSwapsNativeAsset, isDynamicToken } from './utils';
 import { getSwapsAmountNavbar } from '../Navbar';
 
 import Onboarding from './components/Onboarding';
@@ -560,7 +560,11 @@ function SwapsAmountView({
 							</TouchableOpacity>
 						) : (
 							<ActionAlert
-								type="warning"
+								type={
+									!destinationToken.occurances || isDynamicToken(destinationToken)
+										? 'error'
+										: 'warning'
+								}
 								style={styles.tokenAlert}
 								action={hasDismissedTokenAlert ? null : strings('swaps.continue')}
 								onPress={handleDimissTokenAlert}
@@ -569,22 +573,42 @@ function SwapsAmountView({
 								{textStyle => (
 									<TouchableOpacity onPress={explorer.isValid ? handleVerifyPress : undefined}>
 										<Text style={textStyle} bold centered>
-											{strings('swaps.only_verified_on', {
-												symbol: destinationToken.symbol,
-												occurances: destinationToken.occurances
-											})}
+											{!destinationToken.occurances || isDynamicToken(destinationToken)
+												? strings('swaps.added_manually', {
+														symbol: destinationToken.symbol
+														// eslint-disable-next-line no-mixed-spaces-and-tabs
+												  })
+												: strings('swaps.only_verified_on', {
+														symbol: destinationToken.symbol,
+														occurances: destinationToken.occurances
+														// eslint-disable-next-line no-mixed-spaces-and-tabs
+												  })}
 										</Text>
-										<Text style={textStyle} centered>
-											{`${strings('swaps.verify_address_on')} `}
-											{explorer.isValid ? (
-												<Text reset link>
-													{explorer.name}
-												</Text>
-											) : (
-												strings('swaps.a_block_explorer')
-											)}
-											.
-										</Text>
+										{!destinationToken.occurances || isDynamicToken(destinationToken) ? (
+											<Text style={textStyle} centered>
+												{`${strings('swaps.verify_this_token_on')} `}
+												{explorer.isValid ? (
+													<Text reset link>
+														{explorer.name}
+													</Text>
+												) : (
+													strings('swaps.a_block_explorer')
+												)}
+												{` ${strings('swaps.make_sure_trade')}`}
+											</Text>
+										) : (
+											<Text style={textStyle} centered>
+												{`${strings('swaps.verify_address_on')} `}
+												{explorer.isValid ? (
+													<Text reset link>
+														{explorer.name}
+													</Text>
+												) : (
+													strings('swaps.a_block_explorer')
+												)}
+												.
+											</Text>
+										)}
 									</TouchableOpacity>
 								)}
 							</ActionAlert>

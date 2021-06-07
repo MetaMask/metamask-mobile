@@ -1,318 +1,183 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TokenSelectButton component should Render correctly 1`] = `
-<TouchableOpacity>
+<SelectorButton>
   <View
     style={
       Object {
-        "alignItems": "center",
-        "backgroundColor": "#f2f3f4",
-        "borderRadius": 100,
-        "flexDirection": "row",
-        "justifyContent": "center",
-        "paddingHorizontal": 10,
-        "paddingVertical": 8,
+        "marginRight": 8,
       }
     }
   >
-    <View
-      style={
-        Object {
-          "marginRight": 8,
-        }
-      }
-    >
-      <TokenIcon />
-    </View>
-    <Text
-      black={false}
-      blue={false}
-      bold={false}
-      centered={false}
-      disclaimer={false}
-      green={false}
-      link={false}
-      modal={false}
-      primary={true}
-      red={false}
-      reset={false}
-      right={false}
-      small={false}
-      strikethrough={false}
-      underline={false}
-      upper={false}
-    >
-      Select a token
-    </Text>
-    <Icon
-      allowFontScaling={false}
-      name="caret-down"
-      size={18}
-      style={
-        Object {
-          "color": "#6a737d",
-          "marginLeft": 10,
-          "marginRight": 5,
-          "textAlign": "right",
-        }
-      }
-    />
+    <TokenIcon />
   </View>
-</TouchableOpacity>
+  <Text
+    black={false}
+    blue={false}
+    bold={false}
+    centered={false}
+    disclaimer={false}
+    green={false}
+    link={false}
+    modal={false}
+    primary={true}
+    red={false}
+    reset={false}
+    right={false}
+    small={false}
+    strikethrough={false}
+    underline={false}
+    upper={false}
+  >
+    Select a token
+  </Text>
+</SelectorButton>
 `;
 
 exports[`TokenSelectButton component should Render correctly 2`] = `
-<TouchableOpacity>
+<SelectorButton>
   <View
     style={
       Object {
-        "alignItems": "center",
-        "backgroundColor": "#f2f3f4",
-        "borderRadius": 100,
-        "flexDirection": "row",
-        "justifyContent": "center",
-        "paddingHorizontal": 10,
-        "paddingVertical": 8,
+        "marginRight": 8,
       }
     }
   >
-    <View
-      style={
-        Object {
-          "marginRight": 8,
-        }
-      }
-    >
-      <TokenIcon
-        symbol="ETH"
-      />
-    </View>
-    <Text
-      black={false}
-      blue={false}
-      bold={false}
-      centered={false}
-      disclaimer={false}
-      green={false}
-      link={false}
-      modal={false}
-      primary={true}
-      red={false}
-      reset={false}
-      right={false}
-      small={false}
-      strikethrough={false}
-      underline={false}
-      upper={false}
-    >
-      ETH
-    </Text>
-    <Icon
-      allowFontScaling={false}
-      name="caret-down"
-      size={18}
-      style={
-        Object {
-          "color": "#6a737d",
-          "marginLeft": 10,
-          "marginRight": 5,
-          "textAlign": "right",
-        }
-      }
+    <TokenIcon
+      symbol="ETH"
     />
   </View>
-</TouchableOpacity>
+  <Text
+    black={false}
+    blue={false}
+    bold={false}
+    centered={false}
+    disclaimer={false}
+    green={false}
+    link={false}
+    modal={false}
+    primary={true}
+    red={false}
+    reset={false}
+    right={false}
+    small={false}
+    strikethrough={false}
+    underline={false}
+    upper={false}
+  >
+    ETH
+  </Text>
+</SelectorButton>
 `;
 
 exports[`TokenSelectButton component should Render correctly 3`] = `
-<TouchableOpacity>
+<SelectorButton>
   <View
     style={
       Object {
-        "alignItems": "center",
-        "backgroundColor": "#f2f3f4",
-        "borderRadius": 100,
-        "flexDirection": "row",
-        "justifyContent": "center",
-        "paddingHorizontal": 10,
-        "paddingVertical": 8,
+        "marginRight": 8,
       }
     }
   >
-    <View
-      style={
-        Object {
-          "marginRight": 8,
-        }
-      }
-    >
-      <TokenIcon
-        symbol="cDAI"
-      />
-    </View>
-    <Text
-      black={false}
-      blue={false}
-      bold={false}
-      centered={false}
-      disclaimer={false}
-      green={false}
-      link={false}
-      modal={false}
-      primary={true}
-      red={false}
-      reset={false}
-      right={false}
-      small={false}
-      strikethrough={false}
-      underline={false}
-      upper={false}
-    >
-      cDAI
-    </Text>
-    <Icon
-      allowFontScaling={false}
-      name="caret-down"
-      size={18}
-      style={
-        Object {
-          "color": "#6a737d",
-          "marginLeft": 10,
-          "marginRight": 5,
-          "textAlign": "right",
-        }
-      }
+    <TokenIcon
+      symbol="cDAI"
     />
   </View>
-</TouchableOpacity>
+  <Text
+    black={false}
+    blue={false}
+    bold={false}
+    centered={false}
+    disclaimer={false}
+    green={false}
+    link={false}
+    modal={false}
+    primary={true}
+    red={false}
+    reset={false}
+    right={false}
+    small={false}
+    strikethrough={false}
+    underline={false}
+    upper={false}
+  >
+    cDAI
+  </Text>
+</SelectorButton>
 `;
 
 exports[`TokenSelectButton component should Render correctly 4`] = `
-<TouchableOpacity>
+<SelectorButton>
   <View
     style={
       Object {
-        "alignItems": "center",
-        "backgroundColor": "#f2f3f4",
-        "borderRadius": 100,
-        "flexDirection": "row",
-        "justifyContent": "center",
-        "paddingHorizontal": 10,
-        "paddingVertical": 8,
+        "marginRight": 8,
       }
     }
   >
-    <View
-      style={
-        Object {
-          "marginRight": 8,
-        }
-      }
-    >
-      <TokenIcon
-        icon="https://cloudflare-ipfs.com/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ"
-        symbol="DAI"
-      />
-    </View>
-    <Text
-      black={false}
-      blue={false}
-      bold={false}
-      centered={false}
-      disclaimer={false}
-      green={false}
-      link={false}
-      modal={false}
-      primary={true}
-      red={false}
-      reset={false}
-      right={false}
-      small={false}
-      strikethrough={false}
-      underline={false}
-      upper={false}
-    >
-      DAI
-    </Text>
-    <Icon
-      allowFontScaling={false}
-      name="caret-down"
-      size={18}
-      style={
-        Object {
-          "color": "#6a737d",
-          "marginLeft": 10,
-          "marginRight": 5,
-          "textAlign": "right",
-        }
-      }
+    <TokenIcon
+      icon="https://cloudflare-ipfs.com/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ"
+      symbol="DAI"
     />
   </View>
-</TouchableOpacity>
+  <Text
+    black={false}
+    blue={false}
+    bold={false}
+    centered={false}
+    disclaimer={false}
+    green={false}
+    link={false}
+    modal={false}
+    primary={true}
+    red={false}
+    reset={false}
+    right={false}
+    small={false}
+    strikethrough={false}
+    underline={false}
+    upper={false}
+  >
+    DAI
+  </Text>
+</SelectorButton>
 `;
 
 exports[`TokenSelectButton component should Render correctly 5`] = `
-<TouchableOpacity
+<SelectorButton
   onPress={[MockFunction]}
 >
   <View
     style={
       Object {
-        "alignItems": "center",
-        "backgroundColor": "#f2f3f4",
-        "borderRadius": 100,
-        "flexDirection": "row",
-        "justifyContent": "center",
-        "paddingHorizontal": 10,
-        "paddingVertical": 8,
+        "marginRight": 8,
       }
     }
   >
-    <View
-      style={
-        Object {
-          "marginRight": 8,
-        }
-      }
-    >
-      <TokenIcon
-        icon="https://cloudflare-ipfs.com/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ"
-        symbol="DAI"
-      />
-    </View>
-    <Text
-      black={false}
-      blue={false}
-      bold={false}
-      centered={false}
-      disclaimer={false}
-      green={false}
-      link={false}
-      modal={false}
-      primary={true}
-      red={false}
-      reset={false}
-      right={false}
-      small={false}
-      strikethrough={false}
-      underline={false}
-      upper={false}
-    >
-      DAI
-    </Text>
-    <Icon
-      allowFontScaling={false}
-      name="caret-down"
-      size={18}
-      style={
-        Object {
-          "color": "#6a737d",
-          "marginLeft": 10,
-          "marginRight": 5,
-          "textAlign": "right",
-        }
-      }
+    <TokenIcon
+      icon="https://cloudflare-ipfs.com/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ"
+      symbol="DAI"
     />
   </View>
-</TouchableOpacity>
+  <Text
+    black={false}
+    blue={false}
+    bold={false}
+    centered={false}
+    disclaimer={false}
+    green={false}
+    link={false}
+    modal={false}
+    primary={true}
+    red={false}
+    reset={false}
+    right={false}
+    small={false}
+    strikethrough={false}
+    underline={false}
+    upper={false}
+  >
+    DAI
+  </Text>
+</SelectorButton>
 `;
