@@ -4,7 +4,7 @@ exports[`CollectibleMedia should render correctly 1`] = `
 <View
   style={
     Object {
-      "backgroundColor": undefined,
+      "backgroundColor": "#undefined",
       "borderRadius": 12,
       "flex": 0,
     }
