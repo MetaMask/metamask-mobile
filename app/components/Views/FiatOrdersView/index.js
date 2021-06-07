@@ -73,13 +73,8 @@ FiatOrdersView.propTypes = {
 	orders: PropTypes.array
 };
 
-const mapStateToProps = state => {
-	const orders = state.fiatOrders.orders;
-	const selectedAddress = state.engine.backgroundState.PreferencesController.selectedAddress;
-	const network = state.engine.backgroundState.NetworkController.network;
-	return {
-		orders: getOrders(orders, selectedAddress, network)
-	};
-};
+const mapStateToProps = state => ({
+	orders: getOrders(state)
+});
 
 export default connect(mapStateToProps)(FiatOrdersView);

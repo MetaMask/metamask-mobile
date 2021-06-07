@@ -133,7 +133,7 @@ exports[`Confirm should render correctly 1`] = `
         upper={false}
       />
     </View>
-    <TransactionReviewFeeCard
+    <Connect(TransactionReviewFeeCard)
       edit={[Function]}
       fiat=""
       gasEstimationReady={false}
