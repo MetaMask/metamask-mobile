@@ -1,6 +1,23 @@
 # Changelog
 
-## Current Develop Branch
+## v.2.5.0 - June 7 2021
+- [#2746](https://github.com/MetaMask/metamask-mobile/pull/2746): bugfix/notification visibility
+- [#2749](https://github.com/MetaMask/metamask-mobile/pull/2749): @metamask/controllers@10.1.0
+- [#2702](https://github.com/MetaMask/metamask-mobile/pull/2702): Swaps: Update Market price unavailable and Price impact text
+- [#2701](https://github.com/MetaMask/metamask-mobile/pull/2701): Swaps: Allow every token on user wallet to be swapped
+- [#2617](https://github.com/MetaMask/metamask-mobile/pull/2617): On-Ramp: Refactor and Wyre countries
+- [#2611](https://github.com/MetaMask/metamask-mobile/pull/2611): Educate gas fees
+- [#2738](https://github.com/MetaMask/metamask-mobile/pull/2738): Feature/simplify custom gas
+- [#2741](https://github.com/MetaMask/metamask-mobile/pull/2741): bugfix/notifications reducer
+- [#2626](https://github.com/MetaMask/metamask-mobile/pull/2626): @metamask/mobile-provider@2.1.0
+- [#2706](https://github.com/MetaMask/metamask-mobile/pull/2706): make null conversionrate safe
+- [#2703](https://github.com/MetaMask/metamask-mobile/pull/2703): Convert token id to hexadecimal for collectible transfer
+- [#2742](https://github.com/MetaMask/metamask-mobile/pull/2742): Bugfix/fix ws resolution
+- [#2713](https://github.com/MetaMask/metamask-mobile/pull/2713): Feature/bitrise circle ci hybrid
+- [#2711](https://github.com/MetaMask/metamask-mobile/pull/2711): Feature/use same media player
+- [#2728](https://github.com/MetaMask/metamask-mobile/pull/2728): Add iconUrls to allowed list of keys
+- [#2737](https://github.com/MetaMask/metamask-mobile/pull/2737): Add resolution for ws to address security vuln
+- [#2727](https://github.com/MetaMask/metamask-mobile/pull/2727): Add missing required prop in tests
 
 ## v.2.4.0 - May 21 2021
 - [#2618](https://github.com/MetaMask/metamask-mobile/pull/2618): Collectibles experience
