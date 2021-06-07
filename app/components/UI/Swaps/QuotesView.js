@@ -450,6 +450,7 @@ function SwapsQuotesView({
 	const [isPriceDifferenceModalVisible, togglePriceDifferenceModal, , hidePriceDifferenceModal] = useModalHandler(
 		false
 	);
+	const [isPriceImpactModalVisible, togglePriceImpactModal, , hidePriceImpactModal] = useModalHandler(false);
 
 	/* Handlers */
 	const handleAnimationEnd = useCallback(() => {
@@ -909,6 +910,7 @@ function SwapsQuotesView({
 				hideFeeModal();
 				hideQuotesModal();
 				hidePriceDifferenceModal();
+				hidePriceImpactModal();
 				onCancelEditQuoteTransactions();
 			}
 
@@ -933,7 +935,8 @@ function SwapsQuotesView({
 		quotesLastFetched,
 		quoteRefreshSeconds,
 		remainingTime,
-		hidePriceDifferenceModal
+		hidePriceDifferenceModal,
+		hidePriceImpactModal
 	]);
 
 	/* errorKey effect: hide every modal */
@@ -1131,15 +1134,20 @@ function SwapsQuotesView({
 							onPress={handleSlippageAlertPress}
 							onInfoPress={
 								selectedQuote.priceSlippage?.calculationError?.length > 0
-									? undefined
+									? togglePriceImpactModal
 									: togglePriceDifferenceModal
 							}
 						>
 							{textStyle =>
 								selectedQuote.priceSlippage?.calculationError?.length > 0 ? (
-									<Text style={textStyle} small centered>
-										{strings('swaps.market_price_unavailable')}
-									</Text>
+									<>
+										<Text style={textStyle} bold centered>
+											{strings('swaps.market_price_unavailable_title')}
+										</Text>
+										<Text style={textStyle} small centered>
+											{strings('swaps.market_price_unavailable')}
+										</Text>
+									</>
 								) : (
 									<>
 										<Text style={textStyle} bold centered>
@@ -1392,6 +1400,12 @@ function SwapsQuotesView({
 				toggleModal={togglePriceDifferenceModal}
 				title={strings('swaps.price_difference_title')}
 				body={<Text style={styles.text}>{strings('swaps.price_difference_body')}</Text>}
+			/>
+			<InfoModal
+				isVisible={isPriceImpactModalVisible}
+				toggleModal={togglePriceImpactModal}
+				title={strings('swaps.price_impact_title')}
+				body={<Text style={styles.text}>{strings('swaps.price_impact_body')}</Text>}
 			/>
 			<InfoModal
 				isVisible={isFeeModalVisible}
