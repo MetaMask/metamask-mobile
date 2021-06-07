@@ -1,10 +1,14 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, ActivityIndicator, Linking } from 'react-native';
 import { colors } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import Summary from '../../../Base/Summary';
 import Text from '../../../Base/Text';
+import InfoModal from '../../../UI/Swaps/components/InfoModal';
+import { isMainnetByChainId } from '../../../../util/networks';
+import { connect } from 'react-redux';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const styles = StyleSheet.create({
 	overview: {
@@ -12,7 +16,9 @@ const styles = StyleSheet.create({
 	},
 	loader: {
 		backgroundColor: colors.white,
-		height: 10
+		height: 10,
+		flex: 1,
+		alignItems: 'flex-end'
 	},
 	over: {
 		color: colors.red
@@ -30,6 +36,32 @@ const styles = StyleSheet.create({
 	},
 	nonceNumber: {
 		marginLeft: 'auto'
+	},
+	valuesContainer: {
+		flex: 1,
+		flexDirection: 'row'
+	},
+	gasInfoContainer: {
+		paddingHorizontal: 2
+	},
+	gasInfoIcon: {
+		color: colors.blue
+	},
+	amountContainer: {
+		flex: 1
+	},
+	gasFeeTitleContainer: {
+		flexDirection: 'row',
+		alignItems: 'center'
+	},
+	fiatContainer: {
+		width: 66
+	},
+	hitSlop: {
+		top: 10,
+		left: 10,
+		bottom: 10,
+		right: 10
 	}
 });
 
@@ -93,7 +125,15 @@ class TransactionReviewFeeCard extends PureComponent {
 		/**
 		 * Function called when editing nonce
 		 */
-		onNonceEdit: PropTypes.func
+		onNonceEdit: PropTypes.func,
+		/**
+		 * A string representing the network chainId
+		 */
+		chainId: PropTypes.string
+	};
+
+	state = {
+		showGasTooltip: false
 	};
 
 	renderIfGasEstimationReady = children => {
@@ -107,6 +147,39 @@ class TransactionReviewFeeCard extends PureComponent {
 		);
 	};
 
+	openLinkAboutGas = () =>
+		Linking.openURL('https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172');
+
+	toggleGasTooltip = () => this.setState(state => ({ showGasTooltip: !state.showGasTooltip }));
+
+	renderGasTooltip = () => {
+		const isMainnet = isMainnetByChainId(this.props.chainId);
+		return (
+			<InfoModal
+				isVisible={this.state.showGasTooltip}
+				title={strings(`transaction.gas_education_title${isMainnet ? '_ethereum' : ''}`)}
+				toggleModal={this.toggleGasTooltip}
+				body={
+					<View>
+						<Text grey infoModal>
+							{strings('transaction.gas_education_1')}
+							{strings(`transaction.gas_education_2${isMainnet ? '_ethereum' : ''}`)}{' '}
+							<Text bold>{strings('transaction.gas_education_3')}</Text>
+						</Text>
+						<Text grey infoModal>
+							{strings('transaction.gas_education_4')}
+						</Text>
+						<TouchableOpacity onPress={this.openLinkAboutGas}>
+							<Text grey link infoModal>
+								{strings('transaction.gas_education_learn_more')}
+							</Text>
+						</TouchableOpacity>
+					</View>
+				}
+			/>
+		);
+	};
+
 	render() {
 		const {
 			totalGasFiat,
@@ -116,13 +189,13 @@ class TransactionReviewFeeCard extends PureComponent {
 			totalValue,
 			transactionValue,
 			primaryCurrency,
-			gasEstimationReady,
 			edit,
 			over,
 			warningGasPriceHigh,
 			showCustomNonce,
 			nonceValue,
-			onNonceEdit
+			onNonceEdit,
+			chainId
 		} = this.props;
 
 		let amount;
@@ -140,6 +213,9 @@ class TransactionReviewFeeCard extends PureComponent {
 			totalAmount = totalFiat;
 			equivalentTotalAmount = totalValue;
 		}
+
+		const isMainnet = isMainnetByChainId(chainId);
+
 		return (
 			<View>
 				<Summary style={styles.overview}>
@@ -147,37 +223,66 @@ class TransactionReviewFeeCard extends PureComponent {
 						<Text primary bold>
 							{strings('transaction.amount')}
 						</Text>
-						<Text primary bold upper>
-							{amount}
-						</Text>
+						<View style={styles.valuesContainer}>
+							<Text upper right grey style={styles.amountContainer}>
+								{amount}
+							</Text>
+							{isMainnet && (
+								<Text upper primary bold right style={styles.fiatContainer}>
+									{fiat}
+								</Text>
+							)}
+						</View>
 					</Summary.Row>
 					<Summary.Row>
-						<Summary.Col>
-							<Text primary bold>
-								{strings('transaction.gas_fee')}
-							</Text>
-							<TouchableOpacity onPress={edit} disabled={!gasEstimationReady}>
-								<Text link bold>
-									{'  '}
-									{strings('transaction.edit')}
+						<View>
+							<View style={styles.gasFeeTitleContainer}>
+								<Text primary bold>
+									{strings('transaction.gas_fee')}
 								</Text>
-							</TouchableOpacity>
-						</Summary.Col>
+								<TouchableOpacity
+									style={styles.gasInfoContainer}
+									onPress={this.toggleGasTooltip}
+									hitSlop={styles.hitSlop}
+								>
+									<MaterialCommunityIcons name="information" size={13} style={styles.gasInfoIcon} />
+								</TouchableOpacity>
+							</View>
+						</View>
 						{this.renderIfGasEstimationReady(
-							<Text primary bold upper style={warningGasPriceHigh ? styles.over : styles.primary}>
-								{networkFee}
-							</Text>
+							<View style={styles.valuesContainer}>
+								<TouchableOpacity style={styles.amountContainer} onPress={edit}>
+									<Text upper right link underline style={[warningGasPriceHigh && styles.over]}>
+										{networkFee}
+									</Text>
+								</TouchableOpacity>
+								{isMainnet && (
+									<Text primary bold upper right style={styles.fiatContainer}>
+										{totalGasFiat}
+									</Text>
+								)}
+							</View>
 						)}
 					</Summary.Row>
 					<Summary.Separator />
 					<Summary.Row>
 						<Text primary bold style={(over && styles.over) || null}>
-							{strings('transaction.total')} {strings('transaction.amount')}
+							{strings('transaction.total')}
 						</Text>
-						{!!totalFiat && this.renderIfGasEstimationReady(totalAmount)}
-					</Summary.Row>
-					<Summary.Row end last>
-						{this.renderIfGasEstimationReady(<Text bold>{equivalentTotalAmount}</Text>)}
+
+						{!!totalFiat &&
+							this.renderIfGasEstimationReady(
+								<View style={styles.valuesContainer}>
+									<Text blue upper right style={styles.amountContainer}>
+										{totalAmount}
+									</Text>
+									{isMainnet && (
+										<Text bold primary upper right style={styles.fiatContainer}>
+											{equivalentTotalAmount}
+										</Text>
+									)}
+								</View>
+							)}
 					</Summary.Row>
 				</Summary>
 				{showCustomNonce && (
@@ -194,9 +299,16 @@ class TransactionReviewFeeCard extends PureComponent {
 						</Text>
 					</TouchableOpacity>
 				)}
+				{this.renderGasTooltip()}
 			</View>
 		);
 	}
 }
 
-export default TransactionReviewFeeCard;
+const mapStateToProps = state => ({
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId
+});
+
+export default connect(mapStateToProps)(TransactionReviewFeeCard);
