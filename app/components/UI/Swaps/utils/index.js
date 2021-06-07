@@ -22,6 +22,15 @@ export function isSwapsNativeAsset(token) {
 	return Boolean(token) && token?.address === swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS;
 }
 
+export function isDynamicToken(token) {
+	return (
+		Boolean(token) &&
+		token.occurances === 1 &&
+		token?.aggregators.length === 1 &&
+		token.aggregators[0] === 'dynamic'
+	);
+}
+
 /**
  * Sets required parameters for Swaps Quotes View
  * @param {string} sourceTokenAddress Token contract address used as swaps source
