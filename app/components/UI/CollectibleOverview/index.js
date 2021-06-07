@@ -1,99 +1,462 @@
-import React, { PureComponent } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { StyleSheet, View, Easing, Animated, SafeAreaView, ScrollView, TouchableWithoutFeedback } from 'react-native';
 import PropTypes from 'prop-types';
-import { colors, fontStyles } from '../../../styles/common';
+import { connect } from 'react-redux';
+import { baseStyles, colors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import CollectibleImage from '../CollectibleImage';
+import Text from '../../Base/Text';
+import RemoteImage from '../../Base/RemoteImage';
+import StyledButton from '../../UI/StyledButton';
+import EvilIcons from 'react-native-vector-icons/EvilIcons';
+import AntIcons from 'react-native-vector-icons/AntDesign';
+import Device from '../../../util/Device';
+import { toLocaleDate } from '../../../util/date';
+import { renderFromWei } from '../../../util/number';
+import { renderShortAddress } from '../../../util/address';
+import etherscanLink from '@metamask/etherscan-link';
+import { addFavoriteCollectible, removeFavoriteCollectible } from '../../../actions/collectibles';
+import { favoritesCollectiblesObjectSelector, isCollectibleInFavorites } from '../../../reducers/collectibles';
+import Share from 'react-native-share';
+import { PanGestureHandler, gestureHandlerRootHOC } from 'react-native-gesture-handler';
+import AppConstants from '../../../core/AppConstants';
+
+const ANIMATION_VELOCITY = 250;
+const HAS_NOTCH = Device.hasNotch();
+const ANIMATION_OFFSET = HAS_NOTCH ? 30 : 50;
+const IS_SMALL_DEVICE = Device.isSmallDevice();
+const VERTICAL_ALIGNMENT = IS_SMALL_DEVICE ? 12 : 16;
 
 const styles = StyleSheet.create({
 	wrapper: {
-		flex: 1
+		flex: 0,
+		backgroundColor: colors.white,
+		borderTopEndRadius: 8,
+		borderTopStartRadius: 8
 	},
-	basicsWrapper: {
-		flex: 1,
-		padding: 25,
-		alignItems: 'center',
-		justifyContent: 'center'
-	},
-	label: {
-		fontSize: 16,
-		...fontStyles.bold
-	},
-	informationWrapper: {
-		flex: 1,
-		paddingHorizontal: 30
+	generalContainer: {
+		paddingHorizontal: 16
 	},
 	information: {
-		marginTop: 16
-	},
-	content: {
-		fontSize: 14,
-		color: colors.grey400,
-		paddingTop: 10,
-		...fontStyles.normal
+		paddingTop: HAS_NOTCH ? 24 : VERTICAL_ALIGNMENT
 	},
 	row: {
-		marginVertical: 10
+		paddingVertical: 6
 	},
 	name: {
-		fontSize: 24,
-		...fontStyles.normal
+		fontSize: Device.isSmallDevice() ? 16 : 24,
+		marginBottom: 3
 	},
-	tokenId: {
-		fontSize: 12,
-		color: colors.grey400,
-		marginTop: 8,
-		...fontStyles.normal
+	userContainer: {
+		flexDirection: 'row',
+		paddingBottom: 16
+	},
+	userImage: {
+		width: 38,
+		height: 38,
+		borderRadius: 100,
+		marginRight: 8
+	},
+	buttonContainer: {
+		flexDirection: 'row',
+		marginTop: VERTICAL_ALIGNMENT
+	},
+	button: {
+		alignItems: 'center',
+		justifyContent: 'center',
+		borderWidth: 1.5
+	},
+	iconButtons: {
+		width: 54,
+		height: 54
+	},
+	leftButton: {
+		marginRight: 16
+	},
+	collectibleInfoContainer: {
+		flexDirection: 'row',
+		marginHorizontal: 16,
+		marginBottom: 8
+	},
+	collectibleInfoKey: {
+		paddingRight: 10
+	},
+	collectibleDescription: {
+		lineHeight: 22
+	},
+	userInfoContainer: {
+		justifyContent: 'center'
+	},
+	titleWrapper: {
+		width: '100%',
+		alignItems: 'center',
+		justifyContent: 'center',
+		paddingVertical: VERTICAL_ALIGNMENT
+	},
+	dragger: {
+		width: 48,
+		height: 5,
+		borderRadius: 4,
+		backgroundColor: colors.grey100
+	},
+	scrollableDescription: {
+		maxHeight: Device.getDeviceHeight() / 5
+	},
+	description: {
+		marginTop: 8
 	}
 });
 
 /**
  * View that displays the information of a specific ERC-721 Token
  */
-export default class CollectibleOverview extends PureComponent {
-	static propTypes = {
-		/**
-		 * Object that represents the collectible to be displayed
-		 */
-		collectible: PropTypes.object
-	};
+const CollectibleOverview = ({
+	chainId,
+	collectible,
+	selectedAddress,
+	tradable,
+	onSend,
+	addFavoriteCollectible,
+	removeFavoriteCollectible,
+	isInFavorites,
+	openLink,
+	onHide,
+	onTouchStart,
+	onTouchEnd,
+	onTranslation
+}) => {
+	const [headerHeight, setHeaderHeight] = useState(0);
+	const [wrapperHeight, setWrapperHeight] = useState(0);
+	const [position, setPosition] = useState(0);
+	const positionAnimated = useRef(new Animated.Value(0)).current;
 
-	renderImage = () => {
-		const { collectible } = this.props;
-		return <CollectibleImage renderFull collectible={collectible} />;
-	};
+	const translationHeight = useMemo(() => wrapperHeight - headerHeight - ANIMATION_OFFSET, [
+		headerHeight,
+		wrapperHeight
+	]);
+	const animating = useRef(false);
 
-	render = () => {
-		const {
-			collectible: { name, tokenId },
-			collectible
-		} = this.props;
-		let description;
-		if (collectible.description) {
-			description = collectible.description;
-		}
+	const renderScrollableDescription = useMemo(() => {
+		const maxLength = IS_SMALL_DEVICE ? 150 : 300;
+		return collectible?.description?.length > maxLength;
+	}, [collectible.description]);
+
+	const renderCollectibleInfoRow = useCallback((key, value, onPress) => {
+		if (!value) return null;
 		return (
-			<View style={styles.wrapper}>
-				<View style={styles.basicsWrapper}>
-					<View>{this.renderImage()}</View>
-				</View>
-
-				<View style={styles.informationWrapper}>
-					<Text style={styles.name}>{name}</Text>
-					<Text style={styles.tokenId}>
-						{strings('unit.token_id')}
-						{tokenId}
-					</Text>
-					{description && (
-						<View style={styles.information}>
-							<View style={styles.row}>
-								<Text style={styles.label}>{strings('collectible.collectible_description')}</Text>
-								<Text style={styles.content}>{description}</Text>
-							</View>
-						</View>
-					)}
-				</View>
+			<View style={styles.collectibleInfoContainer} key={key}>
+				<Text noMargin black bold big={!IS_SMALL_DEVICE} style={styles.collectibleInfoKey}>
+					{key}
+				</Text>
+				<Text
+					noMargin
+					big={!IS_SMALL_DEVICE}
+					link={!!onPress}
+					black={!onPress}
+					right
+					style={baseStyles.flexGrow}
+					numberOfLines={1}
+					ellipsizeMode="middle"
+					onPress={onPress}
+				>
+					{value}
+				</Text>
 			</View>
 		);
+	}, []);
+
+	const renderCollectibleInfo = () => [
+		renderCollectibleInfoRow(
+			strings('collectible.collectible_last_sold'),
+			collectible?.lastSale?.event_timestamp &&
+				toLocaleDate(new Date(collectible?.lastSale?.event_timestamp)).toString()
+		),
+		renderCollectibleInfoRow(
+			strings('collectible.collectible_last_price_sold'),
+			collectible?.lastSale?.total_price && `${renderFromWei(collectible?.lastSale?.total_price)} ETH`
+		),
+		renderCollectibleInfoRow(strings('collectible.collectible_source'), collectible?.imageOriginal, () =>
+			openLink(collectible?.imageOriginal)
+		),
+		renderCollectibleInfoRow(strings('collectible.collectible_link'), collectible?.externalLink, () =>
+			openLink(collectible?.externalLink)
+		),
+		renderCollectibleInfoRow(
+			strings('collectible.collectible_asset_contract'),
+			renderShortAddress(collectible?.address),
+			() => openLink(etherscanLink.createTokenTrackerLink(collectible?.address, chainId))
+		)
+	];
+
+	const collectibleToFavorites = useCallback(() => {
+		const action = isInFavorites ? removeFavoriteCollectible : addFavoriteCollectible;
+		action(selectedAddress, chainId, collectible);
+	}, [selectedAddress, chainId, collectible, isInFavorites, addFavoriteCollectible, removeFavoriteCollectible]);
+
+	const shareCollectible = useCallback(() => {
+		if (!collectible?.externalLink) return;
+		Share.open({
+			message: `${strings('collectible.share_check_out_nft')} ${collectible.externalLink}\n${strings(
+				'collectible.share_via'
+			)} ${AppConstants.SHORT_HOMEPAGE_URL}`
+		});
+	}, [collectible.externalLink]);
+
+	const onHeaderLayout = useCallback(
+		({
+			nativeEvent: {
+				layout: { height }
+			}
+		}) => headerHeight === 0 && setHeaderHeight(height),
+		[headerHeight]
+	);
+
+	const onWrapperLayout = useCallback(
+		({
+			nativeEvent: {
+				layout: { height }
+			}
+		}) => wrapperHeight === 0 && setWrapperHeight(height),
+		[wrapperHeight]
+	);
+
+	const animateViewPosition = useCallback(
+		(toValue, duration) => {
+			animating.current = true;
+			Animated.timing(positionAnimated, {
+				toValue,
+				duration,
+				easing: Easing.ease,
+				useNativeDriver: true
+			}).start(() => {
+				setPosition(toValue);
+				animating.current = false;
+			});
+		},
+		[positionAnimated]
+	);
+
+	const handleGesture = useCallback(
+		evt => {
+			// we don't want to trigger the animation again when the view is being animated
+			if (evt.nativeEvent.velocityY === 0 || animating.current) return;
+			const toValue = evt.nativeEvent.velocityY > 0 ? translationHeight : 0;
+			if (toValue !== position) {
+				onTranslation(toValue !== 0);
+				animateViewPosition(toValue, ANIMATION_VELOCITY);
+			} else if (position !== 0) {
+				// if the modal is on bottom position we want to hide everyhing
+				onHide();
+			}
+		},
+		[translationHeight, position, onTranslation, animateViewPosition, onHide]
+	);
+
+	const gestureHandlerWrapper = child => (
+		<PanGestureHandler activeOffsetY={[0, 0]} activeOffsetX={[0, 0]} onGestureEvent={handleGesture}>
+			{child}
+		</PanGestureHandler>
+	);
+
+	useEffect(() => {
+		if (headerHeight !== 0 && wrapperHeight !== 0) {
+			animateViewPosition(translationHeight, 0);
+		}
+	}, [headerHeight, wrapperHeight, translationHeight, animateViewPosition]);
+
+	return (
+		<Animated.View
+			onLayout={onWrapperLayout}
+			onTouchStart={onTouchStart}
+			onTouchEnd={onTouchEnd}
+			onTouchCancel={onTouchEnd}
+			style={[styles.wrapper, { transform: [{ translateY: positionAnimated }] }]}
+		>
+			{gestureHandlerWrapper(
+				<View style={styles.titleWrapper}>
+					<View style={styles.dragger} />
+				</View>
+			)}
+			<SafeAreaView>
+				<View onLayout={onHeaderLayout}>
+					{gestureHandlerWrapper(
+						<View style={styles.generalContainer}>
+							{collectible?.creator && (
+								<View style={styles.userContainer}>
+									<RemoteImage
+										fadeIn
+										placeholderStyle={{ backgroundColor: colors.white }}
+										source={{ uri: collectible.creator.profile_img_url }}
+										style={styles.userImage}
+									/>
+									<View numberOfLines={1} style={styles.userInfoContainer}>
+										{collectible.creator.user?.username && (
+											<Text black bold noMargin big={!IS_SMALL_DEVICE}>
+												{collectible.creator.user.username}
+											</Text>
+										)}
+										<Text numberOfLines={1} black noMargin small>
+											{collectible.contractName}
+										</Text>
+									</View>
+								</View>
+							)}
+							<Text numberOfLines={2} bold primary noMargin style={styles.name}>
+								{collectible.name}
+							</Text>
+							<Text primary noMargin big>
+								{strings('unit.token_id')}
+								{collectible.tokenId}
+							</Text>
+						</View>
+					)}
+
+					<View style={[styles.generalContainer, styles.buttonContainer]}>
+						{tradable && (
+							<StyledButton
+								onPressOut={onSend}
+								type={'rounded-normal'}
+								containerStyle={[baseStyles.flexGrow, styles.button, styles.leftButton]}
+							>
+								<Text link big={!IS_SMALL_DEVICE} bold noMargin>
+									{strings('asset_overview.send_button')}
+								</Text>
+							</StyledButton>
+						)}
+						{collectible?.externalLink && (
+							<StyledButton
+								type={'rounded-normal'}
+								containerStyle={[styles.button, styles.iconButtons, styles.leftButton]}
+								onPressOut={shareCollectible}
+							>
+								<Text bold link noMargin>
+									<EvilIcons name={Device.isIos() ? 'share-apple' : 'share-google'} size={32} />
+								</Text>
+							</StyledButton>
+						)}
+						<StyledButton
+							type={'rounded-normal'}
+							containerStyle={[styles.button, styles.iconButtons]}
+							onPressOut={collectibleToFavorites}
+						>
+							<Text link noMargin>
+								<AntIcons name={isInFavorites ? 'star' : 'staro'} size={24} />
+							</Text>
+						</StyledButton>
+					</View>
+				</View>
+				{collectible?.description ? (
+					<View style={styles.information}>
+						<View style={[styles.generalContainer, styles.row]}>
+							{gestureHandlerWrapper(
+								<View>
+									<Text noMargin black bold big={!IS_SMALL_DEVICE}>
+										{strings('collectible.collectible_description')}
+									</Text>
+								</View>
+							)}
+							{renderScrollableDescription ? (
+								<ScrollView bounces={false} style={[styles.description, styles.scrollableDescription]}>
+									<TouchableWithoutFeedback>
+										<Text noMargin black style={styles.collectibleDescription}>
+											{collectible.description}
+										</Text>
+									</TouchableWithoutFeedback>
+								</ScrollView>
+							) : (
+								gestureHandlerWrapper(
+									<View style={styles.description}>
+										<Text noMargin black style={styles.collectibleDescription}>
+											{collectible.description}
+										</Text>
+									</View>
+								)
+							)}
+						</View>
+					</View>
+				) : (
+					<View />
+				)}
+				{gestureHandlerWrapper(<View style={styles.information}>{renderCollectibleInfo()}</View>)}
+			</SafeAreaView>
+		</Animated.View>
+	);
+};
+
+CollectibleOverview.propTypes = {
+	/**
+	 * Chain id
+	 */
+	chainId: PropTypes.string,
+	/**
+	 * Object that represents the collectible to be displayed
+	 */
+	collectible: PropTypes.object,
+	/**
+	 * Represents if the collectible is tradable (can be sent)
+	 */
+	tradable: PropTypes.bool,
+	/**
+	 * Function called when user presses the Send button
+	 */
+	onSend: PropTypes.func,
+	/**
+	 * Selected address
+	 */
+	selectedAddress: PropTypes.string,
+	/**
+	 * Dispatch add collectible to favorites action
+	 */
+	addFavoriteCollectible: PropTypes.func,
+	/**
+	 * Dispatch remove collectible from favorites action
+	 */
+	removeFavoriteCollectible: PropTypes.func,
+	/**
+	 * Whether the current collectible is favorited
+	 */
+	isInFavorites: PropTypes.bool,
+	/**
+	 * Function to open a link on a webview
+	 */
+	openLink: PropTypes.func.isRequired,
+	/**
+	 * View on touch start callback
+	 */
+	onTouchStart: PropTypes.func.isRequired,
+	/**
+	 * View onn touch end callback
+	 */
+	onTouchEnd: PropTypes.func.isRequired,
+	/**
+	 * callback to trigger when modal is being animated
+	 */
+	onTranslation: PropTypes.func,
+	/**
+	 * callback to trigger when modal is dragged down in bottom position
+	 */
+	onHide: PropTypes.func
+};
+
+const mapStateToProps = (state, props) => {
+	const favoriteCollectibles = favoritesCollectiblesObjectSelector(state);
+	return {
+		chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+		selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+		isInFavorites: isCollectibleInFavorites(favoriteCollectibles, props.collectible)
 	};
-}
+};
+const mapDispatchToProps = dispatch => ({
+	addFavoriteCollectible: (selectedAddress, chainId, collectible) =>
+		dispatch(addFavoriteCollectible(selectedAddress, chainId, collectible)),
+	removeFavoriteCollectible: (selectedAddress, chainId, collectible) =>
+		dispatch(removeFavoriteCollectible(selectedAddress, chainId, collectible))
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(
+	Device.isIos()
+		? CollectibleOverview
+		: gestureHandlerRootHOC(CollectibleOverview, { flex: 0, zIndex: 0, elevation: 0 })
+);

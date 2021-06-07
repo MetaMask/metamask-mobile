@@ -308,7 +308,9 @@ class Engine {
 			TokenRatesController
 		} = this.context;
 		const { selectedAddress } = PreferencesController.state;
-		const { conversionRate, currentCurrency } = CurrencyRateController.state;
+		const { currentCurrency } = CurrencyRateController.state;
+		const conversionRate =
+			CurrencyRateController.state.conversionRate === null ? 0 : CurrencyRateController.state.conversionRate;
 		const { accounts } = AccountTrackerController.state;
 		const { tokens } = AssetsController.state;
 		let ethFiat = 0;
@@ -355,7 +357,7 @@ class Engine {
 
 			let tokenFound = false;
 			tokens.forEach(token => {
-				if (tokenBalances[token.address] && !tokenBalances[token.address].isZero()) {
+				if (tokenBalances[token.address] && !tokenBalances[token.address]?.isZero()) {
 					tokenFound = true;
 				}
 			});
@@ -518,13 +520,20 @@ export default {
 			SwapsController
 		} = instance.datamodel.state;
 
+		// normalize `null` currencyRate to `0`
+		// TODO: handle `null` currencyRate by hiding fiat values instead
+		const modifiedCurrencyRateControllerState = {
+			...CurrencyRateController,
+			conversionRate: CurrencyRateController.conversionRate === null ? 0 : CurrencyRateController.conversionRate
+		};
+
 		return {
 			AccountTrackerController,
 			AddressBookController,
 			AssetsContractController,
 			AssetsController,
 			AssetsDetectionController,
-			CurrencyRateController,
+			CurrencyRateController: modifiedCurrencyRateControllerState,
 			KeyringController,
 			PersonalMessageManager,
 			NetworkController,
