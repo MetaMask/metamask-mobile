@@ -15,7 +15,7 @@ const styles = StyleSheet.create({
 		return {
 			flex: 0,
 			borderRadius: 12,
-			backgroundColor
+			backgroundColor: `#${backgroundColor}`
 		};
 	},
 	tinyImage: {
@@ -119,11 +119,7 @@ export default function CollectibleMedia({
 		);
 	}, [collectible, sourceUri, onClose, renderAnimation, style, tiny, small, big, cover, resizeMode]);
 
-	return (
-		<View style={styles.container(resizeMode ? colors.greytransparent100 : collectible.backgroundColor)}>
-			{renderMedia()}
-		</View>
-	);
+	return <View style={styles.container(collectible.backgroundColor)}>{renderMedia()}</View>;
 }
 
 CollectibleMedia.propTypes = {
