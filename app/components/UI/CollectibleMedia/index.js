@@ -53,7 +53,17 @@ const styles = StyleSheet.create({
 /**
  * View that renders an ERC-721 Token image
  */
-export default function CollectibleMedia({ collectible, renderAnimation, style, tiny, small, big, cover, onClose }) {
+export default function CollectibleMedia({
+	collectible,
+	renderAnimation,
+	resizeMode,
+	style,
+	tiny,
+	small,
+	big,
+	cover,
+	onClose
+}) {
 	const [sourceUri, setSourceUri] = useState(null);
 
 	const fallback = () => setSourceUri(null);
@@ -65,7 +75,7 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 	}, [collectible, small, big, setSourceUri]);
 
 	const renderMedia = useCallback(() => {
-		if (renderAnimation && collectible.animation && collectible.animation.includes('.mp4')) {
+		if (renderAnimation && collectible.animation?.includes('.mp4')) {
 			return (
 				<MediaPlayer
 					onClose={onClose}
@@ -77,7 +87,7 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 			return (
 				<RemoteImage
 					fadeIn
-					resizeMode={'contain'}
+					resizeMode={resizeMode || 'cover'}
 					source={{ uri: sourceUri }}
 					style={[
 						styles.image,
@@ -107,7 +117,7 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 				}`}</Text>
 			</View>
 		);
-	}, [collectible, sourceUri, onClose, renderAnimation, style, tiny, small, big, cover]);
+	}, [collectible, sourceUri, onClose, renderAnimation, style, tiny, small, big, cover, resizeMode]);
 
 	return <View style={styles.container(collectible.backgroundColor)}>{renderMedia()}</View>;
 }
@@ -144,5 +154,9 @@ CollectibleMedia.propTypes = {
 	/**
 	 * On close callback
 	 */
-	onClose: PropTypes.func
+	onClose: PropTypes.func,
+	/**
+	 * Image resize mode
+	 */
+	resizeMode: PropTypes.string
 };

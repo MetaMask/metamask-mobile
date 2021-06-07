@@ -7,8 +7,10 @@ import collectiblesTransferInformation from '../../../util/collectibles-transfer
 import { newAssetTransaction } from '../../../actions/transaction';
 import Modal from 'react-native-modal';
 import CollectibleMedia from '../CollectibleMedia';
-import { baseStyles, colors } from '../../../styles/common';
+import { baseStyles } from '../../../styles/common';
 import Device from '../../../util/Device';
+
+const COLLECTIBLE_WRAPPER_MARGIN_TOP = Device.hasNotch() ? '20%' : Device.isMediumDevice() ? 16 : '10%';
 
 const styles = StyleSheet.create({
 	bottomModal: {
@@ -24,9 +26,8 @@ const styles = StyleSheet.create({
 		left: 0,
 		right: 0,
 		marginHorizontal: 16,
-		marginTop: Device.hasNotch() ? 36 : 16,
-		borderRadius: 12,
-		backgroundColor: colors.transparent
+		marginTop: COLLECTIBLE_WRAPPER_MARGIN_TOP,
+		borderRadius: 12
 	}
 });
 
@@ -96,6 +97,7 @@ const CollectibleModal = ({ contractName, collectible, onHide, visible, navigati
 					onClose={onHide}
 					cover
 					renderAnimation
+					resizeMode={'contain'}
 					collectible={collectible}
 					style={styles.round}
 				/>

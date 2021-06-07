@@ -49,11 +49,10 @@ exports[`CollectibleModal should render correctly 1`] = `
     style={
       Array [
         Object {
-          "backgroundColor": "transparent",
           "borderRadius": 12,
           "left": 0,
           "marginHorizontal": 16,
-          "marginTop": 36,
+          "marginTop": "20%",
           "position": "absolute",
           "right": 0,
           "top": 0,
@@ -75,6 +74,7 @@ exports[`CollectibleModal should render correctly 1`] = `
       }
       cover={true}
       renderAnimation={true}
+      resizeMode="contain"
       style={
         Object {
           "borderRadius": 12,
