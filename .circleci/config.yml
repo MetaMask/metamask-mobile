@@ -195,40 +195,12 @@ jobs:
 workflows:
   full_test:
     jobs:
-      - test-deps:
-          requires:
-            - prep-node-deps
       - prep-deps:
           filters:
             branches:
               only:
                 - main
                 - develop
-      - prep-node-deps:
-          filters:
-            branches:
-              ignore:
-                - main
-                - develop
-      - lint:
-          requires:
-            - prep-node-deps
-      - test-unit:
-          requires:
-            - prep-node-deps
-    #   - test-e2e-ios:
-    #       requires:
-    #         - prep-node-deps
-    #         - test-unit
-      - all-tests-pass:
-          requires:
-            - test-deps
-            - lint
-            - test-unit
-    #       - test-e2e-ios
-    #   - upload-coverage:
-    #       requires:
-    #         - test-unit
       - publish-pre-release-ios:
           requires:
             - prep-deps
