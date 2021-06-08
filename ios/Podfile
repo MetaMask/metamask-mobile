@@ -11,6 +11,15 @@ def react_native_post_install(installer)
 
 	arm_value = `/usr/sbin/sysctl -n hw.optional.arm64 2>&1`.to_i
 
+	installer.pods_project.targets.each do |target|
+		target.build_configurations.each do |config|
+		  # Set 9.0 as min version for all
+		  if Gem::Version.new('9.0') > Gem::Version.new(config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'])
+			config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '9.0'
+		  end
+		end
+	end
+
 	projects.each do |project|
 	  project.build_configurations.each do |config|
 		if arm_value == 1 then
