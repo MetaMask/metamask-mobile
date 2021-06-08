@@ -24,8 +24,6 @@ import { strings } from '../../../../locales/i18n';
 import SecureKeychain from '../../../core/SecureKeychain';
 import AppConstants from '../../../core/AppConstants';
 import setOnboardingWizardStep from '../../../actions/wizard';
-// eslint-disable-next-line import/named
-import { NavigationActions } from '@react-navigation/compat';
 import TermsAndConditions from '../TermsAndConditions';
 import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -289,20 +287,12 @@ class ImportFromSeed extends PureComponent {
 				this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 				this.props.seedphraseBackedUp();
 				if (!metricsOptIn) {
-					this.props.navigation.navigate(
-						'ManualBackupStep3',
-						{},
-						NavigationActions.navigate({ name: 'OptinMetrics' })
-					);
+					this.props.navigation.navigate('OptinMetrics');
 				} else if (onboardingWizard) {
 					this.props.navigation.navigate('ManualBackupStep3');
 				} else {
 					this.props.setOnboardingWizardStep(1);
-					this.props.navigation.navigate(
-						'ManualBackupStep3',
-						{},
-						NavigationActions.navigate({ name: 'WalletView' })
-					);
+					this.props.navigation.navigate('HomeNav', { screen: 'WalletView' });
 				}
 				await importAdditionalAccounts();
 			} catch (error) {

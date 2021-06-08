@@ -59,13 +59,8 @@ ActivityView.navigationOptions = ({ navigation, route }) => {
 	return getNavbarOptions(title, navigation);
 };
 
-const mapStateToProps = state => {
-	const orders = state.fiatOrders.orders;
-	const selectedAddress = state.engine.backgroundState.PreferencesController.selectedAddress;
-	const network = state.engine.backgroundState.NetworkController.network;
-	return {
-		hasOrders: getHasOrders(orders, selectedAddress, network)
-	};
-};
+const mapStateToProps = state => ({
+	hasOrders: getHasOrders(state)
+});
 
 export default connect(mapStateToProps)(ActivityView);

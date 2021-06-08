@@ -31,7 +31,6 @@ import AppConstants from '../../../core/AppConstants';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import URL from 'url-parse';
 import EthereumAddress from '../EthereumAddress';
-import { NavigationActions } from '@react-navigation/compat';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { protectWalletModalVisible } from '../../../actions/user';
@@ -422,7 +421,7 @@ class DrawerView extends PureComponent {
 			let tokenFound = false;
 
 			this.props.tokens.forEach(token => {
-				if (this.props.tokenBalances[token.address] && !this.props.tokenBalances[token.address].isZero()) {
+				if (this.props.tokenBalances[token.address] && !this.props.tokenBalances[token.address]?.isZero()) {
 					tokenFound = true;
 				}
 			});
@@ -534,7 +533,7 @@ class DrawerView extends PureComponent {
 		await SecureKeychain.resetGenericPassword();
 		await KeyringController.setLocked();
 		if (!passwordSet) {
-			this.props.navigation.navigate('OnboardingRootNav', {}, NavigationActions.navigate({ name: 'Onboarding' }));
+			this.props.navigation.navigate('OnboardingRootNav', { screen: 'Onboarding' });
 		} else {
 			this.props.navigation.navigate('Login');
 		}
@@ -702,7 +701,7 @@ class DrawerView extends PureComponent {
 					icon: this.getImageIcon('wallet'),
 					selectedIcon: this.getSelectedImageIcon('wallet'),
 					action: this.showWallet,
-					routeNames: ['WalletView', 'Asset', 'AddAsset', 'Collectible', 'CollectibleView']
+					routeNames: ['WalletView', 'Asset', 'AddAsset', 'Collectible']
 				},
 				{
 					name: strings('drawer.transaction_history'),

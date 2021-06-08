@@ -20,27 +20,54 @@ import SubHeader from '../components/SubHeader';
 
 import TransakPaymentMethod from './transak';
 import WyreApplePayPaymentMethod from './wyreApplePay';
+import { setGasEducationCarouselSeen } from '../../../../actions/user';
 
-function PaymentMethodSelectorView({ selectedAddress, network, ...props }) {
+function PaymentMethodSelectorView({
+	selectedAddress,
+	network,
+	gasEducationCarouselSeen,
+	setGasEducationCarouselSeen,
+	...props
+}) {
 	const navigation = useContext(NavigationContext);
 	const transakURL = useTransakFlowURL(selectedAddress);
 
 	const onPressWyreApplePay = useCallback(() => {
-		navigation.navigate('PaymentMethodApplePay');
+		const goToApplePay = () => navigation.navigate('PaymentMethodApplePay');
+		if (!gasEducationCarouselSeen) {
+			navigation.navigate('GasEducationCarousel', {
+				navigateTo: goToApplePay
+			});
+			setGasEducationCarouselSeen();
+		} else {
+			goToApplePay();
+		}
 
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.PAYMENTS_SELECTS_APPLE_PAY);
 		});
-	}, [navigation]);
+	}, [navigation, gasEducationCarouselSeen, setGasEducationCarouselSeen]);
+
 	const onPressTransak = useCallback(() => {
-		navigation.navigate('TransakFlow', {
-			url: transakURL,
-			title: strings('fiat_on_ramp.transak_webview_title')
-		});
+		const goToTransakFlow = () =>
+			navigation.navigate('TransakFlow', {
+				url: transakURL,
+				title: strings('fiat_on_ramp.transak_webview_title')
+			});
+
+		if (!gasEducationCarouselSeen) {
+			navigation.navigate('GasEducationCarousel', {
+				navigateTo: goToTransakFlow
+			});
+			setGasEducationCarouselSeen();
+		} else {
+			goToTransakFlow();
+		}
+
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.PAYMENTS_SELECTS_DEBIT_OR_ACH);
 		});
-	}, [navigation, transakURL]);
+	}, [navigation, transakURL, gasEducationCarouselSeen, setGasEducationCarouselSeen]);
 
 	return (
 		<ScreenView>
@@ -73,14 +100,24 @@ function PaymentMethodSelectorView({ selectedAddress, network, ...props }) {
 
 PaymentMethodSelectorView.propTypes = {
 	selectedAddress: PropTypes.string.isRequired,
-	network: PropTypes.string.isRequired
+	network: PropTypes.string.isRequired,
+	gasEducationCarouselSeen: PropTypes.bool,
+	setGasEducationCarouselSeen: PropTypes.func
 };
 
 PaymentMethodSelectorView.navigationOptions = ({ navigation }) => getPaymentSelectorMethodNavbar(navigation);
 
 const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	network: state.engine.backgroundState.NetworkController.network
+	network: state.engine.backgroundState.NetworkController.network,
+	gasEducationCarouselSeen: state.user.gasEducationCarouselSeen
 });
 
-export default connect(mapStateToProps)(PaymentMethodSelectorView);
+const mapDispatchToProps = dispatch => ({
+	setGasEducationCarouselSeen: () => dispatch(setGasEducationCarouselSeen())
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(PaymentMethodSelectorView);

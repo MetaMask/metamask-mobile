@@ -90,7 +90,7 @@ const Entry = props => {
 					screen: 'OnboardingNav',
 					params: { screen: 'OptinMetrics' }
 				});
-			} else if (viewToGo !== 'WalletView' || viewToGo !== 'Onboarding') {
+			} else if (viewToGo && (viewToGo !== 'WalletView' || viewToGo !== 'Onboarding')) {
 				props.navigation.navigate(viewToGo);
 			} else if (viewToGo === 'Onboarding') {
 				props.navigation.navigate('OnboardingRootNav');

@@ -19,7 +19,7 @@ import { strings } from '../../../../locales/i18n';
 import TokenImage from '../TokenImage';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import ElevatedView from 'react-native-elevated-view';
-import CollectibleImage from '../CollectibleImage';
+import CollectibleMedia from '../CollectibleMedia';
 import SelectableAsset from './SelectableAsset';
 import { getTicker, getNormalizedTxState } from '../../../util/transactions';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -345,7 +345,7 @@ class EthInput extends PureComponent {
 				const subTitle =
 					strings('collectible.collectible_token_id') + strings('unit.colon') + ' ' + asset.tokenId;
 				const icon = (
-					<CollectibleImage collectible={asset} containerStyle={styles.logo} iconStyle={styles.logo} />
+					<CollectibleMedia small collectible={asset} containerStyle={styles.logo} iconStyle={styles.logo} />
 				);
 				return { title, subTitle, icon };
 			}
@@ -630,7 +630,8 @@ class EthInput extends PureComponent {
 							title={selectedAsset.name}
 							subTitle={`${strings('unit.token_id')}${selectedAsset.tokenId}`}
 							icon={
-								<CollectibleImage
+								<CollectibleMedia
+									small
 									collectible={selectedAsset}
 									containerStyle={styles.logo}
 									iconStyle={styles.logo}

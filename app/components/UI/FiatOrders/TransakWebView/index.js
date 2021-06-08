@@ -11,6 +11,7 @@ import { getNotificationDetails } from '..';
 import { getTransakWebviewNavbar } from '../../../UI/Navbar';
 import { baseStyles } from '../../../../styles/common';
 import { protectWalletModalVisible } from '../../../../actions/user';
+import { addFiatOrder } from '../../../../reducers/fiatOrders';
 
 class TransakWebView extends PureComponent {
 	static navigationOptions = ({ navigation, route }) => getTransakWebviewNavbar(navigation, route);
@@ -64,7 +65,7 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-	addOrder: order => dispatch({ type: 'FIAT_ADD_ORDER', payload: order }),
+	addOrder: order => dispatch(addFiatOrder(order)),
 	protectWalletModalVisible: () => dispatch(protectWalletModalVisible())
 });
 

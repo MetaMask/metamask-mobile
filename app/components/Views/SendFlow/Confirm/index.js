@@ -28,7 +28,7 @@ import {
 } from '../../../../util/number';
 import { getTicker, decodeTransferData, getNormalizedTxState } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
-import { util, WalletDevice } from '@metamask/controllers';
+import { util, WalletDevice, NetworksChainId } from '@metamask/controllers';
 import { prepareTransaction, resetTransaction, setNonce, setProposedNonce } from '../../../../actions/transaction';
 import {
 	apiEstimateModifiedToWEI,
@@ -46,7 +46,7 @@ import { doENSReverseLookup } from '../../../../util/ENSUtils';
 import NotificationManager from '../../../../core/NotificationManager';
 import { strings } from '../../../../../locales/i18n';
 import collectiblesTransferInformation from '../../../../util/collectibles-transfer';
-import CollectibleImage from '../../../UI/CollectibleImage';
+import CollectibleMedia from '../../../UI/CollectibleMedia';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionTypes from '../../../../core/TransactionTypes';
@@ -59,6 +59,7 @@ import AnalyticsV2 from '../../../../util/analyticsV2';
 import { collectConfusables } from '../../../../util/validators';
 import InfoModal from '../../../UI/Swaps/components/InfoModal';
 import { toChecksumAddress } from 'ethereumjs-util';
+import { removeFavoriteCollectible } from '../../../../actions/collectibles';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -118,7 +119,7 @@ const styles = StyleSheet.create({
 	actionsWrapper: {
 		margin: 24
 	},
-	collectibleImageWrapper: {
+	CollectibleMediaWrapper: {
 		flexDirection: 'column',
 		alignItems: 'center',
 		margin: 16
@@ -136,7 +137,7 @@ const styles = StyleSheet.create({
 		marginTop: 8,
 		textAlign: 'center'
 	},
-	collectibleImage: {
+	CollectibleMedia: {
 		height: 120,
 		width: 120
 	},
@@ -176,11 +177,6 @@ const styles = StyleSheet.create({
 		margin: 0
 	},
 	totalAmount: {
-		...fontStyles.normal,
-		color: colors.fontPrimary,
-		fontSize: 14,
-		textAlign: 'right',
-		textTransform: 'uppercase',
 		flexWrap: 'wrap',
 		flex: 1
 	},
@@ -517,12 +513,12 @@ class Confirm extends PureComponent {
 			transactionValueFiat = weiToFiat(valueBN, conversionRate, currentCurrency);
 			const transactionTotalAmountBN = weiTransactionFee && weiTransactionFee.add(valueBN);
 			transactionTotalAmount = (
-				<Text style={[styles.totalAmount, over && styles.over]}>
+				<Text grey right upper style={[styles.totalAmount, over && styles.over]}>
 					{renderFromWei(transactionTotalAmountBN)} {parsedTicker}
 				</Text>
 			);
 			transactionTotalAmountFiat = (
-				<Text style={[styles.totalAmount, over && styles.over]}>
+				<Text primary right upper bold style={[styles.totalAmount, over && styles.over]}>
 					{weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency)}
 				</Text>
 			);
@@ -546,12 +542,12 @@ class Confirm extends PureComponent {
 			transactionValueFiat = weiToFiat(valueBN, conversionRate, currentCurrency);
 			const transactionTotalAmountBN = weiTransactionFee && weiTransactionFee.add(valueBN);
 			transactionTotalAmount = (
-				<Text style={styles.totalAmount}>
+				<Text grey right upper style={styles.totalAmount}>
 					{renderFromWei(weiTransactionFee)} {parsedTicker}
 				</Text>
 			);
 			transactionTotalAmountFiat = (
-				<Text style={styles.totalAmount}>
+				<Text primary right upper bold style={styles.totalAmount}>
 					{weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency)}
 				</Text>
 			);
@@ -572,12 +568,12 @@ class Confirm extends PureComponent {
 				balanceToFiat(transferValue, conversionRate, exchangeRate, currentCurrency) || `0 ${currentCurrency}`;
 			const transactionValueFiatNumber = balanceToFiatNumber(transferValue, conversionRate, exchangeRate);
 			transactionTotalAmount = (
-				<Text style={styles.totalAmount}>
+				<Text grey right upper style={styles.totalAmount}>
 					{transactionValue} + ${renderFromWei(weiTransactionFee)} {parsedTicker}
 				</Text>
 			);
 			transactionTotalAmountFiat = (
-				<Text style={styles.totalAmount}>
+				<Text primary right upper bold style={styles.totalAmount}>
 					{renderFiatAddition(transactionValueFiatNumber, transactionFeeFiatNumber, currentCurrency)}
 				</Text>
 			);
@@ -659,10 +655,12 @@ class Confirm extends PureComponent {
 	checkRemoveCollectible = () => {
 		const {
 			transactionState: { selectedAsset, assetType },
-			network
+			chainId
 		} = this.props;
-		if (assetType === 'ERC721' && network !== 1) {
+		const { fromSelectedAddress } = this.state;
+		if (assetType === 'ERC721' && chainId !== NetworksChainId.mainnet) {
 			const { AssetsController } = Engine.context;
+			removeFavoriteCollectible(fromSelectedAddress, chainId, selectedAsset);
 			AssetsController.removeCollectible(selectedAsset.address, selectedAsset.tokenId);
 		}
 	};
@@ -1023,10 +1021,11 @@ class Confirm extends PureComponent {
 					) : (
 						<View style={styles.amountWrapper}>
 							<Text style={styles.textAmountLabel}>{strings('transaction.asset')}</Text>
-							<View style={styles.collectibleImageWrapper}>
-								<CollectibleImage
-									iconStyle={styles.collectibleImage}
-									containerStyle={styles.collectibleImage}
+							<View style={styles.CollectibleMediaWrapper}>
+								<CollectibleMedia
+									small
+									iconStyle={styles.CollectibleMedia}
+									containerStyle={styles.CollectibleMedia}
 									collectible={selectedAsset}
 								/>
 							</View>
@@ -1126,7 +1125,9 @@ const mapDispatchToProps = dispatch => ({
 	prepareTransaction: transaction => dispatch(prepareTransaction(transaction)),
 	resetTransaction: () => dispatch(resetTransaction()),
 	setNonce: nonce => dispatch(setNonce(nonce)),
-	setProposedNonce: nonce => dispatch(setProposedNonce(nonce))
+	setProposedNonce: nonce => dispatch(setProposedNonce(nonce)),
+	removeFavoriteCollectible: (selectedAddress, chainId, collectible) =>
+		dispatch(removeFavoriteCollectible(selectedAddress, chainId, collectible))
 });
 
 export default connect(

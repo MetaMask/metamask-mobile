@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`GasEducationCarousel should render correctly 1`] = `
+<Connect(GasEducationCarousel)
+  navigation={
+    Object {
+      "getParam": [Function],
+    }
+  }
+/>
+`;

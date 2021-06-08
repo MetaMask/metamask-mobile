@@ -19,7 +19,6 @@ import Wallet from '../../Views/Wallet';
 import Asset from '../../Views/Asset';
 import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
-import CollectibleView from '../../Views/CollectibleView';
 import Send from '../../Views/Send';
 import SendTo from '../../Views/SendFlow/SendTo';
 import RevealPrivateCredential from '../../Views/RevealPrivateCredential';
@@ -50,6 +49,7 @@ import TransakWebView from '../../UI/FiatOrders/TransakWebView';
 import ActivityView from '../../Views/ActivityView';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
+import GasEducationCarousel from '../../Views/GasEducationCarousel';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -73,8 +73,6 @@ const WalletTabHome = () => (
 
 		<Stack.Screen name="Collectible" component={Collectible} options={Collectible.navigationOptions} />
 
-		<Stack.Screen name="CollectibleView" component={CollectibleView} options={CollectibleView.navigationOptions} />
-
 		<Stack.Screen
 			name="RevealPrivateCredentialView"
 			component={RevealPrivateCredential}
@@ -96,7 +94,7 @@ const TransactionsHome = () => (
 );
 
 const HomeTabs = () => (
-	<Tab.Navigator initialRouteName={'WalletView'}>
+	<Tab.Navigator initialRouteName={'WalletTabHome'}>
 		<Tab.Screen name="WalletTabHome" component={WalletTabHome} options={{ tabBarVisible: false }} />
 		<Tab.Screen name="BrowserTabHome" component={BrowserTabHome} options={{ tabBarVisible: false }} />
 		<Tab.Screen name="TransactionsHome" component={TransactionsHome} options={{ tabBarVisible: false }} />
@@ -250,6 +248,11 @@ const FiatOnRamp = () => (
 			options={PaymentMethodApplePay.navigationOptions}
 		/>
 		<Stack.Screen name="TransakFlow" component={TransakWebView} options={TransakWebView.navigationOptions} />
+		<Stack.Screen
+			name="GasEducationCarousel"
+			component={GasEducationCarousel}
+			options={GasEducationCarousel.navigationOptions}
+		/>
 	</Stack.Navigator>
 );
 

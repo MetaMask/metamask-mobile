@@ -24,7 +24,6 @@ import { strings } from '../../../../locales/i18n';
 import SecureKeychain from '../../../core/SecureKeychain';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import setOnboardingWizardStep from '../../../actions/wizard';
-import { NavigationActions } from '@react-navigation/compat';
 import { connect } from 'react-redux';
 import Device from '../../../util/Device';
 import { OutlinedTextField } from 'react-native-material-textfield';
@@ -359,11 +358,7 @@ class Login extends PureComponent {
 	deleteExistingUser = async () => {
 		try {
 			await AsyncStorage.removeItem(EXISTING_USER);
-			this.props.navigation.navigate(
-				'OnboardingRootNav',
-				{},
-				NavigationActions.navigate({ name: 'Onboarding', params: { delete: true } })
-			);
+			this.props.navigation.navigate('OnboardingRootNav', { screen: 'Onboarding', params: { delete: true } });
 		} catch (error) {
 			Logger.log(error, `Failed to remove key: ${EXISTING_USER} from AsyncStorage`);
 		}
