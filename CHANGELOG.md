@@ -2,7 +2,7 @@
 
 ## Current Develop Branch
 
-## v.2.5.0 - June 7 2021
+## v.2.5.0 - June 8 2021
 - [#2746](https://github.com/MetaMask/metamask-mobile/pull/2746): bugfix/notification visibility
 - [#2749](https://github.com/MetaMask/metamask-mobile/pull/2749): @metamask/controllers@10.1.0
 - [#2702](https://github.com/MetaMask/metamask-mobile/pull/2702): Swaps: Update Market price unavailable and Price impact text
