@@ -56,7 +56,7 @@ const CollectibleModal = ({ contractName, collectible, onHide, visible, navigati
 
 	const openLink = url => {
 		onHide();
-		navigation.navigate('SimpleWebview', { url });
+		navigation.navigate('Webview', { screen: 'SimpleWebview', params: { url } });
 	};
 
 	const onTouchStart = useCallback(() => setSwippable(null), []);

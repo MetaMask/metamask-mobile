@@ -141,7 +141,8 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 		[collectibleContracts, renderFavoriteCollectibles, renderCollectibleContract]
 	);
 
-	const goToLearnMore = () => navigation.navigate('SimpleWebview', { url: AppConstants.URLS.NFT });
+	const goToLearnMore = () =>
+		navigation.navigate('Webview', { screen: 'SimpleWebview', params: { url: AppConstants.URLS.NFT } });
 
 	const renderEmpty = () => (
 		<View style={styles.emptyView}>
