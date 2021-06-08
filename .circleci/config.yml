@@ -201,7 +201,6 @@ workflows:
               only:
                 - main
                 - develop
-                - circleci-fix
       - publish-pre-release-ios:
           requires:
             - prep-deps
