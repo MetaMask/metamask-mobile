@@ -1,7 +1,7 @@
-import React, { useContext, useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet, Image, TouchableOpacity, InteractionManager, ActivityIndicator } from 'react-native';
-import { NavigationContext } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { connect } from 'react-redux';
 import NotificationManager from '../../../../core/NotificationManager';
 import Device from '../../../../util/Device';
@@ -175,7 +175,7 @@ function PaymentMethodApplePay({
 	setFiatOrdersCountry,
 	protectWalletModalVisible
 }) {
-	const navigation = useContext(NavigationContext);
+	const navigation = useNavigation();
 	const [amount, setAmount] = useState('0');
 	const { symbol: currencySymbol, decimalSeparator, currency: selectedCurrency } = useCountryCurrency(
 		selectedCountry

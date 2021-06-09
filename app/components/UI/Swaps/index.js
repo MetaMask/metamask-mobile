@@ -1,8 +1,8 @@
-import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { ActivityIndicator, StyleSheet, View, TouchableOpacity, InteractionManager } from 'react-native';
 import { connect } from 'react-redux';
-import { NavigationContext, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { View as AnimatableView } from 'react-native-animatable';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import numberToBN from 'number-to-bn';
@@ -153,7 +153,7 @@ function SwapsAmountView({
 	setHasOnboarded,
 	setLiveness
 }) {
-	const navigation = useContext(NavigationContext);
+	const navigation = useNavigation();
 	const route = useRoute();
 
 	const explorer = useBlockExplorer(provider, frequentRpcList);
