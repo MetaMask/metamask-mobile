@@ -1,4 +1,9 @@
 import React, { PureComponent } from 'react';
+import Branch from 'react-native-branch';
+import { NavigationContainer, CommonActions } from '@react-navigation/native';
+import { createSwitchNavigator } from '@react-navigation/compat';
+import { createStackNavigator } from '@react-navigation/stack';
+import { createDrawerNavigator } from '@react-navigation/drawer';
 
 import Login from '../../Views/Login';
 import QRScanner from '../../Views/QRScanner';
@@ -19,20 +24,15 @@ import Main from '../Main';
 import DrawerView from '../../UI/DrawerView';
 import OptinMetrics from '../../UI/OptinMetrics';
 import SimpleWebview from '../../Views/SimpleWebview';
+
 //import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager';
 import Engine from '../../../core/Engine';
-import Logger from '../../../util/Logger';
-import Branch from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
+import Logger from '../../../util/Logger';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
-import { createSwitchNavigator } from '@react-navigation/compat';
 
-import { NavigationContainer, CommonActions } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
 const Stack = createStackNavigator();
-import { createDrawerNavigator } from '@react-navigation/drawer';
-
 const Drawer = createDrawerNavigator();
 /**
  * Stack navigator responsible for the onboarding process
