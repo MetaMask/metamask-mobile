@@ -606,7 +606,7 @@ function SwapsQuotesView({
 			// send analytics
 		}
 
-		navigation.dangerouslyGetParent().pop();
+		navigation.dangerouslyGetParent()?.pop();
 	}, [
 		chainId,
 		navigation,

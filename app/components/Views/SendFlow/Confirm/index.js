@@ -758,7 +758,7 @@ class Confirm extends PureComponent {
 					this.getAnalyticsParams()
 				);
 				resetTransaction();
-				navigation && navigation.dangerouslyGetParent().pop();
+				navigation && navigation.dangerouslyGetParent()?.pop();
 			});
 		} catch (error) {
 			Alert.alert(strings('transactions.transaction_error'), error && error.message, [

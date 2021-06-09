@@ -376,7 +376,7 @@ export function getSendFlowTitle(title, navigation, route) {
 			view: title.split('.')[1],
 			network: providerType
 		});
-		navigation.dangerouslyGetParent().pop();
+		navigation.dangerouslyGetParent()?.pop();
 	};
 	const leftAction = () => navigation.pop();
 
@@ -787,7 +787,7 @@ export function getPaymentSelectorMethodNavbar(navigation) {
 		headerLeft: () => <View />,
 		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.dangerouslyGetParent().pop()} style={styles.closeButton}>
+			<TouchableOpacity onPress={() => navigation.dangerouslyGetParent()?.pop()} style={styles.closeButton}>
 				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
 			</TouchableOpacity>
 		)
@@ -804,7 +804,7 @@ export function getPaymentMethodApplePayNavbar(navigation) {
 		},
 		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.dangerouslyGetParent().pop()} style={styles.closeButton}>
+			<TouchableOpacity onPress={() => navigation.dangerouslyGetParent()?.pop()} style={styles.closeButton}>
 				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
 			</TouchableOpacity>
 		),
@@ -854,7 +854,7 @@ export function getSwapsAmountNavbar(navigation, route) {
 		headerLeft: () => <View />,
 		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.dangerouslyGetParent().pop()} style={styles.closeButton}>
+			<TouchableOpacity onPress={() => navigation.dangerouslyGetParent()?.pop()} style={styles.closeButton}>
 				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
 			</TouchableOpacity>
 		)
@@ -891,7 +891,7 @@ export function getSwapsQuotesNavbar(navigation, route) {
 				});
 			});
 		}
-		navigation.dangerouslyGetParent().pop();
+		navigation.dangerouslyGetParent()?.pop();
 	};
 
 	return {
