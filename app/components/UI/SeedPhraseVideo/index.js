@@ -4,15 +4,15 @@ import { StyleSheet, View } from 'react-native';
 import MediaPlayer from '../../Views/MediaPlayer';
 import scaling from '../../../util/scaling';
 
-const height = scaling.scale(240);
+const HEIGHT = scaling.scale(240);
 
 const styles = StyleSheet.create({
 	videoContainer: {
-		height,
+		height: HEIGHT,
 		width: '100%'
 	},
 	mediaPlayer: {
-		height
+		height: HEIGHT
 	}
 });
 
