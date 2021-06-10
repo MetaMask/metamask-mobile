@@ -76,7 +76,7 @@ class Browser extends PureComponent {
 			this.props.tabs.length > 0 && this.switchToTab(this.props.tabs[0]);
 		}
 
-		const currentUrl = this.props.route.params?.newTabUrl ?? null;
+		const currentUrl = this.props.route.params?.newTabUrl;
 		if (currentUrl) this.goToNewTab(currentUrl);
 	}
 
@@ -85,8 +85,8 @@ class Browser extends PureComponent {
 		const { route } = this.props;
 
 		if (prevRoute && route) {
-			const prevUrl = prevRoute.params?.newTabUrl ?? null;
-			const currentUrl = route.params?.newTabUrl ?? null;
+			const prevUrl = prevRoute.params?.newTabUrl;
+			const currentUrl = route.params?.newTabUrl;
 
 			if (currentUrl && prevUrl !== currentUrl) {
 				this.goToNewTab(currentUrl);

@@ -28,7 +28,7 @@ export default class SimpleWebview extends PureComponent {
 
 	share = () => {
 		const { route } = this.props;
-		const url = route.params?.url ?? null;
+		const url = route.params?.url;
 		if (url) {
 			Share.open({
 				url
@@ -39,7 +39,7 @@ export default class SimpleWebview extends PureComponent {
 	};
 
 	render() {
-		const uri = this.props.route.params?.url ?? null;
+		const uri = this.props.route.params?.url;
 		if (uri) {
 			return (
 				<View style={baseStyles.flexGrow}>

@@ -170,7 +170,7 @@ const createStep = step => ({
  */
 class Onboarding extends PureComponent {
 	static navigationOptions = ({ navigation, route }) =>
-		route.params?.delete ?? null
+		route.params?.delete
 			? getTransparentOnboardingNavbarOptions(navigation)
 			: getTransparentBackOnboardingNavbarOptions(navigation);
 

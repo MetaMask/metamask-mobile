@@ -803,7 +803,10 @@ class DrawerView extends PureComponent {
 
 	onSecureWalletModalAction = () => {
 		this.setState({ showProtectWalletModal: false });
-		this.props.navigation.navigate('SetPasswordFlow', this.props.passwordSet && { screen: 'AccountBackupStep1' });
+		this.props.navigation.navigate(
+			'SetPasswordFlow',
+			this.props.passwordSet ? { screen: 'AccountBackupStep1' } : undefined
+		);
 	};
 
 	renderProtectModal = () => (

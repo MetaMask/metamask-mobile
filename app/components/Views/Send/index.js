@@ -156,7 +156,7 @@ class Send extends PureComponent {
 	 */
 	checkForDeeplinks() {
 		const { route } = this.props;
-		const txMeta = route.params?.txMeta ?? null;
+		const txMeta = route.params?.txMeta;
 		if (txMeta) {
 			this.handleNewTxMeta(txMeta);
 		} else {
@@ -209,8 +209,8 @@ class Send extends PureComponent {
 			navigation
 		} = this.props;
 		if (prevRoute && route) {
-			const prevTxMeta = prevRoute.params?.txMeta ?? null;
-			const currentTxMeta = route.params?.txMeta ?? null;
+			const prevTxMeta = prevRoute.params?.txMeta;
+			const currentTxMeta = route.params?.txMeta;
 			if (
 				currentTxMeta &&
 				currentTxMeta.source &&

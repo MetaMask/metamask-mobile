@@ -283,7 +283,7 @@ class SendFlow extends PureComponent {
 			this.addressToInputRef && this.addressToInputRef.current && this.addressToInputRef.current.focus();
 		}
 		//Fills in to address and sets the transaction if coming from QR code scan
-		const targetAddress = (route.params?.txMeta ?? null)?.target_address;
+		const targetAddress = route.params?.txMeta?.target_address;
 		if (targetAddress) {
 			this.props.newAssetTransaction(getEther(ticker));
 			this.onToSelectedAddressChange(targetAddress);

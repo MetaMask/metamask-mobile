@@ -75,7 +75,7 @@ class ManualBackupStep3 extends PureComponent {
 
 	constructor(props) {
 		super(props);
-		this.steps = props.route.params?.steps ?? undefined;
+		this.steps = props.route.params?.steps;
 	}
 
 	state = {

@@ -237,7 +237,7 @@ export function getEditableOptions(title, navigation, route) {
  * @returns {Object} - Corresponding navbar options containing title, headerLeft and headerRight
  */
 export function getPaymentRequestOptionsTitle(title, navigation, route) {
-	const goBack = route.params?.dispatch ?? undefined;
+	const goBack = route.params?.dispatch;
 	return {
 		title,
 		headerTitleStyle: {
@@ -419,7 +419,7 @@ export function getBrowserViewNavbarOptions(navigation, route) {
 
 	const isHomepage = url => getHost(url) === getHost(HOMEPAGE_URL);
 	const error = route.params?.error ?? '';
-	const icon = route.params?.icon ?? null;
+	const icon = route.params?.icon;
 
 	if (url && !isHomepage(url)) {
 		isHttps = url && url.toLowerCase().substr(0, 6) === 'https:';

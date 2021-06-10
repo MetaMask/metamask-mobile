@@ -49,7 +49,7 @@ class TransakWebView extends PureComponent {
 	};
 
 	render() {
-		const uri = this.props.route.params?.url ?? null;
+		const uri = this.props.route.params?.url;
 		if (uri) {
 			return (
 				<View style={baseStyles.flexGrow}>

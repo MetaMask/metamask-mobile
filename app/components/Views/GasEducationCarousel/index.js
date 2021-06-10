@@ -112,7 +112,7 @@ const carousel_images = [gas_education_carousel_1, gas_education_carousel_2, gas
 /**
  * View that is displayed to first time (new) users
  */
-const GasEducationCarousel = ({ navigation, conversionRate, currentCurrency }) => {
+const GasEducationCarousel = ({ navigation, route, conversionRate, currentCurrency }) => {
 	const [currentTab, setCurrentTab] = useState(1);
 	const [gasFiat, setGasFiat] = useState(null);
 
@@ -127,8 +127,8 @@ const GasEducationCarousel = ({ navigation, conversionRate, currentCurrency }) =
 
 	const onPresGetStarted = () => {
 		navigation.dismiss();
-		const navigateTo = navigation && navigation.getParam('navigateTo');
-		navigateTo();
+		const navigateTo = route?.params?.navigateTo;
+		navigateTo?.();
 	};
 
 	const renderTabBar = () => <View />;
@@ -275,7 +275,11 @@ GasEducationCarousel.propTypes = {
 	/**
 		/* Selected currency
 		*/
-	currentCurrency: PropTypes.string
+	currentCurrency: PropTypes.string,
+	/**
+	 * Object that represents the current route info like params passed to it
+	 */
+	route: PropTypes.object
 };
 
 const mapStateToProps = state => ({
