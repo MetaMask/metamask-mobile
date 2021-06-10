@@ -198,11 +198,13 @@ class TransactionReviewFeeCard extends PureComponent {
 			chainId
 		} = this.props;
 
+		const isMainnet = isMainnetByChainId(chainId);
+
 		let amount;
 		let networkFee;
 		let totalAmount;
 		let equivalentTotalAmount;
-		if (primaryCurrency === 'ETH') {
+		if (primaryCurrency === 'ETH' || !isMainnet) {
 			amount = transactionValue;
 			networkFee = totalGasEth;
 			totalAmount = totalValue;
@@ -213,8 +215,6 @@ class TransactionReviewFeeCard extends PureComponent {
 			totalAmount = totalFiat;
 			equivalentTotalAmount = totalValue;
 		}
-
-		const isMainnet = isMainnetByChainId(chainId);
 
 		return (
 			<View>
