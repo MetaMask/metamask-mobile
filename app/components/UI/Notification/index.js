@@ -2,11 +2,14 @@ import React, { useEffect, useRef, useMemo, useCallback } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import Animated, { Easing } from 'react-native-reanimated';
+import { useNavigationState } from '@react-navigation/native';
 import { removeCurrentNotification, hideCurrentNotification } from '../../../actions/notification';
 import notificationTypes from '../../../util/notifications';
 import TransactionNotification from './TransactionNotification';
 import SimpleNotification from './SimpleNotification';
 import { currentNotificationSelector } from '../../../reducers/notification';
+
+import { findRouteNameFromNavigatorState } from '../../../util/general';
 
 const { TRANSACTION, SIMPLE } = notificationTypes;
 
@@ -20,6 +23,7 @@ function Notification({
 	removeCurrentNotification
 }) {
 	const notificationAnimated = useRef(new Animated.Value(200)).current;
+	const routes = useNavigationState(state => state.routes);
 
 	const usePrevious = value => {
 		const ref = useRef();
@@ -40,12 +44,7 @@ function Notification({
 		}).start(({ finished }) => finished && callback?.());
 	}, []);
 
-	const isInBrowserView = useMemo(() => {
-		const routes = navigation.dangerouslyGetState().routes;
-		let route = routes[routes.length - 1];
-		while (route.index !== undefined) route = route.routes[route.index];
-		return route?.name === BROWSER_ROUTE;
-	}, [navigation]);
+	const isInBrowserView = useMemo(() => findRouteNameFromNavigatorState(routes) === BROWSER_ROUTE, [routes]);
 
 	useEffect(
 		() => () => {

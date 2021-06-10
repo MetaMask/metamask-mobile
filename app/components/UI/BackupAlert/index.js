@@ -113,7 +113,9 @@ class BackupAlert extends PureComponent {
 
 	componentDidUpdate = async prevProps => {
 		if (prevProps.navigation.dangerouslyGetState() !== this.props.navigation.dangerouslyGetState()) {
-			const currentRouteName = findRouteNameFromNavigatorState(this.props.navigation.dangerouslyGetState());
+			const currentRouteName = findRouteNameFromNavigatorState(
+				this.props.navigation.dangerouslyGetState().routes
+			);
 
 			const inBrowserView = currentRouteName === BROWSER_ROUTE;
 			const blockedView =

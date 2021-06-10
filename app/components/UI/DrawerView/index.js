@@ -399,7 +399,7 @@ class DrawerView extends PureComponent {
 	}
 
 	componentDidUpdate() {
-		const route = findRouteNameFromNavigatorState(this.props.navigation.dangerouslyGetState());
+		const route = findRouteNameFromNavigatorState(this.props.navigation.dangerouslyGetState().routes);
 		if (!this.props.passwordSet || !this.props.seedphraseBackedUp) {
 			if (
 				[
@@ -861,7 +861,7 @@ class DrawerView extends PureComponent {
 		}
 		this.currentBalance = fiatBalance;
 		const fiatBalanceStr = renderFiat(this.currentBalance, currentCurrency);
-		const currentRoute = findRouteNameFromNavigatorState(this.props.navigation.dangerouslyGetState());
+		const currentRoute = findRouteNameFromNavigatorState(this.props.navigation.dangerouslyGetState().routes);
 		return (
 			<View style={styles.wrapper} testID={'drawer-screen'}>
 				<ScrollView>

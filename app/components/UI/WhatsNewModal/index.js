@@ -9,6 +9,7 @@ import {
 	Image,
 	InteractionManager
 } from 'react-native';
+import { useNavigationState } from '@react-navigation/native';
 import ActionModal from '../ActionModal';
 import { colors, fontStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -101,6 +102,7 @@ const styles = StyleSheet.create({
 const WhatsNewModal = props => {
 	const [featuresToShow, setFeaturesToShow] = useState(null);
 	const [show, setShow] = useState(false);
+	const routes = useNavigationState(state => state.routes);
 
 	useEffect(() => {
 		const shouldShow = async () => {
@@ -153,7 +155,7 @@ const WhatsNewModal = props => {
 
 	useEffect(() => {
 		if (props.enabled && !!featuresToShow) {
-			const route = findRouteNameFromNavigatorState(props.navigation.dangerouslyGetState());
+			const route = findRouteNameFromNavigatorState(routes);
 			if (route === 'WalletView') {
 				InteractionManager.runAfterInteractions(() => {
 					setShow(true);
@@ -162,7 +164,7 @@ const WhatsNewModal = props => {
 		} else {
 			setShow(false);
 		}
-	}, [featuresToShow, props.enabled, props.navigation]);
+	}, [featuresToShow, props.enabled, routes]);
 
 	return (
 		<ActionModal
@@ -223,10 +225,6 @@ const WhatsNewModal = props => {
 };
 
 WhatsNewModal.propTypes = {
-	/**
-	 * navigation object required to push new views
-	 */
-	navigation: PropTypes.object,
 	/**
 	 * Showing the modal is enabled
 	 */
