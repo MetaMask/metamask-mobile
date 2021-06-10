@@ -203,17 +203,25 @@ class TransactionReviewFeeCard extends PureComponent {
 		let amount;
 		let networkFee;
 		let totalAmount;
-		let equivalentTotalAmount;
+		let secondaryAmount;
+		let secondaryNetworkFee;
+		let secondaryTotalAmount;
 		if (primaryCurrency === 'ETH' || !isMainnet) {
 			amount = transactionValue;
 			networkFee = totalGasEth;
 			totalAmount = totalValue;
-			equivalentTotalAmount = totalFiat;
+
+			secondaryAmount = fiat;
+			secondaryNetworkFee = totalGasFiat;
+			secondaryTotalAmount = totalFiat;
 		} else {
 			amount = fiat;
 			networkFee = totalGasFiat;
 			totalAmount = totalFiat;
-			equivalentTotalAmount = totalValue;
+
+			secondaryAmount = transactionValue;
+			secondaryNetworkFee = totalGasEth;
+			secondaryTotalAmount = totalValue;
 		}
 
 		return (
@@ -229,7 +237,7 @@ class TransactionReviewFeeCard extends PureComponent {
 							</Text>
 							{isMainnet && (
 								<Text upper primary bold right style={styles.fiatContainer}>
-									{fiat}
+									{secondaryAmount}
 								</Text>
 							)}
 						</View>
@@ -258,7 +266,7 @@ class TransactionReviewFeeCard extends PureComponent {
 								</TouchableOpacity>
 								{isMainnet && (
 									<Text primary bold upper right style={styles.fiatContainer}>
-										{totalGasFiat}
+										{secondaryNetworkFee}
 									</Text>
 								)}
 							</View>
@@ -278,7 +286,7 @@ class TransactionReviewFeeCard extends PureComponent {
 									</Text>
 									{isMainnet && (
 										<Text bold primary upper right style={styles.fiatContainer}>
-											{equivalentTotalAmount}
+											{secondaryTotalAmount}
 										</Text>
 									)}
 								</View>
