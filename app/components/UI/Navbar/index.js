@@ -190,12 +190,7 @@ export function getEditableOptions(title, navigation, route) {
 	function navigationPop() {
 		navigation.pop();
 	}
-	const rightAction =
-		route.params?.dispatch ??
-		function() {
-			'';
-		};
-
+	const rightAction = route.params?.dispatch;
 	const editMode = route.params?.editMode ?? '' === 'edit';
 	const addMode = route.params?.mode ?? '' === 'add';
 	return {
@@ -313,11 +308,7 @@ export function getTransactionOptionsTitle(_title, navigation, route) {
 	const { name } = route;
 	const leftText = transactionMode === 'edit' ? strings('transaction.cancel') : strings('transaction.edit');
 	const disableModeChange = route.params?.disableModeChange;
-	const modeChange =
-		route.params?.dispatch ??
-		function() {
-			'';
-		};
+	const modeChange = route.params?.dispatch;
 	const leftAction = () => modeChange('edit');
 	const rightAction = () => navigation.pop();
 	const rightText = strings('transaction.cancel');
@@ -747,11 +738,7 @@ export function getNetworkNavbarOptions(title, translate, navigation) {
  */
 export function getWebviewNavbar(navigation, route) {
 	const title = route.params?.title ?? '';
-	const share =
-		route.params?.dispatch ??
-		function() {
-			'';
-		};
+	const share = route.params?.dispatch;
 	return {
 		headerTitle: () => <Text style={styles.centeredTitle}>{title}</Text>,
 		headerLeft: () =>
@@ -768,13 +755,11 @@ export function getWebviewNavbar(navigation, route) {
 			),
 		headerRight: () =>
 			Device.isAndroid() ? (
-				// eslint-disable-next-line react/jsx-no-bind
-				<TouchableOpacity onPress={() => share()} style={styles.backButton}>
+				<TouchableOpacity onPress={share} style={styles.backButton}>
 					<MaterialCommunityIcon name="share-variant" size={24} style={styles.backIcon} />
 				</TouchableOpacity>
 			) : (
-				// eslint-disable-next-line react/jsx-no-bind
-				<TouchableOpacity onPress={() => share()} style={styles.backButton}>
+				<TouchableOpacity onPress={share} style={styles.backButton}>
 					<EvilIcons name="share-apple" size={32} style={[styles.backIcon, styles.shareIconIOS]} />
 				</TouchableOpacity>
 			)
