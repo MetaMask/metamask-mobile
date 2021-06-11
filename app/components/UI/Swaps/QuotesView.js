@@ -21,7 +21,6 @@ import {
 	weiToFiat
 } from '../../../util/number';
 import { isMainNet, isMainnetByChainId } from '../../../util/networks';
-import { safeToChecksumAddress } from '../../../util/address';
 import { getErrorMessage, getFetchParams, getQuotesNavigationsParams, isSwapsNativeAsset } from './utils';
 import { colors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -224,32 +223,14 @@ async function resetAndStartPolling({ slippage, sourceToken, destinationToken, s
 	if (!sourceToken || !destinationToken) {
 		return;
 	}
-	const { SwapsController, TokenRatesController, AssetsController } = Engine.context;
-	const contractExchangeRates = TokenRatesController.state.contractExchangeRates;
-	// ff the token is not in the wallet, we'll add it
-	if (
-		!isSwapsNativeAsset(destinationToken) &&
-		!(safeToChecksumAddress(destinationToken.address) in contractExchangeRates)
-	) {
-		const { address, symbol, decimals } = destinationToken;
-		await AssetsController.addToken(address, symbol, decimals);
-		await new Promise(resolve =>
-			setTimeout(() => {
-				resolve();
-			}, 500)
-		);
-	}
-	const destinationTokenConversionRate =
-		TokenRatesController.state.contractExchangeRates[safeToChecksumAddress(destinationToken.address)] || 0;
+	const { SwapsController } = Engine.context;
 
-	// TODO: destinationToken could be the 0 address for ETH, also tokens that aren't on the wallet
 	const fetchParams = getFetchParams({
 		slippage,
 		sourceToken,
 		destinationToken,
 		sourceAmount,
-		walletAddress,
-		destinationTokenConversionRate
+		walletAddress
 	});
 	await SwapsController.stopPollingAndResetState();
 	await SwapsController.startFetchAndSetQuotes(fetchParams, fetchParams.metaData);
@@ -297,15 +278,6 @@ function SwapsQuotesView({
 	const sourceToken = swapsTokens?.find(token => toLowerCaseCompare(token.address, sourceTokenAddress));
 	const destinationToken = swapsTokens?.find(token => toLowerCaseCompare(token.address, destinationTokenAddress));
 
-	const hasConversionRate =
-		Boolean(destinationToken) &&
-		(isSwapsNativeAsset(destinationToken) ||
-			Boolean(
-				Engine.context.TokenRatesController.state.contractExchangeRates?.[
-					safeToChecksumAddress(destinationToken.address)
-				]
-			));
-
 	/* State */
 	const [firstLoadTime, setFirstLoadTime] = useState(Date.now());
 	const [isFirstLoad, setIsFirstLoad] = useState(true);
@@ -334,6 +306,13 @@ function SwapsQuotesView({
 	// TODO: use this variable in the future when calculating savings
 	const [isSaving] = useState(false);
 	const [isInFetch, setIsInFetch] = useState(false);
+
+	const hasConversionRate = useMemo(
+		() =>
+			Boolean(destinationToken) &&
+			(isSwapsNativeAsset(destinationToken) || quotes?.destinationTokenRate !== null),
+		[destinationToken, quotes]
+	);
 
 	/* Get quotes as an array sorted by overallValue */
 	const allQuotes = useMemo(() => {
@@ -568,8 +547,7 @@ function SwapsQuotesView({
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAP_STARTED, parameters, true);
 		});
 
-		const { TransactionController } = Engine.context;
-
+		const { TransactionController, AssetsController } = Engine.context;
 		const newSwapsTransactions = TransactionController.state.swapsTransactions || {};
 		let approvalTransactionMetaId;
 		if (approvalTransaction) {
@@ -601,6 +579,23 @@ function SwapsQuotesView({
 				WalletDevice.MM_MOBILE
 			);
 			updateSwapsTransactions(transactionMeta, approvalTransactionMetaId, newSwapsTransactions);
+
+			if (
+				!isSwapsNativeAsset(destinationToken) &&
+				!AssetsController.state.tokens.includes(token =>
+					toLowerCaseCompare(token.address, destinationToken.address)
+				)
+			) {
+				const { address, symbol, decimals } = destinationToken;
+				await AssetsController.addToken(address, symbol, decimals);
+			}
+			if (
+				!isSwapsNativeAsset(sourceToken) &&
+				!AssetsController.state.tokens.includes(token => toLowerCaseCompare(token.address, sourceToken.address))
+			) {
+				const { address, symbol, decimals } = sourceToken;
+				await AssetsController.addToken(address, symbol, decimals);
+			}
 		} catch (e) {
 			// send analytics
 		}
@@ -1310,7 +1305,7 @@ function SwapsQuotesView({
 											toWei(selectedQuoteValue?.ethFee),
 											conversionRate,
 											currentCurrency
-										)}`}
+										) || ''}`}
 									</Text>
 								</View>
 							</View>
@@ -1336,7 +1331,7 @@ function SwapsQuotesView({
 											toWei(selectedQuoteValue?.maxEthFee),
 											conversionRate,
 											currentCurrency
-										)}`}
+										) || ''}`}
 									</Text>
 								</View>
 							</View>

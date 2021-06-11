@@ -76,26 +76,16 @@ export function getQuotesNavigationsParams(navigation) {
  * @param {string} sourceAmount Amount in minimal token units of sourceToken to be swapped
  * @param {string} fromAddress Current address attempting to swap
  */
-export function getFetchParams({
-	slippage = 1,
-	sourceToken,
-	destinationToken,
-	sourceAmount,
-	walletAddress,
-	destinationTokenConversionRate
-}) {
+export function getFetchParams({ slippage = 1, sourceToken, destinationToken, sourceAmount, walletAddress }) {
 	return {
 		slippage,
 		sourceToken: sourceToken.address,
 		destinationToken: destinationToken.address,
 		sourceAmount,
 		walletAddress,
-		balanceError: undefined,
 		metaData: {
 			sourceTokenInfo: sourceToken,
-			destinationTokenInfo: destinationToken,
-			accountBalance: '0x0',
-			destinationTokenConversionRate
+			destinationTokenInfo: destinationToken
 		}
 	};
 }
