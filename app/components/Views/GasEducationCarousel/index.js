@@ -127,8 +127,7 @@ const GasEducationCarousel = ({ navigation, route, conversionRate, currentCurren
 
 	const onPresGetStarted = () => {
 		navigation.dismiss();
-		const navigateTo = route?.params?.navigateTo;
-		navigateTo?.();
+		route?.params?.navigateTo?.();
 	};
 
 	const renderTabBar = () => <View />;
