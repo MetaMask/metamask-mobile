@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
 	},
 	primaryContainer: flex => {
 		if (flex) return { flex: 1 };
-		return { width: 66 };
+		return { width: 86, marginLeft: 2 };
 	},
 	hitSlop: {
 		top: 10,
@@ -304,7 +304,7 @@ class TransactionReviewFeeCard extends PureComponent {
 							this.renderIfGasEstimationReady(
 								<View style={styles.valuesContainer}>
 									{isMainnet && (
-										<Text blue upper right style={styles.amountContainer}>
+										<Text grey upper right style={styles.amountContainer}>
 											{totalAmount}
 										</Text>
 									)}
