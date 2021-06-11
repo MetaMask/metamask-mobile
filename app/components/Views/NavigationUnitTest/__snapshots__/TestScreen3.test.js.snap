@@ -217,7 +217,7 @@ exports[`NavigationUnitTest should render correctly 1`] = `
                                                     numberoflines="1"
                                                     style="font-size:17px;font-weight:600;color:rgb(28, 28, 30)"
                                                   >
-                                                    TestScreen
+                                                    TestScreen3
                                                   </text>
                                                 </view>
                                               </view>
@@ -263,7 +263,7 @@ exports[`NavigationUnitTest should render correctly 1`] = `
                                                         style="flex:1"
                                                       >
                                                         <text>
-                                                          TestScreen THIS SHOULD NOT HAVE CHANGED, take a deeper look
+                                                          TestScreen3 THIS SHOULD NOT HAVE CHANGED, take a deeper look
                                                         </text>
                                                       </view>
                                                     </view>

@@ -1,5 +1,5 @@
 import React from 'react';
-import NavigationUnitTest from './';
+import NavigationUnitTest from '.';
 import { render } from 'enzyme';
 
 describe('NavigationUnitTest', () => {
