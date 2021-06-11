@@ -104,15 +104,6 @@ exports[`CollectibleModal should render correctly 1`] = `
           "tokenId": 6904,
         }
       }
-      navigation={
-        Object {
-          "state": Object {
-            "params": Object {
-              "address": "0x1",
-            },
-          },
-        }
-      }
       onSend={[Function]}
       onTouchEnd={[Function]}
       onTouchStart={[Function]}

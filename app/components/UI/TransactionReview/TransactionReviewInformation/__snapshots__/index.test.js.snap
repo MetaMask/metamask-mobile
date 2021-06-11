@@ -2,7 +2,7 @@
 
 exports[`TransactionReviewInformation should render correctly 1`] = `
 <Fragment>
-  <TransactionReviewFeeCard
+  <Connect(TransactionReviewFeeCard)
     edit={[Function]}
     onNonceEdit={[Function]}
     primaryCurrency="ETH"
