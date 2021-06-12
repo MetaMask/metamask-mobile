@@ -310,7 +310,8 @@ function SwapsQuotesView({
 	const hasConversionRate = useMemo(
 		() =>
 			Boolean(destinationToken) &&
-			(isSwapsNativeAsset(destinationToken) || quotes?.destinationTokenRate !== null),
+			(isSwapsNativeAsset(destinationToken) ||
+				(Object.keys(quotes).length > 0 && (Object.values(quotes)[0]?.destinationTokenRate ?? null) !== null)),
 		[destinationToken, quotes]
 	);
 
