@@ -1,9 +1,15 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import Text from '../../Base/Text';
 
+const styles = StyleSheet.create({
+	root: {
+		paddingHorizontal: 24
+	}
+});
+
 const EditGasFee1559 = () => (
-	<View>
+	<View style={styles.root}>
 		<View>
 			<Text>HEADER</Text>
 		</View>
