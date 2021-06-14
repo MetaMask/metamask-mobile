@@ -12,7 +12,6 @@ const styles = StyleSheet.create({
 	root: {
 		paddingHorizontal: 24
 	},
-
 	labelTextContainer: {
 		flexDirection: 'row',
 		alignItems: 'center'
