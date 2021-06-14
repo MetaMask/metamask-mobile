@@ -148,7 +148,7 @@ const EditGasFee1559 = () => {
 								leftLabelComponent={
 									<View style={styles.labelTextContainer}>
 										<Text black bold noMargin>
-											Max fee{' '}
+											{strings('edit_gas_fee_eip1559.max_fee')}{' '}
 										</Text>
 
 										<TouchableOpacity hitSlop={styles.hitSlop} onPress={toggleRangeInfoModal}>
