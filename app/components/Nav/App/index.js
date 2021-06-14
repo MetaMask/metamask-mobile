@@ -185,27 +185,31 @@ class App extends PureComponent {
 		}
 	};
 
-	handleDeeplinks = async ({ error, params, uri }) => {
-		if (error) {
+	handleDeeplinks = () => ({
+		// onOpenStart: ({ uri, cachedInitialEvent }) => {
+		// 	console.log(`Opening URI ${uri} ${cachedInitialEvent ? '[cached]' : ''}`);
+		// },
+		onOpenComplete: ({ error, params, uri }) => {
 			if (error === 'Trouble reaching the Branch servers, please try again shortly.') {
 				trackErrorAsAnalytics('Branch: Trouble reaching servers', error);
 			} else {
 				Logger.error(error, 'Deeplink: Error from Branch');
 			}
-		}
-		const deeplink = params['+non_branch_link'] || uri || null;
-		try {
-			if (deeplink) {
-				const { KeyringController } = Engine.context;
-				const isUnlocked = KeyringController.isUnlocked();
-				isUnlocked
-					? SharedDeeplinkManager.parse(deeplink, { origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK })
-					: SharedDeeplinkManager.setDeeplink(deeplink);
+
+			const deeplink = params['+non_branch_link'] || uri || null;
+			try {
+				if (deeplink) {
+					const { KeyringController } = Engine.context;
+					const isUnlocked = KeyringController.isUnlocked();
+					isUnlocked
+						? SharedDeeplinkManager.parse(deeplink, { origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK })
+						: SharedDeeplinkManager.setDeeplink(deeplink);
+				}
+			} catch (e) {
+				Logger.error(e, `Deeplink: Error parsing deeplink`);
 			}
-		} catch (e) {
-			Logger.error(e, `Deeplink: Error parsing deeplink`);
 		}
-	};
+	});
 
 	componentWillUnmount = () => {
 		this.unsubscribeFromBranch && this.unsubscribeFromBranch();
