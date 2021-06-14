@@ -192,8 +192,10 @@ class App extends PureComponent {
 		onOpenComplete: ({ error, params, uri }) => {
 			if (error === 'Trouble reaching the Branch servers, please try again shortly.') {
 				trackErrorAsAnalytics('Branch: Trouble reaching servers', error);
-			} else {
+				return;
+			} else if (error) {
 				Logger.error(error, 'Deeplink: Error from Branch');
+				return;
 			}
 
 			const deeplink = params['+non_branch_link'] || uri || null;
