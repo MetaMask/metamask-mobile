@@ -50,6 +50,7 @@ import ActivityView from '../../Views/ActivityView';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import GasEducationCarousel from '../../Views/GasEducationCarousel';
+import EditGasFee1559 from '../../UI/EditGasFee1559';
 
 const styles = StyleSheet.create({
 	headerLogo: {
@@ -102,6 +103,18 @@ export default createStackNavigator(
 					defaultNavigationOptions: () => ({
 						tabBarVisible: false
 					})
+				}
+			)
+		},
+		EditGasFee1559View: {
+			screen: createStackNavigator(
+				{
+					EditGasFee1559: {
+						screen: EditGasFee1559
+					}
+				},
+				{
+					mode: 'modal'
 				}
 			)
 		},

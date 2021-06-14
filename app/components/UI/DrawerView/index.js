@@ -661,6 +661,11 @@ class DrawerView extends PureComponent {
 		return <Image source={ICON_IMAGES[`selected-${name}`]} style={styles.menuItemIconImage} />;
 	}
 
+	goToEditGasFee1559 = () => {
+		this.props.navigation.navigate('EditGasFee1559View');
+		this.hideDrawer();
+	};
+
 	getSections = () => {
 		const {
 			network: {
@@ -712,6 +717,12 @@ class DrawerView extends PureComponent {
 				}
 			],
 			[
+				AppConstants?.EIP1559?.ACTIVE && {
+					name: 'Edit Gas Fee (1559)',
+					icon: this.getIcon('globe'),
+					selectedIcon: this.getSelectedIcon('globe'),
+					action: this.goToEditGasFee1559
+				},
 				{
 					name: strings('drawer.settings'),
 					icon: this.getFeatherIcon('settings'),
