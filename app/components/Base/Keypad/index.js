@@ -1,48 +1,33 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import PropTypes from 'prop-types';
 import Keypad from './components';
-import rules from './rules';
-
-// TODO: get displayable keys from the currency (eg: a comma instead of a period)
-
-export const Keys = {
-	DIGIT_1: '1',
-	DIGIT_2: '2',
-	DIGIT_3: '3',
-	DIGIT_4: '4',
-	DIGIT_5: '5',
-	DIGIT_6: '6',
-	DIGIT_7: '7',
-	DIGIT_8: '8',
-	DIGIT_9: '9',
-	DIGIT_0: '0',
-	PERIOD: 'PERIOD',
-	BACK: 'BACK',
-	INITIAL: 'INITIAL'
-};
-
+import { KEYS } from './constants';
+import useCurrency from './useCurrency';
 function KeypadComponent({ onChange, value, currency }) {
-	const handler = useMemo(() => rules[currency?.toLowerCase() || 'native'] || rules.native, [currency]);
+	const { handler, decimalSeparator } = useCurrency(currency);
 	const handleKeypadPress = useCallback(
-		newInput => {
-			const newValue = handler(value, newInput);
-			onChange(newValue, newInput);
+		pressedKey => {
+			const newValue = handler(value, pressedKey);
+			onChange(newValue, pressedKey);
 		},
 		[handler, onChange, value]
 	);
-	const handleKeypadPress1 = useCallback(() => handleKeypadPress(Keys.DIGIT_1), [handleKeypadPress]);
-	const handleKeypadPress2 = useCallback(() => handleKeypadPress(Keys.DIGIT_2), [handleKeypadPress]);
-	const handleKeypadPress3 = useCallback(() => handleKeypadPress(Keys.DIGIT_3), [handleKeypadPress]);
-	const handleKeypadPress4 = useCallback(() => handleKeypadPress(Keys.DIGIT_4), [handleKeypadPress]);
-	const handleKeypadPress5 = useCallback(() => handleKeypadPress(Keys.DIGIT_5), [handleKeypadPress]);
-	const handleKeypadPress6 = useCallback(() => handleKeypadPress(Keys.DIGIT_6), [handleKeypadPress]);
-	const handleKeypadPress7 = useCallback(() => handleKeypadPress(Keys.DIGIT_7), [handleKeypadPress]);
-	const handleKeypadPress8 = useCallback(() => handleKeypadPress(Keys.DIGIT_8), [handleKeypadPress]);
-	const handleKeypadPress9 = useCallback(() => handleKeypadPress(Keys.DIGIT_9), [handleKeypadPress]);
-	const handleKeypadPress0 = useCallback(() => handleKeypadPress(Keys.DIGIT_0), [handleKeypadPress]);
-	const handleKeypadPressPeriod = useCallback(() => handleKeypadPress(Keys.PERIOD), [handleKeypadPress]);
-	const handleKeypadPressBack = useCallback(() => handleKeypadPress(Keys.BACK), [handleKeypadPress]);
-	const handleKeypadLongPressBack = useCallback(() => handleKeypadPress(Keys.INITIAL), [handleKeypadPress]);
+	const handleKeypadPress1 = useCallback(() => handleKeypadPress(KEYS.DIGIT_1), [handleKeypadPress]);
+	const handleKeypadPress2 = useCallback(() => handleKeypadPress(KEYS.DIGIT_2), [handleKeypadPress]);
+	const handleKeypadPress3 = useCallback(() => handleKeypadPress(KEYS.DIGIT_3), [handleKeypadPress]);
+	const handleKeypadPress4 = useCallback(() => handleKeypadPress(KEYS.DIGIT_4), [handleKeypadPress]);
+	const handleKeypadPress5 = useCallback(() => handleKeypadPress(KEYS.DIGIT_5), [handleKeypadPress]);
+	const handleKeypadPress6 = useCallback(() => handleKeypadPress(KEYS.DIGIT_6), [handleKeypadPress]);
+	const handleKeypadPress7 = useCallback(() => handleKeypadPress(KEYS.DIGIT_7), [handleKeypadPress]);
+	const handleKeypadPress8 = useCallback(() => handleKeypadPress(KEYS.DIGIT_8), [handleKeypadPress]);
+	const handleKeypadPress9 = useCallback(() => handleKeypadPress(KEYS.DIGIT_9), [handleKeypadPress]);
+	const handleKeypadPress0 = useCallback(() => handleKeypadPress(KEYS.DIGIT_0), [handleKeypadPress]);
+	const handleKeypadPressPeriod = useCallback(() => decimalSeparator && handleKeypadPress(KEYS.PERIOD), [
+		decimalSeparator,
+		handleKeypadPress
+	]);
+	const handleKeypadPressBack = useCallback(() => handleKeypadPress(KEYS.BACK), [handleKeypadPress]);
+	const handleKeypadLongPressBack = useCallback(() => handleKeypadPress(KEYS.INITIAL), [handleKeypadPress]);
 
 	return (
 		<Keypad>
@@ -62,7 +47,7 @@ function KeypadComponent({ onChange, value, currency }) {
 				<Keypad.Button onPress={handleKeypadPress9}>9</Keypad.Button>
 			</Keypad.Row>
 			<Keypad.Row>
-				<Keypad.Button onPress={handleKeypadPressPeriod}>.</Keypad.Button>
+				<Keypad.Button onPress={handleKeypadPressPeriod}>{decimalSeparator}</Keypad.Button>
 				<Keypad.Button onPress={handleKeypadPress0}>0</Keypad.Button>
 				<Keypad.DeleteButton
 					onPress={handleKeypadPressBack}
@@ -89,4 +74,5 @@ KeypadComponent.propTypes = {
 	value: PropTypes.string
 };
 
+export { KEYS };
 export default KeypadComponent;

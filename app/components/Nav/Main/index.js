@@ -106,6 +106,7 @@ const Main = props => {
 	const toggleApproveModal = props.toggleApproveModal;
 	const toggleDappTransactionModal = props.toggleDappTransactionModal;
 	const setEtherTransaction = props.setEtherTransaction;
+	const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
 
 	const usePrevious = value => {
 		const ref = useRef();
@@ -416,12 +417,13 @@ const Main = props => {
 			// If the app is now in background, we need to start
 			// the background timer, which is less intense
 			if (backgroundMode.current) {
+				removeNotVisibleNotifications();
 				BackgroundTimer.runBackgroundTimer(async () => {
 					await Engine.refreshTransactionHistory();
 				}, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
 			}
 		},
-		[backgroundMode, pollForIncomingTransactions]
+		[backgroundMode, removeNotVisibleNotifications, pollForIncomingTransactions]
 	);
 
 	const initForceReload = () => {
@@ -574,13 +576,9 @@ const Main = props => {
 	});
 
 	// Remove all notifications that aren't visible
-	useEffect(
-		() => {
-			props.removeNotVisibleNotifications();
-		},
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[]
-	);
+	useEffect(() => {
+		removeNotVisibleNotifications();
+	}, [removeNotVisibleNotifications]);
 
 	// unapprovedTransaction effect
 	useEffect(() => {
