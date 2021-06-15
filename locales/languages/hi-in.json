@@ -322,12 +322,12 @@
 	},
 	"terms_and_conditions": {
 		"title": "नियम और शर्तें",
-		"description": "By proceeding, you agree to these ",
+		"description": "आगे बढ़कर, आप इन पर सहमत होते हैं ",
 		"terms": "नियम और शर्तें"
 	},
 	"privacy_policy": {
 		"title": "गोपनीयता नीति",
-		"description": "This data is aggregated and is therefore anonymous for the purposes of General Data Protection Regulation (EU) 2016/679. For more information in relation to our privacy practices, please see our Privacy Policy",
+		"description": "यह डेटा समेकित किया गया है और इसलिए सामान्य डेटा संरक्षण विनियमन (EU) 2016/679 के प्रयोजनों के लिए बेनाम है। हमारी गोपनीयता प्रक्रियाओं के संबंध में अधिक जानकारी के लिए, कृपया यहाँ पर हमारी गोपनीयता नीति",
 		"here": "देखें",
 		"agree": "मैं सहमत हूँ",
 		"decline": "जी नहीं, धन्यवाद",
@@ -570,7 +570,7 @@
 		"add_collectible_button": "जोड़ें",
 		"info": "जानकारी",
 		"swap": "स्वैप करें",
-		"description": "Description",
+		"description": "विवरण",
 		"totalSupply": "कुल आपूर्ति",
 		"address": "पता",
 		"were_unable": "हम आपका बैलेंस लोड करने में",

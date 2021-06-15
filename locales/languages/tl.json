@@ -120,7 +120,7 @@
 		"sync_help_step_four": "4. I-scan ang QR Code para simulan ang pag-sync",
 		"sync_from_browser_extension_button": "I-sync sa MetaMask extension",
 		"or": "O KAYA",
-		"import_from_seed_button": "I-import gamit ang Secret Recovery Phrase"
+		"import_from_seed_button": "I-import gamit ang Lihim na Recovery Phrase"
 	},
 	"login": {
 		"title": "Welcome Back!",
@@ -203,7 +203,7 @@
 		"password_length_error": "Ang password ay dapat na kahit 8 character lang",
 		"password_dont_match": "Hindi magkatugma ang mga password",
 		"seed_phrase_requirements": "Ang mga lihim na recovery phrase ay naglalaman ng 12, 15, 18, 21, o 24 na salita",
-		"invalid_seed_phrase": "Hindi valid ang Secret Recovery Phrase",
+		"invalid_seed_phrase": "Hindi valid ang Lihim na Recovery Phrase",
 		"error": "Error",
 		"invalid_qr_code_title": "Hindi valid ang QR Code",
 		"invalid_qr_code_message": "Ang QR code na ito ay hindi kumakatawan sa isang valid na Lihim na Recovery Phrase"
@@ -507,7 +507,7 @@
 		"private_key_title_for_account": "Ipakita ang pribadong key para sa \"{{accountName}}\"",
 		"cancel": "Kanselahin",
 		"confirm": "Susunod",
-		"seed_phrase_explanation": "Kung magpapalit ka man ng browser o computer, kakailanganin mo ang Secret Recovery Phrase na ito para ma-access ang iyong mga account. I-save ang mga iyon sa isang ligtas at sikretong lugar.",
+		"seed_phrase_explanation": "Kung magpapalit ka man ng browser o computer, kakailanganin mo ang Lihim na Recovery Phrase na ito para ma-access ang iyong mga account. I-save ang mga iyon sa isang ligtas at sikretong lugar.",
 		"private_key_explanation": "I-save ito sa isang ligtas at sikretong lugar.",
 		"private_key_warning": "Ito ang pribadong key para sa kasalukuyang napiling account: {{accountName}}. Huwag ipaalam ang key na ito. Ang sinumang nakakalaam ng iyong pribadong key ay ganap na makokontrol ang iyong account, pati na ang pag-transfer ng alinman sa iyong mga pondo.",
 		"seed_phrase_warning_explanation": "Huwag ibahagi ang phrase na ito sa sinuman! Magagamit ang mga salitang ito para manakaw ang lahat ng iyong account.",
