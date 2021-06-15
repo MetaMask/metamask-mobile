@@ -69,6 +69,18 @@ exports[`Main should render correctly 1`] = `
               "getScreenOptions": [Function],
               "getStateForAction": [Function],
             },
+            "EditGasFee1559View": Object {
+              "childRouters": Object {
+                "EditGasFee1559": null,
+              },
+              "getActionCreators": [Function],
+              "getActionForPathAndParams": [Function],
+              "getComponentForRouteName": [Function],
+              "getComponentForState": [Function],
+              "getPathAndParamsForState": [Function],
+              "getScreenOptions": [Function],
+              "getStateForAction": [Function],
+            },
             "FiatOnRamp": Object {
               "childRouters": Object {
                 "GasEducationCarousel": null,
@@ -391,6 +403,18 @@ exports[`Main should render correctly 1`] = `
               "ApproveView": Object {
                 "childRouters": Object {
                   "Approve": null,
+                },
+                "getActionCreators": [Function],
+                "getActionForPathAndParams": [Function],
+                "getComponentForRouteName": [Function],
+                "getComponentForState": [Function],
+                "getPathAndParamsForState": [Function],
+                "getScreenOptions": [Function],
+                "getStateForAction": [Function],
+              },
+              "EditGasFee1559View": Object {
+                "childRouters": Object {
+                  "EditGasFee1559": null,
                 },
                 "getActionCreators": [Function],
                 "getActionForPathAndParams": [Function],
