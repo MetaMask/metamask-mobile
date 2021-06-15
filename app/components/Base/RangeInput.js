@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { View, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import { colors } from '../../styles/common';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
@@ -93,32 +93,46 @@ const RangeInput = ({
 	const [value, setValue] = useState(initialValue);
 	const textInput = useRef(null);
 
-	const handleClickUnit = () => {
+	const handleClickUnit = useCallback(() => {
 		textInput.current.focus();
-	};
+	}, []);
 
-	const changeValue = newValue => {
-		onChangeValue?.(newValue);
-		setValue(newValue);
-	};
+	const changeValue = useCallback(
+		newValue => {
+			onChangeValue?.(newValue);
+			setValue(newValue);
+		},
+		[onChangeValue]
+	);
 
-	const increaseNumber = () => {
+	const increaseNumber = useCallback(() => {
 		const newValue = Number(value) + increment;
 		if (newValue > max) return;
 		changeValue(String(newValue));
-	};
+	}, [changeValue, increment, max, value]);
 
-	const decreaseNumber = () => {
+	const decreaseNumber = useCallback(() => {
 		const newValue = Number(value) - increment;
 		if (newValue < min) return;
 		changeValue(String(newValue));
-	};
+	}, [changeValue, increment, min, value]);
+
+	const renderLabelComponent = useCallback(component => {
+		if (!component) return null;
+		if (typeof component === 'string')
+			return (
+				<Text noMargin black bold>
+					{component}
+				</Text>
+			);
+		return component;
+	}, []);
 
 	return (
 		<View>
 			<View style={styles.labelContainer}>
-				{leftLabelComponent}
-				{rightLabelComponent}
+				{renderLabelComponent(leftLabelComponent)}
+				{renderLabelComponent(rightLabelComponent)}
 			</View>
 
 			<View style={styles.rangeInputContainer}>
@@ -167,15 +181,45 @@ RangeInput.defaultProps = {
 };
 
 RangeInput.propTypes = {
+	/**
+	 * Component or text to render on the right side of the label
+	 */
 	rightLabelComponent: PropTypes.node,
+	/**
+	 * Component or text to render on the left side of the label
+	 */
 	leftLabelComponent: PropTypes.node,
+	/**
+	 * The initial value to be on the input
+	 */
 	initialValue: PropTypes.string,
+	/**
+	 * The unit to show inside the input
+	 */
 	unit: PropTypes.string,
+	/**
+	 * Function that is called when the input is changed
+	 */
 	onChangeValue: PropTypes.func,
+	/**
+	 * The value per which the input is incremented when clicking on the plus and minus button
+	 */
 	increment: PropTypes.number,
+	/**
+	 * The label to show inside the input
+	 */
 	inputInsideLabel: PropTypes.string,
+	/**
+	 * The error to show bellow the input. Also when the error exists the input text will turn red
+	 */
 	error: PropTypes.string,
+	/**
+	 * The minimum value the input is allowed to have when clicking on the minus button
+	 */
 	min: PropTypes.number,
+	/**
+	 * The maximum value the input is allowed to have when clicking on the plus button
+	 */
 	max: PropTypes.number
 };
 

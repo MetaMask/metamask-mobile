@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import Text from '../../Base/Text';
 import RangeInput from '../../Base/RangeInput';
@@ -51,20 +51,20 @@ const EditGasFee1559 = () => {
 	const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
 	const [maxPriorityFeeError, setMaxPriorityFeeError] = useState(null);
 
-	const toggleRangeInfoModal = () => {
+	const toggleRangeInfoModal = useCallback(() => {
 		setShowRangeInfoModal(showRangeInfoModal => !showRangeInfoModal);
-	};
+	}, []);
 
-	const toggleAdvancedOptions = () => {
+	const toggleAdvancedOptions = useCallback(() => {
 		setShowAdvancedOptions(showAdvancedOptions => !showAdvancedOptions);
-	};
+	}, []);
 
-	const changedMaxPriorityFee = value => {
+	const changedMaxPriorityFee = useCallback(value => {
 		if (Number(value) <= 0) {
 			return setMaxPriorityFeeError(strings('edit_gas_fee_eip1559.priority_fee_at_least_0_error'));
 		}
 		setMaxPriorityFeeError(null);
-	};
+	}, []);
 
 	return (
 		<View style={styles.root}>
@@ -134,7 +134,6 @@ const EditGasFee1559 = () => {
 								}
 								initialValue={'1'}
 								label={'Gas limit'}
-								estimate={'1 GWEI'}
 								unit={'GWEI'}
 								increment={1}
 								inputInsideLabel={'≈ $0.06'}
@@ -169,7 +168,6 @@ const EditGasFee1559 = () => {
 								}
 								initialValue={'300'}
 								label={'Gas limit'}
-								estimate={'1 GWEI'}
 								unit={'GWEI'}
 								increment={10}
 								inputInsideLabel={'≈ $19.81'}
