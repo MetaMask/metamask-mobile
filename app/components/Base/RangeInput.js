@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { View, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import { colors } from '../../styles/common';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
@@ -128,6 +128,16 @@ const RangeInput = ({
 		return component;
 	}, []);
 
+	const checkLimits = useCallback(() => {
+		if (Number(value) < min) return changeValue(String(min));
+		if (Number(value) > max) return changeValue(String(max));
+	}, [changeValue, max, min, value]);
+
+	useEffect(() => {
+		if (textInput?.current?.isFocused()) return;
+		checkLimits();
+	}, [checkLimits]);
+
 	return (
 		<View>
 			<View style={styles.labelContainer}>
@@ -145,6 +155,7 @@ const RangeInput = ({
 					<TextInput
 						style={styles.input(!!error)}
 						onChangeText={changeValue}
+						onBlur={checkLimits}
 						value={value}
 						keyboardType="numeric"
 						ref={textInput}
