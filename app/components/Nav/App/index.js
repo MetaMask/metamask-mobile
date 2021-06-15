@@ -175,38 +175,32 @@ const App = () => {
 	const unsubscribeFromBranch = useRef();
 	const navigator = useRef();
 
-	const handleDeeplinks = () => ({
-		// onOpenStart: ({ uri, cachedInitialEvent }) => {
-		// 	console.log(`Opening URI ${uri} ${cachedInitialEvent ? '[cached]' : ''}`);
-		// },
-		onOpenComplete: ({ error, params, uri }) => {
+	const handleDeeplinks = ({ error, params, uri }) => {
+		if (error) {
 			if (error === 'Trouble reaching the Branch servers, please try again shortly.') {
-				trackErrorAsAnalytics('Branch: Trouble reaching servers', error);
-				return;
-			} else if (error) {
-				Logger.error(error, 'Deeplink: Error from Branch');
-				return;
-			}
-
-			const deeplink = params['+non_branch_link'] || uri || null;
-			try {
-				if (deeplink) {
-					const { KeyringController } = Engine.context;
-					const isUnlocked = KeyringController.isUnlocked();
-					isUnlocked
-						? SharedDeeplinkManager.parse(deeplink, { origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK })
-						: SharedDeeplinkManager.setDeeplink(deeplink);
-				}
-			} catch (e) {
-				Logger.error(e, `Deeplink: Error parsing deeplink`);
+				trackErrorAsAnalytics(error, 'Branch: Trouble reaching servers');
+			} else {
+				trackErrorAsAnalytics(error, 'Deeplink: Error from Branch');
 			}
 		}
-	});
+		const deeplink = params['+non_branch_link'] || uri || null;
+		try {
+			if (deeplink) {
+				const { KeyringController } = Engine.context;
+				const isUnlocked = KeyringController.isUnlocked();
+				isUnlocked
+					? SharedDeeplinkManager.parse(deeplink, { origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK })
+					: SharedDeeplinkManager.setDeeplink(deeplink);
+			}
+		} catch (e) {
+			Logger.error(e, `Deeplink: Error parsing deeplink`);
+		}
+	};
 
 	useEffect(() => {
 		SharedDeeplinkManager.init({
 			navigate: (routeName, opts) => {
-				navigator.dispatch(NavigationActions.navigate({ routeName, params: opts }));
+				navigator.current.dispatch(NavigationActions.navigate({ routeName, params: opts }));
 			}
 		});
 
