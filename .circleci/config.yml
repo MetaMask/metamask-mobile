@@ -206,4 +206,4 @@ workflows:
             - prep-deps
       - publish-pre-release-android:
           requires:
-            - publish-pre-release-ios
+            - prep-deps

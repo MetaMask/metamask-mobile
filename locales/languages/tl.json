@@ -123,7 +123,7 @@
 		"sync_help_step_four": "4. I-scan ang QR Code para simulan ang pag-sync",
 		"sync_from_browser_extension_button": "I-sync sa MetaMask extension",
 		"or": "O KAYA",
-		"import_from_seed_button": "I-import gamit ang Secret Recovery Phrase"
+		"import_from_seed_button": "I-import gamit ang Lihim na Recovery Phrase"
 	},
 	"login": {
 		"title": "Welcome Back!",
@@ -147,7 +147,7 @@
 		"wrong_password_error": "Error: Hindi na-decrypt",
 		"wrong_password_error_android": "Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
 		"vault_error": "Error: Hindi maa-unlock nang walang nakaraang vault.",
-		"clean_vault_error": "Nagkaroon ng error ang MetaMask dahil sa pag-abot sa limitasyon ng storage. Na-corrupt ang lokal na data. Paki-install ulit ang MetaMask at i-restore gamit ang iyong Secret Recovery Phrase."
+		"clean_vault_error": "Nagkaroon ng error ang MetaMask dahil sa pag-abot sa limitasyon ng storage. Na-corrupt ang lokal na data. Paki-install ulit ang MetaMask at i-restore gamit ang iyong Lihim na Recovery Phrase."
 	},
 	"enter_password": {
 		"title": "Ilagay ang iyong password",
@@ -162,7 +162,7 @@
 		"password": "Bagong Password",
 		"confirm_password": "Kumpirmahin ang password",
 		"create_button": "Gumawa ng password",
-		"import_with_seed_phrase": "I-import gamit ang Secret Recovery Phrase",
+		"import_with_seed_phrase": "I-import gamit ang Lihim na Recovery Phrase",
 		"password_length_error": "Ang password ay dapat na kahit 8 character lang",
 		"password_dont_match": "Hindi magkatugma ang mga password",
 		"password_strength": "Pagiging mahirap mahulaan ng password:",
@@ -171,7 +171,7 @@
 		"strength_strong": "Mahirap",
 		"show": "Ipakita",
 		"hide": "Itago",
-		"seed_phrase": "Secret Recovery Phrase",
+		"seed_phrase": "Lihim na recovery phrase",
 		"must_be_at_least": "Dapat ay kahit {{number}} character lang",
 		"remember_me": "Tandaan ako",
 		"security_alert_title": "Panseguridad na Alerto",
@@ -179,7 +179,7 @@
 		"i_understand": "Nauunawaan kong hindi mare-recover ng MetaMask ang password na ito para sa akin.",
 		"learn_more": "Matuto pa.",
 		"secure": "I-secure ang wallet",
-		"confirm": "Kumpirmahin ang Secret Recovery Phrase"
+		"confirm": "Kumpirmahin ang Lihim na Recovery Phrase"
 	},
 	"reset_password": {
 		"title": "Palitan ang password",
@@ -210,18 +210,18 @@
 	},
 	"import_from_seed": {
 		"title": "I-import mula sa seed",
-		"seed_phrase_placeholder": "Ilagay rito ang iyong Secret Recovery Phrase",
+		"seed_phrase_placeholder": "Ilagay rito ang iyong Lihim na Recovery Phrase",
 		"new_password": "Bagong Password",
 		"confirm_password": "Kumpirmahin ang password",
 		"import_button": "I-IMPORT",
 		"cancel_button": "Kanselahin",
 		"password_length_error": "Ang password ay dapat na kahit 8 character lang",
 		"password_dont_match": "Hindi magkatugma ang mga password",
-		"seed_phrase_requirements": "Ang mga Secret Recovery Phrase ay naglalaman ng 12, 15, 18, 21, o 24 na salita",
-		"invalid_seed_phrase": "Hindi valid ang Secret Recovery Phrase",
+		"seed_phrase_requirements": "Ang mga lihim na recovery phrase ay naglalaman ng 12, 15, 18, 21, o 24 na salita",
+		"invalid_seed_phrase": "Hindi valid ang Lihim na Recovery Phrase",
 		"error": "Error",
 		"invalid_qr_code_title": "Hindi valid ang QR Code",
-		"invalid_qr_code_message": "Ang QR code na ito ay hindi kumakatawan sa isang valid na Secret Recovery Phrase"
+		"invalid_qr_code_message": "Ang QR code na ito ay hindi kumakatawan sa isang valid na Lihim na Recovery Phrase"
 	},
 	"bottom_tab_bar": {
 		"dapps": "ÐApps",
@@ -296,7 +296,7 @@
 		"private_key_detected": "Natukoy ang pribadong key",
 		"do_you_want_to_import_this_account": "Gusto mo bang i-import ang account na ito?",
 		"error": "Error",
-		"logout_to_import_seed": "Kailangan mo munang mag-log out para makapag-import ng Secret Recovery Phrase.",
+		"logout_to_import_seed": "Kailangan mo munang mag-log out para makapag-import ng Lihim na Recovery Phrase.",
 		"ready_to_explore": "Handa ka na bang simulang i-explore ang mga blockchain application?",
 		"unable_to_load": "Hindi ma-load ang balanse"
 	},
@@ -436,9 +436,9 @@
 		"protect_cta": "Protektahan",
 		"protect_title": "Protektahan ang iyong wallet",
 		"video_failed": "Hindi Na-load ang Video.",
-		"protect_desc": "Protektahan ang iyong wallet sa pamamagitan ng pag-save ng iyong Secret Recovery Phrase sa iba't ibang lugar gaya sa isang piraso ng papel, password manager at/o sa cloud.",
-		"seedphrase_not_backed_up": "Mahalaga! Hindi na-back up ang Secret Recovery Phrase",
-		"seedphrase_backed_up": "Na-back up ang Secret Recovery Phrase",
+		"protect_desc": "Protektahan ang iyong wallet sa pamamagitan ng pag-save ng iyong Lihim na Recovery Phrase sa iba't ibang lugar gaya sa isang piraso ng papel, password manager at/o sa cloud.",
+		"seedphrase_not_backed_up": "Mahalaga! Hindi na-back up ang lihim na recovery phrase",
+		"seedphrase_backed_up": "Na-back up ang lihim na recovery phrase",
 		"back_up_now": "I-back up na",
 		"back_up_again": "I-back up ulit",
 		"view_hint": "Tingnan ang hint",
@@ -460,7 +460,7 @@
 		"contacts_desc": "Magdagdag, mag-edit, magtanggal, at mamahala ng iyong mga account",
 		"security_title": "Seguridad at Pagkapribado",
 		"back": "Bumalik",
-		"security_desc": "Mga setting ng pagkapribado, MetaMetrics, pribadong key at Secret Recovery Phrase ng wallet",
+		"security_desc": "Mga setting ng pagkapribado, MetaMetrics, pribadong key at Lihim na Recovery Phrase ng wallet",
 		"networks_title": "Mga Network",
 		"networks_desc": "Magdagdag at mag-edit ng mga custom na RPC network",
 		"network_name_label": "Pangalan ng Network",
@@ -534,22 +534,22 @@
 		"contact_us": "Makipag-ugnayan sa Amin"
 	},
 	"reveal_credential": {
-		"seed_phrase_title": "Ipakita ang Secret Recovery Phrase",
+		"seed_phrase_title": "Ipakita ang Lihim na Recovery Phrase",
 		"private_key_title": "Ipakita ang pribadong key",
 		"show_private_key": "Ipakita ang pribadong key",
 		"private_key_title_for_account": "Ipakita ang pribadong key para sa \"{{accountName}}\"",
 		"cancel": "Kanselahin",
 		"confirm": "Susunod",
-		"seed_phrase_explanation": "Kung magpapalit ka man ng browser o computer, kakailanganin mo ang Secret Recovery Phrase na ito para ma-access ang iyong mga account. I-save ang mga iyon sa isang ligtas at sikretong lugar.",
+		"seed_phrase_explanation": "Kung magpapalit ka man ng browser o computer, kakailanganin mo ang Lihim na Recovery Phrase na ito para ma-access ang iyong mga account. I-save ang mga iyon sa isang ligtas at sikretong lugar.",
 		"private_key_explanation": "I-save ito sa isang ligtas at sikretong lugar.",
 		"private_key_warning": "Ito ang pribadong key para sa kasalukuyang napiling account: {{accountName}}. Huwag ipaalam ang key na ito. Ang sinumang nakakalaam ng iyong pribadong key ay ganap na makokontrol ang iyong account, pati na ang pag-transfer ng alinman sa iyong mga pondo.",
 		"seed_phrase_warning_explanation": "Huwag ibahagi ang phrase na ito sa sinuman! Magagamit ang mga salitang ito para manakaw ang lahat ng iyong account.",
 		"private_key_warning_explanation": "Huwag ipaalam ang key na ito. Ang sinumang nakakalaam ng iyong pribadong key ay ganap na makokontrol ang iyong account, pati na ang pag-transfer ng alinman sa iyong mga pondo.",
-		"seed_phrase": "Ang Iyong Secret Recovery Phrase",
+		"seed_phrase": "Ang Iyong Lihim na Recovery Phrase",
 		"private_key": "Ang iyong pribadong key",
 		"copy_to_clipboard": "Kopyahin sa clipboard",
 		"enter_password": "Ilagay ang password para magpatuloy",
-		"seed_phrase_copied": "Nakopya sa clipboard ang Secret Recovery Phrase",
+		"seed_phrase_copied": "Nakopya sa clipboard ang lihim na recovery phrase",
 		"private_key_copied": "Nakopya ang pribadong key sa clipboard",
 		"warning_incorrect_password": "Mali ang password",
 		"unknown_error": "Hindi ma-unlock ang iyong account. Pakisubukan ulit.",
@@ -559,7 +559,7 @@
 	},
 	"password_reset": {
 		"password_title": "Password",
-		"password_desc": "Pumili ng mahirap hulaang password para ma-unlock ang MetaMask app sa iyong device. Kung makakalimutan mo ang password na ito, kakailanganin mo ang iyong Secret Recovery Phrase para ma-import ulit ang iyong wallet.",
+		"password_desc": "Pumili ng mahirap hulaang password para ma-unlock ang MetaMask app sa iyong device. Kung makakalimutan mo ang password na ito, kakailanganin mo ang iyong Lihim na Recovery Phrase para ma-import ulit ang iyong wallet.",
 		"password_learn_more": "Matuto pa.",
 		"change_password": "Palitan ang password"
 	},
@@ -903,14 +903,14 @@
 		"outdated_qr_code": "Nag-expire na QR Code",
 		"outdated_qr_code_desc": "Mukhang nag-expire na ang QR Code na ito!  Subukang mag-scan ng panibago",
 		"something_wrong": "Ooops! Nagkaproblema...",
-		"something_wrong_desc": "Nagkakaroon kami ng mga isyu habang sinusubukang i-sync ang iyong wallet. Pakisubukan ulit sa ibang pagkakataon o i-import ang iyong wallet gamit ang iyong Secret Recovery Phrase",
+		"something_wrong_desc": "Nagkakaroon kami ng mga isyu habang sinusubukang i-sync ang iyong wallet. Pakisubukan ulit sa ibang pagkakataon o i-import ang iyong wallet gamit ang iyong Lihim na Recovery Phrase",
 		"allow_biometrics_title": "Gusto mo bang i-enable ang {{biometrics}}?",
 		"allow_biometrics_desc": "Puwede mong gamitin ang {{biometrics}} para i-authenticate sa MetaMask"
 	},
 	"sync_with_extension_success": {
 		"title": "Na-import ang wallet",
-		"sync_complete_1": "Tandaan, hindi mare-recover ng MetaMask ang iyong Secret Recovery Phrase sakaling malimutan mo ito. Makikita mo ang Secret Recovery Phrase sa",
-		"sync_complete_2": "Mga Setting  > Seguridad at Pagkapribado",
+		"sync_complete_1": "Tandaan, hindi mare-recover ng MetaMask ang iyong Lihim na Recovery Phrase sakaling malimutan mo ito. Makikita mo ang Lihim na Recovery Phrase sa",
+		"sync_complete_2": "Mga Setting > Seguridad at Pagkapribado",
 		"button_continue": "Tapos na",
 		"password_tip": "Ang password para ma-unlock ang iyong mobile wallet ay ang parehong password na itinakda mo para sa extension.",
 		"learn_more": "Matuto pa."
@@ -993,7 +993,7 @@
 	},
 	"import_private_key": {
 		"title": "Mag-import ng Account",
-		"description_one": "Ang mga na-import na account ay makikita sa iyong wallet pero hindi mare-recover gamit ang iyong Secret Recovery Phrase sa MetaMask.",
+		"description_one": "Ang mga na-import na account ay makikita sa iyong wallet pero hindi mare-recover gamit ang iyong Lihim na Recovery Phrase sa MetaMask.",
 		"learn_more_here": "Matuto pa tungkol sa mga na-import na account dito.",
 		"subtitle": "I-paste ang string ng iyong pribadong key",
 		"cta_text": "I-IMPORT",
@@ -1019,7 +1019,7 @@
 		"step_1": "Hakbang 1:",
 		"step_1_description": "Gumawa ng password",
 		"step_2": "Hakbang 2:",
-		"step_2_description": "I-save ang Secret Recovery Phrase ng wallet",
+		"step_2_description": "I-save ang Lihim na Recovery Phrase ng wallet",
 		"info_text_1": "Maglaan nang ilang sandali para tapusin ang pag-set up ng iyong MetaMask wallet.",
 		"info_text_2": "Matitiyak nitong ikaw lang ang makaka-access sa iyong mga pondo at na mare-recover mo ang iyong wallet kung maiwawala mo ang iyong device",
 		"cta_text": "Gumawa ng Password",
@@ -1030,7 +1030,7 @@
 		"remind_me_later_subtext": "(Hindi inirerekomenda)",
 		"title": "I-secure ang iyong wallet",
 		"info_text_1_1": "Huwag hayaang mawala ang iyong pondo. Protektahan ang iyong wallet sa pamamagitan ng pag-save ng iyong",
-		"info_text_1_2": "Secret Recovery Phrase",
+		"info_text_1_2": "Lihim na Recovery Phrase",
 		"info_text_1_3": "sa isang mapagkakatiwalaan mong lugar.",
 		"info_text_1_4": "Ito lang ang paraan para ma-recover ang iyong wallet sakaling ma-lock out ka sa app o makakuha ka ng bagong device.",
 		"cta_text": "Simulan",
@@ -1038,21 +1038,21 @@
 		"skip_button_cancel": "I-secure na",
 		"skip_button_confirm": "Laktawan",
 		"skip_title": "Laktawan ang account ng seguridad?",
-		"skip_check": "Nauunawaan ko na kung maiwawala ko ang aking Secret Recovery Phrase, hindi ko maa-access ang wallet ko.",
-		"what_is_seedphrase_title": "Ano ang 'Secret Recovery Phrase'",
-		"what_is_seedphrase_text_1": "Ang Secret Recovery Phrase ay isang set ng labindalawang salita na naglalaman ng lahat ng impormasyon tungkol sa iyong wallet, kasama ang iyong mga pondo. Para itong lihim na code na ginagamit para ma-access ang iyong buong wallet.",
-		"what_is_seedphrase_text_2": "Dapat mong panatilihing lihim at ligtas ang iyong Secret Recovery Phrase. Kung may makakakuha ng iyong Secret Recovery Phrase, makokontrol nila ang iyong mga account.",
+		"skip_check": "Nauunawaan ko na kung maiwawala ko ang aking Lihim na Recovery Phrase, hindi ko maa-access ang wallet ko.",
+		"what_is_seedphrase_title": "Ano ang 'Lihim na Recovery Phrase'",
+		"what_is_seedphrase_text_1": "Ang Lihim na Recovery Phrase ay isang set ng labindalawang salita na naglalaman ng lahat ng impormasyon tungkol sa iyong wallet, kasama ang iyong mga pondo. Para itong lihim na code na ginagamit para ma-access ang iyong buong wallet.",
+		"what_is_seedphrase_text_2": "Dapat mong panatilihing lihim at ligtas ang iyong Lihim na Recovery Phrase. Kung may makakakuha ng iyong Lihim na Recovery Phrase, makokontrol nila ang iyong mga account.",
 		"what_is_seedphrase_text_3": "I-save ito sa isang lugar na ikaw lang ang makaka-access. Kung maiwawala mo ito, hindi ka matutulungan ng MetaMask na ma-recover ito."
 	},
 	"account_backup_step_1B": {
 		"title": "I-secure ang iyong wallet",
 		"subtitle_1": "I-secure ang",
-		"subtitle_2": "Secret Recovery Phrase.",
+		"subtitle_2": "Lihim na Recovery Phrase.",
 		"cta_text": "Simulan",
 		"learn_more": "Matuto pa",
 		"why_important": "Bakit ito mahalaga?",
 		"manual_title": "Manual",
-		"manual_subtitle": "Isulat ang iyong Secret Recovery Phrase sa papel at itabi sa ligtas na lugar.",
+		"manual_subtitle": "Isulat ang iyong Lihim na Recovery Phrase sa papel at itabi sa ligtas na lugar.",
 		"manual_security": "Antas ng seguridad: Sobrang mahirap",
 		"risks_title": "Ang mga panganib ay:",
 		"risks_1": "Maiwala mo ito",
@@ -1064,16 +1064,16 @@
 		"tips_2": "Ilagay sa safe",
 		"tips_3": "Itabi sa maraming tagong lugar",
 		"why_secure_title": "Protektahan ang iyong wallet",
-		"why_secure_1": "Huwag hayaang mawala ang iyong pondo. Protektahan ang iyong wallet sa pamamagitan ng pag-save ng iyong Secret Recovery Phrase sa lugar na mapagkakatiwalaan mo.",
+		"why_secure_1": "Huwag hayaang mawala ang iyong pondo. Protektahan ang iyong wallet sa pamamagitan ng pag-save ng iyong Lihim na Recovery Phrase sa lugar na mapagkakatiwalaan mo.",
 		"why_secure_2": " Ito lang ang paraan para ma-recover ang iyong wallet sakaling ma-lock out ka sa app o makakuha ka ng bagong device."
 	},
 	"account_backup_step_2": {
 		"cancel_backup_title": "Kanselahin ang Pag-back up",
-		"cancel_backup_message": "Lubos naming inirerekomendang i-save mo ang iyong Secret Recovery Phrase para ma-restore ang iyong wallet.",
+		"cancel_backup_message": "Lubos naming inirerekomendang i-save mo ang iyong Lihim na Recovery Phrase para ma-restore ang iyong wallet.",
 		"cancel_backup_ok": "Oo, alam ko ang panganib",
-		"cancel_backup_no": "Huwag, i-back up ang Secret Recovery Phrase",
+		"cancel_backup_no": "Huwag, i-back up ang Lihim na Recovery Phrase",
 		"title": "Kumuha ng panulat at papel",
-		"info": "Susunod ay isulat ang iyong Secret Recovery Phrase.",
+		"info": "Susunod ay isulat ang iyong Lihim na Recovery Phrase.",
 		"info_2_1": "Hihilingin sa iyong ",
 		"info_2_2": "ilagay ulit",
 		"info_2_3": " ito para sa kumpirmasyon",
@@ -1081,20 +1081,20 @@
 	},
 	"account_backup_step_3": {
 		"cancel_backup_title": "Kanselahin ang Pag-back up",
-		"cancel_backup_message": "Lubos naming inirerekomendang i-save mo ang iyong Secret Recovery Phrase para ma-restore ang iyong wallet.",
+		"cancel_backup_message": "Lubos naming inirerekomendang i-save mo ang iyong Lihim na Recovery Phrase para ma-restore ang iyong wallet.",
 		"cancel_backup_ok": "Oo, alam ko ang panganib",
-		"cancel_backup_no": "Huwag, i-back up ang Secret Recovery Phrase",
+		"cancel_backup_no": "Huwag, i-back up ang Lihim na Recovery Phrase",
 		"title": "May iba bang nakakakita?",
-		"info_text": "Tiyaking walang ibang tao o robot na nakakakita sa iyong screen. Kung makokopya ang iyong Secret Recovery Phrase, magagamit ito sa ibang device para manakaw ang iyong pondo",
+		"info_text": "Tiyaking walang ibang tao o robot na nakakakita sa iyong screen. Kung makokopya ang iyong Lihim na Recovery Phrase, magagamit ito sa ibang device para manakaw ang iyong pondo",
 		"cta_text": "WALANG IBANG NAKAKAKITA"
 	},
 	"account_backup_step_4": {
 		"cancel_backup_title": "Kanselahin ang Pag-back up",
-		"cancel_backup_message": "Lubos naming inirerekomendang i-save mo ang iyong Secret Recovery Phrase para ma-restore ang iyong wallet.",
+		"cancel_backup_message": "Lubos naming inirerekomendang i-save mo ang iyong Lihim na Recovery Phrase para ma-restore ang iyong wallet.",
 		"cancel_backup_ok": "Oo, alam ko ang panganib",
-		"cancel_backup_no": "Huwag, i-back up ang Secret Recovery Phrase",
+		"cancel_backup_no": "Huwag, i-back up ang Lihim na Recovery Phrase",
 		"back": "Bumalik",
-		"title": "Ang Iyong Secret Recovery Phrase",
+		"title": "Ang Iyong Lihim na Recovery Phrase",
 		"info_text_1": "Pakisulat nang maingat ang mga salitang ito sa papel. Mahalaga ang pagkakasunud-sunod nito.",
 		"info_text_2": "Hihilingin sa iyong ilagay ulit ito sa susunod na screen",
 		"cta_text": "NAKOPYA KO ANG PHRASE",
@@ -1106,37 +1106,37 @@
 		"error_title": "Oops!",
 		"error_message": "Mali ang pagkakasunud-sunod ng mga salita. Pakitiyak na tama ang pagkakasulat mo at bumalik sa nakaraang screen kung kinakailangan",
 		"back": "Bumalik",
-		"title": "Kumpirmahin ang Secret Recovery Phrase",
+		"title": "Kumpirmahin ang Lihim na Recovery Phrase",
 		"info_text": "Ilagay ang bawat salita ayon sa pagkakasunud-sunod noong ipinakita sa iyo sa nakaraang screen.",
 		"cta_text": "KUMPIRMAHIN ANG PHRASE",
-		"modal_title": "Nakumpirma ang Secret Recovery Phrase!",
+		"modal_title": "Nakumpirma ang lihim na recovery phrase!",
 		"modal_text": "Ito ay para matiyak na susundin mo ang panseguridad na hakbang na ito",
 		"modal_button": "SUSUNOD"
 	},
 	"account_backup_step_6": {
 		"title": "Mga Panseguridad na Tip",
-		"info_text": "Hindi mare-recover ng MetaMask ang iyong Secret Recovery Phrase sakaling maiwala mo ito",
-		"tip_1": "Magtabi ng maraming backup ng iyong Secret Recovery Phrase",
+		"info_text": "Hindi mare-recover ng MetaMask ang iyong Lihim na Recovery Phrase sakaling maiwala mo ito",
+		"tip_1": "Magtabi ng maraming backup ng iyong Lihim na Recovery Phrase",
 		"tip_2": "Itabi ang phrase sa pinagkakatiwalaang password manager at papel na backup sa isang ligtas na lugar",
 		"tip_3": "Huwag ibahagi ang phrase na ito sa sinuman",
-		"disclaimer": "* Makikita mo ang iyong Secret Recovery Phrase kung pupunta ka sa ",
-		"disclaimer_bold": "Mga Setting  > Seguridad at Pagkapribado",
+		"disclaimer": "* Makikita mo ang iyong Lihim na Recovery Phrase kung pupunta ka sa ",
+		"disclaimer_bold": "Mga Setting > Seguridad at Pagkapribado",
 		"cta_text": "OK!",
 		"modal_title": "Congratulations!",
 		"modal_text": "Na-back up mo na lahat at handa ka na!",
 		"modal_button": "TAPOS NA",
-		"copy_seed_phrase": "KOPYAHIN SA CLIPBOARD ANG IYONG Secret Recovery Phrase"
+		"copy_seed_phrase": "KOPYAHIN SA CLIPBOARD ANG IYONG LIHIM NA RECOVERY PHRASE"
 	},
 	"manual_backup": {
 		"progressOne": "Gumawa ng Password",
 		"progressTwo": "I-secure ang wallet",
-		"progressThree": "Kumpirmahin ang Secret Recovery Phrase"
+		"progressThree": "Kumpirmahin ang Lihim na Recovery Phrase"
 	},
 	"manual_backup_step_1": {
-		"action": "Isulat ang iyong Secret Recovery Phrase",
-		"info": "Ito ang iyong Secret Recovery Phrase. Isulat ito sa papel at itabi sa ligtas na lugar. Hihilingin sa iyong ilagay ulit ang phrase na ito (nang magkakasunod) sa susunod na hakbang.",
+		"action": "Isulat ang iyong Lihim na Recovery Phrase",
+		"info": "Ito ang iyong Lihim na Recovery Phrase. Isulat ito sa papel at itabi sa ligtas na lugar. Hihilingin sa iyong ilagay ulit ang phrase na ito (nang magkakasunod) sa susunod na hakbang.",
 		"continue": "Magpatuloy",
-		"reveal": "I-tap para ipakita ang iyong Secret Recovery Phrase",
+		"reveal": "I-tap para ipakita ang iyong Lihim na Recovery Phrase",
 		"watching": "Tiyaking walang ibang taong nakakakita sa iyong screen.",
 		"view": "Tingnan",
 		"confirm_password": "Kumpirmahin ang iyong password",
@@ -1144,21 +1144,21 @@
 		"confirm": "KUMPIRMAHIN"
 	},
 	"manual_backup_step_2": {
-		"action": "Kumpirmahin ang Secret Recovery Phrase",
+		"action": "Kumpirmahin ang Lihim na Recovery Phrase",
 		"info": "Piliin ang bawat salita ayon sa pagkakasunud-sunod noong ipinakita sa iyo.",
 		"complete": "Kumpletuhin ang Pag-back up",
-		"success": "Matagumpay"
+		"success": "Matagumpay mong naprotektahan ang iyong wallet. Tiyaking panatilihing ligtas ang iyong Lihim na Recovery Phrase, responsibilidad mo ito!"
 	},
 	"manual_backup_step_3": {
 		"congratulations": "Congratulations",
 		"success": "Matagumpay mong naprotektahan ang iyong wallet. Tiyaking panatilihing ligtas ang iyong Secret Recovery Phrase, responsibilidad mo ito!",
 		"hint": "Mag-iwan ng hint para sa sarili mo?",
-		"recover": "Hindi mare-recover ng MetaMask ang iyong wallet sakaling maiwala mo ito. Makikita mo ang iyong Secret Recovery Phrase sa Mga Setting > Seguridad at Pagkapribado.",
+		"recover": "Hindi mare-recover ng MetaMask ang iyong wallet sakaling maiwala mo ito. Makikita mo ang iyong Lihim na Recovery Phrase sa Mga Setting > Seguridad at Pagkapribado.",
 		"learn": "Matuto pa",
 		"done": "Tapos na",
 		"recovery_hint": "Hint sa pag-recovery",
 		"leave_hint": "Mag-iwan ng hint para sa sarili mo. Isulat ang lokasyon / lugar kung saan mo ito na-save para paalalahanan ang iyong sarili kung paano mo ito maa-access. Hindi mawawala ang impormasyong ito sa iyong device.",
-		"no_seedphrase": "Huwag itong gamitin para isulat ang iyong Secret Recovery Phrase.",
+		"no_seedphrase": "Huwag itong gamitin para isulat ang iyong Lihim na Recovery Phrase.",
 		"example": "hal. Mom's house",
 		"save": "I-save",
 		"cancel": "Kanselahin"
@@ -1214,8 +1214,8 @@
 	},
 	"protect_your_wallet_modal": {
 		"title": "Protektahan ang iyong wallet",
-		"body_for_password": "Protektahan ang iyong wallet sa pamamagitan ng pagtakda ng password at pag-save ng iyong Secret Recovery Phrase (kinakailangan).",
-		"body_for_seedphrase": "Ngayong nagdadag ng value sa iyong wallet, protektahan ang iyong wallet sa pamamagitan ng pagtakda ng password at pag-save ng iyong Secret Recovery Phrase (kinakailangan).",
+		"body_for_password": "Protektahan ang iyong wallet sa pamamagitan ng pagtakda ng password at pag-save ng iyong Lihim na Recovery Phrase (kinakailangan).",
+		"body_for_seedphrase": "Ngayong nagdadag ng value sa iyong wallet, protektahan ang iyong wallet sa pamamagitan ng pagtakda ng password at pag-save ng iyong Lihim na Recovery Phrase (kinakailangan).",
 		"button": "Protektahan ang wallet"
 	},
 	"payment_request": {
@@ -1567,7 +1567,7 @@
 		"title": "Protektahan ang iyong wallet",
 		"top_button": "Protektahan ang wallet",
 		"bottom_button": "Paalalahanan ako mamaya",
-		"text": "Huwag hayaang mawala ang iyong pondo. Protektahan ang iyong wallet sa pamamagitan ng pag-save ng iyong Secret Recovery Phrase sa lugar na mapagkakatiwalaan mo.",
+		"text": "Huwag hayaang mawala ang iyong pondo. Protektahan ang iyong wallet sa pamamagitan ng pag-save ng iyong Lihim na Recovery Phrase sa lugar na mapagkakatiwalaan mo.",
 		"text_bold": "Ito lang ang paraan para ma-recover ang iyong wallet sakaling ma-lock out ka sa app o makakuha ka ng bagong device.",
 		"action": "Matuto pa"
 	},
@@ -1587,15 +1587,15 @@
 		"submit_ticket_6": "dito.",
 		"submit_ticket_7": "Pakisama ang mensahe ng error at ang screenshot.",
 		"save_seedphrase_1": "Kung magpapatuloy ang error na ito,",
-		"save_seedphrase_2": "i-save ang iyong Secret Recovery Phrase",
-		"save_seedphrase_3": "at i-install ulit ang app. Paunawa: HINDI mo mare-restore ang iyong wallet nang wala ang iyong Secret Recovery Phrase.",
+		"save_seedphrase_2": "i-save ang iyong Lihim na Recovery Phrase",
+		"save_seedphrase_3": "at i-install ulit ang app. Paalala: HINDI mo mare-restore ang iyong wallet nang wala ang iyong Lihim na Recovery Phrase.",
 		"copied_clipboard": "Nakopya sa clipboard",
 		"ok": "OK"
 	},
 	"whats_new": {
 		"title": "Tingnan kung ano'ng bago",
 		"feature_security_settings_title": "Mga setting ng pinaigting na seguridad",
-		"feature_security_settings_text": "Puwede mo na ngayong baguhin ang password ng iyong MetaMask app at suriin kung paano iba-backup ang Secret Recovery Phrase ng iyong wallet mula sa Mga Setting > Seguridad at Pagkapribado.",
+		"feature_security_settings_text": "Puwede mo na ngayong baguhin ang password ng iyong MetaMask app at suriin kung paano iba-backup ang Lihim na Recovery Phrase ng iyong wallet mula sa Mga Setting > Seguridad at Pagkapribado.",
 		"feature_security_settings_button": "Tingnan sa Mga Setting"
 	},
 	"invalid_network": {
@@ -1635,5 +1635,10 @@
 	"media_player": {
 		"loading": "Nilo-load...",
 		"not_found": "Hindi nakita ang media"
+	},
+	"secret_phrase_video_subtitle": {
+		"title": "TL CC",
+		"language": "tl",
+		"uri": "https://github.com/MetaMask/metamask-mobile/blob/feature/secret_recovery_translations/app/videos/subtitles/subtitles-tl.vtt"
 	}
 }
