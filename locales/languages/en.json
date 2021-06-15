@@ -1640,5 +1640,15 @@
 		"title": "EN CC",
 		"language": "en",
 		"uri": "https://github.com/MetaMask/metamask-mobile/blob/feature/secret_recovery_translations/app/videos/subtitles/subtitles-en.vtt"
+	},
+	"edit_gas_fee_eip1559": {
+		"advanced_options": "Advanced Options",
+		"gas_limit": "Gas Limit",
+		"max_priority_fee": "Max priority fee",
+		"max_fee": "Max fee",
+		"estimate": "Estimate",
+		"recommended_gas_fee": "Recommended gas fee",
+		"swaps_warning": "Swaps are very time sensitive. “High” will help avoid potential loses due to changes in market conditions.",
+		"priority_fee_at_least_0_error": "Priority fee must be at least 1 GWEI"
 	}
 }
