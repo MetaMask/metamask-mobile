@@ -15,11 +15,24 @@ const styles = StyleSheet.create({
 	}
 });
 
-function MediaPlayer({ uri, style, onClose }) {
+function MediaPlayer({ uri, style, onClose, textTracks, selectedTextTrack }) {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(false);
 
-	const onLoad = () => setLoading(false);
+	const onLoad = e => {
+		console.log(textTracks);
+		e.textTracks = [
+			{
+				title: 'English',
+				language: 'en',
+				type: 'text/vtt',
+				uri:
+					'https://github.com/MetaMask/metamask-mobile/blob/feature/secret_recovery_translations/app/videos/subtitles/subtitles-en.vtt'
+			}
+		];
+		console.log(e);
+		setLoading(false);
+	};
 	const onError = () => setError(true);
 
 	return (
@@ -30,7 +43,14 @@ function MediaPlayer({ uri, style, onClose }) {
 				</View>
 			)}
 			{Device.isAndroid() ? (
-				<AndroidMediaPlayer onLoad={onLoad} onError={onError} onClose={onClose} source={{ uri }} />
+				<AndroidMediaPlayer
+					onLoad={onLoad}
+					onError={onError}
+					onClose={onClose}
+					source={{ uri }}
+					textTracks={textTracks}
+					selectedTextTrack={selectedTextTrack}
+				/>
 			) : (
 				<Video
 					onLoad={onLoad}
@@ -39,6 +59,16 @@ function MediaPlayer({ uri, style, onClose }) {
 					muted
 					source={{ uri }}
 					controls
+					textTracks={[
+						{
+							title: 'English',
+							language: 'en',
+							type: 'text/vtt',
+							uri:
+								'https://github.com/MetaMask/metamask-mobile/blob/feature/secret_recovery_translations/app/videos/subtitles/subtitles-en.vtt'
+						}
+					]}
+					selectedTextTrack={{ type: 'language', value: 'en' }}
 					ignoreSilentSwitch="ignore"
 				/>
 			)}
@@ -58,7 +88,15 @@ MediaPlayer.propTypes = {
 	/**
 	 * On close callback
 	 */
-	onClose: PropTypes.func
+	onClose: PropTypes.func,
+	/**
+	 * On close callback
+	 */
+	textTracks: PropTypes.arrayOf(PropTypes.object),
+	/**
+	 * On close callback
+	 */
+	selectedTextTrack: PropTypes.object
 };
 
 MediaPlayer.defaultProps = {

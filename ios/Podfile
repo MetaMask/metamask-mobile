@@ -4,6 +4,15 @@ require_relative '../node_modules/@react-native-community/cli-platform-ios/nativ
 platform :ios, '10.0'
 
 def react_native_post_install(installer)
+	installer.pods_project.targets.each do |target|
+		target.build_configurations.each do |config|
+		  # Set 9.0 as min version for all
+		  if Gem::Version.new('9.0') > Gem::Version.new(config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'])
+			config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '9.0'
+		  end
+		end
+	end
+
 	projects = installer.aggregate_targets
 	  .map{ |t| t.user_project }
 	  .uniq{ |p| p.path }

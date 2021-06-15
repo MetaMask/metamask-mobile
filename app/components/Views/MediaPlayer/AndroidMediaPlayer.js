@@ -279,13 +279,15 @@ export default function VideoPlayer({
 					toValue: animations.loader.MAX_VALUE,
 					duration: 1500,
 					easing: Easing.linear,
-					useNativeDriver: false
+					useNativeDriver: false,
+					isInteraction: false
 				}),
 				Animated.timing(animations.loader.rotate, {
 					toValue: 0,
 					duration: 0,
 					easing: Easing.linear,
-					useNativeDriver: false
+					useNativeDriver: false,
+					isInteraction: false
 				})
 			]).start(loadAnimation);
 		}
