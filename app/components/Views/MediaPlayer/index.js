@@ -20,17 +20,6 @@ function MediaPlayer({ uri, style, onClose, textTracks, selectedTextTrack }) {
 	const [error, setError] = useState(false);
 
 	const onLoad = e => {
-		console.log(textTracks);
-		e.textTracks = [
-			{
-				title: 'English',
-				language: 'en',
-				type: 'text/vtt',
-				uri:
-					'https://github.com/MetaMask/metamask-mobile/blob/feature/secret_recovery_translations/app/videos/subtitles/subtitles-en.vtt'
-			}
-		];
-		console.log(e);
 		setLoading(false);
 	};
 	const onError = () => setError(true);
@@ -48,8 +37,16 @@ function MediaPlayer({ uri, style, onClose, textTracks, selectedTextTrack }) {
 					onError={onError}
 					onClose={onClose}
 					source={{ uri }}
-					textTracks={textTracks}
-					selectedTextTrack={selectedTextTrack}
+					textTracks={[
+						{
+							title: 'English',
+							language: 'en',
+							type: 'text/vtt',
+							uri:
+								'https://github.com/MetaMask/metamask-mobile/blob/feature/secret_recovery_translations/app/videos/subtitles/subtitles-en.vtt'
+						}
+					]}
+					selectedTextTrack={{ type: 'language', value: 'en' }}
 				/>
 			) : (
 				<Video
