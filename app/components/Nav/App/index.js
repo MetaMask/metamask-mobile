@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { createAppContainer, createSwitchNavigator, NavigationActions } from 'react-navigation';
 
 import { createStackNavigator } from 'react-navigation-stack';
@@ -171,21 +171,11 @@ const AppNavigator = createSwitchNavigator(
 
 const AppContainer = createAppContainer(AppNavigator);
 
-class App extends PureComponent {
-	unsubscribeFromBranch;
+const App = () => {
+	const unsubscribeFromBranch = useRef();
+	const navigator = useRef();
 
-	componentDidMount = () => {
-		SharedDeeplinkManager.init({
-			navigate: (routeName, opts) => {
-				this.navigator.dispatch(NavigationActions.navigate({ routeName, params: opts }));
-			}
-		});
-		if (!this.unsubscribeFromBranch) {
-			this.unsubscribeFromBranch = Branch.subscribe(this.handleDeeplinks);
-		}
-	};
-
-	handleDeeplinks = () => ({
+	const handleDeeplinks = () => ({
 		// onOpenStart: ({ uri, cachedInitialEvent }) => {
 		// 	console.log(`Opening URI ${uri} ${cachedInitialEvent ? '[cached]' : ''}`);
 		// },
@@ -213,18 +203,18 @@ class App extends PureComponent {
 		}
 	});
 
-	componentWillUnmount = () => {
-		this.unsubscribeFromBranch && this.unsubscribeFromBranch();
-	};
+	useEffect(() => {
+		SharedDeeplinkManager.init({
+			navigate: (routeName, opts) => {
+				navigator.dispatch(NavigationActions.navigate({ routeName, params: opts }));
+			}
+		});
 
-	render() {
-		return (
-			<AppContainer
-				ref={nav => {
-					this.navigator = nav;
-				}}
-			/>
-		);
-	}
-}
+		unsubscribeFromBranch.current = Branch.subscribe(handleDeeplinks);
+
+		return () => unsubscribeFromBranch.current?.();
+	}, []);
+
+	return <AppContainer ref={navigator} />;
+};
 export default App;
