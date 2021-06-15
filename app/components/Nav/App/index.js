@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { createAppContainer, createSwitchNavigator, NavigationActions } from 'react-navigation';
 
 import { createStackNavigator } from 'react-navigation-stack';
@@ -26,7 +26,9 @@ import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
-import Branch from 'react-native-branch';
+// import Branch from 'react-native-branch';
+import { BranchSubscriber } from 'react-native-branch';
+
 import AppConstants from '../../../core/AppConstants';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 
@@ -175,15 +177,11 @@ const App = () => {
 	const unsubscribeFromBranch = useRef();
 	const navigator = useRef();
 
-	const handleDeeplinks = ({ error, params, uri }) => {
+	const handleDeeplink = useCallback(({ error, params, uri }) => {
 		if (error) {
-			if (error === 'Trouble reaching the Branch servers, please try again shortly.') {
-				trackErrorAsAnalytics(error, 'Branch: Trouble reaching servers');
-			} else {
-				trackErrorAsAnalytics(error, 'Deeplink: Error from Branch');
-			}
+			trackErrorAsAnalytics(error, 'Branch:');
 		}
-		const deeplink = params['+non_branch_link'] || uri || null;
+		const deeplink = params?.['+non_branch_link'] || uri || null;
 		try {
 			if (deeplink) {
 				const { KeyringController } = Engine.context;
@@ -195,7 +193,12 @@ const App = () => {
 		} catch (e) {
 			Logger.error(e, `Deeplink: Error parsing deeplink`);
 		}
-	};
+	}, []);
+
+	const branchSubscriber = new BranchSubscriber({
+		onOpenStart: opts => handleDeeplink(opts),
+		onOpenComplete: opts => handleDeeplink(opts)
+	});
 
 	useEffect(() => {
 		SharedDeeplinkManager.init({
@@ -204,10 +207,10 @@ const App = () => {
 			}
 		});
 
-		unsubscribeFromBranch.current = Branch.subscribe(handleDeeplinks);
+		unsubscribeFromBranch.current = branchSubscriber.subscribe();
 
 		return () => unsubscribeFromBranch.current?.();
-	}, []);
+	}, [branchSubscriber]);
 
 	return <AppContainer ref={navigator} />;
 };
