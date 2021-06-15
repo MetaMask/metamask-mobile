@@ -94,7 +94,7 @@ const RangeInput = ({
 	const textInput = useRef(null);
 
 	const handleClickUnit = useCallback(() => {
-		textInput.current.focus();
+		textInput?.current?.focus?.();
 	}, []);
 
 	const changeValue = useCallback(
@@ -134,7 +134,7 @@ const RangeInput = ({
 	}, [changeValue, max, min, value]);
 
 	useEffect(() => {
-		if (textInput?.current?.isFocused()) return;
+		if (textInput?.current?.isFocused?.()) return;
 		checkLimits();
 	}, [checkLimits]);
 
