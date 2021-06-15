@@ -37,16 +37,8 @@ function MediaPlayer({ uri, style, onClose, textTracks, selectedTextTrack }) {
 					onError={onError}
 					onClose={onClose}
 					source={{ uri }}
-					textTracks={[
-						{
-							title: 'English',
-							language: 'en',
-							type: 'text/vtt',
-							uri:
-								'https://github.com/MetaMask/metamask-mobile/blob/feature/secret_recovery_translations/app/videos/subtitles/subtitles-en.vtt'
-						}
-					]}
-					selectedTextTrack={{ type: 'language', value: 'en' }}
+					textTracks={textTracks}
+					selectedTextTrack={selectedTextTrack}
 				/>
 			) : (
 				<Video
@@ -56,16 +48,8 @@ function MediaPlayer({ uri, style, onClose, textTracks, selectedTextTrack }) {
 					muted
 					source={{ uri }}
 					controls
-					textTracks={[
-						{
-							title: 'English',
-							language: 'en',
-							type: 'text/vtt',
-							uri:
-								'https://github.com/MetaMask/metamask-mobile/blob/feature/secret_recovery_translations/app/videos/subtitles/subtitles-en.vtt'
-						}
-					]}
-					selectedTextTrack={{ type: 'language', value: 'en' }}
+					textTracks={textTracks}
+					selectedTextTrack={selectedTextTrack}
 					ignoreSilentSwitch="ignore"
 				/>
 			)}

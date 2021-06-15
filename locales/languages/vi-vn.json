@@ -1576,6 +1576,6 @@
 	"secret_phrase_video_subtitle": {
 		"title": "VI VN CC",
 		"language": "vi-vn",
-		"uri": "https://github.com/MetaMask/metamask-mobile/blob/feature/secret_recovery_translations/app/videos/subtitles/subtitles-vi-vn.vtt"
+		"uri": "https://github.com/MetaMask/metamask-mobile/blob/feature/secret_recovery_translations/app/videos/subtitles/subtitles-vi-vn.vtt?raw=true"
 	}
 }

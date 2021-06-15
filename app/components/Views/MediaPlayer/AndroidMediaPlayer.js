@@ -299,7 +299,6 @@ export default function VideoPlayer({
 	};
 
 	const onLoad = (data = {}) => {
-		console.log('Before', data);
 		propsOnLoad();
 		setDuration(data.duration);
 		setLoading(false);

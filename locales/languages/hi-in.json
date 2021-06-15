@@ -1576,6 +1576,6 @@
 	"secret_phrase_video_subtitle": {
 		"title": "HI IN CC",
 		"language": "hi-in",
-		"uri": "https://github.com/MetaMask/metamask-mobile/blob/feature/secret_recovery_translations/app/videos/subtitles/subtitles-hi-in.vtt"
+		"uri": "https://github.com/MetaMask/metamask-mobile/blob/feature/secret_recovery_translations/app/videos/subtitles/subtitles-hi-in.vtt?raw=true"
 	}
 }
