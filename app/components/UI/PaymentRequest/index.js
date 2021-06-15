@@ -28,7 +28,8 @@ import {
 	fiatNumberToTokenMinimalUnit,
 	renderFromTokenMinimalUnit,
 	fromTokenMinimalUnit,
-	toTokenMinimalUnit
+	toTokenMinimalUnit,
+	isHex
 } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -440,10 +441,9 @@ class PaymentRequest extends PureComponent {
 		const { selectedAsset } = this.state;
 		let secondaryAmount;
 		const symbol = selectedAsset.symbol;
-		const undefAmount = (isDecimal(amount) && amount) || 0;
+		const undefAmount = isDecimal(amount) && !isHex(amount) ? amount : 0;
 		const cryptoAmount = amount;
 		const exchangeRate = selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
-
 		if (selectedAsset.symbol !== 'ETH') {
 			secondaryAmount = exchangeRate
 				? balanceToFiat(undefAmount, conversionRate, exchangeRate, currentCurrency)
@@ -498,9 +498,9 @@ class PaymentRequest extends PureComponent {
 		// If primary currency is not crypo we need to know if there are conversion and exchange rates to handle0,
 		// fiat conversion for the payment request
 		if (internalPrimaryCurrency !== 'ETH' && conversionRate && (exchangeRate || selectedAsset.isETH)) {
-			res = this.handleFiatPrimaryCurrency(amount && amount.replace(',', '.'));
+			res = this.handleFiatPrimaryCurrency(amount?.replace(',', '.'));
 		} else {
-			res = this.handleETHPrimaryCurrency(amount && amount.replace(',', '.'));
+			res = this.handleETHPrimaryCurrency(amount?.replace(',', '.'));
 		}
 		const { cryptoAmount, symbol } = res;
 		if (amount && amount[0] === currencySymbol) amount = amount.substr(1);

@@ -287,6 +287,16 @@ export function isDecimal(value) {
 }
 
 /**
+ * Determines if a string is a valid hexadecimal
+ *
+ * @param {string} value - String to check
+ * @returns {boolean} - True if the string is a valid hexadecimal
+ */
+export function isHex(value) {
+	return value.match(/^0x[0-9a-f]+$/i);
+}
+
+/**
  * Creates a BN object from a string
  *
  * @param {string} value - Some numeric value represented as a string
