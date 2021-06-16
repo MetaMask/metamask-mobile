@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
 		width: OPTION_WIDTH
 	},
 	optionHalf: {
-		width: OPTION_WIDTH
+		width: OPTION_WIDTH / 2
 	},
 	circle: {
 		flexShrink: 0,
