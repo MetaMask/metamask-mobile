@@ -20,15 +20,17 @@ const styles = StyleSheet.create({
 
 const subtitle_source_tracks = [
 	{
+		index: 0,
 		title: strings('secret_phrase_video_subtitle.title'),
 		language: strings('secret_phrase_video_subtitle.language'),
 		type: TextTrackType.VTT,
-		uri: strings('secret_phrase_video_subtitle.uri')
+		uri:
+			'https://github.com/MetaMask/metamask-mobile/blob/feature/video_subtitles/app/videos/subtitles/subtitles-es.vtt?raw=true'
 	}
 ];
 
 const video_source_uri =
-	'https://github.com/MetaMask/metamask-mobile/blob/feature/secret_recovery_translations/app/videos/recovery-phrase.mp4?raw=true';
+	'https://github.com/MetaMask/metamask-mobile/blob/feature/video_subtitles/app/videos/recovery-phrase.mp4?raw=true';
 
 const SeedPhraseVideo = ({ style, onClose }) => (
 	<View style={styles.videoContainer}>
@@ -37,8 +39,7 @@ const SeedPhraseVideo = ({ style, onClose }) => (
 			uri={video_source_uri}
 			style={[styles.mediaPlayer, style]}
 			textTracks={subtitle_source_tracks}
-			selectedTextTrack={{ type: 'language', value: 'es' }}
-			// selectedTextTrack={{ type: 'language', value: strings('secret_phrase_video_subtitle.language') }}
+			selectedTextTrack={{ type: 'index', value: 0 }}
 		/>
 	</View>
 );
