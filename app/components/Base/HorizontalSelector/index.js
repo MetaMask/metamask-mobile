@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import Text from '../Text';
@@ -25,12 +25,6 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		flex: 0,
 		flexDirection: 'column'
-	},
-	optionFull: {
-		width: OPTION_WIDTH
-	},
-	optionHalf: {
-		width: OPTION_WIDTH / 2
 	},
 	circle: {
 		flexShrink: 0,
@@ -144,9 +138,10 @@ Option.propTypes = {
 };
 
 function HorizontalSelector({ options = [], selected, circleSize, onPress, disabled, ...props }) {
+	const hasTopLabels = useMemo(() => options.some(option => option.topLabel), [options]);
 	return (
 		<View {...props}>
-			{options.some(option => option.topLabel) && (
+			{hasTopLabels && (
 				<View style={styles.selector}>
 					{options.map(option =>
 						option.topLabel ? (
@@ -192,15 +187,9 @@ function HorizontalSelector({ options = [], selected, circleSize, onPress, disab
 				{options.map((option, index, array) => (
 					<>
 						<View style={[styles.lineFill, index !== 0 && styles.lineVisible]} />
-						<View key={option.name} style={[styles.lineHolder, styles.optionFull]}>
-							<View style={[styles.lineFill, styles.optionHalf, index !== 0 && styles.lineVisible]} />
-							<View
-								style={[
-									styles.lineFill,
-									styles.optionHalf,
-									index !== array.length - 1 && styles.lineVisible
-								]}
-							/>
+						<View style={[styles.lineHolder, styles.lineFill]}>
+							<View style={[styles.lineFill, index !== 0 && styles.lineVisible]} />
+							<View style={[styles.lineFill, index !== array.length - 1 && styles.lineVisible]} />
 						</View>
 						<View style={[styles.lineFill, index !== array.length - 1 && styles.lineVisible]} />
 					</>
