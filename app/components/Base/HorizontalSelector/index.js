@@ -219,18 +219,49 @@ function HorizontalSelector({ options = [], selected, circleSize, onPress, disab
 }
 
 HorizontalSelector.propTypes = {
+	/**
+	 * Array of options
+	 */
 	options: PropTypes.arrayOf(
 		PropTypes.shape({
+			/**
+			 * Label of the option. It can be a string, component or a render
+			 * function, which will be called with arguments (selected, disabled).
+			 */
 			label: PropTypes.oneOfType([PropTypes.element, PropTypes.string, PropTypes.node]),
+			/**
+			 * Top label of the option. It can be a string, component or a render function.
+			 */
 			topLabel: PropTypes.oneOfType([PropTypes.element, PropTypes.string, PropTypes.node]),
+			/**
+			 * Option name string, this is used as argument when calling the onPress function.
+			 */
 			name: PropTypes.string,
+			/**
+			 * Boolean value to determine whether if option is disabled or not.
+			 */
 			disabled: PropTypes.bool,
+			/**
+			 * Boolean value to determine if the option should represent an error
+			 */
 			error: PropTypes.bool
 		})
 	),
+	/**
+	 * Boolean value to determine whether the options are disabked or not.
+	 */
 	disabled: PropTypes.bool,
+	/**
+	 * Function that is called when pressing an option. The function is called with option.name argument.
+	 */
 	onPress: PropTypes.func,
+	/**
+	 * Size of the option circle
+	 */
 	circleSize: PropTypes.number,
+	/**
+	 * Current option name selected
+	 */
 	selected: PropTypes.string
 };
 
