@@ -322,12 +322,12 @@
 	},
 	"terms_and_conditions": {
 		"title": "Điều khoản và điều kiện",
-		"description": "By proceeding, you agree to these ",
+		"description": "Bằng việc tiếp tục, bạn đồng ý với các ",
 		"terms": "Điều khoản và điều kiện"
 	},
 	"privacy_policy": {
 		"title": "Chính sách quyền riêng tư",
-		"description": "This data is aggregated and is therefore anonymous for the purposes of General Data Protection Regulation (EU) 2016/679. For more information in relation to our privacy practices, please see our Privacy Policy",
+		"description": "Đây là dữ liệu tổng hợp, do đó ở trạng thái ẩn danh để phục vụ cho mục đích của Quy định chung về bảo vệ dữ liệu (Liên minh Châu Âu) 2016/679. Để biết thêm thông tin liên quan đến các phương thức bảo vệ quyền riêng tư của chúng tôi, vui lòng xem Chính sách quyền riêng tư của chúng tôi",
 		"here": "tại đây",
 		"agree": "Tôi đồng ý",
 		"decline": "Không, cảm ơn",

@@ -322,12 +322,12 @@
 	},
 	"terms_and_conditions": {
 		"title": "Términos y condiciones",
-		"description": "By proceeding, you agree to these ",
+		"description": "Si continúa, indica que está de acuerdo con estos ",
 		"terms": "Términos y condiciones"
 	},
 	"privacy_policy": {
 		"title": "Política de privacidad",
-		"description": "This data is aggregated and is therefore anonymous for the purposes of General Data Protection Regulation (EU) 2016/679. For more information in relation to our privacy practices, please see our Privacy Policy",
+		"description": "Estos datos son agregados y, por lo tanto, son anónimos para los fines del Reglamento General de Protección de Datos (UE) 2016/679. Para obtener más información relacionada con nuestras prácticas de seguridad, consulte la Política de privacidad.",
 		"here": "aquí",
 		"agree": "Acepto",
 		"decline": "No, gracias",

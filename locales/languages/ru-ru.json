@@ -322,12 +322,12 @@
 	},
 	"terms_and_conditions": {
 		"title": "Условия",
-		"description": "By proceeding, you agree to these ",
+		"description": "Продолжая, вы соглашаетесь с этой ",
 		"terms": "Условия"
 	},
 	"privacy_policy": {
 		"title": "Политика конфиденциальности",
-		"description": "This data is aggregated and is therefore anonymous for the purposes of General Data Protection Regulation (EU) 2016/679. For more information in relation to our privacy practices, please see our Privacy Policy",
+		"description": "Эти данные агрегированы и поэтому анонимны для целей Общего регламента по защите данных (ЕС) 2016/679. Для получения дополнительной информации о нашей политике конфиденциальности ознакомьтесь с нашей Политикой конфиденциальности",
 		"here": "здесь",
 		"agree": "Я согласен",
 		"decline": "Нет, спасибо",
@@ -570,7 +570,7 @@
 		"add_collectible_button": "Добавить",
 		"info": "Инфо",
 		"swap": "Своп",
-		"description": "Description",
+		"description": "Описание",
 		"totalSupply": "Общее предложение",
 		"address": "Адрес",
 		"were_unable": "Не удалось загрузить ваш",

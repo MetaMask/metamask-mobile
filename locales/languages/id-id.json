@@ -322,12 +322,12 @@
 	},
 	"terms_and_conditions": {
 		"title": "Syarat dan Ketentuan",
-		"description": "By proceeding, you agree to these ",
+		"description": "Dengan melanjutkan, Anda setuju dengan ",
 		"terms": "Syarat dan Ketentuan"
 	},
 	"privacy_policy": {
 		"title": "Kebijakan Privasi",
-		"description": "This data is aggregated and is therefore anonymous for the purposes of General Data Protection Regulation (EU) 2016/679. For more information in relation to our privacy practices, please see our Privacy Policy",
+		"description": "Data ini dikumpulkan dan oleh karenanya bersifat anonim untuk tujuan Peraturan Perlindungan Data Umum (General Data Protection Regulation/GDPR) (UE) 2016/679. Untuk informasi selengkapnya sehubungan dengan praktik privasi kami, lihat Kebijakan Privasi kami",
 		"here": "di sini",
 		"agree": "Saya Setuju",
 		"decline": "Tidak, Terima Kasih",
