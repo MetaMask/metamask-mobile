@@ -86,7 +86,6 @@ const styles = StyleSheet.create({
 	lineHolder: {
 		flexDirection: 'row',
 		alignItems: 'center',
-
 		borderWidth: 0
 	},
 	lineFill: {
