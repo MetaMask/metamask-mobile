@@ -28,8 +28,7 @@ import {
 	fiatNumberToTokenMinimalUnit,
 	renderFromTokenMinimalUnit,
 	fromTokenMinimalUnit,
-	toTokenMinimalUnit,
-	isHex
+	toTokenMinimalUnit
 } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -41,6 +40,7 @@ import currencySymbols from '../../../util/currency-symbols.json';
 import { NetworksChainId } from '@metamask/controllers';
 import { getTicker } from '../../../util/transactions';
 import { toLowerCaseCompare } from '../../../util/general';
+import { utils as ethersUtils } from 'ethers';
 
 const KEYBOARD_OFFSET = 120;
 const styles = StyleSheet.create({
@@ -441,7 +441,7 @@ class PaymentRequest extends PureComponent {
 		const { selectedAsset } = this.state;
 		let secondaryAmount;
 		const symbol = selectedAsset.symbol;
-		const undefAmount = isDecimal(amount) && !isHex(amount) ? amount : 0;
+		const undefAmount = isDecimal(amount) && !ethersUtils.isHexString(amount) ? amount : 0;
 		const cryptoAmount = amount;
 		const exchangeRate = selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
 		if (selectedAsset.symbol !== 'ETH') {
