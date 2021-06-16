@@ -285,7 +285,7 @@ class TransactionReviewFeeCard extends PureComponent {
 											link={showNativeCurrency}
 											underline={showNativeCurrency}
 											right
-											style={warningGasPriceHigh && styles.over}
+											style={(warningGasPriceHigh && styles.over) || null}
 										>
 											{primaryNetworkFee}
 										</Text>
