@@ -24,13 +24,12 @@ const subtitle_source_tracks = [
 		title: strings('secret_phrase_video_subtitle.title'),
 		language: strings('secret_phrase_video_subtitle.language'),
 		type: TextTrackType.VTT,
-		uri:
-			'https://github.com/MetaMask/metamask-mobile/blob/feature/video_subtitles/app/videos/subtitles/subtitles-es.vtt?raw=true'
+		uri: strings('secret_phrase_video_subtitle.uri')
 	}
 ];
 
 const video_source_uri =
-	'https://github.com/MetaMask/metamask-mobile/blob/feature/video_subtitles/app/videos/recovery-phrase.mp4?raw=true';
+	'https://github.com/MetaMask/metamask-mobile/blob/feature/video_subtitles/app/videos/secretPhrase/recovery-phrase.mp4?raw=true';
 
 const SeedPhraseVideo = ({ style, onClose }) => (
 	<View style={styles.videoContainer}>
