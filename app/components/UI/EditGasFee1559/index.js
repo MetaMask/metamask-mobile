@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from 'react';
+/* eslint-disable react/display-name */
+import React, { useCallback, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import Text from '../../Base/Text';
 import StyledButton from '../StyledButton';
@@ -9,6 +10,7 @@ import InfoModal from '../Swaps/components/InfoModal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../locales/i18n';
 import Alert from '../../Base/Alert';
+import HorizontalSelector from '../../Base/HorizontalSelector';
 
 const styles = StyleSheet.create({
 	root: {
@@ -81,6 +83,7 @@ const EditGasFee1559 = () => {
 	const [maxPriorityFeeError, setMaxPriorityFeeError] = useState(null);
 	const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
 	const [warning, setWarning] = useState(null);
+	const [selectedOption, setSelectedOption] = useState(null);
 
 	const toggleRangeInfoModal = useCallback(() => {
 		setShowRangeInfoModal(showRangeInfoModal => !showRangeInfoModal);
@@ -142,7 +145,44 @@ const EditGasFee1559 = () => {
 				<Text red>Unknown processing time</Text>
 			</View>
 			<View>
-				<Text>SELECTOR</Text>
+				{/* TODO: hook with controller, add strings i18n */}
+				<HorizontalSelector
+					selected={selectedOption}
+					onPress={setSelectedOption}
+					options={[
+						{
+							name: 'lower',
+							disabled: true,
+							label: <Text bold>Lower</Text>
+						},
+						{
+							name: 'medium',
+							label: (selected, disabled) => (
+								<Text bold primary={selected && !disabled}>
+									Medium
+								</Text>
+							)
+						},
+
+						{
+							name: 'high',
+							error: true,
+							label: (selected, disabled) => (
+								<Text bold primary={selected && !disabled}>
+									Higher
+								</Text>
+							),
+							topLabel: (
+								<TouchableOpacity onPress={toggleRangeInfoModal}>
+									<Text noMargin link bold small centered>
+										Recommended{' '}
+										<MaterialCommunityIcon name="information" size={14} style={styles.labelInfo} />
+									</Text>
+								</TouchableOpacity>
+							)
+						}
+					]}
+				/>
 			</View>
 			<View style={styles.advancedOptionsContainer}>
 				<TouchableOpacity onPress={toggleAdvancedOptions} style={styles.advancedOptionsButton}>
