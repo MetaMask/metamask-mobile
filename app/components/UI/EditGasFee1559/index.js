@@ -17,7 +17,8 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 24
 	},
 	headerContainer: {
-		alignItems: 'center'
+		alignItems: 'center',
+		marginBottom: 22
 	},
 	headerText: {
 		fontSize: 48
@@ -45,11 +46,11 @@ const styles = StyleSheet.create({
 		color: colors.grey200
 	},
 	advancedOptionsContainer: {
-		marginTop: 20,
+		marginTop: 25,
 		marginBottom: 45
 	},
 	advancedOptionsInputsContainer: {
-		marginTop: 20
+		marginTop: 14
 	},
 	rangeInputContainer: {
 		marginBottom: 20
