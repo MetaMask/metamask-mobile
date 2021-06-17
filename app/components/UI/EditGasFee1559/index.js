@@ -8,6 +8,7 @@ import { colors } from '../../../styles/common';
 import InfoModal from '../Swaps/components/InfoModal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../locales/i18n';
+import Alert from '../../Base/Alert';
 
 const styles = StyleSheet.create({
 	root: {
@@ -59,6 +60,18 @@ const styles = StyleSheet.create({
 	advancedOptionsIcon: {
 		paddingTop: 1,
 		marginLeft: 5
+	},
+	learnMoreLabels: {
+		marginTop: 9
+	},
+	learnMoreLink: {
+		marginTop: 14
+	},
+	warningTextContainer: {
+		lineHeight: 20
+	},
+	warningText: {
+		lineHeight: 20
 	}
 });
 
@@ -66,6 +79,8 @@ const EditGasFee1559 = () => {
 	const [showRangeInfoModal, setShowRangeInfoModal] = useState(false);
 	const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
 	const [maxPriorityFeeError, setMaxPriorityFeeError] = useState(null);
+	const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
+	const [warning, setWarning] = useState(null);
 
 	const toggleRangeInfoModal = useCallback(() => {
 		setShowRangeInfoModal(showRangeInfoModal => !showRangeInfoModal);
@@ -73,6 +88,16 @@ const EditGasFee1559 = () => {
 
 	const toggleAdvancedOptions = useCallback(() => {
 		setShowAdvancedOptions(showAdvancedOptions => !showAdvancedOptions);
+	}, []);
+
+	const toggleLearnMoreModal = useCallback(() => {
+		setShowLearnMoreModal(showLearnMoreModal => !showLearnMoreModal);
+	}, []);
+
+	// TODO: Use this function where it's appropriate
+	// eslint-disable-next-line no-unused-vars
+	const showWarning = useCallback(warningMessage => {
+		setWarning(warningMessage);
 	}, []);
 
 	const changedMaxPriorityFee = useCallback(value => {
@@ -84,6 +109,21 @@ const EditGasFee1559 = () => {
 
 	return (
 		<View style={styles.root}>
+			{!!warning && (
+				<Alert
+					small
+					type="warning"
+					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.yellow} />}
+				>
+					<View style={styles.warningTextContainer}>
+						<Text black style={styles.warningText}>
+							{warning}
+						</Text>
+					</View>
+				</Alert>
+			)}
+
+			{/* TODO: Put the right values and message on the header */}
 			<View style={styles.headerContainer}>
 				<View style={styles.headerTitle}>
 					<View style={styles.headerTitleSide}>
@@ -207,12 +247,12 @@ const EditGasFee1559 = () => {
 				)}
 			</View>
 			<View>
-				<TouchableOpacity style={styles.saveButton}>
+				<TouchableOpacity style={styles.saveButton} onPress={toggleLearnMoreModal}>
 					<Text link centered>
-						How should I choose?
+						{strings('edit_gas_fee_eip1559.learn_more.title')}
 					</Text>
 				</TouchableOpacity>
-				<StyledButton type={'confirm'}>Save</StyledButton>
+				<StyledButton type={'confirm'}>{strings('edit_gas_fee_eip1559.save')}</StyledButton>
 			</View>
 			<InfoModal
 				isVisible={showRangeInfoModal}
@@ -223,6 +263,41 @@ const EditGasFee1559 = () => {
 						<Text grey infoModal>
 							{strings('edit_gas_fee_eip1559.swaps_warning')}
 						</Text>
+					</View>
+				}
+			/>
+			<InfoModal
+				isVisible={showLearnMoreModal}
+				title={strings('edit_gas_fee_eip1559.learn_more.title')}
+				toggleModal={toggleLearnMoreModal}
+				body={
+					<View>
+						<Text noMargin grey infoModal>
+							{strings('edit_gas_fee_eip1559.learn_more.intro')}
+						</Text>
+						<Text noMargin primary infoModal bold style={styles.learnMoreLabels}>
+							{strings('edit_gas_fee_eip1559.learn_more.high_label')}
+						</Text>
+						<Text noMargin grey infoModal>
+							{strings('edit_gas_fee_eip1559.learn_more.high_text')}
+						</Text>
+						<Text noMargin primary infoModal bold style={styles.learnMoreLabels}>
+							{strings('edit_gas_fee_eip1559.learn_more.medium_label')}
+						</Text>
+						<Text noMargin grey infoModal>
+							{strings('edit_gas_fee_eip1559.learn_more.medium_text')}
+						</Text>
+						<Text noMargin primary infoModal bold style={styles.learnMoreLabels}>
+							{strings('edit_gas_fee_eip1559.learn_more.low_label')}
+						</Text>
+						<Text noMargin grey infoModal>
+							{strings('edit_gas_fee_eip1559.learn_more.low_text')}
+						</Text>
+						<TouchableOpacity style={styles.learnMoreLink}>
+							<Text grey infoModal link>
+								{strings('edit_gas_fee_eip1559.learn_more.link')}
+							</Text>
+						</TouchableOpacity>
 					</View>
 				}
 			/>
