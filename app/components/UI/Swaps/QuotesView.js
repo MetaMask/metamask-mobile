@@ -246,6 +246,17 @@ const gasLimitWithMultiplier = (gasLimit, multiplier) => {
 	return new BigNumber(gasLimit).times(multiplier).integerValue();
 };
 
+async function addTokenToAssetsController(newToken) {
+	const { AssetsController } = Engine.context;
+	if (
+		!isSwapsNativeAsset(newToken) &&
+		!AssetsController.state.tokens.includes(token => toLowerCaseCompare(token.address, newToken.address))
+	) {
+		const { address, symbol, decimals } = newToken;
+		await AssetsController.addToken(address, symbol, decimals);
+	}
+}
+
 function SwapsQuotesView({
 	swapsTokens,
 	accounts,
@@ -548,7 +559,7 @@ function SwapsQuotesView({
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAP_STARTED, parameters, true);
 		});
 
-		const { TransactionController, AssetsController } = Engine.context;
+		const { TransactionController } = Engine.context;
 		const newSwapsTransactions = TransactionController.state.swapsTransactions || {};
 		let approvalTransactionMetaId;
 		if (approvalTransaction) {
@@ -580,23 +591,8 @@ function SwapsQuotesView({
 				WalletDevice.MM_MOBILE
 			);
 			updateSwapsTransactions(transactionMeta, approvalTransactionMetaId, newSwapsTransactions);
-
-			if (
-				!isSwapsNativeAsset(destinationToken) &&
-				!AssetsController.state.tokens.includes(token =>
-					toLowerCaseCompare(token.address, destinationToken.address)
-				)
-			) {
-				const { address, symbol, decimals } = destinationToken;
-				await AssetsController.addToken(address, symbol, decimals);
-			}
-			if (
-				!isSwapsNativeAsset(sourceToken) &&
-				!AssetsController.state.tokens.includes(token => toLowerCaseCompare(token.address, sourceToken.address))
-			) {
-				const { address, symbol, decimals } = sourceToken;
-				await AssetsController.addToken(address, symbol, decimals);
-			}
+			await addTokenToAssetsController(destinationToken);
+			await addTokenToAssetsController(sourceToken);
 		} catch (e) {
 			// send analytics
 		}
