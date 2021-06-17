@@ -2,17 +2,35 @@
 import React, { useCallback, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import Text from '../../Base/Text';
+import StyledButton from '../StyledButton';
 import RangeInput from '../../Base/RangeInput';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors } from '../../../styles/common';
 import InfoModal from '../Swaps/components/InfoModal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../locales/i18n';
+import Alert from '../../Base/Alert';
 import HorizontalSelector from '../../Base/HorizontalSelector';
 
 const styles = StyleSheet.create({
 	root: {
 		paddingHorizontal: 24
+	},
+	headerContainer: {
+		alignItems: 'center',
+		marginBottom: 22
+	},
+	headerText: {
+		fontSize: 48
+	},
+	headerTitle: {
+		flexDirection: 'row'
+	},
+	headerTitleSide: {
+		flex: 1
+	},
+	saveButton: {
+		marginBottom: 20
 	},
 	labelTextContainer: {
 		flexDirection: 'row',
@@ -28,11 +46,11 @@ const styles = StyleSheet.create({
 		color: colors.grey200
 	},
 	advancedOptionsContainer: {
-		marginTop: 20,
+		marginTop: 25,
 		marginBottom: 45
 	},
 	advancedOptionsInputsContainer: {
-		marginTop: 20
+		marginTop: 14
 	},
 	rangeInputContainer: {
 		marginBottom: 20
@@ -45,6 +63,18 @@ const styles = StyleSheet.create({
 	advancedOptionsIcon: {
 		paddingTop: 1,
 		marginLeft: 5
+	},
+	learnMoreLabels: {
+		marginTop: 9
+	},
+	learnMoreLink: {
+		marginTop: 14
+	},
+	warningTextContainer: {
+		lineHeight: 20
+	},
+	warningText: {
+		lineHeight: 20
 	}
 });
 
@@ -52,6 +82,8 @@ const EditGasFee1559 = () => {
 	const [showRangeInfoModal, setShowRangeInfoModal] = useState(false);
 	const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
 	const [maxPriorityFeeError, setMaxPriorityFeeError] = useState(null);
+	const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
+	const [warning, setWarning] = useState(null);
 	const [selectedOption, setSelectedOption] = useState(null);
 
 	const toggleRangeInfoModal = useCallback(() => {
@@ -60,6 +92,16 @@ const EditGasFee1559 = () => {
 
 	const toggleAdvancedOptions = useCallback(() => {
 		setShowAdvancedOptions(showAdvancedOptions => !showAdvancedOptions);
+	}, []);
+
+	const toggleLearnMoreModal = useCallback(() => {
+		setShowLearnMoreModal(showLearnMoreModal => !showLearnMoreModal);
+	}, []);
+
+	// TODO: Use this function where it's appropriate
+	// eslint-disable-next-line no-unused-vars
+	const showWarning = useCallback(warningMessage => {
+		setWarning(warningMessage);
 	}, []);
 
 	const changedMaxPriorityFee = useCallback(value => {
@@ -71,11 +113,39 @@ const EditGasFee1559 = () => {
 
 	return (
 		<View style={styles.root}>
-			<View>
-				<Text>HEADER</Text>
+			{!!warning && (
+				<Alert
+					small
+					type="warning"
+					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.yellow} />}
+				>
+					<View style={styles.warningTextContainer}>
+						<Text black style={styles.warningText}>
+							{warning}
+						</Text>
+					</View>
+				</Alert>
+			)}
+
+			{/* TODO: Put the right values and message on the header */}
+			<View style={styles.headerContainer}>
+				<View style={styles.headerTitle}>
+					<View style={styles.headerTitleSide}>
+						<Text right black style={styles.headerText}>
+							~
+						</Text>
+					</View>
+					<Text black style={styles.headerText}>
+						$6.32
+					</Text>
+					<View style={styles.headerTitleSide} />
+				</View>
+				<Text big black>
+					Up to <Text bold>$6.32</Text>
+				</Text>
+				<Text red>Unknown processing time</Text>
 			</View>
 			<View>
-				<Text>SELECTOR</Text>
 				{/* TODO: hook with controller, add strings i18n */}
 				<HorizontalSelector
 					selected={selectedOption}
@@ -218,7 +288,12 @@ const EditGasFee1559 = () => {
 				)}
 			</View>
 			<View>
-				<Text>SAVE BUTTON</Text>
+				<TouchableOpacity style={styles.saveButton} onPress={toggleLearnMoreModal}>
+					<Text link centered>
+						{strings('edit_gas_fee_eip1559.learn_more.title')}
+					</Text>
+				</TouchableOpacity>
+				<StyledButton type={'confirm'}>{strings('edit_gas_fee_eip1559.save')}</StyledButton>
 			</View>
 			<InfoModal
 				isVisible={showRangeInfoModal}
@@ -229,6 +304,41 @@ const EditGasFee1559 = () => {
 						<Text grey infoModal>
 							{strings('edit_gas_fee_eip1559.swaps_warning')}
 						</Text>
+					</View>
+				}
+			/>
+			<InfoModal
+				isVisible={showLearnMoreModal}
+				title={strings('edit_gas_fee_eip1559.learn_more.title')}
+				toggleModal={toggleLearnMoreModal}
+				body={
+					<View>
+						<Text noMargin grey infoModal>
+							{strings('edit_gas_fee_eip1559.learn_more.intro')}
+						</Text>
+						<Text noMargin primary infoModal bold style={styles.learnMoreLabels}>
+							{strings('edit_gas_fee_eip1559.learn_more.high_label')}
+						</Text>
+						<Text noMargin grey infoModal>
+							{strings('edit_gas_fee_eip1559.learn_more.high_text')}
+						</Text>
+						<Text noMargin primary infoModal bold style={styles.learnMoreLabels}>
+							{strings('edit_gas_fee_eip1559.learn_more.medium_label')}
+						</Text>
+						<Text noMargin grey infoModal>
+							{strings('edit_gas_fee_eip1559.learn_more.medium_text')}
+						</Text>
+						<Text noMargin primary infoModal bold style={styles.learnMoreLabels}>
+							{strings('edit_gas_fee_eip1559.learn_more.low_label')}
+						</Text>
+						<Text noMargin grey infoModal>
+							{strings('edit_gas_fee_eip1559.learn_more.low_text')}
+						</Text>
+						<TouchableOpacity style={styles.learnMoreLink}>
+							<Text grey infoModal link>
+								{strings('edit_gas_fee_eip1559.learn_more.link')}
+							</Text>
+						</TouchableOpacity>
 					</View>
 				}
 			/>
