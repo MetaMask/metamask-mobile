@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-const foxImage = require('../../../images/fox.png'); // eslint-disable-line import/no-commonjs
+const foxImage = require('../../../images/astrodog.png'); // eslint-disable-line import/no-commonjs
 
 /**
  * View component that displays the MetaMask fox

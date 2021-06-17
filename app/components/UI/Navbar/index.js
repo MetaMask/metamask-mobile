@@ -40,6 +40,7 @@ const styles = StyleSheet.create({
 		marginRight: 12,
 		marginBottom: 12
 	},
+	titleText: { fontSize: 21, textTransform: 'uppercase', letterSpacing: 2 },
 	metamaskName: {
 		width: 122,
 		height: 15
@@ -144,7 +145,7 @@ const styles = StyleSheet.create({
 });
 
 const metamask_name = require('../../../images/metamask-name.png'); // eslint-disable-line
-const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
+const metamask_fox = require('../../../images/astrodog.png'); // eslint-disable-line
 /**
  * Function that returns the navigation options
  * This is used by views that will show our custom navbar
@@ -519,7 +520,7 @@ export function getOnboardingNavbarOptions(navigation, { headerLeft } = {}) {
 		},
 		headerTitle: (
 			<View style={styles.metamaskNameTransparentWrapper}>
-				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+				<Text style={styles.titleText}>Sensō Inu</Text>
 			</View>
 		),
 		headerBackTitle: strings('navigation.back'),
@@ -538,7 +539,7 @@ export function getTransparentOnboardingNavbarOptions() {
 		headerTransparent: true,
 		headerTitle: (
 			<View style={styles.metamaskNameTransparentWrapper}>
-				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+				<Text style={styles.titleText}>Sensō Inu</Text>
 			</View>
 		),
 		headerLeft: <View />,
@@ -556,7 +557,7 @@ export function getTransparentBackOnboardingNavbarOptions() {
 		headerTransparent: true,
 		headerTitle: (
 			<View style={styles.metamaskNameTransparentWrapper}>
-				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+				<Text style={styles.titleText}>Sensō Inu</Text>
 			</View>
 		),
 		headerBackTitle: strings('navigation.back'),
@@ -585,7 +586,7 @@ export function getOptinMetricsNavbarOptions() {
 					<Image source={metamask_fox} style={styles.metamaskFox} resizeMethod={'auto'} />
 				</View>
 				<View style={styles.metamaskNameWrapper}>
-					<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+					<Text style={styles.titleText}>Sensō Inu</Text>
 				</View>
 			</View>
 		)

@@ -13,7 +13,7 @@ exports[`PhishingModal should render correctly 1`] = `
     resizeMethod="auto"
     source={
       Object {
-        "testUri": "../../../app/images/fox.png",
+        "testUri": "../../../app/images/astrodog.png",
       }
     }
     style={

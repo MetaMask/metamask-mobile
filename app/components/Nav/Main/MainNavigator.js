@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, StyleSheet } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import { createStackNavigator } from 'react-navigation-stack';
 import { createBottomTabNavigator } from 'react-navigation-tabs';
 import Browser from '../../Views/Browser';
@@ -52,10 +52,15 @@ import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import GasEducationCarousel from '../../Views/GasEducationCarousel';
 
 const styles = StyleSheet.create({
-	headerLogo: {
-		width: 125,
-		height: 50
+	text: {
+		fontSize: 21,
+		textTransform: 'uppercase',
+		letterSpacing: 2
 	}
+	// headerLogo: {
+	// 	width: 125,
+	// 	height: 50
+	// }
 });
 /**
  * Navigator component that wraps
@@ -299,13 +304,7 @@ export default createStackNavigator(
 				{
 					defaultNavigationOptions: {
 						// eslint-disable-next-line
-						headerTitle: () => (
-							<Image
-								style={styles.headerLogo}
-								source={require('../../../images/metamask-name.png')}
-								resizeMode={'contain'}
-							/>
-						),
+						headerTitle: () => <Text style={styles.text}>Sensō Inu</Text>,
 						headerStyle: {
 							borderBottomWidth: 0
 						}

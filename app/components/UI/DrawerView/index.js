@@ -66,11 +66,12 @@ const styles = StyleSheet.create({
 		width: 27,
 		marginRight: 15
 	},
-	metamaskName: {
-		marginTop: 4,
-		width: 90,
-		height: 18
-	},
+	titletext: { fontSize: 21, textTransform: 'uppercase', letterSpacing: 2 },
+	// metamaskName: {
+	// 	marginTop: 4,
+	// 	width: 90,
+	// 	height: 18
+	// },
 	account: {
 		flex: 1,
 		backgroundColor: colors.grey000
@@ -257,7 +258,7 @@ const styles = StyleSheet.create({
 });
 
 const metamask_name = require('../../../images/metamask-name.png'); // eslint-disable-line
-const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
+const metamask_fox = require('../../../images/astrodog.png'); // eslint-disable-line
 const ICON_IMAGES = {
 	wallet: require('../../../images/wallet-icon.png'),
 	'selected-wallet': require('../../../images/selected-wallet-icon.png')
@@ -851,7 +852,7 @@ class DrawerView extends PureComponent {
 					<View style={styles.header}>
 						<View style={styles.metamaskLogo}>
 							<Image source={metamask_fox} style={styles.metamaskFox} resizeMethod={'auto'} />
-							<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+							<Text style={styles.titletext}>Sensō Inu</Text>
 						</View>
 					</View>
 					<View style={styles.account}>

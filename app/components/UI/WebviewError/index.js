@@ -85,7 +85,11 @@ export default class WebviewError extends PureComponent {
 			<View style={styles.wrapper}>
 				<View style={styles.foxWrapper}>
 					{Device.isAndroid() ? (
-						<Image source={require('../../../images/fox.png')} style={styles.image} resizeMethod={'auto'} />
+						<Image
+							source={require('../../../images/astrodog.png')}
+							style={styles.image}
+							resizeMethod={'auto'}
+						/>
 					) : (
 						<AnimatedFox />
 					)}
