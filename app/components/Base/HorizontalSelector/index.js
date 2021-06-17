@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { Fragment, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import Text from '../Text';
@@ -26,7 +26,9 @@ const styles = StyleSheet.create({
 		flex: 0,
 		flexDirection: 'column'
 	},
-	circle: {
+	circle: size => ({
+		width: size,
+		height: size,
 		flexShrink: 0,
 		flexGrow: 0,
 		display: 'flex',
@@ -35,7 +37,7 @@ const styles = StyleSheet.create({
 		borderWidth: 2,
 		borderRadius: 9999,
 		borderColor: colors.grey200
-	},
+	}),
 	circleSelected: {
 		borderColor: colors.blue
 	},
@@ -45,12 +47,14 @@ const styles = StyleSheet.create({
 	circleDisabled: {
 		opacity: 0.4
 	},
-	innerCircle: {
+	innerCircle: size => ({
+		width: size * INNER_CIRCLE_SCALE,
+		height: size * INNER_CIRCLE_SCALE,
 		flexShrink: 0,
 		flexGrow: 0,
 		backgroundColor: colors.blue,
 		borderRadius: 999
-	},
+	}),
 	innerCircleError: {
 		backgroundColor: colors.red
 	},
@@ -101,17 +105,16 @@ function Circle({ size = 22, selected, disabled, error }) {
 	return (
 		<View
 			style={[
-				styles.circle,
+				styles.circle(size),
 				selected && styles.circleSelected,
 				selected && error && styles.circleError,
-				disabled && styles.circleDisabled,
-				{ width: size, height: size }
+				disabled && styles.circleDisabled
 			]}
 		>
 			{selected && (
 				<View
 					style={[
-						styles.innerCircle,
+						styles.innerCircle(size),
 						selected && error && styles.innerCircleError,
 						{ width: size * INNER_CIRCLE_SCALE, height: size * INNER_CIRCLE_SCALE }
 					]}
@@ -145,7 +148,7 @@ function HorizontalSelector({ options = [], selected, circleSize, onPress, disab
 				<View style={styles.selector}>
 					{options.map(option =>
 						option.topLabel ? (
-							<View style={styles.option}>
+							<View key={option.name} style={styles.option}>
 								{typeof option.topLabel === 'string' ? (
 									<Text noMargin bold link small centered>
 										{option.topLabel}
@@ -158,7 +161,7 @@ function HorizontalSelector({ options = [], selected, circleSize, onPress, disab
 								<View style={styles.topVerticalLine} />
 							</View>
 						) : (
-							<View style={styles.option} />
+							<View key={option.name} style={styles.option} />
 						)
 					)}
 				</View>
@@ -185,14 +188,14 @@ function HorizontalSelector({ options = [], selected, circleSize, onPress, disab
 			</View>
 			<View style={styles.line}>
 				{options.map((option, index, array) => (
-					<>
+					<Fragment key={option.name}>
 						<View style={[styles.lineFill, index !== 0 && styles.lineVisible]} />
 						<View style={[styles.lineHolder, styles.lineFill]}>
 							<View style={[styles.lineFill, index !== 0 && styles.lineVisible]} />
 							<View style={[styles.lineFill, index !== array.length - 1 && styles.lineVisible]} />
 						</View>
 						<View style={[styles.lineFill, index !== array.length - 1 && styles.lineVisible]} />
-					</>
+					</Fragment>
 				))}
 			</View>
 			<View style={styles.labels}>
@@ -228,11 +231,11 @@ HorizontalSelector.propTypes = {
 			 * Label of the option. It can be a string, component or a render
 			 * function, which will be called with arguments (selected, disabled).
 			 */
-			label: PropTypes.oneOfType([PropTypes.element, PropTypes.string, PropTypes.node]),
+			label: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 			/**
 			 * Top label of the option. It can be a string, component or a render function.
 			 */
-			topLabel: PropTypes.oneOfType([PropTypes.element, PropTypes.string, PropTypes.node]),
+			topLabel: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 			/**
 			 * Option name string, this is used as argument when calling the onPress function.
 			 */
