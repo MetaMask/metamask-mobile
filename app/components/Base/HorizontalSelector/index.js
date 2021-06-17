@@ -5,7 +5,7 @@ import Text from '../Text';
 import { colors } from '../../../styles/common';
 
 const INNER_CIRCLE_SCALE = 0.445;
-const OPTION_WIDTH = 120;
+const OPTION_WIDTH = 110;
 const styles = StyleSheet.create({
 	selector: {
 		display: 'flex',
@@ -94,10 +94,10 @@ const styles = StyleSheet.create({
 		borderColor: colors.grey200
 	},
 	circleHitSlop: {
-		top: 10,
-		bottom: 10,
-		left: 10,
-		right: 10
+		top: 0,
+		bottom: 20,
+		left: 0,
+		right: 0
 	}
 });
 

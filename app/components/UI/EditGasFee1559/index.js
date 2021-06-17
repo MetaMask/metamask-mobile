@@ -94,17 +94,9 @@ const EditGasFee1559 = () => {
 								</Text>
 							)
 						},
+
 						{
 							name: 'high',
-							error: true,
-							label: (selected, disabled) => (
-								<Text bold primary={selected && !disabled}>
-									High
-								</Text>
-							)
-						},
-						{
-							name: 'higher',
 							error: true,
 							label: (selected, disabled) => (
 								<Text bold primary={selected && !disabled}>
