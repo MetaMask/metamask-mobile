@@ -6,7 +6,8 @@ const initialState = {
 	passwordSet: false,
 	seedphraseBackedUp: false,
 	backUpSeedphraseVisible: false,
-	protectWalletModalVisible: false
+	protectWalletModalVisible: false,
+	gasEducationCarouselSeen: false
 };
 
 const userReducer = (state = initialState, action) => {
@@ -71,6 +72,11 @@ const userReducer = (state = initialState, action) => {
 			return {
 				...state,
 				protectWalletModalVisible: false
+			};
+		case 'SET_GAS_EDUCATION_CAROUSEL_SEEN':
+			return {
+				...state,
+				gasEducationCarouselSeen: true
 			};
 		default:
 			return state;

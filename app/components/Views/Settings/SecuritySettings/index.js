@@ -61,6 +61,9 @@ const styles = StyleSheet.create({
 		fontSize: 20,
 		lineHeight: 20
 	},
+	bump: {
+		marginBottom: 10
+	},
 	heading: {
 		fontSize: 24,
 		lineHeight: 30,
@@ -142,9 +145,6 @@ const styles = StyleSheet.create({
 	},
 	viewHint: {
 		padding: 5
-	},
-	seedPhraseVideo: {
-		marginTop: 10
 	}
 });
 
@@ -506,6 +506,8 @@ class Settings extends PureComponent {
 		);
 	};
 
+	onBack = () => this.props.navigation.goBack();
+
 	render = () => {
 		const { approvedHosts, seedphraseBackedUp, browserHistory, privacyMode, thirdPartyApiMode } = this.props;
 		const {
@@ -532,15 +534,15 @@ class Settings extends PureComponent {
 				<View style={styles.inner}>
 					<Heading first>{strings('app_settings.security_heading')}</Heading>
 					<View style={[styles.setting, styles.firstSetting]}>
-						<Text style={styles.title}>
+						<Text style={[styles.title, styles.bump]}>
 							{!seedphraseBackedUp ? (
 								<>
 									<WarningIcon />{' '}
 								</>
 							) : null}
-							<Text style={styles.title}>{strings('app_settings.protect_title')}</Text>
+							<Text style={[styles.title, styles.bump]}>{strings('app_settings.protect_title')}</Text>
 						</Text>
-						<SeedPhraseVideo style={styles.seedPhraseVideo} />
+						<SeedPhraseVideo onClose={this.onBack} />
 						<Text style={styles.desc}>{strings('app_settings.protect_desc')}</Text>
 						<SettingsNotification isWarning={!seedphraseBackedUp}>
 							<Text

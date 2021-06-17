@@ -86,7 +86,7 @@ jobs:
   test-e2e-ios:
     <<: *defaults
     macos:
-      xcode: 12.0.0
+      xcode: 12.5.0
     steps:
       - checkout
       - attach_workspace:
@@ -158,7 +158,7 @@ jobs:
           command: yarn build:announce
   publish-pre-release-ios:
     macos:
-      xcode: 12.0.0
+      xcode: 12.5.0
     working_directory:  ~/MetaMask
     environment:
       FL_OUTPUT_DIR: output
@@ -195,43 +195,15 @@ jobs:
 workflows:
   full_test:
     jobs:
-      - test-deps:
-          requires:
-            - prep-node-deps
       - prep-deps:
           filters:
             branches:
               only:
                 - main
                 - develop
-      - prep-node-deps:
-          filters:
-            branches:
-              ignore:
-                - main
-                - develop
-      - lint:
-          requires:
-            - prep-node-deps
-      - test-unit:
-          requires:
-            - prep-node-deps
-    #   - test-e2e-ios:
-    #       requires:
-    #         - prep-node-deps
-    #         - test-unit
-      - all-tests-pass:
-          requires:
-            - test-deps
-            - lint
-            - test-unit
-    #       - test-e2e-ios
-    #   - upload-coverage:
-    #       requires:
-    #         - test-unit
       - publish-pre-release-ios:
           requires:
             - prep-deps
       - publish-pre-release-android:
           requires:
-            - publish-pre-release-ios
+            - prep-deps
