@@ -1649,6 +1649,18 @@
 		"estimate": "Estimate",
 		"recommended_gas_fee": "Recommended gas fee",
 		"swaps_warning": "Swaps are very time sensitive. “High” will help avoid potential loses due to changes in market conditions.",
-		"priority_fee_at_least_0_error": "Priority fee must be at least 1 GWEI"
+		"priority_fee_at_least_0_error": "Priority fee must be at least 1 GWEI",
+		"learn_more": {
+			"title": "How should I choose?",
+			"intro": "The right gas amount to select depends on the type of transaction and how important it is.",
+			"high_label": "High",
+			"high_text": "This is best for swaps or other time sensitive transactions. If a swap takes too long to process it will often fail and you may lose funds.",
+			"medium_label": "Medium",
+			"medium_text": "A medium gas fee is good for sending, withdrawing or other non-time sensitive but important transactions.",
+			"low_label": "Low",
+			"low_text": "A lower gas fee should only be selected for transactions where processing time is less important. With a lower fee, it can be be hard to predict when (or if) your transaction with be successful.",
+			"link": "Learn more about customizing gas."
+		},
+		"save": "Save"
 	}
 }
