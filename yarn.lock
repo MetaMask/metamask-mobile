@@ -1562,10 +1562,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-1.25.0.tgz#442ace91fb40165310764b68d8096d0017bb0492"
   integrity sha512-yhmYB9CQPv0dckNcPoWDcgtrdUp0OgK0uvkRE5QIBv4b3qENI1/03BztvK2ijbTuMlORUpjPq7/1MQDUPoRPVw==
 
-"@metamask/controllers@9.1.0":
-  version "9.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-9.1.0.tgz#4434f22eba2522889224b35aa08bc7b67d7248b7"
-  integrity sha512-jn/F0BNbaPsgEevHaPqk0lGAONKom4re1a4yBC67h7Vu6yu26CRi30SJl4xIh3IW4+ySbPhVLaiXFiXr3fESRQ==
+"@metamask/controllers@^10.1.0":
+  version "10.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-10.1.0.tgz#ec0a3751fa658966e9818038784ab6b555c95382"
+  integrity sha512-Me0jzI5CIOdfXkpm3eBOEIxDGlgbKQaW1au0GQdVgbW93ZxDueTqLUg9xSGSfGSJ3i+Alfqi/tnGqT/nwa/5CQ==
   dependencies:
     "@metamask/contract-metadata" "^1.25.0"
     "@types/uuid" "^8.3.0"
@@ -1580,7 +1580,7 @@
     eth-rpc-errors "^4.0.0"
     eth-sig-util "^3.0.0"
     ethereumjs-tx "^1.3.7"
-    ethereumjs-util "^6.1.0"
+    ethereumjs-util "^7.0.10"
     ethereumjs-wallet "^1.0.1"
     ethjs-util "^0.1.6"
     human-standard-collectible-abi "^1.0.2"
@@ -1632,10 +1632,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/etherscan-link/-/etherscan-link-2.0.0.tgz#89035736515a39532ba1142d87b9a8c2b4f920f1"
   integrity sha512-/YS32hS2UTTxs0KyUmAgaDj1w4dzAvOrT+p4TJtpICeH3E/k51r2FO0Or7WJJI/mpzTqNKgcH5yyS2oCtupGiA==
 
-"@metamask/mobile-provider@^2.0.1":
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-2.0.1.tgz#892f883deafe49200a3ae57d85237016ded63c12"
-  integrity sha512-iSpWT80RqlxPs3IcXrC8yfkO88ICxDkVp9hVILDdKD3rEnl4xv8QGqi3nt9iaaEW1OziGW+nY4Oq7bWzTSIf8A==
+"@metamask/mobile-provider@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-2.1.0.tgz#685b2f6a55d24197af3f26de4dd0bb78e10ac83e"
+  integrity sha512-VuVUIZ5jEQmLaU8SJC8692crxtNncsxyR9q5j1J6epyMHUU75WTtQdq7VSsu1ghkmP9NXNAz3inlWOGsbT8lLA==
 
 "@metamask/safe-event-emitter@^2.0.0":
   version "2.0.0"
@@ -2840,6 +2840,11 @@ async-eventemitter@^0.2.2:
   integrity sha512-pd20BwL7Yt1zwDFy+8MX8F1+WCT8aQeKj0kQnTrH9WaeRETlRamVhD0JtRPmrV4GfOJ2F9CvdQkZeZhnh2TuHw==
   dependencies:
     async "^2.4.0"
+
+async-limiter@~1.0.0:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/async-limiter/-/async-limiter-1.0.1.tgz#dd379e94f0db8310b08291f9d64c3209766617fd"
+  integrity sha512-csOlWGAcRFJaI6m+F2WKdnMKr4HhdhFVBk0H/QbJFMCr+uO2kwohwXQPxw/9OCxp05r5ghVBFSyioixx3gfkNQ==
 
 async-mutex@^0.2.6:
   version "0.2.6"
@@ -7232,6 +7237,11 @@ import-local@^3.0.2:
     pkg-dir "^4.2.0"
     resolve-cwd "^3.0.0"
 
+improved-yarn-audit@^2.3.3:
+  version "2.3.3"
+  resolved "https://registry.yarnpkg.com/improved-yarn-audit/-/improved-yarn-audit-2.3.3.tgz#da0be78be4b678c73733066c9ccd21e1958fae8c"
+  integrity sha512-chZ7zPKGsA+CZeMExNPf9WZhETJLkC+u8cQlkQC9XyPZqQPctn3FavefTjXBXmX3Azin8WcoAbaok1FvjkLf6A==
+
 imurmurhash@^0.1.4:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/imurmurhash/-/imurmurhash-0.1.4.tgz#9218b9b2b928a238b13dc4fb6b6d576f231453ea"
@@ -10247,6 +10257,11 @@ optionator@^0.9.1:
     prelude-ls "^1.2.1"
     type-check "^0.4.0"
     word-wrap "^1.2.3"
+
+options@>=0.0.5:
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/options/-/options-0.0.6.tgz#ec22d312806bb53e731773e7cdaefcf1c643128f"
+  integrity sha1-7CLTEoBrtT5zF3Pnza788cZDEo8=
 
 ora@^3.4.0:
   version "3.4.0"
@@ -13380,6 +13395,16 @@ uglify-es@^3.1.9:
     commander "~2.13.0"
     source-map "~0.6.1"
 
+ultron@1.0.x:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/ultron/-/ultron-1.0.2.tgz#ace116ab557cd197386a4e88f4685378c8b2e4fa"
+  integrity sha1-rOEWq1V80Zc4ak6I9GhTeMiy5Po=
+
+ultron@~1.1.0:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/ultron/-/ultron-1.1.1.tgz#9fe1536a10a664a65266a1e3ccf85fd36302bc9c"
+  integrity sha512-UIEXBNeYmKptWH6z8ZnqTeS8fV74zG0/eRU9VGkpzz+LIJNs8W/zM/L+7ctCkRrgbNnnR0xxw4bKOr0cW0N0Og==
+
 unicode-canonical-property-names-ecmascript@^1.0.4:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/unicode-canonical-property-names-ecmascript/-/unicode-canonical-property-names-ecmascript-1.0.4.tgz#2619800c4c825800efdd8343af7dd9933cbe2818"
@@ -13922,10 +13947,39 @@ write@1.0.3:
   dependencies:
     mkdirp "^0.5.1"
 
-ws@7.2.3, ws@7.3.0, ws@^1.1.0, ws@^1.1.5, ws@^3.3.1, ws@^5.1.1, ws@^7, ws@^7.0.0, ws@^7.4.6:
-  version "7.4.6"
-  resolved "https://registry.yarnpkg.com/ws/-/ws-7.4.6.tgz#5654ca8ecdeee47c33a9a4bf6d28e2be2980377c"
-  integrity sha512-YmhHDO4MzaDLB+M9ym/mDA5z0naX8j7SIlT8f8z+I0VtzsRbekxEutHSme7NPS2qE8StCYQNUnfWdXta/Yu85A==
+ws@7.2.3:
+  version "7.2.3"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-7.2.3.tgz#a5411e1fb04d5ed0efee76d26d5c46d830c39b46"
+  integrity sha512-HTDl9G9hbkNDk98naoR/cHDws7+EyYMOdL1BmjsZXRUjf7d+MficC4B7HLUPlSiho0vg+CWKrGIt/VJBd1xunQ==
+
+ws@7.3.0, ws@^7, ws@^7.0.0:
+  version "7.3.0"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-7.3.0.tgz#4b2f7f219b3d3737bc1a2fbf145d825b94d38ffd"
+  integrity sha512-iFtXzngZVXPGgpTlP1rBqsUK82p9tKqsWRPg5L56egiljujJT3vGAYnHANvFxBieXrTFavhzhxW52jnaWV+w2w==
+
+ws@^1.1.0, ws@^1.1.5:
+  version "1.1.5"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-1.1.5.tgz#cbd9e6e75e09fc5d2c90015f21f0c40875e0dd51"
+  integrity sha512-o3KqipXNUdS7wpQzBHSe180lBGO60SoK0yVo3CYJgb2MkobuWuBX6dhkYP5ORCLd55y+SaflMOV5fqAB53ux4w==
+  dependencies:
+    options ">=0.0.5"
+    ultron "1.0.x"
+
+ws@^3.3.1:
+  version "3.3.3"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-3.3.3.tgz#f1cf84fe2d5e901ebce94efaece785f187a228f2"
+  integrity sha512-nnWLa/NwZSt4KQJu51MYlCcSQ5g7INpOrOMt4XV8j4dqTXdmlUmSHQ8/oLC069ckre0fRsgfvsKwbTdtKLCDkA==
+  dependencies:
+    async-limiter "~1.0.0"
+    safe-buffer "~5.1.0"
+    ultron "~1.1.0"
+
+ws@^5.1.1:
+  version "5.2.2"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-5.2.2.tgz#dffef14866b8e8dc9133582514d1befaf96e980f"
+  integrity sha512-jaHFD6PFv6UgoIVda6qZllptQsMlDEJkTQcybzzXDYM1XO9Y8em691FGMPmM46WGyLU4z9KMgQN+qrux/nhlHA==
+  dependencies:
+    async-limiter "~1.0.0"
 
 xcode@2.0.0:
   version "2.0.0"
