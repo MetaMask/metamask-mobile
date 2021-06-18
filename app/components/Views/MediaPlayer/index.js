@@ -19,9 +19,8 @@ function MediaPlayer({ uri, style, onClose, textTracks, selectedTextTrack }) {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(false);
 
-	const onLoad = e => {
-		setLoading(false);
-	};
+	const onLoad = () => setLoading(false);
+
 	const onError = () => setError(true);
 
 	return (
