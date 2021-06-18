@@ -13,6 +13,9 @@ import {
 	TRANSFER_FROM_FUNCTION_SIGNATURE
 } from '../../../../util/transactions';
 
+// MetaMask: Swap Router
+const MM_SWAP_ROUTER = '0x881D40237659C251811CEC9c364ef91dC08D300C';
+
 const styles = StyleSheet.create({
 	root: {
 		flex: 1,
@@ -171,7 +174,11 @@ class AddressList extends PureComponent {
 				}
 				const checksummedTo = safeToChecksumAddress(to);
 				if (recents.length > 2) return;
-				if (!recents.includes(checksummedTo) && !Object.keys(identities).includes(checksummedTo)) {
+				if (
+					!recents.includes(checksummedTo) &&
+					!Object.keys(identities).includes(checksummedTo) &&
+					checksummedTo !== MM_SWAP_ROUTER
+				) {
 					recents.push(checksummedTo);
 					if (this.networkAddressBook[checksummedTo]) {
 						parsedRecents.push(
