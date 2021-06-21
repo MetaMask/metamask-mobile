@@ -6,6 +6,10 @@
     "registry": "https://registry.npmjs.org/",
     "access": "public"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MetaMask/metamask-module-template.git"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "engines": {
@@ -28,6 +32,7 @@
   },
   "devDependencies": {
     "@lavamoat/allow-scripts": "^1.0.5",
+    "@metamask/auto-changelog": "^2.3.0",
     "@metamask/eslint-config": "^6.0.0",
     "@metamask/eslint-config-jest": "^6.0.0",
     "@metamask/eslint-config-nodejs": "^6.0.0",
