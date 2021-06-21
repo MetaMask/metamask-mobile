@@ -29,7 +29,7 @@ const subtitle_source_tracks = [
 ];
 
 const video_source_uri =
-	'https://github.com/MetaMask/metamask-mobile/blob/feature/video_subtitles/app/videos/secretPhrase/recovery-phrase.mp4?raw=true';
+	'https://github.com/MetaMask/metamask-mobile/blob/develop/app/videos/recovery-phrase.mp4?raw=true';
 
 const SeedPhraseVideo = ({ style, onClose }) => (
 	<View style={styles.videoContainer}>
