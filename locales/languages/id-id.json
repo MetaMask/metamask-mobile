@@ -28,14 +28,14 @@
 	},
 	"onboarding": {
 		"title": "Penyiapan dompet",
-		"sync_desc": "Jika Anda sudah memiliki ekstensi MetaMask atau dompet lain, sinkronkan atau impor untuk mengelola aset Anda yang ada.",
+		"sync_desc": "Jika Anda sudah memiliki ekstensi Senso Inu Wallet atau dompet lain, sinkronkan atau impor untuk mengelola aset Anda yang ada.",
 		"create_desc": "Siapkan dompet Anda terlebih dulu dan mulai mengeksplorasi aplikasi terdesentralisasi.",
 		"import": "Impor dompet yang ada atau buat yang baru",
 		"import_wallet_button": "Sinkronkan atau impor dompet",
 		"new_to_crypto": "Baru menggunakan kripto?",
 		"start_exploring_now": "Buat dompet baru",
 		"login": "Masuk",
-		"new_to_metamask": "Baru menggunakan MetaMask?",
+		"new_to_Senso Inu Wallet": "Baru menggunakan Senso Inu Wallet?",
 		"already_have_wallet": "Sudah punya dompet?",
 		"optin_back_title": "Perhatian!",
 		"optin_back_desc": "Harap setujui atau tidak setujui dengan penggunaan analitik data.  Anda juga dapat memperbarui opsi ini di pengaturan.",
@@ -43,15 +43,15 @@
 		"warning_text_1": "Akun dan dompet Anda saat ini akan",
 		"warning_text_2": "dihapus",
 		"warning_text_3": "jika Anda melanjutkan.",
-		"warning_text_4": "Anda HANYA dapat memulihkannya dengan frasa pemulihan dompet Anda. MetaMask tidak dapat membantu Anda memulihkannya.",
+		"warning_text_4": "Anda HANYA dapat memulihkannya dengan frasa pemulihan dompet Anda. Senso Inu Wallet tidak dapat membantu Anda memulihkannya.",
 		"warning_proceed": "Hapus dompet & lanjutkan",
 		"warning_cancel": "Batal",
 		"step1": "Penyiapan dompet",
 		"step2": "Buat kata sandi",
 		"step3": "Amankan dompet",
 		"already_have": "Sudah punya dompet?",
-		"sync_existing": "Sinkronkan dompet MetaMask Anda yang ada dari ekstensi browser atau impor secara manual.",
-		"scan_title": "Langkah-langkah untuk menyinkronkan dengan ekstensi MetaMask",
+		"sync_existing": "Sinkronkan dompet Senso Inu Wallet Anda yang ada dari ekstensi browser atau impor secara manual.",
+		"scan_title": "Langkah-langkah untuk menyinkronkan dengan ekstensi Senso Inu Wallet",
 		"scan": "Pindai",
 		"scan_step_1": "Buka ekstensi di desktop",
 		"scan_step_2": "Buka Pengaturan > Tingkat Lanjut",
@@ -59,12 +59,12 @@
 		"scan_step_4": "Pindai kode QR untuk mulai menyinkronkan"
 	},
 	"onboarding_carousel": {
-		"title1": "Selamat datang di MetaMask",
+		"title1": "Selamat datang di Senso Inu Wallet",
 		"title2": "Kelola aset digital Anda",
 		"title3": "Gateway Anda ke web3",
-		"subtitle1": "Dipercayai oleh jutaan, MetaMask adalah dompet yang aman menjadikan dunia web3 dapat diakses oleh semua.",
+		"subtitle1": "Dipercayai oleh jutaan, Senso Inu Wallet adalah dompet yang aman menjadikan dunia web3 dapat diakses oleh semua.",
 		"subtitle2": "Simpan, gunakan, dan kirim aset digital seperti token, ethereum, barang koleksi unik.",
-		"subtitle3": "Login dengan MetaMask dan buat transaksi untuk berinvestasi, menghasilkan, main game, menjual, dan banyak lagi!",
+		"subtitle3": "Login dengan Senso Inu Wallet dan buat transaksi untuk berinvestasi, menghasilkan, main game, menjual, dan banyak lagi!",
 		"get_started": "Persiapan"
 	},
 	"onboarding_wizard": {
@@ -95,7 +95,7 @@
 			"title": "Navigasi Utama",
 			"content1": "Ketuk di sini",
 			"content2": "untuk mengakses Dompet, Browser, dan riwayat Transaksi.",
-			"content3": "Anda dapat mengambil lebih banyak tindakan dengan akun Anda & mengakses pengaturan MetaMask."
+			"content3": "Anda dapat mengambil lebih banyak tindakan dengan akun Anda & mengakses pengaturan Senso Inu Wallet."
 		},
 		"step5": {
 			"title": "Jelajahi Browser",
@@ -111,14 +111,14 @@
 		"subtitle": "Ini semestinya tidak lama"
 	},
 	"import_wallet": {
-		"title": "Sudah menjadi pengguna MetaMask?",
+		"title": "Sudah menjadi pengguna Senso Inu Wallet?",
 		"sub_title": "Sinkronkan dengan ekstensinya",
 		"sync_help": "Sinkronkan dompet Anda dengan ekstensinya",
 		"sync_help_step_one": "1. Buka ekstensi",
 		"sync_help_step_two": "2. Buka Pengaturan > Tingkat Lanjut",
 		"sync_help_step_three": "3. Klik \"Sinkronkan dengan Seluler\"",
 		"sync_help_step_four": "4. Pindai Kode QR untuk mulai menyinkronkan",
-		"sync_from_browser_extension_button": "Sinkronkan dengan ekstensi MetaMask",
+		"sync_from_browser_extension_button": "Sinkronkan dengan ekstensi Senso Inu Wallet",
 		"or": "ATAU",
 		"import_from_seed_button": "Impor menggunakan frasa pemulihan"
 	},
@@ -138,7 +138,7 @@
 	},
 	"choose_password": {
 		"title": "Buat kata sandi",
-		"subtitle": "Kata sandi ini akan membuka dompet MetaMask Anda hanya di perangkat ini.",
+		"subtitle": "Kata sandi ini akan membuka dompet Senso Inu Wallet Anda hanya di perangkat ini.",
 		"password": "Kata Sandi Baru",
 		"confirm_password": "Konfirmasikan kata sandi",
 		"create_button": "Buat kata sandi",
@@ -156,14 +156,14 @@
 		"remember_me": "Ingat saya",
 		"security_alert_title": "Peringatan Keamanan",
 		"security_alert_message": "Untuk melanjutkan, Anda harus mengaktifkan Kode masuk atau metode autentikasi biometrik yang didukung di perangkat Anda (FaceID, TouchID, atau Sidik Jari)",
-		"i_understand": "Saya mengerti bahwa MetaMask tidak dapat memulihkan kata sandi ini untuk saya.",
+		"i_understand": "Saya mengerti bahwa Senso Inu Wallet tidak dapat memulihkan kata sandi ini untuk saya.",
 		"learn_more": "Pelajari selengkapnya.",
 		"secure": "Mengamankan dompet",
 		"confirm": "Konfirmasikan frasa pemulihan"
 	},
 	"reset_password": {
 		"title": "Ubah kata sandi",
-		"subtitle": "Kata sandi ini akan membuka dompet MetaMask Anda hanya di perangkat ini.",
+		"subtitle": "Kata sandi ini akan membuka dompet Senso Inu Wallet Anda hanya di perangkat ini.",
 		"password": "Kata Sandi Baru",
 		"confirm_password": "Konfirmasikan kata sandi",
 		"reset_button": "Atur ulang kata sandi",
@@ -181,7 +181,7 @@
 		"remember_me": "Ingat saya",
 		"security_alert_title": "Peringatan Keamanan",
 		"security_alert_message": "Untuk melanjutkan, Anda harus mengaktifkan Kode masuk atau metode autentikasi biometrik yang didukung di perangkat Anda (FaceID, TouchID, atau Sidik Jari)",
-		"i_understand": "Saya mengerti bahwa MetaMask tidak dapat memulihkan kata sandi ini untuk saya.",
+		"i_understand": "Saya mengerti bahwa Senso Inu Wallet tidak dapat memulihkan kata sandi ini untuk saya.",
 		"learn_more": "Pelajari selengkapnya.",
 		"secure": "Amankan dompet",
 		"confirm": "Konfirmasikan frasa pemulihan",
@@ -232,7 +232,7 @@
 		"logout_ok": "YA",
 		"logout_cancel": "TIDAK",
 		"feedback": "Umpan Balik",
-		"metamask_support": "Dukungan MetaMask",
+		"Senso Inu Wallet_support": "Dukungan Senso Inu Wallet",
 		"public_address": "Alamat Publik"
 	},
 	"send": {
@@ -308,9 +308,9 @@
 		"here": "di sini",
 		"agree": "Saya Setuju",
 		"decline": "Tidak, Terima Kasih",
-		"description_title": "Bantu kami menyempurnakan MetaMask",
-		"description_content_1": "MetaMask ingin mengumpulkan data penggunaan dasar untuk lebih memahami cara pengguna kami berinteraksi dengan aplikasi seluler. Data ini akan digunakan untuk secara kontinu memperbaiki kegunaan dan pengalaman pengguna atas produk kami.",
-		"description_content_2": "MetaMask akan...",
+		"description_title": "Bantu kami menyempurnakan Senso Inu Wallet",
+		"description_content_1": "Senso Inu Wallet ingin mengumpulkan data penggunaan dasar untuk lebih memahami cara pengguna kami berinteraksi dengan aplikasi seluler. Data ini akan digunakan untuk secara kontinu memperbaiki kegunaan dan pengalaman pengguna atas produk kami.",
+		"description_content_2": "Senso Inu Wallet akan...",
 		"action_description_1": "Selalu izinkan Anda untuk menyisih melalui Pengaturan",
 		"action_description_2": "Kirim kejadian pageview & klik anonim",
 		"action_description_4": "Jangan mengumpulkan kunci, alamat, transaksi, saldo, hash, atau informasi pribadi lainnya",
@@ -371,8 +371,8 @@
 		"instapay_state_logs": "Log InstaPay",
 		"auto_lock": "Kunci otomatis",
 		"auto_lock_desc": "Pilih durasi sebelum aplikasi secara otomatis mengunci.",
-		"state_logs_desc": "Ini akan membantu MetaMask melakukan debug masalah apa pun yang Anda alami. Kirim via email ke support@metamask.io",
-		"instapay_state_logs_desc": "Ini akan membantu MetaMask melakukan debug masalah dengan InstaPay. Kirim via email ke support@metamask.io",
+		"state_logs_desc": "Ini akan membantu Senso Inu Wallet melakukan debug masalah apa pun yang Anda alami. Kirim via email ke support@Senso Inu Wallet.io",
+		"instapay_state_logs_desc": "Ini akan membantu Senso Inu Wallet melakukan debug masalah dengan InstaPay. Kirim via email ke support@Senso Inu Wallet.io",
 		"autolock_immediately": "Segera",
 		"autolock_never": "Jangan",
 		"autolock_after": "Setelah {{time}} detik",
@@ -396,7 +396,7 @@
 		"save_rpc_url": "SIMPAN",
 		"invalid_rpc_prefix": "URL memerlukan awalan HTTPS yang sesuai",
 		"invalid_rpc_url": "URL RPC Tidak Valid",
-		"sync_with_extension": "Sinkronkan dengan Ekstensi MetaMask",
+		"sync_with_extension": "Sinkronkan dengan Ekstensi Senso Inu Wallet",
 		"sync_with_extension_desc": "Ini akan mengimpor semua akun ekstensi ke perangkat ini.",
 		"sync": "SINKRONKAN",
 		"clear_approved_dapps": "KOSONGKAN DAPP YANG DISETUJUI",
@@ -451,7 +451,7 @@
 		"remove_network_title": "Anda ingin menghapus jaringan ini?",
 		"remove_network": "Hapus",
 		"cancel_remove_network": "Batal",
-		"info_title": "Tentang MetaMask",
+		"info_title": "Tentang Senso Inu Wallet",
 		"experimental_title": "Eksperimental",
 		"experimental_desc": "WalletConnect & banyak lagi...",
 		"legal_title": "Legal",
@@ -471,7 +471,7 @@
 		"clear_history_desc": "Pilih opsi ini untuk mengosongkan seluruh riwayat penelusuran Anda.",
 		"clear_cookies_desc": "Pilih opsi ini untuk mengosongkan cookie browser Anda.",
 		"metametrics_title": "Ikut serta dalam MetaMetric",
-		"metametrics_description": "Ikut serta dalam MetaMetric untuk membantu kami membuat MetaMask lebih baik.",
+		"metametrics_description": "Ikut serta dalam MetaMetric untuk membantu kami membuat Senso Inu Wallet lebih baik.",
 		"third_party_title": "Dapatkan transaksi yang masuk",
 		"third_party_description": "API pihak ketiga (Etherscan) digunakan untuk menampilkan transaksi Anda yang masuk dalam riwayat. Nonaktifkan jika Anda tidak ingin kami menarik data dari layanan tersebut.",
 		"metametrics_opt_out": "Penyisihan dari MetaMetric",
@@ -518,7 +518,7 @@
 	},
 	"password_reset": {
 		"password_title": "Kata sandi",
-		"password_desc": "Pilih kata sandi yang kuat untuk membuka aplikasi MetaMask di perangkat Anda. Jika kata sandi ini hilang, Anda akan memerlukan frasa pemulihan untuk mengimpor kembali dompet Anda.",
+		"password_desc": "Pilih kata sandi yang kuat untuk membuka aplikasi Senso Inu Wallet di perangkat Anda. Jika kata sandi ini hilang, Anda akan memerlukan frasa pemulihan untuk mengimpor kembali dompet Anda.",
 		"password_learn_more": "Pelajari selengkapnya.",
 		"change_password": "Ubah kata sandi"
 	},
@@ -548,7 +548,7 @@
 		"ok": "Oke",
 		"cancel": "Batal",
 		"error": "Kesalahan",
-		"attempting_sync_from_wallet_error": "Sepertinya Anda mencoba menyinkronkan dengan ekstensi. Agar dapat melakukannya, buka Pengaturan > Tingkat Lanjut > Sinkronkan dengan Ekstensi MetaMask"
+		"attempting_sync_from_wallet_error": "Sepertinya Anda mencoba menyinkronkan dengan ekstensi. Agar dapat melakukannya, buka Pengaturan > Tingkat Lanjut > Sinkronkan dengan Ekstensi Senso Inu Wallet"
 	},
 	"action_view": {
 		"cancel": "Batal",
@@ -698,7 +698,7 @@
 		"change_url": "Ubah url",
 		"switch_network": "Beralih jaringan",
 		"dapp_browser": "BROWSER DAPP",
-		"dapp_browser_message": "MetaMask adalah dompet Anda dan browser untuk web terdesentralisasi. Silakan lihat-lihat!",
+		"dapp_browser_message": "Senso Inu Wallet adalah dompet Anda dan browser untuk web terdesentralisasi. Silakan lihat-lihat!",
 		"featured_dapps": "DAPP UNGGULAN",
 		"my_favorites": "FAVORIT SAYA",
 		"search": "Cari atau ketikkan URL",
@@ -817,7 +817,7 @@
 	"sync_with_extension": {
 		"title": "Sinkronkan data dari Ekstensi",
 		"short_title": "Sinkronkan dengan Ekstensi",
-		"label": "Buka ekstensi MetaMask di browser desktop Anda, lalu buka \"Pengaturan\" > \"Tingkat Lanjut\", klik \"Sinkronkan dengan Seluler\" lalu masukkan kata sandi Anda untuk melihat Kode QR",
+		"label": "Buka ekstensi Senso Inu Wallet di browser desktop Anda, lalu buka \"Pengaturan\" > \"Tingkat Lanjut\", klik \"Sinkronkan dengan Seluler\" lalu masukkan kata sandi Anda untuk melihat Kode QR",
 		"button_continue": "Lanjutkan",
 		"please_wait": "Harap tunggu sewaktu kami menyinkronkan data Anda...",
 		"error_title": "Menyebalkan!",
@@ -833,11 +833,11 @@
 		"something_wrong": "Ups! Ada yang salah...",
 		"something_wrong_desc": "Kami menghadapi masalah sewaktu mencoba menyinkronkan dompet Anda. Silakan coba lagi nanti atau impor dompet menggunakan frasa pemulihan Anda",
 		"allow_biometrics_title": "Anda ingin mengaktifkan {{biometrics}}?",
-		"allow_biometrics_desc": "Anda dapat menggunakan {{biometrics}} untuk mengautentikasi di MetaMask"
+		"allow_biometrics_desc": "Anda dapat menggunakan {{biometrics}} untuk mengautentikasi di Senso Inu Wallet"
 	},
 	"sync_with_extension_success": {
 		"title": "Dompet diimpor",
-		"sync_complete_1": "Ingat, MetaMask tidak dapat memulihkan frasa pemulihan jika Anda menghilangkannya. Anda dapat menemukan frasa pemulihan di",
+		"sync_complete_1": "Ingat, Senso Inu Wallet tidak dapat memulihkan frasa pemulihan jika Anda menghilangkannya. Anda dapat menemukan frasa pemulihan di",
 		"sync_complete_2": "Pengaturan > Keamanan & Privasi",
 		"button_continue": "Selesai",
 		"password_tip": "Kata sandi untuk membuka dompet seluler Anda adalah kata sandi yang sama yang Anda tetapkan untuk ekstensinya.",
@@ -902,9 +902,9 @@
 	},
 	"authentication": {
 		"auth_prompt_title": "Autentikasi diperlukan",
-		"auth_prompt_desc": "Harap autentikasikan untuk menggunakan MetaMask",
+		"auth_prompt_desc": "Harap autentikasikan untuk menggunakan Senso Inu Wallet",
 		"fingerprint_prompt_title": "Autentikasi diperlukan",
-		"fingerprint_prompt_desc": "Gunakan sidik jari Anda untuk membuka MetaMask",
+		"fingerprint_prompt_desc": "Gunakan sidik jari Anda untuk membuka Senso Inu Wallet",
 		"fingerprint_prompt_cancel": "Batal"
 	},
 	"accountApproval": {
@@ -921,7 +921,7 @@
 	},
 	"import_private_key": {
 		"title": "Impor Akun",
-		"description_one": "Akun yang diimpor dapat dilihat di dompet Anda, namun tidak dapat dipulihkan dengan frasa pemulihan MetaMask Anda.",
+		"description_one": "Akun yang diimpor dapat dilihat di dompet Anda, namun tidak dapat dipulihkan dengan frasa pemulihan Senso Inu Wallet Anda.",
 		"learn_more_here": "Pelajari selengkapnya tentang akun yang diimpor di sini.",
 		"subtitle": "Tempel string kunci privat Anda",
 		"cta_text": "IMPOR",
@@ -933,7 +933,7 @@
 	},
 	"import_private_key_success": {
 		"title": "Akun berhasil diimpor!",
-		"description_one": "Anda sekarang dapat melihat akun Anda di MetaMask."
+		"description_one": "Anda sekarang dapat melihat akun Anda di Senso Inu Wallet."
 	},
 	"first_incoming_transaction": {
 		"title": "{{asset}} didepositkan di akun Anda",
@@ -948,7 +948,7 @@
 		"step_1_description": "Buat kata sandi",
 		"step_2": "Langkah 2:",
 		"step_2_description": "Simpan frasa pemulihan dompet",
-		"info_text_1": "Luangkan beberapa saat untuk menyelesaikan penyiapan dompet MetaMask Anda.",
+		"info_text_1": "Luangkan beberapa saat untuk menyelesaikan penyiapan dompet Senso Inu Wallet Anda.",
 		"info_text_2": "Ini akan memastikan hanya Anda yang dapat mengakses dana dan memungkinkan Anda memulihkan dompet jika perangkat Anda hilang",
 		"cta_text": "Buat Kata Sandi",
 		"creating_password": "Membuat kata sandi..."
@@ -970,7 +970,7 @@
 		"what_is_seedphrase_title": "Apa itu ‘Frasa pemulihan’",
 		"what_is_seedphrase_text_1": "Frasa pemulihan adalah satu set dua belas kata yang berisi semua informasi tentang dompet, termasuk dana Anda. Seperti kode rahasia yang digunakan untuk mengakses seluruh dompet Anda.",
 		"what_is_seedphrase_text_2": "Anda harus menjaga frasa pemulihan tetap aman dan rahasia. Jika seseorang mendapatkan frasa pemulihan Anda, mereka akan mendapatkan kontrol atas akun Anda.",
-		"what_is_seedphrase_text_3": "Simpan di tempat yang hanya Anda dapat mengaksesnya. Jika hilang, MetaMask pun tidak dapat membantu Anda memulihkannya."
+		"what_is_seedphrase_text_3": "Simpan di tempat yang hanya Anda dapat mengaksesnya. Jika hilang, Senso Inu Wallet pun tidak dapat membantu Anda memulihkannya."
 	},
 	"account_backup_step_1B": {
 		"title": "Amankan dompet Anda",
@@ -1043,7 +1043,7 @@
 	},
 	"account_backup_step_6": {
 		"title": "Kiat Keamanan",
-		"info_text": "MetaMask tidak dapat memulihkan frasa pemulihan jika Anda menghilangkannya",
+		"info_text": "Senso Inu Wallet tidak dapat memulihkan frasa pemulihan jika Anda menghilangkannya",
 		"tip_1": "Simpan beberapa cadangan frasa pemulihan Anda",
 		"tip_2": "Simpan frasa di pengelola kata sandi tepercaya dan kertas cadangan di tempat yang aman",
 		"tip_3": "Jangan bagikan frasa ini kepada siapa pun",
@@ -1081,7 +1081,7 @@
 		"congratulations": "Selamat",
 		"success": "Anda berhasil melindungi dompet Anda. Ingatlah untuk menjaga frasa pemulihan Anda tetap aman, ini tanggung jawab Anda!",
 		"hint": "Tinggalkan petunjuk untuk Anda?",
-		"recover": "MetaMask tidak dapat memulihkan dompet jika Anda menghilangkannya. Anda dapat menemukan frasa pemulihan Anda di Pengaturan > Keamanan & Privasi.",
+		"recover": "Senso Inu Wallet tidak dapat memulihkan dompet jika Anda menghilangkannya. Anda dapat menemukan frasa pemulihan Anda di Pengaturan > Keamanan & Privasi.",
 		"learn": "Pelajari selengkapnya",
 		"done": "Selesai",
 		"recovery_hint": "Petunjuk pemulihan",
@@ -1094,7 +1094,7 @@
 	"phishing": {
 		"ethereum_phishing_detection": "Deteksi Phishing Ethereum",
 		"ethereum_phishing_detector": "Detektor Phishing Ethereum",
-		"intro": " saat ini ada di daftar peringatan domain MetaMask. Artinya, berdasarkan informasi yang tersedia untuk kami, MetaMask memercayai domain ini saat ini dapat membahayakan keamanan Anda, dan sebagai fitur keamanan yang ditambahkan, MetaMask memiliki akses terbatas ke situs ini. Untuk menimpanya, silakan baca seluruh peringatan ini untuk petunjuk tentang cara melanjutkan dengan risiko Anda sendiri.",
+		"intro": " saat ini ada di daftar peringatan domain Senso Inu Wallet. Artinya, berdasarkan informasi yang tersedia untuk kami, Senso Inu Wallet memercayai domain ini saat ini dapat membahayakan keamanan Anda, dan sebagai fitur keamanan yang ditambahkan, Senso Inu Wallet memiliki akses terbatas ke situs ini. Untuk menimpanya, silakan baca seluruh peringatan ini untuk petunjuk tentang cara melanjutkan dengan risiko Anda sendiri.",
 		"reasons": "Ada banyak alasan situs dapat muncul di daftar peringatan kami, dan daftar peringatan kami disusun dari daftar lain yang secara luas digunakan industri. Alasan tersebut dapat mencakup risiko keamanan atau penipuan yang diketahui, seperti domain yang dinyatakan positif di ",
 		"list_content": "Domain pada daftar peringatan ini dapat mencakup situs web berbahaya langsung dan situs web resmi yang telah disusupi oleh pelaku jahat.",
 		"to_read_more": "Untuk membaca selengkapnya tentang situs ini ",
@@ -1129,7 +1129,7 @@
 		"received_message": "Ketuk untuk melihat transaksi ini",
 		"received_payment_message": "Anda menerima {{amount}} DAI",
 		"prompt_title": "Mengaktifkan Pemberitahuan Push",
-		"prompt_desc": "Aktifkan pemberitahuan agar MetaMask dapat memungkinkan Anda mengetahui saat Anda menerima ETH atau saat transaksi Anda telah dikonfirmasi.",
+		"prompt_desc": "Aktifkan pemberitahuan agar Senso Inu Wallet dapat memungkinkan Anda mengetahui saat Anda menerima ETH atau saat transaksi Anda telah dikonfirmasi.",
 		"prompt_ok": "Ya",
 		"prompt_cancel": "Tidak, terima kasih",
 		"wc_connected_title": "Terhubung ke {{title}}",
@@ -1254,7 +1254,7 @@
 		"no_funds_desc": "Deposit ETH ke kartu InstaPay Anda untuk mulai melakukan pembayaran gratis instan dengan DAI.",
 		"confirm": "Konfirmasikan",
 		"cancel": "Batal",
-		"asset_card_desc": "Transaksi Gratis dengan Saluran Pembayaran Connext.\n Ini adalah fitur beta. Untuk bantuan, kirim via email ke support@metamask.io",
+		"asset_card_desc": "Transaksi Gratis dengan Saluran Pembayaran Connext.\n Ini adalah fitur beta. Untuk bantuan, kirim via email ke support@Senso Inu Wallet.io",
 		"deposit_amount": "Jumlah untuk deposit",
 		"load_funds": "Masukkan Dana",
 		"insta_pay": "InstaPay",
@@ -1404,7 +1404,7 @@
 	"whats_new": {
 		"title": "Lihat apa yang baru",
 		"feature_security_settings_title": "Pengaturan keamanan ditingkatkan",
-		"feature_security_settings_text": "Sekarang Anda dapat mengubah kata sandi aplikasi MetaMask & meninjau cara mencadangkan frasa pemulihan dompet Anda dari Pengaturan > Keamanan & Privasi.",
+		"feature_security_settings_text": "Sekarang Anda dapat mengubah kata sandi aplikasi Senso Inu Wallet & meninjau cara mencadangkan frasa pemulihan dompet Anda dari Pengaturan > Keamanan & Privasi.",
 		"feature_security_settings_button": "Lihat di Pengaturan"
 	}
 }

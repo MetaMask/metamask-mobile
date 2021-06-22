@@ -10,12 +10,12 @@
 	},
 	"onboarding": {
 		"title": "¡Empezar!",
-		"sync_desc": "Si ya tiene la extensión MetaMask u otra billetera, sincronícela o impórtela para administrar sus activos.",
+		"sync_desc": "Si ya tiene la extensión Senso Inu Wallet u otra billetera, sincronícela o impórtela para administrar sus activos.",
 		"create_desc": "¿Nuevo en crypto? Configure su primera billetera y comience a explorar aplicaciones descentralizadas.",
 		"import_wallet_button": "Sincroniza o importa billetera",
 		"start_exploring_now": "Crear billetera",
 		"login": "Ingresar",
-		"new_to_metamask": "Nuevo en MetaMask?",
+		"new_to_Senso Inu Wallet": "Nuevo en Senso Inu Wallet?",
 		"already_have_wallet": "Ya tienes una billetera?",
 		"optin_back_title": "Aviso",
 		"optin_back_desc": "Por favor acepte o rechace el uso de análisis de datos. Puede actualizar esta opción en la configuración.",
@@ -23,15 +23,15 @@
 		"warning_text_1": "Tu billetera y cuentas serán",
 		"warning_text_2": "eliminadas",
 		"warning_text_3": "si continúas.",
-		"warning_text_4": "SOLO las puedes recuperar con la frase semilla de tu billetera. MetaMask no puede ayudarte a recuperarlas.",
+		"warning_text_4": "SOLO las puedes recuperar con la frase semilla de tu billetera. Senso Inu Wallet no puede ayudarte a recuperarlas.",
 		"warning_proceed": "Eliminar billetera y continuar",
 		"warning_cancel": "Cancelar",
 		"step1": "Configuración de la Billetera",
 		"step2": "Crear contraseña",
 		"step3": "Billetera segura",
 		"already_have": "¿Ya tienes una billetera?",
-		"sync_existing": "Sincroniza tu billetera MetaMask existente desde la extensión en el navegador o impórtala manualmente.",
-		"scan_title": "Pasos para sincronizar con la extensión MetaMask",
+		"sync_existing": "Sincroniza tu billetera Senso Inu Wallet existente desde la extensión en el navegador o impórtala manualmente.",
+		"scan_title": "Pasos para sincronizar con la extensión Senso Inu Wallet",
 		"scan": "Escanear",
 		"scan_step_1": "Abrir la extensión en el escritorio",
 		"scan_step_2": "Ir a Configuración > Avanzado",
@@ -39,12 +39,12 @@
 		"scan_step_4": "Escanea el código QR para iniciar la sincronización"
 	},
 	"onboarding_carousel": {
-		"title1": "Bienvenido a MetaMask",
+		"title1": "Bienvenido a Senso Inu Wallet",
 		"title2": "Saluda a tu billetera...",
 		"title3": "Explora aplicaciones decentralizadas",
 		"subtitle1": "Un navegador seguro, y mucho más. Desliza para ver que es posible.",
 		"subtitle2": "Almacene, gaste y envíe criptomonedas y activos.",
-		"subtitle3": "Use su MetaMask para iniciar sesión en aplicaciones descentralizadas, sin necesidad de registrarse.",
+		"subtitle3": "Use su Senso Inu Wallet para iniciar sesión en aplicaciones descentralizadas, sin necesidad de registrarse.",
 		"get_started": "Empezar"
 	},
 	"onboarding_wizard": {
@@ -91,7 +91,7 @@
 		"subtitle": "Esto no debería tomar mucho tiempo"
 	},
 	"import_wallet": {
-		"title": "Ya eres usuario de MetaMask?",
+		"title": "Ya eres usuario de Senso Inu Wallet?",
 		"sub_title": "Sincroniza con la extensión",
 		"sync_help": "Sincroniza tu billetera con la extensión",
 		"sync_help_step_one": "1. Ingresa a la extensión",
@@ -117,7 +117,7 @@
 	},
 	"choose_password": {
 		"title": "Crea tu contraseña",
-		"subtitle": "Utilizarás esta contraseña para acceder a tu billetera de MetaMask solamente en este dispositivo.",
+		"subtitle": "Utilizarás esta contraseña para acceder a tu billetera de Senso Inu Wallet solamente en este dispositivo.",
 		"password": "Nueva contraseña",
 		"confirm_password": "Confirmar contraseña",
 		"create_button": "Crear contraseña",
@@ -138,7 +138,7 @@
 	},
 	"reset_password": {
 		"title": "Crea tu contraseña",
-		"subtitle": "Utilizarás esta contraseña para acceder a tu billetera de MetaMask solamente en este dispositivo.",
+		"subtitle": "Utilizarás esta contraseña para acceder a tu billetera de Senso Inu Wallet solamente en este dispositivo.",
 		"password": "Nueva contraseña",
 		"confirm_password": "Confirmar contraseña",
 		"reset_button": "Restablecer la contraseña",
@@ -156,7 +156,7 @@
 		"remember_me": "Recordarme",
 		"security_alert_title": "Alerta de seguridad",
 		"security_alert_message": "Para continuar debes habilitar PIN o cualquier otro metodo de autenticación soportado por tu dispostivo",
-		"i_understand": "Entiendo que MetaMask no puede recuperar esta contraseña por mí.",
+		"i_understand": "Entiendo que Senso Inu Wallet no puede recuperar esta contraseña por mí.",
 		"learn_more": "Más información",
 		"secure": "Billetera segura",
 		"confirm": "Confirmar frase semilla",
@@ -206,7 +206,7 @@
 		"logout_ok": "SI",
 		"logout_cancel": "NO",
 		"feedback": "Feedback",
-		"metamask_support": "Soporte de MetaMask",
+		"Senso Inu Wallet_support": "Soporte de Senso Inu Wallet",
 		"public_address": "Dirección Pública"
 	},
 	"send": {
@@ -279,9 +279,9 @@
 		"here": "aquí",
 		"agree": "De Acuerdo",
 		"decline": "No, Gracias",
-		"description_title": "Ayúdanos a mejorar MetaMask",
-		"description_content_1": "A MetaMask le gustaría recopilar datos de uso básicos para comprender mejor cómo interactúan nuestros usuarios con la aplicación movil. Estos datos se utilizarán para mejorar continuamente la usabilidad y la experiencia de usuario de nuestro producto.",
-		"description_content_2": "MetaMask va a...",
+		"description_title": "Ayúdanos a mejorar Senso Inu Wallet",
+		"description_content_1": "A Senso Inu Wallet le gustaría recopilar datos de uso básicos para comprender mejor cómo interactúan nuestros usuarios con la aplicación movil. Estos datos se utilizarán para mejorar continuamente la usabilidad y la experiencia de usuario de nuestro producto.",
+		"description_content_2": "Senso Inu Wallet va a...",
 		"action_description_1": "Siempre permitir cancelar a través de Configuraciónes",
 		"action_description_2": "Enviar eventos anónimos de clics y páginas vistas",
 		"action_description_3": "Nunca recopilar claves, direcciones, transacciones, saldos, hashes o cualquier información personal",
@@ -353,7 +353,7 @@
 		"search_engine": "Motor de Búsqueda",
 		"auto_lock": "Bloqueo automático",
 		"auto_lock_desc": "Elige la cantidad de tiempo para que la aplicación se bloquee automáticamente.",
-		"state_logs_desc": "Esto nos ayudará a investigar cualquier problema con la app. Envíelo al soporte de MetaMask a través del icono de hamburguesa> Enviar comentarios, o responda a su ticket existente si tiene uno.",
+		"state_logs_desc": "Esto nos ayudará a investigar cualquier problema con la app. Envíelo al soporte de Senso Inu Wallet a través del icono de hamburguesa> Enviar comentarios, o responda a su ticket existente si tiene uno.",
 		"autolock_immediately": "Inmediatamente",
 		"autolock_never": "Nunca",
 		"autolock_after": "Luego de {{time}} segundos",
@@ -362,7 +362,7 @@
 		"clear_approvals_modal_message": "Todas las dapps deberán solicitar acceso para ver la información de tu cuenta nuevamente.",
 		"clear_browser_history_modal_title": "Borrar historial del navegador?",
 		"clear_browser_history_modal_message": "Estas a punto de borrar todo tu historial de navegación. Estás seguro?",
-		"sync_with_extension": "Sincronizar con la extensión de MetaMask ",
+		"sync_with_extension": "Sincronizar con la extensión de Senso Inu Wallet ",
 		"sync_with_extension_desc": "Esto importará todas las cuentas de la extensión en este dispositivo",
 		"sync": "Sincronizar",
 		"clear_approved_dapps": "BORRAR SITIOS APROBADOS",
@@ -413,7 +413,7 @@
 		"remove_network_title": "Deseas eliminar esta red?",
 		"remove_network": "Eliminar",
 		"cancel_remove_network": "Cancelar",
-		"info_title": "Acerca de MetaMask",
+		"info_title": "Acerca de Senso Inu Wallet",
 		"experimental_title": "Experimental",
 		"experimental_desc": "WalletConnect & más...",
 		"legal_title": "Legal",
@@ -432,7 +432,7 @@
 		"clear_privacy_desc": "Todas las dapps deberán solicitar acceso para ver la información de tu cuenta nuevamente.",
 		"clear_history_desc": "Elige esta opción para borrar todo tu historial de navegación.",
 		"metametrics_title": "Participa en MetaMetrics",
-		"metametrics_description": "Participa en MetaMetrics para ayudarnos a mejorar MetaMask.",
+		"metametrics_description": "Participa en MetaMetrics para ayudarnos a mejorar Senso Inu Wallet.",
 		"third_party_title": "Obtener transacciones entrantes",
 		"third_party_description": "Las API de terceros (Etherscan) se utilizan para mostrar sus transacciones entrantes en el historial. Desactívala si no deseas que extraigamos datos de esos servicios.",
 		"metametrics_opt_out": "MetaMetrics Deshabilitado",
@@ -478,7 +478,7 @@
 	},
 	"password_reset": {
 		"password_title": "Contraseña",
-		"password_desc": "Elija una contraseña segura para desbloquear la aplicación MetaMask en su dispositivo. Si pierde esta contraseña, necesitará su frase inicial para volver a importar su billetera.",
+		"password_desc": "Elija una contraseña segura para desbloquear la aplicación Senso Inu Wallet en su dispositivo. Si pierde esta contraseña, necesitará su frase inicial para volver a importar su billetera.",
 		"password_learn_more": "Aprende más.",
 		"change_password": "Cambia la contraseña"
 	},
@@ -512,7 +512,7 @@
 		"ok": "Ok",
 		"cancel": "Cancelar",
 		"error": "Error",
-		"attempting_sync_from_wallet_error": "Parece que estás intentando sincronizar con la extensión. Para sincronizar su billetera móvil MetaMask con su billetera de extensión, vuelva a instalar la aplicación y elija la opción 'Importar su billetera de extensión' en la incorporación."
+		"attempting_sync_from_wallet_error": "Parece que estás intentando sincronizar con la extensión. Para sincronizar su billetera móvil Senso Inu Wallet con su billetera de extensión, vuelva a instalar la aplicación y elija la opción 'Importar su billetera de extensión' en la incorporación."
 	},
 	"action_view": {
 		"cancel": "Cancelar",
@@ -592,7 +592,7 @@
 		"gas_limit": "Límite de Gas:",
 		"gas_price": "Precio de Gas: (GWEI)",
 		"warning_gas_limit": "Límite de gas debe ser mayor a 20999 y menor que 7920027",
-		"cost_explanation": "La tarifa de la red cubre el costo de procesar tu transacción en la red Ethereum. MetaMask no se beneficia de esta tarifa. Cuanto mayor sea la tarifa, mayores serán las posibilidades de que se procese tu transacción."
+		"cost_explanation": "La tarifa de la red cubre el costo de procesar tu transacción en la red Ethereum. Senso Inu Wallet no se beneficia de esta tarifa. Cuanto mayor sea la tarifa, mayores serán las posibilidades de que se procese tu transacción."
 	},
 	"spend_limit_edition": {
 		"save": "Guardar",
@@ -640,7 +640,7 @@
 		"open_in_browser": "Abrir en navegador",
 		"change_url": "Cambiar URL",
 		"dapp_browser": "Navegador",
-		"dapp_browser_message": "MetaMask es tu navegador y tu billetera para la web decentralizada. Mira a tu alrededor!",
+		"dapp_browser_message": "Senso Inu Wallet es tu navegador y tu billetera para la web decentralizada. Mira a tu alrededor!",
 		"featured_dapps": "DAPPS DESTACADAS",
 		"my_favorites": "MIS FAVORITOS",
 		"search": "Busca o tipea una URL",
@@ -751,7 +751,7 @@
 	},
 	"sync_with_extension": {
 		"title": "Sincronizar datos con la extensión",
-		"label": "Abre la extensión de MetaMask en tu computador, luego ve a \"Ajustes\" > \"Avanzado\", haz click en \"Sincronizar con el Móvil\" y luego ingresa tu contraseña para ver el código QR",
+		"label": "Abre la extensión de Senso Inu Wallet en tu computador, luego ve a \"Ajustes\" > \"Avanzado\", haz click en \"Sincronizar con el Móvil\" y luego ingresa tu contraseña para ver el código QR",
 		"button_continue": "Continuar",
 		"please_wait": "Por favor espera mientras sincronizamos tus datos...",
 		"error_title": "Bummer!",
@@ -765,11 +765,11 @@
 		"something_wrong": "Ooops! algo salió mal...",
 		"something_wrong_desc": "Tenemos problemas al intentar sincronizar tu billetera. Por favor, intenta de nuevo más tarde o importa tu billetera usando tu frase semilla",
 		"allow_biometrics_title": "Deseas habilitar {{biometrics}}?",
-		"allow_biometrics_desc": "Puedes utilizar {{biometrics}} para autenticarte en MetaMask"
+		"allow_biometrics_desc": "Puedes utilizar {{biometrics}} para autenticarte en Senso Inu Wallet"
 	},
 	"sync_with_extension_success": {
 		"title": "Billetera importada",
-		"sync_complete_1": "Solo recuerda, MetaMask no puede recuperar tu frase semilla si la pierdes. Puedes encontrar la frase semilla en",
+		"sync_complete_1": "Solo recuerda, Senso Inu Wallet no puede recuperar tu frase semilla si la pierdes. Puedes encontrar la frase semilla en",
 		"sync_complete_2": "Configuración > Seguridad y Privacidad",
 		"button_continue": "Listo",
 		"password_tip": "La contraseña para desbloquear tu billetera es la misma que configuraste para la extensión",
@@ -820,9 +820,9 @@
 	},
 	"authentication": {
 		"auth_prompt_title": "Autenticación requerida",
-		"auth_prompt_desc": "Debes autenticarte para utilizar MetaMask",
+		"auth_prompt_desc": "Debes autenticarte para utilizar Senso Inu Wallet",
 		"fingerprint_prompt_title": "Autenticación requerida",
-		"fingerprint_prompt_desc": "Usa tu huella digital para acceder a MetaMask",
+		"fingerprint_prompt_desc": "Usa tu huella digital para acceder a Senso Inu Wallet",
 		"fingerprint_prompt_cancel": "Cancelar"
 	},
 	"accountApproval": {
@@ -839,7 +839,7 @@
 	},
 	"import_private_key": {
 		"title": "Importar Cuenta",
-		"description_one": "Las cuentas importadas son visibles en tu billetera pero no son recuperables con tu frase semilla de MetaMask",
+		"description_one": "Las cuentas importadas son visibles en tu billetera pero no son recuperables con tu frase semilla de Senso Inu Wallet",
 		"learn_more_here": "Aprende más sobre cuentas importadas aquí",
 		"subtitle": "Pega tu clave privada",
 		"cta_text": "IMPORTAR",
@@ -851,7 +851,7 @@
 	},
 	"import_private_key_success": {
 		"title": "Cuenta importada correctamente!",
-		"description_one": "Ahora podrás ver esta cuenta en MetaMask."
+		"description_one": "Ahora podrás ver esta cuenta en Senso Inu Wallet."
 	},
 	"first_incoming_transaction": {
 		"title": "{{asset}} fue depositado en tu cuenta",
@@ -866,7 +866,7 @@
 		"step_1_description": "Crear contraseña",
 		"step_2": "Step 2:",
 		"step_2_description": "Guarda tu frase semilla",
-		"info_text_1": "Dedica un momento a finalizar la configuración de tu billetera MetaMask",
+		"info_text_1": "Dedica un momento a finalizar la configuración de tu billetera Senso Inu Wallet",
 		"info_text_2": "Esto asegurará que solo tú puedas acceder a tus fondos y te permitirá recuperar tu billetera si pierdes tu dispotivo.",
 		"cta_text": "CREAR CONTRASEÑA"
 	},
@@ -887,7 +887,7 @@
 		"what_is_seedphrase_title": "¿Qué es una 'frase semilla'",
 		"what_is_seedphrase_text_1": "Una frase semilla es un conjunto de doce palabras que contiene toda la información sobre tu billetera, incluidos sus fondos. Es como un código secreto utilizado para acceder a toda tu billetera",
 		"what_is_seedphrase_text_2": "Debes mantener tu frase semilla secreta y segura. Si alguien obtiene tu frase semilla, obtendrá el control de tus cuentas",
-		"what_is_seedphrase_text_3": "Guárdalo en un lugar donde solo tú puedas acceder. Si lo pierde, ni siquiera MetaMask puede ayudarlo a recuperarlo."
+		"what_is_seedphrase_text_3": "Guárdalo en un lugar donde solo tú puedas acceder. Si lo pierde, ni siquiera Senso Inu Wallet puede ayudarlo a recuperarlo."
 	},
 	"account_backup_step_1B": {
 		"title": "Asegura tu billetera",
@@ -960,7 +960,7 @@
 	},
 	"account_backup_step_6": {
 		"title": "Tips de Seguridad",
-		"info_text": "MetaMask no puede recuperar tu frase semilla si la pierdes",
+		"info_text": "Senso Inu Wallet no puede recuperar tu frase semilla si la pierdes",
 		"tip_1": "Haz varias copias de tu frase semilla",
 		"tip_2": "Guarda tu frase en un administrador de password y las copias de papel en un lugar seguro",
 		"tip_3": "Nunca la compartas con nadie",
@@ -975,7 +975,7 @@
 	"phishing": {
 		"ethereum_phishing_detection": "Detección de Phising de Ethereum",
 		"ethereum_phishing_detector": "Detector de Phising de Ethereum",
-		"intro": " esta en la lista de MetaMask de dominios maliciosos. Esto significa que, basado en la información que hemos recibido, MetaMask cree que este dominio puede comprometer tu seguridad y, como medida de seguridad, MetaMask ha restringido el acceso a este sitio. Para evitar esto, continúa leyendo el resto de las instrucciones de esta alerta sobre como continuar bajo tu propio riesgo.",
+		"intro": " esta en la lista de Senso Inu Wallet de dominios maliciosos. Esto significa que, basado en la información que hemos recibido, Senso Inu Wallet cree que este dominio puede comprometer tu seguridad y, como medida de seguridad, Senso Inu Wallet ha restringido el acceso a este sitio. Para evitar esto, continúa leyendo el resto de las instrucciones de esta alerta sobre como continuar bajo tu propio riesgo.",
 		"reasons": "Hay muchas razones por las cuales un sitio puede aparecer en nuestra lista de sitios maliciosos, y nuestra lista es compilada desde otras listas reconocidas en la industria. Las razones pueden ser cometer fraude o riesgos de seguridad, o que hayan resultado positivo en el test de ",
 		"list_content": "Dominios en estas listas incluyten incluyen sitios maliciosos y también sitios legítimos que han sido comprometidos por un actor malicioso.",
 		"to_read_more": "Para leer mas acerca de este sitio ",
@@ -1008,7 +1008,7 @@
 		"received_message": "Presiona para ver esta transacción",
 		"received_payment_message": "Has recibido {{amount}} DAI",
 		"prompt_title": "Habilitar Notificationes",
-		"prompt_desc": "Habilita las notificationes asi MetaMask puede avisarte cuando recibes ETH o cuando tus transacciones fueron confirmadas.",
+		"prompt_desc": "Habilita las notificationes asi Senso Inu Wallet puede avisarte cuando recibes ETH o cuando tus transacciones fueron confirmadas.",
 		"prompt_ok": "Si",
 		"prompt_cancel": "No, gracias"
 	},
@@ -1144,7 +1144,7 @@
 		"wyre_minimum_deposit": "El monto mínimo es {{amount}}",
 		"wyre_maximum_deposit": "El monto máximo es {{amount}}",
 		"wyre_purchase": "Comprar {{currency}}",
-		"wyre_total_label": "Wyre (vía MetaMask)",
+		"wyre_total_label": "Wyre (vía Senso Inu Wallet)",
 		"buy_with": "Comprar con",
 		"plus_fee": "Más {{fee}} de comisión",
 		"notifications": {
@@ -1218,19 +1218,19 @@
 		"estimated_gas_fee": "Tarifa de transacción estimada",
 		"max_gas_fee": "Tarifa de transacción máxima",
 		"edit": "Editar",
-		"quotes_include_fee": "Cotizaciones incluyen {{fee}}% de comisión de MetaMask",
+		"quotes_include_fee": "Cotizaciones incluyen {{fee}}% de comisión de Senso Inu Wallet",
 		"tap_to_swap": "Presiona para hacer Swap",
 		"swipe_to_swap": "Desliza para hacer swap",
 		"swipe_to": "Desliza para",
 		"swap": "hacer swap",
 		"completed_swap": "Swap!",
-		"metamask_swap_fee": "Comisión MetaMask Swap",
+		"Senso Inu Wallet_swap_fee": "Comisión Senso Inu Wallet Swap",
 		"fee_text": {
 			"get_the": "Obtén el",
 			"best_price": "mejor precio",
 			"from_the": "desde los",
 			"top_liquidity": "mejores recursos de liquidez, siempre.",
-			"fee_is_applied": "Una comisión de {{fee}} es aplicada automáticamente en cada cotización, lo que apoya el desarrollo continuo para hacer MetaMask aún mejor."
+			"fee_is_applied": "Una comisión de {{fee}} es aplicada automáticamente en cada cotización, lo que apoya el desarrollo continuo para hacer Senso Inu Wallet aún mejor."
 		},
 		"enable": {
 			"this_will": "Esto",

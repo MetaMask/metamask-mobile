@@ -28,14 +28,14 @@
 	},
 	"onboarding": {
 		"title": "Thiết lập ví",
-		"sync_desc": "Nếu bạn đã có tiện ích MetaMask hoặc một ví khác, hãy đồng bộ hóa hoặc nhập tiện ích/ví đó để quản lý tài sản hiện có của mình.",
+		"sync_desc": "Nếu bạn đã có tiện ích Senso Inu Wallet hoặc một ví khác, hãy đồng bộ hóa hoặc nhập tiện ích/ví đó để quản lý tài sản hiện có của mình.",
 		"create_desc": "Thiết lập ví đầu tiên của bạn và bắt đầu khám phá các ứng dụng phi tập trung.",
 		"import": "Nhập một ví hiện có hoặc tạo ví mới",
 		"import_wallet_button": "Đồng bộ hóa hoặc nhập ví",
 		"new_to_crypto": "Bạn mới sử dụng tiền mã hóa?",
 		"start_exploring_now": "Tạo một ví mới",
 		"login": "Đăng nhập",
-		"new_to_metamask": "Bạn mới sử dụng MetaMask?",
+		"new_to_Senso Inu Wallet": "Bạn mới sử dụng Senso Inu Wallet?",
 		"already_have_wallet": "Bạn đã có ví?",
 		"optin_back_title": "Chú ý!",
 		"optin_back_desc": "Vui lòng chấp nhận hoặc từ chối việc sử dụng tính năng phân tích dữ liệu.  Bạn cũng có thể cập nhật tùy chọn này trong phần cài đặt.",
@@ -43,15 +43,15 @@
 		"warning_text_1": "Ví và các tài khoản hiện tại của bạn sẽ",
 		"warning_text_2": "bị xóa",
 		"warning_text_3": "nếu bạn tiếp tục.",
-		"warning_text_4": "Bạn CHỈ có thể khôi phục chúng khi có cụm mật khẩu gốc của ví. MetaMask không thể giúp bạn khôi phục cụm mật khẩu gốc này.",
+		"warning_text_4": "Bạn CHỈ có thể khôi phục chúng khi có cụm mật khẩu gốc của ví. Senso Inu Wallet không thể giúp bạn khôi phục cụm mật khẩu gốc này.",
 		"warning_proceed": "Xóa ví và tiếp tục",
 		"warning_cancel": "Hủy",
 		"step1": "Thiết lập ví",
 		"step2": "Tạo mật khẩu",
 		"step3": "Giữ an toàn cho ví",
 		"already_have": "Bạn đã có ví?",
-		"sync_existing": "Đồng bộ hóa ví MetaMask hiện có của bạn từ tiện ích trình duyệt hoặc nhập thủ công.",
-		"scan_title": "Các bước để đồng bộ hóa với tiện ích MetaMask",
+		"sync_existing": "Đồng bộ hóa ví Senso Inu Wallet hiện có của bạn từ tiện ích trình duyệt hoặc nhập thủ công.",
+		"scan_title": "Các bước để đồng bộ hóa với tiện ích Senso Inu Wallet",
 		"scan": "Quét",
 		"scan_step_1": "Mở tiện ích trên máy tính để bàn",
 		"scan_step_2": "Vào phần Cài đặt > Nâng cao",
@@ -59,12 +59,12 @@
 		"scan_step_4": "Quét mã QR để bắt đầu đồng bộ hóa"
 	},
 	"onboarding_carousel": {
-		"title1": "Chào mừng bạn đến với MetaMask",
+		"title1": "Chào mừng bạn đến với Senso Inu Wallet",
 		"title2": "Quản lý tài sản kỹ thuật số của bạn",
 		"title3": "Cánh cửa đưa bạn đến với web3",
-		"subtitle1": "Được hàng triệu người dùng tin tưởng, MetaMask là một ví an toàn giúp đưa web3 đến với tất cả mọi người.",
+		"subtitle1": "Được hàng triệu người dùng tin tưởng, Senso Inu Wallet là một ví an toàn giúp đưa web3 đến với tất cả mọi người.",
 		"subtitle2": "Lưu trữ, chi tiêu và gửi tài sản kỹ thuật số như token, ethereum, vật phẩm sưu tập độc nhất.",
-		"subtitle3": "Đăng nhập bằng MetaMask và thực hiện các giao dịch để đầu tư, kiếm tiền, chơi trò chơi, bán hàng và nhiều hoạt động khác!",
+		"subtitle3": "Đăng nhập bằng Senso Inu Wallet và thực hiện các giao dịch để đầu tư, kiếm tiền, chơi trò chơi, bán hàng và nhiều hoạt động khác!",
 		"get_started": "Bắt đầu"
 	},
 	"onboarding_wizard": {
@@ -95,7 +95,7 @@
 			"title": "Bảng điều hướng chính",
 			"content1": "Nhấn vào đây",
 			"content2": "để truy cập Ví, Trình duyệt và Lịch sử giao dịch của bạn.",
-			"content3": "Bạn có thể thực hiện nhiều hành động khác với tài khoản của mình và truy cập vào phần cài đặt MetaMask."
+			"content3": "Bạn có thể thực hiện nhiều hành động khác với tài khoản của mình và truy cập vào phần cài đặt Senso Inu Wallet."
 		},
 		"step5": {
 			"title": "Khám phá Trình duyệt",
@@ -111,14 +111,14 @@
 		"subtitle": "Quá trình này sẽ không mất nhiều thời gian"
 	},
 	"import_wallet": {
-		"title": "Bạn đã là người dùng MetaMask?",
+		"title": "Bạn đã là người dùng Senso Inu Wallet?",
 		"sub_title": "Đồng bộ hóa với tiện ích",
 		"sync_help": "Đồng bộ hóa ví của bạn với tiện ích",
 		"sync_help_step_one": "1. Mở tiện ích",
 		"sync_help_step_two": "2. Vào phần Cài đặt > Nâng cao",
 		"sync_help_step_three": "3. Nhấp vào \"Đồng bộ hóa với điện thoại di động\"",
 		"sync_help_step_four": "4. Quét Mã QR để bắt đầu đồng bộ hóa",
-		"sync_from_browser_extension_button": "Đồng bộ hóa với tiện ích MetaMask",
+		"sync_from_browser_extension_button": "Đồng bộ hóa với tiện ích Senso Inu Wallet",
 		"or": "HOẶC",
 		"import_from_seed_button": "Nhập bằng cách sử dụng cụm mật khẩu gốc"
 	},
@@ -138,7 +138,7 @@
 	},
 	"choose_password": {
 		"title": "Tạo mật khẩu",
-		"subtitle": "Mật khẩu này sẽ chỉ mở khóa ví MetaMask của bạn trên thiết bị này.",
+		"subtitle": "Mật khẩu này sẽ chỉ mở khóa ví Senso Inu Wallet của bạn trên thiết bị này.",
 		"password": "Mật khẩu mới",
 		"confirm_password": "Xác nhận mật khẩu",
 		"create_button": "Tạo mật khẩu",
@@ -156,14 +156,14 @@
 		"remember_me": "Ghi nhớ thông tin đăng nhập của tôi",
 		"security_alert_title": "Cảnh báo bảo mật",
 		"security_alert_message": "Để tiếp tục, bạn cần bật Mật mã hoặc bất kỳ phương thức xác thực sinh trắc học nào được hỗ trợ trên thiết bị của mình (FaceID, TouchID hoặc Dấu vân tay)",
-		"i_understand": "Tôi hiểu rằng MetaMask không thể giúp tôi khôi phục mật khẩu này.",
+		"i_understand": "Tôi hiểu rằng Senso Inu Wallet không thể giúp tôi khôi phục mật khẩu này.",
 		"learn_more": "Tìm hiểu thêm.",
 		"secure": "Giữ an toàn cho ví",
 		"confirm": "Xác nhận cụm mật khẩu gốc"
 	},
 	"reset_password": {
 		"title": "Đổi mật khẩu",
-		"subtitle": "Mật khẩu này sẽ chỉ mở khóa ví MetaMask của bạn trên thiết bị này.",
+		"subtitle": "Mật khẩu này sẽ chỉ mở khóa ví Senso Inu Wallet của bạn trên thiết bị này.",
 		"password": "Mật khẩu mới",
 		"confirm_password": "Xác nhận mật khẩu",
 		"reset_button": "Đặt lại mật khẩu",
@@ -181,7 +181,7 @@
 		"remember_me": "Ghi nhớ thông tin đăng nhập của tôi",
 		"security_alert_title": "Cảnh báo bảo mật",
 		"security_alert_message": "Để tiếp tục, bạn cần bật Mật mã hoặc bất kỳ phương thức xác thực sinh trắc học nào được hỗ trợ trên thiết bị của mình (FaceID, TouchID hoặc Dấu vân tay)",
-		"i_understand": "Tôi hiểu rằng MetaMask không thể giúp tôi khôi phục mật khẩu này.",
+		"i_understand": "Tôi hiểu rằng Senso Inu Wallet không thể giúp tôi khôi phục mật khẩu này.",
 		"learn_more": "Tìm hiểu thêm.",
 		"secure": "Giữ an toàn cho ví",
 		"confirm": "Xác nhận cụm mật khẩu gốc",
@@ -232,7 +232,7 @@
 		"logout_ok": "CÓ",
 		"logout_cancel": "KHÔNG",
 		"feedback": "Ý kiến phản hồi",
-		"metamask_support": "Hỗ trợ về MetaMask",
+		"Senso Inu Wallet_support": "Hỗ trợ về Senso Inu Wallet",
 		"public_address": "Địa chỉ công khai"
 	},
 	"send": {
@@ -308,9 +308,9 @@
 		"here": "tại đây",
 		"agree": "Tôi đồng ý",
 		"decline": "Không, cảm ơn",
-		"description_title": "Giúp chúng tôi cải thiện MetaMask",
-		"description_content_1": "MetaMask muốn thu thập dữ liệu sử dụng cơ bản để hiểu rõ hơn về cách người dùng tương tác với ứng dụng di động. Chúng tôi sẽ dùng dữ liệu này để liên tục cải thiện độ hữu ích và trải nghiệm người dùng trên sản phẩm của mình.",
-		"description_content_2": "MetaMask sẽ...",
+		"description_title": "Giúp chúng tôi cải thiện Senso Inu Wallet",
+		"description_content_1": "Senso Inu Wallet muốn thu thập dữ liệu sử dụng cơ bản để hiểu rõ hơn về cách người dùng tương tác với ứng dụng di động. Chúng tôi sẽ dùng dữ liệu này để liên tục cải thiện độ hữu ích và trải nghiệm người dùng trên sản phẩm của mình.",
+		"description_content_2": "Senso Inu Wallet sẽ...",
 		"action_description_1": "Luôn cho phép bạn chọn không tham gia thông qua phần Cài đặt",
 		"action_description_2": "Gửi các lượt nhấp và xem trang đã được ẩn danh",
 		"action_description_4": "Không bao giờ thu thập mã khóa, địa chỉ, giao dịch, số dư, mã băm hoặc bất kỳ thông tin cá nhân nào",
@@ -371,8 +371,8 @@
 		"instapay_state_logs": "Nhật ký InstaPay",
 		"auto_lock": "Tự động khóa",
 		"auto_lock_desc": "Chọn khoảng thời gian trước khi ứng dụng tự động khóa.",
-		"state_logs_desc": "Thông tin này sẽ giúp MetaMask khắc phục sự cố mà bạn có thể gặp phải. Vui lòng gửi thông tin đó qua email tới support@metamask.io",
-		"instapay_state_logs_desc": "Thông tin này sẽ giúp MetaMask khắc phục sự cố xảy ra với InstaPay. Vui lòng gửi thông tin đó qua email tới support@metamask.io",
+		"state_logs_desc": "Thông tin này sẽ giúp Senso Inu Wallet khắc phục sự cố mà bạn có thể gặp phải. Vui lòng gửi thông tin đó qua email tới support@Senso Inu Wallet.io",
+		"instapay_state_logs_desc": "Thông tin này sẽ giúp Senso Inu Wallet khắc phục sự cố xảy ra với InstaPay. Vui lòng gửi thông tin đó qua email tới support@Senso Inu Wallet.io",
 		"autolock_immediately": "Ngay lập tức",
 		"autolock_never": "Không bao giờ",
 		"autolock_after": "Sau {{time}} giây",
@@ -396,7 +396,7 @@
 		"save_rpc_url": "LƯU",
 		"invalid_rpc_prefix": "URI phải có tiền tố HTTPS phù hợp",
 		"invalid_rpc_url": "URL RPC không hợp lệ",
-		"sync_with_extension": "Đồng bộ hóa với Tiện ích MetaMask",
+		"sync_with_extension": "Đồng bộ hóa với Tiện ích Senso Inu Wallet",
 		"sync_with_extension_desc": "Quá trình này sẽ nhập tất cả các tài khoản trong tiện ích sang thiết bị này.",
 		"sync": "ĐỒNG BỘ HÓA",
 		"clear_approved_dapps": "XÓA CÁC ỨNG DỤNG PHI TẬP TRUNG ĐÃ ĐƯỢC PHÊ DUYỆT",
@@ -451,7 +451,7 @@
 		"remove_network_title": "Bạn có muốn xóa mạng này không?",
 		"remove_network": "Xóa",
 		"cancel_remove_network": "Hủy",
-		"info_title": "Giới thiệu về MetaMask",
+		"info_title": "Giới thiệu về Senso Inu Wallet",
 		"experimental_title": "Thử nghiệm",
 		"experimental_desc": "WalletConnect và nhiều giao thức khác...",
 		"legal_title": "Pháp lý",
@@ -471,7 +471,7 @@
 		"clear_history_desc": "Chọn tùy chọn này để xóa toàn bộ lịch sử duyệt web của bạn.",
 		"clear_cookies_desc": "Chọn tùy chọn này để xóa toàn bộ cookie trên trình duyệt của bạn.",
 		"metametrics_title": "Tham gia MetaMetrics",
-		"metametrics_description": "Tham gia MetaMetrics để giúp chúng tôi cải thiện MetaMask.",
+		"metametrics_description": "Tham gia MetaMetrics để giúp chúng tôi cải thiện Senso Inu Wallet.",
 		"third_party_title": "Nhận các giao dịch đến",
 		"third_party_description": "API của bên thứ ba (Etherscan) được dùng để hiển thị cho bạn những giao dịch đến từ trước đến nay. Tắt tùy chọn này nếu bạn không muốn chúng tôi lấy dữ liệu từ các dịch vụ đó.",
 		"metametrics_opt_out": "Chọn không tham gia MetaMetrics",
@@ -518,7 +518,7 @@
 	},
 	"password_reset": {
 		"password_title": "Mật khẩu",
-		"password_desc": "Chọn một mật khẩu mạnh để mở khóa ứng dụng MetaMask trên thiết bị của bạn. Nếu mất mật khẩu này, bạn sẽ phải dùng cụm mật khẩu gốc để nhập lại ví của mình.",
+		"password_desc": "Chọn một mật khẩu mạnh để mở khóa ứng dụng Senso Inu Wallet trên thiết bị của bạn. Nếu mất mật khẩu này, bạn sẽ phải dùng cụm mật khẩu gốc để nhập lại ví của mình.",
 		"password_learn_more": "Tìm hiểu thêm.",
 		"change_password": "Đổi mật khẩu"
 	},
@@ -548,7 +548,7 @@
 		"ok": "Ok",
 		"cancel": "Hủy",
 		"error": "Lỗi",
-		"attempting_sync_from_wallet_error": "Có vẻ như bạn đang cố gắng đồng bộ hóa với tiện ích. Để thực hiện việc này, vui lòng chuyển đến phần Cài đặt > Nâng cao > Đồng bộ hóa với Tiện ích MetaMask"
+		"attempting_sync_from_wallet_error": "Có vẻ như bạn đang cố gắng đồng bộ hóa với tiện ích. Để thực hiện việc này, vui lòng chuyển đến phần Cài đặt > Nâng cao > Đồng bộ hóa với Tiện ích Senso Inu Wallet"
 	},
 	"action_view": {
 		"cancel": "Hủy",
@@ -698,7 +698,7 @@
 		"change_url": "Thay đổi URL",
 		"switch_network": "Thay đổi mạng",
 		"dapp_browser": "TRÌNH DUYỆT ỨNG DỤNG PHI TẬP TRUNG",
-		"dapp_browser_message": "MetaMask là ví của bạn và trình duyệt cho web phi tập trung. Hãy xem thử một lượt!",
+		"dapp_browser_message": "Senso Inu Wallet là ví của bạn và trình duyệt cho web phi tập trung. Hãy xem thử một lượt!",
 		"featured_dapps": "ỨNG DỤNG PHI TẬP TRUNG NỔI BẬT",
 		"my_favorites": "MỤC YÊU THÍCH CỦA TÔI",
 		"search": "Tìm kiếm hoặc nhập một URL",
@@ -817,7 +817,7 @@
 	"sync_with_extension": {
 		"title": "Đồng bộ hóa dữ liệu từ Tiện ích",
 		"short_title": "Đồng bộ hóa với Tiện ích",
-		"label": "Mở tiện ích MetaMask trên trình duyệt máy tính, rồi chuyển đến phần \"Cài đặt\" > \"Nâng cao\", nhấp vào \"Đồng bộ hóa với điện thoại di động\", sau đó nhập mật khẩu để xem mã QR",
+		"label": "Mở tiện ích Senso Inu Wallet trên trình duyệt máy tính, rồi chuyển đến phần \"Cài đặt\" > \"Nâng cao\", nhấp vào \"Đồng bộ hóa với điện thoại di động\", sau đó nhập mật khẩu để xem mã QR",
 		"button_continue": "Tiếp tục",
 		"please_wait": "Vui lòng chờ trong khi chúng tôi đồng bộ hóa dữ liệu của bạn...",
 		"error_title": "Rất tiếc!",
@@ -833,11 +833,11 @@
 		"something_wrong": "Rất tiếc! Đã xảy ra sự cố...",
 		"something_wrong_desc": "Chúng tôi đang gặp phải sự cố khi cố gắng đồng bộ hóa ví của bạn. Vui lòng thử lại sau hoặc nhập ví của bạn bằng cụm mật khẩu gốc",
 		"allow_biometrics_title": "Bạn có muốn bật {{biometrics}} không?",
-		"allow_biometrics_desc": "Bạn có thể dùng {{biometrics}} để xác thực trên MetaMask"
+		"allow_biometrics_desc": "Bạn có thể dùng {{biometrics}} để xác thực trên Senso Inu Wallet"
 	},
 	"sync_with_extension_success": {
 		"title": "Đã nhập ví",
-		"sync_complete_1": "Xin lưu ý rằng MetaMask không thể khôi phục cụm mật khẩu gốc của bạn nếu bạn bị mất. Bạn có thể tìm thấy cụm mật khẩu gốc trong",
+		"sync_complete_1": "Xin lưu ý rằng Senso Inu Wallet không thể khôi phục cụm mật khẩu gốc của bạn nếu bạn bị mất. Bạn có thể tìm thấy cụm mật khẩu gốc trong",
 		"sync_complete_2": "Cài đặt > Bảo mật và quyền riêng tư",
 		"button_continue": "Hoàn tất",
 		"password_tip": "Mật khẩu để mở khóa ví trên thiết bị di động của bạn giống với mật khẩu bạn đã đặt cho tiện ích.",
@@ -902,9 +902,9 @@
 	},
 	"authentication": {
 		"auth_prompt_title": "Bắt buộc phải xác thực",
-		"auth_prompt_desc": "Vui lòng xác thực để sử dụng MetaMask",
+		"auth_prompt_desc": "Vui lòng xác thực để sử dụng Senso Inu Wallet",
 		"fingerprint_prompt_title": "Bắt buộc phải xác thực",
-		"fingerprint_prompt_desc": "Sử dụng dấu vân tay của bạn để mở khóa MetaMask",
+		"fingerprint_prompt_desc": "Sử dụng dấu vân tay của bạn để mở khóa Senso Inu Wallet",
 		"fingerprint_prompt_cancel": "Hủy"
 	},
 	"accountApproval": {
@@ -921,7 +921,7 @@
 	},
 	"import_private_key": {
 		"title": "Nhập tài khoản",
-		"description_one": "Tài khoản đã nhập có thể xem được trong ví của bạn nhưng không thể khôi phục bằng cụm mật khẩu gốc do MetaMask cấp cho bạn.",
+		"description_one": "Tài khoản đã nhập có thể xem được trong ví của bạn nhưng không thể khôi phục bằng cụm mật khẩu gốc do Senso Inu Wallet cấp cho bạn.",
 		"learn_more_here": "Tìm hiểu thêm về các tài khoản đã nhập tại đây.",
 		"subtitle": "Dán chuỗi khóa riêng tư của bạn",
 		"cta_text": "NHẬP",
@@ -933,7 +933,7 @@
 	},
 	"import_private_key_success": {
 		"title": "Đã nhập tài khoản thành công!",
-		"description_one": "Bây giờ, bạn sẽ có thể xem tài khoản của mình trong MetaMask."
+		"description_one": "Bây giờ, bạn sẽ có thể xem tài khoản của mình trong Senso Inu Wallet."
 	},
 	"first_incoming_transaction": {
 		"title": "Đã nộp {{asset}} vào tài khoản của bạn",
@@ -948,7 +948,7 @@
 		"step_1_description": "Tạo mật khẩu",
 		"step_2": "Bước 2:",
 		"step_2_description": "Lưu cụm mật khẩu gốc của ví",
-		"info_text_1": "Hãy dành vài phút để hoàn tất việc thiết lập ví MetaMask của bạn.",
+		"info_text_1": "Hãy dành vài phút để hoàn tất việc thiết lập ví Senso Inu Wallet của bạn.",
 		"info_text_2": "Việc này sẽ đảm bảo rằng chỉ bạn mới có thể truy cập tiền của mình và cho phép bạn khôi phục ví nếu bạn mất thiết bị",
 		"cta_text": "Tạo mật khẩu",
 		"creating_password": "Đang tạo mật khẩu..."
@@ -970,7 +970,7 @@
 		"what_is_seedphrase_title": "“Cụm mật khẩu gốc” là gì",
 		"what_is_seedphrase_text_1": "Cụm mật khẩu gốc là tập hợp gồm 12 từ chứa toàn bộ thông tin về ví của bạn, bao gồm cả số tiền của bạn. Đây giống như một mã bí mật dùng để truy cập toàn bộ ví của bạn.",
 		"what_is_seedphrase_text_2": "Bạn phải lưu giữ cụm mật khẩu gốc an toàn và bí mật. Nếu ai đó biết cụm mật khẩu gốc của bạn, họ có thể kiểm soát các tài khoản của bạn.",
-		"what_is_seedphrase_text_3": "Hãy lưu cụm mật khẩu gốc ở nơi mà bạn có thể lấy để sử dụng. Nếu bị mất thì ngay cả MetaMask cũng không thể giúp bạn khôi phục."
+		"what_is_seedphrase_text_3": "Hãy lưu cụm mật khẩu gốc ở nơi mà bạn có thể lấy để sử dụng. Nếu bị mất thì ngay cả Senso Inu Wallet cũng không thể giúp bạn khôi phục."
 	},
 	"account_backup_step_1B": {
 		"title": "Bảo mật cho ví của bạn",
@@ -1043,7 +1043,7 @@
 	},
 	"account_backup_step_6": {
 		"title": "Mẹo bảo mật",
-		"info_text": "MetaMask không thể khôi phục cụm mật khẩu gốc của bạn nếu bạn bị mất",
+		"info_text": "Senso Inu Wallet không thể khôi phục cụm mật khẩu gốc của bạn nếu bạn bị mất",
 		"tip_1": "Lưu giữ nhiều bản sao lưu cụm mật khẩu gốc của bạn",
 		"tip_2": "Lưu giữ cụm mật khẩu trong trình quản lý mật khẩu đáng tin cậy và các bản sao lưu trên giấy ở nơi an toàn",
 		"tip_3": "Tuyệt đối không chia sẻ cụm mật khẩu này với bất kỳ ai",
@@ -1081,7 +1081,7 @@
 		"congratulations": "Chúc mừng bạn",
 		"success": "Bạn đã bảo vệ thành công ví của mình. Hãy nhớ lưu giữ an toàn cụm mật khẩu gốc của bạn. Đây là trách nhiệm của bạn!",
 		"hint": "Để lại gợi ý cho bạn?",
-		"recover": "MetaMask không thể khôi phục ví của bạn nếu bạn bị mất cụm mật khẩu gốc. Bạn có thể tìm thấy cụm mật khẩu gốc của mình trong phần Cài đặt > Bảo mật và quyền riêng tư.",
+		"recover": "Senso Inu Wallet không thể khôi phục ví của bạn nếu bạn bị mất cụm mật khẩu gốc. Bạn có thể tìm thấy cụm mật khẩu gốc của mình trong phần Cài đặt > Bảo mật và quyền riêng tư.",
 		"learn": "Tìm hiểu thêm",
 		"done": "Hoàn tất",
 		"recovery_hint": "Gợi ý khôi phục",
@@ -1094,7 +1094,7 @@
 	"phishing": {
 		"ethereum_phishing_detection": "Phát hiện lừa đảo trên Ethereum",
 		"ethereum_phishing_detector": "Trình phát hiện lừa đảo trên Ethereum",
-		"intro": " hiện đang nằm trong danh sách miền cảnh báo của MetaMask. Điều này có nghĩa là, dựa vào thông tin có sẵn với chúng tôi, MetaMask cho rằng miền này hiện có thể xâm phạm đến tính bảo mật của bạn và với vai trò là tính năng bảo mật bổ sung, MetaMask đã hạn chế quyền truy cập vào trang web đó. Để bỏ qua cảnh báo này, vui lòng đọc phần còn lại của cảnh báo để biết hướng dẫn về cách tiếp tục với rủi ro do bạn tự chịu.",
+		"intro": " hiện đang nằm trong danh sách miền cảnh báo của Senso Inu Wallet. Điều này có nghĩa là, dựa vào thông tin có sẵn với chúng tôi, Senso Inu Wallet cho rằng miền này hiện có thể xâm phạm đến tính bảo mật của bạn và với vai trò là tính năng bảo mật bổ sung, Senso Inu Wallet đã hạn chế quyền truy cập vào trang web đó. Để bỏ qua cảnh báo này, vui lòng đọc phần còn lại của cảnh báo để biết hướng dẫn về cách tiếp tục với rủi ro do bạn tự chịu.",
 		"reasons": "Có nhiều lý do có thể khiến các trang web nằm trong danh sách cảnh báo của chúng tôi và danh sách cảnh báo của chúng tôi tổng hợp từ các danh sách khác được sử dụng rộng rãi trong ngành. Những lý do đó có thể là các rủi ro đã biết về hành vi gian lận hoặc tính bảo mật, chẳng hạn như các miền cho kết quả kiểm tra là có vấn đề trên ",
 		"list_content": "Những miền có các trong danh sách cảnh báo này có thể bao gồm các trang web hoàn toàn độc hại cũng như các trang web an toàn nhưng đã bị tác nhân độc hại xâm phạm.",
 		"to_read_more": "Để tìm hiểu thêm về trang web này ",
@@ -1129,7 +1129,7 @@
 		"received_message": "Nhấn để xem giao dịch này",
 		"received_payment_message": "Bạn đã nhận được {{amount}} DAI",
 		"prompt_title": "Bật thông báo đẩy",
-		"prompt_desc": "Bật thông báo để MetaMask có thể cho bạn biết mỗi khi bạn nhận được ETH hoặc khi giao dịch của bạn đã được xác nhận.",
+		"prompt_desc": "Bật thông báo để Senso Inu Wallet có thể cho bạn biết mỗi khi bạn nhận được ETH hoặc khi giao dịch của bạn đã được xác nhận.",
 		"prompt_ok": "Có",
 		"prompt_cancel": "Không, cảm ơn",
 		"wc_connected_title": "Kết nối với {{title}}",
@@ -1254,7 +1254,7 @@
 		"no_funds_desc": "Nộp ETH vào thẻ InstaPay của bạn để bắt đầu thanh toán nhanh miễn phí bằng DAI.",
 		"confirm": "Xác nhận",
 		"cancel": "Hủy",
-		"asset_card_desc": "Giao dịch miễn phí với các kênh thanh toán Connext.\n Tính năng này đang ở giai đoạn thử nghiệm. Để được trợ giúp, hãy gửi email đến support@metamask.io",
+		"asset_card_desc": "Giao dịch miễn phí với các kênh thanh toán Connext.\n Tính năng này đang ở giai đoạn thử nghiệm. Để được trợ giúp, hãy gửi email đến support@Senso Inu Wallet.io",
 		"deposit_amount": "Số tiền nộp",
 		"load_funds": "Nạp tiền",
 		"insta_pay": "InstaPay",
@@ -1404,7 +1404,7 @@
 	"whats_new": {
 		"title": "Xem những tính năng mới",
 		"feature_security_settings_title": "Các tùy chọn cài đặt bảo mật tốt hơn",
-		"feature_security_settings_text": "Giờ đây, bạn có thể đổi mật khẩu ứng dụng MetaMask của mình và xem xét cách sao lưu cụm mật khẩu gốc của ví trong phần Cài đặt > Bảo mật và quyền riêng tư.",
+		"feature_security_settings_text": "Giờ đây, bạn có thể đổi mật khẩu ứng dụng Senso Inu Wallet của mình và xem xét cách sao lưu cụm mật khẩu gốc của ví trong phần Cài đặt > Bảo mật và quyền riêng tư.",
 		"feature_security_settings_button": "Xem trong phần Cài đặt"
 	}
 }

@@ -28,14 +28,14 @@
 	},
 	"onboarding": {
 		"title": "钱包设置",
-		"sync_desc": "如果您已有 MetaMask 扩展程序或其他钱包，请将其同步或导入以便管理您的现有资产。",
+		"sync_desc": "如果您已有 Senso Inu Wallet 扩展程序或其他钱包，请将其同步或导入以便管理您的现有资产。",
 		"create_desc": "设置您的第一个钱包，并开始探索去中心化应用。",
 		"import": "导入现有钱包或创建新钱包",
 		"import_wallet_button": "同步或导入钱包",
 		"new_to_crypto": "新接触加密币？",
 		"start_exploring_now": "创建新钱包",
 		"login": "登录",
-		"new_to_metamask": "MetaMask 的新用户？",
+		"new_to_Senso Inu Wallet": "Senso Inu Wallet 的新用户？",
 		"already_have_wallet": "已有钱包？",
 		"optin_back_title": "注意！",
 		"optin_back_desc": "请同意或不同意使用数据分析。您也可以在设置中更新此选项。",
@@ -43,15 +43,15 @@
 		"warning_text_1": "如果继续，将删除您当前的",
 		"warning_text_2": "钱包和",
 		"warning_text_3": "账户。",
-		"warning_text_4": "您只能使用钱包的助记词恢复它们。MetaMask 无法帮助您恢复。",
+		"warning_text_4": "您只能使用钱包的助记词恢复它们。Senso Inu Wallet 无法帮助您恢复。",
 		"warning_proceed": "删除钱包并继续",
 		"warning_cancel": "取消",
 		"step1": "钱包设置",
 		"step2": "创建密码",
 		"step3": "保护钱包安全",
 		"already_have": "已有钱包？",
-		"sync_existing": "从浏览器扩展程序同步您的现有 MetaMask 钱包或手动导入钱包。",
-		"scan_title": "与 MetaMask 扩展程序同步的步骤",
+		"sync_existing": "从浏览器扩展程序同步您的现有 Senso Inu Wallet 钱包或手动导入钱包。",
+		"scan_title": "与 Senso Inu Wallet 扩展程序同步的步骤",
 		"scan": "扫描",
 		"scan_step_1": "在桌面上打开扩展程序",
 		"scan_step_2": "转至“设置”>“高级”",
@@ -59,12 +59,12 @@
 		"scan_step_4": "扫描二维码开始同步"
 	},
 	"onboarding_carousel": {
-		"title1": "欢迎使用 MetaMask",
+		"title1": "欢迎使用 Senso Inu Wallet",
 		"title2": "管理您的数字资产",
 		"title3": "您通往 web3 的门户",
-		"subtitle1": "MetaMask 深受数百万人信任，是一款可以让所有人进入 web3 世界的安全钱包。",
+		"subtitle1": "Senso Inu Wallet 深受数百万人信任，是一款可以让所有人进入 web3 世界的安全钱包。",
 		"subtitle2": "存储、支出和发送数字资产，如代币、以太币、独特收藏品。",
-		"subtitle3": "使用 MetaMask 登录并进行交易，以便投资、赚钱、玩游戏、销售等！",
+		"subtitle3": "使用 Senso Inu Wallet 登录并进行交易，以便投资、赚钱、玩游戏、销售等！",
 		"get_started": "开始使用"
 	},
 	"onboarding_wizard": {
@@ -95,7 +95,7 @@
 			"title": "主导航",
 			"content1": "点按此处",
 			"content2": "可访问您的钱包、浏览器和交易历史记录。",
-			"content3": "您可以对账户执行更多操作及访问 MetaMask 设置。"
+			"content3": "您可以对账户执行更多操作及访问 Senso Inu Wallet 设置。"
 		},
 		"step5": {
 			"title": "探索浏览器",
@@ -111,14 +111,14 @@
 		"subtitle": "这应该不需要很长时间"
 	},
 	"import_wallet": {
-		"title": "已经是 MetaMask 用户？",
+		"title": "已经是 Senso Inu Wallet 用户？",
 		"sub_title": "与扩展程序同步",
 		"sync_help": "与扩展程序同步您的钱包",
 		"sync_help_step_one": "1.打开扩展程序",
 		"sync_help_step_two": "2.转至“设置”>“高级”",
 		"sync_help_step_three": "3.单击“与手机同步”",
 		"sync_help_step_four": "4.扫描二维码开始同步",
-		"sync_from_browser_extension_button": "与 MetaMask 扩展程序同步",
+		"sync_from_browser_extension_button": "与 Senso Inu Wallet 扩展程序同步",
 		"or": "或者",
 		"import_from_seed_button": "使用助记词导入"
 	},
@@ -138,7 +138,7 @@
 	},
 	"choose_password": {
 		"title": "创建密码",
-		"subtitle": "此密码将仅在此设备上解锁您的 MetaMask 钱包。",
+		"subtitle": "此密码将仅在此设备上解锁您的 Senso Inu Wallet 钱包。",
 		"password": "新密码",
 		"confirm_password": "确认密码",
 		"create_button": "创建密码",
@@ -156,14 +156,14 @@
 		"remember_me": "记住我",
 		"security_alert_title": "安全警报",
 		"security_alert_message": "若要继续，您需要开启密码或设备上支持的任何生物特征身份验证方法（FaceID、TouchID 或指纹）",
-		"i_understand": "我了解 MetaMask 无法为我找回此密码。",
+		"i_understand": "我了解 Senso Inu Wallet 无法为我找回此密码。",
 		"learn_more": "了解更多。",
 		"secure": "保护钱包安全",
 		"confirm": "确认助记词"
 	},
 	"reset_password": {
 		"title": "更改密码",
-		"subtitle": "此密码将仅在此设备上解锁您的 MetaMask 钱包。",
+		"subtitle": "此密码将仅在此设备上解锁您的 Senso Inu Wallet 钱包。",
 		"password": "新密码",
 		"confirm_password": "确认密码",
 		"reset_button": "重置密码",
@@ -181,7 +181,7 @@
 		"remember_me": "记住我",
 		"security_alert_title": "安全警报",
 		"security_alert_message": "若要继续，您需要开启密码或设备上支持的任何生物特征身份验证方法（FaceID、TouchID 或指纹）",
-		"i_understand": "我了解 MetaMask 无法为我找回此密码。",
+		"i_understand": "我了解 Senso Inu Wallet 无法为我找回此密码。",
 		"learn_more": "了解更多。",
 		"secure": "保护钱包安全",
 		"confirm": "确认助记词",
@@ -232,7 +232,7 @@
 		"logout_ok": "是",
 		"logout_cancel": "否",
 		"feedback": "反馈",
-		"metamask_support": "MetaMask 支持",
+		"Senso Inu Wallet_support": "Senso Inu Wallet 支持",
 		"public_address": "公共地址"
 	},
 	"send": {
@@ -308,9 +308,9 @@
 		"here": "此处",
 		"agree": "我同意",
 		"decline": "不，谢谢",
-		"description_title": "帮助我们改进 MetaMask",
-		"description_content_1": "MetaMask 希望收集基本的使用数据，以便更好地了解我们的用户如何与移动应用交互。这些数据将用于持续改进我们产品的可用性和用户体验。",
-		"description_content_2": "MetaMask...",
+		"description_title": "帮助我们改进 Senso Inu Wallet",
+		"description_content_1": "Senso Inu Wallet 希望收集基本的使用数据，以便更好地了解我们的用户如何与移动应用交互。这些数据将用于持续改进我们产品的可用性和用户体验。",
+		"description_content_2": "Senso Inu Wallet...",
 		"action_description_1": "始终允许您通过“设置”选择退出",
 		"action_description_2": "发送匿名化点击和页面浏览事件",
 		"action_description_4": "决不收集密钥、地址、交易、余额、哈希或任何个人信息",
@@ -371,8 +371,8 @@
 		"instapay_state_logs": "InstaPay 日志",
 		"auto_lock": "自动锁定",
 		"auto_lock_desc": "选择应用程序自动锁定之前空闲的时间。",
-		"state_logs_desc": "这将帮助 MetaMask 调试您可能遇到的任何问题。请通过电子邮件将其发送到 support@metamask.io",
-		"instapay_state_logs_desc": "这将帮助 MetaMask 调试 InstaPay 的问题。请通过电子邮件将其发送到 support@metamask.io",
+		"state_logs_desc": "这将帮助 Senso Inu Wallet 调试您可能遇到的任何问题。请通过电子邮件将其发送到 support@Senso Inu Wallet.io",
+		"instapay_state_logs_desc": "这将帮助 Senso Inu Wallet 调试 InstaPay 的问题。请通过电子邮件将其发送到 support@Senso Inu Wallet.io",
 		"autolock_immediately": "立即",
 		"autolock_never": "永不",
 		"autolock_after": "{{time}} 秒后",
@@ -396,7 +396,7 @@
 		"save_rpc_url": "保存",
 		"invalid_rpc_prefix": "URI 需要适当的 HTTPS 前缀",
 		"invalid_rpc_url": "RPC URL 无效",
-		"sync_with_extension": "与 MetaMask 扩展程序同步",
+		"sync_with_extension": "与 Senso Inu Wallet 扩展程序同步",
 		"sync_with_extension_desc": "这会将所有扩展程序账户导入此设备。",
 		"sync": "同步",
 		"clear_approved_dapps": "清除已批准的去中心化应用",
@@ -451,7 +451,7 @@
 		"remove_network_title": "是否要删除此网络？",
 		"remove_network": "删除",
 		"cancel_remove_network": "取消",
-		"info_title": "MetaMask 简介",
+		"info_title": "Senso Inu Wallet 简介",
 		"experimental_title": "试验",
 		"experimental_desc": "WalletConnect 及更多...",
 		"legal_title": "法律",
@@ -471,7 +471,7 @@
 		"clear_history_desc": "选择此选项可清除您的整个浏览历史记录。",
 		"clear_cookies_desc": "选择此选项可清除您的浏览器的 Cookie。",
 		"metametrics_title": "参加 MetaMetrics",
-		"metametrics_description": "参加 MetaMetrics 以帮助我们改进 MetaMask。",
+		"metametrics_description": "参加 MetaMetrics 以帮助我们改进 Senso Inu Wallet。",
 		"third_party_title": "获取传入交易",
 		"third_party_description": "第三方 API (Etherscan) 用于显示历史记录中的传入交易。如果您不希望我们通过这些服务拉取数据，请关闭。",
 		"metametrics_opt_out": "MetaMetrics 退出",
@@ -518,7 +518,7 @@
 	},
 	"password_reset": {
 		"password_title": "密码",
-		"password_desc": "选择一个强密码来解锁您设备上的 MetaMask 应用。如果丢失密码，您将需要助记词来重新导入钱包。",
+		"password_desc": "选择一个强密码来解锁您设备上的 Senso Inu Wallet 应用。如果丢失密码，您将需要助记词来重新导入钱包。",
 		"password_learn_more": "了解更多。",
 		"change_password": "更改密码"
 	},
@@ -548,7 +548,7 @@
 		"ok": "确定",
 		"cancel": "取消",
 		"error": "错误",
-		"attempting_sync_from_wallet_error": "好像您正尝试与扩展程序同步。要进行同步，请转至“设置”>“高级”>“与 MetaMask 扩展程序同步”"
+		"attempting_sync_from_wallet_error": "好像您正尝试与扩展程序同步。要进行同步，请转至“设置”>“高级”>“与 Senso Inu Wallet 扩展程序同步”"
 	},
 	"action_view": {
 		"cancel": "取消",
@@ -698,7 +698,7 @@
 		"change_url": "更改 URL",
 		"switch_network": "切换网络",
 		"dapp_browser": "去中心化应用浏览器",
-		"dapp_browser_message": "MetaMask 是您的钱包和去中心化网络浏览器。随便看看！",
+		"dapp_browser_message": "Senso Inu Wallet 是您的钱包和去中心化网络浏览器。随便看看！",
 		"featured_dapps": "特色去中心化应用",
 		"my_favorites": "我的收藏夹",
 		"search": "搜索或键入 URL",
@@ -817,7 +817,7 @@
 	"sync_with_extension": {
 		"title": "从扩展程序同步数据",
 		"short_title": "与扩展程序同步",
-		"label": "在您的桌面浏览器中打开 MetaMask 扩展程序，然后转至“设置”>“高级”，单击“与手机同步”，然后输入您的密码以查看二维码",
+		"label": "在您的桌面浏览器中打开 Senso Inu Wallet 扩展程序，然后转至“设置”>“高级”，单击“与手机同步”，然后输入您的密码以查看二维码",
 		"button_continue": "继续",
 		"please_wait": "请稍候，我们正在同步您的数据...",
 		"error_title": "糟糕！",
@@ -833,11 +833,11 @@
 		"something_wrong": "糟糕！出问题了...",
 		"something_wrong_desc": "我们在尝试与您的钱包同步时遇到问题。请稍后重试或使用助记词导入您的钱包",
 		"allow_biometrics_title": "您是否要启用 {{biometrics}}？",
-		"allow_biometrics_desc": "您可以使用 {{biometrics}} 在 MetaMask 上进行身份验证"
+		"allow_biometrics_desc": "您可以使用 {{biometrics}} 在 Senso Inu Wallet 上进行身份验证"
 	},
 	"sync_with_extension_success": {
 		"title": "已导入钱包",
-		"sync_complete_1": "切记，如果您丢失助记词，MetaMask 无法帮助您找回。您可以在以下位置找到助记词：",
+		"sync_complete_1": "切记，如果您丢失助记词，Senso Inu Wallet 无法帮助您找回。您可以在以下位置找到助记词：",
 		"sync_complete_2": "“设置”>“安全和隐私”",
 		"button_continue": "完成",
 		"password_tip": "用于解锁移动钱包的密码与您为扩展程序设置的密码相同。",
@@ -902,9 +902,9 @@
 	},
 	"authentication": {
 		"auth_prompt_title": "需要身份验证",
-		"auth_prompt_desc": "请进行身份验证以便使用 MetaMask",
+		"auth_prompt_desc": "请进行身份验证以便使用 Senso Inu Wallet",
 		"fingerprint_prompt_title": "需要身份验证",
-		"fingerprint_prompt_desc": "使用您的指纹解锁 MetaMask",
+		"fingerprint_prompt_desc": "使用您的指纹解锁 Senso Inu Wallet",
 		"fingerprint_prompt_cancel": "取消"
 	},
 	"accountApproval": {
@@ -921,7 +921,7 @@
 	},
 	"import_private_key": {
 		"title": "导入账户",
-		"description_one": "导入的账户可在您的钱包中查看，但无法通过 MetaMask 助记词找回。",
+		"description_one": "导入的账户可在您的钱包中查看，但无法通过 Senso Inu Wallet 助记词找回。",
 		"learn_more_here": "在此处详细了解导入的账户。",
 		"subtitle": "粘贴您的私钥字符串",
 		"cta_text": "导入",
@@ -933,7 +933,7 @@
 	},
 	"import_private_key_success": {
 		"title": "账户导入成功！",
-		"description_one": "您现在将能够在 MetaMask 中查看您的账户。"
+		"description_one": "您现在将能够在 Senso Inu Wallet 中查看您的账户。"
 	},
 	"first_incoming_transaction": {
 		"title": "{{asset}} 已存入您的账户",
@@ -948,7 +948,7 @@
 		"step_1_description": "创建密码",
 		"step_2": "第 2 步：",
 		"step_2_description": "保存钱包助记词",
-		"info_text_1": "用几分钟时间完成 MetaMask 钱包的设置。",
+		"info_text_1": "用几分钟时间完成 Senso Inu Wallet 钱包的设置。",
 		"info_text_2": "这将确保只有您才可以访问自己的资金，还可以在丢失设备时找回自己的钱包",
 		"cta_text": "创建密码",
 		"creating_password": "正在创建密码..."
@@ -970,7 +970,7 @@
 		"what_is_seedphrase_title": "什么是“助记词”",
 		"what_is_seedphrase_text_1": "助记词是一组 12 个字词，包含与您的钱包相关的所有信息，包括您的资金。它像是用来访问整个钱包的一组密码。",
 		"what_is_seedphrase_text_2": "您必须确保助记词保密、安全。如果有人得到您的助记词，他们将能够控制您的账户。",
-		"what_is_seedphrase_text_3": "将它保存在只有您能够接触的地方。一旦丢失，即使是 MetaMask 也无法帮您找回。"
+		"what_is_seedphrase_text_3": "将它保存在只有您能够接触的地方。一旦丢失，即使是 Senso Inu Wallet 也无法帮您找回。"
 	},
 	"account_backup_step_1B": {
 		"title": "保护您的钱包安全",
@@ -1043,7 +1043,7 @@
 	},
 	"account_backup_step_6": {
 		"title": "安全提示",
-		"info_text": "如果您丢失助记词，MetaMask 无法找回",
+		"info_text": "如果您丢失助记词，Senso Inu Wallet 无法找回",
 		"tip_1": "为助记词保留多个备份",
 		"tip_2": "在信任的密码管理器中保存助记词，并在安全的地方存放纸质备份",
 		"tip_3": "切勿将此助记词告诉他人",
@@ -1081,7 +1081,7 @@
 		"congratulations": "恭喜",
 		"success": "您已成功保护自己的钱包。记住妥善保管您的助记词，这是您的责任！",
 		"hint": "给自己留下提示？",
-		"recover": "如果您丢失助记词，MetaMask 无法找回您的钱包。您可在“设置”>“安全和隐私”中找到助记词。",
+		"recover": "如果您丢失助记词，Senso Inu Wallet 无法找回您的钱包。您可在“设置”>“安全和隐私”中找到助记词。",
 		"learn": "了解更多",
 		"done": "完成",
 		"recovery_hint": "找回提示",
@@ -1094,7 +1094,7 @@
 	"phishing": {
 		"ethereum_phishing_detection": "以太坊网络钓鱼检测",
 		"ethereum_phishing_detector": "以太坊网络钓鱼检测器",
-		"intro": " 当前在 MetaMask 域警告列表中。这意味着根据我们可用的信息，MetaMask 认为此域当前可能会损害您的安全，因此，作为一项额外的安全功能，MetaMask 已限制访问此站点。要忽略此提醒，请阅读此警告的剩余部分，了解关于如何自负风险继续的说明。",
+		"intro": " 当前在 Senso Inu Wallet 域警告列表中。这意味着根据我们可用的信息，Senso Inu Wallet 认为此域当前可能会损害您的安全，因此，作为一项额外的安全功能，Senso Inu Wallet 已限制访问此站点。要忽略此提醒，请阅读此警告的剩余部分，了解关于如何自负风险继续的说明。",
 		"reasons": "站点出现在我们的警告列表中有很多原因，而且我们的警告列表是根据其他广泛使用的行业列表编制的。这些原因可能包括已知欺诈或安全风险，如测试结果为阳性的域",
 		"list_content": "这些警告列表中的域可能包括完全恶意的网站以及被恶意行为者破坏的合法网站。",
 		"to_read_more": "要阅读此站点的更多信息，",
@@ -1129,7 +1129,7 @@
 		"received_message": "点按以查看此交易",
 		"received_payment_message": "您已收到 {{amount}} DAI",
 		"prompt_title": "启用推送通知",
-		"prompt_desc": "启用通知，以便在您收到 ETH 或您的交易被确认时，MetaMask 能够让您知道。",
+		"prompt_desc": "启用通知，以便在您收到 ETH 或您的交易被确认时，Senso Inu Wallet 能够让您知道。",
 		"prompt_ok": "是",
 		"prompt_cancel": "不，谢谢",
 		"wc_connected_title": "已连接 {{title}}",
@@ -1254,7 +1254,7 @@
 		"no_funds_desc": "向您的 InstaPay 卡中存入 ETH，开始使用 DAI 即时免费支付。",
 		"confirm": "确认",
 		"cancel": "取消",
-		"asset_card_desc": "通过 Connext Payment Channels 免费交易。\n这是一项测试功能。如需帮助，请向 support@metamask.io 发送电子邮件",
+		"asset_card_desc": "通过 Connext Payment Channels 免费交易。\n这是一项测试功能。如需帮助，请向 support@Senso Inu Wallet.io 发送电子邮件",
 		"deposit_amount": "存款数额",
 		"load_funds": "加载资金",
 		"insta_pay": "InstaPay",
@@ -1404,7 +1404,7 @@
 	"whats_new": {
 		"title": "了解新功能",
 		"feature_security_settings_title": "改进了安全设置",
-		"feature_security_settings_text": "您现在可以从“设置”>“安全和隐私”更改 MetaMask 应用密码并查看如何备份钱包助记词。",
+		"feature_security_settings_text": "您现在可以从“设置”>“安全和隐私”更改 Senso Inu Wallet 应用密码并查看如何备份钱包助记词。",
 		"feature_security_settings_button": "在“设置”中查看"
 	}
 }

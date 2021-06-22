@@ -28,14 +28,14 @@
 	},
 	"onboarding": {
 		"title": "지갑 설정",
-		"sync_desc": "MetaMask 확장 프로그램 또는 다른 지갑이 이미 있는 경우, 동기화하거나 가져와 기존 자산을 관리하세요.",
+		"sync_desc": "Senso Inu Wallet 확장 프로그램 또는 다른 지갑이 이미 있는 경우, 동기화하거나 가져와 기존 자산을 관리하세요.",
 		"create_desc": "첫 번째 지갑을 설정하고 분산되어 있는 앱 탐색을 시작하세요.",
 		"import": "기존 지갑 가져오기 또는 새 지갑 생성",
 		"import_wallet_button": "지갑 동기화 또는 가져오기",
 		"new_to_crypto": "암호화폐가 처음이세요?",
 		"start_exploring_now": "새 지갑 생성",
 		"login": "로그인",
-		"new_to_metamask": "MetaMask가 처음이세요?",
+		"new_to_Senso Inu Wallet": "Senso Inu Wallet가 처음이세요?",
 		"already_have_wallet": "이미 지갑이 있나요?",
 		"optin_back_title": "주의하세요!",
 		"optin_back_desc": "데이터 분석 사용에 동의하거나 거부하세요.  설정에서 이 옵션을 업데이트할 수도 있습니다.",
@@ -43,15 +43,15 @@
 		"warning_text_1": "기존 지갑과 계정은",
 		"warning_text_2": "제거됩니다",
 		"warning_text_3": "(계속 진행할 경우).",
-		"warning_text_4": "지갑의 시드 구문으로만 복구할 수 있습니다. MetaMask는 복구를 도울 수 없습니다.",
+		"warning_text_4": "지갑의 시드 구문으로만 복구할 수 있습니다. Senso Inu Wallet는 복구를 도울 수 없습니다.",
 		"warning_proceed": "지갑 제거 및 진행",
 		"warning_cancel": "취소",
 		"step1": "지갑 설정",
 		"step2": "암호 생성",
 		"step3": "보안 지갑",
 		"already_have": "이미 지갑이 있나요?",
-		"sync_existing": "브라우저 확장 기능으로 기존 MetaMask 지갑을 동기화하거나 수동으로 가져옵니다.",
-		"scan_title": "MetaMask 확장 프로그램과 동기화하는 방법",
+		"sync_existing": "브라우저 확장 기능으로 기존 Senso Inu Wallet 지갑을 동기화하거나 수동으로 가져옵니다.",
+		"scan_title": "Senso Inu Wallet 확장 프로그램과 동기화하는 방법",
 		"scan": "스캔",
 		"scan_step_1": "데스크톱에서 확장 프로그램 열기",
 		"scan_step_2": "설정 > 고급으로 이동",
@@ -59,12 +59,12 @@
 		"scan_step_4": "QR 코드를 스캔하여 동기화 시작"
 	},
 	"onboarding_carousel": {
-		"title1": "MetaMask 방문을 환영합니다",
+		"title1": "Senso Inu Wallet 방문을 환영합니다",
 		"title2": "디지털 자산 관리",
 		"title3": "web3로 가는 게이트웨이",
-		"subtitle1": "수백만이 믿고 쓰는 MetaMask는 누구나 web3의 세계에 접근하게 해주는 보안 지갑입니다.",
+		"subtitle1": "수백만이 믿고 쓰는 Senso Inu Wallet는 누구나 web3의 세계에 접근하게 해주는 보안 지갑입니다.",
 		"subtitle2": "토큰, 이더리움, 고유한 수집품 등의 디지털 자산을 저장, 사용 및 전송하세요.",
-		"subtitle3": "MetaMask로 로그인하고 투자, 수익 활동, 게임, 판매 등을 위한 거래를 시작하세요!",
+		"subtitle3": "Senso Inu Wallet로 로그인하고 투자, 수익 활동, 게임, 판매 등을 위한 거래를 시작하세요!",
 		"get_started": "시작하기"
 	},
 	"onboarding_wizard": {
@@ -95,7 +95,7 @@
 			"title": "기본 탐색",
 			"content1": "여기를 탭하여",
 			"content2": "지갑, 브라우저, 거래 내역에 액세스하세요.",
-			"content3": "계정에서 다양한 작업을 수행하고 MetaMask 설정에 액세스할 수 있습니다."
+			"content3": "계정에서 다양한 작업을 수행하고 Senso Inu Wallet 설정에 액세스할 수 있습니다."
 		},
 		"step5": {
 			"title": "브라우저 탐색",
@@ -111,14 +111,14 @@
 		"subtitle": "오래 걸리지 않습니다."
 	},
 	"import_wallet": {
-		"title": "이미 MetaMask 사용자인가요?",
+		"title": "이미 Senso Inu Wallet 사용자인가요?",
 		"sub_title": "확장 프로그램과 동기화",
 		"sync_help": "확장 프로그램과 지갑 동기화",
 		"sync_help_step_one": "1. 확장 프로그램 열기",
 		"sync_help_step_two": "2. 설정 > 고급으로 이동",
 		"sync_help_step_three": "3. \"모바일과 동기화\" 클릭",
 		"sync_help_step_four": "4. QR 코드를 스캔하여 동기화 시작",
-		"sync_from_browser_extension_button": "MetaMask 확장 프로그램과 동기화",
+		"sync_from_browser_extension_button": "Senso Inu Wallet 확장 프로그램과 동기화",
 		"or": "또는",
 		"import_from_seed_button": "시드 구문을 사용하여 가져오기"
 	},
@@ -138,7 +138,7 @@
 	},
 	"choose_password": {
 		"title": "암호 생성",
-		"subtitle": "이 암호는 이 장치에서만 MetaMask 지갑의 잠금을 해제합니다.",
+		"subtitle": "이 암호는 이 장치에서만 Senso Inu Wallet 지갑의 잠금을 해제합니다.",
 		"password": "새 암호",
 		"confirm_password": "암호 확인",
 		"create_button": "암호 생성",
@@ -156,14 +156,14 @@
 		"remember_me": "자동 로그인",
 		"security_alert_title": "보안 경고",
 		"security_alert_message": "계속하려면 암호를 켜거나 장치에서 지원하는 생체 인증 방법(FaceID, TouchID 또는 지문)을 켜야 합니다.",
-		"i_understand": "MetaMask가 이 암호를 복구할 수 없음을 이해합니다.",
+		"i_understand": "Senso Inu Wallet가 이 암호를 복구할 수 없음을 이해합니다.",
 		"learn_more": "자세히 알아보세요.",
 		"secure": "보안 지갑",
 		"confirm": "시드 구문 확인"
 	},
 	"reset_password": {
 		"title": "암호 변경",
-		"subtitle": "이 암호는 이 장치에서만 MetaMask 지갑의 잠금을 해제합니다.",
+		"subtitle": "이 암호는 이 장치에서만 Senso Inu Wallet 지갑의 잠금을 해제합니다.",
 		"password": "새 암호",
 		"confirm_password": "암호 확인",
 		"reset_button": "암호 재설정",
@@ -181,7 +181,7 @@
 		"remember_me": "자동 로그인",
 		"security_alert_title": "보안 경고",
 		"security_alert_message": "계속하려면 암호를 켜거나 장치에서 지원하는 생체 인증 방법(FaceID, TouchID 또는 지문)을 켜야 합니다.",
-		"i_understand": "MetaMask가 이 암호를 복구할 수 없음을 이해합니다.",
+		"i_understand": "Senso Inu Wallet가 이 암호를 복구할 수 없음을 이해합니다.",
 		"learn_more": "자세히 알아보세요.",
 		"secure": "보안 지갑",
 		"confirm": "시드 구문 확인",
@@ -232,7 +232,7 @@
 		"logout_ok": "예",
 		"logout_cancel": "아니요",
 		"feedback": "피드백",
-		"metamask_support": "MetaMask 지원",
+		"Senso Inu Wallet_support": "Senso Inu Wallet 지원",
 		"public_address": "공개 주소"
 	},
 	"send": {
@@ -308,9 +308,9 @@
 		"here": "여기",
 		"agree": "동의함",
 		"decline": "동의하지 않음",
-		"description_title": "MetaMask 개선에 참여",
-		"description_content_1": "MetaMask는 사용자의 모바일 앱 사용 방식을 더 잘 이해하기 위해 기본 사용 데이터를 수집하고자 합니다. 이 데이터는 제품의 사용 편의성과 사용자 경험을 지속적으로 개선하는 데 사용됩니다.",
-		"description_content_2": "MetaMask에서는...",
+		"description_title": "Senso Inu Wallet 개선에 참여",
+		"description_content_1": "Senso Inu Wallet는 사용자의 모바일 앱 사용 방식을 더 잘 이해하기 위해 기본 사용 데이터를 수집하고자 합니다. 이 데이터는 제품의 사용 편의성과 사용자 경험을 지속적으로 개선하는 데 사용됩니다.",
+		"description_content_2": "Senso Inu Wallet에서는...",
 		"action_description_1": "언제든 설정을 통해 옵트아웃이 가능합니다.",
 		"action_description_2": "익명화된 클릭 및 페이지뷰 이벤트를 보냅니다.",
 		"action_description_4": "키, 주소, 거래, 잔액, 해시 또는 개인 정보는 절대 수집하지 않습니다.",
@@ -371,8 +371,8 @@
 		"instapay_state_logs": "InstaPay 로그",
 		"auto_lock": "자동 잠금",
 		"auto_lock_desc": "어느 정도 시간이 지나면 애플리케이션을 자동으로 잠글지 선택합니다.",
-		"state_logs_desc": "그러면 MetaMask가 앞으로 발생할 문제를 디버깅하는 데 도움이 됩니다. support@metamask.io로 이메일을 보내주세요.",
-		"instapay_state_logs_desc": "그러면 MetaMask가 InstaPay 문제를 해결하는 데 도움이 됩니다. support@metamask.io로 이메일을 보내주세요.",
+		"state_logs_desc": "그러면 Senso Inu Wallet가 앞으로 발생할 문제를 디버깅하는 데 도움이 됩니다. support@Senso Inu Wallet.io로 이메일을 보내주세요.",
+		"instapay_state_logs_desc": "그러면 Senso Inu Wallet가 InstaPay 문제를 해결하는 데 도움이 됩니다. support@Senso Inu Wallet.io로 이메일을 보내주세요.",
 		"autolock_immediately": "즉시",
 		"autolock_never": "안 함",
 		"autolock_after": "{{time}}초 후",
@@ -396,7 +396,7 @@
 		"save_rpc_url": "저장",
 		"invalid_rpc_prefix": "URI에는 적절한 HTTPS 접두사가 필요합니다.",
 		"invalid_rpc_url": "잘못된 RPC URL",
-		"sync_with_extension": "MetaMask 확장 프로그램과 동기화",
+		"sync_with_extension": "Senso Inu Wallet 확장 프로그램과 동기화",
 		"sync_with_extension_desc": "모든 확장 계정을 이 장치로 가져옵니다.",
 		"sync": "동기화",
 		"clear_approved_dapps": "승인된 디앱 지우기",
@@ -451,7 +451,7 @@
 		"remove_network_title": "이 네트워크를 제거할까요?",
 		"remove_network": "제거",
 		"cancel_remove_network": "취소",
-		"info_title": "MetaMask 정보",
+		"info_title": "Senso Inu Wallet 정보",
 		"experimental_title": "실험용",
 		"experimental_desc": "WalletConnect 등...",
 		"legal_title": "법적",
@@ -471,7 +471,7 @@
 		"clear_history_desc": "전체 탐색 기록을 지우려면 이 옵션을 선택하세요.",
 		"clear_cookies_desc": "브라우저의 쿠키를 지우려면 이 옵션을 선택하세요.",
 		"metametrics_title": "MetaMetrics에 참여",
-		"metametrics_description": "MetaMetrics에 참여하여 MetaMask 개선에 도움을 주세요.",
+		"metametrics_description": "MetaMetrics에 참여하여 Senso Inu Wallet 개선에 도움을 주세요.",
 		"third_party_title": "수신 거래 받기",
 		"third_party_description": "타사 API(Etherscan)는 수신 거래를 기록에 표시하는 데 사용됩니다. 해당 서비스에서 데이터를 가져오지 않으려면 설정을 끄세요.",
 		"metametrics_opt_out": "MetaMetrics 옵트아웃",
@@ -518,7 +518,7 @@
 	},
 	"password_reset": {
 		"password_title": "암호",
-		"password_desc": "장치에서 MetaMask 앱의 잠금을 해제할 강력한 암호를 선택하세요. 이 암호를 잊은 경우, 지갑을 다시 가져오려면 시드 구문이 필요합니다.",
+		"password_desc": "장치에서 Senso Inu Wallet 앱의 잠금을 해제할 강력한 암호를 선택하세요. 이 암호를 잊은 경우, 지갑을 다시 가져오려면 시드 구문이 필요합니다.",
 		"password_learn_more": "자세히 알아보세요.",
 		"change_password": "암호 변경"
 	},
@@ -548,7 +548,7 @@
 		"ok": "확인",
 		"cancel": "취소",
 		"error": "오류",
-		"attempting_sync_from_wallet_error": "확장 프로그램과 동기화를 시도 중인 것 같습니다. 이를 위해 설정 > 고급 > MetaMask 확장 프로그램과 동기화로 이동"
+		"attempting_sync_from_wallet_error": "확장 프로그램과 동기화를 시도 중인 것 같습니다. 이를 위해 설정 > 고급 > Senso Inu Wallet 확장 프로그램과 동기화로 이동"
 	},
 	"action_view": {
 		"cancel": "취소",
@@ -698,7 +698,7 @@
 		"change_url": "url 변경",
 		"switch_network": "네트워크 전환",
 		"dapp_browser": "디앱 브라우저",
-		"dapp_browser_message": "MetaMask는 분산된 웹용 지갑이자 브라우저입니다. 둘러보세요!",
+		"dapp_browser_message": "Senso Inu Wallet는 분산된 웹용 지갑이자 브라우저입니다. 둘러보세요!",
 		"featured_dapps": "주요 디앱",
 		"my_favorites": "내 즐겨찾기",
 		"search": "URL 검색 또는 입력",
@@ -817,7 +817,7 @@
 	"sync_with_extension": {
 		"title": "확장 프로그램에서 데이터 동기화",
 		"short_title": "확장 프로그램과 동기화",
-		"label": "데스크톱 브라우저에서 MetaMask 확장 프로그램을 열고 \"설정\" > \"고급\"으로 이동하여 \"모바일과 동기화\"를 클릭한 다음 암호를 입력하여 QR 코드를 확인합니다.",
+		"label": "데스크톱 브라우저에서 Senso Inu Wallet 확장 프로그램을 열고 \"설정\" > \"고급\"으로 이동하여 \"모바일과 동기화\"를 클릭한 다음 암호를 입력하여 QR 코드를 확인합니다.",
 		"button_continue": "계속",
 		"please_wait": "데이터를 동기화하는 동안 기다려주세요...",
 		"error_title": "이런!",
@@ -833,11 +833,11 @@
 		"something_wrong": "이런! 문제가 발생했습니다...",
 		"something_wrong_desc": "지갑을 동기화하는 동안 문제가 발생했습니다. 나중에 다시 시도하거나 시드 구문을 사용하여 지갑을 가져오세요.",
 		"allow_biometrics_title": "{{biometrics}}을(를) 활성화할까요?",
-		"allow_biometrics_desc": "MetaMask에서 {{biometrics}}을(를) 사용하여 인증할 수 있습니다."
+		"allow_biometrics_desc": "Senso Inu Wallet에서 {{biometrics}}을(를) 사용하여 인증할 수 있습니다."
 	},
 	"sync_with_extension_success": {
 		"title": "지갑 가져옴",
-		"sync_complete_1": "시드 구문을 잊은 경우, MetaMask가 복구할 수 없으니 잘 기억하세요. 다음 설정에서 시드 구문을 찾을 수 있습니다.",
+		"sync_complete_1": "시드 구문을 잊은 경우, Senso Inu Wallet가 복구할 수 없으니 잘 기억하세요. 다음 설정에서 시드 구문을 찾을 수 있습니다.",
 		"sync_complete_2": "설정 > 보안 및 개인정보 보호",
 		"button_continue": "완료",
 		"password_tip": "모바일 지갑의 잠금을 해제하는 암호는 확장 프로그램에 설정한 것과 동일합니다.",
@@ -902,9 +902,9 @@
 	},
 	"authentication": {
 		"auth_prompt_title": "인증 필요",
-		"auth_prompt_desc": "MetaMask를 사용하려면 인증하세요.",
+		"auth_prompt_desc": "Senso Inu Wallet를 사용하려면 인증하세요.",
 		"fingerprint_prompt_title": "인증 필요",
-		"fingerprint_prompt_desc": "지문을 사용하여 MetaMask 잠금 해제",
+		"fingerprint_prompt_desc": "지문을 사용하여 Senso Inu Wallet 잠금 해제",
 		"fingerprint_prompt_cancel": "취소"
 	},
 	"accountApproval": {
@@ -921,7 +921,7 @@
 	},
 	"import_private_key": {
 		"title": "계정 가져오기",
-		"description_one": "가져온 계정은 지갑에서 볼 수 있지만 MetaMask 시드 구문으로 복구할 수 없습니다.",
+		"description_one": "가져온 계정은 지갑에서 볼 수 있지만 Senso Inu Wallet 시드 구문으로 복구할 수 없습니다.",
 		"learn_more_here": "여기에서 가져온 계정에 대해 자세히 알아보세요.",
 		"subtitle": "비공개 키 문자열 붙여넣기",
 		"cta_text": "가져오기",
@@ -933,7 +933,7 @@
 	},
 	"import_private_key_success": {
 		"title": "계정을 가져왔습니다!",
-		"description_one": "이제 MetaMask에서 귀하의 계정을 볼 수 있습니다."
+		"description_one": "이제 Senso Inu Wallet에서 귀하의 계정을 볼 수 있습니다."
 	},
 	"first_incoming_transaction": {
 		"title": "계정에 {{asset}} 예치됨",
@@ -948,7 +948,7 @@
 		"step_1_description": "암호 생성",
 		"step_2": "Step 2:",
 		"step_2_description": "지갑 시드 구문 저장",
-		"info_text_1": "잠시 시간을 내어 MetaMask 지갑 설정을 완료하세요.",
+		"info_text_1": "잠시 시간을 내어 Senso Inu Wallet 지갑 설정을 완료하세요.",
 		"info_text_2": "그러면 본인만 자금에 액세스할 수 있고 장치를 분실할 경우 지갑을 복구할 수 있습니다.",
 		"cta_text": "암호 생성",
 		"creating_password": "암호 생성 중.."
@@ -970,7 +970,7 @@
 		"what_is_seedphrase_title": "'시드 구문' 정의",
 		"what_is_seedphrase_text_1": "시드 구문은 자금을 포함해 지갑에 대한 모든 정보가 담긴 12개의 단어 조합입니다. 전체 지갑에 액세스하는 데 사용되는 비밀 코드와 같습니다.",
 		"what_is_seedphrase_text_2": "시드 구문을 기밀로 안전하게 보관해야 합니다. 다른 사람이 귀하의 시드 구문을 알아내면 계정을 제어할 수 있습니다.",
-		"what_is_seedphrase_text_3": "본인만 접근할 수 있는 곳에 보관하세요. 분실할 경우, MetaMask도 복구를 도울 수 없습니다."
+		"what_is_seedphrase_text_3": "본인만 접근할 수 있는 곳에 보관하세요. 분실할 경우, Senso Inu Wallet도 복구를 도울 수 없습니다."
 	},
 	"account_backup_step_1B": {
 		"title": "지갑 보호하기",
@@ -1043,7 +1043,7 @@
 	},
 	"account_backup_step_6": {
 		"title": "보안 팁",
-		"info_text": "시드 구문을 잊은 경우, MetaMask가 복구할 수 없습니다.",
+		"info_text": "시드 구문을 잊은 경우, Senso Inu Wallet가 복구할 수 없습니다.",
 		"tip_1": "시드 구문을 여러 곳에 백업하세요.",
 		"tip_2": "믿을 만한 암호 관리자에 구문을 저장하고 안전한 곳에 메모해두세요.",
 		"tip_3": "이 구문은 누구에게도 공유하지 마세요.",
@@ -1081,7 +1081,7 @@
 		"congratulations": "축하합니다.",
 		"success": "지갑을 보호했습니다. 시드 구문을 안전하게 보관할 책임은 귀하에게 있습니다.",
 		"hint": "힌트를 남기시겠어요?",
-		"recover": "시드 구문을 잊으시면, MetaMask가 지갑을 복구할 수 없습니다. 설정 > 보안 및 개인정보 보호에서 시드 구문을 찾을 수 있습니다.",
+		"recover": "시드 구문을 잊으시면, Senso Inu Wallet가 지갑을 복구할 수 없습니다. 설정 > 보안 및 개인정보 보호에서 시드 구문을 찾을 수 있습니다.",
 		"learn": "자세히 알아보기",
 		"done": "완료",
 		"recovery_hint": "복구 힌트",
@@ -1094,7 +1094,7 @@
 	"phishing": {
 		"ethereum_phishing_detection": "이더리움 피싱 감지",
 		"ethereum_phishing_detector": "이더리움 피싱 감지기는",
-		"intro": " 현재 MetaMask 도메인 경고 목록에 있습니다. 그래서 MetaMask는 사용 가능한 정보를 기반으로 이 도메인이 현재 보안을 훼손할 수 있다고 판단했으며 보안 기능을 추가하여 사이트에 대한 액세스를 제한했습니다. 이를 재정의하려면, 위험을 감수하고 계속 진행하는 방법이 적힌 이 경고의 나머지 지침을 읽으세요.",
+		"intro": " 현재 Senso Inu Wallet 도메인 경고 목록에 있습니다. 그래서 Senso Inu Wallet는 사용 가능한 정보를 기반으로 이 도메인이 현재 보안을 훼손할 수 있다고 판단했으며 보안 기능을 추가하여 사이트에 대한 액세스를 제한했습니다. 이를 재정의하려면, 위험을 감수하고 계속 진행하는 방법이 적힌 이 경고의 나머지 지침을 읽으세요.",
 		"reasons": "경고 목록에 사이트가 표시되는 이유는 여러 가지이며, 당사의 경고 목록은 널리 사용되는 다른 산업 목록에서 수집한 것입니다. 이러한 이유에는 테스트에서 위험성이 밝혀진 도메인처럼 알려진 사기 또는 보안 위험 등이 있습니다. ",
 		"list_content": "이러한 경고 목록의 도메인에는 노골적인 악성 웹사이트, 악의적 공격자에 의해 손상된 합법적인 웹사이트가 포함될 수 있습니다.",
 		"to_read_more": "이 사이트에 대해 자세히 알아보려면 ",
@@ -1129,7 +1129,7 @@
 		"received_message": "이 거래를 보려면 탭",
 		"received_payment_message": "{{amount}} DAI 받음",
 		"prompt_title": "푸시 알림 활성화",
-		"prompt_desc": "알림을 활성화하시면 귀하가 ETH를 받거나 거래가 확인되었을 때 MetaMask가 알려드릴 수 있습니다.",
+		"prompt_desc": "알림을 활성화하시면 귀하가 ETH를 받거나 거래가 확인되었을 때 Senso Inu Wallet가 알려드릴 수 있습니다.",
 		"prompt_ok": "예",
 		"prompt_cancel": "괜찮습니다",
 		"wc_connected_title": "{{title}}에 연결됨",
@@ -1254,7 +1254,7 @@
 		"no_funds_desc": "DAI로 즉시 무료 결제를 시작하려면 InstaPay 카드에 ETH를 예치하세요.",
 		"confirm": "확인",
 		"cancel": "취소",
-		"asset_card_desc": "Connext 결제 채널을 통한 무료 거래.\n 베타 기능입니다. 도움이 필요하시면 support@metamask.io로 이메일을 보내주세요.",
+		"asset_card_desc": "Connext 결제 채널을 통한 무료 거래.\n 베타 기능입니다. 도움이 필요하시면 support@Senso Inu Wallet.io로 이메일을 보내주세요.",
 		"deposit_amount": "예치할 금액",
 		"load_funds": "자금 로드",
 		"insta_pay": "InstaPay",
@@ -1404,7 +1404,7 @@
 	"whats_new": {
 		"title": "최근 소식 보기",
 		"feature_security_settings_title": "개선된 보안 설정",
-		"feature_security_settings_text": "이제 MetaMask 앱 암호를 변경하고 설정 > 보안 및 개인정보 보호에서 지갑 시드 구문을 백업하는 방법을 확인할 수 있습니다.",
+		"feature_security_settings_text": "이제 Senso Inu Wallet 앱 암호를 변경하고 설정 > 보안 및 개인정보 보호에서 지갑 시드 구문을 백업하는 방법을 확인할 수 있습니다.",
 		"feature_security_settings_button": "설정에서 보기"
 	}
 }
