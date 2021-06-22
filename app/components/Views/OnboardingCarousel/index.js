@@ -12,7 +12,7 @@ import Device from '../../../util/Device';
 
 const IMAGE_3_RATIO = 215 / 315;
 const IMAGE_2_RATIO = 222 / 239;
-const IMAGE_1_RATIO = 285 / 203;
+// const IMAGE_1_RATIO = 285 / 203;
 const DEVICE_WIDTH = Dimensions.get('window').width;
 
 const IMG_PADDING = Device.isIphoneX() ? 100 : Device.isIphone5S() ? 180 : 220;
@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
 	carouselImage1: {
 		marginTop: 30,
 		width: DEVICE_WIDTH - IMG_PADDING,
-		height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_1_RATIO
+		height: 290
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	carouselImage2: {
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-const onboarding_carousel_1 = require('../../../images/onboarding-carousel-1.png'); // eslint-disable-line
+const onboarding_carousel_1 = require('../../../images/astrodog.png'); // eslint-disable-line
 const onboarding_carousel_2 = require('../../../images/onboarding-carousel-2.png'); // eslint-disable-line
 const onboarding_carousel_3 = require('../../../images/onboarding-carousel-3.png'); // eslint-disable-line
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line

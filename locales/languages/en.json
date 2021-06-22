@@ -28,14 +28,14 @@
 	},
 	"onboarding": {
 		"title": "Wallet setup",
-		"sync_desc": "If you’ve already got the MetaMask extension or another wallet, sync or import it to manage your existing assets.",
+		"sync_desc": "If you’ve already got the Senso Inu Wallet extension or another wallet, sync or import it to manage your existing assets.",
 		"create_desc": "Set up your first wallet and start exploring decentralized apps.",
 		"import": "Import an existing wallet or create a new one",
 		"import_wallet_button": "Sync or import wallet",
 		"new_to_crypto": "New to crypto?",
 		"start_exploring_now": "Create a new wallet",
 		"login": "Log in",
-		"new_to_metamask": "New to MetaMask?",
+		"new_to_Senso Inu Wallet": "New to Senso Inu Wallet?",
 		"already_have_wallet": "Already have a wallet?",
 		"optin_back_title": "Heads up!",
 		"optin_back_desc": "Please agree or disagree to the usage of data analytics.  You can also update this option in settings.",
@@ -43,15 +43,15 @@
 		"warning_text_1": "Your current wallet and accounts will be",
 		"warning_text_2": "removed",
 		"warning_text_3": "if you proceed.",
-		"warning_text_4": "You can ONLY recover them with your wallet’s Secret Recovery Phrase. MetaMask cannot help you recover it.",
+		"warning_text_4": "You can ONLY recover them with your wallet’s Secret Recovery Phrase. Senso Inu Wallet cannot help you recover it.",
 		"warning_proceed": "Remove wallet & proceed",
 		"warning_cancel": "Cancel",
 		"step1": "Wallet setup",
 		"step2": "Create password",
 		"step3": "Secure wallet",
 		"already_have": "Already have a wallet?",
-		"sync_existing": "Sync your existing MetaMask wallet from the browser extension or import manually.",
-		"scan_title": "Steps to sync with MetaMask extension",
+		"sync_existing": "Sync your existing Senso Inu Wallet wallet from the browser extension or import manually.",
+		"scan_title": "Steps to sync with Senso Inu Wallet extension",
 		"scan": "Scan",
 		"scan_step_1": "Open the extension on desktop",
 		"scan_step_2": "Go to Settings > Advanced",
@@ -62,12 +62,12 @@
 		"delete_current": "Deleting current wallet"
 	},
 	"onboarding_carousel": {
-		"title1": "Welcome to MetaMask",
+		"title1": "Welcome to Senso Inu Wallet",
 		"title2": "Manage your digital assets",
 		"title3": "Your gateway to web3",
-		"subtitle1": "Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.",
+		"subtitle1": "Trusted by millions, Senso Inu Wallet is a secure wallet making the world of web3 accessible to all.",
 		"subtitle2": "Store, spend and send digital assets like tokens, ethereum, unique collectibles.",
-		"subtitle3": "Login with MetaMask and make transactions to invest, earn, play games, sell and more!",
+		"subtitle3": "Login with Senso Inu Wallet and make transactions to invest, earn, play games, sell and more!",
 		"get_started": "Get started"
 	},
 	"onboarding_wizard": {
@@ -98,7 +98,7 @@
 			"title": "Main Navigation",
 			"content1": "Tap here",
 			"content2": "to access your Wallet, Browser, and Transaction history.",
-			"content3": "You can take more actions with your accounts & access MetaMask settings."
+			"content3": "You can take more actions with your accounts & access Senso Inu Wallet settings."
 		},
 		"step5": {
 			"title": "Explore the Browser",
@@ -114,14 +114,14 @@
 		"subtitle": "This shouldn’t take long"
 	},
 	"import_wallet": {
-		"title": "Already a MetaMask user?",
+		"title": "Already a Senso Inu Wallet user?",
 		"sub_title": "Sync with the extension",
 		"sync_help": "Sync your wallet with the extension",
 		"sync_help_step_one": "1. Open the extension",
 		"sync_help_step_two": "2. Go to Settings > Advanced",
 		"sync_help_step_three": "3. Click on \"Sync with Mobile\"",
 		"sync_help_step_four": "4. Scan the QR Code to start syncing",
-		"sync_from_browser_extension_button": "Sync with MetaMask extension",
+		"sync_from_browser_extension_button": "Sync with Senso Inu Wallet extension",
 		"or": "OR",
 		"import_from_seed_button": "Import using Secret Recovery Phrase"
 	},
@@ -141,13 +141,13 @@
 		"this_action": "This action cannot be undone.",
 		"you_can_only": "You can ONLY recover this wallet with your ",
 		"recovery_phrase": "Secret Recovery Phrase ",
-		"metamask_does_not": "MetaMask does not have your Secret Recovery Phrase.",
+		"Senso Inu Wallet_does_not": "Senso Inu Wallet does not have your Secret Recovery Phrase.",
 		"i_understand": "I understand, continue",
 		"passcode_not_set_error": "Error: Passcode not set.",
 		"wrong_password_error": "Error: Decrypt failed",
 		"wrong_password_error_android": "Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
 		"vault_error": "Error: Cannot unlock without a previous vault.",
-		"clean_vault_error": "MetaMask encountered an error due to reaching a storage limit. The local data has been corrupted. Please reinstall MetaMask and restore with your Secret Recovery Phrase."
+		"clean_vault_error": "Senso Inu Wallet encountered an error due to reaching a storage limit. The local data has been corrupted. Please reinstall Senso Inu Wallet and restore with your Secret Recovery Phrase."
 	},
 	"enter_password": {
 		"title": "Enter your password",
@@ -158,7 +158,7 @@
 	},
 	"choose_password": {
 		"title": "Create password",
-		"subtitle": "This password will unlock your MetaMask wallet only on this device.",
+		"subtitle": "This password will unlock your Senso Inu Wallet wallet only on this device.",
 		"password": "New Password",
 		"confirm_password": "Confirm password",
 		"create_button": "Create password",
@@ -176,14 +176,14 @@
 		"remember_me": "Remember me",
 		"security_alert_title": "Security Alert",
 		"security_alert_message": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
-		"i_understand": "I understand that MetaMask cannot recover this password for me.",
+		"i_understand": "I understand that Senso Inu Wallet cannot recover this password for me.",
 		"learn_more": "Learn more.",
 		"secure": "Secure wallet",
 		"confirm": "Confirm Secret Recovery Phrase"
 	},
 	"reset_password": {
 		"title": "Change password",
-		"subtitle": "This password will unlock your MetaMask wallet only on this device.",
+		"subtitle": "This password will unlock your Senso Inu Wallet wallet only on this device.",
 		"password": "New Password",
 		"confirm_password": "Confirm password",
 		"reset_button": "Reset password",
@@ -201,7 +201,7 @@
 		"remember_me": "Remember me",
 		"security_alert_title": "Security Alert",
 		"security_alert_message": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
-		"i_understand": "I understand that MetaMask cannot recover this password for me.",
+		"i_understand": "I understand that Senso Inu Wallet cannot recover this password for me.",
 		"learn_more": "Learn more.",
 		"secure": "Secure wallet",
 		"confirm": "Confirm Secret Recovery Phrase",
@@ -251,7 +251,7 @@
 		"logout_ok": "YES",
 		"logout_cancel": "NO",
 		"feedback": "Feedback",
-		"metamask_support": "MetaMask Support",
+		"Senso Inu Wallet_support": "Senso Inu Wallet Support",
 		"public_address": "Public Address"
 	},
 	"send": {
@@ -331,9 +331,9 @@
 		"here": "here",
 		"agree": "I Agree",
 		"decline": "No Thanks",
-		"description_title": "Help us improve MetaMask",
-		"description_content_1": "MetaMask would like to gather basic usage data to better understand how our users interact with the mobile app. This data will be used to continually improve the usability and user experience of our product.",
-		"description_content_2": "MetaMask will...",
+		"description_title": "Help us improve Senso Inu Wallet",
+		"description_content_1": "Senso Inu Wallet would like to gather basic usage data to better understand how our users interact with the mobile app. This data will be used to continually improve the usability and user experience of our product.",
+		"description_content_2": "Senso Inu Wallet will...",
 		"action_description_1": "Always allow you to opt-out via Settings",
 		"action_description_2": "Send anonymized click & pageview events",
 		"action_description_3": "Send country, region, city data (not specific location)",
@@ -401,7 +401,7 @@
 		"state_logs": "State Logs",
 		"auto_lock": "Auto-lock",
 		"auto_lock_desc": "Choose the amount of time before the application automatically locks.",
-		"state_logs_desc": "This will help MetaMask debug any issue you might encounter. Please send it to MetaMask support via hamburger icon > Send Feedback, or reply to your existing ticket if you have one.",
+		"state_logs_desc": "This will help Senso Inu Wallet debug any issue you might encounter. Please send it to Senso Inu Wallet support via hamburger icon > Send Feedback, or reply to your existing ticket if you have one.",
 		"autolock_immediately": "Immediately",
 		"autolock_never": "Never",
 		"autolock_after": "After {{time}} seconds",
@@ -424,7 +424,7 @@
 		"save_rpc_url": "SAVE",
 		"invalid_rpc_prefix": "URIs require the appropriate HTTPS prefix",
 		"invalid_rpc_url": "Invalid RPC URL",
-		"sync_with_extension": "Sync with MetaMask Extension",
+		"sync_with_extension": "Sync with Senso Inu Wallet Extension",
 		"sync_with_extension_desc": "This will import all extension accounts to this device.",
 		"sync": "SYNC",
 		"clear_approved_dapps": "CLEAR APPROVED DAPPS",
@@ -482,7 +482,7 @@
 		"remove_network_title": "Do you want to remove this network?",
 		"remove_network": "Remove",
 		"cancel_remove_network": "Cancel",
-		"info_title": "About MetaMask",
+		"info_title": "About Senso Inu Wallet",
 		"experimental_title": "Experimental",
 		"experimental_desc": "WalletConnect & more...",
 		"legal_title": "Legal",
@@ -502,7 +502,7 @@
 		"clear_history_desc": "Choose this option to clear your entire browsing history.",
 		"clear_cookies_desc": "Choose this option to clear your browser's cookies.",
 		"metametrics_title": "Participate in MetaMetrics",
-		"metametrics_description": "Participate in MetaMetrics to help us make MetaMask better.",
+		"metametrics_description": "Participate in MetaMetrics to help us make Senso Inu Wallet better.",
 		"third_party_title": "Get incoming transactions",
 		"third_party_description": "Third party APIs (Etherscan) are used to show your incoming transactions in the history. Turn off if you don’t want us to pull data from those services.",
 		"metametrics_opt_out": "MetaMetrics Opt-out",
@@ -559,7 +559,7 @@
 	},
 	"password_reset": {
 		"password_title": "Password",
-		"password_desc": "Choose a strong password to unlock MetaMask app on your device. If you lose this password, you will need your Secret Recovery Phrase to re-import your wallet.",
+		"password_desc": "Choose a strong password to unlock Senso Inu Wallet app on your device. If you lose this password, you will need your Secret Recovery Phrase to re-import your wallet.",
 		"password_learn_more": "Learn more.",
 		"change_password": "Change password"
 	},
@@ -596,7 +596,7 @@
 		"cancel": "Cancel",
 		"error": "Error",
 		"attempting_to_scan_with_wallet_locked": "Looks like you're trying to scan a QR code, you need to unlock your wallet to be able to use it.",
-		"attempting_sync_from_wallet_error": "Looks like you're trying to sync with the extension. In order to do so, you will need to erase your current wallet. \n\nOnce you've erased or reinstalled a fresh version of the app, select the option to \"Sync with MetaMask Extension\". Important! Before erasing your wallet, make sure you've backed up your Secret Recovery Phrase."
+		"attempting_sync_from_wallet_error": "Looks like you're trying to sync with the extension. In order to do so, you will need to erase your current wallet. \n\nOnce you've erased or reinstalled a fresh version of the app, select the option to \"Sync with Senso Inu Wallet Extension\". Important! Before erasing your wallet, make sure you've backed up your Secret Recovery Phrase."
 	},
 	"action_view": {
 		"cancel": "Cancel",
@@ -694,7 +694,7 @@
 		"gas_education_1": "Gas fees are paid to crypto miners who process transactions on the ",
 		"gas_education_2_ethereum": "Ethereum network.",
 		"gas_education_2": "network.",
-		"gas_education_3": "MetaMask does not profit from gas fees.",
+		"gas_education_3": "Senso Inu Wallet does not profit from gas fees.",
 		"gas_education_4": "Gas fees fluctuate based on network traffic and transaction complexitity.",
 		"gas_education_learn_more": "Learn more about gas fees",
 		"confusable_title": "Check the recipient address",
@@ -710,7 +710,7 @@
 		"save": "Save",
 		"warning_gas_limit": "Gas limit must be greater than 20999 and less than 7920027",
 		"warning_gas_limit_estimated": "Estimated gas limit is {{gas}}, use it as minimum value",
-		"cost_explanation": "The gas fee covers the cost of processing your transaction on the Ethereum network. MetaMask does not profit from this fee. The higher the fee the better chances of your transaction getting processed."
+		"cost_explanation": "The gas fee covers the cost of processing your transaction on the Ethereum network. Senso Inu Wallet does not profit from this fee. The higher the fee the better chances of your transaction getting processed."
 	},
 	"spend_limit_edition": {
 		"save": "Save",
@@ -769,7 +769,7 @@
 		"change_url": "Change url",
 		"switch_network": "Switch network",
 		"dapp_browser": "DAPP BROWSER",
-		"dapp_browser_message": "MetaMask is your wallet and browser for the decentralized web. Have a look around!",
+		"dapp_browser_message": "Senso Inu Wallet is your wallet and browser for the decentralized web. Have a look around!",
 		"featured_dapps": "FEATURED DAPPS",
 		"my_favorites": "MY FAVORITES",
 		"search": "Search or type a URL",
@@ -889,7 +889,7 @@
 	"sync_with_extension": {
 		"title": "Sync data from Extension",
 		"short_title": "Sync with Extension",
-		"label": "Open the MetaMask extension in your desktop browser, then go to \"Settings\" > \"Advanced\", click on \"Sync with Mobile\" and then enter your password to see the QR Code",
+		"label": "Open the Senso Inu Wallet extension in your desktop browser, then go to \"Settings\" > \"Advanced\", click on \"Sync with Mobile\" and then enter your password to see the QR Code",
 		"button_continue": "Continue",
 		"please_wait": "Please wait while we sync your data...",
 		"error_title": "Bummer!",
@@ -905,11 +905,11 @@
 		"something_wrong": "Ooops! Something went wrong...",
 		"something_wrong_desc": "We are having issues while trying to sync your wallet. Please try again later or import your wallet using your Secret Recovery Phrase",
 		"allow_biometrics_title": "Do you want to enable {{biometrics}}?",
-		"allow_biometrics_desc": "You can use {{biometrics}} to authenticate on MetaMask"
+		"allow_biometrics_desc": "You can use {{biometrics}} to authenticate on Senso Inu Wallet"
 	},
 	"sync_with_extension_success": {
 		"title": "Wallet imported",
-		"sync_complete_1": "Just remember, MetaMask cannot recover your Secret Recovery Phrase should you lose it. You can find the Secret Recovery Phrase in",
+		"sync_complete_1": "Just remember, Senso Inu Wallet cannot recover your Secret Recovery Phrase should you lose it. You can find the Secret Recovery Phrase in",
 		"sync_complete_2": "Settings > Security & Privacy",
 		"button_continue": "Done",
 		"password_tip": "The password to unlock your mobile wallet is the same one you set for the extension.",
@@ -974,9 +974,9 @@
 	},
 	"authentication": {
 		"auth_prompt_title": "Authentication required",
-		"auth_prompt_desc": "Please authenticate in order to use MetaMask",
+		"auth_prompt_desc": "Please authenticate in order to use Senso Inu Wallet",
 		"fingerprint_prompt_title": "Authentication required",
-		"fingerprint_prompt_desc": "Use your fingerprint to unlock MetaMask",
+		"fingerprint_prompt_desc": "Use your fingerprint to unlock Senso Inu Wallet",
 		"fingerprint_prompt_cancel": "Cancel"
 	},
 	"accountApproval": {
@@ -993,7 +993,7 @@
 	},
 	"import_private_key": {
 		"title": "Import Account",
-		"description_one": "Imported accounts are viewable in your wallet but are not recoverable with your MetaMask Secret Recovery Phrase.",
+		"description_one": "Imported accounts are viewable in your wallet but are not recoverable with your Senso Inu Wallet Secret Recovery Phrase.",
 		"learn_more_here": "Learn more about imported accounts here.",
 		"subtitle": "Paste your private key string",
 		"cta_text": "IMPORT",
@@ -1005,7 +1005,7 @@
 	},
 	"import_private_key_success": {
 		"title": "Account successfully imported!",
-		"description_one": "You'll now be able to view your account in MetaMask."
+		"description_one": "You'll now be able to view your account in Senso Inu Wallet."
 	},
 	"first_incoming_transaction": {
 		"title": "{{asset}} was deposited in your account",
@@ -1020,7 +1020,7 @@
 		"step_1_description": "Create password",
 		"step_2": "Step 2:",
 		"step_2_description": "Save wallet Secret Recovery Phrase",
-		"info_text_1": "Take a few moments to finish setting up your MetaMask wallet.",
+		"info_text_1": "Take a few moments to finish setting up your Senso Inu Wallet wallet.",
 		"info_text_2": "This will ensure only you can access your funds and will let you recover your wallet if you lose your device",
 		"cta_text": "Create Password",
 		"creating_password": "Creating password..."
@@ -1042,7 +1042,7 @@
 		"what_is_seedphrase_title": "What is a ‘Secret Recovery Phrase’",
 		"what_is_seedphrase_text_1": "A Secret Recovery Phrase is a set of twelve words that contains all the information about your wallet, including your funds. It’s like a secret code used to access your entire wallet.",
 		"what_is_seedphrase_text_2": "You must keep your Secret Recovery Phrase secret and safe. If someone gets your Secret Recovery Phrase, they’ll gain control over your accounts.",
-		"what_is_seedphrase_text_3": "Save it in a place where only you can access it. If you lose it, not even MetaMask can help you recover it."
+		"what_is_seedphrase_text_3": "Save it in a place where only you can access it. If you lose it, not even Senso Inu Wallet can help you recover it."
 	},
 	"account_backup_step_1B": {
 		"title": "Secure your wallet",
@@ -1115,7 +1115,7 @@
 	},
 	"account_backup_step_6": {
 		"title": "Security Tips",
-		"info_text": "MetaMask cannot recover your Secret Recovery Phrase if you lose it",
+		"info_text": "Senso Inu Wallet cannot recover your Secret Recovery Phrase if you lose it",
 		"tip_1": "Keep multiple backups of your Secret Recovery Phrase",
 		"tip_2": "Store the phrase in a trusted password manager and paper backups in a safe place",
 		"tip_3": "Never share this phrase with anyone",
@@ -1153,7 +1153,7 @@
 		"congratulations": "Congratulations",
 		"success": "You’ve successfully protected your wallet. Remember to keep your Secret Recovery Phrase safe, it's your responsibility!",
 		"hint": "Leave yourself a hint?",
-		"recover": "MetaMask cannot recover your wallet should you lose it. You can find your Secret Recovery Phrase in Settings > Security & Privacy.",
+		"recover": "Senso Inu Wallet cannot recover your wallet should you lose it. You can find your Secret Recovery Phrase in Settings > Security & Privacy.",
 		"learn": "Learn more",
 		"done": "Done",
 		"recovery_hint": "Recovery hint",
@@ -1166,7 +1166,7 @@
 	"phishing": {
 		"ethereum_phishing_detection": "Ethereum Phishing Detection",
 		"ethereum_phishing_detector": "Ethereum Phishing Detector",
-		"intro": " is currently on the MetaMask domain warning list. This means that based on information available to us, MetaMask believes this domain could currently compromise your security and, as an added safety feature, MetaMask has restricted access to the site. To override this, please read the rest of this warning for instructions on how to continue at your own risk.",
+		"intro": " is currently on the Senso Inu Wallet domain warning list. This means that based on information available to us, Senso Inu Wallet believes this domain could currently compromise your security and, as an added safety feature, Senso Inu Wallet has restricted access to the site. To override this, please read the rest of this warning for instructions on how to continue at your own risk.",
 		"reasons": "There are many reasons sites can appear on our warning list, and our warning list compiles from other widely used industry lists. Such reasons can include known fraud or security risks, such as domains that test positive on the ",
 		"list_content": "Domains on these warning lists may include outright malicious websites and legitimate websites that have been compromised by a malicious actor.",
 		"to_read_more": "To read more about this site ",
@@ -1201,7 +1201,7 @@
 		"received_message": "Tap to view this transaction",
 		"received_payment_message": "You received {{amount}} DAI",
 		"prompt_title": "Enable Push Notifications",
-		"prompt_desc": "Enable notifications so MetaMask can let you know when you've received ETH or when your transactions have been confirmed.",
+		"prompt_desc": "Enable notifications so Senso Inu Wallet can let you know when you've received ETH or when your transactions have been confirmed.",
 		"prompt_ok": "Yes",
 		"prompt_cancel": "No, thanks",
 		"wc_connected_title": "Connected to {{title}}",
@@ -1360,7 +1360,7 @@
 		"wyre_minimum_deposit": "Minimum deposit is {{amount}}",
 		"wyre_maximum_deposit": "Maximum deposit is {{amount}}",
 		"wyre_purchase": "{{currency}} Purchase",
-		"wyre_total_label": "Wyre (via MetaMask)",
+		"wyre_total_label": "Wyre (via Senso Inu Wallet)",
 		"buy_with": "Buy with",
 		"plus_fee": "Plus a {{fee}} fee",
 		"notifications": {
@@ -1387,12 +1387,12 @@
 				"average_gas_fee": "Current average gas fee:",
 				"subtitle_1": "If you plan to swap or transfer your ETH, purchase extra to cover gas fees.",
 				"subtitle_2": "Gas fees for transactions are separate from the cost of purchasing ETH.",
-				"subtitle_3": "MetaMask does not profit from gas fees."
+				"subtitle_3": "Senso Inu Wallet does not profit from gas fees."
 			},
 			"step_2": {
 				"title": "What are gas fees?",
 				"subtitle_1": "Gas powers transactions on the Ethereum network. It’s a fee paid in ETH to the crypto miners who process your transactions.",
-				"subtitle_2": "MetaMask does not profit from gas fees.",
+				"subtitle_2": "Senso Inu Wallet does not profit from gas fees.",
 				"learn_more": "Learn more about gas fees"
 			},
 			"step_3": {
@@ -1417,13 +1417,13 @@
 			"best_swap": "best swap",
 			"across": "across...",
 			"want_to_learn_more": "Want to learn more?",
-			"learn_more": "Learn more about MetaMask Swaps",
+			"learn_more": "Learn more about Senso Inu Wallet Swaps",
 			"what_are": "What are token swaps?",
 			"review_audits": "Review our official contracts audit",
 			"start_swapping": "Start swapping"
 		},
 		"feature_off_title": "Temporarily unavailable",
-		"feature_off_body": "MetaMask Swaps is undergoing maintenance. Please check back later.",
+		"feature_off_body": "Senso Inu Wallet Swaps is undergoing maintenance. Please check back later.",
 		"wrong_network_title": "Swaps not available",
 		"wrong_network_body": "You’re only able to swap tokens on the Ethereum Main Network.",
 		"unallowed_asset_title": "Can’t swap this token",
@@ -1487,19 +1487,19 @@
 		"estimated_gas_fee": "Estimated gas fee",
 		"max_gas_fee": "Max gas fee",
 		"edit": "Edit",
-		"quotes_include_fee": "Quotes include a {{fee}}% MetaMask fee",
+		"quotes_include_fee": "Quotes include a {{fee}}% Senso Inu Wallet fee",
 		"tap_to_swap": "Tap to Swap",
 		"swipe_to_swap": "Swipe to swap",
 		"swipe_to": "Swipe to",
 		"swap": "swap",
 		"completed_swap": "Swap!",
-		"metamask_swap_fee": "MetaMask Swap fee",
+		"Senso Inu Wallet_swap_fee": "Senso Inu Wallet Swap fee",
 		"fee_text": {
 			"get_the": "Get the",
 			"best_price": "best price",
 			"from_the": "from the",
 			"top_liquidity": "top liquidity sources every time.",
-			"fee_is_applied": "A fee of {{fee}} is automatically factored into each quote, which supports ongoing development to make MetaMask even better."
+			"fee_is_applied": "A fee of {{fee}} is automatically factored into each quote, which supports ongoing development to make Senso Inu Wallet even better."
 		},
 		"enable": {
 			"this_will": "This will",
@@ -1555,7 +1555,7 @@
 		"gas_education_1": "Gas fees are paid to crypto miners who process transactions on the ",
 		"gas_education_2_ethereum": "Ethereum network.",
 		"gas_education_2": "network.",
-		"gas_education_3": "MetaMask does not profit from gas fees.",
+		"gas_education_3": "Senso Inu Wallet does not profit from gas fees.",
 		"gas_education_4": "The",
 		"gas_education_5": "“Estimated gas fee”",
 		"gas_education_6": "is what we expect the actual fee to be. The exact amount depends on network conditions.",
@@ -1595,7 +1595,7 @@
 	"whats_new": {
 		"title": "See what's new",
 		"feature_security_settings_title": "Improved security settings",
-		"feature_security_settings_text": "You can now change your MetaMask app password & review how to backup your wallet Secret Recovery Phrase from Settings > Security & Privacy.",
+		"feature_security_settings_text": "You can now change your Senso Inu Wallet app password & review how to backup your wallet Secret Recovery Phrase from Settings > Security & Privacy.",
 		"feature_security_settings_button": "View in Settings"
 	},
 	"invalid_network": {
@@ -1608,15 +1608,15 @@
 	"switch_custom_network": {
 		"title_existing_network": "This site would like to switch the network",
 		"title_new_network": "New network added",
-		"switch_warning": "This will switch the selected network within MetaMask to a prevously added network:",
+		"switch_warning": "This will switch the selected network within Senso Inu Wallet to a prevously added network:",
 		"available": "is now available in the network selector.",
 		"cancel": "Cancel",
 		"switch": "Switch Network"
 	},
 	"add_custom_network": {
 		"title": "Allow this site to add a network?",
-		"warning": "This allows this network to be used within MetaMask.",
-		"warning_subtext_1": "MetaMask does not verify custom networks or their security.",
+		"warning": "This allows this network to be used within Senso Inu Wallet.",
+		"warning_subtext_1": "Senso Inu Wallet does not verify custom networks or their security.",
 		"warning_subtext_2": "Learn about",
 		"warning_subtext_3": "scams and network security risks",
 		"display_name": "Display name",

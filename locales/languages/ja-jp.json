@@ -28,14 +28,14 @@
 	},
 	"onboarding": {
 		"title": "ウォレットのセットアップ",
-		"sync_desc": "すでに MetaMask 拡張機能または別のウォレットがある場合は、同期またはインポートして既存の資産を管理します。",
+		"sync_desc": "すでに Senso Inu Wallet 拡張機能または別のウォレットがある場合は、同期またはインポートして既存の資産を管理します。",
 		"create_desc": "最初のウォレットを設定して、分散型アプリの使用を開始します。",
 		"import": "既存のウォレットのインポートまたは新しいウォレットの作成",
 		"import_wallet_button": "ウォレットの同期またはインポート",
 		"new_to_crypto": "暗号化が初めての場合",
 		"start_exploring_now": "新しいウォレットの作成",
 		"login": "ログイン",
-		"new_to_metamask": "MetaMask が初めての場合",
+		"new_to_Senso Inu Wallet": "Senso Inu Wallet が初めての場合",
 		"already_have_wallet": "すでにウォレットがある場合",
 		"optin_back_title": "注意!",
 		"optin_back_desc": "データ分析の使用に同意するか同意しないかをお答えください。このオプションは設定で更新することもできます。",
@@ -43,15 +43,15 @@
 		"warning_text_1": "続行すると、現在のウォレットとアカウントは",
 		"warning_text_2": "削除",
 		"warning_text_3": "されます。",
-		"warning_text_4": "復元するにはウォレットのシード フレーズが必要です。MetaMask では復元をサポートしていません。",
+		"warning_text_4": "復元するにはウォレットのシード フレーズが必要です。Senso Inu Wallet では復元をサポートしていません。",
 		"warning_proceed": "ウォレットを削除して続行",
 		"warning_cancel": "キャンセル",
 		"step1": "ウォレットのセットアップ",
 		"step2": "パスワードの作成",
 		"step3": "ウォレットの保護",
 		"already_have": "すでにウォレットがある場合",
-		"sync_existing": "既存の MetaMask ウォレットをブラウザーの拡張機能から同期するか、手動でインポートします。",
-		"scan_title": "MetaMask 拡張機能を同期する手順",
+		"sync_existing": "既存の Senso Inu Wallet ウォレットをブラウザーの拡張機能から同期するか、手動でインポートします。",
+		"scan_title": "Senso Inu Wallet 拡張機能を同期する手順",
 		"scan": "スキャン",
 		"scan_step_1": "デスクトップで拡張機能を開きます",
 		"scan_step_2": "[設定]、[詳細] の順に選択します",
@@ -59,12 +59,12 @@
 		"scan_step_4": "QR コードをスキャンして同期を開始します"
 	},
 	"onboarding_carousel": {
-		"title1": "MetaMask にようこそ",
+		"title1": "Senso Inu Wallet にようこそ",
 		"title2": "デジタル資産の管理",
 		"title3": "Web3 へのゲートウェイ",
-		"subtitle1": "何百万ものユーザーから信頼されている MetaMask は、誰もが Web3 の世界にアクセスできる安全なウォレットです。",
+		"subtitle1": "何百万ものユーザーから信頼されている Senso Inu Wallet は、誰もが Web3 の世界にアクセスできる安全なウォレットです。",
 		"subtitle2": "トークン、イーサリアム、コレクティブルなどのデジタル資産を保存、使用、送信します。",
-		"subtitle3": "MetaMask にログインして、投資、獲得、ゲームのプレイ、販売などの取引を行いましょう。",
+		"subtitle3": "Senso Inu Wallet にログインして、投資、獲得、ゲームのプレイ、販売などの取引を行いましょう。",
 		"get_started": "開始"
 	},
 	"onboarding_wizard": {
@@ -95,7 +95,7 @@
 			"title": "メイン ナビゲーション",
 			"content1": "ここをタップ",
 			"content2": "して、ウォレット、ブラウザー、トランザクション履歴にアクセスします。",
-			"content3": "アカウントでさらに多くのアクションを実行したり、MetaMask 設定にアクセスしたりできます。"
+			"content3": "アカウントでさらに多くのアクションを実行したり、Senso Inu Wallet 設定にアクセスしたりできます。"
 		},
 		"step5": {
 			"title": "ブラウザーの参照",
@@ -111,14 +111,14 @@
 		"subtitle": "これにはそれほど時間はかかりません"
 	},
 	"import_wallet": {
-		"title": "すでに MetaMask ユーザーの場合",
+		"title": "すでに Senso Inu Wallet ユーザーの場合",
 		"sub_title": "拡張機能と同期",
 		"sync_help": "所有するウォレットを拡張機能と同期します",
 		"sync_help_step_one": "1.拡張機能を開きます",
 		"sync_help_step_two": "2.[設定]、[詳細] の順に選択します",
 		"sync_help_step_three": "3.[Sync with Mobile] をクリックします",
 		"sync_help_step_four": "4.QR コードをスキャンして同期を開始します",
-		"sync_from_browser_extension_button": "MetaMask 拡張機能との同期",
+		"sync_from_browser_extension_button": "Senso Inu Wallet 拡張機能との同期",
 		"or": "または",
 		"import_from_seed_button": "シード フレーズを使用してインポート"
 	},
@@ -138,7 +138,7 @@
 	},
 	"choose_password": {
 		"title": "パスワードの作成",
-		"subtitle": "このパスワードによって、このデバイスでのみ MetaMask ウォレットのロックが解除されます。",
+		"subtitle": "このパスワードによって、このデバイスでのみ Senso Inu Wallet ウォレットのロックが解除されます。",
 		"password": "新しいパスワード",
 		"confirm_password": "パスワードの確認",
 		"create_button": "パスワードの作成",
@@ -156,14 +156,14 @@
 		"remember_me": "ユーザーを記憶",
 		"security_alert_title": "セキュリティ アラート",
 		"security_alert_message": "続行するには、パスコードをオンにするか、デバイスでサポートされている生体認証方法 (FaceID、TouchID、または指紋認証) をオンにする必要があります",
-		"i_understand": "MetaMask ではこのパスワードを復元できないことを理解しています。",
+		"i_understand": "Senso Inu Wallet ではこのパスワードを復元できないことを理解しています。",
 		"learn_more": "詳細を表示。",
 		"secure": "ウォレットの保護",
 		"confirm": "シード フレーズの確認"
 	},
 	"reset_password": {
 		"title": "パスワードの変更",
-		"subtitle": "このパスワードによって、このデバイスでのみ MetaMask ウォレットのロックが解除されます。",
+		"subtitle": "このパスワードによって、このデバイスでのみ Senso Inu Wallet ウォレットのロックが解除されます。",
 		"password": "新しいパスワード",
 		"confirm_password": "パスワードの確認",
 		"reset_button": "パスワードのリセット",
@@ -181,7 +181,7 @@
 		"remember_me": "ユーザーを記憶",
 		"security_alert_title": "セキュリティ アラート",
 		"security_alert_message": "続行するには、パスコードをオンにするか、デバイスでサポートされている生体認証方法 (FaceID、TouchID、または指紋認証) をオンにする必要があります",
-		"i_understand": "MetaMask ではこのパスワードを復元できないことを理解しています。",
+		"i_understand": "Senso Inu Wallet ではこのパスワードを復元できないことを理解しています。",
 		"learn_more": "詳細を表示。",
 		"secure": "ウォレットの保護",
 		"confirm": "シード フレーズの確認",
@@ -232,7 +232,7 @@
 		"logout_ok": "はい",
 		"logout_cancel": "いいえ",
 		"feedback": "フィードバック",
-		"metamask_support": "MetaMask のサポート",
+		"Senso Inu Wallet_support": "Senso Inu Wallet のサポート",
 		"public_address": "パブリック アドレス"
 	},
 	"send": {
@@ -308,9 +308,9 @@
 		"here": "こちら",
 		"agree": "同意します",
 		"decline": "同意しません",
-		"description_title": "MetaMask の品質向上へのご協力のお願い",
-		"description_content_1": "MetaMask では、ユーザーによるモバイル アプリの操作方法についてよりよく理解するため、基本的な使用状況データを収集させていただきたいと考えています。このデータは、当社の製品の使いやすさとユーザー エクスペリエンスを継続的に改善するために使用されます。",
-		"description_content_2": "MetaMask が実行する内容...",
+		"description_title": "Senso Inu Wallet の品質向上へのご協力のお願い",
+		"description_content_1": "Senso Inu Wallet では、ユーザーによるモバイル アプリの操作方法についてよりよく理解するため、基本的な使用状況データを収集させていただきたいと考えています。このデータは、当社の製品の使いやすさとユーザー エクスペリエンスを継続的に改善するために使用されます。",
+		"description_content_2": "Senso Inu Wallet が実行する内容...",
 		"action_description_1": "お客様がいつでも設定からオプトアウトできるようにします",
 		"action_description_2": "匿名化されたクリック イベントとページビュー イベントを送信します",
 		"action_description_4": "キー、アドレス、トランザクション、残高、ハッシュなど、いかなる個人情報も収集しません",
@@ -371,8 +371,8 @@
 		"instapay_state_logs": "InstaPay ログ",
 		"auto_lock": "自動ロック",
 		"auto_lock_desc": "アプリケーションが自動的にロックするまでの時間を選択します。",
-		"state_logs_desc": "これは、MetaMask が発生した問題をデバッグするのに役立ちます。support@metamask.io まで E メールで送信してください",
-		"instapay_state_logs_desc": "これは、MetaMask が InstaPay の問題をデバッグするのに役立ちます。support@metamask.io まで E メールで送信してください",
+		"state_logs_desc": "これは、Senso Inu Wallet が発生した問題をデバッグするのに役立ちます。support@Senso Inu Wallet.io まで E メールで送信してください",
+		"instapay_state_logs_desc": "これは、Senso Inu Wallet が InstaPay の問題をデバッグするのに役立ちます。support@Senso Inu Wallet.io まで E メールで送信してください",
 		"autolock_immediately": "今すぐ実行",
 		"autolock_never": "実行しない",
 		"autolock_after": "{{time}} 秒後に実行",
@@ -396,7 +396,7 @@
 		"save_rpc_url": "保存",
 		"invalid_rpc_prefix": "URI には適切な HTTPS プレフィックスが必要です",
 		"invalid_rpc_url": "無効な RPC URL",
-		"sync_with_extension": "MetaMask 拡張機能との同期",
+		"sync_with_extension": "Senso Inu Wallet 拡張機能との同期",
 		"sync_with_extension_desc": "これにより、すべての拡張機能アカウントがこのデバイスにインポートされます。",
 		"sync": "同期",
 		"clear_approved_dapps": "承認済み Dapp のクリア",
@@ -451,7 +451,7 @@
 		"remove_network_title": "このネットワークを削除しますか?",
 		"remove_network": "削除",
 		"cancel_remove_network": "キャンセル",
-		"info_title": "MetaMask のバージョン情報",
+		"info_title": "Senso Inu Wallet のバージョン情報",
 		"experimental_title": "試験段階",
 		"experimental_desc": "WalletConnect など...",
 		"legal_title": "法的通知",
@@ -471,7 +471,7 @@
 		"clear_history_desc": "このオプションを選択すると、閲覧履歴がすべてクリアされます。",
 		"clear_cookies_desc": "このオプションを選択すると、ブラウザーの Cookie がクリアされます。",
 		"metametrics_title": "MetaMetrics に参加",
-		"metametrics_description": "MetaMetrics に参加して、MetaMask の改善に協力します。",
+		"metametrics_description": "MetaMetrics に参加して、Senso Inu Wallet の改善に協力します。",
 		"third_party_title": "受信トランザクションの取得",
 		"third_party_description": "サード パーティ API (Etherscan) を使用して、受信トランザクションを履歴に表示します。これらのサービスからデータを取得されないようにする場合は、オフにします。",
 		"metametrics_opt_out": "MetaMetrics のオプトアウト",
@@ -518,7 +518,7 @@
 	},
 	"password_reset": {
 		"password_title": "パスワード",
-		"password_desc": "デバイスで MetaMask アプリのロックを解除するための強力なパスワードを選択します。このパスワードを紛失すると、ウォレットを再インポートするためにシード フレーズが必要になります。",
+		"password_desc": "デバイスで Senso Inu Wallet アプリのロックを解除するための強力なパスワードを選択します。このパスワードを紛失すると、ウォレットを再インポートするためにシード フレーズが必要になります。",
 		"password_learn_more": "詳細を表示。",
 		"change_password": "パスワードの変更"
 	},
@@ -548,7 +548,7 @@
 		"ok": "OK",
 		"cancel": "キャンセル",
 		"error": "エラー",
-		"attempting_sync_from_wallet_error": "拡張機能と同期しようとしています。これを行うには、[設定]、[詳細]、[MetaMask 拡張機能との同期] の順に選択します"
+		"attempting_sync_from_wallet_error": "拡張機能と同期しようとしています。これを行うには、[設定]、[詳細]、[Senso Inu Wallet 拡張機能との同期] の順に選択します"
 	},
 	"action_view": {
 		"cancel": "キャンセル",
@@ -698,7 +698,7 @@
 		"change_url": "URL の変更",
 		"switch_network": "ネットワークの切り替え",
 		"dapp_browser": "Dapp ブラウザー",
-		"dapp_browser_message": "MetaMask は、分散型 Web 用のウォレットおよびブラウザーです。ご覧ください。",
+		"dapp_browser_message": "Senso Inu Wallet は、分散型 Web 用のウォレットおよびブラウザーです。ご覧ください。",
 		"featured_dapps": "注目の Dapp",
 		"my_favorites": "お気に入り",
 		"search": "検索するか URL を入力",
@@ -817,7 +817,7 @@
 	"sync_with_extension": {
 		"title": "拡張機能からデータを同期",
 		"short_title": "拡張機能と同期",
-		"label": "デスクトップ ブラウザーで MetaMask 拡張機能を開き、[設定]、[詳細] の順に選択して、[Sync with Mobile] をクリックし、パスワードを入力して QR コードを表示します",
+		"label": "デスクトップ ブラウザーで Senso Inu Wallet 拡張機能を開き、[設定]、[詳細] の順に選択して、[Sync with Mobile] をクリックし、パスワードを入力して QR コードを表示します",
 		"button_continue": "続行",
 		"please_wait": "データを同期しています。しばらくお待ちください...",
 		"error_title": "エラー!",
@@ -833,11 +833,11 @@
 		"something_wrong": "申し訳ありません。問題が発生しました...",
 		"something_wrong_desc": "ウォレットを同期しようとしたときに問題が発生しました。後でもう一度実行するか、シード フレーズを使用してウォレットをインポートしてください",
 		"allow_biometrics_title": "{{biometrics}} を有効にしますか?",
-		"allow_biometrics_desc": "{{biometrics}} を使用して MetaMask で認証することができます"
+		"allow_biometrics_desc": "{{biometrics}} を使用して Senso Inu Wallet で認証することができます"
 	},
 	"sync_with_extension_success": {
 		"title": "ウォレットがインポートされました",
-		"sync_complete_1": "シード フレーズを紛失した場合、MetaMask では復元できないことに注意してください。シード フレーズは次の場所にあります",
+		"sync_complete_1": "シード フレーズを紛失した場合、Senso Inu Wallet では復元できないことに注意してください。シード フレーズは次の場所にあります",
 		"sync_complete_2": "[設定] > [セキュリティとプライバシー]",
 		"button_continue": "完了",
 		"password_tip": "モバイル ウォレットのロックを解除するためのパスワードは、拡張機能で設定したパスワードと同じです。",
@@ -902,9 +902,9 @@
 	},
 	"authentication": {
 		"auth_prompt_title": "認証が必要です",
-		"auth_prompt_desc": "MetaMask を使用するには認証を行ってください",
+		"auth_prompt_desc": "Senso Inu Wallet を使用するには認証を行ってください",
 		"fingerprint_prompt_title": "認証が必要です",
-		"fingerprint_prompt_desc": "MetaMask のロックを解除するには指紋認証を行ってください",
+		"fingerprint_prompt_desc": "Senso Inu Wallet のロックを解除するには指紋認証を行ってください",
 		"fingerprint_prompt_cancel": "キャンセル"
 	},
 	"accountApproval": {
@@ -921,7 +921,7 @@
 	},
 	"import_private_key": {
 		"title": "アカウントのインポート",
-		"description_one": "インポートされたアカウントはウォレットに表示されますが、MetaMask のシード フレーズでは復元できません。",
+		"description_one": "インポートされたアカウントはウォレットに表示されますが、Senso Inu Wallet のシード フレーズでは復元できません。",
 		"learn_more_here": "インポートされたアカウントの詳細についてはここで確認してください。",
 		"subtitle": "秘密鍵の文字列の貼り付け",
 		"cta_text": "インポート",
@@ -933,7 +933,7 @@
 	},
 	"import_private_key_success": {
 		"title": "アカウントが正常にインポートされました。",
-		"description_one": "アカウントを MetaMask で表示できるようになりました。"
+		"description_one": "アカウントを Senso Inu Wallet で表示できるようになりました。"
 	},
 	"first_incoming_transaction": {
 		"title": "{{asset}} がアカウントに入金されました",
@@ -948,7 +948,7 @@
 		"step_1_description": "パスワードの作成",
 		"step_2": "手順 2:",
 		"step_2_description": "ウォレットのシード フレーズの保存",
-		"info_text_1": "MetaMask ウォレットの設定を完了するまでしばらく時間がかかります。",
+		"info_text_1": "Senso Inu Wallet ウォレットの設定を完了するまでしばらく時間がかかります。",
 		"info_text_2": "これにより、自分の資金にアクセスできるのは自分だけとなり、デバイスを紛失した場合もウォレットを復元できるようになります",
 		"cta_text": "パスワードの作成",
 		"creating_password": "パスワードを作成しています..."
@@ -970,7 +970,7 @@
 		"what_is_seedphrase_title": "「シード フレーズ」とは",
 		"what_is_seedphrase_text_1": "シード フレーズとは、資金を含むウォレットに関するすべての情報を格納した 12 語の単語のセットです。これは、ウォレット全体にアクセスするために使用する秘密のコードのようなものです。",
 		"what_is_seedphrase_text_2": "シード フレーズは秘密の安全な場所に保管する必要があります。誰かがシード フレーズを取得すると、その人物はあなたのアカウントを制御することができます。",
-		"what_is_seedphrase_text_3": "自分しかアクセスできない場所に保管してください。紛失すると、MetaMask を使用しても復元することはできません。"
+		"what_is_seedphrase_text_3": "自分しかアクセスできない場所に保管してください。紛失すると、Senso Inu Wallet を使用しても復元することはできません。"
 	},
 	"account_backup_step_1B": {
 		"title": "ウォレットの保護",
@@ -1043,7 +1043,7 @@
 	},
 	"account_backup_step_6": {
 		"title": "セキュリティのヒント",
-		"info_text": "シード フレーズを紛失した場合、MetaMask では復元できません。",
+		"info_text": "シード フレーズを紛失した場合、Senso Inu Wallet では復元できません。",
 		"tip_1": "シード フレーズの複数のバックアップを保持する",
 		"tip_2": "信頼できるパスワード マネージャーにフレーズを保存し、紙によるバックアップを安全な場所に保管する",
 		"tip_3": "このフレーズを誰にも教えない",
@@ -1081,7 +1081,7 @@
 		"congratulations": "完了",
 		"success": "ウォレットの保護が正常に完了しました。シード フレーズを安全に保管してください。これはお客様の責任になります。",
 		"hint": "自分用のヒントを残しますか?",
-		"recover": "ウォレットを紛失した場合、MetaMask では復元できません。シード フレーズは、[設定] > [セキュリティとプライバシー] にあります。",
+		"recover": "ウォレットを紛失した場合、Senso Inu Wallet では復元できません。シード フレーズは、[設定] > [セキュリティとプライバシー] にあります。",
 		"learn": "詳細を表示",
 		"done": "完了",
 		"recovery_hint": "復元のヒント",
@@ -1094,7 +1094,7 @@
 	"phishing": {
 		"ethereum_phishing_detection": "イーサリアム フィッシングの検出",
 		"ethereum_phishing_detector": "イーサリアム フィッシングの検出機能",
-		"intro": " は、現在 MetaMask のドメイン警告リストにあります。これは、入手可能な情報に基づき、MetaMask はこのドメインが現在セキュリティを侵害する可能性があると考えていることを意味します。追加の安全機能として、MetaMask はこのサイトへのアクセスを制限しています。これを無効にするには、この警告の残りの部分に記載された、自己責任で続行する手順をお読みください。",
+		"intro": " は、現在 Senso Inu Wallet のドメイン警告リストにあります。これは、入手可能な情報に基づき、Senso Inu Wallet はこのドメインが現在セキュリティを侵害する可能性があると考えていることを意味します。追加の安全機能として、Senso Inu Wallet はこのサイトへのアクセスを制限しています。これを無効にするには、この警告の残りの部分に記載された、自己責任で続行する手順をお読みください。",
 		"reasons": "この警告リストにサイトが表示される理由は多数存在します。また、この警告リストは、他の広く利用されている業界のリストをまとめたものです。このような理由には、次の上で陽性と判定されたドメインなど、既知の不正行為やセキュリティ リスクが含まれる可能性があります。",
 		"list_content": "これらの警告リストのドメインには、悪意があることが明白な Web サイトと、悪意のある攻撃者によって侵害された正規の Web サイトが含まれている可能性があります。",
 		"to_read_more": "このサイトの詳細については、",
@@ -1129,7 +1129,7 @@
 		"received_message": "タップするとこのトランザクションが表示されます",
 		"received_payment_message": "{{amount}} DAI を受領しました",
 		"prompt_title": "プッシュ通知を有効にする",
-		"prompt_desc": "通知を有効にすると、ETH を受領したときやトランザクションが確認されたときに、MetaMask から通知を受け取ることができます。",
+		"prompt_desc": "通知を有効にすると、ETH を受領したときやトランザクションが確認されたときに、Senso Inu Wallet から通知を受け取ることができます。",
 		"prompt_ok": "はい",
 		"prompt_cancel": "いいえ",
 		"wc_connected_title": "{{title}} に接続しました",
@@ -1254,7 +1254,7 @@
 		"no_funds_desc": "InstaPay カードに ETH を入金すると、DAI による無料の即時支払いの実行が開始されます。",
 		"confirm": "確認",
 		"cancel": "キャンセル",
-		"asset_card_desc": "Connext Payment Channels を使用した無料のトランザクション。\nこれはベータ版の機能です。サポートが必要な場合は、support@metamask.io に E メールを送信してください",
+		"asset_card_desc": "Connext Payment Channels を使用した無料のトランザクション。\nこれはベータ版の機能です。サポートが必要な場合は、support@Senso Inu Wallet.io に E メールを送信してください",
 		"deposit_amount": "入金する金額",
 		"load_funds": "資金の読み込み",
 		"insta_pay": "InstaPay",
@@ -1404,7 +1404,7 @@
 	"whats_new": {
 		"title": "新機能の表示",
 		"feature_security_settings_title": "セキュリティ設定が改善されました",
-		"feature_security_settings_text": "MetaMask アプリ パスワードを変更し、[設定] > [セキュリティとプライバシー] でウォレットのシード フレーズのバックアップ方法を確認できるようになりました。",
+		"feature_security_settings_text": "Senso Inu Wallet アプリ パスワードを変更し、[設定] > [セキュリティとプライバシー] でウォレットのシード フレーズのバックアップ方法を確認できるようになりました。",
 		"feature_security_settings_button": "[設定] で表示"
 	}
 }
