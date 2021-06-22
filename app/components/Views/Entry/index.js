@@ -1,16 +1,14 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { withNavigation } from 'react-navigation';
 import PropTypes from 'prop-types';
-import { Animated, Dimensions, StyleSheet, View } from 'react-native';
+import { Dimensions, StyleSheet, View, Image } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import Engine from '../../../core/Engine';
-import LottieView from 'lottie-react-native';
 import SecureKeychain from '../../../core/SecureKeychain';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { connect } from 'react-redux';
 import { colors } from '../../../styles/common';
 import Logger from '../../../util/Logger';
-import Device from '../../../util/Device';
 import { recreateVaultWithSamePassword } from '../../../core/Vault';
 import {
 	EXISTING_USER,
@@ -36,31 +34,11 @@ const styles = StyleSheet.create({
 		flex: 1,
 		backgroundColor: colors.white
 	},
-	metamaskName: {
-		marginTop: 10,
-		height: 25,
-		width: 170,
-		alignSelf: 'center',
-		alignItems: 'center',
-		justifyContent: 'center'
-	},
 	logoWrapper: {
 		backgroundColor: colors.white,
 		paddingTop: 50,
 		marginTop: Dimensions.get('window').height / 2 - LOGO_SIZE / 2 - LOGO_PADDING,
 		height: LOGO_SIZE + LOGO_PADDING * 2
-	},
-	foxAndName: {
-		alignSelf: 'center',
-		alignItems: 'center',
-		justifyContent: 'center'
-	},
-	animation: {
-		width: 110,
-		height: 110,
-		alignSelf: 'center',
-		alignItems: 'center',
-		justifyContent: 'center'
 	},
 	fox: {
 		width: 110,
@@ -72,41 +50,11 @@ const styles = StyleSheet.create({
 });
 
 const Entry = props => {
-	const [viewToGo, setViewToGo] = useState(null);
-
-	const animation = useRef(null);
-	const animationName = useRef(null);
-	const opacity = useRef(new Animated.Value(1)).current;
-
-	const onAnimationFinished = useCallback(() => {
-		Animated.timing(opacity, {
-			toValue: 0,
-			duration: 300,
-			useNativeDriver: true,
-			isInteraction: false
-		}).start(() => {
-			if (viewToGo && (viewToGo !== 'WalletView' || viewToGo !== 'Onboarding')) {
-				props.navigation.navigate(viewToGo);
-			} else if (viewToGo === 'Onboarding') {
-				props.navigation.navigate('OnboardingRootNav');
-			} else {
-				props.navigation.navigate('HomeNav');
-			}
-		});
-	}, [opacity, viewToGo, props.navigation]);
-
 	const animateAndGoTo = useCallback(
-		viewToGo => {
-			setViewToGo(viewToGo);
-			if (Device.isAndroid()) {
-				animation && animation.current ? animation.current.play(0, 25) : onAnimationFinished();
-				animationName && animationName.current && animationName.current.play();
-			} else {
-				animation && animation.current && animation.current.play();
-				animation && animation.current && animationName.current.play();
-			}
+		viewToG => {
+			props.navigation.navigate(viewToG);
 		},
-		[onAnimationFinished]
+		[props.navigation]
 	);
 
 	const unlockKeychain = useCallback(async () => {
@@ -176,7 +124,7 @@ const Entry = props => {
 			if (existingUser !== null) {
 				unlockKeychain();
 			} else {
-				animateAndGoTo('OnboardingRootNav');
+				unlockKeychain();
 			}
 		}
 
@@ -185,35 +133,11 @@ const Entry = props => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
-	const renderAnimations = () => {
-		if (!viewToGo) {
-			return <LottieView style={styles.animation} autoPlay source={require('../../../animations/bounce.json')} />;
-		}
-
-		return (
-			<View style={styles.foxAndName}>
-				<LottieView
-					ref={animation}
-					style={styles.animation}
-					loop={false}
-					source={require('../../../animations/fox-in.json')}
-					onAnimationFinish={onAnimationFinished}
-				/>
-				<LottieView
-					ref={animationName}
-					style={styles.metamaskName}
-					loop={false}
-					source={require('../../../animations/wordmark.json')}
-				/>
-			</View>
-		);
-	};
-
 	return (
 		<View style={styles.main}>
-			<Animated.View style={[styles.logoWrapper, { opacity }]}>
-				<View style={styles.fox}>{renderAnimations()}</View>
-			</Animated.View>
+			<View style={styles.logoWrapper}>
+				<Image style={styles.fox} source={require('../../../images/astrodog.png')} />
+			</View>
 		</View>
 	);
 };
