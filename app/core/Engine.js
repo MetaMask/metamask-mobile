@@ -173,7 +173,13 @@ class Engine {
 					fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
 					fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD
 				}),
-				new GasFeeController({}, { interval: 10000, state: {} })
+				new GasFeeController({
+					interval: 10000,
+					messenger: this.controllerMessenger,
+					getProvider: () => networkController.provider,
+					onNetworkStateChange: listener => networkController.subscribe(listener),
+					getCurrentNetworkEIP1559Compatibility: () => true //change this for networkController.state.properties.isEIP1559Compatible ???
+				})
 			];
 
 			// set initial state
@@ -188,7 +194,6 @@ class Engine {
 					controller.update(initialState[controller.name]);
 				}
 			}
-			console.log({ controllers });
 			this.datamodel = new ComposableController(controllers, this.controllerMessenger);
 			this.context = controllers.reduce((context, controller) => {
 				context[controller.name] = controller;
@@ -227,8 +232,7 @@ class Engine {
 			AssetsDetectionController,
 			NetworkController: { provider, state: NetworkControllerState },
 			TransactionController,
-			SwapsController,
-			GasFeeController
+			SwapsController
 		} = this.context;
 
 		provider.sendAsync = provider.sendAsync.bind(provider);
@@ -245,7 +249,6 @@ class Engine {
 		TransactionController.hub.emit('networkChange');
 		AssetsDetectionController.detectAssets();
 		AccountTrackerController.refresh();
-		GasFeeController.configure({ provider });
 	}
 
 	refreshTransactionHistory = async forceCheck => {
