@@ -17,7 +17,8 @@ import {
 	TokenRatesController,
 	TransactionController,
 	TypedMessageManager,
-	WalletDevice
+	WalletDevice,
+	GasFeeController
 } from '@metamask/controllers';
 
 import SwapsController from '@metamask/swaps-controller';
@@ -171,7 +172,8 @@ class Engine {
 					fetchAggregatorMetadataThreshold: AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
 					fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
 					fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD
-				})
+				}),
+				new GasFeeController({}, { interval: 10000, state: {} })
 			];
 
 			// set initial state
@@ -186,7 +188,7 @@ class Engine {
 					controller.update(initialState[controller.name]);
 				}
 			}
-
+			console.log({ controllers });
 			this.datamodel = new ComposableController(controllers, this.controllerMessenger);
 			this.context = controllers.reduce((context, controller) => {
 				context[controller.name] = controller;
@@ -225,7 +227,8 @@ class Engine {
 			AssetsDetectionController,
 			NetworkController: { provider, state: NetworkControllerState },
 			TransactionController,
-			SwapsController
+			SwapsController,
+			GasFeeController
 		} = this.context;
 
 		provider.sendAsync = provider.sendAsync.bind(provider);
@@ -242,6 +245,7 @@ class Engine {
 		TransactionController.hub.emit('networkChange');
 		AssetsDetectionController.detectAssets();
 		AccountTrackerController.refresh();
+		GasFeeController.configure({ provider });
 	}
 
 	refreshTransactionHistory = async forceCheck => {
@@ -517,7 +521,8 @@ export default {
 			TokenRatesController,
 			TransactionController,
 			TypedMessageManager,
-			SwapsController
+			SwapsController,
+			GasFeeController
 		} = instance.datamodel.state;
 
 		// normalize `null` currencyRate to `0`
@@ -543,7 +548,8 @@ export default {
 			TokenRatesController,
 			TransactionController,
 			TypedMessageManager,
-			SwapsController
+			SwapsController,
+			GasFeeController
 		};
 	},
 	get datamodel() {
