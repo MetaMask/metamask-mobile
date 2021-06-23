@@ -253,7 +253,7 @@ class SignatureRequest extends PureComponent {
 							<Text style={styles.signText}>{strings('signature_request.signing')}</Text>
 							{showWarning ? (
 								<TouchableOpacity style={styles.warningWrapper} onPress={this.goToWarning}>
-									<WarningMessage warningMessage={this.renderWarning()} />
+									<WarningMessage styleType={'error'} warningMessage={this.renderWarning()} />
 								</TouchableOpacity>
 							) : null}
 						</View>
