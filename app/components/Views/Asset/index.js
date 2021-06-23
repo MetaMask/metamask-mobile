@@ -11,7 +11,7 @@ import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import Engine from '../../../core/Engine';
 import { safeToChecksumAddress } from '../../../util/address';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
-import { toLowerCaseCompare } from '../../../util/general';
+import { toLowerCaseEquals } from '../../../util/general';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -146,7 +146,7 @@ class Asset extends PureComponent {
 		) {
 			if (isTransfer)
 				return this.props.tokens.find(({ address }) =>
-					toLowerCaseCompare(address, transferInformation.contractAddress)
+					toLowerCaseEquals(address, transferInformation.contractAddress)
 				);
 			return true;
 		}
