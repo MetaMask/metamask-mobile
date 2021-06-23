@@ -177,11 +177,11 @@ class AddressList extends PureComponent {
 				}
 				const checksummedTo = safeToChecksumAddress(to);
 				if (recents.length > 2) return;
-				const getSwapsContractAddress = swapsUtils.getSwapsContractAddress(chainId);
+				const swapsContractAddress = swapsUtils.getSwapsContractAddress(chainId);
 				if (
 					!recents.includes(checksummedTo) &&
 					!Object.keys(identities).includes(checksummedTo) &&
-					!toLowerCaseEquals(checksummedTo, getSwapsContractAddress)
+					!toLowerCaseEquals(checksummedTo, swapsContractAddress)
 				) {
 					recents.push(checksummedTo);
 					if (this.networkAddressBook[checksummedTo]) {
