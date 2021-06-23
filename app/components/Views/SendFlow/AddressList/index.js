@@ -13,7 +13,7 @@ import {
 	TRANSFER_FROM_FUNCTION_SIGNATURE
 } from '../../../../util/transactions';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { toLowerCaseCompare } from '../../../../util/general';
+import { toLowerCaseEquals } from '../../../../util/general';
 
 const styles = StyleSheet.create({
 	root: {
@@ -181,7 +181,7 @@ class AddressList extends PureComponent {
 				if (
 					!recents.includes(checksummedTo) &&
 					!Object.keys(identities).includes(checksummedTo) &&
-					!toLowerCaseCompare(checksummedTo, getSwapsContractAddress)
+					!toLowerCaseEquals(checksummedTo, getSwapsContractAddress)
 				) {
 					recents.push(checksummedTo);
 					if (this.networkAddressBook[checksummedTo]) {
