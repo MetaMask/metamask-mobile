@@ -192,7 +192,7 @@
     "react-native-webview": "^11.0.2",
     "react-navigation": "^4.4.3",
     "react-navigation-drawer": "1.4.0",
-    "react-navigation-stack": "1.7.3",
+    "react-navigation-stack": "2.10.4",
     "react-navigation-tabs": "2.5.5",
     "react-redux": "5.1.1",
     "readable-stream": "1.0.33",
