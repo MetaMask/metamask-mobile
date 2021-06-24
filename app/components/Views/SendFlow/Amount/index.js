@@ -36,7 +36,8 @@ import {
 	balanceToFiatNumber,
 	getCurrencySymbol,
 	handleWeiNumber,
-	fromTokenMinimalUnitString
+	fromTokenMinimalUnitString,
+	toHexadecimal
 } from '../../../../util/number';
 import { getTicker, generateTransferData, getEther } from '../../../../util/transactions';
 import { util } from '@metamask/controllers';
@@ -53,7 +54,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import NetworkMainAssetLogo from '../../../UI/NetworkMainAssetLogo';
 import { isMainNet } from '../../../../util/networks';
-import { toLowerCaseCompare } from '../../../../util/general';
+import { toLowerCaseEquals } from '../../../../util/general';
 
 const { hexToBN, BNToHex } = util;
 
@@ -424,7 +425,7 @@ class Amount extends PureComponent {
 		} = this.props;
 		try {
 			const owner = await AssetsContractController.getOwnerOf(address, tokenId);
-			const isOwner = toLowerCaseCompare(owner, selectedAddress);
+			const isOwner = toLowerCaseEquals(owner, selectedAddress);
 			if (!isOwner) {
 				return strings('transaction.invalid_collectible_ownership');
 			}
@@ -509,7 +510,7 @@ class Amount extends PureComponent {
 			collectibleTransferTransactionProperties.data = generateTransferData('transferFrom', {
 				fromAddress: transaction.from,
 				toAddress: transactionTo,
-				tokenId: selectedAsset.tokenId
+				tokenId: toHexadecimal(selectedAsset.tokenId)
 			});
 		} else if (collectibleTransferInformation.tradable && collectibleTransferInformation.method === 'transfer') {
 			collectibleTransferTransactionProperties.data = generateTransferData('transfer', {

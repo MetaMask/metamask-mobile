@@ -7,7 +7,7 @@ import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import { renderNumber } from '../../../util/number';
 
-import { FIAT_ORDER_STATES, getPendingOrders } from '../../../reducers/fiatOrders';
+import { FIAT_ORDER_STATES, getPendingOrders, updateFiatOrder } from '../../../reducers/fiatOrders';
 import useInterval from '../../hooks/useInterval';
 import processOrder from './orderProcessor';
 
@@ -72,13 +72,13 @@ export const getNotificationDetails = fiatOrder => {
 	}
 };
 
-function FiatOrders({ pendingOrders, dispatch }) {
+function FiatOrders({ pendingOrders, updateFiatOrder }) {
 	useInterval(
 		async () => {
 			await Promise.all(
 				pendingOrders.map(async order => {
 					const updatedOrder = await processOrder(order);
-					dispatch({ type: 'FIAT_UPDATE_ORDER', payload: updatedOrder });
+					updateFiatOrder(updatedOrder);
 					if (updatedOrder.state !== order.state) {
 						InteractionManager.runAfterInteractions(() =>
 							NotificationManager.showSimpleNotification(getNotificationDetails(updatedOrder))
@@ -97,16 +97,18 @@ FiatOrders.propTypes = {
 	orders: PropTypes.array,
 	selectedAddress: PropTypes.string,
 	network: PropTypes.string,
-	dispatch: PropTypes.func
+	updateFiatOrder: PropTypes.func
 };
 
-const mapStateToProps = state => {
-	const orders = state.fiatOrders.orders;
-	const selectedAddress = state.engine.backgroundState.PreferencesController.selectedAddress;
-	const network = state.engine.backgroundState.NetworkController.network;
-	return {
-		pendingOrders: getPendingOrders(orders, selectedAddress, network)
-	};
-};
+const mapStateToProps = state => ({
+	pendingOrders: getPendingOrders(state)
+});
 
-export default connect(mapStateToProps)(FiatOrders);
+const mapDispatchToProps = dispatch => ({
+	updateFiatOrder: order => dispatch(updateFiatOrder(order))
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(FiatOrders);

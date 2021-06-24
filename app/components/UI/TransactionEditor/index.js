@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import AnimatedTransactionModal from '../AnimatedTransactionModal';
 import TransactionReview from '../TransactionReview';
 import CustomGas from '../CustomGas';
-import { isBN, hexToBN, toBN, fromWei, renderFromWei } from '../../../util/number';
+import { isBN, hexToBN, toBN, fromWei, renderFromWei, toHexadecimal } from '../../../util/number';
 import { isValidAddress, toChecksumAddress, BN, addHexPrefix } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
@@ -18,7 +18,7 @@ import contractMap from '@metamask/contract-metadata';
 import { safeToChecksumAddress } from '../../../util/address';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { MAINNET } from '../../../constants/network';
-import { toLowerCaseCompare } from '../../../util/general';
+import { toLowerCaseEquals } from '../../../util/general';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -328,7 +328,7 @@ class TransactionEditor extends PureComponent {
 					return generateTransferData('transferFrom', {
 						fromAddress: from,
 						toAddress: to,
-						tokenId: selectedAsset.tokenId
+						tokenId: toHexadecimal(selectedAsset.tokenId)
 					});
 				} else if (
 					collectibleTransferInformation.tradable &&
@@ -381,7 +381,7 @@ class TransactionEditor extends PureComponent {
 		const { selectedAddress } = this.props;
 		try {
 			const owner = await AssetsContractController.getOwnerOf(address, tokenId);
-			const isOwner = toLowerCaseCompare(owner, selectedAddress);
+			const isOwner = toLowerCaseEquals(owner, selectedAddress);
 			if (!isOwner) {
 				return strings('transaction.invalid_collectible_ownership');
 			}

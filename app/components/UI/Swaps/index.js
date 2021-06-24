@@ -33,7 +33,7 @@ import AppConstants from '../../../core/AppConstants';
 
 import { strings } from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
-import { setQuotesNavigationsParams, isSwapsNativeAsset } from './utils';
+import { setQuotesNavigationsParams, isSwapsNativeAsset, isDynamicToken } from './utils';
 import { getSwapsAmountNavbar } from '../Navbar';
 
 import Onboarding from './components/Onboarding';
@@ -49,7 +49,7 @@ import SlippageModal from './components/SlippageModal';
 import useBalance from './utils/useBalance';
 import useBlockExplorer from './utils/useBlockExplorer';
 import InfoModal from './components/InfoModal';
-import { toLowerCaseCompare } from '../../../util/general';
+import { toLowerCaseEquals } from '../../../util/general';
 
 const styles = StyleSheet.create({
 	screen: {
@@ -161,11 +161,11 @@ function SwapsAmountView({
 	const [isInitialLoadingTokens, setInitialLoadingTokens] = useState(false);
 	const [, setLoadingTokens] = useState(false);
 	const [isSourceSet, setIsSourceSet] = useState(() =>
-		Boolean(swapsTokens?.find(token => toLowerCaseCompare(token.address, initialSource)))
+		Boolean(swapsTokens?.find(token => toLowerCaseEquals(token.address, initialSource)))
 	);
 
 	const [sourceToken, setSourceToken] = useState(() =>
-		swapsTokens?.find(token => toLowerCaseCompare(token.address, initialSource))
+		swapsTokens?.find(token => toLowerCaseEquals(token.address, initialSource))
 	);
 	const [destinationToken, setDestinationToken] = useState(null);
 	const [hasDismissedTokenAlert, setHasDismissedTokenAlert] = useState(true);
@@ -192,7 +192,7 @@ function SwapsAmountView({
 					InteractionManager.runAfterInteractions(() => {
 						const parameters = {
 							source: initialSource === SWAPS_NATIVE_ADDRESS ? 'MainView' : 'TokenView',
-							activeCurrency: swapsTokens?.find(token => toLowerCaseCompare(token.address, initialSource))
+							activeCurrency: swapsTokens?.find(token => toLowerCaseEquals(token.address, initialSource))
 								?.symbol,
 							chain_id: chainId
 						};
@@ -248,7 +248,7 @@ function SwapsAmountView({
 	useEffect(() => {
 		if (!isSourceSet && initialSource && swapsTokens && !sourceToken) {
 			setIsSourceSet(true);
-			setSourceToken(swapsTokens.find(token => toLowerCaseCompare(token.address, initialSource)));
+			setSourceToken(swapsTokens.find(token => toLowerCaseEquals(token.address, initialSource)));
 		}
 	}, [initialSource, isSourceSet, sourceToken, swapsTokens]);
 
@@ -559,7 +559,11 @@ function SwapsAmountView({
 							</TouchableOpacity>
 						) : (
 							<ActionAlert
-								type="warning"
+								type={
+									!destinationToken.occurances || isDynamicToken(destinationToken)
+										? 'error'
+										: 'warning'
+								}
 								style={styles.tokenAlert}
 								action={hasDismissedTokenAlert ? null : strings('swaps.continue')}
 								onPress={handleDimissTokenAlert}
@@ -568,22 +572,42 @@ function SwapsAmountView({
 								{textStyle => (
 									<TouchableOpacity onPress={explorer.isValid ? handleVerifyPress : undefined}>
 										<Text style={textStyle} bold centered>
-											{strings('swaps.only_verified_on', {
-												symbol: destinationToken.symbol,
-												occurances: destinationToken.occurances
-											})}
+											{!destinationToken.occurances || isDynamicToken(destinationToken)
+												? strings('swaps.added_manually', {
+														symbol: destinationToken.symbol
+														// eslint-disable-next-line no-mixed-spaces-and-tabs
+												  })
+												: strings('swaps.only_verified_on', {
+														symbol: destinationToken.symbol,
+														occurances: destinationToken.occurances
+														// eslint-disable-next-line no-mixed-spaces-and-tabs
+												  })}
 										</Text>
-										<Text style={textStyle} centered>
-											{`${strings('swaps.verify_address_on')} `}
-											{explorer.isValid ? (
-												<Text reset link>
-													{explorer.name}
-												</Text>
-											) : (
-												strings('swaps.a_block_explorer')
-											)}
-											.
-										</Text>
+										{!destinationToken.occurances || isDynamicToken(destinationToken) ? (
+											<Text style={textStyle} centered>
+												{`${strings('swaps.verify_this_token_on')} `}
+												{explorer.isValid ? (
+													<Text reset link>
+														{explorer.name}
+													</Text>
+												) : (
+													strings('swaps.a_block_explorer')
+												)}
+												{` ${strings('swaps.make_sure_trade')}`}
+											</Text>
+										) : (
+											<Text style={textStyle} centered>
+												{`${strings('swaps.verify_address_on')} `}
+												{explorer.isValid ? (
+													<Text reset link>
+														{explorer.name}
+													</Text>
+												) : (
+													strings('swaps.a_block_explorer')
+												)}
+												.
+											</Text>
+										)}
 									</TouchableOpacity>
 								)}
 							</ActionAlert>

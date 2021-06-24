@@ -10,7 +10,8 @@ const styles = StyleSheet.create({
 	loaderContainer: {
 		position: 'absolute',
 		zIndex: 999,
-		width: '100%'
+		width: '100%',
+		height: '100%'
 	}
 });
 

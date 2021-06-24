@@ -177,11 +177,6 @@ const styles = StyleSheet.create({
 		margin: 0
 	},
 	totalAmount: {
-		...fontStyles.normal,
-		color: colors.fontPrimary,
-		fontSize: 14,
-		textAlign: 'right',
-		textTransform: 'uppercase',
 		flexWrap: 'wrap',
 		flex: 1
 	},
@@ -515,12 +510,12 @@ class Confirm extends PureComponent {
 			transactionValueFiat = weiToFiat(valueBN, conversionRate, currentCurrency);
 			const transactionTotalAmountBN = weiTransactionFee && weiTransactionFee.add(valueBN);
 			transactionTotalAmount = (
-				<Text style={[styles.totalAmount, over && styles.over]}>
+				<Text reset right upper style={[styles.totalAmount, over && styles.over]}>
 					{renderFromWei(transactionTotalAmountBN)} {parsedTicker}
 				</Text>
 			);
 			transactionTotalAmountFiat = (
-				<Text style={[styles.totalAmount, over && styles.over]}>
+				<Text reset right upper style={[styles.totalAmount, over && styles.over]}>
 					{weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency)}
 				</Text>
 			);
@@ -544,12 +539,12 @@ class Confirm extends PureComponent {
 			transactionValueFiat = weiToFiat(valueBN, conversionRate, currentCurrency);
 			const transactionTotalAmountBN = weiTransactionFee && weiTransactionFee.add(valueBN);
 			transactionTotalAmount = (
-				<Text style={styles.totalAmount}>
+				<Text grey right upper style={styles.totalAmount}>
 					{renderFromWei(weiTransactionFee)} {parsedTicker}
 				</Text>
 			);
 			transactionTotalAmountFiat = (
-				<Text style={styles.totalAmount}>
+				<Text primary right upper bold style={styles.totalAmount}>
 					{weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency)}
 				</Text>
 			);
@@ -570,12 +565,12 @@ class Confirm extends PureComponent {
 				balanceToFiat(transferValue, conversionRate, exchangeRate, currentCurrency) || `0 ${currentCurrency}`;
 			const transactionValueFiatNumber = balanceToFiatNumber(transferValue, conversionRate, exchangeRate);
 			transactionTotalAmount = (
-				<Text style={styles.totalAmount}>
+				<Text grey right upper style={styles.totalAmount}>
 					{transactionValue} + ${renderFromWei(weiTransactionFee)} {parsedTicker}
 				</Text>
 			);
 			transactionTotalAmountFiat = (
-				<Text style={styles.totalAmount}>
+				<Text primary right upper bold style={styles.totalAmount}>
 					{renderFiatAddition(transactionValueFiatNumber, transactionFeeFiatNumber, currentCurrency)}
 				</Text>
 			);

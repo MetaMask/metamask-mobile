@@ -41,7 +41,8 @@ const wallet_addEthereumChain = async ({
 		chainName: true,
 		blockExplorerUrls: true,
 		nativeCurrency: true,
-		rpcUrls: true
+		rpcUrls: true,
+		iconUrls: true
 	};
 
 	const extraKeys = Object.keys(params).filter(key => !allowedKeys[key]);
