@@ -1,7 +1,7 @@
 /**
  * Collection of utility functions for consistent formatting and conversion
  */
-import { addHexPrefix, BN, stripHexPrefix } from 'ethereumjs-util';
+import { BN, stripHexPrefix } from 'ethereumjs-util';
 import { utils as ethersUtils } from 'ethers';
 import convert from 'ethjs-unit';
 import { util } from '@metamask/controllers';
@@ -44,6 +44,28 @@ const baseChange = {
 export function BNToHex(value) {
 	return util.BNToHex(value);
 }
+
+/**
+ * Prefixes a hex string with '0x' or '-0x' and returns it. Idempotent.
+ *
+ * @param {string} str - The string to prefix.
+ * @returns {string} The prefixed string.
+ */
+export const addHexPrefix = str => {
+	if (typeof str !== 'string' || str.match(/^-?0x/u)) {
+		return str;
+	}
+
+	if (str.match(/^-?0X/u)) {
+		return str.replace('0X', '0x');
+	}
+
+	if (str.startsWith('-')) {
+		return str.replace('-', '-0x');
+	}
+
+	return `0x${str}`;
+};
 
 /**
  * Converts wei to a different unit

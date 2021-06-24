@@ -26,6 +26,8 @@ import {
 	isDecimal,
 	toBN
 } from '../../../../util/number';
+import { multiplyCurrencies } from '../../../../util/conversion-util';
+import { sumHexWEIsToRenderableFiat, sumHexWEIsToRenderableEth } from '../../../../util/conversions';
 import { getTicker, decodeTransferData, getNormalizedTxState } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
 import { util, WalletDevice, NetworksChainId } from '@metamask/controllers';
@@ -60,6 +62,7 @@ import { collectConfusables } from '../../../../util/validators';
 import InfoModal from '../../../UI/Swaps/components/InfoModal';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { removeFavoriteCollectible } from '../../../../actions/collectibles';
+import TransactionReviewEIP1559 from '../../../UI/TransactionReview/TransactionReviewEIP1559';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -215,6 +218,28 @@ const styles = StyleSheet.create({
 		lineHeight: 20
 	}
 });
+
+const gasFeeEstimates = {
+	estimatedBaseFee: '28',
+	high: {
+		maxWaitTimeEstimate: 150000,
+		minWaitTimeEstimate: 0,
+		suggestedMaxFeePerGas: '50',
+		suggestedMaxPriorityFeePerGas: '2'
+	},
+	low: {
+		maxWaitTimeEstimate: 600000,
+		minWaitTimeEstimate: 60000,
+		suggestedMaxFeePerGas: '35',
+		suggestedMaxPriorityFeePerGas: '1'
+	},
+	medium: {
+		maxWaitTimeEstimate: 60000,
+		minWaitTimeEstimate: 15000,
+		suggestedMaxFeePerGas: '38',
+		suggestedMaxPriorityFeePerGas: '1.8'
+	}
+};
 
 /**
  * View that wraps the wraps the "Send" screen
@@ -399,6 +424,7 @@ class Confirm extends PureComponent {
 		this.handleConfusables();
 		this.parseTransactionData();
 		this.prepareTransaction();
+		this.parseTransactionDataEIP1559();
 	};
 
 	componentDidUpdate = (prevProps, prevState) => {
@@ -475,6 +501,92 @@ class Confirm extends PureComponent {
 			data,
 			to
 		});
+	};
+
+	parseTransactionDataEIP1559 = () => {
+		const {
+			/*accounts,
+			contractBalances,
+			contractExchangeRates,*/
+			conversionRate,
+			currentCurrency,
+			transactionState: {
+				//selectedAsset,
+				//transactionTo: to,
+				transaction: { /*from, value,*/ gas, gasPrice /*data*/ }
+			},
+			ticker
+		} = this.props;
+		/*const { fromSelectedAddress, over } = this.state;
+		let fromAccountBalance,
+			transactionValue,
+			transactionValueFiat,
+			transactionTo,
+			transactionTotalAmount,
+			transactionTotalAmountFiat;*/
+
+		const selected = 'medium';
+		const selectedGasFee = gasFeeEstimates[selected];
+		console.log('---', gas, gasPrice, hexToBN(selectedGasFee.suggestedMaxFeePerGas));
+		/*console.log(
+			hexWEIToDecGWEI(selectedGasFee.suggestedMaxFeePerGas) +
+				hexWEIToDecGWEI(selectedGasFee.suggestedMaxFeePerGas)
+		);*/
+
+		const weiTransactionFee = gas && gas.mul(gasPrice);
+
+		const mult = multiplyCurrencies(BNToHex(gas), BNToHex(gasPrice), {
+			toNumericBase: 'hex',
+			multiplicandBase: 16,
+			multiplierBase: 16
+		});
+		const newTransactionFeeFiat = sumHexWEIsToRenderableFiat([mult, '0x0'], currentCurrency, conversionRate);
+		const newtransactionFee = sumHexWEIsToRenderableEth([mult, '0x0'], currentCurrency, conversionRate);
+
+		const transactionFeeFiat = weiToFiat(weiTransactionFee, conversionRate, currentCurrency);
+		const parsedTicker = getTicker(ticker);
+		const transactionFee = `${renderFromWei(weiTransactionFee)} ${parsedTicker}`;
+
+		console.log(
+			'compare',
+			weiTransactionFee,
+			mult,
+			transactionFeeFiat,
+			newTransactionFeeFiat,
+			transactionFee,
+			newtransactionFee
+		);
+		/*
+		if (selectedAsset.isETH) {
+			fromAccountBalance = `${renderFromWei(accounts[fromSelectedAddress].balance)} ${parsedTicker}`;
+			transactionValue = `${renderFromWei(value)} ${parsedTicker}`;
+			transactionValueFiat = weiToFiat(valueBN, conversionRate, currentCurrency);
+			const transactionTotalAmountBN = weiTransactionFee && weiTransactionFee.add(valueBN);
+			transactionTotalAmount = (
+				<Text reset right upper style={[styles.totalAmount, over && styles.over]}>
+					{renderFromWei(transactionTotalAmountBN)} {parsedTicker}
+				</Text>
+			);
+			transactionTotalAmountFiat = (
+				<Text reset right upper style={[styles.totalAmount, over && styles.over]}>
+					{weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency)}
+				</Text>
+			);
+			transactionTo = to;
+		}*/
+
+		/*console.log({
+			gasFeeNative: '0.02122 ETH',
+			gasFeeConversion: '$7.00',
+			gasFeeIntervalNative: '0.02122 - 0.02134 ETH',
+
+			timeEstimate: `Very likely in < ${selectedGasFee.maxWaitTimeEstimate} seconds`,
+			timeEstimateColor: 'green',
+
+			totalPrimary: '0.03127 ETH',
+			totalConversion: '$27.85',
+			totalMaxNative: '0.03138 ETH'
+		});*/
 	};
 
 	parseTransactionData = () => {
@@ -1048,6 +1160,18 @@ class Confirm extends PureComponent {
 						nonceValue={nonce}
 						onNonceEdit={() => this.edit(EDIT_NONCE)}
 					/>
+
+					<TransactionReviewEIP1559
+						totalPrimary={'0.03127 ETH'}
+						totalConversion={'$27.85'}
+						totalMaxNative={'0.03138 ETH'}
+						gasFeeNative={'0.02122 ETH'}
+						gasFeeConversion={'$7.00'}
+						gasFeeIntervalNative={'0.02122 - 0.02134 ETH'}
+						timeEstimate={'Very likely in < 15 seconds'}
+						timeEstimateColor={'green'}
+					/>
+
 					{errorMessage && (
 						<View style={styles.errorWrapper}>
 							<TouchableOpacity onPress={errorPress}>
