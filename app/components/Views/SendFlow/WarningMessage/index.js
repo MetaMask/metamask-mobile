@@ -13,16 +13,15 @@ const styles = StyleSheet.create({
 	}
 });
 
-export default function WarningMessage({ styleType, warningMessage }) {
+export default function WarningMessage({ type, warningMessage }) {
 	const icon = () => {
-		if (styleType === 'error')
-			return <FAIcon name="info-circle" style={styles.icon} color={colors.red} size={15} />;
+		if (type === 'error') return <FAIcon name="info-circle" style={styles.icon} color={colors.red} size={15} />;
 
 		return <AntIcon style={styles.icon} name="bells" color={colors.yellow} size={15} />;
 	};
 
 	return (
-		<Alert type={styleType || 'warning'} renderIcon={icon}>
+		<Alert type={type || 'warning'} renderIcon={icon}>
 			{warningMessage}
 		</Alert>
 	);
@@ -34,7 +33,7 @@ WarningMessage.propTypes = {
 	 */
 	warningMessage: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
 	/**
-	 * Message type for styling (default warning)
+	 * Message type for styling (default style is 'warning')
 	 */
-	styleType: PropTypes.oneOfType([PropTypes.string, PropTypes.object])
+	type: PropTypes.oneOfType([PropTypes.string, PropTypes.object])
 };
