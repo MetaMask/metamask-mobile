@@ -76,7 +76,10 @@ class Step5 extends PureComponent {
 		const { navigation, setOnboardingWizardStep } = this.props;
 		setOnboardingWizardStep && setOnboardingWizardStep(6);
 		navigation && navigation.dispatch(DrawerActions.closeDrawer());
-		navigation && navigation.navigate('BrowserView');
+		navigation &&
+			navigation.navigate('BrowserTabHome', {
+				screen: 'BrowserView'
+			});
 	};
 
 	/**

@@ -281,6 +281,7 @@ export function getPaymentRequestSuccessOptionsTitle(navigation) {
 			backgroundColor: colors.white,
 			borderBottomWidth: 0
 		},
+		title: null,
 		headerTintColor: colors.blue,
 		headerLeft: () => <View />,
 		headerRight: () => (
