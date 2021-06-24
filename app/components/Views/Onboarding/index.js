@@ -279,7 +279,7 @@ class Onboarding extends PureComponent {
 		this.checkIfExistingUser();
 		InteractionManager.runAfterInteractions(() => {
 			PreventScreenshot.forbid();
-			if (this.props.route.params?.delete ?? false) {
+			if (this.props.route.params?.delete) {
 				this.props.setLoading(strings('onboarding.delete_current'));
 				setTimeout(() => {
 					this.showNotification();
@@ -626,7 +626,7 @@ class Onboarding extends PureComponent {
 	}
 
 	handleSimpleNotification = () => {
-		if (!this.props.route.params?.delete ?? false) return;
+		if (!this.props.route.params?.delete) return;
 		return (
 			<Animated.View
 				style={[styles.notificationContainer, { transform: [{ translateY: this.notificationAnimated }] }]}

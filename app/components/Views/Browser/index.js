@@ -196,7 +196,7 @@ class Browser extends PureComponent {
 
 	renderTabsView() {
 		const { tabs, activeTab } = this.props;
-		const showTabs = this.props.route.params?.showTabs ?? false;
+		const showTabs = this.props.route.params?.showTabs;
 		if (showTabs) {
 			return (
 				<Tabs
