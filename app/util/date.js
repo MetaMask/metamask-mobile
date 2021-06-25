@@ -17,8 +17,7 @@ export function toDateFormat(timestamp) {
 	hours %= 12;
 	hours = hours || 12; // the hour '0' should be '12'
 	minutes = minutes < 10 ? '0' + minutes : minutes;
-	const strTime = `${month} ${day} ${strings('date.connector')} ${hours}:${minutes} ${ampm}`;
-	return strTime;
+	return `${month} ${day} ${strings('date.connector')} ${hours}:${minutes} ${ampm}`;
 }
 
 export function toLocaleDate(timestamp) {
