@@ -42,7 +42,7 @@ const toNormalizedDenomination = {
 	ETH: bigNumber => bigNumber.div(BIG_NUMBER_ETH_MULTIPLIER)
 };
 const toSpecifiedDenomination = {
-	WEI: bigNumber => bigNumber.times(BIG_NUMBER_WEI_MULTIPLIER).decimalPlaces(),
+	WEI: bigNumber => bigNumber.times(BIG_NUMBER_WEI_MULTIPLIER).decimalPlaces(0),
 	GWEI: bigNumber => bigNumber.times(BIG_NUMBER_GWEI_MULTIPLIER).decimalPlaces(9),
 	ETH: bigNumber => bigNumber.times(BIG_NUMBER_ETH_MULTIPLIER).decimalPlaces(9)
 };
@@ -113,7 +113,9 @@ const converter = ({
 	}
 
 	if (toDenomination) {
+		console.log('fromDenomination', fromDenomination, convertedValue.times(BIG_NUMBER_WEI_MULTIPLIER));
 		convertedValue = toSpecifiedDenomination[toDenomination](convertedValue);
+		console.log(toDenomination, convertedValue);
 	}
 
 	if (numberOfDecimals) {

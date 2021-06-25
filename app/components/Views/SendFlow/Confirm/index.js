@@ -1,3 +1,4 @@
+/*eslint-disable*/
 import React, { PureComponent } from 'react';
 import { colors, baseStyles, fontStyles } from '../../../../styles/common';
 import {
@@ -26,8 +27,13 @@ import {
 	isDecimal,
 	toBN
 } from '../../../../util/number';
-import { multiplyCurrencies } from '../../../../util/conversion-util';
-import { sumHexWEIsToRenderableFiat, sumHexWEIsToRenderableEth } from '../../../../util/conversions';
+import { addCurrencies, multiplyCurrencies } from '../../../../util/conversion-util';
+import {
+	sumHexWEIsToRenderableFiat,
+	sumHexWEIsToRenderableEth,
+	decGWEIToHexWEI,
+	getValueFromWeiHex
+} from '../../../../util/conversions';
 import { getTicker, decodeTransferData, getNormalizedTxState } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
 import { util, WalletDevice, NetworksChainId } from '@metamask/controllers';
@@ -60,9 +66,10 @@ import Text from '../../../Base/Text';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { collectConfusables } from '../../../../util/validators';
 import InfoModal from '../../../UI/Swaps/components/InfoModal';
-import { toChecksumAddress } from 'ethereumjs-util';
+import { toChecksumAddress, BN } from 'ethereumjs-util';
 import { removeFavoriteCollectible } from '../../../../actions/collectibles';
 import TransactionReviewEIP1559 from '../../../UI/TransactionReview/TransactionReviewEIP1559';
+import { addEth, convertTokenToFiat, getTransactionFee } from '../../../../util/confirm-tx';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -505,88 +512,172 @@ class Confirm extends PureComponent {
 
 	parseTransactionDataEIP1559 = () => {
 		const {
-			/*accounts,
+			accounts,
 			contractBalances,
-			contractExchangeRates,*/
+			contractExchangeRates,
 			conversionRate,
 			currentCurrency,
+			nativeCurrency,
 			transactionState: {
-				//selectedAsset,
+				selectedAsset,
 				//transactionTo: to,
-				transaction: { /*from, value,*/ gas, gasPrice /*data*/ }
+				transaction: { /*from,*/ value, gas, gasPrice, data }
 			},
 			ticker
 		} = this.props;
-		/*const { fromSelectedAddress, over } = this.state;
-		let fromAccountBalance,
-			transactionValue,
-			transactionValueFiat,
-			transactionTo,
-			transactionTotalAmount,
-			transactionTotalAmountFiat;*/
 
 		const selected = 'medium';
 		const selectedGasFee = gasFeeEstimates[selected];
-		console.log('---', gas, gasPrice, hexToBN(selectedGasFee.suggestedMaxFeePerGas));
-		/*console.log(
-			hexWEIToDecGWEI(selectedGasFee.suggestedMaxFeePerGas) +
-				hexWEIToDecGWEI(selectedGasFee.suggestedMaxFeePerGas)
-		);*/
 
-		const weiTransactionFee = gas && gas.mul(gasPrice);
+		const estimatedBaseFee = decGWEIToHexWEI(gasFeeEstimates.estimatedBaseFee);
+		const suggestedMaxPriorityFeePerGas = decGWEIToHexWEI(selectedGasFee.suggestedMaxPriorityFeePerGas);
+		const suggestedMaxFeePerGas = decGWEIToHexWEI(selectedGasFee.suggestedMaxFeePerGas);
+		const gasLimit = BNToHex(gas);
+		const estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGas = addCurrencies(
+			estimatedBaseFee,
+			suggestedMaxPriorityFeePerGas,
+			{
+				toNumericBase: 'hex',
+				aBase: 16,
+				bBase: 16
+			}
+		);
+		const estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGas_X_gasLimit = multiplyCurrencies(
+			estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGas,
+			gasLimit,
+			{
+				toNumericBase: 'hex',
+				multiplicandBase: 16,
+				multiplierBase: 16
+			}
+		);
 
-		const mult = multiplyCurrencies(BNToHex(gas), BNToHex(gasPrice), {
+		const gasFeeMaxNative = multiplyCurrencies(suggestedMaxFeePerGas, gasLimit, {
 			toNumericBase: 'hex',
 			multiplicandBase: 16,
 			multiplierBase: 16
 		});
-		const newTransactionFeeFiat = sumHexWEIsToRenderableFiat([mult, '0x0'], currentCurrency, conversionRate);
-		const newtransactionFee = sumHexWEIsToRenderableEth([mult, '0x0'], currentCurrency, conversionRate);
 
-		const transactionFeeFiat = weiToFiat(weiTransactionFee, conversionRate, currentCurrency);
-		const parsedTicker = getTicker(ticker);
-		const transactionFee = `${renderFromWei(weiTransactionFee)} ${parsedTicker}`;
+		const transactionAmountFiat = getValueFromWeiHex({
+			value,
+			fromCurrency: nativeCurrency,
+			toCurrency: currentCurrency,
+			conversionRate,
+			numberOfDecimals: 2
+		});
+		const transactionAmountNative = getValueFromWeiHex({
+			value,
+			fromCurrency: nativeCurrency,
+			toCurrency: nativeCurrency,
+			conversionRate,
+			numberOfDecimals: 6
+		});
+
+		const gasFeeFiat = getTransactionFee({
+			value: estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGas_X_gasLimit,
+			fromCurrency: nativeCurrency,
+			toCurrency: currentCurrency,
+			numberOfDecimals: 2,
+			conversionRate
+		});
+		const a = sumHexWEIsToRenderableFiat(
+			[estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGas_X_gasLimit, '0x0'],
+			currentCurrency,
+			conversionRate
+		);
+		console.log(gasFeeFiat, a);
+
+		const gasFeeNative = getTransactionFee({
+			value: estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGas_X_gasLimit,
+			fromCurrency: nativeCurrency,
+			toCurrency: nativeCurrency,
+			numberOfDecimals: 6,
+			conversionRate
+		});
+
+		let renderableGasFeeNative,
+			renderableGasFeeConversion,
+			renderableGasFeeMaxNative,
+			renderableGasFeeMaxConversion,
+			timeEstimate,
+			timeEstimateColor,
+			renderableTotalNative,
+			renderableTotalConversion,
+			renderableTotalMaxNative,
+			renderableTotalMaxConversion;
+
+		if (selectedAsset.isETH || selectedAsset.tokenId) {
+			renderableGasFeeNative = sumHexWEIsToRenderableEth([
+				estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGas_X_gasLimit,
+				'0x0'
+			]);
+			renderableGasFeeConversion = sumHexWEIsToRenderableFiat(
+				[estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGas_X_gasLimit, '0x0'],
+				currentCurrency,
+				conversionRate
+			);
+			renderableGasFeeMaxNative = sumHexWEIsToRenderableEth([gasFeeMaxNative, '0x0']);
+			renderableGasFeeMaxConversion = sumHexWEIsToRenderableFiat(
+				[gasFeeMaxNative, '0x0'],
+				currentCurrency,
+				conversionRate
+			);
+
+			timeEstimate = selectedGasFee.maxWaitTimeEstimate;
+			timeEstimateColor = 'green';
+
+			renderableTotalNative = sumHexWEIsToRenderableEth([
+				estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGas_X_gasLimit,
+				value
+			]);
+			renderableTotalConversion = sumHexWEIsToRenderableFiat(
+				[estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGas_X_gasLimit, value],
+				currentCurrency,
+				conversionRate
+			);
+			renderableTotalMaxNative = sumHexWEIsToRenderableEth([gasFeeMaxNative, value]);
+			renderableTotalMaxConversion = sumHexWEIsToRenderableFiat(
+				[gasFeeMaxNative, value],
+				currentCurrency,
+				conversionRate
+			);
+		} else {
+			const { address, symbol = 'ERC20', decimals } = selectedAsset;
+
+			const [, , rawAmount] = decodeTransferData('transfer', data);
+			const rawAmountString = parseInt(rawAmount, 16).toLocaleString('fullwide', { useGrouping: false });
+			const transferValue = renderFromTokenMinimalUnit(rawAmountString, decimals);
+
+			const exchangeRate = contractExchangeRates[address];
+
+			const fiatTransactionAmount = convertTokenToFiat({
+				value: transferValue,
+				toCurrency: currentCurrency,
+				conversionRate,
+				contractExchangeRate: exchangeRate
+			});
+		}
 
 		console.log(
-			'compare',
-			weiTransactionFee,
-			mult,
-			transactionFeeFiat,
-			newTransactionFeeFiat,
-			transactionFee,
-			newtransactionFee
+			JSON.stringify(
+				{
+					gasFeeNative,
+					renderableGasFeeNative,
+					gasFeeFiat,
+					renderableGasFeeConversion,
+					renderableGasFeeMaxNative,
+					renderableGasFeeMaxConversion,
+					timeEstimate,
+					timeEstimateColor,
+					renderableTotalNative,
+					renderableTotalConversion,
+					renderableTotalMaxNative,
+					renderableTotalMaxConversion
+				},
+				2,
+				'\n'
+			)
 		);
-		/*
-		if (selectedAsset.isETH) {
-			fromAccountBalance = `${renderFromWei(accounts[fromSelectedAddress].balance)} ${parsedTicker}`;
-			transactionValue = `${renderFromWei(value)} ${parsedTicker}`;
-			transactionValueFiat = weiToFiat(valueBN, conversionRate, currentCurrency);
-			const transactionTotalAmountBN = weiTransactionFee && weiTransactionFee.add(valueBN);
-			transactionTotalAmount = (
-				<Text reset right upper style={[styles.totalAmount, over && styles.over]}>
-					{renderFromWei(transactionTotalAmountBN)} {parsedTicker}
-				</Text>
-			);
-			transactionTotalAmountFiat = (
-				<Text reset right upper style={[styles.totalAmount, over && styles.over]}>
-					{weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency)}
-				</Text>
-			);
-			transactionTo = to;
-		}*/
-
-		/*console.log({
-			gasFeeNative: '0.02122 ETH',
-			gasFeeConversion: '$7.00',
-			gasFeeIntervalNative: '0.02122 - 0.02134 ETH',
-
-			timeEstimate: `Very likely in < ${selectedGasFee.maxWaitTimeEstimate} seconds`,
-			timeEstimateColor: 'green',
-
-			totalPrimary: '0.03127 ETH',
-			totalConversion: '$27.85',
-			totalMaxNative: '0.03138 ETH'
-		});*/
 	};
 
 	parseTransactionData = () => {
@@ -1226,6 +1317,7 @@ const mapStateToProps = state => ({
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	nativeCurrency: state.engine.backgroundState.CurrencyRateController.nativeCurrency,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	network: state.engine.backgroundState.NetworkController.network,
 	identities: state.engine.backgroundState.PreferencesController.identities,
