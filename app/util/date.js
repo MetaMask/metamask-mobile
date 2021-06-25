@@ -8,18 +8,17 @@ export function toLocaleDateTime(timestamp) {
 }
 
 export function toDateFormat(timestamp) {
-	const dateObj = new Date(timestamp);
-	const month = strings(`date.months.${dateObj.getMonth()}`);
-	const day = dateObj.getDate();
-	let meridiem = 'am';
-	let hour = dateObj.getHours();
-	if (hour > 12) {
-		meridiem = 'pm';
-		hour -= 12;
-	}
-	let min = dateObj.getMinutes();
-	if (`${min}`.length === 1) min = `0${min}`;
-	return `${month} ${day} ${strings('date.connector')} ${hour}:${min}${meridiem}`;
+	const date = new Date(timestamp);
+	const month = strings(`date.months.${date.getMonth()}`);
+	const day = date.getDate();
+	let hours = date.getHours();
+	let minutes = date.getMinutes();
+	const ampm = hours >= 12 ? 'pm' : 'am';
+	hours %= 12;
+	hours = hours || 12; // the hour '0' should be '12'
+	minutes = minutes < 10 ? '0' + minutes : minutes;
+	const strTime = `${month} ${day} ${strings('date.connector')} ${hours}:${minutes} ${ampm}`;
+	return strTime;
 }
 
 export function toLocaleDate(timestamp) {
