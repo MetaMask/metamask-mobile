@@ -467,8 +467,9 @@ class Engine {
 			PreferencesController.setSelectedAddress(accounts.hd[0]);
 		}
 
-		await TransactionController.update({
-			transactions: transactions.map(tx => ({
+		const mapTx = tx => {
+			console.log(tx.txParams);
+			return {
 				id: tx.id,
 				networkID: tx.metamaskNetworkId,
 				origin: tx.origin,
@@ -482,9 +483,15 @@ class Engine {
 					nonce: tx.txParams.nonce,
 					gas: tx.txParams.gas,
 					gasPrice: tx.txParams.gasPrice,
-					value: tx.txParams.value
+					value: tx.txParams.value,
+					maxFeePerGas: tx.txParams.maxFeePerGas,
+					maxPriorityFeePerGas: tx.txParams.maxPriorityFeePerGas
 				}
-			}))
+			};
+		};
+
+		await TransactionController.update({
+			transactions: transactions.map(mapTx)
 		});
 
 		return true;

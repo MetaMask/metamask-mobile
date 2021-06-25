@@ -131,6 +131,7 @@ export function setTokensTransaction(asset) {
  * @param {object} transaction - Transaction additional object
  */
 export function setEtherTransaction(transaction) {
+	console.log('setEtherTransaction', transaction);
 	return {
 		type: 'SET_ETHER_TRANSACTION',
 		transaction

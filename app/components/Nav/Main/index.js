@@ -311,6 +311,7 @@ const Main = props => {
 
 	const onUnapprovedTransaction = useCallback(
 		async transactionMeta => {
+			console.log({ transactionMeta });
 			if (transactionMeta.origin === TransactionTypes.MMM) return;
 
 			const to = transactionMeta.transaction.to?.toLowerCase();
@@ -335,6 +336,7 @@ const Main = props => {
 				} = transactionMeta;
 				const { AssetsContractController } = Engine.context;
 				transactionMeta.transaction.gas = hexToBN(gas);
+				console.log({ gasPrice });
 				transactionMeta.transaction.gasPrice = hexToBN(gasPrice);
 
 				if (
