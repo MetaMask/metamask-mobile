@@ -3,7 +3,12 @@ import { toDateFormat } from './date';
 describe('Device', () => {
 	describe('toDateFormat', () => {
 		it('should format date correctly', () => {
-			// this was previously rendering as 0:28
+			expect(toDateFormat(1592877684000)).toBe('Jun 22 at 10:01 pm');
+			expect(toDateFormat(1592877340000)).toBe('Jun 22 at 9:55 pm');
+			expect(toDateFormat(1592850067000)).toBe('Jun 22 at 2:21 pm');
+			expect(toDateFormat(1615308615000)).toBe('Mar 9 at 11:50 am');
+			expect(toDateFormat(1615308108000)).toBe('Mar 9 at 11:41 am');
+			// this was previously rendering as 0:28 pm:
 			expect(toDateFormat(1615912139000)).toBe('Mar 16 at 12:28 pm');
 			expect(toDateFormat(1592883929000)).toBe('Jun 22 at 11:45 pm');
 			expect(toDateFormat(1592883518000)).toBe('Jun 22 at 11:38 pm');
@@ -13,11 +18,6 @@ describe('Device', () => {
 			expect(toDateFormat(1592879267000)).toBe('Jun 22 at 10:27 pm');
 			expect(toDateFormat(1592879146000)).toBe('Jun 22 at 10:25 pm');
 			expect(toDateFormat(1592878450000)).toBe('Jun 22 at 10:14 pm');
-			expect(toDateFormat(1592877684000)).toBe('Jun 22 at 10:01 pm');
-			expect(toDateFormat(1592877340000)).toBe('Jun 22 at 9:55 pm');
-			expect(toDateFormat(1592850067000)).toBe('Jun 22 at 2:21 pm');
-			expect(toDateFormat(1615308615000)).toBe('Mar 9 at 11:50 am');
-			expect(toDateFormat(1615308108000)).toBe('Mar 9 at 11:41 am');
 		});
 	});
 });
