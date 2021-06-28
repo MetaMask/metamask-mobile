@@ -58,6 +58,9 @@ const styles = StyleSheet.create({
 	headerLogo: {
 		width: 125,
 		height: 50
+	},
+	hidden: {
+		opacity: 0
 	}
 });
 /**
@@ -94,7 +97,7 @@ const TransactionsHome = () => (
 );
 
 const HomeTabs = () => (
-	<Tab.Navigator initialRouteName={'WalletTabHome'}>
+	<Tab.Navigator initialRouteName={'WalletTabHome'} tabBarOptions={{ style: styles.hidden }}>
 		<Tab.Screen name="WalletTabHome" component={WalletTabHome} options={{ tabBarVisible: false }} />
 		<Tab.Screen name="BrowserTabHome" component={BrowserTabHome} options={{ tabBarVisible: false }} />
 		<Tab.Screen name="TransactionsHome" component={TransactionsHome} options={{ tabBarVisible: false }} />
@@ -140,7 +143,11 @@ const SettingsView = () => (
 		<Stack.Screen name="CompanySettings" component={AppInformation} options={AppInformation.navigationOptions} />
 		<Stack.Screen name="ContactsSettings" component={Contacts} options={Contacts.navigationOptions} />
 		<Stack.Screen name="ContactForm" component={ContactForm} options={ContactForm.navigationOptions} />
-		<Stack.Screen name="RevealPrivateCredentialView" component={RevealPrivateCredential} />
+		<Stack.Screen
+			name="RevealPrivateCredentialView"
+			component={RevealPrivateCredential}
+			options={RevealPrivateCredential.navigationOptions}
+		/>
 		<Stack.Screen
 			name="WalletConnectSessionsView"
 			component={WalletConnectSessions}

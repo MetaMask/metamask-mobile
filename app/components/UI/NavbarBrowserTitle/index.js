@@ -17,13 +17,13 @@ const styles = StyleSheet.create({
 		marginBottom: 5
 	},
 	networkName: {
-		marginTop: -3,
 		fontSize: 11,
 		lineHeight: 11,
 		color: colors.fontSecondary,
 		...fontStyles.normal
 	},
 	networkIcon: {
+		marginTop: 3,
 		width: 5,
 		height: 5,
 		borderRadius: 100,
@@ -33,7 +33,8 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'center',
-		flex: 1
+		flex: 1,
+		marginBottom: Device.isAndroid() ? 5 : 0
 	},
 	lockIcon: {
 		marginTop: 2,

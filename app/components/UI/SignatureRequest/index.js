@@ -182,7 +182,7 @@ class SignatureRequest extends PureComponent {
 
 	goToWarning = () => {
 		this.props.onCancel();
-		this.props.navigation.push('Webview', {
+		this.props.navigation.navigate('Webview', {
 			screen: 'SimpleWebview',
 			params: {
 				url: 'https://metamask.zendesk.com/hc/en-us/articles/360015488751',

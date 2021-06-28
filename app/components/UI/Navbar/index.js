@@ -651,7 +651,7 @@ export function getWalletNavbarOptions(title, navigation) {
 						onPress: async () => {
 							try {
 								await importAccountFromPrivateKey(data.private_key);
-								navigation.navigate('ImportPrivateKeySuccess');
+								navigation.navigate('ImportPrivateKeyView', { screen: 'ImportPrivateKeySuccess' });
 							} catch (e) {
 								Alert.alert(
 									strings('import_private_key.error_title'),

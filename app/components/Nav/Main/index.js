@@ -461,6 +461,7 @@ const Main = props => {
 		>
 			{signType === 'personal' && (
 				<PersonalSign
+					navigation={props.navigation}
 					messageParams={signMessageParams}
 					onCancel={onSignAction}
 					onConfirm={onSignAction}
@@ -471,6 +472,7 @@ const Main = props => {
 			)}
 			{signType === 'typed' && (
 				<TypedSign
+					navigation={props.navigation}
 					messageParams={signMessageParams}
 					onCancel={onSignAction}
 					onConfirm={onSignAction}

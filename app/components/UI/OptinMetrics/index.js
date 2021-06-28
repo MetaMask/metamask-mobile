@@ -1,15 +1,5 @@
 import React, { PureComponent } from 'react';
-import {
-	View,
-	SafeAreaView,
-	Text,
-	StyleSheet,
-	TouchableOpacity,
-	ScrollView,
-	BackHandler,
-	Alert,
-	InteractionManager
-} from 'react-native';
+import { View, SafeAreaView, Text, StyleSheet, TouchableOpacity, ScrollView, BackHandler, Alert } from 'react-native';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles, colors } from '../../../styles/common';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -24,6 +14,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { ONBOARDING_WIZARD, METRICS_OPT_IN, DENIED, AGREED } from '../../../constants/storage';
 import AppConstants from '../../../core/AppConstants';
+import { useIsFocused } from '@react-navigation/native';
 
 const styles = StyleSheet.create({
 	root: {
@@ -179,7 +170,7 @@ class OptinMetrics extends PureComponent {
 	 * Callback on press cancel
 	 */
 	onCancel = async () => {
-		InteractionManager.runAfterInteractions(async () => {
+		setTimeout(async () => {
 			if (this.props.events && this.props.events.length) {
 				this.props.events.forEach(e => Analytics.trackEvent(e));
 			}
@@ -187,7 +178,7 @@ class OptinMetrics extends PureComponent {
 			this.props.clearOnboardingEvents();
 			await AsyncStorage.setItem(METRICS_OPT_IN, DENIED);
 			Analytics.disableInstance();
-		});
+		}, 200);
 		this.continue();
 	};
 
@@ -195,14 +186,14 @@ class OptinMetrics extends PureComponent {
 	 * Callback on press confirm
 	 */
 	onConfirm = async () => {
-		InteractionManager.runAfterInteractions(async () => {
+		setTimeout(async () => {
 			if (this.props.events && this.props.events.length) {
 				this.props.events.forEach(e => Analytics.trackEvent(e));
 			}
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_IN);
 			this.props.clearOnboardingEvents();
 			await AsyncStorage.setItem(METRICS_OPT_IN, AGREED);
-		});
+		}, 200);
 		this.continue();
 	};
 
@@ -282,4 +273,8 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
 	mapStateToProps,
 	mapDispatchToProps
-)(OptinMetrics);
+)(props => {
+	const isFocused = useIsFocused();
+
+	return <OptinMetrics {...props} isFocused={isFocused} />;
+});

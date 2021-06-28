@@ -126,7 +126,7 @@ const GasEducationCarousel = ({ navigation, route, conversionRate, currentCurren
 	}, [conversionRate, currentCurrency]);
 
 	const onPresGetStarted = () => {
-		navigation.dismiss();
+		navigation.pop();
 		route?.params?.navigateTo?.();
 	};
 
