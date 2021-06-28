@@ -92,7 +92,7 @@ export function formatCurrency(value, currencyCode) {
 				style: 'currency'
 				// eslint-disable-next-line no-mixed-spaces-and-tabs
 		  })
-		: value;
+		: `value ${upperCaseCurrencyCode}`;
 }
 
 export function convertTokenToFiat({ value, fromCurrency = 'ETH', toCurrency, conversionRate, contractExchangeRate }) {
