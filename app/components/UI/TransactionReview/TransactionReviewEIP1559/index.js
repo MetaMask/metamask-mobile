@@ -71,10 +71,9 @@ const TransactionReviewEIP1559 = ({
 	gasFeeMaxNative,
 	gasFeeMaxConversion,
 	primaryCurrency,
-	chainId
+	chainId,
+	onEdit
 }) => {
-	const edit = () => null;
-
 	const isMainnet = isMainnetByChainId(chainId);
 	const nativeCurrencySelected = primaryCurrency === 'ETH' || !isMainnet;
 	let gasFeePrimary, gasFeeSecondary, gasFeeMaxPrimary, totalPrimary, totalSecondary, totalMaxPrimary;
@@ -111,7 +110,7 @@ const TransactionReviewEIP1559 = ({
 				</View>
 				<View style={styles.valuesContainer}>
 					{isMainnet && (
-						<TouchableOpacity onPress={edit} disabled={nativeCurrencySelected}>
+						<TouchableOpacity onPress={onEdit} disabled={nativeCurrencySelected}>
 							<Text
 								upper
 								right
@@ -125,7 +124,7 @@ const TransactionReviewEIP1559 = ({
 						</TouchableOpacity>
 					)}
 
-					<TouchableOpacity onPress={edit} disabled={!nativeCurrencySelected}>
+					<TouchableOpacity onPress={onEdit} disabled={!nativeCurrencySelected}>
 						<Text
 							primary
 							bold
@@ -193,7 +192,8 @@ TransactionReviewEIP1559.propTypes = {
 	gasFeeMaxNative: PropTypes.string,
 	gasFeeMaxConversion: PropTypes.string,
 	primaryCurrency: PropTypes.string,
-	chainId: PropTypes.string
+	chainId: PropTypes.string,
+	onEdit: PropTypes.func
 };
 
 const mapStateToProps = state => ({

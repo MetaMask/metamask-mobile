@@ -63,9 +63,11 @@ import InfoModal from '../../../UI/Swaps/components/InfoModal';
 import { toChecksumAddress, BN } from 'ethereumjs-util';
 import { removeFavoriteCollectible } from '../../../../actions/collectibles';
 import TransactionReviewEIP1559 from '../../../UI/TransactionReview/TransactionReviewEIP1559';
+import EditGasFee1559 from '../../../UI/EditGasFee1559';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
+const EDIT_EIP1559 = 'edit_eip1559';
 const REVIEW = 'review';
 
 const { hexToBN, BNToHex } = util;
@@ -886,6 +888,33 @@ class Confirm extends PureComponent {
 		);
 	};
 
+	renderCustomGasModalEIP1559 = () => {
+		const { basicGasEstimates, gasError, ready, mode, gasSpeedSelected } = this.state;
+		const {
+			transaction: { gas, gasPrice }
+		} = this.props;
+		return (
+			<Modal
+				isVisible
+				animationIn="slideInUp"
+				animationOut="slideOutDown"
+				style={styles.bottomModal}
+				backdropOpacity={0.7}
+				animationInTiming={600}
+				animationOutTiming={600}
+				onBackdropPress={this.review}
+				onBackButtonPress={this.review}
+				onSwipeComplete={this.review}
+				swipeDirection={'down'}
+				propagateSwipe
+			>
+				<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
+					<EditGasFee1559 />
+				</KeyboardAwareScrollView>
+			</Modal>
+		);
+	};
+
 	renderCustomNonceModal = () => {
 		const { setNonce } = this.props;
 		const { proposedNonce, nonce } = this.props.transaction;
@@ -1118,6 +1147,7 @@ class Confirm extends PureComponent {
 						primaryCurrency={primaryCurrency}
 						timeEstimate={'Very likely in < 15 seconds'}
 						timeEstimateColor={'green'}
+						onEdit={() => this.edit(EDIT_EIP1559)}
 					/>
 
 					{errorMessage && (
@@ -1162,6 +1192,7 @@ class Confirm extends PureComponent {
 				{this.renderFromAccountModal()}
 				{mode === EDIT && this.renderCustomGasModal()}
 				{mode === EDIT_NONCE && this.renderCustomNonceModal()}
+				{mode === EDIT_EIP1559 && this.renderCustomGasModalEIP1559()}
 				{this.renderHexDataModal()}
 			</SafeAreaView>
 		);

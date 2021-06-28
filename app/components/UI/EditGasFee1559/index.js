@@ -11,10 +11,23 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../locales/i18n';
 import Alert from '../../Base/Alert';
 import HorizontalSelector from '../../Base/HorizontalSelector';
+import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
 	root: {
-		paddingHorizontal: 24
+		paddingHorizontal: 24,
+		backgroundColor: colors.white,
+		borderRadius: 20,
+		minHeight: 200,
+		paddingTop: 24,
+		paddingBottom: Device.isIphoneX() ? 48 : 24
+	},
+	customGasHeader: {
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		alignItems: 'center',
+		width: '100%',
+		paddingBottom: 20
 	},
 	headerContainer: {
 		alignItems: 'center',
@@ -113,6 +126,17 @@ const EditGasFee1559 = () => {
 
 	return (
 		<View style={styles.root}>
+			<View>
+				<View style={styles.customGasHeader}>
+					<TouchableOpacity onPress={() => null}>
+						<Icon name={'ios-arrow-back'} size={24} color={colors.black} />
+					</TouchableOpacity>
+					<Text bold black>
+						{strings('transaction.edit_network_fee')}
+					</Text>
+					<Icon name={'ios-arrow-back'} size={24} color={colors.white} />
+				</View>
+			</View>
 			{!!warning && (
 				<Alert
 					small
@@ -141,7 +165,10 @@ const EditGasFee1559 = () => {
 					<View style={styles.headerTitleSide} />
 				</View>
 				<Text big black>
-					Up to <Text bold>$6.32</Text>
+					Up to{' '}
+					<Text bold black>
+						$6.32
+					</Text>
 				</Text>
 				<Text red>Unknown processing time</Text>
 			</View>
