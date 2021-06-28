@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState, useEffect } from 'react';
+import React, { useCallback, useRef, useEffect } from 'react';
 import { View, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import { colors } from '../../styles/common';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
 const RangeInput = ({
 	leftLabelComponent,
 	rightLabelComponent,
-	initialValue,
+	value,
 	unit,
 	increment,
 	onChangeValue,
@@ -90,7 +90,6 @@ const RangeInput = ({
 	min,
 	max
 }) => {
-	const [value, setValue] = useState(initialValue);
 	const textInput = useRef(null);
 
 	const handleClickUnit = useCallback(() => {
@@ -100,7 +99,6 @@ const RangeInput = ({
 	const changeValue = useCallback(
 		newValue => {
 			onChangeValue?.(newValue);
-			setValue(newValue);
 		},
 		[onChangeValue]
 	);
@@ -201,9 +199,9 @@ RangeInput.propTypes = {
 	 */
 	leftLabelComponent: PropTypes.node,
 	/**
-	 * The initial value to be on the input
+	 * The value to be on the input
 	 */
-	initialValue: PropTypes.string,
+	value: PropTypes.string,
 	/**
 	 * The unit to show inside the input
 	 */

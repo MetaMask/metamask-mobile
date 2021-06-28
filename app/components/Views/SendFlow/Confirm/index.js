@@ -243,6 +243,9 @@ const gasFeeEstimates = {
 	}
 };
 
+const selected = 'medium';
+const selectedGasFee = { ...gasFeeEstimates[selected], estimatedBaseFee: gasFeeEstimates.estimatedBaseFee };
+
 /**
  * View that wraps the wraps the "Send" screen
  */
@@ -367,7 +370,9 @@ class Confirm extends PureComponent {
 		fromAccountModalVisible: false,
 		warningModalVisible: false,
 		mode: REVIEW,
-		over: false
+		over: false,
+		EIP1559TransactionData: {},
+		EIP1559TransactionDataTemp: {}
 	};
 
 	setNetworkNonce = async () => {
@@ -491,7 +496,11 @@ class Confirm extends PureComponent {
 		prepareTransaction({ ...transaction, ...estimation });
 		this.parseTransactionData();
 		const EIP1559TransactionData = this.parseTransactionDataEIP1559();
-		this.setState({ gasEstimationReady: true, ...EIP1559TransactionData });
+		this.setState({
+			gasEstimationReady: true,
+			EIP1559TransactionData,
+			EIP1559TransactionDataTemp: EIP1559TransactionData
+		});
 	};
 
 	estimateGas = async transaction => {
@@ -505,14 +514,14 @@ class Confirm extends PureComponent {
 		});
 	};
 
-	parseTransactionDataEIP1559 = () => {
-		const selected = 'medium';
-		const selectedGasFee = gasFeeEstimates[selected];
-
-		return parseTransaction({
-			...this.props,
-			selectedGasFee: { ...selectedGasFee, estimatedBaseFee: gasFeeEstimates.estimatedBaseFee }
-		});
+	parseTransactionDataEIP1559 = (gasFee, options) => {
+		return parseTransaction(
+			{
+				...this.props,
+				selectedGasFee: gasFee || selectedGasFee
+			},
+			options
+		);
 	};
 
 	parseTransactionData = () => {
@@ -888,11 +897,20 @@ class Confirm extends PureComponent {
 		);
 	};
 
+	cancelGasEdition = () => {
+		this.setState({ EIP1559TransactionDataTemp: { ...this.state.EIP1559TransactionData } });
+		this.review();
+	};
+
+	saveGasEdition = () => {
+		this.setState({ EIP1559TransactionData: { ...this.state.EIP1559TransactionDataTemp } });
+		this.review();
+	};
+
 	renderCustomGasModalEIP1559 = () => {
-		const { basicGasEstimates, gasError, ready, mode, gasSpeedSelected } = this.state;
-		const {
-			transaction: { gas, gasPrice }
-		} = this.props;
+		const { primaryCurrency, chainId } = this.props;
+		const { EIP1559TransactionDataTemp } = this.state;
+
 		return (
 			<Modal
 				isVisible
@@ -902,14 +920,36 @@ class Confirm extends PureComponent {
 				backdropOpacity={0.7}
 				animationInTiming={600}
 				animationOutTiming={600}
-				onBackdropPress={this.review}
-				onBackButtonPress={this.review}
-				onSwipeComplete={this.review}
+				onBackdropPress={this.cancelGasEdition}
+				onBackButtonPress={this.cancelGasEdition}
+				onSwipeComplete={this.cancelGasEdition}
 				swipeDirection={'down'}
 				propagateSwipe
 			>
 				<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
-					<EditGasFee1559 />
+					<EditGasFee1559
+						selected={'medium'}
+						gasFee={selectedGasFee}
+						gasOptions={gasFeeEstimates}
+						onChange={this.calculateTempGasFee}
+						totalNative={EIP1559TransactionDataTemp.renderableTotalMinNative}
+						totalConversion={EIP1559TransactionDataTemp.renderableTotalMinConversion}
+						totalMaxNative={EIP1559TransactionDataTemp.renderableTotalMaxNative}
+						gasFeeNative={EIP1559TransactionDataTemp.renderableGasFeeMinNative}
+						gasFeeConversion={EIP1559TransactionDataTemp.renderableGasFeeMinConversion}
+						gasFeeMaxNative={EIP1559TransactionDataTemp.renderableGasFeeMaxNative}
+						gasFeeMaxConversion={EIP1559TransactionDataTemp.renderableGasFeeMaxConversion}
+						maxPriorityFeeNative={EIP1559TransactionDataTemp.renderableMaxPriorityFeeNative}
+						maxPriorityFeeConversion={EIP1559TransactionDataTemp.renderableMaxPriorityFeeConversion}
+						maxFeePerGasNative={EIP1559TransactionDataTemp.renderableMaxFeePerGasNative}
+						maxFeePerGasConversion={EIP1559TransactionDataTemp.renderableMaxFeePerGasConversion}
+						primaryCurrency={primaryCurrency}
+						chainId={chainId}
+						timeEstimate={'Very likely in < 15 seconds'}
+						timeEstimateColor={'green'}
+						onCancel={this.cancelGasEdition}
+						onSave={this.saveGasEdition}
+					/>
 				</KeyboardAwareScrollView>
 			</Modal>
 		);
@@ -997,6 +1037,10 @@ class Confirm extends PureComponent {
 		});
 	};
 
+	calculateTempGasFee = gas => {
+		this.setState({ EIP1559TransactionDataTemp: this.parseTransactionDataEIP1559(gas) });
+	};
+
 	render = () => {
 		const { transactionToName, selectedAsset, paymentRequest } = this.props.transactionState;
 		const { addressBook, showHexData, showCustomNonce, primaryCurrency, network, chainId } = this.props;
@@ -1053,26 +1097,7 @@ class Confirm extends PureComponent {
 			? strings('transaction.buy_more_eth')
 			: strings('transaction.get_ether', { networkName });
 
-		const {
-			gasFeeMinNative,
-			renderableGasFeeMinNative,
-			gasFeeMinConversion,
-			renderableGasFeeMinConversion,
-			gasFeeMaxNative,
-			renderableGasFeeMaxNative,
-			gasFeeMaxConversion,
-			renderableGasFeeMaxConversion,
-			timeEstimate,
-			timeEstimateColor,
-			totalMinNative,
-			renderableTotalMinNative,
-			totalMinConversion,
-			renderableTotalMinConversion,
-			totalMaxNative,
-			renderableTotalMaxNative,
-			totalMaxConversion,
-			renderableTotalMaxConversion
-		} = this.state;
+		const { EIP1559TransactionData } = this.state;
 
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'txn-confirm-screen'}>
@@ -1137,13 +1162,13 @@ class Confirm extends PureComponent {
 					/>
 
 					<TransactionReviewEIP1559
-						totalNative={renderableTotalMinNative}
-						totalConversion={renderableTotalMinConversion}
-						totalMaxNative={renderableTotalMaxNative}
-						gasFeeNative={renderableGasFeeMinNative}
-						gasFeeConversion={renderableGasFeeMinConversion}
-						gasFeeMaxNative={renderableGasFeeMaxNative}
-						gasFeeMaxConversion={renderableGasFeeMaxConversion}
+						totalNative={EIP1559TransactionData.renderableTotalMinNative}
+						totalConversion={EIP1559TransactionData.renderableTotalMinConversion}
+						totalMaxNative={EIP1559TransactionData.renderableTotalMaxNative}
+						gasFeeNative={EIP1559TransactionData.renderableGasFeeMinNative}
+						gasFeeConversion={EIP1559TransactionData.renderableGasFeeMinConversion}
+						gasFeeMaxNative={EIP1559TransactionData.renderableGasFeeMaxNative}
+						gasFeeMaxConversion={EIP1559TransactionData.renderableGasFeeMaxConversion}
 						primaryCurrency={primaryCurrency}
 						timeEstimate={'Very likely in < 15 seconds'}
 						timeEstimateColor={'green'}

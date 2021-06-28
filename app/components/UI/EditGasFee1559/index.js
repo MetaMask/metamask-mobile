@@ -12,6 +12,8 @@ import { strings } from '../../../../locales/i18n';
 import Alert from '../../Base/Alert';
 import HorizontalSelector from '../../Base/HorizontalSelector';
 import Device from '../../../util/Device';
+import { isMainnetByChainId } from '../../../util/networks';
+import PropTypes from 'prop-types';
 
 const styles = StyleSheet.create({
 	root: {
@@ -91,13 +93,32 @@ const styles = StyleSheet.create({
 	}
 });
 
-const EditGasFee1559 = () => {
+const EditGasFee1559 = ({
+	selected,
+	gasFee,
+	gasOptions,
+	onChange,
+	onCancel,
+	onSave,
+	gasFeeNative,
+	gasFeeConversion,
+	gasFeeMaxNative,
+	gasFeeMaxConversion,
+	maxPriorityFeeNative,
+	maxPriorityFeeConversion,
+	maxFeePerGasNative,
+	maxFeePerGasConversion,
+	primaryCurrency,
+	chainId,
+	timeEstimate
+}) => {
 	const [showRangeInfoModal, setShowRangeInfoModal] = useState(false);
-	const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
+	const [showAdvancedOptions, setShowAdvancedOptions] = useState(true);
 	const [maxPriorityFeeError, setMaxPriorityFeeError] = useState(null);
 	const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
 	const [warning, setWarning] = useState(null);
-	const [selectedOption, setSelectedOption] = useState(null);
+	const [selectedOption, setSelectedOption] = useState(selected);
+	const [tempGasFee, setTempGasFee] = useState(gasFee);
 
 	const toggleRangeInfoModal = useCallback(() => {
 		setShowRangeInfoModal(showRangeInfoModal => !showRangeInfoModal);
@@ -117,18 +138,66 @@ const EditGasFee1559 = () => {
 		setWarning(warningMessage);
 	}, []);
 
-	const changedMaxPriorityFee = useCallback(value => {
-		if (Number(value) <= 0) {
-			return setMaxPriorityFeeError(strings('edit_gas_fee_eip1559.priority_fee_at_least_0_error'));
-		}
-		setMaxPriorityFeeError(null);
-	}, []);
+	const calculateGas = useCallback(
+		gas => {
+			setTempGasFee(gas);
+			onChange(gas);
+		},
+		[onChange]
+	);
+
+	const changedMaxPriorityFee = useCallback(
+		value => {
+			if (Number(value) <= 0) {
+				return setMaxPriorityFeeError(strings('edit_gas_fee_eip1559.priority_fee_at_least_0_error'));
+			}
+			setMaxPriorityFeeError(null);
+			const newGas = { ...tempGasFee, suggestedMaxPriorityFeePerGas: value };
+			setTempGasFee(newGas);
+			calculateGas(newGas);
+		},
+		[calculateGas, tempGasFee]
+	);
+
+	const changedFeePerGas = useCallback(
+		value => {
+			const newGas = { ...tempGasFee, suggestedMaxFeePerGas: value };
+			setTempGasFee(newGas);
+			calculateGas(newGas);
+		},
+		[calculateGas, tempGasFee]
+	);
+
+	const selectOption = useCallback(
+		option => {
+			setSelectedOption(option);
+			calculateGas(gasOptions[option]);
+		},
+		[calculateGas, gasOptions]
+	);
+
+	const isMainnet = isMainnetByChainId(chainId);
+	const nativeCurrencySelected = primaryCurrency === 'ETH' || !isMainnet;
+	let gasFeePrimary, gasFeeMaxPrimary, maxFeePerGasPrimary, maxPriorityFeePerGasPrimary, gasFeeMaxSecondary;
+	if (nativeCurrencySelected) {
+		gasFeePrimary = gasFeeNative;
+		gasFeeMaxPrimary = gasFeeMaxNative;
+		gasFeeMaxSecondary = gasFeeMaxConversion;
+		maxFeePerGasPrimary = maxFeePerGasNative;
+		maxPriorityFeePerGasPrimary = maxPriorityFeeNative;
+	} else {
+		gasFeePrimary = gasFeeConversion;
+		gasFeeMaxPrimary = gasFeeMaxConversion;
+		gasFeeMaxSecondary = gasFeeMaxNative;
+		maxFeePerGasPrimary = maxFeePerGasConversion;
+		maxPriorityFeePerGasPrimary = maxPriorityFeeConversion;
+	}
 
 	return (
 		<View style={styles.root}>
 			<View>
 				<View style={styles.customGasHeader}>
-					<TouchableOpacity onPress={() => null}>
+					<TouchableOpacity onPress={onCancel}>
 						<Icon name={'ios-arrow-back'} size={24} color={colors.black} />
 					</TouchableOpacity>
 					<Text bold black>
@@ -160,27 +229,26 @@ const EditGasFee1559 = () => {
 						</Text>
 					</View>
 					<Text black style={styles.headerText}>
-						$6.32
+						{gasFeePrimary}
 					</Text>
 					<View style={styles.headerTitleSide} />
 				</View>
 				<Text big black>
 					Up to{' '}
 					<Text bold black>
-						$6.32
+						{gasFeeMaxPrimary} ({gasFeeMaxSecondary})
 					</Text>
 				</Text>
-				<Text red>Unknown processing time</Text>
+				<Text green>{timeEstimate}</Text>
 			</View>
 			<View>
 				{/* TODO: hook with controller, add strings i18n */}
 				<HorizontalSelector
 					selected={selectedOption}
-					onPress={setSelectedOption}
+					onPress={selectOption}
 					options={[
 						{
-							name: 'lower',
-							disabled: true,
+							name: 'low',
 							label: <Text bold>Lower</Text>
 						},
 						{
@@ -194,7 +262,6 @@ const EditGasFee1559 = () => {
 
 						{
 							name: 'high',
-							error: true,
 							label: (selected, disabled) => (
 								<Text bold primary={selected && !disabled}>
 									Higher
@@ -240,7 +307,7 @@ const EditGasFee1559 = () => {
 										</TouchableOpacity>
 									</View>
 								}
-								initialValue={'21000'}
+								value={'21000'}
 								label={'Gas limit'}
 								increment={1000}
 							/>
@@ -267,14 +334,14 @@ const EditGasFee1559 = () => {
 										<Text bold reset>
 											{strings('edit_gas_fee_eip1559.estimate')}:
 										</Text>{' '}
-										1 GWEI
+										{gasFee.suggestedMaxPriorityFeePerGas} GWEI
 									</Text>
 								}
-								initialValue={'1'}
+								value={tempGasFee.suggestedMaxPriorityFeePerGas}
 								label={'Gas limit'}
 								unit={'GWEI'}
-								increment={1}
-								inputInsideLabel={'≈ $0.06'}
+								increment={1.0}
+								inputInsideLabel={`≈ ${maxPriorityFeePerGasPrimary}`}
 								onChangeValue={changedMaxPriorityFee}
 								error={maxPriorityFeeError}
 							/>
@@ -301,14 +368,15 @@ const EditGasFee1559 = () => {
 										<Text bold reset>
 											{strings('edit_gas_fee_eip1559.estimate')}:
 										</Text>{' '}
-										265 GWEI
+										{gasFee.suggestedMaxFeePerGas} GWEI
 									</Text>
 								}
-								initialValue={'300'}
+								value={tempGasFee.suggestedMaxFeePerGas}
 								label={'Gas limit'}
 								unit={'GWEI'}
 								increment={10}
-								inputInsideLabel={'≈ $19.81'}
+								onChangeValue={changedFeePerGas}
+								inputInsideLabel={`≈ ${maxFeePerGasPrimary}`}
 							/>
 						</View>
 					</View>
@@ -320,7 +388,9 @@ const EditGasFee1559 = () => {
 						{strings('edit_gas_fee_eip1559.learn_more.title')}
 					</Text>
 				</TouchableOpacity>
-				<StyledButton type={'confirm'}>{strings('edit_gas_fee_eip1559.save')}</StyledButton>
+				<StyledButton type={'confirm'} onPress={onSave}>
+					{strings('edit_gas_fee_eip1559.save')}
+				</StyledButton>
 			</View>
 			<InfoModal
 				isVisible={showRangeInfoModal}
@@ -371,6 +441,26 @@ const EditGasFee1559 = () => {
 			/>
 		</View>
 	);
+};
+
+EditGasFee1559.propTypes = {
+	selected: PropTypes.string,
+	gasFee: PropTypes.Object,
+	gasOptions: PropTypes.Object,
+	onChange: PropTypes.func,
+	onCancel: PropTypes.func,
+	onSave: PropTypes.func,
+	gasFeeNative: PropTypes.string,
+	gasFeeConversion: PropTypes.string,
+	gasFeeMaxNative: PropTypes.string,
+	gasFeeMaxConversion: PropTypes.string,
+	maxPriorityFeeNative: PropTypes.string,
+	maxPriorityFeeConversion: PropTypes.string,
+	maxFeePerGasNative: PropTypes.string,
+	maxFeePerGasConversion: PropTypes.string,
+	primaryCurrency: PropTypes.string,
+	chainId: PropTypes.string,
+	timeEstimate: PropTypes.string
 };
 
 export default EditGasFee1559;

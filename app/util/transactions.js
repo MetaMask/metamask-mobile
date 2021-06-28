@@ -440,17 +440,20 @@ export function getNormalizedTxState(state) {
 export const getActiveTabUrl = ({ browser = {} }) =>
 	browser.tabs && browser.activeTab && browser.tabs.find(({ id }) => id === browser.activeTab)?.url;
 
-export const parseTransaction = ({
-	selectedGasFee,
-	contractExchangeRates,
-	conversionRate,
-	currentCurrency,
-	nativeCurrency,
-	transactionState: {
-		selectedAsset,
-		transaction: { value, gas, data }
-	}
-}) => {
+export const parseTransaction = (
+	{
+		selectedGasFee,
+		contractExchangeRates,
+		conversionRate,
+		currentCurrency,
+		nativeCurrency,
+		transactionState: {
+			selectedAsset,
+			transaction: { value, gas, data }
+		}
+	},
+	{ onlyGas } = {}
+) => {
 	// Convert to hex
 	const estimatedBaseFeeHex = decGWEIToHexWEI(selectedGasFee.estimatedBaseFee);
 	const suggestedMaxPriorityFeePerGasHex = decGWEIToHexWEI(selectedGasFee.suggestedMaxPriorityFeePerGas);
@@ -478,21 +481,41 @@ export const parseTransaction = ({
 		multiplierBase: 16
 	});
 
-	// amount numbers
-	const amountConversion = getValueFromWeiHex({
-		value,
-		fromCurrency: nativeCurrency,
-		toCurrency: currentCurrency,
-		conversionRate,
-		numberOfDecimals: 2
-	});
-	const amountNative = getValueFromWeiHex({
-		value,
+	const maxPriorityFeeNative = getTransactionFee({
+		value: gasFeeMinHex,
 		fromCurrency: nativeCurrency,
 		toCurrency: nativeCurrency,
-		conversionRate,
-		numberOfDecimals: 6
+		numberOfDecimals: 6,
+		conversionRate
 	});
+	const maxPriorityFeeConversion = getTransactionFee({
+		value: gasFeeMinHex,
+		fromCurrency: nativeCurrency,
+		toCurrency: currentCurrency,
+		numberOfDecimals: 2,
+		conversionRate
+	});
+
+	const renderableMaxPriorityFeeNative = formatETHFee(maxPriorityFeeNative, nativeCurrency);
+	const renderableMaxPriorityFeeConversion = formatCurrency(maxPriorityFeeConversion, currentCurrency);
+
+	const maxFeePerGasNative = getTransactionFee({
+		value: gasFeeMaxHex,
+		fromCurrency: nativeCurrency,
+		toCurrency: nativeCurrency,
+		numberOfDecimals: 6,
+		conversionRate
+	});
+	const maxFeePerGasConversion = getTransactionFee({
+		value: gasFeeMaxHex,
+		fromCurrency: nativeCurrency,
+		toCurrency: currentCurrency,
+		numberOfDecimals: 2,
+		conversionRate
+	});
+
+	const renderableMaxFeePerGasNative = formatETHFee(maxFeePerGasNative, nativeCurrency);
+	const renderableMaxFeePerGasConversion = formatCurrency(maxFeePerGasConversion, currentCurrency);
 
 	// Gas fee min numbers
 	const gasFeeMinNative = getTransactionFee({
@@ -526,6 +549,40 @@ export const parseTransaction = ({
 		conversionRate
 	});
 
+	const renderableGasFeeMinNative = formatETHFee(gasFeeMinNative, nativeCurrency);
+	const renderableGasFeeMinConversion = formatCurrency(gasFeeMinConversion, currentCurrency);
+	const renderableGasFeeMaxNative = formatETHFee(gasFeeMaxNative, nativeCurrency);
+	const renderableGasFeeMaxConversion = formatCurrency(gasFeeMaxConversion, currentCurrency);
+
+	if (onlyGas) {
+		return {
+			gasFeeMinNative,
+			renderableGasFeeMinNative,
+			gasFeeMinConversion,
+			renderableGasFeeMinConversion,
+			gasFeeMaxNative,
+			renderableGasFeeMaxNative,
+			gasFeeMaxConversion,
+			renderableGasFeeMaxConversion
+		};
+	}
+
+	// amount numbers
+	const amountConversion = getValueFromWeiHex({
+		value,
+		fromCurrency: nativeCurrency,
+		toCurrency: currentCurrency,
+		conversionRate,
+		numberOfDecimals: 2
+	});
+	const amountNative = getValueFromWeiHex({
+		value,
+		fromCurrency: nativeCurrency,
+		toCurrency: nativeCurrency,
+		conversionRate,
+		numberOfDecimals: 6
+	});
+
 	// Total numbers
 	const totalMinNative = addEth(gasFeeMinNative, amountNative);
 	const totalMinConversion = addFiat(gasFeeMinConversion, amountConversion);
@@ -533,11 +590,6 @@ export const parseTransaction = ({
 	const totalMaxConversion = addFiat(gasFeeMaxConversion, amountConversion);
 
 	let renderableTotalMinNative, renderableTotalMinConversion, renderableTotalMaxNative, renderableTotalMaxConversion;
-
-	const renderableGasFeeMinNative = formatETHFee(gasFeeMinNative, nativeCurrency);
-	const renderableGasFeeMinConversion = formatCurrency(gasFeeMinConversion, currentCurrency);
-	const renderableGasFeeMaxNative = formatETHFee(gasFeeMaxNative, nativeCurrency);
-	const renderableGasFeeMaxConversion = formatCurrency(gasFeeMaxConversion, currentCurrency);
 
 	const timeEstimate = selectedGasFee.maxWaitTimeEstimate;
 	const timeEstimateColor = 'green';
@@ -591,6 +643,10 @@ export const parseTransaction = ({
 				renderableGasFeeMaxNative,
 				gasFeeMaxConversion,
 				renderableGasFeeMaxConversion,
+				renderableMaxPriorityFeeNative,
+				renderableMaxPriorityFeeConversion,
+				renderableMaxFeePerGasNative,
+				renderableMaxFeePerGasConversion,
 				timeEstimate,
 				timeEstimateColor,
 				totalMinNative,
@@ -616,6 +672,10 @@ export const parseTransaction = ({
 		renderableGasFeeMaxNative,
 		gasFeeMaxConversion,
 		renderableGasFeeMaxConversion,
+		renderableMaxPriorityFeeNative,
+		renderableMaxPriorityFeeConversion,
+		renderableMaxFeePerGasNative,
+		renderableMaxFeePerGasConversion,
 		timeEstimate,
 		timeEstimateColor,
 		totalMinNative,
