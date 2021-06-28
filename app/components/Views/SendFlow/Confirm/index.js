@@ -27,15 +27,8 @@ import {
 	isDecimal,
 	toBN
 } from '../../../../util/number';
-import { addCurrencies, multiplyCurrencies } from '../../../../util/conversion-util';
-import {
-	sumHexWEIsToRenderableFiat,
-	sumHexWEIsToRenderableEth,
-	decGWEIToHexWEI,
-	getValueFromWeiHex,
-	formatETHFee
-} from '../../../../util/conversions';
-import { getTicker, decodeTransferData, getNormalizedTxState } from '../../../../util/transactions';
+
+import { getTicker, decodeTransferData, getNormalizedTxState, parseTransaction } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
 import { util, WalletDevice, NetworksChainId } from '@metamask/controllers';
 import { prepareTransaction, resetTransaction, setNonce, setProposedNonce } from '../../../../actions/transaction';
@@ -70,14 +63,6 @@ import InfoModal from '../../../UI/Swaps/components/InfoModal';
 import { toChecksumAddress, BN } from 'ethereumjs-util';
 import { removeFavoriteCollectible } from '../../../../actions/collectibles';
 import TransactionReviewEIP1559 from '../../../UI/TransactionReview/TransactionReviewEIP1559';
-import {
-	addEth,
-	addFiat,
-	convertTokenToFiat,
-	formatCurrency,
-	getTransactionFee,
-	roundExponential
-} from '../../../../util/confirm-tx';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -439,7 +424,6 @@ class Confirm extends PureComponent {
 		this.handleConfusables();
 		this.parseTransactionData();
 		this.prepareTransaction();
-		this.parseTransactionDataEIP1559();
 	};
 
 	componentDidUpdate = (prevProps, prevState) => {
@@ -504,7 +488,8 @@ class Confirm extends PureComponent {
 		const estimation = await this.estimateGas(transaction);
 		prepareTransaction({ ...transaction, ...estimation });
 		this.parseTransactionData();
-		this.setState({ gasEstimationReady: true });
+		const EIP1559TransactionData = this.parseTransactionDataEIP1559();
+		this.setState({ gasEstimationReady: true, ...EIP1559TransactionData });
 	};
 
 	estimateGas = async transaction => {
@@ -519,185 +504,13 @@ class Confirm extends PureComponent {
 	};
 
 	parseTransactionDataEIP1559 = () => {
-		const {
-			contractExchangeRates,
-			conversionRate,
-			currentCurrency,
-			nativeCurrency,
-			transactionState: {
-				selectedAsset,
-				transaction: { value, gas, gasPrice, data }
-			},
-			ticker
-		} = this.props;
-
 		const selected = 'medium';
 		const selectedGasFee = gasFeeEstimates[selected];
 
-		// Convert to hex
-		const estimatedBaseFeeHex = decGWEIToHexWEI(gasFeeEstimates.estimatedBaseFee);
-		const suggestedMaxPriorityFeePerGasHex = decGWEIToHexWEI(selectedGasFee.suggestedMaxPriorityFeePerGas);
-		const suggestedMaxFeePerGasHex = decGWEIToHexWEI(selectedGasFee.suggestedMaxFeePerGas);
-		const gasLimitHex = BNToHex(gas);
-
-		// Hex calculations
-		const estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex = addCurrencies(
-			estimatedBaseFeeHex,
-			suggestedMaxPriorityFeePerGasHex,
-			{
-				toNumericBase: 'hex',
-				aBase: 16,
-				bBase: 16
-			}
-		);
-		const gasFeeMinHex = multiplyCurrencies(estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex, gasLimitHex, {
-			toNumericBase: 'hex',
-			multiplicandBase: 16,
-			multiplierBase: 16
+		return parseTransaction({
+			...this.props,
+			selectedGasFee: { ...selectedGasFee, estimatedBaseFee: gasFeeEstimates.estimatedBaseFee }
 		});
-		const gasFeeMaxHex = multiplyCurrencies(suggestedMaxFeePerGasHex, gasLimitHex, {
-			toNumericBase: 'hex',
-			multiplicandBase: 16,
-			multiplierBase: 16
-		});
-
-		// amount numbers
-		const amountConversion = getValueFromWeiHex({
-			value,
-			fromCurrency: nativeCurrency,
-			toCurrency: currentCurrency,
-			conversionRate,
-			numberOfDecimals: 2
-		});
-		const amountNative = getValueFromWeiHex({
-			value,
-			fromCurrency: nativeCurrency,
-			toCurrency: nativeCurrency,
-			conversionRate,
-			numberOfDecimals: 6
-		});
-
-		// Gas fee min numbers
-		const gasFeeMinNative = getTransactionFee({
-			value: gasFeeMinHex,
-			fromCurrency: nativeCurrency,
-			toCurrency: nativeCurrency,
-			numberOfDecimals: 6,
-			conversionRate
-		});
-		const gasFeeMinConversion = getTransactionFee({
-			value: gasFeeMinHex,
-			fromCurrency: nativeCurrency,
-			toCurrency: currentCurrency,
-			numberOfDecimals: 2,
-			conversionRate
-		});
-
-		// Gas fee max numbers
-		const gasFeeMaxNative = getTransactionFee({
-			value: gasFeeMaxHex,
-			fromCurrency: nativeCurrency,
-			toCurrency: nativeCurrency,
-			numberOfDecimals: 6,
-			conversionRate
-		});
-		const gasFeeMaxConversion = getTransactionFee({
-			value: gasFeeMaxHex,
-			fromCurrency: nativeCurrency,
-			toCurrency: currentCurrency,
-			numberOfDecimals: 2,
-			conversionRate
-		});
-
-		// Total numbers
-		const totalMinNative = addEth(gasFeeMinNative, amountNative);
-		const totalMinConversion = addFiat(gasFeeMinConversion, amountConversion);
-		const totalMaxNative = addEth(gasFeeMaxNative, amountNative);
-		const totalMaxConversion = addFiat(gasFeeMaxConversion, amountConversion);
-
-		let renderableGasFeeMinNative,
-			renderableGasFeeMinConversion,
-			renderableGasFeeMaxNative,
-			renderableGasFeeMaxConversion,
-			timeEstimate,
-			timeEstimateColor,
-			renderableTotalMinNative,
-			renderableTotalMinConversion,
-			renderableTotalMaxNative,
-			renderableTotalMaxConversion;
-
-		renderableGasFeeMinNative = formatETHFee(gasFeeMinNative, nativeCurrency);
-		renderableGasFeeMinConversion = formatCurrency(gasFeeMinConversion, currentCurrency);
-		renderableGasFeeMaxNative = formatETHFee(gasFeeMaxNative, nativeCurrency);
-		renderableGasFeeMaxConversion = formatCurrency(gasFeeMaxConversion, currentCurrency);
-
-		timeEstimate = selectedGasFee.maxWaitTimeEstimate;
-		timeEstimateColor = 'green';
-
-		if (selectedAsset.isETH || selectedAsset.tokenId) {
-			renderableTotalMinNative = formatETHFee(totalMinNative, nativeCurrency);
-			renderableTotalMinConversion = formatCurrency(totalMinConversion, currentCurrency);
-
-			renderableTotalMaxNative = formatETHFee(totalMaxNative, nativeCurrency);
-			renderableTotalMaxConversion = formatCurrency(totalMaxConversion, currentCurrency);
-		} else {
-			const { address, symbol = 'ERC20', decimals } = selectedAsset;
-
-			const [, , rawAmount] = decodeTransferData('transfer', data);
-			const rawAmountString = parseInt(rawAmount, 16).toLocaleString('fullwide', { useGrouping: false });
-			const tokenAmount = renderFromTokenMinimalUnit(rawAmountString, decimals);
-
-			const exchangeRate = contractExchangeRates[address];
-
-			const tokenAmountConversion = convertTokenToFiat({
-				value: tokenAmount,
-				toCurrency: currentCurrency,
-				conversionRate,
-				contractExchangeRate: exchangeRate
-			});
-
-			const tokenTotalMinConversion = roundExponential(addFiat(tokenAmountConversion, totalMinConversion));
-			const tokenTotalMaxConversion = roundExponential(addFiat(tokenAmountConversion, totalMaxConversion));
-
-			renderableTotalMinConversion = formatCurrency(tokenTotalMinConversion, currentCurrency);
-			renderableTotalMaxConversion = formatCurrency(tokenTotalMaxConversion, currentCurrency);
-
-			renderableTotalMinNative = `${formatETHFee(tokenAmount, symbol)} + ${formatETHFee(
-				totalMinNative,
-				nativeCurrency
-			)}`;
-			renderableTotalMaxNative = `${formatETHFee(tokenAmount, symbol)} + ${formatETHFee(
-				totalMaxNative,
-				nativeCurrency
-			)}`;
-		}
-
-		console.log(
-			JSON.stringify(
-				{
-					gasFeeMinNative,
-					renderableGasFeeMinNative,
-					gasFeeMinConversion,
-					renderableGasFeeMinConversion,
-					gasFeeMaxNative,
-					renderableGasFeeMaxNative,
-					gasFeeMaxConversion,
-					renderableGasFeeMaxConversion,
-					timeEstimate,
-					timeEstimateColor,
-					totalMinNative,
-					renderableTotalMinNative,
-					totalMinConversion,
-					renderableTotalMinConversion,
-					totalMaxNative,
-					renderableTotalMaxNative,
-					totalMaxConversion,
-					renderableTotalMaxConversion
-				},
-				2,
-				'\n'
-			)
-		);
 	};
 
 	parseTransactionData = () => {
@@ -1210,6 +1023,28 @@ class Confirm extends PureComponent {
 		const errorLinkText = is_main_net
 			? strings('transaction.buy_more_eth')
 			: strings('transaction.get_ether', { networkName });
+
+		const {
+			gasFeeMinNative,
+			renderableGasFeeMinNative,
+			gasFeeMinConversion,
+			renderableGasFeeMinConversion,
+			gasFeeMaxNative,
+			renderableGasFeeMaxNative,
+			gasFeeMaxConversion,
+			renderableGasFeeMaxConversion,
+			timeEstimate,
+			timeEstimateColor,
+			totalMinNative,
+			renderableTotalMinNative,
+			totalMinConversion,
+			renderableTotalMinConversion,
+			totalMaxNative,
+			renderableTotalMaxNative,
+			totalMaxConversion,
+			renderableTotalMaxConversion
+		} = this.state;
+
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'txn-confirm-screen'}>
 				<View style={styles.inputWrapper}>
@@ -1273,12 +1108,14 @@ class Confirm extends PureComponent {
 					/>
 
 					<TransactionReviewEIP1559
-						totalPrimary={'0.03127 ETH'}
-						totalConversion={'$27.85'}
-						totalMaxNative={'0.03138 ETH'}
-						gasFeeNative={'0.02122 ETH'}
-						gasFeeConversion={'$7.00'}
-						gasFeeIntervalNative={'0.02122 - 0.02134 ETH'}
+						totalNative={renderableTotalMinNative}
+						totalConversion={renderableTotalMinConversion}
+						totalMaxNative={renderableTotalMaxNative}
+						gasFeeNative={renderableGasFeeMinNative}
+						gasFeeConversion={renderableGasFeeMinConversion}
+						gasFeeMaxNative={renderableGasFeeMaxNative}
+						gasFeeMaxConversion={renderableGasFeeMaxConversion}
+						primaryCurrency={primaryCurrency}
 						timeEstimate={'Very likely in < 15 seconds'}
 						timeEstimateColor={'green'}
 					/>

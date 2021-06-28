@@ -4,6 +4,9 @@ import Summary from '../../../Base/Summary';
 import Text from '../../../Base/Text';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors } from '../../../../styles/common';
+import { isMainnetByChainId } from '../../../../util/networks';
+import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
 
 const styles = StyleSheet.create({
 	overview: {
@@ -59,10 +62,38 @@ const styles = StyleSheet.create({
 	}
 });
 
-const TransactionReviewEIP1559 = () => {
+const TransactionReviewEIP1559 = ({
+	totalNative,
+	totalConversion,
+	totalMaxNative,
+	gasFeeNative,
+	gasFeeConversion,
+	gasFeeMaxNative,
+	gasFeeMaxConversion,
+	primaryCurrency,
+	chainId
+}) => {
 	const edit = () => null;
 
-	const isMainnet = true;
+	const isMainnet = isMainnetByChainId(chainId);
+	const nativeCurrencySelected = primaryCurrency === 'ETH' || !isMainnet;
+	let gasFeePrimary, gasFeeSecondary, gasFeeMaxPrimary, totalPrimary, totalSecondary, totalMaxPrimary;
+	if (nativeCurrencySelected) {
+		gasFeePrimary = gasFeeNative;
+		gasFeeSecondary = gasFeeConversion;
+		gasFeeMaxPrimary = gasFeeMaxNative;
+		totalPrimary = totalNative;
+		totalSecondary = totalConversion;
+		totalMaxPrimary = totalMaxNative;
+	} else {
+		gasFeePrimary = gasFeeConversion;
+		gasFeeSecondary = gasFeeNative;
+		gasFeeMaxPrimary = gasFeeMaxConversion;
+		totalPrimary = totalConversion;
+		totalSecondary = totalNative;
+		totalMaxPrimary = gasFeeMaxConversion;
+	}
+
 	return (
 		<Summary style={styles.overview}>
 			<Summary.Row>
@@ -79,13 +110,32 @@ const TransactionReviewEIP1559 = () => {
 					</TouchableOpacity>
 				</View>
 				<View style={styles.valuesContainer}>
-					<Text upper right grey style={styles.amountContainer}>
-						$7.00
-					</Text>
+					{isMainnet && (
+						<TouchableOpacity onPress={edit} disabled={nativeCurrencySelected}>
+							<Text
+								upper
+								right
+								grey={nativeCurrencySelected}
+								link={!nativeCurrencySelected}
+								underline={!nativeCurrencySelected}
+								style={styles.amountContainer}
+							>
+								{gasFeeSecondary}
+							</Text>
+						</TouchableOpacity>
+					)}
 
-					<TouchableOpacity onPress={edit}>
-						<Text primary bold upper link underline right>
-							0.02122 ETH
+					<TouchableOpacity onPress={edit} disabled={!nativeCurrencySelected}>
+						<Text
+							primary
+							bold
+							upper
+							grey={!nativeCurrencySelected}
+							link={nativeCurrencySelected}
+							underline={nativeCurrencySelected}
+							right
+						>
+							{gasFeePrimary}
 						</Text>
 					</TouchableOpacity>
 				</View>
@@ -96,9 +146,9 @@ const TransactionReviewEIP1559 = () => {
 				</Text>
 				<View style={styles.valuesContainer}>
 					<Text grey right small>
-						From{' '}
+						Up to{' '}
 						<Text bold small noMargin>
-							0.02122 - 0.02134 ETH
+							{gasFeeMaxPrimary}
 						</Text>
 					</Text>
 				</View>
@@ -111,12 +161,12 @@ const TransactionReviewEIP1559 = () => {
 				<View style={styles.valuesContainer}>
 					{isMainnet && (
 						<Text grey upper right style={styles.amountContainer}>
-							$27.85
+							{totalSecondary}
 						</Text>
 					)}
 
 					<Text bold primary upper right>
-						0.03127 ETH
+						{totalPrimary}
 					</Text>
 				</View>
 			</Summary.Row>
@@ -125,7 +175,7 @@ const TransactionReviewEIP1559 = () => {
 					<Text grey right small>
 						Up to{' '}
 						<Text bold small noMargin>
-							0.03138 ETH
+							{totalMaxPrimary}
 						</Text>
 					</Text>
 				</View>
@@ -134,4 +184,20 @@ const TransactionReviewEIP1559 = () => {
 	);
 };
 
-export default TransactionReviewEIP1559;
+TransactionReviewEIP1559.propTypes = {
+	totalNative: PropTypes.string,
+	totalConversion: PropTypes.string,
+	totalMaxNative: PropTypes.string,
+	gasFeeNative: PropTypes.string,
+	gasFeeConversion: PropTypes.string,
+	gasFeeMaxNative: PropTypes.string,
+	gasFeeMaxConversion: PropTypes.string,
+	primaryCurrency: PropTypes.string,
+	chainId: PropTypes.string
+};
+
+const mapStateToProps = state => ({
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId
+});
+
+export default connect(mapStateToProps)(TransactionReviewEIP1559);
