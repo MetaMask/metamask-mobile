@@ -518,7 +518,7 @@ class Confirm extends PureComponent {
 		return parseTransaction(
 			{
 				...this.props,
-				selectedGasFee: gasFee || selectedGasFee
+				selectedGasFee: { ...gasFee, estimatedBaseFee: selectedGasFee.estimatedBaseFee } || selectedGasFee
 			},
 			options
 		);
@@ -1144,7 +1144,7 @@ class Confirm extends PureComponent {
 							</View>
 						</View>
 					)}
-					<TransactionReviewFeeCard
+					{/*<TransactionReviewFeeCard
 						totalGasFiat={transactionFeeFiat}
 						totalGasEth={transactionFee}
 						totalFiat={isMainNet(chainId) ? transactionTotalAmountFiat : <Text />}
@@ -1159,7 +1159,7 @@ class Confirm extends PureComponent {
 						showCustomNonce={showCustomNonce}
 						nonceValue={nonce}
 						onNonceEdit={() => this.edit(EDIT_NONCE)}
-					/>
+					/>*/}
 
 					<TransactionReviewEIP1559
 						totalNative={EIP1559TransactionData.renderableTotalMinNative}
