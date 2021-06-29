@@ -4,6 +4,7 @@ import {
 	AssetsContractController,
 	AssetsController,
 	AssetsDetectionController,
+	TokenListController,
 	ControllerMessenger,
 	ComposableController,
 	CurrencyRateController,
@@ -103,6 +104,11 @@ class Engine {
 				getAssetSymbol: assetsContractController.getAssetSymbol.bind(assetsContractController),
 				getCollectibleTokenURI: assetsContractController.getCollectibleTokenURI.bind(assetsContractController)
 			});
+			const tokenListController = new TokenListController({
+				chainId: networkController.provider.chainId, // Should this use networkController.state.provider.chainId instead?
+				onNetworkStateChange: listener => networkController.subscribe(listener),
+				messenger: this.controllerMessenger
+			});
 			this.controllerMessenger = new ControllerMessenger();
 			const currencyRateController = new CurrencyRateController({
 				messenger: this.controllerMessenger,
@@ -128,6 +134,7 @@ class Engine {
 				new AddressBookController(),
 				assetsContractController,
 				assetsController,
+				tokenListController,
 				new AssetsDetectionController({
 					onAssetsStateChange: listener => assetsController.subscribe(listener),
 					onPreferencesStateChange: listener => preferencesController.subscribe(listener),
@@ -139,7 +146,8 @@ class Engine {
 					addTokens: assetsController.addTokens.bind(assetsController),
 					addCollectible: assetsController.addCollectible.bind(assetsController),
 					removeCollectible: assetsController.removeCollectible.bind(assetsController),
-					getAssetsState: () => assetsController.state
+					getAssetsState: () => assetsController.state,
+					getTokenListState: () => tokenListController.state
 				}),
 				currencyRateController,
 				new PersonalMessageManager(),
@@ -197,9 +205,12 @@ class Engine {
 				AssetsController: assets,
 				KeyringController: keyring,
 				NetworkController: network,
-				TransactionController: transaction
+				TransactionController: transaction,
+				TokenListController: tokenList
 			} = this.context;
 
+			// Start polling tokens
+			tokenList.start();
 			assets.setApiKey(process.env.MM_OPENSEA_KEY);
 			network.refreshNetwork();
 			transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
@@ -406,7 +417,8 @@ class Engine {
 			PreferencesController,
 			NetworkController,
 			TransactionController,
-			AssetsController
+			AssetsController,
+			TokenListController
 		} = this.context;
 
 		// Select same network ?
@@ -425,6 +437,8 @@ class Engine {
 			}
 		}
 		// Sync tokens
+		await TokenListController.syncTokens();
+
 		const allTokens = {};
 		Object.keys(preferences.accountTokens).forEach(address => {
 			const checksummedAddress = toChecksumAddress(address);
@@ -507,6 +521,7 @@ export default {
 			AssetsContractController,
 			AssetsController,
 			AssetsDetectionController,
+			// TokenListController, // Probably don't need this here since assets detection is already exposing
 			CurrencyRateController,
 			KeyringController,
 			PersonalMessageManager,
