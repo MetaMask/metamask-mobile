@@ -117,7 +117,8 @@ const EditGasFee1559 = ({
 	maxFeePerGasConversion,
 	primaryCurrency,
 	chainId,
-	timeEstimate
+	timeEstimate,
+	timeEstimateColor
 }) => {
 	const [showRangeInfoModal, setShowRangeInfoModal] = useState(false);
 	const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
@@ -253,7 +254,9 @@ const EditGasFee1559 = ({
 									{gasFeeMaxPrimary} ({gasFeeMaxSecondary})
 								</Text>
 							</Text>
-							<Text green>{timeEstimate}</Text>
+							<Text green={timeEstimateColor === 'green'} red={timeEstimateColor === 'red'}>
+								{timeEstimate}
+							</Text>
 						</View>
 						<View>
 							{/* TODO: hook with controller, add strings i18n */}
@@ -490,7 +493,8 @@ EditGasFee1559.propTypes = {
 	maxFeePerGasConversion: PropTypes.string,
 	primaryCurrency: PropTypes.string,
 	chainId: PropTypes.string,
-	timeEstimate: PropTypes.string
+	timeEstimate: PropTypes.string,
+	timeEstimateColor: PropTypes.string
 };
 
 export default EditGasFee1559;

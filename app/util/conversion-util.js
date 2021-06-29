@@ -113,9 +113,7 @@ const converter = ({
 	}
 
 	if (toDenomination) {
-		console.log('fromDenomination', fromDenomination, convertedValue.times(BIG_NUMBER_WEI_MULTIPLIER));
 		convertedValue = toSpecifiedDenomination[toDenomination](convertedValue);
-		console.log(toDenomination, convertedValue);
 	}
 
 	if (numberOfDecimals) {

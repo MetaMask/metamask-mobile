@@ -19,6 +19,9 @@ import {
 	getTransactionFee,
 	roundExponential
 } from '../util/confirm-tx';
+
+import humanizeDuration from 'humanize-duration';
+
 const { SAI_ADDRESS } = AppConstants;
 
 export const TOKEN_METHOD_TRANSFER = 'transfer';
@@ -460,6 +463,35 @@ export const parseTransaction = (
 	const suggestedMaxFeePerGasHex = decGWEIToHexWEI(selectedGasFee.suggestedMaxFeePerGas);
 	const gasLimitHex = BNToHex(gas);
 
+	const { GasFeeController } = Engine.context;
+
+	let timeEstimate = 'Unknown processing time';
+	let timeEstimateColor = 'red';
+	try {
+		const time = GasFeeController.getTimeEstimate(
+			selectedGasFee.suggestedMaxPriorityFeePerGas,
+			selectedGasFee.suggestedMaxFeePerGas
+		);
+
+		console.log('TIME', time);
+
+		if (!time || time === 'unknown' || Object.keys(time).length < 2 || time.upperTimeBound === 'unknown') {
+			timeEstimate = 'Unknown processing time';
+			timeEstimateColor = 'red';
+		} else if (time.lowerTimeBound === 0) {
+			timeEstimate = `Less than ${humanizeDuration(time.upperTimeBound)}`;
+			timeEstimateColor = 'green';
+		} else if (time.upperTimeBound === 0) {
+			timeEstimate = `At least ${humanizeDuration(time.lowerTimeBound)}`;
+			timeEstimateColor = 'red';
+		} else {
+			timeEstimate = `${humanizeDuration(time.lowerTimeBound)} - ${humanizeDuration(time.upperTimeBound)}`;
+			timeEstimateColor = 'green';
+		}
+	} catch (error) {
+		console.log('ERROR ESTIMATING TIME', error);
+	}
+
 	// Hex calculations
 	const estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex = addCurrencies(
 		estimatedBaseFeeHex,
@@ -591,9 +623,6 @@ export const parseTransaction = (
 
 	let renderableTotalMinNative, renderableTotalMinConversion, renderableTotalMaxNative, renderableTotalMaxConversion;
 
-	const timeEstimate = selectedGasFee.maxWaitTimeEstimate;
-	const timeEstimateColor = 'green';
-
 	if (selectedAsset.isETH || selectedAsset.tokenId) {
 		renderableTotalMinNative = formatETHFee(totalMinNative, nativeCurrency);
 		renderableTotalMinConversion = formatCurrency(totalMinConversion, currentCurrency);
@@ -632,7 +661,7 @@ export const parseTransaction = (
 		)}`;
 	}
 
-	console.log(
+	/*console.log(
 		JSON.stringify(
 			{
 				gasFeeMinNative,
@@ -661,7 +690,7 @@ export const parseTransaction = (
 			2,
 			'\n'
 		)
-	);
+	);*/
 
 	return {
 		gasFeeMinNative,

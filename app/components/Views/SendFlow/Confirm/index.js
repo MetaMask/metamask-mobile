@@ -221,6 +221,7 @@ const styles = StyleSheet.create({
 	}
 });
 
+/*
 const gasFeeEstimates = {
 	estimatedBaseFee: '28',
 	high: {
@@ -239,12 +240,13 @@ const gasFeeEstimates = {
 		maxWaitTimeEstimate: 60000,
 		minWaitTimeEstimate: 15000,
 		suggestedMaxFeePerGas: '38',
-		suggestedMaxPriorityFeePerGas: '1.8'
+		suggestedMaxPriorityFeePerGas: '2'
 	}
 };
 
 const selected = 'medium';
 const selectedGasFee = { ...gasFeeEstimates[selected], estimatedBaseFee: gasFeeEstimates.estimatedBaseFee };
+*/
 
 /**
  * View that wraps the wraps the "Send" screen
@@ -426,12 +428,8 @@ class Confirm extends PureComponent {
 
 	componentDidMount = async () => {
 		const { GasFeeController } = Engine.context;
-		const result = await GasFeeController.getGasFeeEstimatesAndStartPolling();
-		// RESULT TOKEN
-		console.log(result);
-		// THIS WILL PRINT THE NEW GAS ESTIMATION PROPS EVERY 5 SECONDS
-		setInterval(() => console.log('gasFeeEstimates---', this.props.gasFeeEstimates), 5000);
-
+		const pollToken = await GasFeeController.getGasFeeEstimatesAndStartPolling(this.state.pollToken);
+		this.setState({ pollToken });
 		// For analytics
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_STARTED, this.getAnalyticsParams());
 
@@ -448,7 +446,7 @@ class Confirm extends PureComponent {
 		const {
 			transactionState: {
 				transactionTo,
-				transaction: { value }
+				transaction: { value, gas }
 			},
 			contractBalances,
 			selectedAsset
@@ -466,6 +464,18 @@ class Confirm extends PureComponent {
 		if (!prevState.errorMessage && errorMessage) {
 			this.scrollView.scrollToEnd({ animated: true });
 		}
+
+		if (this.props.gasFeeEstimates && gas && prevProps.gasFeeEstimates !== this.props.gasFeeEstimates) {
+			console.log('UPDATE', this.props.gasFeeEstimates);
+			if (!this.state.stopUpdateGas) {
+				const EIP1559TransactionData = this.parseTransactionDataEIP1559(this.props.gasFeeEstimates.medium);
+				this.setState({
+					gasEstimationReady: true,
+					EIP1559TransactionData,
+					EIP1559TransactionDataTemp: EIP1559TransactionData
+				});
+			}
+		}
 	};
 
 	setScrollViewRef = ref => {
@@ -482,7 +492,9 @@ class Confirm extends PureComponent {
 
 	onModeChange = mode => {
 		this.setState({ mode });
-		if (mode === EDIT) {
+		if (mode === EDIT_EIP1559) {
+			this.setState({ stopUpdateGas: true });
+		} else if (mode === EDIT) {
 			InteractionManager.runAfterInteractions(() => {
 				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SEND_FLOW_ADJUSTS_TRANSACTION_FEE);
 			});
@@ -506,12 +518,6 @@ class Confirm extends PureComponent {
 		const estimation = await this.estimateGas(transaction);
 		prepareTransaction({ ...transaction, ...estimation });
 		this.parseTransactionData();
-		const EIP1559TransactionData = this.parseTransactionDataEIP1559();
-		this.setState({
-			gasEstimationReady: true,
-			EIP1559TransactionData,
-			EIP1559TransactionDataTemp: EIP1559TransactionData
-		});
 	};
 
 	estimateGas = async transaction => {
@@ -529,7 +535,7 @@ class Confirm extends PureComponent {
 		return parseTransaction(
 			{
 				...this.props,
-				selectedGasFee: { ...gasFee, estimatedBaseFee: selectedGasFee.estimatedBaseFee } || selectedGasFee
+				selectedGasFee: { ...gasFee, estimatedBaseFee: this.props.gasFeeEstimates.estimatedBaseFee }
 			},
 			options
 		);
@@ -920,7 +926,7 @@ class Confirm extends PureComponent {
 
 	renderCustomGasModalEIP1559 = () => {
 		const { primaryCurrency, chainId } = this.props;
-		const { EIP1559TransactionDataTemp } = this.state;
+		const { EIP1559TransactionDataTemp, EIP1559TransactionData } = this.state;
 
 		return (
 			<Modal
@@ -940,8 +946,8 @@ class Confirm extends PureComponent {
 				<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
 					<EditGasFee1559
 						selected={'medium'}
-						gasFee={selectedGasFee}
-						gasOptions={gasFeeEstimates}
+						gasFee={this.props.gasFeeEstimates[selected]}
+						gasOptions={this.props.gasFeeEstimates}
 						onChange={this.calculateTempGasFee}
 						totalNative={EIP1559TransactionDataTemp.renderableTotalMinNative}
 						totalConversion={EIP1559TransactionDataTemp.renderableTotalMinConversion}
@@ -956,8 +962,8 @@ class Confirm extends PureComponent {
 						maxFeePerGasConversion={EIP1559TransactionDataTemp.renderableMaxFeePerGasConversion}
 						primaryCurrency={primaryCurrency}
 						chainId={chainId}
-						timeEstimate={'Very likely in < 15 seconds'}
-						timeEstimateColor={'green'}
+						timeEstimate={EIP1559TransactionDataTemp.timeEstimate}
+						timeEstimateColor={EIP1559TransactionDataTemp.timeEstimateColor}
 						onCancel={this.cancelGasEdition}
 						onSave={this.saveGasEdition}
 					/>
@@ -1181,8 +1187,8 @@ class Confirm extends PureComponent {
 						gasFeeMaxNative={EIP1559TransactionData.renderableGasFeeMaxNative}
 						gasFeeMaxConversion={EIP1559TransactionData.renderableGasFeeMaxConversion}
 						primaryCurrency={primaryCurrency}
-						timeEstimate={'Very likely in < 15 seconds'}
-						timeEstimateColor={'green'}
+						timeEstimate={EIP1559TransactionData.timeEstimate}
+						timeEstimateColor={EIP1559TransactionData.timeEstimateColor}
 						onEdit={() => this.edit(EDIT_EIP1559)}
 					/>
 

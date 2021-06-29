@@ -70,6 +70,8 @@ const TransactionReviewEIP1559 = ({
 	gasFeeConversion,
 	gasFeeMaxNative,
 	gasFeeMaxConversion,
+	timeEstimate,
+	timeEstimateColor,
 	primaryCurrency,
 	chainId,
 	onEdit
@@ -140,8 +142,8 @@ const TransactionReviewEIP1559 = ({
 				</View>
 			</Summary.Row>
 			<Summary.Row>
-				<Text small green>
-					{'Very likely in < 15 seconds'}
+				<Text small green={timeEstimateColor === 'green'} red={timeEstimateColor === 'red'}>
+					{timeEstimate}
 				</Text>
 				<View style={styles.valuesContainer}>
 					<Text grey right small>
@@ -193,7 +195,9 @@ TransactionReviewEIP1559.propTypes = {
 	gasFeeMaxConversion: PropTypes.string,
 	primaryCurrency: PropTypes.string,
 	chainId: PropTypes.string,
-	onEdit: PropTypes.func
+	onEdit: PropTypes.func,
+	timeEstimate: PropTypes.string,
+	timeEstimateColor: PropTypes.string
 };
 
 const mapStateToProps = state => ({
