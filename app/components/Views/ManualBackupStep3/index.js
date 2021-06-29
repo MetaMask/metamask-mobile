@@ -151,8 +151,7 @@ class ManualBackupStep3 extends PureComponent {
 		if (!metricsOptIn) {
 			this.props.navigation.navigate('OptinMetrics');
 		} else if (onboardingWizard) {
-			this.props.navigation.navigate('HomeNav');
-			this.props.navigation.popToTop();
+			this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
 			this.props.navigation.goBack(null);
 		} else {
 			this.props.navigation.navigate('HomeNav');
