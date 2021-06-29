@@ -10,7 +10,7 @@ import Engine from '../../../core/Engine';
 import Modal from 'react-native-modal';
 import CollectibleContractInformation from '../../UI/CollectibleContractInformation';
 import { toggleCollectibleContractModal } from '../../../actions/modals';
-import { toLowerCaseCompare } from '../../../util/general';
+import { toLowerCaseEquals } from '../../../util/general';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -78,7 +78,7 @@ class Collectible extends PureComponent {
 		const address = params.address;
 		const { collectibles } = this.props;
 		const filteredCollectibles = collectibles.filter(collectible =>
-			toLowerCaseCompare(collectible.address, address)
+			toLowerCaseEquals(collectible.address, address)
 		);
 		filteredCollectibles.map(collectible => {
 			if (!collectible.name || collectible.name === '') {

@@ -58,7 +58,6 @@ const styles = StyleSheet.create({
 		color: colors.blue
 	},
 	overviewEth: {
-		...fontStyles.bold,
 		color: colors.fontPrimary,
 		fontSize: 14,
 		textAlign: 'right',

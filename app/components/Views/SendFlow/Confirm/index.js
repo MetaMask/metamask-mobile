@@ -513,12 +513,12 @@ class Confirm extends PureComponent {
 			transactionValueFiat = weiToFiat(valueBN, conversionRate, currentCurrency);
 			const transactionTotalAmountBN = weiTransactionFee && weiTransactionFee.add(valueBN);
 			transactionTotalAmount = (
-				<Text grey right upper style={[styles.totalAmount, over && styles.over]}>
+				<Text reset right upper style={[styles.totalAmount, over && styles.over]}>
 					{renderFromWei(transactionTotalAmountBN)} {parsedTicker}
 				</Text>
 			);
 			transactionTotalAmountFiat = (
-				<Text primary right upper bold style={[styles.totalAmount, over && styles.over]}>
+				<Text reset right upper style={[styles.totalAmount, over && styles.over]}>
 					{weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency)}
 				</Text>
 			);

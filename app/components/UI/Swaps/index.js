@@ -49,7 +49,7 @@ import SlippageModal from './components/SlippageModal';
 import useBalance from './utils/useBalance';
 import useBlockExplorer from './utils/useBlockExplorer';
 import InfoModal from './components/InfoModal';
-import { toLowerCaseCompare } from '../../../util/general';
+import { toLowerCaseEquals } from '../../../util/general';
 
 const styles = StyleSheet.create({
 	screen: {
@@ -163,11 +163,11 @@ function SwapsAmountView({
 	const [isInitialLoadingTokens, setInitialLoadingTokens] = useState(false);
 	const [, setLoadingTokens] = useState(false);
 	const [isSourceSet, setIsSourceSet] = useState(() =>
-		Boolean(swapsTokens?.find(token => toLowerCaseCompare(token.address, initialSource)))
+		Boolean(swapsTokens?.find(token => toLowerCaseEquals(token.address, initialSource)))
 	);
 
 	const [sourceToken, setSourceToken] = useState(() =>
-		swapsTokens?.find(token => toLowerCaseCompare(token.address, initialSource))
+		swapsTokens?.find(token => toLowerCaseEquals(token.address, initialSource))
 	);
 	const [destinationToken, setDestinationToken] = useState(null);
 	const [hasDismissedTokenAlert, setHasDismissedTokenAlert] = useState(true);
@@ -194,7 +194,7 @@ function SwapsAmountView({
 					InteractionManager.runAfterInteractions(() => {
 						const parameters = {
 							source: initialSource === SWAPS_NATIVE_ADDRESS ? 'MainView' : 'TokenView',
-							activeCurrency: swapsTokens?.find(token => toLowerCaseCompare(token.address, initialSource))
+							activeCurrency: swapsTokens?.find(token => toLowerCaseEquals(token.address, initialSource))
 								?.symbol,
 							chain_id: chainId
 						};
@@ -250,7 +250,7 @@ function SwapsAmountView({
 	useEffect(() => {
 		if (!isSourceSet && initialSource && swapsTokens && !sourceToken) {
 			setIsSourceSet(true);
-			setSourceToken(swapsTokens.find(token => toLowerCaseCompare(token.address, initialSource)));
+			setSourceToken(swapsTokens.find(token => toLowerCaseEquals(token.address, initialSource)));
 		}
 	}, [initialSource, isSourceSet, sourceToken, swapsTokens]);
 

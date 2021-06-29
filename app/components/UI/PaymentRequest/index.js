@@ -39,7 +39,7 @@ import Device from '../../../util/Device';
 import currencySymbols from '../../../util/currency-symbols.json';
 import { NetworksChainId } from '@metamask/controllers';
 import { getTicker } from '../../../util/transactions';
-import { toLowerCaseCompare } from '../../../util/general';
+import { toLowerCaseEquals } from '../../../util/general';
 
 const KEYBOARD_OFFSET = 120;
 const styles = StyleSheet.create({
@@ -347,7 +347,7 @@ class PaymentRequest extends PureComponent {
 		}
 
 		const fuseSearchResult = fuse.search(searchInputValue);
-		const addressSearchResult = contractList.filter(token => toLowerCaseCompare(token.address, searchInputValue));
+		const addressSearchResult = contractList.filter(token => toLowerCaseEquals(token.address, searchInputValue));
 		const results = [...addressSearchResult, ...fuseSearchResult];
 		this.setState({ searchInputValue, results });
 	};
