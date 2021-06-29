@@ -15,6 +15,10 @@ import Device from '../../../util/Device';
 import { isMainnetByChainId } from '../../../util/networks';
 import PropTypes from 'prop-types';
 
+// import Engine from '../../../core/Engine';
+// const { GasFeeController } = Engine.context;
+// console.log({ GasFeeController });
+
 const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,

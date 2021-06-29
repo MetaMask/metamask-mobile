@@ -345,7 +345,11 @@ class Confirm extends PureComponent {
 		/**
 		 * Set proposed nonce (from network)
 		 */
-		setProposedNonce: PropTypes.func
+		setProposedNonce: PropTypes.func,
+		/**
+		 * gasFeeEstimates
+		 */
+		gasFeeEstimates: PropTypes.object
 	};
 
 	state = {
@@ -421,6 +425,13 @@ class Confirm extends PureComponent {
 	toggleWarningModal = () => this.setState(state => ({ warningModalVisible: !state.warningModalVisible }));
 
 	componentDidMount = async () => {
+		const { GasFeeController } = Engine.context;
+		const result = await GasFeeController.getGasFeeEstimatesAndStartPolling();
+		// RESULT TOKEN
+		console.log(result);
+		// THIS WILL PRINT THE NEW GAS ESTIMATION PROPS EVERY 5 SECONDS
+		setInterval(() => console.log('gasFeeEstimates---', this.props.gasFeeEstimates), 5000);
+
 		// For analytics
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_STARTED, this.getAnalyticsParams());
 
@@ -1243,7 +1254,8 @@ const mapStateToProps = state => ({
 	transaction: getNormalizedTxState(state),
 	selectedAsset: state.transaction.selectedAsset,
 	transactionState: state.transaction,
-	primaryCurrency: state.settings.primaryCurrency
+	primaryCurrency: state.settings.primaryCurrency,
+	gasFeeEstimates: state.engine.backgroundState.GasFeeController.gasFeeEstimates
 });
 
 const mapDispatchToProps = dispatch => ({
