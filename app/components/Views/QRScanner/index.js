@@ -101,11 +101,9 @@ export default class QrScanner extends PureComponent {
 					this.props.route.params.onScanSuccess(data);
 				});
 				this.mounted = false;
-				this.props.navigation.goBack();
 			} else {
 				Alert.alert(strings('qr_scanner.error'), strings('qr_scanner.attempting_sync_from_wallet_error'));
 				this.mounted = false;
-				this.props.navigation.goBack();
 			}
 		} else {
 			if (!failedSeedPhraseRequirements(content) && isValidMnemonic(content)) {

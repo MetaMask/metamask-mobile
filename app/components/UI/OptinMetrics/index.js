@@ -14,7 +14,6 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { ONBOARDING_WIZARD, METRICS_OPT_IN, DENIED, AGREED } from '../../../constants/storage';
 import AppConstants from '../../../core/AppConstants';
-import { useIsFocused } from '@react-navigation/native';
 
 const styles = StyleSheet.create({
 	root: {
@@ -98,10 +97,6 @@ class OptinMetrics extends PureComponent {
 		 */
 		setOnboardingWizardStep: PropTypes.func,
 		/**
-		 * React navigation prop to know if this view is focused
-		 */
-		isFocused: PropTypes.bool,
-		/**
 		 * Onboarding events array created in previous onboarding views
 		 */
 		events: PropTypes.array,
@@ -129,10 +124,7 @@ class OptinMetrics extends PureComponent {
 	 * Temporary disabling the back button so users can't go back
 	 */
 	handleBackPress = () => {
-		if (this.props.isFocused) {
-			Alert.alert(strings('onboarding.optin_back_title'), strings('onboarding.optin_back_desc'));
-			return true;
-		}
+		Alert.alert(strings('onboarding.optin_back_title'), strings('onboarding.optin_back_desc'));
 	};
 
 	/**
@@ -273,8 +265,4 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
 	mapStateToProps,
 	mapDispatchToProps
-)(props => {
-	const isFocused = useIsFocused();
-
-	return <OptinMetrics {...props} isFocused={isFocused} />;
-});
+)(OptinMetrics);

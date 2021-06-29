@@ -341,7 +341,6 @@ class Onboarding extends PureComponent {
 		} catch (e) {
 			this.props.unsetLoading();
 			if (!firstAttempt) {
-				this.props.navigation.goBack();
 				if (e.message === 'Sync::timeout') {
 					Alert.alert(
 						strings('sync_with_extension.outdated_qr_code'),
