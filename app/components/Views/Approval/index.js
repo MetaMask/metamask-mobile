@@ -230,7 +230,7 @@ class Approval extends PureComponent {
 		const { nonce } = transaction;
 		if (showCustomNonce && nonce) transaction.nonce = BNToHex(nonce);
 		// hardcode
-		transaction.maxFeePerGas = '0x38d8e152531ab';
+		transaction.maxFeePerGas = '0xd875b174e000';
 		transaction.maxPriorityFeePerGas = '0x3b9aca000';
 		// transaction.maxFeePerGas = BNToHex(1000066309763499);
 		// transaction.maxPriorityFeePerGas = BNToHex(53000000000);
