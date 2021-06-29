@@ -12,6 +12,7 @@ const initialState = {
 		gasPrice: undefined,
 		to: undefined,
 		value: undefined,
+		// eip1559
 		maxFeePerGas: undefined,
 		maxPriorityFeePerGas: undefined
 	},
@@ -44,7 +45,6 @@ const getAssetType = selectedAsset => {
 };
 
 const transactionReducer = (state = initialState, action) => {
-	// console.log({ action });
 	switch (action.type) {
 		case REHYDRATE:
 			return {

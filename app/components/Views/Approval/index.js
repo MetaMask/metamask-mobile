@@ -226,14 +226,11 @@ class Approval extends PureComponent {
 			showCustomNonce
 		} = this.props;
 		let { transaction } = this.props;
-		console.log('onConfirm', transaction);
 		const { nonce } = transaction;
 		if (showCustomNonce && nonce) transaction.nonce = BNToHex(nonce);
 		// hardcode
 		transaction.maxFeePerGas = '0xd875b174e000';
 		transaction.maxPriorityFeePerGas = '0x3b9aca000';
-		// transaction.maxFeePerGas = BNToHex(1000066309763499);
-		// transaction.maxPriorityFeePerGas = BNToHex(53000000000);
 		try {
 			if (assetType === 'ETH') {
 				transaction = this.prepareTransaction(transaction);
@@ -305,16 +302,14 @@ class Approval extends PureComponent {
 	 * @param {object} transaction - Transaction object
 	 * @param {object} selectedAsset - Asset object
 	 */
-	prepareAssetTransaction = (transaction, selectedAsset) => {
-		console.log('prepareAssetTransaction', transaction);
-		return {
-			...transaction,
-			gas: BNToHex(transaction.gas),
-			// gasPrice: BNToHex(transaction.gasPrice),
-			value: '0x0',
-			to: selectedAsset.address
-		};
-	};
+	prepareAssetTransaction = (transaction, selectedAsset) => ({
+		...transaction,
+		gas: BNToHex(transaction.gas),
+		// TODO: set bellow conditionally
+		// gasPrice: BNToHex(transaction.gasPrice),
+		value: '0x0',
+		to: selectedAsset.address
+	});
 
 	sanitizeTransaction(transaction) {
 		transaction.gas = hexToBN(transaction.gas);

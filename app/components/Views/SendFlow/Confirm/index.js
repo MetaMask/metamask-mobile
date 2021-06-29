@@ -638,18 +638,14 @@ class Confirm extends PureComponent {
 		} = this.props;
 		const { fromSelectedAddress } = this.state;
 		const { nonce } = this.props.transaction;
-		console.log(this.props.transaction);
 		const transactionToSend = { ...transaction };
-		console.log({ transactionToSend });
 		transactionToSend.gas = BNToHex(transaction.gas);
 		transactionToSend.gasPrice = BNToHex(transaction.gasPrice);
 		transactionToSend.from = fromSelectedAddress;
 		if (showCustomNonce && nonce) transactionToSend.nonce = BNToHex(nonce);
-		// hardcode
+		// TODO: conditionally set the follow fields:
 		// transactionToSend.maxFeePerGas = '0x2540be400';
 		// transactionToSend.maxPriorityFeePerGas = '0x3b9aca00';
-		// transactionToSend.maxFeePerGas = BNToHex(1000066309763499);
-		// transactionToSend.maxPriorityFeePerGas = BNToHex(53000000000);
 		return transactionToSend;
 	};
 
@@ -735,7 +731,6 @@ class Confirm extends PureComponent {
 		}
 		try {
 			const transaction = this.prepareTransactionToSend();
-			console.log('transaction to send', transaction);
 			if (this.validateAmount(transaction)) {
 				this.setState({ transactionConfirmed: false });
 				return;
