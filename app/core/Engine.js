@@ -474,24 +474,28 @@ class Engine {
 			PreferencesController.setSelectedAddress(accounts.hd[0]);
 		}
 
+		const mapTx = tx => ({
+			id: tx.id,
+			networkID: tx.metamaskNetworkId,
+			origin: tx.origin,
+			status: tx.status,
+			time: tx.time,
+			transactionHash: tx.hash,
+			rawTx: tx.rawTx,
+			transaction: {
+				from: tx.txParams.from,
+				to: tx.txParams.to,
+				nonce: tx.txParams.nonce,
+				gas: tx.txParams.gas,
+				gasPrice: tx.txParams.gasPrice,
+				value: tx.txParams.value,
+				maxFeePerGas: tx.txParams.maxFeePerGas,
+				maxPriorityFeePerGas: tx.txParams.maxPriorityFeePerGas
+			}
+		});
+
 		await TransactionController.update({
-			transactions: transactions.map(tx => ({
-				id: tx.id,
-				networkID: tx.metamaskNetworkId,
-				origin: tx.origin,
-				status: tx.status,
-				time: tx.time,
-				transactionHash: tx.hash,
-				rawTx: tx.rawTx,
-				transaction: {
-					from: tx.txParams.from,
-					to: tx.txParams.to,
-					nonce: tx.txParams.nonce,
-					gas: tx.txParams.gas,
-					gasPrice: tx.txParams.gasPrice,
-					value: tx.txParams.value
-				}
-			}))
+			transactions: transactions.map(mapTx)
 		});
 
 		return true;
