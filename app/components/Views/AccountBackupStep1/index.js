@@ -156,13 +156,14 @@ const AccountBackupStep1 = props => {
 		const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
 		// Check if user passed through metrics opt-in screen
 		const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
+
 		if (!metricsOptIn) {
 			props.navigation.navigate('OptinMetrics');
 		} else if (onboardingWizard) {
-			props.navigation.navigate('HomeNav');
+			props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
 		} else {
 			props.setOnboardingWizardStep(1);
-			props.navigation.navigate('HomeNav', { screen: 'WalletView' });
+			props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
 		}
 	};
 
