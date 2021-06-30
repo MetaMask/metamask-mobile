@@ -1355,7 +1355,15 @@
 		"wyre_fees_outside_us_fee": "Taxa de 3,9% + $0,30 + gas (mínimo de $5)",
 		"wyre_limits_outside_us": "Limite semanal de $1.000, anual de $7.500",
 		"wyre_estimated": "Estimado(a) {{amount}} {{currency}}",
+<<<<<<< HEAD
 		"wyre_modal_text": "O pagamento com Apple Pay, feito pela Wyre, pode ser feito nos Estados Unidos,  menos em CT, HI, NC, NH, NY, VA e VT.",
+=======
+		"wyre_minutes": "1 a 2 minutos",
+		"wyre_max": "Máx. $450 por semana",
+		"wyre_requires_debit_card": "Exige cartão de débito",
+		"wyre_us_only": "🇺🇸 Somente EUA",
+		"wyre_modal_text": "O pagamento com Apple Pay, feito pela Wyre, pode ser feito nos Estados Unidos, 🇺🇸 menos em CT, HI, NC, NH, NY, VA e VT.",
+>>>>>>> upstream/develop
 		"wyre_modal_terms_of_service_apply": "Aplicam-se os termos de serviço do Wyre.",
 		"wyre_minimum_deposit": "O depósito mínimo é de {{amount}}",
 		"wyre_maximum_deposit": "O depósito máximo é de {{amount}}",
@@ -1562,6 +1570,149 @@
 		"gas_education_7": "“Taxa máxima de gas”",
 		"gas_education_8": "é o máximo que você gastará. Quando a rede for volátil, esse poderá ser um grande valor.",
 		"gas_education_learn_more": "Saiba mais sobre as taxas de gas"
+<<<<<<< HEAD
+=======
+	},
+	"swaps": {
+		"onboarding": {
+			"get_the": "Obtenha o",
+			"best_price": "melhor preço",
+			"from_the": "de",
+			"top_liquidity": "fontes",
+			"sources": "de maior liquidez.",
+			"find_the": "Encontre",
+			"best_swap": "o melhor swap",
+			"across": "de todos...",
+			"want_to_learn_more": "Quer saber mais?",
+			"learn_more": "Saiba mais sobre o MetaMask Swaps",
+			"what_are": "O que são token para swaps?",
+			"review_audits": "Confira nossa auditoria oficial de contratos",
+			"start_swapping": "Iniciar swap"
+		},
+		"feature_off_title": "Temporariamente indisponível",
+		"feature_off_body": "O MetaMask Swaps está em manutenção. Verifique novamente mais tarde.",
+		"wrong_network_title": "Swaps indisponíveis",
+		"wrong_network_body": "Você só pode fazer swap dos tokens na Rede Principal do Ethereum.",
+		"unallowed_asset_title": "Não é possível fazer swap deste token",
+		"unallowed_asset_body": "Alguns tokens com mecânicas exclusivas não são suportados para swap.",
+		"convert_from": "Converter de",
+		"convert_to": "Converter para",
+		"verify": "Verificar",
+		"verified_on_sources": "Verificado em {{sources} fontes.",
+		"verify_on": "Sempre verifique o endereço do token em",
+		"verify_address_on": "Verificar o endereço do token em",
+		"only_verified_on": "{{symbol}} só é verificado em {{occurances}} fontes.",
+		"block_explorer": "block explorer",
+		"a_block_explorer": "um block explorer",
+		"token_verification": "Verificação do token",
+		"token_multiple": "Vários tokens podem usar o mesmo nome e símbolo.",
+		"token_check": "Verificação",
+		"token_to_verify": "para verificar se esse é o token que você está buscando.",
+		"continue": "Continuar",
+		"select_a_token": "Selecionar um token",
+		"search_token": "Buscar um token",
+		"no_tokens_result": "Nenhum token corresponde a “{{searchString}}”",
+		"available_to_swap": "{{asset}} disponível para swap.",
+		"use_max": "Usar máx.",
+		"not_enough": "Não há {{symbol}} suficiente para concluir este swap",
+		"max_slippage": "Slippage máximo",
+		"max_slippage_amount": "Slippage máximo {{slippage}}",
+		"slippage_info": "Quando a taxa muda entre o momento em que seu pedido é feito e em que é confirmado, isso recebe o nome de “slippage”. Seu Swap será automaticamente cancelado se o slippage for superior à configuração “slippage máximo”.",
+		"slippage_warning": "Você tem que saber o que está fazendo!",
+		"allows_up_to_decimals": "{{symbol}} permite até {{decimals}} decimais",
+		"get_quotes": "Obter cotações",
+		"starting": "Começando...",
+		"finalizing": "Finalizando...",
+		"quote": "Cotação",
+		"of": " de ",
+		"checking": "Verificando ",
+		"fetching_new_quotes": "Fazendo o fetch de novas cotações...",
+		"you_need": "Você precisa",
+		"more_to_complete": "de mais para concluir este swap.",
+		"more_gas_to_complete": "mais gas para concluir este swap.",
+		"buy_more_eth": "Compre mais ETH.",
+		"market_price_unavailable": "O preço de mercado está indisponível. Certifique-se que está satisfeito com o valor devolvido antes de continuar.",
+		"price_difference": "Diferença de preço de {{amount}}",
+		"price_difference_title": "Diferença de preço",
+		"price_difference_body": "A diferença nos preços de mercado pode ser afetada por taxas cobradas por intermediários, tamanho do mercado, tamanho do comércio ou ineficiência do mercado.",
+		"quotes_update_often": "Cotações atualizadas com frequência",
+		"quotes_update_often_text": "As cotações são atualizadas com frequência para refletir as condições atuais do mercado.",
+		"about_to_swap": "Você está prestes a fazer o swap",
+		"for": "para",
+		"new_quotes_in": "Novas cotações em ",
+		"i_understand": "Eu entendo",
+		"quotes_expire_in": "Cotações expiram em",
+		"saving": "Salvando",
+		"using_best_quote": "Usando a melhor cotação",
+		"view_details": "Exibir detalhes",
+		"estimated_gas_fee": "Taxa estimada de gas",
+		"max_gas_fee": "Taxa máxima de gas",
+		"edit": "Editar",
+		"quotes_include_fee": "As cotações incluem uma taxa MetaMask de {{fee}}%",
+		"tap_to_swap": "Toque para fazer o Swap",
+		"swipe_to_swap": "Deslize para fazer o swap",
+		"swipe_to": "Deslize para",
+		"swap": "swap",
+		"completed_swap": "Swap!",
+		"metamask_swap_fee": "Taxa de Swap do MetaMask",
+		"fee_text": {
+			"get_the": "Obtenha o",
+			"best_price": "melhor preço",
+			"from_the": "das",
+			"top_liquidity": "principais fontes de liquidez todas as vezes.",
+			"fee_is_applied": "Uma taxa de {{fee}} é automaticamente levada em conta em cada cotação, o que é compatível com o desenvolvimento contínuo para deixar o MetaMask ainda melhor."
+		},
+		"enable": {
+			"this_will": "Isto vai",
+			"enable_asset": "habilitar {{asset}}",
+			"for_swapping": "para fazer o swap",
+			"edit_limit": "Editar limite"
+		},
+		"quotes_overview": "Visão geral das cotações",
+		"quote_details": "Detalhe da cotação",
+		"receiving": "Recebendo",
+		"overall_value": "Valor global",
+		"best": "Melhor",
+		"rate": "Tarifa",
+		"quote_details_max_slippage": "Slippage máximo",
+		"source": "Fonte",
+		"estimated_network_fees": "Taxas de rede estimadas",
+		"guaranteed_amount": "Valor garantido",
+		"quote_source_dex": {
+			"1": "Esta cotação vem diretamente de",
+			"2": "exchange descentralizado",
+			"3": "protocolo."
+		},
+		"quote_source_rfq": {
+			"1": "Esta cotação vem de",
+			"2": "market maker particular",
+			"3": "que responde com uma cotação diretamente."
+		},
+		"quote_source_agg": {
+			"1": "Esta cotação vem de um",
+			"2": "agregador",
+			"3": "que encontra o melhor preço dividindo sua ordem entre diferentes exchanges decentralizados."
+		},
+		"quotes_timeout": "Tempo-limite da cotação",
+		"request_new_quotes": "Solicite novas cotações para obter a melhor tarifa mais recente.",
+		"quotes_not_available": "Cotações indisponíveis",
+		"try_adjusting": "Experimente ajustar a quantidade e tente novamente.",
+		"error_fetching_quote": "Erro ao fazer o fetch da cotação",
+		"unexpected_error": "Ocorreu um erro inesperado, solicite novas cotações para obter a melhor tarifa mais recente. (erro: {{error}})",
+		"get_new_quotes": "Obtenha novas cotações",
+		"try_again": "Tente novamente",
+		"terms_of_service": "Termos de serviço",
+		"transaction_label": {
+			"swap": "Swap {{sourceToken}} para {{destinationToken}}",
+			"approve": "Aprovar {{sourceToken}} para swaps: Até {{upTo}}"
+		},
+		"notification_label": {
+			"swap_pending": "Swap pendente ({{sourceToken}} para {{destinationToken}})",
+			"swap_confirmed": "Swap concluído ({{sourceToken}} até {{destinationToken}})",
+			"approve_pending": "Aprovando {{sourceToken}} para swaps",
+			"approve_confirmed": "{{sourceToken}} aprovado para swaps"
+		}
+>>>>>>> upstream/develop
 	},
 	"protect_wallet_modal": {
 		"title": "Proteja sua carteira",
@@ -1635,5 +1786,13 @@
 	"media_player": {
 		"loading": "Carregando...",
 		"not_found": "Mídia não encontrada"
+<<<<<<< HEAD
+=======
+	},
+	"secret_phrase_video_subtitle": {
+		"title": "PT BR CC",
+		"language": "pt-br",
+		"uri": "https://github.com/MetaMask/metamask-mobile/blob/feature/secret_recovery_translations/app/videos/subtitles/subtitles-pt-br.vtt"
+>>>>>>> upstream/develop
 	}
 }

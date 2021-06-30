@@ -210,7 +210,11 @@
 	},
 	"import_from_seed": {
 		"title": "Nhập từ cụm mật khẩu gốc",
+<<<<<<< HEAD
 		"seed_phrase_placeholder": "Nhập Cụm mật khẩu khôi phục bí mật của bạn",
+=======
+		"seed_phrase_placeholder": "Nhập Cụm mật khẩu khôi phục bí mật của bạn vào đây",
+>>>>>>> upstream/develop
 		"new_password": "Mật khẩu mới",
 		"confirm_password": "Xác nhận mật khẩu",
 		"import_button": "NHẬP",
@@ -1355,7 +1359,15 @@
 		"wyre_fees_outside_us_fee": "Phí gồm 3,9% + 0,3 USD + ga (tối thiểu 5 USD)",
 		"wyre_limits_outside_us": "Hạn mức 1.000 USD mỗi tuần, 7.500 USD mỗi năm",
 		"wyre_estimated": "Ước tính {{amount}} {{currency}}",
+<<<<<<< HEAD
 		"wyre_modal_text": "Tính năng thanh toán bằng Apple Pay do Wyre cung cấp chỉ được hỗ trợ tại Hoa Kỳ  ngoại trừ các tiểu bang Connecticut, Hawaii, North Carolina, New Hampshire, New York, Virginia và Vermont.",
+=======
+		"wyre_minutes": "1 – 2 phút",
+		"wyre_max": "Tối đa $450 mỗi tuần",
+		"wyre_requires_debit_card": "Cần có thẻ ghi nợ",
+		"wyre_us_only": "🇺🇸 Chỉ có tại Hoa Kỳ",
+		"wyre_modal_text": "Tính năng thanh toán bằng Apple Pay do Wyre cung cấp chỉ được hỗ trợ tại Hoa Kỳ 🇺🇸 ngoại trừ các tiểu bang Connecticut, Hawaii, North Carolina, New Hampshire, New York, Virginia và Vermont.",
+>>>>>>> upstream/develop
 		"wyre_modal_terms_of_service_apply": "Có áp dụng các điều khoản dịch vụ của Wyre.",
 		"wyre_minimum_deposit": "Số tiền nộp tối thiểu là {{amount}}",
 		"wyre_maximum_deposit": "Số tiền nộp tối đa là {{amount}}",
@@ -1562,6 +1574,149 @@
 		"gas_education_7": "“Phí gas tối đa”",
 		"gas_education_8": "là mức phí cao nhất bạn sẽ trả. Khi mạng không ổn định, đây có thể là số tiền lớn.",
 		"gas_education_learn_more": "Tìm hiểu thêm về phí gas"
+<<<<<<< HEAD
+=======
+	},
+	"swaps": {
+		"onboarding": {
+			"get_the": "Tận hưởng",
+			"best_price": "giá tốt nhất",
+			"from_the": "từ",
+			"top_liquidity": "những nguồn",
+			"sources": "thanh khoản hàng đầu.",
+			"find_the": "Tìm",
+			"best_swap": "giao dịch hoán đổi tốt nhất",
+			"across": "trên...",
+			"want_to_learn_more": "Bạn muốn tìm hiểu thêm?",
+			"learn_more": "Tìm hiểu thêm về tính năng Hoán đổi trên MetaMask",
+			"what_are": "Giao dịch hoán đổi token là gì?",
+			"review_audits": "Xem xét quy trình kiểm tra hợp đồng chính thức của chúng tôi",
+			"start_swapping": "Bắt đầu hoán đổi"
+		},
+		"feature_off_title": "Tạm thời không dùng được",
+		"feature_off_body": "Tính năng Hoán đổi trên MetaMask đang được bảo trì. Vui lòng kiểm tra lại sau.",
+		"wrong_network_title": "Không thể hoán đổi",
+		"wrong_network_body": "Bạn chỉ có thể hoán đổi token trên Mạng chính thức của Ethereum.",
+		"unallowed_asset_title": "Không thể hoán đổi token này",
+		"unallowed_asset_body": "Chúng tôi chưa hỗ trợ hoán đổi một số token có cơ chế riêng biệt.",
+		"convert_from": "Quy đổi từ",
+		"convert_to": "Quy đổi sang",
+		"verify": "Xác minh",
+		"verified_on_sources": "Đã xác minh trên các nguồn {{sources}.",
+		"verify_on": "Luôn xác minh địa chỉ token trên",
+		"verify_address_on": "Xác minh địa chỉ token trên",
+		"only_verified_on": "{{symbol}} chỉ được xác minh trên nguồn {{occurances}}.",
+		"block_explorer": "trình khám phá khối",
+		"a_block_explorer": "một trình khám phá khối",
+		"token_verification": "Xác minh token",
+		"token_multiple": "Nhiều token có thể dùng cùng một tên và ký hiệu.",
+		"token_check": "Kiểm tra",
+		"token_to_verify": "để xác minh xem đây có phải là token bạn đang tìm kiếm không.",
+		"continue": "Tiếp tục",
+		"select_a_token": "Chọn một token",
+		"search_token": "Tìm kiếm token",
+		"no_tokens_result": "Không có token nào khớp với “{{searchString}}”",
+		"available_to_swap": "{{asset}} có thể hoán đổi.",
+		"use_max": "Sử dụng mức tối đa",
+		"not_enough": "Không đủ {{symbol}} để hoàn thành giao dịch hoán đổi này",
+		"max_slippage": "Mức trượt giá tối đa",
+		"max_slippage_amount": "Mức trượt giá tối đa {{slippage}}",
+		"slippage_info": "Khi tỷ giá giữa thời điểm đặt lệnh và thời điểm xác nhận lệnh thay đổi, hiện tượng này được gọi là “trượt giá”. Giao dịch hoán đổi của bạn sẽ tự động hủy nếu mức trượt giá vượt quá “mức trượt giá tối đa” đã đặt.",
+		"slippage_warning": "Hãy chắc chắn rằng bạn hiểu những gì mình đang làm!",
+		"allows_up_to_decimals": "{{symbol}} cho phép sử dụng tối đa {{decimals}} số thập phân",
+		"get_quotes": "Nhận báo giá",
+		"starting": "Đang bắt đầu...",
+		"finalizing": "Đang hoàn tất...",
+		"quote": "Báo giá",
+		"of": "trên",
+		"checking": "Đang kiểm tra ",
+		"fetching_new_quotes": "Đang tìm nạp báo giá mới...",
+		"you_need": "Bạn cần",
+		"more_to_complete": "nữa để hoàn tất giao dịch hoán đổi này.",
+		"more_gas_to_complete": "gas nữa để hoàn tất giao dịch hoán đổi này.",
+		"buy_more_eth": "Mua thêm ETH.",
+		"market_price_unavailable": "Không có giá thị trường. Đảm bảo bạn thấy hài lòng với số tiền trả về trước khi tiếp tục.",
+		"price_difference": "Chênh lệch giá ở mức {{amount}}",
+		"price_difference_title": "Chênh lệch giá",
+		"price_difference_body": "Sự chênh lệch trong giá thị trường chịu ảnh hưởng bởi các yếu tố: phí mà các bên trung gian thu, quy mô thị trường, quy mô giao dịch hoặc thị trường hoạt động không hiệu quả.",
+		"quotes_update_often": "Báo giá thường xuyên cập nhật",
+		"quotes_update_often_text": "Báo giá được cập nhật thường xuyên để phản ánh tình trạng hiện tại của thị trường.",
+		"about_to_swap": "Bạn sắp hoán đổi",
+		"for": "cho",
+		"new_quotes_in": "Báo giá mới sẽ có sau",
+		"i_understand": "Tôi đã hiểu",
+		"quotes_expire_in": "Báo giá sẽ hết hạn sau",
+		"saving": "Đang lưu",
+		"using_best_quote": "Sử dụng báo giá tốt nhất",
+		"view_details": "Xem chi tiết",
+		"estimated_gas_fee": "Phí gas ước tính",
+		"max_gas_fee": "Phí gas tối đa",
+		"edit": "Chỉnh sửa",
+		"quotes_include_fee": "Báo giá bao gồm một khoản phí {{fee}}% cho MetaMask",
+		"tap_to_swap": "Nhấn để hoán đổi",
+		"swipe_to_swap": "Vuốt để hoán đổi",
+		"swipe_to": "Vuốt để",
+		"swap": "hoán đổi",
+		"completed_swap": "Hoán đổi!",
+		"metamask_swap_fee": "Phí hoán đổi của MetaMask",
+		"fee_text": {
+			"get_the": "Tận hưởng",
+			"best_price": "giá tốt nhất",
+			"from_the": "từ",
+			"top_liquidity": "các nguồn thanh khoản hàng đầu.",
+			"fee_is_applied": "Khoản phí {{fee}} tự động được tính vào mỗi báo giá để hỗ trợ sự phát triển liên tục và giúp MetaMask hoàn thiện hơn nữa."
+		},
+		"enable": {
+			"this_will": "Việc này sẽ",
+			"enable_asset": "kích hoạt {{asset}}",
+			"for_swapping": "để hoán đổi",
+			"edit_limit": "Chỉnh sửa giới hạn"
+		},
+		"quotes_overview": "Tổng quan về báo giá",
+		"quote_details": "Chi tiết báo giá",
+		"receiving": "Đang nhận",
+		"overall_value": "Giá trị tổng thể",
+		"best": "Tốt nhất",
+		"rate": "Tỷ lệ",
+		"quote_details_max_slippage": "Mức trượt giá tối đa",
+		"source": "Nguồn",
+		"estimated_network_fees": "Phí mạng ước tính",
+		"guaranteed_amount": "Số tiền được đảm bảo",
+		"quote_source_dex": {
+			"1": "Báo giá này trực tiếp đến từ một",
+			"2": "giao thức của",
+			"3": "sàn giao dịch phi tập trung."
+		},
+		"quote_source_rfq": {
+			"1": "Báo giá này đến từ một",
+			"2": "nhà tạo lập thị trường tư nhân",
+			"3": "trực tiếp trả lời bằng một báo giá."
+		},
+		"quote_source_agg": {
+			"1": "Báo giá này đến từ một",
+			"2": "trình tổng hợp",
+			"3": "chuyên tìm giá tốt nhất bằng cách phân chia lệnh của bạn giữa các sàn giao dịch phi tập trung."
+		},
+		"quotes_timeout": "Hết thời gian chờ báo giá",
+		"request_new_quotes": "Vui lòng yêu cầu báo giá mới để biết tỷ giá tốt nhất mới nhất.",
+		"quotes_not_available": "Không có báo giá",
+		"try_adjusting": "Hãy thử điều chỉnh số tiền và thử lại.",
+		"error_fetching_quote": "Lỗi tìm nạp báo giá",
+		"unexpected_error": "Đã xảy ra lỗi ngoài dự kiến, vui lòng yêu cầu báo giá mới để biết tỷ giá tốt nhất mới nhất. (lỗi: {{error}})",
+		"get_new_quotes": "Nhận báo giá mới",
+		"try_again": "Thử lại",
+		"terms_of_service": "Điều khoản dịch vụ",
+		"transaction_label": {
+			"swap": "Hoán đổi {{sourceToken}} sang {{destinationToken}}",
+			"approve": "Phê duyệt {{sourceToken}} cho các giao dịch hoán đổi: Lên tới {{upTo}}"
+		},
+		"notification_label": {
+			"swap_pending": "Đang chờ hoán đổi ({{sourceToken}} sang {{destinationToken}})",
+			"swap_confirmed": "Hoán đổi xong ({{sourceToken}} sang {{destinationToken}})",
+			"approve_pending": "Đang phê duyệt {{sourceToken}} để hoán đổi",
+			"approve_confirmed": "Đã phê duyệt {{sourceToken}} để hoán đổi"
+		}
+>>>>>>> upstream/develop
 	},
 	"protect_wallet_modal": {
 		"title": "Bảo vệ ví của bạn",
@@ -1635,5 +1790,13 @@
 	"media_player": {
 		"loading": "Đang tải...",
 		"not_found": "Không tìm thấy phương tiện nghe nhìn"
+<<<<<<< HEAD
+=======
+	},
+	"secret_phrase_video_subtitle": {
+		"title": "VI VN CC",
+		"language": "vi-vn",
+		"uri": "https://github.com/MetaMask/metamask-mobile/blob/feature/secret_recovery_translations/app/videos/subtitles/subtitles-vi-vn.vtt"
+>>>>>>> upstream/develop
 	}
 }

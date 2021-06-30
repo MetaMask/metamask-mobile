@@ -1355,7 +1355,15 @@
 		"wyre_fees_outside_us_fee": "Cuota de 3.9 % + $0.30 + Gas (mínimo de $5)",
 		"wyre_limits_outside_us": "Limit $1,000 weekly, $7,500 yearly",
 		"wyre_estimated": "{{amount}} {{currency}} estimado",
+<<<<<<< HEAD
 		"wyre_modal_text": "El pago con Apple Pay, con la tecnología de Wyre, se admite en Estados Unidos , salvo en CT, HI, NC, NH, NY, VA y VT.",
+=======
+		"wyre_minutes": "1 a 2 minutos",
+		"wyre_max": "Máx. $450 semanal",
+		"wyre_requires_debit_card": "Requiere tarjeta de débito",
+		"wyre_us_only": "🇺🇸 Solo en EE. UU.",
+		"wyre_modal_text": "El pago con Apple Pay, con la tecnología de Wyre, se admite en Estados Unidos 🇺🇸, salvo en CT, HI, NC, NH, NY, VA y VT.",
+>>>>>>> upstream/develop
 		"wyre_modal_terms_of_service_apply": "Aplican los términos de servicio de Wyre.",
 		"wyre_minimum_deposit": "El depósito mínimo es {{amount}}",
 		"wyre_maximum_deposit": "El depósito máximo es {{amount}}",
@@ -1635,5 +1643,13 @@
 	"media_player": {
 		"loading": "Cargando…",
 		"not_found": "No se encontró medio"
+<<<<<<< HEAD
+=======
+	},
+	"secret_phrase_video_subtitle": {
+		"title": "ES CC",
+		"language": "es",
+		"uri": "https://github.com/MetaMask/metamask-mobile/blob/feature/secret_recovery_translations/app/videos/subtitles/subtitles-es.vtt"
+>>>>>>> upstream/develop
 	}
 }
