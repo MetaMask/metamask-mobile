@@ -117,12 +117,11 @@ const EditGasFee1559 = ({
 	timeEstimateColor
 }) => {
 	const [showRangeInfoModal, setShowRangeInfoModal] = useState(false);
-	const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
+	const [showAdvancedOptions, setShowAdvancedOptions] = useState(!selected);
 	const [maxPriorityFeeError, setMaxPriorityFeeError] = useState(null);
 	const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
 	const [warning, setWarning] = useState(null);
 	const [selectedOption, setSelectedOption] = useState(selected);
-	const [tempGasFee, setTempGasFee] = useState(gasFee);
 
 	const toggleRangeInfoModal = useCallback(() => {
 		setShowRangeInfoModal(showRangeInfoModal => !showRangeInfoModal);
@@ -146,10 +145,10 @@ const EditGasFee1559 = ({
 		onSave(selectedOption);
 	};
 
-	const calculateGas = useCallback(
-		gas => {
-			setTempGasFee(gas);
-			onChange(gas);
+	const changeGas = useCallback(
+		(gas, selectedOption) => {
+			setSelectedOption(selectedOption);
+			onChange(gas, selectedOption);
 		},
 		[onChange]
 	);
@@ -160,40 +159,35 @@ const EditGasFee1559 = ({
 				return setMaxPriorityFeeError(strings('edit_gas_fee_eip1559.priority_fee_at_least_0_error'));
 			}
 			setMaxPriorityFeeError(null);
-			const newGas = { ...tempGasFee, suggestedMaxPriorityFeePerGas: value };
-			setTempGasFee(newGas);
-			setSelectedOption(null);
-			calculateGas(newGas);
+			const newGas = { ...gasFee, suggestedMaxPriorityFeePerGas: value };
+
+			changeGas(newGas, null);
 		},
-		[calculateGas, tempGasFee]
+		[changeGas, gasFee]
 	);
 
 	const changedFeePerGas = useCallback(
 		value => {
-			const newGas = { ...tempGasFee, suggestedMaxFeePerGas: value };
-			setTempGasFee(newGas);
-			setSelectedOption(null);
-			calculateGas(newGas);
+			const newGas = { ...gasFee, suggestedMaxFeePerGas: value };
+			changeGas(newGas, null);
 		},
-		[calculateGas, tempGasFee]
+		[changeGas, gasFee]
 	);
 
 	const changedGasLimit = useCallback(
 		value => {
-			const newGas = { ...tempGasFee, suggestedGasLimit: value };
-			setTempGasFee(newGas);
-			setSelectedOption(null);
-			calculateGas(newGas);
+			const newGas = { ...gasFee, suggestedGasLimit: value };
+			changeGas(newGas, null);
 		},
-		[calculateGas, tempGasFee]
+		[changeGas, gasFee]
 	);
 
 	const selectOption = useCallback(
 		option => {
 			setSelectedOption(option);
-			calculateGas(gasOptions[option]);
+			changeGas({ ...gasOptions[option] }, option);
 		},
-		[calculateGas, gasOptions]
+		[changeGas, gasOptions]
 	);
 
 	const isMainnet = isMainnetByChainId(chainId);
@@ -341,7 +335,7 @@ const EditGasFee1559 = ({
 													</TouchableOpacity>
 												</View>
 											}
-											value={tempGasFee.suggestedGasLimit}
+											value={gasFee.suggestedGasLimit}
 											onChangeValue={changedGasLimit}
 											label={'Gas limit'}
 											increment={1000}
@@ -375,7 +369,7 @@ const EditGasFee1559 = ({
 													{gasOptions?.medium?.suggestedMaxPriorityFeePerGas} GWEI
 												</Text>
 											}
-											value={tempGasFee.suggestedMaxPriorityFeePerGas}
+											value={gasFee.suggestedMaxPriorityFeePerGas}
 											label={'Gas limit'}
 											unit={'GWEI'}
 											increment={1.0}
@@ -412,7 +406,7 @@ const EditGasFee1559 = ({
 													{gasOptions?.medium?.suggestedMaxFeePerGas} GWEI
 												</Text>
 											}
-											value={tempGasFee.suggestedMaxFeePerGas}
+											value={gasFee.suggestedMaxFeePerGas}
 											label={'Gas limit'}
 											unit={'GWEI'}
 											increment={10}

@@ -382,7 +382,7 @@ class Confirm extends PureComponent {
 		EIP1559TransactionData: {},
 		EIP1559TransactionDataTemp: {},
 		stopUpdateGas: false,
-		gasChanged: false
+		advancedGasInserted: false
 	};
 
 	setNetworkNonce = async () => {
@@ -476,7 +476,7 @@ class Confirm extends PureComponent {
 			(prevProps.gasFeeEstimates !== this.props.gasFeeEstimates ||
 				gas !== prevProps?.transactionState?.transaction?.gas)
 		) {
-			if (!this.state.stopUpdateGas && !this.state.gasChanged) {
+			if (!this.state.stopUpdateGas && !this.state.advancedGasInserted) {
 				const EIP1559TransactionData = this.parseTransactionDataEIP1559({
 					...this.props.gasFeeEstimates[this.state.gasSelected],
 					suggestedGasLimit: fromWei(gas, 'wei')
@@ -504,9 +504,7 @@ class Confirm extends PureComponent {
 
 	onModeChange = mode => {
 		this.setState({ mode });
-		if (mode === EDIT_EIP1559) {
-			this.setState({ stopUpdateGas: true });
-		} else if (mode === EDIT) {
+		if (mode === EDIT) {
 			InteractionManager.runAfterInteractions(() => {
 				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SEND_FLOW_ADJUSTS_TRANSACTION_FEE);
 			});
@@ -938,7 +936,8 @@ class Confirm extends PureComponent {
 		this.setState({
 			EIP1559TransactionData: { ...this.state.EIP1559TransactionDataTemp },
 			gasSelected,
-			gasChanged: true
+			advancedGasInserted: gasSelected ? false : true,
+			stopUpdateGas: false
 		});
 		this.review();
 	};
@@ -1073,8 +1072,12 @@ class Confirm extends PureComponent {
 		});
 	};
 
-	calculateTempGasFee = gas => {
-		this.setState({ EIP1559TransactionDataTemp: this.parseTransactionDataEIP1559(gas) });
+	calculateTempGasFee = (gas, selected) => {
+		const { EIP1559TransactionData } = this.state;
+		if (selected && gas) {
+			gas.suggestedGasLimit = EIP1559TransactionData.suggestedGasLimit;
+		}
+		this.setState({ EIP1559TransactionDataTemp: this.parseTransactionDataEIP1559(gas), stopUpdateGas: !selected });
 	};
 
 	render = () => {
