@@ -27,7 +27,7 @@
     "@lavamoat/allow-scripts": "^1.0.5",
     "@metamask/auto-changelog": "^2.3.0",
     "@metamask/eslint-config": "^7.0.1",
-    "@metamask/eslint-config-jest": "^6.0.0",
+    "@metamask/eslint-config-jest": "^7.0.0",
     "@metamask/eslint-config-nodejs": "^7.0.1",
     "@metamask/eslint-config-typescript": "^7.0.1",
     "@types/jest": "^26.0.13",

@@ -520,10 +520,10 @@
     semver "^7.3.5"
     yargs "^17.0.1"
 
-"@metamask/eslint-config-jest@^6.0.0":
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/eslint-config-jest/-/eslint-config-jest-6.0.0.tgz#9e10cfbca31236afd7be2058be70365084e540d6"
-  integrity sha512-C0sXmyp5Hnp5IHVYXaW2TJAo/E9UiS192CwyUcw2qU1Ck7lj4z/wHdgROaH5F6rInqBO3afkDaqnArqvoxvO5Q==
+"@metamask/eslint-config-jest@^7.0.0":
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/eslint-config-jest/-/eslint-config-jest-7.0.0.tgz#81612aaf5307c3d65bb43366000233cd0b6e9db4"
+  integrity sha512-3IBJ985sC7Xfo8NlaUzNbfFDvt0+8YDvbC0yxDoRjPvi/o+bu7O/0SRIq0TDTOTfBZ8aMsxopq5uxVmU6ed21g==
 
 "@metamask/eslint-config-nodejs@^7.0.1":
   version "7.0.1"
