@@ -51,6 +51,7 @@ import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import GasEducationCarousel from '../../Views/GasEducationCarousel';
 import CollectiblesDetails from '../../UI/CollectibleModal';
+import OptinMetrics from '../../UI/OptinMetrics';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -299,6 +300,7 @@ const SetPasswordFlow = () => (
 			component={ManualBackupStep3}
 			options={ManualBackupStep3.navigationOptions}
 		/>
+		<Stack.Screen name="OptinMetrics" component={OptinMetrics} options={OptinMetrics.navigationOptions} />
 	</Stack.Navigator>
 );
 

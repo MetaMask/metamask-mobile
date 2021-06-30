@@ -134,10 +134,10 @@ class OptinMetrics extends PureComponent {
 		// Get onboarding wizard state
 		const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
 		if (onboardingWizard) {
-			this.props.navigation.navigate('HomeNav');
+			this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
 		} else {
 			this.props.setOnboardingWizardStep(1);
-			this.props.navigation.navigate('HomeNav', { screen: 'WalletView' });
+			this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
 		}
 	};
 

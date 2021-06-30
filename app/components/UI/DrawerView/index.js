@@ -533,7 +533,10 @@ class DrawerView extends PureComponent {
 		await SecureKeychain.resetGenericPassword();
 		await KeyringController.setLocked();
 		if (!passwordSet) {
-			this.props.navigation.navigate('OnboardingRootNav', { screen: 'Onboarding' });
+			this.props.navigation.navigate('OnboardingRootNav', {
+				screen: 'OnboardingNav',
+				params: { screen: 'Onboarding' }
+			});
 		} else {
 			this.props.navigation.navigate('Login');
 		}
