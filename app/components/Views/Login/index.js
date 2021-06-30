@@ -358,7 +358,10 @@ class Login extends PureComponent {
 	deleteExistingUser = async () => {
 		try {
 			await AsyncStorage.removeItem(EXISTING_USER);
-			this.props.navigation.navigate('OnboardingRootNav', { screen: 'Onboarding', params: { delete: true } });
+			this.props.navigation.navigate('OnboardingRootNav', {
+				screen: 'OnboardingNav',
+				params: { screen: 'Onboarding', params: { delete: true } }
+			});
 		} catch (error) {
 			Logger.log(error, `Failed to remove key: ${EXISTING_USER} from AsyncStorage`);
 		}
