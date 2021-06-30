@@ -1,6 +1,6 @@
 import { toDateFormat } from './date';
 
-describe('Device', () => {
+describe('Date', () => {
 	describe('toDateFormat', () => {
 		it('should format date correctly', () => {
 			expect(toDateFormat(1592877684000)).toBe('Jun 22 at 10:01 pm');
