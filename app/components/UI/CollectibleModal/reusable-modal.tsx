@@ -116,7 +116,8 @@ const ReusableModal = forwardRef<Actions, Props>((props, ref) => {
 			},
 			modal: {
 				transform: [{ translateY } as any],
-				paddingBottom: safeAreaInsets.bottom,
+				// TODO: This could be used to handle universal safe area bottom padding
+				// paddingBottom: safeAreaInsets.bottom
 				flex: 1
 			}
 		};
