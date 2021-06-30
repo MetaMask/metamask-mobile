@@ -119,9 +119,6 @@ const CollectibleOverview = ({
 	removeFavoriteCollectible,
 	isInFavorites,
 	openLink,
-	onHide,
-	onTouchStart,
-	onTouchEnd,
 	onTranslation
 }) => {
 	const [headerHeight, setHeaderHeight] = useState(0);
@@ -243,12 +240,9 @@ const CollectibleOverview = ({
 			if (toValue !== position) {
 				onTranslation(toValue !== 0);
 				animateViewPosition(toValue, ANIMATION_VELOCITY);
-			} else if (position !== 0) {
-				// if the modal is on bottom position we want to hide everyhing
-				onHide();
 			}
 		},
-		[translationHeight, position, onTranslation, animateViewPosition, onHide]
+		[translationHeight, position, onTranslation, animateViewPosition]
 	);
 
 	const gestureHandlerWrapper = child => (
@@ -263,52 +257,46 @@ const CollectibleOverview = ({
 		}
 	}, [headerHeight, wrapperHeight, translationHeight, animateViewPosition]);
 
-	return (
+	return gestureHandlerWrapper(
 		<Animated.View
 			onLayout={onWrapperLayout}
-			onTouchStart={onTouchStart}
-			onTouchEnd={onTouchEnd}
-			onTouchCancel={onTouchEnd}
 			style={[styles.wrapper, { transform: [{ translateY: positionAnimated }] }]}
 		>
-			{gestureHandlerWrapper(
-				<View style={styles.titleWrapper}>
-					<View style={styles.dragger} />
-				</View>
-			)}
+			<View style={styles.titleWrapper}>
+				<View style={styles.dragger} />
+			</View>
+
 			<SafeAreaView>
 				<View onLayout={onHeaderLayout}>
-					{gestureHandlerWrapper(
-						<View style={styles.generalContainer}>
-							{collectible?.creator && (
-								<View style={styles.userContainer}>
-									<RemoteImage
-										fadeIn
-										placeholderStyle={{ backgroundColor: colors.white }}
-										source={{ uri: collectible.creator.profile_img_url }}
-										style={styles.userImage}
-									/>
-									<View numberOfLines={1} style={styles.userInfoContainer}>
-										{collectible.creator.user?.username && (
-											<Text black bold noMargin big={!IS_SMALL_DEVICE}>
-												{collectible.creator.user.username}
-											</Text>
-										)}
-										<Text numberOfLines={1} black noMargin small>
-											{collectible.contractName}
+					<View style={styles.generalContainer}>
+						{collectible?.creator && (
+							<View style={styles.userContainer}>
+								<RemoteImage
+									fadeIn
+									placeholderStyle={{ backgroundColor: colors.white }}
+									source={{ uri: collectible.creator.profile_img_url }}
+									style={styles.userImage}
+								/>
+								<View numberOfLines={1} style={styles.userInfoContainer}>
+									{collectible.creator.user?.username && (
+										<Text black bold noMargin big={!IS_SMALL_DEVICE}>
+											{collectible.creator.user.username}
 										</Text>
-									</View>
+									)}
+									<Text numberOfLines={1} black noMargin small>
+										{collectible.contractName}
+									</Text>
 								</View>
-							)}
-							<Text numberOfLines={2} bold primary noMargin style={styles.name}>
-								{collectible.name}
-							</Text>
-							<Text primary noMargin big>
-								{strings('unit.token_id')}
-								{collectible.tokenId}
-							</Text>
-						</View>
-					)}
+							</View>
+						)}
+						<Text numberOfLines={2} bold primary noMargin style={styles.name}>
+							{collectible.name}
+						</Text>
+						<Text primary noMargin big>
+							{strings('unit.token_id')}
+							{collectible.tokenId}
+						</Text>
+					</View>
 
 					<View style={[styles.generalContainer, styles.buttonContainer]}>
 						{tradable && (
@@ -347,13 +335,12 @@ const CollectibleOverview = ({
 				{collectible?.description ? (
 					<View style={styles.information}>
 						<View style={[styles.generalContainer, styles.row]}>
-							{gestureHandlerWrapper(
-								<View>
-									<Text noMargin black bold big={!IS_SMALL_DEVICE}>
-										{strings('collectible.collectible_description')}
-									</Text>
-								</View>
-							)}
+							<View>
+								<Text noMargin black bold big={!IS_SMALL_DEVICE}>
+									{strings('collectible.collectible_description')}
+								</Text>
+							</View>
+
 							{renderScrollableDescription ? (
 								<ScrollView bounces={false} style={[styles.description, styles.scrollableDescription]}>
 									<TouchableWithoutFeedback>
@@ -363,20 +350,18 @@ const CollectibleOverview = ({
 									</TouchableWithoutFeedback>
 								</ScrollView>
 							) : (
-								gestureHandlerWrapper(
-									<View style={styles.description}>
-										<Text noMargin black style={styles.collectibleDescription}>
-											{collectible.description}
-										</Text>
-									</View>
-								)
+								<View style={styles.description}>
+									<Text noMargin black style={styles.collectibleDescription}>
+										{collectible.description}
+									</Text>
+								</View>
 							)}
 						</View>
 					</View>
 				) : (
 					<View />
 				)}
-				{gestureHandlerWrapper(<View style={styles.information}>{renderCollectibleInfo()}</View>)}
+				{<View style={styles.information}>{renderCollectibleInfo()}</View>}
 			</SafeAreaView>
 		</Animated.View>
 	);
@@ -420,21 +405,9 @@ CollectibleOverview.propTypes = {
 	 */
 	openLink: PropTypes.func.isRequired,
 	/**
-	 * View on touch start callback
-	 */
-	onTouchStart: PropTypes.func.isRequired,
-	/**
-	 * View onn touch end callback
-	 */
-	onTouchEnd: PropTypes.func.isRequired,
-	/**
 	 * callback to trigger when modal is being animated
 	 */
-	onTranslation: PropTypes.func,
-	/**
-	 * callback to trigger when modal is dragged down in bottom position
-	 */
-	onHide: PropTypes.func
+	onTranslation: PropTypes.func
 };
 
 const mapStateToProps = (state, props) => {
