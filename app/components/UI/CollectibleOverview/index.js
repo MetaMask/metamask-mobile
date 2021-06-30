@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { StyleSheet, View, Easing, Animated, SafeAreaView, ScrollView, TouchableWithoutFeedback } from 'react-native';
+import { StyleSheet, View, Easing, Animated, SafeAreaView, TouchableWithoutFeedback } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { baseStyles, colors } from '../../../styles/common';
@@ -17,7 +17,7 @@ import etherscanLink from '@metamask/etherscan-link';
 import { addFavoriteCollectible, removeFavoriteCollectible } from '../../../actions/collectibles';
 import { favoritesCollectiblesObjectSelector, isCollectibleInFavorites } from '../../../reducers/collectibles';
 import Share from 'react-native-share';
-import { PanGestureHandler, gestureHandlerRootHOC } from 'react-native-gesture-handler';
+import { PanGestureHandler, gestureHandlerRootHOC, ScrollView } from 'react-native-gesture-handler';
 import AppConstants from '../../../core/AppConstants';
 
 const ANIMATION_VELOCITY = 250;
@@ -125,6 +125,7 @@ const CollectibleOverview = ({
 	const [wrapperHeight, setWrapperHeight] = useState(0);
 	const [position, setPosition] = useState(0);
 	const positionAnimated = useRef(new Animated.Value(0)).current;
+	const scrollViewRef = useRef(null);
 
 	const translationHeight = useMemo(() => wrapperHeight - headerHeight - ANIMATION_OFFSET, [
 		headerHeight,
@@ -245,10 +246,18 @@ const CollectibleOverview = ({
 		[translationHeight, position, onTranslation, animateViewPosition]
 	);
 
-	const gestureHandlerWrapper = child => (
-		<PanGestureHandler activeOffsetY={[0, 0]} activeOffsetX={[0, 0]} onGestureEvent={handleGesture}>
-			{child}
-		</PanGestureHandler>
+	const gestureHandlerWrapper = useCallback(
+		child => (
+			<PanGestureHandler
+				waitFor={scrollViewRef}
+				activeOffsetY={[0, 0]}
+				activeOffsetX={[0, 0]}
+				onGestureEvent={handleGesture}
+			>
+				{child}
+			</PanGestureHandler>
+		),
+		[handleGesture, scrollViewRef]
 	);
 
 	useEffect(() => {
@@ -342,7 +351,11 @@ const CollectibleOverview = ({
 							</View>
 
 							{renderScrollableDescription ? (
-								<ScrollView bounces={false} style={[styles.description, styles.scrollableDescription]}>
+								<ScrollView
+									ref={scrollViewRef}
+									bounces={false}
+									style={[styles.description, styles.scrollableDescription]}
+								>
 									<TouchableWithoutFeedback>
 										<Text noMargin black style={styles.collectibleDescription}>
 											{collectible.description}
