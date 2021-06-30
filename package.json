@@ -29,7 +29,7 @@
     "@metamask/eslint-config": "^7.0.1",
     "@metamask/eslint-config-jest": "^6.0.0",
     "@metamask/eslint-config-nodejs": "^7.0.1",
-    "@metamask/eslint-config-typescript": "^6.0.0",
+    "@metamask/eslint-config-typescript": "^7.0.1",
     "@types/jest": "^26.0.13",
     "@typescript-eslint/eslint-plugin": "^4.21.0",
     "@typescript-eslint/parser": "^4.21.0",

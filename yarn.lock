@@ -530,10 +530,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/eslint-config-nodejs/-/eslint-config-nodejs-7.0.1.tgz#7d3214b2c8eccfe2dbc9156b484456dce2dca91c"
   integrity sha512-V9C1jYuLnhZOhW9dAKB7zMDmDKS1r907rYirUMcoU4mi8ggPTP6JqT87EAEX9bsA2ZpeTYXUXf5bkfLM+BTGyA==
 
-"@metamask/eslint-config-typescript@^6.0.0":
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/eslint-config-typescript/-/eslint-config-typescript-6.0.0.tgz#c7bee90a48ed3c49f9f786c53dcdfea4cfd2a6db"
-  integrity sha512-pfchVgPz03jHvBMu+/wRNVVf4gIIgjZ+CtfsoZF6PkxzD3h0T5e+7aGcgDET7SlkOVnAySMQxr39lSnYXHQPvQ==
+"@metamask/eslint-config-typescript@^7.0.1":
+  version "7.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/eslint-config-typescript/-/eslint-config-typescript-7.0.1.tgz#e013f7f0505741b9321cab21351136f651abbba6"
+  integrity sha512-nqWivz9XHjiHAE2Aqf/y+p8R3xDoN9ScX2i97vtTxNKjAqkzmUwAd8lEHEibRfPOYaRBQJ0x85wrof++PpLfZg==
 
 "@metamask/eslint-config@^7.0.1":
   version "7.0.1"
