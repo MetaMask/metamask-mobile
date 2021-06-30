@@ -1,7 +1,15 @@
 import { toDateFormat } from './date';
 
+const TZ = 'America/Toronto';
+
 describe('Date', () => {
 	describe('toDateFormat', () => {
+		it('should be America/Toronto timeZone', () => {
+			// we're explicitly setting TZ in `jest.config.js`
+			// this test is to verify that
+			// if it's not set to 'America/Toronto' the following test case below will fail
+			expect(Intl.DateTimeFormat().resolvedOptions().timeZone).toBe(TZ);
+		});
 		it('should format date correctly', () => {
 			expect(toDateFormat(1592877684000)).toBe('Jun 22 at 10:01 pm');
 			expect(toDateFormat(1592877340000)).toBe('Jun 22 at 9:55 pm');
