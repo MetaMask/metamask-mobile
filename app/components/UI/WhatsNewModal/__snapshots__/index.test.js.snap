@@ -26,7 +26,7 @@ exports[`WhatsNewModal should render correctly 1`] = `
     <ForwardRef(BaseNavigationContainer)>
       <WhatsNewModal
         navigation={Object {}}
-        route={Object {}}
+        routes={Object {}}
       />
     </ForwardRef(BaseNavigationContainer)>
   </ThemeProvider>
