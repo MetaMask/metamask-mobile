@@ -72,7 +72,26 @@ exports[`Coachmark should render correctly 1`] = `
         title
       </Text>
     </View>
-    content
+    <Text
+      black={false}
+      blue={false}
+      bold={false}
+      centered={false}
+      disclaimer={false}
+      green={false}
+      link={false}
+      modal={false}
+      primary={false}
+      red={false}
+      reset={false}
+      right={false}
+      small={false}
+      strikethrough={false}
+      underline={false}
+      upper={false}
+    >
+      content
+    </Text>
     <View
       style={
         Object {

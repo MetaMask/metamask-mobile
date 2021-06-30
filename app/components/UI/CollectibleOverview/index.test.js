@@ -15,7 +15,7 @@ describe('CollectibleOverview', () => {
 				backgroundState: {
 					NetworkController: {
 						provider: {
-							chainId: 1
+							chainId: '1'
 						}
 					},
 					PreferencesController: {

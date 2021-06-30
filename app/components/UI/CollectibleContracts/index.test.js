@@ -15,7 +15,7 @@ describe('CollectibleContracts', () => {
 				backgroundState: {
 					NetworkController: {
 						provider: {
-							chainId: 1
+							chainId: '1'
 						}
 					},
 					PreferencesController: {
@@ -32,7 +32,7 @@ describe('CollectibleContracts', () => {
 								totalSupply: 10
 							}
 						],
-						collectibles: {}
+						collectibles: []
 					}
 				}
 			}
