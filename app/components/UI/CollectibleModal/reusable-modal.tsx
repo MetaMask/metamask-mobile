@@ -1,5 +1,7 @@
-import React, { useEffect, ReactNode, forwardRef, useImperativeHandle, useMemo, useCallback } from 'react';
+import React, { useEffect, ReactNode, forwardRef, useImperativeHandle, useMemo, useCallback, useRef } from 'react';
 import { View, TouchableOpacity, StyleSheet, ViewStyle, Dimensions, StyleProp } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import Animated, {
 	call,
 	eq,
@@ -13,20 +15,20 @@ import Animated, {
 	useCode,
 	set
 } from 'react-native-reanimated';
-import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { onGestureEvent, withSpring, clamp, timing, spring } from 'react-native-redash';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const screenHeight = Dimensions.get('window').height;
 
+type DismissModal = () => void;
+
 type Actions = {
-	dismissActionSheet: () => void;
+	dismissModal: (callback?: DismissModal) => void;
 };
 
 type Props = {
-	ref?: React.Ref<any>;
+	ref?: React.Ref<Actions>;
 	style?: StyleProp<ViewStyle>;
 	children?: ReactNode;
-	onDismiss?: () => void;
+	onDismiss?: DismissModal;
 };
 
 const ReusableModal = forwardRef<Actions, Props>((props, ref) => {
@@ -34,6 +36,7 @@ const ReusableModal = forwardRef<Actions, Props>((props, ref) => {
 	const topOffset = 0;
 	const bottomOffset = screenHeight;
 	const safeAreaInsets = useSafeAreaInsets();
+	const trigger = useRef<DismissModal>();
 
 	// Animation config
 	const animationConfig: Omit<Animated.SpringConfig, 'toValue'> = {
@@ -44,6 +47,12 @@ const ReusableModal = forwardRef<Actions, Props>((props, ref) => {
 		stiffness: 800,
 		mass: 6
 	};
+
+	// Animation is finished, process end state
+	const triggerDismissed = useCallback(() => {
+		onDismiss && onDismiss();
+		trigger.current && trigger.current();
+	}, [onDismiss]);
 
 	// Set up gesture handler
 	const offset = useMemo(() => new Value(bottomOffset), []);
@@ -60,7 +69,7 @@ const ReusableModal = forwardRef<Actions, Props>((props, ref) => {
 						const offset = val[0];
 						if (offset == bottomOffset) {
 							// TODO: Use optional chaining once prettier is fixed
-							onDismiss && onDismiss();
+							triggerDismissed();
 						}
 					},
 					state,
@@ -73,17 +82,17 @@ const ReusableModal = forwardRef<Actions, Props>((props, ref) => {
 				topOffset,
 				bottomOffset
 			),
-		[bottomOffset, topOffset, translationY, velocityY, onDismiss]
+		[bottomOffset, topOffset, translationY, velocityY, triggerDismissed]
 	);
 
 	// Programatically trigger hiding and showing
-	const triggerShowActionSheet: Animated.Value<0 | 1> = useMemo(() => new Value(0), []);
-	const triggerDismissActionSheet: Animated.Value<0 | 1> = useMemo(() => new Value(0), []);
+	const triggerShowModal: Animated.Value<0 | 1> = useMemo(() => new Value(0), []);
+	const triggerDismissModal: Animated.Value<0 | 1> = useMemo(() => new Value(0), []);
 
 	// Dismiss overlay
 	const dismissOverlay = useCallback(() => {
-		triggerDismissActionSheet.setValue(1);
-	}, [triggerDismissActionSheet]);
+		triggerDismissModal.setValue(1);
+	}, [triggerDismissModal]);
 
 	// Define animated styles
 	const animatedStyles: StyleSheet.NamedStyles<any> = useMemo(() => {
@@ -118,7 +127,7 @@ const ReusableModal = forwardRef<Actions, Props>((props, ref) => {
 		() =>
 			block([
 				// Animate IN overlay
-				cond(eq(triggerShowActionSheet, new Value(1)), [
+				cond(eq(triggerShowModal, new Value(1)), [
 					set(
 						offset,
 						spring({
@@ -129,10 +138,10 @@ const ReusableModal = forwardRef<Actions, Props>((props, ref) => {
 						})
 					),
 					// Reset value that toggles animating in overlay
-					cond(not(clockRunning(clock)), block([set(triggerShowActionSheet, 0)]))
+					cond(not(clockRunning(clock)), block([set(triggerShowModal, 0)]))
 				]),
 				// Animate OUT overlay
-				cond(eq(triggerDismissActionSheet, new Value(1)), [
+				cond(eq(triggerDismissModal, new Value(1)), [
 					set(
 						offset,
 						timing({
@@ -146,26 +155,24 @@ const ReusableModal = forwardRef<Actions, Props>((props, ref) => {
 					// Dismiss overlay after animating out
 					cond(
 						not(clockRunning(clock)),
-						block([
-							call([], () => {
-								onDismiss?.();
-							}),
-							set(triggerDismissActionSheet, 0)
-						])
+						block([call([], () => triggerDismissed()), set(triggerDismissModal, 0)])
 					)
 				])
 			]),
 		[]
 	);
 
-	// Show action sheet
+	// Show modal
 	useEffect(() => {
-		triggerShowActionSheet.setValue(1);
+		triggerShowModal.setValue(1);
 	}, []);
 
 	// Expose actions for external components
 	useImperativeHandle(ref, () => ({
-		dismissActionSheet: dismissOverlay
+		dismissModal: callback => {
+			trigger.current = callback;
+			dismissOverlay();
+		}
 	}));
 
 	const renderOverlay = useCallback(() => {

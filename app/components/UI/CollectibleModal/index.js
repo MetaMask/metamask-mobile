@@ -37,17 +37,13 @@ const CollectibleModal = props => {
 	const { route, navigation, newAssetTransaction } = props;
 	const { contractName, collectible } = route.params;
 
-	const onHide = useCallback(() => {
-		console.log('TODO: Replace or remove');
-	}, []);
 	const [mediaZIndex, setMediaZIndex] = useState(20);
 	const [overviewZIndex, setOverviewZIndex] = useState(10);
 
 	const onSend = useCallback(async () => {
-		onHide();
 		newAssetTransaction({ contractName, ...collectible });
-		navigation.navigate('SendFlowView');
-	}, [contractName, collectible, newAssetTransaction, onHide, navigation]);
+		navigation.replace('SendFlowView');
+	}, [contractName, collectible, newAssetTransaction, navigation]);
 
 	const isTradable = useCallback(() => {
 		const lowerAddress = collectible.address.toLowerCase();
@@ -59,10 +55,12 @@ const CollectibleModal = props => {
 		return tradable;
 	}, [collectible.address]);
 
-	const openLink = url => {
-		onHide();
-		navigation.navigate('Webview', { screen: 'SimpleWebview', params: { url } });
-	};
+	const openLink = useCallback(
+		url => {
+			navigation.replace('Webview', { screen: 'SimpleWebview', params: { url } });
+		},
+		[navigation]
+	);
 
 	/**
 	 * Method that moves the collectible media up or down in the screen depending on
@@ -89,7 +87,7 @@ const CollectibleModal = props => {
 			<>
 				<View style={[styles.collectibleMediaWrapper, { zIndex: mediaZIndex, elevation: mediaZIndex }]}>
 					<CollectibleMedia
-						onClose={() => modalRef.current.dismissActionSheet()}
+						onClose={() => modalRef.current.dismissModal()}
 						cover
 						renderAnimation
 						collectible={collectible}
