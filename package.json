@@ -2,19 +2,12 @@
   "name": "@metamask/module-template",
   "version": "0.0.0",
   "description": "The MetaMask Node module template.",
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org/",
-    "access": "public"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/MetaMask/metamask-module-template.git"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "engines": {
-    "node": ">=12.0.0"
-  },
   "files": [
     "dist/"
   ],
@@ -48,9 +41,17 @@
     "eslint-plugin-prettier": "^3.3.1",
     "jest": "^26.4.2",
     "prettier": "^2.2.1",
+    "prettier-plugin-packagejson": "^2.2.11",
     "rimraf": "^3.0.2",
     "ts-jest": "^26.3.0",
     "typescript": "^4.2.4"
+  },
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "lavamoat": {
     "allowScripts": {
