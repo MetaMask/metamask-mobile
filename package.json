@@ -33,7 +33,7 @@
     "release:android": "./scripts/build.sh android release && open android/app/build/outputs/apk/release/",
     "release:ios": "./scripts/build.sh ios release",
     "test": "yarn test:unit && yarn test:e2e",
-    "test:unit": "jest -u app/components/UI/WhatsNewModal/index.test.js",
+    "test:unit": "jest ./app/",
     "test:unit:update": "time jest -u ./app/",
     "test:e2e": "yarn test:e2e:ios && yarn test:e2e:android",
     "test:e2e:ios": "detox build -c ios.sim.release -l verbose log && detox test -c ios.sim.release -l verbose log",
