@@ -119,7 +119,10 @@ class LockScreen extends PureComponent {
 			} else if (this.props.passwordSet) {
 				this.props.navigation.navigate('Login');
 			} else {
-				this.props.navigation.navigate('OnboardingRootNav', { screen: 'Onboarding' });
+				this.props.navigation.navigate('OnboardingRootNav', {
+					screen: 'OnboardingNav',
+					params: { screen: 'Onboarding' }
+				});
 			}
 		} catch (error) {
 			if (this.unlockAttempts <= 3) {
