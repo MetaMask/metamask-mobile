@@ -335,6 +335,7 @@ const Main = props => {
 				} = transactionMeta;
 				const { AssetsContractController } = Engine.context;
 				transactionMeta.transaction.gas = hexToBN(gas);
+				// TODO: set this conditionally based on eip1559 support
 				transactionMeta.transaction.gasPrice = hexToBN(gasPrice);
 
 				if (
