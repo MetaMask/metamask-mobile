@@ -25,7 +25,8 @@ import {
 	balanceToFiatNumber,
 	renderFiatAddition,
 	isDecimal,
-	toBN
+	toBN,
+	fromWei
 } from '../../../../util/number';
 
 import { getTicker, decodeTransferData, getNormalizedTxState, parseTransaction } from '../../../../util/transactions';
@@ -377,8 +378,11 @@ class Confirm extends PureComponent {
 		warningModalVisible: false,
 		mode: REVIEW,
 		over: false,
+		gasSelected: 'medium',
 		EIP1559TransactionData: {},
-		EIP1559TransactionDataTemp: {}
+		EIP1559TransactionDataTemp: {},
+		stopUpdateGas: false,
+		gasChanged: false
 	};
 
 	setNetworkNonce = async () => {
@@ -451,6 +455,7 @@ class Confirm extends PureComponent {
 			contractBalances,
 			selectedAsset
 		} = this.props;
+
 		const { errorMessage, fromSelectedAddress } = this.state;
 		const valueChanged = prevProps.transactionState.transaction.value !== value;
 		const fromAddressChanged = prevState.fromSelectedAddress !== fromSelectedAddress;
@@ -465,10 +470,17 @@ class Confirm extends PureComponent {
 			this.scrollView.scrollToEnd({ animated: true });
 		}
 
-		if (this.props.gasFeeEstimates && gas && prevProps.gasFeeEstimates !== this.props.gasFeeEstimates) {
-			console.log('UPDATE', this.props.gasFeeEstimates);
-			if (!this.state.stopUpdateGas) {
-				const EIP1559TransactionData = this.parseTransactionDataEIP1559(this.props.gasFeeEstimates.medium);
+		if (
+			this.props.gasFeeEstimates &&
+			gas &&
+			(prevProps.gasFeeEstimates !== this.props.gasFeeEstimates ||
+				gas !== prevProps?.transactionState?.transaction?.gas)
+		) {
+			if (!this.state.stopUpdateGas && !this.state.gasChanged) {
+				const EIP1559TransactionData = this.parseTransactionDataEIP1559({
+					...this.props.gasFeeEstimates[this.state.gasSelected],
+					suggestedGasLimit: fromWei(gas, 'wei')
+				});
 				this.setState({
 					gasEstimationReady: true,
 					EIP1559TransactionData,
@@ -918,18 +930,22 @@ class Confirm extends PureComponent {
 	};
 
 	cancelGasEdition = () => {
-		this.setState({ EIP1559TransactionDataTemp: { ...this.state.EIP1559TransactionData } });
+		this.setState({ EIP1559TransactionDataTemp: { ...this.state.EIP1559TransactionData }, stopUpdateGas: false });
 		this.review();
 	};
 
-	saveGasEdition = () => {
-		this.setState({ EIP1559TransactionData: { ...this.state.EIP1559TransactionDataTemp } });
+	saveGasEdition = gasSelected => {
+		this.setState({
+			EIP1559TransactionData: { ...this.state.EIP1559TransactionDataTemp },
+			gasSelected,
+			gasChanged: true
+		});
 		this.review();
 	};
 
 	renderCustomGasModalEIP1559 = () => {
 		const { primaryCurrency, chainId } = this.props;
-		const { EIP1559TransactionDataTemp, EIP1559TransactionData } = this.state;
+		const { EIP1559TransactionDataTemp } = this.state;
 
 		return (
 			<Modal
@@ -948,8 +964,8 @@ class Confirm extends PureComponent {
 			>
 				<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
 					<EditGasFee1559
-						selected={'medium'}
-						gasFee={this.props.gasFeeEstimates[selected]}
+						selected={this.state.gasSelected}
+						gasFee={EIP1559TransactionDataTemp}
 						gasOptions={this.props.gasFeeEstimates}
 						onChange={this.calculateTempGasFee}
 						totalNative={EIP1559TransactionDataTemp.renderableTotalMinNative}

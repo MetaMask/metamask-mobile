@@ -15,10 +15,6 @@ import Device from '../../../util/Device';
 import { isMainnetByChainId } from '../../../util/networks';
 import PropTypes from 'prop-types';
 
-// import Engine from '../../../core/Engine';
-// const { GasFeeController } = Engine.context;
-// console.log({ GasFeeController });
-
 const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
@@ -146,6 +142,10 @@ const EditGasFee1559 = ({
 		setWarning(warningMessage);
 	}, []);
 
+	const save = () => {
+		onSave(selectedOption);
+	};
+
 	const calculateGas = useCallback(
 		gas => {
 			setTempGasFee(gas);
@@ -171,6 +171,16 @@ const EditGasFee1559 = ({
 	const changedFeePerGas = useCallback(
 		value => {
 			const newGas = { ...tempGasFee, suggestedMaxFeePerGas: value };
+			setTempGasFee(newGas);
+			setSelectedOption(null);
+			calculateGas(newGas);
+		},
+		[calculateGas, tempGasFee]
+	);
+
+	const changedGasLimit = useCallback(
+		value => {
+			const newGas = { ...tempGasFee, suggestedGasLimit: value };
 			setTempGasFee(newGas);
 			setSelectedOption(null);
 			calculateGas(newGas);
@@ -331,7 +341,8 @@ const EditGasFee1559 = ({
 													</TouchableOpacity>
 												</View>
 											}
-											value={'21000'}
+											value={tempGasFee.suggestedGasLimit}
+											onChangeValue={changedGasLimit}
 											label={'Gas limit'}
 											increment={1000}
 										/>
@@ -361,7 +372,7 @@ const EditGasFee1559 = ({
 													<Text bold reset>
 														{strings('edit_gas_fee_eip1559.estimate')}:
 													</Text>{' '}
-													{gasFee.suggestedMaxPriorityFeePerGas} GWEI
+													{gasOptions?.medium?.suggestedMaxPriorityFeePerGas} GWEI
 												</Text>
 											}
 											value={tempGasFee.suggestedMaxPriorityFeePerGas}
@@ -398,7 +409,7 @@ const EditGasFee1559 = ({
 													<Text bold reset>
 														{strings('edit_gas_fee_eip1559.estimate')}:
 													</Text>{' '}
-													{gasFee.suggestedMaxFeePerGas} GWEI
+													{gasOptions?.medium?.suggestedMaxFeePerGas} GWEI
 												</Text>
 											}
 											value={tempGasFee.suggestedMaxFeePerGas}
@@ -418,7 +429,7 @@ const EditGasFee1559 = ({
 									{strings('edit_gas_fee_eip1559.learn_more.title')}
 								</Text>
 							</TouchableOpacity>
-							<StyledButton type={'confirm'} onPress={onSave}>
+							<StyledButton type={'confirm'} onPress={save}>
 								{strings('edit_gas_fee_eip1559.save')}
 							</StyledButton>
 						</View>

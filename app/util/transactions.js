@@ -452,7 +452,7 @@ export const parseTransaction = (
 		nativeCurrency,
 		transactionState: {
 			selectedAsset,
-			transaction: { value, gas, data }
+			transaction: { value, data }
 		}
 	},
 	{ onlyGas } = {}
@@ -461,7 +461,7 @@ export const parseTransaction = (
 	const estimatedBaseFeeHex = decGWEIToHexWEI(selectedGasFee.estimatedBaseFee);
 	const suggestedMaxPriorityFeePerGasHex = decGWEIToHexWEI(selectedGasFee.suggestedMaxPriorityFeePerGas);
 	const suggestedMaxFeePerGasHex = decGWEIToHexWEI(selectedGasFee.suggestedMaxFeePerGas);
-	const gasLimitHex = BNToHex(gas);
+	const gasLimitHex = BNToHex(new BN(selectedGasFee.suggestedGasLimit));
 
 	const { GasFeeController } = Engine.context;
 
@@ -472,8 +472,6 @@ export const parseTransaction = (
 			selectedGasFee.suggestedMaxPriorityFeePerGas,
 			selectedGasFee.suggestedMaxFeePerGas
 		);
-
-		console.log('TIME', time);
 
 		if (!time || time === 'unknown' || Object.keys(time).length < 2 || time.upperTimeBound === 'unknown') {
 			timeEstimate = 'Unknown processing time';
@@ -661,37 +659,6 @@ export const parseTransaction = (
 		)}`;
 	}
 
-	/*console.log(
-		JSON.stringify(
-			{
-				gasFeeMinNative,
-				renderableGasFeeMinNative,
-				gasFeeMinConversion,
-				renderableGasFeeMinConversion,
-				gasFeeMaxNative,
-				renderableGasFeeMaxNative,
-				gasFeeMaxConversion,
-				renderableGasFeeMaxConversion,
-				renderableMaxPriorityFeeNative,
-				renderableMaxPriorityFeeConversion,
-				renderableMaxFeePerGasNative,
-				renderableMaxFeePerGasConversion,
-				timeEstimate,
-				timeEstimateColor,
-				totalMinNative,
-				renderableTotalMinNative,
-				totalMinConversion,
-				renderableTotalMinConversion,
-				totalMaxNative,
-				renderableTotalMaxNative,
-				totalMaxConversion,
-				renderableTotalMaxConversion
-			},
-			2,
-			'\n'
-		)
-	);*/
-
 	return {
 		gasFeeMinNative,
 		renderableGasFeeMinNative,
@@ -714,6 +681,11 @@ export const parseTransaction = (
 		totalMaxNative,
 		renderableTotalMaxNative,
 		totalMaxConversion,
-		renderableTotalMaxConversion
+		renderableTotalMaxConversion,
+		estimatedBaseFee: selectedGasFee.estimatedBaseFee,
+		suggestedMaxPriorityFeePerGas: selectedGasFee.suggestedMaxPriorityFeePerGas,
+		suggestedMaxFeePerGas: selectedGasFee.suggestedMaxFeePerGas,
+		gasLimitHex,
+		suggestedGasLimit: selectedGasFee.suggestedGasLimit
 	};
 };
