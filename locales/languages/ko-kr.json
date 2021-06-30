@@ -1280,10 +1280,14 @@
 		"cancel": "거절",
 		"is_requesting_you_to_pay": "귀하의 결제를 요청하는 중",
 <<<<<<< HEAD
+<<<<<<< HEAD
 		"total": "TOTAL:"
 =======
 		"total": "총:"
 >>>>>>> upstream/develop
+=======
+		"total": "총:"
+>>>>>>> 2b85e8c7f3d38ef446c52a6e00368b86dd9418f7
 	},
 	"webview_error": {
 		"title": "이런! 문제가 발생했습니다...",
@@ -1360,14 +1364,20 @@
 		"wyre_limits_outside_us": "한도 매주 $1,000, 매년 $7,500",
 		"wyre_estimated": "예상되는 {{amount}} {{currency}}",
 <<<<<<< HEAD
+<<<<<<< HEAD
 		"wyre_modal_text": "Wyre가 제공하는 Apple Pay 결제는 CT, HI, NC, NH, NY, VA 및 VT를 제외한 미국  지역에 지원됩니다.",
 =======
+=======
+>>>>>>> 2b85e8c7f3d38ef446c52a6e00368b86dd9418f7
 		"wyre_minutes": "1~2분",
 		"wyre_max": "주당 최대 $450",
 		"wyre_requires_debit_card": "체크카드 필요",
 		"wyre_us_only": "🇺🇸 미국만 해당",
 		"wyre_modal_text": "Wyre가 제공하는 Apple Pay 결제는 CT, HI, NC, NH, NY, VA 및 VT를 제외한 미국 🇺🇸 지역에 지원됩니다.",
+<<<<<<< HEAD
 >>>>>>> upstream/develop
+=======
+>>>>>>> 2b85e8c7f3d38ef446c52a6e00368b86dd9418f7
 		"wyre_modal_terms_of_service_apply": "Wyre 서비스 약관이 적용됩니다.",
 		"wyre_minimum_deposit": "최소 예치금은 {{amount}}입니다.",
 		"wyre_maximum_deposit": "최대 예치금은 {{amount}}입니다.",
@@ -1718,6 +1728,146 @@
 		}
 >>>>>>> upstream/develop
 	},
+	"swaps": {
+		"onboarding": {
+			"get_the": "최고의",
+			"best_price": "유동성 소스에서",
+			"from_the": "최고의",
+			"top_liquidity": "가격을",
+			"sources": "누리세요.",
+			"find_the": "최고의",
+			"best_swap": "스왑을",
+			"across": "찾아보세요...",
+			"want_to_learn_more": "자세한 정보를 확인하고 싶으신가요?",
+			"learn_more": "MetaMask Swaps에 대해 자세히 알아보기",
+			"what_are": "토큰 스왑이란?",
+			"review_audits": "당사의 공식 계약 감사 검토",
+			"start_swapping": "스왑 시작"
+		},
+		"feature_off_title": "일시적으로 사용할 수 없음",
+		"feature_off_body": "MetaMask Swaps가 점검 중입니다. 나중에 다시 확인하세요.",
+		"wrong_network_title": "스왑 불가능",
+		"wrong_network_body": "이더리움 메인 네트워크에서만 토큰을 스왑할 수 있습니다.",
+		"unallowed_asset_title": "이 토큰을 스왑할 수 없습니다.",
+		"unallowed_asset_body": "일부 고유한 메커니즘을 가진 토큰에 대해서는 스왑이 지원되지 않습니다.",
+		"convert_from": "변환 전:",
+		"convert_to": "변환 후:",
+		"verify": "확인",
+		"verified_on_sources": "{{sources} 소스에서 확인되었습니다.",
+		"verify_on": "항상 토큰 다음 위치에서 토큰 주소를 확인하십시오.",
+		"verify_address_on": "다음에서 토큰 주소 확인",
+		"only_verified_on": "{{symbol}}은(는) {{occurances}} 소스에서만 확인됩니다.",
+		"block_explorer": "블록 탐색기",
+		"a_block_explorer": "블록 탐색기",
+		"token_verification": "토큰 확인",
+		"token_multiple": "여러 토큰이 같은 이름과 기호를 사용할 수 있습니다.",
+		"token_check": "확인",
+		"token_to_verify": "을(를) 통해 원하는 토큰인지 확인하십시오.",
+		"continue": "계속",
+		"select_a_token": "토큰 선택",
+		"search_token": "토큰 검색",
+		"no_tokens_result": "“{{searchString}}”와(과) 일치하는 토큰이 없습니다.",
+		"available_to_swap": "{{asset}}은(는) 스왑 가능합니다.",
+		"use_max": "최대 사용",
+		"not_enough": "{{symbol}}이(가) 부족하여 이 스왑을 완료할 수 없음",
+		"max_slippage": "최대 슬리패지",
+		"max_slippage_amount": "최대 슬리패지 {{slippage}}",
+		"slippage_info": "주문 시점과 확인 시점 사이에 전환율이 변동되는 현상을 “슬리패지”라고 합니다. 슬리패지가 “최대 슬리패지” 설정을 초과하면 스왑이 자동으로 취소됩니다.",
+		"slippage_warning": "현재 어떤 작업을 하고 있는지 확인하십시오!",
+		"allows_up_to_decimals": "{{symbol}}은(는) 최대 {{decimals}}자릿수까지 허용",
+		"get_quotes": "견적 가져오기",
+		"starting": "시작하는 중...",
+		"finalizing": "마무리 중...",
+		"quote": "견적",
+		"of": "/",
+		"checking": " 확인 중",
+		"fetching_new_quotes": "견적 가져오는 중...",
+		"you_need": "이 스왑을 완료하려면",
+		"more_to_complete": "만큼 더 필요합니다.",
+		"more_gas_to_complete": "만큼이 Gas에 대해 추가로 필요합니다.",
+		"buy_more_eth": "ETH를 더 구매하십시오.",
+		"market_price_unavailable": "시장 가격을 사용할 수 없습니다. 계속하기 전에 반환 금액이 괜찮은지 확인하시기 바랍니다.",
+		"price_difference": "가격 차이: {{amount}}",
+		"price_difference_title": "가격 차이",
+		"price_difference_body": "시장 가격의 차이는 중개소, 시장의 크기, 거래의 규모 또는 시장 비효율성에 의해 영향을 받을 수 있습니다.",
+		"quotes_update_often": "견적은 자주 업데이트됩니다.",
+		"quotes_update_often_text": "견적은 현재 시장 상황을 반영하도록 자주 업데이트됩니다.",
+		"about_to_swap": "다음 스왑을 수행합니다.",
+		"for": "->",
+		"new_quotes_in": "의 새 견적",
+		"i_understand": "이해했습니다.",
+		"quotes_expire_in": "견적 만료:",
+		"saving": "저장 중",
+		"using_best_quote": "최고 견적을 사용 중",
+		"view_details": "세부 정보 보기",
+		"estimated_gas_fee": "예상 Gas 요금",
+		"max_gas_fee": "최대 가스 요금",
+		"edit": "편집",
+		"quotes_include_fee": "견적에는 {{fee}}%의 MetaMask 수수료가 포함됩니다.",
+		"tap_to_swap": "탭하여 스왑",
+		"swipe_to_swap": "스와이프하여 스왑",
+		"swipe_to": "스와이프하여",
+		"swap": "스왑",
+		"completed_swap": "스왑!",
+		"metamask_swap_fee": "MetaMask 스왑 수수료",
+		"fee_text": {
+			"get_the": "언제나",
+			"best_price": "최고의",
+			"from_the": "유동성 소스에서",
+			"top_liquidity": "최고의 가격으로 이용하세요.",
+			"fee_is_applied": "{{fee}}의 수수료는 각 견적에 자동으로 반영되며 MetaMask를 더욱 개선할 수 있도록 현재 진행 중인 개발에 사용됩니다."
+		},
+		"enable": {
+			"this_will": "이는",
+			"enable_asset": "{{asset}}을(를)",
+			"for_swapping": "스왑에 사용할 수 있도록 해줍니다.",
+			"edit_limit": "한도 편집"
+		},
+		"quotes_overview": "견적 개요",
+		"quote_details": "견적 세부 정보",
+		"receiving": "수신 중",
+		"overall_value": "총 가치",
+		"best": "최고",
+		"rate": "요율",
+		"quote_details_max_slippage": "최대 슬리패지",
+		"source": "소스",
+		"estimated_network_fees": "예상 네트워크 요금",
+		"guaranteed_amount": "보장 금액",
+		"quote_source_dex": {
+			"1": "이 견적은 분산형 교환",
+			"2": "프로토콜에서 직접",
+			"3": "얻은 것입니다."
+		},
+		"quote_source_rfq": {
+			"1": "이 견적은 견적에 직접 응답하는",
+			"2": "개인투자기관에서",
+			"3": "얻은 것입니다."
+		},
+		"quote_source_agg": {
+			"1": "이 견적은 여러 분산형 교환으로",
+			"2": "주문을 나누어",
+			"3": "최고의 가격을 찾아주는 애그리게이터에게서 얻은 것입니다."
+		},
+		"quotes_timeout": "견적 시간 초과",
+		"request_new_quotes": "지금 견적을 요청해 최고 요율을 확인하세요.",
+		"quotes_not_available": "견적을 사용할 수 없음",
+		"try_adjusting": "금액을 조정한 후 다시 시도해 보십시오.",
+		"error_fetching_quote": "견적을 가져오는 중에 오류 발생",
+		"unexpected_error": "예기치 못한 오류가 발생했습니다. 새 견적을 요청하여 최신 최고 요율을 확인해 주십시오. (오류: {{error}})",
+		"get_new_quotes": "새 견적 받기",
+		"try_again": "다시 시도",
+		"terms_of_service": "서비스 약관",
+		"transaction_label": {
+			"swap": "{{sourceToken}}에서 {{destinationToken}}(으)로 스왑",
+			"approve": "{{sourceToken}} 스왑 승인: 최대 {{upTo}}"
+		},
+		"notification_label": {
+			"swap_pending": "스왑 보류 중({{sourceToken}}에서 {{destinationToken}}(으)로)",
+			"swap_confirmed": "스왑 완료({{sourceToken}}에서 {{destinationToken}}(으)로)",
+			"approve_pending": "{{sourceToken}} 스왑 승인 중",
+			"approve_confirmed": "{{sourceToken}} 스왑 승인됨"
+		}
+	},
 	"protect_wallet_modal": {
 		"title": "지갑 보호",
 		"top_button": "지갑 보호",
@@ -1791,12 +1941,18 @@
 		"loading": "로드 중...",
 		"not_found": "미디어를 찾을 수 없음"
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 2b85e8c7f3d38ef446c52a6e00368b86dd9418f7
 	},
 	"secret_phrase_video_subtitle": {
 		"title": "KO KR CC",
 		"language": "ko-kr",
 		"uri": "https://github.com/MetaMask/metamask-mobile/blob/feature/secret_recovery_translations/app/videos/subtitles/subtitles-ko-kr.vtt"
+<<<<<<< HEAD
 >>>>>>> upstream/develop
+=======
+>>>>>>> 2b85e8c7f3d38ef446c52a6e00368b86dd9418f7
 	}
 }
