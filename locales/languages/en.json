@@ -1636,6 +1636,11 @@
 		"loading": "Loading...",
 		"not_found": "Media not found"
 	},
+	"secret_phrase_video_subtitle": {
+		"title": "EN CC",
+		"language": "en",
+		"uri": "https://github.com/MetaMask/metamask-mobile/blob/feature/secret_recovery_translations/app/videos/subtitles/subtitles-en.vtt"
+	},
 	"edit_gas_fee_eip1559": {
 		"advanced_options": "Advanced Options",
 		"gas_limit": "Gas Limit",
