@@ -50,6 +50,7 @@ import ActivityView from '../../Views/ActivityView';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import GasEducationCarousel from '../../Views/GasEducationCarousel';
+import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 
 const Stack = createStackNavigator();
@@ -311,6 +312,19 @@ const MainNavigator = () => (
 		mode={'modal'}
 		initialRouteName={'Home'}
 	>
+		<Stack.Screen
+			name="CollectiblesDetails"
+			component={CollectiblesDetails}
+			options={{
+				//Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
+				cardStyle: { backgroundColor: 'transparent' },
+				cardStyleInterpolator: () => ({
+					overlayStyle: {
+						opacity: 0
+					}
+				})
+			}}
+		/>
 		<Stack.Screen name="Home" tabBarVisible={false} component={HomeTabs} />
 		<Stack.Screen name="Webview" component={Webview} />
 		<Stack.Screen name="SettingsView" component={SettingsView} />

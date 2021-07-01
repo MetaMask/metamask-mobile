@@ -1,14 +1,14 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import CollectibleOverview from '../../UI/CollectibleOverview';
 import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import { newAssetTransaction } from '../../../actions/transaction';
-import Modal from 'react-native-modal';
 import CollectibleMedia from '../CollectibleMedia';
 import { baseStyles, colors } from '../../../styles/common';
 import Device from '../../../util/Device';
+import ReusableModal from '../ReusableModal';
 
 const styles = StyleSheet.create({
 	bottomModal: {
@@ -33,16 +33,17 @@ const styles = StyleSheet.create({
 /**
  * View that displays a specific collectible asset
  */
-const CollectibleModal = ({ contractName, collectible, onHide, visible, navigation, newAssetTransaction }) => {
-	const [swippable, setSwippable] = useState('down');
+const CollectibleModal = props => {
+	const { route, navigation, newAssetTransaction } = props;
+	const { contractName, collectible } = route.params;
+
 	const [mediaZIndex, setMediaZIndex] = useState(20);
 	const [overviewZIndex, setOverviewZIndex] = useState(10);
 
 	const onSend = useCallback(async () => {
-		onHide();
 		newAssetTransaction({ contractName, ...collectible });
-		navigation.navigate('SendFlowView');
-	}, [contractName, collectible, newAssetTransaction, onHide, navigation]);
+		navigation.replace('SendFlowView');
+	}, [contractName, collectible, newAssetTransaction, navigation]);
 
 	const isTradable = useCallback(() => {
 		const lowerAddress = collectible.address.toLowerCase();
@@ -54,14 +55,12 @@ const CollectibleModal = ({ contractName, collectible, onHide, visible, navigati
 		return tradable;
 	}, [collectible.address]);
 
-	const openLink = url => {
-		onHide();
-		navigation.navigate('Webview', { screen: 'SimpleWebview', params: { url } });
-	};
-
-	const onTouchStart = useCallback(() => setSwippable(null), []);
-
-	const onTouchEnd = useCallback(() => setSwippable('down'), []);
+	const openLink = useCallback(
+		url => {
+			navigation.replace('Webview', { screen: 'SimpleWebview', params: { url } });
+		},
+		[navigation]
+	);
 
 	/**
 	 * Method that moves the collectible media up or down in the screen depending on
@@ -81,39 +80,32 @@ const CollectibleModal = ({ contractName, collectible, onHide, visible, navigati
 		}
 	};
 
+	const modalRef = useRef(null);
+
 	return (
-		<Modal
-			isVisible={visible}
-			style={styles.bottomModal}
-			onBackdropPress={onHide}
-			onBackButtonPress={onHide}
-			onSwipeComplete={onHide}
-			swipeDirection={swippable}
-			propagateSwipe
-		>
-			<View style={[styles.collectibleMediaWrapper, { zIndex: mediaZIndex, elevation: mediaZIndex }]}>
-				<CollectibleMedia
-					onClose={onHide}
-					cover
-					renderAnimation
-					collectible={collectible}
-					style={styles.round}
-				/>
-			</View>
-			<View style={[baseStyles.flexStatic, { zIndex: overviewZIndex, elevation: overviewZIndex }]}>
-				<CollectibleOverview
-					onTouchStart={onTouchStart}
-					onTouchEnd={onTouchEnd}
-					navigation={navigation}
-					collectible={{ ...collectible, contractName }}
-					tradable={isTradable()}
-					onSend={onSend}
-					openLink={openLink}
-					onTranslation={onCollectibleOverviewTranslation}
-					onHide={onHide}
-				/>
-			</View>
-		</Modal>
+		<ReusableModal ref={modalRef} onDismiss={() => navigation.navigate('WalletView')} style={styles.bottomModal}>
+			<>
+				<View style={[styles.collectibleMediaWrapper, { zIndex: mediaZIndex, elevation: mediaZIndex }]}>
+					<CollectibleMedia
+						onClose={() => modalRef.current.dismissModal()}
+						cover
+						renderAnimation
+						collectible={collectible}
+						style={styles.round}
+					/>
+				</View>
+				<View style={[baseStyles.flexStatic, { zIndex: overviewZIndex, elevation: overviewZIndex }]}>
+					<CollectibleOverview
+						navigation={navigation}
+						collectible={{ ...collectible, contractName }}
+						tradable={isTradable()}
+						onSend={onSend}
+						openLink={openLink}
+						onTranslation={onCollectibleOverviewTranslation}
+					/>
+				</View>
+			</>
+		</ReusableModal>
 	);
 };
 
@@ -123,6 +115,10 @@ CollectibleModal.propTypes = {
 	/* passed by the parent component
 	*/
 	navigation: PropTypes.object,
+	/**
+	 * Route contains props passed when navigating
+	 */
+	route: PropTypes.object,
 	/**
 	 * Start transaction with asset
 	 */
@@ -134,15 +130,7 @@ CollectibleModal.propTypes = {
 	/**
 	 * Contract name of the collectible
 	 */
-	contractName: PropTypes.string,
-	/**
-	 * Function called when user swipes down the modal
-	 */
-	onHide: PropTypes.func,
-	/**
-	 * If the modal should be visible or not
-	 */
-	visible: PropTypes.bool
+	contractName: PropTypes.string
 };
 
 const mapDispatchToProps = dispatch => ({
