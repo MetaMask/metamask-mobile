@@ -3,10 +3,12 @@ import { TextInput, View, StyleSheet } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
-import contractMap from '@metamask/contract-metadata';
+// import contractMap from '@metamask/contract-metadata';
 import Fuse from 'fuse.js';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { toLowerCaseEquals } from '../../../util/general';
+import Engine from '../../../core/Engine';
+const { TokenListController } = Engine.context;
 
 const styles = StyleSheet.create({
 	searchSection: {
@@ -28,7 +30,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-const contractList = Object.entries(contractMap)
+const contractList = Object.entries(TokenListController.state.tokenList)
 	.map(([address, tokenData]) => {
 		tokenData.address = address;
 		return tokenData;

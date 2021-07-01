@@ -32,7 +32,7 @@ import AppConstants from './AppConstants';
 import { store } from '../store';
 import { renderFromTokenMinimalUnit, balanceToFiatNumber, weiToFiatNumber } from '../util/number';
 import NotificationManager from './NotificationManager';
-import contractMap from '@metamask/contract-metadata';
+// import contractMap from '@metamask/contract-metadata';
 import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
 
@@ -420,6 +420,7 @@ class Engine {
 			AssetsController,
 			TokenListController
 		} = this.context;
+		const tokenList = TokenListController.state.tokenList;
 
 		// Select same network ?
 		await NetworkController.setProviderType(network.provider.type);
@@ -455,8 +456,8 @@ class Engine {
 						? preferences.accountTokens[address][chainId]
 						: preferences.accountTokens[address][chainId]
 								.filter(({ address }) =>
-									contractMap[toChecksumAddress(address)]
-										? contractMap[toChecksumAddress(address)].erc20
+									tokenList[toChecksumAddress(address)]
+										? tokenList[toChecksumAddress(address)].erc20
 										: true
 								)
 								.map(token => ({ ...token, address: toChecksumAddress(token.address) }));

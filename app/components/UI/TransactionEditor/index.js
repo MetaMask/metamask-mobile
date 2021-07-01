@@ -14,11 +14,12 @@ import { getBasicGasEstimatesByChainId, apiEstimateModifiedToWEI } from '../../.
 import { setTransactionObject } from '../../../actions/transaction';
 import Engine from '../../../core/Engine';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
-import contractMap from '@metamask/contract-metadata';
+// import contractMap from '@metamask/contract-metadata';
 import { safeToChecksumAddress } from '../../../util/address';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { MAINNET } from '../../../constants/network';
 import { toLowerCaseEquals } from '../../../util/general';
+import { getTokenList } from '../../../reducers/tokens';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -98,7 +99,11 @@ class TransactionEditor extends PureComponent {
 		/**
 		 * Active tab URL, the currently active tab url
 		 */
-		activeTabUrl: PropTypes.string
+		activeTabUrl: PropTypes.string,
+		/**
+		 * List of tokens from TokenListController
+		 */
+		tokenList: PropTypes.object
 	};
 
 	state = {
@@ -528,14 +533,15 @@ class TransactionEditor extends PureComponent {
 			tokens,
 			collectibles,
 			transaction: { to },
-			networkType
+			networkType,
+			tokenList
 		} = this.props;
 		if (!to) {
 			return undefined;
 		}
 		const address = toChecksumAddress(to);
 		if (networkType === MAINNET) {
-			const contractMapToken = contractMap[address];
+			const contractMapToken = tokenList[address];
 			if (contractMapToken) return strings('transaction.known_asset_contract');
 		}
 		const tokenAddress = tokens.find(token => token.address === address);
@@ -666,7 +672,8 @@ const mapStateToProps = state => ({
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	transaction: getNormalizedTxState(state),
-	activeTabUrl: getActiveTabUrl(state)
+	activeTabUrl: getActiveTabUrl(state),
+	tokenList: getTokenList(state)
 });
 
 const mapDispatchToProps = dispatch => ({

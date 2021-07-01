@@ -6,12 +6,13 @@ import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { safeToChecksumAddress, renderAccountName } from '../../../util/address';
 import { getNormalizedTxState } from '../../../util/transactions';
-import contractMap from '@metamask/contract-metadata';
+// import contractMap from '@metamask/contract-metadata';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Identicon from '../../UI/Identicon';
 import { strings } from '../../../../locales/i18n';
 import AssetIcon from '../../UI/AssetIcon';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { getTokenList } from '../../../reducers/tokens';
 
 const FONT_SIZE = PixelRatio.get() < 2 ? 12 : 16;
 
@@ -105,7 +106,11 @@ class TransactionDirection extends PureComponent {
 		/**
 		 * Transaction state
 		 */
-		transaction: PropTypes.object.isRequired
+		transaction: PropTypes.object.isRequired,
+		/**
+		 * List of tokens from TokenListController
+		 */
+		tokenList: PropTypes.object
 	};
 
 	state = {};
@@ -162,9 +167,10 @@ class TransactionDirection extends PureComponent {
 	render = () => {
 		const {
 			transaction: { from, to },
-			identities
+			identities,
+			tokenList
 		} = this.props;
-		const contract = contractMap[safeToChecksumAddress(to)];
+		const contract = tokenList[safeToChecksumAddress(to)];
 		return (
 			<View style={styles.graphic}>
 				<View style={[styles.addressGraphic, styles.fromGraphic]}>
@@ -184,7 +190,8 @@ class TransactionDirection extends PureComponent {
 
 const mapStateToProps = state => ({
 	identities: state.engine.backgroundState.PreferencesController.identities,
-	transaction: getNormalizedTxState(state)
+	transaction: getNormalizedTxState(state),
+	tokenList: getTokenList(state)
 });
 
 export default connect(mapStateToProps)(TransactionDirection);

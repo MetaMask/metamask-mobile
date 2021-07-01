@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import GlobalAlert from '../../UI/GlobalAlert';
 import BackgroundTimer from 'react-native-background-timer';
 import Approval from '../../Views/Approval';
@@ -39,7 +39,7 @@ import {
 } from '../../../util/transactions';
 import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
-import contractMap from '@metamask/contract-metadata';
+// import contractMap from '@metamask/contract-metadata';
 import MessageSign from '../../UI/MessageSign';
 import Approve from '../../Views/ApproveView/Approve';
 import TransactionTypes from '../../../core/TransactionTypes';
@@ -65,6 +65,7 @@ import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import BigNumber from 'bignumber.js';
 import { setInfuraAvailabilityBlocked, setInfuraAvailabilityNotBlocked } from '../../../actions/infuraAvailability';
+import { getTokenList } from '../../../reducers/tokens';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -93,7 +94,6 @@ const Main = props => {
 	const [showExpandedMessage, setShowExpandedMessage] = useState(false);
 	const [currentPageTitle, setCurrentPageTitle] = useState('');
 	const [currentPageUrl, setCurrentPageUrl] = useState('');
-
 	const [showRemindLaterModal, setShowRemindLaterModal] = useState(false);
 	const [skipCheckbox, setSkipCheckbox] = useState(false);
 
@@ -101,6 +101,8 @@ const Main = props => {
 	const locale = useRef(I18n.locale);
 	const lockManager = useRef();
 	const removeConnectionStatusListener = useRef();
+
+	const tokenList = useSelector(getTokenList);
 
 	const setTransactionObject = props.setTransactionObject;
 	const toggleApproveModal = props.toggleApproveModal;
@@ -345,8 +347,8 @@ const Main = props => {
 					(await getMethodData(data)).name === TOKEN_METHOD_TRANSFER
 				) {
 					let asset = props.tokens.find(({ address }) => address === to);
-					if (!asset && contractMap[to]) {
-						asset = contractMap[to];
+					if (!asset && tokenList[to]) {
+						asset = tokenList[to];
 					} else if (!asset) {
 						try {
 							asset = {};
@@ -398,7 +400,8 @@ const Main = props => {
 			setTransactionObject,
 			toggleApproveModal,
 			toggleDappTransactionModal,
-			autoSign
+			autoSign,
+			tokenList
 		]
 	);
 

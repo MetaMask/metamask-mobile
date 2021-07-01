@@ -70,7 +70,7 @@ export default class AssetList extends PureComponent {
 					<Text style={styles.normalText}>{strings('token.no_tokens_found')}</Text>
 				) : null}
 				{searchResults.slice(0, 6).map((_, i) => {
-					const { symbol, name, address, logo } = searchResults[i] || {};
+					const { symbol, name, address, iconUrl } = searchResults[i] || {};
 					const isSelected = selectedAsset && selectedAsset.address === address;
 					return (
 						<StyledButton
@@ -81,7 +81,7 @@ export default class AssetList extends PureComponent {
 							testID={'searched-token-result'}
 						>
 							<View style={styles.assetListElement}>
-								<AssetIcon logo={logo} />
+								<AssetIcon logo={iconUrl} />
 								<Text style={styles.text}>
 									{name} ({symbol})
 								</Text>

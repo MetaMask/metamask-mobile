@@ -196,12 +196,8 @@ class AssetOverview extends PureComponent {
 		if (isETH) {
 			return <NetworkMainAssetLogo biggest style={styles.ethLogo} />;
 		}
-		const watchedAsset = image !== undefined;
-		return logo || image ? (
-			<AssetIcon watchedAsset={watchedAsset} logo={image || logo} />
-		) : (
-			<Identicon address={address} />
-		);
+
+		return logo || image ? <AssetIcon logo={image || logo} /> : <Identicon address={address} />;
 	};
 
 	componentDidMount = async () => {

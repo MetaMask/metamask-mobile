@@ -13,7 +13,7 @@ import { connect } from 'react-redux';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { getPaymentRequestOptionsTitle } from '../../UI/Navbar';
 import FeatherIcon from 'react-native-vector-icons/Feather';
-import contractMap from '@metamask/contract-metadata';
+// import contractMap from '@metamask/contract-metadata';
 import Fuse from 'fuse.js';
 import AssetList from './AssetList';
 import PropTypes from 'prop-types';
@@ -40,6 +40,8 @@ import currencySymbols from '../../../util/currency-symbols.json';
 import { NetworksChainId } from '@metamask/controllers';
 import { getTicker } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
+import Engine from '../../../core/Engine';
+const { TokenListController } = Engine.context;
 
 const KEYBOARD_OFFSET = 120;
 const styles = StyleSheet.create({
@@ -185,7 +187,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-const contractList = Object.entries(contractMap)
+const contractList = Object.entries(TokenListController.state.tokenList)
 	.map(([address, tokenData]) => {
 		tokenData.address = address;
 		return tokenData;

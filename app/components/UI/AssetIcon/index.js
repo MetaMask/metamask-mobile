@@ -2,7 +2,6 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import RemoteImage from '../../Base/RemoteImage';
 import PropTypes from 'prop-types';
-import getAssetLogoPath from '../../../util/assets';
 import { colors } from '../../../styles/common';
 
 const styles = StyleSheet.create({
@@ -18,7 +17,7 @@ const styles = StyleSheet.create({
 // eslint-disable-next-line react/display-name
 const AssetIcon = React.memo(props => {
 	if (!props.logo) return null;
-	const uri = props.watchedAsset ? props.logo : getAssetLogoPath(props.logo);
+	const uri = props.logo;
 	const style = [styles.logo, props.customStyle];
 	return <RemoteImage fadeIn placeholderStyle={{ backgroundColor: colors.white }} source={{ uri }} style={style} />;
 });
@@ -28,10 +27,6 @@ AssetIcon.propTypes = {
 	 * String of the asset icon to be searched in contractMap
 	 */
 	logo: PropTypes.string,
-	/**
-	 * Whether logo has to be fetched from @metamask/contract-metadata
-	 */
-	watchedAsset: PropTypes.bool,
 	/**
 	 * Custom style to apply to image
 	 */

@@ -21,11 +21,13 @@ import {
 	getActionKey,
 	TRANSACTION_TYPES
 } from '../../../util/transactions';
-import contractMap from '@metamask/contract-metadata';
+// import contractMap from '@metamask/contract-metadata';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { isSwapsNativeAsset } from '../Swaps/utils';
 import { toLowerCaseEquals } from '../../../util/general';
+import Engine from '../../../core/Engine';
+const { TokenListController } = Engine.context;
 
 const { getSwapsContractAddress } = swapsUtils;
 
@@ -480,9 +482,10 @@ function decodeConfirmTx(args) {
 	const renderFrom = renderFullAddress(from);
 	const renderTo = renderFullAddress(to);
 
+	const tokenList = TokenListController.state.tokenList;
 	let symbol;
-	if (renderTo in contractMap) {
-		symbol = contractMap[renderTo].symbol;
+	if (renderTo in tokenList) {
+		symbol = tokenList[renderTo].symbol;
 	}
 	let transactionType;
 	if (actionKey === strings('transactions.approve')) transactionType = TRANSACTION_TYPES.APPROVE;

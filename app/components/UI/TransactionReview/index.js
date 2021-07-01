@@ -20,7 +20,7 @@ import {
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import Device from '../../../util/Device';
-import contractMap from '@metamask/contract-metadata';
+// import contractMap from '@metamask/contract-metadata';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewSummary from './TransactionReviewSummary';
@@ -31,6 +31,7 @@ import TransactionHeader from '../TransactionHeader';
 import AccountInfoCard from '../AccountInfoCard';
 import ActionView from '../ActionView';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
+import { getTokenList } from '../../../reducers/tokens';
 
 const styles = StyleSheet.create({
 	tabUnderlineStyle: {
@@ -159,7 +160,11 @@ class TransactionReview extends PureComponent {
 		/**
 		 * True if transaction is over the available funds
 		 */
-		over: PropTypes.bool
+		over: PropTypes.bool,
+		/**
+		 * List of tokens from TokenListController
+		 */
+		tokenList: PropTypes.object
 	};
 
 	state = {
@@ -179,7 +184,8 @@ class TransactionReview extends PureComponent {
 			transaction,
 			transaction: { data, to },
 			tokens,
-			chainId
+			chainId,
+			tokenList
 		} = this.props;
 		let { showHexData } = this.props;
 		let assetAmount, conversionRate, fiatValue;
@@ -188,7 +194,7 @@ class TransactionReview extends PureComponent {
 		const error = validate && (await validate());
 		const actionKey = await getTransactionReviewActionKey(transaction, chainId);
 		if (approveTransaction) {
-			let contract = contractMap[safeToChecksumAddress(to)];
+			let contract = tokenList[safeToChecksumAddress(to)];
 			if (!contract) {
 				contract = tokens.find(({ address }) => address === safeToChecksumAddress(to));
 			}
@@ -367,7 +373,8 @@ const mapStateToProps = state => ({
 	showHexData: state.settings.showHexData,
 	transaction: getNormalizedTxState(state),
 	browser: state.browser,
-	primaryCurrency: state.settings.primaryCurrency
+	primaryCurrency: state.settings.primaryCurrency,
+	tokenList: getTokenList(state)
 });
 
 export default connect(mapStateToProps)(TransactionReview);

@@ -5,7 +5,7 @@ import TokenImage from '../TokenImage';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import contractMap from '@metamask/contract-metadata';
+// import contractMap from '@metamask/contract-metadata';
 import ActionSheet from 'react-native-actionsheet';
 import { renderFromTokenMinimalUnit, balanceToFiat } from '../../../util/number';
 import Engine from '../../../core/Engine';
@@ -18,6 +18,7 @@ import StyledButton from '../StyledButton';
 import { allowedToBuy } from '../FiatOrders';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { isMainNet } from '../../../util/networks';
+import { getTokenList } from '../../../reducers/tokens';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -140,7 +141,11 @@ class Tokens extends PureComponent {
 		/**
 		 * A bool that represents if the user wants to hide zero balance token
 		 */
-		hideZeroBalanceTokens: PropTypes.bool
+		hideZeroBalanceTokens: PropTypes.bool,
+		/**
+		 * List of tokens from TokenListController
+		 */
+		tokenList: PropTypes.object
 	};
 
 	actionSheet = null;
@@ -173,10 +178,11 @@ class Tokens extends PureComponent {
 			currentCurrency,
 			tokenBalances,
 			tokenExchangeRates,
-			primaryCurrency
+			primaryCurrency,
+			tokenList
 		} = this.props;
 		const itemAddress = safeToChecksumAddress(asset.address);
-		const logo = asset.logo || ((contractMap[itemAddress] && contractMap[itemAddress].logo) || undefined);
+		const logo = asset.logo || ((tokenList[itemAddress] && tokenList[itemAddress].logo) || undefined);
 		const exchangeRate = itemAddress in tokenExchangeRates ? tokenExchangeRates[itemAddress] : undefined;
 		const balance =
 			asset.balance ||
@@ -329,7 +335,8 @@ const mapStateToProps = state => ({
 	primaryCurrency: state.settings.primaryCurrency,
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-	hideZeroBalanceTokens: state.settings.hideZeroBalanceTokens
+	hideZeroBalanceTokens: state.settings.hideZeroBalanceTokens,
+	tokenList: getTokenList(state)
 });
 
 export default connect(mapStateToProps)(Tokens);
