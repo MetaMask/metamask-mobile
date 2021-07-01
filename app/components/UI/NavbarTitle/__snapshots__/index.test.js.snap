@@ -1,46 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`NavbarTitle should render correctly 1`] = `
-<ContextProvider
-  value={
+<Connect(NavbarTitle)
+  network={
     Object {
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Subscription {
-        "handleChangeWrapper": [Function],
-        "listeners": Object {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": Object {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
+      "provider": Object {
+        "type": "mainnet",
       },
     }
   }
->
-  <Component
-    network={
-      Object {
-        "provider": Object {
-          "type": "mainnet",
-        },
-      }
-    }
-    title="Test"
-  />
-</ContextProvider>
+  title="Test"
+/>
 `;

@@ -14,7 +14,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
   }
 >
   <ScrollView>
-    <Component />
+    <Connect(TransactionHeader) />
     <Text
       black={false}
       blue={false}

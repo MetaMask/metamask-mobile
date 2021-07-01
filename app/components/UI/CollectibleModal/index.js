@@ -8,7 +8,7 @@ import { newAssetTransaction } from '../../../actions/transaction';
 import CollectibleMedia from '../CollectibleMedia';
 import { baseStyles, colors } from '../../../styles/common';
 import Device from '../../../util/Device';
-import ReusableModal from './reusable-modal';
+import ReusableModal from '../ReusableModal';
 
 const styles = StyleSheet.create({
 	bottomModal: {

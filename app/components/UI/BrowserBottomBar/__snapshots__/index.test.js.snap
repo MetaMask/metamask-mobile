@@ -131,7 +131,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     }
     testID="show-tabs-button"
   >
-    <Component
+    <Connect(TabCountIcon)
       style={
         Object {
           "height": 24,
