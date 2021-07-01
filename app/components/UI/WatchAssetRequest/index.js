@@ -149,10 +149,11 @@ class WatchAssetRequest extends PureComponent {
 			suggestedAssetMeta: { asset },
 			contractBalances
 		} = this.props;
+		const address = Object.keys(contractBalances).find(key => key.toLowerCase() === asset.address);
 		const balance =
-			asset.address in contractBalances
-				? renderFromTokenMinimalUnit(contractBalances[asset.address], asset.decimals)
-				: '0';
+			typeof address === 'undefined'
+				? '0'
+				: renderFromTokenMinimalUnit(contractBalances[address], asset.decimals);
 		return (
 			<View style={styles.root}>
 				<View style={styles.titleWrapper}>
