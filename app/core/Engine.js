@@ -158,7 +158,8 @@ class Engine {
 				new TokenRatesController({
 					onAssetsStateChange: listener => assetsController.subscribe(listener),
 					onCurrencyRateStateChange: listener =>
-						this.controllerMessenger.subscribe(`${currencyRateController.name}:stateChange`, listener)
+						this.controllerMessenger.subscribe(`${currencyRateController.name}:stateChange`, listener),
+					onNetworkStateChange: listener => networkController.subscribe(listener)
 				}),
 				new TransactionController({
 					getNetworkState: () => networkController.state,
