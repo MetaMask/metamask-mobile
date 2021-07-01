@@ -521,7 +521,7 @@ export default {
 			AssetsContractController,
 			AssetsController,
 			AssetsDetectionController,
-			// TokenListController, // Probably don't need this here since assets detection is already exposing
+			TokenListController,
 			CurrencyRateController,
 			KeyringController,
 			PersonalMessageManager,
@@ -548,6 +548,7 @@ export default {
 			AssetsContractController,
 			AssetsController,
 			AssetsDetectionController,
+			TokenListController,
 			CurrencyRateController: modifiedCurrencyRateControllerState,
 			KeyringController,
 			PersonalMessageManager,
