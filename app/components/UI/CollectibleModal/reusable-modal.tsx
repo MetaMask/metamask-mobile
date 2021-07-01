@@ -16,6 +16,7 @@ import Animated, {
 	set
 } from 'react-native-reanimated';
 import { onGestureEvent, withSpring, clamp, timing, spring } from 'react-native-redash';
+import { colors } from '../../../styles/common';
 const screenHeight = Dimensions.get('window').height;
 
 type DismissModal = () => void;
@@ -206,7 +207,7 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	overlayBackground: {
-		backgroundColor: 'rgba(0,0,0,0.7)',
+		backgroundColor: colors.overlay,
 		...StyleSheet.absoluteFillObject
 	},
 	fill: {
