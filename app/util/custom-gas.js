@@ -163,7 +163,6 @@ export async function getBasicGasEstimates() {
 export async function getGasPriceByChainId(transaction) {
 	const { TransactionController, NetworkController } = Engine.context;
 	const chainId = NetworkController.state.provider.chainId;
-
 	let estimation, basicGasEstimates;
 	try {
 		estimation = await TransactionController.estimateGas(transaction);
@@ -193,8 +192,17 @@ export async function getGasPriceByChainId(transaction) {
 			// Will use gas price from network that was fetched above
 		}
 	}
+
+	//The transaction controller returns custom network values in hex
+	if (NetworkController.state.isCustomNetwork) {
+		const gas = hexToBN(estimation.gas);
+		const gasPrice = hexToBN(estimation.gasPrice);
+		return { gas, gasPrice };
+	}
+
 	const gas = hexToBN(estimation.gas);
 	const gasPrice = toWei(convertApiValueToGWEI(basicGasEstimates.average), 'gwei');
+
 	return { gas, gasPrice };
 }
 
