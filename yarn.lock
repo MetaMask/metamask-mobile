@@ -1597,42 +1597,8 @@
     web3 "^0.20.7"
     web3-provider-engine "^16.0.1"
 
-"@metamask/controllers@file:./metamask-controllers-v10.2.1-seth-1.tgz":
-  version "10.2.1-seth-1"
-  resolved "file:./metamask-controllers-v10.2.1-seth-1.tgz#c381641f31b47c6678bfecd2720b80d91b426cf1"
-  dependencies:
-    "@ethereumjs/common" "^2.3.1"
-    "@ethereumjs/tx" "^3.2.1"
-    "@metamask/contract-metadata" "^1.27.0"
-    "@types/uuid" "^8.3.0"
-    async-mutex "^0.2.6"
-    babel-runtime "^6.26.0"
-    eth-ens-namehash "^2.0.8"
-    eth-json-rpc-infura "^5.1.0"
-    eth-keyring-controller "^6.2.1"
-    eth-method-registry "1.1.0"
-    eth-phishing-detect "^1.1.14"
-    eth-query "^2.1.2"
-    eth-rpc-errors "^4.0.0"
-    eth-sig-util "^3.0.0"
-    ethereumjs-util "^7.0.10"
-    ethereumjs-wallet "^1.0.1"
-    ethjs-util "^0.1.6"
-    human-standard-collectible-abi "^1.0.2"
-    human-standard-token-abi "^2.0.0"
-    immer "^8.0.1"
-    isomorphic-fetch "^3.0.0"
-    jsonschema "^1.2.4"
-    nanoid "^3.1.12"
-    punycode "^2.1.1"
-    single-call-balance-checker-abi "^1.0.0"
-    uuid "^8.3.2"
-    web3 "^0.20.7"
-    web3-provider-engine "^16.0.1"
-
 "@metamask/controllers@file:metamask-controllers-v10.2.1-seth-1.tgz":
   version "10.2.1-seth-1"
-  uid c381641f31b47c6678bfecd2720b80d91b426cf1
   resolved "file:metamask-controllers-v10.2.1-seth-1.tgz#c381641f31b47c6678bfecd2720b80d91b426cf1"
   dependencies:
     "@ethereumjs/common" "^2.3.1"
