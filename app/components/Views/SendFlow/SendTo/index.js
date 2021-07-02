@@ -280,7 +280,9 @@ class SendFlow extends PureComponent {
 			});
 		}, 100);
 		if (!Object.keys(networkAddressBook).length) {
-			this.addressToInputRef && this.addressToInputRef.current && this.addressToInputRef.current.focus();
+			setTimeout(() => {
+				this.addressToInputRef && this.addressToInputRef.current && this.addressToInputRef.current.focus();
+			}, 500);
 		}
 		//Fills in to address and sets the transaction if coming from QR code scan
 		const targetAddress = route.params?.txMeta?.target_address;
