@@ -1,8 +1,8 @@
-import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { ActivityIndicator, StyleSheet, View, TouchableOpacity, InteractionManager } from 'react-native';
 import { connect } from 'react-redux';
-import { NavigationContext } from 'react-navigation';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { View as AnimatableView } from 'react-native-animatable';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import numberToBN from 'number-to-bn';
@@ -153,9 +153,11 @@ function SwapsAmountView({
 	setHasOnboarded,
 	setLiveness
 }) {
-	const navigation = useContext(NavigationContext);
+	const navigation = useNavigation();
+	const route = useRoute();
+
 	const explorer = useBlockExplorer(provider, frequentRpcList);
-	const initialSource = navigation.getParam('sourceToken', SWAPS_NATIVE_ADDRESS);
+	const initialSource = route.params?.sourceToken ?? SWAPS_NATIVE_ADDRESS;
 	const [amount, setAmount] = useState('0');
 	const [slippage, setSlippage] = useState(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
 	const [isInitialLoadingTokens, setInitialLoadingTokens] = useState(false);
@@ -412,8 +414,11 @@ function SwapsAmountView({
 		}
 		hideTokenVerificationModal();
 		navigation.navigate('Webview', {
-			url: explorer.token(destinationToken.address),
-			title: strings('swaps.verify')
+			screen: 'SimpleWebview',
+			params: {
+				url: explorer.token(destinationToken.address),
+				title: strings('swaps.verify')
+			}
 		});
 	}, [explorer, destinationToken, hideTokenVerificationModal, navigation]);
 
@@ -684,7 +689,7 @@ function SwapsAmountView({
 	);
 }
 
-SwapsAmountView.navigationOptions = ({ navigation }) => getSwapsAmountNavbar(navigation);
+SwapsAmountView.navigationOptions = ({ navigation, route }) => getSwapsAmountNavbar(navigation, route);
 
 SwapsAmountView.propTypes = {
 	swapsTokens: PropTypes.arrayOf(PropTypes.object),

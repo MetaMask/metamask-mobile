@@ -457,13 +457,6 @@ exports[`ImportFromSeed should render correctly 1`] = `
   >
     <TermsAndConditions
       action="IMPORT"
-      navigation={
-        Object {
-          "state": Object {
-            "params": Object {},
-          },
-        }
-      }
     />
   </View>
 </ForwardRef(SafeAreaView)>
