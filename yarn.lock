@@ -1597,9 +1597,9 @@
     web3 "^0.20.7"
     web3-provider-engine "^16.0.1"
 
-"@metamask/controllers@file:metamask-controllers-v10.2.1-seth-1.tgz":
+"@metamask/controllers@file:./metamask-controllers-v10.2.1-seth-1.tgz":
   version "10.2.1-seth-1"
-  resolved "file:metamask-controllers-v10.2.1-seth-1.tgz#c381641f31b47c6678bfecd2720b80d91b426cf1"
+  resolved "file:./metamask-controllers-v10.2.1-seth-1.tgz#c381641f31b47c6678bfecd2720b80d91b426cf1"
   dependencies:
     "@ethereumjs/common" "^2.3.1"
     "@ethereumjs/tx" "^3.2.1"
@@ -1630,147 +1630,39 @@
     web3 "^0.20.7"
     web3-provider-engine "^16.0.1"
 
-"@metamask/controllers@git+https://github.com/MetaMask/metamask-mobile.git#feature/custom-network-gas":
-  version "2.6.0"
-  resolved "git+https://github.com/MetaMask/metamask-mobile.git#6423763f592ea7f867d5cffe43a89f77d6797e8f"
+"@metamask/controllers@file:metamask-controllers-v10.2.1-seth-1.tgz":
+  version "10.2.1-seth-1"
+  uid c381641f31b47c6678bfecd2720b80d91b426cf1
+  resolved "file:metamask-controllers-v10.2.1-seth-1.tgz#c381641f31b47c6678bfecd2720b80d91b426cf1"
   dependencies:
-    "@exodus/react-native-payments" "https://github.com/wachunei/react-native-payments.git#package-json-hack"
-    "@metamask/contract-metadata" "^1.23.0"
-    "@metamask/controllers" "file:metamask-controllers-v10.2.1-seth-1.tgz"
-    "@metamask/etherscan-link" "^2.0.0"
-    "@metamask/swaps-controller" "^4.0.0"
-    "@react-native-community/async-storage" "1.12.1"
-    "@react-native-community/blur" "^3.6.0"
-    "@react-native-community/checkbox" "^0.4.2"
-    "@react-native-community/clipboard" "^1.2.2"
-    "@react-native-community/cookies" "^4.0.1"
-    "@react-native-community/masked-view" "^0.1.10"
-    "@react-native-community/netinfo" "6.0.0"
-    "@react-native-community/picker" "^1.8.1"
-    "@react-native-community/viewpager" "^3.3.0"
-    "@react-navigation/bottom-tabs" "^5.11.11"
-    "@react-navigation/compat" "^5.3.15"
-    "@react-navigation/drawer" "^5.12.5"
-    "@react-navigation/native" "^5.9.4"
-    "@react-navigation/stack" "^5.14.5"
-    "@rnhooks/keyboard" "^0.0.3"
-    "@sentry/integrations" "6.3.1"
-    "@sentry/react-native" "2.4.2"
-    "@tradle/react-native-http" "2.0.1"
-    "@walletconnect/client" "^1.4.1"
-    "@walletconnect/utils" "^1.4.1"
-    asyncstorage-down "4.2.0"
-    axios "^0.21.1"
-    babel-plugin-transform-inline-environment-variables "0.4.3"
-    babel-plugin-transform-remove-console "6.9.4"
-    base-64 "1.0.0"
-    bignumber.js "8.1.1"
-    buffer "5.2.1"
-    compare-versions "^3.6.0"
-    content-hash "2.5.2"
-    dnode "1.2.2"
-    eth-ens-namehash "2.0.8"
-    eth-json-rpc-errors "^2.0.2"
-    eth-json-rpc-filters "4.2.2"
-    eth-json-rpc-infura "5.1.0"
-    eth-json-rpc-middleware "4.3.0"
-    eth-url-parser "1.0.2"
-    ethereumjs-abi "0.6.6"
-    ethereumjs-util "6.1.0"
-    ethers "^5.0.14"
-    ethjs-contract "0.2.3"
-    ethjs-ens "2.0.1"
-    ethjs-query "0.3.8"
-    ethjs-unit "0.1.6"
-    events "3.0.0"
-    fuse.js "3.4.4"
-    https-browserify "0.0.1"
-    improved-yarn-audit "^2.3.3"
-    is-url "^1.2.4"
-    json-rpc-engine "^6.1.0"
-    json-rpc-middleware-stream "3.0.0"
-    lottie-react-native "git+https://github.com/MetaMask/lottie-react-native.git#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106"
-    multihashes "0.4.14"
-    number-to-bn "1.7.0"
-    obj-multiplex "1.0.0"
-    obs-store "4.0.3"
-    path "0.12.7"
-    pify "4.0.1"
-    prop-types "15.7.2"
-    pubnub "4.27.3"
-    pump "3.0.0"
-    qs "6.7.0"
-    query-string "^6.12.1"
-    react "16.13.1"
-    react-native "^0.63.4"
-    react-native-actionsheet beefe/react-native-actionsheet#107/head
-    react-native-aes-crypto "^1.3.9"
-    react-native-aes-crypto-forked "git+https://github.com/MetaMask/react-native-aes-crypto-forked.git#397d5db5250e8e7408294807965b5b9fd4ca6a25"
-    react-native-animatable "^1.3.3"
-    react-native-animated-fox "git+https://github.com/MetaMask/react-native-animated-fox.git#16e38d54d829709e497f196e31fa8ff00cdf2aa9"
-    react-native-background-timer "2.1.1"
-    react-native-branch "5.0.1"
-    react-native-browser-polyfill "0.1.2"
-    react-native-button "git+https://github.com/MetaMask/react-native-button.git#fd79f4d6c8ced4086ba6e3021b6ed6d4a3e19cf7"
-    react-native-camera "^3.36.0"
-    react-native-confetti "^0.1.0"
-    react-native-confetti-cannon "^1.5.0"
-    react-native-crypto "2.1.2"
-    react-native-device-info "^8.1.3"
-    react-native-elevated-view "0.0.6"
-    react-native-emoji "1.3.1"
-    react-native-fade-in-image "1.4.1"
-    react-native-flash-message "0.1.11"
-    react-native-fs "^2.16.6"
-    react-native-gesture-handler "^1.10.3"
-    react-native-i18n "2.0.15"
-    react-native-jazzicon "^0.1.2"
-    react-native-keyboard-aware-scroll-view "^0.9.3"
-    react-native-keychain "^6.2.0"
-    react-native-level-fs "3.0.1"
-    react-native-material-textfield "0.16.1"
-    react-native-modal "^11.5.6"
-    react-native-os "^1.2.6"
-    react-native-progress "3.5.0"
-    react-native-push-notification "git+https://github.com/MetaMask/react-native-push-notification.git#androidx"
-    react-native-qrcode-svg "5.1.2"
-    react-native-randombytes "^3.5.3"
-    react-native-reanimated "^1.13.2"
-    react-native-redash "14.1.1"
-    react-native-safe-area-context "^3.1.9"
-    react-native-screens "^3.3.0"
-    react-native-scrollable-tab-view "^1.0.0"
-    react-native-search-api ombori/react-native-search-api#8/head
-    react-native-sensors "5.3.0"
-    react-native-share "^5.2.2"
-    react-native-splash-screen "git+https://github.com/MetaMask/react-native-splash-screen.git"
-    react-native-step-indicator "^1.0.3"
-    react-native-svg "12.1.0"
-    react-native-swipe-gestures "1.0.3"
-    react-native-tcp aprock/react-native-tcp#11/head
-    react-native-url-polyfill "^1.3.0"
-    react-native-v8 "^0.62.2-patch.1"
-    react-native-vector-icons "6.4.2"
-    react-native-video "^5.1.1"
-    react-native-view-shot "^3.1.2"
-    react-native-webview "^11.0.2"
-    react-redux "5.1.1"
-    readable-stream "1.0.33"
-    redux "4.0.1"
-    redux-mock-store "1.5.3"
-    redux-persist "5.10.0"
-    redux-persist-filesystem-storage "^3.0.0"
-    reselect "^4.0.0"
-    rn-fetch-blob "^0.12.0"
-    stream-browserify "1.0.0"
-    through2 "3.0.1"
-    unicode-confusables "^0.1.1"
-    url "0.11.0"
-    url-parse "1.5.0"
-    valid-url "1.0.9"
-    vm-browserify "1.1.2"
+    "@ethereumjs/common" "^2.3.1"
+    "@ethereumjs/tx" "^3.2.1"
+    "@metamask/contract-metadata" "^1.27.0"
+    "@types/uuid" "^8.3.0"
+    async-mutex "^0.2.6"
+    babel-runtime "^6.26.0"
+    eth-ens-namehash "^2.0.8"
+    eth-json-rpc-infura "^5.1.0"
+    eth-keyring-controller "^6.2.1"
+    eth-method-registry "1.1.0"
+    eth-phishing-detect "^1.1.14"
+    eth-query "^2.1.2"
+    eth-rpc-errors "^4.0.0"
+    eth-sig-util "^3.0.0"
+    ethereumjs-util "^7.0.10"
+    ethereumjs-wallet "^1.0.1"
+    ethjs-util "^0.1.6"
+    human-standard-collectible-abi "^1.0.2"
+    human-standard-token-abi "^2.0.0"
+    immer "^8.0.1"
+    isomorphic-fetch "^3.0.0"
+    jsonschema "^1.2.4"
+    nanoid "^3.1.12"
+    punycode "^2.1.1"
+    single-call-balance-checker-abi "^1.0.0"
+    uuid "^8.3.2"
+    web3 "^0.20.7"
     web3-provider-engine "^16.0.1"
-    zxcvbn "4.4.2"
 
 "@metamask/etherscan-link@^2.0.0":
   version "2.0.0"
@@ -3401,20 +3293,13 @@ bip66@^1.1.5:
   dependencies:
     safe-buffer "^5.0.1"
 
-bl@^1.2.3:
+bl@^1.2.3, bl@~0.8.1:
   version "1.2.3"
   resolved "https://registry.yarnpkg.com/bl/-/bl-1.2.3.tgz#1e8dd80142eac80d7158c9dccc047fb620e035e7"
   integrity sha512-pvcNpa0UU69UT341rO6AYy4FVAIkUHuZXRIWbq+zHnsVcRzDDjIAhGuuYoi0d//cwIwtt4pkpKycWEfjdV+vww==
   dependencies:
     readable-stream "^2.3.5"
     safe-buffer "^5.1.1"
-
-bl@~0.8.1:
-  version "0.8.2"
-  resolved "https://registry.yarnpkg.com/bl/-/bl-0.8.2.tgz#c9b6bca08d1bc2ea00fc8afb4f1a5fd1e1c66e4e"
-  integrity sha1-yba8oI0bwuoA/Ir7Txpf0eHGbk4=
-  dependencies:
-    readable-stream "~1.0.26"
 
 blakejs@^1.1.0:
   version "1.1.0"
@@ -10003,12 +9888,7 @@ negotiator@0.6.2:
   resolved "https://registry.yarnpkg.com/negotiator/-/negotiator-0.6.2.tgz#feacf7ccf525a77ae9634436a64883ffeca346fb"
   integrity sha512-hZXc7K2e+PgeI1eDBe/10Ard4ekbfrrqG8Ep+8Jmf4JID2bNg7NvCPOZN+kfF574pFQI7mum2AUqDidoKqcTOw==
 
-netmask@^1.0.6:
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/netmask/-/netmask-1.0.6.tgz#20297e89d86f6f6400f250d9f4f6b4c1945fcd35"
-  integrity sha1-ICl+idhvb2QA8lDZ9Pa0wZRfzTU=
-
-netmask@^2.0.1:
+netmask@^1.0.6, netmask@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/netmask/-/netmask-2.0.1.tgz#5a5cbdcbb7b6de650870e15e83d3e9553a414cf4"
   integrity sha512-gB8eG6ubxz67c7O2gaGiyWdRUIbH61q7anjgueDqCC9kvIs/b4CTtCMaQKeJbv1/Y7FT19I4zKwYmjnjInRQsg==
@@ -12390,7 +12270,7 @@ semver-compare@^1.0.0:
   resolved "https://registry.yarnpkg.com/semver/-/semver-5.7.1.tgz#a954f931aeba508d307bbf069eff0c01c96116f7"
   integrity sha512-sauaDf/PZdVgrLTNYHRtpXa1iRiKcaebiKQ1BJdpQlWH2lCvexQdX55snPFyK7QzpudqbCI0qXFfOasHdyNDGQ==
 
-semver@^4.3.2:
+semver@^4.3.2, semver@~2.3.1:
   version "4.3.6"
   resolved "https://registry.yarnpkg.com/semver/-/semver-4.3.6.tgz#300bc6e0e86374f7ba61068b5b1ecd57fc6532da"
   integrity sha1-MAvG4OhjdPe6YQaLWx7NV/xlMto=
@@ -12413,11 +12293,6 @@ semver@^7.3.2:
   integrity sha512-tCfb2WLjqFAtXn4KEdxIhalnRtoKFN7nAwj0B3ZXCbQloV2tq5eDbcTmT68JJD3nRJq24/XgxtQKFIpQdtvmVw==
   dependencies:
     lru-cache "^6.0.0"
-
-semver@~2.3.1:
-  version "2.3.2"
-  resolved "https://registry.yarnpkg.com/semver/-/semver-2.3.2.tgz#b9848f25d6cf36333073ec9ef8856d42f1233e52"
-  integrity sha1-uYSPJdbPNjMwc+ye+IVtQvEjPlI=
 
 semver@~5.4.1:
   version "5.4.1"
