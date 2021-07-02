@@ -4,7 +4,6 @@ import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import StyledButton from '../StyledButton';
 import PropTypes from 'prop-types';
-import { withNavigation } from 'react-navigation';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -54,12 +53,12 @@ const InvalidCustomNetworkAlert = props => {
 
 	const goToEditNetwork = () => {
 		closeModal();
-		props.navigation.navigate('NetworkSettings', { network: props.network });
+		props.navigation.navigate('SettingsView', { screen: 'NetworkSettings', params: { network: props.network } });
 	};
 
 	const openLink = () => {
 		closeModal();
-		props.navigation.navigate('SimpleWebview', { url: 'https://chainid.network' });
+		props.navigation.navigate('Webview', { screen: 'SimpleWebview', params: { url: 'https://chainid.network' } });
 	};
 
 	return (
@@ -110,4 +109,4 @@ InvalidCustomNetworkAlert.propTypes = {
 	network: PropTypes.string
 };
 
-export default withNavigation(InvalidCustomNetworkAlert);
+export default InvalidCustomNetworkAlert;

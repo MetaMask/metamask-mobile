@@ -112,7 +112,7 @@ const carousel_images = [gas_education_carousel_1, gas_education_carousel_2, gas
 /**
  * View that is displayed to first time (new) users
  */
-const GasEducationCarousel = ({ navigation, conversionRate, currentCurrency }) => {
+const GasEducationCarousel = ({ navigation, route, conversionRate, currentCurrency }) => {
 	const [currentTab, setCurrentTab] = useState(1);
 	const [gasFiat, setGasFiat] = useState(null);
 
@@ -126,9 +126,8 @@ const GasEducationCarousel = ({ navigation, conversionRate, currentCurrency }) =
 	}, [conversionRate, currentCurrency]);
 
 	const onPresGetStarted = () => {
-		navigation.dismiss();
-		const navigateTo = navigation && navigation.getParam('navigateTo');
-		navigateTo();
+		navigation.pop();
+		route?.params?.navigateTo?.();
 	};
 
 	const renderTabBar = () => <View />;
@@ -139,7 +138,8 @@ const GasEducationCarousel = ({ navigation, conversionRate, currentCurrency }) =
 
 	const openLink = () =>
 		navigation.navigate('Webview', {
-			url: 'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172'
+			screen: 'SimpleWebview',
+			params: { url: 'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172' }
 		});
 
 	const renderText = key => {
@@ -275,7 +275,11 @@ GasEducationCarousel.propTypes = {
 	/**
 		/* Selected currency
 		*/
-	currentCurrency: PropTypes.string
+	currentCurrency: PropTypes.string,
+	/**
+	 * Object that represents the current route info like params passed to it
+	 */
+	route: PropTypes.object
 };
 
 const mapStateToProps = state => ({

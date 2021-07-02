@@ -4,7 +4,7 @@ import AddBookmark from './';
 
 describe('AddBookmark', () => {
 	it('should render correctly', () => {
-		const wrapper = shallow(<AddBookmark navigation={{ getParam: () => null, state: { params: {} } }} />);
+		const wrapper = shallow(<AddBookmark route={{ params: {} }} />);
 		expect(wrapper).toMatchSnapshot();
 	});
 });
