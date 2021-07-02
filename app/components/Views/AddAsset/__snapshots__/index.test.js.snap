@@ -23,28 +23,10 @@ exports[`AddAsset should render correctly 1`] = `
     tabBarPosition="top"
   >
     <SearchTokenAutocomplete
-      navigation={
-        Object {
-          "state": Object {
-            "params": Object {
-              "assetType": "token",
-            },
-          },
-        }
-      }
       tabLabel="SEARCH"
       testID="tab-search-token"
     />
     <AddCustomToken
-      navigation={
-        Object {
-          "state": Object {
-            "params": Object {
-              "assetType": "token",
-            },
-          },
-        }
-      }
       tabLabel="CUSTOM TOKEN"
       testID="tab-add-custom-token"
     />
