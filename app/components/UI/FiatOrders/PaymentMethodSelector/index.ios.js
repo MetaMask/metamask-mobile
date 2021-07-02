@@ -1,7 +1,7 @@
-import React, { useContext, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
-import { NavigationContext } from 'react-navigation';
+import { useNavigation } from '@react-navigation/native';
 import { connect } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import Analytics from '../../../../core/Analytics';
@@ -29,7 +29,7 @@ function PaymentMethodSelectorView({
 	setGasEducationCarouselSeen,
 	...props
 }) {
-	const navigation = useContext(NavigationContext);
+	const navigation = useNavigation();
 	const transakURL = useTransakFlowURL(selectedAddress);
 
 	const onPressWyreApplePay = useCallback(() => {

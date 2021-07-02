@@ -226,8 +226,8 @@ const MODE_AMOUNT = 'amount';
  * View to generate a payment request link
  */
 class PaymentRequest extends PureComponent {
-	static navigationOptions = ({ navigation }) =>
-		getPaymentRequestOptionsTitle(strings('payment_request.title'), navigation);
+	static navigationOptions = ({ navigation, route }) =>
+		getPaymentRequestOptionsTitle(strings('payment_request.title'), navigation, route);
 
 	static propTypes = {
 		/**
@@ -265,7 +265,11 @@ class PaymentRequest extends PureComponent {
 		/**
 		 * Current provider ticker
 		 */
-		ticker: PropTypes.string
+		ticker: PropTypes.string,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	amountInput = React.createRef();
@@ -288,8 +292,8 @@ class PaymentRequest extends PureComponent {
 	 * Set chainId, internalPrimaryCurrency and receiveAssets, if there is an asset set to this payment request chose it automatically, to state
 	 */
 	componentDidMount = () => {
-		const { primaryCurrency, navigation } = this.props;
-		const receiveAsset = navigation && navigation.getParam('receiveAsset', undefined);
+		const { primaryCurrency, route } = this.props;
+		const receiveAsset = route?.params?.receiveAsset;
 		this.setState({
 			internalPrimaryCurrency: primaryCurrency,
 			inputWidth: { width: '100%' }

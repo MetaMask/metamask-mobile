@@ -14,19 +14,9 @@ describe('NetworkSettings', () => {
 				}
 			}
 		};
-		const wrapper = shallow(
-			<NetworkSettings
-				navigation={{
-					state: { params: {} },
-					getParam: () => {
-						'network';
-					}
-				}}
-			/>,
-			{
-				context: { store: mockStore(initialState) }
-			}
-		);
+		const wrapper = shallow(<NetworkSettings route={{ params: {} }} />, {
+			context: { store: mockStore(initialState) }
+		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});
 });

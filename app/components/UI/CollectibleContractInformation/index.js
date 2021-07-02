@@ -138,8 +138,11 @@ class CollectibleContractInformation extends PureComponent {
 		InteractionManager.runAfterInteractions(() => {
 			this.closeModal();
 			this.props.navigation.push('Webview', {
-				url: openSeaUrl,
-				title: 'OpenSea'
+				screen: 'SimpleWebview',
+				params: {
+					url: openSeaUrl,
+					title: 'OpenSea'
+				}
 			});
 		});
 	};
