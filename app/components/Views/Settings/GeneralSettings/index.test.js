@@ -21,16 +21,9 @@ describe('GeneralSettings', () => {
 				}
 			}
 		};
-		const wrapper = shallow(
-			<GeneralSettings
-				navigation={{
-					state: { params: {} }
-				}}
-			/>,
-			{
-				context: { store: mockStore(initialState) }
-			}
-		);
+		const wrapper = shallow(<GeneralSettings route={{ params: {} }} />, {
+			context: { store: mockStore(initialState) }
+		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});
 });

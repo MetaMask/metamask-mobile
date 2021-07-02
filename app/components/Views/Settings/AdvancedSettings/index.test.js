@@ -18,16 +18,9 @@ describe('AdvancedSettings', () => {
 			}
 		};
 
-		const wrapper = shallow(
-			<AdvancedSettings
-				navigation={{
-					state: { params: {} }
-				}}
-			/>,
-			{
-				context: { store: mockStore(initialState) }
-			}
-		);
+		const wrapper = shallow(<AdvancedSettings route={{ params: {} }} />, {
+			context: { store: mockStore(initialState) }
+		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});
 });

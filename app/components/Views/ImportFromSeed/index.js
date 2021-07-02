@@ -177,7 +177,7 @@ const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
  * using a seed phrase
  */
 class ImportFromSeed extends PureComponent {
-	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
+	static navigationOptions = ({ navigation, route }) => getOnboardingNavbarOptions(navigation, route);
 
 	static propTypes = {
 		/**
@@ -292,7 +292,7 @@ class ImportFromSeed extends PureComponent {
 					this.props.navigation.navigate('ManualBackupStep3');
 				} else {
 					this.props.setOnboardingWizardStep(1);
-					this.props.navigation.navigate('WalletView');
+					this.props.navigation.navigate('HomeNav', { screen: 'WalletView' });
 				}
 				await importAdditionalAccounts();
 			} catch (error) {
