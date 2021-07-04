@@ -33,15 +33,6 @@ exports[`Collectible should render correctly 1`] = `
               "address": "0x1",
             }
           }
-          navigation={
-            Object {
-              "state": Object {
-                "params": Object {
-                  "address": "0x1",
-                },
-              },
-            }
-          }
           ownerOf={0}
         />
       </View>
@@ -60,15 +51,6 @@ exports[`Collectible should render correctly 1`] = `
             }
           }
           collectibles={Array []}
-          navigation={
-            Object {
-              "state": Object {
-                "params": Object {
-                  "address": "0x1",
-                },
-              },
-            }
-          }
         />
       </View>
     </View>
@@ -116,15 +98,6 @@ exports[`Collectible should render correctly 1`] = `
       collectibleContract={
         Object {
           "address": "0x1",
-        }
-      }
-      navigation={
-        Object {
-          "state": Object {
-            "params": Object {
-              "address": "0x1",
-            },
-          },
         }
       }
       onClose={[Function]}

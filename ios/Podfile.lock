@@ -391,8 +391,9 @@ PODS:
     - React
   - RNReanimated (1.13.2):
     - React-Core
-  - RNScreens (2.16.1):
+  - RNScreens (3.4.0):
     - React-Core
+    - React-RCTImage
   - RNSensors (5.3.0):
     - React
   - RNSentry (2.4.2):
@@ -715,7 +716,7 @@ SPEC CHECKSUMS:
   RNKeychain: b8e0711b959a19c5b057d1e970d3c83d159b6da5
   RNOS: 6f2f9a70895bbbfbdad7196abd952e7b01d45027
   RNReanimated: e03f7425cb7a38dcf1b644d680d1bfc91c3337ad
-  RNScreens: 45c457af3d2ee9e08fc01e70da87e653d46b1198
+  RNScreens: 21b73c94c9117e1110a79ee0ee80c93ccefed8ce
   RNSensors: c363d486c879e181905dea84a2535e49af1c2d25
   RNSentry: e86fb2e2fec0365644f4b582938bf66be515acce
   RNShare: 5cfe16bfd42cd2c4869a7692462181ac8cc15a6d
@@ -726,6 +727,6 @@ SPEC CHECKSUMS:
   Yoga: 4bd86afe9883422a7c4028c00e34790f560923d6
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 434a61298c023532f98cdb537dcdecda8aae27b7
+PODFILE CHECKSUM: 5bb88f2ae6014e7faa76d3850e213eac8427ec6b
 
 COCOAPODS: 1.10.1
