@@ -21,6 +21,7 @@ import { renderFiat } from '../../../util/number';
 import { renderAccountName } from '../../../util/address';
 import { isMainNet } from '../../../util/networks';
 import { getEther } from '../../../util/transactions';
+import { doENSReverseLookup } from '../../../util/ENSUtils';
 import { isSwapsAllowed } from '../Swaps/utils';
 
 import Identicon from '../Identicon';
@@ -164,13 +165,18 @@ class AccountOverview extends PureComponent {
 		/**
 		 * Current provider ticker
 		 */
-		ticker: PropTypes.string
+		ticker: PropTypes.string,
+		/**
+		 * ID of the current network
+		 */
+		network: PropTypes.string
 	};
 
 	state = {
 		accountLabelEditable: false,
 		accountLabel: '',
-		originalAccountLabel: ''
+		originalAccountLabel: '',
+		name: ''
 	};
 
 	editableLabelRef = React.createRef();
@@ -193,10 +199,12 @@ class AccountOverview extends PureComponent {
 	input = React.createRef();
 
 	componentDidMount = () => {
-		const { identities, selectedAddress, onRef } = this.props;
+		const { identities, selectedAddress, onRef, account } = this.props;
 		const accountLabel = renderAccountName(selectedAddress, identities);
 		this.setState({ accountLabel });
+		this.setState({ name: account.name });
 		onRef && onRef(this);
+		this.ENSReverseLookup();
 	};
 
 	setAccountLabel = () => {
@@ -264,14 +272,24 @@ class AccountOverview extends PureComponent {
 			}
 		});
 
+	ENSReverseLookup = async () => {
+		const { account, network } = this.props;
+		const regExp = /Account \d*$/;
+		const ens = await doENSReverseLookup(account.address, network);
+		if (regExp.test(this.state.name)) {
+			this.setState({ name: ens });
+		}
+	};
+
 	render() {
 		const {
-			account: { name, address },
+			account: { address },
 			currentCurrency,
 			onboardingWizard,
 			chainId,
 			swapsIsLive
 		} = this.props;
+		const { name } = this.state;
 
 		const fiatBalance = `${renderFiat(Engine.getTotalFiatAccountBalance(), currentCurrency)}`;
 
@@ -382,7 +400,8 @@ const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	swapsIsLive: swapsLivenessSelector(state)
+	swapsIsLive: swapsLivenessSelector(state),
+	network: state.engine.backgroundState.NetworkController.network
 });
 
 const mapDispatchToProps = dispatch => ({
