@@ -1,4 +1,3 @@
-/*eslint-disable*/
 import React, { PureComponent } from 'react';
 import { colors, baseStyles, fontStyles } from '../../../../styles/common';
 import {
@@ -61,7 +60,7 @@ import Text from '../../../Base/Text';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { collectConfusables } from '../../../../util/validators';
 import InfoModal from '../../../UI/Swaps/components/InfoModal';
-import { toChecksumAddress, BN } from 'ethereumjs-util';
+import { toChecksumAddress } from 'ethereumjs-util';
 import { removeFavoriteCollectible } from '../../../../actions/collectibles';
 import TransactionReviewEIP1559 from '../../../UI/TransactionReview/TransactionReviewEIP1559';
 import EditGasFee1559 from '../../../UI/EditGasFee1559';
@@ -481,6 +480,7 @@ class Confirm extends PureComponent {
 					...this.props.gasFeeEstimates[this.state.gasSelected],
 					suggestedGasLimit: fromWei(gas, 'wei')
 				});
+				// eslint-disable-next-line react/no-did-update-set-state
 				this.setState({
 					gasEstimationReady: true,
 					EIP1559TransactionData,
@@ -541,15 +541,14 @@ class Confirm extends PureComponent {
 		});
 	};
 
-	parseTransactionDataEIP1559 = (gasFee, options) => {
-		return parseTransaction(
+	parseTransactionDataEIP1559 = (gasFee, options) =>
+		parseTransaction(
 			{
 				...this.props,
 				selectedGasFee: { ...gasFee, estimatedBaseFee: this.props.gasFeeEstimates.estimatedBaseFee }
 			},
 			options
 		);
-	};
 
 	parseTransactionData = () => {
 		const {
@@ -936,7 +935,7 @@ class Confirm extends PureComponent {
 		this.setState({
 			EIP1559TransactionData: { ...this.state.EIP1559TransactionDataTemp },
 			gasSelected,
-			advancedGasInserted: gasSelected ? false : true,
+			advancedGasInserted: !gasSelected,
 			stopUpdateGas: false
 		});
 		this.review();
@@ -1105,6 +1104,8 @@ class Confirm extends PureComponent {
 			warningModalVisible
 		} = this.state;
 
+		const isLegacy = false;
+
 		const checksummedAddress = transactionTo && toChecksumAddress(transactionTo);
 		const existingContact = checksummedAddress && addressBook[network] && addressBook[network][checksummedAddress];
 		const displayExclamation = !existingContact && !!confusableCollection.length;
@@ -1183,22 +1184,24 @@ class Confirm extends PureComponent {
 							</View>
 						</View>
 					)}
-					{/*<TransactionReviewFeeCard
-						totalGasFiat={transactionFeeFiat}
-						totalGasEth={transactionFee}
-						totalFiat={isMainNet(chainId) ? transactionTotalAmountFiat : <Text />}
-						fiat={transactionValueFiat}
-						totalValue={transactionTotalAmount}
-						transactionValue={transactionValue}
-						primaryCurrency={primaryCurrency}
-						gasEstimationReady={gasEstimationReady}
-						edit={() => this.edit(EDIT)}
-						over={over}
-						warningGasPriceHigh={warningGasPriceHigh}
-						showCustomNonce={showCustomNonce}
-						nonceValue={nonce}
-						onNonceEdit={() => this.edit(EDIT_NONCE)}
-					/>*/}
+					{isLegacy && (
+						<TransactionReviewFeeCard
+							totalGasFiat={transactionFeeFiat}
+							totalGasEth={transactionFee}
+							totalFiat={isMainNet(chainId) ? transactionTotalAmountFiat : <Text />}
+							fiat={transactionValueFiat}
+							totalValue={transactionTotalAmount}
+							transactionValue={transactionValue}
+							primaryCurrency={primaryCurrency}
+							gasEstimationReady={gasEstimationReady}
+							edit={() => this.edit(EDIT)}
+							over={over}
+							warningGasPriceHigh={warningGasPriceHigh}
+							showCustomNonce={showCustomNonce}
+							nonceValue={nonce}
+							onNonceEdit={() => this.edit(EDIT_NONCE)}
+						/>
+					)}
 
 					<TransactionReviewEIP1559
 						totalNative={EIP1559TransactionData.renderableTotalMinNative}

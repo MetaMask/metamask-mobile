@@ -186,17 +186,53 @@ const TransactionReviewEIP1559 = ({
 };
 
 TransactionReviewEIP1559.propTypes = {
+	/**
+	 * Total value in native currency
+	 */
 	totalNative: PropTypes.string,
+	/**
+	 * Total value converted to chosen currency
+	 */
 	totalConversion: PropTypes.string,
+	/**
+	 * Total max value (amount + max fee) native
+	 */
 	totalMaxNative: PropTypes.string,
+	/**
+	 * Gas fee in native currency
+	 */
 	gasFeeNative: PropTypes.string,
+	/**
+	 * Gas fee converted to chosen currency
+	 */
 	gasFeeConversion: PropTypes.string,
+	/**
+	 * Maximum gas fee in native currency
+	 */
 	gasFeeMaxNative: PropTypes.string,
+	/**
+	 * Maximum gas fee onverted to chosen currency
+	 */
 	gasFeeMaxConversion: PropTypes.string,
+	/**
+	 * Selected primary currency
+	 */
 	primaryCurrency: PropTypes.string,
+	/**
+	 * A string representing the network chainId
+	 */
 	chainId: PropTypes.string,
+	/**
+	 * Function called when user clicks to edit the gas fee
+	 */
 	onEdit: PropTypes.func,
+	/**
+	 * String that represents the time estimates
+	 */
 	timeEstimate: PropTypes.string,
+	/**
+	 * String that represents the color of the time estimate
+	 */
 	timeEstimateColor: PropTypes.string
 };
 
