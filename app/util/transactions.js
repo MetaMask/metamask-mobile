@@ -6,9 +6,22 @@ import contractMap from '@metamask/contract-metadata';
 import { safeToChecksumAddress } from './address';
 import { util } from '@metamask/controllers';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { hexToBN } from './number';
+import { BNToHex, hexToBN, renderFromTokenMinimalUnit } from './number';
 import AppConstants from '../core/AppConstants';
 import { isMainnetByChainId } from './networks';
+import { addCurrencies, multiplyCurrencies } from '../util/conversion-util';
+import { decGWEIToHexWEI, getValueFromWeiHex, formatETHFee } from '../util/conversions';
+import {
+	addEth,
+	addFiat,
+	convertTokenToFiat,
+	formatCurrency,
+	getTransactionFee,
+	roundExponential
+} from '../util/confirm-tx';
+
+import humanizeDuration from 'humanize-duration';
+
 const { SAI_ADDRESS } = AppConstants;
 
 export const TOKEN_METHOD_TRANSFER = 'transfer';
@@ -429,3 +442,250 @@ export function getNormalizedTxState(state) {
 
 export const getActiveTabUrl = ({ browser = {} }) =>
 	browser.tabs && browser.activeTab && browser.tabs.find(({ id }) => id === browser.activeTab)?.url;
+
+export const parseTransaction = (
+	{
+		selectedGasFee,
+		contractExchangeRates,
+		conversionRate,
+		currentCurrency,
+		nativeCurrency,
+		transactionState: {
+			selectedAsset,
+			transaction: { value, data }
+		}
+	},
+	{ onlyGas } = {}
+) => {
+	// Convert to hex
+	const estimatedBaseFeeHex = decGWEIToHexWEI(selectedGasFee.estimatedBaseFee);
+	const suggestedMaxPriorityFeePerGasHex = decGWEIToHexWEI(selectedGasFee.suggestedMaxPriorityFeePerGas);
+	const suggestedMaxFeePerGasHex = decGWEIToHexWEI(selectedGasFee.suggestedMaxFeePerGas);
+	const gasLimitHex = BNToHex(new BN(selectedGasFee.suggestedGasLimit));
+
+	const { GasFeeController } = Engine.context;
+
+	let timeEstimate = 'Unknown processing time';
+	let timeEstimateColor = 'red';
+	try {
+		const time = GasFeeController.getTimeEstimate(
+			selectedGasFee.suggestedMaxPriorityFeePerGas,
+			selectedGasFee.suggestedMaxFeePerGas
+		);
+
+		if (!time || time === 'unknown' || Object.keys(time).length < 2 || time.upperTimeBound === 'unknown') {
+			timeEstimate = 'Unknown processing time';
+			timeEstimateColor = 'red';
+		} else if (time.lowerTimeBound === 0) {
+			timeEstimate = `Less than ${humanizeDuration(time.upperTimeBound)}`;
+			timeEstimateColor = 'green';
+		} else if (time.upperTimeBound === 0) {
+			timeEstimate = `At least ${humanizeDuration(time.lowerTimeBound)}`;
+			timeEstimateColor = 'red';
+		} else {
+			timeEstimate = `${humanizeDuration(time.lowerTimeBound)} - ${humanizeDuration(time.upperTimeBound)}`;
+			timeEstimateColor = 'green';
+		}
+	} catch (error) {
+		console.log('ERROR ESTIMATING TIME', error);
+	}
+
+	// Hex calculations
+	const estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex = addCurrencies(
+		estimatedBaseFeeHex,
+		suggestedMaxPriorityFeePerGasHex,
+		{
+			toNumericBase: 'hex',
+			aBase: 16,
+			bBase: 16
+		}
+	);
+	const gasFeeMinHex = multiplyCurrencies(estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex, gasLimitHex, {
+		toNumericBase: 'hex',
+		multiplicandBase: 16,
+		multiplierBase: 16
+	});
+	const gasFeeMaxHex = multiplyCurrencies(suggestedMaxFeePerGasHex, gasLimitHex, {
+		toNumericBase: 'hex',
+		multiplicandBase: 16,
+		multiplierBase: 16
+	});
+
+	const maxPriorityFeeNative = getTransactionFee({
+		value: gasFeeMinHex,
+		fromCurrency: nativeCurrency,
+		toCurrency: nativeCurrency,
+		numberOfDecimals: 6,
+		conversionRate
+	});
+	const maxPriorityFeeConversion = getTransactionFee({
+		value: gasFeeMinHex,
+		fromCurrency: nativeCurrency,
+		toCurrency: currentCurrency,
+		numberOfDecimals: 2,
+		conversionRate
+	});
+
+	const renderableMaxPriorityFeeNative = formatETHFee(maxPriorityFeeNative, nativeCurrency);
+	const renderableMaxPriorityFeeConversion = formatCurrency(maxPriorityFeeConversion, currentCurrency);
+
+	const maxFeePerGasNative = getTransactionFee({
+		value: gasFeeMaxHex,
+		fromCurrency: nativeCurrency,
+		toCurrency: nativeCurrency,
+		numberOfDecimals: 6,
+		conversionRate
+	});
+	const maxFeePerGasConversion = getTransactionFee({
+		value: gasFeeMaxHex,
+		fromCurrency: nativeCurrency,
+		toCurrency: currentCurrency,
+		numberOfDecimals: 2,
+		conversionRate
+	});
+
+	const renderableMaxFeePerGasNative = formatETHFee(maxFeePerGasNative, nativeCurrency);
+	const renderableMaxFeePerGasConversion = formatCurrency(maxFeePerGasConversion, currentCurrency);
+
+	// Gas fee min numbers
+	const gasFeeMinNative = getTransactionFee({
+		value: gasFeeMinHex,
+		fromCurrency: nativeCurrency,
+		toCurrency: nativeCurrency,
+		numberOfDecimals: 6,
+		conversionRate
+	});
+	const gasFeeMinConversion = getTransactionFee({
+		value: gasFeeMinHex,
+		fromCurrency: nativeCurrency,
+		toCurrency: currentCurrency,
+		numberOfDecimals: 2,
+		conversionRate
+	});
+
+	// Gas fee max numbers
+	const gasFeeMaxNative = getTransactionFee({
+		value: gasFeeMaxHex,
+		fromCurrency: nativeCurrency,
+		toCurrency: nativeCurrency,
+		numberOfDecimals: 6,
+		conversionRate
+	});
+	const gasFeeMaxConversion = getTransactionFee({
+		value: gasFeeMaxHex,
+		fromCurrency: nativeCurrency,
+		toCurrency: currentCurrency,
+		numberOfDecimals: 2,
+		conversionRate
+	});
+
+	const renderableGasFeeMinNative = formatETHFee(gasFeeMinNative, nativeCurrency);
+	const renderableGasFeeMinConversion = formatCurrency(gasFeeMinConversion, currentCurrency);
+	const renderableGasFeeMaxNative = formatETHFee(gasFeeMaxNative, nativeCurrency);
+	const renderableGasFeeMaxConversion = formatCurrency(gasFeeMaxConversion, currentCurrency);
+
+	if (onlyGas) {
+		return {
+			gasFeeMinNative,
+			renderableGasFeeMinNative,
+			gasFeeMinConversion,
+			renderableGasFeeMinConversion,
+			gasFeeMaxNative,
+			renderableGasFeeMaxNative,
+			gasFeeMaxConversion,
+			renderableGasFeeMaxConversion
+		};
+	}
+
+	// amount numbers
+	const amountConversion = getValueFromWeiHex({
+		value,
+		fromCurrency: nativeCurrency,
+		toCurrency: currentCurrency,
+		conversionRate,
+		numberOfDecimals: 2
+	});
+	const amountNative = getValueFromWeiHex({
+		value,
+		fromCurrency: nativeCurrency,
+		toCurrency: nativeCurrency,
+		conversionRate,
+		numberOfDecimals: 6
+	});
+
+	// Total numbers
+	const totalMinNative = addEth(gasFeeMinNative, amountNative);
+	const totalMinConversion = addFiat(gasFeeMinConversion, amountConversion);
+	const totalMaxNative = addEth(gasFeeMaxNative, amountNative);
+	const totalMaxConversion = addFiat(gasFeeMaxConversion, amountConversion);
+
+	let renderableTotalMinNative, renderableTotalMinConversion, renderableTotalMaxNative, renderableTotalMaxConversion;
+
+	if (selectedAsset.isETH || selectedAsset.tokenId) {
+		renderableTotalMinNative = formatETHFee(totalMinNative, nativeCurrency);
+		renderableTotalMinConversion = formatCurrency(totalMinConversion, currentCurrency);
+
+		renderableTotalMaxNative = formatETHFee(totalMaxNative, nativeCurrency);
+		renderableTotalMaxConversion = formatCurrency(totalMaxConversion, currentCurrency);
+	} else {
+		const { address, symbol = 'ERC20', decimals } = selectedAsset;
+
+		const [, , rawAmount] = decodeTransferData('transfer', data);
+		const rawAmountString = parseInt(rawAmount, 16).toLocaleString('fullwide', { useGrouping: false });
+		const tokenAmount = renderFromTokenMinimalUnit(rawAmountString, decimals);
+
+		const exchangeRate = contractExchangeRates[address];
+
+		const tokenAmountConversion = convertTokenToFiat({
+			value: tokenAmount,
+			toCurrency: currentCurrency,
+			conversionRate,
+			contractExchangeRate: exchangeRate
+		});
+
+		const tokenTotalMinConversion = roundExponential(addFiat(tokenAmountConversion, totalMinConversion));
+		const tokenTotalMaxConversion = roundExponential(addFiat(tokenAmountConversion, totalMaxConversion));
+
+		renderableTotalMinConversion = formatCurrency(tokenTotalMinConversion, currentCurrency);
+		renderableTotalMaxConversion = formatCurrency(tokenTotalMaxConversion, currentCurrency);
+
+		renderableTotalMinNative = `${formatETHFee(tokenAmount, symbol)} + ${formatETHFee(
+			totalMinNative,
+			nativeCurrency
+		)}`;
+		renderableTotalMaxNative = `${formatETHFee(tokenAmount, symbol)} + ${formatETHFee(
+			totalMaxNative,
+			nativeCurrency
+		)}`;
+	}
+
+	return {
+		gasFeeMinNative,
+		renderableGasFeeMinNative,
+		gasFeeMinConversion,
+		renderableGasFeeMinConversion,
+		gasFeeMaxNative,
+		renderableGasFeeMaxNative,
+		gasFeeMaxConversion,
+		renderableGasFeeMaxConversion,
+		renderableMaxPriorityFeeNative,
+		renderableMaxPriorityFeeConversion,
+		renderableMaxFeePerGasNative,
+		renderableMaxFeePerGasConversion,
+		timeEstimate,
+		timeEstimateColor,
+		totalMinNative,
+		renderableTotalMinNative,
+		totalMinConversion,
+		renderableTotalMinConversion,
+		totalMaxNative,
+		renderableTotalMaxNative,
+		totalMaxConversion,
+		renderableTotalMaxConversion,
+		estimatedBaseFee: selectedGasFee.estimatedBaseFee,
+		suggestedMaxPriorityFeePerGas: selectedGasFee.suggestedMaxPriorityFeePerGas,
+		suggestedMaxFeePerGas: selectedGasFee.suggestedMaxFeePerGas,
+		gasLimitHex,
+		suggestedGasLimit: selectedGasFee.suggestedGasLimit
+	};
+};

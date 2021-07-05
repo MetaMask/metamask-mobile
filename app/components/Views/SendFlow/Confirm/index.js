@@ -24,9 +24,11 @@ import {
 	balanceToFiatNumber,
 	renderFiatAddition,
 	isDecimal,
-	toBN
+	toBN,
+	fromWei
 } from '../../../../util/number';
-import { getTicker, decodeTransferData, getNormalizedTxState } from '../../../../util/transactions';
+
+import { getTicker, decodeTransferData, getNormalizedTxState, parseTransaction } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
 import { util, WalletDevice, NetworksChainId } from '@metamask/controllers';
 import { prepareTransaction, resetTransaction, setNonce, setProposedNonce } from '../../../../actions/transaction';
@@ -60,9 +62,12 @@ import { collectConfusables } from '../../../../util/validators';
 import InfoModal from '../../../UI/Swaps/components/InfoModal';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { removeFavoriteCollectible } from '../../../../actions/collectibles';
+import TransactionReviewEIP1559 from '../../../UI/TransactionReview/TransactionReviewEIP1559';
+import EditGasFee1559 from '../../../UI/EditGasFee1559';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
+const EDIT_EIP1559 = 'edit_eip1559';
 const REVIEW = 'review';
 
 const { hexToBN, BNToHex } = util;
@@ -216,6 +221,33 @@ const styles = StyleSheet.create({
 	}
 });
 
+/*
+const gasFeeEstimates = {
+	estimatedBaseFee: '28',
+	high: {
+		maxWaitTimeEstimate: 150000,
+		minWaitTimeEstimate: 0,
+		suggestedMaxFeePerGas: '50',
+		suggestedMaxPriorityFeePerGas: '2'
+	},
+	low: {
+		maxWaitTimeEstimate: 600000,
+		minWaitTimeEstimate: 60000,
+		suggestedMaxFeePerGas: '35',
+		suggestedMaxPriorityFeePerGas: '1'
+	},
+	medium: {
+		maxWaitTimeEstimate: 60000,
+		minWaitTimeEstimate: 15000,
+		suggestedMaxFeePerGas: '38',
+		suggestedMaxPriorityFeePerGas: '2'
+	}
+};
+
+const selected = 'medium';
+const selectedGasFee = { ...gasFeeEstimates[selected], estimatedBaseFee: gasFeeEstimates.estimatedBaseFee };
+*/
+
 /**
  * View that wraps the wraps the "Send" screen
  */
@@ -344,7 +376,12 @@ class Confirm extends PureComponent {
 		fromAccountModalVisible: false,
 		warningModalVisible: false,
 		mode: REVIEW,
-		over: false
+		over: false,
+		gasSelected: 'medium',
+		EIP1559TransactionData: {},
+		EIP1559TransactionDataTemp: {},
+		stopUpdateGas: false,
+		advancedGasInserted: false
 	};
 
 	setNetworkNonce = async () => {
@@ -394,13 +431,8 @@ class Confirm extends PureComponent {
 
 	componentDidMount = async () => {
 		const { GasFeeController } = Engine.context;
-		const result = await GasFeeController.getGasFeeEstimatesAndStartPolling();
-		// TODO(eip1559) remove the following after controller is added
-		// RESULT TOKEN
-		console.log(result);
-		// THIS WILL PRINT THE NEW GAS ESTIMATION PROPS EVERY 5 SECONDS
-		setInterval(() => console.log('gasFeeEstimates---', this.props.gasFeeEstimates), 5000);
-
+		const pollToken = await GasFeeController.getGasFeeEstimatesAndStartPolling(this.state.pollToken);
+		this.setState({ pollToken });
 		// For analytics
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_STARTED, this.getAnalyticsParams());
 
@@ -417,11 +449,12 @@ class Confirm extends PureComponent {
 		const {
 			transactionState: {
 				transactionTo,
-				transaction: { value }
+				transaction: { value, gas }
 			},
 			contractBalances,
 			selectedAsset
 		} = this.props;
+
 		const { errorMessage, fromSelectedAddress } = this.state;
 		const valueChanged = prevProps.transactionState.transaction.value !== value;
 		const fromAddressChanged = prevState.fromSelectedAddress !== fromSelectedAddress;
@@ -434,6 +467,26 @@ class Confirm extends PureComponent {
 		}
 		if (!prevState.errorMessage && errorMessage) {
 			this.scrollView.scrollToEnd({ animated: true });
+		}
+
+		if (
+			this.props.gasFeeEstimates &&
+			gas &&
+			(prevProps.gasFeeEstimates !== this.props.gasFeeEstimates ||
+				gas !== prevProps?.transactionState?.transaction?.gas)
+		) {
+			if (!this.state.stopUpdateGas && !this.state.advancedGasInserted) {
+				const EIP1559TransactionData = this.parseTransactionDataEIP1559({
+					...this.props.gasFeeEstimates[this.state.gasSelected],
+					suggestedGasLimit: fromWei(gas, 'wei')
+				});
+				// eslint-disable-next-line react/no-did-update-set-state
+				this.setState({
+					gasEstimationReady: true,
+					EIP1559TransactionData,
+					EIP1559TransactionDataTemp: EIP1559TransactionData
+				});
+			}
 		}
 	};
 
@@ -475,7 +528,6 @@ class Confirm extends PureComponent {
 		const estimation = await this.estimateGas(transaction);
 		prepareTransaction({ ...transaction, ...estimation });
 		this.parseTransactionData();
-		this.setState({ gasEstimationReady: true });
 	};
 
 	estimateGas = async transaction => {
@@ -488,6 +540,15 @@ class Confirm extends PureComponent {
 			to
 		});
 	};
+
+	parseTransactionDataEIP1559 = (gasFee, options) =>
+		parseTransaction(
+			{
+				...this.props,
+				selectedGasFee: { ...gasFee, estimatedBaseFee: this.props.gasFeeEstimates.estimatedBaseFee }
+			},
+			options
+		);
 
 	parseTransactionData = () => {
 		const {
@@ -865,6 +926,69 @@ class Confirm extends PureComponent {
 		);
 	};
 
+	cancelGasEdition = () => {
+		this.setState({ EIP1559TransactionDataTemp: { ...this.state.EIP1559TransactionData }, stopUpdateGas: false });
+		this.review();
+	};
+
+	saveGasEdition = gasSelected => {
+		this.setState({
+			EIP1559TransactionData: { ...this.state.EIP1559TransactionDataTemp },
+			gasSelected,
+			advancedGasInserted: !gasSelected,
+			stopUpdateGas: false
+		});
+		this.review();
+	};
+
+	renderCustomGasModalEIP1559 = () => {
+		const { primaryCurrency, chainId } = this.props;
+		const { EIP1559TransactionDataTemp } = this.state;
+
+		return (
+			<Modal
+				isVisible
+				animationIn="slideInUp"
+				animationOut="slideOutDown"
+				style={styles.bottomModal}
+				backdropOpacity={0.7}
+				animationInTiming={600}
+				animationOutTiming={600}
+				onBackdropPress={this.cancelGasEdition}
+				onBackButtonPress={this.cancelGasEdition}
+				onSwipeComplete={this.cancelGasEdition}
+				swipeDirection={'down'}
+				propagateSwipe
+			>
+				<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
+					<EditGasFee1559
+						selected={this.state.gasSelected}
+						gasFee={EIP1559TransactionDataTemp}
+						gasOptions={this.props.gasFeeEstimates}
+						onChange={this.calculateTempGasFee}
+						totalNative={EIP1559TransactionDataTemp.renderableTotalMinNative}
+						totalConversion={EIP1559TransactionDataTemp.renderableTotalMinConversion}
+						totalMaxNative={EIP1559TransactionDataTemp.renderableTotalMaxNative}
+						gasFeeNative={EIP1559TransactionDataTemp.renderableGasFeeMinNative}
+						gasFeeConversion={EIP1559TransactionDataTemp.renderableGasFeeMinConversion}
+						gasFeeMaxNative={EIP1559TransactionDataTemp.renderableGasFeeMaxNative}
+						gasFeeMaxConversion={EIP1559TransactionDataTemp.renderableGasFeeMaxConversion}
+						maxPriorityFeeNative={EIP1559TransactionDataTemp.renderableMaxPriorityFeeNative}
+						maxPriorityFeeConversion={EIP1559TransactionDataTemp.renderableMaxPriorityFeeConversion}
+						maxFeePerGasNative={EIP1559TransactionDataTemp.renderableMaxFeePerGasNative}
+						maxFeePerGasConversion={EIP1559TransactionDataTemp.renderableMaxFeePerGasConversion}
+						primaryCurrency={primaryCurrency}
+						chainId={chainId}
+						timeEstimate={EIP1559TransactionDataTemp.timeEstimate}
+						timeEstimateColor={EIP1559TransactionDataTemp.timeEstimateColor}
+						onCancel={this.cancelGasEdition}
+						onSave={this.saveGasEdition}
+					/>
+				</KeyboardAwareScrollView>
+			</Modal>
+		);
+	};
+
 	renderCustomNonceModal = () => {
 		const { setNonce } = this.props;
 		const { proposedNonce, nonce } = this.props.transaction;
@@ -947,6 +1071,14 @@ class Confirm extends PureComponent {
 		});
 	};
 
+	calculateTempGasFee = (gas, selected) => {
+		const { EIP1559TransactionData } = this.state;
+		if (selected && gas) {
+			gas.suggestedGasLimit = EIP1559TransactionData.suggestedGasLimit;
+		}
+		this.setState({ EIP1559TransactionDataTemp: this.parseTransactionDataEIP1559(gas), stopUpdateGas: !selected });
+	};
+
 	render = () => {
 		const { transactionToName, selectedAsset, paymentRequest } = this.props.transactionState;
 		const { addressBook, showHexData, showCustomNonce, primaryCurrency, network, chainId } = this.props;
@@ -971,6 +1103,8 @@ class Confirm extends PureComponent {
 			over,
 			warningModalVisible
 		} = this.state;
+
+		const isLegacy = false;
 
 		const checksummedAddress = transactionTo && toChecksumAddress(transactionTo);
 		const existingContact = checksummedAddress && addressBook[network] && addressBook[network][checksummedAddress];
@@ -1002,6 +1136,9 @@ class Confirm extends PureComponent {
 		const errorLinkText = is_main_net
 			? strings('transaction.buy_more_eth')
 			: strings('transaction.get_ether', { networkName });
+
+		const { EIP1559TransactionData } = this.state;
+
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'txn-confirm-screen'}>
 				<View style={styles.inputWrapper}>
@@ -1047,22 +1184,39 @@ class Confirm extends PureComponent {
 							</View>
 						</View>
 					)}
-					<TransactionReviewFeeCard
-						totalGasFiat={transactionFeeFiat}
-						totalGasEth={transactionFee}
-						totalFiat={isMainNet(chainId) ? transactionTotalAmountFiat : <Text />}
-						fiat={transactionValueFiat}
-						totalValue={transactionTotalAmount}
-						transactionValue={transactionValue}
+					{isLegacy && (
+						<TransactionReviewFeeCard
+							totalGasFiat={transactionFeeFiat}
+							totalGasEth={transactionFee}
+							totalFiat={isMainNet(chainId) ? transactionTotalAmountFiat : <Text />}
+							fiat={transactionValueFiat}
+							totalValue={transactionTotalAmount}
+							transactionValue={transactionValue}
+							primaryCurrency={primaryCurrency}
+							gasEstimationReady={gasEstimationReady}
+							edit={() => this.edit(EDIT)}
+							over={over}
+							warningGasPriceHigh={warningGasPriceHigh}
+							showCustomNonce={showCustomNonce}
+							nonceValue={nonce}
+							onNonceEdit={() => this.edit(EDIT_NONCE)}
+						/>
+					)}
+
+					<TransactionReviewEIP1559
+						totalNative={EIP1559TransactionData.renderableTotalMinNative}
+						totalConversion={EIP1559TransactionData.renderableTotalMinConversion}
+						totalMaxNative={EIP1559TransactionData.renderableTotalMaxNative}
+						gasFeeNative={EIP1559TransactionData.renderableGasFeeMinNative}
+						gasFeeConversion={EIP1559TransactionData.renderableGasFeeMinConversion}
+						gasFeeMaxNative={EIP1559TransactionData.renderableGasFeeMaxNative}
+						gasFeeMaxConversion={EIP1559TransactionData.renderableGasFeeMaxConversion}
 						primaryCurrency={primaryCurrency}
-						gasEstimationReady={gasEstimationReady}
-						edit={() => this.edit(EDIT)}
-						over={over}
-						warningGasPriceHigh={warningGasPriceHigh}
-						showCustomNonce={showCustomNonce}
-						nonceValue={nonce}
-						onNonceEdit={() => this.edit(EDIT_NONCE)}
+						timeEstimate={EIP1559TransactionData.timeEstimate}
+						timeEstimateColor={EIP1559TransactionData.timeEstimateColor}
+						onEdit={() => this.edit(EDIT_EIP1559)}
 					/>
+
 					{errorMessage && (
 						<View style={styles.errorWrapper}>
 							<TouchableOpacity onPress={errorPress}>
@@ -1105,6 +1259,7 @@ class Confirm extends PureComponent {
 				{this.renderFromAccountModal()}
 				{mode === EDIT && this.renderCustomGasModal()}
 				{mode === EDIT_NONCE && this.renderCustomNonceModal()}
+				{mode === EDIT_EIP1559 && this.renderCustomGasModalEIP1559()}
 				{this.renderHexDataModal()}
 			</SafeAreaView>
 		);
@@ -1117,6 +1272,7 @@ const mapStateToProps = state => ({
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	nativeCurrency: state.engine.backgroundState.CurrencyRateController.nativeCurrency,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	network: state.engine.backgroundState.NetworkController.network,
 	identities: state.engine.backgroundState.PreferencesController.identities,
