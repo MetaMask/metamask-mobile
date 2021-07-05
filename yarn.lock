@@ -1560,10 +1560,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-1.25.0.tgz#442ace91fb40165310764b68d8096d0017bb0492"
   integrity sha512-yhmYB9CQPv0dckNcPoWDcgtrdUp0OgK0uvkRE5QIBv4b3qENI1/03BztvK2ijbTuMlORUpjPq7/1MQDUPoRPVw==
 
-"@metamask/contract-metadata@^1.26.0":
-  version "1.26.0"
-  resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-1.26.0.tgz#06be4f4dc645da69f6364f75cb2bd47afa642fe6"
-  integrity sha512-58A8csapIPoc854n6AI+3jwJcQfh75BzVrl6SAySgJ9fWTa1XItm9Tx/ORaqYrwaR/9JqH4SnkbXtqyFwuUL6w==
+"@metamask/contract-metadata@^1.27.0":
+  version "1.27.0"
+  resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-1.27.0.tgz#1e65b821bad6f7d8313dd881116e4366b0662f75"
+  integrity sha512-ZAvuROiHjSksy40buCL4M6m16bAmXQl6vjllK/XQxt9+UElhwJSp7PJ1ZULuZXmznBBY64WXlCPjm94JhW4l3g==
 
 "@metamask/controllers@^8.0.0":
   version "8.0.0"
@@ -1597,13 +1597,13 @@
     web3 "^0.20.7"
     web3-provider-engine "^16.0.1"
 
-"@metamask/controllers@file:./metamask-controllers-v10.1.0-33e4f572.tgz":
-  version "10.1.0-33e4f572"
-  resolved "file:./metamask-controllers-v10.1.0-33e4f572.tgz#00c76747f4fe5e2f15c968431da63e06b5e29284"
+"@metamask/controllers@file:./metamask-controllers-v11.0.1.tgz":
+  version "11.0.1"
+  resolved "file:./metamask-controllers-v11.0.1.tgz#0e206231f2d2c198478024d94c54182ba15b9db9"
   dependencies:
     "@ethereumjs/common" "^2.3.1"
     "@ethereumjs/tx" "^3.2.1"
-    "@metamask/contract-metadata" "^1.26.0"
+    "@metamask/contract-metadata" "^1.27.0"
     "@types/uuid" "^8.3.0"
     async-mutex "^0.2.6"
     babel-runtime "^6.26.0"
@@ -1617,6 +1617,7 @@
     eth-sig-util "^3.0.0"
     ethereumjs-util "^7.0.10"
     ethereumjs-wallet "^1.0.1"
+    ethjs-unit "^0.1.6"
     ethjs-util "^0.1.6"
     human-standard-collectible-abi "^1.0.2"
     human-standard-token-abi "^2.0.0"
@@ -5994,7 +5995,7 @@ ethjs-schema@0.2.1:
   resolved "https://registry.yarnpkg.com/ethjs-schema/-/ethjs-schema-0.2.1.tgz#47e138920421453617069034684642e26bb310f4"
   integrity sha512-DXd8lwNrhT9sjsh/Vd2Z+4pfyGxhc0POVnLBUfwk5udtdoBzADyq+sK39dcb48+ZU+2VgtwHxtGWnLnCfmfW5g==
 
-ethjs-unit@0.1.6:
+ethjs-unit@0.1.6, ethjs-unit@^0.1.6:
   version "0.1.6"
   resolved "https://registry.yarnpkg.com/ethjs-unit/-/ethjs-unit-0.1.6.tgz#c665921e476e87bce2a9d588a6fe0405b2c41699"
   integrity sha1-xmWSHkduh7ziqdWIpv4EBbLEFpk=

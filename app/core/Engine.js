@@ -27,7 +27,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 
 import Encryptor from './Encryptor';
 import { toChecksumAddress } from 'ethereumjs-util';
-import Networks from '../util/networks';
+import Networks, { isMainnetByChainId } from '../util/networks';
 import AppConstants from './AppConstants';
 import { store } from '../store';
 import { renderFromTokenMinimalUnit, balanceToFiatNumber, weiToFiatNumber } from '../util/number';
@@ -178,10 +178,10 @@ class Engine {
 					messenger: this.controllerMessenger,
 					getProvider: () => networkController.provider,
 					onNetworkStateChange: listener => networkController.subscribe(listener),
-					getCurrentNetworkEIP1559Compatibility: () => true //change this for networkController.state.properties.isEIP1559Compatible ???
+					getCurrentNetworkEIP1559Compatibility: () => true, //TODO change this for networkController.state.properties.isEIP1559Compatible ???
+					getIsMainnet: () => isMainnetByChainId(networkController.state.provider.chainId) //TODO check if this is the right function to use
 				})
 			];
-
 			// set initial state
 			// TODO: Pass initial state into each controller constructor instead
 			// This is being set post-construction for now to ensure it's functionally equivalent with
