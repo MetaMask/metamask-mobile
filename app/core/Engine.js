@@ -178,8 +178,8 @@ class Engine {
 					messenger: this.controllerMessenger,
 					getProvider: () => networkController.provider,
 					onNetworkStateChange: listener => networkController.subscribe(listener),
-					getCurrentNetworkEIP1559Compatibility: () => true, //TODO change this for networkController.state.properties.isEIP1559Compatible ???
-					getIsMainnet: () => isMainnetByChainId(networkController.state.provider.chainId) //TODO check if this is the right function to use
+					getCurrentNetworkEIP1559Compatibility: () => true, //TODO(eip1559) change this for networkController.state.properties.isEIP1559Compatible ???
+					getIsMainnet: () => isMainnetByChainId(networkController.state.provider.chainId) //TODO(eip1559) check if this is the right function to use
 				})
 			];
 			// set initial state
