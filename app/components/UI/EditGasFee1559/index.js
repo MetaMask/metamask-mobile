@@ -239,7 +239,6 @@ const EditGasFee1559 = ({
 							</Alert>
 						)}
 
-						{/* TODO: Put the right values and message on the header */}
 						<View style={styles.headerContainer}>
 							<View style={styles.headerTitle}>
 								<View style={styles.headerTitleSide}>
@@ -263,7 +262,7 @@ const EditGasFee1559 = ({
 							</Text>
 						</View>
 						<View>
-							{/* TODO: hook with controller, add strings i18n */}
+							{/* TODO(eip1559) hook with strings i18n */}
 							<HorizontalSelector
 								selected={selectedOption}
 								onPress={selectOption}
