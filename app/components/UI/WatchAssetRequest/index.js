@@ -6,6 +6,7 @@ import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import ActionView from '../ActionView';
 import { renderFromTokenMinimalUnit } from '../../../util/number';
+import { toLowerCaseEquals } from '../../../util/general';
 import TokenImage from '../../UI/TokenImage';
 import Device from '../../../util/Device';
 import Engine from '../../../core/Engine';
@@ -149,11 +150,8 @@ class WatchAssetRequest extends PureComponent {
 			suggestedAssetMeta: { asset },
 			contractBalances
 		} = this.props;
-		const address = Object.keys(contractBalances).find(key => key.toLowerCase() === asset.address);
-		const balance =
-			typeof address === 'undefined'
-				? '0'
-				: renderFromTokenMinimalUnit(contractBalances[address], asset.decimals);
+		const address = Object.keys(contractBalances).find(key => toLowerCaseEquals(key, asset.address));
+		const balance = address ? renderFromTokenMinimalUnit(contractBalances[address], asset.decimals) : '0';
 		return (
 			<View style={styles.root}>
 				<View style={styles.titleWrapper}>
