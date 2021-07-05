@@ -228,7 +228,7 @@ class Approval extends PureComponent {
 		let { transaction } = this.props;
 		const { nonce } = transaction;
 		if (showCustomNonce && nonce) transaction.nonce = BNToHex(nonce);
-		// hardcode
+		//TODO(eip1559) hardcode
 		transaction.maxFeePerGas = '0xd875b174e000';
 		transaction.maxPriorityFeePerGas = '0x3b9aca000';
 		try {
@@ -305,7 +305,7 @@ class Approval extends PureComponent {
 	prepareAssetTransaction = (transaction, selectedAsset) => ({
 		...transaction,
 		gas: BNToHex(transaction.gas),
-		// TODO: set bellow conditionally
+		// TODO(eip1559) set bellow conditionally
 		// gasPrice: BNToHex(transaction.gasPrice),
 		value: '0x0',
 		to: selectedAsset.address

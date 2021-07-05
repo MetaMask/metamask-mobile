@@ -12,10 +12,6 @@ import { strings } from '../../../../locales/i18n';
 import Alert from '../../Base/Alert';
 import HorizontalSelector from '../../Base/HorizontalSelector';
 
-// import Engine from '../../../core/Engine';
-// const { GasFeeController } = Engine.context;
-// console.log({ GasFeeController });
-
 const styles = StyleSheet.create({
 	root: {
 		paddingHorizontal: 24

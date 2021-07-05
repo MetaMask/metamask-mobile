@@ -395,6 +395,7 @@ class Confirm extends PureComponent {
 	componentDidMount = async () => {
 		const { GasFeeController } = Engine.context;
 		const result = await GasFeeController.getGasFeeEstimatesAndStartPolling();
+		// TODO(eip1559) remove the following after controller is added
 		// RESULT TOKEN
 		console.log(result);
 		// THIS WILL PRINT THE NEW GAS ESTIMATION PROPS EVERY 5 SECONDS
@@ -654,7 +655,7 @@ class Confirm extends PureComponent {
 		transactionToSend.gasPrice = BNToHex(transaction.gasPrice);
 		transactionToSend.from = fromSelectedAddress;
 		if (showCustomNonce && nonce) transactionToSend.nonce = BNToHex(nonce);
-		// TODO: conditionally set the follow fields:
+		// TODO(eip1559) conditionally set the follow fields:
 		// transactionToSend.maxFeePerGas = '0x2540be400';
 		// transactionToSend.maxPriorityFeePerGas = '0x3b9aca00';
 		return transactionToSend;
