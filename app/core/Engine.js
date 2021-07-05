@@ -17,7 +17,8 @@ import {
 	TokenRatesController,
 	TransactionController,
 	TypedMessageManager,
-	WalletDevice
+	WalletDevice,
+	GasFeeController
 } from '@metamask/controllers';
 
 import SwapsController from '@metamask/swaps-controller';
@@ -26,7 +27,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 
 import Encryptor from './Encryptor';
 import { toChecksumAddress } from 'ethereumjs-util';
-import Networks from '../util/networks';
+import Networks, { isMainnetByChainId } from '../util/networks';
 import AppConstants from './AppConstants';
 import { store } from '../store';
 import { renderFromTokenMinimalUnit, balanceToFiatNumber, weiToFiatNumber } from '../util/number';
@@ -171,9 +172,16 @@ class Engine {
 					fetchAggregatorMetadataThreshold: AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
 					fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
 					fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD
+				}),
+				new GasFeeController({
+					interval: 10000,
+					messenger: this.controllerMessenger,
+					getProvider: () => networkController.provider,
+					onNetworkStateChange: listener => networkController.subscribe(listener),
+					getCurrentNetworkEIP1559Compatibility: () => true, //TODO(eip1559) change this for networkController.state.properties.isEIP1559Compatible ???
+					getIsMainnet: () => isMainnetByChainId(networkController.state.provider.chainId) //TODO(eip1559) check if this is the right function to use
 				})
 			];
-
 			// set initial state
 			// TODO: Pass initial state into each controller constructor instead
 			// This is being set post-construction for now to ensure it's functionally equivalent with
@@ -186,7 +194,6 @@ class Engine {
 					controller.update(initialState[controller.name]);
 				}
 			}
-
 			this.datamodel = new ComposableController(controllers, this.controllerMessenger);
 			this.context = controllers.reduce((context, controller) => {
 				context[controller.name] = controller;
@@ -467,24 +474,28 @@ class Engine {
 			PreferencesController.setSelectedAddress(accounts.hd[0]);
 		}
 
+		const mapTx = tx => ({
+			id: tx.id,
+			networkID: tx.metamaskNetworkId,
+			origin: tx.origin,
+			status: tx.status,
+			time: tx.time,
+			transactionHash: tx.hash,
+			rawTx: tx.rawTx,
+			transaction: {
+				from: tx.txParams.from,
+				to: tx.txParams.to,
+				nonce: tx.txParams.nonce,
+				gas: tx.txParams.gas,
+				gasPrice: tx.txParams.gasPrice,
+				value: tx.txParams.value,
+				maxFeePerGas: tx.txParams.maxFeePerGas,
+				maxPriorityFeePerGas: tx.txParams.maxPriorityFeePerGas
+			}
+		});
+
 		await TransactionController.update({
-			transactions: transactions.map(tx => ({
-				id: tx.id,
-				networkID: tx.metamaskNetworkId,
-				origin: tx.origin,
-				status: tx.status,
-				time: tx.time,
-				transactionHash: tx.hash,
-				rawTx: tx.rawTx,
-				transaction: {
-					from: tx.txParams.from,
-					to: tx.txParams.to,
-					nonce: tx.txParams.nonce,
-					gas: tx.txParams.gas,
-					gasPrice: tx.txParams.gasPrice,
-					value: tx.txParams.value
-				}
-			}))
+			transactions: transactions.map(mapTx)
 		});
 
 		return true;
@@ -517,7 +528,8 @@ export default {
 			TokenRatesController,
 			TransactionController,
 			TypedMessageManager,
-			SwapsController
+			SwapsController,
+			GasFeeController
 		} = instance.datamodel.state;
 
 		// normalize `null` currencyRate to `0`
@@ -543,7 +555,8 @@ export default {
 			TokenRatesController,
 			TransactionController,
 			TypedMessageManager,
-			SwapsController
+			SwapsController,
+			GasFeeController
 		};
 	},
 	get datamodel() {

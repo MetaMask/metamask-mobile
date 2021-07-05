@@ -315,7 +315,11 @@ class Confirm extends PureComponent {
 		/**
 		 * Set proposed nonce (from network)
 		 */
-		setProposedNonce: PropTypes.func
+		setProposedNonce: PropTypes.func,
+		/**
+		 * gasFeeEstimates
+		 */
+		gasFeeEstimates: PropTypes.object
 	};
 
 	state = {
@@ -389,6 +393,14 @@ class Confirm extends PureComponent {
 	toggleWarningModal = () => this.setState(state => ({ warningModalVisible: !state.warningModalVisible }));
 
 	componentDidMount = async () => {
+		const { GasFeeController } = Engine.context;
+		const result = await GasFeeController.getGasFeeEstimatesAndStartPolling();
+		// TODO(eip1559) remove the following after controller is added
+		// RESULT TOKEN
+		console.log(result);
+		// THIS WILL PRINT THE NEW GAS ESTIMATION PROPS EVERY 5 SECONDS
+		setInterval(() => console.log('gasFeeEstimates---', this.props.gasFeeEstimates), 5000);
+
 		// For analytics
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_STARTED, this.getAnalyticsParams());
 
@@ -643,6 +655,9 @@ class Confirm extends PureComponent {
 		transactionToSend.gasPrice = BNToHex(transaction.gasPrice);
 		transactionToSend.from = fromSelectedAddress;
 		if (showCustomNonce && nonce) transactionToSend.nonce = BNToHex(nonce);
+		// TODO(eip1559) conditionally set the follow fields:
+		// transactionToSend.maxFeePerGas = '0x2540be400';
+		// transactionToSend.maxPriorityFeePerGas = '0x3b9aca00';
 		return transactionToSend;
 	};
 
@@ -1114,7 +1129,8 @@ const mapStateToProps = state => ({
 	transaction: getNormalizedTxState(state),
 	selectedAsset: state.transaction.selectedAsset,
 	transactionState: state.transaction,
-	primaryCurrency: state.settings.primaryCurrency
+	primaryCurrency: state.settings.primaryCurrency,
+	gasFeeEstimates: state.engine.backgroundState.GasFeeController.gasFeeEstimates
 });
 
 const mapDispatchToProps = dispatch => ({
