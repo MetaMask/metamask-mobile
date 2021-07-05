@@ -385,8 +385,6 @@ class SendFlow extends PureComponent {
 			if (resolvedAddress) {
 				const checksummedResolvedAddress = toChecksumAddress(resolvedAddress);
 				toAddressName = toSelectedAddress;
-				toSelectedAddress = resolvedAddress;
-				toSelectedAddressReady = true;
 				if (!networkAddressBook[checksummedResolvedAddress] && !identities[checksummedResolvedAddress]) {
 					addToAddressToAddressBook = true;
 				}
@@ -587,7 +585,8 @@ class SendFlow extends PureComponent {
 			inputWidth,
 			errorContinue,
 			isOnlyWarning,
-			confusableCollection
+			confusableCollection,
+			toEnsName
 		} = this.state;
 
 		const checksummedAddress = toSelectedAddress && toChecksumAddress(toSelectedAddress);
@@ -595,6 +594,7 @@ class SendFlow extends PureComponent {
 		const displayConfusableWarning = !existingContact && confusableCollection && !!confusableCollection.length;
 		const displayAsWarning =
 			confusableCollection && confusableCollection.length && !confusableCollection.some(hasZeroWidthPoints);
+		const canAddEnsToAddressBook = !toSelectedAddressReady && toEnsName && addToAddressToAddressBook;
 
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'send-screen'}>
@@ -608,6 +608,7 @@ class SendFlow extends PureComponent {
 					<AddressTo
 						inputRef={this.addressToInputRef}
 						highlighted={toInputHighlighted}
+						toEnsName={toEnsName}
 						addressToReady={toSelectedAddressReady}
 						toSelectedAddress={toSelectedAddress}
 						toAddressName={toSelectedAddressName}
@@ -622,7 +623,7 @@ class SendFlow extends PureComponent {
 					/>
 				</View>
 
-				{!toSelectedAddressReady ? (
+				{!toSelectedAddressReady && !canAddEnsToAddressBook ? (
 					<AddressList
 						inputSearch={toSelectedAddress}
 						onAccountPress={this.onToSelectedAddressChange}
@@ -660,7 +661,7 @@ class SendFlow extends PureComponent {
 									</View>
 								</View>
 							)}
-							{addToAddressToAddressBook && (
+							{(addToAddressToAddressBook || canAddEnsToAddressBook) && (
 								<TouchableOpacity
 									style={styles.myAccountsTouchable}
 									onPress={this.toggleAddToAddressBookModal}

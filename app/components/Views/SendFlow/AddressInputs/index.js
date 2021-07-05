@@ -181,14 +181,15 @@ export const AddressTo = props => {
 		onInputBlur,
 		inputWidth,
 		confusableCollection,
-		displayExclamation
+		displayExclamation,
+		toEnsName
 	} = props;
 	return (
 		<View style={styles.wrapper}>
 			<View style={styles.label}>
 				<Text style={styles.labelText}>To:</Text>
 			</View>
-			{!addressToReady ? (
+			{!addressToReady && (
 				<View style={[styles.selectWrapper, highlighted ? styles.borderHighlighted : styles.borderOpaque]}>
 					<View style={styles.input}>
 						<TextInput
@@ -218,7 +219,8 @@ export const AddressTo = props => {
 						</TouchableOpacity>
 					)}
 				</View>
-			) : (
+			)}
+			{((!addressToReady && toEnsName) || addressToReady) && (
 				<View style={[styles.selectWrapper, highlighted ? styles.borderHighlighted : styles.borderOpaque]}>
 					<View style={styles.addressToInformation}>
 						<Identicon address={toSelectedAddress} diameter={30} />
@@ -321,7 +323,11 @@ AddressTo.propTypes = {
 	/**
 	 * Display Exclamation Icon
 	 */
-	displayExclamation: PropTypes.bool
+	displayExclamation: PropTypes.bool,
+	/**
+	 * Resolved ENS name
+	 */
+	toEnsName: PropTypes.string
 };
 
 export const AddressFrom = props => {
