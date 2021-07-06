@@ -449,7 +449,19 @@ class Confirm extends PureComponent {
 				gas !== prevProps?.transactionState?.transaction?.gas)
 		) {
 			if (!this.state.stopUpdateGas && !this.state.advancedGasInserted) {
-				if (this.props.gasEstimateType === 'legacy') {
+				if (this.props.gasEstimateType === 'eth_gasPrice') {
+					const LegacyTransactionData = this.parseTransactionDataLegacy({
+						suggestedGasPrice: this.props.gasFeeEstimates.gasPrice,
+						suggestedGasLimit: fromWei(gas, 'wei')
+					});
+
+					// eslint-disable-next-line react/no-did-update-set-state
+					this.setState({
+						gasEstimationReady: true,
+						LegacyTransactionData,
+						LegacyTransactionDataTemp: LegacyTransactionData
+					});
+				} else if (this.props.gasEstimateType === 'legacy') {
 					const LegacyTransactionData = this.parseTransactionDataLegacy({
 						suggestedGasPrice: this.props.gasFeeEstimates[this.state.gasSelected],
 						suggestedGasLimit: fromWei(gas, 'wei')
@@ -856,8 +868,8 @@ class Confirm extends PureComponent {
 	};
 
 	renderCustomGasModalEIP1559 = () => {
-		const { primaryCurrency, chainId } = this.props;
-		const { EIP1559TransactionDataTemp } = this.state;
+		const { primaryCurrency, chainId, gasFeeEstimates } = this.props;
+		const { EIP1559TransactionDataTemp, gasSelected } = this.state;
 
 		return (
 			<Modal
@@ -876,9 +888,9 @@ class Confirm extends PureComponent {
 			>
 				<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
 					<EditGasFee1559
-						selected={this.state.gasSelected}
+						selected={gasSelected}
 						gasFee={EIP1559TransactionDataTemp}
-						gasOptions={this.props.gasFeeEstimates}
+						gasOptions={gasFeeEstimates}
 						onChange={this.calculateTempGasFee}
 						gasFeeNative={EIP1559TransactionDataTemp.renderableGasFeeMinNative}
 						gasFeeConversion={EIP1559TransactionDataTemp.renderableGasFeeMinConversion}
@@ -901,8 +913,8 @@ class Confirm extends PureComponent {
 	};
 
 	renderCustomGasModalLegacy = () => {
-		const { primaryCurrency, chainId } = this.props;
-		const { LegacyTransactionDataTemp } = this.state;
+		const { primaryCurrency, chainId, gasEstimateType, gasFeeEstimates } = this.props;
+		const { LegacyTransactionDataTemp, gasSelected } = this.state;
 
 		return (
 			<Modal
@@ -921,9 +933,10 @@ class Confirm extends PureComponent {
 			>
 				<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
 					<EditGasFeeLegacy
-						selected={this.state.gasSelected}
+						selected={gasSelected}
 						gasFee={LegacyTransactionDataTemp}
-						gasOptions={this.props.gasFeeEstimates}
+						gasEstimateType={gasEstimateType}
+						gasOptions={gasFeeEstimates}
 						onChange={this.calculateTempGasFeeLegacy}
 						gasFeeNative={LegacyTransactionDataTemp.transactionFee}
 						gasFeeConversion={LegacyTransactionDataTemp.transactionFeeFiat}

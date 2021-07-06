@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-const EditGasFee1559 = ({
+const EditGasFeeLegacy = ({
 	selected,
 	gasFee,
 	gasOptions,
@@ -107,11 +107,12 @@ const EditGasFee1559 = ({
 	gasFeeConversion,
 	primaryCurrency,
 	chainId,
-	timeEstimate,
-	timeEstimateColor
+	gasEstimateType
 }) => {
+	const onlyAdvanced = gasEstimateType === 'eth_gasPrice';
+
 	const [showRangeInfoModal, setShowRangeInfoModal] = useState(false);
-	const [showAdvancedOptions, setShowAdvancedOptions] = useState(!selected);
+	const [showAdvancedOptions, setShowAdvancedOptions] = useState(!selected || onlyAdvanced);
 	const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
 	const [warning, setWarning] = useState(null);
 	const [selectedOption, setSelectedOption] = useState(selected);
@@ -231,61 +232,62 @@ const EditGasFee1559 = ({
 									{gasFeeSecondary}
 								</Text>
 							</Text>
-							<Text green={timeEstimateColor === 'green'} red={timeEstimateColor === 'red'}>
-								{timeEstimate}
-							</Text>
 						</View>
-						<View>
-							{/* TODO(eip1559) hook with strings i18n */}
-							<HorizontalSelector
-								selected={selectedOption}
-								onPress={selectOption}
-								options={[
-									{
-										name: 'low',
-										label: <Text bold>Lower</Text>
-									},
-									{
-										name: 'medium',
-										label: (selected, disabled) => (
-											<Text bold primary={selected && !disabled}>
-												Medium
-											</Text>
-										),
-										topLabel: (
-											<TouchableOpacity onPress={toggleRangeInfoModal}>
-												<Text noMargin link bold small centered>
-													Recommended{' '}
-													<MaterialCommunityIcon
-														name="information"
-														size={14}
-														style={styles.labelInfo}
-													/>
+						{!onlyAdvanced && (
+							<View>
+								{/* TODO(eip1559) hook with strings i18n */}
+								<HorizontalSelector
+									selected={selectedOption}
+									onPress={selectOption}
+									options={[
+										{
+											name: 'low',
+											label: <Text bold>Lower</Text>
+										},
+										{
+											name: 'medium',
+											label: (selected, disabled) => (
+												<Text bold primary={selected && !disabled}>
+													Medium
 												</Text>
-											</TouchableOpacity>
-										)
-									},
+											),
+											topLabel: (
+												<TouchableOpacity onPress={toggleRangeInfoModal}>
+													<Text noMargin link bold small centered>
+														Recommended{' '}
+														<MaterialCommunityIcon
+															name="information"
+															size={14}
+															style={styles.labelInfo}
+														/>
+													</Text>
+												</TouchableOpacity>
+											)
+										},
 
-									{
-										name: 'high',
-										label: (selected, disabled) => (
-											<Text bold primary={selected && !disabled}>
-												Higher
-											</Text>
-										)
-									}
-								]}
-							/>
-						</View>
+										{
+											name: 'high',
+											label: (selected, disabled) => (
+												<Text bold primary={selected && !disabled}>
+													Higher
+												</Text>
+											)
+										}
+									]}
+								/>
+							</View>
+						)}
 						<View style={styles.advancedOptionsContainer}>
-							<TouchableOpacity onPress={toggleAdvancedOptions} style={styles.advancedOptionsButton}>
-								<Text noMargin link bold>
-									{strings('edit_gas_fee_eip1559.advanced_options')}
-								</Text>
-								<Text noMargin link bold style={styles.advancedOptionsIcon}>
-									<Icon name={`ios-arrow-${showAdvancedOptions ? 'up' : 'down'}`} />
-								</Text>
-							</TouchableOpacity>
+							{!onlyAdvanced && (
+								<TouchableOpacity onPress={toggleAdvancedOptions} style={styles.advancedOptionsButton}>
+									<Text noMargin link bold>
+										{strings('edit_gas_fee_eip1559.advanced_options')}
+									</Text>
+									<Text noMargin link bold style={styles.advancedOptionsIcon}>
+										<Icon name={`ios-arrow-${showAdvancedOptions ? 'up' : 'down'}`} />
+									</Text>
+								</TouchableOpacity>
+							)}
 							{showAdvancedOptions && (
 								<View style={styles.advancedOptionsInputsContainer}>
 									<View style={styles.rangeInputContainer}>
@@ -409,7 +411,7 @@ const EditGasFee1559 = ({
 	);
 };
 
-EditGasFee1559.propTypes = {
+EditGasFeeLegacy.propTypes = {
 	selected: PropTypes.string,
 	gasFee: PropTypes.object,
 	gasOptions: PropTypes.object,
@@ -420,8 +422,7 @@ EditGasFee1559.propTypes = {
 	gasFeeConversion: PropTypes.string,
 	primaryCurrency: PropTypes.string,
 	chainId: PropTypes.string,
-	timeEstimate: PropTypes.string,
-	timeEstimateColor: PropTypes.string
+	gasEstimateType: PropTypes.string
 };
 
-export default EditGasFee1559;
+export default EditGasFeeLegacy;
