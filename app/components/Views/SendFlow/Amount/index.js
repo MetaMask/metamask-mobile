@@ -634,8 +634,6 @@ class Amount extends PureComponent {
 			from,
 			to: transactionTo
 		});
-		console.log('Gas Est', gas);
-		console.log('Gas Price', gasPrice);
 		return gas.mul(gasPrice);
 	};
 
