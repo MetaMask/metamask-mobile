@@ -21,9 +21,7 @@ import {
 } from '@metamask/controllers';
 
 import SwapsController from '@metamask/swaps-controller';
-
 import AsyncStorage from '@react-native-community/async-storage';
-
 import Encryptor from './Encryptor';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Networks from '../util/networks';
@@ -31,7 +29,7 @@ import AppConstants from './AppConstants';
 import { store } from '../store';
 import { renderFromTokenMinimalUnit, balanceToFiatNumber, weiToFiatNumber } from '../util/number';
 import NotificationManager from './NotificationManager';
-import contractMap from '@metamask/contract-metadata';
+import { contractMap, contractMetadata } from '@metamask/contract-metadata';
 import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
 
@@ -139,7 +137,15 @@ class Engine {
 					addTokens: assetsController.addTokens.bind(assetsController),
 					addCollectible: assetsController.addCollectible.bind(assetsController),
 					removeCollectible: assetsController.removeCollectible.bind(assetsController),
-					getAssetsState: () => assetsController.state
+					getAssetsState: () => assetsController.state,
+					getTokenListState: () => {
+						if (contractMetadata) {
+							return {
+								tokenList: Object.values(contractMetadata).filter(token => token.erc20)
+							};
+						}
+						return { tokenList: [] };
+					}
 				}),
 				currencyRateController,
 				new PersonalMessageManager(),
