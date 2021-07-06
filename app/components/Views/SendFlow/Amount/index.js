@@ -634,6 +634,7 @@ class Amount extends PureComponent {
 			from,
 			to: transactionTo
 		});
+
 		return gas.mul(gasPrice);
 	};
 
