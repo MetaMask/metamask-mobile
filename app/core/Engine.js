@@ -138,14 +138,10 @@ class Engine {
 					addCollectible: assetsController.addCollectible.bind(assetsController),
 					removeCollectible: assetsController.removeCollectible.bind(assetsController),
 					getAssetsState: () => assetsController.state,
-					getTokenListState: () => {
-						if (contractMetadata) {
-							return {
-								tokenList: Object.values(contractMetadata).filter(token => token.erc20)
-							};
-						}
-						return { tokenList: [] };
-					}
+					getTokenListState: () => ({
+						//TODO: replace during Token List Refactor
+						tokenList: Object.values(contractMetadata).filter(token => token.erc20)
+					})
 				}),
 				currencyRateController,
 				new PersonalMessageManager(),
