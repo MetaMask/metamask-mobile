@@ -140,7 +140,7 @@ class Engine {
 					getAssetsState: () => assetsController.state,
 					getTokenListState: () => ({
 						//TODO: replace during Token List Refactor
-						tokenList: Object.values(contractMetadata).filter(token => token.erc20)
+						tokenList: contractMetadata ? Object.values(contractMetadata).filter(token => token.erc20) : []
 					})
 				}),
 				currencyRateController,
