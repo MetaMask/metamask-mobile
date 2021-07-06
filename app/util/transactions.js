@@ -693,7 +693,9 @@ export const parseTransactionEIP1559 = (
 		renderableTotalMaxConversion,
 		estimatedBaseFee: selectedGasFee.estimatedBaseFee,
 		suggestedMaxPriorityFeePerGas: selectedGasFee.suggestedMaxPriorityFeePerGas,
+		suggestedMaxPriorityFeePerGasHex,
 		suggestedMaxFeePerGas: selectedGasFee.suggestedMaxFeePerGas,
+		suggestedMaxFeePerGasHex,
 		gasLimitHex,
 		suggestedGasLimit: selectedGasFee.suggestedGasLimit
 	};
@@ -705,13 +707,19 @@ export const parseTransactionLegacy = ({
 	currentCurrency,
 	transactionState: {
 		selectedAsset,
-		transaction: { value, gas, data }
+		transaction: { value, data }
 	},
 	ticker,
 	selectedGasFee
 }) => {
 	let transactionTotalAmount, transactionTotalAmountFiat;
-	const weiTransactionFee = gas && gas.mul(hexToBN(decGWEIToHexWEI(selectedGasFee.suggestedGasPrice)));
+	const gasLimit = new BN(selectedGasFee.suggestedGasLimit);
+	const gasLimitHex = BNToHex(new BN(selectedGasFee.suggestedGasLimit));
+
+	const weiTransactionFee = gasLimit && gasLimit.mul(hexToBN(decGWEIToHexWEI(selectedGasFee.suggestedGasPrice)));
+
+	const suggestedGasPriceHex = decGWEIToHexWEI(selectedGasFee.suggestedGasPrice);
+
 	const valueBN = hexToBN(value);
 	const transactionFeeFiat = weiToFiat(weiTransactionFee, conversionRate, currentCurrency);
 	const parsedTicker = getTicker(ticker);
@@ -750,6 +758,8 @@ export const parseTransactionLegacy = ({
 		transactionTotalAmount,
 		transactionTotalAmountFiat,
 		suggestedGasPrice: selectedGasFee.suggestedGasPrice,
-		suggestedGasLimit: selectedGasFee.suggestedGasLimit
+		suggestedGasPriceHex,
+		suggestedGasLimit: selectedGasFee.suggestedGasLimit,
+		suggestedGasLimitHex: gasLimitHex
 	};
 };

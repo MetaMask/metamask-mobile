@@ -59,7 +59,7 @@ import Text from '../../../Base/Text';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { collectConfusables } from '../../../../util/validators';
 import InfoModal from '../../../UI/Swaps/components/InfoModal';
-import { toChecksumAddress } from 'ethereumjs-util';
+import { addHexPrefix, toChecksumAddress } from 'ethereumjs-util';
 import { removeFavoriteCollectible } from '../../../../actions/collectibles';
 import TransactionReviewEIP1559 from '../../../UI/TransactionReview/TransactionReviewEIP1559';
 import EditGasFee1559 from '../../../UI/EditGasFee1559';
@@ -402,6 +402,11 @@ class Confirm extends PureComponent {
 
 	toggleWarningModal = () => this.setState(state => ({ warningModalVisible: !state.warningModalVisible }));
 
+	componentWillUnmount = () => {
+		const { GasFeeController } = Engine.context;
+		GasFeeController.stopPolling(this.state.pollToken);
+	};
+
 	componentDidMount = async () => {
 		this.getGasLimit();
 
@@ -623,18 +628,28 @@ class Confirm extends PureComponent {
 	prepareTransactionToSend = () => {
 		const {
 			transactionState: { transaction },
-			showCustomNonce
+			showCustomNonce,
+			gasEstimateType
 		} = this.props;
-		const { fromSelectedAddress } = this.state;
+		const { fromSelectedAddress, LegacyTransactionData, EIP1559TransactionData } = this.state;
 		const { nonce } = this.props.transaction;
 		const transactionToSend = { ...transaction };
-		transactionToSend.gas = BNToHex(transaction.gas);
-		transactionToSend.gasPrice = BNToHex(transaction.gasPrice);
+
+		if (gasEstimateType === 'fee-market') {
+			transactionToSend.gas = EIP1559TransactionData.gasLimitHex;
+			transactionToSend.maxFeePerGas = addHexPrefix(EIP1559TransactionData.suggestedMaxFeePerGasHex); //'0x2540be400'
+			transactionToSend.maxPriorityFeePerGas = addHexPrefix(
+				EIP1559TransactionData.suggestedMaxPriorityFeePerGasHex
+			); //'0x3b9aca00';
+			delete transactionToSend.gasPrice;
+		} else {
+			transactionToSend.gas = LegacyTransactionData.suggestedGasLimitHex;
+			transactionToSend.gasPrice = addHexPrefix(LegacyTransactionData.suggestedGasPriceHex);
+		}
+
 		transactionToSend.from = fromSelectedAddress;
 		if (showCustomNonce && nonce) transactionToSend.nonce = BNToHex(nonce);
-		// TODO(eip1559) conditionally set the follow fields:
-		// transactionToSend.maxFeePerGas = '0x2540be400';
-		// transactionToSend.maxPriorityFeePerGas = '0x3b9aca00';
+
 		return transactionToSend;
 	};
 
@@ -713,17 +728,18 @@ class Confirm extends PureComponent {
 			navigation,
 			resetTransaction
 		} = this.props;
-		this.setState({ transactionConfirmed: true });
-		if (this.validateGas()) {
+		this.setState({ transactionConfirmed: true, stopUpdateGas: true });
+		/*if (this.validateGas()) {
 			this.setState({ transactionConfirmed: false });
 			return;
-		}
+		}*/
 		try {
 			const transaction = this.prepareTransactionToSend();
-			if (this.validateAmount(transaction)) {
+			/*if (this.validateAmount(transaction)) {
 				this.setState({ transactionConfirmed: false });
 				return;
-			}
+			}*/
+
 			const { result, transactionMeta } = await TransactionController.addTransaction(
 				transaction,
 				TransactionTypes.MMM,
