@@ -6,7 +6,16 @@ import contractMap from '@metamask/contract-metadata';
 import { safeToChecksumAddress } from './address';
 import { util } from '@metamask/controllers';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { BNToHex, hexToBN, renderFromTokenMinimalUnit } from './number';
+import {
+	balanceToFiatNumber,
+	BNToHex,
+	hexToBN,
+	renderFiatAddition,
+	renderFromTokenMinimalUnit,
+	renderFromWei,
+	weiToFiat,
+	weiToFiatNumber
+} from './number';
 import AppConstants from '../core/AppConstants';
 import { isMainnetByChainId } from './networks';
 import { addCurrencies, multiplyCurrencies } from '../util/conversion-util';
@@ -443,7 +452,7 @@ export function getNormalizedTxState(state) {
 export const getActiveTabUrl = ({ browser = {} }) =>
 	browser.tabs && browser.activeTab && browser.tabs.find(({ id }) => id === browser.activeTab)?.url;
 
-export const parseTransaction = (
+export const parseTransactionEIP1559 = (
 	{
 		selectedGasFee,
 		contractExchangeRates,
@@ -686,6 +695,61 @@ export const parseTransaction = (
 		suggestedMaxPriorityFeePerGas: selectedGasFee.suggestedMaxPriorityFeePerGas,
 		suggestedMaxFeePerGas: selectedGasFee.suggestedMaxFeePerGas,
 		gasLimitHex,
+		suggestedGasLimit: selectedGasFee.suggestedGasLimit
+	};
+};
+
+export const parseTransactionLegacy = ({
+	contractExchangeRates,
+	conversionRate,
+	currentCurrency,
+	transactionState: {
+		selectedAsset,
+		transaction: { value, gas, data }
+	},
+	ticker,
+	selectedGasFee
+}) => {
+	let transactionTotalAmount, transactionTotalAmountFiat;
+	const weiTransactionFee = gas && gas.mul(hexToBN(decGWEIToHexWEI(selectedGasFee.suggestedGasPrice)));
+	const valueBN = hexToBN(value);
+	const transactionFeeFiat = weiToFiat(weiTransactionFee, conversionRate, currentCurrency);
+	const parsedTicker = getTicker(ticker);
+	const transactionFee = `${renderFromWei(weiTransactionFee)} ${parsedTicker}`;
+	if (selectedAsset.isETH) {
+		const transactionTotalAmountBN = weiTransactionFee && weiTransactionFee.add(valueBN);
+		transactionTotalAmount = `${renderFromWei(transactionTotalAmountBN)} ${parsedTicker}`;
+		transactionTotalAmountFiat = `${weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency)}`;
+	} else if (selectedAsset.tokenId) {
+		const transactionTotalAmountBN = weiTransactionFee && weiTransactionFee.add(valueBN);
+		transactionTotalAmount = `${renderFromWei(weiTransactionFee)} ${parsedTicker}`;
+
+		transactionTotalAmountFiat = `${weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency)}`;
+	} else {
+		const { address, symbol = 'ERC20', decimals } = selectedAsset;
+
+		const [, , rawAmount] = decodeTransferData('transfer', data);
+		const rawAmountString = parseInt(rawAmount, 16).toLocaleString('fullwide', { useGrouping: false });
+		const transferValue = renderFromTokenMinimalUnit(rawAmountString, decimals);
+		const transactionValue = `${transferValue} ${symbol}`;
+		const exchangeRate = contractExchangeRates[address];
+		const transactionFeeFiatNumber = weiToFiatNumber(weiTransactionFee, conversionRate);
+
+		const transactionValueFiatNumber = balanceToFiatNumber(transferValue, conversionRate, exchangeRate);
+		transactionTotalAmount = `${transactionValue} + ${renderFromWei(weiTransactionFee)} ${parsedTicker}`;
+		transactionTotalAmountFiat = renderFiatAddition(
+			transactionValueFiatNumber,
+			transactionFeeFiatNumber,
+			currentCurrency
+		);
+	}
+
+	return {
+		transactionFeeFiat,
+		transactionFee,
+		transactionTotalAmount,
+		transactionTotalAmountFiat,
+		suggestedGasPrice: selectedGasFee.suggestedGasPrice,
 		suggestedGasLimit: selectedGasFee.suggestedGasLimit
 	};
 };

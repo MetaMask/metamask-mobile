@@ -20,23 +20,22 @@ import {
 	renderFromTokenMinimalUnit,
 	weiToFiat,
 	balanceToFiat,
-	weiToFiatNumber,
-	balanceToFiatNumber,
-	renderFiatAddition,
 	isDecimal,
 	toBN,
 	fromWei
 } from '../../../../util/number';
 
-import { getTicker, decodeTransferData, getNormalizedTxState, parseTransaction } from '../../../../util/transactions';
+import {
+	getTicker,
+	decodeTransferData,
+	getNormalizedTxState,
+	parseTransactionEIP1559,
+	parseTransactionLegacy
+} from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
 import { util, WalletDevice, NetworksChainId } from '@metamask/controllers';
 import { prepareTransaction, resetTransaction, setNonce, setProposedNonce } from '../../../../actions/transaction';
-import {
-	apiEstimateModifiedToWEI,
-	getGasPriceByChainId,
-	getBasicGasEstimatesByChainId
-} from '../../../../util/custom-gas';
+import { getGasLimit } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import AccountList from '../../../UI/AccountList';
@@ -55,7 +54,7 @@ import TransactionTypes from '../../../../core/TransactionTypes';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { capitalize } from '../../../../util/general';
-import { isMainNet, getNetworkName, getNetworkNonce } from '../../../../util/networks';
+import { isMainNet, getNetworkName, getNetworkNonce, isMainnetByChainId } from '../../../../util/networks';
 import Text from '../../../Base/Text';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { collectConfusables } from '../../../../util/validators';
@@ -64,6 +63,7 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import { removeFavoriteCollectible } from '../../../../actions/collectibles';
 import TransactionReviewEIP1559 from '../../../UI/TransactionReview/TransactionReviewEIP1559';
 import EditGasFee1559 from '../../../UI/EditGasFee1559';
+import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacy';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -181,10 +181,6 @@ const styles = StyleSheet.create({
 		justifyContent: 'flex-end',
 		margin: 0
 	},
-	totalAmount: {
-		flexWrap: 'wrap',
-		flex: 1
-	},
 	keyboardAwareWrapper: {
 		flex: 1,
 		justifyContent: 'flex-end'
@@ -212,41 +208,10 @@ const styles = StyleSheet.create({
 		textDecorationLine: 'underline',
 		...fontStyles.bold
 	},
-	over: {
-		color: colors.red,
-		...fontStyles.bold
-	},
 	text: {
 		lineHeight: 20
 	}
 });
-
-/*
-const gasFeeEstimates = {
-	estimatedBaseFee: '28',
-	high: {
-		maxWaitTimeEstimate: 150000,
-		minWaitTimeEstimate: 0,
-		suggestedMaxFeePerGas: '50',
-		suggestedMaxPriorityFeePerGas: '2'
-	},
-	low: {
-		maxWaitTimeEstimate: 600000,
-		minWaitTimeEstimate: 60000,
-		suggestedMaxFeePerGas: '35',
-		suggestedMaxPriorityFeePerGas: '1'
-	},
-	medium: {
-		maxWaitTimeEstimate: 60000,
-		minWaitTimeEstimate: 15000,
-		suggestedMaxFeePerGas: '38',
-		suggestedMaxPriorityFeePerGas: '2'
-	}
-};
-
-const selected = 'medium';
-const selectedGasFee = { ...gasFeeEstimates[selected], estimatedBaseFee: gasFeeEstimates.estimatedBaseFee };
-*/
 
 /**
  * View that wraps the wraps the "Send" screen
@@ -351,12 +316,12 @@ class Confirm extends PureComponent {
 		/**
 		 * gasFeeEstimates
 		 */
-		gasFeeEstimates: PropTypes.object
+		gasFeeEstimates: PropTypes.object,
+		gasEstimateType: PropTypes.string
 	};
 
 	state = {
 		confusableCollection: [],
-		gasSpeedSelected: 'average',
 		gasEstimationReady: false,
 		customGas: undefined,
 		customGasPrice: undefined,
@@ -381,7 +346,15 @@ class Confirm extends PureComponent {
 		EIP1559TransactionData: {},
 		EIP1559TransactionDataTemp: {},
 		stopUpdateGas: false,
-		advancedGasInserted: false
+		advancedGasInserted: false,
+		LegacyTransactionData: {
+			transactionFeeFiat: '',
+			transactionFee: '',
+			transactionTotalAmount: '',
+			transactionTotalAmountFiat: ''
+		},
+		LegacyTransactionDataTemp: {},
+		gasSpeedSelected: 'medium'
 	};
 
 	setNetworkNonce = async () => {
@@ -430,6 +403,8 @@ class Confirm extends PureComponent {
 	toggleWarningModal = () => this.setState(state => ({ warningModalVisible: !state.warningModalVisible }));
 
 	componentDidMount = async () => {
+		this.getGasLimit();
+
 		const { GasFeeController } = Engine.context;
 		const pollToken = await GasFeeController.getGasFeeEstimatesAndStartPolling(this.state.pollToken);
 		this.setState({ pollToken });
@@ -437,12 +412,10 @@ class Confirm extends PureComponent {
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_STARTED, this.getAnalyticsParams());
 
 		const { showCustomNonce, navigation, providerType } = this.props;
-		await this.handleFetchBasicEstimates();
 		showCustomNonce && (await this.setNetworkNonce());
 		navigation.setParams({ providerType });
 		this.handleConfusables();
-		this.parseTransactionData();
-		this.prepareTransaction();
+		this.parseTransactionDataHeader();
 	};
 
 	componentDidUpdate = (prevProps, prevState) => {
@@ -463,7 +436,7 @@ class Confirm extends PureComponent {
 		const contractBalanceChanged = previousContractBalance !== newContractBalance;
 		const recipientIsDefined = transactionTo !== undefined;
 		if (recipientIsDefined && (valueChanged || fromAddressChanged || contractBalanceChanged)) {
-			this.parseTransactionData();
+			this.parseTransactionDataHeader();
 		}
 		if (!prevState.errorMessage && errorMessage) {
 			this.scrollView.scrollToEnd({ animated: true });
@@ -476,16 +449,31 @@ class Confirm extends PureComponent {
 				gas !== prevProps?.transactionState?.transaction?.gas)
 		) {
 			if (!this.state.stopUpdateGas && !this.state.advancedGasInserted) {
-				const EIP1559TransactionData = this.parseTransactionDataEIP1559({
-					...this.props.gasFeeEstimates[this.state.gasSelected],
-					suggestedGasLimit: fromWei(gas, 'wei')
-				});
-				// eslint-disable-next-line react/no-did-update-set-state
-				this.setState({
-					gasEstimationReady: true,
-					EIP1559TransactionData,
-					EIP1559TransactionDataTemp: EIP1559TransactionData
-				});
+				if (this.props.gasEstimateType === 'legacy') {
+					const LegacyTransactionData = this.parseTransactionDataLegacy({
+						suggestedGasPrice: this.props.gasFeeEstimates[this.state.gasSelected],
+						suggestedGasLimit: fromWei(gas, 'wei')
+					});
+
+					// eslint-disable-next-line react/no-did-update-set-state
+					this.setState({
+						gasEstimationReady: true,
+						LegacyTransactionData,
+						LegacyTransactionDataTemp: LegacyTransactionData
+					});
+				} else {
+					const EIP1559TransactionData = this.parseTransactionDataEIP1559({
+						...this.props.gasFeeEstimates[this.state.gasSelected],
+						suggestedGasLimit: fromWei(gas, 'wei')
+					});
+					// eslint-disable-next-line react/no-did-update-set-state
+					this.setState({
+						gasEstimationReady: true,
+						EIP1559TransactionData,
+						EIP1559TransactionDataTemp: EIP1559TransactionData
+					});
+				}
+				this.parseTransactionDataHeader();
 			}
 		}
 	};
@@ -511,46 +499,16 @@ class Confirm extends PureComponent {
 		}
 	};
 
-	handleFetchBasicEstimates = async () => {
-		this.setState({ ready: false });
-		const basicGasEstimates = await getBasicGasEstimatesByChainId();
-		if (basicGasEstimates) {
-			this.handleSetGasFee(this.props.transaction.gas, apiEstimateModifiedToWEI(basicGasEstimates.averageGwei));
-		}
-		return this.setState({ basicGasEstimates, ready: true });
-	};
-
-	prepareTransaction = async () => {
+	getGasLimit = async () => {
 		const {
 			prepareTransaction,
 			transactionState: { transaction }
 		} = this.props;
-		const estimation = await this.estimateGas(transaction);
+		const estimation = await getGasLimit();
 		prepareTransaction({ ...transaction, ...estimation });
-		this.parseTransactionData();
 	};
 
-	estimateGas = async transaction => {
-		const { value, data, to, from } = transaction;
-
-		return await getGasPriceByChainId({
-			value,
-			from,
-			data,
-			to
-		});
-	};
-
-	parseTransactionDataEIP1559 = (gasFee, options) =>
-		parseTransaction(
-			{
-				...this.props,
-				selectedGasFee: { ...gasFee, estimatedBaseFee: this.props.gasFeeEstimates.estimatedBaseFee }
-			},
-			options
-		);
-
-	parseTransactionData = () => {
+	parseTransactionDataHeader = () => {
 		const {
 			accounts,
 			contractBalances,
@@ -560,38 +518,19 @@ class Confirm extends PureComponent {
 			transactionState: {
 				selectedAsset,
 				transactionTo: to,
-				transaction: { from, value, gas, gasPrice, data }
+				transaction: { from, value, data }
 			},
 			ticker
 		} = this.props;
-		const { fromSelectedAddress, over } = this.state;
-		let fromAccountBalance,
-			transactionValue,
-			transactionValueFiat,
-			transactionTo,
-			transactionTotalAmount,
-			transactionTotalAmountFiat;
-		const weiTransactionFee = gas && gas.mul(gasPrice);
+		const { fromSelectedAddress } = this.state;
+		let fromAccountBalance, transactionValue, transactionValueFiat, transactionTo;
 		const valueBN = hexToBN(value);
-		const transactionFeeFiat = weiToFiat(weiTransactionFee, conversionRate, currentCurrency);
 		const parsedTicker = getTicker(ticker);
-		const transactionFee = `${renderFromWei(weiTransactionFee)} ${parsedTicker}`;
 
 		if (selectedAsset.isETH) {
 			fromAccountBalance = `${renderFromWei(accounts[fromSelectedAddress].balance)} ${parsedTicker}`;
 			transactionValue = `${renderFromWei(value)} ${parsedTicker}`;
 			transactionValueFiat = weiToFiat(valueBN, conversionRate, currentCurrency);
-			const transactionTotalAmountBN = weiTransactionFee && weiTransactionFee.add(valueBN);
-			transactionTotalAmount = (
-				<Text reset right upper style={[styles.totalAmount, over && styles.over]}>
-					{renderFromWei(transactionTotalAmountBN)} {parsedTicker}
-				</Text>
-			);
-			transactionTotalAmountFiat = (
-				<Text reset right upper style={[styles.totalAmount, over && styles.over]}>
-					{weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency)}
-				</Text>
-			);
 			transactionTo = to;
 		} else if (selectedAsset.tokenId) {
 			fromAccountBalance = `${renderFromWei(accounts[from].balance)} ${parsedTicker}`;
@@ -610,17 +549,6 @@ class Confirm extends PureComponent {
 				[transactionTo, ,] = decodeTransferData('transfer', data);
 			}
 			transactionValueFiat = weiToFiat(valueBN, conversionRate, currentCurrency);
-			const transactionTotalAmountBN = weiTransactionFee && weiTransactionFee.add(valueBN);
-			transactionTotalAmount = (
-				<Text grey right upper style={styles.totalAmount}>
-					{renderFromWei(weiTransactionFee)} {parsedTicker}
-				</Text>
-			);
-			transactionTotalAmountFiat = (
-				<Text primary right upper bold style={styles.totalAmount}>
-					{weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency)}
-				</Text>
-			);
 		} else {
 			let rawAmount;
 			const { address, symbol = 'ERC20', decimals } = selectedAsset;
@@ -633,58 +561,34 @@ class Confirm extends PureComponent {
 			const transferValue = renderFromTokenMinimalUnit(rawAmountString, decimals);
 			transactionValue = `${transferValue} ${symbol}`;
 			const exchangeRate = contractExchangeRates[address];
-			const transactionFeeFiatNumber = weiToFiatNumber(weiTransactionFee, conversionRate);
 			transactionValueFiat =
 				balanceToFiat(transferValue, conversionRate, exchangeRate, currentCurrency) || `0 ${currentCurrency}`;
-			const transactionValueFiatNumber = balanceToFiatNumber(transferValue, conversionRate, exchangeRate);
-			transactionTotalAmount = (
-				<Text grey right upper style={styles.totalAmount}>
-					{transactionValue} + ${renderFromWei(weiTransactionFee)} {parsedTicker}
-				</Text>
-			);
-			transactionTotalAmountFiat = (
-				<Text primary right upper bold style={styles.totalAmount}>
-					{renderFiatAddition(transactionValueFiatNumber, transactionFeeFiatNumber, currentCurrency)}
-				</Text>
-			);
 		}
+		this.setState({
+			fromAccountBalance,
+			transactionValue,
+			transactionValueFiat,
+			transactionTo
+		});
+	};
 
-		this.setState(
+	parseTransactionDataEIP1559 = (gasFee, options) =>
+		parseTransactionEIP1559(
 			{
-				fromAccountBalance,
-				transactionValue,
-				transactionValueFiat,
-				transactionFeeFiat,
-				transactionFee,
-				transactionTo,
-				transactionTotalAmount,
-				transactionTotalAmountFiat
+				...this.props,
+				selectedGasFee: { ...gasFee, estimatedBaseFee: this.props.gasFeeEstimates.estimatedBaseFee }
 			},
-			() => {
-				this.validateAmount({
-					...this.props.transactionState.transaction,
-					from: fromSelectedAddress,
-					value
-				});
-			}
+			options
 		);
-	};
 
-	handleSetGasFee = (customGas, customGasPrice, warningGasPriceHigh) => {
-		const { prepareTransaction, transactionState } = this.props;
-		let transaction = transactionState.transaction;
-		transaction = { ...transaction, gas: customGas, gasPrice: customGasPrice };
-		prepareTransaction(transaction);
-		this.setState({ warningGasPriceHigh });
-		setTimeout(() => {
-			this.parseTransactionData();
-			this.setState({
-				errorMessage: undefined
-			});
-		}, 100);
-
-		this.onModeChange(REVIEW);
-	};
+	parseTransactionDataLegacy = (gasFee, options) =>
+		parseTransactionLegacy(
+			{
+				...this.props,
+				selectedGasFee: gasFee
+			},
+			options
+		);
 
 	handleSetGasSpeed = speed => {
 		this.setState({ gasSpeedSelected: speed });
@@ -872,7 +776,7 @@ class Confirm extends PureComponent {
 			fromSelectedAddress: accountAddress,
 			balanceIsZero: hexToBN(accounts[accountAddress].balance).isZero()
 		});
-		this.parseTransactionData();
+		this.parseTransactionDataHeader();
 		this.toggleFromAccountModal();
 	};
 
@@ -887,10 +791,11 @@ class Confirm extends PureComponent {
 	};
 
 	renderCustomGasModal = () => {
-		const { basicGasEstimates, gasError, ready, mode, gasSpeedSelected } = this.state;
+		const { basicGasEstimates, gasError, gasEstimationReady, mode, gasSpeedSelected } = this.state;
 		const {
 			transaction: { gas, gasPrice }
 		} = this.props;
+
 		return (
 			<Modal
 				isVisible
@@ -907,7 +812,11 @@ class Confirm extends PureComponent {
 				propagateSwipe
 			>
 				<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
-					<AnimatedTransactionModal onModeChange={this.onModeChange} ready={ready} review={this.review}>
+					<AnimatedTransactionModal
+						onModeChange={this.onModeChange}
+						ready={gasEstimationReady}
+						review={this.review}
+					>
 						<CustomGas
 							handleGasFeeSelection={this.handleSetGasFee}
 							basicGasEstimates={basicGasEstimates}
@@ -927,13 +836,18 @@ class Confirm extends PureComponent {
 	};
 
 	cancelGasEdition = () => {
-		this.setState({ EIP1559TransactionDataTemp: { ...this.state.EIP1559TransactionData }, stopUpdateGas: false });
+		this.setState({
+			EIP1559TransactionDataTemp: { ...this.state.EIP1559TransactionData },
+			LegacyTransactionDataTemp: { ...this.state.LegacyTransactionData },
+			stopUpdateGas: false
+		});
 		this.review();
 	};
 
 	saveGasEdition = gasSelected => {
 		this.setState({
 			EIP1559TransactionData: { ...this.state.EIP1559TransactionDataTemp },
+			LegacyTransactionData: { ...this.state.LegacyTransactionDataTemp },
 			gasSelected,
 			advancedGasInserted: !gasSelected,
 			stopUpdateGas: false
@@ -966,9 +880,6 @@ class Confirm extends PureComponent {
 						gasFee={EIP1559TransactionDataTemp}
 						gasOptions={this.props.gasFeeEstimates}
 						onChange={this.calculateTempGasFee}
-						totalNative={EIP1559TransactionDataTemp.renderableTotalMinNative}
-						totalConversion={EIP1559TransactionDataTemp.renderableTotalMinConversion}
-						totalMaxNative={EIP1559TransactionDataTemp.renderableTotalMaxNative}
 						gasFeeNative={EIP1559TransactionDataTemp.renderableGasFeeMinNative}
 						gasFeeConversion={EIP1559TransactionDataTemp.renderableGasFeeMinConversion}
 						gasFeeMaxNative={EIP1559TransactionDataTemp.renderableGasFeeMaxNative}
@@ -981,6 +892,44 @@ class Confirm extends PureComponent {
 						chainId={chainId}
 						timeEstimate={EIP1559TransactionDataTemp.timeEstimate}
 						timeEstimateColor={EIP1559TransactionDataTemp.timeEstimateColor}
+						onCancel={this.cancelGasEdition}
+						onSave={this.saveGasEdition}
+					/>
+				</KeyboardAwareScrollView>
+			</Modal>
+		);
+	};
+
+	renderCustomGasModalLegacy = () => {
+		const { primaryCurrency, chainId } = this.props;
+		const { LegacyTransactionDataTemp } = this.state;
+
+		return (
+			<Modal
+				isVisible
+				animationIn="slideInUp"
+				animationOut="slideOutDown"
+				style={styles.bottomModal}
+				backdropOpacity={0.7}
+				animationInTiming={600}
+				animationOutTiming={600}
+				onBackdropPress={this.cancelGasEdition}
+				onBackButtonPress={this.cancelGasEdition}
+				onSwipeComplete={this.cancelGasEdition}
+				swipeDirection={'down'}
+				propagateSwipe
+			>
+				<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
+					<EditGasFeeLegacy
+						selected={this.state.gasSelected}
+						gasFee={LegacyTransactionDataTemp}
+						gasOptions={this.props.gasFeeEstimates}
+						onChange={this.calculateTempGasFeeLegacy}
+						gasFeeNative={LegacyTransactionDataTemp.transactionFee}
+						gasFeeConversion={LegacyTransactionDataTemp.transactionFeeFiat}
+						gasPriceConversion={LegacyTransactionDataTemp.transactionFeeFiat}
+						primaryCurrency={primaryCurrency}
+						chainId={chainId}
 						onCancel={this.cancelGasEdition}
 						onSave={this.saveGasEdition}
 					/>
@@ -1079,6 +1028,14 @@ class Confirm extends PureComponent {
 		this.setState({ EIP1559TransactionDataTemp: this.parseTransactionDataEIP1559(gas), stopUpdateGas: !selected });
 	};
 
+	calculateTempGasFeeLegacy = (gas, selected) => {
+		const { LegacyTransactionData } = this.state;
+		if (selected && gas) {
+			gas.suggestedGasLimit = LegacyTransactionData.suggestedGasLimit;
+		}
+		this.setState({ LegacyTransactionDataTemp: this.parseTransactionDataLegacy(gas), stopUpdateGas: !selected });
+	};
+
 	render = () => {
 		const { transactionToName, selectedAsset, paymentRequest } = this.props.transactionState;
 		const { addressBook, showHexData, showCustomNonce, primaryCurrency, network, chainId } = this.props;
@@ -1090,10 +1047,7 @@ class Confirm extends PureComponent {
 			fromSelectedAddress,
 			transactionValue = '',
 			transactionValueFiat = '',
-			transactionFeeFiat = '',
-			transactionFee,
 			transactionTo = '',
-			transactionTotalAmount = <Text />,
 			transactionTotalAmountFiat = <Text />,
 			errorMessage,
 			transactionConfirmed,
@@ -1101,10 +1055,11 @@ class Confirm extends PureComponent {
 			confusableCollection,
 			mode,
 			over,
-			warningModalVisible
+			warningModalVisible,
+			LegacyTransactionData
 		} = this.state;
 
-		const isLegacy = false;
+		const isLegacy = this.props.gasEstimateType !== 'fee-market';
 
 		const checksummedAddress = transactionTo && toChecksumAddress(transactionTo);
 		const existingContact = checksummedAddress && addressBook[network] && addressBook[network][checksummedAddress];
@@ -1138,7 +1093,6 @@ class Confirm extends PureComponent {
 			: strings('transaction.get_ether', { networkName });
 
 		const { EIP1559TransactionData } = this.state;
-
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'txn-confirm-screen'}>
 				<View style={styles.inputWrapper}>
@@ -1165,7 +1119,9 @@ class Confirm extends PureComponent {
 							<Text style={styles.textAmount} testID={'confirm-txn-amount'}>
 								{transactionValue}
 							</Text>
-							{isMainNet(chainId) && <Text style={styles.textAmountLabel}>{transactionValueFiat}</Text>}
+							{isMainnetByChainId(chainId) && (
+								<Text style={styles.textAmountLabel}>{transactionValueFiat}</Text>
+							)}
 						</View>
 					) : (
 						<View style={styles.amountWrapper}>
@@ -1184,13 +1140,13 @@ class Confirm extends PureComponent {
 							</View>
 						</View>
 					)}
-					{isLegacy && (
+					{isLegacy ? (
 						<TransactionReviewFeeCard
-							totalGasFiat={transactionFeeFiat}
-							totalGasEth={transactionFee}
+							totalGasFiat={LegacyTransactionData.transactionFeeFiat}
+							totalGasEth={LegacyTransactionData.transactionFee}
 							totalFiat={isMainNet(chainId) ? transactionTotalAmountFiat : <Text />}
 							fiat={transactionValueFiat}
-							totalValue={transactionTotalAmount}
+							totalValue={LegacyTransactionData.transactionTotalAmount}
 							transactionValue={transactionValue}
 							primaryCurrency={primaryCurrency}
 							gasEstimationReady={gasEstimationReady}
@@ -1201,21 +1157,21 @@ class Confirm extends PureComponent {
 							nonceValue={nonce}
 							onNonceEdit={() => this.edit(EDIT_NONCE)}
 						/>
+					) : (
+						<TransactionReviewEIP1559
+							totalNative={EIP1559TransactionData.renderableTotalMinNative}
+							totalConversion={EIP1559TransactionData.renderableTotalMinConversion}
+							totalMaxNative={EIP1559TransactionData.renderableTotalMaxNative}
+							gasFeeNative={EIP1559TransactionData.renderableGasFeeMinNative}
+							gasFeeConversion={EIP1559TransactionData.renderableGasFeeMinConversion}
+							gasFeeMaxNative={EIP1559TransactionData.renderableGasFeeMaxNative}
+							gasFeeMaxConversion={EIP1559TransactionData.renderableGasFeeMaxConversion}
+							primaryCurrency={primaryCurrency}
+							timeEstimate={EIP1559TransactionData.timeEstimate}
+							timeEstimateColor={EIP1559TransactionData.timeEstimateColor}
+							onEdit={() => this.edit(EDIT_EIP1559)}
+						/>
 					)}
-
-					<TransactionReviewEIP1559
-						totalNative={EIP1559TransactionData.renderableTotalMinNative}
-						totalConversion={EIP1559TransactionData.renderableTotalMinConversion}
-						totalMaxNative={EIP1559TransactionData.renderableTotalMaxNative}
-						gasFeeNative={EIP1559TransactionData.renderableGasFeeMinNative}
-						gasFeeConversion={EIP1559TransactionData.renderableGasFeeMinConversion}
-						gasFeeMaxNative={EIP1559TransactionData.renderableGasFeeMaxNative}
-						gasFeeMaxConversion={EIP1559TransactionData.renderableGasFeeMaxConversion}
-						primaryCurrency={primaryCurrency}
-						timeEstimate={EIP1559TransactionData.timeEstimate}
-						timeEstimateColor={EIP1559TransactionData.timeEstimateColor}
-						onEdit={() => this.edit(EDIT_EIP1559)}
-					/>
 
 					{errorMessage && (
 						<View style={styles.errorWrapper}>
@@ -1257,7 +1213,7 @@ class Confirm extends PureComponent {
 					</StyledButton>
 				</View>
 				{this.renderFromAccountModal()}
-				{mode === EDIT && this.renderCustomGasModal()}
+				{mode === EDIT && this.renderCustomGasModalLegacy()}
 				{mode === EDIT_NONCE && this.renderCustomNonceModal()}
 				{mode === EDIT_EIP1559 && this.renderCustomGasModalEIP1559()}
 				{this.renderHexDataModal()}
@@ -1286,7 +1242,8 @@ const mapStateToProps = state => ({
 	selectedAsset: state.transaction.selectedAsset,
 	transactionState: state.transaction,
 	primaryCurrency: state.settings.primaryCurrency,
-	gasFeeEstimates: state.engine.backgroundState.GasFeeController.gasFeeEstimates
+	gasFeeEstimates: state.engine.backgroundState.GasFeeController.gasFeeEstimates,
+	gasEstimateType: state.engine.backgroundState.GasFeeController.gasEstimateType
 });
 
 const mapDispatchToProps = dispatch => ({
