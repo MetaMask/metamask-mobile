@@ -139,9 +139,15 @@ class Engine {
 					removeCollectible: assetsController.removeCollectible.bind(assetsController),
 					getAssetsState: () => assetsController.state,
 					//TODO: replace during Token List Refactor
-					getTokenListState: async () => ({
-						tokenList: Object.values(contractMap || []).filter(token => token.erc20)
-					})
+					getTokenListState: () => {
+						const result = Object.entries(contractMap).reduce((final, [key, value]) => {
+							if (value.erc20) {
+								final[key] = value;
+							}
+							return final;
+						}, {});
+						return { tokenList: result };
+					}
 				}),
 				currencyRateController,
 				new PersonalMessageManager(),
