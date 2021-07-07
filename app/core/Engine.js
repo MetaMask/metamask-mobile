@@ -139,6 +139,15 @@ class Engine {
 					addTokens: assetsController.addTokens.bind(assetsController),
 					addCollectible: assetsController.addCollectible.bind(assetsController),
 					removeCollectible: assetsController.removeCollectible.bind(assetsController),
+					getTokenListState: () => {
+						const tokenList = {};
+						for (const address in contractMap) {
+							if (contractMap[address].erc20) {
+								tokenList[address] = contractMap[address];
+							}
+						}
+						return tokenList;
+					},
 					getAssetsState: () => assetsController.state
 				}),
 				currencyRateController,
