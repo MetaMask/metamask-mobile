@@ -15,7 +15,7 @@ import AccountList from '../AccountList';
 import NetworkList from '../NetworkList';
 import { renderFromWei, renderFiat } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
-import { DrawerActions } from 'react-navigation-drawer';
+import { DrawerActions } from '@react-navigation/native';
 import Modal from 'react-native-modal';
 import SecureKeychain from '../../../core/SecureKeychain';
 import { toggleNetworkModal, toggleAccountsModal, toggleReceiveModal } from '../../../actions/modals';
@@ -39,7 +39,7 @@ import SettingsNotification from '../SettingsNotification';
 import WhatsNewModal from '../WhatsNewModal';
 import InvalidCustomNetworkAlert from '../InvalidCustomNetworkAlert';
 import { RPC } from '../../../constants/network';
-import { findBottomTabRouteNameFromNavigatorState, findRouteNameFromNavigatorState } from '../../../util/general';
+import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
@@ -395,10 +395,21 @@ class DrawerView extends PureComponent {
 	}
 
 	componentDidUpdate() {
-		const route = findRouteNameFromNavigatorState(this.props.navigation.state);
+		const route = findRouteNameFromNavigatorState(this.props.navigation.dangerouslyGetState().routes);
 		if (!this.props.passwordSet || !this.props.seedphraseBackedUp) {
-			const bottomTab = findBottomTabRouteNameFromNavigatorState(this.props.navigation.state);
-			if (['SetPasswordFlow', 'Webview', 'LockScreen'].includes(bottomTab)) {
+			if (
+				[
+					'SetPasswordFlow',
+					'ChoosePassword',
+					'AccountBackupStep1',
+					'AccountBackupStep1B',
+					'ManualBackupStep1',
+					'ManualBackupStep2',
+					'ManualBackupStep3',
+					'Webview',
+					'LockScreen'
+				].includes(route)
+			) {
 				// eslint-disable-next-line react/no-did-update-set-state
 				this.state.showProtectWalletModal && this.setState({ showProtectWalletModal: false });
 				return;
@@ -518,7 +529,10 @@ class DrawerView extends PureComponent {
 		await SecureKeychain.resetGenericPassword();
 		await KeyringController.setLocked();
 		if (!passwordSet) {
-			this.props.navigation.navigate('Onboarding');
+			this.props.navigation.navigate('OnboardingRootNav', {
+				screen: 'OnboardingNav',
+				params: { screen: 'Onboarding' }
+			});
 		} else {
 			this.props.navigation.navigate('Login');
 		}
@@ -581,8 +595,11 @@ class DrawerView extends PureComponent {
 
 	goToBrowserUrl(url, title) {
 		this.props.navigation.navigate('Webview', {
-			url,
-			title
+			screen: 'SimpleWebview',
+			params: {
+				url,
+				title
+			}
 		});
 		this.hideDrawer();
 	}
@@ -605,7 +622,7 @@ class DrawerView extends PureComponent {
 
 	onImportAccount = () => {
 		this.toggleAccountsModal();
-		this.props.navigation.navigate('ImportPrivateKey');
+		this.props.navigation.navigate('ImportPrivateKeyView');
 		this.hideDrawer();
 	};
 
@@ -785,7 +802,10 @@ class DrawerView extends PureComponent {
 
 	onSecureWalletModalAction = () => {
 		this.setState({ showProtectWalletModal: false });
-		this.props.navigation.navigate(this.props.passwordSet ? 'AccountBackupStep1' : 'SetPasswordFlow');
+		this.props.navigation.navigate(
+			'SetPasswordFlow',
+			this.props.passwordSet ? { screen: 'AccountBackupStep1' } : undefined
+		);
 	};
 
 	renderProtectModal = () => (
@@ -839,7 +859,7 @@ class DrawerView extends PureComponent {
 		}
 		this.currentBalance = fiatBalance;
 		const fiatBalanceStr = renderFiat(this.currentBalance, currentCurrency);
-		const currentRoute = findRouteNameFromNavigatorState(this.props.navigation.state);
+		const currentRoute = findRouteNameFromNavigatorState(this.props.navigation.dangerouslyGetState().routes);
 		return (
 			<View style={styles.wrapper} testID={'drawer-screen'}>
 				<ScrollView>
@@ -1001,6 +1021,7 @@ class DrawerView extends PureComponent {
 				</Modal>
 				<Modal isVisible={!!invalidCustomNetwork}>
 					<InvalidCustomNetworkAlert
+						navigation={this.props.navigation}
 						network={invalidCustomNetwork}
 						onClose={this.closeInvalidCustomNetworkAlert}
 					/>

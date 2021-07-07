@@ -12,7 +12,7 @@ import {
 	BackHandler,
 	InteractionManager
 } from 'react-native';
-import { withNavigation } from 'react-navigation';
+import { withNavigation } from '@react-navigation/compat';
 import { WebView } from 'react-native-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -626,7 +626,7 @@ export const BrowserTab = props => {
 
 				wallet_scanQRCode: () =>
 					new Promise((resolve, reject) => {
-						this.props.navigation.navigate('QRScanner', {
+						props.navigation.navigate('QRScanner', {
 							onScanSuccess: data => {
 								const regex = new RegExp(req.params[0]);
 								if (regex && !regex.exec(data)) {
@@ -1458,24 +1458,27 @@ export const BrowserTab = props => {
 	const addBookmark = () => {
 		toggleOptionsIfNeeded();
 		props.navigation.push('AddBookmarkView', {
-			title: title.current || '',
-			url: getMaskedUrl(url.current),
-			onAddBookmark: async ({ name, url }) => {
-				props.addBookmark({ name, url });
-				if (Device.isIos()) {
-					const item = {
-						uniqueIdentifier: url,
-						title: name || getMaskedUrl(url),
-						contentDescription: `Launch ${name || url} on MetaMask`,
-						keywords: [name.split(' '), url, 'dapp'],
-						thumbnail: {
-							uri: icon.current || `https://api.faviconkit.com/${getHost(url)}/256`
+			screen: 'AddBookmark',
+			params: {
+				title: title.current || '',
+				url: getMaskedUrl(url.current),
+				onAddBookmark: async ({ name, url }) => {
+					props.addBookmark({ name, url });
+					if (Device.isIos()) {
+						const item = {
+							uniqueIdentifier: url,
+							title: name || getMaskedUrl(url),
+							contentDescription: `Launch ${name || url} on MetaMask`,
+							keywords: [name.split(' '), url, 'dapp'],
+							thumbnail: {
+								uri: icon.current || `https://api.faviconkit.com/${getHost(url)}/256`
+							}
+						};
+						try {
+							SearchApi.indexSpotlightItem(item);
+						} catch (e) {
+							Logger.error(e, 'Error adding to spotlight');
 						}
-					};
-					try {
-						SearchApi.indexSpotlightItem(item);
-					} catch (e) {
-						Logger.error(e, 'Error adding to spotlight');
 					}
 				}
 			}

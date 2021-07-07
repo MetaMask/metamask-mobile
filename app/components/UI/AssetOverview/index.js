@@ -159,7 +159,7 @@ class AssetOverview extends PureComponent {
 	};
 
 	onBuy = () => {
-		this.props.navigation.navigate('PaymentMethodSelector');
+		this.props.navigation.navigate('FiatOnRamp');
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
 		});
@@ -178,13 +178,19 @@ class AssetOverview extends PureComponent {
 
 	goToSwaps = () => {
 		this.props.navigation.navigate('Swaps', {
-			sourceToken: this.props.asset.isETH ? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS : this.props.asset.address
+			screen: 'SwapsAmountView',
+			params: {
+				sourceToken: this.props.asset.isETH ? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS : this.props.asset.address
+			}
 		});
 	};
 
 	goToBrowserUrl(url) {
-		this.props.navigation.navigate('BrowserView', {
-			newTabUrl: url
+		this.props.navigation.navigate('BrowserTabHome', {
+			screen: 'BrowserView',
+			params: {
+				newTabUrl: url
+			}
 		});
 	}
 

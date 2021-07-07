@@ -11,7 +11,7 @@ describe('AppInformation', () => {
 	it('should render correctly', () => {
 		const wrapper = shallow(
 			<Provider store={store}>
-				<AppInformation navigation={{ state: { params: {} } }} />
+				<AppInformation route={{ params: {} }} />
 			</Provider>
 		);
 		expect(wrapper).toMatchSnapshot();
