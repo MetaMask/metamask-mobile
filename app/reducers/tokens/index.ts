@@ -1,4 +1,5 @@
 import { createSelector } from 'reselect';
+import { tokenListToArray } from '../../util/tokens';
 
 // TODO: Provide types
 const tokenListSelector = (state: any) => state.engine.backgroundState.TokenListController.tokenList;
@@ -12,4 +13,9 @@ const tokenListSelector = (state: any) => state.engine.backgroundState.TokenList
 export const getTokenList = createSelector(
 	tokenListSelector,
 	tokenList => tokenList
+);
+
+export const getTokenListArray = createSelector(
+	tokenListSelector,
+	tokenListToArray
 );

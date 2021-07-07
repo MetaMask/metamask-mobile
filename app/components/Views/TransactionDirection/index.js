@@ -156,7 +156,7 @@ class TransactionDirection extends PureComponent {
 	renderToContractDirection = contract => (
 		<View style={[styles.addressGraphic, styles.toGraphic]}>
 			<View style={styles.contractLogoWrapper}>
-				<AssetIcon logo={contract.logo} customStyle={styles.contractLogo} />
+				<AssetIcon logo={contract.iconUrl} customStyle={styles.contractLogo} />
 			</View>
 			<Text style={[styles.addressText, styles.addressWrapper]} numberOfLines={1}>
 				{contract.name}

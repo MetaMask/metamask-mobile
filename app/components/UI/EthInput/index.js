@@ -129,6 +129,7 @@ const styles = StyleSheet.create({
 	}
 });
 
+// TODO: This does not look used anymore.
 /**
  * Form component that allows users to type an amount of ETH and its fiat value is rendered dynamically
  */

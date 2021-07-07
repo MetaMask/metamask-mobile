@@ -78,7 +78,7 @@
   "dependencies": {
     "@exodus/react-native-payments": "https://github.com/wachunei/react-native-payments.git#package-json-hack",
     "@metamask/contract-metadata": "^1.23.0",
-    "@metamask/controllers": "^10.1.0",
+    "@metamask/controllers": "./metamask-controllers-v10.2.0.tgz",
     "@metamask/etherscan-link": "^2.0.0",
     "@metamask/swaps-controller": "^4.0.0",
     "@react-native-community/async-storage": "1.12.1",
@@ -219,6 +219,7 @@
     "@react-native-community/eslint-config": "^1.1.0",
     "@types/react": "^17.0.11",
     "@types/react-native": "^0.64.10",
+    "@types/react-native-vector-icons": "^6.4.7",
     "assert": "1.4.1",
     "babel-core": "7.0.0-bridge.0",
     "babel-eslint": "10.1.0",

@@ -27,7 +27,6 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import { isSwapsNativeAsset } from '../Swaps/utils';
 import { toLowerCaseEquals } from '../../../util/general';
 import Engine from '../../../core/Engine';
-const { TokenListController } = Engine.context;
 
 const { getSwapsContractAddress } = swapsUtils;
 
@@ -482,7 +481,7 @@ function decodeConfirmTx(args) {
 	const renderFrom = renderFullAddress(from);
 	const renderTo = renderFullAddress(to);
 
-	const tokenList = TokenListController.state.tokenList;
+	const tokenList = Engine.context.TokenListController.state.tokenList;
 	let symbol;
 	if (renderTo in tokenList) {
 		symbol = tokenList[renderTo].symbol;

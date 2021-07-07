@@ -104,12 +104,12 @@ class Engine {
 				getAssetSymbol: assetsContractController.getAssetSymbol.bind(assetsContractController),
 				getCollectibleTokenURI: assetsContractController.getCollectibleTokenURI.bind(assetsContractController)
 			});
+			this.controllerMessenger = new ControllerMessenger();
 			const tokenListController = new TokenListController({
 				chainId: networkController.provider.chainId, // Should this use networkController.state.provider.chainId instead?
 				onNetworkStateChange: listener => networkController.subscribe(listener),
 				messenger: this.controllerMessenger
 			});
-			this.controllerMessenger = new ControllerMessenger();
 			const currencyRateController = new CurrencyRateController({
 				messenger: this.controllerMessenger,
 				state: initialState.CurrencyRateController

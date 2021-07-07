@@ -29,3 +29,10 @@ export function setThirdPartyApiMode(enabled) {
 		enabled
 	};
 }
+
+export function setTokenDetectionMode(enabled) {
+	return {
+		type: 'SET_TOKEN_DETECTION_MODE',
+		enabled
+	};
+}

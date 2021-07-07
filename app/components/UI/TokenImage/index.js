@@ -24,7 +24,7 @@ export function TokenImage({ asset, containerStyle, iconStyle, logoDefined, swap
 		if (!logoDefined && !asset.logo) {
 			const checksumAddress = toChecksumAddress(asset.address);
 			if (checksumAddress in tokenList) {
-				asset.logo = tokenList[checksumAddress].logo;
+				asset.logo = tokenList[checksumAddress].iconUrl;
 			} else {
 				const swapAsset = swapsTokens?.find(({ address }) => asset.address.toLowerCase() === address);
 				asset.image = swapAsset?.iconUrl;
@@ -36,7 +36,7 @@ export function TokenImage({ asset, containerStyle, iconStyle, logoDefined, swap
 	return (
 		<View style={[styles.itemLogoWrapper, containerStyle, asset.logo || asset.image ? {} : styles.roundImage]}>
 			{asset.logo || asset.image ? (
-				<AssetIcon logo={completeAsset.image || completeAsset.logo} customStyle={iconStyle} />
+				<AssetIcon logo={completeAsset.logo || completeAsset.image} customStyle={iconStyle} />
 			) : (
 				<Identicon address={asset.address} customStyle={iconStyle} />
 			)}

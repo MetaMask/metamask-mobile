@@ -2,7 +2,6 @@ import React, { useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, View, InteractionManager, Image } from 'react-native';
 import { connect } from 'react-redux';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import CollectibleContractElement from '../CollectibleContractElement';
@@ -32,17 +31,19 @@ const styles = StyleSheet.create({
 		justifyContent: 'center'
 	},
 	addText: {
-		fontSize: 15,
+		fontSize: 14,
 		color: colors.blue,
 		...fontStyles.normal
 	},
 	footer: {
 		flex: 1,
-		paddingBottom: 30
+		paddingBottom: 30,
+		alignItems: 'center',
+		marginTop: 24
 	},
 	emptyContainer: {
 		flex: 1,
-		marginBottom: 42,
+		marginBottom: 18,
 		justifyContent: 'center',
 		alignItems: 'center'
 	},
@@ -56,8 +57,9 @@ const styles = StyleSheet.create({
 		color: colors.grey200
 	},
 	emptyText: {
-		color: colors.grey200,
-		marginBottom: 8
+		color: colors.greyAssetVisibility,
+		marginBottom: 8,
+		fontSize: 14
 	}
 });
 
@@ -87,8 +89,8 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 
 	const renderFooter = () => (
 		<View style={styles.footer} key={'collectible-contracts-footer'}>
+			<Text style={styles.emptyText}>{strings('wallet.no_collectibles')}</Text>
 			<TouchableOpacity style={styles.add} onPress={goToAddCollectible} testID={'add-collectible-button'}>
-				<Icon name="plus" size={16} color={colors.blue} />
 				<Text style={styles.addText}>{strings('wallet.add_collectibles')}</Text>
 			</TouchableOpacity>
 		</View>
@@ -158,9 +160,6 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 					{strings('wallet.learn_more')}
 				</Text>
 			</View>
-			<Text big style={styles.emptyText}>
-				{strings('wallet.no_collectibles')}
-			</Text>
 		</View>
 	);
 

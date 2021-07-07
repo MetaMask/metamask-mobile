@@ -8,6 +8,7 @@ import { isValidAddress } from 'ethereumjs-util';
 import ActionView from '../ActionView';
 import { isSmartContractAddress } from '../../../util/transactions';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import WarningMessage from '../../Views/SendFlow/WarningMessage';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -28,7 +29,8 @@ const styles = StyleSheet.create({
 		marginTop: 15,
 		color: colors.red,
 		...fontStyles.normal
-	}
+	},
+	warningContainer: { marginHorizontal: 20, marginTop: 20, paddingRight: 0 }
 });
 
 /**
@@ -187,6 +189,18 @@ export default class AddCustomToken extends PureComponent {
 		current && current.focus();
 	};
 
+	renderWarning = () => (
+		<WarningMessage
+			style={styles.warningContainer}
+			warningMessage={
+				<>
+					{strings('add_asset.warning_body_description')}
+					<Text style={{ color: colors.blue }}>{strings('add_asset.warning_link')}</Text>
+				</>
+			}
+		/>
+	);
+
 	render = () => {
 		const { address, symbol, decimals } = this.state;
 		return (
@@ -202,6 +216,7 @@ export default class AddCustomToken extends PureComponent {
 					confirmDisabled={!(address && symbol && decimals)}
 				>
 					<View>
+						{this.renderWarning()}
 						<View style={styles.rowWrapper}>
 							<Text style={fontStyles.normal}>{strings('token.token_address')}</Text>
 							<TextInput

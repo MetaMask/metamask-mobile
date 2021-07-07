@@ -40,8 +40,7 @@ import currencySymbols from '../../../util/currency-symbols.json';
 import { NetworksChainId } from '@metamask/controllers';
 import { getTicker } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
-import Engine from '../../../core/Engine';
-const { TokenListController } = Engine.context;
+import { getTokenListArray } from '../../../reducers/tokens';
 
 const KEYBOARD_OFFSET = 120;
 const styles = StyleSheet.create({
@@ -187,14 +186,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-const contractList = Object.entries(TokenListController.state.tokenList)
-	.map(([address, tokenData]) => {
-		tokenData.address = address;
-		return tokenData;
-	})
-	.filter(tokenData => Boolean(tokenData.erc20));
-
-const fuse = new Fuse(contractList, {
+const fuse = new Fuse([], {
 	shouldSort: true,
 	threshold: 0.45,
 	location: 0,
@@ -267,7 +259,11 @@ class PaymentRequest extends PureComponent {
 		/**
 		 * Current provider ticker
 		 */
-		ticker: PropTypes.string
+		ticker: PropTypes.string,
+		/**
+		 * List of tokens from TokenListController (Formatted into array)
+		 */
+		tokenList: PropTypes.array
 	};
 
 	amountInput = React.createRef();
@@ -290,7 +286,7 @@ class PaymentRequest extends PureComponent {
 	 * Set chainId, internalPrimaryCurrency and receiveAssets, if there is an asset set to this payment request chose it automatically, to state
 	 */
 	componentDidMount = () => {
-		const { primaryCurrency, navigation } = this.props;
+		const { primaryCurrency, navigation, tokenList } = this.props;
 		const receiveAsset = navigation && navigation.getParam('receiveAsset', undefined);
 		this.setState({
 			internalPrimaryCurrency: primaryCurrency,
@@ -299,6 +295,9 @@ class PaymentRequest extends PureComponent {
 		if (receiveAsset) {
 			this.goToAmountInput(receiveAsset);
 		}
+		// TODO: Fuse will only be updated once on mount. When we convert this component to hooks, we can utilize useEffect to update fuse.
+		// Update fuse collection with token list
+		fuse.setCollection(tokenList);
 	};
 
 	componentDidUpdate = () => {
@@ -340,12 +339,13 @@ class PaymentRequest extends PureComponent {
 	 * @param {string} searchInputValue - String containing assets query
 	 */
 	handleSearch = searchInputValue => {
+		const { tokenList } = this.props;
 		if (typeof searchInputValue !== 'string') {
 			searchInputValue = this.state.searchInputValue;
 		}
 
 		const fuseSearchResult = fuse.search(searchInputValue);
-		const addressSearchResult = contractList.filter(token => toLowerCaseEquals(token.address, searchInputValue));
+		const addressSearchResult = tokenList.filter(token => toLowerCaseEquals(token.address, searchInputValue));
 		const results = [...addressSearchResult, ...fuseSearchResult];
 		this.setState({ searchInputValue, results });
 	};
@@ -355,7 +355,7 @@ class PaymentRequest extends PureComponent {
 	 * Either top picks and user's assets are available to select
 	 */
 	renderSelectAssets = () => {
-		const { tokens, chainId, ticker } = this.props;
+		const { tokens, chainId, ticker, tokenList } = this.props;
 		const { inputWidth } = this.state;
 		let results;
 
@@ -368,7 +368,7 @@ class PaymentRequest extends PureComponent {
 		}
 
 		const userTokens = tokens.map(token => {
-			const contract = contractList.find(contractToken => contractToken.address === token.address);
+			const contract = tokenList.find(contractToken => contractToken.address === token.address);
 			if (contract) return contract;
 			return token;
 		});
@@ -701,7 +701,8 @@ const mapStateToProps = state => ({
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	primaryCurrency: state.settings.primaryCurrency,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	chainId: state.engine.backgroundState.NetworkController.provider.chainId
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+	tokenList: getTokenListArray(state)
 });
 
 export default connect(mapStateToProps)(PaymentRequest);

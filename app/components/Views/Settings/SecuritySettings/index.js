@@ -19,7 +19,7 @@ import SelectComponent from '../../../UI/SelectComponent';
 import StyledButton from '../../../UI/StyledButton';
 import SettingsNotification from '../../../UI/SettingsNotification';
 import { clearHistory } from '../../../../actions/browser';
-import { clearHosts, setPrivacyMode, setThirdPartyApiMode } from '../../../../actions/privacy';
+import { clearHosts, setPrivacyMode, setThirdPartyApiMode, setTokenDetectionMode } from '../../../../actions/privacy';
 import { colors, fontStyles } from '../../../../styles/common';
 import Logger from '../../../../util/Logger';
 import Device from '../../../../util/Device';
@@ -174,7 +174,7 @@ class Settings extends PureComponent {
 		 * Called to toggle privacy mode
 		 */
 		setPrivacyMode: PropTypes.func,
-		/**`
+		/**
 		 * Called to toggle set party api mode
 		 */
 		setThirdPartyApiMode: PropTypes.func,
@@ -182,6 +182,14 @@ class Settings extends PureComponent {
 		 * Indicates whether third party API mode is enabled
 		 */
 		thirdPartyApiMode: PropTypes.bool,
+		/**
+		 * Called to toggle set token detection mode
+		 */
+		setTokenDetectionMode: PropTypes.func,
+		/**
+		 * Indicates whether token detection mode is enabled
+		 */
+		tokenDetectionMode: PropTypes.bool,
 		/**
 		 * Called to set the passwordSet flag
 		 */
@@ -508,6 +516,30 @@ class Settings extends PureComponent {
 
 	onBack = () => this.props.navigation.goBack();
 
+	toggleTokenDetection = enabled => {
+		const { setTokenDetectionMode } = this.props;
+		setTokenDetectionMode(enabled);
+	};
+
+	renderTokenDetectionSection = () => {
+		const { tokenDetectionMode } = this.props;
+
+		return (
+			<View style={styles.setting} testID={'token-detection-section'}>
+				<Text style={styles.title}>{strings('app_settings.token_detection_title')}</Text>
+				<Text style={styles.desc}>{strings('app_settings.token_detection_description')}</Text>
+				<View style={styles.switchElement}>
+					<Switch
+						value={tokenDetectionMode}
+						onValueChange={this.toggleTokenDetection}
+						trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
+						ios_backgroundColor={colors.grey000}
+					/>
+				</View>
+			</View>
+		);
+	};
+
 	render = () => {
 		const { approvedHosts, seedphraseBackedUp, browserHistory, privacyMode, thirdPartyApiMode } = this.props;
 		const {
@@ -729,6 +761,7 @@ class Settings extends PureComponent {
 							/>
 						</View>
 					</View>
+					{this.renderTokenDetectionSection()}
 					<ActionModal
 						modalVisible={approvalModalVisible}
 						confirmText={strings('app_settings.clear')}
@@ -787,6 +820,7 @@ const mapStateToProps = state => ({
 	lockTime: state.settings.lockTime,
 	privacyMode: state.privacy.privacyMode,
 	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
+	tokenDetectionMode: state.privacy.tokenDetectionMode,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	identities: state.engine.backgroundState.PreferencesController.identities,
@@ -801,6 +835,7 @@ const mapDispatchToProps = dispatch => ({
 	setLockTime: lockTime => dispatch(setLockTime(lockTime)),
 	setPrivacyMode: enabled => dispatch(setPrivacyMode(enabled)),
 	setThirdPartyApiMode: enabled => dispatch(setThirdPartyApiMode(enabled)),
+	setTokenDetectionMode: enabled => dispatch(setTokenDetectionMode(enabled)),
 	passwordSet: () => dispatch(passwordSet())
 });
 
