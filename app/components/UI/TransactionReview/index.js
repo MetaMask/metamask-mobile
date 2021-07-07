@@ -159,7 +159,9 @@ class TransactionReview extends PureComponent {
 		/**
 		 * True if transaction is over the available funds
 		 */
-		over: PropTypes.bool
+		over: PropTypes.bool,
+		gasEstimateType: PropTypes.string,
+		EIP1559GasData: PropTypes.object
 	};
 
 	state = {
@@ -294,7 +296,9 @@ class TransactionReview extends PureComponent {
 			hideData,
 			saveTransactionReviewDataHeight,
 			customGasHeight,
-			over
+			over,
+			gasEstimateType,
+			EIP1559GasData
 		} = this.props;
 		const { actionKey, error, assetAmount, conversionRate, fiatValue, approveTransaction } = this.state;
 		const currentPageInformation = { url: this.getUrlFromBrowser() };
@@ -332,6 +336,8 @@ class TransactionReview extends PureComponent {
 									toggleDataView={this.toggleDataView}
 									over={over}
 									onCancelPress={this.props.onCancel}
+									gasEstimateType={gasEstimateType}
+									EIP1559GasData={EIP1559GasData}
 								/>
 							</View>
 						</ActionView>

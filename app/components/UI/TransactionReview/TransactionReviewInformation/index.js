@@ -11,10 +11,17 @@ import {
 	weiToFiatNumber,
 	balanceToFiatNumber,
 	renderFromTokenMinimalUnit,
-	renderFromWei
+	renderFromWei,
+	BNToHex
 } from '../../../../util/number';
 import { strings } from '../../../../../locales/i18n';
-import { getTicker, getNormalizedTxState } from '../../../../util/transactions';
+import {
+	getTicker,
+	getNormalizedTxState,
+	calculateAmountsEIP1559,
+	calculateEthEIP1559,
+	calculateERC20EIP1559
+} from '../../../../util/transactions';
 import TransactionReviewFeeCard from '../TransactionReviewFeeCard';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
@@ -23,6 +30,7 @@ import { getNetworkName, getNetworkNonce, isMainNet } from '../../../../util/net
 import { capitalize } from '../../../../util/general';
 import CustomNonceModal from '../../../UI/CustomNonceModal';
 import { setNonce, setProposedNonce } from '../../../../actions/transaction';
+import TransactionReviewEIP1559 from '../TransactionReviewEIP1559';
 
 const styles = StyleSheet.create({
 	overviewAlert: {
@@ -197,7 +205,10 @@ class TransactionReviewInformation extends PureComponent {
 		/**
 		 * Set proposed nonce (from network)
 		 */
-		setProposedNonce: PropTypes.func
+		setProposedNonce: PropTypes.func,
+		nativeCurrency: PropTypes.string,
+		gasEstimateType: PropTypes.string,
+		EIP1559GasData: PropTypes.object
 	};
 
 	state = {
@@ -330,6 +341,112 @@ class TransactionReviewInformation extends PureComponent {
 		return totals[assetType] || totals.default;
 	};
 
+	getRenderTotalsEIP1559 = ({ gasFeeMinNative, gasFeeMinConversion, gasFeeMaxNative, gasFeeMaxConversion }) => {
+		const {
+			transaction: { value, selectedAsset, assetType },
+			nativeCurrency,
+			currentCurrency,
+			conversionRate,
+			contractExchangeRates
+		} = this.props;
+
+		const { totalMinNative, totalMinConversion, totalMaxNative, totalMaxConversion } = calculateAmountsEIP1559({
+			value: value && BNToHex(value),
+			nativeCurrency,
+			currentCurrency,
+			conversionRate,
+			gasFeeMinConversion,
+			gasFeeMinNative,
+			gasFeeMaxNative,
+			gasFeeMaxConversion
+		});
+
+		let renderableTotalMinNative,
+			renderableTotalMinConversion,
+			renderableTotalMaxNative,
+			renderableTotalMaxConversion;
+
+		const totals = {
+			ETH: () => {
+				[
+					renderableTotalMinNative,
+					renderableTotalMinConversion,
+					renderableTotalMaxNative,
+					renderableTotalMaxConversion
+				] = calculateEthEIP1559({
+					nativeCurrency,
+					currentCurrency,
+					totalMinNative,
+					totalMinConversion,
+					totalMaxNative,
+					totalMaxConversion
+				});
+
+				return [
+					renderableTotalMinNative,
+					renderableTotalMinConversion,
+					renderableTotalMaxNative,
+					renderableTotalMaxConversion
+				];
+			},
+			ERC20: () => {
+				const tokenAmount = renderFromTokenMinimalUnit(value, selectedAsset.decimals);
+				const exchangeRate = contractExchangeRates[selectedAsset.address];
+				const symbol = selectedAsset.symbol;
+
+				[
+					renderableTotalMinNative,
+					renderableTotalMinConversion,
+					renderableTotalMaxNative,
+					renderableTotalMaxConversion
+				] = calculateERC20EIP1559({
+					currentCurrency,
+					nativeCurrency,
+					conversionRate,
+					exchangeRate,
+					tokenAmount,
+					totalMinConversion,
+					totalMaxConversion,
+					symbol,
+					totalMinNative,
+					totalMaxNative
+				});
+			},
+			ERC721: () => {
+				[
+					renderableTotalMinNative,
+					renderableTotalMinConversion,
+					renderableTotalMaxNative,
+					renderableTotalMaxConversion
+				] = calculateEthEIP1559({
+					nativeCurrency,
+					currentCurrency,
+					totalMinNative,
+					totalMinConversion,
+					totalMaxNative,
+					totalMaxConversion
+				});
+
+				renderableTotalMinNative = `${selectedAsset.name} ${' (#' +
+					selectedAsset.tokenId +
+					')'} + ${renderableTotalMinNative}`;
+
+				renderableTotalMaxNative = `${selectedAsset.name} ${' (#' +
+					selectedAsset.tokenId +
+					')'} + ${renderableTotalMaxNative}`;
+
+				return [
+					renderableTotalMinNative,
+					renderableTotalMinConversion,
+					renderableTotalMaxNative,
+					renderableTotalMaxConversion
+				];
+			},
+			default: () => [undefined, undefined]
+		};
+		return totals[assetType] || totals.default;
+	};
+
 	onCancelPress = () => {
 		const { onCancelPress } = this.props;
 		onCancelPress && onCancelPress();
@@ -361,7 +478,9 @@ class TransactionReviewInformation extends PureComponent {
 			error,
 			over,
 			network,
-			showCustomNonce
+			showCustomNonce,
+			gasEstimateType,
+			EIP1559GasData
 		} = this.props;
 		const is_main_net = isMainNet(network);
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
@@ -374,25 +493,48 @@ class TransactionReviewInformation extends PureComponent {
 			? strings('transaction.buy_more_eth')
 			: strings('transaction.get_ether', { networkName });
 
+		const [
+			renderableTotalMinNative,
+			renderableTotalMinConversion,
+			renderableTotalMaxNative
+		] = this.getRenderTotalsEIP1559(EIP1559GasData)();
+
 		return (
 			<React.Fragment>
 				{nonceModalVisible && this.renderCustomNonceModal()}
-				<TransactionReviewFeeCard
-					totalGasFiat={totalGasFiat}
-					totalGasEth={totalGasEth}
-					totalFiat={totalFiat}
-					fiat={fiatValue}
-					totalValue={totalValue}
-					transactionValue={assetAmount}
-					primaryCurrency={primaryCurrency}
-					gasEstimationReady={ready}
-					edit={this.edit}
-					over={over}
-					warningGasPriceHigh={warningGasPriceHigh}
-					showCustomNonce={showCustomNonce}
-					nonceValue={nonce}
-					onNonceEdit={this.toggleNonceModal}
-				/>
+				{gasEstimateType === 'fee-market' ? (
+					<TransactionReviewEIP1559
+						totalNative={renderableTotalMinNative}
+						totalConversion={renderableTotalMinConversion}
+						totalMaxNative={renderableTotalMaxNative}
+						gasFeeNative={EIP1559GasData.renderableGasFeeMinNative}
+						gasFeeConversion={EIP1559GasData.renderableGasFeeMinConversion}
+						gasFeeMaxNative={EIP1559GasData.renderableGasFeeMaxNative}
+						gasFeeMaxConversion={EIP1559GasData.renderableGasFeeMaxConversion}
+						primaryCurrency={primaryCurrency}
+						timeEstimate={EIP1559GasData.timeEstimate}
+						timeEstimateColor={EIP1559GasData.timeEstimateColor}
+						onEdit={this.edit}
+					/>
+				) : (
+					<TransactionReviewFeeCard
+						totalGasFiat={totalGasFiat}
+						totalGasEth={totalGasEth}
+						totalFiat={totalFiat}
+						fiat={fiatValue}
+						totalValue={totalValue}
+						transactionValue={assetAmount}
+						primaryCurrency={primaryCurrency}
+						gasEstimationReady={ready}
+						edit={this.edit}
+						over={over}
+						warningGasPriceHigh={warningGasPriceHigh}
+						showCustomNonce={showCustomNonce}
+						nonceValue={nonce}
+						onNonceEdit={this.toggleNonceModal}
+					/>
+				)}
+
 				{!!amountError && (
 					<View style={styles.overviewAlert}>
 						<MaterialIcon name={'error'} size={20} style={styles.overviewAlertIcon} />
@@ -437,7 +579,8 @@ const mapStateToProps = state => ({
 	transaction: getNormalizedTxState(state),
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	primaryCurrency: state.settings.primaryCurrency,
-	showCustomNonce: state.settings.showCustomNonce
+	showCustomNonce: state.settings.showCustomNonce,
+	nativeCurrency: state.engine.backgroundState.CurrencyRateController.nativeCurrency
 });
 
 const mapDispatchToProps = dispatch => ({
