@@ -744,22 +744,6 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
-"@ethereumjs/common@^2.3.1":
-  version "2.3.1"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/common/-/common-2.3.1.tgz#d692e3aff5adb35dd587dd1e6caab69e0ed2fa0b"
-  integrity sha512-V8hrULExoq0H4HFs3cCmdRGbgmipmlNzak6Xg34nHYfQyqkSdrCuflvYjyWmsNpI8GtrcZhzifAbgX/1C1Cjwg==
-  dependencies:
-    crc-32 "^1.2.0"
-    ethereumjs-util "^7.0.10"
-
-"@ethereumjs/tx@^3.2.1":
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/tx/-/tx-3.2.1.tgz#65f5f1c11541764f08377a94ba4b0dcbbd67739e"
-  integrity sha512-i9V39OtKvwWos1uVNZxdVhd7zFOyzFLjgt69CoiOY0EmXugS0HjO3uxpLBSglDKFMRriuGqw6ddKEv+RP1UNEw==
-  dependencies:
-    "@ethereumjs/common" "^2.3.1"
-    ethereumjs-util "^7.0.10"
-
 "@ethersproject/abi@5.4.0", "@ethersproject/abi@^5.4.0":
   version "5.4.0"
   resolved "https://registry.yarnpkg.com/@ethersproject/abi/-/abi-5.4.0.tgz#a6d63bdb3672f738398846d4279fa6b6c9818242"
@@ -1428,43 +1412,10 @@
   dependencies:
     "@json-rpc-tools/types" "^1.6.1"
 
-"@metamask/contract-metadata@^1.23.0", "@metamask/contract-metadata@^1.24.0", "@metamask/contract-metadata@^1.27.0":
+"@metamask/contract-metadata@^1.23.0", "@metamask/contract-metadata@^1.24.0":
   version "1.27.0"
   resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-1.27.0.tgz#1e65b821bad6f7d8313dd881116e4366b0662f75"
   integrity sha512-ZAvuROiHjSksy40buCL4M6m16bAmXQl6vjllK/XQxt9+UElhwJSp7PJ1ZULuZXmznBBY64WXlCPjm94JhW4l3g==
-
-"@metamask/controllers@./metamask-controllers-v10.2.1-seth-1.tgz":
-  version "10.2.1-seth-1"
-  resolved "./metamask-controllers-v10.2.1-seth-1.tgz#8d1dbb56338016306ddd310a0b1f4c5bfa82fd12"
-  dependencies:
-    "@ethereumjs/common" "^2.3.1"
-    "@ethereumjs/tx" "^3.2.1"
-    "@metamask/contract-metadata" "^1.27.0"
-    "@types/uuid" "^8.3.0"
-    async-mutex "^0.2.6"
-    babel-runtime "^6.26.0"
-    eth-ens-namehash "^2.0.8"
-    eth-json-rpc-infura "^5.1.0"
-    eth-keyring-controller "^6.2.1"
-    eth-method-registry "1.1.0"
-    eth-phishing-detect "^1.1.14"
-    eth-query "^2.1.2"
-    eth-rpc-errors "^4.0.0"
-    eth-sig-util "^3.0.0"
-    ethereumjs-util "^7.0.10"
-    ethereumjs-wallet "^1.0.1"
-    ethjs-util "^0.1.6"
-    human-standard-collectible-abi "^1.0.2"
-    human-standard-token-abi "^2.0.0"
-    immer "^8.0.1"
-    isomorphic-fetch "^3.0.0"
-    jsonschema "^1.2.4"
-    nanoid "^3.1.12"
-    punycode "^2.1.1"
-    single-call-balance-checker-abi "^1.0.0"
-    uuid "^8.3.2"
-    web3 "^0.20.7"
-    web3-provider-engine "^16.0.1"
 
 "@metamask/controllers@^8.0.0":
   version "8.0.0"
@@ -1823,9 +1774,9 @@
     tslib "^1.9.3"
 
 "@sentry/cli@^1.52.4":
-  version "1.67.0"
-  resolved "https://registry.yarnpkg.com/@sentry/cli/-/cli-1.67.0.tgz#5b6f48d094ebe089b716913ce5db9e611f631c28"
-  integrity sha512-pO8UGe1wNXuXKTn3O8vIBPPXepHleQJqB4uxjMLIMj2KMQJfn6OYCB1e/8mwBZzKgYFAepTC38Xq9GfHaKvYFQ==
+  version "1.67.1"
+  resolved "https://registry.yarnpkg.com/@sentry/cli/-/cli-1.67.1.tgz#0ae0a892851913083e31f64c7b0ffcdf9f59da58"
+  integrity sha512-TKPBC/mMaC6EageH3s4QM4PVr/QFSfgRuGqfc7cAzRRLnMLTvXsvxlEkVnRGCDglvSru0/NwHf1XSv/Z084zkQ==
   dependencies:
     https-proxy-agent "^5.0.0"
     mkdirp "^0.5.5"
@@ -4049,14 +4000,6 @@ cosmiconfig@^7.0.0:
     path-type "^4.0.0"
     yaml "^1.10.0"
 
-crc-32@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/crc-32/-/crc-32-1.2.0.tgz#cb2db6e29b88508e32d9dd0ec1693e7b41a18208"
-  integrity sha512-1uBwHxF+Y/4yF5G48fwnKq6QsIXheor3ZLPT80yGBV1oEUwpPojlEhQbWKVw1VwcTQyMGHK1/XMmTjmlsmTTGA==
-  dependencies:
-    exit-on-epipe "~1.0.1"
-    printj "~1.1.0"
-
 create-ecdh@^4.0.0:
   version "4.0.4"
   resolved "https://registry.yarnpkg.com/create-ecdh/-/create-ecdh-4.0.4.tgz#d6e7f4bffa66736085a0762fd3a632684dabcc4e"
@@ -4076,7 +4019,7 @@ create-hash@^1.1.0, create-hash@^1.1.2, create-hash@^1.2.0:
     ripemd160 "^2.0.1"
     sha.js "^2.4.0"
 
-create-hmac@^1.1.0, create-hmac@^1.1.2, create-hmac@^1.1.4, create-hmac@^1.1.7:
+create-hmac@^1.1.0, create-hmac@^1.1.4, create-hmac@^1.1.7:
   version "1.1.7"
   resolved "https://registry.yarnpkg.com/create-hmac/-/create-hmac-1.1.7.tgz#69170c78b3ab957147b2b8b04572e47ead2243ff"
   integrity sha512-MJG9liiZ+ogc4TzUwuvbER1JRdgvUFSB5+VR/g5h82fGaIRWMWddtKBHi7/sVhfjQZ6SehlyhvQYrcYkaUIpLg==
@@ -5470,7 +5413,7 @@ eth-json-rpc-middleware@^6.0.0:
     pify "^3.0.0"
     safe-event-emitter "^1.0.1"
 
-eth-keyring-controller@^6.1.0, eth-keyring-controller@^6.2.1:
+eth-keyring-controller@^6.1.0:
   version "6.2.1"
   resolved "https://registry.yarnpkg.com/eth-keyring-controller/-/eth-keyring-controller-6.2.1.tgz#61901071fc74059ed37cb5ae93870fdcae6e3781"
   integrity sha512-x2gTM1iHp2Kbvdtd9Eslysw0qzVZiqOzpVB3AU/ni2Xiit+rlcv2H80zYKjrEwlfWFDj4YILD3bOqlnEMmRJOA==
@@ -5492,7 +5435,7 @@ eth-method-registry@1.1.0:
   dependencies:
     ethjs "^0.3.0"
 
-eth-phishing-detect@^1.1.13, eth-phishing-detect@^1.1.14:
+eth-phishing-detect@^1.1.13:
   version "1.1.15"
   resolved "https://registry.yarnpkg.com/eth-phishing-detect/-/eth-phishing-detect-1.1.15.tgz#c42e1aad6cd1c5eeee41c6bf932dcfd0e523d499"
   integrity sha512-RVNSGMVIuO6VZ1Uv4v8dljjj0ephW+APVAU5QL5mBu3VEqfBluPMNb6jw66kxYrIFrSNalnb/pMeDpAA+W3cvg==
@@ -6063,11 +6006,6 @@ execa@^4.1.0:
     onetime "^5.1.0"
     signal-exit "^3.0.2"
     strip-final-newline "^2.0.0"
-
-exit-on-epipe@~1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/exit-on-epipe/-/exit-on-epipe-1.0.1.tgz#0bdd92e87d5285d267daa8171d0eb06159689692"
-  integrity sha512-h2z5mrROTxce56S+pnvAV890uu7ls7f1kEvVGJbw1OlFH3/mlJ5bkXu0KRyW94v37zzHPiUd55iLn3DA7TjWpw==
 
 exit@^0.1.2:
   version "0.1.2"
@@ -6749,9 +6687,9 @@ globals@^12.1.0:
     type-fest "^0.8.1"
 
 globals@^13.6.0, globals@^13.9.0:
-  version "13.9.0"
-  resolved "https://registry.yarnpkg.com/globals/-/globals-13.9.0.tgz#4bf2bf635b334a173fb1daf7c5e6b218ecdc06cb"
-  integrity sha512-74/FduwI/JaIrr1H8e71UbDE+5x7pIPs1C2rrwC52SszOo043CsWOZEMW7o2Y58xwm9b+0RBKDxY5n2sUpEFxA==
+  version "13.10.0"
+  resolved "https://registry.yarnpkg.com/globals/-/globals-13.10.0.tgz#60ba56c3ac2ca845cfbf4faeca727ad9dd204676"
+  integrity sha512-piHC3blgLGFjvOuMmWZX60f+na1lXFDhQXBf1UYp2fXPXqvEUbOhNwi6BsQ0bQishwedgnjkwv1d9zKf+MWw3g==
   dependencies:
     type-fest "^0.20.2"
 
@@ -10154,14 +10092,18 @@ path@0.12.7:
     process "^0.11.1"
     util "^0.10.3"
 
-pbkdf2@3.0.8:
-  version "3.0.8"
-  resolved "https://registry.yarnpkg.com/pbkdf2/-/pbkdf2-3.0.8.tgz#2f8abf16ebecc82277945d748aba1d78761f61e2"
-  integrity sha1-L4q/FuvsyCJ3lF10irodeHYfYeI=
+pbkdf2@3.0.8, pbkdf2@3.1.1, pbkdf2@^3.0.17, pbkdf2@^3.0.3, pbkdf2@^3.0.9:
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/pbkdf2/-/pbkdf2-3.1.1.tgz#cb8724b0fada984596856d1a6ebafd3584654b94"
+  integrity sha512-4Ejy1OPxi9f2tt1rRV7Go7zmfDQ+ZectEQz3VGUQhgq62HtIRPDyG/JtnwIxs6x3uNMwo2V7q1fMvKjb+Tnpqg==
   dependencies:
-    create-hmac "^1.1.2"
+    create-hash "^1.1.2"
+    create-hmac "^1.1.4"
+    ripemd160 "^2.0.1"
+    safe-buffer "^5.0.1"
+    sha.js "^2.4.8"
 
-pbkdf2@^3.0.17, pbkdf2@^3.0.3, pbkdf2@^3.0.9:
+pbkdf2@^3.1.2:
   version "3.1.2"
   resolved "https://registry.yarnpkg.com/pbkdf2/-/pbkdf2-3.1.2.tgz#dd822aa0887580e52f1a039dc3eda108efae3075"
   integrity sha512-iuh7L6jA7JEGu2WxDwtQP1ddOpaJNC4KlDEFfdQajSGgGPNi4OyDc2R7QnbY2bR9QjBVGwgvTdNJZoE7RaxUMA==
@@ -10352,11 +10294,6 @@ pretty-format@^25.1.0, pretty-format@^25.2.0, pretty-format@^25.5.0:
     ansi-regex "^5.0.0"
     ansi-styles "^4.0.0"
     react-is "^16.12.0"
-
-printj@~1.1.0:
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/printj/-/printj-1.1.2.tgz#d90deb2975a8b9f600fb3a1c94e3f4c53c78a222"
-  integrity sha512-zA2SmoLaxZyArQTOPj5LXecR+RagfPSU5Kw1qP+jkWeNlrq+eJZyY2oS68SU1Z/7/myXM4lo9716laOFAVStCQ==
 
 process-nextick-args@~2.0.0:
   version "2.0.1"
