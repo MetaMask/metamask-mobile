@@ -29,7 +29,7 @@ import AppConstants from './AppConstants';
 import { store } from '../store';
 import { renderFromTokenMinimalUnit, balanceToFiatNumber, weiToFiatNumber } from '../util/number';
 import NotificationManager from './NotificationManager';
-import { contractMap, contractMetadata } from '@metamask/contract-metadata';
+import contractMap from '@metamask/contract-metadata';
 import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
 
@@ -138,10 +138,12 @@ class Engine {
 					addCollectible: assetsController.addCollectible.bind(assetsController),
 					removeCollectible: assetsController.removeCollectible.bind(assetsController),
 					getAssetsState: () => assetsController.state,
-					getTokenListState: () => ({
-						//TODO: replace during Token List Refactor
-						tokenList: contractMetadata ? Object.values(contractMetadata).filter(token => token.erc20) : []
-					})
+					//TODO: replace during Token List Refactor
+					getTokenListState: async () => {
+						const list = Object.values(contractMap).filter(token => token.erc20 === true);
+						console.log('TestList', list);
+						return { tokenList: list };
+					}
 				}),
 				currencyRateController,
 				new PersonalMessageManager(),
