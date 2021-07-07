@@ -140,13 +140,13 @@ class Engine {
 					getAssetsState: () => assetsController.state,
 					//TODO: replace during Token List Refactor
 					getTokenListState: () => {
-						const result = Object.entries(contractMap).reduce((final, [key, value]) => {
+						const tokenList = Object.entries(contractMap).reduce((final, [key, value]) => {
 							if (value.erc20) {
 								final[key] = value;
 							}
 							return final;
 						}, {});
-						return { tokenList: result };
+						return { tokenList };
 					}
 				}),
 				currencyRateController,
@@ -166,7 +166,8 @@ class Engine {
 				new TokenRatesController({
 					onAssetsStateChange: listener => assetsController.subscribe(listener),
 					onCurrencyRateStateChange: listener =>
-						this.controllerMessenger.subscribe(`${currencyRateController.name}:stateChange`, listener)
+						this.controllerMessenger.subscribe(`${currencyRateController.name}:stateChange`, listener),
+					onNetworkStateChange: listener => networkController.subscribe(listener)
 				}),
 				new TransactionController({
 					getNetworkState: () => networkController.state,
