@@ -14,6 +14,7 @@ import HorizontalSelector from '../../Base/HorizontalSelector';
 import Device from '../../../util/Device';
 import { isMainnetByChainId } from '../../../util/networks';
 import PropTypes from 'prop-types';
+import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 
 const styles = StyleSheet.create({
 	root: {
@@ -109,7 +110,7 @@ const EditGasFeeLegacy = ({
 	chainId,
 	gasEstimateType
 }) => {
-	const onlyAdvanced = gasEstimateType === 'eth_gasPrice';
+	const onlyAdvanced = gasEstimateType !== GAS_ESTIMATE_TYPES.LEGACY;
 
 	const [showRangeInfoModal, setShowRangeInfoModal] = useState(false);
 	const [showAdvancedOptions, setShowAdvancedOptions] = useState(!selected || onlyAdvanced);

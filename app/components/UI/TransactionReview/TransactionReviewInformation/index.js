@@ -31,6 +31,7 @@ import { capitalize } from '../../../../util/general';
 import CustomNonceModal from '../../../UI/CustomNonceModal';
 import { setNonce, setProposedNonce } from '../../../../actions/transaction';
 import TransactionReviewEIP1559 from '../TransactionReviewEIP1559';
+import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 
 const styles = StyleSheet.create({
 	overviewAlert: {
@@ -411,6 +412,12 @@ class TransactionReviewInformation extends PureComponent {
 					totalMinNative,
 					totalMaxNative
 				});
+				return [
+					renderableTotalMinNative,
+					renderableTotalMinConversion,
+					renderableTotalMaxNative,
+					renderableTotalMaxConversion
+				];
 			},
 			ERC721: () => {
 				[
@@ -462,78 +469,94 @@ class TransactionReviewInformation extends PureComponent {
 		});
 	};
 
-	render() {
-		const { amountError, nonceModalVisible } = this.state;
+	renderTransactionReviewEIP1559 = () => {
+		const { EIP1559GasData, primaryCurrency } = this.props;
+		const [
+			renderableTotalMinNative,
+			renderableTotalMinConversion,
+			renderableTotalMaxNative
+		] = this.getRenderTotalsEIP1559(EIP1559GasData)();
+		return (
+			<TransactionReviewEIP1559
+				totalNative={renderableTotalMinNative}
+				totalConversion={renderableTotalMinConversion}
+				totalMaxNative={renderableTotalMaxNative}
+				gasFeeNative={EIP1559GasData.renderableGasFeeMinNative}
+				gasFeeConversion={EIP1559GasData.renderableGasFeeMinConversion}
+				gasFeeMaxNative={EIP1559GasData.renderableGasFeeMaxNative}
+				gasFeeMaxConversion={EIP1559GasData.renderableGasFeeMaxConversion}
+				primaryCurrency={primaryCurrency}
+				timeEstimate={EIP1559GasData.timeEstimate}
+				timeEstimateColor={EIP1559GasData.timeEstimateColor}
+				onEdit={this.edit}
+			/>
+		);
+	};
+
+	renderTransactionReviewFeeCard = () => {
 		const { nonce } = this.props.transaction;
 		const {
 			fiatValue,
 			assetAmount,
 			primaryCurrency,
-			toggleDataView,
 			ready,
 			transaction: { gas, gasPrice, warningGasPriceHigh },
 			currentCurrency,
 			conversionRate,
 			ticker,
-			error,
 			over,
-			network,
-			showCustomNonce,
-			gasEstimateType,
-			EIP1559GasData
+			showCustomNonce
 		} = this.props;
-		const is_main_net = isMainNet(network);
+
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency);
 		const totalGasEth = `${renderFromWei(totalGas)} ${getTicker(ticker)}`;
 		const [totalFiat, totalValue] = this.getRenderTotals(totalGas, totalGasFiat)();
+		return (
+			<TransactionReviewFeeCard
+				totalGasFiat={totalGasFiat}
+				totalGasEth={totalGasEth}
+				totalFiat={totalFiat}
+				fiat={fiatValue}
+				totalValue={totalValue}
+				transactionValue={assetAmount}
+				primaryCurrency={primaryCurrency}
+				gasEstimationReady={ready}
+				edit={this.edit}
+				over={over}
+				warningGasPriceHigh={warningGasPriceHigh}
+				showCustomNonce={showCustomNonce}
+				nonceValue={nonce}
+				onNonceEdit={this.toggleNonceModal}
+			/>
+		);
+	};
+
+	render() {
+		const { amountError, nonceModalVisible } = this.state;
+		const {
+			toggleDataView,
+			transaction: { warningGasPriceHigh },
+			error,
+			over,
+			network,
+			showCustomNonce,
+			gasEstimateType
+		} = this.props;
+		const is_main_net = isMainNet(network);
+
 		const errorPress = is_main_net ? this.buyEth : this.gotoFaucet;
 		const networkName = capitalize(getNetworkName(network));
 		const errorLinkText = is_main_net
 			? strings('transaction.buy_more_eth')
 			: strings('transaction.get_ether', { networkName });
 
-		const [
-			renderableTotalMinNative,
-			renderableTotalMinConversion,
-			renderableTotalMaxNative
-		] = this.getRenderTotalsEIP1559(EIP1559GasData)();
-
 		return (
 			<React.Fragment>
 				{nonceModalVisible && this.renderCustomNonceModal()}
-				{gasEstimateType === 'fee-market' ? (
-					<TransactionReviewEIP1559
-						totalNative={renderableTotalMinNative}
-						totalConversion={renderableTotalMinConversion}
-						totalMaxNative={renderableTotalMaxNative}
-						gasFeeNative={EIP1559GasData.renderableGasFeeMinNative}
-						gasFeeConversion={EIP1559GasData.renderableGasFeeMinConversion}
-						gasFeeMaxNative={EIP1559GasData.renderableGasFeeMaxNative}
-						gasFeeMaxConversion={EIP1559GasData.renderableGasFeeMaxConversion}
-						primaryCurrency={primaryCurrency}
-						timeEstimate={EIP1559GasData.timeEstimate}
-						timeEstimateColor={EIP1559GasData.timeEstimateColor}
-						onEdit={this.edit}
-					/>
-				) : (
-					<TransactionReviewFeeCard
-						totalGasFiat={totalGasFiat}
-						totalGasEth={totalGasEth}
-						totalFiat={totalFiat}
-						fiat={fiatValue}
-						totalValue={totalValue}
-						transactionValue={assetAmount}
-						primaryCurrency={primaryCurrency}
-						gasEstimationReady={ready}
-						edit={this.edit}
-						over={over}
-						warningGasPriceHigh={warningGasPriceHigh}
-						showCustomNonce={showCustomNonce}
-						nonceValue={nonce}
-						onNonceEdit={this.toggleNonceModal}
-					/>
-				)}
+				{gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET
+					? this.renderTransactionReviewEIP1559()
+					: this.renderTransactionReviewFeeCard()}
 
 				{!!amountError && (
 					<View style={styles.overviewAlert}>

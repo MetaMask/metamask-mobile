@@ -28,6 +28,7 @@ import { MAINNET } from '../../../constants/network';
 import { toLowerCaseEquals } from '../../../util/general';
 import EditGasFee1559 from '../EditGasFee1559';
 import EditGasFeeLegacy from '../EditGasFeeLegacy';
+import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -136,31 +137,27 @@ class TransactionEditor extends PureComponent {
 		const { stopUpdateGas, advancedGasInserted, gasSelected } = this.state;
 
 		if (!stopUpdateGas && !advancedGasInserted) {
-			if (gasEstimateType === 'eth_gasPrice') {
-				const LegacyGasData = this.parseTransactionDataLegacy(
-					{
-						suggestedGasPrice: overrideGasPrice
-							? fromWei(overrideGasPrice, 'gwei')
-							: this.props.gasFeeEstimates.gasPrice,
-						suggestedGasLimit: fromWei(overrideGasLimit || transaction.gas, 'wei')
-					},
-					{
-						onlyGas: true
-					}
-				);
+			if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+				const initialGas = overrideGasPrice
+					? {
+							suggestedMaxFeePerGas: fromWei(overrideGasPrice, 'gwei'),
+							suggestedMaxPriorityFeePerGas: fromWei(overrideGasPrice, 'gwei')
+							// eslint-disable-next-line no-mixed-spaces-and-tabs
+					  }
+					: gasFeeEstimates[gasSelected];
 
-				this.handleGasFeeSelection(
-					hexToBN(LegacyGasData.suggestedGasLimitHex),
-					hexToBN(LegacyGasData.suggestedGasPriceHex)
-				);
+				const EIP1559GasData = this.parseTransactionDataEIP1559({
+					...initialGas,
+					suggestedGasLimit: fromWei(overrideGasLimit || transaction.gas, 'wei')
+				});
 
 				// eslint-disable-next-line react/no-did-update-set-state
 				this.setState({
 					ready: true,
-					LegacyGasData,
-					LegacyGasDataTemp: LegacyGasData
+					EIP1559GasData,
+					EIP1559GasDataTemp: EIP1559GasData
 				});
-			} else if (gasEstimateType === 'legacy') {
+			} else if (gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY) {
 				const LegacyGasData = this.parseTransactionDataLegacy(
 					{
 						suggestedGasPrice: overrideGasPrice
@@ -183,24 +180,28 @@ class TransactionEditor extends PureComponent {
 					LegacyGasDataTemp: LegacyGasData
 				});
 			} else {
-				const initialGas = overrideGasPrice
-					? {
-							suggestedMaxFeePerGas: fromWei(overrideGasPrice, 'gwei'),
-							suggestedMaxPriorityFeePerGas: fromWei(overrideGasPrice, 'gwei')
-							// eslint-disable-next-line no-mixed-spaces-and-tabs
-					  }
-					: gasFeeEstimates[gasSelected];
+				const LegacyGasData = this.parseTransactionDataLegacy(
+					{
+						suggestedGasPrice: overrideGasPrice
+							? fromWei(overrideGasPrice, 'gwei')
+							: this.props.gasFeeEstimates.gasPrice,
+						suggestedGasLimit: fromWei(overrideGasLimit || transaction.gas, 'wei')
+					},
+					{
+						onlyGas: true
+					}
+				);
 
-				const EIP1559GasData = this.parseTransactionDataEIP1559({
-					...initialGas,
-					suggestedGasLimit: fromWei(overrideGasLimit || transaction.gas, 'wei')
-				});
+				this.handleGasFeeSelection(
+					hexToBN(LegacyGasData.suggestedGasLimitHex),
+					hexToBN(LegacyGasData.suggestedGasPriceHex)
+				);
 
 				// eslint-disable-next-line react/no-did-update-set-state
 				this.setState({
 					ready: true,
-					EIP1559GasData,
-					EIP1559GasDataTemp: EIP1559GasData
+					LegacyGasData,
+					LegacyGasDataTemp: LegacyGasData
 				});
 			}
 		}
@@ -821,7 +822,7 @@ class TransactionEditor extends PureComponent {
 		const { gasEstimateType } = this.props;
 		const { LegacyGasDataTemp } = this.state;
 
-		if (gasEstimateType !== 'fee-market') {
+		if (gasEstimateType !== GAS_ESTIMATE_TYPES.FEE_MARKET) {
 			this.handleGasFeeSelection(
 				hexToBN(LegacyGasDataTemp.suggestedGasLimitHex),
 				hexToBN(LegacyGasDataTemp.suggestedGasPriceHex)
@@ -868,7 +869,6 @@ class TransactionEditor extends PureComponent {
 			LegacyGasDataTemp,
 			gasSelected
 		} = this.state;
-
 		return (
 			<React.Fragment>
 				{mode === 'review' && (
@@ -900,7 +900,7 @@ class TransactionEditor extends PureComponent {
 				)}
 
 				{mode !== 'review' &&
-					(gasEstimateType === 'fee-market' ? (
+					(gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ? (
 						<EditGasFee1559
 							selected={gasSelected}
 							gasFee={EIP1559GasDataTemp}

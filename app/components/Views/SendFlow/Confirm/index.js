@@ -33,7 +33,7 @@ import {
 	parseTransactionLegacy
 } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
-import { util, WalletDevice, NetworksChainId } from '@metamask/controllers';
+import { util, WalletDevice, NetworksChainId, GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import { prepareTransaction, resetTransaction, setNonce, setProposedNonce } from '../../../../actions/transaction';
 import { getGasLimit } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
@@ -454,19 +454,18 @@ class Confirm extends PureComponent {
 				gas !== prevProps?.transactionState?.transaction?.gas)
 		) {
 			if (!this.state.stopUpdateGas && !this.state.advancedGasInserted) {
-				if (this.props.gasEstimateType === 'eth_gasPrice') {
-					const LegacyTransactionData = this.parseTransactionDataLegacy({
-						suggestedGasPrice: this.props.gasFeeEstimates.gasPrice,
+				if (this.props.gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+					const EIP1559TransactionData = this.parseTransactionDataEIP1559({
+						...this.props.gasFeeEstimates[this.state.gasSelected],
 						suggestedGasLimit: fromWei(gas, 'wei')
 					});
-
 					// eslint-disable-next-line react/no-did-update-set-state
 					this.setState({
 						gasEstimationReady: true,
-						LegacyTransactionData,
-						LegacyTransactionDataTemp: LegacyTransactionData
+						EIP1559TransactionData,
+						EIP1559TransactionDataTemp: EIP1559TransactionData
 					});
-				} else if (this.props.gasEstimateType === 'legacy') {
+				} else if (this.props.gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY) {
 					const LegacyTransactionData = this.parseTransactionDataLegacy({
 						suggestedGasPrice: this.props.gasFeeEstimates[this.state.gasSelected],
 						suggestedGasLimit: fromWei(gas, 'wei')
@@ -479,15 +478,16 @@ class Confirm extends PureComponent {
 						LegacyTransactionDataTemp: LegacyTransactionData
 					});
 				} else {
-					const EIP1559TransactionData = this.parseTransactionDataEIP1559({
-						...this.props.gasFeeEstimates[this.state.gasSelected],
+					const LegacyTransactionData = this.parseTransactionDataLegacy({
+						suggestedGasPrice: this.props.gasFeeEstimates.gasPrice,
 						suggestedGasLimit: fromWei(gas, 'wei')
 					});
+
 					// eslint-disable-next-line react/no-did-update-set-state
 					this.setState({
 						gasEstimationReady: true,
-						EIP1559TransactionData,
-						EIP1559TransactionDataTemp: EIP1559TransactionData
+						LegacyTransactionData,
+						LegacyTransactionDataTemp: LegacyTransactionData
 					});
 				}
 				this.parseTransactionDataHeader();
@@ -635,7 +635,7 @@ class Confirm extends PureComponent {
 		const { nonce } = this.props.transaction;
 		const transactionToSend = { ...transaction };
 
-		if (gasEstimateType === 'fee-market') {
+		if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
 			transactionToSend.gas = EIP1559TransactionData.gasLimitHex;
 			transactionToSend.maxFeePerGas = addHexPrefix(EIP1559TransactionData.suggestedMaxFeePerGasHex); //'0x2540be400'
 			transactionToSend.maxPriorityFeePerGas = addHexPrefix(
@@ -1088,7 +1088,7 @@ class Confirm extends PureComponent {
 			LegacyTransactionData
 		} = this.state;
 
-		const isLegacy = this.props.gasEstimateType !== 'fee-market';
+		const isLegacy = this.props.gasEstimateType !== GAS_ESTIMATE_TYPES.FEE_MARKET;
 
 		const checksummedAddress = transactionTo && toChecksumAddress(transactionTo);
 		const existingContact = checksummedAddress && addressBook[network] && addressBook[network][checksummedAddress];

@@ -96,6 +96,7 @@ export function formatCurrency(value, currencyCode) {
 }
 
 export function convertTokenToFiat({ value, fromCurrency = 'ETH', toCurrency, conversionRate, contractExchangeRate }) {
+	if (!contractExchangeRate) return 0;
 	const totalExchangeRate = conversionRate * contractExchangeRate;
 
 	return conversionUtil(value, {
