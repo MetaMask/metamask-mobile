@@ -140,13 +140,13 @@ class Engine {
 					addCollectible: assetsController.addCollectible.bind(assetsController),
 					removeCollectible: assetsController.removeCollectible.bind(assetsController),
 					getTokenListState: () => {
-						const tokenList = {};
-						for (const address in contractMap) {
-							if (contractMap[address].erc20) {
-								tokenList[address] = contractMap[address];
+						const tokenList = Object.entries(contractMap).reduce((final, [key, value]) => {
+							if (value.erc20) {
+								final[key] = value;
 							}
-						}
-						return tokenList;
+							return final;
+						}, {});
+						return { tokenList };
 					},
 					getAssetsState: () => assetsController.state
 				}),
