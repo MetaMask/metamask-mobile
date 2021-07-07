@@ -261,8 +261,8 @@ PODS:
     - React-cxxreact (= 0.63.4)
     - React-jsi (= 0.63.4)
   - React-jsinspector (0.63.4)
-  - react-native-aes (1.3.9):
-    - React
+  - react-native-aes (1.3.10):
+    - React-Core
   - react-native-background-timer (2.1.1):
     - React
   - react-native-blur (0.8.0):
@@ -270,20 +270,20 @@ PODS:
   - react-native-branch (5.0.1):
     - Branch (= 0.37.0)
     - React
-  - react-native-camera (3.36.0):
-    - React
-    - react-native-camera/RCT (= 3.36.0)
-    - react-native-camera/RN (= 3.36.0)
-  - react-native-camera/RCT (3.36.0):
-    - React
-  - react-native-camera/RN (3.36.0):
-    - React
+  - react-native-camera (3.44.3):
+    - React-Core
+    - react-native-camera/RCT (= 3.44.3)
+    - react-native-camera/RN (= 3.44.3)
+  - react-native-camera/RCT (3.44.3):
+    - React-Core
+  - react-native-camera/RN (3.44.3):
+    - React-Core
   - react-native-cookies (4.0.1):
     - React
   - react-native-netinfo (6.0.0):
     - React-Core
-  - react-native-randombytes (3.5.3):
-    - React
+  - react-native-randombytes (3.6.1):
+    - React-Core
   - react-native-safe-area-context (3.2.0):
     - React-Core
   - react-native-splash-screen (3.2.0):
@@ -295,9 +295,9 @@ PODS:
     - React-Core
   - react-native-view-shot (3.1.2):
     - React
-  - react-native-viewpager (3.3.0):
+  - react-native-viewpager (3.3.1):
     - React
-  - react-native-webview (11.0.2):
+  - react-native-webview (11.6.5):
     - React-Core
   - React-RCTActionSheet (0.63.4):
     - React-Core/RCTActionSheetHeaders (= 0.63.4)
@@ -373,15 +373,15 @@ PODS:
     - React-Core
   - RNCCheckbox (0.4.2):
     - React
-  - RNCClipboard (1.2.2):
-    - React
+  - RNCClipboard (1.5.1):
+    - React-Core
   - RNCMaskedView (0.1.11):
     - React
   - RNCPicker (1.8.1):
     - React-Core
   - RNDeviceInfo (8.1.3):
     - React-Core
-  - RNFS (2.16.6):
+  - RNFS (2.18.0):
     - React
   - RNGestureHandler (1.10.3):
     - React-Core
@@ -401,7 +401,7 @@ PODS:
   - RNSentry (2.4.2):
     - React-Core
     - Sentry (= 6.1.4)
-  - RNShare (5.2.2):
+  - RNShare (5.3.0):
     - React-Core
   - RNSVG (12.1.0):
     - React
@@ -683,20 +683,20 @@ SPEC CHECKSUMS:
   React-jsi: a0418934cf48f25b485631deb27c64dc40fb4c31
   React-jsiexecutor: 93bd528844ad21dc07aab1c67cb10abae6df6949
   React-jsinspector: 58aef7155bc9a9683f5b60b35eccea8722a4f53a
-  react-native-aes: ff31f0dd4c791eb423a631ee04570fcf3c618924
+  react-native-aes: c6e4e3ffcff410535e31e161fca95d50e608d4ee
   react-native-background-timer: 1b6e6b4e10f1b74c367a1fdc3c72b67c619b222b
   react-native-blur: cad4d93b364f91e7b7931b3fa935455487e5c33c
   react-native-branch: f630e0e399c64230463246469ca0817e4f821b78
-  react-native-camera: 8016138a8348b889e22c95b23f668a234f124335
+  react-native-camera: b8cc03e2feec0c04403d0998e37cf519d8fd4c6f
   react-native-cookies: ff2e6865dff2e5feeca8f1ed082ae7898e4fa912
   react-native-netinfo: e849fc21ca2f4128a5726c801a82fc6f4a6db50d
-  react-native-randombytes: 3638d24759d67c68f6ccba60c52a7a8a8faa6a23
+  react-native-randombytes: 421f1c7d48c0af8dbcd471b0324393ebf8fe7846
   react-native-safe-area-context: f0906bf8bc9835ac9a9d3f97e8bde2a997d8da79
   react-native-splash-screen: 200d11d188e2e78cea3ad319964f6142b6384865
   react-native-video: 0bb76b6d6b77da3009611586c7dbf817b947f30e
   react-native-view-shot: 4475fde003fe8a210053d1f98fb9e06c1d834e1c
-  react-native-viewpager: a7b438ca32c57b2614ece2a123e7fe116f743131
-  react-native-webview: dfd7202ff115c44d3ea401c2f36122fb3ac79f07
+  react-native-viewpager: f730c1d175a2c1ae789464855d4a2c14247d3109
+  react-native-webview: 2e8fe70dc32b50d3231c23043f8e8b5a5525d346
   React-RCTActionSheet: 89a0ca9f4a06c1f93c26067af074ccdce0f40336
   React-RCTAnimation: 1bde3ecc0c104c55df246eda516e0deb03c4e49b
   React-RCTBlob: a97d378b527740cc667e03ebfa183a75231ab0f0
@@ -712,11 +712,11 @@ SPEC CHECKSUMS:
   rn-fetch-blob: f065bb7ab7fb48dd002629f8bdcb0336602d3cba
   RNCAsyncStorage: b03032fdbdb725bea0bd9e5ec5a7272865ae7398
   RNCCheckbox: 357578d3b42652c78ee9a1bb9bcfc3195af6e161
-  RNCClipboard: 8148e21ac347c51fd6cd4b683389094c216bb543
+  RNCClipboard: 41d8d918092ae8e676f18adada19104fa3e68495
   RNCMaskedView: 0e1bc4bfa8365eba5fbbb71e07fbdc0555249489
   RNCPicker: 914b557e20b3b8317b084aca9ff4b4edb95f61e4
   RNDeviceInfo: 8d3a29207835f972bce883723882980143270d55
-  RNFS: 2bd9eb49dc82fa9676382f0585b992c424cd59df
+  RNFS: 3ab21fa6c56d65566d1fb26c2228e2b6132e5e32
   RNGestureHandler: a479ebd5ed4221a810967000735517df0d2db211
   RNI18n: e2f7e76389fcc6e84f2c8733ea89b92502351fd8
   RNKeychain: b8e0711b959a19c5b057d1e970d3c83d159b6da5
@@ -725,7 +725,7 @@ SPEC CHECKSUMS:
   RNScreens: 21b73c94c9117e1110a79ee0ee80c93ccefed8ce
   RNSensors: c363d486c879e181905dea84a2535e49af1c2d25
   RNSentry: e86fb2e2fec0365644f4b582938bf66be515acce
-  RNShare: 5cfe16bfd42cd2c4869a7692462181ac8cc15a6d
+  RNShare: 4df87d1791f50a2c7b1d89432fb9bbb7c02a9c9a
   RNSVG: ce9d996113475209013317e48b05c21ee988d42e
   RNVectorIcons: 6607bd3a30291d0edb56f9bbe7ae411ee2b928b0
   Sentry: 9d055e2de30a77685e86b219acf02e59b82091fc
