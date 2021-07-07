@@ -1433,7 +1433,7 @@
   resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-1.27.0.tgz#1e65b821bad6f7d8313dd881116e4366b0662f75"
   integrity sha512-ZAvuROiHjSksy40buCL4M6m16bAmXQl6vjllK/XQxt9+UElhwJSp7PJ1ZULuZXmznBBY64WXlCPjm94JhW4l3g==
 
-"@metamask/controller@./metamask-controllers-v10.2.1-seth-1.tgz", "@metamask/controllers@./metamask-controllers-v10.2.1-seth-1.tgz":
+"@metamask/controllers@./metamask-controllers-v10.2.1-seth-1.tgz":
   version "10.2.1-seth-1"
   resolved "./metamask-controllers-v10.2.1-seth-1.tgz#8d1dbb56338016306ddd310a0b1f4c5bfa82fd12"
   dependencies:
@@ -10154,28 +10154,10 @@ path@0.12.7:
     process "^0.11.1"
     util "^0.10.3"
 
-pbkdf2@3.0.17:
-  version "3.0.17"
-  resolved "https://registry.yarnpkg.com/pbkdf2/-/pbkdf2-3.0.17.tgz#976c206530617b14ebb32114239f7b09336e93a6"
-  integrity sha512-U/il5MsrZp7mGg3mSQfn742na2T+1/vHDCG5/iTI3X9MKUuYUZVLQhyRsg06mCgDBTd57TxzgZt7P+fYfjRLtA==
-  dependencies:
-    create-hash "^1.1.2"
-    create-hmac "^1.1.4"
-    ripemd160 "^2.0.1"
-    safe-buffer "^5.0.1"
-    sha.js "^2.4.8"
-
 pbkdf2@3.0.8, pbkdf2@^3.0.17, pbkdf2@^3.0.3, pbkdf2@^3.0.9:
   version "3.0.8"
   resolved "https://registry.yarnpkg.com/pbkdf2/-/pbkdf2-3.0.8.tgz#2f8abf16ebecc82277945d748aba1d78761f61e2"
   integrity sha1-L4q/FuvsyCJ3lF10irodeHYfYeI=
-  dependencies:
-    create-hmac "^1.1.2"
-
-pbkdf2@3.0.9:
-  version "3.0.9"
-  resolved "https://registry.yarnpkg.com/pbkdf2/-/pbkdf2-3.0.9.tgz#f2c4b25a600058b3c3773c086c37dbbee1ffe693"
-  integrity sha1-8sSyWmAAWLPDdzwIbDfbvuH/5pM=
   dependencies:
     create-hmac "^1.1.2"
 
