@@ -94,7 +94,8 @@ const styles = StyleSheet.create({
 		marginTop: 14
 	},
 	warningTextContainer: {
-		lineHeight: 20
+		lineHeight: 20,
+		paddingLeft: 4
 	},
 	warningText: {
 		lineHeight: 20
@@ -119,14 +120,15 @@ const EditGasFee1559 = ({
 	primaryCurrency,
 	chainId,
 	timeEstimate,
-	timeEstimateColor
+	timeEstimateColor,
+	error,
+	warning
 }) => {
 	const [showRangeInfoModal, setShowRangeInfoModal] = useState(false);
 	const [showAdvancedOptions, setShowAdvancedOptions] = useState(!selected);
 	const [maxPriorityFeeError, setMaxPriorityFeeError] = useState(null);
 	const [maxFeeError, setMaxFeeError] = useState(null);
 	const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
-	const [warning, setWarning] = useState(null);
 	const [selectedOption, setSelectedOption] = useState(selected);
 
 	const toggleRangeInfoModal = useCallback(() => {
@@ -139,12 +141,6 @@ const EditGasFee1559 = ({
 
 	const toggleLearnMoreModal = useCallback(() => {
 		setShowLearnMoreModal(showLearnMoreModal => !showLearnMoreModal);
-	}, []);
-
-	// TODO: Use this function where it's appropriate
-	// eslint-disable-next-line no-unused-vars
-	const showWarning = useCallback(warningMessage => {
-		setWarning(warningMessage);
 	}, []);
 
 	const save = () => {
@@ -266,6 +262,21 @@ const EditGasFee1559 = ({
 								<View style={styles.warningTextContainer}>
 									<Text black style={styles.warningText}>
 										{warning}
+									</Text>
+								</View>
+							</Alert>
+						)}
+						{!!error && (
+							<Alert
+								small
+								type="error"
+								renderIcon={() => (
+									<MaterialCommunityIcon name="information" size={20} color={colors.red} />
+								)}
+							>
+								<View style={styles.warningTextContainer}>
+									<Text red style={styles.warningText}>
+										{error}
 									</Text>
 								</View>
 							</Alert>
@@ -452,7 +463,7 @@ const EditGasFee1559 = ({
 									{strings('edit_gas_fee_eip1559.learn_more.title')}
 								</Text>
 							</TouchableOpacity>
-							<StyledButton type={'confirm'} onPress={save}>
+							<StyledButton type={'confirm'} onPress={save} disabled={Boolean(error)}>
 								{strings('edit_gas_fee_eip1559.save')}
 							</StyledButton>
 						</View>
@@ -528,7 +539,9 @@ EditGasFee1559.propTypes = {
 	primaryCurrency: PropTypes.string,
 	chainId: PropTypes.string,
 	timeEstimate: PropTypes.string,
-	timeEstimateColor: PropTypes.string
+	timeEstimateColor: PropTypes.string,
+	error: PropTypes.string,
+	warning: PropTypes.string
 };
 
 export default EditGasFee1559;

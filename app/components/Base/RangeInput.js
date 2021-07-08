@@ -224,9 +224,9 @@ RangeInput.propTypes = {
 	 */
 	onChangeValue: PropTypes.func,
 	/**
-	 * The value per which the input is incremented when clicking on the plus and minus button
+	 * A BigNumber value per which the input is incremented when clicking on the plus and minus button
 	 */
-	increment: PropTypes.number,
+	increment: PropTypes.object,
 	/**
 	 * The label to show inside the input
 	 */
@@ -236,13 +236,13 @@ RangeInput.propTypes = {
 	 */
 	error: PropTypes.string,
 	/**
-	 * The minimum value the input is allowed to have when clicking on the minus button
+	 * A BigNumber minimum value the input is allowed to have when clicking on the minus button
 	 */
-	min: PropTypes.number,
+	min: PropTypes.object,
 	/**
-	 * The maximum value the input is allowed to have when clicking on the plus button
+	 * A BigNumber maximum value the input is allowed to have when clicking on the plus button
 	 */
-	max: PropTypes.number,
+	max: PropTypes.object,
 	/**
 	 * The name of the input
 	 */

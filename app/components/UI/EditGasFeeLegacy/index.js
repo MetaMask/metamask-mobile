@@ -96,7 +96,9 @@ const styles = StyleSheet.create({
 		marginTop: 14
 	},
 	warningTextContainer: {
-		lineHeight: 20
+		paddingLeft: 4,
+		lineHeight: 20,
+		textAlign: 'center'
 	},
 	warningText: {
 		lineHeight: 20
@@ -114,14 +116,15 @@ const EditGasFeeLegacy = ({
 	gasFeeConversion,
 	primaryCurrency,
 	chainId,
-	gasEstimateType
+	gasEstimateType,
+	error,
+	warning
 }) => {
 	const onlyAdvanced = gasEstimateType !== GAS_ESTIMATE_TYPES.LEGACY;
 
 	const [showRangeInfoModal, setShowRangeInfoModal] = useState(false);
 	const [showAdvancedOptions, setShowAdvancedOptions] = useState(!selected || onlyAdvanced);
 	const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
-	const [warning, setWarning] = useState(null);
 	const [selectedOption, setSelectedOption] = useState(selected);
 	const [gasPriceError, setGasPriceError] = useState();
 
@@ -135,12 +138,6 @@ const EditGasFeeLegacy = ({
 
 	const toggleLearnMoreModal = useCallback(() => {
 		setShowLearnMoreModal(showLearnMoreModal => !showLearnMoreModal);
-	}, []);
-
-	// TODO: Use this function where it's appropriate
-	// eslint-disable-next-line no-unused-vars
-	const showWarning = useCallback(warningMessage => {
-		setWarning(warningMessage);
 	}, []);
 
 	const save = () => {
@@ -225,7 +222,20 @@ const EditGasFeeLegacy = ({
 								<Icon name={'ios-arrow-back'} size={24} color={colors.white} />
 							</View>
 						</View>
-						{!!warning && (
+						{Boolean(error) && (
+							<Alert
+								small
+								type="error"
+								renderIcon={() => (
+									<MaterialCommunityIcon name="information" size={20} color={colors.red} />
+								)}
+							>
+								<View style={styles.warningTextContainer}>
+									<Text red>{error}</Text>
+								</View>
+							</Alert>
+						)}
+						{Boolean(warning) && (
 							<Alert
 								small
 								type="warning"
@@ -382,7 +392,7 @@ const EditGasFeeLegacy = ({
 									{strings('edit_gas_fee_eip1559.learn_more.title')}
 								</Text>
 							</TouchableOpacity>
-							<StyledButton type={'confirm'} onPress={save}>
+							<StyledButton type={'confirm'} onPress={save} disabled={Boolean(error)}>
 								{strings('edit_gas_fee_eip1559.save')}
 							</StyledButton>
 						</View>
@@ -451,7 +461,9 @@ EditGasFeeLegacy.propTypes = {
 	gasFeeConversion: PropTypes.string,
 	primaryCurrency: PropTypes.string,
 	chainId: PropTypes.string,
-	gasEstimateType: PropTypes.string
+	gasEstimateType: PropTypes.string,
+	error: PropTypes.string,
+	warning: PropTypes.string
 };
 
 export default EditGasFeeLegacy;

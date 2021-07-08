@@ -304,12 +304,19 @@ class TransactionReviewFeeCard extends PureComponent {
 							this.renderIfGasEstimationReady(
 								<View style={styles.valuesContainer}>
 									{isMainnet && (
-										<Text grey upper right style={styles.amountContainer}>
+										<Text grey={!over} upper right red={over} style={styles.amountContainer}>
 											{totalAmount}
 										</Text>
 									)}
 
-									<Text bold primary upper right style={styles.primaryContainer(!isMainnet)}>
+									<Text
+										bold
+										primary={!over}
+										red={over}
+										upper
+										right
+										style={styles.primaryContainer(!isMainnet)}
+									>
 										{primaryTotalAmount}
 									</Text>
 								</View>
