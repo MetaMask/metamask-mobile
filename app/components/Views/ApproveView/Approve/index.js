@@ -12,7 +12,7 @@ import Modal from 'react-native-modal';
 import { strings } from '../../../../../locales/i18n';
 import { setTransactionObject } from '../../../../actions/transaction';
 import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
-import { fromWei, isBN, renderFromWei } from '../../../../util/number';
+import { addHexPrefix, fromWei, isBN, renderFromWei } from '../../../../util/number';
 import {
 	getNormalizedTxState,
 	getTicker,
@@ -350,14 +350,28 @@ class Approve extends PureComponent {
 		return error;
 	};
 
-	prepareTransaction = transaction => ({
-		...transaction,
-		gas: BNToHex(transaction.gas),
-		gasPrice: BNToHex(transaction.gasPrice),
-		value: BNToHex(transaction.value),
-		to: safeToChecksumAddress(transaction.to),
-		from: safeToChecksumAddress(transaction.from)
-	});
+	prepareTransaction = transaction => {
+		const { gasEstimateType } = this.props;
+		const { LegacyGasData, EIP1559GasData } = this.state;
+		const transactionToSend = {
+			...transaction,
+			value: BNToHex(transaction.value),
+			to: safeToChecksumAddress(transaction.to),
+			from: safeToChecksumAddress(transaction.from)
+		};
+
+		if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+			transactionToSend.gas = EIP1559GasData.gasLimitHex;
+			transactionToSend.maxFeePerGas = addHexPrefix(EIP1559GasData.suggestedMaxFeePerGasHex); //'0x2540be400'
+			transactionToSend.maxPriorityFeePerGas = addHexPrefix(EIP1559GasData.suggestedMaxPriorityFeePerGasHex); //'0x3b9aca00';
+			delete transactionToSend.gasPrice;
+		} else {
+			transactionToSend.gas = LegacyGasData.suggestedGasLimitHex;
+			transactionToSend.gasPrice = addHexPrefix(LegacyGasData.suggestedGasPriceHex);
+		}
+
+		return transactionToSend;
+	};
 
 	onConfirm = async () => {
 		if (this.validateGas()) return;
