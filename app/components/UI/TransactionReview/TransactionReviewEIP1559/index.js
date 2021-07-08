@@ -9,9 +9,9 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
 const styles = StyleSheet.create({
-	overview: {
-		marginHorizontal: 24
-	},
+	overview: noMargin => ({
+		marginHorizontal: noMargin ? 0 : 24
+	}),
 	loader: {
 		backgroundColor: colors.white,
 		height: 10,
@@ -74,7 +74,9 @@ const TransactionReviewEIP1559 = ({
 	timeEstimateColor,
 	primaryCurrency,
 	chainId,
-	onEdit
+	onEdit,
+	hideTotal,
+	noMargin
 }) => {
 	const isMainnet = isMainnetByChainId(chainId);
 	const nativeCurrencySelected = primaryCurrency === 'ETH' || !isMainnet;
@@ -96,7 +98,7 @@ const TransactionReviewEIP1559 = ({
 	}
 
 	return (
-		<Summary style={styles.overview}>
+		<Summary style={styles.overview(noMargin)}>
 			<Summary.Row>
 				<View style={styles.gasFeeTitleContainer}>
 					<Text primary bold>
@@ -154,33 +156,37 @@ const TransactionReviewEIP1559 = ({
 					</Text>
 				</View>
 			</Summary.Row>
-			<Summary.Separator />
-			<Summary.Row>
-				<Text primary bold>
-					Total
-				</Text>
-				<View style={styles.valuesContainer}>
-					{isMainnet && (
-						<Text grey upper right style={styles.amountContainer}>
-							{totalSecondary}
+			{!hideTotal && (
+				<View>
+					<Summary.Separator />
+					<Summary.Row>
+						<Text primary bold>
+							Total
 						</Text>
-					)}
+						<View style={styles.valuesContainer}>
+							{isMainnet && (
+								<Text grey upper right style={styles.amountContainer}>
+									{totalSecondary}
+								</Text>
+							)}
 
-					<Text bold primary upper right>
-						{totalPrimary}
-					</Text>
+							<Text bold primary upper right>
+								{totalPrimary}
+							</Text>
+						</View>
+					</Summary.Row>
+					<Summary.Row>
+						<View style={styles.valuesContainer}>
+							<Text grey right small>
+								Up to{' '}
+								<Text bold small noMargin>
+									{totalMaxPrimary}
+								</Text>
+							</Text>
+						</View>
+					</Summary.Row>
 				</View>
-			</Summary.Row>
-			<Summary.Row>
-				<View style={styles.valuesContainer}>
-					<Text grey right small>
-						Up to{' '}
-						<Text bold small noMargin>
-							{totalMaxPrimary}
-						</Text>
-					</Text>
-				</View>
-			</Summary.Row>
+			)}
 		</Summary>
 	);
 };
@@ -233,7 +239,9 @@ TransactionReviewEIP1559.propTypes = {
 	/**
 	 * String that represents the color of the time estimate
 	 */
-	timeEstimateColor: PropTypes.string
+	timeEstimateColor: PropTypes.string,
+	hideTotal: PropTypes.bool,
+	noMargin: PropTypes.bool
 };
 
 const mapStateToProps = state => ({

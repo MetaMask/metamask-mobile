@@ -301,6 +301,11 @@ class TransactionEditor extends PureComponent {
 		}
 	};
 
+	componentWillUnmount = () => {
+		const { GasFeeController } = Engine.context;
+		GasFeeController.stopPolling(this.state.pollToken);
+	};
+
 	/**
 	 * Call callback when transaction is cancelled
 	 */

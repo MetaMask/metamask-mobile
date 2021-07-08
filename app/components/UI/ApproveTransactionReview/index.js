@@ -12,9 +12,8 @@ import { safeToChecksumAddress, renderShortAddress } from '../../../util/address
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { setTransactionObject } from '../../../actions/transaction';
-import { util } from '@metamask/controllers';
+import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
 import { renderFromWei, weiToFiatNumber, fromTokenMinimalUnit, toTokenMinimalUnit } from '../../../util/number';
-import currencySymbols from '../../../util/currency-symbols.json';
 import {
 	getTicker,
 	getNormalizedTxState,
@@ -43,6 +42,7 @@ import Logger from '../../../util/Logger';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import InfoModal from '../Swaps/components/InfoModal';
 import Text from '../../Base/Text';
+import TransactionReviewEIP1559 from '../../UI/TransactionReview/TransactionReviewEIP1559';
 
 const { hexToBN } = util;
 const styles = StyleSheet.create({
@@ -186,10 +186,6 @@ class ApproveTransactionReview extends PureComponent {
 		 */
 		onConfirm: PropTypes.func,
 		/**
-		 * Currency code of the currently-active currency
-		 */
-		currentCurrency: PropTypes.string,
-		/**
 		 * Transaction state
 		 */
 		transaction: PropTypes.object.isRequired,
@@ -252,7 +248,10 @@ class ApproveTransactionReview extends PureComponent {
 		/**
 		 * A string representing the network chainId
 		 */
-		chainId: PropTypes.string
+		chainId: PropTypes.string,
+		EIP1559GasData: PropTypes.object,
+		LegacyGasData: PropTypes.object,
+		gasEstimateType: PropTypes.string
 	};
 
 	state = {
@@ -520,22 +519,21 @@ class ApproveTransactionReview extends PureComponent {
 	};
 
 	renderDetails = () => {
-		const { host, tokenSymbol, totalGas, totalGasFiat, ticker, spenderAddress } = this.state;
+		const { host, tokenSymbol, spenderAddress } = this.state;
 
 		const {
 			primaryCurrency,
-			currentCurrency,
 			gasError,
 			activeTabUrl,
 			transaction: { origin },
 			network,
 			over,
-			warningGasPriceHigh
+			warningGasPriceHigh,
+			EIP1559GasData,
+			LegacyGasData,
+			gasEstimateType
 		} = this.props;
 		const is_main_net = isMainNet(network);
-		const isFiat = primaryCurrency.toLowerCase() === 'fiat';
-		const currencySymbol = currencySymbols[currentCurrency];
-		const totalGasFiatRounded = Math.round(totalGasFiat * 100) / 100;
 		const originIsDeeplink = origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
 		const errorPress = is_main_net ? this.buyEth : this.gotoFaucet;
 		const networkName = capitalize(getNetworkName(network));
@@ -577,35 +575,54 @@ class ApproveTransactionReview extends PureComponent {
 								<View style={styles.paddingHorizontal}>
 									<AccountInfoCard />
 									<View style={styles.section}>
-										<TouchableOpacity onPress={this.edit}>
-											<View style={styles.networkFee}>
-												<Text reset style={styles.sectionLeft}>
-													{strings('transaction.transaction_fee')}
-													<TouchableOpacity
-														style={styles.gasInfoContainer}
-														onPress={this.toggleGasTooltip}
-														hitSlop={styles.hitSlop}
-													>
-														<MaterialCommunityIcons
-															name="information"
-															size={13}
-															style={styles.gasInfoIcon}
+										{gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ? (
+											<TransactionReviewEIP1559
+												totalNative={EIP1559GasData.renderableTotalMinNative}
+												totalConversion={EIP1559GasData.renderableTotalMinConversion}
+												totalMaxNative={EIP1559GasData.renderableTotalMaxNative}
+												gasFeeNative={EIP1559GasData.renderableGasFeeMinNative}
+												gasFeeConversion={EIP1559GasData.renderableGasFeeMinConversion}
+												gasFeeMaxNative={EIP1559GasData.renderableGasFeeMaxNative}
+												gasFeeMaxConversion={EIP1559GasData.renderableGasFeeMaxConversion}
+												primaryCurrency={primaryCurrency}
+												timeEstimate={EIP1559GasData.timeEstimate}
+												timeEstimateColor={EIP1559GasData.timeEstimateColor}
+												hideTotal
+												noMargin
+												onEdit={this.edit}
+											/>
+										) : (
+											<TouchableOpacity onPress={this.edit}>
+												<View style={styles.networkFee}>
+													<Text reset style={styles.sectionLeft}>
+														{strings('transaction.transaction_fee')}
+														<TouchableOpacity
+															style={styles.gasInfoContainer}
+															onPress={this.toggleGasTooltip}
+															hitSlop={styles.hitSlop}
+														>
+															<MaterialCommunityIcons
+																name="information"
+																size={13}
+																style={styles.gasInfoIcon}
+															/>
+														</TouchableOpacity>
+													</Text>
+													<Text reset style={styles.sectionRight}>
+														{LegacyGasData.transactionFee} (
+														{LegacyGasData.transactionFeeFiat})
+													</Text>
+													<View style={styles.networkFeeArrow}>
+														<IonicIcon
+															name="ios-arrow-forward"
+															size={16}
+															color={colors.grey00}
 														/>
-													</TouchableOpacity>
-												</Text>
-												<Text reset style={styles.sectionRight}>
-													{isFiat && currencySymbol}
-													{isFiat ? totalGasFiatRounded : totalGas} {!isFiat && ticker}
-												</Text>
-												<View style={styles.networkFeeArrow}>
-													<IonicIcon
-														name="ios-arrow-forward"
-														size={16}
-														color={colors.grey00}
-													/>
+													</View>
 												</View>
-											</View>
-										</TouchableOpacity>
+											</TouchableOpacity>
+										)}
+
 										{gasError && (
 											<View style={styles.errorWrapper}>
 												<TouchableOpacity onPress={errorPress}>
@@ -727,7 +744,6 @@ class ApproveTransactionReview extends PureComponent {
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
-	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	transaction: getNormalizedTxState(state),
 	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts || {}).length,
