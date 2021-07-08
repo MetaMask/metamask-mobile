@@ -94,7 +94,7 @@ class TransactionReviewFeeCard extends PureComponent {
 		/**
 		 * Total transaction value in ETH
 		 */
-		totalValue: PropTypes.string,
+		totalValue: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
 		/**
 		 * Transaction value in ETH before gas fee
 		 */
