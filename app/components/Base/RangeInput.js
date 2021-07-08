@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useEffect } from 'react';
+import React, { useCallback, useRef, useEffect, useState } from 'react';
 import { View, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import { colors } from '../../styles/common';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
@@ -12,15 +12,15 @@ const styles = StyleSheet.create({
 		justifyContent: 'space-between',
 		marginBottom: 14
 	},
-	rangeInputContainer: {
-		borderColor: colors.grey200,
+	rangeInputContainer: error => ({
+		borderColor: error ? colors.red : colors.grey200,
 		borderWidth: 1,
 		borderRadius: 6,
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'space-between',
 		height: 42
-	},
+	}),
 	input: error => ({
 		height: 38,
 		minWidth: 10,
@@ -95,13 +95,14 @@ const RangeInput = ({
 	max
 }) => {
 	const textInput = useRef(null);
-
+	const [errorState, setErrorState] = useState();
 	const handleClickUnit = useCallback(() => {
 		textInput?.current?.focus?.();
 	}, []);
 
 	const changeValue = useCallback(
-		newValue => {
+		(newValue, dontEmptyError) => {
+			if (!dontEmptyError) setErrorState('');
 			onChangeValue?.(newValue);
 		},
 		[onChangeValue]
@@ -131,8 +132,14 @@ const RangeInput = ({
 	}, []);
 
 	const checkLimits = useCallback(() => {
-		if (Number(value) < min) return changeValue(String(min));
-		if (Number(value) > max) return changeValue(String(max));
+		if (Number(value) < min) {
+			setErrorState(`Must be at least ${min}`);
+			return changeValue(String(min), true);
+		}
+		if (Number(value) > max) {
+			setErrorState(`Must be at most ${max}`);
+			return changeValue(String(max));
+		}
 	}, [changeValue, max, min, value]);
 
 	useEffect(() => {
@@ -147,7 +154,7 @@ const RangeInput = ({
 				{renderLabelComponent(rightLabelComponent)}
 			</View>
 
-			<View style={styles.rangeInputContainer}>
+			<View style={styles.rangeInputContainer(Boolean(error))}>
 				<View style={styles.buttonContainerLeft}>
 					<TouchableOpacity style={styles.button} hitSlop={styles.hitSlop} onPress={decreaseNumber}>
 						<FontAwesomeIcon name="minus" size={10} style={styles.buttonText} />
@@ -155,7 +162,7 @@ const RangeInput = ({
 				</View>
 				<View style={styles.inputContainer}>
 					<TextInput
-						style={styles.input(!!error)}
+						style={styles.input(Boolean(error))}
 						onChangeText={changeValue}
 						onBlur={checkLimits}
 						value={value}
@@ -163,7 +170,7 @@ const RangeInput = ({
 						ref={textInput}
 					/>
 					{!!unit && (
-						<Text onPress={handleClickUnit} black={!error} red={!!error}>
+						<Text onPress={handleClickUnit} black={!error} red={Boolean(error)}>
 							{unit}
 						</Text>
 					)}
@@ -177,11 +184,11 @@ const RangeInput = ({
 					</TouchableOpacity>
 				</View>
 			</View>
-			{!!error && (
+			{(Boolean(error) || Boolean(errorState)) && (
 				<View style={styles.errorContainer}>
 					<FontAwesomeIcon name="exclamation-circle" size={14} style={styles.errorIcon} />
 					<Text red noMargin small>
-						{error}
+						{error || errorState}
 					</Text>
 				</View>
 			)}

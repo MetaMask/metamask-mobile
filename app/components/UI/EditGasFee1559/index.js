@@ -118,6 +118,7 @@ const EditGasFee1559 = ({
 	const [showRangeInfoModal, setShowRangeInfoModal] = useState(false);
 	const [showAdvancedOptions, setShowAdvancedOptions] = useState(!selected);
 	const [maxPriorityFeeError, setMaxPriorityFeeError] = useState(null);
+	const [maxFeeError, setMaxFeeError] = useState(null);
 	const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
 	const [warning, setWarning] = useState(null);
 	const [selectedOption, setSelectedOption] = useState(selected);
@@ -154,23 +155,39 @@ const EditGasFee1559 = ({
 
 	const changedMaxPriorityFee = useCallback(
 		value => {
-			if (Number(value) <= 0) {
-				return setMaxPriorityFeeError(strings('edit_gas_fee_eip1559.priority_fee_at_least_0_error'));
+			const lowerValue = gasOptions?.low?.suggestedMaxPriorityFeePerGas;
+			const higherValue = gasOptions?.high?.suggestedMaxPriorityFeePerGas;
+			if (lowerValue && Number(value) < Number(lowerValue)) {
+				setMaxPriorityFeeError('Max Priority Fee is low for current network conditions');
+			} else if (higherValue && Number(value) > Number(higherValue) * 1.5) {
+				setMaxPriorityFeeError('Max Priority Fee is higher than necessary');
+			} else {
+				setMaxPriorityFeeError('');
 			}
-			setMaxPriorityFeeError(null);
+
 			const newGas = { ...gasFee, suggestedMaxPriorityFeePerGas: value };
 
 			changeGas(newGas, null);
 		},
-		[changeGas, gasFee]
+		[changeGas, gasFee, gasOptions]
 	);
 
-	const changedFeePerGas = useCallback(
+	const changedMaxFeePerGas = useCallback(
 		value => {
+			const lowerValue = gasOptions?.low?.suggestedMaxFeePerGas;
+			const higherValue = gasOptions?.high?.suggestedMaxFeePerGas;
+			if (lowerValue && Number(value) < Number(lowerValue)) {
+				setMaxFeeError('Max Fee is low for current network conditions');
+			} else if (higherValue && Number(value) > Number(higherValue) * 1.5) {
+				setMaxFeeError('Max Fee is higher than necessary');
+			} else {
+				setMaxFeeError('');
+			}
+
 			const newGas = { ...gasFee, suggestedMaxFeePerGas: value };
 			changeGas(newGas, null);
 		},
-		[changeGas, gasFee]
+		[changeGas, gasFee, gasOptions]
 	);
 
 	const changedGasLimit = useCallback(
@@ -184,6 +201,8 @@ const EditGasFee1559 = ({
 	const selectOption = useCallback(
 		option => {
 			setSelectedOption(option);
+			setMaxFeeError('');
+			setMaxPriorityFeeError('');
 			changeGas({ ...gasOptions[option] }, option);
 		},
 		[changeGas, gasOptions]
@@ -327,6 +346,7 @@ const EditGasFee1559 = ({
 													</TouchableOpacity>
 												</View>
 											}
+											min={21000}
 											value={gasFee.suggestedGasLimit}
 											onChangeValue={changedGasLimit}
 											label={'Gas limit'}
@@ -364,17 +384,18 @@ const EditGasFee1559 = ({
 											value={gasFee.suggestedMaxPriorityFeePerGas}
 											label={'Gas limit'}
 											unit={'GWEI'}
+											min={1}
 											increment={1.0}
 											inputInsideLabel={`≈ ${maxPriorityFeePerGasPrimary}`}
-											onChangeValue={changedMaxPriorityFee}
 											error={maxPriorityFeeError}
+											onChangeValue={changedMaxPriorityFee}
 										/>
 									</View>
 									<View style={styles.rangeInputContainer}>
 										<RangeInput
 											leftLabelComponent={
 												<View style={styles.labelTextContainer}>
-													<Text black bold noMargin>
+													<Text black={!maxFeeError} red={Boolean(maxFeeError)} bold noMargin>
 														{strings('edit_gas_fee_eip1559.max_fee')}{' '}
 													</Text>
 
@@ -401,8 +422,10 @@ const EditGasFee1559 = ({
 											value={gasFee.suggestedMaxFeePerGas}
 											label={'Gas limit'}
 											unit={'GWEI'}
+											min={1}
 											increment={10}
-											onChangeValue={changedFeePerGas}
+											error={maxFeeError}
+											onChangeValue={changedMaxFeePerGas}
 											inputInsideLabel={`≈ ${maxFeePerGasPrimary}`}
 										/>
 									</View>
