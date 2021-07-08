@@ -4,6 +4,7 @@ import { colors } from '../../styles/common';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 import Text from './Text';
 import PropTypes from 'prop-types';
+import BigNumber from 'bignumber.js';
 
 const styles = StyleSheet.create({
 	labelContainer: {
@@ -92,7 +93,8 @@ const RangeInput = ({
 	inputInsideLabel,
 	error,
 	min,
-	max
+	max,
+	name
 }) => {
 	const textInput = useRef(null);
 	const [errorState, setErrorState] = useState();
@@ -109,15 +111,15 @@ const RangeInput = ({
 	);
 
 	const increaseNumber = useCallback(() => {
-		const newValue = Number(value) + increment;
-		if (newValue > max) return;
-		changeValue(String(newValue));
+		const newValue = new BigNumber(value).plus(new BigNumber(increment));
+		if (!new BigNumber(max).isNaN() && newValue.gt(max)) return;
+		changeValue(newValue.toString());
 	}, [changeValue, increment, max, value]);
 
 	const decreaseNumber = useCallback(() => {
-		const newValue = Number(value) - increment;
-		if (newValue < min) return;
-		changeValue(String(newValue));
+		const newValue = new BigNumber(value).minus(new BigNumber(increment));
+		if (!new BigNumber(min).isNaN() && newValue.lt(min)) return;
+		changeValue(newValue.toString());
 	}, [changeValue, increment, min, value]);
 
 	const renderLabelComponent = useCallback(component => {
@@ -132,15 +134,15 @@ const RangeInput = ({
 	}, []);
 
 	const checkLimits = useCallback(() => {
-		if (Number(value) < min) {
-			setErrorState(`Must be at least ${min}`);
-			return changeValue(String(min), true);
+		if (new BigNumber(value || 0).lt(min)) {
+			setErrorState(`${name} must be at least ${min}`);
+			return changeValue(min.toString(), true);
 		}
-		if (Number(value) > max) {
-			setErrorState(`Must be at most ${max}`);
-			return changeValue(String(max));
+		if (new BigNumber(value || 0).gt(max)) {
+			setErrorState(`${name} must be at most ${max}`);
+			return changeValue(max.toString());
 		}
-	}, [changeValue, max, min, value]);
+	}, [changeValue, max, min, name, value]);
 
 	useEffect(() => {
 		if (textInput?.current?.isFocused?.()) return;
@@ -197,7 +199,7 @@ const RangeInput = ({
 };
 
 RangeInput.defaultProps = {
-	increment: 1
+	increment: new BigNumber(1)
 };
 
 RangeInput.propTypes = {
@@ -240,7 +242,11 @@ RangeInput.propTypes = {
 	/**
 	 * The maximum value the input is allowed to have when clicking on the plus button
 	 */
-	max: PropTypes.number
+	max: PropTypes.number,
+	/**
+	 * The name of the input
+	 */
+	name: PropTypes.string
 };
 
 export default RangeInput;

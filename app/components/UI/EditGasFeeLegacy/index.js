@@ -15,6 +15,12 @@ import Device from '../../../util/Device';
 import { isMainnetByChainId } from '../../../util/networks';
 import PropTypes from 'prop-types';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
+import BigNumber from 'bignumber.js';
+
+const GAS_LIMIT_INCREMENT = new BigNumber(1000);
+const GAS_PRICE_INCREMENT = new BigNumber(1);
+const GAS_LIMIT_MIN = new BigNumber(21000);
+const GAS_PRICE_MIN = new BigNumber(1);
 
 const styles = StyleSheet.create({
 	root: {
@@ -117,6 +123,7 @@ const EditGasFeeLegacy = ({
 	const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
 	const [warning, setWarning] = useState(null);
 	const [selectedOption, setSelectedOption] = useState(selected);
+	const [gasPriceError, setGasPriceError] = useState();
 
 	const toggleRangeInfoModal = useCallback(() => {
 		setShowRangeInfoModal(showRangeInfoModal => !showRangeInfoModal);
@@ -150,11 +157,28 @@ const EditGasFeeLegacy = ({
 
 	const changedGasPrice = useCallback(
 		value => {
+			const lowerValue = new BigNumber(
+				gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY ? gasOptions?.low : gasOptions?.gasPrice
+			);
+			const higherValue = new BigNumber(
+				gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY ? gasOptions?.low : gasOptions?.gasPrice
+			).multipliedBy(new BigNumber(1.5));
+
+			const valueBN = new BigNumber(value);
+
+			if (lowerValue && valueBN.lt(lowerValue)) {
+				setGasPriceError('Gas price is low for current network conditions');
+			} else if (higherValue && valueBN.gt(higherValue)) {
+				setGasPriceError('Gas price is higher than necessary');
+			} else {
+				setGasPriceError('');
+			}
+
 			const newGas = { ...gasFee, suggestedGasPrice: value };
 
 			changeGas(newGas, null);
 		},
-		[changeGas, gasFee]
+		[changeGas, gasEstimateType, gasFee, gasOptions]
 	);
 
 	const changedGasLimit = useCallback(
@@ -168,6 +192,7 @@ const EditGasFeeLegacy = ({
 
 	const selectOption = useCallback(
 		option => {
+			setGasPriceError('');
 			setSelectedOption(option);
 			changeGas({ ...gasFee, suggestedGasPrice: gasOptions[option] }, option);
 		},
@@ -313,8 +338,9 @@ const EditGasFeeLegacy = ({
 											}
 											value={gasFee.suggestedGasLimit}
 											onChangeValue={changedGasLimit}
-											label={'Gas limit'}
-											increment={1000}
+											min={GAS_LIMIT_MIN}
+											name={'Gas limit'}
+											increment={GAS_LIMIT_INCREMENT}
 										/>
 									</View>
 									<View style={styles.rangeInputContainer}>
@@ -338,11 +364,13 @@ const EditGasFeeLegacy = ({
 												</View>
 											}
 											value={gasFee.suggestedGasPrice}
-											label={'Gas limit'}
+											name={'Gas price'}
 											unit={'GWEI'}
-											increment={1.0}
+											increment={GAS_PRICE_INCREMENT}
+											min={GAS_PRICE_MIN}
 											inputInsideLabel={`≈ ${gasFeeConversion}`}
 											onChangeValue={changedGasPrice}
+											error={gasPriceError}
 										/>
 									</View>
 								</View>

@@ -14,6 +14,12 @@ import HorizontalSelector from '../../Base/HorizontalSelector';
 import Device from '../../../util/Device';
 import { isMainnetByChainId } from '../../../util/networks';
 import PropTypes from 'prop-types';
+import BigNumber from 'bignumber.js';
+
+const GAS_LIMIT_INCREMENT = new BigNumber(1000);
+const GAS_INCREMENT = new BigNumber(1);
+const GAS_LIMIT_MIN = new BigNumber(21000);
+const GAS_MIN = new BigNumber(1);
 
 const styles = StyleSheet.create({
 	root: {
@@ -155,11 +161,16 @@ const EditGasFee1559 = ({
 
 	const changedMaxPriorityFee = useCallback(
 		value => {
-			const lowerValue = gasOptions?.low?.suggestedMaxPriorityFeePerGas;
-			const higherValue = gasOptions?.high?.suggestedMaxPriorityFeePerGas;
-			if (lowerValue && Number(value) < Number(lowerValue)) {
+			const lowerValue = new BigNumber(gasOptions?.low?.suggestedMaxPriorityFeePerGas);
+			const higherValue = new BigNumber(gasOptions?.high?.suggestedMaxPriorityFeePerGas).multipliedBy(
+				new BigNumber(1.5)
+			);
+
+			const valueBN = new BigNumber(value);
+
+			if (lowerValue && valueBN.lt(lowerValue)) {
 				setMaxPriorityFeeError('Max Priority Fee is low for current network conditions');
-			} else if (higherValue && Number(value) > Number(higherValue) * 1.5) {
+			} else if (higherValue && valueBN.gt(higherValue)) {
 				setMaxPriorityFeeError('Max Priority Fee is higher than necessary');
 			} else {
 				setMaxPriorityFeeError('');
@@ -174,11 +185,14 @@ const EditGasFee1559 = ({
 
 	const changedMaxFeePerGas = useCallback(
 		value => {
-			const lowerValue = gasOptions?.low?.suggestedMaxFeePerGas;
-			const higherValue = gasOptions?.high?.suggestedMaxFeePerGas;
-			if (lowerValue && Number(value) < Number(lowerValue)) {
+			const lowerValue = new BigNumber(gasOptions?.low?.suggestedMaxFeePerGas);
+			const higherValue = new BigNumber(gasOptions?.high?.suggestedMaxFeePerGas).multipliedBy(new BigNumber(1.5));
+
+			const valueBN = new BigNumber(value);
+
+			if (lowerValue && valueBN.lt(lowerValue)) {
 				setMaxFeeError('Max Fee is low for current network conditions');
-			} else if (higherValue && Number(value) > Number(higherValue) * 1.5) {
+			} else if (higherValue && valueBN.gt(higherValue)) {
 				setMaxFeeError('Max Fee is higher than necessary');
 			} else {
 				setMaxFeeError('');
@@ -346,11 +360,11 @@ const EditGasFee1559 = ({
 													</TouchableOpacity>
 												</View>
 											}
-											min={21000}
+											min={GAS_LIMIT_MIN}
 											value={gasFee.suggestedGasLimit}
 											onChangeValue={changedGasLimit}
-											label={'Gas limit'}
-											increment={1000}
+											name={'Gas limit'}
+											increment={GAS_LIMIT_INCREMENT}
 										/>
 									</View>
 									<View style={styles.rangeInputContainer}>
@@ -382,10 +396,10 @@ const EditGasFee1559 = ({
 												</Text>
 											}
 											value={gasFee.suggestedMaxPriorityFeePerGas}
-											label={'Gas limit'}
+											name={strings('edit_gas_fee_eip1559.max_priority_fee')}
 											unit={'GWEI'}
-											min={1}
-											increment={1.0}
+											min={GAS_MIN}
+											increment={GAS_INCREMENT}
 											inputInsideLabel={`≈ ${maxPriorityFeePerGasPrimary}`}
 											error={maxPriorityFeeError}
 											onChangeValue={changedMaxPriorityFee}
@@ -420,10 +434,10 @@ const EditGasFee1559 = ({
 												</Text>
 											}
 											value={gasFee.suggestedMaxFeePerGas}
-											label={'Gas limit'}
+											name={strings('edit_gas_fee_eip1559.max_fee')}
 											unit={'GWEI'}
-											min={1}
-											increment={10}
+											min={GAS_MIN}
+											increment={GAS_INCREMENT}
 											error={maxFeeError}
 											onChangeValue={changedMaxFeePerGas}
 											inputInsideLabel={`≈ ${maxFeePerGasPrimary}`}

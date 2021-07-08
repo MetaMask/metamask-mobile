@@ -21,7 +21,6 @@ import {
 	weiToFiat,
 	balanceToFiat,
 	isDecimal,
-	toBN,
 	fromWei
 } from '../../../../util/number';
 
@@ -459,6 +458,12 @@ class Confirm extends PureComponent {
 						...this.props.gasFeeEstimates[this.state.gasSelected],
 						suggestedGasLimit: fromWei(gas, 'wei')
 					});
+
+					this.validateAmount({
+						transaction: this.props.transaction,
+						total: EIP1559TransactionData.totalMaxHex
+					});
+
 					// eslint-disable-next-line react/no-did-update-set-state
 					this.setState({
 						gasEstimationReady: true,
@@ -471,6 +476,11 @@ class Confirm extends PureComponent {
 						suggestedGasLimit: fromWei(gas, 'wei')
 					});
 
+					this.validateAmount({
+						transaction: this.props.transaction,
+						total: LegacyTransactionData.totalHex
+					});
+
 					// eslint-disable-next-line react/no-did-update-set-state
 					this.setState({
 						gasEstimationReady: true,
@@ -481,6 +491,11 @@ class Confirm extends PureComponent {
 					const LegacyTransactionData = this.parseTransactionDataLegacy({
 						suggestedGasPrice: this.props.gasFeeEstimates.gasPrice,
 						suggestedGasLimit: fromWei(gas, 'wei')
+					});
+
+					this.validateAmount({
+						transaction: this.props.transaction,
+						total: LegacyTransactionData.totalHex
 					});
 
 					// eslint-disable-next-line react/no-did-update-set-state
@@ -589,14 +604,16 @@ class Confirm extends PureComponent {
 		});
 	};
 
-	parseTransactionDataEIP1559 = (gasFee, options) =>
-		parseTransactionEIP1559(
+	parseTransactionDataEIP1559 = (gasFee, options) => {
+		const parsed = parseTransactionEIP1559(
 			{
 				...this.props,
 				selectedGasFee: { ...gasFee, estimatedBaseFee: this.props.gasFeeEstimates.estimatedBaseFee }
 			},
 			options
 		);
+		return parsed;
+	};
 
 	parseTransactionDataLegacy = (gasFee, options) =>
 		parseTransactionLegacy(
@@ -676,26 +693,25 @@ class Confirm extends PureComponent {
 	 * @param {string} - Crypto value
 	 * @returns - Whether there is an error with the amount
 	 */
-	validateAmount = transaction => {
+	validateAmount = ({ transaction, total }) => {
 		const {
 			accounts,
 			contractBalances,
 			selectedAsset,
 			transactionState: {
 				ticker,
-				transaction: { value, gas, gasPrice }
+				transaction: { value }
 			}
 		} = this.props;
 		const selectedAddress = transaction.from;
 		let weiBalance, weiInput, errorMessage;
 		if (isDecimal(value)) {
 			if (selectedAsset.isETH || selectedAsset.tokenId) {
-				const totalGas = gas ? gas.mul(gasPrice) : toBN('0x0');
 				weiBalance = hexToBN(accounts[selectedAddress].balance);
-				weiInput = hexToBN(value).add(totalGas);
-				if (!weiBalance.gte(weiInput)) {
+				const totalTransactionValue = hexToBN(total);
+				if (!weiBalance.gte(totalTransactionValue)) {
 					this.setState({ over: true });
-					const amount = renderFromWei(weiInput.sub(weiBalance));
+					const amount = renderFromWei(totalTransactionValue.sub(weiBalance));
 					const tokenSymbol = getTicker(ticker);
 					errorMessage = strings('transaction.insufficient_amount', { amount, tokenSymbol });
 				} else {
@@ -726,19 +742,24 @@ class Confirm extends PureComponent {
 		const {
 			transactionState: { assetType },
 			navigation,
-			resetTransaction
+			resetTransaction,
+
+			gasEstimateType
 		} = this.props;
+		const { EIP1559TransactionData, LegacyTransactionData } = this.state;
 		this.setState({ transactionConfirmed: true, stopUpdateGas: true });
-		/*if (this.validateGas()) {
-			this.setState({ transactionConfirmed: false });
-			return;
-		}*/
 		try {
 			const transaction = this.prepareTransactionToSend();
-			/*if (this.validateAmount(transaction)) {
+
+			if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+				if (this.validateAmount({ transaction, total: EIP1559TransactionData.totalMaxHex })) {
+					this.setState({ transactionConfirmed: false });
+					return;
+				}
+			} else if (this.validateAmount({ transaction, total: LegacyTransactionData.totalHex })) {
 				this.setState({ transactionConfirmed: false });
 				return;
-			}*/
+			}
 
 			const { result, transactionMeta } = await TransactionController.addTransaction(
 				transaction,
@@ -873,6 +894,7 @@ class Confirm extends PureComponent {
 	};
 
 	saveGasEdition = gasSelected => {
+		const { gasEstimateType } = this.props;
 		this.setState({
 			EIP1559TransactionData: { ...this.state.EIP1559TransactionDataTemp },
 			LegacyTransactionData: { ...this.state.LegacyTransactionDataTemp },
@@ -880,6 +902,18 @@ class Confirm extends PureComponent {
 			advancedGasInserted: !gasSelected,
 			stopUpdateGas: false
 		});
+		if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+			this.validateAmount({
+				transaction: this.props.transaction,
+				total: this.state.EIP1559TransactionDataTemp.totalMaxHex
+			});
+		} else {
+			this.validateAmount({
+				transaction: this.props.transaction,
+				total: this.state.LegacyTransactionDataTemp.totalHex
+			});
+		}
+
 		this.review();
 	};
 
