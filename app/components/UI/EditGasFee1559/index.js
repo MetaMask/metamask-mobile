@@ -39,13 +39,12 @@ const styles = StyleSheet.create({
 		marginBottom: 22
 	},
 	headerText: {
-		fontSize: 48
+		fontSize: 48,
+		flex: 1,
+		textAlign: 'center'
 	},
 	headerTitle: {
 		flexDirection: 'row'
-	},
-	headerTitleSide: {
-		flex: 1
 	},
 	saveButton: {
 		marginBottom: 20
@@ -241,15 +240,9 @@ const EditGasFee1559 = ({
 
 						<View style={styles.headerContainer}>
 							<View style={styles.headerTitle}>
-								<View style={styles.headerTitleSide}>
-									<Text right black style={styles.headerText}>
-										~
-									</Text>
-								</View>
-								<Text black style={styles.headerText}>
-									{gasFeePrimary}
+								<Text black style={styles.headerText} adjustsFontSizeToFit numberOfLines={1}>
+									~{gasFeePrimary}
 								</Text>
-								<View style={styles.headerTitleSide} />
 							</View>
 							<Text big black>
 								Up to{' '}

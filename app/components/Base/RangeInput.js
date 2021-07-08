@@ -61,7 +61,8 @@ const styles = StyleSheet.create({
 	inputContainer: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
+		flex: 1
 	},
 	errorContainer: {
 		marginTop: 8,
@@ -74,7 +75,10 @@ const styles = StyleSheet.create({
 		color: colors.red
 	},
 	conversionEstimation: {
-		marginRight: 14
+		marginRight: 14,
+		flex: 1,
+		textAlign: 'center',
+		fontSize: 11
 	}
 });
 
@@ -165,7 +169,7 @@ const RangeInput = ({
 					)}
 				</View>
 				<View style={styles.buttonContainerRight}>
-					<Text style={styles.conversionEstimation} small>
+					<Text style={styles.conversionEstimation} adjustsFontSizeToFit numberOfLines={2}>
 						{inputInsideLabel}
 					</Text>
 					<TouchableOpacity style={styles.button} hitSlop={styles.hitSlop} onPress={increaseNumber}>
