@@ -193,15 +193,11 @@ export async function getGasPriceByChainId(transaction) {
 		}
 	}
 
-	//The transaction controller returns custom network values in hex
-	if (NetworkController.state.isCustomNetwork) {
-		const gas = hexToBN(estimation.gas);
-		const gasPrice = hexToBN(estimation.gasPrice);
-		return { gas, gasPrice };
-	}
-
 	const gas = hexToBN(estimation.gas);
-	const gasPrice = toWei(convertApiValueToGWEI(basicGasEstimates.average), 'gwei');
+	//The transaction controller returns custom network values in hex
+	const gasPrice = NetworkController.state.isCustomNetwork
+		? hexToBN(estimation.gasPrice)
+		: toWei(convertApiValueToGWEI(basicGasEstimates.average), 'gwei');
 
 	return { gas, gasPrice };
 }
