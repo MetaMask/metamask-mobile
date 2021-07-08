@@ -140,7 +140,16 @@ class Engine {
 					addTokens: assetsController.addTokens.bind(assetsController),
 					addCollectible: assetsController.addCollectible.bind(assetsController),
 					removeCollectible: assetsController.removeCollectible.bind(assetsController),
-					getAssetsState: () => assetsController.state
+					getAssetsState: () => assetsController.state,
+					getTokenListState: () => {
+						const tokenList = Object.entries(contractMap).reduce((final, [key, value]) => {
+							if (value.erc20) {
+								final[key] = value;
+							}
+							return final;
+						}, {});
+						return { tokenList };
+					}
 				}),
 				currencyRateController,
 				new PersonalMessageManager(),
@@ -159,7 +168,8 @@ class Engine {
 				new TokenRatesController({
 					onAssetsStateChange: listener => assetsController.subscribe(listener),
 					onCurrencyRateStateChange: listener =>
-						this.controllerMessenger.subscribe(`${currencyRateController.name}:stateChange`, listener)
+						this.controllerMessenger.subscribe(`${currencyRateController.name}:stateChange`, listener),
+					onNetworkStateChange: listener => networkController.subscribe(listener)
 				}),
 				new TransactionController({
 					getNetworkState: () => networkController.state,
@@ -178,8 +188,13 @@ class Engine {
 					messenger: this.controllerMessenger,
 					getProvider: () => networkController.provider,
 					onNetworkStateChange: listener => networkController.subscribe(listener),
-					getCurrentNetworkEIP1559Compatibility: () => true, //TODO(eip1559) change this for networkController.state.properties.isEIP1559Compatible ???
-					getIsMainnet: () => isMainnetByChainId(networkController.state.provider.chainId) //TODO(eip1559) check if this is the right function to use
+					getCurrentNetworkEIP1559Compatibility: networkController.getEIP1559Compatibility,
+					getChainId: () => networkController.state.provider.chainId,
+					// TODO: return true for chainId 56 once metaswaps gasPrices API is set
+					getCurrentNetworkLegacyGasAPICompatibility: () =>
+						isMainnetByChainId(networkController.state.provider.chainId)
+					// legacyAPIEndpoint: TODO: use metaswaps gasPrices API with <chain_id> placeholder
+					// EIP1559APIEndpoint: TODO: use metaswaps gasEstimates API with <chain_id> placeholder
 				})
 			];
 			// set initial state
