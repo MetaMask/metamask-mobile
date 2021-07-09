@@ -332,12 +332,12 @@ class AccountList extends PureComponent {
 		orderedAccounts.forEach(async account => {
 			try {
 				const ens = await doENSReverseLookup(account.address, network);
-				this.setState({
+				this.setState(state => ({
 					accountsENS: {
-						...this.state.accountsENS,
+						...state.accountsENS,
 						[account.address]: ens
 					}
-				});
+				}));
 			} catch {
 				// Error
 			}

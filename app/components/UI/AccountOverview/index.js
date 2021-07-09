@@ -21,7 +21,7 @@ import { renderFiat } from '../../../util/number';
 import { renderAccountName } from '../../../util/address';
 import { isMainNet } from '../../../util/networks';
 import { getEther } from '../../../util/transactions';
-import { doENSReverseLookup } from '../../../util/ENSUtils';
+import { doENSReverseLookup, isDefaultAccountName } from '../../../util/ENSUtils';
 import { isSwapsAllowed } from '../Swaps/utils';
 
 import Identicon from '../Identicon';
@@ -305,8 +305,6 @@ class AccountOverview extends PureComponent {
 		if (!address) return null;
 		const { accountLabelEditable, accountLabel, ens } = this.state;
 
-		const regExp = /Account \d*$/;
-
 		return (
 			<View style={baseStyles.flexGrow} ref={this.scrollViewContainer} collapsable={false}>
 				<ScrollView
@@ -360,7 +358,7 @@ class AccountOverview extends PureComponent {
 										numberOfLines={1}
 										testID={'edit-account-label'}
 									>
-										{regExp.test(name) && ens ? ens : name}
+										{isDefaultAccountName(name) && ens ? ens : name}
 									</Text>
 								</TouchableOpacity>
 							)}

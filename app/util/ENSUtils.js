@@ -49,3 +49,8 @@ export async function doENSLookup(ensName, network) {
 		} catch (e) {}
 	}
 }
+
+export function isDefaultAccountName(name) {
+	const regExp = /Account \d*$/;
+	return regExp.test(name);
+}
