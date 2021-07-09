@@ -163,20 +163,20 @@ class AccountOverview extends PureComponent {
 		 */
 		swapsIsLive: PropTypes.bool,
 		/**
-		 * Current provider ticker
-		 */
-		ticker: PropTypes.string,
-		/**
 		 * ID of the current network
 		 */
-		network: PropTypes.string
+		network: PropTypes.string,
+		/**
+		 * Current provider ticker
+		 */
+		ticker: PropTypes.string
 	};
 
 	state = {
 		accountLabelEditable: false,
 		accountLabel: '',
 		originalAccountLabel: '',
-		name: ''
+		ens: undefined
 	};
 
 	editableLabelRef = React.createRef();
@@ -199,13 +199,22 @@ class AccountOverview extends PureComponent {
 	input = React.createRef();
 
 	componentDidMount = () => {
-		const { identities, selectedAddress, onRef, account } = this.props;
+		const { identities, selectedAddress, onRef } = this.props;
 		const accountLabel = renderAccountName(selectedAddress, identities);
 		this.setState({ accountLabel });
-		this.setState({ name: account.name });
 		onRef && onRef(this);
-		this.ENSReverseLookup();
+		InteractionManager.runAfterInteractions(() => {
+			this.doENSLookup();
+		});
 	};
+
+	componentDidUpdate(prevProps) {
+		if (prevProps.account.address !== this.props.account.address || prevProps.network !== this.props.network) {
+			requestAnimationFrame(() => {
+				this.doENSLookup();
+			});
+		}
+	}
 
 	setAccountLabel = () => {
 		const { PreferencesController } = Engine.context;
@@ -272,29 +281,31 @@ class AccountOverview extends PureComponent {
 			}
 		});
 
-	ENSReverseLookup = async () => {
-		const { account, network } = this.props;
-		const regExp = /Account \d*$/;
-		const ens = await doENSReverseLookup(account.address, network);
-		if (regExp.test(this.state.name)) {
-			this.setState({ name: ens });
+	doENSLookup = async () => {
+		const { network, account } = this.props;
+		try {
+			const ens = await doENSReverseLookup(account.address, network);
+			this.setState({ ens });
+		} catch {
+			// Error
 		}
 	};
 
 	render() {
 		const {
-			account: { address },
+			account: { address, name },
 			currentCurrency,
 			onboardingWizard,
 			chainId,
 			swapsIsLive
 		} = this.props;
-		const { name } = this.state;
 
 		const fiatBalance = `${renderFiat(Engine.getTotalFiatAccountBalance(), currentCurrency)}`;
 
 		if (!address) return null;
-		const { accountLabelEditable, accountLabel } = this.state;
+		const { accountLabelEditable, accountLabel, ens } = this.state;
+
+		const regExp = /Account \d*$/;
 
 		return (
 			<View style={baseStyles.flexGrow} ref={this.scrollViewContainer} collapsable={false}>
@@ -349,7 +360,7 @@ class AccountOverview extends PureComponent {
 										numberOfLines={1}
 										testID={'edit-account-label'}
 									>
-										{name}
+										{regExp.test(name) && ens ? ens : name}
 									</Text>
 								</TouchableOpacity>
 							)}
@@ -400,8 +411,8 @@ const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	swapsIsLive: swapsLivenessSelector(state),
-	network: state.engine.backgroundState.NetworkController.network
+	network: state.engine.backgroundState.NetworkController.network,
+	swapsIsLive: swapsLivenessSelector(state)
 });
 
 const mapDispatchToProps = dispatch => ({
