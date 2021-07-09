@@ -21,7 +21,7 @@ import {
 	GasFeeController
 } from '@metamask/controllers';
 
-import SwapsController from '@metamask/swaps-controller';
+import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 
 import AsyncStorage from '@react-native-community/async-storage';
 
@@ -188,13 +188,14 @@ class Engine {
 					messenger: this.controllerMessenger,
 					getProvider: () => networkController.provider,
 					onNetworkStateChange: listener => networkController.subscribe(listener),
-					getCurrentNetworkEIP1559Compatibility: networkController.getEIP1559Compatibility,
+					getCurrentNetworkEIP1559Compatibility: async () =>
+						await networkController.getEIP1559Compatibility(),
 					getChainId: () => networkController.state.provider.chainId,
-					// TODO: return true for chainId 56 once metaswaps gasPrices API is set
 					getCurrentNetworkLegacyGasAPICompatibility: () =>
-						isMainnetByChainId(networkController.state.provider.chainId)
-					// legacyAPIEndpoint: TODO: use metaswaps gasPrices API with <chain_id> placeholder
-					// EIP1559APIEndpoint: TODO: use metaswaps gasEstimates API with <chain_id> placeholder
+						isMainnetByChainId(networkController.state.provider.chainId) ||
+						networkController.state.provider.chainId === swapsUtils.BSC_CHAIN_ID,
+					legacyAPIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/gasPrices',
+					EIP1559APIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees'
 				})
 			];
 			// set initial state
