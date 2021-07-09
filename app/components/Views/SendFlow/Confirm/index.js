@@ -765,7 +765,6 @@ class Confirm extends PureComponent {
 				error = this.validateAmount({ transaction, total: EIP1559TransactionData.totalMaxHex });
 			} else {
 				error = this.validateAmount({ transaction, total: LegacyTransactionData.totalHex });
-				return;
 			}
 			this.setError(error);
 			if (error) {

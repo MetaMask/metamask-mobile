@@ -260,7 +260,6 @@ class Approve extends PureComponent {
 			},
 			{ onlyGas: true }
 		);
-
 		parsedTransactionLegacy.error = this.validateGas(parsedTransactionLegacy.totalHex);
 		return parsedTransactionLegacy;
 	};
@@ -382,9 +381,14 @@ class Approve extends PureComponent {
 	};
 
 	onConfirm = async () => {
-		if (this.validateGas()) return;
 		const { TransactionController } = Engine.context;
-		const { transactions } = this.props;
+		const { transactions, gasEstimateType } = this.props;
+		const { EIP1559GasData, LegacyGasData } = this.state;
+
+		if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+			if (this.validateGas(EIP1559GasData.totalMaxHex)) return;
+		} else if (this.validateGas(LegacyGasData.totalHex)) return;
+
 		try {
 			const transaction = this.prepareTransaction(this.props.transaction);
 
