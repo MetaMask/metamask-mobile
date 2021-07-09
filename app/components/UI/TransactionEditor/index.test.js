@@ -38,7 +38,10 @@ describe('TransactionEditor', () => {
 					}
 				}
 			},
-			transaction: {}
+			transaction: {},
+			settings: {
+				primaryCurrency: 'fiat'
+			}
 		};
 
 		const wrapper = shallow(
