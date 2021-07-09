@@ -143,6 +143,7 @@ class TransactionEditor extends PureComponent {
 						// eslint-disable-next-line no-mixed-spaces-and-tabs
 				  }
 				: gasFeeEstimates[gasSelected];
+
 			const EIP1559GasData = this.parseTransactionDataEIP1559({
 				...initialGas,
 				suggestedGasLimit: fromWei(transaction.gas, 'wei')
@@ -152,7 +153,8 @@ class TransactionEditor extends PureComponent {
 			this.setState({
 				ready: true,
 				EIP1559GasData,
-				EIP1559GasDataTemp: EIP1559GasData
+				EIP1559GasDataTemp: EIP1559GasData,
+				advancedGasInserted: Boolean(dappSuggestedGasPrice)
 			});
 		} else if (gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY) {
 			const LegacyGasData = this.parseTransactionDataLegacy(
@@ -174,7 +176,8 @@ class TransactionEditor extends PureComponent {
 			this.setState({
 				ready: true,
 				LegacyGasData,
-				LegacyGasDataTemp: LegacyGasData
+				LegacyGasDataTemp: LegacyGasData,
+				advancedGasInserted: Boolean(dappSuggestedGasPrice)
 			});
 		} else {
 			const LegacyGasData = this.parseTransactionDataLegacy(
@@ -198,7 +201,8 @@ class TransactionEditor extends PureComponent {
 			this.setState({
 				ready: true,
 				LegacyGasData,
-				LegacyGasDataTemp: LegacyGasData
+				LegacyGasDataTemp: LegacyGasData,
+				advancedGasInserted: Boolean(dappSuggestedGasPrice)
 			});
 		}
 	};
@@ -536,6 +540,7 @@ class TransactionEditor extends PureComponent {
 			ERC20: async () => await this.validateTokenAmount(allowEmpty),
 			ERC721: async () => await this.validateCollectibleOwnership()
 		};
+		if (!validations[assetType]) return false;
 		return await validations[assetType]();
 	};
 
@@ -825,7 +830,8 @@ class TransactionEditor extends PureComponent {
 			EIP1559GasData: { ...this.state.EIP1559GasDataTemp },
 			gasSelected,
 			advancedGasInserted: !gasSelected,
-			stopUpdateGas: false
+			stopUpdateGas: false,
+			dappSuggestedGasPrice: null
 		});
 		this.props.onModeChange?.('review');
 	};
@@ -858,7 +864,8 @@ class TransactionEditor extends PureComponent {
 			EIP1559GasData,
 			EIP1559GasDataTemp,
 			LegacyGasDataTemp,
-			gasSelected
+			gasSelected,
+			dappSuggestedGasPrice
 		} = this.state;
 		return (
 			<React.Fragment>
@@ -911,6 +918,11 @@ class TransactionEditor extends PureComponent {
 							timeEstimateColor={EIP1559GasDataTemp.timeEstimateColor}
 							onCancel={this.cancelGasEdition}
 							onSave={this.saveGasEdition}
+							dappSuggestedGasPrice={Boolean(dappSuggestedGasPrice)}
+							warning={
+								Boolean(dappSuggestedGasPrice) &&
+								`This gas fee has been suggested by [origin]. It’s using legacy gas estimation which may be inaccurate. However, editing this gas fee may cause unintended consequences. Please reach out to the site if you have questions.`
+							}
 						/>
 					) : (
 						<EditGasFeeLegacy
