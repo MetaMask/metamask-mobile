@@ -176,7 +176,7 @@
     "react-native-progress": "3.5.0",
     "react-native-push-notification": "git+https://github.com/MetaMask/react-native-push-notification.git#androidx",
     "react-native-qrcode-svg": "5.1.2",
-    "react-native-randombytes": "^3.5.3",
+    "react-native-randombytes": "^3.6.1",
     "react-native-reanimated": "^1.13.2",
     "react-native-redash": "14.1.1",
     "react-native-safe-area-context": "^3.1.9",
