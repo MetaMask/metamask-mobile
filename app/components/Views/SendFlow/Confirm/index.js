@@ -1237,6 +1237,7 @@ class Confirm extends PureComponent {
 							timeEstimate={EIP1559TransactionData.timeEstimate}
 							timeEstimateColor={EIP1559TransactionData.timeEstimateColor}
 							onEdit={() => this.edit(EDIT_EIP1559)}
+							over={Boolean(EIP1559TransactionData.error)}
 						/>
 					)}
 

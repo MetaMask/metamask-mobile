@@ -238,8 +238,8 @@ class TransactionEditor extends PureComponent {
 		}
 	};
 
-	parseTransactionDataEIP1559 = (gasFee, options) =>
-		parseTransactionEIP1559(
+	parseTransactionDataEIP1559 = (gasFee, options) => {
+		const parsedTransactionEIP1559 = parseTransactionEIP1559(
 			{
 				...this.props,
 				selectedGasFee: { ...gasFee, estimatedBaseFee: this.props.gasFeeEstimates.estimatedBaseFee }
@@ -247,14 +247,24 @@ class TransactionEditor extends PureComponent {
 			{ onlyGas: true }
 		);
 
-	parseTransactionDataLegacy = (gasFee, options) =>
-		parseTransactionLegacy(
+		parsedTransactionEIP1559.error = this.validateTotal(parsedTransactionEIP1559.totalMaxHex);
+
+		return parsedTransactionEIP1559;
+	};
+
+	parseTransactionDataLegacy = (gasFee, options) => {
+		const parsedTransactionLegacy = parseTransactionLegacy(
 			{
 				...this.props,
 				selectedGasFee: gasFee
 			},
 			{ onlyGas: true }
 		);
+
+		parsedTransactionLegacy.error = this.validateTotal(parsedTransactionLegacy.totalHex);
+
+		return parsedTransactionLegacy;
+	};
 
 	shallowEqual = (object1, object2) => {
 		const keys1 = Object.keys(object1);
@@ -518,12 +528,32 @@ class TransactionEditor extends PureComponent {
 		return { data, gas };
 	};
 
-	/**
-	 * Validates amount, gas and to address
-	 *
-	 * @returns {string} - Whether the transaction is valid or not, if not it returns error message
-	 */
-	validate = async () => this.validateGas() || this.validateToAddress() || (await this.validateAmount(false));
+	validateTotal = totalGas => {
+		let error = '';
+		const {
+			ticker,
+			transaction: { value, from, assetType }
+		} = this.props;
+
+		const checksummedFrom = safeToChecksumAddress(from) || '';
+		const fromAccount = this.props.accounts[checksummedFrom];
+		const { balance } = fromAccount;
+		const weiBalance = hexToBN(balance);
+		const totalGasValue = hexToBN(totalGas);
+		let valueBN = hexToBN('0x0');
+		if (assetType === 'ETH') {
+			valueBN = hexToBN(value);
+		}
+		const total = valueBN.add(totalGasValue);
+		if (!weiBalance.gte(total)) {
+			const amount = renderFromWei(total.sub(weiBalance));
+			const tokenSymbol = getTicker(ticker);
+			this.setState({ over: true });
+			error = strings('transaction.insufficient_amount', { amount, tokenSymbol });
+		}
+
+		return error;
+	};
 
 	/**
 	 * Validates amount
@@ -531,13 +561,13 @@ class TransactionEditor extends PureComponent {
 	 * @param {bool} allowEmpty - Whether the validation allows empty amount or not
 	 * @returns {string} - String containing error message whether the Ether transaction amount is valid or not
 	 */
-	validateAmount = async (allowEmpty = true) => {
+	validateAmount = async (allowEmpty = true, totalGas) => {
 		const {
 			transaction: { assetType }
 		} = this.props;
 		const validations = {
-			ETH: () => this.validateEtherAmount(allowEmpty),
-			ERC20: async () => await this.validateTokenAmount(allowEmpty),
+			ETH: () => this.validateEtherAmount(allowEmpty, totalGas),
+			ERC20: async () => await this.validateTokenAmount(allowEmpty, totalGas),
 			ERC721: async () => await this.validateCollectibleOwnership()
 		};
 		if (!validations[assetType]) return false;
@@ -570,29 +600,18 @@ class TransactionEditor extends PureComponent {
 	 * @param {bool} allowEmpty - Whether the validation allows empty amount or not
 	 * @returns {string} - String containing error message whether the Ether transaction amount is valid or not
 	 */
-	validateEtherAmount = (allowEmpty = true) => {
+	validateEtherAmount = (allowEmpty = true, total) => {
 		let error;
 		if (!allowEmpty) {
 			const {
-				ticker,
-				transaction: { value, gas, gasPrice, from }
+				transaction: { value, from }
 			} = this.props;
-			const checksummedFrom = safeToChecksumAddress(from) || '';
-			const fromAccount = this.props.accounts[checksummedFrom];
-			const total = value.add(gas.mul(gasPrice));
-			const { balance } = fromAccount;
 
-			if (!value || !gas || !gasPrice || !from) {
+			if (!value || !from) {
 				return strings('transaction.invalid_amount');
 			}
 			if (value && !isBN(value)) {
 				return strings('transaction.invalid_amount');
-			}
-			if (value && fromAccount && isBN(gas) && isBN(gasPrice) && isBN(value) && hexToBN(balance).lt(total)) {
-				this.setState({ over: true });
-				const amount = renderFromWei(total.sub(value));
-				const tokenSymbol = getTicker(ticker);
-				return strings('transaction.insufficient_amount', { amount, tokenSymbol });
 			}
 		}
 		return error;
@@ -604,7 +623,7 @@ class TransactionEditor extends PureComponent {
 	 * @param {bool} allowEmpty - Whether the validation allows empty amount or not
 	 * @returns {string} - String containing error message whether the Ether transaction amount is valid or not
 	 */
-	validateTokenAmount = async (allowEmpty = true) => {
+	validateTokenAmount = async (allowEmpty = true, total) => {
 		let error;
 		if (!allowEmpty) {
 			const {
@@ -612,7 +631,6 @@ class TransactionEditor extends PureComponent {
 				contractBalances
 			} = this.props;
 			const checksummedFrom = safeToChecksumAddress(from) || '';
-			const fromAccount = this.props.accounts[checksummedFrom];
 			if (!value || !gas || !gasPrice || !from) {
 				return strings('transaction.invalid_amount');
 			}
@@ -634,15 +652,7 @@ class TransactionEditor extends PureComponent {
 			}
 			if (value && !isBN(value)) return strings('transaction.invalid_amount');
 			const validateAssetAmount = contractBalanceForAddress && contractBalanceForAddress.lt(value);
-			const ethTotalAmount = gas.mul(gasPrice);
-			if (
-				value &&
-				fromAccount &&
-				isBN(gas) &&
-				isBN(gasPrice) &&
-				(validateAssetAmount || hexToBN(fromAccount.balance).lt(ethTotalAmount))
-			)
-				return strings('transaction.insufficient');
+			if (validateAssetAmount) return strings('transaction.insufficient');
 		}
 		return error;
 	};
@@ -730,11 +740,13 @@ class TransactionEditor extends PureComponent {
 	};
 
 	validate = async () => {
+		const totalError = this.validateTotal(
+			this.state.EIP1559GasData.totalMaxHex || this.state.LegacyGasData.totalHex
+		);
 		const amountError = await this.validateAmount(false);
-		const gasError = this.validateGas();
 		const toAddressError = this.validateToAddress();
-		this.setState({ amountError, gasError, toAddressError });
-		return amountError || gasError || toAddressError;
+		this.setState({ amountError, toAddressError });
+		return totalError || amountError || toAddressError;
 	};
 
 	updateGas = async (gas, gasLimit, warningGasPriceHigh) => {
@@ -825,15 +837,17 @@ class TransactionEditor extends PureComponent {
 			);
 		}
 
-		this.setState({
-			LegacyGasData: { ...this.state.LegacyGasDataTemp },
-			EIP1559GasData: { ...this.state.EIP1559GasDataTemp },
-			gasSelected,
-			advancedGasInserted: !gasSelected,
-			stopUpdateGas: false,
-			dappSuggestedGasPrice: null
-		});
-		this.props.onModeChange?.('review');
+		this.setState(
+			{
+				LegacyGasData: { ...this.state.LegacyGasDataTemp },
+				EIP1559GasData: { ...this.state.EIP1559GasDataTemp },
+				gasSelected,
+				advancedGasInserted: !gasSelected,
+				stopUpdateGas: false,
+				dappSuggestedGasPrice: null
+			},
+			this.review
+		);
 	};
 
 	cancelGasEdition = () => {
@@ -923,6 +937,8 @@ class TransactionEditor extends PureComponent {
 								Boolean(dappSuggestedGasPrice) &&
 								`This gas fee has been suggested by [origin]. It’s using legacy gas estimation which may be inaccurate. However, editing this gas fee may cause unintended consequences. Please reach out to the site if you have questions.`
 							}
+							error={EIP1559GasDataTemp.error}
+							over={over}
 						/>
 					) : (
 						<EditGasFeeLegacy
@@ -938,6 +954,8 @@ class TransactionEditor extends PureComponent {
 							chainId={chainId}
 							onCancel={this.cancelGasEdition}
 							onSave={this.saveGasEdition}
+							error={LegacyGasDataTemp.error}
+							over={over}
 						/>
 					))}
 			</React.Fragment>
