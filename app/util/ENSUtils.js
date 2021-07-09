@@ -12,7 +12,7 @@ class ENSCache {
 }
 
 export async function doENSReverseLookup(address, network) {
-	const cache = ENSCache.cache[address];
+	const cache = ENSCache.cache[network + address];
 	if (cache) {
 		return Promise.resolve(cache);
 	}
@@ -27,7 +27,7 @@ export async function doENSReverseLookup(address, network) {
 			const name = await this.ens.reverse(address);
 			const resolvedAddress = await this.ens.lookup(name);
 			if (toLowerCaseEquals(address, resolvedAddress)) {
-				ENSCache.cache[address] = name;
+				ENSCache.cache[network + address] = name;
 				return name;
 			}
 			// eslint-disable-next-line no-empty
