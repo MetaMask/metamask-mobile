@@ -32,6 +32,9 @@ describe('TransactionEditor', () => {
 							type: 'mainnet',
 							chainId: '1'
 						}
+					},
+					GasFeeController: {
+						gasEstimates: {}
 					}
 				}
 			},
