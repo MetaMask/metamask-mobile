@@ -576,6 +576,7 @@ export const parseTransactionEIP1559 = (
 	},
 	{ onlyGas } = {}
 ) => {
+	value = value || '0x0';
 	// Convert to hex
 	const estimatedBaseFeeHex = decGWEIToHexWEI(selectedGasFee.estimatedBaseFee);
 	const suggestedMaxPriorityFeePerGasHex = decGWEIToHexWEI(selectedGasFee.suggestedMaxPriorityFeePerGas);
@@ -703,6 +704,13 @@ export const parseTransactionEIP1559 = (
 	const renderableGasFeeMaxNative = formatETHFee(gasFeeMaxNative, nativeCurrency);
 	const renderableGasFeeMaxConversion = formatCurrency(gasFeeMaxConversion, currentCurrency);
 
+	// This is the total transaction value for comparing with account balance
+	const valuePlusGasMaxHex = addCurrencies(gasFeeMaxHex, value, {
+		toNumericBase: 'hex',
+		aBase: 16,
+		bBase: 16
+	});
+
 	if (onlyGas) {
 		return {
 			gasFeeMinNative,
@@ -725,7 +733,8 @@ export const parseTransactionEIP1559 = (
 			suggestedMaxFeePerGas: selectedGasFee.suggestedMaxFeePerGas,
 			suggestedMaxFeePerGasHex,
 			gasLimitHex,
-			suggestedGasLimit: selectedGasFee.suggestedGasLimit
+			suggestedGasLimit: selectedGasFee.suggestedGasLimit,
+			totalMaxHex: valuePlusGasMaxHex
 		};
 	}
 

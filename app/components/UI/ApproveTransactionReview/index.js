@@ -565,6 +565,7 @@ class ApproveTransactionReview extends PureComponent {
 							confirmText={strings('transactions.approve')}
 							onCancelPress={this.onCancelPress}
 							onConfirmPress={this.onConfirmPress}
+							confirmDisabled={Boolean(gasError)}
 						>
 							<View style={styles.actionViewChildren}>
 								<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleEditPermission}>
