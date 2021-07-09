@@ -119,7 +119,7 @@ class AccountElement extends PureComponent {
 
 	render() {
 		const { disabled, updatedBalanceFromStore } = this.props;
-		const { address, name, isSelected, isImported, balanceError } = this.props.item;
+		const { address, name, ens, isSelected, isImported, balanceError } = this.props.item;
 		const { ticker } = this.props;
 		const selected = isSelected ? <Icon name="check-circle" size={30} color={colors.blue} /> : null;
 		const imported = isImported ? (
@@ -129,6 +129,7 @@ class AccountElement extends PureComponent {
 				</Text>
 			</View>
 		) : null;
+		const regExp = /Account \d*$/;
 
 		return (
 			<View onStartShouldSetResponder={() => true}>
@@ -143,7 +144,7 @@ class AccountElement extends PureComponent {
 					<View style={styles.accountInfo}>
 						<View style={styles.accountMain}>
 							<Text numberOfLines={1} style={[styles.accountLabel]}>
-								{name}
+								{regExp.test(name) && ens ? ens : name}
 							</Text>
 							<View style={styles.accountBalanceWrapper}>
 								<Text style={styles.accountBalance}>
