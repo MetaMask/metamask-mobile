@@ -487,8 +487,6 @@ class Confirm extends PureComponent {
 						suggestedGasLimit: fromWei(gas, 'wei')
 					});
 
-					console.log(LegacyTransactionData);
-
 					this.setError(LegacyTransactionData.error);
 
 					// eslint-disable-next-line react/no-did-update-set-state
