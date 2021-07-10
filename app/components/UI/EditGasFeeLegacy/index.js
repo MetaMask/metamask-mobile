@@ -15,6 +15,12 @@ import Device from '../../../util/Device';
 import { isMainnetByChainId } from '../../../util/networks';
 import PropTypes from 'prop-types';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
+import BigNumber from 'bignumber.js';
+
+const GAS_LIMIT_INCREMENT = new BigNumber(1000);
+const GAS_PRICE_INCREMENT = new BigNumber(1);
+const GAS_LIMIT_MIN = new BigNumber(21000);
+const GAS_PRICE_MIN = new BigNumber(1);
 
 const styles = StyleSheet.create({
 	root: {
@@ -90,7 +96,9 @@ const styles = StyleSheet.create({
 		marginTop: 14
 	},
 	warningTextContainer: {
-		lineHeight: 20
+		paddingLeft: 4,
+		lineHeight: 20,
+		textAlign: 'center'
 	},
 	warningText: {
 		lineHeight: 20
@@ -108,15 +116,17 @@ const EditGasFeeLegacy = ({
 	gasFeeConversion,
 	primaryCurrency,
 	chainId,
-	gasEstimateType
+	gasEstimateType,
+	error,
+	warning
 }) => {
 	const onlyAdvanced = gasEstimateType !== GAS_ESTIMATE_TYPES.LEGACY;
 
 	const [showRangeInfoModal, setShowRangeInfoModal] = useState(false);
 	const [showAdvancedOptions, setShowAdvancedOptions] = useState(!selected || onlyAdvanced);
 	const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
-	const [warning, setWarning] = useState(null);
 	const [selectedOption, setSelectedOption] = useState(selected);
+	const [gasPriceError, setGasPriceError] = useState();
 
 	const toggleRangeInfoModal = useCallback(() => {
 		setShowRangeInfoModal(showRangeInfoModal => !showRangeInfoModal);
@@ -128,12 +138,6 @@ const EditGasFeeLegacy = ({
 
 	const toggleLearnMoreModal = useCallback(() => {
 		setShowLearnMoreModal(showLearnMoreModal => !showLearnMoreModal);
-	}, []);
-
-	// TODO: Use this function where it's appropriate
-	// eslint-disable-next-line no-unused-vars
-	const showWarning = useCallback(warningMessage => {
-		setWarning(warningMessage);
 	}, []);
 
 	const save = () => {
@@ -150,11 +154,28 @@ const EditGasFeeLegacy = ({
 
 	const changedGasPrice = useCallback(
 		value => {
+			const lowerValue = new BigNumber(
+				gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY ? gasOptions?.low : gasOptions?.gasPrice
+			);
+			const higherValue = new BigNumber(
+				gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY ? gasOptions?.low : gasOptions?.gasPrice
+			).multipliedBy(new BigNumber(1.5));
+
+			const valueBN = new BigNumber(value);
+
+			if (lowerValue && valueBN.lt(lowerValue)) {
+				setGasPriceError('Gas price is low for current network conditions');
+			} else if (higherValue && valueBN.gt(higherValue)) {
+				setGasPriceError('Gas price is higher than necessary');
+			} else {
+				setGasPriceError('');
+			}
+
 			const newGas = { ...gasFee, suggestedGasPrice: value };
 
 			changeGas(newGas, null);
 		},
-		[changeGas, gasFee]
+		[changeGas, gasEstimateType, gasFee, gasOptions]
 	);
 
 	const changedGasLimit = useCallback(
@@ -168,6 +189,7 @@ const EditGasFeeLegacy = ({
 
 	const selectOption = useCallback(
 		option => {
+			setGasPriceError('');
 			setSelectedOption(option);
 			changeGas({ ...gasFee, suggestedGasPrice: gasOptions[option] }, option);
 		},
@@ -200,7 +222,20 @@ const EditGasFeeLegacy = ({
 								<Icon name={'ios-arrow-back'} size={24} color={colors.white} />
 							</View>
 						</View>
-						{!!warning && (
+						{Boolean(error) && (
+							<Alert
+								small
+								type="error"
+								renderIcon={() => (
+									<MaterialCommunityIcon name="information" size={20} color={colors.red} />
+								)}
+							>
+								<View style={styles.warningTextContainer}>
+									<Text red>{error}</Text>
+								</View>
+							</Alert>
+						)}
+						{Boolean(warning) && (
 							<Alert
 								small
 								type="warning"
@@ -313,8 +348,9 @@ const EditGasFeeLegacy = ({
 											}
 											value={gasFee.suggestedGasLimit}
 											onChangeValue={changedGasLimit}
-											label={'Gas limit'}
-											increment={1000}
+											min={GAS_LIMIT_MIN}
+											name={'Gas limit'}
+											increment={GAS_LIMIT_INCREMENT}
 										/>
 									</View>
 									<View style={styles.rangeInputContainer}>
@@ -338,11 +374,13 @@ const EditGasFeeLegacy = ({
 												</View>
 											}
 											value={gasFee.suggestedGasPrice}
-											label={'Gas limit'}
+											name={'Gas price'}
 											unit={'GWEI'}
-											increment={1.0}
+											increment={GAS_PRICE_INCREMENT}
+											min={GAS_PRICE_MIN}
 											inputInsideLabel={`≈ ${gasFeeConversion}`}
 											onChangeValue={changedGasPrice}
+											error={gasPriceError}
 										/>
 									</View>
 								</View>
@@ -354,7 +392,7 @@ const EditGasFeeLegacy = ({
 									{strings('edit_gas_fee_eip1559.learn_more.title')}
 								</Text>
 							</TouchableOpacity>
-							<StyledButton type={'confirm'} onPress={save}>
+							<StyledButton type={'confirm'} onPress={save} disabled={Boolean(error)}>
 								{strings('edit_gas_fee_eip1559.save')}
 							</StyledButton>
 						</View>
@@ -423,7 +461,9 @@ EditGasFeeLegacy.propTypes = {
 	gasFeeConversion: PropTypes.string,
 	primaryCurrency: PropTypes.string,
 	chainId: PropTypes.string,
-	gasEstimateType: PropTypes.string
+	gasEstimateType: PropTypes.string,
+	error: PropTypes.string,
+	warning: PropTypes.string
 };
 
 export default EditGasFeeLegacy;

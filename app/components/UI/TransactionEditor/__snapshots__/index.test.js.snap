@@ -2,49 +2,15 @@
 
 exports[`TransactionEditor should render correctly 1`] = `
 <Fragment>
-  <KeyboardAwareScrollView
-    contentContainerStyle={
-      Object {
-        "flex": 1,
-        "justifyContent": "flex-end",
-      }
-    }
-    enableAutomaticScroll={true}
-    enableOnAndroid={false}
-    enableResetScrollToCoords={true}
-    extraHeight={75}
-    extraScrollHeight={0}
-    keyboardOpeningTime={250}
-    viewIsInsideTabBar={false}
-  >
-    <AnimatedTransactionModal
-      ready={false}
-      review={[Function]}
-    >
-      <Connect(TransactionReview)
-        onCancel={[Function]}
-        onConfirm={[Function]}
-        over={false}
-        ready={false}
-        validate={[Function]}
-      />
-      <Connect(CustomGas)
-        analyticsParams={
-          Object {
-            "active_currency": Object {
-              "anonymous": true,
-              "value": undefined,
-            },
-            "dapp_host_name": undefined,
-            "dapp_url": undefined,
-          }
-        }
-        basicGasEstimates={Object {}}
-        gasError=""
-        handleGasFeeSelection={[Function]}
-        view="Transaction"
-      />
-    </AnimatedTransactionModal>
-  </KeyboardAwareScrollView>
+  <EditGasFeeLegacy
+    chainId="1"
+    gasFee={Object {}}
+    onCancel={[Function]}
+    onChange={[Function]}
+    onSave={[Function]}
+    over={false}
+    primaryCurrency="fiat"
+    selected="medium"
+  />
 </Fragment>
 `;

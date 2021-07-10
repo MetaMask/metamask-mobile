@@ -338,6 +338,7 @@ class TransactionReview extends PureComponent {
 									onCancelPress={this.props.onCancel}
 									gasEstimateType={gasEstimateType}
 									EIP1559GasData={EIP1559GasData}
+									origin={currentPageInformation?.url}
 								/>
 							</View>
 						</ActionView>

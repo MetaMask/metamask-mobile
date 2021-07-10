@@ -12,7 +12,7 @@ import Modal from 'react-native-modal';
 import { strings } from '../../../../../locales/i18n';
 import { setTransactionObject } from '../../../../actions/transaction';
 import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
-import { addHexPrefix, fromWei, isBN, renderFromWei } from '../../../../util/number';
+import { addHexPrefix, fromWei, renderFromWei } from '../../../../util/number';
 import {
 	getNormalizedTxState,
 	getTicker,
@@ -239,8 +239,8 @@ class Approve extends PureComponent {
 		}
 	};
 
-	parseTransactionDataEIP1559 = (gasFee, options) =>
-		parseTransactionEIP1559(
+	parseTransactionDataEIP1559 = (gasFee, options) => {
+		const parsedTransactionEIP1559 = parseTransactionEIP1559(
 			{
 				...this.props,
 				selectedGasFee: { ...gasFee, estimatedBaseFee: this.props.gasFeeEstimates.estimatedBaseFee }
@@ -248,14 +248,21 @@ class Approve extends PureComponent {
 			{ onlyGas: true }
 		);
 
-	parseTransactionDataLegacy = (gasFee, options) =>
-		parseTransactionLegacy(
+		parsedTransactionEIP1559.error = this.validateGas(parsedTransactionEIP1559.totalMaxHex);
+		return parsedTransactionEIP1559;
+	};
+
+	parseTransactionDataLegacy = (gasFee, options) => {
+		const parsedTransactionLegacy = parseTransactionLegacy(
 			{
 				...this.props,
 				selectedGasFee: gasFee
 			},
 			{ onlyGas: true }
 		);
+		parsedTransactionLegacy.error = this.validateGas(parsedTransactionLegacy.totalHex);
+		return parsedTransactionLegacy;
+	};
 
 	componentWillUnmount = () => {
 		const { approved } = this.state;
@@ -329,24 +336,24 @@ class Approve extends PureComponent {
 		this.review();
 	};
 
-	validateGas = () => {
+	validateGas = total => {
 		let error;
 		const {
 			ticker,
-			transaction: { value, gas, gasPrice, from },
+			transaction: { from },
 			accounts
 		} = this.props;
+
 		const fromAccount = accounts[safeToChecksumAddress(from)];
-		const total = value.add(gas.mul(gasPrice));
-		if (!gas) error = strings('transaction.invalid_gas');
-		else if (!gasPrice) error = strings('transaction.invalid_gas_price');
-		else if (fromAccount && isBN(gas) && isBN(gasPrice) && hexToBN(fromAccount.balance).lt(gas.mul(gasPrice))) {
-			this.setState({ over: true });
-			const amount = renderFromWei(total.sub(value));
+
+		const weiBalance = hexToBN(fromAccount.balance);
+		const totalTransactionValue = hexToBN(total);
+		if (!weiBalance.gte(totalTransactionValue)) {
+			const amount = renderFromWei(totalTransactionValue.sub(weiBalance));
 			const tokenSymbol = getTicker(ticker);
 			error = strings('transaction.insufficient_amount', { amount, tokenSymbol });
 		}
-		this.setState({ gasError: error });
+
 		return error;
 	};
 
@@ -374,9 +381,14 @@ class Approve extends PureComponent {
 	};
 
 	onConfirm = async () => {
-		if (this.validateGas()) return;
 		const { TransactionController } = Engine.context;
-		const { transactions } = this.props;
+		const { transactions, gasEstimateType } = this.props;
+		const { EIP1559GasData, LegacyGasData } = this.state;
+
+		if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+			if (this.validateGas(EIP1559GasData.totalMaxHex)) return;
+		} else if (this.validateGas(LegacyGasData.totalHex)) return;
+
 		try {
 			const transaction = this.prepareTransaction(this.props.transaction);
 
@@ -493,7 +505,7 @@ class Approve extends PureComponent {
 					{mode === 'review' && (
 						<AnimatedTransactionModal onModeChange={this.onModeChange} ready={ready} review={this.review}>
 							<ApproveTransactionReview
-								gasError={gasError}
+								gasError={EIP1559GasData.error || LegacyGasData.error}
 								warningGasPriceHigh={warningGasPriceHigh}
 								onCancel={this.onCancel}
 								onConfirm={this.onConfirm}
@@ -537,6 +549,7 @@ class Approve extends PureComponent {
 								timeEstimateColor={EIP1559GasDataTemp.timeEstimateColor}
 								onCancel={this.cancelGasEdition}
 								onSave={this.saveGasEdition}
+								error={EIP1559GasDataTemp.error}
 							/>
 						) : (
 							<EditGasFeeLegacy
@@ -552,6 +565,7 @@ class Approve extends PureComponent {
 								chainId={chainId}
 								onCancel={this.cancelGasEdition}
 								onSave={this.saveGasEdition}
+								error={LegacyGasDataTemp.error}
 							/>
 						))}
 				</KeyboardAwareScrollView>

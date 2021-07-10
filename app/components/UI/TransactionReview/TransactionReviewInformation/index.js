@@ -209,7 +209,8 @@ class TransactionReviewInformation extends PureComponent {
 		setProposedNonce: PropTypes.func,
 		nativeCurrency: PropTypes.string,
 		gasEstimateType: PropTypes.string,
-		EIP1559GasData: PropTypes.object
+		EIP1559GasData: PropTypes.object,
+		origin: PropTypes.string
 	};
 
 	state = {
@@ -470,7 +471,11 @@ class TransactionReviewInformation extends PureComponent {
 	};
 
 	renderTransactionReviewEIP1559 = () => {
-		const { EIP1559GasData, primaryCurrency } = this.props;
+		const { EIP1559GasData, primaryCurrency, origin } = this.props;
+		let host;
+		if (origin) {
+			host = new URL(origin).hostname;
+		}
 		const [
 			renderableTotalMinNative,
 			renderableTotalMinConversion,
@@ -489,6 +494,7 @@ class TransactionReviewInformation extends PureComponent {
 				timeEstimate={EIP1559GasData.timeEstimate}
 				timeEstimateColor={EIP1559GasData.timeEstimateColor}
 				onEdit={this.edit}
+				origin={host}
 			/>
 		);
 	};

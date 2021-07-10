@@ -43,16 +43,17 @@ const styles = StyleSheet.create({
 	gasInfoContainer: {
 		paddingHorizontal: 2
 	},
-	gasInfoIcon: {
-		color: colors.grey200
-	},
+	gasInfoIcon: hasOrigin => ({
+		color: hasOrigin ? colors.orange : colors.grey200,
+		marginTop: 5
+	}),
 	amountContainer: {
 		flex: 1,
 		paddingRight: 10
 	},
 	gasFeeTitleContainer: {
 		flexDirection: 'row',
-		alignItems: 'center'
+		flex: 1
 	},
 	hitSlop: {
 		top: 10,
@@ -76,7 +77,8 @@ const TransactionReviewEIP1559 = ({
 	chainId,
 	onEdit,
 	hideTotal,
-	noMargin
+	noMargin,
+	origin
 }) => {
 	const isMainnet = isMainnetByChainId(chainId);
 	const nativeCurrencySelected = primaryCurrency === 'ETH' || !isMainnet;
@@ -101,16 +103,16 @@ const TransactionReviewEIP1559 = ({
 		<Summary style={styles.overview(noMargin)}>
 			<Summary.Row>
 				<View style={styles.gasFeeTitleContainer}>
-					<Text primary bold>
-						Estimated gas fee
+					<Text primary={!origin} bold orange={Boolean(origin)}>
+						{!origin ? 'Estimated gas fee' : `${origin} suggested gas fee`}
+						<TouchableOpacity
+							style={styles.gasInfoContainer}
+							onPress={this.toggleGasTooltip}
+							hitSlop={styles.hitSlop}
+						>
+							<MaterialCommunityIcons name="information" size={13} style={styles.gasInfoIcon(origin)} />
+						</TouchableOpacity>
 					</Text>
-					<TouchableOpacity
-						style={styles.gasInfoContainer}
-						onPress={this.toggleGasTooltip}
-						hitSlop={styles.hitSlop}
-					>
-						<MaterialCommunityIcons name="information" size={13} style={styles.gasInfoIcon} />
-					</TouchableOpacity>
 				</View>
 				<View style={styles.valuesContainer}>
 					{isMainnet && (
@@ -241,7 +243,8 @@ TransactionReviewEIP1559.propTypes = {
 	 */
 	timeEstimateColor: PropTypes.string,
 	hideTotal: PropTypes.bool,
-	noMargin: PropTypes.bool
+	noMargin: PropTypes.bool,
+	origin: PropTypes.string
 };
 
 const mapStateToProps = state => ({
