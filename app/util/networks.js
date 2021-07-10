@@ -1,7 +1,7 @@
 import { colors } from '../styles/common';
 import URL from 'url-parse';
 import AppConstants from '../core/AppConstants';
-import { MAINNET, ROPSTEN, KOVAN, RINKEBY, GOERLI, RPC } from '../../app/constants/network';
+import { MAINNET, BSCMAIN, ROPSTEN, KOVAN, RINKEBY, GOERLI, RPC } from '../../app/constants/network';
 import { util } from '@metamask/controllers';
 import Engine from '../core/Engine';
 
@@ -21,6 +21,15 @@ const NetworkList = {
 		hexChainId: '0x1',
 		color: '#3cc29e',
 		networkType: 'mainnet'
+	},
+	[BSCMAIN]: {
+		name: 'Binance Main Network',
+		shortName: 'Binance',
+		networkId: 56,
+		chainId: 56,
+		hexChainId: '0x38',
+		color: '#F0B90B',
+		networkType: 'binancemain'
 	},
 	[ROPSTEN]: {
 		name: 'Ropsten Test Network',
