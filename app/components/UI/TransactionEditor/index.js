@@ -146,15 +146,23 @@ class TransactionEditor extends PureComponent {
 
 	computeGasEstimates = () => {
 		const { transaction, gasEstimateType, gasFeeEstimates } = this.props;
-		const { gasSelected, dappSuggestedGasPrice } = this.state;
+		const { gasSelected, dappSuggestedGasPrice, dappSuggestedEIP1559Gas } = this.state;
 		if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-			const initialGas = dappSuggestedGasPrice
-				? {
-						suggestedMaxFeePerGas: fromWei(dappSuggestedGasPrice, 'gwei'),
-						suggestedMaxPriorityFeePerGas: fromWei(dappSuggestedGasPrice, 'gwei')
-						// eslint-disable-next-line no-mixed-spaces-and-tabs
-				  }
-				: gasFeeEstimates[gasSelected];
+			let initialGas;
+
+			if (dappSuggestedEIP1559Gas) {
+				initialGas = {
+					suggestedMaxFeePerGas: fromWei(dappSuggestedEIP1559Gas.maxFeePerGas, 'gwei'),
+					suggestedMaxPriorityFeePerGas: fromWei(dappSuggestedEIP1559Gas.maxPriorityFeePerGas, 'gwei')
+				};
+			} else if (dappSuggestedGasPrice) {
+				initialGas = {
+					suggestedMaxFeePerGas: fromWei(dappSuggestedGasPrice, 'gwei'),
+					suggestedMaxPriorityFeePerGas: fromWei(dappSuggestedGasPrice, 'gwei')
+				};
+			} else {
+				initialGas = gasFeeEstimates[gasSelected];
+			}
 
 			const EIP1559GasData = this.parseTransactionDataEIP1559({
 				...initialGas,
@@ -208,11 +216,23 @@ class TransactionEditor extends PureComponent {
 		const zeroGas = new BN('00');
 		const hasGasPrice = Boolean(transaction.gasPrice) && !new BN(transaction.gasPrice).eq(zeroGas);
 		const hasGasLimit = Boolean(transaction.gas) && !new BN(transaction.gas).eq(zeroGas);
+		const hasEIP1559Gas = Boolean(transaction.maxFeePerGas) && Boolean(transaction.maxPriorityFeePerGas);
 		if (!hasGasLimit) this.handleGetGasLimit();
 
-		if (!hasGasPrice) {
+		if (!hasGasPrice && !hasEIP1559Gas) {
 			this.startPolling();
-		} else {
+		} else if (hasEIP1559Gas) {
+			this.setState(
+				{
+					dappSuggestedEIP1559Gas: {
+						maxFeePerGas: transaction.maxFeePerGas,
+						maxPriorityFeePerGas: transaction.maxPriorityFeePerGas
+					},
+					gasSelected: null
+				},
+				this.startPolling
+			);
+		} else if (hasGasPrice) {
 			this.setState({ dappSuggestedGasPrice: transaction.gasPrice, gasSelected: null }, this.startPolling);
 		}
 
@@ -307,8 +327,9 @@ class TransactionEditor extends PureComponent {
 	 * Call callback when transaction is confirmed, after being validated
 	 */
 	onConfirm = async () => {
-		const { onConfirm } = this.props;
-		!(await this.validate()) && onConfirm && onConfirm();
+		const { onConfirm, gasEstimateType } = this.props;
+		const { EIP1559GasData } = this.state;
+		!(await this.validate()) && onConfirm && onConfirm({ gasEstimateType, EIP1559GasData });
 	};
 
 	/**
@@ -726,6 +747,7 @@ class TransactionEditor extends PureComponent {
 				this.handleUpdateData(addHexPrefix(data));
 			}
 		}
+		this.props?.onModeChange(REVIEW);
 	};
 
 	validate = async () => {
@@ -833,7 +855,8 @@ class TransactionEditor extends PureComponent {
 				gasSelected,
 				advancedGasInserted: !gasSelected,
 				stopUpdateGas: false,
-				dappSuggestedGasPrice: null
+				dappSuggestedGasPrice: null,
+				dappSuggestedEIP1559Gas: null
 			},
 			this.review
 		);
@@ -924,7 +947,9 @@ class TransactionEditor extends PureComponent {
 							dappSuggestedGasPrice={Boolean(dappSuggestedGasPrice)}
 							warning={
 								Boolean(dappSuggestedGasPrice) &&
-								`This gas fee has been suggested by [origin]. It’s using legacy gas estimation which may be inaccurate. However, editing this gas fee may cause unintended consequences. Please reach out to the site if you have questions.`
+								`This gas fee has been suggested by ${
+									transaction?.origin
+								}. It’s using legacy gas estimation which may be inaccurate. However, editing this gas fee may cause unintended consequences. Please reach out to the site if you have questions.`
 							}
 							error={EIP1559GasDataTemp.error}
 							over={over}

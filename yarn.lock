@@ -1613,9 +1613,9 @@
     web3 "^0.20.7"
     web3-provider-engine "^16.0.1"
 
-"@metamask/controllers@file:./metamask-controllers-v12.1.2.tgz":
-  version "12.1.2"
-  resolved "file:./metamask-controllers-v12.1.2.tgz#2bdb38b304fc4eb5ff451c1d8aca2590c05c910f"
+"@metamask/controllers@file:./metamask-controllers-v12.1.3.tgz":
+  version "12.1.3"
+  resolved "file:./metamask-controllers-v12.1.3.tgz#9feae285164281bd442c86ff0517b0f19c390216"
   dependencies:
     "@ethereumjs/common" "^2.3.1"
     "@ethereumjs/tx" "^3.2.1"

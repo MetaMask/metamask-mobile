@@ -608,11 +608,11 @@ EditGasFee1559.propTypes = {
 	/**
 	 * Error message to show
 	 */
-	error: PropTypes.string,
+	error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
 	/**
 	 * Warning message to show
 	 */
-	warning: PropTypes.string,
+	warning: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
 	/**
 	 * Boolean that specifies if the gas price was suggested by the dapp
 	 */
