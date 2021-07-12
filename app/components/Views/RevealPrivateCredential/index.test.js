@@ -20,7 +20,7 @@ describe('RevealPrivateCredential', () => {
 			}
 		};
 		const wrapper = shallow(
-			<RevealPrivateCredential navigation={{ state: { params: { privateCredentialName: 'private_key' } } }} />,
+			<RevealPrivateCredential route={{ params: { privateCredentialName: 'private_key' } }} />,
 			{ context: { store: mockStore(initialState) } }
 		);
 		expect(wrapper.dive()).toMatchSnapshot();

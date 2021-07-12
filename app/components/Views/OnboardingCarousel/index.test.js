@@ -4,7 +4,7 @@ import OnboardingCarousel from './';
 
 describe('OnboardingCarousel', () => {
 	it('should render correctly', () => {
-		const wrapper = shallow(<OnboardingCarousel navigation={{ getParam: () => false }} />);
+		const wrapper = shallow(<OnboardingCarousel route={{ params: {} }} />);
 		expect(wrapper).toMatchSnapshot();
 	});
 });

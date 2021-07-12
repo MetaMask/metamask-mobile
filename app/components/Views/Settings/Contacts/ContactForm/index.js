@@ -92,8 +92,8 @@ const EDIT = 'edit';
  * View that contains app information
  */
 class ContactForm extends PureComponent {
-	static navigationOptions = ({ navigation }) =>
-		getEditableOptions(strings(`address_book.${navigation.getParam('mode', ADD)}_contact_title`), navigation);
+	static navigationOptions = ({ navigation, route }) =>
+		getEditableOptions(strings(`address_book.${route.params?.mode ?? ADD}_contact_title`), navigation, route);
 
 	static propTypes = {
 		/**
@@ -111,7 +111,11 @@ class ContactForm extends PureComponent {
 		/**
 		 * Map representing the address book
 		 */
-		addressBook: PropTypes.object
+		addressBook: PropTypes.object,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	state = {
@@ -120,7 +124,7 @@ class ContactForm extends PureComponent {
 		addressError: undefined,
 		toEnsName: undefined,
 		addressReady: false,
-		mode: this.props.navigation.getParam('mode', ADD),
+		mode: this.props.route.params?.mode ?? ADD,
 		memo: undefined,
 		editable: true,
 		inputWidth: Platform.OS === 'android' ? '99%' : undefined
@@ -141,7 +145,7 @@ class ContactForm extends PureComponent {
 		if (mode === EDIT) {
 			const { addressBook, network, identities } = this.props;
 			const networkAddressBook = addressBook[network] || {};
-			const address = this.props.navigation.getParam('address', '');
+			const address = this.props.route.params?.address ?? '';
 			const contact = networkAddressBook[address] || identities[address];
 			this.setState({ address, name: contact.name, memo: contact.memo, addressReady: true, editable: false });
 			navigation && navigation.setParams({ dispatch: this.onEdit, mode: EDIT });
@@ -229,9 +233,9 @@ class ContactForm extends PureComponent {
 
 	deleteContact = () => {
 		const { AddressBookController } = Engine.context;
-		const { network, navigation } = this.props;
+		const { network, navigation, route } = this.props;
 		AddressBookController.delete(network, this.contactAddressToRemove);
-		navigation.state.params.onDelete();
+		route.params.onDelete();
 		navigation.pop();
 	};
 
