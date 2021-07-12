@@ -1,6 +1,9 @@
 /* eslint-disable react/display-name */
 import React, { useCallback, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView, TouchableWithoutFeedback } from 'react-native';
+import PropTypes from 'prop-types';
+import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
+import BigNumber from 'bignumber.js';
 import Text from '../../Base/Text';
 import StyledButton from '../StyledButton';
 import RangeInput from '../../Base/RangeInput';
@@ -13,9 +16,6 @@ import Alert from '../../Base/Alert';
 import HorizontalSelector from '../../Base/HorizontalSelector';
 import Device from '../../../util/Device';
 import { isMainnetByChainId } from '../../../util/networks';
-import PropTypes from 'prop-types';
-import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
-import BigNumber from 'bignumber.js';
 
 const GAS_LIMIT_INCREMENT = new BigNumber(1000);
 const GAS_PRICE_INCREMENT = new BigNumber(1);
@@ -451,18 +451,57 @@ const EditGasFeeLegacy = ({
 };
 
 EditGasFeeLegacy.propTypes = {
+	/**
+	 * Gas option selected (low, medium, high)
+	 */
 	selected: PropTypes.string,
+	/**
+	 * Gas fee currently active
+	 */
 	gasFee: PropTypes.object,
+	/**
+	 * Gas fee options to select from
+	 */
 	gasOptions: PropTypes.object,
+	/**
+	 * Function called when user selected or changed the gas
+	 */
 	onChange: PropTypes.func,
+	/**
+	 * Function called when user cancels
+	 */
 	onCancel: PropTypes.func,
+	/**
+	 * Function called when user saves the new gas
+	 */
 	onSave: PropTypes.func,
+	/**
+	 * Gas fee in native currency
+	 */
 	gasFeeNative: PropTypes.string,
+	/**
+	 * Gas fee converted to chosen currency
+	 */
 	gasFeeConversion: PropTypes.string,
+	/**
+	 * Primary currency, either ETH or Fiat
+	 */
 	primaryCurrency: PropTypes.string,
+	/**
+	 * A string representing the network chainId
+	 */
 	chainId: PropTypes.string,
+	/**
+	 * Estimate type returned by the gas fee controller, can be market-fee, legacy or eth_gasPrice
+	 */
 	gasEstimateType: PropTypes.string,
+	/**
+	 * Error message to show
+	 */
 	error: PropTypes.string,
+	/**
+	 * Warning message to show
+	 */
 	warning: PropTypes.string
 };
 

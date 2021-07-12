@@ -533,26 +533,89 @@ const EditGasFee1559 = ({
 };
 
 EditGasFee1559.propTypes = {
+	/**
+	 * Gas option selected (low, medium, high)
+	 */
 	selected: PropTypes.string,
+	/**
+	 * Gas fee currently active
+	 */
 	gasFee: PropTypes.object,
+	/**
+	 * Gas fee options to select from
+	 */
 	gasOptions: PropTypes.object,
+	/**
+	 * Function called when user selected or changed the gas
+	 */
 	onChange: PropTypes.func,
+	/**
+	 * Function called when user cancels
+	 */
 	onCancel: PropTypes.func,
+	/**
+	 * Function called when user saves the new gas
+	 */
 	onSave: PropTypes.func,
+	/**
+	 * Gas fee in native currency
+	 */
 	gasFeeNative: PropTypes.string,
+	/**
+	 * Gas fee converted to chosen currency
+	 */
 	gasFeeConversion: PropTypes.string,
+	/**
+	 * Maximum gas fee in native currency
+	 */
 	gasFeeMaxNative: PropTypes.string,
+	/**
+	 * Maximum gas fee converted to chosen currency
+	 */
 	gasFeeMaxConversion: PropTypes.string,
+	/**
+	 * Maximum priority gas fee in native currency
+	 */
 	maxPriorityFeeNative: PropTypes.string,
+	/**
+	 * Maximum priority gas fee converted to chosen currency
+	 */
 	maxPriorityFeeConversion: PropTypes.string,
+	/**
+	 * Maximum fee per gas fee in native currency
+	 */
 	maxFeePerGasNative: PropTypes.string,
+	/**
+	 * Maximum fee per gas fee converted to chosen currency
+	 */
 	maxFeePerGasConversion: PropTypes.string,
+	/**
+	 * Primary currency, either ETH or Fiat
+	 */
 	primaryCurrency: PropTypes.string,
+	/**
+	 * A string representing the network chainId
+	 */
 	chainId: PropTypes.string,
+	/**
+	 * String that represents the time estimates
+	 */
 	timeEstimate: PropTypes.string,
+	/**
+	 * String that represents the color of the time estimate
+	 */
 	timeEstimateColor: PropTypes.string,
+	/**
+	 * Error message to show
+	 */
 	error: PropTypes.string,
+	/**
+	 * Warning message to show
+	 */
 	warning: PropTypes.string,
+	/**
+	 * Boolean that specifies if the gas price was suggested by the dapp
+	 */
 	dappSuggestedGasPrice: PropTypes.bool
 };
 

@@ -313,9 +313,12 @@ class Confirm extends PureComponent {
 		 */
 		setProposedNonce: PropTypes.func,
 		/**
-		 * gasFeeEstimates
+		 * Gas fee estimates returned by the gas fee controller
 		 */
 		gasFeeEstimates: PropTypes.object,
+		/**
+		 * Estimate type returned by the gas fee controller, can be market-fee, legacy or eth_gasPrice
+		 */
 		gasEstimateType: PropTypes.string
 	};
 
@@ -467,23 +470,12 @@ class Confirm extends PureComponent {
 						EIP1559TransactionData,
 						EIP1559TransactionDataTemp: EIP1559TransactionData
 					});
-				} else if (this.props.gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY) {
-					const LegacyTransactionData = this.parseTransactionDataLegacy({
-						suggestedGasPrice: this.props.gasFeeEstimates[this.state.gasSelected],
-						suggestedGasLimit: fromWei(gas, 'wei')
-					});
-
-					this.setError(LegacyTransactionData.error);
-
-					// eslint-disable-next-line react/no-did-update-set-state
-					this.setState({
-						gasEstimationReady: true,
-						LegacyTransactionData,
-						LegacyTransactionDataTemp: LegacyTransactionData
-					});
 				} else {
 					const LegacyTransactionData = this.parseTransactionDataLegacy({
-						suggestedGasPrice: this.props.gasFeeEstimates.gasPrice,
+						suggestedGasPrice:
+							this.props.gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
+								? this.props.gasFeeEstimates[this.state.gasSelected]
+								: this.props.gasFeeEstimates.gasPrice,
 						suggestedGasLimit: fromWei(gas, 'wei')
 					});
 

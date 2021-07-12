@@ -109,9 +109,21 @@ class TransactionEditor extends PureComponent {
 		 * Active tab URL, the currently active tab url
 		 */
 		activeTabUrl: PropTypes.string,
+		/**
+		 * Estimate type returned by the gas fee controller, can be market-fee, legacy or eth_gasPrice
+		 */
 		gasEstimateType: PropTypes.string,
+		/**
+		 * Gas fee estimates returned by the gas fee controller
+		 */
 		gasFeeEstimates: PropTypes.object,
+		/**
+		 * ETH or fiat, depending on user setting
+		 */
 		primaryCurrency: PropTypes.string,
+		/**
+		 * A string representing the network chainId
+		 */
 		chainId: PropTypes.string
 	};
 
@@ -156,40 +168,17 @@ class TransactionEditor extends PureComponent {
 				EIP1559GasDataTemp: EIP1559GasData,
 				advancedGasInserted: Boolean(dappSuggestedGasPrice)
 			});
-		} else if (gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY) {
-			const LegacyGasData = this.parseTransactionDataLegacy(
-				{
-					suggestedGasPrice: dappSuggestedGasPrice
-						? fromWei(dappSuggestedGasPrice, 'gwei')
-						: this.props.gasFeeEstimates.gasPrice,
-					suggestedGasLimit: fromWei(transaction.gas, 'wei')
-				},
-				{ onlyGas: true }
-			);
-
-			this.handleGasFeeSelection(
-				hexToBN(LegacyGasData.suggestedGasLimitHex),
-				hexToBN(LegacyGasData.suggestedGasPriceHex)
-			);
-
-			// eslint-disable-next-line react/no-did-update-set-state
-			this.setState({
-				ready: true,
-				LegacyGasData,
-				LegacyGasDataTemp: LegacyGasData,
-				advancedGasInserted: Boolean(dappSuggestedGasPrice)
-			});
 		} else {
 			const LegacyGasData = this.parseTransactionDataLegacy(
 				{
 					suggestedGasPrice: dappSuggestedGasPrice
 						? fromWei(dappSuggestedGasPrice, 'gwei')
+						: gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
+						? this.props.gasFeeEstimates[this.state.gasSelected]
 						: this.props.gasFeeEstimates.gasPrice,
 					suggestedGasLimit: fromWei(transaction.gas, 'wei')
 				},
-				{
-					onlyGas: true
-				}
+				{ onlyGas: true }
 			);
 
 			this.handleGasFeeSelection(

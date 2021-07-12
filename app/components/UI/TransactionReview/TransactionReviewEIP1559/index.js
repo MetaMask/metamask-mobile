@@ -242,8 +242,17 @@ TransactionReviewEIP1559.propTypes = {
 	 * String that represents the color of the time estimate
 	 */
 	timeEstimateColor: PropTypes.string,
+	/**
+	 * Boolean to determine if the total section should be hidden
+	 */
 	hideTotal: PropTypes.bool,
+	/**
+	 * Boolean to determine the container should have no margin
+	 */
 	noMargin: PropTypes.bool,
+	/**
+	 * Origin (hostname) of the dapp that suggested the gas fee
+	 */
 	origin: PropTypes.string
 };
 

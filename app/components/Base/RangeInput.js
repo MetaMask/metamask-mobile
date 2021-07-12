@@ -149,6 +149,8 @@ const RangeInput = ({
 		checkLimits();
 	}, [checkLimits]);
 
+	const hasError = Boolean(error) || Boolean(errorState);
+
 	return (
 		<View>
 			<View style={styles.labelContainer}>
@@ -186,7 +188,7 @@ const RangeInput = ({
 					</TouchableOpacity>
 				</View>
 			</View>
-			{(Boolean(error) || Boolean(errorState)) && (
+			{hasError && (
 				<View style={styles.errorContainer}>
 					<FontAwesomeIcon name="exclamation-circle" size={14} style={styles.errorIcon} />
 					<Text red noMargin small>

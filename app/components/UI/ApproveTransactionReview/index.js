@@ -249,8 +249,17 @@ class ApproveTransactionReview extends PureComponent {
 		 * A string representing the network chainId
 		 */
 		chainId: PropTypes.string,
+		/**
+		 * Object that represents eip1559 gas
+		 */
 		EIP1559GasData: PropTypes.object,
+		/**
+		 * Object that represents legacy gas
+		 */
 		LegacyGasData: PropTypes.object,
+		/**
+		 * Estimate type returned by the gas fee controller, can be market-fee, legacy or eth_gasPrice
+		 */
 		gasEstimateType: PropTypes.string
 	};
 
