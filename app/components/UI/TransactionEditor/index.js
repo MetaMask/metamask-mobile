@@ -147,6 +147,9 @@ class TransactionEditor extends PureComponent {
 	computeGasEstimates = () => {
 		const { transaction, gasEstimateType, gasFeeEstimates } = this.props;
 		const { gasSelected, dappSuggestedGasPrice, dappSuggestedEIP1559Gas } = this.state;
+
+		const dappSuggestedGas = dappSuggestedGasPrice || dappSuggestedEIP1559Gas;
+
 		if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
 			let initialGas;
 
@@ -174,8 +177,8 @@ class TransactionEditor extends PureComponent {
 				ready: true,
 				EIP1559GasData,
 				EIP1559GasDataTemp: EIP1559GasData,
-				advancedGasInserted: Boolean(dappSuggestedGasPrice),
-				gasSelected: dappSuggestedGasPrice ? null : gasSelected
+				advancedGasInserted: Boolean(dappSuggestedGas),
+				gasSelected: dappSuggestedGas ? null : gasSelected
 			});
 		} else {
 			const LegacyGasData = this.parseTransactionDataLegacy(
@@ -872,6 +875,19 @@ class TransactionEditor extends PureComponent {
 		this.props.onModeChange?.('review');
 	};
 
+	renderWarning = () => {
+		const { dappSuggestedGasPrice, dappSuggestedEIP1559Gas } = this.state;
+		const {
+			transaction: { origin }
+		} = this.props;
+		if (dappSuggestedGasPrice)
+			return `This gas fee has been suggested by ${origin}. It’s using legacy gas estimation which may be inaccurate. However, editing this gas fee may cause a problem with your transaction. Please reach out to ${origin} if you have questions.`;
+		if (dappSuggestedEIP1559Gas)
+			return `This gas fee has been suggested by ${origin}. Overriding this may cause a problem with your transaction. Please reach out to ${origin} if you have questions.`;
+
+		return null;
+	};
+
 	render = () => {
 		const {
 			mode,
@@ -892,7 +908,8 @@ class TransactionEditor extends PureComponent {
 			EIP1559GasDataTemp,
 			LegacyGasDataTemp,
 			gasSelected,
-			dappSuggestedGasPrice
+			dappSuggestedGasPrice,
+			dappSuggestedEIP1559Gas
 		} = this.state;
 		return (
 			<React.Fragment>
@@ -945,13 +962,8 @@ class TransactionEditor extends PureComponent {
 							timeEstimateColor={EIP1559GasDataTemp.timeEstimateColor}
 							onCancel={this.cancelGasEdition}
 							onSave={this.saveGasEdition}
-							dappSuggestedGasPrice={Boolean(dappSuggestedGasPrice)}
-							warning={
-								Boolean(dappSuggestedGasPrice) &&
-								`This gas fee has been suggested by ${
-									transaction?.origin
-								}. It’s using legacy gas estimation which may be inaccurate. However, editing this gas fee may cause unintended consequences. Please reach out to the site if you have questions.`
-							}
+							dappSuggestedGas={Boolean(dappSuggestedGasPrice) || Boolean(dappSuggestedEIP1559Gas)}
+							warning={this.renderWarning()}
 							error={EIP1559GasDataTemp.error}
 							over={over}
 						/>

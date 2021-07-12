@@ -54,9 +54,6 @@ const styles = StyleSheet.create({
 	headerTitleSide: {
 		flex: 1
 	},
-	saveButton: {
-		marginBottom: 20
-	},
 	labelTextContainer: {
 		flexDirection: 'row',
 		alignItems: 'center'
@@ -89,12 +86,6 @@ const styles = StyleSheet.create({
 		paddingTop: 1,
 		marginLeft: 5
 	},
-	learnMoreLabels: {
-		marginTop: 9
-	},
-	learnMoreLink: {
-		marginTop: 14
-	},
 	warningTextContainer: {
 		paddingLeft: 4,
 		lineHeight: 20,
@@ -124,20 +115,11 @@ const EditGasFeeLegacy = ({
 
 	const [showRangeInfoModal, setShowRangeInfoModal] = useState(false);
 	const [showAdvancedOptions, setShowAdvancedOptions] = useState(!selected || onlyAdvanced);
-	const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
 	const [selectedOption, setSelectedOption] = useState(selected);
 	const [gasPriceError, setGasPriceError] = useState();
 
-	const toggleRangeInfoModal = useCallback(() => {
-		setShowRangeInfoModal(showRangeInfoModal => !showRangeInfoModal);
-	}, []);
-
 	const toggleAdvancedOptions = useCallback(() => {
 		setShowAdvancedOptions(showAdvancedOptions => !showAdvancedOptions);
-	}, []);
-
-	const toggleLearnMoreModal = useCallback(() => {
-		setShowLearnMoreModal(showLearnMoreModal => !showLearnMoreModal);
 	}, []);
 
 	const save = () => {
@@ -288,7 +270,7 @@ const EditGasFeeLegacy = ({
 												</Text>
 											),
 											topLabel: (
-												<TouchableOpacity onPress={toggleRangeInfoModal}>
+												<TouchableOpacity onPress={() => setShowRangeInfoModal('recommended')}>
 													<Text noMargin link bold small centered>
 														Recommended{' '}
 														<MaterialCommunityIcon
@@ -336,7 +318,7 @@ const EditGasFeeLegacy = ({
 
 													<TouchableOpacity
 														hitSlop={styles.hitSlop}
-														onPress={toggleRangeInfoModal}
+														onPress={() => setShowRangeInfoModal('gas_limit')}
 													>
 														<MaterialCommunityIcon
 															name="information"
@@ -363,7 +345,7 @@ const EditGasFeeLegacy = ({
 
 													<TouchableOpacity
 														hitSlop={styles.hitSlop}
-														onPress={toggleRangeInfoModal}
+														onPress={() => setShowRangeInfoModal('gas_price')}
 													>
 														<MaterialCommunityIcon
 															name="information"
@@ -387,59 +369,28 @@ const EditGasFeeLegacy = ({
 							)}
 						</View>
 						<View>
-							<TouchableOpacity style={styles.saveButton} onPress={toggleLearnMoreModal}>
-								<Text link centered>
-									{strings('edit_gas_fee_eip1559.learn_more.title')}
-								</Text>
-							</TouchableOpacity>
 							<StyledButton type={'confirm'} onPress={save} disabled={Boolean(error)}>
 								{strings('edit_gas_fee_eip1559.save')}
 							</StyledButton>
 						</View>
 						<InfoModal
-							isVisible={showRangeInfoModal}
-							title={strings('edit_gas_fee_eip1559.recommended_gas_fee')}
-							toggleModal={toggleRangeInfoModal}
+							isVisible={Boolean(showRangeInfoModal)}
+							title={
+								showRangeInfoModal === 'gas_limit'
+									? 'Gas limit'
+									: showRangeInfoModal === 'gas_price'
+									? 'Gas price'
+									: null
+							}
+							toggleModal={() => setShowRangeInfoModal(null)}
 							body={
 								<View>
 									<Text grey infoModal>
-										{strings('edit_gas_fee_eip1559.swaps_warning')}
+										{showRangeInfoModal === 'gas_limit' &&
+											`Gas limit is the maximum units of gas you are willing to use. Units of gas are a multiplier to “Max priority fee” and “Max fee”.`}
+										{showRangeInfoModal === 'gas_price' &&
+											`This network requires a “Gas price” field when submitting a transaction. Gas price is the maximum amount you are willing to pay per unit of gas.`}
 									</Text>
-								</View>
-							}
-						/>
-						<InfoModal
-							isVisible={showLearnMoreModal}
-							title={strings('edit_gas_fee_eip1559.learn_more.title')}
-							toggleModal={toggleLearnMoreModal}
-							body={
-								<View>
-									<Text noMargin grey infoModal>
-										{strings('edit_gas_fee_eip1559.learn_more.intro')}
-									</Text>
-									<Text noMargin primary infoModal bold style={styles.learnMoreLabels}>
-										{strings('edit_gas_fee_eip1559.learn_more.high_label')}
-									</Text>
-									<Text noMargin grey infoModal>
-										{strings('edit_gas_fee_eip1559.learn_more.high_text')}
-									</Text>
-									<Text noMargin primary infoModal bold style={styles.learnMoreLabels}>
-										{strings('edit_gas_fee_eip1559.learn_more.medium_label')}
-									</Text>
-									<Text noMargin grey infoModal>
-										{strings('edit_gas_fee_eip1559.learn_more.medium_text')}
-									</Text>
-									<Text noMargin primary infoModal bold style={styles.learnMoreLabels}>
-										{strings('edit_gas_fee_eip1559.learn_more.low_label')}
-									</Text>
-									<Text noMargin grey infoModal>
-										{strings('edit_gas_fee_eip1559.learn_more.low_text')}
-									</Text>
-									<TouchableOpacity style={styles.learnMoreLink}>
-										<Text grey infoModal link>
-											{strings('edit_gas_fee_eip1559.learn_more.link')}
-										</Text>
-									</TouchableOpacity>
 								</View>
 							}
 						/>

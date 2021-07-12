@@ -129,7 +129,7 @@ const EditGasFee1559 = ({
 	timeEstimateColor,
 	error,
 	warning,
-	dappSuggestedGasPrice
+	dappSuggestedGas
 }) => {
 	const [showRangeInfoModal, setShowRangeInfoModal] = useState(false);
 	const [showAdvancedOptions, setShowAdvancedOptions] = useState(!selected);
@@ -137,11 +137,7 @@ const EditGasFee1559 = ({
 	const [maxFeeError, setMaxFeeError] = useState(null);
 	const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
 	const [selectedOption, setSelectedOption] = useState(selected);
-	const [showInputs, setShowInputs] = useState(!dappSuggestedGasPrice);
-
-	const toggleRangeInfoModal = useCallback(() => {
-		setShowRangeInfoModal(showRangeInfoModal => !showRangeInfoModal);
-	}, []);
+	const [showInputs, setShowInputs] = useState(!dappSuggestedGas);
 
 	const toggleAdvancedOptions = useCallback(() => {
 		setShowAdvancedOptions(showAdvancedOptions => !showAdvancedOptions);
@@ -263,7 +259,7 @@ const EditGasFee1559 = ({
 								</Text>
 							),
 							topLabel: (
-								<TouchableOpacity onPress={toggleRangeInfoModal}>
+								<TouchableOpacity onPress={() => setShowRangeInfoModal('recommended')}>
 									<Text noMargin link bold small centered>
 										Recommended{' '}
 										<MaterialCommunityIcon name="information" size={14} style={styles.labelInfo} />
@@ -302,7 +298,10 @@ const EditGasFee1559 = ({
 											{strings('edit_gas_fee_eip1559.gas_limit')}{' '}
 										</Text>
 
-										<TouchableOpacity hitSlop={styles.hitSlop} onPress={toggleRangeInfoModal}>
+										<TouchableOpacity
+											hitSlop={styles.hitSlop}
+											onPress={() => setShowRangeInfoModal('gas_limit')}
+										>
 											<MaterialCommunityIcon
 												name="information"
 												size={14}
@@ -326,7 +325,10 @@ const EditGasFee1559 = ({
 											{strings('edit_gas_fee_eip1559.max_priority_fee')}{' '}
 										</Text>
 
-										<TouchableOpacity hitSlop={styles.hitSlop} onPress={toggleRangeInfoModal}>
+										<TouchableOpacity
+											hitSlop={styles.hitSlop}
+											onPress={() => setShowRangeInfoModal('max_priority_fee')}
+										>
 											<MaterialCommunityIcon
 												name="information"
 												size={14}
@@ -361,7 +363,10 @@ const EditGasFee1559 = ({
 											{strings('edit_gas_fee_eip1559.max_fee')}{' '}
 										</Text>
 
-										<TouchableOpacity hitSlop={styles.hitSlop} onPress={toggleRangeInfoModal}>
+										<TouchableOpacity
+											hitSlop={styles.hitSlop}
+											onPress={() => setShowRangeInfoModal('max_fee')}
+										>
 											<MaterialCommunityIcon
 												name="information"
 												size={14}
@@ -415,7 +420,7 @@ const EditGasFee1559 = ({
 									<Icon name={'ios-arrow-back'} size={24} color={colors.black} />
 								</TouchableOpacity>
 								<Text bold black>
-									{strings('transaction.edit_network_fee')}
+									{'Edit priority'}
 								</Text>
 								<Icon name={'ios-arrow-back'} size={24} color={colors.white} />
 							</View>
@@ -460,10 +465,10 @@ const EditGasFee1559 = ({
 								</Text>
 							</View>
 							<Text big black>
-								Up to{' '}
 								<Text bold black>
-									{gasFeeMaxPrimary} ({gasFeeMaxSecondary})
+									Max fee:{' '}
 								</Text>
+								{gasFeeMaxPrimary} ({gasFeeMaxSecondary})
 							</Text>
 							<Text green={timeEstimateColor === 'green'} red={timeEstimateColor === 'red'}>
 								{timeEstimate}
@@ -472,20 +477,33 @@ const EditGasFee1559 = ({
 						{!showInputs ? (
 							<View style={styles.dappEditGasContainer}>
 								<StyledButton type={'orange'} onPress={() => setShowInputs(true)}>
-									{'Edit gas fee suggestion'}
+									{'Edit suggested gas fee'}
 								</StyledButton>
 							</View>
 						) : (
 							renderInputs()
 						)}
 						<InfoModal
-							isVisible={showRangeInfoModal}
-							title={strings('edit_gas_fee_eip1559.recommended_gas_fee')}
-							toggleModal={toggleRangeInfoModal}
+							isVisible={Boolean(showRangeInfoModal)}
+							title={
+								showRangeInfoModal === 'gas_limit'
+									? 'Gas limit'
+									: showRangeInfoModal === 'max_priority_fee'
+									? 'Max priority fee'
+									: showRangeInfoModal === 'max_fee'
+									? 'Max fee'
+									: null
+							}
+							toggleModal={() => setShowRangeInfoModal(null)}
 							body={
 								<View>
 									<Text grey infoModal>
-										{strings('edit_gas_fee_eip1559.swaps_warning')}
+										{showRangeInfoModal === 'gas_limit' &&
+											`Gas limit is the maximum units of gas you are willing to use. Units of gas are a multiplier to “Max priority fee” and “Max fee”.`}
+										{showRangeInfoModal === 'max_priority_fee' &&
+											`Max priority fee (aka “miner tip”) goes directly to miners and incentivizes them to prioritize your transaction. You’ll most often pay your max setting. `}
+										{showRangeInfoModal === 'max_fee' &&
+											`The max fee is the most you’ll pay (base fee + priority fee). `}
 									</Text>
 								</View>
 							}
@@ -616,7 +634,7 @@ EditGasFee1559.propTypes = {
 	/**
 	 * Boolean that specifies if the gas price was suggested by the dapp
 	 */
-	dappSuggestedGasPrice: PropTypes.bool
+	dappSuggestedGas: PropTypes.bool
 };
 
 export default EditGasFee1559;

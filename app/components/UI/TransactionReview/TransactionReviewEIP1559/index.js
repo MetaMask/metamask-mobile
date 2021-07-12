@@ -1,5 +1,5 @@
-import React from 'react';
-import { TouchableOpacity, View, StyleSheet } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { TouchableOpacity, View, StyleSheet, Linking } from 'react-native';
 import Summary from '../../../Base/Summary';
 import Text from '../../../Base/Text';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -7,34 +7,12 @@ import { colors } from '../../../../styles/common';
 import { isMainnetByChainId } from '../../../../util/networks';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import InfoModal from '../../Swaps/components/InfoModal';
 
 const styles = StyleSheet.create({
 	overview: noMargin => ({
 		marginHorizontal: noMargin ? 0 : 24
 	}),
-	loader: {
-		backgroundColor: colors.white,
-		height: 10,
-		flex: 1,
-		alignItems: 'flex-end'
-	},
-	over: {
-		color: colors.red
-	},
-	customNonce: {
-		marginTop: 10,
-		marginHorizontal: 24,
-		borderWidth: 1,
-		borderColor: colors.grey050,
-		borderRadius: 8,
-		paddingVertical: 14,
-		paddingHorizontal: 16,
-		display: 'flex',
-		flexDirection: 'row'
-	},
-	nonceNumber: {
-		marginLeft: 'auto'
-	},
 	valuesContainer: {
 		flex: 1,
 		flexDirection: 'row',
@@ -80,6 +58,17 @@ const TransactionReviewEIP1559 = ({
 	noMargin,
 	origin
 }) => {
+	const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
+
+	const toggleLearnMoreModal = useCallback(() => {
+		setShowLearnMoreModal(showLearnMoreModal => !showLearnMoreModal);
+	}, []);
+
+	const openLinkAboutGas = useCallback(
+		() => Linking.openURL('https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172'),
+		[]
+	);
+
 	const isMainnet = isMainnetByChainId(chainId);
 	const nativeCurrencySelected = primaryCurrency === 'ETH' || !isMainnet;
 	let gasFeePrimary, gasFeeSecondary, gasFeeMaxPrimary, totalPrimary, totalSecondary, totalMaxPrimary;
@@ -107,7 +96,7 @@ const TransactionReviewEIP1559 = ({
 						{!origin ? 'Estimated gas fee' : `${origin} suggested gas fee`}
 						<TouchableOpacity
 							style={styles.gasInfoContainer}
-							onPress={this.toggleGasTooltip}
+							onPress={toggleLearnMoreModal}
 							hitSlop={styles.hitSlop}
 						>
 							<MaterialCommunityIcons name="information" size={13} style={styles.gasInfoIcon(origin)} />
@@ -151,7 +140,9 @@ const TransactionReviewEIP1559 = ({
 				</Text>
 				<View style={styles.valuesContainer}>
 					<Text grey right small>
-						Up to{' '}
+						<Text bold small noMargin>
+							Max fee:{' '}
+						</Text>
 						<Text bold small noMargin>
 							{gasFeeMaxPrimary}
 						</Text>
@@ -180,8 +171,10 @@ const TransactionReviewEIP1559 = ({
 					<Summary.Row>
 						<View style={styles.valuesContainer}>
 							<Text grey right small>
-								Up to{' '}
 								<Text bold small noMargin>
+									Max amount:
+								</Text>{' '}
+								<Text small noMargin>
 									{totalMaxPrimary}
 								</Text>
 							</Text>
@@ -189,6 +182,23 @@ const TransactionReviewEIP1559 = ({
 					</Summary.Row>
 				</View>
 			)}
+			<InfoModal
+				isVisible={showLearnMoreModal}
+				title={'Estimated gas fee tooltip'}
+				toggleModal={toggleLearnMoreModal}
+				body={
+					<View>
+						<Text infoModal>
+							{`Estimated gas fee tooltip: Gas fees are paid to crypto miners who process transactions on the Ethereum network.\n`}
+							{`MetaMask does not profit from gas fees.\n\n`}
+							{`Gas fees are set by the network and fluctuate based on network traffic and transaction complexity.\n`}
+						</Text>
+						<TouchableOpacity onPress={openLinkAboutGas}>
+							<Text link>Learn more about gas fees</Text>
+						</TouchableOpacity>
+					</View>
+				}
+			/>
 		</Summary>
 	);
 };
