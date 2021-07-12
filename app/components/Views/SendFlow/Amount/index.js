@@ -27,7 +27,6 @@ import {
 	renderFromWei,
 	weiToFiat,
 	fromWei,
-	fromTokenMinimalUnit,
 	toWei,
 	isDecimal,
 	toTokenMinimalUnit,
@@ -36,14 +35,16 @@ import {
 	weiToFiatNumber,
 	balanceToFiatNumber,
 	getCurrencySymbol,
-	handleWeiNumber
+	handleWeiNumber,
+	fromTokenMinimalUnitString,
+	toHexadecimal
 } from '../../../../util/number';
 import { getTicker, generateTransferData, getEther } from '../../../../util/transactions';
 import { util } from '@metamask/controllers';
 import ErrorMessage from '../ErrorMessage';
 import { getGasPriceByChainId } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
-import CollectibleImage from '../../../UI/CollectibleImage';
+import CollectibleMedia from '../../../UI/CollectibleMedia';
 import collectiblesTransferInformation from '../../../../util/collectibles-transfer';
 import { strings } from '../../../../../locales/i18n';
 import Device from '../../../../util/Device';
@@ -53,6 +54,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import NetworkMainAssetLogo from '../../../UI/NetworkMainAssetLogo';
 import { isMainNet } from '../../../../util/networks';
+import { toLowerCaseEquals } from '../../../../util/general';
 
 const { hexToBN, BNToHex } = util;
 
@@ -241,7 +243,7 @@ const styles = StyleSheet.create({
 	errorMessageWrapper: {
 		marginVertical: 16
 	},
-	collectibleImage: {
+	CollectibleMedia: {
 		width: 120,
 		height: 120
 	},
@@ -287,8 +289,7 @@ const styles = StyleSheet.create({
  * View that wraps the wraps the "Send" screen
  */
 class Amount extends PureComponent {
-	static navigationOptions = ({ navigation, screenProps }) =>
-		getSendFlowTitle('send.amount', navigation, screenProps);
+	static navigationOptions = ({ navigation, route }) => getSendFlowTitle('send.amount', navigation, route);
 
 	static propTypes = {
 		/**
@@ -370,7 +371,11 @@ class Amount extends PureComponent {
 		/**
 		 * function to call when the 'Next' button is clicked
 		 */
-		onConfirm: PropTypes.func
+		onConfirm: PropTypes.func,
+		/**
+		 * Indicates whether the current transaction is a deep link transaction
+		 */
+		isPaymentRequest: PropTypes.bool
 	};
 
 	state = {
@@ -395,10 +400,11 @@ class Amount extends PureComponent {
 			transactionState: { readableValue },
 			navigation,
 			providerType,
-			selectedAsset
+			selectedAsset,
+			isPaymentRequest
 		} = this.props;
 		// For analytics
-		navigation.setParams({ providerType });
+		navigation.setParams({ providerType, isPaymentRequest });
 
 		this.tokens = [getEther(ticker), ...tokens];
 		this.collectibles = this.processCollectibles();
@@ -423,7 +429,7 @@ class Amount extends PureComponent {
 		} = this.props;
 		try {
 			const owner = await AssetsContractController.getOwnerOf(address, tokenId);
-			const isOwner = owner.toLowerCase() === selectedAddress.toLowerCase();
+			const isOwner = toLowerCaseEquals(owner, selectedAddress);
 			if (!isOwner) {
 				return strings('transaction.invalid_collectible_ownership');
 			}
@@ -508,7 +514,7 @@ class Amount extends PureComponent {
 			collectibleTransferTransactionProperties.data = generateTransferData('transferFrom', {
 				fromAddress: transaction.from,
 				toAddress: transactionTo,
-				tokenId: selectedAsset.tokenId
+				tokenId: toHexadecimal(selectedAsset.tokenId)
 			});
 		} else if (collectibleTransferInformation.tradable && collectibleTransferInformation.method === 'transfer') {
 			collectibleTransferTransactionProperties.data = generateTransferData('transfer', {
@@ -656,10 +662,16 @@ class Amount extends PureComponent {
 		} else {
 			const exchangeRate = contractExchangeRates[selectedAsset.address];
 			if (internalPrimaryCurrencyIsCrypto || !exchangeRate) {
-				input = fromTokenMinimalUnit(contractBalances[selectedAsset.address], selectedAsset.decimals);
+				input = fromTokenMinimalUnitString(
+					contractBalances[selectedAsset.address]?.toString(10),
+					selectedAsset.decimals
+				);
 			} else {
 				input = `${balanceToFiatNumber(
-					fromTokenMinimalUnit(contractBalances[selectedAsset.address], selectedAsset.decimals),
+					fromTokenMinimalUnitString(
+						contractBalances[selectedAsset.address]?.toString(10),
+						selectedAsset.decimals
+					),
 					conversionRate,
 					exchangeRate
 				)}`;
@@ -827,7 +839,8 @@ class Amount extends PureComponent {
 				onPress={() => this.pickSelectedAsset(collectible)}
 			>
 				<View style={styles.assetElement}>
-					<CollectibleImage
+					<CollectibleMedia
+						small
 						collectible={collectible}
 						iconStyle={styles.tokenImage}
 						containerStyle={styles.tokenImage}
@@ -965,9 +978,10 @@ class Amount extends PureComponent {
 		return (
 			<View style={styles.collectibleInputWrapper}>
 				<View style={styles.collectibleInputImageWrapper}>
-					<CollectibleImage
-						containerStyle={styles.collectibleImage}
-						iconStyle={styles.collectibleImage}
+					<CollectibleMedia
+						small
+						containerStyle={styles.CollectibleMedia}
+						iconStyle={styles.CollectibleMedia}
 						collectible={selectedAsset}
 					/>
 				</View>
@@ -1066,7 +1080,8 @@ const mapStateToProps = (state, ownProps) => ({
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	transactionState: ownProps.transaction || state.transaction,
-	selectedAsset: state.transaction.selectedAsset
+	selectedAsset: state.transaction.selectedAsset,
+	isPaymentRequest: state.transaction.paymentRequest
 });
 
 const mapDispatchToProps = dispatch => ({

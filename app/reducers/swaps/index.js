@@ -1,4 +1,8 @@
 import { createSelector } from 'reselect';
+import contractMetadata from '@metamask/contract-metadata';
+import { isMainnetByChainId } from '../../util/networks';
+import { safeToChecksumAddress } from '../../util/address';
+import { toLowerCaseEquals } from '../../util/general';
 
 // * Constants
 export const SWAPS_SET_LIVENESS = 'SWAPS_SET_LIVENESS';
@@ -9,27 +13,86 @@ const MAX_TOKENS_WITH_BALANCE = 5;
 export const setSwapsLiveness = (live, chainId) => ({ type: SWAPS_SET_LIVENESS, payload: { live, chainId } });
 export const setSwapsHasOnboarded = hasOnboarded => ({ type: SWAPS_SET_HAS_ONBOARDED, payload: hasOnboarded });
 
+// * Functions
+
+function addMetadata(chainId, tokens) {
+	if (!isMainnetByChainId(chainId)) {
+		return tokens;
+	}
+	return tokens.map(token => {
+		const tokenMetadata = contractMetadata[safeToChecksumAddress(token.address)];
+		if (tokenMetadata) {
+			return { ...token, name: tokenMetadata.name };
+		}
+
+		return token;
+	});
+}
+
 // * Selectors
 
+const chainIdSelector = state => state.engine.backgroundState.NetworkController.provider.chainId;
+const swapsStateSelector = state => state.swaps;
 /**
  * Returns the swaps liveness state
  */
 
-export const swapsLivenessSelector = state => {
-	const chainId = state.engine.backgroundState.NetworkController.provider.chainId;
-	return state.swaps[chainId]?.isLive || false;
-};
+export const swapsLivenessSelector = createSelector(
+	swapsStateSelector,
+	chainIdSelector,
+	(swapsState, chainId) => swapsState[chainId]?.isLive || false
+);
 
 /**
  * Returns the swaps onboarded state
  */
 
-export const swapsHasOnboardedSelector = state => state.swaps.hasOnboarded;
+export const swapsHasOnboardedSelector = createSelector(
+	swapsStateSelector,
+	swapsState => swapsState.hasOnboarded
+);
 
 /**
  * Returns the swaps tokens from the state
  */
-export const swapsTokensSelector = state => state.engine.backgroundState.SwapsController.tokens;
+const swapsControllerTokens = state => state.engine.backgroundState.SwapsController.tokens;
+const tokensSelectors = state => state.engine.backgroundState.AssetsController.tokens;
+
+const swapsControllerAndUserTokens = createSelector(
+	swapsControllerTokens,
+	tokensSelectors,
+	(swapsTokens, tokens) => {
+		const values = [...(swapsTokens || []), ...(tokens || [])]
+			.reduce((map, { balanceError, image, ...token }) => {
+				const key = token.address.toLowerCase();
+
+				if (!map.has(key)) {
+					map.set(key, {
+						occurances: 0,
+						...token,
+						decimals: Number(token.decimals),
+						address: key
+					});
+				}
+				return map;
+			}, new Map())
+			.values();
+
+		return [...values];
+	}
+);
+
+export const swapsTokensSelector = createSelector(
+	chainIdSelector,
+	swapsControllerAndUserTokens,
+	(chainId, tokens) => {
+		if (!tokens) {
+			return [];
+		}
+
+		return addMetadata(chainId, tokens);
+	}
+);
 
 const topAssets = state => state.engine.backgroundState.SwapsController.topAssets;
 
@@ -38,7 +101,7 @@ const topAssets = state => state.engine.backgroundState.SwapsController.topAsset
  * and undefined as value. Useful to check if a token is supported by swaps.
  */
 export const swapsTokensObjectSelector = createSelector(
-	swapsTokensSelector,
+	swapsControllerAndUserTokens,
 	tokens => (tokens?.length > 0 ? tokens.reduce((acc, token) => ({ ...acc, [token.address]: undefined }), {}) : {})
 );
 
@@ -53,9 +116,10 @@ const balances = state => state.engine.backgroundState.TokenBalancesController.c
  * based on the current account's balances.
  */
 export const swapsTokensWithBalanceSelector = createSelector(
-	swapsTokensSelector,
+	chainIdSelector,
+	swapsControllerAndUserTokens,
 	balances,
-	(tokens, balances) => {
+	(chainId, tokens, balances) => {
 		if (!tokens) {
 			return [];
 		}
@@ -86,7 +150,7 @@ export const swapsTokensWithBalanceSelector = createSelector(
 			0,
 			Math.max(tokensWithBalance.length, MAX_TOKENS_WITH_BALANCE)
 		);
-		return result;
+		return addMetadata(chainId, result);
 	}
 );
 
@@ -95,15 +159,17 @@ export const swapsTokensWithBalanceSelector = createSelector(
  * based on the current account's balances.
  */
 export const swapsTopAssetsSelector = createSelector(
-	swapsTokensSelector,
+	chainIdSelector,
+	swapsControllerAndUserTokens,
 	topAssets,
-	(tokens, topAssets) => {
+	(chainId, tokens, topAssets) => {
 		if (!topAssets || !tokens) {
 			return [];
 		}
-		return topAssets
-			.map(({ address }) => tokens?.find(token => token.address.toLowerCase() === address.toLowerCase()))
+		const result = topAssets
+			.map(({ address }) => tokens?.find(token => toLowerCaseEquals(token.address, address)))
 			.filter(Boolean);
+		return addMetadata(chainId, result);
 	}
 );
 

@@ -1,4 +1,53 @@
 # Changelog
+
+## Current Develop Branch
+
+## v.2.6.0 - July 9 2021
+- [#2865](https://github.com/MetaMask/metamask-mobile/pull/2865): Added support for custom network gas estimates
+- [#2854](https://github.com/MetaMask/metamask-mobile/pull/2854): Fix time formatting on transactions
+- [#2883](https://github.com/MetaMask/metamask-mobile/pull/2883): Swaps: Fix isZero undefined error
+- [#2731](https://github.com/MetaMask/metamask-mobile/pull/2731): Improvement/react navigation upgrade 5
+- [#2709](https://github.com/MetaMask/metamask-mobile/pull/2709): Remove Picker deprecation warning
+
+## v.2.5.0 - June 15 2021
+- [#2809](https://github.com/MetaMask/metamask-mobile/pull/2809): Optional chaining dollarBalance
+- [#2776](https://github.com/MetaMask/metamask-mobile/pull/2776): Fix: empty state when using fiat on non-mainnet transactions
+- [#2777](https://github.com/MetaMask/metamask-mobile/pull/2777): Add isInteraction: false
+- [#2759](https://github.com/MetaMask/metamask-mobile/pull/2759): Use MediaPlayer
+- [#2748](https://github.com/MetaMask/metamask-mobile/pull/2748): v2.5.0
+- [#2757](https://github.com/MetaMask/metamask-mobile/pull/2757): Circleci fix
+- [#2746](https://github.com/MetaMask/metamask-mobile/pull/2746): bugfix/notification visibility
+- [#2749](https://github.com/MetaMask/metamask-mobile/pull/2749): @metamask/controllers@10.1.0
+- [#2702](https://github.com/MetaMask/metamask-mobile/pull/2702): Swaps: Update Market price unavailable and Price impact text
+- [#2701](https://github.com/MetaMask/metamask-mobile/pull/2701): Swaps: Allow every token on user wallet to be swapped
+- [#2617](https://github.com/MetaMask/metamask-mobile/pull/2617): On-Ramp: Refactor and Wyre countries
+- [#2611](https://github.com/MetaMask/metamask-mobile/pull/2611): Educate gas fees
+- [#2738](https://github.com/MetaMask/metamask-mobile/pull/2738): Feature/simplify custom gas
+- [#2741](https://github.com/MetaMask/metamask-mobile/pull/2741): bugfix/notifications reducer
+- [#2626](https://github.com/MetaMask/metamask-mobile/pull/2626): @metamask/mobile-provider@2.1.0
+- [#2706](https://github.com/MetaMask/metamask-mobile/pull/2706): make null conversionrate safe
+- [#2703](https://github.com/MetaMask/metamask-mobile/pull/2703): Convert token id to hexadecimal for collectible transfer
+- [#2742](https://github.com/MetaMask/metamask-mobile/pull/2742): Bugfix/fix ws resolution
+- [#2713](https://github.com/MetaMask/metamask-mobile/pull/2713): Feature/bitrise circle ci hybrid
+- [#2711](https://github.com/MetaMask/metamask-mobile/pull/2711): Feature/use same media player
+- [#2728](https://github.com/MetaMask/metamask-mobile/pull/2728): Add iconUrls to allowed list of keys
+- [#2737](https://github.com/MetaMask/metamask-mobile/pull/2737): Add resolution for ws to address security vuln
+- [#2727](https://github.com/MetaMask/metamask-mobile/pull/2727): Add missing required prop in tests
+
+## v.2.4.0 - May 21 2021
+- [#2618](https://github.com/MetaMask/metamask-mobile/pull/2618): Collectibles experience
+- [#2698](https://github.com/MetaMask/metamask-mobile/pull/2698): bugfix: navigation routeName is null
+- [#2692](https://github.com/MetaMask/metamask-mobile/pull/2692): Fix custom gas crash
+- [#2649](https://github.com/MetaMask/metamask-mobile/pull/2649): Migrate to new CurrencyRateController
+- [#2697](https://github.com/MetaMask/metamask-mobile/pull/2697): Set ignoreSilentSwitch and reset the video onEnd
+- [#2691](https://github.com/MetaMask/metamask-mobile/pull/2691): Feature/update casing secret recovery phrase
+- [#2694](https://github.com/MetaMask/metamask-mobile/pull/2694): Swaps: Add chainId to swaps analytics
+- [#2687](https://github.com/MetaMask/metamask-mobile/pull/2687): bufix: stuck notification
+- [#2689](https://github.com/MetaMask/metamask-mobile/pull/2689): Fix "use max" in send flow
+- [#2672](https://github.com/MetaMask/metamask-mobile/pull/2672): Fix xcode upgrade
+- [#2640](https://github.com/MetaMask/metamask-mobile/pull/2640): Swaps: Add name from metadata to swaps tokens
+- [#2628](https://github.com/MetaMask/metamask-mobile/pull/2628): Feature/use toLowerCaseCompare
+
 ## v.2.3.0 - May 5 2021
 - [#2674](https://github.com/MetaMask/metamask-mobile/pull/2674): Fix deploy contract and create token testnets
 - [#2669](https://github.com/MetaMask/metamask-mobile/pull/2669): Key off accounts
@@ -40,8 +89,6 @@
 - [#2468](https://github.com/MetaMask/metamask-mobile/pull/2468): Swaps: BSC Support
 - [#2539](https://github.com/MetaMask/metamask-mobile/pull/2539): Use node 14
 - [#2568](https://github.com/MetaMask/metamask-mobile/pull/2568): resolve isENS without case sensitivity (#2545)
-- [#2566](https://github.com/MetaMask/metamask-mobile/pull/2566): Revert "resolve isENS without case sensitivity (#2545)"
-- [#2545](https://github.com/MetaMask/metamask-mobile/pull/2545): resolve isENS without case sensitivity
 
 ## v2.2.0 - Apr 21 2021
 - [#2547](https://github.com/MetaMask/metamask-mobile/pull/2547): Include decimalsToShow in balanceToFiatNumber

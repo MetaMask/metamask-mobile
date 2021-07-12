@@ -44,7 +44,7 @@ describe('TransactionReviewSummary', () => {
 
 		const wrapper = shallow(
 			<TransactionReviewSummary
-				navigation={{ state: { params: {} } }}
+				route={{ params: {} }}
 				transactionData={{ amount: 0, gas: 0, gasPrice: 1, from: '0x0' }}
 			/>,
 			{

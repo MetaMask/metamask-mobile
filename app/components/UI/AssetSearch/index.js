@@ -6,6 +6,7 @@ import { strings } from '../../../../locales/i18n';
 import contractMap from '@metamask/contract-metadata';
 import Fuse from 'fuse.js';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { toLowerCaseEquals } from '../../../util/general';
 
 const styles = StyleSheet.create({
 	searchSection: {
@@ -67,9 +68,7 @@ export default class AssetSearch extends PureComponent {
 	handleSearch = searchQuery => {
 		this.setState({ searchQuery });
 		const fuseSearchResult = fuse.search(searchQuery);
-		const addressSearchResult = contractList.filter(
-			token => token.address.toLowerCase() === searchQuery.toLowerCase()
-		);
+		const addressSearchResult = contractList.filter(token => toLowerCaseEquals(token.address, searchQuery));
 		const results = [...addressSearchResult, ...fuseSearchResult];
 		this.props.onSearch({ searchQuery, results });
 	};

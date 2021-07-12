@@ -1,7 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, ScrollView, TouchableOpacity, LayoutAnimation, UIManager, Platform } from 'react-native';
-import { SafeAreaView } from 'react-navigation';
+import {
+	StyleSheet,
+	View,
+	ScrollView,
+	TouchableOpacity,
+	LayoutAnimation,
+	UIManager,
+	Platform,
+	SafeAreaView
+} from 'react-native';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';

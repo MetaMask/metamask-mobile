@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, TouchableOpacity, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-navigation';
+import { StyleSheet, View, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../../../locales/i18n';
@@ -9,6 +8,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Title from '../Title';
 import { colors } from '../../../../../styles/common';
 import StyledButton from '../../../StyledButton';
+import Device from '../../../../../util/Device';
 
 const styles = StyleSheet.create({
 	modalView: {
@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
 	modal: {
 		margin: 0,
 		width: '100%',
-		padding: 25
+		padding: Device.isIphone5() ? 15 : 25
 	},
 	title: {
 		width: '100%',

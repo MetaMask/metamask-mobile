@@ -18,19 +18,9 @@ describe('NetworksSettings', () => {
 				thirdPartyApiMode: true
 			}
 		};
-		const wrapper = shallow(
-			<NetworksSettings
-				navigation={{
-					state: { params: {} },
-					getParam: () => {
-						'network';
-					}
-				}}
-			/>,
-			{
-				context: { store: mockStore(initialState) }
-			}
-		);
+		const wrapper = shallow(<NetworksSettings route={{ params: {} }} />, {
+			context: { store: mockStore(initialState) }
+		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});
 });

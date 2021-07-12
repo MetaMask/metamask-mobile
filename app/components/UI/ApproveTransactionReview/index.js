@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, InteractionManager } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, InteractionManager, Linking } from 'react-native';
 import ActionView from '../../UI/ActionView';
 import Clipboard from '@react-native-community/clipboard';
 import PropTypes from 'prop-types';
@@ -34,12 +34,15 @@ import TransactionReviewDetailsCard from '../../UI/TransactionReview/Transaction
 import Device from '../../../util/Device';
 import AppConstants from '../../../core/AppConstants';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
-import { withNavigation } from 'react-navigation';
-import { getNetworkName, isMainNet } from '../../../util/networks';
+import { withNavigation } from '@react-navigation/compat';
+import { getNetworkName, isMainNet, isMainnetByChainId } from '../../../util/networks';
 import scaling from '../../../util/scaling';
 import { capitalize } from '../../../util/general';
 import EditPermission, { MINIMUM_VALUE } from './EditPermission';
 import Logger from '../../../util/Logger';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import InfoModal from '../Swaps/components/InfoModal';
+import Text from '../../Base/Text';
 
 const { hexToBN } = util;
 const styles = StyleSheet.create({
@@ -146,6 +149,18 @@ const styles = StyleSheet.create({
 	},
 	paddingHorizontal: {
 		paddingHorizontal: 16
+	},
+	gasInfoContainer: {
+		paddingHorizontal: 2
+	},
+	gasInfoIcon: {
+		color: colors.blue
+	},
+	hitSlop: {
+		top: 10,
+		left: 10,
+		bottom: 10,
+		right: 10
 	}
 });
 
@@ -233,7 +248,11 @@ class ApproveTransactionReview extends PureComponent {
 		/**
 		 * Function to set analytics params
 		 */
-		onSetAnalyticsParams: PropTypes.func
+		onSetAnalyticsParams: PropTypes.func,
+		/**
+		 * A string representing the network chainId
+		 */
+		chainId: PropTypes.string
 	};
 
 	state = {
@@ -250,7 +269,8 @@ class ApproveTransactionReview extends PureComponent {
 		viewDetails: false,
 		spenderAddress: '0x...',
 		transaction: this.props.transaction,
-		token: {}
+		token: {},
+		showGasTooltip: false
 	};
 
 	customSpendLimitInput = React.createRef();
@@ -439,6 +459,39 @@ class ApproveTransactionReview extends PureComponent {
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_PERMISSION_UPDATED, this.getAnalyticsParams());
 	};
 
+	openLinkAboutGas = () =>
+		Linking.openURL('https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172');
+
+	toggleGasTooltip = () => this.setState(state => ({ showGasTooltip: !state.showGasTooltip }));
+
+	renderGasTooltip = () => {
+		const isMainnet = isMainnetByChainId(this.props.chainId);
+		return (
+			<InfoModal
+				isVisible={this.state.showGasTooltip}
+				title={strings(`transaction.gas_education_title${isMainnet ? '_ethereum' : ''}`)}
+				toggleModal={this.toggleGasTooltip}
+				body={
+					<View>
+						<Text grey infoModal>
+							{strings('transaction.gas_education_1')}
+							{strings(`transaction.gas_education_2${isMainnet ? '_ethereum' : ''}`)}{' '}
+							<Text bold>{strings('transaction.gas_education_3')}</Text>
+						</Text>
+						<Text grey infoModal>
+							{strings('transaction.gas_education_4')}
+						</Text>
+						<TouchableOpacity onPress={this.openLinkAboutGas}>
+							<Text grey link infoModal>
+								{strings('transaction.gas_education_learn_more')}
+							</Text>
+						</TouchableOpacity>
+					</View>
+				}
+			/>
+		);
+	};
+
 	renderEditPermission = () => {
 		const {
 			host,
@@ -496,13 +549,13 @@ class ApproveTransactionReview extends PureComponent {
 					<TransactionHeader
 						currentPageInformation={{ origin, spenderAddress, title: host, url: activeTabUrl }}
 					/>
-					<Text style={styles.title} testID={'allow-access'}>
+					<Text reset style={styles.title} testID={'allow-access'}>
 						{strings(
 							`spend_limit_edition.${originIsDeeplink ? 'allow_to_address_access' : 'allow_to_access'}`,
 							{ tokenSymbol }
 						)}
 					</Text>
-					<Text style={styles.explanation}>
+					<Text reset style={styles.explanation}>
 						{`${strings(
 							`spend_limit_edition.${originIsDeeplink ? 'you_trust_this_address' : 'you_trust_this_site'}`
 						)}`}
@@ -517,7 +570,7 @@ class ApproveTransactionReview extends PureComponent {
 						>
 							<View style={styles.actionViewChildren}>
 								<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleEditPermission}>
-									<Text style={styles.editPermissionText}>
+									<Text reset style={styles.editPermissionText}>
 										{strings('spend_limit_edition.edit_permission')}
 									</Text>
 								</TouchableOpacity>
@@ -526,10 +579,21 @@ class ApproveTransactionReview extends PureComponent {
 									<View style={styles.section}>
 										<TouchableOpacity onPress={this.edit}>
 											<View style={styles.networkFee}>
-												<Text style={styles.sectionLeft}>
+												<Text reset style={styles.sectionLeft}>
 													{strings('transaction.transaction_fee')}
+													<TouchableOpacity
+														style={styles.gasInfoContainer}
+														onPress={this.toggleGasTooltip}
+														hitSlop={styles.hitSlop}
+													>
+														<MaterialCommunityIcons
+															name="information"
+															size={13}
+															style={styles.gasInfoIcon}
+														/>
+													</TouchableOpacity>
 												</Text>
-												<Text style={styles.sectionRight}>
+												<Text reset style={styles.sectionRight}>
 													{isFiat && currencySymbol}
 													{isFiat ? totalGasFiatRounded : totalGas} {!isFiat && ticker}
 												</Text>
@@ -545,10 +609,12 @@ class ApproveTransactionReview extends PureComponent {
 										{gasError && (
 											<View style={styles.errorWrapper}>
 												<TouchableOpacity onPress={errorPress}>
-													<Text style={styles.error}>{gasError}</Text>
+													<Text reset style={styles.error}>
+														{gasError}
+													</Text>
 													{/* only show buy more on mainnet */}
 													{over && is_main_net && (
-														<Text style={[styles.error, styles.underline]}>
+														<Text reset style={[styles.error, styles.underline]}>
 															{errorLinkText}
 														</Text>
 													)}
@@ -557,7 +623,9 @@ class ApproveTransactionReview extends PureComponent {
 										)}
 										{!!warningGasPriceHigh && (
 											<View style={styles.errorWrapper}>
-												<Text style={styles.error}>{warningGasPriceHigh}</Text>
+												<Text reset style={styles.error}>
+													{warningGasPriceHigh}
+												</Text>
 											</View>
 										)}
 										{!gasError && (
@@ -566,7 +634,7 @@ class ApproveTransactionReview extends PureComponent {
 												onPress={this.toggleViewDetails}
 											>
 												<View>
-													<Text style={styles.viewDetailsText}>
+													<Text reset style={styles.viewDetailsText}>
 														{strings('spend_limit_edition.view_details')}
 													</Text>
 												</View>
@@ -578,6 +646,7 @@ class ApproveTransactionReview extends PureComponent {
 						</ActionView>
 					</View>
 				</View>
+				{this.renderGasTooltip()}
 			</>
 		);
 	};
@@ -614,7 +683,7 @@ class ApproveTransactionReview extends PureComponent {
 		const { navigation } = this.props;
 		/* this is kinda weird, we have to reject the transaction to collapse the modal */
 		this.onCancelPress();
-		navigation.navigate('PaymentMethodSelector');
+		navigation.navigate('FiatOnRamp');
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST);
 		});
@@ -666,7 +735,8 @@ const mapStateToProps = state => ({
 	providerType: state.engine.backgroundState.NetworkController.provider.type,
 	primaryCurrency: state.settings.primaryCurrency,
 	activeTabUrl: getActiveTabUrl(state),
-	network: state.engine.backgroundState.NetworkController.network
+	network: state.engine.backgroundState.NetworkController.network,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId
 });
 
 const mapDispatchToProps = dispatch => ({

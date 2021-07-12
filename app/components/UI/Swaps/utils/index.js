@@ -22,6 +22,15 @@ export function isSwapsNativeAsset(token) {
 	return Boolean(token) && token?.address === swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS;
 }
 
+export function isDynamicToken(token) {
+	return (
+		Boolean(token) &&
+		token.occurances === 1 &&
+		token?.aggregators.length === 1 &&
+		token.aggregators[0] === 'dynamic'
+	);
+}
+
 /**
  * Sets required parameters for Swaps Quotes View
  * @param {string} sourceTokenAddress Token contract address used as swaps source
@@ -41,14 +50,13 @@ export function setQuotesNavigationsParams(sourceTokenAddress, destinationTokenA
 
 /**
  * Gets required parameters for Swaps Quotes View
- * @param {object} navigation React-navigation's navigation prop
  * @return {object} Object containing sourceTokenAddress, destinationTokenAddress, sourceAmount and slippage
  */
-export function getQuotesNavigationsParams(navigation) {
-	const slippage = navigation.getParam('slippage', 1);
-	const sourceTokenAddress = navigation.getParam('sourceTokenAddress', '');
-	const destinationTokenAddress = navigation.getParam('destinationTokenAddress', '');
-	const sourceAmount = navigation.getParam('sourceAmount');
+export function getQuotesNavigationsParams(route) {
+	const slippage = route.params?.slippage ?? 1;
+	const sourceTokenAddress = route.params?.sourceTokenAddress ?? '';
+	const destinationTokenAddress = route.params?.destinationTokenAddress ?? '';
+	const sourceAmount = route.params?.sourceAmount;
 
 	return {
 		sourceTokenAddress,

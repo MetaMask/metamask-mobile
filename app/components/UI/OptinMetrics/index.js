@@ -1,15 +1,5 @@
 import React, { PureComponent } from 'react';
-import {
-	View,
-	SafeAreaView,
-	Text,
-	StyleSheet,
-	TouchableOpacity,
-	ScrollView,
-	BackHandler,
-	Alert,
-	InteractionManager
-} from 'react-native';
+import { View, SafeAreaView, Text, StyleSheet, TouchableOpacity, ScrollView, BackHandler, Alert } from 'react-native';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles, colors } from '../../../styles/common';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -18,8 +8,6 @@ import { getOptinMetricsNavbarOptions } from '../Navbar';
 import { strings } from '../../../../locales/i18n';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { connect } from 'react-redux';
-// eslint-disable-next-line import/named
-import { NavigationActions, withNavigationFocus } from 'react-navigation';
 import StyledButton from '../StyledButton';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
@@ -29,7 +17,8 @@ import AppConstants from '../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	root: {
-		...baseStyles.flexGrow
+		...baseStyles.flexGrow,
+		backgroundColor: colors.white
 	},
 	checkIcon: {
 		color: colors.green500
@@ -108,10 +97,6 @@ class OptinMetrics extends PureComponent {
 		 */
 		setOnboardingWizardStep: PropTypes.func,
 		/**
-		 * React navigation prop to know if this view is focused
-		 */
-		isFocused: PropTypes.bool,
-		/**
 		 * Onboarding events array created in previous onboarding views
 		 */
 		events: PropTypes.array,
@@ -139,10 +124,7 @@ class OptinMetrics extends PureComponent {
 	 * Temporary disabling the back button so users can't go back
 	 */
 	handleBackPress = () => {
-		if (this.props.isFocused) {
-			Alert.alert(strings('onboarding.optin_back_title'), strings('onboarding.optin_back_desc'));
-			return true;
-		}
+		Alert.alert(strings('onboarding.optin_back_title'), strings('onboarding.optin_back_desc'));
 	};
 
 	/**
@@ -152,10 +134,10 @@ class OptinMetrics extends PureComponent {
 		// Get onboarding wizard state
 		const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
 		if (onboardingWizard) {
-			this.props.navigation.navigate('HomeNav');
+			this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
 		} else {
 			this.props.setOnboardingWizardStep(1);
-			this.props.navigation.navigate('HomeNav', {}, NavigationActions.navigate({ routeName: 'WalletView' }));
+			this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
 		}
 	};
 
@@ -180,7 +162,7 @@ class OptinMetrics extends PureComponent {
 	 * Callback on press cancel
 	 */
 	onCancel = async () => {
-		InteractionManager.runAfterInteractions(async () => {
+		setTimeout(async () => {
 			if (this.props.events && this.props.events.length) {
 				this.props.events.forEach(e => Analytics.trackEvent(e));
 			}
@@ -188,7 +170,7 @@ class OptinMetrics extends PureComponent {
 			this.props.clearOnboardingEvents();
 			await AsyncStorage.setItem(METRICS_OPT_IN, DENIED);
 			Analytics.disableInstance();
-		});
+		}, 200);
 		this.continue();
 	};
 
@@ -196,14 +178,14 @@ class OptinMetrics extends PureComponent {
 	 * Callback on press confirm
 	 */
 	onConfirm = async () => {
-		InteractionManager.runAfterInteractions(async () => {
+		setTimeout(async () => {
 			if (this.props.events && this.props.events.length) {
 				this.props.events.forEach(e => Analytics.trackEvent(e));
 			}
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_IN);
 			this.props.clearOnboardingEvents();
 			await AsyncStorage.setItem(METRICS_OPT_IN, AGREED);
-		});
+		}, 200);
 		this.continue();
 	};
 
@@ -212,8 +194,11 @@ class OptinMetrics extends PureComponent {
 	 */
 	onPressPolicy = () => {
 		this.props.navigation.navigate('Webview', {
-			url: AppConstants.URLS.PRIVACY_POLICY,
-			title: strings('privacy_policy.title')
+			screen: 'SimpleWebview',
+			params: {
+				url: AppConstants.URLS.PRIVACY_POLICY,
+				title: strings('privacy_policy.title')
+			}
 		});
 	};
 
@@ -280,4 +265,4 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
 	mapStateToProps,
 	mapDispatchToProps
-)(withNavigationFocus(OptinMetrics));
+)(OptinMetrics);

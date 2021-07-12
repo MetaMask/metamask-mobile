@@ -16,7 +16,8 @@ import { ONBOARDING_WIZARD, METRICS_OPT_IN } from '../../../constants/storage';
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import SeedPhraseVideo from '../../UI/SeedPhraseVideo';
-
+import { connect } from 'react-redux';
+import setOnboardingWizardStep from '../../../actions/wizard';
 const styles = StyleSheet.create({
 	mainWrapper: {
 		backgroundColor: colors.white,
@@ -39,7 +40,7 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		fontSize: 24,
-		marginBottom: 40,
+		marginBottom: 24,
 		color: colors.fontPrimary,
 		textAlign: 'center',
 		...fontStyles.bold
@@ -128,7 +129,7 @@ const AccountBackupStep1 = props => {
 	);
 
 	const goNext = () => {
-		props.navigation.navigate('AccountBackupStep1B', { ...props.navigation.state.params });
+		props.navigation.navigate('AccountBackupStep1B', { ...props.route.params });
 	};
 
 	const showRemindLater = () => {
@@ -155,14 +156,14 @@ const AccountBackupStep1 = props => {
 		const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
 		// Check if user passed through metrics opt-in screen
 		const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
+
 		if (!metricsOptIn) {
 			props.navigation.navigate('OptinMetrics');
 		} else if (onboardingWizard) {
-			props.navigation.navigate('HomeNav');
-			props.navigation.popToTop();
-			props.navigation.goBack(null);
+			props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
 		} else {
-			props.navigation.navigate('HomeNav');
+			props.setOnboardingWizardStep(1);
+			props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
 		}
 	};
 
@@ -181,7 +182,7 @@ const AccountBackupStep1 = props => {
 					<OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} currentStep={1} />
 					<View style={styles.content}>
 						<Text style={styles.title}>{strings('account_backup_step_1.title')}</Text>
-						<SeedPhraseVideo />
+						<SeedPhraseVideo onClose={skip} />
 						<View style={styles.text}>
 							<Text style={styles.label}>
 								{strings('account_backup_step_1.info_text_1_1')}{' '}
@@ -246,12 +247,28 @@ AccountBackupStep1.propTypes = {
 	/**
 	/* navigation object required to push and pop other views
 	*/
-	navigation: PropTypes.object
+	navigation: PropTypes.object,
+	/**
+	 * Object that represents the current route info like params passed to it
+	 */
+	route: PropTypes.object,
+	/**
+	 * Action to set onboarding wizard step
+	 */
+	setOnboardingWizardStep: PropTypes.func
 };
 
-AccountBackupStep1.navigationOptions = ({ navigation }) => ({
-	...getOnboardingNavbarOptions(navigation, { headerLeft: <View /> }),
+AccountBackupStep1.navigationOptions = ({ navigation, route }) => ({
+	// eslint-disable-next-line react/display-name
+	...getOnboardingNavbarOptions(navigation, route, { headerLeft: () => <View /> }),
 	gesturesEnabled: false
 });
 
-export default AccountBackupStep1;
+const mapDispatchToProps = dispatch => ({
+	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
+});
+
+export default connect(
+	null,
+	mapDispatchToProps
+)(AccountBackupStep1);

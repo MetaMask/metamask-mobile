@@ -24,8 +24,6 @@ import { strings } from '../../../../locales/i18n';
 import SecureKeychain from '../../../core/SecureKeychain';
 import AppConstants from '../../../core/AppConstants';
 import setOnboardingWizardStep from '../../../actions/wizard';
-// eslint-disable-next-line import/named
-import { NavigationActions } from 'react-navigation';
 import TermsAndConditions from '../TermsAndConditions';
 import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -72,10 +70,11 @@ const styles = StyleSheet.create({
 		alignItems: 'flex-end'
 	},
 	fieldCol: {
-		width: '50%'
+		width: '70%'
 	},
 	fieldColRight: {
-		flexDirection: 'row-reverse'
+		flexDirection: 'row-reverse',
+		width: '30%'
 	},
 	label: {
 		color: colors.black,
@@ -178,7 +177,7 @@ const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
  * using a seed phrase
  */
 class ImportFromSeed extends PureComponent {
-	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
+	static navigationOptions = ({ navigation, route }) => getOnboardingNavbarOptions(navigation, route);
 
 	static propTypes = {
 		/**
@@ -288,20 +287,12 @@ class ImportFromSeed extends PureComponent {
 				this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 				this.props.seedphraseBackedUp();
 				if (!metricsOptIn) {
-					this.props.navigation.navigate(
-						'ManualBackupStep3',
-						{},
-						NavigationActions.navigate({ routeName: 'OptinMetrics' })
-					);
+					this.props.navigation.navigate('OptinMetrics');
 				} else if (onboardingWizard) {
 					this.props.navigation.navigate('ManualBackupStep3');
 				} else {
 					this.props.setOnboardingWizardStep(1);
-					this.props.navigation.navigate(
-						'ManualBackupStep3',
-						{},
-						NavigationActions.navigate({ routeName: 'WalletView' })
-					);
+					this.props.navigation.navigate('HomeNav', { screen: 'WalletView' });
 				}
 				await importAdditionalAccounts();
 			} catch (error) {

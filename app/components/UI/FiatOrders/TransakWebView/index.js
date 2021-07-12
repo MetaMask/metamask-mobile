@@ -11,9 +11,10 @@ import { getNotificationDetails } from '..';
 import { getTransakWebviewNavbar } from '../../../UI/Navbar';
 import { baseStyles } from '../../../../styles/common';
 import { protectWalletModalVisible } from '../../../../actions/user';
+import { addFiatOrder } from '../../../../reducers/fiatOrders';
 
 class TransakWebView extends PureComponent {
-	static navigationOptions = ({ navigation }) => getTransakWebviewNavbar(navigation);
+	static navigationOptions = ({ navigation, route }) => getTransakWebviewNavbar(navigation, route);
 
 	static propTypes = {
 		navigation: PropTypes.object,
@@ -28,7 +29,11 @@ class TransakWebView extends PureComponent {
 		/**
 		 * Prompts protect wallet modal
 		 */
-		protectWalletModalVisible: PropTypes.func
+		protectWalletModalVisible: PropTypes.func,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	handleNavigationStateChange = async navState => {
@@ -36,7 +41,7 @@ class TransakWebView extends PureComponent {
 			const order = handleTransakRedirect(navState.url, this.props.network);
 			this.props.addOrder(order);
 			this.props.protectWalletModalVisible();
-			this.props.navigation.dismiss();
+			this.props.navigation.dangerouslyGetParent()?.pop();
 			InteractionManager.runAfterInteractions(() =>
 				NotificationManager.showSimpleNotification(getNotificationDetails(order))
 			);
@@ -44,7 +49,7 @@ class TransakWebView extends PureComponent {
 	};
 
 	render() {
-		const uri = this.props.navigation.getParam('url', null);
+		const uri = this.props.route.params?.url;
 		if (uri) {
 			return (
 				<View style={baseStyles.flexGrow}>
@@ -60,7 +65,7 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-	addOrder: order => dispatch({ type: 'FIAT_ADD_ORDER', payload: order }),
+	addOrder: order => dispatch(addFiatOrder(order)),
 	protectWalletModalVisible: () => dispatch(protectWalletModalVisible())
 });
 

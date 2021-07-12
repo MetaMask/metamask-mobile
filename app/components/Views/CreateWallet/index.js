@@ -21,7 +21,7 @@ import { setLockTime } from '../../../actions/settings';
 import { connect } from 'react-redux';
 import setOnboardingWizardStep from '../../../actions/wizard';
 // eslint-disable-next-line import/named
-import { NavigationActions, withNavigationFocus } from 'react-navigation';
+import { withNavigationFocus } from '@react-navigation/compat';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import Device from '../../../util/Device';
 import {
@@ -146,11 +146,7 @@ class CreateWallet extends PureComponent {
 					this.props.navigation.navigate('HomeNav');
 				} else {
 					this.props.setOnboardingWizardStep(1);
-					this.props.navigation.navigate(
-						'HomeNav',
-						{},
-						NavigationActions.navigate({ routeName: 'WalletView' })
-					);
+					this.props.navigation.navigate('HomeNav', { screen: 'WalletView' });
 				}
 			}, 1000);
 		});

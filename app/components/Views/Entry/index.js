@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { withNavigation } from 'react-navigation';
+import { withNavigation } from '@react-navigation/compat';
 import PropTypes from 'prop-types';
 import { Animated, Dimensions, StyleSheet, View } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -85,7 +85,12 @@ const Entry = props => {
 			useNativeDriver: true,
 			isInteraction: false
 		}).start(() => {
-			if (viewToGo !== 'WalletView' || viewToGo !== 'Onboarding') {
+			if (viewToGo === 'OptinMetrics') {
+				props.navigation.navigate('OnboardingRootNav', {
+					screen: 'OnboardingNav',
+					params: { screen: 'OptinMetrics' }
+				});
+			} else if (viewToGo && (viewToGo !== 'WalletView' || viewToGo !== 'Onboarding')) {
 				props.navigation.navigate(viewToGo);
 			} else if (viewToGo === 'Onboarding') {
 				props.navigation.navigate('OnboardingRootNav');

@@ -1,7 +1,7 @@
-import React, { useContext, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
-import { NavigationContext } from 'react-navigation';
+import { useNavigation } from '@react-navigation/native';
 import { connect } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import Analytics from '../../../../core/Analytics';
@@ -14,19 +14,37 @@ import Title from '../components/Title';
 
 import TransakPaymentMethod from './transak';
 
-function PaymentMethodSelectorView({ selectedAddress, ...props }) {
-	const navigation = useContext(NavigationContext);
+import { setGasEducationCarouselSeen } from '../../../../actions/user';
+
+function PaymentMethodSelectorView({
+	selectedAddress,
+	gasEducationCarouselSeen,
+	setGasEducationCarouselSeen,
+	...props
+}) {
+	const navigation = useNavigation();
 	const transakURL = useTransakFlowURL(selectedAddress);
 
 	const onPressTransak = useCallback(() => {
-		navigation.navigate('TransakFlow', {
-			url: transakURL,
-			title: strings('fiat_on_ramp.transak_webview_title')
-		});
+		const goToTransakFlow = () =>
+			navigation.navigate('TransakFlow', {
+				url: transakURL,
+				title: strings('fiat_on_ramp.transak_webview_title')
+			});
+
+		if (!gasEducationCarouselSeen) {
+			navigation.navigate('GasEducationCarousel', {
+				navigateTo: goToTransakFlow
+			});
+			setGasEducationCarouselSeen();
+		} else {
+			goToTransakFlow();
+		}
+
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.PAYMENTS_SELECTS_DEBIT_OR_ACH);
 		});
-	}, [navigation, transakURL]);
+	}, [navigation, transakURL, gasEducationCarouselSeen, setGasEducationCarouselSeen]);
 
 	return (
 		<ScreenView>
@@ -37,13 +55,23 @@ function PaymentMethodSelectorView({ selectedAddress, ...props }) {
 }
 
 PaymentMethodSelectorView.propTypes = {
-	selectedAddress: PropTypes.string.isRequired
+	selectedAddress: PropTypes.string.isRequired,
+	gasEducationCarouselSeen: PropTypes.bool,
+	setGasEducationCarouselSeen: PropTypes.func
 };
 
 PaymentMethodSelectorView.navigationOptions = ({ navigation }) => getPaymentSelectorMethodNavbar(navigation);
 
 const mapStateToProps = state => ({
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	gasEducationCarouselSeen: state.user.gasEducationCarouselSeen
 });
 
-export default connect(mapStateToProps)(PaymentMethodSelectorView);
+const mapDispatchToProps = dispatch => ({
+	setGasEducationCarouselSeen: () => dispatch(setGasEducationCarouselSeen())
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(PaymentMethodSelectorView);

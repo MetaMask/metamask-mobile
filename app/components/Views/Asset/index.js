@@ -11,6 +11,7 @@ import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import Engine from '../../../core/Engine';
 import { safeToChecksumAddress } from '../../../util/address';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
+import { toLowerCaseEquals } from '../../../util/general';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -72,7 +73,11 @@ class Asset extends PureComponent {
 		 * Indicates whether third party API mode is enabled
 		 */
 		thirdPartyApiMode: PropTypes.bool,
-		swapsTransactions: PropTypes.object
+		swapsTransactions: PropTypes.object,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	state = {
@@ -92,16 +97,16 @@ class Asset extends PureComponent {
 	navSymbol = undefined;
 	navAddress = undefined;
 
-	static navigationOptions = ({ navigation }) =>
-		getNetworkNavbarOptions(navigation.getParam('symbol', ''), false, navigation);
+	static navigationOptions = ({ navigation, route }) =>
+		getNetworkNavbarOptions(route.params?.symbol ?? '', false, navigation);
 
 	componentDidMount() {
 		InteractionManager.runAfterInteractions(() => {
 			this.normalizeTransactions();
 			this.mounted = true;
 		});
-		this.navSymbol = this.props.navigation.getParam('symbol', '').toLowerCase();
-		this.navAddress = this.props.navigation.getParam('address', '').toLowerCase();
+		this.navSymbol = (this.props.route.params?.symbol ?? '').toLowerCase();
+		this.navAddress = (this.props.route.params?.address ?? '').toLowerCase();
 		if (this.navSymbol.toUpperCase() !== 'ETH' && this.navAddress !== '') {
 			this.filter = this.noEthFilter;
 		} else {
@@ -144,8 +149,8 @@ class Asset extends PureComponent {
 			tx.status !== 'unapproved'
 		) {
 			if (isTransfer)
-				return this.props.tokens.find(
-					({ address }) => address.toLowerCase() === transferInformation.contractAddress.toLowerCase()
+				return this.props.tokens.find(({ address }) =>
+					toLowerCaseEquals(address, transferInformation.contractAddress)
 				);
 			return true;
 		}
@@ -267,9 +272,7 @@ class Asset extends PureComponent {
 	render = () => {
 		const { loading, transactions, submittedTxs, confirmedTxs, transactionsUpdated } = this.state;
 		const {
-			navigation: {
-				state: { params }
-			},
+			route: { params },
 			navigation,
 			conversionRate,
 			currentCurrency,

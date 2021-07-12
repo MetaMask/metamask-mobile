@@ -10,6 +10,7 @@ import Engine from '../../../core/Engine';
 import Modal from 'react-native-modal';
 import CollectibleContractInformation from '../../UI/CollectibleContractInformation';
 import { toggleCollectibleContractModal } from '../../../actions/modals';
+import { toLowerCaseEquals } from '../../../util/general';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -41,7 +42,11 @@ class Collectible extends PureComponent {
 		/**
 		 * Whether collectible contract information is visible
 		 */
-		collectibleContractModalVisible: PropTypes.bool
+		collectibleContractModalVisible: PropTypes.bool,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	state = {
@@ -49,8 +54,8 @@ class Collectible extends PureComponent {
 		collectibles: []
 	};
 
-	static navigationOptions = ({ navigation }) =>
-		getNetworkNavbarOptions(navigation.getParam('name', ''), false, navigation);
+	static navigationOptions = ({ navigation, route }) =>
+		getNetworkNavbarOptions(route.params?.name ?? '', false, navigation);
 
 	onRefresh = async () => {
 		this.setState({ refreshing: true });
@@ -65,17 +70,15 @@ class Collectible extends PureComponent {
 
 	render = () => {
 		const {
-			navigation: {
-				state: { params }
-			},
+			route: { params },
 			navigation,
 			collectibleContractModalVisible
 		} = this.props;
 		const collectibleContract = params;
 		const address = params.address;
 		const { collectibles } = this.props;
-		const filteredCollectibles = collectibles.filter(
-			collectible => collectible.address.toLowerCase() === address.toLowerCase()
+		const filteredCollectibles = collectibles.filter(collectible =>
+			toLowerCaseEquals(collectible.address, address)
 		);
 		filteredCollectibles.map(collectible => {
 			if (!collectible.name || collectible.name === '') {

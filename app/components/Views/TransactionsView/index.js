@@ -2,12 +2,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, View, InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { withNavigation } from 'react-navigation';
+import { withNavigation } from '@react-navigation/compat';
 import Engine from '../../../core/Engine';
 import { showAlert } from '../../../actions/alert';
 import Transactions from '../../UI/Transactions';
 import { safeToChecksumAddress } from '../../../util/address';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
+import { toLowerCaseEquals } from '../../../util/general';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -50,8 +51,8 @@ const TransactionsView = ({
 				tx.status !== 'unapproved'
 			) {
 				if (isTransfer)
-					return tokens.find(
-						({ address }) => address.toLowerCase() === transferInformation.contractAddress.toLowerCase()
+					return tokens.find(({ address }) =>
+						toLowerCaseEquals(address, transferInformation.contractAddress)
 					);
 				return true;
 			}

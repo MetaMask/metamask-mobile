@@ -8,8 +8,19 @@ const mockStore = configureMockStore();
 describe('CollectibleContracts', () => {
 	it('should render correctly', () => {
 		const initialState = {
+			collectibles: {
+				favorites: {}
+			},
 			engine: {
 				backgroundState: {
+					NetworkController: {
+						provider: {
+							chainId: 1
+						}
+					},
+					PreferencesController: {
+						selectedAddress: '0x1'
+					},
 					AssetsController: {
 						collectibleContracts: [
 							{
@@ -20,7 +31,8 @@ describe('CollectibleContracts', () => {
 								description: 'description',
 								totalSupply: 10
 							}
-						]
+						],
+						collectibles: {}
 					}
 				}
 			}
@@ -28,7 +40,7 @@ describe('CollectibleContracts', () => {
 
 		const wrapper = shallow(
 			<CollectibleContracts
-				navigation={{ state: { params: { address: '0x1' } } }}
+				route={{ params: { address: '0x1' } }}
 				collectibles={[
 					{
 						address: '0x0',

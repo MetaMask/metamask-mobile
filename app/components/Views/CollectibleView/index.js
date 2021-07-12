@@ -48,17 +48,19 @@ class CollectibleView extends PureComponent {
 		/**
 		 * Start transaction with asset
 		 */
-		newAssetTransaction: PropTypes.func
+		newAssetTransaction: PropTypes.func,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
-	static navigationOptions = ({ navigation }) =>
-		getNetworkNavbarOptions(navigation.getParam('contractName', ''), false, navigation);
+	static navigationOptions = ({ navigation, route }) =>
+		getNetworkNavbarOptions(route.params?.contractName ?? '', false, navigation);
 
 	onSend = async () => {
 		const {
-			navigation: {
-				state: { params }
-			}
+			route: { params }
 		} = this.props;
 		this.props.newAssetTransaction(params);
 		this.props.navigation.navigate('SendFlowView');
@@ -66,9 +68,7 @@ class CollectibleView extends PureComponent {
 
 	render() {
 		const {
-			navigation: {
-				state: { params }
-			},
+			route: { params },
 			navigation
 		} = this.props;
 		const collectible = params;

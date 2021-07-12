@@ -3,13 +3,14 @@ import { StyleSheet, Text, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import CollectibleImage from '../CollectibleImage';
+import CollectibleMedia from '../CollectibleMedia';
 import AssetActionButton from '../AssetActionButton';
 import Device from '../../../util/Device';
 import { toggleCollectibleContractModal } from '../../../actions/modals';
 import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import { newAssetTransaction } from '../../../actions/transaction';
+import { toLowerCaseEquals } from '../../../util/general';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -84,8 +85,8 @@ class CollectibleContractOverview extends PureComponent {
 
 	onSend = () => {
 		const { collectibleContract, collectibles } = this.props;
-		const collectible = collectibles.find(
-			collectible => collectible.address.toLowerCase() === collectibleContract.address.toLowerCase()
+		const collectible = collectibles.find(collectible =>
+			toLowerCaseEquals(collectible.address, collectibleContract.address)
 		);
 		this.props.newAssetTransaction(collectible);
 		this.props.navigation.navigate('SendFlowView');
@@ -97,7 +98,7 @@ class CollectibleContractOverview extends PureComponent {
 		const {
 			collectibleContract: { logo, address }
 		} = this.props;
-		return <CollectibleImage collectible={{ address, image: logo }} />;
+		return <CollectibleMedia small collectible={{ address, image: logo }} />;
 	};
 
 	render() {

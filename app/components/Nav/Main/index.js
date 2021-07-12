@@ -50,7 +50,8 @@ import {
 	showTransactionNotification,
 	hideCurrentNotification,
 	showSimpleNotification,
-	removeNotificationById
+	removeNotificationById,
+	removeNotVisibleNotifications
 } from '../../../actions/notification';
 import { toggleDappTransactionModal, toggleApproveModal } from '../../../actions/modals';
 import AccountApproval from '../../UI/AccountApproval';
@@ -105,6 +106,7 @@ const Main = props => {
 	const toggleApproveModal = props.toggleApproveModal;
 	const toggleDappTransactionModal = props.toggleDappTransactionModal;
 	const setEtherTransaction = props.setEtherTransaction;
+	const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
 
 	const usePrevious = value => {
 		const ref = useRef();
@@ -415,12 +417,13 @@ const Main = props => {
 			// If the app is now in background, we need to start
 			// the background timer, which is less intense
 			if (backgroundMode.current) {
+				removeNotVisibleNotifications();
 				BackgroundTimer.runBackgroundTimer(async () => {
 					await Engine.refreshTransactionHistory();
 				}, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
 			}
 		},
-		[backgroundMode, pollForIncomingTransactions]
+		[backgroundMode, removeNotVisibleNotifications, pollForIncomingTransactions]
 	);
 
 	const initForceReload = () => {
@@ -458,6 +461,7 @@ const Main = props => {
 		>
 			{signType === 'personal' && (
 				<PersonalSign
+					navigation={props.navigation}
 					messageParams={signMessageParams}
 					onCancel={onSignAction}
 					onConfirm={onSignAction}
@@ -468,6 +472,7 @@ const Main = props => {
 			)}
 			{signType === 'typed' && (
 				<TypedSign
+					navigation={props.navigation}
 					messageParams={signMessageParams}
 					onCancel={onSignAction}
 					onConfirm={onSignAction}
@@ -554,7 +559,10 @@ const Main = props => {
 
 	const skipAccountModalSecureNow = () => {
 		toggleRemindLater();
-		props.navigation.navigate('AccountBackupStep1B', { ...props.navigation.state.params });
+		props.navigation.navigate('SetPasswordFlow', {
+			screen: 'AccountBackupStep1B',
+			params: { ...props.route.params }
+		});
 	};
 
 	const skipAccountModalSkip = () => {
@@ -571,6 +579,11 @@ const Main = props => {
 			lockManager.current && lockManager.current.updateLockTime(props.lockTime);
 		}
 	});
+
+	// Remove all notifications that aren't visible
+	useEffect(() => {
+		removeNotVisibleNotifications();
+	}, [removeNotVisibleNotifications]);
 
 	// unapprovedTransaction effect
 	useEffect(() => {
@@ -647,16 +660,7 @@ const Main = props => {
 	return (
 		<React.Fragment>
 			<View style={styles.flex}>
-				{!forceReload ? (
-					<MainNavigator
-						navigation={props.navigation}
-						screenProps={{
-							isPaymentRequest: props.isPaymentRequest
-						}}
-					/>
-				) : (
-					renderLoader()
-				)}
+				{!forceReload ? <MainNavigator navigation={props.navigation} /> : renderLoader()}
 				<GlobalAlert />
 				<FadeOutOverlay />
 				<Notification navigation={props.navigation} />
@@ -719,10 +723,6 @@ Main.propTypes = {
 	hideCurrentNotification: PropTypes.func,
 	removeNotificationById: PropTypes.func,
 	/**
-	 * Indicates whether the current transaction is a deep link transaction
-	 */
-	isPaymentRequest: PropTypes.bool,
-	/**
 	 * Indicates whether third party API mode is enabled
 	 */
 	thirdPartyApiMode: PropTypes.bool,
@@ -761,7 +761,15 @@ Main.propTypes = {
 	/**
 	 * Dispatch infura availability not blocked
 	 */
-	setInfuraAvailabilityNotBlocked: PropTypes.func
+	setInfuraAvailabilityNotBlocked: PropTypes.func,
+	/**
+	 * Remove not visible notifications from state
+	 */
+	removeNotVisibleNotifications: PropTypes.func,
+	/**
+	 * Object that represents the current route info like params passed to it
+	 */
+	route: PropTypes.object
 };
 
 const mapStateToProps = state => ({
@@ -770,7 +778,6 @@ const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
-	isPaymentRequest: state.transaction.paymentRequest,
 	dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
 	approveModalVisible: state.modals.approveModalVisible,
 	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {},
@@ -787,7 +794,8 @@ const mapDispatchToProps = dispatch => ({
 	toggleDappTransactionModal: (show = null) => dispatch(toggleDappTransactionModal(show)),
 	toggleApproveModal: show => dispatch(toggleApproveModal(show)),
 	setInfuraAvailabilityBlocked: () => dispatch(setInfuraAvailabilityBlocked()),
-	setInfuraAvailabilityNotBlocked: () => dispatch(setInfuraAvailabilityNotBlocked())
+	setInfuraAvailabilityNotBlocked: () => dispatch(setInfuraAvailabilityNotBlocked()),
+	removeNotVisibleNotifications: () => dispatch(removeNotVisibleNotifications())
 });
 
 export default connect(

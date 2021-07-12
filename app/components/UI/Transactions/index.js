@@ -219,7 +219,10 @@ class Transactions extends PureComponent {
 	);
 
 	renderEmpty = () => (
-		<ScrollView refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}>
+		<ScrollView
+			contentContainerStyle={styles.emptyContainer}
+			refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
+		>
 			{this.props.header ? this.props.header : null}
 			<View style={styles.emptyContainer}>
 				<Text style={styles.text}>{strings('wallet.no_transactions')}</Text>

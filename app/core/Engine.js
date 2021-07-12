@@ -4,6 +4,7 @@ import {
 	AssetsContractController,
 	AssetsController,
 	AssetsDetectionController,
+	ControllerMessenger,
 	ComposableController,
 	CurrencyRateController,
 	KeyringController,
@@ -20,9 +21,7 @@ import {
 } from '@metamask/controllers';
 
 import SwapsController from '@metamask/swaps-controller';
-
 import AsyncStorage from '@react-native-community/async-storage';
-
 import Encryptor from './Encryptor';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Networks from '../util/networks';
@@ -60,11 +59,6 @@ class Engine {
 	 */
 	constructor(initialState = {}) {
 		if (!Engine.instance) {
-			const { nativeCurrency, currentCurrency } = initialState.CurrencyRateController || {
-				nativeCurrency: 'eth',
-				currentCurrency: 'usd'
-			};
-
 			const preferencesController = new PreferencesController(
 				{},
 				{
@@ -107,10 +101,12 @@ class Engine {
 				getAssetSymbol: assetsContractController.getAssetSymbol.bind(assetsContractController),
 				getCollectibleTokenURI: assetsContractController.getCollectibleTokenURI.bind(assetsContractController)
 			});
+			this.controllerMessenger = new ControllerMessenger();
 			const currencyRateController = new CurrencyRateController({
-				nativeCurrency,
-				currentCurrency
+				messenger: this.controllerMessenger,
+				state: initialState.CurrencyRateController
 			});
+			currencyRateController.start();
 
 			const controllers = [
 				new KeyringController(
@@ -141,7 +137,17 @@ class Engine {
 					addTokens: assetsController.addTokens.bind(assetsController),
 					addCollectible: assetsController.addCollectible.bind(assetsController),
 					removeCollectible: assetsController.removeCollectible.bind(assetsController),
-					getAssetsState: () => assetsController.state
+					getAssetsState: () => assetsController.state,
+					//TODO: replace during Token List Refactor
+					getTokenListState: () => {
+						const tokenList = Object.entries(contractMap).reduce((final, [key, value]) => {
+							if (value.erc20) {
+								final[key] = value;
+							}
+							return final;
+						}, {});
+						return { tokenList };
+					}
 				}),
 				currencyRateController,
 				new PersonalMessageManager(),
@@ -159,7 +165,9 @@ class Engine {
 				),
 				new TokenRatesController({
 					onAssetsStateChange: listener => assetsController.subscribe(listener),
-					onCurrencyRateStateChange: listener => currencyRateController.subscribe(listener)
+					onCurrencyRateStateChange: listener =>
+						this.controllerMessenger.subscribe(`${currencyRateController.name}:stateChange`, listener),
+					onNetworkStateChange: listener => networkController.subscribe(listener)
 				}),
 				new TransactionController({
 					getNetworkState: () => networkController.state,
@@ -179,13 +187,16 @@ class Engine {
 			// TODO: Pass initial state into each controller constructor instead
 			// This is being set post-construction for now to ensure it's functionally equivalent with
 			// how the `ComponsedController` used to set initial state.
+			//
+			// The check for `controller.subscribe !== undefined` is to filter out BaseControllerV2
+			// controllers. They should be initialized via the constructor instead.
 			for (const controller of controllers) {
-				if (initialState[controller.name]) {
+				if (initialState[controller.name] && controller.subscribe !== undefined) {
 					controller.update(initialState[controller.name]);
 				}
 			}
 
-			this.datamodel = new ComposableController(controllers, initialState);
+			this.datamodel = new ComposableController(controllers, this.controllerMessenger);
 			this.context = controllers.reduce((context, controller) => {
 				context[controller.name] = controller;
 				return context;
@@ -306,7 +317,9 @@ class Engine {
 			TokenRatesController
 		} = this.context;
 		const { selectedAddress } = PreferencesController.state;
-		const { conversionRate, currentCurrency } = CurrencyRateController.state;
+		const { currentCurrency } = CurrencyRateController.state;
+		const conversionRate =
+			CurrencyRateController.state.conversionRate === null ? 0 : CurrencyRateController.state.conversionRate;
 		const { accounts } = AccountTrackerController.state;
 		const { tokens } = AssetsController.state;
 		let ethFiat = 0;
@@ -353,7 +366,7 @@ class Engine {
 
 			let tokenFound = false;
 			tokens.forEach(token => {
-				if (tokenBalances[token.address] && !tokenBalances[token.address].isZero()) {
+				if (tokenBalances[token.address] && !tokenBalances[token.address]?.isZero()) {
 					tokenFound = true;
 				}
 			});
@@ -493,6 +506,9 @@ export default {
 	get context() {
 		return instance && instance.context;
 	},
+	get controllerMessenger() {
+		return instance && instance.controllerMessenger;
+	},
 	get state() {
 		const {
 			AccountTrackerController,
@@ -513,13 +529,20 @@ export default {
 			SwapsController
 		} = instance.datamodel.state;
 
+		// normalize `null` currencyRate to `0`
+		// TODO: handle `null` currencyRate by hiding fiat values instead
+		const modifiedCurrencyRateControllerState = {
+			...CurrencyRateController,
+			conversionRate: CurrencyRateController.conversionRate === null ? 0 : CurrencyRateController.conversionRate
+		};
+
 		return {
 			AccountTrackerController,
 			AddressBookController,
 			AssetsContractController,
 			AssetsController,
 			AssetsDetectionController,
-			CurrencyRateController,
+			CurrencyRateController: modifiedCurrencyRateControllerState,
 			KeyringController,
 			PersonalMessageManager,
 			NetworkController,

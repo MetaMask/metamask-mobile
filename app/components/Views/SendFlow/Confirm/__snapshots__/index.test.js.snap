@@ -133,7 +133,7 @@ exports[`Confirm should render correctly 1`] = `
         upper={false}
       />
     </View>
-    <TransactionReviewFeeCard
+    <Connect(TransactionReviewFeeCard)
       edit={[Function]}
       fiat=""
       gasEstimationReady={false}
@@ -288,6 +288,7 @@ exports[`Confirm should render correctly 1`] = `
     onModalWillHide={[Function]}
     onModalWillShow={[Function]}
     onSwipeComplete={[Function]}
+    panResponderThreshold={4}
     propagateSwipe={true}
     scrollHorizontal={false}
     scrollOffset={0}
@@ -352,6 +353,7 @@ exports[`Confirm should render correctly 1`] = `
     onModalWillHide={[Function]}
     onModalWillShow={[Function]}
     onSwipeComplete={[Function]}
+    panResponderThreshold={4}
     propagateSwipe={true}
     scrollHorizontal={false}
     scrollOffset={0}

@@ -2,26 +2,28 @@ import React, { useEffect, useRef, useMemo, useCallback } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import Animated, { Easing } from 'react-native-reanimated';
+import { useNavigationState } from '@react-navigation/native';
 import { removeCurrentNotification, hideCurrentNotification } from '../../../actions/notification';
 import notificationTypes from '../../../util/notifications';
 import TransactionNotification from './TransactionNotification';
 import SimpleNotification from './SimpleNotification';
 import { currentNotificationSelector } from '../../../reducers/notification';
 
+import { findRouteNameFromNavigatorState } from '../../../util/general';
+
 const { TRANSACTION, SIMPLE } = notificationTypes;
 
 const BROWSER_ROUTE = 'BrowserView';
 
-function Notification(props) {
-	const {
-		currentNotification,
-		currentNotificationIsVisible,
-		navigation,
-		hideCurrentNotification,
-		removeCurrentNotification
-	} = props;
-
-	const notificationAnimated = useRef(new Animated.Value(100)).current;
+function Notification({
+	currentNotification,
+	currentNotificationIsVisible,
+	navigation,
+	hideCurrentNotification,
+	removeCurrentNotification
+}) {
+	const notificationAnimated = useRef(new Animated.Value(200)).current;
+	const routes = useNavigationState(state => state.routes);
 
 	const usePrevious = value => {
 		const ref = useRef();
@@ -33,31 +35,31 @@ function Notification(props) {
 
 	const prevNotificationIsVisible = usePrevious(currentNotificationIsVisible);
 
-	const animatedTimingStart = useCallback((animatedRef, toValue) => {
+	const animatedTimingStart = useCallback((animatedRef, toValue, callback) => {
 		Animated.timing(animatedRef, {
 			toValue,
 			duration: 500,
 			easing: Easing.linear,
 			useNativeDriver: true
-		}).start();
+		}).start(({ finished }) => finished && callback?.());
 	}, []);
 
-	const isInBrowserView = useMemo(() => {
-		const routes = navigation.state.routes;
-		let route = routes[routes.length - 1];
-		while (route.index !== undefined) route = route.routes[route.index];
-		return route?.routeName === BROWSER_ROUTE;
-	}, [navigation.state]);
+	const isInBrowserView = useMemo(() => findRouteNameFromNavigatorState(routes) === BROWSER_ROUTE, [routes]);
 
-	useEffect(() => () => removeCurrentNotification(), [removeCurrentNotification]);
+	useEffect(
+		() => () => {
+			animatedTimingStart(notificationAnimated, 200, removeCurrentNotification);
+			hideCurrentNotification();
+		},
+		[notificationAnimated, animatedTimingStart, hideCurrentNotification, removeCurrentNotification]
+	);
 
 	useEffect(() => {
 		if (!prevNotificationIsVisible && currentNotificationIsVisible) {
 			animatedTimingStart(notificationAnimated, 0);
+			hideCurrentNotification();
 			setTimeout(() => {
-				animatedTimingStart(notificationAnimated, 200);
-				hideCurrentNotification();
-				setTimeout(() => removeCurrentNotification(), 500);
+				animatedTimingStart(notificationAnimated, 200, removeCurrentNotification);
 			}, currentNotification.autodismiss || 5000);
 		}
 	}, [

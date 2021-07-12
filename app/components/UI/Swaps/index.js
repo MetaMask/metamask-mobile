@@ -1,8 +1,8 @@
-import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { ActivityIndicator, StyleSheet, View, TouchableOpacity, InteractionManager } from 'react-native';
 import { connect } from 'react-redux';
-import { NavigationContext } from 'react-navigation';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { View as AnimatableView } from 'react-native-animatable';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import numberToBN from 'number-to-bn';
@@ -22,6 +22,7 @@ import {
 	setSwapsHasOnboarded,
 	setSwapsLiveness,
 	swapsHasOnboardedSelector,
+	swapsTokensSelector,
 	swapsTokensWithBalanceSelector,
 	swapsTopAssetsSelector
 } from '../../../reducers/swaps';
@@ -32,7 +33,7 @@ import AppConstants from '../../../core/AppConstants';
 
 import { strings } from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
-import { setQuotesNavigationsParams, isSwapsNativeAsset } from './utils';
+import { setQuotesNavigationsParams, isSwapsNativeAsset, isDynamicToken } from './utils';
 import { getSwapsAmountNavbar } from '../Navbar';
 
 import Onboarding from './components/Onboarding';
@@ -48,6 +49,7 @@ import SlippageModal from './components/SlippageModal';
 import useBalance from './utils/useBalance';
 import useBlockExplorer from './utils/useBlockExplorer';
 import InfoModal from './components/InfoModal';
+import { toLowerCaseEquals } from '../../../util/general';
 
 const styles = StyleSheet.create({
 	screen: {
@@ -151,19 +153,21 @@ function SwapsAmountView({
 	setHasOnboarded,
 	setLiveness
 }) {
-	const navigation = useContext(NavigationContext);
+	const navigation = useNavigation();
+	const route = useRoute();
+
 	const explorer = useBlockExplorer(provider, frequentRpcList);
-	const initialSource = navigation.getParam('sourceToken', SWAPS_NATIVE_ADDRESS);
+	const initialSource = route.params?.sourceToken ?? SWAPS_NATIVE_ADDRESS;
 	const [amount, setAmount] = useState('0');
 	const [slippage, setSlippage] = useState(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
 	const [isInitialLoadingTokens, setInitialLoadingTokens] = useState(false);
 	const [, setLoadingTokens] = useState(false);
 	const [isSourceSet, setIsSourceSet] = useState(() =>
-		Boolean(swapsTokens?.find(token => token.address?.toLowerCase() === initialSource.toLowerCase()))
+		Boolean(swapsTokens?.find(token => toLowerCaseEquals(token.address, initialSource)))
 	);
 
 	const [sourceToken, setSourceToken] = useState(() =>
-		swapsTokens?.find(token => token.address?.toLowerCase() === initialSource.toLowerCase())
+		swapsTokens?.find(token => toLowerCaseEquals(token.address, initialSource))
 	);
 	const [destinationToken, setDestinationToken] = useState(null);
 	const [hasDismissedTokenAlert, setHasDismissedTokenAlert] = useState(true);
@@ -190,9 +194,9 @@ function SwapsAmountView({
 					InteractionManager.runAfterInteractions(() => {
 						const parameters = {
 							source: initialSource === SWAPS_NATIVE_ADDRESS ? 'MainView' : 'TokenView',
-							activeCurrency: swapsTokens?.find(
-								token => token.address?.toLowerCase() === initialSource.toLowerCase()
-							)?.symbol
+							activeCurrency: swapsTokens?.find(token => toLowerCaseEquals(token.address, initialSource))
+								?.symbol,
+							chain_id: chainId
 						};
 						Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAPS_OPENED, {});
 						Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAPS_OPENED, parameters, true);
@@ -246,7 +250,7 @@ function SwapsAmountView({
 	useEffect(() => {
 		if (!isSourceSet && initialSource && swapsTokens && !sourceToken) {
 			setIsSourceSet(true);
-			setSourceToken(swapsTokens.find(token => token.address?.toLowerCase() === initialSource.toLowerCase()));
+			setSourceToken(swapsTokens.find(token => toLowerCaseEquals(token.address, initialSource)));
 		}
 	}, [initialSource, isSourceSet, sourceToken, swapsTokens]);
 
@@ -299,14 +303,14 @@ function SwapsAmountView({
 			return false;
 		}
 
-		return !balanceAsUnits.isZero(0);
+		return !(balanceAsUnits.isZero?.() ?? true);
 	}, [balanceAsUnits, sourceToken]);
 
 	const hasEnoughBalance = useMemo(() => {
 		if (hasInvalidDecimals || !hasBalance || !balanceAsUnits) {
 			return false;
 		}
-		return balanceAsUnits.gte(amountAsUnits);
+		return balanceAsUnits.gte?.(amountAsUnits) ?? false;
 	}, [amountAsUnits, balanceAsUnits, hasBalance, hasInvalidDecimals]);
 
 	const currencyAmount = useMemo(() => {
@@ -410,8 +414,11 @@ function SwapsAmountView({
 		}
 		hideTokenVerificationModal();
 		navigation.navigate('Webview', {
-			url: explorer.token(destinationToken.address),
-			title: strings('swaps.verify')
+			screen: 'SimpleWebview',
+			params: {
+				url: explorer.token(destinationToken.address),
+				title: strings('swaps.verify')
+			}
 		});
 	}, [explorer, destinationToken, hideTokenVerificationModal, navigation]);
 
@@ -557,7 +564,11 @@ function SwapsAmountView({
 							</TouchableOpacity>
 						) : (
 							<ActionAlert
-								type="warning"
+								type={
+									!destinationToken.occurances || isDynamicToken(destinationToken)
+										? 'error'
+										: 'warning'
+								}
 								style={styles.tokenAlert}
 								action={hasDismissedTokenAlert ? null : strings('swaps.continue')}
 								onPress={handleDimissTokenAlert}
@@ -566,22 +577,42 @@ function SwapsAmountView({
 								{textStyle => (
 									<TouchableOpacity onPress={explorer.isValid ? handleVerifyPress : undefined}>
 										<Text style={textStyle} bold centered>
-											{strings('swaps.only_verified_on', {
-												symbol: destinationToken.symbol,
-												occurances: destinationToken.occurances
-											})}
+											{!destinationToken.occurances || isDynamicToken(destinationToken)
+												? strings('swaps.added_manually', {
+														symbol: destinationToken.symbol
+														// eslint-disable-next-line no-mixed-spaces-and-tabs
+												  })
+												: strings('swaps.only_verified_on', {
+														symbol: destinationToken.symbol,
+														occurances: destinationToken.occurances
+														// eslint-disable-next-line no-mixed-spaces-and-tabs
+												  })}
 										</Text>
-										<Text style={textStyle} centered>
-											{`${strings('swaps.verify_address_on')} `}
-											{explorer.isValid ? (
-												<Text reset link>
-													{explorer.name}
-												</Text>
-											) : (
-												strings('swaps.a_block_explorer')
-											)}
-											.
-										</Text>
+										{!destinationToken.occurances || isDynamicToken(destinationToken) ? (
+											<Text style={textStyle} centered>
+												{`${strings('swaps.verify_this_token_on')} `}
+												{explorer.isValid ? (
+													<Text reset link>
+														{explorer.name}
+													</Text>
+												) : (
+													strings('swaps.a_block_explorer')
+												)}
+												{` ${strings('swaps.make_sure_trade')}`}
+											</Text>
+										) : (
+											<Text style={textStyle} centered>
+												{`${strings('swaps.verify_address_on')} `}
+												{explorer.isValid ? (
+													<Text reset link>
+														{explorer.name}
+													</Text>
+												) : (
+													strings('swaps.a_block_explorer')
+												)}
+												.
+											</Text>
+										)}
 									</TouchableOpacity>
 								)}
 							</ActionAlert>
@@ -658,7 +689,7 @@ function SwapsAmountView({
 	);
 }
 
-SwapsAmountView.navigationOptions = ({ navigation }) => getSwapsAmountNavbar(navigation);
+SwapsAmountView.navigationOptions = ({ navigation, route }) => getSwapsAmountNavbar(navigation, route);
 
 SwapsAmountView.propTypes = {
 	swapsTokens: PropTypes.arrayOf(PropTypes.object),
@@ -715,7 +746,7 @@ SwapsAmountView.propTypes = {
 };
 
 const mapStateToProps = state => ({
-	swapsTokens: state.engine.backgroundState.SwapsController.tokens,
+	swapsTokens: swapsTokensSelector(state),
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	balances: state.engine.backgroundState.TokenBalancesController.contractBalances,
