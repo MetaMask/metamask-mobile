@@ -3,8 +3,8 @@ format_version: '8'
 default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
 trigger_map:
-# - push_branch: 'bitrise_yml_new'
-#   workflow: start_release_builds
+- push_branch: 'feature/bitrise'
+  workflow: start_release_builds
 # - push_branch: 'develop'
 #   workflow: start_release_builds
 # - push_branch: 'main'
@@ -178,11 +178,11 @@ workflows:
         inputs:
         - deploy_path: $BITRISE_DEPLOY_DIR/app-release.apk
         title: Bitrise Deploy APK 
-    - yarn@0:
-        inputs:
-        - command: build:announce
-        title: Accouncing pre-release
-        is_always_run: false
+    # - yarn@0:
+    #     inputs:
+    #     - command: build:announce
+    #     title: Accouncing pre-release
+    #     is_always_run: false
   android_test_release_step:
     before_run:
     - code_setup
@@ -223,12 +223,12 @@ workflows:
         inputs:
         - deploy_path: sourcemaps/android/index.js.map
         title: Bitrise Deploy Sourcemaps
-    - google-play-deploy@3:
-        inputs:
-        - app_path: $PROJECT_LOCATION/app/build/outputs/bundle/release/app-release.aab
-        - track: internal
-        - service_account_json_key_path: $BITRISEIO_BITRISEIO_SERVICE_ACCOUNT_JSON_KEY_URL_URL
-        - package_name: $MM_ANDROID_PACKAGE_NAME
+    # - google-play-deploy@3:
+    #     inputs:
+    #     - app_path: $PROJECT_LOCATION/app/build/outputs/bundle/release/app-release.aab
+    #     - track: internal
+    #     - service_account_json_key_path: $BITRISEIO_BITRISEIO_SERVICE_ACCOUNT_JSON_KEY_URL_URL
+    #     - package_name: $MM_ANDROID_PACKAGE_NAME
     envs:
     - opts:
         is_expand: false
@@ -271,9 +271,9 @@ workflows:
         inputs:
         - deploy_path: sourcemaps/ios/index.js.map
         title: Deploy Source Map
-    - deploy-to-itunesconnect-application-loader@1:
-        inputs:
-        - ipa_path: ios/build/output/MetaMask.ipa
+    # - deploy-to-itunesconnect-application-loader@1:
+    #     inputs:
+    #     - ipa_path: ios/build/output/MetaMask.ipa
 app:
   envs:
   - opts:
