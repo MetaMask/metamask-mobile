@@ -73,12 +73,15 @@
     "pubnub/**/netmask": "^2.0.1",
     "**/optimist/minimist": "^1.2.5",
     "react-native-level-fs/**/bl": "^1.2.3",
-    "react-native-level-fs/**/semver": "^4.3.2"
+    "react-native-level-fs/**/semver": "^4.3.2",
+    "**/pbkdf2": "3.1.1",
+    "**/**/pbkdf2": "3.1.1",
+    "**/**/**/pbkdf2": "3.1.1"
   },
   "dependencies": {
     "@exodus/react-native-payments": "https://github.com/wachunei/react-native-payments.git#package-json-hack",
     "@metamask/contract-metadata": "^1.23.0",
-    "@metamask/controllers": "^10.1.0",
+    "@metamask/controllers": "^12.1.0",
     "@metamask/etherscan-link": "^2.0.0",
     "@metamask/swaps-controller": "^4.0.0",
     "@react-native-community/async-storage": "1.12.1",
@@ -137,6 +140,7 @@
     "obj-multiplex": "1.0.0",
     "obs-store": "4.0.3",
     "path": "0.12.7",
+    "pbkdf2": "^3.1.2",
     "pify": "4.0.1",
     "prop-types": "15.7.2",
     "pubnub": "4.27.3",
@@ -292,28 +296,6 @@
     },
     "runner-config": "e2e/config.json",
     "test-runner": "jest"
-  },
-  "jest": {
-    "preset": "react-native",
-    "setupFiles": [
-      "<rootDir>/app/util/testSetup.js"
-    ],
-    "transform": {
-      "^.+\\.js$": "<rootDir>jest.preprocessor.js"
-    },
-    "transformIgnorePatterns": [
-      "node_modules/(?!(react-native|rn-fetch|redux-persist-filesystem|@react-navigation|@react-native-community|react-navigation|react-navigation-redux-helpers|@sentry))"
-    ],
-    "snapshotSerializers": [
-      "enzyme-to-json/serializer"
-    ],
-    "collectCoverage": false,
-    "collectCoverageFrom": [
-      "<rootDir>/app/**/*.{js,jsx}",
-      "!<rootDir>/node_modules/",
-      "!<rootDir>/app/util/*.{js,jsx}",
-      "!<rootDir>/app/entry*.js"
-    ]
   },
   "react-native": {
     "crypto": "react-native-crypto",
