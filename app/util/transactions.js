@@ -577,10 +577,14 @@ export const parseTransactionEIP1559 = (
 	{ onlyGas } = {}
 ) => {
 	value = value || '0x0';
+
+	const suggestedMaxPriorityFeePerGas = String(selectedGasFee.suggestedMaxPriorityFeePerGas);
+	const suggestedMaxFeePerGas = String(selectedGasFee.suggestedMaxFeePerGas);
+
 	// Convert to hex
 	const estimatedBaseFeeHex = decGWEIToHexWEI(selectedGasFee.estimatedBaseFee);
-	const suggestedMaxPriorityFeePerGasHex = decGWEIToHexWEI(selectedGasFee.suggestedMaxPriorityFeePerGas);
-	const suggestedMaxFeePerGasHex = decGWEIToHexWEI(selectedGasFee.suggestedMaxFeePerGas);
+	const suggestedMaxPriorityFeePerGasHex = decGWEIToHexWEI(suggestedMaxPriorityFeePerGas);
+	const suggestedMaxFeePerGasHex = decGWEIToHexWEI(suggestedMaxFeePerGas);
 	const gasLimitHex = BNToHex(new BN(selectedGasFee.suggestedGasLimit));
 
 	const { GasFeeController } = Engine.context;
@@ -588,10 +592,7 @@ export const parseTransactionEIP1559 = (
 	let timeEstimate = 'Unknown processing time';
 	let timeEstimateColor = 'red';
 	try {
-		const time = GasFeeController.getTimeEstimate(
-			selectedGasFee.suggestedMaxPriorityFeePerGas,
-			selectedGasFee.suggestedMaxFeePerGas
-		);
+		const time = GasFeeController.getTimeEstimate(suggestedMaxPriorityFeePerGas, suggestedMaxFeePerGas);
 
 		if (!time || time === 'unknown' || Object.keys(time).length < 2 || time.upperTimeBound === 'unknown') {
 			timeEstimate = 'Unknown processing time';
@@ -728,9 +729,9 @@ export const parseTransactionEIP1559 = (
 			timeEstimate,
 			timeEstimateColor,
 			estimatedBaseFee: selectedGasFee.estimatedBaseFee,
-			suggestedMaxPriorityFeePerGas: selectedGasFee.suggestedMaxPriorityFeePerGas,
+			suggestedMaxPriorityFeePerGas,
 			suggestedMaxPriorityFeePerGasHex,
-			suggestedMaxFeePerGas: selectedGasFee.suggestedMaxFeePerGas,
+			suggestedMaxFeePerGas,
 			suggestedMaxFeePerGasHex,
 			gasLimitHex,
 			suggestedGasLimit: selectedGasFee.suggestedGasLimit,
@@ -826,9 +827,9 @@ export const parseTransactionEIP1559 = (
 		totalMaxConversion,
 		renderableTotalMaxConversion,
 		estimatedBaseFee: selectedGasFee.estimatedBaseFee,
-		suggestedMaxPriorityFeePerGas: selectedGasFee.suggestedMaxPriorityFeePerGas,
+		suggestedMaxPriorityFeePerGas,
 		suggestedMaxPriorityFeePerGasHex,
-		suggestedMaxFeePerGas: selectedGasFee.suggestedMaxFeePerGas,
+		suggestedMaxFeePerGas,
 		suggestedMaxFeePerGasHex,
 		gasLimitHex,
 		suggestedGasLimit: selectedGasFee.suggestedGasLimit,
