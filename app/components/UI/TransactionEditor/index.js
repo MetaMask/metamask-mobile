@@ -174,7 +174,8 @@ class TransactionEditor extends PureComponent {
 				ready: true,
 				EIP1559GasData,
 				EIP1559GasDataTemp: EIP1559GasData,
-				advancedGasInserted: Boolean(dappSuggestedGasPrice)
+				advancedGasInserted: Boolean(dappSuggestedGasPrice),
+				gasSelected: dappSuggestedGasPrice ? null : gasSelected
 			});
 		} else {
 			const LegacyGasData = this.parseTransactionDataLegacy(
@@ -199,7 +200,8 @@ class TransactionEditor extends PureComponent {
 				ready: true,
 				LegacyGasData,
 				LegacyGasDataTemp: LegacyGasData,
-				advancedGasInserted: Boolean(dappSuggestedGasPrice)
+				advancedGasInserted: Boolean(dappSuggestedGasPrice),
+				gasSelected: dappSuggestedGasPrice ? null : gasSelected
 			});
 		}
 	};
@@ -227,13 +229,12 @@ class TransactionEditor extends PureComponent {
 					dappSuggestedEIP1559Gas: {
 						maxFeePerGas: transaction.maxFeePerGas,
 						maxPriorityFeePerGas: transaction.maxPriorityFeePerGas
-					},
-					gasSelected: null
+					}
 				},
 				this.startPolling
 			);
 		} else if (hasGasPrice) {
-			this.setState({ dappSuggestedGasPrice: transaction.gasPrice, gasSelected: null }, this.startPolling);
+			this.setState({ dappSuggestedGasPrice: transaction.gasPrice }, this.startPolling);
 		}
 
 		if (transaction && transaction.value) {
