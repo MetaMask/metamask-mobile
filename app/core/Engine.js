@@ -21,7 +21,7 @@ import {
 	GasFeeController
 } from '@metamask/controllers';
 
-import SwapsController from '@metamask/swaps-controller';
+import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 
 import AsyncStorage from '@react-native-community/async-storage';
 
@@ -140,7 +140,16 @@ class Engine {
 					addTokens: assetsController.addTokens.bind(assetsController),
 					addCollectible: assetsController.addCollectible.bind(assetsController),
 					removeCollectible: assetsController.removeCollectible.bind(assetsController),
-					getAssetsState: () => assetsController.state
+					getAssetsState: () => assetsController.state,
+					getTokenListState: () => {
+						const tokenList = Object.entries(contractMap).reduce((final, [key, value]) => {
+							if (value.erc20) {
+								final[key] = value;
+							}
+							return final;
+						}, {});
+						return { tokenList };
+					}
 				}),
 				currencyRateController,
 				new PersonalMessageManager(),
@@ -159,7 +168,8 @@ class Engine {
 				new TokenRatesController({
 					onAssetsStateChange: listener => assetsController.subscribe(listener),
 					onCurrencyRateStateChange: listener =>
-						this.controllerMessenger.subscribe(`${currencyRateController.name}:stateChange`, listener)
+						this.controllerMessenger.subscribe(`${currencyRateController.name}:stateChange`, listener),
+					onNetworkStateChange: listener => networkController.subscribe(listener)
 				}),
 				new TransactionController({
 					getNetworkState: () => networkController.state,
@@ -179,10 +189,16 @@ class Engine {
 					getProvider: () => networkController.provider,
 					onNetworkStateChange: listener => networkController.subscribe(listener),
 					getCurrentNetworkEIP1559Compatibility: async () => {
-						const isEIP1559Compatible = await networkController.getEIP1559Compatibility();
-						return isEIP1559Compatible;
+						const a = await networkController.getEIP1559Compatibility();
+						return a;
 					},
-					getIsMainnet: () => isMainnetByChainId(networkController.state.provider.chainId) //TODO(eip1559) check if this is the right function to use
+
+					getChainId: () => networkController.state.provider.chainId,
+					getCurrentNetworkLegacyGasAPICompatibility: () =>
+						isMainnetByChainId(networkController.state.provider.chainId) ||
+						networkController.state.provider.chainId === swapsUtils.BSC_CHAIN_ID,
+					legacyAPIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/gasPrices',
+					EIP1559APIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees'
 				})
 			];
 			// set initial state
