@@ -23,20 +23,6 @@ const styles = StyleSheet.create({
 	over: {
 		color: colors.red
 	},
-	customNonce: {
-		marginTop: 10,
-		marginHorizontal: 24,
-		borderWidth: 1,
-		borderColor: colors.grey050,
-		borderRadius: 8,
-		paddingVertical: 14,
-		paddingHorizontal: 16,
-		display: 'flex',
-		flexDirection: 'row'
-	},
-	nonceNumber: {
-		marginLeft: 'auto'
-	},
 	valuesContainer: {
 		flex: 1,
 		flexDirection: 'row'
@@ -116,18 +102,6 @@ class TransactionReviewFeeCard extends PureComponent {
 		 */
 		warningGasPriceHigh: PropTypes.string,
 		/**
-		 * Indicates whether custom nonce should be shown in transaction editor
-		 */
-		showCustomNonce: PropTypes.bool,
-		/**
-		 * Current nonce
-		 */
-		nonceValue: PropTypes.number,
-		/**
-		 * Function called when editing nonce
-		 */
-		onNonceEdit: PropTypes.func,
-		/**
 		 * A string representing the network chainId
 		 */
 		chainId: PropTypes.string
@@ -193,9 +167,6 @@ class TransactionReviewFeeCard extends PureComponent {
 			edit,
 			over,
 			warningGasPriceHigh,
-			showCustomNonce,
-			nonceValue,
-			onNonceEdit,
 			chainId
 		} = this.props;
 
@@ -323,20 +294,6 @@ class TransactionReviewFeeCard extends PureComponent {
 							)}
 					</Summary.Row>
 				</Summary>
-				{showCustomNonce && (
-					<TouchableOpacity style={styles.customNonce} onPress={onNonceEdit}>
-						<Text bold black>
-							{strings('transaction.custom_nonce')}
-						</Text>
-						<Text bold link>
-							{'  '}
-							{strings('transaction.edit')}
-						</Text>
-						<Text bold black style={styles.nonceNumber}>
-							{nonceValue}
-						</Text>
-					</TouchableOpacity>
-				)}
 				{this.renderGasTooltip()}
 			</View>
 		);

@@ -32,6 +32,7 @@ import CustomNonceModal from '../../../UI/CustomNonceModal';
 import { setNonce, setProposedNonce } from '../../../../actions/transaction';
 import TransactionReviewEIP1559 from '../TransactionReviewEIP1559';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
+import CustomNonce from '../../../UI/CustomNonce';
 
 const styles = StyleSheet.create({
 	overviewAlert: {
@@ -500,7 +501,6 @@ class TransactionReviewInformation extends PureComponent {
 	};
 
 	renderTransactionReviewFeeCard = () => {
-		const { nonce } = this.props.transaction;
 		const {
 			fiatValue,
 			assetAmount,
@@ -510,8 +510,7 @@ class TransactionReviewInformation extends PureComponent {
 			currentCurrency,
 			conversionRate,
 			ticker,
-			over,
-			showCustomNonce
+			over
 		} = this.props;
 
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
@@ -531,9 +530,6 @@ class TransactionReviewInformation extends PureComponent {
 				edit={this.edit}
 				over={over}
 				warningGasPriceHigh={warningGasPriceHigh}
-				showCustomNonce={showCustomNonce}
-				nonceValue={nonce}
-				onNonceEdit={this.toggleNonceModal}
 			/>
 		);
 	};
@@ -549,6 +545,8 @@ class TransactionReviewInformation extends PureComponent {
 			showCustomNonce,
 			gasEstimateType
 		} = this.props;
+		const { nonce } = this.props.transaction;
+
 		const is_main_net = isMainNet(network);
 
 		const errorPress = is_main_net ? this.buyEth : this.gotoFaucet;
@@ -563,7 +561,7 @@ class TransactionReviewInformation extends PureComponent {
 				{gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET
 					? this.renderTransactionReviewEIP1559()
 					: this.renderTransactionReviewFeeCard()}
-
+				{showCustomNonce && <CustomNonce nonce={nonce} onNonceEdit={this.toggleNonceModal} />}
 				{!!amountError && (
 					<View style={styles.overviewAlert}>
 						<MaterialIcon name={'error'} size={20} style={styles.overviewAlertIcon} />

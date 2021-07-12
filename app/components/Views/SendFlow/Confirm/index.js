@@ -63,6 +63,7 @@ import { removeFavoriteCollectible } from '../../../../actions/collectibles';
 import TransactionReviewEIP1559 from '../../../UI/TransactionReview/TransactionReviewEIP1559';
 import EditGasFee1559 from '../../../UI/EditGasFee1559';
 import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacy';
+import CustomNonce from '../../../UI/CustomNonce';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -1210,9 +1211,6 @@ class Confirm extends PureComponent {
 							edit={() => this.edit(EDIT)}
 							over={Boolean(LegacyTransactionData.error)}
 							warningGasPriceHigh={warningGasPriceHigh}
-							showCustomNonce={showCustomNonce}
-							nonceValue={nonce}
-							onNonceEdit={() => this.edit(EDIT_NONCE)}
 						/>
 					) : (
 						<TransactionReviewEIP1559
@@ -1230,6 +1228,8 @@ class Confirm extends PureComponent {
 							over={Boolean(EIP1559TransactionData.error)}
 						/>
 					)}
+
+					{showCustomNonce && <CustomNonce nonce={nonce} onNonceEdit={() => this.edit(EDIT_NONCE)} />}
 
 					{errorMessage && (
 						<View style={styles.errorWrapper}>
