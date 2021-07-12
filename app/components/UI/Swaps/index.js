@@ -303,14 +303,14 @@ function SwapsAmountView({
 			return false;
 		}
 
-		return !balanceAsUnits.isZero(0);
+		return !(balanceAsUnits.isZero?.() ?? true);
 	}, [balanceAsUnits, sourceToken]);
 
 	const hasEnoughBalance = useMemo(() => {
 		if (hasInvalidDecimals || !hasBalance || !balanceAsUnits) {
 			return false;
 		}
-		return balanceAsUnits.gte(amountAsUnits);
+		return balanceAsUnits.gte?.(amountAsUnits) ?? false;
 	}, [amountAsUnits, balanceAsUnits, hasBalance, hasInvalidDecimals]);
 
 	const currencyAmount = useMemo(() => {
