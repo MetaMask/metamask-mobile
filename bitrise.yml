@@ -127,6 +127,11 @@ workflows:
     - code_setup_cache
     - e2e_setup
     steps:
+    - certificate-and-profile-installer@1: {}
+    - set-xcode-build-number@1:
+        inputs:
+        - build_short_version_string: $VERSION_NAME
+        - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
     - script:
         inputs:
         - content: |-
