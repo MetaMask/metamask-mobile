@@ -133,6 +133,13 @@ workflows:
         title: Set Env Path for caching deps
     - cocoapods-install@2:
         is_always_run: false
+    - script@1:
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash 
+            jq 'del(.engines)' package.json > new.json && mv new.json package.json
+        title: iOS Sourcemaps
+        is_always_run: false
     - yarn@0:
         inputs:
         - cache_local_deps: 'yes'
