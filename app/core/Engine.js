@@ -62,10 +62,14 @@ class Engine {
 	 */
 	constructor(initialState = {}) {
 		if (!Engine.instance) {
+			const {
+				engine: { backgroundState }
+			} = store.getState();
 			const preferencesController = new PreferencesController(
 				{},
 				{
-					ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL
+					ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL,
+					useStaticTokenList: backgroundState.PreferencesController.useStaticTokenList
 				}
 			);
 			const networkController = new NetworkController({

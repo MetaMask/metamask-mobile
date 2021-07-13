@@ -44,11 +44,6 @@ const privacyReducer = (state = initialState, action) => {
 				...state,
 				thirdPartyApiMode: action.enabled
 			};
-		case 'SET_TOKEN_DETECTION_MODE':
-			return {
-				...state,
-				tokenDetectionMode: action.enabled
-			};
 		default:
 			return state;
 	}
