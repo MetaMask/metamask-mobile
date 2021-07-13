@@ -109,7 +109,9 @@ const EditGasFeeLegacy = ({
 	chainId,
 	gasEstimateType,
 	error,
-	warning
+	warning,
+	ignoreOptions,
+	recommended
 }) => {
 	const onlyAdvanced = gasEstimateType !== GAS_ESTIMATE_TYPES.LEGACY;
 
@@ -177,6 +179,33 @@ const EditGasFeeLegacy = ({
 		},
 		[changeGas, gasFee, gasOptions]
 	);
+
+	const shouldIgnore = useCallback(option => ignoreOptions.find(item => item === option), [ignoreOptions]);
+
+	const renderOptions = useCallback(() => {
+		const options = [
+			{ name: 'low', label: 'Low' },
+			{ name: 'medium', label: 'Medium' },
+			{ name: 'high', label: 'High' }
+		];
+		const renderOptions = [];
+		options.forEach(option => {
+			if (shouldIgnore(option.name)) return;
+			const renderOption = {
+				name: option.name,
+				label: (selected, disabled) => (
+					<Text bold primary={selected && !disabled}>
+						{option.label}
+					</Text>
+				)
+			};
+			if (recommended && recommended.name === option.name) {
+				renderOption.topLabel = recommended.render;
+			}
+			renderOptions.push(renderOption);
+		});
+		return renderOptions;
+	}, [recommended, shouldIgnore]);
 
 	const isMainnet = isMainnetByChainId(chainId);
 	const nativeCurrencySelected = primaryCurrency === 'ETH' || !isMainnet;
@@ -253,45 +282,10 @@ const EditGasFeeLegacy = ({
 						</View>
 						{!onlyAdvanced && (
 							<View>
-								{/* TODO(eip1559) hook with strings i18n */}
 								<HorizontalSelector
 									selected={selectedOption}
 									onPress={selectOption}
-									options={[
-										{
-											name: 'low',
-											label: <Text bold>Lower</Text>
-										},
-										{
-											name: 'medium',
-											label: (selected, disabled) => (
-												<Text bold primary={selected && !disabled}>
-													Medium
-												</Text>
-											),
-											topLabel: (
-												<TouchableOpacity onPress={() => setShowRangeInfoModal('recommended')}>
-													<Text noMargin link bold small centered>
-														Recommended{' '}
-														<MaterialCommunityIcon
-															name="information"
-															size={14}
-															style={styles.labelInfo}
-														/>
-													</Text>
-												</TouchableOpacity>
-											)
-										},
-
-										{
-											name: 'high',
-											label: (selected, disabled) => (
-												<Text bold primary={selected && !disabled}>
-													Higher
-												</Text>
-											)
-										}
-									]}
+									options={renderOptions()}
 								/>
 							</View>
 						)}
@@ -401,6 +395,10 @@ const EditGasFeeLegacy = ({
 	);
 };
 
+EditGasFeeLegacy.defaultProps = {
+	ignoreOptions: []
+};
+
 EditGasFeeLegacy.propTypes = {
 	/**
 	 * Gas option selected (low, medium, high)
@@ -453,7 +451,15 @@ EditGasFeeLegacy.propTypes = {
 	/**
 	 * Warning message to show
 	 */
-	warning: PropTypes.string
+	warning: PropTypes.string,
+	/**
+	 * Ignore option array
+	 */
+	ignoreOptions: PropTypes.array,
+	/**
+	 * Recommended object with type and render function
+	 */
+	recommended: PropTypes.object
 };
 
 export default EditGasFeeLegacy;

@@ -60,7 +60,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
               underline={false}
               upper={false}
             >
-              Edit Gas Fee
+              Edit priority
             </Text>
             <Icon
               allowFontScaling={false}
@@ -134,8 +134,6 @@ exports[`EditGasFee1559 should render correctly 1`] = `
             underline={false}
             upper={false}
           >
-            Up to
-             
             <Text
               black={true}
               blue={false}
@@ -154,9 +152,11 @@ exports[`EditGasFee1559 should render correctly 1`] = `
               underline={false}
               upper={false}
             >
-               (
-              )
+              Max fee:
+               
             </Text>
+             (
+            )
           </Text>
           <Text
             black={false}
@@ -712,13 +712,11 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                 strikethrough={false}
                 underline={false}
                 upper={false}
-              >
-                Swaps are very time sensitive. “High” will help avoid potential loses due to changes in market conditions.
-              </Text>
+              />
             </View>
           }
           isVisible={false}
-          title="Recommended gas fee"
+          title={null}
           toggleModal={[Function]}
         />
         <InfoModal
@@ -745,7 +743,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                 underline={false}
                 upper={false}
               >
-                The right gas amount to select depends on the type of transaction and how important it is.
+                Selecting the right gas fee depends on the type of transaction and how important it is to you.
               </Text>
               <Text
                 black={false}
@@ -795,7 +793,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                 underline={false}
                 upper={false}
               >
-                This is best for swaps or other time sensitive transactions. If a swap takes too long to process it will often fail and you may lose funds.
+                This is best for time sensitive transactions (like Swaps) as it increases the likelihood of a successful transaction. If a Swap takes too long to process it may fail and result in losing some of your gas fee.
               </Text>
               <Text
                 black={false}
@@ -845,7 +843,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                 underline={false}
                 upper={false}
               >
-                A medium gas fee is good for sending, withdrawing or other non-time sensitive but important transactions.
+                A medium gas fee is good for sending, withdrawing or other non-time sensitive transactions. This setting will most often result in a successful transaction.
               </Text>
               <Text
                 black={false}
@@ -895,7 +893,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                 underline={false}
                 upper={false}
               >
-                A lower gas fee should only be selected for transactions where processing time is less important. With a lower fee, it can be be hard to predict when (or if) your transaction with be successful.
+                A low gas fee should only be used for unimportant transactions or when network traffic is very low. With a lower fee it can be hard to predict when (or if) your transaction will be successful.
               </Text>
               <TouchableOpacity
                 style={
