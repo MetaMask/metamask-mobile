@@ -131,7 +131,9 @@ const EditGasFee1559 = ({
 	warning,
 	dappSuggestedGas,
 	ignoreOptions,
-	recommended
+	recommended,
+	warningMinimumEstimateOption,
+	suggestedEstimateOption
 }) => {
 	const [showRangeInfoModal, setShowRangeInfoModal] = useState(false);
 	const [showAdvancedOptions, setShowAdvancedOptions] = useState(!selected);
@@ -163,7 +165,7 @@ const EditGasFee1559 = ({
 
 	const changedMaxPriorityFee = useCallback(
 		value => {
-			const lowerValue = new BigNumber(gasOptions?.low?.suggestedMaxPriorityFeePerGas);
+			const lowerValue = new BigNumber(gasOptions?.[warningMinimumEstimateOption]?.suggestedMaxPriorityFeePerGas);
 			const higherValue = new BigNumber(gasOptions?.high?.suggestedMaxPriorityFeePerGas).multipliedBy(
 				new BigNumber(1.5)
 			);
@@ -182,12 +184,12 @@ const EditGasFee1559 = ({
 
 			changeGas(newGas, null);
 		},
-		[changeGas, gasFee, gasOptions]
+		[changeGas, gasFee, gasOptions, warningMinimumEstimateOption]
 	);
 
 	const changedMaxFeePerGas = useCallback(
 		value => {
-			const lowerValue = new BigNumber(gasOptions?.low?.suggestedMaxFeePerGas);
+			const lowerValue = new BigNumber(gasOptions?.[warningMinimumEstimateOption]?.suggestedMaxFeePerGas);
 			const higherValue = new BigNumber(gasOptions?.high?.suggestedMaxFeePerGas).multipliedBy(new BigNumber(1.5));
 
 			const valueBN = new BigNumber(value);
@@ -203,7 +205,7 @@ const EditGasFee1559 = ({
 			const newGas = { ...gasFee, suggestedMaxFeePerGas: value };
 			changeGas(newGas, null);
 		},
-		[changeGas, gasFee, gasOptions]
+		[changeGas, gasFee, gasOptions, warningMinimumEstimateOption]
 	);
 
 	const changedGasLimit = useCallback(
@@ -337,7 +339,7 @@ const EditGasFee1559 = ({
 										<Text bold reset>
 											{strings('edit_gas_fee_eip1559.estimate')}:
 										</Text>{' '}
-										{gasOptions?.medium?.suggestedMaxPriorityFeePerGas} GWEI
+										{gasOptions?.[suggestedEstimateOption]?.suggestedMaxPriorityFeePerGas} GWEI
 									</Text>
 								}
 								value={gasFee.suggestedMaxPriorityFeePerGas}
@@ -375,7 +377,7 @@ const EditGasFee1559 = ({
 										<Text bold reset>
 											{strings('edit_gas_fee_eip1559.estimate')}:
 										</Text>{' '}
-										{gasOptions?.medium?.suggestedMaxFeePerGas} GWEI
+										{gasOptions?.[suggestedEstimateOption]?.suggestedMaxFeePerGas} GWEI
 									</Text>
 								}
 								value={gasFee.suggestedMaxFeePerGas}
@@ -546,7 +548,9 @@ const EditGasFee1559 = ({
 };
 
 EditGasFee1559.defaultProps = {
-	ignoreOptions: []
+	ignoreOptions: [],
+	warningMinimumEstimateOption: 'low',
+	suggestedEstimateOption: 'medium'
 };
 
 EditGasFee1559.propTypes = {
@@ -641,7 +645,15 @@ EditGasFee1559.propTypes = {
 	/**
 	 * Recommended object with type and render function
 	 */
-	recommended: PropTypes.object
+	recommended: PropTypes.object,
+	/**
+	 * Estimate option to compare with for too low warning
+	 */
+	warningMinimumEstimateOption: PropTypes.string,
+	/**
+	 * Suggested estimate option to show recommended values
+	 */
+	suggestedEstimateOption: PropTypes.string
 };
 
 export default EditGasFee1559;
