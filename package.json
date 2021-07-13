@@ -111,7 +111,6 @@
     "codecov": "^3.8.1",
     "compare-versions": "^3.6.0",
     "content-hash": "2.5.2",
-    "dnode": "1.2.2",
     "eth-ens-namehash": "2.0.8",
     "eth-json-rpc-errors": "^2.0.2",
     "eth-json-rpc-filters": "4.2.2",
