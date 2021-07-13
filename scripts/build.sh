@@ -254,7 +254,7 @@ buildAndroidReleaseE2E(){
 	then
 		source $ANDROID_ENV_FILE
 	fi
-	cd android && ./gradlew assembleRelease assembleAndroidTest -DtestBuildType=release && cd ..
+	cd android && ./gradlew assembleRelease assembleAndroidTest -DtestBuildType=release
 }
 
 buildAndroid() {
