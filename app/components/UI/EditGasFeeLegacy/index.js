@@ -111,7 +111,8 @@ const EditGasFeeLegacy = ({
 	error,
 	warning,
 	ignoreOptions,
-	recommended
+	recommended,
+	warningMinimumEstimateOption
 }) => {
 	const onlyAdvanced = gasEstimateType !== GAS_ESTIMATE_TYPES.LEGACY;
 
@@ -139,10 +140,12 @@ const EditGasFeeLegacy = ({
 	const changedGasPrice = useCallback(
 		value => {
 			const lowerValue = new BigNumber(
-				gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY ? gasOptions?.low : gasOptions?.gasPrice
+				gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
+					? gasOptions?.[warningMinimumEstimateOption]
+					: gasOptions?.gasPrice
 			);
 			const higherValue = new BigNumber(
-				gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY ? gasOptions?.low : gasOptions?.gasPrice
+				gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY ? gasOptions?.high : gasOptions?.gasPrice
 			).multipliedBy(new BigNumber(1.5));
 
 			const valueBN = new BigNumber(value);
@@ -159,7 +162,7 @@ const EditGasFeeLegacy = ({
 
 			changeGas(newGas, null);
 		},
-		[changeGas, gasEstimateType, gasFee, gasOptions]
+		[changeGas, gasEstimateType, gasFee, gasOptions, warningMinimumEstimateOption]
 	);
 
 	const changedGasLimit = useCallback(
@@ -396,7 +399,8 @@ const EditGasFeeLegacy = ({
 };
 
 EditGasFeeLegacy.defaultProps = {
-	ignoreOptions: []
+	ignoreOptions: [],
+	warningMinimumEstimateOption: 'low'
 };
 
 EditGasFeeLegacy.propTypes = {
@@ -459,7 +463,11 @@ EditGasFeeLegacy.propTypes = {
 	/**
 	 * Recommended object with type and render function
 	 */
-	recommended: PropTypes.object
+	recommended: PropTypes.object,
+	/**
+	 * Estimate option to compare with for too low warning
+	 */
+	warningMinimumEstimateOption: PropTypes.string
 };
 
 export default EditGasFeeLegacy;

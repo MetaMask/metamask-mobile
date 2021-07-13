@@ -5,6 +5,7 @@ exports[`TransactionEditor should render correctly 1`] = `
   <EditGasFeeLegacy
     chainId="1"
     gasFee={Object {}}
+    ignoreOptions={Array []}
     onCancel={[Function]}
     onChange={[Function]}
     onSave={[Function]}
