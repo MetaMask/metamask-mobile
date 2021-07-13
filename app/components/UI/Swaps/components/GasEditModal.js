@@ -220,8 +220,10 @@ function GasEditModal({
 				{gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ? (
 					<>
 						<EditGasFee1559
-							ignoreOptions={['low']}
 							selected={gasSelected}
+							ignoreOptions={['low']}
+							warningMinimumEstimateOption={'medium'}
+							suggestedEstimateOption={defaultGasFeeOptionFeeMarket}
 							gasFee={EIP1559TransactionDataTemp}
 							gasOptions={gasFeeEstimates}
 							onChange={calculateTempGasFee}
@@ -271,8 +273,9 @@ function GasEditModal({
 					</>
 				) : (
 					<EditGasFeeLegacy
-						ignoreOptions={['low']}
 						selected={gasSelected}
+						ignoreOptions={['low']}
+						warningMinimumEstimateOption={'medium'}
 						gasFee={LegacyTransactionDataTemp}
 						gasEstimateType={gasEstimateType}
 						gasOptions={gasFeeEstimates}
