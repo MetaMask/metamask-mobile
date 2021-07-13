@@ -140,6 +140,13 @@ workflows:
             envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
             brew tap wix/brew
         title: Set Env Path for caching deps
+    - script@1:
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash 
+            curl -sL https://sentry.io/get-cli/
+        title: Install Test Dependencies (Sentry)
+        is_always_run: false
     - cocoapods-install@2:
         is_always_run: false
     - script@1:
