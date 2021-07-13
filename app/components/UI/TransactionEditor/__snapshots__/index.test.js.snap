@@ -12,6 +12,7 @@ exports[`TransactionEditor should render correctly 1`] = `
     over={false}
     primaryCurrency="fiat"
     selected="medium"
+    warningMinimumEstimateOption="low"
   />
 </Fragment>
 `;
