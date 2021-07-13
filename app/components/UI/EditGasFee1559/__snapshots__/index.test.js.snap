@@ -184,67 +184,12 @@ exports[`EditGasFee1559 should render correctly 1`] = `
               options={
                 Array [
                   Object {
-                    "label": <Text
-                      black={false}
-                      blue={false}
-                      bold={true}
-                      centered={false}
-                      disclaimer={false}
-                      green={false}
-                      link={false}
-                      modal={false}
-                      primary={false}
-                      red={false}
-                      reset={false}
-                      right={false}
-                      small={false}
-                      strikethrough={false}
-                      underline={false}
-                      upper={false}
-                    >
-                      Lower
-                    </Text>,
+                    "label": [Function],
                     "name": "low",
                   },
                   Object {
                     "label": [Function],
                     "name": "medium",
-                    "topLabel": <TouchableOpacity
-                      onPress={[Function]}
-                    >
-                      <Text
-                        black={false}
-                        blue={false}
-                        bold={true}
-                        centered={true}
-                        disclaimer={false}
-                        green={false}
-                        link={true}
-                        modal={false}
-                        noMargin={true}
-                        primary={false}
-                        red={false}
-                        reset={false}
-                        right={false}
-                        small={true}
-                        strikethrough={false}
-                        underline={false}
-                        upper={false}
-                      >
-                        Recommended
-                         
-                        <Icon
-                          allowFontScaling={false}
-                          name="information"
-                          size={14}
-                          style={
-                            Object {
-                              "color": "#bbc0c5",
-                            }
-                          }
-                        />
-                      </Text>
-                    </TouchableOpacity>,
                   },
                   Object {
                     "label": [Function],
