@@ -129,7 +129,6 @@ class Approve extends PureComponent {
 	computeGasEstimates = (overrideGasPrice, overrideGasLimit) => {
 		const { transaction, gasEstimateType, gasFeeEstimates } = this.props;
 		const { gasSelected, gasSelectedTemp } = this.state;
-		console.log(overrideGasPrice, gasFeeEstimates, gasEstimateType);
 
 		if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
 			const overrideGas = overrideGasPrice
@@ -196,8 +195,6 @@ class Approve extends PureComponent {
 					{ onlyGas: true }
 				);
 			}
-
-			console.log('LegacyGasData', LegacyGasData);
 
 			// eslint-disable-next-line react/no-did-update-set-state
 			this.setState({
