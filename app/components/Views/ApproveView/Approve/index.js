@@ -129,6 +129,8 @@ class Approve extends PureComponent {
 	computeGasEstimates = (overrideGasPrice, overrideGasLimit) => {
 		const { transaction, gasEstimateType, gasFeeEstimates } = this.props;
 		const { gasSelected, gasSelectedTemp } = this.state;
+		console.log(overrideGasPrice, gasFeeEstimates, gasEstimateType);
+
 		if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
 			const overrideGas = overrideGasPrice
 				? {
@@ -164,36 +166,38 @@ class Approve extends PureComponent {
 				EIP1559GasData,
 				EIP1559GasDataTemp
 			});
-		} else if (gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY) {
+		} else {
 			const suggestedGasLimit = fromWei(overrideGasLimit || transaction.gas, 'wei');
 
 			const getGas = selected =>
 				overrideGasPrice
 					? fromWei(overrideGasPrice, 'gwei')
 					: gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
-					? this.props.gasFeeEstimates[selected]
-					: this.props.gasFeeEstimates.gasPrice;
+					? gasFeeEstimates[selected]
+					: gasFeeEstimates.gasPrice;
 
 			const LegacyGasData = this.parseTransactionDataLegacy(
 				{
-					suggestedGasPrice: getGas(this.state.gasSelected),
+					suggestedGasPrice: getGas(gasSelected),
 					suggestedGasLimit
 				},
 				{ onlyGas: true }
 			);
 
 			let LegacyGasDataTemp;
-			if (this.state.gasSelected === this.state.gasSelectedTemp) {
+			if (gasSelected === gasSelectedTemp) {
 				LegacyGasDataTemp = LegacyGasData;
 			} else {
 				LegacyGasDataTemp = this.parseTransactionDataLegacy(
 					{
-						suggestedGasPrice: getGas(this.state.gasSelectedTemp),
+						suggestedGasPrice: getGas(gasSelectedTemp),
 						suggestedGasLimit
 					},
 					{ onlyGas: true }
 				);
 			}
+
+			console.log('LegacyGasData', LegacyGasData);
 
 			// eslint-disable-next-line react/no-did-update-set-state
 			this.setState({
@@ -413,7 +417,7 @@ class Approve extends PureComponent {
 
 		try {
 			const transaction = this.prepareTransaction(this.props.transaction);
-
+			console.log(transaction);
 			TransactionController.hub.once(`${transaction.id}:finished`, transactionMeta => {
 				if (transactionMeta.status === 'submitted') {
 					this.setState({ approved: true });
@@ -430,7 +434,9 @@ class Approve extends PureComponent {
 			const fullTx = transactions.find(({ id }) => id === transaction.id);
 			const updatedTx = { ...fullTx, transaction };
 			await TransactionController.updateTransaction(updatedTx);
+			console.log('----UPDATED');
 			await TransactionController.approveTransaction(transaction.id);
+			console.log('----Approve');
 			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_COMPLETED, this.state.analyticsParams);
 		} catch (error) {
 			Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
