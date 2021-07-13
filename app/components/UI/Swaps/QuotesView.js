@@ -45,7 +45,7 @@ import QuotesSummary from './components/QuotesSummary';
 import QuotesModal from './components/QuotesModal';
 import Ratio from './components/Ratio';
 import ActionAlert from './components/ActionAlert';
-import TransactionsEditionModal from './components/TransactionsEditionModal';
+import ApprovalTransactionEditionModal from './components/ApprovalTransactionEditionModal';
 import GasEditModal from './components/GasEditModal';
 import InfoModal from './components/InfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
@@ -57,8 +57,6 @@ import { swapsTokensSelector } from '../../../reducers/swaps';
 import { decGWEIToHexWEI } from '../../../util/conversions';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
-const EDIT_MODE_GAS = 'EDIT_MODE_GAS';
-const EDIT_MODE_APPROVE_AMOUNT = 'EDIT_MODE_APPROVE_AMOUNT';
 const SLIPPAGE_BUCKETS = {
 	MEDIUM: 'medium',
 	HIGH: 'high'
@@ -453,7 +451,6 @@ function SwapsQuotesView({
 
 	/* Approval transaction if any */
 	const [approvalTransaction, setApprovalTransaction] = useState(originalApprovalTransaction);
-	const [editQuoteTransactionsMode, setEditQuoteTransactionsMode] = useState(EDIT_MODE_GAS);
 
 	const approvalMinimumSpendLimit = useMemo(() => {
 		if (!approvalTransaction) return '0';
@@ -692,7 +689,6 @@ function SwapsQuotesView({
 			sourceToken.decimals
 		);
 
-		setEditQuoteTransactionsMode(EDIT_MODE_APPROVE_AMOUNT);
 		setEditQuoteTransactionsVisible(true);
 
 		InteractionManager.runAfterInteractions(() => {
@@ -1521,21 +1517,12 @@ function SwapsQuotesView({
 				ticker={getTicker(ticker)}
 			/>
 
-			<TransactionsEditionModal
+			<ApprovalTransactionEditionModal
 				approvalTransaction={approvalTransaction}
-				editQuoteTransactionsMode={editQuoteTransactionsMode}
 				editQuoteTransactionsVisible={editQuoteTransactionsVisible}
-				gasLimit={gasLimit}
-				// gasPrice={gasPrice}
-				onCancelEditQuoteTransactions={onCancelEditQuoteTransactions}
-				// onHandleGasFeeSelection={onHandleGasFeeSelection}
-				setApprovalTransaction={setApprovalTransaction}
 				minimumSpendLimit={approvalMinimumSpendLimit}
-				minimumGasLimit={gasLimitWithMultiplier(
-					selectedQuote?.gasEstimate,
-					selectedQuote?.gasMultiplier
-				)?.toString(10)}
-				selectedQuote={selectedQuote}
+				onCancelEditQuoteTransactions={onCancelEditQuoteTransactions}
+				setApprovalTransaction={setApprovalTransaction}
 				sourceToken={sourceToken}
 				chainId={chainId}
 			/>
