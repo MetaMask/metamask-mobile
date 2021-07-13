@@ -271,23 +271,23 @@ const gasLimitWithMultiplier = (gasLimit, multiplier) => {
 
 function getTransactionPropertiesFromGasEstimates(gasEstimateType, estimates) {
 	if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-		const defaultFeeMarketEstimate = 'high';
 		return {
 			maxFeePerGas: addHexPrefix(
-				decGWEIToHexWEI(estimates.maxFeePerGas || estimates[defaultFeeMarketEstimate].suggestedMaxFeePerGas)
+				decGWEIToHexWEI(
+					estimates.maxFeePerGas || estimates[DEFAULT_GAS_FEE_OPTION_FEE_MARKET].suggestedMaxFeePerGas
+				)
 			),
 			maxPriorityFeePerGas: addHexPrefix(
 				decGWEIToHexWEI(
-					estimates.maxPriorityFeePerGas || estimates[defaultFeeMarketEstimate].suggestedMaxPriorityFeePerGas
+					estimates.maxPriorityFeePerGas ||
+						estimates[DEFAULT_GAS_FEE_OPTION_FEE_MARKET].suggestedMaxPriorityFeePerGas
 				)
 			)
 		};
 	}
 
-	const defaultGasPriceEstimate = 'medium';
-
 	return {
-		gasPrice: addHexPrefix(decGWEIToHexWEI(estimates.gasPrice || estimates[defaultGasPriceEstimate]))
+		gasPrice: addHexPrefix(decGWEIToHexWEI(estimates.gasPrice || estimates[DEFAULT_GAS_FEE_OPTION_LEGACY]))
 	};
 }
 
