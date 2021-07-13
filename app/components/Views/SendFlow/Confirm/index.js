@@ -346,6 +346,7 @@ class Confirm extends PureComponent {
 		mode: REVIEW,
 		over: false,
 		gasSelected: 'medium',
+		gasSelectedTemp: 'medium',
 		EIP1559TransactionData: {},
 		EIP1559TransactionDataTemp: {},
 		stopUpdateGas: false,
@@ -458,10 +459,22 @@ class Confirm extends PureComponent {
 		) {
 			if (!this.state.stopUpdateGas && !this.state.advancedGasInserted) {
 				if (this.props.gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+					const suggestedGasLimit = fromWei(gas, 'wei');
+
 					const EIP1559TransactionData = this.parseTransactionDataEIP1559({
 						...this.props.gasFeeEstimates[this.state.gasSelected],
-						suggestedGasLimit: fromWei(gas, 'wei')
+						suggestedGasLimit
 					});
+
+					let EIP1559TransactionDataTemp;
+					if (this.state.gasSelected === this.state.gasSelectedTemp) {
+						EIP1559TransactionDataTemp = EIP1559TransactionData;
+					} else {
+						EIP1559TransactionDataTemp = this.parseTransactionDataEIP1559({
+							...this.props.gasFeeEstimates[this.state.gasSelectedTemp],
+							suggestedGasLimit
+						});
+					}
 
 					this.setError(EIP1559TransactionData.error);
 
@@ -469,24 +482,38 @@ class Confirm extends PureComponent {
 					this.setState({
 						gasEstimationReady: true,
 						EIP1559TransactionData,
-						EIP1559TransactionDataTemp: EIP1559TransactionData
+						EIP1559TransactionDataTemp
 					});
 				} else {
+					const suggestedGasLimit = fromWei(gas, 'wei');
+
 					const LegacyTransactionData = this.parseTransactionDataLegacy({
 						suggestedGasPrice:
 							this.props.gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
 								? this.props.gasFeeEstimates[this.state.gasSelected]
 								: this.props.gasFeeEstimates.gasPrice,
-						suggestedGasLimit: fromWei(gas, 'wei')
+						suggestedGasLimit
 					});
 
+					let LegacyTransactionDataTemp;
+					if (this.state.gasSelected === this.state.gasSelectedTemp) {
+						LegacyTransactionDataTemp = LegacyTransactionData;
+					} else {
+						LegacyTransactionDataTemp = this.parseTransactionDataEIP1559({
+							suggestedGasPrice:
+								this.props.gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
+									? this.props.gasFeeEstimates[this.state.gasSelectedTemp]
+									: this.props.gasFeeEstimates.gasPrice,
+							suggestedGasLimit
+						});
+					}
 					this.setError(LegacyTransactionData.error);
 
 					// eslint-disable-next-line react/no-did-update-set-state
 					this.setState({
 						gasEstimationReady: true,
 						LegacyTransactionData,
-						LegacyTransactionDataTemp: LegacyTransactionData
+						LegacyTransactionDataTemp
 					});
 				}
 				this.parseTransactionDataHeader();
@@ -890,7 +917,8 @@ class Confirm extends PureComponent {
 		this.setState({
 			EIP1559TransactionDataTemp: { ...this.state.EIP1559TransactionData },
 			LegacyTransactionDataTemp: { ...this.state.LegacyTransactionData },
-			stopUpdateGas: false
+			stopUpdateGas: false,
+			gasSelectedTemp: this.state.gasSelected
 		});
 		this.review();
 	};
@@ -900,6 +928,7 @@ class Confirm extends PureComponent {
 			EIP1559TransactionData: { ...this.state.EIP1559TransactionDataTemp },
 			LegacyTransactionData: { ...this.state.LegacyTransactionDataTemp },
 			gasSelected,
+			gasSelectedTemp: gasSelected,
 			advancedGasInserted: !gasSelected,
 			stopUpdateGas: false
 		});
@@ -1083,7 +1112,11 @@ class Confirm extends PureComponent {
 		if (selected && gas) {
 			gas.suggestedGasLimit = EIP1559TransactionData.suggestedGasLimit;
 		}
-		this.setState({ EIP1559TransactionDataTemp: this.parseTransactionDataEIP1559(gas), stopUpdateGas: !selected });
+		this.setState({
+			EIP1559TransactionDataTemp: this.parseTransactionDataEIP1559(gas),
+			stopUpdateGas: !selected,
+			gasSelectedTemp: selected
+		});
 	};
 
 	calculateTempGasFeeLegacy = (gas, selected) => {
@@ -1091,7 +1124,11 @@ class Confirm extends PureComponent {
 		if (selected && gas) {
 			gas.suggestedGasLimit = LegacyTransactionData.suggestedGasLimit;
 		}
-		this.setState({ LegacyTransactionDataTemp: this.parseTransactionDataLegacy(gas), stopUpdateGas: !selected });
+		this.setState({
+			LegacyTransactionDataTemp: this.parseTransactionDataLegacy(gas),
+			stopUpdateGas: !selected,
+			gasSelectedTemp: selected
+		});
 	};
 
 	render = () => {

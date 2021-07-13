@@ -119,6 +119,7 @@ class Approve extends PureComponent {
 		over: false,
 		analyticsParams: {},
 		gasSelected: 'medium',
+		gasSelectedTemp: 'medium',
 		EIP1559GasData: {},
 		EIP1559GasDataTemp: {},
 		LegacyGasData: {},
@@ -127,45 +128,78 @@ class Approve extends PureComponent {
 
 	computeGasEstimates = (overrideGasPrice, overrideGasLimit) => {
 		const { transaction, gasEstimateType, gasFeeEstimates } = this.props;
-		const { gasSelected } = this.state;
+		const { gasSelected, gasSelectedTemp } = this.state;
 		if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-			const initialGas = overrideGasPrice
+			const overrideGas = overrideGasPrice
 				? {
 						suggestedMaxFeePerGas: fromWei(overrideGasPrice, 'gwei'),
 						suggestedMaxPriorityFeePerGas: fromWei(overrideGasPrice, 'gwei')
 						// eslint-disable-next-line no-mixed-spaces-and-tabs
 				  }
-				: gasFeeEstimates[gasSelected];
+				: null;
+
+			const initialGas = overrideGas || gasFeeEstimates[gasSelected];
+			const initialGasTemp = overrideGas || gasFeeEstimates[gasSelectedTemp];
+
+			const suggestedGasLimit = fromWei(overrideGasLimit || transaction.gas, 'wei');
 
 			const EIP1559GasData = this.parseTransactionDataEIP1559({
 				...initialGas,
-				suggestedGasLimit: fromWei(overrideGasLimit || transaction.gas, 'wei')
+				suggestedGasLimit
 			});
+
+			let EIP1559GasDataTemp;
+			if (gasSelected === gasSelectedTemp) {
+				EIP1559GasDataTemp = EIP1559GasData;
+			} else {
+				EIP1559GasDataTemp = this.parseTransactionDataEIP1559({
+					...initialGasTemp,
+					suggestedGasLimit
+				});
+			}
 
 			// eslint-disable-next-line react/no-did-update-set-state
 			this.setState({
 				ready: true,
 				EIP1559GasData,
-				EIP1559GasDataTemp: EIP1559GasData
+				EIP1559GasDataTemp
 			});
 		} else if (gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY) {
+			const suggestedGasLimit = fromWei(overrideGasLimit || transaction.gas, 'wei');
+
+			const getGas = selected =>
+				overrideGasPrice
+					? fromWei(overrideGasPrice, 'gwei')
+					: gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
+					? this.props.gasFeeEstimates[selected]
+					: this.props.gasFeeEstimates.gasPrice;
+
 			const LegacyGasData = this.parseTransactionDataLegacy(
 				{
-					suggestedGasPrice: overrideGasPrice
-						? fromWei(overrideGasPrice, 'gwei')
-						: gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
-						? this.props.gasFeeEstimates[this.state.gasSelected]
-						: this.props.gasFeeEstimates.gasPrice,
-					suggestedGasLimit: fromWei(overrideGasLimit || transaction.gas, 'wei')
+					suggestedGasPrice: getGas(this.state.gasSelected),
+					suggestedGasLimit
 				},
 				{ onlyGas: true }
 			);
+
+			let LegacyGasDataTemp;
+			if (this.state.gasSelected === this.state.gasSelectedTemp) {
+				LegacyGasDataTemp = LegacyGasData;
+			} else {
+				LegacyGasDataTemp = this.parseTransactionDataLegacy(
+					{
+						suggestedGasPrice: getGas(this.state.gasSelectedTemp),
+						suggestedGasLimit
+					},
+					{ onlyGas: true }
+				);
+			}
 
 			// eslint-disable-next-line react/no-did-update-set-state
 			this.setState({
 				ready: true,
 				LegacyGasData,
-				LegacyGasDataTemp: LegacyGasData
+				LegacyGasDataTemp
 			});
 		}
 	};
@@ -306,7 +340,8 @@ class Approve extends PureComponent {
 		this.setState({
 			EIP1559GasDataTemp: { ...this.state.EIP1559GasData },
 			LegacyGasDataTemp: { ...this.state.LegacyGasData },
-			stopUpdateGas: false
+			stopUpdateGas: false,
+			gasSelectedTemp: this.state.gasSelected
 		});
 		this.review();
 	};
@@ -316,6 +351,7 @@ class Approve extends PureComponent {
 			EIP1559GasData: { ...this.state.EIP1559GasDataTemp },
 			LegacyGasData: { ...this.state.LegacyGasDataTemp },
 			gasSelected,
+			gasSelectedTemp: gasSelected,
 			advancedGasInserted: !gasSelected,
 			stopUpdateGas: false
 		});
@@ -444,7 +480,11 @@ class Approve extends PureComponent {
 		if (selected && gas) {
 			gas.suggestedGasLimit = EIP1559GasData.suggestedGasLimit;
 		}
-		this.setState({ EIP1559GasDataTemp: this.parseTransactionDataEIP1559(gas), stopUpdateGas: !selected });
+		this.setState({
+			EIP1559GasDataTemp: this.parseTransactionDataEIP1559(gas),
+			stopUpdateGas: !selected,
+			gasSelectedTemp: selected
+		});
 	};
 
 	calculateTempGasFeeLegacy = (gas, selected) => {
@@ -452,7 +492,11 @@ class Approve extends PureComponent {
 		if (selected && gas) {
 			gas.suggestedGasLimit = LegacyGasData.suggestedGasLimit;
 		}
-		this.setState({ LegacyGasDataTemp: this.parseTransactionDataLegacy(gas), stopUpdateGas: !selected });
+		this.setState({
+			LegacyGasDataTemp: this.parseTransactionDataLegacy(gas),
+			stopUpdateGas: !selected,
+			gasSelectedTemp: selected
+		});
 	};
 
 	render = () => {
