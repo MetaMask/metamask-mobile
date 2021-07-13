@@ -1,13 +1,18 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Modal from 'react-native-modal';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
+import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { connect } from 'react-redux';
+
+import Text from '../../../Base/Text';
+import InfoModal from './InfoModal';
 import EditGasFeeLegacy from '../../EditGasFeeLegacy';
-import { parseTransactionEIP1559, parseTransactionLegacy } from '../../../../util/transactions';
 import EditGasFee1559 from '../../EditGasFee1559';
+import { parseTransactionEIP1559, parseTransactionLegacy } from '../../../../util/transactions';
+import useModalHandler from '../../../Base/hooks/useModalHandler';
 
 const styles = StyleSheet.create({
 	bottomModal: {
@@ -49,6 +54,9 @@ function GasEditModal({
 	const [stopUpdateGas, setStopUpdateGas] = useState(false);
 	const [EIP1559TransactionDataTemp, setEIP1559TransactionDataTemp] = useState({});
 	const [LegacyTransactionDataTemp, setLegacyTransactionDataTemp] = useState({});
+	const [isGasFeeRecommendationVisible, , showGasFeeRecommendation, hideGasFeeRecommendation] = useModalHandler(
+		false
+	);
 
 	useEffect(() => {
 		if (stopUpdateGas || !gasSelected) {
@@ -208,29 +216,60 @@ function GasEditModal({
 		>
 			<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
 				{gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ? (
-					<EditGasFee1559
-						selected={gasSelected}
-						gasFee={EIP1559TransactionDataTemp}
-						gasOptions={gasFeeEstimates}
-						onChange={calculateTempGasFee}
-						gasFeeNative={EIP1559TransactionDataTemp.renderableGasFeeMinNative}
-						gasFeeConversion={EIP1559TransactionDataTemp.renderableGasFeeMinConversion}
-						gasFeeMaxNative={EIP1559TransactionDataTemp.renderableGasFeeMaxNative}
-						gasFeeMaxConversion={EIP1559TransactionDataTemp.renderableGasFeeMaxConversion}
-						maxPriorityFeeNative={EIP1559TransactionDataTemp.renderableMaxPriorityFeeNative}
-						maxPriorityFeeConversion={EIP1559TransactionDataTemp.renderableMaxPriorityFeeConversion}
-						maxFeePerGasNative={EIP1559TransactionDataTemp.renderableMaxFeePerGasNative}
-						maxFeePerGasConversion={EIP1559TransactionDataTemp.renderableMaxFeePerGasConversion}
-						primaryCurrency={primaryCurrency}
-						chainId={chainId}
-						timeEstimate={EIP1559TransactionDataTemp.timeEstimate}
-						timeEstimateColor={EIP1559TransactionDataTemp.timeEstimateColor}
-						onCancel={cancelGasEdition}
-						onSave={saveGasEdition}
-						error={EIP1559TransactionDataTemp.error}
-					/>
+					<>
+						<EditGasFee1559
+							ignoreOptions={['low']}
+							selected={gasSelected}
+							gasFee={EIP1559TransactionDataTemp}
+							gasOptions={gasFeeEstimates}
+							onChange={calculateTempGasFee}
+							gasFeeNative={EIP1559TransactionDataTemp.renderableGasFeeMinNative}
+							gasFeeConversion={EIP1559TransactionDataTemp.renderableGasFeeMinConversion}
+							gasFeeMaxNative={EIP1559TransactionDataTemp.renderableGasFeeMaxNative}
+							gasFeeMaxConversion={EIP1559TransactionDataTemp.renderableGasFeeMaxConversion}
+							maxPriorityFeeNative={EIP1559TransactionDataTemp.renderableMaxPriorityFeeNative}
+							maxPriorityFeeConversion={EIP1559TransactionDataTemp.renderableMaxPriorityFeeConversion}
+							maxFeePerGasNative={EIP1559TransactionDataTemp.renderableMaxFeePerGasNative}
+							maxFeePerGasConversion={EIP1559TransactionDataTemp.renderableMaxFeePerGasConversion}
+							primaryCurrency={primaryCurrency}
+							chainId={chainId}
+							timeEstimate={EIP1559TransactionDataTemp.timeEstimate}
+							timeEstimateColor={EIP1559TransactionDataTemp.timeEstimateColor}
+							onCancel={cancelGasEdition}
+							onSave={saveGasEdition}
+							error={EIP1559TransactionDataTemp.error}
+							recommended={{
+								name: 'high',
+								// eslint-disable-next-line react/display-name
+								render: () => (
+									<TouchableOpacity onPress={showGasFeeRecommendation}>
+										<Text noMargin link bold small centered>
+											Recommended{' ' /* TODO:  i18n */}
+											<MaterialCommunityIcon
+												name="information"
+												size={14}
+												style={styles.labelInfo}
+											/>
+										</Text>
+									</TouchableOpacity>
+								)
+							}}
+						/>
+						<InfoModal
+							isVisible={isVisible && isGasFeeRecommendationVisible}
+							toggleModal={hideGasFeeRecommendation}
+							title={'Recommended gas fee'} // TODO: i18n
+							body={
+								<Text style={styles.text}>
+									Swaps are typically time sensitive. “High” will help avoid potential losses due to
+									changes in market conditions.
+								</Text>
+							}
+						/>
+					</>
 				) : (
 					<EditGasFeeLegacy
+						ignoreOptions={['low']}
 						selected={gasSelected}
 						gasFee={LegacyTransactionDataTemp}
 						gasEstimateType={gasEstimateType}
