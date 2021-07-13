@@ -19,10 +19,12 @@ const styles = StyleSheet.create({
 		justifyContent: 'flex-end',
 		margin: 0
 	},
-
 	keyboardAwareWrapper: {
 		flex: 1,
 		justifyContent: 'flex-end'
+	},
+	text: {
+		lineHeight: 20
 	}
 });
 
