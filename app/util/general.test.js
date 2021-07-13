@@ -1,4 +1,4 @@
-import { capitalize, tlc, toLowerCaseCompare } from './general';
+import { capitalize, tlc, toLowerCaseEquals } from './general';
 
 describe('capitalize', () => {
 	const my_string = 'string';
@@ -19,21 +19,21 @@ describe('tlc', () => {
 	});
 });
 
-describe('toLowerCaseCompare', () => {
+describe('toLowerCaseEquals', () => {
 	const o = {};
 	it('compares two things', () => {
-		expect(toLowerCaseCompare('A', 'A')).toEqual(true);
-		expect(toLowerCaseCompare('aBCDefH', 'abcdefh')).toEqual(true);
-		expect(toLowerCaseCompare('A', 'B')).toEqual(false);
-		expect(toLowerCaseCompare('aBCDefH', 'abcdefi')).toEqual(false);
+		expect(toLowerCaseEquals('A', 'A')).toEqual(true);
+		expect(toLowerCaseEquals('aBCDefH', 'abcdefh')).toEqual(true);
+		expect(toLowerCaseEquals('A', 'B')).toEqual(false);
+		expect(toLowerCaseEquals('aBCDefH', 'abcdefi')).toEqual(false);
 		// cases where a or b are undefined
-		expect(toLowerCaseCompare(o.p, 'A')).toEqual(false);
-		expect(toLowerCaseCompare('A', o.p)).toEqual(false);
-		expect(toLowerCaseCompare(undefined, 'A')).toEqual(false);
-		expect(toLowerCaseCompare('A', undefined)).toEqual(false);
+		expect(toLowerCaseEquals(o.p, 'A')).toEqual(false);
+		expect(toLowerCaseEquals('A', o.p)).toEqual(false);
+		expect(toLowerCaseEquals(undefined, 'A')).toEqual(false);
+		expect(toLowerCaseEquals('A', undefined)).toEqual(false);
 		// case where a and b are both undefined, null or false
-		expect(toLowerCaseCompare(undefined, undefined)).toEqual(false);
-		expect(toLowerCaseCompare(null, null)).toEqual(false);
-		expect(toLowerCaseCompare(false, false)).toEqual(false);
+		expect(toLowerCaseEquals(undefined, undefined)).toEqual(false);
+		expect(toLowerCaseEquals(null, null)).toEqual(false);
+		expect(toLowerCaseEquals(false, false)).toEqual(false);
 	});
 });

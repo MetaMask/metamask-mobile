@@ -1,0 +1,14 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/androidTest/js/PickerAndroidTestModule.js b/node_modules/react-native/ReactAndroid/src/androidTest/js/PickerAndroidTestModule.js
+index a4e0cc0..4f4c9ea 100644
+--- a/node_modules/react-native/ReactAndroid/src/androidTest/js/PickerAndroidTestModule.js
++++ b/node_modules/react-native/ReactAndroid/src/androidTest/js/PickerAndroidTestModule.js
+@@ -10,7 +10,8 @@
+ 'use strict';
+
+ const React = require('react');
+-const {NativeModules, Picker, View} = require('react-native');
++const {NativeModules, View} = require('react-native');
++const {Picker} = require('@react-native-community/picker');
+ const BatchedBridge = require('react-native/Libraries/BatchedBridge/BatchedBridge');
+
+ const {Recording: RecordingModule} = NativeModules;
