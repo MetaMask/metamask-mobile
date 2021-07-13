@@ -112,6 +112,10 @@ workflows:
         - api_level: '29'
         - profile: pixel
     - wait-for-android-emulator@1: {}
+    - file-downloader@1:
+        inputs:
+        - source: $BITRISEIO_ANDROID_KEYSTORE_URL
+        - destination: android/keystores/release.keystore
     - yarn@0:
         inputs:
         - cache_local_deps: 'yes'
