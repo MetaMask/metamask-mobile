@@ -216,7 +216,8 @@ class Approve extends PureComponent {
 			this.props.toggleApproveModal(false);
 			return null;
 		}
-		this.handleGetGasLimit();
+		if (!this.props?.transaction?.gas) this.handleGetGasLimit();
+
 		this.startPolling();
 
 		AppState.addEventListener('change', this.handleAppStateChange);
@@ -414,7 +415,6 @@ class Approve extends PureComponent {
 
 		try {
 			const transaction = this.prepareTransaction(this.props.transaction);
-			console.log(transaction);
 			TransactionController.hub.once(`${transaction.id}:finished`, transactionMeta => {
 				if (transactionMeta.status === 'submitted') {
 					this.setState({ approved: true });
