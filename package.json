@@ -73,10 +73,7 @@
     "pubnub/**/netmask": "^2.0.1",
     "**/optimist/minimist": "^1.2.5",
     "react-native-level-fs/**/bl": "^1.2.3",
-    "react-native-level-fs/**/semver": "^4.3.2",
-    "**/pbkdf2": "3.1.1",
-    "**/**/pbkdf2": "3.1.1",
-    "**/**/**/pbkdf2": "3.1.1"
+    "react-native-level-fs/**/semver": "^4.3.2"
   },
   "dependencies": {
     "@exodus/react-native-payments": "https://github.com/wachunei/react-native-payments.git#package-json-hack",
@@ -113,7 +110,6 @@
     "buffer": "5.2.1",
     "compare-versions": "^3.6.0",
     "content-hash": "2.5.2",
-    "dnode": "1.2.2",
     "eth-ens-namehash": "2.0.8",
     "eth-json-rpc-errors": "^2.0.2",
     "eth-json-rpc-filters": "4.2.2",
