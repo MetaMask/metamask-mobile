@@ -8,10 +8,10 @@ import FAIcon from 'react-native-vector-icons/FontAwesome';
 import BigNumber from 'bignumber.js';
 import { NavigationContext } from 'react-navigation';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { WalletDevice, util } from '@metamask/controllers/';
+import { WalletDevice, util, GAS_ESTIMATE_TYPES } from '@metamask/controllers/';
 
 import {
-	BNToHex,
+	addHexPrefix,
 	fromTokenMinimalUnit,
 	fromTokenMinimalUnitString,
 	hexToBN,
@@ -46,14 +46,15 @@ import QuotesModal from './components/QuotesModal';
 import Ratio from './components/Ratio';
 import ActionAlert from './components/ActionAlert';
 import TransactionsEditionModal from './components/TransactionsEditionModal';
+import GasEditModal from './components/GasEditModal';
 import InfoModal from './components/InfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import useBalance from './utils/useBalance';
-import useGasPrice from './utils/useGasPrice';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { decodeApproveData, getTicker } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
 import { swapsTokensSelector } from '../../../reducers/swaps';
+import { decGWEIToHexWEI } from '../../../util/conversions';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
 const EDIT_MODE_GAS = 'EDIT_MODE_GAS';
@@ -265,6 +266,28 @@ const gasLimitWithMultiplier = (gasLimit, multiplier) => {
 	return new BigNumber(gasLimit).times(multiplier).integerValue();
 };
 
+function getTransactionPropertiesFromGasEstimates(gasEstimateType, estimates) {
+	if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+		const defaultFeeMarketEstimate = 'high';
+		return {
+			maxFeePerGas: addHexPrefix(
+				decGWEIToHexWEI(estimates.maxFeePerGas || estimates[defaultFeeMarketEstimate].suggestedMaxFeePerGas)
+			),
+			maxPriorityFeePerGas: addHexPrefix(
+				decGWEIToHexWEI(
+					estimates.maxPriorityFeePerGas || estimates[defaultFeeMarketEstimate].suggestedMaxPriorityFeePerGas
+				)
+			)
+		};
+	}
+
+	const defaultGasPriceEstimate = 'medium';
+
+	return {
+		gasPrice: addHexPrefix(decGWEIToHexWEI(estimates.gasPrice || estimates[defaultGasPriceEstimate]))
+	};
+}
+
 function SwapsQuotesView({
 	swapsTokens,
 	accounts,
@@ -284,7 +307,9 @@ function SwapsQuotesView({
 	quoteValues,
 	error,
 	quoteRefreshSeconds,
-	usedGasPrice
+	gasEstimateType,
+	usedGasEstimate,
+	usedCustomGas
 }) {
 	const navigation = useContext(NavigationContext);
 	/* Get params from navigation */
@@ -326,10 +351,9 @@ function SwapsQuotesView({
 
 	const [editQuoteTransactionsVisible, setEditQuoteTransactionsVisible] = useState(false);
 
-	const [apiGasPrice] = useGasPrice();
-	const [customGasPrice, setCustomGasPrice] = useState(null);
+	const [customGasEstimate, setCustomGasEstimate] = useState(null);
 	const [customGasLimit, setCustomGasLimit] = useState(null);
-	const [warningGasPriceHigh, setWarningGasPriceHigh] = useState(null);
+	// const [warningGasPriceHigh, setWarningGasPriceHigh] = useState(null);
 
 	// TODO: use this variable in the future when calculating savings
 	const [isSaving] = useState(false);
@@ -370,17 +394,12 @@ function SwapsQuotesView({
 		selectedQuoteId
 	]);
 
-	/* gas estimations */
-	const gasPrice = useMemo(() => customGasPrice?.toString(16) || usedGasPrice?.toString(16), [
-		customGasPrice,
-		usedGasPrice
-	]);
-
+	const gasEstimates = useMemo(() => customGasEstimate || usedGasEstimate, [customGasEstimate, usedGasEstimate]);
 	const gasLimit = useMemo(
 		() =>
-			(Boolean(customGasLimit) && BNToHex(customGasLimit)) ||
-			gasLimitWithMultiplier(selectedQuote?.gasEstimate, selectedQuote?.gasMultiplier)?.toString(16) ||
-			selectedQuote?.maxGas?.toString(16),
+			customGasLimit ||
+			gasLimitWithMultiplier(selectedQuote?.gasEstimate, selectedQuote?.gasMultiplier)?.toString(10) ||
+			selectedQuote?.maxGas?.toString(10),
 		[customGasLimit, selectedQuote]
 	);
 
@@ -451,6 +470,23 @@ function SwapsQuotesView({
 		false
 	);
 	const [isPriceImpactModalVisible, togglePriceImpactModal, , hidePriceImpactModal] = useModalHandler(false);
+
+	const [isEditingGas, , showEditingGas, hideEditingGas] = useModalHandler(false);
+
+	const handleGasFeeUpdate = useCallback(
+		(changedGasEstimate, changedGasLimit) => {
+			const { SwapsController } = Engine.context;
+			setCustomGasEstimate(changedGasEstimate);
+			SwapsController.updateQuotesWithGasPrice(changedGasEstimate);
+			if (changedGasLimit !== gasLimit) {
+				setCustomGasLimit(changedGasLimit);
+				SwapsController.updateSelectedQuoteWithGasLimit(
+					addHexPrefix(new BigNumber(changedGasLimit).toString(16))
+				);
+			}
+		},
+		[gasLimit]
+	);
 
 	/* Handlers */
 	const handleAnimationEnd = useCallback(() => {
@@ -573,10 +609,12 @@ function SwapsQuotesView({
 		const newSwapsTransactions = TransactionController.state.swapsTransactions || {};
 		let approvalTransactionMetaId;
 		if (approvalTransaction) {
-			approvalTransaction.gasPrice = gasPrice;
 			try {
 				const { transactionMeta } = await TransactionController.addTransaction(
-					approvalTransaction,
+					{
+						...approvalTransaction,
+						...getTransactionPropertiesFromGasEstimates(gasEstimateType, gasEstimates)
+					},
 					process.env.MM_FOX_CODE,
 					WalletDevice.MM_MOBILE
 				);
@@ -591,12 +629,14 @@ function SwapsQuotesView({
 				// send analytics
 			}
 		}
-		// Modify gas limit for trade transaction only
-		selectedQuote.trade.gasPrice = gasPrice;
-		selectedQuote.trade.gas = gasLimit;
+
 		try {
 			const { transactionMeta } = await TransactionController.addTransaction(
-				selectedQuote.trade,
+				{
+					...selectedQuote.trade,
+					...getTransactionPropertiesFromGasEstimates(gasEstimateType, gasEstimates),
+					gas: new BigNumber(gasLimit).toString(16)
+				},
 				process.env.MM_FOX_CODE,
 				WalletDevice.MM_MOBILE
 			);
@@ -620,15 +660,15 @@ function SwapsQuotesView({
 		selectedQuoteValue,
 		selectedQuoteId,
 		conversionRate,
-		gasPrice,
+		gasEstimateType,
+		gasEstimates,
 		gasLimit,
 		updateSwapsTransactions
 	]);
 
 	const onEditQuoteTransactionsGas = useCallback(() => {
-		setEditQuoteTransactionsMode(EDIT_MODE_GAS);
-		setEditQuoteTransactionsVisible(true);
-	}, []);
+		showEditingGas();
+	}, [showEditingGas]);
 
 	const onEditQuoteTransactionsApproveAmount = useCallback(() => {
 		if (!approvalTransaction || !originalApprovalTransaction) {
@@ -688,39 +728,40 @@ function SwapsQuotesView({
 		sourceToken
 	]);
 
-	const onHandleGasFeeSelection = useCallback(
-		(customGasLimit, customGasPrice, warningGasPriceHigh, details) => {
-			const { SwapsController } = Engine.context;
-			const newGasLimit = new BigNumber(customGasLimit);
-			const newGasPrice = new BigNumber(customGasPrice);
-			setWarningGasPriceHigh(warningGasPriceHigh);
-			if (newGasPrice.toString(16) !== gasPrice) {
-				setCustomGasPrice(newGasPrice);
-				SwapsController.updateQuotesWithGasPrice(newGasPrice.toString(16));
-			}
-			if (newGasLimit.toString(16) !== gasLimit) {
-				setCustomGasLimit(newGasLimit);
-				SwapsController.updateSelectedQuoteWithGasLimit(newGasLimit.toString(16));
-			}
-			if (newGasLimit?.toString(16) !== gasLimit || newGasPrice?.toString(16) !== gasPrice) {
-				InteractionManager.runAfterInteractions(() => {
-					const parameters = {
-						speed_set: details.mode === 'advanced' ? undefined : details.mode,
-						gas_mode: details.mode === 'advanced' ? 'Advanced' : 'Basic',
-						gas_fees: weiToFiat(
-							toWei(swapsUtils.calcTokenAmount(newGasLimit.times(newGasPrice), 18)),
-							conversionRate,
-							currentCurrency
-						),
-						chain_id: chainId
-					};
-					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.GAS_FEES_CHANGED, {});
-					Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.GAS_FEES_CHANGED, parameters, true);
-				});
-			}
-		},
-		[chainId, conversionRate, currentCurrency, gasLimit, gasPrice]
-	);
+	// const onHandleGasFeeSelection = useCallback(
+	// 	(customGasLimit, customGasPrice, warningGasPriceHigh, details) => {
+	// 		const { SwapsController } = Engine.context;
+	// 		const newGasLimit = new BigNumber(customGasLimit);
+	// 		const newGasPrice = new BigNumber(customGasPrice);
+	// 		setWarningGasPriceHigh(warningGasPriceHigh);
+
+	// 		if (newGasPrice.toString(16) !== gasPrice) {
+	// 			setCustomGasPrice(newGasPrice);
+	// 			SwapsController.updateQuotesWithGasPrice({ gasPrice: newGasPrice.toString(16) });
+	// 		}
+	// 		if (newGasLimit.toString(16) !== gasLimit) {
+	// 			setCustomGasLimit(newGasLimit);
+	// 			SwapsController.updateSelectedQuoteWithGasLimit(newGasLimit.toString(16));
+	// 		}
+	// 		if (newGasLimit?.toString(16) !== gasLimit || newGasPrice?.toString(16) !== gasPrice) {
+	// 			InteractionManager.runAfterInteractions(() => {
+	// 				const parameters = {
+	// 					speed_set: details.mode === 'advanced' ? undefined : details.mode,
+	// 					gas_mode: details.mode === 'advanced' ? 'Advanced' : 'Basic',
+	// 					gas_fees: weiToFiat(
+	// 						toWei(swapsUtils.calcTokenAmount(newGasLimit.times(newGasPrice), 18)),
+	// 						conversionRate,
+	// 						currentCurrency
+	// 					),
+	// 					chain_id: chainId
+	// 				};
+	// 				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.GAS_FEES_CHANGED, {});
+	// 				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.GAS_FEES_CHANGED, parameters, true);
+	// 			});
+	// 		}
+	// 	},
+	// 	[chainId, conversionRate, currentCurrency, gasLimit, gasPrice]
+	// );
 
 	const handleQuotesReceivedMetric = useCallback(() => {
 		if (!selectedQuote || !selectedQuoteValue) return;
@@ -958,6 +999,22 @@ function SwapsQuotesView({
 		hideUpdateModal
 	]);
 
+	const [pollToken, setPollToken] = useState(null);
+
+	useEffect(() => {
+		const { GasFeeController } = Engine.context;
+		async function polling() {
+			const newPollToken = await GasFeeController.getGasFeeEstimatesAndStartPolling(pollToken);
+			setPollToken(newPollToken);
+		}
+		if (selectedQuote) {
+			polling();
+			return () => {
+				GasFeeController.stopPolling(pollToken);
+			};
+		}
+	}, [pollToken, selectedQuote]);
+
 	/** Metrics Effects */
 	/* Metrics: Quotes requested */
 	useEffect(() => {
@@ -1119,13 +1176,13 @@ function SwapsQuotesView({
 						</Alert>
 					</View>
 				)}
-				{!!warningGasPriceHigh && !(!hasEnoughTokenBalance || !hasEnoughEthBalance) && (
+				{/* {!!warningGasPriceHigh && !(!hasEnoughTokenBalance || !hasEnoughEthBalance) && (
 					<View style={styles.alertBar}>
 						<Alert small type="error">
 							<Text reset>{warningGasPriceHigh}</Text>
 						</Alert>
 					</View>
-				)}
+				)} */}
 				{!!selectedQuote && hasEnoughTokenBalance && hasEnoughEthBalance && shouldDisplaySlippage && (
 					<View style={styles.alertBar}>
 						<ActionAlert
@@ -1433,14 +1490,13 @@ function SwapsQuotesView({
 			/>
 
 			<TransactionsEditionModal
-				apiGasPrice={apiGasPrice}
 				approvalTransaction={approvalTransaction}
 				editQuoteTransactionsMode={editQuoteTransactionsMode}
 				editQuoteTransactionsVisible={editQuoteTransactionsVisible}
 				gasLimit={gasLimit}
-				gasPrice={gasPrice}
+				// gasPrice={gasPrice}
 				onCancelEditQuoteTransactions={onCancelEditQuoteTransactions}
-				onHandleGasFeeSelection={onHandleGasFeeSelection}
+				// onHandleGasFeeSelection={onHandleGasFeeSelection}
 				setApprovalTransaction={setApprovalTransaction}
 				minimumSpendLimit={approvalMinimumSpendLimit}
 				minimumGasLimit={gasLimitWithMultiplier(
@@ -1451,6 +1507,16 @@ function SwapsQuotesView({
 				sourceToken={sourceToken}
 				chainId={chainId}
 			/>
+
+			<GasEditModal
+				isVisible={isEditingGas}
+				onGasUpdate={handleGasFeeUpdate}
+				dismiss={hideEditingGas}
+				customGasFee={usedCustomGas}
+				customGasLimit={customGasLimit}
+				selectedQuoteGasLimit={gasLimit}
+			/>
+
 			{renderGasTooltip()}
 		</ScreenView>
 	);
@@ -1501,7 +1567,9 @@ SwapsQuotesView.propTypes = {
 	approvalTransaction: PropTypes.object,
 	error: PropTypes.object,
 	quoteRefreshSeconds: PropTypes.number,
-	usedGasPrice: PropTypes.string
+	gasEstimateType: PropTypes.string,
+	usedGasEstimate: PropTypes.object,
+	usedCustomGas: PropTypes.object
 };
 
 const mapStateToProps = state => ({
@@ -1522,7 +1590,9 @@ const mapStateToProps = state => ({
 	approvalTransaction: state.engine.backgroundState.SwapsController.approvalTransaction,
 	error: state.engine.backgroundState.SwapsController.error,
 	quoteRefreshSeconds: state.engine.backgroundState.SwapsController.quoteRefreshSeconds,
-	usedGasPrice: state.engine.backgroundState.SwapsController.usedGasPrice,
+	gasEstimateType: state.engine.backgroundState.GasFeeController.gasEstimateType,
+	usedGasEstimate: state.engine.backgroundState.SwapsController.usedGasEstimate,
+	usedCustomGas: state.engine.backgroundState.SwapsController.usedCustomGas,
 	swapsTokens: swapsTokensSelector(state)
 });
 
