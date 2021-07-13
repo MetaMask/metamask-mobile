@@ -62,14 +62,13 @@ class Engine {
 	 */
 	constructor(initialState = {}) {
 		if (!Engine.instance) {
-			const {
-				engine: { backgroundState }
-			} = store.getState();
 			const preferencesController = new PreferencesController(
 				{},
 				{
 					ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL,
-					useStaticTokenList: backgroundState.PreferencesController.useStaticTokenList
+					useStaticTokenList:
+						(initialState.PreferencesController && initialState.PreferencesController.useStaticTokenList) ||
+						undefined
 				}
 			);
 			const networkController = new NetworkController({
@@ -112,6 +111,8 @@ class Engine {
 			const tokenListController = new TokenListController({
 				chainId: networkController.provider.chainId, // Should this use networkController.state.provider.chainId instead?
 				onNetworkStateChange: listener => networkController.subscribe(listener),
+				useStaticTokenList: preferencesController.state.useStaticTokenList,
+				onPreferencesStateChange: listener => preferencesController.subscribe(listener),
 				messenger: this.controllerMessenger
 			});
 			const currencyRateController = new CurrencyRateController({
@@ -170,7 +171,8 @@ class Engine {
 				new TokenRatesController({
 					onAssetsStateChange: listener => assetsController.subscribe(listener),
 					onCurrencyRateStateChange: listener =>
-						this.controllerMessenger.subscribe(`${currencyRateController.name}:stateChange`, listener)
+						this.controllerMessenger.subscribe(`${currencyRateController.name}:stateChange`, listener),
+					onNetworkStateChange: listener => networkController.subscribe(listener)
 				}),
 				new TransactionController({
 					getNetworkState: () => networkController.state,
