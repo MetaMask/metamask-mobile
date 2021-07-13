@@ -25,6 +25,8 @@ function GasEditModal({
 	dismiss,
 	gasEstimateType,
 	gasFeeEstimates,
+	defaultGasFeeOptionLegacy = 'medium',
+	defaultGasFeeOptionFeeMarket = 'high',
 	isVisible,
 	onGasUpdate,
 	customGasFee,
@@ -41,8 +43,8 @@ function GasEditModal({
 		customGasFee
 			? customGasFee.selected ?? null
 			: gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET
-			? 'high'
-			: 'medium'
+			? defaultGasFeeOptionFeeMarket
+			: defaultGasFeeOptionLegacy
 	);
 	const [stopUpdateGas, setStopUpdateGas] = useState(false);
 	const [EIP1559TransactionDataTemp, setEIP1559TransactionDataTemp] = useState({});
@@ -253,6 +255,8 @@ GasEditModal.propTypes = {
 	dismiss: PropTypes.func,
 	gasEstimateType: PropTypes.string,
 	gasFeeEstimates: PropTypes.object,
+	defaultGasFeeOptionFeeMarket: PropTypes.string,
+	defaultGasFeeOptionLegacy: PropTypes.string,
 	isVisible: PropTypes.bool,
 	onGasUpdate: PropTypes.func,
 	customGasFee: PropTypes.object,
@@ -266,8 +270,6 @@ GasEditModal.propTypes = {
 	ticker: PropTypes.string
 };
 const mapStateToProps = state => ({
-	gasEstimateType: state.engine.backgroundState.GasFeeController.gasEstimateType,
-	gasFeeEstimates: state.engine.backgroundState.GasFeeController.gasFeeEstimates,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	nativeCurrency: state.engine.backgroundState.CurrencyRateController.nativeCurrency,

@@ -64,6 +64,9 @@ const SLIPPAGE_BUCKETS = {
 	HIGH: 'high'
 };
 
+const DEFAULT_GAS_FEE_OPTION_LEGACY = 'medium';
+const DEFAULT_GAS_FEE_OPTION_FEE_MARKET = 'high';
+
 const styles = StyleSheet.create({
 	screen: {
 		flexGrow: 1,
@@ -308,6 +311,7 @@ function SwapsQuotesView({
 	error,
 	quoteRefreshSeconds,
 	gasEstimateType,
+	gasFeeEstimates,
 	usedGasEstimate,
 	usedCustomGas
 }) {
@@ -478,7 +482,7 @@ function SwapsQuotesView({
 			const { SwapsController } = Engine.context;
 			setCustomGasEstimate(changedGasEstimate);
 			SwapsController.updateQuotesWithGasPrice(changedGasEstimate);
-			if (changedGasLimit !== gasLimit) {
+			if (changedGasLimit && changedGasLimit !== gasLimit) {
 				setCustomGasLimit(changedGasLimit);
 				SwapsController.updateSelectedQuoteWithGasLimit(
 					addHexPrefix(new BigNumber(changedGasLimit).toString(16))
@@ -999,6 +1003,8 @@ function SwapsQuotesView({
 		hideUpdateModal
 	]);
 
+	/** Gas Effects */
+
 	const [pollToken, setPollToken] = useState(null);
 
 	useEffect(() => {
@@ -1014,6 +1020,32 @@ function SwapsQuotesView({
 			};
 		}
 	}, [pollToken, selectedQuote]);
+
+	useEffect(
+		() => {
+			if (selectedQuote && (!customGasEstimate || customGasEstimate?.selected)) {
+				if (gasEstimateType === GAS_ESTIMATE_TYPES.ETH_GASPRICE) {
+					// Added a selected property because for ETH_GASPRICE any user change will lead
+					// to stop updating the estimates, unless there is an option selected.
+					handleGasFeeUpdate({ gasPrice: gasFeeEstimates.gasPrice, selected: DEFAULT_GAS_FEE_OPTION_LEGACY });
+				} else if (gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY) {
+					const selected = customGasEstimate?.selected || DEFAULT_GAS_FEE_OPTION_LEGACY;
+					handleGasFeeUpdate({ gasPrice: gasFeeEstimates[selected], selected });
+				} else if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+					const selected = customGasEstimate?.selected || DEFAULT_GAS_FEE_OPTION_FEE_MARKET;
+					handleGasFeeUpdate({
+						maxFeePerGas: gasFeeEstimates[selected].suggestedMaxFeePerGas,
+						maxPriorityFeePerGas: gasFeeEstimates[selected].suggestedMaxPriorityFeePerGas,
+						selected
+					});
+				}
+			}
+		},
+		// `customGasEstimate` is removed from dependency array because handleGasFeeUpdate updates it
+		// leading to a infinite recursive call
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[selectedQuote, gasEstimateType, gasFeeEstimates, handleGasFeeUpdate]
+	);
 
 	/** Metrics Effects */
 	/* Metrics: Quotes requested */
@@ -1510,6 +1542,10 @@ function SwapsQuotesView({
 
 			<GasEditModal
 				isVisible={isEditingGas}
+				gasEstimateType={gasEstimateType}
+				gasFeeEstimates={gasFeeEstimates}
+				defaultGasFeeOptionFeeMarket={DEFAULT_GAS_FEE_OPTION_FEE_MARKET}
+				defaultGasFeeOptionFeeLegacy={DEFAULT_GAS_FEE_OPTION_LEGACY}
 				onGasUpdate={handleGasFeeUpdate}
 				dismiss={hideEditingGas}
 				customGasFee={usedCustomGas}
@@ -1568,6 +1604,7 @@ SwapsQuotesView.propTypes = {
 	error: PropTypes.object,
 	quoteRefreshSeconds: PropTypes.number,
 	gasEstimateType: PropTypes.string,
+	gasFeeEstimates: PropTypes.object,
 	usedGasEstimate: PropTypes.object,
 	usedCustomGas: PropTypes.object
 };
@@ -1591,6 +1628,7 @@ const mapStateToProps = state => ({
 	error: state.engine.backgroundState.SwapsController.error,
 	quoteRefreshSeconds: state.engine.backgroundState.SwapsController.quoteRefreshSeconds,
 	gasEstimateType: state.engine.backgroundState.GasFeeController.gasEstimateType,
+	gasFeeEstimates: state.engine.backgroundState.GasFeeController.gasFeeEstimates,
 	usedGasEstimate: state.engine.backgroundState.SwapsController.usedGasEstimate,
 	usedCustomGas: state.engine.backgroundState.SwapsController.usedCustomGas,
 	swapsTokens: swapsTokensSelector(state)
