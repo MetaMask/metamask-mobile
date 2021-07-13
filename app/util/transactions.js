@@ -565,6 +565,34 @@ export const calculateERC20EIP1559 = ({
 	];
 };
 
+export const calculateEIP1559Times = (suggestedMaxPriorityFeePerGas, suggestedMaxFeePerGas) => {
+	let timeEstimate = 'Unknown processing time';
+	let timeEstimateColor = 'red';
+	const { GasFeeController } = Engine.context;
+
+	try {
+		const time = GasFeeController.getTimeEstimate(suggestedMaxPriorityFeePerGas, suggestedMaxFeePerGas);
+
+		if (!time || time === 'unknown' || Object.keys(time).length < 2 || time.upperTimeBound === 'unknown') {
+			timeEstimate = 'Unknown processing time';
+			timeEstimateColor = 'red';
+		} else if (time.lowerTimeBound === 0) {
+			timeEstimate = `Less than ${humanizeDuration(time.upperTimeBound)}`;
+			timeEstimateColor = 'green';
+		} else if (time.upperTimeBound === 0) {
+			timeEstimate = `At least ${humanizeDuration(time.lowerTimeBound)}`;
+			timeEstimateColor = 'red';
+		} else {
+			timeEstimate = `${humanizeDuration(time.lowerTimeBound)} - ${humanizeDuration(time.upperTimeBound)}`;
+			timeEstimateColor = 'green';
+		}
+	} catch (error) {
+		console.log('ERROR ESTIMATING TIME', error);
+	}
+
+	return { timeEstimate, timeEstimateColor };
+};
+
 export const parseTransactionEIP1559 = (
 	{
 		selectedGasFee,
@@ -587,29 +615,10 @@ export const parseTransactionEIP1559 = (
 	const suggestedMaxFeePerGasHex = decGWEIToHexWEI(suggestedMaxFeePerGas);
 	const gasLimitHex = BNToHex(new BN(selectedGasFee.suggestedGasLimit));
 
-	const { GasFeeController } = Engine.context;
-
-	let timeEstimate = 'Unknown processing time';
-	let timeEstimateColor = 'red';
-	try {
-		const time = GasFeeController.getTimeEstimate(suggestedMaxPriorityFeePerGas, suggestedMaxFeePerGas);
-
-		if (!time || time === 'unknown' || Object.keys(time).length < 2 || time.upperTimeBound === 'unknown') {
-			timeEstimate = 'Unknown processing time';
-			timeEstimateColor = 'red';
-		} else if (time.lowerTimeBound === 0) {
-			timeEstimate = `Less than ${humanizeDuration(time.upperTimeBound)}`;
-			timeEstimateColor = 'green';
-		} else if (time.upperTimeBound === 0) {
-			timeEstimate = `At least ${humanizeDuration(time.lowerTimeBound)}`;
-			timeEstimateColor = 'red';
-		} else {
-			timeEstimate = `${humanizeDuration(time.lowerTimeBound)} - ${humanizeDuration(time.upperTimeBound)}`;
-			timeEstimateColor = 'green';
-		}
-	} catch (error) {
-		console.log('ERROR ESTIMATING TIME', error);
-	}
+	const { timeEstimate, timeEstimateColor } = calculateEIP1559Times(
+		suggestedMaxPriorityFeePerGas,
+		suggestedMaxFeePerGas
+	);
 
 	// Hex calculations
 	const estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex = addCurrencies(

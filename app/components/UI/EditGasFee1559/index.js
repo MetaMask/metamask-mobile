@@ -129,7 +129,9 @@ const EditGasFee1559 = ({
 	timeEstimateColor,
 	error,
 	warning,
-	dappSuggestedGas
+	dappSuggestedGas,
+	ignoreOptions,
+	recommended
 }) => {
 	const [showRangeInfoModal, setShowRangeInfoModal] = useState(false);
 	const [showAdvancedOptions, setShowAdvancedOptions] = useState(!selected);
@@ -222,6 +224,33 @@ const EditGasFee1559 = ({
 		[changeGas, gasOptions]
 	);
 
+	const shouldIgnore = useCallback(option => ignoreOptions.find(item => item === option), [ignoreOptions]);
+
+	const renderOptions = useCallback(() => {
+		const options = [
+			{ name: 'low', label: 'Low' },
+			{ name: 'medium', label: 'Medium' },
+			{ name: 'high', label: 'High' }
+		];
+		const renderOptions = [];
+		options.forEach(option => {
+			if (shouldIgnore(option.name)) return;
+			const renderOption = {
+				name: option.name,
+				label: (selected, disabled) => (
+					<Text bold primary={selected && !disabled}>
+						{option.label}
+					</Text>
+				)
+			};
+			if (recommended && recommended.name === option.name) {
+				renderOption.topLabel = recommended.render;
+			}
+			renderOptions.push(renderOption);
+		});
+		return renderOptions;
+	}, [recommended, shouldIgnore]);
+
 	const isMainnet = isMainnetByChainId(chainId);
 	const nativeCurrencySelected = primaryCurrency === 'ETH' || !isMainnet;
 	let gasFeePrimary, gasFeeMaxPrimary, maxFeePerGasPrimary, maxPriorityFeePerGasPrimary, gasFeeMaxSecondary;
@@ -243,41 +272,7 @@ const EditGasFee1559 = ({
 		<View>
 			<View>
 				{/* TODO(eip1559) hook with strings i18n */}
-				<HorizontalSelector
-					selected={selectedOption}
-					onPress={selectOption}
-					options={[
-						{
-							name: 'low',
-							label: <Text bold>Lower</Text>
-						},
-						{
-							name: 'medium',
-							label: (selected, disabled) => (
-								<Text bold primary={selected && !disabled}>
-									Medium
-								</Text>
-							),
-							topLabel: (
-								<TouchableOpacity onPress={() => setShowRangeInfoModal('recommended')}>
-									<Text noMargin link bold small centered>
-										Recommended{' '}
-										<MaterialCommunityIcon name="information" size={14} style={styles.labelInfo} />
-									</Text>
-								</TouchableOpacity>
-							)
-						},
-
-						{
-							name: 'high',
-							label: (selected, disabled) => (
-								<Text bold primary={selected && !disabled}>
-									Higher
-								</Text>
-							)
-						}
-					]}
-				/>
+				<HorizontalSelector selected={selectedOption} onPress={selectOption} options={renderOptions()} />
 			</View>
 			<View style={styles.advancedOptionsContainer}>
 				<TouchableOpacity onPress={toggleAdvancedOptions} style={styles.advancedOptionsButton}>
@@ -550,6 +545,10 @@ const EditGasFee1559 = ({
 	);
 };
 
+EditGasFee1559.defaultProps = {
+	ignoreOptions: []
+};
+
 EditGasFee1559.propTypes = {
 	/**
 	 * Gas option selected (low, medium, high)
@@ -634,7 +633,15 @@ EditGasFee1559.propTypes = {
 	/**
 	 * Boolean that specifies if the gas price was suggested by the dapp
 	 */
-	dappSuggestedGas: PropTypes.bool
+	dappSuggestedGas: PropTypes.bool,
+	/**
+	 * Ignore option array
+	 */
+	ignoreOptions: PropTypes.array,
+	/**
+	 * Recommended object with type and render function
+	 */
+	recommended: PropTypes.object
 };
 
 export default EditGasFee1559;
