@@ -1660,23 +1660,9 @@
   resolved "https://registry.yarnpkg.com/@metamask/safe-event-emitter/-/safe-event-emitter-2.0.0.tgz#af577b477c683fad17c619a78208cede06f9605c"
   integrity sha512-/kSXhY692qiV1MXu6EeOZvg5nECLclxNXcKCxJ3cXQgYuRymRHpdx/t7JXfsK+JLjwA1e1c1/SBrlQYpusC29Q==
 
-"@metamask/swaps-controller@./metamask-swaps-controller-v4.0.0-0c45016-1.tgz":
-  version "4.0.0-0c45016-1"
-  resolved "./metamask-swaps-controller-v4.0.0-0c45016-1.tgz#b6ffdb5202a6e1e75aaa862132e4d56f6d69db0d"
-  dependencies:
-    "@metamask/controllers" "^12.1.0"
-    "@metamask/swaps-controller" "./metamask-swaps-controller-v4.0.0-0c45016.tgz"
-    abort-controller "^3.0.0"
-    async-mutex "^0.3.1"
-    bignumber.js "^9.0.1"
-    eth-query "^2.1.2"
-    ethereumjs-util "^7.0.10"
-    human-standard-token-abi "^2.0.0"
-    web3 "^0.20.7"
-
-"@metamask/swaps-controller@./metamask-swaps-controller-v4.0.0-0c45016.tgz":
-  version "4.0.0-0c45016"
-  resolved "./metamask-swaps-controller-v4.0.0-0c45016.tgz#4a7d38de0898a3ebe8e083bcbb3edf5a2f06c400"
+"@metamask/swaps-controller@./metamask-swaps-controller-v4.0.0-9385ff.tgz":
+  version "4.0.0-9385ff"
+  resolved "./metamask-swaps-controller-v4.0.0-9385ff.tgz#ab6ab53a6cacbd9e94aaa3c0d58f56a3ddb50ee1"
   dependencies:
     "@metamask/controllers" "^12.1.0"
     abort-controller "^3.0.0"
@@ -13071,9 +13057,9 @@ tslib@^2.0.0:
   integrity sha512-hcVC3wYEziELGGmEEXue7D75zbwIIVUMWAVbHItGPx0ziyXxrOMQx4rQEVEV45Ut/1IotuEvwqPopzIOkDMf0A==
 
 tslib@^2.1.0:
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.2.0.tgz#fb2c475977e35e241311ede2693cee1ec6698f5c"
-  integrity sha512-gS9GVHRU+RGn5KQM2rllAlR3dU6m7AcpJKdtH8gFvQiC4Otgk98XnmMU+nZenHt/+VhnBPWwgrJsyrdcw6i23w==
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.3.0.tgz#803b8cdab3e12ba581a4ca41c8839bbb0dacb09e"
+  integrity sha512-N82ooyxVNm6h1riLCoyS9e3fuJ3AMG2zIZs2Gd1ATcSFjSA23Q0fzjjZeh0jbJvWVDZ0cJT8yaNNaaXHzueNjg==
 
 tsutils@^3.17.1:
   version "3.17.1"
