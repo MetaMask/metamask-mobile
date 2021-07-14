@@ -98,12 +98,33 @@ const FadeAnimationView = ({
 };
 
 FadeAnimationView.propTypes = {
+	/**
+	 * Component to render
+	 */
 	children: PropTypes.oneOfType([PropTypes.object, PropTypes.node]),
+	/**
+	 * Style of the container view
+	 */
 	style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
+	/**
+	 * Time for the animation
+	 */
 	animationTime: PropTypes.number,
+	/**
+	 * Value to watch for changes to start animation
+	 */
 	valueToWatch: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+	/**
+	 * Function to call when update animation starts
+	 */
 	onAnimationStart: PropTypes.func,
+	/**
+	 * Function to call when update animation ends
+	 */
 	onAnimationEnd: PropTypes.func,
+	/**
+	 * If the values should animate upon update or not
+	 */
 	canAnimate: PropTypes.bool
 };
 

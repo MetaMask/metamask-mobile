@@ -262,9 +262,21 @@ class ApproveTransactionReview extends PureComponent {
 		 * Estimate type returned by the gas fee controller, can be market-fee, legacy or eth_gasPrice
 		 */
 		gasEstimateType: PropTypes.string,
+		/**
+		 * Function to call when update animation starts
+		 */
 		onUpdatingValuesStart: PropTypes.func,
+		/**
+		 * Function to call when update animation ends
+		 */
 		onUpdatingValuesEnd: PropTypes.func,
+		/**
+		 * If the values should animate upon update or not
+		 */
 		canAnimate: PropTypes.bool,
+		/**
+		 * Boolean to determine if the animation is happening
+		 */
 		isAnimating: PropTypes.bool
 	};
 

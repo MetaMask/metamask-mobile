@@ -106,9 +106,21 @@ class TransactionReviewFeeCard extends PureComponent {
 		 * A string representing the network chainId
 		 */
 		chainId: PropTypes.string,
+		/**
+		 * Function to call when update animation starts
+		 */
 		onUpdatingValuesStart: PropTypes.func,
+		/**
+		 * Function to call when update animation ends
+		 */
 		onUpdatingValuesEnd: PropTypes.func,
+		/**
+		 * If the values should animate upon update or not
+		 */
 		canAnimate: PropTypes.bool,
+		/**
+		 * Boolean to determine if the animation is happening
+		 */
 		isAnimating: PropTypes.bool
 	};
 
