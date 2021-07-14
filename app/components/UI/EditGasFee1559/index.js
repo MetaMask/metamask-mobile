@@ -1,5 +1,5 @@
 /* eslint-disable react/display-name */
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView, TouchableWithoutFeedback } from 'react-native';
 import Text from '../../Base/Text';
 import StyledButton from '../StyledButton';
@@ -151,9 +151,9 @@ const EditGasFee1559 = ({
 		setShowLearnMoreModal(showLearnMoreModal => !showLearnMoreModal);
 	}, []);
 
-	const save = () => {
+	const save = useCallback(() => {
 		onSave(selectedOption);
-	};
+	}, [onSave, selectedOption]);
 
 	const changeGas = useCallback(
 		(gas, selectedOption) => {
@@ -172,9 +172,9 @@ const EditGasFee1559 = ({
 
 			const valueBN = new BigNumber(value);
 
-			if (lowerValue && valueBN.lt(lowerValue)) {
+			if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
 				setMaxPriorityFeeError('Max Priority Fee is low for current network conditions');
-			} else if (higherValue && valueBN.gt(higherValue)) {
+			} else if (!higherValue.isNaN() && valueBN.gt(higherValue)) {
 				setMaxPriorityFeeError('Max Priority Fee is higher than necessary');
 			} else {
 				setMaxPriorityFeeError('');
@@ -194,9 +194,9 @@ const EditGasFee1559 = ({
 
 			const valueBN = new BigNumber(value);
 
-			if (lowerValue && valueBN.lt(lowerValue)) {
+			if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
 				setMaxFeeError('Max Fee is low for current network conditions');
-			} else if (higherValue && valueBN.gt(higherValue)) {
+			} else if (!higherValue.isNaN() && valueBN.gt(higherValue)) {
 				setMaxFeeError('Max Fee is higher than necessary');
 			} else {
 				setMaxFeeError('');
@@ -228,29 +228,28 @@ const EditGasFee1559 = ({
 
 	const shouldIgnore = useCallback(option => ignoreOptions.find(item => item === option), [ignoreOptions]);
 
-	const renderOptions = useCallback(() => {
+	const renderOptions = useMemo(() => {
 		const options = [
 			{ name: 'low', label: 'Low' },
 			{ name: 'medium', label: 'Medium' },
 			{ name: 'high', label: 'High' }
 		];
-		const renderOptions = [];
-		options.forEach(option => {
-			if (shouldIgnore(option.name)) return;
-			const renderOption = {
-				name: option.name,
-				label: (selected, disabled) => (
-					<Text bold primary={selected && !disabled}>
-						{option.label}
-					</Text>
-				)
-			};
-			if (recommended && recommended.name === option.name) {
-				renderOption.topLabel = recommended.render;
-			}
-			renderOptions.push(renderOption);
-		});
-		return renderOptions;
+		return options
+			.filter(option => !shouldIgnore(option.name))
+			.map(option => {
+				const renderOption = {
+					name: option.name,
+					label: (selected, disabled) => (
+						<Text bold primary={selected && !disabled}>
+							{option.label}
+						</Text>
+					)
+				};
+				if (recommended && recommended.name === option.name) {
+					renderOption.topLabel = recommended.render;
+				}
+				return renderOption;
+			});
 	}, [recommended, shouldIgnore]);
 
 	const isMainnet = isMainnetByChainId(chainId);
@@ -274,7 +273,7 @@ const EditGasFee1559 = ({
 		<View>
 			<View>
 				{/* TODO(eip1559) hook with strings i18n */}
-				<HorizontalSelector selected={selectedOption} onPress={selectOption} options={renderOptions()} />
+				<HorizontalSelector selected={selectedOption} onPress={selectOption} options={renderOptions} />
 			</View>
 			<View style={styles.advancedOptionsContainer}>
 				<TouchableOpacity onPress={toggleAdvancedOptions} style={styles.advancedOptionsButton}>
