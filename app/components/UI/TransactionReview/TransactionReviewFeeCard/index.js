@@ -54,8 +54,9 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center'
 	},
-	fiatContainer: {
-		width: 66
+	primaryContainer: flex => {
+		if (flex) return { flex: 1 };
+		return { width: 86, marginLeft: 2 };
 	},
 	hitSlop: {
 		top: 10,
@@ -198,23 +199,32 @@ class TransactionReviewFeeCard extends PureComponent {
 			chainId
 		} = this.props;
 
+		const isMainnet = isMainnetByChainId(chainId);
+
 		let amount;
 		let networkFee;
 		let totalAmount;
-		let equivalentTotalAmount;
-		if (primaryCurrency === 'ETH') {
-			amount = transactionValue;
-			networkFee = totalGasEth;
-			totalAmount = totalValue;
-			equivalentTotalAmount = totalFiat;
-		} else {
+		let primaryAmount;
+		let primaryNetworkFee;
+		let primaryTotalAmount;
+		const showNativeCurrency = primaryCurrency === 'ETH' || !isMainnet;
+		if (showNativeCurrency) {
 			amount = fiat;
 			networkFee = totalGasFiat;
 			totalAmount = totalFiat;
-			equivalentTotalAmount = totalValue;
-		}
 
-		const isMainnet = isMainnetByChainId(chainId);
+			primaryAmount = transactionValue;
+			primaryNetworkFee = totalGasEth;
+			primaryTotalAmount = totalValue;
+		} else {
+			amount = transactionValue;
+			networkFee = totalGasEth;
+			totalAmount = totalValue;
+
+			primaryAmount = fiat;
+			primaryNetworkFee = totalGasFiat;
+			primaryTotalAmount = totalFiat;
+		}
 
 		return (
 			<View>
@@ -224,14 +234,15 @@ class TransactionReviewFeeCard extends PureComponent {
 							{strings('transaction.amount')}
 						</Text>
 						<View style={styles.valuesContainer}>
-							<Text upper right grey style={styles.amountContainer}>
-								{amount}
-							</Text>
 							{isMainnet && (
-								<Text upper primary bold right style={styles.fiatContainer}>
-									{fiat}
+								<Text upper right grey style={styles.amountContainer}>
+									{amount}
 								</Text>
 							)}
+
+							<Text upper primary bold right style={styles.primaryContainer(!isMainnet)}>
+								{primaryAmount}
+							</Text>
 						</View>
 					</Summary.Row>
 					<Summary.Row>
@@ -251,36 +262,56 @@ class TransactionReviewFeeCard extends PureComponent {
 						</View>
 						{this.renderIfGasEstimationReady(
 							<View style={styles.valuesContainer}>
-								<TouchableOpacity style={styles.amountContainer} onPress={edit}>
-									<Text upper right link underline style={[warningGasPriceHigh && styles.over]}>
-										{networkFee}
-									</Text>
-								</TouchableOpacity>
 								{isMainnet && (
-									<Text primary bold upper right style={styles.fiatContainer}>
-										{totalGasFiat}
-									</Text>
+									<View style={styles.amountContainer}>
+										<TouchableOpacity onPress={edit} disabled={showNativeCurrency}>
+											<Text
+												link={!showNativeCurrency}
+												underline={!showNativeCurrency}
+												upper
+												right
+											>
+												{networkFee}
+											</Text>
+										</TouchableOpacity>
+									</View>
 								)}
+								<View style={styles.primaryContainer(!isMainnet)}>
+									<TouchableOpacity onPress={edit} disabled={!showNativeCurrency}>
+										<Text
+											primary
+											bold
+											upper
+											link={showNativeCurrency}
+											underline={showNativeCurrency}
+											right
+											style={[warningGasPriceHigh && styles.over]}
+										>
+											{primaryNetworkFee}
+										</Text>
+									</TouchableOpacity>
+								</View>
 							</View>
 						)}
 					</Summary.Row>
 					<Summary.Separator />
 					<Summary.Row>
-						<Text primary bold style={(over && styles.over) || null}>
+						<Text primary bold style={[over && styles.over]}>
 							{strings('transaction.total')}
 						</Text>
 
 						{!!totalFiat &&
 							this.renderIfGasEstimationReady(
 								<View style={styles.valuesContainer}>
-									<Text blue upper right style={styles.amountContainer}>
-										{totalAmount}
-									</Text>
 									{isMainnet && (
-										<Text bold primary upper right style={styles.fiatContainer}>
-											{equivalentTotalAmount}
+										<Text grey upper right style={styles.amountContainer}>
+											{totalAmount}
 										</Text>
 									)}
+
+									<Text bold primary upper right style={styles.primaryContainer(!isMainnet)}>
+										{primaryTotalAmount}
+									</Text>
 								</View>
 							)}
 					</Summary.Row>

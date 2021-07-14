@@ -25,6 +25,7 @@ exports[`Approval should render correctly 1`] = `
   onModalWillHide={[Function]}
   onModalWillShow={[Function]}
   onSwipeComplete={[Function]}
+  panResponderThreshold={4}
   propagateSwipe={true}
   scrollHorizontal={false}
   scrollOffset={0}

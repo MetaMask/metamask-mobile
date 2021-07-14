@@ -1,7 +1,7 @@
 import Engine from '../core/Engine';
 import networkMap from 'ethjs-ens/lib/network-map.json';
 import ENS from 'ethjs-ens';
-import { toLowerCaseCompare } from '../util/general';
+import { toLowerCaseEquals } from '../util/general';
 
 /**
  * Utility class with the single responsibility
@@ -26,7 +26,7 @@ export async function doENSReverseLookup(address, network) {
 		try {
 			const name = await this.ens.reverse(address);
 			const resolvedAddress = await this.ens.lookup(name);
-			if (toLowerCaseCompare(address, resolvedAddress)) {
+			if (toLowerCaseEquals(address, resolvedAddress)) {
 				ENSCache.cache[address] = name;
 				return name;
 			}

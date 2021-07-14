@@ -79,7 +79,8 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
           strikethrough={false}
           style={
             Object {
-              "width": 66,
+              "marginLeft": 2,
+              "width": 86,
             }
           }
           underline={false}
@@ -181,7 +182,11 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
         right={false}
         small={false}
         strikethrough={false}
-        style={null}
+        style={
+          Array [
+            undefined,
+          ]
+        }
         underline={false}
         upper={false}
       >

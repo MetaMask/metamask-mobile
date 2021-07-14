@@ -18,7 +18,6 @@ import { getTicker, getNormalizedTxState } from '../../../../util/transactions';
 import TransactionReviewFeeCard from '../TransactionReviewFeeCard';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
-import { withNavigation } from 'react-navigation';
 import { getNetworkName, getNetworkNonce, isMainNet } from '../../../../util/networks';
 import { capitalize } from '../../../../util/general';
 import CustomNonceModal from '../../../UI/CustomNonceModal';
@@ -59,7 +58,6 @@ const styles = StyleSheet.create({
 		color: colors.blue
 	},
 	overviewEth: {
-		...fontStyles.bold,
 		color: colors.fontPrimary,
 		fontSize: 14,
 		textAlign: 'right',
@@ -248,7 +246,7 @@ class TransactionReviewInformation extends PureComponent {
 		const { navigation } = this.props;
 		/* this is kinda weird, we have to reject the transaction to collapse the modal */
 		this.onCancelPress();
-		navigation.navigate('PaymentMethodSelector');
+		navigation.navigate('FiatOnRamp');
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST);
 		});
@@ -449,4 +447,4 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
 	mapStateToProps,
 	mapDispatchToProps
-)(withNavigation(TransactionReviewInformation));
+)(TransactionReviewInformation);
