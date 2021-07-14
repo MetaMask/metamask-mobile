@@ -9,6 +9,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import InfoModal from '../../Swaps/components/InfoModal';
 import FadeAnimationView from '../../FadeAnimationView';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 
 const styles = StyleSheet.create({
 	overview: noMargin => ({
@@ -78,6 +79,14 @@ const TransactionReviewEIP1559 = ({
 		if (!isAnimating) onEdit();
 	}, [isAnimating, onEdit]);
 
+	const renderSkeleton = (width, noStyle) => (
+		<View style={!noStyle && styles.valuesContainer}>
+			<SkeletonPlaceholder>
+				<SkeletonPlaceholder.Item width={width} height={10} borderRadius={4} />
+			</SkeletonPlaceholder>
+		</View>
+	);
+
 	const isMainnet = isMainnetByChainId(chainId);
 	const nativeCurrencySelected = primaryCurrency === 'ETH' || !isMainnet;
 	let gasFeePrimary, gasFeeSecondary, gasFeeMaxPrimary, totalPrimary, totalSecondary, totalMaxPrimary;
@@ -113,63 +122,75 @@ const TransactionReviewEIP1559 = ({
 						</TouchableOpacity>
 					</Text>
 				</View>
-				<FadeAnimationView
-					style={styles.valuesContainer}
-					valueToWatch={valueToWatchAnimation}
-					canAnimate={canAnimate}
-					onAnimationStart={onUpdatingValuesStart}
-					onAnimationEnd={onUpdatingValuesEnd}
-				>
-					{isMainnet && (
-						<TouchableOpacity onPress={edit} disabled={nativeCurrencySelected}>
+				{gasFeePrimary ? (
+					<FadeAnimationView
+						style={styles.valuesContainer}
+						valueToWatch={valueToWatchAnimation}
+						canAnimate={canAnimate}
+						onAnimationStart={onUpdatingValuesStart}
+						onAnimationEnd={onUpdatingValuesEnd}
+					>
+						{isMainnet && (
+							<TouchableOpacity onPress={edit} disabled={nativeCurrencySelected}>
+								<Text
+									upper
+									right
+									grey={nativeCurrencySelected}
+									link={!nativeCurrencySelected}
+									underline={!nativeCurrencySelected}
+									style={styles.amountContainer}
+								>
+									{gasFeeSecondary}
+								</Text>
+							</TouchableOpacity>
+						)}
+
+						<TouchableOpacity onPress={edit} disabled={!nativeCurrencySelected}>
 							<Text
+								primary
+								bold
 								upper
+								grey={!nativeCurrencySelected}
+								link={nativeCurrencySelected}
+								underline={nativeCurrencySelected}
 								right
-								grey={nativeCurrencySelected}
-								link={!nativeCurrencySelected}
-								underline={!nativeCurrencySelected}
-								style={styles.amountContainer}
 							>
-								{gasFeeSecondary}
+								{gasFeePrimary}
 							</Text>
 						</TouchableOpacity>
-					)}
-
-					<TouchableOpacity onPress={edit} disabled={!nativeCurrencySelected}>
-						<Text
-							primary
-							bold
-							upper
-							grey={!nativeCurrencySelected}
-							link={nativeCurrencySelected}
-							underline={nativeCurrencySelected}
-							right
-						>
-							{gasFeePrimary}
-						</Text>
-					</TouchableOpacity>
-				</FadeAnimationView>
+					</FadeAnimationView>
+				) : (
+					renderSkeleton(80)
+				)}
 			</Summary.Row>
 			<Summary.Row>
-				<FadeAnimationView valueToWatch={valueToWatchAnimation} canAnimate={canAnimate}>
-					<Text small green={timeEstimateColor === 'green'} red={timeEstimateColor === 'red'}>
-						{timeEstimate}
-					</Text>
-				</FadeAnimationView>
-				<FadeAnimationView
-					style={styles.valuesContainer}
-					valueToWatch={valueToWatchAnimation}
-					canAnimate={canAnimate}
-				>
-					<Text grey right small>
-						<Text bold small noMargin>
-							Max fee:{' '}
+				{timeEstimate ? (
+					<FadeAnimationView valueToWatch={valueToWatchAnimation} canAnimate={canAnimate}>
+						<Text small green={timeEstimateColor === 'green'} red={timeEstimateColor === 'red'}>
+							{timeEstimate}
 						</Text>
-						<Text bold small noMargin>
-							{gasFeeMaxPrimary}
+					</FadeAnimationView>
+				) : (
+					renderSkeleton(120, true)
+				)}
+				{gasFeeMaxPrimary ? (
+					<FadeAnimationView
+						style={styles.valuesContainer}
+						valueToWatch={valueToWatchAnimation}
+						canAnimate={canAnimate}
+					>
+						<Text grey right small>
+							<Text bold small noMargin>
+								Max fee:{' '}
+							</Text>
+							<Text bold small noMargin>
+								{gasFeeMaxPrimary}
+							</Text>
 						</Text>
-					</Text>
-				</FadeAnimationView>
+					</FadeAnimationView>
+				) : (
+					renderSkeleton(120)
+				)}
 			</Summary.Row>
 			{!hideTotal && (
 				<View>
@@ -178,37 +199,45 @@ const TransactionReviewEIP1559 = ({
 						<Text primary bold>
 							Total
 						</Text>
-						<FadeAnimationView
-							style={styles.valuesContainer}
-							valueToWatch={valueToWatchAnimation}
-							canAnimate={canAnimate}
-						>
-							{isMainnet && (
-								<Text grey upper right style={styles.amountContainer}>
-									{totalSecondary}
-								</Text>
-							)}
+						{totalPrimary ? (
+							<FadeAnimationView
+								style={styles.valuesContainer}
+								valueToWatch={valueToWatchAnimation}
+								canAnimate={canAnimate}
+							>
+								{isMainnet && (
+									<Text grey upper right style={styles.amountContainer}>
+										{totalSecondary}
+									</Text>
+								)}
 
-							<Text bold primary upper right>
-								{totalPrimary}
-							</Text>
-						</FadeAnimationView>
+								<Text bold primary upper right>
+									{totalPrimary}
+								</Text>
+							</FadeAnimationView>
+						) : (
+							renderSkeleton(80)
+						)}
 					</Summary.Row>
 					<Summary.Row>
-						<FadeAnimationView
-							style={styles.valuesContainer}
-							valueToWatch={valueToWatchAnimation}
-							canAnimate={canAnimate}
-						>
-							<Text grey right small>
-								<Text bold small noMargin>
-									Max amount:
-								</Text>{' '}
-								<Text small noMargin>
-									{totalMaxPrimary}
+						{totalMaxPrimary ? (
+							<FadeAnimationView
+								style={styles.valuesContainer}
+								valueToWatch={valueToWatchAnimation}
+								canAnimate={canAnimate}
+							>
+								<Text grey right small>
+									<Text bold small noMargin>
+										Max amount:
+									</Text>{' '}
+									<Text small noMargin>
+										{totalMaxPrimary}
+									</Text>
 								</Text>
-							</Text>
-						</FadeAnimationView>
+							</FadeAnimationView>
+						) : (
+							renderSkeleton(120)
+						)}
 					</Summary.Row>
 				</View>
 			)}
