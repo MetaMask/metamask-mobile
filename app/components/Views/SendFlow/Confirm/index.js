@@ -479,11 +479,17 @@ class Confirm extends PureComponent {
 					this.setError(EIP1559TransactionData.error);
 
 					// eslint-disable-next-line react/no-did-update-set-state
-					this.setState({
-						gasEstimationReady: true,
-						EIP1559TransactionData,
-						EIP1559TransactionDataTemp
-					});
+					this.setState(
+						{
+							gasEstimationReady: true,
+							EIP1559TransactionData,
+							EIP1559TransactionDataTemp,
+							canAnimate: true
+						},
+						() => {
+							this.setState({ canAnimate: false });
+						}
+					);
 				} else {
 					const suggestedGasLimit = fromWei(gas, 'wei');
 
@@ -941,7 +947,7 @@ class Confirm extends PureComponent {
 
 	renderCustomGasModalEIP1559 = () => {
 		const { primaryCurrency, chainId, gasFeeEstimates } = this.props;
-		const { EIP1559TransactionDataTemp, gasSelected } = this.state;
+		const { EIP1559TransactionDataTemp, gasSelected, canAnimate } = this.state;
 
 		return (
 			<Modal
@@ -979,6 +985,7 @@ class Confirm extends PureComponent {
 						onCancel={this.cancelGasEdition}
 						onSave={this.saveGasEdition}
 						error={EIP1559TransactionDataTemp.error}
+						canAnimate={canAnimate}
 					/>
 				</KeyboardAwareScrollView>
 			</Modal>
@@ -1131,6 +1138,13 @@ class Confirm extends PureComponent {
 		});
 	};
 
+	onUpdatingValuesStart = () => {
+		this.setState({ disableSend: true });
+	};
+	onUpdatingValuesEnd = () => {
+		this.setState({ disableSend: false });
+	};
+
 	render = () => {
 		const { transactionToName, selectedAsset, paymentRequest } = this.props.transactionState;
 		const { addressBook, showHexData, showCustomNonce, primaryCurrency, network, chainId } = this.props;
@@ -1151,7 +1165,9 @@ class Confirm extends PureComponent {
 			mode,
 			over,
 			warningModalVisible,
-			LegacyTransactionData
+			LegacyTransactionData,
+			disableSend,
+			canAnimate
 		} = this.state;
 
 		const isLegacy = this.props.gasEstimateType !== GAS_ESTIMATE_TYPES.FEE_MARKET;
@@ -1263,6 +1279,9 @@ class Confirm extends PureComponent {
 							timeEstimateColor={EIP1559TransactionData.timeEstimateColor}
 							onEdit={() => this.edit(EDIT_EIP1559)}
 							over={Boolean(EIP1559TransactionData.error)}
+							onUpdatingValuesStart={this.onUpdatingValuesStart}
+							onUpdatingValuesEnd={this.onUpdatingValuesEnd}
+							canAnimate={canAnimate}
 						/>
 					)}
 
@@ -1295,7 +1314,7 @@ class Confirm extends PureComponent {
 				<View style={styles.buttonNextWrapper}>
 					<StyledButton
 						type={'confirm'}
-						disabled={!gasEstimationReady || Boolean(errorMessage)}
+						disabled={!gasEstimationReady || Boolean(errorMessage) || disableSend}
 						containerStyle={styles.buttonNext}
 						onPress={this.onNext}
 						testID={'txn-confirm-send-button'}

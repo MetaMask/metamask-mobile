@@ -8,6 +8,7 @@ import { isMainnetByChainId } from '../../../../util/networks';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import InfoModal from '../../Swaps/components/InfoModal';
+import FadeAnimationView from '../../FadeAnimationView';
 
 const styles = StyleSheet.create({
 	overview: noMargin => ({
@@ -56,7 +57,10 @@ const TransactionReviewEIP1559 = ({
 	onEdit,
 	hideTotal,
 	noMargin,
-	origin
+	origin,
+	onUpdatingValuesStart,
+	onUpdatingValuesEnd,
+	canAnimate
 }) => {
 	const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
 
@@ -88,6 +92,8 @@ const TransactionReviewEIP1559 = ({
 		totalMaxPrimary = gasFeeMaxConversion;
 	}
 
+	const valueToWatchAnimation = totalPrimary;
+
 	return (
 		<Summary style={styles.overview(noMargin)}>
 			<Summary.Row>
@@ -103,7 +109,11 @@ const TransactionReviewEIP1559 = ({
 						</TouchableOpacity>
 					</Text>
 				</View>
-				<View style={styles.valuesContainer}>
+				<FadeAnimationView
+					style={styles.valuesContainer}
+					valueToWatch={valueToWatchAnimation}
+					canAnimate={canAnimate}
+				>
 					{isMainnet && (
 						<TouchableOpacity onPress={onEdit} disabled={nativeCurrencySelected}>
 							<Text
@@ -132,13 +142,17 @@ const TransactionReviewEIP1559 = ({
 							{gasFeePrimary}
 						</Text>
 					</TouchableOpacity>
-				</View>
+				</FadeAnimationView>
 			</Summary.Row>
 			<Summary.Row>
 				<Text small green={timeEstimateColor === 'green'} red={timeEstimateColor === 'red'}>
 					{timeEstimate}
 				</Text>
-				<View style={styles.valuesContainer}>
+				<FadeAnimationView
+					style={styles.valuesContainer}
+					valueToWatch={valueToWatchAnimation}
+					canAnimate={canAnimate}
+				>
 					<Text grey right small>
 						<Text bold small noMargin>
 							Max fee:{' '}
@@ -147,7 +161,7 @@ const TransactionReviewEIP1559 = ({
 							{gasFeeMaxPrimary}
 						</Text>
 					</Text>
-				</View>
+				</FadeAnimationView>
 			</Summary.Row>
 			{!hideTotal && (
 				<View>
@@ -156,7 +170,13 @@ const TransactionReviewEIP1559 = ({
 						<Text primary bold>
 							Total
 						</Text>
-						<View style={styles.valuesContainer}>
+						<FadeAnimationView
+							style={styles.valuesContainer}
+							valueToWatch={valueToWatchAnimation}
+							onAnimationStart={onUpdatingValuesStart}
+							onAnimationEnd={onUpdatingValuesEnd}
+							canAnimate={canAnimate}
+						>
 							{isMainnet && (
 								<Text grey upper right style={styles.amountContainer}>
 									{totalSecondary}
@@ -166,10 +186,14 @@ const TransactionReviewEIP1559 = ({
 							<Text bold primary upper right>
 								{totalPrimary}
 							</Text>
-						</View>
+						</FadeAnimationView>
 					</Summary.Row>
 					<Summary.Row>
-						<View style={styles.valuesContainer}>
+						<FadeAnimationView
+							style={styles.valuesContainer}
+							valueToWatch={valueToWatchAnimation}
+							canAnimate={canAnimate}
+						>
 							<Text grey right small>
 								<Text bold small noMargin>
 									Max amount:
@@ -178,7 +202,7 @@ const TransactionReviewEIP1559 = ({
 									{totalMaxPrimary}
 								</Text>
 							</Text>
-						</View>
+						</FadeAnimationView>
 					</Summary.Row>
 				</View>
 			)}
@@ -263,7 +287,10 @@ TransactionReviewEIP1559.propTypes = {
 	/**
 	 * Origin (hostname) of the dapp that suggested the gas fee
 	 */
-	origin: PropTypes.string
+	origin: PropTypes.string,
+	onUpdatingValuesStart: PropTypes.func,
+	onUpdatingValuesEnd: PropTypes.func,
+	canAnimate: PropTypes.bool
 };
 
 const mapStateToProps = state => ({
