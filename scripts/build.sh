@@ -158,7 +158,7 @@ buildAndroidRunE2E(){
 	then
 		source $ANDROID_ENV_FILE
 	fi
-	cd android && ./gradlew assembleRelease assembleAndroidTest -DtestBuildType=debug && cd ..
+	cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug && cd ..
 }
 
 buildIosSimulator(){
@@ -250,10 +250,6 @@ buildAndroidRelease(){
 
 buildAndroidReleaseE2E(){
 	prebuild_android
-	if [ -e $ANDROID_ENV_FILE ]
-	then
-		source $ANDROID_ENV_FILE
-	fi
 	cd android && ./gradlew assembleRelease assembleAndroidTest -DtestBuildType=release
 }
 
@@ -327,6 +323,9 @@ if [ "$MODE" == "release" ] || [ "$MODE" == "releaseE2E" ] ; then
 		printError "Missing METAMASK_ENVIRONMENT; set to 'production' for a production release, 'prerelease' for a pre-release, or 'local' otherwise"
 		exit 1
 	fi
+else
+	checkAuthToken 'sentry.debug.properties'
+	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
 fi
 
 if [ "$PLATFORM" == "ios" ]; then
