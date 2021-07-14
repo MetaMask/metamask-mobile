@@ -201,6 +201,7 @@ workflows:
               only:
                 - main
                 - develop
+                - bugfix/swaps-tx-fail-fix
       - publish-pre-release-ios:
           requires:
             - prep-deps
