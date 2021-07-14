@@ -38,15 +38,17 @@ class DeeplinkManager {
 			const txMeta = { ...ethUrl, source: url };
 			if (ethUrl.parameters?.value) {
 				this.navigation.navigate('SendView', {
-					txMeta: { ...txMeta, action: 'send-eth' }
+					screen: 'Send',
+					params: { txMeta: { ...txMeta, action: 'send-eth' } }
 				});
 			} else {
-				this.navigation.navigate('SendFlowView', { txMeta });
+				this.navigation.navigate('SendFlowView', { screen: 'SendTo', params: { txMeta } });
 			}
 		} else if (functionName === 'transfer') {
 			const txMeta = { ...ethUrl, source: url };
 			this.navigation.navigate('SendView', {
-				txMeta: { ...txMeta, action: 'send-token' }
+				screen: 'Send',
+				params: { txMeta: { ...txMeta, action: 'send-token' } }
 			});
 		} else if (functionName === 'approve') {
 			// add approve transaction

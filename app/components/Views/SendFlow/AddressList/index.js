@@ -12,6 +12,8 @@ import {
 	TRANSFER_FUNCTION_SIGNATURE,
 	TRANSFER_FROM_FUNCTION_SIGNATURE
 } from '../../../../util/transactions';
+import { swapsUtils } from '@metamask/swaps-controller';
+import { toLowerCaseEquals } from '../../../../util/general';
 
 const styles = StyleSheet.create({
 	root: {
@@ -97,7 +99,11 @@ class AddressList extends PureComponent {
 		 * Whether it only has to render address book
 		 */
 		onlyRenderAddressBook: PropTypes.bool,
-		reloadAddressList: PropTypes.bool
+		reloadAddressList: PropTypes.bool,
+		/**
+		 * Chain id
+		 */
+		chainId: PropTypes.string
 	};
 
 	state = {
@@ -153,7 +159,7 @@ class AddressList extends PureComponent {
 	};
 
 	getRecentAddresses = inputSearch => {
-		const { transactions, network, identities, onAccountPress, onAccountLongPress } = this.props;
+		const { transactions, network, identities, onAccountPress, onAccountLongPress, chainId } = this.props;
 		const recents = [];
 		const parsedRecents = [];
 		if (!inputSearch) {
@@ -171,7 +177,12 @@ class AddressList extends PureComponent {
 				}
 				const checksummedTo = safeToChecksumAddress(to);
 				if (recents.length > 2) return;
-				if (!recents.includes(checksummedTo) && !Object.keys(identities).includes(checksummedTo)) {
+				const swapsContractAddress = swapsUtils.getSwapsContractAddress(chainId);
+				if (
+					!recents.includes(checksummedTo) &&
+					!Object.keys(identities).includes(checksummedTo) &&
+					!toLowerCaseEquals(checksummedTo, swapsContractAddress)
+				) {
 					recents.push(checksummedTo);
 					if (this.networkAddressBook[checksummedTo]) {
 						parsedRecents.push(
@@ -297,7 +308,8 @@ const mapStateToProps = state => ({
 	addressBook: state.engine.backgroundState.AddressBookController.addressBook,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	network: state.engine.backgroundState.NetworkController.network,
-	transactions: state.engine.backgroundState.TransactionController.transactions
+	transactions: state.engine.backgroundState.TransactionController.transactions,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId
 });
 
 export default connect(mapStateToProps)(AddressList);

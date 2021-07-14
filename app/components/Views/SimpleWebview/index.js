@@ -8,13 +8,17 @@ import Logger from '../../../util/Logger';
 import { baseStyles } from '../../../styles/common';
 
 export default class SimpleWebview extends PureComponent {
-	static navigationOptions = ({ navigation }) => getWebviewNavbar(navigation);
+	static navigationOptions = ({ navigation, route }) => getWebviewNavbar(navigation, route);
 
 	static propTypes = {
 		/**
 		 * react-navigation object used to switch between screens
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	componentDidMount = () => {
@@ -23,8 +27,8 @@ export default class SimpleWebview extends PureComponent {
 	};
 
 	share = () => {
-		const { navigation } = this.props;
-		const url = navigation && navigation.getParam('url', null);
+		const { route } = this.props;
+		const url = route.params?.url;
 		if (url) {
 			Share.open({
 				url
@@ -35,7 +39,7 @@ export default class SimpleWebview extends PureComponent {
 	};
 
 	render() {
-		const uri = this.props.navigation.getParam('url', null);
+		const uri = this.props.route.params?.url;
 		if (uri) {
 			return (
 				<View style={baseStyles.flexGrow}>
