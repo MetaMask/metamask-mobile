@@ -1,9 +1,10 @@
-import React, { useCallback, useRef, useEffect } from 'react';
+import React, { useCallback, useRef, useEffect, useState } from 'react';
 import { View, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import { colors } from '../../styles/common';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 import Text from './Text';
 import PropTypes from 'prop-types';
+import BigNumber from 'bignumber.js';
 
 const styles = StyleSheet.create({
 	labelContainer: {
@@ -12,15 +13,15 @@ const styles = StyleSheet.create({
 		justifyContent: 'space-between',
 		marginBottom: 14
 	},
-	rangeInputContainer: {
-		borderColor: colors.grey200,
+	rangeInputContainer: error => ({
+		borderColor: error ? colors.red : colors.grey200,
 		borderWidth: 1,
 		borderRadius: 6,
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'space-between',
 		height: 42
-	},
+	}),
 	input: error => ({
 		height: 38,
 		minWidth: 10,
@@ -61,7 +62,8 @@ const styles = StyleSheet.create({
 	inputContainer: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
+		flex: 1
 	},
 	errorContainer: {
 		marginTop: 8,
@@ -74,7 +76,10 @@ const styles = StyleSheet.create({
 		color: colors.red
 	},
 	conversionEstimation: {
-		marginRight: 14
+		marginRight: 14,
+		flex: 1,
+		textAlign: 'center',
+		fontSize: 11
 	}
 });
 
@@ -88,31 +93,33 @@ const RangeInput = ({
 	inputInsideLabel,
 	error,
 	min,
-	max
+	max,
+	name
 }) => {
 	const textInput = useRef(null);
-
+	const [errorState, setErrorState] = useState();
 	const handleClickUnit = useCallback(() => {
 		textInput?.current?.focus?.();
 	}, []);
 
 	const changeValue = useCallback(
-		newValue => {
+		(newValue, dontEmptyError) => {
+			if (!dontEmptyError) setErrorState('');
 			onChangeValue?.(newValue);
 		},
 		[onChangeValue]
 	);
 
 	const increaseNumber = useCallback(() => {
-		const newValue = Number(value) + increment;
-		if (newValue > max) return;
-		changeValue(String(newValue));
+		const newValue = new BigNumber(value).plus(new BigNumber(increment));
+		if (!new BigNumber(max).isNaN() && newValue.gt(max)) return;
+		changeValue(newValue.toString());
 	}, [changeValue, increment, max, value]);
 
 	const decreaseNumber = useCallback(() => {
-		const newValue = Number(value) - increment;
-		if (newValue < min) return;
-		changeValue(String(newValue));
+		const newValue = new BigNumber(value).minus(new BigNumber(increment));
+		if (!new BigNumber(min).isNaN() && newValue.lt(min)) return;
+		changeValue(newValue.toString());
 	}, [changeValue, increment, min, value]);
 
 	const renderLabelComponent = useCallback(component => {
@@ -127,14 +134,22 @@ const RangeInput = ({
 	}, []);
 
 	const checkLimits = useCallback(() => {
-		if (Number(value) < min) return changeValue(String(min));
-		if (Number(value) > max) return changeValue(String(max));
-	}, [changeValue, max, min, value]);
+		if (new BigNumber(value || 0).lt(min)) {
+			setErrorState(`${name} must be at least ${min}`);
+			return changeValue(min.toString(), true);
+		}
+		if (new BigNumber(value || 0).gt(max)) {
+			setErrorState(`${name} must be at most ${max}`);
+			return changeValue(max.toString());
+		}
+	}, [changeValue, max, min, name, value]);
 
 	useEffect(() => {
 		if (textInput?.current?.isFocused?.()) return;
 		checkLimits();
 	}, [checkLimits]);
+
+	const hasError = Boolean(error) || Boolean(errorState);
 
 	return (
 		<View>
@@ -143,7 +158,7 @@ const RangeInput = ({
 				{renderLabelComponent(rightLabelComponent)}
 			</View>
 
-			<View style={styles.rangeInputContainer}>
+			<View style={styles.rangeInputContainer(Boolean(error))}>
 				<View style={styles.buttonContainerLeft}>
 					<TouchableOpacity style={styles.button} hitSlop={styles.hitSlop} onPress={decreaseNumber}>
 						<FontAwesomeIcon name="minus" size={10} style={styles.buttonText} />
@@ -151,7 +166,7 @@ const RangeInput = ({
 				</View>
 				<View style={styles.inputContainer}>
 					<TextInput
-						style={styles.input(!!error)}
+						style={styles.input(Boolean(error))}
 						onChangeText={changeValue}
 						onBlur={checkLimits}
 						value={value}
@@ -159,13 +174,13 @@ const RangeInput = ({
 						ref={textInput}
 					/>
 					{!!unit && (
-						<Text onPress={handleClickUnit} black={!error} red={!!error}>
+						<Text onPress={handleClickUnit} black={!error} red={Boolean(error)}>
 							{unit}
 						</Text>
 					)}
 				</View>
 				<View style={styles.buttonContainerRight}>
-					<Text style={styles.conversionEstimation} small>
+					<Text style={styles.conversionEstimation} adjustsFontSizeToFit numberOfLines={2}>
 						{inputInsideLabel}
 					</Text>
 					<TouchableOpacity style={styles.button} hitSlop={styles.hitSlop} onPress={increaseNumber}>
@@ -173,11 +188,11 @@ const RangeInput = ({
 					</TouchableOpacity>
 				</View>
 			</View>
-			{!!error && (
+			{hasError && (
 				<View style={styles.errorContainer}>
 					<FontAwesomeIcon name="exclamation-circle" size={14} style={styles.errorIcon} />
 					<Text red noMargin small>
-						{error}
+						{error || errorState}
 					</Text>
 				</View>
 			)}
@@ -186,7 +201,7 @@ const RangeInput = ({
 };
 
 RangeInput.defaultProps = {
-	increment: 1
+	increment: new BigNumber(1)
 };
 
 RangeInput.propTypes = {
@@ -211,9 +226,9 @@ RangeInput.propTypes = {
 	 */
 	onChangeValue: PropTypes.func,
 	/**
-	 * The value per which the input is incremented when clicking on the plus and minus button
+	 * A BigNumber value per which the input is incremented when clicking on the plus and minus button
 	 */
-	increment: PropTypes.number,
+	increment: PropTypes.object,
 	/**
 	 * The label to show inside the input
 	 */
@@ -223,13 +238,17 @@ RangeInput.propTypes = {
 	 */
 	error: PropTypes.string,
 	/**
-	 * The minimum value the input is allowed to have when clicking on the minus button
+	 * A BigNumber minimum value the input is allowed to have when clicking on the minus button
 	 */
-	min: PropTypes.number,
+	min: PropTypes.object,
 	/**
-	 * The maximum value the input is allowed to have when clicking on the plus button
+	 * A BigNumber maximum value the input is allowed to have when clicking on the plus button
 	 */
-	max: PropTypes.number
+	max: PropTypes.object,
+	/**
+	 * The name of the input
+	 */
+	name: PropTypes.string
 };
 
 export default RangeInput;

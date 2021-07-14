@@ -5,15 +5,10 @@ import { connect } from 'react-redux';
 
 import Modal from 'react-native-modal';
 import { fromTokenMinimalUnitString, hexToBN, toTokenMinimalUnit } from '../../../../util/number';
-import CustomGas from '../../CustomGas';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import EditPermission from '../../ApproveTransactionReview/EditPermission';
 import { decodeApproveData, generateApproveData } from '../../../../util/transactions';
 import { swapsUtils } from '@metamask/swaps-controller';
-import AnimatedTransactionModal from '../../AnimatedTransactionModal';
-
-const EDIT_MODE_GAS = 'EDIT_MODE_GAS';
-const EDIT_MODE_APPROVE_AMOUNT = 'EDIT_MODE_APPROVE_AMOUNT';
 
 const styles = StyleSheet.create({
 	keyboardAwareWrapper: {
@@ -26,28 +21,20 @@ const styles = StyleSheet.create({
 	}
 });
 
-function TransactionsEditionModal({
-	apiGasPrice,
-	approvalTransaction: originalApprovalTransaction,
-	editQuoteTransactionsMode,
+function ApprovalTransactionEditionModal({
+	originalApprovalTransaction,
+	approvalTransaction,
 	editQuoteTransactionsVisible,
-	gasLimit,
-	gasPrice,
 	onCancelEditQuoteTransactions,
-	onHandleGasFeeSelection,
 	setApprovalTransaction,
-	selectedQuote,
 	sourceToken,
 	minimumSpendLimit,
-	minimumGasLimit,
 	chainId
 }) {
 	/* Approval transaction if any */
 	const [approvalTransactionAmount, setApprovalTransactionAmount] = useState(null);
 	const [approvalCustomValue, setApprovalCustomValue] = useState(minimumSpendLimit);
 	const [spendLimitUnlimitedSelected, setSpendLimitUnlimitedSelected] = useState(true);
-	const [approvalTransaction] = useState(originalApprovalTransaction);
-	const [currentGasSelector, setCurrentGasSelector] = useState(null);
 
 	const onSpendLimitCustomValueChange = useCallback(
 		approvalCustomValue => setApprovalCustomValue(approvalCustomValue),
@@ -79,10 +66,6 @@ function TransactionsEditionModal({
 		onCancelEditQuoteTransactions
 	]);
 
-	const onPressGasSelector = useCallback(gasSelector => {
-		setCurrentGasSelector(gasSelector);
-	}, []);
-
 	useEffect(() => {
 		setApprovalTransaction(originalApprovalTransaction);
 		if (originalApprovalTransaction) {
@@ -108,7 +91,7 @@ function TransactionsEditionModal({
 			propagateSwipe
 		>
 			<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
-				{editQuoteTransactionsMode === EDIT_MODE_APPROVE_AMOUNT && !!approvalTransaction && (
+				{Boolean(approvalTransaction) && (
 					<EditPermission
 						host={'Swaps'}
 						minimumSpendLimit={minimumSpendLimit}
@@ -123,49 +106,24 @@ function TransactionsEditionModal({
 						toggleEditPermission={onCancelEditQuoteTransactions}
 					/>
 				)}
-				{editQuoteTransactionsMode === EDIT_MODE_GAS && (
-					<AnimatedTransactionModal onModeChange={onCancelEditQuoteTransactions} ready review={() => null}>
-						<CustomGas
-							gasSpeedSelected={currentGasSelector}
-							onPress={onPressGasSelector}
-							handleGasFeeSelection={onHandleGasFeeSelection}
-							basicGasEstimates={apiGasPrice}
-							gas={hexToBN(gasLimit)}
-							gasPrice={hexToBN(gasPrice)}
-							minimumGasPrice={hexToBN(gasPrice)}
-							minimumGasLimit={minimumGasLimit}
-							gasError={null}
-							mode={'edit'}
-							customTransaction={selectedQuote.trade}
-							hideSlow
-							view={'Swaps'}
-						/>
-					</AnimatedTransactionModal>
-				)}
 			</KeyboardAwareScrollView>
 		</Modal>
 	);
 }
 
-TransactionsEditionModal.propTypes = {
-	apiGasPrice: PropTypes.object,
+ApprovalTransactionEditionModal.propTypes = {
 	approvalTransaction: PropTypes.object,
-	editQuoteTransactionsMode: PropTypes.string,
+	originalApprovalTransaction: PropTypes.object,
 	editQuoteTransactionsVisible: PropTypes.bool,
-	gasLimit: PropTypes.string,
-	gasPrice: PropTypes.string,
 	minimumSpendLimit: PropTypes.string.isRequired,
-	minimumGasLimit: PropTypes.string,
 	onCancelEditQuoteTransactions: PropTypes.func,
-	onHandleGasFeeSelection: PropTypes.func,
 	setApprovalTransaction: PropTypes.func,
-	selectedQuote: PropTypes.object,
 	sourceToken: PropTypes.object,
 	chainId: PropTypes.string
 };
 
 const mapStateToProps = state => ({
-	approvalTransaction: state.engine.backgroundState.SwapsController.approvalTransaction
+	originalApprovalTransaction: state.engine.backgroundState.SwapsController.approvalTransaction
 });
 
-export default connect(mapStateToProps)(TransactionsEditionModal);
+export default connect(mapStateToProps)(ApprovalTransactionEditionModal);

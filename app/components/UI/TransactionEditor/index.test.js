@@ -32,10 +32,16 @@ describe('TransactionEditor', () => {
 							type: 'mainnet',
 							chainId: '1'
 						}
+					},
+					GasFeeController: {
+						gasEstimates: {}
 					}
 				}
 			},
-			transaction: {}
+			transaction: {},
+			settings: {
+				primaryCurrency: 'fiat'
+			}
 		};
 
 		const wrapper = shallow(

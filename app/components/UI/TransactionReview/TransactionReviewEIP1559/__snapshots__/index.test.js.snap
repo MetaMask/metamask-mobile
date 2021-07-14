@@ -12,7 +12,7 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
     <View
       style={
         Object {
-          "alignItems": "center",
+          "flex": 1,
           "flexDirection": "row",
         }
       }
@@ -26,6 +26,7 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
         green={false}
         link={false}
         modal={false}
+        orange={false}
         primary={true}
         red={false}
         reset={false}
@@ -36,33 +37,35 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
         upper={false}
       >
         Estimated gas fee
-      </Text>
-      <TouchableOpacity
-        hitSlop={
-          Object {
-            "bottom": 10,
-            "left": 10,
-            "right": 10,
-            "top": 10,
-          }
-        }
-        style={
-          Object {
-            "paddingHorizontal": 2,
-          }
-        }
-      >
-        <Icon
-          allowFontScaling={false}
-          name="information"
-          size={13}
-          style={
+        <TouchableOpacity
+          hitSlop={
             Object {
-              "color": "#bbc0c5",
+              "bottom": 10,
+              "left": 10,
+              "right": 10,
+              "top": 10,
             }
           }
-        />
-      </TouchableOpacity>
+          onPress={[Function]}
+          style={
+            Object {
+              "paddingHorizontal": 2,
+            }
+          }
+        >
+          <Icon
+            allowFontScaling={false}
+            name="information"
+            size={13}
+            style={
+              Object {
+                "color": "#bbc0c5",
+                "marginTop": 5,
+              }
+            }
+          />
+        </TouchableOpacity>
+      </Text>
     </View>
     <View
       style={
@@ -174,8 +177,28 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
         underline={false}
         upper={false}
       >
-        Up to
-         
+        <Text
+          black={false}
+          blue={false}
+          bold={true}
+          centered={false}
+          disclaimer={false}
+          green={false}
+          link={false}
+          modal={false}
+          noMargin={true}
+          primary={false}
+          red={false}
+          reset={false}
+          right={false}
+          small={true}
+          strikethrough={false}
+          underline={false}
+          upper={false}
+        >
+          Max fee:
+           
+        </Text>
         <Text
           black={false}
           blue={false}
@@ -198,62 +221,9 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
       </Text>
     </View>
   </SummaryRow>
-  <SummarySeparator />
-  <SummaryRow>
-    <Text
-      black={false}
-      blue={false}
-      bold={true}
-      centered={false}
-      disclaimer={false}
-      green={false}
-      link={false}
-      modal={false}
-      primary={true}
-      red={false}
-      reset={false}
-      right={false}
-      small={false}
-      strikethrough={false}
-      underline={false}
-      upper={false}
-    >
-      Total
-    </Text>
-    <View
-      style={
-        Object {
-          "flex": 1,
-          "flexDirection": "row",
-          "justifyContent": "flex-end",
-        }
-      }
-    >
-      <Text
-        black={false}
-        blue={false}
-        bold={false}
-        centered={false}
-        disclaimer={false}
-        green={false}
-        grey={true}
-        link={false}
-        modal={false}
-        primary={false}
-        red={false}
-        reset={false}
-        right={true}
-        small={false}
-        strikethrough={false}
-        style={
-          Object {
-            "flex": 1,
-            "paddingRight": 10,
-          }
-        }
-        underline={false}
-        upper={true}
-      />
+  <View>
+    <SummarySeparator />
+    <SummaryRow>
       <Text
         black={false}
         blue={false}
@@ -266,45 +236,48 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
         primary={true}
         red={false}
         reset={false}
-        right={true}
+        right={false}
         small={false}
-        strikethrough={false}
-        underline={false}
-        upper={true}
-      />
-    </View>
-  </SummaryRow>
-  <SummaryRow>
-    <View
-      style={
-        Object {
-          "flex": 1,
-          "flexDirection": "row",
-          "justifyContent": "flex-end",
-        }
-      }
-    >
-      <Text
-        black={false}
-        blue={false}
-        bold={false}
-        centered={false}
-        disclaimer={false}
-        green={false}
-        grey={true}
-        link={false}
-        modal={false}
-        primary={false}
-        red={false}
-        reset={false}
-        right={true}
-        small={true}
         strikethrough={false}
         underline={false}
         upper={false}
       >
-        Up to
-         
+        Total
+      </Text>
+      <View
+        style={
+          Object {
+            "flex": 1,
+            "flexDirection": "row",
+            "justifyContent": "flex-end",
+          }
+        }
+      >
+        <Text
+          black={false}
+          blue={false}
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          green={false}
+          grey={true}
+          link={false}
+          modal={false}
+          primary={false}
+          red={false}
+          reset={false}
+          right={true}
+          small={false}
+          strikethrough={false}
+          style={
+            Object {
+              "flex": 1,
+              "paddingRight": 10,
+            }
+          }
+          underline={false}
+          upper={true}
+        />
         <Text
           black={false}
           blue={false}
@@ -314,18 +287,150 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
           green={false}
           link={false}
           modal={false}
-          noMargin={true}
+          primary={true}
+          red={false}
+          reset={false}
+          right={true}
+          small={false}
+          strikethrough={false}
+          underline={false}
+          upper={true}
+        />
+      </View>
+    </SummaryRow>
+    <SummaryRow>
+      <View
+        style={
+          Object {
+            "flex": 1,
+            "flexDirection": "row",
+            "justifyContent": "flex-end",
+          }
+        }
+      >
+        <Text
+          black={false}
+          blue={false}
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          green={false}
+          grey={true}
+          link={false}
+          modal={false}
           primary={false}
           red={false}
           reset={false}
-          right={false}
+          right={true}
           small={true}
           strikethrough={false}
           underline={false}
           upper={false}
-        />
-      </Text>
-    </View>
-  </SummaryRow>
+        >
+          <Text
+            black={false}
+            blue={false}
+            bold={true}
+            centered={false}
+            disclaimer={false}
+            green={false}
+            link={false}
+            modal={false}
+            noMargin={true}
+            primary={false}
+            red={false}
+            reset={false}
+            right={false}
+            small={true}
+            strikethrough={false}
+            underline={false}
+            upper={false}
+          >
+            Max amount:
+          </Text>
+           
+          <Text
+            black={false}
+            blue={false}
+            bold={false}
+            centered={false}
+            disclaimer={false}
+            green={false}
+            link={false}
+            modal={false}
+            noMargin={true}
+            primary={false}
+            red={false}
+            reset={false}
+            right={false}
+            small={true}
+            strikethrough={false}
+            underline={false}
+            upper={false}
+          />
+        </Text>
+      </View>
+    </SummaryRow>
+  </View>
+  <InfoModal
+    body={
+      <View>
+        <Text
+          black={false}
+          blue={false}
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          green={false}
+          infoModal={true}
+          link={false}
+          modal={false}
+          primary={false}
+          red={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
+          underline={false}
+          upper={false}
+        >
+          Estimated gas fee tooltip: Gas fees are paid to crypto miners who process transactions on the Ethereum network.
+
+          MetaMask does not profit from gas fees.
+
+
+          Gas fees are set by the network and fluctuate based on network traffic and transaction complexity.
+
+        </Text>
+        <TouchableOpacity
+          onPress={[Function]}
+        >
+          <Text
+            black={false}
+            blue={false}
+            bold={false}
+            centered={false}
+            disclaimer={false}
+            green={false}
+            link={true}
+            modal={false}
+            primary={false}
+            red={false}
+            reset={false}
+            right={false}
+            small={false}
+            strikethrough={false}
+            underline={false}
+            upper={false}
+          >
+            Learn more about gas fees
+          </Text>
+        </TouchableOpacity>
+      </View>
+    }
+    isVisible={false}
+    title="Estimated gas fee tooltip"
+    toggleModal={[Function]}
+  />
 </Summary>
 `;

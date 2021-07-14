@@ -43,6 +43,9 @@ describe('Approve', () => {
 					},
 					AssetsController: {
 						tokens: []
+					},
+					GasFeeController: {
+						gasEstimates: {}
 					}
 				}
 			}

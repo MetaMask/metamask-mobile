@@ -1,5 +1,5 @@
-import React from 'react';
-import { TouchableOpacity, View, StyleSheet } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { TouchableOpacity, View, StyleSheet, Linking } from 'react-native';
 import Summary from '../../../Base/Summary';
 import Text from '../../../Base/Text';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -7,34 +7,12 @@ import { colors } from '../../../../styles/common';
 import { isMainnetByChainId } from '../../../../util/networks';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import InfoModal from '../../Swaps/components/InfoModal';
 
 const styles = StyleSheet.create({
-	overview: {
-		marginHorizontal: 24
-	},
-	loader: {
-		backgroundColor: colors.white,
-		height: 10,
-		flex: 1,
-		alignItems: 'flex-end'
-	},
-	over: {
-		color: colors.red
-	},
-	customNonce: {
-		marginTop: 10,
-		marginHorizontal: 24,
-		borderWidth: 1,
-		borderColor: colors.grey050,
-		borderRadius: 8,
-		paddingVertical: 14,
-		paddingHorizontal: 16,
-		display: 'flex',
-		flexDirection: 'row'
-	},
-	nonceNumber: {
-		marginLeft: 'auto'
-	},
+	overview: noMargin => ({
+		marginHorizontal: noMargin ? 0 : 24
+	}),
 	valuesContainer: {
 		flex: 1,
 		flexDirection: 'row',
@@ -43,16 +21,17 @@ const styles = StyleSheet.create({
 	gasInfoContainer: {
 		paddingHorizontal: 2
 	},
-	gasInfoIcon: {
-		color: colors.grey200
-	},
+	gasInfoIcon: hasOrigin => ({
+		color: hasOrigin ? colors.orange : colors.grey200,
+		marginTop: 5
+	}),
 	amountContainer: {
 		flex: 1,
 		paddingRight: 10
 	},
 	gasFeeTitleContainer: {
 		flexDirection: 'row',
-		alignItems: 'center'
+		flex: 1
 	},
 	hitSlop: {
 		top: 10,
@@ -74,8 +53,22 @@ const TransactionReviewEIP1559 = ({
 	timeEstimateColor,
 	primaryCurrency,
 	chainId,
-	onEdit
+	onEdit,
+	hideTotal,
+	noMargin,
+	origin
 }) => {
+	const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
+
+	const toggleLearnMoreModal = useCallback(() => {
+		setShowLearnMoreModal(showLearnMoreModal => !showLearnMoreModal);
+	}, []);
+
+	const openLinkAboutGas = useCallback(
+		() => Linking.openURL('https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172'),
+		[]
+	);
+
 	const isMainnet = isMainnetByChainId(chainId);
 	const nativeCurrencySelected = primaryCurrency === 'ETH' || !isMainnet;
 	let gasFeePrimary, gasFeeSecondary, gasFeeMaxPrimary, totalPrimary, totalSecondary, totalMaxPrimary;
@@ -96,19 +89,19 @@ const TransactionReviewEIP1559 = ({
 	}
 
 	return (
-		<Summary style={styles.overview}>
+		<Summary style={styles.overview(noMargin)}>
 			<Summary.Row>
 				<View style={styles.gasFeeTitleContainer}>
-					<Text primary bold>
-						Estimated gas fee
+					<Text primary={!origin} bold orange={Boolean(origin)}>
+						{!origin ? 'Estimated gas fee' : `${origin} suggested gas fee`}
+						<TouchableOpacity
+							style={styles.gasInfoContainer}
+							onPress={toggleLearnMoreModal}
+							hitSlop={styles.hitSlop}
+						>
+							<MaterialCommunityIcons name="information" size={13} style={styles.gasInfoIcon(origin)} />
+						</TouchableOpacity>
 					</Text>
-					<TouchableOpacity
-						style={styles.gasInfoContainer}
-						onPress={this.toggleGasTooltip}
-						hitSlop={styles.hitSlop}
-					>
-						<MaterialCommunityIcons name="information" size={13} style={styles.gasInfoIcon} />
-					</TouchableOpacity>
 				</View>
 				<View style={styles.valuesContainer}>
 					{isMainnet && (
@@ -147,40 +140,65 @@ const TransactionReviewEIP1559 = ({
 				</Text>
 				<View style={styles.valuesContainer}>
 					<Text grey right small>
-						Up to{' '}
+						<Text bold small noMargin>
+							Max fee:{' '}
+						</Text>
 						<Text bold small noMargin>
 							{gasFeeMaxPrimary}
 						</Text>
 					</Text>
 				</View>
 			</Summary.Row>
-			<Summary.Separator />
-			<Summary.Row>
-				<Text primary bold>
-					Total
-				</Text>
-				<View style={styles.valuesContainer}>
-					{isMainnet && (
-						<Text grey upper right style={styles.amountContainer}>
-							{totalSecondary}
+			{!hideTotal && (
+				<View>
+					<Summary.Separator />
+					<Summary.Row>
+						<Text primary bold>
+							Total
 						</Text>
-					)}
+						<View style={styles.valuesContainer}>
+							{isMainnet && (
+								<Text grey upper right style={styles.amountContainer}>
+									{totalSecondary}
+								</Text>
+							)}
 
-					<Text bold primary upper right>
-						{totalPrimary}
-					</Text>
+							<Text bold primary upper right>
+								{totalPrimary}
+							</Text>
+						</View>
+					</Summary.Row>
+					<Summary.Row>
+						<View style={styles.valuesContainer}>
+							<Text grey right small>
+								<Text bold small noMargin>
+									Max amount:
+								</Text>{' '}
+								<Text small noMargin>
+									{totalMaxPrimary}
+								</Text>
+							</Text>
+						</View>
+					</Summary.Row>
 				</View>
-			</Summary.Row>
-			<Summary.Row>
-				<View style={styles.valuesContainer}>
-					<Text grey right small>
-						Up to{' '}
-						<Text bold small noMargin>
-							{totalMaxPrimary}
+			)}
+			<InfoModal
+				isVisible={showLearnMoreModal}
+				title={'Estimated gas fee tooltip'}
+				toggleModal={toggleLearnMoreModal}
+				body={
+					<View>
+						<Text infoModal>
+							{`Estimated gas fee tooltip: Gas fees are paid to crypto miners who process transactions on the Ethereum network.\n`}
+							{`MetaMask does not profit from gas fees.\n\n`}
+							{`Gas fees are set by the network and fluctuate based on network traffic and transaction complexity.\n`}
 						</Text>
-					</Text>
-				</View>
-			</Summary.Row>
+						<TouchableOpacity onPress={openLinkAboutGas}>
+							<Text link>Learn more about gas fees</Text>
+						</TouchableOpacity>
+					</View>
+				}
+			/>
 		</Summary>
 	);
 };
@@ -233,7 +251,19 @@ TransactionReviewEIP1559.propTypes = {
 	/**
 	 * String that represents the color of the time estimate
 	 */
-	timeEstimateColor: PropTypes.string
+	timeEstimateColor: PropTypes.string,
+	/**
+	 * Boolean to determine if the total section should be hidden
+	 */
+	hideTotal: PropTypes.bool,
+	/**
+	 * Boolean to determine the container should have no margin
+	 */
+	noMargin: PropTypes.bool,
+	/**
+	 * Origin (hostname) of the dapp that suggested the gas fee
+	 */
+	origin: PropTypes.string
 };
 
 const mapStateToProps = state => ({
