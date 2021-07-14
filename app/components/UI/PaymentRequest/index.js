@@ -40,6 +40,7 @@ import currencySymbols from '../../../util/currency-symbols.json';
 import { NetworksChainId } from '@metamask/controllers';
 import { getTicker } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
+import { utils as ethersUtils } from 'ethers';
 
 const KEYBOARD_OFFSET = 120;
 const styles = StyleSheet.create({
