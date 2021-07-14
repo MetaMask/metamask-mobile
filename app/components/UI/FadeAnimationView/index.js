@@ -32,9 +32,6 @@ const FadeAnimationView = ({
 
 	const animate = useCallback(() => {
 		animationStarted();
-		if (!canAnimate) {
-			return animationEnded();
-		}
 		Animated.sequence([
 			Animated.timing(fadeAnim, {
 				toValue: 0,
@@ -69,7 +66,7 @@ const FadeAnimationView = ({
 		]).start(() => {
 			animationEnded();
 		});
-	}, [animationEnded, animationStarted, canAnimate, fadeAnim, time]);
+	}, [animationEnded, animationStarted, fadeAnim, time]);
 
 	useEffect(() => {
 		if (!value) {
@@ -77,7 +74,7 @@ const FadeAnimationView = ({
 			return;
 		}
 		if (!isAnimating) {
-			if (valueToWatch && value && value !== valueToWatch) {
+			if (canAnimate && valueToWatch && value && value !== valueToWatch) {
 				animate();
 				setIsAnimating(true);
 				setValue(valueToWatch);
@@ -85,7 +82,7 @@ const FadeAnimationView = ({
 			}
 			setLastChildren(children);
 		}
-	}, [animate, children, isAnimating, value, valueToWatch]);
+	}, [animate, canAnimate, children, isAnimating, value, valueToWatch]);
 
 	return (
 		<Animated.View // Special animatable View
@@ -93,8 +90,9 @@ const FadeAnimationView = ({
 				...style,
 				opacity: fadeAnim // Bind opacity to animated value
 			}}
+			pointerEvents={isAnimating ? 'none' : null}
 		>
-			{lastChildren}
+			{isAnimating ? lastChildren : children}
 		</Animated.View>
 	);
 };

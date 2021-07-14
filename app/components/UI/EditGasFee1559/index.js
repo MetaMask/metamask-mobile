@@ -135,7 +135,8 @@ const EditGasFee1559 = ({
 	recommended,
 	warningMinimumEstimateOption,
 	suggestedEstimateOption,
-	canAnimate
+	canAnimate,
+	isAnimating
 }) => {
 	const [showRangeInfoModal, setShowRangeInfoModal] = useState(false);
 	const [showAdvancedOptions, setShowAdvancedOptions] = useState(!selected);
@@ -403,7 +404,7 @@ const EditGasFee1559 = ({
 						{strings('edit_gas_fee_eip1559.learn_more.title')}
 					</Text>
 				</TouchableOpacity>
-				<StyledButton type={'confirm'} onPress={save} disabled={Boolean(error)}>
+				<StyledButton type={'confirm'} onPress={save} disabled={Boolean(error) || isAnimating}>
 					{strings('edit_gas_fee_eip1559.save')}
 				</StyledButton>
 			</View>
@@ -661,7 +662,8 @@ EditGasFee1559.propTypes = {
 	 * Suggested estimate option to show recommended values
 	 */
 	suggestedEstimateOption: PropTypes.string,
-	canAnimate: PropTypes.bool
+	canAnimate: PropTypes.bool,
+	isAnimating: PropTypes.bool
 };
 
 export default EditGasFee1559;

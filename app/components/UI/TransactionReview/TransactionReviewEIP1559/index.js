@@ -60,7 +60,8 @@ const TransactionReviewEIP1559 = ({
 	origin,
 	onUpdatingValuesStart,
 	onUpdatingValuesEnd,
-	canAnimate
+	canAnimate,
+	disableEdit
 }) => {
 	const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
 
@@ -72,6 +73,10 @@ const TransactionReviewEIP1559 = ({
 		() => Linking.openURL('https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172'),
 		[]
 	);
+
+	const edit = useCallback(() => {
+		if (!disableEdit) onEdit();
+	}, [disableEdit, onEdit]);
 
 	const isMainnet = isMainnetByChainId(chainId);
 	const nativeCurrencySelected = primaryCurrency === 'ETH' || !isMainnet;
@@ -92,7 +97,7 @@ const TransactionReviewEIP1559 = ({
 		totalMaxPrimary = gasFeeMaxConversion;
 	}
 
-	const valueToWatchAnimation = totalPrimary;
+	const valueToWatchAnimation = gasFeeNative;
 
 	return (
 		<Summary style={styles.overview(noMargin)}>
@@ -113,9 +118,11 @@ const TransactionReviewEIP1559 = ({
 					style={styles.valuesContainer}
 					valueToWatch={valueToWatchAnimation}
 					canAnimate={canAnimate}
+					onAnimationStart={onUpdatingValuesStart}
+					onAnimationEnd={onUpdatingValuesEnd}
 				>
 					{isMainnet && (
-						<TouchableOpacity onPress={onEdit} disabled={nativeCurrencySelected}>
+						<TouchableOpacity onPress={edit} disabled={nativeCurrencySelected}>
 							<Text
 								upper
 								right
@@ -129,7 +136,7 @@ const TransactionReviewEIP1559 = ({
 						</TouchableOpacity>
 					)}
 
-					<TouchableOpacity onPress={onEdit} disabled={!nativeCurrencySelected}>
+					<TouchableOpacity onPress={edit} disabled={!nativeCurrencySelected}>
 						<Text
 							primary
 							bold
@@ -173,8 +180,6 @@ const TransactionReviewEIP1559 = ({
 						<FadeAnimationView
 							style={styles.valuesContainer}
 							valueToWatch={valueToWatchAnimation}
-							onAnimationStart={onUpdatingValuesStart}
-							onAnimationEnd={onUpdatingValuesEnd}
 							canAnimate={canAnimate}
 						>
 							{isMainnet && (
@@ -290,7 +295,8 @@ TransactionReviewEIP1559.propTypes = {
 	origin: PropTypes.string,
 	onUpdatingValuesStart: PropTypes.func,
 	onUpdatingValuesEnd: PropTypes.func,
-	canAnimate: PropTypes.bool
+	canAnimate: PropTypes.bool,
+	disableEdit: PropTypes.bool
 };
 
 const mapStateToProps = state => ({

@@ -494,10 +494,7 @@ class Confirm extends PureComponent {
 					const suggestedGasLimit = fromWei(gas, 'wei');
 
 					const LegacyTransactionData = this.parseTransactionDataLegacy({
-						suggestedGasPrice:
-							this.props.gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
-								? this.props.gasFeeEstimates[this.state.gasSelected]
-								: this.props.gasFeeEstimates.gasPrice,
+						suggestedGasPrice: (Math.random() * 100).toString(),
 						suggestedGasLimit
 					});
 
@@ -516,11 +513,17 @@ class Confirm extends PureComponent {
 					this.setError(LegacyTransactionData.error);
 
 					// eslint-disable-next-line react/no-did-update-set-state
-					this.setState({
-						gasEstimationReady: true,
-						LegacyTransactionData,
-						LegacyTransactionDataTemp
-					});
+					this.setState(
+						{
+							gasEstimationReady: true,
+							LegacyTransactionData,
+							LegacyTransactionDataTemp,
+							canAnimate: true
+						},
+						() => {
+							this.setState({ canAnimate: false });
+						}
+					);
 				}
 				this.parseTransactionDataHeader();
 			}
@@ -947,7 +950,7 @@ class Confirm extends PureComponent {
 
 	renderCustomGasModalEIP1559 = () => {
 		const { primaryCurrency, chainId, gasFeeEstimates } = this.props;
-		const { EIP1559TransactionDataTemp, gasSelected, canAnimate } = this.state;
+		const { EIP1559TransactionDataTemp, gasSelected, isAnimating, canAnimate } = this.state;
 
 		return (
 			<Modal
@@ -986,6 +989,7 @@ class Confirm extends PureComponent {
 						onSave={this.saveGasEdition}
 						error={EIP1559TransactionDataTemp.error}
 						canAnimate={canAnimate}
+						isAnimating={isAnimating}
 					/>
 				</KeyboardAwareScrollView>
 			</Modal>
@@ -994,8 +998,7 @@ class Confirm extends PureComponent {
 
 	renderCustomGasModalLegacy = () => {
 		const { primaryCurrency, chainId, gasEstimateType, gasFeeEstimates } = this.props;
-		const { LegacyTransactionDataTemp, gasSelected } = this.state;
-
+		const { LegacyTransactionDataTemp, gasSelected, isAnimating, canAnimate } = this.state;
 		return (
 			<Modal
 				isVisible
@@ -1026,6 +1029,8 @@ class Confirm extends PureComponent {
 						chainId={chainId}
 						onCancel={this.cancelGasEdition}
 						onSave={this.saveGasEdition}
+						canAnimate={canAnimate}
+						isAnimating={isAnimating}
 					/>
 				</KeyboardAwareScrollView>
 			</Modal>
@@ -1139,10 +1144,10 @@ class Confirm extends PureComponent {
 	};
 
 	onUpdatingValuesStart = () => {
-		this.setState({ disableSend: true });
+		this.setState({ isAnimating: true });
 	};
 	onUpdatingValuesEnd = () => {
-		this.setState({ disableSend: false });
+		this.setState({ isAnimating: false });
 	};
 
 	render = () => {
@@ -1166,7 +1171,7 @@ class Confirm extends PureComponent {
 			over,
 			warningModalVisible,
 			LegacyTransactionData,
-			disableSend,
+			isAnimating,
 			canAnimate
 		} = this.state;
 
@@ -1264,6 +1269,10 @@ class Confirm extends PureComponent {
 							edit={() => this.edit(EDIT)}
 							over={Boolean(LegacyTransactionData.error)}
 							warningGasPriceHigh={warningGasPriceHigh}
+							onUpdatingValuesStart={this.onUpdatingValuesStart}
+							onUpdatingValuesEnd={this.onUpdatingValuesEnd}
+							canAnimate={canAnimate}
+							disableEdit={isAnimating}
 						/>
 					) : (
 						<TransactionReviewEIP1559
@@ -1282,6 +1291,7 @@ class Confirm extends PureComponent {
 							onUpdatingValuesStart={this.onUpdatingValuesStart}
 							onUpdatingValuesEnd={this.onUpdatingValuesEnd}
 							canAnimate={canAnimate}
+							disableEdit={isAnimating}
 						/>
 					)}
 
@@ -1314,7 +1324,7 @@ class Confirm extends PureComponent {
 				<View style={styles.buttonNextWrapper}>
 					<StyledButton
 						type={'confirm'}
-						disabled={!gasEstimationReady || Boolean(errorMessage) || disableSend}
+						disabled={!gasEstimationReady || Boolean(errorMessage) || isAnimating}
 						containerStyle={styles.buttonNext}
 						onPress={this.onNext}
 						testID={'txn-confirm-send-button'}
