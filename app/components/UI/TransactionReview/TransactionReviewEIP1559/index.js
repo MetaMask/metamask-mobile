@@ -61,7 +61,7 @@ const TransactionReviewEIP1559 = ({
 	onUpdatingValuesStart,
 	onUpdatingValuesEnd,
 	canAnimate,
-	disableEdit
+	isAnimating
 }) => {
 	const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
 
@@ -75,8 +75,8 @@ const TransactionReviewEIP1559 = ({
 	);
 
 	const edit = useCallback(() => {
-		if (!disableEdit) onEdit();
-	}, [disableEdit, onEdit]);
+		if (!isAnimating) onEdit();
+	}, [isAnimating, onEdit]);
 
 	const isMainnet = isMainnetByChainId(chainId);
 	const nativeCurrencySelected = primaryCurrency === 'ETH' || !isMainnet;
@@ -98,7 +98,6 @@ const TransactionReviewEIP1559 = ({
 	}
 
 	const valueToWatchAnimation = gasFeeNative;
-
 	return (
 		<Summary style={styles.overview(noMargin)}>
 			<Summary.Row>
@@ -296,7 +295,7 @@ TransactionReviewEIP1559.propTypes = {
 	onUpdatingValuesStart: PropTypes.func,
 	onUpdatingValuesEnd: PropTypes.func,
 	canAnimate: PropTypes.bool,
-	disableEdit: PropTypes.bool
+	isAnimating: PropTypes.bool
 };
 
 const mapStateToProps = state => ({

@@ -109,7 +109,7 @@ class TransactionReviewFeeCard extends PureComponent {
 		onUpdatingValuesStart: PropTypes.func,
 		onUpdatingValuesEnd: PropTypes.func,
 		canAnimate: PropTypes.bool,
-		disableEdit: PropTypes.bool
+		isAnimating: PropTypes.bool
 	};
 
 	state = {
@@ -176,7 +176,7 @@ class TransactionReviewFeeCard extends PureComponent {
 			onUpdatingValuesStart,
 			onUpdatingValuesEnd,
 			canAnimate,
-			disableEdit
+			isAnimating
 		} = this.props;
 
 		const isMainnet = isMainnetByChainId(chainId);
@@ -255,7 +255,7 @@ class TransactionReviewFeeCard extends PureComponent {
 							>
 								{isMainnet && (
 									<View style={styles.amountContainer}>
-										<TouchableOpacity onPress={edit} disabled={showNativeCurrency || disableEdit}>
+										<TouchableOpacity onPress={edit} disabled={showNativeCurrency || isAnimating}>
 											<Text
 												link={!showNativeCurrency}
 												underline={!showNativeCurrency}
@@ -268,7 +268,7 @@ class TransactionReviewFeeCard extends PureComponent {
 									</View>
 								)}
 								<View style={styles.primaryContainer(!isMainnet)}>
-									<TouchableOpacity onPress={edit} disabled={!showNativeCurrency || disableEdit}>
+									<TouchableOpacity onPress={edit} disabled={!showNativeCurrency || isAnimating}>
 										<Text
 											primary
 											bold

@@ -160,11 +160,17 @@ class Approve extends PureComponent {
 			}
 
 			// eslint-disable-next-line react/no-did-update-set-state
-			this.setState({
-				ready: true,
-				EIP1559GasData,
-				EIP1559GasDataTemp
-			});
+			this.setState(
+				{
+					ready: true,
+					EIP1559GasData,
+					EIP1559GasDataTemp,
+					canAnimate: true
+				},
+				() => {
+					this.setState({ canAnimate: false });
+				}
+			);
 		} else {
 			const suggestedGasLimit = fromWei(overrideGasLimit || transaction.gas, 'wei');
 
@@ -174,7 +180,6 @@ class Approve extends PureComponent {
 					: gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
 					? gasFeeEstimates[selected]
 					: gasFeeEstimates.gasPrice;
-
 			const LegacyGasData = this.parseTransactionDataLegacy(
 				{
 					suggestedGasPrice: getGas(gasSelected),
@@ -197,11 +202,17 @@ class Approve extends PureComponent {
 			}
 
 			// eslint-disable-next-line react/no-did-update-set-state
-			this.setState({
-				ready: true,
-				LegacyGasData,
-				LegacyGasDataTemp
-			});
+			this.setState(
+				{
+					ready: true,
+					LegacyGasData,
+					LegacyGasDataTemp,
+					canAnimate: true
+				},
+				() => {
+					this.setState({ canAnimate: false });
+				}
+			);
 		}
 	};
 
@@ -431,9 +442,7 @@ class Approve extends PureComponent {
 			const fullTx = transactions.find(({ id }) => id === transaction.id);
 			const updatedTx = { ...fullTx, transaction };
 			await TransactionController.updateTransaction(updatedTx);
-			console.log('----UPDATED');
 			await TransactionController.approveTransaction(transaction.id);
-			console.log('----Approve');
 			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_COMPLETED, this.state.analyticsParams);
 		} catch (error) {
 			Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
@@ -502,6 +511,13 @@ class Approve extends PureComponent {
 		});
 	};
 
+	onUpdatingValuesStart = () => {
+		this.setState({ isAnimating: true });
+	};
+	onUpdatingValuesEnd = () => {
+		this.setState({ isAnimating: false });
+	};
+
 	render = () => {
 		const {
 			gasError,
@@ -514,7 +530,9 @@ class Approve extends PureComponent {
 			EIP1559GasDataTemp,
 			LegacyGasData,
 			LegacyGasDataTemp,
-			gasSelected
+			gasSelected,
+			canAnimate,
+			isAnimating
 		} = this.state;
 		const { transaction, gasEstimateType, gasFeeEstimates, primaryCurrency, chainId } = this.props;
 
@@ -547,6 +565,10 @@ class Approve extends PureComponent {
 								EIP1559GasData={EIP1559GasData}
 								LegacyGasData={LegacyGasData}
 								gasEstimateType={gasEstimateType}
+								onUpdatingValuesStart={this.onUpdatingValuesStart}
+								onUpdatingValuesEnd={this.onUpdatingValuesEnd}
+								canAnimate={canAnimate}
+								isAnimating={isAnimating}
 							/>
 							<CustomGas
 								handleGasFeeSelection={this.handleSetGasFee}
@@ -583,6 +605,10 @@ class Approve extends PureComponent {
 								onCancel={this.cancelGasEdition}
 								onSave={this.saveGasEdition}
 								error={EIP1559GasDataTemp.error}
+								onUpdatingValuesStart={this.onUpdatingValuesStart}
+								onUpdatingValuesEnd={this.onUpdatingValuesEnd}
+								canAnimate={canAnimate}
+								isAnimating={isAnimating}
 							/>
 						) : (
 							<EditGasFeeLegacy
@@ -599,6 +625,10 @@ class Approve extends PureComponent {
 								onCancel={this.cancelGasEdition}
 								onSave={this.saveGasEdition}
 								error={LegacyGasDataTemp.error}
+								onUpdatingValuesStart={this.onUpdatingValuesStart}
+								onUpdatingValuesEnd={this.onUpdatingValuesEnd}
+								canAnimate={canAnimate}
+								isAnimating={isAnimating}
 							/>
 						))}
 				</KeyboardAwareScrollView>

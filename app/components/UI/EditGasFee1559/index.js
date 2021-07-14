@@ -136,7 +136,9 @@ const EditGasFee1559 = ({
 	warningMinimumEstimateOption,
 	suggestedEstimateOption,
 	canAnimate,
-	isAnimating
+	isAnimating,
+	onUpdatingValuesStart,
+	onUpdatingValuesEnd
 }) => {
 	const [showRangeInfoModal, setShowRangeInfoModal] = useState(false);
 	const [showAdvancedOptions, setShowAdvancedOptions] = useState(!selected);
@@ -275,7 +277,12 @@ const EditGasFee1559 = ({
 
 	const renderInputs = () => (
 		<View>
-			<FadeAnimationView valueToWatch={gasFeeMaxPrimary} canAnimate={canAnimate}>
+			<FadeAnimationView
+				valueToWatch={gasFeeMaxPrimary}
+				canAnimate={canAnimate}
+				onAnimationStart={onUpdatingValuesStart}
+				onAnimationEnd={onUpdatingValuesEnd}
+			>
 				<View>
 					{/* TODO(eip1559) hook with strings i18n */}
 					<HorizontalSelector selected={selectedOption} onPress={selectOption} options={renderOptions()} />
@@ -662,6 +669,8 @@ EditGasFee1559.propTypes = {
 	 * Suggested estimate option to show recommended values
 	 */
 	suggestedEstimateOption: PropTypes.string,
+	onUpdatingValuesStart: PropTypes.func,
+	onUpdatingValuesEnd: PropTypes.func,
 	canAnimate: PropTypes.bool,
 	isAnimating: PropTypes.bool
 };

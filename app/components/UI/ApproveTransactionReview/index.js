@@ -43,6 +43,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import InfoModal from '../Swaps/components/InfoModal';
 import Text from '../../Base/Text';
 import TransactionReviewEIP1559 from '../../UI/TransactionReview/TransactionReviewEIP1559';
+import FadeAnimationView from '../FadeAnimationView';
 
 const { hexToBN } = util;
 const styles = StyleSheet.create({
@@ -260,7 +261,11 @@ class ApproveTransactionReview extends PureComponent {
 		/**
 		 * Estimate type returned by the gas fee controller, can be market-fee, legacy or eth_gasPrice
 		 */
-		gasEstimateType: PropTypes.string
+		gasEstimateType: PropTypes.string,
+		onUpdatingValuesStart: PropTypes.func,
+		onUpdatingValuesEnd: PropTypes.func,
+		canAnimate: PropTypes.bool,
+		isAnimating: PropTypes.bool
 	};
 
 	state = {
@@ -540,7 +545,11 @@ class ApproveTransactionReview extends PureComponent {
 			warningGasPriceHigh,
 			EIP1559GasData,
 			LegacyGasData,
-			gasEstimateType
+			gasEstimateType,
+			onUpdatingValuesStart,
+			onUpdatingValuesEnd,
+			canAnimate,
+			isAnimating
 		} = this.props;
 		const is_main_net = isMainNet(network);
 		const originIsDeeplink = origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
@@ -600,9 +609,13 @@ class ApproveTransactionReview extends PureComponent {
 												hideTotal
 												noMargin
 												onEdit={this.edit}
+												onUpdatingValuesStart={onUpdatingValuesStart}
+												onUpdatingValuesEnd={onUpdatingValuesEnd}
+												canAnimate={canAnimate}
+												isAnimating={isAnimating}
 											/>
 										) : (
-											<TouchableOpacity onPress={this.edit}>
+											<TouchableOpacity onPress={this.edit} disabled={isAnimating}>
 												<View style={styles.networkFee}>
 													<Text reset style={styles.sectionLeft}>
 														{strings('transaction.transaction_fee')}
@@ -618,10 +631,17 @@ class ApproveTransactionReview extends PureComponent {
 															/>
 														</TouchableOpacity>
 													</Text>
-													<Text reset style={styles.sectionRight}>
-														{LegacyGasData.transactionFee} (
-														{LegacyGasData.transactionFeeFiat})
-													</Text>
+													<FadeAnimationView
+														onAnimationStart={onUpdatingValuesStart}
+														onAnimationEnd={onUpdatingValuesEnd}
+														canAnimate={canAnimate}
+														valueToWatch={LegacyGasData.transactionFee}
+													>
+														<Text reset style={styles.sectionRight}>
+															{LegacyGasData.transactionFee} (
+															{LegacyGasData.transactionFeeFiat})
+														</Text>
+													</FadeAnimationView>
 													<View style={styles.networkFeeArrow}>
 														<IonicIcon
 															name="ios-arrow-forward"

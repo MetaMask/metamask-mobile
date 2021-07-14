@@ -494,7 +494,10 @@ class Confirm extends PureComponent {
 					const suggestedGasLimit = fromWei(gas, 'wei');
 
 					const LegacyTransactionData = this.parseTransactionDataLegacy({
-						suggestedGasPrice: (Math.random() * 100).toString(),
+						suggestedGasPrice:
+							this.props.gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
+								? this.props.gasFeeEstimates[this.state.gasSelected]
+								: this.props.gasFeeEstimates.gasPrice,
 						suggestedGasLimit
 					});
 
@@ -1272,7 +1275,7 @@ class Confirm extends PureComponent {
 							onUpdatingValuesStart={this.onUpdatingValuesStart}
 							onUpdatingValuesEnd={this.onUpdatingValuesEnd}
 							canAnimate={canAnimate}
-							disableEdit={isAnimating}
+							isAnimating={isAnimating}
 						/>
 					) : (
 						<TransactionReviewEIP1559
@@ -1291,7 +1294,7 @@ class Confirm extends PureComponent {
 							onUpdatingValuesStart={this.onUpdatingValuesStart}
 							onUpdatingValuesEnd={this.onUpdatingValuesEnd}
 							canAnimate={canAnimate}
-							disableEdit={isAnimating}
+							isAnimating={isAnimating}
 						/>
 					)}
 

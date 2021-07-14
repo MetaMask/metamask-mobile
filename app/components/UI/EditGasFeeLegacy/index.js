@@ -114,6 +114,8 @@ const EditGasFeeLegacy = ({
 	ignoreOptions,
 	recommended,
 	warningMinimumEstimateOption,
+	onUpdatingValuesStart,
+	onUpdatingValuesEnd,
 	canAnimate,
 	isAnimating
 }) => {
@@ -267,7 +269,12 @@ const EditGasFeeLegacy = ({
 								</View>
 							</Alert>
 						)}
-						<FadeAnimationView valueToWatch={gasFeePrimary} canAnimate={canAnimate}>
+						<FadeAnimationView
+							valueToWatch={gasFeePrimary}
+							canAnimate={canAnimate}
+							onAnimationStart={onUpdatingValuesStart}
+							onAnimationEnd={onUpdatingValuesEnd}
+						>
 							<View style={styles.headerContainer}>
 								<View style={styles.headerTitle}>
 									<View style={styles.headerTitleSide}>
@@ -475,6 +482,8 @@ EditGasFeeLegacy.propTypes = {
 	 * Estimate option to compare with for too low warning
 	 */
 	warningMinimumEstimateOption: PropTypes.string,
+	onUpdatingValuesStart: PropTypes.func,
+	onUpdatingValuesEnd: PropTypes.func,
 	canAnimate: PropTypes.bool,
 	isAnimating: PropTypes.bool
 };
