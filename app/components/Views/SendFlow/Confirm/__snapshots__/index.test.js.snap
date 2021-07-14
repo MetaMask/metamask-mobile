@@ -133,35 +133,11 @@ exports[`Confirm should render correctly 1`] = `
         upper={false}
       />
     </View>
-    <Connect(TransactionReviewFeeCard)
-      edit={[Function]}
-      fiat=""
-      gasEstimationReady={false}
+    <Connect(TransactionReviewEIP1559)
+      onEdit={[Function]}
+      onUpdatingValuesEnd={[Function]}
+      onUpdatingValuesStart={[Function]}
       over={false}
-      totalFiat={
-        <Text
-          black={false}
-          blue={false}
-          bold={false}
-          centered={false}
-          disclaimer={false}
-          green={false}
-          link={false}
-          modal={false}
-          primary={false}
-          red={false}
-          reset={false}
-          right={false}
-          small={false}
-          strikethrough={false}
-          underline={false}
-          upper={false}
-        />
-      }
-      totalGasEth=""
-      totalGasFiat=""
-      totalValue=""
-      transactionValue=""
     />
     <View
       style={

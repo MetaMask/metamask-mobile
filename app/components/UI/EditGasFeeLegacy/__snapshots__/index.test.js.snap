@@ -70,28 +70,55 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
             />
           </View>
         </View>
-        <View
-          style={
-            Object {
-              "alignItems": "center",
-              "marginBottom": 22,
-            }
-          }
-        >
+        <FadeAnimationView>
           <View
             style={
               Object {
-                "flexDirection": "row",
+                "alignItems": "center",
+                "marginBottom": 22,
               }
             }
           >
             <View
               style={
                 Object {
-                  "flex": 1,
+                  "flexDirection": "row",
                 }
               }
             >
+              <View
+                style={
+                  Object {
+                    "flex": 1,
+                  }
+                }
+              >
+                <Text
+                  black={true}
+                  blue={false}
+                  bold={false}
+                  centered={false}
+                  disclaimer={false}
+                  green={false}
+                  link={false}
+                  modal={false}
+                  primary={false}
+                  red={false}
+                  reset={false}
+                  right={true}
+                  small={false}
+                  strikethrough={false}
+                  style={
+                    Object {
+                      "fontSize": 48,
+                    }
+                  }
+                  underline={false}
+                  upper={false}
+                >
+                  ~
+                </Text>
+              </View>
               <Text
                 black={true}
                 blue={false}
@@ -104,7 +131,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                 primary={false}
                 red={false}
                 reset={false}
-                right={true}
+                right={false}
                 small={false}
                 strikethrough={false}
                 style={
@@ -114,11 +141,17 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                 }
                 underline={false}
                 upper={false}
-              >
-                ~
-              </Text>
+              />
+              <View
+                style={
+                  Object {
+                    "flex": 1,
+                  }
+                }
+              />
             </View>
             <Text
+              big={true}
               black={true}
               blue={false}
               bold={false}
@@ -133,223 +166,191 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
               right={false}
               small={false}
               strikethrough={false}
-              style={
-                Object {
-                  "fontSize": 48,
-                }
-              }
               underline={false}
               upper={false}
-            />
-            <View
-              style={
-                Object {
-                  "flex": 1,
-                }
-              }
-            />
+            >
+              <Text
+                black={true}
+                blue={false}
+                bold={true}
+                centered={false}
+                disclaimer={false}
+                green={false}
+                link={false}
+                modal={false}
+                primary={false}
+                red={false}
+                reset={false}
+                right={false}
+                small={false}
+                strikethrough={false}
+                underline={false}
+                upper={false}
+              />
+            </Text>
           </View>
-          <Text
-            big={true}
-            black={true}
-            blue={false}
-            bold={false}
-            centered={false}
-            disclaimer={false}
-            green={false}
-            link={false}
-            modal={false}
-            primary={false}
-            red={false}
-            reset={false}
-            right={false}
-            small={false}
-            strikethrough={false}
-            underline={false}
-            upper={false}
-          >
-            <Text
-              black={true}
-              blue={false}
-              bold={true}
-              centered={false}
-              disclaimer={false}
-              green={false}
-              link={false}
-              modal={false}
-              primary={false}
-              red={false}
-              reset={false}
-              right={false}
-              small={false}
-              strikethrough={false}
-              underline={false}
-              upper={false}
-            />
-          </Text>
-        </View>
-        <View
-          style={
-            Object {
-              "marginBottom": 30,
-              "marginTop": 25,
-            }
-          }
-        >
           <View
             style={
               Object {
-                "marginTop": 14,
+                "marginBottom": 30,
+                "marginTop": 25,
               }
             }
           >
             <View
               style={
                 Object {
-                  "marginBottom": 20,
+                  "marginTop": 14,
                 }
               }
             >
-              <RangeInput
-                increment={"1000"}
-                leftLabelComponent={
-                  <View
-                    style={
-                      Object {
-                        "alignItems": "center",
-                        "flexDirection": "row",
-                      }
-                    }
-                  >
-                    <Text
-                      black={true}
-                      blue={false}
-                      bold={true}
-                      centered={false}
-                      disclaimer={false}
-                      green={false}
-                      link={false}
-                      modal={false}
-                      noMargin={true}
-                      primary={false}
-                      red={false}
-                      reset={false}
-                      right={false}
-                      small={false}
-                      strikethrough={false}
-                      underline={false}
-                      upper={false}
-                    >
-                      Gas Limit
-                       
-                    </Text>
-                    <TouchableOpacity
-                      hitSlop={
+              <View
+                style={
+                  Object {
+                    "marginBottom": 20,
+                  }
+                }
+              >
+                <RangeInput
+                  increment={"1000"}
+                  leftLabelComponent={
+                    <View
+                      style={
                         Object {
-                          "bottom": 10,
-                          "left": 10,
-                          "right": 10,
-                          "top": 10,
+                          "alignItems": "center",
+                          "flexDirection": "row",
                         }
                       }
-                      onPress={[Function]}
                     >
-                      <Icon
-                        allowFontScaling={false}
-                        name="information"
-                        size={14}
-                        style={
+                      <Text
+                        black={true}
+                        blue={false}
+                        bold={true}
+                        centered={false}
+                        disclaimer={false}
+                        green={false}
+                        link={false}
+                        modal={false}
+                        noMargin={true}
+                        primary={false}
+                        red={false}
+                        reset={false}
+                        right={false}
+                        small={false}
+                        strikethrough={false}
+                        underline={false}
+                        upper={false}
+                      >
+                        Gas Limit
+                         
+                      </Text>
+                      <TouchableOpacity
+                        hitSlop={
                           Object {
-                            "color": "#bbc0c5",
+                            "bottom": 10,
+                            "left": 10,
+                            "right": 10,
+                            "top": 10,
                           }
                         }
-                      />
-                    </TouchableOpacity>
-                  </View>
+                        onPress={[Function]}
+                      >
+                        <Icon
+                          allowFontScaling={false}
+                          name="information"
+                          size={14}
+                          style={
+                            Object {
+                              "color": "#bbc0c5",
+                            }
+                          }
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  }
+                  min={"21000"}
+                  name="Gas limit"
+                  onChangeValue={[Function]}
+                  value="21000"
+                />
+              </View>
+              <View
+                style={
+                  Object {
+                    "marginBottom": 20,
+                  }
                 }
-                min={"21000"}
-                name="Gas limit"
-                onChangeValue={[Function]}
-                value="21000"
-              />
-            </View>
-            <View
-              style={
-                Object {
-                  "marginBottom": 20,
-                }
-              }
-            >
-              <RangeInput
-                increment={"1"}
-                inputInsideLabel="≈ undefined"
-                leftLabelComponent={
-                  <View
-                    style={
-                      Object {
-                        "alignItems": "center",
-                        "flexDirection": "row",
-                      }
-                    }
-                  >
-                    <Text
-                      black={true}
-                      blue={false}
-                      bold={true}
-                      centered={false}
-                      disclaimer={false}
-                      green={false}
-                      link={false}
-                      modal={false}
-                      noMargin={true}
-                      primary={false}
-                      red={false}
-                      reset={false}
-                      right={false}
-                      small={false}
-                      strikethrough={false}
-                      underline={false}
-                      upper={false}
-                    >
-                      Gas price
-                       
-                    </Text>
-                    <TouchableOpacity
-                      hitSlop={
+              >
+                <RangeInput
+                  increment={"1"}
+                  inputInsideLabel="≈ undefined"
+                  leftLabelComponent={
+                    <View
+                      style={
                         Object {
-                          "bottom": 10,
-                          "left": 10,
-                          "right": 10,
-                          "top": 10,
+                          "alignItems": "center",
+                          "flexDirection": "row",
                         }
                       }
-                      onPress={[Function]}
                     >
-                      <Icon
-                        allowFontScaling={false}
-                        name="information"
-                        size={14}
-                        style={
+                      <Text
+                        black={true}
+                        blue={false}
+                        bold={true}
+                        centered={false}
+                        disclaimer={false}
+                        green={false}
+                        link={false}
+                        modal={false}
+                        noMargin={true}
+                        primary={false}
+                        red={false}
+                        reset={false}
+                        right={false}
+                        small={false}
+                        strikethrough={false}
+                        underline={false}
+                        upper={false}
+                      >
+                        Gas price
+                         
+                      </Text>
+                      <TouchableOpacity
+                        hitSlop={
                           Object {
-                            "color": "#bbc0c5",
+                            "bottom": 10,
+                            "left": 10,
+                            "right": 10,
+                            "top": 10,
                           }
                         }
-                      />
-                    </TouchableOpacity>
-                  </View>
-                }
-                min={"1"}
-                name="Gas price"
-                onChangeValue={[Function]}
-                unit="GWEI"
-                value="10"
-              />
+                        onPress={[Function]}
+                      >
+                        <Icon
+                          allowFontScaling={false}
+                          name="information"
+                          size={14}
+                          style={
+                            Object {
+                              "color": "#bbc0c5",
+                            }
+                          }
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  }
+                  min={"1"}
+                  name="Gas price"
+                  onChangeValue={[Function]}
+                  unit="GWEI"
+                  value="10"
+                />
+              </View>
             </View>
           </View>
-        </View>
+        </FadeAnimationView>
         <View>
           <StyledButton
-            disabled={false}
             disabledContainerStyle={
               Object {
                 "opacity": 0.6,

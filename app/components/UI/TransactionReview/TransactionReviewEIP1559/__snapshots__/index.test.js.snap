@@ -76,79 +76,27 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
         }
       }
     >
-      <TouchableOpacity
-        disabled={false}
-      >
-        <Text
-          black={false}
-          blue={false}
-          bold={false}
-          centered={false}
-          disclaimer={false}
-          green={false}
-          grey={false}
-          link={true}
-          modal={false}
-          primary={false}
-          red={false}
-          reset={false}
-          right={true}
-          small={false}
-          strikethrough={false}
-          style={
-            Object {
-              "flex": 1,
-              "paddingRight": 10,
-            }
-          }
-          underline={true}
-          upper={true}
+      <SkeletonPlaceholder>
+        <SkeletonPlaceholderItem
+          borderRadius={4}
+          height={10}
+          width={80}
         />
-      </TouchableOpacity>
-      <TouchableOpacity
-        disabled={true}
-      >
-        <Text
-          black={false}
-          blue={false}
-          bold={true}
-          centered={false}
-          disclaimer={false}
-          green={false}
-          grey={true}
-          link={false}
-          modal={false}
-          primary={true}
-          red={false}
-          reset={false}
-          right={true}
-          small={false}
-          strikethrough={false}
-          underline={false}
-          upper={true}
-        />
-      </TouchableOpacity>
+      </SkeletonPlaceholder>
     </View>
   </SummaryRow>
   <SummaryRow>
-    <Text
-      black={false}
-      blue={false}
-      bold={false}
-      centered={false}
-      disclaimer={false}
-      green={false}
-      link={false}
-      modal={false}
-      primary={false}
-      red={false}
-      reset={false}
-      right={false}
-      small={true}
-      strikethrough={false}
-      underline={false}
-      upper={false}
-    />
+    <View
+      style={false}
+    >
+      <SkeletonPlaceholder>
+        <SkeletonPlaceholderItem
+          borderRadius={4}
+          height={10}
+          width={120}
+        />
+      </SkeletonPlaceholder>
+    </View>
     <View
       style={
         Object {
@@ -158,67 +106,13 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
         }
       }
     >
-      <Text
-        black={false}
-        blue={false}
-        bold={false}
-        centered={false}
-        disclaimer={false}
-        green={false}
-        grey={true}
-        link={false}
-        modal={false}
-        primary={false}
-        red={false}
-        reset={false}
-        right={true}
-        small={true}
-        strikethrough={false}
-        underline={false}
-        upper={false}
-      >
-        <Text
-          black={false}
-          blue={false}
-          bold={true}
-          centered={false}
-          disclaimer={false}
-          green={false}
-          link={false}
-          modal={false}
-          noMargin={true}
-          primary={false}
-          red={false}
-          reset={false}
-          right={false}
-          small={true}
-          strikethrough={false}
-          underline={false}
-          upper={false}
-        >
-          Max fee:
-           
-        </Text>
-        <Text
-          black={false}
-          blue={false}
-          bold={true}
-          centered={false}
-          disclaimer={false}
-          green={false}
-          link={false}
-          modal={false}
-          noMargin={true}
-          primary={false}
-          red={false}
-          reset={false}
-          right={false}
-          small={true}
-          strikethrough={false}
-          underline={false}
-          upper={false}
+      <SkeletonPlaceholder>
+        <SkeletonPlaceholderItem
+          borderRadius={4}
+          height={10}
+          width={120}
         />
-      </Text>
+      </SkeletonPlaceholder>
     </View>
   </SummaryRow>
   <View>
@@ -253,49 +147,13 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
           }
         }
       >
-        <Text
-          black={false}
-          blue={false}
-          bold={false}
-          centered={false}
-          disclaimer={false}
-          green={false}
-          grey={true}
-          link={false}
-          modal={false}
-          primary={false}
-          red={false}
-          reset={false}
-          right={true}
-          small={false}
-          strikethrough={false}
-          style={
-            Object {
-              "flex": 1,
-              "paddingRight": 10,
-            }
-          }
-          underline={false}
-          upper={true}
-        />
-        <Text
-          black={false}
-          blue={false}
-          bold={true}
-          centered={false}
-          disclaimer={false}
-          green={false}
-          link={false}
-          modal={false}
-          primary={true}
-          red={false}
-          reset={false}
-          right={true}
-          small={false}
-          strikethrough={false}
-          underline={false}
-          upper={true}
-        />
+        <SkeletonPlaceholder>
+          <SkeletonPlaceholderItem
+            borderRadius={4}
+            height={10}
+            width={80}
+          />
+        </SkeletonPlaceholder>
       </View>
     </SummaryRow>
     <SummaryRow>
@@ -308,67 +166,13 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
           }
         }
       >
-        <Text
-          black={false}
-          blue={false}
-          bold={false}
-          centered={false}
-          disclaimer={false}
-          green={false}
-          grey={true}
-          link={false}
-          modal={false}
-          primary={false}
-          red={false}
-          reset={false}
-          right={true}
-          small={true}
-          strikethrough={false}
-          underline={false}
-          upper={false}
-        >
-          <Text
-            black={false}
-            blue={false}
-            bold={true}
-            centered={false}
-            disclaimer={false}
-            green={false}
-            link={false}
-            modal={false}
-            noMargin={true}
-            primary={false}
-            red={false}
-            reset={false}
-            right={false}
-            small={true}
-            strikethrough={false}
-            underline={false}
-            upper={false}
-          >
-            Max amount:
-          </Text>
-           
-          <Text
-            black={false}
-            blue={false}
-            bold={false}
-            centered={false}
-            disclaimer={false}
-            green={false}
-            link={false}
-            modal={false}
-            noMargin={true}
-            primary={false}
-            red={false}
-            reset={false}
-            right={false}
-            small={true}
-            strikethrough={false}
-            underline={false}
-            upper={false}
+        <SkeletonPlaceholder>
+          <SkeletonPlaceholderItem
+            borderRadius={4}
+            height={10}
+            width={120}
           />
-        </Text>
+        </SkeletonPlaceholder>
       </View>
     </SummaryRow>
   </View>
