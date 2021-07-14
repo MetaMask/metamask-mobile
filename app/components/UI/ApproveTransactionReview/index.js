@@ -34,7 +34,7 @@ import TransactionReviewDetailsCard from '../../UI/TransactionReview/Transaction
 import Device from '../../../util/Device';
 import AppConstants from '../../../core/AppConstants';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
-import { withNavigation } from 'react-navigation';
+import { withNavigation } from '@react-navigation/compat';
 import { getNetworkName, isMainNet, isMainnetByChainId } from '../../../util/networks';
 import scaling from '../../../util/scaling';
 import { capitalize } from '../../../util/general';
@@ -689,7 +689,7 @@ class ApproveTransactionReview extends PureComponent {
 		const { navigation } = this.props;
 		/* this is kinda weird, we have to reject the transaction to collapse the modal */
 		this.onCancelPress();
-		navigation.navigate('PaymentMethodSelector');
+		navigation.navigate('FiatOnRamp');
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST);
 		});

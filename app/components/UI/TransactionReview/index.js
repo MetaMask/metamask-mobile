@@ -164,7 +164,11 @@ class TransactionReview extends PureComponent {
 		/**
 		 * List of tokens from TokenListController
 		 */
-		tokenList: PropTypes.object
+		tokenList: PropTypes.object,
+		/**
+		 * Object that represents the navigator
+		 */
+		navigation: PropTypes.object
 	};
 
 	state = {
@@ -300,7 +304,8 @@ class TransactionReview extends PureComponent {
 			hideData,
 			saveTransactionReviewDataHeight,
 			customGasHeight,
-			over
+			over,
+			navigation
 		} = this.props;
 		const { actionKey, error, assetAmount, conversionRate, fiatValue, approveTransaction } = this.state;
 		const currentPageInformation = { url: this.getUrlFromBrowser() };
@@ -330,6 +335,7 @@ class TransactionReview extends PureComponent {
 									<AccountInfoCard />
 								</View>
 								<TransactionReviewInformation
+									navigation={navigation}
 									error={error}
 									edit={this.edit}
 									ready={ready}

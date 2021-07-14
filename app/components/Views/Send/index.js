@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
  * View that wraps the wraps the "Send" screen
  */
 class Send extends PureComponent {
-	static navigationOptions = ({ navigation }) => getTransactionOptionsTitle('send.confirm', navigation);
+	static navigationOptions = ({ navigation, route }) => getTransactionOptionsTitle('send.confirm', navigation, route);
 
 	static propTypes = {
 		/**
@@ -118,7 +118,11 @@ class Send extends PureComponent {
 		/**
 		 * List of tokens from TokenListController
 		 */
-		tokenList: PropTypes.object
+		tokenList: PropTypes.object,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	state = {
@@ -156,8 +160,8 @@ class Send extends PureComponent {
 	 * Check if view is called with txMeta object for a deeplink
 	 */
 	checkForDeeplinks() {
-		const { navigation } = this.props;
-		const txMeta = navigation && navigation.getParam('txMeta', null);
+		const { route } = this.props;
+		const txMeta = route.params?.txMeta;
 		if (txMeta) {
 			this.handleNewTxMeta(txMeta);
 		} else {
@@ -202,15 +206,16 @@ class Send extends PureComponent {
 	}
 
 	componentDidUpdate(prevProps) {
-		const prevNavigation = prevProps.navigation;
+		const prevRoute = prevProps.route;
 		const {
-			navigation,
+			route,
 			transaction: { assetType, selectedAsset },
-			contractBalances
+			contractBalances,
+			navigation
 		} = this.props;
-		if (prevNavigation && navigation) {
-			const prevTxMeta = prevNavigation.getParam('txMeta', null);
-			const currentTxMeta = navigation.getParam('txMeta', null);
+		if (prevRoute && route) {
+			const prevTxMeta = prevRoute.params?.txMeta;
+			const currentTxMeta = route.params?.txMeta;
 			if (
 				currentTxMeta &&
 				currentTxMeta.source &&

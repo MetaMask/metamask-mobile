@@ -302,7 +302,10 @@ class Login extends PureComponent {
 			// Check if user passed through metrics opt-in screen
 			const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
 			if (!metricsOptIn) {
-				this.props.navigation.navigate('OptinMetrics');
+				this.props.navigation.navigate('OnboardingRootNav', {
+					screen: 'OnboardingNav',
+					params: { screen: 'OptinMetrics' }
+				});
 			} else if (onboardingWizard) {
 				this.props.navigation.navigate('HomeNav');
 			} else {
@@ -355,7 +358,10 @@ class Login extends PureComponent {
 	deleteExistingUser = async () => {
 		try {
 			await AsyncStorage.removeItem(EXISTING_USER);
-			this.props.navigation.navigate('Onboarding', { delete: true });
+			this.props.navigation.navigate('OnboardingRootNav', {
+				screen: 'OnboardingNav',
+				params: { screen: 'Onboarding', params: { delete: true } }
+			});
 		} catch (error) {
 			Logger.log(error, `Failed to remove key: ${EXISTING_USER} from AsyncStorage`);
 		}

@@ -22,9 +22,7 @@ import {
 } from '@metamask/controllers';
 
 import SwapsController from '@metamask/swaps-controller';
-
 import AsyncStorage from '@react-native-community/async-storage';
-
 import Encryptor from './Encryptor';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Networks from '../util/networks';

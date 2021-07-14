@@ -11,7 +11,7 @@ describe('ImportPrivateKeySuccess', () => {
 	it('should render correctly', () => {
 		const wrapper = shallow(
 			<Provider store={store}>
-				<ImportPrivateKeySuccess navigation={{ getParam: () => null, state: { params: {} } }} />
+				<ImportPrivateKeySuccess route={{ params: {} }} />
 			</Provider>
 		);
 		expect(wrapper).toMatchSnapshot();

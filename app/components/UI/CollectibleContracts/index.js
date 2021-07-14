@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, View, InteractionManager, Image } from 'react-native';
 import { connect } from 'react-redux';
@@ -7,7 +7,6 @@ import { strings } from '../../../../locales/i18n';
 import CollectibleContractElement from '../CollectibleContractElement';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
-import CollectibleModal from '../CollectibleModal';
 import { favoritesCollectiblesObjectSelector } from '../../../reducers/collectibles';
 import Text from '../../Base/Text';
 import AppConstants from '../../../core/AppConstants';
@@ -68,17 +67,12 @@ const styles = StyleSheet.create({
  * also known as ERC-721 Tokens
  */
 const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, favoriteCollectibles }) => {
-	const [collectible, setCollectible] = useState(null);
-	const [contractName, setContractName] = useState(null);
-	const [showCollectibleModal, setShowCollectibleModal] = useState(null);
-	const onItemPress = useCallback((collectible, contractName) => {
-		setCollectible(collectible);
-		setContractName(contractName);
-		setShowCollectibleModal(true);
-	}, []);
-	const hideCollectibleModal = () => {
-		setShowCollectibleModal(false);
-	};
+	const onItemPress = useCallback(
+		(collectible, contractName) => {
+			navigation.navigate('CollectiblesDetails', { collectible, contractName });
+		},
+		[navigation]
+	);
 
 	const goToAddCollectible = () => {
 		navigation.push('AddAsset', { assetType: 'collectible' });
@@ -143,7 +137,8 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 		[collectibleContracts, renderFavoriteCollectibles, renderCollectibleContract]
 	);
 
-	const goToLearnMore = () => navigation.navigate('SimpleWebview', { url: AppConstants.URLS.NFT });
+	const goToLearnMore = () =>
+		navigation.navigate('Webview', { screen: 'SimpleWebview', params: { url: AppConstants.URLS.NFT } });
 
 	const renderEmpty = () => (
 		<View style={styles.emptyView}>
@@ -167,15 +162,6 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 		<View style={styles.wrapper} testID={'collectible-contracts'}>
 			{collectibles.length ? renderList() : renderEmpty()}
 			{renderFooter()}
-			{collectible && contractName && (
-				<CollectibleModal
-					visible={showCollectibleModal}
-					collectible={collectible}
-					contractName={contractName}
-					onHide={hideCollectibleModal}
-					navigation={navigation}
-				/>
-			)}
 		</View>
 	);
 };
