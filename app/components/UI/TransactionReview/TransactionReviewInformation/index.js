@@ -211,7 +211,11 @@ class TransactionReviewInformation extends PureComponent {
 		nativeCurrency: PropTypes.string,
 		gasEstimateType: PropTypes.string,
 		EIP1559GasData: PropTypes.object,
-		origin: PropTypes.string
+		origin: PropTypes.string,
+		onUpdatingValuesStart: PropTypes.func,
+		onUpdatingValuesEnd: PropTypes.func,
+		canAnimate: PropTypes.bool,
+		isAnimating: PropTypes.bool
 	};
 
 	state = {
@@ -472,7 +476,15 @@ class TransactionReviewInformation extends PureComponent {
 	};
 
 	renderTransactionReviewEIP1559 = () => {
-		const { EIP1559GasData, primaryCurrency, origin } = this.props;
+		const {
+			EIP1559GasData,
+			primaryCurrency,
+			origin,
+			onUpdatingValuesStart,
+			onUpdatingValuesEnd,
+			canAnimate,
+			isAnimating
+		} = this.props;
 		let host;
 		if (origin) {
 			host = new URL(origin).hostname;
@@ -496,6 +508,10 @@ class TransactionReviewInformation extends PureComponent {
 				timeEstimateColor={EIP1559GasData.timeEstimateColor}
 				onEdit={this.edit}
 				origin={host}
+				onUpdatingValuesStart={onUpdatingValuesStart}
+				onUpdatingValuesEnd={onUpdatingValuesEnd}
+				canAnimate={canAnimate}
+				isAnimating={isAnimating}
 			/>
 		);
 	};
@@ -510,7 +526,11 @@ class TransactionReviewInformation extends PureComponent {
 			currentCurrency,
 			conversionRate,
 			ticker,
-			over
+			over,
+			onUpdatingValuesStart,
+			onUpdatingValuesEnd,
+			canAnimate,
+			isAnimating
 		} = this.props;
 
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
@@ -530,6 +550,10 @@ class TransactionReviewInformation extends PureComponent {
 				edit={this.edit}
 				over={over}
 				warningGasPriceHigh={warningGasPriceHigh}
+				onUpdatingValuesStart={onUpdatingValuesStart}
+				onUpdatingValuesEnd={onUpdatingValuesEnd}
+				canAnimate={canAnimate}
+				isAnimating={isAnimating}
 			/>
 		);
 	};

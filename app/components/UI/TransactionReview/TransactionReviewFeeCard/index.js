@@ -206,7 +206,7 @@ class TransactionReviewFeeCard extends PureComponent {
 			primaryTotalAmount = totalFiat;
 		}
 
-		const valueToWatchAnimation = totalGasEth;
+		const valueToWatchAnimation = totalGasEth !== '0 ETH' ? totalGasEth : null;
 
 		return (
 			<View>
