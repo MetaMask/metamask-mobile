@@ -39,7 +39,6 @@ import {
 } from '../../../util/transactions';
 import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
-// import contractMap from '@metamask/contract-metadata';
 import MessageSign from '../../UI/MessageSign';
 import Approve from '../../Views/ApproveView/Approve';
 import TransactionTypes from '../../../core/TransactionTypes';

@@ -13,7 +13,6 @@ import { connect } from 'react-redux';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { getPaymentRequestOptionsTitle } from '../../UI/Navbar';
 import FeatherIcon from 'react-native-vector-icons/Feather';
-// import contractMap from '@metamask/contract-metadata';
 import Fuse from 'fuse.js';
 import AssetList from './AssetList';
 import PropTypes from 'prop-types';

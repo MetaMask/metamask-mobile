@@ -21,7 +21,6 @@ import {
 	getActionKey,
 	TRANSACTION_TYPES
 } from '../../../util/transactions';
-// import contractMap from '@metamask/contract-metadata';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { isSwapsNativeAsset } from '../Swaps/utils';

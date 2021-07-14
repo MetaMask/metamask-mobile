@@ -30,7 +30,6 @@ import AppConstants from './AppConstants';
 import { store } from '../store';
 import { renderFromTokenMinimalUnit, balanceToFiatNumber, weiToFiatNumber } from '../util/number';
 import NotificationManager from './NotificationManager';
-// import contractMap from '@metamask/contract-metadata';
 import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
 

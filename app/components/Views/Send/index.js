@@ -13,7 +13,6 @@ import { connect } from 'react-redux';
 import { resetTransaction, setTransactionObject } from '../../../actions/transaction';
 import { toggleDappTransactionModal } from '../../../actions/modals';
 import NotificationManager from '../../../core/NotificationManager';
-// import contractMap from '@metamask/contract-metadata';
 import { showAlert } from '../../../actions/alert';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';

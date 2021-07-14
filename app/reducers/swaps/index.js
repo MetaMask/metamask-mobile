@@ -1,5 +1,4 @@
 import { createSelector } from 'reselect';
-// import contractMap from '@metamask/contract-metadata';
 import { isMainnetByChainId } from '../../util/networks';
 import { safeToChecksumAddress } from '../../util/address';
 import { toLowerCaseEquals } from '../../util/general';

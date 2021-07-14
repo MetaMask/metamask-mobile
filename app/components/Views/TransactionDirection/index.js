@@ -6,7 +6,6 @@ import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { safeToChecksumAddress, renderAccountName } from '../../../util/address';
 import { getNormalizedTxState } from '../../../util/transactions';
-// import contractMap from '@metamask/contract-metadata';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Identicon from '../../UI/Identicon';
 import { strings } from '../../../../locales/i18n';

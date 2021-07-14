@@ -20,7 +20,6 @@ import {
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import Device from '../../../util/Device';
-// import contractMap from '@metamask/contract-metadata';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewSummary from './TransactionReviewSummary';

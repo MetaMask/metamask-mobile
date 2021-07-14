@@ -4,7 +4,6 @@ import { Alert, TouchableOpacity, StyleSheet, Text, View, InteractionManager } f
 import TokenImage from '../TokenImage';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-// import contractMap from '@metamask/contract-metadata';
 import ActionSheet from 'react-native-actionsheet';
 import { renderFromTokenMinimalUnit, balanceToFiat } from '../../../util/number';
 import Engine from '../../../core/Engine';

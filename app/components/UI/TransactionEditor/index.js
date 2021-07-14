@@ -14,7 +14,6 @@ import { getBasicGasEstimatesByChainId, apiEstimateModifiedToWEI } from '../../.
 import { setTransactionObject } from '../../../actions/transaction';
 import Engine from '../../../core/Engine';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
-// import contractMap from '@metamask/contract-metadata';
 import { safeToChecksumAddress } from '../../../util/address';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { MAINNET } from '../../../constants/network';
