@@ -296,21 +296,69 @@ function GasEditModal({
 }
 
 GasEditModal.propTypes = {
+	/**
+	 * Function to dismiss modal
+	 */
 	dismiss: PropTypes.func,
+	/**
+	 * Estimate type returned by the gas fee controller, can be fee-market, legacy, eth_gasPrice or none
+	 */
 	gasEstimateType: PropTypes.string,
+	/**
+	 * Gas fee estimates returned by the gas fee controller
+	 */
 	gasFeeEstimates: PropTypes.object,
+	/**
+	 * Default gas option ('low', 'medium' or 'high') to for fee-market estimate type
+	 * This is used to show a warning below this option
+	 */
 	defaultGasFeeOptionFeeMarket: PropTypes.string,
+	/**
+	 * Default gas option ('low', 'medium' or 'high') to for legacy estimate types
+	 * This is used to show a warning below this option
+	 */
 	defaultGasFeeOptionLegacy: PropTypes.string,
+	/**
+	 * Wether this modal is visible
+	 */
 	isVisible: PropTypes.bool,
+	/**
+	 * Function that handles user saving the gas editors
+	 * It is called with arguments (customGas, )
+	 */
 	onGasUpdate: PropTypes.func,
+	/**
+	 * usedCustomGas from Swaps Controller
+	 */
 	customGasFee: PropTypes.object,
+	/**
+	 * Custom gas limit set by the user
+	 */
 	customGasLimit: PropTypes.string,
+	/**
+	 * Gas limit of the selected quote trade
+	 */
 	selectedQuoteGasLimit: PropTypes.string,
+	/**
+	 * Currency code of the currently-active currency
+	 */
 	currentCurrency: PropTypes.string,
+	/**
+	 * ETH to current currency conversion rate
+	 */
 	conversionRate: PropTypes.number,
 	nativeCurrency: PropTypes.string,
+	/**
+	 * Primary currency, either ETH or Fiat
+	 */
 	primaryCurrency: PropTypes.string,
+	/**
+	 * Chain Id
+	 */
 	chainId: PropTypes.string,
+	/**
+	 * Current network ticker
+	 */
 	ticker: PropTypes.string
 };
 const mapStateToProps = state => ({

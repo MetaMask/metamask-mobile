@@ -355,7 +355,6 @@ function SwapsQuotesView({
 
 	const [customGasEstimate, setCustomGasEstimate] = useState(null);
 	const [customGasLimit, setCustomGasLimit] = useState(null);
-	// const [warningGasPriceHigh, setWarningGasPriceHigh] = useState(null);
 
 	// TODO: use this variable in the future when calculating savings
 	const [isSaving] = useState(false);
@@ -485,8 +484,34 @@ function SwapsQuotesView({
 					addHexPrefix(new BigNumber(changedGasLimit).toString(16))
 				);
 			}
+			InteractionManager.runAfterInteractions(() => {
+				const parameters = {
+					speed_set: changedGasEstimate?.selected,
+					gas_mode: changedGasEstimate?.selected ? 'Basic' : 'Advanced',
+					// TODO: how should we track EIP1559 values?
+					gas_fees: [GAS_ESTIMATE_TYPES.LEGACY, GAS_ESTIMATE_TYPES.ETH_GASPRICE].includes(gasEstimateType)
+						? weiToFiat(
+								toWei(
+									swapsUtils.calcTokenAmount(
+										new BigNumber(changedGasLimit, 10).times(
+											decGWEIToHexWEI(changedGasEstimate.gasPrice),
+											16
+										),
+										18
+									)
+								),
+								conversionRate,
+								currentCurrency
+								// eslint-disable-next-line no-mixed-spaces-and-tabs
+						  )
+						: '',
+					chain_id: chainId
+				};
+				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.GAS_FEES_CHANGED, {});
+				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.GAS_FEES_CHANGED, parameters, true);
+			});
 		},
-		[gasLimit]
+		[chainId, conversionRate, currentCurrency, gasEstimateType, gasLimit]
 	);
 
 	/* Handlers */
@@ -727,41 +752,6 @@ function SwapsQuotesView({
 		sourceAmount,
 		sourceToken
 	]);
-
-	// const onHandleGasFeeSelection = useCallback(
-	// 	(customGasLimit, customGasPrice, warningGasPriceHigh, details) => {
-	// 		const { SwapsController } = Engine.context;
-	// 		const newGasLimit = new BigNumber(customGasLimit);
-	// 		const newGasPrice = new BigNumber(customGasPrice);
-	// 		setWarningGasPriceHigh(warningGasPriceHigh);
-
-	// 		if (newGasPrice.toString(16) !== gasPrice) {
-	// 			setCustomGasPrice(newGasPrice);
-	// 			SwapsController.updateQuotesWithGasPrice({ gasPrice: newGasPrice.toString(16) });
-	// 		}
-	// 		if (newGasLimit.toString(16) !== gasLimit) {
-	// 			setCustomGasLimit(newGasLimit);
-	// 			SwapsController.updateSelectedQuoteWithGasLimit(newGasLimit.toString(16));
-	// 		}
-	// 		if (newGasLimit?.toString(16) !== gasLimit || newGasPrice?.toString(16) !== gasPrice) {
-	// 			InteractionManager.runAfterInteractions(() => {
-	// 				const parameters = {
-	// 					speed_set: details.mode === 'advanced' ? undefined : details.mode,
-	// 					gas_mode: details.mode === 'advanced' ? 'Advanced' : 'Basic',
-	// 					gas_fees: weiToFiat(
-	// 						toWei(swapsUtils.calcTokenAmount(newGasLimit.times(newGasPrice), 18)),
-	// 						conversionRate,
-	// 						currentCurrency
-	// 					),
-	// 					chain_id: chainId
-	// 				};
-	// 				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.GAS_FEES_CHANGED, {});
-	// 				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.GAS_FEES_CHANGED, parameters, true);
-	// 			});
-	// 		}
-	// 	},
-	// 	[chainId, conversionRate, currentCurrency, gasLimit, gasPrice]
-	// );
 
 	const handleQuotesReceivedMetric = useCallback(() => {
 		if (!selectedQuote || !selectedQuoteValue) return;
@@ -1020,27 +1010,33 @@ function SwapsQuotesView({
 	useEffect(
 		() => {
 			if (selectedQuote && (!customGasEstimate || customGasEstimate?.selected)) {
+				const { SwapsController } = Engine.context;
+				let gasEstimate = null;
 				if (gasEstimateType === GAS_ESTIMATE_TYPES.ETH_GASPRICE) {
 					// Added a selected property because for ETH_GASPRICE any user change will lead
 					// to stop updating the estimates, unless there is an option selected.
-					handleGasFeeUpdate({ gasPrice: gasFeeEstimates.gasPrice, selected: DEFAULT_GAS_FEE_OPTION_LEGACY });
+					gasEstimate = { gasPrice: gasFeeEstimates.gasPrice, selected: DEFAULT_GAS_FEE_OPTION_LEGACY };
 				} else if (gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY) {
 					const selected = customGasEstimate?.selected || DEFAULT_GAS_FEE_OPTION_LEGACY;
-					handleGasFeeUpdate({ gasPrice: gasFeeEstimates[selected], selected });
+					gasEstimate = { gasPrice: gasFeeEstimates[selected], selected };
 				} else if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
 					const selected = customGasEstimate?.selected || DEFAULT_GAS_FEE_OPTION_FEE_MARKET;
-					handleGasFeeUpdate({
+					gasEstimate = {
 						maxFeePerGas: gasFeeEstimates[selected].suggestedMaxFeePerGas,
 						maxPriorityFeePerGas: gasFeeEstimates[selected].suggestedMaxPriorityFeePerGas,
 						selected
-					});
+					};
+				}
+				if (gasEstimate) {
+					setCustomGasEstimate(gasEstimate);
+					SwapsController.updateQuotesWithGasPrice(gasEstimate);
 				}
 			}
 		},
 		// `customGasEstimate` is removed from dependency array because handleGasFeeUpdate updates it
 		// leading to a infinite recursive call
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[selectedQuote, gasEstimateType, gasFeeEstimates, handleGasFeeUpdate]
+		[gasEstimateType, gasFeeEstimates, selectedQuote]
 	);
 
 	/** Metrics Effects */
