@@ -70,34 +70,18 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
             />
           </View>
         </View>
-<<<<<<< HEAD
         <FadeAnimationView>
           <View
             style={
               Object {
                 "alignItems": "center",
                 "marginBottom": 22,
-=======
-        <View
-          style={
-            Object {
-              "alignItems": "center",
-              "marginBottom": 22,
-            }
-          }
-        >
-          <View
-            style={
-              Object {
-                "flexDirection": "row",
->>>>>>> feature/eip1559-base-edit-gas-fee-screen
               }
             }
           >
             <View
               style={
                 Object {
-<<<<<<< HEAD
                   "flexDirection": "row",
                 }
               }
@@ -135,12 +119,6 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                   ~
                 </Text>
               </View>
-=======
-                  "flex": 1,
-                }
-              }
-            >
->>>>>>> feature/eip1559-base-edit-gas-fee-screen
               <Text
                 black={true}
                 blue={false}
@@ -153,11 +131,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                 primary={false}
                 red={false}
                 reset={false}
-<<<<<<< HEAD
                 right={false}
-=======
-                right={true}
->>>>>>> feature/eip1559-base-edit-gas-fee-screen
                 small={false}
                 strikethrough={false}
                 style={
@@ -167,7 +141,6 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                 }
                 underline={false}
                 upper={false}
-<<<<<<< HEAD
               />
               <View
                 style={
@@ -179,13 +152,6 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
             </View>
             <Text
               big={true}
-=======
-              >
-                ~
-              </Text>
-            </View>
-            <Text
->>>>>>> feature/eip1559-base-edit-gas-fee-screen
               black={true}
               blue={false}
               bold={false}
@@ -200,7 +166,6 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
               right={false}
               small={false}
               strikethrough={false}
-<<<<<<< HEAD
               underline={false}
               upper={false}
             >
@@ -229,82 +194,12 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
               Object {
                 "marginBottom": 30,
                 "marginTop": 25,
-=======
-              style={
-                Object {
-                  "fontSize": 48,
-                }
-              }
-              underline={false}
-              upper={false}
-            />
-            <View
-              style={
-                Object {
-                  "flex": 1,
-                }
-              }
-            />
-          </View>
-          <Text
-            big={true}
-            black={true}
-            blue={false}
-            bold={false}
-            centered={false}
-            disclaimer={false}
-            green={false}
-            link={false}
-            modal={false}
-            primary={false}
-            red={false}
-            reset={false}
-            right={false}
-            small={false}
-            strikethrough={false}
-            underline={false}
-            upper={false}
-          >
-            <Text
-              black={true}
-              blue={false}
-              bold={true}
-              centered={false}
-              disclaimer={false}
-              green={false}
-              link={false}
-              modal={false}
-              primary={false}
-              red={false}
-              reset={false}
-              right={false}
-              small={false}
-              strikethrough={false}
-              underline={false}
-              upper={false}
-            />
-          </Text>
-        </View>
-        <View
-          style={
-            Object {
-              "marginBottom": 30,
-              "marginTop": 25,
-            }
-          }
-        >
-          <View
-            style={
-              Object {
-                "marginTop": 14,
->>>>>>> feature/eip1559-base-edit-gas-fee-screen
               }
             }
           >
             <View
               style={
                 Object {
-<<<<<<< HEAD
                   "marginTop": 14,
                 }
               }
@@ -456,152 +351,6 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
         </FadeAnimationView>
         <View>
           <StyledButton
-=======
-                  "marginBottom": 20,
-                }
-              }
-            >
-              <RangeInput
-                increment={"1000"}
-                leftLabelComponent={
-                  <View
-                    style={
-                      Object {
-                        "alignItems": "center",
-                        "flexDirection": "row",
-                      }
-                    }
-                  >
-                    <Text
-                      black={true}
-                      blue={false}
-                      bold={true}
-                      centered={false}
-                      disclaimer={false}
-                      green={false}
-                      link={false}
-                      modal={false}
-                      noMargin={true}
-                      primary={false}
-                      red={false}
-                      reset={false}
-                      right={false}
-                      small={false}
-                      strikethrough={false}
-                      underline={false}
-                      upper={false}
-                    >
-                      Gas Limit
-                       
-                    </Text>
-                    <TouchableOpacity
-                      hitSlop={
-                        Object {
-                          "bottom": 10,
-                          "left": 10,
-                          "right": 10,
-                          "top": 10,
-                        }
-                      }
-                      onPress={[Function]}
-                    >
-                      <Icon
-                        allowFontScaling={false}
-                        name="information"
-                        size={14}
-                        style={
-                          Object {
-                            "color": "#bbc0c5",
-                          }
-                        }
-                      />
-                    </TouchableOpacity>
-                  </View>
-                }
-                min={"21000"}
-                name="Gas limit"
-                onChangeValue={[Function]}
-                value="21000"
-              />
-            </View>
-            <View
-              style={
-                Object {
-                  "marginBottom": 20,
-                }
-              }
-            >
-              <RangeInput
-                increment={"1"}
-                inputInsideLabel="≈ undefined"
-                leftLabelComponent={
-                  <View
-                    style={
-                      Object {
-                        "alignItems": "center",
-                        "flexDirection": "row",
-                      }
-                    }
-                  >
-                    <Text
-                      black={true}
-                      blue={false}
-                      bold={true}
-                      centered={false}
-                      disclaimer={false}
-                      green={false}
-                      link={false}
-                      modal={false}
-                      noMargin={true}
-                      primary={false}
-                      red={false}
-                      reset={false}
-                      right={false}
-                      small={false}
-                      strikethrough={false}
-                      underline={false}
-                      upper={false}
-                    >
-                      Gas price
-                       
-                    </Text>
-                    <TouchableOpacity
-                      hitSlop={
-                        Object {
-                          "bottom": 10,
-                          "left": 10,
-                          "right": 10,
-                          "top": 10,
-                        }
-                      }
-                      onPress={[Function]}
-                    >
-                      <Icon
-                        allowFontScaling={false}
-                        name="information"
-                        size={14}
-                        style={
-                          Object {
-                            "color": "#bbc0c5",
-                          }
-                        }
-                      />
-                    </TouchableOpacity>
-                  </View>
-                }
-                min={"1"}
-                name="Gas price"
-                onChangeValue={[Function]}
-                unit="GWEI"
-                value="10"
-              />
-            </View>
-          </View>
-        </View>
-        <View>
-          <StyledButton
-            disabled={false}
->>>>>>> feature/eip1559-base-edit-gas-fee-screen
             disabledContainerStyle={
               Object {
                 "opacity": 0.6,
