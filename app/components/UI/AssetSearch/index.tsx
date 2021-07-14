@@ -56,8 +56,6 @@ const AssetSearch = memo(({ onSearch }: Props) => {
 
 	// Update fuse list
 	useEffect(() => {
-		// TODO: This gets filtered, how to handle with no erc20 field
-		//.filter(tokenData => Boolean(tokenData.erc20));
 		fuse.setCollection(tokenList);
 	}, [tokenList]);
 
