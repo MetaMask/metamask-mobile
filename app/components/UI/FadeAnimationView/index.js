@@ -32,36 +32,39 @@ const FadeAnimationView = ({
 
 	const animate = useCallback(() => {
 		animationStarted();
+
+		const animationParams = {
+			duration: time,
+			useNativeDriver: true
+		}
+		const animationValueZero = 0;
+		const animationValueAlmost = 0.8
+		const animationValueFinal = 1
+
 		Animated.sequence([
 			Animated.timing(fadeAnim, {
-				toValue: 0,
-				duration: time,
-				useNativeDriver: true
+				toValue: animationValueZero,
+				...animationParams
 			}),
 			Animated.timing(fadeAnim, {
-				toValue: 0.8,
-				duration: time,
-				useNativeDriver: true
+				toValue: animationValueAlmost,
+				...animationParams
 			}),
 			Animated.timing(fadeAnim, {
-				toValue: 0,
-				duration: time,
-				useNativeDriver: true
+				toValue: animationValueZero,
+				...animationParams
 			}),
 			Animated.timing(fadeAnim, {
-				toValue: 0.8,
-				duration: time,
-				useNativeDriver: true
+				toValue: animationValueAlmost,
+				...animationParams
 			}),
 			Animated.timing(fadeAnim, {
-				toValue: 0,
-				duration: time,
-				useNativeDriver: true
+				toValue: animationValueZero,
+				...animationParams
 			}),
 			Animated.timing(fadeAnim, {
-				toValue: 1,
-				duration: time,
-				useNativeDriver: true
+				toValue: animationValueFinal,
+				...animationParams
 			})
 		]).start(() => {
 			animationEnded();
