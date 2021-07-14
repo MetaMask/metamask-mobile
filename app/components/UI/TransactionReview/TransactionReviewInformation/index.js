@@ -579,12 +579,15 @@ class TransactionReviewInformation extends PureComponent {
 			? strings('transaction.buy_more_eth')
 			: strings('transaction.get_ether', { networkName });
 
+		const showFeeMarket =
+			!gasEstimateType ||
+			gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ||
+			gasEstimateType === GAS_ESTIMATE_TYPES.NONE;
+
 		return (
 			<React.Fragment>
 				{nonceModalVisible && this.renderCustomNonceModal()}
-				{gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET
-					? this.renderTransactionReviewEIP1559()
-					: this.renderTransactionReviewFeeCard()}
+				{showFeeMarket ? this.renderTransactionReviewEIP1559() : this.renderTransactionReviewFeeCard()}
 				{showCustomNonce && <CustomNonce nonce={nonce} onNonceEdit={this.toggleNonceModal} />}
 				{!!amountError && (
 					<View style={styles.overviewAlert}>

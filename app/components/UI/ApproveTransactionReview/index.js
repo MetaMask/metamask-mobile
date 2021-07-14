@@ -559,6 +559,11 @@ class ApproveTransactionReview extends PureComponent {
 			? strings('transaction.buy_more_eth')
 			: strings('transaction.get_ether', { networkName });
 
+		const showFeeMarket =
+			!gasEstimateType ||
+			gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ||
+			gasEstimateType === GAS_ESTIMATE_TYPES.NONE;
+
 		return (
 			<>
 				<View style={styles.section} testID={'approve-screen'}>
@@ -594,7 +599,7 @@ class ApproveTransactionReview extends PureComponent {
 								<View style={styles.paddingHorizontal}>
 									<AccountInfoCard />
 									<View style={styles.section}>
-										{gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ? (
+										{showFeeMarket ? (
 											<TransactionReviewEIP1559
 												totalNative={EIP1559GasData.renderableTotalMinNative}
 												totalConversion={EIP1559GasData.renderableTotalMinConversion}

@@ -1155,7 +1155,15 @@ class Confirm extends PureComponent {
 
 	render = () => {
 		const { transactionToName, selectedAsset, paymentRequest } = this.props.transactionState;
-		const { addressBook, showHexData, showCustomNonce, primaryCurrency, network, chainId } = this.props;
+		const {
+			addressBook,
+			showHexData,
+			showCustomNonce,
+			primaryCurrency,
+			network,
+			chainId,
+			gasEstimateType
+		} = this.props;
 		const { nonce } = this.props.transaction;
 		const {
 			gasEstimationReady,
@@ -1178,8 +1186,10 @@ class Confirm extends PureComponent {
 			canAnimate
 		} = this.state;
 
-		const isLegacy = this.props.gasEstimateType !== GAS_ESTIMATE_TYPES.FEE_MARKET;
-
+		const showFeeMarket =
+			!gasEstimateType ||
+			gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ||
+			gasEstimateType === GAS_ESTIMATE_TYPES.NONE;
 		const checksummedAddress = transactionTo && toChecksumAddress(transactionTo);
 		const existingContact = checksummedAddress && addressBook[network] && addressBook[network][checksummedAddress];
 		const displayExclamation = !existingContact && !!confusableCollection.length;
@@ -1259,7 +1269,7 @@ class Confirm extends PureComponent {
 							</View>
 						</View>
 					)}
-					{isLegacy ? (
+					{!showFeeMarket ? (
 						<TransactionReviewFeeCard
 							totalGasFiat={LegacyTransactionData.transactionFeeFiat}
 							totalGasEth={LegacyTransactionData.transactionFee}

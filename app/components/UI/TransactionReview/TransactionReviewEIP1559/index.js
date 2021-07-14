@@ -151,9 +151,11 @@ const TransactionReviewEIP1559 = ({
 				</FadeAnimationView>
 			</Summary.Row>
 			<Summary.Row>
-				<Text small green={timeEstimateColor === 'green'} red={timeEstimateColor === 'red'}>
-					{timeEstimate}
-				</Text>
+				<FadeAnimationView valueToWatch={valueToWatchAnimation} canAnimate={canAnimate}>
+					<Text small green={timeEstimateColor === 'green'} red={timeEstimateColor === 'red'}>
+						{timeEstimate}
+					</Text>
+				</FadeAnimationView>
 				<FadeAnimationView
 					style={styles.valuesContainer}
 					valueToWatch={valueToWatchAnimation}
