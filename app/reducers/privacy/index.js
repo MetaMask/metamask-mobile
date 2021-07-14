@@ -3,8 +3,7 @@ import { REHYDRATE } from 'redux-persist';
 const initialState = {
 	approvedHosts: {},
 	privacyMode: true,
-	thirdPartyApiMode: true,
-	tokenDetectionMode: true
+	thirdPartyApiMode: true
 };
 
 const privacyReducer = (state = initialState, action) => {
