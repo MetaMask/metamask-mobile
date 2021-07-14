@@ -180,6 +180,7 @@ class Approve extends PureComponent {
 					: gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
 					? gasFeeEstimates[selected]
 					: gasFeeEstimates.gasPrice;
+
 			const LegacyGasData = this.parseTransactionDataLegacy(
 				{
 					suggestedGasPrice: getGas(gasSelected),
@@ -442,7 +443,9 @@ class Approve extends PureComponent {
 			const fullTx = transactions.find(({ id }) => id === transaction.id);
 			const updatedTx = { ...fullTx, transaction };
 			await TransactionController.updateTransaction(updatedTx);
+			console.log('----UPDATED');
 			await TransactionController.approveTransaction(transaction.id);
+			console.log('----Approve');
 			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_COMPLETED, this.state.analyticsParams);
 		} catch (error) {
 			Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);

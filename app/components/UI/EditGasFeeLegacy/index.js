@@ -1,5 +1,5 @@
 /* eslint-disable react/display-name */
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView, TouchableWithoutFeedback } from 'react-native';
 import PropTypes from 'prop-types';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
@@ -129,9 +129,9 @@ const EditGasFeeLegacy = ({
 		setShowAdvancedOptions(showAdvancedOptions => !showAdvancedOptions);
 	}, []);
 
-	const save = () => {
+	const save = useCallback(() => {
 		onSave(selectedOption);
-	};
+	}, [onSave, selectedOption]);
 
 	const changeGas = useCallback(
 		(gas, selectedOption) => {
@@ -154,9 +154,9 @@ const EditGasFeeLegacy = ({
 
 			const valueBN = new BigNumber(value);
 
-			if (lowerValue && valueBN.lt(lowerValue)) {
+			if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
 				setGasPriceError('Gas price is low for current network conditions');
-			} else if (higherValue && valueBN.gt(higherValue)) {
+			} else if (!higherValue.isNaN() && valueBN.gt(higherValue)) {
 				setGasPriceError('Gas price is higher than necessary');
 			} else {
 				setGasPriceError('');
@@ -189,29 +189,28 @@ const EditGasFeeLegacy = ({
 
 	const shouldIgnore = useCallback(option => ignoreOptions.find(item => item === option), [ignoreOptions]);
 
-	const renderOptions = useCallback(() => {
+	const renderOptions = useMemo(() => {
 		const options = [
 			{ name: 'low', label: 'Low' },
 			{ name: 'medium', label: 'Medium' },
 			{ name: 'high', label: 'High' }
 		];
-		const renderOptions = [];
-		options.forEach(option => {
-			if (shouldIgnore(option.name)) return;
-			const renderOption = {
-				name: option.name,
-				label: (selected, disabled) => (
-					<Text bold primary={selected && !disabled}>
-						{option.label}
-					</Text>
-				)
-			};
-			if (recommended && recommended.name === option.name) {
-				renderOption.topLabel = recommended.render;
-			}
-			renderOptions.push(renderOption);
-		});
-		return renderOptions;
+		return options
+			.filter(option => !shouldIgnore(option.name))
+			.map(option => {
+				const renderOption = {
+					name: option.name,
+					label: (selected, disabled) => (
+						<Text bold primary={selected && !disabled}>
+							{option.label}
+						</Text>
+					)
+				};
+				if (recommended && recommended.name === option.name) {
+					renderOption.topLabel = recommended.render;
+				}
+				return renderOption;
+			});
 	}, [recommended, shouldIgnore]);
 
 	const isMainnet = isMainnetByChainId(chainId);
@@ -224,7 +223,6 @@ const EditGasFeeLegacy = ({
 		gasFeePrimary = gasFeeConversion;
 		gasFeeSecondary = gasFeeNative;
 	}
-
 	return (
 		<View style={styles.root}>
 			<ScrollView style={styles.wrapper}>

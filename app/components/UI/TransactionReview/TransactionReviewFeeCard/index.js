@@ -311,14 +311,21 @@ class TransactionReviewFeeCard extends PureComponent {
 									canAnimate={canAnimate}
 								>
 									{isMainnet && (
-										<Text grey={!over} upper right red={over} style={styles.amountContainer}>
+										<Text
+											grey={!over}
+											upper
+											right
+											red={Boolean(over)}
+											style={styles.amountContainer}
+										>
 											{totalAmount}
 										</Text>
 									)}
+
 									<Text
 										bold
 										primary={!over}
-										red={over}
+										red={Boolean(over)}
 										upper
 										right
 										style={styles.primaryContainer(!isMainnet)}

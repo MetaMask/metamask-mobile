@@ -111,6 +111,20 @@ class Engine {
 			});
 			currencyRateController.start();
 
+			const gasFeeController = new GasFeeController({
+				interval: 10000,
+				messenger: this.controllerMessenger,
+				getProvider: () => networkController.provider,
+				onNetworkStateChange: listener => networkController.subscribe(listener),
+				getCurrentNetworkEIP1559Compatibility: async () => await networkController.getEIP1559Compatibility(),
+				getChainId: () => networkController.state.provider.chainId,
+				getCurrentNetworkLegacyGasAPICompatibility: () =>
+					isMainnetByChainId(networkController.state.provider.chainId) ||
+					networkController.state.provider.chainId === swapsUtils.BSC_CHAIN_ID,
+				legacyAPIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/gasPrices',
+				EIP1559APIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees'
+			});
+
 			const controllers = [
 				new KeyringController(
 					{
@@ -181,22 +195,10 @@ class Engine {
 					clientId: AppConstants.SWAPS.CLIENT_ID,
 					fetchAggregatorMetadataThreshold: AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
 					fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
-					fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD
+					fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD,
+					fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates()
 				}),
-				new GasFeeController({
-					interval: 10000,
-					messenger: this.controllerMessenger,
-					getProvider: () => networkController.provider,
-					onNetworkStateChange: listener => networkController.subscribe(listener),
-					getCurrentNetworkEIP1559Compatibility: async () =>
-						await networkController.getEIP1559Compatibility(),
-					getChainId: () => networkController.state.provider.chainId,
-					getCurrentNetworkLegacyGasAPICompatibility: () =>
-						isMainnetByChainId(networkController.state.provider.chainId) ||
-						networkController.state.provider.chainId === swapsUtils.BSC_CHAIN_ID,
-					legacyAPIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/gasPrices',
-					EIP1559APIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees'
-				})
+				gasFeeController
 			];
 			// set initial state
 			// TODO: Pass initial state into each controller constructor instead
