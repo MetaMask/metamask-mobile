@@ -1611,9 +1611,9 @@
     web3 "^0.20.7"
     web3-provider-engine "^16.0.1"
 
-"@metamask/controllers@file:./metamask-controllers-v12.1.5.tgz":
-  version "12.1.5"
-  resolved "file:./metamask-controllers-v12.1.5.tgz#badc3f12fba40be425fb0710d0b4fdb5a5f51ba1"
+"@metamask/controllers@file:./metamask-controllers-v12.1.6.tgz":
+  version "12.1.6"
+  resolved "file:./metamask-controllers-v12.1.6.tgz#18336eac36e405719afde932f13191cd6636906f"
   dependencies:
     "@ethereumjs/common" "^2.3.1"
     "@ethereumjs/tx" "^3.2.1"
@@ -1643,7 +1643,7 @@
     single-call-balance-checker-abi "^1.0.0"
     uuid "^8.3.2"
     web3 "^0.20.7"
-    web3-provider-engine "git+https://github.com/MetaMask/web3-provider-engine.git#fd81cf93304e0ca0e78997250dbfe56687295037"
+    web3-provider-engine "git+https://github.com/MetaMask/web3-provider-engine.git#f405207359b1632f211f26103d12eacaafdc9aa4"
 
 "@metamask/etherscan-link@^2.0.0":
   version "2.0.0"
@@ -13484,9 +13484,9 @@ web3-provider-engine@^16.0.1:
     xhr "^2.2.0"
     xtend "^4.0.1"
 
-"web3-provider-engine@git+https://github.com/MetaMask/web3-provider-engine.git#fd81cf93304e0ca0e78997250dbfe56687295037":
-  version "16.0.2"
-  resolved "git+https://github.com/MetaMask/web3-provider-engine.git#fd81cf93304e0ca0e78997250dbfe56687295037"
+"web3-provider-engine@git+https://github.com/MetaMask/web3-provider-engine.git#f405207359b1632f211f26103d12eacaafdc9aa4":
+  version "16.0.2-alpha"
+  resolved "git+https://github.com/MetaMask/web3-provider-engine.git#f405207359b1632f211f26103d12eacaafdc9aa4"
   dependencies:
     "@ethereumjs/tx" "^3.3.0"
     async "^2.5.0"
