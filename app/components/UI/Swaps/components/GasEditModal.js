@@ -87,7 +87,7 @@ function GasEditModal({
 				)
 			);
 		} else {
-			setLegacyTransactionDataTemp(previousData =>
+			setLegacyTransactionDataTemp(
 				parseTransactionLegacy(
 					{
 						currentCurrency,
