@@ -34,7 +34,8 @@ const styles = StyleSheet.create({
  * PureComponent that manages transaction approval from the dapp browser
  */
 class Approval extends PureComponent {
-	static navigationOptions = ({ navigation }) => getTransactionOptionsTitle('approval.title', navigation);
+	static navigationOptions = ({ navigation, route }) =>
+		getTransactionOptionsTitle('approval.title', navigation, route);
 
 	static propTypes = {
 		/**

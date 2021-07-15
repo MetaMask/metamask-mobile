@@ -726,7 +726,7 @@ class TransactionEditor extends PureComponent {
 		if (gas && !isBN(gas)) return strings('transaction.invalid_gas');
 		if (!gasPrice) return strings('transaction.invalid_gas_price');
 		if (gasPrice && !isBN(gasPrice)) return strings('transaction.invalid_gas_price');
-		if (gas.lt(new BN(21000)) || gas.gt(new BN(7920028))) return strings('custom_gas.warning_gas_limit');
+		if (gas.lt(new BN(21000))) return strings('custom_gas.warning_gas_limit');
 
 		const checksummedFrom = safeToChecksumAddress(from) || '';
 		const fromAccount = this.props.accounts[checksummedFrom];

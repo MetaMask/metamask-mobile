@@ -178,7 +178,11 @@ class TransactionReview extends PureComponent {
 		 * Boolean to determine if the animation is happening
 		 */
 		isAnimating: PropTypes.bool,
-		dappSuggestedGas: PropTypes.bool
+		dappSuggestedGas: PropTypes.bool,
+		/**
+		 * Object that represents the navigator
+		 */
+		navigation: PropTypes.object
 	};
 
 	state = {
@@ -320,7 +324,8 @@ class TransactionReview extends PureComponent {
 			onUpdatingValuesEnd,
 			animateOnChange,
 			isAnimating,
-			dappSuggestedGas
+			dappSuggestedGas,
+			navigation
 		} = this.props;
 		const { actionKey, error, assetAmount, conversionRate, fiatValue, approveTransaction } = this.state;
 		const currentPageInformation = { url: this.getUrlFromBrowser() };
@@ -350,6 +355,7 @@ class TransactionReview extends PureComponent {
 									<AccountInfoCard />
 								</View>
 								<TransactionReviewInformation
+									navigation={navigation}
 									error={error}
 									edit={this.edit}
 									ready={ready}
