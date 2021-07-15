@@ -13,7 +13,9 @@ import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 
 const styles = StyleSheet.create({
 	overview: noMargin => ({
-		marginHorizontal: noMargin ? 0 : 24
+		marginHorizontal: noMargin ? 0 : 24,
+		paddingTop: 10,
+		paddingBottom: 10
 	}),
 	valuesContainer: {
 		flex: 1,
@@ -31,9 +33,16 @@ const styles = StyleSheet.create({
 		flex: 1,
 		paddingRight: 10
 	},
-	gasFeeTitleContainer: {
+	gasRowContainer: {
 		flexDirection: 'row',
-		flex: 1
+		flex: 1,
+		alignItems: 'center',
+		marginBottom: 2
+	},
+	gasBottomRowContainer: {
+		flexDirection: 'row',
+		flex: 1,
+		alignItems: 'center'
 	},
 	hitSlop: {
 		top: 10,
@@ -111,8 +120,8 @@ const TransactionReviewEIP1559 = ({
 	return (
 		<Summary style={styles.overview(noMargin)}>
 			<Summary.Row>
-				<View style={styles.gasFeeTitleContainer}>
-					<Text primary={!origin} bold orange={Boolean(origin)}>
+				<View style={styles.gasRowContainer}>
+					<Text primary={!origin} bold orange={Boolean(origin)} noMargin>
 						{!origin ? 'Estimated gas fee' : `${origin} suggested gas fee`}
 						<TouchableOpacity
 							style={styles.gasInfoContainer}
@@ -122,104 +131,111 @@ const TransactionReviewEIP1559 = ({
 							<MaterialCommunityIcons name="information" size={13} style={styles.gasInfoIcon(origin)} />
 						</TouchableOpacity>
 					</Text>
-				</View>
-				{gasFeePrimary ? (
-					<FadeAnimationView
-						style={styles.valuesContainer}
-						valueToWatch={valueToWatchAnimation}
-						animateOnChange={animateOnChange}
-						onAnimationStart={onUpdatingValuesStart}
-						onAnimationEnd={onUpdatingValuesEnd}
-					>
-						{isMainnet && (
-							<TouchableOpacity onPress={edit} disabled={nativeCurrencySelected}>
+
+					{gasFeePrimary ? (
+						<FadeAnimationView
+							style={styles.valuesContainer}
+							valueToWatch={valueToWatchAnimation}
+							animateOnChange={animateOnChange}
+							onAnimationStart={onUpdatingValuesStart}
+							onAnimationEnd={onUpdatingValuesEnd}
+						>
+							{isMainnet && (
+								<TouchableOpacity onPress={edit} disabled={nativeCurrencySelected}>
+									<Text
+										upper
+										right
+										grey={nativeCurrencySelected}
+										link={!nativeCurrencySelected}
+										underline={!nativeCurrencySelected}
+										style={styles.amountContainer}
+										noMargin
+									>
+										{gasFeeSecondary}
+									</Text>
+								</TouchableOpacity>
+							)}
+
+							<TouchableOpacity onPress={edit} disabled={!nativeCurrencySelected}>
 								<Text
+									primary
+									bold
 									upper
+									grey={!nativeCurrencySelected}
+									link={nativeCurrencySelected}
+									underline={nativeCurrencySelected}
 									right
-									grey={nativeCurrencySelected}
-									link={!nativeCurrencySelected}
-									underline={!nativeCurrencySelected}
-									style={styles.amountContainer}
+									noMargin
 								>
-									{gasFeeSecondary}
+									{gasFeePrimary}
 								</Text>
 							</TouchableOpacity>
-						)}
-
-						<TouchableOpacity onPress={edit} disabled={!nativeCurrencySelected}>
-							<Text
-								primary
-								bold
-								upper
-								grey={!nativeCurrencySelected}
-								link={nativeCurrencySelected}
-								underline={nativeCurrencySelected}
-								right
-							>
-								{gasFeePrimary}
-							</Text>
-						</TouchableOpacity>
-					</FadeAnimationView>
-				) : (
-					<Skeleton width={80} />
-				)}
+						</FadeAnimationView>
+					) : (
+						<Skeleton width={80} />
+					)}
+				</View>
 			</Summary.Row>
 			<Summary.Row>
-				{timeEstimate ? (
-					<FadeAnimationView valueToWatch={valueToWatchAnimation} animateOnChange={animateOnChange}>
-						<Text small green={timeEstimateColor === 'green'} red={timeEstimateColor === 'red'}>
-							{timeEstimate}
-						</Text>
-					</FadeAnimationView>
-				) : (
-					<Skeleton width={120} noStyle />
-				)}
-				{gasFeeMaxPrimary ? (
-					<FadeAnimationView
-						style={styles.valuesContainer}
-						valueToWatch={valueToWatchAnimation}
-						animateOnChange={animateOnChange}
-					>
-						<Text grey right small>
-							<Text bold small noMargin>
-								Max fee:{' '}
+				<View style={styles.gasRowContainer}>
+					{timeEstimate ? (
+						<FadeAnimationView valueToWatch={valueToWatchAnimation} animateOnChange={animateOnChange}>
+							<Text small green={timeEstimateColor === 'green'} red={timeEstimateColor === 'red'}>
+								{timeEstimate}
 							</Text>
-							<Text bold small noMargin>
-								{gasFeeMaxPrimary}
+						</FadeAnimationView>
+					) : (
+						<Skeleton width={120} noStyle />
+					)}
+					{gasFeeMaxPrimary ? (
+						<FadeAnimationView
+							style={styles.valuesContainer}
+							valueToWatch={valueToWatchAnimation}
+							animateOnChange={animateOnChange}
+						>
+							<Text grey right small>
+								<Text bold small noMargin>
+									Max fee:{' '}
+								</Text>
+								<Text small noMargin>
+									{gasFeeMaxPrimary}
+								</Text>
 							</Text>
-						</Text>
-					</FadeAnimationView>
-				) : (
-					<Skeleton width={120} />
-				)}
+						</FadeAnimationView>
+					) : (
+						<Skeleton width={120} />
+					)}
+				</View>
 			</Summary.Row>
 			{!hideTotal && (
 				<View>
 					<Summary.Separator />
-					<Summary.Row>
-						<Text primary bold>
-							Total
-						</Text>
-						{totalPrimary ? (
-							<FadeAnimationView
-								style={styles.valuesContainer}
-								valueToWatch={valueToWatchAnimation}
-								animateOnChange={animateOnChange}
-							>
-								{isMainnet && (
-									<Text grey upper right style={styles.amountContainer}>
-										{totalSecondary}
-									</Text>
-								)}
+					<View style={styles.gasBottomRowContainer}>
+						<Summary.Row>
+							<Text primary bold>
+								Total
+							</Text>
+							{totalPrimary ? (
+								<FadeAnimationView
+									style={styles.valuesContainer}
+									valueToWatch={valueToWatchAnimation}
+									animateOnChange={animateOnChange}
+								>
+									{isMainnet && (
+										<Text grey upper right style={styles.amountContainer}>
+											{totalSecondary}
+										</Text>
+									)}
 
-								<Text bold primary upper right>
-									{totalPrimary}
-								</Text>
-							</FadeAnimationView>
-						) : (
-							<Skeleton width={80} />
-						)}
-					</Summary.Row>
+									<Text bold primary upper right>
+										{totalPrimary}
+									</Text>
+								</FadeAnimationView>
+							) : (
+								<Skeleton width={80} />
+							)}
+						</Summary.Row>
+					</View>
 					<Summary.Row>
 						{totalMaxPrimary ? (
 							<FadeAnimationView
