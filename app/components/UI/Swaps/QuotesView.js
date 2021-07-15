@@ -250,7 +250,7 @@ async function addTokenToAssetsController(newToken) {
 	const { AssetsController } = Engine.context;
 	if (
 		!isSwapsNativeAsset(newToken) &&
-		!AssetsController.state.tokens.includes(token => toLowerCaseCompare(token.address, newToken.address))
+		!AssetsController.state.tokens.includes(token => toLowerCaseEquals(token.address, newToken.address))
 	) {
 		const { address, symbol, decimals } = newToken;
 		await AssetsController.addToken(address, symbol, decimals);
