@@ -352,7 +352,7 @@ class Transactions extends PureComponent {
 					gasEIP1559.renderableMaxPriorityFeeNative
 				}`;
 			}
-			return `${renderFromWei(Math.floor(this.existingGas * SPEED_UP_RATE))} ${strings('unit.eth')}`;
+			return `${renderFromWei(Math.floor(this.existingGas.gasPrice * SPEED_UP_RATE))} ${strings('unit.eth')}`;
 		};
 
 		const renderCancelGas = () => {
@@ -382,7 +382,7 @@ class Transactions extends PureComponent {
 					gasEIP1559.renderableMaxPriorityFeeNative
 				}`;
 			}
-			return `${renderFromWei(Math.floor(this.existingGas * CANCEL_RATE))} ${strings('unit.eth')}`;
+			return `${renderFromWei(Math.floor(this.existingGas.gasPrice * CANCEL_RATE))} ${strings('unit.eth')}`;
 		};
 
 		return (

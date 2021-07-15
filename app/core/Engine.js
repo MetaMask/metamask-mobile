@@ -116,7 +116,7 @@ class Engine {
 				messenger: this.controllerMessenger,
 				getProvider: () => networkController.provider,
 				onNetworkStateChange: listener => networkController.subscribe(listener),
-				getCurrentNetworkEIP1559Compatibility: async () => await networkController.getEIP1559Compatibility(),
+				getCurrentNetworkEIP1559Compatibility: false,
 				getChainId: () => networkController.state.provider.chainId,
 				getCurrentNetworkLegacyGasAPICompatibility: () =>
 					isMainnetByChainId(networkController.state.provider.chainId) ||
