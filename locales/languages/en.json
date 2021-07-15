@@ -503,6 +503,10 @@
 		"clear_cookies_desc": "Choose this option to clear your browser's cookies.",
 		"metametrics_title": "Participate in MetaMetrics",
 		"metametrics_description": "Participate in MetaMetrics to help us make MetaMask better.",
+
+		"nft_privacy_title": "Autodetect NFT",
+		"nft_privacy_description": "We use third-party APIs to detect and display NFTs. Leave this disabled if you don’t want the app to pull data from those those services.",
+
 		"third_party_title": "Get incoming transactions",
 		"third_party_description": "Third party APIs (Etherscan) are used to show your incoming transactions in the history. Turn off if you don’t want us to pull data from those services.",
 		"metametrics_opt_out": "MetaMetrics Opt-out",
