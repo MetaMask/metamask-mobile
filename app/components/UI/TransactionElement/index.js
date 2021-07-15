@@ -11,12 +11,14 @@ import { connect } from 'react-redux';
 import StyledButton from '../StyledButton';
 import Modal from 'react-native-modal';
 import decodeTransaction from './utils';
-import { TRANSACTION_TYPES } from '../../../util/transactions';
+import { isEIP1559Transaction, TRANSACTION_TYPES } from '../../../util/transactions';
 import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
 import DetailsModal from '../../Base/DetailsModal';
 import { isMainNet } from '../../../util/networks';
 import { WalletDevice } from '@metamask/controllers/';
+import { weiHexToGweiDec } from '@metamask/controllers/dist/util';
+import { hexToBN } from '../../../util/number';
 
 const styles = StyleSheet.create({
 	row: {
@@ -285,16 +287,44 @@ class TransactionElement extends PureComponent {
 
 	showCancelModal = () => {
 		const { tx } = this.props;
-		const existingGasPrice = tx.transaction ? tx.transaction.gasPrice : '0x0';
-		const existingGasPriceDecimal = parseInt(existingGasPrice === undefined ? '0x0' : existingGasPrice, 16);
-		this.mounted && this.props.onCancelAction(true, existingGasPriceDecimal, this.props.tx);
+
+		let existingGas = {};
+		const transaction = tx?.transaction;
+		if (transaction) {
+			if (isEIP1559Transaction(transaction)) {
+				existingGas = {
+					isEIP1559Transaction: true,
+					maxFeePerGas: weiHexToGweiDec(transaction.maxFeePerGas),
+					maxPriorityFeePerGas: weiHexToGweiDec(transaction.maxPriorityFeePerGas),
+					gasLimit: hexToBN(transaction.gas)
+				};
+			} else {
+				const existingGasPrice = tx.transaction ? tx.transaction.gasPrice : '0x0';
+				const existingGasPriceDecimal = parseInt(existingGasPrice === undefined ? '0x0' : existingGasPrice, 16);
+				existingGas = { gasPrice: existingGasPriceDecimal };
+			}
+		}
+		this.mounted && this.props.onCancelAction(true, existingGas, this.props.tx);
 	};
 
 	showSpeedUpModal = () => {
 		const { tx } = this.props;
-		const existingGasPrice = tx.transaction ? tx.transaction.gasPrice : '0x0';
-		const existingGasPriceDecimal = parseInt(existingGasPrice === undefined ? '0x0' : existingGasPrice, 16);
-		this.mounted && this.props.onSpeedUpAction(true, existingGasPriceDecimal, tx);
+		let existingGas = {};
+		const transaction = tx?.transaction;
+		if (transaction) {
+			if (isEIP1559Transaction(transaction)) {
+				existingGas = {
+					isEIP1559Transaction: true,
+					maxFeePerGas: weiHexToGweiDec(transaction.maxFeePerGas),
+					maxPriorityFeePerGas: weiHexToGweiDec(transaction.maxPriorityFeePerGas)
+				};
+			} else {
+				const existingGasPrice = tx.transaction ? tx.transaction.gasPrice : '0x0';
+				const existingGasPriceDecimal = parseInt(existingGasPrice === undefined ? '0x0' : existingGasPrice, 16);
+				existingGas = { gasPrice: existingGasPriceDecimal };
+			}
+		}
+		this.mounted && this.props.onSpeedUpAction(true, existingGas, tx);
 	};
 
 	hideSpeedUpModal = () => {

@@ -22,7 +22,8 @@ import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/controllers';
 import { renderFromWei } from '../../../util/number';
 import Device from '../../../util/Device';
 import TransactionActionModal from '../TransactionActionModal';
-import { validateTransactionActionBalance } from '../../../util/transactions';
+import { parseTransactionEIP1559, validateTransactionActionBalance } from '../../../util/transactions';
+import BigNumber from 'bignumber.js';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -118,7 +119,11 @@ class Transactions extends PureComponent {
 		/**
 		 * Indicates whether third party API mode is enabled
 		 */
-		thirdPartyApiMode: PropTypes.bool
+		thirdPartyApiMode: PropTypes.bool,
+		/**
+		 * The network native currency
+		 */
+		nativeCurrency: PropTypes.string
 	};
 
 	static defaultProps = {
@@ -135,7 +140,7 @@ class Transactions extends PureComponent {
 		speedUpConfirmDisabled: false
 	};
 
-	existingGasPriceDecimal = null;
+	existingGas = null;
 	cancelTxId = null;
 	speedUpTxId = null;
 
@@ -235,9 +240,9 @@ class Transactions extends PureComponent {
 
 	keyExtractor = item => item.id.toString();
 
-	onSpeedUpAction = (speedUpAction, existingGasPriceDecimal, tx) => {
+	onSpeedUpAction = (speedUpAction, existingGas, tx) => {
 		this.setState({ speedUpIsOpen: speedUpAction });
-		this.existingGasPriceDecimal = existingGasPriceDecimal;
+		this.existingGas = existingGas;
 		this.speedUpTxId = tx.id;
 		const speedUpConfirmDisabled = validateTransactionActionBalance(tx, SPEED_UP_RATE, this.props.accounts);
 		this.setState({ speedUpIsOpen: speedUpAction, speedUpConfirmDisabled });
@@ -245,19 +250,19 @@ class Transactions extends PureComponent {
 
 	onSpeedUpCompleted = () => {
 		this.setState({ speedUpIsOpen: false });
-		this.existingGasPriceDecimal = null;
+		this.existingGas = null;
 		this.speedUpTxId = null;
 	};
 
-	onCancelAction = (cancelAction, existingGasPriceDecimal, tx) => {
-		this.existingGasPriceDecimal = existingGasPriceDecimal;
+	onCancelAction = (cancelAction, existingGas, tx) => {
+		this.existingGas = existingGas;
 		this.cancelTxId = tx.id;
 		const cancelConfirmDisabled = validateTransactionActionBalance(tx, CANCEL_RATE, this.props.accounts);
 		this.setState({ cancelIsOpen: cancelAction, cancelConfirmDisabled });
 	};
 	onCancelCompleted = () => {
 		this.setState({ cancelIsOpen: false });
-		this.existingGasPriceDecimal = null;
+		this.existingGas = null;
 		this.cancelTxId = null;
 	};
 
@@ -306,12 +311,79 @@ class Transactions extends PureComponent {
 		if (!this.props.transactions.length) {
 			return this.renderEmpty();
 		}
-		const { submittedTransactions, confirmedTransactions, header } = this.props;
+		const {
+			submittedTransactions,
+			confirmedTransactions,
+			header,
+			currentCurrency,
+			conversionRate,
+			nativeCurrency
+		} = this.props;
 		const { cancelConfirmDisabled, speedUpConfirmDisabled } = this.state;
 		const transactions =
 			submittedTransactions && submittedTransactions.length
 				? submittedTransactions.concat(confirmedTransactions)
 				: this.props.transactions;
+
+		const renderSpeedUpGas = () => {
+			if (!this.existingGas) return null;
+			if (this.existingGas.isEIP1559Transaction) {
+				const newDecMaxFeePerGas = new BigNumber(this.existingGas.maxFeePerGas).times(
+					new BigNumber(SPEED_UP_RATE)
+				);
+				const newDecMaxPriorityFeePerGas = new BigNumber(this.existingGas.maxPriorityFeePerGas).times(
+					new BigNumber(SPEED_UP_RATE)
+				);
+				const gasEIP1559 = parseTransactionEIP1559(
+					{
+						currentCurrency,
+						conversionRate,
+						nativeCurrency,
+						selectedGasFee: {
+							suggestedMaxFeePerGas: newDecMaxFeePerGas,
+							suggestedMaxPriorityFeePerGas: newDecMaxPriorityFeePerGas,
+							suggestedGasLimit: '0x1'
+						}
+					},
+					{ onlyGas: true }
+				);
+
+				return `Max fee\n ${gasEIP1559.renderableMaxFeePerGasNative} \n\n Max priority fee\n ${
+					gasEIP1559.renderableMaxPriorityFeeNative
+				}`;
+			}
+			return `${renderFromWei(Math.floor(this.existingGas * SPEED_UP_RATE))} ${strings('unit.eth')}`;
+		};
+
+		const renderCancelGas = () => {
+			if (!this.existingGas) return null;
+			if (this.existingGas.isEIP1559Transaction) {
+				const newDecMaxFeePerGas = new BigNumber(this.existingGas.maxFeePerGas).times(
+					new BigNumber(CANCEL_RATE)
+				);
+				const newDecMaxPriorityFeePerGas = new BigNumber(this.existingGas.maxPriorityFeePerGas).times(
+					new BigNumber(CANCEL_RATE)
+				);
+				const gasEIP1559 = parseTransactionEIP1559(
+					{
+						currentCurrency,
+						conversionRate,
+						nativeCurrency,
+						selectedGasFee: {
+							suggestedMaxFeePerGas: newDecMaxFeePerGas,
+							suggestedMaxPriorityFeePerGas: newDecMaxPriorityFeePerGas,
+							suggestedGasLimit: '0x1'
+						}
+					},
+					{ onlyGas: true }
+				);
+
+				return `Max fee per gas\n ${gasEIP1559.renderableMaxFeePerGasNative} \n\n Max priority fee per gas\n ${
+					gasEIP1559.renderableMaxPriorityFeeNative
+				}`;
+			}
+			return `${renderFromWei(Math.floor(this.existingGas * CANCEL_RATE))} ${strings('unit.eth')}`;
+		};
 
 		return (
 			<View style={styles.wrapper} testID={'transactions-screen'}>
@@ -339,9 +411,7 @@ class Transactions extends PureComponent {
 					confirmText={strings('transaction.lets_try')}
 					confirmButtonMode={'confirm'}
 					cancelText={strings('transaction.nevermind')}
-					feeText={`${renderFromWei(Math.floor(this.existingGasPriceDecimal * CANCEL_RATE))} ${strings(
-						'unit.eth'
-					)}`}
+					feeText={renderCancelGas()}
 					titleText={strings('transaction.cancel_tx_title')}
 					gasTitleText={strings('transaction.gas_cancel_fee')}
 					descriptionText={strings('transaction.cancel_tx_message')}
@@ -355,9 +425,7 @@ class Transactions extends PureComponent {
 					confirmText={strings('transaction.lets_try')}
 					confirmButtonMode={'confirm'}
 					cancelText={strings('transaction.nevermind')}
-					feeText={`${renderFromWei(Math.floor(this.existingGasPriceDecimal * SPEED_UP_RATE))} ${strings(
-						'unit.eth'
-					)}`}
+					feeText={renderSpeedUpGas()}
 					titleText={strings('transaction.speedup_tx_title')}
 					gasTitleText={strings('transaction.gas_speedup_fee')}
 					descriptionText={strings('transaction.speedup_tx_message')}
@@ -378,7 +446,8 @@ const mapStateToProps = state => ({
 	tokens: state.engine.backgroundState.AssetsController.tokens.reduce((tokens, token) => {
 		tokens[token.address] = token;
 		return tokens;
-	}, {})
+	}, {}),
+	nativeCurrency: state.engine.backgroundState.CurrencyRateController.nativeCurrency
 });
 
 const mapDispatchToProps = dispatch => ({
