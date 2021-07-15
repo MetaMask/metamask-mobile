@@ -3,7 +3,6 @@ import { colors, baseStyles, fontStyles } from '../../../../styles/common';
 import {
 	InteractionManager,
 	StyleSheet,
-	SafeAreaView,
 	View,
 	Alert,
 	ScrollView,
@@ -60,6 +59,7 @@ import { collectConfusables } from '../../../../util/validators';
 import InfoModal from '../../../UI/Swaps/components/InfoModal';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { removeFavoriteCollectible } from '../../../../actions/collectibles';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -991,7 +991,7 @@ class Confirm extends PureComponent {
 			? strings('transaction.buy_more_eth')
 			: strings('transaction.get_ether', { networkName });
 		return (
-			<SafeAreaView style={styles.wrapper} testID={'txn-confirm-screen'}>
+			<SafeAreaView edges={['bottom']} style={styles.wrapper} testID={'txn-confirm-screen'}>
 				<View style={styles.inputWrapper}>
 					<AddressFrom
 						onPressIcon={!paymentRequest ? null : this.toggleFromAccountModal}
