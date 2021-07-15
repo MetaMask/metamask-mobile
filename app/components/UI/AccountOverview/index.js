@@ -19,7 +19,6 @@ import Device from '../../../util/Device';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { renderFiat } from '../../../util/number';
 import { renderAccountName } from '../../../util/address';
-import { isMainNet } from '../../../util/networks';
 import { getEther } from '../../../util/transactions';
 import { isSwapsAllowed } from '../Swaps/utils';
 
@@ -336,7 +335,7 @@ class AccountOverview extends PureComponent {
 								</TouchableOpacity>
 							)}
 						</View>
-						{isMainNet(chainId) && <Text style={styles.amountFiat}>{fiatBalance}</Text>}
+						<Text style={styles.amountFiat}>{fiatBalance}</Text>
 						<TouchableOpacity style={styles.addressWrapper} onPress={this.copyAccountToClipboard}>
 							<EthereumAddress address={address} style={styles.address} type={'short'} />
 						</TouchableOpacity>
