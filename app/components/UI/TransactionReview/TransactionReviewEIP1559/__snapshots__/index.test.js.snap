@@ -67,53 +67,18 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
         </TouchableOpacity>
       </Text>
     </View>
-    <View
-      style={
-        Object {
-          "flex": 1,
-          "flexDirection": "row",
-          "justifyContent": "flex-end",
-        }
-      }
-    >
-      <SkeletonPlaceholder>
-        <SkeletonPlaceholderItem
-          borderRadius={4}
-          height={10}
-          width={80}
-        />
-      </SkeletonPlaceholder>
-    </View>
+    <Skeleton
+      width={80}
+    />
   </SummaryRow>
   <SummaryRow>
-    <View
-      style={false}
-    >
-      <SkeletonPlaceholder>
-        <SkeletonPlaceholderItem
-          borderRadius={4}
-          height={10}
-          width={120}
-        />
-      </SkeletonPlaceholder>
-    </View>
-    <View
-      style={
-        Object {
-          "flex": 1,
-          "flexDirection": "row",
-          "justifyContent": "flex-end",
-        }
-      }
-    >
-      <SkeletonPlaceholder>
-        <SkeletonPlaceholderItem
-          borderRadius={4}
-          height={10}
-          width={120}
-        />
-      </SkeletonPlaceholder>
-    </View>
+    <Skeleton
+      noStyle={true}
+      width={120}
+    />
+    <Skeleton
+      width={120}
+    />
   </SummaryRow>
   <View>
     <SummarySeparator />
@@ -138,42 +103,14 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
       >
         Total
       </Text>
-      <View
-        style={
-          Object {
-            "flex": 1,
-            "flexDirection": "row",
-            "justifyContent": "flex-end",
-          }
-        }
-      >
-        <SkeletonPlaceholder>
-          <SkeletonPlaceholderItem
-            borderRadius={4}
-            height={10}
-            width={80}
-          />
-        </SkeletonPlaceholder>
-      </View>
+      <Skeleton
+        width={80}
+      />
     </SummaryRow>
     <SummaryRow>
-      <View
-        style={
-          Object {
-            "flex": 1,
-            "flexDirection": "row",
-            "justifyContent": "flex-end",
-          }
-        }
-      >
-        <SkeletonPlaceholder>
-          <SkeletonPlaceholderItem
-            borderRadius={4}
-            height={10}
-            width={120}
-          />
-        </SkeletonPlaceholder>
-      </View>
+      <Skeleton
+        width={120}
+      />
     </SummaryRow>
   </View>
   <InfoModal
