@@ -13458,8 +13458,9 @@ weak@^1.0.0:
     nan "^2.0.5"
 
 web3-provider-engine@^16.0.1:
-  version "16.0.1"
-  resolved "git+https://github.com/MetaMask/web3-provider-engine.git#de4f74069dcf82f94ffa1162de779c6859f255ff"
+  version "16.0.2"
+  resolved "https://registry.yarnpkg.com/web3-provider-engine/-/web3-provider-engine-16.0.2.tgz#40c7224b1fe9b8689723f6d8595718375c7e3392"
+  integrity sha512-fUl88aHdfIdCuQhMTtKP95uL/DJWiv2jKyZodsO3NENXfczyab2dygYsaY7Y8tVghY1KAzn5nzCZIkNuNB+7uw==
   dependencies:
     "@ethereumjs/tx" "^3.3.0"
     async "^2.5.0"
