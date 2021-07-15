@@ -342,7 +342,7 @@ class Transactions extends PureComponent {
 						selectedGasFee: {
 							suggestedMaxFeePerGas: newDecMaxFeePerGas,
 							suggestedMaxPriorityFeePerGas: newDecMaxPriorityFeePerGas,
-							suggestedGasLimit: '0x1'
+							suggestedGasLimit: '1'
 						}
 					},
 					{ onlyGas: true }
@@ -372,7 +372,7 @@ class Transactions extends PureComponent {
 						selectedGasFee: {
 							suggestedMaxFeePerGas: newDecMaxFeePerGas,
 							suggestedMaxPriorityFeePerGas: newDecMaxPriorityFeePerGas,
-							suggestedGasLimit: '0x1'
+							suggestedGasLimit: '1'
 						}
 					},
 					{ onlyGas: true }

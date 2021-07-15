@@ -191,7 +191,7 @@ export function sumHexWEIsToRenderableFiat(hexWEIs, convertedCurrency, conversio
 }
 
 export function formatETHFee(ethFee, currencySymbol = 'ETH', showLessThan) {
-	if (showLessThan && ethFee === '0') return '< 0.000001';
+	if (showLessThan && ethFee === '0') return `< 0.000001 ${currencySymbol}`;
 	return `${ethFee} ${currencySymbol}`;
 }
 

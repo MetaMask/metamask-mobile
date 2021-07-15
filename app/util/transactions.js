@@ -678,7 +678,11 @@ export const parseTransactionEIP1559 = (
 		numberOfDecimals: 2,
 		conversionRate
 	});
-	const renderableMaxFeePerGasNative = formatETHFee(maxFeePerGasNative, nativeCurrency);
+	const renderableMaxFeePerGasNative = formatETHFee(
+		maxFeePerGasNative,
+		nativeCurrency,
+		Boolean(gasFeeMaxHex) && gasFeeMaxHex !== '0x0'
+	);
 	const renderableMaxFeePerGasConversion = formatCurrency(maxFeePerGasConversion, currentCurrency);
 
 	// Gas fee min numbers

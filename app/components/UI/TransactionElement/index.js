@@ -18,7 +18,6 @@ import DetailsModal from '../../Base/DetailsModal';
 import { isMainNet } from '../../../util/networks';
 import { WalletDevice } from '@metamask/controllers/';
 import { weiHexToGweiDec } from '@metamask/controllers/dist/util';
-import { hexToBN } from '../../../util/number';
 
 const styles = StyleSheet.create({
 	row: {
@@ -295,8 +294,7 @@ class TransactionElement extends PureComponent {
 				existingGas = {
 					isEIP1559Transaction: true,
 					maxFeePerGas: weiHexToGweiDec(transaction.maxFeePerGas),
-					maxPriorityFeePerGas: weiHexToGweiDec(transaction.maxPriorityFeePerGas),
-					gasLimit: hexToBN(transaction.gas)
+					maxPriorityFeePerGas: weiHexToGweiDec(transaction.maxPriorityFeePerGas)
 				};
 			} else {
 				const existingGasPrice = tx.transaction ? tx.transaction.gasPrice : '0x0';
