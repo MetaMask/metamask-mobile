@@ -188,13 +188,19 @@ class TransactionEditor extends PureComponent {
 			}
 
 			// eslint-disable-next-line react/no-did-update-set-state
-			this.setState({
-				ready: true,
-				EIP1559GasData,
-				EIP1559GasDataTemp,
-				advancedGasInserted: Boolean(dappSuggestedGas),
-				gasSelected: dappSuggestedGas ? null : gasSelected
-			});
+			this.setState(
+				{
+					ready: true,
+					EIP1559GasData,
+					EIP1559GasDataTemp,
+					advancedGasInserted: Boolean(dappSuggestedGas),
+					gasSelected: dappSuggestedGas ? null : gasSelected,
+					animateOnChange: true
+				},
+				() => {
+					this.setState({ animateOnChange: false });
+				}
+			);
 		} else {
 			const suggestedGasLimit = fromWei(transaction.gas, 'wei');
 			const getGas = selected =>
@@ -228,13 +234,19 @@ class TransactionEditor extends PureComponent {
 			}
 
 			// eslint-disable-next-line react/no-did-update-set-state
-			this.setState({
-				ready: true,
-				LegacyGasData,
-				LegacyGasDataTemp,
-				advancedGasInserted: Boolean(dappSuggestedGasPrice),
-				gasSelected: dappSuggestedGasPrice ? null : gasSelected
-			});
+			this.setState(
+				{
+					ready: true,
+					LegacyGasData,
+					LegacyGasDataTemp,
+					advancedGasInserted: Boolean(dappSuggestedGasPrice),
+					gasSelected: dappSuggestedGasPrice ? null : gasSelected,
+					animateOnChange: true
+				},
+				() => {
+					this.setState({ animateOnChange: false });
+				}
+			);
 		}
 	};
 
@@ -855,9 +867,9 @@ class TransactionEditor extends PureComponent {
 	};
 
 	calculateTempGasFee = (gas, selected) => {
-		const { EIP1559GasData } = this.state;
+		const { transaction } = this.props;
 		if (selected && gas) {
-			gas.suggestedGasLimit = EIP1559GasData.suggestedGasLimit;
+			gas.suggestedGasLimit = fromWei(transaction.gas, 'wei');
 		}
 		this.setState({
 			EIP1559GasDataTemp: this.parseTransactionDataEIP1559(gas),
@@ -867,9 +879,9 @@ class TransactionEditor extends PureComponent {
 	};
 
 	calculateTempGasFeeLegacy = (gas, selected) => {
-		const { LegacyGasData } = this.state;
+		const { transaction } = this.props;
 		if (selected && gas) {
-			gas.suggestedGasLimit = LegacyGasData.suggestedGasLimit;
+			gas.suggestedGasLimit = fromWei(transaction.gas, 'wei');
 		}
 		this.setState({
 			LegacyGasDataTemp: this.parseTransactionDataLegacy(gas),
@@ -927,6 +939,13 @@ class TransactionEditor extends PureComponent {
 		return null;
 	};
 
+	onUpdatingValuesStart = () => {
+		this.setState({ isAnimating: true });
+	};
+	onUpdatingValuesEnd = () => {
+		this.setState({ isAnimating: false });
+	};
+
 	render = () => {
 		const {
 			mode,
@@ -948,7 +967,9 @@ class TransactionEditor extends PureComponent {
 			LegacyGasDataTemp,
 			gasSelected,
 			dappSuggestedGasPrice,
-			dappSuggestedEIP1559Gas
+			dappSuggestedEIP1559Gas,
+			animateOnChange,
+			isAnimating
 		} = this.state;
 		return (
 			<React.Fragment>
@@ -964,6 +985,11 @@ class TransactionEditor extends PureComponent {
 								over={over}
 								gasEstimateType={gasEstimateType}
 								EIP1559GasData={EIP1559GasData}
+								onUpdatingValuesStart={this.onUpdatingValuesStart}
+								onUpdatingValuesEnd={this.onUpdatingValuesEnd}
+								animateOnChange={animateOnChange}
+								isAnimating={isAnimating}
+								dappSuggestedGas={Boolean(dappSuggestedGasPrice) || Boolean(dappSuggestedEIP1559Gas)}
 							/>
 
 							<CustomGas
@@ -1005,6 +1031,10 @@ class TransactionEditor extends PureComponent {
 							warning={this.renderWarning()}
 							error={EIP1559GasDataTemp.error}
 							over={over}
+							onUpdatingValuesStart={this.onUpdatingValuesStart}
+							onUpdatingValuesEnd={this.onUpdatingValuesEnd}
+							animateOnChange={animateOnChange}
+							isAnimating={isAnimating}
 						/>
 					) : (
 						<EditGasFeeLegacy
@@ -1022,6 +1052,10 @@ class TransactionEditor extends PureComponent {
 							onSave={this.saveGasEdition}
 							error={LegacyGasDataTemp.error}
 							over={over}
+							onUpdatingValuesStart={this.onUpdatingValuesStart}
+							onUpdatingValuesEnd={this.onUpdatingValuesEnd}
+							animateOnChange={animateOnChange}
+							isAnimating={isAnimating}
 						/>
 					))}
 			</React.Fragment>

@@ -161,7 +161,24 @@ class TransactionReview extends PureComponent {
 		 */
 		over: PropTypes.bool,
 		gasEstimateType: PropTypes.string,
-		EIP1559GasData: PropTypes.object
+		EIP1559GasData: PropTypes.object,
+		/**
+		 * Function to call when update animation starts
+		 */
+		onUpdatingValuesStart: PropTypes.func,
+		/**
+		 * Function to call when update animation ends
+		 */
+		onUpdatingValuesEnd: PropTypes.func,
+		/**
+		 * If the values should animate upon update or not
+		 */
+		animateOnChange: PropTypes.bool,
+		/**
+		 * Boolean to determine if the animation is happening
+		 */
+		isAnimating: PropTypes.bool,
+		dappSuggestedGas: PropTypes.bool
 	};
 
 	state = {
@@ -298,7 +315,12 @@ class TransactionReview extends PureComponent {
 			customGasHeight,
 			over,
 			gasEstimateType,
-			EIP1559GasData
+			EIP1559GasData,
+			onUpdatingValuesStart,
+			onUpdatingValuesEnd,
+			animateOnChange,
+			isAnimating,
+			dappSuggestedGas
 		} = this.props;
 		const { actionKey, error, assetAmount, conversionRate, fiatValue, approveTransaction } = this.state;
 		const currentPageInformation = { url: this.getUrlFromBrowser() };
@@ -321,7 +343,7 @@ class TransactionReview extends PureComponent {
 							onCancelPress={this.props.onCancel}
 							onConfirmPress={this.props.onConfirm}
 							confirmed={transactionConfirmed}
-							confirmDisabled={error !== undefined}
+							confirmDisabled={error !== undefined || isAnimating}
 						>
 							<View style={styles.actionViewChildren}>
 								<View style={styles.accountInfoCardWrapper}>
@@ -338,7 +360,11 @@ class TransactionReview extends PureComponent {
 									onCancelPress={this.props.onCancel}
 									gasEstimateType={gasEstimateType}
 									EIP1559GasData={EIP1559GasData}
-									origin={currentPageInformation?.url}
+									origin={dappSuggestedGas ? currentPageInformation?.url : null}
+									onUpdatingValuesStart={onUpdatingValuesStart}
+									onUpdatingValuesEnd={onUpdatingValuesEnd}
+									animateOnChange={animateOnChange}
+									isAnimating={isAnimating}
 								/>
 							</View>
 						</ActionView>

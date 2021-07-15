@@ -9,6 +9,7 @@ import InfoModal from '../../../UI/Swaps/components/InfoModal';
 import { isMainnetByChainId } from '../../../../util/networks';
 import { connect } from 'react-redux';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import FadeAnimationView from '../../FadeAnimationView';
 
 const styles = StyleSheet.create({
 	overview: {
@@ -104,7 +105,23 @@ class TransactionReviewFeeCard extends PureComponent {
 		/**
 		 * A string representing the network chainId
 		 */
-		chainId: PropTypes.string
+		chainId: PropTypes.string,
+		/**
+		 * Function to call when update animation starts
+		 */
+		onUpdatingValuesStart: PropTypes.func,
+		/**
+		 * Function to call when update animation ends
+		 */
+		onUpdatingValuesEnd: PropTypes.func,
+		/**
+		 * If the values should animate upon update or not
+		 */
+		animateOnChange: PropTypes.bool,
+		/**
+		 * Boolean to determine if the animation is happening
+		 */
+		isAnimating: PropTypes.bool
 	};
 
 	state = {
@@ -167,7 +184,11 @@ class TransactionReviewFeeCard extends PureComponent {
 			edit,
 			over,
 			warningGasPriceHigh,
-			chainId
+			chainId,
+			onUpdatingValuesStart,
+			onUpdatingValuesEnd,
+			animateOnChange,
+			isAnimating
 		} = this.props;
 
 		const isMainnet = isMainnetByChainId(chainId);
@@ -197,6 +218,8 @@ class TransactionReviewFeeCard extends PureComponent {
 			primaryTotalAmount = totalFiat;
 		}
 
+		const valueToWatchAnimation = totalGasEth !== '0 ETH' ? totalGasEth : null;
+
 		return (
 			<View>
 				<Summary style={styles.overview}>
@@ -204,17 +227,20 @@ class TransactionReviewFeeCard extends PureComponent {
 						<Text primary bold>
 							{strings('transaction.amount')}
 						</Text>
-						<View style={styles.valuesContainer}>
+						<FadeAnimationView
+							style={styles.valuesContainer}
+							valueToWatch={valueToWatchAnimation}
+							animateOnChange={animateOnChange}
+						>
 							{isMainnet && (
 								<Text upper right grey style={styles.amountContainer}>
 									{amount}
 								</Text>
 							)}
-
 							<Text upper primary bold right style={styles.primaryContainer(!isMainnet)}>
 								{primaryAmount}
 							</Text>
-						</View>
+						</FadeAnimationView>
 					</Summary.Row>
 					<Summary.Row>
 						<View>
@@ -232,10 +258,16 @@ class TransactionReviewFeeCard extends PureComponent {
 							</View>
 						</View>
 						{this.renderIfGasEstimationReady(
-							<View style={styles.valuesContainer}>
+							<FadeAnimationView
+								style={styles.valuesContainer}
+								valueToWatch={valueToWatchAnimation}
+								animateOnChange={animateOnChange}
+								onAnimationStart={onUpdatingValuesStart}
+								onAnimationEnd={onUpdatingValuesEnd}
+							>
 								{isMainnet && (
 									<View style={styles.amountContainer}>
-										<TouchableOpacity onPress={edit} disabled={showNativeCurrency}>
+										<TouchableOpacity onPress={edit} disabled={showNativeCurrency || isAnimating}>
 											<Text
 												link={!showNativeCurrency}
 												underline={!showNativeCurrency}
@@ -248,7 +280,7 @@ class TransactionReviewFeeCard extends PureComponent {
 									</View>
 								)}
 								<View style={styles.primaryContainer(!isMainnet)}>
-									<TouchableOpacity onPress={edit} disabled={!showNativeCurrency}>
+									<TouchableOpacity onPress={edit} disabled={!showNativeCurrency || isAnimating}>
 										<Text
 											primary
 											bold
@@ -262,7 +294,7 @@ class TransactionReviewFeeCard extends PureComponent {
 										</Text>
 									</TouchableOpacity>
 								</View>
-							</View>
+							</FadeAnimationView>
 						)}
 					</Summary.Row>
 					<Summary.Separator />
@@ -273,7 +305,11 @@ class TransactionReviewFeeCard extends PureComponent {
 
 						{!!totalFiat &&
 							this.renderIfGasEstimationReady(
-								<View style={styles.valuesContainer}>
+								<FadeAnimationView
+									style={styles.valuesContainer}
+									valueToWatch={valueToWatchAnimation}
+									animateOnChange={animateOnChange}
+								>
 									{isMainnet && (
 										<Text
 											grey={!over}
@@ -296,7 +332,7 @@ class TransactionReviewFeeCard extends PureComponent {
 									>
 										{primaryTotalAmount}
 									</Text>
-								</View>
+								</FadeAnimationView>
 							)}
 					</Summary.Row>
 				</Summary>

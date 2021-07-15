@@ -16,6 +16,7 @@ import Alert from '../../Base/Alert';
 import HorizontalSelector from '../../Base/HorizontalSelector';
 import Device from '../../../util/Device';
 import { isMainnetByChainId } from '../../../util/networks';
+import FadeAnimationView from '../FadeAnimationView';
 
 const GAS_LIMIT_INCREMENT = new BigNumber(1000);
 const GAS_PRICE_INCREMENT = new BigNumber(1);
@@ -112,10 +113,13 @@ const EditGasFeeLegacy = ({
 	warning,
 	ignoreOptions,
 	recommended,
-	warningMinimumEstimateOption
+	warningMinimumEstimateOption,
+	onUpdatingValuesStart,
+	onUpdatingValuesEnd,
+	animateOnChange,
+	isAnimating
 }) => {
 	const onlyAdvanced = gasEstimateType !== GAS_ESTIMATE_TYPES.LEGACY;
-
 	const [showRangeInfoModal, setShowRangeInfoModal] = useState(false);
 	const [showAdvancedOptions, setShowAdvancedOptions] = useState(!selected || onlyAdvanced);
 	const [selectedOption, setSelectedOption] = useState(selected);
@@ -263,109 +267,118 @@ const EditGasFeeLegacy = ({
 								</View>
 							</Alert>
 						)}
-
-						<View style={styles.headerContainer}>
-							<View style={styles.headerTitle}>
-								<View style={styles.headerTitleSide}>
-									<Text right black style={styles.headerText}>
-										~
+						<FadeAnimationView
+							valueToWatch={gasFeePrimary}
+							animateOnChange={animateOnChange}
+							onAnimationStart={onUpdatingValuesStart}
+							onAnimationEnd={onUpdatingValuesEnd}
+						>
+							<View style={styles.headerContainer}>
+								<View style={styles.headerTitle}>
+									<View style={styles.headerTitleSide}>
+										<Text right black style={styles.headerText}>
+											~
+										</Text>
+									</View>
+									<Text black style={styles.headerText}>
+										{gasFeePrimary}
 									</Text>
+									<View style={styles.headerTitleSide} />
 								</View>
-								<Text black style={styles.headerText}>
-									{gasFeePrimary}
+								<Text big black>
+									<Text bold black>
+										{gasFeeSecondary}
+									</Text>
 								</Text>
-								<View style={styles.headerTitleSide} />
 							</View>
-							<Text big black>
-								<Text bold black>
-									{gasFeeSecondary}
-								</Text>
-							</Text>
-						</View>
-						{!onlyAdvanced && (
-							<View>
-								<HorizontalSelector
-									selected={selectedOption}
-									onPress={selectOption}
-									options={renderOptions}
-								/>
-							</View>
-						)}
-						<View style={styles.advancedOptionsContainer}>
 							{!onlyAdvanced && (
-								<TouchableOpacity onPress={toggleAdvancedOptions} style={styles.advancedOptionsButton}>
-									<Text noMargin link bold>
-										{strings('edit_gas_fee_eip1559.advanced_options')}
-									</Text>
-									<Text noMargin link bold style={styles.advancedOptionsIcon}>
-										<Icon name={`ios-arrow-${showAdvancedOptions ? 'up' : 'down'}`} />
-									</Text>
-								</TouchableOpacity>
-							)}
-							{showAdvancedOptions && (
-								<View style={styles.advancedOptionsInputsContainer}>
-									<View style={styles.rangeInputContainer}>
-										<RangeInput
-											leftLabelComponent={
-												<View style={styles.labelTextContainer}>
-													<Text black bold noMargin>
-														{strings('edit_gas_fee_eip1559.gas_limit')}{' '}
-													</Text>
-
-													<TouchableOpacity
-														hitSlop={styles.hitSlop}
-														onPress={() => setShowRangeInfoModal('gas_limit')}
-													>
-														<MaterialCommunityIcon
-															name="information"
-															size={14}
-															style={styles.labelInfo}
-														/>
-													</TouchableOpacity>
-												</View>
-											}
-											value={gasFee.suggestedGasLimit}
-											onChangeValue={changedGasLimit}
-											min={GAS_LIMIT_MIN}
-											name={'Gas limit'}
-											increment={GAS_LIMIT_INCREMENT}
-										/>
-									</View>
-									<View style={styles.rangeInputContainer}>
-										<RangeInput
-											leftLabelComponent={
-												<View style={styles.labelTextContainer}>
-													<Text black bold noMargin>
-														Gas price{' '}
-													</Text>
-
-													<TouchableOpacity
-														hitSlop={styles.hitSlop}
-														onPress={() => setShowRangeInfoModal('gas_price')}
-													>
-														<MaterialCommunityIcon
-															name="information"
-															size={14}
-															style={styles.labelInfo}
-														/>
-													</TouchableOpacity>
-												</View>
-											}
-											value={gasFee.suggestedGasPrice}
-											name={'Gas price'}
-											unit={'GWEI'}
-											increment={GAS_PRICE_INCREMENT}
-											min={GAS_PRICE_MIN}
-											inputInsideLabel={`≈ ${gasFeeConversion}`}
-											onChangeValue={changedGasPrice}
-											error={gasPriceError}
-										/>
-									</View>
+								<View>
+									<HorizontalSelector
+										selected={selectedOption}
+										onPress={selectOption}
+										options={renderOptions}
+									/>
 								</View>
 							)}
-						</View>
+							<View style={styles.advancedOptionsContainer}>
+								{!onlyAdvanced && (
+									<TouchableOpacity
+										onPress={toggleAdvancedOptions}
+										style={styles.advancedOptionsButton}
+									>
+										<Text noMargin link bold>
+											{strings('edit_gas_fee_eip1559.advanced_options')}
+										</Text>
+										<Text noMargin link bold style={styles.advancedOptionsIcon}>
+											<Icon name={`ios-arrow-${showAdvancedOptions ? 'up' : 'down'}`} />
+										</Text>
+									</TouchableOpacity>
+								)}
+								{showAdvancedOptions && (
+									<View style={styles.advancedOptionsInputsContainer}>
+										<View style={styles.rangeInputContainer}>
+											<RangeInput
+												leftLabelComponent={
+													<View style={styles.labelTextContainer}>
+														<Text black bold noMargin>
+															{strings('edit_gas_fee_eip1559.gas_limit')}{' '}
+														</Text>
+
+														<TouchableOpacity
+															hitSlop={styles.hitSlop}
+															onPress={() => setShowRangeInfoModal('gas_limit')}
+														>
+															<MaterialCommunityIcon
+																name="information"
+																size={14}
+																style={styles.labelInfo}
+															/>
+														</TouchableOpacity>
+													</View>
+												}
+												value={gasFee.suggestedGasLimit}
+												onChangeValue={changedGasLimit}
+												min={GAS_LIMIT_MIN}
+												name={'Gas limit'}
+												increment={GAS_LIMIT_INCREMENT}
+											/>
+										</View>
+										<View style={styles.rangeInputContainer}>
+											<RangeInput
+												leftLabelComponent={
+													<View style={styles.labelTextContainer}>
+														<Text black bold noMargin>
+															Gas price{' '}
+														</Text>
+
+														<TouchableOpacity
+															hitSlop={styles.hitSlop}
+															onPress={() => setShowRangeInfoModal('gas_price')}
+														>
+															<MaterialCommunityIcon
+																name="information"
+																size={14}
+																style={styles.labelInfo}
+															/>
+														</TouchableOpacity>
+													</View>
+												}
+												value={gasFee.suggestedGasPrice}
+												name={'Gas price'}
+												unit={'GWEI'}
+												increment={GAS_PRICE_INCREMENT}
+												min={GAS_PRICE_MIN}
+												inputInsideLabel={`≈ ${gasFeeConversion}`}
+												onChangeValue={changedGasPrice}
+												error={gasPriceError}
+											/>
+										</View>
+									</View>
+								)}
+							</View>
+						</FadeAnimationView>
 						<View>
-							<StyledButton type={'confirm'} onPress={save} disabled={Boolean(error)}>
+							<StyledButton type={'confirm'} onPress={save} disabled={Boolean(error) || isAnimating}>
 								{strings('edit_gas_fee_eip1559.save')}
 							</StyledButton>
 						</View>
@@ -466,7 +479,23 @@ EditGasFeeLegacy.propTypes = {
 	/**
 	 * Estimate option to compare with for too low warning
 	 */
-	warningMinimumEstimateOption: PropTypes.string
+	warningMinimumEstimateOption: PropTypes.string,
+	/**
+	 * Function to call when update animation starts
+	 */
+	onUpdatingValuesStart: PropTypes.func,
+	/**
+	 * Function to call when update animation ends
+	 */
+	onUpdatingValuesEnd: PropTypes.func,
+	/**
+	 * If the values should animate upon update or not
+	 */
+	animateOnChange: PropTypes.bool,
+	/**
+	 * Boolean to determine if the animation is happening
+	 */
+	isAnimating: PropTypes.bool
 };
 
 export default EditGasFeeLegacy;

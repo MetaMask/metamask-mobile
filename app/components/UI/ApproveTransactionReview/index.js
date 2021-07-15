@@ -43,6 +43,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import InfoModal from '../Swaps/components/InfoModal';
 import Text from '../../Base/Text';
 import TransactionReviewEIP1559 from '../../UI/TransactionReview/TransactionReviewEIP1559';
+import FadeAnimationView from '../FadeAnimationView';
 
 const { hexToBN } = util;
 const styles = StyleSheet.create({
@@ -260,7 +261,23 @@ class ApproveTransactionReview extends PureComponent {
 		/**
 		 * Estimate type returned by the gas fee controller, can be market-fee, legacy or eth_gasPrice
 		 */
-		gasEstimateType: PropTypes.string
+		gasEstimateType: PropTypes.string,
+		/**
+		 * Function to call when update animation starts
+		 */
+		onUpdatingValuesStart: PropTypes.func,
+		/**
+		 * Function to call when update animation ends
+		 */
+		onUpdatingValuesEnd: PropTypes.func,
+		/**
+		 * If the values should animate upon update or not
+		 */
+		animateOnChange: PropTypes.bool,
+		/**
+		 * Boolean to determine if the animation is happening
+		 */
+		isAnimating: PropTypes.bool
 	};
 
 	state = {
@@ -540,7 +557,11 @@ class ApproveTransactionReview extends PureComponent {
 			warningGasPriceHigh,
 			EIP1559GasData,
 			LegacyGasData,
-			gasEstimateType
+			gasEstimateType,
+			onUpdatingValuesStart,
+			onUpdatingValuesEnd,
+			animateOnChange,
+			isAnimating
 		} = this.props;
 		const is_main_net = isMainNet(network);
 		const originIsDeeplink = origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
@@ -549,6 +570,11 @@ class ApproveTransactionReview extends PureComponent {
 		const errorLinkText = is_main_net
 			? strings('transaction.buy_more_eth')
 			: strings('transaction.get_ether', { networkName });
+
+		const showFeeMarket =
+			!gasEstimateType ||
+			gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ||
+			gasEstimateType === GAS_ESTIMATE_TYPES.NONE;
 
 		return (
 			<>
@@ -585,7 +611,7 @@ class ApproveTransactionReview extends PureComponent {
 								<View style={styles.paddingHorizontal}>
 									<AccountInfoCard />
 									<View style={styles.section}>
-										{gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ? (
+										{showFeeMarket ? (
 											<TransactionReviewEIP1559
 												totalNative={EIP1559GasData.renderableTotalMinNative}
 												totalConversion={EIP1559GasData.renderableTotalMinConversion}
@@ -600,9 +626,13 @@ class ApproveTransactionReview extends PureComponent {
 												hideTotal
 												noMargin
 												onEdit={this.edit}
+												onUpdatingValuesStart={onUpdatingValuesStart}
+												onUpdatingValuesEnd={onUpdatingValuesEnd}
+												animateOnChange={animateOnChange}
+												isAnimating={isAnimating}
 											/>
 										) : (
-											<TouchableOpacity onPress={this.edit}>
+											<TouchableOpacity onPress={this.edit} disabled={isAnimating}>
 												<View style={styles.networkFee}>
 													<Text reset style={styles.sectionLeft}>
 														{strings('transaction.transaction_fee')}
@@ -618,10 +648,17 @@ class ApproveTransactionReview extends PureComponent {
 															/>
 														</TouchableOpacity>
 													</Text>
-													<Text reset style={styles.sectionRight}>
-														{LegacyGasData.transactionFee} (
-														{LegacyGasData.transactionFeeFiat})
-													</Text>
+													<FadeAnimationView
+														onAnimationStart={onUpdatingValuesStart}
+														onAnimationEnd={onUpdatingValuesEnd}
+														animateOnChange={animateOnChange}
+														valueToWatch={LegacyGasData.transactionFee}
+													>
+														<Text reset style={styles.sectionRight}>
+															{LegacyGasData.transactionFee} (
+															{LegacyGasData.transactionFeeFiat})
+														</Text>
+													</FadeAnimationView>
 													<View style={styles.networkFeeArrow}>
 														<IonicIcon
 															name="ios-arrow-forward"

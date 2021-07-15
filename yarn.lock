@@ -1611,9 +1611,9 @@
     web3 "^0.20.7"
     web3-provider-engine "^16.0.1"
 
-"@metamask/controllers@file:./metamask-controllers-v12.1.3.tgz":
-  version "12.1.3"
-  resolved "file:./metamask-controllers-v12.1.3.tgz#9feae285164281bd442c86ff0517b0f19c390216"
+"@metamask/controllers@file:./metamask-controllers-v12.1.6.tgz":
+  version "12.1.6"
+  resolved "file:./metamask-controllers-v12.1.6.tgz#18336eac36e405719afde932f13191cd6636906f"
   dependencies:
     "@ethereumjs/common" "^2.3.1"
     "@ethereumjs/tx" "^3.2.1"
@@ -1643,7 +1643,7 @@
     single-call-balance-checker-abi "^1.0.0"
     uuid "^8.3.2"
     web3 "^0.20.7"
-    web3-provider-engine "git+https://github.com/MetaMask/web3-provider-engine.git#feature/use-ethereumjs/tx"
+    web3-provider-engine "git+https://github.com/MetaMask/web3-provider-engine.git#f405207359b1632f211f26103d12eacaafdc9aa4"
 
 "@metamask/etherscan-link@^2.0.0":
   version "2.0.0"
@@ -11150,9 +11150,9 @@ react-native-randombytes@^3.5.3:
     sjcl "^1.0.3"
 
 react-native-reanimated@^1.13.2:
-  version "1.13.2"
-  resolved "https://registry.yarnpkg.com/react-native-reanimated/-/react-native-reanimated-1.13.2.tgz#1ae5457b24b4913d173a5a064bb28eae7783d293"
-  integrity sha512-O+WhgxSjOIzcVdAAvx+h2DY331Ek1knKlaq+jsNLpC1fhRy9XTdOObovgob/aF2ve9uJfPEawCx8381g/tUJZQ==
+  version "1.13.3"
+  resolved "https://registry.yarnpkg.com/react-native-reanimated/-/react-native-reanimated-1.13.3.tgz#fb0e1d582c8866015140f2159e147ffe6e798a3a"
+  integrity sha512-i714H24dv6ncpFO7/SZ0PfAMbvjgVbF8Ow2NPtowoZAz8osS54DmTMrkgJ9Za+uEku/s0AEaxqiXG2Xgntvv2g==
   dependencies:
     fbjs "^1.0.0"
 
@@ -11205,6 +11205,11 @@ react-native-share@^5.2.2:
   version "5.2.2"
   resolved "https://registry.yarnpkg.com/react-native-share/-/react-native-share-5.2.2.tgz#7161fd37bc861e6a63df5d5c5fafbff10c7ff5e5"
   integrity sha512-Jn92T+fXzq8ZIfiZllznFYrhDQoFUcMZ6vO0oXgQJYR5leVZuesqy8II3taWLtQzbAD5tl4Y+EaNYo7Z6TNGTw==
+
+react-native-skeleton-placeholder@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/react-native-skeleton-placeholder/-/react-native-skeleton-placeholder-4.0.0.tgz#8c982cd9e00ffc69d5193da94945b75191eaa7c4"
+  integrity sha512-nX0NM6GhurCIgz8Yf+H9VYIaxSF2mbtdozLgaJNh/8QIH9mi+aJ2G9BVHSpjQ0o1fNdKYbGzrXDsC+6v4hmqAA==
 
 "react-native-splash-screen@git+https://github.com/MetaMask/react-native-splash-screen.git":
   version "3.2.0"
@@ -13452,9 +13457,37 @@ weak@^1.0.0:
     bindings "^1.2.1"
     nan "^2.0.5"
 
-web3-provider-engine@^16.0.1, "web3-provider-engine@git+https://github.com/MetaMask/web3-provider-engine.git#feature/use-ethereumjs/tx":
-  version "16.0.1"
-  resolved "git+https://github.com/MetaMask/web3-provider-engine.git#de4f74069dcf82f94ffa1162de779c6859f255ff"
+web3-provider-engine@^16.0.1:
+  version "16.0.2"
+  resolved "https://registry.yarnpkg.com/web3-provider-engine/-/web3-provider-engine-16.0.2.tgz#40c7224b1fe9b8689723f6d8595718375c7e3392"
+  integrity sha512-fUl88aHdfIdCuQhMTtKP95uL/DJWiv2jKyZodsO3NENXfczyab2dygYsaY7Y8tVghY1KAzn5nzCZIkNuNB+7uw==
+  dependencies:
+    "@ethereumjs/tx" "^3.3.0"
+    async "^2.5.0"
+    backoff "^2.5.0"
+    clone "^2.0.0"
+    cross-fetch "^2.1.0"
+    eth-block-tracker "^4.4.2"
+    eth-json-rpc-filters "^4.2.1"
+    eth-json-rpc-infura "^5.1.0"
+    eth-json-rpc-middleware "^6.0.0"
+    eth-rpc-errors "^3.0.0"
+    eth-sig-util "^1.4.2"
+    ethereumjs-block "^1.2.2"
+    ethereumjs-util "^5.1.5"
+    ethereumjs-vm "^2.3.4"
+    json-stable-stringify "^1.0.1"
+    promise-to-callback "^1.0.0"
+    readable-stream "^2.2.9"
+    request "^2.85.0"
+    semaphore "^1.0.3"
+    ws "^5.1.1"
+    xhr "^2.2.0"
+    xtend "^4.0.1"
+
+"web3-provider-engine@git+https://github.com/MetaMask/web3-provider-engine.git#f405207359b1632f211f26103d12eacaafdc9aa4":
+  version "16.0.2-alpha"
+  resolved "git+https://github.com/MetaMask/web3-provider-engine.git#f405207359b1632f211f26103d12eacaafdc9aa4"
   dependencies:
     "@ethereumjs/tx" "^3.3.0"
     async "^2.5.0"

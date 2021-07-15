@@ -211,7 +211,23 @@ class TransactionReviewInformation extends PureComponent {
 		nativeCurrency: PropTypes.string,
 		gasEstimateType: PropTypes.string,
 		EIP1559GasData: PropTypes.object,
-		origin: PropTypes.string
+		origin: PropTypes.string,
+		/**
+		 * Function to call when update animation starts
+		 */
+		onUpdatingValuesStart: PropTypes.func,
+		/**
+		 * Function to call when update animation ends
+		 */
+		onUpdatingValuesEnd: PropTypes.func,
+		/**
+		 * If the values should animate upon update or not
+		 */
+		animateOnChange: PropTypes.bool,
+		/**
+		 * Boolean to determine if the animation is happening
+		 */
+		isAnimating: PropTypes.bool
 	};
 
 	state = {
@@ -472,7 +488,15 @@ class TransactionReviewInformation extends PureComponent {
 	};
 
 	renderTransactionReviewEIP1559 = () => {
-		const { EIP1559GasData, primaryCurrency, origin } = this.props;
+		const {
+			EIP1559GasData,
+			primaryCurrency,
+			origin,
+			onUpdatingValuesStart,
+			onUpdatingValuesEnd,
+			animateOnChange,
+			isAnimating
+		} = this.props;
 		let host;
 		if (origin) {
 			host = new URL(origin).hostname;
@@ -496,6 +520,10 @@ class TransactionReviewInformation extends PureComponent {
 				timeEstimateColor={EIP1559GasData.timeEstimateColor}
 				onEdit={this.edit}
 				origin={host}
+				onUpdatingValuesStart={onUpdatingValuesStart}
+				onUpdatingValuesEnd={onUpdatingValuesEnd}
+				animateOnChange={animateOnChange}
+				isAnimating={isAnimating}
 			/>
 		);
 	};
@@ -510,7 +538,11 @@ class TransactionReviewInformation extends PureComponent {
 			currentCurrency,
 			conversionRate,
 			ticker,
-			over
+			over,
+			onUpdatingValuesStart,
+			onUpdatingValuesEnd,
+			animateOnChange,
+			isAnimating
 		} = this.props;
 
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
@@ -530,6 +562,10 @@ class TransactionReviewInformation extends PureComponent {
 				edit={this.edit}
 				over={over}
 				warningGasPriceHigh={warningGasPriceHigh}
+				onUpdatingValuesStart={onUpdatingValuesStart}
+				onUpdatingValuesEnd={onUpdatingValuesEnd}
+				animateOnChange={animateOnChange}
+				isAnimating={isAnimating}
 			/>
 		);
 	};
@@ -555,12 +591,15 @@ class TransactionReviewInformation extends PureComponent {
 			? strings('transaction.buy_more_eth')
 			: strings('transaction.get_ether', { networkName });
 
+		const showFeeMarket =
+			!gasEstimateType ||
+			gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ||
+			gasEstimateType === GAS_ESTIMATE_TYPES.NONE;
+
 		return (
 			<React.Fragment>
 				{nonceModalVisible && this.renderCustomNonceModal()}
-				{gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET
-					? this.renderTransactionReviewEIP1559()
-					: this.renderTransactionReviewFeeCard()}
+				{showFeeMarket ? this.renderTransactionReviewEIP1559() : this.renderTransactionReviewFeeCard()}
 				{showCustomNonce && <CustomNonce nonce={nonce} onNonceEdit={this.toggleNonceModal} />}
 				{!!amountError && (
 					<View style={styles.overviewAlert}>
