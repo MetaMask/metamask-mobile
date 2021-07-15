@@ -43,6 +43,15 @@ const styles = StyleSheet.create({
 	}
 });
 
+// eslint-disable-next-line react/prop-types
+const Skeleton = ({ width, noStyle }) => (
+	<View style={[!noStyle && styles.valuesContainer]}>
+		<SkeletonPlaceholder>
+			<SkeletonPlaceholder.Item width={width} height={10} borderRadius={4} />
+		</SkeletonPlaceholder>
+	</View>
+);
+
 const TransactionReviewEIP1559 = ({
 	totalNative,
 	totalConversion,
@@ -78,14 +87,6 @@ const TransactionReviewEIP1559 = ({
 	const edit = useCallback(() => {
 		if (!isAnimating) onEdit();
 	}, [isAnimating, onEdit]);
-
-	const renderSkeleton = (width, noStyle) => (
-		<View style={!noStyle && styles.valuesContainer}>
-			<SkeletonPlaceholder>
-				<SkeletonPlaceholder.Item width={width} height={10} borderRadius={4} />
-			</SkeletonPlaceholder>
-		</View>
-	);
 
 	const isMainnet = isMainnetByChainId(chainId);
 	const nativeCurrencySelected = primaryCurrency === 'ETH' || !isMainnet;
@@ -160,7 +161,7 @@ const TransactionReviewEIP1559 = ({
 						</TouchableOpacity>
 					</FadeAnimationView>
 				) : (
-					renderSkeleton(80)
+					<Skeleton width={80} />
 				)}
 			</Summary.Row>
 			<Summary.Row>
@@ -171,7 +172,7 @@ const TransactionReviewEIP1559 = ({
 						</Text>
 					</FadeAnimationView>
 				) : (
-					renderSkeleton(120, true)
+					<Skeleton width={120} noStyle />
 				)}
 				{gasFeeMaxPrimary ? (
 					<FadeAnimationView
@@ -189,7 +190,7 @@ const TransactionReviewEIP1559 = ({
 						</Text>
 					</FadeAnimationView>
 				) : (
-					renderSkeleton(120)
+					<Skeleton width={120} />
 				)}
 			</Summary.Row>
 			{!hideTotal && (
@@ -216,7 +217,7 @@ const TransactionReviewEIP1559 = ({
 								</Text>
 							</FadeAnimationView>
 						) : (
-							renderSkeleton(80)
+							<Skeleton width={80} />
 						)}
 					</Summary.Row>
 					<Summary.Row>
@@ -236,7 +237,7 @@ const TransactionReviewEIP1559 = ({
 								</Text>
 							</FadeAnimationView>
 						) : (
-							renderSkeleton(120)
+							<Skeleton width={120} />
 						)}
 					</Summary.Row>
 				</View>
