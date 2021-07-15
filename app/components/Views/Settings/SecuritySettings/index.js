@@ -154,11 +154,23 @@ const Heading = ({ children, first }) => (
 	</View>
 );
 
+const ModalContent = ({ title, content }) => (
+	<View style={styles.modalView}>
+		<Text style={styles.modalTitle}>{title}</Text>
+		<Text style={styles.modalText}>{content}</Text>
+	</View>
+);
+
 const WarningIcon = () => <Icon size={16} color={colors.red} name="exclamation-triangle" />;
 
 Heading.propTypes = {
 	children: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node), PropTypes.node]),
 	first: PropTypes.bool
+};
+
+ModalContent.propTypes = {
+	title: PropTypes.string,
+	content: PropTypes.string
 };
 
 /**
@@ -737,12 +749,10 @@ class Settings extends PureComponent {
 						onRequestClose={this.toggleClearApprovalsModal}
 						onConfirmPress={this.clearApprovals}
 					>
-						<View style={styles.modalView}>
-							<Text style={styles.modalTitle}>{strings('app_settings.clear_approvals_modal_title')}</Text>
-							<Text style={styles.modalText}>
-								{strings('app_settings.clear_approvals_modal_message')}
-							</Text>
-						</View>
+						<ModalContent
+							title={strings('app_settings.clear_approvals_modal_title')}
+							content={strings('app_settings.clear_approvals_modal_message')}
+						/>
 					</ActionModal>
 					<ActionModal
 						modalVisible={browserHistoryModalVisible}
@@ -752,14 +762,10 @@ class Settings extends PureComponent {
 						onRequestClose={this.toggleClearBrowserHistoryModal}
 						onConfirmPress={this.clearBrowserHistory}
 					>
-						<View style={styles.modalView}>
-							<Text style={styles.modalTitle}>
-								{strings('app_settings.clear_browser_history_modal_title')}
-							</Text>
-							<Text style={styles.modalText}>
-								{strings('app_settings.clear_browser_history_modal_message')}
-							</Text>
-						</View>
+						<ModalContent
+							title={strings('app_settings.clear_browser_history_modal_title')}
+							content={strings('app_settings.clear_browser_history_modal_message')}
+						/>
 					</ActionModal>
 					<ActionModal
 						modalVisible={cookiesModalVisible}
@@ -769,10 +775,10 @@ class Settings extends PureComponent {
 						onRequestClose={this.toggleClearCookiesModal}
 						onConfirmPress={this.clearCookies}
 					>
-						<View style={styles.modalView}>
-							<Text style={styles.modalTitle}>{strings('app_settings.clear_cookies_modal_title')}</Text>
-							<Text style={styles.modalText}>{strings('app_settings.clear_cookies_modal_message')}</Text>
-						</View>
+						<ModalContent
+							title={strings('app_settings.clear_cookies_modal_title')}
+							content={strings('app_settings.clear_cookies_modal_message')}
+						/>
 					</ActionModal>
 					{this.renderHint()}
 				</View>
