@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
 	StyleSheet,
@@ -11,7 +11,7 @@ import {
 	InteractionManager
 } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
-import { NavigationContext } from 'react-navigation';
+import { useNavigation } from '@react-navigation/native';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import FAIcon from 'react-native-vector-icons/FontAwesome5';
@@ -130,7 +130,7 @@ function TokenSelectModal({
 	frequentRpcList,
 	balances
 }) {
-	const navigation = useContext(NavigationContext);
+	const navigation = useNavigation();
 	const searchInput = useRef(null);
 	const list = useRef();
 	const [searchString, setSearchString] = useState('');
@@ -249,8 +249,11 @@ function TokenSelectModal({
 
 	const handleBlockExplorerPress = useCallback(() => {
 		navigation.navigate('Webview', {
-			url: explorer.token(shouldFetchToken ? searchString : ''),
-			title: strings(shouldFetchToken ? 'swaps.verify' : 'swaps.find_token_address')
+			screen: 'SimpleWebview',
+			params: {
+				url: explorer.token(shouldFetchToken ? searchString : ''),
+				title: strings(shouldFetchToken ? 'swaps.verify' : 'swaps.find_token_address')
+			}
 		});
 		dismiss();
 	}, [dismiss, explorer, navigation, searchString, shouldFetchToken]);
