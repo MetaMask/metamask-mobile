@@ -15,11 +15,12 @@ const styles = StyleSheet.create({
 	}
 });
 
-function MediaPlayer({ uri, style, onClose }) {
+function MediaPlayer({ uri, style, onClose, textTracks, selectedTextTrack }) {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(false);
 
 	const onLoad = () => setLoading(false);
+
 	const onError = () => setError(true);
 
 	return (
@@ -30,7 +31,14 @@ function MediaPlayer({ uri, style, onClose }) {
 				</View>
 			)}
 			{Device.isAndroid() ? (
-				<AndroidMediaPlayer onLoad={onLoad} onError={onError} onClose={onClose} source={{ uri }} />
+				<AndroidMediaPlayer
+					onLoad={onLoad}
+					onError={onError}
+					onClose={onClose}
+					source={{ uri }}
+					textTracks={textTracks}
+					selectedTextTrack={selectedTextTrack}
+				/>
 			) : (
 				<Video
 					onLoad={onLoad}
@@ -39,6 +47,8 @@ function MediaPlayer({ uri, style, onClose }) {
 					muted
 					source={{ uri }}
 					controls
+					textTracks={textTracks}
+					selectedTextTrack={selectedTextTrack}
 					ignoreSilentSwitch="ignore"
 				/>
 			)}
@@ -58,7 +68,15 @@ MediaPlayer.propTypes = {
 	/**
 	 * On close callback
 	 */
-	onClose: PropTypes.func
+	onClose: PropTypes.func,
+	/**
+	 * Array of possible text tracks to display
+	 */
+	textTracks: PropTypes.arrayOf(PropTypes.object),
+	/**
+	 * The selected text track to dispaly by id, language, title, index
+	 */
+	selectedTextTrack: PropTypes.object
 };
 
 MediaPlayer.defaultProps = {

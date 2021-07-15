@@ -2,6 +2,7 @@ package io.metamask;
 
 import com.facebook.react.ReactApplication;
 import com.cmcewen.blurview.BlurViewPackage;
+import com.brentvatne.react.ReactVideoPackage;
 import android.content.Context;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactInstanceManager;
@@ -39,6 +40,7 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 			packages.add(new RNGestureHandlerPackage());
 			packages.add(new RCTAnalyticsPackage());
 			packages.add(new PreventScreenshotPackage());
+			packages.add(new ReactVideoPackage());
 
 			return packages;
 		}
