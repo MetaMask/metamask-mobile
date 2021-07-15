@@ -396,14 +396,16 @@ function SwapsQuotesView({
 	]);
 
 	const gasEstimates = useMemo(() => customGasEstimate || usedGasEstimate, [customGasEstimate, usedGasEstimate]);
-	const gasLimit = useMemo(
-		() =>
-			customGasLimit ||
+	const initialGasLimit = useMemo(() => {
+		if (!selectedQuote) {
+			return '0';
+		}
+		return (
 			gasLimitWithMultiplier(selectedQuote?.gasEstimate, selectedQuote?.gasMultiplier)?.toString(10) ||
-			selectedQuote?.maxGas?.toString(10),
-		[customGasLimit, selectedQuote]
-	);
-
+			selectedQuote?.maxGas?.toString(10)
+		);
+	}, [selectedQuote]);
+	const gasLimit = useMemo(() => customGasLimit || initialGasLimit, [customGasLimit, initialGasLimit]);
 	/* Balance */
 	const balance = useBalance(accounts, balances, selectedAddress, sourceToken, { asUnits: true });
 	const [hasEnoughTokenBalance, missingTokenBalance, hasEnoughEthBalance, missingEthBalance] = useMemo(() => {
@@ -943,6 +945,7 @@ function SwapsQuotesView({
 				hidePriceDifferenceModal();
 				hidePriceImpactModal();
 				onCancelEditQuoteTransactions();
+				hideEditingGas();
 			}
 
 			// If newRemainingTime < 0 means that quotes are still being fetched
@@ -960,6 +963,7 @@ function SwapsQuotesView({
 		};
 	}, [
 		hideFeeModal,
+		hideEditingGas,
 		hideQuotesModal,
 		onCancelEditQuoteTransactions,
 		isInFetch,
@@ -978,10 +982,12 @@ function SwapsQuotesView({
 			hideUpdateModal();
 			hidePriceDifferenceModal();
 			onCancelEditQuoteTransactions();
+			hideEditingGas();
 		}
 	}, [
 		error,
 		hideFeeModal,
+		hideEditingGas,
 		hideQuotesModal,
 		handleQuotesErrorMetric,
 		onCancelEditQuoteTransactions,
@@ -1024,6 +1030,7 @@ function SwapsQuotesView({
 					gasEstimate = {
 						maxFeePerGas: gasFeeEstimates[selected].suggestedMaxFeePerGas,
 						maxPriorityFeePerGas: gasFeeEstimates[selected].suggestedMaxPriorityFeePerGas,
+						estimatedBaseFee: gasFeeEstimates.estimatedBaseFee,
 						selected
 					};
 				}
@@ -1532,8 +1539,9 @@ function SwapsQuotesView({
 				onGasUpdate={handleGasFeeUpdate}
 				dismiss={hideEditingGas}
 				customGasFee={usedCustomGas}
+				gasLimit={gasLimit}
 				customGasLimit={customGasLimit}
-				selectedQuoteGasLimit={gasLimit}
+				initialGasLimit={initialGasLimit}
 			/>
 
 			{renderGasTooltip()}

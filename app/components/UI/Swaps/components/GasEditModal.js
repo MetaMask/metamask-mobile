@@ -37,8 +37,9 @@ function GasEditModal({
 	isVisible,
 	onGasUpdate,
 	customGasFee,
+	gasLimit,
 	customGasLimit,
-	selectedQuoteGasLimit,
+	initialGasLimit,
 	currentCurrency,
 	conversionRate,
 	nativeCurrency,
@@ -61,6 +62,10 @@ function GasEditModal({
 	);
 
 	useEffect(() => {
+		setGasSelected(customGasFee?.selected);
+	}, [customGasFee]);
+
+	useEffect(() => {
 		if (stopUpdateGas || !gasSelected) {
 			return;
 		}
@@ -74,7 +79,7 @@ function GasEditModal({
 						selectedGasFee: {
 							suggestedMaxFeePerGas: gasFeeEstimates[gasSelected].suggestedMaxFeePerGas,
 							suggestedMaxPriorityFeePerGas: gasFeeEstimates[gasSelected].suggestedMaxPriorityFeePerGas,
-							suggestedGasLimit: customGasLimit || selectedQuoteGasLimit,
+							suggestedGasLimit: initialGasLimit,
 							estimatedBaseFee: gasFeeEstimates.estimatedBaseFee
 						}
 					},
@@ -82,14 +87,14 @@ function GasEditModal({
 				)
 			);
 		} else {
-			setLegacyTransactionDataTemp(
+			setLegacyTransactionDataTemp(previousData =>
 				parseTransactionLegacy(
 					{
 						currentCurrency,
 						conversionRate,
 						ticker,
 						selectedGasFee: {
-							suggestedGasLimit: customGasLimit || selectedQuoteGasLimit,
+							suggestedGasLimit: initialGasLimit,
 							suggestedGasPrice:
 								gasEstimateType === GAS_ESTIMATE_TYPES.ETH_GASPRICE
 									? gasFeeEstimates.gasPrice
@@ -108,14 +113,17 @@ function GasEditModal({
 		gasEstimateType,
 		gasFeeEstimates,
 		gasSelected,
-		selectedQuoteGasLimit,
 		ticker,
-		customGasLimit
+		customGasLimit,
+		gasLimit,
+		initialGasLimit
 	]);
 
 	const calculateTempGasFee = useCallback(
 		({ suggestedMaxFeePerGas, suggestedMaxPriorityFeePerGas, suggestedGasLimit, estimatedBaseFee }, selected) => {
-			setStopUpdateGas(!selected);
+			if (!selected) {
+				setStopUpdateGas(true);
+			}
 			setGasSelected(selected);
 			setEIP1559TransactionDataTemp(
 				parseTransactionEIP1559(
@@ -126,15 +134,18 @@ function GasEditModal({
 						selectedGasFee: {
 							suggestedMaxFeePerGas,
 							suggestedMaxPriorityFeePerGas,
-							suggestedGasLimit,
+							suggestedGasLimit: selected ? initialGasLimit : suggestedGasLimit,
 							estimatedBaseFee
 						}
 					},
 					{ onlyGas: true }
 				)
 			);
+			if (selected) {
+				setStopUpdateGas(false);
+			}
 		},
-		[conversionRate, currentCurrency, nativeCurrency]
+		[conversionRate, currentCurrency, initialGasLimit, nativeCurrency]
 	);
 
 	const calculateTempGasFeeLegacy = useCallback(
@@ -148,7 +159,7 @@ function GasEditModal({
 						conversionRate,
 						ticker,
 						selectedGasFee: {
-							suggestedGasLimit,
+							suggestedGasLimit: selected ? initialGasLimit : suggestedGasLimit,
 							suggestedGasPrice
 						}
 					},
@@ -156,7 +167,7 @@ function GasEditModal({
 				)
 			);
 		},
-		[conversionRate, currentCurrency, ticker]
+		[conversionRate, currentCurrency, initialGasLimit, ticker]
 	);
 
 	const saveGasEdition = useCallback(
@@ -165,12 +176,14 @@ function GasEditModal({
 				const {
 					suggestedMaxFeePerGas: maxFeePerGas,
 					suggestedMaxPriorityFeePerGas: maxPriorityFeePerGas,
+					estimatedBaseFee,
 					suggestedGasLimit
 				} = EIP1559TransactionDataTemp;
 				onGasUpdate(
 					{
 						maxFeePerGas,
 						maxPriorityFeePerGas,
+						estimatedBaseFee,
 						selected
 					},
 					suggestedGasLimit
@@ -336,9 +349,13 @@ GasEditModal.propTypes = {
 	 */
 	customGasLimit: PropTypes.string,
 	/**
+	 * Initial gas limit of the selected quote trade
+	 */
+	initialGasLimit: PropTypes.string,
+	/**
 	 * Gas limit of the selected quote trade
 	 */
-	selectedQuoteGasLimit: PropTypes.string,
+	gasLimit: PropTypes.string,
 	/**
 	 * Currency code of the currently-active currency
 	 */
