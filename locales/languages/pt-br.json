@@ -455,7 +455,7 @@
 		"general_title": "Geral",
 		"general_desc": "Conversão de moeda, moeda principal, idioma e mecanismo de busca",
 		"advanced_title": "Avançadas",
-		"advanced_desc": "Acesso a recursos de desenvolvedores, redefinição da conta, configuração da testnet, sincronização com a extensão, logs de estado, gateway IPFS e RPC personalizada",
+		"advanced_desc": "Acesso a recursos de desenvolvedores, redefinição da conta, configuração da testnet, logs de estado, gateway IPFS e RPC personalizada",
 		"contacts_title": "Contatos",
 		"contacts_desc": "Adicionar, editar, remover e gerenciar suas contas",
 		"security_title": "Segurança e privacidade",

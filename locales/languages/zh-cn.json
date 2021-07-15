@@ -424,7 +424,7 @@
 		"general_title": "常规",
 		"general_desc": "货币转换、主要货币、语言和搜索引擎",
 		"advanced_title": "高级",
-		"advanced_desc": "访问开发人员功能、重置账户、设置测试网、与扩展程序同步、状态日志、IPFS 网关和自定义 RPC",
+		"advanced_desc": "访问开发人员功能、重置账户、设置测试网、状态日志、IPFS 网关和自定义 RPC",
 		"contacts_title": "联系信息",
 		"contacts_desc": "添加、编辑、删除和管理您的账户",
 		"security_title": "安全和隐私",

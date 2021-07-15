@@ -455,7 +455,7 @@
 		"general_title": "一般",
 		"general_desc": "通貨換算、プライマリ通貨、言語、検索エンジン",
 		"advanced_title": "詳細",
-		"advanced_desc": "開発者機能へのアクセス、アカウントのリセット、Testnet のセットアップ、拡張機能との同期、状態ログ、IPFS ゲートウェイ、カスタム RPC",
+		"advanced_desc": "開発者機能へのアクセス、アカウントのリセット、Testnet のセットアップ、状態ログ、IPFS ゲートウェイ、カスタム RPC",
 		"contacts_title": "連絡先",
 		"contacts_desc": "アカウントの追加、編集、削除、管理",
 		"security_title": "セキュリティとプライバシー",

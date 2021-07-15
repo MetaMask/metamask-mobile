@@ -23,7 +23,7 @@ exports[`Settings should render correctly 1`] = `
     warning={false}
   />
   <SettingsDrawer
-    description="Access developer features, reset account, setup testnets, sync with extension, state logs, IPFS gateway and custom RPC"
+    description="Access developer features, reset account, setup testnets, state logs, IPFS gateway and custom RPC"
     onPress={[Function]}
     title="Advanced"
   />

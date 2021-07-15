@@ -455,7 +455,7 @@
 		"general_title": "일반",
 		"general_desc": "통화 전환, 기본 통화, 언어 및 검색 엔진",
 		"advanced_title": "고급",
-		"advanced_desc": "개발자 기능 액세스, 계정 재설정, 테스트넷 설정, 확장 프로그램과 동기화, 상태 로그, IPFS 게이트웨이 및 맞춤형 RPC",
+		"advanced_desc": "개발자 기능 액세스, 계정 재설정, 테스트넷 설정, 상태 로그, IPFS 게이트웨이 및 맞춤형 RPC",
 		"contacts_title": "문의",
 		"contacts_desc": "계정 추가, 편집, 제거 및 관리",
 		"security_title": "보안 및 개인정보 보호",

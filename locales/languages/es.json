@@ -455,7 +455,7 @@
 		"general_title": "General",
 		"general_desc": "Conversión de moneda, moneda principal, idioma y motor de búsqueda",
 		"advanced_title": "Avanzado",
-		"advanced_desc": "Acceder a recursos para desarrolladores, restablecer cuenta, configurar redes de prueba, sincronizar con la extensión, registros de estado, puerta de enlace de IPFS y RPC personalizada",
+		"advanced_desc": "Acceder a recursos para desarrolladores, restablecer cuenta, configurar redes de prueba, registros de estado, puerta de enlace de IPFS y RPC personalizada",
 		"contacts_title": "Contactos",
 		"contacts_desc": "Agregar, editar, quitar y administrar sus cuentas",
 		"security_title": "Seguridad y privacidad",
