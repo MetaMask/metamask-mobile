@@ -281,7 +281,7 @@ const Main = props => {
 			try {
 				TransactionController.hub.once(`${transactionMeta.id}:finished`, transactionMeta => {
 					if (transactionMeta.status === 'submitted') {
-						props.navigation.pop();
+						props.navigation.pop?.();
 						NotificationManager.watchSubmittedTransaction({
 							...transactionMeta,
 							assetType: transactionMeta.transaction.assetType
