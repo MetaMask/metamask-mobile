@@ -2,7 +2,7 @@ import React, { ReactNode } from 'react';
 import { StyleProp, StyleSheet, ViewStyle } from 'react-native';
 import { colors } from '../../../../styles/common';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import Alert from '../../../Base/Alert';
+import Alert, { AlertType } from '../../../Base/Alert';
 
 type Props = {
 	/**
@@ -15,7 +15,7 @@ type Props = {
 const WarningMessage = ({ warningMessage, style }: Props) => {
 	return (
 		<Alert
-			type={'warning'}
+			type={AlertType.Warning}
 			style={style}
 			renderIcon={() => (
 				<FontAwesome

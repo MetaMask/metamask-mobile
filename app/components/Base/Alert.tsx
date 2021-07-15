@@ -14,7 +14,11 @@ import CustomText from './Text';
 // TODO: Convert into typescript and correctly type optionals
 const Text = CustomText as any;
 
-type AlertType = 'info' | 'warning' | 'error';
+export enum AlertType {
+	Info = 'Info',
+	Warning = 'Warning',
+	Error = 'Error'
+}
 
 type Props = {
 	type: AlertType;
@@ -25,18 +29,18 @@ type Props = {
 	children?: ReactNode;
 };
 
-const Alert = ({ type = 'info', small, renderIcon, style, onPress, children, ...props }: Props) => {
+const Alert = ({ type = AlertType.Info, small, renderIcon, style, onPress, children, ...props }: Props) => {
 	const Wrapper: React.ComponentClass<TouchableOpacityProps | ViewProps> = onPress ? TouchableOpacity : View;
 
 	const getStyles: (type: AlertType) => [StyleProp<ViewStyle>, StyleProp<TextStyle>] = useCallback(type => {
 		switch (type) {
-			case 'warning': {
+			case AlertType.Warning: {
 				return [styles.warning, { ...styles.textWarning, ...styles.baseTextStyle }];
 			}
-			case 'error': {
+			case AlertType.Error: {
 				return [styles.error, { ...styles.textError, ...styles.baseTextStyle }];
 			}
-			case 'info':
+			case AlertType.Info:
 			default: {
 				return [styles.info, { ...styles.textInfo, ...styles.baseTextStyle }];
 			}
@@ -82,7 +86,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.red000,
 		borderColor: colors.red
 	},
-	baseTextStyle: { fontSize: 12, flex: 1, lineHeight: 17 },
+	baseTextStyle: { fontSize: 14, flex: 1, lineHeight: 17 },
 	textInfo: { color: colors.blue },
 	textWarning: { color: colors.black },
 	textError: { color: colors.red },

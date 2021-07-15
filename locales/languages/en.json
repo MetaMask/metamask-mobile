@@ -321,7 +321,8 @@
 			"add_collectible": "ADD"
 		},
 		"warning_body_description": "Anyone can create a token, including creating fake versions of existing tokens. Learn more about ",
-		"warning_link": "scams and security risks."
+		"warning_link": "scams and security risks.",
+		"security_tips": "Security Tips"
 	},
 	"terms_and_conditions": {
 		"title": "Terms and Conditions",

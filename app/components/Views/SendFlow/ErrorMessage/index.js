@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
-import Alert from '../../../Base/Alert';
+import Alert, { AlertType } from '../../../Base/Alert';
 import Text from '../../../Base/Text';
 
 const styles = StyleSheet.create({
@@ -15,7 +15,7 @@ const styles = StyleSheet.create({
 export default function ErrorMessage(props) {
 	const { errorMessage, errorContinue, onContinue, isOnlyWarning } = props;
 	return (
-		<Alert type={isOnlyWarning ? 'info' : 'error'} testID={'error-message-warning'}>
+		<Alert type={isOnlyWarning ? AlertType.Info : AlertType.Error} testID={'error-message-warning'}>
 			{textStyle => (
 				<View>
 					<Text small style={textStyle}>

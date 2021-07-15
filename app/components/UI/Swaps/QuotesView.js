@@ -35,7 +35,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { getSwapsQuotesNavbar } from '../Navbar';
 import ScreenView from '../FiatOrders/components/ScreenView';
 import Text from '../../Base/Text';
-import Alert from '../../Base/Alert';
+import Alert, { AlertType } from '../../Base/Alert';
 import StyledButton from '../StyledButton';
 import SliderButton from '../SliderButton';
 
@@ -1100,7 +1100,7 @@ function SwapsQuotesView({
 			<View style={styles.topBar}>
 				{(!hasEnoughTokenBalance || !hasEnoughEthBalance) && (
 					<View style={styles.alertBar}>
-						<Alert small type="info">
+						<Alert small type={AlertType.Info}>
 							{`${strings('swaps.you_need')} `}
 							<Text reset bold>
 								{!hasEnoughTokenBalance && !isSwapsNativeAsset(sourceToken)
@@ -1125,7 +1125,7 @@ function SwapsQuotesView({
 				)}
 				{!!warningGasPriceHigh && !(!hasEnoughTokenBalance || !hasEnoughEthBalance) && (
 					<View style={styles.alertBar}>
-						<Alert small type="error">
+						<Alert small type={AlertType.Error}>
 							<Text reset>{warningGasPriceHigh}</Text>
 						</Alert>
 					</View>
@@ -1133,7 +1133,11 @@ function SwapsQuotesView({
 				{!!selectedQuote && hasEnoughTokenBalance && hasEnoughEthBalance && shouldDisplaySlippage && (
 					<View style={styles.alertBar}>
 						<ActionAlert
-							type={selectedQuote.priceSlippage?.bucket === SLIPPAGE_BUCKETS.HIGH ? 'error' : 'warning'}
+							type={
+								selectedQuote.priceSlippage?.bucket === SLIPPAGE_BUCKETS.HIGH
+									? AlertType.Error
+									: AlertType.Warning
+							}
 							action={hasDismissedSlippageAlert ? undefined : strings('swaps.i_understand')}
 							onPress={handleSlippageAlertPress}
 							onInfoPress={

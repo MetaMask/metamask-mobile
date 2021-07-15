@@ -9,6 +9,7 @@ import ActionView from '../ActionView';
 import { isSmartContractAddress } from '../../../util/transactions';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import WarningMessage from '../../Views/SendFlow/WarningMessage';
+import AppConstants from '../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -195,7 +196,22 @@ export default class AddCustomToken extends PureComponent {
 			warningMessage={
 				<>
 					{strings('add_asset.warning_body_description')}
-					<Text style={{ color: colors.blue }}>{strings('add_asset.warning_link')}</Text>
+					<Text
+						suppressHighlighting
+						onPress={() => {
+							// TODO: This functionality exists in a bunch of other places. We need to unify this into a utils function
+							this.props.navigation.navigate('Webview', {
+								screen: 'SimpleWebview',
+								params: {
+									url: AppConstants.URLS.SECURITY,
+									title: strings('add_asset.security_tips')
+								}
+							});
+						}}
+						style={{ color: colors.blue }}
+					>
+						{strings('add_asset.warning_link')}
+					</Text>
 				</>
 			}
 		/>

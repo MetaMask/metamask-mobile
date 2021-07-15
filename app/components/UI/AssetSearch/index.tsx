@@ -7,7 +7,9 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { toLowerCaseEquals } from '../../../util/general';
 import { useSelector } from 'react-redux';
 import { getTokenListArray } from '../../../reducers/tokens';
-import { Token } from '@metamask/controllers';
+// TODO: Placeholder for incoming Token type from TokenListController
+// TokenListController needs to export this type for us to import and use
+type Token = any;
 
 const styles = StyleSheet.create({
 	searchSection: {

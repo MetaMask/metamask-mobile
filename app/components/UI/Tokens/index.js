@@ -168,8 +168,6 @@ class Tokens extends PureComponent {
 		} = this.props;
 		const itemAddress = safeToChecksumAddress(asset.address);
 		const logo = (tokenList[itemAddress] && tokenList[itemAddress].iconUrl) || undefined;
-		// Old way of getting image is no longer needed
-		// const logo = asset.logo || ((tokenList[itemAddress] && tokenList[itemAddress].logo) || undefined);
 		const exchangeRate = itemAddress in tokenExchangeRates ? tokenExchangeRates[itemAddress] : undefined;
 		const balance =
 			asset.balance ||
