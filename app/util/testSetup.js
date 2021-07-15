@@ -84,7 +84,11 @@ jest.mock('../core/Engine', () => ({
 
 jest.mock('react-native-keychain', () => ({ getSupportedBiometryType: () => Promise.resolve('FaceId') }));
 jest.mock('react-native-share', () => 'RNShare');
-jest.mock('react-native-branch', () => ({ subscribe: () => 'RNBranch' }));
+jest.mock('react-native-branch', () => ({
+	BranchSubscriber: () => {
+		() => 'RNBranch';
+	}
+}));
 jest.mock('react-native-sensors', () => 'RNSensors');
 jest.mock('react-native-search-api', () => 'SearchApi');
 jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
