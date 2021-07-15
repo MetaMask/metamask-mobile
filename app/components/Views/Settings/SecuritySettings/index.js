@@ -741,6 +741,19 @@ class Settings extends PureComponent {
 							/>
 						</View>
 					</View>
+					<View style={styles.setting} testID={'nft-privacy-section'}>
+						<Text style={styles.title}>{strings('app_settings.nft_privacy_title')}</Text>
+						<Text style={styles.desc}>{strings('app_settings.nft_privacy_description')}</Text>
+						<View style={styles.switchElement}>
+							<Switch
+								value={false}
+								onValueChange={this.toggleNFTPrivacy}
+								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
+								ios_backgroundColor={colors.grey000}
+								testID={'nft-privacy-switch'}
+							/>
+						</View>
+					</View>
 					<ActionModal
 						modalVisible={approvalModalVisible}
 						confirmText={strings('app_settings.clear')}
