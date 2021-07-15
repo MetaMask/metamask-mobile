@@ -284,7 +284,7 @@ class TransactionElement extends PureComponent {
 		</StyledButton>
 	);
 
-	showCancelModal = () => {
+	parseGas = () => {
 		const { tx } = this.props;
 
 		let existingGas = {};
@@ -302,26 +302,18 @@ class TransactionElement extends PureComponent {
 				existingGas = { gasPrice: existingGasPriceDecimal };
 			}
 		}
+		return existingGas;
+	};
+
+	showCancelModal = () => {
+		const existingGas = this.parseGas();
+
 		this.mounted && this.props.onCancelAction(true, existingGas, this.props.tx);
 	};
 
 	showSpeedUpModal = () => {
-		const { tx } = this.props;
-		let existingGas = {};
-		const transaction = tx?.transaction;
-		if (transaction) {
-			if (isEIP1559Transaction(transaction)) {
-				existingGas = {
-					isEIP1559Transaction: true,
-					maxFeePerGas: weiHexToGweiDec(transaction.maxFeePerGas),
-					maxPriorityFeePerGas: weiHexToGweiDec(transaction.maxPriorityFeePerGas)
-				};
-			} else {
-				const existingGasPrice = tx.transaction ? tx.transaction.gasPrice : '0x0';
-				const existingGasPriceDecimal = parseInt(existingGasPrice === undefined ? '0x0' : existingGasPrice, 16);
-				existingGas = { gasPrice: existingGasPriceDecimal };
-			}
-		}
+		const existingGas = this.parseGas();
+
 		this.mounted && this.props.onSpeedUpAction(true, existingGas, tx);
 	};
 
