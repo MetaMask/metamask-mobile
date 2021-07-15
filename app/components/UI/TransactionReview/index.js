@@ -173,7 +173,7 @@ class TransactionReview extends PureComponent {
 		/**
 		 * If the values should animate upon update or not
 		 */
-		canAnimate: PropTypes.bool,
+		animateOnChange: PropTypes.bool,
 		/**
 		 * Boolean to determine if the animation is happening
 		 */
@@ -318,7 +318,7 @@ class TransactionReview extends PureComponent {
 			EIP1559GasData,
 			onUpdatingValuesStart,
 			onUpdatingValuesEnd,
-			canAnimate,
+			animateOnChange,
 			isAnimating,
 			dappSuggestedGas
 		} = this.props;
@@ -363,7 +363,7 @@ class TransactionReview extends PureComponent {
 									origin={dappSuggestedGas ? currentPageInformation?.url : null}
 									onUpdatingValuesStart={onUpdatingValuesStart}
 									onUpdatingValuesEnd={onUpdatingValuesEnd}
-									canAnimate={canAnimate}
+									animateOnChange={animateOnChange}
 									isAnimating={isAnimating}
 								/>
 							</View>

@@ -70,7 +70,7 @@ const TransactionReviewEIP1559 = ({
 	origin,
 	onUpdatingValuesStart,
 	onUpdatingValuesEnd,
-	canAnimate,
+	animateOnChange,
 	isAnimating
 }) => {
 	const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
@@ -127,7 +127,7 @@ const TransactionReviewEIP1559 = ({
 					<FadeAnimationView
 						style={styles.valuesContainer}
 						valueToWatch={valueToWatchAnimation}
-						canAnimate={canAnimate}
+						animateOnChange={animateOnChange}
 						onAnimationStart={onUpdatingValuesStart}
 						onAnimationEnd={onUpdatingValuesEnd}
 					>
@@ -166,7 +166,7 @@ const TransactionReviewEIP1559 = ({
 			</Summary.Row>
 			<Summary.Row>
 				{timeEstimate ? (
-					<FadeAnimationView valueToWatch={valueToWatchAnimation} canAnimate={canAnimate}>
+					<FadeAnimationView valueToWatch={valueToWatchAnimation} animateOnChange={animateOnChange}>
 						<Text small green={timeEstimateColor === 'green'} red={timeEstimateColor === 'red'}>
 							{timeEstimate}
 						</Text>
@@ -178,7 +178,7 @@ const TransactionReviewEIP1559 = ({
 					<FadeAnimationView
 						style={styles.valuesContainer}
 						valueToWatch={valueToWatchAnimation}
-						canAnimate={canAnimate}
+						animateOnChange={animateOnChange}
 					>
 						<Text grey right small>
 							<Text bold small noMargin>
@@ -204,7 +204,7 @@ const TransactionReviewEIP1559 = ({
 							<FadeAnimationView
 								style={styles.valuesContainer}
 								valueToWatch={valueToWatchAnimation}
-								canAnimate={canAnimate}
+								animateOnChange={animateOnChange}
 							>
 								{isMainnet && (
 									<Text grey upper right style={styles.amountContainer}>
@@ -225,7 +225,7 @@ const TransactionReviewEIP1559 = ({
 							<FadeAnimationView
 								style={styles.valuesContainer}
 								valueToWatch={valueToWatchAnimation}
-								canAnimate={canAnimate}
+								animateOnChange={animateOnChange}
 							>
 								<Text grey right small>
 									<Text bold small noMargin>
@@ -335,7 +335,7 @@ TransactionReviewEIP1559.propTypes = {
 	/**
 	 * If the values should animate upon update or not
 	 */
-	canAnimate: PropTypes.bool,
+	animateOnChange: PropTypes.bool,
 	/**
 	 * Boolean to determine if the animation is happening
 	 */

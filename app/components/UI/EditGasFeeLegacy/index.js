@@ -116,7 +116,7 @@ const EditGasFeeLegacy = ({
 	warningMinimumEstimateOption,
 	onUpdatingValuesStart,
 	onUpdatingValuesEnd,
-	canAnimate,
+	animateOnChange,
 	isAnimating
 }) => {
 	const onlyAdvanced = gasEstimateType !== GAS_ESTIMATE_TYPES.LEGACY;
@@ -269,7 +269,7 @@ const EditGasFeeLegacy = ({
 						)}
 						<FadeAnimationView
 							valueToWatch={gasFeePrimary}
-							canAnimate={canAnimate}
+							animateOnChange={animateOnChange}
 							onAnimationStart={onUpdatingValuesStart}
 							onAnimationEnd={onUpdatingValuesEnd}
 						>
@@ -491,7 +491,7 @@ EditGasFeeLegacy.propTypes = {
 	/**
 	 * If the values should animate upon update or not
 	 */
-	canAnimate: PropTypes.bool,
+	animateOnChange: PropTypes.bool,
 	/**
 	 * Boolean to determine if the animation is happening
 	 */

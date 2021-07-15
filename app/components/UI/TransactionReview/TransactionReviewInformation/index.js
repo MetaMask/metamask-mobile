@@ -223,7 +223,7 @@ class TransactionReviewInformation extends PureComponent {
 		/**
 		 * If the values should animate upon update or not
 		 */
-		canAnimate: PropTypes.bool,
+		animateOnChange: PropTypes.bool,
 		/**
 		 * Boolean to determine if the animation is happening
 		 */
@@ -494,7 +494,7 @@ class TransactionReviewInformation extends PureComponent {
 			origin,
 			onUpdatingValuesStart,
 			onUpdatingValuesEnd,
-			canAnimate,
+			animateOnChange,
 			isAnimating
 		} = this.props;
 		let host;
@@ -522,7 +522,7 @@ class TransactionReviewInformation extends PureComponent {
 				origin={host}
 				onUpdatingValuesStart={onUpdatingValuesStart}
 				onUpdatingValuesEnd={onUpdatingValuesEnd}
-				canAnimate={canAnimate}
+				animateOnChange={animateOnChange}
 				isAnimating={isAnimating}
 			/>
 		);
@@ -541,7 +541,7 @@ class TransactionReviewInformation extends PureComponent {
 			over,
 			onUpdatingValuesStart,
 			onUpdatingValuesEnd,
-			canAnimate,
+			animateOnChange,
 			isAnimating
 		} = this.props;
 
@@ -564,7 +564,7 @@ class TransactionReviewInformation extends PureComponent {
 				warningGasPriceHigh={warningGasPriceHigh}
 				onUpdatingValuesStart={onUpdatingValuesStart}
 				onUpdatingValuesEnd={onUpdatingValuesEnd}
-				canAnimate={canAnimate}
+				animateOnChange={animateOnChange}
 				isAnimating={isAnimating}
 			/>
 		);

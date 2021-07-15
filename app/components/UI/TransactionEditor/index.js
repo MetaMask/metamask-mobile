@@ -195,10 +195,10 @@ class TransactionEditor extends PureComponent {
 					EIP1559GasDataTemp,
 					advancedGasInserted: Boolean(dappSuggestedGas),
 					gasSelected: dappSuggestedGas ? null : gasSelected,
-					canAnimate: true
+					animateOnChange: true
 				},
 				() => {
-					this.setState({ canAnimate: false });
+					this.setState({ animateOnChange: false });
 				}
 			);
 		} else {
@@ -241,10 +241,10 @@ class TransactionEditor extends PureComponent {
 					LegacyGasDataTemp,
 					advancedGasInserted: Boolean(dappSuggestedGasPrice),
 					gasSelected: dappSuggestedGasPrice ? null : gasSelected,
-					canAnimate: true
+					animateOnChange: true
 				},
 				() => {
-					this.setState({ canAnimate: false });
+					this.setState({ animateOnChange: false });
 				}
 			);
 		}
@@ -968,7 +968,7 @@ class TransactionEditor extends PureComponent {
 			gasSelected,
 			dappSuggestedGasPrice,
 			dappSuggestedEIP1559Gas,
-			canAnimate,
+			animateOnChange,
 			isAnimating
 		} = this.state;
 		return (
@@ -987,7 +987,7 @@ class TransactionEditor extends PureComponent {
 								EIP1559GasData={EIP1559GasData}
 								onUpdatingValuesStart={this.onUpdatingValuesStart}
 								onUpdatingValuesEnd={this.onUpdatingValuesEnd}
-								canAnimate={canAnimate}
+								animateOnChange={animateOnChange}
 								isAnimating={isAnimating}
 								dappSuggestedGas={Boolean(dappSuggestedGasPrice) || Boolean(dappSuggestedEIP1559Gas)}
 							/>
@@ -1033,7 +1033,7 @@ class TransactionEditor extends PureComponent {
 							over={over}
 							onUpdatingValuesStart={this.onUpdatingValuesStart}
 							onUpdatingValuesEnd={this.onUpdatingValuesEnd}
-							canAnimate={canAnimate}
+							animateOnChange={animateOnChange}
 							isAnimating={isAnimating}
 						/>
 					) : (
@@ -1054,7 +1054,7 @@ class TransactionEditor extends PureComponent {
 							over={over}
 							onUpdatingValuesStart={this.onUpdatingValuesStart}
 							onUpdatingValuesEnd={this.onUpdatingValuesEnd}
-							canAnimate={canAnimate}
+							animateOnChange={animateOnChange}
 							isAnimating={isAnimating}
 						/>
 					))}

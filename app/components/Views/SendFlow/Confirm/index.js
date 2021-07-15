@@ -484,10 +484,10 @@ class Confirm extends PureComponent {
 							gasEstimationReady: true,
 							EIP1559TransactionData,
 							EIP1559TransactionDataTemp,
-							canAnimate: true
+							animateOnChange: true
 						},
 						() => {
-							this.setState({ canAnimate: false });
+							this.setState({ animateOnChange: false });
 						}
 					);
 				} else {
@@ -521,10 +521,10 @@ class Confirm extends PureComponent {
 							gasEstimationReady: true,
 							LegacyTransactionData,
 							LegacyTransactionDataTemp,
-							canAnimate: true
+							animateOnChange: true
 						},
 						() => {
-							this.setState({ canAnimate: false });
+							this.setState({ animateOnChange: false });
 						}
 					);
 				}
@@ -953,7 +953,7 @@ class Confirm extends PureComponent {
 
 	renderCustomGasModalEIP1559 = () => {
 		const { primaryCurrency, chainId, gasFeeEstimates } = this.props;
-		const { EIP1559TransactionDataTemp, gasSelected, isAnimating, canAnimate } = this.state;
+		const { EIP1559TransactionDataTemp, gasSelected, isAnimating, animateOnChange } = this.state;
 
 		return (
 			<Modal
@@ -991,7 +991,7 @@ class Confirm extends PureComponent {
 						onCancel={this.cancelGasEdition}
 						onSave={this.saveGasEdition}
 						error={EIP1559TransactionDataTemp.error}
-						canAnimate={canAnimate}
+						animateOnChange={animateOnChange}
 						isAnimating={isAnimating}
 					/>
 				</KeyboardAwareScrollView>
@@ -1001,7 +1001,7 @@ class Confirm extends PureComponent {
 
 	renderCustomGasModalLegacy = () => {
 		const { primaryCurrency, chainId, gasEstimateType, gasFeeEstimates } = this.props;
-		const { LegacyTransactionDataTemp, gasSelected, isAnimating, canAnimate } = this.state;
+		const { LegacyTransactionDataTemp, gasSelected, isAnimating, animateOnChange } = this.state;
 		return (
 			<Modal
 				isVisible
@@ -1032,7 +1032,7 @@ class Confirm extends PureComponent {
 						chainId={chainId}
 						onCancel={this.cancelGasEdition}
 						onSave={this.saveGasEdition}
-						canAnimate={canAnimate}
+						animateOnChange={animateOnChange}
 						isAnimating={isAnimating}
 					/>
 				</KeyboardAwareScrollView>
@@ -1183,7 +1183,7 @@ class Confirm extends PureComponent {
 			warningModalVisible,
 			LegacyTransactionData,
 			isAnimating,
-			canAnimate
+			animateOnChange
 		} = this.state;
 
 		const showFeeMarket =
@@ -1284,7 +1284,7 @@ class Confirm extends PureComponent {
 							warningGasPriceHigh={warningGasPriceHigh}
 							onUpdatingValuesStart={this.onUpdatingValuesStart}
 							onUpdatingValuesEnd={this.onUpdatingValuesEnd}
-							canAnimate={canAnimate}
+							animateOnChange={animateOnChange}
 							isAnimating={isAnimating}
 						/>
 					) : (
@@ -1303,7 +1303,7 @@ class Confirm extends PureComponent {
 							over={Boolean(EIP1559TransactionData.error)}
 							onUpdatingValuesStart={this.onUpdatingValuesStart}
 							onUpdatingValuesEnd={this.onUpdatingValuesEnd}
-							canAnimate={canAnimate}
+							animateOnChange={animateOnChange}
 							isAnimating={isAnimating}
 						/>
 					)}

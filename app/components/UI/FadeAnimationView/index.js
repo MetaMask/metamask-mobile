@@ -11,7 +11,7 @@ const FadeAnimationView = ({
 	valueToWatch,
 	onAnimationStart,
 	onAnimationEnd,
-	canAnimate
+	animateOnChange
 }) => {
 	const fadeAnim = useRef(new Animated.Value(1)).current; // Initial value for opacity: 1
 	const [value, setValue] = useState(valueToWatch);
@@ -76,7 +76,7 @@ const FadeAnimationView = ({
 			return;
 		}
 		if (!isAnimating) {
-			if (canAnimate && valueToWatch && value && value !== valueToWatch) {
+			if (animateOnChange && valueToWatch && value && value !== valueToWatch) {
 				animate();
 				setIsAnimating(true);
 				setValue(valueToWatch);
@@ -84,7 +84,7 @@ const FadeAnimationView = ({
 			}
 			setLastChildren(children);
 		}
-	}, [animate, canAnimate, children, isAnimating, value, valueToWatch]);
+	}, [animate, animateOnChange, children, isAnimating, value, valueToWatch]);
 
 	return (
 		<Animated.View // Special animatable View
@@ -127,7 +127,7 @@ FadeAnimationView.propTypes = {
 	/**
 	 * If the values should animate upon update or not
 	 */
-	canAnimate: PropTypes.bool
+	animateOnChange: PropTypes.bool
 };
 
 export default FadeAnimationView;

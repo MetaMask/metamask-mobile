@@ -135,7 +135,7 @@ const EditGasFee1559 = ({
 	recommended,
 	warningMinimumEstimateOption,
 	suggestedEstimateOption,
-	canAnimate,
+	animateOnChange,
 	isAnimating,
 	onUpdatingValuesStart,
 	onUpdatingValuesEnd
@@ -278,7 +278,7 @@ const EditGasFee1559 = ({
 		<View>
 			<FadeAnimationView
 				valueToWatch={gasFeeMaxPrimary}
-				canAnimate={canAnimate}
+				animateOnChange={animateOnChange}
 				onAnimationStart={onUpdatingValuesStart}
 				onAnimationEnd={onUpdatingValuesEnd}
 			>
@@ -468,7 +468,7 @@ const EditGasFee1559 = ({
 						<FadeAnimationView
 							style={styles.headerContainer}
 							valueToWatch={gasFeeMaxPrimary}
-							canAnimate={canAnimate}
+							animateOnChange={animateOnChange}
 						>
 							<View style={styles.headerTitle}>
 								<Text black style={styles.headerText} adjustsFontSizeToFit numberOfLines={1}>
@@ -679,7 +679,7 @@ EditGasFee1559.propTypes = {
 	/**
 	 * If the values should animate upon update or not
 	 */
-	canAnimate: PropTypes.bool,
+	animateOnChange: PropTypes.bool,
 	/**
 	 * Boolean to determine if the animation is happening
 	 */

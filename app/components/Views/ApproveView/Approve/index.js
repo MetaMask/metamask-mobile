@@ -165,10 +165,10 @@ class Approve extends PureComponent {
 					ready: true,
 					EIP1559GasData,
 					EIP1559GasDataTemp,
-					canAnimate: true
+					animateOnChange: true
 				},
 				() => {
-					this.setState({ canAnimate: false });
+					this.setState({ animateOnChange: false });
 				}
 			);
 		} else {
@@ -208,10 +208,10 @@ class Approve extends PureComponent {
 					ready: true,
 					LegacyGasData,
 					LegacyGasDataTemp,
-					canAnimate: true
+					animateOnChange: true
 				},
 				() => {
-					this.setState({ canAnimate: false });
+					this.setState({ animateOnChange: false });
 				}
 			);
 		}
@@ -534,7 +534,7 @@ class Approve extends PureComponent {
 			LegacyGasData,
 			LegacyGasDataTemp,
 			gasSelected,
-			canAnimate,
+			animateOnChange,
 			isAnimating
 		} = this.state;
 		const { transaction, gasEstimateType, gasFeeEstimates, primaryCurrency, chainId } = this.props;
@@ -570,7 +570,7 @@ class Approve extends PureComponent {
 								gasEstimateType={gasEstimateType}
 								onUpdatingValuesStart={this.onUpdatingValuesStart}
 								onUpdatingValuesEnd={this.onUpdatingValuesEnd}
-								canAnimate={canAnimate}
+								animateOnChange={animateOnChange}
 								isAnimating={isAnimating}
 							/>
 							<CustomGas
@@ -610,7 +610,7 @@ class Approve extends PureComponent {
 								error={EIP1559GasDataTemp.error}
 								onUpdatingValuesStart={this.onUpdatingValuesStart}
 								onUpdatingValuesEnd={this.onUpdatingValuesEnd}
-								canAnimate={canAnimate}
+								animateOnChange={animateOnChange}
 								isAnimating={isAnimating}
 							/>
 						) : (
@@ -630,7 +630,7 @@ class Approve extends PureComponent {
 								error={LegacyGasDataTemp.error}
 								onUpdatingValuesStart={this.onUpdatingValuesStart}
 								onUpdatingValuesEnd={this.onUpdatingValuesEnd}
-								canAnimate={canAnimate}
+								animateOnChange={animateOnChange}
 								isAnimating={isAnimating}
 							/>
 						))}

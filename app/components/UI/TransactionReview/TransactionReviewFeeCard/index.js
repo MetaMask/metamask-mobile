@@ -117,7 +117,7 @@ class TransactionReviewFeeCard extends PureComponent {
 		/**
 		 * If the values should animate upon update or not
 		 */
-		canAnimate: PropTypes.bool,
+		animateOnChange: PropTypes.bool,
 		/**
 		 * Boolean to determine if the animation is happening
 		 */
@@ -187,7 +187,7 @@ class TransactionReviewFeeCard extends PureComponent {
 			chainId,
 			onUpdatingValuesStart,
 			onUpdatingValuesEnd,
-			canAnimate,
+			animateOnChange,
 			isAnimating
 		} = this.props;
 
@@ -230,7 +230,7 @@ class TransactionReviewFeeCard extends PureComponent {
 						<FadeAnimationView
 							style={styles.valuesContainer}
 							valueToWatch={valueToWatchAnimation}
-							canAnimate={canAnimate}
+							animateOnChange={animateOnChange}
 						>
 							{isMainnet && (
 								<Text upper right grey style={styles.amountContainer}>
@@ -261,7 +261,7 @@ class TransactionReviewFeeCard extends PureComponent {
 							<FadeAnimationView
 								style={styles.valuesContainer}
 								valueToWatch={valueToWatchAnimation}
-								canAnimate={canAnimate}
+								animateOnChange={animateOnChange}
 								onAnimationStart={onUpdatingValuesStart}
 								onAnimationEnd={onUpdatingValuesEnd}
 							>
@@ -308,7 +308,7 @@ class TransactionReviewFeeCard extends PureComponent {
 								<FadeAnimationView
 									style={styles.valuesContainer}
 									valueToWatch={valueToWatchAnimation}
-									canAnimate={canAnimate}
+									animateOnChange={animateOnChange}
 								>
 									{isMainnet && (
 										<Text

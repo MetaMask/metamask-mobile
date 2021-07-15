@@ -273,7 +273,7 @@ class ApproveTransactionReview extends PureComponent {
 		/**
 		 * If the values should animate upon update or not
 		 */
-		canAnimate: PropTypes.bool,
+		animateOnChange: PropTypes.bool,
 		/**
 		 * Boolean to determine if the animation is happening
 		 */
@@ -560,7 +560,7 @@ class ApproveTransactionReview extends PureComponent {
 			gasEstimateType,
 			onUpdatingValuesStart,
 			onUpdatingValuesEnd,
-			canAnimate,
+			animateOnChange,
 			isAnimating
 		} = this.props;
 		const is_main_net = isMainNet(network);
@@ -628,7 +628,7 @@ class ApproveTransactionReview extends PureComponent {
 												onEdit={this.edit}
 												onUpdatingValuesStart={onUpdatingValuesStart}
 												onUpdatingValuesEnd={onUpdatingValuesEnd}
-												canAnimate={canAnimate}
+												animateOnChange={animateOnChange}
 												isAnimating={isAnimating}
 											/>
 										) : (
@@ -651,7 +651,7 @@ class ApproveTransactionReview extends PureComponent {
 													<FadeAnimationView
 														onAnimationStart={onUpdatingValuesStart}
 														onAnimationEnd={onUpdatingValuesEnd}
-														canAnimate={canAnimate}
+														animateOnChange={animateOnChange}
 														valueToWatch={LegacyGasData.transactionFee}
 													>
 														<Text reset style={styles.sectionRight}>
