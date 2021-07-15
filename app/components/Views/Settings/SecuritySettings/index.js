@@ -469,6 +469,10 @@ class Settings extends PureComponent {
 		}
 	};
 
+	toggleNFTPrivacy = value => {
+		console.log('Option ' + value);
+	};
+
 	goToRevealPrivateCredential = () => {
 		this.props.navigation.navigate('RevealPrivateCredentialView', { privateCredentialName: 'seed_phrase' });
 	};
