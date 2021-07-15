@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
 import { colors } from '../../styles/common';
 import Device from '../../util/Device';
@@ -12,6 +13,9 @@ const styles = StyleSheet.create({
 		borderBottomWidth: StyleSheet.hairlineWidth,
 		borderColor: colors.grey100
 	},
+	borderless: {
+		borderColor: colors.transparent
+	},
 	dragger: {
 		width: 48,
 		height: 5,
@@ -21,12 +25,16 @@ const styles = StyleSheet.create({
 	}
 });
 
-function ModalDragger() {
+function ModalDragger({ borderless }) {
 	return (
-		<View style={styles.draggerWrapper}>
+		<View style={[styles.draggerWrapper, borderless && styles.borderless]}>
 			<View style={styles.dragger} />
 		</View>
 	);
 }
+
+ModalDragger.propTypes = {
+	borderless: PropTypes.bool
+};
 
 export default ModalDragger;
