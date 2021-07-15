@@ -21,7 +21,6 @@ export function getTxData(txMeta = {}) {
  * @returns {object} - An object containing the standard properties of a transaction
  */
 export function getTxMeta(txMeta = {}) {
-	console.log({ txMeta });
 	const { data, from, gas, gasPrice, to, value, maxFeePerGas, maxPriorityFeePerGas, ...rest } = txMeta; // eslint-disable-line no-unused-vars
 	return getDefinedProperties(rest);
 }

@@ -21,56 +21,67 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
         }
       }
     >
-      <Text
-        black={false}
-        blue={false}
-        bold={true}
-        centered={false}
-        disclaimer={false}
-        green={false}
-        link={false}
-        modal={false}
-        noMargin={true}
-        orange={false}
-        primary={true}
-        red={false}
-        reset={false}
-        right={false}
-        small={false}
-        strikethrough={false}
-        underline={false}
-        upper={false}
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "flex": 1,
+            "flexDirection": "row",
+            "marginBottom": 2,
+          }
+        }
       >
-        Estimated gas fee
-        <TouchableOpacity
-          hitSlop={
-            Object {
-              "bottom": 10,
-              "left": 10,
-              "right": 10,
-              "top": 10,
-            }
-          }
-          onPress={[Function]}
-          style={
-            Object {
-              "paddingHorizontal": 2,
-            }
-          }
+        <Text
+          black={false}
+          blue={false}
+          bold={true}
+          centered={false}
+          disclaimer={false}
+          green={false}
+          link={false}
+          modal={false}
+          noMargin={true}
+          orange={false}
+          primary={true}
+          red={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
+          underline={false}
+          upper={false}
         >
-          <Icon
-            allowFontScaling={false}
-            name="information"
-            size={13}
-            style={
+          Estimated gas fee
+          <TouchableOpacity
+            hitSlop={
               Object {
-                "color": "#bbc0c5",
-                "marginTop": 5,
+                "bottom": 10,
+                "left": 10,
+                "right": 10,
+                "top": 10,
               }
             }
-          />
-        </TouchableOpacity>
-      </Text>
+            onPress={[Function]}
+            style={
+              Object {
+                "paddingHorizontal": 2,
+              }
+            }
+          >
+            <Icon
+              allowFontScaling={false}
+              name="information"
+              size={13}
+              style={
+                Object {
+                  "color": "#bbc0c5",
+                  "marginTop": 5,
+                }
+              }
+            />
+          </TouchableOpacity>
+        </Text>
+      </View>
       <Skeleton
         width={80}
       />

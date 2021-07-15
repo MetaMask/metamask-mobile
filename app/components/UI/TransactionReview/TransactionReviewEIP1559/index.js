@@ -121,16 +121,22 @@ const TransactionReviewEIP1559 = ({
 		<Summary style={styles.overview(noMargin)}>
 			<Summary.Row>
 				<View style={styles.gasRowContainer}>
-					<Text primary={!origin} bold orange={Boolean(origin)} noMargin>
-						{!origin ? 'Estimated gas fee' : `${origin} suggested gas fee`}
-						<TouchableOpacity
-							style={styles.gasInfoContainer}
-							onPress={toggleLearnMoreModal}
-							hitSlop={styles.hitSlop}
-						>
-							<MaterialCommunityIcons name="information" size={13} style={styles.gasInfoIcon(origin)} />
-						</TouchableOpacity>
-					</Text>
+					<View style={styles.gasRowContainer}>
+						<Text primary={!origin} bold orange={Boolean(origin)} noMargin>
+							{!origin ? 'Estimated gas fee' : `${origin} suggested gas fee`}
+							<TouchableOpacity
+								style={styles.gasInfoContainer}
+								onPress={toggleLearnMoreModal}
+								hitSlop={styles.hitSlop}
+							>
+								<MaterialCommunityIcons
+									name="information"
+									size={13}
+									style={styles.gasInfoIcon(origin)}
+								/>
+							</TouchableOpacity>
+						</Text>
+					</View>
 
 					{gasFeePrimary ? (
 						<FadeAnimationView
