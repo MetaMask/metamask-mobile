@@ -7,14 +7,13 @@ const TIME = 3900; // 3900/6 = 650 for each
 const FadeAnimationView = ({
 	children,
 	style,
-	animationTime,
+	animationTime = TIME,
 	valueToWatch,
 	onAnimationStart,
 	onAnimationEnd,
 	canAnimate
 }) => {
 	const fadeAnim = useRef(new Animated.Value(1)).current; // Initial value for opacity: 1
-	const time = (TIME || animationTime) / 6;
 	const [value, setValue] = useState(valueToWatch);
 	const [lastChildren, setLastChildren] = useState(children);
 	const [isAnimating, setIsAnimating] = useState(false);
@@ -34,12 +33,12 @@ const FadeAnimationView = ({
 		animationStarted();
 
 		const animationParams = {
-			duration: time,
+			time: animationTime / 6,
 			useNativeDriver: true
-		}
+		};
 		const animationValueZero = 0;
-		const animationValueAlmost = 0.8
-		const animationValueFinal = 1
+		const animationValueAlmost = 0.8;
+		const animationValueFinal = 1;
 
 		Animated.sequence([
 			Animated.timing(fadeAnim, {
@@ -69,7 +68,7 @@ const FadeAnimationView = ({
 		]).start(() => {
 			animationEnded();
 		});
-	}, [animationEnded, animationStarted, fadeAnim, time]);
+	}, [animationEnded, animationStarted, animationTime, fadeAnim]);
 
 	useEffect(() => {
 		if (!value) {
