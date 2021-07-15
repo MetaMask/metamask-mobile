@@ -20,7 +20,8 @@ import { passwordUnset, seedphraseNotBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import { connect } from 'react-redux';
 import setOnboardingWizardStep from '../../../actions/wizard';
-import { withNavigationFocus } from 'react-navigation';
+// eslint-disable-next-line import/named
+import { withNavigationFocus } from '@react-navigation/compat';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import Device from '../../../util/Device';
 import {
@@ -145,7 +146,7 @@ class CreateWallet extends PureComponent {
 					this.props.navigation.navigate('HomeNav');
 				} else {
 					this.props.setOnboardingWizardStep(1);
-					this.props.navigation.navigate('WalletView');
+					this.props.navigation.navigate('HomeNav', { screen: 'WalletView' });
 				}
 			}, 1000);
 		});

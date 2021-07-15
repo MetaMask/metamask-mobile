@@ -2,7 +2,19 @@
 
 ## Current Develop Branch
 
-## v.2.5.0 - June 8 2021
+## v.2.6.0 - July 9 2021
+- [#2865](https://github.com/MetaMask/metamask-mobile/pull/2865): Added support for custom network gas estimates
+- [#2854](https://github.com/MetaMask/metamask-mobile/pull/2854): Fix time formatting on transactions
+- [#2883](https://github.com/MetaMask/metamask-mobile/pull/2883): Swaps: Fix isZero undefined error
+- [#2731](https://github.com/MetaMask/metamask-mobile/pull/2731): Improvement/react navigation upgrade 5
+- [#2709](https://github.com/MetaMask/metamask-mobile/pull/2709): Remove Picker deprecation warning
+## v.2.5.0 - June 15 2021
+- [#2809](https://github.com/MetaMask/metamask-mobile/pull/2809): Optional chaining dollarBalance
+- [#2776](https://github.com/MetaMask/metamask-mobile/pull/2776): Fix: empty state when using fiat on non-mainnet transactions
+- [#2777](https://github.com/MetaMask/metamask-mobile/pull/2777): Add isInteraction: false
+- [#2759](https://github.com/MetaMask/metamask-mobile/pull/2759): Use MediaPlayer
+- [#2748](https://github.com/MetaMask/metamask-mobile/pull/2748): v2.5.0
+- [#2757](https://github.com/MetaMask/metamask-mobile/pull/2757): Circleci fix
 - [#2746](https://github.com/MetaMask/metamask-mobile/pull/2746): bugfix/notification visibility
 - [#2749](https://github.com/MetaMask/metamask-mobile/pull/2749): @metamask/controllers@10.1.0
 - [#2702](https://github.com/MetaMask/metamask-mobile/pull/2702): Swaps: Update Market price unavailable and Price impact text

@@ -708,7 +708,7 @@
 		"gas_limit": "Gas Limit:",
 		"gas_price": "Gas Price: (GWEI)",
 		"save": "Save",
-		"warning_gas_limit": "Gas limit must be greater than 20999 and less than 7920027",
+		"warning_gas_limit": "Gas limit must be greater than 20999",
 		"warning_gas_limit_estimated": "Estimated gas limit is {{gas}}, use it as minimum value",
 		"cost_explanation": "The gas fee covers the cost of processing your transaction on the Ethereum network. MetaMask does not profit from this fee. The higher the fee the better chances of your transaction getting processed."
 	},
@@ -1647,5 +1647,10 @@
 	"media_player": {
 		"loading": "Loading...",
 		"not_found": "Media not found"
+	},
+	"secret_phrase_video_subtitle": {
+		"title": "EN CC",
+		"language": "en",
+		"uri": "https://github.com/MetaMask/metamask-mobile/blob/feature/secret_recovery_translations/app/videos/subtitles/subtitles-en.vtt"
 	}
 }

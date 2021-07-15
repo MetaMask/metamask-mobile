@@ -42,7 +42,11 @@ export default class AddBookmark extends PureComponent {
 		/**
 		/* navigation object required to push new views
 		*/
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	componentDidMount() {
@@ -50,17 +54,17 @@ export default class AddBookmark extends PureComponent {
 	}
 
 	loadInitialValues() {
-		const { navigation } = this.props;
+		const { route } = this.props;
 		this.setState({
-			title: navigation.getParam('title', ''),
-			url: navigation.getParam('url', '')
+			title: route.params?.title ?? '',
+			url: route.params?.url ?? ''
 		});
 	}
 
 	addBookmark = () => {
 		const { title, url } = this.state;
 		if (title === '' || url === '') return false;
-		this.props.navigation.state.params.onAddBookmark({ name: title, url });
+		this.props.route.params.onAddBookmark({ name: title, url });
 		this.props.navigation.pop();
 	};
 

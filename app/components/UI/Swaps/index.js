@@ -1,8 +1,8 @@
-import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { ActivityIndicator, StyleSheet, View, TouchableOpacity, InteractionManager } from 'react-native';
 import { connect } from 'react-redux';
-import { NavigationContext } from 'react-navigation';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { View as AnimatableView } from 'react-native-animatable';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import numberToBN from 'number-to-bn';
@@ -49,7 +49,7 @@ import SlippageModal from './components/SlippageModal';
 import useBalance from './utils/useBalance';
 import useBlockExplorer from './utils/useBlockExplorer';
 import InfoModal from './components/InfoModal';
-import { toLowerCaseCompare } from '../../../util/general';
+import { toLowerCaseEquals } from '../../../util/general';
 
 const styles = StyleSheet.create({
 	screen: {
@@ -153,19 +153,21 @@ function SwapsAmountView({
 	setHasOnboarded,
 	setLiveness
 }) {
-	const navigation = useContext(NavigationContext);
+	const navigation = useNavigation();
+	const route = useRoute();
+
 	const explorer = useBlockExplorer(provider, frequentRpcList);
-	const initialSource = navigation.getParam('sourceToken', SWAPS_NATIVE_ADDRESS);
+	const initialSource = route.params?.sourceToken ?? SWAPS_NATIVE_ADDRESS;
 	const [amount, setAmount] = useState('0');
 	const [slippage, setSlippage] = useState(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
 	const [isInitialLoadingTokens, setInitialLoadingTokens] = useState(false);
 	const [, setLoadingTokens] = useState(false);
 	const [isSourceSet, setIsSourceSet] = useState(() =>
-		Boolean(swapsTokens?.find(token => toLowerCaseCompare(token.address, initialSource)))
+		Boolean(swapsTokens?.find(token => toLowerCaseEquals(token.address, initialSource)))
 	);
 
 	const [sourceToken, setSourceToken] = useState(() =>
-		swapsTokens?.find(token => toLowerCaseCompare(token.address, initialSource))
+		swapsTokens?.find(token => toLowerCaseEquals(token.address, initialSource))
 	);
 	const [destinationToken, setDestinationToken] = useState(null);
 	const [hasDismissedTokenAlert, setHasDismissedTokenAlert] = useState(true);
@@ -192,7 +194,7 @@ function SwapsAmountView({
 					InteractionManager.runAfterInteractions(() => {
 						const parameters = {
 							source: initialSource === SWAPS_NATIVE_ADDRESS ? 'MainView' : 'TokenView',
-							activeCurrency: swapsTokens?.find(token => toLowerCaseCompare(token.address, initialSource))
+							activeCurrency: swapsTokens?.find(token => toLowerCaseEquals(token.address, initialSource))
 								?.symbol,
 							chain_id: chainId
 						};
@@ -248,7 +250,7 @@ function SwapsAmountView({
 	useEffect(() => {
 		if (!isSourceSet && initialSource && swapsTokens && !sourceToken) {
 			setIsSourceSet(true);
-			setSourceToken(swapsTokens.find(token => toLowerCaseCompare(token.address, initialSource)));
+			setSourceToken(swapsTokens.find(token => toLowerCaseEquals(token.address, initialSource)));
 		}
 	}, [initialSource, isSourceSet, sourceToken, swapsTokens]);
 
@@ -301,14 +303,14 @@ function SwapsAmountView({
 			return false;
 		}
 
-		return !balanceAsUnits.isZero(0);
+		return !(balanceAsUnits.isZero?.() ?? true);
 	}, [balanceAsUnits, sourceToken]);
 
 	const hasEnoughBalance = useMemo(() => {
 		if (hasInvalidDecimals || !hasBalance || !balanceAsUnits) {
 			return false;
 		}
-		return balanceAsUnits.gte(amountAsUnits);
+		return balanceAsUnits.gte?.(amountAsUnits) ?? false;
 	}, [amountAsUnits, balanceAsUnits, hasBalance, hasInvalidDecimals]);
 
 	const currencyAmount = useMemo(() => {
@@ -413,8 +415,11 @@ function SwapsAmountView({
 		}
 		hideTokenVerificationModal();
 		navigation.navigate('Webview', {
-			url: explorer.token(destinationToken.address),
-			title: strings('swaps.verify')
+			screen: 'SimpleWebview',
+			params: {
+				url: explorer.token(destinationToken.address),
+				title: strings('swaps.verify')
+			}
 		});
 	}, [explorer, destinationToken, hideTokenVerificationModal, navigation]);
 
@@ -685,7 +690,7 @@ function SwapsAmountView({
 	);
 }
 
-SwapsAmountView.navigationOptions = ({ navigation }) => getSwapsAmountNavbar(navigation);
+SwapsAmountView.navigationOptions = ({ navigation, route }) => getSwapsAmountNavbar(navigation, route);
 
 SwapsAmountView.propTypes = {
 	swapsTokens: PropTypes.arrayOf(PropTypes.object),

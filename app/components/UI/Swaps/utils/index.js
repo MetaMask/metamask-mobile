@@ -58,15 +58,14 @@ export function setQuotesNavigationsParams(
 
 /**
  * Gets required parameters for Swaps Quotes View
- * @param {object} navigation React-navigation's navigation prop
- * @return {object} Object containing sourceTokenAddress, destinationTokenAddress, sourceAmount, slippage and tokens
+ * @return {object} Object containing sourceTokenAddress, destinationTokenAddress, sourceAmount and slippage
  */
-export function getQuotesNavigationsParams(navigation) {
-	const slippage = navigation.getParam('slippage', 1);
-	const sourceTokenAddress = navigation.getParam('sourceTokenAddress', '');
-	const destinationTokenAddress = navigation.getParam('destinationTokenAddress', '');
-	const sourceAmount = navigation.getParam('sourceAmount');
-	const tokens = navigation.getParam('tokens');
+export function getQuotesNavigationsParams(route) {
+	const slippage = route.params?.slippage ?? 1;
+	const sourceTokenAddress = route.params?.sourceTokenAddress ?? '';
+	const destinationTokenAddress = route.params?.destinationTokenAddress ?? '';
+	const sourceAmount = route.params?.sourceAmount;
+	const tokens = route.params?.tokens;
 
 	return {
 		sourceTokenAddress,
