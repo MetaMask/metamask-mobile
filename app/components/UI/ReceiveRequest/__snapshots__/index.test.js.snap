@@ -114,8 +114,9 @@ exports[`ReceiveRequest should render correctly 1`] = `
         underline={false}
         upper={false}
       >
-        <Connect(EthereumAddress)
+        <EthereumAddress
           address="0x"
+          style={null}
           type="short"
         />
       </Text>
