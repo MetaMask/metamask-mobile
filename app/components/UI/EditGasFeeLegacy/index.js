@@ -296,7 +296,7 @@ const EditGasFeeLegacy = ({
 									<HorizontalSelector
 										selected={selectedOption}
 										onPress={selectOption}
-										options={renderOptions()}
+										options={renderOptions}
 									/>
 								</View>
 							)}

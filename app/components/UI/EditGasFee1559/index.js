@@ -284,7 +284,7 @@ const EditGasFee1559 = ({
 			>
 				<View>
 					{/* TODO(eip1559) hook with strings i18n */}
-					<HorizontalSelector selected={selectedOption} onPress={selectOption} options={renderOptions()} />
+					<HorizontalSelector selected={selectedOption} onPress={selectOption} options={renderOptions} />
 				</View>
 				<View style={styles.advancedOptionsContainer}>
 					<TouchableOpacity onPress={toggleAdvancedOptions} style={styles.advancedOptionsButton}>
