@@ -3,7 +3,7 @@ import { tokenListToArray } from './';
 // TokenListController needs to export this type for us to import and use
 type Token = any;
 
-const token = {
+const token: Token = {
 	address: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
 	symbol: 'WBTC',
 	decimals: 8,
@@ -34,6 +34,3 @@ describe('Token utils :: tokenListToArray', () => {
 		expect(tokenListArray).toBe([token]);
 	});
 });
-
-// Fix --isolatedModules error
-export {};
