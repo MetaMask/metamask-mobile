@@ -4,6 +4,7 @@ import { colors } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import Alert from '../../../Base/Alert';
+import FAIcon from 'react-native-vector-icons/FontAwesome';
 
 const styles = StyleSheet.create({
 	icon: {
@@ -12,12 +13,15 @@ const styles = StyleSheet.create({
 	}
 });
 
-export default function WarningMessage({ warningMessage }) {
+export default function WarningMessage({ type, warningMessage }) {
+	const icon = () => {
+		if (type === 'error') return <FAIcon name="info-circle" style={styles.icon} color={colors.red} size={15} />;
+
+		return <AntIcon style={styles.icon} name="bells" color={colors.yellow} size={15} />;
+	};
+
 	return (
-		<Alert
-			type="warning"
-			renderIcon={() => <AntIcon style={styles.icon} name="bells" color={colors.yellow} size={15} />}
-		>
+		<Alert type={type || 'warning'} renderIcon={icon}>
 			{warningMessage}
 		</Alert>
 	);
@@ -25,7 +29,11 @@ export default function WarningMessage({ warningMessage }) {
 
 WarningMessage.propTypes = {
 	/**
-	 * Warning message to display
+	 * Message to display
 	 */
-	warningMessage: PropTypes.oneOfType([PropTypes.string, PropTypes.object])
+	warningMessage: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+	/**
+	 * Message type for styling (default style is 'warning')
+	 */
+	type: PropTypes.oneOfType([PropTypes.string, PropTypes.object])
 };
