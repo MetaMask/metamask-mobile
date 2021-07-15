@@ -5,6 +5,8 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
   style={
     Object {
       "marginHorizontal": 24,
+      "paddingBottom": 10,
+      "paddingTop": 10,
     }
   }
 >
@@ -12,8 +14,10 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
     <View
       style={
         Object {
+          "alignItems": "center",
           "flex": 1,
           "flexDirection": "row",
+          "marginBottom": 2,
         }
       }
     >
@@ -26,6 +30,7 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
         green={false}
         link={false}
         modal={false}
+        noMargin={true}
         orange={false}
         primary={true}
         red={false}
@@ -66,47 +71,68 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
           />
         </TouchableOpacity>
       </Text>
-    </View>
-    <Skeleton
-      width={80}
-    />
-  </SummaryRow>
-  <SummaryRow>
-    <Skeleton
-      noStyle={true}
-      width={120}
-    />
-    <Skeleton
-      width={120}
-    />
-  </SummaryRow>
-  <View>
-    <SummarySeparator />
-    <SummaryRow>
-      <Text
-        black={false}
-        blue={false}
-        bold={true}
-        centered={false}
-        disclaimer={false}
-        green={false}
-        link={false}
-        modal={false}
-        primary={true}
-        red={false}
-        reset={false}
-        right={false}
-        small={false}
-        strikethrough={false}
-        underline={false}
-        upper={false}
-      >
-        Total
-      </Text>
       <Skeleton
         width={80}
       />
-    </SummaryRow>
+    </View>
+  </SummaryRow>
+  <SummaryRow>
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "flex": 1,
+          "flexDirection": "row",
+          "marginBottom": 2,
+        }
+      }
+    >
+      <Skeleton
+        noStyle={true}
+        width={120}
+      />
+      <Skeleton
+        width={120}
+      />
+    </View>
+  </SummaryRow>
+  <View>
+    <SummarySeparator />
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "flex": 1,
+          "flexDirection": "row",
+        }
+      }
+    >
+      <SummaryRow>
+        <Text
+          black={false}
+          blue={false}
+          bold={true}
+          centered={false}
+          disclaimer={false}
+          green={false}
+          link={false}
+          modal={false}
+          primary={true}
+          red={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
+          underline={false}
+          upper={false}
+        >
+          Total
+        </Text>
+        <Skeleton
+          width={80}
+        />
+      </SummaryRow>
+    </View>
     <SummaryRow>
       <Skeleton
         width={120}

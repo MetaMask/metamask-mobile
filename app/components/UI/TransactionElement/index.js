@@ -314,7 +314,7 @@ class TransactionElement extends PureComponent {
 	showSpeedUpModal = () => {
 		const existingGas = this.parseGas();
 
-		this.mounted && this.props.onSpeedUpAction(true, existingGas, tx);
+		this.mounted && this.props.onSpeedUpAction(true, existingGas, this.props.tx);
 	};
 
 	hideSpeedUpModal = () => {
