@@ -65,6 +65,8 @@ export const TRANSACTION_TYPES = {
 	APPROVE: 'transaction_approve'
 };
 
+const MULTIPLIER_HEX = 16;
+
 const { getSwapsContractAddress } = swapsUtils;
 /**
  * Utility class with the single responsibility
@@ -465,14 +467,14 @@ export const calculateAmountsEIP1559 = ({
 
 	const totalMinHex = addCurrencies(gasFeeMinHex, value, {
 		toNumericBase: 'hex',
-		aBase: 16,
-		bBase: 16
+		aBase: MULTIPLIER_HEX,
+		bBase: MULTIPLIER_HEX
 	});
 
 	const totalMaxHex = addCurrencies(gasFeeMaxHex, value, {
 		toNumericBase: 'hex',
-		aBase: 16,
-		bBase: 16
+		aBase: MULTIPLIER_HEX,
+		bBase: MULTIPLIER_HEX
 	});
 
 	return { totalMinNative, totalMinConversion, totalMaxNative, totalMaxConversion, totalMinHex, totalMaxHex };
@@ -575,8 +577,6 @@ export const calculateEIP1559GasFeeHexes = ({
 	suggestedMaxFeePerGasHex,
 	suggestedMaxPriorityFeePerGasHex
 }) => {
-	const MULTIPLIER_HEX = 16;
-
 	// Hex calculations
 	const estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex = addCurrencies(
 		estimatedBaseFeeHex,
@@ -719,8 +719,8 @@ export const parseTransactionEIP1559 = (
 	// This is the total transaction value for comparing with account balance
 	const valuePlusGasMaxHex = addCurrencies(gasFeeMaxHex, value, {
 		toNumericBase: 'hex',
-		aBase: 16,
-		bBase: 16
+		aBase: MULTIPLIER_HEX,
+		bBase: MULTIPLIER_HEX
 	});
 
 	if (onlyGas) {
