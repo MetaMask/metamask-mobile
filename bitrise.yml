@@ -128,6 +128,16 @@ workflows:
     - script:
         inputs:
         - content: |-
+            #!/bin/bash
+            brew tap facebook/fb
+            export CODE_SIGNING_REQUIRED=NO
+            brew install fbsimctl
+            brew tap wix/brew
+            brew install applesimutils --HEAD
+        title: Install Detox Utils
+    - script:
+        inputs:
+        - content: |-
             # Add cache directory to environment variable
             envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
             envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
