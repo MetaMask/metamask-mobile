@@ -4,7 +4,7 @@ default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
 trigger_map:
 - push_branch: 'feature/bitrise'
-  workflow: start_release_builds
+  workflow: start_e2e_tests
 # - push_branch: 'develop'
 #   workflow: start_release_builds
 # - push_branch: 'main'
@@ -97,13 +97,6 @@ workflows:
     - code_setup
     - e2e_setup
     steps:
-    - script@1:
-        inputs:
-        - content: |-
-            #!/usr/bin/env bash 
-            curl -sL https://sentry.io/get-cli/
-        title: Install Test Dependencies (Sentry)
-        is_always_run: false
     - install-missing-android-tools@2:
         inputs:
         - gradlew_path: $PROJECT_LOCATION/gradlew
