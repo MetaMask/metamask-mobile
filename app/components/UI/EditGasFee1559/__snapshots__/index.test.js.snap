@@ -95,6 +95,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
               green={false}
               link={false}
               modal={false}
+              noMargin={true}
               numberOfLines={1}
               primary={false}
               red={false}
@@ -125,12 +126,18 @@ exports[`EditGasFee1559 should render correctly 1`] = `
             green={false}
             link={false}
             modal={false}
+            noMargin={true}
             primary={false}
             red={false}
             reset={false}
             right={false}
             small={false}
             strikethrough={false}
+            style={
+              Object {
+                "marginBottom": 6,
+              }
+            }
             underline={false}
             upper={false}
           >
@@ -143,6 +150,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
               green={false}
               link={false}
               modal={false}
+              noMargin={true}
               primary={false}
               red={false}
               reset={false}
@@ -161,7 +169,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
           <Text
             black={false}
             blue={false}
-            bold={false}
+            bold={true}
             centered={false}
             disclaimer={false}
             green={false}

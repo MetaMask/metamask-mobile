@@ -134,6 +134,7 @@ exports[`Confirm should render correctly 1`] = `
       />
     </View>
     <Connect(TransactionReviewEIP1559)
+      gasEstimationReady={false}
       onEdit={[Function]}
       onUpdatingValuesEnd={[Function]}
       onUpdatingValuesStart={[Function]}
