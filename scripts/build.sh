@@ -205,9 +205,6 @@ buildIosReleaseE2E(){
 	prebuild_ios
 
 	# Replace release.xcconfig with ENV vars
-	echo "Setting up env vars...";
-	echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
-	echo "Build started..."
 	if [ "$PRE_RELEASE" = true ] ; then
 		echo "Setting up env vars...";
 		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
@@ -218,10 +215,9 @@ buildIosReleaseE2E(){
 		# Generate sourcemaps
 		yarn sourcemaps:ios
 	else
-		# if [ ! -f "ios/release.xcconfig" ] ; then
-		# 	echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
-		# fi
-
+		if [ ! -f "ios/release.xcconfig" ] ; then
+			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
+		fi
 		cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask -configuration Release -sdk iphonesimulator -derivedDataPath build
 	fi
 }
