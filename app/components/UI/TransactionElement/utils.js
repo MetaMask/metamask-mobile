@@ -19,34 +19,29 @@ import {
 	isCollectibleAddress,
 	getTicker,
 	getActionKey,
-	TRANSACTION_TYPES
+	TRANSACTION_TYPES,
+	isEIP1559Transaction,
+	calculateEIP1559GasFeeHexes
 } from '../../../util/transactions';
 import contractMap from '@metamask/contract-metadata';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { isSwapsNativeAsset } from '../Swaps/utils';
 import { toLowerCaseEquals } from '../../../util/general';
-import { addCurrencies, multiplyCurrencies } from '../../../util/conversion-util';
 
 const { getSwapsContractAddress } = swapsUtils;
 
-function calculateTotalGas({ gas, gasPrice, estimatedBaseFee, maxFeePerGas, maxPriorityFeePerGas }) {
-	if (maxFeePerGas && maxPriorityFeePerGas) {
-		const estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex = addCurrencies(
-			estimatedBaseFee || '0x0',
-			maxPriorityFeePerGas,
-			{
-				toNumericBase: 'hex',
-				aBase: 16,
-				bBase: 16
-			}
-		);
-		const gasFeeMinHex = multiplyCurrencies(estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex, gas, {
-			toNumericBase: 'hex',
-			multiplicandBase: 16,
-			multiplierBase: 16
+function calculateTotalGas(transaction) {
+	const { gas, gasPrice, estimatedBaseFee, maxPriorityFeePerGas, maxFeePerGas } = transaction;
+
+	if (isEIP1559Transaction(transaction)) {
+		const eip1559GasHex = calculateEIP1559GasFeeHexes({
+			gasLimitHex: gas,
+			estimatedBaseFeeHex: estimatedBaseFee || '0x0',
+			suggestedMaxPriorityFeePerGasHex: maxPriorityFeePerGas,
+			suggestedMaxFeePerGasHex: maxFeePerGas
 		});
-		return hexToBN(gasFeeMinHex);
+		return hexToBN(eip1559GasHex.gasFeeMinHex);
 	}
 	const gasBN = hexToBN(gas);
 	const gasPriceBN = hexToBN(gasPrice);
@@ -54,19 +49,18 @@ function calculateTotalGas({ gas, gasPrice, estimatedBaseFee, maxFeePerGas, maxP
 	return isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
 }
 
-function renderGwei({ gasPrice, estimatedBaseFee, maxFeePerGas, maxPriorityFeePerGas }) {
-	if (maxFeePerGas && maxPriorityFeePerGas) {
-		const estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex = addCurrencies(
-			estimatedBaseFee || '0x0',
-			maxPriorityFeePerGas,
-			{
-				toNumericBase: 'hex',
-				aBase: 16,
-				bBase: 16
-			}
-		);
+function renderGwei(transaction) {
+	const { gasPrice, estimatedBaseFee, maxFeePerGas, maxPriorityFeePerGas, gas } = transaction;
 
-		return renderToGwei(estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex);
+	if (isEIP1559Transaction(transaction)) {
+		const eip1559GasHex = calculateEIP1559GasFeeHexes({
+			gasLimitHex: gas,
+			estimatedBaseFeeHex: estimatedBaseFee || '0x0',
+			suggestedMaxPriorityFeePerGasHex: maxPriorityFeePerGas,
+			suggestedMaxFeePerGasHex: maxFeePerGas
+		});
+
+		return renderToGwei(eip1559GasHex.estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex);
 	}
 	return renderToGwei(gasPrice);
 }

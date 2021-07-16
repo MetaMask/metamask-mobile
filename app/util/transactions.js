@@ -412,30 +412,6 @@ export function getTransactionToName({ addressBook, network, toAddress, identiti
 }
 
 /**
- * Validate transaction value for speed up or cancel transaction actions
- *
- * @param {object} transaction - Transaction object to validate
- * @param {string} rate - Rate to validate
- * @param {string} accounts - Map of accounts to information objects including balances
- * @returns {string} - Whether the balance is validated or not
- */
-export function validateTransactionActionBalance(transaction, rate, accounts) {
-	try {
-		const checksummedFrom = safeToChecksumAddress(transaction.transaction.from);
-		const balance = accounts[checksummedFrom].balance;
-		return hexToBN(balance).lt(
-			hexToBN(transaction.transaction.gasPrice)
-				.mul(new BN(rate * 10))
-				.div(new BN(10))
-				.mul(hexToBN(transaction.transaction.gas))
-				.add(hexToBN(transaction.transaction.value))
-		);
-	} catch (e) {
-		return false;
-	}
-}
-
-/**
  * Return a boolen if the transaction should be flagged to add the account added label
  *
  * @param {object} transaction - Transaction object get time
@@ -593,6 +569,36 @@ export const calculateEIP1559Times = (suggestedMaxPriorityFeePerGas, suggestedMa
 	return { timeEstimate, timeEstimateColor };
 };
 
+export const calculateEIP1559GasFeeHexes = ({
+	gasLimitHex,
+	estimatedBaseFeeHex,
+	suggestedMaxFeePerGasHex,
+	suggestedMaxPriorityFeePerGasHex
+}) => {
+	// Hex calculations
+	const estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex = addCurrencies(
+		estimatedBaseFeeHex,
+		suggestedMaxPriorityFeePerGasHex,
+		{
+			toNumericBase: 'hex',
+			aBase: 16,
+			bBase: 16
+		}
+	);
+	const gasFeeMinHex = multiplyCurrencies(estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex, gasLimitHex, {
+		toNumericBase: 'hex',
+		multiplicandBase: 16,
+		multiplierBase: 16
+	});
+	const gasFeeMaxHex = multiplyCurrencies(suggestedMaxFeePerGasHex, gasLimitHex, {
+		toNumericBase: 'hex',
+		multiplicandBase: 16,
+		multiplierBase: 16
+	});
+
+	return { estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex, gasFeeMinHex, gasFeeMaxHex };
+};
+
 export const parseTransactionEIP1559 = (
 	{
 		selectedGasFee,
@@ -621,25 +627,11 @@ export const parseTransactionEIP1559 = (
 		suggestedMaxFeePerGas
 	);
 
-	// Hex calculations
-	const estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex = addCurrencies(
+	const { gasFeeMinHex, gasFeeMaxHex } = calculateEIP1559GasFeeHexes({
+		gasLimitHex,
 		estimatedBaseFeeHex,
 		suggestedMaxPriorityFeePerGasHex,
-		{
-			toNumericBase: 'hex',
-			aBase: 16,
-			bBase: 16
-		}
-	);
-	const gasFeeMinHex = multiplyCurrencies(estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex, gasLimitHex, {
-		toNumericBase: 'hex',
-		multiplicandBase: 16,
-		multiplierBase: 16
-	});
-	const gasFeeMaxHex = multiplyCurrencies(suggestedMaxFeePerGasHex, gasLimitHex, {
-		toNumericBase: 'hex',
-		multiplicandBase: 16,
-		multiplierBase: 16
+		suggestedMaxFeePerGasHex
 	});
 
 	const maxPriorityFeeNative = getTransactionFee({
@@ -945,3 +937,43 @@ export const isEIP1559Transaction = transaction => {
 	const hasOwnProp = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key);
 	return hasOwnProp(transaction, 'maxFeePerGas') && hasOwnProp(transaction, 'maxPriorityFeePerGas');
 };
+
+/**
+ * Validate transaction value for speed up or cancel transaction actions
+ *
+ * @param {object} transaction - Transaction object to validate
+ * @param {string} rate - Rate to validate
+ * @param {string} accounts - Map of accounts to information objects including balances
+ * @returns {string} - Whether the balance is validated or not
+ */
+export function validateTransactionActionBalance(transaction, rate, accounts) {
+	try {
+		const checksummedFrom = safeToChecksumAddress(transaction.transaction.from);
+		const balance = accounts[checksummedFrom].balance;
+
+		let gasPrice = transaction.transaction.gasPrice;
+		const transactionToCheck = transaction.transaction;
+
+		if (isEIP1559Transaction(transactionToCheck)) {
+			const { estimatedBaseFee, maxPriorityFeePerGas, maxFeePerGas, gas } = transactionToCheck;
+			const eip1559GasHex = calculateEIP1559GasFeeHexes({
+				gasLimitHex: gas,
+				estimatedBaseFeeHex: estimatedBaseFee || '0x0',
+				suggestedMaxPriorityFeePerGasHex: maxPriorityFeePerGas,
+				suggestedMaxFeePerGasHex: maxFeePerGas
+			});
+
+			gasPrice = eip1559GasHex.estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex;
+		}
+
+		return hexToBN(balance).lt(
+			hexToBN(gasPrice)
+				.mul(new BN(rate * 10))
+				.div(new BN(10))
+				.mul(hexToBN(transaction.transaction.gas))
+				.add(hexToBN(transaction.transaction.value))
+		);
+	} catch (e) {
+		return false;
+	}
+}
