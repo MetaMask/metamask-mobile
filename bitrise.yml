@@ -87,13 +87,6 @@ workflows:
 # E2E Steps
   e2e_setup:
     steps:
-    - script@1:
-        inputs:
-        - content: |-
-            #!/usr/bin/env bash 
-            curl -sL https://sentry.io/get-cli/
-        title: Install Test Dependencies (Sentry)
-        is_always_run: false
     - yarn@0:
         inputs:
         - cache_local_deps: 'yes'
@@ -104,6 +97,13 @@ workflows:
     - code_setup
     - e2e_setup
     steps:
+    - script@1:
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash 
+            curl -sL https://sentry.io/get-cli/
+        title: Install Test Dependencies (Sentry)
+        is_always_run: false
     - install-missing-android-tools@2:
         inputs:
         - gradlew_path: $PROJECT_LOCATION/gradlew
@@ -140,13 +140,6 @@ workflows:
             envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
             brew tap wix/brew
         title: Set Env Path for caching deps
-    - script@1:
-        inputs:
-        - content: |-
-            #!/usr/bin/env bash 
-            curl -sL https://sentry.io/get-cli/
-        title: Install Test Dependencies (Sentry)
-        is_always_run: false
     - cocoapods-install@2:
         is_always_run: false
     - script@1:
@@ -158,12 +151,6 @@ workflows:
             METAMASK_ENVIRONMENT='production' yarn test:e2e:ios
         title: iOS Sourcemaps
         is_always_run: false
-    # - yarn@0:
-    #     inputs:
-    #     - cache_local_deps: 'yes'
-    #     - command: test:e2e:ios
-    #     title: E2E Tests on iOS
-    #     is_always_run: false
   start_e2e_tests:
     steps:
     - build-router-start@0:
@@ -267,13 +254,6 @@ workflows:
         inputs:
         - build_short_version_string: $VERSION_NAME
         - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
-    - script@1:
-        inputs:
-        - content: |-
-            #!/usr/bin/env bash 
-            curl -sL https://sentry.io/get-cli/ | bash
-        title: Install Sentry CLI
-        is_always_run: false
     - cocoapods-install@2: {}
     - script@1:
         inputs:
