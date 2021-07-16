@@ -132,7 +132,7 @@ workflows:
             envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
             envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
             brew tap wix/brew
-    title: Set Env Path for caching deps
+        title: Set Env Path for caching deps
     - cocoapods-install@2:
         is_always_run: false
     - script@1:
