@@ -669,6 +669,7 @@
 		"use_max": "Use max",
 		"set_gas": "Set",
 		"cancel_gas": "Cancel",
+		"transaction_fee_estimated": "Estimated gas fee",
 		"transaction_fee": "Gas fee",
 		"transaction_fee_less": "No fee",
 		"total_amount": "Total amount",

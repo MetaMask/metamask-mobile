@@ -600,7 +600,7 @@ export const parseTransactionEIP1559 = (
 		conversionRate,
 		currentCurrency,
 		nativeCurrency,
-		transactionState: { selectedAsset, transaction: { value, data } } = { selectedAsset: '', transaction: {} }
+		transactionState: { selectedAsset, transaction: { value, data } } = { selectedAsset: {}, transaction: {} }
 	},
 	{ onlyGas } = {}
 ) => {
@@ -748,6 +748,7 @@ export const parseTransactionEIP1559 = (
 			timeEstimate,
 			timeEstimateColor,
 			estimatedBaseFee,
+			estimatedBaseFeeHex,
 			suggestedMaxPriorityFeePerGas,
 			suggestedMaxPriorityFeePerGasHex,
 			suggestedMaxFeePerGas,
@@ -848,6 +849,7 @@ export const parseTransactionEIP1559 = (
 		totalMaxConversion,
 		renderableTotalMaxConversion,
 		estimatedBaseFee,
+		estimatedBaseFeeHex,
 		suggestedMaxPriorityFeePerGas,
 		suggestedMaxPriorityFeePerGasHex,
 		suggestedMaxFeePerGas,
