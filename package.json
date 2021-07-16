@@ -78,7 +78,7 @@
   "dependencies": {
     "@exodus/react-native-payments": "https://github.com/wachunei/react-native-payments.git#package-json-hack",
     "@metamask/contract-metadata": "^1.23.0",
-    "@metamask/controllers": "file:./metamask-controllers-v12.1.8.tgz",
+    "@metamask/controllers": "file:./metamask-controllers-v12.1.9.tgz",
     "@metamask/etherscan-link": "^2.0.0",
     "@metamask/swaps-controller": "./metamask-swaps-controller-v4.0.0-9385ff.tgz",
     "@react-native-community/async-storage": "1.12.1",
@@ -215,7 +215,7 @@
     "url-parse": "1.5.0",
     "valid-url": "1.0.9",
     "vm-browserify": "1.1.2",
-    "web3-provider-engine": "git+https://github.com/MetaMask/web3-provider-engine.git#f405207359b1632f211f26103d12eacaafdc9aa4",
+    "web3-provider-engine": "^16.0.3",
     "zxcvbn": "4.4.2"
   },
   "devDependencies": {
