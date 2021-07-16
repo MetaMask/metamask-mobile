@@ -146,7 +146,8 @@ class Approve extends PureComponent {
 
 			const EIP1559GasData = this.parseTransactionDataEIP1559({
 				...initialGas,
-				suggestedGasLimit
+				suggestedGasLimit,
+				selectedOption: gasSelected
 			});
 
 			let EIP1559GasDataTemp;
@@ -155,7 +156,8 @@ class Approve extends PureComponent {
 			} else {
 				EIP1559GasDataTemp = this.parseTransactionDataEIP1559({
 					...initialGasTemp,
-					suggestedGasLimit
+					suggestedGasLimit,
+					selectedOption: gasSelectedTemp
 				});
 			}
 
@@ -494,7 +496,7 @@ class Approve extends PureComponent {
 			gas.suggestedGasLimit = fromWei(transaction.gas, 'wei');
 		}
 		this.setState({
-			EIP1559GasDataTemp: this.parseTransactionDataEIP1559(gas),
+			EIP1559GasDataTemp: this.parseTransactionDataEIP1559({ ...gas, selectedOption: selected }),
 			stopUpdateGas: !selected,
 			gasSelectedTemp: selected
 		});

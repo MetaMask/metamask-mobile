@@ -465,7 +465,8 @@ class Confirm extends PureComponent {
 
 					const EIP1559TransactionData = this.parseTransactionDataEIP1559({
 						...this.props.gasFeeEstimates[this.state.gasSelected],
-						suggestedGasLimit
+						suggestedGasLimit,
+						selectedOption: this.state.gasSelected
 					});
 
 					let EIP1559TransactionDataTemp;
@@ -474,7 +475,8 @@ class Confirm extends PureComponent {
 					} else {
 						EIP1559TransactionDataTemp = this.parseTransactionDataEIP1559({
 							...this.props.gasFeeEstimates[this.state.gasSelectedTemp],
-							suggestedGasLimit
+							suggestedGasLimit,
+							selectedOption: this.state.gasSelectedTemp
 						});
 					}
 
@@ -507,7 +509,7 @@ class Confirm extends PureComponent {
 					if (this.state.gasSelected === this.state.gasSelectedTemp) {
 						LegacyTransactionDataTemp = LegacyTransactionData;
 					} else {
-						LegacyTransactionDataTemp = this.parseTransactionDataEIP1559({
+						LegacyTransactionDataTemp = this.parseTransactionDataLegacy({
 							suggestedGasPrice:
 								this.props.gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
 									? this.props.gasFeeEstimates[this.state.gasSelectedTemp]
@@ -1133,7 +1135,7 @@ class Confirm extends PureComponent {
 			gas.suggestedGasLimit = fromWei(transaction.gas, 'wei');
 		}
 		this.setState({
-			EIP1559TransactionDataTemp: this.parseTransactionDataEIP1559(gas),
+			EIP1559TransactionDataTemp: this.parseTransactionDataEIP1559({ ...gas, selectedOption: selected }),
 			stopUpdateGas: !selected,
 			gasSelectedTemp: selected
 		});

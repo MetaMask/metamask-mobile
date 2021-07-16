@@ -543,26 +543,48 @@ export const calculateERC20EIP1559 = ({
 	];
 };
 
-export const calculateEIP1559Times = (suggestedMaxPriorityFeePerGas, suggestedMaxFeePerGas) => {
+export const calculateEIP1559Times = ({
+	suggestedMaxPriorityFeePerGas,
+	suggestedMaxFeePerGas,
+	selectedOption,
+	recommended
+}) => {
 	let timeEstimate = 'Unknown processing time';
-	let timeEstimateColor = 'red';
-	const { GasFeeController } = Engine.context;
+	let timeEstimateColor = 'grey';
+
+	if (!recommended) recommended = 'medium';
+
+	if (!selectedOption) {
+		timeEstimateColor = 'grey';
+	} else if (recommended === 'high') {
+		if (selectedOption === 'high') timeEstimateColor = 'green';
+		else timeEstimateColor = 'red';
+	} else if (selectedOption === 'low') {
+		timeEstimateColor = 'red';
+	} else {
+		timeEstimateColor = 'green';
+	}
 
 	try {
-		const time = GasFeeController.getTimeEstimate(suggestedMaxPriorityFeePerGas, suggestedMaxFeePerGas);
+		const { GasFeeController } = Engine.context;
+		const times = GasFeeController.getTimeEstimate(suggestedMaxPriorityFeePerGas, suggestedMaxFeePerGas);
 
-		if (!time || time === 'unknown' || Object.keys(time).length < 2 || time.upperTimeBound === 'unknown') {
-			timeEstimate = 'Unknown processing time';
+		if (!times || times === 'unknown' || Object.keys(times).length < 2 || times.upperTimeBound === 'unknown') {
+			timeEstimate = 'Unknown processing times';
+		} else if (selectedOption === 'low') {
+			timeEstimate = `Maybe in ${humanizeDuration(times.upperTimeBound)}`;
+		} else if (selectedOption === 'medium') {
+			timeEstimate = `Likely in < ${humanizeDuration(times.upperTimeBound)}`;
+		} else if (selectedOption === 'high') {
+			timeEstimate = `Very likely in < ${humanizeDuration(times.upperTimeBound)}`;
+		} else if (times.upperTimeBound === 0) {
+			timeEstimate = `At least ${humanizeDuration(times.lowerTimeBound)}`;
 			timeEstimateColor = 'red';
-		} else if (time.lowerTimeBound === 0) {
-			timeEstimate = `Less than ${humanizeDuration(time.upperTimeBound)}`;
+		} else if (times.lowerTimeBound === 0) {
+			timeEstimate = `Less than ${humanizeDuration(times.upperTimeBound)}`;
 			timeEstimateColor = 'green';
-		} else if (time.upperTimeBound === 0) {
-			timeEstimate = `At least ${humanizeDuration(time.lowerTimeBound)}`;
-			timeEstimateColor = 'red';
 		} else {
-			timeEstimate = `${humanizeDuration(time.lowerTimeBound)} - ${humanizeDuration(time.upperTimeBound)}`;
-			timeEstimateColor = 'green';
+			timeEstimate = `${humanizeDuration(times.lowerTimeBound)} - ${humanizeDuration(times.upperTimeBound)}`;
 		}
 	} catch (error) {
 		console.log('ERROR ESTIMATING TIME', error);
@@ -570,7 +592,6 @@ export const calculateEIP1559Times = (suggestedMaxPriorityFeePerGas, suggestedMa
 
 	return { timeEstimate, timeEstimateColor };
 };
-
 export const calculateEIP1559GasFeeHexes = ({
 	gasLimitHex,
 	estimatedBaseFeeHex,
@@ -624,10 +645,11 @@ export const parseTransactionEIP1559 = (
 	const suggestedMaxFeePerGasHex = decGWEIToHexWEI(suggestedMaxFeePerGas);
 	const gasLimitHex = BNToHex(new BN(selectedGasFee.suggestedGasLimit));
 
-	const { timeEstimate, timeEstimateColor } = calculateEIP1559Times(
+	const { timeEstimate, timeEstimateColor } = calculateEIP1559Times({
 		suggestedMaxPriorityFeePerGas,
-		suggestedMaxFeePerGas
-	);
+		suggestedMaxFeePerGas,
+		selectedOption: selectedGasFee.selectedOption
+	});
 
 	const { gasFeeMinHex, gasFeeMaxHex } = calculateEIP1559GasFeeHexes({
 		gasLimitHex,
