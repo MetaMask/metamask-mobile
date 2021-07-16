@@ -575,25 +575,27 @@ export const calculateEIP1559GasFeeHexes = ({
 	suggestedMaxFeePerGasHex,
 	suggestedMaxPriorityFeePerGasHex
 }) => {
+	const MULTIPLIER_HEX = 16;
+
 	// Hex calculations
 	const estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex = addCurrencies(
 		estimatedBaseFeeHex,
 		suggestedMaxPriorityFeePerGasHex,
 		{
 			toNumericBase: 'hex',
-			aBase: 16,
-			bBase: 16
+			aBase: MULTIPLIER_HEX,
+			bBase: MULTIPLIER_HEX
 		}
 	);
 	const gasFeeMinHex = multiplyCurrencies(estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex, gasLimitHex, {
 		toNumericBase: 'hex',
-		multiplicandBase: 16,
-		multiplierBase: 16
+		multiplicandBase: MULTIPLIER_HEX,
+		multiplierBase: MULTIPLIER_HEX
 	});
 	const gasFeeMaxHex = multiplyCurrencies(suggestedMaxFeePerGasHex, gasLimitHex, {
 		toNumericBase: 'hex',
-		multiplicandBase: 16,
-		multiplierBase: 16
+		multiplicandBase: MULTIPLIER_HEX,
+		multiplierBase: MULTIPLIER_HEX
 	});
 
 	return { estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex, gasFeeMinHex, gasFeeMaxHex };
