@@ -957,15 +957,7 @@ export function validateTransactionActionBalance(transaction, rate, accounts) {
 		const transactionToCheck = transaction.transaction;
 
 		if (isEIP1559Transaction(transactionToCheck)) {
-			const { estimatedBaseFee, maxPriorityFeePerGas, maxFeePerGas, gas } = transactionToCheck;
-			const eip1559GasHex = calculateEIP1559GasFeeHexes({
-				gasLimitHex: gas,
-				estimatedBaseFeeHex: estimatedBaseFee || '0x0',
-				suggestedMaxPriorityFeePerGasHex: maxPriorityFeePerGas,
-				suggestedMaxFeePerGasHex: maxFeePerGas
-			});
-
-			gasPrice = eip1559GasHex.estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex;
+			gasPrice = transactionToCheck.maxFeePerGas;
 		}
 
 		return hexToBN(balance).lt(
