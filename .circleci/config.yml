@@ -201,6 +201,7 @@ workflows:
               only:
                 - main
                 - develop
+                - eip-1559-UI-QA
       - publish-pre-release-ios:
           requires:
             - prep-deps
