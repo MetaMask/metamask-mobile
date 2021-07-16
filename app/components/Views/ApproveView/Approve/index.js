@@ -570,6 +570,7 @@ class Approve extends PureComponent {
 								onUpdatingValuesEnd={this.onUpdatingValuesEnd}
 								animateOnChange={animateOnChange}
 								isAnimating={isAnimating}
+								gasEstimationReady={ready}
 							/>
 							<CustomGas
 								handleGasFeeSelection={this.handleSetGasFee}

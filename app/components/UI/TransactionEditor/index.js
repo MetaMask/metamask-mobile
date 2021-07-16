@@ -201,7 +201,7 @@ class TransactionEditor extends PureComponent {
 					this.setState({ animateOnChange: false });
 				}
 			);
-		} else {
+		} else if (this.props.gasEstimateType !== GAS_ESTIMATE_TYPES.NONE) {
 			const suggestedGasLimit = fromWei(transaction.gas, 'wei');
 			const getGas = selected =>
 				dappSuggestedGasPrice
@@ -606,7 +606,6 @@ class TransactionEditor extends PureComponent {
 			this.setState({ over: true });
 			error = strings('transaction.insufficient_amount', { amount, tokenSymbol });
 		}
-
 		return error;
 	};
 
@@ -801,7 +800,7 @@ class TransactionEditor extends PureComponent {
 		);
 		const amountError = await this.validateAmount(false);
 		const toAddressError = this.validateToAddress();
-		this.setState({ amountError, toAddressError });
+		this.setState({ amountError: totalError || amountError, toAddressError });
 		return totalError || amountError || toAddressError;
 	};
 

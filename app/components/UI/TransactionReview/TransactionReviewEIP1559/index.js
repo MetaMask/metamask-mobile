@@ -40,9 +40,7 @@ const styles = StyleSheet.create({
 		marginBottom: 2
 	},
 	gasBottomRowContainer: {
-		flexDirection: 'row',
-		flex: 1,
-		alignItems: 'center'
+		marginTop: 4
 	},
 	hitSlop: {
 		top: 10,
@@ -80,7 +78,9 @@ const TransactionReviewEIP1559 = ({
 	onUpdatingValuesStart,
 	onUpdatingValuesEnd,
 	animateOnChange,
-	isAnimating
+	isAnimating,
+	gasEstimationReady,
+	legacy
 }) => {
 	const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
 
@@ -138,7 +138,7 @@ const TransactionReviewEIP1559 = ({
 						</Text>
 					</View>
 
-					{gasFeePrimary ? (
+					{gasEstimationReady ? (
 						<FadeAnimationView
 							style={styles.valuesContainer}
 							valueToWatch={valueToWatchAnimation}
@@ -182,58 +182,60 @@ const TransactionReviewEIP1559 = ({
 					)}
 				</View>
 			</Summary.Row>
-			<Summary.Row>
-				<View style={styles.gasRowContainer}>
-					{timeEstimate ? (
-						<FadeAnimationView valueToWatch={valueToWatchAnimation} animateOnChange={animateOnChange}>
-							<Text small green={timeEstimateColor === 'green'} red={timeEstimateColor === 'red'}>
-								{timeEstimate}
-							</Text>
-						</FadeAnimationView>
-					) : (
-						<Skeleton width={120} noStyle />
-					)}
-					{gasFeeMaxPrimary ? (
-						<FadeAnimationView
-							style={styles.valuesContainer}
-							valueToWatch={valueToWatchAnimation}
-							animateOnChange={animateOnChange}
-						>
-							<Text grey right small>
-								<Text bold small noMargin>
-									Max fee:{' '}
+			{!legacy && (
+				<Summary.Row>
+					<View style={styles.gasRowContainer}>
+						{gasEstimationReady ? (
+							<FadeAnimationView valueToWatch={valueToWatchAnimation} animateOnChange={animateOnChange}>
+								<Text small green={timeEstimateColor === 'green'} red={timeEstimateColor === 'red'}>
+									{timeEstimate}
 								</Text>
-								<Text small noMargin>
-									{gasFeeMaxPrimary}
+							</FadeAnimationView>
+						) : (
+							<Skeleton width={120} noStyle />
+						)}
+						{gasEstimationReady ? (
+							<FadeAnimationView
+								style={styles.valuesContainer}
+								valueToWatch={valueToWatchAnimation}
+								animateOnChange={animateOnChange}
+							>
+								<Text grey right small>
+									<Text bold small noMargin>
+										Max fee:{' '}
+									</Text>
+									<Text small noMargin>
+										{gasFeeMaxPrimary}
+									</Text>
 								</Text>
-							</Text>
-						</FadeAnimationView>
-					) : (
-						<Skeleton width={120} />
-					)}
-				</View>
-			</Summary.Row>
+							</FadeAnimationView>
+						) : (
+							<Skeleton width={120} />
+						)}
+					</View>
+				</Summary.Row>
+			)}
 			{!hideTotal && (
 				<View>
 					<Summary.Separator />
 					<View style={styles.gasBottomRowContainer}>
 						<Summary.Row>
-							<Text primary bold>
+							<Text primary bold noMargin>
 								Total
 							</Text>
-							{totalPrimary ? (
+							{gasEstimationReady ? (
 								<FadeAnimationView
 									style={styles.valuesContainer}
 									valueToWatch={valueToWatchAnimation}
 									animateOnChange={animateOnChange}
 								>
 									{isMainnet && (
-										<Text grey upper right style={styles.amountContainer}>
+										<Text grey upper right noMargin style={styles.amountContainer}>
 											{totalSecondary}
 										</Text>
 									)}
 
-									<Text bold primary upper right>
+									<Text bold primary upper right noMargin>
 										{totalPrimary}
 									</Text>
 								</FadeAnimationView>
@@ -242,26 +244,28 @@ const TransactionReviewEIP1559 = ({
 							)}
 						</Summary.Row>
 					</View>
-					<Summary.Row>
-						{totalMaxPrimary ? (
-							<FadeAnimationView
-								style={styles.valuesContainer}
-								valueToWatch={valueToWatchAnimation}
-								animateOnChange={animateOnChange}
-							>
-								<Text grey right small>
-									<Text bold small noMargin>
-										Max amount:
-									</Text>{' '}
-									<Text small noMargin>
-										{totalMaxPrimary}
+					{!legacy && (
+						<Summary.Row>
+							{gasEstimationReady ? (
+								<FadeAnimationView
+									style={styles.valuesContainer}
+									valueToWatch={valueToWatchAnimation}
+									animateOnChange={animateOnChange}
+								>
+									<Text grey right small>
+										<Text bold small noMargin>
+											Max amount:
+										</Text>{' '}
+										<Text small noMargin>
+											{totalMaxPrimary}
+										</Text>
 									</Text>
-								</Text>
-							</FadeAnimationView>
-						) : (
-							<Skeleton width={120} />
-						)}
-					</Summary.Row>
+								</FadeAnimationView>
+							) : (
+								<Skeleton width={120} />
+							)}
+						</Summary.Row>
+					)}
 				</View>
 			)}
 			<InfoModal
@@ -361,7 +365,15 @@ TransactionReviewEIP1559.propTypes = {
 	/**
 	 * Boolean to determine if the animation is happening
 	 */
-	isAnimating: PropTypes.bool
+	isAnimating: PropTypes.bool,
+	/**
+	 * If loading should stop
+	 */
+	gasEstimationReady: PropTypes.bool,
+	/**
+	 * If should show legacy gas
+	 */
+	legacy: PropTypes.bool
 };
 
 const mapStateToProps = state => ({
