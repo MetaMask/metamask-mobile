@@ -592,6 +592,7 @@ export const calculateEIP1559Times = ({
 
 	return { timeEstimate, timeEstimateColor };
 };
+
 export const calculateEIP1559GasFeeHexes = ({
 	gasLimitHex,
 	estimatedBaseFeeHex,
@@ -608,6 +609,13 @@ export const calculateEIP1559GasFeeHexes = ({
 			bBase: MULTIPLIER_HEX
 		}
 	);
+
+	const maxPriorityFeePerGasTimesGasLimitHex = multiplyCurrencies(suggestedMaxPriorityFeePerGasHex, gasLimitHex, {
+		toNumericBase: 'hex',
+		multiplicandBase: MULTIPLIER_HEX,
+		multiplierBase: MULTIPLIER_HEX
+	});
+
 	const gasFeeMinHex = multiplyCurrencies(estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex, gasLimitHex, {
 		toNumericBase: 'hex',
 		multiplicandBase: MULTIPLIER_HEX,
@@ -619,7 +627,12 @@ export const calculateEIP1559GasFeeHexes = ({
 		multiplierBase: MULTIPLIER_HEX
 	});
 
-	return { estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex, gasFeeMinHex, gasFeeMaxHex };
+	return {
+		estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex,
+		maxPriorityFeePerGasTimesGasLimitHex,
+		gasFeeMinHex,
+		gasFeeMaxHex
+	};
 };
 
 export const parseTransactionEIP1559 = (
@@ -651,7 +664,7 @@ export const parseTransactionEIP1559 = (
 		selectedOption: selectedGasFee.selectedOption
 	});
 
-	const { gasFeeMinHex, gasFeeMaxHex } = calculateEIP1559GasFeeHexes({
+	const { gasFeeMinHex, gasFeeMaxHex, maxPriorityFeePerGasTimesGasLimitHex } = calculateEIP1559GasFeeHexes({
 		gasLimitHex,
 		estimatedBaseFeeHex,
 		suggestedMaxPriorityFeePerGasHex,
@@ -659,14 +672,14 @@ export const parseTransactionEIP1559 = (
 	});
 
 	const maxPriorityFeeNative = getTransactionFee({
-		value: gasFeeMinHex,
+		value: maxPriorityFeePerGasTimesGasLimitHex,
 		fromCurrency: nativeCurrency,
 		toCurrency: nativeCurrency,
 		numberOfDecimals: 6,
 		conversionRate
 	});
 	const maxPriorityFeeConversion = getTransactionFee({
-		value: gasFeeMinHex,
+		value: maxPriorityFeePerGasTimesGasLimitHex,
 		fromCurrency: nativeCurrency,
 		toCurrency: currentCurrency,
 		numberOfDecimals: 2,
@@ -676,7 +689,7 @@ export const parseTransactionEIP1559 = (
 	const renderableMaxPriorityFeeNative = formatETHFee(
 		maxPriorityFeeNative,
 		nativeCurrency,
-		Boolean(gasFeeMinHex) && gasFeeMinHex !== '0x0'
+		Boolean(maxPriorityFeePerGasTimesGasLimitHex) && maxPriorityFeePerGasTimesGasLimitHex !== '0x0'
 	);
 	const renderableMaxPriorityFeeConversion = formatCurrency(maxPriorityFeeConversion, currentCurrency);
 
@@ -733,9 +746,17 @@ export const parseTransactionEIP1559 = (
 		conversionRate
 	});
 
-	const renderableGasFeeMinNative = formatETHFee(gasFeeMinNative, nativeCurrency);
+	const renderableGasFeeMinNative = formatETHFee(
+		gasFeeMinNative,
+		nativeCurrency,
+		Boolean(gasFeeMinHex) && gasFeeMinHex !== '0x0'
+	);
 	const renderableGasFeeMinConversion = formatCurrency(gasFeeMinConversion, currentCurrency);
-	const renderableGasFeeMaxNative = formatETHFee(gasFeeMaxNative, nativeCurrency);
+	const renderableGasFeeMaxNative = formatETHFee(
+		gasFeeMaxNative,
+		nativeCurrency,
+		Boolean(gasFeeMaxHex) && gasFeeMaxHex !== '0x0'
+	);
 	const renderableGasFeeMaxConversion = formatCurrency(gasFeeMaxConversion, currentCurrency);
 
 	// This is the total transaction value for comparing with account balance
