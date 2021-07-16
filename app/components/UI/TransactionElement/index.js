@@ -347,27 +347,29 @@ class TransactionElement extends PureComponent {
 				>
 					{this.renderTxElement(transactionElement)}
 				</TouchableHighlight>
-				<Modal
-					isVisible={detailsModalVisible}
-					onBackdropPress={this.onCloseDetailsModal}
-					onBackButtonPress={this.onCloseDetailsModal}
-					onSwipeComplete={this.onCloseDetailsModal}
-					swipeDirection={'down'}
-				>
-					<DetailsModal>
-						<DetailsModal.Header>
-							<DetailsModal.Title onPress={this.onCloseDetailsModal}>
-								{transactionElement?.actionKey}
-							</DetailsModal.Title>
-							<DetailsModal.CloseIcon onPress={this.onCloseDetailsModal} />
-						</DetailsModal.Header>
-						<TransactionDetails
-							transactionObject={tx}
-							transactionDetails={transactionDetails}
-							close={this.onCloseDetailsModal}
-						/>
-					</DetailsModal>
-				</Modal>
+				{detailsModalVisible && (
+					<Modal
+						isVisible={detailsModalVisible}
+						onBackdropPress={this.onCloseDetailsModal}
+						onBackButtonPress={this.onCloseDetailsModal}
+						onSwipeComplete={this.onCloseDetailsModal}
+						swipeDirection={'down'}
+					>
+						<DetailsModal>
+							<DetailsModal.Header>
+								<DetailsModal.Title onPress={this.onCloseDetailsModal}>
+									{transactionElement?.actionKey}
+								</DetailsModal.Title>
+								<DetailsModal.CloseIcon onPress={this.onCloseDetailsModal} />
+							</DetailsModal.Header>
+							<TransactionDetails
+								transactionObject={tx}
+								transactionDetails={transactionDetails}
+								close={this.onCloseDetailsModal}
+							/>
+						</DetailsModal>
+					</Modal>
+				)}
 				<Modal
 					isVisible={importModalVisible}
 					onBackdropPress={this.onCloseImportWalletModal}

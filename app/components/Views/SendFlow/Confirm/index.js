@@ -699,6 +699,7 @@ class Confirm extends PureComponent {
 			transactionToSend.maxPriorityFeePerGas = addHexPrefix(
 				EIP1559TransactionData.suggestedMaxPriorityFeePerGasHex
 			); //'0x3b9aca00';
+			transactionToSend.estimatedBaseFee = addHexPrefix(EIP1559TransactionData.estimatedBaseFeeHex);
 			delete transactionToSend.gasPrice;
 		} else {
 			transactionToSend.gas = LegacyTransactionData.suggestedGasLimitHex;
