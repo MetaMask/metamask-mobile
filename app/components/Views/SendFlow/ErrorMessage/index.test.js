@@ -2,15 +2,18 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import ErrorMessage from './';
 import configureMockStore from 'redux-mock-store';
+import { Provider } from 'react-redux';
+
+const mockStore = configureMockStore();
+const store = mockStore({});
 
 describe('ErrorMessage', () => {
-	const mockStore = configureMockStore();
 	it('should render correctly', () => {
-		const initialState = {};
-
-		const wrapper = shallow(<ErrorMessage errorMessage={'error'} />, {
-			context: { store: mockStore(initialState) }
-		});
+		const wrapper = shallow(
+			<Provider store={store}>
+				<ErrorMessage errorMessage={'error'} />
+			</Provider>
+		);
 		expect(wrapper.dive()).toMatchSnapshot();
 	});
 });

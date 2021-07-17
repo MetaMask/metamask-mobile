@@ -1,35 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AddAsset should render correctly 1`] = `
-<ForwardRef(SafeAreaView)
-  style={
+<Connect(AddAsset)
+  route={
     Object {
-      "backgroundColor": "#FFFFFF",
-      "flex": 1,
+      "params": Object {
+        "assetType": "token",
+      },
     }
   }
-  testID="add-token-screen"
->
-  <ScrollableTabView
-    contentProps={Object {}}
-    initialPage={0}
-    locked={false}
-    onChangeTab={[Function]}
-    onScroll={[Function]}
-    page={-1}
-    prerenderingSiblingsNumber={0}
-    renderTabBar={[Function]}
-    scrollWithoutAnimation={false}
-    tabBarPosition="top"
-  >
-    <SearchTokenAutocomplete
-      tabLabel="SEARCH"
-      testID="tab-search-token"
-    />
-    <AddCustomToken
-      tabLabel="CUSTOM TOKEN"
-      testID="tab-add-custom-token"
-    />
-  </ScrollableTabView>
-</ForwardRef(SafeAreaView)>
+/>
 `;

@@ -3,22 +3,26 @@ import React from 'react';
 import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
 import BackupAlert from './';
+import { Provider } from 'react-redux';
 
 const mockStore = configureMockStore();
+const initialState = {
+	user: {
+		seedphraseBackedUp: false,
+		passwordSet: false
+	}
+};
+const store = mockStore(initialState);
 
 describe('BackupAlert', () => {
 	it('should render correctly', () => {
 		const fn = () => null;
-		const initialState = {
-			user: {
-				seedphraseBackedUp: false,
-				passwordSet: false
-			}
-		};
 
-		const wrapper = shallow(<BackupAlert onPress={fn} />, {
-			context: { store: mockStore(initialState) }
-		});
+		const wrapper = shallow(
+			<Provider store={store}>
+				<BackupAlert onPress={fn} />
+			</Provider>
+		);
 		expect(wrapper.dive()).toMatchSnapshot();
 	});
 });

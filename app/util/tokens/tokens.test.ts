@@ -31,6 +31,6 @@ const tokenListObject: { [address: string]: Token } = {
 describe('Token utils :: tokenListToArray', () => {
 	it('should reduce object into array', () => {
 		const tokenListArray = tokenListToArray(tokenListObject);
-		expect(tokenListArray).toBe([token]);
+		expect(tokenListArray).toStrictEqual([token]);
 	});
 });

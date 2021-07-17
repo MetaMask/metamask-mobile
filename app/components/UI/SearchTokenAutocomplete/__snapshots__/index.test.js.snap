@@ -24,7 +24,7 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
     showConfirmButton={true}
   >
     <View>
-      <AssetSearch
+      <Memo()
         onSearch={[Function]}
       />
       <AssetList

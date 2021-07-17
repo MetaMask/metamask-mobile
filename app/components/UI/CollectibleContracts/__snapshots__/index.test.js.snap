@@ -1,185 +1,23 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`CollectibleContracts should render correctly 1`] = `
-<View
-  style={
+<Connect(CollectibleContracts)
+  collectibles={
+    Array [
+      Object {
+        "address": "0x0",
+        "image": "image",
+        "name": "name",
+        "tokenId": 10,
+      },
+    ]
+  }
+  route={
     Object {
-      "backgroundColor": "#FFFFFF",
-      "flex": 1,
-      "marginTop": 16,
-      "minHeight": 500,
+      "params": Object {
+        "address": "0x1",
+      },
     }
   }
-  testID="collectible-contracts"
->
-  <View
-    style={
-      Object {
-        "alignItems": "center",
-        "justifyContent": "center",
-        "marginTop": 40,
-      }
-    }
-  >
-    <View
-      style={
-        Object {
-          "alignItems": "center",
-          "flex": 1,
-          "justifyContent": "center",
-          "marginBottom": 42,
-        }
-      }
-    >
-      <Image
-        resizeMode="contain"
-        source={
-          Object {
-            "testUri": "../../../app/images/no-nfts-placeholder.png",
-          }
-        }
-        style={
-          Object {
-            "height": 76,
-            "marginBottom": 12,
-            "width": 76,
-          }
-        }
-      />
-      <Text
-        black={false}
-        blue={false}
-        bold={true}
-        center={true}
-        centered={false}
-        disclaimer={false}
-        green={false}
-        link={false}
-        modal={false}
-        primary={false}
-        red={false}
-        reset={false}
-        right={false}
-        small={false}
-        strikethrough={false}
-        style={
-          Object {
-            "color": "#bbc0c5",
-            "fontSize": 24,
-          }
-        }
-        underline={false}
-        upper={false}
-      >
-        No NFTs yet
-      </Text>
-      <Text
-        big={true}
-        black={false}
-        blue={false}
-        bold={false}
-        center={true}
-        centered={false}
-        disclaimer={false}
-        green={false}
-        link={true}
-        modal={false}
-        onPress={[Function]}
-        primary={false}
-        red={false}
-        reset={false}
-        right={false}
-        small={false}
-        strikethrough={false}
-        underline={false}
-        upper={false}
-      >
-        Learn more
-      </Text>
-    </View>
-    <Text
-      big={true}
-      black={false}
-      blue={false}
-      bold={false}
-      centered={false}
-      disclaimer={false}
-      green={false}
-      link={false}
-      modal={false}
-      primary={false}
-      red={false}
-      reset={false}
-      right={false}
-      small={false}
-      strikethrough={false}
-      style={
-        Object {
-          "color": "#bbc0c5",
-          "marginBottom": 8,
-        }
-      }
-      underline={false}
-      upper={false}
-    >
-      Don’t see your NFT?
-    </Text>
-  </View>
-  <View
-    key="collectible-contracts-footer"
-    style={
-      Object {
-        "flex": 1,
-        "paddingBottom": 30,
-      }
-    }
-  >
-    <TouchableOpacity
-      onPress={[Function]}
-      style={
-        Object {
-          "alignItems": "center",
-          "flexDirection": "row",
-          "justifyContent": "center",
-        }
-      }
-      testID="add-collectible-button"
-    >
-      <Icon
-        allowFontScaling={false}
-        color="#037dd6"
-        name="plus"
-        size={16}
-      />
-      <Text
-        black={false}
-        blue={false}
-        bold={false}
-        centered={false}
-        disclaimer={false}
-        green={false}
-        link={false}
-        modal={false}
-        primary={false}
-        red={false}
-        reset={false}
-        right={false}
-        small={false}
-        strikethrough={false}
-        style={
-          Object {
-            "color": "#037dd6",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 15,
-            "fontWeight": "400",
-          }
-        }
-        underline={false}
-        upper={false}
-      >
-        ADD NFTs
-      </Text>
-    </TouchableOpacity>
-  </View>
-</View>
+/>
 `;

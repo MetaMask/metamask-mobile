@@ -2,19 +2,23 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import configureMockStore from 'redux-mock-store';
 import OfflineMode from './';
+import { Provider } from 'react-redux';
 
 const mockStore = configureMockStore();
+const initialState = {
+	infuraAvailability: {
+		isBlocked: false
+	}
+};
+const store = mockStore(initialState);
 
 describe('OfflineMode', () => {
 	it('should render correctly', () => {
-		const initialState = {
-			infuraAvailability: {
-				isBlocked: false
-			}
-		};
-		const wrapper = shallow(<OfflineMode route={{ params: {} }} />, {
-			context: { store: mockStore(initialState) }
-		});
+		const wrapper = shallow(
+			<Provider store={store}>
+				<OfflineMode route={{ params: {} }} />
+			</Provider>
+		);
 		expect(wrapper.dive()).toMatchSnapshot();
 	});
 });

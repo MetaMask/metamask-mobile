@@ -1,89 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`CollectibleContractOverview should render correctly 1`] = `
-<View
-  style={
+<Connect(CollectibleContractOverview)
+  collectibleContract={
     Object {
-      "alignContent": "center",
-      "alignItems": "center",
-      "borderBottomColor": "#d6d9dc",
-      "borderBottomWidth": 0.5,
-      "flex": 1,
-      "paddingBottom": 30,
-      "paddingHorizontal": 20,
+      "address": "0x123",
+      "description": "description",
+      "name": "name",
+      "symbol": "symbol",
+      "totalSupply": 1,
     }
   }
-  testID="collectible-overview-screen"
->
-  <View
-    style={
-      Object {
-        "marginTop": 20,
-      }
-    }
-  >
-    <CollectibleMedia
-      collectible={
-        Object {
-          "address": "0x123",
-          "image": undefined,
-        }
-      }
-      small={true}
-    />
-  </View>
-  <View
-    style={
-      Object {
-        "flex": 1,
-        "flexDirection": "row",
-        "marginBottom": 20,
-        "marginTop": 10,
-      }
-    }
-  >
-    <Text
-      style={
-        Object {
-          "color": "#000000",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 30,
-          "fontWeight": "400",
-          "textAlign": "center",
-        }
-      }
-      testID="collectible-name"
-    >
-       
-      name
-    </Text>
-  </View>
-  <View
-    style={
-      Object {
-        "alignItems": "flex-start",
-        "flexDirection": "row",
-        "justifyContent": "space-around",
-        "width": "50%",
-      }
-    }
-  >
-    <AssetActionButton
-      icon="send"
-      label="Send"
-      onPress={[Function]}
-    />
-    <AssetActionButton
-      icon="add"
-      label="Add"
-      onPress={[Function]}
-    />
-    <AssetActionButton
-      icon="add"
-      label="Info"
-      onPress={[Function]}
-      testID="collectible-info-button"
-    />
-  </View>
-</View>
+/>
 `;
