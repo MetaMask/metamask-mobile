@@ -1,7 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Confirm should render correctly 1`] = `
-<ForwardRef(SafeAreaView)
+<RNCSafeAreaView
+  edges={
+    Array [
+      "bottom",
+    ]
+  }
   style={
     Object {
       "backgroundColor": "#FFFFFF",
@@ -468,5 +473,5 @@ exports[`Confirm should render correctly 1`] = `
       </View>
     </View>
   </ReactNativeModal>
-</ForwardRef(SafeAreaView)>
+</RNCSafeAreaView>
 `;
