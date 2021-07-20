@@ -281,6 +281,8 @@ class Login extends PureComponent {
 			this.setState({ loading: true, error: null });
 			const { KeyringController } = Engine.context;
 
+			console.log('Test', await AsyncStorage.getItem(ONBOARDING_WIZARD));
+
 			// Restore vault with user entered password
 			await KeyringController.submitPassword(this.state.password);
 			const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
