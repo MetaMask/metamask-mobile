@@ -322,7 +322,11 @@ class Confirm extends PureComponent {
 		/**
 		 * Indicates whether the current transaction is a deep link transaction
 		 */
-		isPaymentRequest: PropTypes.bool
+		isPaymentRequest: PropTypes.bool,
+		/**
+		 * A string representing the network type
+		 */
+		networkType: PropTypes.string
 	};
 
 	state = {
@@ -372,13 +376,16 @@ class Confirm extends PureComponent {
 
 	getAnalyticsParams = () => {
 		try {
-			const { selectedAsset } = this.props;
-			const { NetworkController } = Engine.context;
-			const { chainId, type } = NetworkController?.state?.provider || {};
+			const { selectedAsset, gasEstimateType, chainId, networkType } = this.props;
+			const { gasSelected } = this.state;
+
 			return {
 				active_currency: { value: selectedAsset?.symbol, anonymous: true },
-				network_name: type,
-				chain_id: chainId
+				network_name: networkType,
+				chain_id: chainId,
+				gas_estimate_type: gasEstimateType,
+				gas_mode: gasSelected ? 'Basic' : 'Advanced',
+				speed_set: gasSelected || undefined
 			};
 		} catch (error) {
 			return {};
@@ -387,9 +394,11 @@ class Confirm extends PureComponent {
 
 	getGasAnalyticsParams = () => {
 		try {
-			const { selectedAsset } = this.props;
+			const { selectedAsset, gasEstimateType, networkType } = this.props;
 			return {
-				active_currency: { value: selectedAsset.symbol, anonymous: true }
+				active_currency: { value: selectedAsset.symbol, anonymous: true },
+				gas_estimate_type: gasEstimateType,
+				network_name: networkType
 			};
 		} catch (error) {
 			return {};
@@ -998,6 +1007,8 @@ class Confirm extends PureComponent {
 						error={EIP1559TransactionDataTemp.error}
 						animateOnChange={animateOnChange}
 						isAnimating={isAnimating}
+						analyticsParams={this.getGasAnalyticsParams()}
+						view={'SendTo (Confirm)'}
 					/>
 				</KeyboardAwareScrollView>
 			</Modal>
@@ -1039,6 +1050,8 @@ class Confirm extends PureComponent {
 						onSave={this.saveGasEdition}
 						animateOnChange={animateOnChange}
 						isAnimating={isAnimating}
+						analyticsParams={this.getGasAnalyticsParams()}
+						view={'SendTo (Confirm)'}
 					/>
 				</KeyboardAwareScrollView>
 			</Modal>
@@ -1389,7 +1402,8 @@ const mapStateToProps = state => ({
 	primaryCurrency: state.settings.primaryCurrency,
 	gasFeeEstimates: state.engine.backgroundState.GasFeeController.gasFeeEstimates,
 	gasEstimateType: state.engine.backgroundState.GasFeeController.gasEstimateType,
-	isPaymentRequest: state.transaction.paymentRequest
+	isPaymentRequest: state.transaction.paymentRequest,
+	networkType: state.engine.backgroundState.NetworkController.provider.type
 });
 
 const mapDispatchToProps = dispatch => ({

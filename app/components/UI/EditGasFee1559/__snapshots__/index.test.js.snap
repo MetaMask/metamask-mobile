@@ -163,8 +163,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
               Max fee:
                
             </Text>
-             (
-            )
+             
           </Text>
           <Text
             black={false}

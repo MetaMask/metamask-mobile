@@ -105,9 +105,15 @@ const RangeInput = ({
 	const changeValue = useCallback(
 		(newValue, dontEmptyError) => {
 			if (!dontEmptyError) setErrorState('');
-			onChangeValue?.(newValue);
+			const cleanValue = newValue?.replace?.(',', '.');
+			if (cleanValue && new BigNumber(cleanValue).isNaN()) {
+				setErrorState(`${name} must be a number`);
+				return;
+			}
+
+			onChangeValue?.(cleanValue);
 		},
-		[onChangeValue]
+		[name, onChangeValue]
 	);
 
 	const increaseNumber = useCallback(() => {

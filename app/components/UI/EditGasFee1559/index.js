@@ -16,6 +16,7 @@ import { isMainnetByChainId } from '../../../util/networks';
 import PropTypes from 'prop-types';
 import BigNumber from 'bignumber.js';
 import FadeAnimationView from '../FadeAnimationView';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 const GAS_LIMIT_INCREMENT = new BigNumber(1000);
 const GAS_INCREMENT = new BigNumber(1);
@@ -141,7 +142,9 @@ const EditGasFee1559 = ({
 	animateOnChange,
 	isAnimating,
 	onUpdatingValuesStart,
-	onUpdatingValuesEnd
+	onUpdatingValuesEnd,
+	analyticsParams,
+	view
 }) => {
 	const [showRangeInfoModal, setShowRangeInfoModal] = useState(false);
 	const [showAdvancedOptions, setShowAdvancedOptions] = useState(!selected);
@@ -151,17 +154,36 @@ const EditGasFee1559 = ({
 	const [selectedOption, setSelectedOption] = useState(selected);
 	const [showInputs, setShowInputs] = useState(!dappSuggestedGas);
 
+	const getAnalyticsParams = useCallback(() => {
+		try {
+			return {
+				...analyticsParams,
+				chain_id: chainId,
+				function_type: view,
+				gas_mode: selectedOption ? 'Basic' : 'Advanced',
+				speed_set: selectedOption || undefined
+			};
+		} catch (error) {
+			return {};
+		}
+	}, [analyticsParams, chainId, selectedOption, view]);
+
 	const toggleAdvancedOptions = useCallback(() => {
+		if (!showAdvancedOptions) {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.GAS_ADVANCED_OPTIONS_CLICKED, getAnalyticsParams());
+		}
 		setShowAdvancedOptions(showAdvancedOptions => !showAdvancedOptions);
-	}, []);
+	}, [getAnalyticsParams, showAdvancedOptions]);
 
 	const toggleLearnMoreModal = useCallback(() => {
 		setShowLearnMoreModal(showLearnMoreModal => !showLearnMoreModal);
 	}, []);
 
 	const save = useCallback(() => {
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.GAS_FEE_CHANGED, getAnalyticsParams());
+
 		onSave(selectedOption);
-	}, [onSave, selectedOption]);
+	}, [getAnalyticsParams, onSave, selectedOption]);
 
 	const changeGas = useCallback(
 		(gas, selectedOption) => {
@@ -482,7 +504,7 @@ const EditGasFee1559 = ({
 								<Text bold black noMargin>
 									Max fee:{' '}
 								</Text>
-								{gasFeeMaxPrimary} ({gasFeeMaxSecondary})
+								{gasFeeMaxPrimary} {isMainnet && `(${gasFeeMaxSecondary})`}
 							</Text>
 							<Text green={timeEstimateColor === 'green'} red={timeEstimateColor === 'red'} bold>
 								{timeEstimate}
@@ -686,7 +708,15 @@ EditGasFee1559.propTypes = {
 	/**
 	 * Boolean to determine if the animation is happening
 	 */
-	isAnimating: PropTypes.bool
+	isAnimating: PropTypes.bool,
+	/**
+	 * Extra analytics params to be send with the gas analytics
+	 */
+	analyticsParams: PropTypes.object,
+	/**
+	 * (For analytics purposes) View (Approve, Transfer, Confirm) where this component is being used
+	 */
+	view: PropTypes.string.isRequired
 };
 
 export default EditGasFee1559;

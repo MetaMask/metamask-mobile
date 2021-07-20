@@ -375,8 +375,8 @@ class TransactionEditor extends PureComponent {
 	 */
 	onConfirm = async () => {
 		const { onConfirm, gasEstimateType } = this.props;
-		const { EIP1559GasData } = this.state;
-		!(await this.validate()) && onConfirm && onConfirm({ gasEstimateType, EIP1559GasData });
+		const { EIP1559GasData, gasSelected } = this.state;
+		!(await this.validate()) && onConfirm && onConfirm({ gasEstimateType, EIP1559GasData, gasSelected });
 	};
 
 	/**
@@ -855,12 +855,14 @@ class TransactionEditor extends PureComponent {
 
 	getGasAnalyticsParams = () => {
 		try {
-			const { transaction, activeTabUrl } = this.props;
+			const { transaction, activeTabUrl, gasEstimateType, networkType } = this.props;
 			const { selectedAsset } = transaction;
 			return {
 				dapp_host_name: transaction?.origin,
 				dapp_url: activeTabUrl,
-				active_currency: { value: selectedAsset?.symbol, anonymous: true }
+				active_currency: { value: selectedAsset?.symbol, anonymous: true },
+				gas_estimate_type: gasEstimateType,
+				network_name: networkType
 			};
 		} catch (error) {
 			return {};
@@ -1036,6 +1038,8 @@ class TransactionEditor extends PureComponent {
 							onUpdatingValuesEnd={this.onUpdatingValuesEnd}
 							animateOnChange={animateOnChange}
 							isAnimating={isAnimating}
+							view={'Transaction'}
+							analyticsParams={this.getGasAnalyticsParams()}
 						/>
 					) : (
 						<EditGasFeeLegacy
@@ -1057,6 +1061,8 @@ class TransactionEditor extends PureComponent {
 							onUpdatingValuesEnd={this.onUpdatingValuesEnd}
 							animateOnChange={animateOnChange}
 							isAnimating={isAnimating}
+							view={'Transaction'}
+							analyticsParams={this.getGasAnalyticsParams()}
 						/>
 					))}
 			</React.Fragment>
