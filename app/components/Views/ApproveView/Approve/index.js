@@ -107,7 +107,11 @@ class Approve extends PureComponent {
 		/**
 		 * A string representing the network chainId
 		 */
-		chainId: PropTypes.string
+		chainId: PropTypes.string,
+		/**
+		 * A string representing the network type
+		 */
+		networkType: PropTypes.string
 	};
 
 	state = {
@@ -418,6 +422,21 @@ class Approve extends PureComponent {
 		return transactionToSend;
 	};
 
+	getAnalyticsParams = () => {
+		try {
+			const { gasEstimateType } = this.props;
+			const { analyticsParams, gasSelected } = this.state;
+			return {
+				...analyticsParams,
+				gas_estimate_type: gasEstimateType,
+				gas_mode: gasSelected ? 'Basic' : 'Advanced',
+				speed_set: gasSelected || undefined
+			};
+		} catch (error) {
+			return {};
+		}
+	};
+
 	onConfirm = async () => {
 		const { TransactionController } = Engine.context;
 		const { transactions, gasEstimateType } = this.props;
@@ -446,7 +465,7 @@ class Approve extends PureComponent {
 			const updatedTx = { ...fullTx, transaction };
 			await TransactionController.updateTransaction(updatedTx);
 			await TransactionController.approveTransaction(transaction.id);
-			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_COMPLETED, this.state.analyticsParams);
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_COMPLETED, this.getAnalyticsParams());
 		} catch (error) {
 			Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
 			Logger.error(error, 'error while trying to send transaction (Approve)');
@@ -455,7 +474,7 @@ class Approve extends PureComponent {
 	};
 
 	onCancel = () => {
-		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_CANCELLED, this.state.analyticsParams);
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_CANCELLED, this.getAnalyticsParams());
 		this.props.toggleApproveModal(false);
 	};
 
@@ -479,11 +498,13 @@ class Approve extends PureComponent {
 	getGasAnalyticsParams = () => {
 		try {
 			const { analyticsParams } = this.state;
-
+			const { gasEstimateType, networkType } = this.props;
 			return {
 				dapp_host_name: analyticsParams?.dapp_host_name,
 				dapp_url: analyticsParams?.dapp_url,
-				active_currency: { value: analyticsParams?.active_currency, anonymous: true }
+				active_currency: { value: analyticsParams?.active_currency, anonymous: true },
+				gas_estimate_type: gasEstimateType,
+				network_name: networkType
 			};
 		} catch (error) {
 			return {};
@@ -613,6 +634,8 @@ class Approve extends PureComponent {
 								onUpdatingValuesEnd={this.onUpdatingValuesEnd}
 								animateOnChange={animateOnChange}
 								isAnimating={isAnimating}
+								view={'Approve'}
+								analyticsParams={this.getGasAnalyticsParams()}
 							/>
 						) : (
 							<EditGasFeeLegacy
@@ -633,6 +656,8 @@ class Approve extends PureComponent {
 								onUpdatingValuesEnd={this.onUpdatingValuesEnd}
 								animateOnChange={animateOnChange}
 								isAnimating={isAnimating}
+								view={'Approve'}
+								analyticsParams={this.getGasAnalyticsParams()}
 							/>
 						))}
 				</KeyboardAwareScrollView>
@@ -654,7 +679,8 @@ const mapStateToProps = state => ({
 	gasEstimateType: state.engine.backgroundState.GasFeeController.gasEstimateType,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	nativeCurrency: state.engine.backgroundState.CurrencyRateController.nativeCurrency,
-	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	networkType: state.engine.backgroundState.NetworkController.provider.type
 });
 
 const mapDispatchToProps = dispatch => ({
