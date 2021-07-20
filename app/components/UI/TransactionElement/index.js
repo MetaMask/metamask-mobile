@@ -16,8 +16,8 @@ import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
 import DetailsModal from '../../Base/DetailsModal';
 import { isMainNet } from '../../../util/networks';
-import { WalletDevice } from '@metamask/controllers/';
-import { weiHexToGweiDec, isEIP1559Transaction } from '@metamask/controllers/dist/util';
+import { WalletDevice, util } from '@metamask/controllers/';
+const { weiHexToGweiDec, isEIP1559Transaction } = util;
 
 const styles = StyleSheet.create({
 	row: {
