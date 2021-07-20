@@ -479,7 +479,7 @@ const EditGasFee1559 = ({
 								<Text bold black>
 									Max fee:{' '}
 								</Text>
-								{gasFeeMaxPrimary} ({gasFeeMaxSecondary})
+								{gasFeeMaxPrimary} {isMainnet && `(${gasFeeMaxSecondary})`}
 							</Text>
 							<Text green={timeEstimateColor === 'green'} red={timeEstimateColor === 'red'}>
 								{timeEstimate}
