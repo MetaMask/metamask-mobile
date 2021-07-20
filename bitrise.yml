@@ -85,17 +85,17 @@ workflows:
         title: All Tests Passed
         is_always_run: false
 # E2E Steps
-  e2e_setup:
-    steps:
-    # - yarn@0:
-    #     inputs:
-    #     - cache_local_deps: 'yes'
-    #     - command: global add detox-cli
-    #     title: Install Detox CLI
+#   e2e_setup:
+#     steps:
+#     # - yarn@0:
+#     #     inputs:
+#     #     - cache_local_deps: 'yes'
+#     #     - command: global add detox-cli
+#     #     title: Install Detox CLI
   android_e2e_test:
     before_run:
     - code_setup
-    - e2e_setup
+    # - e2e_setup
     steps:
     - install-missing-android-tools@2:
         inputs:
@@ -123,7 +123,7 @@ workflows:
   ios_e2e_test:
     before_run:
     - code_setup
-    - e2e_setup
+    # - e2e_setup
     steps:
     - certificate-and-profile-installer@1: {}
     - set-xcode-build-number@1:
