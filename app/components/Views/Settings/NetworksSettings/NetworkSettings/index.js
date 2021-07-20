@@ -212,6 +212,8 @@ class NetworkSettings extends PureComponent {
 		try {
 			endpointChainId = await jsonRpcRequest(rpcUrl, 'eth_chainId');
 		} catch (err) {
+			Logger.error(rpcUrl);
+			console.log(err);
 			Logger.error('Failed to fetch the chainId from the endpoint.', err);
 			providerError = err;
 		}
@@ -267,7 +269,7 @@ class NetworkSettings extends PureComponent {
 		if (this.validateRpcUrl()) {
 			const url = new URL(rpcUrl);
 			const decimalChainId = this.getDecimalChainId(chainId);
-			!isprivateConnection(url.hostname) && url.set('protocol', 'https:');
+			!isprivateConnection(url.hostname);
 			CurrencyRateController.setNativeCurrency(ticker);
 			PreferencesController.addToFrequentRpcList(url.href, decimalChainId, ticker, nickname, {
 				blockExplorerUrl
@@ -295,20 +297,20 @@ class NetworkSettings extends PureComponent {
 	validateRpcUrl = () => {
 		const { rpcUrl } = this.state;
 		if (!isWebUri(rpcUrl)) {
-			const appendedRpc = `http://${rpcUrl}`;
-			if (isWebUri(appendedRpc)) {
-				this.setState({ warningRpcUrl: strings('app_settings.invalid_rpc_prefix') });
-			} else {
-				this.setState({ warningRpcUrl: strings('app_settings.invalid_rpc_url') });
-			}
-			return false;
+			// const appendedRpc = `http://${rpcUrl}`;
+			// if (isWebUri(appendedRpc)) {
+			// 	this.setState({ warningRpcUrl: strings('app_settings.invalid_rpc_prefix') });
+			// } else {
+			// 	this.setState({ warningRpcUrl: strings('app_settings.invalid_rpc_url') });
+			// }
+			// return false;
 		}
-		const url = new URL(rpcUrl);
-		const privateConnection = isprivateConnection(url.hostname);
-		if (!privateConnection && url.protocol === 'http:') {
-			this.setState({ warningRpcUrl: strings('app_settings.invalid_rpc_prefix') });
-			return false;
-		}
+		// const url = new URL(rpcUrl);
+		// const privateConnection = isprivateConnection(url.hostname);
+		// if (!privateConnection && url.protocol === 'http:') {
+		// 	this.setState({ warningRpcUrl: strings('app_settings.invalid_rpc_prefix') });
+		// 	return false;
+		// }
 		this.setState({ validatedRpcURL: true, warningRpcUrl: undefined });
 		return true;
 	};
