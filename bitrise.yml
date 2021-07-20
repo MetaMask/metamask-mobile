@@ -122,7 +122,7 @@ workflows:
         is_always_run: false
   ios_e2e_test:
     before_run:
-    - code_setup
+    - code_setup_cache
     - e2e_setup
     steps:
     - certificate-and-profile-installer@1: {}
@@ -147,15 +147,8 @@ workflows:
             jq 'del(.engines)' package.json > new.json && mv new.json package.json
             node -v
             METAMASK_ENVIRONMENT='production' yarn test:e2e:ios
-        title: Detox Build
+        title: Detox Build & Test
         is_always_run: false
-    # - script@1:
-    #     inputs:
-    #     - content: |-
-    #         #!/usr/bin/env bash 
-    #         detox test -R 1 --configuration ios.sim.release -l verbose
-    #     title: Detox Test
-    #     is_always_run: false
   start_e2e_tests:
     steps:
     - build-router-start@0:
