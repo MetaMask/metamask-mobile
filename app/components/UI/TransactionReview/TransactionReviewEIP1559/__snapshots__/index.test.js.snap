@@ -5,6 +5,8 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
   style={
     Object {
       "marginHorizontal": 24,
+      "paddingBottom": 10,
+      "paddingTop": 10,
     }
   }
 >
@@ -12,101 +14,22 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
     <View
       style={
         Object {
+          "alignItems": "center",
           "flex": 1,
           "flexDirection": "row",
+          "marginBottom": 2,
         }
       }
     >
-      <Text
-        black={false}
-        blue={false}
-        bold={true}
-        centered={false}
-        disclaimer={false}
-        green={false}
-        link={false}
-        modal={false}
-        orange={false}
-        primary={true}
-        red={false}
-        reset={false}
-        right={false}
-        small={false}
-        strikethrough={false}
-        underline={false}
-        upper={false}
-      >
-        Estimated gas fee
-        <TouchableOpacity
-          hitSlop={
-            Object {
-              "bottom": 10,
-              "left": 10,
-              "right": 10,
-              "top": 10,
-            }
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "flex": 1,
+            "flexDirection": "row",
+            "marginBottom": 2,
           }
-          onPress={[Function]}
-          style={
-            Object {
-              "paddingHorizontal": 2,
-            }
-          }
-        >
-          <Icon
-            allowFontScaling={false}
-            name="information"
-            size={13}
-            style={
-              Object {
-                "color": "#bbc0c5",
-                "marginTop": 5,
-              }
-            }
-          />
-        </TouchableOpacity>
-      </Text>
-    </View>
-    <View
-      style={
-        Object {
-          "flex": 1,
-          "flexDirection": "row",
-          "justifyContent": "flex-end",
         }
-      }
-    >
-      <TouchableOpacity
-        disabled={false}
-      >
-        <Text
-          black={false}
-          blue={false}
-          bold={false}
-          centered={false}
-          disclaimer={false}
-          green={false}
-          grey={false}
-          link={true}
-          modal={false}
-          primary={false}
-          red={false}
-          reset={false}
-          right={true}
-          small={false}
-          strikethrough={false}
-          style={
-            Object {
-              "flex": 1,
-              "paddingRight": 10,
-            }
-          }
-          underline={true}
-          upper={true}
-        />
-      </TouchableOpacity>
-      <TouchableOpacity
-        disabled={true}
       >
         <Text
           black={false}
@@ -115,169 +38,85 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
           centered={false}
           disclaimer={false}
           green={false}
-          grey={true}
           link={false}
           modal={false}
+          noMargin={true}
+          orange={false}
           primary={true}
           red={false}
           reset={false}
-          right={true}
-          small={false}
-          strikethrough={false}
-          underline={false}
-          upper={true}
-        />
-      </TouchableOpacity>
-    </View>
-  </SummaryRow>
-  <SummaryRow>
-    <Text
-      black={false}
-      blue={false}
-      bold={false}
-      centered={false}
-      disclaimer={false}
-      green={false}
-      link={false}
-      modal={false}
-      primary={false}
-      red={false}
-      reset={false}
-      right={false}
-      small={true}
-      strikethrough={false}
-      underline={false}
-      upper={false}
-    />
-    <View
-      style={
-        Object {
-          "flex": 1,
-          "flexDirection": "row",
-          "justifyContent": "flex-end",
-        }
-      }
-    >
-      <Text
-        black={false}
-        blue={false}
-        bold={false}
-        centered={false}
-        disclaimer={false}
-        green={false}
-        grey={true}
-        link={false}
-        modal={false}
-        primary={false}
-        red={false}
-        reset={false}
-        right={true}
-        small={true}
-        strikethrough={false}
-        underline={false}
-        upper={false}
-      >
-        <Text
-          black={false}
-          blue={false}
-          bold={true}
-          centered={false}
-          disclaimer={false}
-          green={false}
-          link={false}
-          modal={false}
-          noMargin={true}
-          primary={false}
-          red={false}
-          reset={false}
           right={false}
-          small={true}
+          small={false}
           strikethrough={false}
           underline={false}
           upper={false}
         >
-          Max fee:
-           
+          Estimated gas fee
+          <TouchableOpacity
+            hitSlop={
+              Object {
+                "bottom": 10,
+                "left": 10,
+                "right": 10,
+                "top": 10,
+              }
+            }
+            onPress={[Function]}
+            style={
+              Object {
+                "paddingHorizontal": 2,
+              }
+            }
+          >
+            <Icon
+              allowFontScaling={false}
+              name="information"
+              size={13}
+              style={
+                Object {
+                  "color": "#bbc0c5",
+                  "marginTop": 5,
+                }
+              }
+            />
+          </TouchableOpacity>
         </Text>
-        <Text
-          black={false}
-          blue={false}
-          bold={true}
-          centered={false}
-          disclaimer={false}
-          green={false}
-          link={false}
-          modal={false}
-          noMargin={true}
-          primary={false}
-          red={false}
-          reset={false}
-          right={false}
-          small={true}
-          strikethrough={false}
-          underline={false}
-          upper={false}
-        />
-      </Text>
+      </View>
+      <Skeleton
+        width={80}
+      />
+    </View>
+  </SummaryRow>
+  <SummaryRow>
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "flex": 1,
+          "flexDirection": "row",
+          "marginBottom": 2,
+        }
+      }
+    >
+      <Skeleton
+        noStyle={true}
+        width={120}
+      />
+      <Skeleton
+        width={120}
+      />
     </View>
   </SummaryRow>
   <View>
     <SummarySeparator />
-    <SummaryRow>
-      <Text
-        black={false}
-        blue={false}
-        bold={true}
-        centered={false}
-        disclaimer={false}
-        green={false}
-        link={false}
-        modal={false}
-        primary={true}
-        red={false}
-        reset={false}
-        right={false}
-        small={false}
-        strikethrough={false}
-        underline={false}
-        upper={false}
-      >
-        Total
-      </Text>
-      <View
-        style={
-          Object {
-            "flex": 1,
-            "flexDirection": "row",
-            "justifyContent": "flex-end",
-          }
+    <View
+      style={
+        Object {
+          "marginTop": 4,
         }
-      >
-        <Text
-          black={false}
-          blue={false}
-          bold={false}
-          centered={false}
-          disclaimer={false}
-          green={false}
-          grey={true}
-          link={false}
-          modal={false}
-          primary={false}
-          red={false}
-          reset={false}
-          right={true}
-          small={false}
-          strikethrough={false}
-          style={
-            Object {
-              "flex": 1,
-              "paddingRight": 10,
-            }
-          }
-          underline={false}
-          upper={true}
-        />
+      }
+    >
+      <SummaryRow>
         <Text
           black={false}
           blue={false}
@@ -287,89 +126,27 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
           green={false}
           link={false}
           modal={false}
+          noMargin={true}
           primary={true}
           red={false}
           reset={false}
-          right={true}
+          right={false}
           small={false}
-          strikethrough={false}
-          underline={false}
-          upper={true}
-        />
-      </View>
-    </SummaryRow>
-    <SummaryRow>
-      <View
-        style={
-          Object {
-            "flex": 1,
-            "flexDirection": "row",
-            "justifyContent": "flex-end",
-          }
-        }
-      >
-        <Text
-          black={false}
-          blue={false}
-          bold={false}
-          centered={false}
-          disclaimer={false}
-          green={false}
-          grey={true}
-          link={false}
-          modal={false}
-          primary={false}
-          red={false}
-          reset={false}
-          right={true}
-          small={true}
           strikethrough={false}
           underline={false}
           upper={false}
         >
-          <Text
-            black={false}
-            blue={false}
-            bold={true}
-            centered={false}
-            disclaimer={false}
-            green={false}
-            link={false}
-            modal={false}
-            noMargin={true}
-            primary={false}
-            red={false}
-            reset={false}
-            right={false}
-            small={true}
-            strikethrough={false}
-            underline={false}
-            upper={false}
-          >
-            Max amount:
-          </Text>
-           
-          <Text
-            black={false}
-            blue={false}
-            bold={false}
-            centered={false}
-            disclaimer={false}
-            green={false}
-            link={false}
-            modal={false}
-            noMargin={true}
-            primary={false}
-            red={false}
-            reset={false}
-            right={false}
-            small={true}
-            strikethrough={false}
-            underline={false}
-            upper={false}
-          />
+          Total
         </Text>
-      </View>
+        <Skeleton
+          width={80}
+        />
+      </SummaryRow>
+    </View>
+    <SummaryRow>
+      <Skeleton
+        width={120}
+      />
     </SummaryRow>
   </View>
   <InfoModal

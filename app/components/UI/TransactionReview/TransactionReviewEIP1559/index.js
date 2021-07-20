@@ -8,10 +8,14 @@ import { isMainnetByChainId } from '../../../../util/networks';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import InfoModal from '../../Swaps/components/InfoModal';
+import FadeAnimationView from '../../FadeAnimationView';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 
 const styles = StyleSheet.create({
 	overview: noMargin => ({
-		marginHorizontal: noMargin ? 0 : 24
+		marginHorizontal: noMargin ? 0 : 24,
+		paddingTop: 10,
+		paddingBottom: 10
 	}),
 	valuesContainer: {
 		flex: 1,
@@ -29,9 +33,14 @@ const styles = StyleSheet.create({
 		flex: 1,
 		paddingRight: 10
 	},
-	gasFeeTitleContainer: {
+	gasRowContainer: {
 		flexDirection: 'row',
-		flex: 1
+		flex: 1,
+		alignItems: 'center',
+		marginBottom: 2
+	},
+	gasBottomRowContainer: {
+		marginTop: 4
 	},
 	hitSlop: {
 		top: 10,
@@ -40,6 +49,15 @@ const styles = StyleSheet.create({
 		right: 10
 	}
 });
+
+// eslint-disable-next-line react/prop-types
+const Skeleton = ({ width, noStyle }) => (
+	<View style={[!noStyle && styles.valuesContainer]}>
+		<SkeletonPlaceholder>
+			<SkeletonPlaceholder.Item width={width} height={10} borderRadius={4} />
+		</SkeletonPlaceholder>
+	</View>
+);
 
 const TransactionReviewEIP1559 = ({
 	totalNative,
@@ -56,7 +74,13 @@ const TransactionReviewEIP1559 = ({
 	onEdit,
 	hideTotal,
 	noMargin,
-	origin
+	origin,
+	onUpdatingValuesStart,
+	onUpdatingValuesEnd,
+	animateOnChange,
+	isAnimating,
+	gasEstimationReady,
+	legacy
 }) => {
 	const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
 
@@ -68,6 +92,10 @@ const TransactionReviewEIP1559 = ({
 		() => Linking.openURL('https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172'),
 		[]
 	);
+
+	const edit = useCallback(() => {
+		if (!isAnimating) onEdit();
+	}, [isAnimating, onEdit]);
 
 	const isMainnet = isMainnetByChainId(chainId);
 	const nativeCurrencySelected = primaryCurrency === 'ETH' || !isMainnet;
@@ -88,98 +116,156 @@ const TransactionReviewEIP1559 = ({
 		totalMaxPrimary = gasFeeMaxConversion;
 	}
 
+	const valueToWatchAnimation = gasFeeNative;
 	return (
 		<Summary style={styles.overview(noMargin)}>
 			<Summary.Row>
-				<View style={styles.gasFeeTitleContainer}>
-					<Text primary={!origin} bold orange={Boolean(origin)}>
-						{!origin ? 'Estimated gas fee' : `${origin} suggested gas fee`}
-						<TouchableOpacity
-							style={styles.gasInfoContainer}
-							onPress={toggleLearnMoreModal}
-							hitSlop={styles.hitSlop}
-						>
-							<MaterialCommunityIcons name="information" size={13} style={styles.gasInfoIcon(origin)} />
-						</TouchableOpacity>
-					</Text>
-				</View>
-				<View style={styles.valuesContainer}>
-					{isMainnet && (
-						<TouchableOpacity onPress={onEdit} disabled={nativeCurrencySelected}>
-							<Text
-								upper
-								right
-								grey={nativeCurrencySelected}
-								link={!nativeCurrencySelected}
-								underline={!nativeCurrencySelected}
-								style={styles.amountContainer}
+				<View style={styles.gasRowContainer}>
+					<View style={styles.gasRowContainer}>
+						<Text primary={!origin} bold orange={Boolean(origin)} noMargin>
+							{!origin ? 'Estimated gas fee' : `${origin} suggested gas fee`}
+							<TouchableOpacity
+								style={styles.gasInfoContainer}
+								onPress={toggleLearnMoreModal}
+								hitSlop={styles.hitSlop}
 							>
-								{gasFeeSecondary}
-							</Text>
-						</TouchableOpacity>
-					)}
+								<MaterialCommunityIcons
+									name="information"
+									size={13}
+									style={styles.gasInfoIcon(origin)}
+								/>
+							</TouchableOpacity>
+						</Text>
+					</View>
 
-					<TouchableOpacity onPress={onEdit} disabled={!nativeCurrencySelected}>
-						<Text
-							primary
-							bold
-							upper
-							grey={!nativeCurrencySelected}
-							link={nativeCurrencySelected}
-							underline={nativeCurrencySelected}
-							right
+					{gasEstimationReady ? (
+						<FadeAnimationView
+							style={styles.valuesContainer}
+							valueToWatch={valueToWatchAnimation}
+							animateOnChange={animateOnChange}
+							onAnimationStart={onUpdatingValuesStart}
+							onAnimationEnd={onUpdatingValuesEnd}
 						>
-							{gasFeePrimary}
-						</Text>
-					</TouchableOpacity>
+							{isMainnet && (
+								<TouchableOpacity onPress={edit} disabled={nativeCurrencySelected}>
+									<Text
+										upper
+										right
+										grey={nativeCurrencySelected}
+										link={!nativeCurrencySelected}
+										underline={!nativeCurrencySelected}
+										style={styles.amountContainer}
+										noMargin
+									>
+										{gasFeeSecondary}
+									</Text>
+								</TouchableOpacity>
+							)}
+
+							<TouchableOpacity onPress={edit} disabled={!nativeCurrencySelected}>
+								<Text
+									primary
+									bold
+									upper
+									grey={!nativeCurrencySelected}
+									link={nativeCurrencySelected}
+									underline={nativeCurrencySelected}
+									right
+									noMargin
+								>
+									{gasFeePrimary}
+								</Text>
+							</TouchableOpacity>
+						</FadeAnimationView>
+					) : (
+						<Skeleton width={80} />
+					)}
 				</View>
 			</Summary.Row>
-			<Summary.Row>
-				<Text small green={timeEstimateColor === 'green'} red={timeEstimateColor === 'red'}>
-					{timeEstimate}
-				</Text>
-				<View style={styles.valuesContainer}>
-					<Text grey right small>
-						<Text bold small noMargin>
-							Max fee:{' '}
-						</Text>
-						<Text bold small noMargin>
-							{gasFeeMaxPrimary}
-						</Text>
-					</Text>
-				</View>
-			</Summary.Row>
+			{!legacy && (
+				<Summary.Row>
+					<View style={styles.gasRowContainer}>
+						{gasEstimationReady ? (
+							<FadeAnimationView valueToWatch={valueToWatchAnimation} animateOnChange={animateOnChange}>
+								<Text small green={timeEstimateColor === 'green'} red={timeEstimateColor === 'red'}>
+									{timeEstimate}
+								</Text>
+							</FadeAnimationView>
+						) : (
+							<Skeleton width={120} noStyle />
+						)}
+						{gasEstimationReady ? (
+							<FadeAnimationView
+								style={styles.valuesContainer}
+								valueToWatch={valueToWatchAnimation}
+								animateOnChange={animateOnChange}
+							>
+								<Text grey right small>
+									<Text bold small noMargin>
+										Max fee:{' '}
+									</Text>
+									<Text small noMargin>
+										{gasFeeMaxPrimary}
+									</Text>
+								</Text>
+							</FadeAnimationView>
+						) : (
+							<Skeleton width={120} />
+						)}
+					</View>
+				</Summary.Row>
+			)}
 			{!hideTotal && (
 				<View>
 					<Summary.Separator />
-					<Summary.Row>
-						<Text primary bold>
-							Total
-						</Text>
-						<View style={styles.valuesContainer}>
-							{isMainnet && (
-								<Text grey upper right style={styles.amountContainer}>
-									{totalSecondary}
-								</Text>
-							)}
+					<View style={styles.gasBottomRowContainer}>
+						<Summary.Row>
+							<Text primary bold noMargin>
+								Total
+							</Text>
+							{gasEstimationReady ? (
+								<FadeAnimationView
+									style={styles.valuesContainer}
+									valueToWatch={valueToWatchAnimation}
+									animateOnChange={animateOnChange}
+								>
+									{isMainnet && (
+										<Text grey upper right noMargin style={styles.amountContainer}>
+											{totalSecondary}
+										</Text>
+									)}
 
-							<Text bold primary upper right>
-								{totalPrimary}
-							</Text>
-						</View>
-					</Summary.Row>
-					<Summary.Row>
-						<View style={styles.valuesContainer}>
-							<Text grey right small>
-								<Text bold small noMargin>
-									Max amount:
-								</Text>{' '}
-								<Text small noMargin>
-									{totalMaxPrimary}
-								</Text>
-							</Text>
-						</View>
-					</Summary.Row>
+									<Text bold primary upper right noMargin>
+										{totalPrimary}
+									</Text>
+								</FadeAnimationView>
+							) : (
+								<Skeleton width={80} />
+							)}
+						</Summary.Row>
+					</View>
+					{!legacy && (
+						<Summary.Row>
+							{gasEstimationReady ? (
+								<FadeAnimationView
+									style={styles.valuesContainer}
+									valueToWatch={valueToWatchAnimation}
+									animateOnChange={animateOnChange}
+								>
+									<Text grey right small>
+										<Text bold small noMargin>
+											Max amount:
+										</Text>{' '}
+										<Text small noMargin>
+											{totalMaxPrimary}
+										</Text>
+									</Text>
+								</FadeAnimationView>
+							) : (
+								<Skeleton width={120} />
+							)}
+						</Summary.Row>
+					)}
 				</View>
 			)}
 			<InfoModal
@@ -263,7 +349,31 @@ TransactionReviewEIP1559.propTypes = {
 	/**
 	 * Origin (hostname) of the dapp that suggested the gas fee
 	 */
-	origin: PropTypes.string
+	origin: PropTypes.string,
+	/**
+	 * Function to call when update animation starts
+	 */
+	onUpdatingValuesStart: PropTypes.func,
+	/**
+	 * Function to call when update animation ends
+	 */
+	onUpdatingValuesEnd: PropTypes.func,
+	/**
+	 * If the values should animate upon update or not
+	 */
+	animateOnChange: PropTypes.bool,
+	/**
+	 * Boolean to determine if the animation is happening
+	 */
+	isAnimating: PropTypes.bool,
+	/**
+	 * If loading should stop
+	 */
+	gasEstimationReady: PropTypes.bool,
+	/**
+	 * If should show legacy gas
+	 */
+	legacy: PropTypes.bool
 };
 
 const mapStateToProps = state => ({

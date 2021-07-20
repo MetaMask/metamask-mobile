@@ -25,7 +25,6 @@ exports[`TransactionReview should render correctly 1`] = `
         cancelTestID=""
         cancelText="Reject"
         confirmButtonMode="confirm"
-        confirmDisabled={false}
         confirmTestID=""
         confirmText="Confirm"
         confirmed={false}
@@ -49,8 +48,9 @@ exports[`TransactionReview should render correctly 1`] = `
           >
             <Connect(AccountInfoCard) />
           </View>
-          <Connect(withNavigation(TransactionReviewInformation))
+          <Connect(TransactionReviewInformation)
             edit={[Function]}
+            origin={null}
             toggleDataView={[Function]}
           />
         </View>

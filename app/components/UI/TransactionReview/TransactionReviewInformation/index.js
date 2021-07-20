@@ -22,10 +22,8 @@ import {
 	calculateEthEIP1559,
 	calculateERC20EIP1559
 } from '../../../../util/transactions';
-import TransactionReviewFeeCard from '../TransactionReviewFeeCard';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
-import { withNavigation } from 'react-navigation';
 import { getNetworkName, getNetworkNonce, isMainNet } from '../../../../util/networks';
 import { capitalize } from '../../../../util/general';
 import CustomNonceModal from '../../../UI/CustomNonceModal';
@@ -57,36 +55,6 @@ const styles = StyleSheet.create({
 	overviewAlertIcon: {
 		color: colors.red,
 		flex: 0
-	},
-	overviewPrimary: {
-		...fontStyles.bold,
-		color: colors.fontPrimary,
-		fontSize: 24,
-		textAlign: 'right',
-		textTransform: 'uppercase'
-	},
-	overviewAccent: {
-		color: colors.blue
-	},
-	overviewEth: {
-		color: colors.fontPrimary,
-		fontSize: 14,
-		textAlign: 'right',
-		textTransform: 'uppercase'
-	},
-	over: {
-		color: colors.red
-	},
-	assetName: {
-		maxWidth: 200
-	},
-	totalValue: {
-		flex: 1,
-		flexDirection: 'row',
-		justifyContent: 'flex-end'
-	},
-	collectibleName: {
-		maxWidth: '30%'
 	},
 	viewDataWrapper: {
 		flex: 1,
@@ -157,14 +125,6 @@ class TransactionReviewInformation extends PureComponent {
 		 */
 		ticker: PropTypes.string,
 		/**
-		 * Transaction amount in selected asset before gas
-		 */
-		assetAmount: PropTypes.string,
-		/**
-		 * Transaction amount in fiat before gas
-		 */
-		fiatValue: PropTypes.string,
-		/**
 		 * ETH or fiat, depending on user setting
 		 */
 		primaryCurrency: PropTypes.string,
@@ -211,7 +171,23 @@ class TransactionReviewInformation extends PureComponent {
 		nativeCurrency: PropTypes.string,
 		gasEstimateType: PropTypes.string,
 		EIP1559GasData: PropTypes.object,
-		origin: PropTypes.string
+		origin: PropTypes.string,
+		/**
+		 * Function to call when update animation starts
+		 */
+		onUpdatingValuesStart: PropTypes.func,
+		/**
+		 * Function to call when update animation ends
+		 */
+		onUpdatingValuesEnd: PropTypes.func,
+		/**
+		 * If the values should animate upon update or not
+		 */
+		animateOnChange: PropTypes.bool,
+		/**
+		 * Boolean to determine if the animation is happening
+		 */
+		isAnimating: PropTypes.bool
 	};
 
 	state = {
@@ -261,7 +237,7 @@ class TransactionReviewInformation extends PureComponent {
 		const { navigation } = this.props;
 		/* this is kinda weird, we have to reject the transaction to collapse the modal */
 		this.onCancelPress();
-		navigation.navigate('PaymentMethodSelector');
+		navigation.navigate('FiatOnRamp');
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST);
 		});
@@ -278,27 +254,16 @@ class TransactionReviewInformation extends PureComponent {
 			currentCurrency,
 			conversionRate,
 			contractExchangeRates,
-			ticker,
-			over
+			ticker
 		} = this.props;
 
 		const totals = {
 			ETH: () => {
 				const totalEth = isBN(value) ? value.add(totalGas) : totalGas;
-				const totalFiat = (
-					<Text style={[styles.overviewEth, over && styles.over]}>
-						{weiToFiat(totalEth, conversionRate, currentCurrency)}
-					</Text>
-				);
-				const totalValue = (
-					<Text
-						style={
-							totalFiat
-								? [styles.overviewEth, over && styles.over]
-								: [styles.overviewPrimary, styles.overviewAccent]
-						}
-					>{`${renderFromWei(totalEth)} ${getTicker(ticker)}`}</Text>
-				);
+				const totalFiat = `${weiToFiat(totalEth, conversionRate, currentCurrency)}`;
+
+				const totalValue = `${renderFromWei(totalEth)} ${getTicker(ticker)}`;
+
 				return [totalFiat, totalValue];
 			},
 			ERC20: () => {
@@ -312,31 +277,16 @@ class TransactionReviewInformation extends PureComponent {
 					currentCurrency,
 					amountToken
 				);
-				const totalValue = (
-					<View style={styles.totalValue}>
-						<Text numberOfLines={1} style={[styles.overviewEth, styles.assetName]}>
-							{amountToken + ' ' + selectedAsset.symbol}
-						</Text>
-						<Text
-							style={totalFiat ? styles.overviewEth : [styles.overviewPrimary, styles.overviewAccent]}
-						>{` + ${renderFromWei(totalGas)} ${getTicker(ticker)}`}</Text>
-					</View>
-				);
+				const totalValue = `${amountToken + ' ' + selectedAsset.symbol} + ${renderFromWei(
+					totalGas
+				)} ${getTicker(ticker)}`;
 				return [totalFiat, totalValue];
 			},
 			ERC721: () => {
 				const totalFiat = totalGasFiat;
-				const totalValue = (
-					<View style={styles.totalValue}>
-						<Text numberOfLines={1} style={[styles.overviewEth, styles.collectibleName]}>
-							{selectedAsset.name}
-						</Text>
-						<Text numberOfLines={1} style={styles.overviewEth}>
-							{' (#' + selectedAsset.tokenId + ')'}
-						</Text>
-						<Text style={styles.overviewEth}>{` + ${renderFromWei(totalGas)} ${getTicker(ticker)}`}</Text>
-					</View>
-				);
+				const totalValue = `${selectedAsset.name}  (#${selectedAsset.tokenId}) + ${renderFromWei(
+					totalGas
+				)} ${getTicker(ticker)}`;
 				return [totalFiat, totalValue];
 			},
 			default: () => [undefined, undefined]
@@ -472,7 +422,16 @@ class TransactionReviewInformation extends PureComponent {
 	};
 
 	renderTransactionReviewEIP1559 = () => {
-		const { EIP1559GasData, primaryCurrency, origin } = this.props;
+		const {
+			EIP1559GasData,
+			primaryCurrency,
+			origin,
+			onUpdatingValuesStart,
+			onUpdatingValuesEnd,
+			animateOnChange,
+			isAnimating,
+			ready
+		} = this.props;
 		let host;
 		if (origin) {
 			host = new URL(origin).hostname;
@@ -496,21 +455,28 @@ class TransactionReviewInformation extends PureComponent {
 				timeEstimateColor={EIP1559GasData.timeEstimateColor}
 				onEdit={this.edit}
 				origin={host}
+				onUpdatingValuesStart={onUpdatingValuesStart}
+				onUpdatingValuesEnd={onUpdatingValuesEnd}
+				animateOnChange={animateOnChange}
+				isAnimating={isAnimating}
+				gasEstimationReady={ready}
 			/>
 		);
 	};
 
 	renderTransactionReviewFeeCard = () => {
 		const {
-			fiatValue,
-			assetAmount,
 			primaryCurrency,
 			ready,
-			transaction: { gas, gasPrice, warningGasPriceHigh },
+			transaction: { gas, gasPrice },
 			currentCurrency,
 			conversionRate,
 			ticker,
-			over
+			over,
+			onUpdatingValuesStart,
+			onUpdatingValuesEnd,
+			animateOnChange,
+			isAnimating
 		} = this.props;
 
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
@@ -518,18 +484,20 @@ class TransactionReviewInformation extends PureComponent {
 		const totalGasEth = `${renderFromWei(totalGas)} ${getTicker(ticker)}`;
 		const [totalFiat, totalValue] = this.getRenderTotals(totalGas, totalGasFiat)();
 		return (
-			<TransactionReviewFeeCard
-				totalGasFiat={totalGasFiat}
-				totalGasEth={totalGasEth}
-				totalFiat={totalFiat}
-				fiat={fiatValue}
-				totalValue={totalValue}
-				transactionValue={assetAmount}
+			<TransactionReviewEIP1559
+				totalNative={totalValue}
+				totalConversion={totalFiat}
+				gasFeeNative={totalGasEth}
+				gasFeeConversion={totalGasFiat}
 				primaryCurrency={primaryCurrency}
-				gasEstimationReady={ready}
-				edit={this.edit}
+				onEdit={() => this.edit()}
 				over={over}
-				warningGasPriceHigh={warningGasPriceHigh}
+				onUpdatingValuesStart={onUpdatingValuesStart}
+				onUpdatingValuesEnd={onUpdatingValuesEnd}
+				animateOnChange={animateOnChange}
+				isAnimating={isAnimating}
+				gasEstimationReady={ready}
+				legacy
 			/>
 		);
 	};
@@ -555,12 +523,15 @@ class TransactionReviewInformation extends PureComponent {
 			? strings('transaction.buy_more_eth')
 			: strings('transaction.get_ether', { networkName });
 
+		const showFeeMarket =
+			!gasEstimateType ||
+			gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ||
+			gasEstimateType === GAS_ESTIMATE_TYPES.NONE;
+
 		return (
 			<React.Fragment>
 				{nonceModalVisible && this.renderCustomNonceModal()}
-				{gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET
-					? this.renderTransactionReviewEIP1559()
-					: this.renderTransactionReviewFeeCard()}
+				{showFeeMarket ? this.renderTransactionReviewEIP1559() : this.renderTransactionReviewFeeCard()}
 				{showCustomNonce && <CustomNonce nonce={nonce} onNonceEdit={this.toggleNonceModal} />}
 				{!!amountError && (
 					<View style={styles.overviewAlert}>
@@ -618,4 +589,4 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
 	mapStateToProps,
 	mapDispatchToProps
-)(withNavigation(TransactionReviewInformation));
+)(TransactionReviewInformation);

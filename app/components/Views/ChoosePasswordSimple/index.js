@@ -125,7 +125,11 @@ class ChoosePasswordSimple extends PureComponent {
 		/**
 		 * The navigator object
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	state = {
@@ -170,7 +174,7 @@ class ChoosePasswordSimple extends PureComponent {
 		if (error) {
 			Alert.alert('Error', error);
 		} else {
-			this.props.navigation.state.params.onPasswordSet(this.state.password);
+			this.props.route.params.onPasswordSet(this.state.password);
 			this.props.navigation.pop();
 			return;
 		}

@@ -43,7 +43,10 @@ describe('TransactionReviewInformation', () => {
 		};
 
 		const wrapper = shallow(
-			<TransactionReviewInformation transactionData={{ amount: 0, gas: 0, gasPrice: 1, from: '0x0' }} />,
+			<TransactionReviewInformation
+				transactionData={{ amount: 0, gas: 0, gasPrice: 1, from: '0x0' }}
+				EIP1559GasData={{}}
+			/>,
 			{
 				context: { store: mockStore(initialState) }
 			}

@@ -24,7 +24,6 @@ import {
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 
 import AsyncStorage from '@react-native-community/async-storage';
-
 import Encryptor from './Encryptor';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Networks, { isMainnetByChainId } from '../util/networks';
@@ -155,6 +154,7 @@ class Engine {
 					addCollectible: assetsController.addCollectible.bind(assetsController),
 					removeCollectible: assetsController.removeCollectible.bind(assetsController),
 					getAssetsState: () => assetsController.state,
+					//TODO: replace during Token List Refactor
 					getTokenListState: () => {
 						const tokenList = Object.entries(contractMap).reduce((final, [key, value]) => {
 							if (value.erc20) {

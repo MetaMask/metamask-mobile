@@ -34,7 +34,8 @@ const styles = StyleSheet.create({
  * PureComponent that manages transaction approval from the dapp browser
  */
 class Approval extends PureComponent {
-	static navigationOptions = ({ navigation }) => getTransactionOptionsTitle('approval.title', navigation);
+	static navigationOptions = ({ navigation, route }) =>
+		getTransactionOptionsTitle('approval.title', navigation, route);
 
 	static propTypes = {
 		/**
@@ -169,7 +170,7 @@ class Approval extends PureComponent {
 		};
 	};
 
-	getAnalyticsParams = () => {
+	getAnalyticsParams = ({ gasEstimateType, gasSelected } = {}) => {
 		try {
 			const { activeTabUrl, chainId, transaction, networkType } = this.props;
 			const { selectedAsset } = transaction;
@@ -179,7 +180,10 @@ class Approval extends PureComponent {
 				network_name: networkType,
 				chain_id: chainId,
 				active_currency: { value: selectedAsset?.symbol, anonymous: true },
-				asset_type: { value: transaction?.assetType, anonymous: true }
+				asset_type: { value: transaction?.assetType, anonymous: true },
+				gas_estimate_type: gasEstimateType,
+				gas_mode: gasSelected ? 'Basic' : 'Advanced',
+				speed_set: gasSelected || undefined
 			};
 		} catch (error) {
 			return {};
@@ -219,7 +223,7 @@ class Approval extends PureComponent {
 	/**
 	 * Callback on confirm transaction
 	 */
-	onConfirm = async ({ gasEstimateType, EIP1559GasData }) => {
+	onConfirm = async ({ gasEstimateType, EIP1559GasData, gasSelected }) => {
 		const { TransactionController } = Engine.context;
 		const {
 			transactions,
@@ -267,7 +271,10 @@ class Approval extends PureComponent {
 			Logger.error(error, 'error while trying to send transaction (Approval)');
 			this.setState({ transactionHandled: false });
 		}
-		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.DAPP_TRANSACTION_COMPLETED, this.getAnalyticsParams());
+		AnalyticsV2.trackEvent(
+			AnalyticsV2.ANALYTICS_EVENTS.DAPP_TRANSACTION_COMPLETED,
+			this.getAnalyticsParams({ gasEstimateType, gasSelected })
+		);
 	};
 
 	/**

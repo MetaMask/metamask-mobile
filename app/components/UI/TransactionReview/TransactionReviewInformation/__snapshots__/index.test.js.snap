@@ -1,7 +1,41 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TransactionReviewInformation should render correctly 1`] = `
-<ContextConsumer>
-  <Component />
-</ContextConsumer>
+<Fragment>
+  <Connect(TransactionReviewEIP1559)
+    onEdit={[Function]}
+    primaryCurrency="ETH"
+  />
+  <View
+    style={
+      Object {
+        "flex": 1,
+        "marginTop": 16,
+      }
+    }
+  >
+    <TouchableOpacity
+      style={
+        Object {
+          "alignSelf": "center",
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "alignSelf": "center",
+            "color": "#037dd6",
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontSize": 12,
+            "fontWeight": "600",
+            "textAlign": "center",
+          }
+        }
+      >
+        View Data
+      </Text>
+    </TouchableOpacity>
+  </View>
+</Fragment>
 `;

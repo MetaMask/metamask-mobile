@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet, ActivityIndicator, TouchableOpacity, InteractionManager, Linking } from 'react-native';
 import { connect } from 'react-redux';
@@ -6,7 +6,7 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
 import BigNumber from 'bignumber.js';
-import { NavigationContext } from 'react-navigation';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { WalletDevice, util, GAS_ESTIMATE_TYPES } from '@metamask/controllers/';
 
@@ -313,11 +313,12 @@ function SwapsQuotesView({
 	usedGasEstimate,
 	usedCustomGas
 }) {
-	const navigation = useContext(NavigationContext);
+	const navigation = useNavigation();
+	const route = useRoute();
 	/* Get params from navigation */
 	const { sourceTokenAddress, destinationTokenAddress, sourceAmount, slippage } = useMemo(
-		() => getQuotesNavigationsParams(navigation),
-		[navigation]
+		() => getQuotesNavigationsParams(route),
+		[route]
 	);
 
 	/* Get tokens from the tokens list */
@@ -673,7 +674,7 @@ function SwapsQuotesView({
 			// send analytics
 		}
 
-		navigation.dismiss();
+		navigation.dangerouslyGetParent()?.pop();
 	}, [
 		chainId,
 		navigation,
@@ -868,7 +869,7 @@ function SwapsQuotesView({
 	}, [selectedQuote]);
 
 	const buyEth = useCallback(() => {
-		navigation.navigate('PaymentMethodSelector');
+		navigation.navigate('FiatOnRamp');
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST);
 		});
@@ -877,7 +878,10 @@ function SwapsQuotesView({
 	const handleTermsPress = useCallback(
 		() =>
 			navigation.navigate('Webview', {
-				url: AppConstants.URLS.TERMS_AND_CONDITIONS
+				screen: 'SimpleWebview',
+				params: {
+					url: AppConstants.URLS.TERMS_AND_CONDITIONS
+				}
 			}),
 		[navigation]
 	);
@@ -1549,7 +1553,7 @@ function SwapsQuotesView({
 	);
 }
 
-SwapsQuotesView.navigationOptions = ({ navigation }) => getSwapsQuotesNavbar(navigation);
+SwapsQuotesView.navigationOptions = ({ navigation, route }) => getSwapsQuotesNavbar(navigation, route);
 
 SwapsQuotesView.propTypes = {
 	swapsTokens: PropTypes.arrayOf(PropTypes.object),

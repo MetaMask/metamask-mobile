@@ -28,36 +28,22 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import TransactionHeader from '../../UI/TransactionHeader';
 import AccountInfoCard from '../../UI/AccountInfoCard';
-import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionReviewDetailsCard from '../../UI/TransactionReview/TransactionReivewDetailsCard';
 import Device from '../../../util/Device';
 import AppConstants from '../../../core/AppConstants';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
-import { withNavigation } from 'react-navigation';
+import { withNavigation } from '@react-navigation/compat';
 import { getNetworkName, isMainNet, isMainnetByChainId } from '../../../util/networks';
 import scaling from '../../../util/scaling';
 import { capitalize } from '../../../util/general';
 import EditPermission, { MINIMUM_VALUE } from './EditPermission';
 import Logger from '../../../util/Logger';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import InfoModal from '../Swaps/components/InfoModal';
 import Text from '../../Base/Text';
 import TransactionReviewEIP1559 from '../../UI/TransactionReview/TransactionReviewEIP1559';
 
 const { hexToBN } = util;
 const styles = StyleSheet.create({
-	networkFee: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		borderWidth: 1,
-		borderColor: colors.grey200,
-		borderRadius: 10,
-		padding: 16
-	},
-	networkFeeArrow: {
-		paddingLeft: 20,
-		marginTop: 2
-	},
 	section: {
 		minWidth: '100%',
 		width: '100%',
@@ -105,20 +91,6 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		alignItems: 'center'
 	},
-	sectionLeft: {
-		...fontStyles.bold,
-		color: colors.black,
-		fontSize: 14,
-		flex: 1
-	},
-	sectionRight: {
-		...fontStyles.bold,
-		color: colors.black,
-		fontSize: 14,
-		flex: 1,
-		textTransform: 'uppercase',
-		textAlign: 'right'
-	},
 	errorWrapper: {
 		marginTop: 12,
 		paddingHorizontal: 10,
@@ -149,18 +121,6 @@ const styles = StyleSheet.create({
 	},
 	paddingHorizontal: {
 		paddingHorizontal: 16
-	},
-	gasInfoContainer: {
-		paddingHorizontal: 2
-	},
-	gasInfoIcon: {
-		color: colors.blue
-	},
-	hitSlop: {
-		top: 10,
-		left: 10,
-		bottom: 10,
-		right: 10
 	}
 });
 
@@ -260,7 +220,27 @@ class ApproveTransactionReview extends PureComponent {
 		/**
 		 * Estimate type returned by the gas fee controller, can be market-fee, legacy or eth_gasPrice
 		 */
-		gasEstimateType: PropTypes.string
+		gasEstimateType: PropTypes.string,
+		/**
+		 * Function to call when update animation starts
+		 */
+		onUpdatingValuesStart: PropTypes.func,
+		/**
+		 * Function to call when update animation ends
+		 */
+		onUpdatingValuesEnd: PropTypes.func,
+		/**
+		 * If the values should animate upon update or not
+		 */
+		animateOnChange: PropTypes.bool,
+		/**
+		 * Boolean to determine if the animation is happening
+		 */
+		isAnimating: PropTypes.bool,
+		/**
+		 * If the gas estimations are ready
+		 */
+		gasEstimationReady: PropTypes.bool
 	};
 
 	state = {
@@ -540,7 +520,12 @@ class ApproveTransactionReview extends PureComponent {
 			warningGasPriceHigh,
 			EIP1559GasData,
 			LegacyGasData,
-			gasEstimateType
+			gasEstimateType,
+			onUpdatingValuesStart,
+			onUpdatingValuesEnd,
+			animateOnChange,
+			isAnimating,
+			gasEstimationReady
 		} = this.props;
 		const is_main_net = isMainNet(network);
 		const originIsDeeplink = origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
@@ -549,6 +534,11 @@ class ApproveTransactionReview extends PureComponent {
 		const errorLinkText = is_main_net
 			? strings('transaction.buy_more_eth')
 			: strings('transaction.get_ether', { networkName });
+
+		const showFeeMarket =
+			!gasEstimateType ||
+			gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ||
+			gasEstimateType === GAS_ESTIMATE_TYPES.NONE;
 
 		return (
 			<>
@@ -585,7 +575,7 @@ class ApproveTransactionReview extends PureComponent {
 								<View style={styles.paddingHorizontal}>
 									<AccountInfoCard />
 									<View style={styles.section}>
-										{gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ? (
+										{showFeeMarket ? (
 											<TransactionReviewEIP1559
 												totalNative={EIP1559GasData.renderableTotalMinNative}
 												totalConversion={EIP1559GasData.renderableTotalMinConversion}
@@ -600,37 +590,30 @@ class ApproveTransactionReview extends PureComponent {
 												hideTotal
 												noMargin
 												onEdit={this.edit}
+												onUpdatingValuesStart={onUpdatingValuesStart}
+												onUpdatingValuesEnd={onUpdatingValuesEnd}
+												animateOnChange={animateOnChange}
+												isAnimating={isAnimating}
+												gasEstimationReady={gasEstimationReady}
 											/>
 										) : (
-											<TouchableOpacity onPress={this.edit}>
-												<View style={styles.networkFee}>
-													<Text reset style={styles.sectionLeft}>
-														{strings('transaction.transaction_fee')}
-														<TouchableOpacity
-															style={styles.gasInfoContainer}
-															onPress={this.toggleGasTooltip}
-															hitSlop={styles.hitSlop}
-														>
-															<MaterialCommunityIcons
-																name="information"
-																size={13}
-																style={styles.gasInfoIcon}
-															/>
-														</TouchableOpacity>
-													</Text>
-													<Text reset style={styles.sectionRight}>
-														{LegacyGasData.transactionFee} (
-														{LegacyGasData.transactionFeeFiat})
-													</Text>
-													<View style={styles.networkFeeArrow}>
-														<IonicIcon
-															name="ios-arrow-forward"
-															size={16}
-															color={colors.grey00}
-														/>
-													</View>
-												</View>
-											</TouchableOpacity>
+											<TransactionReviewEIP1559
+												totalNative={LegacyGasData.transactionTotalAmount}
+												totalConversion={LegacyGasData.transactionTotalAmountFiat}
+												gasFeeNative={LegacyGasData.transactionFee}
+												gasFeeConversion={LegacyGasData.transactionFeeFiat}
+												primaryCurrency={primaryCurrency}
+												hideTotal
+												noMargin
+												onEdit={this.edit}
+												over={Boolean(LegacyGasData.error)}
+												onUpdatingValuesStart={this.onUpdatingValuesStart}
+												onUpdatingValuesEnd={this.onUpdatingValuesEnd}
+												animateOnChange={animateOnChange}
+												isAnimating={isAnimating}
+												gasEstimationReady={gasEstimationReady}
+												legacy
+											/>
 										)}
 
 										{gasError && (
@@ -710,7 +693,7 @@ class ApproveTransactionReview extends PureComponent {
 		const { navigation } = this.props;
 		/* this is kinda weird, we have to reject the transaction to collapse the modal */
 		this.onCancelPress();
-		navigation.navigate('PaymentMethodSelector');
+		navigation.navigate('FiatOnRamp');
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST);
 		});

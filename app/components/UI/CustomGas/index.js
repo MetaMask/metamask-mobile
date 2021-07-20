@@ -449,8 +449,7 @@ class CustomGas extends PureComponent {
 		let warningGasLimit;
 		if (!value || value === '' || !isDecimal(value)) warningGasLimit = strings('transaction.invalid_gas');
 		else if (bnValue && !isBN(bnValue)) warningGasLimit = strings('transaction.invalid_gas');
-		else if (bnValue.lt(new BN(21000)) || bnValue.gt(new BN(7920028)))
-			warningGasLimit = strings('custom_gas.warning_gas_limit');
+		else if (bnValue.lt(new BN(21000))) warningGasLimit = strings('custom_gas.warning_gas_limit');
 		else if (this.props.minimumGasLimit && bnValue.lt(new BN(this.props.minimumGasLimit)))
 			warningGasLimit = strings('custom_gas.warning_gas_limit_estimated', {
 				gas: this.props.minimumGasLimit.toString(10)

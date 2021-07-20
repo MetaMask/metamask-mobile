@@ -28,6 +28,8 @@ const styles = StyleSheet.create({
 	}
 });
 
+const RECOMMENDED = 'high';
+
 function GasEditModal({
 	dismiss,
 	gasEstimateType,
@@ -80,7 +82,9 @@ function GasEditModal({
 							suggestedMaxFeePerGas: gasFeeEstimates[gasSelected].suggestedMaxFeePerGas,
 							suggestedMaxPriorityFeePerGas: gasFeeEstimates[gasSelected].suggestedMaxPriorityFeePerGas,
 							suggestedGasLimit: initialGasLimit,
-							estimatedBaseFee: gasFeeEstimates.estimatedBaseFee
+							estimatedBaseFee: gasFeeEstimates.estimatedBaseFee,
+							selectedOption: gasSelected,
+							recommended: RECOMMENDED
 						}
 					},
 					{ onlyGas: true }
@@ -135,7 +139,9 @@ function GasEditModal({
 							suggestedMaxFeePerGas,
 							suggestedMaxPriorityFeePerGas,
 							suggestedGasLimit: selected ? initialGasLimit : suggestedGasLimit,
-							estimatedBaseFee
+							estimatedBaseFee,
+							selectedOption: selected,
+							recommended: RECOMMENDED
 						}
 					},
 					{ onlyGas: true }
