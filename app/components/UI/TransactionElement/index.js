@@ -11,13 +11,13 @@ import { connect } from 'react-redux';
 import StyledButton from '../StyledButton';
 import Modal from 'react-native-modal';
 import decodeTransaction from './utils';
-import { isEIP1559Transaction, TRANSACTION_TYPES } from '../../../util/transactions';
+import { TRANSACTION_TYPES } from '../../../util/transactions';
 import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
 import DetailsModal from '../../Base/DetailsModal';
 import { isMainNet } from '../../../util/networks';
-import { WalletDevice } from '@metamask/controllers/';
-import { weiHexToGweiDec } from '@metamask/controllers/dist/util';
+import { WalletDevice, util } from '@metamask/controllers/';
+const { weiHexToGweiDec, isEIP1559Transaction } = util;
 
 const styles = StyleSheet.create({
 	row: {
