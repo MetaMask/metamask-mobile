@@ -106,6 +106,9 @@ const styles = StyleSheet.create({
 	},
 	dappEditGasContainer: {
 		marginVertical: 20
+	},
+	subheader: {
+		marginBottom: 6
 	}
 });
 
@@ -471,17 +474,17 @@ const EditGasFee1559 = ({
 							animateOnChange={animateOnChange}
 						>
 							<View style={styles.headerTitle}>
-								<Text black style={styles.headerText} adjustsFontSizeToFit numberOfLines={1}>
+								<Text black style={styles.headerText} adjustsFontSizeToFit numberOfLines={1} noMargin>
 									~{gasFeePrimary}
 								</Text>
 							</View>
-							<Text big black>
-								<Text bold black>
+							<Text big black style={styles.subheader} noMargin>
+								<Text bold black noMargin>
 									Max fee:{' '}
 								</Text>
-								{gasFeeMaxPrimary} ({gasFeeMaxSecondary})
+								{gasFeeMaxPrimary} {isMainnet && `(${gasFeeMaxSecondary})`}
 							</Text>
-							<Text green={timeEstimateColor === 'green'} red={timeEstimateColor === 'red'}>
+							<Text green={timeEstimateColor === 'green'} red={timeEstimateColor === 'red'} bold>
 								{timeEstimate}
 							</Text>
 						</FadeAnimationView>

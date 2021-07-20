@@ -174,7 +174,8 @@ class TransactionEditor extends PureComponent {
 
 			const EIP1559GasData = this.parseTransactionDataEIP1559({
 				...initialGas,
-				suggestedGasLimit
+				suggestedGasLimit,
+				selectedOption: gasSelected
 			});
 
 			let EIP1559GasDataTemp;
@@ -183,7 +184,8 @@ class TransactionEditor extends PureComponent {
 			} else {
 				EIP1559GasDataTemp = this.parseTransactionDataEIP1559({
 					...initialGasTemp,
-					suggestedGasLimit
+					suggestedGasLimit,
+					selectedOption: gasSelectedTemp
 				});
 			}
 
@@ -201,7 +203,7 @@ class TransactionEditor extends PureComponent {
 					this.setState({ animateOnChange: false });
 				}
 			);
-		} else {
+		} else if (this.props.gasEstimateType !== GAS_ESTIMATE_TYPES.NONE) {
 			const suggestedGasLimit = fromWei(transaction.gas, 'wei');
 			const getGas = selected =>
 				dappSuggestedGasPrice
@@ -227,7 +229,7 @@ class TransactionEditor extends PureComponent {
 			if (this.state.gasSelected === this.state.gasSelectedTemp) {
 				LegacyGasDataTemp = LegacyGasData;
 			} else {
-				LegacyGasDataTemp = this.parseTransactionDataEIP1559({
+				LegacyGasDataTemp = this.parseTransactionDataLegacy({
 					suggestedGasPrice: getGas(this.state.gasSelectedTemp),
 					suggestedGasLimit
 				});
@@ -606,7 +608,6 @@ class TransactionEditor extends PureComponent {
 			this.setState({ over: true });
 			error = strings('transaction.insufficient_amount', { amount, tokenSymbol });
 		}
-
 		return error;
 	};
 
@@ -801,7 +802,7 @@ class TransactionEditor extends PureComponent {
 		);
 		const amountError = await this.validateAmount(false);
 		const toAddressError = this.validateToAddress();
-		this.setState({ amountError, toAddressError });
+		this.setState({ amountError: totalError || amountError, toAddressError });
 		return totalError || amountError || toAddressError;
 	};
 
@@ -872,7 +873,7 @@ class TransactionEditor extends PureComponent {
 			gas.suggestedGasLimit = fromWei(transaction.gas, 'wei');
 		}
 		this.setState({
-			EIP1559GasDataTemp: this.parseTransactionDataEIP1559(gas),
+			EIP1559GasDataTemp: this.parseTransactionDataEIP1559({ ...gas, selectedOption: selected }),
 			stopUpdateGas: !selected,
 			gasSelectedTemp: selected
 		});

@@ -40,7 +40,6 @@ import Logger from '../../../../util/Logger';
 import AccountList from '../../../UI/AccountList';
 import CustomNonceModal from '../../../UI/CustomNonceModal';
 import AnimatedTransactionModal from '../../../UI/AnimatedTransactionModal';
-import TransactionReviewFeeCard from '../../../UI/TransactionReview/TransactionReviewFeeCard';
 import CustomGas from '../../../UI/CustomGas';
 import { doENSReverseLookup } from '../../../../util/ENSUtils';
 import NotificationManager from '../../../../core/NotificationManager';
@@ -466,7 +465,8 @@ class Confirm extends PureComponent {
 
 					const EIP1559TransactionData = this.parseTransactionDataEIP1559({
 						...this.props.gasFeeEstimates[this.state.gasSelected],
-						suggestedGasLimit
+						suggestedGasLimit,
+						selectedOption: this.state.gasSelected
 					});
 
 					let EIP1559TransactionDataTemp;
@@ -475,7 +475,8 @@ class Confirm extends PureComponent {
 					} else {
 						EIP1559TransactionDataTemp = this.parseTransactionDataEIP1559({
 							...this.props.gasFeeEstimates[this.state.gasSelectedTemp],
-							suggestedGasLimit
+							suggestedGasLimit,
+							selectedOption: this.state.gasSelectedTemp
 						});
 					}
 
@@ -493,7 +494,7 @@ class Confirm extends PureComponent {
 							this.setState({ animateOnChange: false });
 						}
 					);
-				} else {
+				} else if (this.props.gasEstimateType !== GAS_ESTIMATE_TYPES.NONE) {
 					const suggestedGasLimit = fromWei(gas, 'wei');
 
 					const LegacyTransactionData = this.parseTransactionDataLegacy({
@@ -508,7 +509,7 @@ class Confirm extends PureComponent {
 					if (this.state.gasSelected === this.state.gasSelectedTemp) {
 						LegacyTransactionDataTemp = LegacyTransactionData;
 					} else {
-						LegacyTransactionDataTemp = this.parseTransactionDataEIP1559({
+						LegacyTransactionDataTemp = this.parseTransactionDataLegacy({
 							suggestedGasPrice:
 								this.props.gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
 									? this.props.gasFeeEstimates[this.state.gasSelectedTemp]
@@ -1134,7 +1135,7 @@ class Confirm extends PureComponent {
 			gas.suggestedGasLimit = fromWei(transaction.gas, 'wei');
 		}
 		this.setState({
-			EIP1559TransactionDataTemp: this.parseTransactionDataEIP1559(gas),
+			EIP1559TransactionDataTemp: this.parseTransactionDataEIP1559({ ...gas, selectedOption: selected }),
 			stopUpdateGas: !selected,
 			gasSelectedTemp: selected
 		});
@@ -1182,7 +1183,6 @@ class Confirm extends PureComponent {
 			transactionValue = '',
 			transactionValueFiat = '',
 			transactionTo = '',
-			transactionTotalAmountFiat = <Text />,
 			errorMessage,
 			transactionConfirmed,
 			warningGasPriceHigh,
@@ -1279,22 +1279,20 @@ class Confirm extends PureComponent {
 						</View>
 					)}
 					{!showFeeMarket ? (
-						<TransactionReviewFeeCard
-							totalGasFiat={LegacyTransactionData.transactionFeeFiat}
-							totalGasEth={LegacyTransactionData.transactionFee}
-							totalFiat={isMainNet(chainId) ? transactionTotalAmountFiat : <Text />}
-							fiat={transactionValueFiat}
-							totalValue={LegacyTransactionData.transactionTotalAmount}
-							transactionValue={transactionValue}
+						<TransactionReviewEIP1559
+							totalNative={LegacyTransactionData.transactionTotalAmount}
+							totalConversion={LegacyTransactionData.transactionTotalAmountFiat}
+							gasFeeNative={LegacyTransactionData.transactionFee}
+							gasFeeConversion={LegacyTransactionData.transactionFeeFiat}
 							primaryCurrency={primaryCurrency}
-							gasEstimationReady={gasEstimationReady}
-							edit={() => this.edit(EDIT)}
+							onEdit={() => this.edit(EDIT)}
 							over={Boolean(LegacyTransactionData.error)}
-							warningGasPriceHigh={warningGasPriceHigh}
 							onUpdatingValuesStart={this.onUpdatingValuesStart}
 							onUpdatingValuesEnd={this.onUpdatingValuesEnd}
 							animateOnChange={animateOnChange}
 							isAnimating={isAnimating}
+							gasEstimationReady={gasEstimationReady}
+							legacy
 						/>
 					) : (
 						<TransactionReviewEIP1559
@@ -1314,6 +1312,7 @@ class Confirm extends PureComponent {
 							onUpdatingValuesEnd={this.onUpdatingValuesEnd}
 							animateOnChange={animateOnChange}
 							isAnimating={isAnimating}
+							gasEstimationReady={gasEstimationReady}
 						/>
 					)}
 

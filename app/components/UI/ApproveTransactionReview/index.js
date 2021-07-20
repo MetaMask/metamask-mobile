@@ -28,7 +28,6 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import TransactionHeader from '../../UI/TransactionHeader';
 import AccountInfoCard from '../../UI/AccountInfoCard';
-import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionReviewDetailsCard from '../../UI/TransactionReview/TransactionReivewDetailsCard';
 import Device from '../../../util/Device';
 import AppConstants from '../../../core/AppConstants';
@@ -39,26 +38,12 @@ import scaling from '../../../util/scaling';
 import { capitalize } from '../../../util/general';
 import EditPermission, { MINIMUM_VALUE } from './EditPermission';
 import Logger from '../../../util/Logger';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import InfoModal from '../Swaps/components/InfoModal';
 import Text from '../../Base/Text';
 import TransactionReviewEIP1559 from '../../UI/TransactionReview/TransactionReviewEIP1559';
-import FadeAnimationView from '../FadeAnimationView';
 
 const { hexToBN } = util;
 const styles = StyleSheet.create({
-	networkFee: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		borderWidth: 1,
-		borderColor: colors.grey200,
-		borderRadius: 10,
-		padding: 16
-	},
-	networkFeeArrow: {
-		paddingLeft: 20,
-		marginTop: 2
-	},
 	section: {
 		minWidth: '100%',
 		width: '100%',
@@ -106,20 +91,6 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		alignItems: 'center'
 	},
-	sectionLeft: {
-		...fontStyles.bold,
-		color: colors.black,
-		fontSize: 14,
-		flex: 1
-	},
-	sectionRight: {
-		...fontStyles.bold,
-		color: colors.black,
-		fontSize: 14,
-		flex: 1,
-		textTransform: 'uppercase',
-		textAlign: 'right'
-	},
 	errorWrapper: {
 		marginTop: 12,
 		paddingHorizontal: 10,
@@ -150,18 +121,6 @@ const styles = StyleSheet.create({
 	},
 	paddingHorizontal: {
 		paddingHorizontal: 16
-	},
-	gasInfoContainer: {
-		paddingHorizontal: 2
-	},
-	gasInfoIcon: {
-		color: colors.blue
-	},
-	hitSlop: {
-		top: 10,
-		left: 10,
-		bottom: 10,
-		right: 10
 	}
 });
 
@@ -277,7 +236,11 @@ class ApproveTransactionReview extends PureComponent {
 		/**
 		 * Boolean to determine if the animation is happening
 		 */
-		isAnimating: PropTypes.bool
+		isAnimating: PropTypes.bool,
+		/**
+		 * If the gas estimations are ready
+		 */
+		gasEstimationReady: PropTypes.bool
 	};
 
 	state = {
@@ -561,7 +524,8 @@ class ApproveTransactionReview extends PureComponent {
 			onUpdatingValuesStart,
 			onUpdatingValuesEnd,
 			animateOnChange,
-			isAnimating
+			isAnimating,
+			gasEstimationReady
 		} = this.props;
 		const is_main_net = isMainNet(network);
 		const originIsDeeplink = origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
@@ -630,44 +594,26 @@ class ApproveTransactionReview extends PureComponent {
 												onUpdatingValuesEnd={onUpdatingValuesEnd}
 												animateOnChange={animateOnChange}
 												isAnimating={isAnimating}
+												gasEstimationReady={gasEstimationReady}
 											/>
 										) : (
-											<TouchableOpacity onPress={this.edit} disabled={isAnimating}>
-												<View style={styles.networkFee}>
-													<Text reset style={styles.sectionLeft}>
-														{strings('transaction.transaction_fee')}
-														<TouchableOpacity
-															style={styles.gasInfoContainer}
-															onPress={this.toggleGasTooltip}
-															hitSlop={styles.hitSlop}
-														>
-															<MaterialCommunityIcons
-																name="information"
-																size={13}
-																style={styles.gasInfoIcon}
-															/>
-														</TouchableOpacity>
-													</Text>
-													<FadeAnimationView
-														onAnimationStart={onUpdatingValuesStart}
-														onAnimationEnd={onUpdatingValuesEnd}
-														animateOnChange={animateOnChange}
-														valueToWatch={LegacyGasData.transactionFee}
-													>
-														<Text reset style={styles.sectionRight}>
-															{LegacyGasData.transactionFee} (
-															{LegacyGasData.transactionFeeFiat})
-														</Text>
-													</FadeAnimationView>
-													<View style={styles.networkFeeArrow}>
-														<IonicIcon
-															name="ios-arrow-forward"
-															size={16}
-															color={colors.grey00}
-														/>
-													</View>
-												</View>
-											</TouchableOpacity>
+											<TransactionReviewEIP1559
+												totalNative={LegacyGasData.transactionTotalAmount}
+												totalConversion={LegacyGasData.transactionTotalAmountFiat}
+												gasFeeNative={LegacyGasData.transactionFee}
+												gasFeeConversion={LegacyGasData.transactionFeeFiat}
+												primaryCurrency={primaryCurrency}
+												hideTotal
+												noMargin
+												onEdit={this.edit}
+												over={Boolean(LegacyGasData.error)}
+												onUpdatingValuesStart={this.onUpdatingValuesStart}
+												onUpdatingValuesEnd={this.onUpdatingValuesEnd}
+												animateOnChange={animateOnChange}
+												isAnimating={isAnimating}
+												gasEstimationReady={gasEstimationReady}
+												legacy
+											/>
 										)}
 
 										{gasError && (
