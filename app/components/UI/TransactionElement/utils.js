@@ -20,7 +20,6 @@ import {
 	getTicker,
 	getActionKey,
 	TRANSACTION_TYPES,
-	isEIP1559Transaction,
 	calculateEIP1559GasFeeHexes
 } from '../../../util/transactions';
 import contractMap from '@metamask/contract-metadata';
@@ -28,6 +27,7 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { isSwapsNativeAsset } from '../Swaps/utils';
 import { toLowerCaseEquals } from '../../../util/general';
+import { isEIP1559Transaction } from '@metamask/controllers/dist/util';
 
 const { getSwapsContractAddress } = swapsUtils;
 

@@ -935,11 +935,6 @@ export const parseTransactionLegacy = (
 	};
 };
 
-export const isEIP1559Transaction = transaction => {
-	const hasOwnProp = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key);
-	return hasOwnProp(transaction, 'maxFeePerGas') && hasOwnProp(transaction, 'maxPriorityFeePerGas');
-};
-
 /**
  * Validate transaction value for speed up or cancel transaction actions
  *
@@ -956,7 +951,7 @@ export function validateTransactionActionBalance(transaction, rate, accounts) {
 		let gasPrice = transaction.transaction.gasPrice;
 		const transactionToCheck = transaction.transaction;
 
-		if (isEIP1559Transaction(transactionToCheck)) {
+		if (util.isEIP1559Transaction(transactionToCheck)) {
 			gasPrice = transactionToCheck.maxFeePerGas;
 		}
 

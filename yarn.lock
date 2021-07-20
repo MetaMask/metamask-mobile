@@ -1484,9 +1484,9 @@
     web3 "^0.20.7"
     web3-provider-engine "^16.0.1"
 
-"@metamask/controllers@file:./metamask-controllers-v12.1.9.tgz":
-  version "12.1.9"
-  resolved "file:./metamask-controllers-v12.1.9.tgz#842704533d0bd8c5b5a78392ef568a18106e88d3"
+"@metamask/controllers@file:./metamask-controllers-v12.1.0-aa872986.tgz":
+  version "12.1.0-aa872986"
+  resolved "file:./metamask-controllers-v12.1.0-aa872986.tgz#b27184ce65888a26249a6089d78bcbe53d4d5a3f"
   dependencies:
     "@ethereumjs/common" "^2.3.1"
     "@ethereumjs/tx" "^3.2.1"
@@ -1533,9 +1533,9 @@
   resolved "https://registry.yarnpkg.com/@metamask/safe-event-emitter/-/safe-event-emitter-2.0.0.tgz#af577b477c683fad17c619a78208cede06f9605c"
   integrity sha512-/kSXhY692qiV1MXu6EeOZvg5nECLclxNXcKCxJ3cXQgYuRymRHpdx/t7JXfsK+JLjwA1e1c1/SBrlQYpusC29Q==
 
-"@metamask/swaps-controller@./metamask-swaps-controller-v4.0.0-9385ff.tgz":
+"@metamask/swaps-controller@file:./metamask-swaps-controller-v4.0.0-9385ff.tgz":
   version "4.0.0-9385ff"
-  resolved "./metamask-swaps-controller-v4.0.0-9385ff.tgz#ab6ab53a6cacbd9e94aaa3c0d58f56a3ddb50ee1"
+  resolved "file:./metamask-swaps-controller-v4.0.0-9385ff.tgz#ab6ab53a6cacbd9e94aaa3c0d58f56a3ddb50ee1"
   dependencies:
     "@metamask/controllers" "^12.1.0"
     abort-controller "^3.0.0"
