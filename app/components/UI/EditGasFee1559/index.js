@@ -1,6 +1,5 @@
 /* eslint-disable react/display-name */
 import React, { useCallback, useState, useMemo } from 'react';
-import { connect } from 'react-redux';
 import { View, StyleSheet, TouchableOpacity, ScrollView, TouchableWithoutFeedback } from 'react-native';
 import Text from '../../Base/Text';
 import StyledButton from '../StyledButton';
@@ -141,7 +140,6 @@ const EditGasFee1559 = ({
 	isAnimating,
 	onUpdatingValuesStart,
 	onUpdatingValuesEnd,
-	networkType,
 	analyticsParams,
 	view
 }) => {
@@ -157,7 +155,6 @@ const EditGasFee1559 = ({
 		try {
 			return {
 				...(analyticsParams || {}),
-				network_name: networkType,
 				chain_id: chainId,
 				function_type: view,
 				gas_mode: selectedOption ? 'Basic' : 'Advanced',
@@ -166,7 +163,7 @@ const EditGasFee1559 = ({
 		} catch (error) {
 			return {};
 		}
-	}, [analyticsParams, chainId, networkType, selectedOption, view]);
+	}, [analyticsParams, chainId, selectedOption, view]);
 
 	const toggleAdvancedOptions = useCallback(() => {
 		if (!showAdvancedOptions) {
@@ -710,10 +707,6 @@ EditGasFee1559.propTypes = {
 	 */
 	isAnimating: PropTypes.bool,
 	/**
-	 * A string representing the network type
-	 */
-	networkType: PropTypes.string,
-	/**
 	 * Extra analytics params to be send with the gas analytics
 	 */
 	analyticsParams: PropTypes.object,
@@ -723,8 +716,4 @@ EditGasFee1559.propTypes = {
 	view: PropTypes.string.isRequired
 };
 
-const mapStateToProps = state => ({
-	networkType: state.engine.backgroundState.NetworkController.provider.type
-});
-
-export default connect(mapStateToProps)(EditGasFee1559);
+export default EditGasFee1559;

@@ -107,7 +107,11 @@ class Approve extends PureComponent {
 		/**
 		 * A string representing the network chainId
 		 */
-		chainId: PropTypes.string
+		chainId: PropTypes.string,
+		/**
+		 * A string representing the network type
+		 */
+		networkType: PropTypes.string
 	};
 
 	state = {
@@ -492,12 +496,13 @@ class Approve extends PureComponent {
 	getGasAnalyticsParams = () => {
 		try {
 			const { analyticsParams } = this.state;
-			const { gasEstimateType } = this.props;
+			const { gasEstimateType, networkType } = this.props;
 			return {
 				dapp_host_name: analyticsParams?.dapp_host_name,
 				dapp_url: analyticsParams?.dapp_url,
 				active_currency: { value: analyticsParams?.active_currency, anonymous: true },
-				gas_estimate_type: gasEstimateType
+				gas_estimate_type: gasEstimateType,
+				network_name: networkType
 			};
 		} catch (error) {
 			return {};
@@ -671,7 +676,8 @@ const mapStateToProps = state => ({
 	gasEstimateType: state.engine.backgroundState.GasFeeController.gasEstimateType,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	nativeCurrency: state.engine.backgroundState.CurrencyRateController.nativeCurrency,
-	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	networkType: state.engine.backgroundState.NetworkController.provider.type
 });
 
 const mapDispatchToProps = dispatch => ({

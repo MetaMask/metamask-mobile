@@ -854,13 +854,14 @@ class TransactionEditor extends PureComponent {
 
 	getGasAnalyticsParams = () => {
 		try {
-			const { transaction, activeTabUrl, gasEstimateType } = this.props;
+			const { transaction, activeTabUrl, gasEstimateType, networkType } = this.props;
 			const { selectedAsset } = transaction;
 			return {
 				dapp_host_name: transaction?.origin,
 				dapp_url: activeTabUrl,
 				active_currency: { value: selectedAsset?.symbol, anonymous: true },
-				gas_estimate_type: gasEstimateType
+				gas_estimate_type: gasEstimateType,
+				network_name: networkType
 			};
 		} catch (error) {
 			return {};

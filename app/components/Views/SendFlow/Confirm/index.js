@@ -323,7 +323,11 @@ class Confirm extends PureComponent {
 		/**
 		 * Indicates whether the current transaction is a deep link transaction
 		 */
-		isPaymentRequest: PropTypes.bool
+		isPaymentRequest: PropTypes.bool,
+		/**
+		 * A string representing the network type
+		 */
+		networkType: PropTypes.string
 	};
 
 	state = {
@@ -373,13 +377,12 @@ class Confirm extends PureComponent {
 
 	getAnalyticsParams = () => {
 		try {
-			const { selectedAsset, gasEstimateType } = this.props;
+			const { selectedAsset, gasEstimateType, chainId, networkType } = this.props;
 			const { gasSelected } = this.state;
-			const { NetworkController } = Engine.context;
-			const { chainId, type } = NetworkController?.state?.provider || {};
+
 			return {
 				active_currency: { value: selectedAsset?.symbol, anonymous: true },
-				network_name: type,
+				network_name: networkType,
 				chain_id: chainId,
 				gas_estimate_type: gasEstimateType,
 				gas_mode: gasSelected ? 'Basic' : 'Advanced',
@@ -392,10 +395,11 @@ class Confirm extends PureComponent {
 
 	getGasAnalyticsParams = () => {
 		try {
-			const { selectedAsset, gasEstimateType } = this.props;
+			const { selectedAsset, gasEstimateType, networkType } = this.props;
 			return {
 				active_currency: { value: selectedAsset.symbol, anonymous: true },
-				gas_estimate_type: gasEstimateType
+				gas_estimate_type: gasEstimateType,
+				network_name: networkType
 			};
 		} catch (error) {
 			return {};
@@ -1399,7 +1403,8 @@ const mapStateToProps = state => ({
 	primaryCurrency: state.settings.primaryCurrency,
 	gasFeeEstimates: state.engine.backgroundState.GasFeeController.gasFeeEstimates,
 	gasEstimateType: state.engine.backgroundState.GasFeeController.gasEstimateType,
-	isPaymentRequest: state.transaction.paymentRequest
+	isPaymentRequest: state.transaction.paymentRequest,
+	networkType: state.engine.backgroundState.NetworkController.provider.type
 });
 
 const mapDispatchToProps = dispatch => ({

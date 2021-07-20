@@ -1,6 +1,5 @@
 /* eslint-disable react/display-name */
 import React, { useCallback, useState, useMemo } from 'react';
-import { connect } from 'react-redux';
 import { View, StyleSheet, TouchableOpacity, ScrollView, TouchableWithoutFeedback } from 'react-native';
 import PropTypes from 'prop-types';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
@@ -120,7 +119,6 @@ const EditGasFeeLegacy = ({
 	onUpdatingValuesEnd,
 	animateOnChange,
 	isAnimating,
-	networkType,
 	analyticsParams,
 	view
 }) => {
@@ -134,7 +132,6 @@ const EditGasFeeLegacy = ({
 		try {
 			return {
 				...(analyticsParams || {}),
-				network_name: networkType,
 				chain_id: chainId,
 				function_type: view,
 				gas_mode: selectedOption ? 'Basic' : 'Advanced',
@@ -143,7 +140,7 @@ const EditGasFeeLegacy = ({
 		} catch (error) {
 			return {};
 		}
-	}, [analyticsParams, chainId, networkType, selectedOption, view]);
+	}, [analyticsParams, chainId, selectedOption, view]);
 
 	const toggleAdvancedOptions = useCallback(() => {
 		if (!showAdvancedOptions) {
@@ -522,10 +519,6 @@ EditGasFeeLegacy.propTypes = {
 	 */
 	isAnimating: PropTypes.bool,
 	/**
-	 * A string representing the network type
-	 */
-	networkType: PropTypes.string,
-	/**
 	 * Extra analytics params to be send with the gas analytics
 	 */
 	analyticsParams: PropTypes.object,
@@ -535,8 +528,4 @@ EditGasFeeLegacy.propTypes = {
 	view: PropTypes.string.isRequired
 };
 
-const mapStateToProps = state => ({
-	networkType: state.engine.backgroundState.NetworkController.provider.type
-});
-
-export default connect(mapStateToProps)(EditGasFeeLegacy);
+export default EditGasFeeLegacy;
