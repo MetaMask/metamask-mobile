@@ -122,7 +122,7 @@ workflows:
         is_always_run: false
   ios_e2e_test:
     before_run:
-    - code_setup_cache
+    - code_setup
     - e2e_setup
     steps:
     - certificate-and-profile-installer@1: {}
