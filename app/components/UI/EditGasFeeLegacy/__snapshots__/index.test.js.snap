@@ -283,7 +283,6 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
               >
                 <RangeInput
                   increment={"1"}
-                  inputInsideLabel="≈ undefined"
                   leftLabelComponent={
                     <View
                       style={
