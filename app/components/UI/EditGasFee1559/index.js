@@ -442,6 +442,48 @@ const EditGasFee1559 = ({
 		</View>
 	);
 
+	const renderWarning = useCallback(() => {
+		if (!warning) return null;
+		if (typeof warning === 'string')
+			return (
+				<Alert
+					small
+					type="warning"
+					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.yellow} />}
+					style={styles.warningContainer}
+				>
+					<View style={styles.warningTextContainer}>
+						<Text black style={styles.warningText}>
+							{warning}
+						</Text>
+					</View>
+				</Alert>
+			);
+
+		return warning;
+	}, [warning]);
+
+	const renderError = useCallback(() => {
+		if (!error) return null;
+		if (typeof error === 'string')
+			return (
+				<Alert
+					small
+					type="error"
+					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.red} />}
+					style={styles.warningContainer}
+				>
+					<View style={styles.warningTextContainer}>
+						<Text red style={styles.warningText}>
+							{error}
+						</Text>
+					</View>
+				</Alert>
+			);
+
+		return error;
+	}, [error]);
+
 	return (
 		<View style={styles.root}>
 			<ScrollView style={styles.wrapper}>
@@ -458,38 +500,8 @@ const EditGasFee1559 = ({
 								<Icon name={'ios-arrow-back'} size={24} color={colors.white} />
 							</View>
 						</View>
-						{!!warning && (
-							<Alert
-								small
-								type="warning"
-								renderIcon={() => (
-									<MaterialCommunityIcon name="information" size={20} color={colors.yellow} />
-								)}
-								style={styles.warningContainer}
-							>
-								<View style={styles.warningTextContainer}>
-									<Text black style={styles.warningText}>
-										{warning}
-									</Text>
-								</View>
-							</Alert>
-						)}
-						{!!error && (
-							<Alert
-								small
-								type="error"
-								renderIcon={() => (
-									<MaterialCommunityIcon name="information" size={20} color={colors.red} />
-								)}
-								style={styles.warningContainer}
-							>
-								<View style={styles.warningTextContainer}>
-									<Text red style={styles.warningText}>
-										{error}
-									</Text>
-								</View>
-							</Alert>
-						)}
+						{renderWarning()}
+						{renderError()}
 						<FadeAnimationView
 							style={styles.headerContainer}
 							valueToWatch={gasFeeMaxPrimary}
@@ -668,11 +680,11 @@ EditGasFee1559.propTypes = {
 	/**
 	 * Error message to show
 	 */
-	error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
+	error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool, PropTypes.node]),
 	/**
 	 * Warning message to show
 	 */
-	warning: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
+	warning: PropTypes.oneOfType([PropTypes.string, PropTypes.bool, PropTypes.node]),
 	/**
 	 * Boolean that specifies if the gas price was suggested by the dapp
 	 */

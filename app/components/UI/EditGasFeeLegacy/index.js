@@ -235,6 +235,48 @@ const EditGasFeeLegacy = ({
 			});
 	}, [recommended, shouldIgnore]);
 
+	const renderWarning = useCallback(() => {
+		if (!warning) return null;
+		if (typeof warning === 'string')
+			return (
+				<Alert
+					small
+					type="warning"
+					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.yellow} />}
+					style={styles.warningContainer}
+				>
+					<View style={styles.warningTextContainer}>
+						<Text black style={styles.warningText}>
+							{warning}
+						</Text>
+					</View>
+				</Alert>
+			);
+
+		return warning;
+	}, [warning]);
+
+	const renderError = useCallback(() => {
+		if (!error) return null;
+		if (typeof error === 'string')
+			return (
+				<Alert
+					small
+					type="error"
+					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.red} />}
+					style={styles.warningContainer}
+				>
+					<View style={styles.warningTextContainer}>
+						<Text red style={styles.warningText}>
+							{error}
+						</Text>
+					</View>
+				</Alert>
+			);
+
+		return error;
+	}, [error]);
+
 	const isMainnet = isMainnetByChainId(chainId);
 	const nativeCurrencySelected = primaryCurrency === 'ETH' || !isMainnet;
 	let gasFeePrimary, gasFeeSecondary;
@@ -261,34 +303,8 @@ const EditGasFeeLegacy = ({
 								<Icon name={'ios-arrow-back'} size={24} color={colors.white} />
 							</View>
 						</View>
-						{Boolean(error) && (
-							<Alert
-								small
-								type="error"
-								renderIcon={() => (
-									<MaterialCommunityIcon name="information" size={20} color={colors.red} />
-								)}
-							>
-								<View style={styles.warningTextContainer}>
-									<Text red>{error}</Text>
-								</View>
-							</Alert>
-						)}
-						{Boolean(warning) && (
-							<Alert
-								small
-								type="warning"
-								renderIcon={() => (
-									<MaterialCommunityIcon name="information" size={20} color={colors.yellow} />
-								)}
-							>
-								<View style={styles.warningTextContainer}>
-									<Text black style={styles.warningText}>
-										{warning}
-									</Text>
-								</View>
-							</Alert>
-						)}
+						{renderWarning()}
+						{renderError()}
 						<FadeAnimationView
 							valueToWatch={gasFeePrimary}
 							animateOnChange={animateOnChange}
@@ -485,11 +501,11 @@ EditGasFeeLegacy.propTypes = {
 	/**
 	 * Error message to show
 	 */
-	error: PropTypes.string,
+	error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool, PropTypes.node]),
 	/**
 	 * Warning message to show
 	 */
-	warning: PropTypes.string,
+	warning: PropTypes.oneOfType([PropTypes.string, PropTypes.bool, PropTypes.node]),
 	/**
 	 * Ignore option array
 	 */
