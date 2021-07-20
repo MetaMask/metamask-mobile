@@ -373,13 +373,17 @@ class Confirm extends PureComponent {
 
 	getAnalyticsParams = () => {
 		try {
-			const { selectedAsset } = this.props;
+			const { selectedAsset, gasEstimateType } = this.props;
+			const { gasSelected } = this.state;
 			const { NetworkController } = Engine.context;
 			const { chainId, type } = NetworkController?.state?.provider || {};
 			return {
 				active_currency: { value: selectedAsset?.symbol, anonymous: true },
 				network_name: type,
-				chain_id: chainId
+				chain_id: chainId,
+				gas_estimate_type: gasEstimateType,
+				gas_mode: gasSelected ? 'Basic' : 'Advanced',
+				speed_set: gasSelected || undefined
 			};
 		} catch (error) {
 			return {};
@@ -388,9 +392,10 @@ class Confirm extends PureComponent {
 
 	getGasAnalyticsParams = () => {
 		try {
-			const { selectedAsset } = this.props;
+			const { selectedAsset, gasEstimateType } = this.props;
 			return {
-				active_currency: { value: selectedAsset.symbol, anonymous: true }
+				active_currency: { value: selectedAsset.symbol, anonymous: true },
+				gas_estimate_type: gasEstimateType
 			};
 		} catch (error) {
 			return {};
@@ -997,6 +1002,8 @@ class Confirm extends PureComponent {
 						error={EIP1559TransactionDataTemp.error}
 						animateOnChange={animateOnChange}
 						isAnimating={isAnimating}
+						analyticsParams={this.getGasAnalyticsParams()}
+						view={'SendTo (Confirm)'}
 					/>
 				</KeyboardAwareScrollView>
 			</Modal>
@@ -1038,6 +1045,8 @@ class Confirm extends PureComponent {
 						onSave={this.saveGasEdition}
 						animateOnChange={animateOnChange}
 						isAnimating={isAnimating}
+						analyticsParams={this.getGasAnalyticsParams()}
+						view={'SendTo (Confirm)'}
 					/>
 				</KeyboardAwareScrollView>
 			</Modal>

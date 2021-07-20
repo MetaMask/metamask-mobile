@@ -1,5 +1,6 @@
 /* eslint-disable react/display-name */
 import React, { useCallback, useState, useMemo } from 'react';
+import { connect } from 'react-redux';
 import { View, StyleSheet, TouchableOpacity, ScrollView, TouchableWithoutFeedback } from 'react-native';
 import PropTypes from 'prop-types';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
@@ -17,6 +18,7 @@ import HorizontalSelector from '../../Base/HorizontalSelector';
 import Device from '../../../util/Device';
 import { isMainnetByChainId } from '../../../util/networks';
 import FadeAnimationView from '../FadeAnimationView';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 const GAS_LIMIT_INCREMENT = new BigNumber(1000);
 const GAS_PRICE_INCREMENT = new BigNumber(1);
@@ -117,7 +119,10 @@ const EditGasFeeLegacy = ({
 	onUpdatingValuesStart,
 	onUpdatingValuesEnd,
 	animateOnChange,
-	isAnimating
+	isAnimating,
+	networkType,
+	analyticsParams,
+	view
 }) => {
 	const onlyAdvanced = gasEstimateType !== GAS_ESTIMATE_TYPES.LEGACY;
 	const [showRangeInfoModal, setShowRangeInfoModal] = useState(false);
@@ -125,13 +130,33 @@ const EditGasFeeLegacy = ({
 	const [selectedOption, setSelectedOption] = useState(selected);
 	const [gasPriceError, setGasPriceError] = useState();
 
+	const getAnalyticsParams = useCallback(() => {
+		try {
+			return {
+				...(analyticsParams || {}),
+				network_name: networkType,
+				chain_id: chainId,
+				function_type: view,
+				gas_mode: selectedOption ? 'Basic' : 'Advanced',
+				speed_set: selectedOption || undefined
+			};
+		} catch (error) {
+			return {};
+		}
+	}, [analyticsParams, chainId, networkType, selectedOption, view]);
+
 	const toggleAdvancedOptions = useCallback(() => {
+		if (!showAdvancedOptions) {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.GAS_ADVANCED_OPTIONS_CLICKED, getAnalyticsParams());
+		}
 		setShowAdvancedOptions(showAdvancedOptions => !showAdvancedOptions);
-	}, []);
+	}, [getAnalyticsParams, showAdvancedOptions]);
 
 	const save = useCallback(() => {
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.GAS_FEE_CHANGED, getAnalyticsParams());
+
 		onSave(selectedOption);
-	}, [onSave, selectedOption]);
+	}, [getAnalyticsParams, onSave, selectedOption]);
 
 	const changeGas = useCallback(
 		(gas, selectedOption) => {
@@ -495,7 +520,23 @@ EditGasFeeLegacy.propTypes = {
 	/**
 	 * Boolean to determine if the animation is happening
 	 */
-	isAnimating: PropTypes.bool
+	isAnimating: PropTypes.bool,
+	/**
+	 * A string representing the network type
+	 */
+	networkType: PropTypes.string,
+	/**
+	 * Extra analytics params to be send with the gas analytics
+	 */
+	analyticsParams: PropTypes.object,
+	/**
+	 * (For analytics purposes) View (Approve, Transfer, Confirm) where this component is being used
+	 */
+	view: PropTypes.string.isRequired
 };
 
-export default EditGasFeeLegacy;
+const mapStateToProps = state => ({
+	networkType: state.engine.backgroundState.NetworkController.provider.type
+});
+
+export default connect(mapStateToProps)(EditGasFeeLegacy);
