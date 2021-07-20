@@ -235,7 +235,7 @@ const EditGasFeeLegacy = ({
 			});
 	}, [recommended, shouldIgnore]);
 
-	const renderWarning = useCallback(() => {
+	const renderWarning = useMemo(() => {
 		if (!warning) return null;
 		if (typeof warning === 'string')
 			return (
@@ -256,7 +256,7 @@ const EditGasFeeLegacy = ({
 		return warning;
 	}, [warning]);
 
-	const renderError = useCallback(() => {
+	const renderError = useMemo(() => {
 		if (!error) return null;
 		if (typeof error === 'string')
 			return (
@@ -303,8 +303,8 @@ const EditGasFeeLegacy = ({
 								<Icon name={'ios-arrow-back'} size={24} color={colors.white} />
 							</View>
 						</View>
-						{renderWarning()}
-						{renderError()}
+						{renderWarning}
+						{renderError}
 						<FadeAnimationView
 							valueToWatch={gasFeePrimary}
 							animateOnChange={animateOnChange}
@@ -406,7 +406,7 @@ const EditGasFeeLegacy = ({
 												unit={'GWEI'}
 												increment={GAS_PRICE_INCREMENT}
 												min={GAS_PRICE_MIN}
-												inputInsideLabel={`≈ ${gasFeeConversion}`}
+												inputInsideLabel={gasFeeConversion && `≈ ${gasFeeConversion}`}
 												onChangeValue={changedGasPrice}
 												error={gasPriceError}
 											/>

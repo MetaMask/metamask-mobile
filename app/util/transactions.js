@@ -940,12 +940,12 @@ export const parseTransactionLegacy = (
 	if (selectedAsset.isETH) {
 		const transactionTotalAmountBN = weiTransactionFee && weiTransactionFee.add(valueBN);
 		transactionTotalAmount = `${renderFromWei(transactionTotalAmountBN)} ${parsedTicker}`;
-		transactionTotalAmountFiat = `${weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency)}`;
+		transactionTotalAmountFiat = weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency);
 	} else if (selectedAsset.tokenId) {
 		const transactionTotalAmountBN = weiTransactionFee && weiTransactionFee.add(valueBN);
 		transactionTotalAmount = `${renderFromWei(weiTransactionFee)} ${parsedTicker}`;
 
-		transactionTotalAmountFiat = `${weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency)}`;
+		transactionTotalAmountFiat = weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency);
 	} else {
 		const { address, symbol = 'ERC20', decimals } = selectedAsset;
 

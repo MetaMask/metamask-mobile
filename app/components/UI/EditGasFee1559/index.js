@@ -382,7 +382,7 @@ const EditGasFee1559 = ({
 									unit={'GWEI'}
 									min={GAS_MIN}
 									increment={GAS_INCREMENT}
-									inputInsideLabel={`≈ ${maxPriorityFeePerGasPrimary}`}
+									inputInsideLabel={maxPriorityFeePerGasPrimary && `≈ ${maxPriorityFeePerGasPrimary}`}
 									error={maxPriorityFeeError}
 									onChangeValue={changedMaxPriorityFee}
 								/>
@@ -422,7 +422,7 @@ const EditGasFee1559 = ({
 									increment={GAS_INCREMENT}
 									error={maxFeeError}
 									onChangeValue={changedMaxFeePerGas}
-									inputInsideLabel={`≈ ${maxFeePerGasPrimary}`}
+									inputInsideLabel={maxFeePerGasPrimary && `≈ ${maxFeePerGasPrimary}`}
 								/>
 							</View>
 						</View>
@@ -442,7 +442,7 @@ const EditGasFee1559 = ({
 		</View>
 	);
 
-	const renderWarning = useCallback(() => {
+	const renderWarning = useMemo(() => {
 		if (!warning) return null;
 		if (typeof warning === 'string')
 			return (
@@ -463,7 +463,7 @@ const EditGasFee1559 = ({
 		return warning;
 	}, [warning]);
 
-	const renderError = useCallback(() => {
+	const renderError = useMemo(() => {
 		if (!error) return null;
 		if (typeof error === 'string')
 			return (
@@ -500,8 +500,8 @@ const EditGasFee1559 = ({
 								<Icon name={'ios-arrow-back'} size={24} color={colors.white} />
 							</View>
 						</View>
-						{renderWarning()}
-						{renderError()}
+						{renderWarning}
+						{renderError}
 						<FadeAnimationView
 							style={styles.headerContainer}
 							valueToWatch={gasFeeMaxPrimary}
@@ -516,7 +516,7 @@ const EditGasFee1559 = ({
 								<Text bold black noMargin>
 									Max fee:{' '}
 								</Text>
-								{gasFeeMaxPrimary} {isMainnet && `(${gasFeeMaxSecondary})`}
+								{gasFeeMaxPrimary} ({gasFeeMaxSecondary})
 							</Text>
 							<Text green={timeEstimateColor === 'green'} red={timeEstimateColor === 'red'} bold>
 								{timeEstimate}
