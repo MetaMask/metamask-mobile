@@ -425,7 +425,7 @@ class Approve extends PureComponent {
 			const { gasEstimateType } = this.props;
 			const { analyticsParams, gasSelected } = this.state;
 			return {
-				...(analyticsParams || {}),
+				...analyticsParams,
 				gas_estimate_type: gasEstimateType,
 				gas_mode: gasSelected ? 'Basic' : 'Advanced',
 				speed_set: gasSelected || undefined

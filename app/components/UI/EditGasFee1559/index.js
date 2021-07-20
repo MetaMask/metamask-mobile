@@ -154,7 +154,7 @@ const EditGasFee1559 = ({
 	const getAnalyticsParams = useCallback(() => {
 		try {
 			return {
-				...(analyticsParams || {}),
+				...analyticsParams,
 				chain_id: chainId,
 				function_type: view,
 				gas_mode: selectedOption ? 'Basic' : 'Advanced',
