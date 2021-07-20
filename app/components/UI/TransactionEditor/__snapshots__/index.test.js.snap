@@ -12,7 +12,7 @@ exports[`TransactionEditor should render correctly 1`] = `
         "dapp_host_name": undefined,
         "dapp_url": undefined,
         "gas_estimate_type": undefined,
-        "network_type": "mainnet",
+        "network_name": "mainnet",
       }
     }
     chainId="1"
