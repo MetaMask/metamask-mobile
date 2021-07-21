@@ -1,7 +1,7 @@
 import { addHexPrefix, toChecksumAddress, BN } from 'ethereumjs-util';
 import { rawEncode, rawDecode } from 'ethereumjs-abi';
 import Engine from '../core/Engine';
-import { strings } from '../../locales/i18n';
+import I18n, { strings } from '../../locales/i18n';
 import contractMap from '@metamask/contract-metadata';
 import { safeToChecksumAddress } from './address';
 import { util } from '@metamask/controllers';
@@ -549,7 +549,7 @@ export const calculateEIP1559Times = ({
 	selectedOption,
 	recommended
 }) => {
-	let timeEstimate = 'Unknown processing time';
+	let timeEstimate = strings('times_eip1559.unknown');
 	let timeEstimateColor = 'grey';
 
 	if (!recommended) recommended = 'medium';
@@ -566,25 +566,44 @@ export const calculateEIP1559Times = ({
 	}
 
 	try {
+		const language = I18n.locale.substr(0, 2);
 		const { GasFeeController } = Engine.context;
 		const times = GasFeeController.getTimeEstimate(suggestedMaxPriorityFeePerGas, suggestedMaxFeePerGas);
 
 		if (!times || times === 'unknown' || Object.keys(times).length < 2 || times.upperTimeBound === 'unknown') {
-			timeEstimate = 'Unknown processing times';
+			timeEstimate = strings('times_eip1559.unknown');
 		} else if (selectedOption === 'low') {
-			timeEstimate = `Maybe in ${humanizeDuration(times.upperTimeBound)}`;
+			timeEstimate = `${strings('times_eip1559.maybe')} ${humanizeDuration(times.upperTimeBound, {
+				language,
+				fallbacks: ['en']
+			})}`;
 		} else if (selectedOption === 'medium') {
-			timeEstimate = `Likely in < ${humanizeDuration(times.upperTimeBound)}`;
+			timeEstimate = `${strings('times_eip1559.likely')} ${humanizeDuration(times.upperTimeBound, {
+				language,
+				fallbacks: ['en']
+			})}`;
 		} else if (selectedOption === 'high') {
-			timeEstimate = `Very likely in < ${humanizeDuration(times.upperTimeBound)}`;
+			timeEstimate = `${strings('times_eip1559.very_likely')} ${humanizeDuration(times.upperTimeBound, {
+				language,
+				fallbacks: ['en']
+			})}`;
 		} else if (times.upperTimeBound === 0) {
-			timeEstimate = `At least ${humanizeDuration(times.lowerTimeBound)}`;
+			timeEstimate = `${strings('times_eip1559.at_least')} ${humanizeDuration(times.lowerTimeBound, {
+				language,
+				fallbacks: ['en']
+			})}`;
 			timeEstimateColor = 'red';
 		} else if (times.lowerTimeBound === 0) {
-			timeEstimate = `Less than ${humanizeDuration(times.upperTimeBound)}`;
+			timeEstimate = `${strings('times_eip1559.less_than')} ${humanizeDuration(times.upperTimeBound, {
+				language,
+				fallbacks: ['en']
+			})}`;
 			timeEstimateColor = 'green';
 		} else {
-			timeEstimate = `${humanizeDuration(times.lowerTimeBound)} - ${humanizeDuration(times.upperTimeBound)}`;
+			timeEstimate = `${humanizeDuration(times.lowerTimeBound, {
+				language,
+				fallbacks: ['en']
+			})} - ${humanizeDuration(times.upperTimeBound, { language, fallbacks: ['en'] })}`;
 		}
 	} catch (error) {
 		console.log('ERROR ESTIMATING TIME', error);

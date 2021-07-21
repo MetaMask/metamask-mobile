@@ -177,9 +177,9 @@ const EditGasFeeLegacy = ({
 			const valueBN = new BigNumber(value);
 
 			if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
-				setGasPriceError('Gas price is low for current network conditions');
+				setGasPriceError(strings('edit_gas_fee_eip1559.gas_price_low'));
 			} else if (!higherValue.isNaN() && valueBN.gt(higherValue)) {
-				setGasPriceError('Gas price is higher than necessary');
+				setGasPriceError(strings('edit_gas_fee_eip1559.gas_price_high'));
 			} else {
 				setGasPriceError('');
 			}
@@ -213,9 +213,9 @@ const EditGasFeeLegacy = ({
 
 	const renderOptions = useMemo(() => {
 		const options = [
-			{ name: 'low', label: 'Low' },
-			{ name: 'medium', label: 'Medium' },
-			{ name: 'high', label: 'High' }
+			{ name: 'low', label: strings('edit_gas_fee_eip1559.low') },
+			{ name: 'medium', label: strings('edit_gas_fee_eip1559.medium') },
+			{ name: 'high', label: strings('edit_gas_fee_eip1559.high') }
 		];
 		return options
 			.filter(option => !shouldIgnore(option.name))
@@ -377,7 +377,7 @@ const EditGasFeeLegacy = ({
 												value={gasFee.suggestedGasLimit}
 												onChangeValue={changedGasLimit}
 												min={GAS_LIMIT_MIN}
-												name={'Gas limit'}
+												name={strings('edit_gas_fee_eip1559.gas_limit')}
 												increment={GAS_LIMIT_INCREMENT}
 											/>
 										</View>
@@ -386,7 +386,7 @@ const EditGasFeeLegacy = ({
 												leftLabelComponent={
 													<View style={styles.labelTextContainer}>
 														<Text black bold noMargin>
-															Gas price{' '}
+															{strings('edit_gas_fee_eip1559.gas_price')}{' '}
 														</Text>
 
 														<TouchableOpacity
@@ -402,7 +402,7 @@ const EditGasFeeLegacy = ({
 													</View>
 												}
 												value={gasFee.suggestedGasPrice}
-												name={'Gas price'}
+												name={strings('edit_gas_fee_eip1559.gas_price')}
 												unit={'GWEI'}
 												increment={GAS_PRICE_INCREMENT}
 												min={GAS_PRICE_MIN}
@@ -424,9 +424,9 @@ const EditGasFeeLegacy = ({
 							isVisible={Boolean(showRangeInfoModal)}
 							title={
 								showRangeInfoModal === 'gas_limit'
-									? 'Gas limit'
+									? strings('edit_gas_fee_eip1559.gas_limit')
 									: showRangeInfoModal === 'gas_price'
-									? 'Gas price'
+									? strings('edit_gas_fee_eip1559.gas_price')
 									: null
 							}
 							toggleModal={() => setShowRangeInfoModal(null)}
@@ -434,9 +434,9 @@ const EditGasFeeLegacy = ({
 								<View>
 									<Text grey infoModal>
 										{showRangeInfoModal === 'gas_limit' &&
-											`Gas limit is the maximum units of gas you are willing to use. Units of gas are a multiplier to “Max priority fee” and “Max fee”.`}
+											strings('edit_gas_fee_eip1559.learn_more_gas_limit_legacy')}
 										{showRangeInfoModal === 'gas_price' &&
-											`This network requires a “Gas price” field when submitting a transaction. Gas price is the maximum amount you are willing to pay per unit of gas.`}
+											strings('edit_gas_fee_eip1559.learn_more_gas_price')}
 									</Text>
 								</View>
 							}

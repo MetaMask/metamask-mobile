@@ -934,10 +934,8 @@ class TransactionEditor extends PureComponent {
 		const {
 			transaction: { origin }
 		} = this.props;
-		if (dappSuggestedGasPrice)
-			return `This gas fee has been suggested by ${origin}. It’s using legacy gas estimation which may be inaccurate. However, editing this gas fee may cause a problem with your transaction. Please reach out to ${origin} if you have questions.`;
-		if (dappSuggestedEIP1559Gas)
-			return `This gas fee has been suggested by ${origin}. Overriding this may cause a problem with your transaction. Please reach out to ${origin} if you have questions.`;
+		if (dappSuggestedGasPrice) return strings('transaction.dapp_suggested_gas', { origin });
+		if (dappSuggestedEIP1559Gas) return strings('transaction.dapp_suggested_eip1559_gas', { origin });
 
 		return null;
 	};

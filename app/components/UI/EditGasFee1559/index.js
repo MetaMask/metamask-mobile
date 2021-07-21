@@ -203,9 +203,9 @@ const EditGasFee1559 = ({
 			const valueBN = new BigNumber(value);
 
 			if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
-				setMaxPriorityFeeError('Max Priority Fee is low for current network conditions');
+				setMaxPriorityFeeError(strings('edit_gas_fee_eip1559.max_priority_fee_low'));
 			} else if (!higherValue.isNaN() && valueBN.gt(higherValue)) {
-				setMaxPriorityFeeError('Max Priority Fee is higher than necessary');
+				setMaxPriorityFeeError(strings('edit_gas_fee_eip1559.max_priority_fee_high'));
 			} else {
 				setMaxPriorityFeeError('');
 			}
@@ -225,9 +225,9 @@ const EditGasFee1559 = ({
 			const valueBN = new BigNumber(value);
 
 			if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
-				setMaxFeeError('Max Fee is low for current network conditions');
+				setMaxFeeError(strings('edit_gas_fee_eip1559.max_fee_low'));
 			} else if (!higherValue.isNaN() && valueBN.gt(higherValue)) {
-				setMaxFeeError('Max Fee is higher than necessary');
+				setMaxFeeError(strings('edit_gas_fee_eip1559.max_fee_high'));
 			} else {
 				setMaxFeeError('');
 			}
@@ -260,9 +260,9 @@ const EditGasFee1559 = ({
 
 	const renderOptions = useMemo(() => {
 		const options = [
-			{ name: 'low', label: 'Low' },
-			{ name: 'medium', label: 'Medium' },
-			{ name: 'high', label: 'High' }
+			{ name: 'low', label: strings('edit_gas_fee_eip1559.low') },
+			{ name: 'medium', label: strings('edit_gas_fee_eip1559.medium') },
+			{ name: 'high', label: strings('edit_gas_fee_eip1559.high') }
 		];
 		return options
 			.filter(option => !shouldIgnore(option.name))
@@ -345,7 +345,7 @@ const EditGasFee1559 = ({
 									min={GAS_LIMIT_MIN}
 									value={gasFee.suggestedGasLimit}
 									onChangeValue={changedGasLimit}
-									name={'Gas limit'}
+									name={strings('edit_gas_fee_eip1559.gas_limit')}
 									increment={GAS_LIMIT_INCREMENT}
 								/>
 							</View>
@@ -495,7 +495,7 @@ const EditGasFee1559 = ({
 									<Icon name={'ios-arrow-back'} size={24} color={colors.black} />
 								</TouchableOpacity>
 								<Text bold black>
-									{'Edit priority'}
+									{strings('edit_gas_fee_eip1559.edit_priority')}
 								</Text>
 								<Icon name={'ios-arrow-back'} size={24} color={colors.white} />
 							</View>
@@ -514,7 +514,7 @@ const EditGasFee1559 = ({
 							</View>
 							<Text big black style={styles.subheader} noMargin>
 								<Text bold black noMargin>
-									Max fee:{' '}
+									{strings('edit_gas_fee_eip1559.max_fee')}:{' '}
 								</Text>
 								{gasFeeMaxPrimary} ({gasFeeMaxSecondary})
 							</Text>
@@ -525,7 +525,7 @@ const EditGasFee1559 = ({
 						{!showInputs ? (
 							<View style={styles.dappEditGasContainer}>
 								<StyledButton type={'orange'} onPress={() => setShowInputs(true)}>
-									{'Edit suggested gas fee'}
+									{strings('edit_gas_fee_eip1559.edit_suggested_gas_fee')}
 								</StyledButton>
 							</View>
 						) : (
@@ -535,11 +535,11 @@ const EditGasFee1559 = ({
 							isVisible={Boolean(showRangeInfoModal)}
 							title={
 								showRangeInfoModal === 'gas_limit'
-									? 'Gas limit'
+									? strings('edit_gas_fee_eip1559.gas_limit')
 									: showRangeInfoModal === 'max_priority_fee'
-									? 'Max priority fee'
+									? strings('edit_gas_fee_eip1559.max_priority_fee')
 									: showRangeInfoModal === 'max_fee'
-									? 'Max fee'
+									? strings('edit_gas_fee_eip1559.max_fee')
 									: null
 							}
 							toggleModal={() => setShowRangeInfoModal(null)}
@@ -547,11 +547,11 @@ const EditGasFee1559 = ({
 								<View>
 									<Text grey infoModal>
 										{showRangeInfoModal === 'gas_limit' &&
-											`Gas limit is the maximum units of gas you are willing to use. Units of gas are a multiplier to “Max priority fee” and “Max fee”.`}
+											strings('edit_gas_fee_eip1559.learn_more_gas_limit')}
 										{showRangeInfoModal === 'max_priority_fee' &&
-											`Max priority fee (aka “miner tip”) goes directly to miners and incentivizes them to prioritize your transaction. You’ll most often pay your max setting. `}
+											strings('edit_gas_fee_eip1559.learn_more_max_priority_fee')}
 										{showRangeInfoModal === 'max_fee' &&
-											`The max fee is the most you’ll pay (base fee + priority fee). `}
+											strings('edit_gas_fee_eip1559.learn_more_max_fee')}
 									</Text>
 								</View>
 							}
