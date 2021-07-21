@@ -241,7 +241,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                         underline={false}
                         upper={false}
                       >
-                        Gas Limit
+                        Gas limit
                          
                       </Text>
                       <TouchableOpacity

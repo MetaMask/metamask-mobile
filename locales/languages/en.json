@@ -1646,7 +1646,7 @@
 	},
 	"edit_gas_fee_eip1559": {
 		"advanced_options": "Advanced Options",
-		"gas_limit": "Gas Limit",
+		"gas_limit": "Gas limit",
 		"max_priority_fee": "Max priority fee",
 		"max_fee": "Max fee",
 		"estimate": "Estimate",
