@@ -949,7 +949,8 @@
 		"balance": "Balance"
 	},
 	"unit": {
-		"eth": "ETH",
+		"ifie": "IFIE",
+		"eth": "IFIE",
 		"sai": "SAI",
 		"dai": "DAI",
 		"negative": "-",

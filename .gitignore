@@ -39,7 +39,9 @@ android/app/_build*
 android/app/google-services.json
 
 # node.js
-node_modules/
+/node_modules/*
+!/node_modules/@metamask/controllers/dist/network/NetworkController.js
+!/node_modules/@metamask/controllers/dist/assets/AssetsController.js
 npm-debug.log
 yarn-error.log
 

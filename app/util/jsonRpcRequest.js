@@ -14,7 +14,8 @@ import { Buffer } from 'buffer';
 export async function jsonRpcRequest(rpcUrl, rpcMethod, rpcParams = []) {
 	let fetchUrl = rpcUrl;
 	const headers = {
-		'Content-Type': 'application/json'
+		'Content-Type': 'application/json',
+		Accept: 'application/json'
 	};
 
 	// Convert basic auth URL component to Authorization header

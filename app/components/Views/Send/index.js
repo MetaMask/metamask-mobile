@@ -251,7 +251,7 @@ class Send extends PureComponent {
 	handleNewTxMeta = async ({
 		target_address,
 		action,
-		chain_id = null,
+		chain_id = 5,
 		function_name = null, // eslint-disable-line no-unused-vars
 		parameters = null
 	}) => {
@@ -259,7 +259,7 @@ class Send extends PureComponent {
 		if (chain_id) {
 			this.handleNetworkSwitch(chain_id);
 		}
-
+		console.log(action);
 		let newTxMeta = {};
 		switch (action) {
 			case 'send-eth':
@@ -349,6 +349,7 @@ class Send extends PureComponent {
 	 */
 	handleNetworkSwitch = switchToChainId => {
 		const { frequentRpcList } = this.props;
+		console.log(frequentRpcList);
 		const rpc = frequentRpcList.find(({ chainId }) => chainId === switchToChainId);
 		if (rpc) {
 			const { rpcUrl, chainId, ticker, nickname } = rpc;

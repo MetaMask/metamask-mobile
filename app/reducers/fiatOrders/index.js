@@ -11,7 +11,7 @@ import { createSelector } from 'reselect';
  * @property {string?} cryptoAmount Crypto currency amount
  * @property {string?} cryptoFee Crypto currency fee
  * @property {string} currency "USD"
- * @property {string} cryptocurrency "ETH"
+ * @property {string} cryptocurrency "IFIE"
  * @property {FIAT_ORDER_STATES} state Order state
  * @property {string} account <account wallet address>
  * @property {string} network <network>

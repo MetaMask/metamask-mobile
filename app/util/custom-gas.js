@@ -165,6 +165,9 @@ export async function getGasPriceByChainId(transaction) {
 	const chainId = NetworkController.state.provider.chainId;
 	let estimation, basicGasEstimates;
 	try {
+		console.log('we are here ....');
+		console.log(NetworkController.state.provider);
+		console.log(transaction);
 		estimation = await TransactionController.estimateGas(transaction);
 		basicGasEstimates = {
 			average: getValueFromWeiHex({
