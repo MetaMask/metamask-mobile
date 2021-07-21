@@ -567,43 +567,40 @@ export const calculateEIP1559Times = ({
 
 	try {
 		const language = I18n.locale.substr(0, 2);
+
+		const timeParams = {
+			language,
+			fallbacks: ['en']
+		};
+
 		const { GasFeeController } = Engine.context;
 		const times = GasFeeController.getTimeEstimate(suggestedMaxPriorityFeePerGas, suggestedMaxFeePerGas);
 
 		if (!times || times === 'unknown' || Object.keys(times).length < 2 || times.upperTimeBound === 'unknown') {
 			timeEstimate = strings('times_eip1559.unknown');
 		} else if (selectedOption === 'low') {
-			timeEstimate = `${strings('times_eip1559.maybe')} ${humanizeDuration(times.upperTimeBound, {
-				language,
-				fallbacks: ['en']
-			})}`;
+			timeEstimate = `${strings('times_eip1559.maybe')} ${humanizeDuration(times.upperTimeBound, timeParams)}`;
 		} else if (selectedOption === 'medium') {
-			timeEstimate = `${strings('times_eip1559.likely')} ${humanizeDuration(times.upperTimeBound, {
-				language,
-				fallbacks: ['en']
-			})}`;
+			timeEstimate = `${strings('times_eip1559.likely')} ${humanizeDuration(times.upperTimeBound, timeParams)}`;
 		} else if (selectedOption === 'high') {
-			timeEstimate = `${strings('times_eip1559.very_likely')} ${humanizeDuration(times.upperTimeBound, {
-				language,
-				fallbacks: ['en']
-			})}`;
+			timeEstimate = `${strings('times_eip1559.very_likely')} ${humanizeDuration(
+				times.upperTimeBound,
+				timeParams
+			)}`;
 		} else if (times.upperTimeBound === 0) {
-			timeEstimate = `${strings('times_eip1559.at_least')} ${humanizeDuration(times.lowerTimeBound, {
-				language,
-				fallbacks: ['en']
-			})}`;
+			timeEstimate = `${strings('times_eip1559.at_least')} ${humanizeDuration(times.lowerTimeBound, timeParams)}`;
 			timeEstimateColor = 'red';
 		} else if (times.lowerTimeBound === 0) {
-			timeEstimate = `${strings('times_eip1559.less_than')} ${humanizeDuration(times.upperTimeBound, {
-				language,
-				fallbacks: ['en']
-			})}`;
+			timeEstimate = `${strings('times_eip1559.less_than')} ${humanizeDuration(
+				times.upperTimeBound,
+				timeParams
+			)}`;
 			timeEstimateColor = 'green';
 		} else {
-			timeEstimate = `${humanizeDuration(times.lowerTimeBound, {
-				language,
-				fallbacks: ['en']
-			})} - ${humanizeDuration(times.upperTimeBound, { language, fallbacks: ['en'] })}`;
+			timeEstimate = `${humanizeDuration(times.lowerTimeBound, timeParams)} - ${humanizeDuration(
+				times.upperTimeBound,
+				timeParams
+			)}`;
 		}
 	} catch (error) {
 		console.log('ERROR ESTIMATING TIME', error);
