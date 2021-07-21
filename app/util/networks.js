@@ -16,9 +16,9 @@ const NetworkList = {
 	[MAINNET]: {
 		name: 'Infinity Main Network',
 		shortName: 'Infinity',
-		networkId: 5,
-		chainId: 5,
-		hexChainId: '0x5',
+		networkId: 1,
+		chainId: 1,
+		hexChainId: '0x1',
 		color: '#3cc29e',
 		networkType: 'mainnet'
 	},
