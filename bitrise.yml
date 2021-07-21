@@ -5,6 +5,8 @@ project_type: react-native
 trigger_map:
 - push_branch: 'develop'
   workflow: start_release_builds
+- push_branch: 'main'
+  workflow: start_release_builds
 - pull_request_source_branch: '*'
   workflow: ci_test
 workflows:

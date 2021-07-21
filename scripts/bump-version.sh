@@ -40,5 +40,5 @@ if [[ $1 == *"release/"* ]] ; then
     sed -i -e 's/VERSION_NAME: [0-9]\{1,\}.[0-9]\{1,\}.[0-9]\{1,\}/VERSION_NAME: '"$version"'/' bitrise.yml
     sed -i -e 's/"version": "[0-9]\{1,\}.[0-9]\{1,\}.[0-9]\{1,\}"/"version": "'"$version"'"/' package.json
 
-    echo "Bumping versionName finished"
+    echo "Bumping versionName & versionNumber finished"
 fi
