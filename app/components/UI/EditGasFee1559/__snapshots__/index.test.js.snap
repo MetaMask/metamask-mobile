@@ -163,7 +163,8 @@ exports[`EditGasFee1559 should render correctly 1`] = `
               Max fee:
                
             </Text>
-             
+             (
+            )
           </Text>
           <Text
             black={false}
@@ -364,7 +365,6 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                   <RangeInput
                     error={null}
                     increment={"1"}
-                    inputInsideLabel="≈ undefined"
                     leftLabelComponent={
                       <View
                         style={
@@ -483,7 +483,6 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                   <RangeInput
                     error={null}
                     increment={"1"}
-                    inputInsideLabel="≈ undefined"
                     leftLabelComponent={
                       <View
                         style={
