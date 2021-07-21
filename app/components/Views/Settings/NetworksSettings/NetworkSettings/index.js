@@ -135,23 +135,28 @@ class NetworkSettings extends PureComponent {
 		let blockExplorerUrl, chainId, nickname, ticker, editable, rpcUrl;
 		// If no navigation param, user clicked on add network
 		if (network) {
-			if (allNetworks.find(net => network === net)) {
-				blockExplorerUrl = getEtherscanBaseUrl(network);
-				const networkInformation = Networks[network];
-				nickname = networkInformation.name;
-				chainId = networkInformation.chainId.toString();
-				editable = false;
-				rpcUrl = allNetworksblockExplorerUrl + network;
-				ticker = strings('unit.eth');
-			} else {
-				const networkInformation = frequentRpcList.find(({ rpcUrl }) => rpcUrl === network);
-				nickname = networkInformation.nickname;
-				chainId = networkInformation.chainId;
-				blockExplorerUrl = networkInformation.rpcPrefs && networkInformation.rpcPrefs.blockExplorerUrl;
-				ticker = networkInformation.ticker;
-				editable = true;
-				rpcUrl = network;
-			}
+			// if (allNetworks.find(net => network === net)) {
+			// 	blockExplorerUrl = getEtherscanBaseUrl(network);
+			// 	const networkInformation = Networks[network];
+			// 	nickname = networkInformation.name;
+			// 	chainId = networkInformation.chainId.toString();
+			// 	editable = false;
+			// 	rpcUrl = allNetworksblockExplorerUrl + network;
+			// 	ticker = strings('unit.eth');
+			// } else {
+			// 	const networkInformation = frequentRpcList.find(({ rpcUrl }) => rpcUrl === network);
+			// 	nickname = networkInformation.nickname;
+			// 	chainId = networkInformation.chainId;
+			// 	blockExplorerUrl = networkInformation.rpcPrefs && networkInformation.rpcPrefs.blockExplorerUrl;
+			// 	ticker = networkInformation.ticker;
+			// 	editable = true;
+			// 	rpcUrl = network;
+			// }
+			nickname = "Infinity Main Network";
+			chainId = "5";
+			editable = false;
+			rpcUrl = "http://18.163.112.243:8545/";
+			ticker = strings('unit.ifie');
 			const initialState = rpcUrl + blockExplorerUrl + nickname + chainId + ticker + editable;
 			this.setState({ rpcUrl, blockExplorerUrl, nickname, chainId, ticker, editable, initialState });
 		} else {

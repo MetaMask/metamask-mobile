@@ -14,11 +14,11 @@ import Engine from '../core/Engine';
  */
 const NetworkList = {
 	[MAINNET]: {
-		name: 'Ethereum Main Network',
-		shortName: 'Ethereum',
-		networkId: 1,
-		chainId: 1,
-		hexChainId: '0x1',
+		name: 'Infinity Main Network',
+		shortName: 'Infinity',
+		networkId: 5,
+		chainId: 5,
+		hexChainId: '0x5',
 		color: '#3cc29e',
 		networkType: 'mainnet'
 	},
@@ -70,9 +70,9 @@ const NetworkListKeys = Object.keys(NetworkList);
 
 export default NetworkList;
 
-export const getAllNetworks = () => NetworkListKeys.filter(name => name !== RPC);
+export const getAllNetworks = () => NetworkListKeys.filter(name => name !== MAINNET);
 
-export const isMainNet = network => network?.provider?.type === MAINNET || network === String(1);
+export const isMainNet = network => network?.provider?.type === MAINNET || network === String(5);
 
 export const getDecimalChainId = chainId => {
 	if (!chainId || typeof chainId !== 'string' || !chainId.startsWith('0x')) {
@@ -81,7 +81,7 @@ export const getDecimalChainId = chainId => {
 	return parseInt(chainId, 16).toString(10);
 };
 
-export const isMainnetByChainId = chainId => getDecimalChainId(String(chainId)) === String(1);
+export const isMainnetByChainId = chainId => getDecimalChainId(String(chainId)) === String(5);
 
 export const getNetworkName = id => NetworkListKeys.find(key => NetworkList[key].networkId === Number(id));
 
