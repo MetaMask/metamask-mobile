@@ -17,13 +17,13 @@ const styles = StyleSheet.create({
 		marginBottom: 5
 	},
 	networkName: {
-		marginTop: -3,
 		fontSize: 11,
 		lineHeight: 11,
 		color: colors.fontSecondary,
 		...fontStyles.normal
 	},
 	networkIcon: {
+		marginTop: 3,
 		width: 5,
 		height: 5,
 		borderRadius: 100,
@@ -33,7 +33,8 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'center',
-		flex: 1
+		flex: 1,
+		marginBottom: Device.isAndroid() ? 5 : 0
 	},
 	lockIcon: {
 		marginTop: 2,
@@ -61,10 +62,6 @@ const styles = StyleSheet.create({
 class NavbarBrowserTitle extends PureComponent {
 	static propTypes = {
 		/**
-		 * Object representing the navigator
-		 */
-		navigation: PropTypes.object,
-		/**
 		 * String representing the current url
 		 */
 		url: PropTypes.string,
@@ -87,12 +84,15 @@ class NavbarBrowserTitle extends PureComponent {
 		/**
 		 * Website icon
 		 */
-		icon: PropTypes.string
+		icon: PropTypes.string,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	onTitlePress = () => {
-		const showUrlModal = this.props.navigation.getParam('showUrlModal', () => null);
-		showUrlModal({ urlInput: this.props.url });
+		this.props.route.params?.showUrlModal?.({ urlInput: this.props.url });
 	};
 
 	getNetworkName(network) {

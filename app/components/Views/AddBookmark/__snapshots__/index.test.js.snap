@@ -57,7 +57,7 @@ exports[`AddBookmark should render correctly 1`] = `
             }
           }
           testID="add-bookmark-title"
-          value={null}
+          value=""
         />
         <Text
           style={
@@ -101,7 +101,7 @@ exports[`AddBookmark should render correctly 1`] = `
             }
           }
           testID="add-bookmark-url"
-          value={null}
+          value=""
         />
         <Text
           style={

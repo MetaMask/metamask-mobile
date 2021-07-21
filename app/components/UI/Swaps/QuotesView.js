@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet, ActivityIndicator, TouchableOpacity, InteractionManager, Linking } from 'react-native';
 import { connect } from 'react-redux';
@@ -6,7 +6,7 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
 import BigNumber from 'bignumber.js';
-import { NavigationContext } from 'react-navigation';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { WalletDevice, util } from '@metamask/controllers/';
 
@@ -52,7 +52,7 @@ import useBalance from './utils/useBalance';
 import useGasPrice from './utils/useGasPrice';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { decodeApproveData, getTicker } from '../../../util/transactions';
-import { toLowerCaseCompare } from '../../../util/general';
+import { toLowerCaseEquals } from '../../../util/general';
 import { swapsTokensSelector } from '../../../reducers/swaps';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
@@ -286,16 +286,17 @@ function SwapsQuotesView({
 	quoteRefreshSeconds,
 	usedGasPrice
 }) {
-	const navigation = useContext(NavigationContext);
+	const navigation = useNavigation();
+	const route = useRoute();
 	/* Get params from navigation */
 	const { sourceTokenAddress, destinationTokenAddress, sourceAmount, slippage } = useMemo(
-		() => getQuotesNavigationsParams(navigation),
-		[navigation]
+		() => getQuotesNavigationsParams(route),
+		[route]
 	);
 
 	/* Get tokens from the tokens list */
-	const sourceToken = swapsTokens?.find(token => toLowerCaseCompare(token.address, sourceTokenAddress));
-	const destinationToken = swapsTokens?.find(token => toLowerCaseCompare(token.address, destinationTokenAddress));
+	const sourceToken = swapsTokens?.find(token => toLowerCaseEquals(token.address, sourceTokenAddress));
+	const destinationToken = swapsTokens?.find(token => toLowerCaseEquals(token.address, destinationTokenAddress));
 
 	const hasConversionRate =
 		Boolean(destinationToken) &&
@@ -605,7 +606,7 @@ function SwapsQuotesView({
 			// send analytics
 		}
 
-		navigation.dismiss();
+		navigation.dangerouslyGetParent()?.pop();
 	}, [
 		chainId,
 		navigation,
@@ -835,7 +836,7 @@ function SwapsQuotesView({
 	}, [selectedQuote]);
 
 	const buyEth = useCallback(() => {
-		navigation.navigate('PaymentMethodSelector');
+		navigation.navigate('FiatOnRamp');
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST);
 		});
@@ -844,7 +845,10 @@ function SwapsQuotesView({
 	const handleTermsPress = useCallback(
 		() =>
 			navigation.navigate('Webview', {
-				url: AppConstants.URLS.TERMS_AND_CONDITIONS
+				screen: 'SimpleWebview',
+				params: {
+					url: AppConstants.URLS.TERMS_AND_CONDITIONS
+				}
 			}),
 		[navigation]
 	);
@@ -1456,7 +1460,7 @@ function SwapsQuotesView({
 	);
 }
 
-SwapsQuotesView.navigationOptions = ({ navigation }) => getSwapsQuotesNavbar(navigation);
+SwapsQuotesView.navigationOptions = ({ navigation, route }) => getSwapsQuotesNavbar(navigation, route);
 
 SwapsQuotesView.propTypes = {
 	swapsTokens: PropTypes.arrayOf(PropTypes.object),

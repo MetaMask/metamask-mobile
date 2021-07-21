@@ -24,17 +24,9 @@ describe('ChoosePassword', () => {
 			}
 		};
 
-		const wrapper = shallow(
-			<ChoosePassword
-				navigation={{
-					getParam: () => [ONBOARDING, PROTECT],
-					state: { params: {} }
-				}}
-			/>,
-			{
-				context: { store: mockStore(initialState) }
-			}
-		);
+		const wrapper = shallow(<ChoosePassword route={{ params: [ONBOARDING, PROTECT] }} />, {
+			context: { store: mockStore(initialState) }
+		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});
 });

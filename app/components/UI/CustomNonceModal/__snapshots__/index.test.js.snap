@@ -24,6 +24,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
   onModalShow={[Function]}
   onModalWillHide={[Function]}
   onModalWillShow={[Function]}
+  panResponderThreshold={4}
   propagateSwipe={true}
   scrollHorizontal={false}
   scrollOffset={0}

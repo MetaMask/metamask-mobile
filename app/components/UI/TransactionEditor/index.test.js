@@ -40,7 +40,7 @@ describe('TransactionEditor', () => {
 
 		const wrapper = shallow(
 			<TransactionEditor
-				navigation={{ state: { params: {} } }}
+				route={{ params: {} }}
 				transaction={{ value: 0, data: '0x0', gas: 0, gasPrice: 1, from: '0x0', to: '0x1' }}
 			/>,
 			{

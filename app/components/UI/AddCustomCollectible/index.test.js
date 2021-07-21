@@ -17,7 +17,7 @@ describe('AddCustomCollectible', () => {
 			}
 		};
 
-		const wrapper = shallow(<AddCustomCollectible navigation={{ state: { params: {} } }} />, {
+		const wrapper = shallow(<AddCustomCollectible route={{ params: {} }} />, {
 			context: { store: mockStore(initialState) }
 		});
 		expect(wrapper.dive()).toMatchSnapshot();

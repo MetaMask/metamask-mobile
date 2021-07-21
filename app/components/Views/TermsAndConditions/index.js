@@ -31,8 +31,11 @@ export default class TermsAndConditions extends PureComponent {
 	press = () => {
 		const { navigation } = this.props;
 		navigation.navigate('Webview', {
-			url: AppConstants.URLS.TERMS_AND_CONDITIONS,
-			title: strings('terms_and_conditions.title')
+			screen: 'SimpleWebview',
+			params: {
+				url: AppConstants.URLS.TERMS_AND_CONDITIONS,
+				title: strings('terms_and_conditions.title')
+			}
 		});
 	};
 

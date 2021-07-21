@@ -16,28 +16,24 @@ describe('ManualBackupStep2', () => {
 
 		const wrapper = shallow(
 			<ManualBackupStep2
-				navigation={{
-					getParam: param => {
-						const params = {
-							words: [
-								'abstract',
-								'accident',
-								'acoustic',
-								'announce',
-								'artefact',
-								'attitude',
-								'bachelor',
-								'broccoli',
-								'business',
-								'category',
-								'champion',
-								'cinnamon'
-							],
-							steps: ['one', 'two', 'three']
-						};
-						return params[param];
-					},
-					state: { params: {} }
+				route={{
+					params: {
+						words: [
+							'abstract',
+							'accident',
+							'acoustic',
+							'announce',
+							'artefact',
+							'attitude',
+							'bachelor',
+							'broccoli',
+							'business',
+							'category',
+							'champion',
+							'cinnamon'
+						],
+						steps: ['one', 'two', 'three']
+					}
 				}}
 			/>,
 			{

@@ -220,8 +220,7 @@ const styles = StyleSheet.create({
  * View that wraps the wraps the "Send" screen
  */
 class Confirm extends PureComponent {
-	static navigationOptions = ({ navigation, screenProps }) =>
-		getSendFlowTitle('send.confirm', navigation, screenProps);
+	static navigationOptions = ({ navigation, route }) => getSendFlowTitle('send.confirm', navigation, route);
 
 	static propTypes = {
 		/**
@@ -315,7 +314,11 @@ class Confirm extends PureComponent {
 		/**
 		 * Set proposed nonce (from network)
 		 */
-		setProposedNonce: PropTypes.func
+		setProposedNonce: PropTypes.func,
+		/**
+		 * Indicates whether the current transaction is a deep link transaction
+		 */
+		isPaymentRequest: PropTypes.bool
 	};
 
 	state = {
@@ -392,10 +395,10 @@ class Confirm extends PureComponent {
 		// For analytics
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_STARTED, this.getAnalyticsParams());
 
-		const { showCustomNonce, navigation, providerType } = this.props;
+		const { showCustomNonce, navigation, providerType, isPaymentRequest } = this.props;
 		await this.handleFetchBasicEstimates();
 		showCustomNonce && (await this.setNetworkNonce());
-		navigation.setParams({ providerType });
+		navigation.setParams({ providerType, isPaymentRequest });
 		this.handleConfusables();
 		this.parseTransactionData();
 		this.prepareTransaction();
@@ -755,7 +758,7 @@ class Confirm extends PureComponent {
 					this.getAnalyticsParams()
 				);
 				resetTransaction();
-				navigation && navigation.dismiss();
+				navigation && navigation.dangerouslyGetParent()?.pop();
 			});
 		} catch (error) {
 			Alert.alert(strings('transactions.transaction_error'), error && error.message, [
@@ -917,7 +920,7 @@ class Confirm extends PureComponent {
 
 	buyEth = () => {
 		const { navigation } = this.props;
-		navigation.navigate('PaymentMethodSelector');
+		navigation.navigate('FiatOnRamp');
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST);
 		});
@@ -1114,7 +1117,8 @@ const mapStateToProps = state => ({
 	transaction: getNormalizedTxState(state),
 	selectedAsset: state.transaction.selectedAsset,
 	transactionState: state.transaction,
-	primaryCurrency: state.settings.primaryCurrency
+	primaryCurrency: state.settings.primaryCurrency,
+	isPaymentRequest: state.transaction.paymentRequest
 });
 
 const mapDispatchToProps = dispatch => ({

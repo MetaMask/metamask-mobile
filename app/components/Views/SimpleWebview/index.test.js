@@ -7,11 +7,11 @@ describe('SimpleWebview', () => {
 		const wrapper = shallow(
 			<SimpleWebview
 				navigation={{
-					getParam: () => ({ url: 'https://etherscan.io', title: 'etherscan' }),
 					setParams: () => {
 						'';
 					}
 				}}
+				route={{ params: { url: 'https://etherscan.io', title: 'etherscan' } }}
 			/>
 		);
 		expect(wrapper).toMatchSnapshot();

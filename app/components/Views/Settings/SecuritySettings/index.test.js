@@ -21,16 +21,9 @@ describe('SecuritySettings', () => {
 			}
 		};
 
-		const wrapper = shallow(
-			<SecuritySettings
-				navigation={{
-					state: { params: {} }
-				}}
-			/>,
-			{
-				context: { store: mockStore(initialState) }
-			}
-		);
+		const wrapper = shallow(<SecuritySettings route={{ params: {} }} />, {
+			context: { store: mockStore(initialState) }
+		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});
 });

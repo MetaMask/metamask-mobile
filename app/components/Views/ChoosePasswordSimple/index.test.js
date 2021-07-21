@@ -16,16 +16,9 @@ describe('ChoosePasswordSimple', () => {
 			}
 		};
 
-		const wrapper = shallow(
-			<ChoosePasswordSimple
-				navigation={{
-					state: { params: {} }
-				}}
-			/>,
-			{
-				context: { store: mockStore(initialState) }
-			}
-		);
+		const wrapper = shallow(<ChoosePasswordSimple route={{ params: {} }} />, {
+			context: { store: mockStore(initialState) }
+		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});
 });

@@ -53,7 +53,8 @@ LogBox.ignoreLogs([
 	'componentWillUpdate',
 	'componentWillReceiveProps',
 	'getNode()',
-	'VirtualizedLists should never be nested inside plain ScrollViews'
+	'VirtualizedLists should never be nested inside plain ScrollViews',
+	'Non-serializable values were found in the navigation state.' // We are not saving navigation state so we can ignore this
 ]);
 
 /**

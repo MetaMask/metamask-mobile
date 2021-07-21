@@ -1,3 +1,4 @@
+/* eslint-disable react/display-name */
 import React from 'react';
 import NavbarTitle from '../NavbarTitle';
 import ModalNavbarTitle from '../ModalNavbarTitle';
@@ -35,11 +36,6 @@ const trackEventWithParameters = (event, params) => {
 };
 
 const styles = StyleSheet.create({
-	rightButton: {
-		marginTop: 7,
-		marginRight: 12,
-		marginBottom: 12
-	},
 	metamaskName: {
 		width: 122,
 		height: 15
@@ -48,10 +44,6 @@ const styles = StyleSheet.create({
 		width: 40,
 		height: 40,
 		marginRight: 10
-	},
-	closeIcon: {
-		paddingLeft: Device.isAndroid() ? 22 : 18,
-		color: colors.blue
 	},
 	backIcon: {
 		color: colors.blue
@@ -86,30 +78,14 @@ const styles = StyleSheet.create({
 	infoIcon: {
 		color: colors.blue
 	},
-	flex: {
-		flex: 1
-	},
 	closeButtonText: {
 		color: colors.blue,
 		fontSize: 14,
 		...fontStyles.normal
 	},
-	title: {
-		fontSize: 18,
-		...fontStyles.normal
-	},
-	titleWrapper: {
-		alignItems: 'center',
-		flex: 1
-	},
 	browserRightButton: {
 		flex: 1,
 		marginRight: Device.isAndroid() ? 10 : 0
-	},
-	tabIconAndroidWrapper: {
-		alignItems: 'center',
-		width: 36,
-		marginLeft: 5
 	},
 	disabled: {
 		opacity: 0.3
@@ -118,13 +94,6 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		marginHorizontal: Device.isIos() ? 20 : 0
-	},
-	tabIconAndroid: {
-		marginTop: 13,
-		marginLeft: 0,
-		marginRight: 3,
-		width: 24,
-		height: 24
 	},
 	metamaskNameTransparentWrapper: {
 		alignItems: 'center',
@@ -163,8 +132,8 @@ export default function getNavbarOptions(title, navigation, disableNetwork = fal
 	}
 
 	return {
-		headerTitle: <NavbarTitle title={title} disableNetwork={disableNetwork} />,
-		headerLeft: (
+		headerTitle: () => <NavbarTitle title={title} disableNetwork={disableNetwork} />,
+		headerLeft: () => (
 			<TouchableOpacity onPress={onPress} style={styles.backButton}>
 				<IonicIcon
 					name={Device.isAndroid() ? 'md-menu' : 'ios-menu'}
@@ -173,7 +142,7 @@ export default function getNavbarOptions(title, navigation, disableNetwork = fal
 				/>
 			</TouchableOpacity>
 		),
-		headerRight: <AccountRightButton />
+		headerRight: () => <AccountRightButton />
 	};
 }
 
@@ -197,7 +166,7 @@ export function getNavigationOptionsTitle(title, navigation) {
 			...fontStyles.normal
 		},
 		headerTintColor: colors.blue,
-		headerLeft: (
+		headerLeft: () => (
 			<TouchableOpacity onPress={navigationPop} style={styles.backButton} testID={'title-back-arrow-button'}>
 				<IonicIcon
 					name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
@@ -217,15 +186,13 @@ export function getNavigationOptionsTitle(title, navigation) {
  * @param {Object} navigation - Navigation object required to push new views
  * @returns {Object} - Corresponding navbar options
  */
-export function getEditableOptions(title, navigation) {
+export function getEditableOptions(title, navigation, route) {
 	function navigationPop() {
 		navigation.pop();
 	}
-	const rightAction = navigation.getParam('dispatch', () => {
-		'';
-	});
-	const editMode = navigation.getParam('editMode', '') === 'edit';
-	const addMode = navigation.getParam('mode', '') === 'add';
+	const rightAction = route.params?.dispatch;
+	const editMode = route.params?.editMode ?? '' === 'edit';
+	const addMode = route.params?.mode ?? '' === 'add';
 	return {
 		title,
 		headerTitleStyle: {
@@ -234,7 +201,7 @@ export function getEditableOptions(title, navigation) {
 			...fontStyles.normal
 		},
 		headerTintColor: colors.blue,
-		headerLeft: (
+		headerLeft: () => (
 			<TouchableOpacity onPress={navigationPop} style={styles.backButton} testID={'edit-contact-back-button'}>
 				<IonicIcon
 					name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
@@ -243,15 +210,16 @@ export function getEditableOptions(title, navigation) {
 				/>
 			</TouchableOpacity>
 		),
-		headerRight: !addMode ? (
-			<TouchableOpacity onPress={rightAction} style={styles.backButton}>
-				<Text style={styles.closeButtonText}>
-					{editMode ? strings('address_book.edit') : strings('address_book.cancel')}
-				</Text>
-			</TouchableOpacity>
-		) : (
-			<View />
-		)
+		headerRight: () =>
+			!addMode ? (
+				<TouchableOpacity onPress={rightAction} style={styles.backButton}>
+					<Text style={styles.closeButtonText}>
+						{editMode ? strings('address_book.edit') : strings('address_book.cancel')}
+					</Text>
+				</TouchableOpacity>
+			) : (
+				<View />
+			)
 	};
 }
 
@@ -263,8 +231,8 @@ export function getEditableOptions(title, navigation) {
  * @param {Object} navigation - Navigation object required to push new views
  * @returns {Object} - Corresponding navbar options containing title, headerLeft and headerRight
  */
-export function getPaymentRequestOptionsTitle(title, navigation) {
-	const goBack = navigation.getParam('dispatch', undefined);
+export function getPaymentRequestOptionsTitle(title, navigation, route) {
+	const goBack = route.params?.dispatch;
 	return {
 		title,
 		headerTitleStyle: {
@@ -273,19 +241,24 @@ export function getPaymentRequestOptionsTitle(title, navigation) {
 			...fontStyles.normal
 		},
 		headerTintColor: colors.blue,
-		headerLeft: goBack ? (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={goBack} style={styles.backButton} testID={'request-search-asset-back-button'}>
-				<IonicIcon
-					name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
-					size={Device.isAndroid() ? 24 : 28}
-					style={styles.backIcon}
-				/>
-			</TouchableOpacity>
-		) : (
-			<View />
-		),
-		headerRight: (
+		headerLeft: () =>
+			goBack ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity
+					onPress={goBack}
+					style={styles.backButton}
+					testID={'request-search-asset-back-button'}
+				>
+					<IonicIcon
+						name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
+						size={Device.isAndroid() ? 24 : 28}
+						style={styles.backIcon}
+					/>
+				</TouchableOpacity>
+			) : (
+				<View />
+			),
+		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
 				<IonicIcon name={'ios-close'} size={38} style={[styles.backIcon, styles.backIconIOS]} />
@@ -308,9 +281,10 @@ export function getPaymentRequestSuccessOptionsTitle(navigation) {
 			backgroundColor: colors.white,
 			borderBottomWidth: 0
 		},
+		title: null,
 		headerTintColor: colors.blue,
-		headerLeft: <View />,
-		headerRight: (
+		headerLeft: () => <View />,
+		headerRight: () => (
 			<TouchableOpacity
 				// eslint-disable-next-line react/jsx-no-bind
 				onPress={() => navigation.pop()}
@@ -330,21 +304,19 @@ export function getPaymentRequestSuccessOptionsTitle(navigation) {
  * @param {string} title - Title in string format
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
-export function getTransactionOptionsTitle(_title, navigation) {
-	const transactionMode = navigation.getParam('mode', '');
-	const { routeName } = navigation.state;
+export function getTransactionOptionsTitle(_title, navigation, route) {
+	const transactionMode = route.params?.mode ?? '';
+	const { name } = route;
 	const leftText = transactionMode === 'edit' ? strings('transaction.cancel') : strings('transaction.edit');
-	const disableModeChange = navigation.getParam('disableModeChange');
-	const modeChange = navigation.getParam('dispatch', () => {
-		'';
-	});
+	const disableModeChange = route.params?.disableModeChange;
+	const modeChange = route.params?.dispatch;
 	const leftAction = () => modeChange('edit');
 	const rightAction = () => navigation.pop();
 	const rightText = strings('transaction.cancel');
 	const title = transactionMode === 'edit' ? 'transaction.edit' : _title;
 	return {
-		headerTitle: <NavbarTitle title={title} disableNetwork />,
-		headerLeft:
+		headerTitle: () => <NavbarTitle title={title} disableNetwork />,
+		headerLeft: () =>
 			transactionMode !== 'edit' ? (
 				<TouchableOpacity
 					disabled={disableModeChange}
@@ -362,8 +334,8 @@ export function getTransactionOptionsTitle(_title, navigation) {
 			) : (
 				<View />
 			),
-		headerRight:
-			routeName === 'Send' ? (
+		headerRight: () =>
+			name === 'Send' ? (
 				// eslint-disable-next-line react/jsx-no-bind
 				<TouchableOpacity onPress={rightAction} style={styles.closeButton} testID={'send-back-button'}>
 					<Text style={styles.closeButtonText}>{rightText}</Text>
@@ -376,9 +348,9 @@ export function getTransactionOptionsTitle(_title, navigation) {
 
 export function getApproveNavbar(title) {
 	return {
-		headerTitle: <NavbarTitle title={title} disableNetwork />,
-		headerLeft: <View />,
-		headerRight: <View />
+		headerTitle: () => <NavbarTitle title={title} disableNetwork />,
+		headerLeft: () => <View />,
+		headerRight: () => <View />
 	};
 }
 
@@ -389,36 +361,38 @@ export function getApproveNavbar(title) {
  * @param {string} title - Title in string format
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
-export function getSendFlowTitle(title, navigation, screenProps) {
+export function getSendFlowTitle(title, navigation, route) {
 	const rightAction = () => {
-		const providerType = navigation.getParam('providerType', '');
+		const providerType = route.params?.providerType ?? '';
 		trackEventWithParameters(ANALYTICS_EVENT_OPTS.SEND_FLOW_CANCEL, {
 			view: title.split('.')[1],
 			network: providerType
 		});
-		navigation.dismiss();
+		navigation.dangerouslyGetParent()?.pop();
 	};
 	const leftAction = () => navigation.pop();
-	const canGoBack = title !== 'send.send_to' && !screenProps.isPaymentRequest;
+
+	const canGoBack = title !== 'send.send_to' && !route?.params?.isPaymentRequest;
 
 	const titleToRender = title;
 
 	return {
-		headerTitle: <NavbarTitle title={titleToRender} disableNetwork />,
-		headerRight: (
+		headerTitle: () => <NavbarTitle title={titleToRender} disableNetwork />,
+		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={rightAction} style={styles.closeButton} testID={'send-cancel-button'}>
 				<Text style={styles.closeButtonText}>{strings('transaction.cancel')}</Text>
 			</TouchableOpacity>
 		),
-		headerLeft: canGoBack ? (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={leftAction} style={styles.closeButton}>
-				<Text style={styles.closeButtonText}>{strings('transaction.back')}</Text>
-			</TouchableOpacity>
-		) : (
-			<View />
-		)
+		headerLeft: () =>
+			canGoBack ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={leftAction} style={styles.closeButton}>
+					<Text style={styles.closeButtonText}>{strings('transaction.back')}</Text>
+				</TouchableOpacity>
+			) : (
+				<View />
+			)
 	};
 }
 
@@ -430,21 +404,21 @@ export function getSendFlowTitle(title, navigation, screenProps) {
  * @param {Object} navigation - Navigation object required to push new views
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerLeft and headerRight
  */
-export function getBrowserViewNavbarOptions(navigation) {
-	const url = navigation.getParam('url', '');
+export function getBrowserViewNavbarOptions(navigation, route) {
+	const url = route.params?.url ?? '';
 	let hostname = null;
 	let isHttps = false;
 
 	const isHomepage = url => getHost(url) === getHost(HOMEPAGE_URL);
-	const error = navigation.getParam('error', '');
-	const icon = navigation.getParam('icon', null);
+	const error = route.params?.error ?? '';
+	const icon = route.params?.icon;
 
 	if (url && !isHomepage(url)) {
 		isHttps = url && url.toLowerCase().substr(0, 6) === 'https:';
 		const urlObj = new URL(url);
 		hostname = urlObj.hostname.toLowerCase().replace(/^www\./, '');
 		if (isGatewayUrl(urlObj) && url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) === -1) {
-			const ensUrl = navigation.getParam('currentEnsName', '');
+			const ensUrl = route.params?.currentEnsName ?? '';
 			if (ensUrl) {
 				hostname = ensUrl.toLowerCase().replace(/^www\./, '');
 			}
@@ -460,7 +434,8 @@ export function getBrowserViewNavbarOptions(navigation) {
 	}
 
 	return {
-		headerLeft: (
+		gestureEnabled: false,
+		headerLeft: () => (
 			<TouchableOpacity onPress={onPress} style={styles.hamburgerButton} testID={'hamburger-menu-button-browser'}>
 				<IonicIcon
 					name={Device.isAndroid() ? 'md-menu' : 'ios-menu'}
@@ -469,17 +444,18 @@ export function getBrowserViewNavbarOptions(navigation) {
 				/>
 			</TouchableOpacity>
 		),
-		headerTitle: (
+		headerTitle: () => (
 			<NavbarBrowserTitle
 				error={!!error}
 				icon={url && !isHomepage(url) ? icon : null}
 				navigation={navigation}
+				route={route}
 				url={url}
 				hostname={hostname}
 				https={isHttps}
 			/>
 		),
-		headerRight: (
+		headerRight: () => (
 			<View style={styles.browserRightButton}>
 				<AccountRightButton />
 			</View>
@@ -496,7 +472,7 @@ export function getBrowserViewNavbarOptions(navigation) {
  */
 export function getModalNavbarOptions(title) {
 	return {
-		headerTitle: <ModalNavbarTitle title={title} />
+		headerTitle: () => <ModalNavbarTitle title={title} />
 	};
 }
 
@@ -507,8 +483,8 @@ export function getModalNavbarOptions(title) {
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
  */
-export function getOnboardingNavbarOptions(navigation, { headerLeft } = {}) {
-	const headerLeftHide = headerLeft || navigation.getParam('headerLeft');
+export function getOnboardingNavbarOptions(navigation, route, { headerLeft } = {}) {
+	const headerLeftHide = headerLeft || route.params?.headerLeft;
 
 	return {
 		headerStyle: {
@@ -517,13 +493,13 @@ export function getOnboardingNavbarOptions(navigation, { headerLeft } = {}) {
 			backgroundColor: colors.white,
 			borderBottomWidth: 0
 		},
-		headerTitle: (
+		headerTitle: () => (
 			<View style={styles.metamaskNameTransparentWrapper}>
 				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
 			</View>
 		),
 		headerBackTitle: strings('navigation.back'),
-		headerRight: <View />,
+		headerRight: () => <View />,
 		headerLeft: headerLeftHide
 	};
 }
@@ -536,13 +512,13 @@ export function getOnboardingNavbarOptions(navigation, { headerLeft } = {}) {
 export function getTransparentOnboardingNavbarOptions() {
 	return {
 		headerTransparent: true,
-		headerTitle: (
+		headerTitle: () => (
 			<View style={styles.metamaskNameTransparentWrapper}>
 				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
 			</View>
 		),
-		headerLeft: <View />,
-		headerRight: <View />
+		headerLeft: () => <View />,
+		headerRight: () => <View />
 	};
 }
 
@@ -554,13 +530,13 @@ export function getTransparentOnboardingNavbarOptions() {
 export function getTransparentBackOnboardingNavbarOptions() {
 	return {
 		headerTransparent: true,
-		headerTitle: (
+		headerTitle: () => (
 			<View style={styles.metamaskNameTransparentWrapper}>
 				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
 			</View>
 		),
 		headerBackTitle: strings('navigation.back'),
-		headerRight: <View />
+		headerRight: () => <View />
 	};
 }
 
@@ -579,7 +555,8 @@ export function getOptinMetricsNavbarOptions() {
 			borderBottomWidth: 0,
 			height: 100
 		},
-		headerLeft: (
+		title: null,
+		headerLeft: () => (
 			<View style={styles.optinHeaderLeft}>
 				<View style={styles.metamaskNameWrapper}>
 					<Image source={metamask_fox} style={styles.metamaskFox} resizeMethod={'auto'} />
@@ -607,15 +584,16 @@ export function getClosableNavigationOptions(title, backButtonText, navigation) 
 			fontSize: 20,
 			...fontStyles.normal
 		},
-		headerLeft: Device.isIos() ? (
-			<TouchableOpacity onPress={navigationPop} style={styles.closeButton} testID={'nav-ios-back'}>
-				<Text style={styles.closeButtonText}>{backButtonText}</Text>
-			</TouchableOpacity>
-		) : (
-			<TouchableOpacity onPress={navigationPop} style={styles.backButton} testID={'nav-android-back'}>
-				<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
-			</TouchableOpacity>
-		)
+		headerLeft: () =>
+			Device.isIos() ? (
+				<TouchableOpacity onPress={navigationPop} style={styles.closeButton} testID={'nav-ios-back'}>
+					<Text style={styles.closeButtonText}>{backButtonText}</Text>
+				</TouchableOpacity>
+			) : (
+				<TouchableOpacity onPress={navigationPop} style={styles.backButton} testID={'nav-android-back'}>
+					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
+				</TouchableOpacity>
+			)
 	};
 }
 
@@ -633,18 +611,20 @@ export function getOfflineModalNavbar(navigation) {
 			backgroundColor: colors.white,
 			borderBottomWidth: 0
 		},
-		headerLeft: Device.isAndroid() ? (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
-				<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
-			</TouchableOpacity>
-		) : null,
-		headerRight: Device.isIos() ? (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
-				<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
-			</TouchableOpacity>
-		) : null
+		headerLeft: () =>
+			Device.isAndroid() ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
+				</TouchableOpacity>
+			) : null,
+		headerRight: () =>
+			Device.isIos() ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+					<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
+				</TouchableOpacity>
+			) : null
 	};
 }
 
@@ -671,7 +651,7 @@ export function getWalletNavbarOptions(title, navigation) {
 						onPress: async () => {
 							try {
 								await importAccountFromPrivateKey(data.private_key);
-								navigation.navigate('ImportPrivateKeySuccess');
+								navigation.navigate('ImportPrivateKeyView', { screen: 'ImportPrivateKeySuccess' });
 							} catch (e) {
 								Alert.alert(
 									strings('import_private_key.error_title'),
@@ -705,8 +685,8 @@ export function getWalletNavbarOptions(title, navigation) {
 	}
 
 	return {
-		headerTitle: <NavbarTitle title={title} />,
-		headerLeft: (
+		headerTitle: () => <NavbarTitle title={title} />,
+		headerLeft: () => (
 			<TouchableOpacity onPress={openDrawer} style={styles.backButton} testID={'hamburger-menu-button-wallet'}>
 				<IonicIcon
 					name={Device.isAndroid() ? 'md-menu' : 'ios-menu'}
@@ -715,7 +695,7 @@ export function getWalletNavbarOptions(title, navigation) {
 				/>
 			</TouchableOpacity>
 		),
-		headerRight: (
+		headerRight: () => (
 			<TouchableOpacity
 				style={styles.infoButton}
 				// eslint-disable-next-line
@@ -737,8 +717,8 @@ export function getWalletNavbarOptions(title, navigation) {
  */
 export function getNetworkNavbarOptions(title, translate, navigation) {
 	return {
-		headerTitle: <NavbarTitle title={title} translate={translate} />,
-		headerLeft: (
+		headerTitle: () => <NavbarTitle title={title} translate={translate} />,
+		headerLeft: () => (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton} testID={'asset-back-button'}>
 				<IonicIcon
@@ -748,7 +728,7 @@ export function getNetworkNavbarOptions(title, translate, navigation) {
 				/>
 			</TouchableOpacity>
 		),
-		headerRight: <View />
+		headerRight: () => <View />
 	};
 }
 
@@ -757,47 +737,43 @@ export function getNetworkNavbarOptions(title, translate, navigation) {
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle and headerTitle
  */
-export function getWebviewNavbar(navigation) {
-	const title = navigation.getParam('title', '');
-	const share = navigation.getParam('dispatch', () => {
-		'';
-	});
+export function getWebviewNavbar(navigation, route) {
+	const title = route.params?.title ?? '';
+	const share = route.params?.dispatch;
 	return {
-		headerTitle: <Text style={styles.centeredTitle}>{title}</Text>,
-		headerLeft: Device.isAndroid() ? (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
-				<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
-			</TouchableOpacity>
-		) : (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
-				<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
-			</TouchableOpacity>
-		),
-		headerRight: Device.isAndroid() ? (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => share()} style={styles.backButton}>
-				<MaterialCommunityIcon name="share-variant" size={24} style={styles.backIcon} />
-			</TouchableOpacity>
-		) : (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => share()} style={styles.backButton}>
-				<EvilIcons name="share-apple" size={32} style={[styles.backIcon, styles.shareIconIOS]} />
-			</TouchableOpacity>
-		)
+		headerTitle: () => <Text style={styles.centeredTitle}>{title}</Text>,
+		headerLeft: () =>
+			Device.isAndroid() ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
+				</TouchableOpacity>
+			) : (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+					<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
+				</TouchableOpacity>
+			),
+		headerRight: () =>
+			Device.isAndroid() ? (
+				<TouchableOpacity onPress={share} style={styles.backButton}>
+					<MaterialCommunityIcon name="share-variant" size={24} style={styles.backIcon} />
+				</TouchableOpacity>
+			) : (
+				<TouchableOpacity onPress={share} style={styles.backButton}>
+					<EvilIcons name="share-apple" size={32} style={[styles.backIcon, styles.shareIconIOS]} />
+				</TouchableOpacity>
+			)
 	};
 }
 
 export function getPaymentSelectorMethodNavbar(navigation) {
-	const rightAction = navigation.dismiss;
-
 	return {
-		headerTitle: <Text style={styles.centeredTitle}>{strings('fiat_on_ramp.purchase_method')}</Text>,
-		headerLeft: <View />,
-		headerRight: (
+		headerTitle: () => <Text style={styles.centeredTitle}>{strings('fiat_on_ramp.purchase_method')}</Text>,
+		headerLeft: () => <View />,
+		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={rightAction} style={styles.closeButton}>
+			<TouchableOpacity onPress={() => navigation.dangerouslyGetParent()?.pop()} style={styles.closeButton}>
 				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
 			</TouchableOpacity>
 		)
@@ -812,28 +788,29 @@ export function getPaymentMethodApplePayNavbar(navigation) {
 			color: colors.fontPrimary,
 			...fontStyles.normal
 		},
-		headerRight: (
+		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.dismiss()} style={styles.closeButton}>
+			<TouchableOpacity onPress={() => navigation.dangerouslyGetParent()?.pop()} style={styles.closeButton}>
 				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
 			</TouchableOpacity>
 		),
-		headerLeft: Device.isAndroid() ? (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
-				<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
-			</TouchableOpacity>
-		) : (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
-				<Text style={styles.closeButtonText}>{strings('navigation.back')}</Text>
-			</TouchableOpacity>
-		)
+		headerLeft: () =>
+			Device.isAndroid() ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
+				</TouchableOpacity>
+			) : (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
+					<Text style={styles.closeButtonText}>{strings('navigation.back')}</Text>
+				</TouchableOpacity>
+			)
 	};
 }
 
-export function getTransakWebviewNavbar(navigation) {
-	const title = navigation.getParam('title', '');
+export function getTransakWebviewNavbar(navigation, route) {
+	const title = route.params?.title ?? '';
 	return {
 		title,
 		headerTitleStyle: {
@@ -841,43 +818,42 @@ export function getTransakWebviewNavbar(navigation) {
 			color: colors.fontPrimary,
 			...fontStyles.normal
 		},
-		headerLeft: Device.isAndroid() ? (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
-				<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
-			</TouchableOpacity>
-		) : (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
-				<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
-			</TouchableOpacity>
-		)
+		headerLeft: () =>
+			Device.isAndroid() ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
+				</TouchableOpacity>
+			) : (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+					<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
+				</TouchableOpacity>
+			)
 	};
 }
 
-export function getSwapsAmountNavbar(navigation) {
-	const title = navigation.getParam('title', 'Swap');
-	const rightAction = navigation.dismiss;
-
+export function getSwapsAmountNavbar(navigation, route) {
+	const title = route.params?.title ?? 'Swap';
 	return {
-		headerTitle: <NavbarTitle title={title} disableNetwork translate={false} />,
-		headerLeft: <View />,
-		headerRight: (
+		headerTitle: () => <NavbarTitle title={title} disableNetwork translate={false} />,
+		headerLeft: () => <View />,
+		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={rightAction} style={styles.closeButton}>
+			<TouchableOpacity onPress={() => navigation.dangerouslyGetParent()?.pop()} style={styles.closeButton}>
 				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
 			</TouchableOpacity>
 		)
 	};
 }
-export function getSwapsQuotesNavbar(navigation) {
-	const title = navigation.getParam('title', 'Swap');
-	const leftActionText = navigation.getParam('leftAction', strings('navigation.back'));
+export function getSwapsQuotesNavbar(navigation, route) {
+	const title = route.params?.title ?? 'Swap';
+	const leftActionText = route.params?.leftAction ?? strings('navigation.back');
 
 	const leftAction = () => {
-		const trade = navigation.getParam('requestedTrade');
-		const selectedQuote = navigation.getParam('selectedQuote');
-		const quoteBegin = navigation.getParam('quoteBegin');
+		const trade = route.params?.requestedTrade;
+		const selectedQuote = route.params?.selectedQuote;
+		const quoteBegin = route.params?.quoteBegin;
 		if (!selectedQuote) {
 			InteractionManager.runAfterInteractions(() => {
 				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_REQUEST_CANCELLED, {
@@ -890,9 +866,9 @@ export function getSwapsQuotesNavbar(navigation) {
 	};
 
 	const rightAction = () => {
-		const trade = navigation.getParam('requestedTrade');
-		const selectedQuote = navigation.getParam('selectedQuote');
-		const quoteBegin = navigation.getParam('quoteBegin');
+		const trade = route.params?.requestedTrade;
+		const selectedQuote = route.params?.selectedQuote;
+		const quoteBegin = route.params?.quoteBegin;
 		if (!selectedQuote) {
 			InteractionManager.runAfterInteractions(() => {
 				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_REQUEST_CANCELLED, {
@@ -901,23 +877,24 @@ export function getSwapsQuotesNavbar(navigation) {
 				});
 			});
 		}
-		navigation.dismiss();
+		navigation.dangerouslyGetParent()?.pop();
 	};
 
 	return {
-		headerTitle: <NavbarTitle title={title} disableNetwork translate={false} />,
-		headerLeft: Device.isAndroid() ? (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={leftAction} style={styles.backButton}>
-				<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
-			</TouchableOpacity>
-		) : (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={leftAction} style={styles.closeButton}>
-				<Text style={styles.closeButtonText}>{leftActionText}</Text>
-			</TouchableOpacity>
-		),
-		headerRight: (
+		headerTitle: () => <NavbarTitle title={title} disableNetwork translate={false} />,
+		headerLeft: () =>
+			Device.isAndroid() ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={leftAction} style={styles.backButton}>
+					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
+				</TouchableOpacity>
+			) : (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={leftAction} style={styles.closeButton}>
+					<Text style={styles.closeButtonText}>{leftActionText}</Text>
+				</TouchableOpacity>
+			),
+		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={rightAction} style={styles.closeButton}>
 				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>

@@ -34,16 +34,9 @@ describe('ContactForm', () => {
 				}
 			}
 		};
-		const wrapper = shallow(
-			<ContactForm
-				navigation={{
-					getParam: () => 'add'
-				}}
-			/>,
-			{
-				context: { store: mockStore(initialState) }
-			}
-		);
+		const wrapper = shallow(<ContactForm route={{ params: {} }} />, {
+			context: { store: mockStore(initialState) }
+		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});
 });

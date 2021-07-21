@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
  * the backup seed phrase flow
  */
 class ManualBackupStep2 extends PureComponent {
-	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
+	static navigationOptions = ({ navigation, route }) => getOnboardingNavbarOptions(navigation, route);
 
 	static propTypes = {
 		/**
@@ -160,18 +160,22 @@ class ManualBackupStep2 extends PureComponent {
 		 * The action to update the seedphrase backed up flag
 		 * in the redux store
 		 */
-		seedphraseBackedUp: PropTypes.func
+		seedphraseBackedUp: PropTypes.func,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	constructor(props) {
 		super(props);
-		const words = props.navigation.getParam('words');
+		const words = props.route.params?.words;
 		if (process.env.JEST_WORKER_ID === undefined) {
 			this.words = [...words].sort(() => 0.5 - Math.random());
 		} else {
 			this.words = words;
 		}
-		this.steps = props.navigation.getParam('steps');
+		this.steps = props.route.params?.steps;
 	}
 
 	state = {
@@ -183,8 +187,8 @@ class ManualBackupStep2 extends PureComponent {
 	};
 
 	componentDidMount = () => {
-		const { navigation } = this.props;
-		const words = navigation.getParam('words', []);
+		const { route } = this.props;
+		const words = route.params?.words ?? [];
 		this.setState(
 			{
 				confirmedWords: Array(words.length).fill({ word: undefined, originalPosition: undefined })
@@ -247,11 +251,11 @@ class ManualBackupStep2 extends PureComponent {
 	};
 
 	goNext = () => {
-		const { seedphraseBackedUp, navigation } = this.props;
+		const { seedphraseBackedUp, route, navigation } = this.props;
 		if (this.validateWords()) {
 			seedphraseBackedUp();
 			InteractionManager.runAfterInteractions(() => {
-				const words = navigation.getParam('words');
+				const words = route.params?.words;
 				navigation.navigate('ManualBackupStep3', { steps: this.steps, words });
 			});
 		} else {
@@ -260,7 +264,7 @@ class ManualBackupStep2 extends PureComponent {
 	};
 
 	validateWords = () => {
-		const words = this.props.navigation.getParam('words', []);
+		const words = this.props.route.params?.words ?? [];
 		const { confirmedWords: wordMap } = this.state;
 		const confirmedWords = wordMap.map(confirmedWord => confirmedWord.word);
 		if (words.join('') === confirmedWords.join('')) {

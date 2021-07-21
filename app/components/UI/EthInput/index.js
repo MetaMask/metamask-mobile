@@ -25,7 +25,7 @@ import { getTicker, getNormalizedTxState } from '../../../util/transactions';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Device from '../../../util/Device';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
-import { toLowerCaseCompare } from '../../../util/general';
+import { toLowerCaseEquals } from '../../../util/general';
 
 const styles = StyleSheet.create({
 	root: {
@@ -284,7 +284,7 @@ class EthInput extends PureComponent {
 				break;
 			case 'CONTRACT_COLLECTIBLE_TRANSACTION': {
 				const collectiblesToShow = collectibles.filter(collectible =>
-					toLowerCaseCompare(collectible.address, transaction.selectedAsset.address)
+					toLowerCaseEquals(collectible.address, transaction.selectedAsset.address)
 				);
 				this.setState({
 					assets: collectiblesToShow

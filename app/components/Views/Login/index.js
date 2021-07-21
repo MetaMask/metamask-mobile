@@ -44,7 +44,7 @@ import ErrorBoundary from '../ErrorBoundary';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
-import { tlc, toLowerCaseCompare } from '../../../util/general';
+import { tlc, toLowerCaseEquals } from '../../../util/general';
 
 const isTextDelete = text => tlc(text) === 'delete';
 const deviceHeight = Device.getDeviceHeight();
@@ -302,7 +302,10 @@ class Login extends PureComponent {
 			// Check if user passed through metrics opt-in screen
 			const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
 			if (!metricsOptIn) {
-				this.props.navigation.navigate('OptinMetrics');
+				this.props.navigation.navigate('OnboardingRootNav', {
+					screen: 'OnboardingNav',
+					params: { screen: 'OptinMetrics' }
+				});
 			} else if (onboardingWizard) {
 				this.props.navigation.navigate('HomeNav');
 			} else {
@@ -314,8 +317,8 @@ class Login extends PureComponent {
 			// Should we force people to enable passcode / biometrics?
 			const error = e.toString();
 			if (
-				toLowerCaseCompare(error, WRONG_PASSWORD_ERROR) ||
-				toLowerCaseCompare(error, WRONG_PASSWORD_ERROR_ANDROID)
+				toLowerCaseEquals(error, WRONG_PASSWORD_ERROR) ||
+				toLowerCaseEquals(error, WRONG_PASSWORD_ERROR_ANDROID)
 			) {
 				this.setState({ loading: false, error: strings('login.invalid_password') });
 
@@ -328,7 +331,7 @@ class Login extends PureComponent {
 					'In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)'
 				);
 				this.setState({ loading: false });
-			} else if (toLowerCaseCompare(error, VAULT_ERROR)) {
+			} else if (toLowerCaseEquals(error, VAULT_ERROR)) {
 				this.setState({
 					loading: false,
 					error: CLEAN_VAULT_ERROR
@@ -355,7 +358,10 @@ class Login extends PureComponent {
 	deleteExistingUser = async () => {
 		try {
 			await AsyncStorage.removeItem(EXISTING_USER);
-			this.props.navigation.navigate('Onboarding', { delete: true });
+			this.props.navigation.navigate('OnboardingRootNav', {
+				screen: 'OnboardingNav',
+				params: { screen: 'Onboarding', params: { delete: true } }
+			});
 		} catch (error) {
 			Logger.log(error, `Failed to remove key: ${EXISTING_USER} from AsyncStorage`);
 		}

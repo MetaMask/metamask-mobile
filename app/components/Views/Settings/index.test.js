@@ -23,16 +23,9 @@ describe('Settings', () => {
 				}
 			}
 		};
-		const wrapper = shallow(
-			<Settings
-				navigation={{
-					state: { params: {} }
-				}}
-			/>,
-			{
-				context: { store: mockStore(initialState) }
-			}
-		);
+		const wrapper = shallow(<Settings route={{ params: {} }} />, {
+			context: { store: mockStore(initialState) }
+		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});
 });

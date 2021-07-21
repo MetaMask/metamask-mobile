@@ -169,8 +169,8 @@ const createStep = step => ({
  * View that is displayed to first time (new) users
  */
 class Onboarding extends PureComponent {
-	static navigationOptions = ({ navigation }) =>
-		navigation.getParam('delete', null)
+	static navigationOptions = ({ navigation, route }) =>
+		route.params?.delete
 			? getTransparentOnboardingNavbarOptions(navigation)
 			: getTransparentBackOnboardingNavbarOptions(navigation);
 
@@ -221,7 +221,11 @@ class Onboarding extends PureComponent {
 		/**
 		 * loadings msg
 		 */
-		loadingMsg: PropTypes.string
+		loadingMsg: PropTypes.string,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	notificationAnimated = new Animated.Value(100);
@@ -275,7 +279,7 @@ class Onboarding extends PureComponent {
 		this.checkIfExistingUser();
 		InteractionManager.runAfterInteractions(() => {
 			PreventScreenshot.forbid();
-			if (this.props.navigation.getParam('delete', false)) {
+			if (this.props.route.params?.delete) {
 				this.props.setLoading(strings('onboarding.delete_current'));
 				setTimeout(() => {
 					this.showNotification();
@@ -337,7 +341,6 @@ class Onboarding extends PureComponent {
 		} catch (e) {
 			this.props.unsetLoading();
 			if (!firstAttempt) {
-				this.props.navigation.goBack();
 				if (e.message === 'Sync::timeout') {
 					Alert.alert(
 						strings('sync_with_extension.outdated_qr_code'),
@@ -622,7 +625,7 @@ class Onboarding extends PureComponent {
 	}
 
 	handleSimpleNotification = () => {
-		if (!this.props.navigation.getParam('delete', false)) return;
+		if (!this.props.route.params?.delete) return;
 		return (
 			<Animated.View
 				style={[styles.notificationContainer, { transform: [{ translateY: this.notificationAnimated }] }]}

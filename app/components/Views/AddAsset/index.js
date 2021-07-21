@@ -35,9 +35,9 @@ const styles = StyleSheet.create({
  * PureComponent that provides ability to add assets.
  */
 class AddAsset extends PureComponent {
-	static navigationOptions = ({ navigation }) =>
+	static navigationOptions = ({ navigation, route }) =>
 		getNetworkNavbarOptions(
-			`add_asset.${navigation.state.params.assetType === 'token' ? 'title' : 'title_nft'}`,
+			`add_asset.${route.params.assetType === 'token' ? 'title' : 'title_nft'}`,
 			true,
 			navigation
 		);
@@ -56,7 +56,11 @@ class AddAsset extends PureComponent {
 		/**
 		 * Chain id
 		 */
-		chainId: PropTypes.string
+		chainId: PropTypes.string,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	renderTabBar() {
@@ -74,10 +78,8 @@ class AddAsset extends PureComponent {
 
 	render = () => {
 		const {
-			navigation: {
-				state: {
-					params: { assetType, collectibleContract }
-				}
+			route: {
+				params: { assetType, collectibleContract }
 			},
 			navigation
 		} = this.props;

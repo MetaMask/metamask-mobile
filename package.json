@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "2.5.0",
+  "version": "2.6.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh audit dependencies",
@@ -78,7 +78,7 @@
   "dependencies": {
     "@exodus/react-native-payments": "https://github.com/wachunei/react-native-payments.git#package-json-hack",
     "@metamask/contract-metadata": "^1.23.0",
-    "@metamask/controllers": "^10.1.0",
+    "@metamask/controllers": "^12.1.0",
     "@metamask/etherscan-link": "^2.0.0",
     "@metamask/swaps-controller": "^4.0.0",
     "@react-native-community/async-storage": "1.12.1",
@@ -88,7 +88,13 @@
     "@react-native-community/cookies": "^4.0.1",
     "@react-native-community/masked-view": "^0.1.10",
     "@react-native-community/netinfo": "6.0.0",
+    "@react-native-community/picker": "^1.8.1",
     "@react-native-community/viewpager": "^3.3.0",
+    "@react-navigation/bottom-tabs": "^5.11.11",
+    "@react-navigation/compat": "^5.3.15",
+    "@react-navigation/drawer": "^5.12.5",
+    "@react-navigation/native": "^5.9.4",
+    "@react-navigation/stack": "^5.14.5",
     "@rnhooks/keyboard": "^0.0.3",
     "@sentry/integrations": "6.3.1",
     "@sentry/react-native": "2.4.2",
@@ -104,7 +110,6 @@
     "buffer": "5.2.1",
     "compare-versions": "^3.6.0",
     "content-hash": "2.5.2",
-    "dnode": "1.2.2",
     "eth-ens-namehash": "2.0.8",
     "eth-json-rpc-errors": "^2.0.2",
     "eth-json-rpc-filters": "4.2.2",
@@ -131,6 +136,7 @@
     "obj-multiplex": "1.0.0",
     "obs-store": "4.0.3",
     "path": "0.12.7",
+    "pbkdf2": "^3.1.2",
     "pify": "4.0.1",
     "prop-types": "15.7.2",
     "pubnub": "4.27.3",
@@ -172,8 +178,9 @@
     "react-native-qrcode-svg": "5.1.2",
     "react-native-randombytes": "^3.5.3",
     "react-native-reanimated": "^1.13.2",
+    "react-native-redash": "14.1.1",
     "react-native-safe-area-context": "^3.1.9",
-    "react-native-screens": "^2.16.1",
+    "react-native-screens": "^3.3.0",
     "react-native-scrollable-tab-view": "^1.0.0",
     "react-native-search-api": "ombori/react-native-search-api#8/head",
     "react-native-sensors": "5.3.0",
@@ -189,10 +196,6 @@
     "react-native-video": "^5.1.1",
     "react-native-view-shot": "^3.1.2",
     "react-native-webview": "^11.0.2",
-    "react-navigation": "^4.4.3",
-    "react-navigation-drawer": "1.4.0",
-    "react-navigation-stack": "1.7.3",
-    "react-navigation-tabs": "2.5.5",
     "react-redux": "5.1.1",
     "readable-stream": "1.0.33",
     "redux": "4.0.1",
@@ -216,6 +219,8 @@
     "@babel/runtime": "^7.8.4",
     "@metamask/mobile-provider": "^2.1.0",
     "@react-native-community/eslint-config": "^1.1.0",
+    "@types/react": "^17.0.11",
+    "@types/react-native": "^0.64.10",
     "assert": "1.4.1",
     "babel-core": "7.0.0-bridge.0",
     "babel-eslint": "10.1.0",
@@ -227,6 +232,7 @@
     "enzyme-to-json": "3.3.5",
     "eslint": "^7.14.0",
     "eslint-config-react-native": "4.0.0",
+    "eslint-import-resolver-typescript": "^2.4.0",
     "eslint-plugin-import": "2.18.2",
     "eslint-plugin-prettier": "^3.3.1",
     "eslint-plugin-react": "7.16.0",
@@ -286,28 +292,6 @@
     },
     "runner-config": "e2e/config.json",
     "test-runner": "jest"
-  },
-  "jest": {
-    "preset": "react-native",
-    "setupFiles": [
-      "<rootDir>/app/util/testSetup.js"
-    ],
-    "transform": {
-      "^.+\\.js$": "<rootDir>jest.preprocessor.js"
-    },
-    "transformIgnorePatterns": [
-      "node_modules/(?!(react-native|rn-fetch|redux-persist-filesystem|@react-navigation|@react-native-community|react-navigation|react-navigation-redux-helpers|@sentry))"
-    ],
-    "snapshotSerializers": [
-      "enzyme-to-json/serializer"
-    ],
-    "collectCoverage": false,
-    "collectCoverageFrom": [
-      "<rootDir>/app/**/*.{js,jsx}",
-      "!<rootDir>/node_modules/",
-      "!<rootDir>/app/util/*.{js,jsx}",
-      "!<rootDir>/app/entry*.js"
-    ]
   },
   "react-native": {
     "crypto": "react-native-crypto",

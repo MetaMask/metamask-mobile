@@ -19,16 +19,9 @@ describe('ExperimentalSettings', () => {
 			}
 		};
 
-		const wrapper = shallow(
-			<ExperimentalSettings
-				navigation={{
-					state: { params: {} }
-				}}
-			/>,
-			{
-				context: { store: mockStore(initialState) }
-			}
-		);
+		const wrapper = shallow(<ExperimentalSettings route={{ params: {} }} />, {
+			context: { store: mockStore(initialState) }
+		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});
 });

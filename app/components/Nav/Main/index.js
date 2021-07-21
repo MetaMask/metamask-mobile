@@ -281,7 +281,7 @@ const Main = props => {
 			try {
 				TransactionController.hub.once(`${transactionMeta.id}:finished`, transactionMeta => {
 					if (transactionMeta.status === 'submitted') {
-						props.navigation.pop();
+						props.navigation.pop?.();
 						NotificationManager.watchSubmittedTransaction({
 							...transactionMeta,
 							assetType: transactionMeta.transaction.assetType
@@ -461,6 +461,7 @@ const Main = props => {
 		>
 			{signType === 'personal' && (
 				<PersonalSign
+					navigation={props.navigation}
 					messageParams={signMessageParams}
 					onCancel={onSignAction}
 					onConfirm={onSignAction}
@@ -471,6 +472,7 @@ const Main = props => {
 			)}
 			{signType === 'typed' && (
 				<TypedSign
+					navigation={props.navigation}
 					messageParams={signMessageParams}
 					onCancel={onSignAction}
 					onConfirm={onSignAction}
@@ -557,7 +559,10 @@ const Main = props => {
 
 	const skipAccountModalSecureNow = () => {
 		toggleRemindLater();
-		props.navigation.navigate('AccountBackupStep1B', { ...props.navigation.state.params });
+		props.navigation.navigate('SetPasswordFlow', {
+			screen: 'AccountBackupStep1B',
+			params: { ...props.route.params }
+		});
 	};
 
 	const skipAccountModalSkip = () => {
@@ -655,16 +660,7 @@ const Main = props => {
 	return (
 		<React.Fragment>
 			<View style={styles.flex}>
-				{!forceReload ? (
-					<MainNavigator
-						navigation={props.navigation}
-						screenProps={{
-							isPaymentRequest: props.isPaymentRequest
-						}}
-					/>
-				) : (
-					renderLoader()
-				)}
+				{!forceReload ? <MainNavigator navigation={props.navigation} /> : renderLoader()}
 				<GlobalAlert />
 				<FadeOutOverlay />
 				<Notification navigation={props.navigation} />
@@ -727,10 +723,6 @@ Main.propTypes = {
 	hideCurrentNotification: PropTypes.func,
 	removeNotificationById: PropTypes.func,
 	/**
-	 * Indicates whether the current transaction is a deep link transaction
-	 */
-	isPaymentRequest: PropTypes.bool,
-	/**
 	 * Indicates whether third party API mode is enabled
 	 */
 	thirdPartyApiMode: PropTypes.bool,
@@ -773,7 +765,11 @@ Main.propTypes = {
 	/**
 	 * Remove not visible notifications from state
 	 */
-	removeNotVisibleNotifications: PropTypes.func
+	removeNotVisibleNotifications: PropTypes.func,
+	/**
+	 * Object that represents the current route info like params passed to it
+	 */
+	route: PropTypes.object
 };
 
 const mapStateToProps = state => ({
@@ -782,7 +778,6 @@ const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
-	isPaymentRequest: state.transaction.paymentRequest,
 	dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
 	approveModalVisible: state.modals.approveModalVisible,
 	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {},

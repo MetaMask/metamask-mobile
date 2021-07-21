@@ -285,7 +285,7 @@ class TransactionReviewFeeCard extends PureComponent {
 											link={showNativeCurrency}
 											underline={showNativeCurrency}
 											right
-											style={warningGasPriceHigh && styles.over}
+											style={[warningGasPriceHigh && styles.over]}
 										>
 											{primaryNetworkFee}
 										</Text>
@@ -296,7 +296,7 @@ class TransactionReviewFeeCard extends PureComponent {
 					</Summary.Row>
 					<Summary.Separator />
 					<Summary.Row>
-						<Text primary bold style={(over && styles.over) || null}>
+						<Text primary bold style={[over && styles.over]}>
 							{strings('transaction.total')}
 						</Text>
 

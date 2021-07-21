@@ -4,7 +4,6 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import ChoosePassword from './';
 import configureMockStore from 'redux-mock-store';
-import { ONBOARDING, PROTECT } from '../../../constants/navigation';
 
 describe('ChoosePassword', () => {
 	const mockStore = configureMockStore();
@@ -24,17 +23,9 @@ describe('ChoosePassword', () => {
 			}
 		};
 
-		const wrapper = shallow(
-			<ChoosePassword
-				navigation={{
-					getParam: () => [ONBOARDING, PROTECT],
-					state: { params: {} }
-				}}
-			/>,
-			{
-				context: { store: mockStore(initialState) }
-			}
-		);
+		const wrapper = shallow(<ChoosePassword route={{ params: {} }} />, {
+			context: { store: mockStore(initialState) }
+		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});
 });

@@ -2,12 +2,9 @@
 
 exports[`ImportPrivateKeySuccess should render correctly 1`] = `
 <Connect(ImportPrivateKeySuccess)
-  navigation={
+  route={
     Object {
-      "getParam": [Function],
-      "state": Object {
-        "params": Object {},
-      },
+      "params": Object {},
     }
   }
 />

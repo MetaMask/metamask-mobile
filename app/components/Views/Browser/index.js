@@ -53,9 +53,13 @@ class Browser extends PureComponent {
 		/**
 		 * ID of the active tab
 		 */
-		activeTab: PropTypes.number
+		activeTab: PropTypes.number,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
-	static navigationOptions = ({ navigation }) => getBrowserViewNavbarOptions(navigation);
+	static navigationOptions = ({ navigation, route }) => getBrowserViewNavbarOptions(navigation, route);
 
 	constructor(props) {
 		super(props);
@@ -72,17 +76,17 @@ class Browser extends PureComponent {
 			this.props.tabs.length > 0 && this.switchToTab(this.props.tabs[0]);
 		}
 
-		const currentUrl = this.props.navigation.getParam('newTabUrl', null);
+		const currentUrl = this.props.route.params?.newTabUrl;
 		if (currentUrl) this.goToNewTab(currentUrl);
 	}
 
 	componentDidUpdate(prevProps) {
-		const prevNavigation = prevProps.navigation;
-		const { navigation } = this.props;
+		const prevRoute = prevProps.route;
+		const { route } = this.props;
 
-		if (prevNavigation && navigation) {
-			const prevUrl = prevNavigation.getParam('newTabUrl', null);
-			const currentUrl = navigation.getParam('newTabUrl', null);
+		if (prevRoute && route) {
+			const prevUrl = prevRoute.params?.newTabUrl;
+			const currentUrl = route.params?.newTabUrl;
 
 			if (currentUrl && prevUrl !== currentUrl) {
 				this.goToNewTab(currentUrl);
@@ -93,7 +97,7 @@ class Browser extends PureComponent {
 	goToNewTab = url => {
 		this.newTab(url);
 		this.props.navigation.setParams({
-			...this.props.navigation.state.params,
+			...this.props.route.params,
 			newTabUrl: null
 		});
 	};
@@ -107,14 +111,14 @@ class Browser extends PureComponent {
 		}
 
 		this.props.navigation.setParams({
-			...this.props.navigation.state.params,
+			...this.props.route.params,
 			showTabs: true
 		});
 	};
 
 	hideTabsAndUpdateUrl = url => {
 		this.props.navigation.setParams({
-			...this.props.navigation.state.params,
+			...this.props.route.params,
 			showTabs: false,
 			url,
 			silent: false
@@ -125,7 +129,7 @@ class Browser extends PureComponent {
 		if (this.props.tabs.length) {
 			this.props.closeAllTabs();
 			this.props.navigation.setParams({
-				...this.props.navigation.state.params,
+				...this.props.route.params,
 				url: null,
 				silent: true
 			});
@@ -156,7 +160,7 @@ class Browser extends PureComponent {
 						}
 						this.props.setActiveTab(newTab.id);
 						this.props.navigation.setParams({
-							...this.props.navigation.state.params,
+							...this.props.route.params,
 							url: newTab.url,
 							silent: true
 						});
@@ -164,7 +168,7 @@ class Browser extends PureComponent {
 				});
 			} else {
 				this.props.navigation.setParams({
-					...this.props.navigation.state.params,
+					...this.props.route.params,
 					url: null,
 					silent: true
 				});
@@ -177,7 +181,7 @@ class Browser extends PureComponent {
 	closeTabsView = () => {
 		if (this.props.tabs.length) {
 			this.props.navigation.setParams({
-				...this.props.navigation.state.params,
+				...this.props.route.params,
 				showTabs: false,
 				silent: true
 			});
@@ -192,7 +196,7 @@ class Browser extends PureComponent {
 
 	renderTabsView() {
 		const { tabs, activeTab } = this.props;
-		const showTabs = this.props.navigation.getParam('showTabs', false);
+		const showTabs = this.props.route.params?.showTabs;
 		if (showTabs) {
 			return (
 				<Tabs

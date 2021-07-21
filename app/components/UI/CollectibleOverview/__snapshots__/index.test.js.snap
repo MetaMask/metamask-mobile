@@ -1,40 +1,45 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`CollectibleOverview should render correctly 1`] = `
-<ForwardRef(AnimatedComponentWrapper)
-  onLayout={[Function]}
-  style={
+<PanGestureHandler
+  activeOffsetX={
     Array [
-      Object {
-        "backgroundColor": "#FFFFFF",
-        "borderTopEndRadius": 8,
-        "borderTopStartRadius": 8,
-        "flex": 0,
-      },
-      Object {
-        "transform": Array [
-          Object {
-            "translateY": 0,
-          },
-        ],
-      },
+      0,
+      0,
     ]
   }
+  activeOffsetY={
+    Array [
+      0,
+      0,
+    ]
+  }
+  onGestureEvent={[Function]}
+  waitFor={
+    Object {
+      "current": null,
+    }
+  }
 >
-  <PanGestureHandler
-    activeOffsetX={
+  <ForwardRef(AnimatedComponentWrapper)
+    onLayout={[Function]}
+    style={
       Array [
-        0,
-        0,
+        Object {
+          "backgroundColor": "#FFFFFF",
+          "borderTopEndRadius": 8,
+          "borderTopStartRadius": 8,
+          "flex": 0,
+        },
+        Object {
+          "transform": Array [
+            Object {
+              "translateY": 0,
+            },
+          ],
+        },
       ]
     }
-    activeOffsetY={
-      Array [
-        0,
-        0,
-      ]
-    }
-    onGestureEvent={[Function]}
   >
     <View
       style={
@@ -57,25 +62,9 @@ exports[`CollectibleOverview should render correctly 1`] = `
         }
       />
     </View>
-  </PanGestureHandler>
-  <ForwardRef(SafeAreaView)>
-    <View
-      onLayout={[Function]}
-    >
-      <PanGestureHandler
-        activeOffsetX={
-          Array [
-            0,
-            0,
-          ]
-        }
-        activeOffsetY={
-          Array [
-            0,
-            0,
-          ]
-        }
-        onGestureEvent={[Function]}
+    <ForwardRef(SafeAreaView)>
+      <View
+        onLayout={[Function]}
       >
         <View
           style={
@@ -136,147 +125,131 @@ exports[`CollectibleOverview should render correctly 1`] = `
             6904
           </Text>
         </View>
-      </PanGestureHandler>
-      <View
-        style={
-          Array [
-            Object {
-              "paddingHorizontal": 16,
-            },
-            Object {
-              "flexDirection": "row",
-              "marginTop": 16,
-            },
-          ]
-        }
-      >
-        <StyledButton
-          containerStyle={
+        <View
+          style={
             Array [
               Object {
-                "alignItems": "center",
-                "borderWidth": 1.5,
-                "justifyContent": "center",
+                "paddingHorizontal": 16,
               },
               Object {
-                "height": 54,
-                "width": 54,
-              },
-              Object {
-                "marginRight": 16,
+                "flexDirection": "row",
+                "marginTop": 16,
               },
             ]
           }
-          disabledContainerStyle={
-            Object {
-              "opacity": 0.6,
-            }
-          }
-          onPressOut={[Function]}
-          styleDisabled={
-            Object {
-              "opacity": 0.6,
-            }
-          }
-          type="rounded-normal"
         >
-          <Text
-            black={false}
-            blue={false}
-            bold={true}
-            centered={false}
-            disclaimer={false}
-            green={false}
-            link={true}
-            modal={false}
-            noMargin={true}
-            primary={false}
-            red={false}
-            reset={false}
-            right={false}
-            small={false}
-            strikethrough={false}
-            underline={false}
-            upper={false}
-          >
-            <Icon
-              allowFontScaling={false}
-              name="share-apple"
-              size={32}
-            />
-          </Text>
-        </StyledButton>
-        <StyledButton
-          containerStyle={
-            Array [
-              Object {
-                "alignItems": "center",
-                "borderWidth": 1.5,
-                "justifyContent": "center",
-              },
-              Object {
-                "height": 54,
-                "width": 54,
-              },
-            ]
-          }
-          disabledContainerStyle={
-            Object {
-              "opacity": 0.6,
+          <StyledButton
+            containerStyle={
+              Array [
+                Object {
+                  "alignItems": "center",
+                  "borderWidth": 1.5,
+                  "justifyContent": "center",
+                },
+                Object {
+                  "height": 54,
+                  "width": 54,
+                },
+                Object {
+                  "marginRight": 16,
+                },
+              ]
             }
-          }
-          onPressOut={[Function]}
-          styleDisabled={
-            Object {
-              "opacity": 0.6,
+            disabledContainerStyle={
+              Object {
+                "opacity": 0.6,
+              }
             }
-          }
-          type="rounded-normal"
-        >
-          <Text
-            black={false}
-            blue={false}
-            bold={false}
-            centered={false}
-            disclaimer={false}
-            green={false}
-            link={true}
-            modal={false}
-            noMargin={true}
-            primary={false}
-            red={false}
-            reset={false}
-            right={false}
-            small={false}
-            strikethrough={false}
-            underline={false}
-            upper={false}
+            onPressOut={[Function]}
+            styleDisabled={
+              Object {
+                "opacity": 0.6,
+              }
+            }
+            type="rounded-normal"
           >
-            <Icon
-              allowFontScaling={false}
-              name="staro"
-              size={24}
-            />
-          </Text>
-        </StyledButton>
+            <Text
+              black={false}
+              blue={false}
+              bold={true}
+              centered={false}
+              disclaimer={false}
+              green={false}
+              link={true}
+              modal={false}
+              noMargin={true}
+              primary={false}
+              red={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
+              underline={false}
+              upper={false}
+            >
+              <Icon
+                allowFontScaling={false}
+                name="share-apple"
+                size={32}
+              />
+            </Text>
+          </StyledButton>
+          <StyledButton
+            containerStyle={
+              Array [
+                Object {
+                  "alignItems": "center",
+                  "borderWidth": 1.5,
+                  "justifyContent": "center",
+                },
+                Object {
+                  "height": 54,
+                  "width": 54,
+                },
+              ]
+            }
+            disabledContainerStyle={
+              Object {
+                "opacity": 0.6,
+              }
+            }
+            onPressOut={[Function]}
+            styleDisabled={
+              Object {
+                "opacity": 0.6,
+              }
+            }
+            type="rounded-normal"
+          >
+            <Text
+              black={false}
+              blue={false}
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              green={false}
+              link={true}
+              modal={false}
+              noMargin={true}
+              primary={false}
+              red={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
+              underline={false}
+              upper={false}
+            >
+              <Icon
+                allowFontScaling={false}
+                name="staro"
+                size={24}
+              />
+            </Text>
+          </StyledButton>
+        </View>
       </View>
-    </View>
-    <View />
-    <PanGestureHandler
-      activeOffsetX={
-        Array [
-          0,
-          0,
-        ]
-      }
-      activeOffsetY={
-        Array [
-          0,
-          0,
-        ]
-      }
-      onGestureEvent={[Function]}
-    >
+      <View />
       <View
         style={
           Object {
@@ -421,7 +394,7 @@ exports[`CollectibleOverview should render correctly 1`] = `
           </Text>
         </View>
       </View>
-    </PanGestureHandler>
-  </ForwardRef(SafeAreaView)>
-</ForwardRef(AnimatedComponentWrapper)>
+    </ForwardRef(SafeAreaView)>
+  </ForwardRef(AnimatedComponentWrapper)>
+</PanGestureHandler>
 `;

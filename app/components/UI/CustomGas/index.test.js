@@ -40,7 +40,7 @@ describe('CustomGas', () => {
 
 		const wrapper = shallow(
 			<CustomGas
-				navigation={{ state: { params: {} } }}
+				route={{ params: {} }}
 				basicGasEstimates={{ averageGwei: 10, fastGwei: 10, safeLowGwei: 10 }}
 				generateTransform={generateTransform}
 				gas={new BN(0)}

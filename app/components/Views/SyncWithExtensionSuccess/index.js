@@ -109,9 +109,9 @@ class SyncWithExtensionSuccess extends PureComponent {
 		setOnboardingWizardStep: PropTypes.func
 	};
 
-	static navigationOptions = ({ navigation }) => ({
-		...getOnboardingNavbarOptions(navigation),
-		headerLeft: <View />
+	static navigationOptions = ({ navigation, route }) => ({
+		...getOnboardingNavbarOptions(navigation, route),
+		headerLeft: () => <View />
 	});
 
 	iconSpringVal = new Animated.Value(0.4);
@@ -140,19 +140,22 @@ class SyncWithExtensionSuccess extends PureComponent {
 		// Check if user passed through metrics opt-in screen
 		const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
 		if (!metricsOptIn) {
-			this.props.navigation.navigate('OptinMetrics');
+			this.props.navigation.navigate('OnboardingNav', { screen: 'OptinMetrics' });
 		} else if (onboardingWizard) {
 			this.props.navigation.navigate('HomeNav');
 		} else {
 			this.props.setOnboardingWizardStep(1);
-			this.props.navigation.navigate('WalletView');
+			this.props.navigation.navigate('HomeNav', { screen: 'WalletView' });
 		}
 	};
 
 	learnMore = () => {
 		this.props.navigation.navigate('Webview', {
-			url: 'https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-Tips',
-			title: strings('drawer.metamask_support')
+			screen: 'SimpleWebview',
+			params: {
+				url: 'https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-Tips',
+				title: strings('drawer.metamask_support')
+			}
 		});
 	};
 

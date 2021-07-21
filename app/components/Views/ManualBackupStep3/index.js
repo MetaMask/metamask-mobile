@@ -75,7 +75,7 @@ class ManualBackupStep3 extends PureComponent {
 
 	constructor(props) {
 		super(props);
-		this.steps = props.navigation.getParam('steps', undefined);
+		this.steps = props.route.params?.steps;
 	}
 
 	state = {
@@ -88,7 +88,11 @@ class ManualBackupStep3 extends PureComponent {
 		/**
 		/* navigation object required to push and pop other views
 		*/
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	componentWillUnmount = () => {
@@ -111,12 +115,15 @@ class ManualBackupStep3 extends PureComponent {
 
 	learnMore = () =>
 		this.props.navigation.navigate('Webview', {
-			url: 'https://support.metamask.io',
-			title: strings('drawer.metamask_support')
+			screen: 'SimpleWebview',
+			params: {
+				url: 'https://support.metamask.io',
+				title: strings('drawer.metamask_support')
+			}
 		});
 
 	isHintSeedPhrase = hintText => {
-		const words = this.props.navigation.getParam('words');
+		const words = this.props.route.params?.words;
 		if (words) {
 			const lower = string => String(string).toLowerCase();
 			return lower(hintText) === lower(words.join(' '));
@@ -144,11 +151,9 @@ class ManualBackupStep3 extends PureComponent {
 		if (!metricsOptIn) {
 			this.props.navigation.navigate('OptinMetrics');
 		} else if (onboardingWizard) {
-			this.props.navigation.navigate('HomeNav');
-			this.props.navigation.popToTop();
-			this.props.navigation.goBack(null);
+			this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
 		} else {
-			this.props.navigation.navigate('HomeNav');
+			this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
 		}
 	};
 

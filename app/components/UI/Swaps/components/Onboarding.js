@@ -1,7 +1,7 @@
-import React, { useCallback, useContext } from 'react';
+import React, { useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet, TouchableOpacity, Image, LayoutAnimation, Platform, UIManager } from 'react-native';
-import { NavigationContext } from 'react-navigation';
+import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
 import Device from '../../../../util/Device';
 import Text from '../../../Base/Text';
@@ -56,7 +56,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 }
 
 function Onboarding({ setHasOnboarded }) {
-	const navigation = useContext(NavigationContext);
+	const navigation = useNavigation();
 	const handleStartSwapping = useCallback(() => {
 		LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 		setHasOnboarded(true);
@@ -64,7 +64,10 @@ function Onboarding({ setHasOnboarded }) {
 
 	const handleReviewAuditsPress = useCallback(() => {
 		navigation.navigate('Webview', {
-			url: 'https://consensys.net/diligence/audits/2020/08/metaswap/'
+			screen: 'SimpleWebview',
+			params: {
+				url: 'https://consensys.net/diligence/audits/2020/08/metaswap/'
+			}
 		});
 	}, [navigation]);
 

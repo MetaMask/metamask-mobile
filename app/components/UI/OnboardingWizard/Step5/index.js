@@ -5,7 +5,7 @@ import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { colors } from '../../../../styles/common';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
-import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
+import { DrawerActions } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
 import Device from '../../../../util/Device';
@@ -76,7 +76,10 @@ class Step5 extends PureComponent {
 		const { navigation, setOnboardingWizardStep } = this.props;
 		setOnboardingWizardStep && setOnboardingWizardStep(6);
 		navigation && navigation.dispatch(DrawerActions.closeDrawer());
-		navigation && navigation.navigate('BrowserView');
+		navigation &&
+			navigation.navigate('BrowserTabHome', {
+				screen: 'BrowserView'
+			});
 	};
 
 	/**

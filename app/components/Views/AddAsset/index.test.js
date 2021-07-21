@@ -19,7 +19,7 @@ describe('AddAsset', () => {
 			}
 		};
 
-		const wrapper = shallow(<AddAsset navigation={{ state: { params: { assetType: 'token' } } }} />, {
+		const wrapper = shallow(<AddAsset route={{ params: { assetType: 'token' } }} />, {
 			context: { store: mockStore(initialState) }
 		});
 		expect(wrapper.dive()).toMatchSnapshot();

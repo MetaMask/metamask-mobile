@@ -215,13 +215,17 @@ const styles = StyleSheet.create({
  * the backup seed phrase flow
  */
 export default class ManualBackupStep1 extends PureComponent {
-	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
+	static navigationOptions = ({ navigation, route }) => getOnboardingNavbarOptions(navigation, route);
 
 	static propTypes = {
 		/**
 		/* navigation object required to push and pop other views
 		*/
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	steps = MANUAL_BACKUP_STEPS;
@@ -236,7 +240,8 @@ export default class ManualBackupStep1 extends PureComponent {
 	};
 
 	async componentDidMount() {
-		this.words = this.props.navigation.getParam('words', []);
+		this.words = this.props.route.params?.words ?? [];
+
 		if (!this.words.length) {
 			try {
 				const credentials = await SecureKeychain.getGenericPassword();

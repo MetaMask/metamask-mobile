@@ -199,7 +199,7 @@ const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
  * View where users can set their password for the first time
  */
 class ChoosePassword extends PureComponent {
-	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
+	static navigationOptions = ({ navigation, route }) => getOnboardingNavbarOptions(navigation, route);
 
 	static propTypes = {
 		/**
@@ -228,7 +228,11 @@ class ChoosePassword extends PureComponent {
 		/**
 		 * Action to reset the flag seedphraseBackedUp in redux
 		 */
-		seedphraseNotBackedUp: PropTypes.func
+		seedphraseNotBackedUp: PropTypes.func,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	state = {
@@ -269,7 +273,7 @@ class ChoosePassword extends PureComponent {
 		if (!prevLoading && loading) {
 			// update navigationOptions
 			navigation.setParams({
-				headerLeft: <View />
+				headerLeft: () => <View />
 			});
 		}
 	}
@@ -306,8 +310,7 @@ class ChoosePassword extends PureComponent {
 		}
 		try {
 			this.setState({ loading: true });
-
-			const previous_screen = this.props.navigation.getParam(PREVIOUS_SCREEN);
+			const previous_screen = this.props.route.params?.[PREVIOUS_SCREEN];
 
 			if (previous_screen === ONBOARDING) {
 				await this.createNewVaultAndKeychain(password);
@@ -496,8 +499,11 @@ class ChoosePassword extends PureComponent {
 
 	learnMore = () => {
 		this.props.navigation.push('Webview', {
-			url: 'https://metamask.zendesk.com/hc/en-us/articles/360039616872-How-can-I-reset-my-password-',
-			title: 'metamask.zendesk.com'
+			screen: 'SimpleWebview',
+			params: {
+				url: 'https://metamask.zendesk.com/hc/en-us/articles/360039616872-How-can-I-reset-my-password-',
+				title: 'metamask.zendesk.com'
+			}
 		});
 	};
 
@@ -516,7 +522,7 @@ class ChoosePassword extends PureComponent {
 		} = this.state;
 		const passwordsMatch = password !== '' && password === confirmPassword;
 		const canSubmit = passwordsMatch && isSelected;
-		const previousScreen = this.props.navigation.getParam(PREVIOUS_SCREEN);
+		const previousScreen = this.props.route.params?.[PREVIOUS_SCREEN];
 		const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
 
 		return (

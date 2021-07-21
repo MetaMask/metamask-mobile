@@ -26,16 +26,9 @@ describe('Contacts', () => {
 				}
 			}
 		};
-		const wrapper = shallow(
-			<Contacts
-				navigation={{
-					state: { params: {} }
-				}}
-			/>,
-			{
-				context: { store: mockStore(initialState) }
-			}
-		);
+		const wrapper = shallow(<Contacts route={{ params: {} }} />, {
+			context: { store: mockStore(initialState) }
+		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});
 });

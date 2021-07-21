@@ -81,6 +81,7 @@ exports[`SelectComponent should render correctly 1`] = `
       onModalShow={[Function]}
       onModalWillHide={[Function]}
       onModalWillShow={[Function]}
+      panResponderThreshold={4}
       propagateSwipe={false}
       scrollHorizontal={false}
       scrollOffset={0}

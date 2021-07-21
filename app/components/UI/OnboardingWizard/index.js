@@ -10,7 +10,7 @@ import Step4 from './Step4';
 import Step5 from './Step5';
 import Step6 from './Step6';
 import setOnboardingWizardStep from '../../../actions/wizard';
-import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
+import { DrawerActions } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import AsyncStorage from '@react-native-community/async-storage';
 import ElevatedView from 'react-native-elevated-view';

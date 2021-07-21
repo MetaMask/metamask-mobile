@@ -12,7 +12,7 @@ describe('OfflineMode', () => {
 				isBlocked: false
 			}
 		};
-		const wrapper = shallow(<OfflineMode navigation={{ getParam: () => false }} />, {
+		const wrapper = shallow(<OfflineMode route={{ params: {} }} />, {
 			context: { store: mockStore(initialState) }
 		});
 		expect(wrapper.dive()).toMatchSnapshot();

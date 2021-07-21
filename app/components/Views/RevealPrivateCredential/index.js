@@ -141,9 +141,9 @@ class RevealPrivateCredential extends PureComponent {
 		warningIncorrectPassword: ''
 	};
 
-	static navigationOptions = ({ navigation }) =>
+	static navigationOptions = ({ navigation, route }) =>
 		getNavigationOptionsTitle(
-			strings(`reveal_credential.${navigation.getParam('privateCredentialName', '')}_title`),
+			strings(`reveal_credential.${route.params?.privateCredentialName ?? ''}_title`),
 			navigation
 		);
 	static propTypes = {
@@ -170,7 +170,11 @@ class RevealPrivateCredential extends PureComponent {
 		/**
 		 * Cancel function to be called when cancel button is clicked. If not provided, we go to previous screen on cancel
 		 */
-		cancel: PropTypes.func
+		cancel: PropTypes.func,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	async componentDidMount() {
@@ -209,8 +213,7 @@ class RevealPrivateCredential extends PureComponent {
 		const { KeyringController } = Engine.context;
 		const { selectedAddress } = this.props;
 
-		const privateCredentialName =
-			this.props.privateCredentialName || this.props.navigation.state.params.privateCredentialName;
+		const privateCredentialName = this.props.privateCredentialName || this.props.route.params.privateCredentialName;
 
 		try {
 			if (privateCredentialName === 'seed_phrase') {
@@ -245,8 +248,7 @@ class RevealPrivateCredential extends PureComponent {
 
 	copyPrivateCredentialToClipboard = async () => {
 		const { privateCredential } = this.state;
-		const privateCredentialName =
-			this.props.privateCredentialName || this.props.navigation.state.params.privateCredentialName;
+		const privateCredentialName = this.props.privateCredentialName || this.props.route.params.privateCredentialName;
 
 		await Clipboard.setString(privateCredential);
 		this.props.showAlert({
@@ -272,8 +274,7 @@ class RevealPrivateCredential extends PureComponent {
 
 	render = () => {
 		const { unlocked, privateCredential } = this.state;
-		const privateCredentialName =
-			this.props.privateCredentialName || this.props.navigation.state.params.privateCredentialName;
+		const privateCredentialName = this.props.privateCredentialName || this.props.route.params.privateCredentialName;
 
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'reveal-private-credential-screen'}>

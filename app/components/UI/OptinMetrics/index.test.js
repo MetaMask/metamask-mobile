@@ -16,6 +16,6 @@ describe('OptinMetrics', () => {
 		const wrapper = shallow(<OptinMetrics />, {
 			context: { store: mockStore(initialState) }
 		});
-		expect(wrapper.dive()).toMatchSnapshot();
+		expect(wrapper).toMatchSnapshot();
 	});
 });

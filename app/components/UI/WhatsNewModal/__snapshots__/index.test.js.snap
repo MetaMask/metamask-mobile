@@ -1,90 +1,34 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`WhatsNewModal should render correctly 1`] = `
-<ActionModal
-  cancelButtonDisabled={false}
-  cancelButtonMode="neutral"
-  cancelTestID=""
-  cancelText="Cancel"
-  confirmButtonMode="warning"
-  confirmDisabled={false}
-  confirmTestID=""
-  confirmText="Confirm"
-  displayCancelButton={false}
-  displayConfirmButton={false}
-  modalVisible={false}
-  propagateSwipe={true}
-  verticalButtons={true}
+<ContextProvider
+  value={
+    Object {
+      "options": undefined,
+    }
+  }
 >
-  <View
-    style={
+  <ThemeProvider
+    value={
       Object {
-        "flex": 1,
-        "marginTop": 24,
-        "maxHeight": 1134,
+        "colors": Object {
+          "background": "rgb(242, 242, 242)",
+          "border": "rgb(216, 216, 216)",
+          "card": "rgb(255, 255, 255)",
+          "notification": "rgb(255, 59, 48)",
+          "primary": "rgb(0, 122, 255)",
+          "text": "rgb(28, 28, 30)",
+        },
+        "dark": false,
       }
     }
-    testID="whats-new-modal"
   >
-    <View>
-      <View
-        style={
-          Object {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "justifyContent": "center",
-            "marginBottom": 24,
-            "paddingHorizontal": 24,
-          }
-        }
-      >
-        <View
-          style={
-            Object {
-              "flex": 1,
-            }
-          }
-        />
-        <Text
-          style={
-            Object {
-              "color": "#24292E",
-              "fontFamily": "EuclidCircularB-Bold",
-              "fontSize": 18,
-              "fontWeight": "600",
-            }
-          }
-        >
-          See what's new
-        </Text>
-        <View
-          style={
-            Object {
-              "alignItems": "flex-end",
-              "flex": 1,
-            }
-          }
-        >
-          <TouchableOpacity
-            hitSlop={
-              Object {
-                "bottom": 10,
-                "left": 10,
-                "right": 10,
-                "top": 10,
-              }
-            }
-            onPress={[Function]}
-          >
-            <Icon
-              allowFontScaling={false}
-              name="times"
-              size={16}
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
-    </View>
-  </View>
-</ActionModal>
+    <ForwardRef(BaseNavigationContainer)>
+      <WhatsNewModal
+        navigation={Object {}}
+        routes={Object {}}
+      />
+    </ForwardRef(BaseNavigationContainer)>
+  </ThemeProvider>
+</ContextProvider>
 `;

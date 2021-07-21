@@ -14,16 +14,9 @@ describe('ImportFromSeed', () => {
 			}
 		};
 
-		const wrapper = shallow(
-			<ImportFromSeed
-				navigation={{
-					state: { params: {} }
-				}}
-			/>,
-			{
-				context: { store: mockStore(initialState) }
-			}
-		);
+		const wrapper = shallow(<ImportFromSeed route={{ params: {} }} />, {
+			context: { store: mockStore(initialState) }
+		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});
 });

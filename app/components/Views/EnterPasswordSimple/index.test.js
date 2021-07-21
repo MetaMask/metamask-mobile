@@ -6,14 +6,7 @@ import EnterPasswordSimple from './';
 
 describe('EnterPasswordSimple', () => {
 	it('should render correctly', () => {
-		const wrapper = shallow(
-			<EnterPasswordSimple
-				navigation={{
-					state: { params: {} }
-				}}
-			/>,
-			{}
-		);
+		const wrapper = shallow(<EnterPasswordSimple route={{ params: {} }} />, {});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});
 });

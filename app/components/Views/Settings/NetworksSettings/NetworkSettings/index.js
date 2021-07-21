@@ -95,7 +95,11 @@ class NetworkSettings extends PureComponent {
 		/**
 		 * Object that represents the navigator
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	static navigationOptions = ({ navigation }) =>
@@ -126,8 +130,8 @@ class NetworkSettings extends PureComponent {
 	getOtherNetworks = () => allNetworks.slice(1);
 
 	componentDidMount = () => {
-		const { navigation, frequentRpcList } = this.props;
-		const network = navigation.getParam('network', undefined);
+		const { route, frequentRpcList } = this.props;
+		const network = route.params?.network;
 		let blockExplorerUrl, chainId, nickname, ticker, editable, rpcUrl;
 		// If no navigation param, user clicked on add network
 		if (network) {

@@ -4,7 +4,7 @@ import ImportPrivateKey from './';
 
 describe('ImportPrivateKey', () => {
 	it('should render correctly', () => {
-		const wrapper = shallow(<ImportPrivateKey navigation={{ getParam: () => null, state: { params: {} } }} />);
+		const wrapper = shallow(<ImportPrivateKey route={{ params: {} }} />);
 		expect(wrapper).toMatchSnapshot();
 	});
 });

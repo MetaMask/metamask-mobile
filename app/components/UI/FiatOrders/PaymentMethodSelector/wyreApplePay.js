@@ -1,7 +1,7 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, Image, TouchableOpacity, View } from 'react-native';
-import { NavigationContext } from 'react-navigation';
+import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
 import { useWyreTerms } from '../orderProcessor/wyreApplePay';
 
@@ -42,7 +42,7 @@ const ApplePayMark = () => <Image source={ApplePayMarkIcon} style={styles.appleP
 const WyreLogo = () => <Image source={WyreLogoIcon} style={styles.wyre} />;
 
 const WyreApplePayPaymentMethod = ({ onPress }) => {
-	const navigation = useContext(NavigationContext);
+	const navigation = useNavigation();
 	const [isVisible, , showModal, hideModal] = useModalHandler(false);
 	const handleWyreTerms = useWyreTerms(navigation);
 

@@ -182,7 +182,11 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
         right={false}
         small={false}
         strikethrough={false}
-        style={null}
+        style={
+          Array [
+            undefined,
+          ]
+        }
         underline={false}
         upper={false}
       >

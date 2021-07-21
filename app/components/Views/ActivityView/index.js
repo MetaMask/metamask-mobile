@@ -1,9 +1,9 @@
-import React, { useEffect, useContext } from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { connect } from 'react-redux';
-import { NavigationContext } from 'react-navigation';
+import { useNavigation } from '@react-navigation/native';
 import { getHasOrders } from '../../../reducers/fiatOrders';
 
 import getNavbarOptions from '../../UI/Navbar';
@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
 });
 
 function ActivityView({ hasOrders, ...props }) {
-	const navigation = useContext(NavigationContext);
+	const navigation = useNavigation();
 
 	useEffect(
 		() => {
@@ -54,8 +54,8 @@ ActivityView.propTypes = {
 	hasOrders: PropTypes.bool
 };
 
-ActivityView.navigationOptions = ({ navigation }) => {
-	const title = navigation.getParam('hasOrders', false) ? 'activity_view.title' : 'transactions_view.title';
+ActivityView.navigationOptions = ({ navigation, route }) => {
+	const title = route.params?.hasOrders ?? false ? 'activity_view.title' : 'transactions_view.title';
 	return getNavbarOptions(title, navigation);
 };
 

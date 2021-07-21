@@ -195,14 +195,17 @@ const AccountBackupStep1B = props => {
 	const [showWhatIsSeedphraseModal, setWhatIsSeedphraseModal] = useState(false);
 
 	const goNext = () => {
-		props.navigation.navigate('ManualBackupStep1', { ...props.navigation.state.params });
+		props.navigation.navigate('ManualBackupStep1', { ...props.route.params });
 	};
 
 	const learnMore = () => {
 		setWhySecureWalletModal(false);
 		props.navigation.navigate('Webview', {
-			url: 'https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-Tips',
-			title: strings('drawer.metamask_support')
+			screen: 'SimpleWebview',
+			params: {
+				url: 'https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-Tips',
+				title: strings('drawer.metamask_support')
+			}
 		});
 	};
 
@@ -324,9 +327,13 @@ AccountBackupStep1B.propTypes = {
 	/**
 	/* navigation object required to push and pop other views
 	*/
-	navigation: PropTypes.object
+	navigation: PropTypes.object,
+	/**
+	 * Object that represents the current route info like params passed to it
+	 */
+	route: PropTypes.object
 };
 
-AccountBackupStep1B.navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
+AccountBackupStep1B.navigationOptions = ({ navigation, route }) => getOnboardingNavbarOptions(navigation, route);
 
 export default AccountBackupStep1B;
