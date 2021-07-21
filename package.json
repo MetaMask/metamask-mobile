@@ -19,7 +19,7 @@
     "start:ios:e2e": "./scripts/build.sh ios debugE2E",
     "start:ios:device": "./scripts/build.sh ios debug --device",
     "start:android": "./scripts/build.sh android debug",
-    "start:android:e2e": "./scripts/build.sh android debugE2E --pre",
+    "start:android:e2e": "./scripts/build.sh android debugE2E",
     "build:announce": "node ./scripts/metamask-bot-build-announce-bitrise.js",
     "build:android:release": "./scripts/build.sh android release",
     "build:android:release:e2e": "./scripts/build.sh android releaseE2E",
@@ -279,7 +279,7 @@
         "build": "yarn start:android:e2e",
         "type": "android.emulator",
         "device": {
-          "avdName": "emulator-5554"
+          "avdName": "Pixel_3_API_29"
         }
       },
       "android.emu.release": {
@@ -287,7 +287,7 @@
         "build": "METAMASK_ENVIRONMENT='production' yarn build:android:release:e2e",
         "type": "android.emulator",
         "device": {
-          "avdName": "emulator-5554"
+          "avdName": "Pixel_3_API_29"
         }
       }
     },

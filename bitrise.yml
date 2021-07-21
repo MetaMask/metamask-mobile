@@ -310,7 +310,7 @@ app:
     VERSION_NAME: 3.0.0
   - opts:
       is_expand: false
-    VERSION_NUMBER: 760
+    VERSION_NUMBER: 761
   - opts:
       is_expand: false
     ANDROID_APK_LINK: ''
