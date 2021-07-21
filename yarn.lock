@@ -1483,41 +1483,6 @@
     web3 "^0.20.7"
     web3-provider-engine "^16.0.1"
 
-"@metamask/controllers@^12.1.0":
-  version "12.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-12.1.0.tgz#169f21e2bdc705e01d60fad54c9f3626f4a89c77"
-  integrity sha512-x/lLiUJRpUBUap2iyYZIBqcrfpBhJO5CdW7l7PNnKF5Qhdgt0Have5sG5IqxMpqVFpJjr8UHkrkuvGklpld/WA==
-  dependencies:
-    "@ethereumjs/common" "^2.3.1"
-    "@ethereumjs/tx" "^3.2.1"
-    "@metamask/contract-metadata" "^1.27.0"
-    "@types/uuid" "^8.3.0"
-    async-mutex "^0.2.6"
-    babel-runtime "^6.26.0"
-    eth-ens-namehash "^2.0.8"
-    eth-json-rpc-infura "^5.1.0"
-    eth-keyring-controller "^6.2.1"
-    eth-method-registry "1.1.0"
-    eth-phishing-detect "^1.1.14"
-    eth-query "^2.1.2"
-    eth-rpc-errors "^4.0.0"
-    eth-sig-util "^3.0.0"
-    ethereumjs-util "^7.0.10"
-    ethereumjs-wallet "^1.0.1"
-    ethjs-unit "^0.1.6"
-    ethjs-util "^0.1.6"
-    human-standard-collectible-abi "^1.0.2"
-    human-standard-token-abi "^2.0.0"
-    immer "^8.0.1"
-    isomorphic-fetch "^3.0.0"
-    jsonschema "^1.2.4"
-    nanoid "^3.1.12"
-    punycode "^2.1.1"
-    single-call-balance-checker-abi "^1.0.0"
-    uuid "^8.3.2"
-    web3 "^0.20.7"
-    web3-provider-engine "^16.0.1"
-
 "@metamask/controllers@file:./metamask-controllers-v12.1.0-aa872986.tgz":
   version "12.1.0-aa872986"
   resolved "file:./metamask-controllers-v12.1.0-aa872986.tgz#b27184ce65888a26249a6089d78bcbe53d4d5a3f"
@@ -1567,11 +1532,11 @@
   resolved "https://registry.yarnpkg.com/@metamask/safe-event-emitter/-/safe-event-emitter-2.0.0.tgz#af577b477c683fad17c619a78208cede06f9605c"
   integrity sha512-/kSXhY692qiV1MXu6EeOZvg5nECLclxNXcKCxJ3cXQgYuRymRHpdx/t7JXfsK+JLjwA1e1c1/SBrlQYpusC29Q==
 
-"@metamask/swaps-controller@file:./metamask-swaps-controller-v4.0.0-9385ff.tgz":
-  version "4.0.0-9385ff"
-  resolved "file:./metamask-swaps-controller-v4.0.0-9385ff.tgz#ab6ab53a6cacbd9e94aaa3c0d58f56a3ddb50ee1"
+"@metamask/swaps-controller@file:./metamask-swaps-controller-v4.1.0-7ecc07.tgz":
+  version "4.1.0-7ecc07"
+  resolved "file:./metamask-swaps-controller-v4.1.0-7ecc07.tgz#4e3014a602da0418c25ac17560753d2faffe7d87"
   dependencies:
-    "@metamask/controllers" "^12.1.0"
+    "@metamask/controllers" "./metamask-controllers-v13.0.0-6c9560.tgz"
     abort-controller "^3.0.0"
     async-mutex "^0.3.1"
     bignumber.js "^9.0.1"
@@ -13316,35 +13281,7 @@ weak@^1.0.0:
     bindings "^1.2.1"
     nan "^2.0.5"
 
-web3-provider-engine@^16.0.1:
-  version "16.0.2"
-  resolved "https://registry.yarnpkg.com/web3-provider-engine/-/web3-provider-engine-16.0.2.tgz#40c7224b1fe9b8689723f6d8595718375c7e3392"
-  integrity sha512-fUl88aHdfIdCuQhMTtKP95uL/DJWiv2jKyZodsO3NENXfczyab2dygYsaY7Y8tVghY1KAzn5nzCZIkNuNB+7uw==
-  dependencies:
-    "@ethereumjs/tx" "^3.3.0"
-    async "^2.5.0"
-    backoff "^2.5.0"
-    clone "^2.0.0"
-    cross-fetch "^2.1.0"
-    eth-block-tracker "^4.4.2"
-    eth-json-rpc-filters "^4.2.1"
-    eth-json-rpc-infura "^5.1.0"
-    eth-json-rpc-middleware "^6.0.0"
-    eth-rpc-errors "^3.0.0"
-    eth-sig-util "^1.4.2"
-    ethereumjs-block "^1.2.2"
-    ethereumjs-util "^5.1.5"
-    ethereumjs-vm "^2.3.4"
-    json-stable-stringify "^1.0.1"
-    promise-to-callback "^1.0.0"
-    readable-stream "^2.2.9"
-    request "^2.85.0"
-    semaphore "^1.0.3"
-    ws "^5.1.1"
-    xhr "^2.2.0"
-    xtend "^4.0.1"
-
-web3-provider-engine@^16.0.3:
+web3-provider-engine@^16.0.1, web3-provider-engine@^16.0.3:
   version "16.0.3"
   resolved "https://registry.yarnpkg.com/web3-provider-engine/-/web3-provider-engine-16.0.3.tgz#8ff93edf3a8da2f70d7f85c5116028c06a0d9f07"
   integrity sha512-Q3bKhGqLfMTdLvkd4TtkGYJHcoVQ82D1l8jTIwwuJp/sAp7VHnRYb9YJ14SW/69VMWoOhSpPLZV2tWb9V0WJoA==
