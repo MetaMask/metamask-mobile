@@ -160,7 +160,8 @@ exports[`EditGasFee1559 should render correctly 1`] = `
               underline={false}
               upper={false}
             >
-              Max fee:
+              Max fee
+              :
                
             </Text>
              (
@@ -323,7 +324,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                           underline={false}
                           upper={false}
                         >
-                          Gas Limit
+                          Gas limit
                            
                         </Text>
                         <TouchableOpacity

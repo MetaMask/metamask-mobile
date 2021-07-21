@@ -10,6 +10,7 @@ import PropTypes from 'prop-types';
 import InfoModal from '../../Swaps/components/InfoModal';
 import FadeAnimationView from '../../FadeAnimationView';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import { strings } from '../../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	overview: noMargin => ({
@@ -123,7 +124,9 @@ const TransactionReviewEIP1559 = ({
 				<View style={styles.gasRowContainer}>
 					<View style={styles.gasRowContainer}>
 						<Text primary={!origin} bold orange={Boolean(origin)} noMargin>
-							{!origin ? 'Estimated gas fee' : `${origin} suggested gas fee`}
+							{!origin
+								? strings('transaction_review_eip1559.estimated_gas_fee')
+								: strings('transaction_review_eip1559.suggested_gas_fee', { origin })}
 							<TouchableOpacity
 								style={styles.gasInfoContainer}
 								onPress={toggleLearnMoreModal}
@@ -202,7 +205,7 @@ const TransactionReviewEIP1559 = ({
 							>
 								<Text grey right small>
 									<Text bold small noMargin>
-										Max fee:{' '}
+										{strings('transaction_review_eip1559.max_fee')}:{' '}
 									</Text>
 									<Text small noMargin>
 										{gasFeeMaxPrimary}
@@ -221,7 +224,7 @@ const TransactionReviewEIP1559 = ({
 					<View style={styles.gasBottomRowContainer}>
 						<Summary.Row>
 							<Text primary bold noMargin>
-								Total
+								{strings('transaction_review_eip1559.total')}
 							</Text>
 							{gasEstimationReady ? (
 								<FadeAnimationView
@@ -254,7 +257,7 @@ const TransactionReviewEIP1559 = ({
 								>
 									<Text grey right small>
 										<Text bold small noMargin>
-											Max amount:
+											{strings('transaction_review_eip1559.max_amount')}:
 										</Text>{' '}
 										<Text small noMargin>
 											{totalMaxPrimary}
@@ -270,17 +273,17 @@ const TransactionReviewEIP1559 = ({
 			)}
 			<InfoModal
 				isVisible={showLearnMoreModal}
-				title={'Estimated gas fee tooltip'}
+				title={strings('transaction_review_eip1559.estimated_gas_fee_tooltip')}
 				toggleModal={toggleLearnMoreModal}
 				body={
 					<View>
 						<Text infoModal>
-							{`Estimated gas fee tooltip: Gas fees are paid to crypto miners who process transactions on the Ethereum network.\n`}
-							{`MetaMask does not profit from gas fees.\n\n`}
-							{`Gas fees are set by the network and fluctuate based on network traffic and transaction complexity.\n`}
+							{`${strings('transaction_review_eip1559.estimated_gas_fee_tooltip_text_1')}\n`}
+							{`${strings('transaction_review_eip1559.estimated_gas_fee_tooltip_text_2')}\n\n`}
+							{`${strings('transaction_review_eip1559.estimated_gas_fee_tooltip_text_3')}\n`}
 						</Text>
 						<TouchableOpacity onPress={openLinkAboutGas}>
-							<Text link>Learn more about gas fees</Text>
+							<Text link>{strings('transaction_review_eip1559.learn_more')}</Text>
 						</TouchableOpacity>
 					</View>
 				}
