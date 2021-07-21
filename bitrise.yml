@@ -3,12 +3,8 @@ format_version: '8'
 default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
 trigger_map:
-- push_branch: 'feature/bitrise'
-  workflow: start_e2e_tests
-# - push_branch: 'develop'
-#   workflow: start_release_builds
-# - push_branch: 'main'
-#   workflow: start_release_builds
+- push_branch: 'develop'
+  workflow: start_release_builds
 - pull_request_source_branch: '*'
   workflow: ci_test
 workflows:
@@ -200,6 +196,7 @@ workflows:
     - change-android-versioncode-and-versionname@1:
         inputs:
         - new_version_name: $VERSION_NAME
+        - new_version_code: $VERSION_NUMBER
         - build_gradle_path: $PROJECT_LOCATION_ANDROID/app/build.gradle
     - file-downloader@1:
         inputs:
@@ -251,6 +248,7 @@ workflows:
     - set-xcode-build-number@1:
         inputs:
         - build_short_version_string: $VERSION_NAME
+        - build_version: $VERSION_NUMBER
         - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
     - cocoapods-install@2: {}
     - script@1:
@@ -305,7 +303,10 @@ app:
     PROJECT_LOCATION_IOS: ios
   - opts:
       is_expand: false
-    VERSION_NAME: 3.1.0
+    VERSION_NAME: 3.0.0
+  - opts:
+      is_expand: false
+    VERSION_NUMBER: 760
   - opts:
       is_expand: false
     ANDROID_APK_LINK: ''
