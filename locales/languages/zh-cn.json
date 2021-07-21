@@ -877,7 +877,7 @@
 		"balance": "余额"
 	},
 	"unit": {
-		"eth": "ETH",
+		"eth": "IFIE",
 		"sai": "SAI",
 		"dai": "DAI",
 		"negative": "-",

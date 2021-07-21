@@ -950,7 +950,7 @@
 	},
 	"unit": {
 		"ifie": "IFIE",
-		"eth": "ETH",
+		"eth": "IFIE",
 		"sai": "SAI",
 		"dai": "DAI",
 		"negative": "-",
