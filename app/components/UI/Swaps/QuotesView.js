@@ -397,15 +397,29 @@ function SwapsQuotesView({
 	]);
 
 	const gasEstimates = useMemo(() => customGasEstimate || usedGasEstimate, [customGasEstimate, usedGasEstimate]);
-	const gasLimit = useMemo(
-		() =>
-			customGasLimit ||
+	const initialGasLimit = useMemo(() => {
+		if (!selectedQuote) {
+			return '0';
+		}
+		return (
+			selectedQuoteValue?.tradeMaxGasLimit ||
 			gasLimitWithMultiplier(selectedQuote?.gasEstimate, selectedQuote?.gasMultiplier)?.toString(10) ||
-			selectedQuote?.maxGas?.toString(10),
-		[customGasLimit, selectedQuote]
+			selectedQuote?.maxGas?.toString(10)
+		);
+	}, [selectedQuote, selectedQuoteValue]);
+	const gasLimit = useMemo(() => customGasLimit || initialGasLimit, [customGasLimit, initialGasLimit]);
+	/* Balance */
+	const checkEnoughEthBalance = useCallback(
+		gasAmountHex => {
+			const gasBN = new BigNumber(gasAmountHex || '0', 16);
+			const ethAmountBN = isSwapsNativeAsset(sourceToken) ? new BigNumber(sourceAmount) : new BigNumber(0);
+			const ethBalanceBN = new BigNumber(accounts[selectedAddress].balance);
+			const hasEnoughEthBalance = ethBalanceBN.gte(ethAmountBN.plus(gasBN));
+			return hasEnoughEthBalance;
+		},
+		[accounts, selectedAddress, sourceAmount, sourceToken]
 	);
 
-	/* Balance */
 	const balance = useBalance(accounts, balances, selectedAddress, sourceToken, { asUnits: true });
 	const [hasEnoughTokenBalance, missingTokenBalance, hasEnoughEthBalance, missingEthBalance] = useMemo(() => {
 		// Token
@@ -947,6 +961,7 @@ function SwapsQuotesView({
 				hidePriceDifferenceModal();
 				hidePriceImpactModal();
 				onCancelEditQuoteTransactions();
+				hideEditingGas();
 			}
 
 			// If newRemainingTime < 0 means that quotes are still being fetched
@@ -964,6 +979,7 @@ function SwapsQuotesView({
 		};
 	}, [
 		hideFeeModal,
+		hideEditingGas,
 		hideQuotesModal,
 		onCancelEditQuoteTransactions,
 		isInFetch,
@@ -982,10 +998,12 @@ function SwapsQuotesView({
 			hideUpdateModal();
 			hidePriceDifferenceModal();
 			onCancelEditQuoteTransactions();
+			hideEditingGas();
 		}
 	}, [
 		error,
 		hideFeeModal,
+		hideEditingGas,
 		hideQuotesModal,
 		handleQuotesErrorMetric,
 		onCancelEditQuoteTransactions,
@@ -1003,13 +1021,15 @@ function SwapsQuotesView({
 			const newPollToken = await GasFeeController.getGasFeeEstimatesAndStartPolling(pollToken);
 			setPollToken(newPollToken);
 		}
-		if (selectedQuote) {
+		if (isInPolling) {
 			polling();
 			return () => {
 				GasFeeController.stopPolling(pollToken);
+				setPollToken(null);
 			};
 		}
-	}, [pollToken, selectedQuote]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [isInPolling]);
 
 	useEffect(
 		() => {
@@ -1028,6 +1048,7 @@ function SwapsQuotesView({
 					gasEstimate = {
 						maxFeePerGas: gasFeeEstimates[selected].suggestedMaxFeePerGas,
 						maxPriorityFeePerGas: gasFeeEstimates[selected].suggestedMaxPriorityFeePerGas,
+						estimatedBaseFee: gasFeeEstimates.estimatedBaseFee,
 						selected
 					};
 				}
@@ -1536,8 +1557,14 @@ function SwapsQuotesView({
 				onGasUpdate={handleGasFeeUpdate}
 				dismiss={hideEditingGas}
 				customGasFee={usedCustomGas}
+				gasLimit={gasLimit}
 				customGasLimit={customGasLimit}
-				selectedQuoteGasLimit={gasLimit}
+				initialGasLimit={initialGasLimit}
+				tradeGasLimit={selectedQuoteValue?.tradeGasLimit}
+				isNativeAsset={isSwapsNativeAsset(sourceToken)}
+				tradeValue={selectedQuote?.trade?.value || '0x0'}
+				sourceAmount={sourceAmount}
+				checkEnoughEthBalance={checkEnoughEthBalance}
 			/>
 
 			{renderGasTooltip()}

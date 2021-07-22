@@ -32,7 +32,7 @@ function ApprovalTransactionEditionModal({
 	chainId
 }) {
 	/* Approval transaction if any */
-	const [approvalTransactionAmount, setApprovalTransactionAmount] = useState(null);
+	const [approvalTransactionAmount, setApprovalTransactionAmount] = useState('');
 	const [approvalCustomValue, setApprovalCustomValue] = useState(minimumSpendLimit);
 	const [spendLimitUnlimitedSelected, setSpendLimitUnlimitedSelected] = useState(true);
 
