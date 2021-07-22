@@ -167,24 +167,33 @@ exports[`EditGasFee1559 should render correctly 1`] = `
              (
             )
           </Text>
-          <Text
-            black={false}
-            blue={false}
-            bold={true}
-            centered={false}
-            disclaimer={false}
-            green={false}
-            link={false}
-            modal={false}
-            primary={false}
-            red={false}
-            reset={false}
-            right={false}
-            small={false}
-            strikethrough={false}
-            underline={false}
-            upper={false}
-          />
+          <View
+            style={
+              Object {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <Text
+              black={false}
+              blue={false}
+              bold={true}
+              centered={false}
+              disclaimer={false}
+              green={false}
+              link={false}
+              modal={false}
+              primary={false}
+              red={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
+              underline={false}
+              upper={false}
+            />
+          </View>
         </FadeAnimationView>
         <View>
           <FadeAnimationView>
@@ -674,215 +683,232 @@ exports[`EditGasFee1559 should render correctly 1`] = `
         />
         <InfoModal
           body={
-            <View>
-              <Text
-                black={false}
-                blue={false}
-                bold={false}
-                centered={false}
-                disclaimer={false}
-                green={false}
-                grey={true}
-                infoModal={true}
-                link={false}
-                modal={false}
-                noMargin={true}
-                primary={false}
-                red={false}
-                reset={false}
-                right={false}
-                small={false}
-                strikethrough={false}
-                underline={false}
-                upper={false}
-              >
-                Selecting the right gas fee depends on the type of transaction and how important it is to you.
-              </Text>
-              <Text
-                black={false}
-                blue={false}
-                bold={true}
-                centered={false}
-                disclaimer={false}
-                green={false}
-                infoModal={true}
-                link={false}
-                modal={false}
-                noMargin={true}
-                primary={true}
-                red={false}
-                reset={false}
-                right={false}
-                small={false}
-                strikethrough={false}
-                style={
-                  Object {
-                    "marginTop": 9,
-                  }
+            <View
+              style={
+                Object {
+                  "maxHeight": 933.8,
                 }
-                underline={false}
-                upper={false}
-              >
-                High
-              </Text>
-              <Text
-                black={false}
-                blue={false}
-                bold={false}
-                centered={false}
-                disclaimer={false}
-                green={false}
-                grey={true}
-                infoModal={true}
-                link={false}
-                modal={false}
-                noMargin={true}
-                primary={false}
-                red={false}
-                reset={false}
-                right={false}
-                small={false}
-                strikethrough={false}
-                underline={false}
-                upper={false}
-              >
-                This is best for time sensitive transactions (like Swaps) as it increases the likelihood of a successful transaction. If a Swap takes too long to process it may fail and result in losing some of your gas fee.
-              </Text>
-              <Text
-                black={false}
-                blue={false}
-                bold={true}
-                centered={false}
-                disclaimer={false}
-                green={false}
-                infoModal={true}
-                link={false}
-                modal={false}
-                noMargin={true}
-                primary={true}
-                red={false}
-                reset={false}
-                right={false}
-                small={false}
-                strikethrough={false}
-                style={
-                  Object {
-                    "marginTop": 9,
-                  }
-                }
-                underline={false}
-                upper={false}
-              >
-                Medium
-              </Text>
-              <Text
-                black={false}
-                blue={false}
-                bold={false}
-                centered={false}
-                disclaimer={false}
-                green={false}
-                grey={true}
-                infoModal={true}
-                link={false}
-                modal={false}
-                noMargin={true}
-                primary={false}
-                red={false}
-                reset={false}
-                right={false}
-                small={false}
-                strikethrough={false}
-                underline={false}
-                upper={false}
-              >
-                A medium gas fee is good for sending, withdrawing or other non-time sensitive transactions. This setting will most often result in a successful transaction.
-              </Text>
-              <Text
-                black={false}
-                blue={false}
-                bold={true}
-                centered={false}
-                disclaimer={false}
-                green={false}
-                infoModal={true}
-                link={false}
-                modal={false}
-                noMargin={true}
-                primary={true}
-                red={false}
-                reset={false}
-                right={false}
-                small={false}
-                strikethrough={false}
-                style={
-                  Object {
-                    "marginTop": 9,
-                  }
-                }
-                underline={false}
-                upper={false}
-              >
-                Low
-              </Text>
-              <Text
-                black={false}
-                blue={false}
-                bold={false}
-                centered={false}
-                disclaimer={false}
-                green={false}
-                grey={true}
-                infoModal={true}
-                link={false}
-                modal={false}
-                noMargin={true}
-                primary={false}
-                red={false}
-                reset={false}
-                right={false}
-                small={false}
-                strikethrough={false}
-                underline={false}
-                upper={false}
-              >
-                A low gas fee should only be used for unimportant transactions or when network traffic is very low. With a lower fee it can be hard to predict when (or if) your transaction will be successful.
-              </Text>
-              <TouchableOpacity
-                style={
-                  Object {
-                    "marginTop": 14,
-                  }
-                }
-              >
-                <Text
-                  black={false}
-                  blue={false}
-                  bold={false}
-                  centered={false}
-                  disclaimer={false}
-                  green={false}
-                  grey={true}
-                  infoModal={true}
-                  link={true}
-                  modal={false}
-                  primary={false}
-                  red={false}
-                  reset={false}
-                  right={false}
-                  small={false}
-                  strikethrough={false}
-                  underline={false}
-                  upper={false}
-                >
-                  Learn more about customizing gas.
-                </Text>
-              </TouchableOpacity>
+              }
+            >
+              <ScrollView>
+                <TouchableWithoutFeedback>
+                  <View>
+                    <Text
+                      black={false}
+                      blue={false}
+                      bold={false}
+                      centered={false}
+                      disclaimer={false}
+                      green={false}
+                      grey={true}
+                      infoModal={true}
+                      link={false}
+                      modal={false}
+                      noMargin={true}
+                      primary={false}
+                      red={false}
+                      reset={false}
+                      right={false}
+                      small={false}
+                      strikethrough={false}
+                      underline={false}
+                      upper={false}
+                    >
+                      Selecting the right gas fee depends on the type of transaction and how important it is to you.
+                    </Text>
+                    <Text
+                      black={false}
+                      blue={false}
+                      bold={true}
+                      centered={false}
+                      disclaimer={false}
+                      green={false}
+                      infoModal={true}
+                      link={false}
+                      modal={false}
+                      noMargin={true}
+                      primary={true}
+                      red={false}
+                      reset={false}
+                      right={false}
+                      small={false}
+                      strikethrough={false}
+                      style={
+                        Object {
+                          "marginTop": 9,
+                        }
+                      }
+                      underline={false}
+                      upper={false}
+                    >
+                      High
+                    </Text>
+                    <Text
+                      black={false}
+                      blue={false}
+                      bold={false}
+                      centered={false}
+                      disclaimer={false}
+                      green={false}
+                      grey={true}
+                      infoModal={true}
+                      link={false}
+                      modal={false}
+                      noMargin={true}
+                      primary={false}
+                      red={false}
+                      reset={false}
+                      right={false}
+                      small={false}
+                      strikethrough={false}
+                      underline={false}
+                      upper={false}
+                    >
+                      This is best for time sensitive transactions (like Swaps) as it increases the likelihood of a successful transaction. If a Swap takes too long to process it may fail and result in losing some of your gas fee.
+                    </Text>
+                    <Text
+                      black={false}
+                      blue={false}
+                      bold={true}
+                      centered={false}
+                      disclaimer={false}
+                      green={false}
+                      infoModal={true}
+                      link={false}
+                      modal={false}
+                      noMargin={true}
+                      primary={true}
+                      red={false}
+                      reset={false}
+                      right={false}
+                      small={false}
+                      strikethrough={false}
+                      style={
+                        Object {
+                          "marginTop": 9,
+                        }
+                      }
+                      underline={false}
+                      upper={false}
+                    >
+                      Medium
+                    </Text>
+                    <Text
+                      black={false}
+                      blue={false}
+                      bold={false}
+                      centered={false}
+                      disclaimer={false}
+                      green={false}
+                      grey={true}
+                      infoModal={true}
+                      link={false}
+                      modal={false}
+                      noMargin={true}
+                      primary={false}
+                      red={false}
+                      reset={false}
+                      right={false}
+                      small={false}
+                      strikethrough={false}
+                      underline={false}
+                      upper={false}
+                    >
+                      A medium gas fee is good for sending, withdrawing or other non-time sensitive transactions. This setting will most often result in a successful transaction.
+                    </Text>
+                    <Text
+                      black={false}
+                      blue={false}
+                      bold={true}
+                      centered={false}
+                      disclaimer={false}
+                      green={false}
+                      infoModal={true}
+                      link={false}
+                      modal={false}
+                      noMargin={true}
+                      primary={true}
+                      red={false}
+                      reset={false}
+                      right={false}
+                      small={false}
+                      strikethrough={false}
+                      style={
+                        Object {
+                          "marginTop": 9,
+                        }
+                      }
+                      underline={false}
+                      upper={false}
+                    >
+                      Low
+                    </Text>
+                    <Text
+                      black={false}
+                      blue={false}
+                      bold={false}
+                      centered={false}
+                      disclaimer={false}
+                      green={false}
+                      grey={true}
+                      infoModal={true}
+                      link={false}
+                      modal={false}
+                      noMargin={true}
+                      primary={false}
+                      red={false}
+                      reset={false}
+                      right={false}
+                      small={false}
+                      strikethrough={false}
+                      underline={false}
+                      upper={false}
+                    >
+                      A low gas fee should only be used for unimportant transactions or when network traffic is very low. With a lower fee it can be hard to predict when (or if) your transaction will be successful.
+                    </Text>
+                    <TouchableOpacity
+                      style={
+                        Object {
+                          "marginTop": 14,
+                        }
+                      }
+                    >
+                      <Text
+                        black={false}
+                        blue={false}
+                        bold={false}
+                        centered={false}
+                        disclaimer={false}
+                        green={false}
+                        grey={true}
+                        infoModal={true}
+                        link={true}
+                        modal={false}
+                        primary={false}
+                        red={false}
+                        reset={false}
+                        right={false}
+                        small={false}
+                        strikethrough={false}
+                        underline={false}
+                        upper={false}
+                      >
+                        Learn more about customizing gas.
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </TouchableWithoutFeedback>
+              </ScrollView>
             </View>
           }
           isVisible={false}
+          noSwipe={true}
           title="How should I choose?"
           toggleModal={[Function]}
+        />
+        <TimeEstimateInfoModal
+          isVisible={false}
+          onHideModal={[Function]}
         />
       </View>
     </TouchableWithoutFeedback>
