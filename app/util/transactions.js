@@ -688,7 +688,8 @@ export const parseTransactionEIP1559 = (
 	const suggestedMaxPriorityFeePerGasHex = decGWEIToHexWEI(suggestedMaxPriorityFeePerGas);
 	const suggestedMaxFeePerGasHex = decGWEIToHexWEI(suggestedMaxFeePerGas);
 	const gasLimitHex = BNToHex(new BN(selectedGasFee.suggestedGasLimit));
-	const estimatedGasLimitHex = BNToHex(new BN(selectedGasFee.suggestedEstimatedGasLimit));
+	const estimatedGasLimitHex =
+		selectedGasFee.suggestedEstimatedGasLimit && BNToHex(new BN(selectedGasFee.suggestedEstimatedGasLimit));
 
 	const { timeEstimate, timeEstimateColor, timeEstimateId } = calculateEIP1559Times({
 		suggestedMaxPriorityFeePerGas,
