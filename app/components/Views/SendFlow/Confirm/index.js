@@ -1002,6 +1002,7 @@ class Confirm extends PureComponent {
 						chainId={chainId}
 						timeEstimate={EIP1559TransactionDataTemp.timeEstimate}
 						timeEstimateColor={EIP1559TransactionDataTemp.timeEstimateColor}
+						timeEstimateId={EIP1559TransactionDataTemp.timeEstimateId}
 						onCancel={this.cancelGasEdition}
 						onSave={this.saveGasEdition}
 						error={EIP1559TransactionDataTemp.error}
@@ -1319,6 +1320,7 @@ class Confirm extends PureComponent {
 							primaryCurrency={primaryCurrency}
 							timeEstimate={EIP1559TransactionData.timeEstimate}
 							timeEstimateColor={EIP1559TransactionData.timeEstimateColor}
+							timeEstimateId={EIP1559TransactionData.timeEstimateId}
 							onEdit={() => this.edit(EDIT_EIP1559)}
 							over={Boolean(EIP1559TransactionData.error)}
 							onUpdatingValuesStart={this.onUpdatingValuesStart}

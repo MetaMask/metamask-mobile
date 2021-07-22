@@ -1,7 +1,7 @@
 import { addHexPrefix, toChecksumAddress, BN } from 'ethereumjs-util';
 import { rawEncode, rawDecode } from 'ethereumjs-abi';
 import Engine from '../core/Engine';
-import { strings } from '../../locales/i18n';
+import I18n, { strings } from '../../locales/i18n';
 import contractMap from '@metamask/contract-metadata';
 import { safeToChecksumAddress } from './address';
 import { util } from '@metamask/controllers';
@@ -19,7 +19,7 @@ import {
 } from './number';
 import AppConstants from '../core/AppConstants';
 import { isMainnetByChainId } from './networks';
-import { addCurrencies, multiplyCurrencies } from '../util/conversion-util';
+import { addCurrencies, multiplyCurrencies, subtractCurrencies } from '../util/conversion-util';
 import { decGWEIToHexWEI, getValueFromWeiHex, formatETHFee } from '../util/conversions';
 import {
 	addEth,
@@ -549,8 +549,9 @@ export const calculateEIP1559Times = ({
 	selectedOption,
 	recommended
 }) => {
-	let timeEstimate = 'Unknown processing time';
+	let timeEstimate = strings('times_eip1559.unknown');
 	let timeEstimateColor = 'grey';
+	let timeEstimateId = 'unknown';
 
 	if (!recommended) recommended = 'medium';
 
@@ -566,35 +567,60 @@ export const calculateEIP1559Times = ({
 	}
 
 	try {
+		const language = I18n.locale.substr(0, 2);
+
+		const timeParams = {
+			language,
+			fallbacks: ['en']
+		};
+
 		const { GasFeeController } = Engine.context;
 		const times = GasFeeController.getTimeEstimate(suggestedMaxPriorityFeePerGas, suggestedMaxFeePerGas);
 
 		if (!times || times === 'unknown' || Object.keys(times).length < 2 || times.upperTimeBound === 'unknown') {
-			timeEstimate = 'Unknown processing times';
-		} else if (selectedOption === 'low') {
-			timeEstimate = `Maybe in ${humanizeDuration(times.upperTimeBound)}`;
-		} else if (selectedOption === 'medium') {
-			timeEstimate = `Likely in < ${humanizeDuration(times.upperTimeBound)}`;
-		} else if (selectedOption === 'high') {
-			timeEstimate = `Very likely in < ${humanizeDuration(times.upperTimeBound)}`;
-		} else if (times.upperTimeBound === 0) {
-			timeEstimate = `At least ${humanizeDuration(times.lowerTimeBound)}`;
+			timeEstimate = strings('times_eip1559.unknown');
+			timeEstimateId = 'unknown';
 			timeEstimateColor = 'red';
+		} else if (selectedOption === 'low') {
+			timeEstimate = `${strings('times_eip1559.maybe')} ${humanizeDuration(times.upperTimeBound, timeParams)}`;
+			timeEstimateId = 'low';
+		} else if (selectedOption === 'medium') {
+			timeEstimate = `${strings('times_eip1559.likely')} ${humanizeDuration(times.upperTimeBound, timeParams)}`;
+			timeEstimateId = 'medium';
+		} else if (selectedOption === 'high') {
+			timeEstimate = `${strings('times_eip1559.very_likely')} ${humanizeDuration(
+				times.upperTimeBound,
+				timeParams
+			)}`;
+			timeEstimateId = 'high';
+		} else if (times.upperTimeBound === 0) {
+			timeEstimate = `${strings('times_eip1559.at_least')} ${humanizeDuration(times.lowerTimeBound, timeParams)}`;
+			timeEstimateColor = 'red';
+			timeEstimateId = 'at_least';
 		} else if (times.lowerTimeBound === 0) {
-			timeEstimate = `Less than ${humanizeDuration(times.upperTimeBound)}`;
+			timeEstimate = `${strings('times_eip1559.less_than')} ${humanizeDuration(
+				times.upperTimeBound,
+				timeParams
+			)}`;
 			timeEstimateColor = 'green';
+			timeEstimateId = 'less_than';
 		} else {
-			timeEstimate = `${humanizeDuration(times.lowerTimeBound)} - ${humanizeDuration(times.upperTimeBound)}`;
+			timeEstimate = `${humanizeDuration(times.lowerTimeBound, timeParams)} - ${humanizeDuration(
+				times.upperTimeBound,
+				timeParams
+			)}`;
+			timeEstimateId = 'range';
 		}
 	} catch (error) {
 		console.log('ERROR ESTIMATING TIME', error);
 	}
 
-	return { timeEstimate, timeEstimateColor };
+	return { timeEstimate, timeEstimateColor, timeEstimateId };
 };
 
 export const calculateEIP1559GasFeeHexes = ({
 	gasLimitHex,
+	estimatedGasLimitHex,
 	estimatedBaseFeeHex,
 	suggestedMaxFeePerGasHex,
 	suggestedMaxPriorityFeePerGasHex
@@ -616,11 +642,15 @@ export const calculateEIP1559GasFeeHexes = ({
 		multiplierBase: MULTIPLIER_HEX
 	});
 
-	const gasFeeMinHex = multiplyCurrencies(estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex, gasLimitHex, {
-		toNumericBase: 'hex',
-		multiplicandBase: MULTIPLIER_HEX,
-		multiplierBase: MULTIPLIER_HEX
-	});
+	const gasFeeMinHex = multiplyCurrencies(
+		estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex,
+		estimatedGasLimitHex || gasLimitHex,
+		{
+			toNumericBase: 'hex',
+			multiplicandBase: MULTIPLIER_HEX,
+			multiplierBase: MULTIPLIER_HEX
+		}
+	);
 	const gasFeeMaxHex = multiplyCurrencies(suggestedMaxFeePerGasHex, gasLimitHex, {
 		toNumericBase: 'hex',
 		multiplicandBase: MULTIPLIER_HEX,
@@ -638,6 +668,7 @@ export const calculateEIP1559GasFeeHexes = ({
 export const parseTransactionEIP1559 = (
 	{
 		selectedGasFee,
+		swapsParams,
 		contractExchangeRates,
 		conversionRate,
 		currentCurrency,
@@ -657,19 +688,49 @@ export const parseTransactionEIP1559 = (
 	const suggestedMaxPriorityFeePerGasHex = decGWEIToHexWEI(suggestedMaxPriorityFeePerGas);
 	const suggestedMaxFeePerGasHex = decGWEIToHexWEI(suggestedMaxFeePerGas);
 	const gasLimitHex = BNToHex(new BN(selectedGasFee.suggestedGasLimit));
+	const estimatedGasLimitHex = BNToHex(new BN(selectedGasFee.suggestedEstimatedGasLimit));
 
-	const { timeEstimate, timeEstimateColor } = calculateEIP1559Times({
+	const { timeEstimate, timeEstimateColor, timeEstimateId } = calculateEIP1559Times({
 		suggestedMaxPriorityFeePerGas,
 		suggestedMaxFeePerGas,
 		selectedOption: selectedGasFee.selectedOption
 	});
 
-	const { gasFeeMinHex, gasFeeMaxHex, maxPriorityFeePerGasTimesGasLimitHex } = calculateEIP1559GasFeeHexes({
+	// eslint-disable-next-line prefer-const
+	let { gasFeeMinHex, gasFeeMaxHex, maxPriorityFeePerGasTimesGasLimitHex } = calculateEIP1559GasFeeHexes({
 		gasLimitHex,
+		estimatedGasLimitHex,
 		estimatedBaseFeeHex,
 		suggestedMaxPriorityFeePerGasHex,
 		suggestedMaxFeePerGasHex
 	});
+
+	if (swapsParams) {
+		const { tradeValue, isNativeAsset, sourceAmount } = swapsParams;
+		gasFeeMinHex = addCurrencies(gasFeeMinHex, tradeValue, {
+			toNumericBase: 'hex',
+			aBase: MULTIPLIER_HEX,
+			bBase: MULTIPLIER_HEX
+		});
+		gasFeeMaxHex = addCurrencies(gasFeeMaxHex, tradeValue, {
+			toNumericBase: 'hex',
+			aBase: MULTIPLIER_HEX,
+			bBase: MULTIPLIER_HEX
+		});
+
+		if (isNativeAsset) {
+			gasFeeMinHex = subtractCurrencies(gasFeeMinHex, sourceAmount, {
+				toNumericBase: 'hex',
+				aBase: MULTIPLIER_HEX,
+				bBase: 10
+			});
+			gasFeeMaxHex = subtractCurrencies(gasFeeMaxHex, sourceAmount, {
+				toNumericBase: 'hex',
+				aBase: MULTIPLIER_HEX,
+				bBase: 10
+			});
+		}
+	}
 
 	const maxPriorityFeeNative = getTransactionFee({
 		value: maxPriorityFeePerGasTimesGasLimitHex,
@@ -784,6 +845,7 @@ export const parseTransactionEIP1559 = (
 			renderableMaxFeePerGasConversion,
 			timeEstimate,
 			timeEstimateColor,
+			timeEstimateId,
 			estimatedBaseFee,
 			estimatedBaseFeeHex,
 			suggestedMaxPriorityFeePerGas,
@@ -792,6 +854,7 @@ export const parseTransactionEIP1559 = (
 			suggestedMaxFeePerGasHex,
 			gasLimitHex,
 			suggestedGasLimit: selectedGasFee.suggestedGasLimit,
+			suggestedEstimatedGasLimit: selectedGasFee.suggestedEstimatedGasLimit,
 			totalMaxHex: valuePlusGasMaxHex
 		};
 	}
@@ -877,6 +940,7 @@ export const parseTransactionEIP1559 = (
 		renderableMaxFeePerGasConversion,
 		timeEstimate,
 		timeEstimateColor,
+		timeEstimateId,
 		totalMinNative,
 		renderableTotalMinNative,
 		totalMinConversion,
@@ -940,12 +1004,12 @@ export const parseTransactionLegacy = (
 	if (selectedAsset.isETH) {
 		const transactionTotalAmountBN = weiTransactionFee && weiTransactionFee.add(valueBN);
 		transactionTotalAmount = `${renderFromWei(transactionTotalAmountBN)} ${parsedTicker}`;
-		transactionTotalAmountFiat = `${weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency)}`;
+		transactionTotalAmountFiat = weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency);
 	} else if (selectedAsset.tokenId) {
 		const transactionTotalAmountBN = weiTransactionFee && weiTransactionFee.add(valueBN);
 		transactionTotalAmount = `${renderFromWei(weiTransactionFee)} ${parsedTicker}`;
 
-		transactionTotalAmountFiat = `${weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency)}`;
+		transactionTotalAmountFiat = weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency);
 	} else {
 		const { address, symbol = 'ERC20', decimals } = selectedAsset;
 

@@ -699,7 +699,9 @@
 		"gas_education_4": "Gas fees fluctuate based on network traffic and transaction complexitity.",
 		"gas_education_learn_more": "Learn more about gas fees",
 		"confusable_title": "Check the recipient address",
-		"confusable_msg": "We have detected a confusable character in the ENS name. Check the ENS name to avoid a potential scam."
+		"confusable_msg": "We have detected a confusable character in the ENS name. Check the ENS name to avoid a potential scam.",
+		"dapp_suggested_gas": "This gas fee has been suggested by %{origin}. It’s using legacy gas estimation which may be inaccurate. However, editing this gas fee may cause a problem with your transaction. Please reach out to %{origin} if you have questions.",
+		"dapp_suggested_eip1559_gas": "This gas fee has been suggested by %{origin}. Overriding this may cause a problem with your transaction. Please reach out to %{origin} if you have questions."
 	},
 	"custom_gas": {
 		"total": "Total",
@@ -1552,6 +1554,10 @@
 			"approve_pending": "Approving {{sourceToken}} for swaps",
 			"approve_confirmed": "{{sourceToken}} approved for swaps"
 		},
+		"medium_selected_warning": "Swaps are time sensitive. “Medium” is not reccomended.",
+		"high_recommendation": "Swaps are typically time sensitive. “High” will help avoid potential losses due to changes in market conditions.",
+		"recommended": "Recommended",
+		"recommended_gas": "Recommended gas fee",
 		"gas_education_title": "Estimated gas fees",
 		"gas_education_1": "Gas fees are paid to crypto miners who process transactions on the ",
 		"gas_education_2_ethereum": "Ethereum network.",
@@ -1644,7 +1650,7 @@
 	},
 	"edit_gas_fee_eip1559": {
 		"advanced_options": "Advanced Options",
-		"gas_limit": "Gas Limit",
+		"gas_limit": "Gas limit",
 		"max_priority_fee": "Max priority fee",
 		"max_fee": "Max fee",
 		"estimate": "Estimate",
@@ -1662,6 +1668,47 @@
 			"low_text": "A low gas fee should only be used for unimportant transactions or when network traffic is very low. With a lower fee it can be hard to predict when (or if) your transaction will be successful.",
 			"link": "Learn more about customizing gas."
 		},
-		"save": "Save"
+		"save": "Save",
+		"max_priority_fee_low": "Max Priority Fee is low for current network conditions",
+		"max_priority_fee_high": "Max Priority Fee is higher than necessary",
+		"max_fee_low": "Max Fee is low for current network conditions",
+		"max_fee_high": "Max Fee is higher than necessary",
+		"learn_more_gas_limit": "Gas limit is the maximum units of gas you are willing to use. Units of gas are a multiplier to “Max priority fee” and “Max fee”. ",
+		"learn_more_max_priority_fee": "Max priority fee (aka “miner tip”) goes directly to miners and incentivizes them to prioritize your transaction. You’ll most often pay your max setting. ",
+		"learn_more_max_fee": "The max fee is the most you’ll pay (base fee + priority fee). ",
+		"low": "Low",
+		"medium": "Medium",
+		"high": "High",
+		"edit_priority": "Edit priority",
+		"edit_suggested_gas_fee": "Edit suggested gas fee",
+		"gas_price": "Gas price",
+		"learn_more_gas_limit_legacy": "Gas limit is the maximum units of gas you are willing to use. Units of gas are a multiplier to “Gas price”.",
+		"learn_more_gas_price": "This network requires a “Gas price” field when submitting a transaction. Gas price is the maximum amount you are willing to pay per unit of gas.",
+		"gas_price_low": "Gas price is low for current network conditions",
+		"gas_price_high": "Gas price is higher than necessarys"
+	},
+	"transaction_review_eip1559": {
+		"estimated_gas_fee": "Estimated gas fee",
+		"suggested_gas_fee": "%{origin} suggested gas fee",
+		"max_fee": "Max fee",
+		"total": "Total",
+		"max_amount": "Max amount",
+		"estimated_gas_fee_tooltip": "What are gas fees?",
+		"estimated_gas_fee_tooltip_text_1": "Gas fees are paid to crypto miners who process transactions on the",
+		"estimated_gas_fee_tooltip_text_2": " Ethereum",
+		"estimated_gas_fee_tooltip_text_3": " network.",
+		"estimated_gas_fee_tooltip_text_4": "MetaMask does not profit from gas fees.",
+		"estimated_gas_fee_tooltip_text_5": "Gas fees are set by the network and fluctuate based on network traffic and transaction complexity.",
+		"learn_more": "Learn more about gas fees"
+	},
+	"times_eip1559": {
+		"unknown": "Unknown processing time",
+		"maybe": "Maybe in",
+		"likely": "Likely in <",
+		"very_likely": "Very likely in <",
+		"at_least": "At least",
+		"less_than": "Less than",
+		"warning_unknown": "Your max fee is low for current market conditions. We don’t know when (or if) your transaction will be processed.",
+		"warning_low": "This lowers your maximum fee but if network traffic increases your transaction may be delayed or fail."
 	}
 }
