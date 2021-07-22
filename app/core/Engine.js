@@ -115,13 +115,16 @@ class Engine {
 				messenger: this.controllerMessenger,
 				getProvider: () => networkController.provider,
 				onNetworkStateChange: listener => networkController.subscribe(listener),
-				getCurrentNetworkEIP1559Compatibility: async () => await networkController.getEIP1559Compatibility(),
+				getCurrentNetworkEIP1559Compatibility: async () =>
+					true ?? (await networkController.getEIP1559Compatibility()),
 				getChainId: () => networkController.state.provider.chainId,
 				getCurrentNetworkLegacyGasAPICompatibility: () =>
 					isMainnetByChainId(networkController.state.provider.chainId) ||
 					networkController.state.provider.chainId === swapsUtils.BSC_CHAIN_ID,
 				legacyAPIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/gasPrices',
-				EIP1559APIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees'
+				EIP1559APIEndpoint:
+					'https://mock-gas-server.herokuapp.com/' ||
+					'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees'
 			});
 
 			const controllers = [

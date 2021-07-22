@@ -1545,19 +1545,6 @@
     human-standard-token-abi "^2.0.0"
     web3 "^0.20.7"
 
-"@metamask/swaps-controller@file:./metamask-swaps-controller-v4.1.0-7ecc07.tgz":
-  version "4.1.0-7ecc07"
-  resolved "file:./metamask-swaps-controller-v4.1.0-7ecc07.tgz#4e3014a602da0418c25ac17560753d2faffe7d87"
-  dependencies:
-    "@metamask/controllers" "./metamask-controllers-v13.0.0-6c9560.tgz"
-    abort-controller "^3.0.0"
-    async-mutex "^0.3.1"
-    bignumber.js "^9.0.1"
-    eth-query "^2.1.2"
-    ethereumjs-util "^7.0.10"
-    human-standard-token-abi "^2.0.0"
-    web3 "^0.20.7"
-
 "@pedrouid/environment@^1.0.1":
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@pedrouid/environment/-/environment-1.0.1.tgz#858f0f8a057340e0b250398b75ead77d6f4342ec"
