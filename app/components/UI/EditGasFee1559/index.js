@@ -17,6 +17,8 @@ import PropTypes from 'prop-types';
 import BigNumber from 'bignumber.js';
 import FadeAnimationView from '../FadeAnimationView';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import TimeEstimateInfoModal from '../TimeEstimateInfoModal';
+import useModalHandler from '../../Base/hooks/useModalHandler';
 
 const GAS_LIMIT_INCREMENT = new BigNumber(1000);
 const GAS_INCREMENT = new BigNumber(1);
@@ -110,6 +112,13 @@ const styles = StyleSheet.create({
 	},
 	subheader: {
 		marginBottom: 6
+	},
+	learnMoreModal: {
+		maxHeight: Device.getDeviceHeight() * 0.7
+	},
+	redInfo: {
+		marginLeft: 2,
+		color: colors.red
 	}
 });
 
@@ -132,6 +141,7 @@ const EditGasFee1559 = ({
 	chainId,
 	timeEstimate,
 	timeEstimateColor,
+	timeEstimateId,
 	error,
 	warning,
 	dappSuggestedGas,
@@ -153,6 +163,9 @@ const EditGasFee1559 = ({
 	const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
 	const [selectedOption, setSelectedOption] = useState(selected);
 	const [showInputs, setShowInputs] = useState(!dappSuggestedGas);
+	const [isVisibleTimeEstimateInfoModal, , showTimeEstimateInfoModal, hideTimeEstimateInfoModal] = useModalHandler(
+		false
+	);
 
 	const getAnalyticsParams = useCallback(() => {
 		try {
@@ -518,9 +531,16 @@ const EditGasFee1559 = ({
 								</Text>
 								{gasFeeMaxPrimary} ({gasFeeMaxSecondary})
 							</Text>
-							<Text green={timeEstimateColor === 'green'} red={timeEstimateColor === 'red'} bold>
-								{timeEstimate}
-							</Text>
+							<View style={styles.labelTextContainer}>
+								<Text green={timeEstimateColor === 'green'} red={timeEstimateColor === 'red'} bold>
+									{timeEstimate}
+								</Text>
+								{(timeEstimateId === 'low' || timeEstimateId === 'unknown') && (
+									<TouchableOpacity hitSlop={styles.hitSlop} onPress={showTimeEstimateInfoModal}>
+										<MaterialCommunityIcon name="information" size={14} style={styles.redInfo} />
+									</TouchableOpacity>
+								)}
+							</View>
 						</FadeAnimationView>
 						{!showInputs ? (
 							<View style={styles.dappEditGasContainer}>
@@ -560,36 +580,48 @@ const EditGasFee1559 = ({
 							isVisible={showLearnMoreModal}
 							title={strings('edit_gas_fee_eip1559.learn_more.title')}
 							toggleModal={toggleLearnMoreModal}
+							propagateSwipe
 							body={
-								<View>
-									<Text noMargin grey infoModal>
-										{strings('edit_gas_fee_eip1559.learn_more.intro')}
-									</Text>
-									<Text noMargin primary infoModal bold style={styles.learnMoreLabels}>
-										{strings('edit_gas_fee_eip1559.learn_more.high_label')}
-									</Text>
-									<Text noMargin grey infoModal>
-										{strings('edit_gas_fee_eip1559.learn_more.high_text')}
-									</Text>
-									<Text noMargin primary infoModal bold style={styles.learnMoreLabels}>
-										{strings('edit_gas_fee_eip1559.learn_more.medium_label')}
-									</Text>
-									<Text noMargin grey infoModal>
-										{strings('edit_gas_fee_eip1559.learn_more.medium_text')}
-									</Text>
-									<Text noMargin primary infoModal bold style={styles.learnMoreLabels}>
-										{strings('edit_gas_fee_eip1559.learn_more.low_label')}
-									</Text>
-									<Text noMargin grey infoModal>
-										{strings('edit_gas_fee_eip1559.learn_more.low_text')}
-									</Text>
-									<TouchableOpacity style={styles.learnMoreLink}>
-										<Text grey infoModal link>
-											{strings('edit_gas_fee_eip1559.learn_more.link')}
-										</Text>
-									</TouchableOpacity>
+								<View style={styles.learnMoreModal}>
+									<ScrollView>
+										<TouchableWithoutFeedback>
+											<View>
+												<Text noMargin grey infoModal>
+													{strings('edit_gas_fee_eip1559.learn_more.intro')}
+												</Text>
+												<Text noMargin primary infoModal bold style={styles.learnMoreLabels}>
+													{strings('edit_gas_fee_eip1559.learn_more.high_label')}
+												</Text>
+												<Text noMargin grey infoModal>
+													{strings('edit_gas_fee_eip1559.learn_more.high_text')}
+												</Text>
+												<Text noMargin primary infoModal bold style={styles.learnMoreLabels}>
+													{strings('edit_gas_fee_eip1559.learn_more.medium_label')}
+												</Text>
+												<Text noMargin grey infoModal>
+													{strings('edit_gas_fee_eip1559.learn_more.medium_text')}
+												</Text>
+												<Text noMargin primary infoModal bold style={styles.learnMoreLabels}>
+													{strings('edit_gas_fee_eip1559.learn_more.low_label')}
+												</Text>
+												<Text noMargin grey infoModal>
+													{strings('edit_gas_fee_eip1559.learn_more.low_text')}
+												</Text>
+												<TouchableOpacity style={styles.learnMoreLink}>
+													<Text grey infoModal link>
+														{strings('edit_gas_fee_eip1559.learn_more.link')}
+													</Text>
+												</TouchableOpacity>
+											</View>
+										</TouchableWithoutFeedback>
+									</ScrollView>
 								</View>
 							}
+						/>
+						<TimeEstimateInfoModal
+							isVisible={isVisibleTimeEstimateInfoModal}
+							timeEstimateId={timeEstimateId}
+							onHideModal={hideTimeEstimateInfoModal}
 						/>
 					</View>
 				</TouchableWithoutFeedback>
@@ -677,6 +709,10 @@ EditGasFee1559.propTypes = {
 	 * String that represents the color of the time estimate
 	 */
 	timeEstimateColor: PropTypes.string,
+	/**
+	 * Time estimate name (unknown, low, medium, high, less_than, range)
+	 */
+	timeEstimateId: PropTypes.string,
 	/**
 	 * Error message to show
 	 */

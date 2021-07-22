@@ -627,6 +627,7 @@ class Approve extends PureComponent {
 								chainId={chainId}
 								timeEstimate={EIP1559GasDataTemp.timeEstimate}
 								timeEstimateColor={EIP1559GasDataTemp.timeEstimateColor}
+								timeEstimateId={EIP1559GasDataTemp.timeEstimateId}
 								onCancel={this.cancelGasEdition}
 								onSave={this.saveGasEdition}
 								error={EIP1559GasDataTemp.error}

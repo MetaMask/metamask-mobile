@@ -587,6 +587,7 @@ class ApproveTransactionReview extends PureComponent {
 												primaryCurrency={primaryCurrency}
 												timeEstimate={EIP1559GasData.timeEstimate}
 												timeEstimateColor={EIP1559GasData.timeEstimateColor}
+												timeEstimateId={EIP1559GasData.timeEstimateId}
 												hideTotal
 												noMargin
 												onEdit={this.edit}

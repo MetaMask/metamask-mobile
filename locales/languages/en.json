@@ -1693,18 +1693,22 @@
 		"max_fee": "Max fee",
 		"total": "Total",
 		"max_amount": "Max amount",
-		"estimated_gas_fee_tooltip": "Estimated gas fee tooltip",
-		"estimated_gas_fee_tooltip_text_1": "Estimated gas fee tooltip: Gas fees are paid to crypto miners who process transactions on the Ethereum network.",
-		"estimated_gas_fee_tooltip_text_2": "MetaMask does not profit from gas fees.",
-		"estimated_gas_fee_tooltip_text_3": "Gas fees are set by the network and fluctuate based on network traffic and transaction complexity.",
+		"estimated_gas_fee_tooltip": "What are gas fees?",
+		"estimated_gas_fee_tooltip_text_1": "Gas fees are paid to crypto miners who process transactions on the",
+		"estimated_gas_fee_tooltip_text_2": " Ethereum",
+		"estimated_gas_fee_tooltip_text_3": " network.",
+		"estimated_gas_fee_tooltip_text_4": "MetaMask does not profit from gas fees.",
+		"estimated_gas_fee_tooltip_text_5": "Gas fees are set by the network and fluctuate based on network traffic and transaction complexity.",
 		"learn_more": "Learn more about gas fees"
 	},
 	"times_eip1559": {
-		"unknown": "Unknown processing times",
+		"unknown": "Unknown processing time",
 		"maybe": "Maybe in",
 		"likely": "Likely in <",
 		"very_likely": "Very likely in <",
 		"at_least": "At least",
-		"less_than": "Less than"
+		"less_than": "Less than",
+		"warning_unknown": "Your max fee is low for current market conditions. We don’t know when (or if) your transaction will be processed.",
+		"warning_low": "This lowers your maximum fee but if network traffic increases your transaction may be delayed or fail."
 	}
 }

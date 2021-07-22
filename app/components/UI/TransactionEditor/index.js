@@ -1026,6 +1026,7 @@ class TransactionEditor extends PureComponent {
 							chainId={chainId}
 							timeEstimate={EIP1559GasDataTemp.timeEstimate}
 							timeEstimateColor={EIP1559GasDataTemp.timeEstimateColor}
+							timeEstimateId={EIP1559GasDataTemp.timeEstimateId}
 							onCancel={this.cancelGasEdition}
 							onSave={this.saveGasEdition}
 							dappSuggestedGas={Boolean(dappSuggestedGasPrice) || Boolean(dappSuggestedEIP1559Gas)}

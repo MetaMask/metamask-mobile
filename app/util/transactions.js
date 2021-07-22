@@ -551,6 +551,7 @@ export const calculateEIP1559Times = ({
 }) => {
 	let timeEstimate = strings('times_eip1559.unknown');
 	let timeEstimateColor = 'grey';
+	let timeEstimateId = 'unknown';
 
 	if (!recommended) recommended = 'medium';
 
@@ -578,35 +579,43 @@ export const calculateEIP1559Times = ({
 
 		if (!times || times === 'unknown' || Object.keys(times).length < 2 || times.upperTimeBound === 'unknown') {
 			timeEstimate = strings('times_eip1559.unknown');
+			timeEstimateId = 'unknown';
+			timeEstimateColor = 'red';
 		} else if (selectedOption === 'low') {
 			timeEstimate = `${strings('times_eip1559.maybe')} ${humanizeDuration(times.upperTimeBound, timeParams)}`;
+			timeEstimateId = 'low';
 		} else if (selectedOption === 'medium') {
 			timeEstimate = `${strings('times_eip1559.likely')} ${humanizeDuration(times.upperTimeBound, timeParams)}`;
+			timeEstimateId = 'medium';
 		} else if (selectedOption === 'high') {
 			timeEstimate = `${strings('times_eip1559.very_likely')} ${humanizeDuration(
 				times.upperTimeBound,
 				timeParams
 			)}`;
+			timeEstimateId = 'high';
 		} else if (times.upperTimeBound === 0) {
 			timeEstimate = `${strings('times_eip1559.at_least')} ${humanizeDuration(times.lowerTimeBound, timeParams)}`;
 			timeEstimateColor = 'red';
+			timeEstimateId = 'at_least';
 		} else if (times.lowerTimeBound === 0) {
 			timeEstimate = `${strings('times_eip1559.less_than')} ${humanizeDuration(
 				times.upperTimeBound,
 				timeParams
 			)}`;
 			timeEstimateColor = 'green';
+			timeEstimateId = 'less_than';
 		} else {
 			timeEstimate = `${humanizeDuration(times.lowerTimeBound, timeParams)} - ${humanizeDuration(
 				times.upperTimeBound,
 				timeParams
 			)}`;
+			timeEstimateId = 'range';
 		}
 	} catch (error) {
 		console.log('ERROR ESTIMATING TIME', error);
 	}
 
-	return { timeEstimate, timeEstimateColor };
+	return { timeEstimate, timeEstimateColor, timeEstimateId };
 };
 
 export const calculateEIP1559GasFeeHexes = ({
@@ -681,7 +690,7 @@ export const parseTransactionEIP1559 = (
 	const gasLimitHex = BNToHex(new BN(selectedGasFee.suggestedGasLimit));
 	const estimatedGasLimitHex = BNToHex(new BN(selectedGasFee.suggestedEstimatedGasLimit));
 
-	const { timeEstimate, timeEstimateColor } = calculateEIP1559Times({
+	const { timeEstimate, timeEstimateColor, timeEstimateId } = calculateEIP1559Times({
 		suggestedMaxPriorityFeePerGas,
 		suggestedMaxFeePerGas,
 		selectedOption: selectedGasFee.selectedOption
@@ -836,6 +845,7 @@ export const parseTransactionEIP1559 = (
 			renderableMaxFeePerGasConversion,
 			timeEstimate,
 			timeEstimateColor,
+			timeEstimateId,
 			estimatedBaseFee,
 			estimatedBaseFeeHex,
 			suggestedMaxPriorityFeePerGas,
@@ -930,6 +940,7 @@ export const parseTransactionEIP1559 = (
 		renderableMaxFeePerGasConversion,
 		timeEstimate,
 		timeEstimateColor,
+		timeEstimateId,
 		totalMinNative,
 		renderableTotalMinNative,
 		totalMinConversion,
