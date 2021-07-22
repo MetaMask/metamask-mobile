@@ -19,7 +19,7 @@ import {
 } from './number';
 import AppConstants from '../core/AppConstants';
 import { isMainnetByChainId } from './networks';
-import { addCurrencies, multiplyCurrencies } from '../util/conversion-util';
+import { addCurrencies, multiplyCurrencies, subtractCurrencies } from '../util/conversion-util';
 import { decGWEIToHexWEI, getValueFromWeiHex, formatETHFee } from '../util/conversions';
 import {
 	addEth,
@@ -620,6 +620,7 @@ export const calculateEIP1559Times = ({
 
 export const calculateEIP1559GasFeeHexes = ({
 	gasLimitHex,
+	estimatedGasLimitHex,
 	estimatedBaseFeeHex,
 	suggestedMaxFeePerGasHex,
 	suggestedMaxPriorityFeePerGasHex
@@ -641,11 +642,15 @@ export const calculateEIP1559GasFeeHexes = ({
 		multiplierBase: MULTIPLIER_HEX
 	});
 
-	const gasFeeMinHex = multiplyCurrencies(estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex, gasLimitHex, {
-		toNumericBase: 'hex',
-		multiplicandBase: MULTIPLIER_HEX,
-		multiplierBase: MULTIPLIER_HEX
-	});
+	const gasFeeMinHex = multiplyCurrencies(
+		estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex,
+		estimatedGasLimitHex || gasLimitHex,
+		{
+			toNumericBase: 'hex',
+			multiplicandBase: MULTIPLIER_HEX,
+			multiplierBase: MULTIPLIER_HEX
+		}
+	);
 	const gasFeeMaxHex = multiplyCurrencies(suggestedMaxFeePerGasHex, gasLimitHex, {
 		toNumericBase: 'hex',
 		multiplicandBase: MULTIPLIER_HEX,
@@ -663,6 +668,7 @@ export const calculateEIP1559GasFeeHexes = ({
 export const parseTransactionEIP1559 = (
 	{
 		selectedGasFee,
+		swapsParams,
 		contractExchangeRates,
 		conversionRate,
 		currentCurrency,
@@ -682,6 +688,7 @@ export const parseTransactionEIP1559 = (
 	const suggestedMaxPriorityFeePerGasHex = decGWEIToHexWEI(suggestedMaxPriorityFeePerGas);
 	const suggestedMaxFeePerGasHex = decGWEIToHexWEI(suggestedMaxFeePerGas);
 	const gasLimitHex = BNToHex(new BN(selectedGasFee.suggestedGasLimit));
+	const estimatedGasLimitHex = BNToHex(new BN(selectedGasFee.suggestedEstimatedGasLimit));
 
 	const { timeEstimate, timeEstimateColor, timeEstimateId } = calculateEIP1559Times({
 		suggestedMaxPriorityFeePerGas,
@@ -689,12 +696,41 @@ export const parseTransactionEIP1559 = (
 		selectedOption: selectedGasFee.selectedOption
 	});
 
-	const { gasFeeMinHex, gasFeeMaxHex, maxPriorityFeePerGasTimesGasLimitHex } = calculateEIP1559GasFeeHexes({
+	// eslint-disable-next-line prefer-const
+	let { gasFeeMinHex, gasFeeMaxHex, maxPriorityFeePerGasTimesGasLimitHex } = calculateEIP1559GasFeeHexes({
 		gasLimitHex,
+		estimatedGasLimitHex,
 		estimatedBaseFeeHex,
 		suggestedMaxPriorityFeePerGasHex,
 		suggestedMaxFeePerGasHex
 	});
+
+	if (swapsParams) {
+		const { tradeValue, isNativeAsset, sourceAmount } = swapsParams;
+		gasFeeMinHex = addCurrencies(gasFeeMinHex, tradeValue, {
+			toNumericBase: 'hex',
+			aBase: MULTIPLIER_HEX,
+			bBase: MULTIPLIER_HEX
+		});
+		gasFeeMaxHex = addCurrencies(gasFeeMaxHex, tradeValue, {
+			toNumericBase: 'hex',
+			aBase: MULTIPLIER_HEX,
+			bBase: MULTIPLIER_HEX
+		});
+
+		if (isNativeAsset) {
+			gasFeeMinHex = subtractCurrencies(gasFeeMinHex, sourceAmount, {
+				toNumericBase: 'hex',
+				aBase: MULTIPLIER_HEX,
+				bBase: 10
+			});
+			gasFeeMaxHex = subtractCurrencies(gasFeeMaxHex, sourceAmount, {
+				toNumericBase: 'hex',
+				aBase: MULTIPLIER_HEX,
+				bBase: 10
+			});
+		}
+	}
 
 	const maxPriorityFeeNative = getTransactionFee({
 		value: maxPriorityFeePerGasTimesGasLimitHex,
@@ -818,6 +854,7 @@ export const parseTransactionEIP1559 = (
 			suggestedMaxFeePerGasHex,
 			gasLimitHex,
 			suggestedGasLimit: selectedGasFee.suggestedGasLimit,
+			suggestedEstimatedGasLimit: selectedGasFee.suggestedEstimatedGasLimit,
 			totalMaxHex: valuePlusGasMaxHex
 		};
 	}
