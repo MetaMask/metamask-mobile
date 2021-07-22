@@ -14,12 +14,9 @@ import EditGasFee1559 from '../../EditGasFee1559';
 import { parseTransactionEIP1559, parseTransactionLegacy } from '../../../../util/transactions';
 import useModalHandler from '../../../Base/hooks/useModalHandler';
 import { strings } from '../../../../../locales/i18n';
+import AppConstants from '../../../../core/AppConstants';
 
-const GAS_OPTIONS = {
-	LOW: 'low',
-	MEDIUM: 'medium',
-	HIGH: 'high'
-};
+const GAS_OPTIONS = AppConstants.GAS_OPTIONS;
 
 const styles = StyleSheet.create({
 	bottomModal: {
@@ -341,8 +338,8 @@ function GasEditModal({
 				) : (
 					<EditGasFeeLegacy
 						selected={gasSelected}
-						ignoreOptions={['low']}
-						warningMinimumEstimateOption={'medium'}
+						ignoreOptions={[GAS_OPTIONS.LOW]}
+						warningMinimumEstimateOption={GAS_OPTIONS.MEDIUM}
 						gasFee={LegacyTransactionDataTemp}
 						gasEstimateType={gasEstimateType}
 						gasOptions={gasFeeEstimates}

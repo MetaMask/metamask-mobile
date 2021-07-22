@@ -51,7 +51,7 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
-import { capitalize } from '../../../../util/general';
+import { capitalize, shallowEqual } from '../../../../util/general';
 import { isMainNet, getNetworkName, getNetworkNonce, isMainnetByChainId } from '../../../../util/networks';
 import Text from '../../../Base/Text';
 import AnalyticsV2 from '../../../../util/analyticsV2';
@@ -63,6 +63,7 @@ import TransactionReviewEIP1559 from '../../../UI/TransactionReview/TransactionR
 import EditGasFee1559 from '../../../UI/EditGasFee1559';
 import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacy';
 import CustomNonce from '../../../UI/CustomNonce';
+import AppConstants from '../../../../core/AppConstants';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -351,8 +352,8 @@ class Confirm extends PureComponent {
 		warningModalVisible: false,
 		mode: REVIEW,
 		over: false,
-		gasSelected: 'medium',
-		gasSelectedTemp: 'medium',
+		gasSelected: AppConstants.GAS_OPTIONS.MEDIUM,
+		gasSelectedTemp: AppConstants.GAS_OPTIONS.MEDIUM,
 		EIP1559TransactionData: {},
 		EIP1559TransactionDataTemp: {},
 		stopUpdateGas: false,
@@ -364,7 +365,7 @@ class Confirm extends PureComponent {
 			transactionTotalAmountFiat: ''
 		},
 		LegacyTransactionDataTemp: {},
-		gasSpeedSelected: 'medium'
+		gasSpeedSelected: AppConstants.GAS_OPTIONS.MEDIUM
 	};
 
 	setNetworkNonce = async () => {
@@ -465,7 +466,7 @@ class Confirm extends PureComponent {
 		if (
 			this.props.gasFeeEstimates &&
 			gas &&
-			(prevProps.gasFeeEstimates !== this.props.gasFeeEstimates ||
+			(!shallowEqual(prevProps.gasFeeEstimates, this.props.gasFeeEstimates) ||
 				gas !== prevProps?.transactionState?.transaction?.gas)
 		) {
 			if (!this.state.stopUpdateGas && !this.state.advancedGasInserted) {
