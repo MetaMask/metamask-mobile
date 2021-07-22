@@ -51,7 +51,7 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
-import { capitalize } from '../../../../util/general';
+import { capitalize, shallowEqual } from '../../../../util/general';
 import { isMainNet, getNetworkName, getNetworkNonce, isMainnetByChainId } from '../../../../util/networks';
 import Text from '../../../Base/Text';
 import AnalyticsV2 from '../../../../util/analyticsV2';
@@ -466,7 +466,7 @@ class Confirm extends PureComponent {
 		if (
 			this.props.gasFeeEstimates &&
 			gas &&
-			(prevProps.gasFeeEstimates !== this.props.gasFeeEstimates ||
+			(!shallowEqual(prevProps.gasFeeEstimates, this.props.gasFeeEstimates) ||
 				gas !== prevProps?.transactionState?.transaction?.gas)
 		) {
 			if (!this.state.stopUpdateGas && !this.state.advancedGasInserted) {
