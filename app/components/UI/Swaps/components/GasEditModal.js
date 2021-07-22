@@ -245,6 +245,7 @@ function GasEditModal({
 							chainId={chainId}
 							timeEstimate={EIP1559TransactionDataTemp.timeEstimate}
 							timeEstimateColor={EIP1559TransactionDataTemp.timeEstimateColor}
+							timeEstimateId={EIP1559TransactionDataTemp.timeEstimateId}
 							onCancel={cancelGasEdition}
 							onSave={saveGasEdition}
 							error={EIP1559TransactionDataTemp.error}
