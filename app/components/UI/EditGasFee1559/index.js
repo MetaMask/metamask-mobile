@@ -19,6 +19,7 @@ import FadeAnimationView from '../FadeAnimationView';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import TimeEstimateInfoModal from '../TimeEstimateInfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
+import AppConstants from '../../../core/AppConstants';
 
 const GAS_LIMIT_INCREMENT = new BigNumber(1000);
 const GAS_INCREMENT = new BigNumber(1);
@@ -273,9 +274,9 @@ const EditGasFee1559 = ({
 
 	const renderOptions = useMemo(() => {
 		const options = [
-			{ name: 'low', label: strings('edit_gas_fee_eip1559.low') },
-			{ name: 'medium', label: strings('edit_gas_fee_eip1559.medium') },
-			{ name: 'high', label: strings('edit_gas_fee_eip1559.high') }
+			{ name: AppConstants.GAS_OPTIONS.LOW, label: strings('edit_gas_fee_eip1559.low') },
+			{ name: AppConstants.GAS_OPTIONS.MEDIUM, label: strings('edit_gas_fee_eip1559.medium') },
+			{ name: AppConstants.GAS_OPTIONS.HIGH, label: strings('edit_gas_fee_eip1559.high') }
 		];
 		return options
 			.filter(option => !shouldIgnore(option.name))
@@ -535,7 +536,8 @@ const EditGasFee1559 = ({
 								<Text green={timeEstimateColor === 'green'} red={timeEstimateColor === 'red'} bold>
 									{timeEstimate}
 								</Text>
-								{(timeEstimateId === 'low' || timeEstimateId === 'unknown') && (
+								{(timeEstimateId === AppConstants.GAS_TIMES.MAYBE ||
+									timeEstimateId === AppConstants.GAS_TIMES.UNKNOWN) && (
 									<TouchableOpacity hitSlop={styles.hitSlop} onPress={showTimeEstimateInfoModal}>
 										<MaterialCommunityIcon name="information" size={14} style={styles.redInfo} />
 									</TouchableOpacity>
@@ -632,8 +634,8 @@ const EditGasFee1559 = ({
 
 EditGasFee1559.defaultProps = {
 	ignoreOptions: [],
-	warningMinimumEstimateOption: 'low',
-	suggestedEstimateOption: 'medium'
+	warningMinimumEstimateOption: AppConstants.GAS_OPTIONS.LOW,
+	suggestedEstimateOption: AppConstants.GAS_OPTIONS.MEDIUM
 };
 
 EditGasFee1559.propTypes = {

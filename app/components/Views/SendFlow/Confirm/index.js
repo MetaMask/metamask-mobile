@@ -63,6 +63,7 @@ import TransactionReviewEIP1559 from '../../../UI/TransactionReview/TransactionR
 import EditGasFee1559 from '../../../UI/EditGasFee1559';
 import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacy';
 import CustomNonce from '../../../UI/CustomNonce';
+import AppConstants from '../../../../core/AppConstants';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -351,8 +352,8 @@ class Confirm extends PureComponent {
 		warningModalVisible: false,
 		mode: REVIEW,
 		over: false,
-		gasSelected: 'medium',
-		gasSelectedTemp: 'medium',
+		gasSelected: AppConstants.GAS_OPTIONS.MEDIUM,
+		gasSelectedTemp: AppConstants.GAS_OPTIONS.MEDIUM,
 		EIP1559TransactionData: {},
 		EIP1559TransactionDataTemp: {},
 		stopUpdateGas: false,
@@ -364,7 +365,7 @@ class Confirm extends PureComponent {
 			transactionTotalAmountFiat: ''
 		},
 		LegacyTransactionDataTemp: {},
-		gasSpeedSelected: 'medium'
+		gasSpeedSelected: AppConstants.GAS_OPTIONS.MEDIUM
 	};
 
 	setNetworkNonce = async () => {

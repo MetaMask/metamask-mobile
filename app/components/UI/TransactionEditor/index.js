@@ -29,6 +29,7 @@ import { toLowerCaseEquals } from '../../../util/general';
 import EditGasFee1559 from '../EditGasFee1559';
 import EditGasFeeLegacy from '../EditGasFeeLegacy';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
+import AppConstants from '../../../core/AppConstants';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -137,8 +138,8 @@ class TransactionEditor extends PureComponent {
 		gasError: '',
 		toAddressError: '',
 		over: false,
-		gasSelected: 'medium',
-		gasSelectedTemp: 'medium',
+		gasSelected: AppConstants.GAS_OPTIONS.MEDIUM,
+		gasSelectedTemp: AppConstants.GAS_OPTIONS.MEDIUM,
 		EIP1559GasData: {},
 		EIP1559GasDataTemp: {},
 		LegacyGasData: {},

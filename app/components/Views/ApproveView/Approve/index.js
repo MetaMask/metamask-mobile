@@ -28,6 +28,7 @@ import Logger from '../../../../util/Logger';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import EditGasFee1559 from '../../../UI/EditGasFee1559';
 import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacy';
+import AppConstants from '../../../../core/AppConstants';
 
 const { BNToHex, hexToBN } = util;
 
@@ -122,8 +123,8 @@ class Approve extends PureComponent {
 		mode: REVIEW,
 		over: false,
 		analyticsParams: {},
-		gasSelected: 'medium',
-		gasSelectedTemp: 'medium',
+		gasSelected: AppConstants.GAS_OPTIONS.MEDIUM,
+		gasSelectedTemp: AppConstants.GAS_OPTIONS.MEDIUM,
 		EIP1559GasData: {},
 		EIP1559GasDataTemp: {},
 		LegacyGasData: {},

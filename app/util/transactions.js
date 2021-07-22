@@ -551,16 +551,16 @@ export const calculateEIP1559Times = ({
 }) => {
 	let timeEstimate = strings('times_eip1559.unknown');
 	let timeEstimateColor = 'grey';
-	let timeEstimateId = 'unknown';
+	let timeEstimateId = AppConstants.GAS_TIMES.UNKNOWN;
 
-	if (!recommended) recommended = 'medium';
+	if (!recommended) recommended = AppConstants.GAS_OPTIONS.MEDIUM;
 
 	if (!selectedOption) {
 		timeEstimateColor = 'grey';
-	} else if (recommended === 'high') {
-		if (selectedOption === 'high') timeEstimateColor = 'green';
+	} else if (recommended === AppConstants.GAS_OPTIONS.HIGH) {
+		if (selectedOption === AppConstants.GAS_OPTIONS.HIGH) timeEstimateColor = 'green';
 		else timeEstimateColor = 'red';
-	} else if (selectedOption === 'low') {
+	} else if (selectedOption === AppConstants.GAS_OPTIONS.LOW) {
 		timeEstimateColor = 'red';
 	} else {
 		timeEstimateColor = 'green';
@@ -579,37 +579,37 @@ export const calculateEIP1559Times = ({
 
 		if (!times || times === 'unknown' || Object.keys(times).length < 2 || times.upperTimeBound === 'unknown') {
 			timeEstimate = strings('times_eip1559.unknown');
-			timeEstimateId = 'unknown';
+			timeEstimateId = AppConstants.GAS_TIMES.UNKNOWN;
 			timeEstimateColor = 'red';
-		} else if (selectedOption === 'low') {
+		} else if (selectedOption === AppConstants.GAS_OPTIONS.LOW) {
 			timeEstimate = `${strings('times_eip1559.maybe')} ${humanizeDuration(times.upperTimeBound, timeParams)}`;
-			timeEstimateId = 'low';
-		} else if (selectedOption === 'medium') {
+			timeEstimateId = AppConstants.GAS_TIMES.MAYBE;
+		} else if (selectedOption === AppConstants.GAS_OPTIONS.MEDIUM) {
 			timeEstimate = `${strings('times_eip1559.likely')} ${humanizeDuration(times.upperTimeBound, timeParams)}`;
-			timeEstimateId = 'medium';
-		} else if (selectedOption === 'high') {
+			timeEstimateId = AppConstants.GAS_TIMES.LIKELY;
+		} else if (selectedOption === AppConstants.GAS_OPTIONS.HIGH) {
 			timeEstimate = `${strings('times_eip1559.very_likely')} ${humanizeDuration(
 				times.upperTimeBound,
 				timeParams
 			)}`;
-			timeEstimateId = 'high';
+			timeEstimateId = AppConstants.GAS_TIMES.VERY_LIKELY;
 		} else if (times.upperTimeBound === 0) {
 			timeEstimate = `${strings('times_eip1559.at_least')} ${humanizeDuration(times.lowerTimeBound, timeParams)}`;
 			timeEstimateColor = 'red';
-			timeEstimateId = 'at_least';
+			timeEstimateId = AppConstants.GAS_TIMES.AT_LEAST;
 		} else if (times.lowerTimeBound === 0) {
 			timeEstimate = `${strings('times_eip1559.less_than')} ${humanizeDuration(
 				times.upperTimeBound,
 				timeParams
 			)}`;
 			timeEstimateColor = 'green';
-			timeEstimateId = 'less_than';
+			timeEstimateId = AppConstants.GAS_TIMES.LESS_THAN;
 		} else {
 			timeEstimate = `${humanizeDuration(times.lowerTimeBound, timeParams)} - ${humanizeDuration(
 				times.upperTimeBound,
 				timeParams
 			)}`;
-			timeEstimateId = 'range';
+			timeEstimateId = AppConstants.GAS_TIMES.RANGE;
 		}
 	} catch (error) {
 		console.log('ERROR ESTIMATING TIME', error);
