@@ -1,20 +1,16 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View } from 'react-native';
 import Text from '../../Base/Text';
 import InfoModal from '../Swaps/components/InfoModal';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
-
-const styles = StyleSheet.create({
-	root: {}
-});
 
 const TimeEstimateInfoModal = ({ timeEstimateId, isVisible, onHideModal }) => (
 	<InfoModal
 		isVisible={isVisible}
 		toggleModal={onHideModal}
 		body={
-			<View style={styles.root}>
+			<View>
 				<Text>
 					{timeEstimateId === 'unknown' && strings('times_eip1559.warning_unknown')}
 					{timeEstimateId === 'low' && strings('times_eip1559.warning_low')}

@@ -3,9 +3,7 @@
 exports[`TimeEstimateInfoModal should render correctly 1`] = `
 <InfoModal
   body={
-    <View
-      style={Object {}}
-    >
+    <View>
       <Text
         black={false}
         blue={false}
