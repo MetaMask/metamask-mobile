@@ -902,7 +902,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
             </View>
           }
           isVisible={false}
-          noSwipe={true}
+          propagateSwipe={true}
           title="How should I choose?"
           toggleModal={[Function]}
         />

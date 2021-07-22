@@ -580,7 +580,7 @@ const EditGasFee1559 = ({
 							isVisible={showLearnMoreModal}
 							title={strings('edit_gas_fee_eip1559.learn_more.title')}
 							toggleModal={toggleLearnMoreModal}
-							noSwipe
+							propagateSwipe
 							body={
 								<View style={styles.learnMoreModal}>
 									<ScrollView>
