@@ -1689,10 +1689,12 @@
 		"max_fee": "Max fee",
 		"total": "Total",
 		"max_amount": "Max amount",
-		"estimated_gas_fee_tooltip": "Estimated gas fee tooltip",
-		"estimated_gas_fee_tooltip_text_1": "Estimated gas fee tooltip: Gas fees are paid to crypto miners who process transactions on the Ethereum network.",
-		"estimated_gas_fee_tooltip_text_2": "MetaMask does not profit from gas fees.",
-		"estimated_gas_fee_tooltip_text_3": "Gas fees are set by the network and fluctuate based on network traffic and transaction complexity.",
+		"estimated_gas_fee_tooltip": "What are gas fees?",
+		"estimated_gas_fee_tooltip_text_1": "Gas fees are paid to crypto miners who process transactions on the",
+		"estimated_gas_fee_tooltip_text_2": " Ethereum",
+		"estimated_gas_fee_tooltip_text_3": " network.",
+		"estimated_gas_fee_tooltip_text_4": "MetaMask does not profit from gas fees.",
+		"estimated_gas_fee_tooltip_text_5": "Gas fees are set by the network and fluctuate based on network traffic and transaction complexity.",
 		"learn_more": "Learn more about gas fees"
 	},
 	"times_eip1559": {

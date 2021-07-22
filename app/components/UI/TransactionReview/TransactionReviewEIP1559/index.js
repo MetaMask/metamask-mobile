@@ -278,10 +278,14 @@ const TransactionReviewEIP1559 = ({
 				body={
 					<View>
 						<Text infoModal>
-							{`${strings('transaction_review_eip1559.estimated_gas_fee_tooltip_text_1')}\n`}
-							{`${strings('transaction_review_eip1559.estimated_gas_fee_tooltip_text_2')}\n\n`}
-							{`${strings('transaction_review_eip1559.estimated_gas_fee_tooltip_text_3')}\n`}
+							{strings('transaction_review_eip1559.estimated_gas_fee_tooltip_text_1')}
+							{isMainnet && strings('transaction_review_eip1559.estimated_gas_fee_tooltip_text_2')}
+							{strings('transaction_review_eip1559.estimated_gas_fee_tooltip_text_3')}{' '}
+							<Text bold noMargin>
+								{strings('transaction_review_eip1559.estimated_gas_fee_tooltip_text_4')}
+							</Text>
 						</Text>
+						<Text infoModal>{strings('transaction_review_eip1559.estimated_gas_fee_tooltip_text_5')}</Text>
 						<TouchableOpacity onPress={openLinkAboutGas}>
 							<Text link>{strings('transaction_review_eip1559.learn_more')}</Text>
 						</TouchableOpacity>
