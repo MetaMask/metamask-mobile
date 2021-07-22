@@ -4,6 +4,7 @@ import Text from '../../Base/Text';
 import InfoModal from '../Swaps/components/InfoModal';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
+import AppConstants from '../../../core/AppConstants';
 
 const TimeEstimateInfoModal = ({ timeEstimateId, isVisible, onHideModal }) => (
 	<InfoModal
@@ -12,8 +13,8 @@ const TimeEstimateInfoModal = ({ timeEstimateId, isVisible, onHideModal }) => (
 		body={
 			<View>
 				<Text>
-					{timeEstimateId === 'unknown' && strings('times_eip1559.warning_unknown')}
-					{timeEstimateId === 'low' && strings('times_eip1559.warning_low')}
+					{timeEstimateId === AppConstants.GAS_TIMES.UNKNOWN && strings('times_eip1559.warning_unknown')}
+					{timeEstimateId === AppConstants.GAS_TIMES.MAYBE && strings('times_eip1559.warning_low')}
 				</Text>
 			</View>
 		}

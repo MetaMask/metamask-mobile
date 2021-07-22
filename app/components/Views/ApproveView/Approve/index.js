@@ -28,6 +28,8 @@ import Logger from '../../../../util/Logger';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import EditGasFee1559 from '../../../UI/EditGasFee1559';
 import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacy';
+import AppConstants from '../../../../core/AppConstants';
+import { shallowEqual } from '../../../../util/general';
 
 const { BNToHex, hexToBN } = util;
 
@@ -122,8 +124,8 @@ class Approve extends PureComponent {
 		mode: REVIEW,
 		over: false,
 		analyticsParams: {},
-		gasSelected: 'medium',
-		gasSelectedTemp: 'medium',
+		gasSelected: AppConstants.GAS_OPTIONS.MEDIUM,
+		gasSelectedTemp: AppConstants.GAS_OPTIONS.MEDIUM,
 		EIP1559GasData: {},
 		EIP1559GasDataTemp: {},
 		LegacyGasData: {},
@@ -247,23 +249,6 @@ class Approve extends PureComponent {
 		setTransactionObject({ gas: estimation.gas });
 	};
 
-	shallowEqual = (object1, object2) => {
-		const keys1 = Object.keys(object1);
-		const keys2 = Object.keys(object2);
-
-		if (keys1.length !== keys2.length) {
-			return false;
-		}
-
-		for (const key of keys1) {
-			if (object1[key] !== object2[key]) {
-				return false;
-			}
-		}
-
-		return true;
-	};
-
 	componentDidUpdate = prevProps => {
 		const { transaction } = this.props;
 
@@ -271,7 +256,7 @@ class Approve extends PureComponent {
 			if (
 				this.props.gasFeeEstimates &&
 				transaction.gas &&
-				(!this.shallowEqual(prevProps.gasFeeEstimates, this.props.gasFeeEstimates) ||
+				(!shallowEqual(prevProps.gasFeeEstimates, this.props.gasFeeEstimates) ||
 					!transaction.gas.eq(prevProps?.transaction?.gas))
 			) {
 				this.computeGasEstimates();

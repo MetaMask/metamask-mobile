@@ -13,6 +13,7 @@ import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../locales/i18n';
 import TimeEstimateInfoModal from '../../TimeEstimateInfoModal';
 import useModalHandler from '../../../Base/hooks/useModalHandler';
+import AppConstants from '../../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	overview: noMargin => ({
@@ -201,7 +202,8 @@ const TransactionReviewEIP1559 = ({
 									<Text small green={timeEstimateColor === 'green'} red={timeEstimateColor === 'red'}>
 										{timeEstimate}
 									</Text>
-									{(timeEstimateId === 'low' || timeEstimateId === 'unknown') && (
+									{(timeEstimateId === AppConstants.GAS_TIMES.MAYBE ||
+										timeEstimateId === AppConstants.GAS_TIMES.UNKNOWN) && (
 										<TouchableOpacity
 											style={styles.gasInfoContainer}
 											onPress={showTimeEstimateInfoModal}

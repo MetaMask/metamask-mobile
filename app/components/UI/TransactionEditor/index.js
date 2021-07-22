@@ -25,10 +25,11 @@ import contractMap from '@metamask/contract-metadata';
 import { safeToChecksumAddress } from '../../../util/address';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { MAINNET } from '../../../constants/network';
-import { toLowerCaseEquals } from '../../../util/general';
+import { shallowEqual, toLowerCaseEquals } from '../../../util/general';
 import EditGasFee1559 from '../EditGasFee1559';
 import EditGasFeeLegacy from '../EditGasFeeLegacy';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
+import AppConstants from '../../../core/AppConstants';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -137,8 +138,8 @@ class TransactionEditor extends PureComponent {
 		gasError: '',
 		toAddressError: '',
 		over: false,
-		gasSelected: 'medium',
-		gasSelectedTemp: 'medium',
+		gasSelected: AppConstants.GAS_OPTIONS.MEDIUM,
+		gasSelectedTemp: AppConstants.GAS_OPTIONS.MEDIUM,
 		EIP1559GasData: {},
 		EIP1559GasDataTemp: {},
 		LegacyGasData: {},
@@ -322,23 +323,6 @@ class TransactionEditor extends PureComponent {
 		return parsedTransactionLegacy;
 	};
 
-	shallowEqual = (object1, object2) => {
-		const keys1 = Object.keys(object1);
-		const keys2 = Object.keys(object2);
-
-		if (keys1.length !== keys2.length) {
-			return false;
-		}
-
-		for (const key of keys1) {
-			if (object1[key] !== object2[key]) {
-				return false;
-			}
-		}
-
-		return true;
-	};
-
 	componentDidUpdate = prevProps => {
 		const { transaction } = this.props;
 		if (transaction.data !== prevProps.transaction.data) {
@@ -349,7 +333,7 @@ class TransactionEditor extends PureComponent {
 			if (
 				this.props.gasFeeEstimates &&
 				transaction.gas &&
-				(!this.shallowEqual(prevProps.gasFeeEstimates, this.props.gasFeeEstimates) ||
+				(!shallowEqual(prevProps.gasFeeEstimates, this.props.gasFeeEstimates) ||
 					!transaction.gas.eq(prevProps?.transaction?.gas))
 			) {
 				this.computeGasEstimates();
