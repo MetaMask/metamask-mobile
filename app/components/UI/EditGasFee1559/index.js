@@ -312,10 +312,12 @@ const EditGasFee1559 = ({
 		maxPriorityFeePerGasPrimary = maxPriorityFeeConversion;
 	}
 
+	const valueToWatch = `${gasFeeNative}${gasFeeMaxNative}`;
+
 	const renderInputs = () => (
 		<View>
 			<FadeAnimationView
-				valueToWatch={gasFeeMaxPrimary}
+				valueToWatch={valueToWatch}
 				animateOnChange={animateOnChange}
 				onAnimationStart={onUpdatingValuesStart}
 				onAnimationEnd={onUpdatingValuesEnd}
@@ -517,7 +519,7 @@ const EditGasFee1559 = ({
 						{renderError}
 						<FadeAnimationView
 							style={styles.headerContainer}
-							valueToWatch={gasFeeMaxPrimary}
+							valueToWatch={valueToWatch}
 							animateOnChange={animateOnChange}
 						>
 							<View style={styles.headerTitle}>
