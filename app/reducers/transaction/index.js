@@ -11,7 +11,10 @@ const initialState = {
 		gas: undefined,
 		gasPrice: undefined,
 		to: undefined,
-		value: undefined
+		value: undefined,
+		// eip1559
+		maxFeePerGas: undefined,
+		maxPriorityFeePerGas: undefined
 	},
 	warningGasPriceHigh: undefined,
 	transactionTo: undefined,

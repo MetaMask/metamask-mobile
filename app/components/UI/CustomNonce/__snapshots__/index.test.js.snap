@@ -1,0 +1,84 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CustomNonce should render correctly 1`] = `
+<TouchableOpacity
+  style={
+    Object {
+      "borderColor": "#D8D8D8",
+      "borderRadius": 8,
+      "borderWidth": 1,
+      "display": "flex",
+      "flexDirection": "row",
+      "marginHorizontal": 24,
+      "marginTop": 10,
+      "paddingHorizontal": 16,
+      "paddingVertical": 14,
+    }
+  }
+>
+  <Text
+    black={true}
+    blue={false}
+    bold={true}
+    centered={false}
+    disclaimer={false}
+    green={false}
+    link={false}
+    modal={false}
+    primary={false}
+    red={false}
+    reset={false}
+    right={false}
+    small={false}
+    strikethrough={false}
+    underline={false}
+    upper={false}
+  >
+    Nonce
+  </Text>
+  <Text
+    black={false}
+    blue={false}
+    bold={true}
+    centered={false}
+    disclaimer={false}
+    green={false}
+    link={true}
+    modal={false}
+    primary={false}
+    red={false}
+    reset={false}
+    right={false}
+    small={false}
+    strikethrough={false}
+    underline={false}
+    upper={false}
+  >
+      
+    Edit
+  </Text>
+  <Text
+    black={true}
+    blue={false}
+    bold={true}
+    centered={false}
+    disclaimer={false}
+    green={false}
+    link={false}
+    modal={false}
+    primary={false}
+    red={false}
+    reset={false}
+    right={false}
+    small={false}
+    strikethrough={false}
+    style={
+      Object {
+        "marginLeft": "auto",
+      }
+    }
+    underline={false}
+    upper={false}
+  />
+</TouchableOpacity>
+`;

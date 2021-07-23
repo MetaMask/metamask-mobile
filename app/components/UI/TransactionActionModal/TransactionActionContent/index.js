@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
 	},
 	fee: {
 		...fontStyles.bold,
-		fontSize: 24,
+		fontSize: 16,
 		textAlign: 'center'
 	},
 	modalText: {

@@ -62,31 +62,32 @@ export default function ActionView({
 				>
 					{children}
 				</TouchableWithoutFeedback>
+
+				<View style={styles.actionContainer}>
+					{showCancelButton && (
+						<StyledButton
+							testID={cancelTestID}
+							type={confirmButtonMode === 'sign' ? 'signingCancel' : 'cancel'}
+							onPress={onCancelPress}
+							containerStyle={[styles.button, styles.cancel]}
+							disabled={confirmed}
+						>
+							{cancelText}
+						</StyledButton>
+					)}
+					{showConfirmButton && (
+						<StyledButton
+							testID={confirmTestID}
+							type={confirmButtonMode}
+							onPress={onConfirmPress}
+							containerStyle={[styles.button, styles.confirm]}
+							disabled={confirmed || confirmDisabled}
+						>
+							{confirmed ? <ActivityIndicator size="small" color="white" /> : confirmText}
+						</StyledButton>
+					)}
+				</View>
 			</KeyboardAwareScrollView>
-			<View style={styles.actionContainer}>
-				{showCancelButton && (
-					<StyledButton
-						testID={cancelTestID}
-						type={confirmButtonMode === 'sign' ? 'signingCancel' : 'cancel'}
-						onPress={onCancelPress}
-						containerStyle={[styles.button, styles.cancel]}
-						disabled={confirmed}
-					>
-						{cancelText}
-					</StyledButton>
-				)}
-				{showConfirmButton && (
-					<StyledButton
-						testID={confirmTestID}
-						type={confirmButtonMode}
-						onPress={onConfirmPress}
-						containerStyle={[styles.button, styles.confirm]}
-						disabled={confirmed || confirmDisabled}
-					>
-						{confirmed ? <ActivityIndicator size="small" color="white" /> : confirmText}
-					</StyledButton>
-				)}
-			</View>
 		</View>
 	);
 }

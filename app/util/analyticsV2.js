@@ -12,6 +12,7 @@ export const ANALYTICS_EVENTS_V2 = {
 	APPROVAL_PERMISSION_UPDATED: generateOpt('Approval Permission Updated'),
 	// Fee changed
 	GAS_FEE_CHANGED: generateOpt('Gas Fee Changed'),
+	GAS_ADVANCED_OPTIONS_CLICKED: generateOpt('Gas Advanced Options Clicked'),
 	// Dapp Transaction
 	DAPP_TRANSACTION_STARTED: generateOpt('Dapp Transaction Started'),
 	DAPP_TRANSACTION_COMPLETED: generateOpt('Dapp Transaction Completed'),

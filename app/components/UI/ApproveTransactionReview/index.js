@@ -12,9 +12,8 @@ import { safeToChecksumAddress, renderShortAddress } from '../../../util/address
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { setTransactionObject } from '../../../actions/transaction';
-import { util } from '@metamask/controllers';
+import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
 import { renderFromWei, weiToFiatNumber, fromTokenMinimalUnit, toTokenMinimalUnit } from '../../../util/number';
-import currencySymbols from '../../../util/currency-symbols.json';
 import {
 	getTicker,
 	getNormalizedTxState,
@@ -29,7 +28,6 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import TransactionHeader from '../../UI/TransactionHeader';
 import AccountInfoCard from '../../UI/AccountInfoCard';
-import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionReviewDetailsCard from '../../UI/TransactionReview/TransactionReivewDetailsCard';
 import Device from '../../../util/Device';
 import AppConstants from '../../../core/AppConstants';
@@ -40,24 +38,12 @@ import scaling from '../../../util/scaling';
 import { capitalize } from '../../../util/general';
 import EditPermission, { MINIMUM_VALUE } from './EditPermission';
 import Logger from '../../../util/Logger';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import InfoModal from '../Swaps/components/InfoModal';
 import Text from '../../Base/Text';
+import TransactionReviewEIP1559 from '../../UI/TransactionReview/TransactionReviewEIP1559';
 
 const { hexToBN } = util;
 const styles = StyleSheet.create({
-	networkFee: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		borderWidth: 1,
-		borderColor: colors.grey200,
-		borderRadius: 10,
-		padding: 16
-	},
-	networkFeeArrow: {
-		paddingLeft: 20,
-		marginTop: 2
-	},
 	section: {
 		minWidth: '100%',
 		width: '100%',
@@ -105,20 +91,6 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		alignItems: 'center'
 	},
-	sectionLeft: {
-		...fontStyles.bold,
-		color: colors.black,
-		fontSize: 14,
-		flex: 1
-	},
-	sectionRight: {
-		...fontStyles.bold,
-		color: colors.black,
-		fontSize: 14,
-		flex: 1,
-		textTransform: 'uppercase',
-		textAlign: 'right'
-	},
 	errorWrapper: {
 		marginTop: 12,
 		paddingHorizontal: 10,
@@ -149,18 +121,6 @@ const styles = StyleSheet.create({
 	},
 	paddingHorizontal: {
 		paddingHorizontal: 16
-	},
-	gasInfoContainer: {
-		paddingHorizontal: 2
-	},
-	gasInfoIcon: {
-		color: colors.blue
-	},
-	hitSlop: {
-		top: 10,
-		left: 10,
-		bottom: 10,
-		right: 10
 	}
 });
 
@@ -185,10 +145,6 @@ class ApproveTransactionReview extends PureComponent {
 		 * Callback triggered when this transaction is confirmed
 		 */
 		onConfirm: PropTypes.func,
-		/**
-		 * Currency code of the currently-active currency
-		 */
-		currentCurrency: PropTypes.string,
 		/**
 		 * Transaction state
 		 */
@@ -252,7 +208,39 @@ class ApproveTransactionReview extends PureComponent {
 		/**
 		 * A string representing the network chainId
 		 */
-		chainId: PropTypes.string
+		chainId: PropTypes.string,
+		/**
+		 * Object that represents eip1559 gas
+		 */
+		EIP1559GasData: PropTypes.object,
+		/**
+		 * Object that represents legacy gas
+		 */
+		LegacyGasData: PropTypes.object,
+		/**
+		 * Estimate type returned by the gas fee controller, can be market-fee, legacy or eth_gasPrice
+		 */
+		gasEstimateType: PropTypes.string,
+		/**
+		 * Function to call when update animation starts
+		 */
+		onUpdatingValuesStart: PropTypes.func,
+		/**
+		 * Function to call when update animation ends
+		 */
+		onUpdatingValuesEnd: PropTypes.func,
+		/**
+		 * If the values should animate upon update or not
+		 */
+		animateOnChange: PropTypes.bool,
+		/**
+		 * Boolean to determine if the animation is happening
+		 */
+		isAnimating: PropTypes.bool,
+		/**
+		 * If the gas estimations are ready
+		 */
+		gasEstimationReady: PropTypes.bool
 	};
 
 	state = {
@@ -520,28 +508,37 @@ class ApproveTransactionReview extends PureComponent {
 	};
 
 	renderDetails = () => {
-		const { host, tokenSymbol, totalGas, totalGasFiat, ticker, spenderAddress } = this.state;
+		const { host, tokenSymbol, spenderAddress } = this.state;
 
 		const {
 			primaryCurrency,
-			currentCurrency,
 			gasError,
 			activeTabUrl,
 			transaction: { origin },
 			network,
 			over,
-			warningGasPriceHigh
+			warningGasPriceHigh,
+			EIP1559GasData,
+			LegacyGasData,
+			gasEstimateType,
+			onUpdatingValuesStart,
+			onUpdatingValuesEnd,
+			animateOnChange,
+			isAnimating,
+			gasEstimationReady
 		} = this.props;
 		const is_main_net = isMainNet(network);
-		const isFiat = primaryCurrency.toLowerCase() === 'fiat';
-		const currencySymbol = currencySymbols[currentCurrency];
-		const totalGasFiatRounded = Math.round(totalGasFiat * 100) / 100;
 		const originIsDeeplink = origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
 		const errorPress = is_main_net ? this.buyEth : this.gotoFaucet;
 		const networkName = capitalize(getNetworkName(network));
 		const errorLinkText = is_main_net
 			? strings('transaction.buy_more_eth')
 			: strings('transaction.get_ether', { networkName });
+
+		const showFeeMarket =
+			!gasEstimateType ||
+			gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ||
+			gasEstimateType === GAS_ESTIMATE_TYPES.NONE;
 
 		return (
 			<>
@@ -567,6 +564,7 @@ class ApproveTransactionReview extends PureComponent {
 							confirmText={strings('transactions.approve')}
 							onCancelPress={this.onCancelPress}
 							onConfirmPress={this.onConfirmPress}
+							confirmDisabled={Boolean(gasError)}
 						>
 							<View style={styles.actionViewChildren}>
 								<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleEditPermission}>
@@ -577,35 +575,48 @@ class ApproveTransactionReview extends PureComponent {
 								<View style={styles.paddingHorizontal}>
 									<AccountInfoCard />
 									<View style={styles.section}>
-										<TouchableOpacity onPress={this.edit}>
-											<View style={styles.networkFee}>
-												<Text reset style={styles.sectionLeft}>
-													{strings('transaction.transaction_fee')}
-													<TouchableOpacity
-														style={styles.gasInfoContainer}
-														onPress={this.toggleGasTooltip}
-														hitSlop={styles.hitSlop}
-													>
-														<MaterialCommunityIcons
-															name="information"
-															size={13}
-															style={styles.gasInfoIcon}
-														/>
-													</TouchableOpacity>
-												</Text>
-												<Text reset style={styles.sectionRight}>
-													{isFiat && currencySymbol}
-													{isFiat ? totalGasFiatRounded : totalGas} {!isFiat && ticker}
-												</Text>
-												<View style={styles.networkFeeArrow}>
-													<IonicIcon
-														name="ios-arrow-forward"
-														size={16}
-														color={colors.grey00}
-													/>
-												</View>
-											</View>
-										</TouchableOpacity>
+										{showFeeMarket ? (
+											<TransactionReviewEIP1559
+												totalNative={EIP1559GasData.renderableTotalMinNative}
+												totalConversion={EIP1559GasData.renderableTotalMinConversion}
+												totalMaxNative={EIP1559GasData.renderableTotalMaxNative}
+												gasFeeNative={EIP1559GasData.renderableGasFeeMinNative}
+												gasFeeConversion={EIP1559GasData.renderableGasFeeMinConversion}
+												gasFeeMaxNative={EIP1559GasData.renderableGasFeeMaxNative}
+												gasFeeMaxConversion={EIP1559GasData.renderableGasFeeMaxConversion}
+												primaryCurrency={primaryCurrency}
+												timeEstimate={EIP1559GasData.timeEstimate}
+												timeEstimateColor={EIP1559GasData.timeEstimateColor}
+												timeEstimateId={EIP1559GasData.timeEstimateId}
+												hideTotal
+												noMargin
+												onEdit={this.edit}
+												onUpdatingValuesStart={onUpdatingValuesStart}
+												onUpdatingValuesEnd={onUpdatingValuesEnd}
+												animateOnChange={animateOnChange}
+												isAnimating={isAnimating}
+												gasEstimationReady={gasEstimationReady}
+											/>
+										) : (
+											<TransactionReviewEIP1559
+												totalNative={LegacyGasData.transactionTotalAmount}
+												totalConversion={LegacyGasData.transactionTotalAmountFiat}
+												gasFeeNative={LegacyGasData.transactionFee}
+												gasFeeConversion={LegacyGasData.transactionFeeFiat}
+												primaryCurrency={primaryCurrency}
+												hideTotal
+												noMargin
+												onEdit={this.edit}
+												over={Boolean(LegacyGasData.error)}
+												onUpdatingValuesStart={this.onUpdatingValuesStart}
+												onUpdatingValuesEnd={this.onUpdatingValuesEnd}
+												animateOnChange={animateOnChange}
+												isAnimating={isAnimating}
+												gasEstimationReady={gasEstimationReady}
+												legacy
+											/>
+										)}
+
 										{gasError && (
 											<View style={styles.errorWrapper}>
 												<TouchableOpacity onPress={errorPress}>
@@ -727,7 +738,6 @@ class ApproveTransactionReview extends PureComponent {
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
-	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	transaction: getNormalizedTxState(state),
 	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts || {}).length,

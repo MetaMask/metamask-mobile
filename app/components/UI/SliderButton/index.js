@@ -107,10 +107,13 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 		inputRange: [0, Math.max(componentWidth - DIAMETER, 0)],
 		outputRange: [1, 0]
 	});
-	const shineOpacity = incompleteTextOpacity.interpolate({
-		inputRange: [0, 0.5, 1],
-		outputRange: [0, 0, 1]
-	});
+	const shineOpacity = disabled
+		? 0
+		: incompleteTextOpacity.interpolate({
+				inputRange: [0, 0.5, 1],
+				outputRange: [0, 0, 1]
+				// eslint-disable-next-line no-mixed-spaces-and-tabs
+		  });
 	const sliderCompletedOpacity = completion.interpolate({ inputRange: [0, 1], outputRange: [1, 0] });
 	const trackFrontBackgroundColor = completion.interpolate({
 		inputRange: [0, 1],
@@ -190,7 +193,7 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 					source={SliderBgImg}
 					resizeMode="stretch"
 				/>
-				{!Device.isAndroid() && !disabled && (
+				{!Device.isAndroid() && (
 					<Animated.Image
 						style={[
 							styles.trackBackShine,

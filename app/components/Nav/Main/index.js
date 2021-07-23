@@ -336,7 +336,6 @@ const Main = props => {
 				const { AssetsContractController } = Engine.context;
 				transactionMeta.transaction.gas = hexToBN(gas);
 				transactionMeta.transaction.gasPrice = hexToBN(gasPrice);
-
 				if (
 					(value === '0x0' || !value) &&
 					data &&

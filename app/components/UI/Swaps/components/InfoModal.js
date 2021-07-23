@@ -48,15 +48,16 @@ const styles = StyleSheet.create({
 	}
 });
 
-function InfoModal({ title, body, isVisible, toggleModal }) {
+function InfoModal({ title, body, isVisible, toggleModal, propagateSwipe }) {
 	return (
 		<Modal
 			isVisible={isVisible}
 			onBackdropPress={toggleModal}
 			onBackButtonPress={toggleModal}
 			onSwipeComplete={toggleModal}
-			swipeDirection="down"
+			swipeDirection={'down'}
 			style={styles.modal}
+			propagateSwipe={propagateSwipe}
 		>
 			<SafeAreaView style={styles.modalView}>
 				<View style={styles.title}>
@@ -74,7 +75,8 @@ InfoModal.propTypes = {
 	isVisible: PropTypes.bool,
 	title: PropTypes.node,
 	body: PropTypes.node,
-	toggleModal: PropTypes.func
+	toggleModal: PropTypes.func,
+	propagateSwipe: PropTypes.bool
 };
 
 export default InfoModal;

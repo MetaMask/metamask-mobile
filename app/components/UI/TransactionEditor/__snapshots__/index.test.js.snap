@@ -2,49 +2,32 @@
 
 exports[`TransactionEditor should render correctly 1`] = `
 <Fragment>
-  <KeyboardAwareScrollView
-    contentContainerStyle={
+  <EditGasFeeLegacy
+    analyticsParams={
       Object {
-        "flex": 1,
-        "justifyContent": "flex-end",
+        "active_currency": Object {
+          "anonymous": true,
+          "value": undefined,
+        },
+        "dapp_host_name": undefined,
+        "dapp_url": undefined,
+        "gas_estimate_type": undefined,
+        "network_name": "mainnet",
       }
     }
-    enableAutomaticScroll={true}
-    enableOnAndroid={false}
-    enableResetScrollToCoords={true}
-    extraHeight={75}
-    extraScrollHeight={0}
-    keyboardOpeningTime={250}
-    viewIsInsideTabBar={false}
-  >
-    <AnimatedTransactionModal
-      ready={false}
-      review={[Function]}
-    >
-      <Connect(TransactionReview)
-        onCancel={[Function]}
-        onConfirm={[Function]}
-        over={false}
-        ready={false}
-        validate={[Function]}
-      />
-      <Connect(CustomGas)
-        analyticsParams={
-          Object {
-            "active_currency": Object {
-              "anonymous": true,
-              "value": undefined,
-            },
-            "dapp_host_name": undefined,
-            "dapp_url": undefined,
-          }
-        }
-        basicGasEstimates={Object {}}
-        gasError=""
-        handleGasFeeSelection={[Function]}
-        view="Transaction"
-      />
-    </AnimatedTransactionModal>
-  </KeyboardAwareScrollView>
+    chainId="1"
+    gasFee={Object {}}
+    ignoreOptions={Array []}
+    onCancel={[Function]}
+    onChange={[Function]}
+    onSave={[Function]}
+    onUpdatingValuesEnd={[Function]}
+    onUpdatingValuesStart={[Function]}
+    over={false}
+    primaryCurrency="fiat"
+    selected="medium"
+    view="Transaction"
+    warningMinimumEstimateOption="low"
+  />
 </Fragment>
 `;
