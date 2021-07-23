@@ -181,8 +181,6 @@ workflows:
                   inputs:
                       - deploy_path: $BITRISE_DEPLOY_DIR/app-release.apk
                   title: Bitrise Deploy APK
-        title: Bitrise Deploy APK 
-                  title: Bitrise Deploy APK
             - yarn@0:
                 inputs:
                 - command: build:announce
@@ -217,8 +215,6 @@ workflows:
                   inputs:
                       - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/release/app-release.apk
                   title: Bitrise Deploy APK
-        title: Bitrise Deploy APK 
-                  title: Bitrise Deploy APK
             - deploy-to-bitrise-io@1:
                   inputs:
                       - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/release/sha512sums.txt
@@ -226,8 +222,6 @@ workflows:
             - deploy-to-bitrise-io@1:
                   inputs:
                       - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/release/app-release.aab
-                  title: Bitrise Deploy AAB
-        title: Bitrise Deploy AAB 
                   title: Bitrise Deploy AAB
             - deploy-to-bitrise-io@1:
                   inputs:
