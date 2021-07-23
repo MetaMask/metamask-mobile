@@ -15,7 +15,7 @@ const initialState = {
 			AccountTrackerController: {
 				accounts: []
 			},
-			AssetsController: {
+			TokensController: {
 				tokens: []
 			},
 			CurrencyRateController: {

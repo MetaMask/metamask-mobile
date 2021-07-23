@@ -41,7 +41,7 @@ const initialState = {
 			TransactionController: {
 				transactions: []
 			},
-			AssetsController: {
+			TokensController: {
 				tokens: []
 			},
 			TokenRatesController: {

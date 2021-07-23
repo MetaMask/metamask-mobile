@@ -17,7 +17,7 @@ const initialState = {
 					type: ROPSTEN
 				}
 			},
-			AssetsController: {
+			TokensController: {
 				tokens: []
 			},
 			PreferencesController: {

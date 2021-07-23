@@ -8,7 +8,7 @@ const mockStore = configureMockStore();
 const initialState = {
 	engine: {
 		backgroundState: {
-			AssetsController: {
+			CollectiblesController: {
 				collectibles: []
 			}
 		}

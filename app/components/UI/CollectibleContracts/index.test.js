@@ -19,7 +19,7 @@ const initialState = {
 			PreferencesController: {
 				selectedAddress: '0x1'
 			},
-			AssetsController: {
+			CollectiblesController: {
 				collectibleContracts: [
 					{
 						name: 'name',

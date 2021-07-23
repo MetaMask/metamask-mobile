@@ -257,8 +257,8 @@ class Tokens extends PureComponent {
 	};
 
 	removeToken = () => {
-		const { AssetsController } = Engine.context;
-		AssetsController.removeAndIgnoreToken(this.tokenToRemove.address);
+		const { TokensController } = Engine.context;
+		TokensController.removeAndIgnoreToken(this.tokenToRemove.address);
 		Alert.alert(strings('wallet.token_removed_title'), strings('wallet.token_removed_desc'));
 	};
 

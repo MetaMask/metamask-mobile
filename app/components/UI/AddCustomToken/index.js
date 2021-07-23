@@ -73,9 +73,9 @@ export default class AddCustomToken extends PureComponent {
 
 	addToken = async () => {
 		if (!(await this.validateCustomToken())) return;
-		const { AssetsController } = Engine.context;
+		const { TokensController } = Engine.context;
 		const { address, symbol, decimals } = this.state;
-		await AssetsController.addToken(address, symbol, decimals);
+		await TokensController.addToken(address, symbol, decimals);
 
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.TOKEN_ADDED, this.getAnalyticsParams());
 

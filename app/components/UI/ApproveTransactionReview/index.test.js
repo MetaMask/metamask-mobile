@@ -20,7 +20,7 @@ const initialState = {
 					type: 'ETH'
 				}
 			},
-			AssetsController: {
+			TokensController: {
 				tokens: []
 			}
 		}

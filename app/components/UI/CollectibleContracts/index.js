@@ -187,8 +187,8 @@ CollectibleContracts.propTypes = {
 };
 
 const mapStateToProps = state => ({
-	collectibleContracts: state.engine.backgroundState.AssetsController.collectibleContracts,
-	collectibles: state.engine.backgroundState.AssetsController.collectibles,
+	collectibleContracts: state.engine.backgroundState.CollectiblesController.collectibleContracts,
+	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
 	favoriteCollectibles: favoritesCollectiblesObjectSelector(state)
 });
 
