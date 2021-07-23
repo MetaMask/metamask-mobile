@@ -77,7 +77,7 @@ const TransactionsView = ({
 				case 'signed':
 				case 'unapproved':
 					submittedTxs.push(tx);
-					break;
+					return false;
 				case 'pending':
 					newPendingTxs.push(tx);
 					break;
@@ -91,6 +91,14 @@ const TransactionsView = ({
 		const submittedNonces = [];
 		const submittedTxsFiltered = submittedTxs.filter(transaction => {
 			const alreadySubmitted = submittedNonces.includes(transaction.transaction.nonce);
+			const alreadyConfirmed = confirmedTxs.find(
+				tx =>
+					safeToChecksumAddress(tx.transaction.from) === selectedAddress &&
+					tx.transaction.nonce === transaction.transaction.nonce
+			);
+			if (alreadyConfirmed) {
+				return false;
+			}
 			submittedNonces.push(transaction.transaction.nonce);
 			return !alreadySubmitted;
 		});
@@ -99,7 +107,6 @@ const TransactionsView = ({
 		if (!accountAddedTimeInsertPointFound && allTransactions && allTransactions.length) {
 			allTransactions[allTransactions.length - 1].insertImportTime = true;
 		}
-
 		setAllTransactions(allTransactions);
 		setSubmittedTxs(submittedTxsFiltered);
 		setConfirmedTxs(confirmedTxs);
