@@ -29,7 +29,8 @@ const GAS_MIN = new BigNumber(1);
 const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
-		borderRadius: 20,
+		borderTopLeftRadius: 20,
+		borderTopRightRadius: 20,
 		minHeight: 200,
 		maxHeight: '95%',
 		paddingTop: 24,
@@ -100,10 +101,12 @@ const styles = StyleSheet.create({
 	},
 	warningTextContainer: {
 		lineHeight: 20,
-		paddingLeft: 4
+		paddingLeft: 4,
+		flex: 1
 	},
 	warningText: {
-		lineHeight: 20
+		lineHeight: 20,
+		flex: 1
 	},
 	warningContainer: {
 		marginBottom: 20
@@ -313,10 +316,12 @@ const EditGasFee1559 = ({
 		maxPriorityFeePerGasPrimary = maxPriorityFeeConversion;
 	}
 
+	const valueToWatch = `${gasFeeNative}${gasFeeMaxNative}`;
+
 	const renderInputs = () => (
 		<View>
 			<FadeAnimationView
-				valueToWatch={gasFeeMaxPrimary}
+				valueToWatch={valueToWatch}
 				animateOnChange={animateOnChange}
 				onAnimationStart={onUpdatingValuesStart}
 				onAnimationEnd={onUpdatingValuesEnd}
@@ -466,11 +471,13 @@ const EditGasFee1559 = ({
 					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.yellow} />}
 					style={styles.warningContainer}
 				>
-					<View style={styles.warningTextContainer}>
-						<Text black style={styles.warningText}>
-							{warning}
-						</Text>
-					</View>
+					{() => (
+						<View style={styles.warningTextContainer}>
+							<Text black style={styles.warningText}>
+								{warning}
+							</Text>
+						</View>
+					)}
 				</Alert>
 			);
 
@@ -487,11 +494,13 @@ const EditGasFee1559 = ({
 					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.red} />}
 					style={styles.warningContainer}
 				>
-					<View style={styles.warningTextContainer}>
-						<Text red style={styles.warningText}>
-							{error}
-						</Text>
-					</View>
+					{() => (
+						<View style={styles.warningTextContainer}>
+							<Text red style={styles.warningText}>
+								{error}
+							</Text>
+						</View>
+					)}
 				</Alert>
 			);
 
@@ -518,7 +527,7 @@ const EditGasFee1559 = ({
 						{renderError}
 						<FadeAnimationView
 							style={styles.headerContainer}
-							valueToWatch={gasFeeMaxPrimary}
+							valueToWatch={valueToWatch}
 							animateOnChange={animateOnChange}
 						>
 							<View style={styles.headerTitle}>

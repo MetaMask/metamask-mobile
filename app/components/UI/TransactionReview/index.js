@@ -182,7 +182,11 @@ class TransactionReview extends PureComponent {
 		/**
 		 * Object that represents the navigator
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * If it's a eip1559 network and dapp suggest legact gas then it should show a warning
+		 */
+		dappSuggestedGasWarning: PropTypes.bool
 	};
 
 	state = {
@@ -334,7 +338,8 @@ class TransactionReview extends PureComponent {
 			animateOnChange,
 			isAnimating,
 			dappSuggestedGas,
-			navigation
+			navigation,
+			dappSuggestedGasWarning
 		} = this.props;
 		const { actionKey, error, assetAmount, conversionRate, fiatValue, approveTransaction } = this.state;
 		const currentPageInformation = { url: this.getUrlFromBrowser() };
@@ -376,6 +381,7 @@ class TransactionReview extends PureComponent {
 									gasEstimateType={gasEstimateType}
 									EIP1559GasData={EIP1559GasData}
 									origin={dappSuggestedGas ? currentPageInformation?.url : null}
+									originWarning={dappSuggestedGasWarning}
 									onUpdatingValuesStart={onUpdatingValuesStart}
 									onUpdatingValuesEnd={onUpdatingValuesEnd}
 									animateOnChange={animateOnChange}

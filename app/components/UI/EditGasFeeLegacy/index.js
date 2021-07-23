@@ -28,7 +28,8 @@ const GAS_PRICE_MIN = new BigNumber(1);
 const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
-		borderRadius: 20,
+		borderTopLeftRadius: 20,
+		borderTopRightRadius: 20,
 		minHeight: 200,
 		maxHeight: '95%',
 		paddingTop: 24,
@@ -288,6 +289,9 @@ const EditGasFeeLegacy = ({
 		gasFeePrimary = gasFeeConversion;
 		gasFeeSecondary = gasFeeNative;
 	}
+
+	const valueToWatch = gasFeeNative;
+
 	return (
 		<View style={styles.root}>
 			<ScrollView style={styles.wrapper}>
@@ -307,7 +311,7 @@ const EditGasFeeLegacy = ({
 						{renderWarning}
 						{renderError}
 						<FadeAnimationView
-							valueToWatch={gasFeePrimary}
+							valueToWatch={valueToWatch}
 							animateOnChange={animateOnChange}
 							onAnimationStart={onUpdatingValuesStart}
 							onAnimationEnd={onUpdatingValuesEnd}
