@@ -187,7 +187,11 @@ class TransactionReviewInformation extends PureComponent {
 		/**
 		 * Boolean to determine if the animation is happening
 		 */
-		isAnimating: PropTypes.bool
+		isAnimating: PropTypes.bool,
+		/**
+		 * If it's a eip1559 network and dapp suggest legact gas then it should show a warning
+		 */
+		originWarning: PropTypes.bool
 	};
 
 	state = {
@@ -426,6 +430,7 @@ class TransactionReviewInformation extends PureComponent {
 			EIP1559GasData,
 			primaryCurrency,
 			origin,
+			originWarning,
 			onUpdatingValuesStart,
 			onUpdatingValuesEnd,
 			animateOnChange,
@@ -456,6 +461,7 @@ class TransactionReviewInformation extends PureComponent {
 				timeEstimateId={EIP1559GasData.timeEstimateId}
 				onEdit={this.edit}
 				origin={host}
+				originWarning={originWarning}
 				onUpdatingValuesStart={onUpdatingValuesStart}
 				onUpdatingValuesEnd={onUpdatingValuesEnd}
 				animateOnChange={animateOnChange}

@@ -28,7 +28,8 @@ const GAS_PRICE_MIN = new BigNumber(1);
 const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
-		borderRadius: 20,
+		borderTopLeftRadius: 20,
+		borderTopRightRadius: 20,
 		minHeight: 200,
 		maxHeight: '95%',
 		paddingTop: 24,

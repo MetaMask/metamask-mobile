@@ -1699,7 +1699,8 @@
 		"estimated_gas_fee_tooltip_text_3": " network.",
 		"estimated_gas_fee_tooltip_text_4": "MetaMask does not profit from gas fees.",
 		"estimated_gas_fee_tooltip_text_5": "Gas fees are set by the network and fluctuate based on network traffic and transaction complexity.",
-		"learn_more": "Learn more about gas fees"
+		"learn_more": "Learn more about gas fees",
+		"legacy_gas_suggestion_tooltip": "This gas fee suggestion is using legacy gas estimation which may be inaccurate."
 	},
 	"times_eip1559": {
 		"unknown": "Unknown processing time",

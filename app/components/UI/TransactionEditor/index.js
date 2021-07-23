@@ -916,10 +916,13 @@ class TransactionEditor extends PureComponent {
 	renderWarning = () => {
 		const { dappSuggestedGasPrice, dappSuggestedEIP1559Gas } = this.state;
 		const {
-			transaction: { origin }
+			transaction: { origin },
+			gasEstimateType
 		} = this.props;
-		if (dappSuggestedGasPrice) return strings('transaction.dapp_suggested_gas', { origin });
-		if (dappSuggestedEIP1559Gas) return strings('transaction.dapp_suggested_eip1559_gas', { origin });
+		if (dappSuggestedGasPrice && gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET)
+			return strings('transaction.dapp_suggested_gas', { origin });
+		if (dappSuggestedEIP1559Gas || gasEstimateType !== GAS_ESTIMATE_TYPES.FEE_MARKET)
+			return strings('transaction.dapp_suggested_eip1559_gas', { origin });
 
 		return null;
 	};
@@ -975,6 +978,9 @@ class TransactionEditor extends PureComponent {
 								animateOnChange={animateOnChange}
 								isAnimating={isAnimating}
 								dappSuggestedGas={Boolean(dappSuggestedGasPrice) || Boolean(dappSuggestedEIP1559Gas)}
+								dappSuggestedGasWarning={
+									Boolean(dappSuggestedGasPrice) && gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET
+								}
 							/>
 
 							<CustomGas
