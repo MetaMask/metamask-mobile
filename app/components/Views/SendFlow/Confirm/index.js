@@ -573,7 +573,7 @@ class Confirm extends PureComponent {
 			prepareTransaction,
 			transactionState: { transaction }
 		} = this.props;
-		const estimation = await getGasLimit();
+		const estimation = await getGasLimit(transaction);
 		prepareTransaction({ ...transaction, ...estimation });
 	};
 
@@ -804,7 +804,6 @@ class Confirm extends PureComponent {
 		this.setState({ transactionConfirmed: true, stopUpdateGas: true });
 		try {
 			const transaction = this.prepareTransactionToSend();
-
 			let error;
 			if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
 				error = this.validateAmount({ transaction, total: EIP1559TransactionData.totalMaxHex });
