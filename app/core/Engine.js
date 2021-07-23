@@ -111,7 +111,6 @@ class Engine {
 			currencyRateController.start();
 
 			const gasFeeController = new GasFeeController({
-				interval: 15 * 1000,
 				messenger: this.controllerMessenger,
 				getProvider: () => networkController.provider,
 				onNetworkStateChange: listener => networkController.subscribe(listener),
