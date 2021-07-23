@@ -211,7 +211,6 @@ exports[`Amount should render correctly 1`] = `
             "marginHorizontal": 24,
           }
         }
-        disabled={true}
         disabledContainerStyle={
           Object {
             "opacity": 0.6,

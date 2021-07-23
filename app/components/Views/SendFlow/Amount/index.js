@@ -39,8 +39,8 @@ import {
 	fromTokenMinimalUnitString,
 	toHexadecimal
 } from '../../../../util/number';
-import { getTicker, generateTransferData, getEther } from '../../../../util/transactions';
-import { util } from '@metamask/controllers';
+import { getTicker, generateTransferData, getEther, calculateEIP1559GasFeeHexes } from '../../../../util/transactions';
+import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
 import ErrorMessage from '../ErrorMessage';
 import { getGasPriceByChainId } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
@@ -55,6 +55,8 @@ import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import NetworkMainAssetLogo from '../../../UI/NetworkMainAssetLogo';
 import { isMainNet } from '../../../../util/networks';
 import { toLowerCaseEquals } from '../../../../util/general';
+import { decGWEIToHexWEI } from '../../../../util/conversions';
+import AppConstants from '../../../../core/AppConstants';
 
 const { hexToBN, BNToHex } = util;
 
@@ -412,9 +414,37 @@ class Amount extends PureComponent {
 		this.onInputChange(readableValue);
 		!selectedAsset.tokenId && this.handleSelectedAssetBalance(selectedAsset);
 
-		const estimatedTotalGas = await this.estimateTransactionTotalGas();
+		const { GasFeeController } = Engine.context;
+		const [gasEstimates, gas] = await Promise.all([
+			GasFeeController.fetchGasFeeEstimates({ shouldUpdateState: false }),
+			this.estimateGasLimit()
+		]);
+
+		if (gasEstimates.gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+			const gasFeeEstimates = gasEstimates.gasFeeEstimates[AppConstants.GAS_OPTIONS.MEDIUM];
+			const estimatedBaseFeeHex = decGWEIToHexWEI(gasEstimates.gasFeeEstimates.estimatedBaseFee);
+			const suggestedMaxPriorityFeePerGasHex = decGWEIToHexWEI(gasFeeEstimates.suggestedMaxPriorityFeePerGas);
+			const suggestedMaxFeePerGasHex = decGWEIToHexWEI(gasFeeEstimates.suggestedMaxFeePerGas);
+			const gasLimitHex = BNToHex(gas);
+			const gasHexes = calculateEIP1559GasFeeHexes({
+				gasLimitHex,
+				estimatedBaseFeeHex,
+				suggestedMaxFeePerGasHex,
+				suggestedMaxPriorityFeePerGasHex
+			});
+			this.setState({
+				estimatedTotalGas: hexToBN(gasHexes.gasFeeMaxHex),
+				gasEstimateType: gasEstimates.gasEstimateType
+			});
+		} else if (gasEstimates.gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY) {
+			const gasPrice = hexToBN(decGWEIToHexWEI(gasEstimates.gasFeeEstimates[AppConstants.GAS_OPTIONS.MEDIUM]));
+			this.setState({ estimatedTotalGas: gas.mul(gasPrice), gasEstimateType: gasEstimates.gasEstimateType });
+		} else {
+			const gasPrice = hexToBN(decGWEIToHexWEI(gasEstimates.gasFeeEstimates.gasPrice));
+			this.setState({ estimatedTotalGas: gas.mul(gasPrice), gasEstimateType: gasEstimates.gasEstimateType });
+		}
+
 		this.setState({
-			estimatedTotalGas,
 			inputValue: readableValue
 		});
 	};
@@ -625,17 +655,17 @@ class Amount extends PureComponent {
 	/**
 	 * Estimate transaction gas with information available
 	 */
-	estimateTransactionTotalGas = async () => {
+	estimateGasLimit = async () => {
 		const {
 			transaction: { from },
 			transactionTo
 		} = this.props.transactionState;
-		const { gas, gasPrice } = await getGasPriceByChainId({
+		const { gas } = await getGasPriceByChainId({
 			from,
 			to: transactionTo
 		});
 
-		return gas.mul(gasPrice);
+		return gas;
 	};
 
 	useMax = () => {
@@ -1051,7 +1081,6 @@ class Amount extends PureComponent {
 						<StyledButton
 							type={'confirm'}
 							containerStyle={styles.buttonNext}
-							disabled={!estimatedTotalGas}
 							onPress={this.onNext}
 							testID={'txn-amount-next-button'}
 						>
@@ -1081,7 +1110,9 @@ const mapStateToProps = (state, ownProps) => ({
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	transactionState: ownProps.transaction || state.transaction,
 	selectedAsset: state.transaction.selectedAsset,
-	isPaymentRequest: state.transaction.paymentRequest
+	isPaymentRequest: state.transaction.paymentRequest,
+	gasFeeEstimates: state.engine.backgroundState.GasFeeController.gasFeeEstimates,
+	gasEstimateType: state.engine.backgroundState.GasFeeController.gasEstimateType
 });
 
 const mapDispatchToProps = dispatch => ({
