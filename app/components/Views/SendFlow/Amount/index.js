@@ -1111,9 +1111,7 @@ const mapStateToProps = (state, ownProps) => ({
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	transactionState: ownProps.transaction || state.transaction,
 	selectedAsset: state.transaction.selectedAsset,
-	isPaymentRequest: state.transaction.paymentRequest,
-	gasFeeEstimates: state.engine.backgroundState.GasFeeController.gasFeeEstimates,
-	gasEstimateType: state.engine.backgroundState.GasFeeController.gasEstimateType
+	isPaymentRequest: state.transaction.paymentRequest
 });
 
 const mapDispatchToProps = dispatch => ({

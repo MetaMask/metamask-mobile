@@ -53,9 +53,6 @@ describe('Amount', () => {
 					},
 					TokenBalancesController: {
 						contractBalance: {}
-					},
-					GasFeeController: {
-						gasEstimates: {}
 					}
 				}
 			},
