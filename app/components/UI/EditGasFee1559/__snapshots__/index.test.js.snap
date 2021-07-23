@@ -77,6 +77,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
               "marginBottom": 22,
             }
           }
+          valueToWatch="undefinedundefined"
         >
           <View
             style={
@@ -196,7 +197,9 @@ exports[`EditGasFee1559 should render correctly 1`] = `
           </View>
         </FadeAnimationView>
         <View>
-          <FadeAnimationView>
+          <FadeAnimationView
+            valueToWatch="undefinedundefined"
+          >
             <View>
               <HorizontalSelector
                 onPress={[Function]}
