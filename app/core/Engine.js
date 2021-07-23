@@ -142,10 +142,11 @@ class Engine {
 					getBalancesInSingleCall: assetsContractController.getBalancesInSingleCall.bind(
 						assetsContractController
 					),
-					addTokens: assetsController.addTokens.bind(assetsController),
-					addCollectible: assetsController.addCollectible.bind(assetsController),
-					removeCollectible: assetsController.removeCollectible.bind(assetsController),
-					getAssetsState: () => assetsController.state,
+					addTokens: tokensController.addTokens.bind(tokensController),
+					addCollectible: collectiblesController.addCollectible.bind(collectiblesController),
+					removeCollectible: collectiblesController.removeCollectible.bind(collectiblesController),
+					getCollectiblesState: () => collectiblesController.state,
+					getTokenState: () => tokensController.state,
 					//TODO: replace during Token List Refactor
 					getTokenListState: () => {
 						const tokenList = Object.entries(contractMap).reduce((final, [key, value]) => {
