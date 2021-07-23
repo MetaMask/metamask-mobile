@@ -1401,7 +1401,7 @@ function SwapsQuotesView({
 									</View>
 								) : (
 									<FadeAnimationView
-										valueToWatch={selectedQuoteValue?.ethFee}
+										valueToWatch={`${selectedQuoteValue?.ethFee}${selectedQuoteValue?.maxEthFee}`}
 										animateOnChange={animateOnGasChange}
 										onAnimationStart={onGasAnimationStart}
 										onAnimationEnd={onGasAnimationEnd}
@@ -1481,7 +1481,9 @@ function SwapsQuotesView({
 									<>
 										<View style={styles.quotesDescription} />
 										<FadeAnimationView
-											valueToWatch={selectedQuoteValue?.maxEthFee}
+											valueToWatch={`${selectedQuoteValue?.ethFee}${
+												selectedQuoteValue?.maxEthFee
+											}`}
 											animateOnChange={animateOnGasChange}
 											style={styles.quotesFiatColumn}
 										>
