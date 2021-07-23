@@ -131,7 +131,8 @@ const TransactionReviewEIP1559 = ({
 		totalMaxPrimary = gasFeeMaxConversion;
 	}
 
-	const valueToWatchAnimation = gasFeeNative;
+	const valueToWatchAnimation = `${gasFeeNative}${gasFeeMaxNative}`;
+
 	return (
 		<Summary style={styles.overview(noMargin)}>
 			<Summary.Row>

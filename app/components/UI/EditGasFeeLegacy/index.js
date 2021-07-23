@@ -289,6 +289,9 @@ const EditGasFeeLegacy = ({
 		gasFeePrimary = gasFeeConversion;
 		gasFeeSecondary = gasFeeNative;
 	}
+
+	const valueToWatch = gasFeeNative;
+
 	return (
 		<View style={styles.root}>
 			<ScrollView style={styles.wrapper}>
@@ -308,7 +311,7 @@ const EditGasFeeLegacy = ({
 						{renderWarning}
 						{renderError}
 						<FadeAnimationView
-							valueToWatch={gasFeePrimary}
+							valueToWatch={valueToWatch}
 							animateOnChange={animateOnChange}
 							onAnimationStart={onUpdatingValuesStart}
 							onAnimationEnd={onUpdatingValuesEnd}
