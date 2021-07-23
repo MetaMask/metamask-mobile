@@ -451,8 +451,8 @@ class Send extends PureComponent {
 	removeCollectible = () => {
 		const { selectedAsset, assetType, providerType } = this.props.transaction;
 		if (assetType === 'ERC721' && providerType !== MAINNET) {
-			const { AssetsController } = Engine.context;
-			AssetsController.removeCollectible(selectedAsset.address, selectedAsset.tokenId);
+			const { CollectiblesController } = Engine.context;
+			CollectiblesController.removeCollectible(selectedAsset.address, selectedAsset.tokenId);
 		}
 	};
 
@@ -665,7 +665,7 @@ const mapStateToProps = state => ({
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	transaction: state.transaction,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
-	tokens: state.engine.backgroundState.AssetsController.tokens,
+	tokens: state.engine.backgroundState.TokensController.tokens,
 	network: state.engine.backgroundState.NetworkController.network,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,

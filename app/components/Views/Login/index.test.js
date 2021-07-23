@@ -19,7 +19,7 @@ describe('Login', () => {
 							type: ROPSTEN
 						}
 					},
-					AssetsController: {
+					TokensController: {
 						tokens: []
 					},
 					PreferencesController: {}

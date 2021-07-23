@@ -316,7 +316,7 @@ const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-	tokens: state.engine.backgroundState.AssetsController.tokens,
+	tokens: state.engine.backgroundState.TokensController.tokens,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	thirdPartyApiMode: state.privacy.thirdPartyApiMode
 });

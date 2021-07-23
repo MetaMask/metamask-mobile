@@ -21,7 +21,7 @@ describe('CollectibleContracts', () => {
 					PreferencesController: {
 						selectedAddress: '0x1'
 					},
-					AssetsController: {
+					CollectiblesController: {
 						collectibleContracts: [
 							{
 								name: 'name',

@@ -133,7 +133,7 @@ class Collectible extends PureComponent {
 }
 
 const mapStateToProps = state => ({
-	collectibles: state.engine.backgroundState.AssetsController.collectibles,
+	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
 	collectibleContractModalVisible: state.modals.collectibleContractModalVisible
 });
 

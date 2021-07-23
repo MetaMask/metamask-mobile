@@ -375,11 +375,11 @@ const mapStateToProps = state => ({
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-	tokens: state.engine.backgroundState.AssetsController.tokens.reduce((tokens, token) => {
+	tokens: state.engine.backgroundState.TokensController.tokens.reduce((tokens, token) => {
 		tokens[token.address] = token;
 		return tokens;
 	}, {}),
-	collectibleContracts: state.engine.backgroundState.AssetsController.collectibleContracts,
+	collectibleContracts: state.engine.backgroundState.CollectiblesController.collectibleContracts,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,

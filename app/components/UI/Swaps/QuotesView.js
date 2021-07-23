@@ -224,7 +224,7 @@ async function resetAndStartPolling({ slippage, sourceToken, destinationToken, s
 	if (!sourceToken || !destinationToken) {
 		return;
 	}
-	const { SwapsController, TokenRatesController, AssetsController } = Engine.context;
+	const { SwapsController, TokenRatesController, TokensController } = Engine.context;
 	const contractExchangeRates = TokenRatesController.state.contractExchangeRates;
 	// ff the token is not in the wallet, we'll add it
 	if (
@@ -232,7 +232,7 @@ async function resetAndStartPolling({ slippage, sourceToken, destinationToken, s
 		!(safeToChecksumAddress(destinationToken.address) in contractExchangeRates)
 	) {
 		const { address, symbol, decimals } = destinationToken;
-		await AssetsController.addToken(address, symbol, decimals);
+		await TokensController.addToken(address, symbol, decimals);
 		await new Promise(resolve =>
 			setTimeout(() => {
 				resolve();

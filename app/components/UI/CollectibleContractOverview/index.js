@@ -140,7 +140,7 @@ class CollectibleContractOverview extends PureComponent {
 }
 
 const mapStateToProps = state => ({
-	collectibles: state.engine.backgroundState.AssetsController.collectibles
+	collectibles: state.engine.backgroundState.CollectiblesController.collectibles
 });
 
 const mapDispatchToProps = dispatch => ({
