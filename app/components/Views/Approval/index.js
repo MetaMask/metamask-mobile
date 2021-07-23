@@ -343,6 +343,8 @@ class Approval extends PureComponent {
 			transactionToSend.gas = BNToHex(transaction.gas);
 			transactionToSend.gasPrice = BNToHex(transaction.gasPrice);
 		}
+
+		return transactionToSend;
 	};
 
 	sanitizeTransaction(transaction) {
