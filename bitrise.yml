@@ -98,11 +98,6 @@ workflows:
             - install-missing-android-tools@2:
                   inputs:
                       - gradlew_path: $PROJECT_LOCATION/gradlew
-            - yarn@0:
-                  inputs:
-                      - cache_local_deps: 'yes'
-                      - command: global add detox-cli
-                  title: Install Detox CLI
             - avd-manager@1:
                   inputs:
                       - api_level: '29'
