@@ -139,7 +139,7 @@ class TransactionReviewInformation extends PureComponent {
 		/**
 		 * Transaction error
 		 */
-		error: PropTypes.string,
+		error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
 		/**
 		 * True if transaction is over the available funds
 		 */
