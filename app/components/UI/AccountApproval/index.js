@@ -212,7 +212,7 @@ class AccountApproval extends PureComponent {
 
 const mapStateToProps = state => ({
 	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts || {}).length,
-	tokensLength: state.engine.backgroundState.AssetsController.tokens.length,
+	tokensLength: state.engine.backgroundState.TokensController.tokens.length,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId
 });

@@ -2,25 +2,31 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import NetworksSettings from './';
 import configureMockStore from 'redux-mock-store';
-describe('NetworksSettings', () => {
-	const mockStore = configureMockStore();
-	it('should render correctly', () => {
-		const initialState = {
-			engine: {
-				backgroundState: {
-					NetworkController: {
-						provider: { type: 'mainnet', rpcTarget: 'http://10.0.2.2:8545' }
-					},
-					PreferencesController: { frequentRpcList: ['http://10.0.2.2:8545'] }
-				}
+import { Provider } from 'react-redux';
+
+const mockStore = configureMockStore();
+const initialState = {
+	engine: {
+		backgroundState: {
+			NetworkController: {
+				provider: { type: 'mainnet', rpcTarget: 'http://10.0.2.2:8545' }
 			},
-			privacy: {
-				thirdPartyApiMode: true
-			}
-		};
-		const wrapper = shallow(<NetworksSettings route={{ params: {} }} />, {
-			context: { store: mockStore(initialState) }
-		});
+			PreferencesController: { frequentRpcList: ['http://10.0.2.2:8545'] }
+		}
+	},
+	privacy: {
+		thirdPartyApiMode: true
+	}
+};
+const store = mockStore(initialState);
+
+describe('NetworksSettings', () => {
+	it('should render correctly', () => {
+		const wrapper = shallow(
+			<Provider store={store}>
+				<NetworksSettings route={{ params: {} }} />
+			</Provider>
+		);
 		expect(wrapper.dive()).toMatchSnapshot();
 	});
 });

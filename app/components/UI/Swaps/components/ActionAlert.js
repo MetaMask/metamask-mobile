@@ -3,9 +3,9 @@ import PropTypes from 'prop-types';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { colors } from '../../../../styles/common';
-
-import Alert from '../../../Base/Alert';
+import Alert, { AlertType } from '../../../Base/Alert';
 import Text from '../../../Base/Text';
+const AlertTypeKeys = Object.keys(AlertType);
 
 const VERTICAL_DISPLACEMENT = 12;
 const styles = StyleSheet.create({
@@ -55,10 +55,10 @@ const styles = StyleSheet.create({
 
 const getButtonStyle = type => {
 	switch (type) {
-		case 'error': {
+		case AlertType.Error: {
 			return styles.errorButton;
 		}
-		case 'warning':
+		case AlertType.Warning:
 		default: {
 			return styles.warningButton;
 		}
@@ -67,10 +67,10 @@ const getButtonStyle = type => {
 
 const getInfoIconStyle = type => {
 	switch (type) {
-		case 'error': {
+		case AlertType.Error: {
 			return styles.errorInfoIcon;
 		}
-		case 'warning':
+		case AlertType.Warning:
 		default: {
 			return styles.warningInfoIcon;
 		}
@@ -80,7 +80,7 @@ const getInfoIconStyle = type => {
 function Button({ type, onPress, children }) {
 	return (
 		<TouchableOpacity onPress={onPress} style={[styles.button, getButtonStyle(type)]}>
-			<Text small bold primary style={[type === 'error' && styles.errorButtonText]}>
+			<Text small bold primary style={[type === AlertType.Error && styles.errorButtonText]}>
 				{children}
 			</Text>
 		</TouchableOpacity>
@@ -88,7 +88,7 @@ function Button({ type, onPress, children }) {
 }
 
 Button.propTypes = {
-	type: PropTypes.oneOf(['info', 'warning', 'error']),
+	type: PropTypes.oneOf(AlertTypeKeys),
 	onPress: PropTypes.func,
 	children: PropTypes.string
 };
@@ -124,7 +124,7 @@ function ActionAlert({ type, style, action, onInfoPress, onPress, children }) {
 }
 
 ActionAlert.propTypes = {
-	type: PropTypes.oneOf(['info', 'warning', 'error']),
+	type: PropTypes.oneOf(AlertTypeKeys),
 	style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
 	onPress: PropTypes.func,
 	onInfoPress: PropTypes.func,

@@ -25,6 +25,31 @@ exports[`AddCustomToken should render correctly 1`] = `
     testID="add-asset-cancel-button"
   >
     <View>
+      <WarningMessage
+        style={
+          Object {
+            "marginHorizontal": 20,
+            "marginTop": 20,
+            "paddingRight": 0,
+          }
+        }
+        warningMessage={
+          <React.Fragment>
+            Anyone can create a token, including creating fake versions of existing tokens. Learn more about 
+            <Text
+              onPress={[Function]}
+              style={
+                Object {
+                  "color": "#037dd6",
+                }
+              }
+              suppressHighlighting={true}
+            >
+              scams and security risks.
+            </Text>
+          </React.Fragment>
+        }
+      />
       <View
         style={
           Object {

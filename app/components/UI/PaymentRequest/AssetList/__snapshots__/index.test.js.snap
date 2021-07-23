@@ -1,18 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AssetList should render correctly 1`] = `
-<View
-  testID="add-searched-token-screen"
->
-  <Text
-    style={
-      Object {
-        "fontFamily": "EuclidCircularB-Regular",
-        "fontWeight": "400",
-      }
-    }
-  >
-    Enpty Message
-  </Text>
-</View>
+<AssetList
+  emptyMessage="Enpty Message"
+  searchResults={Array []}
+/>
 `;

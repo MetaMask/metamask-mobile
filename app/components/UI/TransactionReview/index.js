@@ -20,7 +20,6 @@ import {
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import Device from '../../../util/Device';
-import contractMap from '@metamask/contract-metadata';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewSummary from './TransactionReviewSummary';
@@ -31,6 +30,7 @@ import TransactionHeader from '../TransactionHeader';
 import AccountInfoCard from '../AccountInfoCard';
 import ActionView from '../ActionView';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
+import { getTokenList } from '../../../reducers/tokens';
 
 const styles = StyleSheet.create({
 	tabUnderlineStyle: {
@@ -161,6 +161,10 @@ class TransactionReview extends PureComponent {
 		 */
 		over: PropTypes.bool,
 		/**
+		 * List of tokens from TokenListController
+		 */
+		tokenList: PropTypes.object,
+		/**
 		 * Object that represents the navigator
 		 */
 		navigation: PropTypes.object
@@ -183,7 +187,8 @@ class TransactionReview extends PureComponent {
 			transaction,
 			transaction: { data, to },
 			tokens,
-			chainId
+			chainId,
+			tokenList
 		} = this.props;
 		let { showHexData } = this.props;
 		let assetAmount, conversionRate, fiatValue;
@@ -192,7 +197,7 @@ class TransactionReview extends PureComponent {
 		const error = validate && (await validate());
 		const actionKey = await getTransactionReviewActionKey(transaction, chainId);
 		if (approveTransaction) {
-			let contract = contractMap[safeToChecksumAddress(to)];
+			let contract = tokenList[safeToChecksumAddress(to)];
 			if (!contract) {
 				contract = tokens.find(({ address }) => address === safeToChecksumAddress(to));
 			}
@@ -364,7 +369,7 @@ class TransactionReview extends PureComponent {
 
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	tokens: state.engine.backgroundState.AssetsController.tokens,
+	tokens: state.engine.backgroundState.TokensController.tokens,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
@@ -373,7 +378,8 @@ const mapStateToProps = state => ({
 	showHexData: state.settings.showHexData,
 	transaction: getNormalizedTxState(state),
 	browser: state.browser,
-	primaryCurrency: state.settings.primaryCurrency
+	primaryCurrency: state.settings.primaryCurrency,
+	tokenList: getTokenList(state)
 });
 
 export default connect(mapStateToProps)(TransactionReview);

@@ -1,3 +1,21 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`TransactionElement should render correctly 1`] = `""`;
+exports[`TransactionElement should render correctly 1`] = `
+<Connect(TransactionElement)
+  conversionRate={1}
+  currentCurrency="USD"
+  i={1}
+  selectedAddress="0x1"
+  selectedTx="0x0"
+  tx={
+    Object {
+      "status": "CONFIRMED",
+      "transaction": Object {
+        "from": "0x1",
+        "nonce": 1,
+        "to": "0x0",
+      },
+    }
+  }
+/>
+`;

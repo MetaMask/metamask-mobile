@@ -50,6 +50,7 @@ import useBalance from './utils/useBalance';
 import useBlockExplorer from './utils/useBlockExplorer';
 import InfoModal from './components/InfoModal';
 import { toLowerCaseEquals } from '../../../util/general';
+import { AlertType } from '../../Base/Alert';
 
 const styles = StyleSheet.create({
 	screen: {
@@ -341,9 +342,9 @@ function SwapsAmountView({
 			return;
 		}
 		if (!isSwapsNativeAsset(sourceToken) && !isTokenInBalances && !balanceAsUnits?.isZero()) {
-			const { AssetsController } = Engine.context;
+			const { TokensController } = Engine.context;
 			const { address, symbol, decimals } = sourceToken;
-			await AssetsController.addToken(address, symbol, decimals);
+			await TokensController.addToken(address, symbol, decimals);
 		}
 		return navigation.navigate(
 			'SwapsQuotesView',
@@ -566,8 +567,8 @@ function SwapsAmountView({
 							<ActionAlert
 								type={
 									!destinationToken.occurances || isDynamicToken(destinationToken)
-										? 'error'
-										: 'warning'
+										? AlertType.Error
+										: AlertType.Warning
 								}
 								style={styles.tokenAlert}
 								action={hasDismissedTokenAlert ? null : strings('swaps.continue')}

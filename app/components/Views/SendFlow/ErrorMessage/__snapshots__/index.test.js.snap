@@ -1,52 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ErrorMessage should render correctly 1`] = `
-<View
-  style={
-    Array [
-      Object {
-        "borderRadius": 4,
-        "borderWidth": 1,
-        "flexDirection": "row",
-        "paddingHorizontal": 12,
-        "paddingVertical": 12,
-      },
-      undefined,
-      Object {
-        "backgroundColor": "#fcf2f3",
-        "borderColor": "#D73A49",
-      },
-      undefined,
-    ]
-  }
-  testID="error-message-warning"
->
-  <View>
-    <Text
-      black={false}
-      blue={false}
-      bold={false}
-      centered={false}
-      disclaimer={false}
-      green={false}
-      link={false}
-      modal={false}
-      primary={false}
-      red={false}
-      reset={false}
-      right={false}
-      small={true}
-      strikethrough={false}
-      style={
-        Object {
-          "color": "#D73A49",
-        }
-      }
-      underline={false}
-      upper={false}
-    >
-      error
-    </Text>
-  </View>
-</View>
+<ErrorMessage
+  errorMessage="error"
+/>
 `;

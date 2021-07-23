@@ -9,7 +9,7 @@ export default async function findFirstIncomingTransaction(networkType, selected
 	// Pull txs if allowed
 	thirPartyApiMode && (await Engine.refreshTransactionHistory());
 	// Find the incoming TX
-	const { TransactionController, TokenBalancesController, AssetsController } = Engine.context;
+	const { TransactionController, TokenBalancesController, TokensController } = Engine.context;
 	const { transactions } = TransactionController.state;
 	const networkId = Networks[networkType].networkId;
 	if (transactions.length) {
@@ -32,7 +32,7 @@ export default async function findFirstIncomingTransaction(networkType, selected
 
 	// Find the tokens received
 	const { contractBalances: tokenBalances } = TokenBalancesController.state;
-	const { tokens } = AssetsController.state;
+	const { tokens } = TokensController.state;
 	let tokenFound = null;
 	tokens.forEach(token => {
 		if (tokenBalances[token.address].gt(toBN('0'))) {

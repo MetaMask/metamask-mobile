@@ -4,11 +4,11 @@ exports[`Root should render correctly 1`] = `
 <Provider
   store={
     Object {
+      "@@observable": [Function],
       "dispatch": [Function],
       "getState": [Function],
       "replaceReducer": [Function],
       "subscribe": [Function],
-      Symbol(observable): [Function],
     }
   }
 >
@@ -16,6 +16,7 @@ exports[`Root should render correctly 1`] = `
     loading={null}
     persistor={
       Object {
+        "@@observable": [Function],
         "dispatch": [Function],
         "flush": [Function],
         "getState": [Function],
@@ -24,7 +25,6 @@ exports[`Root should render correctly 1`] = `
         "purge": [Function],
         "replaceReducer": [Function],
         "subscribe": [Function],
-        Symbol(observable): [Function],
       }
     }
   >

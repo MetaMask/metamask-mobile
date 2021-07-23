@@ -10,7 +10,7 @@ exports[`AssetIcon should render correctly 1`] = `
   }
   source={
     Object {
-      "uri": "https://raw.githubusercontent.com/metamask/contract-metadata/v1.23.0/images/metamark.svg",
+      "uri": "https://s3.amazonaws.com/airswap-token-images/WBTC.png",
     }
   }
   style={

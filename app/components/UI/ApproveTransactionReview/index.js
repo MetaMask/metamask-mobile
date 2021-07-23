@@ -7,7 +7,6 @@ import { getApproveNavbar } from '../../UI/Navbar';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { getHost } from '../../../util/browser';
-import contractMap from '@metamask/contract-metadata';
 import { safeToChecksumAddress, renderShortAddress } from '../../../util/address';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
@@ -43,6 +42,7 @@ import Logger from '../../../util/Logger';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import InfoModal from '../Swaps/components/InfoModal';
 import Text from '../../Base/Text';
+import { getTokenList } from '../../../reducers/tokens';
 
 const { hexToBN } = util;
 const styles = StyleSheet.create({
@@ -252,7 +252,11 @@ class ApproveTransactionReview extends PureComponent {
 		/**
 		 * A string representing the network chainId
 		 */
-		chainId: PropTypes.string
+		chainId: PropTypes.string,
+		/**
+		 * List of tokens from TokenListController
+		 */
+		tokenList: PropTypes.object
 	};
 
 	state = {
@@ -279,12 +283,13 @@ class ApproveTransactionReview extends PureComponent {
 	componentDidMount = async () => {
 		const {
 			transaction: { origin, to, gas, gasPrice, data },
-			conversionRate
+			conversionRate,
+			tokenList
 		} = this.props;
 		const { AssetsContractController } = Engine.context;
 		const host = getHost(this.originIsWalletConnect ? origin.split(WALLET_CONNECT_ORIGIN)[1] : origin);
 		let tokenSymbol, tokenDecimals;
-		const contract = contractMap[safeToChecksumAddress(to)];
+		const contract = tokenList[safeToChecksumAddress(to)];
 		if (!contract) {
 			try {
 				tokenDecimals = await AssetsContractController.getTokenDecimals(to);
@@ -731,12 +736,13 @@ const mapStateToProps = state => ({
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	transaction: getNormalizedTxState(state),
 	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts || {}).length,
-	tokensLength: state.engine.backgroundState.AssetsController.tokens.length,
+	tokensLength: state.engine.backgroundState.TokensController.tokens.length,
 	providerType: state.engine.backgroundState.NetworkController.provider.type,
 	primaryCurrency: state.settings.primaryCurrency,
 	activeTabUrl: getActiveTabUrl(state),
 	network: state.engine.backgroundState.NetworkController.network,
-	chainId: state.engine.backgroundState.NetworkController.provider.chainId
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+	tokenList: getTokenList(state)
 });
 
 const mapDispatchToProps = dispatch => ({

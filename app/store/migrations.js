@@ -19,7 +19,7 @@ export const migrations = {
 	},
 	// MakerDAO DAI => SAI
 	1: state => {
-		const tokens = state.engine.backgroundState.AssetsController.tokens;
+		const tokens = state.engine.backgroundState.TokensController.tokens;
 		const migratedTokens = [];
 		tokens.forEach(token => {
 			if (token.symbol === 'DAI' && toLowerCaseEquals(token.address, AppConstants.SAI_ADDRESS)) {
@@ -27,7 +27,7 @@ export const migrations = {
 			}
 			migratedTokens.push(token);
 		});
-		state.engine.backgroundState.AssetsController.tokens = migratedTokens;
+		state.engine.backgroundState.TokensController.tokens = migratedTokens;
 
 		return state;
 	},
@@ -75,7 +75,8 @@ export const migrations = {
 		return state;
 	},
 	4: state => {
-		const { allCollectibleContracts, allCollectibles, allTokens } = state.engine.backgroundState.AssetsController;
+		const { allTokens } = state.engine.backgroundState.TokensController;
+		const { allCollectibleContracts, allCollectibles } = state.engine.backgroundState.CollectiblesController;
 		const { frequentRpcList } = state.engine.backgroundState.PreferencesController;
 
 		const newAllCollectibleContracts = {};
@@ -122,9 +123,12 @@ export const migrations = {
 			});
 		});
 
-		state.engine.backgroundState.AssetsController = {
-			...state.engine.backgroundState.AssetsController,
-			allTokens: newAllTokens,
+		state.engine.backgroundState.TokensController = {
+			...state.engine.backgroundState.TokensController,
+			allTokens: newAllTokens
+		};
+		state.engine.backgroundState.CollectiblesController = {
+			...state.engine.backgroundState.CollectiblesController,
 			allCollectibles: newAllCollectibles,
 			allCollectibleContracts: newAllCollectibleContracts
 		};

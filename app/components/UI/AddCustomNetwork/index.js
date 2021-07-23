@@ -7,7 +7,7 @@ import { strings } from '../../../../locales/i18n';
 import { colors, fontStyles } from '../../../styles/common';
 import Device from '../../../util/Device';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import Alert from '../../Base/Alert';
+import Alert, { AlertType } from '../../Base/Alert';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import Text from '../../Base/Text';
 
@@ -234,7 +234,7 @@ const AddCustomNetwork = ({ customNetworkInformation, currentPageInformation, on
 
 		return (
 			<Alert
-				type={'warning'}
+				type={AlertType.Warning}
 				testID={'error-message-warning'}
 				style={styles.alertContainer}
 				renderIcon={() => <EvilIcons name="bell" style={styles.alertIcon} />}

@@ -3,6 +3,7 @@ import { shallow } from 'enzyme';
 import Tokens from './';
 import configureMockStore from 'redux-mock-store';
 import { BN } from 'ethereumjs-util';
+import { Provider } from 'react-redux';
 
 const mockStore = configureMockStore();
 
@@ -11,7 +12,7 @@ describe('Tokens', () => {
 		const initialState = {
 			engine: {
 				backgroundState: {
-					AssetsController: {
+					TokensController: {
 						tokens: []
 					},
 					TokenRatesController: {
@@ -33,10 +34,13 @@ describe('Tokens', () => {
 				primaryCurrency: 'usd'
 			}
 		};
+		const store = mockStore(initialState);
 
-		const wrapper = shallow(<Tokens />, {
-			context: { store: mockStore(initialState) }
-		});
+		const wrapper = shallow(
+			<Provider store={store}>
+				<Tokens />
+			</Provider>
+		);
 		expect(wrapper.dive()).toMatchSnapshot();
 	});
 
@@ -44,7 +48,7 @@ describe('Tokens', () => {
 		const initialState = {
 			engine: {
 				backgroundState: {
-					AssetsController: {
+					TokensController: {
 						tokens: [
 							{ symbol: 'ETH', address: '0x0', decimals: 18, isETH: true },
 							{ symbol: 'BAT', address: '0x01', decimals: 18 },
@@ -74,10 +78,13 @@ describe('Tokens', () => {
 				hideZeroBalanceTokens: true
 			}
 		};
+		const store = mockStore(initialState);
 
-		const wrapper = shallow(<Tokens tokens={initialState.engine.backgroundState.AssetsController.tokens} />, {
-			context: { store: mockStore(initialState) }
-		});
+		const wrapper = shallow(
+			<Provider store={store}>
+				<Tokens tokens={initialState.engine.backgroundState.TokensController.tokens} />
+			</Provider>
+		);
 		// ETH and BAT should display
 		expect(wrapper.dive()).toMatchSnapshot();
 	});
@@ -86,7 +93,7 @@ describe('Tokens', () => {
 		const initialState = {
 			engine: {
 				backgroundState: {
-					AssetsController: {
+					TokensController: {
 						tokens: [
 							{ symbol: 'ETH', address: '0x0', decimals: 18, isETH: true },
 							{ symbol: 'BAT', address: '0x01', decimals: 18 },
@@ -116,10 +123,13 @@ describe('Tokens', () => {
 				hideZeroBalanceTokens: false
 			}
 		};
+		const store = mockStore(initialState);
 
-		const wrapper = shallow(<Tokens tokens={initialState.engine.backgroundState.AssetsController.tokens} />, {
-			context: { store: mockStore(initialState) }
-		});
+		const wrapper = shallow(
+			<Provider store={store}>
+				<Tokens tokens={initialState.engine.backgroundState.TokensController.tokens} />
+			</Provider>
+		);
 		// All three should display
 		expect(wrapper.dive()).toMatchSnapshot();
 	});

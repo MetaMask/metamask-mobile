@@ -70,13 +70,13 @@ export default class AssetList extends PureComponent {
 	 * @param {object} asset - Asset to generate the logo to render
 	 */
 	renderLogo = asset => {
-		const { logo, address, isETH } = asset;
-		if (!logo && !isETH) {
+		const { iconUrl, address, isETH } = asset;
+		if (!iconUrl && !isETH) {
 			return <Identicon address={address} />;
 		} else if (isETH) {
 			return <NetworkMainAssetLogo big style={styles.ethLogo} />;
 		}
-		return <AssetIcon logo={logo} />;
+		return <AssetIcon logo={iconUrl} />;
 	};
 
 	render = () => {

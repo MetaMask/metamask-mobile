@@ -254,8 +254,8 @@ const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	tokens: state.engine.backgroundState.AssetsController.tokens,
-	collectibles: state.engine.backgroundState.AssetsController.collectibles,
+	tokens: state.engine.backgroundState.TokensController.tokens,
+	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	wizardStep: state.wizard.step
 });
