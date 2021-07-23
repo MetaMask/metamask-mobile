@@ -1449,9 +1449,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-1.27.0.tgz#1e65b821bad6f7d8313dd881116e4366b0662f75"
   integrity sha512-ZAvuROiHjSksy40buCL4M6m16bAmXQl6vjllK/XQxt9+UElhwJSp7PJ1ZULuZXmznBBY64WXlCPjm94JhW4l3g==
 
-"@metamask/controllers@./metamask-controllers-v13.0.0-6c9560.tgz":
-  version "13.0.0-6c9560"
-  resolved "./metamask-controllers-v13.0.0-6c9560.tgz#453a7f0beaf502b2b41c1a656782ce210c6ae9c7"
+"@metamask/controllers@^13.2.0":
+  version "13.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-13.2.0.tgz#915806ebb4215d166cd079e370ad689f46815f15"
+  integrity sha512-QxveLZ+Up4NdDUesgwCGhlflKm6HV+oFciNggQX5PloeIxAqP58C7lUSYZWpsNdFtHHIWVd/k4sK5e3j+tmDVg==
   dependencies:
     "@ethereumjs/common" "^2.3.1"
     "@ethereumjs/tx" "^3.2.1"
@@ -1469,6 +1470,7 @@
     eth-sig-util "^3.0.0"
     ethereumjs-util "^7.0.10"
     ethereumjs-wallet "^1.0.1"
+    ethers "^5.4.1"
     ethjs-unit "^0.1.6"
     ethjs-util "^0.1.6"
     human-standard-collectible-abi "^1.0.2"
@@ -1532,11 +1534,12 @@
   resolved "https://registry.yarnpkg.com/@metamask/safe-event-emitter/-/safe-event-emitter-2.0.0.tgz#af577b477c683fad17c619a78208cede06f9605c"
   integrity sha512-/kSXhY692qiV1MXu6EeOZvg5nECLclxNXcKCxJ3cXQgYuRymRHpdx/t7JXfsK+JLjwA1e1c1/SBrlQYpusC29Q==
 
-"@metamask/swaps-controller@file:./metamask-swaps-controller-v4.1.0-2ff90d.tgz":
-  version "4.1.0-2ff90d"
-  resolved "file:./metamask-swaps-controller-v4.1.0-2ff90d.tgz#2c44d90768940031beb8b6a8f36ef204a70ee1c3"
+"@metamask/swaps-controller@^5.0.0":
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/swaps-controller/-/swaps-controller-5.0.0.tgz#949dbc9165ba7d94d53c250f35effbbcb2ae7884"
+  integrity sha512-sTIo/EY/1nf9OJ3/FdLZEpsKoSZLk1sMIHgv7+JeSQsaM8RRkOnwHUdzCRaOsw5WaUpQ44zdxA1djKyLslUuTA==
   dependencies:
-    "@metamask/controllers" "./metamask-controllers-v13.0.0-6c9560.tgz"
+    "@metamask/controllers" "^13.2.0"
     abort-controller "^3.0.0"
     async-mutex "^0.3.1"
     bignumber.js "^9.0.1"
@@ -5789,7 +5792,7 @@ ethereumjs-wallet@^1.0.1:
     utf8 "^3.0.0"
     uuid "^3.3.2"
 
-ethers@^5.0.14:
+ethers@^5.0.14, ethers@^5.4.1:
   version "5.4.1"
   resolved "https://registry.yarnpkg.com/ethers/-/ethers-5.4.1.tgz#bcff1e9f45bf1a061bf313ec04e8d9881d2d53f9"
   integrity sha512-SrcddMdCgP1hukDvCPd87Aipbf4NWjQvdfAbZ65XSZGbfyuYPtIrUJPDH5B1SBRsdlfiEgX3eoz28DdBDzMNFg==
