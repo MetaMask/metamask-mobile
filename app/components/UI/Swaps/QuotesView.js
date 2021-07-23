@@ -348,6 +348,7 @@ function SwapsQuotesView({
 	const [trackedReceivedQuotes, setTrackedReceivedQuotes] = useState(false);
 	const [trackedError, setTrackedError] = useState(false);
 	const [animateOnGasChange, setAnimateOnGasChange] = useState(false);
+	const [isAnimating, setIsAnimating] = useState(false);
 
 	/* Selected quote, initially topAggId (see effects) */
 	const [selectedQuoteId, setSelectedQuoteId] = useState(null);
@@ -1069,8 +1070,12 @@ function SwapsQuotesView({
 		[gasEstimateType, gasFeeEstimates, selectedQuote]
 	);
 
-	const onGasAnimationStart = useCallback(() => null, []);
-	const onGasAnimationEnd = useCallback(() => setAnimateOnGasChange(false), []);
+	useEffect(() => {
+		if (animateOnGasChange) setAnimateOnGasChange(false);
+	}, [animateOnGasChange]);
+
+	const onGasAnimationStart = useCallback(() => setIsAnimating(true), []);
+	const onGasAnimationEnd = useCallback(() => setIsAnimating(false), []);
 
 	/** Metrics Effects */
 	/* Metrics: Quotes requested */
@@ -1397,7 +1402,7 @@ function SwapsQuotesView({
 								) : (
 									<FadeAnimationView
 										valueToWatch={selectedQuoteValue?.ethFee}
-										animateOnChange
+										animateOnChange={animateOnGasChange}
 										onAnimationStart={onGasAnimationStart}
 										onAnimationEnd={onGasAnimationEnd}
 										style={styles.quotesFiatColumn}
@@ -1477,7 +1482,7 @@ function SwapsQuotesView({
 										<View style={styles.quotesDescription} />
 										<FadeAnimationView
 											valueToWatch={selectedQuoteValue?.maxEthFee}
-											animateOnChange
+											animateOnChange={animateOnGasChange}
 											style={styles.quotesFiatColumn}
 										>
 											<Text small primary bold>
@@ -1539,7 +1544,7 @@ function SwapsQuotesView({
 						</Text>
 					}
 					completeText={<Text style={styles.sliderButtonText}>{strings('swaps.completed_swap')}</Text>}
-					disabled={unableToSwap || animateOnGasChange}
+					disabled={unableToSwap || isAnimating}
 					onComplete={handleCompleteSwap}
 				/>
 				<TouchableOpacity onPress={handleTermsPress} style={styles.termsButton}>
@@ -1647,6 +1652,7 @@ function SwapsQuotesView({
 				tradeValue={selectedQuote?.trade?.value || '0x0'}
 				sourceAmount={sourceAmount}
 				checkEnoughEthBalance={checkEnoughEthBalance}
+				animateOnChange={animateOnGasChange}
 			/>
 		</ScreenView>
 	);

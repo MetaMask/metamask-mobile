@@ -57,7 +57,8 @@ function GasEditModal({
 	nativeCurrency,
 	primaryCurrency,
 	chainId,
-	ticker
+	ticker,
+	animateOnChange
 }) {
 	const [gasSelected, setGasSelected] = useState(
 		customGasFee
@@ -330,6 +331,7 @@ function GasEditModal({
 								)
 							}}
 							view="Swaps"
+							animateOnChange={animateOnChange}
 						/>
 						<InfoModal
 							isVisible={isVisible && isGasFeeRecommendationVisible}
@@ -358,6 +360,7 @@ function GasEditModal({
 						onCancel={cancelGasEdition}
 						onSave={saveGasEdition}
 						view="Swaps"
+						animateOnChange={animateOnChange}
 					/>
 				)}
 			</KeyboardAwareScrollView>
@@ -448,7 +451,11 @@ GasEditModal.propTypes = {
 	/**
 	 * Amount of the swap
 	 */
-	sourceAmount: PropTypes.string
+	sourceAmount: PropTypes.string,
+	/**
+	 * If the values should animate upon update or not
+	 */
+	animateOnChange: PropTypes.bool
 };
 const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
