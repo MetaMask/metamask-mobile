@@ -105,7 +105,8 @@ class Engine {
 
 			const tokensController = new TokensController({
 				onPreferencesStateChange: listener => preferencesController.subscribe(listener),
-				onNetworkStateChange: listener => networkController.subscribe(listener)
+				onNetworkStateChange: listener => networkController.subscribe(listener),
+				config: { provider: networkController.provider }
 			});
 			this.controllerMessenger = new ControllerMessenger();
 			const currencyRateController = new CurrencyRateController({
