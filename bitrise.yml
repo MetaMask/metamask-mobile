@@ -309,7 +309,7 @@ app:
           VERSION_NAME: 2.6.0
         - opts:
               is_expand: false
-          VERSION_NUMBER: 758
+          VERSION_NUMBER: 759
         - opts:
               is_expand: false
           ANDROID_APK_LINK: ''
