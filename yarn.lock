@@ -1697,10 +1697,10 @@
   resolved "https://registry.yarnpkg.com/@react-native-community/clipboard/-/clipboard-1.5.1.tgz#32abb3ea2eb91ee3f9c5fb1d32d5783253c9fabe"
   integrity sha512-AHAmrkLEH5UtPaDiRqoULERHh3oNv7Dgs0bTC0hO5Z2GdNokAMPT5w8ci8aMcRemcwbtdHjxChgtjbeA38GBdA==
 
-"@react-native-community/cookies@^4.0.1":
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/@react-native-community/cookies/-/cookies-4.0.1.tgz#520f16ddf87156269b291ef9f03283a032414300"
-  integrity sha512-SHr9evZD5NipwwKvVeSMyjdYxdouWIPP5x8AJRaABDM1BnW6Md5hyAQvQzQJMKBym5uyH9MkFvjSSJI2ueBYQQ==
+"@react-native-community/cookies@^5.0.1":
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/@react-native-community/cookies/-/cookies-5.0.1.tgz#1ffeefc31d51b7296ae0b5bfb249deb43fcbbcea"
+  integrity sha512-Is/kWBmYBFtX4DOImfglK5Bz2w3PdpgMGTqdVQSbZlFdSDw32lwFMk1mLSAzL5EcUEDwJJbcEATbU3JGSZSVXw==
   dependencies:
     invariant "^2.2.4"
 

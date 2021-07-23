@@ -85,7 +85,7 @@
     "@react-native-community/blur": "^3.6.0",
     "@react-native-community/checkbox": "^0.4.2",
     "@react-native-community/clipboard": "^1.2.2",
-    "@react-native-community/cookies": "^4.0.1",
+    "@react-native-community/cookies": "^5.0.1",
     "@react-native-community/masked-view": "^0.1.10",
     "@react-native-community/netinfo": "6.0.0",
     "@react-native-community/picker": "^1.8.1",
