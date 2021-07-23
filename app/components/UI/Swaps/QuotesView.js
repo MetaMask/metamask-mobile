@@ -59,12 +59,12 @@ import FadeAnimationView from '../FadeAnimationView';
 
 const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
 const SLIPPAGE_BUCKETS = {
-	MEDIUM: 'medium',
-	HIGH: 'high'
+	MEDIUM: AppConstants.GAS_OPTIONS.MEDIUM,
+	HIGH: AppConstants.GAS_OPTIONS.HIGH
 };
 
-const DEFAULT_GAS_FEE_OPTION_LEGACY = 'medium';
-const DEFAULT_GAS_FEE_OPTION_FEE_MARKET = 'high';
+const DEFAULT_GAS_FEE_OPTION_LEGACY = AppConstants.GAS_OPTIONS.MEDIUM;
+const DEFAULT_GAS_FEE_OPTION_FEE_MARKET = AppConstants.GAS_OPTIONS.HIGH;
 
 const styles = StyleSheet.create({
 	screen: {

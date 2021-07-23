@@ -5,7 +5,8 @@ exports[`EditGasFee1559 should render correctly 1`] = `
   style={
     Object {
       "backgroundColor": "#FFFFFF",
-      "borderRadius": 20,
+      "borderTopLeftRadius": 20,
+      "borderTopRightRadius": 20,
       "maxHeight": "95%",
       "minHeight": 200,
       "paddingBottom": 32,

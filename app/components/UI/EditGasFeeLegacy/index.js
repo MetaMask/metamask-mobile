@@ -18,6 +18,7 @@ import Device from '../../../util/Device';
 import { isMainnetByChainId } from '../../../util/networks';
 import FadeAnimationView from '../FadeAnimationView';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import AppConstants from '../../../core/AppConstants';
 
 const GAS_LIMIT_INCREMENT = new BigNumber(1000);
 const GAS_PRICE_INCREMENT = new BigNumber(1);
@@ -27,7 +28,8 @@ const GAS_PRICE_MIN = new BigNumber(1);
 const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
-		borderRadius: 20,
+		borderTopLeftRadius: 20,
+		borderTopRightRadius: 20,
 		minHeight: 200,
 		maxHeight: '95%',
 		paddingTop: 24,
@@ -213,9 +215,9 @@ const EditGasFeeLegacy = ({
 
 	const renderOptions = useMemo(() => {
 		const options = [
-			{ name: 'low', label: strings('edit_gas_fee_eip1559.low') },
-			{ name: 'medium', label: strings('edit_gas_fee_eip1559.medium') },
-			{ name: 'high', label: strings('edit_gas_fee_eip1559.high') }
+			{ name: AppConstants.GAS_OPTIONS.LOW, label: strings('edit_gas_fee_eip1559.low') },
+			{ name: AppConstants.GAS_OPTIONS.MEDIUM, label: strings('edit_gas_fee_eip1559.medium') },
+			{ name: AppConstants.GAS_OPTIONS.HIGH, label: strings('edit_gas_fee_eip1559.high') }
 		];
 		return options
 			.filter(option => !shouldIgnore(option.name))
@@ -453,7 +455,7 @@ const EditGasFeeLegacy = ({
 
 EditGasFeeLegacy.defaultProps = {
 	ignoreOptions: [],
-	warningMinimumEstimateOption: 'low'
+	warningMinimumEstimateOption: AppConstants.GAS_OPTIONS.LOW
 };
 
 EditGasFeeLegacy.propTypes = {

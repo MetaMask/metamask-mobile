@@ -52,34 +52,34 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
           upper={false}
         >
           Estimated gas fee
-        </Text>
-        <TouchableOpacity
-          hitSlop={
-            Object {
-              "bottom": 10,
-              "left": 10,
-              "right": 10,
-              "top": 10,
-            }
-          }
-          onPress={[Function]}
-          style={
-            Object {
-              "paddingHorizontal": 2,
-            }
-          }
-        >
-          <Icon
-            allowFontScaling={false}
-            name="information"
-            size={13}
-            style={
+          <TouchableOpacity
+            hitSlop={
               Object {
-                "color": "#bbc0c5",
+                "bottom": 10,
+                "left": 10,
+                "right": 10,
+                "top": 10,
               }
             }
-          />
-        </TouchableOpacity>
+            onPress={[Function]}
+            style={
+              Object {
+                "paddingLeft": 2,
+              }
+            }
+          >
+            <Icon
+              allowFontScaling={false}
+              name="information"
+              size={13}
+              style={
+                Object {
+                  "color": "#bbc0c5",
+                }
+              }
+            />
+          </TouchableOpacity>
+        </Text>
       </View>
       <Skeleton
         width={80}
@@ -148,6 +148,33 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
       />
     </SummaryRow>
   </View>
+  <InfoModal
+    body={
+      <Text
+        black={false}
+        blue={false}
+        bold={false}
+        centered={false}
+        disclaimer={false}
+        green={false}
+        infoModal={true}
+        link={false}
+        modal={false}
+        primary={false}
+        red={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
+        underline={false}
+        upper={false}
+      >
+        This gas fee suggestion is using legacy gas estimation which may be inaccurate.
+      </Text>
+    }
+    isVisible={false}
+    toggleModal={[Function]}
+  />
   <InfoModal
     body={
       <View>

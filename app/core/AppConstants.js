@@ -77,7 +77,18 @@ export default {
 	ERRORS: {
 		INFURA_BLOCKED_MESSAGE: 'EthQuery - RPC Error - This service is not available in your country'
 	},
-	EIP1559: {
-		ACTIVE: true
+	GAS_OPTIONS: {
+		LOW: 'low',
+		MEDIUM: 'medium',
+		HIGH: 'high'
+	},
+	GAS_TIMES: {
+		UNKNOWN: 'unknown',
+		MAYBE: 'maybe',
+		LIKELY: 'likely',
+		VERY_LIKELY: 'very_likely',
+		AT_LEAST: 'at_least',
+		LESS_THAN: 'less_than',
+		RANGE: 'range'
 	}
 };

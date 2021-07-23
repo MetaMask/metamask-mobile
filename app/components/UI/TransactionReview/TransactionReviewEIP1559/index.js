@@ -13,6 +13,7 @@ import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../locales/i18n';
 import TimeEstimateInfoModal from '../../TimeEstimateInfoModal';
 import useModalHandler from '../../../Base/hooks/useModalHandler';
+import AppConstants from '../../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	overview: noMargin => ({
@@ -26,7 +27,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'flex-end'
 	},
 	gasInfoContainer: {
-		paddingHorizontal: 2
+		paddingLeft: 2
 	},
 	gasInfoIcon: hasOrigin => ({
 		color: hasOrigin ? colors.orange : colors.grey200
@@ -85,6 +86,7 @@ const TransactionReviewEIP1559 = ({
 	hideTotal,
 	noMargin,
 	origin,
+	originWarning,
 	onUpdatingValuesStart,
 	onUpdatingValuesEnd,
 	animateOnChange,
@@ -96,6 +98,7 @@ const TransactionReviewEIP1559 = ({
 	const [isVisibleTimeEstimateInfoModal, , showTimeEstimateInfoModal, hideTimeEstimateInfoModal] = useModalHandler(
 		false
 	);
+	const [isVisibleLegacyLearnMore, , showLegacyLearnMore, hideLegacyLearnMore] = useModalHandler(false);
 	const toggleLearnMoreModal = useCallback(() => {
 		setShowLearnMoreModal(showLearnMoreModal => !showLearnMoreModal);
 	}, []);
@@ -135,18 +138,22 @@ const TransactionReviewEIP1559 = ({
 			<Summary.Row>
 				<View style={styles.gasRowContainer}>
 					<View style={styles.gasRowContainer}>
-						<Text primary={!origin} bold orange={Boolean(origin)} noMargin>
+						<Text primary={!originWarning} bold orange={Boolean(originWarning)} noMargin>
 							{!origin
 								? strings('transaction_review_eip1559.estimated_gas_fee')
 								: strings('transaction_review_eip1559.suggested_gas_fee', { origin })}
+							<TouchableOpacity
+								style={styles.gasInfoContainer}
+								onPress={() => (originWarning ? showLegacyLearnMore() : toggleLearnMoreModal())}
+								hitSlop={styles.hitSlop}
+							>
+								<MaterialCommunityIcons
+									name="information"
+									size={13}
+									style={styles.gasInfoIcon(originWarning)}
+								/>
+							</TouchableOpacity>
 						</Text>
-						<TouchableOpacity
-							style={styles.gasInfoContainer}
-							onPress={toggleLearnMoreModal}
-							hitSlop={styles.hitSlop}
-						>
-							<MaterialCommunityIcons name="information" size={13} style={styles.gasInfoIcon(origin)} />
-						</TouchableOpacity>
 					</View>
 
 					{gasEstimationReady ? (
@@ -202,7 +209,8 @@ const TransactionReviewEIP1559 = ({
 									<Text small green={timeEstimateColor === 'green'} red={timeEstimateColor === 'red'}>
 										{timeEstimate}
 									</Text>
-									{(timeEstimateId === 'low' || timeEstimateId === 'unknown') && (
+									{(timeEstimateId === AppConstants.GAS_TIMES.MAYBE ||
+										timeEstimateId === AppConstants.GAS_TIMES.UNKNOWN) && (
 										<TouchableOpacity
 											style={styles.gasInfoContainer}
 											onPress={showTimeEstimateInfoModal}
@@ -255,7 +263,7 @@ const TransactionReviewEIP1559 = ({
 									valueToWatch={valueToWatchAnimation}
 									animateOnChange={animateOnChange}
 								>
-									{isMainnet && (
+									{isMainnet && totalSecondary !== 'undefined' && (
 										<Text grey upper right noMargin style={styles.amountContainer}>
 											{totalSecondary}
 										</Text>
@@ -294,6 +302,11 @@ const TransactionReviewEIP1559 = ({
 					)}
 				</View>
 			)}
+			<InfoModal
+				isVisible={isVisibleLegacyLearnMore}
+				toggleModal={hideLegacyLearnMore}
+				body={<Text infoModal>{strings('transaction_review_eip1559.legacy_gas_suggestion_tooltip')}</Text>}
+			/>
 			<InfoModal
 				isVisible={showLearnMoreModal}
 				title={strings('transaction_review_eip1559.estimated_gas_fee_tooltip')}
@@ -412,7 +425,11 @@ TransactionReviewEIP1559.propTypes = {
 	/**
 	 * If should show legacy gas
 	 */
-	legacy: PropTypes.bool
+	legacy: PropTypes.bool,
+	/**
+	 * If it's a eip1559 network and dapp suggest legact gas then it should show a warning
+	 */
+	originWarning: PropTypes.bool
 };
 
 const mapStateToProps = state => ({
