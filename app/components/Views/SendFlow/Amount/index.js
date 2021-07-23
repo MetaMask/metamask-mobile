@@ -433,15 +433,14 @@ class Amount extends PureComponent {
 				suggestedMaxPriorityFeePerGasHex
 			});
 			this.setState({
-				estimatedTotalGas: hexToBN(gasHexes.gasFeeMaxHex),
-				gasEstimateType: gasEstimates.gasEstimateType
+				estimatedTotalGas: hexToBN(gasHexes.gasFeeMaxHex)
 			});
 		} else if (gasEstimates.gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY) {
 			const gasPrice = hexToBN(decGWEIToHexWEI(gasEstimates.gasFeeEstimates[AppConstants.GAS_OPTIONS.MEDIUM]));
-			this.setState({ estimatedTotalGas: gas.mul(gasPrice), gasEstimateType: gasEstimates.gasEstimateType });
+			this.setState({ estimatedTotalGas: gas.mul(gasPrice) });
 		} else {
 			const gasPrice = hexToBN(decGWEIToHexWEI(gasEstimates.gasFeeEstimates.gasPrice));
-			this.setState({ estimatedTotalGas: gas.mul(gasPrice), gasEstimateType: gasEstimates.gasEstimateType });
+			this.setState({ estimatedTotalGas: gas.mul(gasPrice) });
 		}
 
 		this.setState({
