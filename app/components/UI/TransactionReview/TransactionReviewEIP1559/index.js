@@ -14,6 +14,7 @@ import { strings } from '../../../../../locales/i18n';
 import TimeEstimateInfoModal from '../../TimeEstimateInfoModal';
 import useModalHandler from '../../../Base/hooks/useModalHandler';
 import AppConstants from '../../../../core/AppConstants';
+import Device from '../../../../util/Device';
 
 const styles = StyleSheet.create({
 	overview: noMargin => ({
@@ -57,6 +58,9 @@ const styles = StyleSheet.create({
 	timeEstimateContainer: {
 		alignItems: 'center',
 		flexDirection: 'row'
+	},
+	flex: {
+		flex: 1
 	}
 });
 
@@ -174,13 +178,19 @@ const TransactionReviewEIP1559 = ({
 										underline={!nativeCurrencySelected}
 										style={styles.amountContainer}
 										noMargin
+										adjustsFontSizeToFit
+										numberOfLines={2}
 									>
 										{gasFeeSecondary}
 									</Text>
 								</TouchableOpacity>
 							)}
 
-							<TouchableOpacity onPress={edit} disabled={!nativeCurrencySelected}>
+							<TouchableOpacity
+								onPress={edit}
+								disabled={!nativeCurrencySelected}
+								style={[Device.isSmallDevice() && styles.flex]}
+							>
 								<Text
 									primary
 									bold
@@ -190,6 +200,8 @@ const TransactionReviewEIP1559 = ({
 									underline={nativeCurrencySelected}
 									right
 									noMargin
+									adjustsFontSizeToFit
+									numberOfLines={2}
 								>
 									{gasFeePrimary}
 								</Text>
@@ -264,12 +276,29 @@ const TransactionReviewEIP1559 = ({
 									animateOnChange={animateOnChange}
 								>
 									{isMainnet && totalSecondary !== 'undefined' && (
-										<Text grey upper right noMargin style={styles.amountContainer}>
+										<Text
+											grey
+											upper
+											right
+											noMargin
+											style={styles.amountContainer}
+											adjustsFontSizeToFit
+											numberOfLines={2}
+										>
 											{totalSecondary}
 										</Text>
 									)}
 
-									<Text bold primary upper right noMargin>
+									<Text
+										bold
+										primary
+										upper
+										right
+										noMargin
+										style={[Device.isSmallDevice() && styles.flex]}
+										adjustsFontSizeToFit
+										numberOfLines={2}
+									>
 										{totalPrimary}
 									</Text>
 								</FadeAnimationView>
