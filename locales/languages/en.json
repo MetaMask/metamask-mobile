@@ -1685,7 +1685,7 @@
 		"learn_more_gas_limit_legacy": "Gas limit is the maximum units of gas you are willing to use. Units of gas are a multiplier to “Gas price”.",
 		"learn_more_gas_price": "This network requires a “Gas price” field when submitting a transaction. Gas price is the maximum amount you are willing to pay per unit of gas.",
 		"gas_price_low": "Gas price is low for current network conditions",
-		"gas_price_high": "Gas price is higher than necessarys"
+		"gas_price_high": "Gas price is higher than necessary"
 	},
 	"transaction_review_eip1559": {
 		"estimated_gas_fee": "Estimated gas fee",
