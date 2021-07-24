@@ -247,11 +247,13 @@ const EditGasFeeLegacy = ({
 					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.yellow} />}
 					style={styles.warningContainer}
 				>
-					<View style={styles.warningTextContainer}>
-						<Text black style={styles.warningText}>
-							{warning}
-						</Text>
-					</View>
+					{() => (
+						<View style={styles.warningTextContainer}>
+							<Text black style={styles.warningText}>
+								{warning}
+							</Text>
+						</View>
+					)}
 				</Alert>
 			);
 
@@ -268,11 +270,13 @@ const EditGasFeeLegacy = ({
 					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.red} />}
 					style={styles.warningContainer}
 				>
-					<View style={styles.warningTextContainer}>
-						<Text red style={styles.warningText}>
-							{error}
-						</Text>
-					</View>
+					{() => (
+						<View style={styles.warningTextContainer}>
+							<Text red style={styles.warningText}>
+								{error}
+							</Text>
+						</View>
+					)}
 				</Alert>
 			);
 
