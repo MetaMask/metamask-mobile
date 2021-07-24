@@ -24,7 +24,7 @@ import AppConstants from '../../../core/AppConstants';
 const GAS_LIMIT_INCREMENT = new BigNumber(1000);
 const GAS_INCREMENT = new BigNumber(1);
 const GAS_LIMIT_MIN = new BigNumber(21000);
-const GAS_MIN = new BigNumber(1);
+const GAS_MIN = new BigNumber(0.000001);
 
 const styles = StyleSheet.create({
 	root: {
