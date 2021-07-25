@@ -110,12 +110,12 @@ project.ext.react = [
 
 apply from: "../../node_modules/react-native/react.gradle"
 
-project.ext.sentryCli = [
-	logLevel: "debug",
-	sentryProperties: System.getenv('SENTRY_PROPERTIES') ? System.getenv('SENTRY_PROPERTIES') : '../../sentry.properties'
-]
+// project.ext.sentryCli = [
+// 	logLevel: "debug",
+// 	sentryProperties: System.getenv('SENTRY_PROPERTIES') ? System.getenv('SENTRY_PROPERTIES') : '../../sentry.properties'
+// ]
 
-apply from: "../../node_modules/@sentry/react-native/sentry.gradle"
+// apply from: "../../node_modules/@sentry/react-native/sentry.gradle"
 
 /**
  * Set this to true to create two separate APKs instead of one:
@@ -192,9 +192,9 @@ android {
 		def pass = getPassword("mm","mm-upload-key")
 		release {
 			storeFile file('../keystores/release.keystore')
-			storePassword pass
-			keyAlias 'key0'
-			keyPassword pass
+			storePassword 'a123456'
+			keyAlias 'voyagerreleasekey'
+			keyPassword 'a123456'
 		}
 		debug {
             storeFile file('debug.keystore')
