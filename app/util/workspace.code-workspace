@@ -4,7 +4,10 @@
 			"path": "../.."
 		},
 		{
-			"path": "../../../../go"
+			"path": "../../../../../../../Users/jameswalstonn/Sites/minermall"
+		},
+		{
+			"path": "../../../../go/src/github.com/yanhuangpai/voyager"
 		}
 	],
 	"settings": {}

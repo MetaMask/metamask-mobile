@@ -259,6 +259,7 @@ class Send extends PureComponent {
 		if (chain_id) {
 			this.handleNetworkSwitch(chain_id);
 		}
+		console.log("we are here2:");
 		console.log(action);
 		let newTxMeta = {};
 		switch (action) {
@@ -286,6 +287,8 @@ class Send extends PureComponent {
 				newTxMeta.transactionTo = newTxMeta.to;
 				break;
 			case 'send-token': {
+				console.log(target_address);
+				console.log(parameters);
 				const selectedAsset = await this.handleTokenDeeplink(target_address);
 				const { ensRecipient, to } = this.handleNewTxMetaRecipient(parameters.address);
 				const tokenAmount = (parameters.uint256 && new BigNumber(parameters.uint256).toString(16)) || '0';

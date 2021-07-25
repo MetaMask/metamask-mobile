@@ -178,18 +178,19 @@ class Wallet extends PureComponent {
 		let balance = 0;
 		let assets = tokens;
 		if (accounts[selectedAddress]) {
-			balance = renderFromWei(accounts[selectedAddress].balance);
-			assets = [
-				{
-					name: 'Ether', // FIXME: use 'Ether' for mainnet only, what should it be for custom networks?
-					symbol: getTicker(ticker),
-					isETH: true,
-					balance,
-					balanceFiat: weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency),
-					logo: '../images/eth-logo.png'
-				},
-				...tokens
-			];
+			// balance = renderFromWei(accounts[selectedAddress].balance);
+			// assets = [
+			// 	{
+			// 		name: 'Ether', // FIXME: use 'Ether' for mainnet only, what should it be for custom networks?
+			// 		symbol: getTicker(ticker),
+			// 		isETH: true,
+			// 		balance,
+			// 		balanceFiat: weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency),
+			// 		logo: '../images/eth-logo.png'
+			// 	},
+			// 	...tokens
+			// ];
+			assets = tokens;
 		} else {
 			assets = tokens;
 		}
