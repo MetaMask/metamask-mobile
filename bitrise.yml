@@ -165,6 +165,8 @@ workflows:
                   is_always_run: false
     # Parallel Build & Deploy Steps
     start_release_builds:
+        before_run:
+            - setup
         steps:
             - build-router-start@0:
                   inputs:
@@ -305,7 +307,7 @@ app:
           VERSION_NAME: 3.0.0
         - opts:
               is_expand: false
-          VERSION_NUMBER: 759
+          VERSION_NUMBER: 760
         - opts:
               is_expand: false
           ANDROID_APK_LINK: ''
