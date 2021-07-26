@@ -690,9 +690,9 @@ const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	tokens: state.engine.backgroundState.AssetsController.tokens,
+	tokens: state.engine.backgroundState.TokensController.tokens,
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
-	collectibles: state.engine.backgroundState.AssetsController.collectibles,
+	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
 	transaction: getNormalizedTxState(state),
 	primaryCurrency: state.settings.primaryCurrency,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker
