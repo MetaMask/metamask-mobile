@@ -434,7 +434,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                         </TouchableOpacity>
                       </View>
                     }
-                    min={"1"}
+                    min={"0.000001"}
                     name="Max priority fee"
                     onChangeValue={[Function]}
                     rightLabelComponent={
@@ -552,7 +552,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                         </TouchableOpacity>
                       </View>
                     }
-                    min={"1"}
+                    min={"0.000001"}
                     name="Max fee"
                     onChangeValue={[Function]}
                     rightLabelComponent={
@@ -870,36 +870,6 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                     >
                       A low gas fee should only be used for unimportant transactions or when network traffic is very low. With a lower fee it can be hard to predict when (or if) your transaction will be successful.
                     </Text>
-                    <TouchableOpacity
-                      style={
-                        Object {
-                          "marginTop": 14,
-                        }
-                      }
-                    >
-                      <Text
-                        black={false}
-                        blue={false}
-                        bold={false}
-                        centered={false}
-                        disclaimer={false}
-                        green={false}
-                        grey={true}
-                        infoModal={true}
-                        link={true}
-                        modal={false}
-                        primary={false}
-                        red={false}
-                        reset={false}
-                        right={false}
-                        small={false}
-                        strikethrough={false}
-                        underline={false}
-                        upper={false}
-                      >
-                        Learn more about customizing gas.
-                      </Text>
-                    </TouchableOpacity>
                   </View>
                 </TouchableWithoutFeedback>
               </ScrollView>

@@ -339,7 +339,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                       </TouchableOpacity>
                     </View>
                   }
-                  min={"1"}
+                  min={"0.000001"}
                   name="Gas price"
                   onChangeValue={[Function]}
                   unit="GWEI"
