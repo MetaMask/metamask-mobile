@@ -103,22 +103,22 @@ class NavbarTitle extends PureComponent {
 
 		return (
 			<TouchableOpacity
-				onPress={this.openNetworkList}
+				// onPress={this.openNetworkList}
 				style={styles.wrapper}
-				activeOpacity={this.props.disableNetwork ? 1 : 0.2}
-				testID={'open-networks-button'}
+				// activeOpacity={this.props.disableNetwork ? 1 : 0.2}
+				// testID={'open-networks-button'}
 			>
 				{title ? (
 					<Text numberOfLines={1} style={styles.title}>
 						{realTitle}
 					</Text>
 				) : null}
-				<View style={styles.network}>
+				{/* <View style={styles.network}>
 					<View style={[styles.networkIcon, color ? { backgroundColor: color } : styles.otherNetworkIcon]} />
 					<Text style={styles.networkName} testID={'navbar-title-network'}>
 						{name}
 					</Text>
-				</View>
+				</View> */}
 			</TouchableOpacity>
 		);
 	};
