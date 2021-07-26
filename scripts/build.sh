@@ -317,6 +317,7 @@ checkParameters "$@"
 printTitle
 
 if [ "$MODE" == "release" ]; then
+
 	if [ "$PRE_RELEASE" = false ]; then
  		checkAuthToken 'sentry.release.properties'
  		export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"
@@ -324,6 +325,7 @@ if [ "$MODE" == "release" ]; then
  		checkAuthToken 'sentry.debug.properties'
  		export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
  	fi
+
 	if [ -z "$METAMASK_ENVIRONMENT" ]; then
 		printError "Missing METAMASK_ENVIRONMENT; set to 'production' for a production release, 'prerelease' for a pre-release, or 'local' otherwise"
 		exit 1
