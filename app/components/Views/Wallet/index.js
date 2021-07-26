@@ -204,11 +204,11 @@ class Wallet extends PureComponent {
 					onChangeTab={obj => this.onChangeTab(obj)}
 				>
 					<Tokens navigation={navigation} tabLabel={strings('wallet.tokens')} tokens={assets} />
-					<CollectibleContracts
+					{/* <CollectibleContracts
 						navigation={navigation}
 						tabLabel={strings('wallet.collectibles')}
 						collectibles={collectibles}
-					/>
+					/> */}
 				</ScrollableTabView>
 			</View>
 		);

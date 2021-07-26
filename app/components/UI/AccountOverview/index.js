@@ -341,7 +341,7 @@ class AccountOverview extends PureComponent {
 							<EthereumAddress address={address} style={styles.address} type={'short'} />
 						</TouchableOpacity>
 
-						<View style={styles.actions}>
+						{/* <View style={styles.actions}>
 							<AssetActionButton
 								icon="receive"
 								onPress={this.onReceive}
@@ -368,7 +368,7 @@ class AccountOverview extends PureComponent {
 									isAssetAllowed
 								/>
 							)}
-						</View>
+						</View> */}
 					</View>
 				</ScrollView>
 			</View>
