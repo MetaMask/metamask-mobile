@@ -659,11 +659,11 @@ class TransactionEditor extends PureComponent {
 
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	collectibles: state.engine.backgroundState.AssetsController.collectibles,
+	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	tokens: state.engine.backgroundState.AssetsController.tokens,
+	tokens: state.engine.backgroundState.TokensController.tokens,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	transaction: getNormalizedTxState(state),
 	activeTabUrl: getActiveTabUrl(state)

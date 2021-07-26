@@ -1083,9 +1083,9 @@ const mapStateToProps = state => ({
 	passwordSet: state.user.passwordSet,
 	wizard: state.wizard,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	tokens: state.engine.backgroundState.AssetsController.tokens,
+	tokens: state.engine.backgroundState.TokensController.tokens,
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
-	collectibles: state.engine.backgroundState.AssetsController.collectibles,
+	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
 	seedphraseBackedUp: state.user.seedphraseBackedUp
 });
 

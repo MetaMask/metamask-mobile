@@ -17,7 +17,7 @@ describe('TransactionReview', () => {
 					AccountTrackerController: {
 						accounts: []
 					},
-					AssetsController: {
+					TokensController: {
 						tokens: []
 					},
 					CurrencyRateController: {
