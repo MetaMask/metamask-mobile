@@ -434,9 +434,6 @@ export const BrowserTab = props => {
 			};
 
 			const rpcMethods = {
-				eth_estimateGas: async () => {
-					res.result = await polyfillGasPrice('estimateGas', req.params);
-				},
 				eth_getTransactionByHash: async () => {
 					res.result = await polyfillGasPrice('getTransactionByHash', req.params);
 				},
