@@ -413,7 +413,7 @@ export const BrowserTab = props => {
 		const { TransactionController } = Engine.context;
 		const data = await util.query(TransactionController.ethQuery, method, params);
 
-		if (data.maxFeePerGas && !data.gasPrice) {
+		if (data && data.maxFeePerGas && !data.gasPrice) {
 			data.gasPrice = data.maxFeePerGas;
 		}
 
