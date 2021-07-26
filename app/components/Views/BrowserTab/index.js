@@ -21,7 +21,7 @@ import BrowserBottomBar from '../../UI/BrowserBottomBar';
 import PropTypes from 'prop-types';
 import Share from 'react-native-share';
 import { connect } from 'react-redux';
-import { NetworksChainId } from '@metamask/controllers';
+import { NetworksChainId, util } from '@metamask/controllers';
 
 import BackgroundBridge from '../../../core/BackgroundBridge';
 import Engine from '../../../core/Engine';
@@ -409,6 +409,17 @@ export const BrowserTab = props => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [notifyAllConnections, props.approvedHosts, props.selectedAddress]);
 
+	const polyfillGasPrice = async (method, params = []) => {
+		const { TransactionController } = Engine.context;
+		const data = await util.query(TransactionController.ethQuery, method, params);
+
+		if (data.maxFeePerGas && !data.gasPrice) {
+			data.gasPrice = data.maxFeePerGas;
+		}
+
+		return data;
+	};
+
 	/**
 	 * Handle RPC methods called by dapps
 	 */
@@ -423,6 +434,18 @@ export const BrowserTab = props => {
 			};
 
 			const rpcMethods = {
+				eth_estimateGas: async () => {
+					res.result = await polyfillGasPrice('estimateGas', req.params);
+				},
+				eth_getTransactionByHash: async () => {
+					res.result = await polyfillGasPrice('getTransactionByHash', req.params);
+				},
+				eth_getTransactionByBlockHashAndIndex: async () => {
+					res.result = await polyfillGasPrice('getTransactionByBlockHashAndIndex', req.params);
+				},
+				eth_getTransactionByBlockNumberAndIndex: async () => {
+					res.result = await polyfillGasPrice('getTransactionByBlockNumberAndIndex', req.params);
+				},
 				eth_chainId: async () => {
 					const { networkType, networkProvider } = props;
 
