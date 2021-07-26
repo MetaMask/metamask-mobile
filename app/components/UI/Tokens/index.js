@@ -166,8 +166,8 @@ class Tokens extends PureComponent {
 			primaryCurrency,
 			tokenList
 		} = this.props;
-		const itemAddress = safeToChecksumAddress(asset.address);
-		const logo = (tokenList[itemAddress] && tokenList[itemAddress].iconUrl) || undefined;
+		const itemAddress = safeToChecksumAddress(asset.address)?.toLowerCase?.();
+		const logo = tokenList?.[itemAddress]?.iconUrl;
 		const exchangeRate = itemAddress in tokenExchangeRates ? tokenExchangeRates[itemAddress] : undefined;
 		const balance =
 			asset.balance ||
@@ -192,7 +192,7 @@ class Tokens extends PureComponent {
 			secondaryBalance = strings('wallet.unable_to_load');
 		}
 
-		asset = { ...asset, ...{ logo, balance, balanceFiat } };
+		asset = { logo, ...asset, balance, balanceFiat };
 		return (
 			<AssetElement
 				key={itemAddress || '0x'}

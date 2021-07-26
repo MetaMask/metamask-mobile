@@ -34,7 +34,7 @@ export function TokenImage({ asset, containerStyle, iconStyle, logoDefined, swap
 
 	return (
 		<View style={[styles.itemLogoWrapper, containerStyle, asset.logo || asset.image ? {} : styles.roundImage]}>
-			{asset.logo || asset.image ? (
+			{completeAsset.logo || completeAsset.image ? (
 				<AssetIcon logo={completeAsset.logo || completeAsset.image} customStyle={iconStyle} />
 			) : (
 				<Identicon address={asset.address} customStyle={iconStyle} />

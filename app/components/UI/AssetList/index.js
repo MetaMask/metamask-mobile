@@ -72,6 +72,7 @@ export default class AssetList extends PureComponent {
 				{searchResults.slice(0, 6).map((_, i) => {
 					const { symbol, name, address, iconUrl } = searchResults[i] || {};
 					const isSelected = selectedAsset && selectedAsset.address === address;
+
 					return (
 						<StyledButton
 							type={isSelected ? 'normal' : 'transparent'}

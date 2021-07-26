@@ -3,6 +3,7 @@ import { StyleSheet } from 'react-native';
 import RemoteImage from '../../Base/RemoteImage';
 import PropTypes from 'prop-types';
 import { colors } from '../../../styles/common';
+import contractMetadataImages from '@metamask/contract-metadata/generated';
 
 const styles = StyleSheet.create({
 	logo: {
@@ -11,15 +12,23 @@ const styles = StyleSheet.create({
 	}
 });
 
+function isUrl(string) {
+	if (/^(http:\/\/|https:\/\/)/.test(string)) {
+		return true;
+	}
+	return false;
+}
+
 /**
  * PureComponent that provides an asset icon dependent on OS.
  */
 // eslint-disable-next-line react/display-name
 const AssetIcon = React.memo(props => {
 	if (!props.logo) return null;
-	const uri = props.logo;
 	const style = [styles.logo, props.customStyle];
-	return <RemoteImage fadeIn placeholderStyle={{ backgroundColor: colors.white }} source={{ uri }} style={style} />;
+	const source = isUrl(props.logo) ? { uri: props.logo } : contractMetadataImages[props.logo];
+
+	return <RemoteImage fadeIn placeholderStyle={{ backgroundColor: colors.white }} source={source} style={style} />;
 });
 
 AssetIcon.propTypes = {
