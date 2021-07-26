@@ -659,9 +659,9 @@ class Confirm extends PureComponent {
 		} = this.props;
 		const { fromSelectedAddress } = this.state;
 		if (assetType === 'ERC721' && chainId !== NetworksChainId.mainnet) {
-			const { AssetsController } = Engine.context;
+			const { CollectiblesController } = Engine.context;
 			removeFavoriteCollectible(fromSelectedAddress, chainId, selectedAsset);
-			AssetsController.removeCollectible(selectedAsset.address, selectedAsset.tokenId);
+			CollectiblesController.removeCollectible(selectedAsset.address, selectedAsset.tokenId);
 		}
 	};
 
