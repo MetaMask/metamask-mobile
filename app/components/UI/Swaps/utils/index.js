@@ -37,14 +37,22 @@ export function isDynamicToken(token) {
  * @param {string} destinationTokenAddress Token contract address used as swaps result
  * @param {string} sourceAmount Amount in minimal token units of sourceTokenAddress to be swapped
  * @param {string|number} slippage Max slippage
+ * @param {array} tokens Tokens selected for trade
  * @return {object} Object containing sourceTokenAddress, destinationTokenAddress, sourceAmount and slippage
  */
-export function setQuotesNavigationsParams(sourceTokenAddress, destinationTokenAddress, sourceAmount, slippage) {
+export function setQuotesNavigationsParams(
+	sourceTokenAddress,
+	destinationTokenAddress,
+	sourceAmount,
+	slippage,
+	tokens = []
+) {
 	return {
 		sourceTokenAddress,
 		destinationTokenAddress,
 		sourceAmount,
-		slippage
+		slippage,
+		tokens
 	};
 }
 
@@ -57,12 +65,14 @@ export function getQuotesNavigationsParams(route) {
 	const sourceTokenAddress = route.params?.sourceTokenAddress ?? '';
 	const destinationTokenAddress = route.params?.destinationTokenAddress ?? '';
 	const sourceAmount = route.params?.sourceAmount;
+	const tokens = route.params?.tokens;
 
 	return {
 		sourceTokenAddress,
 		destinationTokenAddress,
 		sourceAmount,
-		slippage
+		slippage,
+		tokens
 	};
 }
 
