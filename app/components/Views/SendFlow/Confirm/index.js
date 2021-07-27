@@ -213,6 +213,13 @@ const styles = StyleSheet.create({
 	}
 });
 
+const EmptyLegacyTransactionData = {
+	transactionFeeFiat: '',
+	transactionFee: '',
+	transactionTotalAmount: '',
+	transactionTotalAmountFiat: ''
+};
+
 /**
  * View that wraps the wraps the "Send" screen
  */
@@ -358,13 +365,8 @@ class Confirm extends PureComponent {
 		EIP1559TransactionDataTemp: {},
 		stopUpdateGas: false,
 		advancedGasInserted: false,
-		LegacyTransactionData: {
-			transactionFeeFiat: '',
-			transactionFee: '',
-			transactionTotalAmount: '',
-			transactionTotalAmountFiat: ''
-		},
-		LegacyTransactionDataTemp: {},
+		LegacyTransactionData: EmptyLegacyTransactionData,
+		LegacyTransactionDataTemp: EmptyLegacyTransactionData,
 		gasSpeedSelected: AppConstants.GAS_OPTIONS.MEDIUM
 	};
 
@@ -377,8 +379,8 @@ class Confirm extends PureComponent {
 
 	getAnalyticsParams = () => {
 		try {
-			const { selectedAsset, gasEstimateType, chainId, networkType } = this.props;
-			const { gasSelected } = this.state;
+			const { selectedAsset, chainId, networkType } = this.props;
+			const { gasSelected, gasEstimateType } = this.state;
 
 			return {
 				active_currency: { value: selectedAsset?.symbol, anonymous: true },
@@ -395,7 +397,8 @@ class Confirm extends PureComponent {
 
 	getGasAnalyticsParams = () => {
 		try {
-			const { selectedAsset, gasEstimateType, networkType } = this.props;
+			const { selectedAsset, networkType } = this.props;
+			const { gasEstimateType } = this.state;
 			return {
 				active_currency: { value: selectedAsset.symbol, anonymous: true },
 				gas_estimate_type: gasEstimateType,
@@ -470,6 +473,9 @@ class Confirm extends PureComponent {
 				gas !== prevProps?.transactionState?.transaction?.gas)
 		) {
 			if (!this.state.stopUpdateGas && !this.state.advancedGasInserted) {
+				// eslint-disable-next-line react/no-did-update-set-state
+				this.setState({ gasEstimateType: this.props.gasEstimateType });
+
 				if (this.props.gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
 					const suggestedGasLimit = fromWei(gas, 'wei');
 
@@ -498,6 +504,8 @@ class Confirm extends PureComponent {
 							gasEstimationReady: true,
 							EIP1559TransactionData,
 							EIP1559TransactionDataTemp,
+							LegacyTransactionData: EmptyLegacyTransactionData,
+							LegacyTransactionDataTemp: EmptyLegacyTransactionData,
 							animateOnChange: true
 						},
 						() => {
@@ -535,6 +543,8 @@ class Confirm extends PureComponent {
 							gasEstimationReady: true,
 							LegacyTransactionData,
 							LegacyTransactionDataTemp,
+							EIP1559TransactionData: {},
+							EIP1559TransactionDataTemp: {},
 							animateOnChange: true
 						},
 						() => {
@@ -697,9 +707,9 @@ class Confirm extends PureComponent {
 	prepareTransactionToSend = () => {
 		const {
 			transactionState: { transaction },
-			showCustomNonce,
-			gasEstimateType
+			showCustomNonce
 		} = this.props;
+		const { gasEstimateType } = this.state;
 		const { fromSelectedAddress, LegacyTransactionData, EIP1559TransactionData } = this.state;
 		const { nonce } = this.props.transaction;
 		const transactionToSend = { ...transaction };
@@ -797,9 +807,9 @@ class Confirm extends PureComponent {
 		const {
 			transactionState: { assetType },
 			navigation,
-			resetTransaction,
-			gasEstimateType
+			resetTransaction
 		} = this.props;
+		const { gasEstimateType } = this.state;
 		const { EIP1559TransactionData, LegacyTransactionData } = this.state;
 		this.setState({ transactionConfirmed: true, stopUpdateGas: true });
 		try {
@@ -1017,8 +1027,8 @@ class Confirm extends PureComponent {
 	};
 
 	renderCustomGasModalLegacy = () => {
-		const { primaryCurrency, chainId, gasEstimateType, gasFeeEstimates } = this.props;
-		const { LegacyTransactionDataTemp, gasSelected, isAnimating, animateOnChange } = this.state;
+		const { primaryCurrency, chainId, gasFeeEstimates } = this.props;
+		const { LegacyTransactionDataTemp, gasSelected, isAnimating, animateOnChange, gasEstimateType } = this.state;
 		return (
 			<Modal
 				isVisible
@@ -1179,15 +1189,7 @@ class Confirm extends PureComponent {
 
 	render = () => {
 		const { transactionToName, selectedAsset, paymentRequest } = this.props.transactionState;
-		const {
-			addressBook,
-			showHexData,
-			showCustomNonce,
-			primaryCurrency,
-			network,
-			chainId,
-			gasEstimateType
-		} = this.props;
+		const { addressBook, showHexData, showCustomNonce, primaryCurrency, network, chainId } = this.props;
 		const { nonce } = this.props.transaction;
 		const {
 			gasEstimationReady,
@@ -1206,7 +1208,8 @@ class Confirm extends PureComponent {
 			warningModalVisible,
 			LegacyTransactionData,
 			isAnimating,
-			animateOnChange
+			animateOnChange,
+			gasEstimateType
 		} = this.state;
 
 		const showFeeMarket =

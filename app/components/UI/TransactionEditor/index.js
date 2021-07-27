@@ -149,6 +149,7 @@ class TransactionEditor extends PureComponent {
 	computeGasEstimates = () => {
 		const { transaction, gasEstimateType, gasFeeEstimates } = this.props;
 		const { gasSelected, gasSelectedTemp, dappSuggestedGasPrice, dappSuggestedEIP1559Gas } = this.state;
+		this.setState({ gasEstimateType });
 
 		const dappSuggestedGas = dappSuggestedGasPrice || dappSuggestedEIP1559Gas;
 
@@ -196,6 +197,8 @@ class TransactionEditor extends PureComponent {
 					ready: true,
 					EIP1559GasData,
 					EIP1559GasDataTemp,
+					LegacyGasData: {},
+					LegacyGasDataTemp: {},
 					advancedGasInserted: Boolean(dappSuggestedGas),
 					gasSelected: dappSuggestedGas ? null : gasSelected,
 					animateOnChange: true
@@ -242,6 +245,8 @@ class TransactionEditor extends PureComponent {
 					ready: true,
 					LegacyGasData,
 					LegacyGasDataTemp,
+					EIP1559GasData: {},
+					EIP1559GasDataTemp: {},
 					advancedGasInserted: Boolean(dappSuggestedGasPrice),
 					gasSelected: dappSuggestedGasPrice ? null : gasSelected,
 					animateOnChange: true
@@ -358,8 +363,8 @@ class TransactionEditor extends PureComponent {
 	 * Call callback when transaction is confirmed, after being validated
 	 */
 	onConfirm = async () => {
-		const { onConfirm, gasEstimateType } = this.props;
-		const { EIP1559GasData, gasSelected } = this.state;
+		const { onConfirm } = this.props;
+		const { EIP1559GasData, gasSelected, gasEstimateType } = this.state;
 		!(await this.validate()) && onConfirm && onConfirm({ gasEstimateType, EIP1559GasData, gasSelected });
 	};
 
@@ -839,7 +844,8 @@ class TransactionEditor extends PureComponent {
 
 	getGasAnalyticsParams = () => {
 		try {
-			const { transaction, activeTabUrl, gasEstimateType, networkType } = this.props;
+			const { transaction, activeTabUrl, networkType } = this.props;
+			const { gasEstimateType } = this.state;
 			const { selectedAsset } = transaction;
 			return {
 				dapp_host_name: transaction?.origin,
@@ -878,8 +884,7 @@ class TransactionEditor extends PureComponent {
 	};
 
 	saveGasEdition = gasSelected => {
-		const { gasEstimateType } = this.props;
-		const { LegacyGasDataTemp } = this.state;
+		const { LegacyGasDataTemp, gasEstimateType } = this.state;
 
 		if (gasEstimateType !== GAS_ESTIMATE_TYPES.FEE_MARKET) {
 			this.handleGasFeeSelection(
@@ -914,10 +919,9 @@ class TransactionEditor extends PureComponent {
 	};
 
 	renderWarning = () => {
-		const { dappSuggestedGasPrice, dappSuggestedEIP1559Gas } = this.state;
+		const { dappSuggestedGasPrice, dappSuggestedEIP1559Gas, gasEstimateType } = this.state;
 		const {
-			transaction: { origin },
-			gasEstimateType
+			transaction: { origin }
 		} = this.props;
 		if (dappSuggestedGasPrice && gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET)
 			return strings('transaction.dapp_suggested_gas', { origin });
@@ -942,8 +946,7 @@ class TransactionEditor extends PureComponent {
 			onModeChange,
 			gasFeeEstimates,
 			primaryCurrency,
-			chainId,
-			gasEstimateType
+			chainId
 		} = this.props;
 		const {
 			basicGasEstimates,
@@ -957,7 +960,8 @@ class TransactionEditor extends PureComponent {
 			dappSuggestedGasPrice,
 			dappSuggestedEIP1559Gas,
 			animateOnChange,
-			isAnimating
+			isAnimating,
+			gasEstimateType
 		} = this.state;
 		return (
 			<React.Fragment>

@@ -136,6 +136,8 @@ class Approve extends PureComponent {
 		const { transaction, gasEstimateType, gasFeeEstimates } = this.props;
 		const { gasSelected, gasSelectedTemp } = this.state;
 
+		this.setState({ gasEstimateType });
+
 		if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
 			const overrideGas = overrideGasPrice
 				? {
@@ -173,6 +175,8 @@ class Approve extends PureComponent {
 					ready: true,
 					EIP1559GasData,
 					EIP1559GasDataTemp,
+					LegacyGasData: {},
+					LegacyGasDataTemp: {},
 					animateOnChange: true
 				},
 				() => {
@@ -216,6 +220,8 @@ class Approve extends PureComponent {
 					ready: true,
 					LegacyGasData,
 					LegacyGasDataTemp,
+					EIP1559GasData: {},
+					EIP1559GasDataTemp: {},
 					animateOnChange: true
 				},
 				() => {
@@ -385,8 +391,7 @@ class Approve extends PureComponent {
 	};
 
 	prepareTransaction = transaction => {
-		const { gasEstimateType } = this.props;
-		const { LegacyGasData, EIP1559GasData } = this.state;
+		const { LegacyGasData, EIP1559GasData, gasEstimateType } = this.state;
 		const transactionToSend = {
 			...transaction,
 			value: BNToHex(transaction.value),
@@ -409,8 +414,7 @@ class Approve extends PureComponent {
 
 	getAnalyticsParams = () => {
 		try {
-			const { gasEstimateType } = this.props;
-			const { analyticsParams, gasSelected } = this.state;
+			const { analyticsParams, gasSelected, gasEstimateType } = this.state;
 			return {
 				...analyticsParams,
 				gas_estimate_type: gasEstimateType,
@@ -424,8 +428,8 @@ class Approve extends PureComponent {
 
 	onConfirm = async () => {
 		const { TransactionController } = Engine.context;
-		const { transactions, gasEstimateType } = this.props;
-		const { EIP1559GasData, LegacyGasData } = this.state;
+		const { transactions } = this.props;
+		const { EIP1559GasData, LegacyGasData, gasEstimateType } = this.state;
 
 		if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
 			if (this.validateGas(EIP1559GasData.totalMaxHex)) return;
@@ -482,8 +486,8 @@ class Approve extends PureComponent {
 
 	getGasAnalyticsParams = () => {
 		try {
-			const { analyticsParams } = this.state;
-			const { gasEstimateType, networkType } = this.props;
+			const { analyticsParams, gasEstimateType } = this.state;
+			const { networkType } = this.props;
 			return {
 				dapp_host_name: analyticsParams?.dapp_host_name,
 				dapp_url: analyticsParams?.dapp_url,
@@ -541,9 +545,10 @@ class Approve extends PureComponent {
 			LegacyGasDataTemp,
 			gasSelected,
 			animateOnChange,
-			isAnimating
+			isAnimating,
+			gasEstimateType
 		} = this.state;
-		const { transaction, gasEstimateType, gasFeeEstimates, primaryCurrency, chainId } = this.props;
+		const { transaction, gasFeeEstimates, primaryCurrency, chainId } = this.props;
 
 		if (!transaction.id) return null;
 		return (
