@@ -251,7 +251,7 @@ function TokenSelectModal({
 		navigation.navigate('Webview', {
 			screen: 'SimpleWebview',
 			params: {
-				url: explorer.token(shouldFetchToken ? searchString : ''),
+				url: shouldFetchToken ? explorer.token(searchString) : explorer.token('').replace('token/', 'tokens/'),
 				title: strings(shouldFetchToken ? 'swaps.verify' : 'swaps.find_token_address')
 			}
 		});
@@ -260,7 +260,7 @@ function TokenSelectModal({
 
 	const renderFooter = useMemo(
 		() => (
-			<View style={[styles.resultRow, styles.footer]}>
+			<TouchableWithoutFeedback>
 				<Alert
 					renderIcon={() => (
 						<FAIcon name="info-circle" style={styles.footerIcon} color={colors.blue} size={15} />
@@ -284,7 +284,7 @@ function TokenSelectModal({
 						</Text>
 					)}
 				</Alert>
-			</View>
+			</TouchableWithoutFeedback>
 		),
 		[explorer.isValid, explorer.name, handleBlockExplorerPress]
 	);
@@ -421,6 +421,7 @@ function TokenSelectModal({
 						keyExtractor={item => item.address}
 						ListEmptyComponent={renderEmptyList}
 						ListFooterComponent={renderFooter}
+						ListFooterComponentStyle={[styles.resultRow, styles.footer]}
 					/>
 				)}
 			</SafeAreaView>
