@@ -5479,7 +5479,7 @@ eth-json-rpc-middleware@^6.0.0:
     pify "^3.0.0"
     safe-event-emitter "^1.0.1"
 
-eth-keyring-controller@^6.2.1:
+eth-keyring-controller@^6.1.0, eth-keyring-controller@^6.2.1:
   version "6.2.1"
   resolved "https://registry.yarnpkg.com/eth-keyring-controller/-/eth-keyring-controller-6.2.1.tgz#61901071fc74059ed37cb5ae93870fdcae6e3781"
   integrity sha512-x2gTM1iHp2Kbvdtd9Eslysw0qzVZiqOzpVB3AU/ni2Xiit+rlcv2H80zYKjrEwlfWFDj4YILD3bOqlnEMmRJOA==
@@ -5501,7 +5501,7 @@ eth-method-registry@1.1.0:
   dependencies:
     ethjs "^0.3.0"
 
-eth-phishing-detect@^1.1.14:
+eth-phishing-detect@^1.1.13, eth-phishing-detect@^1.1.14:
   version "1.1.15"
   resolved "https://registry.yarnpkg.com/eth-phishing-detect/-/eth-phishing-detect-1.1.15.tgz#c42e1aad6cd1c5eeee41c6bf932dcfd0e523d499"
   integrity sha512-RVNSGMVIuO6VZ1Uv4v8dljjj0ephW+APVAU5QL5mBu3VEqfBluPMNb6jw66kxYrIFrSNalnb/pMeDpAA+W3cvg==
@@ -5703,7 +5703,7 @@ ethereumjs-util@^5.0.0, ethereumjs-util@^5.1.1, ethereumjs-util@^5.1.2, ethereum
     rlp "^2.0.0"
     safe-buffer "^5.1.1"
 
-ethereumjs-util@^6.0.0:
+ethereumjs-util@^6.0.0, ethereumjs-util@^6.1.0:
   version "6.2.1"
   resolved "https://registry.yarnpkg.com/ethereumjs-util/-/ethereumjs-util-6.2.1.tgz#fcb4e4dd5ceacb9d2305426ab1a5cd93e3163b69"
   integrity sha512-W2Ktez4L01Vexijrm5EB6w7dg4n/TgpoYU4avuT5T3Vmnw/eCRtiBrJfQYS/DCSvDIOLn2k57GcHdeBcgVxAqw==
