@@ -152,12 +152,6 @@ class Approve extends PureComponent {
 
 			const suggestedGasLimit = fromWei(overrideGasLimit || transaction.gas, 'wei');
 
-			console.log({
-				...initialGas,
-				suggestedGasLimit,
-				selectedOption: gasSelected
-			});
-
 			const EIP1559GasData = this.parseTransactionDataEIP1559({
 				...initialGas,
 				suggestedGasLimit,
