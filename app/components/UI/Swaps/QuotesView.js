@@ -224,7 +224,7 @@ async function resetAndStartPolling({ slippage, sourceToken, destinationToken, s
 	if (!sourceToken || !destinationToken) {
 		return;
 	}
-	const { SwapsController, TokenRatesController, AssetsController } = Engine.context;
+	const { SwapsController, TokenRatesController, TokensController } = Engine.context;
 	const contractExchangeRates = TokenRatesController.state.contractExchangeRates;
 	// ff the token is not in the wallet, we'll add it
 	if (
@@ -232,7 +232,7 @@ async function resetAndStartPolling({ slippage, sourceToken, destinationToken, s
 		!(safeToChecksumAddress(destinationToken.address) in contractExchangeRates)
 	) {
 		const { address, symbol, decimals } = destinationToken;
-		await AssetsController.addToken(address, symbol, decimals);
+		await TokensController.addToken(address, symbol, decimals);
 		await new Promise(resolve =>
 			setTimeout(() => {
 				resolve();
@@ -289,14 +289,17 @@ function SwapsQuotesView({
 	const navigation = useNavigation();
 	const route = useRoute();
 	/* Get params from navigation */
-	const { sourceTokenAddress, destinationTokenAddress, sourceAmount, slippage } = useMemo(
+
+	const { sourceTokenAddress, destinationTokenAddress, sourceAmount, slippage, tokens } = useMemo(
 		() => getQuotesNavigationsParams(route),
 		[route]
 	);
 
 	/* Get tokens from the tokens list */
-	const sourceToken = swapsTokens?.find(token => toLowerCaseEquals(token.address, sourceTokenAddress));
-	const destinationToken = swapsTokens?.find(token => toLowerCaseEquals(token.address, destinationTokenAddress));
+	const sourceToken = [...swapsTokens, ...tokens].find(token => toLowerCaseEquals(token.address, sourceTokenAddress));
+	const destinationToken = [...swapsTokens, ...tokens].find(token =>
+		toLowerCaseEquals(token.address, destinationTokenAddress)
+	);
 
 	const hasConversionRate =
 		Boolean(destinationToken) &&

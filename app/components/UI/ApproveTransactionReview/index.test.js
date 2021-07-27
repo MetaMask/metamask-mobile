@@ -22,7 +22,7 @@ describe('ApproveTransactionModal', () => {
 							type: 'ETH'
 						}
 					},
-					AssetsController: {
+					TokensController: {
 						tokens: []
 					}
 				}
