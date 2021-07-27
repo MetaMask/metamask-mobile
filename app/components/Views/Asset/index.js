@@ -187,7 +187,8 @@ class Asset extends PureComponent {
 	normalizeTransactions() {
 		if (this.isNormalizing) return;
 		let accountAddedTimeInsertPointFound = false;
-		const addedAccountTime = this.props.identities[this.props.selectedAddress]?.importTime;
+		const { selectedAddress } = this.props;
+		const addedAccountTime = this.props.identities[selectedAddress]?.importTime;
 		this.isNormalizing = true;
 		let submittedTxs = [];
 		const newPendingTxs = [];
@@ -209,7 +210,7 @@ class Asset extends PureComponent {
 						case 'signed':
 						case 'unapproved':
 							submittedTxs.push(tx);
-							break;
+							return false;
 						case 'pending':
 							newPendingTxs.push(tx);
 							break;
@@ -224,6 +225,14 @@ class Asset extends PureComponent {
 			const submittedNonces = [];
 			submittedTxs = submittedTxs.filter(transaction => {
 				const alreadySubmitted = submittedNonces.includes(transaction.transaction.nonce);
+				const alreadyConfirmed = confirmedTxs.find(
+					tx =>
+						safeToChecksumAddress(tx.transaction.from) === selectedAddress &&
+						tx.transaction.nonce === transaction.transaction.nonce
+				);
+				if (alreadyConfirmed) {
+					return false;
+				}
 				submittedNonces.push(transaction.transaction.nonce);
 				return !alreadySubmitted;
 			});
