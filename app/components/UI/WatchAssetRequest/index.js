@@ -132,15 +132,15 @@ class WatchAssetRequest extends PureComponent {
 	};
 
 	componentWillUnmount = async () => {
-		const { AssetsController } = Engine.context;
+		const { TokensController } = Engine.context;
 		const { suggestedAssetMeta } = this.props;
-		await AssetsController.rejectWatchAsset(suggestedAssetMeta.id);
+		await TokensController.rejectWatchAsset(suggestedAssetMeta.id);
 	};
 
 	onConfirm = async () => {
 		const { onConfirm, suggestedAssetMeta } = this.props;
-		const { AssetsController } = Engine.context;
-		await AssetsController.acceptWatchAsset(suggestedAssetMeta.id);
+		const { TokensController } = Engine.context;
+		await TokensController.acceptWatchAsset(suggestedAssetMeta.id);
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.TOKEN_ADDED, this.getAnalyticsParams());
 		onConfirm && onConfirm();
 	};
