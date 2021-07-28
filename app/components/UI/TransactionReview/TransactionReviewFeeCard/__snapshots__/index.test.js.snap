@@ -30,7 +30,7 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
       >
         Amount
       </Text>
-      <View
+      <FadeAnimationView
         style={
           Object {
             "flex": 1,
@@ -86,7 +86,7 @@ exports[`TransactionReviewFeeCard should render correctly 1`] = `
           underline={false}
           upper={true}
         />
-      </View>
+      </FadeAnimationView>
     </SummaryRow>
     <SummaryRow>
       <View>
