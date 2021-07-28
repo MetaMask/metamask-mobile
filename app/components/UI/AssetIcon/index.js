@@ -3,7 +3,7 @@ import { StyleSheet } from 'react-native';
 import RemoteImage from '../../Base/RemoteImage';
 import PropTypes from 'prop-types';
 import { colors } from '../../../styles/common';
-import contractMetadataImages from '@metamask/contract-metadata/generated';
+import staticLogos from 'images/static-logos';
 
 const styles = StyleSheet.create({
 	logo: {
@@ -26,7 +26,7 @@ function isUrl(string) {
 const AssetIcon = React.memo(props => {
 	if (!props.logo) return null;
 	const style = [styles.logo, props.customStyle];
-	const source = isUrl(props.logo) ? { uri: props.logo } : contractMetadataImages[props.logo];
+	const source = isUrl(props.logo) ? { uri: props.logo } : staticLogos[props.logo];
 
 	return <RemoteImage fadeIn placeholderStyle={{ backgroundColor: colors.white }} source={source} style={style} />;
 });
