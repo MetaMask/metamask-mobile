@@ -1479,9 +1479,10 @@
     web3 "^0.20.7"
     web3-provider-engine "^16.0.1"
 
-"@metamask/controllers@file:./metamask-controllers-v14.0.2.tgz":
+"@metamask/controllers@^14.0.2":
   version "14.0.2"
-  resolved "file:./metamask-controllers-v14.0.2.tgz#64463d3df841cab7718e04d5af4f92406cd4f066"
+  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-14.0.2.tgz#5b7cc044e6c5442e9728a6923ab7d29c7a07b2f3"
+  integrity sha512-abR1GTDxyOI2+2+jl8xv0WweFzHTmiuvvfe1y7qFtVKHpswO4p+xUjT7UmyDFe4nxsjqf6npct7ZDeS/EjEudg==
   dependencies:
     "@ethereumjs/common" "^2.3.1"
     "@ethereumjs/tx" "^3.2.1"
