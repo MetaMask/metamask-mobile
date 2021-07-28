@@ -18,14 +18,14 @@ workflows:
             - activate-ssh-key@4:
                   run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
             - git-clone@4: {}
+            - nvm@1:
+                  inputs:
+                      - node_version: '14'
     code_setup_cache:
         before_run:
             - setup
         steps:
             - cache-pull@2: {}
-            - nvm@1:
-                  inputs:
-                      - node_version: '14'
             - yarn@0:
                   inputs:
                       - cache_local_deps: 'yes'
@@ -47,9 +47,6 @@ workflows:
         before_run:
             - setup
         steps:
-            - nvm@1:
-                  inputs:
-                      - node_version: '14'
             - yarn@0:
                   inputs:
                       - cache_local_deps: 'yes'
@@ -189,7 +186,7 @@ workflows:
                 inputs:
                 - command: build:announce
                 title: Accouncing pre-release
-                is_always_run: false
+                is_always_run: true
     android_test_release_step:
         before_run:
             - code_setup
@@ -307,7 +304,7 @@ app:
           VERSION_NAME: 3.0.0
         - opts:
               is_expand: false
-          VERSION_NUMBER: 761
+          VERSION_NUMBER: 762
         - opts:
               is_expand: false
           ANDROID_APK_LINK: ''
