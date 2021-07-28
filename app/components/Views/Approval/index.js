@@ -4,7 +4,7 @@ import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
 import TransactionEditor from '../../UI/TransactionEditor';
 import Modal from 'react-native-modal';
-import { BNToHex, hexToBN } from '../../../util/number';
+import { addHexPrefix, BNToHex, hexToBN } from '../../../util/number';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { resetTransaction } from '../../../actions/transaction';
 import { connect } from 'react-redux';
@@ -17,6 +17,7 @@ import { safeToChecksumAddress } from '../../../util/address';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import Logger from '../../../util/Logger';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -169,7 +170,7 @@ class Approval extends PureComponent {
 		};
 	};
 
-	getAnalyticsParams = () => {
+	getAnalyticsParams = ({ gasEstimateType, gasSelected } = {}) => {
 		try {
 			const { activeTabUrl, chainId, transaction, networkType } = this.props;
 			const { selectedAsset } = transaction;
@@ -179,7 +180,10 @@ class Approval extends PureComponent {
 				network_name: networkType,
 				chain_id: chainId,
 				active_currency: { value: selectedAsset?.symbol, anonymous: true },
-				asset_type: { value: transaction?.assetType, anonymous: true }
+				asset_type: { value: transaction?.assetType, anonymous: true },
+				gas_estimate_type: gasEstimateType,
+				gas_mode: gasSelected ? 'Basic' : 'Advanced',
+				speed_set: gasSelected || undefined
 			};
 		} catch (error) {
 			return {};
@@ -219,7 +223,7 @@ class Approval extends PureComponent {
 	/**
 	 * Callback on confirm transaction
 	 */
-	onConfirm = async () => {
+	onConfirm = async ({ gasEstimateType, EIP1559GasData, gasSelected }) => {
 		const { TransactionController } = Engine.context;
 		const {
 			transactions,
@@ -229,11 +233,17 @@ class Approval extends PureComponent {
 		let { transaction } = this.props;
 		const { nonce } = transaction;
 		if (showCustomNonce && nonce) transaction.nonce = BNToHex(nonce);
+
 		try {
 			if (assetType === 'ETH') {
-				transaction = this.prepareTransaction(transaction);
+				transaction = this.prepareTransaction({ transaction, gasEstimateType, EIP1559GasData });
 			} else {
-				transaction = this.prepareAssetTransaction(transaction, selectedAsset);
+				transaction = this.prepareAssetTransaction({
+					transaction,
+					selectedAsset,
+					gasEstimateType,
+					EIP1559GasData
+				});
 			}
 
 			TransactionController.hub.once(`${transaction.id}:finished`, transactionMeta => {
@@ -261,7 +271,10 @@ class Approval extends PureComponent {
 			Logger.error(error, 'error while trying to send transaction (Approval)');
 			this.setState({ transactionHandled: false });
 		}
-		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.DAPP_TRANSACTION_COMPLETED, this.getAnalyticsParams());
+		AnalyticsV2.trackEvent(
+			AnalyticsV2.ANALYTICS_EVENTS.DAPP_TRANSACTION_COMPLETED,
+			this.getAnalyticsParams({ gasEstimateType, gasSelected })
+		);
 	};
 
 	/**
@@ -285,13 +298,26 @@ class Approval extends PureComponent {
 	 *
 	 * @param {object} transaction - Transaction object
 	 */
-	prepareTransaction = transaction => ({
-		...transaction,
-		gas: BNToHex(transaction.gas),
-		gasPrice: BNToHex(transaction.gasPrice),
-		value: BNToHex(transaction.value),
-		to: safeToChecksumAddress(transaction.to)
-	});
+	prepareTransaction = ({ transaction, gasEstimateType, EIP1559GasData }) => {
+		const transactionToSend = {
+			...transaction,
+			value: BNToHex(transaction.value),
+			to: safeToChecksumAddress(transaction.to)
+		};
+
+		if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+			transactionToSend.gas = EIP1559GasData.gasLimitHex;
+			transactionToSend.maxFeePerGas = addHexPrefix(EIP1559GasData.suggestedMaxFeePerGasHex); //'0x2540be400'
+			transactionToSend.maxPriorityFeePerGas = addHexPrefix(EIP1559GasData.suggestedMaxPriorityFeePerGasHex); //'0x3b9aca00';
+			transactionToSend.to = safeToChecksumAddress(transaction.to);
+			delete transactionToSend.gasPrice;
+		} else {
+			transactionToSend.gas = BNToHex(transaction.gas);
+			transactionToSend.gasPrice = BNToHex(transaction.gasPrice);
+		}
+
+		return transactionToSend;
+	};
 
 	/**
 	 * Returns transaction object with gas and gasPrice in hex format, value set to 0 in hex format
@@ -300,13 +326,26 @@ class Approval extends PureComponent {
 	 * @param {object} transaction - Transaction object
 	 * @param {object} selectedAsset - Asset object
 	 */
-	prepareAssetTransaction = (transaction, selectedAsset) => ({
-		...transaction,
-		gas: BNToHex(transaction.gas),
-		gasPrice: BNToHex(transaction.gasPrice),
-		value: '0x0',
-		to: selectedAsset.address
-	});
+	prepareAssetTransaction = ({ transaction, selectedAsset, gasEstimateType, EIP1559GasData }) => {
+		const transactionToSend = {
+			...transaction,
+			value: '0x0',
+			to: selectedAsset.address
+		};
+
+		if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+			transactionToSend.gas = EIP1559GasData.gasLimitHex;
+			transactionToSend.maxFeePerGas = addHexPrefix(EIP1559GasData.suggestedMaxFeePerGasHex); //'0x2540be400'
+			transactionToSend.maxPriorityFeePerGas = addHexPrefix(EIP1559GasData.suggestedMaxPriorityFeePerGasHex); //'0x3b9aca00';
+			transactionToSend.to = safeToChecksumAddress(transaction.to);
+			delete transactionToSend.gasPrice;
+		} else {
+			transactionToSend.gas = BNToHex(transaction.gas);
+			transactionToSend.gasPrice = BNToHex(transaction.gasPrice);
+		}
+
+		return transactionToSend;
+	};
 
 	sanitizeTransaction(transaction) {
 		transaction.gas = hexToBN(transaction.gas);
