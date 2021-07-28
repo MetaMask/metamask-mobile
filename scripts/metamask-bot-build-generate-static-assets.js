@@ -22,6 +22,7 @@ const main = async () => {
 		fs.mkdirSync(imagesPath, { recursive: true });
 	}
 	const packageJsonContents = { name: 'images' };
+	// Create image modules file
 	await fs.writeFileSync(imageModulesPath, '');
 
 	// Generate images modules file
