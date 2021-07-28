@@ -4,9 +4,9 @@ on:
     branches:
       - bug/action-permissions
   pull_request:
-    branches:
-      - develop
-      - main
+    # branches:
+    #   - develop
+    #   - main
     types: [opened]
 jobs:
   bump-version-name:
