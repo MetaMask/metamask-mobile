@@ -16,14 +16,14 @@ workflows:
             - activate-ssh-key@4:
                   run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
             - git-clone@4: {}
+            - nvm@1:
+                  inputs:
+                      - node_version: '14'
     code_setup_cache:
         before_run:
             - setup
         steps:
             - cache-pull@2: {}
-            - nvm@1:
-                  inputs:
-                      - node_version: '14'
             - yarn@0:
                   inputs:
                       - cache_local_deps: 'yes'
@@ -45,9 +45,6 @@ workflows:
         before_run:
             - setup
         steps:
-            - nvm@1:
-                  inputs:
-                      - node_version: '14'
             - yarn@0:
                   inputs:
                       - cache_local_deps: 'yes'
@@ -143,6 +140,8 @@ workflows:
                   title: Detox Build & Test
                   is_always_run: false
     start_e2e_tests:
+        before_run:
+            - setup
         steps:
             - build-router-start@0:
                   inputs:
