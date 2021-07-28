@@ -656,8 +656,8 @@ export const BrowserTab = props => {
 							type
 						}
 					} = req;
-					const { TokenController } = Engine.context;
-					const suggestionResult = await TokenController.watchAsset(
+					const { TokensController } = Engine.context;
+					const suggestionResult = await TokensController.watchAsset(
 						{ address, symbol, decimals, image },
 						type
 					);
@@ -1057,7 +1057,7 @@ export const BrowserTab = props => {
 			backgroundBridges.current.forEach(bridge => bridge.onDisconnect());
 
 			// Remove all Engine listeners
-			Engine.context.CollectiblesController.hub.removeAllListeners();
+			Engine.context.TokensController.hub.removeAllListeners();
 			Engine.context.TransactionController.hub.removeListener('networkChange', reload);
 		};
 
