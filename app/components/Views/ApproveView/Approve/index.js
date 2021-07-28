@@ -132,9 +132,11 @@ class Approve extends PureComponent {
 		LegacyGasDataTemp: {}
 	};
 
-	computeGasEstimates = (overrideGasPrice, overrideGasLimit) => {
+	computeGasEstimates = (overrideGasPrice, overrideGasLimit, gasEstimateTypeChanged) => {
 		const { transaction, gasEstimateType, gasFeeEstimates } = this.props;
-		const { gasSelected, gasSelectedTemp } = this.state;
+
+		const gasSelected = gasEstimateTypeChanged ? AppConstants.GAS_OPTIONS.MEDIUM : this.state.gasSelected;
+		const gasSelectedTemp = gasEstimateTypeChanged ? AppConstants.GAS_OPTIONS.MEDIUM : this.state.gasSelectedTemp;
 
 		if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
 			const overrideGas = overrideGasPrice
@@ -173,7 +175,11 @@ class Approve extends PureComponent {
 					ready: true,
 					EIP1559GasData,
 					EIP1559GasDataTemp,
-					animateOnChange: true
+					LegacyGasData: {},
+					LegacyGasDataTemp: {},
+					animateOnChange: true,
+					gasSelected,
+					gasSelectedTemp
 				},
 				() => {
 					this.setState({ animateOnChange: false });
@@ -216,7 +222,11 @@ class Approve extends PureComponent {
 					ready: true,
 					LegacyGasData,
 					LegacyGasDataTemp,
-					animateOnChange: true
+					EIP1559GasData: {},
+					EIP1559GasDataTemp: {},
+					animateOnChange: true,
+					gasSelected,
+					gasSelectedTemp
 				},
 				() => {
 					this.setState({ animateOnChange: false });
@@ -252,14 +262,16 @@ class Approve extends PureComponent {
 	componentDidUpdate = prevProps => {
 		const { transaction } = this.props;
 
-		if (!this.state.stopUpdateGas && !this.state.advancedGasInserted) {
+		const gasEstimateTypeChanged = prevProps.gasEstimateType !== this.props.gasEstimateType;
+
+		if ((!this.state.stopUpdateGas && !this.state.advancedGasInserted) || gasEstimateTypeChanged) {
 			if (
 				this.props.gasFeeEstimates &&
 				transaction.gas &&
 				(!shallowEqual(prevProps.gasFeeEstimates, this.props.gasFeeEstimates) ||
 					!transaction.gas.eq(prevProps?.transaction?.gas))
 			) {
-				this.computeGasEstimates();
+				this.computeGasEstimates(null, null, gasEstimateTypeChanged);
 			}
 		}
 	};

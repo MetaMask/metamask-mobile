@@ -70,6 +70,13 @@ const EDIT_NONCE = 'edit_nonce';
 const EDIT_EIP1559 = 'edit_eip1559';
 const REVIEW = 'review';
 
+const EMPTY_LEGACY_TRANSACTION_DATA = {
+	transactionFeeFiat: '',
+	transactionFee: '',
+	transactionTotalAmount: '',
+	transactionTotalAmountFiat: ''
+};
+
 const { hexToBN, BNToHex } = util;
 
 const styles = StyleSheet.create({
@@ -358,12 +365,7 @@ class Confirm extends PureComponent {
 		EIP1559TransactionDataTemp: {},
 		stopUpdateGas: false,
 		advancedGasInserted: false,
-		LegacyTransactionData: {
-			transactionFeeFiat: '',
-			transactionFee: '',
-			transactionTotalAmount: '',
-			transactionTotalAmountFiat: ''
-		},
+		LegacyTransactionData: EMPTY_LEGACY_TRANSACTION_DATA,
 		LegacyTransactionDataTemp: {},
 		gasSpeedSelected: AppConstants.GAS_OPTIONS.MEDIUM
 	};
@@ -469,24 +471,30 @@ class Confirm extends PureComponent {
 			(!shallowEqual(prevProps.gasFeeEstimates, this.props.gasFeeEstimates) ||
 				gas !== prevProps?.transactionState?.transaction?.gas)
 		) {
-			if (!this.state.stopUpdateGas && !this.state.advancedGasInserted) {
+			const gasEstimateTypeChanged = prevProps.gasEstimateType !== this.props.gasEstimateType;
+			const gasSelected = gasEstimateTypeChanged ? AppConstants.GAS_OPTIONS.MEDIUM : this.state.gasSelected;
+			const gasSelectedTemp = gasEstimateTypeChanged
+				? AppConstants.GAS_OPTIONS.MEDIUM
+				: this.state.gasSelectedTemp;
+
+			if ((!this.state.stopUpdateGas && !this.state.advancedGasInserted) || gasEstimateTypeChanged) {
 				if (this.props.gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
 					const suggestedGasLimit = fromWei(gas, 'wei');
 
 					const EIP1559TransactionData = this.parseTransactionDataEIP1559({
-						...this.props.gasFeeEstimates[this.state.gasSelected],
+						...this.props.gasFeeEstimates[gasSelected],
 						suggestedGasLimit,
-						selectedOption: this.state.gasSelected
+						selectedOption: gasSelected
 					});
 
 					let EIP1559TransactionDataTemp;
-					if (this.state.gasSelected === this.state.gasSelectedTemp) {
+					if (gasSelected === gasSelectedTemp) {
 						EIP1559TransactionDataTemp = EIP1559TransactionData;
 					} else {
 						EIP1559TransactionDataTemp = this.parseTransactionDataEIP1559({
-							...this.props.gasFeeEstimates[this.state.gasSelectedTemp],
+							...this.props.gasFeeEstimates[gasSelectedTemp],
 							suggestedGasLimit,
-							selectedOption: this.state.gasSelectedTemp
+							selectedOption: gasSelectedTemp
 						});
 					}
 
@@ -498,7 +506,11 @@ class Confirm extends PureComponent {
 							gasEstimationReady: true,
 							EIP1559TransactionData,
 							EIP1559TransactionDataTemp,
-							animateOnChange: true
+							LegacyTransactionData: EMPTY_LEGACY_TRANSACTION_DATA,
+							LegacyTransactionDataTemp: EMPTY_LEGACY_TRANSACTION_DATA,
+							animateOnChange: true,
+							gasSelected,
+							gasSelectedTemp
 						},
 						() => {
 							this.setState({ animateOnChange: false });
@@ -510,19 +522,19 @@ class Confirm extends PureComponent {
 					const LegacyTransactionData = this.parseTransactionDataLegacy({
 						suggestedGasPrice:
 							this.props.gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
-								? this.props.gasFeeEstimates[this.state.gasSelected]
+								? this.props.gasFeeEstimates[gasSelected]
 								: this.props.gasFeeEstimates.gasPrice,
 						suggestedGasLimit
 					});
 
 					let LegacyTransactionDataTemp;
-					if (this.state.gasSelected === this.state.gasSelectedTemp) {
+					if (gasSelected === gasSelectedTemp) {
 						LegacyTransactionDataTemp = LegacyTransactionData;
 					} else {
 						LegacyTransactionDataTemp = this.parseTransactionDataLegacy({
 							suggestedGasPrice:
 								this.props.gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
-									? this.props.gasFeeEstimates[this.state.gasSelectedTemp]
+									? this.props.gasFeeEstimates[gasSelectedTemp]
 									: this.props.gasFeeEstimates.gasPrice,
 							suggestedGasLimit
 						});
@@ -535,7 +547,11 @@ class Confirm extends PureComponent {
 							gasEstimationReady: true,
 							LegacyTransactionData,
 							LegacyTransactionDataTemp,
-							animateOnChange: true
+							EIP1559TransactionData: {},
+							EIP1559TransactionDataTemp: {},
+							animateOnChange: true,
+							gasSelected,
+							gasSelectedTemp
 						},
 						() => {
 							this.setState({ animateOnChange: false });
