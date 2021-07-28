@@ -31,12 +31,12 @@ function initalizeEngine(state = {}) {
 		store.dispatch({ type: 'UPDATE_BG_STATE', key: 'AssetsContractController' });
 	});
 
-	Engine.context.TokensController.subscribe(() => {
-		store.dispatch({ type: 'UPDATE_BG_STATE', key: 'TokensController' });
-	});
-
 	Engine.context.CollectiblesController.subscribe(() => {
 		store.dispatch({ type: 'UPDATE_BG_STATE', key: 'CollectiblesController' });
+	});
+
+	Engine.context.TokensController.subscribe(() => {
+		store.dispatch({ type: 'UPDATE_BG_STATE', key: 'TokensController' });
 	});
 
 	Engine.context.AssetsDetectionController.subscribe(() => {

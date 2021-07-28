@@ -43,6 +43,9 @@ const initialState = {
 			TokensController: {
 				tokens: []
 			},
+			CollectiblesController: {
+				collectibles: {}
+			},
 			TokenRatesController: {
 				contractExchangeRates: {}
 			},

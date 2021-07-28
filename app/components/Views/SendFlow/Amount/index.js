@@ -783,7 +783,6 @@ class Amount extends PureComponent {
 	renderToken = (token, index) => {
 		const {
 			accounts,
-			chainId,
 			selectedAddress,
 			conversionRate,
 			currentCurrency,
@@ -794,15 +793,11 @@ class Amount extends PureComponent {
 		const { address, decimals, symbol } = token;
 		if (token.isETH) {
 			balance = renderFromWei(accounts[selectedAddress].balance);
-			balanceFiat = isMainNet(chainId)
-				? weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency)
-				: null;
+			balanceFiat = weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency);
 		} else {
 			balance = renderFromTokenMinimalUnit(contractBalances[address], decimals);
 			const exchangeRate = contractExchangeRates[address];
-			balanceFiat = isMainNet(chainId)
-				? balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency)
-				: null;
+			balanceFiat = balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
 		}
 
 		return (

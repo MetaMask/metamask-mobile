@@ -188,7 +188,7 @@ class Wallet extends PureComponent {
 					balanceFiat: weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency),
 					logo: '../images/eth-logo.png'
 				},
-				...tokens
+				...(tokens || [])
 			];
 		} else {
 			assets = tokens;

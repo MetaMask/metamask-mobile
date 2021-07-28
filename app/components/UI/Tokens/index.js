@@ -13,7 +13,6 @@ import { safeToChecksumAddress } from '../../../util/address';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
-import { isMainNet } from '../../../util/networks';
 import { getTokenList } from '../../../reducers/tokens';
 
 const styles = StyleSheet.create({
@@ -120,10 +119,6 @@ class Tokens extends PureComponent {
 		 */
 		primaryCurrency: PropTypes.string,
 		/**
-		 * Chain id
-		 */
-		chainId: PropTypes.string,
-		/**
 		 * A bool that represents if the user wants to hide zero balance token
 		 */
 		hideZeroBalanceTokens: PropTypes.bool,
@@ -158,7 +153,6 @@ class Tokens extends PureComponent {
 
 	renderItem = asset => {
 		const {
-			chainId,
 			conversionRate,
 			currentCurrency,
 			tokenBalances,
@@ -172,9 +166,7 @@ class Tokens extends PureComponent {
 		const balance =
 			asset.balance ||
 			(itemAddress in tokenBalances ? renderFromTokenMinimalUnit(tokenBalances[itemAddress], asset.decimals) : 0);
-		const balanceFiat = isMainNet(chainId)
-			? asset.balanceFiat || balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency)
-			: null;
+		const balanceFiat = asset.balanceFiat || balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
 		const balanceValue = `${balance} ${asset.symbol}`;
 
 		// render balances according to primary currency
@@ -287,7 +279,6 @@ class Tokens extends PureComponent {
 }
 
 const mapStateToProps = state => ({
-	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	primaryCurrency: state.settings.primaryCurrency,

@@ -2,8 +2,6 @@ import {
 	AccountTrackerController,
 	AddressBookController,
 	AssetsContractController,
-	TokensController,
-	CollectiblesController,
 	AssetsDetectionController,
 	TokenListController,
 	ControllerMessenger,
@@ -19,7 +17,9 @@ import {
 	TokenRatesController,
 	TransactionController,
 	TypedMessageManager,
-	WalletDevice
+	WalletDevice,
+	TokensController,
+	CollectiblesController
 } from '@metamask/controllers';
 
 import SwapsController from '@metamask/swaps-controller';
@@ -143,10 +143,9 @@ class Engine {
 				assetsContractController,
 				collectiblesController,
 				tokensController,
-				tokenListController,
 				new AssetsDetectionController({
-					onTokensStateChange: listener => tokensController.subscribe(listener),
 					onCollectiblesStateChange: listener => collectiblesController.subscribe(listener),
+					onTokensStateChange: listener => tokensController.subscribe(listener),
 					onPreferencesStateChange: listener => preferencesController.subscribe(listener),
 					onNetworkStateChange: listener => networkController.subscribe(listener),
 					getOpenSeaApiKey: () => collectiblesController.openSeaApiKey,
@@ -325,9 +324,9 @@ class Engine {
 			CurrencyRateController,
 			PreferencesController,
 			AccountTrackerController,
-			TokensController,
 			TokenBalancesController,
-			TokenRatesController
+			TokenRatesController,
+			TokensController
 		} = this.context;
 		const { selectedAddress } = PreferencesController.state;
 		const { currentCurrency } = CurrencyRateController.state;
@@ -408,8 +407,8 @@ class Engine {
 		TokensController.update({
 			allTokens: {},
 			ignoredTokens: [],
-			suggestedAssets: [],
-			tokens: []
+			tokens: [],
+			suggestedAssets: []
 		});
 		CollectiblesController.update({
 			allCollectibleContracts: {},
@@ -539,7 +538,6 @@ export default {
 			AccountTrackerController,
 			AddressBookController,
 			AssetsContractController,
-			TokensController,
 			CollectiblesController,
 			AssetsDetectionController,
 			TokenListController,
@@ -553,7 +551,8 @@ export default {
 			TokenRatesController,
 			TransactionController,
 			TypedMessageManager,
-			SwapsController
+			SwapsController,
+			TokensController
 		} = instance.datamodel.state;
 
 		// normalize `null` currencyRate to `0`
@@ -567,7 +566,6 @@ export default {
 			AccountTrackerController,
 			AddressBookController,
 			AssetsContractController,
-			TokensController,
 			CollectiblesController,
 			AssetsDetectionController,
 			TokenListController,
@@ -579,6 +577,7 @@ export default {
 			PreferencesController,
 			TokenBalancesController,
 			TokenRatesController,
+			TokensController,
 			TransactionController,
 			TypedMessageManager,
 			SwapsController
