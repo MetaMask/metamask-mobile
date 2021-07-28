@@ -148,7 +148,7 @@ function QuotesModal({
 	showOverallValue,
 	ticker
 }) {
-	const bestOverallValue = quoteValues[quotes[0].aggregator].overallValueOfQuote;
+	const bestOverallValue = quoteValues?.[quotes[0].aggregator]?.overallValueOfQuote ?? 0;
 	const [displayDetails, setDisplayDetails] = useState(false);
 	const [selectedDetailsQuoteIndex, setSelectedDetailsQuoteIndex] = useState(null);
 
@@ -367,6 +367,7 @@ function QuotesModal({
 										quotes.map((quote, index) => {
 											const { aggregator } = quote;
 											const isSelected = aggregator === selectedQuote;
+											const quoteValue = quoteValues[aggregator];
 											return (
 												<TouchableOpacity
 													key={aggregator}
@@ -389,7 +390,7 @@ function QuotesModal({
 													<View style={styles.columnFee}>
 														<Text primary bold={isSelected}>
 															{weiToFiat(
-																toWei(quoteValues[aggregator].ethFee),
+																toWei(quoteValue?.ethFee ?? 0),
 																conversionRate,
 																currentCurrency
 															)}
@@ -415,7 +416,7 @@ function QuotesModal({
 																	toWei(
 																		(
 																			bestOverallValue -
-																			quoteValues[aggregator].overallValueOfQuote
+																			(quoteValue?.overallValueOfQuote ?? 0)
 																		).toFixed(18)
 																	),
 																	conversionRate,
