@@ -148,7 +148,7 @@ function QuotesModal({
 	showOverallValue,
 	ticker
 }) {
-	const bestOverallValue = quoteValues[quotes[0].aggregator].overallValueOfQuote;
+	const bestOverallValue = quoteValues?.[quotes[0].aggregator]?.overallValueOfQuote ?? 0;
 	const [displayDetails, setDisplayDetails] = useState(false);
 	const [selectedDetailsQuoteIndex, setSelectedDetailsQuoteIndex] = useState(null);
 
