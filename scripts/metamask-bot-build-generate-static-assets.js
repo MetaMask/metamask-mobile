@@ -12,7 +12,9 @@ const IMAGES_MODULES = 'static-logos.js';
 const PACKAGE_JSON = 'package.json';
 
 const main = async () => {
-	console.log(`🔎 Detected ${Object.keys(contractMetadata).length} count in ${SOURCE_JSON}`);
+	const cmKeys = Object.keys(contractMetadata);
+	const numberOfAssets = cmKeys.length;
+	console.log(`🔎 Detected ${numberOfAssets} count in ${SOURCE_JSON}`);
 	const imagesPath = path.resolve(__dirname, `../${IMAGES_DIR}`);
 	const imageModulesPath = path.join(imagesPath, IMAGES_MODULES);
 	const packageJsonPath = path.join(imagesPath, PACKAGE_JSON);
@@ -29,11 +31,15 @@ const main = async () => {
 	await fs.appendFileSync(imageModulesPath, `// Generated file - Do not edit - This will auto generate on build`);
 	await fs.appendFileSync(imageModulesPath, `\n/* eslint-disable no-dupe-keys */`);
 	await fs.appendFileSync(imageModulesPath, `\n\nexport default {`);
-	for (const address in contractMetadata) {
+	for (let i = 0; i < cmKeys.length; i++) {
+		const address = cmKeys[i];
 		const token = contractMetadata[address];
+		const trailingComma = i === numberOfAssets - 1 ? '' : ',';
 		await fs.appendFileSync(
 			imageModulesPath,
-			`\n  "${token.logo}": require("metamask/node_modules/@metamask/contract-metadata/images/${token.logo}"),`
+			`\n\t'${token.logo}': require('metamask/node_modules/@metamask/contract-metadata/images/${
+				token.logo
+			}')${trailingComma}`
 		);
 	}
 	await fs.appendFileSync(imageModulesPath, '\n};\n');
