@@ -62,8 +62,7 @@ const styles = StyleSheet.create({
 	inputContainer: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		justifyContent: 'center',
-		flex: 1
+		justifyContent: 'center'
 	},
 	errorContainer: {
 		marginTop: 8,
@@ -76,6 +75,7 @@ const styles = StyleSheet.create({
 		color: colors.red
 	},
 	conversionEstimation: {
+		paddingLeft: 2,
 		marginRight: 14,
 		flex: 1,
 		textAlign: 'center',
