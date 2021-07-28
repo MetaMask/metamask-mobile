@@ -670,7 +670,7 @@ const mapStateToProps = state => ({
 	transaction: getNormalizedTxState(state),
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts || {}).length,
-	tokensLength: state.engine.backgroundState.AssetsController.tokens.length,
+	tokensLength: state.engine.backgroundState.TokensController.tokens.length,
 	primaryCurrency: state.settings.primaryCurrency,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	gasFeeEstimates: state.engine.backgroundState.GasFeeController.gasFeeEstimates,
