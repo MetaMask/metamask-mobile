@@ -145,10 +145,8 @@ class Engine {
 					),
 					addTokens: tokensController.addTokens.bind(tokensController),
 					addCollectible: collectiblesController.addCollectible.bind(collectiblesController),
-					removeCollectible: collectiblesController.removeCollectible.bind(collectiblesController),
 					getCollectiblesState: () => collectiblesController.state,
-					getTokenState: () => tokensController.state,
-					//TODO: replace during Token List Refactor
+					getTokensState: () => tokensController.state,
 					getTokenListState: () => {
 						const tokenList = Object.entries(contractMap).reduce((final, [key, value]) => {
 							if (value.erc20) {
