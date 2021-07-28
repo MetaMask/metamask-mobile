@@ -77,7 +77,7 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 					style={[styles.mediaPlayer, cover && styles.cover, style]}
 				/>
 			);
-		} else if (sourceUri && !isUniV3NFT) {
+		} else if (sourceUri && (!isUniV3NFT || tiny)) {
 			return (
 				<RemoteImage
 					fadeIn
