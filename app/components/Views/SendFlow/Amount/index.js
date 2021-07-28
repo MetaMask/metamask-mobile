@@ -812,7 +812,6 @@ class Amount extends PureComponent {
 	renderToken = (token, index) => {
 		const {
 			accounts,
-			chainId,
 			selectedAddress,
 			conversionRate,
 			currentCurrency,
@@ -823,15 +822,11 @@ class Amount extends PureComponent {
 		const { address, decimals, symbol } = token;
 		if (token.isETH) {
 			balance = renderFromWei(accounts[selectedAddress].balance);
-			balanceFiat = isMainNet(chainId)
-				? weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency)
-				: null;
+			balanceFiat = weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency);
 		} else {
 			balance = renderFromTokenMinimalUnit(contractBalances[address], decimals);
 			const exchangeRate = contractExchangeRates[address];
-			balanceFiat = isMainNet(chainId)
-				? balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency)
-				: null;
+			balanceFiat = balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
 		}
 		return (
 			<TouchableOpacity
@@ -1098,8 +1093,8 @@ const mapStateToProps = (state, ownProps) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-	collectibles: state.engine.backgroundState.AssetsController.collectibles,
-	collectibleContracts: state.engine.backgroundState.AssetsController.collectibleContracts,
+	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
+	collectibleContracts: state.engine.backgroundState.CollectiblesController.collectibleContracts,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	providerType: state.engine.backgroundState.NetworkController.provider.type,
@@ -1107,7 +1102,7 @@ const mapStateToProps = (state, ownProps) => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	tokens: state.engine.backgroundState.AssetsController.tokens,
+	tokens: state.engine.backgroundState.TokensController.tokens,
 	transactionState: ownProps.transaction || state.transaction,
 	selectedAsset: state.transaction.selectedAsset,
 	isPaymentRequest: state.transaction.paymentRequest

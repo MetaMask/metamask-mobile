@@ -676,8 +676,8 @@ export const BrowserTab = props => {
 							type
 						}
 					} = req;
-					const { AssetsController } = Engine.context;
-					const suggestionResult = await AssetsController.watchAsset(
+					const { TokenController } = Engine.context;
+					const suggestionResult = await TokenController.watchAsset(
 						{ address, symbol, decimals, image },
 						type
 					);
@@ -1063,7 +1063,7 @@ export const BrowserTab = props => {
 
 		getEntryScriptWeb3();
 
-		Engine.context.AssetsController.hub.on('pendingSuggestedAsset', suggestedAssetMeta => {
+		Engine.context.TokensController.hub.on('pendingSuggestedAsset', suggestedAssetMeta => {
 			if (!isTabActive()) return false;
 			setSuggestedAssetMeta(suggestedAssetMeta);
 			setWatchAsset(true);
@@ -1077,7 +1077,7 @@ export const BrowserTab = props => {
 			backgroundBridges.current.forEach(bridge => bridge.onDisconnect());
 
 			// Remove all Engine listeners
-			Engine.context.AssetsController.hub.removeAllListeners();
+			Engine.context.CollectiblesController.hub.removeAllListeners();
 			Engine.context.TransactionController.hub.removeListener('networkChange', reload);
 		};
 
