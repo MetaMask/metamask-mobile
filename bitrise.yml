@@ -16,14 +16,14 @@ workflows:
             - activate-ssh-key@4:
                   run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
             - git-clone@4: {}
+            - nvm@1:
+                  inputs:
+                      - node_version: '14'
     code_setup_cache:
         before_run:
             - setup
         steps:
             - cache-pull@2: {}
-            - nvm@1:
-                  inputs:
-                      - node_version: '14'
             - yarn@0:
                   inputs:
                       - cache_local_deps: 'yes'
@@ -45,9 +45,6 @@ workflows:
         before_run:
             - setup
         steps:
-            - nvm@1:
-                  inputs:
-                      - node_version: '14'
             - yarn@0:
                   inputs:
                       - cache_local_deps: 'yes'
@@ -303,7 +300,7 @@ app:
           VERSION_NAME: 3.0.0
         - opts:
               is_expand: false
-          VERSION_NUMBER: 763
+          VERSION_NUMBER: 764
         - opts:
               is_expand: false
           ANDROID_APK_LINK: ''
