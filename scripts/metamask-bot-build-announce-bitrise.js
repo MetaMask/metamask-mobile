@@ -16,6 +16,7 @@ start().catch(console.error);
 
 async function getPRInfo() {
 	const client = github.client(GITHUB_TOKEN);
+
 	try {
 		const REPO = client.repo(`${BITRISEIO_GIT_REPOSITORY_OWNER}/${GIT_PROJECT_REPONAME}`);
 		const response = await REPO.prsAsync({ state: 'closed' });
