@@ -1718,6 +1718,7 @@
 		"unknown": "Unknown processing time",
 		"maybe": "Maybe in",
 		"likely": "Likely in <",
+		"likely_in": "Likely in ",
 		"very_likely": "Very likely in <",
 		"at_least": "At least",
 		"less_than": "Less than",

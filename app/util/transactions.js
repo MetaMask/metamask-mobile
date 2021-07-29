@@ -547,20 +547,25 @@ export const calculateEIP1559Times = ({
 	suggestedMaxPriorityFeePerGas,
 	suggestedMaxFeePerGas,
 	selectedOption,
-	recommended
+	recommended,
+	gasFeeEstimates
 }) => {
 	let timeEstimate = strings('times_eip1559.unknown');
 	let timeEstimateColor = 'grey';
 	let timeEstimateId = AppConstants.GAS_TIMES.UNKNOWN;
 
-	if (!recommended) recommended = AppConstants.GAS_OPTIONS.MEDIUM;
+	const LOW = AppConstants.GAS_OPTIONS.LOW;
+	const MEDIUM = AppConstants.GAS_OPTIONS.MEDIUM;
+	const HIGH = AppConstants.GAS_OPTIONS.HIGH;
+
+	if (!recommended) recommended = MEDIUM;
 
 	if (!selectedOption) {
 		timeEstimateColor = 'grey';
-	} else if (recommended === AppConstants.GAS_OPTIONS.HIGH) {
-		if (selectedOption === AppConstants.GAS_OPTIONS.HIGH) timeEstimateColor = 'green';
+	} else if (recommended === HIGH) {
+		if (selectedOption === HIGH) timeEstimateColor = 'green';
 		else timeEstimateColor = 'red';
-	} else if (selectedOption === AppConstants.GAS_OPTIONS.LOW) {
+	} else if (selectedOption === LOW) {
 		timeEstimateColor = 'red';
 	} else {
 		timeEstimateColor = 'green';
@@ -574,6 +579,42 @@ export const calculateEIP1559Times = ({
 			fallbacks: ['en']
 		};
 
+		if (
+			selectedOption &&
+			gasFeeEstimates &&
+			gasFeeEstimates[LOW] &&
+			gasFeeEstimates[MEDIUM] &&
+			gasFeeEstimates[HIGH]
+		) {
+			let hasTime = false;
+			if (selectedOption === LOW && gasFeeEstimates[LOW].maxWaitTimeEstimate) {
+				timeEstimate = `${strings('times_eip1559.maybe')} ${humanizeDuration(
+					gasFeeEstimates[LOW].maxWaitTimeEstimate,
+					timeParams
+				)}`;
+				timeEstimateId = AppConstants.GAS_TIMES.MAYBE;
+				hasTime = true;
+			} else if (selectedOption === MEDIUM && gasFeeEstimates[LOW].maxWaitTimeEstimate) {
+				timeEstimate = `${strings('times_eip1559.likely')} ${humanizeDuration(
+					gasFeeEstimates[LOW].maxWaitTimeEstimate,
+					timeParams
+				)}`;
+				timeEstimateId = AppConstants.GAS_TIMES.LIKELY;
+				hasTime = true;
+			} else if (selectedOption === HIGH && gasFeeEstimates[HIGH].minWaitTimeEstimate) {
+				timeEstimate = `${strings('times_eip1559.likely_in')} ${humanizeDuration(
+					gasFeeEstimates[HIGH].minWaitTimeEstimate,
+					timeParams
+				)}`;
+				timeEstimateId = AppConstants.GAS_TIMES.VERY_LIKELY;
+				hasTime = true;
+			}
+
+			if (hasTime === true) {
+				return { timeEstimate, timeEstimateColor, timeEstimateId };
+			}
+		}
+
 		const { GasFeeController } = Engine.context;
 		const times = GasFeeController.getTimeEstimate(suggestedMaxPriorityFeePerGas, suggestedMaxFeePerGas);
 
@@ -581,13 +622,13 @@ export const calculateEIP1559Times = ({
 			timeEstimate = strings('times_eip1559.unknown');
 			timeEstimateId = AppConstants.GAS_TIMES.UNKNOWN;
 			timeEstimateColor = 'red';
-		} else if (selectedOption === AppConstants.GAS_OPTIONS.LOW) {
+		} else if (selectedOption === LOW) {
 			timeEstimate = `${strings('times_eip1559.maybe')} ${humanizeDuration(times.upperTimeBound, timeParams)}`;
 			timeEstimateId = AppConstants.GAS_TIMES.MAYBE;
-		} else if (selectedOption === AppConstants.GAS_OPTIONS.MEDIUM) {
+		} else if (selectedOption === MEDIUM) {
 			timeEstimate = `${strings('times_eip1559.likely')} ${humanizeDuration(times.upperTimeBound, timeParams)}`;
 			timeEstimateId = AppConstants.GAS_TIMES.LIKELY;
-		} else if (selectedOption === AppConstants.GAS_OPTIONS.HIGH) {
+		} else if (selectedOption === HIGH) {
 			timeEstimate = `${strings('times_eip1559.very_likely')} ${humanizeDuration(
 				times.upperTimeBound,
 				timeParams
@@ -673,7 +714,8 @@ export const parseTransactionEIP1559 = (
 		conversionRate,
 		currentCurrency,
 		nativeCurrency,
-		transactionState: { selectedAsset, transaction: { value, data } } = { selectedAsset: {}, transaction: {} }
+		transactionState: { selectedAsset, transaction: { value, data } } = { selectedAsset: {}, transaction: {} },
+		gasFeeEstimates
 	},
 	{ onlyGas } = {}
 ) => {
@@ -694,7 +736,9 @@ export const parseTransactionEIP1559 = (
 	const { timeEstimate, timeEstimateColor, timeEstimateId } = calculateEIP1559Times({
 		suggestedMaxPriorityFeePerGas,
 		suggestedMaxFeePerGas,
-		selectedOption: selectedGasFee.selectedOption
+		selectedOption: selectedGasFee.selectedOption,
+		recommended: selectedGasFee.recommended,
+		gasFeeEstimates
 	});
 
 	// eslint-disable-next-line prefer-const

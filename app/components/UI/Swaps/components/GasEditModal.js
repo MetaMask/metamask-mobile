@@ -108,7 +108,8 @@ function GasEditModal({
 							isNativeAsset,
 							tradeValue,
 							sourceAmount
-						}
+						},
+						gasFeeEstimates
 					},
 					{ onlyGas: true }
 				)
@@ -182,7 +183,8 @@ function GasEditModal({
 							isNativeAsset,
 							tradeValue,
 							sourceAmount
-						}
+						},
+						gasFeeEstimates
 					},
 					{ onlyGas: true }
 				)
@@ -191,7 +193,16 @@ function GasEditModal({
 				setStopUpdateGas(false);
 			}
 		},
-		[conversionRate, currentCurrency, initialGasLimit, isNativeAsset, nativeCurrency, sourceAmount, tradeValue]
+		[
+			conversionRate,
+			currentCurrency,
+			gasFeeEstimates,
+			initialGasLimit,
+			isNativeAsset,
+			nativeCurrency,
+			sourceAmount,
+			tradeValue
+		]
 	);
 
 	const calculateTempGasFeeLegacy = useCallback(
