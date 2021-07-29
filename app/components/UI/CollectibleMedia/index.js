@@ -63,9 +63,11 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 
 	useEffect(() => {
 		const { image, imagePreview, address } = collectible;
-		if (address) setIsUniV3NFT(toLowerCaseEquals(address, AppConstants.UNIV3_NFT_CONTRACT_ADDRESS));
-		if (small && imagePreview && imagePreview !== '') setSourceUri(imagePreview);
-		else setSourceUri(image);
+		if (address) {
+			setIsUniV3NFT(toLowerCaseEquals(address, AppConstants.UNIV3_NFT_CONTRACT_ADDRESS));
+			if (small && imagePreview && imagePreview !== '') setSourceUri(imagePreview);
+			else setSourceUri(image);
+		}
 	}, [collectible, small, big, setSourceUri, setIsUniV3NFT]);
 
 	const renderMedia = useCallback(() => {
