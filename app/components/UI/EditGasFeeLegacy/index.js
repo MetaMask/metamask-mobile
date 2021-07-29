@@ -115,6 +115,7 @@ const EditGasFeeLegacy = ({
 	error,
 	warning,
 	ignoreOptions,
+	extendOptions = {},
 	recommended,
 	warningMinimumEstimateOption,
 	onUpdatingValuesStart,
@@ -213,29 +214,27 @@ const EditGasFeeLegacy = ({
 
 	const shouldIgnore = useCallback(option => ignoreOptions.find(item => item === option), [ignoreOptions]);
 
-	const renderOptions = useMemo(() => {
-		const options = [
-			{ name: AppConstants.GAS_OPTIONS.LOW, label: strings('edit_gas_fee_eip1559.low') },
-			{ name: AppConstants.GAS_OPTIONS.MEDIUM, label: strings('edit_gas_fee_eip1559.medium') },
-			{ name: AppConstants.GAS_OPTIONS.HIGH, label: strings('edit_gas_fee_eip1559.high') }
-		];
-		return options
-			.filter(option => !shouldIgnore(option.name))
-			.map(option => {
-				const renderOption = {
-					name: option.name,
+	const renderOptions = useMemo(
+		() =>
+			[
+				{ name: AppConstants.GAS_OPTIONS.LOW, label: strings('edit_gas_fee_eip1559.low') },
+				{ name: AppConstants.GAS_OPTIONS.MEDIUM, label: strings('edit_gas_fee_eip1559.medium') },
+				{ name: AppConstants.GAS_OPTIONS.HIGH, label: strings('edit_gas_fee_eip1559.high') }
+			]
+				.filter(({ name }) => !shouldIgnore(name))
+				.map(({ name, label, ...option }) => ({
+					name,
 					label: (selected, disabled) => (
 						<Text bold primary={selected && !disabled}>
-							{option.label}
+							{label}
 						</Text>
-					)
-				};
-				if (recommended && recommended.name === option.name) {
-					renderOption.topLabel = recommended.render;
-				}
-				return renderOption;
-			});
-	}, [recommended, shouldIgnore]);
+					),
+					topLabel: recommended?.name === name && recommended.render,
+					...option,
+					...extendOptions[name]
+				})),
+		[recommended, extendOptions, shouldIgnore]
+	);
 
 	const renderWarning = useMemo(() => {
 		if (!warning) return null;
@@ -519,6 +518,10 @@ EditGasFeeLegacy.propTypes = {
 	 * Ignore option array
 	 */
 	ignoreOptions: PropTypes.array,
+	/**
+	 * Extend options object. Object has option keys and properties will be spread
+	 */
+	extendOptions: PropTypes.object,
 	/**
 	 * Recommended object with type and render function
 	 */

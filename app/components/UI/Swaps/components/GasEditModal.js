@@ -292,6 +292,7 @@ function GasEditModal({
 						<EditGasFee1559
 							selected={gasSelected}
 							ignoreOptions={[GAS_OPTIONS.LOW]}
+							extendOptions={{ [GAS_OPTIONS.MEDIUM]: { error: true } }}
 							warningMinimumEstimateOption={GAS_OPTIONS.MEDIUM}
 							warning={
 								gasSelected === GAS_OPTIONS.MEDIUM

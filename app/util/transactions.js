@@ -610,7 +610,7 @@ export const calculateEIP1559Times = ({
 				hasTime = true;
 			}
 
-			if (hasTime === true) {
+			if (hasTime) {
 				return { timeEstimate, timeEstimateColor, timeEstimateId };
 			}
 		}
