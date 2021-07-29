@@ -16,20 +16,27 @@ start().catch(console.error);
 
 async function getPRInfo() {
 	const client = github.client(GITHUB_TOKEN);
-	const REPO = client.repo(`${BITRISEIO_GIT_REPOSITORY_OWNER}/${GIT_PROJECT_REPONAME}`);
-	const response = await REPO.prsAsync({ state: 'closed' });
-	const PR = response[0].find(obj => obj.merge_commit_sha === BITRISE_GIT_COMMIT);
 
-	if (PR) {
-		return { title: PR.title, number: PR.number, url: PR.html_url };
+	try {
+		const REPO = client.repo(`${BITRISEIO_GIT_REPOSITORY_OWNER}/${GIT_PROJECT_REPONAME}`);
+		const response = await REPO.prsAsync({ state: 'closed' });
+		const PR = response[0].find(obj => obj.merge_commit_sha === BITRISE_GIT_COMMIT);
+
+		if (PR) {
+			return { title: PR.title, number: PR.number, url: PR.html_url };
+		}
+	} catch (e) {
+		return {};
 	}
 }
 
 async function start() {
 	const PR_INFO = await getPRInfo();
-
 	const content = {
-		text: `NEW BUILDS AVAILABLE! Including <${PR_INFO.url}|#${PR_INFO.number} - ${PR_INFO.title}>`,
+		text:
+			PR_INFO !== {}
+				? `NEW BUILDS AVAILABLE! Including <${PR_INFO.url}|#${PR_INFO.number} - ${PR_INFO.title}>`
+				: `NEW BUILDS AVAILABLE!`,
 		attachments: [
 			{
 				title_link: 'itms-beta://beta.itunes.apple.com/v1/app/1438144202',

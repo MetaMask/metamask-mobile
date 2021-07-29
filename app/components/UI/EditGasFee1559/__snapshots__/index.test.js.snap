@@ -209,14 +209,17 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                     Object {
                       "label": [Function],
                       "name": "low",
+                      "topLabel": false,
                     },
                     Object {
                       "label": [Function],
                       "name": "medium",
+                      "topLabel": false,
                     },
                     Object {
                       "label": [Function],
                       "name": "high",
+                      "topLabel": false,
                     },
                   ]
                 }

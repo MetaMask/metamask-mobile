@@ -2,15 +2,15 @@ name: Bump version name
 on:
   pull_request:
     branches:
-      - develop
-      - main
+      # - develop
+      # - main
       - bug/action-permissions
     types: [opened]
 jobs:
   bump-version-name:
     runs-on: ubuntu-latest
     permissions:
-      pull-requests: write  
+      contents: write  
     if: "contains(github.head_ref, 'release/')"
     steps:
     - uses: actions/checkout@v2
