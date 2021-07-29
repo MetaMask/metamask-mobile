@@ -485,7 +485,7 @@ function SwapsQuotesView({
 	const [isPriceImpactModalVisible, togglePriceImpactModal, , hidePriceImpactModal] = useModalHandler(false);
 
 	const [isEditingGas, , showEditingGas, hideEditingGas] = useModalHandler(false);
-	const [isGasTooltipVisible, showGasTooltip, hideGasTooltip] = useModalHandler(false);
+	const [isGasTooltipVisible, , showGasTooltip, hideGasTooltip] = useModalHandler(false);
 
 	const handleGasFeeUpdate = useCallback(
 		(changedGasEstimate, changedGasLimit) => {
