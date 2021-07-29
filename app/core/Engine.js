@@ -143,6 +143,7 @@ class Engine {
 				assetsContractController,
 				collectiblesController,
 				tokensController,
+				tokenListController,
 				new AssetsDetectionController({
 					onCollectiblesStateChange: listener => collectiblesController.subscribe(listener),
 					onTokensStateChange: listener => tokensController.subscribe(listener),
