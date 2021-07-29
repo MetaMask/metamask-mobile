@@ -12,8 +12,7 @@ jobs:
   bump-version-name:
     runs-on: ubuntu-latest
     permissions:
-      issues: write
-      contents: read  
+      contents: write  
     # if: "contains(github.head_ref, 'release/')"
     steps:
     - uses: actions/checkout@v2
