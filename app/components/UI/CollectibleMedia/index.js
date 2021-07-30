@@ -80,6 +80,9 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 				/>
 			);
 		} else if (sourceUri && (!isUniV3NFT || tiny)) {
+			/*
+			 * the tiny boolean is used to indicate when the image is the NFT source icon
+			 */
 			return (
 				<RemoteImage
 					fadeIn
