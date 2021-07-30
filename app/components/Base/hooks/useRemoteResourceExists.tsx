@@ -15,10 +15,13 @@ const useRemoteResourceExists = (uri: string): boolean[] => {
 	const [isLoading, setIsLoading] = useState<boolean>(true);
 
 	const fetchStatus = async (uri: string): Promise<void> => {
-		fetch(uri, { method: 'HEAD' }).then(res => {
-			setReourceExists(res.status === 200);
-			setIsLoading(false);
-		});
+		fetch(uri, { method: 'HEAD' })
+			.then(res => setReourceExists(res.status === 200))
+			.then(() => setIsLoading(false))
+			.catch(() => {
+				setReourceExists(false);
+				setIsLoading(false);
+			});
 	};
 
 	useEffect(() => {
