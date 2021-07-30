@@ -36,6 +36,9 @@ const initialState = {
 			},
 			KeyringController: {
 				keyrings: [{ accounts: ['0x'], type: 'HD Key Tree' }]
+			},
+			GasFeeController: {
+				gasEstimates: {}
 			}
 		}
 	},

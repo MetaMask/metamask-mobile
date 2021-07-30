@@ -18,15 +18,17 @@ import {
 	TransactionController,
 	TypedMessageManager,
 	WalletDevice,
+	GasFeeController,
 	TokensController,
 	CollectiblesController
 } from '@metamask/controllers';
 
-import SwapsController from '@metamask/swaps-controller';
+import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
+
 import AsyncStorage from '@react-native-community/async-storage';
 import Encryptor from './Encryptor';
 import { toChecksumAddress } from 'ethereumjs-util';
-import Networks from '../util/networks';
+import Networks, { isMainnetByChainId } from '../util/networks';
 import AppConstants from './AppConstants';
 import { store } from '../store';
 import { renderFromTokenMinimalUnit, balanceToFiatNumber, weiToFiatNumber } from '../util/number';
@@ -124,6 +126,19 @@ class Engine {
 			});
 			currencyRateController.start();
 
+			const gasFeeController = new GasFeeController({
+				messenger: this.controllerMessenger,
+				getProvider: () => networkController.provider,
+				onNetworkStateChange: listener => networkController.subscribe(listener),
+				getCurrentNetworkEIP1559Compatibility: async () => await networkController.getEIP1559Compatibility(),
+				getChainId: () => networkController.state.provider.chainId,
+				getCurrentNetworkLegacyGasAPICompatibility: () =>
+					isMainnetByChainId(networkController.state.provider.chainId) ||
+					networkController.state.provider.chainId === swapsUtils.BSC_CHAIN_ID,
+				legacyAPIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/gasPrices',
+				EIP1559APIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees'
+			});
+
 			const controllers = [
 				new KeyringController(
 					{
@@ -189,10 +204,11 @@ class Engine {
 					clientId: AppConstants.SWAPS.CLIENT_ID,
 					fetchAggregatorMetadataThreshold: AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
 					fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
-					fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD
-				})
+					fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD,
+					fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates()
+				}),
+				gasFeeController
 			];
-
 			// set initial state
 			// TODO: Pass initial state into each controller constructor instead
 			// This is being set post-construction for now to ensure it's functionally equivalent with
@@ -205,7 +221,6 @@ class Engine {
 					controller.update(initialState[controller.name]);
 				}
 			}
-
 			this.datamodel = new ComposableController(controllers, this.controllerMessenger);
 			this.context = controllers.reduce((context, controller) => {
 				context[controller.name] = controller;
@@ -501,24 +516,28 @@ class Engine {
 			PreferencesController.setSelectedAddress(accounts.hd[0]);
 		}
 
+		const mapTx = tx => ({
+			id: tx.id,
+			networkID: tx.metamaskNetworkId,
+			origin: tx.origin,
+			status: tx.status,
+			time: tx.time,
+			transactionHash: tx.hash,
+			rawTx: tx.rawTx,
+			transaction: {
+				from: tx.txParams.from,
+				to: tx.txParams.to,
+				nonce: tx.txParams.nonce,
+				gas: tx.txParams.gas,
+				gasPrice: tx.txParams.gasPrice,
+				value: tx.txParams.value,
+				maxFeePerGas: tx.txParams.maxFeePerGas,
+				maxPriorityFeePerGas: tx.txParams.maxPriorityFeePerGas
+			}
+		});
+
 		await TransactionController.update({
-			transactions: transactions.map(tx => ({
-				id: tx.id,
-				networkID: tx.metamaskNetworkId,
-				origin: tx.origin,
-				status: tx.status,
-				time: tx.time,
-				transactionHash: tx.hash,
-				rawTx: tx.rawTx,
-				transaction: {
-					from: tx.txParams.from,
-					to: tx.txParams.to,
-					nonce: tx.txParams.nonce,
-					gas: tx.txParams.gas,
-					gasPrice: tx.txParams.gasPrice,
-					value: tx.txParams.value
-				}
-			}))
+			transactions: transactions.map(mapTx)
 		});
 
 		return true;
@@ -553,6 +572,7 @@ export default {
 			TransactionController,
 			TypedMessageManager,
 			SwapsController,
+			GasFeeController,
 			TokensController
 		} = instance.datamodel.state;
 
@@ -581,7 +601,8 @@ export default {
 			TokensController,
 			TransactionController,
 			TypedMessageManager,
-			SwapsController
+			SwapsController,
+			GasFeeController
 		};
 	},
 	get datamodel() {

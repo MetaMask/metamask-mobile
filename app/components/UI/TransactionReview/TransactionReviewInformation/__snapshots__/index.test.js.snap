@@ -2,6 +2,7 @@
 
 exports[`TransactionReviewInformation should render correctly 1`] = `
 <Connect(TransactionReviewInformation)
+  EIP1559GasData={Object {}}
   transactionData={
     Object {
       "amount": 0,

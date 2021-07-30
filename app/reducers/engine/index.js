@@ -90,6 +90,10 @@ function initalizeEngine(state = {}) {
 	Engine.context.SwapsController.subscribe(() => {
 		store.dispatch({ type: 'UPDATE_BG_STATE', key: 'SwapsController' });
 	});
+
+	Engine.controllerMessenger.subscribe(`${Engine.context.GasFeeController.name}:stateChange`, () => {
+		store.dispatch({ type: 'UPDATE_BG_STATE', key: 'GasFeeController' });
+	});
 }
 
 const engineReducer = (state = initialState, action) => {

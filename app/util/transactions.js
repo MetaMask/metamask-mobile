@@ -1,13 +1,35 @@
 import { addHexPrefix, toChecksumAddress, BN } from 'ethereumjs-util';
 import { rawEncode, rawDecode } from 'ethereumjs-abi';
 import Engine from '../core/Engine';
-import { strings } from '../../locales/i18n';
+import I18n, { strings } from '../../locales/i18n';
 import { safeToChecksumAddress } from './address';
 import { util } from '@metamask/controllers';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { hexToBN } from './number';
+import {
+	balanceToFiatNumber,
+	BNToHex,
+	hexToBN,
+	renderFiatAddition,
+	renderFromTokenMinimalUnit,
+	renderFromWei,
+	toBN,
+	weiToFiat,
+	weiToFiatNumber
+} from './number';
 import AppConstants from '../core/AppConstants';
 import { isMainnetByChainId } from './networks';
+import { addCurrencies, multiplyCurrencies, subtractCurrencies } from '../util/conversion-util';
+import { decGWEIToHexWEI, getValueFromWeiHex, formatETHFee } from '../util/conversions';
+import {
+	addEth,
+	addFiat,
+	convertTokenToFiat,
+	formatCurrency,
+	getTransactionFee,
+	roundExponential
+} from '../util/confirm-tx';
+
+import humanizeDuration from 'humanize-duration';
 
 const { SAI_ADDRESS } = AppConstants;
 
@@ -41,6 +63,8 @@ export const TRANSACTION_TYPES = {
 	SITE_INTERACTION: 'transaction_site_interaction',
 	APPROVE: 'transaction_approve'
 };
+
+const MULTIPLIER_HEX = 16;
 
 const { getSwapsContractAddress } = swapsUtils;
 /**
@@ -389,30 +413,6 @@ export function getTransactionToName({ addressBook, network, toAddress, identiti
 }
 
 /**
- * Validate transaction value for speed up or cancel transaction actions
- *
- * @param {object} transaction - Transaction object to validate
- * @param {string} rate - Rate to validate
- * @param {string} accounts - Map of accounts to information objects including balances
- * @returns {string} - Whether the balance is validated or not
- */
-export function validateTransactionActionBalance(transaction, rate, accounts) {
-	try {
-		const checksummedFrom = safeToChecksumAddress(transaction.transaction.from);
-		const balance = accounts[checksummedFrom].balance;
-		return hexToBN(balance).lt(
-			hexToBN(transaction.transaction.gasPrice)
-				.mul(new BN(rate * 10))
-				.div(new BN(10))
-				.mul(hexToBN(transaction.transaction.gas))
-				.add(hexToBN(transaction.transaction.value))
-		);
-	} catch (e) {
-		return false;
-	}
-}
-
-/**
  * Return a boolen if the transaction should be flagged to add the account added label
  *
  * @param {object} transaction - Transaction object get time
@@ -429,3 +429,691 @@ export function getNormalizedTxState(state) {
 
 export const getActiveTabUrl = ({ browser = {} }) =>
 	browser.tabs && browser.activeTab && browser.tabs.find(({ id }) => id === browser.activeTab)?.url;
+
+export const calculateAmountsEIP1559 = ({
+	value,
+	nativeCurrency,
+	currentCurrency,
+	conversionRate,
+	gasFeeMinConversion,
+	gasFeeMinNative,
+	gasFeeMaxNative,
+	gasFeeMaxConversion,
+	gasFeeMinHex,
+	gasFeeMaxHex
+}) => {
+	// amount numbers
+	const amountConversion = getValueFromWeiHex({
+		value,
+		fromCurrency: nativeCurrency,
+		toCurrency: currentCurrency,
+		conversionRate,
+		numberOfDecimals: 2
+	});
+	const amountNative = getValueFromWeiHex({
+		value,
+		fromCurrency: nativeCurrency,
+		toCurrency: nativeCurrency,
+		conversionRate,
+		numberOfDecimals: 6
+	});
+
+	// Total numbers
+	const totalMinNative = addEth(gasFeeMinNative, amountNative);
+	const totalMinConversion = addFiat(gasFeeMinConversion, amountConversion);
+	const totalMaxNative = addEth(gasFeeMaxNative, amountNative);
+	const totalMaxConversion = addFiat(gasFeeMaxConversion, amountConversion);
+
+	const totalMinHex = addCurrencies(gasFeeMinHex, value, {
+		toNumericBase: 'hex',
+		aBase: MULTIPLIER_HEX,
+		bBase: MULTIPLIER_HEX
+	});
+
+	const totalMaxHex = addCurrencies(gasFeeMaxHex, value, {
+		toNumericBase: 'hex',
+		aBase: MULTIPLIER_HEX,
+		bBase: MULTIPLIER_HEX
+	});
+
+	return { totalMinNative, totalMinConversion, totalMaxNative, totalMaxConversion, totalMinHex, totalMaxHex };
+};
+
+export const calculateEthEIP1559 = ({
+	nativeCurrency,
+	currentCurrency,
+	totalMinNative,
+	totalMinConversion,
+	totalMaxNative,
+	totalMaxConversion
+}) => {
+	const renderableTotalMinNative = formatETHFee(totalMinNative, nativeCurrency);
+	const renderableTotalMinConversion = formatCurrency(totalMinConversion, currentCurrency);
+
+	const renderableTotalMaxNative = formatETHFee(totalMaxNative, nativeCurrency);
+	const renderableTotalMaxConversion = formatCurrency(totalMaxConversion, currentCurrency);
+
+	return [
+		renderableTotalMinNative,
+		renderableTotalMinConversion,
+		renderableTotalMaxNative,
+		renderableTotalMaxConversion
+	];
+};
+
+export const calculateERC20EIP1559 = ({
+	currentCurrency,
+	nativeCurrency,
+	conversionRate,
+	exchangeRate,
+	tokenAmount,
+	totalMinConversion,
+	totalMaxConversion,
+	symbol,
+	totalMinNative,
+	totalMaxNative
+}) => {
+	const tokenAmountConversion = convertTokenToFiat({
+		value: tokenAmount,
+		toCurrency: currentCurrency,
+		conversionRate,
+		contractExchangeRate: exchangeRate
+	});
+
+	const tokenTotalMinConversion = roundExponential(addFiat(tokenAmountConversion, totalMinConversion));
+	const tokenTotalMaxConversion = roundExponential(addFiat(tokenAmountConversion, totalMaxConversion));
+
+	const renderableTotalMinConversion = formatCurrency(tokenTotalMinConversion, currentCurrency);
+	const renderableTotalMaxConversion = formatCurrency(tokenTotalMaxConversion, currentCurrency);
+
+	const renderableTotalMinNative = `${formatETHFee(tokenAmount, symbol)} + ${formatETHFee(
+		totalMinNative,
+		nativeCurrency
+	)}`;
+	const renderableTotalMaxNative = `${formatETHFee(tokenAmount, symbol)} + ${formatETHFee(
+		totalMaxNative,
+		nativeCurrency
+	)}`;
+	return [
+		renderableTotalMinNative,
+		renderableTotalMinConversion,
+		renderableTotalMaxNative,
+		renderableTotalMaxConversion
+	];
+};
+
+export const calculateEIP1559Times = ({
+	suggestedMaxPriorityFeePerGas,
+	suggestedMaxFeePerGas,
+	selectedOption,
+	recommended,
+	gasFeeEstimates
+}) => {
+	let timeEstimate = strings('times_eip1559.unknown');
+	let timeEstimateColor = 'grey';
+	let timeEstimateId = AppConstants.GAS_TIMES.UNKNOWN;
+
+	const LOW = AppConstants.GAS_OPTIONS.LOW;
+	const MEDIUM = AppConstants.GAS_OPTIONS.MEDIUM;
+	const HIGH = AppConstants.GAS_OPTIONS.HIGH;
+
+	if (!recommended) recommended = MEDIUM;
+
+	if (!selectedOption) {
+		timeEstimateColor = 'grey';
+	} else if (recommended === HIGH) {
+		if (selectedOption === HIGH) timeEstimateColor = 'green';
+		else timeEstimateColor = 'red';
+	} else if (selectedOption === LOW) {
+		timeEstimateColor = 'red';
+	} else {
+		timeEstimateColor = 'green';
+	}
+
+	try {
+		const language = I18n.locale.substr(0, 2);
+
+		const timeParams = {
+			language,
+			fallbacks: ['en']
+		};
+
+		if (
+			selectedOption &&
+			gasFeeEstimates &&
+			gasFeeEstimates[LOW] &&
+			gasFeeEstimates[MEDIUM] &&
+			gasFeeEstimates[HIGH]
+		) {
+			let hasTime = false;
+			if (selectedOption === LOW && gasFeeEstimates[LOW].maxWaitTimeEstimate) {
+				timeEstimate = `${strings('times_eip1559.maybe')} ${humanizeDuration(
+					gasFeeEstimates[LOW].maxWaitTimeEstimate,
+					timeParams
+				)}`;
+				timeEstimateId = AppConstants.GAS_TIMES.MAYBE;
+				hasTime = true;
+			} else if (selectedOption === MEDIUM && gasFeeEstimates[LOW].maxWaitTimeEstimate) {
+				timeEstimate = `${strings('times_eip1559.likely')} ${humanizeDuration(
+					gasFeeEstimates[LOW].maxWaitTimeEstimate,
+					timeParams
+				)}`;
+				timeEstimateId = AppConstants.GAS_TIMES.LIKELY;
+				hasTime = true;
+			} else if (selectedOption === HIGH && gasFeeEstimates[HIGH].minWaitTimeEstimate) {
+				timeEstimate = `${strings('times_eip1559.likely_in')} ${humanizeDuration(
+					gasFeeEstimates[HIGH].minWaitTimeEstimate,
+					timeParams
+				)}`;
+				timeEstimateId = AppConstants.GAS_TIMES.VERY_LIKELY;
+				hasTime = true;
+			}
+
+			if (hasTime) {
+				return { timeEstimate, timeEstimateColor, timeEstimateId };
+			}
+		}
+
+		const { GasFeeController } = Engine.context;
+		const times = GasFeeController.getTimeEstimate(suggestedMaxPriorityFeePerGas, suggestedMaxFeePerGas);
+
+		if (!times || times === 'unknown' || Object.keys(times).length < 2 || times.upperTimeBound === 'unknown') {
+			timeEstimate = strings('times_eip1559.unknown');
+			timeEstimateId = AppConstants.GAS_TIMES.UNKNOWN;
+			timeEstimateColor = 'red';
+		} else if (selectedOption === LOW) {
+			timeEstimate = `${strings('times_eip1559.maybe')} ${humanizeDuration(times.upperTimeBound, timeParams)}`;
+			timeEstimateId = AppConstants.GAS_TIMES.MAYBE;
+		} else if (selectedOption === MEDIUM) {
+			timeEstimate = `${strings('times_eip1559.likely')} ${humanizeDuration(times.upperTimeBound, timeParams)}`;
+			timeEstimateId = AppConstants.GAS_TIMES.LIKELY;
+		} else if (selectedOption === HIGH) {
+			timeEstimate = `${strings('times_eip1559.very_likely')} ${humanizeDuration(
+				times.upperTimeBound,
+				timeParams
+			)}`;
+			timeEstimateId = AppConstants.GAS_TIMES.VERY_LIKELY;
+		} else if (times.upperTimeBound === 0) {
+			timeEstimate = `${strings('times_eip1559.at_least')} ${humanizeDuration(times.lowerTimeBound, timeParams)}`;
+			timeEstimateColor = 'red';
+			timeEstimateId = AppConstants.GAS_TIMES.AT_LEAST;
+		} else if (times.lowerTimeBound === 0) {
+			timeEstimate = `${strings('times_eip1559.less_than')} ${humanizeDuration(
+				times.upperTimeBound,
+				timeParams
+			)}`;
+			timeEstimateColor = 'green';
+			timeEstimateId = AppConstants.GAS_TIMES.LESS_THAN;
+		} else {
+			timeEstimate = `${humanizeDuration(times.lowerTimeBound, timeParams)} - ${humanizeDuration(
+				times.upperTimeBound,
+				timeParams
+			)}`;
+			timeEstimateId = AppConstants.GAS_TIMES.RANGE;
+		}
+	} catch (error) {
+		console.log('ERROR ESTIMATING TIME', error);
+	}
+
+	return { timeEstimate, timeEstimateColor, timeEstimateId };
+};
+
+export const calculateEIP1559GasFeeHexes = ({
+	gasLimitHex,
+	estimatedGasLimitHex,
+	estimatedBaseFeeHex,
+	suggestedMaxFeePerGasHex,
+	suggestedMaxPriorityFeePerGasHex
+}) => {
+	// Hex calculations
+	const estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex = addCurrencies(
+		estimatedBaseFeeHex,
+		suggestedMaxPriorityFeePerGasHex,
+		{
+			toNumericBase: 'hex',
+			aBase: MULTIPLIER_HEX,
+			bBase: MULTIPLIER_HEX
+		}
+	);
+
+	const maxPriorityFeePerGasTimesGasLimitHex = multiplyCurrencies(suggestedMaxPriorityFeePerGasHex, gasLimitHex, {
+		toNumericBase: 'hex',
+		multiplicandBase: MULTIPLIER_HEX,
+		multiplierBase: MULTIPLIER_HEX
+	});
+
+	const gasFeeMinHex = multiplyCurrencies(
+		estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex,
+		estimatedGasLimitHex || gasLimitHex,
+		{
+			toNumericBase: 'hex',
+			multiplicandBase: MULTIPLIER_HEX,
+			multiplierBase: MULTIPLIER_HEX
+		}
+	);
+	const gasFeeMaxHex = multiplyCurrencies(suggestedMaxFeePerGasHex, gasLimitHex, {
+		toNumericBase: 'hex',
+		multiplicandBase: MULTIPLIER_HEX,
+		multiplierBase: MULTIPLIER_HEX
+	});
+
+	return {
+		estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex,
+		maxPriorityFeePerGasTimesGasLimitHex,
+		gasFeeMinHex,
+		gasFeeMaxHex
+	};
+};
+
+export const parseTransactionEIP1559 = (
+	{
+		selectedGasFee,
+		swapsParams,
+		contractExchangeRates,
+		conversionRate,
+		currentCurrency,
+		nativeCurrency,
+		transactionState: { selectedAsset, transaction: { value, data } } = { selectedAsset: {}, transaction: {} },
+		gasFeeEstimates
+	},
+	{ onlyGas } = {}
+) => {
+	value = value || '0x0';
+
+	const suggestedMaxPriorityFeePerGas = String(selectedGasFee.suggestedMaxPriorityFeePerGas);
+	const suggestedMaxFeePerGas = String(selectedGasFee.suggestedMaxFeePerGas);
+	const estimatedBaseFee = selectedGasFee.estimatedBaseFee || '0';
+
+	// Convert to hex
+	const estimatedBaseFeeHex = decGWEIToHexWEI(estimatedBaseFee);
+	const suggestedMaxPriorityFeePerGasHex = decGWEIToHexWEI(suggestedMaxPriorityFeePerGas);
+	const suggestedMaxFeePerGasHex = decGWEIToHexWEI(suggestedMaxFeePerGas);
+	const gasLimitHex = BNToHex(new BN(selectedGasFee.suggestedGasLimit));
+	const estimatedGasLimitHex =
+		selectedGasFee.suggestedEstimatedGasLimit && BNToHex(new BN(selectedGasFee.suggestedEstimatedGasLimit));
+
+	const { timeEstimate, timeEstimateColor, timeEstimateId } = calculateEIP1559Times({
+		suggestedMaxPriorityFeePerGas,
+		suggestedMaxFeePerGas,
+		selectedOption: selectedGasFee.selectedOption,
+		recommended: selectedGasFee.recommended,
+		gasFeeEstimates
+	});
+
+	// eslint-disable-next-line prefer-const
+	let { gasFeeMinHex, gasFeeMaxHex, maxPriorityFeePerGasTimesGasLimitHex } = calculateEIP1559GasFeeHexes({
+		gasLimitHex,
+		estimatedGasLimitHex,
+		estimatedBaseFeeHex,
+		suggestedMaxPriorityFeePerGasHex,
+		suggestedMaxFeePerGasHex
+	});
+
+	if (swapsParams) {
+		const { tradeValue, isNativeAsset, sourceAmount } = swapsParams;
+		gasFeeMinHex = addCurrencies(gasFeeMinHex, tradeValue, {
+			toNumericBase: 'hex',
+			aBase: MULTIPLIER_HEX,
+			bBase: MULTIPLIER_HEX
+		});
+		gasFeeMaxHex = addCurrencies(gasFeeMaxHex, tradeValue, {
+			toNumericBase: 'hex',
+			aBase: MULTIPLIER_HEX,
+			bBase: MULTIPLIER_HEX
+		});
+
+		if (isNativeAsset) {
+			gasFeeMinHex = subtractCurrencies(gasFeeMinHex, sourceAmount, {
+				toNumericBase: 'hex',
+				aBase: MULTIPLIER_HEX,
+				bBase: 10
+			});
+			gasFeeMaxHex = subtractCurrencies(gasFeeMaxHex, sourceAmount, {
+				toNumericBase: 'hex',
+				aBase: MULTIPLIER_HEX,
+				bBase: 10
+			});
+		}
+	}
+
+	const maxPriorityFeeNative = getTransactionFee({
+		value: maxPriorityFeePerGasTimesGasLimitHex,
+		fromCurrency: nativeCurrency,
+		toCurrency: nativeCurrency,
+		numberOfDecimals: 6,
+		conversionRate
+	});
+	const maxPriorityFeeConversion = getTransactionFee({
+		value: maxPriorityFeePerGasTimesGasLimitHex,
+		fromCurrency: nativeCurrency,
+		toCurrency: currentCurrency,
+		numberOfDecimals: 2,
+		conversionRate
+	});
+
+	const renderableMaxPriorityFeeNative = formatETHFee(
+		maxPriorityFeeNative,
+		nativeCurrency,
+		Boolean(maxPriorityFeePerGasTimesGasLimitHex) && maxPriorityFeePerGasTimesGasLimitHex !== '0x0'
+	);
+	const renderableMaxPriorityFeeConversion = formatCurrency(maxPriorityFeeConversion, currentCurrency);
+
+	const maxFeePerGasNative = getTransactionFee({
+		value: gasFeeMaxHex,
+		fromCurrency: nativeCurrency,
+		toCurrency: nativeCurrency,
+		numberOfDecimals: 6,
+		conversionRate
+	});
+	const maxFeePerGasConversion = getTransactionFee({
+		value: gasFeeMaxHex,
+		fromCurrency: nativeCurrency,
+		toCurrency: currentCurrency,
+		numberOfDecimals: 2,
+		conversionRate
+	});
+	const renderableMaxFeePerGasNative = formatETHFee(
+		maxFeePerGasNative,
+		nativeCurrency,
+		Boolean(gasFeeMaxHex) && gasFeeMaxHex !== '0x0'
+	);
+	const renderableMaxFeePerGasConversion = formatCurrency(maxFeePerGasConversion, currentCurrency);
+
+	// Gas fee min numbers
+	const gasFeeMinNative = getTransactionFee({
+		value: gasFeeMinHex,
+		fromCurrency: nativeCurrency,
+		toCurrency: nativeCurrency,
+		numberOfDecimals: 6,
+		conversionRate
+	});
+	const gasFeeMinConversion = getTransactionFee({
+		value: gasFeeMinHex,
+		fromCurrency: nativeCurrency,
+		toCurrency: currentCurrency,
+		numberOfDecimals: 2,
+		conversionRate
+	});
+
+	// Gas fee max numbers
+	const gasFeeMaxNative = getTransactionFee({
+		value: gasFeeMaxHex,
+		fromCurrency: nativeCurrency,
+		toCurrency: nativeCurrency,
+		numberOfDecimals: 6,
+		conversionRate
+	});
+	const gasFeeMaxConversion = getTransactionFee({
+		value: gasFeeMaxHex,
+		fromCurrency: nativeCurrency,
+		toCurrency: currentCurrency,
+		numberOfDecimals: 2,
+		conversionRate
+	});
+
+	const renderableGasFeeMinNative = formatETHFee(
+		gasFeeMinNative,
+		nativeCurrency,
+		Boolean(gasFeeMinHex) && gasFeeMinHex !== '0x0'
+	);
+	const renderableGasFeeMinConversion = formatCurrency(gasFeeMinConversion, currentCurrency);
+	const renderableGasFeeMaxNative = formatETHFee(
+		gasFeeMaxNative,
+		nativeCurrency,
+		Boolean(gasFeeMaxHex) && gasFeeMaxHex !== '0x0'
+	);
+	const renderableGasFeeMaxConversion = formatCurrency(gasFeeMaxConversion, currentCurrency);
+
+	// This is the total transaction value for comparing with account balance
+	const valuePlusGasMaxHex = addCurrencies(gasFeeMaxHex, value, {
+		toNumericBase: 'hex',
+		aBase: MULTIPLIER_HEX,
+		bBase: MULTIPLIER_HEX
+	});
+
+	if (onlyGas) {
+		return {
+			gasFeeMinNative,
+			renderableGasFeeMinNative,
+			gasFeeMinConversion,
+			renderableGasFeeMinConversion,
+			gasFeeMaxNative,
+			renderableGasFeeMaxNative,
+			gasFeeMaxConversion,
+			renderableGasFeeMaxConversion,
+			maxPriorityFeeNative,
+			renderableMaxPriorityFeeNative,
+			maxPriorityFeeConversion,
+			renderableMaxPriorityFeeConversion,
+			renderableMaxFeePerGasNative,
+			renderableMaxFeePerGasConversion,
+			timeEstimate,
+			timeEstimateColor,
+			timeEstimateId,
+			estimatedBaseFee,
+			estimatedBaseFeeHex,
+			suggestedMaxPriorityFeePerGas,
+			suggestedMaxPriorityFeePerGasHex,
+			suggestedMaxFeePerGas,
+			suggestedMaxFeePerGasHex,
+			gasLimitHex,
+			suggestedGasLimit: selectedGasFee.suggestedGasLimit,
+			suggestedEstimatedGasLimit: selectedGasFee.suggestedEstimatedGasLimit,
+			totalMaxHex: valuePlusGasMaxHex
+		};
+	}
+
+	const {
+		totalMinNative,
+		totalMinConversion,
+		totalMaxNative,
+		totalMaxConversion,
+		totalMinHex,
+		totalMaxHex
+	} = calculateAmountsEIP1559({
+		value,
+		nativeCurrency,
+		currentCurrency,
+		conversionRate,
+		gasFeeMinConversion,
+		gasFeeMinNative,
+		gasFeeMaxNative,
+		gasFeeMaxConversion,
+		gasFeeMaxHex,
+		gasFeeMinHex
+	});
+
+	let renderableTotalMinNative, renderableTotalMinConversion, renderableTotalMaxNative, renderableTotalMaxConversion;
+
+	if (selectedAsset.isETH || selectedAsset.tokenId) {
+		[
+			renderableTotalMinNative,
+			renderableTotalMinConversion,
+			renderableTotalMaxNative,
+			renderableTotalMaxConversion
+		] = calculateEthEIP1559({
+			nativeCurrency,
+			currentCurrency,
+			totalMinNative,
+			totalMinConversion,
+			totalMaxNative,
+			totalMaxConversion
+		});
+	} else {
+		const { address, symbol = 'ERC20', decimals } = selectedAsset;
+
+		const [, , rawAmount] = decodeTransferData('transfer', data);
+		const rawAmountString = parseInt(rawAmount, 16).toLocaleString('fullwide', { useGrouping: false });
+		const tokenAmount = renderFromTokenMinimalUnit(rawAmountString, decimals);
+
+		const exchangeRate = contractExchangeRates[address];
+
+		[
+			renderableTotalMinNative,
+			renderableTotalMinConversion,
+			renderableTotalMaxNative,
+			renderableTotalMaxConversion
+		] = calculateERC20EIP1559({
+			currentCurrency,
+			nativeCurrency,
+			conversionRate,
+			exchangeRate,
+			tokenAmount,
+			totalMinConversion,
+			totalMaxConversion,
+			symbol,
+			totalMinNative,
+			totalMaxNative
+		});
+	}
+
+	return {
+		gasFeeMinNative,
+		renderableGasFeeMinNative,
+		gasFeeMinConversion,
+		renderableGasFeeMinConversion,
+		gasFeeMaxNative,
+		renderableGasFeeMaxNative,
+		gasFeeMaxConversion,
+		renderableGasFeeMaxConversion,
+		maxPriorityFeeNative,
+		renderableMaxPriorityFeeNative,
+		maxPriorityFeeConversion,
+		renderableMaxPriorityFeeConversion,
+		renderableMaxFeePerGasNative,
+		renderableMaxFeePerGasConversion,
+		timeEstimate,
+		timeEstimateColor,
+		timeEstimateId,
+		totalMinNative,
+		renderableTotalMinNative,
+		totalMinConversion,
+		renderableTotalMinConversion,
+		totalMaxNative,
+		renderableTotalMaxNative,
+		totalMaxConversion,
+		renderableTotalMaxConversion,
+		estimatedBaseFee,
+		estimatedBaseFeeHex,
+		suggestedMaxPriorityFeePerGas,
+		suggestedMaxPriorityFeePerGasHex,
+		suggestedMaxFeePerGas,
+		suggestedMaxFeePerGasHex,
+		gasLimitHex,
+		suggestedGasLimit: selectedGasFee.suggestedGasLimit,
+		totalMinHex,
+		totalMaxHex
+	};
+};
+
+export const parseTransactionLegacy = (
+	{
+		contractExchangeRates,
+		conversionRate,
+		currentCurrency,
+		transactionState: { selectedAsset, transaction: { value, data } } = { selectedAsset: '', transaction: {} },
+		ticker,
+		selectedGasFee
+	},
+	{ onlyGas } = {}
+) => {
+	const gasLimit = new BN(selectedGasFee.suggestedGasLimit);
+	const gasLimitHex = BNToHex(new BN(selectedGasFee.suggestedGasLimit));
+
+	const weiTransactionFee = gasLimit && gasLimit.mul(hexToBN(decGWEIToHexWEI(selectedGasFee.suggestedGasPrice)));
+
+	const suggestedGasPriceHex = decGWEIToHexWEI(selectedGasFee.suggestedGasPrice);
+
+	const valueBN = value ? hexToBN(value) : toBN('0x0');
+	const transactionFeeFiat = weiToFiat(weiTransactionFee, conversionRate, currentCurrency);
+	const parsedTicker = getTicker(ticker);
+	const transactionFee = `${renderFromWei(weiTransactionFee)} ${parsedTicker}`;
+
+	const totalHex = valueBN.add(hexToBN(weiTransactionFee));
+
+	if (onlyGas) {
+		return {
+			transactionFeeFiat,
+			transactionFee,
+			suggestedGasPrice: selectedGasFee.suggestedGasPrice,
+			suggestedGasPriceHex,
+			suggestedGasLimit: selectedGasFee.suggestedGasLimit,
+			suggestedGasLimitHex: gasLimitHex,
+			totalHex
+		};
+	}
+
+	let transactionTotalAmount, transactionTotalAmountFiat;
+
+	if (selectedAsset.isETH) {
+		const transactionTotalAmountBN = weiTransactionFee && weiTransactionFee.add(valueBN);
+		transactionTotalAmount = `${renderFromWei(transactionTotalAmountBN)} ${parsedTicker}`;
+		transactionTotalAmountFiat = weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency);
+	} else if (selectedAsset.tokenId) {
+		const transactionTotalAmountBN = weiTransactionFee && weiTransactionFee.add(valueBN);
+		transactionTotalAmount = `${renderFromWei(weiTransactionFee)} ${parsedTicker}`;
+
+		transactionTotalAmountFiat = weiToFiat(transactionTotalAmountBN, conversionRate, currentCurrency);
+	} else {
+		const { address, symbol = 'ERC20', decimals } = selectedAsset;
+
+		const [, , rawAmount] = decodeTransferData('transfer', data);
+		const rawAmountString = parseInt(rawAmount, 16).toLocaleString('fullwide', { useGrouping: false });
+		const transferValue = renderFromTokenMinimalUnit(rawAmountString, decimals);
+		const transactionValue = `${transferValue} ${symbol}`;
+		const exchangeRate = contractExchangeRates[address];
+		const transactionFeeFiatNumber = weiToFiatNumber(weiTransactionFee, conversionRate);
+
+		const transactionValueFiatNumber = balanceToFiatNumber(transferValue, conversionRate, exchangeRate);
+		transactionTotalAmount = `${transactionValue} + ${renderFromWei(weiTransactionFee)} ${parsedTicker}`;
+		transactionTotalAmountFiat = renderFiatAddition(
+			transactionValueFiatNumber,
+			transactionFeeFiatNumber,
+			currentCurrency
+		);
+	}
+
+	return {
+		transactionFeeFiat,
+		transactionFee,
+		transactionTotalAmount,
+		transactionTotalAmountFiat,
+		suggestedGasPrice: selectedGasFee.suggestedGasPrice,
+		suggestedGasPriceHex,
+		suggestedGasLimit: selectedGasFee.suggestedGasLimit,
+		suggestedGasLimitHex: gasLimitHex,
+		totalHex
+	};
+};
+
+/**
+ * Validate transaction value for speed up or cancel transaction actions
+ *
+ * @param {object} transaction - Transaction object to validate
+ * @param {string} rate - Rate to validate
+ * @param {string} accounts - Map of accounts to information objects including balances
+ * @returns {string} - Whether the balance is validated or not
+ */
+export function validateTransactionActionBalance(transaction, rate, accounts) {
+	try {
+		const checksummedFrom = safeToChecksumAddress(transaction.transaction.from);
+		const balance = accounts[checksummedFrom].balance;
+
+		let gasPrice = transaction.transaction.gasPrice;
+		const transactionToCheck = transaction.transaction;
+
+		if (util.isEIP1559Transaction(transactionToCheck)) {
+			gasPrice = transactionToCheck.maxFeePerGas;
+		}
+
+		return hexToBN(balance).lt(
+			hexToBN(gasPrice)
+				.mul(new BN(rate * 10))
+				.div(new BN(10))
+				.mul(hexToBN(transaction.transaction.gas))
+				.add(hexToBN(transaction.transaction.value))
+		);
+	} catch (e) {
+		return false;
+	}
+}

@@ -32,10 +32,16 @@ const initialState = {
 					type: 'mainnet',
 					chainId: '1'
 				}
+			},
+			GasFeeController: {
+				gasEstimates: {}
 			}
 		}
 	},
-	transaction: {}
+	transaction: {},
+	settings: {
+		primaryCurrency: 'fiat'
+	}
 };
 const store = mockStore(initialState);
 

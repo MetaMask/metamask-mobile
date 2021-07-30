@@ -41,6 +41,9 @@ const initialState = {
 			},
 			TokensController: {
 				tokens: []
+			},
+			GasFeeController: {
+				gasEstimates: {}
 			}
 		}
 	}
