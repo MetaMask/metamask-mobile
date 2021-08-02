@@ -6,62 +6,11 @@ exports[`CollectibleModal should render correctly 1`] = `
   newAssetTransaction={[Function]}
   route={
     Object {
-      "justifyContent": "flex-end",
-      "margin": 0,
-    }
-  }
-  supportedOrientations={
-    Array [
-      "portrait",
-      "landscape",
-    ]
-  }
-  swipeDirection="down"
-  swipeThreshold={100}
-  useNativeDriver={false}
->
-  <View
-    style={
-      Array [
-        Object {
-          "borderRadius": 12,
-          "left": 0,
-          "marginHorizontal": 16,
-          "marginTop": "20%",
-          "position": "absolute",
-          "right": 0,
-          "top": 0,
-        },
-        Object {
-          "elevation": 20,
-          "zIndex": 20,
-        },
-      ]
-    }
-  >
-    <CollectibleMedia
-      collectible={
-        Object {
+      "params": Object {
+        "collectible": Object {
           "address": "0x123",
           "name": "Leopard",
           "tokenId": 6904,
-        }
-      }
-      cover={true}
-      renderAnimation={true}
-      resizeMode="contain"
-      style={
-        Object {
-          "borderRadius": 12,
-        }
-      }
-    />
-  </View>
-  <View
-    style={
-      Array [
-        Object {
-          "flex": 0,
         },
         "contractName": "Opensea",
       },
