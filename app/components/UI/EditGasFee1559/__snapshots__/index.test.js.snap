@@ -262,7 +262,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                   underline={false}
                   upper={false}
                 >
-                  Advanced Options
+                  Advanced options
                 </Text>
                 <Text
                   black={false}
