@@ -11,7 +11,7 @@ describe('Tokens', () => {
 		const initialState = {
 			engine: {
 				backgroundState: {
-					AssetsController: {
+					TokensController: {
 						tokens: []
 					},
 					TokenRatesController: {
@@ -44,7 +44,7 @@ describe('Tokens', () => {
 		const initialState = {
 			engine: {
 				backgroundState: {
-					AssetsController: {
+					TokensController: {
 						tokens: [
 							{ symbol: 'ETH', address: '0x0', decimals: 18, isETH: true },
 							{ symbol: 'BAT', address: '0x01', decimals: 18 },
@@ -75,7 +75,7 @@ describe('Tokens', () => {
 			}
 		};
 
-		const wrapper = shallow(<Tokens tokens={initialState.engine.backgroundState.AssetsController.tokens} />, {
+		const wrapper = shallow(<Tokens tokens={initialState.engine.backgroundState.TokensController.tokens} />, {
 			context: { store: mockStore(initialState) }
 		});
 		// ETH and BAT should display
@@ -86,7 +86,7 @@ describe('Tokens', () => {
 		const initialState = {
 			engine: {
 				backgroundState: {
-					AssetsController: {
+					TokensController: {
 						tokens: [
 							{ symbol: 'ETH', address: '0x0', decimals: 18, isETH: true },
 							{ symbol: 'BAT', address: '0x01', decimals: 18 },
@@ -117,7 +117,7 @@ describe('Tokens', () => {
 			}
 		};
 
-		const wrapper = shallow(<Tokens tokens={initialState.engine.backgroundState.AssetsController.tokens} />, {
+		const wrapper = shallow(<Tokens tokens={initialState.engine.backgroundState.TokensController.tokens} />, {
 			context: { store: mockStore(initialState) }
 		});
 		// All three should display

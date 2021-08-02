@@ -39,8 +39,8 @@ import {
 	fromTokenMinimalUnitString,
 	toHexadecimal
 } from '../../../../util/number';
-import { getTicker, generateTransferData, getEther } from '../../../../util/transactions';
-import { util } from '@metamask/controllers';
+import { getTicker, generateTransferData, getEther, calculateEIP1559GasFeeHexes } from '../../../../util/transactions';
+import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
 import ErrorMessage from '../ErrorMessage';
 import { getGasPriceByChainId } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
@@ -54,7 +54,9 @@ import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import NetworkMainAssetLogo from '../../../UI/NetworkMainAssetLogo';
 import { isMainNet } from '../../../../util/networks';
-import { toLowerCaseCompare } from '../../../../util/general';
+import { toLowerCaseEquals } from '../../../../util/general';
+import { decGWEIToHexWEI } from '../../../../util/conversions';
+import AppConstants from '../../../../core/AppConstants';
 
 const { hexToBN, BNToHex } = util;
 
@@ -289,8 +291,7 @@ const styles = StyleSheet.create({
  * View that wraps the wraps the "Send" screen
  */
 class Amount extends PureComponent {
-	static navigationOptions = ({ navigation, screenProps }) =>
-		getSendFlowTitle('send.amount', navigation, screenProps);
+	static navigationOptions = ({ navigation, route }) => getSendFlowTitle('send.amount', navigation, route);
 
 	static propTypes = {
 		/**
@@ -372,7 +373,11 @@ class Amount extends PureComponent {
 		/**
 		 * function to call when the 'Next' button is clicked
 		 */
-		onConfirm: PropTypes.func
+		onConfirm: PropTypes.func,
+		/**
+		 * Indicates whether the current transaction is a deep link transaction
+		 */
+		isPaymentRequest: PropTypes.bool
 	};
 
 	state = {
@@ -397,10 +402,11 @@ class Amount extends PureComponent {
 			transactionState: { readableValue },
 			navigation,
 			providerType,
-			selectedAsset
+			selectedAsset,
+			isPaymentRequest
 		} = this.props;
 		// For analytics
-		navigation.setParams({ providerType });
+		navigation.setParams({ providerType, isPaymentRequest });
 
 		this.tokens = [getEther(ticker), ...tokens];
 		this.collectibles = this.processCollectibles();
@@ -408,9 +414,36 @@ class Amount extends PureComponent {
 		this.onInputChange(readableValue);
 		!selectedAsset.tokenId && this.handleSelectedAssetBalance(selectedAsset);
 
-		const estimatedTotalGas = await this.estimateTransactionTotalGas();
+		const { GasFeeController } = Engine.context;
+		const [gasEstimates, gas] = await Promise.all([
+			GasFeeController.fetchGasFeeEstimates({ shouldUpdateState: false }),
+			this.estimateGasLimit()
+		]);
+
+		if (gasEstimates.gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+			const gasFeeEstimates = gasEstimates.gasFeeEstimates[AppConstants.GAS_OPTIONS.MEDIUM];
+			const estimatedBaseFeeHex = decGWEIToHexWEI(gasEstimates.gasFeeEstimates.estimatedBaseFee);
+			const suggestedMaxPriorityFeePerGasHex = decGWEIToHexWEI(gasFeeEstimates.suggestedMaxPriorityFeePerGas);
+			const suggestedMaxFeePerGasHex = decGWEIToHexWEI(gasFeeEstimates.suggestedMaxFeePerGas);
+			const gasLimitHex = BNToHex(gas);
+			const gasHexes = calculateEIP1559GasFeeHexes({
+				gasLimitHex,
+				estimatedBaseFeeHex,
+				suggestedMaxFeePerGasHex,
+				suggestedMaxPriorityFeePerGasHex
+			});
+			this.setState({
+				estimatedTotalGas: hexToBN(gasHexes.gasFeeMaxHex)
+			});
+		} else if (gasEstimates.gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY) {
+			const gasPrice = hexToBN(decGWEIToHexWEI(gasEstimates.gasFeeEstimates[AppConstants.GAS_OPTIONS.MEDIUM]));
+			this.setState({ estimatedTotalGas: gas.mul(gasPrice) });
+		} else {
+			const gasPrice = hexToBN(decGWEIToHexWEI(gasEstimates.gasFeeEstimates.gasPrice));
+			this.setState({ estimatedTotalGas: gas.mul(gasPrice) });
+		}
+
 		this.setState({
-			estimatedTotalGas,
 			inputValue: readableValue
 		});
 	};
@@ -425,7 +458,7 @@ class Amount extends PureComponent {
 		} = this.props;
 		try {
 			const owner = await AssetsContractController.getOwnerOf(address, tokenId);
-			const isOwner = toLowerCaseCompare(owner, selectedAddress);
+			const isOwner = toLowerCaseEquals(owner, selectedAddress);
 			if (!isOwner) {
 				return strings('transaction.invalid_collectible_ownership');
 			}
@@ -621,17 +654,17 @@ class Amount extends PureComponent {
 	/**
 	 * Estimate transaction gas with information available
 	 */
-	estimateTransactionTotalGas = async () => {
+	estimateGasLimit = async () => {
 		const {
 			transaction: { from },
 			transactionTo
 		} = this.props.transactionState;
-		const { gas, gasPrice } = await getGasPriceByChainId({
+		const { gas } = await getGasPriceByChainId({
 			from,
 			to: transactionTo
 		});
 
-		return gas.mul(gasPrice);
+		return gas;
 	};
 
 	useMax = () => {
@@ -779,7 +812,6 @@ class Amount extends PureComponent {
 	renderToken = (token, index) => {
 		const {
 			accounts,
-			chainId,
 			selectedAddress,
 			conversionRate,
 			currentCurrency,
@@ -790,15 +822,11 @@ class Amount extends PureComponent {
 		const { address, decimals, symbol } = token;
 		if (token.isETH) {
 			balance = renderFromWei(accounts[selectedAddress].balance);
-			balanceFiat = isMainNet(chainId)
-				? weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency)
-				: null;
+			balanceFiat = weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency);
 		} else {
 			balance = renderFromTokenMinimalUnit(contractBalances[address], decimals);
 			const exchangeRate = contractExchangeRates[address];
-			balanceFiat = isMainNet(chainId)
-				? balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency)
-				: null;
+			balanceFiat = balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
 		}
 		return (
 			<TouchableOpacity
@@ -1065,8 +1093,8 @@ const mapStateToProps = (state, ownProps) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-	collectibles: state.engine.backgroundState.AssetsController.collectibles,
-	collectibleContracts: state.engine.backgroundState.AssetsController.collectibleContracts,
+	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
+	collectibleContracts: state.engine.backgroundState.CollectiblesController.collectibleContracts,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	providerType: state.engine.backgroundState.NetworkController.provider.type,
@@ -1074,9 +1102,10 @@ const mapStateToProps = (state, ownProps) => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	tokens: state.engine.backgroundState.AssetsController.tokens,
+	tokens: state.engine.backgroundState.TokensController.tokens,
 	transactionState: ownProps.transaction || state.transaction,
-	selectedAsset: state.transaction.selectedAsset
+	selectedAsset: state.transaction.selectedAsset,
+	isPaymentRequest: state.transaction.paymentRequest
 });
 
 const mapDispatchToProps = dispatch => ({

@@ -166,8 +166,8 @@ android {
 		applicationId "io.metamask"
 		minSdkVersion rootProject.ext.minSdkVersion
 		targetSdkVersion rootProject.ext.targetSdkVersion
-		versionCode 746
-		versionName "2.4.0"
+		versionCode 755
+		versionName "2.6.0"
 		multiDexEnabled true
 		testBuildType System.getProperty('testBuildType', 'debug')
 		missingDimensionStrategy "minReactNative", "minReactNative46"
@@ -189,12 +189,12 @@ android {
 	}
 
 	signingConfigs {
-		def pass = getPassword("mm","mm-upload-key")
+		def pass = ""
 		release {
 			storeFile file('../keystores/release.keystore')
-			storePassword pass
-			keyAlias 'key0'
-			keyPassword pass
+			storePassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PASSWORD")
+			keyAlias System.getenv("BITRISEIO_ANDROID_KEYSTORE_ALIAS")
+			keyPassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD")
 		}
 		debug {
             storeFile file('debug.keystore')

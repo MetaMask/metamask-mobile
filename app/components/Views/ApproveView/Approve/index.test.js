@@ -41,8 +41,11 @@ describe('Approve', () => {
 					TokenBalancesController: {
 						contractBalances: { '0x2': new BN(0) }
 					},
-					AssetsController: {
+					TokensController: {
 						tokens: []
+					},
+					GasFeeController: {
+						gasEstimates: {}
 					}
 				}
 			}

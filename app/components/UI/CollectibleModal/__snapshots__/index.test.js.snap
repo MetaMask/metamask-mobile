@@ -1,35 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`CollectibleModal should render correctly 1`] = `
-<ReactNativeModal
-  animationIn="slideInUp"
-  animationInTiming={300}
-  animationOut="slideOutDown"
-  animationOutTiming={300}
-  avoidKeyboard={false}
-  backdropColor="black"
-  backdropOpacity={0.7}
-  backdropTransitionInTiming={300}
-  backdropTransitionOutTiming={300}
-  coverScreen={true}
-  customBackdrop={null}
-  deviceHeight={null}
-  deviceWidth={null}
-  hasBackdrop={true}
-  hideModalContentWhileAnimating={false}
-  isVisible={false}
-  onBackButtonPress={[Function]}
-  onBackdropPress={[Function]}
-  onModalHide={[Function]}
-  onModalShow={[Function]}
-  onModalWillHide={[Function]}
-  onModalWillShow={[Function]}
-  propagateSwipe={true}
-  scrollHorizontal={false}
-  scrollOffset={0}
-  scrollOffsetMax={0}
-  scrollTo={null}
-  style={
+<CollectibleModal
+  navigation={Object {}}
+  newAssetTransaction={[Function]}
+  route={
     Object {
       "justifyContent": "flex-end",
       "margin": 0,
@@ -88,38 +63,9 @@ exports[`CollectibleModal should render correctly 1`] = `
         Object {
           "flex": 0,
         },
-        Object {
-          "elevation": 10,
-          "zIndex": 10,
-        },
-      ]
+        "contractName": "Opensea",
+      },
     }
-  >
-    <Connect(CollectibleOverview)
-      collectible={
-        Object {
-          "address": "0x123",
-          "contractName": "Opensea",
-          "name": "Leopard",
-          "tokenId": 6904,
-        }
-      }
-      navigation={
-        Object {
-          "state": Object {
-            "params": Object {
-              "address": "0x1",
-            },
-          },
-        }
-      }
-      onSend={[Function]}
-      onTouchEnd={[Function]}
-      onTouchStart={[Function]}
-      onTranslation={[Function]}
-      openLink={[Function]}
-      tradable={true}
-    />
-  </View>
-</ReactNativeModal>
+  }
+/>
 `;

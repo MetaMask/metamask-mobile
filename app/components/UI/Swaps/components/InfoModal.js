@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-navigation';
+import { StyleSheet, View, TouchableOpacity, SafeAreaView } from 'react-native';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 
@@ -49,15 +48,16 @@ const styles = StyleSheet.create({
 	}
 });
 
-function InfoModal({ title, body, isVisible, toggleModal }) {
+function InfoModal({ title, body, isVisible, toggleModal, propagateSwipe }) {
 	return (
 		<Modal
 			isVisible={isVisible}
 			onBackdropPress={toggleModal}
 			onBackButtonPress={toggleModal}
 			onSwipeComplete={toggleModal}
-			swipeDirection="down"
+			swipeDirection={'down'}
 			style={styles.modal}
+			propagateSwipe={propagateSwipe}
 		>
 			<SafeAreaView style={styles.modalView}>
 				<View style={styles.title}>
@@ -75,7 +75,8 @@ InfoModal.propTypes = {
 	isVisible: PropTypes.bool,
 	title: PropTypes.node,
 	body: PropTypes.node,
-	toggleModal: PropTypes.func
+	toggleModal: PropTypes.func,
+	propagateSwipe: PropTypes.bool
 };
 
 export default InfoModal;

@@ -9,6 +9,7 @@ import InfoModal from '../../../UI/Swaps/components/InfoModal';
 import { isMainnetByChainId } from '../../../../util/networks';
 import { connect } from 'react-redux';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import FadeAnimationView from '../../FadeAnimationView';
 
 const styles = StyleSheet.create({
 	overview: {
@@ -22,20 +23,6 @@ const styles = StyleSheet.create({
 	},
 	over: {
 		color: colors.red
-	},
-	customNonce: {
-		marginTop: 10,
-		marginHorizontal: 24,
-		borderWidth: 1,
-		borderColor: colors.grey050,
-		borderRadius: 8,
-		paddingVertical: 14,
-		paddingHorizontal: 16,
-		display: 'flex',
-		flexDirection: 'row'
-	},
-	nonceNumber: {
-		marginLeft: 'auto'
 	},
 	valuesContainer: {
 		flex: 1,
@@ -54,8 +41,9 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center'
 	},
-	fiatContainer: {
-		width: 66
+	primaryContainer: flex => {
+		if (flex) return { flex: 1 };
+		return { width: 86, marginLeft: 2 };
 	},
 	hitSlop: {
 		top: 10,
@@ -93,7 +81,7 @@ class TransactionReviewFeeCard extends PureComponent {
 		/**
 		 * Total transaction value in ETH
 		 */
-		totalValue: PropTypes.object,
+		totalValue: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
 		/**
 		 * Transaction value in ETH before gas fee
 		 */
@@ -115,21 +103,25 @@ class TransactionReviewFeeCard extends PureComponent {
 		 */
 		warningGasPriceHigh: PropTypes.string,
 		/**
-		 * Indicates whether custom nonce should be shown in transaction editor
-		 */
-		showCustomNonce: PropTypes.bool,
-		/**
-		 * Current nonce
-		 */
-		nonceValue: PropTypes.number,
-		/**
-		 * Function called when editing nonce
-		 */
-		onNonceEdit: PropTypes.func,
-		/**
 		 * A string representing the network chainId
 		 */
-		chainId: PropTypes.string
+		chainId: PropTypes.string,
+		/**
+		 * Function to call when update animation starts
+		 */
+		onUpdatingValuesStart: PropTypes.func,
+		/**
+		 * Function to call when update animation ends
+		 */
+		onUpdatingValuesEnd: PropTypes.func,
+		/**
+		 * If the values should animate upon update or not
+		 */
+		animateOnChange: PropTypes.bool,
+		/**
+		 * Boolean to determine if the animation is happening
+		 */
+		isAnimating: PropTypes.bool
 	};
 
 	state = {
@@ -192,29 +184,41 @@ class TransactionReviewFeeCard extends PureComponent {
 			edit,
 			over,
 			warningGasPriceHigh,
-			showCustomNonce,
-			nonceValue,
-			onNonceEdit,
-			chainId
+			chainId,
+			onUpdatingValuesStart,
+			onUpdatingValuesEnd,
+			animateOnChange,
+			isAnimating
 		} = this.props;
+
+		const isMainnet = isMainnetByChainId(chainId);
 
 		let amount;
 		let networkFee;
 		let totalAmount;
-		let equivalentTotalAmount;
-		if (primaryCurrency === 'ETH') {
-			amount = transactionValue;
-			networkFee = totalGasEth;
-			totalAmount = totalValue;
-			equivalentTotalAmount = totalFiat;
-		} else {
+		let primaryAmount;
+		let primaryNetworkFee;
+		let primaryTotalAmount;
+		const showNativeCurrency = primaryCurrency === 'ETH' || !isMainnet;
+		if (showNativeCurrency) {
 			amount = fiat;
 			networkFee = totalGasFiat;
 			totalAmount = totalFiat;
-			equivalentTotalAmount = totalValue;
+
+			primaryAmount = transactionValue;
+			primaryNetworkFee = totalGasEth;
+			primaryTotalAmount = totalValue;
+		} else {
+			amount = transactionValue;
+			networkFee = totalGasEth;
+			totalAmount = totalValue;
+
+			primaryAmount = fiat;
+			primaryNetworkFee = totalGasFiat;
+			primaryTotalAmount = totalFiat;
 		}
 
-		const isMainnet = isMainnetByChainId(chainId);
+		const valueToWatchAnimation = totalGasEth !== '0 ETH' ? totalGasEth : null;
 
 		return (
 			<View>
@@ -223,16 +227,20 @@ class TransactionReviewFeeCard extends PureComponent {
 						<Text primary bold>
 							{strings('transaction.amount')}
 						</Text>
-						<View style={styles.valuesContainer}>
-							<Text upper right grey style={styles.amountContainer}>
-								{amount}
-							</Text>
+						<FadeAnimationView
+							style={styles.valuesContainer}
+							valueToWatch={valueToWatchAnimation}
+							animateOnChange={animateOnChange}
+						>
 							{isMainnet && (
-								<Text upper primary bold right style={styles.fiatContainer}>
-									{fiat}
+								<Text upper right grey style={styles.amountContainer}>
+									{amount}
 								</Text>
 							)}
-						</View>
+							<Text upper primary bold right style={styles.primaryContainer(!isMainnet)}>
+								{primaryAmount}
+							</Text>
+						</FadeAnimationView>
 					</Summary.Row>
 					<Summary.Row>
 						<View>
@@ -250,55 +258,84 @@ class TransactionReviewFeeCard extends PureComponent {
 							</View>
 						</View>
 						{this.renderIfGasEstimationReady(
-							<View style={styles.valuesContainer}>
-								<TouchableOpacity style={styles.amountContainer} onPress={edit}>
-									<Text upper right link underline style={[warningGasPriceHigh && styles.over]}>
-										{networkFee}
-									</Text>
-								</TouchableOpacity>
+							<FadeAnimationView
+								style={styles.valuesContainer}
+								valueToWatch={valueToWatchAnimation}
+								animateOnChange={animateOnChange}
+								onAnimationStart={onUpdatingValuesStart}
+								onAnimationEnd={onUpdatingValuesEnd}
+							>
 								{isMainnet && (
-									<Text primary bold upper right style={styles.fiatContainer}>
-										{totalGasFiat}
-									</Text>
+									<View style={styles.amountContainer}>
+										<TouchableOpacity onPress={edit} disabled={showNativeCurrency || isAnimating}>
+											<Text
+												link={!showNativeCurrency}
+												underline={!showNativeCurrency}
+												upper
+												right
+											>
+												{networkFee}
+											</Text>
+										</TouchableOpacity>
+									</View>
 								)}
-							</View>
+								<View style={styles.primaryContainer(!isMainnet)}>
+									<TouchableOpacity onPress={edit} disabled={!showNativeCurrency || isAnimating}>
+										<Text
+											primary
+											bold
+											upper
+											link={showNativeCurrency}
+											underline={showNativeCurrency}
+											right
+											style={[warningGasPriceHigh && styles.over]}
+										>
+											{primaryNetworkFee}
+										</Text>
+									</TouchableOpacity>
+								</View>
+							</FadeAnimationView>
 						)}
 					</Summary.Row>
 					<Summary.Separator />
 					<Summary.Row>
-						<Text primary bold style={(over && styles.over) || null}>
+						<Text primary bold style={[over && styles.over]}>
 							{strings('transaction.total')}
 						</Text>
 
 						{!!totalFiat &&
 							this.renderIfGasEstimationReady(
-								<View style={styles.valuesContainer}>
-									<Text blue upper right style={styles.amountContainer}>
-										{totalAmount}
-									</Text>
+								<FadeAnimationView
+									style={styles.valuesContainer}
+									valueToWatch={valueToWatchAnimation}
+									animateOnChange={animateOnChange}
+								>
 									{isMainnet && (
-										<Text bold primary upper right style={styles.fiatContainer}>
-											{equivalentTotalAmount}
+										<Text
+											grey={!over}
+											upper
+											right
+											red={Boolean(over)}
+											style={styles.amountContainer}
+										>
+											{totalAmount}
 										</Text>
 									)}
-								</View>
+
+									<Text
+										bold
+										primary={!over}
+										red={Boolean(over)}
+										upper
+										right
+										style={styles.primaryContainer(!isMainnet)}
+									>
+										{primaryTotalAmount}
+									</Text>
+								</FadeAnimationView>
 							)}
 					</Summary.Row>
 				</Summary>
-				{showCustomNonce && (
-					<TouchableOpacity style={styles.customNonce} onPress={onNonceEdit}>
-						<Text bold black>
-							{strings('transaction.custom_nonce')}
-						</Text>
-						<Text bold link>
-							{'  '}
-							{strings('transaction.edit')}
-						</Text>
-						<Text bold black style={styles.nonceNumber}>
-							{nonceValue}
-						</Text>
-					</TouchableOpacity>
-				)}
 				{this.renderGasTooltip()}
 			</View>
 		);

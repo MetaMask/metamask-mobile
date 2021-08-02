@@ -10,7 +10,7 @@ describe('Collectible', () => {
 		const initialState = {
 			engine: {
 				backgroundState: {
-					AssetsController: {
+					CollectiblesController: {
 						collectibles: [{ address: '0x0', name: 'collectible', tokenId: 0, image: 'image' }]
 					}
 				}
@@ -20,7 +20,7 @@ describe('Collectible', () => {
 			}
 		};
 
-		const wrapper = shallow(<Collectible navigation={{ state: { params: { address: '0x1' } } }} />, {
+		const wrapper = shallow(<Collectible route={{ params: { address: '0x1' } }} />, {
 			context: { store: mockStore(initialState) }
 		});
 		expect(wrapper.dive()).toMatchSnapshot();

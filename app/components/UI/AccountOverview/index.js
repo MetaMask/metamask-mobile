@@ -19,7 +19,6 @@ import Device from '../../../util/Device';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { renderFiat } from '../../../util/number';
 import { renderAccountName } from '../../../util/address';
-import { isMainNet } from '../../../util/networks';
 import { getEther } from '../../../util/transactions';
 import { isSwapsAllowed } from '../Swaps/utils';
 
@@ -250,7 +249,7 @@ class AccountOverview extends PureComponent {
 	};
 
 	onBuy = () => {
-		this.props.navigation.navigate('PaymentMethodSelector');
+		this.props.navigation.navigate('FiatOnRamp');
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
 		});
@@ -258,7 +257,10 @@ class AccountOverview extends PureComponent {
 
 	goToSwaps = () =>
 		this.props.navigation.navigate('Swaps', {
-			sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS
+			screen: 'SwapsAmountView',
+			params: {
+				sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS
+			}
 		});
 
 	render() {
@@ -333,7 +335,7 @@ class AccountOverview extends PureComponent {
 								</TouchableOpacity>
 							)}
 						</View>
-						{isMainNet(chainId) && <Text style={styles.amountFiat}>{fiatBalance}</Text>}
+						<Text style={styles.amountFiat}>{fiatBalance}</Text>
 						<TouchableOpacity style={styles.addressWrapper} onPress={this.copyAccountToClipboard}>
 							<EthereumAddress address={address} style={styles.address} type={'short'} />
 						</TouchableOpacity>

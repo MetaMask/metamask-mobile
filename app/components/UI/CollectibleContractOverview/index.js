@@ -10,7 +10,7 @@ import { toggleCollectibleContractModal } from '../../../actions/modals';
 import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import { newAssetTransaction } from '../../../actions/transaction';
-import { toLowerCaseCompare } from '../../../util/general';
+import { toLowerCaseEquals } from '../../../util/general';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -86,7 +86,7 @@ class CollectibleContractOverview extends PureComponent {
 	onSend = () => {
 		const { collectibleContract, collectibles } = this.props;
 		const collectible = collectibles.find(collectible =>
-			toLowerCaseCompare(collectible.address, collectibleContract.address)
+			toLowerCaseEquals(collectible.address, collectibleContract.address)
 		);
 		this.props.newAssetTransaction(collectible);
 		this.props.navigation.navigate('SendFlowView');
@@ -140,7 +140,7 @@ class CollectibleContractOverview extends PureComponent {
 }
 
 const mapStateToProps = state => ({
-	collectibles: state.engine.backgroundState.AssetsController.collectibles
+	collectibles: state.engine.backgroundState.CollectiblesController.collectibles
 });
 
 const mapDispatchToProps = dispatch => ({

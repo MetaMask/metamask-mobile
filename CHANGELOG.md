@@ -2,6 +2,53 @@
 
 ## Current Develop Branch
 
+## v.3.0.0 - July 28 2021
+- [#2959](https://github.com/MetaMask/metamask-mobile/pull/2959): UI fixes
+- [#2957](https://github.com/MetaMask/metamask-mobile/pull/2957): Fix gas information info modal on swaps
+- [#2955](https://github.com/MetaMask/metamask-mobile/pull/2955): [EIP1559] Improve time estimates
+- [#2952](https://github.com/MetaMask/metamask-mobile/pull/2952): Bump controllers to v14.0.2
+- [#2798](https://github.com/MetaMask/metamask-mobile/pull/2798): [EIP1559] Base for Edit Gas Fee screen
+- [#2943](https://github.com/MetaMask/metamask-mobile/pull/2943): [FIX] Fix typos when adding TokensController & CollectiblesController
+- [#2795](https://github.com/MetaMask/metamask-mobile/pull/2795): Swaps: Use quotes conversion rate
+- [#2909](https://github.com/MetaMask/metamask-mobile/pull/2909): Account for speedUp in transaction list
+- [#2729](https://github.com/MetaMask/metamask-mobile/pull/2729): Swaps: Add custom token flow - search by address and get it imported to your wallet
+- [#2863](https://github.com/MetaMask/metamask-mobile/pull/2863): Allow custom network fiat values
+- [#2881](https://github.com/MetaMask/metamask-mobile/pull/2881): Split AssetsController into TokensController and CollectiblesController
+- [#2934](https://github.com/MetaMask/metamask-mobile/pull/2934): Removed sentry debug requirement for non release builds
+- [#2889](https://github.com/MetaMask/metamask-mobile/pull/2889): Feature/bitrise
+- [#2890](https://github.com/MetaMask/metamask-mobile/pull/2890): Bump addressable from 2.7.0 to 2.8.0 in /ios
+
+## v.2.6.0 - July 9 2021
+- [#2865](https://github.com/MetaMask/metamask-mobile/pull/2865): Added support for custom network gas estimates
+- [#2854](https://github.com/MetaMask/metamask-mobile/pull/2854): Fix time formatting on transactions
+- [#2883](https://github.com/MetaMask/metamask-mobile/pull/2883): Swaps: Fix isZero undefined error
+- [#2731](https://github.com/MetaMask/metamask-mobile/pull/2731): Improvement/react navigation upgrade 5
+- [#2709](https://github.com/MetaMask/metamask-mobile/pull/2709): Remove Picker deprecation warning
+## v.2.5.0 - June 15 2021
+- [#2809](https://github.com/MetaMask/metamask-mobile/pull/2809): Optional chaining dollarBalance
+- [#2776](https://github.com/MetaMask/metamask-mobile/pull/2776): Fix: empty state when using fiat on non-mainnet transactions
+- [#2777](https://github.com/MetaMask/metamask-mobile/pull/2777): Add isInteraction: false
+- [#2759](https://github.com/MetaMask/metamask-mobile/pull/2759): Use MediaPlayer
+- [#2748](https://github.com/MetaMask/metamask-mobile/pull/2748): v2.5.0
+- [#2757](https://github.com/MetaMask/metamask-mobile/pull/2757): Circleci fix
+- [#2746](https://github.com/MetaMask/metamask-mobile/pull/2746): bugfix/notification visibility
+- [#2749](https://github.com/MetaMask/metamask-mobile/pull/2749): @metamask/controllers@10.1.0
+- [#2702](https://github.com/MetaMask/metamask-mobile/pull/2702): Swaps: Update Market price unavailable and Price impact text
+- [#2701](https://github.com/MetaMask/metamask-mobile/pull/2701): Swaps: Allow every token on user wallet to be swapped
+- [#2617](https://github.com/MetaMask/metamask-mobile/pull/2617): On-Ramp: Refactor and Wyre countries
+- [#2611](https://github.com/MetaMask/metamask-mobile/pull/2611): Educate gas fees
+- [#2738](https://github.com/MetaMask/metamask-mobile/pull/2738): Feature/simplify custom gas
+- [#2741](https://github.com/MetaMask/metamask-mobile/pull/2741): bugfix/notifications reducer
+- [#2626](https://github.com/MetaMask/metamask-mobile/pull/2626): @metamask/mobile-provider@2.1.0
+- [#2706](https://github.com/MetaMask/metamask-mobile/pull/2706): make null conversionrate safe
+- [#2703](https://github.com/MetaMask/metamask-mobile/pull/2703): Convert token id to hexadecimal for collectible transfer
+- [#2742](https://github.com/MetaMask/metamask-mobile/pull/2742): Bugfix/fix ws resolution
+- [#2713](https://github.com/MetaMask/metamask-mobile/pull/2713): Feature/bitrise circle ci hybrid
+- [#2711](https://github.com/MetaMask/metamask-mobile/pull/2711): Feature/use same media player
+- [#2728](https://github.com/MetaMask/metamask-mobile/pull/2728): Add iconUrls to allowed list of keys
+- [#2737](https://github.com/MetaMask/metamask-mobile/pull/2737): Add resolution for ws to address security vuln
+- [#2727](https://github.com/MetaMask/metamask-mobile/pull/2727): Add missing required prop in tests
+
 ## v.2.4.0 - May 21 2021
 - [#2618](https://github.com/MetaMask/metamask-mobile/pull/2618): Collectibles experience
 - [#2698](https://github.com/MetaMask/metamask-mobile/pull/2698): bugfix: navigation routeName is null

@@ -8,14 +8,14 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors, fontStyles } from '../../../styles/common';
-import { hasBlockExplorer, findBlockExplorerForRpc, getBlockExplorerName, isMainNet } from '../../../util/networks';
+import { hasBlockExplorer, findBlockExplorerForRpc, getBlockExplorerName } from '../../../util/networks';
 import Identicon from '../Identicon';
 import StyledButton from '../StyledButton';
 import AccountList from '../AccountList';
 import NetworkList from '../NetworkList';
 import { renderFromWei, renderFiat } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
-import { DrawerActions } from 'react-navigation-drawer';
+import { DrawerActions } from '@react-navigation/native';
 import Modal from 'react-native-modal';
 import SecureKeychain from '../../../core/SecureKeychain';
 import { toggleNetworkModal, toggleAccountsModal, toggleReceiveModal } from '../../../actions/modals';
@@ -39,7 +39,7 @@ import SettingsNotification from '../SettingsNotification';
 import WhatsNewModal from '../WhatsNewModal';
 import InvalidCustomNetworkAlert from '../InvalidCustomNetworkAlert';
 import { RPC } from '../../../constants/network';
-import { findBottomTabRouteNameFromNavigatorState, findRouteNameFromNavigatorState } from '../../../util/general';
+import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
@@ -338,10 +338,6 @@ class DrawerView extends PureComponent {
 		 */
 		wizard: PropTypes.object,
 		/**
-		 * Chain Id
-		 */
-		chainId: PropTypes.string,
-		/**
 		 * Current provider ticker
 		 */
 		ticker: PropTypes.string,
@@ -399,10 +395,21 @@ class DrawerView extends PureComponent {
 	}
 
 	componentDidUpdate() {
-		const route = findRouteNameFromNavigatorState(this.props.navigation.state);
+		const route = findRouteNameFromNavigatorState(this.props.navigation.dangerouslyGetState().routes);
 		if (!this.props.passwordSet || !this.props.seedphraseBackedUp) {
-			const bottomTab = findBottomTabRouteNameFromNavigatorState(this.props.navigation.state);
-			if (['SetPasswordFlow', 'Webview', 'LockScreen'].includes(bottomTab)) {
+			if (
+				[
+					'SetPasswordFlow',
+					'ChoosePassword',
+					'AccountBackupStep1',
+					'AccountBackupStep1B',
+					'ManualBackupStep1',
+					'ManualBackupStep2',
+					'ManualBackupStep3',
+					'Webview',
+					'LockScreen'
+				].includes(route)
+			) {
 				// eslint-disable-next-line react/no-did-update-set-state
 				this.state.showProtectWalletModal && this.setState({ showProtectWalletModal: false });
 				return;
@@ -522,7 +529,10 @@ class DrawerView extends PureComponent {
 		await SecureKeychain.resetGenericPassword();
 		await KeyringController.setLocked();
 		if (!passwordSet) {
-			this.props.navigation.navigate('Onboarding');
+			this.props.navigation.navigate('OnboardingRootNav', {
+				screen: 'OnboardingNav',
+				params: { screen: 'Onboarding' }
+			});
 		} else {
 			this.props.navigation.navigate('Login');
 		}
@@ -585,8 +595,11 @@ class DrawerView extends PureComponent {
 
 	goToBrowserUrl(url, title) {
 		this.props.navigation.navigate('Webview', {
-			url,
-			title
+			screen: 'SimpleWebview',
+			params: {
+				url,
+				title
+			}
 		});
 		this.hideDrawer();
 	}
@@ -609,7 +622,7 @@ class DrawerView extends PureComponent {
 
 	onImportAccount = () => {
 		this.toggleAccountsModal();
-		this.props.navigation.navigate('ImportPrivateKey');
+		this.props.navigation.navigate('ImportPrivateKeyView');
 		this.hideDrawer();
 	};
 
@@ -789,7 +802,10 @@ class DrawerView extends PureComponent {
 
 	onSecureWalletModalAction = () => {
 		this.setState({ showProtectWalletModal: false });
-		this.props.navigation.navigate(this.props.passwordSet ? 'AccountBackupStep1' : 'SetPasswordFlow');
+		this.props.navigation.navigate(
+			'SetPasswordFlow',
+			this.props.passwordSet ? { screen: 'AccountBackupStep1' } : undefined
+		);
 	};
 
 	renderProtectModal = () => (
@@ -829,7 +845,6 @@ class DrawerView extends PureComponent {
 			selectedAddress,
 			keyrings,
 			currentCurrency,
-			chainId,
 			ticker,
 			seedphraseBackedUp
 		} = this.props;
@@ -844,7 +859,7 @@ class DrawerView extends PureComponent {
 		}
 		this.currentBalance = fiatBalance;
 		const fiatBalanceStr = renderFiat(this.currentBalance, currentCurrency);
-		const currentRoute = findRouteNameFromNavigatorState(this.props.navigation.state);
+		const currentRoute = findRouteNameFromNavigatorState(this.props.navigation.dangerouslyGetState().routes);
 		return (
 			<View style={styles.wrapper} testID={'drawer-screen'}>
 				<ScrollView>
@@ -876,7 +891,7 @@ class DrawerView extends PureComponent {
 									</Text>
 									<Icon name="caret-down" size={24} style={styles.caretDown} />
 								</View>
-								{isMainNet(chainId) && <Text style={styles.accountBalance}>{fiatBalanceStr}</Text>}
+								<Text style={styles.accountBalance}>{fiatBalanceStr}</Text>
 								<EthereumAddress
 									address={account.address}
 									style={styles.accountAddress}
@@ -1006,6 +1021,7 @@ class DrawerView extends PureComponent {
 				</Modal>
 				<Modal isVisible={!!invalidCustomNetwork}>
 					<InvalidCustomNetworkAlert
+						navigation={this.props.navigation}
 						network={invalidCustomNetwork}
 						onClose={this.closeInvalidCustomNetworkAlert}
 					/>
@@ -1066,11 +1082,10 @@ const mapStateToProps = state => ({
 	receiveModalVisible: state.modals.receiveModalVisible,
 	passwordSet: state.user.passwordSet,
 	wizard: state.wizard,
-	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	tokens: state.engine.backgroundState.AssetsController.tokens,
+	tokens: state.engine.backgroundState.TokensController.tokens,
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
-	collectibles: state.engine.backgroundState.AssetsController.collectibles,
+	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
 	seedphraseBackedUp: state.user.seedphraseBackedUp
 });
 

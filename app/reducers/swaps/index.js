@@ -2,7 +2,7 @@ import { createSelector } from 'reselect';
 import contractMetadata from '@metamask/contract-metadata';
 import { isMainnetByChainId } from '../../util/networks';
 import { safeToChecksumAddress } from '../../util/address';
-import { toLowerCaseCompare } from '../../util/general';
+import { toLowerCaseEquals } from '../../util/general';
 
 // * Constants
 export const SWAPS_SET_LIVENESS = 'SWAPS_SET_LIVENESS';
@@ -56,7 +56,7 @@ export const swapsHasOnboardedSelector = createSelector(
  * Returns the swaps tokens from the state
  */
 const swapsControllerTokens = state => state.engine.backgroundState.SwapsController.tokens;
-const tokensSelectors = state => state.engine.backgroundState.AssetsController.tokens;
+const tokensSelectors = state => state.engine.backgroundState.TokensController.tokens;
 
 const swapsControllerAndUserTokens = createSelector(
 	swapsControllerTokens,
@@ -167,7 +167,7 @@ export const swapsTopAssetsSelector = createSelector(
 			return [];
 		}
 		const result = topAssets
-			.map(({ address }) => tokens?.find(token => toLowerCaseCompare(token.address, address)))
+			.map(({ address }) => tokens?.find(token => toLowerCaseEquals(token.address, address)))
 			.filter(Boolean);
 		return addMetadata(chainId, result);
 	}
