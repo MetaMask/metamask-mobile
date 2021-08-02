@@ -3,10 +3,10 @@ format_version: '8'
 default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
 trigger_map:
-    # - push_branch: 'develop'
-    #   workflow: start_release_builds
-    # - push_branch: 'main'
-    #   workflow: start_release_builds
+    - push_branch: 'develop'
+      workflow: start_release_builds
+    - push_branch: 'main'
+      workflow: start_release_builds
     - pull_request_source_branch: '*'
       workflow: ci_test
 workflows:
@@ -16,14 +16,14 @@ workflows:
             - activate-ssh-key@4:
                   run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
             - git-clone@4: {}
+            - nvm@1:
+                  inputs:
+                      - node_version: '14'
     code_setup_cache:
         before_run:
             - setup
         steps:
-            # - cache-pull@2: {}
-            - nvm@1:
-                  inputs:
-                      - node_version: '14'
+            - cache-pull@2: {}
             - yarn@0:
                   inputs:
                       - cache_local_deps: 'yes'
@@ -40,14 +40,11 @@ workflows:
                       - cache_local_deps: 'yes'
                       - command: lint
                   is_always_run: true
-            # - cache-push@2: {}
+            - cache-push@2: {}
     code_setup:
         before_run:
             - setup
         steps:
-            - nvm@1:
-                  inputs:
-                      - node_version: '14'
             - yarn@0:
                   inputs:
                       - cache_local_deps: 'yes'
@@ -85,18 +82,11 @@ workflows:
     # E2E Steps
     e2e_setup:
         steps:
-            - script@1:
-                  inputs:
-                      - content: |-
-                            #!/usr/bin/env bash 
-                            curl -sL https://sentry.io/get-cli/
-                  title: Install Test Dependencies (Sentry)
-                  is_always_run: false
-            - yarn@0:
+            - yarn@:
                   inputs:
                       - cache_local_deps: 'yes'
                       - command: global add detox-cli
-                  title: Install Detox CLI
+                  title: Detox - Install CLI
     android_e2e_test:
         before_run:
             - code_setup
@@ -110,6 +100,10 @@ workflows:
                       - api_level: '29'
                       - profile: pixel
             - wait-for-android-emulator@1: {}
+            - file-downloader@1:
+                  inputs:
+                      - source: $BITRISEIO_ANDROID_KEYSTORE_URL
+                      - destination: android/keystores/release.keystore
             - yarn@0:
                   inputs:
                       - cache_local_deps: 'yes'
@@ -118,9 +112,14 @@ workflows:
                   is_always_run: false
     ios_e2e_test:
         before_run:
-            - code_setup_cache
+            - code_setup
             - e2e_setup
         steps:
+            - certificate-and-profile-installer@1: {}
+            - set-xcode-build-number@1:
+                  inputs:
+                      - build_short_version_string: $VERSION_NAME
+                      - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
             - script:
                   inputs:
                       - content: |-
@@ -131,11 +130,14 @@ workflows:
                   title: Set Env Path for caching deps
             - cocoapods-install@2:
                   is_always_run: false
-            - yarn@0:
+            - script@1:
                   inputs:
-                      - cache_local_deps: 'yes'
-                      - command: test:e2e:ios
-                  title: E2E Tests on iOS
+                      - content: |-
+                            #!/usr/bin/env bash 
+                            jq 'del(.engines)' package.json > new.json && mv new.json package.json
+                            node -v
+                            METAMASK_ENVIRONMENT='production' yarn test:e2e:ios
+                  title: Detox Build & Test
                   is_always_run: false
     start_e2e_tests:
         steps:
@@ -177,10 +179,10 @@ workflows:
                       - deploy_path: $BITRISE_DEPLOY_DIR/app-release.apk
                   title: Bitrise Deploy APK
             - yarn@0:
-                  inputs:
-                      - command: build:announce
-                  title: Accouncing pre-release
-                  is_always_run: false
+                inputs:
+                - command: build:announce
+                title: Accouncing pre-release
+                is_always_run: false
     android_test_release_step:
         before_run:
             - code_setup
@@ -188,6 +190,7 @@ workflows:
             - change-android-versioncode-and-versionname@1:
                   inputs:
                       - new_version_name: $VERSION_NAME
+                      - new_version_code: $VERSION_NUMBER
                       - build_gradle_path: $PROJECT_LOCATION_ANDROID/app/build.gradle
             - file-downloader@1:
                   inputs:
@@ -222,11 +225,11 @@ workflows:
                       - deploy_path: sourcemaps/android/index.js.map
                   title: Bitrise Deploy Sourcemaps
             - google-play-deploy@3:
-                  inputs:
-                      - app_path: $PROJECT_LOCATION/app/build/outputs/bundle/release/app-release.aab
-                      - track: internal
-                      - service_account_json_key_path: $BITRISEIO_BITRISEIO_SERVICE_ACCOUNT_JSON_KEY_URL_URL
-                      - package_name: $MM_ANDROID_PACKAGE_NAME
+                inputs:
+                - app_path: $PROJECT_LOCATION/app/build/outputs/bundle/release/app-release.aab
+                - track: internal
+                - service_account_json_key_path: $BITRISEIO_BITRISEIO_SERVICE_ACCOUNT_JSON_KEY_URL_URL
+                - package_name: $MM_ANDROID_PACKAGE_NAME
         envs:
             - opts:
                   is_expand: false
@@ -239,14 +242,8 @@ workflows:
             - set-xcode-build-number@1:
                   inputs:
                       - build_short_version_string: $VERSION_NAME
+                      - build_version: $VERSION_NUMBER
                       - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
-            - script@1:
-                  inputs:
-                      - content: |-
-                            #!/usr/bin/env bash 
-                            curl -sL https://sentry.io/get-cli/ | bash
-                  title: Install Sentry CLI
-                  is_always_run: false
             - cocoapods-install@2: {}
             - script@1:
                   inputs:
@@ -270,8 +267,8 @@ workflows:
                       - deploy_path: sourcemaps/ios/index.js.map
                   title: Deploy Source Map
             - deploy-to-itunesconnect-application-loader@1:
-                  inputs:
-                      - ipa_path: ios/build/output/MetaMask.ipa
+                inputs:
+                - ipa_path: ios/build/output/MetaMask.ipa
 app:
     envs:
         - opts:
@@ -300,7 +297,10 @@ app:
           PROJECT_LOCATION_IOS: ios
         - opts:
               is_expand: false
-          VERSION_NAME: 2.4.0
+          VERSION_NAME: 3.0.0
+        - opts:
+              is_expand: false
+          VERSION_NUMBER: 765
         - opts:
               is_expand: false
           ANDROID_APK_LINK: ''

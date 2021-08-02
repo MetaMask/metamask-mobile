@@ -160,6 +160,21 @@ export async function getBasicGasEstimates() {
 	};
 }
 
+export async function getGasLimit(transaction) {
+	const { TransactionController } = Engine.context;
+
+	let estimation;
+	try {
+		estimation = await TransactionController.estimateGas(transaction);
+	} catch (error) {
+		estimation = {
+			gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT
+		};
+	}
+
+	const gas = hexToBN(estimation.gas);
+	return { gas };
+}
 export async function getGasPriceByChainId(transaction) {
 	const { TransactionController, NetworkController } = Engine.context;
 	const chainId = NetworkController.state.provider.chainId;
