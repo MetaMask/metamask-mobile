@@ -20,7 +20,6 @@ import {
 	TokensController,
 	CollectiblesController
 } from '@metamask/controllers';
-
 import SwapsController from '@metamask/swaps-controller';
 import AsyncStorage from '@react-native-community/async-storage';
 import Encryptor from './Encryptor';

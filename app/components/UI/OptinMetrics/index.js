@@ -14,6 +14,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { ONBOARDING_WIZARD, METRICS_OPT_IN, DENIED, AGREED } from '../../../constants/storage';
 import AppConstants from '../../../core/AppConstants';
+import DefaultPreference from 'react-native-default-preference';
 
 const styles = StyleSheet.create({
 	root: {
@@ -168,7 +169,7 @@ class OptinMetrics extends PureComponent {
 			}
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_OUT);
 			this.props.clearOnboardingEvents();
-			await AsyncStorage.setItem(METRICS_OPT_IN, DENIED);
+			await DefaultPreference.set(METRICS_OPT_IN, DENIED);
 			Analytics.disableInstance();
 		}, 200);
 		this.continue();
@@ -184,7 +185,7 @@ class OptinMetrics extends PureComponent {
 			}
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_IN);
 			this.props.clearOnboardingEvents();
-			await AsyncStorage.setItem(METRICS_OPT_IN, AGREED);
+			await DefaultPreference.set(METRICS_OPT_IN, AGREED);
 		}, 200);
 		this.continue();
 	};
