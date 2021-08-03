@@ -229,7 +229,7 @@ const AddBookmarkView = () => (
 
 const OfflineModeView = () => (
 	<Stack.Navigator>
-		<Stack.Screen name="OfflineMode" component={OfflineMode} />
+		<Stack.Screen name="OfflineMode" component={OfflineMode} options={OfflineMode.navigationOptions} />
 	</Stack.Navigator>
 );
 

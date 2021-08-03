@@ -2,12 +2,9 @@
 
 exports[`TransactionReviewInformation should render correctly 1`] = `
 <Fragment>
-  <Connect(TransactionReviewFeeCard)
-    edit={[Function]}
-    onNonceEdit={[Function]}
+  <Connect(TransactionReviewEIP1559)
+    onEdit={[Function]}
     primaryCurrency="ETH"
-    totalGasEth="< 0.00001 ETH"
-    totalGasFiat="$0"
   />
   <View
     style={
