@@ -10,8 +10,11 @@ import {
 	View,
 	FlatList,
 	Dimensions,
-	InteractionManager
+	InteractionManager,
+	TouchableOpacity
 } from 'react-native';
+import { getNetworkTypeById, findBlockExplorerForRpc, getBlockExplorerName } from '../../../util/networks';
+import { getEtherscanAddressUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import TransactionElement from '../TransactionElement';
@@ -21,8 +24,10 @@ import NotificationManager from '../../../core/NotificationManager';
 import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/controllers';
 import { renderFromWei } from '../../../util/number';
 import Device from '../../../util/Device';
+import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../constants/network';
 import TransactionActionModal from '../TransactionActionModal';
 import { validateTransactionActionBalance } from '../../../util/transactions';
+import Logger from '../../../util/Logger';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -43,6 +48,16 @@ const styles = StyleSheet.create({
 		fontSize: 20,
 		color: colors.fontTertiary,
 		...fontStyles.normal
+	},
+	viewMoreBody: {
+		marginBottom: 36,
+		marginTop: 24
+	},
+	viewOnEtherscan: {
+		fontSize: 16,
+		color: colors.blue,
+		...fontStyles.normal,
+		textAlign: 'center'
 	}
 });
 
@@ -59,13 +74,25 @@ class Transactions extends PureComponent {
 		 */
 		accounts: PropTypes.object,
 		/**
+		 * Callback to close the view
+		 */
+		close: PropTypes.func,
+		/**
 		 * Object containing token exchange rates in the format address => exchangeRate
 		 */
 		contractExchangeRates: PropTypes.object,
 		/**
+		 * Frequent RPC list from PreferencesController
+		 */
+		frequentRpcList: PropTypes.array,
+		/**
 		/* navigation object required to push new views
 		*/
 		navigation: PropTypes.object,
+		/**
+		 * Object representing the selected the selected network
+		 */
+		network: PropTypes.object,
 		/**
 		 * An array that represents the user collectible contracts
 		 */
@@ -132,7 +159,8 @@ class Transactions extends PureComponent {
 		cancelIsOpen: false,
 		cancelConfirmDisabled: false,
 		speedUpIsOpen: false,
-		speedUpConfirmDisabled: false
+		speedUpConfirmDisabled: false,
+		rpcBlockExplorer: undefined
 	};
 
 	existingGasPriceDecimal = null;
@@ -150,6 +178,18 @@ class Transactions extends PureComponent {
 			this.init();
 			this.props.onRefSet && this.props.onRefSet(this.flatList);
 		}, 100);
+
+		const {
+			network: {
+				provider: { rpcTarget, type }
+			},
+			frequentRpcList
+		} = this.props;
+		let blockExplorer;
+		if (type === RPC) {
+			blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList) || NO_RPC_BLOCK_EXPLORER;
+		}
+		this.setState({ rpcBlockExplorer: blockExplorer });
 	}
 
 	init() {
@@ -228,6 +268,54 @@ class Transactions extends PureComponent {
 				<Text style={styles.text}>{strings('wallet.no_transactions')}</Text>
 			</View>
 		</ScrollView>
+	);
+
+	viewOnBlockExplore = () => {
+		const {
+			navigation,
+			network: {
+				network,
+				provider: { type }
+			},
+			selectedAddress,
+			close
+		} = this.props;
+		const { rpcBlockExplorer } = this.state;
+		try {
+			let url;
+			let title;
+			if (type === RPC) {
+				url = `${rpcBlockExplorer}/address/${selectedAddress}`;
+				title = new URL(rpcBlockExplorer).hostname;
+			} else {
+				const networkResult = getNetworkTypeById(network);
+				url = getEtherscanAddressUrl(networkResult, selectedAddress);
+				title = getEtherscanBaseUrl(networkResult).replace('https://', '');
+			}
+			navigation.push('Webview', {
+				screen: 'SimpleWebview',
+				params: {
+					url,
+					title
+				}
+			});
+			close && close();
+		} catch (e) {
+			// eslint-disable-next-line no-console
+			Logger.error(e, { message: `can't get a block explorer link for network `, network });
+		}
+	};
+
+	renderViewMore = () => (
+		<View style={styles.viewMoreBody}>
+			<TouchableOpacity onPress={this.viewOnBlockExplore} style={styles.touchableViewOnEtherscan}>
+				<Text reset style={styles.viewOnEtherscan}>
+					{(this.state.rpcBlockExplorer &&
+						`${strings('transactions.view_on')} ${getBlockExplorerName(this.state.rpcBlockExplorer)}`) ||
+						strings('transactions.view_on_etherscan')}
+				</Text>
+			</TouchableOpacity>
+		</View>
 	);
 
 	getItemLayout = (data, index) => ({
@@ -330,6 +418,7 @@ class Transactions extends PureComponent {
 					maxToRenderPerBatch={2}
 					onEndReachedThreshold={0.5}
 					ListHeaderComponent={header}
+					ListFooterComponent={this.renderViewMore}
 					style={baseStyles.flexGrow}
 					scrollIndicatorInsets={{ right: 1 }}
 				/>
@@ -378,6 +467,8 @@ const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
+	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList,
+	network: state.engine.backgroundState.NetworkController,
 	tokens: state.engine.backgroundState.TokensController.tokens.reduce((tokens, token) => {
 		tokens[token.address] = token;
 		return tokens;

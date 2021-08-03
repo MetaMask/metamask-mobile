@@ -277,7 +277,7 @@ class ImportFromSeed extends PureComponent {
 					await SecureKeychain.resetGenericPassword();
 				}
 				// Get onboarding wizard state
-				const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
+				const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
 				// Check if user passed through metrics opt-in screen
 				const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
 				// mark the user as existing so it doesn't see the create password screen again

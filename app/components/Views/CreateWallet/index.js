@@ -132,7 +132,7 @@ class CreateWallet extends PureComponent {
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
 			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
 			// Get onboarding wizard state
-			const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
+			const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
 			// Check if user passed through metrics opt-in screen
 			const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
 			// Making sure we reset the flag while going to
