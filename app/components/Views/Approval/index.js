@@ -4,7 +4,7 @@ import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
 import TransactionEditor from '../../UI/TransactionEditor';
 import Modal from 'react-native-modal';
-import { addHexPrefix, BNToHex, hexToBN } from '../../../util/number';
+import { addHexPrefix, BNToHex } from '../../../util/number';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { resetTransaction } from '../../../actions/transaction';
 import { connect } from 'react-redux';
@@ -138,16 +138,6 @@ class Approval extends PureComponent {
 	trackOnCancel = () => {
 		Analytics.trackEventWithParameters(
 			ANALYTICS_EVENT_OPTS.TRANSACTIONS_CANCEL_TRANSACTION,
-			this.getTrackingParams()
-		);
-	};
-
-	/**
-	 * Call Analytics to track confirm pressed
-	 */
-	trackOnConfirm = () => {
-		Analytics.trackEventWithParameters(
-			ANALYTICS_EVENT_OPTS.TRANSACTIONS_COMPLETED_TRANSACTION,
 			this.getTrackingParams()
 		);
 	};
@@ -346,13 +336,6 @@ class Approval extends PureComponent {
 
 		return transactionToSend;
 	};
-
-	sanitizeTransaction(transaction) {
-		transaction.gas = hexToBN(transaction.gas);
-		transaction.gasPrice = hexToBN(transaction.gasPrice);
-		transaction.value = hexToBN(transaction.value);
-		return transaction;
-	}
 
 	render = () => {
 		const { transaction, dappTransactionModalVisible } = this.props;
