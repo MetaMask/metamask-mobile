@@ -61,7 +61,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
               underline={false}
               upper={false}
             >
-              Edit Gas Fee
+              Edit gas fee
             </Text>
             <Icon
               allowFontScaling={false}
