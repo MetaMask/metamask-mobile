@@ -568,6 +568,7 @@ class Approve extends PureComponent {
 								isAnimating={isAnimating}
 								gasEstimationReady={ready}
 							/>
+							{/** View fixes layout issue after removing <CustomGas/> */}
 							<View />
 						</AnimatedTransactionModal>
 					)}

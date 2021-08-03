@@ -823,6 +823,7 @@ class TransactionEditor extends PureComponent {
 									Boolean(dappSuggestedGasPrice) && gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET
 								}
 							/>
+							{/** View fixes layout issue after removing <CustomGas/> */}
 							<View />
 						</AnimatedTransactionModal>
 					</KeyboardAwareScrollView>
