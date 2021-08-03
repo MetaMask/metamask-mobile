@@ -23,8 +23,10 @@ describe('TransactionEditor', () => {
 					PreferencesController: {
 						selectedAddress: '0x0'
 					},
-					AssetsController: {
-						tokens: [],
+					TokensController: {
+						tokens: []
+					},
+					CollectiblesController: {
 						collectibles: []
 					},
 					NetworkController: {
@@ -32,15 +34,21 @@ describe('TransactionEditor', () => {
 							type: 'mainnet',
 							chainId: '1'
 						}
+					},
+					GasFeeController: {
+						gasEstimates: {}
 					}
 				}
 			},
-			transaction: {}
+			transaction: {},
+			settings: {
+				primaryCurrency: 'fiat'
+			}
 		};
 
 		const wrapper = shallow(
 			<TransactionEditor
-				navigation={{ state: { params: {} } }}
+				route={{ params: {} }}
 				transaction={{ value: 0, data: '0x0', gas: 0, gasPrice: 1, from: '0x0', to: '0x1' }}
 			/>,
 			{

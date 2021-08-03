@@ -45,7 +45,11 @@ export default class EnterPasswordSimple extends PureComponent {
 		/**
 		 * The navigator object
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	state = {
@@ -65,7 +69,7 @@ export default class EnterPasswordSimple extends PureComponent {
 		if (!passwordRequirementsMet(this.state.password)) {
 			Alert.alert(strings('enter_password.error'), strings('choose_password.password_length_error'));
 		} else {
-			this.props.navigation.state.params.onPasswordSet(this.state.password);
+			this.props.route.params.onPasswordSet(this.state.password);
 			this.props.navigation.pop();
 			return;
 		}

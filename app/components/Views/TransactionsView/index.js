@@ -2,13 +2,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, View, InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { withNavigation } from 'react-navigation';
+import { withNavigation } from '@react-navigation/compat';
 import Engine from '../../../core/Engine';
 import { showAlert } from '../../../actions/alert';
 import Transactions from '../../UI/Transactions';
 import { safeToChecksumAddress } from '../../../util/address';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
-import { toLowerCaseCompare } from '../../../util/general';
+import { toLowerCaseEquals } from '../../../util/general';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -52,7 +52,7 @@ const TransactionsView = ({
 			) {
 				if (isTransfer)
 					return tokens.find(({ address }) =>
-						toLowerCaseCompare(address, transferInformation.contractAddress)
+						toLowerCaseEquals(address, transferInformation.contractAddress)
 					);
 				return true;
 			}
@@ -77,7 +77,7 @@ const TransactionsView = ({
 				case 'signed':
 				case 'unapproved':
 					submittedTxs.push(tx);
-					break;
+					return false;
 				case 'pending':
 					newPendingTxs.push(tx);
 					break;
@@ -91,6 +91,14 @@ const TransactionsView = ({
 		const submittedNonces = [];
 		const submittedTxsFiltered = submittedTxs.filter(transaction => {
 			const alreadySubmitted = submittedNonces.includes(transaction.transaction.nonce);
+			const alreadyConfirmed = confirmedTxs.find(
+				tx =>
+					safeToChecksumAddress(tx.transaction.from) === selectedAddress &&
+					tx.transaction.nonce === transaction.transaction.nonce
+			);
+			if (alreadyConfirmed) {
+				return false;
+			}
 			submittedNonces.push(transaction.transaction.nonce);
 			return !alreadySubmitted;
 		});
@@ -99,7 +107,6 @@ const TransactionsView = ({
 		if (!accountAddedTimeInsertPointFound && allTransactions && allTransactions.length) {
 			allTransactions[allTransactions.length - 1].insertImportTime = true;
 		}
-
 		setAllTransactions(allTransactions);
 		setSubmittedTxs(submittedTxsFiltered);
 		setConfirmedTxs(confirmedTxs);
@@ -179,7 +186,7 @@ const mapStateToProps = state => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	tokens: state.engine.backgroundState.AssetsController.tokens,
+	tokens: state.engine.backgroundState.TokensController.tokens,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,

@@ -16,26 +16,45 @@ export function timeoutFetch(url, options, timeout = 500) {
 	]);
 }
 
-export function findBottomTabRouteNameFromNavigatorState({ routes }) {
+export function findRouteNameFromNavigatorState(routes) {
 	let route = routes?.[routes.length - 1];
-	let routeName;
-	while (route.index !== undefined) {
-		routeName = route?.routeName;
-		route = route?.routes?.[route.index];
+	if (route.state) {
+		route = route.state;
 	}
-	return routeName;
-}
+	while (route !== undefined && route.index !== undefined) {
+		route = route?.routes?.[route.index];
+		if (route.state) {
+			route = route.state;
+		}
+	}
 
-export function findRouteNameFromNavigatorState({ routes }) {
-	let route = routes?.[routes.length - 1];
-	while (route.index !== undefined) {
-		route = route?.routes?.[route.index];
-	}
-	return route?.routeName;
+	let name = route?.name;
+
+	// For compatibility with the previous way on react navigation 4
+	if (name === 'Main' || name === 'WalletTabHome' || name === 'Home') name = 'WalletView';
+
+	return name;
 }
 export const capitalize = str => (str && str.charAt(0).toUpperCase() + str.slice(1)) || false;
 
-export const toLowerCaseCompare = (a, b) => {
+export const toLowerCaseEquals = (a, b) => {
 	if (!a && !b) return false;
 	return tlc(a) === tlc(b);
+};
+
+export const shallowEqual = (object1, object2) => {
+	const keys1 = Object.keys(object1);
+	const keys2 = Object.keys(object2);
+
+	if (keys1.length !== keys2.length) {
+		return false;
+	}
+
+	for (const key of keys1) {
+		if (object1[key] !== object2[key]) {
+			return false;
+		}
+	}
+
+	return true;
 };

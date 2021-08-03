@@ -10,7 +10,10 @@ describe('AddressList', () => {
 			engine: {
 				backgroundState: {
 					NetworkController: {
-						network: '1'
+						network: '1',
+						provider: {
+							chainId: '1'
+						}
 					},
 					AddressBookController: {
 						addressBook: {
