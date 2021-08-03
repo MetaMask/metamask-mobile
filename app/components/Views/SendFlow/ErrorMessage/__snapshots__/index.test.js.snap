@@ -41,6 +41,7 @@ exports[`ErrorMessage should render correctly 1`] = `
         Object {
           "color": "#D73A49",
           "lineHeight": 16.8,
+          "flexShrink": 1,
         }
       }
       underline={false}

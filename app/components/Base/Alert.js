@@ -27,9 +27,9 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.red000,
 		borderColor: colors.red
 	},
-	textInfo: { color: colors.blue, lineHeight: 16.8 },
-	textWarning: { color: colors.yellow700, lineHeight: 16.8 },
-	textError: { color: colors.red, lineHeight: 16.8 },
+	textInfo: { color: colors.blue, flexShrink: 1, lineHeight: 16.8 },
+	textWarning: { color: colors.yellow700, flexShrink: 1, lineHeight: 16.8 },
+	textError: { color: colors.red, flexShrink: 1, lineHeight: 16.8 },
 	textIconStyle: { marginRight: 12 },
 	iconWrapper: {
 		alignItems: 'center'

@@ -19,7 +19,7 @@ describe('AccountApproval', () => {
 							type: ROPSTEN
 						}
 					},
-					AssetsController: {
+					TokensController: {
 						tokens: []
 					},
 					PreferencesController: {

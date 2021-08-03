@@ -5,8 +5,8 @@ on:
   #     - develop
   pull_request:
     branches:
-      - develop
-      - main
+      # - develop
+      # - main
       - bitrise_yml_new
     types: [opened]
 jobs:
