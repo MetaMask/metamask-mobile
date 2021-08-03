@@ -134,7 +134,7 @@ exports[`CollectibleContracts should render correctly 1`] = `
         }
         type="blue"
       >
-        Import mannually
+        Import manually
       </StyledButton>
       <Text
         big={true}
