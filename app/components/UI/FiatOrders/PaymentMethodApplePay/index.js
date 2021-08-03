@@ -9,6 +9,7 @@ import Logger from '../../../../util/Logger';
 import { setLockTime } from '../../../../actions/settings';
 import I18n, { strings } from '../../../../../locales/i18n';
 import { getNotificationDetails } from '..';
+import AnalyticsV2 from '../../../../util/analyticsV2';
 
 import {
 	useCountryCurrency,
@@ -18,6 +19,7 @@ import {
 	useWyreApplePay,
 	WyreException
 } from '../orderProcessor/wyreApplePay';
+import { PAYMENT_RAILS, PAYMENT_CATEGORY, FIAT_ORDER_PROVIDERS } from '../utils';
 
 import ScreenView from '../components/ScreenView';
 import { getPaymentMethodApplePayNavbar } from '../../Navbar';
@@ -247,9 +249,21 @@ function PaymentMethodApplePay({
 					addOrder(order);
 					navigation.dangerouslyGetParent()?.pop();
 					protectWalletModalVisible();
-					InteractionManager.runAfterInteractions(() =>
-						NotificationManager.showSimpleNotification(getNotificationDetails(order))
-					);
+					InteractionManager.runAfterInteractions(() => {
+						NotificationManager.showSimpleNotification(getNotificationDetails(order));
+						AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_SUBMITTED, {
+							fiat_amount: order.amount,
+							fiat_currency: order.currency,
+							crypto_currency: order.cryptocurrency,
+							crypto_amount: order.cryptoAmount,
+							fee_in_fiat: order.fee,
+							fee_in_crypto: order.cryptoFee,
+							//TODO(on-ramp): fiat_amount_in_usd: ''
+
+							order_id: order.id,
+							'on-ramp_provider': FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY
+						});
+					});
 				} else {
 					Logger.error('FiatOrders::WyreApplePayProcessor empty order response', order);
 				}
@@ -264,6 +278,12 @@ function PaymentMethodApplePay({
 				status: 'error'
 			});
 			Logger.error(error, 'FiatOrders::WyreApplePayProcessor Error');
+			InteractionManager.runAfterInteractions(() => {
+				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_SUBMISSION_FAILED, {
+					'on-ramp_provider': FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY,
+					failure_reason: error.message
+				});
+			});
 		} finally {
 			setLockTime(prevLockTime);
 		}
@@ -474,7 +494,24 @@ PaymentMethodApplePay.propTypes = {
 	protectWalletModalVisible: PropTypes.func
 };
 
-PaymentMethodApplePay.navigationOptions = ({ navigation }) => getPaymentMethodApplePayNavbar(navigation);
+PaymentMethodApplePay.navigationOptions = ({ navigation }) =>
+	getPaymentMethodApplePayNavbar(
+		navigation,
+		() => {
+			InteractionManager.runAfterInteractions(() => {
+				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_EXITED, {
+					payment_rails: PAYMENT_RAILS.APPLE_PAY,
+					payment_category: PAYMENT_CATEGORY.CARD_PAYMENT,
+					'on-ramp_provider': FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY
+				});
+			});
+		},
+		() => {
+			InteractionManager.runAfterInteractions(() => {
+				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_CLOSED);
+			});
+		}
+	);
 
 const mapStateToProps = state => ({
 	lockTime: state.settings.lockTime,

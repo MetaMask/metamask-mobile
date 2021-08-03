@@ -2,8 +2,8 @@ import { useMemo } from 'react';
 import axios from 'axios';
 import qs from 'query-string';
 import AppConstants from '../../../../core/AppConstants';
-import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../../../reducers/fiatOrders';
 import Logger from '../../../../util/Logger';
+import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../utils';
 
 //* env vars
 

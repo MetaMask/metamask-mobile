@@ -1,4 +1,5 @@
 import { createSelector } from 'reselect';
+import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../components/UI/FiatOrders/utils';
 
 /**
  * @typedef FiatOrder
@@ -20,25 +21,6 @@ import { createSelector } from 'reselect';
  * @property {object} data.order : Wyre order response
  * @property {object} data.transfer : Wyre transfer response
  */
-
-/**
- * @enum {string}
- */
-export const FIAT_ORDER_PROVIDERS = {
-	WYRE: 'WYRE',
-	WYRE_APPLE_PAY: 'WYRE_APPLE_PAY',
-	TRANSAK: 'TRANSAK'
-};
-
-/**
- * @enum {string}
- */
-export const FIAT_ORDER_STATES = {
-	PENDING: 'PENDING',
-	FAILED: 'FAILED',
-	COMPLETED: 'COMPLETED',
-	CANCELLED: 'CANCELLED'
-};
 
 /** Action Creators */
 

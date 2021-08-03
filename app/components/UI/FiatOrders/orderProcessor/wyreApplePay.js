@@ -4,8 +4,9 @@ import axios from 'axios';
 import AppConstants from '../../../../core/AppConstants';
 import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
-import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../../../reducers/fiatOrders';
+
 import useCurrency from '../../../Base/Keypad/useCurrency';
+import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../utils';
 
 //* env vars
 
