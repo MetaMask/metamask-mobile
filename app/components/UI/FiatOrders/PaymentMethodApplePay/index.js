@@ -252,16 +252,15 @@ function PaymentMethodApplePay({
 					InteractionManager.runAfterInteractions(() => {
 						NotificationManager.showSimpleNotification(getNotificationDetails(order));
 						AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_SUBMITTED, {
-							fiat_amount: order.amount,
-							fiat_currency: order.currency,
-							crypto_currency: order.cryptocurrency,
-							crypto_amount: order.cryptoAmount,
-							fee_in_fiat: order.fee,
-							fee_in_crypto: order.cryptoFee,
-							//TODO(on-ramp): fiat_amount_in_usd: ''
-
-							order_id: order.id,
-							'on-ramp_provider': FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY
+							fiat_amount: { value: order.amount, anonymous: true },
+							fiat_currency: { value: order.currency, anonymous: true },
+							crypto_currency: { value: order.cryptocurrency, anonymous: true },
+							crypto_amount: { value: order.cryptoAmount, anonymous: true },
+							fee_in_fiat: { value: order.fee, anonymous: true },
+							fee_in_crypto: { value: order.cryptoFee, anonymous: true },
+							//TODO(on-ramp): {value: fiat_amount_in_usd: '' anonymous: true},
+							order_id: { value: order.id, anonymous: true },
+							'on-ramp_provider': { value: FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY, anonymous: true }
 						});
 					});
 				} else {
@@ -280,8 +279,8 @@ function PaymentMethodApplePay({
 			Logger.error(error, 'FiatOrders::WyreApplePayProcessor Error');
 			InteractionManager.runAfterInteractions(() => {
 				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_SUBMISSION_FAILED, {
-					'on-ramp_provider': FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY,
-					failure_reason: error.message
+					'on-ramp_provider': { value: FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY, anonymous: true },
+					failure_reason: { value: error.message, anonymous: true }
 				});
 			});
 		} finally {
