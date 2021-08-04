@@ -94,9 +94,9 @@ class AddCustomCollectible extends PureComponent {
 			this.handleNotCollectibleOwner();
 			return;
 		}
-		const { AssetsController } = Engine.context;
+		const { CollectiblesController } = Engine.context;
 		const { address, tokenId } = this.state;
-		AssetsController.addCollectible(address, tokenId);
+		CollectiblesController.addCollectible(address, tokenId);
 
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.COLLECTIBLE_ADDED, this.getAnalyticsParams());
 

@@ -160,10 +160,33 @@ class TransactionReview extends PureComponent {
 		 * True if transaction is over the available funds
 		 */
 		over: PropTypes.bool,
+		gasEstimateType: PropTypes.string,
+		EIP1559GasData: PropTypes.object,
+		/**
+		 * Function to call when update animation starts
+		 */
+		onUpdatingValuesStart: PropTypes.func,
+		/**
+		 * Function to call when update animation ends
+		 */
+		onUpdatingValuesEnd: PropTypes.func,
+		/**
+		 * If the values should animate upon update or not
+		 */
+		animateOnChange: PropTypes.bool,
+		/**
+		 * Boolean to determine if the animation is happening
+		 */
+		isAnimating: PropTypes.bool,
+		dappSuggestedGas: PropTypes.bool,
 		/**
 		 * Object that represents the navigator
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * If it's a eip1559 network and dapp suggest legact gas then it should show a warning
+		 */
+		dappSuggestedGasWarning: PropTypes.bool
 	};
 
 	state = {
@@ -183,13 +206,14 @@ class TransactionReview extends PureComponent {
 			transaction,
 			transaction: { data, to },
 			tokens,
-			chainId
+			chainId,
+			ready
 		} = this.props;
 		let { showHexData } = this.props;
 		let assetAmount, conversionRate, fiatValue;
 		showHexData = showHexData || data;
 		const approveTransaction = data && data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE;
-		const error = validate && (await validate());
+		const error = ready && validate && (await validate());
 		const actionKey = await getTransactionReviewActionKey(transaction, chainId);
 		if (approveTransaction) {
 			let contract = contractMap[safeToChecksumAddress(to)];
@@ -206,6 +230,14 @@ class TransactionReview extends PureComponent {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.TRANSACTIONS_CONFIRM_STARTED);
 		});
 	};
+
+	async componentDidUpdate(prevProps) {
+		if (this.props.ready !== prevProps.ready) {
+			const error = this.props.validate && (await this.props.validate());
+			// eslint-disable-next-line react/no-did-update-set-state
+			this.setState({ error });
+		}
+	}
 
 	getRenderValues = () => {
 		const {
@@ -299,7 +331,15 @@ class TransactionReview extends PureComponent {
 			saveTransactionReviewDataHeight,
 			customGasHeight,
 			over,
-			navigation
+			gasEstimateType,
+			EIP1559GasData,
+			onUpdatingValuesStart,
+			onUpdatingValuesEnd,
+			animateOnChange,
+			isAnimating,
+			dappSuggestedGas,
+			navigation,
+			dappSuggestedGasWarning
 		} = this.props;
 		const { actionKey, error, assetAmount, conversionRate, fiatValue, approveTransaction } = this.state;
 		const currentPageInformation = { url: this.getUrlFromBrowser() };
@@ -322,7 +362,7 @@ class TransactionReview extends PureComponent {
 							onCancelPress={this.props.onCancel}
 							onConfirmPress={this.props.onConfirm}
 							confirmed={transactionConfirmed}
-							confirmDisabled={error !== undefined}
+							confirmDisabled={error !== undefined || isAnimating}
 						>
 							<View style={styles.actionViewChildren}>
 								<View style={styles.accountInfoCardWrapper}>
@@ -338,6 +378,14 @@ class TransactionReview extends PureComponent {
 									toggleDataView={this.toggleDataView}
 									over={over}
 									onCancelPress={this.props.onCancel}
+									gasEstimateType={gasEstimateType}
+									EIP1559GasData={EIP1559GasData}
+									origin={dappSuggestedGas ? currentPageInformation?.url : null}
+									originWarning={dappSuggestedGasWarning}
+									onUpdatingValuesStart={onUpdatingValuesStart}
+									onUpdatingValuesEnd={onUpdatingValuesEnd}
+									animateOnChange={animateOnChange}
+									isAnimating={isAnimating}
 								/>
 							</View>
 						</ActionView>
@@ -364,7 +412,7 @@ class TransactionReview extends PureComponent {
 
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	tokens: state.engine.backgroundState.AssetsController.tokens,
+	tokens: state.engine.backgroundState.TokensController.tokens,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
