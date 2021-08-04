@@ -1,7 +1,8 @@
 # Changelog
 
 ## Current Develop Branch
-
+## v.3.0.1 - August 4 2021
+- Patch to fix Wyre and Transak
 ## v.3.0.0 - July 28 2021
 - [#2959](https://github.com/MetaMask/metamask-mobile/pull/2959): UI fixes
 - [#2957](https://github.com/MetaMask/metamask-mobile/pull/2957): Fix gas information info modal on swaps
