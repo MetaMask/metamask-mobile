@@ -31,15 +31,15 @@ const baseNotificationDetails = {
  */
 export const getAnalyticsPayload = fiatOrder => {
 	const payload = {
-		fiat_amount: fiatOrder.amount,
-		fiat_currency: fiatOrder.currency,
-		crypto_currency: fiatOrder.cryptocurrency,
-		crypto_amount: fiatOrder.cryptoAmount,
-		fee_in_fiat: fiatOrder.fee,
-		fee_in_crypto: fiatOrder.cryptoFee,
-		order_id: fiatOrder.id,
+		fiat_amount: { value: fiatOrder.amount, anonymous: true },
+		fiat_currency: { value: fiatOrder.currency, anonymous: true },
+		crypto_currency: { value: fiatOrder.cryptocurrency, anonymous: true },
+		crypto_amount: { value: fiatOrder.cryptoAmount, anonymous: true },
+		fee_in_fiat: { value: fiatOrder.fee, anonymous: true },
+		fee_in_crypto: { value: fiatOrder.cryptoFee, anonymous: true },
+		order_id: { value: fiatOrder.id, anonymous: true },
 		//TODO(on-ramp): fiat_amount_in_usd: ''
-		'on-ramp_provider': fiatOrder.provider
+		'on-ramp_provider': { value: fiatOrder.provider, anonymous: true }
 	};
 	switch (fiatOrder.state) {
 		case FIAT_ORDER_STATES.FAILED: {
