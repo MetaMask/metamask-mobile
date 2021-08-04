@@ -274,12 +274,13 @@
 		"collectible": "Collectible",
 		"collectibles": "NFTs",
 		"transactions": "TRANSACTIONS",
-		"no_collectibles": "Don’t see your NFT?",
+		"no_collectibles": "Your NFTs will show up here. If you don’t see your NFT, try importing manually.",
 		"add_tokens": "ADD TOKENS",
 		"no_tokens": "You don't have any tokens!",
-		"no_nfts_yet": "No NFTs yet",
+		"no_nfts_to_show": "No NFTs to show",
 		"learn_more": "Learn more",
 		"add_collectibles": "ADD NFTs",
+		"manually_import_nfts": "Import manually",
 		"no_transactions": "You have no transactions!",
 		"send_button": "Send",
 		"deposit_button": "Deposit",
@@ -663,9 +664,9 @@
 		"speedup_tx_title": "Attempt to speed up?",
 		"speedup_tx_message": "Submitting this attempt does not guarantee your original transaction will be accelerated. If the speed up attempt is successful, you will be charged the transaction fee above.",
 		"nevermind": "Nevermind",
-		"edit_network_fee": "Edit Gas Fee",
-		"gas_cancel_fee": "Gas Cancellation Fee",
-		"gas_speedup_fee": "Gas Speed Up fee",
+		"edit_network_fee": "Edit gas fee",
+		"gas_cancel_fee": "Gas cancellation Fee",
+		"gas_speedup_fee": "Gas speed up fee",
 		"use_max": "Use max",
 		"set_gas": "Set",
 		"cancel_gas": "Cancel",
@@ -1661,7 +1662,7 @@
 		"uri": "https://github.com/MetaMask/metamask-mobile/blob/feature/secret_recovery_translations/app/videos/subtitles/subtitles-en.vtt"
 	},
 	"edit_gas_fee_eip1559": {
-		"advanced_options": "Advanced Options",
+		"advanced_options": "Advanced options",
 		"gas_limit": "Gas limit",
 		"max_priority_fee": "Max priority fee",
 		"max_fee": "Max fee",
@@ -1722,7 +1723,9 @@
 		"very_likely": "Very likely in <",
 		"at_least": "At least",
 		"less_than": "Less than",
-		"warning_unknown": "Your max fee is low for current market conditions. We don’t know when (or if) your transaction will be processed.",
-		"warning_low": "This lowers your maximum fee but if network traffic increases your transaction may be delayed or fail."
+		"warning_unknown": "Your max fee or max priority fee may be low for current market conditions. We don’t know when (or if) your transaction will be processed.",
+		"warning_low": "This lowers your maximum fee but if network traffic increases your transaction may be delayed or fail.",
+		"warning_low_title": "Low priority",
+		"warning_unknown_title": "Unknown processing time"
 	}
 }
