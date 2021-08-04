@@ -37,7 +37,7 @@ exports[`Collectibles should render correctly 1`] = `
           }
         }
       >
-        Don’t see your NFT?
+        Your NFTs will show up here. If you don’t see your NFT, try importing manually.
       </Text>
     </View>
   </ScrollView>
