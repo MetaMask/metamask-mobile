@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { InteractionManager, SafeAreaView, ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
+import { InteractionManager, ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
 import { colors } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import EditAmount from '../../Views/SendFlow/Amount';
@@ -652,9 +652,7 @@ class Send extends PureComponent {
 	}
 
 	render = () => (
-		<SafeAreaView style={styles.wrapper}>
-			{this.state.ready ? this.renderModeComponent() : this.renderLoader()}
-		</SafeAreaView>
+		<View style={styles.wrapper}>{this.state.ready ? this.renderModeComponent() : this.renderLoader()}</View>
 	);
 }
 
