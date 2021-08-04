@@ -71,6 +71,7 @@ function GasEditModal({
 	const [isGasFeeRecommendationVisible, , showGasFeeRecommendation, hideGasFeeRecommendation] = useModalHandler(
 		false
 	);
+	const [isAnimating, setIsAnimating] = useState(false);
 
 	useEffect(() => {
 		setGasSelected(customGasFee?.selected);
@@ -271,6 +272,9 @@ function GasEditModal({
 		dismiss();
 	}, [customGasFee, dismiss, gasEstimateType]);
 
+	const onGasAnimationStart = useCallback(() => setIsAnimating(true), []);
+	const onGasAnimationEnd = useCallback(() => setIsAnimating(false), []);
+
 	return (
 		<Modal
 			isVisible={isVisible}
@@ -341,6 +345,9 @@ function GasEditModal({
 							}}
 							view="Swaps"
 							animateOnChange={animateOnChange}
+							isAnimating={isAnimating}
+							onUpdatingValuesStart={onGasAnimationStart}
+							onUpdatingValuesEnd={onGasAnimationEnd}
 						/>
 						<InfoModal
 							isVisible={isVisible && isGasFeeRecommendationVisible}
@@ -370,6 +377,9 @@ function GasEditModal({
 						onSave={saveGasEdition}
 						view="Swaps"
 						animateOnChange={animateOnChange}
+						isAnimating={isAnimating}
+						onUpdatingValuesStart={onGasAnimationStart}
+						onUpdatingValuesEnd={onGasAnimationEnd}
 					/>
 				)}
 			</KeyboardAwareScrollView>
