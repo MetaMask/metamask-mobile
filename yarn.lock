@@ -1443,9 +1443,9 @@
   resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-1.28.0.tgz#76796f5010aa4aa6d28bf6fe36392017cea687cb"
   integrity sha512-QZj6Y1nmSs9BHufBS1GSuPX5TVFa5gbtMhEo/KRuSdKyY43OdlbBKuyT36/l5p30krlzfMX8bN0MAWqw3g0Bog==
 
-"@metamask/controllers@./metamask-controllers-v14.0.2.tgz":
-  version "14.0.2"
-  resolved "./metamask-controllers-v14.0.2.tgz#a993cd7050fabcd8faafc151d38e792cc53d1baf"
+"@metamask/controllers@./metamask-controllers-v14.0.2-sethd.tgz":
+  version "14.0.2-sethd"
+  resolved "./metamask-controllers-v14.0.2-sethd.tgz#172f08545b1ec24cf08a826863616a4135ce0af4"
   dependencies:
     "@ethereumjs/common" "^2.3.1"
     "@ethereumjs/tx" "^3.2.1"
@@ -1478,14 +1478,14 @@
     web3 "^0.20.7"
     web3-provider-engine "^16.0.3"
 
-"@metamask/controllers@^14.0.2":
-  version "14.0.2"
-  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-14.0.2.tgz#5b7cc044e6c5442e9728a6923ab7d29c7a07b2f3"
-  integrity sha512-abR1GTDxyOI2+2+jl8xv0WweFzHTmiuvvfe1y7qFtVKHpswO4p+xUjT7UmyDFe4nxsjqf6npct7ZDeS/EjEudg==
+"@metamask/controllers@^13.2.0":
+  version "13.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-13.2.0.tgz#915806ebb4215d166cd079e370ad689f46815f15"
+  integrity sha512-QxveLZ+Up4NdDUesgwCGhlflKm6HV+oFciNggQX5PloeIxAqP58C7lUSYZWpsNdFtHHIWVd/k4sK5e3j+tmDVg==
   dependencies:
     "@ethereumjs/common" "^2.3.1"
     "@ethereumjs/tx" "^3.2.1"
-    "@metamask/contract-metadata" "^1.28.0"
+    "@metamask/contract-metadata" "^1.27.0"
     "@types/uuid" "^8.3.0"
     async-mutex "^0.2.6"
     babel-runtime "^6.26.0"
@@ -1512,7 +1512,7 @@
     single-call-balance-checker-abi "^1.0.0"
     uuid "^8.3.2"
     web3 "^0.20.7"
-    web3-provider-engine "^16.0.3"
+    web3-provider-engine "^16.0.1"
 
 "@metamask/etherscan-link@^2.0.0":
   version "2.1.0"
@@ -13348,34 +13348,6 @@ weak@^1.0.0:
     nan "^2.0.5"
 
 web3-provider-engine@^16.0.1, web3-provider-engine@^16.0.3:
-  version "16.0.3"
-  resolved "https://registry.yarnpkg.com/web3-provider-engine/-/web3-provider-engine-16.0.3.tgz#8ff93edf3a8da2f70d7f85c5116028c06a0d9f07"
-  integrity sha512-Q3bKhGqLfMTdLvkd4TtkGYJHcoVQ82D1l8jTIwwuJp/sAp7VHnRYb9YJ14SW/69VMWoOhSpPLZV2tWb9V0WJoA==
-  dependencies:
-    "@ethereumjs/tx" "^3.3.0"
-    async "^2.5.0"
-    backoff "^2.5.0"
-    clone "^2.0.0"
-    cross-fetch "^2.1.0"
-    eth-block-tracker "^4.4.2"
-    eth-json-rpc-filters "^4.2.1"
-    eth-json-rpc-infura "^5.1.0"
-    eth-json-rpc-middleware "^6.0.0"
-    eth-rpc-errors "^3.0.0"
-    eth-sig-util "^1.4.2"
-    ethereumjs-block "^1.2.2"
-    ethereumjs-util "^5.1.5"
-    ethereumjs-vm "^2.3.4"
-    json-stable-stringify "^1.0.1"
-    promise-to-callback "^1.0.0"
-    readable-stream "^2.2.9"
-    request "^2.85.0"
-    semaphore "^1.0.3"
-    ws "^5.1.1"
-    xhr "^2.2.0"
-    xtend "^4.0.1"
-
-web3-provider-engine@^16.0.3:
   version "16.0.3"
   resolved "https://registry.yarnpkg.com/web3-provider-engine/-/web3-provider-engine-16.0.3.tgz#8ff93edf3a8da2f70d7f85c5116028c06a0d9f07"
   integrity sha512-Q3bKhGqLfMTdLvkd4TtkGYJHcoVQ82D1l8jTIwwuJp/sAp7VHnRYb9YJ14SW/69VMWoOhSpPLZV2tWb9V0WJoA==
