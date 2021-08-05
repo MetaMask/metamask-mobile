@@ -73,7 +73,7 @@ export default {
 		TERMS_AND_CONDITIONS: 'https://consensys.net/terms-of-use/',
 		PRIVACY_POLICY: 'https://consensys.net/privacy-policy/',
 		CONNECTIVITY_ISSUES: 'https://metamask.zendesk.com/hc/en-us/articles/360059386712',
-		NFT: 'https://metamask.zendesk.com/hc/en-us/articles/360058238591-NFT-tokens-in-MetaMask-wallet'
+		NFT: 'https://metamask.zendesk.com/hc/en-us/articles/360058240151-How-to-interact-with-NFTs-OpenSea-and-Rarible'
 	},
 	ERRORS: {
 		INFURA_BLOCKED_MESSAGE: 'EthQuery - RPC Error - This service is not available in your country'

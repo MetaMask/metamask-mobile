@@ -55,7 +55,17 @@ const styles = StyleSheet.create({
 /**
  * View that renders an ERC-721 Token image
  */
-export default function CollectibleMedia({ collectible, renderAnimation, style, tiny, small, big, cover, onClose }) {
+export default function CollectibleMedia({
+	collectible,
+	renderAnimation,
+	resizeMode,
+	style,
+	tiny,
+	small,
+	big,
+	cover,
+	onClose
+}) {
 	const [sourceUri, setSourceUri] = useState(null);
 	const [isUniV3NFT, setIsUniV3NFT] = useState(false);
 
@@ -71,7 +81,7 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 	}, [collectible, small, big, setSourceUri, setIsUniV3NFT]);
 
 	const renderMedia = useCallback(() => {
-		if (renderAnimation && collectible.animation && collectible.animation.includes('.mp4')) {
+		if (renderAnimation && collectible.animation?.includes('.mp4')) {
 			return (
 				<MediaPlayer
 					onClose={onClose}
@@ -86,7 +96,7 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 			return (
 				<RemoteImage
 					fadeIn
-					resizeMode={'contain'}
+					resizeMode={resizeMode || 'cover'}
 					source={{ uri: sourceUri }}
 					style={[
 						styles.image,
@@ -116,20 +126,7 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 				}`}</Text>
 			</View>
 		);
-	}, [
-		renderAnimation,
-		collectible.animation,
-		collectible.name,
-		collectible.tokenId,
-		sourceUri,
-		isUniV3NFT,
-		style,
-		tiny,
-		small,
-		big,
-		cover,
-		onClose
-	]);
+	}, [collectible, sourceUri, isUniV3NFT, onClose, renderAnimation, style, tiny, small, big, cover, resizeMode]);
 
 	return <View style={styles.container(collectible.backgroundColor)}>{renderMedia()}</View>;
 }
@@ -166,5 +163,9 @@ CollectibleMedia.propTypes = {
 	/**
 	 * On close callback
 	 */
-	onClose: PropTypes.func
+	onClose: PropTypes.func,
+	/**
+	 * Image resize mode
+	 */
+	resizeMode: PropTypes.string
 };
