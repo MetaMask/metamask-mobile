@@ -1,6 +1,6 @@
 name: Bump version name
 on:
-  pull_request:
+  push:
     branches:
       - develop
       - main
@@ -10,7 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write  
-    if: "contains(github.head_ref, 'release/')"
     steps:
     - uses: actions/checkout@v2
     - name: Bump script
