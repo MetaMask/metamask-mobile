@@ -91,7 +91,7 @@ class Transactions extends PureComponent {
 		*/
 		navigation: PropTypes.object,
 		/**
-		 * Object representing the selected the selected network
+		 * Object representing the selected network
 		 */
 		network: PropTypes.object,
 		/**
@@ -316,8 +316,10 @@ class Transactions extends PureComponent {
 			<TouchableOpacity onPress={this.viewOnBlockExplore} style={styles.touchableViewOnEtherscan}>
 				<Text reset style={styles.viewOnEtherscan}>
 					{(this.state.rpcBlockExplorer &&
-						`${strings('transactions.view_on')} ${getBlockExplorerName(this.state.rpcBlockExplorer)}`) ||
-						strings('transactions.view_on_etherscan')}
+						`${strings('transactions.view_full_history_on')} ${getBlockExplorerName(
+							this.state.rpcBlockExplorer
+						)}`) ||
+						strings('transactions.view_full_history_on_etherscan')}
 				</Text>
 			</TouchableOpacity>
 		</View>

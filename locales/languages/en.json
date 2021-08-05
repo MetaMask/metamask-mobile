@@ -847,6 +847,8 @@
 		"total": "Total",
 		"view_on": "VIEW ON",
 		"view_on_etherscan": "View on Etherscan",
+		"view_full_history_on": "View full history on",
+		"view_full_history_on_etherscan": "View full history on Etherscan",
 		"hash_copied_to_clipboard": "Transaction hash copied to clipboard",
 		"address_copied_to_clipboard": "Address copied to clipboard",
 		"transaction_error": "Transaction error",
