@@ -19,6 +19,7 @@ const TRANSAK_API_KEY_SECRET_PRODUCTION = process.env.TRANSAK_API_KEY_SECRET_PRO
  */
 
 /**
+ * https://transak.stoplight.io/docs/transak-docs/1.swagger.yaml/paths/~1partners~1order~1%7BorderId%7D/get
  * @typedef TransakOrder
  * @type {object}
  * @property {string} id
@@ -28,6 +29,7 @@ const TRANSAK_API_KEY_SECRET_PRODUCTION = process.env.TRANSAK_API_KEY_SECRET_PRO
  * @property {string} fiatCurrency
  * @property {string} cryptoCurrency
  * @property {number} fiatAmount
+ * @property {number} fiatAmountInUsd
  * @property {string} walletLink
  * @property {string} paymentOptionId Paymenth method ID, see: https://integrate.transak.com/Coverage-Payment-Methods-Fees-Limits-30c0954fbdf04beca68622d9734c59f9
  * @property {boolean} addressAdditionalData
@@ -150,6 +152,7 @@ const transakOrderToFiatOrder = transakOrder => ({
 	cryptoFee: transakOrder.totalFeeInCrypto,
 	currency: transakOrder.fiatCurrency,
 	cryptocurrency: transakOrder.cryptoCurrency,
+	amountInUSD: transakOrder.fiatAmountInUsd,
 	state: transakOrderStateToFiatOrderState(transakOrder.status),
 	account: transakOrder.walletAddress,
 	txHash: transakOrder.transactionHash || null,

@@ -38,7 +38,7 @@ export const getAnalyticsPayload = fiatOrder => {
 		fee_in_fiat: { value: fiatOrder.fee, anonymous: true },
 		fee_in_crypto: { value: fiatOrder.cryptoFee, anonymous: true },
 		order_id: { value: fiatOrder.id, anonymous: true },
-		//TODO(on-ramp): fiat_amount_in_usd: ''
+		fiat_amount_in_usd: { value: fiatOrder.amountInUSD, anonymous: true },
 		'on-ramp_provider': { value: fiatOrder.provider, anonymous: true }
 	};
 	switch (fiatOrder.state) {

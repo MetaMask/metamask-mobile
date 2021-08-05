@@ -13,6 +13,7 @@ import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../components/UI/Fia
  * @property {string?} cryptoFee Crypto currency fee
  * @property {string} currency "USD"
  * @property {string} cryptocurrency "ETH"
+ * @property {string?} amountInUSD Fiat amount in USD
  * @property {FIAT_ORDER_STATES} state Order state
  * @property {string} account <account wallet address>
  * @property {string} network <network>

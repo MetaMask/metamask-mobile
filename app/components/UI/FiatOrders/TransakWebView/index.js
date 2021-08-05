@@ -61,7 +61,7 @@ class TransakWebView extends PureComponent {
 					crypto_amount: { value: order.cryptoAmount, anonymous: true },
 					fee_in_fiat: { value: order.fee, anonymous: true },
 					fee_in_crypto: { value: order.cryptoFee, anonymous: true },
-					//TODO(on-ramp): {value: fiat_amount_in_usd: '' anonymous: true},
+					fiat_amount_in_usd: { value: order.amountInUSD, anonymous: true },
 					order_id: { value: order.id, anonymous: true },
 					'on-ramp_provider': { value: FIAT_ORDER_PROVIDERS.TRANSAK, anonymous: true }
 				});
