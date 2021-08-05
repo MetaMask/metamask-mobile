@@ -8,7 +8,7 @@ import { useState, useEffect } from 'react';
 /**
  * Hook to handle the remote state of a resource
  * @param {String} uri Resource URI
- * @return {Boolean} resourceExists
+ * @return {Boolean[]} `[resourceExists, isLoading]`
  */
 const useRemoteResourceExists = (uri: string): boolean[] => {
 	const [resourceExists, setResourceExists] = useState<boolean>(false);
