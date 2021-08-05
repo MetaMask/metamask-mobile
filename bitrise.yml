@@ -23,7 +23,7 @@ workflows:
         before_run:
             - setup
         steps:
-            # - cache-pull@2: {}
+            - cache-pull@2: {}
             - yarn@0:
                   inputs:
                       - cache_local_deps: 'yes'
@@ -40,7 +40,7 @@ workflows:
                       - cache_local_deps: 'yes'
                       - command: lint
                   is_always_run: true
-            # - cache-push@2: {}
+            - cache-push@2: {}
     code_setup:
         before_run:
             - setup
