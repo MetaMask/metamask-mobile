@@ -1,5 +1,5 @@
 import { createSelector } from 'reselect';
-import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../components/UI/FiatOrders/utils';
+import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../constants/on-ramp';
 
 /**
  * @typedef FiatOrder

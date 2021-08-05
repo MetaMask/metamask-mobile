@@ -3,7 +3,7 @@ import axios from 'axios';
 import qs from 'query-string';
 import AppConstants from '../../../../core/AppConstants';
 import Logger from '../../../../util/Logger';
-import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../utils';
+import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
 
 //* env vars
 

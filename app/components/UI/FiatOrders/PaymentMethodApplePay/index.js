@@ -19,7 +19,7 @@ import {
 	useWyreApplePay,
 	WyreException
 } from '../orderProcessor/wyreApplePay';
-import { PAYMENT_RAILS, PAYMENT_CATEGORY, FIAT_ORDER_PROVIDERS } from '../utils';
+import { FIAT_ORDER_PROVIDERS, PAYMENT_CATEGORY, PAYMENT_RAILS } from '../../../../constants/on-ramp';
 
 import ScreenView from '../components/ScreenView';
 import { getPaymentMethodApplePayNavbar } from '../../Navbar';

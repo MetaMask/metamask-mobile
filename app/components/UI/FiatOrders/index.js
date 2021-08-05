@@ -8,7 +8,7 @@ import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import { renderNumber } from '../../../util/number';
 
-import { FIAT_ORDER_STATES } from './utils';
+import { FIAT_ORDER_STATES } from '../../../constants/on-ramp';
 import { getPendingOrders, updateFiatOrder } from '../../../reducers/fiatOrders';
 import useInterval from '../../hooks/useInterval';
 import processOrder from './orderProcessor';

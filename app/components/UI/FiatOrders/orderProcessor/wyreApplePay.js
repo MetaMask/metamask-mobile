@@ -6,7 +6,7 @@ import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
 
 import useCurrency from '../../../Base/Keypad/useCurrency';
-import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../utils';
+import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
 
 //* env vars
 

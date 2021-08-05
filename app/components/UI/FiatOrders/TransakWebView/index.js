@@ -13,7 +13,7 @@ import { baseStyles } from '../../../../styles/common';
 import { protectWalletModalVisible } from '../../../../actions/user';
 import { addFiatOrder } from '../../../../reducers/fiatOrders';
 import AnalyticsV2 from '../../../../util/analyticsV2';
-import { FIAT_ORDER_PROVIDERS, PAYMENT_CATEGORY, PAYMENT_RAILS } from '../utils';
+import { FIAT_ORDER_PROVIDERS, PAYMENT_CATEGORY, PAYMENT_RAILS } from '../../../../constants/on-ramp';
 
 class TransakWebView extends PureComponent {
 	static navigationOptions = ({ navigation, route }) =>

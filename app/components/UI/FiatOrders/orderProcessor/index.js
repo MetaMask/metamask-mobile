@@ -1,4 +1,4 @@
-import { FIAT_ORDER_PROVIDERS } from '../utils';
+import { FIAT_ORDER_PROVIDERS } from '../../../../constants/on-ramp';
 import { processWyreApplePayOrder } from './wyreApplePay';
 import { processTransakOrder } from './transak';
 import Logger from '../../../../util/Logger';

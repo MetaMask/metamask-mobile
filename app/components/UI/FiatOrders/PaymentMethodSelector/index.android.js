@@ -7,7 +7,7 @@ import { strings } from '../../../../../locales/i18n';
 import Analytics from '../../../../core/Analytics';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
-import { FIAT_ORDER_PROVIDERS, PAYMENT_CATEGORY, PAYMENT_RAILS } from '../utils';
+import { FIAT_ORDER_PROVIDERS, PAYMENT_CATEGORY, PAYMENT_RAILS } from '../../../../constants/on-ramp';
 
 import { useTransakFlowURL } from '../orderProcessor/transak';
 import { getPaymentSelectorMethodNavbar } from '../../Navbar';
