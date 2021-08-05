@@ -36,6 +36,10 @@ const trackEventWithParameters = (event, params) => {
 };
 
 const styles = StyleSheet.create({
+	headerStyle: {
+		shadowColor: colors.transparent,
+		elevation: 0
+	},
 	metamaskName: {
 		width: 122,
 		height: 15
@@ -97,6 +101,7 @@ const styles = StyleSheet.create({
 	},
 	metamaskNameTransparentWrapper: {
 		alignItems: 'center',
+		justifyContent: 'center',
 		flex: 1
 	},
 	metamaskNameWrapper: {
@@ -107,8 +112,7 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		textAlign: 'center',
 		...fontStyles.normal,
-		alignItems: 'center',
-		flex: 1
+		alignItems: 'center'
 	}
 });
 
@@ -511,14 +515,14 @@ export function getOnboardingNavbarOptions(navigation, route, { headerLeft } = {
  */
 export function getTransparentOnboardingNavbarOptions() {
 	return {
-		headerTransparent: true,
 		headerTitle: () => (
 			<View style={styles.metamaskNameTransparentWrapper}>
 				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
 			</View>
 		),
 		headerLeft: () => <View />,
-		headerRight: () => <View />
+		headerRight: () => <View />,
+		headerStyle: styles.headerStyle
 	};
 }
 
@@ -529,14 +533,14 @@ export function getTransparentOnboardingNavbarOptions() {
  */
 export function getTransparentBackOnboardingNavbarOptions() {
 	return {
-		headerTransparent: true,
 		headerTitle: () => (
 			<View style={styles.metamaskNameTransparentWrapper}>
 				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
 			</View>
 		),
 		headerBackTitle: strings('navigation.back'),
-		headerRight: () => <View />
+		headerRight: () => <View />,
+		headerStyle: styles.headerStyle
 	};
 }
 
