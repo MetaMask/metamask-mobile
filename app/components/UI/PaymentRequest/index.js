@@ -541,26 +541,31 @@ class PaymentRequest extends PureComponent {
 	onNext = () => {
 		const { selectedAddress, navigation, chainId } = this.props;
 		const { cryptoAmount, selectedAsset } = this.state;
+
 		try {
-			let eth_link;
-			if (selectedAsset.isETH) {
-				const amount = toWei(cryptoAmount).toString();
-				eth_link = generateETHLink(selectedAddress, amount, chainId);
+			if (cryptoAmount && cryptoAmount > '0') {
+				let eth_link;
+				if (selectedAsset.isETH) {
+					const amount = toWei(cryptoAmount).toString();
+					eth_link = generateETHLink(selectedAddress, amount, chainId);
+				} else {
+					const amount = toTokenMinimalUnit(cryptoAmount, selectedAsset.decimals).toString();
+					eth_link = generateERC20Link(selectedAddress, selectedAsset.address, amount, chainId);
+				}
+
+				// Convert to universal link / app link
+				const link = generateUniversalLinkRequest(eth_link);
+
+				navigation &&
+					navigation.replace('PaymentRequestSuccess', {
+						link,
+						qrLink: eth_link,
+						amount: cryptoAmount,
+						symbol: selectedAsset.symbol
+					});
 			} else {
-				const amount = toTokenMinimalUnit(cryptoAmount, selectedAsset.decimals).toString();
-				eth_link = generateERC20Link(selectedAddress, selectedAsset.address, amount, chainId);
+				this.setState({ showError: true });
 			}
-
-			// Convert to universal link / app link
-			const link = generateUniversalLinkRequest(eth_link);
-
-			navigation &&
-				navigation.replace('PaymentRequestSuccess', {
-					link,
-					qrLink: eth_link,
-					amount: cryptoAmount,
-					symbol: selectedAsset.symbol
-				});
 		} catch (e) {
 			this.setState({ showError: true });
 		}
