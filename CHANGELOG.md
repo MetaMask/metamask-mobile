@@ -1,5 +1,12 @@
 # Changelog
 
+## v.2.6.0 - July 9 2021
+- [#2865](https://github.com/MetaMask/metamask-mobile/pull/2865): Added support for custom network gas estimates
+- [#2854](https://github.com/MetaMask/metamask-mobile/pull/2854): Fix time formatting on transactions
+- [#2883](https://github.com/MetaMask/metamask-mobile/pull/2883): Swaps: Fix isZero undefined error
+- [#2731](https://github.com/MetaMask/metamask-mobile/pull/2731): Improvement/react navigation upgrade 5
+- [#2709](https://github.com/MetaMask/metamask-mobile/pull/2709): Remove Picker deprecation warning
+
 ## v.2.5.0 - June 15 2021
 - [#2809](https://github.com/MetaMask/metamask-mobile/pull/2809): Optional chaining dollarBalance
 - [#2776](https://github.com/MetaMask/metamask-mobile/pull/2776): Fix: empty state when using fiat on non-mainnet transactions

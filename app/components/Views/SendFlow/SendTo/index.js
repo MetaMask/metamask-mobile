@@ -171,8 +171,7 @@ const dummy = () => true;
  * View that wraps the wraps the "Send" screen
  */
 class SendFlow extends PureComponent {
-	static navigationOptions = ({ navigation, screenProps }) =>
-		getSendFlowTitle('send.send_to', navigation, screenProps);
+	static navigationOptions = ({ navigation, route }) => getSendFlowTitle('send.send_to', navigation, route);
 
 	static propTypes = {
 		/**
@@ -222,7 +221,15 @@ class SendFlow extends PureComponent {
 		/**
 		 * Network provider type as mainnet
 		 */
-		providerType: PropTypes.string
+		providerType: PropTypes.string,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object,
+		/**
+		 * Indicates whether the current transaction is a deep link transaction
+		 */
+		isPaymentRequest: PropTypes.bool
 	};
 
 	addressToInputRef = React.createRef();
@@ -246,10 +253,20 @@ class SendFlow extends PureComponent {
 	};
 
 	componentDidMount = async () => {
-		const { addressBook, selectedAddress, accounts, ticker, network, navigation, providerType } = this.props;
+		const {
+			addressBook,
+			selectedAddress,
+			accounts,
+			ticker,
+			network,
+			navigation,
+			providerType,
+			route,
+			isPaymentRequest
+		} = this.props;
 		const { fromAccountName } = this.state;
 		// For analytics
-		navigation.setParams({ providerType });
+		navigation.setParams({ providerType, isPaymentRequest });
 		const networkAddressBook = addressBook[network] || {};
 		const ens = await doENSReverseLookup(selectedAddress, network);
 		const fromAccountBalance = `${renderFromWei(accounts[selectedAddress].balance)} ${getTicker(ticker)}`;
@@ -263,10 +280,12 @@ class SendFlow extends PureComponent {
 			});
 		}, 100);
 		if (!Object.keys(networkAddressBook).length) {
-			this.addressToInputRef && this.addressToInputRef.current && this.addressToInputRef.current.focus();
+			setTimeout(() => {
+				this.addressToInputRef && this.addressToInputRef.current && this.addressToInputRef.current.focus();
+			}, 500);
 		}
 		//Fills in to address and sets the transaction if coming from QR code scan
-		const targetAddress = navigation.getParam('txMeta', null)?.target_address;
+		const targetAddress = route.params?.txMeta?.target_address;
 		if (targetAddress) {
 			this.props.newAssetTransaction(getEther(ticker));
 			this.onToSelectedAddressChange(targetAddress);
@@ -530,7 +549,7 @@ class SendFlow extends PureComponent {
 	};
 
 	goToBuy = () => {
-		this.props.navigation.navigate('PaymentMethodSelector');
+		this.props.navigation.navigate('FiatOnRamp');
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
 		});
@@ -701,7 +720,8 @@ const mapStateToProps = state => ({
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	network: state.engine.backgroundState.NetworkController.network,
-	providerType: state.engine.backgroundState.NetworkController.provider.type
+	providerType: state.engine.backgroundState.NetworkController.provider.type,
+	isPaymentRequest: state.transaction.paymentRequest
 });
 
 const mapDispatchToProps = dispatch => ({

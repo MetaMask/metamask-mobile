@@ -9,6 +9,7 @@ import {
 	Image,
 	InteractionManager
 } from 'react-native';
+import { useNavigationState } from '@react-navigation/native';
 import ActionModal from '../ActionModal';
 import { colors, fontStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -20,6 +21,7 @@ import { CURRENT_APP_VERSION, LAST_APP_VERSION, WHATS_NEW_APP_VERSION_SEEN } fro
 import compareVersions from 'compare-versions';
 import scaling from '../../../util/scaling';
 import PropTypes from 'prop-types';
+import { findRouteNameFromNavigatorState } from '../../../util/general';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -100,6 +102,7 @@ const styles = StyleSheet.create({
 const WhatsNewModal = props => {
 	const [featuresToShow, setFeaturesToShow] = useState(null);
 	const [show, setShow] = useState(false);
+	const routes = useNavigationState(state => state.routes);
 
 	useEffect(() => {
 		const shouldShow = async () => {
@@ -150,17 +153,9 @@ const WhatsNewModal = props => {
 		feature.buttonPress && feature.buttonPress(props);
 	};
 
-	const findRouteNameFromNavigatorState = ({ routes }) => {
-		let route = routes[routes.length - 1];
-		while (route.index !== undefined) {
-			route = route.routes[route.index];
-		}
-		return route?.routeName;
-	};
-
 	useEffect(() => {
 		if (props.enabled && !!featuresToShow) {
-			const route = findRouteNameFromNavigatorState(props.navigation.state);
+			const route = findRouteNameFromNavigatorState(routes);
 			if (route === 'WalletView') {
 				InteractionManager.runAfterInteractions(() => {
 					setShow(true);
@@ -169,7 +164,7 @@ const WhatsNewModal = props => {
 		} else {
 			setShow(false);
 		}
-	}, [featuresToShow, props.enabled, props.navigation.state]);
+	}, [featuresToShow, props.enabled, routes]);
 
 	return (
 		<ActionModal
@@ -230,10 +225,6 @@ const WhatsNewModal = props => {
 };
 
 WhatsNewModal.propTypes = {
-	/**
-	 * navigation object required to push new views
-	 */
-	navigation: PropTypes.object,
 	/**
 	 * Showing the modal is enabled
 	 */

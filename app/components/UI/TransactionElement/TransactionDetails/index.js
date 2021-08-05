@@ -21,7 +21,7 @@ import StatusText from '../../../Base/StatusText';
 import Text from '../../../Base/Text';
 import DetailsModal from '../../../Base/DetailsModal';
 import { RPC } from '../../../../constants/network';
-import { withNavigation } from 'react-navigation';
+import { withNavigation } from '@react-navigation/compat';
 
 const styles = StyleSheet.create({
 	viewOnEtherscan: {
@@ -133,16 +133,19 @@ class TransactionDetails extends PureComponent {
 				const url = `${rpcBlockExplorer}/tx/${transactionHash}`;
 				const title = new URL(rpcBlockExplorer).hostname;
 				navigation.push('Webview', {
-					url,
-					title
+					screen: 'SimpleWebview',
+					params: { url, title }
 				});
 			} else {
 				const network = getNetworkTypeById(networkID);
 				const url = getEtherscanTransactionUrl(network, transactionHash);
 				const etherscan_url = getEtherscanBaseUrl(network).replace('https://', '');
 				navigation.push('Webview', {
-					url,
-					title: etherscan_url
+					screen: 'SimpleWebview',
+					params: {
+						url,
+						title: etherscan_url
+					}
 				});
 			}
 			close && close();
