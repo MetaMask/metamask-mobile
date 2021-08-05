@@ -303,14 +303,14 @@ function SwapsAmountView({
 			return false;
 		}
 
-		return !balanceAsUnits.isZero(0);
+		return !(balanceAsUnits.isZero?.() ?? true);
 	}, [balanceAsUnits, sourceToken]);
 
 	const hasEnoughBalance = useMemo(() => {
 		if (hasInvalidDecimals || !hasBalance || !balanceAsUnits) {
 			return false;
 		}
-		return balanceAsUnits.gte(amountAsUnits);
+		return balanceAsUnits.gte?.(amountAsUnits) ?? false;
 	}, [amountAsUnits, balanceAsUnits, hasBalance, hasInvalidDecimals]);
 
 	const currencyAmount = useMemo(() => {
@@ -341,9 +341,9 @@ function SwapsAmountView({
 			return;
 		}
 		if (!isSwapsNativeAsset(sourceToken) && !isTokenInBalances && !balanceAsUnits?.isZero()) {
-			const { AssetsController } = Engine.context;
+			const { TokensController } = Engine.context;
 			const { address, symbol, decimals } = sourceToken;
-			await AssetsController.addToken(address, symbol, decimals);
+			await TokensController.addToken(address, symbol, decimals);
 		}
 		return navigation.navigate(
 			'SwapsQuotesView',
@@ -351,7 +351,8 @@ function SwapsAmountView({
 				sourceToken?.address,
 				destinationToken?.address,
 				toTokenMinimalUnit(amount, sourceToken?.decimals).toString(10),
-				slippage
+				slippage,
+				[sourceToken, destinationToken]
 			)
 		);
 	}, [

@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "2.6.0",
+  "version": "3.0.1",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh audit dependencies",
@@ -20,7 +20,7 @@
     "start:ios:device": "./scripts/build.sh ios debug --device",
     "start:android": "./scripts/build.sh android debug",
     "start:android:e2e": "./scripts/build.sh android debugE2E",
-    "build:announce": "node ./scripts/metamask-bot-build-announce.js",
+    "build:announce": "node ./scripts/metamask-bot-build-announce-bitrise.js",
     "build:android:release": "./scripts/build.sh android release",
     "build:android:release:e2e": "./scripts/build.sh android releaseE2E",
     "build:android:checksum": "./scripts/checksum.sh",
@@ -36,8 +36,8 @@
     "test:unit": "jest ./app/",
     "test:unit:update": "time jest -u ./app/",
     "test:e2e": "yarn test:e2e:ios && yarn test:e2e:android",
-    "test:e2e:ios": "detox build -c ios.sim.release -l verbose log && detox test -c ios.sim.release -l verbose log",
-    "test:e2e:android": "detox build -c android.emu.debug -l verbose log && detox test -c android.emu.debug -l verbose log",
+    "test:e2e:ios": "detox build -c ios.sim.release && detox test -c ios.sim.release",
+    "test:e2e:android": "detox build -c android.emu.release && detox test -c android.emu.release",
     "postinstall": "./scripts/postinstall.sh",
     "sourcemaps:android": "node_modules/.bin/react-native bundle --platform android --entry-file index.js --dev false --reset-cache --bundle-output /tmp/bundle.android.js --assets-dest /tmp/ --sourcemap-output sourcemaps/android/index.js.map",
     "sourcemaps:ios": "node_modules/.bin/react-native bundle --platform ios --entry-file index.js --dev false --reset-cache --bundle-output /tmp/bundle.ios.js --assets-dest /tmp/ --sourcemap-output sourcemaps/ios/index.js.map",
@@ -78,9 +78,9 @@
   "dependencies": {
     "@exodus/react-native-payments": "https://github.com/wachunei/react-native-payments.git#package-json-hack",
     "@metamask/contract-metadata": "^1.23.0",
-    "@metamask/controllers": "^10.1.0",
+    "@metamask/controllers": "^14.0.2",
     "@metamask/etherscan-link": "^2.0.0",
-    "@metamask/swaps-controller": "^4.0.0",
+    "@metamask/swaps-controller": "^5.0.0",
     "@react-native-community/async-storage": "1.12.1",
     "@react-native-community/blur": "^3.6.0",
     "@react-native-community/checkbox": "^0.4.2",
@@ -106,10 +106,12 @@
     "babel-plugin-transform-inline-environment-variables": "0.4.3",
     "babel-plugin-transform-remove-console": "6.9.4",
     "base-64": "1.0.0",
-    "bignumber.js": "8.1.1",
+    "bignumber.js": "^9.0.1",
     "buffer": "5.2.1",
+    "codecov": "^3.8.1",
     "compare-versions": "^3.6.0",
     "content-hash": "2.5.2",
+    "currency-formatter": "^1.5.8",
     "dnode": "1.2.2",
     "eth-ens-namehash": "2.0.8",
     "eth-json-rpc-errors": "^2.0.2",
@@ -127,6 +129,7 @@
     "events": "3.0.0",
     "fuse.js": "3.4.4",
     "https-browserify": "0.0.1",
+    "humanize-duration": "^3.27.0",
     "improved-yarn-audit": "^2.3.3",
     "is-url": "^1.2.4",
     "json-rpc-engine": "^6.1.0",
@@ -137,6 +140,7 @@
     "obj-multiplex": "1.0.0",
     "obs-store": "4.0.3",
     "path": "0.12.7",
+    "pbkdf2": "^3.1.2",
     "pify": "4.0.1",
     "prop-types": "15.7.2",
     "pubnub": "4.27.3",
@@ -185,6 +189,7 @@
     "react-native-search-api": "ombori/react-native-search-api#8/head",
     "react-native-sensors": "5.3.0",
     "react-native-share": "^5.2.2",
+    "react-native-skeleton-placeholder": "^4.0.0",
     "react-native-splash-screen": "git+https://github.com/MetaMask/react-native-splash-screen.git",
     "react-native-step-indicator": "^1.0.3",
     "react-native-svg": "12.1.0",
@@ -211,7 +216,7 @@
     "url-parse": "1.5.0",
     "valid-url": "1.0.9",
     "vm-browserify": "1.1.2",
-    "web3-provider-engine": "^16.0.1",
+    "web3-provider-engine": "^16.0.3",
     "zxcvbn": "4.4.2"
   },
   "devDependencies": {
@@ -294,28 +299,6 @@
     },
     "runner-config": "e2e/config.json",
     "test-runner": "jest"
-  },
-  "jest": {
-    "preset": "react-native",
-    "setupFiles": [
-      "<rootDir>/app/util/testSetup.js"
-    ],
-    "transform": {
-      "^.+\\.js$": "<rootDir>jest.preprocessor.js"
-    },
-    "transformIgnorePatterns": [
-      "node_modules/(?!(react-native|rn-fetch|redux-persist-filesystem|@react-navigation|@react-native-community|react-navigation|react-navigation-redux-helpers|@sentry))"
-    ],
-    "snapshotSerializers": [
-      "enzyme-to-json/serializer"
-    ],
-    "collectCoverage": false,
-    "collectCoverageFrom": [
-      "<rootDir>/app/**/*.{js,jsx}",
-      "!<rootDir>/node_modules/",
-      "!<rootDir>/app/util/*.{js,jsx}",
-      "!<rootDir>/app/entry*.js"
-    ]
   },
   "react-native": {
     "crypto": "react-native-crypto",
