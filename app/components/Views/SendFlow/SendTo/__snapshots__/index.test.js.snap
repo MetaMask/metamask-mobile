@@ -1,7 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`SendTo should render correctly 1`] = `
-<ForwardRef(SafeAreaView)
+<RNCSafeAreaView
+  edges={
+    Array [
+      "bottom",
+    ]
+  }
   style={
     Object {
       "backgroundColor": "#FFFFFF",
@@ -267,5 +272,5 @@ exports[`SendTo should render correctly 1`] = `
       </View>
     </View>
   </ActionModal>
-</ForwardRef(SafeAreaView)>
+</RNCSafeAreaView>
 `;
