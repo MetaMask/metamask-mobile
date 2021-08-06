@@ -38,7 +38,7 @@ const SeedPhraseVideo = ({ style, onClose }) => (
 			uri={video_source_uri}
 			style={[styles.mediaPlayer, style]}
 			textTracks={subtitle_source_tracks}
-			selectedTextTrack={{ type: 'index', value: 0 }}
+			selectedTextTrack={{ type: 'language', value: strings('secret_phrase_video_subtitle.language') }}
 		/>
 	</View>
 );
