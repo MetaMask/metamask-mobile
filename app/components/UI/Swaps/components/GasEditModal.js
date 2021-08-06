@@ -71,6 +71,7 @@ function GasEditModal({
 	const [isGasFeeRecommendationVisible, , showGasFeeRecommendation, hideGasFeeRecommendation] = useModalHandler(
 		false
 	);
+	const [isAnimating, setIsAnimating] = useState(false);
 
 	useEffect(() => {
 		setGasSelected(customGasFee?.selected);
@@ -108,7 +109,8 @@ function GasEditModal({
 							isNativeAsset,
 							tradeValue,
 							sourceAmount
-						}
+						},
+						gasFeeEstimates
 					},
 					{ onlyGas: true }
 				)
@@ -182,7 +184,8 @@ function GasEditModal({
 							isNativeAsset,
 							tradeValue,
 							sourceAmount
-						}
+						},
+						gasFeeEstimates
 					},
 					{ onlyGas: true }
 				)
@@ -191,7 +194,16 @@ function GasEditModal({
 				setStopUpdateGas(false);
 			}
 		},
-		[conversionRate, currentCurrency, initialGasLimit, isNativeAsset, nativeCurrency, sourceAmount, tradeValue]
+		[
+			conversionRate,
+			currentCurrency,
+			gasFeeEstimates,
+			initialGasLimit,
+			isNativeAsset,
+			nativeCurrency,
+			sourceAmount,
+			tradeValue
+		]
 	);
 
 	const calculateTempGasFeeLegacy = useCallback(
@@ -260,6 +272,9 @@ function GasEditModal({
 		dismiss();
 	}, [customGasFee, dismiss, gasEstimateType]);
 
+	const onGasAnimationStart = useCallback(() => setIsAnimating(true), []);
+	const onGasAnimationEnd = useCallback(() => setIsAnimating(false), []);
+
 	return (
 		<Modal
 			isVisible={isVisible}
@@ -281,6 +296,7 @@ function GasEditModal({
 						<EditGasFee1559
 							selected={gasSelected}
 							ignoreOptions={[GAS_OPTIONS.LOW]}
+							extendOptions={{ [GAS_OPTIONS.MEDIUM]: { error: true } }}
 							warningMinimumEstimateOption={GAS_OPTIONS.MEDIUM}
 							warning={
 								gasSelected === GAS_OPTIONS.MEDIUM
@@ -329,6 +345,9 @@ function GasEditModal({
 							}}
 							view="Swaps"
 							animateOnChange={animateOnChange}
+							isAnimating={isAnimating}
+							onUpdatingValuesStart={onGasAnimationStart}
+							onUpdatingValuesEnd={onGasAnimationEnd}
 						/>
 						<InfoModal
 							isVisible={isVisible && isGasFeeRecommendationVisible}
@@ -358,6 +377,9 @@ function GasEditModal({
 						onSave={saveGasEdition}
 						view="Swaps"
 						animateOnChange={animateOnChange}
+						isAnimating={isAnimating}
+						onUpdatingValuesStart={onGasAnimationStart}
+						onUpdatingValuesEnd={onGasAnimationEnd}
 					/>
 				)}
 			</KeyboardAwareScrollView>

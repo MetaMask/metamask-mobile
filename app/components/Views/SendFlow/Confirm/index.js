@@ -3,7 +3,6 @@ import { colors, baseStyles, fontStyles } from '../../../../styles/common';
 import {
 	InteractionManager,
 	StyleSheet,
-	SafeAreaView,
 	View,
 	Alert,
 	ScrollView,
@@ -59,6 +58,7 @@ import { collectConfusables } from '../../../../util/validators';
 import InfoModal from '../../../UI/Swaps/components/InfoModal';
 import { addHexPrefix, toChecksumAddress } from 'ethereumjs-util';
 import { removeFavoriteCollectible } from '../../../../actions/collectibles';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import TransactionReviewEIP1559 from '../../../UI/TransactionReview/TransactionReviewEIP1559';
 import EditGasFee1559 from '../../../UI/EditGasFee1559';
 import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacy';
@@ -1262,7 +1262,7 @@ class Confirm extends PureComponent {
 
 		const { EIP1559TransactionData } = this.state;
 		return (
-			<SafeAreaView style={styles.wrapper} testID={'txn-confirm-screen'}>
+			<SafeAreaView edges={['bottom']} style={styles.wrapper} testID={'txn-confirm-screen'}>
 				<View style={styles.inputWrapper}>
 					<AddressFrom
 						onPressIcon={!paymentRequest ? null : this.toggleFromAccountModal}
