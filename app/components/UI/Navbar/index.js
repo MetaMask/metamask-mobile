@@ -767,20 +767,26 @@ export function getWebviewNavbar(navigation, route) {
 	};
 }
 
-export function getPaymentSelectorMethodNavbar(navigation) {
+export function getPaymentSelectorMethodNavbar(navigation, onPop) {
 	return {
 		headerTitle: () => <Text style={styles.centeredTitle}>{strings('fiat_on_ramp.purchase_method')}</Text>,
 		headerLeft: () => <View />,
 		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.dangerouslyGetParent()?.pop()} style={styles.closeButton}>
+			<TouchableOpacity
+				onPress={() => {
+					navigation.dangerouslyGetParent()?.pop();
+					onPop?.();
+				}}
+				style={styles.closeButton}
+			>
 				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
 			</TouchableOpacity>
 		)
 	};
 }
 
-export function getPaymentMethodApplePayNavbar(navigation) {
+export function getPaymentMethodApplePayNavbar(navigation, onPop, onExit) {
 	return {
 		title: strings('fiat_on_ramp.amount_to_buy'),
 		headerTitleStyle: {
@@ -790,26 +796,44 @@ export function getPaymentMethodApplePayNavbar(navigation) {
 		},
 		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.dangerouslyGetParent()?.pop()} style={styles.closeButton}>
+			<TouchableOpacity
+				onPress={() => {
+					navigation.dangerouslyGetParent()?.pop();
+					onExit?.();
+				}}
+				style={styles.closeButton}
+			>
 				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
 			</TouchableOpacity>
 		),
 		headerLeft: () =>
 			Device.isAndroid() ? (
 				// eslint-disable-next-line react/jsx-no-bind
-				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+				<TouchableOpacity
+					onPress={() => {
+						navigation.pop();
+						onPop?.();
+					}}
+					style={styles.backButton}
+				>
 					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
 				</TouchableOpacity>
 			) : (
 				// eslint-disable-next-line react/jsx-no-bind
-				<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
+				<TouchableOpacity
+					onPress={() => {
+						navigation.pop();
+						onPop?.();
+					}}
+					style={styles.closeButton}
+				>
 					<Text style={styles.closeButtonText}>{strings('navigation.back')}</Text>
 				</TouchableOpacity>
 			)
 	};
 }
 
-export function getTransakWebviewNavbar(navigation, route) {
+export function getTransakWebviewNavbar(navigation, route, onPop) {
 	const title = route.params?.title ?? '';
 	return {
 		title,
@@ -821,12 +845,24 @@ export function getTransakWebviewNavbar(navigation, route) {
 		headerLeft: () =>
 			Device.isAndroid() ? (
 				// eslint-disable-next-line react/jsx-no-bind
-				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+				<TouchableOpacity
+					onPress={() => {
+						navigation.pop();
+						onPop?.();
+					}}
+					style={styles.backButton}
+				>
 					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
 				</TouchableOpacity>
 			) : (
 				// eslint-disable-next-line react/jsx-no-bind
-				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+				<TouchableOpacity
+					onPress={() => {
+						navigation.pop();
+						onPop?.();
+					}}
+					style={styles.backButton}
+				>
 					<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
 				</TouchableOpacity>
 			)
