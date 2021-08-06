@@ -7,6 +7,8 @@ trigger_map:
       workflow: start_release_builds
     - push_branch: 'main'
       workflow: start_release_builds
+    - push_branch: '*'
+      workflow: ci_test
     - pull_request_source_branch: '*'
       workflow: ci_test
 workflows:
