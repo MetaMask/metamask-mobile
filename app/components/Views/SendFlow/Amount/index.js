@@ -3,7 +3,6 @@ import { colors, fontStyles } from '../../../../styles/common';
 import {
 	StyleSheet,
 	Text,
-	SafeAreaView,
 	View,
 	TouchableOpacity,
 	TextInput,
@@ -55,6 +54,7 @@ import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import NetworkMainAssetLogo from '../../../UI/NetworkMainAssetLogo';
 import { isMainNet } from '../../../../util/networks';
 import { toLowerCaseEquals } from '../../../../util/general';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { decGWEIToHexWEI } from '../../../../util/conversions';
 import AppConstants from '../../../../core/AppConstants';
 
@@ -410,7 +410,8 @@ class Amount extends PureComponent {
 
 		this.tokens = [getEther(ticker), ...tokens];
 		this.collectibles = this.processCollectibles();
-		this.amountInput && this.amountInput.current && this.amountInput.current.focus();
+		// Wait until navigation finishes to focus
+		InteractionManager.runAfterInteractions(() => this.amountInput?.current?.focus?.());
 		this.onInputChange(readableValue);
 		!selectedAsset.tokenId && this.handleSelectedAssetBalance(selectedAsset);
 
@@ -1025,7 +1026,7 @@ class Amount extends PureComponent {
 		} = this.props;
 
 		return (
-			<SafeAreaView style={styles.wrapper} testID={'amount-screen'}>
+			<SafeAreaView edges={['bottom']} style={styles.wrapper} testID={'amount-screen'}>
 				<ScrollView style={styles.scrollWrapper}>
 					<View style={styles.inputWrapper}>
 						<View style={styles.actionsWrapper}>
