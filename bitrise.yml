@@ -3,12 +3,12 @@ format_version: '8'
 default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
 trigger_map:
+    - push_branch: 'test_run_if'
+      workflow: ci_test
     - push_branch: 'develop'
       workflow: start_release_builds
     - push_branch: 'main'
       workflow: start_release_builds
-    - push_branch: '*'
-      workflow: ci_test
     - pull_request_source_branch: '*'
       workflow: ci_test
 workflows:
