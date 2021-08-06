@@ -22,6 +22,7 @@ import { strings } from '../../../../../locales/i18n';
 import WarningMessage from '../WarningMessage';
 import { util } from '@metamask/controllers';
 import Analytics from '../../../../core/Analytics';
+import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { allowedToBuy } from '../../../UI/FiatOrders';
 import NetworkList from '../../../../util/networks';
@@ -545,6 +546,10 @@ class SendFlow extends PureComponent {
 		this.props.navigation.navigate('FiatOnRamp');
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_OPENED, {
+				button_location: 'Send Flow warning',
+				button_copy: 'Buy ETH'
+			});
 		});
 	};
 
