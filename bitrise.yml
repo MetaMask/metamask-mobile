@@ -12,12 +12,11 @@ trigger_map:
 workflows:
     # Code Setups
     setup:
-        # run_if: |- 
-        #     {{contains "release" $BITRISE_GIT_BRANCH}}
         steps:
             - activate-ssh-key@4:
                   run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
             - git-clone@4: {}
+                  run_if: '{{contains "release" $BITRISE_GIT_BRANCH}}'
             - nvm@1:
                   inputs:
                       - node_version: '14'
