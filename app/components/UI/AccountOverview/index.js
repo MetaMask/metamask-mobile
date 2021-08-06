@@ -6,6 +6,7 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import { connect } from 'react-redux';
 import Engine from '../../../core/Engine';
 import Analytics from '../../../core/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import AppConstants from '../../../core/AppConstants';
 import { strings } from '../../../../locales/i18n';
 
@@ -252,6 +253,10 @@ class AccountOverview extends PureComponent {
 		this.props.navigation.navigate('FiatOnRamp');
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_OPENED, {
+				button_location: 'Home Screen',
+				button_copy: 'Buy'
+			});
 		});
 	};
 
