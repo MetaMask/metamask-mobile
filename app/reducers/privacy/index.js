@@ -3,7 +3,8 @@ import { REHYDRATE } from 'redux-persist';
 const initialState = {
 	approvedHosts: {},
 	privacyMode: true,
-	thirdPartyApiMode: true
+	thirdPartyApiMode: true,
+	nftAutodetect: false
 };
 
 const privacyReducer = (state = initialState, action) => {
@@ -42,6 +43,11 @@ const privacyReducer = (state = initialState, action) => {
 			return {
 				...state,
 				thirdPartyApiMode: action.enabled
+			};
+		case 'SET_NFT_AUTODETECT':
+			return {
+				...state,
+				nftAutodetect: action.enabled
 			};
 		default:
 			return state;

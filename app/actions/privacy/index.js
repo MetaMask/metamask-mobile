@@ -29,3 +29,10 @@ export function setThirdPartyApiMode(enabled) {
 		enabled
 	};
 }
+
+export function setNFTAutodetect(enabled) {
+	return {
+		type: 'SET_NFT_AUTODETECT',
+		enabled
+	};
+}
