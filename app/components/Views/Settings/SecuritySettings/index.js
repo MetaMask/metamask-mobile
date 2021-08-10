@@ -19,7 +19,7 @@ import SelectComponent from '../../../UI/SelectComponent';
 import StyledButton from '../../../UI/StyledButton';
 import SettingsNotification from '../../../UI/SettingsNotification';
 import { clearHistory } from '../../../../actions/browser';
-import { clearHosts, setPrivacyMode, setThirdPartyApiMode } from '../../../../actions/privacy';
+import { clearHosts, setPrivacyMode, setThirdPartyApiMode, setNFTAutodetect } from '../../../../actions/privacy';
 import { colors, fontStyles } from '../../../../styles/common';
 import Logger from '../../../../util/Logger';
 import Device from '../../../../util/Device';
@@ -194,6 +194,14 @@ class Settings extends PureComponent {
 		 * Indicates whether third party API mode is enabled
 		 */
 		thirdPartyApiMode: PropTypes.bool,
+		/**
+		 * Called to toggle set NFT Autodetect mode
+		 */
+		setNFTAutodetect: PropTypes.func,
+		/**
+		 * Indicates whether the NFT autodetect mode is enabled
+		 */
+		nftAutodetect: PropTypes.bool,
 		/**
 		 * Called to set the passwordSet flag
 		 */
@@ -469,9 +477,7 @@ class Settings extends PureComponent {
 		}
 	};
 
-	toggleNFTPrivacy = value => {
-		console.log('Option ' + value);
-	};
+	toggleNFTPrivacy = value => this.props.setNFTAutodetect(value);
 
 	goToRevealPrivateCredential = () => {
 		this.props.navigation.navigate('RevealPrivateCredentialView', { privateCredentialName: 'seed_phrase' });
@@ -525,7 +531,14 @@ class Settings extends PureComponent {
 	onBack = () => this.props.navigation.goBack();
 
 	render = () => {
-		const { approvedHosts, seedphraseBackedUp, browserHistory, privacyMode, thirdPartyApiMode } = this.props;
+		const {
+			approvedHosts,
+			seedphraseBackedUp,
+			browserHistory,
+			privacyMode,
+			thirdPartyApiMode,
+			nftAutodetect
+		} = this.props;
 		const {
 			approvalModalVisible,
 			biometryType,
@@ -750,7 +763,7 @@ class Settings extends PureComponent {
 						<Text style={styles.desc}>{strings('app_settings.nft_privacy_description')}</Text>
 						<View style={styles.switchElement}>
 							<Switch
-								value={false}
+								value={nftAutodetect}
 								onValueChange={this.toggleNFTPrivacy}
 								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
 								ios_backgroundColor={colors.grey000}
@@ -810,6 +823,7 @@ const mapStateToProps = state => ({
 	lockTime: state.settings.lockTime,
 	privacyMode: state.privacy.privacyMode,
 	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
+	nftAutodetect: state.privacy.nftAutodetect,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	identities: state.engine.backgroundState.PreferencesController.identities,
@@ -824,6 +838,7 @@ const mapDispatchToProps = dispatch => ({
 	setLockTime: lockTime => dispatch(setLockTime(lockTime)),
 	setPrivacyMode: enabled => dispatch(setPrivacyMode(enabled)),
 	setThirdPartyApiMode: enabled => dispatch(setThirdPartyApiMode(enabled)),
+	setNFTAutodetect: enabled => dispatch(setNFTAutodetect(enabled)),
 	passwordSet: () => dispatch(passwordSet())
 });
 
