@@ -18,7 +18,6 @@ import Contacts from '../../Views/Settings/Contacts';
 import Wallet from '../../Views/Wallet';
 import Asset from '../../Views/Asset';
 import AddAsset from '../../Views/AddAsset';
-import Collectible from '../../Views/Collectible';
 import Send from '../../Views/Send';
 import SendTo from '../../Views/SendFlow/SendTo';
 import RevealPrivateCredential from '../../Views/RevealPrivateCredential';
@@ -75,8 +74,6 @@ const WalletTabHome = () => (
 		<Stack.Screen name="WalletView" component={Wallet} options={Wallet.navigationOptions} />
 		<Stack.Screen name="Asset" component={Asset} options={Asset.navigationOptions} />
 		<Stack.Screen name="AddAsset" component={AddAsset} options={AddAsset.navigationOptions} />
-
-		<Stack.Screen name="Collectible" component={Collectible} options={Collectible.navigationOptions} />
 
 		<Stack.Screen
 			name="RevealPrivateCredentialView"
