@@ -219,7 +219,7 @@ class WalletConnect {
 								},
 								origin: WALLET_CONNECT_ORIGIN
 							},
-							'V3'
+							'V4'
 						);
 
 						this.walletConnector.approveRequest({
