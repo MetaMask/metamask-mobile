@@ -18,8 +18,7 @@ const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
 		flex: 1,
-		minHeight: 500,
-		marginTop: 16
+		minHeight: 500
 	},
 	emptyView: {
 		justifyContent: 'center',
@@ -61,6 +60,14 @@ const styles = StyleSheet.create({
 	},
 	emptySectionText: {
 		marginVertical: 8
+	},
+	infoCardPlaceholder: {
+		width: '90%',
+		height: 50,
+		marginHorizontal: '5%',
+		marginVertical: 10,
+		borderWidth: 1,
+		borderColor: colors.black
 	}
 });
 
@@ -68,7 +75,13 @@ const styles = StyleSheet.create({
  * View that renders a list of CollectibleContract
  * also known as ERC-721 Tokens
  */
-const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, favoriteCollectibles }) => {
+const CollectibleContracts = ({
+	collectibleContracts,
+	collectibles,
+	navigation,
+	favoriteCollectibles,
+	nftAutodetect
+}) => {
 	const onItemPress = useCallback(
 		(collectible, contractName) => {
 			navigation.navigate('CollectiblesDetails', { collectible, contractName });
@@ -177,6 +190,8 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 
 	return (
 		<View style={styles.wrapper} testID={'collectible-contracts'}>
+			<View style={styles.infoCardPlaceholder} />
+			<Text>nftAutodetect: {nftAutodetect.toString()}</Text>
 			{collectibles.length ? renderList() : renderEmpty()}
 		</View>
 	);
@@ -199,13 +214,15 @@ CollectibleContracts.propTypes = {
 	/**
 	 * Object of collectibles
 	 */
-	favoriteCollectibles: PropTypes.array
+	favoriteCollectibles: PropTypes.array,
+	nftAutodetect: PropTypes.bool
 };
 
 const mapStateToProps = state => ({
 	collectibleContracts: state.engine.backgroundState.CollectiblesController.collectibleContracts,
 	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
-	favoriteCollectibles: favoritesCollectiblesObjectSelector(state)
+	favoriteCollectibles: favoritesCollectiblesObjectSelector(state),
+	nftAutodetect: state.privacy.nftAutodetect
 });
 
 export default connect(mapStateToProps)(CollectibleContracts);
