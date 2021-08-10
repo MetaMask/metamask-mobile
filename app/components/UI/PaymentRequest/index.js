@@ -40,6 +40,7 @@ import currencySymbols from '../../../util/currency-symbols.json';
 import { NetworksChainId } from '@metamask/controllers';
 import { getTicker } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
+import { utils as ethersUtils } from 'ethers';
 
 const KEYBOARD_OFFSET = 120;
 const styles = StyleSheet.create({
@@ -444,10 +445,9 @@ class PaymentRequest extends PureComponent {
 		const { selectedAsset } = this.state;
 		let secondaryAmount;
 		const symbol = selectedAsset.symbol;
-		const undefAmount = (isDecimal(amount) && amount) || 0;
+		const undefAmount = isDecimal(amount) && !ethersUtils.isHexString(amount) ? amount : 0;
 		const cryptoAmount = amount;
 		const exchangeRate = selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
-
 		if (selectedAsset.symbol !== 'ETH') {
 			secondaryAmount = exchangeRate
 				? balanceToFiat(undefAmount, conversionRate, exchangeRate, currentCurrency)
@@ -502,9 +502,9 @@ class PaymentRequest extends PureComponent {
 		// If primary currency is not crypo we need to know if there are conversion and exchange rates to handle0,
 		// fiat conversion for the payment request
 		if (internalPrimaryCurrency !== 'ETH' && conversionRate && (exchangeRate || selectedAsset.isETH)) {
-			res = this.handleFiatPrimaryCurrency(amount && amount.replace(',', '.'));
+			res = this.handleFiatPrimaryCurrency(amount?.replace(',', '.'));
 		} else {
-			res = this.handleETHPrimaryCurrency(amount && amount.replace(',', '.'));
+			res = this.handleETHPrimaryCurrency(amount?.replace(',', '.'));
 		}
 		const { cryptoAmount, symbol } = res;
 		if (amount && amount[0] === currencySymbol) amount = amount.substr(1);
@@ -541,26 +541,31 @@ class PaymentRequest extends PureComponent {
 	onNext = () => {
 		const { selectedAddress, navigation, chainId } = this.props;
 		const { cryptoAmount, selectedAsset } = this.state;
+
 		try {
-			let eth_link;
-			if (selectedAsset.isETH) {
-				const amount = toWei(cryptoAmount).toString();
-				eth_link = generateETHLink(selectedAddress, amount, chainId);
+			if (cryptoAmount && cryptoAmount > '0') {
+				let eth_link;
+				if (selectedAsset.isETH) {
+					const amount = toWei(cryptoAmount).toString();
+					eth_link = generateETHLink(selectedAddress, amount, chainId);
+				} else {
+					const amount = toTokenMinimalUnit(cryptoAmount, selectedAsset.decimals).toString();
+					eth_link = generateERC20Link(selectedAddress, selectedAsset.address, amount, chainId);
+				}
+
+				// Convert to universal link / app link
+				const link = generateUniversalLinkRequest(eth_link);
+
+				navigation &&
+					navigation.replace('PaymentRequestSuccess', {
+						link,
+						qrLink: eth_link,
+						amount: cryptoAmount,
+						symbol: selectedAsset.symbol
+					});
 			} else {
-				const amount = toTokenMinimalUnit(cryptoAmount, selectedAsset.decimals).toString();
-				eth_link = generateERC20Link(selectedAddress, selectedAsset.address, amount, chainId);
+				this.setState({ showError: true });
 			}
-
-			// Convert to universal link / app link
-			const link = generateUniversalLinkRequest(eth_link);
-
-			navigation &&
-				navigation.replace('PaymentRequestSuccess', {
-					link,
-					qrLink: eth_link,
-					amount: cryptoAmount,
-					symbol: selectedAsset.symbol
-				});
 		} catch (e) {
 			this.setState({ showError: true });
 		}
@@ -700,7 +705,7 @@ const mapStateToProps = state => ({
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	searchEngine: state.settings.searchEngine,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	tokens: state.engine.backgroundState.AssetsController.tokens,
+	tokens: state.engine.backgroundState.TokensController.tokens,
 	primaryCurrency: state.settings.primaryCurrency,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId
