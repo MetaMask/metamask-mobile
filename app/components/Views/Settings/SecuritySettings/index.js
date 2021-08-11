@@ -9,7 +9,8 @@ import {
 	View,
 	ActivityIndicator,
 	TouchableOpacity,
-	Keyboard
+	Keyboard,
+	InteractionManager
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
@@ -43,7 +44,7 @@ import {
 import CookieManager from '@react-native-community/cookies';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import HintModal from '../../../UI/HintModal';
-import { trackErrorAsAnalytics } from '../../../../util/analyticsV2';
+import AnalyticsV2, { trackErrorAsAnalytics } from '../../../../util/analyticsV2';
 import SeedPhraseVideo from '../../../UI/SeedPhraseVideo';
 
 const isIos = Device.isIos();
@@ -469,6 +470,15 @@ class Settings extends PureComponent {
 		this.props.setLockTime(parseInt(lockTime, 10));
 	};
 
+	goToBackup = () => {
+		this.props.navigation.navigate('AccountBackupStep1B');
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_STARTED, {
+				source: 'Settings'
+			});
+		});
+	};
+
 	manualBackup = () => {
 		this.props.navigation.navigate('ManualBackupStep1');
 	};
@@ -567,7 +577,7 @@ class Settings extends PureComponent {
 							) : null}
 						</SettingsNotification>
 						{!seedphraseBackedUp ? (
-							<StyledButton type="blue" onPress={this.manualBackup} containerStyle={styles.confirm}>
+							<StyledButton type="blue" onPress={this.goToBackup} containerStyle={styles.confirm}>
 								{strings('app_settings.back_up_now')}
 							</StyledButton>
 						) : (
