@@ -254,7 +254,6 @@ class Engine {
 		const {
 			AccountTrackerController,
 			AssetsContractController,
-			AssetsDetectionController,
 			NetworkController: { provider, state: NetworkControllerState },
 			TransactionController,
 			SwapsController
@@ -272,7 +271,6 @@ class Engine {
 		});
 		TransactionController.configure({ provider });
 		TransactionController.hub.emit('networkChange');
-		AssetsDetectionController.detectAssets();
 		AccountTrackerController.refresh();
 	}
 
