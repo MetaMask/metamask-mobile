@@ -3,15 +3,7 @@ import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import AddressList from './../AddressList';
 import PropTypes from 'prop-types';
-import {
-	StyleSheet,
-	View,
-	TouchableOpacity,
-	TextInput,
-	SafeAreaView,
-	InteractionManager,
-	ScrollView
-} from 'react-native';
+import { StyleSheet, View, TouchableOpacity, TextInput, InteractionManager, ScrollView } from 'react-native';
 import { AddressFrom, AddressTo } from './../AddressInputs';
 import Modal from 'react-native-modal';
 import AccountList from '../../../UI/AccountList';
@@ -30,12 +22,14 @@ import { strings } from '../../../../../locales/i18n';
 import WarningMessage from '../WarningMessage';
 import { util } from '@metamask/controllers';
 import Analytics from '../../../../core/Analytics';
+import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { allowedToBuy } from '../../../UI/FiatOrders';
 import NetworkList from '../../../../util/networks';
 import Text from '../../../Base/Text';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { collectConfusables, hasZeroWidthPoints } from '../../../../util/validators';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { hexToBN } = util;
 const styles = StyleSheet.create({
@@ -171,8 +165,7 @@ const dummy = () => true;
  * View that wraps the wraps the "Send" screen
  */
 class SendFlow extends PureComponent {
-	static navigationOptions = ({ navigation, screenProps }) =>
-		getSendFlowTitle('send.send_to', navigation, screenProps);
+	static navigationOptions = ({ navigation, route }) => getSendFlowTitle('send.send_to', navigation, route);
 
 	static propTypes = {
 		/**
@@ -222,7 +215,15 @@ class SendFlow extends PureComponent {
 		/**
 		 * Network provider type as mainnet
 		 */
-		providerType: PropTypes.string
+		providerType: PropTypes.string,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object,
+		/**
+		 * Indicates whether the current transaction is a deep link transaction
+		 */
+		isPaymentRequest: PropTypes.bool
 	};
 
 	addressToInputRef = React.createRef();
@@ -246,10 +247,20 @@ class SendFlow extends PureComponent {
 	};
 
 	componentDidMount = async () => {
-		const { addressBook, selectedAddress, accounts, ticker, network, navigation, providerType } = this.props;
+		const {
+			addressBook,
+			selectedAddress,
+			accounts,
+			ticker,
+			network,
+			navigation,
+			providerType,
+			route,
+			isPaymentRequest
+		} = this.props;
 		const { fromAccountName } = this.state;
 		// For analytics
-		navigation.setParams({ providerType });
+		navigation.setParams({ providerType, isPaymentRequest });
 		const networkAddressBook = addressBook[network] || {};
 		const ens = await doENSReverseLookup(selectedAddress, network);
 		const fromAccountBalance = `${renderFromWei(accounts[selectedAddress].balance)} ${getTicker(ticker)}`;
@@ -263,10 +274,12 @@ class SendFlow extends PureComponent {
 			});
 		}, 100);
 		if (!Object.keys(networkAddressBook).length) {
-			this.addressToInputRef && this.addressToInputRef.current && this.addressToInputRef.current.focus();
+			setTimeout(() => {
+				this.addressToInputRef && this.addressToInputRef.current && this.addressToInputRef.current.focus();
+			}, 500);
 		}
 		//Fills in to address and sets the transaction if coming from QR code scan
-		const targetAddress = navigation.getParam('txMeta', null)?.target_address;
+		const targetAddress = route.params?.txMeta?.target_address;
 		if (targetAddress) {
 			this.props.newAssetTransaction(getEther(ticker));
 			this.onToSelectedAddressChange(targetAddress);
@@ -530,9 +543,13 @@ class SendFlow extends PureComponent {
 	};
 
 	goToBuy = () => {
-		this.props.navigation.navigate('PaymentMethodSelector');
+		this.props.navigation.navigate('FiatOnRamp');
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_OPENED, {
+				button_location: 'Send Flow warning',
+				button_copy: 'Buy ETH'
+			});
 		});
 	};
 
@@ -578,7 +595,7 @@ class SendFlow extends PureComponent {
 			confusableCollection && confusableCollection.length && !confusableCollection.some(hasZeroWidthPoints);
 
 		return (
-			<SafeAreaView style={styles.wrapper} testID={'send-screen'}>
+			<SafeAreaView edges={['bottom']} style={styles.wrapper} testID={'send-screen'}>
 				<View style={styles.imputWrapper}>
 					<AddressFrom
 						onPressIcon={this.toggleFromAccountModal}
@@ -701,7 +718,8 @@ const mapStateToProps = state => ({
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	network: state.engine.backgroundState.NetworkController.network,
-	providerType: state.engine.backgroundState.NetworkController.provider.type
+	providerType: state.engine.backgroundState.NetworkController.provider.type,
+	isPaymentRequest: state.transaction.paymentRequest
 });
 
 const mapDispatchToProps = dispatch => ({

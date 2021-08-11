@@ -154,7 +154,11 @@ buildAndroidRun(){
 
 buildAndroidRunE2E(){
 	prebuild_android
-	source .android.env && cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug && cd ..
+	if [ -e $ANDROID_ENV_FILE ]
+	then
+		source $ANDROID_ENV_FILE
+	fi
+	cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug && cd ..
 }
 
 buildIosSimulator(){
@@ -164,7 +168,7 @@ buildIosSimulator(){
 
 buildIosSimulatorE2E(){
 	prebuild_ios
-	xcodebuild -workspace ios/MetaMask.xcworkspace -scheme MetaMask -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build
+	cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask -configuration Debug -sdk iphonesimulator -derivedDataPath build
 }
 
 buildIosDevice(){
@@ -185,7 +189,8 @@ buildIosRelease(){
 		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
 		echo "Build started..."
 		brew install watchman
-		cd ios && bundle install && bundle exec fastlane prerelease
+		cd ios
+		generateArchivePackages
 		# Generate sourcemaps
 		yarn sourcemaps:ios
 	else
@@ -205,14 +210,15 @@ buildIosReleaseE2E(){
 		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
 		echo "Build started..."
 		brew install watchman
-		cd ios && bundle install && bundle exec fastlane prerelease
+		cd ios 
+		generateArchivePackages 
 		# Generate sourcemaps
 		yarn sourcemaps:ios
 	else
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
 		fi
-		xcodebuild -workspace ios/MetaMask.xcworkspace -scheme MetaMask -configuration Release -sdk iphonesimulator -derivedDataPath ios/build
+		cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask -configuration Release -sdk iphonesimulator -derivedDataPath build
 	fi
 }
 
@@ -221,13 +227,6 @@ buildAndroidRelease(){
 		adb uninstall io.metamask || true
 	fi
 	prebuild_android
-
-	if [ "$PRE_RELEASE" = true ] ; then
-		TARGET="android/app/build.gradle"
-		sed -i'' -e 's/getPassword("mm","mm-upload-key")/"ANDROID_KEY"/' $TARGET;
-		sed -i'' -e "s/ANDROID_KEY/$ANDROID_KEY/" $TARGET;
-		echo "$ANDROID_KEYSTORE" | base64 --decode > android/keystores/release.keystore
-	fi
 
 	# GENERATE APK
 	cd android && ./gradlew assembleRelease --no-daemon --max-workers 2
@@ -251,7 +250,7 @@ buildAndroidRelease(){
 
 buildAndroidReleaseE2E(){
 	prebuild_android
-	source .android.env && cd android && ./gradlew assembleRelease assembleAndroidTest -DtestBuildType=release && cd ..
+	cd android && ./gradlew assembleRelease assembleAndroidTest -DtestBuildType=release
 }
 
 buildAndroid() {
@@ -317,9 +316,16 @@ checkParameters "$@"
 
 printTitle
 
-if [ "$MODE" == "release" ] || [ "$MODE" == "releaseE2E" ] ; then
-	checkAuthToken 'sentry.release.properties'
-	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"
+if [ "$MODE" == "release" ]; then
+
+	if [ "$PRE_RELEASE" = false ]; then
+ 		checkAuthToken 'sentry.release.properties'
+ 		export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"
+ 	else
+ 		checkAuthToken 'sentry.debug.properties'
+ 		export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
+ 	fi
+
 	if [ -z "$METAMASK_ENVIRONMENT" ]; then
 		printError "Missing METAMASK_ENVIRONMENT; set to 'production' for a production release, 'prerelease' for a pre-release, or 'local' otherwise"
 		exit 1

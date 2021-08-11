@@ -23,9 +23,12 @@ exports[`ActionView should render correctly 1`] = `
       }
     }
     style={
-      Object {
-        "flex": 1,
-      }
+      Array [
+        Object {
+          "flex": 1,
+        },
+        undefined,
+      ]
     }
     viewIsInsideTabBar={false}
   >
@@ -37,70 +40,70 @@ exports[`ActionView should render correctly 1`] = `
         }
       }
     />
+    <View
+      style={
+        Object {
+          "flex": 0,
+          "flexDirection": "row",
+          "paddingHorizontal": 24,
+          "paddingVertical": 16,
+        }
+      }
+    >
+      <StyledButton
+        containerStyle={
+          Array [
+            Object {
+              "flex": 1,
+            },
+            Object {
+              "marginRight": 8,
+            },
+          ]
+        }
+        disabled={false}
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        testID=""
+        type="cancel"
+      >
+        Cancel
+      </StyledButton>
+      <StyledButton
+        containerStyle={
+          Array [
+            Object {
+              "flex": 1,
+            },
+            Object {
+              "marginLeft": 8,
+            },
+          ]
+        }
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        testID=""
+        type="normal"
+      >
+        Confirm
+      </StyledButton>
+    </View>
   </KeyboardAwareScrollView>
-  <View
-    style={
-      Object {
-        "flex": 0,
-        "flexDirection": "row",
-        "paddingHorizontal": 24,
-        "paddingVertical": 16,
-      }
-    }
-  >
-    <StyledButton
-      containerStyle={
-        Array [
-          Object {
-            "flex": 1,
-          },
-          Object {
-            "marginRight": 8,
-          },
-        ]
-      }
-      disabled={false}
-      disabledContainerStyle={
-        Object {
-          "opacity": 0.6,
-        }
-      }
-      styleDisabled={
-        Object {
-          "opacity": 0.6,
-        }
-      }
-      testID=""
-      type="cancel"
-    >
-      Cancel
-    </StyledButton>
-    <StyledButton
-      containerStyle={
-        Array [
-          Object {
-            "flex": 1,
-          },
-          Object {
-            "marginLeft": 8,
-          },
-        ]
-      }
-      disabledContainerStyle={
-        Object {
-          "opacity": 0.6,
-        }
-      }
-      styleDisabled={
-        Object {
-          "opacity": 0.6,
-        }
-      }
-      testID=""
-      type="normal"
-    >
-      Confirm
-    </StyledButton>
-  </View>
 </View>
 `;

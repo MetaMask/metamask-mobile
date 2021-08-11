@@ -12,7 +12,6 @@ import { toggleReceiveModal } from '../../../actions/modals';
 import { connect } from 'react-redux';
 import { renderFromTokenMinimalUnit, balanceToFiat, renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
-import { isMainNet } from '../../../util/networks';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { isSwapsAllowed } from '../Swaps/utils';
@@ -20,6 +19,7 @@ import { swapsLivenessSelector, swapsTokensObjectSelector } from '../../../reduc
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import Analytics from '../../../core/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { allowedToBuy } from '../FiatOrders';
 import AssetSwapButton from '../Swaps/components/AssetSwapButton';
@@ -160,9 +160,13 @@ class AssetOverview extends PureComponent {
 	};
 
 	onBuy = () => {
-		this.props.navigation.navigate('PaymentMethodSelector');
+		this.props.navigation.navigate('FiatOnRamp');
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_OPENED, {
+				button_location: 'Token Screen',
+				button_copy: 'Buy'
+			});
 		});
 	};
 
@@ -179,13 +183,19 @@ class AssetOverview extends PureComponent {
 
 	goToSwaps = () => {
 		this.props.navigation.navigate('Swaps', {
-			sourceToken: this.props.asset.isETH ? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS : this.props.asset.address
+			screen: 'SwapsAmountView',
+			params: {
+				sourceToken: this.props.asset.isETH ? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS : this.props.asset.address
+			}
 		});
 	};
 
 	goToBrowserUrl(url) {
-		this.props.navigation.navigate('BrowserView', {
-			newTabUrl: url
+		this.props.navigation.navigate('BrowserTabHome', {
+			screen: 'BrowserView',
+			params: {
+				newTabUrl: url
+			}
 		});
 	}
 
@@ -250,16 +260,12 @@ class AssetOverview extends PureComponent {
 		let balance, balanceFiat;
 		if (isETH) {
 			balance = renderFromWei(accounts[selectedAddress] && accounts[selectedAddress].balance);
-			balanceFiat = isMainNet(chainId)
-				? weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency)
-				: null;
+			balanceFiat = weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency);
 		} else {
 			const exchangeRate = itemAddress in tokenExchangeRates ? tokenExchangeRates[itemAddress] : undefined;
 			balance =
 				itemAddress in tokenBalances ? renderFromTokenMinimalUnit(tokenBalances[itemAddress], decimals) : 0;
-			balanceFiat = isMainNet(chainId)
-				? balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency)
-				: null;
+			balanceFiat = balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
 		}
 		// choose balances depending on 'primaryCurrency'
 		if (primaryCurrency === 'ETH') {

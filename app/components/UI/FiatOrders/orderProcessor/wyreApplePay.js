@@ -4,8 +4,9 @@ import axios from 'axios';
 import AppConstants from '../../../../core/AppConstants';
 import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
-import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../../../reducers/fiatOrders';
+
 import useCurrency from '../../../Base/Keypad/useCurrency';
+import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
 
 //* env vars
 
@@ -714,8 +715,11 @@ export function useWyreTerms(navigation) {
 	const handleWyreTerms = useCallback(
 		() =>
 			navigation.navigate('Webview', {
-				url: 'https://www.sendwyre.com/user-agreement/',
-				title: strings('fiat_on_ramp.wyre_user_agreement')
+				screen: 'SimpleWebview',
+				params: {
+					url: 'https://www.sendwyre.com/user-agreement/',
+					title: strings('fiat_on_ramp.wyre_user_agreement')
+				}
 			}),
 		[navigation]
 	);

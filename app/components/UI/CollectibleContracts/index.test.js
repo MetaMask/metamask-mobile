@@ -21,7 +21,7 @@ describe('CollectibleContracts', () => {
 					PreferencesController: {
 						selectedAddress: '0x1'
 					},
-					AssetsController: {
+					CollectiblesController: {
 						collectibleContracts: [
 							{
 								name: 'name',
@@ -40,7 +40,7 @@ describe('CollectibleContracts', () => {
 
 		const wrapper = shallow(
 			<CollectibleContracts
-				navigation={{ state: { params: { address: '0x1' } } }}
+				route={{ params: { address: '0x1' } }}
 				collectibles={[
 					{
 						address: '0x0',

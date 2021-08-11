@@ -1,7 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Amount should render correctly 1`] = `
-<ForwardRef(SafeAreaView)
+<RNCSafeAreaView
+  edges={
+    Array [
+      "bottom",
+    ]
+  }
   style={
     Object {
       "backgroundColor": "#FFFFFF",
@@ -254,6 +259,7 @@ exports[`Amount should render correctly 1`] = `
     onModalWillHide={[Function]}
     onModalWillShow={[Function]}
     onSwipeComplete={[Function]}
+    panResponderThreshold={4}
     propagateSwipe={true}
     scrollHorizontal={false}
     scrollOffset={0}
@@ -275,7 +281,7 @@ exports[`Amount should render correctly 1`] = `
     swipeThreshold={100}
     useNativeDriver={false}
   >
-    <ForwardRef(SafeAreaView)
+    <RNCSafeAreaView
       style={
         Object {
           "backgroundColor": "#FFFFFF",
@@ -324,7 +330,7 @@ exports[`Amount should render correctly 1`] = `
         updateCellsBatchingPeriod={50}
         windowSize={21}
       />
-    </ForwardRef(SafeAreaView)>
+    </RNCSafeAreaView>
   </ReactNativeModal>
-</ForwardRef(SafeAreaView)>
+</RNCSafeAreaView>
 `;

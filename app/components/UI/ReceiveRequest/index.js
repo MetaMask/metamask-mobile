@@ -9,6 +9,7 @@ import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import { connect } from 'react-redux';
 
 import Analytics from '../../../core/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/Device';
 import { strings } from '../../../../locales/i18n';
@@ -157,9 +158,13 @@ class ReceiveRequest extends PureComponent {
 			Alert.alert(strings('fiat_on_ramp.network_not_supported'), strings('fiat_on_ramp.switch_network'));
 		} else {
 			toggleReceiveModal();
-			navigation.navigate('PaymentMethodSelector');
+			navigation.navigate('FiatOnRamp');
 			InteractionManager.runAfterInteractions(() => {
 				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
+				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_OPENED, {
+					button_location: 'Receive Modal',
+					button_copy: 'Buy ETH'
+				});
 			});
 		}
 	};
@@ -199,7 +204,10 @@ class ReceiveRequest extends PureComponent {
 
 	onReceive = () => {
 		this.props.toggleReceiveModal();
-		this.props.navigation.navigate('PaymentRequestView', { receiveAsset: this.props.receiveAsset });
+		this.props.navigation.navigate('PaymentRequestView', {
+			screen: 'PaymentRequest',
+			params: { receiveAsset: this.props.receiveAsset }
+		});
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST);
 		});

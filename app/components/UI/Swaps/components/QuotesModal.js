@@ -1,7 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, ScrollView, TouchableOpacity, LayoutAnimation, UIManager, Platform } from 'react-native';
-import { SafeAreaView } from 'react-navigation';
+import {
+	StyleSheet,
+	View,
+	ScrollView,
+	TouchableOpacity,
+	LayoutAnimation,
+	UIManager,
+	Platform,
+	SafeAreaView
+} from 'react-native';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
@@ -140,7 +148,7 @@ function QuotesModal({
 	showOverallValue,
 	ticker
 }) {
-	const bestOverallValue = quoteValues[quotes[0].aggregator].overallValueOfQuote;
+	const bestOverallValue = quoteValues?.[quotes[0].aggregator]?.overallValueOfQuote ?? 0;
 	const [displayDetails, setDisplayDetails] = useState(false);
 	const [selectedDetailsQuoteIndex, setSelectedDetailsQuoteIndex] = useState(null);
 
@@ -359,6 +367,7 @@ function QuotesModal({
 										quotes.map((quote, index) => {
 											const { aggregator } = quote;
 											const isSelected = aggregator === selectedQuote;
+											const quoteValue = quoteValues[aggregator];
 											return (
 												<TouchableOpacity
 													key={aggregator}
@@ -381,7 +390,7 @@ function QuotesModal({
 													<View style={styles.columnFee}>
 														<Text primary bold={isSelected}>
 															{weiToFiat(
-																toWei(quoteValues[aggregator].ethFee),
+																toWei(quoteValue?.ethFee ?? 0),
 																conversionRate,
 																currentCurrency
 															)}
@@ -407,7 +416,7 @@ function QuotesModal({
 																	toWei(
 																		(
 																			bestOverallValue -
-																			quoteValues[aggregator].overallValueOfQuote
+																			(quoteValue?.overallValueOfQuote ?? 0)
 																		).toFixed(18)
 																	),
 																	conversionRate,

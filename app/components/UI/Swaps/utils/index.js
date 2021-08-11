@@ -37,33 +37,42 @@ export function isDynamicToken(token) {
  * @param {string} destinationTokenAddress Token contract address used as swaps result
  * @param {string} sourceAmount Amount in minimal token units of sourceTokenAddress to be swapped
  * @param {string|number} slippage Max slippage
+ * @param {array} tokens Tokens selected for trade
  * @return {object} Object containing sourceTokenAddress, destinationTokenAddress, sourceAmount and slippage
  */
-export function setQuotesNavigationsParams(sourceTokenAddress, destinationTokenAddress, sourceAmount, slippage) {
+export function setQuotesNavigationsParams(
+	sourceTokenAddress,
+	destinationTokenAddress,
+	sourceAmount,
+	slippage,
+	tokens = []
+) {
 	return {
 		sourceTokenAddress,
 		destinationTokenAddress,
 		sourceAmount,
-		slippage
+		slippage,
+		tokens
 	};
 }
 
 /**
  * Gets required parameters for Swaps Quotes View
- * @param {object} navigation React-navigation's navigation prop
  * @return {object} Object containing sourceTokenAddress, destinationTokenAddress, sourceAmount and slippage
  */
-export function getQuotesNavigationsParams(navigation) {
-	const slippage = navigation.getParam('slippage', 1);
-	const sourceTokenAddress = navigation.getParam('sourceTokenAddress', '');
-	const destinationTokenAddress = navigation.getParam('destinationTokenAddress', '');
-	const sourceAmount = navigation.getParam('sourceAmount');
+export function getQuotesNavigationsParams(route) {
+	const slippage = route.params?.slippage ?? 1;
+	const sourceTokenAddress = route.params?.sourceTokenAddress ?? '';
+	const destinationTokenAddress = route.params?.destinationTokenAddress ?? '';
+	const sourceAmount = route.params?.sourceAmount;
+	const tokens = route.params?.tokens;
 
 	return {
 		sourceTokenAddress,
 		destinationTokenAddress,
 		sourceAmount,
-		slippage
+		slippage,
+		tokens
 	};
 }
 
@@ -76,26 +85,16 @@ export function getQuotesNavigationsParams(navigation) {
  * @param {string} sourceAmount Amount in minimal token units of sourceToken to be swapped
  * @param {string} fromAddress Current address attempting to swap
  */
-export function getFetchParams({
-	slippage = 1,
-	sourceToken,
-	destinationToken,
-	sourceAmount,
-	walletAddress,
-	destinationTokenConversionRate
-}) {
+export function getFetchParams({ slippage = 1, sourceToken, destinationToken, sourceAmount, walletAddress }) {
 	return {
 		slippage,
 		sourceToken: sourceToken.address,
 		destinationToken: destinationToken.address,
 		sourceAmount,
 		walletAddress,
-		balanceError: undefined,
 		metaData: {
 			sourceTokenInfo: sourceToken,
-			destinationTokenInfo: destinationToken,
-			accountBalance: '0x0',
-			destinationTokenConversionRate
+			destinationTokenInfo: destinationToken
 		}
 	};
 }
