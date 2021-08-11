@@ -274,12 +274,13 @@
 		"collectible": "Collectible",
 		"collectibles": "NFTs",
 		"transactions": "TRANSACTIONS",
-		"no_collectibles": "Don’t see your NFT?",
+		"no_collectibles": "Your NFTs will show up here. If you don’t see your NFT, try importing manually.",
 		"add_tokens": "ADD TOKENS",
 		"no_tokens": "You don't have any tokens!",
-		"no_nfts_yet": "No NFTs yet",
+		"no_nfts_to_show": "No NFTs to show",
 		"learn_more": "Learn more",
 		"add_collectibles": "ADD NFTs",
+		"manually_import_nfts": "Import manually",
 		"no_transactions": "You have no transactions!",
 		"send_button": "Send",
 		"deposit_button": "Deposit",
@@ -1658,7 +1659,7 @@
 	"secret_phrase_video_subtitle": {
 		"title": "EN CC",
 		"language": "en",
-		"uri": "https://github.com/MetaMask/metamask-mobile/blob/feature/secret_recovery_translations/app/videos/subtitles/subtitles-en.vtt"
+		"uri": "https://github.com/MetaMask/metamask-mobile/blob/develop/app/videos/subtitles/secretPhrase/subtitles-en.vtt?raw=true"
 	},
 	"edit_gas_fee_eip1559": {
 		"advanced_options": "Advanced options",
