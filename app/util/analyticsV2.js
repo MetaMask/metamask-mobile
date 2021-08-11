@@ -37,6 +37,16 @@ export const ANALYTICS_EVENTS_V2 = {
 	// Send transaction
 	SEND_TRANSACTION_STARTED: generateOpt('Send Transaction Started'),
 	SEND_TRANSACTION_COMPLETED: generateOpt('Send Transaction Completed'),
+	// On-ramp
+	ONRAMP_OPENED: generateOpt('On-ramp Opened'),
+	ONRAMP_CLOSED: generateOpt('On-ramp Closed'),
+	ONRAMP_PURCHASE_EXITED: generateOpt('On-ramp Purchase Exited'),
+	ONRAMP_PURCHASE_STARTED: generateOpt('On-ramp Purchase Started'),
+	ONRAMP_PURCHASE_SUBMISSION_FAILED: generateOpt('On-ramp Submission Failed'),
+	ONRAMP_PURCHASE_SUBMITTED: generateOpt('On-ramp Purchase Submitted'),
+	ONRAMP_PURCHASE_FAILED: generateOpt('On-ramp Purchase Failed'),
+	ONRAMP_PURCHASE_CANCELLED: generateOpt('On-ramp Purchase Cancelled'),
+	ONRAMP_PURCHASE_COMPLETED: generateOpt('On-ramp Purchase Completed'),
 	// Wallet Security
 	WALLET_SECURITY_STARTED: generateOpt('Wallet Security Started'),
 	WALLET_SECURITY_MANUAL_BACKUP_INITIATED: generateOpt('Manual Backup Initiated'),

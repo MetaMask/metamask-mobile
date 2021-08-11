@@ -4,7 +4,6 @@ import {
 	BackHandler,
 	Text,
 	View,
-	SafeAreaView,
 	StyleSheet,
 	Keyboard,
 	TouchableOpacity,
@@ -29,9 +28,11 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
-		marginTop: 40,
 		backgroundColor: colors.white,
 		flex: 1
+	},
+	actionView: {
+		paddingTop: 40
 	},
 	wrapper: {
 		flex: 1,
@@ -192,7 +193,7 @@ class ManualBackupStep3 extends PureComponent {
 
 	render() {
 		return (
-			<SafeAreaView style={styles.mainWrapper}>
+			<View style={styles.mainWrapper}>
 				<Confetti />
 				{this.steps ? (
 					<View style={styles.onBoardingWrapper}>
@@ -205,6 +206,7 @@ class ManualBackupStep3 extends PureComponent {
 					onConfirmPress={this.done}
 					showCancelButton={false}
 					confirmButtonMode={'confirm'}
+					style={styles.actionView}
 				>
 					<View style={styles.wrapper} testID={'import-congrats-screen'}>
 						<Emoji name="tada" style={styles.emoji} />
@@ -229,7 +231,7 @@ class ManualBackupStep3 extends PureComponent {
 				</ActionView>
 				{Device.isAndroid() && <AndroidBackHandler customBackPress={this.props.navigation.pop} />}
 				{this.renderHint()}
-			</SafeAreaView>
+			</View>
 		);
 	}
 }
