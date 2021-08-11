@@ -160,6 +160,8 @@ workflows:
                   is_always_run: false
     # Parallel Build & Deploy Steps
     start_release_builds:
+        before_run:
+            - setup
         steps:
             - build-router-start@0:
                   inputs:
