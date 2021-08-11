@@ -8,7 +8,7 @@ on:
 jobs:
   bump-version-name:
     runs-on: ubuntu-latest
-    if: "contains(github.head_ref, '')"
+    if: "contains(github.head_ref, 'fix/')"
     permissions:
       contents: write  
     steps:
