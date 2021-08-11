@@ -88,6 +88,10 @@ class Wallet extends PureComponent {
 		 */
 		ticker: PropTypes.string,
 		/**
+		 * Indicates whether the NFT autodetect mode is enabled
+		 */
+		nftAutodetect: PropTypes.bool,
+		/**
 		 * Current onboarding wizard step
 		 */
 		wizardStep: PropTypes.number
@@ -102,9 +106,10 @@ class Wallet extends PureComponent {
 	mounted = false;
 
 	componentDidMount = () => {
+		const { nftAutodetect } = this.props;
 		requestAnimationFrame(async () => {
 			const { AssetsDetectionController, AccountTrackerController } = Engine.context;
-			AssetsDetectionController.detectAssets();
+			nftAutodetect && AssetsDetectionController.detectAssets();
 			AccountTrackerController.refresh();
 
 			this.mounted = true;
@@ -257,6 +262,7 @@ const mapStateToProps = state => ({
 	tokens: state.engine.backgroundState.TokensController.tokens,
 	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+	nftAutodetect: state.privacy.nftAutodetect,
 	wizardStep: state.wizard.step
 });
 
