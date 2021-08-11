@@ -502,26 +502,33 @@ class Onboarding extends PureComponent {
 	};
 
 	onPressCreate = () => {
-		const action = () => {
-			this.props.navigation.navigate('ChoosePassword', {
-				[PREVIOUS_SCREEN]: ONBOARDING
-			});
-			this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_PASSWORD);
+		const action = async () => {
+			const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
+			if (metricsOptIn) {
+				this.props.navigation.navigate('ChoosePassword', {
+					[PREVIOUS_SCREEN]: ONBOARDING
+				});
+				this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_PASSWORD);
+			} else {
+				this.props.navigation.navigate('OptinMetrics', {
+					onContinue: () => {
+						this.props.navigation.replace('ChoosePassword', {
+							[PREVIOUS_SCREEN]: ONBOARDING
+						});
+						this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_PASSWORD);
+					}
+				});
+			}
 		};
 		this.handleExistingUser(action);
 	};
 
 	onPressSync = () => {
-		const { existingUser } = this.state;
 		const action = () =>
 			setTimeout(() => {
 				this.safeSync();
 			}, 500);
-		if (existingUser) {
-			this.alertExistingUser(action);
-		} else {
-			action();
-		}
+		this.handleExistingUser(action);
 	};
 
 	safeSync = () => {
@@ -538,9 +545,19 @@ class Onboarding extends PureComponent {
 	};
 
 	onPressImport = () => {
-		const action = () => {
-			this.props.navigation.push('ImportFromSeed');
-			this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WALLET);
+		const action = async () => {
+			const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
+			if (metricsOptIn) {
+				this.props.navigation.push('ImportFromSeed');
+				this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WALLET);
+			} else {
+				this.props.navigation.navigate('OptinMetrics', {
+					onContinue: () => {
+						this.props.navigation.replace('ImportFromSeed');
+						this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_PASSWORD);
+					}
+				});
+			}
 		};
 		this.handleExistingUser(action);
 	};

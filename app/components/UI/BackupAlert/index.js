@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Text, StyleSheet, View, TouchableOpacity } from 'react-native';
+import { Text, StyleSheet, View, TouchableOpacity, InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import ElevatedView from 'react-native-elevated-view';
@@ -9,6 +9,7 @@ import Device from '../../../util/Device';
 import { connect } from 'react-redux';
 import { backUpSeedphraseAlertNotVisible } from '../../../actions/user';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 const BROWSER_ROUTE = 'BrowserView';
 
@@ -127,11 +128,23 @@ class BackupAlert extends PureComponent {
 
 	goToBackupFlow = () => {
 		this.props.navigation.navigate('SetPasswordFlow', { screen: 'AccountBackupStep1' });
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_ENGAGED, {
+				wallet_protection_required: false,
+				source: 'Backup Alert'
+			});
+		});
 	};
 
 	onDismiss = () => {
 		const { onDismiss, backUpSeedphraseAlertNotVisible } = this.props;
 		backUpSeedphraseAlertNotVisible();
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_DISMISSED, {
+				wallet_protection_required: false,
+				source: 'Backup Alert'
+			});
+		});
 		if (onDismiss) onDismiss();
 	};
 

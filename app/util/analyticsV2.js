@@ -36,7 +36,19 @@ export const ANALYTICS_EVENTS_V2 = {
 	NETWORK_REQUEST_REJECTED: generateOpt('Network Request Rejected'),
 	// Send transaction
 	SEND_TRANSACTION_STARTED: generateOpt('Send Transaction Started'),
-	SEND_TRANSACTION_COMPLETED: generateOpt('Send Transaction Completed')
+	SEND_TRANSACTION_COMPLETED: generateOpt('Send Transaction Completed'),
+	// Wallet Security
+	WALLET_SECURITY_STARTED: generateOpt('Wallet Security Started'),
+	WALLET_SECURITY_MANUAL_BACKUP_INITIATED: generateOpt('Manual Backup Initiated'),
+	WALLET_SECURITY_PHRASE_REVEALED: generateOpt('Phrase Revealed'),
+	WALLET_SECURITY_PHRASE_CONFIRMED: generateOpt('Phrase Confirmed'),
+	WALLET_SECURITY_SKIP_INITIATED: generateOpt('Wallet Security Skip Initiated'),
+	WALLET_SECURITY_SKIP_CONFIRMED: generateOpt('Wallet Security Skip Confirmed'),
+	WALLET_SECURITY_RECOVERY_HINT_SAVED: generateOpt('Recovery Hint Saved'),
+	WALLET_SECURITY_COMPLETED: generateOpt('Wallet Security Completed'),
+	WALLET_SECURITY_PROTECT_VIEWED: generateOpt('Protect Your Wallet Viewed'),
+	WALLET_SECURITY_PROTECT_ENGAGED: generateOpt('Protect Your Wallet Engaged'),
+	WALLET_SECURITY_PROTECT_DISMISSED: generateOpt('Protect Your Wallet Dismissed')
 };
 
 /**

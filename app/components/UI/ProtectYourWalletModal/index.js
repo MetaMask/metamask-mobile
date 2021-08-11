@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, Image, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, Image, TouchableOpacity, InteractionManager } from 'react-native';
 import ActionModal from '../ActionModal';
 import { fontStyles, colors } from '../../../styles/common';
 import { connect } from 'react-redux';
@@ -8,6 +8,7 @@ import { protectWalletModalNotVisible } from '../../../actions/user';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
 import scaling from '../../../util/scaling';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 const protectWalletImage = require('../../../images/protect-wallet.jpg'); // eslint-disable-line
 
@@ -85,6 +86,12 @@ class ProtectYourWalletModal extends PureComponent {
 			'SetPasswordFlow',
 			this.props.passwordSet ? { screen: 'AccountBackupStep1' } : undefined
 		);
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_ENGAGED, {
+				wallet_protection_required: false,
+				source: 'Modal'
+			});
+		});
 	};
 
 	onLearnMore = () => {
@@ -98,6 +105,16 @@ class ProtectYourWalletModal extends PureComponent {
 		});
 	};
 
+	onDismiss = () => {
+		this.props.protectWalletModalNotVisible();
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_DISMISSED, {
+				wallet_protection_required: false,
+				source: 'Modal'
+			});
+		});
+	};
+
 	render() {
 		return (
 			<ActionModal
@@ -105,8 +122,8 @@ class ProtectYourWalletModal extends PureComponent {
 				cancelText={strings('protect_wallet_modal.top_button')}
 				confirmText={strings('protect_wallet_modal.bottom_button')}
 				onCancelPress={this.goToBackupFlow}
-				onRequestClose={this.props.protectWalletModalNotVisible}
-				onConfirmPress={this.props.protectWalletModalNotVisible}
+				onRequestClose={this.onDismiss}
+				onConfirmPress={this.onDismiss}
 				cancelButtonMode={'sign'}
 				confirmButtonMode={'transparent-blue'}
 				verticalButtons
@@ -116,7 +133,7 @@ class ProtectYourWalletModal extends PureComponent {
 						<View style={styles.auxCenter} />
 						<Text style={styles.title}>{strings('protect_wallet_modal.title')}</Text>
 						<TouchableOpacity
-							onPress={this.props.protectWalletModalNotVisible}
+							onPress={this.onDismiss}
 							style={styles.closeIcon}
 							hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
 						>

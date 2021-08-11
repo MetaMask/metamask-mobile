@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView, TouchableOpacity, Text, View, SafeAreaView, StyleSheet, BackHandler } from 'react-native';
+import {
+	ScrollView,
+	TouchableOpacity,
+	Text,
+	View,
+	SafeAreaView,
+	StyleSheet,
+	BackHandler,
+	InteractionManager
+} from 'react-native';
 import PropTypes from 'prop-types';
 import AsyncStorage from '@react-native-community/async-storage';
 import { colors, fontStyles } from '../../../styles/common';
@@ -18,6 +27,8 @@ import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import SeedPhraseVideo from '../../UI/SeedPhraseVideo';
 import { connect } from 'react-redux';
 import setOnboardingWizardStep from '../../../actions/wizard';
+import AnalyticsV2 from '../../../util/analyticsV2';
+
 const styles = StyleSheet.create({
 	mainWrapper: {
 		backgroundColor: colors.white,
@@ -130,12 +141,18 @@ const AccountBackupStep1 = props => {
 
 	const goNext = () => {
 		props.navigation.navigate('AccountBackupStep1B', { ...props.route.params });
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_STARTED);
+		});
 	};
 
 	const showRemindLater = () => {
 		if (hasFunds) return;
 
 		setRemindLaterModal(true);
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_SKIP_INITIATED);
+		});
 	};
 
 	const toggleSkipCheckbox = () => (skipCheckbox ? setToggleSkipCheckbox(false) : setToggleSkipCheckbox(true));
@@ -152,6 +169,9 @@ const AccountBackupStep1 = props => {
 
 	const skip = async () => {
 		hideRemindLaterModal();
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_SKIP_CONFIRMED);
+		});
 		// Get onboarding wizard state
 		const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
 		// Check if user passed through metrics opt-in screen

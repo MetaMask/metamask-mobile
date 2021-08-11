@@ -1,5 +1,15 @@
 import React, { useState } from 'react';
-import { ScrollView, TouchableOpacity, Text, View, SafeAreaView, StyleSheet, Image, Dimensions } from 'react-native';
+import {
+	ScrollView,
+	TouchableOpacity,
+	Text,
+	View,
+	SafeAreaView,
+	StyleSheet,
+	Image,
+	Dimensions,
+	InteractionManager
+} from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { colors, fontStyles } from '../../../styles/common';
@@ -12,6 +22,7 @@ import ActionModal from '../../UI/ActionModal';
 import SeedphraseModal from '../../UI/SeedphraseModal';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 
@@ -196,6 +207,9 @@ const AccountBackupStep1B = props => {
 
 	const goNext = () => {
 		props.navigation.navigate('ManualBackupStep1', { ...props.route.params });
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_MANUAL_BACKUP_INITIATED);
+		});
 	};
 
 	const learnMore = () => {

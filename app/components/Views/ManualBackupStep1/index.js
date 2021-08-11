@@ -30,6 +30,7 @@ import {
 	CONFIRM_PASSWORD,
 	WRONG_PASSWORD_ERROR
 } from '../../../constants/onboarding';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -266,7 +267,12 @@ export default class ManualBackupStep1 extends PureComponent {
 		this.props.navigation.navigate('ManualBackupStep2', { words: this.words, steps: this.steps });
 	};
 
-	revealSeedPhrase = () => this.setState({ seedPhraseHidden: false });
+	revealSeedPhrase = () => {
+		this.setState({ seedPhraseHidden: false });
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PHRASE_REVEALED);
+		});
+	};
 
 	tryExportSeedPhrase = async password => {
 		const { KeyringController } = Engine.context;

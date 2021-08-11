@@ -103,7 +103,11 @@ class OptinMetrics extends PureComponent {
 		/**
 		 * Action to erase any event stored in onboarding state
 		 */
-		clearOnboardingEvents: PropTypes.func
+		clearOnboardingEvents: PropTypes.func,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object
 	};
 
 	actionsList = [1, 2, 3, 4, 5, 6].map(value => ({
@@ -131,6 +135,11 @@ class OptinMetrics extends PureComponent {
 	 * Action to be triggered when pressing any button
 	 */
 	continue = async () => {
+		const onContinue = this.props.route?.params?.onContinue;
+		if (onContinue) {
+			return onContinue();
+		}
+
 		// Get onboarding wizard state
 		const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
 		if (onboardingWizard) {

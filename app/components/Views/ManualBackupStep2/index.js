@@ -10,6 +10,7 @@ import { seedphraseBackedUp } from '../../../actions/user';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Device from '../../../util/Device';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -257,6 +258,7 @@ class ManualBackupStep2 extends PureComponent {
 			InteractionManager.runAfterInteractions(() => {
 				const words = route.params?.words;
 				navigation.navigate('ManualBackupStep3', { steps: this.steps, words });
+				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PHRASE_CONFIRMED);
 			});
 		} else {
 			Alert.alert(strings('account_backup_step_5.error_title'), strings('account_backup_step_5.error_message'));

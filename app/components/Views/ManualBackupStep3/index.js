@@ -1,5 +1,15 @@
 import React, { PureComponent } from 'react';
-import { Alert, BackHandler, Text, View, SafeAreaView, StyleSheet, Keyboard, TouchableOpacity } from 'react-native';
+import {
+	Alert,
+	BackHandler,
+	Text,
+	View,
+	SafeAreaView,
+	StyleSheet,
+	Keyboard,
+	TouchableOpacity,
+	InteractionManager
+} from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
@@ -15,6 +25,7 @@ import Confetti from '../../UI/Confetti';
 import HintModal from '../../UI/HintModal';
 import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import { ONBOARDING_WIZARD, METRICS_OPT_IN, SEED_PHRASE_HINTS } from '../../../constants/storage';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -106,6 +117,9 @@ class ManualBackupStep3 extends PureComponent {
 		this.setState({
 			hintText: manualBackup
 		});
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_COMPLETED);
+		});
 		BackHandler.addEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
 	};
 
@@ -142,6 +156,9 @@ class ManualBackupStep3 extends PureComponent {
 		const currentSeedphraseHints = await AsyncStorage.getItem(SEED_PHRASE_HINTS);
 		const parsedHints = JSON.parse(currentSeedphraseHints);
 		await AsyncStorage.setItem(SEED_PHRASE_HINTS, JSON.stringify({ ...parsedHints, manualBackup: hintText }));
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_RECOVERY_HINT_SAVED);
+		});
 	};
 
 	done = async () => {
