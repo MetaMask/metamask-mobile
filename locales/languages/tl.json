@@ -892,7 +892,7 @@
 		"label": "Buksan ang MetaMask extension sa iyong desktop browser, pagkatapos ay pumunta sa \"Mga Setting\" > \"Advanced\", i-click ang \"I-sync sa Mobile\" at pagkatapos ay ilagay ang iyong password para makita ang QR Code",
 		"button_continue": "Magpatuloy",
 		"please_wait": "Maghintay habang sini-sync namin ang iyong data...",
-		"error_title": "Bummer!",
+		"error_title": "We're sorry!",
 		"error_message": "Nagkaproblema... Pakisubukan ulit",
 		"warning_title": "Babala!",
 		"warning_message": "Io-override nito ang lahat ng iyong kasalukuyang account at history ng transaksyon sa iyong mobile phone. Sigurado ka ba?",
