@@ -1,4 +1,5 @@
 import { createSelector } from 'reselect';
+import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../constants/on-ramp';
 
 /**
  * @typedef FiatOrder
@@ -12,6 +13,7 @@ import { createSelector } from 'reselect';
  * @property {string?} cryptoFee Crypto currency fee
  * @property {string} currency "USD"
  * @property {string} cryptocurrency "ETH"
+ * @property {string?} amountInUSD Fiat amount in USD
  * @property {FIAT_ORDER_STATES} state Order state
  * @property {string} account <account wallet address>
  * @property {string} network <network>
@@ -20,25 +22,6 @@ import { createSelector } from 'reselect';
  * @property {object} data.order : Wyre order response
  * @property {object} data.transfer : Wyre transfer response
  */
-
-/**
- * @enum {string}
- */
-export const FIAT_ORDER_PROVIDERS = {
-	WYRE: 'WYRE',
-	WYRE_APPLE_PAY: 'WYRE_APPLE_PAY',
-	TRANSAK: 'TRANSAK'
-};
-
-/**
- * @enum {string}
- */
-export const FIAT_ORDER_STATES = {
-	PENDING: 'PENDING',
-	FAILED: 'FAILED',
-	COMPLETED: 'COMPLETED',
-	CANCELLED: 'CANCELLED'
-};
 
 /** Action Creators */
 
