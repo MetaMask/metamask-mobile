@@ -1,18 +1,19 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, View, InteractionManager, Image } from 'react-native';
 import { connect } from 'react-redux';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { baseStyles, colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import CollectibleContractElement from '../CollectibleContractElement';
-import Analytics from '../../../core/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
-import { favoritesCollectiblesObjectSelector } from '../../../reducers/collectibles';
-import Text from '../../Base/Text';
-import AppConstants from '../../../core/AppConstants';
 import StyledButton from '../StyledButton';
+import CollectibleContractElement from '../CollectibleContractElement';
+import Text from '../../Base/Text';
+import { favoritesCollectiblesObjectSelector } from '../../../reducers/collectibles';
+import Engine from '../../../core/Engine';
+import Analytics from '../../../core/Analytics';
+import AppConstants from '../../../core/AppConstants';
 import { toLowerCaseEquals } from '../../../util/general';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -80,8 +81,15 @@ const CollectibleContracts = ({
 	collectibles,
 	navigation,
 	favoriteCollectibles,
-	nftAutodetect
+	nftAutodetect,
+	selectedAddress,
+	network
 }) => {
+	useEffect(() => {
+		const { AssetsDetectionController } = Engine.context;
+		nftAutodetect && AssetsDetectionController.detectAssets();
+	}, [nftAutodetect, selectedAddress, network]);
+
 	const onItemPress = useCallback(
 		(collectible, contractName) => {
 			navigation.navigate('CollectiblesDetails', { collectible, contractName });
@@ -215,6 +223,8 @@ CollectibleContracts.propTypes = {
 	 * Object of collectibles
 	 */
 	favoriteCollectibles: PropTypes.array,
+	selectedAddress: PropTypes.str,
+	network: PropTypes.str,
 	nftAutodetect: PropTypes.bool
 };
 
@@ -222,6 +232,8 @@ const mapStateToProps = state => ({
 	collectibleContracts: state.engine.backgroundState.CollectiblesController.collectibleContracts,
 	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
 	favoriteCollectibles: favoritesCollectiblesObjectSelector(state),
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	network: state.engine.backgroundState.NetworkController.network,
 	nftAutodetect: state.privacy.nftAutodetect
 });
 
