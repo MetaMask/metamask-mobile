@@ -2,6 +2,7 @@ name: Bump version name
 on:
   push:
     branches:
+      - fix/action-head-ref
       - develop
       - main
 jobs:
