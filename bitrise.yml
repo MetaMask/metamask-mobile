@@ -23,7 +23,7 @@ workflows:
         before_run:
             - setup
         steps:
-            #- cache-pull@2: {}
+            - cache-pull@2: {}
             - yarn@0:
                   inputs:
                       - cache_local_deps: 'yes'
