@@ -75,7 +75,12 @@ class TransakWebView extends PureComponent {
 		if (uri) {
 			return (
 				<View style={baseStyles.flexGrow}>
-					<WebView source={{ uri }} onNavigationStateChange={this.handleNavigationStateChange} />
+					<WebView
+						source={{ uri }}
+						onNavigationStateChange={this.handleNavigationStateChange}
+						allowInlineMediaPlayback
+						mediaPlaybackRequiresUserAction={false}
+					/>
 				</View>
 			);
 		}
