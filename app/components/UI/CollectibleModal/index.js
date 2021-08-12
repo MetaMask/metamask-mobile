@@ -6,11 +6,9 @@ import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import { newAssetTransaction } from '../../../actions/transaction';
 import CollectibleMedia from '../CollectibleMedia';
-import { baseStyles } from '../../../styles/common';
+import { baseStyles, colors } from '../../../styles/common';
 import Device from '../../../util/Device';
 import ReusableModal from '../ReusableModal';
-
-const COLLECTIBLE_WRAPPER_MARGIN_TOP = Device.hasNotch() ? '20%' : Device.isMediumDevice() ? 16 : '10%';
 
 const styles = StyleSheet.create({
 	bottomModal: {
@@ -26,8 +24,9 @@ const styles = StyleSheet.create({
 		left: 0,
 		right: 0,
 		marginHorizontal: 16,
-		marginTop: COLLECTIBLE_WRAPPER_MARGIN_TOP,
-		borderRadius: 12
+		marginTop: Device.hasNotch() ? 36 : 16,
+		borderRadius: 12,
+		backgroundColor: colors.transparent
 	}
 });
 
@@ -91,7 +90,6 @@ const CollectibleModal = props => {
 						onClose={() => modalRef.current.dismissModal()}
 						cover
 						renderAnimation
-						resizeMode={'contain'}
 						collectible={collectible}
 						style={styles.round}
 					/>
