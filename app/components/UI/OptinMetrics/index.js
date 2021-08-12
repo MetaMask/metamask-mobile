@@ -14,6 +14,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { ONBOARDING_WIZARD, METRICS_OPT_IN, DENIED, AGREED } from '../../../constants/storage';
 import AppConstants from '../../../core/AppConstants';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	root: {
@@ -173,7 +174,7 @@ class OptinMetrics extends PureComponent {
 	onCancel = async () => {
 		setTimeout(async () => {
 			if (this.props.events && this.props.events.length) {
-				this.props.events.forEach(e => Analytics.trackEvent(e));
+				this.props.events.forEach(eventArgs => AnalyticsV2.trackEvent(...eventArgs));
 			}
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_OUT);
 			this.props.clearOnboardingEvents();
@@ -189,7 +190,7 @@ class OptinMetrics extends PureComponent {
 	onConfirm = async () => {
 		setTimeout(async () => {
 			if (this.props.events && this.props.events.length) {
-				this.props.events.forEach(e => Analytics.trackEvent(e));
+				this.props.events.forEach(eventArgs => AnalyticsV2.trackEvent(...eventArgs));
 			}
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_IN);
 			this.props.clearOnboardingEvents();

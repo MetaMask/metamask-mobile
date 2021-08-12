@@ -16,8 +16,10 @@ const onboardingReducer = (state = initialState, action) => {
 			}
 			return state;
 		case 'SAVE_EVENT':
-			state.events.push(action.event);
-			return state;
+			return {
+				...state,
+				events: [...state.events, action.event]
+			};
 		case 'CLEAR_EVENTS':
 			return {
 				...state,

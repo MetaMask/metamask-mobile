@@ -58,7 +58,23 @@ export const ANALYTICS_EVENTS_V2 = {
 	WALLET_SECURITY_COMPLETED: generateOpt('Wallet Security Completed'),
 	WALLET_SECURITY_PROTECT_VIEWED: generateOpt('Protect Your Wallet Viewed'),
 	WALLET_SECURITY_PROTECT_ENGAGED: generateOpt('Protect Your Wallet Engaged'),
-	WALLET_SECURITY_PROTECT_DISMISSED: generateOpt('Protect Your Wallet Dismissed')
+	WALLET_SECURITY_PROTECT_DISMISSED: generateOpt('Protect Your Wallet Dismissed'),
+	// Onboarding
+	ONBOARDING_WELCOME_MESSAGE_VIEWED: generateOpt('Welcome Message Viewed'),
+	ONBOARDING_WELCOME_SCREEN_ENGAGEMENT: generateOpt('Welcome Screen Engagement'),
+	ONBOARDING_STARTED: generateOpt('Onboarding Started'),
+	// Wallet Setup
+	WALLET_SETUP_STARTED: generateOpt('Wallet Setup Started'),
+	WALLET_IMPORT_STARTED: generateOpt('Wallet Import Started'),
+	WALLET_IMPORT_ATTEMPTED: generateOpt('Wallet Import Attempted'),
+	WALLET_IMPORTED: generateOpt('Wallet Imported'),
+	WALLET_SYNC_STARTED: generateOpt('Wallet Sync Started'),
+	WALLET_SYNC_ATTEMPTED: generateOpt('Wallet Sync Attempted'),
+	WALLET_SYNC_SUCCESSFUL: generateOpt('Wallet Sync Successful'),
+	WALLET_CREATION_ATTEMPTED: generateOpt('Wallet Creation Attempted'),
+	WALLET_CREATED: generateOpt('Wallet Created'),
+	WALLET_SETUP_FAILURE: generateOpt('Wallet Setup Failure'),
+	WALLET_SETUP_COMPLETED: generateOpt('Wallet Setup Completed')
 };
 
 /**

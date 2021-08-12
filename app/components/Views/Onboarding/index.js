@@ -24,7 +24,6 @@ import Engine from '../../../core/Engine';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import TermsAndConditions from '../TermsAndConditions';
 import Analytics from '../../../core/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { getTransparentBackOnboardingNavbarOptions, getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import ScanStep from '../../UI/ScanStep';
@@ -51,6 +50,7 @@ import {
 	METRICS_OPT_IN,
 	TRUE
 } from '../../../constants/storage';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 
@@ -314,6 +314,10 @@ class Onboarding extends PureComponent {
 		this.pubnubWrapper.addMessageListener(
 			() => {
 				Alert.alert(strings('sync_with_extension.error_title'), strings('sync_with_extension.error_message'));
+				this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_FAILURE, {
+					wallet_setup_type: 'sync',
+					error_type: 'onErrorSync'
+				});
 				this.loading = false;
 				this.props.unsetLoading();
 				return false;
@@ -354,6 +358,10 @@ class Onboarding extends PureComponent {
 				}
 			}
 			Logger.error(e, { message: 'Sync::startSync', firstAttempt });
+			this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_FAILURE, {
+				wallet_setup_type: 'sync',
+				error_type: e.message()
+			});
 			return false;
 		}
 	};
@@ -442,9 +450,19 @@ class Onboarding extends PureComponent {
 			this.props.seedphraseBackedUp();
 			this.done = true;
 			this.dataToSync = null;
+			this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SYNC_SUCCESSFUL);
+			this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_COMPLETED, {
+				wallet_setup_type: 'sync',
+				new_wallet: false
+			});
+
 			this.props.navigation.push('SyncWithExtensionSuccess');
 			this.props.unsetLoading();
 		} catch (e) {
+			this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_FAILURE, {
+				wallet_setup_type: 'sync',
+				error_type: e.toString()
+			});
 			Logger.error(e, 'Sync::disconnect');
 			Alert.alert(strings('sync_with_extension.error_title'), strings('sync_with_extension.error_message'));
 			this.props.unsetLoading();
@@ -454,6 +472,7 @@ class Onboarding extends PureComponent {
 
 	showQrCode = () => {
 		this.toggleQrCodeModal();
+		this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SYNC_ATTEMPTED);
 		this.props.navigation.push('QRScanner', {
 			onStartScan: async data => {
 				if (data.content && data.content.search('metamask-sync:') !== -1) {
@@ -508,14 +527,14 @@ class Onboarding extends PureComponent {
 				this.props.navigation.navigate('ChoosePassword', {
 					[PREVIOUS_SCREEN]: ONBOARDING
 				});
-				this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_PASSWORD);
+				this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_STARTED);
 			} else {
 				this.props.navigation.navigate('OptinMetrics', {
 					onContinue: () => {
 						this.props.navigation.replace('ChoosePassword', {
 							[PREVIOUS_SCREEN]: ONBOARDING
 						});
-						this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_PASSWORD);
+						this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_STARTED);
 					}
 				});
 			}
@@ -540,7 +559,7 @@ class Onboarding extends PureComponent {
 			);
 			return false;
 		}
-		this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_SYNC_WITH_EXTENSION);
+		this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SYNC_STARTED);
 		this.toggleQrCodeModal();
 	};
 
@@ -549,12 +568,12 @@ class Onboarding extends PureComponent {
 			const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
 			if (metricsOptIn) {
 				this.props.navigation.push('ImportFromSeed');
-				this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WALLET);
+				this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_IMPORT_STARTED);
 			} else {
 				this.props.navigation.navigate('OptinMetrics', {
 					onContinue: () => {
 						this.props.navigation.replace('ImportFromSeed');
-						this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_PASSWORD);
+						this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_IMPORT_STARTED);
 					}
 				});
 			}
@@ -562,15 +581,15 @@ class Onboarding extends PureComponent {
 		this.handleExistingUser(action);
 	};
 
-	track = key => {
+	track = (...eventArgs) => {
 		InteractionManager.runAfterInteractions(async () => {
 			if (Analytics.getEnabled()) {
-				Analytics.trackEvent(key);
+				AnalyticsV2.trackEvent(...eventArgs);
 				return;
 			}
 			const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
 			if (!metricsOptIn) {
-				this.props.saveOnboardingEvent(key);
+				this.props.saveOnboardingEvent(eventArgs);
 			}
 		});
 	};

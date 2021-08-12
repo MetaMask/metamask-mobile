@@ -1,6 +1,17 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Switch, ActivityIndicator, Alert, Text, View, TextInput, SafeAreaView, StyleSheet, Image } from 'react-native';
+import {
+	Switch,
+	ActivityIndicator,
+	Alert,
+	Text,
+	View,
+	TextInput,
+	SafeAreaView,
+	StyleSheet,
+	Image,
+	InteractionManager
+} from 'react-native';
 // eslint-disable-next-line import/no-unresolved
 import CheckBox from '@react-native-community/checkbox';
 import AnimatedFox from 'react-native-animated-fox';
@@ -32,6 +43,7 @@ import {
 import { getPasswordStrengthWord, passwordRequirementsMet, MIN_PASSWORD_LENGTH } from '../../../util/password';
 
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -308,6 +320,10 @@ class ChoosePassword extends PureComponent {
 			Alert.alert('Error', strings('choose_password.password_dont_match'));
 			return;
 		}
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_CREATION_ATTEMPTED);
+		});
+
 		try {
 			this.setState({ loading: true });
 			const previous_screen = this.props.route.params?.[PREVIOUS_SCREEN];
@@ -338,6 +354,15 @@ class ChoosePassword extends PureComponent {
 
 			this.setState({ loading: false });
 			this.props.navigation.navigate('AccountBackupStep1');
+			InteractionManager.runAfterInteractions(() => {
+				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_CREATED, {
+					biometrics_enabled: Boolean(this.state.biometryType)
+				});
+				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_COMPLETED, {
+					wallet_setup_type: 'new',
+					new_wallet: true
+				});
+			});
 		} catch (error) {
 			await this.recreateVault('');
 			// Set state in app as it was with no password
@@ -357,6 +382,12 @@ class ChoosePassword extends PureComponent {
 			} else {
 				this.setState({ loading: false, error: error.toString() });
 			}
+			InteractionManager.runAfterInteractions(() => {
+				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_FAILURE, {
+					wallet_setup_type: 'new',
+					error_type: error.toString()
+				});
+			});
 		}
 	};
 

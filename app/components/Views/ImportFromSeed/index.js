@@ -9,7 +9,8 @@ import {
 	View,
 	TextInput,
 	SafeAreaView,
-	StyleSheet
+	StyleSheet,
+	InteractionManager
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -42,6 +43,7 @@ import {
 import Logger from '../../../util/Logger';
 import { getPasswordStrengthWord, passwordRequirementsMet, MIN_PASSWORD_LENGTH } from '../../../util/password';
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -244,6 +246,9 @@ class ImportFromSeed extends PureComponent {
 		const parsedSeed = parseSeedPhrase(seed);
 
 		if (loading) return;
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_IMPORT_ATTEMPTED);
+		});
 		let error = null;
 		if (!passwordRequirementsMet(password)) {
 			error = strings('import_from_seed.password_length_error');
@@ -259,6 +264,12 @@ class ImportFromSeed extends PureComponent {
 
 		if (error) {
 			Alert.alert(strings('import_from_seed.error'), error);
+			InteractionManager.runAfterInteractions(() => {
+				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_FAILURE, {
+					wallet_setup_type: 'import',
+					error_type: error
+				});
+			});
 		} else {
 			try {
 				this.setState({ loading: true });
@@ -286,6 +297,15 @@ class ImportFromSeed extends PureComponent {
 				this.props.passwordSet();
 				this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 				this.props.seedphraseBackedUp();
+				InteractionManager.runAfterInteractions(() => {
+					AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_IMPORTED, {
+						biometrics_enabled: Boolean(this.state.biometryType)
+					});
+					AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_COMPLETED, {
+						wallet_setup_type: 'import',
+						new_wallet: false
+					});
+				});
 				if (!metricsOptIn) {
 					this.props.navigation.navigate('OptinMetrics');
 				} else if (onboardingWizard) {
@@ -307,6 +327,12 @@ class ImportFromSeed extends PureComponent {
 					this.setState({ loading: false, error: error.toString() });
 					Logger.log('Error with seed phrase import', error);
 				}
+				InteractionManager.runAfterInteractions(() => {
+					AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_FAILURE, {
+						wallet_setup_type: 'import',
+						error_type: error.toString()
+					});
+				});
 			}
 		}
 	};
