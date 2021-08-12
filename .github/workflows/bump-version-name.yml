@@ -1,18 +1,14 @@
 name: Bump version name
 on:
-  # push:
-  #   branches:
-  #     - develop
-  pull_request:
+  push:
     branches:
-      # - develop
-      # - main
-      - bitrise_yml_new
-    types: [opened]
+      - develop
+      - main
 jobs:
   bump-version-name:
     runs-on: ubuntu-latest
-    if: "contains(github.head_ref, 'release/')"
+    permissions:
+      contents: write  
     steps:
     - uses: actions/checkout@v2
     - name: Bump script
