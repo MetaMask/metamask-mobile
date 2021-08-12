@@ -1530,9 +1530,9 @@
     human-standard-token-abi "^2.0.0"
     web3 "^0.20.7"
 
-"@metamask/swaps-controller@file:./metamask-swaps-controller-v6.0.0-075a8c0.tgz":
-  version "6.0.0-075a8c0"
-  resolved "file:./metamask-swaps-controller-v6.0.0-075a8c0.tgz#85eb28bfef5667e349043509fe7193149b41a1b6"
+"@metamask/swaps-controller@file:./metamask-swaps-controller-v6.0.0-129faee.tgz":
+  version "6.0.0-129faee"
+  resolved "file:./metamask-swaps-controller-v6.0.0-129faee.tgz#d22301f6aa7c4ad29c34a352abf46e1cde019fdc"
   dependencies:
     "@metamask/controllers" "^13.2.0"
     abort-controller "^3.0.0"

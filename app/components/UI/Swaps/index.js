@@ -188,7 +188,7 @@ function SwapsAmountView({
 		(async () => {
 			try {
 				const { mobile_active: liveness } = await swapsUtils.fetchSwapsFeatureLiveness(chainId);
-				setLiveness(liveness || true, chainId);
+				setLiveness(liveness, chainId);
 				if (liveness) {
 					// Triggered when a user enters the MetaMask Swap feature
 					InteractionManager.runAfterInteractions(() => {
