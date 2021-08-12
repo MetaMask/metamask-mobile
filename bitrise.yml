@@ -64,7 +64,7 @@ workflows:
     # CI Steps
     ci_test:
         before_run:
-            - code_setup_cache
+            - code_setup
         steps:
             - yarn@0:
                   inputs:
