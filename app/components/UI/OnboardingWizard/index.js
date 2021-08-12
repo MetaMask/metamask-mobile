@@ -16,9 +16,9 @@ import AsyncStorage from '@react-native-community/async-storage';
 import ElevatedView from 'react-native-elevated-view';
 import Modal from 'react-native-modal';
 import Device from '../../../util/Device';
-import Analytics from '../../../core/Analytics';
-import { ANALYTICS_EVENT_OPTS, ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../util/analytics';
+import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../util/analytics';
 import { ONBOARDING_WIZARD, EXPLORED } from '../../../constants/storage';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 const MIN_HEIGHT = Dimensions.get('window').height;
 const styles = StyleSheet.create({
@@ -95,7 +95,7 @@ class OnboardingWizard extends PureComponent {
 	/**
 	 * Close onboarding wizard setting step to 0 and closing drawer
 	 */
-	closeOnboardingWizard = async (closing = true) => {
+	closeOnboardingWizard = async () => {
 		const {
 			setOnboardingWizardStep,
 			navigation,
@@ -104,12 +104,13 @@ class OnboardingWizard extends PureComponent {
 		await AsyncStorage.setItem(ONBOARDING_WIZARD, EXPLORED);
 		setOnboardingWizardStep && setOnboardingWizardStep(0);
 		navigation && navigation.dispatch(DrawerActions.closeDrawer());
-		closing &&
-			InteractionManager.runAfterInteractions(() => {
-				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_SKIP_TUTORIAL, {
-					View: ONBOARDING_WIZARD_STEP_DESCRIPTION[step]
-				});
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_SKIPPED, {
+				tutorial_step_count: step,
+				tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[step]
 			});
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_COMPLETED);
+		});
 	};
 
 	onboardingWizardNavigator = step => {

@@ -6,6 +6,8 @@ import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
+import AnalyticsV2 from '../../../../util/analyticsV2';
+import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../../util/analytics';
 
 const INDICATOR_HEIGHT = 10;
 const styles = StyleSheet.create({
@@ -57,6 +59,10 @@ class Step2 extends PureComponent {
 	onNext = () => {
 		const { setOnboardingWizardStep } = this.props;
 		setOnboardingWizardStep && setOnboardingWizardStep(3);
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_STEP_COMPLETED, {
+			tutorial_step_count: 2,
+			tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[2]
+		});
 	};
 
 	/**
@@ -65,6 +71,10 @@ class Step2 extends PureComponent {
 	onBack = () => {
 		const { setOnboardingWizardStep } = this.props;
 		setOnboardingWizardStep && setOnboardingWizardStep(1);
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_STEP_REVISITED, {
+			tutorial_step_count: 2,
+			tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[2]
+		});
 	};
 
 	/**

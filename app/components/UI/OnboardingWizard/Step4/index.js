@@ -7,6 +7,8 @@ import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
 import { fontStyles, colors } from '../../../../styles/common';
+import AnalyticsV2 from '../../../../util/analyticsV2';
+import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../../util/analytics';
 
 const styles = StyleSheet.create({
 	main: {
@@ -73,6 +75,10 @@ class Step4 extends PureComponent {
 		const { navigation, setOnboardingWizardStep } = this.props;
 		navigation && navigation.openDrawer();
 		setOnboardingWizardStep && setOnboardingWizardStep(5);
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_STEP_COMPLETED, {
+			tutorial_step_count: 4,
+			tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[4]
+		});
 	};
 
 	/**
@@ -81,6 +87,10 @@ class Step4 extends PureComponent {
 	onBack = () => {
 		const { setOnboardingWizardStep } = this.props;
 		setOnboardingWizardStep && setOnboardingWizardStep(3);
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_STEP_REVISITED, {
+			tutorial_step_count: 4,
+			tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[4]
+		});
 	};
 
 	/**

@@ -7,8 +7,8 @@ import Device from '../../../../util/Device';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
-import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
-import Analytics from '../../../../core/Analytics';
+import AnalyticsV2 from '../../../../util/analyticsV2';
+import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../../util/analytics';
 
 const styles = StyleSheet.create({
 	main: {
@@ -45,7 +45,10 @@ class Step1 extends PureComponent {
 		const { setOnboardingWizardStep } = this.props;
 		setOnboardingWizardStep && setOnboardingWizardStep(2);
 		InteractionManager.runAfterInteractions(() => {
-			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_TAKE_THE_TOUR);
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_STARTED, {
+				tutorial_step_count: 1,
+				tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[1]
+			});
 		});
 	};
 
@@ -55,9 +58,6 @@ class Step1 extends PureComponent {
 	onClose = () => {
 		const { onClose } = this.props;
 		onClose && onClose(false);
-		InteractionManager.runAfterInteractions(() => {
-			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_NO_THANKS);
-		});
 	};
 
 	/**
