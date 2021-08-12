@@ -524,7 +524,8 @@ class Engine {
 				gasPrice: tx.txParams.gasPrice,
 				value: tx.txParams.value,
 				maxFeePerGas: tx.txParams.maxFeePerGas,
-				maxPriorityFeePerGas: tx.txParams.maxPriorityFeePerGas
+				maxPriorityFeePerGas: tx.txParams.maxPriorityFeePerGas,
+				data: tx.txParams.data
 			}
 		});
 
