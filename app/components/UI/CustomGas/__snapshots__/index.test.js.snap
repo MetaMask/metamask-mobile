@@ -43,7 +43,7 @@ exports[`CustomGas should render correctly 1`] = `
           }
         }
       >
-        Edit Gas Fee
+        Edit gas fee
       </Text>
       <Icon
         allowFontScaling={false}

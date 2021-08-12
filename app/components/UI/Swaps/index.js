@@ -341,9 +341,9 @@ function SwapsAmountView({
 			return;
 		}
 		if (!isSwapsNativeAsset(sourceToken) && !isTokenInBalances && !balanceAsUnits?.isZero()) {
-			const { AssetsController } = Engine.context;
+			const { TokensController } = Engine.context;
 			const { address, symbol, decimals } = sourceToken;
-			await AssetsController.addToken(address, symbol, decimals);
+			await TokensController.addToken(address, symbol, decimals);
 		}
 		return navigation.navigate(
 			'SwapsQuotesView',
@@ -351,7 +351,8 @@ function SwapsAmountView({
 				sourceToken?.address,
 				destinationToken?.address,
 				toTokenMinimalUnit(amount, sourceToken?.decimals).toString(10),
-				slippage
+				slippage,
+				[sourceToken, destinationToken]
 			)
 		);
 	}, [

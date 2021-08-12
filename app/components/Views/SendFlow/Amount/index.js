@@ -3,7 +3,6 @@ import { colors, fontStyles } from '../../../../styles/common';
 import {
 	StyleSheet,
 	Text,
-	SafeAreaView,
 	View,
 	TouchableOpacity,
 	TextInput,
@@ -39,8 +38,8 @@ import {
 	fromTokenMinimalUnitString,
 	toHexadecimal
 } from '../../../../util/number';
-import { getTicker, generateTransferData, getEther } from '../../../../util/transactions';
-import { util } from '@metamask/controllers';
+import { getTicker, generateTransferData, getEther, calculateEIP1559GasFeeHexes } from '../../../../util/transactions';
+import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
 import ErrorMessage from '../ErrorMessage';
 import { getGasPriceByChainId } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
@@ -55,6 +54,9 @@ import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import NetworkMainAssetLogo from '../../../UI/NetworkMainAssetLogo';
 import { isMainNet } from '../../../../util/networks';
 import { toLowerCaseEquals } from '../../../../util/general';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { decGWEIToHexWEI } from '../../../../util/conversions';
+import AppConstants from '../../../../core/AppConstants';
 
 const { hexToBN, BNToHex } = util;
 
@@ -408,13 +410,41 @@ class Amount extends PureComponent {
 
 		this.tokens = [getEther(ticker), ...tokens];
 		this.collectibles = this.processCollectibles();
-		this.amountInput && this.amountInput.current && this.amountInput.current.focus();
+		// Wait until navigation finishes to focus
+		InteractionManager.runAfterInteractions(() => this.amountInput?.current?.focus?.());
 		this.onInputChange(readableValue);
 		!selectedAsset.tokenId && this.handleSelectedAssetBalance(selectedAsset);
 
-		const estimatedTotalGas = await this.estimateTransactionTotalGas();
+		const { GasFeeController } = Engine.context;
+		const [gasEstimates, gas] = await Promise.all([
+			GasFeeController.fetchGasFeeEstimates({ shouldUpdateState: false }),
+			this.estimateGasLimit()
+		]);
+
+		if (gasEstimates.gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+			const gasFeeEstimates = gasEstimates.gasFeeEstimates[AppConstants.GAS_OPTIONS.MEDIUM];
+			const estimatedBaseFeeHex = decGWEIToHexWEI(gasEstimates.gasFeeEstimates.estimatedBaseFee);
+			const suggestedMaxPriorityFeePerGasHex = decGWEIToHexWEI(gasFeeEstimates.suggestedMaxPriorityFeePerGas);
+			const suggestedMaxFeePerGasHex = decGWEIToHexWEI(gasFeeEstimates.suggestedMaxFeePerGas);
+			const gasLimitHex = BNToHex(gas);
+			const gasHexes = calculateEIP1559GasFeeHexes({
+				gasLimitHex,
+				estimatedBaseFeeHex,
+				suggestedMaxFeePerGasHex,
+				suggestedMaxPriorityFeePerGasHex
+			});
+			this.setState({
+				estimatedTotalGas: hexToBN(gasHexes.gasFeeMaxHex)
+			});
+		} else if (gasEstimates.gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY) {
+			const gasPrice = hexToBN(decGWEIToHexWEI(gasEstimates.gasFeeEstimates[AppConstants.GAS_OPTIONS.MEDIUM]));
+			this.setState({ estimatedTotalGas: gas.mul(gasPrice) });
+		} else {
+			const gasPrice = hexToBN(decGWEIToHexWEI(gasEstimates.gasFeeEstimates.gasPrice));
+			this.setState({ estimatedTotalGas: gas.mul(gasPrice) });
+		}
+
 		this.setState({
-			estimatedTotalGas,
 			inputValue: readableValue
 		});
 	};
@@ -625,17 +655,17 @@ class Amount extends PureComponent {
 	/**
 	 * Estimate transaction gas with information available
 	 */
-	estimateTransactionTotalGas = async () => {
+	estimateGasLimit = async () => {
 		const {
 			transaction: { from },
 			transactionTo
 		} = this.props.transactionState;
-		const { gas, gasPrice } = await getGasPriceByChainId({
+		const { gas } = await getGasPriceByChainId({
 			from,
 			to: transactionTo
 		});
 
-		return gas.mul(gasPrice);
+		return gas;
 	};
 
 	useMax = () => {
@@ -783,7 +813,6 @@ class Amount extends PureComponent {
 	renderToken = (token, index) => {
 		const {
 			accounts,
-			chainId,
 			selectedAddress,
 			conversionRate,
 			currentCurrency,
@@ -794,15 +823,11 @@ class Amount extends PureComponent {
 		const { address, decimals, symbol } = token;
 		if (token.isETH) {
 			balance = renderFromWei(accounts[selectedAddress].balance);
-			balanceFiat = isMainNet(chainId)
-				? weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency)
-				: null;
+			balanceFiat = weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency);
 		} else {
 			balance = renderFromTokenMinimalUnit(contractBalances[address], decimals);
 			const exchangeRate = contractExchangeRates[address];
-			balanceFiat = isMainNet(chainId)
-				? balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency)
-				: null;
+			balanceFiat = balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
 		}
 		return (
 			<TouchableOpacity
@@ -1001,7 +1026,7 @@ class Amount extends PureComponent {
 		} = this.props;
 
 		return (
-			<SafeAreaView style={styles.wrapper} testID={'amount-screen'}>
+			<SafeAreaView edges={['bottom']} style={styles.wrapper} testID={'amount-screen'}>
 				<ScrollView style={styles.scrollWrapper}>
 					<View style={styles.inputWrapper}>
 						<View style={styles.actionsWrapper}>
@@ -1069,8 +1094,8 @@ const mapStateToProps = (state, ownProps) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-	collectibles: state.engine.backgroundState.AssetsController.collectibles,
-	collectibleContracts: state.engine.backgroundState.AssetsController.collectibleContracts,
+	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
+	collectibleContracts: state.engine.backgroundState.CollectiblesController.collectibleContracts,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	providerType: state.engine.backgroundState.NetworkController.provider.type,
@@ -1078,7 +1103,7 @@ const mapStateToProps = (state, ownProps) => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	tokens: state.engine.backgroundState.AssetsController.tokens,
+	tokens: state.engine.backgroundState.TokensController.tokens,
 	transactionState: ownProps.transaction || state.transaction,
 	selectedAsset: state.transaction.selectedAsset,
 	isPaymentRequest: state.transaction.paymentRequest

@@ -68,8 +68,7 @@ import { setInfuraAvailabilityBlocked, setInfuraAvailabilityNotBlocked } from '.
 
 const styles = StyleSheet.create({
 	flex: {
-		flex: 1,
-		marginTop: Device.isIphone12() ? 20 : 0
+		flex: 1
 	},
 	loader: {
 		backgroundColor: colors.white,
@@ -281,7 +280,7 @@ const Main = props => {
 			try {
 				TransactionController.hub.once(`${transactionMeta.id}:finished`, transactionMeta => {
 					if (transactionMeta.status === 'submitted') {
-						props.navigation.pop();
+						props.navigation.pop?.();
 						NotificationManager.watchSubmittedTransaction({
 							...transactionMeta,
 							assetType: transactionMeta.transaction.assetType
@@ -336,7 +335,6 @@ const Main = props => {
 				const { AssetsContractController } = Engine.context;
 				transactionMeta.transaction.gas = hexToBN(gas);
 				transactionMeta.transaction.gasPrice = hexToBN(gasPrice);
-
 				if (
 					(value === '0x0' || !value) &&
 					data &&
@@ -777,7 +775,7 @@ const mapStateToProps = state => ({
 	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-	tokens: state.engine.backgroundState.AssetsController.tokens,
+	tokens: state.engine.backgroundState.TokensController.tokens,
 	dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
 	approveModalVisible: state.modals.approveModalVisible,
 	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {},
