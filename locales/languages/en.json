@@ -896,7 +896,7 @@
 		"label": "Open the MetaMask extension in your desktop browser, then go to \"Settings\" > \"Advanced\", click on \"Sync with Mobile\" and then enter your password to see the QR Code",
 		"button_continue": "Continue",
 		"please_wait": "Please wait while we sync your data...",
-		"error_title": "Bummer!",
+		"error_title": "We're sorry!",
 		"error_message": "Something went wrong... Please try again",
 		"warning_title": "Warning!",
 		"warning_message": "This will override all your current accounts and transaction history in your mobile phone. Are you sure?",
