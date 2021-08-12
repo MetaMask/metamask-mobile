@@ -74,7 +74,14 @@ export const ANALYTICS_EVENTS_V2 = {
 	WALLET_CREATION_ATTEMPTED: generateOpt('Wallet Creation Attempted'),
 	WALLET_CREATED: generateOpt('Wallet Created'),
 	WALLET_SETUP_FAILURE: generateOpt('Wallet Setup Failure'),
-	WALLET_SETUP_COMPLETED: generateOpt('Wallet Setup Completed')
+	WALLET_SETUP_COMPLETED: generateOpt('Wallet Setup Completed'),
+	// Onboarding Tour
+	ONBOARDING_TOUR_STARTED: generateOpt('Onboarding Tour Started'),
+	ONBOARDING_TOUR_SKIPPED: generateOpt('Onboarding Tour Skipped'),
+	ONBOARDING_TOUR_STEP_COMPLETED: generateOpt('Onboarding Tour Step Completed'),
+	ONBOARDING_TOUR_STEP_REVISITED: generateOpt('Onboarding Tour Step Completed'),
+	ONBOARDING_TOUR_COMPLETED: generateOpt('Onboarding Tour Completed'),
+	ONBOARDING_COMPLETED: generateOpt('Onboarding Completed')
 };
 
 /**
