@@ -188,7 +188,7 @@ function SwapsAmountView({
 		(async () => {
 			try {
 				const { mobile_active: liveness } = await swapsUtils.fetchSwapsFeatureLiveness(chainId);
-				setLiveness(liveness, chainId);
+				setLiveness(liveness || true, chainId);
 				if (liveness) {
 					// Triggered when a user enters the MetaMask Swap feature
 					InteractionManager.runAfterInteractions(() => {
@@ -332,7 +332,7 @@ function SwapsAmountView({
 		if (!destinationToken || isSwapsNativeAsset(destinationToken)) {
 			return true;
 		}
-		return destinationToken?.occurances > TOKEN_MINIMUM_SOURCES;
+		return destinationToken?.occurrences > TOKEN_MINIMUM_SOURCES;
 	}, [destinationToken]);
 
 	/* Navigation handler */
@@ -550,7 +550,9 @@ function SwapsAmountView({
 							>
 								<Text small centered>
 									<Text reset bold>
-										{strings('swaps.verified_on_sources', { sources: destinationToken.occurances })}
+										{strings('swaps.verified_on_sources', {
+											sources: destinationToken.occurrences
+										})}
 									</Text>
 									{` ${strings('swaps.verify_on')} `}
 									{explorer.isValid ? (
@@ -566,7 +568,7 @@ function SwapsAmountView({
 						) : (
 							<ActionAlert
 								type={
-									!destinationToken.occurances || isDynamicToken(destinationToken)
+									!destinationToken.occurrences || isDynamicToken(destinationToken)
 										? 'error'
 										: 'warning'
 								}
@@ -578,18 +580,18 @@ function SwapsAmountView({
 								{textStyle => (
 									<TouchableOpacity onPress={explorer.isValid ? handleVerifyPress : undefined}>
 										<Text style={textStyle} bold centered>
-											{!destinationToken.occurances || isDynamicToken(destinationToken)
+											{!destinationToken.occurrences || isDynamicToken(destinationToken)
 												? strings('swaps.added_manually', {
 														symbol: destinationToken.symbol
 														// eslint-disable-next-line no-mixed-spaces-and-tabs
 												  })
 												: strings('swaps.only_verified_on', {
 														symbol: destinationToken.symbol,
-														occurances: destinationToken.occurances
+														occurrences: destinationToken.occurrences
 														// eslint-disable-next-line no-mixed-spaces-and-tabs
 												  })}
 										</Text>
-										{!destinationToken.occurances || isDynamicToken(destinationToken) ? (
+										{!destinationToken.occurrences || isDynamicToken(destinationToken) ? (
 											<Text style={textStyle} centered>
 												{`${strings('swaps.verify_this_token_on')} `}
 												{explorer.isValid ? (

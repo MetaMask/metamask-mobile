@@ -1438,7 +1438,7 @@
 		"verified_on_sources": "Diverifikasi di {{sources} sumber.",
 		"verify_on": "Selalu verifikasikan alamat token di",
 		"verify_address_on": "Verifikasikan alamat token di",
-		"only_verified_on": "{{symbol}} hanya diverifikasi di {{occurances}} sumber.",
+		"only_verified_on": "{{symbol}} hanya diverifikasi di {{occurrences}} sumber.",
 		"block_explorer": "block explorer",
 		"a_block_explorer": "block explorer",
 		"token_verification": "Verifikasi token",

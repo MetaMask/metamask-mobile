@@ -1440,7 +1440,7 @@
 		"verify_address_on": "Verify token address on",
 		"added_manually": "This token has been added manually.",
 		"verify_this_token_on": "Verify this token on",
-		"only_verified_on": "{{symbol}} is only verified on {{occurances}} source.",
+		"only_verified_on": "{{symbol}} is only verified on {{occurrences}} source.",
 		"block_explorer": "block explorer",
 		"a_block_explorer": "a block explorer",
 		"make_sure_trade": "and make sure this is the token you want to trade.",

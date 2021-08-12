@@ -1440,7 +1440,7 @@
 		"verify_address_on": "Verificar la dirección del token en",
 		"added_manually": "Este token se añadió de forma manual.",
 		"verify_this_token_on": "Comprobar este token en ",
-		"only_verified_on": "{{symbol}} solo se verifica en la fuente {{occurances}}.",
+		"only_verified_on": "{{symbol}} solo se verifica en la fuente {{occurrences}}.",
 		"block_explorer": "explorador de bloques",
 		"a_block_explorer": "un explorador de bloques",
 		"make_sure_trade": "y asegúrese de que este sea el token con el que quiere realizar la transacción.",

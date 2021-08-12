@@ -1438,7 +1438,7 @@
 		"verified_on_sources": "{{sources} 소스에서 확인되었습니다.",
 		"verify_on": "항상 토큰 다음 위치에서 토큰 주소를 확인하십시오.",
 		"verify_address_on": "다음에서 토큰 주소 확인",
-		"only_verified_on": "{{symbol}}은(는) {{occurances}} 소스에서만 확인됩니다.",
+		"only_verified_on": "{{symbol}}은(는) {{occurrences}} 소스에서만 확인됩니다.",
 		"block_explorer": "블록 탐색기",
 		"a_block_explorer": "블록 탐색기",
 		"token_verification": "토큰 확인",
