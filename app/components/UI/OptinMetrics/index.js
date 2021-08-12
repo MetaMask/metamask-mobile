@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react';
 import { View, SafeAreaView, Text, StyleSheet, TouchableOpacity, ScrollView, BackHandler, Alert } from 'react-native';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles, colors } from '../../../styles/common';
-import AsyncStorage from '@react-native-community/async-storage';
 import Entypo from 'react-native-vector-icons/Entypo';
 import { getOptinMetricsNavbarOptions } from '../Navbar';
 import { strings } from '../../../../locales/i18n';
@@ -15,6 +14,7 @@ import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { ONBOARDING_WIZARD, METRICS_OPT_IN, DENIED, AGREED } from '../../../constants/storage';
 import AppConstants from '../../../core/AppConstants';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import DefaultPreference from 'react-native-default-preference';
 
 const styles = StyleSheet.create({
 	root: {
@@ -142,7 +142,7 @@ class OptinMetrics extends PureComponent {
 		}
 
 		// Get onboarding wizard state
-		const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
+		const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
 		if (onboardingWizard) {
 			this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
 		} else {
@@ -178,7 +178,7 @@ class OptinMetrics extends PureComponent {
 			}
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_OUT);
 			this.props.clearOnboardingEvents();
-			await AsyncStorage.setItem(METRICS_OPT_IN, DENIED);
+			await DefaultPreference.set(METRICS_OPT_IN, DENIED);
 			Analytics.disableInstance();
 		}, 200);
 		this.continue();
@@ -194,7 +194,7 @@ class OptinMetrics extends PureComponent {
 			}
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_IN);
 			this.props.clearOnboardingEvents();
-			await AsyncStorage.setItem(METRICS_OPT_IN, AGREED);
+			await DefaultPreference.set(METRICS_OPT_IN, AGREED);
 		}, 200);
 		this.continue();
 	};

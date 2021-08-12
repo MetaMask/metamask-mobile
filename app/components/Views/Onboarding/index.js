@@ -51,6 +51,7 @@ import {
 	TRUE
 } from '../../../constants/storage';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import DefaultPreference from 'react-native-default-preference';
 
 const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 
@@ -587,7 +588,7 @@ class Onboarding extends PureComponent {
 				AnalyticsV2.trackEvent(...eventArgs);
 				return;
 			}
-			const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
+			const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
 			if (!metricsOptIn) {
 				this.props.saveOnboardingEvent(eventArgs);
 			}
