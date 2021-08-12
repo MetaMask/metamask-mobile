@@ -21,9 +21,7 @@ import {
 	TokensController,
 	CollectiblesController
 } from '@metamask/controllers';
-
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
-
 import AsyncStorage from '@react-native-community/async-storage';
 import Encryptor from './Encryptor';
 import { toChecksumAddress } from 'ethereumjs-util';
