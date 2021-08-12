@@ -6,9 +6,9 @@ trigger_map:
     - push_branch: 'feature/storage-limit'
       workflow: start_release_builds
     - push_branch: 'develop'
-      workflow: start_release_builds
+      workflow: ci_test
     - push_branch: 'main'
-      workflow: start_release_builds
+      workflow: ci_test
     - pull_request_source_branch: '*'
       workflow: ci_test
 workflows:
