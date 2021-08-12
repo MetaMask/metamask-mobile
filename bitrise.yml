@@ -4,9 +4,9 @@ default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
 trigger_map:
     - push_branch: 'develop'
-      workflow: start_release_builds
+      workflow: ci_test
     - push_branch: 'main'
-      workflow: start_release_builds
+      workflow: ci_test
     - pull_request_source_branch: '*'
       workflow: ci_test
 workflows:
@@ -160,6 +160,8 @@ workflows:
                   is_always_run: false
     # Parallel Build & Deploy Steps
     start_release_builds:
+        before_run:
+            - setup
         steps:
             - build-router-start@0:
                   inputs:
@@ -178,11 +180,11 @@ workflows:
                   inputs:
                       - deploy_path: $BITRISE_DEPLOY_DIR/app-release.apk
                   title: Bitrise Deploy APK
-            - yarn@0:
-                inputs:
-                - command: build:announce
-                title: Accouncing pre-release
-                is_always_run: false
+            # - yarn@0:
+            #     inputs:
+            #     - command: build:announce
+            #     title: Accouncing pre-release
+            #     is_always_run: false
     android_test_release_step:
         before_run:
             - code_setup
@@ -297,10 +299,10 @@ app:
           PROJECT_LOCATION_IOS: ios
         - opts:
               is_expand: false
-          VERSION_NAME: 3.0.1
+          VERSION_NAME: 3.1.0
         - opts:
               is_expand: false
-          VERSION_NUMBER: 766
+          VERSION_NUMBER: 769
         - opts:
               is_expand: false
           ANDROID_APK_LINK: ''
