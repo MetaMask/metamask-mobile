@@ -151,7 +151,7 @@ const AppNavigator = createSwitchNavigator(
 
 const App = () => {
 	const unsubscribeFromBranch = useRef();
-	const navigator = useRef();
+	let navigator = useRef();
 
 	const handleDeeplink = useCallback(({ error, params, uri }) => {
 		if (error) {
@@ -179,7 +179,8 @@ const App = () => {
 	useEffect(() => {
 		SharedDeeplinkManager.init({
 			navigate: (routeName, opts) => {
-				navigator.current.dispatch(CommonActions.navigate({ routeName, params: opts }));
+				const params = { name: routeName, params: opts };
+				navigator.dispatch(CommonActions.navigate(params));
 			}
 		});
 
@@ -191,7 +192,7 @@ const App = () => {
 	return (
 		<NavigationContainer
 			ref={nav => {
-				this.navigator = nav;
+				navigator = nav;
 			}}
 		>
 			<AppNavigator />
