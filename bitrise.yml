@@ -228,12 +228,12 @@ workflows:
                   inputs:
                       - deploy_path: sourcemaps/android/index.js.map
                   title: Bitrise Deploy Sourcemaps
-            - google-play-deploy@3:
-                inputs:
-                - app_path: $PROJECT_LOCATION/app/build/outputs/bundle/release/app-release.aab
-                - track: internal
-                - service_account_json_key_path: $BITRISEIO_BITRISEIO_SERVICE_ACCOUNT_JSON_KEY_URL_URL
-                - package_name: $MM_ANDROID_PACKAGE_NAME
+            # - google-play-deploy@3:
+            #     inputs:
+            #     - app_path: $PROJECT_LOCATION/app/build/outputs/bundle/release/app-release.aab
+            #     - track: internal
+            #     - service_account_json_key_path: $BITRISEIO_BITRISEIO_SERVICE_ACCOUNT_JSON_KEY_URL_URL
+            #     - package_name: $MM_ANDROID_PACKAGE_NAME
         envs:
             - opts:
                   is_expand: false
