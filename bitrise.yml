@@ -94,6 +94,7 @@ workflows:
         steps:
             - install-missing-android-tools@2:
                   inputs:
+                      - ndk_revision: $NDK_VERSION
                       - gradlew_path: $PROJECT_LOCATION/gradlew
             - avd-manager@1:
                   inputs:
@@ -200,6 +201,7 @@ workflows:
                       - destination: android/keystores/release.keystore
             - install-missing-android-tools@2:
                   inputs:
+                      - ndk_revision: $NDK_VERSION
                       - gradlew_path: $PROJECT_LOCATION/gradlew
             - script@1:
                   inputs:
@@ -312,3 +314,6 @@ app:
         - opts:
               is_expand: false
           IOS_APP_LINK: ''
+        - opts:
+            is_expand: false
+            NDK_VERSION: 17.2.4988734
