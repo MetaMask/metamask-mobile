@@ -316,4 +316,4 @@ app:
           IOS_APP_LINK: ''
         - opts:
             is_expand: false
-            NDK_VERSION: 17.2.4988734
+          NDK_VERSION: 17.2.4988734
