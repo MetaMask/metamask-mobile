@@ -133,7 +133,7 @@
 		"reset_wallet": "Atur Ulang Dompet",
 		"cant_proceed": "Anda tidak dapat melanjutkan hingga Anda mengetik kata ‘Hapus’. Dengan tindakan ini, Anda memilih untuk menghapus dompet Anda saat ini.",
 		"invalid_password": "Kata sandi tidak valid",
-		"type_delete": "Ketik 'hapus' untuk menghapus dompet saat ini secara permanen",
+		"type_delete": "Ketik '%{delete}' untuk menghapus dompet saat ini secara permanen",
 		"delete_my": "Hapus dompet saya",
 		"are_you_sure": "Anda yakin ingin menghapus dompet Anda?",
 		"your_current_wallet": "Dompet, akun, dan aset Anda saat ini akan ",
