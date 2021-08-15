@@ -1,12 +1,14 @@
 name: Bump version name
 on:
-  push:
+  pull_request:
     branches:
       - develop
       - main
+    types: [opened]
 jobs:
   bump-version-name:
     runs-on: ubuntu-latest
+    if: "contains(github.head_ref, 'release/')"
     permissions:
       contents: write  
     steps:

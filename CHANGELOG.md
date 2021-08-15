@@ -2,6 +2,17 @@
 
 ## Current Develop Branch
 
+## v.3.1.0 - August 12 2021
+- [#2972](https://github.com/MetaMask/metamask-mobile/pull/2972): [FIX] Storage Limit - Reduce Transactions Being Persisted to 40
+- [#2999](https://github.com/MetaMask/metamask-mobile/pull/2999): [FIX] Account for `txParams.data` when we sync
+- [#2956](https://github.com/MetaMask/metamask-mobile/pull/2956): [UPGRADE] walletconnect
+- [#2996](https://github.com/MetaMask/metamask-mobile/pull/2996): [FIX] Add TransakWebview mediaPlayback props for KYC
+- [#2804](https://github.com/MetaMask/metamask-mobile/pull/2804): [UPGRADE] Branch updates
+- [#2813](https://github.com/MetaMask/metamask-mobile/pull/2813): [FEATURE] Secret Recovery Phrase Video Subtitles
+- [#2893](https://github.com/MetaMask/metamask-mobile/pull/2893): [FIX] address bar icon
+- [#2980](https://github.com/MetaMask/metamask-mobile/pull/2980): [FIX] header layout
+- [#2973](https://github.com/MetaMask/metamask-mobile/pull/2973): On-Ramp: Add on-ramp analytics
+
 ## v.3.0.1 - August 4 2021
 - Patch to fix Wyre and Transak
 
