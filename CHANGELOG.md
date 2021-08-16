@@ -1,6 +1,6 @@
 # Changelog
 
-## Current Develop Branch
+## v.3.1.0 - August 12 2021
 - [#3024](https://github.com/MetaMask/metamask-mobile/pull/3024): remove tarball (#3024)
 - [#2981](https://github.com/MetaMask/metamask-mobile/pull/2981): [FIX] Delete Message (#2981)
 - [#3017](https://github.com/MetaMask/metamask-mobile/pull/3017): fix deep links bug related to branch updates (#3017)
@@ -22,8 +22,6 @@
 - [#2808](https://github.com/MetaMask/metamask-mobile/pull/2808): bugfix: issue #2763 (#2808)
 - [#2976](https://github.com/MetaMask/metamask-mobile/pull/2976): Release/3.0.1 patch (#2976)
 - [#2735](https://github.com/MetaMask/metamask-mobile/pull/2735): Collectibles enhancements (#2735)
-
-## v.3.1.0 - August 12 2021
 - [#2972](https://github.com/MetaMask/metamask-mobile/pull/2972): [FIX] Storage Limit - Reduce Transactions Being Persisted to 40
 - [#2999](https://github.com/MetaMask/metamask-mobile/pull/2999): [FIX] Account for `txParams.data` when we sync
 - [#2956](https://github.com/MetaMask/metamask-mobile/pull/2956): [UPGRADE] walletconnect
