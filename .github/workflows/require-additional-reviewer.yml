@@ -1,0 +1,29 @@
+name: Require Additional Reviewer for Releases
+
+on:
+  pull_request:
+  pull_request_review:
+
+jobs:
+  require-additional-reviewer:
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
+      statuses: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          # If the base branch has been merged into the release branch, we
+          # need to find the earliest common ancestor commit of the base and
+          # release branches.
+          fetch-depth: 0
+          # We want the head / feature branch to be checked out, and we will
+          # compare it to the base branch in the action.
+          ref: ${{ github.event.pull_request.head.ref }}
+      - uses: MetaMask/action-require-additional-reviewer@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          read-org-token: ${{ secrets.ORG_READER }}

@@ -41,3 +41,10 @@ jobs:
         with:
           release-type: ${{ github.event.inputs.release-type }}
           release-version: ${{ github.event.inputs.release-version }}
+          artifacts-path: gh-action__release-authors
+      # Upload the release author artifact for use in subsequent workflows
+      - uses: actions/upload-artifact@v2
+        with:
+          name: release-authors
+          path: gh-action__release-authors
+          if-no-files-found: error
