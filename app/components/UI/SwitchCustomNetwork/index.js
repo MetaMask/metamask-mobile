@@ -46,15 +46,17 @@ const styles = StyleSheet.create({
 	confirm: {
 		marginLeft: 8
 	},
-	otherNetworkIcon: {
-		backgroundColor: colors.grey100,
-		borderColor: colors.grey100,
-		borderWidth: 2,
+	networkIcon: {
 		width: 13,
 		height: 13,
 		borderRadius: 100,
 		marginRight: 10,
 		marginTop: 1
+	},
+	otherNetworkIcon: {
+		backgroundColor: colors.grey100,
+		borderColor: colors.grey100,
+		borderWidth: 2
 	},
 	networkContainer: {
 		alignItems: 'center'
@@ -110,7 +112,14 @@ const SwitchCustomNetwork = ({ customNetworkInformation, currentPageInformation,
 			{type === 'switch' ? (
 				<View style={styles.networkContainer}>
 					<View style={styles.networkBadge}>
-						<View style={styles.otherNetworkIcon} />
+						<View
+							style={[
+								styles.networkIcon,
+								customNetworkInformation.chainColor
+									? { backgroundColor: customNetworkInformation.chainColor }
+									: styles.otherNetworkIcon
+							]}
+						/>
 						<Text primary noMargin style={styles.networkText}>
 							{customNetworkInformation.chainName}
 						</Text>

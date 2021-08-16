@@ -4,6 +4,7 @@ import AppConstants from '../core/AppConstants';
 import { MAINNET, ROPSTEN, KOVAN, RINKEBY, GOERLI, RPC } from '../../app/constants/network';
 import { util } from '@metamask/controllers';
 import Engine from '../core/Engine';
+import { toLowerCaseEquals } from './general';
 
 /**
  * List of the supported networks
@@ -95,6 +96,22 @@ export function getNetworkTypeById(id) {
 	}
 
 	throw new Error(`Unknown network with id ${id}`);
+}
+
+export function getDefaultNetworkByChainId(chainId) {
+	if (!chainId) {
+		throw new Error('Missing chain Id');
+	}
+
+	let returnNetwork;
+
+	getAllNetworks().forEach(type => {
+		if (toLowerCaseEquals(String(NetworkList[type].chainId), chainId)) {
+			returnNetwork = NetworkList[type];
+		}
+	});
+
+	return returnNetwork;
 }
 
 export function hasBlockExplorer(key) {
