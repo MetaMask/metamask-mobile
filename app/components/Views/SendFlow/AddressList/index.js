@@ -103,7 +103,8 @@ class AddressList extends PureComponent {
 		/**
 		 * Chain id
 		 */
-		chainId: PropTypes.string
+		chainId: PropTypes.string,
+		recents: PropTypes.array
 	};
 
 	state = {
@@ -284,8 +285,8 @@ class AddressList extends PureComponent {
 	};
 
 	render = () => {
-		const { recents, contactElements } = this.state;
-		const { onlyRenderAddressBook } = this.props;
+		const { contactElements } = this.state;
+		const { recents, onlyRenderAddressBook } = this.props;
 		return (
 			<View style={styles.root}>
 				<ScrollView style={styles.myAccountsWrapper}>
