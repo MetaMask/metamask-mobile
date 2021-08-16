@@ -28,3 +28,35 @@ index a4e0cc0..4f4c9ea 100644
  const BatchedBridge = require('react-native/Libraries/BatchedBridge/BatchedBridge');
  
  const {Recording: RecordingModule} = NativeModules;
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
+index d1783a3..2bfceaa 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
+@@ -74,6 +74,12 @@ public class ReactEditText extends AppCompatEditText {
+   /** A count of events sent to JS or C++. */
+   protected int mNativeEventCount;
+ 
++  /**
++   * Taken from EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING We can't use that
++   * value directly as it was only added on Oreo, but we can apply the value
++   * anyway.
++   */
++  private static final int IME_FLAG_NO_PERSONALIZED_LEARNING = 0x1000000;
+   private static final int UNSET = -1;
+ 
+   private @Nullable ArrayList<TextWatcher> mListeners;
+@@ -221,9 +227,11 @@ public class ReactEditText extends AppCompatEditText {
+           new ReactEditTextInputConnectionWrapper(inputConnection, reactContext, this);
+     }
+ 
+-    if (isMultiline() && getBlurOnSubmit()) {
+-      // Remove IME_FLAG_NO_ENTER_ACTION to keep the original IME_OPTION
+-      outAttrs.imeOptions &= ~EditorInfo.IME_FLAG_NO_ENTER_ACTION;
++    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
++    	outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING;
++    } else {
++    	// Cover OS versions below Oreo
++		outAttrs.imeOptions = IME_FLAG_NO_PERSONALIZED_LEARNING;
+     }
+     return inputConnection;
+   }

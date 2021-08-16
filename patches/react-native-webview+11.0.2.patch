@@ -1,8 +1,36 @@
+diff --git a/node_modules/react-native-webview/.DS_Store b/node_modules/react-native-webview/.DS_Store
+new file mode 100644
+index 0000000..43a1384
+Binary files /dev/null and b/node_modules/react-native-webview/.DS_Store differ
+diff --git a/node_modules/react-native-webview/android/.DS_Store b/node_modules/react-native-webview/android/.DS_Store
+new file mode 100644
+index 0000000..9a874b5
+Binary files /dev/null and b/node_modules/react-native-webview/android/.DS_Store differ
+diff --git a/node_modules/react-native-webview/android/src/.DS_Store b/node_modules/react-native-webview/android/src/.DS_Store
+new file mode 100644
+index 0000000..7b0d367
+Binary files /dev/null and b/node_modules/react-native-webview/android/src/.DS_Store differ
+diff --git a/node_modules/react-native-webview/android/src/main/.DS_Store b/node_modules/react-native-webview/android/src/main/.DS_Store
+new file mode 100644
+index 0000000..55c1fcb
+Binary files /dev/null and b/node_modules/react-native-webview/android/src/main/.DS_Store differ
+diff --git a/node_modules/react-native-webview/android/src/main/java/.DS_Store b/node_modules/react-native-webview/android/src/main/java/.DS_Store
+new file mode 100644
+index 0000000..35a54bf
+Binary files /dev/null and b/node_modules/react-native-webview/android/src/main/java/.DS_Store differ
+diff --git a/node_modules/react-native-webview/android/src/main/java/com/.DS_Store b/node_modules/react-native-webview/android/src/main/java/com/.DS_Store
+new file mode 100644
+index 0000000..2b6e166
+Binary files /dev/null and b/node_modules/react-native-webview/android/src/main/java/com/.DS_Store differ
+diff --git a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/.DS_Store b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/.DS_Store
+new file mode 100644
+index 0000000..2dcc822
+Binary files /dev/null and b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/.DS_Store differ
 diff --git a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
-index 2190ae7..c2414ce 100644
+index 2190ae7..236a4f2 100644
 --- a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
 +++ b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
-@@ -1,5 +1,27 @@
+@@ -1,5 +1,30 @@
  package com.reactnativecommunity.webview;
  
 +import java.io.ByteArrayInputStream;
@@ -23,6 +51,9 @@ index 2190ae7..c2414ce 100644
 +
 +import android.util.Log;
 +
++import android.view.inputmethod.BaseInputConnection;
++import android.view.inputmethod.EditorInfo;
++import android.view.inputmethod.InputConnection;
 +import android.webkit.ServiceWorkerController;
 +import android.webkit.ServiceWorkerClient;
 +
@@ -30,7 +61,7 @@ index 2190ae7..c2414ce 100644
  import android.annotation.SuppressLint;
  import android.annotation.TargetApi;
  import android.app.DownloadManager;
-@@ -129,13 +151,19 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -129,13 +154,19 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
    public static final int COMMAND_LOAD_URL = 7;
    public static final int COMMAND_FOCUS = 8;
  
@@ -51,7 +82,7 @@ index 2190ae7..c2414ce 100644
    protected static final String HTML_MIME_TYPE = "text/html";
    protected static final String JAVASCRIPT_INTERFACE = "ReactNativeWebView";
    protected static final String HTTP_METHOD_POST = "POST";
-@@ -150,11 +178,20 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -150,11 +181,20 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
    protected @Nullable String mUserAgent = null;
    protected @Nullable String mUserAgentWithApplicationName = null;
  
@@ -64,7 +95,7 @@ index 2190ae7..c2414ce 100644
        public void configWebView(WebView webView) {
        }
      };
-+    
++
 +    httpClient = new Builder()
 +    .followRedirects(false)
 +    .followSslRedirects(false)
@@ -72,7 +103,7 @@ index 2190ae7..c2414ce 100644
    }
  
    public RNCWebViewManager(WebViewConfig webViewConfig) {
-@@ -181,6 +218,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -181,6 +221,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
    protected WebView createViewInstance(ThemedReactContext reactContext) {
      RNCWebView webView = createRNCWebViewInstance(reactContext);
@@ -80,7 +111,7 @@ index 2190ae7..c2414ce 100644
      setupWebChromeClient(reactContext, webView);
      reactContext.addLifecycleEventListener(webView);
      mWebViewConfig.configWebView(webView);
-@@ -246,9 +284,96 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -246,9 +287,96 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        }
      });
  
@@ -141,7 +172,7 @@ index 2190ae7..c2414ce 100644
 +    Uri url = request.getUrl();
 +    String urlStr = url.toString();
 +
-+    if (onlyMainFrame && !request.isForMainFrame() || 
++    if (onlyMainFrame && !request.isForMainFrame() ||
 +      urlStringLooksInvalid(urlStr)) {
 +      return null;//super.shouldInterceptRequest(webView, request);
 +    }
@@ -151,23 +182,23 @@ index 2190ae7..c2414ce 100644
 +      .url(urlStr)
 +      .header("User-Agent", userAgent)
 +      .build();
-+  
++
 +      Response response = httpClient.newCall(req).execute();
-+  
-+  
++
++
 +      if (!responseRequiresJSInjection(response)) {
 +        return null;
 +      }
-+  
++
 +      InputStream is = response.body().byteStream();
 +      MediaType contentType = response.body().contentType();
 +      Charset charset = contentType != null ? contentType.charset(StandardCharsets.UTF_8) : StandardCharsets.UTF_8;
-+  
++
 +      RNCWebView reactWebView = (RNCWebView) webView;
 +      if (response.code() == HttpURLConnection.HTTP_OK) {
 +      is = new InputStreamWithInjectedJS(is, reactWebView.injectedJSBeforeContentLoaded, charset);
 +      }
-+  
++
 +      return new WebResourceResponse("text/html", charset.name(), is);
 +    } catch (IOException e) {
 +      return null;
@@ -177,7 +208,7 @@ index 2190ae7..c2414ce 100644
    @ReactProp(name = "javaScriptEnabled")
    public void setJavaScriptEnabled(WebView view, boolean enabled) {
      view.getSettings().setJavaScriptEnabled(enabled);
-@@ -778,8 +903,94 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -778,8 +906,94 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      }
    }
  
@@ -273,7 +304,7 @@ index 2190ae7..c2414ce 100644
      protected boolean mLastLoadFailed = false;
      protected @Nullable
      ReadableArray mUrlPrefixesForDefaultIntent;
-@@ -808,9 +1019,6 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -808,9 +1022,6 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        super.onPageStarted(webView, url, favicon);
        mLastLoadFailed = false;
  
@@ -283,7 +314,7 @@ index 2190ae7..c2414ce 100644
        dispatchEvent(
          webView,
          new TopLoadingStartEvent(
-@@ -818,6 +1026,16 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -818,6 +1029,16 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
            createWebViewEvent(webView, url)));
      }
  
@@ -300,19 +331,19 @@ index 2190ae7..c2414ce 100644
      @Override
      public boolean shouldOverrideUrlLoading(WebView view, String url) {
        final RNCWebView rncWebView = (RNCWebView) view;
-@@ -870,6 +1088,21 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -870,6 +1091,21 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      @TargetApi(Build.VERSION_CODES.N)
      @Override
      public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
 +
 +      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-+  
++
 +             /*
 +              * In order to follow redirects properly, we return null in interceptRequest().
 +              * Doing this breaks the web3 injection on the resulting page, so we have to reload to
 +              * make sure web3 is available.
 +              * */
-+  
++
 +          if (request.isForMainFrame() && request.isRedirect()) {
 +              view.loadUrl(request.getUrl().toString());
 +              return true;
@@ -322,6 +353,39 @@ index 2190ae7..c2414ce 100644
        final String url = request.getUrl().toString();
        return this.shouldOverrideUrlLoading(view, url);
      }
+@@ -1232,6 +1468,12 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+     private OnScrollDispatchHelper mOnScrollDispatchHelper;
+     protected boolean hasScrollEvent = false;
+     protected ProgressChangedFilter progressChangedFilter;
++    /**
++     * Taken from EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING We can't use that
++     * value directly as it was only added on Oreo, but we can apply the value
++     * anyway.
++     */
++    private static final int IME_FLAG_NO_PERSONALIZED_LEARNING = 0x1000000;
+ 
+     /**
+      * WebView must be created with an context of the current activity
+@@ -1257,6 +1499,19 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+       this.hasScrollEvent = hasScrollEvent;
+     }
+ 
++    @Override
++    public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
++      InputConnection inputConnection = new BaseInputConnection(this, false);
++
++      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
++        outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING;
++      } else {
++        // Cover OS versions below Oreo
++        outAttrs.imeOptions = IME_FLAG_NO_PERSONALIZED_LEARNING;
++      }
++      return inputConnection;
++    }
++
+     @Override
+     public void onHostResume() {
+       // do nothing
 diff --git a/node_modules/react-native-webview/apple/RNCWebView.m b/node_modules/react-native-webview/apple/RNCWebView.m
 index 02005db..c9b51d9 100644
 --- a/node_modules/react-native-webview/apple/RNCWebView.m

@@ -243,6 +243,10 @@ android {
 	}
 }
 
+configurations.all {
+	exclude group: 'com.facebook.react', module: 'react-native'
+}
+
 dependencies {
 	implementation project(':lottie-react-native')
 
@@ -251,7 +255,8 @@ dependencies {
 	implementation 'androidx.multidex:multidex:2.0.1'
 	implementation 'androidx.annotation:annotation:1.1.0'
 	implementation 'androidx.appcompat:appcompat:1.2.0'
-	implementation "com.facebook.react:react-native:+"  // From node_modules
+	implementation project(':ReactAndroid')
+	// implementation "com.facebook.react:react-native:+"  // From node_modules
 	implementation 'org.chromium:v8-android:+'
 
 	implementation 'com.google.android.gms:play-services-wallet:18.0.0'
