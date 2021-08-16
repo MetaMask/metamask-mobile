@@ -1,36 +1,23 @@
 # Changelog
 
 ## v.3.1.0 - August 12 2021
-- [#3024](https://github.com/MetaMask/metamask-mobile/pull/3024): remove tarball (#3024)
 - [#2981](https://github.com/MetaMask/metamask-mobile/pull/2981): [FIX] Delete Message (#2981)
-- [#3017](https://github.com/MetaMask/metamask-mobile/pull/3017): fix deep links bug related to branch updates (#3017)
-- [#3010](https://github.com/MetaMask/metamask-mobile/pull/3010): RC 3.0.1 - Downgrade Android SDK Version (#3010)
-- [#3009](https://github.com/MetaMask/metamask-mobile/pull/3009): v3.1.0 RC (#3009)
-- [#3005](https://github.com/MetaMask/metamask-mobile/pull/3005): Revert "Collectibles enhancements (#2735)" (#3005)
+- [#3017](https://github.com/MetaMask/metamask-mobile/pull/3017): [FIX] fix deep links bug related to branch updates (#3017)
 - [#2972](https://github.com/MetaMask/metamask-mobile/pull/2972): [FEATURE] - Storage Limit - Reduce Txs Being Stored (#2972)
-- [#3004](https://github.com/MetaMask/metamask-mobile/pull/3004): Fix/ci release update (#3004)
 - [#2999](https://github.com/MetaMask/metamask-mobile/pull/2999): [FIX] Account for `txParams.data` when we sync (#2999)
-- [#2956](https://github.com/MetaMask/metamask-mobile/pull/2956): upgrade walletconnect (#2956)
 - [#2961](https://github.com/MetaMask/metamask-mobile/pull/2961): [FIX] GH Action Permission for Bump-Version (#2961)
-- [#2996](https://github.com/MetaMask/metamask-mobile/pull/2996): Fix: Add TransakWebview mediaPlayback props for KYC (#2996)
-- [#2804](https://github.com/MetaMask/metamask-mobile/pull/2804): Branch updates (#2804)
-- [#2813](https://github.com/MetaMask/metamask-mobile/pull/2813): Feature/video subtitles (#2813)
-- [#2893](https://github.com/MetaMask/metamask-mobile/pull/2893): Fix address bar icon (#2893)
-- [#2980](https://github.com/MetaMask/metamask-mobile/pull/2980): Fix header layout. (#2980)
-- [#2973](https://github.com/MetaMask/metamask-mobile/pull/2973): On-Ramp: Add on-ramp analytics (#2973)
-- [#2907](https://github.com/MetaMask/metamask-mobile/pull/2907): Remove extra top padding on send flow (#2907)
-- [#2808](https://github.com/MetaMask/metamask-mobile/pull/2808): bugfix: issue #2763 (#2808)
-- [#2976](https://github.com/MetaMask/metamask-mobile/pull/2976): Release/3.0.1 patch (#2976)
-- [#2735](https://github.com/MetaMask/metamask-mobile/pull/2735): Collectibles enhancements (#2735)
+- [#2813](https://github.com/MetaMask/metamask-mobile/pull/2813): [FEATURE] Video subtitles (#2813)
+- [#2980](https://github.com/MetaMask/metamask-mobile/pull/2980): [FIX] Fix header layout. (#2980)
+- [#2907](https://github.com/MetaMask/metamask-mobile/pull/2907): [FIX] Remove extra top padding on send flow (#2907)
+- [#2808](https://github.com/MetaMask/metamask-mobile/pull/2808): [FIX] issue #2763 (#2808)
 - [#2972](https://github.com/MetaMask/metamask-mobile/pull/2972): [FIX] Storage Limit - Reduce Transactions Being Persisted to 40
-- [#2999](https://github.com/MetaMask/metamask-mobile/pull/2999): [FIX] Account for `txParams.data` when we sync
 - [#2956](https://github.com/MetaMask/metamask-mobile/pull/2956): [UPGRADE] walletconnect
 - [#2996](https://github.com/MetaMask/metamask-mobile/pull/2996): [FIX] Add TransakWebview mediaPlayback props for KYC
 - [#2804](https://github.com/MetaMask/metamask-mobile/pull/2804): [UPGRADE] Branch updates
 - [#2813](https://github.com/MetaMask/metamask-mobile/pull/2813): [FEATURE] Secret Recovery Phrase Video Subtitles
 - [#2893](https://github.com/MetaMask/metamask-mobile/pull/2893): [FIX] address bar icon
 - [#2980](https://github.com/MetaMask/metamask-mobile/pull/2980): [FIX] header layout
-- [#2973](https://github.com/MetaMask/metamask-mobile/pull/2973): On-Ramp: Add on-ramp analytics
+- [#2973](https://github.com/MetaMask/metamask-mobile/pull/2973): [FEATURE] On-Ramp: Add on-ramp analytics
 
 ## v.3.0.1 - August 4 2021
 - Patch to fix Wyre and Transak
