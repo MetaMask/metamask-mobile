@@ -1,5 +1,7 @@
 # Changelog
 
+## Current Develop Branch
+
 ## v.3.1.0 - August 12 2021
 - [#2981](https://github.com/MetaMask/metamask-mobile/pull/2981): [FIX] Delete Message (#2981)
 - [#3017](https://github.com/MetaMask/metamask-mobile/pull/3017): [FIX] fix deep links bug related to branch updates (#3017)
