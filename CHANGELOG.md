@@ -1,6 +1,8 @@
 # Changelog
 
 ## Current Develop Branch
+
+## v.3.1.0 - August 12 2021
 - [#3026](https://github.com/MetaMask/metamask-mobile/pull/3026): [FIX] Fix edit button
 - [#2981](https://github.com/MetaMask/metamask-mobile/pull/2981): [FIX] Delete Message
 - [#3017](https://github.com/MetaMask/metamask-mobile/pull/3017): [FIX] Fix deep links bug related to branch updates
