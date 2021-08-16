@@ -12,7 +12,7 @@ import Step6 from './Step6';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { DrawerActions } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
-import AsyncStorage from '@react-native-community/async-storage';
+import DefaultPreference from 'react-native-default-preference';
 import ElevatedView from 'react-native-elevated-view';
 import Modal from 'react-native-modal';
 import Device from '../../../util/Device';
@@ -101,7 +101,7 @@ class OnboardingWizard extends PureComponent {
 			navigation,
 			wizard: { step }
 		} = this.props;
-		await AsyncStorage.setItem(ONBOARDING_WIZARD, EXPLORED);
+		await DefaultPreference.set(ONBOARDING_WIZARD, EXPLORED);
 		setOnboardingWizardStep && setOnboardingWizardStep(0);
 		navigation && navigation.dispatch(DrawerActions.closeDrawer());
 		closing &&

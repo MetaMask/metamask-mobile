@@ -133,7 +133,7 @@
 		"reset_wallet": "Сбросить кошелек",
 		"cant_proceed": "Чтобы продолжить, введите слово «delete». Так вы инициируете удаление текущего кошелька.",
 		"invalid_password": "Недопустимый пароль",
-		"type_delete": "Введите «delete», чтобы удалить текущий кошелек навсегда",
+		"type_delete": "Введите «%{delete}», чтобы удалить текущий кошелек навсегда",
 		"delete_my": "Удалить мой кошелек",
 		"are_you_sure": "Вы уверены, что хотите удалить свой кошелек?",
 		"your_current_wallet": "Ваш текущий кошелек, счета и активы будут ",
@@ -1626,6 +1626,6 @@
 	"secret_phrase_video_subtitle": {
 		"title": "RU RU CC",
 		"language": "ru-ru",
-		"uri": "https://github.com/MetaMask/metamask-mobile/blob/feature/secret_recovery_translations/app/videos/subtitles/subtitles-ru-ru.vtt"
+		"uri": "https://github.com/MetaMask/metamask-mobile/blob/develop/app/videos/subtitles/secretPhrase/subtitles-ru-ru.vtt?raw=true"
 	}
 }
