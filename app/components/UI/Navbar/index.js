@@ -195,8 +195,8 @@ export function getEditableOptions(title, navigation, route) {
 		navigation.pop();
 	}
 	const rightAction = route.params?.dispatch;
-	const editMode = route.params?.editMode ?? '' === 'edit';
-	const addMode = route.params?.mode ?? '' === 'add';
+	const editMode = route.params?.editMode === 'edit';
+	const addMode = route.params?.mode === 'add';
 	return {
 		title,
 		headerTitleStyle: {
