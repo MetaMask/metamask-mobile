@@ -16,7 +16,6 @@
 - [#2804](https://github.com/MetaMask/metamask-mobile/pull/2804): Branch updates (#2804)
 - [#2813](https://github.com/MetaMask/metamask-mobile/pull/2813): Feature/video subtitles (#2813)
 - [#2893](https://github.com/MetaMask/metamask-mobile/pull/2893): Fix address bar icon (#2893)
-- Merge pull request from GHSA-3pg9-fvh4-99rr
 - [#2980](https://github.com/MetaMask/metamask-mobile/pull/2980): Fix header layout. (#2980)
 - [#2973](https://github.com/MetaMask/metamask-mobile/pull/2973): On-Ramp: Add on-ramp analytics (#2973)
 - [#2907](https://github.com/MetaMask/metamask-mobile/pull/2907): Remove extra top padding on send flow (#2907)
