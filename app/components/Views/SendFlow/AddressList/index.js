@@ -130,7 +130,7 @@ class AddressList extends PureComponent {
 			minMatchCharLength: 1,
 			keys: [{ name: 'name', weight: 0.5 }, { name: 'address', weight: 0.5 }]
 		});
-		this.getRecentAddresses();
+		// this.getRecentAddresses();
 		this.parseAddressBook(networkAddressBookList);
 	};
 
@@ -149,7 +149,7 @@ class AddressList extends PureComponent {
 				const networkAddressBook = addressBook[network] || {};
 				networkAddressBookList = Object.keys(networkAddressBook).map(address => networkAddressBook[address]);
 			}
-			this.getRecentAddresses(this.props.inputSearch);
+			// this.getRecentAddresses(this.props.inputSearch);
 			this.parseAddressBook(networkAddressBookList);
 		}
 	};
@@ -284,13 +284,13 @@ class AddressList extends PureComponent {
 	};
 
 	render = () => {
-		const { processedRecentsList, contactElements } = this.state;
+		const { recents, contactElements } = this.state;
 		const { onlyRenderAddressBook } = this.props;
 		return (
 			<View style={styles.root}>
 				<ScrollView style={styles.myAccountsWrapper}>
 					{!onlyRenderAddressBook && this.renderMyAccounts()}
-					{!onlyRenderAddressBook && processedRecentsList}
+					{!onlyRenderAddressBook && recents.map((recent, index) => <View key={index}>{recent}</View>)}
 					{contactElements.length ? (
 						<FlatList
 							data={contactElements}
@@ -305,6 +305,7 @@ class AddressList extends PureComponent {
 }
 
 const mapStateToProps = state => ({
+	recents: state.recents,
 	addressBook: state.engine.backgroundState.AddressBookController.addressBook,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	network: state.engine.backgroundState.NetworkController.network,
