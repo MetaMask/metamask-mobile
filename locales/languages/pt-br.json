@@ -133,7 +133,7 @@
 		"reset_wallet": "Redefinir Carteira",
 		"cant_proceed": "Você não pode prosseguir antes de digitar a palavra 'Delete'. Desta forma você está optando por excluir sua carteira atual.",
 		"invalid_password": "Senha inválida",
-		"type_delete": "Digite 'delete' para excluir sua carteira atual permanentemente",
+		"type_delete": "Digite '%{delete}' para excluir sua carteira atual permanentemente",
 		"delete_my": "Apagar minha carteira",
 		"are_you_sure": "Tem certeza de que deseja excluir sua carteira?",
 		"your_current_wallet": "Sua carteira atual, suas contas e seus ativos serão ",

@@ -133,7 +133,7 @@
 		"reset_wallet": "지갑 재설정",
 		"cant_proceed": "계속하려면 'Delete'를 입력하십시오. 입력하면 기존 지갑 지우기를 선택하는 것입니다.",
 		"invalid_password": "잘못된 암호",
-		"type_delete": "기존 지갑을 영구히 지우려면 'delete'를 입력하십시오.",
+		"type_delete": "기존 지갑을 영구히 지우려면 '%{delete}'를 입력하십시오.",
 		"delete_my": "내 지갑 삭제",
 		"are_you_sure": "지갑을 지우시겠습니까?",
 		"your_current_wallet": "기존 지갑, 계정 및 자산은 ",

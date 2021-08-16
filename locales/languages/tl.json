@@ -133,7 +133,7 @@
 		"reset_wallet": "I-reset ang Wallet",
 		"cant_proceed": "Hindi ka makakapagpatuloy hanggang sa i-type mo ang salitang ‘Delete’. Kapag ginawa ang aksyong ito, nangangahulugan ito ng pag-opt in para burahin ang iyong kasalukuyang wallet.",
 		"invalid_password": "Hindi valid ang password",
-		"type_delete": "I-type ang ‘delete’ para tuluyang burahin ang kasalukuyang wallet",
+		"type_delete": "I-type ang ‘%{delete}’ para tuluyang burahin ang kasalukuyang wallet",
 		"delete_my": "I-delete ang wallet ko",
 		"are_you_sure": "Sigurado ka bang gusto mong burahin ang wallet mo?",
 		"your_current_wallet": "Ang iyong kasalukuyang wallet, mga account at mga asset ay ",
