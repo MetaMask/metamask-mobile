@@ -9,8 +9,8 @@ const recentsReducer = (state = [], action) => {
 			return state;
 		case 'ADD_RECENT':
 			if (action.recent && !state.includes(action.recent)) {
-				const arr = [action.recent, ...state];
-				return Array.from({ length: recentsLength }, (_, index) => arr[index]);
+				const recents = [action.recent, ...state];
+				return Array.from({ length: recentsLength }, (_, index) => recents[index]);
 			}
 			return state;
 		default:
