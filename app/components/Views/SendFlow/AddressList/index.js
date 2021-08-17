@@ -88,6 +88,9 @@ class AddressList extends PureComponent {
 		 */
 		onlyRenderAddressBook: PropTypes.bool,
 		reloadAddressList: PropTypes.bool,
+		/**
+		 * An array that represents the user's recent toAddresses
+		 */
 		recents: PropTypes.array
 	};
 
