@@ -847,8 +847,10 @@ class Confirm extends PureComponent {
 				throw transactionMeta.error;
 			} else {
 				// add to recents
-				const to = transactionMeta.transaction?.to;
-				to && addRecent(to);
+				const {
+					transaction: { to: toAddress }
+				} = transactionMeta;
+				toAddress && addRecent(toAddress);
 			}
 
 			InteractionManager.runAfterInteractions(() => {
