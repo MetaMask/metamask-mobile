@@ -45,8 +45,8 @@ import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { tlc, toLowerCaseEquals } from '../../../util/general';
+import DefaultPreference from 'react-native-default-preference';
 
-const isTextDelete = text => tlc(text) === 'delete';
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
 
@@ -183,11 +183,13 @@ const styles = StyleSheet.create({
 	}
 });
 
+const DELETE = 'delete';
 const PASSCODE_NOT_SET_ERROR = strings('login.passcode_not_set_error');
 const WRONG_PASSWORD_ERROR = strings('login.wrong_password_error');
 const WRONG_PASSWORD_ERROR_ANDROID = strings('login.wrong_password_error_android');
 const VAULT_ERROR = strings('login.vault_error');
 const CLEAN_VAULT_ERROR = strings('login.clean_vault_error');
+const isTextDelete = text => tlc(text) === DELETE;
 
 /**
  * View where returning users can authenticate
@@ -298,9 +300,9 @@ class Login extends PureComponent {
 			}
 
 			// Get onboarding wizard state
-			const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
+			const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
 			// Check if user passed through metrics opt-in screen
-			const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
+			const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
 			if (!metricsOptIn) {
 				this.props.navigation.navigate('OnboardingRootNav', {
 					screen: 'OnboardingNav',
@@ -488,7 +490,9 @@ class Login extends PureComponent {
 			>
 				<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
 					<View style={styles.areYouSure}>
-						<Text style={[styles.heading, styles.delete]}>{strings('login.type_delete')}</Text>
+						<Text style={[styles.heading, styles.delete]}>
+							{strings('login.type_delete', { delete: DELETE })}
+						</Text>
 						<OutlinedTextField
 							style={styles.input}
 							autoFocus
@@ -526,7 +530,7 @@ class Login extends PureComponent {
 							<Text style={styles.label}>{strings('login.password')}</Text>
 							<OutlinedTextField
 								style={styles.input}
-								placeholder={'Password'}
+								placeholder={strings('login.password')}
 								testID={'login-password-input'}
 								returnKeyType={'done'}
 								autoCapitalize="none"

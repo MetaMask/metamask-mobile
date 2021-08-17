@@ -14,11 +14,11 @@ import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import StyledButton from '../../UI/StyledButton';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
-import AsyncStorage from '@react-native-community/async-storage';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { connect } from 'react-redux';
 import Confetti from '../../UI/Confetti';
 import { ONBOARDING_WIZARD, METRICS_OPT_IN } from '../../../constants/storage';
+import DefaultPreference from 'react-native-default-preference';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -136,9 +136,9 @@ class SyncWithExtensionSuccess extends PureComponent {
 
 	continue = async () => {
 		// Get onboarding wizard state
-		const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
+		const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
 		// Check if user passed through metrics opt-in screen
-		const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
+		const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
 		if (!metricsOptIn) {
 			this.props.navigation.navigate('OnboardingNav', { screen: 'OptinMetrics' });
 		} else if (onboardingWizard) {

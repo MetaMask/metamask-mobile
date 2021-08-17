@@ -33,6 +33,7 @@ import {
 	METRICS_OPT_IN,
 	TRUE
 } from '../../../constants/storage';
+import DefaultPreference from 'react-native-default-preference';
 
 const styles = StyleSheet.create({
 	scroll: {
@@ -131,9 +132,9 @@ class CreateWallet extends PureComponent {
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
 			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
 			// Get onboarding wizard state
-			const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
+			const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
 			// Check if user passed through metrics opt-in screen
-			const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
+			const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
 			// Making sure we reset the flag while going to
 			// the first time flow
 			this.props.passwordUnset();
