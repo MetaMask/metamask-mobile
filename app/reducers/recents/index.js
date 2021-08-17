@@ -1,5 +1,5 @@
 import { REHYDRATE } from 'redux-persist';
-const recentsLength = 10;
+const recentsLength = 3;
 const recentsReducer = (state = [], action) => {
 	switch (action.type) {
 		case REHYDRATE:
