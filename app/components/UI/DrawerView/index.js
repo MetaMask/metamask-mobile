@@ -41,6 +41,7 @@ import InvalidCustomNetworkAlert from '../InvalidCustomNetworkAlert';
 import { RPC } from '../../../constants/network';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
+import { isDefaultAccountName, doENSReverseLookup } from '../../../util/ENSUtils';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -369,7 +370,8 @@ class DrawerView extends PureComponent {
 	};
 
 	state = {
-		showProtectWalletModal: undefined
+		showProtectWalletModal: undefined,
+		accountName: undefined
 	};
 
 	browserSectionRef = React.createRef();
@@ -394,7 +396,7 @@ class DrawerView extends PureComponent {
 		return ret;
 	}
 
-	componentDidUpdate() {
+	async componentDidUpdate() {
 		const route = findRouteNameFromNavigatorState(this.props.navigation.dangerouslyGetState().routes);
 		if (!this.props.passwordSet || !this.props.seedphraseBackedUp) {
 			if (
@@ -443,9 +445,19 @@ class DrawerView extends PureComponent {
 			DeeplinkManager.expireDeeplink();
 			DeeplinkManager.parse(pendingDeeplink, { origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK });
 		}
+		await this.assignAcccountName();
 	}
 
-	toggleAccountsModal = () => {
+	assignAcccountName = async () => {
+		const { identities, network, selectedAddress } = this.props;
+		const accountName = identities[selectedAddress].name;
+		const ens = await doENSReverseLookup(selectedAddress, network.provider.chainId);
+		if (isDefaultAccountName(accountName)) {
+			this.setState({ accountName: ens || accountName });
+		}
+	};
+
+	toggleAccountsModal = async () => {
 		if (!this.animatingAccountsModal) {
 			this.animatingAccountsModal = true;
 			this.props.toggleAccountsModal();
@@ -454,6 +466,7 @@ class DrawerView extends PureComponent {
 			}, 500);
 		}
 		!this.props.accountsModalVisible && this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_ACCOUNT_NAME);
+		await this.assignAcccountName();
 	};
 
 	toggleReceiveModal = () => {
@@ -849,8 +862,7 @@ class DrawerView extends PureComponent {
 			seedphraseBackedUp
 		} = this.props;
 
-		const { invalidCustomNetwork, showProtectWalletModal } = this.state;
-
+		const { invalidCustomNetwork, showProtectWalletModal, accountName } = this.state;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
 		account.balance = (accounts[selectedAddress] && renderFromWei(accounts[selectedAddress].balance)) || 0;
 		const fiatBalance = Engine.getTotalFiatAccountBalance();
@@ -887,7 +899,7 @@ class DrawerView extends PureComponent {
 							>
 								<View style={styles.accountNameWrapper}>
 									<Text style={styles.accountName} numberOfLines={1}>
-										{account.name}
+										{accountName}
 									</Text>
 									<Icon name="caret-down" size={24} style={styles.caretDown} />
 								</View>
