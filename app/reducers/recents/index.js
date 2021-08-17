@@ -3,7 +3,7 @@ const recentsLength = 3;
 const recentsReducer = (state = [], action) => {
 	switch (action.type) {
 		case REHYDRATE:
-			if (action.payload && action.payload.recents) {
+			if (action.payload?.recents) {
 				return [...state, ...action.payload.recents];
 			}
 			return state;
