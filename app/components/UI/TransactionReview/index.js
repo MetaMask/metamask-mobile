@@ -19,7 +19,7 @@ import {
 	fromTokenMinimalUnit
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import contractMap from '@metamask/contract-metadata';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import TransactionReviewInformation from './TransactionReviewInformation';

@@ -27,7 +27,7 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 import TermsAndConditions from '../TermsAndConditions';
 import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import { failedSeedPhraseRequirements, isValidMnemonic, parseSeedPhrase } from '../../../util/validators';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import {

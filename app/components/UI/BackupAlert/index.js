@@ -5,7 +5,7 @@ import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import ElevatedView from 'react-native-elevated-view';
 import { strings } from '../../../../locales/i18n';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import { connect } from 'react-redux';
 import { backUpSeedphraseAlertNotVisible } from '../../../actions/user';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
