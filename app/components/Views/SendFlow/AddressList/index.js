@@ -213,8 +213,8 @@ class AddressList extends PureComponent {
 	};
 
 	renderRecents = () => {
-		const { recents, onAccountPress, onAccountLongPress } = this.props;
-		if (!recents.length) return null;
+		const { recents, onAccountPress, onAccountLongPress, inputSearch } = this.props;
+		if (!recents.length || inputSearch) return;
 		return (
 			<>
 				{LabelElement(strings('address_book.recents'))}
