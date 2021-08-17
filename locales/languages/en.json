@@ -1549,6 +1549,11 @@
 			"2": "aggregator",
 			"3": "which finds the best price by splitting your order between different decentralized exchanges."
 		},
+		"quote_source_cnt": {
+			"1": "This quote comes directly from a",
+			"2": "smart contract",
+			"3": "."
+		},
 		"quotes_timeout": "Quotes timeout",
 		"request_new_quotes": "Please request new quotes to get the latest best rate.",
 		"quotes_not_available": "Quotes not available",
