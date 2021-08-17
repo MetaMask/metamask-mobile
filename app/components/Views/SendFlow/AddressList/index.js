@@ -284,14 +284,34 @@ class AddressList extends PureComponent {
 		);
 	};
 
+	renderRecents = () => {
+		const { recents, onAccountPress, onAccountLongPress } = this.props;
+		if (!recents.length) return null;
+		return (
+			<>
+				{LabelElement(strings('address_book.recents'))}
+				{recents
+					.filter(recent => recent != null)
+					.map((address, index) => (
+						<AddressElement
+							key={index}
+							address={address}
+							onAccountPress={onAccountPress}
+							onAccountLongPress={onAccountLongPress}
+						/>
+					))}
+			</>
+		);
+	};
+
 	render = () => {
 		const { contactElements } = this.state;
-		const { recents, onlyRenderAddressBook } = this.props;
+		const { onlyRenderAddressBook } = this.props;
 		return (
 			<View style={styles.root}>
 				<ScrollView style={styles.myAccountsWrapper}>
 					{!onlyRenderAddressBook && this.renderMyAccounts()}
-					{!onlyRenderAddressBook && recents.map((recent, index) => <View key={index}>{recent}</View>)}
+					{!onlyRenderAddressBook && this.renderRecents()}
 					{contactElements.length ? (
 						<FlatList
 							data={contactElements}
