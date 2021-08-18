@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, ImageBackground, View } from 'react-native';
 import { colors } from '../../../styles/common';
-import Device from '../../../util/Device';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -15,7 +14,6 @@ const styles = StyleSheet.create({
 		left: 0,
 		right: 0,
 		position: 'absolute',
-		paddingTop: Device.isIphoneX() ? 90 : 50,
 		borderTopWidth: 0,
 		borderColor: colors.white,
 		backgroundColor: colors.white,

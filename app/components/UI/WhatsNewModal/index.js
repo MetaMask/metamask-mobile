@@ -14,7 +14,7 @@ import ActionModal from '../ActionModal';
 import { colors, fontStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import { whatsNew } from './whatsNewList';
 import AsyncStorage from '@react-native-community/async-storage';
 import { CURRENT_APP_VERSION, LAST_APP_VERSION, WHATS_NEW_APP_VERSION_SEEN } from '../../../constants/storage';

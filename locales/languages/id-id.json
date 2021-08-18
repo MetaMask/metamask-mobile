@@ -133,7 +133,7 @@
 		"reset_wallet": "Atur Ulang Dompet",
 		"cant_proceed": "Anda tidak dapat melanjutkan hingga Anda mengetik kata ‘Hapus’. Dengan tindakan ini, Anda memilih untuk menghapus dompet Anda saat ini.",
 		"invalid_password": "Kata sandi tidak valid",
-		"type_delete": "Ketik 'hapus' untuk menghapus dompet saat ini secara permanen",
+		"type_delete": "Ketik '%{delete}' untuk menghapus dompet saat ini secara permanen",
 		"delete_my": "Hapus dompet saya",
 		"are_you_sure": "Anda yakin ingin menghapus dompet Anda?",
 		"your_current_wallet": "Dompet, akun, dan aset Anda saat ini akan ",
@@ -143,10 +143,6 @@
 		"recovery_phrase": "Frasa Pemulihan Rahasia ",
 		"metamask_does_not": "MetaMask tidak memiliki Frasa Pemulihan Rahasia Anda.",
 		"i_understand": "Saya paham, lanjutkan",
-		"passcode_not_set_error": "Kesalahan: Kode masuk tidak disiapkan.",
-		"wrong_password_error": "Kesalahan: Dekrip gagal",
-		"wrong_password_error_android": "Kesalahan: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
-		"vault_error": "Kesalahan: Tidak dapat membuka kunci tanpa vault sebelumnya.",
 		"clean_vault_error": "MetaMask mengalami kesalahan karena mencapai batas penyimpanan. Data lokal sudah rusak. Instal ulang MetaMask dan pulihkan dengan Frasa Pemulihan Rahasia Anda."
 	},
 	"enter_password": {
@@ -1440,10 +1436,10 @@
 		"verify_address_on": "Verifikasikan alamat token di",
 		"added_manually": "Token ini telah ditambahkan secara manual.",
 		"verify_this_token_on": "Verifikasikan token ini di ",
+		"make_sure_trade": "dan pastikan ini adalah token yang ingin Anda perdagangkan.",
 		"only_verified_on": "{{symbol}} hanya diverifikasi di {{occurances}} sumber.",
 		"block_explorer": "block explorer",
 		"a_block_explorer": "block explorer",
-		"make_sure_trade": "dan pastikan ini adalah token yang ingin Anda perdagangkan.",
 		"token_verification": "Verifikasi token",
 		"token_multiple": "Beberapa token dapat menggunakan simbol dan nama yang sama.",
 		"token_check": "Periksa",
@@ -1472,12 +1468,12 @@
 		"more_gas_to_complete": "lebih banyak biaya jaringan untuk menyelesaikan penukaran ini.",
 		"buy_more_eth": "Beli ETH lainnya.",
 		"market_price_unavailable_title": "Periksa tarif Anda sebelum melanjutkan",
-		"market_price_unavailable": "Harga pasar tidak tersedia dan oleh karenanya dampak harga tidak diketahui. Harap verifikasi bahwa Anda setuju dengan jumlah token yang akan Anda terima sebelum penukaran.",
+		"price_impact_title": "Dampak harga",
+		"price_impact_body": "Dampak harga adalah selisih antara harga pasar saat ini dan jumlah yang diterima selama terjadinya transaksi. Dampak harga adalah fungsi ukuran dagang relatif terhadap ukuran pool likuiditas.",
+		"market_price_unavailable": "Harga pasar tidak tersedia. Pastikan Anda nyaman dengan jumlah yang dikembalikan sebelum melanjutkan.",
 		"price_difference": "Selisih harga sebesar {{amount}}",
 		"price_difference_title": "Selisih harga",
 		"price_difference_body": "Selisih dalam harga pasar dapat dipengaruhi oleh biaya yang diambil oleh perantara, skala pasar, ukuran perdagangan, atau ketidakefisienan pasar.",
-		"price_impact_title": "Dampak harga",
-		"price_impact_body": "Dampak harga adalah selisih antara harga pasar saat ini dan jumlah yang diterima selama terjadinya transaksi. Dampak harga adalah fungsi ukuran dagang relatif terhadap ukuran pool likuiditas.",
 		"quotes_update_often": "Kuota sering diperbarui",
 		"quotes_update_often_text": "Kuota sering diperbarui untuk menerapkan kondisi pasar terkini.",
 		"about_to_swap": "Anda akan menukar",
@@ -1488,10 +1484,10 @@
 		"saving": "Menyimpan",
 		"using_best_quote": "Menggunakan kuota terbaik",
 		"view_details": "Lihat detail",
-		"estimated_gas_fee": "Perkiraan biaya jaringan",
-		"max_gas_fee": "Biaya jaringan maks.",
+		"estimated_gas_fee": "Biaya jaringan yang diperkirakan",
+		"max_gas_fee": "Biaya jaringan maksimum",
 		"edit": "Edit",
-		"quotes_include_fee": "Kuota mencakup biaya {{fee}}% MetaMask",
+		"quotes_include_fee": "Kuota mencakup biaya MetaMask {{fee}}%",
 		"tap_to_swap": "Ketuk untuk Menukar",
 		"swipe_to_swap": "Geser untuk menukar",
 		"swipe_to": "Geser untuk",
@@ -1554,18 +1550,7 @@
 			"swap_confirmed": "Penukaran selesai ({{sourceToken}} untuk {{destinationToken}})",
 			"approve_pending": "Menyetujui {{sourceToken}} untuk penukaran",
 			"approve_confirmed": "{{sourceToken}} disetujui untuk penukaran"
-		},
-		"gas_education_title": "Biaya jaringan yang diperkirakan",
-		"gas_education_1": "Biaya jaringan dibayarkan kepada penambang kripto yang memproses transaksi di ",
-		"gas_education_2_ethereum": "Jaringan Ethereum.",
-		"gas_education_2": "jaringan.",
-		"gas_education_3": "MetaMask tidak mendapatkan keuntungan dari biaya jaringan.",
-		"gas_education_4": "“",
-		"gas_education_5": "Perkiraan biaya jaringan”",
-		"gas_education_6": "adalah yang kita harapkan untuk biaya yang seharusnya. Jumlah yang tepat tergantung pada kondisi jaringan.",
-		"gas_education_7": "“Biaya jaringan maks.”",
-		"gas_education_8": "adalah yang paling banyak yang akan Anda gunakan. Bila jaringan tidak stabil ini bisa menjadi jumlah yang besar.",
-		"gas_education_learn_more": "Pelajari selengkapnya tentang biaya jaringan"
+		}
 	},
 	"protect_wallet_modal": {
 		"title": "Lindungi dompet Anda",
@@ -1643,6 +1628,6 @@
 	"secret_phrase_video_subtitle": {
 		"title": "ID ID CC",
 		"language": "id-id",
-		"uri": "https://github.com/MetaMask/metamask-mobile/blob/feature/secret_recovery_translations/app/videos/subtitles/subtitles-id-id.vtt"
+		"uri": "https://github.com/MetaMask/metamask-mobile/blob/develop/app/videos/subtitles/secretPhrase/subtitles-id-id.vtt?raw=true"
 	}
 }

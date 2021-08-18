@@ -133,7 +133,7 @@
 		"reset_wallet": "지갑 재설정",
 		"cant_proceed": "계속하려면 'Delete'를 입력하십시오. 입력하면 기존 지갑 지우기를 선택하는 것입니다.",
 		"invalid_password": "잘못된 암호",
-		"type_delete": "기존 지갑을 영구히 지우려면 'delete'를 입력하십시오.",
+		"type_delete": "기존 지갑을 영구히 지우려면 '%{delete}'를 입력하십시오.",
 		"delete_my": "내 지갑 삭제",
 		"are_you_sure": "지갑을 지우시겠습니까?",
 		"your_current_wallet": "기존 지갑, 계정 및 자산은 ",
@@ -143,10 +143,6 @@
 		"recovery_phrase": "복구할 수 있습니다. ",
 		"metamask_does_not": "MetaMask에는 계정 시드 구문이 저장되어 있지 않습니다.",
 		"i_understand": "이해했으며 계속하겠습니다.",
-		"passcode_not_set_error": "오류: 암호가 설정되지 않았습니다.",
-		"wrong_password_error": "오류: 암호 해독 실패",
-		"wrong_password_error_android": "오류: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
-		"vault_error": "오류: 이전의 금고 없이 잠금 해제할 수 없습니다.",
 		"clean_vault_error": "저장 한도에 도달하여 MetaMask 오류가 발생했습니다. 로컬 데이터가 손상되었습니다. MetaMask를 다시 설치하고 계정 시드 구문으로 복구하십시오."
 	},
 	"enter_password": {
@@ -1440,10 +1436,10 @@
 		"verify_address_on": "다음에서 토큰 주소 확인",
 		"added_manually": "이 토큰은 수동으로 추가되었습니다.",
 		"verify_this_token_on": "에서 이 토큰 확인",
+		"make_sure_trade": "해당 토큰이 거래하려는 토큰이 맞는지 확인하세요.",
 		"only_verified_on": "{{symbol}}은(는) {{occurances}} 소스에서만 확인됩니다.",
 		"block_explorer": "블록 탐색기",
 		"a_block_explorer": "블록 탐색기",
-		"make_sure_trade": "해당 토큰이 거래하려는 토큰이 맞는지 확인하세요.",
 		"token_verification": "토큰 확인",
 		"token_multiple": "여러 토큰이 같은 이름과 기호를 사용할 수 있습니다.",
 		"token_check": "확인",
@@ -1472,12 +1468,12 @@
 		"more_gas_to_complete": "만큼이 Gas에 대해 추가로 필요합니다.",
 		"buy_more_eth": "ETH를 더 구매하십시오.",
 		"market_price_unavailable_title": "진행하기 전에 요율 확인",
-		"market_price_unavailable": "시장 가격을 확인할 수 없으므로 가격 영향은 알려지지 않았습니다. 스왑하기 전에 받을 토큰의 수가 만족스러운지 확인하시기 바랍니다.",
+		"price_impact_title": "가격 영향",
+		"price_impact_body": "가격 영향은 현재 시장 가격과 거래 실행 도중 받은 금액 사이의 차이입니다. 가격 영향은 유동성 풀의 크기 대비 거래의 크기를 나타내는 함수입니다.",
+		"market_price_unavailable": "시장 가격을 사용할 수 없습니다. 계속하기 전에 반환 금액이 괜찮은지 확인하시기 바랍니다.",
 		"price_difference": "가격 차이: {{amount}}",
 		"price_difference_title": "가격 차이",
 		"price_difference_body": "시장 가격의 차이는 중개소, 시장의 크기, 거래의 규모 또는 시장 비효율성에 의해 영향을 받을 수 있습니다.",
-		"price_impact_title": "가격 영향",
-		"price_impact_body": "가격 영향은 현재 시장 가격과 거래 실행 도중 받은 금액 사이의 차이입니다. 가격 영향은 유동성 풀의 크기 대비 거래의 크기를 나타내는 함수입니다.",
 		"quotes_update_often": "견적은 자주 업데이트됩니다.",
 		"quotes_update_often_text": "견적은 현재 시장 상황을 반영하도록 자주 업데이트됩니다.",
 		"about_to_swap": "다음 스왑을 수행합니다.",
@@ -1519,7 +1515,7 @@
 		"rate": "요율",
 		"quote_details_max_slippage": "최대 슬리패지",
 		"source": "소스",
-		"estimated_network_fees": "예상 가스 요금",
+		"estimated_network_fees": "예상 네트워크 요금",
 		"guaranteed_amount": "보장 금액",
 		"quote_source_dex": {
 			"1": "이 견적은 분산형 교환",
@@ -1554,18 +1550,7 @@
 			"swap_confirmed": "스왑 완료({{sourceToken}}에서 {{destinationToken}}(으)로)",
 			"approve_pending": "{{sourceToken}} 스왑 승인 중",
 			"approve_confirmed": "{{sourceToken}} 스왑 승인됨"
-		},
-		"gas_education_title": "예상 가스 요금",
-		"gas_education_1": "가스 요금은 이더리움 네트워크에서 거래를 진행하는 암호화폐 채굴자에게 ",
-		"gas_education_2_ethereum": "지불됩니다.",
-		"gas_education_2": "네트워크.",
-		"gas_education_3": "MetaMask는 가스 요금으로 수익을 얻지 않습니다.",
-		"gas_education_4": "이",
-		"gas_education_5": "“예상 가스 요금”은",
-		"gas_education_6": "당사가 예상하는 실제 수수료입니다. 정확한 금액은 네트워크 상태에 따라 달라집니다.",
-		"gas_education_7": "“최대 가스 요금”은",
-		"gas_education_8": "최대로 지출할 금액입니다. 네트워크가 불안정한 경우 금액이 증가할 수 있습니다.",
-		"gas_education_learn_more": "가스 요금 자세히 알아보기"
+		}
 	},
 	"protect_wallet_modal": {
 		"title": "지갑 보호",
@@ -1643,6 +1628,6 @@
 	"secret_phrase_video_subtitle": {
 		"title": "KO KR CC",
 		"language": "ko-kr",
-		"uri": "https://github.com/MetaMask/metamask-mobile/blob/feature/secret_recovery_translations/app/videos/subtitles/subtitles-ko-kr.vtt"
+		"uri": "https://github.com/MetaMask/metamask-mobile/blob/develop/app/videos/subtitles/secretPhrase/subtitles-ko-kr.vtt?raw=true"
 	}
 }

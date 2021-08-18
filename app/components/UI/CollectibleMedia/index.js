@@ -6,7 +6,7 @@ import MediaPlayer from '../../Views/MediaPlayer';
 import { colors } from '../../../styles/common';
 import scaling from '../../../util/scaling';
 import Text from '../../Base/Text';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 
 const MEDIA_WIDTH_MARGIN = Device.isMediumDevice() ? 32 : 0;
 
@@ -53,17 +53,7 @@ const styles = StyleSheet.create({
 /**
  * View that renders an ERC-721 Token image
  */
-export default function CollectibleMedia({
-	collectible,
-	renderAnimation,
-	resizeMode,
-	style,
-	tiny,
-	small,
-	big,
-	cover,
-	onClose
-}) {
+export default function CollectibleMedia({ collectible, renderAnimation, style, tiny, small, big, cover, onClose }) {
 	const [sourceUri, setSourceUri] = useState(null);
 
 	const fallback = () => setSourceUri(null);
@@ -75,7 +65,7 @@ export default function CollectibleMedia({
 	}, [collectible, small, big, setSourceUri]);
 
 	const renderMedia = useCallback(() => {
-		if (renderAnimation && collectible.animation?.includes('.mp4')) {
+		if (renderAnimation && collectible.animation && collectible.animation.includes('.mp4')) {
 			return (
 				<MediaPlayer
 					onClose={onClose}
@@ -87,7 +77,7 @@ export default function CollectibleMedia({
 			return (
 				<RemoteImage
 					fadeIn
-					resizeMode={resizeMode || 'cover'}
+					resizeMode={'contain'}
 					source={{ uri: sourceUri }}
 					style={[
 						styles.image,
@@ -117,7 +107,7 @@ export default function CollectibleMedia({
 				}`}</Text>
 			</View>
 		);
-	}, [collectible, sourceUri, onClose, renderAnimation, style, tiny, small, big, cover, resizeMode]);
+	}, [collectible, sourceUri, onClose, renderAnimation, style, tiny, small, big, cover]);
 
 	return <View style={styles.container(collectible.backgroundColor)}>{renderMedia()}</View>;
 }
@@ -154,9 +144,5 @@ CollectibleMedia.propTypes = {
 	/**
 	 * On close callback
 	 */
-	onClose: PropTypes.func,
-	/**
-	 * Image resize mode
-	 */
-	resizeMode: PropTypes.string
+	onClose: PropTypes.func
 };

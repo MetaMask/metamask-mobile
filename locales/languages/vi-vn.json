@@ -133,7 +133,7 @@
 		"reset_wallet": "Đặt lại ví",
 		"cant_proceed": "Bạn không thể tiếp tục cho đến khi nhập từ “Xóa”. Bằng hành động này, bạn đang chọn xóa ví hiện tại của mình.",
 		"invalid_password": "Mật khẩu không hợp lệ",
-		"type_delete": "Hãy nhập “xóa” để xóa vĩnh viễn ví hiện tại",
+		"type_delete": "Hãy nhập “%{delete}” để xóa vĩnh viễn ví hiện tại",
 		"delete_my": "Xóa ví của tôi",
 		"are_you_sure": "Bạn có chắc chắn muốn xóa ví của mình không?",
 		"your_current_wallet": "Ví, các tài khoản và tài sản hiện tại của bạn sẽ ",
@@ -143,10 +143,6 @@
 		"recovery_phrase": "Cụm mật khẩu khôi phục bí mật ",
 		"metamask_does_not": "MetaMask không biết Cụm mật khẩu khôi phục bí mật của bạn.",
 		"i_understand": "Tôi đã hiểu, hãy tiếp tục",
-		"passcode_not_set_error": "Lỗi: Chưa đặt mật mã.",
-		"wrong_password_error": "Lỗi: Giải mã không thành công",
-		"wrong_password_error_android": "Lỗi: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
-		"vault_error": "Lỗi: Không thể mở khóa nếu không có két trước đó.",
 		"clean_vault_error": "MetaMask đã gặp lỗi do đạt đến giới hạn lưu trữ. Dữ liệu cục bộ đã bị hỏng. Vui lòng cài đặt lại MetaMask và khôi phục bằng Cụm mật khẩu khôi phục bí mật của bạn."
 	},
 	"enter_password": {
@@ -1440,10 +1436,10 @@
 		"verify_address_on": "Xác minh địa chỉ token trên",
 		"added_manually": "Token này đã được thêm theo cách thủ công.",
 		"verify_this_token_on": "Xác minh token này trên ",
+		"make_sure_trade": "và đảm bảo đây là token bạn muốn giao dịch.",
 		"only_verified_on": "{{symbol}} chỉ được xác minh trên nguồn {{occurances}}.",
 		"block_explorer": "trình khám phá khối",
 		"a_block_explorer": "một trình khám phá khối",
-		"make_sure_trade": "và đảm bảo đây là token bạn muốn giao dịch.",
 		"token_verification": "Xác minh token",
 		"token_multiple": "Nhiều token có thể dùng cùng một tên và ký hiệu.",
 		"token_check": "Kiểm tra",
@@ -1472,12 +1468,12 @@
 		"more_gas_to_complete": "gas nữa để hoàn tất giao dịch hoán đổi này.",
 		"buy_more_eth": "Mua thêm ETH.",
 		"market_price_unavailable_title": "Hãy kiểm tra tỷ giá trước khi tiếp tục",
-		"market_price_unavailable": "Không có giá thị trường nên không biết tác động về giá. Vui lòng xác minh rằng bạn cảm thấy thoải mái với số lượng token bạn sẽ nhận được trước khi hoán đổi.",
+		"price_impact_title": "Tác động về giá",
+		"price_impact_body": "Tác động về giá là mức chênh lệch giữa giá thị trường hiện tại và số tiền nhận được trong quá trình thực hiện giao dịch. Tác động giá là một hàm trong quy mô giao dịch của bạn so với quy mô của nhóm thanh khoản.",
+		"market_price_unavailable": "Không có giá thị trường. Đảm bảo bạn thấy hài lòng với số tiền trả về trước khi tiếp tục.",
 		"price_difference": "Chênh lệch giá ở mức {{amount}}",
 		"price_difference_title": "Chênh lệch giá",
 		"price_difference_body": "Sự chênh lệch trong giá thị trường chịu ảnh hưởng bởi các yếu tố: phí mà các bên trung gian thu, quy mô thị trường, quy mô giao dịch hoặc thị trường hoạt động không hiệu quả.",
-		"price_impact_title": "Tác động về giá",
-		"price_impact_body": "Tác động về giá là mức chênh lệch giữa giá thị trường hiện tại và số tiền nhận được trong quá trình thực hiện giao dịch. Tác động giá là một hàm trong quy mô giao dịch của bạn so với quy mô của nhóm thanh khoản.",
 		"quotes_update_often": "Báo giá thường xuyên cập nhật",
 		"quotes_update_often_text": "Báo giá được cập nhật thường xuyên để phản ánh tình trạng hiện tại của thị trường.",
 		"about_to_swap": "Bạn sắp hoán đổi",
@@ -1519,7 +1515,7 @@
 		"rate": "Tỷ lệ",
 		"quote_details_max_slippage": "Mức trượt giá tối đa",
 		"source": "Nguồn",
-		"estimated_network_fees": "Phí gas ước tính",
+		"estimated_network_fees": "Phí mạng ước tính",
 		"guaranteed_amount": "Số tiền được đảm bảo",
 		"quote_source_dex": {
 			"1": "Báo giá này trực tiếp đến từ một",
@@ -1554,18 +1550,7 @@
 			"swap_confirmed": "Hoán đổi xong ({{sourceToken}} sang {{destinationToken}})",
 			"approve_pending": "Đang phê duyệt {{sourceToken}} để hoán đổi",
 			"approve_confirmed": "Đã phê duyệt {{sourceToken}} để hoán đổi"
-		},
-		"gas_education_title": "Phí gas ước tính",
-		"gas_education_1": "Phí gas được trả cho thợ đào tiền mã hóa xử lý giao dịch trên ",
-		"gas_education_2_ethereum": "mạng Ethereum.",
-		"gas_education_2": "mạng.",
-		"gas_education_3": "MetaMask không thu lợi từ phí gas.",
-		"gas_education_4": "“",
-		"gas_education_5": "Phí gas ước tính”",
-		"gas_education_6": "là giá trị mà chúng tôi dự kiến sẽ là khoản phí thực sự. Số tiền chính xác phụ thuộc vào tình trạng mạng.",
-		"gas_education_7": "“Phí gas tối đa”",
-		"gas_education_8": "là mức phí cao nhất bạn sẽ trả. Khi mạng không ổn định, đây có thể là số tiền lớn.",
-		"gas_education_learn_more": "Tìm hiểu thêm về phí gas"
+		}
 	},
 	"protect_wallet_modal": {
 		"title": "Bảo vệ ví của bạn",
@@ -1643,6 +1628,6 @@
 	"secret_phrase_video_subtitle": {
 		"title": "VI VN CC",
 		"language": "vi-vn",
-		"uri": "https://github.com/MetaMask/metamask-mobile/blob/feature/secret_recovery_translations/app/videos/subtitles/subtitles-vi-vn.vtt"
+		"uri": "https://github.com/MetaMask/metamask-mobile/blob/develop/app/videos/subtitles/secretPhrase/subtitles-vi-vn.vtt?raw=true"
 	}
 }

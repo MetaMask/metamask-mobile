@@ -133,7 +133,7 @@
 		"reset_wallet": "I-reset ang Wallet",
 		"cant_proceed": "Hindi ka makakapagpatuloy hanggang sa i-type mo ang salitang ‘Delete’. Kapag ginawa ang aksyong ito, nangangahulugan ito ng pag-opt in para burahin ang iyong kasalukuyang wallet.",
 		"invalid_password": "Hindi valid ang password",
-		"type_delete": "I-type ang ‘delete’ para tuluyang burahin ang kasalukuyang wallet",
+		"type_delete": "I-type ang ‘%{delete}’ para tuluyang burahin ang kasalukuyang wallet",
 		"delete_my": "I-delete ang wallet ko",
 		"are_you_sure": "Sigurado ka bang gusto mong burahin ang wallet mo?",
 		"your_current_wallet": "Ang iyong kasalukuyang wallet, mga account at mga asset ay ",
@@ -143,10 +143,6 @@
 		"recovery_phrase": "Secret Recovery Phrase ",
 		"metamask_does_not": "Hindi hawak ng MetaMask ang iyong Secret Recovery Phrase.",
 		"i_understand": "Nauunawaan ko, magpatuloy",
-		"passcode_not_set_error": "Error: Hindi naitakda ang passcode.",
-		"wrong_password_error": "Error: Hindi na-decrypt",
-		"wrong_password_error_android": "Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
-		"vault_error": "Error: Hindi maa-unlock nang walang nakaraang vault.",
 		"clean_vault_error": "Nagkaroon ng error ang MetaMask dahil sa pag-abot sa limitasyon ng storage. Na-corrupt ang lokal na data. Paki-install ulit ang MetaMask at i-restore gamit ang iyong Lihim na Recovery Phrase."
 	},
 	"enter_password": {
@@ -892,7 +888,7 @@
 		"label": "Buksan ang MetaMask extension sa iyong desktop browser, pagkatapos ay pumunta sa \"Mga Setting\" > \"Advanced\", i-click ang \"I-sync sa Mobile\" at pagkatapos ay ilagay ang iyong password para makita ang QR Code",
 		"button_continue": "Magpatuloy",
 		"please_wait": "Maghintay habang sini-sync namin ang iyong data...",
-		"error_title": "Bummer!",
+		"error_title": "We're sorry!",
 		"error_message": "Nagkaproblema... Pakisubukan ulit",
 		"warning_title": "Babala!",
 		"warning_message": "Io-override nito ang lahat ng iyong kasalukuyang account at history ng transaksyon sa iyong mobile phone. Sigurado ka ba?",
@@ -1639,6 +1635,6 @@
 	"secret_phrase_video_subtitle": {
 		"title": "TL CC",
 		"language": "tl",
-		"uri": "https://github.com/MetaMask/metamask-mobile/blob/feature/secret_recovery_translations/app/videos/subtitles/subtitles-tl.vtt"
+		"uri": "https://github.com/MetaMask/metamask-mobile/blob/develop/app/videos/subtitles/secretPhrase/subtitles-tl.vtt?raw=true"
 	}
 }

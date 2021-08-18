@@ -20,7 +20,7 @@ import StyledButton from '../../StyledButton';
 import StatusText from '../../../Base/StatusText';
 import Text from '../../../Base/Text';
 import DetailsModal from '../../../Base/DetailsModal';
-import { RPC } from '../../../../constants/network';
+import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../../constants/network';
 import { withNavigation } from '@react-navigation/compat';
 
 const styles = StyleSheet.create({
@@ -55,8 +55,6 @@ const styles = StyleSheet.create({
 		paddingTop: 10
 	}
 });
-
-const NO_RPC_BLOCK_EXPLORER = 'NO_BLOCK_EXPLORER';
 
 /**
  * View that renders a transaction details as part of transactions list

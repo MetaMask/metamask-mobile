@@ -1,6 +1,6 @@
 import { ETH, GWEI, WEI } from './custom-gas';
 import { addHexPrefix } from './number';
-import { conversionUtil, addCurrencies, subtractCurrencies } from './conversion-util';
+import { conversionUtil, addCurrencies, subtractCurrencies } from './conversion';
 import { formatCurrency } from './confirm-tx.js';
 
 export function bnToHex(inputBn) {
