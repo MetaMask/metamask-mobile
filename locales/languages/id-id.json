@@ -143,10 +143,6 @@
 		"recovery_phrase": "Frasa Pemulihan Rahasia ",
 		"metamask_does_not": "MetaMask tidak memiliki Frasa Pemulihan Rahasia Anda.",
 		"i_understand": "Saya paham, lanjutkan",
-		"passcode_not_set_error": "Kesalahan: Kode masuk tidak disiapkan.",
-		"wrong_password_error": "Kesalahan: Dekrip gagal",
-		"wrong_password_error_android": "Kesalahan: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
-		"vault_error": "Kesalahan: Tidak dapat membuka kunci tanpa vault sebelumnya.",
 		"clean_vault_error": "MetaMask mengalami kesalahan karena mencapai batas penyimpanan. Data lokal sudah rusak. Instal ulang MetaMask dan pulihkan dengan Frasa Pemulihan Rahasia Anda."
 	},
 	"enter_password": {
