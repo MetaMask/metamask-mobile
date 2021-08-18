@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { View, Text, StyleSheet, InteractionManager } from 'react-native';
 import Coachmark from '../Coachmark';
-import Device from '../../../../util/Device';
+import Device from '../../../../util/device';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';

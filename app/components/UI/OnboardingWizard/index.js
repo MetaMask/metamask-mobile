@@ -15,7 +15,7 @@ import { strings } from '../../../../locales/i18n';
 import DefaultPreference from 'react-native-default-preference';
 import ElevatedView from 'react-native-elevated-view';
 import Modal from 'react-native-modal';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS, ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../util/analytics';
 import { ONBOARDING_WIZARD, EXPLORED } from '../../../constants/storage';

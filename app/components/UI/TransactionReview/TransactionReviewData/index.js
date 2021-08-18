@@ -6,7 +6,7 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { colors, fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import { connect } from 'react-redux';
-import Device from '../../../../util/Device';
+import Device from '../../../../util/device';
 
 const styles = StyleSheet.create({
 	root: {
