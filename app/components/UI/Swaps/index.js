@@ -335,6 +335,11 @@ function SwapsAmountView({
 		return destinationToken?.occurrences > TOKEN_MINIMUM_SOURCES;
 	}, [destinationToken]);
 
+	const isDirectWrapping = useMemo(
+		() => swapsUtils.shouldEnableDirectWrapping(chainId, sourceToken.address, destinationToken?.address),
+		[chainId, sourceToken, destinationToken]
+	);
+
 	/* Navigation handler */
 	const handleGetQuotesPress = useCallback(async () => {
 		if (hasInvalidDecimals) {
@@ -382,16 +387,32 @@ function SwapsAmountView({
 		item => {
 			toggleSourceModal();
 			setSourceToken(item);
+			const isDirectWrapping = swapsUtils.shouldEnableDirectWrapping(
+				chainId,
+				item.address,
+				destinationToken?.address
+			);
+			if (isDirectWrapping) {
+				setSlippage(0);
+			} else {
+				setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
+			}
 		},
-		[toggleSourceModal]
+		[toggleSourceModal, chainId, destinationToken]
 	);
 
 	const handleDestinationTokenPress = useCallback(
 		item => {
 			toggleDestinationModal();
 			setDestinationToken(item);
+			const isDirectWrapping = swapsUtils.shouldEnableDirectWrapping(chainId, sourceToken?.address, item.address);
+			if (isDirectWrapping) {
+				setSlippage(0);
+			} else {
+				setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
+			}
 		},
-		[toggleDestinationModal]
+		[toggleDestinationModal, chainId, sourceToken]
 	);
 
 	const handleUseMax = useCallback(() => {
@@ -635,11 +656,13 @@ function SwapsAmountView({
 				<View style={styles.buttonsContainer}>
 					<View style={styles.column}>
 						<TouchableOpacity
-							onPress={toggleSlippageModal}
+							onPress={isDirectWrapping ? undefined : toggleSlippageModal}
 							hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
 						>
-							<Text bold link>
-								{strings('swaps.max_slippage_amount', { slippage: `${slippage}%` })}
+							<Text bold link={!isDirectWrapping}>
+								{strings('swaps.max_slippage_amount', {
+									slippage: `${slippage}%`
+								})}
 							</Text>
 						</TouchableOpacity>
 					</View>
