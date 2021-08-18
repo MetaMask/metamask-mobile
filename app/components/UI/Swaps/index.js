@@ -656,8 +656,9 @@ function SwapsAmountView({
 				<View style={styles.buttonsContainer}>
 					<View style={styles.column}>
 						<TouchableOpacity
-							onPress={isDirectWrapping ? undefined : toggleSlippageModal}
+							onPress={toggleSlippageModal}
 							hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
+							disabled={isDirectWrapping}
 						>
 							<Text bold link={!isDirectWrapping}>
 								{strings('swaps.max_slippage_amount', {
