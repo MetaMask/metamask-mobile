@@ -184,11 +184,10 @@ const styles = StyleSheet.create({
 });
 
 const DELETE = 'delete';
-const PASSCODE_NOT_SET_ERROR = strings('login.passcode_not_set_error');
-const WRONG_PASSWORD_ERROR = strings('login.wrong_password_error');
-const WRONG_PASSWORD_ERROR_ANDROID = strings('login.wrong_password_error_android');
-const VAULT_ERROR = strings('login.vault_error');
-const CLEAN_VAULT_ERROR = strings('login.clean_vault_error');
+const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
+const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
+const WRONG_PASSWORD_ERROR_ANDROID = 'Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT';
+const VAULT_ERROR = 'Error: Cannot unlock without a previous vault.';
 const isTextDelete = text => tlc(text) === DELETE;
 
 /**
@@ -336,7 +335,7 @@ class Login extends PureComponent {
 			} else if (toLowerCaseEquals(error, VAULT_ERROR)) {
 				this.setState({
 					loading: false,
-					error: CLEAN_VAULT_ERROR
+					error: strings('login.clean_vault_error')
 				});
 			} else {
 				this.setState({ loading: false, error });
