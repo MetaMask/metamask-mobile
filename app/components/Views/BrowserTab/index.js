@@ -1829,6 +1829,7 @@ export const BrowserTab = props => {
 				<View style={styles.webview}>
 					{!!entryScriptWeb3 && firstUrlLoaded && (
 						<WebView
+							decelerationRate={'normal'}
 							ref={webviewRef}
 							renderError={() => <WebviewError error={error} onReload={() => null} />}
 							source={{ uri: initialUrl }}
