@@ -558,7 +558,9 @@ function SwapsAmountView({
 						tokens={swapsTokens}
 						initialTokens={[
 							swapsUtils.getNativeSwapsToken(chainId),
-							...tokensTopAssets.slice(0, MAX_TOP_ASSETS)
+							...tokensTopAssets
+								.slice(0, MAX_TOP_ASSETS)
+								.filter(asset => asset.address !== swapsUtils.getNativeSwapsToken(chainId).address)
 						]}
 						onItemPress={handleDestinationTokenPress}
 						excludeAddresses={[sourceToken?.address]}
