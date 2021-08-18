@@ -336,7 +336,7 @@ function SwapsAmountView({
 	}, [destinationToken]);
 
 	const isDirectWrapping = useMemo(
-		() => swapsUtils.shouldEnableDirectWrapping(chainId, sourceToken.address, destinationToken?.address),
+		() => swapsUtils.shouldEnableDirectWrapping(chainId, sourceToken?.address, destinationToken?.address),
 		[chainId, sourceToken, destinationToken]
 	);
 
@@ -383,14 +383,12 @@ function SwapsAmountView({
 		[amount]
 	);
 
-	const handleSourceTokenPress = useCallback(
-		item => {
-			toggleSourceModal();
-			setSourceToken(item);
+	const setSlippageAfterTokenPress = useCallback(
+		(sourceTokenAddress, destinationTokenAddress) => {
 			const isDirectWrapping = swapsUtils.shouldEnableDirectWrapping(
 				chainId,
-				item.address,
-				destinationToken?.address
+				sourceTokenAddress,
+				destinationTokenAddress
 			);
 			if (isDirectWrapping) {
 				setSlippage(0);
@@ -398,21 +396,25 @@ function SwapsAmountView({
 				setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
 			}
 		},
-		[toggleSourceModal, chainId, destinationToken]
+		[setSlippage, chainId]
+	);
+
+	const handleSourceTokenPress = useCallback(
+		item => {
+			toggleSourceModal();
+			setSourceToken(item);
+			setSlippageAfterTokenPress(item.address, destinationToken?.address);
+		},
+		[toggleSourceModal, setSlippageAfterTokenPress, destinationToken]
 	);
 
 	const handleDestinationTokenPress = useCallback(
 		item => {
 			toggleDestinationModal();
 			setDestinationToken(item);
-			const isDirectWrapping = swapsUtils.shouldEnableDirectWrapping(chainId, sourceToken?.address, item.address);
-			if (isDirectWrapping) {
-				setSlippage(0);
-			} else {
-				setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
-			}
+			setSlippageAfterTokenPress(sourceToken?.address, item.address);
 		},
-		[toggleDestinationModal, chainId, sourceToken]
+		[toggleDestinationModal, setSlippageAfterTokenPress, sourceToken]
 	);
 
 	const handleUseMax = useCallback(() => {
