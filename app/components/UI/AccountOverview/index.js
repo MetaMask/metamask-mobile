@@ -293,6 +293,9 @@ class AccountOverview extends PureComponent {
 		} catch {
 			// Error
 		}
+		console.log('================================');
+		console.log('ENS in AccountOverview: ', this.state.ens);
+		console.log('================================');
 	};
 
 	render() {
