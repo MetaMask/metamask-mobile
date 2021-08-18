@@ -14,7 +14,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../locales/i18n';
 import Alert from '../../Base/Alert';
 import HorizontalSelector from '../../Base/HorizontalSelector';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import { isMainnetByChainId } from '../../../util/networks';
 import FadeAnimationView from '../FadeAnimationView';
 import AnalyticsV2 from '../../../util/analyticsV2';

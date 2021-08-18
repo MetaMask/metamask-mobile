@@ -4,7 +4,7 @@ import { View, StyleSheet, Image, TouchableOpacity, InteractionManager, Activity
 import { useNavigation } from '@react-navigation/native';
 import { connect } from 'react-redux';
 import NotificationManager from '../../../../core/NotificationManager';
-import Device from '../../../../util/Device';
+import Device from '../../../../util/device';
 import Logger from '../../../../util/Logger';
 import { setLockTime } from '../../../../actions/settings';
 import I18n, { strings } from '../../../../../locales/i18n';

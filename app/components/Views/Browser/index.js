@@ -7,7 +7,7 @@ import Tabs from '../../UI/Tabs';
 import { getBrowserViewNavbarOptions } from '../../UI/Navbar';
 import { captureScreen } from 'react-native-view-shot';
 import Logger from '../../../util/Logger';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import BrowserTab from '../BrowserTab';
 import AppConstants from '../../../core/AppConstants';
 import { baseStyles } from '../../../styles/common';
