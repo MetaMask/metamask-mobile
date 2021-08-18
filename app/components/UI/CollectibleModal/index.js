@@ -7,7 +7,7 @@ import collectiblesTransferInformation from '../../../util/collectibles-transfer
 import { newAssetTransaction } from '../../../actions/transaction';
 import CollectibleMedia from '../CollectibleMedia';
 import { baseStyles, colors } from '../../../styles/common';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import ReusableModal from '../ReusableModal';
 
 const styles = StyleSheet.create({

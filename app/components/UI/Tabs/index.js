@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
 import TabThumbnail from './TabThumbnail';
 import { colors, fontStyles } from '../../../styles/common';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 
 const THUMB_VERTICAL_MARGIN = 15;
 const NAVBAR_SIZE = Device.isIphoneX() ? 88 : 64;

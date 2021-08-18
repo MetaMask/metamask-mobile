@@ -1,5 +1,5 @@
-import { isMainNet, getNetworkName, getAllNetworks, getNetworkTypeById } from './networks';
-import { MAINNET, ROPSTEN, GOERLI, RPC, KOVAN } from '../../app/constants/network';
+import { isMainNet, getNetworkName, getAllNetworks, getNetworkTypeById } from '.';
+import { MAINNET, ROPSTEN, GOERLI, RPC, KOVAN } from '../../../app/constants/network';
 
 describe('getAllNetworks', () => {
 	const allNetworks = getAllNetworks();
