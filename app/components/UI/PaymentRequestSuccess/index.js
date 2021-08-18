@@ -24,7 +24,7 @@ import Share from 'react-native-share'; // eslint-disable-line  import/default
 import Modal from 'react-native-modal';
 import QRCode from 'react-native-qrcode-svg';
 import { renderNumber } from '../../../util/number';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
 import { protectWalletModalVisible } from '../../../actions/user';
 

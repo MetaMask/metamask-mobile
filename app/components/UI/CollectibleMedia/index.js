@@ -6,7 +6,7 @@ import MediaPlayer from '../../Views/MediaPlayer';
 import { colors } from '../../../styles/common';
 import scaling from '../../../util/scaling';
 import Text from '../../Base/Text';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 
 const MEDIA_WIDTH_MARGIN = Device.isMediumDevice() ? 32 : 0;
 

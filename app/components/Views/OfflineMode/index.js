@@ -9,7 +9,7 @@ import { strings } from '../../../../locales/i18n';
 import StyledButton from '../../UI/StyledButton';
 import { getOfflineModalNavbar } from '../../UI/Navbar';
 import AndroidBackHandler from '../AndroidBackHandler';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
 import { connect } from 'react-redux';
 import { getInfuraBlockedSelector } from '../../../reducers/infuraAvailability';

@@ -8,7 +8,7 @@ import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { seedphraseBackedUp } from '../../../actions/user';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 
 const styles = StyleSheet.create({

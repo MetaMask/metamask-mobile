@@ -16,7 +16,7 @@ import { protectWalletModalVisible } from '../../../actions/user';
 import { toggleAccountsModal, toggleReceiveModal } from '../../../actions/modals';
 import { newAssetTransaction } from '../../../actions/transaction';
 
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { renderFiat } from '../../../util/number';
 import { renderAccountName } from '../../../util/address';
