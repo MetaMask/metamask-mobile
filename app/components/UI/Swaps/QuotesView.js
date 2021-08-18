@@ -1359,11 +1359,13 @@ function SwapsQuotesView({
 							<QuotesSummary.HeaderText bold>
 								{isSaving ? strings('swaps.savings') : strings('swaps.using_best_quote')}
 							</QuotesSummary.HeaderText>
-							<TouchableOpacity onPress={handleOpenQuotesModal} disabled={isInFetch}>
-								<QuotesSummary.HeaderText small>
-									{strings('swaps.view_details')} →
-								</QuotesSummary.HeaderText>
-							</TouchableOpacity>
+							{allQuotes.length > 1 && (
+								<TouchableOpacity onPress={handleOpenQuotesModal} disabled={isInFetch}>
+									<QuotesSummary.HeaderText small>
+										{strings('swaps.view_details')} →
+									</QuotesSummary.HeaderText>
+								</TouchableOpacity>
+							)}
 						</QuotesSummary.Header>
 						<QuotesSummary.Body>
 							<View style={styles.quotesRow}>

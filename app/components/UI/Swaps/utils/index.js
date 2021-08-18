@@ -148,7 +148,8 @@ export function getQuotesSourceMessage(type) {
 				strings('swaps.quote_source_rfq.3')
 			];
 		}
-		case 'CONTRACT': {
+		case 'CONTRACT':
+		case 'CNT': {
 			return [
 				strings('swaps.quote_source_cnt.1'),
 				strings('swaps.quote_source_cnt.2'),
