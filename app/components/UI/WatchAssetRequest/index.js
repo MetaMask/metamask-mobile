@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
@@ -12,6 +12,7 @@ import Device from '../../../util/Device';
 import Engine from '../../../core/Engine';
 import URL from 'url-parse';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import useTokenBalance from '../../hooks/useTokenBalance';
 
 const styles = StyleSheet.create({
 	root: {
@@ -79,44 +80,30 @@ const styles = StyleSheet.create({
 	}
 });
 
-/**
- * PureComponent that renders watch asset content
- */
-class WatchAssetRequest extends PureComponent {
-	static propTypes = {
-		/**
-		 * Callback triggered when this message signature is rejected
-		 */
-		onCancel: PropTypes.func,
-		/**
-		 * Callback triggered when this message signature is approved
-		 */
-		onConfirm: PropTypes.func,
-		/**
-		 * Token object
-		 */
-		suggestedAssetMeta: PropTypes.object,
-		/**
-		 * Object containing token balances in the format address => balance
-		 */
-		contractBalances: PropTypes.object,
-		/**
-		 * Object containing current page title, url, and icon href
-		 */
-		currentPageInformation: PropTypes.object
-	};
+const WatchAssetRequest = ({
+	suggestedAssetMeta,
+	contractBalances,
+	currentPageInformation,
+	selectedAddress,
+	onCancel,
+	onConfirm
+}) => {
+	useEffect(
+		() => async () => {
+			const { TokensController } = Engine.context;
+			const { suggestedAssetMeta } = this.props;
+			await TokensController.rejectWatchAsset(suggestedAssetMeta.id);
+		},
+		[]
+	);
 
-	getAnalyticsParams = () => {
+	const getAnalyticsParams = () => {
 		try {
-			const {
-				suggestedAssetMeta: { asset },
-				currentPageInformation
-			} = this.props;
-
+			const { asset } = suggestedAssetMeta;
 			const { NetworkController } = Engine.context;
 			const { chainId, type } = NetworkController?.state?.provider || {};
-
 			const url = new URL(currentPageInformation?.url);
+
 			return {
 				token_address: asset?.address,
 				token_symbol: asset?.symbol,
@@ -131,90 +118,110 @@ class WatchAssetRequest extends PureComponent {
 		}
 	};
 
-	componentWillUnmount = async () => {
-		const { TokensController } = Engine.context;
-		const { suggestedAssetMeta } = this.props;
-		await TokensController.rejectWatchAsset(suggestedAssetMeta.id);
-	};
-
-	onConfirm = async () => {
-		const { onConfirm, suggestedAssetMeta } = this.props;
+	const onConfirmPress = async () => {
 		const { TokensController } = Engine.context;
 		await TokensController.acceptWatchAsset(suggestedAssetMeta.id);
-		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.TOKEN_ADDED, this.getAnalyticsParams());
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.TOKEN_ADDED, getAnalyticsParams());
 		onConfirm && onConfirm();
 	};
 
-	render() {
-		const {
-			suggestedAssetMeta: { asset },
-			contractBalances
-		} = this.props;
-		const address = Object.keys(contractBalances).find(key => toLowerCaseEquals(key, asset.address));
-		const balance = address ? renderFromTokenMinimalUnit(contractBalances[address], asset.decimals) : '0';
-		return (
-			<View style={styles.root}>
-				<View style={styles.titleWrapper}>
-					<Text style={styles.title} onPress={this.cancelSignature}>
-						{strings('watch_asset_request.title')}
-					</Text>
-				</View>
-				<ActionView
-					cancelTestID={'request-signature-cancel-button'}
-					confirmTestID={'request-signature-confirm-button'}
-					cancelText={strings('watch_asset_request.cancel')}
-					confirmText={strings('watch_asset_request.add')}
-					onCancelPress={this.props.onCancel}
-					onConfirmPress={this.onConfirm}
-				>
-					<View style={styles.children}>
-						<View style={styles.addMessage}>
-							<Text style={styles.signText}>{strings('watch_asset_request.message')}</Text>
-						</View>
+	const { asset } = suggestedAssetMeta;
+	const address = Object.keys(contractBalances).find(key => toLowerCaseEquals(key, asset.address));
 
-						<View style={styles.tokenInformation}>
-							<View style={styles.tokenInfo}>
-								<View style={styles.infoTitleWrapper}>
-									<Text style={styles.infoTitle}>{strings('watch_asset_request.token')}</Text>
-								</View>
+	const [remoteBalance] = useTokenBalance(asset.address, selectedAddress);
+	const balance = renderFromTokenMinimalUnit(address ? contractBalances[address] : remoteBalance, asset.decimals);
 
-								<View style={styles.infoToken}>
-									<View style={styles.token}>
-										<View style={styles.identicon}>
-											<TokenImage
-												asset={{
-													...asset,
-													logo: asset.image
-												}}
-												logoDefined
-											/>
-										</View>
-										<Text style={styles.text}>{asset.symbol}</Text>
-									</View>
-								</View>
+	return (
+		<View style={styles.root}>
+			<View style={styles.titleWrapper}>
+				<Text style={styles.title} onPress={this.cancelSignature}>
+					{strings('watch_asset_request.title')}
+				</Text>
+			</View>
+			<ActionView
+				cancelTestID={'request-signature-cancel-button'}
+				confirmTestID={'request-signature-confirm-button'}
+				cancelText={strings('watch_asset_request.cancel')}
+				confirmText={strings('watch_asset_request.add')}
+				onCancelPress={onCancel}
+				onConfirmPress={onConfirmPress}
+			>
+				<View style={styles.children}>
+					<View style={styles.addMessage}>
+						<Text style={styles.signText}>{strings('watch_asset_request.message')}</Text>
+					</View>
+
+					<View style={styles.tokenInformation}>
+						<View style={styles.tokenInfo}>
+							<View style={styles.infoTitleWrapper}>
+								<Text style={styles.infoTitle}>{strings('watch_asset_request.token')}</Text>
 							</View>
 
-							<View style={styles.tokenInfo}>
-								<View style={styles.infoTitleWrapper}>
-									<Text style={styles.infoTitle}>{strings('watch_asset_request.balance')}</Text>
+							<View style={styles.infoToken}>
+								<View style={styles.token}>
+									<View style={styles.identicon}>
+										<TokenImage
+											asset={{
+												...asset,
+												logo: asset.image
+											}}
+											logoDefined
+										/>
+									</View>
+									<Text style={styles.text}>{asset.symbol}</Text>
 								</View>
+							</View>
+						</View>
 
-								<View style={styles.infoBalance}>
-									<Text style={styles.text}>
-										{balance} {asset.symbol}
-									</Text>
-								</View>
+						<View style={styles.tokenInfo}>
+							<View style={styles.infoTitleWrapper}>
+								<Text style={styles.infoTitle}>{strings('watch_asset_request.balance')}</Text>
+							</View>
+
+							<View style={styles.infoBalance}>
+								<Text style={styles.text}>
+									{balance} {asset.symbol}
+								</Text>
 							</View>
 						</View>
 					</View>
-				</ActionView>
-			</View>
-		);
-	}
-}
+				</View>
+			</ActionView>
+		</View>
+	);
+};
+
+WatchAssetRequest.propTypes = {
+	/**
+	 * Callback triggered when this message signature is rejected
+	 */
+	onCancel: PropTypes.func,
+	/**
+	 * Callback triggered when this message signature is approved
+	 */
+	onConfirm: PropTypes.func,
+	/**
+	 * Token object
+	 */
+	suggestedAssetMeta: PropTypes.object,
+	/**
+	 * Current public address
+	 */
+	selectedAddress: PropTypes.string,
+	/**
+	 * Object containing token balances in the format address => balance
+	 */
+	contractBalances: PropTypes.object,
+	/**
+	 * Object containing current page title, url, and icon href
+	 */
+	currentPageInformation: PropTypes.object
+};
 
 const mapStateToProps = state => ({
-	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances
+	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	provider: state.engine.backgroundState.NetworkController.provider
 });
 
 export default connect(mapStateToProps)(WatchAssetRequest);
