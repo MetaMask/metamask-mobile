@@ -56,7 +56,7 @@ import { swapsTokensSelector } from '../../../reducers/swaps';
 import { decGWEIToHexWEI } from '../../../util/conversions';
 import FadeAnimationView from '../FadeAnimationView';
 
-const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
+const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
 	MEDIUM: AppConstants.GAS_OPTIONS.MEDIUM,
 	HIGH: AppConstants.GAS_OPTIONS.HIGH

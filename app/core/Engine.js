@@ -265,8 +265,7 @@ class Engine {
 		SwapsController.configure({
 			provider,
 			chainId: NetworkControllerState?.provider?.chainId,
-			pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
-			quotePollingInterval: AppConstants.SWAPS.POLLING_INTERVAL
+			pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT
 		});
 		TransactionController.configure({ provider });
 		TransactionController.hub.emit('networkChange');
