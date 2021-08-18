@@ -1137,6 +1137,7 @@ function SwapsQuotesView({
 					finish={shouldFinishFirstLoad}
 					onAnimationEnd={handleAnimationEnd}
 					aggregatorMetadata={aggregatorMetadata}
+					headPan={false}
 				/>
 			</ScreenView>
 		);

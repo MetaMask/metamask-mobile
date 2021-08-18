@@ -1475,6 +1475,7 @@
 		"allows_up_to_decimals": "{{symbol}} allows up to {{decimals}} decimals",
 		"get_quotes": "Get quotes",
 		"starting": "Starting...",
+		"fetching_quotes": "Fetching quotes",
 		"finalizing": "Finalizing...",
 		"quote": "Quote",
 		"of": "of",
