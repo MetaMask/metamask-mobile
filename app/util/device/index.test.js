@@ -1,4 +1,4 @@
-import Device from './Device';
+import Device from '.';
 
 describe('Device', () => {
 	describe('isAndroid + isIos', () => {

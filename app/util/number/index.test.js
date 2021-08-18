@@ -21,7 +21,7 @@ import {
 	renderFiat,
 	handleWeiNumber,
 	toHexadecimal
-} from './number';
+} from '.';
 import numberToBN from 'number-to-bn';
 
 describe('Number utils :: BNToHex', () => {

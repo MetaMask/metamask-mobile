@@ -3,7 +3,7 @@ import { Animated, View, StyleSheet, Image } from 'react-native';
 import PropTypes from 'prop-types';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
-import Device from '../../../../../util/Device';
+import Device from '../../../../../util/device';
 import { strings } from '../../../../../../locales/i18n';
 
 import Text from '../../../../Base/Text';
