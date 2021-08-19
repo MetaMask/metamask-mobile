@@ -1475,22 +1475,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/safe-event-emitter/-/safe-event-emitter-2.0.0.tgz#af577b477c683fad17c619a78208cede06f9605c"
   integrity sha512-/kSXhY692qiV1MXu6EeOZvg5nECLclxNXcKCxJ3cXQgYuRymRHpdx/t7JXfsK+JLjwA1e1c1/SBrlQYpusC29Q==
 
-"@metamask/swaps-controller@file:./metamask-swaps-controller-v6.1.0-49ac4b9.tgz":
-  version "6.1.0-49ac4b9"
-  resolved "file:./metamask-swaps-controller-v6.1.0-49ac4b9.tgz#c235b2f3b5ed3692ff8957399cc6ae6c392872bc"
-  dependencies:
-    "@metamask/controllers" "^14.2.0"
-    abort-controller "^3.0.0"
-    async-mutex "^0.3.1"
-    bignumber.js "^9.0.1"
-    eth-query "^2.1.2"
-    ethereumjs-util "^7.0.10"
-    human-standard-token-abi "^2.0.0"
-    web3 "^0.20.7"
-
-"@metamask/swaps-controller@file:./metamask-swaps-controller-v6.1.0-74b048b3.tgz":
-  version "6.1.0-74b048b3"
-  resolved "file:./metamask-swaps-controller-v6.1.0-74b048b3.tgz#10b583bd065afe7d003e4fc2300ae0e3a2dcb9b3"
+"@metamask/swaps-controller@^6.1.1":
+  version "6.1.1"
+  resolved "https://registry.yarnpkg.com/@metamask/swaps-controller/-/swaps-controller-6.1.1.tgz#352b0aab4bc2c28d86b920152bc6145793169d14"
+  integrity sha512-ZxCcIeE6d9bqrVmfrVCwEGhPMmK3FRLnrGdKTd0scwRsjnYSgwLoh0IAM0Qrj/+x2HXIIiZB6HlsMMkh1da1vw==
   dependencies:
     "@metamask/controllers" "^14.2.0"
     abort-controller "^3.0.0"

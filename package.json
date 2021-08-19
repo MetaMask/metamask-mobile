@@ -80,7 +80,7 @@
     "@metamask/contract-metadata": "^1.23.0",
     "@metamask/controllers": "^14.2.0",
     "@metamask/etherscan-link": "^2.0.0",
-    "@metamask/swaps-controller": "file:./metamask-swaps-controller-v6.1.0-49ac4b9.tgz",
+    "@metamask/swaps-controller": "^6.1.1",
     "@react-native-community/async-storage": "1.12.1",
     "@react-native-community/blur": "^3.6.0",
     "@react-native-community/checkbox": "^0.4.2",

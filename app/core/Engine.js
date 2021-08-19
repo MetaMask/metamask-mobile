@@ -121,9 +121,14 @@ class Engine {
 				onNetworkStateChange: listener => networkController.subscribe(listener),
 				getCurrentNetworkEIP1559Compatibility: async () => await networkController.getEIP1559Compatibility(),
 				getChainId: () => networkController.state.provider.chainId,
-				getCurrentNetworkLegacyGasAPICompatibility: () =>
-					isMainnetByChainId(networkController.state.provider.chainId) ||
-					networkController.state.provider.chainId === swapsUtils.BSC_CHAIN_ID,
+				getCurrentNetworkLegacyGasAPICompatibility: () => {
+					const chainId = networkController.state.provider.chainId;
+					return (
+						isMainnetByChainId(chainId) ||
+						chainId === swapsUtils.BSC_CHAIN_ID ||
+						chainId === swapsUtils.POLYGON_CHAIN_ID
+					);
+				},
 				legacyAPIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/gasPrices',
 				EIP1559APIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees'
 			});
