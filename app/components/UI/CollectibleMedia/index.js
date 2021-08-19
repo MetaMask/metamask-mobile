@@ -4,7 +4,9 @@ import { StyleSheet, View, ViewPropTypes } from 'react-native';
 import RemoteImage from '../../Base/RemoteImage';
 import MediaPlayer from '../../Views/MediaPlayer';
 import { colors } from '../../../styles/common';
+import AppConstants from '../../../core/AppConstants';
 import scaling from '../../../util/scaling';
+import { toLowerCaseEquals } from '../../../util/general';
 import Text from '../../Base/Text';
 import Device from '../../../util/device';
 
@@ -55,14 +57,18 @@ const styles = StyleSheet.create({
  */
 export default function CollectibleMedia({ collectible, renderAnimation, style, tiny, small, big, cover, onClose }) {
 	const [sourceUri, setSourceUri] = useState(null);
+	const [isUniV3NFT, setIsUniV3NFT] = useState(false);
 
 	const fallback = () => setSourceUri(null);
 
 	useEffect(() => {
-		const { image, imagePreview } = collectible;
-		if (small && imagePreview && imagePreview !== '') setSourceUri(imagePreview);
-		else setSourceUri(image);
-	}, [collectible, small, big, setSourceUri]);
+		const { image, imagePreview, address } = collectible;
+		if (address) {
+			setIsUniV3NFT(toLowerCaseEquals(address, AppConstants.UNIV3_NFT_CONTRACT_ADDRESS));
+			if (small && imagePreview && imagePreview !== '') setSourceUri(imagePreview);
+			else setSourceUri(image);
+		}
+	}, [collectible, small, big, setSourceUri, setIsUniV3NFT]);
 
 	const renderMedia = useCallback(() => {
 		if (renderAnimation && collectible.animation && collectible.animation.includes('.mp4')) {
@@ -73,7 +79,10 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 					style={[styles.mediaPlayer, cover && styles.cover, style]}
 				/>
 			);
-		} else if (sourceUri) {
+		} else if (sourceUri && (!isUniV3NFT || tiny)) {
+			/*
+			 * the tiny boolean is used to indicate when the image is the NFT source icon
+			 */
 			return (
 				<RemoteImage
 					fadeIn
@@ -107,7 +116,7 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 				}`}</Text>
 			</View>
 		);
-	}, [collectible, sourceUri, onClose, renderAnimation, style, tiny, small, big, cover]);
+	}, [collectible, sourceUri, isUniV3NFT, onClose, renderAnimation, style, tiny, small, big, cover]);
 
 	return <View style={styles.container(collectible.backgroundColor)}>{renderMedia()}</View>;
 }
