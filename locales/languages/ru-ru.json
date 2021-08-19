@@ -143,10 +143,6 @@
 		"recovery_phrase": "секретной фразы восстановления ",
 		"metamask_does_not": "Ваша секретная фраза восстановления не сохранена в MetaMask.",
 		"i_understand": "Я понимаю, продолжайте",
-		"passcode_not_set_error": "Ошибка: Пароль не установлен.",
-		"wrong_password_error": "Ошибка: Не удалось расшифровать",
-		"wrong_password_error_android": "Ошибка: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
-		"vault_error": "Ошибка: Не удалось разблокировать без предыдущего сейфа.",
 		"clean_vault_error": "MetaMask обнаружил ошибку, связанную с достижением предела хранилища. Локальные данные повреждены. Переустановите MetaMask и выполните восстановление с помощью секретной фразы восстановления."
 	},
 	"enter_password": {

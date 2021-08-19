@@ -13,7 +13,7 @@ import networkMap from 'ethjs-ens/lib/network-map.json';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { isValidAddress } from 'ethereumjs-util';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import EthereumAddress from '../EthereumAddress';
 import AppConstants from '../../../core/AppConstants';
 

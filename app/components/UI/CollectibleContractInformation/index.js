@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import { connect } from 'react-redux';
 import { isMainNet } from '../../../util/networks';
 

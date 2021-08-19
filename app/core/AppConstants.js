@@ -1,4 +1,4 @@
-import Device from '../util/Device';
+import Device from '../util/device';
 import { MAINNET, RINKEBY } from '../constants/network';
 
 const DEVELOPMENT = 'development';

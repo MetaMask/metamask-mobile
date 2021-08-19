@@ -8,7 +8,7 @@ import ActionView from '../ActionView';
 import { renderFromTokenMinimalUnit } from '../../../util/number';
 import { toLowerCaseEquals } from '../../../util/general';
 import TokenImage from '../../UI/TokenImage';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import Engine from '../../../core/Engine';
 import URL from 'url-parse';
 import AnalyticsV2 from '../../../util/analyticsV2';
