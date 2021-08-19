@@ -338,10 +338,6 @@ class AccountList extends PureComponent {
 						[account.address]: ens
 					}
 				}));
-				console.log('================================');
-				console.log('accountsENS in AccountList:');
-				console.log(JSON.stringify(this.state.accountsENS));
-				console.log('================================');
 			} catch {
 				// Error
 			}

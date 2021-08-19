@@ -12,10 +12,6 @@ class ENSCache {
 }
 
 export async function doENSReverseLookup(address, network) {
-	console.log('================================');
-	console.log('Current State ENSCache:');
-	console.log(JSON.stringify(ENSCache.cache));
-	console.log('================================');
 	const cache = ENSCache.cache[network + address];
 	if (cache) {
 		return Promise.resolve(cache);
