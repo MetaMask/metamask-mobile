@@ -1455,7 +1455,7 @@
 		"no_tokens_result": "No tokens match “{{searchString}}”",
 		"find_token_address": "Find token address",
 		"cant_find_token": "Can’t find a token?",
-		"manually_pasting": "Manually add a token by pasting its address.",
+		"manually_pasting": "Manually add any token by pasting its address.",
 		"token_address_can_be_found": "Token contract addresses can be found on",
 		"gathering_token_details": "Gathering token details...",
 		"error_gathering_token_details": "Oops, there was an error gathering token details.",
