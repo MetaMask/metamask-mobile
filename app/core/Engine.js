@@ -201,13 +201,15 @@ class Engine {
 					getProvider: () => networkController.provider
 				}),
 				new TypedMessageManager(),
-				new SwapsController({
-					clientId: AppConstants.SWAPS.CLIENT_ID,
-					fetchAggregatorMetadataThreshold: AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
-					fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
-					fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD,
-					fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates()
-				}),
+				new SwapsController(
+					{ fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates() },
+					{
+						clientId: AppConstants.SWAPS.CLIENT_ID,
+						fetchAggregatorMetadataThreshold: AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
+						fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
+						fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD
+					}
+				),
 				gasFeeController
 			];
 			// set initial state
