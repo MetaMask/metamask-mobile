@@ -128,8 +128,8 @@ const WatchAssetRequest = ({
 	const { asset } = suggestedAssetMeta;
 	const address = Object.keys(contractBalances).find(key => toLowerCaseEquals(key, asset.address));
 
-	const [remoteBalance] = useTokenBalance(asset.address, selectedAddress);
-	const balance = renderFromTokenMinimalUnit(address ? contractBalances[address] : remoteBalance, asset.decimals);
+	let [balance] = useTokenBalance(asset.address, selectedAddress);
+	balance = renderFromTokenMinimalUnit(address ? contractBalances[address] : balance, asset.decimals);
 
 	return (
 		<View style={styles.root}>
