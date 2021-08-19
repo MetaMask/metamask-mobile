@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Animated, StyleSheet } from 'react-native';
 import { colors } from '../../../styles/common';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 
 const styles = StyleSheet.create({
 	view: {

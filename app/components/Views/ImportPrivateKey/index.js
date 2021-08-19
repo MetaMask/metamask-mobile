@@ -17,7 +17,7 @@ import Icon from 'react-native-vector-icons/Feather';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { strings } from '../../../../locales/i18n';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import { importAccountFromPrivateKey } from '../../../util/address';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 

@@ -11,7 +11,7 @@ import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import Text from '../../Base/Text';
 import { getBasicGasEstimates, getRenderableFiatGasFee } from '../../../util/custom-gas';
 import { connect } from 'react-redux';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 
 const IMAGE_3_RATIO = 281 / 354;
 const IMAGE_2_RATIO = 353 / 416;
