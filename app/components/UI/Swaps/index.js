@@ -173,6 +173,7 @@ function SwapsAmountView({
 	const [hasDismissedTokenAlert, setHasDismissedTokenAlert] = useState(true);
 	const [contractBalance, setContractBalance] = useState(null);
 	const [contractBalanceAsUnits, setContractBalanceAsUnits] = useState(numberToBN(0));
+	const [isDirectWrapping, setIsDirectWrapping] = useState(false);
 
 	const [isSourceModalVisible, toggleSourceModal] = useModalHandler(false);
 	const [isDestinationModalVisible, toggleDestinationModal] = useModalHandler(false);
@@ -335,11 +336,6 @@ function SwapsAmountView({
 		return destinationToken?.occurrences > TOKEN_MINIMUM_SOURCES;
 	}, [destinationToken]);
 
-	const isDirectWrapping = useMemo(
-		() => swapsUtils.shouldEnableDirectWrapping(chainId, sourceToken?.address, destinationToken?.address),
-		[chainId, sourceToken, destinationToken]
-	);
-
 	/* Navigation handler */
 	const handleGetQuotesPress = useCallback(async () => {
 		if (hasInvalidDecimals) {
@@ -385,18 +381,20 @@ function SwapsAmountView({
 
 	const setSlippageAfterTokenPress = useCallback(
 		(sourceTokenAddress, destinationTokenAddress) => {
-			const isDirectWrapping = swapsUtils.shouldEnableDirectWrapping(
+			const enableDirectWrapping = swapsUtils.shouldEnableDirectWrapping(
 				chainId,
 				sourceTokenAddress,
 				destinationTokenAddress
 			);
-			if (isDirectWrapping) {
+			if (enableDirectWrapping && !isDirectWrapping) {
 				setSlippage(0);
-			} else {
+				setIsDirectWrapping(true);
+			} else if (isDirectWrapping && !enableDirectWrapping) {
 				setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
+				setIsDirectWrapping(false);
 			}
 		},
-		[setSlippage, chainId]
+		[setSlippage, chainId, isDirectWrapping]
 	);
 
 	const handleSourceTokenPress = useCallback(
