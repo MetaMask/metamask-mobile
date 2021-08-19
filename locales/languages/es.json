@@ -133,7 +133,7 @@
 		"reset_wallet": "Restablecer cartera",
 		"cant_proceed": "No puede seguir hasta que escriba la palabra “Eliminar”. Con esta acción, opta por borrar la cartera actual.",
 		"invalid_password": "Contraseña no válida",
-		"type_delete": "Escriba “eliminar” para borrar de forma permanente la cartera actual",
+		"type_delete": "Escriba '%{delete}' para borrar de forma permanente la cartera actual",
 		"delete_my": "Eliminar mi cartera",
 		"are_you_sure": "¿Está seguro de que quiere borrar su cartera?",
 		"your_current_wallet": "La cartera actual, las cuentas y los activos se quitarán ",
@@ -143,10 +143,6 @@
 		"recovery_phrase": "frase secreta de recuperación ",
 		"metamask_does_not": "MetaMask no tiene su frase secreta de recuperación.",
 		"i_understand": "Comprendo; continuar",
-		"passcode_not_set_error": "Error: No se estableció un código de acceso.",
-		"wrong_password_error": "Error: Se produjo un error al descifrar.",
-		"wrong_password_error_android": "Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
-		"vault_error": "Error: No es posible desbloquear sin una bóveda previa.",
 		"clean_vault_error": "MetaMask encontró un error ocasionado por alcanzar el límite de almacenamiento. Los datos locales están dañados. Vuelva a instalar MetaMask y restaure la aplicación con la frase secreta de recuperación."
 	},
 	"enter_password": {

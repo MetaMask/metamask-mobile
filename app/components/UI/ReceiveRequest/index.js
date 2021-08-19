@@ -11,7 +11,7 @@ import { connect } from 'react-redux';
 import Analytics from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import Logger from '../../../util/Logger';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';

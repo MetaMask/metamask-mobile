@@ -6,7 +6,7 @@ import { colors, fontStyles } from '../../../../../styles/common';
 import Text from '../../../../Base/Text';
 import InfoIcon from '../InfoIcon';
 import Modal from './Modal';
-import Device from '../../../../../util/Device';
+import Device from '../../../../../util/device';
 
 const style = StyleSheet.create({
 	container: {

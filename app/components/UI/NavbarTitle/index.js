@@ -6,7 +6,7 @@ import { colors, fontStyles } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import { toggleNetworkModal } from '../../../actions/modals';
 import { strings } from '../../../../locales/i18n';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 
 const styles = StyleSheet.create({
 	wrapper: {

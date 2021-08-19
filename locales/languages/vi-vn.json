@@ -133,7 +133,7 @@
 		"reset_wallet": "Đặt lại ví",
 		"cant_proceed": "Bạn không thể tiếp tục cho đến khi nhập từ “Xóa”. Bằng hành động này, bạn đang chọn xóa ví hiện tại của mình.",
 		"invalid_password": "Mật khẩu không hợp lệ",
-		"type_delete": "Hãy nhập “xóa” để xóa vĩnh viễn ví hiện tại",
+		"type_delete": "Hãy nhập “%{delete}” để xóa vĩnh viễn ví hiện tại",
 		"delete_my": "Xóa ví của tôi",
 		"are_you_sure": "Bạn có chắc chắn muốn xóa ví của mình không?",
 		"your_current_wallet": "Ví, các tài khoản và tài sản hiện tại của bạn sẽ ",
@@ -143,10 +143,6 @@
 		"recovery_phrase": "Cụm mật khẩu khôi phục bí mật ",
 		"metamask_does_not": "MetaMask không biết Cụm mật khẩu khôi phục bí mật của bạn.",
 		"i_understand": "Tôi đã hiểu, hãy tiếp tục",
-		"passcode_not_set_error": "Lỗi: Chưa đặt mật mã.",
-		"wrong_password_error": "Lỗi: Giải mã không thành công",
-		"wrong_password_error_android": "Lỗi: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
-		"vault_error": "Lỗi: Không thể mở khóa nếu không có két trước đó.",
 		"clean_vault_error": "MetaMask đã gặp lỗi do đạt đến giới hạn lưu trữ. Dữ liệu cục bộ đã bị hỏng. Vui lòng cài đặt lại MetaMask và khôi phục bằng Cụm mật khẩu khôi phục bí mật của bạn."
 	},
 	"enter_password": {

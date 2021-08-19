@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { ViewPropTypes, View, StyleSheet } from 'react-native';
 import AndroidMediaPlayer from './AndroidMediaPlayer';
 import Video from 'react-native-video';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import Loader from './Loader';
 
 const styles = StyleSheet.create({
