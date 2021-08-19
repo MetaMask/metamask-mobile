@@ -7,7 +7,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import FeatherIcons from 'react-native-vector-icons/Feather';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import { colors } from '../../../styles/common';
 
 const HOME_INDICATOR_HEIGHT = 18;

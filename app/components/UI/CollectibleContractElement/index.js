@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../styles/common';
 import CollectibleMedia from '../CollectibleMedia';
 import Icon from 'react-native-vector-icons/Ionicons';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import AntIcons from 'react-native-vector-icons/AntDesign';
 import Text from '../../Base/Text';
 import ActionSheet from 'react-native-actionsheet';

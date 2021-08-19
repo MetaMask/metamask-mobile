@@ -10,7 +10,7 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 import { connect } from 'react-redux';
 import { colors } from '../../../styles/common';
 import Logger from '../../../util/Logger';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import { recreateVaultWithSamePassword } from '../../../core/Vault';
 import {
 	EXISTING_USER,
@@ -22,6 +22,7 @@ import {
 	LAST_APP_VERSION
 } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
+import DefaultPreference from 'react-native-default-preference';
 
 /**
  * Entry Screen that decides which screen to show
@@ -129,9 +130,9 @@ const Entry = props => {
 					await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
 				}
 				// Get onboarding wizard state
-				const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
+				const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
 				// Check if user passed through metrics opt-in screen
-				const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
+				const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
 				if (!metricsOptIn) {
 					animateAndGoTo('OptinMetrics');
 				} else if (onboardingWizard) {
