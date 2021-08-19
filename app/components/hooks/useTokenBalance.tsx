@@ -1,6 +1,13 @@
 import { useState, useEffect, Dispatch, SetStateAction } from 'react';
 import Engine from '../../core/Engine';
 
+/**
+ * Hook to handle the balance of ERC20 tokens
+ * @param {String} tokenAddress Token contract address
+ * @param {String} userAddress Public address which holds the token
+ * @returns {Handlers} Handlers `[balance, loading, error]`
+ */
+
 const useTokenBalance = (tokenAddress: string, userAddress: string): [number, boolean, boolean] => {
 	// This hook should be only used with ERC20 tokens
 	const [balance, setBalance]: [number, Dispatch<SetStateAction<number>>] = useState<number>(0);
