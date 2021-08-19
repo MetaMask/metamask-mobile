@@ -8,16 +8,16 @@ import Engine from '../../core/Engine';
  * @returns {Handlers} Handlers `[balance, loading, error]`
  */
 
-const useTokenBalance = (tokenAddress: string, userAddress: string): [number, boolean, boolean] => {
+const useTokenBalance = (tokenAddress: string, userAddress: string): [string, boolean, boolean] => {
 	// This hook should be only used with ERC20 tokens
-	const [balance, setBalance]: [number, Dispatch<SetStateAction<number>>] = useState<number>(0);
+	const [balance, setBalance]: [string, Dispatch<SetStateAction<string>>] = useState<string>('0');
 	const [loading, setLoading]: [boolean, Dispatch<SetStateAction<boolean>>] = useState<boolean>(true);
 	const [error, setError]: [boolean, Dispatch<SetStateAction<boolean>>] = useState<boolean>(false);
 	const { TokenBalancesController }: any = Engine.context;
 
 	const fetchBalance = async (tokenAddress: string, userAddress: string): Promise<void> => {
 		TokenBalancesController.getBalanceOf(tokenAddress, userAddress)
-			.then((balance: string) => setBalance(Number(balance)))
+			.then((balance: string) => setBalance(JSON.stringify(balance)))
 			.catch(() => setError(true))
 			.finally(() => setLoading(false));
 	};
