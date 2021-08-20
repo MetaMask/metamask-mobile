@@ -290,9 +290,8 @@ class AccountOverview extends PureComponent {
 		try {
 			const ens = await doENSReverseLookup(account.address, network);
 			this.setState({ ens });
-		} catch {
-			// Error
-		}
+			// eslint-disable-next-line no-empty
+		} catch {}
 	};
 
 	render() {
