@@ -1,5 +1,4 @@
 # Changelog
-
 ## Current Develop Branch
 ## v3.2.0 - August 20 2021
 - [#3013](https://github.com/MetaMask/metamask-mobile/pull/3013): Swaps V2 Integration
