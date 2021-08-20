@@ -372,6 +372,7 @@ class DrawerView extends PureComponent {
 	state = {
 		showProtectWalletModal: undefined,
 		account: {
+			ens: undefined,
 			name: undefined,
 			address: undefined,
 			currentNetwork: undefined
@@ -454,16 +455,18 @@ class DrawerView extends PureComponent {
 
 	updateAccountInfo = async () => {
 		const { identities, network, selectedAddress } = this.props;
-		const { currentNetwork, address } = this.state.account;
-		if (currentNetwork !== network || address !== selectedAddress) {
-			this.setState(state => ({
-				account: { ...state.account, currentNetwork: network, address: selectedAddress }
-			}));
-			const accountName = identities[selectedAddress].name;
+		const { currentNetwork, address, name } = this.state.account;
+		const accountName = identities[selectedAddress].name;
+		if (currentNetwork !== network || address !== selectedAddress || name !== accountName) {
 			const ens = await doENSReverseLookup(selectedAddress, network.provider.chainId);
-			if (isDefaultAccountName(accountName)) {
-				this.setState(state => ({ account: { ...state.account, name: ens || accountName } }));
-			}
+			this.setState(state => ({
+				account: {
+					ens,
+					name: accountName,
+					currentNetwork: network,
+					address: selectedAddress
+				}
+			}));
 		}
 	};
 
@@ -874,7 +877,7 @@ class DrawerView extends PureComponent {
 		const {
 			invalidCustomNetwork,
 			showProtectWalletModal,
-			account: { name }
+			account: { name, ens }
 		} = this.state;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
 		account.balance = (accounts[selectedAddress] && renderFromWei(accounts[selectedAddress].balance)) || 0;
@@ -912,7 +915,7 @@ class DrawerView extends PureComponent {
 							>
 								<View style={styles.accountNameWrapper}>
 									<Text style={styles.accountName} numberOfLines={1}>
-										{name}
+										{isDefaultAccountName(name) && ens ? ens : name}
 									</Text>
 									<Icon name="caret-down" size={24} style={styles.caretDown} />
 								</View>
