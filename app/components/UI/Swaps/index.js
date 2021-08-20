@@ -173,6 +173,7 @@ function SwapsAmountView({
 	const [hasDismissedTokenAlert, setHasDismissedTokenAlert] = useState(true);
 	const [contractBalance, setContractBalance] = useState(null);
 	const [contractBalanceAsUnits, setContractBalanceAsUnits] = useState(numberToBN(0));
+	const [isDirectWrapping, setIsDirectWrapping] = useState(false);
 
 	const [isSourceModalVisible, toggleSourceModal] = useModalHandler(false);
 	const [isDestinationModalVisible, toggleDestinationModal] = useModalHandler(false);
@@ -332,7 +333,7 @@ function SwapsAmountView({
 		if (!destinationToken || isSwapsNativeAsset(destinationToken)) {
 			return true;
 		}
-		return destinationToken?.occurances > TOKEN_MINIMUM_SOURCES;
+		return destinationToken?.occurrences > TOKEN_MINIMUM_SOURCES;
 	}, [destinationToken]);
 
 	/* Navigation handler */
@@ -378,20 +379,40 @@ function SwapsAmountView({
 		[amount]
 	);
 
+	const setSlippageAfterTokenPress = useCallback(
+		(sourceTokenAddress, destinationTokenAddress) => {
+			const enableDirectWrapping = swapsUtils.shouldEnableDirectWrapping(
+				chainId,
+				sourceTokenAddress,
+				destinationTokenAddress
+			);
+			if (enableDirectWrapping && !isDirectWrapping) {
+				setSlippage(0);
+				setIsDirectWrapping(true);
+			} else if (isDirectWrapping && !enableDirectWrapping) {
+				setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
+				setIsDirectWrapping(false);
+			}
+		},
+		[setSlippage, chainId, isDirectWrapping]
+	);
+
 	const handleSourceTokenPress = useCallback(
 		item => {
 			toggleSourceModal();
 			setSourceToken(item);
+			setSlippageAfterTokenPress(item.address, destinationToken?.address);
 		},
-		[toggleSourceModal]
+		[toggleSourceModal, setSlippageAfterTokenPress, destinationToken]
 	);
 
 	const handleDestinationTokenPress = useCallback(
 		item => {
 			toggleDestinationModal();
 			setDestinationToken(item);
+			setSlippageAfterTokenPress(sourceToken?.address, item.address);
 		},
-		[toggleDestinationModal]
+		[toggleDestinationModal, setSlippageAfterTokenPress, sourceToken]
 	);
 
 	const handleUseMax = useCallback(() => {
@@ -535,7 +556,9 @@ function SwapsAmountView({
 						tokens={swapsTokens}
 						initialTokens={[
 							swapsUtils.getNativeSwapsToken(chainId),
-							...tokensTopAssets.slice(0, MAX_TOP_ASSETS)
+							...tokensTopAssets
+								.slice(0, MAX_TOP_ASSETS)
+								.filter(asset => asset.address !== swapsUtils.getNativeSwapsToken(chainId).address)
 						]}
 						onItemPress={handleDestinationTokenPress}
 						excludeAddresses={[sourceToken?.address]}
@@ -550,7 +573,9 @@ function SwapsAmountView({
 							>
 								<Text small centered>
 									<Text reset bold>
-										{strings('swaps.verified_on_sources', { sources: destinationToken.occurances })}
+										{strings('swaps.verified_on_sources', {
+											sources: destinationToken.occurrences
+										})}
 									</Text>
 									{` ${strings('swaps.verify_on')} `}
 									{explorer.isValid ? (
@@ -566,7 +591,7 @@ function SwapsAmountView({
 						) : (
 							<ActionAlert
 								type={
-									!destinationToken.occurances || isDynamicToken(destinationToken)
+									!destinationToken.occurrences || isDynamicToken(destinationToken)
 										? 'error'
 										: 'warning'
 								}
@@ -578,18 +603,18 @@ function SwapsAmountView({
 								{textStyle => (
 									<TouchableOpacity onPress={explorer.isValid ? handleVerifyPress : undefined}>
 										<Text style={textStyle} bold centered>
-											{!destinationToken.occurances || isDynamicToken(destinationToken)
+											{!destinationToken.occurrences || isDynamicToken(destinationToken)
 												? strings('swaps.added_manually', {
 														symbol: destinationToken.symbol
 														// eslint-disable-next-line no-mixed-spaces-and-tabs
 												  })
 												: strings('swaps.only_verified_on', {
 														symbol: destinationToken.symbol,
-														occurances: destinationToken.occurances
+														occurrences: destinationToken.occurrences
 														// eslint-disable-next-line no-mixed-spaces-and-tabs
 												  })}
 										</Text>
-										{!destinationToken.occurances || isDynamicToken(destinationToken) ? (
+										{!destinationToken.occurrences || isDynamicToken(destinationToken) ? (
 											<Text style={textStyle} centered>
 												{`${strings('swaps.verify_this_token_on')} `}
 												{explorer.isValid ? (
@@ -635,9 +660,12 @@ function SwapsAmountView({
 						<TouchableOpacity
 							onPress={toggleSlippageModal}
 							hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
+							disabled={isDirectWrapping}
 						>
-							<Text bold link>
-								{strings('swaps.max_slippage_amount', { slippage: `${slippage}%` })}
+							<Text bold link={!isDirectWrapping}>
+								{strings('swaps.max_slippage_amount', {
+									slippage: `${slippage}%`
+								})}
 							</Text>
 						</TouchableOpacity>
 					</View>

@@ -1436,7 +1436,7 @@
 		"verify_address_on": "I-verify ang token address sa",
 		"added_manually": "Manual na idinagdag ang token na ito.",
 		"verify_this_token_on": "I-verify ang token na ito sa ",
-		"only_verified_on": "Mave-verify lang ang {{symbol}} sa {{occurances}} source.",
+		"only_verified_on": "Mave-verify lang ang {{symbol}} sa {{occurrences}} source.",
 		"block_explorer": "block explorer",
 		"a_block_explorer": "isang block explorer",
 		"make_sure_trade": "at tiyaking ito ang token na gusto mong i-trade.",

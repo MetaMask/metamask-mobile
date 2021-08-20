@@ -319,7 +319,7 @@ const Main = props => {
 			// if destination address is metaswap contract
 			if (
 				to &&
-				(to === swapsUtils.getSwapsContractAddress(props.chainId) ||
+				(swapsUtils.isValidContractAddress(props.chainId, to) ||
 					(data &&
 						data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
 						decodeApproveData(data).spenderAddress?.toLowerCase() ===
