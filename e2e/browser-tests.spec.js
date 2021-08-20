@@ -224,7 +224,7 @@ describe('Browser Tests', () => {
 		// Clear text
 		await TestHelpers.clearField('url-input');
 		// Navigate to URL
-		await TestHelpers.typeTextAndHideKeyboard('url-input', 'secure empowr');
+		await TestHelpers.typeTextAndHideKeyboard('url-input', 'home - empowr');
 		// Wait for page to load
 		await TestHelpers.delay(1000);
 		// Check that we are on the browser screen
