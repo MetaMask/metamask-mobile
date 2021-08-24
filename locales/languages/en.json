@@ -1441,7 +1441,7 @@
 		"verify_address_on": "Verify token address on",
 		"added_manually": "This token has been added manually.",
 		"verify_this_token_on": "Verify this token on",
-		"only_verified_on": "{{symbol}} is only verified on {{occurances}} source.",
+		"only_verified_on": "{{symbol}} is only verified on {{occurrences}} source.",
 		"block_explorer": "block explorer",
 		"a_block_explorer": "a block explorer",
 		"make_sure_trade": "and make sure this is the token you want to trade.",
@@ -1475,6 +1475,7 @@
 		"allows_up_to_decimals": "{{symbol}} allows up to {{decimals}} decimals",
 		"get_quotes": "Get quotes",
 		"starting": "Starting...",
+		"fetching_quotes": "Fetching quotes",
 		"finalizing": "Finalizing...",
 		"quote": "Quote",
 		"of": "of",
@@ -1548,6 +1549,11 @@
 			"1": "This quote comes from an",
 			"2": "aggregator",
 			"3": "which finds the best price by splitting your order between different decentralized exchanges."
+		},
+		"quote_source_cnt": {
+			"1": "This quote comes directly from a",
+			"2": "smart contract",
+			"3": "that wraps and unwraps native tokens which can save on gas costs."
 		},
 		"quotes_timeout": "Quotes timeout",
 		"request_new_quotes": "Please request new quotes to get the latest best rate.",
