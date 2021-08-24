@@ -19,6 +19,7 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { doENSReverseLookup } from '../../../util/ENSUtils';
 import AccountElement from './AccountElement';
 import { connect } from 'react-redux';
 
@@ -113,13 +114,18 @@ class AccountList extends PureComponent {
 		/**
 		 * Indicates whether third party API mode is enabled
 		 */
-		thirdPartyApiMode: PropTypes.bool
+		thirdPartyApiMode: PropTypes.bool,
+		/**
+		 * ID of the current network
+		 */
+		network: PropTypes.string
 	};
 
 	state = {
 		selectedAccountIndex: 0,
 		loading: false,
-		orderedAccounts: {}
+		orderedAccounts: {},
+		accountsENS: {}
 	};
 
 	flatList = React.createRef();
@@ -140,6 +146,7 @@ class AccountList extends PureComponent {
 		this.getInitialSelectedAccountIndex();
 		const orderedAccounts = this.getAccounts();
 		InteractionManager.runAfterInteractions(() => {
+			this.assignENSToAccounts(orderedAccounts);
 			if (orderedAccounts.length > 4) {
 				this.scrollToCurrentAccount();
 			}
@@ -275,11 +282,12 @@ class AccountList extends PureComponent {
 
 	renderItem = ({ item }) => {
 		const { ticker } = this.props;
+		const { accountsENS } = this.state;
 		return (
 			<AccountElement
 				onPress={this.onAccountChange}
 				onLongPress={this.onLongPress}
-				item={item}
+				item={{ ...item, ens: accountsENS[item.address] }}
 				ticker={ticker}
 				disabled={Boolean(item.balanceError)}
 			/>
@@ -318,6 +326,23 @@ class AccountList extends PureComponent {
 				};
 			});
 	}
+
+	assignENSToAccounts = orderedAccounts => {
+		const { network } = this.props;
+		orderedAccounts.forEach(async account => {
+			try {
+				const ens = await doENSReverseLookup(account.address, network);
+				this.setState(state => ({
+					accountsENS: {
+						...state.accountsENS,
+						[account.address]: ens
+					}
+				}));
+			} catch {
+				// Error
+			}
+		});
+	};
 
 	keyExtractor = item => item.address;
 
@@ -368,7 +393,8 @@ class AccountList extends PureComponent {
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
-	keyrings: state.engine.backgroundState.KeyringController.keyrings
+	keyrings: state.engine.backgroundState.KeyringController.keyrings,
+	network: state.engine.backgroundState.NetworkController.network
 });
 
 export default connect(mapStateToProps)(AccountList);
