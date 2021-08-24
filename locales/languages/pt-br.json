@@ -1434,7 +1434,7 @@
 		"verified_on_sources": "Verificado em {{sources} fontes.",
 		"verify_on": "Sempre verifique o endereço do token em",
 		"verify_address_on": "Verificar o endereço do token em",
-		"only_verified_on": "{{symbol}} só é verificado em {{occurances}} fontes.",
+		"only_verified_on": "{{symbol}} só é verificado em {{occurrences}} fontes.",
 		"block_explorer": "block explorer",
 		"a_block_explorer": "um block explorer",
 		"token_verification": "Verificação do token",
