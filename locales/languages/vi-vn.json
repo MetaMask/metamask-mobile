@@ -1434,7 +1434,7 @@
 		"verified_on_sources": "Đã xác minh trên các nguồn {{sources}.",
 		"verify_on": "Luôn xác minh địa chỉ token trên",
 		"verify_address_on": "Xác minh địa chỉ token trên",
-		"only_verified_on": "{{symbol}} chỉ được xác minh trên nguồn {{occurances}}.",
+		"only_verified_on": "{{symbol}} chỉ được xác minh trên nguồn {{occurrences}}.",
 		"block_explorer": "trình khám phá khối",
 		"a_block_explorer": "một trình khám phá khối",
 		"token_verification": "Xác minh token",
