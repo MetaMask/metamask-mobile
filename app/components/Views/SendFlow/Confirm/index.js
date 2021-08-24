@@ -33,7 +33,6 @@ import {
 import StyledButton from '../../../UI/StyledButton';
 import { util, WalletDevice, NetworksChainId, GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import { prepareTransaction, resetTransaction, setNonce, setProposedNonce } from '../../../../actions/transaction';
-import addRecent from '../../../../actions/recents';
 import { getGasLimit } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
@@ -335,8 +334,7 @@ class Confirm extends PureComponent {
 		/**
 		 * A string representing the network type
 		 */
-		networkType: PropTypes.string,
-		addRecent: PropTypes.func
+		networkType: PropTypes.string
 	};
 
 	state = {
@@ -816,8 +814,7 @@ class Confirm extends PureComponent {
 			transactionState: { assetType },
 			navigation,
 			resetTransaction,
-			gasEstimateType,
-			addRecent
+			gasEstimateType
 		} = this.props;
 		const { EIP1559TransactionData, LegacyTransactionData } = this.state;
 		this.setState({ transactionConfirmed: true, stopUpdateGas: true });
@@ -845,12 +842,6 @@ class Confirm extends PureComponent {
 
 			if (transactionMeta.error) {
 				throw transactionMeta.error;
-			} else {
-				// add to recents
-				const {
-					transaction: { to: toAddress }
-				} = transactionMeta;
-				toAddress && addRecent(toAddress);
 			}
 
 			InteractionManager.runAfterInteractions(() => {
@@ -1434,7 +1425,6 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-	addRecent: address => dispatch(addRecent(address)),
 	prepareTransaction: transaction => dispatch(prepareTransaction(transaction)),
 	resetTransaction: () => dispatch(resetTransaction()),
 	setNonce: nonce => dispatch(setNonce(nonce)),
