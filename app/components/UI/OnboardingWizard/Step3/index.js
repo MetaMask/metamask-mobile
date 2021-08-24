@@ -8,7 +8,7 @@ import { colors, fontStyles } from '../../../../styles/common';
 import AccountOverview from '../../AccountOverview';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
-import Device from '../../../../util/Device';
+import Device from '../../../../util/device';
 
 const styles = StyleSheet.create({
 	main: {

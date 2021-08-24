@@ -4,9 +4,11 @@ import { StyleSheet, View, ViewPropTypes } from 'react-native';
 import RemoteImage from '../../Base/RemoteImage';
 import MediaPlayer from '../../Views/MediaPlayer';
 import { colors } from '../../../styles/common';
+import AppConstants from '../../../core/AppConstants';
 import scaling from '../../../util/scaling';
+import { toLowerCaseEquals } from '../../../util/general';
 import Text from '../../Base/Text';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 
 const MEDIA_WIDTH_MARGIN = Device.isMediumDevice() ? 32 : 0;
 
@@ -53,29 +55,23 @@ const styles = StyleSheet.create({
 /**
  * View that renders an ERC-721 Token image
  */
-export default function CollectibleMedia({
-	collectible,
-	renderAnimation,
-	resizeMode,
-	style,
-	tiny,
-	small,
-	big,
-	cover,
-	onClose
-}) {
+export default function CollectibleMedia({ collectible, renderAnimation, style, tiny, small, big, cover, onClose }) {
 	const [sourceUri, setSourceUri] = useState(null);
+	const [isUniV3NFT, setIsUniV3NFT] = useState(false);
 
 	const fallback = () => setSourceUri(null);
 
 	useEffect(() => {
-		const { image, imagePreview } = collectible;
-		if (small && imagePreview && imagePreview !== '') setSourceUri(imagePreview);
-		else setSourceUri(image);
-	}, [collectible, small, big, setSourceUri]);
+		const { image, imagePreview, address } = collectible;
+		if (address) {
+			setIsUniV3NFT(toLowerCaseEquals(address, AppConstants.UNIV3_NFT_CONTRACT_ADDRESS));
+			if (small && imagePreview && imagePreview !== '') setSourceUri(imagePreview);
+			else setSourceUri(image);
+		}
+	}, [collectible, small, big, setSourceUri, setIsUniV3NFT]);
 
 	const renderMedia = useCallback(() => {
-		if (renderAnimation && collectible.animation?.includes('.mp4')) {
+		if (renderAnimation && collectible.animation && collectible.animation.includes('.mp4')) {
 			return (
 				<MediaPlayer
 					onClose={onClose}
@@ -83,11 +79,14 @@ export default function CollectibleMedia({
 					style={[styles.mediaPlayer, cover && styles.cover, style]}
 				/>
 			);
-		} else if (sourceUri) {
+		} else if (sourceUri && (!isUniV3NFT || tiny)) {
+			/*
+			 * the tiny boolean is used to indicate when the image is the NFT source icon
+			 */
 			return (
 				<RemoteImage
 					fadeIn
-					resizeMode={resizeMode || 'cover'}
+					resizeMode={'contain'}
 					source={{ uri: sourceUri }}
 					style={[
 						styles.image,
@@ -117,7 +116,7 @@ export default function CollectibleMedia({
 				}`}</Text>
 			</View>
 		);
-	}, [collectible, sourceUri, onClose, renderAnimation, style, tiny, small, big, cover, resizeMode]);
+	}, [collectible, sourceUri, isUniV3NFT, onClose, renderAnimation, style, tiny, small, big, cover]);
 
 	return <View style={styles.container(collectible.backgroundColor)}>{renderMedia()}</View>;
 }
@@ -154,9 +153,5 @@ CollectibleMedia.propTypes = {
 	/**
 	 * On close callback
 	 */
-	onClose: PropTypes.func,
-	/**
-	 * Image resize mode
-	 */
-	resizeMode: PropTypes.string
+	onClose: PropTypes.func
 };

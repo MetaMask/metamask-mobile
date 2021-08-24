@@ -1,4 +1,4 @@
-import Device from '../util/Device';
+import Device from '../util/device';
 import { MAINNET, RINKEBY } from '../constants/network';
 
 const DEVELOPMENT = 'development';
@@ -29,6 +29,7 @@ export default {
 	},
 	MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
 	SAI_ADDRESS: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
+	UNIV3_NFT_CONTRACT_ADDRESS: '0xc36442b4a4522e871399cd717abdd847ab11fe88',
 	HOMEPAGE_URL: 'https://home.metamask.io/',
 	SHORT_HOMEPAGE_URL: 'MetaMask.io',
 	ZERO_ADDRESS: '0x0000000000000000000000000000000000000000',
@@ -72,7 +73,7 @@ export default {
 		TERMS_AND_CONDITIONS: 'https://consensys.net/terms-of-use/',
 		PRIVACY_POLICY: 'https://consensys.net/privacy-policy/',
 		CONNECTIVITY_ISSUES: 'https://metamask.zendesk.com/hc/en-us/articles/360059386712',
-		NFT: 'https://metamask.zendesk.com/hc/en-us/articles/360058240151-How-to-interact-with-NFTs-OpenSea-and-Rarible'
+		NFT: 'https://metamask.zendesk.com/hc/en-us/articles/360058238591-NFT-tokens-in-MetaMask-wallet'
 	},
 	ERRORS: {
 		INFURA_BLOCKED_MESSAGE: 'EthQuery - RPC Error - This service is not available in your country'

@@ -29,7 +29,7 @@ import PersonalSign from '../../UI/PersonalSign';
 import TypedSign from '../../UI/TypedSign';
 import Modal from 'react-native-modal';
 import WalletConnect from '../../../core/WalletConnect';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import {
 	getMethodData,
 	TOKEN_METHOD_TRANSFER,
@@ -68,8 +68,7 @@ import { setInfuraAvailabilityBlocked, setInfuraAvailabilityNotBlocked } from '.
 
 const styles = StyleSheet.create({
 	flex: {
-		flex: 1,
-		marginTop: Device.isIphone12() ? 20 : 0
+		flex: 1
 	},
 	loader: {
 		backgroundColor: colors.white,

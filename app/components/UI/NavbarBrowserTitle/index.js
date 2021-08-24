@@ -5,7 +5,7 @@ import { TouchableOpacity, View, StyleSheet, Text, Image } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -119,7 +119,7 @@ class NavbarBrowserTitle extends PureComponent {
 		return (
 			<TouchableOpacity onPress={this.onTitlePress} style={styles.wrapper}>
 				<View style={styles.currentUrlWrapper}>
-					{icon && <Image style={styles.siteIcon} source={{ uri: icon }} />}
+					{Boolean(icon) && <Image style={styles.siteIcon} source={{ uri: icon }} />}
 					<Text
 						numberOfLines={1}
 						ellipsizeMode={'head'}

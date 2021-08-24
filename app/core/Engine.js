@@ -21,9 +21,7 @@ import {
 	TokensController,
 	CollectiblesController
 } from '@metamask/controllers';
-
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
-
 import AsyncStorage from '@react-native-community/async-storage';
 import Encryptor from './Encryptor';
 import { toChecksumAddress } from 'ethereumjs-util';
@@ -524,7 +522,8 @@ class Engine {
 				gasPrice: tx.txParams.gasPrice,
 				value: tx.txParams.value,
 				maxFeePerGas: tx.txParams.maxFeePerGas,
-				maxPriorityFeePerGas: tx.txParams.maxPriorityFeePerGas
+				maxPriorityFeePerGas: tx.txParams.maxPriorityFeePerGas,
+				data: tx.txParams.data
 			}
 		});
 

@@ -2,6 +2,8 @@ import { NetworksChainId } from '@metamask/controllers';
 import AppConstants from '../core/AppConstants';
 import { getAllNetworks, isSafeChainId } from '../util/networks';
 import { toLowerCaseEquals } from '../util/general';
+import DefaultPreference from 'react-native-default-preference';
+import { ONBOARDING_WIZARD, METRICS_OPT_IN, AGREED, DENIED, EXPLORED } from '../constants/storage';
 
 export const migrations = {
 	// Needed after https://github.com/MetaMask/controllers/pull/152
@@ -145,7 +147,15 @@ export const migrations = {
 		delete state.engine.backgroundState.AssetsController;
 
 		return state;
+	},
+	6: state => {
+		state.analytics?.enabled
+			? DefaultPreference.set(METRICS_OPT_IN, AGREED)
+			: DefaultPreference.set(METRICS_OPT_IN, DENIED);
+		DefaultPreference.set(ONBOARDING_WIZARD, EXPLORED);
+
+		return state;
 	}
 };
 
-export const version = 5;
+export const version = 6;
