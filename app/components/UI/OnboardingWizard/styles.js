@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { fontStyles, colors } from '../../../styles/common';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 
 const SMALL_DEVICE = Device.isSmallDevice();
 

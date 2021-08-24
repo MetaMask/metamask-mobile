@@ -31,7 +31,7 @@ import ScanStep from '../../UI/ScanStep';
 import PubNubWrapper from '../../../util/syncWithExtension';
 import ActionModal from '../../UI/ActionModal';
 import Logger from '../../../util/Logger';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
 import Animated, { Easing } from 'react-native-reanimated';
 import ElevatedView from 'react-native-elevated-view';

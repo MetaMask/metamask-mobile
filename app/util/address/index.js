@@ -1,8 +1,8 @@
 import { toChecksumAddress } from 'ethereumjs-util';
-import Engine from '../core/Engine';
-import AppConstants from '../core/AppConstants';
-import { strings } from '../../locales/i18n';
-import { tlc } from '../util/general';
+import Engine from '../../core/Engine';
+import AppConstants from '../../core/AppConstants';
+import { strings } from '../../../locales/i18n';
+import { tlc } from '../general';
 
 const { supportedTLDs } = AppConstants;
 

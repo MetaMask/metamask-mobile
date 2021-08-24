@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import QRCode from 'react-native-qrcode-svg';
 import { strings } from '../../../../locales/i18n';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import { showAlert } from '../../../actions/alert';
 import GlobalAlert from '../../UI/GlobalAlert';
 import { protectWalletModalVisible } from '../../../actions/user';
