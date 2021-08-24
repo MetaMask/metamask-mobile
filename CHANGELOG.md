@@ -9,6 +9,7 @@
 - [#3038](https://github.com/MetaMask/metamask-mobile/pull/3038): [FIX] increase the heap size to help mitigate the out of memory issue on Android
 - [#3013](https://github.com/MetaMask/metamask-mobile/pull/3013): Swaps V2 Integration
 - [#2718](https://github.com/MetaMask/metamask-mobile/pull/2718): Switched to sslip.io instead of xip.io
+
 ## v3.1.0 - August 12 2021
 - [#3026](https://github.com/MetaMask/metamask-mobile/pull/3026): [FIX] Fix edit button
 - [#2981](https://github.com/MetaMask/metamask-mobile/pull/2981): [FIX] Delete Message
