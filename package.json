@@ -135,7 +135,7 @@
     "json-rpc-engine": "^6.1.0",
     "json-rpc-middleware-stream": "3.0.0",
     "lottie-react-native": "git+https://github.com/MetaMask/lottie-react-native.git#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106",
-    "multihashes": "0.4.14",
+    "multihashes": "4.0.2",
     "number-to-bn": "1.7.0",
     "obj-multiplex": "1.0.0",
     "obs-store": "4.0.3",
