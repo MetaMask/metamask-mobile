@@ -12,7 +12,7 @@ start().catch(console.error);
 
 async function start() {
 	const content = {
-		text: `THIS IS A TEST - NEW BUILDS AVAILABLE! Commit <https://github.com/MetaMask/metamask-mobile/commit/${BITRISE_GIT_COMMIT}|#${BITRISE_GIT_COMMIT_MESSAGE}>`,
+		text: `NEW BUILDS AVAILABLE! Commit <https://github.com/MetaMask/metamask-mobile/commit/${BITRISE_GIT_COMMIT}|#${BITRISE_GIT_COMMIT_MESSAGE}>`,
 		attachments: [
 			{
 				title_link: 'itms-beta://beta.itunes.apple.com/v1/app/1438144202',
