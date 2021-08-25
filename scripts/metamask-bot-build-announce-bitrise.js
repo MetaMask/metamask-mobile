@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-/* eslint-disable import/no-commonjs */
-const request = require('request-promise');
+
+import request from 'request-promise';
 
 const ANDROID_APK_LINK = process.env.BITRISE_PUBLIC_INSTALL_PAGE_URL;
 const SLACK_TOKEN = process.env.MM_SLACK_TOKEN;
