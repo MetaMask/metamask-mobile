@@ -7,12 +7,12 @@ const SLACK_TOKEN = process.env.MM_SLACK_TOKEN;
 const SLACK_SECRET = process.env.MM_SLACK_SECRET;
 const SLACK_ROOM = process.env.MM_SLACK_ROOM;
 const BITRISE_GIT_COMMIT = process.env.BITRISE_GIT_COMMIT;
-
+const BITRISE_GIT_COMMIT_MESSAGE = process.env.BITRISE_GIT_MESSAGE;
 start().catch(console.error);
 
 async function start() {
 	const content = {
-		text: `THIS IS A TEST _ NEW BUILDS AVAILABLE! Commit - <${BITRISE_GIT_COMMIT}>`,
+		text: `THIS IS A TEST _ NEW BUILDS AVAILABLE! Commit <a href="https://github.com/MetaMask/metamask-mobile/commit/${BITRISE_GIT_COMMIT}" >${BITRISE_GIT_COMMIT_MESSAGE}</a>`,
 		attachments: [
 			{
 				title_link: 'itms-beta://beta.itunes.apple.com/v1/app/1438144202',
