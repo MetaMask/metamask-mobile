@@ -158,7 +158,7 @@ buildAndroidRunE2E(){
 	then
 		source $ANDROID_ENV_FILE
 	fi
-	cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug && cd ..
+	cd android && ./gradlew assembleDebug assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=debug && cd ..
 }
 
 buildIosSimulator(){
@@ -250,7 +250,7 @@ buildAndroidRelease(){
 
 buildAndroidReleaseE2E(){
 	prebuild_android
-	cd android && ./gradlew assembleRelease assembleAndroidTest -DtestBuildType=release
+	cd android && ./gradlew assembleRelease assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=release
 }
 
 buildAndroid() {
