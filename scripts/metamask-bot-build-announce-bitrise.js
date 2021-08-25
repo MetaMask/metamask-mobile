@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // eslint-disable-next-line import/no-commonjs
-const fetch = require('node-fetch');
+const axios = require('axios-request');
 
 const ANDROID_APK_LINK = process.env.BITRISE_PUBLIC_INSTALL_PAGE_URL;
 const SLACK_TOKEN = process.env.MM_SLACK_TOKEN;
@@ -34,11 +34,8 @@ async function start() {
 	const JSON_PAYLOAD = JSON.stringify(content);
 	const SLACK_API_URI = `https://hooks.slack.com/services/${SLACK_TOKEN}/${SLACK_SECRET}/${SLACK_ROOM}`;
 
-	await fetch(SLACK_API_URI, {
-		method: 'post',
-		body: JSON_PAYLOAD,
-		headers: {
-			'Content-type': 'application/json'
-		}
-	});
+	const headers = {
+		'Content-type': 'application/json'
+	};
+	await axios.post(SLACK_API_URI, JSON_PAYLOAD, { headers });
 }

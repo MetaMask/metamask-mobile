@@ -159,6 +159,15 @@ workflows:
                   title: All Tests Passed
                   is_always_run: false
     # Parallel Build & Deploy Steps
+     slack_test:
+        before_run:
+            - code_setup_cache
+        steps:
+            - yarn@0:
+                inputs:
+                - command: build:announce
+                title: Accouncing pre-release
+                is_always_run: false
     start_release_builds:
         before_run:
             - code_setup_cache
