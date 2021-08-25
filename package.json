@@ -250,6 +250,7 @@
     "lint-staged": "10.5.4",
     "metro": "^0.59.0",
     "metro-react-native-babel-preset": "^0.59.0",
+    "node-fetch": "^2.6.1",
     "octonode": "0.9.5",
     "patch-package": "^6.2.2",
     "prettier": "1.16.4",
