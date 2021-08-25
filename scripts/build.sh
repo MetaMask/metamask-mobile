@@ -158,7 +158,8 @@ buildAndroidRunE2E(){
 	then
 		source $ANDROID_ENV_FILE
 	fi
-	cd android && ./gradlew assembleDebug assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=debug && cd ..
+	cd android && ./gradlew assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=debug && cd ..
+	react-native run-android
 }
 
 buildIosSimulator(){
