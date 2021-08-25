@@ -23,7 +23,7 @@ import I18n, { strings } from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
 import LockManager from '../../../core/LockManager';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import { hexToBN, fromWei, renderFromTokenMinimalUnit } from '../../../util/number';
+import { hexToBN, fromWei } from '../../../util/number';
 import { setEtherTransaction, setTransactionObject } from '../../../actions/transaction';
 import PersonalSign from '../../UI/PersonalSign';
 import TypedSign from '../../UI/TypedSign';
@@ -33,9 +33,12 @@ import Device from '../../../util/device';
 import {
 	getMethodData,
 	TOKEN_METHOD_TRANSFER,
-	decodeTransferData,
 	APPROVE_FUNCTION_SIGNATURE,
-	decodeApproveData
+	decodeApproveData,
+	getTokenValueParam,
+	getTokenAddressParam,
+	calcTokenAmount,
+	getTokenValueParamAsHex
 } from '../../../util/transactions';
 import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
@@ -66,6 +69,10 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import BigNumber from 'bignumber.js';
 import { setInfuraAvailabilityBlocked, setInfuraAvailabilityNotBlocked } from '../../../actions/infuraAvailability';
 import { toLowerCaseEquals } from '../../../util/general';
+import { ethers } from 'ethers';
+import abi from 'human-standard-token-abi';
+
+const hstInterface = new ethers.utils.Interface(abi);
 
 const styles = StyleSheet.create({
 	flex: {
@@ -366,13 +373,14 @@ const Main = props => {
 						}
 					}
 
-					const decodedData = decodeTransferData('transfer', data);
-					transactionMeta.transaction.value = hexToBN(decodedData[2]);
-					transactionMeta.transaction.readableValue = renderFromTokenMinimalUnit(
-						hexToBN(decodedData[2]),
-						asset.decimals
-					);
-					transactionMeta.transaction.to = decodedData[0];
+					const tokenData = hstInterface.parseTransaction({ data });
+					const tokenValue = getTokenValueParam(tokenData);
+					const toAddress = getTokenAddressParam(tokenData);
+					const tokenAmount = tokenData && calcTokenAmount(tokenValue, asset.decimals).toFixed();
+
+					transactionMeta.transaction.value = hexToBN(getTokenValueParamAsHex(tokenData));
+					transactionMeta.transaction.readableValue = tokenAmount;
+					transactionMeta.transaction.to = toAddress;
 
 					setTransactionObject({
 						type: 'INDIVIDUAL_TOKEN_TRANSACTION',

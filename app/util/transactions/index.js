@@ -32,6 +32,8 @@ import {
 
 import humanizeDuration from 'humanize-duration';
 
+import BigNumber from 'bignumber.js';
+
 const { SAI_ADDRESS } = AppConstants;
 
 export const TOKEN_METHOD_TRANSFER = 'transfer';
@@ -1117,4 +1119,57 @@ export function validateTransactionActionBalance(transaction, rate, accounts) {
 	} catch (e) {
 		return false;
 	}
+}
+
+export function calcTokenAmount(value, decimals) {
+	const multiplier = Math.pow(10, Number(decimals || 0));
+	return new BigNumber(String(value)).div(multiplier);
+}
+
+export function calcTokenValue(value, decimals) {
+	const multiplier = Math.pow(10, Number(decimals || 0));
+	return new BigNumber(String(value)).times(multiplier);
+}
+
+/**
+ * Attempts to get the address parameter of the given token transaction data
+ * (i.e. function call) per the Human Standard Token ABI, in the following
+ * order:
+ *   - The '_to' parameter, if present
+ *   - The first parameter, if present
+ *
+ * @param {Object} tokenData - ethers Interface token data.
+ * @returns {string | undefined} A lowercase address string.
+ */
+export function getTokenAddressParam(tokenData = {}) {
+	const value = tokenData?.args?._to || tokenData?.args?.[0];
+	return value?.toString().toLowerCase();
+}
+
+/**
+ * Gets the '_hex' parameter of the given token transaction data
+ * (i.e function call) per the Human Standard Token ABI, if present.
+ *
+ * @param {Object} tokenData - ethers Interface token data.
+ * @returns {string | undefined} A hex string value.
+ */
+export function getTokenValueParamAsHex(tokenData = {}) {
+	const value = tokenData?.args?._value?._hex || tokenData?.args?.[1]._hex;
+	return value?.toLowerCase();
+}
+
+/**
+ * Gets the '_value' parameter of the given token transaction data
+ * (i.e function call) per the Human Standard Token ABI, if present.
+ *
+ * @param {Object} tokenData - ethers Interface token data.
+ * @returns {string | undefined} A decimal string value.
+ */
+export function getTokenValueParam(tokenData = {}) {
+	return tokenData?.args?._value?.toString();
+}
+
+export function getTokenValue(tokenParams = []) {
+	const valueData = tokenParams.find(param => param.name === '_value');
+	return valueData && valueData.value;
 }
