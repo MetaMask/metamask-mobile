@@ -163,7 +163,7 @@ workflows:
     # Parallel Build & Deploy Steps
     slack_test:
         before_run:
-            - setup
+            - code_setup_cache
         steps:
             - yarn@0:
                 inputs:
