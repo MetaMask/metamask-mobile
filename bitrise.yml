@@ -161,7 +161,7 @@ workflows:
                   title: All Tests Passed
                   is_always_run: false
     # Parallel Build & Deploy Steps
-     slack_test:
+    slack_test:
         before_run:
             - code_setup_cache
         steps:
