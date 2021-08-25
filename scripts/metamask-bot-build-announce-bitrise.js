@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // eslint-disable-next-line import/no-commonjs
-const axios = require('axios-request');
+const axios = require('axios');
 
 const ANDROID_APK_LINK = process.env.BITRISE_PUBLIC_INSTALL_PAGE_URL;
 const SLACK_TOKEN = process.env.MM_SLACK_TOKEN;
@@ -12,7 +12,7 @@ start().catch(console.error);
 
 async function start() {
 	const content = {
-		text: `NEW BUILDS AVAILABLE! Commit <https://github.com/MetaMask/metamask-mobile/commit/${BITRISE_GIT_COMMIT}|#${BITRISE_GIT_COMMIT_MESSAGE}>`,
+		text: `THIS IS A TEST - NEW BUILDS AVAILABLE! Commit <https://github.com/MetaMask/metamask-mobile/commit/${BITRISE_GIT_COMMIT}|#${BITRISE_GIT_COMMIT_MESSAGE}>`,
 		attachments: [
 			{
 				title_link: 'itms-beta://beta.itunes.apple.com/v1/app/1438144202',
