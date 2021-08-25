@@ -302,7 +302,7 @@ app:
           VERSION_NAME: 3.2.0
         - opts:
               is_expand: false
-          VERSION_NUMBER: 771
+          VERSION_NUMBER: 772
         - opts:
               is_expand: false
           ANDROID_APK_LINK: ''
