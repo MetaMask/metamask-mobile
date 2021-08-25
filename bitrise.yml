@@ -3,8 +3,6 @@ format_version: '8'
 default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
 trigger_map:
-    - push_branch: 'fix/slack-build-notification'
-      workflow: slack_test
     - push_branch: 'develop'
       workflow: ci_test
     - push_branch: 'main'
@@ -161,18 +159,9 @@ workflows:
                   title: All Tests Passed
                   is_always_run: false
     # Parallel Build & Deploy Steps
-    slack_test:
-        before_run:
-            - code_setup_cache
-        steps:
-            - yarn@0:
-                inputs:
-                - command: build:announce
-                title: Accouncing pre-release
-                is_always_run: false
     start_release_builds:
         before_run:
-            - setup
+            - code_setup_cache
         steps:
             - build-router-start@0:
                   inputs:
@@ -191,11 +180,11 @@ workflows:
                   inputs:
                       - deploy_path: $BITRISE_DEPLOY_DIR/app-release.apk
                   title: Bitrise Deploy APK
-            # - yarn@0:
-            #     inputs:
-            #     - command: build:announce
-            #     title: Accouncing pre-release
-            #     is_always_run: false
+            - yarn@0:
+                inputs:
+                - command: build:announce
+                title: Accouncing pre-release
+                is_always_run: false
     android_test_release_step:
         before_run:
             - code_setup
