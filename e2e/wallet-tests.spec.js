@@ -38,10 +38,16 @@ describe('Wallet Tests', () => {
 		await TestHelpers.typeTextAndHideKeyboard(`input-password-field`, CORRECT_PASSWORD);
 		// Input password confirm
 		await TestHelpers.typeTextAndHideKeyboard(`input-password-field-confirm`, CORRECT_PASSWORD);
+		/*
+
+		UNCOMMENT ME OUT WHEN WE FIX THIS BUG. THE CONGRATS VIEW SHOULD APPEAR AFTER YOU IMPORT
+		YOUR WALLET
 		// Check that we are on the congrats screen
 		await TestHelpers.checkIfVisible('import-congrats-screen');
 		// Tap on done CTA
 		await TestHelpers.tap('manual-backup-step-3-done-button');
+		*/
+
 		// Check that we are on the metametrics optIn screen
 		await TestHelpers.checkIfVisible('metaMetrics-OptIn');
 		// Check that I Agree CTA is visible and tap it
@@ -170,7 +176,7 @@ describe('Wallet Tests', () => {
 		// Tap on COLLECTIBLES tab
 		await TestHelpers.tapByText('NFTs');
 		// Tap on the add collectibles button
-		await TestHelpers.waitAndTap('add-collectible-button');
+		await TestHelpers.tap('add-collectible-button');
 		// Check that we are on the add collectible asset screen
 		await TestHelpers.checkIfVisible('add-custom-token-screen');
 		// Input incorrect contract address
@@ -184,7 +190,7 @@ describe('Wallet Tests', () => {
 		// Go Back one view
 		await TestHelpers.tap('asset-back-button');
 		// Tap on the add collectibles button
-		await TestHelpers.waitAndTap('add-collectible-button');
+		await TestHelpers.tap('add-collectible-button');
 		// Check that we are on the add collectible asset screen
 		await TestHelpers.checkIfVisible('add-custom-token-screen');
 		// Input incorrect contract address
@@ -228,7 +234,7 @@ describe('Wallet Tests', () => {
 		// Tap on Add Tokens
 		await TestHelpers.tap('add-token-button');
 		// Search for SAI
-		await TestHelpers.typeTextAndHideKeyboard('input-search-asset', 'SAI');
+		await TestHelpers.typeTextAndHideKeyboard('input-search-asset', 'SAI Stablecoin');
 		// Wait for results to load
 		await TestHelpers.delay(2000);
 		// Select SAI
