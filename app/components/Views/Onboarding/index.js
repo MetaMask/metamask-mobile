@@ -25,7 +25,7 @@ import TermsAndConditions from '../TermsAndConditions';
 import Analytics from '../../../core/Analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { getTransparentBackOnboardingNavbarOptions, getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
 import Animated, { Easing } from 'react-native-reanimated';
 import ElevatedView from 'react-native-elevated-view';

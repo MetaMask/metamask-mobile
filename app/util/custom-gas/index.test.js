@@ -1,4 +1,4 @@
-import { parseWaitTime } from './custom-gas';
+import { parseWaitTime } from '.';
 
 describe('CustomGas utils :: parseWaitTime', () => {
 	it('parseWaitTime', () => {

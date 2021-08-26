@@ -23,7 +23,7 @@ import { showAlert } from '../../../actions/alert';
 import { getEtherscanAddressUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import OnboardingWizard from '../OnboardingWizard';
 import ReceiveRequest from '../ReceiveRequest';
 import Analytics from '../../../core/Analytics';
@@ -41,6 +41,7 @@ import InvalidCustomNetworkAlert from '../InvalidCustomNetworkAlert';
 import { RPC } from '../../../constants/network';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import AnalyticsV2, { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
+import { isDefaultAccountName, doENSReverseLookup } from '../../../util/ENSUtils';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -369,7 +370,13 @@ class DrawerView extends PureComponent {
 	};
 
 	state = {
-		showProtectWalletModal: undefined
+		showProtectWalletModal: undefined,
+		account: {
+			ens: undefined,
+			name: undefined,
+			address: undefined,
+			currentNetwork: undefined
+		}
 	};
 
 	browserSectionRef = React.createRef();
@@ -394,7 +401,7 @@ class DrawerView extends PureComponent {
 		return ret;
 	}
 
-	componentDidUpdate() {
+	async componentDidUpdate() {
 		const route = findRouteNameFromNavigatorState(this.props.navigation.dangerouslyGetState().routes);
 		if (!this.props.passwordSet || !this.props.seedphraseBackedUp) {
 			if (
@@ -449,9 +456,27 @@ class DrawerView extends PureComponent {
 			DeeplinkManager.expireDeeplink();
 			DeeplinkManager.parse(pendingDeeplink, { origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK });
 		}
+		await this.updateAccountInfo();
 	}
 
-	toggleAccountsModal = () => {
+	updateAccountInfo = async () => {
+		const { identities, network, selectedAddress } = this.props;
+		const { currentNetwork, address, name } = this.state.account;
+		const accountName = identities[selectedAddress].name;
+		if (currentNetwork !== network || address !== selectedAddress || name !== accountName) {
+			const ens = await doENSReverseLookup(selectedAddress, network.provider.chainId);
+			this.setState(state => ({
+				account: {
+					ens,
+					name: accountName,
+					currentNetwork: network,
+					address: selectedAddress
+				}
+			}));
+		}
+	};
+
+	toggleAccountsModal = async () => {
 		if (!this.animatingAccountsModal) {
 			this.animatingAccountsModal = true;
 			this.props.toggleAccountsModal();
@@ -861,8 +886,11 @@ class DrawerView extends PureComponent {
 			seedphraseBackedUp
 		} = this.props;
 
-		const { invalidCustomNetwork, showProtectWalletModal } = this.state;
-
+		const {
+			invalidCustomNetwork,
+			showProtectWalletModal,
+			account: { name, ens }
+		} = this.state;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
 		account.balance = (accounts[selectedAddress] && renderFromWei(accounts[selectedAddress].balance)) || 0;
 		const fiatBalance = Engine.getTotalFiatAccountBalance();
@@ -899,7 +927,7 @@ class DrawerView extends PureComponent {
 							>
 								<View style={styles.accountNameWrapper}>
 									<Text style={styles.accountName} numberOfLines={1}>
-										{account.name}
+										{isDefaultAccountName(name) && ens ? ens : name}
 									</Text>
 									<Icon name="caret-down" size={24} style={styles.caretDown} />
 								</View>

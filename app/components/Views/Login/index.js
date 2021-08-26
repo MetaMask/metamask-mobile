@@ -25,7 +25,7 @@ import SecureKeychain from '../../../core/SecureKeychain';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { connect } from 'react-redux';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import BiometryButton from '../../UI/BiometryButton';
 import { recreateVaultWithSamePassword } from '../../../core/Vault';
@@ -46,7 +46,6 @@ import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { tlc, toLowerCaseEquals } from '../../../util/general';
 import DefaultPreference from 'react-native-default-preference';
 
-const isTextDelete = text => tlc(text) === 'delete';
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
 
@@ -183,11 +182,12 @@ const styles = StyleSheet.create({
 	}
 });
 
-const PASSCODE_NOT_SET_ERROR = strings('login.passcode_not_set_error');
-const WRONG_PASSWORD_ERROR = strings('login.wrong_password_error');
-const WRONG_PASSWORD_ERROR_ANDROID = strings('login.wrong_password_error_android');
-const VAULT_ERROR = strings('login.vault_error');
-const CLEAN_VAULT_ERROR = strings('login.clean_vault_error');
+const DELETE = 'delete';
+const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
+const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
+const WRONG_PASSWORD_ERROR_ANDROID = 'Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT';
+const VAULT_ERROR = 'Error: Cannot unlock without a previous vault.';
+const isTextDelete = text => tlc(text) === DELETE;
 
 /**
  * View where returning users can authenticate
@@ -327,7 +327,7 @@ class Login extends PureComponent {
 			} else if (toLowerCaseEquals(error, VAULT_ERROR)) {
 				this.setState({
 					loading: false,
-					error: CLEAN_VAULT_ERROR
+					error: strings('login.clean_vault_error')
 				});
 			} else {
 				this.setState({ loading: false, error });
@@ -351,9 +351,18 @@ class Login extends PureComponent {
 	deleteExistingUser = async () => {
 		try {
 			await AsyncStorage.removeItem(EXISTING_USER);
-			this.props.navigation.navigate('OnboardingRootNav', {
-				screen: 'OnboardingNav',
-				params: { screen: 'Onboarding', params: { delete: true } }
+			// We need to reset instead of navigate here otherwise, OnboardingRootNav remembers the last screen that it was on, which is most likely not OnboardingNav.
+			this.props.navigation.original.reset({
+				routes: [
+					{
+						name: 'OnboardingRootNav',
+						state: {
+							routes: [
+								{ name: 'OnboardingNav', params: { screen: 'Onboarding', params: { delete: true } } }
+							]
+						}
+					}
+				]
 			});
 		} catch (error) {
 			Logger.log(error, `Failed to remove key: ${EXISTING_USER} from AsyncStorage`);
@@ -481,7 +490,9 @@ class Login extends PureComponent {
 			>
 				<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
 					<View style={styles.areYouSure}>
-						<Text style={[styles.heading, styles.delete]}>{strings('login.type_delete')}</Text>
+						<Text style={[styles.heading, styles.delete]}>
+							{strings('login.type_delete', { [DELETE]: DELETE })}
+						</Text>
 						<OutlinedTextField
 							style={styles.input}
 							autoFocus
@@ -519,7 +530,7 @@ class Login extends PureComponent {
 							<Text style={styles.label}>{strings('login.password')}</Text>
 							<OutlinedTextField
 								style={styles.input}
-								placeholder={'Password'}
+								placeholder={strings('login.password')}
 								testID={'login-password-input'}
 								returnKeyType={'done'}
 								autoCapitalize="none"

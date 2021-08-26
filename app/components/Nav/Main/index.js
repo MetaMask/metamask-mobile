@@ -29,7 +29,7 @@ import PersonalSign from '../../UI/PersonalSign';
 import TypedSign from '../../UI/TypedSign';
 import Modal from 'react-native-modal';
 import WalletConnect from '../../../core/WalletConnect';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import {
 	getMethodData,
 	TOKEN_METHOD_TRANSFER,
@@ -65,6 +65,7 @@ import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import BigNumber from 'bignumber.js';
 import { setInfuraAvailabilityBlocked, setInfuraAvailabilityNotBlocked } from '../../../actions/infuraAvailability';
+import { toLowerCaseEquals } from '../../../util/general';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -319,7 +320,7 @@ const Main = props => {
 			// if destination address is metaswap contract
 			if (
 				to &&
-				(to === swapsUtils.getSwapsContractAddress(props.chainId) ||
+				(swapsUtils.isValidContractAddress(props.chainId, to) ||
 					(data &&
 						data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
 						decodeApproveData(data).spenderAddress?.toLowerCase() ===
@@ -342,17 +343,26 @@ const Main = props => {
 					to &&
 					(await getMethodData(data)).name === TOKEN_METHOD_TRANSFER
 				) {
-					let asset = props.tokens.find(({ address }) => address === to);
-					if (!asset && contractMap[to]) {
-						asset = contractMap[to];
-					} else if (!asset) {
-						try {
-							asset = {};
-							asset.decimals = await AssetsContractController.getTokenDecimals(to);
-							asset.symbol = await AssetsContractController.getAssetSymbol(to);
-						} catch (e) {
-							// This could fail when requesting a transfer in other network
-							asset = { symbol: 'ERC20', decimals: new BN(0) };
+					let asset = props.tokens.find(({ address }) => toLowerCaseEquals(address, to));
+					if (!asset) {
+						// try to lookup contract by lowercased address `to`
+						const contractMapKey = Object.keys(contractMap).find(key => toLowerCaseEquals(key, to));
+						if (contractMapKey) {
+							asset = contractMap[contractMapKey];
+						}
+
+						if (!asset) {
+							try {
+								asset = {};
+								asset.decimals = await AssetsContractController.getTokenDecimals(to);
+								asset.symbol = await AssetsContractController.getAssetSymbol(to);
+								// adding `to` here as well
+								asset.address = to;
+							} catch (e) {
+								// This could fail when requesting a transfer in other network
+								// adding `to` here as well
+								asset = { symbol: 'ERC20', decimals: new BN(0), address: to };
+							}
 						}
 					}
 

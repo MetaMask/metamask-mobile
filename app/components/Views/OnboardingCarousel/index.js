@@ -8,7 +8,7 @@ import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { connect } from 'react-redux';
 import AnalyticsV2, { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';

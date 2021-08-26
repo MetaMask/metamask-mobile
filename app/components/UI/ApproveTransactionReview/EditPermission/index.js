@@ -6,7 +6,7 @@ import Text from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
 import ConnectHeader from '../../ConnectHeader';
-import Device from '../../../../util/Device';
+import Device from '../../../../util/device';
 import ErrorMessage from '../../../Views/SendFlow/ErrorMessage';
 
 export const MINIMUM_VALUE = '1';

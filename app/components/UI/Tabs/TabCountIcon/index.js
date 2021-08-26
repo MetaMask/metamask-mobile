@@ -3,7 +3,7 @@ import { View, StyleSheet, Text } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../../styles/common';
 import { connect } from 'react-redux';
-import Device from '../../../../util/Device';
+import Device from '../../../../util/device';
 
 const styles = StyleSheet.create({
 	tabIcon: {
