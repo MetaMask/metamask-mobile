@@ -143,10 +143,6 @@
 		"recovery_phrase": "シークレット リカバリー フレーズ",
 		"metamask_does_not": "MetaMask はシークレット リカバリー フレーズをもっていません。",
 		"i_understand": "理解したので続行する",
-		"passcode_not_set_error": "エラー:パスコードが設定されていません。",
-		"wrong_password_error": "エラー:復号に失敗しました。",
-		"wrong_password_error_android": "エラー:error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
-		"vault_error": "エラー:以前のボールトなしにアンロックできません。",
 		"clean_vault_error": "MetaMask はストレージの上限に達したことでエラーになりました。ローカルデータが破損されています。MetaMask を再インストールし、シークレット リカバリー フレーズを使って復元してください。"
 	},
 	"enter_password": {
@@ -1438,7 +1434,7 @@
 		"verified_on_sources": "{{sources} で検証します。",
 		"verify_on": "のトークンアドレスを必ず検証して下さい",
 		"verify_address_on": "でトークンアドレスを検証する",
-		"only_verified_on": "{{symbol}} は {{occurances}} ソースでのみ検証されます。",
+		"only_verified_on": "{{symbol}} は {{occurrences}} ソースでのみ検証されます。",
 		"block_explorer": "ブロックエクスプローラ",
 		"a_block_explorer": "ブロック エクスプローラ",
 		"token_verification": "トークンの検証",

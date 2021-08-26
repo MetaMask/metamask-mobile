@@ -7,7 +7,7 @@ import PaymentMethod from '../components/PaymentMethod';
 import Title from '../../../Base/Title';
 import Text from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
-import Device from '../../../../util/Device';
+import Device from '../../../../util/device';
 import useModalHandler from '../../../Base/hooks/useModalHandler';
 
 const styles = StyleSheet.create({

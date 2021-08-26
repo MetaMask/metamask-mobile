@@ -28,7 +28,7 @@ import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import Analytics from '../../../core/Analytics';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 
 import { getSwapsQuotesNavbar } from '../Navbar';
@@ -56,7 +56,7 @@ import { swapsTokensSelector } from '../../../reducers/swaps';
 import { decGWEIToHexWEI } from '../../../util/conversions';
 import FadeAnimationView from '../FadeAnimationView';
 
-const POLLING_INTERVAL = AppConstants.SWAPS.POLLING_INTERVAL;
+const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
 	MEDIUM: AppConstants.GAS_OPTIONS.MEDIUM,
 	HIGH: AppConstants.GAS_OPTIONS.HIGH
@@ -1137,6 +1137,7 @@ function SwapsQuotesView({
 					finish={shouldFinishFirstLoad}
 					onAnimationEnd={handleAnimationEnd}
 					aggregatorMetadata={aggregatorMetadata}
+					headPan={false}
 				/>
 			</ScreenView>
 		);
@@ -1358,11 +1359,13 @@ function SwapsQuotesView({
 							<QuotesSummary.HeaderText bold>
 								{isSaving ? strings('swaps.savings') : strings('swaps.using_best_quote')}
 							</QuotesSummary.HeaderText>
-							<TouchableOpacity onPress={handleOpenQuotesModal} disabled={isInFetch}>
-								<QuotesSummary.HeaderText small>
-									{strings('swaps.view_details')} →
-								</QuotesSummary.HeaderText>
-							</TouchableOpacity>
+							{allQuotes.length > 1 && (
+								<TouchableOpacity onPress={handleOpenQuotesModal} disabled={isInFetch}>
+									<QuotesSummary.HeaderText small>
+										{strings('swaps.view_details')} →
+									</QuotesSummary.HeaderText>
+								</TouchableOpacity>
+							)}
 						</QuotesSummary.Header>
 						<QuotesSummary.Body>
 							<View style={styles.quotesRow}>

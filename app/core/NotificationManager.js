@@ -4,7 +4,7 @@ import PushNotification from 'react-native-push-notification';
 import Engine from './Engine';
 import Networks, { isKnownNetwork } from '../util/networks';
 import { hexToBN, renderFromWei } from '../util/number';
-import Device from '../util/Device';
+import Device from '../util/device';
 import { strings } from '../../locales/i18n';
 import { Alert, AppState } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';

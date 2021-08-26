@@ -1,4 +1,4 @@
-import onUrlSubmit from './browser';
+import onUrlSubmit from '.';
 
 describe('Browser utils :: onUrlSubmit', () => {
 	it('should sanitize url without protocol', () => {

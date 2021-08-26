@@ -143,10 +143,6 @@
 		"recovery_phrase": "frase secreta de recuperación ",
 		"metamask_does_not": "MetaMask no tiene su frase secreta de recuperación.",
 		"i_understand": "Comprendo; continuar",
-		"passcode_not_set_error": "Error: No se estableció un código de acceso.",
-		"wrong_password_error": "Error: Se produjo un error al descifrar.",
-		"wrong_password_error_android": "Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
-		"vault_error": "Error: No es posible desbloquear sin una bóveda previa.",
 		"clean_vault_error": "MetaMask encontró un error ocasionado por alcanzar el límite de almacenamiento. Los datos locales están dañados. Vuelva a instalar MetaMask y restaure la aplicación con la frase secreta de recuperación."
 	},
 	"enter_password": {
@@ -1440,7 +1436,7 @@
 		"verify_address_on": "Verificar la dirección del token en",
 		"added_manually": "Este token se añadió de forma manual.",
 		"verify_this_token_on": "Comprobar este token en ",
-		"only_verified_on": "{{symbol}} solo se verifica en la fuente {{occurances}}.",
+		"only_verified_on": "{{symbol}} solo se verifica en la fuente {{occurrences}}.",
 		"block_explorer": "explorador de bloques",
 		"a_block_explorer": "un explorador de bloques",
 		"make_sure_trade": "y asegúrese de que este sea el token con el que quiere realizar la transacción.",

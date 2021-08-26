@@ -1,4 +1,4 @@
-import Device from '../util/Device';
+import Device from '../util/device';
 import RNFS from 'react-native-fs';
 
 const EntryScriptWeb3 = {

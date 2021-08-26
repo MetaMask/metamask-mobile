@@ -143,10 +143,6 @@
 		"recovery_phrase": "Frase de recuperação secreta ",
 		"metamask_does_not": "O MetaMask não possui sua Frase de Recuperação Secreta.",
 		"i_understand": "Eu entendo. Continuar",
-		"passcode_not_set_error": "Erro: Senha não definida.",
-		"wrong_password_error": "Erro: Falha ao decriptografar",
-		"wrong_password_error_android": "Erro: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
-		"vault_error": "Erro: Não é possível desbloquear sem um cofre anterior.",
 		"clean_vault_error": "O MetaMask encontrou um erro devido ao alcance de um limite de armazenamento. Os dados locais foram corrompidos. Reinstale o MetaMask e restaure com sua Frase de Recuperação Secreta."
 	},
 	"enter_password": {
@@ -1438,7 +1434,7 @@
 		"verified_on_sources": "Verificado em {{sources} fontes.",
 		"verify_on": "Sempre verifique o endereço do token em",
 		"verify_address_on": "Verificar o endereço do token em",
-		"only_verified_on": "{{symbol}} só é verificado em {{occurances}} fontes.",
+		"only_verified_on": "{{symbol}} só é verificado em {{occurrences}} fontes.",
 		"block_explorer": "block explorer",
 		"a_block_explorer": "um block explorer",
 		"token_verification": "Verificação do token",

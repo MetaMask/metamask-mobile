@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import { View, Animated, Easing, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors } from '../../../styles/common';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 
 const styles = StyleSheet.create({
 	view: {
