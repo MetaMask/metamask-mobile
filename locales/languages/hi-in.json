@@ -1434,7 +1434,7 @@
 		"verified_on_sources": "{{sources} स्रोतों पर सत्यापित।",
 		"verify_on": "हमेशा टोकन पते को यहां पर सत्यापित करें",
 		"verify_address_on": "टोकन पता यहां पर सत्यापित करें",
-		"only_verified_on": "{{symbol}} केवल {{occurances}} स्रोत पर सत्यापित है।",
+		"only_verified_on": "{{symbol}} केवल {{occurrences}} स्रोत पर सत्यापित है।",
 		"block_explorer": "ब्लॉक एक्सप्लोरर",
 		"a_block_explorer": "एक ब्लॉक एक्सप्लोरर",
 		"token_verification": "टोकन सत्यापन",

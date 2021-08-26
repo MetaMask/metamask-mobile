@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh audit dependencies",
@@ -80,7 +80,7 @@
     "@metamask/contract-metadata": "^1.23.0",
     "@metamask/controllers": "^14.2.0",
     "@metamask/etherscan-link": "^2.0.0",
-    "@metamask/swaps-controller": "^5.0.0",
+    "@metamask/swaps-controller": "^6.2.0",
     "@react-native-community/async-storage": "1.12.1",
     "@react-native-community/blur": "^3.6.0",
     "@react-native-community/checkbox": "^0.4.2",

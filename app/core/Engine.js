@@ -121,9 +121,14 @@ class Engine {
 				onNetworkStateChange: listener => networkController.subscribe(listener),
 				getCurrentNetworkEIP1559Compatibility: async () => await networkController.getEIP1559Compatibility(),
 				getChainId: () => networkController.state.provider.chainId,
-				getCurrentNetworkLegacyGasAPICompatibility: () =>
-					isMainnetByChainId(networkController.state.provider.chainId) ||
-					networkController.state.provider.chainId === swapsUtils.BSC_CHAIN_ID,
+				getCurrentNetworkLegacyGasAPICompatibility: () => {
+					const chainId = networkController.state.provider.chainId;
+					return (
+						isMainnetByChainId(chainId) ||
+						chainId === swapsUtils.BSC_CHAIN_ID ||
+						chainId === swapsUtils.POLYGON_CHAIN_ID
+					);
+				},
 				legacyAPIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/gasPrices',
 				EIP1559APIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees'
 			});
@@ -196,13 +201,15 @@ class Engine {
 					getProvider: () => networkController.provider
 				}),
 				new TypedMessageManager(),
-				new SwapsController({
-					clientId: AppConstants.SWAPS.CLIENT_ID,
-					fetchAggregatorMetadataThreshold: AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
-					fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
-					fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD,
-					fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates()
-				}),
+				new SwapsController(
+					{ fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates() },
+					{
+						clientId: AppConstants.SWAPS.CLIENT_ID,
+						fetchAggregatorMetadataThreshold: AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
+						fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
+						fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD
+					}
+				),
 				gasFeeController
 			];
 			// set initial state
@@ -265,8 +272,7 @@ class Engine {
 		SwapsController.configure({
 			provider,
 			chainId: NetworkControllerState?.provider?.chainId,
-			pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
-			quotePollingInterval: AppConstants.SWAPS.POLLING_INTERVAL
+			pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT
 		});
 		TransactionController.configure({ provider });
 		TransactionController.hub.emit('networkChange');
