@@ -211,11 +211,12 @@ describe('Wallet Tests', () => {
 		// Tap on Crypto Kitty
 		await TestHelpers.tapByText('CryptoKitties');
 		// Check that we are on the overview screen
-		await TestHelpers.checkIfVisible('collectible-overview-screen');
+
+		// DO WE NEED THIS CHECK?
+		//await TestHelpers.checkIfVisible('collectible-overview-screen');
+
 		// Check that the asset is correct
 		await TestHelpers.checkIfElementHasString('collectible-name', '1 CryptoKitties');
-		// Tap on back arrow
-		await TestHelpers.tap('asset-back-button');
 	});
 
 	it('should add a token', async () => {
