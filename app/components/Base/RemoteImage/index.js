@@ -9,6 +9,7 @@ import ComponentErrorBoundary from '../../UI/ComponentErrorBoundary';
 import useRemoteResourceExists from '../hooks/useRemoteResourceExists';
 
 const RemoteImage = props => {
+	// Avoid using this component with animated SVG
 	const source = resolveAssetSource(props.source);
 	const [imageExists] = useRemoteResourceExists(source.uri);
 
