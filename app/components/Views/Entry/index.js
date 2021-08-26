@@ -15,7 +15,6 @@ import { recreateVaultWithSamePassword } from '../../../core/Vault';
 import {
 	EXISTING_USER,
 	ONBOARDING_WIZARD,
-	METRICS_OPT_IN,
 	ENCRYPTION_LIB,
 	ORIGINAL,
 	CURRENT_APP_VERSION,
@@ -131,11 +130,7 @@ const Entry = props => {
 				}
 				// Get onboarding wizard state
 				const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
-				// Check if user passed through metrics opt-in screen
-				const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
-				if (!metricsOptIn) {
-					animateAndGoTo('OptinMetrics');
-				} else if (onboardingWizard) {
+				if (onboardingWizard) {
 					animateAndGoTo('HomeNav');
 				} else {
 					props.setOnboardingWizardStep(1);

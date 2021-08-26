@@ -20,7 +20,7 @@ import SeedphraseModal from '../../UI/SeedphraseModal';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import scaling from '../../../util/scaling';
 import Engine from '../../../core/Engine';
-import { ONBOARDING_WIZARD, METRICS_OPT_IN } from '../../../constants/storage';
+import { ONBOARDING_WIZARD } from '../../../constants/storage';
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import SeedPhraseVideo from '../../UI/SeedPhraseVideo';
@@ -174,11 +174,7 @@ const AccountBackupStep1 = props => {
 		});
 		// Get onboarding wizard state
 		const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
-		// Check if user passed through metrics opt-in screen
-		const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
-		if (!metricsOptIn) {
-			props.navigation.navigate('OptinMetrics');
-		} else if (onboardingWizard) {
+		if (onboardingWizard) {
 			props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
 		} else {
 			props.setOnboardingWizardStep(1);

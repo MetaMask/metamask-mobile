@@ -17,7 +17,7 @@ import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { connect } from 'react-redux';
 import Confetti from '../../UI/Confetti';
-import { ONBOARDING_WIZARD, METRICS_OPT_IN } from '../../../constants/storage';
+import { ONBOARDING_WIZARD } from '../../../constants/storage';
 import DefaultPreference from 'react-native-default-preference';
 
 const styles = StyleSheet.create({
@@ -137,11 +137,7 @@ class SyncWithExtensionSuccess extends PureComponent {
 	continue = async () => {
 		// Get onboarding wizard state
 		const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
-		// Check if user passed through metrics opt-in screen
-		const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
-		if (!metricsOptIn) {
-			this.props.navigation.navigate('OnboardingNav', { screen: 'OptinMetrics' });
-		} else if (onboardingWizard) {
+		if (onboardingWizard) {
 			this.props.navigation.navigate('HomeNav');
 		} else {
 			this.props.setOnboardingWizardStep(1);

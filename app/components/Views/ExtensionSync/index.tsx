@@ -1,6 +1,5 @@
-import React, { useEffect, useCallback, useMemo } from 'react';
-import { View, StyleSheet, Text, Image, InteractionManager } from 'react-native';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import React, { useEffect, useCallback } from 'react';
+import { View, StyleSheet, Text, Image, InteractionManager, ActivityIndicator } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import StyledButton from '../../UI/StyledButton';
@@ -28,42 +27,50 @@ import SecureKeychain from '../../../core/SecureKeychain';
 import Device from '../../../util/Device';
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
+import { useDispatch, useSelector } from 'react-redux';
+import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
+import { loadingSet, loadingUnset, seedphraseNotBackedUp as backedUpSeed, passwordSet as passwordIsSet } from '../../../actions/user';
+import { setLockTime as lockTimeSet } from '../../../actions/settings';
+import { BIOMETRY_TYPE } from 'react-native-keychain';
+import scaling from '../../../util/scaling';
 
-type Props = {
-    // Selector
-    passwordSet: any
-    // Dispatcher
-    saveOnboardingEvent: any;
-    unsetLoading: any,
-    setLoading: any;
-    passwordHasBeenSet: any, seedphraseBackedUp: any, setLockTime: any,
-};
-
+// TODO: This file needs typings
 const ExtensionSync = ({ navigation, route }: any) => {
-	const { selectedAddress, unsetLoading, saveOnboardingEvent, setLoading, passwordHasBeenSet, seedphraseBackedUp, setLockTime, passwordSet } = route.params;
 	const pubnubWrapperRef = useRef<any>(null);
-	const mountedRef = useRef(true);
-    const passwordRef = useRef(null);
+    const passwordRef = useRef<string | undefined>(undefined);
     const seedWordsRef = useRef(null);
     const importedAccountsRef = useRef(null);
-    const dataToSyncRef = useRef(null);
+    const dataToSyncRef = useRef<any>(null);
+
+    const passwordSet = useSelector((state: any) => state.user.passwordSet);
+    const selectedAddress = useSelector((state: any) => state.engine.backgroundState.PreferencesController.selectedAddress);
+    const loading = useSelector((state: any) => state.user.loadingSet);
+    const loadingMsg = useSelector((state: any) => state.user.loadingMsg);
+
+    const dispatch = useDispatch();
+    const saveOnboardingEvent = (event: any) => dispatch(saveEvent(event));
+    const setLoading = (msg: string) => dispatch(loadingSet(msg));
+    const unsetLoading = () => dispatch(loadingUnset());
+    const passwordHasBeenSet = () => dispatch(passwordIsSet());
+    const seedphraseBackedUp = () => dispatch(backedUpSeed());
+    const setLockTime = (time: number) => dispatch(lockTimeSet(time));
 
 	useEffect(() => {
 		// Set navigation options
 		navigation.setOptions(getOnboardingNavbarOptions(navigation, route));
 		// Unmount
 		return () => {
-			mountedRef.current = false;
 			pubnubWrapperRef.current?.disconnectWebsockets?.();
 			unsetLoading();
 			InteractionManager.runAfterInteractions(PreventScreenshot.allow);
 		};
-	}, [navigation, route, mountedRef, pubnubWrapperRef, unsetLoading]);
+	}, []);
 
+    // TODO: Don't spread this, break it out and type it
 	const track = useCallback((...eventArgs) => {
 		InteractionManager.runAfterInteractions(async () => {
 			if (Analytics.getEnabled()) {
-				AnalyticsV2.trackEvent(...eventArgs);
+				AnalyticsV2.trackEvent(eventArgs[0], eventArgs[1]);
 				return;
 			}
 			const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
@@ -117,10 +124,10 @@ const ExtensionSync = ({ navigation, route }: any) => {
 			unsetLoading();
 			navigation.goBack();
 		}
-	}, [unsetLoading, ]);
+	}, [unsetLoading,passwordHasBeenSet ,setLockTime,seedphraseBackedUp, track]);
 
     const disconnect = useCallback(async () => {
-		let password;
+		let password: string | undefined;
 		try {
 			// If there's a password set, let's keep it
 			if (passwordSet) {
@@ -140,7 +147,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
 		}
 
 		if (password === passwordRef.current) {
-			let biometryType = await SecureKeychain.getSupportedBiometryType();
+			let biometryType: BIOMETRY_TYPE | null | 'biometrics' = await SecureKeychain.getSupportedBiometryType();
 			if (biometryType) {
 				if (Device.isAndroid()) biometryType = 'biometrics';
 				Alert.alert(
@@ -159,7 +166,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
 						{
 							text: strings('sync_with_extension.warning_ok_button'),
 							onPress: async () => {
-								await AsyncStorage.setItem(BIOMETRY_CHOICE, biometryType);
+								await AsyncStorage.setItem(BIOMETRY_CHOICE, biometryType as string);
 								await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
 								finishSync({ biometrics: true, biometryType, password });
 							}
@@ -176,7 +183,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
 	}, [finishSync, passwordSet, passwordRef])
 
 	const initWebsockets = useCallback(() => {
-		mountedRef.current && setLoading(strings('sync_with_extension.please_wait'));
+		setLoading(strings('sync_with_extension.please_wait'));
 
 		pubnubWrapperRef.current?.addMessageListener?.(
 			() => {
@@ -188,7 +195,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
 				unsetLoading();
 				return false;
 			},
-			data => {
+			(data: any) => {
 				// this.incomingDataStr = null;
 				const { pwd, seed, importedAccounts } = data.udata;
 				passwordRef.current = pwd;
@@ -201,30 +208,28 @@ const ExtensionSync = ({ navigation, route }: any) => {
 		);
 
 		pubnubWrapperRef.current?.subscribe?.();
-	}, [pubnubWrapperRef, passwordRef, track, unsetLoading, disconnect]);
+	}, [pubnubWrapperRef, passwordRef, track, unsetLoading, disconnect, setLoading]);
 
 	const startSync = useCallback(
-		async firstAttempt => {
+		async () => {
 			try {
 				initWebsockets();
 				await pubnubWrapperRef.current?.startSync?.();
 				return true;
 			} catch (e) {
 				unsetLoading();
-				if (!firstAttempt) {
-					if (e.message === 'Sync::timeout') {
-						Alert.alert(
-							strings('sync_with_extension.outdated_qr_code'),
-							strings('sync_with_extension.outdated_qr_code_desc')
-						);
-					} else {
-						Alert.alert(
-							strings('sync_with_extension.something_wrong'),
-							strings('sync_with_extension.something_wrong_desc')
-						);
-					}
-				}
-				Logger.error(e, { message: 'Sync::startSync', firstAttempt });
+                if (e.message === 'Sync::timeout') {
+                    Alert.alert(
+                        strings('sync_with_extension.outdated_qr_code'),
+                        strings('sync_with_extension.outdated_qr_code_desc')
+                    );
+                } else {
+                    Alert.alert(
+                        strings('sync_with_extension.something_wrong'),
+                        strings('sync_with_extension.something_wrong_desc')
+                    );
+                }
+				Logger.error(e, { message: 'Sync::startSync', firstAttempt: true });
 				track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_FAILURE, {
 					wallet_setup_type: 'sync',
 					error_type: e.message()
@@ -253,7 +258,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
 
 	const onScanSuccess = useCallback(async data => {
 		if (data.content && data.content.search('metamask-sync:') !== -1) {
-			(await startSync(true)) || (await startSync(false));
+            await startSync();
 		} else {
 			Alert.alert(
 				strings('sync_with_extension.invalid_qr_code'),
@@ -274,24 +279,18 @@ const ExtensionSync = ({ navigation, route }: any) => {
 	}, []);
 
 	const renderTitle = useCallback(() => {
-		return <Text style={styles.titleLabel}>{'Steps to sync with MetaMask extension'}</Text>;
+		return <Text style={styles.titleLabel}>{strings('onboarding.scan_title')}</Text>;
 	}, []);
 
 	const renderSteps = useCallback(() => {
-		const steps = [
-			'Open the extension on desktop',
-			'Go to Settings > Advanced',
-			'Click on "Sync with Mobile"',
-			'Scan the QR code to start syncing'
-		];
+        const steps = [1,2,3,4];
 		return (
 			<View style={styles.stepsContainer}>
-				{steps.map((step, index) => {
-					const key = `step-${index}`;
-					const text = `${index + 1}. ${step}`;
+				{steps.map((stepIndex) => {
+                    const text = `onboarding.scan_step_${stepIndex}`;
 					return (
-						<Text style={styles.stepLabel} key={key}>
-							{text}
+						<Text style={styles.stepLabel} key={text}>
+							{`${stepIndex}. ${strings(text)}`}
 						</Text>
 					);
 				})}
@@ -302,19 +301,34 @@ const ExtensionSync = ({ navigation, route }: any) => {
 	const renderScanButton = useCallback(() => {
 		return (
 			<StyledButton type={'blue'} onPress={triggerScan} testID={'create-wallet-button'}>
-				{'Scan'}
+				{strings('onboarding.scan')}
 			</StyledButton>
 		);
 	}, [triggerScan]);
 
+    const renderLoader = useCallback(() => {
+        return (<View style={styles.wrapper}>
+            <View style={styles.loader}>
+                <ActivityIndicator size="small" />
+                <Text style={styles.loadingText}>{loadingMsg}</Text>
+            </View>
+        </View>)
+    }, [loading, loadingMsg]);
+
+    const renderContent = useCallback(() => {
+        return <React.Fragment>
+            <View style={styles.fill}>
+                {renderSyncImage()}
+                {renderTitle()}
+                {renderSteps()}
+            </View>
+            {renderScanButton()}
+        </React.Fragment>
+    }, [renderSyncImage, renderTitle, renderSteps, renderScanButton])
+
 	return (
 		<SafeAreaView edges={['bottom']} style={styles.container}>
-			<View style={styles.fill}>
-				{renderSyncImage()}
-				{renderTitle()}
-				{renderSteps()}
-			</View>
-			{renderScanButton()}
+			{loading ? renderLoader() : renderContent()}
 		</SafeAreaView>
 	);
 };
@@ -351,10 +365,27 @@ const styles = StyleSheet.create({
 	},
 	stepLabel: {
 		color: colors.black,
-		fontSize: 16,
+		fontSize: scaling.scale(16),
 		fontFamily: fontStyles.normal.fontFamily,
 		marginBottom: 8
-	}
+	},
+    wrapper: {
+		flex: 1,
+		alignItems: 'center',
+		paddingVertical: 30
+	},
+    loader: {
+		marginTop: 180,
+		justifyContent: 'center',
+		textAlign: 'center'
+	},
+    loadingText: {
+		marginTop: 30,
+		fontSize: 14,
+		textAlign: 'center',
+		color: colors.fontPrimary,
+        fontFamily: fontStyles.normal.fontFamily,
+	},
 });
 
 export default ExtensionSync;

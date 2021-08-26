@@ -33,7 +33,6 @@ import Logger from '../../../util/Logger';
 import {
 	BIOMETRY_CHOICE_DISABLED,
 	ONBOARDING_WIZARD,
-	METRICS_OPT_IN,
 	ENCRYPTION_LIB,
 	TRUE,
 	ORIGINAL,
@@ -300,14 +299,7 @@ class Login extends PureComponent {
 
 			// Get onboarding wizard state
 			const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
-			// Check if user passed through metrics opt-in screen
-			const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
-			if (!metricsOptIn) {
-				this.props.navigation.navigate('OnboardingRootNav', {
-					screen: 'OnboardingNav',
-					params: { screen: 'OptinMetrics' }
-				});
-			} else if (onboardingWizard) {
+			if (onboardingWizard) {
 				this.props.navigation.navigate('HomeNav');
 			} else {
 				this.props.setOnboardingWizardStep(1);

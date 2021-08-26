@@ -23,7 +23,7 @@ import Device from '../../../util/Device';
 import Confetti from '../../UI/Confetti';
 import HintModal from '../../UI/HintModal';
 import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
-import { ONBOARDING_WIZARD, METRICS_OPT_IN, SEED_PHRASE_HINTS } from '../../../constants/storage';
+import { ONBOARDING_WIZARD, SEED_PHRASE_HINTS } from '../../../constants/storage';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 
@@ -165,11 +165,7 @@ class ManualBackupStep3 extends PureComponent {
 
 	done = async () => {
 		const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
-		// Check if user passed through metrics opt-in screen
-		const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
-		if (!metricsOptIn) {
-			this.props.navigation.navigate('OptinMetrics');
-		} else if (onboardingWizard) {
+		if (onboardingWizard) {
 			this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
 		} else {
 			this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });

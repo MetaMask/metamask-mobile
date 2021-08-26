@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import {
 	ActivityIndicator,
 	BackHandler,
-	FlatList,
 	Text,
 	View,
 	ScrollView,
@@ -26,30 +25,16 @@ import TermsAndConditions from '../TermsAndConditions';
 import Analytics from '../../../core/Analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { getTransparentBackOnboardingNavbarOptions, getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
-import ScanStep from '../../UI/ScanStep';
-import PubNubWrapper from '../../../util/syncWithExtension';
-import ActionModal from '../../UI/ActionModal';
-import Logger from '../../../util/Logger';
 import Device from '../../../util/Device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
 import Animated, { Easing } from 'react-native-reanimated';
 import ElevatedView from 'react-native-elevated-view';
-import { passwordSet, seedphraseBackedUp, loadingSet, loadingUnset } from '../../../actions/user';
-import { setLockTime } from '../../../actions/settings';
-import AppConstants from '../../../core/AppConstants';
+import { loadingSet, loadingUnset } from '../../../actions/user';
 import AnimatedFox from 'react-native-animated-fox';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
-import {
-	SEED_PHRASE_HINTS,
-	EXISTING_USER,
-	BIOMETRY_CHOICE,
-	BIOMETRY_CHOICE_DISABLED,
-	NEXT_MAKER_REMINDER,
-	METRICS_OPT_IN,
-	TRUE
-} from '../../../constants/storage';
+import { EXISTING_USER, METRICS_OPT_IN } from '../../../constants/storage';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 
@@ -63,11 +48,6 @@ const styles = StyleSheet.create({
 		flex: 1,
 		alignItems: 'center',
 		paddingVertical: 30
-	},
-	modalWrapper: {
-		flexGrow: 1,
-		paddingHorizontal: 24,
-		marginTop: 24
 	},
 	foxWrapper: {
 		width: Device.isIos() ? 90 : 45,
@@ -120,13 +100,6 @@ const styles = StyleSheet.create({
 	buttonWrapper: {
 		marginBottom: 16
 	},
-	scanTitle: {
-		...fontStyles.bold,
-		fontSize: 18,
-		color: colors.fontPrimary,
-		textAlign: 'center',
-		lineHeight: 28
-	},
 	loader: {
 		marginTop: 180,
 		justifyContent: 'center',
@@ -138,10 +111,6 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		color: colors.fontPrimary,
 		...fontStyles.normal
-	},
-	column: {
-		marginVertical: 24,
-		alignItems: 'flex-start'
 	},
 	modalTypeView: {
 		position: 'absolute',
@@ -156,14 +125,6 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'flex-end'
 	}
-});
-
-const keyExtractor = ({ id }) => id;
-
-const createStep = step => ({
-	id: `ONBOARDING_SCAN_STEPS-${step}`,
-	step,
-	text: strings(`onboarding.scan_step_${step}`)
 });
 
 /**
@@ -188,25 +149,6 @@ class Onboarding extends PureComponent {
 		 * Save onboarding event to state
 		 */
 		saveOnboardingEvent: PropTypes.func,
-		/**
-		 * Selected address
-		 */
-		selectedAddress: PropTypes.string,
-		/**
-		 * The action to update the password set flag
-		 * in the redux store
-		 */
-		passwordHasBeenSet: PropTypes.func,
-		/**
-		 * The action to update set the locktime
-		 * in the redux store
-		 */
-		setLockTime: PropTypes.func,
-		/**
-		 * The action to update the seedphrase backed up flag
-		 * in the redux store
-		 */
-		seedphraseBackedUp: PropTypes.func,
 		/**
 		 * loading status
 		 */
@@ -246,8 +188,7 @@ class Onboarding extends PureComponent {
 	state = {
 		warningModalVisible: false,
 		loading: false,
-		existingUser: false,
-		qrCodeModalVisible: false
+		existingUser: false
 	};
 
 	seedwords = null;
@@ -304,202 +245,6 @@ class Onboarding extends PureComponent {
 		}
 	}
 
-	toggleQrCodeModal = () => {
-		this.setState(state => ({ qrCodeModalVisible: !state.qrCodeModalVisible }));
-	};
-
-	initWebsockets() {
-		this.loading = true;
-		this.mounted && this.props.setLoading(strings('sync_with_extension.please_wait'));
-
-		this.pubnubWrapper.addMessageListener(
-			() => {
-				Alert.alert(strings('sync_with_extension.error_title'), strings('sync_with_extension.error_message'));
-				this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_FAILURE, {
-					wallet_setup_type: 'sync',
-					error_type: 'onErrorSync'
-				});
-				this.loading = false;
-				this.props.unsetLoading();
-				return false;
-			},
-			data => {
-				this.incomingDataStr = null;
-				const { pwd, seed, importedAccounts } = data.udata;
-				this.password = pwd;
-				this.seedWords = seed;
-				this.importedAccounts = importedAccounts;
-				delete data.udata;
-				this.dataToSync = { ...data };
-				this.pubnubWrapper.endSync(() => this.disconnect());
-			}
-		);
-
-		this.pubnubWrapper.subscribe();
-	}
-
-	startSync = async firstAttempt => {
-		try {
-			this.initWebsockets();
-			await this.pubnubWrapper.startSync();
-			return true;
-		} catch (e) {
-			this.props.unsetLoading();
-			if (!firstAttempt) {
-				if (e.message === 'Sync::timeout') {
-					Alert.alert(
-						strings('sync_with_extension.outdated_qr_code'),
-						strings('sync_with_extension.outdated_qr_code_desc')
-					);
-				} else {
-					Alert.alert(
-						strings('sync_with_extension.something_wrong'),
-						strings('sync_with_extension.something_wrong_desc')
-					);
-				}
-			}
-			Logger.error(e, { message: 'Sync::startSync', firstAttempt });
-			this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_FAILURE, {
-				wallet_setup_type: 'sync',
-				error_type: e.message()
-			});
-			return false;
-		}
-	};
-
-	async disconnect() {
-		let password;
-		try {
-			// If there's a password set, let's keep it
-			if (this.props.passwordSet) {
-				// This could also come from the previous step if it's a first time user
-				const credentials = await SecureKeychain.getGenericPassword();
-				if (credentials) {
-					password = credentials.password;
-				} else {
-					password = this.password;
-				}
-				// Otherwise use the password from the extension
-			} else {
-				password = this.password;
-			}
-		} catch (e) {
-			password = this.password;
-		}
-
-		if (password === this.password) {
-			let biometryType = await SecureKeychain.getSupportedBiometryType();
-			if (biometryType) {
-				if (Device.isAndroid()) biometryType = 'biometrics';
-				this.setState({ biometryType, biometryChoice: true });
-				Alert.alert(
-					strings('sync_with_extension.allow_biometrics_title', { biometrics: biometryType }),
-					strings('sync_with_extension.allow_biometrics_desc', { biometrics: biometryType }),
-					[
-						{
-							text: strings('sync_with_extension.warning_cancel_button'),
-							onPress: async () => {
-								await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-								await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-								this.finishSync({ biometrics: false, password });
-							},
-							style: 'cancel'
-						},
-						{
-							text: strings('sync_with_extension.warning_ok_button'),
-							onPress: async () => {
-								await AsyncStorage.setItem(BIOMETRY_CHOICE, biometryType);
-								await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
-								this.finishSync({ biometrics: true, biometryType, password });
-							}
-						}
-					],
-					{ cancelable: false }
-				);
-			} else {
-				this.finishSync({ biometrics: false, password });
-			}
-		} else {
-			this.finishSync({ biometrics: false, password });
-		}
-	}
-
-	finishSync = async opts => {
-		if (opts.biometrics) {
-			try {
-				await SecureKeychain.setGenericPassword(opts.password, SecureKeychain.TYPES.BIOMETRICS);
-			} catch (e) {
-				await SecureKeychain.resetGenericPassword();
-			}
-		} else {
-			await SecureKeychain.resetGenericPassword();
-		}
-
-		try {
-			await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
-			await Engine.resetState();
-			await Engine.sync({
-				...this.dataToSync,
-				seed: this.seedWords,
-				importedAccounts: this.importedAccounts,
-				pass: opts.password
-			});
-			await AsyncStorage.setItem(EXISTING_USER, TRUE);
-			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
-			this.props.passwordHasBeenSet();
-			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
-			this.props.seedphraseBackedUp();
-			this.done = true;
-			this.dataToSync = null;
-			this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SYNC_SUCCESSFUL);
-			this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_COMPLETED, {
-				wallet_setup_type: 'sync',
-				new_wallet: false
-			});
-
-			this.props.navigation.push('SyncWithExtensionSuccess');
-			this.props.unsetLoading();
-		} catch (e) {
-			this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_FAILURE, {
-				wallet_setup_type: 'sync',
-				error_type: e.toString()
-			});
-			Logger.error(e, 'Sync::disconnect');
-			Alert.alert(strings('sync_with_extension.error_title'), strings('sync_with_extension.error_message'));
-			this.props.unsetLoading();
-			this.props.navigation.goBack();
-		}
-	};
-
-	showQrCode = () => {
-		this.toggleQrCodeModal();
-		this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SYNC_ATTEMPTED);
-		this.props.navigation.push('QRScanner', {
-			onStartScan: async data => {
-				if (data.content && data.content.search('metamask-sync:') !== -1) {
-					const [channelName, cipherKey] = data.content.replace('metamask-sync:', '').split('|@|');
-					this.pubnubWrapper = new PubNubWrapper(channelName, cipherKey);
-					await this.pubnubWrapper.establishConnection(this.props.selectedAddress);
-				} else {
-					Alert.alert(
-						strings('sync_with_extension.invalid_qr_code'),
-						strings('sync_with_extension.invalid_qr_code_desc')
-					);
-				}
-			},
-			onScanSuccess: async data => {
-				if (data.content && data.content.search('metamask-sync:') !== -1) {
-					(await this.startSync(true)) || (await this.startSync(false));
-				} else {
-					Alert.alert(
-						strings('sync_with_extension.invalid_qr_code'),
-						strings('sync_with_extension.invalid_qr_code_desc')
-					);
-				}
-			}
-		});
-	};
-
 	onLogin = async () => {
 		const { passwordSet } = this.props;
 		if (!passwordSet) {
@@ -523,7 +268,7 @@ class Onboarding extends PureComponent {
 
 	onPressCreate = () => {
 		const action = async () => {
-			const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
+			const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
 			if (metricsOptIn) {
 				this.props.navigation.navigate('ChoosePassword', {
 					[PREVIOUS_SCREEN]: ONBOARDING
@@ -544,14 +289,6 @@ class Onboarding extends PureComponent {
 	};
 
 	onPressSync = () => {
-		const action = () =>
-			setTimeout(() => {
-				this.safeSync();
-			}, 500);
-		this.handleExistingUser(action);
-	};
-
-	safeSync = () => {
 		if (!PUB_KEY) {
 			// Dev message
 			Alert.alert(
@@ -560,13 +297,30 @@ class Onboarding extends PureComponent {
 			);
 			return false;
 		}
-		this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SYNC_STARTED);
-		this.toggleQrCodeModal();
+		const action = async () => {
+			const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
+			if (metricsOptIn) {
+				this.props.navigation.navigate('ExtensionSync', {
+					[PREVIOUS_SCREEN]: ONBOARDING
+				});
+				this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SYNC_STARTED);
+			} else {
+				this.props.navigation.navigate('OptinMetrics', {
+					onContinue: () => {
+						this.props.navigation.replace('ExtensionSync', {
+							[PREVIOUS_SCREEN]: ONBOARDING
+						});
+						this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SYNC_STARTED);
+					}
+				});
+			}
+		};
+		this.handleExistingUser(action);
 	};
 
 	onPressImport = () => {
 		const action = async () => {
-			const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
+			const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
 			if (metricsOptIn) {
 				this.props.navigation.push('ImportFromSeed');
 				this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_IMPORT_STARTED);
@@ -680,9 +434,7 @@ class Onboarding extends PureComponent {
 
 	render() {
 		const { loading } = this.props;
-		const { qrCodeModalVisible, existingUser } = this.state;
-		const renderScanStep = ({ item: { step, text } }) => <ScanStep step={step}>{text}</ScanStep>;
-		const ONBOARDING_SCAN_STEPS = [1, 2, 3, 4].map(createStep);
+		const { existingUser } = this.state;
 
 		return (
 			<View style={baseStyles.flexGrow} testID={'onboarding-screen'}>
@@ -726,33 +478,12 @@ class Onboarding extends PureComponent {
 					onRequestClose={this.toggleWarningModal}
 					onConfirmPress={this.toggleWarningModal}
 				/>
-
-				<ActionModal
-					modalVisible={qrCodeModalVisible}
-					onConfirmPress={this.showQrCode}
-					onCancelPress={this.toggleQrCodeModal}
-					onRequestClose={this.toggleQrCodeModal}
-					confirmText={strings(`onboarding.scan`)}
-					confirmButtonMode="confirm"
-				>
-					<View style={styles.modalWrapper}>
-						<Text style={styles.scanTitle}>{strings('onboarding.scan_title')}</Text>
-						<View style={styles.column}>
-							<FlatList
-								data={ONBOARDING_SCAN_STEPS}
-								renderItem={renderScanStep}
-								keyExtractor={keyExtractor}
-							/>
-						</View>
-					</View>
-				</ActionModal>
 			</View>
 		);
 	}
 }
 
 const mapStateToProps = state => ({
-	selectedAddress: state?.engine?.backgroundState?.PreferencesController?.selectedAddress,
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	passwordSet: state.user.passwordSet,
 	loading: state.user.loadingSet,
@@ -762,9 +493,6 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
 	setLoading: msg => dispatch(loadingSet(msg)),
 	unsetLoading: () => dispatch(loadingUnset()),
-	passwordHasBeenSet: () => dispatch(passwordSet()),
-	setLockTime: time => dispatch(setLockTime(time)),
-	seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
 	saveOnboardingEvent: event => dispatch(saveOnboardingEvent(event))
 });
 

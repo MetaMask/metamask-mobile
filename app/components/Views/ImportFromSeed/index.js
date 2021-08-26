@@ -37,7 +37,6 @@ import {
 	NEXT_MAKER_REMINDER,
 	ONBOARDING_WIZARD,
 	EXISTING_USER,
-	METRICS_OPT_IN,
 	TRUE
 } from '../../../constants/storage';
 import Logger from '../../../util/Logger';
@@ -289,8 +288,6 @@ class ImportFromSeed extends PureComponent {
 				}
 				// Get onboarding wizard state
 				const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
-				// Check if user passed through metrics opt-in screen
-				const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
 				// mark the user as existing so it doesn't see the create password screen again
 				await AsyncStorage.setItem(EXISTING_USER, TRUE);
 				await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
@@ -307,9 +304,7 @@ class ImportFromSeed extends PureComponent {
 						new_wallet: false
 					});
 				});
-				if (!metricsOptIn) {
-					this.props.navigation.navigate('OptinMetrics');
-				} else if (onboardingWizard) {
+				if (onboardingWizard) {
 					this.props.navigation.navigate('ManualBackupStep3');
 				} else {
 					this.props.setOnboardingWizardStep(1);
