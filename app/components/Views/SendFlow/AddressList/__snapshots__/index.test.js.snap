@@ -46,6 +46,40 @@ exports[`AddressList should render correctly 1`] = `
         Transfer between my accounts
       </Text>
     </TouchableOpacity>
+    <View
+      key="Recents"
+      style={
+        Object {
+          "alignItems": "center",
+          "backgroundColor": "#f2f3f4",
+          "borderBottomColor": "#D8D8D8",
+          "borderBottomWidth": 1,
+          "flexDirection": "row",
+          "padding": 8,
+        }
+      }
+    >
+      <Text
+        style={
+          Array [
+            Object {
+              "color": "#5B5D67",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 12,
+              "fontWeight": "400",
+              "marginHorizontal": 8,
+            },
+            Object {},
+          ]
+        }
+      >
+        Recents
+      </Text>
+    </View>
+    <Connect(AddressElement)
+      address="0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b"
+      key="0"
+    />
   </ScrollView>
 </View>
 `;

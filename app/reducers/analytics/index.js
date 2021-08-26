@@ -17,8 +17,8 @@ function initalizeAnalytics(enabled = true) {
 const analyticsReducer = (state = initialState, action) => {
 	switch (action.type) {
 		case REHYDRATE:
-			initalizeAnalytics(action.payload && action.payload.analytics && action.payload.analytics.enabled);
-			if (action.payload && action.payload.analytics) {
+			initalizeAnalytics(action.payload?.analytics?.enabled);
+			if (action.payload?.analytics) {
 				return { ...state, ...action.payload.analytics };
 			}
 			return state;
