@@ -214,7 +214,7 @@ buildIosReleaseE2E(){
 		cd ios 
 		generateArchivePackages 
 		# Generate sourcemaps
-		yarn sourcemaps:ios
+		# yarn sourcemaps:ios
 	else
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
@@ -317,7 +317,7 @@ checkParameters "$@"
 
 printTitle
 
-if [ "$MODE" == "release" || "$MODE" == "releaseE2E" ]; then
+if [ "$MODE" == "release" ]; then
 
 	if [ "$PRE_RELEASE" = false ]; then
  		checkAuthToken 'sentry.release.properties'
