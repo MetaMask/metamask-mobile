@@ -430,6 +430,7 @@ class Engine {
 
 		TokensController.update({
 			allTokens: {},
+			allIgnoredTokens: {},
 			ignoredTokens: [],
 			tokens: [],
 			suggestedAssets: []
@@ -446,7 +447,16 @@ class Engine {
 		});
 	};
 
-	sync = async ({ accounts, preferences, network, transactions, seed, pass, importedAccounts, tokens: {allTokens, allIgnoredTokens} }) => {
+	sync = async ({
+		accounts,
+		preferences,
+		network,
+		transactions,
+		seed,
+		pass,
+		importedAccounts,
+		tokens: { allTokens, allIgnoredTokens }
+	}) => {
 		const {
 			KeyringController,
 			PreferencesController,
