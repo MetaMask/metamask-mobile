@@ -214,7 +214,7 @@ buildIosReleaseE2E(){
 		cd ios 
 		generateArchivePackages 
 		# Generate sourcemaps
-		# yarn sourcemaps:ios
+		yarn sourcemaps:ios
 	else
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
