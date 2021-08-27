@@ -1,0 +1,16 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Approval should render correctly 1`] = `
+<Connect(Approval)
+  navigation={
+    Object {
+      "setParams": [Function],
+      "state": Object {
+        "params": Object {
+          "address": "0x1",
+        },
+      },
+    }
+  }
+/>
+`;

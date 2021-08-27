@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WatchAssetRequest should render correctly 1`] = `
+<Connect(WatchAssetRequest)
+  suggestedAssetMeta={
+    Object {
+      "asset": Object {
+        "address": "0x2",
+        "decimals": 0,
+        "symbol": "TKN",
+      },
+    }
+  }
+/>
+`;
