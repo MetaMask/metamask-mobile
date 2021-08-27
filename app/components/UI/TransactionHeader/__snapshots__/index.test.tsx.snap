@@ -1,0 +1,12 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TransactionHeader should render correctly 1`] = `
+<Connect(TransactionHeader)
+  currentPageInformation={
+    Object {
+      "title": "title",
+      "url": "url",
+    }
+  }
+/>
+`;

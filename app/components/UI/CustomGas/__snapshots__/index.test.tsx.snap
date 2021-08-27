@@ -1,0 +1,22 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CustomGas should render correctly 1`] = `
+<Connect(CustomGas)
+  basicGasEstimates={
+    Object {
+      "averageGwei": 10,
+      "fastGwei": 10,
+      "safeLowGwei": 10,
+    }
+  }
+  gas={"0"}
+  gasPrice={"0"}
+  generateTransform={[MockFunction]}
+  route={
+    Object {
+      "params": Object {},
+    }
+  }
+  warningGasPriceHigh=""
+/>
+`;

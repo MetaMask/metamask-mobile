@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ChoosePasswordSimple should render correctly 1`] = `
+<Connect(ChoosePasswordSimple)
+  route={
+    Object {
+      "params": Object {},
+    }
+  }
+/>
+`;

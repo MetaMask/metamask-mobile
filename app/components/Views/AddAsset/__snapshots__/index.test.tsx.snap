@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AddAsset should render correctly 1`] = `
+<Connect(AddAsset)
+  route={
+    Object {
+      "params": Object {
+        "assetType": "token",
+      },
+    }
+  }
+/>
+`;

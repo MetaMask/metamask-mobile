@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AccountApproval should render correctly 1`] = `
+<Connect(AccountApproval)
+  currentPageInformation={
+    Object {
+      "icon": "",
+      "title": "",
+      "url": "",
+    }
+  }
+/>
+`;

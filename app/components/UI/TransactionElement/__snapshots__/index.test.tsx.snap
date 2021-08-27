@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TransactionElement should render correctly 1`] = `
+<Connect(TransactionElement)
+  i={1}
+  tx={
+    Object {
+      "status": "CONFIRMED",
+      "transaction": Object {
+        "from": "0x1",
+        "nonce": 1,
+        "to": "0x0",
+      },
+    }
+  }
+/>
+`;

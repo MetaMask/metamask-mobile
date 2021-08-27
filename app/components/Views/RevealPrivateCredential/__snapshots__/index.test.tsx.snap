@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`RevealPrivateCredential should render correctly 1`] = `
+<Connect(RevealPrivateCredential)
+  route={
+    Object {
+      "params": Object {
+        "privateCredentialName": "private_key",
+      },
+    }
+  }
+/>
+`;

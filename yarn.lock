@@ -10973,14 +10973,6 @@ react-native-background-timer@2.1.1:
   resolved "https://registry.yarnpkg.com/react-native-background-timer/-/react-native-background-timer-2.1.1.tgz#9a2489681ab2f8033c213c73272e9d4c47572cd5"
   integrity sha512-cuXIIv+dcG8a8qkTD8pMzeqOEZCO+UGKglZWIe1osve+yJslmCowYQff+bI9xa7NOt2w+Vtd4L3d9JonlSqODg==
 
-react-native-blob-util@^0.13.12:
-  version "0.13.12"
-  resolved "https://registry.yarnpkg.com/react-native-blob-util/-/react-native-blob-util-0.13.12.tgz#7fa8924eefb6a7440cbb1a79bd213c8c29db3673"
-  integrity sha512-dW3ArdArcKY1066u4KV5x7bl+qgIwLmLPXppeonMwhzhi0o5H6A2r2rflLeZeYI3FC66Ot/hp0TOqo9FEv7I4w==
-  dependencies:
-    base-64 "0.1.0"
-    glob "^7.1.6"
-
 react-native-branch@5.0.3:
   version "5.0.3"
   resolved "https://registry.yarnpkg.com/react-native-branch/-/react-native-branch-5.0.3.tgz#6215b1fee769a1710c6e137d05af65ea0c2ab705"
@@ -11553,12 +11545,12 @@ redux-mock-store@1.5.4:
   dependencies:
     lodash.isplainobject "^4.0.6"
 
-redux-persist-filesystem-storage@4.0.0:
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/redux-persist-filesystem-storage/-/redux-persist-filesystem-storage-4.0.0.tgz#a2461807ccbc59f7e198a9bd7b79a5510e44e600"
-  integrity sha512-NuiMhziWU5XkJeR5e4trxTIEpgAMR7X6hubwAAIFnaDKCPhLG5V1sO1sDKe7L6GgbZzYbTLXp/C3hKFkJ99ICw==
+redux-persist-filesystem-storage@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/redux-persist-filesystem-storage/-/redux-persist-filesystem-storage-3.0.0.tgz#4848825d6157f694af5218d8ebb3ca6db09d3cb9"
+  integrity sha512-rJe8Hb5ULC/rUyqt5E1G62r1cUQA7hmdrVd38q32bWRnv+KiIAORuzpcOW5eDkzaS0w3v1juxUcKciNyZmeCsg==
   dependencies:
-    react-native-blob-util "^0.13.12"
+    rn-fetch-blob "^0.12.0"
 
 redux-persist@6.0.0:
   version "6.0.0"
@@ -11878,10 +11870,10 @@ rn-fetch-blob@^0.12.0:
     base-64 "0.1.0"
     glob "7.0.6"
 
-rn-nodeify@10.3.0:
-  version "10.3.0"
-  resolved "https://registry.yarnpkg.com/rn-nodeify/-/rn-nodeify-10.3.0.tgz#06dc77819f7f500cdc41eda9654e60ecb140027a"
-  integrity sha512-EZB3M4M5i8yySCWF7AAZ31xU7cpdLuIKMlVxXji9t0aY8Ojy3BAyRt1sTp0OwBgy1ejShmlIu2L4f8mToJ+uvg==
+rn-nodeify@10.0.1:
+  version "10.0.1"
+  resolved "https://registry.yarnpkg.com/rn-nodeify/-/rn-nodeify-10.0.1.tgz#b54a3f2a61eda88b40639ee9262f51f34039e353"
+  integrity sha512-x7vxo7Nzp5wu6DLLW/qHJ3jRJtcxSe0L/Nb7oUTWAViTRJFEan05Ewlvd5aNrh1fjSztPuqciNtohZesM4oLZQ==
   dependencies:
     "@yarnpkg/lockfile" "^1.0.0"
     deep-equal "^1.0.0"
