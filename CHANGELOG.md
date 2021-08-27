@@ -2,7 +2,15 @@
 
 ## Current Develop Branch
 
-## v.3.1.0 - August 12 2021
+## v3.2.0 - August 24 2021
+- [#3046](https://github.com/MetaMask/metamask-mobile/pull/3046): [FIX] Token Transfer to address
+- [#2878](https://github.com/MetaMask/metamask-mobile/pull/2878): [2783] Change default account name for ENS reversed-resolved name
+- [#3029](https://github.com/MetaMask/metamask-mobile/pull/3029): [FIX] Video Subtitles Not Loading Properly
+- [#3038](https://github.com/MetaMask/metamask-mobile/pull/3038): [FIX] increase the heap size to help mitigate the out of memory issue on Android
+- [#3013](https://github.com/MetaMask/metamask-mobile/pull/3013): Swaps V2 Integration
+- [#2718](https://github.com/MetaMask/metamask-mobile/pull/2718): Switched to sslip.io instead of xip.io
+
+## v3.1.0 - August 12 2021
 - [#3026](https://github.com/MetaMask/metamask-mobile/pull/3026): [FIX] Fix edit button
 - [#2981](https://github.com/MetaMask/metamask-mobile/pull/2981): [FIX] Delete Message
 - [#3017](https://github.com/MetaMask/metamask-mobile/pull/3017): [FIX] Fix deep links bug related to branch updates
@@ -19,10 +27,10 @@
 - [#2893](https://github.com/MetaMask/metamask-mobile/pull/2893): [FIX] Address bar icon
 - [#2973](https://github.com/MetaMask/metamask-mobile/pull/2973): [FEATURE] On-Ramp: Add on-ramp analytics
 
-## v.3.0.1 - August 4 2021
+## v3.0.1 - August 4 2021
 - Patch to fix Wyre and Transak
 
-## v.3.0.0 - July 28 2021
+## v3.0.0 - July 28 2021
 - [#2959](https://github.com/MetaMask/metamask-mobile/pull/2959): UI fixes
 - [#2957](https://github.com/MetaMask/metamask-mobile/pull/2957): Fix gas information info modal on swaps
 - [#2955](https://github.com/MetaMask/metamask-mobile/pull/2955): [EIP1559] Improve time estimates
@@ -38,13 +46,14 @@
 - [#2889](https://github.com/MetaMask/metamask-mobile/pull/2889): Feature/bitrise
 - [#2890](https://github.com/MetaMask/metamask-mobile/pull/2890): Bump addressable from 2.7.0 to 2.8.0 in /ios
 
-## v.2.6.0 - July 9 2021
+## v2.6.0 - July 9 2021
 - [#2865](https://github.com/MetaMask/metamask-mobile/pull/2865): Added support for custom network gas estimates
 - [#2854](https://github.com/MetaMask/metamask-mobile/pull/2854): Fix time formatting on transactions
 - [#2883](https://github.com/MetaMask/metamask-mobile/pull/2883): Swaps: Fix isZero undefined error
 - [#2731](https://github.com/MetaMask/metamask-mobile/pull/2731): Improvement/react navigation upgrade 5
 - [#2709](https://github.com/MetaMask/metamask-mobile/pull/2709): Remove Picker deprecation warning
-## v.2.5.0 - June 15 2021
+
+## v2.5.0 - June 15 2021
 - [#2809](https://github.com/MetaMask/metamask-mobile/pull/2809): Optional chaining dollarBalance
 - [#2776](https://github.com/MetaMask/metamask-mobile/pull/2776): Fix: empty state when using fiat on non-mainnet transactions
 - [#2777](https://github.com/MetaMask/metamask-mobile/pull/2777): Add isInteraction: false
@@ -69,7 +78,7 @@
 - [#2737](https://github.com/MetaMask/metamask-mobile/pull/2737): Add resolution for ws to address security vuln
 - [#2727](https://github.com/MetaMask/metamask-mobile/pull/2727): Add missing required prop in tests
 
-## v.2.4.0 - May 21 2021
+## v2.4.0 - May 21 2021
 - [#2618](https://github.com/MetaMask/metamask-mobile/pull/2618): Collectibles experience
 - [#2698](https://github.com/MetaMask/metamask-mobile/pull/2698): bugfix: navigation routeName is null
 - [#2692](https://github.com/MetaMask/metamask-mobile/pull/2692): Fix custom gas crash
@@ -83,7 +92,7 @@
 - [#2640](https://github.com/MetaMask/metamask-mobile/pull/2640): Swaps: Add name from metadata to swaps tokens
 - [#2628](https://github.com/MetaMask/metamask-mobile/pull/2628): Feature/use toLowerCaseCompare
 
-## v.2.3.0 - May 5 2021
+## v2.3.0 - May 5 2021
 - [#2674](https://github.com/MetaMask/metamask-mobile/pull/2674): Fix deploy contract and create token testnets
 - [#2669](https://github.com/MetaMask/metamask-mobile/pull/2669): Key off accounts
 - [#2670](https://github.com/MetaMask/metamask-mobile/pull/2670): Bump hosted-git-info from 2.8.8 to 2.8.9

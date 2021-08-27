@@ -1434,7 +1434,7 @@
 		"verified_on_sources": "Токен проверен в таком количестве источников: {{sources}.",
 		"verify_on": "Всегда проверяйте адрес токена в",
 		"verify_address_on": "Проверьте адрес токена в",
-		"only_verified_on": "Токен {{symbol}} проверен только в источнике {{occurances}}.",
+		"only_verified_on": "Токен {{symbol}} проверен только в источнике {{occurrences}}.",
 		"block_explorer": "проводнике блоков",
 		"a_block_explorer": "проводнике блоков",
 		"token_verification": "Проверка токенов",

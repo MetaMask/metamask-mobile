@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh audit dependencies",
@@ -80,7 +80,7 @@
     "@metamask/contract-metadata": "^1.23.0",
     "@metamask/controllers": "^14.2.0",
     "@metamask/etherscan-link": "^2.0.0",
-    "@metamask/swaps-controller": "^5.0.0",
+    "@metamask/swaps-controller": "^6.2.0",
     "@react-native-community/async-storage": "1.12.1",
     "@react-native-community/blur": "^3.6.0",
     "@react-native-community/checkbox": "^0.4.2",
@@ -135,7 +135,7 @@
     "json-rpc-engine": "^6.1.0",
     "json-rpc-middleware-stream": "3.0.0",
     "lottie-react-native": "git+https://github.com/MetaMask/lottie-react-native.git#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106",
-    "multihashes": "4.0.2",
+    "multihashes": "0.4.14",
     "number-to-bn": "1.7.0",
     "obj-multiplex": "1.0.0",
     "obs-store": "4.0.3",
@@ -257,7 +257,6 @@
     "react-native-cli": "2.0.1",
     "react-test-renderer": "16.13.1",
     "regenerator-runtime": "0.13.1",
-    "request-promise": "4.2.4",
     "rn-nodeify": "10.0.1",
     "stack-beautifier": "1.0.2"
   },
