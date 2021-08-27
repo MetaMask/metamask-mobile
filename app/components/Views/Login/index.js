@@ -490,7 +490,7 @@ class Login extends PureComponent {
 				<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
 					<View style={styles.areYouSure}>
 						<Text style={[styles.heading, styles.delete]}>
-							{strings('login.type_delete', { delete: DELETE })}
+							{strings('login.type_delete', { [DELETE]: DELETE })}
 						</Text>
 						<OutlinedTextField
 							style={styles.input}

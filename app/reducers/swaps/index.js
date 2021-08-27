@@ -68,7 +68,7 @@ const swapsControllerAndUserTokens = createSelector(
 
 				if (!map.has(key)) {
 					map.set(key, {
-						occurances: 0,
+						occurrences: 0,
 						...token,
 						decimals: Number(token.decimals),
 						address: key

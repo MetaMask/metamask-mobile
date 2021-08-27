@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh audit dependencies",
@@ -80,7 +80,7 @@
     "@metamask/contract-metadata": "^1.23.0",
     "@metamask/controllers": "^14.2.0",
     "@metamask/etherscan-link": "^2.0.0",
-    "@metamask/swaps-controller": "^5.0.0",
+    "@metamask/swaps-controller": "^6.2.0",
     "@react-native-community/async-storage": "1.12.1",
     "@react-native-community/blur": "^3.6.0",
     "@react-native-community/checkbox": "^0.4.2",
@@ -206,7 +206,7 @@
     "readable-stream": "1.0.33",
     "redux": "4.0.1",
     "redux-mock-store": "1.5.3",
-    "redux-persist": "5.10.0",
+    "redux-persist": "6.0.0",
     "redux-persist-filesystem-storage": "^3.0.0",
     "reselect": "^4.0.0",
     "rn-fetch-blob": "^0.12.0",
@@ -257,7 +257,6 @@
     "react-native-cli": "2.0.1",
     "react-test-renderer": "16.13.1",
     "regenerator-runtime": "0.13.9",
-    "request-promise": "4.2.4",
     "rn-nodeify": "10.0.1",
     "stack-beautifier": "1.0.2"
   },
