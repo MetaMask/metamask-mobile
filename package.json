@@ -91,7 +91,7 @@
     "@react-native-community/picker": "^1.8.1",
     "@react-native-community/viewpager": "^3.3.0",
     "@react-navigation/bottom-tabs": "^5.11.11",
-    "@react-navigation/compat": "^5.3.15",
+    "@react-navigation/compat": "^5.3.20",
     "@react-navigation/drawer": "^5.12.5",
     "@react-navigation/native": "^5.9.4",
     "@react-navigation/stack": "^5.14.5",
