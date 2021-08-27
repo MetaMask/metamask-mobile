@@ -317,7 +317,7 @@ checkParameters "$@"
 
 printTitle
 
-if [ "$MODE" == "release" ]; then
+if [ "$MODE" == "release" || "$MODE" == "releaseE2E" ]; then
 
 	if [ "$PRE_RELEASE" = false ]; then
  		checkAuthToken 'sentry.release.properties'
