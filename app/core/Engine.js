@@ -429,6 +429,7 @@ class Engine {
 
 		TokensController.update({
 			allTokens: {},
+			allIgnoredTokens: {},
 			ignoredTokens: [],
 			tokens: [],
 			suggestedAssets: []
@@ -445,7 +446,16 @@ class Engine {
 		});
 	};
 
-	sync = async ({ accounts, preferences, network, transactions, seed, pass, importedAccounts, tokens }) => {
+	sync = async ({
+		accounts,
+		preferences,
+		network,
+		transactions,
+		seed,
+		pass,
+		importedAccounts,
+		tokens: { allTokens, allIgnoredTokens }
+	}) => {
 		const {
 			KeyringController,
 			PreferencesController,
@@ -471,7 +481,7 @@ class Engine {
 		}
 
 		// Restore tokens
-		await TokensController.update({ tokens });
+		await TokensController.update({ allTokens, allIgnoredTokens });
 
 		// Restore preferences
 		const updatedPref = { ...preferences, identities: {} };
