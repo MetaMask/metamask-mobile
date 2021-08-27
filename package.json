@@ -256,7 +256,7 @@
     "react-dom": "16.8.4",
     "react-native-cli": "2.0.1",
     "react-test-renderer": "16.13.1",
-    "regenerator-runtime": "0.13.1",
+    "regenerator-runtime": "0.13.9",
     "rn-nodeify": "10.0.1",
     "stack-beautifier": "1.0.2"
   },
