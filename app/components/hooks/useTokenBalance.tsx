@@ -1,5 +1,6 @@
 import { useState, useEffect, Dispatch, SetStateAction } from 'react';
 import Engine from '../../core/Engine';
+import { BN } from '@metamask/controllers';
 
 /**
  * Hook to handle the balance of ERC20 tokens
@@ -8,16 +9,16 @@ import Engine from '../../core/Engine';
  * @returns {Handlers} Handlers `[balance, loading, error]`
  */
 
-const useTokenBalance = (tokenAddress: string, userAddress: string): [string, boolean, boolean] => {
+const useTokenBalance = (tokenAddress: string, userAddress: string): [any, boolean, boolean] => {
 	// This hook should be only used with ERC20 tokens
-	const [balance, setBalance]: [string, Dispatch<SetStateAction<string>>] = useState<string>('0');
+	const [balance, setBalance]: [BN | null, Dispatch<SetStateAction<BN | null>>] = useState<BN | null>(null);
 	const [loading, setLoading]: [boolean, Dispatch<SetStateAction<boolean>>] = useState<boolean>(true);
 	const [error, setError]: [boolean, Dispatch<SetStateAction<boolean>>] = useState<boolean>(false);
 	const { TokenBalancesController }: any = Engine.context;
 
 	const fetchBalance = async (tokenAddress: string, userAddress: string): Promise<void> => {
 		TokenBalancesController.getBalanceOf(tokenAddress, userAddress)
-			.then((balance: string) => setBalance(JSON.stringify(balance)))
+			.then((balance: BN) => setBalance(balance))
 			.catch(() => setError(true))
 			.finally(() => setLoading(false));
 	};
