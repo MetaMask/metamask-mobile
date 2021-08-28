@@ -14,6 +14,7 @@ import {
 	PreferencesController,
 	TokenBalancesController,
 	TokenRatesController,
+	Transaction,
 	TransactionController,
 	TypedMessageManager,
 	WalletDevice,
@@ -37,7 +38,7 @@ import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
 const NON_EMPTY = 'NON_EMPTY';
 
 const encryptor = new Encryptor();
-let currentChainId;
+let currentChainId: any;
 
 /**
  * Core controller responsible for composing other metamask controllers together
@@ -53,7 +54,7 @@ class Engine {
 	 * Object containing the info for the latest incoming tx block
 	 * for each address and network
 	 */
-	lastIncomingTxBlockInfo;
+	lastIncomingTxBlockInfo: any;
 
 	/**
 	 * Creates a CoreController instance
@@ -70,7 +71,7 @@ class Engine {
 				infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
 				providerConfig: {
 					static: {
-						eth_sendTransaction: async (payload, next, end) => {
+						eth_sendTransaction: async (payload: { params: any[]; origin: any; }, next: any, end: (arg0: undefined, arg1: undefined) => void) => {
 							const { TransactionController } = this.context;
 							try {
 								const hash = await (await TransactionController.addTransaction(
@@ -84,7 +85,7 @@ class Engine {
 							}
 						}
 					},
-					getAccounts: (end, payload) => {
+					getAccounts: (end: (arg0: null, arg1: any[]) => void, payload: { hostname: string | number; }) => {
 						const { approvedHosts, privacyMode } = store.getState();
 						const isEnabled = !privacyMode || approvedHosts[payload.hostname];
 						const { KeyringController } = this.context;
@@ -240,7 +241,7 @@ class Engine {
 			collectibles.setApiKey(process.env.MM_OPENSEA_KEY);
 			network.refreshNetwork();
 			transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
-			network.subscribe(state => {
+			network.subscribe((state: { network: string; provider: { chainId: any; }; }) => {
 				if (state.network !== 'loading' && state.provider.chainId !== currentChainId) {
 					// We should add a state or event emitter saying the provider changed
 					setTimeout(() => {
@@ -280,7 +281,7 @@ class Engine {
 		AccountTrackerController.refresh();
 	}
 
-	refreshTransactionHistory = async forceCheck => {
+	refreshTransactionHistory = async (forceCheck: any) => {
 		const { TransactionController, PreferencesController, NetworkController } = this.context;
 		const { selectedAddress } = PreferencesController.state;
 		const { type: networkType } = NetworkController.state.provider;
@@ -358,7 +359,7 @@ class Engine {
 		if (tokens.length > 0) {
 			const { contractBalances: tokenBalances } = TokenBalancesController.state;
 			const { contractExchangeRates: tokenExchangeRates } = TokenRatesController.state;
-			tokens.forEach(item => {
+			tokens.forEach((item: { address: string; balance: string | undefined; decimals: number; }) => {
 				const exchangeRate = item.address in tokenExchangeRates ? tokenExchangeRates[item.address] : undefined;
 				const tokenBalance =
 					item.balance ||
@@ -392,7 +393,7 @@ class Engine {
 			const tokenBalances = backgroundState.TokenBalancesController.contractBalances;
 
 			let tokenFound = false;
-			tokens.forEach(token => {
+			tokens.forEach((token: { address: string | number; }) => {
 				if (tokenBalances[token.address] && !tokenBalances[token.address]?.isZero()) {
 					tokenFound = true;
 				}
@@ -490,7 +491,7 @@ class Engine {
 										? contractMap[toChecksumAddress(address)].erc20
 										: true
 								)
-								.map(token => ({ ...token, address: toChecksumAddress(token.address) }));
+								.map((token: { address: string; }) => ({ ...token, address: toChecksumAddress(token.address) }));
 			});
 		});
 		await TokensController.update({ allTokens });
@@ -512,26 +513,19 @@ class Engine {
 			PreferencesController.setSelectedAddress(accounts.hd[0]);
 		}
 
-		const mapTx = tx => ({
-			id: tx.id,
-			networkID: tx.metamaskNetworkId,
-			origin: tx.origin,
-			status: tx.status,
-			time: tx.time,
-			transactionHash: tx.hash,
-			rawTx: tx.rawTx,
-			transaction: {
-				from: tx.txParams.from,
-				to: tx.txParams.to,
-				nonce: tx.txParams.nonce,
-				gas: tx.txParams.gas,
-				gasPrice: tx.txParams.gasPrice,
-				value: tx.txParams.value,
-				maxFeePerGas: tx.txParams.maxFeePerGas,
-				maxPriorityFeePerGas: tx.txParams.maxPriorityFeePerGas,
-				data: tx.txParams.data
+		const mapTx = (tx: { txParams: Transaction; id: any; metamaskNetworkId: string; origin: string; status: string; time: any; hash: string; rawTx: string; }) => {
+			const typedTx = {
+				id: tx.id,
+				networkID: tx.metamaskNetworkId,
+				origin: tx.origin,
+				status: tx.status,
+				time: tx.time,
+				transactionHash: tx.hash,
+				rawTx: tx.rawTx,
+				transaction: { ...tx.txParams as Transaction }
 			}
-		});
+			return typedTx;
+		};
 
 		await TransactionController.update({
 			transactions: transactions.map(mapTx)
@@ -541,7 +535,7 @@ class Engine {
 	};
 }
 
-let instance;
+let instance: Engine;
 
 export default {
 	get context() {
@@ -612,13 +606,13 @@ export default {
 	resetState() {
 		return instance.resetState();
 	},
-	sync(data) {
+	sync(data: any) {
 		return instance.sync(data);
 	},
 	refreshTransactionHistory(forceCheck = false) {
 		return instance.refreshTransactionHistory(forceCheck);
 	},
-	init(state) {
+	init(state: {} | undefined) {
 		instance = new Engine(state);
 		Object.freeze(instance);
 		return instance;
