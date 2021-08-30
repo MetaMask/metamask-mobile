@@ -298,7 +298,6 @@ checkAuthToken() {
 	local propertiesFileName="$1"
 
 	if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
-		echo "Release E2E Build started..."
 		sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" "./${propertiesFileName}";
 	elif ! grep -qE '^auth.token=[[:alnum:]]+$' "./${propertiesFileName}"; then
 		printError "Missing auth token in '${propertiesFileName}'; add the token, or set it as MM_SENTRY_AUTH_TOKEN"
@@ -308,6 +307,7 @@ checkAuthToken() {
 	if [ ! -e "./${propertiesFileName}" ]; then
 		if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
 			cp "./${propertiesFileName}.example" "./${propertiesFileName}"
+			sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" "./${propertiesFileName}";
 		else
 			printError "Missing '${propertiesFileName}' file (see '${propertiesFileName}.example' or set MM_SENTRY_AUTH_TOKEN to generate)"
 			exit 1
@@ -319,10 +319,10 @@ checkParameters "$@"
 
 printTitle
 
-if [ "$MODE" == "release" ]; then
+if [ "$MODE" == "release" ] || [ "$MODE" == "releaseE2E" ]; then
 
 	if [ "$PRE_RELEASE" = false ]; then
-		echo "RELESE SENTRY PROPS"
+		echo "RELEASE SENTRY PROPS"
  		checkAuthToken 'sentry.release.properties'
  		export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"
  	else
@@ -331,15 +331,6 @@ if [ "$MODE" == "release" ]; then
  		export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
  	fi
 
-
-	if [ -z "$METAMASK_ENVIRONMENT" ]; then
-		printError "Missing METAMASK_ENVIRONMENT; set to 'production' for a production release, 'prerelease' for a pre-release, or 'local' otherwise"
-		exit 1
-	fi
-else
-	echo "RELESE SENTRY PROPS"
-	checkAuthToken 'sentry.release.properties'
-	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"
 
 	if [ -z "$METAMASK_ENVIRONMENT" ]; then
 		printError "Missing METAMASK_ENVIRONMENT; set to 'production' for a production release, 'prerelease' for a pre-release, or 'local' otherwise"
