@@ -209,13 +209,14 @@ buildIosReleaseE2E(){
 	if [ "$PRE_RELEASE" = true ] ; then
 		echo "Setting up env vars...";
 		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
-		echo "Build started..."
+		echo "Pre-release E2E Build started..."
 		brew install watchman
 		cd ios 
 		generateArchivePackages 
 		# Generate sourcemaps
 		yarn sourcemaps:ios
 	else
+		echo "Release E2E Build started..."
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
 		fi
@@ -297,6 +298,7 @@ checkAuthToken() {
 	local propertiesFileName="$1"
 
 	if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
+		echo "Release E2E Build started..."
 		sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" "./${propertiesFileName}";
 	elif ! grep -qE '^auth.token=[[:alnum:]]+$' "./${propertiesFileName}"; then
 		printError "Missing auth token in '${propertiesFileName}'; add the token, or set it as MM_SENTRY_AUTH_TOKEN"
@@ -320,12 +322,24 @@ printTitle
 if [ "$MODE" == "release" ]; then
 
 	if [ "$PRE_RELEASE" = false ]; then
+		echo "RELESE SENTRY PROPS"
  		checkAuthToken 'sentry.release.properties'
  		export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"
  	else
+	 	echo "DEBUG SENTRY PROPS"
  		checkAuthToken 'sentry.debug.properties'
  		export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
  	fi
+
+
+	if [ -z "$METAMASK_ENVIRONMENT" ]; then
+		printError "Missing METAMASK_ENVIRONMENT; set to 'production' for a production release, 'prerelease' for a pre-release, or 'local' otherwise"
+		exit 1
+	fi
+else
+	echo "RELESE SENTRY PROPS"
+	checkAuthToken 'sentry.release.properties'
+	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"
 
 	if [ -z "$METAMASK_ENVIRONMENT" ]; then
 		printError "Missing METAMASK_ENVIRONMENT; set to 'production' for a production release, 'prerelease' for a pre-release, or 'local' otherwise"
