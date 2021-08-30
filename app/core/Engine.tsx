@@ -513,19 +513,16 @@ class Engine {
 			PreferencesController.setSelectedAddress(accounts.hd[0]);
 		}
 
-		const mapTx = (tx: { txParams: Transaction; id: any; metamaskNetworkId: string; origin: string; status: string; time: any; hash: string; rawTx: string; }) => {
-			const typedTx = {
-				id: tx.id,
-				networkID: tx.metamaskNetworkId,
-				origin: tx.origin,
-				status: tx.status,
-				time: tx.time,
-				transactionHash: tx.hash,
-				rawTx: tx.rawTx,
-				transaction: { ...tx.txParams }
-			}
-			return typedTx;
-		};
+		const mapTx = (tx: { txParams: Transaction; id: any; metamaskNetworkId: string; origin: string; status: string; time: any; hash: string; rawTx: string; }) => ({
+			id: tx.id,
+			networkID: tx.metamaskNetworkId,
+			origin: tx.origin,
+			status: tx.status,
+			time: tx.time,
+			transactionHash: tx.hash,
+			rawTx: tx.rawTx,
+			transaction: { ...tx.txParams }
+		});
 
 		await TransactionController.update({
 			transactions: transactions.map(mapTx)
