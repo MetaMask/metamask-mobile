@@ -435,7 +435,6 @@ class Onboarding extends PureComponent {
 	render() {
 		const { loading } = this.props;
 		const { existingUser } = this.state;
-
 		return (
 			<View style={baseStyles.flexGrow} testID={'onboarding-screen'}>
 				<OnboardingScreenWithBg screen={'c'}>
