@@ -10,7 +10,7 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 import { connect } from 'react-redux';
 import { colors } from '../../../styles/common';
 import Logger from '../../../util/Logger';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import { recreateVaultWithSamePassword } from '../../../core/Vault';
 import {
 	EXISTING_USER,

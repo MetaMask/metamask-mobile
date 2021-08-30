@@ -5,7 +5,7 @@ import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import WebsiteIcon from '../../WebsiteIcon';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../../locales/i18n';
-import Device from '../../../../util/Device';
+import Device from '../../../../util/device';
 import { getHost } from '../../../../util/browser';
 
 const styles = StyleSheet.create({

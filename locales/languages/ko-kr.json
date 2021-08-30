@@ -133,7 +133,7 @@
 		"reset_wallet": "지갑 재설정",
 		"cant_proceed": "계속하려면 'Delete'를 입력하십시오. 입력하면 기존 지갑 지우기를 선택하는 것입니다.",
 		"invalid_password": "잘못된 암호",
-		"type_delete": "기존 지갑을 영구히 지우려면 'delete'를 입력하십시오.",
+		"type_delete": "기존 지갑을 영구히 지우려면 '%{delete}'를 입력하십시오.",
 		"delete_my": "내 지갑 삭제",
 		"are_you_sure": "지갑을 지우시겠습니까?",
 		"your_current_wallet": "기존 지갑, 계정 및 자산은 ",
@@ -143,10 +143,6 @@
 		"recovery_phrase": "복구할 수 있습니다. ",
 		"metamask_does_not": "MetaMask에는 계정 시드 구문이 저장되어 있지 않습니다.",
 		"i_understand": "이해했으며 계속하겠습니다.",
-		"passcode_not_set_error": "오류: 암호가 설정되지 않았습니다.",
-		"wrong_password_error": "오류: 암호 해독 실패",
-		"wrong_password_error_android": "오류: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
-		"vault_error": "오류: 이전의 금고 없이 잠금 해제할 수 없습니다.",
 		"clean_vault_error": "저장 한도에 도달하여 MetaMask 오류가 발생했습니다. 로컬 데이터가 손상되었습니다. MetaMask를 다시 설치하고 계정 시드 구문으로 복구하십시오."
 	},
 	"enter_password": {
@@ -1438,7 +1434,7 @@
 		"verified_on_sources": "{{sources} 소스에서 확인되었습니다.",
 		"verify_on": "항상 토큰 다음 위치에서 토큰 주소를 확인하십시오.",
 		"verify_address_on": "다음에서 토큰 주소 확인",
-		"only_verified_on": "{{symbol}}은(는) {{occurances}} 소스에서만 확인됩니다.",
+		"only_verified_on": "{{symbol}}은(는) {{occurrences}} 소스에서만 확인됩니다.",
 		"block_explorer": "블록 탐색기",
 		"a_block_explorer": "블록 탐색기",
 		"token_verification": "토큰 확인",
