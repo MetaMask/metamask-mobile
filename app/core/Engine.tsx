@@ -522,7 +522,7 @@ class Engine {
 				time: tx.time,
 				transactionHash: tx.hash,
 				rawTx: tx.rawTx,
-				transaction: { ...tx.txParams as Transaction }
+				transaction: { ...tx.txParams }
 			}
 			return typedTx;
 		};
