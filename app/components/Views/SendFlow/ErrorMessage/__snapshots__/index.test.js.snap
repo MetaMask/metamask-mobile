@@ -40,8 +40,8 @@ exports[`ErrorMessage should render correctly 1`] = `
       style={
         Object {
           "color": "#D73A49",
-          "lineHeight": 16.8,
           "flexShrink": 1,
+          "lineHeight": 16.8,
         }
       }
       underline={false}
