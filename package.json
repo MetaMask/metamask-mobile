@@ -22,13 +22,13 @@
     "start:android:e2e": "./scripts/build.sh android debugE2E",
     "build:announce": "node ./scripts/metamask-bot-build-announce-bitrise.js",
     "build:android:release": "./scripts/build.sh android release",
-    "build:android:release:e2e": "./scripts/build.sh android releaseE2E --pre",
+    "build:android:release:e2e": "./scripts/build.sh android releaseE2E",
     "build:android:checksum": "./scripts/checksum.sh",
     "build:android:checksum:verify": "shasum -a 512 -c sha512sums.txt",
     "build:android:pre-release": "./scripts/build.sh android release --pre",
     "build:android:pre-release:bundle": "GENERATE_BUNDLE=true ./scripts/build.sh android release --pre",
     "build:ios:release": "./scripts/build.sh ios release",
-    "build:ios:release:e2e": "./scripts/build.sh ios releaseE2E --pre",
+    "build:ios:release:e2e": "./scripts/build.sh ios releaseE2E",
     "build:ios:pre-release": "./scripts/build.sh ios release --pre",
     "release:android": "./scripts/build.sh android release && open android/app/build/outputs/apk/release/",
     "release:ios": "./scripts/build.sh ios release",
@@ -272,7 +272,7 @@
       },
       "ios.sim.release": {
         "binaryPath": "ios/build/Build/Products/Release-iphonesimulator/MetaMask.app",
-        "build": "METAMASK_ENVIRONMENT='production' yarn build:ios:release:e2e",
+        "build": "METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release",
         "type": "ios.simulator",
         "device": {
           "type": "iPhone 11 Pro"
@@ -288,7 +288,7 @@
       },
       "android.emu.release": {
         "binaryPath": "android/app/build/outputs/apk/release/app-release.apk",
-        "build": "METAMASK_ENVIRONMENT='production' yarn build:android:release:e2e",
+        "build": "METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle",
         "type": "android.emulator",
         "device": {
           "avdName": "Pixel_3_API_29"
