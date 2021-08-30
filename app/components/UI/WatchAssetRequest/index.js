@@ -91,10 +91,9 @@ const WatchAssetRequest = ({
 	useEffect(
 		() => async () => {
 			const { TokensController } = Engine.context;
-			const { suggestedAssetMeta } = this.props;
-			await TokensController.rejectWatchAsset(suggestedAssetMeta.id);
+			typeof suggestedAssetMeta !== undefined && (await TokensController.rejectWatchAsset(suggestedAssetMeta.id));
 		},
-		[]
+		[suggestedAssetMeta]
 	);
 
 	const getAnalyticsParams = () => {
