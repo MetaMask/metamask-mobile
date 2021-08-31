@@ -98,6 +98,7 @@ workflows:
             - avd-manager@1:
                   inputs:
                       - api_level: '29'
+                      - create_command_flags: '--sdcard 512M --memory 3072'
                       - profile: pixel
             - wait-for-android-emulator@1: {}
             - file-downloader@1:
