@@ -30,6 +30,7 @@ import Text from '../../../Base/Text';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { collectConfusables, hasZeroWidthPoints } from '../../../../util/validators';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import addRecent from '../../../../actions/recents';
 
 const { hexToBN } = util;
 const styles = StyleSheet.create({
@@ -223,7 +224,8 @@ class SendFlow extends PureComponent {
 		/**
 		 * Indicates whether the current transaction is a deep link transaction
 		 */
-		isPaymentRequest: PropTypes.bool
+		isPaymentRequest: PropTypes.bool,
+		addRecent: PropTypes.func
 	};
 
 	addressToInputRef = React.createRef();
@@ -447,7 +449,7 @@ class SendFlow extends PureComponent {
 	};
 
 	onTransactionDirectionSet = async () => {
-		const { setRecipient, navigation, providerType } = this.props;
+		const { setRecipient, navigation, providerType, addRecent } = this.props;
 		const {
 			fromSelectedAddress,
 			toSelectedAddress,
@@ -457,6 +459,7 @@ class SendFlow extends PureComponent {
 		} = this.state;
 		const addressError = await this.validateToAddress();
 		if (addressError) return;
+		addRecent(toSelectedAddress);
 		setRecipient(fromSelectedAddress, toSelectedAddress, toEnsName, toSelectedAddressName, fromAccountName);
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SEND_FLOW_ADDS_RECIPIENT, {
@@ -723,6 +726,7 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
+	addRecent: address => dispatch(addRecent(address)),
 	setRecipient: (from, to, ensRecipient, transactionToName, transactionFromName) =>
 		dispatch(setRecipient(from, to, ensRecipient, transactionToName, transactionFromName)),
 	newAssetTransaction: selectedAsset => dispatch(newAssetTransaction(selectedAsset)),
