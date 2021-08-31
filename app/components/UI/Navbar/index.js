@@ -17,7 +17,7 @@ import DeeplinkManager from '../../../core/DeeplinkManager';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { importAccountFromPrivateKey } from '../../../util/address';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import { isGatewayUrl } from '../../../lib/ens-ipfs/resolver';
 import { getHost } from '../../../util/browser';
 
@@ -36,6 +36,10 @@ const trackEventWithParameters = (event, params) => {
 };
 
 const styles = StyleSheet.create({
+	headerStyle: {
+		shadowColor: colors.transparent,
+		elevation: 0
+	},
 	metamaskName: {
 		width: 122,
 		height: 15
@@ -97,6 +101,7 @@ const styles = StyleSheet.create({
 	},
 	metamaskNameTransparentWrapper: {
 		alignItems: 'center',
+		justifyContent: 'center',
 		flex: 1
 	},
 	metamaskNameWrapper: {
@@ -107,8 +112,7 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		textAlign: 'center',
 		...fontStyles.normal,
-		alignItems: 'center',
-		flex: 1
+		alignItems: 'center'
 	}
 });
 
@@ -191,8 +195,8 @@ export function getEditableOptions(title, navigation, route) {
 		navigation.pop();
 	}
 	const rightAction = route.params?.dispatch;
-	const editMode = route.params?.editMode ?? '' === 'edit';
-	const addMode = route.params?.mode ?? '' === 'add';
+	const editMode = route.params?.editMode === 'edit';
+	const addMode = route.params?.mode === 'add';
 	return {
 		title,
 		headerTitleStyle: {
@@ -511,14 +515,14 @@ export function getOnboardingNavbarOptions(navigation, route, { headerLeft } = {
  */
 export function getTransparentOnboardingNavbarOptions() {
 	return {
-		headerTransparent: true,
 		headerTitle: () => (
 			<View style={styles.metamaskNameTransparentWrapper}>
 				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
 			</View>
 		),
 		headerLeft: () => <View />,
-		headerRight: () => <View />
+		headerRight: () => <View />,
+		headerStyle: styles.headerStyle
 	};
 }
 
@@ -529,14 +533,14 @@ export function getTransparentOnboardingNavbarOptions() {
  */
 export function getTransparentBackOnboardingNavbarOptions() {
 	return {
-		headerTransparent: true,
 		headerTitle: () => (
 			<View style={styles.metamaskNameTransparentWrapper}>
 				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
 			</View>
 		),
 		headerBackTitle: strings('navigation.back'),
-		headerRight: () => <View />
+		headerRight: () => <View />,
+		headerStyle: styles.headerStyle
 	};
 }
 
@@ -767,20 +771,26 @@ export function getWebviewNavbar(navigation, route) {
 	};
 }
 
-export function getPaymentSelectorMethodNavbar(navigation) {
+export function getPaymentSelectorMethodNavbar(navigation, onPop) {
 	return {
 		headerTitle: () => <Text style={styles.centeredTitle}>{strings('fiat_on_ramp.purchase_method')}</Text>,
 		headerLeft: () => <View />,
 		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.dangerouslyGetParent()?.pop()} style={styles.closeButton}>
+			<TouchableOpacity
+				onPress={() => {
+					navigation.dangerouslyGetParent()?.pop();
+					onPop?.();
+				}}
+				style={styles.closeButton}
+			>
 				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
 			</TouchableOpacity>
 		)
 	};
 }
 
-export function getPaymentMethodApplePayNavbar(navigation) {
+export function getPaymentMethodApplePayNavbar(navigation, onPop, onExit) {
 	return {
 		title: strings('fiat_on_ramp.amount_to_buy'),
 		headerTitleStyle: {
@@ -790,26 +800,44 @@ export function getPaymentMethodApplePayNavbar(navigation) {
 		},
 		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.dangerouslyGetParent()?.pop()} style={styles.closeButton}>
+			<TouchableOpacity
+				onPress={() => {
+					navigation.dangerouslyGetParent()?.pop();
+					onExit?.();
+				}}
+				style={styles.closeButton}
+			>
 				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
 			</TouchableOpacity>
 		),
 		headerLeft: () =>
 			Device.isAndroid() ? (
 				// eslint-disable-next-line react/jsx-no-bind
-				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+				<TouchableOpacity
+					onPress={() => {
+						navigation.pop();
+						onPop?.();
+					}}
+					style={styles.backButton}
+				>
 					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
 				</TouchableOpacity>
 			) : (
 				// eslint-disable-next-line react/jsx-no-bind
-				<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
+				<TouchableOpacity
+					onPress={() => {
+						navigation.pop();
+						onPop?.();
+					}}
+					style={styles.closeButton}
+				>
 					<Text style={styles.closeButtonText}>{strings('navigation.back')}</Text>
 				</TouchableOpacity>
 			)
 	};
 }
 
-export function getTransakWebviewNavbar(navigation, route) {
+export function getTransakWebviewNavbar(navigation, route, onPop) {
 	const title = route.params?.title ?? '';
 	return {
 		title,
@@ -821,12 +849,24 @@ export function getTransakWebviewNavbar(navigation, route) {
 		headerLeft: () =>
 			Device.isAndroid() ? (
 				// eslint-disable-next-line react/jsx-no-bind
-				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+				<TouchableOpacity
+					onPress={() => {
+						navigation.pop();
+						onPop?.();
+					}}
+					style={styles.backButton}
+				>
 					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
 				</TouchableOpacity>
 			) : (
 				// eslint-disable-next-line react/jsx-no-bind
-				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+				<TouchableOpacity
+					onPress={() => {
+						navigation.pop();
+						onPop?.();
+					}}
+					style={styles.backButton}
+				>
 					<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
 				</TouchableOpacity>
 			)

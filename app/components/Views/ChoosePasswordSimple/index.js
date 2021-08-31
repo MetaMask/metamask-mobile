@@ -16,7 +16,7 @@ import { connect } from 'react-redux';
 import { passwordSet } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';

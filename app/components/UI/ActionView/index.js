@@ -41,12 +41,13 @@ export default function ActionView({
 	showConfirmButton,
 	confirmed,
 	confirmDisabled,
-	keyboardShouldPersistTaps = 'never'
+	keyboardShouldPersistTaps = 'never',
+	style = undefined
 }) {
 	return (
 		<View style={baseStyles.flexGrow}>
 			<KeyboardAwareScrollView
-				style={baseStyles.flexGrow}
+				style={[baseStyles.flexGrow, style]}
 				resetScrollToCoords={{ x: 0, y: 0 }}
 				keyboardShouldPersistTaps={keyboardShouldPersistTaps}
 			>
@@ -160,5 +161,9 @@ ActionView.propTypes = {
 	/**
 	 * Determines if the keyboard should stay visible after a tap
 	 */
-	keyboardShouldPersistTaps: PropTypes.string
+	keyboardShouldPersistTaps: PropTypes.string,
+	/**
+	 * Optional View styles. Applies to scroll view
+	 */
+	style: PropTypes.object
 };

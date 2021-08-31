@@ -24,7 +24,7 @@ import { passwordSet, passwordUnset, seedphraseNotBackedUp } from '../../../acti
 import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';

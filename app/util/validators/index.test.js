@@ -1,4 +1,4 @@
-import { failedSeedPhraseRequirements, parseSeedPhrase, hasZeroWidthPoints, collectConfusables } from './validators';
+import { failedSeedPhraseRequirements, parseSeedPhrase, hasZeroWidthPoints, collectConfusables } from '.';
 
 const VALID_24 =
 	'verb middle giant soon wage common wide tool gentle garlic issue nut retreat until album recall expire bronze bundle live accident expect dry cook';

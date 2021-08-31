@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
 import { colors } from '../../styles/common';
-import Device from '../../util/Device';
+import Device from '../../util/device';
 
 const styles = StyleSheet.create({
 	draggerWrapper: {

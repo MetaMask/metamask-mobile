@@ -2,6 +2,8 @@ import { NetworksChainId } from '@metamask/controllers';
 import AppConstants from '../core/AppConstants';
 import { getAllNetworks, isSafeChainId } from '../util/networks';
 import { toLowerCaseEquals } from '../util/general';
+import DefaultPreference from 'react-native-default-preference';
+import { ONBOARDING_WIZARD, METRICS_OPT_IN, AGREED, DENIED, EXPLORED } from '../constants/storage';
 
 export const migrations = {
 	// Needed after https://github.com/MetaMask/controllers/pull/152
@@ -149,7 +151,58 @@ export const migrations = {
 		delete state.engine.backgroundState.AssetsController;
 
 		return state;
+	},
+	6: state => {
+		state.analytics?.enabled
+			? DefaultPreference.set(METRICS_OPT_IN, AGREED)
+			: DefaultPreference.set(METRICS_OPT_IN, DENIED);
+		DefaultPreference.set(ONBOARDING_WIZARD, EXPLORED);
+
+		return state;
+	},
+	7: state => {
+		const allTokens = state.engine.backgroundState.TokensController.allTokens;
+		const newAllTokens = {};
+		if (allTokens) {
+			Object.keys(allTokens).forEach(accountAddress => {
+				Object.keys(allTokens[accountAddress]).forEach(chainId => {
+					const tokensArray = allTokens[accountAddress][chainId];
+					if (newAllTokens[chainId] === undefined) {
+						newAllTokens[chainId] = { [accountAddress]: tokensArray };
+					} else {
+						newAllTokens[chainId] = {
+							...newAllTokens[chainId],
+							[accountAddress]: tokensArray
+						};
+					}
+				});
+			});
+		}
+
+		const ignoredTokens = state.engine.backgroundState.TokensController.ignoredTokens;
+		const newAllIgnoredTokens = {};
+		Object.keys(allTokens).forEach(accountAddress => {
+			Object.keys(allTokens[accountAddress]).forEach(chainId => {
+				if (newAllIgnoredTokens[chainId] === undefined) {
+					newAllIgnoredTokens[chainId] = {
+						[accountAddress]: ignoredTokens
+					};
+				} else {
+					newAllIgnoredTokens[chainId] = {
+						...newAllIgnoredTokens[chainId],
+						[accountAddress]: ignoredTokens
+					};
+				}
+			});
+		});
+
+		state.engine.backgroundState.TokensController = {
+			allTokens: newAllTokens,
+			allIgnoredTokens: newAllIgnoredTokens
+		};
+
+		return state;
 	}
 };
 
-export const version = 5;
+export const version = 7;

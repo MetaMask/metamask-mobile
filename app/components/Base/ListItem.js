@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
-// import Device from '../../util/Device';
+// import Device from '../../util/device';
 import { colors, fontStyles } from '../../styles/common';
 import Text from './Text';
 

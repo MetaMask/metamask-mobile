@@ -1,13 +1,15 @@
 import PropTypes from 'prop-types';
 import { InteractionManager } from 'react-native';
 import { connect } from 'react-redux';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import { renderNumber } from '../../../util/number';
 
-import { FIAT_ORDER_STATES, getPendingOrders, updateFiatOrder } from '../../../reducers/fiatOrders';
+import { FIAT_ORDER_STATES } from '../../../constants/on-ramp';
+import { getPendingOrders, updateFiatOrder } from '../../../reducers/fiatOrders';
 import useInterval from '../../hooks/useInterval';
 import processOrder from './orderProcessor';
 
@@ -22,6 +24,38 @@ export const allowedToBuy = network => network === '1' || (network === '42' && D
 
 const baseNotificationDetails = {
 	duration: NOTIFICATION_DURATION
+};
+
+/**
+ * @param {FiatOrder} fiatOrder
+ */
+export const getAnalyticsPayload = fiatOrder => {
+	const payload = {
+		fiat_amount: { value: fiatOrder.amount, anonymous: true },
+		fiat_currency: { value: fiatOrder.currency, anonymous: true },
+		crypto_currency: { value: fiatOrder.cryptocurrency, anonymous: true },
+		crypto_amount: { value: fiatOrder.cryptoAmount, anonymous: true },
+		fee_in_fiat: { value: fiatOrder.fee, anonymous: true },
+		fee_in_crypto: { value: fiatOrder.cryptoFee, anonymous: true },
+		order_id: { value: fiatOrder.id, anonymous: true },
+		fiat_amount_in_usd: { value: fiatOrder.amountInUSD, anonymous: true },
+		'on-ramp_provider': { value: fiatOrder.provider, anonymous: true }
+	};
+	switch (fiatOrder.state) {
+		case FIAT_ORDER_STATES.FAILED: {
+			return [AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_FAILED, payload];
+		}
+		case FIAT_ORDER_STATES.CANCELLED: {
+			return [AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_CANCELLED, payload];
+		}
+		case FIAT_ORDER_STATES.COMPLETED: {
+			return [AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_COMPLETED, payload];
+		}
+		case FIAT_ORDER_STATES.PENDING:
+		default: {
+			return [null];
+		}
+	}
 };
 
 /**
@@ -80,9 +114,13 @@ function FiatOrders({ pendingOrders, updateFiatOrder }) {
 					const updatedOrder = await processOrder(order);
 					updateFiatOrder(updatedOrder);
 					if (updatedOrder.state !== order.state) {
-						InteractionManager.runAfterInteractions(() =>
-							NotificationManager.showSimpleNotification(getNotificationDetails(updatedOrder))
-						);
+						InteractionManager.runAfterInteractions(() => {
+							const [analyticsEvent, analyticsPayload] = getAnalyticsPayload(updatedOrder);
+							if (analyticsEvent) {
+								AnalyticsV2.trackEvent(analyticsEvent, analyticsPayload);
+							}
+							NotificationManager.showSimpleNotification(getNotificationDetails(updatedOrder));
+						});
 					}
 				})
 			);

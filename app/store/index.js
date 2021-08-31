@@ -46,6 +46,7 @@ const MigratedStorage = {
 const persistConfig = {
 	key: 'root',
 	version,
+	blacklist: ['onboarding', 'analytics'],
 	storage: MigratedStorage,
 	stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
 	migrate: createMigrate(migrations, { debug: false }),

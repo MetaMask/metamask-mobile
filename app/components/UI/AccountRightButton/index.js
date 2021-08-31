@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { TouchableOpacity, StyleSheet } from 'react-native';
 import Identicon from '../Identicon';
 import { toggleAccountsModal } from '../../../actions/modals';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 
 const styles = StyleSheet.create({
 	leftButton: {

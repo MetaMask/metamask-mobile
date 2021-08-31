@@ -5,7 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import TransactionHeader from '../TransactionHeader';
 import { strings } from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import Text from '../../Base/Text';
 
 const styles = StyleSheet.create({

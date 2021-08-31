@@ -11,6 +11,7 @@ import AssetElement from '../AssetElement';
 import { connect } from 'react-redux';
 import { safeToChecksumAddress } from '../../../util/address';
 import Analytics from '../../../core/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { getTokenList } from '../../../reducers/tokens';
@@ -215,6 +216,10 @@ class Tokens extends PureComponent {
 		this.props.navigation.navigate('FiatOnRamp');
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_OPENED, {
+				button_location: 'Home Screen',
+				button_copy: 'Buy ETH'
+			});
 		});
 	};
 

@@ -337,7 +337,6 @@ class Approval extends PureComponent {
 			transactionToSend.gas = EIP1559GasData.gasLimitHex;
 			transactionToSend.maxFeePerGas = addHexPrefix(EIP1559GasData.suggestedMaxFeePerGasHex); //'0x2540be400'
 			transactionToSend.maxPriorityFeePerGas = addHexPrefix(EIP1559GasData.suggestedMaxPriorityFeePerGasHex); //'0x3b9aca00';
-			transactionToSend.to = safeToChecksumAddress(transaction.to);
 			delete transactionToSend.gasPrice;
 		} else {
 			transactionToSend.gas = BNToHex(transaction.gas);

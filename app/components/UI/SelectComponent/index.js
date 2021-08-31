@@ -7,7 +7,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import Modal from 'react-native-modal';
 import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import IconCheck from 'react-native-vector-icons/MaterialCommunityIcons';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 
 const PickerItem = Picker.Item;
 const ROW_HEIGHT = 35;

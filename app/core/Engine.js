@@ -22,9 +22,7 @@ import {
 	TokensController,
 	CollectiblesController
 } from '@metamask/controllers';
-
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
-
 import AsyncStorage from '@react-native-community/async-storage';
 import Encryptor from './Encryptor';
 import { toChecksumAddress } from 'ethereumjs-util';
@@ -114,7 +112,7 @@ class Engine {
 			});
 			this.controllerMessenger = new ControllerMessenger();
 			const tokenListController = new TokenListController({
-				chainId: networkController.provider.chainId, // Should this use networkController.state.provider.chainId instead?
+				chainId: networkController.provider.chainId,
 				onNetworkStateChange: listener => networkController.subscribe(listener),
 				useStaticTokenList: preferencesController.state.useStaticTokenList,
 				onPreferencesStateChange: listener => preferencesController.subscribe(listener),
@@ -132,9 +130,14 @@ class Engine {
 				onNetworkStateChange: listener => networkController.subscribe(listener),
 				getCurrentNetworkEIP1559Compatibility: async () => await networkController.getEIP1559Compatibility(),
 				getChainId: () => networkController.state.provider.chainId,
-				getCurrentNetworkLegacyGasAPICompatibility: () =>
-					isMainnetByChainId(networkController.state.provider.chainId) ||
-					networkController.state.provider.chainId === swapsUtils.BSC_CHAIN_ID,
+				getCurrentNetworkLegacyGasAPICompatibility: () => {
+					const chainId = networkController.state.provider.chainId;
+					return (
+						isMainnetByChainId(chainId) ||
+						chainId === swapsUtils.BSC_CHAIN_ID ||
+						chainId === swapsUtils.POLYGON_CHAIN_ID
+					);
+				},
 				legacyAPIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/gasPrices',
 				EIP1559APIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees'
 			});
@@ -200,13 +203,15 @@ class Engine {
 					getProvider: () => networkController.provider
 				}),
 				new TypedMessageManager(),
-				new SwapsController({
-					clientId: AppConstants.SWAPS.CLIENT_ID,
-					fetchAggregatorMetadataThreshold: AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
-					fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
-					fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD,
-					fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates()
-				}),
+				new SwapsController(
+					{ fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates() },
+					{
+						clientId: AppConstants.SWAPS.CLIENT_ID,
+						fetchAggregatorMetadataThreshold: AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
+						fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
+						fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD
+					}
+				),
 				gasFeeController
 			];
 			// set initial state
@@ -272,8 +277,7 @@ class Engine {
 		SwapsController.configure({
 			provider,
 			chainId: NetworkControllerState?.provider?.chainId,
-			pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
-			quotePollingInterval: AppConstants.SWAPS.POLLING_INTERVAL
+			pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT
 		});
 		TransactionController.configure({ provider });
 		TransactionController.hub.emit('networkChange');
@@ -434,6 +438,14 @@ class Engine {
 			ignoredCollectibles: []
 		});
 
+		TokensController.update({
+			allTokens: {},
+			allIgnoredTokens: {},
+			ignoredTokens: [],
+			tokens: [],
+			suggestedAssets: []
+		});
+
 		TokenBalancesController.update({ contractBalances: {} });
 		TokenRatesController.update({ contractExchangeRates: {} });
 
@@ -445,16 +457,23 @@ class Engine {
 		});
 	};
 
-	sync = async ({ accounts, preferences, network, transactions, seed, pass, importedAccounts }) => {
+	sync = async ({
+		accounts,
+		preferences,
+		network,
+		transactions,
+		seed,
+		pass,
+		importedAccounts,
+		tokens: { allTokens, allIgnoredTokens }
+	}) => {
 		const {
 			KeyringController,
 			PreferencesController,
 			NetworkController,
 			TransactionController,
-			TokensController,
-			TokenListController
+			TokensController
 		} = this.context;
-		const tokenList = TokenListController.state.tokenList;
 
 		// Select same network ?
 		await NetworkController.setProviderType(network.provider.type);
@@ -471,33 +490,9 @@ class Engine {
 				await KeyringController.importAccountWithStrategy('privateKey', [importedAccounts[i]]);
 			}
 		}
-		// Sync tokens
-		await TokenListController.syncTokens();
 
-		const allTokens = {};
-		Object.keys(preferences.accountTokens).forEach(address => {
-			const checksummedAddress = toChecksumAddress(address);
-			allTokens[checksummedAddress] = {};
-			Object.keys(preferences.accountTokens[address]).forEach(chainId => {
-				const network = Object.values(Networks).find(
-					({ hexChainId: networkChainId }) => networkChainId === chainId
-				);
-				const networkType = network?.networkType;
-				// !networkType this will probably happen on custom rpc networks
-				if (!networkType) return;
-				allTokens[checksummedAddress][networkType] =
-					chainId !== `0x1`
-						? preferences.accountTokens[address][chainId]
-						: preferences.accountTokens[address][chainId]
-								.filter(({ address }) =>
-									tokenList[toChecksumAddress(address)]
-										? tokenList[toChecksumAddress(address)].erc20
-										: true
-								)
-								.map(token => ({ ...token, address: toChecksumAddress(token.address) }));
-			});
-		});
-		await TokensController.update({ allTokens });
+		// Restore tokens
+		await TokensController.update({ allTokens, allIgnoredTokens });
 
 		// Restore preferences
 		const updatedPref = { ...preferences, identities: {} };
@@ -532,7 +527,8 @@ class Engine {
 				gasPrice: tx.txParams.gasPrice,
 				value: tx.txParams.value,
 				maxFeePerGas: tx.txParams.maxFeePerGas,
-				maxPriorityFeePerGas: tx.txParams.maxPriorityFeePerGas
+				maxPriorityFeePerGas: tx.txParams.maxPriorityFeePerGas,
+				data: tx.txParams.data
 			}
 		});
 

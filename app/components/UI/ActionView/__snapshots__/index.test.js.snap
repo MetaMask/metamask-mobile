@@ -23,9 +23,12 @@ exports[`ActionView should render correctly 1`] = `
       }
     }
     style={
-      Object {
-        "flex": 1,
-      }
+      Array [
+        Object {
+          "flex": 1,
+        },
+        undefined,
+      ]
     }
     viewIsInsideTabBar={false}
   >

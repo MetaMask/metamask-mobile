@@ -19,6 +19,7 @@ import { swapsLivenessSelector, swapsTokensObjectSelector } from '../../../reduc
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import Analytics from '../../../core/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { allowedToBuy } from '../FiatOrders';
 import AssetSwapButton from '../Swaps/components/AssetSwapButton';
@@ -162,6 +163,10 @@ class AssetOverview extends PureComponent {
 		this.props.navigation.navigate('FiatOnRamp');
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_OPENED, {
+				button_location: 'Token Screen',
+				button_copy: 'Buy'
+			});
 		});
 	};
 

@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { SafeAreaView, StatusBar, View } from 'react-native';
 import { colors, baseStyles } from '../../../styles/common';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 /**
  * Base view component providing consistent styling meant to wrap other views
  */

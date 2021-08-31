@@ -1,10 +1,8 @@
-import React, { PureComponent } from 'react';
-import Branch from 'react-native-branch';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { NavigationContainer, CommonActions } from '@react-navigation/native';
 import { createSwitchNavigator } from '@react-navigation/compat';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
-
 import Login from '../../Views/Login';
 import QRScanner from '../../Views/QRScanner';
 import Onboarding from '../../Views/Onboarding';
@@ -24,10 +22,9 @@ import Main from '../Main';
 import DrawerView from '../../UI/DrawerView';
 import OptinMetrics from '../../UI/OptinMetrics';
 import SimpleWebview from '../../Views/SimpleWebview';
-
-//import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager';
 import Engine from '../../../core/Engine';
+import { BranchSubscriber } from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
@@ -152,29 +149,15 @@ const AppNavigator = createSwitchNavigator(
 	}
 );
 
-class App extends PureComponent {
-	unsubscribeFromBranch;
+const App = () => {
+	const unsubscribeFromBranch = useRef();
+	let navigator = useRef();
 
-	componentDidMount = () => {
-		SharedDeeplinkManager.init({
-			navigate: (name, opts) => {
-				this.navigator.dispatch(CommonActions.navigate({ name, params: opts }));
-			}
-		});
-		if (!this.unsubscribeFromBranch) {
-			this.unsubscribeFromBranch = Branch.subscribe(this.handleDeeplinks);
-		}
-	};
-
-	handleDeeplinks = async ({ error, params, uri }) => {
+	const handleDeeplink = useCallback(({ error, params, uri }) => {
 		if (error) {
-			if (error === 'Trouble reaching the Branch servers, please try again shortly.') {
-				trackErrorAsAnalytics('Branch: Trouble reaching servers', error);
-			} else {
-				Logger.error(error, 'Deeplink: Error from Branch');
-			}
+			trackErrorAsAnalytics(error, 'Branch:');
 		}
-		const deeplink = params['+non_branch_link'] || uri || null;
+		const deeplink = params?.['+non_branch_link'] || uri || null;
 		try {
 			if (deeplink) {
 				const { KeyringController } = Engine.context;
@@ -186,22 +169,35 @@ class App extends PureComponent {
 		} catch (e) {
 			Logger.error(e, `Deeplink: Error parsing deeplink`);
 		}
-	};
+	}, []);
 
-	componentWillUnmount = () => {
-		this.unsubscribeFromBranch && this.unsubscribeFromBranch();
-	};
+	const branchSubscriber = new BranchSubscriber({
+		onOpenStart: opts => handleDeeplink(opts),
+		onOpenComplete: opts => handleDeeplink(opts)
+	});
 
-	render() {
-		return (
-			<NavigationContainer
-				ref={nav => {
-					this.navigator = nav;
-				}}
-			>
-				<AppNavigator />
-			</NavigationContainer>
-		);
-	}
-}
+	useEffect(() => {
+		SharedDeeplinkManager.init({
+			navigate: (routeName, opts) => {
+				const params = { name: routeName, params: opts };
+				navigator.dispatch(CommonActions.navigate(params));
+			}
+		});
+
+		unsubscribeFromBranch.current = branchSubscriber.subscribe();
+
+		return () => unsubscribeFromBranch.current?.();
+	}, [branchSubscriber]);
+
+	return (
+		<NavigationContainer
+			ref={nav => {
+				navigator = nav;
+			}}
+		>
+			<AppNavigator />
+		</NavigationContainer>
+	);
+};
+
 export default App;

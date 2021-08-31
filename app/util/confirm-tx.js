@@ -3,7 +3,7 @@ import currencies from 'currency-formatter/currencies';
 import BigNumber from 'bignumber.js';
 import { addHexPrefix } from './number';
 
-import { conversionUtil, addCurrencies, multiplyCurrencies, conversionGreaterThan } from './conversion-util';
+import { conversionUtil, addCurrencies, multiplyCurrencies, conversionGreaterThan } from './conversion';
 
 export function increaseLastGasPrice(lastGasPrice) {
 	return addHexPrefix(

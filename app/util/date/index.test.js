@@ -1,4 +1,4 @@
-import { toDateFormat } from './date';
+import { toDateFormat } from '.';
 
 const TZ = 'America/Toronto';
 

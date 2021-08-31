@@ -22,7 +22,7 @@ import { clearHistory } from '../../../../actions/browser';
 import { clearHosts, setPrivacyMode, setThirdPartyApiMode } from '../../../../actions/privacy';
 import { colors, fontStyles } from '../../../../styles/common';
 import Logger from '../../../../util/Logger';
-import Device from '../../../../util/Device';
+import Device from '../../../../util/device';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setLockTime } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';

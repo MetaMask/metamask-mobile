@@ -1,4 +1,4 @@
-import { strings } from '../../locales/i18n';
+import { strings } from '../../../locales/i18n';
 
 export function toLocaleDateTime(timestamp) {
 	const dateObj = new Date(timestamp);

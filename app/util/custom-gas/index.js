@@ -1,10 +1,10 @@
 import { BN } from 'ethereumjs-util';
-import { renderFromWei, weiToFiat, toWei, conversionUtil } from './number';
-import { strings } from '../../locales/i18n';
-import Logger from '../util/Logger';
-import TransactionTypes from '../core/TransactionTypes';
-import Engine from '../core/Engine';
-import { isMainnetByChainId } from '../util/networks';
+import { renderFromWei, weiToFiat, toWei, conversionUtil } from '../number';
+import { strings } from '../../../locales/i18n';
+import Logger from '../Logger';
+import TransactionTypes from '../../core/TransactionTypes';
+import Engine from '../../core/Engine';
+import { isMainnetByChainId } from '../networks';
 import { util } from '@metamask/controllers';
 const { hexToBN } = util;
 

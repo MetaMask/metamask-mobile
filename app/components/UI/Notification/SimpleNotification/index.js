@@ -3,7 +3,7 @@ import { StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import Animated from 'react-native-reanimated';
 import BaseNotification from './../BaseNotification';
-import Device from '../../../../util/Device';
+import Device from '../../../../util/device';
 import ElevatedView from 'react-native-elevated-view';
 
 const styles = StyleSheet.create({

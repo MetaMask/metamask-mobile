@@ -23,7 +23,7 @@ import CollectibleMedia from '../CollectibleMedia';
 import SelectableAsset from './SelectableAsset';
 import { getTicker, getNormalizedTxState } from '../../../util/transactions';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { toLowerCaseEquals } from '../../../util/general';
 

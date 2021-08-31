@@ -27,7 +27,7 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 import TermsAndConditions from '../TermsAndConditions';
 import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import { failedSeedPhraseRequirements, isValidMnemonic, parseSeedPhrase } from '../../../util/validators';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import {
@@ -42,6 +42,7 @@ import {
 import Logger from '../../../util/Logger';
 import { getPasswordStrengthWord, passwordRequirementsMet, MIN_PASSWORD_LENGTH } from '../../../util/password';
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
+import DefaultPreference from 'react-native-default-preference';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -276,9 +277,9 @@ class ImportFromSeed extends PureComponent {
 					await SecureKeychain.resetGenericPassword();
 				}
 				// Get onboarding wizard state
-				const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
+				const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
 				// Check if user passed through metrics opt-in screen
-				const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
+				const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
 				// mark the user as existing so it doesn't see the create password screen again
 				await AsyncStorage.setItem(EXISTING_USER, TRUE);
 				await AsyncStorage.removeItem(SEED_PHRASE_HINTS);

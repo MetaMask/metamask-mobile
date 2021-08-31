@@ -1,14 +1,30 @@
+diff --git a/node_modules/react-native/Libraries/Blob/URL.js b/node_modules/react-native/Libraries/Blob/URL.js
+index f2b6f7f..5251c62 100644
+--- a/node_modules/react-native/Libraries/Blob/URL.js
++++ b/node_modules/react-native/Libraries/Blob/URL.js
+@@ -105,9 +105,10 @@ export class URLSearchParams {
+   }
+ }
+ 
++// Patched regex for security fix - https://github.com/facebook/react-native/commit/ca09ae82715e33c9ac77b3fa55495cf84ba891c7
+ function validateBaseUrl(url: string) {
+   // from this MIT-licensed gist: https://gist.github.com/dperini/729294
+-  return /^(?:(?:(?:https?|ftp):)?\/\/)(?:(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,}))?)(?::\d{2,5})?(?:[/?#]\S*)?$/i.test(
++  return /^(?:(?:(?:https?|ftp):)?\/\/)(?:(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z0-9\u00a1-\uffff][a-z0-9\u00a1-\uffff_-]{0,62})?[a-z0-9\u00a1-\uffff]\.)*(?:[a-z\u00a1-\uffff]{2,}\.?))(?::\d{2,5})?(?:[/?#]\S*)?$/.test(
+     url,
+   );
+ }
 diff --git a/node_modules/react-native/ReactAndroid/src/androidTest/js/PickerAndroidTestModule.js b/node_modules/react-native/ReactAndroid/src/androidTest/js/PickerAndroidTestModule.js
 index a4e0cc0..4f4c9ea 100644
 --- a/node_modules/react-native/ReactAndroid/src/androidTest/js/PickerAndroidTestModule.js
 +++ b/node_modules/react-native/ReactAndroid/src/androidTest/js/PickerAndroidTestModule.js
 @@ -10,7 +10,8 @@
  'use strict';
-
+ 
  const React = require('react');
 -const {NativeModules, Picker, View} = require('react-native');
 +const {NativeModules, View} = require('react-native');
 +const {Picker} = require('@react-native-community/picker');
  const BatchedBridge = require('react-native/Libraries/BatchedBridge/BatchedBridge');
-
+ 
  const {Recording: RecordingModule} = NativeModules;

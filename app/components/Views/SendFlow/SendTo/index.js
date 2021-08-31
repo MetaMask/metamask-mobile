@@ -3,15 +3,7 @@ import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import AddressList from './../AddressList';
 import PropTypes from 'prop-types';
-import {
-	StyleSheet,
-	View,
-	TouchableOpacity,
-	TextInput,
-	SafeAreaView,
-	InteractionManager,
-	ScrollView
-} from 'react-native';
+import { StyleSheet, View, TouchableOpacity, TextInput, InteractionManager, ScrollView } from 'react-native';
 import { AddressFrom, AddressTo } from './../AddressInputs';
 import Modal from 'react-native-modal';
 import AccountList from '../../../UI/AccountList';
@@ -30,12 +22,15 @@ import { strings } from '../../../../../locales/i18n';
 import WarningMessage from '../WarningMessage';
 import { util } from '@metamask/controllers';
 import Analytics from '../../../../core/Analytics';
+import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { allowedToBuy } from '../../../UI/FiatOrders';
 import NetworkList from '../../../../util/networks';
 import Text from '../../../Base/Text';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { collectConfusables, hasZeroWidthPoints } from '../../../../util/validators';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import addRecent from '../../../../actions/recents';
 
 const { hexToBN } = util;
 const styles = StyleSheet.create({
@@ -229,7 +224,8 @@ class SendFlow extends PureComponent {
 		/**
 		 * Indicates whether the current transaction is a deep link transaction
 		 */
-		isPaymentRequest: PropTypes.bool
+		isPaymentRequest: PropTypes.bool,
+		addRecent: PropTypes.func
 	};
 
 	addressToInputRef = React.createRef();
@@ -453,7 +449,7 @@ class SendFlow extends PureComponent {
 	};
 
 	onTransactionDirectionSet = async () => {
-		const { setRecipient, navigation, providerType } = this.props;
+		const { setRecipient, navigation, providerType, addRecent } = this.props;
 		const {
 			fromSelectedAddress,
 			toSelectedAddress,
@@ -463,6 +459,7 @@ class SendFlow extends PureComponent {
 		} = this.state;
 		const addressError = await this.validateToAddress();
 		if (addressError) return;
+		addRecent(toSelectedAddress);
 		setRecipient(fromSelectedAddress, toSelectedAddress, toEnsName, toSelectedAddressName, fromAccountName);
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SEND_FLOW_ADDS_RECIPIENT, {
@@ -552,6 +549,10 @@ class SendFlow extends PureComponent {
 		this.props.navigation.navigate('FiatOnRamp');
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_OPENED, {
+				button_location: 'Send Flow warning',
+				button_copy: 'Buy ETH'
+			});
 		});
 	};
 
@@ -597,7 +598,7 @@ class SendFlow extends PureComponent {
 			confusableCollection && confusableCollection.length && !confusableCollection.some(hasZeroWidthPoints);
 
 		return (
-			<SafeAreaView style={styles.wrapper} testID={'send-screen'}>
+			<SafeAreaView edges={['bottom']} style={styles.wrapper} testID={'send-screen'}>
 				<View style={styles.imputWrapper}>
 					<AddressFrom
 						onPressIcon={this.toggleFromAccountModal}
@@ -725,6 +726,7 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
+	addRecent: address => dispatch(addRecent(address)),
 	setRecipient: (from, to, ensRecipient, transactionToName, transactionFromName) =>
 		dispatch(setRecipient(from, to, ensRecipient, transactionToName, transactionFromName)),
 	newAssetTransaction: selectedAsset => dispatch(newAssetTransaction(selectedAsset)),

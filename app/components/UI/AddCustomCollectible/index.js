@@ -7,7 +7,7 @@ import { strings } from '../../../../locales/i18n';
 import { isValidAddress } from 'ethereumjs-util';
 import ActionView from '../ActionView';
 import { isSmartContractAddress } from '../../../util/transactions';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import { connect } from 'react-redux';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { toLowerCaseEquals } from '../../../util/general';
