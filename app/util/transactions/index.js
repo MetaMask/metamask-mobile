@@ -30,6 +30,7 @@ import {
 } from '../confirm-tx';
 
 import humanizeDuration from 'humanize-duration';
+import Logger from '../../util/Logger';
 
 const { SAI_ADDRESS } = AppConstants;
 
@@ -652,7 +653,7 @@ export const calculateEIP1559Times = ({
 			timeEstimateId = AppConstants.GAS_TIMES.RANGE;
 		}
 	} catch (error) {
-		console.log('ERROR ESTIMATING TIME', error);
+		Logger.log('ERROR ESTIMATING TIME', error);
 	}
 
 	return { timeEstimate, timeEstimateColor, timeEstimateId };
