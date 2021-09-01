@@ -50,17 +50,6 @@ const persistConfig = {
 	storage: MigratedStorage,
 	stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
 	migrate: createMigrate(migrations, { debug: false }),
-	/**
-	 * fix bug: https://github.com/MetaMask/metamask-mobile/issues/2100
-	 * 
-	 * reason: redux-persist load storage data by 'getItem' API with a timeout (5 seconds default) when app ’cold start',
-	 * on some old devices, I/O is slow and 'readfile' operation may take long time Occasionally, when this happened, timeout
-	 * will lead to redux-persist rehydrate state with undefined and an Error(https://github.com/rt2zz/redux-persist/blob/master/src/persistReducer.js#89).
-	 * 
-	 * solution: the easy way to fix is to set a big timeout on config, Go further, we could save 'keyring' etc some important
-	 * data to separate files or backup for this. the second way is not complicated, we could set
-	 * serialize and deserialize to false to get JSON object and modify setItem/getItem API to save/load data.
-	 */
 	timeout: 30000,
 	writeFailHandler: error => Logger.error(error, { message: 'Error persisting data' }) // Log error if saving state fails
 };
