@@ -140,7 +140,7 @@ jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
 jest.mock('../images/static-logos.js', () => ({}));
 
 // Mock AbortController in global
-const AbortControllerMock = () => ({
-	signal: jest.fn()
-});
-global.AbortController = AbortControllerMock;
+// const AbortControllerMock = () => ({
+// 	signal: jest.fn()
+// });
+// global.AbortController = AbortControllerMock;
