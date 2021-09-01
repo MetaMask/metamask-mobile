@@ -80,8 +80,8 @@ class AddressElement extends PureComponent {
 		const secondaryLabel = name && name[0] !== ' ' && renderShortAddress(address);
 		return (
 			<TouchableOpacity
-				onPress={() => onAccountPress(address)} /* eslint-disable-line */
-				onLongPress={() => onAccountLongPress(address)} /* eslint-disable-line */
+				onPress={() => onAccountPress(address)}
+				onLongPress={() => onAccountLongPress(address)}
 				key={address}
 				style={styles.addressElementWrapper}
 			>

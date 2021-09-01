@@ -1,4 +1,4 @@
-import { getPasswordStrengthWord, passwordRequirementsMet } from './password';
+import { getPasswordStrengthWord, passwordRequirementsMet } from '.';
 
 describe('getPasswordStrength', () => {
 	it('should return correct values', () => {

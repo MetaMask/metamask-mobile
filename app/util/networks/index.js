@@ -1,10 +1,10 @@
-import { colors } from '../styles/common';
+import { colors } from '../../styles/common';
 import URL from 'url-parse';
-import AppConstants from '../core/AppConstants';
-import { MAINNET, ROPSTEN, KOVAN, RINKEBY, GOERLI, RPC } from '../../app/constants/network';
+import AppConstants from '../../core/AppConstants';
+import { MAINNET, ROPSTEN, KOVAN, RINKEBY, GOERLI, RPC } from '../../../app/constants/network';
 import { util } from '@metamask/controllers';
-import Engine from '../core/Engine';
-import { toLowerCaseEquals } from './general';
+import Engine from '../../core/Engine';
+import { toLowerCaseEquals } from './../general';
 
 /**
  * List of the supported networks

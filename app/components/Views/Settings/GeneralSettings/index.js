@@ -17,7 +17,7 @@ import {
 } from '../../../../actions/settings';
 import PickComponent from '../../PickComponent';
 import { toDataUrl } from '../../../../util/blockies.js';
-import Device from '../../../../util/Device';
+import Device from '../../../../util/device';
 import Jazzicon from 'react-native-jazzicon';
 
 const diameter = 40;

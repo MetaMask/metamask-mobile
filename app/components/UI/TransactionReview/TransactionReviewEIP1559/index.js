@@ -14,7 +14,7 @@ import { strings } from '../../../../../locales/i18n';
 import TimeEstimateInfoModal from '../../TimeEstimateInfoModal';
 import useModalHandler from '../../../Base/hooks/useModalHandler';
 import AppConstants from '../../../../core/AppConstants';
-import Device from '../../../../util/Device';
+import Device from '../../../../util/device';
 
 const styles = StyleSheet.create({
 	overview: noMargin => ({

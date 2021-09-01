@@ -143,10 +143,6 @@
 		"recovery_phrase": "Cụm mật khẩu khôi phục bí mật ",
 		"metamask_does_not": "MetaMask không biết Cụm mật khẩu khôi phục bí mật của bạn.",
 		"i_understand": "Tôi đã hiểu, hãy tiếp tục",
-		"passcode_not_set_error": "Lỗi: Chưa đặt mật mã.",
-		"wrong_password_error": "Lỗi: Giải mã không thành công",
-		"wrong_password_error_android": "Lỗi: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
-		"vault_error": "Lỗi: Không thể mở khóa nếu không có két trước đó.",
 		"clean_vault_error": "MetaMask đã gặp lỗi do đạt đến giới hạn lưu trữ. Dữ liệu cục bộ đã bị hỏng. Vui lòng cài đặt lại MetaMask và khôi phục bằng Cụm mật khẩu khôi phục bí mật của bạn."
 	},
 	"enter_password": {
@@ -1438,7 +1434,7 @@
 		"verified_on_sources": "Đã xác minh trên các nguồn {{sources}.",
 		"verify_on": "Luôn xác minh địa chỉ token trên",
 		"verify_address_on": "Xác minh địa chỉ token trên",
-		"only_verified_on": "{{symbol}} chỉ được xác minh trên nguồn {{occurances}}.",
+		"only_verified_on": "{{symbol}} chỉ được xác minh trên nguồn {{occurrences}}.",
 		"block_explorer": "trình khám phá khối",
 		"a_block_explorer": "một trình khám phá khối",
 		"token_verification": "Xác minh token",

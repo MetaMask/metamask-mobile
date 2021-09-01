@@ -17,7 +17,7 @@ import DeeplinkManager from '../../../core/DeeplinkManager';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { importAccountFromPrivateKey } from '../../../util/address';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import { isGatewayUrl } from '../../../lib/ens-ipfs/resolver';
 import { getHost } from '../../../util/browser';
 
@@ -195,8 +195,8 @@ export function getEditableOptions(title, navigation, route) {
 		navigation.pop();
 	}
 	const rightAction = route.params?.dispatch;
-	const editMode = route.params?.editMode ?? '' === 'edit';
-	const addMode = route.params?.mode ?? '' === 'add';
+	const editMode = route.params?.editMode === 'edit';
+	const addMode = route.params?.mode === 'add';
 	return {
 		title,
 		headerTitleStyle: {

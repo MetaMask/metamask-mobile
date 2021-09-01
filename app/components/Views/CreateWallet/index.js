@@ -23,7 +23,7 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 // eslint-disable-next-line import/named
 import { withNavigationFocus } from '@react-navigation/compat';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import {
 	SEED_PHRASE_HINTS,
 	BIOMETRY_CHOICE,

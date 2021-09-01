@@ -16,11 +16,12 @@ import { protectWalletModalVisible } from '../../../actions/user';
 import { toggleAccountsModal, toggleReceiveModal } from '../../../actions/modals';
 import { newAssetTransaction } from '../../../actions/transaction';
 
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { renderFiat } from '../../../util/number';
 import { renderAccountName } from '../../../util/address';
 import { getEther } from '../../../util/transactions';
+import { doENSReverseLookup, isDefaultAccountName } from '../../../util/ENSUtils';
 import { isSwapsAllowed } from '../Swaps/utils';
 
 import Identicon from '../Identicon';
@@ -162,6 +163,10 @@ class AccountOverview extends PureComponent {
 		 */
 		swapsIsLive: PropTypes.bool,
 		/**
+		 * ID of the current network
+		 */
+		network: PropTypes.string,
+		/**
 		 * Current provider ticker
 		 */
 		ticker: PropTypes.string
@@ -170,7 +175,8 @@ class AccountOverview extends PureComponent {
 	state = {
 		accountLabelEditable: false,
 		accountLabel: '',
-		originalAccountLabel: ''
+		originalAccountLabel: '',
+		ens: undefined
 	};
 
 	editableLabelRef = React.createRef();
@@ -197,7 +203,18 @@ class AccountOverview extends PureComponent {
 		const accountLabel = renderAccountName(selectedAddress, identities);
 		this.setState({ accountLabel });
 		onRef && onRef(this);
+		InteractionManager.runAfterInteractions(() => {
+			this.doENSLookup();
+		});
 	};
+
+	componentDidUpdate(prevProps) {
+		if (prevProps.account.address !== this.props.account.address || prevProps.network !== this.props.network) {
+			requestAnimationFrame(() => {
+				this.doENSLookup();
+			});
+		}
+	}
 
 	setAccountLabel = () => {
 		const { PreferencesController } = Engine.context;
@@ -268,9 +285,18 @@ class AccountOverview extends PureComponent {
 			}
 		});
 
+	doENSLookup = async () => {
+		const { network, account } = this.props;
+		try {
+			const ens = await doENSReverseLookup(account.address, network);
+			this.setState({ ens });
+			// eslint-disable-next-line no-empty
+		} catch {}
+	};
+
 	render() {
 		const {
-			account: { name, address },
+			account: { address, name },
 			currentCurrency,
 			onboardingWizard,
 			chainId,
@@ -280,7 +306,7 @@ class AccountOverview extends PureComponent {
 		const fiatBalance = `${renderFiat(Engine.getTotalFiatAccountBalance(), currentCurrency)}`;
 
 		if (!address) return null;
-		const { accountLabelEditable, accountLabel } = this.state;
+		const { accountLabelEditable, accountLabel, ens } = this.state;
 
 		return (
 			<View style={baseStyles.flexGrow} ref={this.scrollViewContainer} collapsable={false}>
@@ -335,7 +361,7 @@ class AccountOverview extends PureComponent {
 										numberOfLines={1}
 										testID={'edit-account-label'}
 									>
-										{name}
+										{isDefaultAccountName(name) && ens ? ens : name}
 									</Text>
 								</TouchableOpacity>
 							)}
@@ -386,6 +412,7 @@ const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+	network: state.engine.backgroundState.NetworkController.network,
 	swapsIsLive: swapsLivenessSelector(state)
 });
 

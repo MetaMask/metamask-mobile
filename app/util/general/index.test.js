@@ -1,4 +1,4 @@
-import { capitalize, tlc, toLowerCaseEquals } from './general';
+import { capitalize, tlc, toLowerCaseEquals } from '.';
 
 describe('capitalize', () => {
 	const my_string = 'string';

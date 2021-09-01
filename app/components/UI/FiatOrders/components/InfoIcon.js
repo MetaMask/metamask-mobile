@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import Device from '../../../../util/Device';
+import Device from '../../../../util/device';
 import { colors } from '../../../../styles/common';
 
 const styles = StyleSheet.create({

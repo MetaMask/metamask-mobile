@@ -5,7 +5,7 @@ import AnimatedFox from 'react-native-animated-fox';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import { fontStyles, colors } from '../../../styles/common';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 
 const styles = StyleSheet.create({
 	wrapper: {

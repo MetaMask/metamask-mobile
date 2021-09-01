@@ -43,7 +43,7 @@ import WebviewError from '../../UI/WebviewError';
 import { approveHost } from '../../../actions/privacy';
 import { addBookmark, removeBookmark } from '../../../actions/bookmarks';
 import { addToHistory, addToWhitelist } from '../../../actions/browser';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
 import SearchApi from 'react-native-search-api';
 import WatchAssetRequest from '../../UI/WatchAssetRequest';
@@ -1838,6 +1838,7 @@ export const BrowserTab = props => {
 				<View style={styles.webview}>
 					{!!entryScriptWeb3 && firstUrlLoaded && (
 						<WebView
+							decelerationRate={'normal'}
 							ref={webviewRef}
 							renderError={() => <WebviewError error={error} onReload={() => null} />}
 							source={{ uri: initialUrl }}

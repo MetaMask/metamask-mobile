@@ -5,6 +5,7 @@ import { TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
 import { renderFromWei } from '../../../../util/number';
 import { getTicker } from '../../../../util/transactions';
+import { isDefaultAccountName } from '../../../../util/ENSUtils';
 import { strings } from '../../../../../locales/i18n';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { connect } from 'react-redux';
@@ -118,9 +119,8 @@ class AccountElement extends PureComponent {
 	};
 
 	render() {
-		const { disabled, updatedBalanceFromStore } = this.props;
-		const { address, name, isSelected, isImported, balanceError } = this.props.item;
-		const { ticker } = this.props;
+		const { disabled, updatedBalanceFromStore, ticker } = this.props;
+		const { address, name, ens, isSelected, isImported, balanceError } = this.props.item;
 		const selected = isSelected ? <Icon name="check-circle" size={30} color={colors.blue} /> : null;
 		const imported = isImported ? (
 			<View style={styles.importedWrapper}>
@@ -143,7 +143,7 @@ class AccountElement extends PureComponent {
 					<View style={styles.accountInfo}>
 						<View style={styles.accountMain}>
 							<Text numberOfLines={1} style={[styles.accountLabel]}>
-								{name}
+								{isDefaultAccountName(name) && ens ? ens : name}
 							</Text>
 							<View style={styles.accountBalanceWrapper}>
 								<Text style={styles.accountBalance}>

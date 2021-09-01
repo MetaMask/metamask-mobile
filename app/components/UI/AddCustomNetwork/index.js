@@ -5,7 +5,7 @@ import { StyleSheet, View, TouchableOpacity, ScrollView, Linking } from 'react-n
 import TransactionHeader from '../TransactionHeader';
 import { strings } from '../../../../locales/i18n';
 import { colors, fontStyles } from '../../../styles/common';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Alert from '../../Base/Alert';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';

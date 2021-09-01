@@ -1,9 +1,9 @@
 import { addHexPrefix, toChecksumAddress, BN } from 'ethereumjs-util';
 import { rawEncode, rawDecode } from 'ethereumjs-abi';
-import Engine from '../core/Engine';
-import I18n, { strings } from '../../locales/i18n';
+import Engine from '../../core/Engine';
+import I18n, { strings } from '../../../locales/i18n';
 import contractMap from '@metamask/contract-metadata';
-import { safeToChecksumAddress } from './address';
+import { safeToChecksumAddress } from '../address';
 import { util } from '@metamask/controllers';
 import { swapsUtils } from '@metamask/swaps-controller';
 import {
@@ -16,11 +16,11 @@ import {
 	toBN,
 	weiToFiat,
 	weiToFiatNumber
-} from './number';
-import AppConstants from '../core/AppConstants';
-import { isMainnetByChainId } from './networks';
-import { addCurrencies, multiplyCurrencies, subtractCurrencies } from '../util/conversion-util';
-import { decGWEIToHexWEI, getValueFromWeiHex, formatETHFee } from '../util/conversions';
+} from '../number';
+import AppConstants from '../../core/AppConstants';
+import { isMainnetByChainId } from '../networks';
+import { addCurrencies, multiplyCurrencies, subtractCurrencies } from '../conversion';
+import { decGWEIToHexWEI, getValueFromWeiHex, formatETHFee } from '../conversions';
 import {
 	addEth,
 	addFiat,
@@ -28,9 +28,10 @@ import {
 	formatCurrency,
 	getTransactionFee,
 	roundExponential
-} from '../util/confirm-tx';
+} from '../confirm-tx';
 
 import humanizeDuration from 'humanize-duration';
+import Logger from '../../util/Logger';
 
 const { SAI_ADDRESS } = AppConstants;
 
@@ -653,7 +654,7 @@ export const calculateEIP1559Times = ({
 			timeEstimateId = AppConstants.GAS_TIMES.RANGE;
 		}
 	} catch (error) {
-		console.log('ERROR ESTIMATING TIME', error);
+		Logger.log('ERROR ESTIMATING TIME', error);
 	}
 
 	return { timeEstimate, timeEstimateColor, timeEstimateId };

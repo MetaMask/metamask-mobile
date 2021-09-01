@@ -8,7 +8,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Title from '../Title';
 import { colors } from '../../../../../styles/common';
 import StyledButton from '../../../StyledButton';
-import Device from '../../../../../util/Device';
+import Device from '../../../../../util/device';
 
 const styles = StyleSheet.create({
 	modalView: {

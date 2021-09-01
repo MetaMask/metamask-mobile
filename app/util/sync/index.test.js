@@ -1,4 +1,4 @@
-import { syncPrefs, syncAccounts } from '../util/sync';
+import { syncPrefs, syncAccounts } from '.';
 
 const OLD_PREFS = {
 	accountTokens: {

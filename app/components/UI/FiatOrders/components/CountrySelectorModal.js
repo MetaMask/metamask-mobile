@@ -13,7 +13,7 @@ import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Fuse from 'fuse.js';
 
-import Device from '../../../../util/Device';
+import Device from '../../../../util/device';
 import { strings } from '../../../../../locales/i18n';
 
 import Text from '../../../Base/Text';

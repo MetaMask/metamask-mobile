@@ -19,7 +19,7 @@ import Fuse from 'fuse.js';
 import { connect } from 'react-redux';
 import { isValidAddress } from 'ethereumjs-util';
 
-import Device from '../../../../util/Device';
+import Device from '../../../../util/device';
 import { balanceToFiat, hexToBN, renderFromTokenMinimalUnit, renderFromWei, weiToFiat } from '../../../../util/number';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { isSwapsNativeAsset } from '../utils';

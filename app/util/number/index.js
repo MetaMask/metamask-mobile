@@ -6,7 +6,7 @@ import { utils as ethersUtils } from 'ethers';
 import convert from 'ethjs-unit';
 import { util } from '@metamask/controllers';
 import numberToBN from 'number-to-bn';
-import currencySymbols from '../util/currency-symbols.json';
+import currencySymbols from '../currency-symbols.json';
 import BigNumber from 'bignumber.js';
 
 // Big Number Constants

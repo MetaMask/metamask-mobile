@@ -1,4 +1,4 @@
-import { isENS } from './address';
+import { isENS } from '.';
 
 describe('isENS', () => {
 	it('should return false by default', () => {

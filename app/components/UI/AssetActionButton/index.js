@@ -5,7 +5,7 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 import Ionicon from 'react-native-vector-icons/Ionicons';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import { colors } from '../../../styles/common';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import Text from '../../Base/Text';
 
 const styles = StyleSheet.create({

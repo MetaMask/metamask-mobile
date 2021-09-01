@@ -12,7 +12,7 @@ import {
 	TOKEN_METHOD_TRANSFER_FROM
 	// TRANSFER_FROM_ACTION_KEY,
 	// SMART_CONTRACT_INTERACTION_ACTION_KEY
-} from './transactions';
+} from '.';
 // import Engine from '../core/Engine';
 
 // const MOCK_ENGINE = {
