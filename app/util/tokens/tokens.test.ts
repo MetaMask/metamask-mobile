@@ -1,30 +1,15 @@
 import { tokenListToArray } from './';
-// TODO: Placeholder for incoming Token type from TokenListController
-// TokenListController needs to export this type for us to import and use
-type Token = any;
+import { TokenListToken } from '@metamask/controllers';
 
-const token: Token = {
+const token: TokenListToken = {
 	address: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
 	symbol: 'WBTC',
 	decimals: 8,
-	occurances: 12,
-	aggregators: [
-		'airswapLight',
-		'bancor',
-		'cmc',
-		'coinGecko',
-		'kleros',
-		'oneInch',
-		'paraswap',
-		'pmm',
-		'totle',
-		'zapper',
-		'zerion',
-		'zeroEx'
-	],
-	iconUrl: 'https://s3.amazonaws.com/airswap-token-images/WBTC.png'
+	occurrences: 12,
+	iconUrl: 'https://s3.amazonaws.com/airswap-token-images/WBTC.png',
+	name: 'Wrapped Bitcoin'
 };
-const tokenListObject: { [address: string]: Token } = {
+const tokenListObject: { [address: string]: TokenListToken } = {
 	'0x2260fac5e5542a773aa44fbcfedf7c193bc2c599': token
 };
 

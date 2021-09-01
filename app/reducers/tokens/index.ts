@@ -1,7 +1,8 @@
 import { createSelector } from 'reselect';
 import { tokenListToArray } from '../../util/tokens';
+import { TokenListMap } from '@metamask/controllers';
 
-const tokenListSelector = (state: any) => state.engine.backgroundState.TokenListController.tokenList;
+const tokenListSelector = (state: any) => state.engine.backgroundState.TokenListController.tokenList as TokenListMap;
 
 /**
  * Return token list from TokenListController.
@@ -9,7 +10,7 @@ const tokenListSelector = (state: any) => state.engine.backgroundState.TokenList
  */
 export const getTokenList = createSelector(
 	tokenListSelector,
-	tokenList => tokenList
+	(tokenList: TokenListMap) => tokenList
 );
 
 /**

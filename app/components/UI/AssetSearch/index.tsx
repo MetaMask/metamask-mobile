@@ -7,9 +7,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { toLowerCaseEquals } from '../../../util/general';
 import { useSelector } from 'react-redux';
 import { getTokenListArray } from '../../../reducers/tokens';
-// TODO: Placeholder for incoming Token type from TokenListController
-// TokenListController needs to export this type for us to import and use
-type Token = any;
+import { TokenListToken } from '@metamask/controllers';
 
 const styles = StyleSheet.create({
 	searchSection: {
@@ -31,7 +29,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-const fuse = new Fuse<Token>([], {
+const fuse = new Fuse([], {
 	shouldSort: true,
 	threshold: 0.45,
 	location: 0,
@@ -42,13 +40,13 @@ const fuse = new Fuse<Token>([], {
 });
 
 type Props = {
-	onSearch: ({ results, searchQuery }: { results: Token[]; searchQuery: string }) => void;
+	onSearch: ({ results, searchQuery }: { results: TokenListToken[]; searchQuery: string }) => void;
 };
 
 const AssetSearch = memo(({ onSearch }: Props) => {
 	const [searchQuery, setSearchQuery] = useState('');
 	const [inputWidth, setInputWidth] = useState('85%');
-	const tokenList = useSelector(getTokenListArray);
+	const tokenList = useSelector<any, TokenListToken[]>(getTokenListArray);
 
 	useEffect(() => {
 		setTimeout(() => {
