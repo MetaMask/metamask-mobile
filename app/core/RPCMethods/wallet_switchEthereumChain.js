@@ -3,7 +3,7 @@ import { ethErrors } from 'eth-json-rpc-errors';
 import { getDefaultNetworkByChainId, isPrefixedFormattedHexString, isSafeChainId } from '../../util/networks';
 import AnalyticsV2 from '../../util/analyticsV2';
 
-const wallet_addEthereumChain = async ({
+const wallet_switchEthereumChain = async ({
 	req,
 	res,
 	showSwitchCustomNetworkDialog,
@@ -134,4 +134,4 @@ const wallet_addEthereumChain = async ({
 	});
 };
 
-export default wallet_addEthereumChain;
+export default wallet_switchEthereumChain;
