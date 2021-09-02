@@ -430,6 +430,7 @@ class Engine {
 
 		TokensController.update({
 			allTokens: {},
+			allIgnoredTokens: {},
 			ignoredTokens: [],
 			tokens: [],
 			suggestedAssets: []
@@ -446,13 +447,22 @@ class Engine {
 		});
 	};
 
-	sync = async ({ accounts, preferences, network, transactions, seed, pass, importedAccounts }) => {
+	sync = async ({
+		accounts,
+		preferences,
+		network,
+		transactions,
+		seed,
+		pass,
+		importedAccounts,
+		tokens: { allTokens, allIgnoredTokens }
+	}) => {
 		const {
 			KeyringController,
 			PreferencesController,
 			NetworkController,
 			TransactionController,
-			TokensController
+			TokensController,
 		} = this.context;
 
 		// Select same network ?
@@ -470,31 +480,9 @@ class Engine {
 				await KeyringController.importAccountWithStrategy('privateKey', [importedAccounts[i]]);
 			}
 		}
-		// Sync tokens
-		const allTokens = {};
-		Object.keys(preferences.accountTokens).forEach(address => {
-			const checksummedAddress = toChecksumAddress(address);
-			allTokens[checksummedAddress] = {};
-			Object.keys(preferences.accountTokens[address]).forEach(chainId => {
-				const network = Object.values(Networks).find(
-					({ hexChainId: networkChainId }) => networkChainId === chainId
-				);
-				const networkType = network?.networkType;
-				// !networkType this will probably happen on custom rpc networks
-				if (!networkType) return;
-				allTokens[checksummedAddress][networkType] =
-					chainId !== `0x1`
-						? preferences.accountTokens[address][chainId]
-						: preferences.accountTokens[address][chainId]
-								.filter(({ address }) =>
-									contractMap[toChecksumAddress(address)]
-										? contractMap[toChecksumAddress(address)].erc20
-										: true
-								)
-								.map((token: { address: string; }) => ({ ...token, address: toChecksumAddress(token.address) }));
-			});
-		});
-		await TokensController.update({ allTokens });
+
+		// Restore tokens
+		await TokensController.update({ allTokens, allIgnoredTokens });
 
 		// Restore preferences
 		const updatedPref = { ...preferences, identities: {} };
