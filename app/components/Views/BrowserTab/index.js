@@ -764,6 +764,15 @@ export const BrowserTab = props => {
 						setShowSwitchCustomNetworkDialog,
 						setCustomNetworkToAdd,
 						setShowAddCustomNetworkDialog
+					}),
+				wallet_switchEthereumChain: () =>
+					RPCMethods.wallet_switchEthereumChain({
+						req,
+						res,
+						showSwitchCustomNetworkDialog,
+						switchCustomNetworkRequest,
+						setCustomNetworkToSwitch,
+						setShowSwitchCustomNetworkDialog
 					})
 			};
 
