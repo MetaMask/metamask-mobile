@@ -5611,10 +5611,10 @@ eth-simple-keyring@^4.2.0:
     ethereumjs-wallet "^1.0.1"
     events "^1.1.1"
 
-eth-url-parser@1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/eth-url-parser/-/eth-url-parser-1.0.2.tgz#49cae06901973fd66d89bd7f09e11d9654b0db8e"
-  integrity sha512-fHOD8Jop9Bqx7H9BFO8QDYlj9QAnCRN13ttvtHRWv5/+lNzogal1PCn3LTrEjqEvBha2Zr+MAyM3qP6BEuwqog==
+eth-url-parser@1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/eth-url-parser/-/eth-url-parser-1.0.4.tgz#310a99f331abdb8d603c74131568fb773e609cd8"
+  integrity sha512-2PTTyc9OXNxePTUlYfos1du6hytElYdubJbx2uF3wNMEsvHOg/P7ZpPFERub6vod2T8eGjDZtB8nkGsKEc4tIQ==
   dependencies:
     bignumber.js "^7.2.1"
     qs "^6.5.2"
