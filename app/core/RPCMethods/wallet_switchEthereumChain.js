@@ -15,14 +15,13 @@ const wallet_switchEthereumChain = async ({
 	switchCustomNetworkRequest.current = null;
 
 	const { PreferencesController, CurrencyRateController, NetworkController } = Engine.context;
+	const params = req.params?.[0];
 
-	if (!req.params?.[0] || typeof req.params[0] !== 'object') {
+	if (!params || typeof params !== 'object') {
 		throw ethErrors.rpc.invalidParams({
 			message: `Expected single, object parameter. Received:\n${JSON.stringify(req.params)}`
 		});
 	}
-
-	const params = req.params[0];
 
 	const { chainId } = params;
 
