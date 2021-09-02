@@ -118,7 +118,7 @@
     "eth-json-rpc-filters": "4.2.2",
     "eth-json-rpc-infura": "5.1.0",
     "eth-json-rpc-middleware": "4.3.0",
-    "eth-url-parser": "1.0.2",
+    "eth-url-parser": "1.0.4",
     "ethereumjs-abi": "0.6.6",
     "ethereumjs-util": "6.1.0",
     "ethers": "^5.0.14",
