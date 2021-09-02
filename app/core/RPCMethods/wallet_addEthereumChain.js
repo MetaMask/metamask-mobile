@@ -87,7 +87,7 @@ const wallet_addEthereumChain = async ({
 
 	const chainIdDecimal = parseInt(_chainId, 16).toString(10);
 
-	if (NetworksChainId[chainIdDecimal]) {
+	if (Object.values(NetworksChainId).find(value => value === chainIdDecimal)) {
 		throw ethErrors.rpc.invalidParams(`May not specify default MetaMask chain.`);
 	}
 
