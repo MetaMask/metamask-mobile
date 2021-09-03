@@ -129,7 +129,7 @@ class OnboardingCarousel extends PureComponent {
 	};
 
 	trackEvent = async (...eventArgs) => {
-		const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
+		const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
 		if (metricsOptIn) {
 			AnalyticsV2.trackEvent(...eventArgs);
 		} else {
