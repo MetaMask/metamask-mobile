@@ -14,17 +14,17 @@ describe('TransactionHeader', () => {
 					NetworkController: {
 						provider: {
 							type: ROPSTEN,
-							nickname: 'Ropsten'
-						}
-					}
-				}
-			}
+							nickname: 'Ropsten',
+						},
+					},
+				},
+			},
 		};
 
 		const wrapper = shallow(
 			<TransactionHeader currentPageInformation={{ title: 'title', url: 'url' }} type={'typedSign'} />,
 			{
-				context: { store: mockStore(initialState) }
+				context: { store: mockStore(initialState) },
 			}
 		);
 		expect(wrapper.dive()).toMatchSnapshot();

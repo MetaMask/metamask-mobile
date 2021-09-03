@@ -101,11 +101,11 @@ const OnboardingRootNav = () => (
 
 const HomeNav = () => (
 	<Drawer.Navigator
-		drawerContent={props => <DrawerView {...props} />}
+		drawerContent={(props) => <DrawerView {...props} />}
 		// eslint-disable-next-line
 		drawerStyle={{
 			backgroundColor: 'rgba(0, 0, 0, 0.5)',
-			width: 315
+			width: 315,
 		}}
 	>
 		<Drawer.Screen name="Main" component={Main} />
@@ -142,10 +142,10 @@ const AppNavigator = createSwitchNavigator(
 		OnboardingRootNav,
 		Login,
 		OnboardingCarousel,
-		LockScreen
+		LockScreen,
 	},
 	{
-		initialRouteName: 'Entry'
+		initialRouteName: 'Entry',
 	}
 );
 
@@ -172,8 +172,8 @@ const App = () => {
 	}, []);
 
 	const branchSubscriber = new BranchSubscriber({
-		onOpenStart: opts => handleDeeplink(opts),
-		onOpenComplete: opts => handleDeeplink(opts)
+		onOpenStart: (opts) => handleDeeplink(opts),
+		onOpenComplete: (opts) => handleDeeplink(opts),
 	});
 
 	useEffect(() => {
@@ -181,7 +181,7 @@ const App = () => {
 			navigate: (routeName, opts) => {
 				const params = { name: routeName, params: opts };
 				navigator.dispatch(CommonActions.navigate(params));
-			}
+			},
 		});
 
 		unsubscribeFromBranch.current = branchSubscriber.subscribe();
@@ -191,7 +191,7 @@ const App = () => {
 
 	return (
 		<NavigationContainer
-			ref={nav => {
+			ref={(nav) => {
 				navigator = nav;
 			}}
 		>

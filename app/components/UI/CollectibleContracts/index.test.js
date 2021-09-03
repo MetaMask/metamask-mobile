@@ -9,17 +9,17 @@ describe('CollectibleContracts', () => {
 	it('should render correctly', () => {
 		const initialState = {
 			collectibles: {
-				favorites: {}
+				favorites: {},
 			},
 			engine: {
 				backgroundState: {
 					NetworkController: {
 						provider: {
-							chainId: 1
-						}
+							chainId: 1,
+						},
 					},
 					PreferencesController: {
-						selectedAddress: '0x1'
+						selectedAddress: '0x1',
 					},
 					CollectiblesController: {
 						collectibleContracts: [
@@ -29,13 +29,13 @@ describe('CollectibleContracts', () => {
 								address: '0x0',
 								symbol: 'NM',
 								description: 'description',
-								totalSupply: 10
-							}
+								totalSupply: 10,
+							},
 						],
-						collectibles: {}
-					}
-				}
-			}
+						collectibles: {},
+					},
+				},
+			},
 		};
 
 		const wrapper = shallow(
@@ -46,12 +46,12 @@ describe('CollectibleContracts', () => {
 						address: '0x0',
 						tokenId: 10,
 						name: 'name',
-						image: 'image'
-					}
+						image: 'image',
+					},
 				]}
 			/>,
 			{
-				context: { store: mockStore(initialState) }
+				context: { store: mockStore(initialState) },
 			}
 		);
 		expect(wrapper.dive()).toMatchSnapshot();

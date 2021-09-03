@@ -57,7 +57,7 @@ class Browser extends PureComponent {
 		/**
 		 * Object that represents the current route info like params passed to it
 		 */
-		route: PropTypes.object
+		route: PropTypes.object,
 	};
 	static navigationOptions = ({ navigation, route }) => getBrowserViewNavbarOptions(navigation, route);
 
@@ -69,7 +69,7 @@ class Browser extends PureComponent {
 		}
 	}
 	componentDidMount() {
-		const activeTab = this.props.tabs.find(tab => tab.id === this.props.activeTab);
+		const activeTab = this.props.tabs.find((tab) => tab.id === this.props.activeTab);
 		if (activeTab) {
 			this.switchToTab(activeTab);
 		} else {
@@ -94,17 +94,17 @@ class Browser extends PureComponent {
 		}
 	}
 
-	goToNewTab = url => {
+	goToNewTab = (url) => {
 		this.newTab(url);
 		this.props.navigation.setParams({
 			...this.props.route.params,
-			newTabUrl: null
+			newTabUrl: null,
 		});
 	};
 
 	showTabs = async () => {
 		try {
-			const activeTab = this.props.tabs.find(tab => tab.id === this.props.activeTab);
+			const activeTab = this.props.tabs.find((tab) => tab.id === this.props.activeTab);
 			await this.takeScreenshot(activeTab.url, activeTab.id);
 		} catch (e) {
 			Logger.error(e);
@@ -112,16 +112,16 @@ class Browser extends PureComponent {
 
 		this.props.navigation.setParams({
 			...this.props.route.params,
-			showTabs: true
+			showTabs: true,
 		});
 	};
 
-	hideTabsAndUpdateUrl = url => {
+	hideTabsAndUpdateUrl = (url) => {
 		this.props.navigation.setParams({
 			...this.props.route.params,
 			showTabs: false,
 			url,
-			silent: false
+			silent: false,
 		});
 	};
 
@@ -131,12 +131,12 @@ class Browser extends PureComponent {
 			this.props.navigation.setParams({
 				...this.props.route.params,
 				url: null,
-				silent: true
+				silent: true,
 			});
 		}
 	};
 
-	newTab = url => {
+	newTab = (url) => {
 		this.props.createNewTab(url || AppConstants.HOMEPAGE_URL);
 		setTimeout(() => {
 			const { tabs } = this.props;
@@ -144,7 +144,7 @@ class Browser extends PureComponent {
 		}, 100);
 	};
 
-	closeTab = tab => {
+	closeTab = (tab) => {
 		const { activeTab, tabs } = this.props;
 
 		// If the tab was selected we have to select
@@ -162,7 +162,7 @@ class Browser extends PureComponent {
 						this.props.navigation.setParams({
 							...this.props.route.params,
 							url: newTab.url,
-							silent: true
+							silent: true,
 						});
 					}
 				});
@@ -170,7 +170,7 @@ class Browser extends PureComponent {
 				this.props.navigation.setParams({
 					...this.props.route.params,
 					url: null,
-					silent: true
+					silent: true,
 				});
 			}
 		}
@@ -183,12 +183,12 @@ class Browser extends PureComponent {
 			this.props.navigation.setParams({
 				...this.props.route.params,
 				showTabs: false,
-				silent: true
+				silent: true,
 			});
 		}
 	};
 
-	switchToTab = tab => {
+	switchToTab = (tab) => {
 		this.props.setActiveTab(tab.id);
 		this.hideTabsAndUpdateUrl(tab.url);
 		this.updateTabInfo(tab.url, tab.id);
@@ -215,7 +215,7 @@ class Browser extends PureComponent {
 
 	updateTabInfo = (url, tabID) =>
 		this.props.updateTab(tabID, {
-			url
+			url,
 		});
 
 	takeScreenshot = (url, tabID) =>
@@ -224,18 +224,18 @@ class Browser extends PureComponent {
 				format: 'jpg',
 				quality: 0.2,
 				THUMB_WIDTH,
-				THUMB_HEIGHT
+				THUMB_HEIGHT,
 			}).then(
-				uri => {
+				(uri) => {
 					const { updateTab } = this.props;
 
 					updateTab(tabID, {
 						url,
-						image: uri
+						image: uri,
 					});
 					resolve(true);
 				},
-				error => {
+				(error) => {
 					Logger.error(error, `Error saving tab ${url}`);
 					reject(error);
 				}
@@ -243,7 +243,7 @@ class Browser extends PureComponent {
 		});
 
 	renderBrowserTabs = () =>
-		this.props.tabs.map(tab => (
+		this.props.tabs.map((tab) => (
 			<BrowserTab
 				id={tab.id}
 				key={`tab_${tab.id}`}
@@ -264,20 +264,17 @@ class Browser extends PureComponent {
 	}
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	tabs: state.browser.tabs,
-	activeTab: state.browser.activeTab
+	activeTab: state.browser.activeTab,
 });
 
-const mapDispatchToProps = dispatch => ({
-	createNewTab: url => dispatch(createNewTab(url)),
+const mapDispatchToProps = (dispatch) => ({
+	createNewTab: (url) => dispatch(createNewTab(url)),
 	closeAllTabs: () => dispatch(closeAllTabs()),
-	closeTab: id => dispatch(closeTab(id)),
-	setActiveTab: id => dispatch(setActiveTab(id)),
-	updateTab: (id, url) => dispatch(updateTab(id, url))
+	closeTab: (id) => dispatch(closeTab(id)),
+	setActiveTab: (id) => dispatch(setActiveTab(id)),
+	updateTab: (id, url) => dispatch(updateTab(id, url)),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(Browser);
+export default connect(mapStateToProps, mapDispatchToProps)(Browser);

@@ -11,8 +11,8 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		zIndex: 999,
 		width: '100%',
-		height: '100%'
-	}
+		height: '100%',
+	},
 });
 
 function MediaPlayer({ uri, style, onClose, textTracks, selectedTextTrack }) {
@@ -76,11 +76,11 @@ MediaPlayer.propTypes = {
 	/**
 	 * The selected text track to dispaly by id, language, title, index
 	 */
-	selectedTextTrack: PropTypes.object
+	selectedTextTrack: PropTypes.object,
 };
 
 MediaPlayer.defaultProps = {
-	onError: () => null
+	onError: () => null,
 };
 
 export default MediaPlayer;

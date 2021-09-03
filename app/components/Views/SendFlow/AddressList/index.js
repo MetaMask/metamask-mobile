@@ -10,24 +10,24 @@ import AddressElement from '../AddressElement';
 const styles = StyleSheet.create({
 	root: {
 		flex: 1,
-		backgroundColor: colors.white
+		backgroundColor: colors.white,
 	},
 	messageText: {
 		...fontStyles.normal,
 		color: colors.blue,
 		fontSize: 16,
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	messageLeft: {
-		textAlign: 'left'
+		textAlign: 'left',
 	},
 	myAccountsWrapper: {
-		flexGrow: 1
+		flexGrow: 1,
 	},
 	myAccountsTouchable: {
 		borderBottomWidth: 1,
 		borderBottomColor: colors.grey050,
-		padding: 16
+		padding: 16,
 	},
 	labelElementWrapper: {
 		backgroundColor: colors.grey000,
@@ -35,20 +35,20 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		borderBottomWidth: 1,
 		borderBottomColor: colors.grey050,
-		padding: 8
+		padding: 8,
 	},
 	labelElementInitialText: {
-		textTransform: 'uppercase'
+		textTransform: 'uppercase',
 	},
 	labelElementText: {
 		...fontStyles.normal,
 		fontSize: 12,
 		marginHorizontal: 8,
-		color: colors.grey600
-	}
+		color: colors.grey600,
+	},
 });
 
-const LabelElement = label => (
+const LabelElement = (label) => (
 	<View key={label} style={styles.labelElementWrapper}>
 		<Text style={[styles.labelElementText, label.length > 1 ? {} : styles.labelElementInitialText]}>{label}</Text>
 	</View>
@@ -91,13 +91,13 @@ class AddressList extends PureComponent {
 		/**
 		 * An array that represents the user's recent toAddresses
 		 */
-		recents: PropTypes.array
+		recents: PropTypes.array,
 	};
 
 	state = {
 		myAccountsOpened: false,
 		processedAddressBookList: undefined,
-		contactElements: []
+		contactElements: [],
 	};
 
 	networkAddressBook = {};
@@ -106,7 +106,7 @@ class AddressList extends PureComponent {
 		const { addressBook, network } = this.props;
 		this.networkAddressBook = addressBook[network] || {};
 		const networkAddressBookList = Object.keys(this.networkAddressBook).map(
-			address => this.networkAddressBook[address]
+			(address) => this.networkAddressBook[address]
 		);
 		this.fuse = new Fuse(networkAddressBookList, {
 			shouldSort: true,
@@ -115,12 +115,15 @@ class AddressList extends PureComponent {
 			distance: 10,
 			maxPatternLength: 32,
 			minMatchCharLength: 1,
-			keys: [{ name: 'name', weight: 0.5 }, { name: 'address', weight: 0.5 }]
+			keys: [
+				{ name: 'name', weight: 0.5 },
+				{ name: 'address', weight: 0.5 },
+			],
 		});
 		this.parseAddressBook(networkAddressBookList);
 	};
 
-	componentDidUpdate = prevProps => {
+	componentDidUpdate = (prevProps) => {
 		const { network, addressBook, reloadAddressList } = this.props;
 		if (
 			(prevProps.reloadAddressList && reloadAddressList !== prevProps.reloadAddressList) ||
@@ -133,7 +136,7 @@ class AddressList extends PureComponent {
 			} else {
 				const { addressBook } = this.props;
 				const networkAddressBook = addressBook[network] || {};
-				networkAddressBookList = Object.keys(networkAddressBook).map(address => networkAddressBook[address]);
+				networkAddressBookList = Object.keys(networkAddressBook).map((address) => networkAddressBook[address]);
 			}
 			this.parseAddressBook(networkAddressBookList);
 		}
@@ -143,10 +146,10 @@ class AddressList extends PureComponent {
 		this.setState({ myAccountsOpened: true });
 	};
 
-	parseAddressBook = networkAddressBookList => {
+	parseAddressBook = (networkAddressBookList) => {
 		const contactElements = [];
 		const addressBookTree = {};
-		networkAddressBookList.forEach(contact => {
+		networkAddressBookList.forEach((contact) => {
 			const contactNameInitial = contact && contact.name && contact.name[0];
 			const nameInitial = contactNameInitial && contactNameInitial.match(/[a-z]/i);
 			const initial = nameInitial ? nameInitial[0] : strings('address_book.others');
@@ -158,9 +161,9 @@ class AddressList extends PureComponent {
 		});
 		Object.keys(addressBookTree)
 			.sort()
-			.forEach(initial => {
+			.forEach((initial) => {
 				contactElements.push(initial);
-				addressBookTree[initial].forEach(contact => {
+				addressBookTree[initial].forEach((contact) => {
 					contactElements.push(contact);
 				});
 			});
@@ -181,7 +184,7 @@ class AddressList extends PureComponent {
 			</TouchableOpacity>
 		) : (
 			<View>
-				{Object.keys(identities).map(address => (
+				{Object.keys(identities).map((address) => (
 					<AddressElement
 						key={address}
 						address={address}
@@ -195,7 +198,7 @@ class AddressList extends PureComponent {
 		);
 	};
 
-	elementKeyExtractor = element => {
+	elementKeyExtractor = (element) => {
 		if (typeof element === 'string') return element;
 		return element.address + element.name;
 	};
@@ -222,7 +225,7 @@ class AddressList extends PureComponent {
 			<>
 				{LabelElement(strings('address_book.recents'))}
 				{recents
-					.filter(recent => recent != null)
+					.filter((recent) => recent != null)
 					.map((address, index) => (
 						<AddressElement
 							key={index}
@@ -256,13 +259,13 @@ class AddressList extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	recents: state.recents,
 	addressBook: state.engine.backgroundState.AddressBookController.addressBook,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	network: state.engine.backgroundState.NetworkController.network,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
-	chainId: state.engine.backgroundState.NetworkController.provider.chainId
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 });
 
 export default connect(mapStateToProps)(AddressList);

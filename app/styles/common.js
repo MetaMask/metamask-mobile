@@ -58,7 +58,7 @@ export const colors = {
 	overlay: 'rgba(0,0,0,.5)',
 	darkAlert: 'rgba(0,0,0,.75)',
 	normalAlert: 'rgba(55,55,55,.97)',
-	spinnerBackground: `rgba(185, 156, 171, 0.396)`
+	spinnerBackground: `rgba(185, 156, 171, 0.396)`,
 };
 
 /**
@@ -66,11 +66,11 @@ export const colors = {
  */
 export const baseStyles = {
 	flexGrow: {
-		flex: 1
+		flex: 1,
 	},
 	flexStatic: {
-		flex: 0
-	}
+		flex: 0,
+	},
 };
 
 /**
@@ -79,18 +79,18 @@ export const baseStyles = {
 export const fontStyles = {
 	normal: {
 		fontFamily: 'EuclidCircularB-Regular',
-		fontWeight: '400'
+		fontWeight: '400',
 	},
 	light: {
 		fontFamily: 'EuclidCircularB-Regular',
-		fontWeight: '300'
+		fontWeight: '300',
 	},
 	thin: {
 		fontFamily: 'EuclidCircularB-Regular',
-		fontWeight: '100'
+		fontWeight: '100',
 	},
 	bold: {
 		fontFamily: 'EuclidCircularB-Bold',
-		fontWeight: '600'
-	}
+		fontWeight: '600',
+	},
 };

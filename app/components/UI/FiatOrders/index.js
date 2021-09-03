@@ -20,16 +20,16 @@ import processOrder from './orderProcessor';
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
 const NOTIFICATION_DURATION = 5000;
 
-export const allowedToBuy = network => network === '1' || (network === '42' && Device.isIos());
+export const allowedToBuy = (network) => network === '1' || (network === '42' && Device.isIos());
 
 const baseNotificationDetails = {
-	duration: NOTIFICATION_DURATION
+	duration: NOTIFICATION_DURATION,
 };
 
 /**
  * @param {FiatOrder} fiatOrder
  */
-export const getAnalyticsPayload = fiatOrder => {
+export const getAnalyticsPayload = (fiatOrder) => {
 	const payload = {
 		fiat_amount: { value: fiatOrder.amount, anonymous: true },
 		fiat_currency: { value: fiatOrder.currency, anonymous: true },
@@ -39,7 +39,7 @@ export const getAnalyticsPayload = fiatOrder => {
 		fee_in_crypto: { value: fiatOrder.cryptoFee, anonymous: true },
 		order_id: { value: fiatOrder.id, anonymous: true },
 		fiat_amount_in_usd: { value: fiatOrder.amountInUSD, anonymous: true },
-		'on-ramp_provider': { value: fiatOrder.provider, anonymous: true }
+		'on-ramp_provider': { value: fiatOrder.provider, anonymous: true },
 	};
 	switch (fiatOrder.state) {
 		case FIAT_ORDER_STATES.FAILED: {
@@ -61,22 +61,22 @@ export const getAnalyticsPayload = fiatOrder => {
 /**
  * @param {FiatOrder} fiatOrder
  */
-export const getNotificationDetails = fiatOrder => {
+export const getNotificationDetails = (fiatOrder) => {
 	switch (fiatOrder.state) {
 		case FIAT_ORDER_STATES.FAILED: {
 			return {
 				...baseNotificationDetails,
 				title: strings('fiat_on_ramp.notifications.purchase_failed_title', {
-					currency: fiatOrder.cryptocurrency
+					currency: fiatOrder.cryptocurrency,
 				}),
-				status: 'error'
+				status: 'error',
 			};
 		}
 		case FIAT_ORDER_STATES.CANCELLED: {
 			return {
 				...baseNotificationDetails,
 				title: strings('fiat_on_ramp.notifications.purchase_cancelled_title'),
-				status: 'cancelled'
+				status: 'cancelled',
 			};
 		}
 		case FIAT_ORDER_STATES.COMPLETED: {
@@ -84,12 +84,12 @@ export const getNotificationDetails = fiatOrder => {
 				...baseNotificationDetails,
 				title: strings('fiat_on_ramp.notifications.purchase_completed_title', {
 					amount: renderNumber(String(fiatOrder.cryptoAmount)),
-					currency: fiatOrder.cryptocurrency
+					currency: fiatOrder.cryptocurrency,
 				}),
 				description: strings('fiat_on_ramp.notifications.purchase_completed_description', {
-					currency: fiatOrder.cryptocurrency
+					currency: fiatOrder.cryptocurrency,
 				}),
-				status: 'success'
+				status: 'success',
 			};
 		}
 		case FIAT_ORDER_STATES.PENDING:
@@ -97,10 +97,10 @@ export const getNotificationDetails = fiatOrder => {
 			return {
 				...baseNotificationDetails,
 				title: strings('fiat_on_ramp.notifications.purchase_pending_title', {
-					currency: fiatOrder.cryptocurrency
+					currency: fiatOrder.cryptocurrency,
 				}),
 				description: strings('fiat_on_ramp.notifications.purchase_pending_description'),
-				status: 'pending'
+				status: 'pending',
 			};
 		}
 	}
@@ -110,7 +110,7 @@ function FiatOrders({ pendingOrders, updateFiatOrder }) {
 	useInterval(
 		async () => {
 			await Promise.all(
-				pendingOrders.map(async order => {
+				pendingOrders.map(async (order) => {
 					const updatedOrder = await processOrder(order);
 					updateFiatOrder(updatedOrder);
 					if (updatedOrder.state !== order.state) {
@@ -135,18 +135,15 @@ FiatOrders.propTypes = {
 	orders: PropTypes.array,
 	selectedAddress: PropTypes.string,
 	network: PropTypes.string,
-	updateFiatOrder: PropTypes.func
+	updateFiatOrder: PropTypes.func,
 };
 
-const mapStateToProps = state => ({
-	pendingOrders: getPendingOrders(state)
+const mapStateToProps = (state) => ({
+	pendingOrders: getPendingOrders(state),
 });
 
-const mapDispatchToProps = dispatch => ({
-	updateFiatOrder: order => dispatch(updateFiatOrder(order))
+const mapDispatchToProps = (dispatch) => ({
+	updateFiatOrder: (order) => dispatch(updateFiatOrder(order)),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(FiatOrders);
+export default connect(mapStateToProps, mapDispatchToProps)(FiatOrders);

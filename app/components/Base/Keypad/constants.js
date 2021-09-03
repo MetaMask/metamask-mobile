@@ -13,108 +13,108 @@ export const KEYS = {
 	DIGIT_0: '0',
 	PERIOD: 'PERIOD',
 	BACK: 'BACK',
-	INITIAL: 'INITIAL'
+	INITIAL: 'INITIAL',
 };
 
 export const CURRENCIES = {
 	AUD: {
 		decimalSeparator: '.',
 		handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
-		symbol: '$'
+		symbol: '$',
 	},
 	BRL: {
 		decimalSeparator: '.',
 		handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
-		symbol: 'R$'
+		symbol: 'R$',
 	},
 	CAD: {
 		decimalSeparator: '.',
 		handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
-		symbol: '$'
+		symbol: '$',
 	},
 	CLP: {
 		decimalSeparator: null,
 		handler: createKeypadRule({ decimalSeparator: null }),
-		symbol: '$'
+		symbol: '$',
 	},
 	CZK: {
 		decimalSeparator: '.',
 		handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
-		symbol: 'Kč'
+		symbol: 'Kč',
 	},
 	default: {
 		decimalSeparator: '.',
 		handler: createKeypadRule({ decimalSeparator: '.' }),
-		symbol: null
+		symbol: null,
 	},
 	DKK: {
 		decimalSeparator: '.',
 		handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
-		symbol: 'kr'
+		symbol: 'kr',
 	},
 	EUR: {
 		decimalSeparator: ',',
 		handler: createKeypadRule({ decimalSeparator: ',', decimals: 2 }),
-		symbol: '€'
+		symbol: '€',
 	},
 	GBP: {
 		decimalSeparator: '.',
 		handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
-		symbol: '£'
+		symbol: '£',
 	},
 	HKD: {
 		decimalSeparator: '.',
 		handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
-		symbol: '$'
+		symbol: '$',
 	},
 	ISK: {
 		decimalSeparator: '.',
 		handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
-		symbol: 'kr'
+		symbol: 'kr',
 	},
 	JPY: {
 		decimalSeparator: null,
 		handler: createKeypadRule({ decimalSeparator: null }),
-		symbol: '¥'
+		symbol: '¥',
 	},
 	native: {
 		decimalSeparator: '.',
 		handler: createKeypadRule({ decimalSeparator: '.' }),
-		symbol: null
+		symbol: null,
 	},
 	NOK: {
 		decimalSeparator: '.',
 		handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
-		symbol: 'kr'
+		symbol: 'kr',
 	},
 	NZD: {
 		decimalSeparator: '.',
 		handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
-		symbol: '$'
+		symbol: '$',
 	},
 	PLN: {
 		decimalSeparator: '.',
 		handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
-		symbol: 'zł'
+		symbol: 'zł',
 	},
 	SGD: {
 		decimalSeparator: '.',
 		handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
-		symbol: '$'
+		symbol: '$',
 	},
 	SEK: {
 		decimalSeparator: '.',
 		handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
-		symbol: 'kr'
+		symbol: 'kr',
 	},
 	CHF: {
 		decimalSeparator: '.',
 		handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
-		symbol: 'Fr'
+		symbol: 'Fr',
 	},
 	USD: {
 		decimalSeparator: '.',
 		handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
-		symbol: '$'
-	}
+		symbol: '$',
+	},
 };

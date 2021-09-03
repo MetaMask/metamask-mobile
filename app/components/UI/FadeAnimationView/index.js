@@ -11,7 +11,7 @@ const FadeAnimationView = ({
 	valueToWatch,
 	onAnimationStart,
 	onAnimationEnd,
-	animateOnChange
+	animateOnChange,
 }) => {
 	const fadeAnim = useRef(new Animated.Value(1)).current; // Initial value for opacity: 1
 	const [value, setValue] = useState(valueToWatch);
@@ -34,7 +34,7 @@ const FadeAnimationView = ({
 
 		const animationParams = {
 			time: animationTime / 6,
-			useNativeDriver: true
+			useNativeDriver: true,
 		};
 		const animationValueZero = 0;
 		const animationValueAlmost = 0.8;
@@ -43,28 +43,28 @@ const FadeAnimationView = ({
 		Animated.sequence([
 			Animated.timing(fadeAnim, {
 				toValue: animationValueZero,
-				...animationParams
+				...animationParams,
 			}),
 			Animated.timing(fadeAnim, {
 				toValue: animationValueAlmost,
-				...animationParams
+				...animationParams,
 			}),
 			Animated.timing(fadeAnim, {
 				toValue: animationValueZero,
-				...animationParams
+				...animationParams,
 			}),
 			Animated.timing(fadeAnim, {
 				toValue: animationValueAlmost,
-				...animationParams
+				...animationParams,
 			}),
 			Animated.timing(fadeAnim, {
 				toValue: animationValueZero,
-				...animationParams
+				...animationParams,
 			}),
 			Animated.timing(fadeAnim, {
 				toValue: animationValueFinal,
-				...animationParams
-			})
+				...animationParams,
+			}),
 		]).start(() => {
 			animationEnded();
 		});
@@ -90,7 +90,7 @@ const FadeAnimationView = ({
 		<Animated.View // Special animatable View
 			style={{
 				...style,
-				opacity: fadeAnim // Bind opacity to animated value
+				opacity: fadeAnim, // Bind opacity to animated value
 			}}
 			pointerEvents={isAnimating ? 'none' : null}
 		>
@@ -127,7 +127,7 @@ FadeAnimationView.propTypes = {
 	/**
 	 * If the values should animate upon update or not
 	 */
-	animateOnChange: PropTypes.bool
+	animateOnChange: PropTypes.bool,
 };
 
 export default FadeAnimationView;

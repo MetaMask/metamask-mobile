@@ -33,7 +33,7 @@ function SwapLiveness({ isLive, chainId, setLiveness }) {
 
 	// Check con appstate change
 	const appStateHandler = useCallback(
-		newState => {
+		(newState) => {
 			if (hasMountChecked && !isLive && newState === 'active') {
 				checkLiveness();
 			}
@@ -61,16 +61,13 @@ function SwapLiveness({ isLive, chainId, setLiveness }) {
 	return null;
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	isLive: swapsLivenessSelector(state),
-	chainId: state.engine.backgroundState.NetworkController.provider.chainId
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 });
 
-const mapDispatchToProps = dispatch => ({
-	setLiveness: (liveness, chainId) => dispatch(setSwapsLiveness(liveness, chainId))
+const mapDispatchToProps = (dispatch) => ({
+	setLiveness: (liveness, chainId) => dispatch(setSwapsLiveness(liveness, chainId)),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(SwapLiveness);
+export default connect(mapStateToProps, mapDispatchToProps)(SwapLiveness);

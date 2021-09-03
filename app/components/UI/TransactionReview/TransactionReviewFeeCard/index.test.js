@@ -12,20 +12,20 @@ describe('TransactionReviewFeeCard', () => {
 				backgroundState: {
 					CurrencyRateController: {
 						currentCurrency: 'usd',
-						conversionRate: 0.1
+						conversionRate: 0.1,
 					},
 					NetworkController: {
 						provider: {
 							ticker: 'ETH',
-							chainId: '1'
-						}
-					}
-				}
-			}
+							chainId: '1',
+						},
+					},
+				},
+			},
 		};
 
 		const wrapper = shallow(<TransactionReviewFeeCard />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});

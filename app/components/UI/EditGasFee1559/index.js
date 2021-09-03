@@ -34,67 +34,67 @@ const styles = StyleSheet.create({
 		minHeight: 200,
 		maxHeight: '95%',
 		paddingTop: 24,
-		paddingBottom: Device.isIphoneX() ? 32 : 24
+		paddingBottom: Device.isIphoneX() ? 32 : 24,
 	},
 	wrapper: {
-		paddingHorizontal: 24
+		paddingHorizontal: 24,
 	},
 	customGasHeader: {
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 		alignItems: 'center',
 		width: '100%',
-		paddingBottom: 20
+		paddingBottom: 20,
 	},
 	headerContainer: {
 		alignItems: 'center',
-		marginBottom: 22
+		marginBottom: 22,
 	},
 	headerText: {
 		fontSize: 48,
 		flex: 1,
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	headerTitle: {
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	saveButton: {
-		marginBottom: 20
+		marginBottom: 20,
 	},
 	labelTextContainer: {
 		flexDirection: 'row',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	hitSlop: {
 		top: 10,
 		left: 10,
 		bottom: 10,
-		right: 10
+		right: 10,
 	},
 	labelInfo: {
-		color: colors.grey200
+		color: colors.grey200,
 	},
 	advancedOptionsContainer: {
 		marginTop: 25,
-		marginBottom: 30
+		marginBottom: 30,
 	},
 	advancedOptionsInputsContainer: {
-		marginTop: 14
+		marginTop: 14,
 	},
 	rangeInputContainer: {
-		marginBottom: 20
+		marginBottom: 20,
 	},
 	advancedOptionsButton: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	advancedOptionsIcon: {
 		paddingTop: 1,
-		marginLeft: 5
+		marginLeft: 5,
 	},
 	learnMoreLabels: {
-		marginTop: 9
+		marginTop: 9,
 	},
 	/* Add when the learn more link is ready
 	learnMoreLink: {
@@ -103,28 +103,28 @@ const styles = StyleSheet.create({
 	warningTextContainer: {
 		lineHeight: 20,
 		paddingLeft: 4,
-		flex: 1
+		flex: 1,
 	},
 	warningText: {
 		lineHeight: 20,
-		flex: 1
+		flex: 1,
 	},
 	warningContainer: {
-		marginBottom: 20
+		marginBottom: 20,
 	},
 	dappEditGasContainer: {
-		marginVertical: 20
+		marginVertical: 20,
 	},
 	subheader: {
-		marginBottom: 6
+		marginBottom: 6,
 	},
 	learnMoreModal: {
-		maxHeight: Device.getDeviceHeight() * 0.7
+		maxHeight: Device.getDeviceHeight() * 0.7,
 	},
 	redInfo: {
 		marginLeft: 2,
-		color: colors.red
-	}
+		color: colors.red,
+	},
 });
 
 const EditGasFee1559 = ({
@@ -160,7 +160,7 @@ const EditGasFee1559 = ({
 	onUpdatingValuesStart,
 	onUpdatingValuesEnd,
 	analyticsParams,
-	view
+	view,
 }) => {
 	const [showRangeInfoModal, setShowRangeInfoModal] = useState(false);
 	const [showAdvancedOptions, setShowAdvancedOptions] = useState(!selected);
@@ -169,9 +169,8 @@ const EditGasFee1559 = ({
 	const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
 	const [selectedOption, setSelectedOption] = useState(selected);
 	const [showInputs, setShowInputs] = useState(!dappSuggestedGas);
-	const [isVisibleTimeEstimateInfoModal, , showTimeEstimateInfoModal, hideTimeEstimateInfoModal] = useModalHandler(
-		false
-	);
+	const [isVisibleTimeEstimateInfoModal, , showTimeEstimateInfoModal, hideTimeEstimateInfoModal] =
+		useModalHandler(false);
 
 	const getAnalyticsParams = useCallback(() => {
 		try {
@@ -180,7 +179,7 @@ const EditGasFee1559 = ({
 				chain_id: chainId,
 				function_type: view,
 				gas_mode: selectedOption ? 'Basic' : 'Advanced',
-				speed_set: selectedOption || undefined
+				speed_set: selectedOption || undefined,
 			};
 		} catch (error) {
 			return {};
@@ -191,11 +190,11 @@ const EditGasFee1559 = ({
 		if (!showAdvancedOptions) {
 			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.GAS_ADVANCED_OPTIONS_CLICKED, getAnalyticsParams());
 		}
-		setShowAdvancedOptions(showAdvancedOptions => !showAdvancedOptions);
+		setShowAdvancedOptions((showAdvancedOptions) => !showAdvancedOptions);
 	}, [getAnalyticsParams, showAdvancedOptions]);
 
 	const toggleLearnMoreModal = useCallback(() => {
-		setShowLearnMoreModal(showLearnMoreModal => !showLearnMoreModal);
+		setShowLearnMoreModal((showLearnMoreModal) => !showLearnMoreModal);
 	}, []);
 
 	const save = useCallback(() => {
@@ -213,7 +212,7 @@ const EditGasFee1559 = ({
 	);
 
 	const changedMaxPriorityFee = useCallback(
-		value => {
+		(value) => {
 			const lowerValue = new BigNumber(gasOptions?.[warningMinimumEstimateOption]?.suggestedMaxPriorityFeePerGas);
 			const higherValue = new BigNumber(gasOptions?.high?.suggestedMaxPriorityFeePerGas).multipliedBy(
 				new BigNumber(1.5)
@@ -237,7 +236,7 @@ const EditGasFee1559 = ({
 	);
 
 	const changedMaxFeePerGas = useCallback(
-		value => {
+		(value) => {
 			const lowerValue = new BigNumber(gasOptions?.[warningMinimumEstimateOption]?.suggestedMaxFeePerGas);
 			const higherValue = new BigNumber(gasOptions?.high?.suggestedMaxFeePerGas).multipliedBy(new BigNumber(1.5));
 
@@ -258,7 +257,7 @@ const EditGasFee1559 = ({
 	);
 
 	const changedGasLimit = useCallback(
-		value => {
+		(value) => {
 			const newGas = { ...gasFee, suggestedGasLimit: value };
 			changeGas(newGas, null);
 		},
@@ -266,7 +265,7 @@ const EditGasFee1559 = ({
 	);
 
 	const selectOption = useCallback(
-		option => {
+		(option) => {
 			setSelectedOption(option);
 			setMaxFeeError('');
 			setMaxPriorityFeeError('');
@@ -275,14 +274,14 @@ const EditGasFee1559 = ({
 		[changeGas, gasOptions]
 	);
 
-	const shouldIgnore = useCallback(option => ignoreOptions.find(item => item === option), [ignoreOptions]);
+	const shouldIgnore = useCallback((option) => ignoreOptions.find((item) => item === option), [ignoreOptions]);
 
 	const renderOptions = useMemo(
 		() =>
 			[
 				{ name: AppConstants.GAS_OPTIONS.LOW, label: strings('edit_gas_fee_eip1559.low') },
 				{ name: AppConstants.GAS_OPTIONS.MEDIUM, label: strings('edit_gas_fee_eip1559.medium') },
-				{ name: AppConstants.GAS_OPTIONS.HIGH, label: strings('edit_gas_fee_eip1559.high') }
+				{ name: AppConstants.GAS_OPTIONS.HIGH, label: strings('edit_gas_fee_eip1559.high') },
 			]
 				.filter(({ name }) => !shouldIgnore(name))
 				.map(({ name, label, ...option }) => ({
@@ -294,7 +293,7 @@ const EditGasFee1559 = ({
 					),
 					topLabel: recommended?.name === name && recommended.render,
 					...option,
-					...extendOptions[name]
+					...extendOptions[name],
 				})),
 		[recommended, extendOptions, shouldIgnore]
 	);
@@ -645,7 +644,7 @@ const EditGasFee1559 = ({
 EditGasFee1559.defaultProps = {
 	ignoreOptions: [],
 	warningMinimumEstimateOption: AppConstants.GAS_OPTIONS.LOW,
-	suggestedEstimateOption: AppConstants.GAS_OPTIONS.MEDIUM
+	suggestedEstimateOption: AppConstants.GAS_OPTIONS.MEDIUM,
 };
 
 EditGasFee1559.propTypes = {
@@ -780,7 +779,7 @@ EditGasFee1559.propTypes = {
 	/**
 	 * (For analytics purposes) View (Approve, Transfer, Confirm) where this component is being used
 	 */
-	view: PropTypes.string.isRequired
+	view: PropTypes.string.isRequired,
 };
 
 export default EditGasFee1559;

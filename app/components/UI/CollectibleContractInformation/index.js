@@ -8,7 +8,7 @@ import {
 	View,
 	SafeAreaView,
 	InteractionManager,
-	Image
+	Image,
 } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -20,11 +20,11 @@ const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
 		borderRadius: 10,
-		minHeight: 450
+		minHeight: 450,
 	},
 	titleWrapper: {
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100
+		borderColor: colors.grey100,
 	},
 	title: {
 		textAlign: 'center',
@@ -32,28 +32,28 @@ const styles = StyleSheet.create({
 		marginVertical: 12,
 		marginHorizontal: 20,
 		color: colors.fontPrimary,
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	label: {
 		marginTop: 0,
 		borderColor: colors.grey100,
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	informationWrapper: {
 		flex: 1,
-		paddingHorizontal: 20
+		paddingHorizontal: 20,
 	},
 	content: {
 		fontSize: 16,
 		color: colors.grey400,
 		paddingTop: 10,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	address: {
-		fontSize: 12
+		fontSize: 12,
 	},
 	row: {
-		marginVertical: 10
+		marginVertical: 10,
 	},
 	footer: {
 		borderTopWidth: StyleSheet.hairlineWidth,
@@ -61,19 +61,19 @@ const styles = StyleSheet.create({
 		height: 60,
 		justifyContent: 'center',
 		flexDirection: 'row',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	footerButton: {
 		flex: 1,
 		alignContent: 'center',
 		alignItems: 'center',
 		justifyContent: 'center',
-		height: 60
+		height: 60,
 	},
 	closeButton: {
 		fontSize: 16,
 		color: colors.blue,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	opensea: {
 		fontSize: 8,
@@ -81,26 +81,26 @@ const styles = StyleSheet.create({
 		paddingRight: 5,
 		marginTop: Device.isAndroid() ? -2 : 4,
 		color: colors.fontSecondary,
-		...fontStyles.light
+		...fontStyles.light,
 	},
 	credits: {
 		flex: 1,
 		flexDirection: 'row',
 		alignItems: 'center',
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	openSeaLogo: {
 		width: 80,
 		height: 20,
-		resizeMode: 'contain'
+		resizeMode: 'contain',
 	},
 	creditsView: {
 		alignItems: 'center',
-		marginTop: 15
+		marginTop: 15,
 	},
 	creditsElements: {
-		flexDirection: 'row'
-	}
+		flexDirection: 'row',
+	},
 });
 
 const openSeaLogo = require('../../../images/opensea-logo-flat-colored-blue.png'); // eslint-disable-line
@@ -126,7 +126,7 @@ class CollectibleContractInformation extends PureComponent {
 		/**
 		 * Object representing the selected network
 		 */
-		network: PropTypes.object.isRequired
+		network: PropTypes.object.isRequired,
 	};
 
 	closeModal = () => {
@@ -141,8 +141,8 @@ class CollectibleContractInformation extends PureComponent {
 				screen: 'SimpleWebview',
 				params: {
 					url: openSeaUrl,
-					title: 'OpenSea'
-				}
+					title: 'OpenSea',
+				},
 			});
 		});
 	};
@@ -150,7 +150,7 @@ class CollectibleContractInformation extends PureComponent {
 	render = () => {
 		const {
 			collectibleContract: { name, description, totalSupply, address },
-			network
+			network,
 		} = this.props;
 		const is_main_net = isMainNet(network);
 
@@ -200,8 +200,8 @@ class CollectibleContractInformation extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({
-	network: state.engine.backgroundState.NetworkController
+const mapStateToProps = (state) => ({
+	network: state.engine.backgroundState.NetworkController,
 });
 
 export default connect(mapStateToProps)(CollectibleContractInformation);

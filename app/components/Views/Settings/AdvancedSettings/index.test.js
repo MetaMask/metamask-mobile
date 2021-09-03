@@ -12,14 +12,14 @@ describe('AdvancedSettings', () => {
 			engine: {
 				backgroundState: {
 					PreferencesController: {
-						ipfsGateway: 'https://ipfs.io/ipfs/'
-					}
-				}
-			}
+						ipfsGateway: 'https://ipfs.io/ipfs/',
+					},
+				},
+			},
 		};
 
 		const wrapper = shallow(<AdvancedSettings route={{ params: {} }} />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});

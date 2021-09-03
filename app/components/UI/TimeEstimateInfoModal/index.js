@@ -40,7 +40,7 @@ TimeEstimateInfoModal.propTypes = {
 	/**
 	 * Function to hide the modal
 	 */
-	onHideModal: PropTypes.func
+	onHideModal: PropTypes.func,
 };
 
 export default TimeEstimateInfoModal;

@@ -13,10 +13,10 @@ import ReusableModal from '../ReusableModal';
 const styles = StyleSheet.create({
 	bottomModal: {
 		justifyContent: 'flex-end',
-		margin: 0
+		margin: 0,
 	},
 	round: {
-		borderRadius: 12
+		borderRadius: 12,
 	},
 	collectibleMediaWrapper: {
 		position: 'absolute',
@@ -26,14 +26,14 @@ const styles = StyleSheet.create({
 		marginHorizontal: 16,
 		marginTop: Device.hasNotch() ? 36 : 16,
 		borderRadius: 12,
-		backgroundColor: colors.transparent
-	}
+		backgroundColor: colors.transparent,
+	},
 });
 
 /**
  * View that displays a specific collectible asset
  */
-const CollectibleModal = props => {
+const CollectibleModal = (props) => {
 	const { route, navigation, newAssetTransaction } = props;
 	const { contractName, collectible } = route.params;
 
@@ -56,7 +56,7 @@ const CollectibleModal = props => {
 	}, [collectible.address]);
 
 	const openLink = useCallback(
-		url => {
+		(url) => {
 			navigation.replace('Webview', { screen: 'SimpleWebview', params: { url } });
 		},
 		[navigation]
@@ -68,7 +68,7 @@ const CollectibleModal = props => {
 	 *
 	 * @param {boolean} moveUp
 	 */
-	const onCollectibleOverviewTranslation = moveUp => {
+	const onCollectibleOverviewTranslation = (moveUp) => {
 		if (moveUp) {
 			setTimeout(() => {
 				setMediaZIndex(20);
@@ -130,14 +130,11 @@ CollectibleModal.propTypes = {
 	/**
 	 * Contract name of the collectible
 	 */
-	contractName: PropTypes.string
+	contractName: PropTypes.string,
 };
 
-const mapDispatchToProps = dispatch => ({
-	newAssetTransaction: selectedAsset => dispatch(newAssetTransaction(selectedAsset))
+const mapDispatchToProps = (dispatch) => ({
+	newAssetTransaction: (selectedAsset) => dispatch(newAssetTransaction(selectedAsset)),
 });
 
-export default connect(
-	null,
-	mapDispatchToProps
-)(CollectibleModal);
+export default connect(null, mapDispatchToProps)(CollectibleModal);

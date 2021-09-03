@@ -12,32 +12,32 @@ describe('TransactionReview', () => {
 			engine: {
 				backgroundState: {
 					PreferencesController: {
-						selectedAddress: '0x2'
+						selectedAddress: '0x2',
 					},
 					AccountTrackerController: {
-						accounts: []
+						accounts: [],
 					},
 					TokensController: {
-						tokens: []
+						tokens: [],
 					},
 					CurrencyRateController: {
-						currentCurrency: 'usd'
+						currentCurrency: 'usd',
 					},
 					TokenRatesController: {
 						contractExchangeRates: {
-							'0x': '0.1'
-						}
+							'0x': '0.1',
+						},
 					},
 					NetworkController: {
 						provider: {
-							ticker: 'ETH'
-						}
-					}
-				}
+							ticker: 'ETH',
+						},
+					},
+				},
 			},
 			settings: {
 				showHexData: true,
-				primaryCurrency: 'ETH'
+				primaryCurrency: 'ETH',
 			},
 			transaction: {
 				value: '',
@@ -47,11 +47,11 @@ describe('TransactionReview', () => {
 				gasPrice: '',
 				to: '0x2',
 				selectedAsset: undefined,
-				assetType: undefined
+				assetType: undefined,
 			},
 			browser: {
-				tabs: []
-			}
+				tabs: [],
+			},
 		};
 
 		const wrapper = shallow(
@@ -61,7 +61,7 @@ describe('TransactionReview', () => {
 				generateTransform={generateTransform}
 			/>,
 			{
-				context: { store: mockStore(initialState) }
+				context: { store: mockStore(initialState) },
 			}
 		);
 		expect(wrapper.dive()).toMatchSnapshot();

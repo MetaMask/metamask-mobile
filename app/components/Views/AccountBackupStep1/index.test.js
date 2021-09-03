@@ -12,15 +12,15 @@ describe('AccountBackupStep1', () => {
 				backgroundState: {
 					NetworkController: {
 						provider: {
-							chainId: '1'
-						}
-					}
-				}
-			}
+							chainId: '1',
+						},
+					},
+				},
+			},
 		};
 
 		const wrapper = shallow(<AccountBackupStep1 />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper).toMatchSnapshot();
 	});

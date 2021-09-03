@@ -20,53 +20,53 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		paddingHorizontal: 20,
 		paddingVertical: 20,
-		height: 80
+		height: 80,
 	},
 	disabledAccount: {
-		opacity: 0.5
+		opacity: 0.5,
 	},
 	accountInfo: {
 		marginLeft: 15,
 		marginRight: 0,
 		flex: 1,
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	accountLabel: {
 		fontSize: 18,
 		color: colors.fontPrimary,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	accountBalanceWrapper: {
 		display: 'flex',
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	accountBalance: {
 		paddingTop: 5,
 		fontSize: 12,
 		color: colors.fontSecondary,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	accountBalanceError: {
 		color: colors.fontError,
-		marginLeft: 4
+		marginLeft: 4,
 	},
 	importedView: {
 		flex: 0.5,
 		alignItems: 'center',
-		marginTop: 2
+		marginTop: 2,
 	},
 	accountMain: {
 		flex: 1,
-		flexDirection: 'column'
+		flexDirection: 'column',
 	},
 	selectedWrapper: {
 		flex: 0.2,
-		alignItems: 'flex-end'
+		alignItems: 'flex-end',
 	},
 	importedText: {
 		color: colors.grey400,
 		fontSize: 10,
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	importedWrapper: {
 		width: 73,
@@ -74,8 +74,8 @@ const styles = StyleSheet.create({
 		paddingVertical: 3,
 		borderRadius: 10,
 		borderWidth: 1,
-		borderColor: colors.grey400
-	}
+		borderColor: colors.grey400,
+	},
 });
 
 /**
@@ -103,7 +103,7 @@ class AccountElement extends PureComponent {
 		/**
 		 * Updated balance using stored in state
 		 */
-		updatedBalanceFromStore: PropTypes.string
+		updatedBalanceFromStore: PropTypes.string,
 	};
 
 	onPress = () => {
@@ -168,8 +168,8 @@ class AccountElement extends PureComponent {
 const mapStateToProps = (
 	{
 		engine: {
-			backgroundState: { PreferencesController, AccountTrackerController }
-		}
+			backgroundState: { PreferencesController, AccountTrackerController },
+		},
 	},
 	{ item: { balance, address } }
 ) => {
@@ -183,7 +183,7 @@ const mapStateToProps = (
 			? selectedAccount[BALANCE_KEY]
 			: balance;
 	return {
-		updatedBalanceFromStore
+		updatedBalanceFromStore,
 	};
 };
 

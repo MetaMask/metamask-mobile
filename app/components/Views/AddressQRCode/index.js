@@ -19,11 +19,11 @@ const styles = StyleSheet.create({
 		flex: 1,
 		flexDirection: 'row',
 		alignItems: 'center',
-		marginTop: Device.isSmallDevice() ? -30 : -50
+		marginTop: Device.isSmallDevice() ? -30 : -50,
 	},
 	wrapper: {
 		flex: 1,
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	qrCode: {
 		marginBottom: 16,
@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		padding: 36,
 		backgroundColor: colors.grey000,
-		borderRadius: 8
+		borderRadius: 8,
 	},
 	addressWrapper: {
 		alignItems: 'center',
@@ -39,26 +39,26 @@ const styles = StyleSheet.create({
 		width: WIDTH,
 		borderRadius: 8,
 		backgroundColor: colors.grey000,
-		paddingVertical: 12
+		paddingVertical: 12,
 	},
 	closeIcon: {
 		width: WIDTH + 40,
 		paddingBottom: Device.isSmallDevice() ? 30 : 50,
-		flexDirection: 'row-reverse'
+		flexDirection: 'row-reverse',
 	},
 	addressTitle: {
 		fontSize: 16,
 		paddingHorizontal: 28,
 		paddingVertical: 4,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	address: {
 		...fontStyles.normal,
 		paddingHorizontal: 28,
 		paddingVertical: 4,
 		fontSize: 16,
-		textAlign: 'center'
-	}
+		textAlign: 'center',
+	},
 });
 
 /**
@@ -86,7 +86,7 @@ class AddressQRCode extends PureComponent {
 		 * redux flag that indicates if the user
 		 * completed the seed phrase backup flow
 		 */
-		seedphraseBackedUp: PropTypes.bool
+		seedphraseBackedUp: PropTypes.bool,
 	};
 
 	/**
@@ -104,7 +104,7 @@ class AddressQRCode extends PureComponent {
 			isVisible: true,
 			autodismiss: 1500,
 			content: 'clipboard-alert',
-			data: { msg: strings('account_details.account_copied_to_clipboard') }
+			data: { msg: strings('account_details.account_copied_to_clipboard') },
 		});
 	};
 
@@ -145,17 +145,14 @@ class AddressQRCode extends PureComponent {
 	}
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	seedphraseBackedUp: state.user.seedphraseBackedUp
+	seedphraseBackedUp: state.user.seedphraseBackedUp,
 });
 
-const mapDispatchToProps = dispatch => ({
-	showAlert: config => dispatch(showAlert(config)),
-	protectWalletModalVisible: () => dispatch(protectWalletModalVisible())
+const mapDispatchToProps = (dispatch) => ({
+	showAlert: (config) => dispatch(showAlert(config)),
+	protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(AddressQRCode);
+export default connect(mapStateToProps, mapDispatchToProps)(AddressQRCode);
