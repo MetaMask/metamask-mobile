@@ -12,58 +12,58 @@ const styles = StyleSheet.create({
 	root: {
 		paddingHorizontal: 24,
 		paddingTop: 24,
-		paddingBottom: Device.isIphoneX() ? 48 : 24
+		paddingBottom: Device.isIphoneX() ? 48 : 24,
 	},
 	dataHeader: {
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 		alignItems: 'center',
 		width: '100%',
-		marginBottom: 28
+		marginBottom: 28,
 	},
 	dataTitleText: {
 		...fontStyles.bold,
 		color: colors.black,
 		fontSize: 14,
-		alignSelf: 'center'
+		alignSelf: 'center',
 	},
 	dataDescription: {
 		textAlign: 'center',
 		...fontStyles.normal,
 		color: colors.black,
 		fontSize: 14,
-		marginBottom: 28
+		marginBottom: 28,
 	},
 	dataBox: {
 		padding: 12,
 		borderWidth: 1,
 		borderColor: colors.grey200,
 		borderRadius: 8,
-		flex: 1
+		flex: 1,
 	},
 	label: {
 		flexDirection: 'row',
 		justifyContent: 'flex-start',
-		marginBottom: 12
+		marginBottom: 12,
 	},
 	boldLabel: {
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	labelText: {
 		...fontStyles.normal,
 		color: colors.black,
-		fontSize: 14
+		fontSize: 14,
 	},
 	hexData: {
 		...fontStyles.normal,
 		backgroundColor: colors.white,
 		color: colors.black,
 		fontSize: 14,
-		paddingTop: 0
+		paddingTop: 0,
 	},
 	scrollView: {
-		flex: 1
-	}
+		flex: 1,
+	},
 });
 
 /**
@@ -86,7 +86,7 @@ class TransactionReviewData extends PureComponent {
 		/**
 		 * Height of custom gas and data modal
 		 */
-		customGasHeight: PropTypes.number
+		customGasHeight: PropTypes.number,
 	};
 
 	applyRootHeight = () => ({ height: this.props.customGasHeight });
@@ -94,10 +94,10 @@ class TransactionReviewData extends PureComponent {
 	render = () => {
 		const {
 			transaction: {
-				transaction: { data }
+				transaction: { data },
 			},
 			actionKey,
-			toggleDataView
+			toggleDataView,
 		} = this.props;
 		return (
 			<View style={[styles.root, this.applyRootHeight()]}>
@@ -132,11 +132,11 @@ class TransactionReviewData extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-	transaction: state.transaction
+	transaction: state.transaction,
 });
 
 export default connect(mapStateToProps)(TransactionReviewData);

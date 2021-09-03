@@ -2,7 +2,7 @@ import notificationTypes from '../../util/notifications';
 const { TRANSACTION, SIMPLE } = notificationTypes;
 
 export const initialState = {
-	notifications: []
+	notifications: [],
 };
 
 export const ACTIONS = {
@@ -15,13 +15,13 @@ export const ACTIONS = {
 	REMOVE_CURRENT_NOTIFICATION: 'REMOVE_CURRENT_NOTIFICATION',
 	REMOVE_NOT_VISIBLE_NOTIFICATIONS: 'REMOVE_NOT_VISIBLE_NOTIFICATIONS',
 	SHOW_SIMPLE_NOTIFICATION: 'SHOW_SIMPLE_NOTIFICATION',
-	SHOW_TRANSACTION_NOTIFICATION: 'SHOW_TRANSACTION_NOTIFICATION'
+	SHOW_TRANSACTION_NOTIFICATION: 'SHOW_TRANSACTION_NOTIFICATION',
 };
 
 const enqueue = (notifications, notification) => [...notifications, notification];
-const dequeue = notifications => notifications.slice(1);
+const dequeue = (notifications) => notifications.slice(1);
 
-export const currentNotificationSelector = state => state?.notifications[0] || {};
+export const currentNotificationSelector = (state) => state?.notifications[0] || {};
 
 const notificationReducer = (state = initialState, action) => {
 	const { notifications } = state;
@@ -31,7 +31,7 @@ const notificationReducer = (state = initialState, action) => {
 			if (notifications[0]) {
 				return {
 					...state,
-					notifications: [{ ...notifications[0], isVisible: false }, ...notifications.slice(1)]
+					notifications: [{ ...notifications[0], isVisible: false }, ...notifications.slice(1)],
 				};
 			}
 			return state;
@@ -46,8 +46,8 @@ const notificationReducer = (state = initialState, action) => {
 				notifications: [
 					...notifications.slice(0, index),
 					{ ...notifications[index], isVisible: false },
-					...notifications.slice(index + 1)
-				]
+					...notifications.slice(index + 1),
+				],
 			};
 		}
 		case ACTIONS.MODIFY_OR_SHOW_TRANSACTION_NOTIFICATION: {
@@ -65,11 +65,11 @@ const notificationReducer = (state = initialState, action) => {
 								autodismiss: action.autodismiss,
 								transaction: action.transaction,
 								status: action.status,
-								type: TRANSACTION
-							}
+								type: TRANSACTION,
+							},
 						},
-						...notifications.slice(index + 1)
-					]
+						...notifications.slice(index + 1),
+					],
 				};
 			}
 			return {
@@ -80,8 +80,8 @@ const notificationReducer = (state = initialState, action) => {
 					autodismiss: action.autodismiss,
 					transaction: action.transaction,
 					status: action.status,
-					type: TRANSACTION
-				})
+					type: TRANSACTION,
+				}),
 			};
 		}
 		case ACTIONS.MODIFY_OR_SHOW_SIMPLE_NOTIFICATION: {
@@ -100,11 +100,11 @@ const notificationReducer = (state = initialState, action) => {
 								title: action.title,
 								description: action.description,
 								status: action.status,
-								type: SIMPLE
-							}
+								type: SIMPLE,
+							},
 						},
-						...notifications.slice(index + 1)
-					]
+						...notifications.slice(index + 1),
+					],
 				};
 			}
 			return {
@@ -116,8 +116,8 @@ const notificationReducer = (state = initialState, action) => {
 					title: action.title,
 					description: action.description,
 					status: action.status,
-					type: SIMPLE
-				})
+					type: SIMPLE,
+				}),
 			};
 		}
 		case ACTIONS.REPLACE_NOTIFICATION_BY_ID: {
@@ -130,20 +130,20 @@ const notificationReducer = (state = initialState, action) => {
 				notifications: [
 					...notifications.slice(0, index),
 					action.notification,
-					...notifications.slice(index + 1)
-				]
+					...notifications.slice(index + 1),
+				],
 			};
 		}
 		case ACTIONS.REMOVE_NOTIFICATION_BY_ID: {
 			return {
 				...state,
-				notifications: notifications.filter(({ id }) => id !== action.id)
+				notifications: notifications.filter(({ id }) => id !== action.id),
 			};
 		}
 		case ACTIONS.REMOVE_CURRENT_NOTIFICATION: {
 			return {
 				...state,
-				notifications: dequeue(notifications)
+				notifications: dequeue(notifications),
 			};
 		}
 		case ACTIONS.SHOW_SIMPLE_NOTIFICATION: {
@@ -156,8 +156,8 @@ const notificationReducer = (state = initialState, action) => {
 					title: action.title,
 					description: action.description,
 					status: action.status,
-					type: SIMPLE
-				})
+					type: SIMPLE,
+				}),
 			};
 		}
 		case ACTIONS.SHOW_TRANSACTION_NOTIFICATION: {
@@ -169,15 +169,15 @@ const notificationReducer = (state = initialState, action) => {
 					autodismiss: action.autodismiss || 5000,
 					transaction: action.transaction,
 					status: action.status,
-					type: TRANSACTION
-				})
+					type: TRANSACTION,
+				}),
 			};
 		}
 		case ACTIONS.REMOVE_NOT_VISIBLE_NOTIFICATIONS: {
-			const visibleNotifications = notifications?.filter(notification => notification.isVisible) || [];
+			const visibleNotifications = notifications?.filter((notification) => notification.isVisible) || [];
 			return {
 				...state,
-				notifications: visibleNotifications
+				notifications: visibleNotifications,
 			};
 		}
 		default:

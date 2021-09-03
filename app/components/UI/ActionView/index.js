@@ -11,17 +11,17 @@ const styles = StyleSheet.create({
 		flex: 0,
 		flexDirection: 'row',
 		paddingVertical: 16,
-		paddingHorizontal: 24
+		paddingHorizontal: 24,
 	},
 	button: {
-		flex: 1
+		flex: 1,
 	},
 	cancel: {
-		marginRight: 8
+		marginRight: 8,
 	},
 	confirm: {
-		marginLeft: 8
-	}
+		marginLeft: 8,
+	},
 });
 
 /**
@@ -42,7 +42,7 @@ export default function ActionView({
 	confirmed,
 	confirmDisabled,
 	keyboardShouldPersistTaps = 'never',
-	style = undefined
+	style = undefined,
 }) {
 	return (
 		<View style={baseStyles.flexGrow}>
@@ -101,7 +101,7 @@ ActionView.defaultProps = {
 	confirmed: false,
 	cancelTestID: '',
 	showCancelButton: true,
-	showConfirmButton: true
+	showConfirmButton: true,
 };
 
 ActionView.propTypes = {
@@ -165,5 +165,5 @@ ActionView.propTypes = {
 	/**
 	 * Optional View styles. Applies to scroll view
 	 */
-	style: PropTypes.object
+	style: PropTypes.object,
 };

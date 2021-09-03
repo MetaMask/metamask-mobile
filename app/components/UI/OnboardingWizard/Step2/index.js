@@ -10,14 +10,14 @@ import onboardingStyles from './../styles';
 const INDICATOR_HEIGHT = 10;
 const styles = StyleSheet.create({
 	main: {
-		flex: 1
+		flex: 1,
 	},
 	coachmarkContainer: {
 		flex: 1,
 		position: 'absolute',
 		left: 0,
-		right: 0
-	}
+		right: 0,
+	},
 });
 
 class Step2 extends PureComponent {
@@ -29,11 +29,11 @@ class Step2 extends PureComponent {
 		/**
 		 * Coachmark ref to get position
 		 */
-		coachmarkRef: PropTypes.object
+		coachmarkRef: PropTypes.object,
 	};
 
 	state = {
-		coachmarkTop: 0
+		coachmarkTop: 0,
 	};
 
 	componentDidMount = () => {
@@ -43,7 +43,7 @@ class Step2 extends PureComponent {
 	/**
 	 * If component ref defined, calculate its position and position coachmark accordingly
 	 */
-	getPosition = ref => {
+	getPosition = (ref) => {
 		ref &&
 			ref.current &&
 			ref.current.measure((fx, fy, width, height, px, py) => {
@@ -98,11 +98,8 @@ class Step2 extends PureComponent {
 	}
 }
 
-const mapDispatchToProps = dispatch => ({
-	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
+const mapDispatchToProps = (dispatch) => ({
+	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 });
 
-export default connect(
-	null,
-	mapDispatchToProps
-)(Step2);
+export default connect(null, mapDispatchToProps)(Step2);

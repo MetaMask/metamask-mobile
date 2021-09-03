@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
 		flex: 0,
 		borderTopWidth: Device.isAndroid() ? 0 : StyleSheet.hairlineWidth,
 		borderColor: colors.grey200,
-		justifyContent: 'space-between'
+		justifyContent: 'space-between',
 	},
 	iconButton: {
 		height: 24,
@@ -34,22 +34,22 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		flex: 1,
 		paddingTop: 30,
-		paddingBottom: 30
+		paddingBottom: 30,
 	},
 	tabIcon: {
 		marginTop: 0,
 		width: 24,
-		height: 24
+		height: 24,
 	},
 	disabledIcon: {
-		color: colors.grey100
+		color: colors.grey100,
 	},
 	icon: {
 		width: 24,
 		height: 24,
 		color: colors.grey500,
-		textAlign: 'center'
-	}
+		textAlign: 'center',
+	},
 });
 
 /**
@@ -89,20 +89,12 @@ export default class BrowserBottomBar extends PureComponent {
 		/**
 		 * Function that toggles the options menu
 		 */
-		toggleOptions: PropTypes.func
+		toggleOptions: PropTypes.func,
 	};
 
 	render() {
-		const {
-			canGoBack,
-			goBack,
-			canGoForward,
-			goForward,
-			showTabs,
-			goHome,
-			showUrlModal,
-			toggleOptions
-		} = this.props;
+		const { canGoBack, goBack, canGoForward, goForward, showTabs, goHome, showUrlModal, toggleOptions } =
+			this.props;
 
 		return (
 			<ElevatedView elevation={11} style={styles.bottomBar}>

@@ -12,14 +12,14 @@ describe('TransactionDirection', () => {
 			engine: {
 				backgroundState: {
 					PreferencesController: {
-						identities: { '0x1': { name: 'Account 1' } }
-					}
-				}
-			}
+						identities: { '0x1': { name: 'Account 1' } },
+					},
+				},
+			},
 		};
 
 		const wrapper = shallow(<TransactionDirection />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper).toMatchSnapshot();
 	});

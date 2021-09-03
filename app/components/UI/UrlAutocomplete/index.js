@@ -12,43 +12,43 @@ const styles = StyleSheet.create({
 	wrapper: {
 		paddingVertical: 15,
 		flex: 1,
-		backgroundColor: colors.white
+		backgroundColor: colors.white,
 	},
 	bookmarkIco: {
 		width: 26,
 		height: 26,
 		marginRight: 7,
-		borderRadius: 13
+		borderRadius: 13,
 	},
 	fallbackTextStyle: {
-		fontSize: 12
+		fontSize: 12,
 	},
 	name: {
 		fontSize: 14,
 		color: colors.fontPrimary,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	url: {
 		fontSize: 12,
 		color: colors.fontSecondary,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	item: {
 		flex: 1,
-		marginBottom: 20
+		marginBottom: 20,
 	},
 	itemWrapper: {
 		flexDirection: 'row',
 		marginBottom: 20,
-		paddingHorizontal: 15
+		paddingHorizontal: 15,
 	},
 	textContent: {
 		flex: 1,
-		marginLeft: 10
+		marginLeft: 10,
 	},
 	bg: {
-		flex: 1
-	}
+		flex: 1,
+	},
 });
 
 /**
@@ -74,11 +74,11 @@ class UrlAutocomplete extends PureComponent {
 		/**
 		 * An array of visited urls and names
 		 */
-		browserHistory: PropTypes.array
+		browserHistory: PropTypes.array,
 	};
 
 	state = {
-		results: []
+		results: [],
 	};
 
 	componentDidMount() {
@@ -100,7 +100,10 @@ class UrlAutocomplete extends PureComponent {
 			distance: 100,
 			maxPatternLength: 32,
 			minMatchCharLength: 1,
-			keys: [{ name: 'name', weight: 0.5 }, { name: 'url', weight: 0.5 }]
+			keys: [
+				{ name: 'name', weight: 0.5 },
+				{ name: 'url', weight: 0.5 },
+			],
 		});
 
 		this.timer = null;
@@ -187,7 +190,7 @@ class UrlAutocomplete extends PureComponent {
 		}
 		return (
 			<View style={styles.wrapper}>
-				{this.state.results.slice(0, 3).map(r => {
+				{this.state.results.slice(0, 3).map((r) => {
 					const { url, name } = r;
 					const onPress = () => {
 						this.props.onSubmit(url);
@@ -202,8 +205,8 @@ class UrlAutocomplete extends PureComponent {
 	}
 }
 
-const mapStateToProps = state => ({
-	browserHistory: state.browser.history
+const mapStateToProps = (state) => ({
+	browserHistory: state.browser.history,
 });
 
 export default connect(mapStateToProps)(UrlAutocomplete);

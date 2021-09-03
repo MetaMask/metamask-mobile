@@ -12,15 +12,15 @@ const styles = StyleSheet.create({
 		borderRadius: 27,
 		height: 54,
 		justifyContent: 'center',
-		width: 54
+		width: 54,
 	},
 	fallbackText: {
 		...fontStyles.normal,
 		color: colors.white,
 		fontSize: 24,
 		textAlign: 'center',
-		textTransform: 'uppercase'
-	}
+		textTransform: 'uppercase',
+	},
 });
 
 /**
@@ -56,17 +56,17 @@ export default class WebsiteIcon extends PureComponent {
 		/**
 		 * Icon image to use, this substitutes getting the icon from the url
 		 */
-		icon: PropTypes.string
+		icon: PropTypes.string,
 	};
 
 	state = {
-		renderIconUrlError: false
+		renderIconUrlError: false,
 	};
 
 	/**
 	 * Get image url from favicon api
 	 */
-	getIconUrl = url => {
+	getIconUrl = (url) => {
 		const iconUrl = `https://api.faviconkit.com/${getHost(url)}/64`;
 		return iconUrl;
 	};

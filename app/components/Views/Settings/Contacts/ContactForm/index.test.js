@@ -10,7 +10,7 @@ describe('ContactForm', () => {
 			engine: {
 				backgroundState: {
 					NetworkController: {
-						network: '1'
+						network: '1',
 					},
 					AddressBookController: {
 						addressBook: {
@@ -19,23 +19,23 @@ describe('ContactForm', () => {
 								chainId: '1',
 								isEns: false,
 								memo: '',
-								name: 'aa'
-							}
-						}
+								name: 'aa',
+							},
+						},
 					},
 					PreferencesController: {
 						identities: {
 							'0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b': {
 								address: '0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b',
-								name: 'Account 1'
-							}
-						}
-					}
-				}
-			}
+								name: 'Account 1',
+							},
+						},
+					},
+				},
+			},
 		};
 		const wrapper = shallow(<ContactForm route={{ params: {} }} />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});

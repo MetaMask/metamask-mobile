@@ -22,7 +22,7 @@ class ComponentErrorBoundary extends React.Component {
 		/**
 		 * Will not track as an error, but still log to analytics
 		 */
-		dontTrackAsError: PropTypes.bool
+		dontTrackAsError: PropTypes.bool,
 	};
 
 	static getDerivedStateFromError(error) {

@@ -30,12 +30,12 @@ const ACTIONS = {
 	FIAT_UPDATE_ORDER: 'FIAT_UPDATE_ORDER',
 	FIAT_REMOVE_ORDER: 'FIAT_REMOVE_ORDER',
 	FIAT_RESET: 'FIAT_RESET',
-	FIAT_SET_COUNTRY: 'FIAT_SET_COUNTRY'
+	FIAT_SET_COUNTRY: 'FIAT_SET_COUNTRY',
 };
 
-export const addFiatOrder = order => ({ type: ACTIONS.FIAT_ADD_ORDER, payload: order });
-export const updateFiatOrder = order => ({ type: ACTIONS.FIAT_UPDATE_ORDER, payload: order });
-export const setFiatOrdersCountry = countryCode => ({ type: ACTIONS.FIAT_SET_COUNTRY, payload: countryCode });
+export const addFiatOrder = (order) => ({ type: ACTIONS.FIAT_ADD_ORDER, payload: order });
+export const updateFiatOrder = (order) => ({ type: ACTIONS.FIAT_UPDATE_ORDER, payload: order });
+export const setFiatOrdersCountry = (countryCode) => ({ type: ACTIONS.FIAT_SET_COUNTRY, payload: countryCode });
 
 /**
  * Selectors
@@ -45,7 +45,7 @@ export const setFiatOrdersCountry = countryCode => ({ type: ACTIONS.FIAT_SET_COU
  * Get the provider display name
  * @param {FIAT_ORDER_PROVIDERS} provider
  */
-export const getProviderName = provider => {
+export const getProviderName = (provider) => {
 	switch (provider) {
 		case FIAT_ORDER_PROVIDERS.WYRE:
 		case FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY: {
@@ -60,18 +60,18 @@ export const getProviderName = provider => {
 	}
 };
 
-const ordersSelector = state => state.fiatOrders.orders || [];
-const selectedAddressSelector = state => state.engine.backgroundState.PreferencesController.selectedAddress;
-const chainIdSelector = state => state.engine.backgroundState.NetworkController.provider.chainId;
+const ordersSelector = (state) => state.fiatOrders.orders || [];
+const selectedAddressSelector = (state) => state.engine.backgroundState.PreferencesController.selectedAddress;
+const chainIdSelector = (state) => state.engine.backgroundState.NetworkController.provider.chainId;
 
-export const fiatOrdersCountrySelector = state => state.fiatOrders.selectedCountry;
+export const fiatOrdersCountrySelector = (state) => state.fiatOrders.selectedCountry;
 
 export const getOrders = createSelector(
 	ordersSelector,
 	selectedAddressSelector,
 	chainIdSelector,
 	(orders, selectedAddress, chainId) =>
-		orders.filter(order => order.account === selectedAddress && order.network === chainId)
+		orders.filter((order) => order.account === selectedAddress && order.network === chainId)
 );
 
 export const getPendingOrders = createSelector(
@@ -80,25 +80,22 @@ export const getPendingOrders = createSelector(
 	chainIdSelector,
 	(orders, selectedAddress, chainId) =>
 		orders.filter(
-			order =>
+			(order) =>
 				order.account === selectedAddress &&
 				order.network === chainId &&
 				order.state === FIAT_ORDER_STATES.PENDING
 		)
 );
 
-export const getHasOrders = createSelector(
-	getOrders,
-	orders => orders.length > 0
-);
+export const getHasOrders = createSelector(getOrders, (orders) => orders.length > 0);
 
 const initialState = {
 	orders: [],
-	selectedCountry: 'US'
+	selectedCountry: 'US',
 };
 
 const findOrderIndex = (provider, id, orders) =>
-	orders.findIndex(order => order.id === id && order.provider === provider);
+	orders.findIndex((order) => order.id === id && order.provider === provider);
 
 const fiatOrderReducer = (state = initialState, action) => {
 	switch (action.type) {
@@ -111,7 +108,7 @@ const fiatOrderReducer = (state = initialState, action) => {
 			}
 			return {
 				...state,
-				orders: [action.payload, ...state.orders]
+				orders: [action.payload, ...state.orders],
 			};
 		}
 		case ACTIONS.FIAT_UPDATE_ORDER: {
@@ -124,10 +121,10 @@ const fiatOrderReducer = (state = initialState, action) => {
 					...orders.slice(0, index),
 					{
 						...orders[index],
-						...order
+						...order,
 					},
-					...orders.slice(index + 1)
-				]
+					...orders.slice(index + 1),
+				],
 			};
 		}
 		case ACTIONS.FIAT_REMOVE_ORDER: {
@@ -136,7 +133,7 @@ const fiatOrderReducer = (state = initialState, action) => {
 			const index = findOrderIndex(order.provider, order.id, state.orders);
 			return {
 				...state,
-				orders: [...orders.slice(0, index), ...orders.slice(index + 1)]
+				orders: [...orders.slice(0, index), ...orders.slice(index + 1)],
 			};
 		}
 		case ACTIONS.FIAT_RESET: {
@@ -145,7 +142,7 @@ const fiatOrderReducer = (state = initialState, action) => {
 		case ACTIONS.FIAT_SET_COUNTRY: {
 			return {
 				...state,
-				selectedCountry: action.payload
+				selectedCountry: action.payload,
 			};
 		}
 		default: {

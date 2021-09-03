@@ -10,18 +10,18 @@ const styles = StyleSheet.create({
 	modalContainer: {
 		width: '100%',
 		backgroundColor: colors.white,
-		borderRadius: 10
+		borderRadius: 10,
 	},
 	modalView: {
 		flexDirection: 'column',
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	header: {
 		borderBottomWidth: StyleSheet.hairlineWidth,
 		borderColor: colors.grey100,
 		flexDirection: 'row',
-		paddingHorizontal: 16
+		paddingHorizontal: 16,
 	},
 	title: {
 		flex: 1,
@@ -30,32 +30,32 @@ const styles = StyleSheet.create({
 		marginVertical: 12,
 		marginHorizontal: 24,
 		color: colors.fontPrimary,
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	closeIcon: { paddingTop: 4, position: 'absolute', right: 16 },
 	body: {
-		paddingHorizontal: 15
+		paddingHorizontal: 15,
 	},
 	section: {
 		paddingVertical: 16,
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	sectionBorderBottom: {
 		borderBottomColor: colors.grey100,
-		borderBottomWidth: 1
+		borderBottomWidth: 1,
 	},
 	column: {
-		flex: 1
+		flex: 1,
 	},
 	columnEnd: {
-		alignItems: 'flex-end'
+		alignItems: 'flex-end',
 	},
 	sectionTitle: {
 		...fontStyles.normal,
 		fontSize: 10,
 		color: colors.grey500,
-		marginBottom: 8
-	}
+		marginBottom: 8,
+	},
 });
 const DetailsModal = ({ children }) => (
 	<View style={styles.modalView}>
@@ -93,36 +93,36 @@ DetailsModal.Column = DetailsModalColumn;
 const stylePropType = PropTypes.oneOfType([PropTypes.object, PropTypes.array]);
 
 DetailsModal.propTypes = {
-	children: PropTypes.node
+	children: PropTypes.node,
 };
 
 DetailsModalHeader.propTypes = {
-	style: stylePropType
+	style: stylePropType,
 };
 DetailsModalTitle.propTypes = {
-	style: stylePropType
+	style: stylePropType,
 };
 DetailsModalCloseIcon.propTypes = {
-	style: stylePropType
+	style: stylePropType,
 };
 DetailsModalBody.propTypes = {
-	style: stylePropType
+	style: stylePropType,
 };
 DetailsModalSection.propTypes = {
 	style: stylePropType,
 	/**
 	 * Adds a border to the bottom of the section
 	 */
-	borderBottom: PropTypes.bool
+	borderBottom: PropTypes.bool,
 };
 DetailsModalSectionTitle.propTypes = {
-	style: stylePropType
+	style: stylePropType,
 };
 DetailsModalColumn.propTypes = {
 	style: stylePropType,
 	/**
 	 * Aligns column content to flex-end
 	 */
-	end: PropTypes.bool
+	end: PropTypes.bool,
 };
 export default DetailsModal;

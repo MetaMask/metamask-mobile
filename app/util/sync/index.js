@@ -5,7 +5,7 @@
  */
 export async function syncPrefs(oldPrefs, updatedPref) {
 	try {
-		Object.keys(oldPrefs.identities).forEach(ids => {
+		Object.keys(oldPrefs.identities).forEach((ids) => {
 			if (updatedPref.identities[ids]) {
 				updatedPref.identities[ids] = oldPrefs.identities[ids];
 			}
@@ -24,7 +24,7 @@ export async function syncPrefs(oldPrefs, updatedPref) {
  */
 export async function syncAccounts(oldAccounts, updatedAccounts) {
 	try {
-		Object.keys(oldAccounts).forEach(account => {
+		Object.keys(oldAccounts).forEach((account) => {
 			if (updatedAccounts[account]) {
 				updatedAccounts[account] = oldAccounts[account];
 			}

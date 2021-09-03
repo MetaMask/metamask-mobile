@@ -14,8 +14,8 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		flex: 1,
 		paddingLeft: 18,
-		zIndex: 99999999999999
-	}
+		zIndex: 99999999999999,
+	},
 });
 
 /**
@@ -34,7 +34,7 @@ class Settings extends PureComponent {
 		 * redux flag that indicates if the user
 		 * completed the seed phrase backup flow
 		 */
-		seedphraseBackedUp: PropTypes.bool
+		seedphraseBackedUp: PropTypes.bool,
 	};
 
 	onPressGeneral = () => {
@@ -113,8 +113,8 @@ class Settings extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({
-	seedphraseBackedUp: state.user.seedphraseBackedUp
+const mapStateToProps = (state) => ({
+	seedphraseBackedUp: state.user.seedphraseBackedUp,
 });
 
 export default connect(mapStateToProps)(Settings);

@@ -10,49 +10,49 @@ import Device from '../../../util/device';
 const styles = StyleSheet.create({
 	wrapper: {
 		alignItems: 'center',
-		flex: 1
+		flex: 1,
 	},
 	network: {
 		flexDirection: 'row',
-		marginBottom: 5
+		marginBottom: 5,
 	},
 	networkName: {
 		fontSize: 11,
 		lineHeight: 11,
 		color: colors.fontSecondary,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	networkIcon: {
 		marginTop: 3,
 		width: 5,
 		height: 5,
 		borderRadius: 100,
-		marginRight: 5
+		marginRight: 5,
 	},
 	currentUrlWrapper: {
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'center',
 		flex: 1,
-		marginBottom: Device.isAndroid() ? 5 : 0
+		marginBottom: Device.isAndroid() ? 5 : 0,
 	},
 	lockIcon: {
 		marginTop: 2,
-		marginLeft: 10
+		marginLeft: 10,
 	},
 	currentUrl: {
 		...fontStyles.normal,
 		fontSize: 14,
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	currentUrlAndroid: {
-		maxWidth: '60%'
+		maxWidth: '60%',
 	},
 	siteIcon: {
 		width: 16,
 		height: 16,
-		marginRight: 4
-	}
+		marginRight: 4,
+	},
 });
 
 /**
@@ -88,7 +88,7 @@ class NavbarBrowserTitle extends PureComponent {
 		/**
 		 * Object that represents the current route info like params passed to it
 		 */
-		route: PropTypes.object
+		route: PropTypes.object,
 	};
 
 	onTitlePress = () => {
@@ -140,6 +140,6 @@ class NavbarBrowserTitle extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({ network: state.engine.backgroundState.NetworkController });
+const mapStateToProps = (state) => ({ network: state.engine.backgroundState.NetworkController });
 
 export default connect(mapStateToProps)(NavbarBrowserTitle);

@@ -7,15 +7,15 @@ import { colors, fontStyles } from '../../styles/common';
 const styles = StyleSheet.create({
 	tabUnderlineStyle: {
 		height: 2,
-		backgroundColor: colors.blue
+		backgroundColor: colors.blue,
 	},
 	tabStyle: {
-		paddingVertical: 8
+		paddingVertical: 8,
 	},
 	textStyle: {
 		...fontStyles.normal,
-		fontSize: 14
-	}
+		fontSize: 14,
+	},
 });
 
 function TabBar({ ...props }) {

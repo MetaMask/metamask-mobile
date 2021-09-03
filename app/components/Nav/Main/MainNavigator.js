@@ -59,11 +59,11 @@ const Tab = createBottomTabNavigator();
 const styles = StyleSheet.create({
 	headerLogo: {
 		width: 125,
-		height: 50
+		height: 50,
 	},
 	hidden: {
-		opacity: 0
-	}
+		opacity: 0,
+	},
 });
 /**
  * Navigator component that wraps
@@ -187,7 +187,7 @@ const SettingsView = () => (
 const ImportPrivateKeyView = () => (
 	<Stack.Navigator
 		screenOptions={{
-			headerShown: false
+			headerShown: false,
 		}}
 	>
 		<Stack.Screen name="ImportPrivateKey" component={ImportPrivateKey} />
@@ -307,7 +307,7 @@ const SetPasswordFlow = () => (
 const MainNavigator = () => (
 	<Stack.Navigator
 		screenOptions={{
-			headerShown: false
+			headerShown: false,
 		}}
 		mode={'modal'}
 		initialRouteName={'Home'}
@@ -320,9 +320,9 @@ const MainNavigator = () => (
 				cardStyle: { backgroundColor: 'transparent' },
 				cardStyleInterpolator: () => ({
 					overlayStyle: {
-						opacity: 0
-					}
-				})
+						opacity: 0,
+					},
+				}),
 			}}
 		/>
 		<Stack.Screen name="Home" tabBarVisible={false} component={HomeTabs} />

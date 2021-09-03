@@ -22,89 +22,89 @@ import DefaultPreference from 'react-native-default-preference';
 const styles = StyleSheet.create({
 	mainWrapper: {
 		backgroundColor: colors.white,
-		flex: 1
+		flex: 1,
 	},
 	scrollviewWrapper: {
-		flexGrow: 1
+		flexGrow: 1,
 	},
 	wrapper: {
 		flex: 1,
 		padding: 20,
 		paddingTop: 0,
-		paddingBottom: 0
+		paddingBottom: 0,
 	},
 	content: {
 		alignItems: 'center',
 		justifyContent: 'flex-start',
 		flex: 1,
-		marginBottom: 10
+		marginBottom: 10,
 	},
 	title: {
 		fontSize: 24,
 		marginBottom: 24,
 		color: colors.fontPrimary,
 		textAlign: 'center',
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	text: {
 		marginTop: 32,
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	label: {
 		lineHeight: scaling.scale(20),
 		fontSize: scaling.scale(14),
 		color: colors.fontPrimary,
 		textAlign: 'center',
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	buttonWrapper: {
 		flex: 1,
-		justifyContent: 'flex-end'
+		justifyContent: 'flex-end',
 	},
 	bold: {
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	blue: {
-		color: colors.blue
+		color: colors.blue,
 	},
 	remindLaterText: {
 		textAlign: 'center',
 		fontSize: 15,
 		lineHeight: 20,
 		color: colors.blue,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	remindLaterSubText: {
 		textAlign: 'center',
 		fontSize: 11,
 		lineHeight: 20,
 		color: colors.grey600,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	startSubText: {
 		textAlign: 'center',
 		fontSize: 11,
 		marginTop: 12,
 		color: colors.grey600,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	remindLaterContainer: {
-		marginBottom: 34
+		marginBottom: 34,
 	},
 	remindLaterButton: {
 		elevation: 10,
-		zIndex: 10
+		zIndex: 10,
 	},
 	ctaContainer: {
-		marginBottom: 30
-	}
+		marginBottom: 30,
+	},
 });
 
 /**
  * View that's shown during the first step of
  * the backup seed phrase flow
  */
-const AccountBackupStep1 = props => {
+const AccountBackupStep1 = (props) => {
 	const [showRemindLaterModal, setRemindLaterModal] = useState(false);
 	const [showWhatIsSeedphraseModal, setWhatIsSeedphraseModal] = useState(false);
 	const [skipCheckbox, setToggleSkipCheckbox] = useState(false);
@@ -255,20 +255,17 @@ AccountBackupStep1.propTypes = {
 	/**
 	 * Action to set onboarding wizard step
 	 */
-	setOnboardingWizardStep: PropTypes.func
+	setOnboardingWizardStep: PropTypes.func,
 };
 
 AccountBackupStep1.navigationOptions = ({ navigation, route }) => ({
 	// eslint-disable-next-line react/display-name
 	...getOnboardingNavbarOptions(navigation, route, { headerLeft: () => <View /> }),
-	gesturesEnabled: false
+	gesturesEnabled: false,
 });
 
-const mapDispatchToProps = dispatch => ({
-	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
+const mapDispatchToProps = (dispatch) => ({
+	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 });
 
-export default connect(
-	null,
-	mapDispatchToProps
-)(AccountBackupStep1);
+export default connect(null, mapDispatchToProps)(AccountBackupStep1);

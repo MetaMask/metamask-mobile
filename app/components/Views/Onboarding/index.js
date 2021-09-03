@@ -10,7 +10,7 @@ import {
 	StyleSheet,
 	Alert,
 	Image,
-	InteractionManager
+	InteractionManager,
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import StyledButton from '../../UI/StyledButton';
@@ -49,7 +49,7 @@ import {
 	BIOMETRY_CHOICE_DISABLED,
 	NEXT_MAKER_REMINDER,
 	METRICS_OPT_IN,
-	TRUE
+	TRUE,
 } from '../../../constants/storage';
 import DefaultPreference from 'react-native-default-preference';
 
@@ -57,49 +57,49 @@ const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 
 const styles = StyleSheet.create({
 	scroll: {
-		flex: 1
+		flex: 1,
 	},
 	wrapper: {
 		flex: 1,
 		alignItems: 'center',
-		paddingVertical: 30
+		paddingVertical: 30,
 	},
 	modalWrapper: {
 		flexGrow: 1,
 		paddingHorizontal: 24,
-		marginTop: 24
+		marginTop: 24,
 	},
 	foxWrapper: {
 		width: Device.isIos() ? 90 : 45,
 		height: Device.isIos() ? 90 : 45,
-		marginVertical: 20
+		marginVertical: 20,
 	},
 	image: {
 		alignSelf: 'center',
 		width: Device.isIos() ? 90 : 45,
-		height: Device.isIos() ? 90 : 45
+		height: Device.isIos() ? 90 : 45,
 	},
 	termsAndConditions: {
-		paddingBottom: 30
+		paddingBottom: 30,
 	},
 	title: {
 		fontSize: 24,
 		color: colors.fontPrimary,
 		...fontStyles.bold,
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	ctas: {
 		flex: 1,
-		position: 'relative'
+		position: 'relative',
 	},
 	footer: {
 		marginTop: -20,
-		marginBottom: 20
+		marginBottom: 20,
 	},
 	login: {
 		fontSize: 18,
 		color: colors.blue,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	buttonDescription: {
 		...fontStyles.normal,
@@ -107,41 +107,41 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		marginBottom: 16,
 		color: colors.fontPrimary,
-		lineHeight: 20
+		lineHeight: 20,
 	},
 	importWrapper: {
-		marginVertical: 24
+		marginVertical: 24,
 	},
 	createWrapper: {
 		flex: 1,
 		justifyContent: 'flex-end',
-		marginBottom: 24
+		marginBottom: 24,
 	},
 	buttonWrapper: {
-		marginBottom: 16
+		marginBottom: 16,
 	},
 	scanTitle: {
 		...fontStyles.bold,
 		fontSize: 18,
 		color: colors.fontPrimary,
 		textAlign: 'center',
-		lineHeight: 28
+		lineHeight: 28,
 	},
 	loader: {
 		marginTop: 180,
 		justifyContent: 'center',
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	loadingText: {
 		marginTop: 30,
 		fontSize: 14,
 		textAlign: 'center',
 		color: colors.fontPrimary,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	column: {
 		marginVertical: 24,
-		alignItems: 'flex-start'
+		alignItems: 'flex-start',
 	},
 	modalTypeView: {
 		position: 'absolute',
@@ -149,21 +149,21 @@ const styles = StyleSheet.create({
 		paddingBottom: Device.isIphoneX() ? 20 : 10,
 		left: 0,
 		right: 0,
-		backgroundColor: colors.transparent
+		backgroundColor: colors.transparent,
 	},
 	notificationContainer: {
 		flex: 0.1,
 		flexDirection: 'row',
-		alignItems: 'flex-end'
-	}
+		alignItems: 'flex-end',
+	},
 });
 
 const keyExtractor = ({ id }) => id;
 
-const createStep = step => ({
+const createStep = (step) => ({
 	id: `ONBOARDING_SCAN_STEPS-${step}`,
 	step,
-	text: strings(`onboarding.scan_step_${step}`)
+	text: strings(`onboarding.scan_step_${step}`),
 });
 
 /**
@@ -226,7 +226,7 @@ class Onboarding extends PureComponent {
 		/**
 		 * Object that represents the current route info like params passed to it
 		 */
-		route: PropTypes.object
+		route: PropTypes.object,
 	};
 
 	notificationAnimated = new Animated.Value(100);
@@ -239,7 +239,7 @@ class Onboarding extends PureComponent {
 			toValue,
 			duration: 500,
 			easing: Easing.linear,
-			useNativeDriver: true
+			useNativeDriver: true,
 		}).start();
 	};
 
@@ -247,7 +247,7 @@ class Onboarding extends PureComponent {
 		warningModalVisible: false,
 		loading: false,
 		existingUser: false,
-		qrCodeModalVisible: false
+		qrCodeModalVisible: false,
 	};
 
 	seedwords = null;
@@ -305,7 +305,7 @@ class Onboarding extends PureComponent {
 	}
 
 	toggleQrCodeModal = () => {
-		this.setState(state => ({ qrCodeModalVisible: !state.qrCodeModalVisible }));
+		this.setState((state) => ({ qrCodeModalVisible: !state.qrCodeModalVisible }));
 	};
 
 	initWebsockets() {
@@ -319,7 +319,7 @@ class Onboarding extends PureComponent {
 				this.props.unsetLoading();
 				return false;
 			},
-			data => {
+			(data) => {
 				this.incomingDataStr = null;
 				const { pwd, seed, importedAccounts } = data.udata;
 				this.password = pwd;
@@ -334,7 +334,7 @@ class Onboarding extends PureComponent {
 		this.pubnubWrapper.subscribe();
 	}
 
-	startSync = async firstAttempt => {
+	startSync = async (firstAttempt) => {
 		try {
 			this.initWebsockets();
 			await this.pubnubWrapper.startSync();
@@ -395,7 +395,7 @@ class Onboarding extends PureComponent {
 								await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 								this.finishSync({ biometrics: false, password });
 							},
-							style: 'cancel'
+							style: 'cancel',
 						},
 						{
 							text: strings('sync_with_extension.warning_ok_button'),
@@ -403,8 +403,8 @@ class Onboarding extends PureComponent {
 								await AsyncStorage.setItem(BIOMETRY_CHOICE, biometryType);
 								await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
 								this.finishSync({ biometrics: true, biometryType, password });
-							}
-						}
+							},
+						},
 					],
 					{ cancelable: false }
 				);
@@ -416,7 +416,7 @@ class Onboarding extends PureComponent {
 		}
 	}
 
-	finishSync = async opts => {
+	finishSync = async (opts) => {
 		if (opts.biometrics) {
 			try {
 				await SecureKeychain.setGenericPassword(opts.password, SecureKeychain.TYPES.BIOMETRICS);
@@ -434,7 +434,7 @@ class Onboarding extends PureComponent {
 				...this.dataToSync,
 				seed: this.seedWords,
 				importedAccounts: this.importedAccounts,
-				pass: opts.password
+				pass: opts.password,
 			});
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
 			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
@@ -456,7 +456,7 @@ class Onboarding extends PureComponent {
 	showQrCode = () => {
 		this.toggleQrCodeModal();
 		this.props.navigation.push('QRScanner', {
-			onStartScan: async data => {
+			onStartScan: async (data) => {
 				if (data.content && data.content.search('metamask-sync:') !== -1) {
 					const [channelName, cipherKey] = data.content.replace('metamask-sync:', '').split('|@|');
 					this.pubnubWrapper = new PubNubWrapper(channelName, cipherKey);
@@ -468,7 +468,7 @@ class Onboarding extends PureComponent {
 					);
 				}
 			},
-			onScanSuccess: async data => {
+			onScanSuccess: async (data) => {
 				if (data.content && data.content.search('metamask-sync:') !== -1) {
 					(await this.startSync(true)) || (await this.startSync(false));
 				} else {
@@ -477,7 +477,7 @@ class Onboarding extends PureComponent {
 						strings('sync_with_extension.invalid_qr_code_desc')
 					);
 				}
-			}
+			},
 		});
 	};
 
@@ -494,7 +494,7 @@ class Onboarding extends PureComponent {
 		}
 	};
 
-	handleExistingUser = action => {
+	handleExistingUser = (action) => {
 		if (this.state.existingUser) {
 			this.alertExistingUser(action);
 		} else {
@@ -505,7 +505,7 @@ class Onboarding extends PureComponent {
 	onPressCreate = () => {
 		const action = () => {
 			this.props.navigation.navigate('ChoosePassword', {
-				[PREVIOUS_SCREEN]: ONBOARDING
+				[PREVIOUS_SCREEN]: ONBOARDING,
 			});
 			this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_PASSWORD);
 		};
@@ -546,7 +546,7 @@ class Onboarding extends PureComponent {
 		this.handleExistingUser(action);
 	};
 
-	track = key => {
+	track = (key) => {
 		InteractionManager.runAfterInteractions(async () => {
 			if (Analytics.getEnabled()) {
 				Analytics.trackEvent(key);
@@ -559,7 +559,7 @@ class Onboarding extends PureComponent {
 		});
 	};
 
-	alertExistingUser = callback => {
+	alertExistingUser = (callback) => {
 		this.warningCallback = () => {
 			callback();
 			this.toggleWarningModal();
@@ -715,24 +715,21 @@ class Onboarding extends PureComponent {
 	}
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	selectedAddress: state?.engine?.backgroundState?.PreferencesController?.selectedAddress,
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	passwordSet: state.user.passwordSet,
 	loading: state.user.loadingSet,
-	loadingMsg: state.user.loadingMsg
+	loadingMsg: state.user.loadingMsg,
 });
 
-const mapDispatchToProps = dispatch => ({
-	setLoading: msg => dispatch(loadingSet(msg)),
+const mapDispatchToProps = (dispatch) => ({
+	setLoading: (msg) => dispatch(loadingSet(msg)),
 	unsetLoading: () => dispatch(loadingUnset()),
 	passwordHasBeenSet: () => dispatch(passwordSet()),
-	setLockTime: time => dispatch(setLockTime(time)),
+	setLockTime: (time) => dispatch(setLockTime(time)),
 	seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
-	saveOnboardingEvent: event => dispatch(saveOnboardingEvent(event))
+	saveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(Onboarding);
+export default connect(mapStateToProps, mapDispatchToProps)(Onboarding);

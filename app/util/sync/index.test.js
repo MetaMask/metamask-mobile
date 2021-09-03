@@ -9,7 +9,7 @@ const OLD_PREFS = {
 		'0x7b8C6B8363B9E7A77d279dDad49BEF2994a3bf28': { '0x3': [Array] },
 		'0x9236413AfD369B2aeb5e52C048f6B30e7308f2e3': { '0x1': [Array], '0x3': [Array] },
 		'0x9b07Ba86631bdb74eE2DDb5750440986DECB9e11': { '0x1': [Array], '0x3': [Array] },
-		'0xE4D7f194b07B85511973f1FAAB31b8C2F1f9F344': { '0x3': [Array] }
+		'0xE4D7f194b07B85511973f1FAAB31b8C2F1f9F344': { '0x3': [Array] },
 	},
 	currentLocale: 'en',
 	featureFlags: {},
@@ -17,13 +17,13 @@ const OLD_PREFS = {
 	identities: {
 		'0x7f9f9A0e248Ef58298e911219e5B45D610C4B539': {
 			address: '0x7f9f9A0e248Ef58298e911219e5B45D610C4B539',
-			name: 'Testy Account'
-		}
+			name: 'Testy Account',
+		},
 	},
 	ipfsGateway: 'https://cloudflare-ipfs.com/ipfs/',
 	lostIdentities: {},
 	selectedAddress: '0x7f9f9A0e248Ef58298e911219e5B45D610C4B539',
-	tokens: []
+	tokens: [],
 };
 const OLD_ACCOUNTS = {
 	'0x0942890c603273059a11a298F81cb137Be9CF704': { balance: '0x365369025dd23000' },
@@ -33,7 +33,7 @@ const OLD_ACCOUNTS = {
 	'0x7b8C6B8363B9E7A77d279dDad49BEF2994a3bf28': { balance: '0x0' },
 	'0x9236413AfD369B2aeb5e52C048f6B30e7308f2e3': { balance: '0x0' },
 	'0x9b07Ba86631bdb74eE2DDb5750440986DECB9e11': { balance: '0xe8d4a51000' },
-	'0xE4D7f194b07B85511973f1FAAB31b8C2F1f9F344': { balance: '0x0' }
+	'0xE4D7f194b07B85511973f1FAAB31b8C2F1f9F344': { balance: '0x0' },
 };
 const NEW_PREFS = {
 	accountTokens: {
@@ -44,7 +44,7 @@ const NEW_PREFS = {
 		'0x7b8C6B8363B9E7A77d279dDad49BEF2994a3bf28': { '0x3': [Array] },
 		'0x9236413AfD369B2aeb5e52C048f6B30e7308f2e3': { '0x1': [Array], '0x3': [Array] },
 		'0x9b07Ba86631bdb74eE2DDb5750440986DECB9e11': { '0x1': [Array], '0x3': [Array] },
-		'0xE4D7f194b07B85511973f1FAAB31b8C2F1f9F344': { '0x3': [Array] }
+		'0xE4D7f194b07B85511973f1FAAB31b8C2F1f9F344': { '0x3': [Array] },
 	},
 	currentLocale: 'en',
 	featureFlags: {},
@@ -52,17 +52,17 @@ const NEW_PREFS = {
 	identities: {
 		'0x7f9f9A0e248Ef58298e911219e5B45D610C4B539': {
 			address: '0x7f9f9A0e248Ef58298e911219e5B45D610C4B539',
-			name: 'Account 1'
+			name: 'Account 1',
 		},
 		'0x7f9f9A0e248Ef58298e911219e5B45D610C4B589': {
 			address: '0x7f9f9A0e248Ef58298e911219e5B45D610C4B589',
-			name: 'Account 2'
-		}
+			name: 'Account 2',
+		},
 	},
 	ipfsGateway: 'https://cloudflare-ipfs.com/ipfs/',
 	lostIdentities: {},
 	selectedAddress: '0x7f9f9A0e248Ef58298e911219e5B45D610C4B539',
-	tokens: []
+	tokens: [],
 };
 const NEW_ACCOUNTS = {
 	'0x0942890c603273059a11a298F81cb137Be9CF704': { balance: '0x0' },
@@ -72,7 +72,7 @@ const NEW_ACCOUNTS = {
 	'0x7b8C6B8363B9E7A77d279dDad49BEF2994a3bf28': { balance: '0x0' },
 	'0x9236413AfD369B2aeb5e52C048f6B30e7308f2e3': { balance: '0x0' },
 	'0x9b07Ba86631bdb74eE2DDb5750440986DECB9e11': { balance: '0x0' },
-	'0xE4D7f194b07B85511973f1FAAB31b8C2F1f9F344': { balance: '0x0' }
+	'0xE4D7f194b07B85511973f1FAAB31b8C2F1f9F344': { balance: '0x0' },
 };
 
 describe('Success Sync', () => {

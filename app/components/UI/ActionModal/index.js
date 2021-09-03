@@ -8,8 +8,8 @@ import ActionContent from './ActionContent';
 const styles = StyleSheet.create({
 	modal: {
 		margin: 0,
-		width: '100%'
-	}
+		width: '100%',
+	},
 });
 
 /**
@@ -37,7 +37,7 @@ export default function ActionModal({
 	childrenContainerStyle,
 	verticalButtons,
 	propagateSwipe,
-	cancelButtonDisabled
+	cancelButtonDisabled,
 }) {
 	return (
 		<Modal
@@ -84,7 +84,7 @@ ActionModal.defaultProps = {
 	confirmText: strings('action_view.confirm'),
 	confirmDisabled: false,
 	displayCancelButton: true,
-	displayConfirmButton: true
+	displayConfirmButton: true,
 };
 
 ActionModal.propTypes = {
@@ -172,5 +172,5 @@ ActionModal.propTypes = {
 	/**
 	 * Allows swipe events to propagate to children components (eg a ScrollView inside a modal)
 	 */
-	propagateSwipe: PropTypes.bool
+	propagateSwipe: PropTypes.bool,
 };

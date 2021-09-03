@@ -10,22 +10,22 @@ import { fontStyles, colors } from '../../../../styles/common';
 
 const styles = StyleSheet.create({
 	main: {
-		flex: 1
+		flex: 1,
 	},
 	coachmarkContainer: {
 		flex: 1,
 		position: 'absolute',
 		left: 0,
-		right: 0
+		right: 0,
 	},
 	hamburger: {
 		backgroundColor: colors.transparent,
 		height: 50,
-		width: 50
+		width: 50,
 	},
 	hamburgerContainer: {
-		maxWidth: 50
-	}
+		maxWidth: 50,
+	},
 });
 
 class Step4 extends PureComponent {
@@ -41,11 +41,11 @@ class Step4 extends PureComponent {
 		/**
 		 * Coachmark ref to get position
 		 */
-		coachmarkRef: PropTypes.object
+		coachmarkRef: PropTypes.object,
 	};
 
 	state = {
-		viewTop: 0
+		viewTop: 0,
 	};
 
 	componentDidMount = () => {
@@ -55,13 +55,13 @@ class Step4 extends PureComponent {
 	/**
 	 * Sets coachmark top position getting AccountOverview component ref from Wallet
 	 */
-	getViewPosition = ref => {
+	getViewPosition = (ref) => {
 		ref &&
 			ref.current &&
 			ref.current.measure((fx, fy, width, height, px, py) => {
 				py &&
 					this.setState({
-						viewTop: py - 50
+						viewTop: py - 50,
 					});
 			});
 	};
@@ -124,11 +124,8 @@ class Step4 extends PureComponent {
 	}
 }
 
-const mapDispatchToProps = dispatch => ({
-	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
+const mapDispatchToProps = (dispatch) => ({
+	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 });
 
-export default connect(
-	null,
-	mapDispatchToProps
-)(Step4);
+export default connect(null, mapDispatchToProps)(Step4);

@@ -27,11 +27,11 @@ export const recreateVaultWithSamePassword = async (password = '', selectedAddre
 	let importedAccounts = [];
 	try {
 		// Get imported accounts
-		const simpleKeyrings = KeyringController.state.keyrings.filter(keyring => keyring.type === 'Simple Key Pair');
+		const simpleKeyrings = KeyringController.state.keyrings.filter((keyring) => keyring.type === 'Simple Key Pair');
 		for (let i = 0; i < simpleKeyrings.length; i++) {
 			const simpleKeyring = simpleKeyrings[i];
 			const simpleKeyringAccounts = await Promise.all(
-				simpleKeyring.accounts.map(account => KeyringController.exportAccount(password, account))
+				simpleKeyring.accounts.map((account) => KeyringController.exportAccount(password, account))
 			);
 			importedAccounts = [...importedAccounts, ...simpleKeyringAccounts];
 		}

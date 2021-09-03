@@ -12,28 +12,28 @@ const styles = {
 		fontSize: 18,
 		color: colors.fontPrimary,
 		textAlign: 'center',
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	modalNoBorder: {
-		borderTopWidth: 0
+		borderTopWidth: 0,
 	},
 	modalContainer: {
 		flex: 1,
 		padding: 27,
-		flexDirection: 'column'
+		flexDirection: 'column',
 	},
 	modalXButton: {
 		padding: 5,
-		alignItems: 'flex-end'
+		alignItems: 'flex-end',
 	},
 	titleContainer: {
 		flexDirection: 'row',
 		justifyContent: 'center',
 		alignItems: 'center',
-		marginBottom: 16
+		marginBottom: 16,
 	},
 	auxCenterView: {
-		width: 26
+		width: 26,
 	},
 	explanationText: {
 		fontSize: 14,
@@ -41,11 +41,11 @@ const styles = {
 		textAlign: 'center',
 		...fontStyles.normal,
 		color: colors.fontPrimary,
-		lineHeight: 20
+		lineHeight: 20,
 	},
 	modalXIcon: {
-		fontSize: 16
-	}
+		fontSize: 16,
+	},
 };
 
 const SeedphraseModal = ({ showWhatIsSeedphraseModal, hideWhatIsSeedphrase }) => (
@@ -87,7 +87,7 @@ SeedphraseModal.propTypes = {
 	/**
 	/* Function to hide modal
 	*/
-	hideWhatIsSeedphrase: PropTypes.func
+	hideWhatIsSeedphrase: PropTypes.func,
 };
 
 export default SeedphraseModal;

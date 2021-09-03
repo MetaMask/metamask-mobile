@@ -31,12 +31,12 @@ function PaymentMethodSelectorView({
 		const goToTransakFlow = () =>
 			navigation.navigate('TransakFlow', {
 				url: transakURL,
-				title: strings('fiat_on_ramp.transak_webview_title')
+				title: strings('fiat_on_ramp.transak_webview_title'),
 			});
 
 		if (!gasEducationCarouselSeen) {
 			navigation.navigate('GasEducationCarousel', {
-				navigateTo: goToTransakFlow
+				navigateTo: goToTransakFlow,
 			});
 			setGasEducationCarouselSeen();
 		} else {
@@ -48,7 +48,7 @@ function PaymentMethodSelectorView({
 				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_STARTED, {
 					payment_rails: PAYMENT_RAILS.MULTIPLE,
 					payment_category: PAYMENT_CATEGORY.MULTIPLE,
-					'on-ramp_provider': FIAT_ORDER_PROVIDERS.TRANSAK
+					'on-ramp_provider': FIAT_ORDER_PROVIDERS.TRANSAK,
 				});
 			});
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.PAYMENTS_SELECTS_DEBIT_OR_ACH);
@@ -66,7 +66,7 @@ function PaymentMethodSelectorView({
 PaymentMethodSelectorView.propTypes = {
 	selectedAddress: PropTypes.string.isRequired,
 	gasEducationCarouselSeen: PropTypes.bool,
-	setGasEducationCarouselSeen: PropTypes.func
+	setGasEducationCarouselSeen: PropTypes.func,
 };
 
 PaymentMethodSelectorView.navigationOptions = ({ navigation }) =>
@@ -76,16 +76,13 @@ PaymentMethodSelectorView.navigationOptions = ({ navigation }) =>
 		});
 	});
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	gasEducationCarouselSeen: state.user.gasEducationCarouselSeen
+	gasEducationCarouselSeen: state.user.gasEducationCarouselSeen,
 });
 
-const mapDispatchToProps = dispatch => ({
-	setGasEducationCarouselSeen: () => dispatch(setGasEducationCarouselSeen())
+const mapDispatchToProps = (dispatch) => ({
+	setGasEducationCarouselSeen: () => dispatch(setGasEducationCarouselSeen()),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(PaymentMethodSelectorView);
+export default connect(mapStateToProps, mapDispatchToProps)(PaymentMethodSelectorView);

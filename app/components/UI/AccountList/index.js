@@ -10,7 +10,7 @@ import {
 	StyleSheet,
 	Text,
 	View,
-	SafeAreaView
+	SafeAreaView,
 } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
-		minHeight: 450
+		minHeight: 450,
 	},
 	titleWrapper: {
 		width: '100%',
@@ -36,29 +36,29 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100
+		borderColor: colors.grey100,
 	},
 	dragger: {
 		width: 48,
 		height: 5,
 		borderRadius: 4,
 		backgroundColor: colors.grey400,
-		opacity: Device.isAndroid() ? 0.6 : 0.5
+		opacity: Device.isAndroid() ? 0.6 : 0.5,
 	},
 	accountsWrapper: {
-		flex: 1
+		flex: 1,
 	},
 	footer: {
 		height: Device.isIphoneX() ? 140 : 110,
 		paddingBottom: Device.isIphoneX() ? 30 : 0,
 		justifyContent: 'center',
 		flexDirection: 'column',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	btnText: {
 		fontSize: 14,
 		color: colors.blue,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	footerButton: {
 		width: '100%',
@@ -66,8 +66,8 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		borderTopWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100
-	}
+		borderColor: colors.grey100,
+	},
 });
 
 /**
@@ -118,14 +118,14 @@ class AccountList extends PureComponent {
 		/**
 		 * ID of the current network
 		 */
-		network: PropTypes.string
+		network: PropTypes.string,
 	};
 
 	state = {
 		selectedAccountIndex: 0,
 		loading: false,
 		orderedAccounts: {},
-		accountsENS: {}
+		accountsENS: {},
 	};
 
 	flatList = React.createRef();
@@ -163,7 +163,7 @@ class AccountList extends PureComponent {
 		this.flatList?.current?.scrollToIndex({ index: this.state.selectedAccountIndex, animated: true });
 	}
 
-	onAccountChange = async newIndex => {
+	onAccountChange = async (newIndex) => {
 		const previousIndex = this.state.selectedAccountIndex;
 		const { PreferencesController } = Engine.context;
 		const { keyrings } = this.props;
@@ -265,7 +265,7 @@ class AccountList extends PureComponent {
 				{
 					text: strings('accounts.no'),
 					onPress: () => false,
-					style: 'cancel'
+					style: 'cancel',
 				},
 				{
 					text: strings('accounts.yes_remove_it'),
@@ -273,8 +273,8 @@ class AccountList extends PureComponent {
 						await Engine.context.KeyringController.removeAccount(address);
 						// Default to the previous account in the list
 						this.onAccountChange(index - 1);
-					}
-				}
+					},
+				},
 			],
 			{ cancelable: false }
 		);
@@ -301,7 +301,7 @@ class AccountList extends PureComponent {
 
 		const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
 		return accountsOrdered
-			.filter(address => !!identities[toChecksumAddress(address)])
+			.filter((address) => !!identities[toChecksumAddress(address)])
 			.map((addr, index) => {
 				const checksummedAddress = toChecksumAddress(addr);
 				const identity = identities[checksummedAddress];
@@ -322,21 +322,21 @@ class AccountList extends PureComponent {
 					balance,
 					isSelected,
 					isImported,
-					balanceError
+					balanceError,
 				};
 			});
 	}
 
-	assignENSToAccounts = orderedAccounts => {
+	assignENSToAccounts = (orderedAccounts) => {
 		const { network } = this.props;
-		orderedAccounts.forEach(async account => {
+		orderedAccounts.forEach(async (account) => {
 			try {
 				const ens = await doENSReverseLookup(account.address, network);
-				this.setState(state => ({
+				this.setState((state) => ({
 					accountsENS: {
 						...state.accountsENS,
-						[account.address]: ens
-					}
+						[account.address]: ens,
+					},
 				}));
 			} catch {
 				// Error
@@ -344,7 +344,7 @@ class AccountList extends PureComponent {
 		});
 	};
 
-	keyExtractor = item => item.address;
+	keyExtractor = (item) => item.address;
 
 	render() {
 		const { orderedAccounts } = this.state;
@@ -390,11 +390,11 @@ class AccountList extends PureComponent {
 	}
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
-	network: state.engine.backgroundState.NetworkController.network
+	network: state.engine.backgroundState.NetworkController.network,
 });
 
 export default connect(mapStateToProps)(AccountList);

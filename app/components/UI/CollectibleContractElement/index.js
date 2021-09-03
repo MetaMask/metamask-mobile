@@ -19,38 +19,38 @@ const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
 const styles = StyleSheet.create({
 	itemWrapper: {
 		paddingHorizontal: 15,
-		paddingBottom: 16
+		paddingBottom: 16,
 	},
 	collectibleContractIcon: { width: 30, height: 30 },
 	collectibleContractIconContainer: { marginHorizontal: 8, borderRadius: 30 },
 	titleContainer: {
 		flex: 1,
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	verticalAlignedContainer: {
 		flexDirection: 'row',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	titleText: {
 		fontSize: 18,
 		color: colors.black,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	collectibleIcon: {
 		width: COLLECTIBLE_WIDTH,
-		height: COLLECTIBLE_WIDTH
+		height: COLLECTIBLE_WIDTH,
 	},
 	collectibleInTheMiddle: {
-		marginHorizontal: 8
+		marginHorizontal: 8,
 	},
 	collectiblesRowContainer: {
 		flex: 1,
 		flexDirection: 'row',
-		marginTop: 15
+		marginTop: 15,
 	},
 	collectibleBox: {
 		flex: 1,
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	favoritesLogoWrapper: {
 		flex: 1,
@@ -60,8 +60,8 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.yellow,
 		width: 32,
 		height: 32,
-		borderRadius: 16
-	}
+		borderRadius: 16,
+	},
 });
 
 const splitIntoSubArrays = (array, count) => {
@@ -83,7 +83,7 @@ function CollectibleContractElement({
 	collectibleContracts,
 	chainId,
 	selectedAddress,
-	removeFavoriteCollectible
+	removeFavoriteCollectible,
 }) {
 	const [collectiblesGrid, setCollectiblesGrid] = useState([]);
 	const [collectiblesVisible, setCollectiblesVisible] = useState(propsCollectiblesVisible);
@@ -95,14 +95,14 @@ function CollectibleContractElement({
 	}, [collectiblesVisible, setCollectiblesVisible]);
 
 	const onPressCollectible = useCallback(
-		collectible => {
+		(collectible) => {
 			const contractName = collectibleContracts.find(({ address }) => address === collectible.address)?.name;
 			onPress(collectible, contractName || collectible.name);
 		},
 		[collectibleContracts, onPress]
 	);
 
-	const onLongPressCollectible = useCallback(collectible => {
+	const onLongPressCollectible = useCallback((collectible) => {
 		actionSheetRef.current.show();
 		collectibleToRemove.current = collectible;
 	}, []);
@@ -188,7 +188,7 @@ function CollectibleContractElement({
 				cancelButtonIndex={1}
 				destructiveButtonIndex={0}
 				// eslint-disable-next-line react/jsx-no-bind
-				onPress={index => (index === 0 ? removeCollectible() : null)}
+				onPress={(index) => (index === 0 ? removeCollectible() : null)}
 			/>
 		</View>
 	);
@@ -223,21 +223,18 @@ CollectibleContractElement.propTypes = {
 	/**
 	 * Dispatch remove collectible from favorites action
 	 */
-	removeFavoriteCollectible: PropTypes.func
+	removeFavoriteCollectible: PropTypes.func,
 };
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	collectibleContracts: state.engine.backgroundState.CollectiblesController.collectibleContracts,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 });
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch) => ({
 	removeFavoriteCollectible: (selectedAddress, chainId, collectible) =>
-		dispatch(removeFavoriteCollectible(selectedAddress, chainId, collectible))
+		dispatch(removeFavoriteCollectible(selectedAddress, chainId, collectible)),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(CollectibleContractElement);
+export default connect(mapStateToProps, mapDispatchToProps)(CollectibleContractElement);

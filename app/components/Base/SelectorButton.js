@@ -12,14 +12,14 @@ const styles = StyleSheet.create({
 		borderRadius: 100,
 		flexDirection: 'row',
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	caretDown: {
 		textAlign: 'right',
 		color: colors.grey500,
 		marginLeft: 10,
-		marginRight: 5
-	}
+		marginRight: 5,
+	},
 });
 
 function SelectorButton({ onPress, disabled, children, ...props }) {
@@ -36,7 +36,7 @@ function SelectorButton({ onPress, disabled, children, ...props }) {
 SelectorButton.propTypes = {
 	children: PropTypes.node,
 	onPress: PropTypes.func,
-	disabled: PropTypes.bool
+	disabled: PropTypes.bool,
 };
 
 export default SelectorButton;

@@ -7,7 +7,7 @@ import ConfettiCannon from 'react-native-confetti-cannon';
 const isAndroid = Platform.OS === 'android';
 const ORIGIN = { x: Device.getDeviceWidth() / 2, y: 0 };
 
-const Confetti = props => {
+const Confetti = (props) => {
 	let confettiView = false;
 
 	useEffect(() => {
@@ -17,7 +17,7 @@ const Confetti = props => {
 	}, [confettiView]);
 
 	return isAndroid ? (
-		<ConfettiNormal ref={node => (confettiView = node)} {...props} />
+		<ConfettiNormal ref={(node) => (confettiView = node)} {...props} />
 	) : (
 		<ConfettiCannon fadeOut count={300} origin={ORIGIN} {...props} />
 	);

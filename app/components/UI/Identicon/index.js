@@ -14,7 +14,7 @@ import { connect } from 'react-redux';
  */
 
 // eslint-disable-next-line react/display-name
-const Identicon = React.memo(props => {
+const Identicon = React.memo((props) => {
 	const { diameter, address, customStyle, noFadeIn, useBlockieIcon } = props;
 	if (!address) return null;
 	const uri = useBlockieIcon && toDataUrl(address);
@@ -26,9 +26,9 @@ const Identicon = React.memo(props => {
 				{
 					height: diameter,
 					width: diameter,
-					borderRadius: diameter / 2
+					borderRadius: diameter / 2,
 				},
-				customStyle
+				customStyle,
 			]}
 		/>
 	) : (
@@ -63,16 +63,16 @@ Identicon.propTypes = {
 	/**
 	 * Show a BlockieIcon instead of JazzIcon
 	 */
-	useBlockieIcon: PropTypes.bool
+	useBlockieIcon: PropTypes.bool,
 };
 
 Identicon.defaultProps = {
 	diameter: 46,
-	useBlockieIcon: true
+	useBlockieIcon: true,
 };
 
-const mapStateToProps = state => ({
-	useBlockieIcon: state.settings.useBlockieIcon
+const mapStateToProps = (state) => ({
+	useBlockieIcon: state.settings.useBlockieIcon,
 });
 
 export default connect(mapStateToProps)(Identicon);
