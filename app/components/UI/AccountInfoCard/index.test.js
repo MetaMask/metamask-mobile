@@ -13,32 +13,32 @@ describe('AccountInfoCard', () => {
 					AccountTrackerController: {
 						accounts: {
 							'0x0': {
-								balance: 200
-							}
-						}
+								balance: 200,
+							},
+						},
 					},
 					PreferencesController: {
 						selectedAddress: '0x0',
 						identities: {
 							address: '0x0',
-							name: 'Account 1'
-						}
+							name: 'Account 1',
+						},
 					},
 					CurrencyRateController: {
 						conversionRate: 10,
-						currentCurrency: 'inr'
+						currentCurrency: 'inr',
 					},
 					NetworkController: {
 						provider: {
-							ticker: 'eth'
-						}
-					}
-				}
-			}
+							ticker: 'eth',
+						},
+					},
+				},
+			},
 		};
 
 		const wrapper = shallow(<AccountInfoCard />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});

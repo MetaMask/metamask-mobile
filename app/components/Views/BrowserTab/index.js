@@ -10,7 +10,7 @@ import {
 	Linking,
 	Keyboard,
 	BackHandler,
-	InteractionManager
+	InteractionManager,
 } from 'react-native';
 import { withNavigation } from '@react-navigation/compat';
 import { WebView } from 'react-native-webview';
@@ -77,14 +77,14 @@ const ANIMATION_TIMING = 300;
 const styles = StyleSheet.create({
 	wrapper: {
 		...baseStyles.flexGrow,
-		backgroundColor: colors.white
+		backgroundColor: colors.white,
 	},
 	hide: {
 		flex: 0,
 		opacity: 0,
 		display: 'none',
 		width: 0,
-		height: 0
+		height: 0,
 	},
 	progressBarWrapper: {
 		height: 3,
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
 		right: 0,
 		top: 0,
 		position: 'absolute',
-		zIndex: 999999
+		zIndex: 999999,
 	},
 	optionsOverlay: {
 		position: 'absolute',
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
 		top: 0,
 		bottom: 0,
 		left: 0,
-		right: 0
+		right: 0,
 	},
 	optionsWrapper: {
 		position: 'absolute',
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		borderRadius: 10,
 		paddingBottom: 5,
-		paddingTop: 10
+		paddingTop: 10,
 	},
 	optionsWrapperAndroid: {
 		shadowColor: colors.grey400,
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
 		shadowOpacity: 0.5,
 		shadowRadius: 3,
 		bottom: 65,
-		right: 5
+		right: 5,
 	},
 	optionsWrapperIos: {
 		shadowColor: colors.grey400,
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
 		shadowOpacity: 0.5,
 		shadowRadius: 3,
 		bottom: 90,
-		right: 5
+		right: 5,
 	},
 	option: {
 		paddingVertical: 10,
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'flex-start',
-		marginTop: Device.isAndroid() ? 0 : -5
+		marginTop: Device.isAndroid() ? 0 : -5,
 	},
 	optionText: {
 		fontSize: 16,
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
 		marginTop: 3,
 		color: colors.blue,
 		flex: 1,
-		...fontStyles.fontPrimary
+		...fontStyles.fontPrimary,
 	},
 	optionIconWrapper: {
 		flex: 0,
@@ -157,28 +157,28 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.blue000,
 		padding: 3,
 		marginRight: 10,
-		alignSelf: 'center'
+		alignSelf: 'center',
 	},
 	optionIcon: {
 		color: colors.blue,
 		textAlign: 'center',
 		alignSelf: 'center',
-		fontSize: 18
+		fontSize: 18,
 	},
 	webview: {
 		...baseStyles.flexGrow,
-		zIndex: 1
+		zIndex: 1,
 	},
 	urlModalContent: {
 		flexDirection: 'row',
 		paddingTop: Device.isAndroid() ? 10 : Device.isIphoneX() ? 50 : 27,
 		paddingHorizontal: 10,
 		backgroundColor: colors.white,
-		height: Device.isAndroid() ? 59 : Device.isIphoneX() ? 87 : 65
+		height: Device.isAndroid() ? 59 : Device.isIphoneX() ? 87 : 65,
 	},
 	urlModal: {
 		justifyContent: 'flex-start',
-		margin: 0
+		margin: 0,
 	},
 	urlInput: {
 		...fontStyles.normal,
@@ -189,16 +189,16 @@ const styles = StyleSheet.create({
 		paddingLeft: 15,
 		textAlign: 'left',
 		flex: 1,
-		height: Device.isAndroid() ? 40 : 30
+		height: Device.isAndroid() ? 40 : 30,
 	},
 	cancelButton: {
 		marginTop: 7,
-		marginLeft: 10
+		marginLeft: 10,
 	},
 	cancelButtonText: {
 		fontSize: 14,
 		color: colors.blue,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	iconCloseButton: {
 		borderRadius: 300,
@@ -212,19 +212,19 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		marginTop: 10,
-		marginRight: 5
+		marginRight: 5,
 	},
 	iconClose: {
 		color: colors.white,
-		fontSize: 18
+		fontSize: 18,
 	},
 	bottomModal: {
 		justifyContent: 'flex-end',
-		margin: 0
+		margin: 0,
 	},
 	fullScreenModal: {
-		flex: 1
-	}
+		flex: 1,
+	},
 });
 
 let wizardScrollAdjusted = false;
@@ -234,7 +234,7 @@ const ensIgnoreList = [];
 let approvedHosts = {};
 let appVersion = '';
 
-export const BrowserTab = props => {
+export const BrowserTab = (props) => {
 	const [backEnabled, setBackEnabled] = useState(false);
 	const [forwardEnabled, setForwardEnabled] = useState(false);
 	const [progress, setProgress] = useState(0);
@@ -274,19 +274,19 @@ export const BrowserTab = props => {
 	 * Gets the url to be displayed to the user
 	 * For example, if it's ens then show [site].eth instead of ipfs url
 	 */
-	const getMaskedUrl = url => {
+	const getMaskedUrl = (url) => {
 		if (!url) return url;
 		let replace = null;
 		if (url.startsWith(AppConstants.IPFS_DEFAULT_GATEWAY_URL)) {
-			replace = key => `${AppConstants.IPFS_DEFAULT_GATEWAY_URL}${sessionENSNames[key].hash}/`;
+			replace = (key) => `${AppConstants.IPFS_DEFAULT_GATEWAY_URL}${sessionENSNames[key].hash}/`;
 		} else if (url.startsWith(AppConstants.IPNS_DEFAULT_GATEWAY_URL)) {
-			replace = key => `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${sessionENSNames[key].hostname}/`;
+			replace = (key) => `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${sessionENSNames[key].hostname}/`;
 		} else if (url.startsWith(AppConstants.SWARM_DEFAULT_GATEWAY_URL)) {
-			replace = key => `${AppConstants.SWARM_GATEWAY_URL}${sessionENSNames[key].hash}/`;
+			replace = (key) => `${AppConstants.SWARM_GATEWAY_URL}${sessionENSNames[key].hash}/`;
 		}
 
 		if (replace) {
-			const key = Object.keys(sessionENSNames).find(ens => url.startsWith(ens));
+			const key = Object.keys(sessionENSNames).find((ens) => url.startsWith(ens));
 			if (key) {
 				url = url.replace(replace(key), `https://${sessionENSNames[key].hostname}/`);
 			}
@@ -314,7 +314,7 @@ export const BrowserTab = props => {
 	/**
 	 * Checks if it is a ENS website
 	 */
-	const isENSUrl = url => {
+	const isENSUrl = (url) => {
 		const { hostname } = new URL(url);
 		const tld = hostname.split('.').pop();
 		if (AppConstants.supportedTLDs.indexOf(tld.toLowerCase()) !== -1) {
@@ -366,7 +366,7 @@ export const BrowserTab = props => {
 			const fullHostname = new URL(url.current).hostname;
 
 			// TODO:permissions move permissioning logic elsewhere
-			backgroundBridges.current.forEach(bridge => {
+			backgroundBridges.current.forEach((bridge) => {
 				if (
 					bridge.hostname === fullHostname &&
 					(!props.privacyMode || !restricted || approvedHosts[bridge.hostname])
@@ -393,7 +393,7 @@ export const BrowserTab = props => {
 			notifyAllConnections(
 				{
 					method: NOTIFICATION_NAMES.accountsChanged,
-					params: []
+					params: [],
 				},
 				false
 			); // notification should be sent regardless of approval status
@@ -402,7 +402,7 @@ export const BrowserTab = props => {
 		if (numApprovedHosts > 0) {
 			notifyAllConnections({
 				method: NOTIFICATION_NAMES.accountsChanged,
-				params: [selectedAddress]
+				params: [selectedAddress],
 			});
 		}
 
@@ -506,13 +506,13 @@ export const BrowserTab = props => {
 						meta: {
 							url: url.current,
 							title: title.current,
-							icon: icon.current
-						}
+							icon: icon.current,
+						},
 					};
 					const rawSig = await MessageManager.addUnapprovedMessageAsync({
 						data: req.params[1],
 						from: req.params[0],
-						...pageMeta
+						...pageMeta,
 					});
 
 					res.result = rawSig;
@@ -524,7 +524,7 @@ export const BrowserTab = props => {
 					const secondParam = req.params[1];
 					const params = {
 						data: firstParam,
-						from: secondParam
+						from: secondParam,
 					};
 
 					if (resemblesAddress(firstParam) && !resemblesAddress(secondParam)) {
@@ -536,12 +536,12 @@ export const BrowserTab = props => {
 						meta: {
 							url: url.current,
 							title: title.current,
-							icon: icon.current
-						}
+							icon: icon.current,
+						},
 					};
 					const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
 						...params,
-						...pageMeta
+						...pageMeta,
 					});
 
 					res.result = rawSig;
@@ -553,14 +553,14 @@ export const BrowserTab = props => {
 						meta: {
 							url: url.current,
 							title: title.current,
-							icon: icon.current
-						}
+							icon: icon.current,
+						},
 					};
 					const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
 						{
 							data: req.params[0],
 							from: req.params[1],
-							...pageMeta
+							...pageMeta,
 						},
 						'V1'
 					);
@@ -586,15 +586,15 @@ export const BrowserTab = props => {
 						meta: {
 							url: url.current,
 							title: title.current,
-							icon: icon.current
-						}
+							icon: icon.current,
+						},
 					};
 
 					const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
 						{
 							data: req.params[1],
 							from: req.params[0],
-							...pageMeta
+							...pageMeta,
 						},
 						'V3'
 					);
@@ -620,14 +620,14 @@ export const BrowserTab = props => {
 						meta: {
 							url: url.current,
 							title: title.current,
-							icon: icon.current
-						}
+							icon: icon.current,
+						},
 					};
 					const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
 						{
 							data: req.params[1],
 							from: req.params[0],
-							...pageMeta
+							...pageMeta,
 						},
 						'V4'
 					);
@@ -647,7 +647,7 @@ export const BrowserTab = props => {
 				wallet_scanQRCode: () =>
 					new Promise((resolve, reject) => {
 						props.navigation.navigate('QRScanner', {
-							onScanSuccess: data => {
+							onScanSuccess: (data) => {
 								const regex = new RegExp(req.params[0]);
 								if (regex && !regex.exec(data)) {
 									reject({ message: 'NO_REGEX_MATCH', data });
@@ -663,9 +663,9 @@ export const BrowserTab = props => {
 								res.result = result;
 								resolve();
 							},
-							onScanError: e => {
+							onScanError: (e) => {
 								throw ethErrors.rpc.internal(e.toString());
-							}
+							},
 						});
 					}),
 
@@ -673,8 +673,8 @@ export const BrowserTab = props => {
 					const {
 						params: {
 							options: { address, decimals, image, symbol },
-							type
-						}
+							type,
+						},
 					} = req;
 					const { TokensController } = Engine.context;
 					const suggestionResult = await TokensController.watchAsset(
@@ -694,10 +694,10 @@ export const BrowserTab = props => {
 							text: strings('browser.cancel'),
 							onPress: () => {
 								res.result = {
-									favorites: props.bookmarks
+									favorites: props.bookmarks,
 								};
 							},
-							style: 'cancel'
+							style: 'cancel',
 						},
 						{
 							text: strings('browser.yes'),
@@ -705,10 +705,10 @@ export const BrowserTab = props => {
 								const bookmark = { url: req.params[0] };
 								props.removeBookmark(bookmark);
 								res.result = {
-									favorites: props.bookmarks
+									favorites: props.bookmarks,
 								};
-							}
-						}
+							},
+						},
 					]);
 				},
 
@@ -739,7 +739,7 @@ export const BrowserTab = props => {
 				metamask_getProviderState: async () => {
 					res.result = {
 						...getProviderState(),
-						accounts: await getAccounts()
+						accounts: await getAccounts(),
 					};
 				},
 
@@ -763,7 +763,7 @@ export const BrowserTab = props => {
 						setCustomNetworkToSwitch,
 						setShowSwitchCustomNetworkDialog,
 						setCustomNetworkToAdd,
-						setShowAddCustomNetworkDialog
+						setShowAddCustomNetworkDialog,
 					}),
 				wallet_switchEthereumChain: () =>
 					RPCMethods.wallet_switchEthereumChain({
@@ -772,8 +772,8 @@ export const BrowserTab = props => {
 						showSwitchCustomNetworkDialog,
 						switchCustomNetworkRequest,
 						setCustomNetworkToSwitch,
-						setShowSwitchCustomNetworkDialog
-					})
+						setShowSwitchCustomNetworkDialog,
+					}),
 			};
 
 			if (!rpcMethods[req.method]) {
@@ -787,7 +787,7 @@ export const BrowserTab = props => {
 			webview: webviewRef,
 			url,
 			getRpcMethodMiddleware,
-			isMainFrame
+			isMainFrame,
 		});
 		backgroundBridges.current.push(newBridge);
 	};
@@ -864,7 +864,7 @@ export const BrowserTab = props => {
 	 * Check if a hostname is allowed
 	 */
 	const isAllowedUrl = useCallback(
-		hostname => {
+		(hostname) => {
 			const { PhishingController } = Engine.context;
 			return (props.whitelist && props.whitelist.includes(hostname)) || !PhishingController.test(hostname);
 		},
@@ -900,7 +900,7 @@ export const BrowserTab = props => {
 	/**
 	 * Show a phishing modal when a url is not allowed
 	 */
-	const handleNotAllowedUrl = urlToGo => {
+	const handleNotAllowedUrl = (urlToGo) => {
 		setBlockedUrl(urlToGo);
 		setTimeout(() => setShowPhishingModal(true), 1000);
 	};
@@ -915,7 +915,7 @@ export const BrowserTab = props => {
 			try {
 				const { type, hash } = await resolveEnsToIpfsContentId({
 					provider,
-					name: hostname
+					name: hostname,
 				});
 				if (type === 'ipfs-ns') {
 					gatewayUrl = `${props.ipfsGateway}${hash}${pathname || '/'}${query || ''}`;
@@ -934,7 +934,7 @@ export const BrowserTab = props => {
 				return {
 					url: gatewayUrl,
 					hash,
-					type
+					type,
 				};
 			} catch (err) {
 				// This is a TLD that might be a normal website
@@ -997,7 +997,7 @@ export const BrowserTab = props => {
 	 * Open a new tab
 	 */
 	const openNewTab = useCallback(
-		url => {
+		(url) => {
 			toggleOptionsIfNeeded();
 			dismissTextSelectionIfNeeded();
 			props.newTab(url);
@@ -1072,7 +1072,7 @@ export const BrowserTab = props => {
 
 		getEntryScriptWeb3();
 
-		Engine.context.TokensController.hub.on('pendingSuggestedAsset', suggestedAssetMeta => {
+		Engine.context.TokensController.hub.on('pendingSuggestedAsset', (suggestedAssetMeta) => {
 			if (!isTabActive()) return false;
 			setSuggestedAssetMeta(suggestedAssetMeta);
 			setWatchAsset(true);
@@ -1083,7 +1083,7 @@ export const BrowserTab = props => {
 
 		// Specify how to clean up after this effect:
 		return function cleanup() {
-			backgroundBridges.current.forEach(bridge => bridge.onDisconnect());
+			backgroundBridges.current.forEach((bridge) => bridge.onDisconnect());
 
 			// Remove all Engine listeners
 			Engine.context.TokensController.hub.removeAllListeners();
@@ -1102,7 +1102,7 @@ export const BrowserTab = props => {
 				showUrlModal: toggleUrlModal,
 				url: getMaskedUrl(url.current),
 				icon: icon.current,
-				error
+				error,
 			});
 		}
 
@@ -1165,14 +1165,14 @@ export const BrowserTab = props => {
 			props.navigation.setParams({
 				url: getMaskedUrl(siteInfo.url),
 				icon: siteInfo.icon,
-				silent: true
+				silent: true,
 			});
 
 		props.updateTabInfo(getMaskedUrl(siteInfo.url), props.id);
 
 		props.addToBrowserHistory({
 			name: siteInfo.title,
-			url: getMaskedUrl(siteInfo.url)
+			url: getMaskedUrl(siteInfo.url),
 		});
 	};
 
@@ -1279,7 +1279,7 @@ export const BrowserTab = props => {
 			injectHomePageScripts();
 		}
 		// Reset the previous bridges
-		backgroundBridges.current.length && backgroundBridges.current.forEach(bridge => bridge.onDisconnect());
+		backgroundBridges.current.length && backgroundBridges.current.forEach((bridge) => bridge.onDisconnect());
 		backgroundBridges.current = [];
 		const origin = new URL(nativeEvent.url).origin;
 		initializeBackgroundBridge(origin, true);
@@ -1301,12 +1301,12 @@ export const BrowserTab = props => {
 
 		current && current.injectJavaScript(JS_WEBVIEW_URL);
 
-		const promiseResolver = resolve => {
+		const promiseResolver = (resolve) => {
 			webviewUrlPostMessagePromiseResolve.current = resolve;
 		};
 		const promise = current ? new Promise(promiseResolver) : Promise.resolve(url.current);
 
-		promise.then(info => {
+		promise.then((info) => {
 			const { hostname: currentHostname } = new URL(url.current);
 			const { hostname } = new URL(nativeEvent.url);
 			if (info.url === nativeEvent.url && currentHostname === hostname) {
@@ -1327,7 +1327,7 @@ export const BrowserTab = props => {
 				return;
 			}
 			if (data.name) {
-				backgroundBridges.current.forEach(bridge => {
+				backgroundBridges.current.forEach((bridge) => {
 					if (bridge.isMainFrame) {
 						const { origin } = data && data.origin && new URL(data.origin);
 						bridge.url === origin && bridge.onMessage(data);
@@ -1380,7 +1380,7 @@ export const BrowserTab = props => {
 	/**
 	 * When url input changes
 	 */
-	const onURLChange = inputValue => {
+	const onURLChange = (inputValue) => {
 		setAutocompleteValue(inputValue);
 	};
 
@@ -1476,7 +1476,7 @@ export const BrowserTab = props => {
 	const onError = ({ nativeEvent: errorInfo }) => {
 		Logger.log(errorInfo);
 		props.navigation.setParams({
-			error: true
+			error: true,
 		});
 		setError(errorInfo);
 	};
@@ -1500,8 +1500,8 @@ export const BrowserTab = props => {
 							contentDescription: `Launch ${name || url} on MetaMask`,
 							keywords: [name.split(' '), url, 'dapp'],
 							thumbnail: {
-								uri: icon.current || `https://api.faviconkit.com/${getHost(url)}/256`
-							}
+								uri: icon.current || `https://api.faviconkit.com/${getHost(url)}/256`,
+							},
 						};
 						try {
 							SearchApi.indexSpotlightItem(item);
@@ -1509,8 +1509,8 @@ export const BrowserTab = props => {
 							Logger.error(e, 'Error adding to spotlight');
 						}
 					}
-				}
-			}
+				},
+			},
 		});
 
 		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_ADD_TO_FAVORITE);
@@ -1522,8 +1522,8 @@ export const BrowserTab = props => {
 	const share = () => {
 		toggleOptionsIfNeeded();
 		Share.open({
-			url: url.current
-		}).catch(err => {
+			url: url.current,
+		}).catch((err) => {
 			Logger.log('Error while trying to share address', err);
 		});
 	};
@@ -1533,7 +1533,7 @@ export const BrowserTab = props => {
 	 */
 	const openInBrowser = () => {
 		toggleOptionsIfNeeded();
-		Linking.openURL(url.current).catch(error =>
+		Linking.openURL(url.current).catch((error) =>
 			Logger.log(`Error while trying to open external link: ${url.current}`, error)
 		);
 		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_OPEN_IN_BROWSER);
@@ -1611,7 +1611,7 @@ export const BrowserTab = props => {
 						<View
 							style={[
 								styles.optionsWrapper,
-								Device.isAndroid() ? styles.optionsWrapperAndroid : styles.optionsWrapperIos
+								Device.isAndroid() ? styles.optionsWrapperAndroid : styles.optionsWrapperIos,
 							]}
 						>
 							<Button onPress={onNewTabPress} style={styles.option}>
@@ -1687,7 +1687,7 @@ export const BrowserTab = props => {
 					currentPageInformation={{
 						title: title.current,
 						url: getMaskedUrl(url.current),
-						icon: icon.current
+						icon: icon.current,
 					}}
 				/>
 			</Modal>
@@ -1725,7 +1725,7 @@ export const BrowserTab = props => {
 				currentPageInformation={{
 					title: title.current,
 					url: getMaskedUrl(url.current),
-					icon: icon.current
+					icon: icon.current,
 				}}
 				customNetworkInformation={customNetworkToAdd}
 			/>
@@ -1764,7 +1764,7 @@ export const BrowserTab = props => {
 				currentPageInformation={{
 					title: title.current,
 					url: getMaskedUrl(url.current),
-					icon: icon.current
+					icon: icon.current,
 				}}
 				customNetworkInformation={customNetworkToSwitch}
 				type={showSwitchCustomNetworkDialog}
@@ -1803,7 +1803,7 @@ export const BrowserTab = props => {
 				currentPageInformation={{
 					title: title.current,
 					url: getMaskedUrl(url.current),
-					icon: icon.current
+					icon: icon.current,
 				}}
 			/>
 		</Modal>
@@ -1991,14 +1991,14 @@ BrowserTab.propTypes = {
 	/**
 	 * An object representing the selected network provider
 	 */
-	networkProvider: PropTypes.object
+	networkProvider: PropTypes.object,
 };
 
 BrowserTab.defaultProps = {
-	defaultProtocol: 'https://'
+	defaultProtocol: 'https://',
 };
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	approvedHosts: state.privacy.approvedHosts,
 	bookmarks: state.bookmarks,
 	ipfsGateway: state.engine.backgroundState.PreferencesController.ipfsGateway,
@@ -2010,20 +2010,17 @@ const mapStateToProps = state => ({
 	searchEngine: state.settings.searchEngine,
 	whitelist: state.browser.whitelist,
 	activeTab: state.browser.activeTab,
-	wizardStep: state.wizard.step
+	wizardStep: state.wizard.step,
 });
 
-const mapDispatchToProps = dispatch => ({
-	approveHost: hostname => dispatch(approveHost(hostname)),
-	addBookmark: bookmark => dispatch(addBookmark(bookmark)),
-	removeBookmark: bookmark => dispatch(removeBookmark(bookmark)),
+const mapDispatchToProps = (dispatch) => ({
+	approveHost: (hostname) => dispatch(approveHost(hostname)),
+	addBookmark: (bookmark) => dispatch(addBookmark(bookmark)),
+	removeBookmark: (bookmark) => dispatch(removeBookmark(bookmark)),
 	addToBrowserHistory: ({ url, name }) => dispatch(addToHistory({ url, name })),
-	addToWhitelist: url => dispatch(addToWhitelist(url)),
+	addToWhitelist: (url) => dispatch(addToWhitelist(url)),
 	toggleNetworkModal: () => dispatch(toggleNetworkModal()),
-	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
+	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(withNavigation(BrowserTab));
+export default connect(mapStateToProps, mapDispatchToProps)(withNavigation(BrowserTab));

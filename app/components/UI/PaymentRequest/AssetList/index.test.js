@@ -10,7 +10,7 @@ describe('AssetList', () => {
 		const initialState = {};
 
 		const wrapper = shallow(<AssetList emptyMessage={'Enpty Message'} searchResults={[]} />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});

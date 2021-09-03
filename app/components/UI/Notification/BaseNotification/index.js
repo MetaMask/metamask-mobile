@@ -15,18 +15,18 @@ const styles = StyleSheet.create({
 		padding: 16,
 		marginHorizontal: 16,
 		flexDirection: 'row',
-		borderRadius: 8
+		borderRadius: 8,
 	},
 	flashLabel: {
 		flex: 1,
 		flexDirection: 'column',
-		color: colors.white
+		color: colors.white,
 	},
 	flashText: {
 		flex: 1,
 		fontSize: 12,
 		lineHeight: 18,
-		color: colors.white
+		color: colors.white,
 	},
 	flashTitle: {
 		flex: 1,
@@ -34,25 +34,25 @@ const styles = StyleSheet.create({
 		marginBottom: 2,
 		lineHeight: 18,
 		color: colors.white,
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	flashIcon: {
-		marginRight: 15
+		marginRight: 15,
 	},
 	closeTouchable: {
 		flex: 0.1,
 		flexDirection: 'column',
-		alignItems: 'flex-end'
+		alignItems: 'flex-end',
 	},
 	closeIcon: {
 		flex: 1,
 		color: colors.white,
 		alignItems: 'flex-start',
-		marginTop: -8
-	}
+		marginTop: -8,
+	},
 });
 
-const getIcon = status => {
+const getIcon = (status) => {
 	switch (status) {
 		case 'pending':
 		case 'pending_withdrawal':
@@ -92,7 +92,7 @@ const getTitle = (status, { nonce, amount, assetType }) => {
 		case 'received':
 			return strings('notifications.received_title', {
 				amount,
-				assetType
+				assetType,
 			});
 		case 'speedup':
 			return strings('notifications.speedup_title', { nonce: parseInt(nonce) });
@@ -121,7 +121,7 @@ const BaseNotification = ({
 	data: { description = null, title = null },
 	onPress,
 	onHide,
-	autoDismiss
+	autoDismiss,
 }) => (
 	<View style={baseStyles.flexGrow}>
 		<TouchableOpacity
@@ -153,11 +153,11 @@ BaseNotification.propTypes = {
 	data: PropTypes.object,
 	onPress: PropTypes.func,
 	onHide: PropTypes.func,
-	autoDismiss: PropTypes.bool
+	autoDismiss: PropTypes.bool,
 };
 
 BaseNotification.defaultProps = {
-	autoDismiss: false
+	autoDismiss: false,
 };
 
 export default BaseNotification;

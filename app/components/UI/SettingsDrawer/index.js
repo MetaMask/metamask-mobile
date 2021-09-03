@@ -13,46 +13,46 @@ const styles = StyleSheet.create({
 		borderBottomWidth: 1,
 		flexDirection: 'row',
 		minHeight: 100,
-		paddingVertical: 18
+		paddingVertical: 18,
 	},
 	content: {
-		flex: 1
+		flex: 1,
 	},
 	title: {
 		...fontStyles.normal,
 		color: colors.fontPrimary,
 		fontSize: 20,
-		marginBottom: 8
+		marginBottom: 8,
 	},
 	description: {
 		...fontStyles.normal,
 		color: colors.grey500,
 		fontSize: 14,
 		lineHeight: 20,
-		paddingRight: 8
+		paddingRight: 8,
 	},
 	action: {
 		flex: 0,
-		paddingHorizontal: 16
+		paddingHorizontal: 16,
 	},
 	icon: {
 		bottom: 8,
 		color: colors.grey400,
 		left: 4,
-		position: 'relative'
+		position: 'relative',
 	},
 	noBorder: {
-		borderBottomWidth: 0
+		borderBottomWidth: 0,
 	},
 	warning: {
 		alignSelf: 'flex-start',
-		marginTop: 20
+		marginTop: 20,
 	},
 	menuItemWarningText: {
 		color: colors.red,
 		fontSize: 12,
-		...fontStyles.normal
-	}
+		...fontStyles.normal,
+	},
 });
 
 const propTypes = {
@@ -72,11 +72,11 @@ const propTypes = {
 	/**
 	 * Display SettingsNotification
 	 */
-	warning: PropTypes.bool
+	warning: PropTypes.bool,
 };
 
 const defaultProps = {
-	onPress: undefined
+	onPress: undefined,
 };
 
 const SettingsDrawer = ({ title, description, noBorder, onPress, warning }) => (

@@ -11,7 +11,7 @@ import ElevatedView from 'react-native-elevated-view';
 const styles = StyleSheet.create({
 	modal: {
 		margin: 0,
-		width: '100%'
+		width: '100%',
 	},
 	copyAlert: {
 		width: 180,
@@ -21,17 +21,17 @@ const styles = StyleSheet.create({
 		alignSelf: 'center',
 		alignItems: 'center',
 		justifyContent: 'center',
-		borderRadius: 8
+		borderRadius: 8,
 	},
 	copyAlertIcon: {
-		marginBottom: 20
+		marginBottom: 20,
 	},
 	copyAlertText: {
 		textAlign: 'center',
 		color: colors.white,
 		fontSize: 16,
-		...fontStyles.normal
-	}
+		...fontStyles.normal,
+	},
 });
 
 /**
@@ -59,7 +59,7 @@ class GlobalAlert extends PureComponent {
 		/**
 		 * function that dismisses de modal
 		 */
-		dismissAlert: PropTypes.func
+		dismissAlert: PropTypes.func,
 	};
 
 	onClose = () => {
@@ -112,18 +112,15 @@ class GlobalAlert extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	isVisible: state.alert.isVisible,
 	autodismiss: state.alert.autodismiss,
 	content: state.alert.content,
-	data: state.alert.data
+	data: state.alert.data,
 });
 
-const mapDispatchToProps = dispatch => ({
-	dismissAlert: () => dispatch(dismissAlert())
+const mapDispatchToProps = (dispatch) => ({
+	dismissAlert: () => dispatch(dismissAlert()),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(GlobalAlert);
+export default connect(mapStateToProps, mapDispatchToProps)(GlobalAlert);

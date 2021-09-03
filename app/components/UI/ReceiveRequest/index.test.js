@@ -11,19 +11,19 @@ describe('ReceiveRequest', () => {
 			engine: {
 				backgroundState: {
 					PreferencesController: { selectedAddress: '0x' },
-					NetworkController: { network: '1' }
-				}
+					NetworkController: { network: '1' },
+				},
 			},
 			modals: {
-				receiveAsset: {}
+				receiveAsset: {},
 			},
 			user: {
-				seedphraseBackedUp: true
-			}
+				seedphraseBackedUp: true,
+			},
 		};
 
 		const wrapper = shallow(<ReceiveRequest />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});

@@ -3,7 +3,7 @@ import wallet_switchEthereumChain from './wallet_switchEthereumChain.js';
 
 const RPCMethods = {
 	wallet_addEthereumChain,
-	wallet_switchEthereumChain
+	wallet_switchEthereumChain,
 };
 
 export default RPCMethods;

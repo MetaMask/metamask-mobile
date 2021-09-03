@@ -18,7 +18,7 @@ function useModalHandler(initialState = false) {
 
 	const showModal = useCallback(() => setVisible(true), []);
 	const hideModal = useCallback(() => setVisible(false), []);
-	const toggleModal = useCallback(() => setVisible(visible => !visible), []);
+	const toggleModal = useCallback(() => setVisible((visible) => !visible), []);
 
 	return [isVisible, toggleModal, showModal, hideModal];
 }

@@ -9,7 +9,7 @@ const bookmarksReducer = (state = [], action) => {
 		case 'ADD_BOOKMARK':
 			return [...state, action.bookmark];
 		case 'REMOVE_BOOKMARK':
-			return state.filter(item => item.url !== action.bookmark.url);
+			return state.filter((item) => item.url !== action.bookmark.url);
 		default:
 			return state;
 	}

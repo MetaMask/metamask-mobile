@@ -9,8 +9,8 @@ import FAIcon from 'react-native-vector-icons/FontAwesome';
 const styles = StyleSheet.create({
 	icon: {
 		paddingTop: 4,
-		paddingRight: 8
-	}
+		paddingRight: 8,
+	},
 });
 
 export default function WarningMessage({ type, warningMessage }) {
@@ -35,5 +35,5 @@ WarningMessage.propTypes = {
 	/**
 	 * Message type for styling (default style is 'warning')
 	 */
-	type: PropTypes.oneOfType([PropTypes.string, PropTypes.object])
+	type: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
 };

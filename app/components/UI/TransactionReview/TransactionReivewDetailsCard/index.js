@@ -10,47 +10,47 @@ import ConnectHeader from '../../../UI/ConnectHeader';
 
 const styles = StyleSheet.create({
 	uppercase: {
-		textTransform: 'capitalize'
+		textTransform: 'capitalize',
 	},
 	viewData: {
 		borderWidth: 1,
 		borderColor: colors.grey200,
 		borderRadius: 10,
 		padding: 16,
-		marginTop: 20
+		marginTop: 20,
 	},
 	viewDataRow: {
 		display: 'flex',
 		flexDirection: 'row',
-		flexWrap: 'wrap'
+		flexWrap: 'wrap',
 	},
 	viewDataTitle: {
 		...fontStyles.bold,
 		color: colors.black,
-		fontSize: 14
+		fontSize: 14,
 	},
 	viewDataText: {
-		marginTop: 20
+		marginTop: 20,
 	},
 	viewDataArrow: {
-		marginLeft: 'auto'
+		marginLeft: 'auto',
 	},
 	transactionDetails: {
 		borderWidth: 1,
 		borderColor: colors.grey200,
 		borderRadius: 10,
-		padding: 16
+		padding: 16,
 	},
 	transactionDetailsRow: {
 		display: 'flex',
 		flexDirection: 'row',
 		flexWrap: 'wrap',
-		paddingVertical: 4
+		paddingVertical: 4,
 	},
 	transactionDetailsTextLeft: {
 		...fontStyles.thin,
 		color: colors.black,
-		fontSize: 14
+		fontSize: 14,
 	},
 	transactionDetailsTextRight: {
 		...fontStyles.bold,
@@ -58,22 +58,22 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		textAlign: 'right',
 		flexDirection: 'row',
-		marginLeft: 'auto'
+		marginLeft: 'auto',
 	},
 	section: {
 		minWidth: '100%',
 		width: '100%',
 		paddingHorizontal: 16,
-		paddingBottom: 16
+		paddingBottom: 16,
 	},
 	copyIcon: {
 		marginLeft: 1,
-		marginTop: 2
+		marginTop: 2,
 	},
 	address: {
 		...fontStyles.bold,
-		color: colors.blue
-	}
+		color: colors.blue,
+	},
 });
 
 export default class TransactionReviewDetailsCard extends Component {
@@ -87,7 +87,7 @@ export default class TransactionReviewDetailsCard extends Component {
 		tokenSymbol: PropTypes.string,
 		data: PropTypes.string,
 		displayViewData: PropTypes.bool,
-		method: PropTypes.string
+		method: PropTypes.string,
 	};
 
 	render() {
@@ -101,7 +101,7 @@ export default class TransactionReviewDetailsCard extends Component {
 			tokenSymbol,
 			data,
 			method,
-			displayViewData
+			displayViewData,
 		} = this.props;
 
 		return (

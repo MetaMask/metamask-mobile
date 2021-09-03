@@ -7,7 +7,7 @@ import Text from './Text';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		padding: 15
+		padding: 15,
 		// TODO(wachunei): check if this can be removed without breaking anything
 		// minHeight: Device.isIos() ? 55 : 100
 	},
@@ -15,42 +15,42 @@ const styles = StyleSheet.create({
 		color: colors.fontSecondary,
 		fontSize: 12,
 		marginBottom: 10,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	content: {
 		flexDirection: 'row',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	actions: {
 		flexDirection: 'row',
 		paddingTop: 10,
-		paddingLeft: 40
+		paddingLeft: 40,
 	},
 	icon: {
 		flexDirection: 'row',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	body: {
 		flex: 1,
-		marginLeft: 15
+		marginLeft: 15,
 	},
 	amounts: {
 		flex: 0.6,
-		alignItems: 'flex-end'
+		alignItems: 'flex-end',
 	},
 	title: {
 		fontSize: 15,
-		color: colors.fontPrimary
+		color: colors.fontPrimary,
 	},
 	amount: {
 		fontSize: 15,
-		color: colors.fontPrimary
+		color: colors.fontPrimary,
 	},
 	fiatAmount: {
 		fontSize: 12,
 		color: colors.fontSecondary,
-		textTransform: 'uppercase'
-	}
+		textTransform: 'uppercase',
+	},
 });
 
 const ListItem = ({ style, ...props }) => <View style={[styles.wrapper, style]} {...props} />;
@@ -83,32 +83,32 @@ export default ListItem;
 const stylePropType = PropTypes.oneOfType([PropTypes.object, PropTypes.array]);
 
 ListItem.propTypes = {
-	style: stylePropType
+	style: stylePropType,
 };
 ListItemDate.propTypes = {
-	style: stylePropType
+	style: stylePropType,
 };
 ListItemContent.propTypes = {
-	style: stylePropType
+	style: stylePropType,
 };
 ListItemActions.propTypes = {
-	style: stylePropType
+	style: stylePropType,
 };
 ListItemIcon.propTypes = {
-	style: stylePropType
+	style: stylePropType,
 };
 ListItemBody.propTypes = {
-	style: stylePropType
+	style: stylePropType,
 };
 ListItemTitle.propTypes = {
-	style: stylePropType
+	style: stylePropType,
 };
 ListItemAmounts.propTypes = {
-	style: stylePropType
+	style: stylePropType,
 };
 ListItemAmount.propTypes = {
-	style: stylePropType
+	style: stylePropType,
 };
 ListItemFiatAmount.propTypes = {
-	style: stylePropType
+	style: stylePropType,
 };

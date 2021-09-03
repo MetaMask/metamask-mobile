@@ -3,12 +3,12 @@ export default {
 		AVERAGE_GAS: 20,
 		LOW_GAS: 10,
 		FAST_GAS: 40,
-		DEFAULT_GAS_LIMIT: '0x5208'
+		DEFAULT_GAS_LIMIT: '0x5208',
 	},
 	ASSET: {
 		ETH: 'ETH',
 		ERC20: 'ERC20',
-		ERC721: 'ERC721'
+		ERC721: 'ERC721',
 	},
-	MMM: 'MetaMask Mobile'
+	MMM: 'MetaMask Mobile',
 };

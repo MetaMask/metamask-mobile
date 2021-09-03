@@ -16,14 +16,14 @@ const styles = StyleSheet.create({
 		fontSize: 10,
 		paddingVertical: 4,
 		paddingHorizontal: 8,
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	summary: {
 		backgroundColor: colors.beige,
 		padding: 24,
 		paddingTop: 12,
 		paddingBottom: 16,
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	summaryPrimary: {
 		...fontStyles.normal,
@@ -32,20 +32,20 @@ const styles = StyleSheet.create({
 		paddingTop: 16,
 		paddingBottom: 4,
 		textTransform: 'uppercase',
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	summarySecondary: {
 		...fontStyles.normal,
 		color: colors.black,
 		fontSize: 24,
 		textTransform: 'uppercase',
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	warning: {
 		width: '100%',
 		paddingHorizontal: 24,
-		paddingTop: 12
-	}
+		paddingTop: 12,
+	},
 });
 
 /**
@@ -76,7 +76,7 @@ class TransactionReviewSummary extends PureComponent {
 		/**
 		 * ETH or fiat, depending on user setting
 		 */
-		primaryCurrency: PropTypes.string
+		primaryCurrency: PropTypes.string,
 	};
 
 	renderWarning = () => <Text>{`${strings('transaction.approve_warning')} ${this.props.assetAmount}`}</Text>;

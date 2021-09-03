@@ -15,20 +15,20 @@ import { NetworksChainId } from '@metamask/controllers';
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
-		backgroundColor: colors.white
+		backgroundColor: colors.white,
 	},
 	tabUnderlineStyle: {
 		height: 2,
-		backgroundColor: colors.blue
+		backgroundColor: colors.blue,
 	},
 	tabStyle: {
-		paddingBottom: 0
+		paddingBottom: 0,
 	},
 	textStyle: {
 		fontSize: 16,
 		letterSpacing: 0.5,
-		...fontStyles.bold
-	}
+		...fontStyles.bold,
+	},
 });
 
 /**
@@ -45,7 +45,7 @@ class AddAsset extends PureComponent {
 	state = {
 		address: '',
 		symbol: '',
-		decimals: ''
+		decimals: '',
 	};
 
 	static propTypes = {
@@ -60,7 +60,7 @@ class AddAsset extends PureComponent {
 		/**
 		 * Object that represents the current route info like params passed to it
 		 */
-		route: PropTypes.object
+		route: PropTypes.object,
 	};
 
 	renderTabBar() {
@@ -79,9 +79,9 @@ class AddAsset extends PureComponent {
 	render = () => {
 		const {
 			route: {
-				params: { assetType, collectibleContract }
+				params: { assetType, collectibleContract },
 			},
-			navigation
+			navigation,
 		} = this.props;
 		return (
 			<SafeAreaView style={styles.wrapper} testID={`add-${assetType}-screen`}>
@@ -112,8 +112,8 @@ class AddAsset extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({
-	chainId: state.engine.backgroundState.NetworkController.provider.chainId
+const mapStateToProps = (state) => ({
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 });
 
 export default connect(mapStateToProps)(AddAsset);

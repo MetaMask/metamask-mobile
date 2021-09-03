@@ -22,66 +22,66 @@ const IMG_PADDING = Device.isIphone5() ? 220 : 200;
 
 const styles = StyleSheet.create({
 	scroll: {
-		flexGrow: 1
+		flexGrow: 1,
 	},
 	wrapper: {
 		paddingVertical: Device.isIphone5() ? 15 : 30,
-		flex: 1
+		flex: 1,
 	},
 	title: {
 		fontSize: 24,
 		marginBottom: Device.isIphone5() ? 8 : 14,
 		justifyContent: 'center',
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	subtitle: {
 		fontSize: 14,
 		marginBottom: Device.isIphone5() ? 8 : 14,
 		justifyContent: 'center',
 		textAlign: 'center',
-		lineHeight: 20
+		lineHeight: 20,
 	},
 	subheader: {
 		fontSize: 16,
 		marginBottom: Device.isIphone5() ? 8 : 14,
 		lineHeight: 22.5,
 		justifyContent: 'center',
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	link: {
 		marginTop: Device.isIphone5() ? 12 : 24,
 		fontSize: 14,
 		justifyContent: 'center',
 		textAlign: 'center',
-		lineHeight: 20
+		lineHeight: 20,
 	},
 	ctas: {
 		flex: 1,
 		justifyContent: 'flex-end',
-		paddingHorizontal: 40
+		paddingHorizontal: 40,
 	},
 	ctaWrapper: {
-		justifyContent: 'flex-end'
+		justifyContent: 'flex-end',
 	},
 	carouselImage: {},
 	// eslint-disable-next-line react-native/no-unused-styles
 	carouselImage1: {
 		width: DEVICE_WIDTH - IMG_PADDING,
-		height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_1_RATIO
+		height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_1_RATIO,
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	carouselImage2: {
 		width: DEVICE_WIDTH - IMG_PADDING,
-		height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_2_RATIO
+		height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_2_RATIO,
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	carouselImage3: {
 		width: DEVICE_WIDTH - IMG_PADDING,
-		height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_3_RATIO
+		height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_3_RATIO,
 	},
 	carouselImageWrapper: {
 		flexDirection: 'row',
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	circle: {
 		width: 8,
@@ -89,19 +89,19 @@ const styles = StyleSheet.create({
 		borderRadius: 8 / 2,
 		backgroundColor: colors.grey500,
 		opacity: 0.4,
-		marginHorizontal: 8
+		marginHorizontal: 8,
 	},
 	solidCircle: {
-		opacity: 1
+		opacity: 1,
 	},
 	progessContainer: {
 		flexDirection: 'row',
 		alignSelf: 'center',
-		marginVertical: Device.isIphone5() ? 18 : 36
+		marginVertical: Device.isIphone5() ? 18 : 36,
 	},
 	tab: {
-		margin: 32
-	}
+		margin: 32,
+	},
 });
 
 const gas_education_carousel_1 = require('../../../images/gas-education-carousel-1.png'); // eslint-disable-line
@@ -132,17 +132,17 @@ const GasEducationCarousel = ({ navigation, route, conversionRate, currentCurren
 
 	const renderTabBar = () => <View />;
 
-	const onChangeTab = obj => {
+	const onChangeTab = (obj) => {
 		setCurrentTab(obj.i + 1);
 	};
 
 	const openLink = () =>
 		navigation.navigate('Webview', {
 			screen: 'SimpleWebview',
-			params: { url: 'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172' }
+			params: { url: 'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172' },
 		});
 
-	const renderText = key => {
+	const renderText = (key) => {
 		if (key === 1) {
 			return (
 				<View style={styles.tab}>
@@ -249,7 +249,7 @@ const GasEducationCarousel = ({ navigation, route, conversionRate, currentCurren
 						</ScrollableTabView>
 
 						<View style={styles.progessContainer}>
-							{[1, 2, 3].map(i => (
+							{[1, 2, 3].map((i) => (
 								<View key={i} style={[styles.circle, currentTab === i && styles.solidCircle]} />
 							))}
 						</View>
@@ -279,12 +279,12 @@ GasEducationCarousel.propTypes = {
 	/**
 	 * Object that represents the current route info like params passed to it
 	 */
-	route: PropTypes.object
+	route: PropTypes.object,
 };
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
-	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 });
 
 export default connect(mapStateToProps)(GasEducationCarousel);

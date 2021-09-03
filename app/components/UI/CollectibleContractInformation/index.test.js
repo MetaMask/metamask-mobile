@@ -12,11 +12,11 @@ describe('CollectibleContractInformation', () => {
 				backgroundState: {
 					NetworkController: {
 						provider: {
-							type: 'mainnet'
-						}
-					}
-				}
-			}
+							type: 'mainnet',
+						},
+					},
+				},
+			},
 		};
 
 		const wrapper = shallow(
@@ -26,11 +26,11 @@ describe('CollectibleContractInformation', () => {
 					symbol: 'symbol',
 					description: 'description',
 					address: '0x123',
-					totalSupply: 1
+					totalSupply: 1,
 				}}
 			/>,
 			{
-				context: { store: mockStore(initialState) }
+				context: { store: mockStore(initialState) },
 			}
 		);
 		expect(wrapper.dive()).toMatchSnapshot();

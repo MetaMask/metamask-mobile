@@ -15,62 +15,62 @@ const styles = StyleSheet.create({
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
 		minHeight: 200,
-		paddingBottom: Device.isIphoneX() ? 20 : 0
+		paddingBottom: Device.isIphoneX() ? 20 : 0,
 	},
 	intro: {
 		fontSize: Device.isSmallDevice() ? 18 : 24,
 		marginBottom: 16,
 		marginTop: 16,
 		marginRight: 24,
-		marginLeft: 24
+		marginLeft: 24,
 	},
 	warning: {
 		paddingHorizontal: 24,
 		fontSize: 13,
 		width: '100%',
 		textAlign: 'center',
-		paddingBottom: 16
+		paddingBottom: 16,
 	},
-	actionContainer: noMargin => ({
+	actionContainer: (noMargin) => ({
 		flex: 0,
 		flexDirection: 'row',
 		padding: 24,
-		marginTop: noMargin ? 0 : 20
+		marginTop: noMargin ? 0 : 20,
 	}),
 	button: {
-		flex: 1
+		flex: 1,
 	},
 	cancel: {
-		marginRight: 8
+		marginRight: 8,
 	},
 	confirm: {
-		marginLeft: 8
+		marginLeft: 8,
 	},
 	networkIcon: {
 		width: 13,
 		height: 13,
 		borderRadius: 100,
 		marginRight: 10,
-		marginTop: 1
+		marginTop: 1,
 	},
 	otherNetworkIcon: {
 		backgroundColor: colors.grey100,
 		borderColor: colors.grey100,
-		borderWidth: 2
+		borderWidth: 2,
 	},
 	networkContainer: {
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	networkBadge: {
 		flexDirection: 'row',
 		borderColor: colors.grey200,
 		borderRadius: 100,
 		borderWidth: 1,
-		padding: 10
+		padding: 10,
 	},
 	networkText: {
-		fontSize: 12
-	}
+		fontSize: 12,
+	},
 });
 
 /**
@@ -117,7 +117,7 @@ const SwitchCustomNetwork = ({ customNetworkInformation, currentPageInformation,
 								styles.networkIcon,
 								customNetworkInformation.chainColor
 									? { backgroundColor: customNetworkInformation.chainColor }
-									: styles.otherNetworkIcon
+									: styles.otherNetworkIcon,
 							]}
 						/>
 						<Text primary noMargin style={styles.networkText}>
@@ -168,7 +168,7 @@ SwitchCustomNetwork.propTypes = {
 	/**
 	 * String representing if it's an existing or a newly added network
 	 */
-	type: PropTypes.string
+	type: PropTypes.string,
 };
 
 export default SwitchCustomNetwork;

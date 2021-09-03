@@ -52,27 +52,18 @@ export default class StyledButton extends PureComponent {
 		/**
 		 * ID of the element to be used on e2e tests
 		 */
-		testID: PropTypes.string
+		testID: PropTypes.string,
 	};
 
 	static defaultProps = {
 		...PureComponent.defaultProps,
 		styleDisabled: { opacity: 0.6 },
-		disabledContainerStyle: { opacity: 0.6 }
+		disabledContainerStyle: { opacity: 0.6 },
 	};
 
 	render = () => {
-		const {
-			type,
-			onPress,
-			onPressOut,
-			style,
-			children,
-			disabled,
-			styleDisabled,
-			testID,
-			disabledContainerStyle
-		} = this.props;
+		const { type, onPress, onPressOut, style, children, disabled, styleDisabled, testID, disabledContainerStyle } =
+			this.props;
 		const { fontStyle, containerStyle } = getStyles(type);
 
 		return (

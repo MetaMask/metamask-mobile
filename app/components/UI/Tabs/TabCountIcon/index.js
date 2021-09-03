@@ -11,7 +11,7 @@ const styles = StyleSheet.create({
 		borderColor: colors.grey500,
 		borderRadius: 6,
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	tabCount: {
 		color: colors.grey500,
@@ -20,8 +20,8 @@ const styles = StyleSheet.create({
 		fontSize: Device.isAndroid() ? 3 : 15,
 		textAlign: 'center',
 		alignSelf: 'center',
-		...fontStyles.normal
-	}
+		...fontStyles.normal,
+	},
 });
 
 /**
@@ -37,7 +37,7 @@ class TabCountIcon extends PureComponent {
 		/**
 		 * PureComponent styles
 		 */
-		style: PropTypes.any
+		style: PropTypes.any,
 	};
 
 	render() {
@@ -51,8 +51,8 @@ class TabCountIcon extends PureComponent {
 	}
 }
 
-const mapStateToProps = state => ({
-	tabCount: state.browser.tabs.length
+const mapStateToProps = (state) => ({
+	tabCount: state.browser.tabs.length,
 });
 
 export default connect(mapStateToProps)(TabCountIcon);

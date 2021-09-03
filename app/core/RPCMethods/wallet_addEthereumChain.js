@@ -18,7 +18,7 @@ const wallet_addEthereumChain = async ({
 	setCustomNetworkToSwitch,
 	setShowSwitchCustomNetworkDialog,
 	setCustomNetworkToAdd,
-	setShowAddCustomNetworkDialog
+	setShowAddCustomNetworkDialog,
 }) => {
 	if (showAddCustomNetworkDialog || showSwitchCustomNetworkDialog) return;
 	addCustomNetworkRequest.current = null;
@@ -28,7 +28,7 @@ const wallet_addEthereumChain = async ({
 
 	if (!req.params?.[0] || typeof req.params[0] !== 'object') {
 		throw ethErrors.rpc.invalidParams({
-			message: `Expected single, object parameter. Received:\n${JSON.stringify(req.params)}`
+			message: `Expected single, object parameter. Received:\n${JSON.stringify(req.params)}`,
 		});
 	}
 
@@ -42,21 +42,21 @@ const wallet_addEthereumChain = async ({
 		blockExplorerUrls: true,
 		nativeCurrency: true,
 		rpcUrls: true,
-		iconUrls: true
+		iconUrls: true,
 	};
 
-	const extraKeys = Object.keys(params).filter(key => !allowedKeys[key]);
+	const extraKeys = Object.keys(params).filter((key) => !allowedKeys[key]);
 	if (extraKeys.length) {
 		throw ethErrors.rpc.invalidParams(
 			`Received unexpected keys on object parameter. Unsupported keys:\n${extraKeys}`
 		);
 	}
 
-	const firstValidRPCUrl = Array.isArray(rpcUrls) ? rpcUrls.find(rpcUrl => validUrl.isHttpsUri(rpcUrl)) : null;
+	const firstValidRPCUrl = Array.isArray(rpcUrls) ? rpcUrls.find((rpcUrl) => validUrl.isHttpsUri(rpcUrl)) : null;
 
 	const firstValidBlockExplorerUrl =
 		blockExplorerUrls !== null && Array.isArray(blockExplorerUrls)
-			? blockExplorerUrls.find(blockExplorerUrl => validUrl.isHttpsUri(blockExplorerUrl))
+			? blockExplorerUrls.find((blockExplorerUrl) => validUrl.isHttpsUri(blockExplorerUrl))
 			: null;
 
 	if (!firstValidRPCUrl) {
@@ -87,12 +87,12 @@ const wallet_addEthereumChain = async ({
 
 	const chainIdDecimal = parseInt(_chainId, 16).toString(10);
 
-	if (Object.values(NetworksChainId).find(value => value === chainIdDecimal)) {
+	if (Object.values(NetworksChainId).find((value) => value === chainIdDecimal)) {
 		throw ethErrors.rpc.invalidParams(`May not specify default MetaMask chain.`);
 	}
 
 	const frequentRpcList = PreferencesController.state.frequentRpcList;
-	const existingNetwork = frequentRpcList.find(rpc => rpc.chainId === chainIdDecimal);
+	const existingNetwork = frequentRpcList.find((rpc) => rpc.chainId === chainIdDecimal);
 
 	if (existingNetwork) {
 		const currentChainId = NetworkController.state.provider.chainId;
@@ -105,7 +105,7 @@ const wallet_addEthereumChain = async ({
 			rpcUrl: existingNetwork.rpcUrl,
 			chainId: _chainId,
 			chainName: existingNetwork.nickname,
-			ticker: existingNetwork.ticker
+			ticker: existingNetwork.ticker,
 		});
 		setShowSwitchCustomNetworkDialog('switch');
 
@@ -119,7 +119,7 @@ const wallet_addEthereumChain = async ({
 			source: 'Custom Network API',
 			symbol: existingNetwork?.ticker,
 			block_explorer_url: existingNetwork?.blockExplorerUrl,
-			network_name: 'rpc'
+			network_name: 'rpc',
 		};
 
 		if (!switchCustomNetworkApprove) {
@@ -148,20 +148,20 @@ const wallet_addEthereumChain = async ({
 	} catch (err) {
 		throw ethErrors.rpc.internal({
 			message: `Request for method 'eth_chainId on ${firstValidRPCUrl} failed`,
-			data: { networkErr: err }
+			data: { networkErr: err },
 		});
 	}
 
 	if (_chainId !== endpointChainId) {
 		throw ethErrors.rpc.invalidParams({
 			message: `Chain ID returned by RPC URL ${firstValidRPCUrl} does not match ${_chainId}`,
-			data: { chainId: endpointChainId }
+			data: { chainId: endpointChainId },
 		});
 	}
 
 	if (typeof chainName !== 'string' || !chainName) {
 		throw ethErrors.rpc.invalidParams({
-			message: `Expected non-empty string 'chainName'. Received:\n${chainName}`
+			message: `Expected non-empty string 'chainName'. Received:\n${chainName}`,
 		});
 	}
 	const _chainName = chainName.length > 100 ? chainName.substring(0, 100) : chainName;
@@ -169,20 +169,18 @@ const wallet_addEthereumChain = async ({
 	if (nativeCurrency !== null) {
 		if (typeof nativeCurrency !== 'object' || Array.isArray(nativeCurrency)) {
 			throw ethErrors.rpc.invalidParams({
-				message: `Expected null or object 'nativeCurrency'. Received:\n${nativeCurrency}`
+				message: `Expected null or object 'nativeCurrency'. Received:\n${nativeCurrency}`,
 			});
 		}
 		if (nativeCurrency.decimals !== 18) {
 			throw ethErrors.rpc.invalidParams({
-				message: `Expected the number 18 for 'nativeCurrency.decimals' when 'nativeCurrency' is provided. Received: ${
-					nativeCurrency.decimals
-				}`
+				message: `Expected the number 18 for 'nativeCurrency.decimals' when 'nativeCurrency' is provided. Received: ${nativeCurrency.decimals}`,
 			});
 		}
 
 		if (!nativeCurrency.symbol || typeof nativeCurrency.symbol !== 'string') {
 			throw ethErrors.rpc.invalidParams({
-				message: `Expected a string 'nativeCurrency.symbol'. Received: ${nativeCurrency.symbol}`
+				message: `Expected a string 'nativeCurrency.symbol'. Received: ${nativeCurrency.symbol}`,
 			});
 		}
 	}
@@ -190,7 +188,7 @@ const wallet_addEthereumChain = async ({
 
 	if (typeof ticker !== 'string' || ticker.length < 2 || ticker.length > 6) {
 		throw ethErrors.rpc.invalidParams({
-			message: `Expected 2-6 character string 'nativeCurrency.symbol'. Received:\n${ticker}`
+			message: `Expected 2-6 character string 'nativeCurrency.symbol'. Received:\n${ticker}`,
 		});
 	}
 
@@ -199,13 +197,13 @@ const wallet_addEthereumChain = async ({
 		blockExplorerUrl: firstValidBlockExplorerUrl,
 		chainName: _chainName,
 		rpcUrl: firstValidRPCUrl,
-		ticker
+		ticker,
 	};
 
 	let alert = null;
 	const safeChainsListRequest = await fetch('https://chainid.network/chains.json');
 	const safeChainsList = await safeChainsListRequest.json();
-	const matchedChain = safeChainsList.find(chain => chain.chainId.toString() === chainIdDecimal);
+	const matchedChain = safeChainsList.find((chain) => chain.chainId.toString() === chainIdDecimal);
 	let validated = !!matchedChain;
 
 	if (matchedChain) {
@@ -218,7 +216,7 @@ const wallet_addEthereumChain = async ({
 		}
 
 		const { origin } = new URL(requestData.rpcUrl);
-		if (!matchedChain.rpc.map(rpc => new URL(rpc).origin).includes(origin)) {
+		if (!matchedChain.rpc.map((rpc) => new URL(rpc).origin).includes(origin)) {
 			validated = false;
 		}
 	}
@@ -236,7 +234,7 @@ const wallet_addEthereumChain = async ({
 		source: 'Custom Network API',
 		symbol: ticker,
 		block_explorer_url: firstValidBlockExplorerUrl,
-		network_name: 'rpc'
+		network_name: 'rpc',
 	};
 
 	AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_REQUESTED, analyticsParamsAdd);
@@ -254,7 +252,7 @@ const wallet_addEthereumChain = async ({
 	}
 
 	PreferencesController.addToFrequentRpcList(firstValidRPCUrl, chainIdDecimal, ticker, _chainName, {
-		blockExplorerUrl: firstValidBlockExplorerUrl
+		blockExplorerUrl: firstValidBlockExplorerUrl,
 	});
 
 	AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_ADDED, analyticsParamsAdd);

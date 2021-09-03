@@ -23,9 +23,9 @@ export default {
 		BLOCKED_DEPOSIT_DURATION_MINUTES: 5,
 		CONTRACTS: {
 			4: '0x0Fa90eC3AC3245112c6955d8F9DD74Ec9D599996',
-			1: '0xdfa6edAe2EC0cF1d4A60542422724A48195A5071'
+			1: '0xdfa6edAe2EC0cF1d4A60542422724A48195A5071',
 		},
-		SUPPORTED_NETWORKS: [MAINNET, RINKEBY]
+		SUPPORTED_NETWORKS: [MAINNET, RINKEBY],
 	},
 	MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
 	SAI_ADDRESS: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
@@ -39,7 +39,7 @@ export default {
 	NOTIFICATION_NAMES: {
 		accountsChanged: 'metamask_accountsChanged',
 		unlockStateChanged: 'metamask_unlockStateChanged',
-		chainChanged: 'metamask_chainChanged'
+		chainChanged: 'metamask_chainChanged',
 	},
 	FIAT_ORDERS: {
 		TRANSAK_URL: 'https://global.transak.com/',
@@ -51,11 +51,11 @@ export default {
 		WYRE_API_ENDPOINT_TEST: 'https://api.testwyre.com/',
 		WYRE_MERCHANT_ID: 'merchant.io.metamask.wyre',
 		WYRE_MERCHANT_ID_TEST: 'merchant.io.metamask.wyre.test',
-		POLLING_FREQUENCY: 10000
+		POLLING_FREQUENCY: 10000,
 	},
 	DEEPLINKS: {
 		ORIGIN_DEEPLINK: 'deeplink',
-		ORIGIN_QR_CODE: 'qr-code'
+		ORIGIN_QR_CODE: 'qr-code',
 	},
 	SWAPS: {
 		ACTIVE: true,
@@ -66,22 +66,22 @@ export default {
 		DEFAULT_SLIPPAGE: 3,
 		CACHE_AGGREGATOR_METADATA_THRESHOLD: 5 * 60 * 1000,
 		CACHE_TOKENS_THRESHOLD: 5 * 60 * 1000,
-		CACHE_TOP_ASSETS_THRESHOLD: 5 * 60 * 1000
+		CACHE_TOP_ASSETS_THRESHOLD: 5 * 60 * 1000,
 	},
 	MAX_SAFE_CHAIN_ID: 4503599627370476,
 	URLS: {
 		TERMS_AND_CONDITIONS: 'https://consensys.net/terms-of-use/',
 		PRIVACY_POLICY: 'https://consensys.net/privacy-policy/',
 		CONNECTIVITY_ISSUES: 'https://metamask.zendesk.com/hc/en-us/articles/360059386712',
-		NFT: 'https://metamask.zendesk.com/hc/en-us/articles/360058238591-NFT-tokens-in-MetaMask-wallet'
+		NFT: 'https://metamask.zendesk.com/hc/en-us/articles/360058238591-NFT-tokens-in-MetaMask-wallet',
 	},
 	ERRORS: {
-		INFURA_BLOCKED_MESSAGE: 'EthQuery - RPC Error - This service is not available in your country'
+		INFURA_BLOCKED_MESSAGE: 'EthQuery - RPC Error - This service is not available in your country',
 	},
 	GAS_OPTIONS: {
 		LOW: 'low',
 		MEDIUM: 'medium',
-		HIGH: 'high'
+		HIGH: 'high',
 	},
 	GAS_TIMES: {
 		UNKNOWN: 'unknown',
@@ -90,6 +90,6 @@ export default {
 		VERY_LIKELY: 'very_likely',
 		AT_LEAST: 'at_least',
 		LESS_THAN: 'less_than',
-		RANGE: 'range'
-	}
+		RANGE: 'range',
+	},
 };

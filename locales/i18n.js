@@ -30,7 +30,7 @@ I18n.translations = {
 	ru,
 	tl,
 	vi,
-	zh
+	zh,
 };
 // If language selected get locale
 getUserPreferableLocale();
@@ -60,7 +60,7 @@ export function getLanguages() {
 		ru: 'Russian',
 		tl: 'Filipino',
 		vi: 'Vietnamese',
-		zh: 'Chinese - China'
+		zh: 'Chinese - China',
 	};
 }
 

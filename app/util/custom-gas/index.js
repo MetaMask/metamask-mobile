@@ -85,9 +85,9 @@ export function parseWaitTime(min) {
 		[strings('unit.week'), 10080],
 		[strings('unit.day'), 1440],
 		[strings('unit.hour'), 60],
-		[strings('unit.minute'), 1]
+		[strings('unit.minute'), 1],
 	];
-	timeUnits.forEach(unit => {
+	timeUnits.forEach((unit) => {
 		if (parsed.includes(' ')) return;
 		val = Math.floor(tempMin / unit[1]);
 		if (val) {
@@ -119,14 +119,14 @@ export async function fetchBasicGasEstimates() {
 		referrerPolicy: 'no-referrer-when-downgrade',
 		body: null,
 		method: 'GET',
-		mode: 'cors'
+		mode: 'cors',
 	})
-		.then(r => r.json())
+		.then((r) => r.json())
 		.then(({ SafeGasPrice, ProposeGasPrice, FastGasPrice }) => {
 			const basicEstimates = {
 				average: ProposeGasPrice,
 				safeLow: SafeGasPrice,
-				fast: FastGasPrice
+				fast: FastGasPrice,
 			};
 
 			return basicEstimates;
@@ -134,7 +134,7 @@ export async function fetchBasicGasEstimates() {
 
 	return Promise.race([
 		fetchPromise,
-		new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), timeout))
+		new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), timeout)),
 	]);
 }
 
@@ -156,7 +156,7 @@ export async function getBasicGasEstimates() {
 	return {
 		averageGwei: convertApiValueToGWEI(average),
 		fastGwei: convertApiValueToGWEI(fast),
-		safeLowGwei: convertApiValueToGWEI(safeLow)
+		safeLowGwei: convertApiValueToGWEI(safeLow),
 	};
 }
 
@@ -168,7 +168,7 @@ export async function getGasLimit(transaction) {
 		estimation = await TransactionController.estimateGas(transaction);
 	} catch (error) {
 		estimation = {
-			gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT
+			gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT,
 		};
 	}
 
@@ -185,16 +185,16 @@ export async function getGasPriceByChainId(transaction) {
 			average: getValueFromWeiHex({
 				value: estimation.gasPrice.toString(16),
 				numberOfDecimals: 4,
-				toDenomination: 'GWEI'
-			})
+				toDenomination: 'GWEI',
+			}),
 		};
 	} catch (error) {
 		estimation = {
 			gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT,
-			gasPrice: TransactionTypes.CUSTOM_GAS.AVERAGE_GAS
+			gasPrice: TransactionTypes.CUSTOM_GAS.AVERAGE_GAS,
 		};
 		basicGasEstimates = {
-			average: estimation.gasPrice
+			average: estimation.gasPrice,
 		};
 		Logger.log('Error while trying to get gas price from the network', error);
 	}
@@ -238,7 +238,7 @@ export function getValueFromWeiHex({
 	toCurrency,
 	conversionRate,
 	numberOfDecimals,
-	toDenomination
+	toDenomination,
 }) {
 	return conversionUtil(value, {
 		fromNumericBase: 'hex',
@@ -248,6 +248,6 @@ export function getValueFromWeiHex({
 		numberOfDecimals,
 		fromDenomination: WEI,
 		toDenomination,
-		conversionRate
+		conversionRate,
 	});
 }

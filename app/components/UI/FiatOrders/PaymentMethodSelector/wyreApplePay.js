@@ -15,22 +15,22 @@ import { ScrollView } from 'react-native-gesture-handler';
 const styles = StyleSheet.create({
 	title: {
 		flex: 1,
-		flexWrap: 'wrap'
+		flexWrap: 'wrap',
 	},
 	applePay: {
 		marginVertical: 3,
 		marginLeft: 5,
-		marginBottom: '-3%'
+		marginBottom: '-3%',
 	},
 	countryList: {
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	countryCol: {
-		width: '50%'
+		width: '50%',
 	},
 	spacer: {
-		marginVertical: 5
-	}
+		marginVertical: 5,
+	},
 });
 
 /* eslint-disable import/no-commonjs */
@@ -152,9 +152,9 @@ const WyreApplePayPaymentMethod = ({ onPress }) => {
 };
 
 WyreApplePayPaymentMethod.propTypes = {
-	onPress: PropTypes.func
+	onPress: PropTypes.func,
 };
 WyreApplePayPaymentMethod.defaultProps = {
-	onPress: undefined
+	onPress: undefined,
 };
 export default WyreApplePayPaymentMethod;

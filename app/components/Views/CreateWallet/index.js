@@ -8,7 +8,7 @@ import {
 	View,
 	ScrollView,
 	StyleSheet,
-	BackHandler
+	BackHandler,
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
@@ -31,19 +31,19 @@ import {
 	EXISTING_USER,
 	ONBOARDING_WIZARD,
 	METRICS_OPT_IN,
-	TRUE
+	TRUE,
 } from '../../../constants/storage';
 import DefaultPreference from 'react-native-default-preference';
 
 const styles = StyleSheet.create({
 	scroll: {
-		flexGrow: 1
+		flexGrow: 1,
 	},
 	wrapper: {
 		paddingHorizontal: 40,
 		paddingBottom: 30,
 		alignItems: 'center',
-		flex: 1
+		flex: 1,
 	},
 	title: {
 		fontSize: 22,
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
 		marginBottom: 10,
 		color: colors.fontPrimary,
 		textAlign: 'center',
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	subtitle: {
 		width: 295,
@@ -60,19 +60,19 @@ const styles = StyleSheet.create({
 		marginBottom: 20,
 		color: colors.grey500,
 		textAlign: 'center',
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	foxWrapper: {
 		width: Device.isIos() ? 90 : 80,
 		height: Device.isIos() ? 90 : 80,
 		marginTop: 30,
-		marginBottom: 30
+		marginBottom: 30,
 	},
 	image: {
 		alignSelf: 'center',
 		width: 80,
-		height: 80
-	}
+		height: 80,
+	},
 });
 
 /**
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
  */
 class CreateWallet extends PureComponent {
 	static navigationOptions = () => ({
-		header: null
+		header: null,
 	});
 
 	static propTypes = {
@@ -108,7 +108,7 @@ class CreateWallet extends PureComponent {
 		/**
 		 * React navigation prop to know if this view is focused
 		 */
-		isFocused: PropTypes.bool
+		isFocused: PropTypes.bool,
 	};
 
 	// Temporary disabling the back button so users can't go back
@@ -185,14 +185,11 @@ class CreateWallet extends PureComponent {
 	}
 }
 
-const mapDispatchToProps = dispatch => ({
-	setLockTime: time => dispatch(setLockTime(time)),
-	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step)),
+const mapDispatchToProps = (dispatch) => ({
+	setLockTime: (time) => dispatch(setLockTime(time)),
+	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 	passwordUnset: () => dispatch(passwordUnset()),
-	seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp())
+	seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp()),
 });
 
-export default connect(
-	null,
-	mapDispatchToProps
-)(withNavigationFocus(CreateWallet));
+export default connect(null, mapDispatchToProps)(withNavigationFocus(CreateWallet));

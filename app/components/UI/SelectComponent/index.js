@@ -13,14 +13,14 @@ const PickerItem = Picker.Item;
 const ROW_HEIGHT = 35;
 const styles = StyleSheet.create({
 	dropdown: {
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	iconDropdown: {
 		marginTop: 7,
 		height: 25,
 		justifyContent: 'flex-end',
 		textAlign: 'right',
-		marginRight: 10
+		marginRight: 10,
 	},
 	selectedOption: {
 		flex: 1,
@@ -30,56 +30,56 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 15,
 		paddingTop: 10,
 		paddingBottom: 10,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	accesoryBar: {
 		width: '100%',
 		paddingTop: 5,
 		height: 50,
 		borderBottomColor: colors.grey100,
-		borderBottomWidth: 1
+		borderBottomWidth: 1,
 	},
 	label: {
 		textAlign: 'center',
 		flex: 1,
 		paddingVertical: 10,
 		fontSize: 17,
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	modal: {
 		margin: 0,
 		width: '100%',
-		padding: 60
+		padding: 60,
 	},
 	modalView: {
 		backgroundColor: colors.white,
 		justifyContent: 'center',
 		alignItems: 'center',
-		borderRadius: 10
+		borderRadius: 10,
 	},
 	list: {
-		width: '100%'
+		width: '100%',
 	},
 	optionButton: {
 		paddingHorizontal: 15,
 		paddingVertical: 5,
 		flexDirection: 'row',
-		height: ROW_HEIGHT
+		height: ROW_HEIGHT,
 	},
 	optionLabel: {
 		paddingVertical: 10,
 		flex: 1,
 		fontSize: 14,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	icon: {
 		paddingHorizontal: 10,
-		marginTop: 5
+		marginTop: 5,
 	},
 	listWrapper: {
 		flex: 1,
-		paddingBottom: 10
-	}
+		paddingBottom: 10,
+	},
 });
 
 export default class SelectComponent extends PureComponent {
@@ -103,16 +103,16 @@ export default class SelectComponent extends PureComponent {
 		/**
 		 * Callback for value change
 		 */
-		onValueChange: PropTypes.func
+		onValueChange: PropTypes.func,
 	};
 
 	state = {
-		pickerVisible: false
+		pickerVisible: false,
 	};
 
 	scrollView = Device.isIos() ? React.createRef() : null;
 
-	onValueChange = val => {
+	onValueChange = (val) => {
 		this.props.onValueChange(val);
 		setTimeout(() => {
 			this.hidePicker();
@@ -144,7 +144,7 @@ export default class SelectComponent extends PureComponent {
 
 	getSelectedValue = () => {
 		const { options, selectedValue, defaultValue } = this.props;
-		const el = options && options.filter(o => o.value === selectedValue);
+		const el = options && options.filter((o) => o.value === selectedValue);
 		if (el.length && el[0].label) {
 			return el[0].label;
 		}
@@ -161,7 +161,7 @@ export default class SelectComponent extends PureComponent {
 				onValueChange={this.onValueChange}
 				prompt={this.props.label}
 			>
-				{this.props.options.map(option => (
+				{this.props.options.map((option) => (
 					<PickerItem value={option.value} label={option.label} key={option.key} />
 				))}
 			</Picker>
@@ -191,7 +191,7 @@ export default class SelectComponent extends PureComponent {
 					</View>
 					<ScrollView style={styles.list} ref={this.scrollView}>
 						<View style={styles.listWrapper}>
-							{this.props.options.map(option => (
+							{this.props.options.map((option) => (
 								<TouchableOpacity
 									// eslint-disable-next-line react/jsx-no-bind
 									onPress={() => this.onValueChange(option.value)}

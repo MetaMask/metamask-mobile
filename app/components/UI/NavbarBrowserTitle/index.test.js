@@ -11,8 +11,8 @@ describe('NavbarBrowserTitle', () => {
 	it('should render correctly', () => {
 		const network = {
 			provider: {
-				type: 'mainnet'
-			}
+				type: 'mainnet',
+			},
 		};
 		const wrapper = shallow(
 			<Provider store={store}>

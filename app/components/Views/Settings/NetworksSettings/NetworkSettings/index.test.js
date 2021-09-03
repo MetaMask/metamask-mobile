@@ -9,13 +9,13 @@ describe('NetworkSettings', () => {
 			engine: {
 				backgroundState: {
 					PreferencesController: {
-						frequentRpcList: []
-					}
-				}
-			}
+						frequentRpcList: [],
+					},
+				},
+			},
 		};
 		const wrapper = shallow(<NetworkSettings route={{ params: {} }} />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});

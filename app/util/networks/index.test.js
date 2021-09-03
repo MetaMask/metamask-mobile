@@ -19,8 +19,8 @@ describe('isMainNet', () => {
 		expect(
 			isMainNet({
 				provider: {
-					type: MAINNET
-				}
+					type: MAINNET,
+				},
 			})
 		).toEqual(true);
 	});
@@ -30,9 +30,9 @@ describe('isMainNet', () => {
 			isMainNet({
 				network: {
 					provider: {
-						type: ROPSTEN
-					}
-				}
+						type: ROPSTEN,
+					},
+				},
 			})
 		).toEqual(false);
 	});

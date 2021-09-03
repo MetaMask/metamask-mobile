@@ -4,7 +4,7 @@
 export const FIAT_ORDER_PROVIDERS = {
 	WYRE: 'WYRE',
 	WYRE_APPLE_PAY: 'WYRE_APPLE_PAY',
-	TRANSAK: 'TRANSAK'
+	TRANSAK: 'TRANSAK',
 };
 
 /**
@@ -14,7 +14,7 @@ export const FIAT_ORDER_STATES = {
 	PENDING: 'PENDING',
 	FAILED: 'FAILED',
 	COMPLETED: 'COMPLETED',
-	CANCELLED: 'CANCELLED'
+	CANCELLED: 'CANCELLED',
 };
 
 /**
@@ -22,7 +22,7 @@ export const FIAT_ORDER_STATES = {
  */
 export const PAYMENT_RAILS = {
 	APPLE_PAY: 'Apple Pay',
-	MULTIPLE: 'Multiple Options'
+	MULTIPLE: 'Multiple Options',
 };
 
 /**
@@ -31,5 +31,5 @@ export const PAYMENT_RAILS = {
 export const PAYMENT_CATEGORY = {
 	CARD_PAYMENT: 'Card Payment',
 	BANK_TRANSFER: 'Bank Transfer',
-	MULTIPLE: 'Multiple Options'
+	MULTIPLE: 'Multiple Options',
 };
