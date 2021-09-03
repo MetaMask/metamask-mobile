@@ -14,7 +14,7 @@ const initialState = {
 		value: undefined,
 		// eip1559
 		maxFeePerGas: undefined,
-		maxPriorityFeePerGas: undefined
+		maxPriorityFeePerGas: undefined,
 	},
 	warningGasPriceHigh: undefined,
 	transactionTo: undefined,
@@ -27,10 +27,10 @@ const initialState = {
 	id: undefined,
 	type: undefined,
 	proposedNonce: undefined,
-	nonce: undefined
+	nonce: undefined,
 };
 
-const getAssetType = selectedAsset => {
+const getAssetType = (selectedAsset) => {
 	let assetType;
 	if (selectedAsset) {
 		if (selectedAsset.tokenId) {
@@ -48,29 +48,29 @@ const transactionReducer = (state = initialState, action) => {
 	switch (action.type) {
 		case REHYDRATE:
 			return {
-				...initialState
+				...initialState,
 			};
 		case 'RESET_TRANSACTION':
 			return {
 				...state,
-				...initialState
+				...initialState,
 			};
 		case 'NEW_ASSET_TRANSACTION':
 			return {
 				...state,
 				...initialState,
 				selectedAsset: action.selectedAsset,
-				assetType: action.assetType
+				assetType: action.assetType,
 			};
 		case 'SET_NONCE':
 			return {
 				...state,
-				nonce: action.nonce
+				nonce: action.nonce,
 			};
 		case 'SET_PROPOSED_NONCE':
 			return {
 				...state,
-				proposedNonce: action.proposedNonce
+				proposedNonce: action.proposedNonce,
 			};
 		case 'SET_RECIPIENT':
 			return {
@@ -79,7 +79,7 @@ const transactionReducer = (state = initialState, action) => {
 				ensRecipient: action.ensRecipient,
 				transactionTo: action.to,
 				transactionToName: action.transactionToName,
-				transactionFromName: action.transactionFromName
+				transactionFromName: action.transactionFromName,
 			};
 		case 'SET_SELECTED_ASSET': {
 			const selectedAsset = action.selectedAsset;
@@ -87,13 +87,13 @@ const transactionReducer = (state = initialState, action) => {
 			return {
 				...state,
 				selectedAsset,
-				assetType
+				assetType,
 			};
 		}
 		case 'PREPARE_TRANSACTION':
 			return {
 				...state,
-				transaction: action.transaction
+				transaction: action.transaction,
 			};
 		case 'SET_TRANSACTION_OBJECT': {
 			const selectedAsset = action.transaction.selectedAsset;
@@ -106,9 +106,9 @@ const transactionReducer = (state = initialState, action) => {
 				...state,
 				transaction: {
 					...state.transaction,
-					...getTxData(action.transaction)
+					...getTxData(action.transaction),
 				},
-				...txMeta
+				...txMeta,
 			};
 		}
 		case 'SET_TOKENS_TRANSACTION': {
@@ -118,7 +118,7 @@ const transactionReducer = (state = initialState, action) => {
 				...state,
 				type: 'TOKENS_TRANSACTION',
 				selectedAsset: action.asset,
-				assetType
+				assetType,
 			};
 		}
 		case 'SET_ETHER_TRANSACTION':
@@ -129,27 +129,27 @@ const transactionReducer = (state = initialState, action) => {
 				selectedAsset: { isETH: true, symbol: 'ETH' },
 				type: 'ETHER_TRANSACTION',
 				...getTxMeta(action.transaction),
-				transaction: getTxData(action.transaction)
+				transaction: getTxData(action.transaction),
 			};
 		case 'SET_INDIVIDUAL_TOKEN_TRANSACTION':
 			return {
 				...state,
 				selectedAsset: action.token,
-				type: 'INDIVIDUAL_TOKEN_TRANSACTION'
+				type: 'INDIVIDUAL_TOKEN_TRANSACTION',
 			};
 		case 'SET_INDIVIDUAL_COLLECTIBLE_TRANSACTION':
 			return {
 				...state,
 				selectedAsset: action.collectible,
 				assetType: 'ERC721',
-				type: 'INDIVIDUAL_COLLECTIBLE_TRANSACTION'
+				type: 'INDIVIDUAL_COLLECTIBLE_TRANSACTION',
 			};
 		case 'SET_COLLECTIBLE_CONTRACT_TRANSACTION':
 			return {
 				...state,
 				selectedAsset: action.collectible,
 				assetType: 'ERC721',
-				type: 'CONTRACT_COLLECTIBLE_TRANSACTION'
+				type: 'CONTRACT_COLLECTIBLE_TRANSACTION',
 			};
 		default:
 			return state;

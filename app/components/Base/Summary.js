@@ -8,30 +8,30 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderColor: colors.grey050,
 		borderRadius: 8,
-		padding: 16
+		padding: 16,
 	},
 	row: {
 		flexDirection: 'row',
 		justifyContent: 'space-between',
-		marginVertical: 3
+		marginVertical: 3,
 	},
 	rowEnd: {
-		justifyContent: 'flex-end'
+		justifyContent: 'flex-end',
 	},
 	rowLast: {
 		marginBottom: 0,
-		marginTop: 3
+		marginTop: 3,
 	},
 	col: {
 		flexDirection: 'row',
 		flex: 1,
-		flexWrap: 'wrap'
+		flexWrap: 'wrap',
 	},
 	separator: {
 		borderBottomWidth: 1,
 		borderBottomColor: colors.grey050,
-		marginVertical: 6
-	}
+		marginVertical: 6,
+	},
 });
 
 const Summary = ({ style, ...props }) => <View style={[styles.wrapper, style]} {...props} />;
@@ -52,7 +52,7 @@ export default Summary;
 const stylePropType = PropTypes.oneOfType([PropTypes.object, PropTypes.array]);
 
 Summary.propTypes = {
-	style: stylePropType
+	style: stylePropType,
 };
 SummaryRow.propTypes = {
 	style: stylePropType,
@@ -63,15 +63,15 @@ SummaryRow.propTypes = {
 	/**
 	 * Add style to the last row of the summary
 	 */
-	last: PropTypes.bool
+	last: PropTypes.bool,
 };
 SummaryCol.propTypes = {
 	style: stylePropType,
 	/**
 	 * Aligns content to the end of the row
 	 */
-	end: PropTypes.bool
+	end: PropTypes.bool,
 };
 SummarySeparator.propTypes = {
-	style: stylePropType
+	style: stylePropType,
 };

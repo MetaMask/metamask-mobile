@@ -8,15 +8,15 @@ import { colors } from '../../../styles/common';
 const styles = StyleSheet.create({
 	logo: {
 		width: 50,
-		height: 50
-	}
+		height: 50,
+	},
 });
 
 /**
  * PureComponent that provides an asset icon dependent on OS.
  */
 // eslint-disable-next-line react/display-name
-const AssetIcon = React.memo(props => {
+const AssetIcon = React.memo((props) => {
 	if (!props.logo) return null;
 	const uri = props.watchedAsset ? props.logo : getAssetLogoPath(props.logo);
 	const style = [styles.logo, props.customStyle];
@@ -35,7 +35,7 @@ AssetIcon.propTypes = {
 	/**
 	 * Custom style to apply to image
 	 */
-	customStyle: PropTypes.object
+	customStyle: PropTypes.object,
 };
 
 export default AssetIcon;

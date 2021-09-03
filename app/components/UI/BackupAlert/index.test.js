@@ -12,12 +12,12 @@ describe('BackupAlert', () => {
 		const initialState = {
 			user: {
 				seedphraseBackedUp: false,
-				passwordSet: false
-			}
+				passwordSet: false,
+			},
 		};
 
 		const wrapper = shallow(<BackupAlert onPress={fn} />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});

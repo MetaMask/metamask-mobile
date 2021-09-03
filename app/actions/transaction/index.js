@@ -1,7 +1,7 @@
 import TransactionTypes from '../../core/TransactionTypes';
 
 const {
-	ASSET: { ETH, ERC20, ERC721 }
+	ASSET: { ETH, ERC20, ERC721 },
 } = TransactionTypes;
 
 /**
@@ -9,7 +9,7 @@ const {
  */
 export function resetTransaction() {
 	return {
-		type: 'RESET_TRANSACTION'
+		type: 'RESET_TRANSACTION',
 	};
 }
 
@@ -22,7 +22,7 @@ export function newAssetTransaction(selectedAsset) {
 	return {
 		type: 'NEW_ASSET_TRANSACTION',
 		selectedAsset,
-		assetType: selectedAsset.isETH ? ETH : selectedAsset.tokenId ? ERC721 : ERC20
+		assetType: selectedAsset.isETH ? ETH : selectedAsset.tokenId ? ERC721 : ERC20,
 	};
 }
 
@@ -42,7 +42,7 @@ export function setRecipient(from, to, ensRecipient, transactionToName, transact
 		to,
 		ensRecipient,
 		transactionToName,
-		transactionFromName
+		transactionFromName,
 	};
 }
 
@@ -55,7 +55,7 @@ export function setSelectedAsset(selectedAsset) {
 	return {
 		type: 'SET_SELECTED_ASSET',
 		selectedAsset,
-		assetType: selectedAsset.isETH ? ETH : selectedAsset.tokenId ? ERC721 : ERC20
+		assetType: selectedAsset.isETH ? ETH : selectedAsset.tokenId ? ERC721 : ERC20,
 	};
 }
 
@@ -67,7 +67,7 @@ export function setSelectedAsset(selectedAsset) {
 export function prepareTransaction(transaction) {
 	return {
 		type: 'PREPARE_TRANSACTION',
-		transaction
+		transaction,
 	};
 }
 
@@ -88,7 +88,7 @@ export function prepareFullTransaction({
 	transactionToName,
 	transactionFromName,
 	selectedAsset,
-	assetType
+	assetType,
 }) {
 	return {
 		type: 'PREPARE_FULL_TRANSACTION',
@@ -97,7 +97,7 @@ export function prepareFullTransaction({
 		transactionToName,
 		transactionFromName,
 		selectedAsset,
-		assetType
+		assetType,
 	};
 }
 
@@ -109,7 +109,7 @@ export function prepareFullTransaction({
 export function setTransactionObject(transaction) {
 	return {
 		type: 'SET_TRANSACTION_OBJECT',
-		transaction
+		transaction,
 	};
 }
 
@@ -121,7 +121,7 @@ export function setTransactionObject(transaction) {
 export function setTokensTransaction(asset) {
 	return {
 		type: 'SET_TOKENS_TRANSACTION',
-		asset
+		asset,
 	};
 }
 
@@ -133,7 +133,7 @@ export function setTokensTransaction(asset) {
 export function setEtherTransaction(transaction) {
 	return {
 		type: 'SET_ETHER_TRANSACTION',
-		transaction
+		transaction,
 	};
 }
 
@@ -145,7 +145,7 @@ export function setEtherTransaction(transaction) {
 export function setIndividualTokenTransaction(token) {
 	return {
 		type: 'SET_INDIVIDUAL_TOKEN_TRANSACTION',
-		token
+		token,
 	};
 }
 
@@ -157,7 +157,7 @@ export function setIndividualTokenTransaction(token) {
 export function setIndividualCollectibleTransaction(collectible) {
 	return {
 		type: 'SET_INDIVIDUAL_COLLECTIBLE_TRANSACTION',
-		collectible
+		collectible,
 	};
 }
 
@@ -169,20 +169,20 @@ export function setIndividualCollectibleTransaction(collectible) {
 export function setCollectibleContractTransaction(collectible) {
 	return {
 		type: 'SET_COLLECTIBLE_CONTRACT_TRANSACTION',
-		collectible
+		collectible,
 	};
 }
 
 export function setNonce(nonce) {
 	return {
 		type: 'SET_NONCE',
-		nonce
+		nonce,
 	};
 }
 
 export function setProposedNonce(proposedNonce) {
 	return {
 		type: 'SET_PROPOSED_NONCE',
-		proposedNonce
+		proposedNonce,
 	};
 }

@@ -6,12 +6,12 @@ import { fontStyles } from '../../../styles/common';
 const styles = StyleSheet.create({
 	wrapper: {
 		alignItems: 'center',
-		flex: 1
+		flex: 1,
 	},
 	title: {
 		fontSize: 18,
-		...fontStyles.normal
-	}
+		...fontStyles.normal,
+	},
 });
 
 /**
@@ -22,7 +22,7 @@ export default class ModalNavbarTitle extends PureComponent {
 		/**
 		 * Name of the current view
 		 */
-		title: PropTypes.string.isRequired
+		title: PropTypes.string.isRequired,
 	};
 
 	render = () => {

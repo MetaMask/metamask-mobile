@@ -14,14 +14,14 @@ import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 const styles = StyleSheet.create({
 	mainWrapper: {
 		backgroundColor: colors.white,
-		flex: 1
+		flex: 1,
 	},
 	wrapper: {
 		flex: 1,
-		paddingHorizontal: 32
+		paddingHorizontal: 32,
 	},
 	onBoardingWrapper: {
-		paddingHorizontal: 20
+		paddingHorizontal: 20,
 	},
 	action: {
 		fontSize: 18,
@@ -29,18 +29,18 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		justifyContent: 'center',
 		textAlign: 'center',
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	infoWrapper: {
 		marginBottom: 16,
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	info: {
 		fontSize: 16,
 		color: colors.fontPrimary,
 		textAlign: 'center',
 		...fontStyles.normal,
-		paddingHorizontal: 6
+		paddingHorizontal: 6,
 	},
 	seedPhraseWrapper: {
 		backgroundColor: colors.white,
@@ -49,31 +49,31 @@ const styles = StyleSheet.create({
 		justifyContent: 'space-between',
 		borderColor: colors.grey100,
 		borderWidth: 1,
-		marginBottom: 24
+		marginBottom: 24,
 	},
 	seedPhraseWrapperComplete: {
-		borderColor: colors.green500
+		borderColor: colors.green500,
 	},
 	seedPhraseWrapperError: {
-		borderColor: colors.red
+		borderColor: colors.red,
 	},
 	colLeft: {
 		paddingTop: 18,
 		paddingLeft: 27,
 		paddingBottom: 4,
-		alignItems: 'flex-start'
+		alignItems: 'flex-start',
 	},
 	colRight: {
 		paddingTop: 18,
 		paddingRight: 27,
 		paddingBottom: 4,
-		alignItems: 'flex-end'
+		alignItems: 'flex-end',
 	},
 	wordBoxWrapper: {
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 		alignItems: 'center',
-		marginBottom: 14
+		marginBottom: 14,
 	},
 	wordWrapper: {
 		paddingHorizontal: 8,
@@ -84,13 +84,13 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderRadius: 34,
 		borderStyle: 'dashed',
-		marginLeft: 4
+		marginLeft: 4,
 	},
 	word: {
 		fontSize: 14,
 		color: colors.fontPrimary,
 		lineHeight: 14,
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	selectableWord: {
 		paddingHorizontal: 8,
@@ -102,46 +102,46 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		marginBottom: 6,
 		borderRadius: 13,
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	selectableWordText: {
 		textAlign: 'center',
 		fontSize: 14,
 		lineHeight: 14,
-		color: colors.black
+		color: colors.black,
 	},
 	words: {
 		flexDirection: 'row',
 		flexWrap: 'wrap',
-		justifyContent: Device.isMediumDevice() ? 'space-around' : 'space-between'
+		justifyContent: Device.isMediumDevice() ? 'space-around' : 'space-between',
 	},
 	successRow: {
 		flexDirection: 'row',
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	successText: {
 		fontSize: 12,
 		color: colors.green500,
-		marginLeft: 4
+		marginLeft: 4,
 	},
 	selectedWord: {
 		backgroundColor: colors.grey400,
 		borderWidth: 1,
-		borderColor: colors.grey400
+		borderColor: colors.grey400,
 	},
 	selectedWordText: {
-		color: colors.white
+		color: colors.white,
 	},
 	currentWord: {
 		borderWidth: 1,
-		borderColor: colors.blue
+		borderColor: colors.blue,
 	},
 	confirmedWord: {
 		borderWidth: 1,
 		borderColor: colors.blue,
-		borderStyle: 'solid'
-	}
+		borderStyle: 'solid',
+	},
 });
 
 /**
@@ -164,7 +164,7 @@ class ManualBackupStep2 extends PureComponent {
 		/**
 		 * Object that represents the current route info like params passed to it
 		 */
-		route: PropTypes.object
+		route: PropTypes.object,
 	};
 
 	constructor(props) {
@@ -183,7 +183,7 @@ class ManualBackupStep2 extends PureComponent {
 		wordsDict: {},
 		currentIndex: 0,
 		seedPhraseReady: false,
-		currentStep: 2
+		currentStep: 2,
 	};
 
 	componentDidMount = () => {
@@ -191,7 +191,7 @@ class ManualBackupStep2 extends PureComponent {
 		const words = route.params?.words ?? [];
 		this.setState(
 			{
-				confirmedWords: Array(words.length).fill({ word: undefined, originalPosition: undefined })
+				confirmedWords: Array(words.length).fill({ word: undefined, originalPosition: undefined }),
 			},
 			this.createWordsDictionary
 		);
@@ -226,11 +226,11 @@ class ManualBackupStep2 extends PureComponent {
 			currentIndex,
 			wordsDict,
 			confirmedWords,
-			seedPhraseReady: this.findNextAvailableIndex() === -1
+			seedPhraseReady: this.findNextAvailableIndex() === -1,
 		});
 	};
 
-	clearConfirmedWordAt = i => {
+	clearConfirmedWordAt = (i) => {
 		const { confirmedWords, wordsDict } = this.state;
 		const { word, originalPosition } = confirmedWords[i];
 		const currentIndex = i;
@@ -242,7 +242,7 @@ class ManualBackupStep2 extends PureComponent {
 			currentIndex,
 			wordsDict,
 			confirmedWords,
-			seedPhraseReady: this.findNextAvailableIndex() === -1
+			seedPhraseReady: this.findNextAvailableIndex() === -1,
 		});
 	};
 
@@ -266,7 +266,7 @@ class ManualBackupStep2 extends PureComponent {
 	validateWords = () => {
 		const words = this.props.route.params?.words ?? [];
 		const { confirmedWords: wordMap } = this.state;
-		const confirmedWords = wordMap.map(confirmedWord => confirmedWord.word);
+		const confirmedWords = wordMap.map((confirmedWord) => confirmedWord.word);
 		if (words.join('') === confirmedWords.join('')) {
 			return true;
 		}
@@ -302,7 +302,7 @@ class ManualBackupStep2 extends PureComponent {
 					style={[
 						styles.wordWrapper,
 						i === currentIndex && styles.currentWord,
-						confirmedWords[i].word && styles.confirmedWord
+						confirmedWords[i].word && styles.confirmedWord,
 					]}
 				>
 					<Text style={styles.word}>{word}</Text>
@@ -354,7 +354,7 @@ class ManualBackupStep2 extends PureComponent {
 							style={[
 								styles.seedPhraseWrapper,
 								seedPhraseReady && styles.seedPhraseWrapperError,
-								this.validateWords() && styles.seedPhraseWrapperComplete
+								this.validateWords() && styles.seedPhraseWrapperComplete,
 							]}
 						>
 							<View style={styles.colLeft}>
@@ -372,11 +372,8 @@ class ManualBackupStep2 extends PureComponent {
 	};
 }
 
-const mapDispatchToProps = dispatch => ({
-	seedphraseBackedUp: () => dispatch(seedphraseBackedUp())
+const mapDispatchToProps = (dispatch) => ({
+	seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
 });
 
-export default connect(
-	null,
-	mapDispatchToProps
-)(ManualBackupStep2);
+export default connect(null, mapDispatchToProps)(ManualBackupStep2);

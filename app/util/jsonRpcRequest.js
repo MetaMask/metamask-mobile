@@ -14,7 +14,7 @@ import { Buffer } from 'buffer';
 export async function jsonRpcRequest(rpcUrl, rpcMethod, rpcParams = []) {
 	let fetchUrl = rpcUrl;
 	const headers = {
-		'Content-Type': 'application/json'
+		'Content-Type': 'application/json',
 	};
 
 	// Convert basic auth URL component to Authorization header
@@ -32,10 +32,10 @@ export async function jsonRpcRequest(rpcUrl, rpcMethod, rpcParams = []) {
 			id: Date.now().toString(),
 			jsonrpc: '2.0',
 			method: rpcMethod,
-			params: rpcParams
+			params: rpcParams,
 		}),
 		headers,
-		cache: 'default'
+		cache: 'default',
 	});
 
 	const jsonRpcResponseJson = await jsonRpcResponse.json();

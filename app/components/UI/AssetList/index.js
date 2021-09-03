@@ -9,23 +9,23 @@ import Text from '../../Base/Text';
 
 const styles = StyleSheet.create({
 	rowWrapper: {
-		padding: 20
+		padding: 20,
 	},
 	item: {
 		marginBottom: 5,
-		borderWidth: 2
+		borderWidth: 2,
 	},
 	assetListElement: {
 		flex: 1,
 		flexDirection: 'row',
-		alignItems: 'flex-start'
+		alignItems: 'flex-start',
 	},
 	text: {
-		padding: 16
+		padding: 16,
 	},
 	normalText: {
-		...fontStyles.normal
-	}
+		...fontStyles.normal,
+	},
 });
 
 /**
@@ -48,10 +48,10 @@ export default class AssetList extends PureComponent {
 		/**
 		 * Search query that generated "searchResults"
 		 */
-		searchQuery: PropTypes.string
+		searchQuery: PropTypes.string,
 	};
 
-	onToggleAsset = key => {
+	onToggleAsset = (key) => {
 		const { searchResults, handleSelectAsset } = this.props;
 		handleSelectAsset(searchResults[key]);
 	};

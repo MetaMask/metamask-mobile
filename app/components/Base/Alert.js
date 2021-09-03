@@ -10,30 +10,30 @@ const styles = StyleSheet.create({
 		paddingVertical: 12,
 		borderWidth: 1,
 		borderRadius: 4,
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	baseSmall: {
-		paddingVertical: 8
+		paddingVertical: 8,
 	},
 	info: {
 		backgroundColor: colors.blue100,
-		borderColor: colors.blue
+		borderColor: colors.blue,
 	},
 	warning: {
 		backgroundColor: colors.yellow100,
-		borderColor: colors.yellow
+		borderColor: colors.yellow,
 	},
 	error: {
 		backgroundColor: colors.red000,
-		borderColor: colors.red
+		borderColor: colors.red,
 	},
 	textInfo: { color: colors.blue, flexShrink: 1, lineHeight: 16.8 },
 	textWarning: { color: colors.yellow700, flexShrink: 1, lineHeight: 16.8 },
 	textError: { color: colors.red, flexShrink: 1, lineHeight: 16.8 },
 	textIconStyle: { marginRight: 12 },
 	iconWrapper: {
-		alignItems: 'center'
-	}
+		alignItems: 'center',
+	},
 });
 
 function getStyles(type) {
@@ -75,7 +75,7 @@ Alert.propTypes = {
 	small: PropTypes.bool,
 	renderIcon: PropTypes.func,
 	onPress: PropTypes.func,
-	children: PropTypes.oneOfType([PropTypes.node, PropTypes.func])
+	children: PropTypes.oneOfType([PropTypes.node, PropTypes.func]),
 };
 
 export default Alert;

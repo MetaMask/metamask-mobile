@@ -14,10 +14,10 @@ const styles = StyleSheet.create({
 		marginHorizontal: 0,
 		justifyContent: 'center',
 		alignItems: 'center',
-		minWidth: 60
+		minWidth: 60,
 	},
 	disabledButton: {
-		opacity: 0.5
+		opacity: 0.5,
 	},
 	buttonIconWrapper: {
 		width: 36,
@@ -27,32 +27,32 @@ const styles = StyleSheet.create({
 		paddingLeft: 1,
 		justifyContent: 'center',
 		alignContent: 'center',
-		backgroundColor: colors.blue
+		backgroundColor: colors.blue,
 	},
 	buttonIcon: {
 		justifyContent: 'center',
 		alignContent: 'center',
 		textAlign: 'center',
-		color: colors.white
+		color: colors.white,
 	},
 	buttonText: {
 		marginTop: 8,
 		color: colors.blue,
-		fontSize: 14
+		fontSize: 14,
 	},
 	receive: {
 		right: Device.isIos() ? 1 : 0,
 		bottom: 1,
-		transform: [{ rotate: '90deg' }]
+		transform: [{ rotate: '90deg' }],
 	},
 	swapsIcon: {
 		right: Device.isAndroid() ? 1 : 0,
-		bottom: Device.isAndroid() ? 1 : 0
+		bottom: Device.isAndroid() ? 1 : 0,
 	},
 	buyIcon: {
 		right: Device.isAndroid() ? 0.5 : 0,
-		bottom: Device.isAndroid() ? 1 : 2
-	}
+		bottom: Device.isAndroid() ? 1 : 2,
+	},
 });
 
 function getIcon(type) {
@@ -107,7 +107,7 @@ AssetActionButton.propTypes = {
 	onPress: PropTypes.func,
 	icon: PropTypes.oneOfType([PropTypes.string, PropTypes.node]),
 	label: PropTypes.string,
-	disabled: PropTypes.bool
+	disabled: PropTypes.bool,
 };
 
 export default AssetActionButton;

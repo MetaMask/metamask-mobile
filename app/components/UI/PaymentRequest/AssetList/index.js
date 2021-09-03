@@ -13,36 +13,36 @@ const styles = StyleSheet.create({
 		borderColor: colors.grey100,
 		padding: 8,
 		marginBottom: 8,
-		borderRadius: 8
+		borderRadius: 8,
 	},
 	assetListElement: {
 		flex: 1,
 		flexDirection: 'row',
-		alignItems: 'flex-start'
+		alignItems: 'flex-start',
 	},
 	text: {
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	textSymbol: {
 		...fontStyles.normal,
 		paddingBottom: 4,
-		fontSize: 16
+		fontSize: 16,
 	},
 	assetInfo: {
 		flex: 1,
 		flexDirection: 'column',
 		alignSelf: 'center',
-		padding: 4
+		padding: 4,
 	},
 	assetIcon: {
 		flexDirection: 'column',
 		alignSelf: 'center',
-		marginRight: 12
+		marginRight: 12,
 	},
 	ethLogo: {
 		width: 50,
-		height: 50
-	}
+		height: 50,
+	},
 });
 
 /**
@@ -61,7 +61,7 @@ export default class AssetList extends PureComponent {
 		/**
 		 * Message string to display when searchResults is empty
 		 */
-		emptyMessage: PropTypes.string
+		emptyMessage: PropTypes.string,
 	};
 
 	/**
@@ -69,7 +69,7 @@ export default class AssetList extends PureComponent {
 	 *
 	 * @param {object} asset - Asset to generate the logo to render
 	 */
-	renderLogo = asset => {
+	renderLogo = (asset) => {
 		const { logo, address, isETH } = asset;
 		if (!logo && !isETH) {
 			return <Identicon address={address} />;

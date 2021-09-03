@@ -9,17 +9,17 @@ describe('Entry', () => {
 	it('should render correctly', () => {
 		const initialState = {
 			user: {
-				passwordSet: false
+				passwordSet: false,
 			},
 			engine: {
 				backgroundState: {
-					PreferencesController: {}
-				}
-			}
+					PreferencesController: {},
+				},
+			},
 		};
 
 		const wrapper = shallow(<Entry />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper).toMatchSnapshot();
 	});

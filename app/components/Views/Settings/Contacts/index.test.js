@@ -10,7 +10,7 @@ describe('Contacts', () => {
 			engine: {
 				backgroundState: {
 					NetworkController: {
-						network: '1'
+						network: '1',
 					},
 					AddressBookController: {
 						addressBook: {
@@ -19,15 +19,15 @@ describe('Contacts', () => {
 								chainId: '1',
 								isEns: false,
 								memo: '',
-								name: 'aa'
-							}
-						}
-					}
-				}
-			}
+								name: 'aa',
+							},
+						},
+					},
+				},
+			},
 		};
 		const wrapper = shallow(<Contacts route={{ params: {} }} />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});

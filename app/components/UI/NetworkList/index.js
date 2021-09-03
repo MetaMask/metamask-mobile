@@ -14,11 +14,11 @@ const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
 		borderRadius: 10,
-		minHeight: 450
+		minHeight: 450,
 	},
 	titleWrapper: {
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100
+		borderColor: colors.grey100,
 	},
 	title: {
 		textAlign: 'center',
@@ -26,12 +26,12 @@ const styles = StyleSheet.create({
 		marginVertical: 12,
 		marginHorizontal: 20,
 		color: colors.fontPrimary,
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	otherNetworksHeader: {
 		marginTop: 0,
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100
+		borderColor: colors.grey100,
 	},
 	otherNetworksText: {
 		textAlign: 'left',
@@ -39,10 +39,10 @@ const styles = StyleSheet.create({
 		marginVertical: 12,
 		marginHorizontal: 20,
 		color: colors.fontPrimary,
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	networksWrapper: {
-		flex: 1
+		flex: 1,
 	},
 	network: {
 		borderBottomWidth: StyleSheet.hairlineWidth,
@@ -50,20 +50,20 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		paddingHorizontal: 20,
 		paddingVertical: 20,
-		paddingLeft: 45
+		paddingLeft: 45,
 	},
 	mainnet: {
 		borderBottomWidth: 0,
-		flexDirection: 'column'
+		flexDirection: 'column',
 	},
 	networkInfo: {
 		marginLeft: 15,
-		flex: 1
+		flex: 1,
 	},
 	networkLabel: {
 		fontSize: 16,
 		color: colors.fontPrimary,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	footer: {
 		borderTopWidth: StyleSheet.hairlineWidth,
@@ -71,44 +71,44 @@ const styles = StyleSheet.create({
 		height: 60,
 		justifyContent: 'center',
 		flexDirection: 'row',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	footerButton: {
 		flex: 1,
 		alignContent: 'center',
 		alignItems: 'center',
 		justifyContent: 'center',
-		height: 60
+		height: 60,
 	},
 	closeButton: {
 		fontSize: 16,
 		color: colors.blue,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	networkIcon: {
 		width: 15,
 		height: 15,
 		borderRadius: 100,
-		marginTop: 3
+		marginTop: 3,
 	},
 	networkWrapper: {
 		flex: 0,
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	selected: {
 		position: 'absolute',
 		marginLeft: 20,
-		marginTop: 20
+		marginTop: 20,
 	},
 	mainnetSelected: {
 		marginLeft: -30,
-		marginTop: 3
+		marginTop: 3,
 	},
 	otherNetworkIcon: {
 		backgroundColor: colors.transparent,
 		borderColor: colors.grey100,
-		borderWidth: 2
-	}
+		borderWidth: 2,
+	},
 });
 
 /**
@@ -135,12 +135,12 @@ export class NetworkList extends PureComponent {
 		/**
 		 * Show invalid custom network alert for networks without a chain ID
 		 */
-		showInvalidCustomNetworkAlert: PropTypes.func
+		showInvalidCustomNetworkAlert: PropTypes.func,
 	};
 
 	getOtherNetworks = () => getAllNetworks().slice(1);
 
-	onNetworkChange = type => {
+	onNetworkChange = (type) => {
 		requestAnimationFrame(() => {
 			this.props.onClose(false);
 			InteractionManager.runAfterInteractions(() => {
@@ -155,7 +155,7 @@ export class NetworkList extends PureComponent {
 				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_SWITCHED, {
 					network_name: type,
 					chain_id: String(Networks[type].chainId),
-					source: 'Settings'
+					source: 'Settings',
 				});
 			});
 		});
@@ -165,7 +165,7 @@ export class NetworkList extends PureComponent {
 		this.props.onClose(true);
 	};
 
-	onSetRpcTarget = async rpcTarget => {
+	onSetRpcTarget = async (rpcTarget) => {
 		const { frequentRpcList } = this.props;
 		const { NetworkController, CurrencyRateController } = Engine.context;
 		const rpc = frequentRpcList.find(({ rpcUrl }) => rpcUrl === rpcTarget);
@@ -174,7 +174,7 @@ export class NetworkList extends PureComponent {
 			chainId,
 			ticker,
 			nickname,
-			rpcPrefs: { blockExplorerUrl }
+			rpcPrefs: { blockExplorerUrl },
 		} = rpc;
 
 		// If the network does not have chainId then show invalid custom network alert
@@ -194,7 +194,7 @@ export class NetworkList extends PureComponent {
 			source: 'Settings',
 			symbol: ticker,
 			block_explorer_url: blockExplorerUrl,
-			network_name: 'rpc'
+			network_name: 'rpc',
 		});
 
 		this.props.onClose(false);
@@ -288,10 +288,10 @@ export class NetworkList extends PureComponent {
 	);
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	provider: state.engine.backgroundState.NetworkController.provider,
 	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList,
-	thirdPartyApiMode: state.privacy.thirdPartyApiMode
+	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
 });
 
 export default connect(mapStateToProps)(NetworkList);

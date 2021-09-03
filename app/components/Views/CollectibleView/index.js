@@ -13,26 +13,26 @@ import { newAssetTransaction } from '../../../actions/transaction';
 const styles = StyleSheet.create({
 	root: {
 		flex: 1,
-		backgroundColor: colors.white
+		backgroundColor: colors.white,
 	},
 	wrapper: {
-		flex: 0.9
+		flex: 0.9,
 	},
 	buttons: {
 		paddingVertical: 15,
 		flex: 0.1,
-		height: 4
+		height: 4,
 	},
 	button: {
 		marginHorizontal: 16,
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	buttonText: {
 		marginLeft: 8,
 		fontSize: 15,
 		color: colors.white,
-		...fontStyles.bold
-	}
+		...fontStyles.bold,
+	},
 });
 
 /**
@@ -52,7 +52,7 @@ class CollectibleView extends PureComponent {
 		/**
 		 * Object that represents the current route info like params passed to it
 		 */
-		route: PropTypes.object
+		route: PropTypes.object,
 	};
 
 	static navigationOptions = ({ navigation, route }) =>
@@ -60,7 +60,7 @@ class CollectibleView extends PureComponent {
 
 	onSend = async () => {
 		const {
-			route: { params }
+			route: { params },
 		} = this.props;
 		this.props.newAssetTransaction(params);
 		this.props.navigation.navigate('SendFlowView');
@@ -69,7 +69,7 @@ class CollectibleView extends PureComponent {
 	render() {
 		const {
 			route: { params },
-			navigation
+			navigation,
 		} = this.props;
 		const collectible = params;
 		const lowerAddress = collectible.address.toLowerCase();
@@ -103,11 +103,8 @@ class CollectibleView extends PureComponent {
 	}
 }
 
-const mapDispatchToProps = dispatch => ({
-	newAssetTransaction: selectedAsset => dispatch(newAssetTransaction(selectedAsset))
+const mapDispatchToProps = (dispatch) => ({
+	newAssetTransaction: (selectedAsset) => dispatch(newAssetTransaction(selectedAsset)),
 });
 
-export default connect(
-	null,
-	mapDispatchToProps
-)(CollectibleView);
+export default connect(null, mapDispatchToProps)(CollectibleView);

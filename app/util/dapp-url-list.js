@@ -1,186 +1,186 @@
 export default [
 	{
 		url: 'https://instant.airswap.io/',
-		name: 'AirSwap'
+		name: 'AirSwap',
 	},
 	{
 		url: 'https://app.auctionity.com/',
-		name: 'Auctionity'
+		name: 'Auctionity',
 	},
 	{
 		url: 'https://dev.augur.net/',
-		name: 'Augur'
+		name: 'Augur',
 	},
 	{
 		url: 'https://mainnet.aragon.org/',
-		name: 'Aragon'
+		name: 'Aragon',
 	},
 	{
 		url: 'https://www.bancor.network/',
-		name: 'Bancor'
+		name: 'Bancor',
 	},
 	{
 		url: 'https://blockchaincuties.com/',
-		name: 'Blockchain Cuties'
+		name: 'Blockchain Cuties',
 	},
 	{
 		url: 'https://bounties.network/',
-		name: 'Bounties Network'
+		name: 'Bounties Network',
 	},
 	{
 		url: 'https://breaker.io/',
-		name: 'Breaker'
+		name: 'Breaker',
 	},
 	{
 		url: 'https://beta.cent.co',
-		name: 'Cent'
+		name: 'Cent',
 	},
 	{
 		url: 'https://chibifighters.io',
-		name: 'Chibi Fighters'
+		name: 'Chibi Fighters',
 	},
 	{
 		url: 'https://compound.finance/',
-		name: 'Compound'
+		name: 'Compound',
 	},
 	{
 		url: 'https://cryptoassault.io/',
-		name: 'CryptoAssault'
+		name: 'CryptoAssault',
 	},
 	{
 		url: 'https://www.cryptokitties.co',
-		name: 'CryptoKitties'
+		name: 'CryptoKitties',
 	},
 	{
 		url: 'https://www.larvalabs.com/cryptopunks',
-		name: 'Cryptopunks'
+		name: 'Cryptopunks',
 	},
 	{
 		url: 'https://dai.makerdao.com/',
-		name: 'DAI Dashboard'
+		name: 'DAI Dashboard',
 	},
 	{
 		url: 'https://market.decentraland.org/',
-		name: 'Decentraland'
+		name: 'Decentraland',
 	},
 	{
 		url: 'https://democracy.earth/',
-		name: 'Democracy.Earth'
+		name: 'Democracy.Earth',
 	},
 	{
 		url: 'https://dapp.dragonereum.io/',
-		name: 'Dragonereum'
+		name: 'Dragonereum',
 	},
 	{
 		url: 'https://ens.domains/',
-		name: 'Ethereum Name Service'
+		name: 'Ethereum Name Service',
 	},
 	{
 		url: 'https://www.etheremon.com/',
-		name: 'Ethermon'
+		name: 'Ethermon',
 	},
 	{
 		url: 'https://etherscan.io/',
-		name: 'EtherScan'
+		name: 'EtherScan',
 	},
 	{
 		url: 'https://eth2.io/',
-		name: 'Eth2'
+		name: 'Eth2',
 	},
 	{
 		url: 'https://map.foam.space/',
-		name: 'FOAM'
+		name: 'FOAM',
 	},
 	{
 		url: 'https://gitcoin.co',
-		name: 'Gitcoin'
+		name: 'Gitcoin',
 	},
 	{
 		url: 'https://giveth.io/donate/',
-		name: 'Giveth'
+		name: 'Giveth',
 	},
 	{
 		url: 'https://godsunchained.com/',
-		name: 'Gods Unchained'
+		name: 'Gods Unchained',
 	},
 	{
 		url: 'https://hyperdragons.alfakingdom.com/guide',
-		name: 'HyperDragons'
+		name: 'HyperDragons',
 	},
 	{
 		url: 'https://idex.market/',
-		name: 'IDEX'
+		name: 'IDEX',
 	},
 	{
 		url: 'https://gitcoin.co/kudos/marketplace/',
-		name: 'Kudos'
+		name: 'Kudos',
 	},
 	{
 		url: 'https://kyber.network/',
-		name: 'KyberNetwork'
+		name: 'KyberNetwork',
 	},
 	{
 		url: 'https://localethereum.com/r/sotd',
-		name: 'localethereum'
+		name: 'localethereum',
 	},
 	{
 		url: 'https://cdp.makerdao.com/',
-		name: 'MakerDAO CDP'
+		name: 'MakerDAO CDP',
 	},
 	{
 		url: 'https://marble.cards/',
-		name: 'Marblecards'
+		name: 'Marblecards',
 	},
 	{
 		url: 'https://metamask.io/',
-		name: 'MetaMask'
+		name: 'MetaMask',
 	},
 	{
 		url: 'https://faucet.metamask.io/',
-		name: 'Metamask Ether Faucet (Ropsten)'
+		name: 'Metamask Ether Faucet (Ropsten)',
 	},
 	{
 		url: 'https://www.minds.com/',
-		name: 'Minds'
+		name: 'Minds',
 	},
 	{
 		url: 'https://www.mlbcryptobaseball.com/',
-		name: 'MLB Crypto Baseball'
+		name: 'MLB Crypto Baseball',
 	},
 	{
 		url: 'https://www.mycryptoheroes.net/',
-		name: 'My Crypto Heroes'
+		name: 'My Crypto Heroes',
 	},
 	{
 		url: 'https://opensea.io/',
-		name: 'OpenSea'
+		name: 'OpenSea',
 	},
 	{
 		url: 'https://www.0xproject.com/portal',
-		name: '0x'
+		name: '0x',
 	},
 	{
 		url: 'https://0xuniverse.com/',
-		name: 'OxUniverse'
+		name: 'OxUniverse',
 	},
 	{
 		url: 'https://peepeth.com/',
-		name: 'Peepeth'
+		name: 'Peepeth',
 	},
 	{
 		url: 'https://faucet.ropsten.be/',
-		name: 'Ropsten Ethereum Faucet'
+		name: 'Ropsten Ethereum Faucet',
 	},
 	{
 		url: 'https://superrare.co/',
-		name: 'SuperRare'
+		name: 'SuperRare',
 	},
 	{
 		url: 'https://uniswap.exchange/',
-		name: 'Uniswap'
+		name: 'Uniswap',
 	},
 	{
 		url: 'https://3box.io/',
-		name: '3Box'
-	}
+		name: '3Box',
+	},
 ];

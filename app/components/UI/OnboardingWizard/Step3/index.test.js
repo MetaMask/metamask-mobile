@@ -12,26 +12,26 @@ describe('Step3', () => {
 				backgroundState: {
 					PreferencesController: {
 						selectedAddress: '0xe7E125654064EEa56229f273dA586F10DF96B0a1',
-						identities: { '0xe7E125654064EEa56229f273dA586F10DF96B0a1': { name: 'Account 1' } }
+						identities: { '0xe7E125654064EEa56229f273dA586F10DF96B0a1': { name: 'Account 1' } },
 					},
 					AccountTrackerController: {
 						accounts: {
 							'0xe7E125654064EEa56229f273dA586F10DF96B0a1': {
 								name: 'account 1',
 								address: '0xe7E125654064EEa56229f273dA586F10DF96B0a1',
-								balance: 0
-							}
-						}
+								balance: 0,
+							},
+						},
 					},
 					CurrencyRateController: {
-						currentCurrecy: 'USD'
-					}
-				}
-			}
+						currentCurrecy: 'USD',
+					},
+				},
+			},
 		};
 
 		const wrapper = shallow(<Step3 coachmarkRef={{}} />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});

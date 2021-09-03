@@ -17,8 +17,8 @@ const transactionIconReceived = require('../../../images/transaction-icons/recei
 const styles = StyleSheet.create({
 	icon: {
 		width: 28,
-		height: 28
-	}
+		height: 28,
+	},
 });
 
 /**
@@ -54,7 +54,7 @@ function OrderListItem({ order }) {
 }
 
 OrderListItem.propTypes = {
-	order: PropTypes.object
+	order: PropTypes.object,
 };
 
 export default OrderListItem;

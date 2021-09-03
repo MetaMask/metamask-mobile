@@ -20,9 +20,9 @@ describe('ManualBackupStep1', () => {
 							'business',
 							'category',
 							'champion',
-							'cinnamon'
-						]
-					}
+							'cinnamon',
+						],
+					},
 				}}
 			/>
 		);

@@ -12,15 +12,15 @@ describe('AddAsset', () => {
 				backgroundState: {
 					NetworkController: {
 						provider: {
-							chainId: '1'
-						}
-					}
-				}
-			}
+							chainId: '1',
+						},
+					},
+				},
+			},
 		};
 
 		const wrapper = shallow(<AddAsset route={{ params: { assetType: 'token' } }} />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});

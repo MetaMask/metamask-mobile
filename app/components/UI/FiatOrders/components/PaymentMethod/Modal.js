@@ -20,16 +20,16 @@ const styles = StyleSheet.create({
 		shadowColor: colors.black,
 		shadowOffset: {
 			width: 0,
-			height: 5
+			height: 5,
 		},
 		shadowOpacity: 0.36,
 		shadowRadius: 6.68,
-		elevation: 11
+		elevation: 11,
 	},
 	modal: {
 		margin: 0,
 		width: '100%',
-		padding: Device.isIphone5() ? 15 : 25
+		padding: Device.isIphone5() ? 15 : 25,
 	},
 	title: {
 		width: '100%',
@@ -38,15 +38,15 @@ const styles = StyleSheet.create({
 		paddingBottom: 5,
 		flexDirection: 'row',
 		alignItems: 'center',
-		justifyContent: 'space-between'
+		justifyContent: 'space-between',
 	},
 	closeIcon: {
-		color: colors.black
+		color: colors.black,
 	},
 	body: {
 		width: '100%',
 		paddingVertical: 5,
-		paddingHorizontal: 20
+		paddingHorizontal: 20,
 	},
 	action: {
 		width: '100%',
@@ -55,14 +55,14 @@ const styles = StyleSheet.create({
 		paddingVertical: 15,
 		paddingHorizontal: 20,
 		borderTopWidth: 1,
-		borderTopColor: colors.grey100
+		borderTopColor: colors.grey100,
 	},
 	button: {
-		width: '50%'
-	}
+		width: '50%',
+	},
 });
 
-const CloseIcon = props => <IonicIcon name="ios-close" style={styles.closeIcon} size={30} {...props} />;
+const CloseIcon = (props) => <IonicIcon name="ios-close" style={styles.closeIcon} size={30} {...props} />;
 
 const PaymentMethodModal = ({ isVisible, title, dismiss, children }) => (
 	<Modal
@@ -97,13 +97,13 @@ PaymentMethodModal.propTypes = {
 	isVisible: PropTypes.bool,
 	title: PropTypes.string.isRequired,
 	dismiss: PropTypes.func,
-	children: PropTypes.node
+	children: PropTypes.node,
 };
 
 PaymentMethodModal.defaultProps = {
 	isVisible: false,
 	dismiss: undefined,
-	children: undefined
+	children: undefined,
 };
 
 export default PaymentMethodModal;

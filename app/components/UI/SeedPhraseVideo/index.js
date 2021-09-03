@@ -11,11 +11,11 @@ const HEIGHT = scaling.scale(240);
 const styles = StyleSheet.create({
 	videoContainer: {
 		height: HEIGHT,
-		width: '100%'
+		width: '100%',
 	},
 	mediaPlayer: {
-		height: HEIGHT
-	}
+		height: HEIGHT,
+	},
 });
 
 const SeedPhraseVideo = ({ style, onClose }) => {
@@ -28,8 +28,8 @@ const SeedPhraseVideo = ({ style, onClose }) => {
 			title: strings('secret_phrase_video_subtitle.title'),
 			language: strings('secret_phrase_video_subtitle.language'),
 			type: TextTrackType.VTT,
-			uri: strings('secret_phrase_video_subtitle.uri')
-		}
+			uri: strings('secret_phrase_video_subtitle.uri'),
+		},
 	];
 
 	return (
@@ -47,7 +47,7 @@ const SeedPhraseVideo = ({ style, onClose }) => {
 
 SeedPhraseVideo.propTypes = {
 	style: PropTypes.object,
-	onClose: PropTypes.func
+	onClose: PropTypes.func,
 };
 
 export default SeedPhraseVideo;

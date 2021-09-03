@@ -11,13 +11,13 @@ describe('RevealPrivateCredential', () => {
 			engine: {
 				backgroundState: {
 					PreferencesController: {
-						selectedAddress: '0xe7E125654064EEa56229f273dA586F10DF96B0a1'
-					}
-				}
+						selectedAddress: '0xe7E125654064EEa56229f273dA586F10DF96B0a1',
+					},
+				},
 			},
 			user: {
-				passwordSet: false
-			}
+				passwordSet: false,
+			},
 		};
 		const wrapper = shallow(
 			<RevealPrivateCredential route={{ params: { privateCredentialName: 'private_key' } }} />,

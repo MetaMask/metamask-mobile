@@ -8,7 +8,7 @@ import {
 	BIOMETRY_CHOICE_DISABLED,
 	PASSCODE_CHOICE,
 	PASSCODE_DISABLED,
-	TRUE
+	TRUE,
 } from '../constants/storage';
 
 const privates = new WeakMap();
@@ -20,7 +20,7 @@ const defaultOptions = {
 	authenticationPromptDesc: strings('authentication.auth_prompt_desc'),
 	fingerprintPromptTitle: strings('authentication.fingerprint_prompt_title'),
 	fingerprintPromptDesc: strings('authentication.fingerprint_prompt_desc'),
-	fingerprintPromptCancel: strings('authentication.fingerprint_prompt_cancel')
+	fingerprintPromptCancel: strings('authentication.fingerprint_prompt_cancel'),
 };
 
 /**
@@ -90,7 +90,7 @@ export default {
 
 	async setGenericPassword(password, type) {
 		const authOptions = {
-			accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY
+			accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
 		};
 
 		if (type === this.TYPES.BIOMETRICS) {
@@ -137,6 +137,6 @@ export default {
 	TYPES: {
 		BIOMETRICS: 'BIOMETRICS',
 		PASSCODE: 'PASSCODE',
-		REMEMBER_ME: 'REMEMBER_ME'
-	}
+		REMEMBER_ME: 'REMEMBER_ME',
+	},
 };

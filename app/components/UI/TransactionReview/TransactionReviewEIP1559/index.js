@@ -17,51 +17,51 @@ import AppConstants from '../../../../core/AppConstants';
 import Device from '../../../../util/device';
 
 const styles = StyleSheet.create({
-	overview: noMargin => ({
+	overview: (noMargin) => ({
 		marginHorizontal: noMargin ? 0 : 24,
 		paddingTop: 10,
-		paddingBottom: 10
+		paddingBottom: 10,
 	}),
 	valuesContainer: {
 		flex: 1,
 		flexDirection: 'row',
-		justifyContent: 'flex-end'
+		justifyContent: 'flex-end',
 	},
 	gasInfoContainer: {
-		paddingLeft: 2
+		paddingLeft: 2,
 	},
-	gasInfoIcon: hasOrigin => ({
-		color: hasOrigin ? colors.orange : colors.grey200
+	gasInfoIcon: (hasOrigin) => ({
+		color: hasOrigin ? colors.orange : colors.grey200,
 	}),
 	amountContainer: {
 		flex: 1,
-		paddingRight: 10
+		paddingRight: 10,
 	},
 	gasRowContainer: {
 		flexDirection: 'row',
 		flex: 1,
 		alignItems: 'center',
-		marginBottom: 2
+		marginBottom: 2,
 	},
 	gasBottomRowContainer: {
-		marginTop: 4
+		marginTop: 4,
 	},
 	hitSlop: {
 		top: 10,
 		left: 10,
 		bottom: 10,
-		right: 10
+		right: 10,
 	},
 	redInfo: {
-		color: colors.red
+		color: colors.red,
 	},
 	timeEstimateContainer: {
 		alignItems: 'center',
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	flex: {
-		flex: 1
-	}
+		flex: 1,
+	},
 });
 
 // eslint-disable-next-line react/prop-types
@@ -96,15 +96,14 @@ const TransactionReviewEIP1559 = ({
 	animateOnChange,
 	isAnimating,
 	gasEstimationReady,
-	legacy
+	legacy,
 }) => {
 	const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
-	const [isVisibleTimeEstimateInfoModal, , showTimeEstimateInfoModal, hideTimeEstimateInfoModal] = useModalHandler(
-		false
-	);
+	const [isVisibleTimeEstimateInfoModal, , showTimeEstimateInfoModal, hideTimeEstimateInfoModal] =
+		useModalHandler(false);
 	const [isVisibleLegacyLearnMore, , showLegacyLearnMore, hideLegacyLearnMore] = useModalHandler(false);
 	const toggleLearnMoreModal = useCallback(() => {
-		setShowLearnMoreModal(showLearnMoreModal => !showLearnMoreModal);
+		setShowLearnMoreModal((showLearnMoreModal) => !showLearnMoreModal);
 	}, []);
 
 	const openLinkAboutGas = useCallback(
@@ -458,11 +457,11 @@ TransactionReviewEIP1559.propTypes = {
 	/**
 	 * If it's a eip1559 network and dapp suggest legact gas then it should show a warning
 	 */
-	originWarning: PropTypes.bool
+	originWarning: PropTypes.bool,
 };
 
-const mapStateToProps = state => ({
-	chainId: state.engine.backgroundState.NetworkController.provider.chainId
+const mapStateToProps = (state) => ({
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 });
 
 export default connect(mapStateToProps)(TransactionReviewEIP1559);

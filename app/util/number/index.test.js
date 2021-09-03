@@ -20,7 +20,7 @@ import {
 	balanceToFiatNumber,
 	renderFiat,
 	handleWeiNumber,
-	toHexadecimal
+	toHexadecimal,
 } from '.';
 import numberToBN from 'number-to-bn';
 

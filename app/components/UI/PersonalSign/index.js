@@ -17,14 +17,14 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		color: colors.fontPrimary,
 		...fontStyles.normal,
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	textLeft: {
-		textAlign: 'left'
+		textAlign: 'left',
 	},
 	messageWrapper: {
-		marginBottom: 4
-	}
+		marginBottom: 4,
+	},
 });
 
 /**
@@ -59,11 +59,11 @@ export default class PersonalSign extends PureComponent {
 		/**
 		 * Indicated whether or not the expanded message is shown
 		 */
-		showExpandedMessage: PropTypes.bool
+		showExpandedMessage: PropTypes.bool,
 	};
 
 	state = {
-		truncateMessage: false
+		truncateMessage: false,
 	};
 
 	getAnalyticsParams = () => {
@@ -78,7 +78,7 @@ export default class PersonalSign extends PureComponent {
 				dapp_url: currentPageInformation?.url,
 				network_name: type,
 				chain_id: chainId,
-				sign_type: 'personal'
+				sign_type: 'personal',
 			};
 		} catch (error) {
 			return {};
@@ -99,7 +99,7 @@ export default class PersonalSign extends PureComponent {
 					title: confirmation
 						? strings('notifications.wc_signed_title')
 						: strings('notifications.wc_signed_rejected_title'),
-					description: strings('notifications.wc_description')
+					description: strings('notifications.wc_description'),
 				});
 		});
 	};
@@ -160,7 +160,7 @@ export default class PersonalSign extends PureComponent {
 		return messageText;
 	};
 
-	shouldTruncateMessage = e => {
+	shouldTruncateMessage = (e) => {
 		if (e.nativeEvent.lines.length > 5) {
 			this.setState({ truncateMessage: true });
 			return;
