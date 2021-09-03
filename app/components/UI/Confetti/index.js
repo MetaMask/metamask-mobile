@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Platform } from 'react-native';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import ConfettiNormal from 'react-native-confetti';
 import ConfettiCannon from 'react-native-confetti-cannon';
 

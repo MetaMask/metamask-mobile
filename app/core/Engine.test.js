@@ -5,8 +5,8 @@ describe('Engine', () => {
 		expect(engine.context).toHaveProperty('AccountTrackerController');
 		expect(engine.context).toHaveProperty('AddressBookController');
 		expect(engine.context).toHaveProperty('AssetsContractController');
-		expect(engine.context).toHaveProperty('AssetsController');
 		expect(engine.context).toHaveProperty('AssetsDetectionController');
+		expect(engine.context).toHaveProperty('CollectiblesController');
 		expect(engine.context).toHaveProperty('CurrencyRateController');
 		expect(engine.context).toHaveProperty('KeyringController');
 		expect(engine.context).toHaveProperty('NetworkController');
@@ -15,6 +15,7 @@ describe('Engine', () => {
 		expect(engine.context).toHaveProperty('PreferencesController');
 		expect(engine.context).toHaveProperty('TokenBalancesController');
 		expect(engine.context).toHaveProperty('TokenRatesController');
+		expect(engine.context).toHaveProperty('TokensController');
 		expect(engine.context).toHaveProperty('TypedMessageManager');
 	});
 });

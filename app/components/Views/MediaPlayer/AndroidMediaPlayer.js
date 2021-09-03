@@ -150,6 +150,8 @@ export default function VideoPlayer({
 	displayBottomControls,
 	onClose,
 	onError,
+	textTracks,
+	selectedTextTrack,
 	onLoad: propsOnLoad,
 	style
 }) {
@@ -544,6 +546,8 @@ export default function VideoPlayer({
 					onLoadStart={onLoadStart}
 					onProgress={onProgress}
 					style={styles.playerVideo}
+					textTracks={textTracks}
+					selectedTextTrack={selectedTextTrack}
 					source={source}
 					resizeMode="contain"
 					repeat
@@ -566,6 +570,8 @@ VideoPlayer.propTypes = {
 	onClose: PropTypes.func,
 	onLoad: PropTypes.func,
 	onError: PropTypes.func,
+	selectedTextTrack: PropTypes.object,
+	textTracks: PropTypes.arrayOf(PropTypes.object),
 	style: ViewPropTypes.style
 };
 

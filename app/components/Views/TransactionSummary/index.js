@@ -77,7 +77,7 @@ export default class TransactionSummary extends PureComponent {
 						<Text small primary italic>
 							{!fee
 								? strings('transaction.transaction_fee_less')
-								: strings('transaction.transaction_fee')}
+								: strings('transaction.transaction_fee_estimated')}
 						</Text>
 						{!fee || !onEditPress ? null : (
 							<TouchableOpacity

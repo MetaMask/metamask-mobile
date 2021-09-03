@@ -8,7 +8,7 @@ import setOnboardingWizardStep from '../../../../actions/wizard';
 import { DrawerActions } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
-import Device from '../../../../util/Device';
+import Device from '../../../../util/device';
 
 const INDICATOR_HEIGHT = 10;
 const DRAWER_WIDTH = 315;

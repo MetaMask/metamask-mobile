@@ -12,7 +12,7 @@ import { getTicker, getNormalizedTxState } from '../../../util/transactions';
 import { safeToChecksumAddress } from '../../../util/address';
 import Radio from '../Radio';
 import StyledButton from '../../UI/StyledButton';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { isMainnetByChainId } from '../../../util/networks';
 

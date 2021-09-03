@@ -6,7 +6,7 @@ import { colors, fontStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { strings } from '../../../../locales/i18n';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import PreventScreenshot from '../../../core/PreventScreenshot';

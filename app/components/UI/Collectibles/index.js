@@ -109,8 +109,11 @@ export default class Collectibles extends PureComponent {
 	};
 
 	removeCollectible = () => {
-		const { AssetsController } = Engine.context;
-		AssetsController.removeAndIgnoreCollectible(this.collectibleToRemove.address, this.collectibleToRemove.tokenId);
+		const { CollectiblesController } = Engine.context;
+		CollectiblesController.removeAndIgnoreCollectible(
+			this.collectibleToRemove.address,
+			this.collectibleToRemove.tokenId
+		);
 		Alert.alert(strings('wallet.collectible_removed_title'), strings('wallet.collectible_removed_desc'));
 	};
 

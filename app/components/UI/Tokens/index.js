@@ -13,11 +13,11 @@ import AssetElement from '../AssetElement';
 import { connect } from 'react-redux';
 import { safeToChecksumAddress } from '../../../util/address';
 import Analytics from '../../../core/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import StyledButton from '../StyledButton';
 import { allowedToBuy } from '../FiatOrders';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
-import { isMainNet } from '../../../util/networks';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -167,23 +167,14 @@ class Tokens extends PureComponent {
 	);
 
 	renderItem = asset => {
-		const {
-			chainId,
-			conversionRate,
-			currentCurrency,
-			tokenBalances,
-			tokenExchangeRates,
-			primaryCurrency
-		} = this.props;
+		const { conversionRate, currentCurrency, tokenBalances, tokenExchangeRates, primaryCurrency } = this.props;
 		const itemAddress = safeToChecksumAddress(asset.address);
 		const logo = asset.logo || ((contractMap[itemAddress] && contractMap[itemAddress].logo) || undefined);
 		const exchangeRate = itemAddress in tokenExchangeRates ? tokenExchangeRates[itemAddress] : undefined;
 		const balance =
 			asset.balance ||
 			(itemAddress in tokenBalances ? renderFromTokenMinimalUnit(tokenBalances[itemAddress], asset.decimals) : 0);
-		const balanceFiat = isMainNet(chainId)
-			? asset.balanceFiat || balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency)
-			: null;
+		const balanceFiat = asset.balanceFiat || balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
 		const balanceValue = `${balance} ${asset.symbol}`;
 
 		// render balances according to primary currency
@@ -232,6 +223,10 @@ class Tokens extends PureComponent {
 		this.props.navigation.navigate('FiatOnRamp');
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_OPENED, {
+				button_location: 'Home Screen',
+				button_copy: 'Buy ETH'
+			});
 		});
 	};
 
@@ -293,8 +288,8 @@ class Tokens extends PureComponent {
 	};
 
 	removeToken = () => {
-		const { AssetsController } = Engine.context;
-		AssetsController.removeAndIgnoreToken(this.tokenToRemove.address);
+		const { TokensController } = Engine.context;
+		TokensController.removeAndIgnoreToken(this.tokenToRemove.address);
 		Alert.alert(strings('wallet.token_removed_title'), strings('wallet.token_removed_desc'));
 	};
 

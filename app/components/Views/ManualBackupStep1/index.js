@@ -18,7 +18,7 @@ import { strings } from '../../../../locales/i18n';
 import FeatherIcons from 'react-native-vector-icons/Feather';
 import { BlurView } from '@react-native-community/blur';
 import ActionView from '../../UI/ActionView';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import Engine from '../../../core/Engine';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import SecureKeychain from '../../../core/SecureKeychain';

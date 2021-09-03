@@ -10,8 +10,11 @@ import {
 	View,
 	FlatList,
 	Dimensions,
-	InteractionManager
+	InteractionManager,
+	TouchableOpacity
 } from 'react-native';
+import { getNetworkTypeById, findBlockExplorerForRpc, getBlockExplorerName } from '../../../util/networks';
+import { getEtherscanAddressUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import TransactionElement from '../TransactionElement';
@@ -20,9 +23,12 @@ import { showAlert } from '../../../actions/alert';
 import NotificationManager from '../../../core/NotificationManager';
 import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/controllers';
 import { renderFromWei } from '../../../util/number';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
+import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../constants/network';
 import TransactionActionModal from '../TransactionActionModal';
-import { validateTransactionActionBalance } from '../../../util/transactions';
+import Logger from '../../../util/Logger';
+import { parseTransactionEIP1559, validateTransactionActionBalance } from '../../../util/transactions';
+import BigNumber from 'bignumber.js';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -43,6 +49,16 @@ const styles = StyleSheet.create({
 		fontSize: 20,
 		color: colors.fontTertiary,
 		...fontStyles.normal
+	},
+	viewMoreBody: {
+		marginBottom: 36,
+		marginTop: 24
+	},
+	viewOnEtherscan: {
+		fontSize: 16,
+		color: colors.blue,
+		...fontStyles.normal,
+		textAlign: 'center'
 	}
 });
 
@@ -59,13 +75,25 @@ class Transactions extends PureComponent {
 		 */
 		accounts: PropTypes.object,
 		/**
+		 * Callback to close the view
+		 */
+		close: PropTypes.func,
+		/**
 		 * Object containing token exchange rates in the format address => exchangeRate
 		 */
 		contractExchangeRates: PropTypes.object,
 		/**
+		 * Frequent RPC list from PreferencesController
+		 */
+		frequentRpcList: PropTypes.array,
+		/**
 		/* navigation object required to push new views
 		*/
 		navigation: PropTypes.object,
+		/**
+		 * Object representing the selected network
+		 */
+		network: PropTypes.object,
 		/**
 		 * An array that represents the user collectible contracts
 		 */
@@ -118,7 +146,11 @@ class Transactions extends PureComponent {
 		/**
 		 * Indicates whether third party API mode is enabled
 		 */
-		thirdPartyApiMode: PropTypes.bool
+		thirdPartyApiMode: PropTypes.bool,
+		/**
+		 * The network native currency
+		 */
+		nativeCurrency: PropTypes.string
 	};
 
 	static defaultProps = {
@@ -132,10 +164,11 @@ class Transactions extends PureComponent {
 		cancelIsOpen: false,
 		cancelConfirmDisabled: false,
 		speedUpIsOpen: false,
-		speedUpConfirmDisabled: false
+		speedUpConfirmDisabled: false,
+		rpcBlockExplorer: undefined
 	};
 
-	existingGasPriceDecimal = null;
+	existingGas = null;
 	cancelTxId = null;
 	speedUpTxId = null;
 
@@ -150,6 +183,18 @@ class Transactions extends PureComponent {
 			this.init();
 			this.props.onRefSet && this.props.onRefSet(this.flatList);
 		}, 100);
+
+		const {
+			network: {
+				provider: { rpcTarget, type }
+			},
+			frequentRpcList
+		} = this.props;
+		let blockExplorer;
+		if (type === RPC) {
+			blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList) || NO_RPC_BLOCK_EXPLORER;
+		}
+		this.setState({ rpcBlockExplorer: blockExplorer });
 	}
 
 	init() {
@@ -230,6 +275,56 @@ class Transactions extends PureComponent {
 		</ScrollView>
 	);
 
+	viewOnBlockExplore = () => {
+		const {
+			navigation,
+			network: {
+				network,
+				provider: { type }
+			},
+			selectedAddress,
+			close
+		} = this.props;
+		const { rpcBlockExplorer } = this.state;
+		try {
+			let url;
+			let title;
+			if (type === RPC) {
+				url = `${rpcBlockExplorer}/address/${selectedAddress}`;
+				title = new URL(rpcBlockExplorer).hostname;
+			} else {
+				const networkResult = getNetworkTypeById(network);
+				url = getEtherscanAddressUrl(networkResult, selectedAddress);
+				title = getEtherscanBaseUrl(networkResult).replace('https://', '');
+			}
+			navigation.push('Webview', {
+				screen: 'SimpleWebview',
+				params: {
+					url,
+					title
+				}
+			});
+			close && close();
+		} catch (e) {
+			// eslint-disable-next-line no-console
+			Logger.error(e, { message: `can't get a block explorer link for network `, network });
+		}
+	};
+
+	renderViewMore = () => (
+		<View style={styles.viewMoreBody}>
+			<TouchableOpacity onPress={this.viewOnBlockExplore} style={styles.touchableViewOnEtherscan}>
+				<Text reset style={styles.viewOnEtherscan}>
+					{(this.state.rpcBlockExplorer &&
+						`${strings('transactions.view_full_history_on')} ${getBlockExplorerName(
+							this.state.rpcBlockExplorer
+						)}`) ||
+						strings('transactions.view_full_history_on_etherscan')}
+				</Text>
+			</TouchableOpacity>
+		</View>
+	);
+
 	getItemLayout = (data, index) => ({
 		length: ROW_HEIGHT,
 		offset: this.props.headerHeight + ROW_HEIGHT * index,
@@ -238,9 +333,9 @@ class Transactions extends PureComponent {
 
 	keyExtractor = item => item.id.toString();
 
-	onSpeedUpAction = (speedUpAction, existingGasPriceDecimal, tx) => {
+	onSpeedUpAction = (speedUpAction, existingGas, tx) => {
 		this.setState({ speedUpIsOpen: speedUpAction });
-		this.existingGasPriceDecimal = existingGasPriceDecimal;
+		this.existingGas = existingGas;
 		this.speedUpTxId = tx.id;
 		const speedUpConfirmDisabled = validateTransactionActionBalance(tx, SPEED_UP_RATE, this.props.accounts);
 		this.setState({ speedUpIsOpen: speedUpAction, speedUpConfirmDisabled });
@@ -248,19 +343,19 @@ class Transactions extends PureComponent {
 
 	onSpeedUpCompleted = () => {
 		this.setState({ speedUpIsOpen: false });
-		this.existingGasPriceDecimal = null;
+		this.existingGas = null;
 		this.speedUpTxId = null;
 	};
 
-	onCancelAction = (cancelAction, existingGasPriceDecimal, tx) => {
-		this.existingGasPriceDecimal = existingGasPriceDecimal;
+	onCancelAction = (cancelAction, existingGas, tx) => {
+		this.existingGas = existingGas;
 		this.cancelTxId = tx.id;
 		const cancelConfirmDisabled = validateTransactionActionBalance(tx, CANCEL_RATE, this.props.accounts);
 		this.setState({ cancelIsOpen: cancelAction, cancelConfirmDisabled });
 	};
 	onCancelCompleted = () => {
 		this.setState({ cancelIsOpen: false });
-		this.existingGasPriceDecimal = null;
+		this.existingGas = null;
 		this.cancelTxId = null;
 	};
 
@@ -309,12 +404,79 @@ class Transactions extends PureComponent {
 		if (!this.props.transactions.length) {
 			return this.renderEmpty();
 		}
-		const { submittedTransactions, confirmedTransactions, header } = this.props;
+		const {
+			submittedTransactions,
+			confirmedTransactions,
+			header,
+			currentCurrency,
+			conversionRate,
+			nativeCurrency
+		} = this.props;
 		const { cancelConfirmDisabled, speedUpConfirmDisabled } = this.state;
 		const transactions =
 			submittedTransactions && submittedTransactions.length
 				? submittedTransactions.concat(confirmedTransactions)
 				: this.props.transactions;
+
+		const renderSpeedUpGas = () => {
+			if (!this.existingGas) return null;
+			if (this.existingGas.isEIP1559Transaction) {
+				const newDecMaxFeePerGas = new BigNumber(this.existingGas.maxFeePerGas).times(
+					new BigNumber(SPEED_UP_RATE)
+				);
+				const newDecMaxPriorityFeePerGas = new BigNumber(this.existingGas.maxPriorityFeePerGas).times(
+					new BigNumber(SPEED_UP_RATE)
+				);
+				const gasEIP1559 = parseTransactionEIP1559(
+					{
+						currentCurrency,
+						conversionRate,
+						nativeCurrency,
+						selectedGasFee: {
+							suggestedMaxFeePerGas: newDecMaxFeePerGas,
+							suggestedMaxPriorityFeePerGas: newDecMaxPriorityFeePerGas,
+							suggestedGasLimit: '1'
+						}
+					},
+					{ onlyGas: true }
+				);
+
+				return `Max fee\n ${gasEIP1559.renderableMaxFeePerGasNative} \n\n Max priority fee\n ${
+					gasEIP1559.renderableMaxPriorityFeeNative
+				}`;
+			}
+			return `${renderFromWei(Math.floor(this.existingGas.gasPrice * SPEED_UP_RATE))} ${strings('unit.eth')}`;
+		};
+
+		const renderCancelGas = () => {
+			if (!this.existingGas) return null;
+			if (this.existingGas.isEIP1559Transaction) {
+				const newDecMaxFeePerGas = new BigNumber(this.existingGas.maxFeePerGas).times(
+					new BigNumber(CANCEL_RATE)
+				);
+				const newDecMaxPriorityFeePerGas = new BigNumber(this.existingGas.maxPriorityFeePerGas).times(
+					new BigNumber(CANCEL_RATE)
+				);
+				const gasEIP1559 = parseTransactionEIP1559(
+					{
+						currentCurrency,
+						conversionRate,
+						nativeCurrency,
+						selectedGasFee: {
+							suggestedMaxFeePerGas: newDecMaxFeePerGas,
+							suggestedMaxPriorityFeePerGas: newDecMaxPriorityFeePerGas,
+							suggestedGasLimit: '1'
+						}
+					},
+					{ onlyGas: true }
+				);
+
+				return `Max fee per gas\n ${gasEIP1559.renderableMaxFeePerGasNative} \n\n Max priority fee per gas\n ${
+					gasEIP1559.renderableMaxPriorityFeeNative
+				}`;
+			}
+			return `${renderFromWei(Math.floor(this.existingGas.gasPrice * CANCEL_RATE))} ${strings('unit.eth')}`;
+		};
 
 		return (
 			<View style={styles.wrapper} testID={'transactions-screen'}>
@@ -330,6 +492,7 @@ class Transactions extends PureComponent {
 					maxToRenderPerBatch={2}
 					onEndReachedThreshold={0.5}
 					ListHeaderComponent={header}
+					ListFooterComponent={this.renderViewMore}
 					style={baseStyles.flexGrow}
 					scrollIndicatorInsets={{ right: 1 }}
 				/>
@@ -342,9 +505,7 @@ class Transactions extends PureComponent {
 					confirmText={strings('transaction.lets_try')}
 					confirmButtonMode={'confirm'}
 					cancelText={strings('transaction.nevermind')}
-					feeText={`${renderFromWei(Math.floor(this.existingGasPriceDecimal * CANCEL_RATE))} ${strings(
-						'unit.eth'
-					)}`}
+					feeText={renderCancelGas()}
 					titleText={strings('transaction.cancel_tx_title')}
 					gasTitleText={strings('transaction.gas_cancel_fee')}
 					descriptionText={strings('transaction.cancel_tx_message')}
@@ -358,9 +519,7 @@ class Transactions extends PureComponent {
 					confirmText={strings('transaction.lets_try')}
 					confirmButtonMode={'confirm'}
 					cancelText={strings('transaction.nevermind')}
-					feeText={`${renderFromWei(Math.floor(this.existingGasPriceDecimal * SPEED_UP_RATE))} ${strings(
-						'unit.eth'
-					)}`}
+					feeText={renderSpeedUpGas()}
 					titleText={strings('transaction.speedup_tx_title')}
 					gasTitleText={strings('transaction.gas_speedup_fee')}
 					descriptionText={strings('transaction.speedup_tx_message')}
@@ -372,16 +531,19 @@ class Transactions extends PureComponent {
 
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	collectibleContracts: state.engine.backgroundState.AssetsController.collectibleContracts,
+	collectibleContracts: state.engine.backgroundState.CollectiblesController.collectibleContracts,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
-	tokens: state.engine.backgroundState.AssetsController.tokens.reduce((tokens, token) => {
+	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList,
+	network: state.engine.backgroundState.NetworkController,
+	tokens: state.engine.backgroundState.TokensController.tokens.reduce((tokens, token) => {
 		tokens[token.address] = token;
 		return tokens;
-	}, {})
+	}, {}),
+	nativeCurrency: state.engine.backgroundState.CurrencyRateController.nativeCurrency
 });
 
 const mapDispatchToProps = dispatch => ({

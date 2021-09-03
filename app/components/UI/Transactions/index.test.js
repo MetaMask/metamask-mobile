@@ -19,11 +19,14 @@ describe('Transactions', () => {
 					AccountTrackerController: {
 						accounts: {}
 					},
-					AssetsController: {
+					TokensController: {
 						tokens: []
 					},
 					TokenRatesController: {
 						contractExchangeRates: {}
+					},
+					CollectiblesController: {
+						collectibleContracts: {}
 					},
 					CurrencyRateController: {
 						currentCurrency: 'USD',

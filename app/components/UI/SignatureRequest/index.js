@@ -11,7 +11,7 @@ import ActionView from '../ActionView';
 import AccountInfoCard from '../AccountInfoCard';
 import TransactionHeader from '../TransactionHeader';
 import WarningMessage from '../../Views/SendFlow/WarningMessage';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 
@@ -256,7 +256,7 @@ class SignatureRequest extends PureComponent {
 							<Text style={styles.signText}>{strings('signature_request.signing')}</Text>
 							{showWarning ? (
 								<TouchableOpacity style={styles.warningWrapper} onPress={this.goToWarning}>
-									<WarningMessage warningMessage={this.renderWarning()} />
+									<WarningMessage type={'error'} warningMessage={this.renderWarning()} />
 								</TouchableOpacity>
 							) : null}
 						</View>

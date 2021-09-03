@@ -41,8 +41,11 @@ describe('Amount', () => {
 					TransactionController: {
 						transactions: []
 					},
-					AssetsController: {
+					TokensController: {
 						tokens: []
+					},
+					CollectiblesController: {
+						collectibles: {}
 					},
 					TokenRatesController: {
 						contractExchangeRates: {}

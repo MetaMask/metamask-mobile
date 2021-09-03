@@ -16,7 +16,8 @@ import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
 import DetailsModal from '../../Base/DetailsModal';
 import { isMainNet } from '../../../util/networks';
-import { WalletDevice } from '@metamask/controllers/';
+import { WalletDevice, util } from '@metamask/controllers/';
+const { weiHexToGweiDec, isEIP1559Transaction } = util;
 
 const styles = StyleSheet.create({
 	row: {
@@ -283,18 +284,37 @@ class TransactionElement extends PureComponent {
 		</StyledButton>
 	);
 
-	showCancelModal = () => {
+	parseGas = () => {
 		const { tx } = this.props;
-		const existingGasPrice = tx.transaction ? tx.transaction.gasPrice : '0x0';
-		const existingGasPriceDecimal = parseInt(existingGasPrice === undefined ? '0x0' : existingGasPrice, 16);
-		this.mounted && this.props.onCancelAction(true, existingGasPriceDecimal, this.props.tx);
+
+		let existingGas = {};
+		const transaction = tx?.transaction;
+		if (transaction) {
+			if (isEIP1559Transaction(transaction)) {
+				existingGas = {
+					isEIP1559Transaction: true,
+					maxFeePerGas: weiHexToGweiDec(transaction.maxFeePerGas),
+					maxPriorityFeePerGas: weiHexToGweiDec(transaction.maxPriorityFeePerGas)
+				};
+			} else {
+				const existingGasPrice = tx.transaction ? tx.transaction.gasPrice : '0x0';
+				const existingGasPriceDecimal = parseInt(existingGasPrice === undefined ? '0x0' : existingGasPrice, 16);
+				existingGas = { gasPrice: existingGasPriceDecimal };
+			}
+		}
+		return existingGas;
+	};
+
+	showCancelModal = () => {
+		const existingGas = this.parseGas();
+
+		this.mounted && this.props.onCancelAction(true, existingGas, this.props.tx);
 	};
 
 	showSpeedUpModal = () => {
-		const { tx } = this.props;
-		const existingGasPrice = tx.transaction ? tx.transaction.gasPrice : '0x0';
-		const existingGasPriceDecimal = parseInt(existingGasPrice === undefined ? '0x0' : existingGasPrice, 16);
-		this.mounted && this.props.onSpeedUpAction(true, existingGasPriceDecimal, tx);
+		const existingGas = this.parseGas();
+
+		this.mounted && this.props.onSpeedUpAction(true, existingGas, this.props.tx);
 	};
 
 	hideSpeedUpModal = () => {
@@ -327,27 +347,29 @@ class TransactionElement extends PureComponent {
 				>
 					{this.renderTxElement(transactionElement)}
 				</TouchableHighlight>
-				<Modal
-					isVisible={detailsModalVisible}
-					onBackdropPress={this.onCloseDetailsModal}
-					onBackButtonPress={this.onCloseDetailsModal}
-					onSwipeComplete={this.onCloseDetailsModal}
-					swipeDirection={'down'}
-				>
-					<DetailsModal>
-						<DetailsModal.Header>
-							<DetailsModal.Title onPress={this.onCloseDetailsModal}>
-								{transactionElement?.actionKey}
-							</DetailsModal.Title>
-							<DetailsModal.CloseIcon onPress={this.onCloseDetailsModal} />
-						</DetailsModal.Header>
-						<TransactionDetails
-							transactionObject={tx}
-							transactionDetails={transactionDetails}
-							close={this.onCloseDetailsModal}
-						/>
-					</DetailsModal>
-				</Modal>
+				{detailsModalVisible && (
+					<Modal
+						isVisible={detailsModalVisible}
+						onBackdropPress={this.onCloseDetailsModal}
+						onBackButtonPress={this.onCloseDetailsModal}
+						onSwipeComplete={this.onCloseDetailsModal}
+						swipeDirection={'down'}
+					>
+						<DetailsModal>
+							<DetailsModal.Header>
+								<DetailsModal.Title onPress={this.onCloseDetailsModal}>
+									{transactionElement?.actionKey}
+								</DetailsModal.Title>
+								<DetailsModal.CloseIcon onPress={this.onCloseDetailsModal} />
+							</DetailsModal.Header>
+							<TransactionDetails
+								transactionObject={tx}
+								transactionDetails={transactionDetails}
+								close={this.onCloseDetailsModal}
+							/>
+						</DetailsModal>
+					</Modal>
+				)}
 				<Modal
 					isVisible={importModalVisible}
 					onBackdropPress={this.onCloseImportWalletModal}

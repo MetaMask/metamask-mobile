@@ -31,8 +31,12 @@ function initalizeEngine(state = {}) {
 		store.dispatch({ type: 'UPDATE_BG_STATE', key: 'AssetsContractController' });
 	});
 
-	Engine.context.AssetsController.subscribe(() => {
-		store.dispatch({ type: 'UPDATE_BG_STATE', key: 'AssetsController' });
+	Engine.context.CollectiblesController.subscribe(() => {
+		store.dispatch({ type: 'UPDATE_BG_STATE', key: 'CollectiblesController' });
+	});
+
+	Engine.context.TokensController.subscribe(() => {
+		store.dispatch({ type: 'UPDATE_BG_STATE', key: 'TokensController' });
 	});
 
 	Engine.context.AssetsDetectionController.subscribe(() => {
@@ -81,6 +85,10 @@ function initalizeEngine(state = {}) {
 
 	Engine.context.SwapsController.subscribe(() => {
 		store.dispatch({ type: 'UPDATE_BG_STATE', key: 'SwapsController' });
+	});
+
+	Engine.controllerMessenger.subscribe(`${Engine.context.GasFeeController.name}:stateChange`, () => {
+		store.dispatch({ type: 'UPDATE_BG_STATE', key: 'GasFeeController' });
 	});
 }
 

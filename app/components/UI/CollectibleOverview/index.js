@@ -9,7 +9,7 @@ import RemoteImage from '../../Base/RemoteImage';
 import StyledButton from '../../UI/StyledButton';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import AntIcons from 'react-native-vector-icons/AntDesign';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import { toLocaleDate } from '../../../util/date';
 import { renderFromWei } from '../../../util/number';
 import { renderShortAddress } from '../../../util/address';

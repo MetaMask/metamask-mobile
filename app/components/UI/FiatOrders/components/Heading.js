@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import Device from '../../../../util/Device';
+import Device from '../../../../util/device';
 
 const style = StyleSheet.create({
 	view: {

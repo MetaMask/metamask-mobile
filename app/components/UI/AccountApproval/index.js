@@ -7,7 +7,7 @@ import TransactionHeader from '../TransactionHeader';
 import AccountInfoCard from '../AccountInfoCard';
 import { strings } from '../../../../locales/i18n';
 import { colors, fontStyles } from '../../../styles/common';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import NotificationManager from '../../../core/NotificationManager';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import URL from 'url-parse';
@@ -212,7 +212,7 @@ class AccountApproval extends PureComponent {
 
 const mapStateToProps = state => ({
 	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts || {}).length,
-	tokensLength: state.engine.backgroundState.AssetsController.tokens.length,
+	tokensLength: state.engine.backgroundState.TokensController.tokens.length,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId
 });

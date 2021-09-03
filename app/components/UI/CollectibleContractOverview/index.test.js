@@ -10,7 +10,7 @@ describe('CollectibleContractOverview', () => {
 		const initialState = {
 			engine: {
 				backgroundState: {
-					AssetsController: {
+					CollectiblesController: {
 						collectibles: []
 					}
 				}

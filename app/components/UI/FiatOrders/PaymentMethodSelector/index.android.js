@@ -5,7 +5,9 @@ import { useNavigation } from '@react-navigation/native';
 import { connect } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import Analytics from '../../../../core/Analytics';
+import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
+import { FIAT_ORDER_PROVIDERS, PAYMENT_CATEGORY, PAYMENT_RAILS } from '../../../../constants/on-ramp';
 
 import { useTransakFlowURL } from '../orderProcessor/transak';
 import { getPaymentSelectorMethodNavbar } from '../../Navbar';
@@ -42,6 +44,13 @@ function PaymentMethodSelectorView({
 		}
 
 		InteractionManager.runAfterInteractions(() => {
+			InteractionManager.runAfterInteractions(() => {
+				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_STARTED, {
+					payment_rails: PAYMENT_RAILS.MULTIPLE,
+					payment_category: PAYMENT_CATEGORY.MULTIPLE,
+					'on-ramp_provider': FIAT_ORDER_PROVIDERS.TRANSAK
+				});
+			});
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.PAYMENTS_SELECTS_DEBIT_OR_ACH);
 		});
 	}, [navigation, transakURL, gasEducationCarouselSeen, setGasEducationCarouselSeen]);
@@ -60,7 +69,12 @@ PaymentMethodSelectorView.propTypes = {
 	setGasEducationCarouselSeen: PropTypes.func
 };
 
-PaymentMethodSelectorView.navigationOptions = ({ navigation }) => getPaymentSelectorMethodNavbar(navigation);
+PaymentMethodSelectorView.navigationOptions = ({ navigation }) =>
+	getPaymentSelectorMethodNavbar(navigation, () => {
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_CLOSED);
+		});
+	});
 
 const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,

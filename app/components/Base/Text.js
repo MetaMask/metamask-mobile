@@ -19,6 +19,9 @@ const style = StyleSheet.create({
 	red: {
 		color: colors.red
 	},
+	orange: {
+		color: colors.orange
+	},
 	black: {
 		color: colors.black
 	},
@@ -81,6 +84,7 @@ const Text = ({
 	blue,
 	grey,
 	red,
+	orange,
 	primary,
 	small,
 	big,
@@ -106,6 +110,7 @@ const Text = ({
 			blue && style.blue,
 			grey && style.grey,
 			red && style.red,
+			orange && style.orange,
 			black && style.black,
 			primary && style.primary,
 			disclaimer && [style.small, style.disclaimer],
@@ -182,6 +187,10 @@ Text.propTypes = {
 	 * Makes text red
 	 */
 	red: PropTypes.bool,
+	/**
+	 * Makes text orange
+	 */
+	orange: PropTypes.bool,
 	/**
 	 * Makes text fontPrimary color
 	 */

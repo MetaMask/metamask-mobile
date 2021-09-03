@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../styles/common';
 import CollectibleMedia from '../CollectibleMedia';
 import Icon from 'react-native-vector-icons/Ionicons';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import AntIcons from 'react-native-vector-icons/AntDesign';
 import Text from '../../Base/Text';
 import ActionSheet from 'react-native-actionsheet';
@@ -108,9 +108,9 @@ function CollectibleContractElement({
 	}, []);
 
 	const removeCollectible = () => {
-		const { AssetsController } = Engine.context;
+		const { CollectiblesController } = Engine.context;
 		removeFavoriteCollectible(selectedAddress, chainId, collectibleToRemove.current);
-		AssetsController.removeAndIgnoreCollectible(
+		CollectiblesController.removeAndIgnoreCollectible(
 			collectibleToRemove.current.address,
 			collectibleToRemove.current.tokenId
 		);
@@ -227,7 +227,7 @@ CollectibleContractElement.propTypes = {
 };
 
 const mapStateToProps = state => ({
-	collectibleContracts: state.engine.backgroundState.AssetsController.collectibleContracts,
+	collectibleContracts: state.engine.backgroundState.CollectiblesController.collectibleContracts,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
 });

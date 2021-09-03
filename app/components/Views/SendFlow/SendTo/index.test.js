@@ -42,7 +42,7 @@ describe('SendTo', () => {
 					TransactionController: {
 						transactions: []
 					},
-					AssetsController: {
+					TokensController: {
 						tokens: []
 					},
 					TokenRatesController: {

@@ -4,9 +4,9 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
 
-const { ETH_CHAIN_ID, BSC_CHAIN_ID, SWAPS_TESTNET_CHAIN_ID } = swapsUtils;
+const { ETH_CHAIN_ID, BSC_CHAIN_ID, SWAPS_TESTNET_CHAIN_ID, POLYGON_CHAIN_ID } = swapsUtils;
 
-const allowedChainIds = [ETH_CHAIN_ID, BSC_CHAIN_ID];
+const allowedChainIds = [ETH_CHAIN_ID, BSC_CHAIN_ID, POLYGON_CHAIN_ID, SWAPS_TESTNET_CHAIN_ID];
 
 export function isSwapsAllowed(chainId) {
 	if (!AppConstants.SWAPS.ACTIVE) {
@@ -25,7 +25,7 @@ export function isSwapsNativeAsset(token) {
 export function isDynamicToken(token) {
 	return (
 		Boolean(token) &&
-		token.occurances === 1 &&
+		token.occurrences === 1 &&
 		token?.aggregators.length === 1 &&
 		token.aggregators[0] === 'dynamic'
 	);
@@ -37,14 +37,22 @@ export function isDynamicToken(token) {
  * @param {string} destinationTokenAddress Token contract address used as swaps result
  * @param {string} sourceAmount Amount in minimal token units of sourceTokenAddress to be swapped
  * @param {string|number} slippage Max slippage
+ * @param {array} tokens Tokens selected for trade
  * @return {object} Object containing sourceTokenAddress, destinationTokenAddress, sourceAmount and slippage
  */
-export function setQuotesNavigationsParams(sourceTokenAddress, destinationTokenAddress, sourceAmount, slippage) {
+export function setQuotesNavigationsParams(
+	sourceTokenAddress,
+	destinationTokenAddress,
+	sourceAmount,
+	slippage,
+	tokens = []
+) {
 	return {
 		sourceTokenAddress,
 		destinationTokenAddress,
 		sourceAmount,
-		slippage
+		slippage,
+		tokens
 	};
 }
 
@@ -57,12 +65,14 @@ export function getQuotesNavigationsParams(route) {
 	const sourceTokenAddress = route.params?.sourceTokenAddress ?? '';
 	const destinationTokenAddress = route.params?.destinationTokenAddress ?? '';
 	const sourceAmount = route.params?.sourceAmount;
+	const tokens = route.params?.tokens;
 
 	return {
 		sourceTokenAddress,
 		destinationTokenAddress,
 		sourceAmount,
-		slippage
+		slippage,
+		tokens
 	};
 }
 
@@ -75,26 +85,16 @@ export function getQuotesNavigationsParams(route) {
  * @param {string} sourceAmount Amount in minimal token units of sourceToken to be swapped
  * @param {string} fromAddress Current address attempting to swap
  */
-export function getFetchParams({
-	slippage = 1,
-	sourceToken,
-	destinationToken,
-	sourceAmount,
-	walletAddress,
-	destinationTokenConversionRate
-}) {
+export function getFetchParams({ slippage = 1, sourceToken, destinationToken, sourceAmount, walletAddress }) {
 	return {
 		slippage,
 		sourceToken: sourceToken.address,
 		destinationToken: destinationToken.address,
 		sourceAmount,
 		walletAddress,
-		balanceError: undefined,
 		metaData: {
 			sourceTokenInfo: sourceToken,
-			destinationTokenInfo: destinationToken,
-			accountBalance: '0x0',
-			destinationTokenConversionRate
+			destinationTokenInfo: destinationToken
 		}
 	};
 }
@@ -146,6 +146,14 @@ export function getQuotesSourceMessage(type) {
 				strings('swaps.quote_source_rfq.1'),
 				strings('swaps.quote_source_rfq.2'),
 				strings('swaps.quote_source_rfq.3')
+			];
+		}
+		case 'CONTRACT':
+		case 'CNT': {
+			return [
+				strings('swaps.quote_source_cnt.1'),
+				strings('swaps.quote_source_cnt.2'),
+				strings('swaps.quote_source_cnt.3')
 			];
 		}
 		case 'AGG':

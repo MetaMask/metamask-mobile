@@ -23,7 +23,7 @@ import CollectibleMedia from '../CollectibleMedia';
 import SelectableAsset from './SelectableAsset';
 import { getTicker, getNormalizedTxState } from '../../../util/transactions';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { toLowerCaseEquals } from '../../../util/general';
 
@@ -690,9 +690,9 @@ const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	tokens: state.engine.backgroundState.AssetsController.tokens,
+	tokens: state.engine.backgroundState.TokensController.tokens,
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
-	collectibles: state.engine.backgroundState.AssetsController.collectibles,
+	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
 	transaction: getNormalizedTxState(state),
 	primaryCurrency: state.settings.primaryCurrency,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker

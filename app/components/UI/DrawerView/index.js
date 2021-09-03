@@ -8,7 +8,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors, fontStyles } from '../../../styles/common';
-import { hasBlockExplorer, findBlockExplorerForRpc, getBlockExplorerName, isMainNet } from '../../../util/networks';
+import { hasBlockExplorer, findBlockExplorerForRpc, getBlockExplorerName } from '../../../util/networks';
 import Identicon from '../Identicon';
 import StyledButton from '../StyledButton';
 import AccountList from '../AccountList';
@@ -23,7 +23,7 @@ import { showAlert } from '../../../actions/alert';
 import { getEtherscanAddressUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import OnboardingWizard from '../OnboardingWizard';
 import ReceiveRequest from '../ReceiveRequest';
 import Analytics from '../../../core/Analytics';
@@ -41,6 +41,7 @@ import InvalidCustomNetworkAlert from '../InvalidCustomNetworkAlert';
 import { RPC } from '../../../constants/network';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
+import { isDefaultAccountName, doENSReverseLookup } from '../../../util/ENSUtils';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -338,10 +339,6 @@ class DrawerView extends PureComponent {
 		 */
 		wizard: PropTypes.object,
 		/**
-		 * Chain Id
-		 */
-		chainId: PropTypes.string,
-		/**
 		 * Current provider ticker
 		 */
 		ticker: PropTypes.string,
@@ -373,7 +370,13 @@ class DrawerView extends PureComponent {
 	};
 
 	state = {
-		showProtectWalletModal: undefined
+		showProtectWalletModal: undefined,
+		account: {
+			ens: undefined,
+			name: undefined,
+			address: undefined,
+			currentNetwork: undefined
+		}
 	};
 
 	browserSectionRef = React.createRef();
@@ -398,7 +401,7 @@ class DrawerView extends PureComponent {
 		return ret;
 	}
 
-	componentDidUpdate() {
+	async componentDidUpdate() {
 		const route = findRouteNameFromNavigatorState(this.props.navigation.dangerouslyGetState().routes);
 		if (!this.props.passwordSet || !this.props.seedphraseBackedUp) {
 			if (
@@ -447,9 +450,27 @@ class DrawerView extends PureComponent {
 			DeeplinkManager.expireDeeplink();
 			DeeplinkManager.parse(pendingDeeplink, { origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK });
 		}
+		await this.updateAccountInfo();
 	}
 
-	toggleAccountsModal = () => {
+	updateAccountInfo = async () => {
+		const { identities, network, selectedAddress } = this.props;
+		const { currentNetwork, address, name } = this.state.account;
+		const accountName = identities[selectedAddress].name;
+		if (currentNetwork !== network || address !== selectedAddress || name !== accountName) {
+			const ens = await doENSReverseLookup(selectedAddress, network.provider.chainId);
+			this.setState(state => ({
+				account: {
+					ens,
+					name: accountName,
+					currentNetwork: network,
+					address: selectedAddress
+				}
+			}));
+		}
+	};
+
+	toggleAccountsModal = async () => {
 		if (!this.animatingAccountsModal) {
 			this.animatingAccountsModal = true;
 			this.props.toggleAccountsModal();
@@ -849,13 +870,15 @@ class DrawerView extends PureComponent {
 			selectedAddress,
 			keyrings,
 			currentCurrency,
-			chainId,
 			ticker,
 			seedphraseBackedUp
 		} = this.props;
 
-		const { invalidCustomNetwork, showProtectWalletModal } = this.state;
-
+		const {
+			invalidCustomNetwork,
+			showProtectWalletModal,
+			account: { name, ens }
+		} = this.state;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
 		account.balance = (accounts[selectedAddress] && renderFromWei(accounts[selectedAddress].balance)) || 0;
 		const fiatBalance = Engine.getTotalFiatAccountBalance();
@@ -892,11 +915,11 @@ class DrawerView extends PureComponent {
 							>
 								<View style={styles.accountNameWrapper}>
 									<Text style={styles.accountName} numberOfLines={1}>
-										{account.name}
+										{isDefaultAccountName(name) && ens ? ens : name}
 									</Text>
 									<Icon name="caret-down" size={24} style={styles.caretDown} />
 								</View>
-								{isMainNet(chainId) && <Text style={styles.accountBalance}>{fiatBalanceStr}</Text>}
+								<Text style={styles.accountBalance}>{fiatBalanceStr}</Text>
 								<EthereumAddress
 									address={account.address}
 									style={styles.accountAddress}
@@ -1087,11 +1110,10 @@ const mapStateToProps = state => ({
 	receiveModalVisible: state.modals.receiveModalVisible,
 	passwordSet: state.user.passwordSet,
 	wizard: state.wizard,
-	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	tokens: state.engine.backgroundState.AssetsController.tokens,
+	tokens: state.engine.backgroundState.TokensController.tokens,
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
-	collectibles: state.engine.backgroundState.AssetsController.collectibles,
+	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
 	seedphraseBackedUp: state.user.seedphraseBackedUp
 });
 

@@ -31,7 +31,7 @@ import ScanStep from '../../UI/ScanStep';
 import PubNubWrapper from '../../../util/syncWithExtension';
 import ActionModal from '../../UI/ActionModal';
 import Logger from '../../../util/Logger';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
 import Animated, { Easing } from 'react-native-reanimated';
 import ElevatedView from 'react-native-elevated-view';
@@ -51,6 +51,7 @@ import {
 	METRICS_OPT_IN,
 	TRUE
 } from '../../../constants/storage';
+import DefaultPreference from 'react-native-default-preference';
 
 const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 
@@ -551,7 +552,7 @@ class Onboarding extends PureComponent {
 				Analytics.trackEvent(key);
 				return;
 			}
-			const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
+			const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
 			if (!metricsOptIn) {
 				this.props.saveOnboardingEvent(key);
 			}

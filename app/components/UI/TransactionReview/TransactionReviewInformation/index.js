@@ -11,17 +11,26 @@ import {
 	weiToFiatNumber,
 	balanceToFiatNumber,
 	renderFromTokenMinimalUnit,
-	renderFromWei
+	renderFromWei,
+	BNToHex
 } from '../../../../util/number';
 import { strings } from '../../../../../locales/i18n';
-import { getTicker, getNormalizedTxState } from '../../../../util/transactions';
-import TransactionReviewFeeCard from '../TransactionReviewFeeCard';
+import {
+	getTicker,
+	getNormalizedTxState,
+	calculateAmountsEIP1559,
+	calculateEthEIP1559,
+	calculateERC20EIP1559
+} from '../../../../util/transactions';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { getNetworkName, getNetworkNonce, isMainNet } from '../../../../util/networks';
 import { capitalize } from '../../../../util/general';
 import CustomNonceModal from '../../../UI/CustomNonceModal';
 import { setNonce, setProposedNonce } from '../../../../actions/transaction';
+import TransactionReviewEIP1559 from '../TransactionReviewEIP1559';
+import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
+import CustomNonce from '../../../UI/CustomNonce';
 
 const styles = StyleSheet.create({
 	overviewAlert: {
@@ -46,36 +55,6 @@ const styles = StyleSheet.create({
 	overviewAlertIcon: {
 		color: colors.red,
 		flex: 0
-	},
-	overviewPrimary: {
-		...fontStyles.bold,
-		color: colors.fontPrimary,
-		fontSize: 24,
-		textAlign: 'right',
-		textTransform: 'uppercase'
-	},
-	overviewAccent: {
-		color: colors.blue
-	},
-	overviewEth: {
-		color: colors.fontPrimary,
-		fontSize: 14,
-		textAlign: 'right',
-		textTransform: 'uppercase'
-	},
-	over: {
-		color: colors.red
-	},
-	assetName: {
-		maxWidth: 200
-	},
-	totalValue: {
-		flex: 1,
-		flexDirection: 'row',
-		justifyContent: 'flex-end'
-	},
-	collectibleName: {
-		maxWidth: '30%'
 	},
 	viewDataWrapper: {
 		flex: 1,
@@ -146,14 +125,6 @@ class TransactionReviewInformation extends PureComponent {
 		 */
 		ticker: PropTypes.string,
 		/**
-		 * Transaction amount in selected asset before gas
-		 */
-		assetAmount: PropTypes.string,
-		/**
-		 * Transaction amount in fiat before gas
-		 */
-		fiatValue: PropTypes.string,
-		/**
 		 * ETH or fiat, depending on user setting
 		 */
 		primaryCurrency: PropTypes.string,
@@ -168,7 +139,7 @@ class TransactionReviewInformation extends PureComponent {
 		/**
 		 * Transaction error
 		 */
-		error: PropTypes.string,
+		error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
 		/**
 		 * True if transaction is over the available funds
 		 */
@@ -196,7 +167,31 @@ class TransactionReviewInformation extends PureComponent {
 		/**
 		 * Set proposed nonce (from network)
 		 */
-		setProposedNonce: PropTypes.func
+		setProposedNonce: PropTypes.func,
+		nativeCurrency: PropTypes.string,
+		gasEstimateType: PropTypes.string,
+		EIP1559GasData: PropTypes.object,
+		origin: PropTypes.string,
+		/**
+		 * Function to call when update animation starts
+		 */
+		onUpdatingValuesStart: PropTypes.func,
+		/**
+		 * Function to call when update animation ends
+		 */
+		onUpdatingValuesEnd: PropTypes.func,
+		/**
+		 * If the values should animate upon update or not
+		 */
+		animateOnChange: PropTypes.bool,
+		/**
+		 * Boolean to determine if the animation is happening
+		 */
+		isAnimating: PropTypes.bool,
+		/**
+		 * If it's a eip1559 network and dapp suggest legact gas then it should show a warning
+		 */
+		originWarning: PropTypes.bool
 	};
 
 	state = {
@@ -263,27 +258,16 @@ class TransactionReviewInformation extends PureComponent {
 			currentCurrency,
 			conversionRate,
 			contractExchangeRates,
-			ticker,
-			over
+			ticker
 		} = this.props;
 
 		const totals = {
 			ETH: () => {
 				const totalEth = isBN(value) ? value.add(totalGas) : totalGas;
-				const totalFiat = (
-					<Text style={[styles.overviewEth, over && styles.over]}>
-						{weiToFiat(totalEth, conversionRate, currentCurrency)}
-					</Text>
-				);
-				const totalValue = (
-					<Text
-						style={
-							totalFiat
-								? [styles.overviewEth, over && styles.over]
-								: [styles.overviewPrimary, styles.overviewAccent]
-						}
-					>{`${renderFromWei(totalEth)} ${getTicker(ticker)}`}</Text>
-				);
+				const totalFiat = `${weiToFiat(totalEth, conversionRate, currentCurrency)}`;
+
+				const totalValue = `${renderFromWei(totalEth)} ${getTicker(ticker)}`;
+
 				return [totalFiat, totalValue];
 			},
 			ERC20: () => {
@@ -297,32 +281,129 @@ class TransactionReviewInformation extends PureComponent {
 					currentCurrency,
 					amountToken
 				);
-				const totalValue = (
-					<View style={styles.totalValue}>
-						<Text numberOfLines={1} style={[styles.overviewEth, styles.assetName]}>
-							{amountToken + ' ' + selectedAsset.symbol}
-						</Text>
-						<Text
-							style={totalFiat ? styles.overviewEth : [styles.overviewPrimary, styles.overviewAccent]}
-						>{` + ${renderFromWei(totalGas)} ${getTicker(ticker)}`}</Text>
-					</View>
-				);
+				const totalValue = `${amountToken + ' ' + selectedAsset.symbol} + ${renderFromWei(
+					totalGas
+				)} ${getTicker(ticker)}`;
 				return [totalFiat, totalValue];
 			},
 			ERC721: () => {
 				const totalFiat = totalGasFiat;
-				const totalValue = (
-					<View style={styles.totalValue}>
-						<Text numberOfLines={1} style={[styles.overviewEth, styles.collectibleName]}>
-							{selectedAsset.name}
-						</Text>
-						<Text numberOfLines={1} style={styles.overviewEth}>
-							{' (#' + selectedAsset.tokenId + ')'}
-						</Text>
-						<Text style={styles.overviewEth}>{` + ${renderFromWei(totalGas)} ${getTicker(ticker)}`}</Text>
-					</View>
-				);
+				const totalValue = `${selectedAsset.name}  (#${selectedAsset.tokenId}) + ${renderFromWei(
+					totalGas
+				)} ${getTicker(ticker)}`;
 				return [totalFiat, totalValue];
+			},
+			default: () => [undefined, undefined]
+		};
+		return totals[assetType] || totals.default;
+	};
+
+	getRenderTotalsEIP1559 = ({ gasFeeMinNative, gasFeeMinConversion, gasFeeMaxNative, gasFeeMaxConversion }) => {
+		const {
+			transaction: { value, selectedAsset, assetType },
+			nativeCurrency,
+			currentCurrency,
+			conversionRate,
+			contractExchangeRates
+		} = this.props;
+
+		const { totalMinNative, totalMinConversion, totalMaxNative, totalMaxConversion } = calculateAmountsEIP1559({
+			value: value && BNToHex(value),
+			nativeCurrency,
+			currentCurrency,
+			conversionRate,
+			gasFeeMinConversion,
+			gasFeeMinNative,
+			gasFeeMaxNative,
+			gasFeeMaxConversion
+		});
+
+		let renderableTotalMinNative,
+			renderableTotalMinConversion,
+			renderableTotalMaxNative,
+			renderableTotalMaxConversion;
+
+		const totals = {
+			ETH: () => {
+				[
+					renderableTotalMinNative,
+					renderableTotalMinConversion,
+					renderableTotalMaxNative,
+					renderableTotalMaxConversion
+				] = calculateEthEIP1559({
+					nativeCurrency,
+					currentCurrency,
+					totalMinNative,
+					totalMinConversion,
+					totalMaxNative,
+					totalMaxConversion
+				});
+
+				return [
+					renderableTotalMinNative,
+					renderableTotalMinConversion,
+					renderableTotalMaxNative,
+					renderableTotalMaxConversion
+				];
+			},
+			ERC20: () => {
+				const tokenAmount = renderFromTokenMinimalUnit(value, selectedAsset.decimals);
+				const exchangeRate = contractExchangeRates[selectedAsset.address];
+				const symbol = selectedAsset.symbol;
+
+				[
+					renderableTotalMinNative,
+					renderableTotalMinConversion,
+					renderableTotalMaxNative,
+					renderableTotalMaxConversion
+				] = calculateERC20EIP1559({
+					currentCurrency,
+					nativeCurrency,
+					conversionRate,
+					exchangeRate,
+					tokenAmount,
+					totalMinConversion,
+					totalMaxConversion,
+					symbol,
+					totalMinNative,
+					totalMaxNative
+				});
+				return [
+					renderableTotalMinNative,
+					renderableTotalMinConversion,
+					renderableTotalMaxNative,
+					renderableTotalMaxConversion
+				];
+			},
+			ERC721: () => {
+				[
+					renderableTotalMinNative,
+					renderableTotalMinConversion,
+					renderableTotalMaxNative,
+					renderableTotalMaxConversion
+				] = calculateEthEIP1559({
+					nativeCurrency,
+					currentCurrency,
+					totalMinNative,
+					totalMinConversion,
+					totalMaxNative,
+					totalMaxConversion
+				});
+
+				renderableTotalMinNative = `${selectedAsset.name} ${' (#' +
+					selectedAsset.tokenId +
+					')'} + ${renderableTotalMinNative}`;
+
+				renderableTotalMaxNative = `${selectedAsset.name} ${' (#' +
+					selectedAsset.tokenId +
+					')'} + ${renderableTotalMaxNative}`;
+
+				return [
+					renderableTotalMinNative,
+					renderableTotalMinConversion,
+					renderableTotalMaxNative,
+					renderableTotalMaxConversion
+				];
 			},
 			default: () => [undefined, undefined]
 		};
@@ -344,54 +425,121 @@ class TransactionReviewInformation extends PureComponent {
 		});
 	};
 
-	render() {
-		const { amountError, nonceModalVisible } = this.state;
-		const { nonce } = this.props.transaction;
+	renderTransactionReviewEIP1559 = () => {
 		const {
-			fiatValue,
-			assetAmount,
+			EIP1559GasData,
 			primaryCurrency,
-			toggleDataView,
+			origin,
+			originWarning,
+			onUpdatingValuesStart,
+			onUpdatingValuesEnd,
+			animateOnChange,
+			isAnimating,
+			ready
+		} = this.props;
+		let host;
+		if (origin) {
+			host = new URL(origin).hostname;
+		}
+		const [
+			renderableTotalMinNative,
+			renderableTotalMinConversion,
+			renderableTotalMaxNative
+		] = this.getRenderTotalsEIP1559(EIP1559GasData)();
+		return (
+			<TransactionReviewEIP1559
+				totalNative={renderableTotalMinNative}
+				totalConversion={renderableTotalMinConversion}
+				totalMaxNative={renderableTotalMaxNative}
+				gasFeeNative={EIP1559GasData.renderableGasFeeMinNative}
+				gasFeeConversion={EIP1559GasData.renderableGasFeeMinConversion}
+				gasFeeMaxNative={EIP1559GasData.renderableGasFeeMaxNative}
+				gasFeeMaxConversion={EIP1559GasData.renderableGasFeeMaxConversion}
+				primaryCurrency={primaryCurrency}
+				timeEstimate={EIP1559GasData.timeEstimate}
+				timeEstimateColor={EIP1559GasData.timeEstimateColor}
+				timeEstimateId={EIP1559GasData.timeEstimateId}
+				onEdit={this.edit}
+				origin={host}
+				originWarning={originWarning}
+				onUpdatingValuesStart={onUpdatingValuesStart}
+				onUpdatingValuesEnd={onUpdatingValuesEnd}
+				animateOnChange={animateOnChange}
+				isAnimating={isAnimating}
+				gasEstimationReady={ready}
+			/>
+		);
+	};
+
+	renderTransactionReviewFeeCard = () => {
+		const {
+			primaryCurrency,
 			ready,
-			transaction: { gas, gasPrice, warningGasPriceHigh },
+			transaction: { gas, gasPrice },
 			currentCurrency,
 			conversionRate,
 			ticker,
-			error,
 			over,
-			network,
-			showCustomNonce
+			onUpdatingValuesStart,
+			onUpdatingValuesEnd,
+			animateOnChange,
+			isAnimating
 		} = this.props;
-		const is_main_net = isMainNet(network);
+
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency);
 		const totalGasEth = `${renderFromWei(totalGas)} ${getTicker(ticker)}`;
 		const [totalFiat, totalValue] = this.getRenderTotals(totalGas, totalGasFiat)();
+		return (
+			<TransactionReviewEIP1559
+				totalNative={totalValue}
+				totalConversion={totalFiat}
+				gasFeeNative={totalGasEth}
+				gasFeeConversion={totalGasFiat}
+				primaryCurrency={primaryCurrency}
+				onEdit={() => this.edit()}
+				over={over}
+				onUpdatingValuesStart={onUpdatingValuesStart}
+				onUpdatingValuesEnd={onUpdatingValuesEnd}
+				animateOnChange={animateOnChange}
+				isAnimating={isAnimating}
+				gasEstimationReady={ready}
+				legacy
+			/>
+		);
+	};
+
+	render() {
+		const { amountError, nonceModalVisible } = this.state;
+		const {
+			toggleDataView,
+			transaction: { warningGasPriceHigh },
+			error,
+			over,
+			network,
+			showCustomNonce,
+			gasEstimateType
+		} = this.props;
+		const { nonce } = this.props.transaction;
+
+		const is_main_net = isMainNet(network);
+
 		const errorPress = is_main_net ? this.buyEth : this.gotoFaucet;
 		const networkName = capitalize(getNetworkName(network));
 		const errorLinkText = is_main_net
 			? strings('transaction.buy_more_eth')
 			: strings('transaction.get_ether', { networkName });
 
+		const showFeeMarket =
+			!gasEstimateType ||
+			gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ||
+			gasEstimateType === GAS_ESTIMATE_TYPES.NONE;
+
 		return (
 			<React.Fragment>
 				{nonceModalVisible && this.renderCustomNonceModal()}
-				<TransactionReviewFeeCard
-					totalGasFiat={totalGasFiat}
-					totalGasEth={totalGasEth}
-					totalFiat={totalFiat}
-					fiat={fiatValue}
-					totalValue={totalValue}
-					transactionValue={assetAmount}
-					primaryCurrency={primaryCurrency}
-					gasEstimationReady={ready}
-					edit={this.edit}
-					over={over}
-					warningGasPriceHigh={warningGasPriceHigh}
-					showCustomNonce={showCustomNonce}
-					nonceValue={nonce}
-					onNonceEdit={this.toggleNonceModal}
-				/>
+				{showFeeMarket ? this.renderTransactionReviewEIP1559() : this.renderTransactionReviewFeeCard()}
+				{showCustomNonce && <CustomNonce nonce={nonce} onNonceEdit={this.toggleNonceModal} />}
 				{!!amountError && (
 					<View style={styles.overviewAlert}>
 						<MaterialIcon name={'error'} size={20} style={styles.overviewAlertIcon} />
@@ -436,7 +584,8 @@ const mapStateToProps = state => ({
 	transaction: getNormalizedTxState(state),
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	primaryCurrency: state.settings.primaryCurrency,
-	showCustomNonce: state.settings.showCustomNonce
+	showCustomNonce: state.settings.showCustomNonce,
+	nativeCurrency: state.engine.backgroundState.CurrencyRateController.nativeCurrency
 });
 
 const mapDispatchToProps = dispatch => ({

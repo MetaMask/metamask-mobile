@@ -19,7 +19,7 @@ import Logger from '../../../../util/Logger';
 import ipfsGateways from '../../../../util/ipfs-gateways.json';
 import SelectComponent from '../../../UI/SelectComponent';
 import { timeoutFetch } from '../../../../util/general';
-import Device from '../../../../util/Device';
+import Device from '../../../../util/device';
 
 const HASH_TO_TEST = 'Qmaisz6NMhDB51cCvNWa1GMS7LU1pAxdF4Ld6Ft9kZEP2a';
 const HASH_STRING = 'Hello from IPFS Gateway Checker';
@@ -192,7 +192,8 @@ class AdvancedSettings extends PureComponent {
 		const fullState = JSON.parse(JSON.stringify(this.props.fullState));
 
 		// Remove stuff we don't want to sync
-		delete fullState.engine.backgroundState.AssetsController;
+		delete fullState.engine.backgroundState.CollectiblesController;
+		delete fullState.engine.backgroundState.TokensController;
 		delete fullState.engine.backgroundState.AssetsContractController;
 		delete fullState.engine.backgroundState.AssetsDetectionController;
 		delete fullState.engine.backgroundState.PhishingController;

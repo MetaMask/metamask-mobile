@@ -10,6 +10,9 @@ exports[`Approve should render correctly 1`] = `
     }
   }
   accountsLength={1}
+  conversionRate={100}
+  currentCurrency="USD"
+  primaryCurrency="Fiat"
   setTransactionObject={[Function]}
   ticker="ETH"
   tokensLength={0}

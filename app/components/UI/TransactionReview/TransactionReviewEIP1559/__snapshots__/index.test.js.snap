@@ -1,0 +1,282 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TransactionReviewEIP1559 should render correctly 1`] = `
+<Summary
+  style={
+    Object {
+      "marginHorizontal": 24,
+      "paddingBottom": 10,
+      "paddingTop": 10,
+    }
+  }
+>
+  <SummaryRow>
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "flex": 1,
+          "flexDirection": "row",
+          "marginBottom": 2,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "flex": 1,
+            "flexDirection": "row",
+            "marginBottom": 2,
+          }
+        }
+      >
+        <Text
+          black={false}
+          blue={false}
+          bold={true}
+          centered={false}
+          disclaimer={false}
+          green={false}
+          link={false}
+          modal={false}
+          noMargin={true}
+          orange={false}
+          primary={true}
+          red={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
+          underline={false}
+          upper={false}
+        >
+          Estimated gas fee
+          <TouchableOpacity
+            hitSlop={
+              Object {
+                "bottom": 10,
+                "left": 10,
+                "right": 10,
+                "top": 10,
+              }
+            }
+            onPress={[Function]}
+            style={
+              Object {
+                "paddingLeft": 2,
+              }
+            }
+          >
+            <Icon
+              allowFontScaling={false}
+              name="information"
+              size={13}
+              style={
+                Object {
+                  "color": "#bbc0c5",
+                }
+              }
+            />
+          </TouchableOpacity>
+        </Text>
+      </View>
+      <Skeleton
+        width={80}
+      />
+    </View>
+  </SummaryRow>
+  <SummaryRow>
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "flex": 1,
+          "flexDirection": "row",
+          "marginBottom": 2,
+        }
+      }
+    >
+      <Skeleton
+        noStyle={true}
+        width={120}
+      />
+      <Skeleton
+        width={120}
+      />
+    </View>
+  </SummaryRow>
+  <View>
+    <SummarySeparator />
+    <View
+      style={
+        Object {
+          "marginTop": 4,
+        }
+      }
+    >
+      <SummaryRow>
+        <Text
+          black={false}
+          blue={false}
+          bold={true}
+          centered={false}
+          disclaimer={false}
+          green={false}
+          link={false}
+          modal={false}
+          noMargin={true}
+          primary={true}
+          red={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
+          underline={false}
+          upper={false}
+        >
+          Total
+        </Text>
+        <Skeleton
+          width={80}
+        />
+      </SummaryRow>
+    </View>
+    <SummaryRow>
+      <Skeleton
+        width={120}
+      />
+    </SummaryRow>
+  </View>
+  <InfoModal
+    body={
+      <Text
+        black={false}
+        blue={false}
+        bold={false}
+        centered={false}
+        disclaimer={false}
+        green={false}
+        infoModal={true}
+        link={false}
+        modal={false}
+        primary={false}
+        red={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
+        underline={false}
+        upper={false}
+      >
+        This gas fee suggestion is using legacy gas estimation which may be inaccurate.
+      </Text>
+    }
+    isVisible={false}
+    toggleModal={[Function]}
+  />
+  <InfoModal
+    body={
+      <View>
+        <Text
+          black={false}
+          blue={false}
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          green={false}
+          infoModal={true}
+          link={false}
+          modal={false}
+          primary={false}
+          red={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
+          underline={false}
+          upper={false}
+        >
+          Gas fees are paid to crypto miners who process transactions on the
+           Ethereum
+           network.
+           
+          <Text
+            black={false}
+            blue={false}
+            bold={true}
+            centered={false}
+            disclaimer={false}
+            green={false}
+            link={false}
+            modal={false}
+            noMargin={true}
+            primary={false}
+            red={false}
+            reset={false}
+            right={false}
+            small={false}
+            strikethrough={false}
+            underline={false}
+            upper={false}
+          >
+            MetaMask does not profit from gas fees.
+          </Text>
+        </Text>
+        <Text
+          black={false}
+          blue={false}
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          green={false}
+          infoModal={true}
+          link={false}
+          modal={false}
+          primary={false}
+          red={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
+          underline={false}
+          upper={false}
+        >
+          Gas fees are set by the network and fluctuate based on network traffic and transaction complexity.
+        </Text>
+        <TouchableOpacity
+          onPress={[Function]}
+        >
+          <Text
+            black={false}
+            blue={false}
+            bold={false}
+            centered={false}
+            disclaimer={false}
+            green={false}
+            link={true}
+            modal={false}
+            primary={false}
+            red={false}
+            reset={false}
+            right={false}
+            small={false}
+            strikethrough={false}
+            underline={false}
+            upper={false}
+          >
+            Learn more about gas fees
+          </Text>
+        </TouchableOpacity>
+      </View>
+    }
+    isVisible={false}
+    title="What are gas fees?"
+    toggleModal={[Function]}
+  />
+  <TimeEstimateInfoModal
+    isVisible={false}
+    onHideModal={[Function]}
+  />
+</Summary>
+`;

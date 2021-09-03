@@ -8,7 +8,7 @@ import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { renderAccountName, renderShortAddress } from '../../../util/address';
 import { getTicker } from '../../../util/transactions';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 
 const styles = StyleSheet.create({
 	accountInformation: {

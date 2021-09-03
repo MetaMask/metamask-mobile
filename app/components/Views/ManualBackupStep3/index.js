@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Alert, BackHandler, Text, View, SafeAreaView, StyleSheet, Keyboard, TouchableOpacity } from 'react-native';
+import { Alert, BackHandler, Text, View, StyleSheet, Keyboard, TouchableOpacity } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
@@ -10,17 +10,20 @@ import ActionView from '../../UI/ActionView';
 import { strings } from '../../../../locales/i18n';
 import { showAlert } from '../../../actions/alert';
 import AndroidBackHandler from '../AndroidBackHandler';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import Confetti from '../../UI/Confetti';
 import HintModal from '../../UI/HintModal';
 import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import { ONBOARDING_WIZARD, METRICS_OPT_IN, SEED_PHRASE_HINTS } from '../../../constants/storage';
+import DefaultPreference from 'react-native-default-preference';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
-		marginTop: 40,
 		backgroundColor: colors.white,
 		flex: 1
+	},
+	actionView: {
+		paddingTop: 40
 	},
 	wrapper: {
 		flex: 1,
@@ -145,9 +148,9 @@ class ManualBackupStep3 extends PureComponent {
 	};
 
 	done = async () => {
-		const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
+		const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
 		// Check if user passed through metrics opt-in screen
-		const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
+		const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
 		if (!metricsOptIn) {
 			this.props.navigation.navigate('OptinMetrics');
 		} else if (onboardingWizard) {
@@ -175,7 +178,7 @@ class ManualBackupStep3 extends PureComponent {
 
 	render() {
 		return (
-			<SafeAreaView style={styles.mainWrapper}>
+			<View style={styles.mainWrapper}>
 				<Confetti />
 				{this.steps ? (
 					<View style={styles.onBoardingWrapper}>
@@ -188,6 +191,7 @@ class ManualBackupStep3 extends PureComponent {
 					onConfirmPress={this.done}
 					showCancelButton={false}
 					confirmButtonMode={'confirm'}
+					style={styles.actionView}
 				>
 					<View style={styles.wrapper} testID={'import-congrats-screen'}>
 						<Emoji name="tada" style={styles.emoji} />
@@ -212,7 +216,7 @@ class ManualBackupStep3 extends PureComponent {
 				</ActionView>
 				{Device.isAndroid() && <AndroidBackHandler customBackPress={this.props.navigation.pop} />}
 				{this.renderHint()}
-			</SafeAreaView>
+			</View>
 		);
 	}
 }

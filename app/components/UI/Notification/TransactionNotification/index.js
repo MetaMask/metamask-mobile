@@ -14,7 +14,7 @@ import ActionContent from '../../ActionModal/ActionContent';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import TransactionDetails from '../../TransactionElement/TransactionDetails';
 import BaseNotification from './../BaseNotification';
-import Device from '../../../../util/Device';
+import Device from '../../../../util/device';
 import ElevatedView from 'react-native-elevated-view';
 import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/controllers';
 import BigNumber from 'bignumber.js';
@@ -375,11 +375,11 @@ const mapStateToProps = state => ({
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-	tokens: state.engine.backgroundState.AssetsController.tokens.reduce((tokens, token) => {
+	tokens: state.engine.backgroundState.TokensController.tokens.reduce((tokens, token) => {
 		tokens[token.address] = token;
 		return tokens;
 	}, {}),
-	collectibleContracts: state.engine.backgroundState.AssetsController.collectibleContracts,
+	collectibleContracts: state.engine.backgroundState.CollectiblesController.collectibleContracts,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,

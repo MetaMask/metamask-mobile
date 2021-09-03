@@ -5,7 +5,7 @@ import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import CollectibleMedia from '../CollectibleMedia';
 import AssetActionButton from '../AssetActionButton';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import { toggleCollectibleContractModal } from '../../../actions/modals';
 import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
@@ -140,7 +140,7 @@ class CollectibleContractOverview extends PureComponent {
 }
 
 const mapStateToProps = state => ({
-	collectibles: state.engine.backgroundState.AssetsController.collectibles
+	collectibles: state.engine.backgroundState.CollectiblesController.collectibles
 });
 
 const mapDispatchToProps = dispatch => ({

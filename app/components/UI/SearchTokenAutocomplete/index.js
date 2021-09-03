@@ -67,9 +67,9 @@ export default class SearchTokenAutocomplete extends PureComponent {
 	};
 
 	addToken = async () => {
-		const { AssetsController } = Engine.context;
+		const { TokensController } = Engine.context;
 		const { address, symbol, decimals } = this.state.selectedAsset;
-		await AssetsController.addToken(address, symbol, decimals);
+		await TokensController.addToken(address, symbol, decimals);
 
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.TOKEN_ADDED, this.getAnalyticsParams());
 

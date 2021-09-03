@@ -1,7 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Confirm should render correctly 1`] = `
-<ForwardRef(SafeAreaView)
+<RNCSafeAreaView
+  edges={
+    Array [
+      "bottom",
+    ]
+  }
   style={
     Object {
       "backgroundColor": "#FFFFFF",
@@ -133,54 +138,12 @@ exports[`Confirm should render correctly 1`] = `
         upper={false}
       />
     </View>
-    <Connect(TransactionReviewFeeCard)
-      edit={[Function]}
-      fiat=""
+    <Connect(TransactionReviewEIP1559)
       gasEstimationReady={false}
-      onNonceEdit={[Function]}
+      onEdit={[Function]}
+      onUpdatingValuesEnd={[Function]}
+      onUpdatingValuesStart={[Function]}
       over={false}
-      totalFiat={
-        <Text
-          black={false}
-          blue={false}
-          bold={false}
-          centered={false}
-          disclaimer={false}
-          green={false}
-          link={false}
-          modal={false}
-          primary={false}
-          red={false}
-          reset={false}
-          right={false}
-          small={false}
-          strikethrough={false}
-          underline={false}
-          upper={false}
-        />
-      }
-      totalGasFiat=""
-      totalValue={
-        <Text
-          black={false}
-          blue={false}
-          bold={false}
-          centered={false}
-          disclaimer={false}
-          green={false}
-          link={false}
-          modal={false}
-          primary={false}
-          red={false}
-          reset={false}
-          right={false}
-          small={false}
-          strikethrough={false}
-          underline={false}
-          upper={false}
-        />
-      }
-      transactionValue=""
     />
     <View
       style={
@@ -468,5 +431,5 @@ exports[`Confirm should render correctly 1`] = `
       </View>
     </View>
   </ReactNativeModal>
-</ForwardRef(SafeAreaView)>
+</RNCSafeAreaView>
 `;

@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 
 import Text from '../Text';
 import { colors } from '../../../styles/common';

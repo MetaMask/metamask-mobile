@@ -6,7 +6,7 @@ import WebsiteIcon from '../../WebsiteIcon';
 import { strings } from '../../../../../locales/i18n';
 import IonIcon from 'react-native-vector-icons/Ionicons';
 import { colors, fontStyles } from '../../../../styles/common';
-import Device from '../../../../util/Device';
+import Device from '../../../../util/device';
 import AppConstants from '../../../../core/AppConstants';
 import { getHost } from '../../../../util/browser';
 

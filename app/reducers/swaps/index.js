@@ -56,7 +56,7 @@ export const swapsHasOnboardedSelector = createSelector(
  * Returns the swaps tokens from the state
  */
 const swapsControllerTokens = state => state.engine.backgroundState.SwapsController.tokens;
-const tokensSelectors = state => state.engine.backgroundState.AssetsController.tokens;
+const tokensSelectors = state => state.engine.backgroundState.TokensController.tokens;
 
 const swapsControllerAndUserTokens = createSelector(
 	swapsControllerTokens,
@@ -68,7 +68,7 @@ const swapsControllerAndUserTokens = createSelector(
 
 				if (!map.has(key)) {
 					map.set(key, {
-						occurances: 0,
+						occurrences: 0,
 						...token,
 						decimals: Number(token.decimals),
 						address: key

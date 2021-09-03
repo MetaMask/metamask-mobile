@@ -19,20 +19,51 @@ import {
 	isCollectibleAddress,
 	getTicker,
 	getActionKey,
-	TRANSACTION_TYPES
+	TRANSACTION_TYPES,
+	calculateEIP1559GasFeeHexes
 } from '../../../util/transactions';
 import contractMap from '@metamask/contract-metadata';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { isSwapsNativeAsset } from '../Swaps/utils';
 import { toLowerCaseEquals } from '../../../util/general';
+import { util } from '@metamask/controllers';
+const { isEIP1559Transaction } = util;
 
 const { getSwapsContractAddress } = swapsUtils;
 
-function calculateTotalGas(gas, gasPrice) {
+function calculateTotalGas(transaction) {
+	const { gas, gasPrice, estimatedBaseFee, maxPriorityFeePerGas, maxFeePerGas } = transaction;
+
+	if (isEIP1559Transaction(transaction)) {
+		const eip1559GasHex = calculateEIP1559GasFeeHexes({
+			gasLimitHex: gas,
+			estimatedBaseFeeHex: estimatedBaseFee || '0x0',
+			suggestedMaxPriorityFeePerGasHex: maxPriorityFeePerGas,
+			suggestedMaxFeePerGasHex: maxFeePerGas
+		});
+		return hexToBN(eip1559GasHex.gasFeeMinHex);
+	}
 	const gasBN = hexToBN(gas);
 	const gasPriceBN = hexToBN(gasPrice);
+
 	return isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
+}
+
+function renderGwei(transaction) {
+	const { gasPrice, estimatedBaseFee, maxFeePerGas, maxPriorityFeePerGas, gas } = transaction;
+
+	if (isEIP1559Transaction(transaction)) {
+		const eip1559GasHex = calculateEIP1559GasFeeHexes({
+			gasLimitHex: gas,
+			estimatedBaseFeeHex: estimatedBaseFee || '0x0',
+			suggestedMaxPriorityFeePerGasHex: maxPriorityFeePerGas,
+			suggestedMaxFeePerGasHex: maxFeePerGas
+		});
+
+		return renderToGwei(eip1559GasHex.estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex);
+	}
+	return renderToGwei(gasPrice);
 }
 
 function getTokenTransfer(args) {
@@ -287,7 +318,8 @@ function decodeIncomingTransfer(args) {
 async function decodeTransferTx(args) {
 	const {
 		tx: {
-			transaction: { from, gas, gasPrice, data, to },
+			transaction,
+			transaction: { from, gas, data, to },
 			transactionHash
 		}
 	} = args;
@@ -301,10 +333,9 @@ async function decodeTransferTx(args) {
 		//
 	}
 
-	const totalGas = calculateTotalGas(gas, gasPrice);
+	const totalGas = calculateTotalGas(transaction);
 	const renderGas = parseInt(gas, 16).toString();
-	const renderGasPrice = renderToGwei(gasPrice);
-
+	const renderGasPrice = renderGwei(transaction);
 	let [transactionElement, transactionDetails] = isCollectible
 		? getCollectibleTransfer({ ...args, totalGas })
 		: getTokenTransfer({ ...args, totalGas });
@@ -325,7 +356,8 @@ async function decodeTransferTx(args) {
 function decodeTransferFromTx(args) {
 	const {
 		tx: {
-			transaction: { gas, gasPrice, data, to },
+			transaction,
+			transaction: { gas, data, to },
 			transactionHash
 		},
 		collectibleContracts,
@@ -341,7 +373,7 @@ function decodeTransferFromTx(args) {
 		actionKey = `${strings('transactions.sent')} ${collectible.name}`;
 	}
 
-	const totalGas = calculateTotalGas(gas, gasPrice);
+	const totalGas = calculateTotalGas(transaction);
 	const renderCollectible = collectible?.symbol
 		? `${strings('unit.token_id')}${tokenId} ${collectible?.symbol}`
 		: `${strings('unit.token_id')}${tokenId}`;
@@ -359,7 +391,7 @@ function decodeTransferFromTx(args) {
 		transactionHash,
 		renderValue: renderCollectible,
 		renderGas: parseInt(gas, 16).toString(),
-		renderGasPrice: renderToGwei(gasPrice),
+		renderGasPrice: renderGwei(transaction),
 		renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`
 	};
 
@@ -398,7 +430,8 @@ function decodeTransferFromTx(args) {
 function decodeDeploymentTx(args) {
 	const {
 		tx: {
-			transaction: { value, gas, gasPrice, from },
+			transaction,
+			transaction: { value, gas, from },
 			transactionHash
 		},
 		conversionRate,
@@ -408,7 +441,7 @@ function decodeDeploymentTx(args) {
 	} = args;
 	const ticker = getTicker(args.ticker);
 
-	const totalGas = calculateTotalGas(gas, gasPrice);
+	const totalGas = calculateTotalGas(transaction);
 	const renderTotalEth = `${renderFromWei(totalGas)} ${ticker}`;
 	const renderTotalEthFiat = weiToFiat(totalGas, conversionRate, currentCurrency);
 	const totalEth = isBN(value) ? value.add(totalGas) : totalGas;
@@ -431,7 +464,7 @@ function decodeDeploymentTx(args) {
 		transactionHash,
 		renderValue: `${renderFromWei(value)} ${ticker}`,
 		renderGas: parseInt(gas, 16).toString(),
-		renderGasPrice: renderToGwei(gasPrice),
+		renderGasPrice: renderGwei(transaction),
 		renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`
 	};
 
@@ -459,7 +492,8 @@ function decodeDeploymentTx(args) {
 function decodeConfirmTx(args) {
 	const {
 		tx: {
-			transaction: { value, gas, gasPrice, from, to },
+			transaction,
+			transaction: { value, gas, from, to },
 			transactionHash
 		},
 		conversionRate,
@@ -474,7 +508,7 @@ function decodeConfirmTx(args) {
 	const renderTotalEth = `${renderFromWei(totalEth)} ${ticker}`;
 	const renderTotalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency);
 
-	const totalGas = calculateTotalGas(gas, gasPrice);
+	const totalGas = calculateTotalGas(transaction);
 	const totalValue = isBN(totalEth) ? totalEth.add(totalGas) : totalGas;
 
 	const renderFrom = renderFullAddress(from);
@@ -509,7 +543,7 @@ function decodeConfirmTx(args) {
 		transactionHash,
 		renderValue: `${renderFromWei(value)} ${ticker}`,
 		renderGas: parseInt(gas, 16).toString(),
-		renderGasPrice: renderToGwei(gasPrice),
+		renderGasPrice: renderGwei(transaction),
 		renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
 		transactionType
 	};
@@ -543,7 +577,8 @@ function decodeSwapsTx(args) {
 		primaryCurrency,
 		tx: {
 			id,
-			transaction: { gas, gasPrice, from, to },
+			transaction,
+			transaction: { gas, from, to },
 			transactionHash
 		},
 		tx,
@@ -551,7 +586,10 @@ function decodeSwapsTx(args) {
 		assetSymbol
 	} = args;
 	const swapTransaction = (swapsTransactions && swapsTransactions[id]) || {};
-	const totalGas = calculateTotalGas(swapTransaction.gasUsed || gas, gasPrice);
+	const totalGas = calculateTotalGas({
+		...transaction,
+		gas: swapTransaction.gasUsed || gas
+	});
 	const sourceToken = swapsTokens?.find(({ address }) => address === swapTransaction?.sourceToken?.address);
 	const destinationToken =
 		swapTransaction?.destinationToken?.swaps ||
@@ -641,7 +679,7 @@ function decodeSwapsTx(args) {
 		transactionHash,
 		renderValue: decimalSourceAmount ? `${decimalSourceAmount} ${sourceToken.symbol}` : `0 ${ticker}`,
 		renderGas: parseInt(gas, 16),
-		renderGasPrice: renderToGwei(gasPrice),
+		renderGasPrice: renderGwei(transaction),
 		renderTotalGas: `${totalEthGas} ${ticker}`
 	};
 
