@@ -2,11 +2,28 @@
 module.exports = {
 	root: true,
 	parser: 'babel-eslint',
-	extends: ['@react-native-community', 'eslint:recommended', 'plugin:import/warnings', 'plugin:react/recommended'],
+	extends: [
+		'@react-native-community',
+		'eslint:recommended',
+		'plugin:import/warnings',
+		'plugin:react/recommended',
+		'@metamask/eslint-config',
+	],
 	overrides: [
 		{
 			files: ['*.{ts,tsx}'],
 			extends: ['@metamask/eslint-config-typescript'],
+		},
+		{
+			files: ['*.js'],
+			parserOptions: {
+				sourceType: 'script',
+			},
+			extends: ['@metamask/eslint-config-nodejs'],
+		},
+		{
+			files: ['*.test.ts', '*.test.js'],
+			extends: ['@metamask/eslint-config-jest'],
 		},
 	],
 	globals: {
@@ -90,6 +107,7 @@ module.exports = {
 		'no-proto': 2,
 		'no-script-url': 2,
 		'no-self-compare': 2,
+		'no-tabs': 0,
 		'no-throw-literal': 2,
 		'no-unmodified-loop-condition': 2,
 		'no-unneeded-ternary': [
@@ -141,4 +159,5 @@ module.exports = {
 		'react/prefer-es6-class': 2,
 		radix: 0,
 	},
+	ignorePatterns: ['!.eslintrc.js', '!.prettierrc.js', 'dist/'],
 };

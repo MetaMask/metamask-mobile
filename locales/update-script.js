@@ -3,6 +3,7 @@
 /* eslint-disable import/no-commonjs */
 
 const fs = require('fs');
+
 const languagesFolder = './languages';
 const languagesToUpdateFolder = './languagesToUpdate';
 const en = require(`${languagesFolder}/en.json`);
@@ -36,8 +37,8 @@ const updateLanguage = (language) => {
 		}
 	}
 
-	fs.writeFileSync(`${languagesFolder}/${language}`, JSON.stringify(updated, null, '\t') + '\n');
-	console.log(language + ' updated!');
+	fs.writeFileSync(`${languagesFolder}/${language}`, `${JSON.stringify(updated, null, '\t')}\n`);
+	console.log(`${language} updated!`);
 };
 
 const allLanguagesToUpdateFiles = fs.readdirSync(languagesToUpdateFolder);

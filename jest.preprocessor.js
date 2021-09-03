@@ -47,8 +47,9 @@ babelRegisterOnly([]);
 
 /* $FlowFixMe(site=react_native_oss) */
 const transformer = require('metro-react-native-babel-transformer');
+
 module.exports = {
-	process(src /*: string */, file /*: string */) {
+	process(src /* : string */, file /* : string */) {
 		if (nodeFiles.test(file)) {
 			// node specific transforms only
 			return babelTransformSync(src, {

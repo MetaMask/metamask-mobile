@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // eslint-disable-next-line import/no-commonjs
 const axios = require('axios');
 
@@ -6,7 +5,7 @@ const ANDROID_APK_LINK = process.env.BITRISE_PUBLIC_INSTALL_PAGE_URL;
 const SLACK_TOKEN = process.env.MM_SLACK_TOKEN;
 const SLACK_SECRET = process.env.MM_SLACK_SECRET;
 const SLACK_ROOM = process.env.MM_SLACK_ROOM;
-const BITRISE_GIT_COMMIT = process.env.BITRISE_GIT_COMMIT;
+const { BITRISE_GIT_COMMIT } = process.env;
 const BITRISE_GIT_COMMIT_MESSAGE = process.env.BITRISE_GIT_MESSAGE;
 start().catch(console.error);
 
