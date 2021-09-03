@@ -4,10 +4,10 @@ const config = {
 	preset: 'react-native',
 	setupFiles: ['<rootDir>/app/util/testSetup.js'],
 	transform: {
-		'^.+\\.js$': '<rootDir>jest.preprocessor.js'
+		'^.+\\.js$': '<rootDir>jest.preprocessor.js',
 	},
 	transformIgnorePatterns: [
-		'node_modules/(?!(react-native|rn-fetch|redux-persist-filesystem|@react-navigation|@react-native-community|react-navigation|react-navigation-redux-helpers|@sentry))'
+		'node_modules/(?!(react-native|rn-fetch|redux-persist-filesystem|@react-navigation|@react-native-community|react-navigation|react-navigation-redux-helpers|@sentry))',
 	],
 	snapshotSerializers: ['enzyme-to-json/serializer'],
 	collectCoverage: false,
@@ -15,8 +15,8 @@ const config = {
 		'<rootDir>/app/**/*.{js,jsx}',
 		'!<rootDir>/node_modules/',
 		'!<rootDir>/app/util/*.{js,jsx}',
-		'!<rootDir>/app/entry*.js'
-	]
+		'!<rootDir>/app/entry*.js',
+	],
 };
 
 // eslint-disable-next-line import/no-commonjs

@@ -18,7 +18,7 @@ class DeeplinkManager {
 		this.pendingDeeplink = null;
 	}
 
-	setDeeplink = url => (this.pendingDeeplink = url);
+	setDeeplink = (url) => (this.pendingDeeplink = url);
 
 	getPendingDeeplink = () => this.pendingDeeplink;
 
@@ -39,7 +39,7 @@ class DeeplinkManager {
 			if (ethUrl.parameters?.value) {
 				this.navigation.navigate('SendView', {
 					screen: 'Send',
-					params: { txMeta: { ...txMeta, action: 'send-eth' } }
+					params: { txMeta: { ...txMeta, action: 'send-eth' } },
 				});
 			} else {
 				this.navigation.navigate('SendFlowView', { screen: 'SendTo', params: { txMeta } });
@@ -48,14 +48,14 @@ class DeeplinkManager {
 			const txMeta = { ...ethUrl, source: url };
 			this.navigation.navigate('SendView', {
 				screen: 'Send',
-				params: { txMeta: { ...txMeta, action: 'send-token' } }
+				params: { txMeta: { ...txMeta, action: 'send-token' } },
 			});
 		} else if (functionName === 'approve') {
 			// add approve transaction
 			const {
 				parameters: { address, uint256 },
 				target_address,
-				chain_id
+				chain_id,
 			} = ethUrl;
 			const { TransactionController, PreferencesController, NetworkController } = Engine.context;
 			if (chain_id) {
@@ -82,7 +82,7 @@ class DeeplinkManager {
 				callback(url);
 			} else {
 				this.navigation.navigate('BrowserView', {
-					newTabUrl: url
+					newTabUrl: url,
 				});
 			}
 		});
@@ -200,13 +200,13 @@ class DeeplinkManager {
 let instance = null;
 
 const SharedDeeplinkManager = {
-	init: navigation => {
+	init: (navigation) => {
 		instance = new DeeplinkManager(navigation);
 	},
 	parse: (url, args) => instance.parse(url, args),
-	setDeeplink: url => instance.setDeeplink(url),
+	setDeeplink: (url) => instance.setDeeplink(url),
 	getPendingDeeplink: () => instance.getPendingDeeplink(),
-	expireDeeplink: () => instance.expireDeeplink()
+	expireDeeplink: () => instance.expireDeeplink(),
 };
 
 export default SharedDeeplinkManager;

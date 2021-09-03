@@ -6,7 +6,7 @@
 export function saveOnboardingEvent(event) {
 	return {
 		type: 'SAVE_EVENT',
-		event
+		event,
 	};
 }
 
@@ -15,6 +15,6 @@ export function saveOnboardingEvent(event) {
  */
 export function clearOnboardingEvents() {
 	return {
-		type: 'CLEAR_EVENTS'
+		type: 'CLEAR_EVENTS',
 	};
 }

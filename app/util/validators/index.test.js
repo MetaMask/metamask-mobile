@@ -2,9 +2,7 @@ import { failedSeedPhraseRequirements, parseSeedPhrase, hasZeroWidthPoints, coll
 
 const VALID_24 =
 	'verb middle giant soon wage common wide tool gentle garlic issue nut retreat until album recall expire bronze bundle live accident expect dry cook';
-const VALID_12 = VALID_24.split(' ')
-	.splice(0, 12)
-	.join(' ');
+const VALID_12 = VALID_24.split(' ').splice(0, 12).join(' ');
 
 describe('failedSeedPhraseRequirements', () => {
 	it('Should pass for 12 word mnemonic', () => {

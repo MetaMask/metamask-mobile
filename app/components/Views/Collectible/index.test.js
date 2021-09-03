@@ -11,17 +11,17 @@ describe('Collectible', () => {
 			engine: {
 				backgroundState: {
 					CollectiblesController: {
-						collectibles: [{ address: '0x0', name: 'collectible', tokenId: 0, image: 'image' }]
-					}
-				}
+						collectibles: [{ address: '0x0', name: 'collectible', tokenId: 0, image: 'image' }],
+					},
+				},
 			},
 			modals: {
-				collectibleContractModalVisible: false
-			}
+				collectibleContractModalVisible: false,
+			},
 		};
 
 		const wrapper = shallow(<Collectible route={{ params: { address: '0x1' } }} />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});

@@ -5,11 +5,11 @@ import { colors } from '../../../../styles/common';
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
-		flex: 1
-	}
+		flex: 1,
+	},
 });
 
-const ScreenView = props => (
+const ScreenView = (props) => (
 	<SafeAreaView style={styles.wrapper}>
 		<ScrollView {...props} />
 	</SafeAreaView>

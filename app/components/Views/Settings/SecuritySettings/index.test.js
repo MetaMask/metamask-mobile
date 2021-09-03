@@ -16,13 +16,13 @@ describe('SecuritySettings', () => {
 				backgroundState: {
 					PreferencesController: { selectedAddress: '0x', identities: { '0x': { name: 'Account 1' } } },
 					AccountTrackerController: { accounts: {} },
-					KeyringController: { keyrings: [{ accounts: ['0x'], type: 'HD Key Tree' }] }
-				}
-			}
+					KeyringController: { keyrings: [{ accounts: ['0x'], type: 'HD Key Tree' }] },
+				},
+			},
 		};
 
 		const wrapper = shallow(<SecuritySettings route={{ params: {} }} />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});

@@ -10,7 +10,7 @@ export function increaseLastGasPrice(lastGasPrice) {
 		multiplyCurrencies(lastGasPrice || '0x0', 1.1, {
 			multiplicandBase: 16,
 			multiplierBase: 10,
-			toNumericBase: 'hex'
+			toNumericBase: 'hex',
 		})
 	);
 }
@@ -24,7 +24,7 @@ export function getHexGasTotal({ gasLimit, gasPrice }) {
 		multiplyCurrencies(gasLimit || '0x0', gasPrice || '0x0', {
 			toNumericBase: 'hex',
 			multiplicandBase: 16,
-			multiplierBase: 16
+			multiplierBase: 16,
 		})
 	);
 }
@@ -35,7 +35,7 @@ export function addEth(...args) {
 			toNumericBase: 'dec',
 			numberOfDecimals: 6,
 			aBase: 10,
-			bBase: 10
+			bBase: 10,
 		})
 	);
 }
@@ -46,7 +46,7 @@ export function addFiat(...args) {
 			toNumericBase: 'dec',
 			numberOfDecimals: 2,
 			aBase: 10,
-			bBase: 10
+			bBase: 10,
 		})
 	);
 }
@@ -57,7 +57,7 @@ export function getValueFromWeiHex({
 	toCurrency,
 	conversionRate,
 	numberOfDecimals,
-	toDenomination
+	toDenomination,
 }) {
 	return conversionUtil(value, {
 		fromNumericBase: 'hex',
@@ -67,7 +67,7 @@ export function getValueFromWeiHex({
 		numberOfDecimals,
 		fromDenomination: 'WEI',
 		toDenomination,
-		conversionRate
+		conversionRate,
 	});
 }
 
@@ -79,17 +79,17 @@ export function getTransactionFee({ value, fromCurrency = 'ETH', toCurrency, con
 		fromCurrency,
 		toCurrency,
 		numberOfDecimals,
-		conversionRate
+		conversionRate,
 	});
 }
 
 export function formatCurrency(value, currencyCode) {
 	const upperCaseCurrencyCode = currencyCode.toUpperCase();
 
-	return currencies.find(currency => currency.code === upperCaseCurrencyCode)
+	return currencies.find((currency) => currency.code === upperCaseCurrencyCode)
 		? currencyFormatter.format(Number(value), {
 				code: upperCaseCurrencyCode,
-				style: 'currency'
+				style: 'currency',
 				// eslint-disable-next-line no-mixed-spaces-and-tabs
 		  })
 		: `value ${upperCaseCurrencyCode}`;
@@ -105,7 +105,7 @@ export function convertTokenToFiat({ value, fromCurrency = 'ETH', toCurrency, co
 		fromCurrency,
 		toCurrency,
 		numberOfDecimals: 2,
-		conversionRate: totalExchangeRate
+		conversionRate: totalExchangeRate,
 	});
 }
 

@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
 		paddingBottom: Device.isIphoneX() ? 20 : 0,
-		minHeight: Device.isIos() ? '50%' : '60%'
+		minHeight: Device.isIos() ? '50%' : '60%',
 	},
 	title: {
 		textAlign: 'center',
@@ -26,56 +26,56 @@ const styles = StyleSheet.create({
 		marginVertical: 12,
 		marginHorizontal: 20,
 		color: colors.fontPrimary,
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	text: {
 		...fontStyles.normal,
 		fontSize: 16,
 		paddingTop: 25,
-		paddingHorizontal: 10
+		paddingHorizontal: 10,
 	},
 	tokenInformation: {
 		flexDirection: 'row',
 		marginHorizontal: 40,
 		flex: 1,
 		alignItems: 'flex-start',
-		marginVertical: 30
+		marginVertical: 30,
 	},
 	tokenInfo: {
 		flex: 1,
-		flexDirection: 'column'
+		flexDirection: 'column',
 	},
 	infoTitleWrapper: {
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	infoTitle: {
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	infoBalance: {
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	infoToken: {
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	token: {
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	identicon: {
-		paddingVertical: 10
+		paddingVertical: 10,
 	},
 	signText: {
 		...fontStyles.normal,
-		fontSize: 16
+		fontSize: 16,
 	},
 	addMessage: {
 		flexDirection: 'row',
-		margin: 20
+		margin: 20,
 	},
 	children: {
 		alignItems: 'center',
 		borderTopColor: colors.grey200,
-		borderTopWidth: 1
-	}
+		borderTopWidth: 1,
+	},
 });
 
 /**
@@ -102,14 +102,14 @@ class WatchAssetRequest extends PureComponent {
 		/**
 		 * Object containing current page title, url, and icon href
 		 */
-		currentPageInformation: PropTypes.object
+		currentPageInformation: PropTypes.object,
 	};
 
 	getAnalyticsParams = () => {
 		try {
 			const {
 				suggestedAssetMeta: { asset },
-				currentPageInformation
+				currentPageInformation,
 			} = this.props;
 
 			const { NetworkController } = Engine.context;
@@ -123,7 +123,7 @@ class WatchAssetRequest extends PureComponent {
 				dapp_url: currentPageInformation?.url,
 				network_name: type,
 				chain_id: chainId,
-				source: 'Dapp suggested (watchAsset)'
+				source: 'Dapp suggested (watchAsset)',
 			};
 		} catch (error) {
 			return {};
@@ -147,7 +147,7 @@ class WatchAssetRequest extends PureComponent {
 	render() {
 		const {
 			suggestedAssetMeta: { asset },
-			contractBalances
+			contractBalances,
 		} = this.props;
 		const balance =
 			asset.address in contractBalances
@@ -185,7 +185,7 @@ class WatchAssetRequest extends PureComponent {
 											<TokenImage
 												asset={{
 													...asset,
-													logo: asset.image
+													logo: asset.image,
 												}}
 												logoDefined
 											/>
@@ -214,8 +214,8 @@ class WatchAssetRequest extends PureComponent {
 	}
 }
 
-const mapStateToProps = state => ({
-	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances
+const mapStateToProps = (state) => ({
+	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 });
 
 export default connect(mapStateToProps)(WatchAssetRequest);

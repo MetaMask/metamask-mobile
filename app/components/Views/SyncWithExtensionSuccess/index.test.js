@@ -10,7 +10,7 @@ describe('SyncWithExtensionSuccess', () => {
 		const initialState = {};
 
 		const wrapper = shallow(<SyncWithExtensionSuccess />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper).toMatchSnapshot();
 	});

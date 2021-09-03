@@ -14,13 +14,13 @@ describe('ExperimentalSettings', () => {
 			engine: {
 				backgroundState: {
 					PreferencesController: { selectedAddress: '0x', identities: { '0x': { name: 'Account 1' } } },
-					AccountTrackerController: { accounts: {} }
-				}
-			}
+					AccountTrackerController: { accounts: {} },
+				},
+			},
 		};
 
 		const wrapper = shallow(<ExperimentalSettings route={{ params: {} }} />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});

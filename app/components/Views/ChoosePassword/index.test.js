@@ -13,19 +13,19 @@ describe('ChoosePassword', () => {
 		const initialState = {
 			user: {
 				passwordSet: true,
-				seedphraseBackedUp: false
+				seedphraseBackedUp: false,
 			},
 			engine: {
 				backgroundState: {
 					PreferencesController: {
-						selectedAddress: '0xe7E125654064EEa56229f273dA586F10DF96B0a1'
-					}
-				}
-			}
+						selectedAddress: '0xe7E125654064EEa56229f273dA586F10DF96B0a1',
+					},
+				},
+			},
 		};
 
 		const wrapper = shallow(<ChoosePassword route={{ params: [ONBOARDING, PROTECT] }} />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});

@@ -1,13 +1,13 @@
 export function addBookmark(bookmark) {
 	return {
 		type: 'ADD_BOOKMARK',
-		bookmark
+		bookmark,
 	};
 }
 
 export function removeBookmark(bookmark) {
 	return {
 		type: 'REMOVE_BOOKMARK',
-		bookmark
+		bookmark,
 	};
 }

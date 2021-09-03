@@ -17,39 +17,39 @@ const styles = StyleSheet.create({
 		return {
 			flex: 0,
 			borderRadius: 12,
-			backgroundColor: `#${backgroundColor}`
+			backgroundColor: `#${backgroundColor}`,
 		};
 	},
 	tinyImage: {
 		width: 32,
-		height: 32
+		height: 32,
 	},
 	smallImage: {
 		width: 50,
-		height: 50
+		height: 50,
 	},
 	bigImage: {
 		height: 260,
-		width: 260
+		width: 260,
 	},
 	cover: {
-		height: scaling.scale(Device.getDeviceWidth() - MEDIA_WIDTH_MARGIN, { baseModel: 2 })
+		height: scaling.scale(Device.getDeviceWidth() - MEDIA_WIDTH_MARGIN, { baseModel: 2 }),
 	},
 	image: {
-		borderRadius: 12
+		borderRadius: 12,
 	},
 	textContainer: {
 		alignItems: 'center',
 		justifyContent: 'center',
 		backgroundColor: colors.grey100,
-		borderRadius: 8
+		borderRadius: 8,
 	},
 	textWrapper: {
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	mediaPlayer: {
-		minHeight: 10
-	}
+		minHeight: 10,
+	},
 });
 
 /**
@@ -94,7 +94,7 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 						small && styles.smallImage,
 						big && styles.bigImage,
 						cover && styles.cover,
-						style
+						style,
 					]}
 					onError={fallback}
 				/>
@@ -108,7 +108,7 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 					tiny && styles.tinyImage,
 					small && styles.smallImage,
 					big && styles.bigImage,
-					cover && styles.cover
+					cover && styles.cover,
 				]}
 			>
 				<Text big={big} small={tiny || small} style={styles.textWrapper}>{`${collectible.name || ''} #${
@@ -153,5 +153,5 @@ CollectibleMedia.propTypes = {
 	/**
 	 * On close callback
 	 */
-	onClose: PropTypes.func
+	onClose: PropTypes.func,
 };

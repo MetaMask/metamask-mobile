@@ -8,7 +8,7 @@ const noop = () => {};
 export default class PortDuplexStream extends Duplex {
 	constructor(port, url) {
 		super({
-			objectMode: true
+			objectMode: true,
 		});
 		this._port = port;
 		this._url = url;
@@ -23,7 +23,7 @@ export default class PortDuplexStream extends Duplex {
 	 * @private
 	 * @param {Object} msg - Payload from the onMessage listener of Port
 	 */
-	_onMessage = function(msg) {
+	_onMessage = function (msg) {
 		if (Buffer.isBuffer(msg)) {
 			delete msg._isBuffer;
 			const data = new Buffer(msg);
@@ -39,7 +39,7 @@ export default class PortDuplexStream extends Duplex {
 	 *
 	 * @private
 	 */
-	_onDisconnect = function() {
+	_onDisconnect = function () {
 		this.destroy && this.destroy();
 	};
 
@@ -57,7 +57,7 @@ export default class PortDuplexStream extends Duplex {
 	 * @param {string} encoding Encoding to use when writing payload
 	 * @param {Function} cb Called when writing is complete or an error occurs
 	 */
-	_write = function(msg, encoding, cb) {
+	_write = function (msg, encoding, cb) {
 		try {
 			if (Buffer.isBuffer(msg)) {
 				const data = msg.toJSON();

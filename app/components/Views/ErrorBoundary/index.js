@@ -14,25 +14,25 @@ const metamaskErrorImage = require('../../../images/metamask-error.png');
 
 const styles = StyleSheet.create({
 	container: {
-		flex: 1
+		flex: 1,
 	},
 	content: {
 		paddingHorizontal: 24,
-		flex: 1
+		flex: 1,
 	},
 	header: {
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	errorImage: {
 		width: 50,
 		height: 50,
-		marginTop: 24
+		marginTop: 24,
 	},
 	title: {
 		color: colors.black,
 		fontSize: 24,
 		lineHeight: 34,
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	subtitle: {
 		fontSize: 14,
@@ -40,19 +40,19 @@ const styles = StyleSheet.create({
 		color: colors.grey500,
 		marginTop: 8,
 		textAlign: 'center',
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	errorContainer: {
 		backgroundColor: colors.red000,
 		borderRadius: 8,
-		marginTop: 24
+		marginTop: 24,
 	},
 	error: {
 		color: colors.black,
 		padding: 8,
 		fontSize: 14,
 		lineHeight: 20,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	button: {
 		marginTop: 24,
@@ -60,37 +60,37 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderRadius: 50,
 		padding: 12,
-		paddingHorizontal: 34
+		paddingHorizontal: 34,
 	},
 	buttonText: {
 		color: colors.blue,
 		textAlign: 'center',
 		...fontStyles.normal,
-		fontWeight: '500'
+		fontWeight: '500',
 	},
 	textContainer: {
-		marginTop: 24
+		marginTop: 24,
 	},
 	text: {
 		color: colors.black,
 		fontSize: 14,
 		lineHeight: 20,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	link: {
-		color: colors.blue
+		color: colors.blue,
 	},
 	reportTextContainer: {
 		paddingLeft: 14,
 		marginTop: 16,
-		marginBottom: 24
+		marginBottom: 24,
 	},
 	reportStep: {
-		marginTop: 14
-	}
+		marginTop: 14,
+	},
 });
 
-const Fallback = props => (
+const Fallback = (props) => (
 	<SafeAreaView style={styles.container}>
 		<ScrollView style={styles.content}>
 			<View style={styles.header}>
@@ -157,7 +157,7 @@ Fallback.propTypes = {
 	resetError: PropTypes.func,
 	showExportSeedphrase: PropTypes.func,
 	copyErrorToClipboard: PropTypes.func,
-	openTicket: PropTypes.func
+	openTicket: PropTypes.func,
 };
 
 class ErrorBoundary extends Component {
@@ -165,7 +165,7 @@ class ErrorBoundary extends Component {
 
 	static propTypes = {
 		children: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node), PropTypes.node]),
-		view: PropTypes.string.isRequired
+		view: PropTypes.string.isRequired,
 	};
 
 	static getDerivedStateFromError(error) {
@@ -193,7 +193,7 @@ class ErrorBoundary extends Component {
 	copyErrorToClipboard = async () => {
 		await Clipboard.setString(this.getErrorMessage());
 		Alert.alert(strings('error_screen.copied_clipboard'), '', [{ text: strings('error_screen.ok') }], {
-			cancelable: true
+			cancelable: true,
 		});
 	};
 

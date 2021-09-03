@@ -11,22 +11,22 @@ const styles = StyleSheet.create({
 		display: 'flex',
 		flexDirection: 'row',
 		justifyContent: 'space-around',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	labels: {
 		display: 'flex',
 		flexDirection: 'row',
 		justifyContent: 'space-around',
-		alignItems: 'flex-start'
+		alignItems: 'flex-start',
 	},
 	option: {
 		width: OPTION_WIDTH,
 		display: 'flex',
 		alignItems: 'center',
 		flex: 0,
-		flexDirection: 'column'
+		flexDirection: 'column',
 	},
-	circle: size => ({
+	circle: (size) => ({
 		width: size,
 		height: size,
 		flexShrink: 0,
@@ -36,27 +36,27 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		borderWidth: 2,
 		borderRadius: 9999,
-		borderColor: colors.grey200
+		borderColor: colors.grey200,
 	}),
 	circleSelected: {
-		borderColor: colors.blue
+		borderColor: colors.blue,
 	},
 	circleError: {
-		borderColor: colors.red
+		borderColor: colors.red,
 	},
 	circleDisabled: {
-		opacity: 0.4
+		opacity: 0.4,
 	},
-	innerCircle: size => ({
+	innerCircle: (size) => ({
 		width: size * INNER_CIRCLE_SCALE,
 		height: size * INNER_CIRCLE_SCALE,
 		flexShrink: 0,
 		flexGrow: 0,
 		backgroundColor: colors.blue,
-		borderRadius: 999
+		borderRadius: 999,
 	}),
 	innerCircleError: {
-		backgroundColor: colors.red
+		backgroundColor: colors.red,
 	},
 	verticalLine: {
 		marginTop: 2,
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
 		width: 0,
 		height: 4,
 		borderLeftWidth: 1,
-		borderColor: colors.grey200
+		borderColor: colors.grey200,
 	},
 	topVerticalLine: {
 		marginTop: 0,
@@ -72,33 +72,33 @@ const styles = StyleSheet.create({
 		width: 0,
 		height: 4,
 		borderLeftWidth: 1,
-		borderColor: colors.blue
+		borderColor: colors.blue,
 	},
 	line: {
 		alignItems: 'center',
 		flexDirection: 'row',
 		justifyContent: 'space-around',
 		width: '100%',
-		marginBottom: 2
+		marginBottom: 2,
 	},
 	lineHolder: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		borderWidth: 0
+		borderWidth: 0,
 	},
 	lineFill: {
-		flex: 1
+		flex: 1,
 	},
 	lineVisible: {
 		borderTopWidth: 1,
-		borderColor: colors.grey200
+		borderColor: colors.grey200,
 	},
 	circleHitSlop: {
 		top: 0,
 		bottom: 20,
 		left: 0,
-		right: 0
-	}
+		right: 0,
+	},
 });
 
 function Circle({ size = 22, selected, disabled, error }) {
@@ -108,7 +108,7 @@ function Circle({ size = 22, selected, disabled, error }) {
 				styles.circle(size),
 				selected && styles.circleSelected,
 				selected && error && styles.circleError,
-				disabled && styles.circleDisabled
+				disabled && styles.circleDisabled,
 			]}
 		>
 			{selected && (
@@ -116,7 +116,7 @@ function Circle({ size = 22, selected, disabled, error }) {
 					style={[
 						styles.innerCircle(size),
 						selected && error && styles.innerCircleError,
-						{ width: size * INNER_CIRCLE_SCALE, height: size * INNER_CIRCLE_SCALE }
+						{ width: size * INNER_CIRCLE_SCALE, height: size * INNER_CIRCLE_SCALE },
 					]}
 				/>
 			)}
@@ -127,7 +127,7 @@ Circle.propTypes = {
 	size: PropTypes.number,
 	selected: PropTypes.bool,
 	disabled: PropTypes.bool,
-	error: PropTypes.bool
+	error: PropTypes.bool,
 };
 
 function Option({ onPress, name, ...props }) {
@@ -137,16 +137,16 @@ function Option({ onPress, name, ...props }) {
 
 Option.propTypes = {
 	onPress: PropTypes.func,
-	name: PropTypes.string
+	name: PropTypes.string,
 };
 
 function HorizontalSelector({ options = [], selected, circleSize, onPress, disabled, ...props }) {
-	const hasTopLabels = useMemo(() => options.some(option => option.topLabel), [options]);
+	const hasTopLabels = useMemo(() => options.some((option) => option.topLabel), [options]);
 	return (
 		<View {...props}>
 			{hasTopLabels && (
 				<View style={styles.selector}>
-					{options.map(option =>
+					{options.map((option) =>
 						option.topLabel ? (
 							<View key={option.name} style={styles.option}>
 								{typeof option.topLabel === 'string' ? (
@@ -167,7 +167,7 @@ function HorizontalSelector({ options = [], selected, circleSize, onPress, disab
 				</View>
 			)}
 			<View style={styles.selector}>
-				{options.map(option => (
+				{options.map((option) => (
 					<Option
 						key={option.name}
 						onPress={onPress}
@@ -199,7 +199,7 @@ function HorizontalSelector({ options = [], selected, circleSize, onPress, disab
 				))}
 			</View>
 			<View style={styles.labels}>
-				{options.map(option => (
+				{options.map((option) => (
 					<Option
 						key={option.name}
 						onPress={onPress}
@@ -247,7 +247,7 @@ HorizontalSelector.propTypes = {
 			/**
 			 * Boolean value to determine if the option should represent an error
 			 */
-			error: PropTypes.bool
+			error: PropTypes.bool,
 		})
 	),
 	/**
@@ -265,7 +265,7 @@ HorizontalSelector.propTypes = {
 	/**
 	 * Current option name selected
 	 */
-	selected: PropTypes.string
+	selected: PropTypes.string,
 };
 
 export default HorizontalSelector;

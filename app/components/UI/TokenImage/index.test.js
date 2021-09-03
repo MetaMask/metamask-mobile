@@ -11,16 +11,16 @@ describe('TokenImage', () => {
 			engine: {
 				backgroundState: {
 					SwapsController: {
-						tokens: []
-					}
-				}
+						tokens: [],
+					},
+				},
 			},
 			settings: {
-				primaryCurrency: 'usd'
-			}
+				primaryCurrency: 'usd',
+			},
 		};
 		const wrapper = shallow(<TokenImage asset={{ address: '0x123', symbol: 'ABC', decimals: 18 }} />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});

@@ -20,7 +20,7 @@ import {
 	getActiveTabUrl,
 	getMethodData,
 	decodeApproveData,
-	generateApproveData
+	generateApproveData,
 } from '../../../util/transactions';
 import { showAlert } from '../../../actions/alert';
 import Analytics from '../../../core/Analytics';
@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
 	section: {
 		minWidth: '100%',
 		width: '100%',
-		paddingVertical: 10
+		paddingVertical: 10,
 	},
 	title: {
 		...fontStyles.bold,
@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
 		color: colors.black,
 		lineHeight: 34,
 		marginVertical: 16,
-		paddingHorizontal: 16
+		paddingHorizontal: 16,
 	},
 	explanation: {
 		...fontStyles.normal,
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		color: colors.black,
 		lineHeight: 20,
-		paddingHorizontal: 16
+		paddingHorizontal: 16,
 	},
 	editPermissionText: {
 		...fontStyles.bold,
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
 		borderRadius: 20,
 		borderColor: colors.blue,
 		paddingVertical: 8,
-		paddingHorizontal: 16
+		paddingHorizontal: 16,
 	},
 	viewDetailsText: {
 		...fontStyles.normal,
@@ -85,11 +85,11 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		lineHeight: 16,
 		marginTop: 8,
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	actionTouchable: {
 		flexDirection: 'column',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	errorWrapper: {
 		marginTop: 12,
@@ -100,28 +100,28 @@ const styles = StyleSheet.create({
 		borderRadius: 8,
 		borderWidth: 1,
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	error: {
 		color: colors.red,
 		fontSize: 12,
 		lineHeight: 16,
 		...fontStyles.normal,
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	underline: {
 		textDecorationLine: 'underline',
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	actionViewWrapper: {
-		height: Device.isMediumDevice() ? 200 : 350
+		height: Device.isMediumDevice() ? 200 : 350,
 	},
 	actionViewChildren: {
-		height: 300
+		height: 300,
 	},
 	paddingHorizontal: {
-		paddingHorizontal: 16
-	}
+		paddingHorizontal: 16,
+	},
 });
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
@@ -240,7 +240,7 @@ class ApproveTransactionReview extends PureComponent {
 		/**
 		 * If the gas estimations are ready
 		 */
-		gasEstimationReady: PropTypes.bool
+		gasEstimationReady: PropTypes.bool,
 	};
 
 	state = {
@@ -258,7 +258,7 @@ class ApproveTransactionReview extends PureComponent {
 		spenderAddress: '0x...',
 		transaction: this.props.transaction,
 		token: {},
-		showGasTooltip: false
+		showGasTooltip: false,
 	};
 
 	customSpendLimitInput = React.createRef();
@@ -267,7 +267,7 @@ class ApproveTransactionReview extends PureComponent {
 	componentDidMount = async () => {
 		const {
 			transaction: { origin, to, gas, gasPrice, data },
-			conversionRate
+			conversionRate,
 		} = this.props;
 		const { AssetsContractController } = Engine.context;
 		const host = getHost(this.originIsWalletConnect ? origin.split(WALLET_CONNECT_ORIGIN)[1] : origin);
@@ -300,7 +300,7 @@ class ApproveTransactionReview extends PureComponent {
 				totalGas: renderFromWei(totalGas),
 				totalGasFiat: weiToFiatNumber(totalGas, conversionRate),
 				spenderAddress,
-				encodedAmount
+				encodedAmount,
 			},
 			() => {
 				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_STARTED, this.getAnalyticsParams());
@@ -311,7 +311,7 @@ class ApproveTransactionReview extends PureComponent {
 	componentDidUpdate(previousProps) {
 		const {
 			transaction: { gas, gasPrice },
-			conversionRate
+			conversionRate,
 		} = this.props;
 		const totalGas = gas?.mul(gasPrice);
 		if (
@@ -321,7 +321,7 @@ class ApproveTransactionReview extends PureComponent {
 			// eslint-disable-next-line react/no-did-update-set-state
 			this.setState({
 				totalGas: renderFromWei(totalGas),
-				totalGasFiat: weiToFiatNumber(totalGas, conversionRate)
+				totalGasFiat: weiToFiatNumber(totalGas, conversionRate),
 			});
 		}
 	}
@@ -342,7 +342,7 @@ class ApproveTransactionReview extends PureComponent {
 				active_currency: { value: tokenSymbol, anonymous: true },
 				number_tokens_requested: { value: originalApproveAmount, anonymous: true },
 				unlimited_permission_requested: unlimited,
-				referral_type: isDapp ? 'dapp' : transaction?.origin
+				referral_type: isDapp ? 'dapp' : transaction?.origin,
 			};
 			// Send analytics params to parent component so it's available when cancelling and confirming
 			onSetAnalyticsParams && onSetAnalyticsParams(params);
@@ -353,14 +353,14 @@ class ApproveTransactionReview extends PureComponent {
 		}
 	};
 
-	trackApproveEvent = event => {
+	trackApproveEvent = (event) => {
 		const { transaction, tokensLength, accountsLength, providerType } = this.props;
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEventWithParameters(event, {
 				view: transaction.origin,
 				numberOfTokens: tokensLength,
 				numberOfAccounts: accountsLength,
-				network: providerType
+				network: providerType,
 			});
 		});
 	};
@@ -397,7 +397,7 @@ class ApproveTransactionReview extends PureComponent {
 		);
 	};
 
-	onSpendLimitCustomValueChange = value => {
+	onSpendLimitCustomValueChange = (value) => {
 		this.setState({ spendLimitCustomValue: value });
 	};
 
@@ -408,7 +408,7 @@ class ApproveTransactionReview extends PureComponent {
 			isVisible: true,
 			autodismiss: 1500,
 			content: 'clipboard-alert',
-			data: { msg: strings('transactions.address_copied_to_clipboard') }
+			data: { msg: strings('transactions.address_copied_to_clipboard') },
 		});
 	};
 
@@ -425,7 +425,7 @@ class ApproveTransactionReview extends PureComponent {
 			spendLimitUnlimitedSelected,
 			originalApproveAmount,
 			spendLimitCustomValue,
-			transaction
+			transaction,
 		} = this.state;
 
 		try {
@@ -436,7 +436,7 @@ class ApproveTransactionReview extends PureComponent {
 
 			const approvalData = generateApproveData({
 				spender: spenderAddress,
-				value: Number(uint).toString(16)
+				value: Number(uint).toString(16),
 			});
 			const newApprovalTransaction = { ...transaction, data: approvalData };
 			setTransactionObject(newApprovalTransaction);
@@ -450,7 +450,7 @@ class ApproveTransactionReview extends PureComponent {
 	openLinkAboutGas = () =>
 		Linking.openURL('https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172');
 
-	toggleGasTooltip = () => this.setState(state => ({ showGasTooltip: !state.showGasTooltip }));
+	toggleGasTooltip = () => this.setState((state) => ({ showGasTooltip: !state.showGasTooltip }));
 
 	renderGasTooltip = () => {
 		const isMainnet = isMainnetByChainId(this.props.chainId);
@@ -481,13 +481,8 @@ class ApproveTransactionReview extends PureComponent {
 	};
 
 	renderEditPermission = () => {
-		const {
-			host,
-			spendLimitUnlimitedSelected,
-			tokenSymbol,
-			spendLimitCustomValue,
-			originalApproveAmount
-		} = this.state;
+		const { host, spendLimitUnlimitedSelected, tokenSymbol, spendLimitCustomValue, originalApproveAmount } =
+			this.state;
 
 		const _spendLimitCustomValue = spendLimitCustomValue ?? MINIMUM_VALUE;
 
@@ -525,7 +520,7 @@ class ApproveTransactionReview extends PureComponent {
 			onUpdatingValuesEnd,
 			animateOnChange,
 			isAnimating,
-			gasEstimationReady
+			gasEstimationReady,
 		} = this.props;
 		const is_main_net = isMainNet(network);
 		const originIsDeeplink = origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
@@ -671,7 +666,7 @@ class ApproveTransactionReview extends PureComponent {
 			originalApproveAmount,
 			spendLimitUnlimitedSelected,
 			spendLimitCustomValue,
-			transaction: { to, data }
+			transaction: { to, data },
 		} = this.state;
 		const allowance = (!spendLimitUnlimitedSelected && spendLimitCustomValue) || originalApproveAmount;
 		return (
@@ -715,7 +710,7 @@ class ApproveTransactionReview extends PureComponent {
 		InteractionManager.runAfterInteractions(() => {
 			this.onCancelPress();
 			this.props.navigation.navigate('BrowserView', {
-				newTabUrl: mmFaucetUrl
+				newTabUrl: mmFaucetUrl,
 			});
 		});
 	};
@@ -735,7 +730,7 @@ class ApproveTransactionReview extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
@@ -746,15 +741,12 @@ const mapStateToProps = state => ({
 	primaryCurrency: state.settings.primaryCurrency,
 	activeTabUrl: getActiveTabUrl(state),
 	network: state.engine.backgroundState.NetworkController.network,
-	chainId: state.engine.backgroundState.NetworkController.provider.chainId
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 });
 
-const mapDispatchToProps = dispatch => ({
-	setTransactionObject: transaction => dispatch(setTransactionObject(transaction)),
-	showAlert: config => dispatch(showAlert(config))
+const mapDispatchToProps = (dispatch) => ({
+	setTransactionObject: (transaction) => dispatch(setTransactionObject(transaction)),
+	showAlert: (config) => dispatch(showAlert(config)),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(withNavigation(ApproveTransactionReview));
+export default connect(mapStateToProps, mapDispatchToProps)(withNavigation(ApproveTransactionReview));

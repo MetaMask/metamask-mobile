@@ -15,48 +15,48 @@ const styles = StyleSheet.create({
 	wrapper: {
 		marginTop: 24,
 		marginHorizontal: 24,
-		flex: 1
+		flex: 1,
 	},
 	title: {
 		...fontStyles.bold,
 		color: colors.black,
 		textAlign: 'center',
 		fontSize: 20,
-		flex: 1
+		flex: 1,
 	},
 	imageWrapper: { flexDirection: 'column', alignItems: 'center', marginBottom: 12, marginTop: 30 },
 	image: {
 		width: scaling.scale(135, { baseModel: 1 }),
-		height: scaling.scale(160, { baseModel: 1 })
+		height: scaling.scale(160, { baseModel: 1 }),
 	},
 	text: {
 		...fontStyles.normal,
 		color: colors.black,
 		textAlign: 'center',
 		fontSize: 14,
-		marginBottom: 24
+		marginBottom: 24,
 	},
 	closeIcon: {
-		padding: 5
+		padding: 5,
 	},
 	learnMoreText: {
 		textAlign: 'center',
 		...fontStyles.normal,
 		color: colors.blue,
 		marginBottom: 14,
-		fontSize: 14
+		fontSize: 14,
 	},
 	modalXIcon: {
-		fontSize: 16
+		fontSize: 16,
 	},
 	titleWrapper: {
 		flexDirection: 'row',
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	auxCenter: {
-		width: 26
-	}
+		width: 26,
+	},
 });
 
 /**
@@ -76,7 +76,7 @@ class ProtectYourWalletModal extends PureComponent {
 		/**
 		 * Boolean that determines if the user has set a password before
 		 */
-		passwordSet: PropTypes.bool
+		passwordSet: PropTypes.bool,
 	};
 
 	goToBackupFlow = () => {
@@ -93,8 +93,8 @@ class ProtectYourWalletModal extends PureComponent {
 			screen: 'SimpleWebview',
 			params: {
 				url: 'https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-Tips',
-				title: strings('protect_wallet_modal.title')
-			}
+				title: strings('protect_wallet_modal.title'),
+			},
 		});
 	};
 
@@ -141,16 +141,13 @@ class ProtectYourWalletModal extends PureComponent {
 	}
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	protectWalletModalVisible: state.user.protectWalletModalVisible,
-	passwordSet: state.user.passwordSet
+	passwordSet: state.user.passwordSet,
 });
 
-const mapDispatchToProps = dispatch => ({
-	protectWalletModalNotVisible: enable => dispatch(protectWalletModalNotVisible())
+const mapDispatchToProps = (dispatch) => ({
+	protectWalletModalNotVisible: (enable) => dispatch(protectWalletModalNotVisible()),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(ProtectYourWalletModal);
+export default connect(mapStateToProps, mapDispatchToProps)(ProtectYourWalletModal);

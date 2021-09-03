@@ -10,43 +10,43 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'center',
 		marginHorizontal: 24,
-		paddingVertical: 24
+		paddingVertical: 24,
 	},
 	feeWrapper: {
 		backgroundColor: colors.grey000,
 		textAlign: 'center',
 		padding: 16,
-		borderRadius: 8
+		borderRadius: 8,
 	},
 	fee: {
 		...fontStyles.bold,
 		fontSize: 16,
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	modalText: {
 		...fontStyles.normal,
 		fontSize: 14,
 		textAlign: 'center',
-		paddingVertical: 8
+		paddingVertical: 8,
 	},
 	modalTitle: {
 		...fontStyles.bold,
 		fontSize: 22,
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	gasTitle: {
 		...fontStyles.bold,
 		fontSize: 16,
 		textAlign: 'center',
-		marginVertical: 8
+		marginVertical: 8,
 	},
 	warningText: {
 		...fontStyles.normal,
 		fontSize: 12,
 		color: colors.red,
 		paddingVertical: 8,
-		textAlign: 'center'
-	}
+		textAlign: 'center',
+	},
 });
 
 /**
@@ -57,7 +57,7 @@ export default function TransactionActionContent({
 	feeText,
 	titleText,
 	gasTitleText,
-	descriptionText
+	descriptionText,
 }) {
 	return (
 		<View style={styles.modalView}>
@@ -79,7 +79,7 @@ TransactionActionContent.defaultProps = {
 	confirmText: strings('action_view.confirm'),
 	confirmDisabled: false,
 	displayCancelButton: true,
-	displayConfirmButton: true
+	displayConfirmButton: true,
 };
 
 TransactionActionContent.propTypes = {
@@ -102,5 +102,5 @@ TransactionActionContent.propTypes = {
 	/**
 	 * Text to show as description
 	 */
-	descriptionText: PropTypes.string
+	descriptionText: PropTypes.string,
 };

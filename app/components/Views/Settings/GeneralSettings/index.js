@@ -13,7 +13,7 @@ import {
 	setSearchEngine,
 	setPrimaryCurrency,
 	setUseBlockieIcon,
-	setHideZeroBalanceTokens
+	setHideZeroBalanceTokens,
 } from '../../../../actions/settings';
 import PickComponent from '../../PickComponent';
 import { toDataUrl } from '../../../../util/blockies.js';
@@ -30,7 +30,7 @@ const sortedCurrencies = infuraCurrencies.objects.sort((a, b) =>
 const infuraCurrencyOptions = sortedCurrencies.map(({ quote: { code, name } }) => ({
 	label: `${code.toUpperCase()} - ${name}`,
 	key: code,
-	value: code
+	value: code,
 }));
 
 const styles = StyleSheet.create({
@@ -38,61 +38,61 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		flex: 1,
 		padding: 24,
-		zIndex: 99999999999999
+		zIndex: 99999999999999,
 	},
 	title: {
 		...fontStyles.normal,
 		color: colors.fontPrimary,
 		fontSize: 20,
-		lineHeight: 20
+		lineHeight: 20,
 	},
 	desc: {
 		...fontStyles.normal,
 		color: colors.grey500,
 		fontSize: 14,
 		lineHeight: 20,
-		marginTop: 12
+		marginTop: 12,
 	},
 	marginTop: {
-		marginTop: 18
+		marginTop: 18,
 	},
 	picker: {
 		borderColor: colors.grey200,
 		borderRadius: 5,
 		borderWidth: 2,
-		marginTop: 16
+		marginTop: 16,
 	},
 	simplePicker: {
-		marginTop: 16
+		marginTop: 16,
 	},
 	setting: {
-		marginTop: 50
+		marginTop: 50,
 	},
 	firstSetting: {
-		marginTop: 0
+		marginTop: 0,
 	},
 	inner: {
-		paddingBottom: 48
+		paddingBottom: 48,
 	},
 	identicon_container: {
 		marginVertical: 16,
 		display: 'flex',
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	identicon_row: {
 		width: '50%',
 		alignItems: 'center',
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	identicon_type: {
 		...fontStyles.bold,
 		fontSize: 14,
-		marginHorizontal: 10
+		marginHorizontal: 10,
 	},
 	blockie: {
 		height: diameter,
 		width: diameter,
-		borderRadius: diameter / 2
+		borderRadius: diameter / 2,
 	},
 	border: {
 		height: diameter + spacing,
@@ -102,14 +102,14 @@ const styles = StyleSheet.create({
 		borderWidth: 2,
 		borderColor: colors.white,
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	selected: {
-		borderColor: colors.blue
+		borderColor: colors.blue,
 	},
 	selected_text: {
-		color: colors.black
-	}
+		color: colors.black,
+	},
 });
 
 /**
@@ -160,7 +160,7 @@ class Settings extends PureComponent {
 		/**
 		 * Called to toggle zero balance token display
 		 */
-		setHideZeroBalanceTokens: PropTypes.func
+		setHideZeroBalanceTokens: PropTypes.func,
 	};
 
 	static navigationOptions = ({ navigation }) =>
@@ -168,44 +168,44 @@ class Settings extends PureComponent {
 
 	state = {
 		currentLanguage: I18n.locale.substr(0, 2),
-		languages: {}
+		languages: {},
 	};
 
-	selectCurrency = async currency => {
+	selectCurrency = async (currency) => {
 		const { CurrencyRateController } = Engine.context;
 		CurrencyRateController.setCurrentCurrency(currency);
 	};
 
-	selectLanguage = language => {
+	selectLanguage = (language) => {
 		if (language === this.state.currentLanguage) return;
 		setLocale(language);
 		this.setState({ currentLanguage: language });
 		setTimeout(() => this.props.navigation.navigate('Home'), 100);
 	};
 
-	selectSearchEngine = searchEngine => {
+	selectSearchEngine = (searchEngine) => {
 		this.props.setSearchEngine(searchEngine);
 	};
 
-	selectPrimaryCurrency = primaryCurrency => {
+	selectPrimaryCurrency = (primaryCurrency) => {
 		this.props.setPrimaryCurrency(primaryCurrency);
 	};
 
-	toggleHideZeroBalanceTokens = toggleHideZeroBalanceTokens => {
+	toggleHideZeroBalanceTokens = (toggleHideZeroBalanceTokens) => {
 		this.props.setHideZeroBalanceTokens(toggleHideZeroBalanceTokens);
 	};
 
 	componentDidMount = () => {
 		const languages = getLanguages();
 		this.setState({ languages });
-		this.languageOptions = Object.keys(languages).map(key => ({ value: key, label: languages[key], key }));
+		this.languageOptions = Object.keys(languages).map((key) => ({ value: key, label: languages[key], key }));
 		this.searchEngineOptions = [
 			{ value: 'DuckDuckGo', label: 'DuckDuckGo', key: 'DuckDuckGo' },
-			{ value: 'Google', label: 'Google', key: 'Google' }
+			{ value: 'Google', label: 'Google', key: 'Google' },
 		];
 		this.primaryCurrencyOptions = [
 			{ value: 'ETH', label: strings('app_settings.primary_currency_text_first'), key: 'Native' },
-			{ value: 'Fiat', label: strings('app_settings.primary_currency_text_second'), key: 'Fiat' }
+			{ value: 'Fiat', label: strings('app_settings.primary_currency_text_second'), key: 'Fiat' },
 		];
 	};
 
@@ -216,7 +216,7 @@ class Settings extends PureComponent {
 			useBlockieIcon,
 			setUseBlockieIcon,
 			selectedAddress,
-			hideZeroBalanceTokens
+			hideZeroBalanceTokens,
 		} = this.props;
 		return (
 			<ScrollView style={styles.wrapper}>
@@ -317,23 +317,20 @@ class Settings extends PureComponent {
 	}
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	searchEngine: state.settings.searchEngine,
 	primaryCurrency: state.settings.primaryCurrency,
 	useBlockieIcon: state.settings.useBlockieIcon,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	hideZeroBalanceTokens: state.settings.hideZeroBalanceTokens
+	hideZeroBalanceTokens: state.settings.hideZeroBalanceTokens,
 });
 
-const mapDispatchToProps = dispatch => ({
-	setSearchEngine: searchEngine => dispatch(setSearchEngine(searchEngine)),
-	setPrimaryCurrency: primaryCurrency => dispatch(setPrimaryCurrency(primaryCurrency)),
-	setUseBlockieIcon: useBlockieIcon => dispatch(setUseBlockieIcon(useBlockieIcon)),
-	setHideZeroBalanceTokens: hideZeroBalanceTokens => dispatch(setHideZeroBalanceTokens(hideZeroBalanceTokens))
+const mapDispatchToProps = (dispatch) => ({
+	setSearchEngine: (searchEngine) => dispatch(setSearchEngine(searchEngine)),
+	setPrimaryCurrency: (primaryCurrency) => dispatch(setPrimaryCurrency(primaryCurrency)),
+	setUseBlockieIcon: (useBlockieIcon) => dispatch(setUseBlockieIcon(useBlockieIcon)),
+	setHideZeroBalanceTokens: (hideZeroBalanceTokens) => dispatch(setHideZeroBalanceTokens(hideZeroBalanceTokens)),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(Settings);
+export default connect(mapStateToProps, mapDispatchToProps)(Settings);

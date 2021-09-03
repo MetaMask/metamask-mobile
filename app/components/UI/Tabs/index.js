@@ -17,43 +17,43 @@ const styles = StyleSheet.create({
 	noTabs: {
 		flex: 1,
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	noTabsTitle: {
 		...fontStyles.normal,
 		color: colors.fontPrimary,
 		fontSize: 18,
-		marginBottom: 10
+		marginBottom: 10,
 	},
 	noTabsDesc: {
 		...fontStyles.normal,
 		color: colors.fontSecondary,
-		fontSize: 14
+		fontSize: 14,
 	},
 	tabAction: {
 		flex: 1,
 		alignContent: 'center',
 		alignSelf: 'flex-start',
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 
 	tabActionleft: {
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	tabActionRight: {
 		justifyContent: 'center',
-		alignItems: 'flex-end'
+		alignItems: 'flex-end',
 	},
 	tabActionDone: {
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	tabActionText: {
 		color: colors.blue,
 		...fontStyles.normal,
-		fontSize: 16
+		fontSize: 16,
 	},
 	actionDisabled: {
-		color: colors.fontSecondary
+		color: colors.fontSecondary,
 	},
 	tabsView: {
 		flex: 1,
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
 		top: 0,
 		left: 0,
 		right: 0,
-		bottom: 0
+		bottom: 0,
 	},
 	tabActions: {
 		paddingHorizontal: 20,
@@ -72,20 +72,20 @@ const styles = StyleSheet.create({
 		shadowColor: colors.black,
 		shadowOffset: {
 			width: 0,
-			height: 12
+			height: 12,
 		},
 		shadowOpacity: 0.58,
 		shadowRadius: 15.0,
 		backgroundColor: colors.grey000,
-		height: Device.isIphoneX() ? 80 : 50
+		height: Device.isIphoneX() ? 80 : 50,
 	},
 	tabs: {
 		flex: 1,
-		backgroundColor: colors.transparent
+		backgroundColor: colors.transparent,
 	},
 	tabsContent: {
 		padding: 15,
-		backgroundColor: colors.transparent
+		backgroundColor: colors.transparent,
 	},
 	newTabIcon: {
 		marginTop: Device.isIos() ? 3 : 2.5,
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
 		fontSize: 24,
 		textAlign: 'center',
 		justifyContent: 'center',
-		alignContent: 'center'
+		alignContent: 'center',
 	},
 	newTabIconButton: {
 		alignSelf: 'center',
@@ -103,8 +103,8 @@ const styles = StyleSheet.create({
 		borderRadius: 100,
 		width: 30,
 		height: 30,
-		marginTop: -7
-	}
+		marginTop: -7,
+	},
 });
 
 /**
@@ -144,13 +144,13 @@ export default class Tabs extends PureComponent {
 		/**
 		 * Sets the current tab used for the animation
 		 */
-		animateCurrentTab: PropTypes.func // eslint-disable-line react/no-unused-prop-types
+		animateCurrentTab: PropTypes.func, // eslint-disable-line react/no-unused-prop-types
 	};
 
 	thumbnails = {};
 
 	state = {
-		currentTab: null
+		currentTab: null,
 	};
 
 	scrollview = React.createRef();
@@ -184,7 +184,7 @@ export default class Tabs extends PureComponent {
 	}
 
 	createTabsRef(tabs) {
-		tabs.forEach(tab => {
+		tabs.forEach((tab) => {
 			this.thumbnails[tab.id] = React.createRef();
 		});
 	}
@@ -195,7 +195,7 @@ export default class Tabs extends PureComponent {
 		}
 	}
 
-	onSwitch = async tab => {
+	onSwitch = async (tab) => {
 		this.props.switchToTab(tab);
 	};
 
@@ -210,7 +210,7 @@ export default class Tabs extends PureComponent {
 	renderTabs(tabs, activeTab) {
 		return (
 			<ScrollView style={styles.tabs} contentContainerStyle={styles.tabsContent} ref={this.scrollview}>
-				{tabs.map(tab => (
+				{tabs.map((tab) => (
 					// eslint-disable-next-line react/jsx-key
 					<TabThumbnail
 						ref={this.thumbnails[tab.id]}
@@ -249,7 +249,7 @@ export default class Tabs extends PureComponent {
 						style={[
 							styles.tabActionText,
 							styles.tabActionDone,
-							tabs.length === 0 ? styles.actionDisabled : null
+							tabs.length === 0 ? styles.actionDisabled : null,
 						]}
 					>
 						{strings('browser.tabs_done')}

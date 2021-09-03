@@ -9,7 +9,7 @@ describe('ErrorMessage', () => {
 		const initialState = {};
 
 		const wrapper = shallow(<ErrorMessage errorMessage={'error'} />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});

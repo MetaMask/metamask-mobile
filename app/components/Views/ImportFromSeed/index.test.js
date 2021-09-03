@@ -10,12 +10,12 @@ describe('ImportFromSeed', () => {
 		const initialState = {
 			user: {
 				passwordSet: true,
-				seedphraseBackedUp: false
-			}
+				seedphraseBackedUp: false,
+			},
 		};
 
 		const wrapper = shallow(<ImportFromSeed route={{ params: {} }} />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});

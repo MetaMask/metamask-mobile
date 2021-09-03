@@ -19,7 +19,7 @@ export default function TransactionActionModal({
 	gasTitleText,
 	descriptionText,
 	cancelButtonMode,
-	confirmButtonMode
+	confirmButtonMode,
 }) {
 	return (
 		<ActionModal
@@ -51,7 +51,7 @@ TransactionActionModal.defaultProps = {
 	confirmText: strings('action_view.confirm'),
 	confirmDisabled: false,
 	displayCancelButton: true,
-	displayConfirmButton: true
+	displayConfirmButton: true,
 };
 
 TransactionActionModal.propTypes = {
@@ -99,5 +99,5 @@ TransactionActionModal.propTypes = {
 	/**
 	 * Text to show as description
 	 */
-	descriptionText: PropTypes.string
+	descriptionText: PropTypes.string,
 };

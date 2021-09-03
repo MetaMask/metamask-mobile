@@ -9,7 +9,7 @@ describe('ManualBackupStep3', () => {
 		const initialState = {};
 
 		const wrapper = shallow(<ManualBackupStep3 />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper).toMatchSnapshot();
 	});

@@ -11,30 +11,30 @@ const styles = StyleSheet.create({
 		alignSelf: 'center',
 		backgroundColor: colors.white,
 		borderRadius: 16,
-		padding: 24
+		padding: 24,
 	},
 	hintHeader: {
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 		alignItems: 'center',
-		marginBottom: 16
+		marginBottom: 16,
 	},
 	recovery: {
 		fontSize: 18,
 		...fontStyles.bold,
-		color: colors.fontPrimary
+		color: colors.fontPrimary,
 	},
 	leaveHint: {
 		fontSize: 14,
 		...fontStyles.regular,
 		color: colors.fontPrimary,
-		marginBottom: 16
+		marginBottom: 16,
 	},
 	noSeedphrase: {
 		fontSize: 14,
 		...fontStyles.regular,
 		color: colors.red,
-		marginBottom: 16
+		marginBottom: 16,
 	},
 	hintInput: {
 		borderRadius: 6,
@@ -42,8 +42,8 @@ const styles = StyleSheet.create({
 		borderColor: colors.grey500,
 		padding: 16,
 		minHeight: 76,
-		paddingTop: 16
-	}
+		paddingTop: 16,
+	},
 });
 
 const HintModal = ({ onCancel, onConfirm, modalVisible, onRequestClose, value, onChangeText }) => (
@@ -84,10 +84,10 @@ const propTypes = {
 	modalVisible: PropTypes.bool.isRequired,
 	onRequestClose: PropTypes.func.isRequired,
 	value: PropTypes.string,
-	onChangeText: PropTypes.func.isRequired
+	onChangeText: PropTypes.func.isRequired,
 };
 const defaultProps = {
-	modalVisible: false
+	modalVisible: false,
 };
 
 HintModal.propTypes = propTypes;

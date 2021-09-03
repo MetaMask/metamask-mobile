@@ -19,11 +19,11 @@ const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
 		flex: 1,
-		flexDirection: 'column'
+		flexDirection: 'column',
 	},
 	scrollWrapper: {
 		flex: 1,
-		paddingVertical: 12
+		paddingVertical: 12,
 	},
 	input: {
 		...fontStyles.normal,
@@ -34,55 +34,55 @@ const styles = StyleSheet.create({
 		borderWidth: 2,
 		padding: 10,
 		flexDirection: 'row',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	resolvedInput: {
 		...fontStyles.normal,
-		fontSize: 10
+		fontSize: 10,
 	},
 	informationWrapper: {
 		flex: 1,
-		paddingHorizontal: 24
+		paddingHorizontal: 24,
 	},
 	label: {
 		fontSize: 14,
 		paddingVertical: 12,
 		color: colors.fontPrimary,
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	buttonsWrapper: {
 		marginVertical: 12,
 		flexDirection: 'row',
-		alignSelf: 'flex-end'
+		alignSelf: 'flex-end',
 	},
 	buttonsContainer: {
 		flex: 1,
 		flexDirection: 'column',
-		alignSelf: 'flex-end'
+		alignSelf: 'flex-end',
 	},
 	scanIcon: {
 		flexDirection: 'column',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	iconWrapper: {
-		alignItems: 'flex-end'
+		alignItems: 'flex-end',
 	},
 	textInput: {
 		...fontStyles.normal,
 		padding: 0,
 		paddingRight: 8,
-		color: colors.black
+		color: colors.black,
 	},
 	inputWrapper: {
 		flex: 1,
-		flexDirection: 'column'
+		flexDirection: 'column',
 	},
 	textInputDisaled: {
-		borderColor: colors.transparent
+		borderColor: colors.transparent,
 	},
 	actionButton: {
-		marginVertical: 4
-	}
+		marginVertical: 4,
+	},
 });
 
 const ADD = 'add';
@@ -115,7 +115,7 @@ class ContactForm extends PureComponent {
 		/**
 		 * Object that represents the current route info like params passed to it
 		 */
-		route: PropTypes.object
+		route: PropTypes.object,
 	};
 
 	state = {
@@ -127,7 +127,7 @@ class ContactForm extends PureComponent {
 		mode: this.props.route.params?.mode ?? ADD,
 		memo: undefined,
 		editable: true,
-		inputWidth: Platform.OS === 'android' ? '99%' : undefined
+		inputWidth: Platform.OS === 'android' ? '99%' : undefined,
 	};
 
 	actionSheet = React.createRef();
@@ -166,11 +166,11 @@ class ContactForm extends PureComponent {
 		this.actionSheet && this.actionSheet.show();
 	};
 
-	onChangeName = name => {
+	onChangeName = (name) => {
 		this.setState({ name });
 	};
 
-	checkIfAlreadySaved = address => {
+	checkIfAlreadySaved = (address) => {
 		const { addressBook, network, identities } = this.props;
 		const { mode } = this.state;
 		const networkAddressBook = addressBook[network] || {};
@@ -184,7 +184,7 @@ class ContactForm extends PureComponent {
 		return;
 	};
 
-	onChangeAddress = async address => {
+	onChangeAddress = async (address) => {
 		const { network } = this.props;
 		let addressError, toEnsName;
 		let addressReady = false;
@@ -208,7 +208,7 @@ class ContactForm extends PureComponent {
 		this.setState({ address, addressError, toEnsName, addressReady });
 	};
 
-	onChangeMemo = memo => {
+	onChangeMemo = (memo) => {
 		this.setState({ memo });
 	};
 
@@ -241,15 +241,15 @@ class ContactForm extends PureComponent {
 
 	onScan = () => {
 		this.props.navigation.navigate('QRScanner', {
-			onScanSuccess: meta => {
+			onScanSuccess: (meta) => {
 				if (meta.target_address) {
 					this.onChangeAddress(meta.target_address);
 				}
-			}
+			},
 		});
 	};
 
-	createActionSheetRef = ref => {
+	createActionSheetRef = (ref) => {
 		this.actionSheet = ref;
 	};
 
@@ -272,7 +272,7 @@ class ContactForm extends PureComponent {
 							style={[
 								styles.input,
 								inputWidth ? { width: inputWidth } : {},
-								editable ? {} : styles.textInputDisaled
+								editable ? {} : styles.textInputDisaled,
 							]}
 							value={name}
 							onSubmitEditing={this.jumpToAddressInput}
@@ -366,7 +366,7 @@ class ContactForm extends PureComponent {
 						cancelButtonIndex={1}
 						destructiveButtonIndex={0}
 						// eslint-disable-next-line react/jsx-no-bind
-						onPress={index => (index === 0 ? this.deleteContact() : null)}
+						onPress={(index) => (index === 0 ? this.deleteContact() : null)}
 					/>
 				</KeyboardAwareScrollView>
 			</SafeAreaView>
@@ -374,10 +374,10 @@ class ContactForm extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	addressBook: state.engine.backgroundState.AddressBookController.addressBook,
 	identities: state.engine.backgroundState.PreferencesController.identities,
-	network: state.engine.backgroundState.NetworkController.network
+	network: state.engine.backgroundState.NetworkController.network,
 });
 
 export default connect(mapStateToProps)(ContactForm);

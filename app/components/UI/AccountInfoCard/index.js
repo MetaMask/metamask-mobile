@@ -17,41 +17,41 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderColor: colors.grey200,
 		borderRadius: 10,
-		padding: 16
+		padding: 16,
 	},
 	identicon: {
-		marginRight: 8
+		marginRight: 8,
 	},
 	accountInfoRow: {
 		flexGrow: 1,
 		flexDirection: 'column',
 		justifyContent: 'center',
-		alignItems: 'flex-start'
+		alignItems: 'flex-start',
 	},
 	accountNameAndAddress: {
 		width: '100%',
 		flexDirection: 'row',
-		justifyContent: 'flex-start'
+		justifyContent: 'flex-start',
 	},
 	accountName: {
 		maxWidth: Device.isMediumDevice() ? '35%' : '45%',
 		...fontStyles.bold,
 		fontSize: 16,
 		marginRight: 2,
-		color: colors.black
+		color: colors.black,
 	},
 	accountAddress: {
 		flexGrow: 1,
 		...fontStyles.bold,
 		fontSize: 16,
-		color: colors.black
+		color: colors.black,
 	},
 	balanceText: {
 		...fontStyles.thin,
 		fontSize: 14,
 		alignSelf: 'flex-start',
-		color: colors.black
-	}
+		color: colors.black,
+	},
 });
 
 class AccountInfoCard extends PureComponent {
@@ -83,19 +83,12 @@ class AccountInfoCard extends PureComponent {
 		/**
 		 * Current selected ticker
 		 */
-		ticker: PropTypes.string
+		ticker: PropTypes.string,
 	};
 
 	render() {
-		const {
-			accounts,
-			selectedAddress,
-			identities,
-			conversionRate,
-			currentCurrency,
-			operation,
-			ticker
-		} = this.props;
+		const { accounts, selectedAddress, identities, conversionRate, currentCurrency, operation, ticker } =
+			this.props;
 		const weiBalance = hexToBN(accounts[selectedAddress].balance);
 		const balance = `(${renderFromWei(weiBalance)} ${getTicker(ticker)})`;
 		const accountLabel = renderAccountName(selectedAddress, identities);
@@ -124,13 +117,13 @@ class AccountInfoCard extends PureComponent {
 	}
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	ticker: state.engine.backgroundState.NetworkController.provider.ticker
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 });
 
 export default connect(mapStateToProps)(AccountInfoCard);

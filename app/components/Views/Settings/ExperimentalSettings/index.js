@@ -12,27 +12,27 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		flex: 1,
 		padding: 24,
-		paddingBottom: 48
+		paddingBottom: 48,
 	},
 	title: {
 		...fontStyles.normal,
 		color: colors.fontPrimary,
 		fontSize: 20,
-		lineHeight: 20
+		lineHeight: 20,
 	},
 	desc: {
 		...fontStyles.normal,
 		color: colors.grey500,
 		fontSize: 14,
 		lineHeight: 20,
-		marginTop: 12
+		marginTop: 12,
 	},
 	setting: {
-		marginVertical: 18
+		marginVertical: 18,
 	},
 	clearHistoryConfirm: {
-		marginTop: 18
-	}
+		marginTop: 18,
+	},
 });
 
 /**
@@ -43,7 +43,7 @@ class ExperimentalSettings extends PureComponent {
 		/**
 		/* navigation object required to push new views
 		*/
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
 	};
 
 	static navigationOptions = ({ navigation }) =>
@@ -72,8 +72,8 @@ class ExperimentalSettings extends PureComponent {
 	);
 }
 
-const mapStateToProps = state => ({
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
+const mapStateToProps = (state) => ({
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 });
 
 export default connect(mapStateToProps)(ExperimentalSettings);

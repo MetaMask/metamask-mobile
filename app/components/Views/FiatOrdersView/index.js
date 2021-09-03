@@ -15,15 +15,15 @@ import OrderDetails from './OrderDetails';
  */
 const styles = StyleSheet.create({
 	wrapper: {
-		flex: 1
+		flex: 1,
 	},
 	row: {
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100
-	}
+		borderColor: colors.grey100,
+	},
 });
 
-const keyExtractor = item => item.id;
+const keyExtractor = (item) => item.id;
 
 /**
  *
@@ -58,7 +58,7 @@ const renderItem = ({ item }) => (
 );
 
 renderItem.propTypes = {
-	item: PropTypes.object
+	item: PropTypes.object,
 };
 
 function FiatOrdersView({ orders, ...props }) {
@@ -70,11 +70,11 @@ function FiatOrdersView({ orders, ...props }) {
 }
 
 FiatOrdersView.propTypes = {
-	orders: PropTypes.array
+	orders: PropTypes.array,
 };
 
-const mapStateToProps = state => ({
-	orders: getOrders(state)
+const mapStateToProps = (state) => ({
+	orders: getOrders(state),
 });
 
 export default connect(mapStateToProps)(FiatOrdersView);

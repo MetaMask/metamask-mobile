@@ -22,7 +22,7 @@ class EthereumAddress extends PureComponent {
 		 * Type of formatting for the address
 		 * can be "short" or "full"
 		 */
-		type: PropTypes.string
+		type: PropTypes.string,
 	};
 
 	ens = null;
@@ -32,7 +32,7 @@ class EthereumAddress extends PureComponent {
 
 		this.state = {
 			ensName: null,
-			address: this.formatAddress(address, type)
+			address: this.formatAddress(address, type),
 		};
 	}
 
@@ -74,7 +74,7 @@ class EthereumAddress extends PureComponent {
 
 EthereumAddress.defaultProps = {
 	style: null,
-	type: 'full'
+	type: 'full',
 };
 
 export default EthereumAddress;
