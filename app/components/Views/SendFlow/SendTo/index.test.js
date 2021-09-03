@@ -13,11 +13,11 @@ describe('SendTo', () => {
 						network: '1',
 						provider: {
 							ticker: 'ETH',
-							type: 'mainnet'
-						}
+							type: 'mainnet',
+						},
 					},
 					AccountTrackerController: {
-						accounts: { '0x2': { balance: '0' } }
+						accounts: { '0x2': { balance: '0' } },
 					},
 					AddressBookController: {
 						addressBook: {
@@ -26,47 +26,47 @@ describe('SendTo', () => {
 								chainId: '1',
 								isEns: false,
 								memo: '',
-								name: 'aa'
-							}
-						}
+								name: 'aa',
+							},
+						},
 					},
 					PreferencesController: {
 						identities: {
 							'0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b': {
 								address: '0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b',
-								name: 'Account 1'
-							}
+								name: 'Account 1',
+							},
 						},
-						selectedAddress: '0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b'
+						selectedAddress: '0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b',
 					},
 					TransactionController: {
-						transactions: []
+						transactions: [],
 					},
 					TokensController: {
-						tokens: []
+						tokens: [],
 					},
 					TokenRatesController: {
-						contractExchangeRates: {}
+						contractExchangeRates: {},
 					},
 					CurrencyRateController: {
 						currentCurrency: 'USD',
-						conversionRate: 1
+						conversionRate: 1,
 					},
 					TokenBalancesController: {
-						contractBalance: {}
+						contractBalance: {},
 					},
-					KeyringController: { keyrings: [{ accounts: ['0x'], type: 'HD Key Tree' }] }
-				}
+					KeyringController: { keyrings: [{ accounts: ['0x'], type: 'HD Key Tree' }] },
+				},
 			},
 			settings: {
-				primaryCurrency: 'fiat'
+				primaryCurrency: 'fiat',
 			},
 			transaction: {
-				selectedAsset: {}
-			}
+				selectedAsset: {},
+			},
 		};
 		const wrapper = shallow(<SendTo />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});

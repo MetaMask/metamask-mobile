@@ -12,16 +12,16 @@ describe('WatchAssetRequest', () => {
 			engine: {
 				backgroundState: {
 					TokenBalancesController: {
-						contractBalances: { '0x2': new BN(0) }
-					}
-				}
-			}
+						contractBalances: { '0x2': new BN(0) },
+					},
+				},
+			},
 		};
 
 		const wrapper = shallow(
 			<WatchAssetRequest suggestedAssetMeta={{ asset: { address: '0x2', symbol: 'TKN', decimals: 0 } }} />,
 			{
-				context: { store: mockStore(initialState) }
+				context: { store: mockStore(initialState) },
 			}
 		);
 		expect(wrapper.dive()).toMatchSnapshot();

@@ -10,11 +10,11 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		color: colors.grey500,
 		textAlign: 'center',
-		fontSize: 10
+		fontSize: 10,
 	},
 	link: {
-		textDecorationLine: 'underline'
-	}
+		textDecorationLine: 'underline',
+	},
 });
 
 /**
@@ -25,7 +25,7 @@ export default class TermsAndConditions extends PureComponent {
 		/**
 		/* navigation object required to push and pop other views
 		*/
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
 	};
 
 	press = () => {
@@ -34,8 +34,8 @@ export default class TermsAndConditions extends PureComponent {
 			screen: 'SimpleWebview',
 			params: {
 				url: AppConstants.URLS.TERMS_AND_CONDITIONS,
-				title: strings('terms_and_conditions.title')
-			}
+				title: strings('terms_and_conditions.title'),
+			},
 		});
 	};
 

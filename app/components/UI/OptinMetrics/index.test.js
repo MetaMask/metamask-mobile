@@ -9,12 +9,12 @@ describe('OptinMetrics', () => {
 	it('should render correctly', () => {
 		const initialState = {
 			onboarding: {
-				event: 'event'
-			}
+				event: 'event',
+			},
 		};
 
 		const wrapper = shallow(<OptinMetrics />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper).toMatchSnapshot();
 	});

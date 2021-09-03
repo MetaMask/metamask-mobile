@@ -10,69 +10,69 @@ import URL from 'url-parse';
 const styles = StyleSheet.create({
 	warningIcon: {
 		color: colors.red,
-		marginRight: 10
+		marginRight: 10,
 	},
 	phishingModalWrapper: {
 		paddingHorizontal: 20,
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	phishingModalContent: {
 		height: 495,
 		borderRadius: 4,
-		backgroundColor: colors.white
+		backgroundColor: colors.white,
 	},
 	phishingModalTitle: {
 		...fontStyles.bold,
 		color: colors.red,
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	phishingModalHeader: {
 		backgroundColor: colors.white,
 		paddingVertical: 20,
 		flexDirection: 'row',
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	phishingModalInfo: {
 		backgroundColor: colors.grey000,
 		paddingTop: 20,
-		paddingHorizontal: 20
+		paddingHorizontal: 20,
 	},
 	phishingModalInfoContent: {
-		paddingBottom: 20
+		paddingBottom: 20,
 	},
 	phishingText: {
 		...fontStyles.normal,
 		fontSize: 11,
 		color: colors.fontPrimary,
-		marginBottom: 15
+		marginBottom: 15,
 	},
 	link: {
 		textDecorationColor: colors.fontPrimary,
-		textDecorationLine: 'underline'
+		textDecorationLine: 'underline',
 	},
 	bold: {
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	phishingFooter: {
 		marginTop: 10,
-		alignItems: 'flex-end'
+		alignItems: 'flex-end',
 	},
 	backToSafetyContainer: {
 		borderWidth: 0,
-		padding: 10
+		padding: 10,
 	},
 	backToSafetyText: {
 		color: colors.red,
-		fontSize: 12
+		fontSize: 12,
 	},
 	foxImage: {
 		alignSelf: 'center',
 		width: 48,
 		height: 48,
 		marginBottom: -15,
-		zIndex: 99999
-	}
+		zIndex: 99999,
+	},
 });
 
 const foxImage = require('../../../images/fox.png'); // eslint-disable-line import/no-commonjs
@@ -102,7 +102,7 @@ export default class PhishingModal extends PureComponent {
 		/**
 		 * Called when the user takes the recommended action
 		 */
-		goBackToSafety: PropTypes.func
+		goBackToSafety: PropTypes.func,
 	};
 
 	render() {

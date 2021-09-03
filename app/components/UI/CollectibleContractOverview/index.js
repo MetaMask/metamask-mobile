@@ -5,7 +5,7 @@ import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import CollectibleMedia from '../CollectibleMedia';
 import AssetActionButton from '../AssetActionButton';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import { toggleCollectibleContractModal } from '../../../actions/modals';
 import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
@@ -20,29 +20,29 @@ const styles = StyleSheet.create({
 		borderBottomColor: colors.grey100,
 		alignContent: 'center',
 		alignItems: 'center',
-		paddingBottom: 30
+		paddingBottom: 30,
 	},
 	assetLogo: {
-		marginTop: 20
+		marginTop: 20,
 	},
 	information: {
 		flex: 1,
 		flexDirection: 'row',
 		marginTop: 10,
-		marginBottom: 20
+		marginBottom: 20,
 	},
 	name: {
 		fontSize: 30,
 		textAlign: 'center',
 		color: colors.fontPrimary,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	actions: {
 		width: Device.isSmallDevice() ? '65%' : '50%',
 		justifyContent: 'space-around',
 		alignItems: 'flex-start',
-		flexDirection: 'row'
-	}
+		flexDirection: 'row',
+	},
 });
 
 /**
@@ -75,7 +75,7 @@ class CollectibleContractOverview extends PureComponent {
 		/**
 		 * Start transaction with asset
 		 */
-		newAssetTransaction: PropTypes.func
+		newAssetTransaction: PropTypes.func,
 	};
 
 	onAdd = () => {
@@ -85,7 +85,7 @@ class CollectibleContractOverview extends PureComponent {
 
 	onSend = () => {
 		const { collectibleContract, collectibles } = this.props;
-		const collectible = collectibles.find(collectible =>
+		const collectible = collectibles.find((collectible) =>
 			toLowerCaseEquals(collectible.address, collectibleContract.address)
 		);
 		this.props.newAssetTransaction(collectible);
@@ -96,7 +96,7 @@ class CollectibleContractOverview extends PureComponent {
 
 	renderLogo = () => {
 		const {
-			collectibleContract: { logo, address }
+			collectibleContract: { logo, address },
 		} = this.props;
 		return <CollectibleMedia small collectible={{ address, image: logo }} />;
 	};
@@ -104,7 +104,7 @@ class CollectibleContractOverview extends PureComponent {
 	render() {
 		const {
 			collectibleContract: { name, address },
-			ownerOf
+			ownerOf,
 		} = this.props;
 		const lowerAddress = address.toLowerCase();
 		const leftActionButtonText =
@@ -139,16 +139,13 @@ class CollectibleContractOverview extends PureComponent {
 	}
 }
 
-const mapStateToProps = state => ({
-	collectibles: state.engine.backgroundState.CollectiblesController.collectibles
+const mapStateToProps = (state) => ({
+	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
 });
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch) => ({
 	toggleCollectibleContractModal: () => dispatch(toggleCollectibleContractModal()),
-	newAssetTransaction: selectedAsset => dispatch(newAssetTransaction(selectedAsset))
+	newAssetTransaction: (selectedAsset) => dispatch(newAssetTransaction(selectedAsset)),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(CollectibleContractOverview);
+export default connect(mapStateToProps, mapDispatchToProps)(CollectibleContractOverview);

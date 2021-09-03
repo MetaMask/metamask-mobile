@@ -1,14 +1,14 @@
 export function approveHost(hostname) {
 	return {
 		type: 'APPROVE_HOST',
-		hostname
+		hostname,
 	};
 }
 
 export function rejectHost(hostname) {
 	return {
 		type: 'REJECT_HOST',
-		hostname
+		hostname,
 	};
 }
 
@@ -19,13 +19,13 @@ export function clearHosts() {
 export function setPrivacyMode(enabled) {
 	return {
 		type: 'SET_PRIVACY_MODE',
-		enabled
+		enabled,
 	};
 }
 
 export function setThirdPartyApiMode(enabled) {
 	return {
 		type: 'SET_THIRD_PARTY_API_MODE',
-		enabled
+		enabled,
 	};
 }

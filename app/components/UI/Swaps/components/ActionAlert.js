@@ -11,49 +11,49 @@ const VERTICAL_DISPLACEMENT = 12;
 const styles = StyleSheet.create({
 	content: {
 		flex: 1,
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	contentWithAction: {
-		marginBottom: 10
+		marginBottom: 10,
 	},
 	wrapper: {
 		flexDirection: 'column',
-		flex: 1
+		flex: 1,
 	},
 	action: {
 		marginTop: -5,
 		marginBottom: -VERTICAL_DISPLACEMENT,
 		bottom: -VERTICAL_DISPLACEMENT,
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	button: {
 		paddingVertical: 6,
 		paddingHorizontal: 12,
-		borderRadius: 100
+		borderRadius: 100,
 	},
 	warningButton: {
-		backgroundColor: colors.yellow
+		backgroundColor: colors.yellow,
 	},
 	errorButton: {
-		backgroundColor: colors.red
+		backgroundColor: colors.red,
 	},
 	errorButtonText: {
-		color: colors.white
+		color: colors.white,
 	},
 	infoWrapper: {
 		position: 'absolute',
 		top: 3,
-		right: 3
+		right: 3,
 	},
 	warningInfoIcon: {
-		color: colors.grey500
+		color: colors.grey500,
 	},
 	errorInfoIcon: {
-		color: colors.red
-	}
+		color: colors.red,
+	},
 });
 
-const getButtonStyle = type => {
+const getButtonStyle = (type) => {
 	switch (type) {
 		case 'error': {
 			return styles.errorButton;
@@ -65,7 +65,7 @@ const getButtonStyle = type => {
 	}
 };
 
-const getInfoIconStyle = type => {
+const getInfoIconStyle = (type) => {
 	switch (type) {
 		case 'error': {
 			return styles.errorInfoIcon;
@@ -90,13 +90,13 @@ function Button({ type, onPress, children }) {
 Button.propTypes = {
 	type: PropTypes.oneOf(['info', 'warning', 'error']),
 	onPress: PropTypes.func,
-	children: PropTypes.string
+	children: PropTypes.string,
 };
 
 function ActionAlert({ type, style, action, onInfoPress, onPress, children }) {
 	return (
 		<Alert small type={type} style={[style, Boolean(action) && styles.contentWithAction]}>
-			{textStyle => (
+			{(textStyle) => (
 				<>
 					<View style={styles.wrapper}>
 						<View style={[styles.content]}>{children(textStyle)}</View>
@@ -129,6 +129,6 @@ ActionAlert.propTypes = {
 	onPress: PropTypes.func,
 	onInfoPress: PropTypes.func,
 	action: PropTypes.string,
-	children: PropTypes.oneOfType([PropTypes.node, PropTypes.func])
+	children: PropTypes.oneOfType([PropTypes.node, PropTypes.func]),
 };
 export default ActionAlert;

@@ -30,7 +30,7 @@ function useBlockExplorer(provider, frequentRpcList) {
 	}, [frequentRpcList, provider]);
 
 	const tx = useCallback(
-		hash => {
+		(hash) => {
 			if (!explorer.isValid) {
 				return '';
 			}
@@ -41,7 +41,7 @@ function useBlockExplorer(provider, frequentRpcList) {
 		[explorer]
 	);
 	const account = useCallback(
-		address => {
+		(address) => {
 			if (!explorer.isValid) {
 				return '';
 			}
@@ -52,7 +52,7 @@ function useBlockExplorer(provider, frequentRpcList) {
 		[explorer]
 	);
 	const token = useCallback(
-		address => {
+		(address) => {
 			if (!explorer.isValid) {
 				return '';
 			}
@@ -69,7 +69,7 @@ function useBlockExplorer(provider, frequentRpcList) {
 		...explorer,
 		tx,
 		account,
-		token
+		token,
 	};
 }
 

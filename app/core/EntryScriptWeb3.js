@@ -1,4 +1,4 @@
-import Device from '../util/Device';
+import Device from '../util/device';
 import RNFS from 'react-native-fs';
 
 const EntryScriptWeb3 = {
@@ -17,7 +17,7 @@ const EntryScriptWeb3 = {
 
 		// If for some reason it is not available, get it again
 		return await this.init();
-	}
+	},
 };
 
 export default EntryScriptWeb3;

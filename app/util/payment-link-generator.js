@@ -38,10 +38,10 @@ export function generateETHLink(receiverAddress, value, chainId) {
 		chain_id: chainId,
 		function_name: undefined,
 		parameters: {
-			value
+			value,
 		},
 		scheme: 'ethereum',
-		target_address: receiverAddress
+		target_address: receiverAddress,
 	};
 	return build(data);
 }
@@ -62,10 +62,10 @@ export function generateERC20Link(receiverAddress, assetAddress, value, chainId)
 		function_name: 'transfer',
 		parameters: {
 			address: receiverAddress,
-			uint256: value
+			uint256: value,
 		},
 		scheme: 'ethereum',
-		target_address: assetAddress
+		target_address: assetAddress,
 	};
 	return build(data);
 }

@@ -4,9 +4,9 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
 
-const { ETH_CHAIN_ID, BSC_CHAIN_ID, SWAPS_TESTNET_CHAIN_ID } = swapsUtils;
+const { ETH_CHAIN_ID, BSC_CHAIN_ID, SWAPS_TESTNET_CHAIN_ID, POLYGON_CHAIN_ID } = swapsUtils;
 
-const allowedChainIds = [ETH_CHAIN_ID, BSC_CHAIN_ID];
+const allowedChainIds = [ETH_CHAIN_ID, BSC_CHAIN_ID, POLYGON_CHAIN_ID, SWAPS_TESTNET_CHAIN_ID];
 
 export function isSwapsAllowed(chainId) {
 	if (!AppConstants.SWAPS.ACTIVE) {
@@ -25,7 +25,7 @@ export function isSwapsNativeAsset(token) {
 export function isDynamicToken(token) {
 	return (
 		Boolean(token) &&
-		token.occurances === 1 &&
+		token.occurrences === 1 &&
 		token?.aggregators.length === 1 &&
 		token.aggregators[0] === 'dynamic'
 	);
@@ -52,7 +52,7 @@ export function setQuotesNavigationsParams(
 		destinationTokenAddress,
 		sourceAmount,
 		slippage,
-		tokens
+		tokens,
 	};
 }
 
@@ -72,7 +72,7 @@ export function getQuotesNavigationsParams(route) {
 		destinationTokenAddress,
 		sourceAmount,
 		slippage,
-		tokens
+		tokens,
 	};
 }
 
@@ -94,8 +94,8 @@ export function getFetchParams({ slippage = 1, sourceToken, destinationToken, so
 		walletAddress,
 		metaData: {
 			sourceTokenInfo: sourceToken,
-			destinationTokenInfo: destinationToken
-		}
+			destinationTokenInfo: destinationToken,
+		},
 	};
 }
 
@@ -126,7 +126,7 @@ export function getErrorMessage(errorKey) {
 			return [
 				strings('swaps.error_fetching_quote'),
 				strings('swaps.unexpected_error', { error: errorKey || 'error-not-provided' }),
-				errorAction
+				errorAction,
 			];
 		}
 	}
@@ -138,14 +138,22 @@ export function getQuotesSourceMessage(type) {
 			return [
 				strings('swaps.quote_source_dex.1'),
 				strings('swaps.quote_source_dex.2'),
-				strings('swaps.quote_source_dex.3')
+				strings('swaps.quote_source_dex.3'),
 			];
 		}
 		case 'RFQ': {
 			return [
 				strings('swaps.quote_source_rfq.1'),
 				strings('swaps.quote_source_rfq.2'),
-				strings('swaps.quote_source_rfq.3')
+				strings('swaps.quote_source_rfq.3'),
+			];
+		}
+		case 'CONTRACT':
+		case 'CNT': {
+			return [
+				strings('swaps.quote_source_cnt.1'),
+				strings('swaps.quote_source_cnt.2'),
+				strings('swaps.quote_source_cnt.3'),
 			];
 		}
 		case 'AGG':
@@ -153,7 +161,7 @@ export function getQuotesSourceMessage(type) {
 			return [
 				strings('swaps.quote_source_agg.1'),
 				strings('swaps.quote_source_agg.2'),
-				strings('swaps.quote_source_agg.3')
+				strings('swaps.quote_source_agg.3'),
 			];
 		}
 	}

@@ -15,11 +15,11 @@ const styles = StyleSheet.create({
 		paddingVertical: 14,
 		paddingHorizontal: 16,
 		display: 'flex',
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	nonceNumber: {
-		marginLeft: 'auto'
-	}
+		marginLeft: 'auto',
+	},
 });
 
 const CustomNonce = ({ nonce, onNonceEdit }) => (
@@ -45,7 +45,7 @@ CustomNonce.propTypes = {
 	/**
 	 * Function called when editing nonce
 	 */
-	onNonceEdit: PropTypes.func
+	onNonceEdit: PropTypes.func,
 };
 
 export default CustomNonce;

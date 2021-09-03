@@ -12,26 +12,26 @@ describe('Login', () => {
 			engine: {
 				backgroundState: {
 					AccountTrackerController: {
-						accounts: { '0x2': { balance: '0' } }
+						accounts: { '0x2': { balance: '0' } },
 					},
 					NetworkController: {
 						provider: {
-							type: ROPSTEN
-						}
+							type: ROPSTEN,
+						},
 					},
 					TokensController: {
-						tokens: []
+						tokens: [],
 					},
-					PreferencesController: {}
-				}
+					PreferencesController: {},
+				},
 			},
 			user: {
-				passwordSet: true
-			}
+				passwordSet: true,
+			},
 		};
 
 		const wrapper = shallow(<Login />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper).toMatchSnapshot();
 	});

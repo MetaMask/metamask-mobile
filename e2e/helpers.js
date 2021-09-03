@@ -34,9 +34,7 @@ export default class TestHelpers {
 
 	static async typeNumbers(elementId, text, submitLabel) {
 		await element(by.id(elementId)).replaceText(text.replace('\n', ''));
-		return element(by.label(submitLabel))
-			.atIndex(0)
-			.tap();
+		return element(by.label(submitLabel)).atIndex(0).tap();
 	}
 
 	static async typeTextAndHideKeyboard(elementId, text) {
@@ -72,9 +70,7 @@ export default class TestHelpers {
 				.tap();
 		}
 
-		return element(by.label(text))
-			.atIndex(0)
-			.tap();
+		return element(by.label(text)).atIndex(0).tap();
 	}
 
 	static async swipe(elementId, direction, speed, percentage) {
@@ -136,7 +132,7 @@ export default class TestHelpers {
 	}
 
 	static delay(ms) {
-		return new Promise(resolve => {
+		return new Promise((resolve) => {
 			setTimeout(() => {
 				resolve();
 			}, ms);

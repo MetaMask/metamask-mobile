@@ -133,7 +133,7 @@
 		"reset_wallet": "Reset Wallet",
 		"cant_proceed": "You can’t proceed till you type the word ‘Delete’. With this action you are opting in to erase your current wallet.",
 		"invalid_password": "Invalid password",
-		"type_delete": "Type ‘delete’ to erase current wallet permanently",
+		"type_delete": "Type ‘%{delete}’ to erase current wallet permanently",
 		"delete_my": "Delete my wallet",
 		"are_you_sure": "Are you sure you want to erase your wallet?",
 		"your_current_wallet": "Your current wallet, accounts and assets will be ",
@@ -943,7 +943,7 @@
 		"message_from": "Message from",
 		"learn_more": "Learn More",
 		"read_more": "Read more",
-		"eth_sign_warning": "Proceed with caution. This action can potentially be used to withdraw assets from your account. Make sure you trust this site."
+		"eth_sign_warning": "We are unable to estimate the result of this signature. This signature could potentially perform any operation on your account's behalf, including granting complete control of your account and all of its assets to the requesting site. Only sign this message if you know what you're doing or completely trust the requesting site."
 	},
 	"watch_asset_request": {
 		"title": "Add Suggested Token",
@@ -1441,7 +1441,7 @@
 		"verify_address_on": "Verify token address on",
 		"added_manually": "This token has been added manually.",
 		"verify_this_token_on": "Verify this token on",
-		"only_verified_on": "{{symbol}} is only verified on {{occurances}} source.",
+		"only_verified_on": "{{symbol}} is only verified on {{occurrences}} source.",
 		"block_explorer": "block explorer",
 		"a_block_explorer": "a block explorer",
 		"make_sure_trade": "and make sure this is the token you want to trade.",
@@ -1455,7 +1455,7 @@
 		"no_tokens_result": "No tokens match “{{searchString}}”",
 		"find_token_address": "Find token address",
 		"cant_find_token": "Can’t find a token?",
-		"manually_pasting": "You can manually add any token by pasting its address.",
+		"manually_pasting": "Manually add a token by pasting its address.",
 		"token_address_can_be_found": "Token contract addresses can be found on",
 		"gathering_token_details": "Gathering token details...",
 		"error_gathering_token_details": "Oops, there was an error gathering token details.",
@@ -1475,6 +1475,7 @@
 		"allows_up_to_decimals": "{{symbol}} allows up to {{decimals}} decimals",
 		"get_quotes": "Get quotes",
 		"starting": "Starting...",
+		"fetching_quotes": "Fetching quotes",
 		"finalizing": "Finalizing...",
 		"quote": "Quote",
 		"of": "of",
@@ -1548,6 +1549,11 @@
 			"1": "This quote comes from an",
 			"2": "aggregator",
 			"3": "which finds the best price by splitting your order between different decentralized exchanges."
+		},
+		"quote_source_cnt": {
+			"1": "This quote comes directly from a",
+			"2": "smart contract",
+			"3": "that wraps and unwraps native tokens which can save on gas costs."
 		},
 		"quotes_timeout": "Quotes timeout",
 		"request_new_quotes": "Please request new quotes to get the latest best rate.",

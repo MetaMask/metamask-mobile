@@ -13,12 +13,12 @@ import { swapsUtils } from '@metamask/swaps-controller';
 const styles = StyleSheet.create({
 	keyboardAwareWrapper: {
 		flex: 1,
-		justifyContent: 'flex-end'
+		justifyContent: 'flex-end',
 	},
 	bottomModal: {
 		justifyContent: 'flex-end',
-		margin: 0
-	}
+		margin: 0,
+	},
 });
 
 function ApprovalTransactionEditionModal({
@@ -29,7 +29,7 @@ function ApprovalTransactionEditionModal({
 	setApprovalTransaction,
 	sourceToken,
 	minimumSpendLimit,
-	chainId
+	chainId,
 }) {
 	/* Approval transaction if any */
 	const [approvalTransactionAmount, setApprovalTransactionAmount] = useState('');
@@ -37,7 +37,7 @@ function ApprovalTransactionEditionModal({
 	const [spendLimitUnlimitedSelected, setSpendLimitUnlimitedSelected] = useState(true);
 
 	const onSpendLimitCustomValueChange = useCallback(
-		approvalCustomValue => setApprovalCustomValue(approvalCustomValue),
+		(approvalCustomValue) => setApprovalCustomValue(approvalCustomValue),
 		[]
 	);
 	const onPressSpendLimitUnlimitedSelected = useCallback(() => setSpendLimitUnlimitedSelected(true), []);
@@ -50,7 +50,7 @@ function ApprovalTransactionEditionModal({
 		).toString(10);
 		const approvalData = generateApproveData({
 			spender: swapsUtils.getSwapsContractAddress(chainId),
-			value: Number(uint).toString(16)
+			value: Number(uint).toString(16),
 		});
 		const newApprovalTransaction = { ...approvalTransaction, data: approvalData };
 		setApprovalTransaction(newApprovalTransaction);
@@ -63,7 +63,7 @@ function ApprovalTransactionEditionModal({
 		approvalTransaction,
 		sourceToken,
 		chainId,
-		onCancelEditQuoteTransactions
+		onCancelEditQuoteTransactions,
 	]);
 
 	useEffect(() => {
@@ -119,11 +119,11 @@ ApprovalTransactionEditionModal.propTypes = {
 	onCancelEditQuoteTransactions: PropTypes.func,
 	setApprovalTransaction: PropTypes.func,
 	sourceToken: PropTypes.object,
-	chainId: PropTypes.string
+	chainId: PropTypes.string,
 };
 
-const mapStateToProps = state => ({
-	originalApprovalTransaction: state.engine.backgroundState.SwapsController.approvalTransaction
+const mapStateToProps = (state) => ({
+	originalApprovalTransaction: state.engine.backgroundState.SwapsController.approvalTransaction,
 });
 
 export default connect(mapStateToProps)(ApprovalTransactionEditionModal);

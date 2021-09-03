@@ -11,33 +11,33 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'space-between',
-		marginBottom: 14
+		marginBottom: 14,
 	},
-	rangeInputContainer: error => ({
+	rangeInputContainer: (error) => ({
 		borderColor: error ? colors.red : colors.grey200,
 		borderWidth: 1,
 		borderRadius: 6,
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'space-between',
-		height: 42
+		height: 42,
 	}),
-	input: error => ({
+	input: (error) => ({
 		height: 38,
 		minWidth: 10,
 		paddingRight: 6,
-		color: error ? colors.red : colors.black
+		color: error ? colors.red : colors.black,
 	}),
 	buttonContainerLeft: {
 		marginLeft: 17,
-		flex: 1
+		flex: 1,
 	},
 	buttonContainerRight: {
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'flex-end',
 		marginRight: 17,
-		flex: 1
+		flex: 1,
 	},
 	button: {
 		borderRadius: 100,
@@ -46,41 +46,41 @@ const styles = StyleSheet.create({
 		height: 20,
 		width: 20,
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	buttonText: {
 		paddingTop: 1,
 		paddingLeft: 0.5,
-		color: colors.blue
+		color: colors.blue,
 	},
 	hitSlop: {
 		top: 10,
 		left: 10,
 		bottom: 10,
-		right: 10
+		right: 10,
 	},
 	inputContainer: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	errorContainer: {
 		marginTop: 8,
 		color: colors.red,
 		flexDirection: 'row',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	errorIcon: {
 		paddingRight: 4,
-		color: colors.red
+		color: colors.red,
 	},
 	conversionEstimation: {
 		paddingLeft: 2,
 		marginRight: 14,
 		flex: 1,
 		textAlign: 'center',
-		fontSize: 11
-	}
+		fontSize: 11,
+	},
 });
 
 const RangeInput = ({
@@ -94,7 +94,7 @@ const RangeInput = ({
 	error,
 	min,
 	max,
-	name
+	name,
 }) => {
 	const textInput = useRef(null);
 	const [errorState, setErrorState] = useState();
@@ -128,7 +128,7 @@ const RangeInput = ({
 		changeValue(newValue.toString());
 	}, [changeValue, increment, min, value]);
 
-	const renderLabelComponent = useCallback(component => {
+	const renderLabelComponent = useCallback((component) => {
 		if (!component) return null;
 		if (typeof component === 'string')
 			return (
@@ -207,7 +207,7 @@ const RangeInput = ({
 };
 
 RangeInput.defaultProps = {
-	increment: new BigNumber(1)
+	increment: new BigNumber(1),
 };
 
 RangeInput.propTypes = {
@@ -254,7 +254,7 @@ RangeInput.propTypes = {
 	/**
 	 * The name of the input
 	 */
-	name: PropTypes.string
+	name: PropTypes.string,
 };
 
 export default RangeInput;
