@@ -118,8 +118,6 @@ class Approve extends PureComponent {
 	state = {
 		approved: false,
 		gasError: undefined,
-		// TODO: warningGasPriceHigh will never be set and is always undefined, but is stil used
-		warningGasPriceHigh: undefined,
 		ready: false,
 		mode: REVIEW,
 		over: false,
@@ -522,7 +520,6 @@ class Approve extends PureComponent {
 			mode,
 			ready,
 			over,
-			warningGasPriceHigh,
 			EIP1559GasData,
 			EIP1559GasDataTemp,
 			LegacyGasData,
@@ -554,7 +551,6 @@ class Approve extends PureComponent {
 						<AnimatedTransactionModal onModeChange={this.onModeChange} ready={ready} review={this.review}>
 							<ApproveTransactionReview
 								gasError={EIP1559GasData.error || LegacyGasData.error}
-								warningGasPriceHigh={warningGasPriceHigh}
 								onCancel={this.onCancel}
 								onConfirm={this.onConfirm}
 								over={over}
