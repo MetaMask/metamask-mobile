@@ -9,12 +9,12 @@ describe('LockScreen', () => {
 	it('should render correctly', () => {
 		const initialState = {
 			user: {
-				passwordSet: false
-			}
+				passwordSet: false,
+			},
 		};
 
 		const wrapper = shallow(<LockScreen />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper).toMatchSnapshot();
 	});

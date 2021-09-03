@@ -5,7 +5,9 @@ import { useNavigation } from '@react-navigation/native';
 import { connect } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import Analytics from '../../../../core/Analytics';
+import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
+import { FIAT_ORDER_PROVIDERS, PAYMENT_CATEGORY, PAYMENT_RAILS } from '../../../../constants/on-ramp';
 
 import { useTransakFlowURL } from '../orderProcessor/transak';
 import { WYRE_IS_PROMOTION } from '../orderProcessor/wyreApplePay';
@@ -36,7 +38,7 @@ function PaymentMethodSelectorView({
 		const goToApplePay = () => navigation.navigate('PaymentMethodApplePay');
 		if (!gasEducationCarouselSeen) {
 			navigation.navigate('GasEducationCarousel', {
-				navigateTo: goToApplePay
+				navigateTo: goToApplePay,
 			});
 			setGasEducationCarouselSeen();
 		} else {
@@ -44,6 +46,11 @@ function PaymentMethodSelectorView({
 		}
 
 		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_STARTED, {
+				payment_rails: PAYMENT_RAILS.APPLE_PAY,
+				payment_category: PAYMENT_CATEGORY.CARD_PAYMENT,
+				'on-ramp_provider': FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY,
+			});
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.PAYMENTS_SELECTS_APPLE_PAY);
 		});
 	}, [navigation, gasEducationCarouselSeen, setGasEducationCarouselSeen]);
@@ -52,12 +59,12 @@ function PaymentMethodSelectorView({
 		const goToTransakFlow = () =>
 			navigation.navigate('TransakFlow', {
 				url: transakURL,
-				title: strings('fiat_on_ramp.transak_webview_title')
+				title: strings('fiat_on_ramp.transak_webview_title'),
 			});
 
 		if (!gasEducationCarouselSeen) {
 			navigation.navigate('GasEducationCarousel', {
-				navigateTo: goToTransakFlow
+				navigateTo: goToTransakFlow,
 			});
 			setGasEducationCarouselSeen();
 		} else {
@@ -65,6 +72,11 @@ function PaymentMethodSelectorView({
 		}
 
 		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_STARTED, {
+				payment_rails: PAYMENT_RAILS.MULTIPLE,
+				payment_category: PAYMENT_CATEGORY.MULTIPLE,
+				'on-ramp_provider': FIAT_ORDER_PROVIDERS.TRANSAK,
+			});
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.PAYMENTS_SELECTS_DEBIT_OR_ACH);
 		});
 	}, [navigation, transakURL, gasEducationCarouselSeen, setGasEducationCarouselSeen]);
@@ -102,22 +114,24 @@ PaymentMethodSelectorView.propTypes = {
 	selectedAddress: PropTypes.string.isRequired,
 	network: PropTypes.string.isRequired,
 	gasEducationCarouselSeen: PropTypes.bool,
-	setGasEducationCarouselSeen: PropTypes.func
+	setGasEducationCarouselSeen: PropTypes.func,
 };
 
-PaymentMethodSelectorView.navigationOptions = ({ navigation }) => getPaymentSelectorMethodNavbar(navigation);
+PaymentMethodSelectorView.navigationOptions = ({ navigation }) =>
+	getPaymentSelectorMethodNavbar(navigation, () => {
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_CLOSED);
+		});
+	});
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	network: state.engine.backgroundState.NetworkController.network,
-	gasEducationCarouselSeen: state.user.gasEducationCarouselSeen
+	gasEducationCarouselSeen: state.user.gasEducationCarouselSeen,
 });
 
-const mapDispatchToProps = dispatch => ({
-	setGasEducationCarouselSeen: () => dispatch(setGasEducationCarouselSeen())
+const mapDispatchToProps = (dispatch) => ({
+	setGasEducationCarouselSeen: () => dispatch(setGasEducationCarouselSeen()),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(PaymentMethodSelectorView);
+export default connect(mapStateToProps, mapDispatchToProps)(PaymentMethodSelectorView);

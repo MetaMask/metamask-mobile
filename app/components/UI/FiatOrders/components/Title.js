@@ -5,8 +5,8 @@ import BaseTitle from '../../../Base/Title';
 
 const style = StyleSheet.create({
 	hero: {
-		margin: 5
-	}
+		margin: 5,
+	},
 });
 
 const Title = ({ style: externalStyle, ...props }) => (
@@ -15,12 +15,12 @@ const Title = ({ style: externalStyle, ...props }) => (
 
 Title.defaultProps = {
 	hero: false,
-	style: undefined
+	style: undefined,
 };
 
 Title.propTypes = {
 	hero: PropTypes.bool,
-	style: PropTypes.oneOfType([PropTypes.object, PropTypes.array])
+	style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
 };
 
 export default Title;

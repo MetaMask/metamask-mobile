@@ -9,41 +9,41 @@ import { strings } from '../../../../locales/i18n';
 import StyledButton from '../../UI/StyledButton';
 import { getOfflineModalNavbar } from '../../UI/Navbar';
 import AndroidBackHandler from '../AndroidBackHandler';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
 import { connect } from 'react-redux';
 import { getInfuraBlockedSelector } from '../../../reducers/infuraAvailability';
 
 const styles = StyleSheet.create({
 	container: {
-		flex: 1
+		flex: 1,
 	},
 	frame: {
 		width: 200,
 		height: 200,
 		alignSelf: 'center',
-		marginTop: 60
+		marginTop: 60,
 	},
 	content: {
 		flex: 1,
 		marginHorizontal: 18,
 		justifyContent: 'center',
-		marginVertical: 30
+		marginVertical: 30,
 	},
 	title: {
 		fontSize: 18,
 		color: colors.fontPrimary,
 		marginBottom: 10,
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	text: {
 		fontSize: 12,
 		color: colors.fontPrimary,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	buttonContainer: {
-		marginHorizontal: 18
-	}
+		marginHorizontal: 18,
+	},
 });
 
 const astronautImage = require('../../../images/astronaut.png'); // eslint-disable-line import/no-commonjs
@@ -60,7 +60,7 @@ const OfflineMode = ({ navigation, infuraBlocked }) => {
 	const learnMore = () => {
 		navigation.navigate('Webview', {
 			screen: 'SimpleWebview',
-			params: { url: AppConstants.URLS.CONNECTIVITY_ISSUES }
+			params: { url: AppConstants.URLS.CONNECTIVITY_ISSUES },
 		});
 	};
 
@@ -105,11 +105,11 @@ OfflineMode.propTypes = {
 	/**
 	 * Whether infura was blocked or not
 	 */
-	infuraBlocked: PropTypes.bool
+	infuraBlocked: PropTypes.bool,
 };
 
-const mapStateToProps = state => ({
-	infuraBlocked: getInfuraBlockedSelector(state)
+const mapStateToProps = (state) => ({
+	infuraBlocked: getInfuraBlockedSelector(state),
 });
 
 export default connect(mapStateToProps)(OfflineMode);

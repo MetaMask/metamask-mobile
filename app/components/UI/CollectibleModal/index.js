@@ -6,19 +6,17 @@ import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import { newAssetTransaction } from '../../../actions/transaction';
 import CollectibleMedia from '../CollectibleMedia';
-import { baseStyles } from '../../../styles/common';
-import Device from '../../../util/Device';
+import { baseStyles, colors } from '../../../styles/common';
+import Device from '../../../util/device';
 import ReusableModal from '../ReusableModal';
-
-const COLLECTIBLE_WRAPPER_MARGIN_TOP = Device.hasNotch() ? '20%' : Device.isMediumDevice() ? 16 : '10%';
 
 const styles = StyleSheet.create({
 	bottomModal: {
 		justifyContent: 'flex-end',
-		margin: 0
+		margin: 0,
 	},
 	round: {
-		borderRadius: 12
+		borderRadius: 12,
 	},
 	collectibleMediaWrapper: {
 		position: 'absolute',
@@ -26,15 +24,16 @@ const styles = StyleSheet.create({
 		left: 0,
 		right: 0,
 		marginHorizontal: 16,
-		marginTop: COLLECTIBLE_WRAPPER_MARGIN_TOP,
-		borderRadius: 12
-	}
+		marginTop: Device.hasNotch() ? 36 : 16,
+		borderRadius: 12,
+		backgroundColor: colors.transparent,
+	},
 });
 
 /**
  * View that displays a specific collectible asset
  */
-const CollectibleModal = props => {
+const CollectibleModal = (props) => {
 	const { route, navigation, newAssetTransaction } = props;
 	const { contractName, collectible } = route.params;
 
@@ -57,7 +56,7 @@ const CollectibleModal = props => {
 	}, [collectible.address]);
 
 	const openLink = useCallback(
-		url => {
+		(url) => {
 			navigation.replace('Webview', { screen: 'SimpleWebview', params: { url } });
 		},
 		[navigation]
@@ -69,7 +68,7 @@ const CollectibleModal = props => {
 	 *
 	 * @param {boolean} moveUp
 	 */
-	const onCollectibleOverviewTranslation = moveUp => {
+	const onCollectibleOverviewTranslation = (moveUp) => {
 		if (moveUp) {
 			setTimeout(() => {
 				setMediaZIndex(20);
@@ -91,7 +90,6 @@ const CollectibleModal = props => {
 						onClose={() => modalRef.current.dismissModal()}
 						cover
 						renderAnimation
-						resizeMode={'contain'}
 						collectible={collectible}
 						style={styles.round}
 					/>
@@ -132,14 +130,11 @@ CollectibleModal.propTypes = {
 	/**
 	 * Contract name of the collectible
 	 */
-	contractName: PropTypes.string
+	contractName: PropTypes.string,
 };
 
-const mapDispatchToProps = dispatch => ({
-	newAssetTransaction: selectedAsset => dispatch(newAssetTransaction(selectedAsset))
+const mapDispatchToProps = (dispatch) => ({
+	newAssetTransaction: (selectedAsset) => dispatch(newAssetTransaction(selectedAsset)),
 });
 
-export default connect(
-	null,
-	mapDispatchToProps
-)(CollectibleModal);
+export default connect(null, mapDispatchToProps)(CollectibleModal);

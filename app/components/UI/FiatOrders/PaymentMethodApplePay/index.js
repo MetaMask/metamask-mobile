@@ -4,11 +4,12 @@ import { View, StyleSheet, Image, TouchableOpacity, InteractionManager, Activity
 import { useNavigation } from '@react-navigation/native';
 import { connect } from 'react-redux';
 import NotificationManager from '../../../../core/NotificationManager';
-import Device from '../../../../util/Device';
+import Device from '../../../../util/device';
 import Logger from '../../../../util/Logger';
 import { setLockTime } from '../../../../actions/settings';
 import I18n, { strings } from '../../../../../locales/i18n';
 import { getNotificationDetails } from '..';
+import AnalyticsV2 from '../../../../util/analyticsV2';
 
 import {
 	useCountryCurrency,
@@ -16,8 +17,9 @@ import {
 	useWyreTerms,
 	useWyreRates,
 	useWyreApplePay,
-	WyreException
+	WyreException,
 } from '../orderProcessor/wyreApplePay';
+import { FIAT_ORDER_PROVIDERS, PAYMENT_CATEGORY, PAYMENT_RAILS } from '../../../../constants/on-ramp';
 
 import ScreenView from '../components/ScreenView';
 import { getPaymentMethodApplePayNavbar } from '../../Navbar';
@@ -35,45 +37,45 @@ import { addFiatOrder, fiatOrdersCountrySelector, setFiatOrdersCountry } from '.
 const styles = StyleSheet.create({
 	screen: {
 		flexGrow: 1,
-		justifyContent: 'space-between'
+		justifyContent: 'space-between',
 	},
 	selectors: {
 		flexDirection: 'row',
 		marginTop: Device.isIphone5() ? 12 : 18,
 		marginHorizontal: 25,
 		justifyContent: 'space-between',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	spacer: {
-		minWidth: 8
+		minWidth: 8,
 	},
 	amountContainer: {
 		margin: Device.isIphone5() ? 0 : 12,
 		padding: Device.isMediumDevice() ? (Device.isIphone5() ? 5 : 10) : 15,
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	amount: {
 		...fontStyles.light,
 		color: colors.black,
 		fontSize: Device.isIphone5() ? 48 : 48,
-		height: Device.isIphone5() ? 50 : 60
+		height: Device.isIphone5() ? 50 : 60,
 	},
 	amountDescription: {
-		minHeight: 22
+		minHeight: 22,
 	},
 	amountError: {
-		color: colors.red
+		color: colors.red,
 	},
 	content: {
 		flexGrow: 1,
-		justifyContent: 'space-around'
+		justifyContent: 'space-around',
 	},
 	quickAmounts: {
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'space-around',
-		marginHorizontal: 70
+		marginHorizontal: 70,
 	},
 	quickAmount: {
 		borderRadius: 18,
@@ -82,38 +84,38 @@ const styles = StyleSheet.create({
 		paddingVertical: 5,
 		paddingHorizontal: 8,
 		alignItems: 'center',
-		minWidth: 49
+		minWidth: 49,
 	},
 	quickAmountPlaceholder: {
 		backgroundColor: colors.grey000,
-		borderColor: colors.grey000
+		borderColor: colors.grey000,
 	},
 	quickAmountSelected: {
 		backgroundColor: colors.blue,
-		borderColor: colors.blue
+		borderColor: colors.blue,
 	},
 	quickAmountSelectedText: {
-		color: colors.white
+		color: colors.white,
 	},
 	buttonContainer: {
-		paddingBottom: 20
+		paddingBottom: 20,
 	},
 	applePayButton: {
 		backgroundColor: colors.black,
 		padding: 10,
 		margin: Device.isIphone5() ? 5 : 10,
 		marginHorizontal: 25,
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	applePayButtonText: {
-		color: colors.white
+		color: colors.white,
 	},
 	applePayButtonContentDisabled: {
-		opacity: 0.6
+		opacity: 0.6,
 	},
 	applePayLogo: {
-		marginLeft: 4
-	}
+		marginLeft: 4,
+	},
 });
 
 /* eslint-disable import/no-commonjs */
@@ -123,7 +125,7 @@ const ApplePay = ({ disabled }) => (
 );
 
 ApplePay.propTypes = {
-	disabled: PropTypes.bool
+	disabled: PropTypes.bool,
 };
 
 const QuickAmount = ({ amount, current, currencySymbol, placeholder, ...props }) => {
@@ -149,7 +151,7 @@ QuickAmount.propTypes = {
 	amount: PropTypes.string,
 	current: PropTypes.string,
 	currencySymbol: PropTypes.string,
-	placeholder: PropTypes.bool
+	placeholder: PropTypes.bool,
 };
 
 //* Constants */
@@ -173,13 +175,15 @@ function PaymentMethodApplePay({
 	selectedCountry,
 	addOrder,
 	setFiatOrdersCountry,
-	protectWalletModalVisible
+	protectWalletModalVisible,
 }) {
 	const navigation = useNavigation();
 	const [amount, setAmount] = useState('0');
-	const { symbol: currencySymbol, decimalSeparator, currency: selectedCurrency } = useCountryCurrency(
-		selectedCountry
-	);
+	const {
+		symbol: currencySymbol,
+		decimalSeparator,
+		currency: selectedCurrency,
+	} = useCountryCurrency(selectedCountry);
 	const amountWithPeriod = useMemo(() => amount.replace(decimalSeparator, '.'), [amount, decimalSeparator]);
 	const roundAmount = useMemo(
 		() =>
@@ -200,7 +204,7 @@ function PaymentMethodApplePay({
 			return [];
 		}
 		const quickAmounts = selectedCountry === US ? US_QUICK_AMOUNTS : NON_US_QUICK_AMOUNTS;
-		return quickAmounts.map(amount => String(Math.ceil(amount * ratesUSD[selectedCurrency])));
+		return quickAmounts.map((amount) => String(Math.ceil(amount * ratesUSD[selectedCurrency])));
 	}, [ratesUSD, selectedCountry, selectedCurrency]);
 
 	const [minAmount, maxAmount] = useMemo(() => {
@@ -209,7 +213,7 @@ function PaymentMethodApplePay({
 		}
 		const minMaxAmounts =
 			selectedCountry === US ? [US_MIN_AMOUNT, US_MAX_AMOUNT] : [NON_US_MIN_AMOUNT, NON_US_MAX_AMOUNT];
-		return minMaxAmounts.map(amount => String(Math.ceil(amount * ratesUSD[selectedCurrency])));
+		return minMaxAmounts.map((amount) => String(Math.ceil(amount * ratesUSD[selectedCurrency])));
 	}, [ratesUSD, selectedCountry, selectedCurrency]);
 
 	const isUnderMinimum = (amount !== '0' || Number(roundAmount) !== 0) && Number(roundAmount) < minAmount;
@@ -247,9 +251,20 @@ function PaymentMethodApplePay({
 					addOrder(order);
 					navigation.dangerouslyGetParent()?.pop();
 					protectWalletModalVisible();
-					InteractionManager.runAfterInteractions(() =>
-						NotificationManager.showSimpleNotification(getNotificationDetails(order))
-					);
+					InteractionManager.runAfterInteractions(() => {
+						NotificationManager.showSimpleNotification(getNotificationDetails(order));
+						AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_SUBMITTED, {
+							fiat_amount: { value: order.amount, anonymous: true },
+							fiat_currency: { value: order.currency, anonymous: true },
+							crypto_currency: { value: order.cryptocurrency, anonymous: true },
+							crypto_amount: { value: order.cryptoAmount, anonymous: true },
+							fee_in_fiat: { value: order.fee, anonymous: true },
+							fee_in_crypto: { value: order.cryptoFee, anonymous: true },
+							//TODO(on-ramp): {value: fiat_amount_in_usd: '' anonymous: true},
+							order_id: { value: order.id, anonymous: true },
+							'on-ramp_provider': { value: FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY, anonymous: true },
+						});
+					});
 				} else {
 					Logger.error('FiatOrders::WyreApplePayProcessor empty order response', order);
 				}
@@ -258,12 +273,18 @@ function PaymentMethodApplePay({
 			NotificationManager.showSimpleNotification({
 				duration: 5000,
 				title: strings('fiat_on_ramp.notifications.purchase_failed_title', {
-					currency: 'ETH'
+					currency: 'ETH',
 				}),
 				description: `${error instanceof WyreException ? 'Wyre: ' : ''}${error.message}`,
-				status: 'error'
+				status: 'error',
 			});
 			Logger.error(error, 'FiatOrders::WyreApplePayProcessor Error');
+			InteractionManager.runAfterInteractions(() => {
+				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_SUBMISSION_FAILED, {
+					'on-ramp_provider': { value: FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY, anonymous: true },
+					failure_reason: { value: error.message, anonymous: true },
+				});
+			});
 		} finally {
 			setLockTime(prevLockTime);
 		}
@@ -277,10 +298,10 @@ function PaymentMethodApplePay({
 		ABORTED,
 		addOrder,
 		navigation,
-		protectWalletModalVisible
+		protectWalletModalVisible,
 	]);
 
-	const handleQuickAmountPress = useCallback(amount => setAmount(amount), []);
+	const handleQuickAmountPress = useCallback((amount) => setAmount(amount), []);
 	const handleKeypadChange = useCallback(
 		(value, key) => {
 			if (isOverMaximum && ![KEYS.BACK, KEYS.INITIAL].includes(key)) {
@@ -296,11 +317,11 @@ function PaymentMethodApplePay({
 	);
 
 	const formatCurrency = useCallback(
-		number =>
+		(number) =>
 			Intl.NumberFormat(I18n.locale, {
 				style: 'currency',
 				currency: selectedCurrency,
-				currencyDisplay: 'symbol'
+				currencyDisplay: 'symbol',
 			}).format(number),
 		[selectedCurrency]
 	);
@@ -340,7 +361,7 @@ function PaymentMethodApplePay({
 												amount: (quotation
 													? quotation.destAmount
 													: amountWithPeriod * ratesETH.ETH
-												).toFixed(5)
+												).toFixed(5),
 											})}
 										</>
 									)}
@@ -352,14 +373,14 @@ function PaymentMethodApplePay({
 						{isUnderMinimum && (
 							<Text>
 								{strings('fiat_on_ramp.wyre_minimum_deposit', {
-									amount: `${currencySymbol || ''}${minAmount}`
+									amount: `${currencySymbol || ''}${minAmount}`,
 								})}
 							</Text>
 						)}
 						{isOverMaximum && (
 							<Text style={styles.amountError}>
 								{strings('fiat_on_ramp.wyre_maximum_deposit', {
-									amount: `${currencySymbol || ''}${maxAmount}`
+									amount: `${currencySymbol || ''}${maxAmount}`,
 								})}
 							</Text>
 						)}
@@ -422,7 +443,7 @@ function PaymentMethodApplePay({
 										fee: formatCurrency(
 											quotation.fees[selectedCurrency] +
 												quotation.fees.ETH / quotation.exchangeRate
-										)
+										),
 									})}
 								</Text>
 							</Text>
@@ -471,25 +492,39 @@ PaymentMethodApplePay.propTypes = {
 	/**
 	 * Prompts protect wallet modal
 	 */
-	protectWalletModalVisible: PropTypes.func
+	protectWalletModalVisible: PropTypes.func,
 };
 
-PaymentMethodApplePay.navigationOptions = ({ navigation }) => getPaymentMethodApplePayNavbar(navigation);
+PaymentMethodApplePay.navigationOptions = ({ navigation }) =>
+	getPaymentMethodApplePayNavbar(
+		navigation,
+		() => {
+			InteractionManager.runAfterInteractions(() => {
+				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_EXITED, {
+					payment_rails: PAYMENT_RAILS.APPLE_PAY,
+					payment_category: PAYMENT_CATEGORY.CARD_PAYMENT,
+					'on-ramp_provider': FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY,
+				});
+			});
+		},
+		() => {
+			InteractionManager.runAfterInteractions(() => {
+				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_CLOSED);
+			});
+		}
+	);
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	lockTime: state.settings.lockTime,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	network: state.engine.backgroundState.NetworkController.network,
-	selectedCountry: fiatOrdersCountrySelector(state)
+	selectedCountry: fiatOrdersCountrySelector(state),
 });
 
-const mapDispatchToProps = dispatch => ({
-	setLockTime: time => dispatch(setLockTime(time)),
-	addOrder: order => dispatch(addFiatOrder(order)),
-	setFiatOrdersCountry: countryCode => dispatch(setFiatOrdersCountry(countryCode)),
-	protectWalletModalVisible: () => dispatch(protectWalletModalVisible())
+const mapDispatchToProps = (dispatch) => ({
+	setLockTime: (time) => dispatch(setLockTime(time)),
+	addOrder: (order) => dispatch(addFiatOrder(order)),
+	setFiatOrdersCountry: (countryCode) => dispatch(setFiatOrdersCountry(countryCode)),
+	protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
 });
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(PaymentMethodApplePay);
+export default connect(mapStateToProps, mapDispatchToProps)(PaymentMethodApplePay);

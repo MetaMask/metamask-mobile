@@ -13,6 +13,7 @@ import AssetElement from '../AssetElement';
 import { connect } from 'react-redux';
 import { safeToChecksumAddress } from '../../../util/address';
 import Analytics from '../../../core/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import StyledButton from '../StyledButton';
 import { allowedToBuy } from '../FiatOrders';
@@ -22,19 +23,19 @@ const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
 		flex: 1,
-		minHeight: 500
+		minHeight: 500,
 	},
 	emptyView: {
 		backgroundColor: colors.white,
 		justifyContent: 'center',
 		alignItems: 'center',
-		marginTop: 50
+		marginTop: 50,
 	},
 	tokensHome: {
 		justifyContent: 'center',
 		alignItems: 'center',
 		marginTop: 35,
-		marginHorizontal: 50
+		marginHorizontal: 50,
 	},
 	tokensHomeText: {
 		...fontStyles.normal,
@@ -42,56 +43,56 @@ const styles = StyleSheet.create({
 		marginHorizontal: 15,
 		fontSize: 18,
 		color: colors.fontPrimary,
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	tokensHomeButton: {
-		width: '100%'
+		width: '100%',
 	},
 	text: {
 		fontSize: 20,
 		color: colors.fontTertiary,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	add: {
 		margin: 20,
 		flexDirection: 'row',
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	addText: {
 		fontSize: 15,
 		color: colors.blue,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	footer: {
 		flex: 1,
-		paddingBottom: 30
+		paddingBottom: 30,
 	},
 	balances: {
 		flex: 1,
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	balance: {
 		fontSize: 16,
 		color: colors.fontPrimary,
 		...fontStyles.normal,
-		textTransform: 'uppercase'
+		textTransform: 'uppercase',
 	},
 	balanceFiat: {
 		fontSize: 12,
 		color: colors.fontSecondary,
 		...fontStyles.normal,
-		textTransform: 'uppercase'
+		textTransform: 'uppercase',
 	},
 	balanceFiatTokenError: {
-		textTransform: 'capitalize'
+		textTransform: 'capitalize',
 	},
 	ethLogo: {
 		width: 50,
 		height: 50,
 		overflow: 'hidden',
-		marginRight: 20
-	}
+		marginRight: 20,
+	},
 });
 
 /**
@@ -139,7 +140,7 @@ class Tokens extends PureComponent {
 		/**
 		 * A bool that represents if the user wants to hide zero balance token
 		 */
-		hideZeroBalanceTokens: PropTypes.bool
+		hideZeroBalanceTokens: PropTypes.bool,
 	};
 
 	actionSheet = null;
@@ -152,7 +153,7 @@ class Tokens extends PureComponent {
 		</View>
 	);
 
-	onItemPress = token => {
+	onItemPress = (token) => {
 		this.props.navigation.navigate('Asset', { ...token, transactions: this.props.transactions });
 	};
 
@@ -165,10 +166,10 @@ class Tokens extends PureComponent {
 		</View>
 	);
 
-	renderItem = asset => {
+	renderItem = (asset) => {
 		const { conversionRate, currentCurrency, tokenBalances, tokenExchangeRates, primaryCurrency } = this.props;
 		const itemAddress = safeToChecksumAddress(asset.address);
-		const logo = asset.logo || ((contractMap[itemAddress] && contractMap[itemAddress].logo) || undefined);
+		const logo = asset.logo || (contractMap[itemAddress] && contractMap[itemAddress].logo) || undefined;
 		const exchangeRate = itemAddress in tokenExchangeRates ? tokenExchangeRates[itemAddress] : undefined;
 		const balance =
 			asset.balance ||
@@ -222,6 +223,10 @@ class Tokens extends PureComponent {
 		this.props.navigation.navigate('FiatOnRamp');
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_OPENED, {
+				button_location: 'Home Screen',
+				button_copy: 'Buy ETH',
+			});
 		});
 	};
 
@@ -230,13 +235,13 @@ class Tokens extends PureComponent {
 		if (!allowedToBuy(chainId)) {
 			return null;
 		}
-		const eth = tokens.find(token => token.isETH);
+		const eth = tokens.find((token) => token.isETH);
 		const ethBalance = eth && eth.balance !== '0';
 		const hasTokens = eth ? tokens.length > 1 : tokens.length > 0;
 		const hasTokensBalance =
 			hasTokens &&
 			tokens.some(
-				token => !token.isETH && tokenBalances[token.address] && !tokenBalances[token.address]?.isZero?.()
+				(token) => !token.isETH && tokenBalances[token.address] && !tokenBalances[token.address]?.isZero?.()
 			);
 
 		return (
@@ -254,7 +259,7 @@ class Tokens extends PureComponent {
 	renderList() {
 		const { tokens, hideZeroBalanceTokens, tokenBalances } = this.props;
 		const tokensToDisplay = hideZeroBalanceTokens
-			? tokens.filter(token => {
+			? tokens.filter((token) => {
 					const { address, isETH } = token;
 					return (tokenBalances[address] && !tokenBalances[address]?.isZero?.()) || isETH;
 					// eslint-disable-next-line no-mixed-spaces-and-tabs
@@ -263,7 +268,7 @@ class Tokens extends PureComponent {
 
 		return (
 			<View>
-				{tokensToDisplay.map(item => this.renderItem(item))}
+				{tokensToDisplay.map((item) => this.renderItem(item))}
 				{this.renderBuyEth()}
 				{this.renderFooter()}
 			</View>
@@ -277,7 +282,7 @@ class Tokens extends PureComponent {
 		});
 	};
 
-	showRemoveMenu = token => {
+	showRemoveMenu = (token) => {
 		this.tokenToRemove = token;
 		this.actionSheet.show();
 	};
@@ -288,11 +293,11 @@ class Tokens extends PureComponent {
 		Alert.alert(strings('wallet.token_removed_title'), strings('wallet.token_removed_desc'));
 	};
 
-	createActionSheetRef = ref => {
+	createActionSheetRef = (ref) => {
 		this.actionSheet = ref;
 	};
 
-	onActionSheetPress = index => (index === 0 ? this.removeToken() : null);
+	onActionSheetPress = (index) => (index === 0 ? this.removeToken() : null);
 
 	render = () => {
 		const { tokens } = this.props;
@@ -312,14 +317,14 @@ class Tokens extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	primaryCurrency: state.settings.primaryCurrency,
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-	hideZeroBalanceTokens: state.settings.hideZeroBalanceTokens
+	hideZeroBalanceTokens: state.settings.hideZeroBalanceTokens,
 });
 
 export default connect(mapStateToProps)(Tokens);

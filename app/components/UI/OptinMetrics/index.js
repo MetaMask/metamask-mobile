@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react';
 import { View, SafeAreaView, Text, StyleSheet, TouchableOpacity, ScrollView, BackHandler, Alert } from 'react-native';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles, colors } from '../../../styles/common';
-import AsyncStorage from '@react-native-community/async-storage';
 import Entypo from 'react-native-vector-icons/Entypo';
 import { getOptinMetricsNavbarOptions } from '../Navbar';
 import { strings } from '../../../../locales/i18n';
@@ -14,71 +13,72 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { ONBOARDING_WIZARD, METRICS_OPT_IN, DENIED, AGREED } from '../../../constants/storage';
 import AppConstants from '../../../core/AppConstants';
+import DefaultPreference from 'react-native-default-preference';
 
 const styles = StyleSheet.create({
 	root: {
 		...baseStyles.flexGrow,
-		backgroundColor: colors.white
+		backgroundColor: colors.white,
 	},
 	checkIcon: {
-		color: colors.green500
+		color: colors.green500,
 	},
 	crossIcon: {
-		color: colors.red
+		color: colors.red,
 	},
 	icon: {
-		marginRight: 5
+		marginRight: 5,
 	},
 	action: {
 		flex: 0,
 		flexDirection: 'row',
 		paddingVertical: 10,
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	title: {
 		...fontStyles.bold,
 		color: colors.black,
-		fontSize: 22
+		fontSize: 22,
 	},
 	description: {
 		...fontStyles.normal,
 		color: colors.black,
-		flex: 1
+		flex: 1,
 	},
 	content: {
 		...fontStyles.normal,
 		fontSize: 14,
 		color: colors.black,
-		paddingVertical: 10
+		paddingVertical: 10,
 	},
 	wrapper: {
-		marginHorizontal: 20
+		marginHorizontal: 20,
 	},
 	privacyPolicy: {
 		...fontStyles.normal,
 		fontSize: 14,
 		color: colors.grey400,
-		marginTop: 10
+		marginTop: 10,
 	},
 	link: {
-		textDecorationLine: 'underline'
+		textDecorationLine: 'underline',
 	},
 	actionContainer: {
 		marginTop: 10,
 		flex: 0,
 		flexDirection: 'row',
 		padding: 16,
-		bottom: 0
+		bottom: 0,
 	},
 	button: {
-		flex: 1
+		flex: 1,
 	},
 	cancel: {
-		marginRight: 8
+		marginRight: 8,
 	},
 	confirm: {
-		marginLeft: 8
-	}
+		marginLeft: 8,
+	},
 });
 
 /**
@@ -103,12 +103,12 @@ class OptinMetrics extends PureComponent {
 		/**
 		 * Action to erase any event stored in onboarding state
 		 */
-		clearOnboardingEvents: PropTypes.func
+		clearOnboardingEvents: PropTypes.func,
 	};
 
-	actionsList = [1, 2, 3, 4, 5, 6].map(value => ({
+	actionsList = [1, 2, 3, 4, 5, 6].map((value) => ({
 		action: value <= 3 ? 0 : 1,
-		description: strings(`privacy_policy.action_description_${value}`)
+		description: strings(`privacy_policy.action_description_${value}`),
 	}));
 
 	componentDidMount() {
@@ -132,7 +132,7 @@ class OptinMetrics extends PureComponent {
 	 */
 	continue = async () => {
 		// Get onboarding wizard state
-		const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
+		const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
 		if (onboardingWizard) {
 			this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
 		} else {
@@ -164,11 +164,11 @@ class OptinMetrics extends PureComponent {
 	onCancel = async () => {
 		setTimeout(async () => {
 			if (this.props.events && this.props.events.length) {
-				this.props.events.forEach(e => Analytics.trackEvent(e));
+				this.props.events.forEach((e) => Analytics.trackEvent(e));
 			}
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_OUT);
 			this.props.clearOnboardingEvents();
-			await AsyncStorage.setItem(METRICS_OPT_IN, DENIED);
+			await DefaultPreference.set(METRICS_OPT_IN, DENIED);
 			Analytics.disableInstance();
 		}, 200);
 		this.continue();
@@ -180,11 +180,11 @@ class OptinMetrics extends PureComponent {
 	onConfirm = async () => {
 		setTimeout(async () => {
 			if (this.props.events && this.props.events.length) {
-				this.props.events.forEach(e => Analytics.trackEvent(e));
+				this.props.events.forEach((e) => Analytics.trackEvent(e));
 			}
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_IN);
 			this.props.clearOnboardingEvents();
-			await AsyncStorage.setItem(METRICS_OPT_IN, AGREED);
+			await DefaultPreference.set(METRICS_OPT_IN, AGREED);
 		}, 200);
 		this.continue();
 	};
@@ -197,8 +197,8 @@ class OptinMetrics extends PureComponent {
 			screen: 'SimpleWebview',
 			params: {
 				url: AppConstants.URLS.PRIVACY_POLICY,
-				title: strings('privacy_policy.title')
-			}
+				title: strings('privacy_policy.title'),
+			},
 		});
 	};
 
@@ -253,16 +253,13 @@ class OptinMetrics extends PureComponent {
 	}
 }
 
-const mapStateToProps = state => ({
-	events: state.onboarding.events
+const mapStateToProps = (state) => ({
+	events: state.onboarding.events,
 });
 
-const mapDispatchToProps = dispatch => ({
-	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step)),
-	clearOnboardingEvents: () => dispatch(clearOnboardingEvents())
+const mapDispatchToProps = (dispatch) => ({
+	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
+	clearOnboardingEvents: () => dispatch(clearOnboardingEvents()),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(OptinMetrics);
+export default connect(mapStateToProps, mapDispatchToProps)(OptinMetrics);

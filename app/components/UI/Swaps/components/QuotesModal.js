@@ -8,7 +8,7 @@ import {
 	LayoutAnimation,
 	UIManager,
 	Platform,
-	SafeAreaView
+	SafeAreaView,
 } from 'react-native';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
@@ -20,7 +20,7 @@ import {
 	renderFromTokenMinimalUnit,
 	renderFromWei,
 	toWei,
-	weiToFiat
+	weiToFiat,
 } from '../../../../util/number';
 import { getQuotesSourceMessage } from '../utils';
 
@@ -39,16 +39,16 @@ const styles = StyleSheet.create({
 		shadowColor: colors.black,
 		shadowOffset: {
 			width: 0,
-			height: 5
+			height: 5,
 		},
 		shadowOpacity: 0.36,
 		shadowRadius: 6.68,
-		elevation: 11
+		elevation: 11,
 	},
 	modal: {
 		margin: 0,
 		width: '100%',
-		padding: 25
+		padding: 25,
 	},
 	title: {
 		width: '100%',
@@ -57,78 +57,78 @@ const styles = StyleSheet.create({
 		paddingBottom: 5,
 		flexDirection: 'row',
 		alignItems: 'center',
-		justifyContent: 'space-between'
+		justifyContent: 'space-between',
 	},
 	titleButton: {
 		flexDirection: 'row',
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	closeIcon: {
-		color: colors.black
+		color: colors.black,
 	},
 	backIcon: {
 		color: colors.black,
-		marginRight: 16
+		marginRight: 16,
 	},
 	detailsIcon: {
 		color: colors.black,
-		paddingHorizontal: 10
+		paddingHorizontal: 10,
 	},
 	body: {
 		width: '100%',
-		paddingVertical: 5
+		paddingVertical: 5,
 	},
 	row: {
 		paddingHorizontal: 20,
 		flexDirection: 'row',
-		paddingVertical: 10
+		paddingVertical: 10,
 	},
 	quoteRow: {
 		borderTopWidth: 1,
 		borderTopColor: colors.grey100,
 		paddingVertical: 15,
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	detailsRow: {
 		paddingHorizontal: 20,
 		borderTopWidth: 1,
 		borderTopColor: colors.grey100,
-		paddingVertical: 15
+		paddingVertical: 15,
 	},
 	selectedQuoteRow: {
-		backgroundColor: colors.blue000
+		backgroundColor: colors.blue000,
 	},
 	columnAmount: {
 		flex: 3,
-		marginRight: 5
+		marginRight: 5,
 	},
 	columnFee: {
 		flex: 3,
-		marginRight: 5
+		marginRight: 5,
 	},
 	columnValue: {
 		flex: 3,
-		marginRight: 5
+		marginRight: 5,
 	},
 	red: {
-		color: colors.red
+		color: colors.red,
 	},
 	bestBadge: {
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	bestBadgeWrapper: {
 		paddingVertical: 0,
 		paddingHorizontal: 8,
 		backgroundColor: colors.blue,
-		borderRadius: 4
+		borderRadius: 4,
 	},
 	bestBadgeText: {
-		color: colors.white
+		color: colors.white,
 	},
 	transparent: {
-		opacity: 0
-	}
+		opacity: 0,
+	},
 });
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -146,7 +146,7 @@ function QuotesModal({
 	currentCurrency,
 	quoteValues,
 	showOverallValue,
-	ticker
+	ticker,
 }) {
 	const bestOverallValue = quoteValues?.[quotes[0].aggregator]?.overallValueOfQuote ?? 0;
 	const [displayDetails, setDisplayDetails] = useState(false);
@@ -176,12 +176,12 @@ function QuotesModal({
 	// Toggle displaying details
 	const toggleDetails = useCallback(() => {
 		LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-		setDisplayDetails(f => !f);
+		setDisplayDetails((f) => !f);
 	}, []);
 
 	// Toggle to the details in case the quote exist
 	const handleQuoteDetailsPress = useCallback(
-		index => {
+		(index) => {
 			if (quotes?.[index]) {
 				setSelectedDetailsQuoteIndex(index);
 				toggleDetails();
@@ -375,7 +375,7 @@ function QuotesModal({
 													style={[
 														styles.row,
 														styles.quoteRow,
-														isSelected && styles.selectedQuoteRow
+														isSelected && styles.selectedQuoteRow,
 													]}
 												>
 													<View style={styles.columnAmount}>
@@ -462,11 +462,11 @@ QuotesModal.propTypes = {
 	selectedQuote: PropTypes.string,
 	destinationToken: PropTypes.shape({
 		symbol: PropTypes.string,
-		decimals: PropTypes.number
+		decimals: PropTypes.number,
 	}),
 	sourceToken: PropTypes.shape({
 		symbol: PropTypes.string,
-		decimals: PropTypes.number
+		decimals: PropTypes.number,
 	}),
 	/**
 	 * ETH to current currency conversion rate
@@ -481,13 +481,13 @@ QuotesModal.propTypes = {
 	 */
 	ticker: PropTypes.string,
 	quoteValues: PropTypes.object,
-	showOverallValue: PropTypes.bool
+	showOverallValue: PropTypes.bool,
 };
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	quoteValues: state.engine.backgroundState.SwapsController.quoteValues
+	quoteValues: state.engine.backgroundState.SwapsController.quoteValues,
 });
 
 export default connect(mapStateToProps)(QuotesModal);

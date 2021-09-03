@@ -10,8 +10,8 @@ import Text from '../../Base/Text';
 const styles = StyleSheet.create({
 	loader: {
 		backgroundColor: colors.white,
-		height: 10
-	}
+		height: 10,
+	},
 });
 
 export default class TransactionSummary extends PureComponent {
@@ -22,10 +22,10 @@ export default class TransactionSummary extends PureComponent {
 		secondaryTotalAmount: PropTypes.string,
 		gasEstimationReady: PropTypes.bool,
 		onEditPress: PropTypes.func,
-		transactionType: PropTypes.string
+		transactionType: PropTypes.string,
 	};
 
-	renderIfGastEstimationReady = children => {
+	renderIfGastEstimationReady = (children) => {
 		const { gasEstimationReady } = this.props;
 		return !gasEstimationReady ? (
 			<View style={styles.loader}>

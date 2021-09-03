@@ -9,11 +9,11 @@ describe('OfflineMode', () => {
 	it('should render correctly', () => {
 		const initialState = {
 			infuraAvailability: {
-				isBlocked: false
-			}
+				isBlocked: false,
+			},
 		};
 		const wrapper = shallow(<OfflineMode route={{ params: {} }} />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});

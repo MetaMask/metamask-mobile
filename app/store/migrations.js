@@ -2,13 +2,15 @@ import { NetworksChainId } from '@metamask/controllers';
 import AppConstants from '../core/AppConstants';
 import { getAllNetworks, isSafeChainId } from '../util/networks';
 import { toLowerCaseEquals } from '../util/general';
+import DefaultPreference from 'react-native-default-preference';
+import { ONBOARDING_WIZARD, METRICS_OPT_IN, AGREED, DENIED, EXPLORED } from '../constants/storage';
 
 export const migrations = {
 	// Needed after https://github.com/MetaMask/controllers/pull/152
-	0: state => {
+	0: (state) => {
 		const addressBook = state.engine.backgroundState.AddressBookController.addressBook;
 		const migratedAddressBook = {};
-		Object.keys(addressBook).forEach(address => {
+		Object.keys(addressBook).forEach((address) => {
 			const chainId = addressBook[address].chainId.toString();
 			migratedAddressBook[chainId]
 				? (migratedAddressBook[chainId] = { ...migratedAddressBook[chainId], [address]: addressBook[address] })
@@ -18,10 +20,10 @@ export const migrations = {
 		return state;
 	},
 	// MakerDAO DAI => SAI
-	1: state => {
+	1: (state) => {
 		const tokens = state.engine.backgroundState.TokensController.tokens;
 		const migratedTokens = [];
-		tokens.forEach(token => {
+		tokens.forEach((token) => {
 			if (token.symbol === 'DAI' && toLowerCaseEquals(token.address, AppConstants.SAI_ADDRESS)) {
 				token.symbol = 'SAI';
 			}
@@ -31,7 +33,7 @@ export const migrations = {
 
 		return state;
 	},
-	2: state => {
+	2: (state) => {
 		const provider = state.engine.backgroundState.NetworkController.provider;
 
 		// Check if the current network is one of the initial networks
@@ -45,12 +47,12 @@ export const migrations = {
 			// If the current network does not have a chainId, switch to testnet.
 			state.engine.backgroundState.NetworkController.provider = {
 				ticker: 'ETH',
-				type: 'rinkeby'
+				type: 'rinkeby',
 			};
 		}
 		return state;
 	},
-	3: state => {
+	3: (state) => {
 		const provider = state.engine.backgroundState.NetworkController.provider;
 		const chainId = NetworksChainId[provider.type];
 		// if chainId === '' is a rpc
@@ -69,12 +71,12 @@ export const migrations = {
 			state.engine.backgroundState.NetworkController.provider = {
 				ticker: 'ETH',
 				type: 'rinkeby',
-				chainId: NetworksChainId.rinkeby
+				chainId: NetworksChainId.rinkeby,
 			};
 		}
 		return state;
 	},
-	4: state => {
+	4: (state) => {
 		const { allCollectibleContracts, allCollectibles, allTokens } = state.engine.backgroundState.AssetsController;
 		const { frequentRpcList } = state.engine.backgroundState.PreferencesController;
 
@@ -82,9 +84,9 @@ export const migrations = {
 		const newAllCollectibles = {};
 		const newAllTokens = {};
 
-		Object.keys(allTokens).forEach(address => {
+		Object.keys(allTokens).forEach((address) => {
 			newAllTokens[address] = {};
-			Object.keys(allTokens[address]).forEach(networkType => {
+			Object.keys(allTokens[address]).forEach((networkType) => {
 				if (NetworksChainId[networkType]) {
 					newAllTokens[address][NetworksChainId[networkType]] = allTokens[address][networkType];
 				} else {
@@ -95,9 +97,9 @@ export const migrations = {
 			});
 		});
 
-		Object.keys(allCollectibles).forEach(address => {
+		Object.keys(allCollectibles).forEach((address) => {
 			newAllCollectibles[address] = {};
-			Object.keys(allCollectibles[address]).forEach(networkType => {
+			Object.keys(allCollectibles[address]).forEach((networkType) => {
 				if (NetworksChainId[networkType]) {
 					newAllCollectibles[address][NetworksChainId[networkType]] = allCollectibles[address][networkType];
 				} else {
@@ -108,9 +110,9 @@ export const migrations = {
 			});
 		});
 
-		Object.keys(allCollectibleContracts).forEach(address => {
+		Object.keys(allCollectibleContracts).forEach((address) => {
 			newAllCollectibleContracts[address] = {};
-			Object.keys(allCollectibleContracts[address]).forEach(networkType => {
+			Object.keys(allCollectibleContracts[address]).forEach((networkType) => {
 				if (NetworksChainId[networkType]) {
 					newAllCollectibleContracts[address][NetworksChainId[networkType]] =
 						allCollectibleContracts[address][networkType];
@@ -126,26 +128,77 @@ export const migrations = {
 			...state.engine.backgroundState.AssetsController,
 			allTokens: newAllTokens,
 			allCollectibles: newAllCollectibles,
-			allCollectibleContracts: newAllCollectibleContracts
+			allCollectibleContracts: newAllCollectibleContracts,
 		};
 		return state;
 	},
-	5: state => {
+	5: (state) => {
 		state.engine.backgroundState.TokensController = {
 			allTokens: state.engine.backgroundState.AssetsController.allTokens,
-			ignoredTokens: state.engine.backgroundState.AssetsController.ignoredTokens
+			ignoredTokens: state.engine.backgroundState.AssetsController.ignoredTokens,
 		};
 
 		state.engine.backgroundState.CollectiblesController = {
 			allCollectibles: state.engine.backgroundState.AssetsController.allCollectibles,
 			allCollectibleContracts: state.engine.backgroundState.AssetsController.allCollectibleContracts,
-			ignoredCollectibles: state.engine.backgroundState.AssetsController.ignoredCollectibles
+			ignoredCollectibles: state.engine.backgroundState.AssetsController.ignoredCollectibles,
 		};
 
 		delete state.engine.backgroundState.AssetsController;
 
 		return state;
-	}
+	},
+	6: (state) => {
+		state.analytics?.enabled
+			? DefaultPreference.set(METRICS_OPT_IN, AGREED)
+			: DefaultPreference.set(METRICS_OPT_IN, DENIED);
+		DefaultPreference.set(ONBOARDING_WIZARD, EXPLORED);
+
+		return state;
+	},
+	7: (state) => {
+		const allTokens = state.engine.backgroundState.TokensController.allTokens;
+		const newAllTokens = {};
+		if (allTokens) {
+			Object.keys(allTokens).forEach((accountAddress) => {
+				Object.keys(allTokens[accountAddress]).forEach((chainId) => {
+					const tokensArray = allTokens[accountAddress][chainId];
+					if (newAllTokens[chainId] === undefined) {
+						newAllTokens[chainId] = { [accountAddress]: tokensArray };
+					} else {
+						newAllTokens[chainId] = {
+							...newAllTokens[chainId],
+							[accountAddress]: tokensArray,
+						};
+					}
+				});
+			});
+		}
+
+		const ignoredTokens = state.engine.backgroundState.TokensController.ignoredTokens;
+		const newAllIgnoredTokens = {};
+		Object.keys(allTokens).forEach((accountAddress) => {
+			Object.keys(allTokens[accountAddress]).forEach((chainId) => {
+				if (newAllIgnoredTokens[chainId] === undefined) {
+					newAllIgnoredTokens[chainId] = {
+						[accountAddress]: ignoredTokens,
+					};
+				} else {
+					newAllIgnoredTokens[chainId] = {
+						...newAllIgnoredTokens[chainId],
+						[accountAddress]: ignoredTokens,
+					};
+				}
+			});
+		});
+
+		state.engine.backgroundState.TokensController = {
+			allTokens: newAllTokens,
+			allIgnoredTokens: newAllIgnoredTokens,
+		};
+
+		return state;
+	},
 };
 
-export const version = 5;
+export const version = 7;

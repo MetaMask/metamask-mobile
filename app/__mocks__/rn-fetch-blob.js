@@ -13,8 +13,8 @@ export default {
 		exists: () => Promise.resolve(),
 		dirs: {
 			CacheDir: noop,
-			DocumentDir: noop
-		}
+			DocumentDir: noop,
+		},
 	},
-	wrap: noop
+	wrap: noop,
 };

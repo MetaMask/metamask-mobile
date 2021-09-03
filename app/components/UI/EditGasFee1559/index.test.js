@@ -10,7 +10,7 @@ describe('EditGasFee1559', () => {
 					maxWaitTimeEstimate: 150000,
 					minWaitTimeEstimate: 0,
 					suggestedMaxFeePerGas: '50',
-					suggestedMaxPriorityFeePerGas: '2'
+					suggestedMaxPriorityFeePerGas: '2',
 				}}
 			/>
 		);

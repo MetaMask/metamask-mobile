@@ -2,7 +2,7 @@ import Analytics from '../core/Analytics';
 import Logger from './Logger';
 import { InteractionManager } from 'react-native';
 
-const generateOpt = name => ({ category: name });
+const generateOpt = (name) => ({ category: name });
 
 export const ANALYTICS_EVENTS_V2 = {
 	// Approval
@@ -36,7 +36,17 @@ export const ANALYTICS_EVENTS_V2 = {
 	NETWORK_REQUEST_REJECTED: generateOpt('Network Request Rejected'),
 	// Send transaction
 	SEND_TRANSACTION_STARTED: generateOpt('Send Transaction Started'),
-	SEND_TRANSACTION_COMPLETED: generateOpt('Send Transaction Completed')
+	SEND_TRANSACTION_COMPLETED: generateOpt('Send Transaction Completed'),
+	// On-ramp
+	ONRAMP_OPENED: generateOpt('On-ramp Opened'),
+	ONRAMP_CLOSED: generateOpt('On-ramp Closed'),
+	ONRAMP_PURCHASE_EXITED: generateOpt('On-ramp Purchase Exited'),
+	ONRAMP_PURCHASE_STARTED: generateOpt('On-ramp Purchase Started'),
+	ONRAMP_PURCHASE_SUBMISSION_FAILED: generateOpt('On-ramp Submission Failed'),
+	ONRAMP_PURCHASE_SUBMITTED: generateOpt('On-ramp Purchase Submitted'),
+	ONRAMP_PURCHASE_FAILED: generateOpt('On-ramp Purchase Failed'),
+	ONRAMP_PURCHASE_CANCELLED: generateOpt('On-ramp Purchase Cancelled'),
+	ONRAMP_PURCHASE_COMPLETED: generateOpt('On-ramp Purchase Completed'),
 };
 
 /**
@@ -104,7 +114,7 @@ export const trackErrorAsAnalytics = (type, errorMessage, otherInfo) => {
 			error: true,
 			type,
 			errorMessage,
-			otherInfo
+			otherInfo,
 		});
 	} catch (error) {
 		Logger.error(error, 'Error logging analytics - trackErrorAsAnalytics');
@@ -114,5 +124,5 @@ export const trackErrorAsAnalytics = (type, errorMessage, otherInfo) => {
 export default {
 	ANALYTICS_EVENTS: ANALYTICS_EVENTS_V2,
 	trackEvent: trackEventV2,
-	trackErrorAsAnalytics
+	trackErrorAsAnalytics,
 };

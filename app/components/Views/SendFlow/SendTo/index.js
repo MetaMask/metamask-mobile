@@ -22,6 +22,7 @@ import { strings } from '../../../../../locales/i18n';
 import WarningMessage from '../WarningMessage';
 import { util } from '@metamask/controllers';
 import Analytics from '../../../../core/Analytics';
+import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { allowedToBuy } from '../../../UI/FiatOrders';
 import NetworkList from '../../../../util/networks';
@@ -29,56 +30,57 @@ import Text from '../../../Base/Text';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { collectConfusables, hasZeroWidthPoints } from '../../../../util/validators';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import addRecent from '../../../../actions/recents';
 
 const { hexToBN } = util;
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
-		backgroundColor: colors.white
+		backgroundColor: colors.white,
 	},
 	imputWrapper: {
 		flex: 0,
 		borderBottomWidth: 1,
 		borderBottomColor: colors.grey050,
-		paddingHorizontal: 8
+		paddingHorizontal: 8,
 	},
 	bottomModal: {
 		justifyContent: 'flex-end',
-		margin: 0
+		margin: 0,
 	},
 	myAccountsText: {
 		...fontStyles.normal,
 		color: colors.blue,
 		fontSize: 16,
-		alignSelf: 'center'
+		alignSelf: 'center',
 	},
 	myAccountsTouchable: {
-		padding: 28
+		padding: 28,
 	},
 	addToAddressBookRoot: {
 		flex: 1,
-		padding: 24
+		padding: 24,
 	},
 	addToAddressBookWrapper: {
 		flexDirection: 'row',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	addTextTitle: {
 		...fontStyles.normal,
 		fontSize: 24,
 		color: colors.black,
-		marginBottom: 24
+		marginBottom: 24,
 	},
 	addTextSubtitle: {
 		...fontStyles.normal,
 		fontSize: 16,
 		color: colors.grey600,
-		marginBottom: 24
+		marginBottom: 24,
 	},
 	addTextInput: {
 		...fontStyles.normal,
 		color: colors.black,
-		fontSize: 20
+		fontSize: 20,
 	},
 	addInputWrapper: {
 		flexDirection: 'row',
@@ -86,42 +88,42 @@ const styles = StyleSheet.create({
 		borderRadius: 8,
 		borderColor: colors.grey050,
 		height: 50,
-		width: '100%'
+		width: '100%',
 	},
 	input: {
 		flex: 1,
 		flexDirection: 'row',
 		alignItems: 'center',
 		marginHorizontal: 6,
-		width: '100%'
+		width: '100%',
 	},
 	nextActionWrapper: {
 		flex: 1,
-		marginBottom: 16
+		marginBottom: 16,
 	},
 	buttonNextWrapper: {
 		flexDirection: 'row',
-		alignItems: 'flex-end'
+		alignItems: 'flex-end',
 	},
 	buttonNext: {
 		flex: 1,
-		marginHorizontal: 24
+		marginHorizontal: 24,
 	},
 	addressErrorWrapper: {
-		margin: 16
+		margin: 16,
 	},
 	footerContainer: {
 		flex: 1,
-		justifyContent: 'flex-end'
+		justifyContent: 'flex-end',
 	},
 	warningContainer: {
 		marginTop: 20,
 		marginHorizontal: 24,
-		marginBottom: 32
+		marginBottom: 32,
 	},
 	buyEth: {
 		color: colors.black,
-		textDecorationLine: 'underline'
+		textDecorationLine: 'underline',
 	},
 	confusabeError: {
 		display: 'flex',
@@ -132,30 +134,30 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderColor: colors.red,
 		backgroundColor: colors.red000,
-		borderRadius: 8
+		borderRadius: 8,
 	},
 	confusabeWarning: {
 		borderColor: colors.yellow,
-		backgroundColor: colors.yellow100
+		backgroundColor: colors.yellow100,
 	},
 	confusableTitle: {
 		marginTop: -3,
 		color: colors.red,
 		...fontStyles.bold,
-		fontSize: 14
+		fontSize: 14,
 	},
 	confusableMsg: {
 		color: colors.red,
 		fontSize: 12,
 		lineHeight: 16,
-		paddingRight: 10
+		paddingRight: 10,
 	},
 	black: {
-		color: colors.black
+		color: colors.black,
 	},
 	warningIcon: {
-		marginRight: 8
-	}
+		marginRight: 8,
+	},
 });
 
 const dummy = () => true;
@@ -222,7 +224,8 @@ class SendFlow extends PureComponent {
 		/**
 		 * Indicates whether the current transaction is a deep link transaction
 		 */
-		isPaymentRequest: PropTypes.bool
+		isPaymentRequest: PropTypes.bool,
+		addRecent: PropTypes.func,
 	};
 
 	addressToInputRef = React.createRef();
@@ -242,7 +245,7 @@ class SendFlow extends PureComponent {
 		addToAddressToAddressBook: false,
 		alias: undefined,
 		confusableCollection: [],
-		inputWidth: { width: '99%' }
+		inputWidth: { width: '99%' },
 	};
 
 	componentDidMount = async () => {
@@ -255,7 +258,7 @@ class SendFlow extends PureComponent {
 			navigation,
 			providerType,
 			route,
-			isPaymentRequest
+			isPaymentRequest,
 		} = this.props;
 		const { fromAccountName } = this.state;
 		// For analytics
@@ -269,7 +272,7 @@ class SendFlow extends PureComponent {
 				fromAccountName: ens || fromAccountName,
 				fromAccountBalance,
 				balanceIsZero: hexToBN(accounts[selectedAddress].balance).isZero(),
-				inputWidth: { width: '100%' }
+				inputWidth: { width: '100%' },
 			});
 		}, 100);
 		if (!Object.keys(networkAddressBook).length) {
@@ -295,7 +298,7 @@ class SendFlow extends PureComponent {
 		this.setState({ addToAddressBookModalVisible: !addToAddressBookModalVisible });
 	};
 
-	onAccountChange = async accountAddress => {
+	onAccountChange = async (accountAddress) => {
 		const { identities, ticker, accounts } = this.props;
 		const { name } = identities[accountAddress];
 		const { PreferencesController } = Engine.context;
@@ -309,12 +312,12 @@ class SendFlow extends PureComponent {
 			fromAccountName,
 			fromAccountBalance,
 			fromSelectedAddress: accountAddress,
-			balanceIsZero: hexToBN(accounts[accountAddress].balance).isZero()
+			balanceIsZero: hexToBN(accounts[accountAddress].balance).isZero(),
 		});
 		this.toggleFromAccountModal();
 	};
 
-	onToSelectedAddressChange = async toSelectedAddress => {
+	onToSelectedAddressChange = async (toSelectedAddress) => {
 		const { AssetsContractController } = Engine.context;
 		const { addressBook, network, identities, providerType } = this.props;
 		const networkAddressBook = addressBook[network] || {};
@@ -398,7 +401,7 @@ class SendFlow extends PureComponent {
 			toEnsName,
 			errorContinue,
 			isOnlyWarning,
-			confusableCollection
+			confusableCollection,
 		});
 	};
 
@@ -422,7 +425,7 @@ class SendFlow extends PureComponent {
 		this.onToSelectedAddressChange();
 	};
 
-	onChangeAlias = alias => {
+	onChangeAlias = (alias) => {
 		this.setState({ alias });
 	};
 
@@ -437,29 +440,25 @@ class SendFlow extends PureComponent {
 
 	onScan = () => {
 		this.props.navigation.navigate('QRScanner', {
-			onScanSuccess: meta => {
+			onScanSuccess: (meta) => {
 				if (meta.target_address) {
 					this.onToSelectedAddressChange(meta.target_address);
 				}
-			}
+			},
 		});
 	};
 
 	onTransactionDirectionSet = async () => {
-		const { setRecipient, navigation, providerType } = this.props;
-		const {
-			fromSelectedAddress,
-			toSelectedAddress,
-			toEnsName,
-			toSelectedAddressName,
-			fromAccountName
-		} = this.state;
+		const { setRecipient, navigation, providerType, addRecent } = this.props;
+		const { fromSelectedAddress, toSelectedAddress, toEnsName, toSelectedAddressName, fromAccountName } =
+			this.state;
 		const addressError = await this.validateToAddress();
 		if (addressError) return;
+		addRecent(toSelectedAddress);
 		setRecipient(fromSelectedAddress, toSelectedAddress, toEnsName, toSelectedAddressName, fromAccountName);
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SEND_FLOW_ADDS_RECIPIENT, {
-				network: providerType
+				network: providerType,
 			});
 		});
 		navigation.navigate('Amount');
@@ -545,6 +544,10 @@ class SendFlow extends PureComponent {
 		this.props.navigation.navigate('FiatOnRamp');
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_OPENED, {
+				button_location: 'Send Flow warning',
+				button_copy: 'Buy ETH',
+			});
 		});
 	};
 
@@ -580,7 +583,7 @@ class SendFlow extends PureComponent {
 			inputWidth,
 			errorContinue,
 			isOnlyWarning,
-			confusableCollection
+			confusableCollection,
 		} = this.state;
 
 		const checksummedAddress = toSelectedAddress && toChecksumAddress(toSelectedAddress);
@@ -670,7 +673,7 @@ class SendFlow extends PureComponent {
 										warningMessage={
 											<>
 												{strings('transaction.not_enough_for_gas', {
-													ticker: getTicker(ticker)
+													ticker: getTicker(ticker),
 												})}
 
 												{this.renderBuyEth()}
@@ -704,7 +707,7 @@ class SendFlow extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	addressBook: state.engine.backgroundState.AddressBookController.addressBook,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
@@ -714,17 +717,15 @@ const mapStateToProps = state => ({
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	network: state.engine.backgroundState.NetworkController.network,
 	providerType: state.engine.backgroundState.NetworkController.provider.type,
-	isPaymentRequest: state.transaction.paymentRequest
+	isPaymentRequest: state.transaction.paymentRequest,
 });
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch) => ({
+	addRecent: (address) => dispatch(addRecent(address)),
 	setRecipient: (from, to, ensRecipient, transactionToName, transactionFromName) =>
 		dispatch(setRecipient(from, to, ensRecipient, transactionToName, transactionFromName)),
-	newAssetTransaction: selectedAsset => dispatch(newAssetTransaction(selectedAsset)),
-	setSelectedAsset: selectedAsset => dispatch(setSelectedAsset(selectedAsset))
+	newAssetTransaction: (selectedAsset) => dispatch(newAssetTransaction(selectedAsset)),
+	setSelectedAsset: (selectedAsset) => dispatch(setSelectedAsset(selectedAsset)),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(SendFlow);
+export default connect(mapStateToProps, mapDispatchToProps)(SendFlow);

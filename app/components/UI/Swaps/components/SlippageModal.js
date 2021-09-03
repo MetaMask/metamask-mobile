@@ -12,29 +12,29 @@ import { strings } from '../../../../../locales/i18n';
 const styles = StyleSheet.create({
 	modal: {
 		margin: 0,
-		justifyContent: 'flex-end'
+		justifyContent: 'flex-end',
 	},
 	modalView: {
 		backgroundColor: colors.white,
 		borderTopLeftRadius: 10,
-		borderTopRightRadius: 10
+		borderTopRightRadius: 10,
 	},
 	content: {
 		marginVertical: 14,
-		paddingHorizontal: 30
+		paddingHorizontal: 30,
 	},
 	slippageWrapper: {
-		marginVertical: 10
+		marginVertical: 10,
 	},
 	warningTextWrapper: {
 		position: 'absolute',
 		width: '85%',
 		bottom: 30,
-		left: 10
+		left: 10,
 	},
 	warningText: {
-		color: colors.red
-	}
+		color: colors.red,
+	},
 });
 
 function SlippageModal({ isVisible, dismiss, onChange, slippage }) {
@@ -66,7 +66,7 @@ function SlippageModal({ isVisible, dismiss, onChange, slippage }) {
 							increment={1}
 							onChange={onChange}
 							value={slippage}
-							formatTooltipText={text => `${text}%`}
+							formatTooltipText={(text) => `${text}%`}
 						/>
 					</View>
 
@@ -83,6 +83,6 @@ SlippageModal.propTypes = {
 	isVisible: PropTypes.bool,
 	dismiss: PropTypes.func,
 	onChange: PropTypes.func,
-	slippage: PropTypes.number
+	slippage: PropTypes.number,
 };
 export default SlippageModal;

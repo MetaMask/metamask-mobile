@@ -20,12 +20,12 @@ function Notification({
 	currentNotificationIsVisible,
 	navigation,
 	hideCurrentNotification,
-	removeCurrentNotification
+	removeCurrentNotification,
 }) {
 	const notificationAnimated = useRef(new Animated.Value(200)).current;
-	const routes = useNavigationState(state => state.routes);
+	const routes = useNavigationState((state) => state.routes);
 
-	const usePrevious = value => {
+	const usePrevious = (value) => {
 		const ref = useRef();
 		useEffect(() => {
 			ref.current = value;
@@ -40,7 +40,7 @@ function Notification({
 			toValue,
 			duration: 500,
 			easing: Easing.linear,
-			useNativeDriver: true
+			useNativeDriver: true,
 		}).start(({ finished }) => finished && callback?.());
 	}, []);
 
@@ -69,7 +69,7 @@ function Notification({
 		currentNotificationIsVisible,
 		prevNotificationIsVisible,
 		currentNotification.autodismiss,
-		notificationAnimated
+		notificationAnimated,
 	]);
 
 	if (!currentNotification?.type) return null;
@@ -99,23 +99,20 @@ Notification.propTypes = {
 	currentNotification: PropTypes.object,
 	currentNotificationIsVisible: PropTypes.bool,
 	hideCurrentNotification: PropTypes.func,
-	removeCurrentNotification: PropTypes.func
+	removeCurrentNotification: PropTypes.func,
 };
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
 	const currentNotification = currentNotificationSelector(state.notification);
 	return {
 		currentNotification,
-		currentNotificationIsVisible: Boolean(currentNotification.isVisible)
+		currentNotificationIsVisible: Boolean(currentNotification.isVisible),
 	};
 };
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch) => ({
 	removeCurrentNotification: () => dispatch(removeCurrentNotification()),
-	hideCurrentNotification: () => dispatch(hideCurrentNotification())
+	hideCurrentNotification: () => dispatch(hideCurrentNotification()),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(Notification);
+export default connect(mapStateToProps, mapDispatchToProps)(Notification);

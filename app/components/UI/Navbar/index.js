@@ -17,13 +17,13 @@ import DeeplinkManager from '../../../core/DeeplinkManager';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { importAccountFromPrivateKey } from '../../../util/address';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import { isGatewayUrl } from '../../../lib/ens-ipfs/resolver';
 import { getHost } from '../../../util/browser';
 
 const { HOMEPAGE_URL } = AppConstants;
 
-const trackEvent = event => {
+const trackEvent = (event) => {
 	InteractionManager.runAfterInteractions(() => {
 		Analytics.trackEvent(event);
 	});
@@ -36,71 +36,76 @@ const trackEventWithParameters = (event, params) => {
 };
 
 const styles = StyleSheet.create({
+	headerStyle: {
+		shadowColor: colors.transparent,
+		elevation: 0,
+	},
 	metamaskName: {
 		width: 122,
-		height: 15
+		height: 15,
 	},
 	metamaskFox: {
 		width: 40,
 		height: 40,
-		marginRight: 10
+		marginRight: 10,
 	},
 	backIcon: {
-		color: colors.blue
+		color: colors.blue,
 	},
 	backIconIOS: {
 		marginHorizontal: 4,
-		marginTop: -4
+		marginTop: -4,
 	},
 	shareIconIOS: {
-		marginHorizontal: -5
+		marginHorizontal: -5,
 	},
 	hamburgerButton: {
 		paddingLeft: Device.isAndroid() ? 22 : 18,
 		paddingRight: Device.isAndroid() ? 22 : 18,
 		paddingTop: Device.isAndroid() ? 14 : 10,
-		paddingBottom: Device.isAndroid() ? 14 : 10
+		paddingBottom: Device.isAndroid() ? 14 : 10,
 	},
 	backButton: {
 		paddingLeft: Device.isAndroid() ? 22 : 18,
 		paddingRight: Device.isAndroid() ? 22 : 18,
-		marginTop: 5
+		marginTop: 5,
 	},
 	closeButton: {
 		paddingHorizontal: Device.isAndroid() ? 22 : 18,
-		paddingVertical: Device.isAndroid() ? 14 : 8
+		paddingVertical: Device.isAndroid() ? 14 : 8,
 	},
 	infoButton: {
 		paddingLeft: Device.isAndroid() ? 22 : 18,
 		paddingRight: Device.isAndroid() ? 22 : 18,
-		marginTop: 5
+		marginTop: 5,
 	},
 	infoIcon: {
-		color: colors.blue
+		color: colors.blue,
 	},
 	closeButtonText: {
 		color: colors.blue,
 		fontSize: 14,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	browserRightButton: {
 		flex: 1,
-		marginRight: Device.isAndroid() ? 10 : 0
+		marginRight: Device.isAndroid() ? 10 : 0,
 	},
 	disabled: {
-		opacity: 0.3
+		opacity: 0.3,
 	},
 	optinHeaderLeft: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		marginHorizontal: Device.isIos() ? 20 : 0
+		marginHorizontal: Device.isIos() ? 20 : 0,
 	},
 	metamaskNameTransparentWrapper: {
 		alignItems: 'center',
-		flex: 1
+		justifyContent: 'center',
+		flex: 1,
 	},
 	metamaskNameWrapper: {
-		marginLeft: Device.isAndroid() ? 20 : 0
+		marginLeft: Device.isAndroid() ? 20 : 0,
 	},
 	centeredTitle: {
 		fontSize: 20,
@@ -108,8 +113,7 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		...fontStyles.normal,
 		alignItems: 'center',
-		flex: 1
-	}
+	},
 });
 
 const metamask_name = require('../../../images/metamask-name.png'); // eslint-disable-line
@@ -142,7 +146,7 @@ export default function getNavbarOptions(title, navigation, disableNetwork = fal
 				/>
 			</TouchableOpacity>
 		),
-		headerRight: () => <AccountRightButton />
+		headerRight: () => <AccountRightButton />,
 	};
 }
 
@@ -163,7 +167,7 @@ export function getNavigationOptionsTitle(title, navigation) {
 		headerTitleStyle: {
 			fontSize: 20,
 			color: colors.fontPrimary,
-			...fontStyles.normal
+			...fontStyles.normal,
 		},
 		headerTintColor: colors.blue,
 		headerLeft: () => (
@@ -174,7 +178,7 @@ export function getNavigationOptionsTitle(title, navigation) {
 					style={styles.backIcon}
 				/>
 			</TouchableOpacity>
-		)
+		),
 	};
 }
 
@@ -191,14 +195,14 @@ export function getEditableOptions(title, navigation, route) {
 		navigation.pop();
 	}
 	const rightAction = route.params?.dispatch;
-	const editMode = route.params?.editMode ?? '' === 'edit';
-	const addMode = route.params?.mode ?? '' === 'add';
+	const editMode = route.params?.editMode === 'edit';
+	const addMode = route.params?.mode === 'add';
 	return {
 		title,
 		headerTitleStyle: {
 			fontSize: 20,
 			color: colors.fontPrimary,
-			...fontStyles.normal
+			...fontStyles.normal,
 		},
 		headerTintColor: colors.blue,
 		headerLeft: () => (
@@ -219,7 +223,7 @@ export function getEditableOptions(title, navigation, route) {
 				</TouchableOpacity>
 			) : (
 				<View />
-			)
+			),
 	};
 }
 
@@ -238,7 +242,7 @@ export function getPaymentRequestOptionsTitle(title, navigation, route) {
 		headerTitleStyle: {
 			fontSize: 20,
 			color: colors.fontPrimary,
-			...fontStyles.normal
+			...fontStyles.normal,
 		},
 		headerTintColor: colors.blue,
 		headerLeft: () =>
@@ -263,7 +267,7 @@ export function getPaymentRequestOptionsTitle(title, navigation, route) {
 			<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
 				<IonicIcon name={'ios-close'} size={38} style={[styles.backIcon, styles.backIconIOS]} />
 			</TouchableOpacity>
-		)
+		),
 	};
 }
 
@@ -279,7 +283,7 @@ export function getPaymentRequestSuccessOptionsTitle(navigation) {
 			shadowColor: colors.transparent,
 			elevation: 0,
 			backgroundColor: colors.white,
-			borderBottomWidth: 0
+			borderBottomWidth: 0,
 		},
 		title: null,
 		headerTintColor: colors.blue,
@@ -293,7 +297,7 @@ export function getPaymentRequestSuccessOptionsTitle(navigation) {
 			>
 				<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
 			</TouchableOpacity>
-		)
+		),
 	};
 }
 
@@ -342,7 +346,7 @@ export function getTransactionOptionsTitle(_title, navigation, route) {
 				</TouchableOpacity>
 			) : (
 				<View />
-			)
+			),
 	};
 }
 
@@ -350,7 +354,7 @@ export function getApproveNavbar(title) {
 	return {
 		headerTitle: () => <NavbarTitle title={title} disableNetwork />,
 		headerLeft: () => <View />,
-		headerRight: () => <View />
+		headerRight: () => <View />,
 	};
 }
 
@@ -366,7 +370,7 @@ export function getSendFlowTitle(title, navigation, route) {
 		const providerType = route.params?.providerType ?? '';
 		trackEventWithParameters(ANALYTICS_EVENT_OPTS.SEND_FLOW_CANCEL, {
 			view: title.split('.')[1],
-			network: providerType
+			network: providerType,
 		});
 		navigation.dangerouslyGetParent()?.pop();
 	};
@@ -392,7 +396,7 @@ export function getSendFlowTitle(title, navigation, route) {
 				</TouchableOpacity>
 			) : (
 				<View />
-			)
+			),
 	};
 }
 
@@ -409,7 +413,7 @@ export function getBrowserViewNavbarOptions(navigation, route) {
 	let hostname = null;
 	let isHttps = false;
 
-	const isHomepage = url => getHost(url) === getHost(HOMEPAGE_URL);
+	const isHomepage = (url) => getHost(url) === getHost(HOMEPAGE_URL);
 	const error = route.params?.error ?? '';
 	const icon = route.params?.icon;
 
@@ -459,7 +463,7 @@ export function getBrowserViewNavbarOptions(navigation, route) {
 			<View style={styles.browserRightButton}>
 				<AccountRightButton />
 			</View>
-		)
+		),
 	};
 }
 
@@ -472,7 +476,7 @@ export function getBrowserViewNavbarOptions(navigation, route) {
  */
 export function getModalNavbarOptions(title) {
 	return {
-		headerTitle: () => <ModalNavbarTitle title={title} />
+		headerTitle: () => <ModalNavbarTitle title={title} />,
 	};
 }
 
@@ -491,7 +495,7 @@ export function getOnboardingNavbarOptions(navigation, route, { headerLeft } = {
 			shadowColor: colors.transparent,
 			elevation: 0,
 			backgroundColor: colors.white,
-			borderBottomWidth: 0
+			borderBottomWidth: 0,
 		},
 		headerTitle: () => (
 			<View style={styles.metamaskNameTransparentWrapper}>
@@ -500,7 +504,7 @@ export function getOnboardingNavbarOptions(navigation, route, { headerLeft } = {
 		),
 		headerBackTitle: strings('navigation.back'),
 		headerRight: () => <View />,
-		headerLeft: headerLeftHide
+		headerLeft: headerLeftHide,
 	};
 }
 
@@ -511,14 +515,14 @@ export function getOnboardingNavbarOptions(navigation, route, { headerLeft } = {
  */
 export function getTransparentOnboardingNavbarOptions() {
 	return {
-		headerTransparent: true,
 		headerTitle: () => (
 			<View style={styles.metamaskNameTransparentWrapper}>
 				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
 			</View>
 		),
 		headerLeft: () => <View />,
-		headerRight: () => <View />
+		headerRight: () => <View />,
+		headerStyle: styles.headerStyle,
 	};
 }
 
@@ -529,14 +533,14 @@ export function getTransparentOnboardingNavbarOptions() {
  */
 export function getTransparentBackOnboardingNavbarOptions() {
 	return {
-		headerTransparent: true,
 		headerTitle: () => (
 			<View style={styles.metamaskNameTransparentWrapper}>
 				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
 			</View>
 		),
 		headerBackTitle: strings('navigation.back'),
-		headerRight: () => <View />
+		headerRight: () => <View />,
+		headerStyle: styles.headerStyle,
 	};
 }
 
@@ -553,7 +557,7 @@ export function getOptinMetricsNavbarOptions() {
 			elevation: 0,
 			backgroundColor: colors.white,
 			borderBottomWidth: 0,
-			height: 100
+			height: 100,
 		},
 		title: null,
 		headerLeft: () => (
@@ -565,7 +569,7 @@ export function getOptinMetricsNavbarOptions() {
 					<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
 				</View>
 			</View>
-		)
+		),
 	};
 }
 /**
@@ -582,7 +586,7 @@ export function getClosableNavigationOptions(title, backButtonText, navigation) 
 		title,
 		headerTitleStyle: {
 			fontSize: 20,
-			...fontStyles.normal
+			...fontStyles.normal,
 		},
 		headerLeft: () =>
 			Device.isIos() ? (
@@ -593,7 +597,7 @@ export function getClosableNavigationOptions(title, backButtonText, navigation) 
 				<TouchableOpacity onPress={navigationPop} style={styles.backButton} testID={'nav-android-back'}>
 					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
 				</TouchableOpacity>
-			)
+			),
 	};
 }
 
@@ -609,7 +613,7 @@ export function getOfflineModalNavbar(navigation) {
 			shadowColor: colors.transparent,
 			elevation: 0,
 			backgroundColor: colors.white,
-			borderBottomWidth: 0
+			borderBottomWidth: 0,
 		},
 		headerLeft: () =>
 			Device.isAndroid() ? (
@@ -624,7 +628,7 @@ export function getOfflineModalNavbar(navigation) {
 				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
 					<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
 				</TouchableOpacity>
-			) : null
+			) : null,
 	};
 }
 
@@ -644,7 +648,7 @@ export function getWalletNavbarOptions(title, navigation) {
 					{
 						text: strings('wallet.cancel'),
 						onPress: () => false,
-						style: 'cancel'
+						style: 'cancel',
 					},
 					{
 						text: strings('wallet.yes'),
@@ -658,8 +662,8 @@ export function getWalletNavbarOptions(title, navigation) {
 									strings('import_private_key.error_message')
 								);
 							}
-						}
-					}
+						},
+					},
 				],
 				{ cancelable: false }
 			);
@@ -679,7 +683,7 @@ export function getWalletNavbarOptions(title, navigation) {
 
 	function openQRScanner() {
 		navigation.navigate('QRScanner', {
-			onScanSuccess
+			onScanSuccess,
 		});
 		trackEvent(ANALYTICS_EVENT_OPTS.WALLET_QR_SCANNER);
 	}
@@ -703,7 +707,7 @@ export function getWalletNavbarOptions(title, navigation) {
 			>
 				<AntIcon name="scan1" size={28} style={styles.infoIcon} />
 			</TouchableOpacity>
-		)
+		),
 	};
 }
 
@@ -728,7 +732,7 @@ export function getNetworkNavbarOptions(title, translate, navigation) {
 				/>
 			</TouchableOpacity>
 		),
-		headerRight: () => <View />
+		headerRight: () => <View />,
 	};
 }
 
@@ -763,73 +767,109 @@ export function getWebviewNavbar(navigation, route) {
 				<TouchableOpacity onPress={share} style={styles.backButton}>
 					<EvilIcons name="share-apple" size={32} style={[styles.backIcon, styles.shareIconIOS]} />
 				</TouchableOpacity>
-			)
+			),
 	};
 }
 
-export function getPaymentSelectorMethodNavbar(navigation) {
+export function getPaymentSelectorMethodNavbar(navigation, onPop) {
 	return {
 		headerTitle: () => <Text style={styles.centeredTitle}>{strings('fiat_on_ramp.purchase_method')}</Text>,
 		headerLeft: () => <View />,
 		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.dangerouslyGetParent()?.pop()} style={styles.closeButton}>
+			<TouchableOpacity
+				onPress={() => {
+					navigation.dangerouslyGetParent()?.pop();
+					onPop?.();
+				}}
+				style={styles.closeButton}
+			>
 				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
 			</TouchableOpacity>
-		)
+		),
 	};
 }
 
-export function getPaymentMethodApplePayNavbar(navigation) {
+export function getPaymentMethodApplePayNavbar(navigation, onPop, onExit) {
 	return {
 		title: strings('fiat_on_ramp.amount_to_buy'),
 		headerTitleStyle: {
 			fontSize: 20,
 			color: colors.fontPrimary,
-			...fontStyles.normal
+			...fontStyles.normal,
 		},
 		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.dangerouslyGetParent()?.pop()} style={styles.closeButton}>
+			<TouchableOpacity
+				onPress={() => {
+					navigation.dangerouslyGetParent()?.pop();
+					onExit?.();
+				}}
+				style={styles.closeButton}
+			>
 				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
 			</TouchableOpacity>
 		),
 		headerLeft: () =>
 			Device.isAndroid() ? (
 				// eslint-disable-next-line react/jsx-no-bind
-				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+				<TouchableOpacity
+					onPress={() => {
+						navigation.pop();
+						onPop?.();
+					}}
+					style={styles.backButton}
+				>
 					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
 				</TouchableOpacity>
 			) : (
 				// eslint-disable-next-line react/jsx-no-bind
-				<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
+				<TouchableOpacity
+					onPress={() => {
+						navigation.pop();
+						onPop?.();
+					}}
+					style={styles.closeButton}
+				>
 					<Text style={styles.closeButtonText}>{strings('navigation.back')}</Text>
 				</TouchableOpacity>
-			)
+			),
 	};
 }
 
-export function getTransakWebviewNavbar(navigation, route) {
+export function getTransakWebviewNavbar(navigation, route, onPop) {
 	const title = route.params?.title ?? '';
 	return {
 		title,
 		headerTitleStyle: {
 			fontSize: 20,
 			color: colors.fontPrimary,
-			...fontStyles.normal
+			...fontStyles.normal,
 		},
 		headerLeft: () =>
 			Device.isAndroid() ? (
 				// eslint-disable-next-line react/jsx-no-bind
-				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+				<TouchableOpacity
+					onPress={() => {
+						navigation.pop();
+						onPop?.();
+					}}
+					style={styles.backButton}
+				>
 					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
 				</TouchableOpacity>
 			) : (
 				// eslint-disable-next-line react/jsx-no-bind
-				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+				<TouchableOpacity
+					onPress={() => {
+						navigation.pop();
+						onPop?.();
+					}}
+					style={styles.backButton}
+				>
 					<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
 				</TouchableOpacity>
-			)
+			),
 	};
 }
 
@@ -843,7 +883,7 @@ export function getSwapsAmountNavbar(navigation, route) {
 			<TouchableOpacity onPress={() => navigation.dangerouslyGetParent()?.pop()} style={styles.closeButton}>
 				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
 			</TouchableOpacity>
-		)
+		),
 	};
 }
 export function getSwapsQuotesNavbar(navigation, route) {
@@ -858,7 +898,7 @@ export function getSwapsQuotesNavbar(navigation, route) {
 			InteractionManager.runAfterInteractions(() => {
 				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_REQUEST_CANCELLED, {
 					...trade,
-					responseTime: new Date().getTime() - quoteBegin
+					responseTime: new Date().getTime() - quoteBegin,
 				});
 			});
 		}
@@ -873,7 +913,7 @@ export function getSwapsQuotesNavbar(navigation, route) {
 			InteractionManager.runAfterInteractions(() => {
 				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.QUOTES_REQUEST_CANCELLED, {
 					...trade,
-					responseTime: new Date().getTime() - quoteBegin
+					responseTime: new Date().getTime() - quoteBegin,
 				});
 			});
 		}
@@ -899,6 +939,6 @@ export function getSwapsQuotesNavbar(navigation, route) {
 			<TouchableOpacity onPress={rightAction} style={styles.closeButton}>
 				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
 			</TouchableOpacity>
-		)
+		),
 	};
 }
