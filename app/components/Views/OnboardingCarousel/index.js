@@ -12,7 +12,7 @@ import Device from '../../../util/device';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { connect } from 'react-redux';
 import AnalyticsV2, { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
-import AsyncStorage from '@react-native-community/async-storage';
+import DefaultPreference from 'react-native-default-preference';
 import { METRICS_OPT_IN } from '../../../constants/storage';
 
 const IMAGE_3_RATIO = 215 / 315;
@@ -129,7 +129,7 @@ class OnboardingCarousel extends PureComponent {
 	};
 
 	trackEvent = async (...eventArgs) => {
-		const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
+		const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
 		if (metricsOptIn) {
 			AnalyticsV2.trackEvent(...eventArgs);
 		} else {
