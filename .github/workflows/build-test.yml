@@ -30,10 +30,9 @@ jobs:
           path: ${{ steps.yarn-cache-dir.outputs.YARN_CACHE_DIR }}
           key: yarn-cache-${{ runner.os }}-${{ steps.yarn-version.outputs.YARN_VERSION }}-${{ hashFiles('yarn.lock') }}
       - run: yarn --frozen-lockfile
-      - run: yarn allow-scripts
-      - run: yarn build
+      - run: yarn setup
       - run: yarn lint
-      - run: yarn test
+      - run: yarn test:unit
       - name: Validate RC changelog
         if: ${{ startsWith(github.head_ref, 'release/') }}
         run: yarn auto-changelog validate --rc
