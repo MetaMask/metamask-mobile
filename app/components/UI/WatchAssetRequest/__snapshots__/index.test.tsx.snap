@@ -1,7 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`WatchAssetRequest should render correctly 1`] = `
-<Connect(WatchAssetRequest)
+<WatchAssetRequest
+  contractBalances={
+    Object {
+      "0x2": "0",
+    }
+  }
+  dispatch={[Function]}
   suggestedAssetMeta={
     Object {
       "asset": Object {

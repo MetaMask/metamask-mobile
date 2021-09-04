@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TokenImage should render correctly 1`] = `
-<Connect(TokenImage)
+<TokenImage
   asset={
     Object {
       "address": "0x123",
@@ -9,5 +9,7 @@ exports[`TokenImage should render correctly 1`] = `
       "symbol": "ABC",
     }
   }
+  dispatch={[Function]}
+  swapsTokens={Array []}
 />
 `;

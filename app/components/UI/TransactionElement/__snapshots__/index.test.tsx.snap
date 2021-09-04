@@ -1,8 +1,23 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TransactionElement should render correctly 1`] = `
-<Connect(TransactionElement)
+<TransactionElement
+  dispatch={[Function]}
   i={1}
+  identities={
+    Object {
+      "0xbar": Object {
+        "address": "0x0",
+        "importTime": 123,
+        "name": "Account 1",
+      },
+    }
+  }
+  primaryCurrency="ETH"
+  selectedAddress="0x1"
+  swapsTokens={Array []}
+  swapsTransactions={Object {}}
+  ticker="ETH"
   tx={
     Object {
       "status": "CONFIRMED",
