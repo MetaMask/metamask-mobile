@@ -1142,7 +1142,11 @@ class Confirm extends PureComponent {
 
 	buyEth = () => {
 		const { navigation } = this.props;
-		navigation.navigate('FiatOnRamp');
+		try {
+			navigation.navigate('FiatOnRamp');
+		} catch (error) {
+			Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
+		}
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST);
 		});

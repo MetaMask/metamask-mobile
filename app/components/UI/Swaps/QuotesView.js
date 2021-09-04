@@ -55,6 +55,7 @@ import { toLowerCaseEquals } from '../../../util/general';
 import { swapsTokensSelector } from '../../../reducers/swaps';
 import { decGWEIToHexWEI } from '../../../util/conversions';
 import FadeAnimationView from '../FadeAnimationView';
+import Logger from '../../../util/Logger';
 
 const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
@@ -883,7 +884,11 @@ function SwapsQuotesView({
 	}, [selectedQuote]);
 
 	const buyEth = useCallback(() => {
-		navigation.navigate('FiatOnRamp');
+		try {
+			navigation.navigate('FiatOnRamp');
+		} catch (error) {
+			Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
+		}
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST);
 		});

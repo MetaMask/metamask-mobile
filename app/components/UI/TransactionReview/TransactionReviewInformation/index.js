@@ -31,6 +31,7 @@ import { setNonce, setProposedNonce } from '../../../../actions/transaction';
 import TransactionReviewEIP1559 from '../TransactionReviewEIP1559';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import CustomNonce from '../../../UI/CustomNonce';
+import Logger from '../../../../util/Logger';
 
 const styles = StyleSheet.create({
 	overviewAlert: {
@@ -241,7 +242,11 @@ class TransactionReviewInformation extends PureComponent {
 		const { navigation } = this.props;
 		/* this is kinda weird, we have to reject the transaction to collapse the modal */
 		this.onCancelPress();
-		navigation.navigate('FiatOnRamp');
+		try {
+			navigation.navigate('FiatOnRamp');
+		} catch (error) {
+			Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
+		}
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST);
 		});
