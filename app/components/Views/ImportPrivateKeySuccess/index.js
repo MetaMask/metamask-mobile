@@ -14,13 +14,13 @@ import PreventScreenshot from '../../../core/PreventScreenshot';
 const styles = StyleSheet.create({
 	mainWrapper: {
 		backgroundColor: colors.white,
-		flex: 1
+		flex: 1,
 	},
 	wrapper: {
-		flex: 1
+		flex: 1,
 	},
 	content: {
-		alignItems: 'flex-start'
+		alignItems: 'flex-start',
 	},
 	title: {
 		fontSize: 32,
@@ -29,39 +29,39 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		justifyContent: 'center',
 		textAlign: 'left',
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	dataRow: {
-		marginBottom: 10
+		marginBottom: 10,
 	},
 	label: {
 		fontSize: 16,
 		lineHeight: 23,
 		color: colors.fontPrimary,
 		textAlign: 'left',
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	icon: {
 		textAlign: 'left',
 		fontSize: 90,
 		marginTop: 0,
-		marginLeft: 0
+		marginLeft: 0,
 	},
 	top: {
 		paddingTop: 0,
-		padding: 30
+		padding: 30,
 	},
 	navbarRightButton: {
 		alignSelf: 'flex-end',
 		paddingHorizontal: 22,
 		paddingTop: 20,
 		paddingBottom: 10,
-		marginTop: Device.isIphoneX() ? 40 : 20
+		marginTop: Device.isIphoneX() ? 40 : 20,
 	},
 	closeIcon: {
 		fontSize: 28,
-		color: colors.fontSecondary
-	}
+		color: colors.fontSecondary,
+	},
 });
 
 /**
@@ -76,7 +76,7 @@ class ImportPrivateKeySuccess extends PureComponent {
 		/**
 		 * List of keyrings
 		 */
-		keyrings: PropTypes.array
+		keyrings: PropTypes.array,
 	};
 
 	componentDidMount = () => {
@@ -144,8 +144,8 @@ class ImportPrivateKeySuccess extends PureComponent {
 	}
 }
 
-const mapStateToProps = state => ({
-	keyrings: state.engine.backgroundState.KeyringController.keyrings
+const mapStateToProps = (state) => ({
+	keyrings: state.engine.backgroundState.KeyringController.keyrings,
 });
 
 export default connect(mapStateToProps)(ImportPrivateKeySuccess);

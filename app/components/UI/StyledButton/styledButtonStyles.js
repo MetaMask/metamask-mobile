@@ -5,122 +5,122 @@ const styles = StyleSheet.create({
 	container: {
 		padding: 15,
 		borderRadius: 100,
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	text: {
 		fontSize: 14,
 		textAlign: 'center',
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	blue: {
-		backgroundColor: colors.blue
+		backgroundColor: colors.blue,
 	},
 	blueText: {
-		color: colors.white
+		color: colors.white,
 	},
 	orange: {
 		borderColor: colors.orange,
-		borderWidth: 1
+		borderWidth: 1,
 	},
 	orangeText: {
-		color: colors.orange
+		color: colors.orange,
 	},
 	infoText: {
-		color: colors.blue
+		color: colors.blue,
 	},
 	confirm: {
 		backgroundColor: colors.blue,
-		minHeight: 50
+		minHeight: 50,
 	},
 	confirmText: {
-		color: colors.white
+		color: colors.white,
 	},
 	roundedNormal: {
 		backgroundColor: colors.white,
 		borderWidth: 1,
 		borderColor: colors.blue,
-		padding: 8
+		padding: 8,
 	},
 	roundedNormalText: {
-		color: colors.blue
+		color: colors.blue,
 	},
 	normal: {
 		backgroundColor: colors.white,
 		borderWidth: 1,
-		borderColor: colors.blue
+		borderColor: colors.blue,
 	},
 	normalText: {
-		color: colors.blue
+		color: colors.blue,
 	},
 	transparent: {
 		backgroundColor: colors.transparent,
 		borderWidth: 0,
-		borderColor: colors.transparent
+		borderColor: colors.transparent,
 	},
 	cancel: {
 		backgroundColor: colors.white,
 		borderWidth: 1,
-		borderColor: colors.grey400
+		borderColor: colors.grey400,
 	},
 	cancelText: {
-		color: colors.grey400
+		color: colors.grey400,
 	},
 	signingCancel: {
 		backgroundColor: colors.white,
 		borderWidth: 1,
-		borderColor: colors.blue
+		borderColor: colors.blue,
 	},
 	signingCancelText: {
-		color: colors.blue
+		color: colors.blue,
 	},
 	warning: {
-		backgroundColor: colors.red
+		backgroundColor: colors.red,
 	},
 	info: {
 		backgroundColor: colors.white,
 		borderWidth: 1,
-		borderColor: colors.blue
+		borderColor: colors.blue,
 	},
 	warningText: {
-		color: colors.white
+		color: colors.white,
 	},
 	warningTextEmpty: {
-		color: colors.red
+		color: colors.red,
 	},
 	neutral: {
 		backgroundColor: colors.white,
 		borderWidth: 1,
-		borderColor: colors.grey500
+		borderColor: colors.grey500,
 	},
 	neutralText: {
-		color: colors.grey500
+		color: colors.grey500,
 	},
 	sign: {
 		backgroundColor: colors.blue,
 		borderWidth: 1,
-		borderColor: colors.blue
+		borderColor: colors.blue,
 	},
 	signText: {
-		color: colors.white
+		color: colors.white,
 	},
 	danger: {
 		backgroundColor: colors.red,
 		borderColor: colors.red,
-		borderWidth: 1
+		borderWidth: 1,
 	},
 	whiteText: {
 		...fontStyles.bold,
-		color: colors.white
+		color: colors.white,
 	},
 	viewText: {
 		fontSize: 18,
 		...fontStyles.bold,
-		color: colors.white
+		color: colors.white,
 	},
 	view: {
 		borderWidth: 1,
-		borderColor: colors.white
-	}
+		borderColor: colors.white,
+	},
 });
 
 function getStyles(type) {
@@ -196,7 +196,7 @@ function getStyles(type) {
 
 	return {
 		fontStyle: [styles.text, fontStyle],
-		containerStyle: [styles.container, containerStyle]
+		containerStyle: [styles.container, containerStyle],
 	};
 }
 

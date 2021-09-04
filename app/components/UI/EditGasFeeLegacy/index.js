@@ -33,71 +33,71 @@ const styles = StyleSheet.create({
 		minHeight: 200,
 		maxHeight: '95%',
 		paddingTop: 24,
-		paddingBottom: Device.isIphoneX() ? 32 : 24
+		paddingBottom: Device.isIphoneX() ? 32 : 24,
 	},
 	wrapper: {
-		paddingHorizontal: 24
+		paddingHorizontal: 24,
 	},
 	customGasHeader: {
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 		alignItems: 'center',
 		width: '100%',
-		paddingBottom: 20
+		paddingBottom: 20,
 	},
 	headerContainer: {
 		alignItems: 'center',
-		marginBottom: 22
+		marginBottom: 22,
 	},
 	headerText: {
-		fontSize: 48
+		fontSize: 48,
 	},
 	headerTitle: {
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	headerTitleSide: {
-		flex: 1
+		flex: 1,
 	},
 	labelTextContainer: {
 		flexDirection: 'row',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	hitSlop: {
 		top: 10,
 		left: 10,
 		bottom: 10,
-		right: 10
+		right: 10,
 	},
 	labelInfo: {
-		color: colors.grey200
+		color: colors.grey200,
 	},
 	advancedOptionsContainer: {
 		marginTop: 25,
-		marginBottom: 30
+		marginBottom: 30,
 	},
 	advancedOptionsInputsContainer: {
-		marginTop: 14
+		marginTop: 14,
 	},
 	rangeInputContainer: {
-		marginBottom: 20
+		marginBottom: 20,
 	},
 	advancedOptionsButton: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	advancedOptionsIcon: {
 		paddingTop: 1,
-		marginLeft: 5
+		marginLeft: 5,
 	},
 	warningTextContainer: {
 		paddingLeft: 4,
 		lineHeight: 20,
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	warningText: {
-		lineHeight: 20
-	}
+		lineHeight: 20,
+	},
 });
 
 const EditGasFeeLegacy = ({
@@ -123,7 +123,7 @@ const EditGasFeeLegacy = ({
 	animateOnChange,
 	isAnimating,
 	analyticsParams,
-	view
+	view,
 }) => {
 	const onlyAdvanced = gasEstimateType !== GAS_ESTIMATE_TYPES.LEGACY;
 	const [showRangeInfoModal, setShowRangeInfoModal] = useState(false);
@@ -138,7 +138,7 @@ const EditGasFeeLegacy = ({
 				chain_id: chainId,
 				function_type: view,
 				gas_mode: selectedOption ? 'Basic' : 'Advanced',
-				speed_set: selectedOption || undefined
+				speed_set: selectedOption || undefined,
 			};
 		} catch (error) {
 			return {};
@@ -149,7 +149,7 @@ const EditGasFeeLegacy = ({
 		if (!showAdvancedOptions) {
 			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.GAS_ADVANCED_OPTIONS_CLICKED, getAnalyticsParams());
 		}
-		setShowAdvancedOptions(showAdvancedOptions => !showAdvancedOptions);
+		setShowAdvancedOptions((showAdvancedOptions) => !showAdvancedOptions);
 	}, [getAnalyticsParams, showAdvancedOptions]);
 
 	const save = useCallback(() => {
@@ -167,7 +167,7 @@ const EditGasFeeLegacy = ({
 	);
 
 	const changedGasPrice = useCallback(
-		value => {
+		(value) => {
 			const lowerValue = new BigNumber(
 				gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
 					? gasOptions?.[warningMinimumEstimateOption]
@@ -195,7 +195,7 @@ const EditGasFeeLegacy = ({
 	);
 
 	const changedGasLimit = useCallback(
-		value => {
+		(value) => {
 			const newGas = { ...gasFee, suggestedGasLimit: value };
 
 			changeGas(newGas, null);
@@ -204,7 +204,7 @@ const EditGasFeeLegacy = ({
 	);
 
 	const selectOption = useCallback(
-		option => {
+		(option) => {
 			setGasPriceError('');
 			setSelectedOption(option);
 			changeGas({ ...gasFee, suggestedGasPrice: gasOptions[option] }, option);
@@ -212,14 +212,14 @@ const EditGasFeeLegacy = ({
 		[changeGas, gasFee, gasOptions]
 	);
 
-	const shouldIgnore = useCallback(option => ignoreOptions.find(item => item === option), [ignoreOptions]);
+	const shouldIgnore = useCallback((option) => ignoreOptions.find((item) => item === option), [ignoreOptions]);
 
 	const renderOptions = useMemo(
 		() =>
 			[
 				{ name: AppConstants.GAS_OPTIONS.LOW, label: strings('edit_gas_fee_eip1559.low') },
 				{ name: AppConstants.GAS_OPTIONS.MEDIUM, label: strings('edit_gas_fee_eip1559.medium') },
-				{ name: AppConstants.GAS_OPTIONS.HIGH, label: strings('edit_gas_fee_eip1559.high') }
+				{ name: AppConstants.GAS_OPTIONS.HIGH, label: strings('edit_gas_fee_eip1559.high') },
 			]
 				.filter(({ name }) => !shouldIgnore(name))
 				.map(({ name, label, ...option }) => ({
@@ -231,7 +231,7 @@ const EditGasFeeLegacy = ({
 					),
 					topLabel: recommended?.name === name && recommended.render,
 					...option,
-					...extendOptions[name]
+					...extendOptions[name],
 				})),
 		[recommended, extendOptions, shouldIgnore]
 	);
@@ -458,7 +458,7 @@ const EditGasFeeLegacy = ({
 
 EditGasFeeLegacy.defaultProps = {
 	ignoreOptions: [],
-	warningMinimumEstimateOption: AppConstants.GAS_OPTIONS.LOW
+	warningMinimumEstimateOption: AppConstants.GAS_OPTIONS.LOW,
 };
 
 EditGasFeeLegacy.propTypes = {
@@ -553,7 +553,7 @@ EditGasFeeLegacy.propTypes = {
 	/**
 	 * (For analytics purposes) View (Approve, Transfer, Confirm) where this component is being used
 	 */
-	view: PropTypes.string.isRequired
+	view: PropTypes.string.isRequired,
 };
 
 export default EditGasFeeLegacy;

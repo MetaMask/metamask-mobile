@@ -8,7 +8,7 @@ describe('Identicon', () => {
 	const mockStore = configureMockStore();
 	it('should render correctly when useBlockieIcon is true', () => {
 		const initialState = {
-			settings: { useBlockieIcon: true }
+			settings: { useBlockieIcon: true },
 		};
 		const store = mockStore(initialState);
 
@@ -21,7 +21,7 @@ describe('Identicon', () => {
 	});
 	it('should render correctly when useBlockieIcon is false', () => {
 		const initialState = {
-			settings: { useBlockieIcon: false }
+			settings: { useBlockieIcon: false },
 		};
 		const store = mockStore(initialState);
 

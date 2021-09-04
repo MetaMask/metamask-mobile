@@ -15,8 +15,8 @@ import { addCurrencySymbol, renderNumber } from '../../../util/number';
 const styles = StyleSheet.create({
 	summary: {
 		marginTop: 8,
-		marginBottom: 16
-	}
+		marginBottom: 16,
+	},
 });
 
 function OrderDetails({ order: { ...order }, closeModal }) {
@@ -101,7 +101,7 @@ function OrderDetails({ order: { ...order }, closeModal }) {
 
 OrderDetails.propTypes = {
 	order: PropTypes.object,
-	closeModal: PropTypes.func
+	closeModal: PropTypes.func,
 };
 
 export default OrderDetails;

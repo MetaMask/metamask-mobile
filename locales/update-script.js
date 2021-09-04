@@ -11,7 +11,7 @@ const en = require(`${languagesFolder}/en.json`);
  * Checks every language on the language folder and updates all the languages to the same format as en.json
  */
 
-const updateLanguage = language => {
+const updateLanguage = (language) => {
 	const languageToUpdate = require(`${languagesToUpdateFolder}/${language}`);
 
 	let existentLanguage = {};
@@ -41,7 +41,7 @@ const updateLanguage = language => {
 };
 
 const allLanguagesToUpdateFiles = fs.readdirSync(languagesToUpdateFolder);
-const languageFilesToUpdate = allLanguagesToUpdateFiles.filter(lang => lang !== 'en.json' && lang.endsWith('.json'));
+const languageFilesToUpdate = allLanguagesToUpdateFiles.filter((lang) => lang !== 'en.json' && lang.endsWith('.json'));
 languageFilesToUpdate.forEach(updateLanguage);
 console.log('All done!');
 

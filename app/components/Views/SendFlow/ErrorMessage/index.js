@@ -8,15 +8,15 @@ import Text from '../../../Base/Text';
 const styles = StyleSheet.create({
 	button: {
 		marginTop: 27,
-		marginBottom: 12
-	}
+		marginBottom: 12,
+	},
 });
 
 export default function ErrorMessage(props) {
 	const { errorMessage, errorContinue, onContinue, isOnlyWarning } = props;
 	return (
 		<Alert type={isOnlyWarning ? 'info' : 'error'} testID={'error-message-warning'}>
-			{textStyle => (
+			{(textStyle) => (
 				<View>
 					<Text small style={textStyle}>
 						{errorMessage}
@@ -50,5 +50,5 @@ ErrorMessage.propTypes = {
 	/**
 	 * Show a warning info instead of an error
 	 */
-	isOnlyWarning: PropTypes.bool
+	isOnlyWarning: PropTypes.bool,
 };

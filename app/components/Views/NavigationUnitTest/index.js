@@ -14,7 +14,7 @@ const Stack = createStackNavigator();
 
 const NavigationUnitTestFactory = ({ firstRoute, secondRoute }) => {
 	const TestScreen = ({ route }) => {
-		const routes = useNavigationState(state => state.routes);
+		const routes = useNavigationState((state) => state.routes);
 
 		const name = findRouteNameFromNavigatorState(routes);
 

@@ -18,14 +18,14 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		borderWidth: 1,
 		borderRadius: 4,
-		borderColor: colors.grey100
+		borderColor: colors.grey100,
 	},
 	textInput: {
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	icon: {
-		padding: 16
-	}
+		padding: 16,
+	},
 });
 
 const contractList = Object.entries(contractMap)
@@ -33,7 +33,7 @@ const contractList = Object.entries(contractMap)
 		tokenData.address = address;
 		return tokenData;
 	})
-	.filter(tokenData => Boolean(tokenData.erc20));
+	.filter((tokenData) => Boolean(tokenData.erc20));
 
 const fuse = new Fuse(contractList, {
 	shouldSort: true,
@@ -42,7 +42,10 @@ const fuse = new Fuse(contractList, {
 	distance: 100,
 	maxPatternLength: 32,
 	minMatchCharLength: 1,
-	keys: [{ name: 'name', weight: 0.5 }, { name: 'symbol', weight: 0.5 }]
+	keys: [
+		{ name: 'name', weight: 0.5 },
+		{ name: 'symbol', weight: 0.5 },
+	],
 });
 
 /**
@@ -51,24 +54,24 @@ const fuse = new Fuse(contractList, {
 export default class AssetSearch extends PureComponent {
 	state = {
 		searchQuery: '',
-		inputWidth: '85%'
+		inputWidth: '85%',
 	};
 
 	static propTypes = {
 		/**
 		/* navigation object required to push new views
 		*/
-		onSearch: PropTypes.func
+		onSearch: PropTypes.func,
 	};
 
 	componentDidMount() {
 		setTimeout(() => this.setState({ inputWidth: '86%' }), 100);
 	}
 
-	handleSearch = searchQuery => {
+	handleSearch = (searchQuery) => {
 		this.setState({ searchQuery });
 		const fuseSearchResult = fuse.search(searchQuery);
-		const addressSearchResult = contractList.filter(token => toLowerCaseEquals(token.address, searchQuery));
+		const addressSearchResult = contractList.filter((token) => toLowerCaseEquals(token.address, searchQuery));
 		const results = [...addressSearchResult, ...fuseSearchResult];
 		this.props.onSearch({ searchQuery, results });
 	};

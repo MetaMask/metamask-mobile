@@ -22,26 +22,26 @@ import ErrorBoundary from '../ErrorBoundary';
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
-		backgroundColor: colors.white
+		backgroundColor: colors.white,
 	},
 	tabUnderlineStyle: {
 		height: 2,
-		backgroundColor: colors.blue
+		backgroundColor: colors.blue,
 	},
 	tabStyle: {
-		paddingBottom: 0
+		paddingBottom: 0,
 	},
 	textStyle: {
 		fontSize: 12,
 		letterSpacing: 0.5,
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	loader: {
 		backgroundColor: colors.white,
 		flex: 1,
 		justifyContent: 'center',
-		alignItems: 'center'
-	}
+		alignItems: 'center',
+	},
 });
 
 /**
@@ -90,11 +90,11 @@ class Wallet extends PureComponent {
 		/**
 		 * Current onboarding wizard step
 		 */
-		wizardStep: PropTypes.number
+		wizardStep: PropTypes.number,
 	};
 
 	state = {
-		refreshing: false
+		refreshing: false,
 	};
 
 	accountOverviewRef = React.createRef();
@@ -118,13 +118,13 @@ class Wallet extends PureComponent {
 				AssetsDetectionController,
 				AccountTrackerController,
 				CurrencyRateController,
-				TokenRatesController
+				TokenRatesController,
 			} = Engine.context;
 			const actions = [
 				AssetsDetectionController.detectAssets(),
 				AccountTrackerController.refresh(),
 				CurrencyRateController.start(),
-				TokenRatesController.poll()
+				TokenRatesController.poll(),
 			];
 			await Promise.all(actions);
 			this.setState({ refreshing: false });
@@ -148,7 +148,7 @@ class Wallet extends PureComponent {
 		);
 	}
 
-	onChangeTab = obj => {
+	onChangeTab = (obj) => {
 		InteractionManager.runAfterInteractions(() => {
 			if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
 				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_TOKENS);
@@ -158,7 +158,7 @@ class Wallet extends PureComponent {
 		});
 	};
 
-	onRef = ref => {
+	onRef = (ref) => {
 		this.accountOverviewRef = ref;
 	};
 
@@ -172,7 +172,7 @@ class Wallet extends PureComponent {
 			tokens,
 			collectibles,
 			navigation,
-			ticker
+			ticker,
 		} = this.props;
 
 		let balance = 0;
@@ -186,9 +186,9 @@ class Wallet extends PureComponent {
 					isETH: true,
 					balance,
 					balanceFiat: weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency),
-					logo: '../images/eth-logo.png'
+					logo: '../images/eth-logo.png',
 				},
-				...(tokens || [])
+				...(tokens || []),
 			];
 		} else {
 			assets = tokens;
@@ -200,7 +200,7 @@ class Wallet extends PureComponent {
 				<ScrollableTabView
 					renderTabBar={this.renderTabBar}
 					// eslint-disable-next-line react/jsx-no-bind
-					onChangeTab={obj => this.onChangeTab(obj)}
+					onChangeTab={(obj) => this.onChangeTab(obj)}
 				>
 					<Tokens navigation={navigation} tabLabel={strings('wallet.tokens')} tokens={assets} />
 					<CollectibleContracts
@@ -248,7 +248,7 @@ class Wallet extends PureComponent {
 	);
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
@@ -257,15 +257,12 @@ const mapStateToProps = state => ({
 	tokens: state.engine.backgroundState.TokensController.tokens,
 	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	wizardStep: state.wizard.step
+	wizardStep: state.wizard.step,
 });
 
-const mapDispatchToProps = dispatch => ({
-	showTransactionNotification: args => dispatch(showTransactionNotification(args)),
-	hideCurrentNotification: () => dispatch(hideCurrentNotification())
+const mapDispatchToProps = (dispatch) => ({
+	showTransactionNotification: (args) => dispatch(showTransactionNotification(args)),
+	hideCurrentNotification: () => dispatch(hideCurrentNotification()),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(Wallet);
+export default connect(mapStateToProps, mapDispatchToProps)(Wallet);

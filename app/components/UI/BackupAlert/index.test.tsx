@@ -9,8 +9,8 @@ const mockStore = configureMockStore();
 const initialState = {
 	user: {
 		seedphraseBackedUp: false,
-		passwordSet: false
-	}
+		passwordSet: false,
+	},
 };
 const store = mockStore(initialState);
 
@@ -21,7 +21,7 @@ describe('BackupAlert', () => {
 				<BackupAlert />
 			</Provider>,
 			{
-				context: { store: mockStore(initialState) }
+				context: { store: mockStore(initialState) },
 			}
 		);
 		expect(wrapper.dive()).toMatchSnapshot();

@@ -30,17 +30,17 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'center',
 		paddingBottom: 200,
-		marginBottom: -300
+		marginBottom: -300,
 	},
 	modalContainer: {
 		width: '90%',
 		borderRadius: 10,
-		backgroundColor: colors.white
+		backgroundColor: colors.white,
 	},
 	titleWrapper: {
 		borderBottomWidth: StyleSheet.hairlineWidth,
 		borderColor: colors.grey100,
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	title: {
 		flex: 1,
@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
 		marginVertical: 12,
 		marginHorizontal: 24,
 		color: colors.fontPrimary,
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	modalTypeView: {
 		position: 'absolute',
@@ -57,36 +57,36 @@ const styles = StyleSheet.create({
 		paddingBottom: Device.isIphoneX() ? 20 : 10,
 		left: 0,
 		right: 0,
-		backgroundColor: colors.transparent
+		backgroundColor: colors.transparent,
 	},
 	modalViewInBrowserView: {
-		paddingBottom: Device.isIos() ? 130 : 120
+		paddingBottom: Device.isIos() ? 130 : 120,
 	},
 	modalTypeViewDetailsVisible: {
 		height: '100%',
-		backgroundColor: colors.greytransparent
+		backgroundColor: colors.greytransparent,
 	},
 	modalTypeViewBrowser: {
-		bottom: Device.isIphoneX() ? 70 : 60
+		bottom: Device.isIphoneX() ? 70 : 60,
 	},
 	closeIcon: {
 		paddingTop: 4,
 		position: 'absolute',
-		right: 16
+		right: 16,
 	},
 	notificationContainer: {
 		flex: 0.1,
 		flexDirection: 'row',
-		alignItems: 'flex-end'
+		alignItems: 'flex-end',
 	},
 	detailsContainer: {
 		flex: 1,
 		width: '200%',
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	transactionAction: {
-		width: '100%'
-	}
+		width: '100%',
+	},
 });
 
 function TransactionNotification(props) {
@@ -97,7 +97,7 @@ function TransactionNotification(props) {
 		notificationAnimated,
 		onClose,
 		transactions,
-		animatedTimingStart
+		animatedTimingStart,
 	} = props;
 
 	const [transactionDetails, setTransactionDetails] = useState(undefined);
@@ -118,7 +118,7 @@ function TransactionNotification(props) {
 	}, [setTransactionDetailsIsVisible, animatedTimingStart, detailsAnimated]);
 
 	const animateActionTo = useCallback(
-		position => {
+		(position) => {
 			animatedTimingStart(detailsYAnimated, position);
 			animatedTimingStart(actionXAnimated, position);
 		},
@@ -152,7 +152,7 @@ function TransactionNotification(props) {
 	const onActionFinish = useCallback(() => animateActionTo(0), [animateActionTo]);
 
 	const safelyExecute = useCallback(
-		callback => {
+		(callback) => {
 			try {
 				callback();
 			} catch (e) {
@@ -187,7 +187,7 @@ function TransactionNotification(props) {
 				tokens,
 				primaryCurrency,
 				swapsTransactions,
-				swapsTokens
+				swapsTokens,
 			} = props;
 			const [transactionElement, transactionDetails] = await decodeTransaction({
 				...props,
@@ -203,7 +203,7 @@ function TransactionNotification(props) {
 				tokens,
 				primaryCurrency,
 				swapsTransactions,
-				swapsTokens
+				swapsTokens,
 			});
 			const existingGasPrice = new BigNumber(tx?.transaction?.gasPrice || '0x0');
 			const gasFee = existingGasPrice
@@ -224,7 +224,7 @@ function TransactionNotification(props) {
 			style={[
 				styles.modalTypeView,
 				isInBrowserView && styles.modalTypeViewBrowser,
-				transactionDetailsIsVisible && styles.modalTypeViewDetailsVisible
+				transactionDetailsIsVisible && styles.modalTypeViewDetailsVisible,
 			]}
 			elevation={100}
 		>
@@ -235,7 +235,7 @@ function TransactionNotification(props) {
 							styles.modalView,
 							{ opacity: detailsAnimated },
 							isInBrowserView && styles.modalViewInBrowserView,
-							{ transform: [{ translateX: detailsYAnimated }] }
+							{ transform: [{ translateX: detailsYAnimated }] },
 						]}
 					>
 						<View style={styles.modalContainer}>
@@ -265,7 +265,7 @@ function TransactionNotification(props) {
 							styles.modalView,
 							{ opacity: detailsAnimated },
 							isInBrowserView && styles.modalViewInBrowserView,
-							{ transform: [{ translateX: actionXAnimated }] }
+							{ transform: [{ translateX: actionXAnimated }] },
 						]}
 					>
 						<View style={styles.transactionAction}>
@@ -299,7 +299,7 @@ function TransactionNotification(props) {
 					data={{
 						...tx?.transaction,
 						...currentNotification.transaction,
-						title: transactionElement?.notificationKey
+						title: transactionElement?.notificationKey,
 					}}
 					onPress={detailsFadeIn}
 					onHide={onCloseNotification}
@@ -366,10 +366,10 @@ TransactionNotification.propTypes = {
 	/**
 	 * Primary currency, either ETH or Fiat
 	 */
-	primaryCurrency: PropTypes.string
+	primaryCurrency: PropTypes.string,
 };
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
@@ -385,7 +385,7 @@ const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	primaryCurrency: state.settings.primaryCurrency,
 	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {},
-	swapsTokens: state.engine.backgroundState.SwapsController.tokens
+	swapsTokens: state.engine.backgroundState.SwapsController.tokens,
 });
 
 export default connect(mapStateToProps)(TransactionNotification);

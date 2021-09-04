@@ -11,40 +11,40 @@ import AssetElement from '../AssetElement';
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
-		flex: 1
+		flex: 1,
 	},
 	emptyView: {
 		backgroundColor: colors.white,
 		justifyContent: 'center',
 		alignItems: 'center',
-		marginTop: 50
+		marginTop: 50,
 	},
 	text: {
 		fontSize: 20,
 		color: colors.fontTertiary,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	itemWrapper: {
 		flex: 1,
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	rows: {
 		flex: 1,
 		marginLeft: 20,
-		marginTop: 6
+		marginTop: 6,
 	},
 	name: {
 		fontSize: 16,
 		color: colors.fontPrimary,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	tokenId: {
 		fontSize: 12,
 		marginTop: 4,
 		marginRight: 8,
 		color: colors.grey400,
-		...fontStyles.normal
-	}
+		...fontStyles.normal,
+	},
 });
 
 /**
@@ -69,11 +69,11 @@ export default class Collectibles extends PureComponent {
 		/**
 		 * Callback triggered when collectible pressed from collectibles list
 		 */
-		onPress: PropTypes.func
+		onPress: PropTypes.func,
 	};
 
 	state = {
-		refreshing: false
+		refreshing: false,
 	};
 
 	actionSheet = null;
@@ -88,14 +88,14 @@ export default class Collectibles extends PureComponent {
 		</ScrollView>
 	);
 
-	onItemPress = collectible => {
+	onItemPress = (collectible) => {
 		this.props.navigation.navigate('CollectibleView', {
 			...collectible,
-			contractName: this.props.collectibleContract.name
+			contractName: this.props.collectibleContract.name,
 		});
 	};
 
-	handleOnPress = collectible => {
+	handleOnPress = (collectible) => {
 		this.props.onPress(collectible);
 	};
 
@@ -103,7 +103,7 @@ export default class Collectibles extends PureComponent {
 		this.props.navigation.push('AddAsset', { assetType: 'collectible' });
 	};
 
-	showRemoveMenu = collectible => {
+	showRemoveMenu = (collectible) => {
 		this.collectibleToRemove = collectible;
 		this.actionSheet.show();
 	};
@@ -117,11 +117,11 @@ export default class Collectibles extends PureComponent {
 		Alert.alert(strings('wallet.collectible_removed_title'), strings('wallet.collectible_removed_desc'));
 	};
 
-	createActionSheetRef = ref => {
+	createActionSheetRef = (ref) => {
 		this.actionSheet = ref;
 	};
 
-	keyExtractor = item => `${item.address}_${item.tokenId}`;
+	keyExtractor = (item) => `${item.address}_${item.tokenId}`;
 
 	renderItem = ({ item }) => (
 		<AssetElement onPress={this.onItemPress} onLongPress={this.showRemoveMenu} asset={item}>
@@ -163,7 +163,7 @@ export default class Collectibles extends PureComponent {
 					cancelButtonIndex={1}
 					destructiveButtonIndex={0}
 					// eslint-disable-next-line react/jsx-no-bind
-					onPress={index => (index === 0 ? this.removeCollectible() : null)}
+					onPress={(index) => (index === 0 ? this.removeCollectible() : null)}
 				/>
 			</View>
 		);

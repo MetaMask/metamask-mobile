@@ -11,15 +11,15 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 15,
 		paddingVertical: 10,
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderBottomColor: colors.grey100
+		borderBottomColor: colors.grey100,
 	},
 	arrow: {
 		flex: 1,
-		alignSelf: 'flex-end'
+		alignSelf: 'flex-end',
 	},
 	arrowIcon: {
-		marginTop: 16
-	}
+		marginTop: 16,
+	},
 });
 
 /**
@@ -42,7 +42,7 @@ export default class AssetElement extends PureComponent {
 		/**
 		 * Callback triggered on long press
 		 */
-		onLongPress: PropTypes.func
+		onLongPress: PropTypes.func,
 	};
 
 	handleOnPress = () => {

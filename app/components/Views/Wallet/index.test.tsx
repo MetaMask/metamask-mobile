@@ -13,12 +13,12 @@ const store = mockStore({
 					'0xe7E125654064EEa56229f273dA586F10DF96B0a1': {
 						name: 'account 1',
 						address: '0xe7E125654064EEa56229f273dA586F10DF96B0a1',
-						balance: 0
-					}
-				}
-			}
-		}
-	}
+						balance: 0,
+					},
+				},
+			},
+		},
+	},
 });
 describe('Wallet', () => {
 	it('should render correctly', () => {

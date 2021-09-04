@@ -16,8 +16,10 @@ const tempCallIds = [];
 
 const persistSessions = async () => {
 	const sessions = connectors
-		.filter(connector => connector && connector.walletConnector && connector && connector.walletConnector.connected)
-		.map(connector => connector.walletConnector.session);
+		.filter(
+			(connector) => connector && connector.walletConnector && connector && connector.walletConnector.connected
+		)
+		.map((connector) => connector.walletConnector.session);
 
 	await AsyncStorage.setItem(WALLETCONNECT_SESSIONS, JSON.stringify(sessions));
 };
@@ -25,7 +27,7 @@ const persistSessions = async () => {
 const waitForInitialization = async () => {
 	let i = 0;
 	while (!initialized) {
-		await new Promise(res => setTimeout(() => res(), 1000));
+		await new Promise((res) => setTimeout(() => res(), 1000));
 		if (i++ > 5) initialized = true;
 	}
 };
@@ -34,7 +36,7 @@ const waitForKeychainUnlocked = async () => {
 	let i = 0;
 	const { KeyringController } = Engine.context;
 	while (!KeyringController.isUnlocked()) {
-		await new Promise(res => setTimeout(() => res(), 1000));
+		await new Promise((res) => setTimeout(() => res(), 1000));
 		if (i++ > 60) break;
 	}
 };
@@ -68,7 +70,7 @@ class WalletConnect {
 			try {
 				const sessionData = {
 					...payload.params[0],
-					autosign: this.autosign
+					autosign: this.autosign,
 				};
 
 				Logger.log('WC:', sessionData);
@@ -80,7 +82,7 @@ class WalletConnect {
 				this.selectedAddress = Engine.context.PreferencesController.state.selectedAddress;
 				const approveData = {
 					chainId: parseInt(network, 10),
-					accounts: [this.selectedAddress]
+					accounts: [this.selectedAddress],
 				};
 				await this.walletConnector.approveSession(approveData);
 				persistSessions();
@@ -117,19 +119,21 @@ class WalletConnect {
 						txParams.gas = payload.params[0].gas;
 						txParams.gasPrice = payload.params[0].gasPrice;
 						txParams.data = payload.params[0].data;
-						const hash = await (await TransactionController.addTransaction(
-							txParams,
-							meta ? WALLET_CONNECT_ORIGIN + meta.url : undefined,
-							WalletDevice.MM_MOBILE
-						)).result;
+						const hash = await (
+							await TransactionController.addTransaction(
+								txParams,
+								meta ? WALLET_CONNECT_ORIGIN + meta.url : undefined,
+								WalletDevice.MM_MOBILE
+							)
+						).result;
 						this.walletConnector.approveRequest({
 							id: payload.id,
-							result: hash
+							result: hash,
 						});
 					} catch (error) {
 						this.walletConnector.rejectRequest({
 							id: payload.id,
-							error
+							error,
 						});
 					}
 				} else if (payload.method === 'eth_sign') {
@@ -153,19 +157,19 @@ class WalletConnect {
 								meta: {
 									title: meta && meta.name,
 									url: meta && meta.url,
-									icon: meta && meta.icons && meta.icons[0]
+									icon: meta && meta.icons && meta.icons[0],
 								},
-								origin: WALLET_CONNECT_ORIGIN
+								origin: WALLET_CONNECT_ORIGIN,
 							});
 						}
 						this.walletConnector.approveRequest({
 							id: payload.id,
-							result: rawSig
+							result: rawSig,
 						});
 					} catch (error) {
 						this.walletConnector.rejectRequest({
 							id: payload.id,
-							error
+							error,
 						});
 					}
 				} else if (payload.method === 'personal_sign') {
@@ -190,19 +194,19 @@ class WalletConnect {
 								meta: {
 									title: meta && meta.name,
 									url: meta && meta.url,
-									icon: meta && meta.icons && meta.icons[0]
+									icon: meta && meta.icons && meta.icons[0],
 								},
-								origin: WALLET_CONNECT_ORIGIN
+								origin: WALLET_CONNECT_ORIGIN,
 							});
 						}
 						this.walletConnector.approveRequest({
 							id: payload.id,
-							result: rawSig
+							result: rawSig,
 						});
 					} catch (error) {
 						this.walletConnector.rejectRequest({
 							id: payload.id,
-							error
+							error,
 						});
 					}
 				} else if (payload.method && payload.method === 'eth_signTypedData') {
@@ -215,21 +219,21 @@ class WalletConnect {
 								meta: {
 									title: meta && meta.name,
 									url: meta && meta.url,
-									icon: meta && meta.icons && meta.icons[0]
+									icon: meta && meta.icons && meta.icons[0],
 								},
-								origin: WALLET_CONNECT_ORIGIN
+								origin: WALLET_CONNECT_ORIGIN,
 							},
 							'V3'
 						);
 
 						this.walletConnector.approveRequest({
 							id: payload.id,
-							result: rawSig
+							result: rawSig,
 						});
 					} catch (error) {
 						this.walletConnector.rejectRequest({
 							id: payload.id,
-							error
+							error,
 						});
 					}
 				}
@@ -239,7 +243,7 @@ class WalletConnect {
 			tempCallIds.length = 0;
 		});
 
-		this.walletConnector.on('disconnect', error => {
+		this.walletConnector.on('disconnect', (error) => {
 			if (error) {
 				throw error;
 			}
@@ -288,7 +292,7 @@ class WalletConnect {
 		const { selectedAddress } = Engine.context.PreferencesController.state;
 		const sessionData = {
 			chainId: parseInt(network, 10),
-			accounts: [selectedAddress]
+			accounts: [selectedAddress],
 		};
 		try {
 			this.walletConnector.updateSession(sessionData);
@@ -302,16 +306,16 @@ class WalletConnect {
 		this.walletConnector = null;
 	};
 
-	sessionRequest = peerInfo =>
+	sessionRequest = (peerInfo) =>
 		new Promise((resolve, reject) => {
 			hub.emit('walletconnectSessionRequest', peerInfo);
 
-			hub.on('walletconnectSessionRequest::approved', peerId => {
+			hub.on('walletconnectSessionRequest::approved', (peerId) => {
 				if (peerInfo.peerId === peerId) {
 					resolve(true);
 				}
 			});
-			hub.on('walletconnectSessionRequest::rejected', peerId => {
+			hub.on('walletconnectSessionRequest::rejected', (peerId) => {
 				if (peerInfo.peerId === peerId) {
 					reject(new Error('walletconnectSessionRequest::rejected'));
 				}
@@ -332,7 +336,7 @@ const instance = {
 		const sessionData = await AsyncStorage.getItem(WALLETCONNECT_SESSIONS);
 		if (sessionData) {
 			const sessions = JSON.parse(sessionData);
-			sessions.forEach(session => {
+			sessions.forEach((session) => {
 				connectors.push(new WalletConnect({ session }));
 			});
 		}
@@ -359,17 +363,17 @@ const instance = {
 		}
 		return sessions;
 	},
-	killSession: async id => {
+	killSession: async (id) => {
 		// 1) First kill the session
 		const connectorToKill = connectors.find(
-			connector => connector && connector.walletConnector && connector.walletConnector.session.peerId === id
+			(connector) => connector && connector.walletConnector && connector.walletConnector.session.peerId === id
 		);
 		if (connectorToKill) {
 			await connectorToKill.killSession();
 		}
 		// 2) Remove from the list of connectors
 		connectors = connectors.filter(
-			connector =>
+			(connector) =>
 				connector &&
 				connector.walletConnector &&
 				connector.walletConnector.connected &&
@@ -389,7 +393,7 @@ const instance = {
 			return false;
 		}
 		return true;
-	}
+	},
 };
 
 export default instance;

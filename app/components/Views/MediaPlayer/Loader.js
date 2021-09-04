@@ -11,26 +11,26 @@ const styles = StyleSheet.create({
 	container: {
 		flex: 1,
 		borderRadius: 12,
-		backgroundColor: colors.grey100
+		backgroundColor: colors.grey100,
 	},
 	content: {
 		flex: 1,
 		flexDirection: 'column',
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	item: {
-		marginVertical: 5
+		marginVertical: 5,
 	},
 	text: {
-		fontSize: 16
+		fontSize: 16,
 	},
 	closeButton: {
 		alignSelf: 'flex-end',
 		padding: 14,
 		width: 44,
-		height: 44
-	}
+		height: 44,
+	},
 });
 
 function Loader({ error, onClose }) {
@@ -59,11 +59,11 @@ function Loader({ error, onClose }) {
 
 Loader.propTypes = {
 	error: PropTypes.bool,
-	onClose: PropTypes.func
+	onClose: PropTypes.func,
 };
 
 Loader.defaultProps = {
-	onError: () => null
+	onError: () => null,
 };
 
 export default Loader;

@@ -18,18 +18,18 @@ const WIDTH = Dimensions.get('window').width;
 const styles = StyleSheet.create({
 	main: {
 		flex: 1,
-		backgroundColor: colors.transparent
+		backgroundColor: colors.transparent,
 	},
 	some: {
 		marginLeft: 24,
-		marginRight: WIDTH - DRAWER_WIDTH + 24
+		marginRight: WIDTH - DRAWER_WIDTH + 24,
 	},
 	coachmarkContainer: {
 		flex: 1,
 		position: 'absolute',
 		left: 0,
-		right: 0
-	}
+		right: 0,
+	},
 });
 
 class Step5 extends PureComponent {
@@ -45,12 +45,12 @@ class Step5 extends PureComponent {
 		/**
 		 * Coachmark ref to get position
 		 */
-		coachmarkRef: PropTypes.object
+		coachmarkRef: PropTypes.object,
 	};
 
 	state = {
 		coachmarkTop: 0,
-		coachmarkBottom: 0
+		coachmarkBottom: 0,
 	};
 
 	componentDidMount = () => {
@@ -62,7 +62,7 @@ class Step5 extends PureComponent {
 	/**
 	 * If component ref defined, calculate its position and position coachmark accordingly
 	 */
-	getPosition = ref => {
+	getPosition = (ref) => {
 		ref &&
 			ref.current &&
 			ref.current.measure((a, b, width, height, px, py) => {
@@ -80,11 +80,11 @@ class Step5 extends PureComponent {
 		navigation && navigation.dispatch(DrawerActions.closeDrawer());
 		navigation &&
 			navigation.navigate('BrowserTabHome', {
-				screen: 'BrowserView'
+				screen: 'BrowserView',
 			});
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_STEP_COMPLETED, {
 			tutorial_step_count: 5,
-			tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[5]
+			tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[5],
 		});
 	};
 
@@ -101,7 +101,7 @@ class Step5 extends PureComponent {
 		}, 1);
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_STEP_REVISITED, {
 			tutorial_step_count: 5,
-			tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[5]
+			tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[5],
 		});
 	};
 
@@ -124,7 +124,7 @@ class Step5 extends PureComponent {
 				<View
 					style={[
 						styles.coachmarkContainer,
-						Device.isSmallDevice() ? { top: this.state.coachmarkBottom } : { top: this.state.coachmarkTop }
+						Device.isSmallDevice() ? { top: this.state.coachmarkBottom } : { top: this.state.coachmarkTop },
 					]}
 				>
 					<Coachmark
@@ -143,11 +143,8 @@ class Step5 extends PureComponent {
 	}
 }
 
-const mapDispatchToProps = dispatch => ({
-	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
+const mapDispatchToProps = (dispatch) => ({
+	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 });
 
-export default connect(
-	null,
-	mapDispatchToProps
-)(Step5);
+export default connect(null, mapDispatchToProps)(Step5);

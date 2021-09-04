@@ -32,28 +32,28 @@ const BIG_NUMBER_ETH_MULTIPLIER = new BigNumber('1');
 
 // Setter Maps
 const toBigNumber = {
-	hex: n => new BigNumber(stripHexPrefix(n), 16),
-	dec: n => new BigNumber(String(n), 10),
-	BN: n => new BigNumber(n.toString(16), 16)
+	hex: (n) => new BigNumber(stripHexPrefix(n), 16),
+	dec: (n) => new BigNumber(String(n), 10),
+	BN: (n) => new BigNumber(n.toString(16), 16),
 };
 const toNormalizedDenomination = {
-	WEI: bigNumber => bigNumber.div(BIG_NUMBER_WEI_MULTIPLIER),
-	GWEI: bigNumber => bigNumber.div(BIG_NUMBER_GWEI_MULTIPLIER),
-	ETH: bigNumber => bigNumber.div(BIG_NUMBER_ETH_MULTIPLIER)
+	WEI: (bigNumber) => bigNumber.div(BIG_NUMBER_WEI_MULTIPLIER),
+	GWEI: (bigNumber) => bigNumber.div(BIG_NUMBER_GWEI_MULTIPLIER),
+	ETH: (bigNumber) => bigNumber.div(BIG_NUMBER_ETH_MULTIPLIER),
 };
 const toSpecifiedDenomination = {
-	WEI: bigNumber => bigNumber.times(BIG_NUMBER_WEI_MULTIPLIER).decimalPlaces(0),
-	GWEI: bigNumber => bigNumber.times(BIG_NUMBER_GWEI_MULTIPLIER).decimalPlaces(9),
-	ETH: bigNumber => bigNumber.times(BIG_NUMBER_ETH_MULTIPLIER).decimalPlaces(9)
+	WEI: (bigNumber) => bigNumber.times(BIG_NUMBER_WEI_MULTIPLIER).decimalPlaces(0),
+	GWEI: (bigNumber) => bigNumber.times(BIG_NUMBER_GWEI_MULTIPLIER).decimalPlaces(9),
+	ETH: (bigNumber) => bigNumber.times(BIG_NUMBER_ETH_MULTIPLIER).decimalPlaces(9),
 };
 const baseChange = {
-	hex: n => n.toString(16),
-	dec: n => new BigNumber(n).toString(10),
-	BN: n => new BN(n.toString(16))
+	hex: (n) => n.toString(16),
+	dec: (n) => new BigNumber(n).toString(10),
+	BN: (n) => new BN(n.toString(16)),
 };
 
 // Utility function for checking base types
-const isValidBase = base => Number.isInteger(base) && base > 1;
+const isValidBase = (base) => Number.isInteger(base) && base > 1;
 
 /**
  * Defines the base type of numeric value
@@ -91,7 +91,7 @@ const converter = ({
 	numberOfDecimals,
 	conversionRate,
 	invertConversionRate,
-	roundDown
+	roundDown,
 }) => {
 	let convertedValue = fromNumericBase ? toBigNumber[fromNumericBase](value) : value;
 
@@ -141,7 +141,7 @@ const conversionUtil = (
 		toDenomination,
 		numberOfDecimals,
 		conversionRate,
-		invertConversionRate
+		invertConversionRate,
 	}
 ) => {
 	if (fromCurrency !== toCurrency && !conversionRate) {
@@ -157,7 +157,7 @@ const conversionUtil = (
 		numberOfDecimals,
 		conversionRate,
 		invertConversionRate,
-		value: value || '0'
+		value: value || '0',
 	});
 };
 
@@ -185,7 +185,7 @@ const addCurrencies = (a, b, options = {}) => {
 
 	return converter({
 		value,
-		...conversionOptions
+		...conversionOptions,
 	});
 };
 
@@ -200,7 +200,7 @@ const subtractCurrencies = (a, b, options = {}) => {
 
 	return converter({
 		value,
-		...conversionOptions
+		...conversionOptions,
 	});
 };
 
@@ -215,7 +215,7 @@ const multiplyCurrencies = (a, b, options = {}) => {
 
 	return converter({
 		value,
-		...conversionOptions
+		...conversionOptions,
 	});
 };
 
@@ -263,5 +263,5 @@ export {
 	conversionLTE,
 	conversionMax,
 	toNegative,
-	subtractCurrencies
+	subtractCurrencies,
 };

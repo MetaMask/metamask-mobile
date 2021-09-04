@@ -8,7 +8,7 @@ const pump = require('pump');
  * @return {stream.Transform}
  */
 function jsonParseStream() {
-	return Through.obj(function(serialized, _, cb) {
+	return Through.obj(function (serialized, _, cb) {
 		this.push(JSON.parse(serialized));
 		cb();
 	});
@@ -20,7 +20,7 @@ function jsonParseStream() {
  * @return {stream.Transform} the stream transform
  */
 function jsonStringifyStream() {
-	return Through.obj(function(obj, _, cb) {
+	return Through.obj(function (obj, _, cb) {
 		this.push(JSON.stringify(obj));
 		cb();
 	});
@@ -33,7 +33,7 @@ function jsonStringifyStream() {
  */
 function setupMultiplex(connectionStream) {
 	const mux = new ObjectMultiplex();
-	pump(connectionStream, mux, connectionStream, err => {
+	pump(connectionStream, mux, connectionStream, (err) => {
 		if (err) {
 			console.warn(err);
 		}

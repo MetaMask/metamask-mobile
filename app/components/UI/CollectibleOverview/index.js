@@ -31,79 +31,79 @@ const styles = StyleSheet.create({
 		flex: 0,
 		backgroundColor: colors.white,
 		borderTopEndRadius: 8,
-		borderTopStartRadius: 8
+		borderTopStartRadius: 8,
 	},
 	generalContainer: {
-		paddingHorizontal: 16
+		paddingHorizontal: 16,
 	},
 	information: {
-		paddingTop: HAS_NOTCH ? 24 : VERTICAL_ALIGNMENT
+		paddingTop: HAS_NOTCH ? 24 : VERTICAL_ALIGNMENT,
 	},
 	row: {
-		paddingVertical: 6
+		paddingVertical: 6,
 	},
 	name: {
 		fontSize: Device.isSmallDevice() ? 16 : 24,
-		marginBottom: 3
+		marginBottom: 3,
 	},
 	userContainer: {
 		flexDirection: 'row',
-		paddingBottom: 16
+		paddingBottom: 16,
 	},
 	userImage: {
 		width: 38,
 		height: 38,
 		borderRadius: 100,
-		marginRight: 8
+		marginRight: 8,
 	},
 	buttonContainer: {
 		flexDirection: 'row',
-		marginTop: VERTICAL_ALIGNMENT
+		marginTop: VERTICAL_ALIGNMENT,
 	},
 	button: {
 		alignItems: 'center',
 		justifyContent: 'center',
-		borderWidth: 1.5
+		borderWidth: 1.5,
 	},
 	iconButtons: {
 		width: 54,
-		height: 54
+		height: 54,
 	},
 	leftButton: {
-		marginRight: 16
+		marginRight: 16,
 	},
 	collectibleInfoContainer: {
 		flexDirection: 'row',
 		marginHorizontal: 16,
-		marginBottom: 8
+		marginBottom: 8,
 	},
 	collectibleInfoKey: {
-		paddingRight: 10
+		paddingRight: 10,
 	},
 	collectibleDescription: {
-		lineHeight: 22
+		lineHeight: 22,
 	},
 	userInfoContainer: {
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	titleWrapper: {
 		width: '100%',
 		alignItems: 'center',
 		justifyContent: 'center',
-		paddingVertical: VERTICAL_ALIGNMENT
+		paddingVertical: VERTICAL_ALIGNMENT,
 	},
 	dragger: {
 		width: 48,
 		height: 5,
 		borderRadius: 4,
-		backgroundColor: colors.grey100
+		backgroundColor: colors.grey100,
 	},
 	scrollableDescription: {
-		maxHeight: Device.getDeviceHeight() / 5
+		maxHeight: Device.getDeviceHeight() / 5,
 	},
 	description: {
-		marginTop: 8
-	}
+		marginTop: 8,
+	},
 });
 
 /**
@@ -119,7 +119,7 @@ const CollectibleOverview = ({
 	removeFavoriteCollectible,
 	isInFavorites,
 	openLink,
-	onTranslation
+	onTranslation,
 }) => {
 	const [headerHeight, setHeaderHeight] = useState(0);
 	const [wrapperHeight, setWrapperHeight] = useState(0);
@@ -127,10 +127,10 @@ const CollectibleOverview = ({
 	const positionAnimated = useRef(new Animated.Value(0)).current;
 	const scrollViewRef = useRef(null);
 
-	const translationHeight = useMemo(() => wrapperHeight - headerHeight - ANIMATION_OFFSET, [
-		headerHeight,
-		wrapperHeight
-	]);
+	const translationHeight = useMemo(
+		() => wrapperHeight - headerHeight - ANIMATION_OFFSET,
+		[headerHeight, wrapperHeight]
+	);
 	const animating = useRef(false);
 
 	const renderScrollableDescription = useMemo(() => {
@@ -182,7 +182,7 @@ const CollectibleOverview = ({
 			strings('collectible.collectible_asset_contract'),
 			renderShortAddress(collectible?.address),
 			() => openLink(etherscanLink.createTokenTrackerLink(collectible?.address, chainId))
-		)
+		),
 	];
 
 	const collectibleToFavorites = useCallback(() => {
@@ -195,15 +195,15 @@ const CollectibleOverview = ({
 		Share.open({
 			message: `${strings('collectible.share_check_out_nft')} ${collectible.externalLink}\n${strings(
 				'collectible.share_via'
-			)} ${AppConstants.SHORT_HOMEPAGE_URL}`
+			)} ${AppConstants.SHORT_HOMEPAGE_URL}`,
 		});
 	}, [collectible.externalLink]);
 
 	const onHeaderLayout = useCallback(
 		({
 			nativeEvent: {
-				layout: { height }
-			}
+				layout: { height },
+			},
 		}) => headerHeight === 0 && setHeaderHeight(height),
 		[headerHeight]
 	);
@@ -211,8 +211,8 @@ const CollectibleOverview = ({
 	const onWrapperLayout = useCallback(
 		({
 			nativeEvent: {
-				layout: { height }
-			}
+				layout: { height },
+			},
 		}) => wrapperHeight === 0 && setWrapperHeight(height),
 		[wrapperHeight]
 	);
@@ -224,7 +224,7 @@ const CollectibleOverview = ({
 				toValue,
 				duration,
 				easing: Easing.ease,
-				useNativeDriver: true
+				useNativeDriver: true,
 			}).start(() => {
 				setPosition(toValue);
 				animating.current = false;
@@ -234,7 +234,7 @@ const CollectibleOverview = ({
 	);
 
 	const handleGesture = useCallback(
-		evt => {
+		(evt) => {
 			// we don't want to trigger the animation again when the view is being animated
 			if (evt.nativeEvent.velocityY === 0 || animating.current) return;
 			const toValue = evt.nativeEvent.velocityY > 0 ? translationHeight : 0;
@@ -247,7 +247,7 @@ const CollectibleOverview = ({
 	);
 
 	const gestureHandlerWrapper = useCallback(
-		child => (
+		(child) => (
 			<PanGestureHandler
 				waitFor={scrollViewRef}
 				activeOffsetY={[0, 0]}
@@ -420,7 +420,7 @@ CollectibleOverview.propTypes = {
 	/**
 	 * callback to trigger when modal is being animated
 	 */
-	onTranslation: PropTypes.func
+	onTranslation: PropTypes.func,
 };
 
 const mapStateToProps = (state, props) => {
@@ -428,14 +428,14 @@ const mapStateToProps = (state, props) => {
 	return {
 		chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 		selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-		isInFavorites: isCollectibleInFavorites(favoriteCollectibles, props.collectible)
+		isInFavorites: isCollectibleInFavorites(favoriteCollectibles, props.collectible),
 	};
 };
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch) => ({
 	addFavoriteCollectible: (selectedAddress, chainId, collectible) =>
 		dispatch(addFavoriteCollectible(selectedAddress, chainId, collectible)),
 	removeFavoriteCollectible: (selectedAddress, chainId, collectible) =>
-		dispatch(removeFavoriteCollectible(selectedAddress, chainId, collectible))
+		dispatch(removeFavoriteCollectible(selectedAddress, chainId, collectible)),
 });
 
 export default connect(

@@ -7,8 +7,8 @@ import { Provider } from 'react-redux';
 const mockStore = configureMockStore();
 const initialState = {
 	browser: {
-		tabs: [{ url: 'https://metamask.io' }]
-	}
+		tabs: [{ url: 'https://metamask.io' }],
+	},
 };
 const store = mockStore(initialState);
 

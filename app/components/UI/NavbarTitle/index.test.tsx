@@ -12,8 +12,8 @@ describe('NavbarTitle', () => {
 		const title = 'Test';
 		const network = {
 			provider: {
-				type: 'mainnet'
-			}
+				type: 'mainnet',
+			},
 		};
 		const wrapper = shallow(
 			<Provider store={store}>

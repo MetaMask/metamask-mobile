@@ -18,7 +18,7 @@ export default class SimpleWebview extends PureComponent {
 		/**
 		 * Object that represents the current route info like params passed to it
 		 */
-		route: PropTypes.object
+		route: PropTypes.object,
 	};
 
 	componentDidMount = () => {
@@ -31,8 +31,8 @@ export default class SimpleWebview extends PureComponent {
 		const url = route.params?.url;
 		if (url) {
 			Share.open({
-				url
-			}).catch(err => {
+				url,
+			}).catch((err) => {
 				Logger.log('Error while trying to share simple web view', err);
 			});
 		}

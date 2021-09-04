@@ -10,14 +10,14 @@ export function bnToHex(inputBn) {
 export function hexToDecimal(hexValue) {
 	return conversionUtil(hexValue, {
 		fromNumericBase: 'hex',
-		toNumericBase: 'dec'
+		toNumericBase: 'dec',
 	});
 }
 
 export function decimalToHex(decimal) {
 	return conversionUtil(decimal, {
 		fromNumericBase: 'dec',
-		toNumericBase: 'hex'
+		toNumericBase: 'hex',
 	});
 }
 
@@ -33,7 +33,7 @@ export function getEthConversionFromWeiHex({ value, fromCurrency = ETH, conversi
 			fromCurrency,
 			toCurrency: fromCurrency,
 			numberOfDecimals,
-			toDenomination: denominations[i]
+			toDenomination: denominations[i],
 		});
 
 		if (convertedValue !== '0' || i === denominations.length - 1) {
@@ -51,7 +51,7 @@ export function getValueFromWeiHex({
 	toCurrency,
 	conversionRate,
 	numberOfDecimals,
-	toDenomination
+	toDenomination,
 }) {
 	return conversionUtil(value, {
 		fromNumericBase: 'hex',
@@ -61,7 +61,7 @@ export function getValueFromWeiHex({
 		numberOfDecimals,
 		fromDenomination: WEI,
 		toDenomination,
-		conversionRate
+		conversionRate,
 	});
 }
 
@@ -70,7 +70,7 @@ export function getWeiHexFromDecimalValue({
 	fromCurrency,
 	conversionRate,
 	fromDenomination,
-	invertConversionRate
+	invertConversionRate,
 }) {
 	return conversionUtil(value, {
 		fromNumericBase: 'dec',
@@ -80,7 +80,7 @@ export function getWeiHexFromDecimalValue({
 		conversionRate,
 		invertConversionRate,
 		fromDenomination,
-		toDenomination: WEI
+		toDenomination: WEI,
 	});
 }
 
@@ -89,7 +89,7 @@ export function addHexWEIsToDec(aHexWEI, bHexWEI) {
 		aBase: 16,
 		bBase: 16,
 		fromDenomination: 'WEI',
-		numberOfDecimals: 6
+		numberOfDecimals: 6,
 	});
 }
 
@@ -98,7 +98,7 @@ export function subtractHexWEIsToDec(aHexWEI, bHexWEI) {
 		aBase: 16,
 		bBase: 16,
 		fromDenomination: 'WEI',
-		numberOfDecimals: 6
+		numberOfDecimals: 6,
 	});
 }
 
@@ -109,7 +109,7 @@ export function decEthToConvertedCurrency(ethTotal, convertedCurrency, conversio
 		fromCurrency: 'ETH',
 		toCurrency: convertedCurrency,
 		numberOfDecimals: 2,
-		conversionRate
+		conversionRate,
 	});
 }
 
@@ -118,7 +118,7 @@ export function decGWEIToHexWEI(decGWEI) {
 		fromNumericBase: 'dec',
 		toNumericBase: 'hex',
 		fromDenomination: 'GWEI',
-		toDenomination: 'WEI'
+		toDenomination: 'WEI',
 	});
 }
 
@@ -127,7 +127,7 @@ export function hexGWEIToHexWEI(decGWEI) {
 		fromNumericBase: 'hex',
 		toNumericBase: 'hex',
 		fromDenomination: 'GWEI',
-		toDenomination: 'WEI'
+		toDenomination: 'WEI',
 	});
 }
 
@@ -136,7 +136,7 @@ export function hexWEIToDecGWEI(decGWEI) {
 		fromNumericBase: 'hex',
 		toNumericBase: 'dec',
 		fromDenomination: 'WEI',
-		toDenomination: 'GWEI'
+		toDenomination: 'GWEI',
 	});
 }
 
@@ -145,7 +145,7 @@ export function decETHToDecWEI(decEth) {
 		fromNumericBase: 'dec',
 		toNumericBase: 'dec',
 		fromDenomination: 'ETH',
-		toDenomination: 'WEI'
+		toDenomination: 'WEI',
 	});
 }
 
@@ -154,7 +154,7 @@ export function hexWEIToDecETH(hexWEI) {
 		fromNumericBase: 'hex',
 		toNumericBase: 'dec',
 		fromDenomination: 'WEI',
-		toDenomination: 'ETH'
+		toDenomination: 'ETH',
 	});
 }
 
@@ -163,7 +163,7 @@ export function addHexes(aHexWEI, bHexWEI) {
 		aBase: 16,
 		bBase: 16,
 		toNumericBase: 'hex',
-		numberOfDecimals: 6
+		numberOfDecimals: 6,
 	});
 }
 
@@ -177,7 +177,7 @@ export function sumHexWEIsToUnformattedFiat(hexWEIs, convertedCurrency, conversi
 		getValueFromWeiHex({
 			value: hexWEIsSum,
 			toCurrency: 'ETH',
-			numberOfDecimals: 4
+			numberOfDecimals: 4,
 		}),
 		convertedCurrency,
 		conversionRate
@@ -201,7 +201,7 @@ export function sumHexWEIsToRenderableEth(hexWEIs) {
 		getValueFromWeiHex({
 			value: hexWEIsSum,
 			toCurrency: 'ETH',
-			numberOfDecimals: 6
+			numberOfDecimals: 6,
 		})
 	);
 }

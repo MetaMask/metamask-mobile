@@ -11,7 +11,7 @@ export default class Screen extends PureComponent {
 		/**
 		 * Content to wrap inside this view
 		 */
-		children: PropTypes.node
+		children: PropTypes.node,
 	};
 
 	componentDidMount() {

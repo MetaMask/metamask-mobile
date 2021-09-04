@@ -18,42 +18,42 @@ const styles = StyleSheet.create({
 		paddingBottom: Device.isIphoneX() ? 48 : 24,
 		backgroundColor: colors.white,
 		borderTopRightRadius: 20,
-		borderTopLeftRadius: 20
+		borderTopLeftRadius: 20,
 	},
 	sectionExplanationText: {
 		...fontStyles.normal,
 		fontSize: 12,
 		color: colors.grey500,
-		marginVertical: 6
+		marginVertical: 6,
 	},
 	option: {
 		flexDirection: 'row',
-		marginVertical: 8
+		marginVertical: 8,
 	},
 	errorMessageWrapper: {
-		marginVertical: 6
+		marginVertical: 6,
 	},
 	optionText: {
 		...fontStyles.normal,
 		fontSize: 14,
-		lineHeight: 20
+		lineHeight: 20,
 	},
 	touchableOption: {
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	selectedCircle: {
 		width: 8,
 		height: 8,
 		borderRadius: 8 / 2,
 		margin: 3,
-		backgroundColor: colors.blue
+		backgroundColor: colors.blue,
 	},
 	outSelectedCircle: {
 		width: 18,
 		height: 18,
 		borderRadius: 18 / 2,
 		borderWidth: 2,
-		borderColor: colors.blue
+		borderColor: colors.blue,
 	},
 	circle: {
 		width: 18,
@@ -62,37 +62,37 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		opacity: 1,
 		borderWidth: 2,
-		borderColor: colors.grey200
+		borderColor: colors.grey200,
 	},
 	input: {
 		padding: 12,
 		borderColor: colors.grey200,
 		borderRadius: 10,
-		borderWidth: 2
+		borderWidth: 2,
 	},
 	spendLimitContent: {
 		marginLeft: 8,
-		flex: 1
+		flex: 1,
 	},
 	spendLimitTitle: {
 		...fontStyles.bold,
 		color: colors.black,
 		fontSize: 14,
 		lineHeight: 20,
-		marginBottom: 8
+		marginBottom: 8,
 	},
 	spendLimitSubtitle: {
 		...fontStyles.normal,
 		fontSize: 12,
 		lineHeight: 18,
-		color: colors.grey500
+		color: colors.grey500,
 	},
 	textBlue: {
-		color: colors.blue
+		color: colors.blue,
 	},
 	textBlack: {
-		color: colors.black
-	}
+		color: colors.black,
+	},
 });
 
 function EditPermission({
@@ -106,7 +106,7 @@ function EditPermission({
 	onSpendLimitCustomValueChange,
 	onPressSpendLimitUnlimitedSelected,
 	onPressSpendLimitCustomSelected,
-	toggleEditPermission
+	toggleEditPermission,
 }) {
 	const [initialState] = useState({ spendLimitUnlimitedSelected, spendLimitCustomValue });
 
@@ -137,7 +137,7 @@ function EditPermission({
 		onPressSpendLimitCustomSelected,
 		onPressSpendLimitUnlimitedSelected,
 		onSpendLimitCustomValueChange,
-		toggleEditPermission
+		toggleEditPermission,
 	]);
 
 	return (
@@ -165,7 +165,7 @@ function EditPermission({
 						<Text
 							style={[
 								styles.optionText,
-								spendLimitUnlimitedSelected ? styles.textBlue : styles.textBlack
+								spendLimitUnlimitedSelected ? styles.textBlue : styles.textBlack,
 							]}
 						>
 							{strings('spend_limit_edition.proposed')}
@@ -194,7 +194,7 @@ function EditPermission({
 						<Text
 							style={[
 								styles.optionText,
-								!spendLimitUnlimitedSelected ? styles.textBlue : styles.textBlack
+								!spendLimitUnlimitedSelected ? styles.textBlue : styles.textBlack,
 							]}
 						>
 							{strings('spend_limit_edition.custom_spend_limit')}
@@ -220,7 +220,7 @@ function EditPermission({
 							<View style={styles.errorMessageWrapper}>
 								<ErrorMessage
 									errorMessage={strings('spend_limit_edition.must_be_at_least', {
-										allowance: minimumSpendLimit
+										allowance: minimumSpendLimit,
 									})}
 								/>
 							</View>
@@ -235,7 +235,7 @@ function EditPermission({
 	);
 }
 EditPermission.defaultProps = {
-	minimumSpendLimit: MINIMUM_VALUE
+	minimumSpendLimit: MINIMUM_VALUE,
 };
 
 EditPermission.propTypes = {
@@ -249,7 +249,7 @@ EditPermission.propTypes = {
 	onPressSpendLimitCustomSelected: PropTypes.func.isRequired,
 	onSpendLimitCustomValueChange: PropTypes.func.isRequired,
 	onSetApprovalAmount: PropTypes.func.isRequired,
-	toggleEditPermission: PropTypes.func.isRequired
+	toggleEditPermission: PropTypes.func.isRequired,
 };
 
 export default EditPermission;

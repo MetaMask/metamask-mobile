@@ -11,7 +11,7 @@ describe('AssetElement', () => {
 					symbol: 'symbol',
 					description: 'description',
 					address: '0x123',
-					totalSupply: 1
+					totalSupply: 1,
 				}}
 			/>
 		);

@@ -10,10 +10,10 @@ const initialState = {
 	engine: {
 		backgroundState: {
 			TokenBalancesController: {
-				contractBalances: { '0x2': new BN(0) }
-			}
-		}
-	}
+				contractBalances: { '0x2': new BN(0) },
+			},
+		},
+	},
 };
 const store = mockStore(initialState);
 

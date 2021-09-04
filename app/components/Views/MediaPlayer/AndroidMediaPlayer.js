@@ -12,7 +12,7 @@ import {
 	Text,
 	ViewPropTypes,
 	TouchableNativeFeedback,
-	TouchableHighlight
+	TouchableHighlight,
 } from 'react-native';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import AntIcon from 'react-native-vector-icons/AntDesign';
@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
 		flex: 0,
 		overflow: 'hidden',
 		zIndex: 99999,
-		elevation: 99999
+		elevation: 99999,
 	},
 	playerVideo: {
 		flex: 1,
@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
 		bottom: 0,
 		left: 0,
 		backgroundColor: colors.black,
-		borderRadius: 12
+		borderRadius: 12,
 	},
 	errorContainer: {
 		top: 0,
@@ -42,10 +42,10 @@ const styles = StyleSheet.create({
 		bottom: 0,
 		left: 0,
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	errorIcon: {
-		marginBottom: 16
+		marginBottom: 16,
 	},
 	errorText: {},
 	loaderContainer: {
@@ -54,92 +54,92 @@ const styles = StyleSheet.create({
 		bottom: 0,
 		left: 0,
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	controlsRow: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		justifyContent: 'space-between'
+		justifyContent: 'space-between',
 	},
 	controlsColumn: {
 		flexDirection: 'column',
 		alignItems: 'center',
-		justifyContent: 'space-between'
+		justifyContent: 'space-between',
 	},
 	controlsControl: {
-		padding: 14
+		padding: 14,
 	},
 	controlsTop: {
 		flex: 1,
 		justifyContent: 'flex-start',
-		padding: 4
+		padding: 4,
 	},
 	controlsBottom: {
 		flex: 1,
 		justifyContent: 'flex-end',
-		padding: 4
+		padding: 4,
 	},
 	controlsTopControlGroup: {
 		alignSelf: 'flex-end',
 		alignItems: 'center',
-		justifyContent: 'space-between'
+		justifyContent: 'space-between',
 	},
 	controlsBottomControlGroup: {
 		alignSelf: 'stretch',
 		alignItems: 'center',
-		justifyContent: 'space-between'
+		justifyContent: 'space-between',
 	},
 	controlsPlayPause: {
-		left: 1
+		left: 1,
 	},
 	controlsMuteUnmute: {
 		left: -1,
 		top: -1,
-		width: '110%'
+		width: '110%',
 	},
 	seekbarContainer: {
 		alignSelf: 'stretch',
 		height: 44,
 		marginLeft: 20,
-		marginRight: 20
+		marginRight: 20,
 	},
 	seekbarTrack: {
 		height: 1,
 		position: 'relative',
 		top: 20,
-		width: '100%'
+		width: '100%',
 	},
 	seekbarFill: {
 		height: 4,
 		width: '100%',
 		borderRadius: 2,
-		backgroundColor: colors.white
+		backgroundColor: colors.white,
 	},
 	seekbarPermanentFill: {
 		width: '100%',
-		backgroundColor: colors.grey400
+		backgroundColor: colors.grey400,
 	},
 	seekbarHandle: {
 		marginLeft: -10,
 		height: 28,
-		width: 28
+		width: 28,
 	},
 	seekbarCircle: {
 		borderRadius: 14,
 		top: 14,
 		height: 14,
-		width: 14
+		width: 14,
 	},
 	actionButton: {
 		width: 44,
 		height: 44,
 		backgroundColor: colors.greytransparent100,
-		borderRadius: 8
+		borderRadius: 8,
 	},
 	actionSeeker: {
 		flex: 1,
-		marginHorizontal: 8
-	}
+		marginHorizontal: 8,
+	},
 });
 
 export default function VideoPlayer({
@@ -153,7 +153,7 @@ export default function VideoPlayer({
 	textTracks,
 	selectedTextTrack,
 	onLoad: propsOnLoad,
-	style
+	style,
 }) {
 	const [paused, setPaused] = useState(false);
 	const [muted, setMuted] = useState(true);
@@ -176,19 +176,19 @@ export default function VideoPlayer({
 	const animations = {
 		bottomControl: {
 			marginBottom: useRef(new Animated.Value(0)).current,
-			opacity: useRef(new Animated.Value(0)).current
+			opacity: useRef(new Animated.Value(0)).current,
 		},
 		topControl: {
 			marginTop: useRef(new Animated.Value(0)).current,
-			opacity: useRef(new Animated.Value(0)).current
+			opacity: useRef(new Animated.Value(0)).current,
 		},
 		video: {
-			opacity: useRef(new Animated.Value(1)).current
+			opacity: useRef(new Animated.Value(1)).current,
 		},
 		loader: {
 			rotate: useRef(new Animated.Value(0)).current,
-			MAX_VALUE: 360
-		}
+			MAX_VALUE: 360,
+		},
 	};
 
 	const hideControlAnimation = useCallback(() => {
@@ -196,13 +196,13 @@ export default function VideoPlayer({
 			Animated.timing(animations.topControl.opacity, {
 				toValue: 0,
 				duration: controlsAnimationTiming,
-				useNativeDriver: false
+				useNativeDriver: false,
 			}),
 			Animated.timing(animations.bottomControl.opacity, {
 				toValue: 0,
 				duration: controlsAnimationTiming,
-				useNativeDriver: false
-			})
+				useNativeDriver: false,
+			}),
 		]).start();
 	}, [controlsAnimationTiming, animations.bottomControl.opacity, animations.topControl.opacity]);
 
@@ -223,19 +223,19 @@ export default function VideoPlayer({
 			Animated.timing(animations.topControl.opacity, {
 				toValue: 1,
 				useNativeDriver: false,
-				duration: controlsAnimationTiming
+				duration: controlsAnimationTiming,
 			}),
 			Animated.timing(animations.bottomControl.opacity, {
 				toValue: 1,
 				useNativeDriver: false,
-				duration: controlsAnimationTiming
-			})
+				duration: controlsAnimationTiming,
+			}),
 		]).start(() => resetControlsTimeout());
 	}, [
 		controlsAnimationTiming,
 		animations.bottomControl.opacity,
 		animations.topControl.opacity,
-		resetControlsTimeout
+		resetControlsTimeout,
 	]);
 
 	const toggleControls = () => {
@@ -262,7 +262,7 @@ export default function VideoPlayer({
 	);
 
 	const updateSeekerPosition = useCallback(
-		position => {
+		(position) => {
 			if (!position) return;
 			position = constrainToSeekerMinMax(position);
 			setSeekerFillWidth(position);
@@ -280,15 +280,15 @@ export default function VideoPlayer({
 					duration: 1500,
 					easing: Easing.linear,
 					useNativeDriver: false,
-					isInteraction: false
+					isInteraction: false,
 				}),
 				Animated.timing(animations.loader.rotate, {
 					toValue: 0,
 					duration: 0,
 					easing: Easing.linear,
 					useNativeDriver: false,
-					isInteraction: false
-				})
+					isInteraction: false,
+				}),
 			]).start(loadAnimation);
 		}
 	};
@@ -391,7 +391,7 @@ export default function VideoPlayer({
 						setPaused(originallyPaused);
 						setSeeking(false);
 					}
-				}
+				},
 			}),
 		[
 			updateSeekerPosition,
@@ -401,7 +401,7 @@ export default function VideoPlayer({
 			originallyPaused,
 			paused,
 			scrubbing,
-			seekerOffset
+			seekerOffset,
 		]
 	);
 
@@ -421,7 +421,7 @@ export default function VideoPlayer({
 		[muted, toggleMuted]
 	);
 
-	const onLayoutSeekerWidth = useCallback(event => setSeekerWidth(event.nativeEvent.layout.width), []);
+	const onLayoutSeekerWidth = useCallback((event) => setSeekerWidth(event.nativeEvent.layout.width), []);
 
 	useEffect(() => clearTimeout(controlsTimeout.current), []);
 
@@ -436,8 +436,8 @@ export default function VideoPlayer({
 						style={[
 							styles.seekbarFill,
 							{
-								width: seekerFillWidth
-							}
+								width: seekerFillWidth,
+							},
 						]}
 						pointerEvents={'none'}
 					/>
@@ -471,10 +471,10 @@ export default function VideoPlayer({
 							{
 								rotate: animations.loader.rotate.interpolate({
 									inputRange: [0, 360],
-									outputRange: ['0deg', '360deg']
-								})
-							}
-						]
+									outputRange: ['0deg', '360deg'],
+								}),
+							},
+						],
 					}}
 				/>
 			</View>
@@ -503,8 +503,8 @@ export default function VideoPlayer({
 			style={[
 				styles.controlsTop,
 				{
-					opacity: animations.bottomControl.opacity
-				}
+					opacity: animations.bottomControl.opacity,
+				},
 			]}
 		>
 			<View style={[styles.controlsColumn]}>
@@ -520,8 +520,8 @@ export default function VideoPlayer({
 			style={[
 				styles.controlsBottom,
 				{
-					opacity: animations.bottomControl.opacity
-				}
+					opacity: animations.bottomControl.opacity,
+				},
 			]}
 		>
 			<View style={[styles.controlsColumn]}>
@@ -572,7 +572,7 @@ VideoPlayer.propTypes = {
 	onError: PropTypes.func,
 	selectedTextTrack: PropTypes.object,
 	textTracks: PropTypes.arrayOf(PropTypes.object),
-	style: ViewPropTypes.style
+	style: ViewPropTypes.style,
 };
 
 VideoPlayer.defaultProps = {
@@ -580,5 +580,5 @@ VideoPlayer.defaultProps = {
 	controlsAnimationTiming: 500,
 	controlsToggleTiming: 5000,
 	displayTopControls: true,
-	displayBottomControls: true
+	displayBottomControls: true,
 };

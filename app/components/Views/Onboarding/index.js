@@ -9,7 +9,7 @@ import {
 	StyleSheet,
 	Alert,
 	Image,
-	InteractionManager
+	InteractionManager,
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import StyledButton from '../../UI/StyledButton';
@@ -42,44 +42,44 @@ const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 
 const styles = StyleSheet.create({
 	scroll: {
-		flex: 1
+		flex: 1,
 	},
 	wrapper: {
 		flex: 1,
 		alignItems: 'center',
-		paddingVertical: 30
+		paddingVertical: 30,
 	},
 	foxWrapper: {
 		width: Device.isIos() ? 90 : 45,
 		height: Device.isIos() ? 90 : 45,
-		marginVertical: 20
+		marginVertical: 20,
 	},
 	image: {
 		alignSelf: 'center',
 		width: Device.isIos() ? 90 : 45,
-		height: Device.isIos() ? 90 : 45
+		height: Device.isIos() ? 90 : 45,
 	},
 	termsAndConditions: {
-		paddingBottom: 30
+		paddingBottom: 30,
 	},
 	title: {
 		fontSize: 24,
 		color: colors.fontPrimary,
 		...fontStyles.bold,
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	ctas: {
 		flex: 1,
-		position: 'relative'
+		position: 'relative',
 	},
 	footer: {
 		marginTop: -20,
-		marginBottom: 20
+		marginBottom: 20,
 	},
 	login: {
 		fontSize: 18,
 		color: colors.blue,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	buttonDescription: {
 		...fontStyles.normal,
@@ -87,30 +87,30 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		marginBottom: 16,
 		color: colors.fontPrimary,
-		lineHeight: 20
+		lineHeight: 20,
 	},
 	importWrapper: {
-		marginVertical: 24
+		marginVertical: 24,
 	},
 	createWrapper: {
 		flex: 1,
 		justifyContent: 'flex-end',
-		marginBottom: 24
+		marginBottom: 24,
 	},
 	buttonWrapper: {
-		marginBottom: 16
+		marginBottom: 16,
 	},
 	loader: {
 		marginTop: 180,
 		justifyContent: 'center',
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	loadingText: {
 		marginTop: 30,
 		fontSize: 14,
 		textAlign: 'center',
 		color: colors.fontPrimary,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	modalTypeView: {
 		position: 'absolute',
@@ -118,13 +118,13 @@ const styles = StyleSheet.create({
 		paddingBottom: Device.isIphoneX() ? 20 : 10,
 		left: 0,
 		right: 0,
-		backgroundColor: colors.transparent
+		backgroundColor: colors.transparent,
 	},
 	notificationContainer: {
 		flex: 0.1,
 		flexDirection: 'row',
-		alignItems: 'flex-end'
-	}
+		alignItems: 'flex-end',
+	},
 });
 
 /**
@@ -168,7 +168,7 @@ class Onboarding extends PureComponent {
 		/**
 		 * Object that represents the current route info like params passed to it
 		 */
-		route: PropTypes.object
+		route: PropTypes.object,
 	};
 
 	notificationAnimated = new Animated.Value(100);
@@ -181,14 +181,14 @@ class Onboarding extends PureComponent {
 			toValue,
 			duration: 500,
 			easing: Easing.linear,
-			useNativeDriver: true
+			useNativeDriver: true,
 		}).start();
 	};
 
 	state = {
 		warningModalVisible: false,
 		loading: false,
-		existingUser: false
+		existingUser: false,
 	};
 
 	seedwords = null;
@@ -258,7 +258,7 @@ class Onboarding extends PureComponent {
 		}
 	};
 
-	handleExistingUser = action => {
+	handleExistingUser = (action) => {
 		if (this.state.existingUser) {
 			this.alertExistingUser(action);
 		} else {
@@ -271,17 +271,17 @@ class Onboarding extends PureComponent {
 			const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
 			if (metricsOptIn) {
 				this.props.navigation.navigate('ChoosePassword', {
-					[PREVIOUS_SCREEN]: ONBOARDING
+					[PREVIOUS_SCREEN]: ONBOARDING,
 				});
 				this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_STARTED);
 			} else {
 				this.props.navigation.navigate('OptinMetrics', {
 					onContinue: () => {
 						this.props.navigation.replace('ChoosePassword', {
-							[PREVIOUS_SCREEN]: ONBOARDING
+							[PREVIOUS_SCREEN]: ONBOARDING,
 						});
 						this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_STARTED);
-					}
+					},
 				});
 			}
 		};
@@ -301,17 +301,17 @@ class Onboarding extends PureComponent {
 			const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
 			if (metricsOptIn) {
 				this.props.navigation.navigate('ExtensionSync', {
-					[PREVIOUS_SCREEN]: ONBOARDING
+					[PREVIOUS_SCREEN]: ONBOARDING,
 				});
 				this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SYNC_STARTED);
 			} else {
 				this.props.navigation.navigate('OptinMetrics', {
 					onContinue: () => {
 						this.props.navigation.replace('ExtensionSync', {
-							[PREVIOUS_SCREEN]: ONBOARDING
+							[PREVIOUS_SCREEN]: ONBOARDING,
 						});
 						this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SYNC_STARTED);
-					}
+					},
 				});
 			}
 		};
@@ -329,7 +329,7 @@ class Onboarding extends PureComponent {
 					onContinue: () => {
 						this.props.navigation.replace('ImportFromSeed');
 						this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_IMPORT_STARTED);
-					}
+					},
 				});
 			}
 		};
@@ -349,7 +349,7 @@ class Onboarding extends PureComponent {
 		});
 	};
 
-	alertExistingUser = callback => {
+	alertExistingUser = (callback) => {
 		this.warningCallback = () => {
 			callback();
 			this.toggleWarningModal();
@@ -483,20 +483,17 @@ class Onboarding extends PureComponent {
 	}
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	passwordSet: state.user.passwordSet,
 	loading: state.user.loadingSet,
-	loadingMsg: state.user.loadingMsg
+	loadingMsg: state.user.loadingMsg,
 });
 
-const mapDispatchToProps = dispatch => ({
-	setLoading: msg => dispatch(loadingSet(msg)),
+const mapDispatchToProps = (dispatch) => ({
+	setLoading: (msg) => dispatch(loadingSet(msg)),
 	unsetLoading: () => dispatch(loadingUnset()),
-	saveOnboardingEvent: event => dispatch(saveOnboardingEvent(event))
+	saveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(Onboarding);
+export default connect(mapStateToProps, mapDispatchToProps)(Onboarding);

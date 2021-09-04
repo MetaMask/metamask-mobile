@@ -13,26 +13,26 @@ describe('Tokens', () => {
 			engine: {
 				backgroundState: {
 					TokensController: {
-						tokens: []
+						tokens: [],
 					},
 					TokenRatesController: {
-						contractExchangeRates: {}
+						contractExchangeRates: {},
 					},
 					CurrencyRateController: {
 						currentCurrency: 'USD',
-						conversionRate: 1
+						conversionRate: 1,
 					},
 					TokenBalancesController: {
-						contractBalance: {}
+						contractBalance: {},
 					},
 					NetworkController: {
-						provider: { chainId: '1' }
-					}
-				}
+						provider: { chainId: '1' },
+					},
+				},
 			},
 			settings: {
-				primaryCurrency: 'usd'
-			}
+				primaryCurrency: 'usd',
+			},
 		};
 		const store = mockStore(initialState);
 
@@ -52,31 +52,31 @@ describe('Tokens', () => {
 						tokens: [
 							{ symbol: 'ETH', address: '0x0', decimals: 18, isETH: true },
 							{ symbol: 'BAT', address: '0x01', decimals: 18 },
-							{ symbol: 'LINK', address: '0x02', decimals: 18 }
-						]
+							{ symbol: 'LINK', address: '0x02', decimals: 18 },
+						],
 					},
 					TokenRatesController: {
-						contractExchangeRates: {}
+						contractExchangeRates: {},
 					},
 					CurrencyRateController: {
 						currentCurrency: 'USD',
-						conversionRate: 1
+						conversionRate: 1,
 					},
 					TokenBalancesController: {
 						contractBalances: {
 							'0x01': new BN(2),
-							'0x02': new BN(0)
-						}
+							'0x02': new BN(0),
+						},
 					},
 					NetworkController: {
-						provider: { chainId: '1' }
-					}
-				}
+						provider: { chainId: '1' },
+					},
+				},
 			},
 			settings: {
 				primaryCurrency: 'usd',
-				hideZeroBalanceTokens: true
-			}
+				hideZeroBalanceTokens: true,
+			},
 		};
 		const store = mockStore(initialState);
 
@@ -97,31 +97,31 @@ describe('Tokens', () => {
 						tokens: [
 							{ symbol: 'ETH', address: '0x0', decimals: 18, isETH: true },
 							{ symbol: 'BAT', address: '0x01', decimals: 18 },
-							{ symbol: 'LINK', address: '0x02', decimals: 18 }
-						]
+							{ symbol: 'LINK', address: '0x02', decimals: 18 },
+						],
 					},
 					TokenRatesController: {
-						contractExchangeRates: {}
+						contractExchangeRates: {},
 					},
 					CurrencyRateController: {
 						currentCurrency: 'USD',
-						conversionRate: 1
+						conversionRate: 1,
 					},
 					TokenBalancesController: {
 						contractBalances: {
 							'0x01': new BN(2),
-							'0x02': new BN(0)
-						}
+							'0x02': new BN(0),
+						},
 					},
 					NetworkController: {
-						provider: { chainId: '1' }
-					}
-				}
+						provider: { chainId: '1' },
+					},
+				},
 			},
 			settings: {
 				primaryCurrency: 'usd',
-				hideZeroBalanceTokens: false
-			}
+				hideZeroBalanceTokens: false,
+			},
 		};
 		const store = mockStore(initialState);
 

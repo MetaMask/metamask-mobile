@@ -7,8 +7,8 @@ import { Provider } from 'react-redux';
 const mockStore = configureMockStore();
 const initialState = {
 	wizard: {
-		step: 1
-	}
+		step: 1,
+	},
 };
 const store = mockStore(initialState);
 

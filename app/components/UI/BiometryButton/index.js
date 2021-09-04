@@ -8,25 +8,25 @@ import { colors } from '../../../styles/common';
 
 const styles = {
 	fixCenterIcon: {
-		marginBottom: -3
+		marginBottom: -3,
 	},
 	image: {
 		height: 24,
-		width: 24
+		width: 24,
 	},
 	hitSlop: {
 		top: 10,
 		left: 10,
 		bottom: 10,
-		right: 10
-	}
+		right: 10,
+	},
 };
 
 const iosFaceId = require('../../../images/ios-face-id.png');
 const androidFaceRecognition = require('../../../images/android-face-recognition.png');
 const androidIris = require('../../../images/android-iris.png');
 
-const renderIcon = type => {
+const renderIcon = (type) => {
 	if (Platform.OS === 'ios') {
 		if (type === 'TouchID')
 			return <Ionicons color={colors.black} size={28} style={styles.fixCenterIcon} name="ios-finger-print" />;
@@ -65,7 +65,7 @@ BiometryButton.propTypes = {
 	/**
 	 * Type of biometry icon
 	 */
-	type: PropTypes.string
+	type: PropTypes.string,
 };
 
 export default BiometryButton;

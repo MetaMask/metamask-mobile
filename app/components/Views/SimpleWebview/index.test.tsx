@@ -8,8 +8,8 @@ describe('SimpleWebview', () => {
 			<SimpleWebview
 				navigation={{
 					setParams: () => {
-						'';
-					}
+						('');
+					},
 				}}
 				route={{ params: { url: 'https://etherscan.io', title: 'etherscan' } }}
 			/>

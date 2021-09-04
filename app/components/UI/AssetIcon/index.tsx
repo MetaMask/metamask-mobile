@@ -1,11 +1,10 @@
 import React, { memo } from 'react';
-import { ImageStyle, StyleSheet } from 'react-native';
+import { ImageStyle, StyleSheet, StyleProp } from 'react-native';
 import RemoteImage from '../../Base/RemoteImage';
 import getAssetLogoPath from '../../../util/assets';
 import { colors } from '../../../styles/common';
-import { StyleProp } from 'react-native';
 
-type Props = {
+interface Props {
 	/**
 	 * String of the asset icon to be searched in contractMap
 	 */
@@ -18,13 +17,13 @@ type Props = {
 	 * Custom style to apply to image
 	 */
 	customStyle?: StyleProp<ImageStyle>;
-};
+}
 
 const styles = StyleSheet.create({
 	logo: {
 		width: 50,
-		height: 50
-	}
+		height: 50,
+	},
 });
 
 /**

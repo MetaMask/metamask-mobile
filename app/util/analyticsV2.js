@@ -2,7 +2,7 @@ import Analytics from '../core/Analytics';
 import Logger from './Logger';
 import { InteractionManager } from 'react-native';
 
-const generateOpt = name => ({ category: name });
+const generateOpt = (name) => ({ category: name });
 
 export const ANALYTICS_EVENTS_V2 = {
 	// Approval
@@ -81,7 +81,7 @@ export const ANALYTICS_EVENTS_V2 = {
 	ONBOARDING_TOUR_STEP_COMPLETED: generateOpt('Onboarding Tour Step Completed'),
 	ONBOARDING_TOUR_STEP_REVISITED: generateOpt('Onboarding Tour Step Completed'),
 	ONBOARDING_TOUR_COMPLETED: generateOpt('Onboarding Tour Completed'),
-	ONBOARDING_COMPLETED: generateOpt('Onboarding Completed')
+	ONBOARDING_COMPLETED: generateOpt('Onboarding Completed'),
 };
 
 /**
@@ -149,7 +149,7 @@ export const trackErrorAsAnalytics = (type, errorMessage, otherInfo) => {
 			error: true,
 			type,
 			errorMessage,
-			otherInfo
+			otherInfo,
 		});
 	} catch (error) {
 		Logger.error(error, 'Error logging analytics - trackErrorAsAnalytics');
@@ -159,5 +159,5 @@ export const trackErrorAsAnalytics = (type, errorMessage, otherInfo) => {
 export default {
 	ANALYTICS_EVENTS: ANALYTICS_EVENTS_V2,
 	trackEvent: trackEventV2,
-	trackErrorAsAnalytics
+	trackErrorAsAnalytics,
 };

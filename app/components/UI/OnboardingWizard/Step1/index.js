@@ -12,18 +12,18 @@ import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../../util/analytics';
 
 const styles = StyleSheet.create({
 	main: {
-		flex: 1
+		flex: 1,
 	},
 	coachmark: {
-		marginHorizontal: 16
+		marginHorizontal: 16,
 	},
 	coachmarkContainer: {
 		flex: 1,
 		position: 'absolute',
 		left: 0,
 		right: 0,
-		bottom: Device.isIphoneX() ? 36 : Device.isIos() ? 16 : 36
-	}
+		bottom: Device.isIphoneX() ? 36 : Device.isIos() ? 16 : 36,
+	},
 });
 
 class Step1 extends PureComponent {
@@ -35,7 +35,7 @@ class Step1 extends PureComponent {
 		/**
 		 * Dispatch set onboarding wizard step
 		 */
-		setOnboardingWizardStep: PropTypes.func
+		setOnboardingWizardStep: PropTypes.func,
 	};
 
 	/**
@@ -47,7 +47,7 @@ class Step1 extends PureComponent {
 		InteractionManager.runAfterInteractions(() => {
 			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_STARTED, {
 				tutorial_step_count: 1,
-				tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[1]
+				tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[1],
 			});
 		});
 	};
@@ -88,11 +88,8 @@ class Step1 extends PureComponent {
 	}
 }
 
-const mapDispatchToProps = dispatch => ({
-	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
+const mapDispatchToProps = (dispatch) => ({
+	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 });
 
-export default connect(
-	null,
-	mapDispatchToProps
-)(Step1);
+export default connect(null, mapDispatchToProps)(Step1);

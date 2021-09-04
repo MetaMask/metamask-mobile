@@ -13,26 +13,26 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		borderBottomWidth: 1,
-		borderBottomColor: colors.grey050
+		borderBottomColor: colors.grey050,
 	},
 	addressElementInformation: {
 		flex: 1,
-		flexDirection: 'column'
+		flexDirection: 'column',
 	},
 	addressIdenticon: {
-		paddingRight: 16
+		paddingRight: 16,
 	},
 	addressTextNickname: {
 		...fontStyles.normal,
 		flex: 1,
 		color: colors.black,
-		fontSize: 14
+		fontSize: 14,
 	},
 	addressTextAddress: {
 		...fontStyles.normal,
 		fontSize: 12,
-		color: colors.grey500
-	}
+		color: colors.grey500,
+	},
 });
 
 class AddressElement extends PureComponent {
@@ -56,12 +56,12 @@ class AddressElement extends PureComponent {
 		/**
 		 * Network id
 		 */
-		network: PropTypes.string
+		network: PropTypes.string,
 	};
 
 	state = {
 		name: this.props.name,
-		address: this.props.address
+		address: this.props.address,
 	};
 
 	componentDidMount = async () => {
@@ -103,8 +103,8 @@ class AddressElement extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({
-	network: state.engine.backgroundState.NetworkController.network
+const mapStateToProps = (state) => ({
+	network: state.engine.backgroundState.NetworkController.network,
 });
 
 export default connect(mapStateToProps)(AddressElement);

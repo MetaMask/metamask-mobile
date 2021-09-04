@@ -1,7 +1,7 @@
 import { REHYDRATE } from 'redux-persist';
 
 const initialState = {
-	events: []
+	events: [],
 };
 
 /**
@@ -18,12 +18,12 @@ const onboardingReducer = (state = initialState, action) => {
 		case 'SAVE_EVENT':
 			return {
 				...state,
-				events: [...state.events, action.event]
+				events: [...state.events, action.event],
 			};
 		case 'CLEAR_EVENTS':
 			return {
 				...state,
-				events: []
+				events: [],
 			};
 		default:
 			return state;
