@@ -26,7 +26,7 @@ class Analytics {
 	 * Notifies subscribers of current enabled
 	 */
 	_notify = () => {
-		this.listeners.forEach(listener => {
+		this.listeners.forEach((listener) => {
 			listener(this.enabled);
 		});
 	};
@@ -49,14 +49,14 @@ class Analytics {
 					...event,
 					...params,
 					value,
-					info
+					info,
 				});
 			} else {
 				RCTAnalytics.trackEventAnonymously({
 					...event,
 					...params,
 					value,
-					info
+					info,
 				});
 			}
 		} else {
@@ -112,7 +112,7 @@ class Analytics {
 	 *
 	 * @param listener - Callback to add to listeners
 	 */
-	subscribe = listener => {
+	subscribe = (listener) => {
 		this.listeners.push(listener);
 	};
 
@@ -208,7 +208,7 @@ class Analytics {
 let instance;
 
 export default {
-	init: async enabled => {
+	init: async (enabled) => {
 		instance = new Analytics(enabled);
 		try {
 			const vars = await RCTAnalytics.getRemoteVariables();
@@ -252,5 +252,5 @@ export default {
 		} catch (e) {
 			// Do nothing
 		}
-	}
+	},
 };

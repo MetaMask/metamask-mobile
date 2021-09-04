@@ -10,11 +10,11 @@ const initialState = {
 		backgroundState: {
 			NetworkController: {
 				provider: {
-					type: 'mainnet'
-				}
-			}
-		}
-	}
+					type: 'mainnet',
+				},
+			},
+		},
+	},
 };
 const store = mockStore(initialState);
 
@@ -28,10 +28,9 @@ describe('CollectibleContractInformation', () => {
 						symbol: 'symbol',
 						description: 'description',
 						address: '0x123',
-						totalSupply: 1
+						totalSupply: 1,
 					}}
 				/>
-				,
 			</Provider>
 		);
 		expect(wrapper.dive()).toMatchSnapshot();

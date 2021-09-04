@@ -36,7 +36,7 @@ const rootReducer = combineReducers({
 	notification: notificationReducer,
 	swaps: swapsReducer,
 	fiatOrders,
-	infuraAvailability: infuraAvailabilityReducer
+	infuraAvailability: infuraAvailabilityReducer,
 });
 
 export default rootReducer;

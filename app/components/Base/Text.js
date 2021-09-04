@@ -8,70 +8,70 @@ const style = StyleSheet.create({
 		...fontStyles.normal,
 		color: colors.grey600,
 		marginVertical: 2,
-		fontSize: 14
+		fontSize: 14,
 	},
 	centered: {
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	right: {
-		textAlign: 'right'
+		textAlign: 'right',
 	},
 	red: {
-		color: colors.red
+		color: colors.red,
 	},
 	orange: {
-		color: colors.orange
+		color: colors.orange,
 	},
 	black: {
-		color: colors.black
+		color: colors.black,
 	},
 	bold: fontStyles.bold,
 	blue: {
-		color: colors.blue
+		color: colors.blue,
 	},
 	green: {
-		color: colors.green400
+		color: colors.green400,
 	},
 	grey: {
-		color: colors.grey500
+		color: colors.grey500,
 	},
 	primary: {
-		color: colors.fontPrimary
+		color: colors.fontPrimary,
 	},
 	small: {
-		fontSize: 12
+		fontSize: 12,
 	},
 	big: {
-		fontSize: 16
+		fontSize: 16,
 	},
 	upper: {
-		textTransform: 'uppercase'
+		textTransform: 'uppercase',
 	},
 	disclaimer: {
 		fontStyle: 'italic',
-		letterSpacing: 0.15
+		letterSpacing: 0.15,
 	},
 	modal: {
 		color: colors.fontPrimary,
 		fontSize: 16,
-		lineHeight: 22.4 // 1.4 * fontSize
+		lineHeight: 22.4, // 1.4 * fontSize
 	},
 	infoModal: {
 		lineHeight: 20,
-		marginVertical: 6
+		marginVertical: 6,
 	},
 	link: {
-		color: colors.blue
+		color: colors.blue,
 	},
 	strikethrough: {
-		textDecorationLine: 'line-through'
+		textDecorationLine: 'line-through',
 	},
 	underline: {
-		textDecorationLine: 'underline'
+		textDecorationLine: 'underline',
 	},
 	noMargin: {
-		marginVertical: 0
-	}
+		marginVertical: 0,
+	},
 });
 
 const Text = ({
@@ -123,7 +123,7 @@ const Text = ({
 			strikethrough && style.strikethrough,
 			underline && style.underline,
 			noMargin && style.noMargin,
-			externalStyle
+			externalStyle,
 		]}
 		{...props}
 	/>
@@ -147,7 +147,7 @@ Text.defaultProps = {
 	link: false,
 	strikethrough: false,
 	underline: false,
-	style: undefined
+	style: undefined,
 };
 
 Text.propTypes = {
@@ -241,7 +241,7 @@ Text.propTypes = {
 	/**
 	 * Any other external style defined in props will be applied
 	 */
-	style: PropTypes.oneOfType([PropTypes.object, PropTypes.array])
+	style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
 };
 
 export default Text;

@@ -1,3 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AddressElement should render correctly 1`] = `<Connect(AddressElement) />`;
+exports[`AddressElement should render correctly 1`] = `
+<AddressElement
+  dispatch={[Function]}
+  network="1"
+/>
+`;

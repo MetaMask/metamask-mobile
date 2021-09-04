@@ -19,11 +19,11 @@ const IMG_PADDING = Device.isIphoneX() ? 100 : Device.isIphone5S() ? 180 : 220;
 
 const styles = StyleSheet.create({
 	scroll: {
-		flexGrow: 1
+		flexGrow: 1,
 	},
 	wrapper: {
 		paddingVertical: 30,
-		flex: 1
+		flex: 1,
 	},
 	title: {
 		fontSize: 24,
@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		justifyContent: 'center',
 		textAlign: 'center',
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	subtitle: {
 		fontSize: 14,
@@ -41,38 +41,38 @@ const styles = StyleSheet.create({
 		color: colors.grey500,
 		justifyContent: 'center',
 		textAlign: 'center',
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	ctas: {
 		paddingHorizontal: 40,
 		paddingBottom: Device.isIphoneX() ? 40 : 20,
-		flexDirection: 'column'
+		flexDirection: 'column',
 	},
 	ctaWrapper: {
-		justifyContent: 'flex-end'
+		justifyContent: 'flex-end',
 	},
 	carouselImage: {},
 	// eslint-disable-next-line react-native/no-unused-styles
 	carouselImage1: {
 		marginTop: 30,
 		width: DEVICE_WIDTH - IMG_PADDING,
-		height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_1_RATIO
+		height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_1_RATIO,
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	carouselImage2: {
 		width: DEVICE_WIDTH - IMG_PADDING,
-		height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_2_RATIO
+		height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_2_RATIO,
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	carouselImage3: {
 		width: DEVICE_WIDTH - 60,
-		height: (DEVICE_WIDTH - 60) * IMAGE_3_RATIO
+		height: (DEVICE_WIDTH - 60) * IMAGE_3_RATIO,
 	},
 	carouselImageWrapper: {
 		flex: 1,
 		flexDirection: 'row',
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	circle: {
 		width: 8,
@@ -80,19 +80,19 @@ const styles = StyleSheet.create({
 		borderRadius: 8 / 2,
 		backgroundColor: colors.grey500,
 		opacity: 0.4,
-		marginHorizontal: 8
+		marginHorizontal: 8,
 	},
 	solidCircle: {
-		opacity: 1
+		opacity: 1,
 	},
 	progessContainer: {
 		flexDirection: 'row',
 		alignSelf: 'center',
-		marginVertical: 36
+		marginVertical: 36,
 	},
 	tab: {
-		marginHorizontal: 30
-	}
+		marginHorizontal: 30,
+	},
 });
 
 const onboarding_carousel_1 = require('../../../images/onboarding-carousel-1.png'); // eslint-disable-line
@@ -112,18 +112,18 @@ export default class OnboardingCarousel extends PureComponent {
 		/**
 		 * The navigator object
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
 	};
 
 	state = {
-		currentTab: 1
+		currentTab: 1,
 	};
 
 	onPresGetStarted = () => this.props.navigation.navigate('Onboarding');
 
 	renderTabBar = () => <View />;
 
-	onChangeTab = obj => {
+	onChangeTab = (obj) => {
 		this.setState({ currentTab: obj.i + 1 });
 	};
 
@@ -166,7 +166,7 @@ export default class OnboardingCarousel extends PureComponent {
 							</ScrollableTabView>
 
 							<View style={styles.progessContainer}>
-								{[1, 2, 3].map(i => (
+								{[1, 2, 3].map((i) => (
 									<View key={i} style={[styles.circle, currentTab === i ? styles.solidCircle : {}]} />
 								))}
 							</View>

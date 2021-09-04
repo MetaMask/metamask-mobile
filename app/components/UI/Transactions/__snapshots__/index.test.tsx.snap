@@ -1,8 +1,25 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Transactions should render correctly 1`] = `
-<Connect(Transactions)
+<Transactions
+  accounts={Object {}}
+  collectibleContracts={Object {}}
+  contractExchangeRates={Object {}}
+  conversionRate={1}
+  currentCurrency="USD"
+  headerHeight={0}
   loading={false}
+  network={
+    Object {
+      "provider": Object {
+        "chainId": "1",
+      },
+    }
+  }
+  selectedAddress="0x0"
+  showAlert={[Function]}
+  thirdPartyApiMode={true}
+  tokens={Object {}}
   transactions={
     Array [
       Object {

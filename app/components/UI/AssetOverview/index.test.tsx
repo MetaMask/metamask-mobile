@@ -7,15 +7,15 @@ import { Provider } from 'react-redux';
 const mockStore = configureMockStore();
 const initialState = {
 	settings: {
-		primaryCurrency: 'ETH'
-	}
+		primaryCurrency: 'ETH',
+	},
 };
 const asset = {
 	balance: 4,
 	balanceFiat: 1500,
 	logo: 'https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg',
 	symbol: 'ETH',
-	name: 'Ethereum'
+	name: 'Ethereum',
 };
 const store = mockStore(initialState);
 

@@ -9,14 +9,14 @@ const style = StyleSheet.create({
 		fontSize: 18,
 		marginVertical: 3,
 		color: colors.fontPrimary,
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	hero: {
-		fontSize: 22
+		fontSize: 22,
 	},
 	centered: {
-		textAlign: 'center'
-	}
+		textAlign: 'center',
+	},
 });
 
 const Title = ({ centered, hero, style: externalStyle, ...props }) => (
@@ -26,7 +26,7 @@ const Title = ({ centered, hero, style: externalStyle, ...props }) => (
 Title.defaultProps = {
 	centered: false,
 	hero: false,
-	style: undefined
+	style: undefined,
 };
 
 Title.propTypes = {
@@ -41,7 +41,7 @@ Title.propTypes = {
 	/**
 	 * Any other external style defined in props will be applied
 	 */
-	style: PropTypes.oneOfType([PropTypes.object, PropTypes.array])
+	style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
 };
 
 export default Title;

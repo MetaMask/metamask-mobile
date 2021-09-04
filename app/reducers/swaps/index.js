@@ -11,7 +11,7 @@ const MAX_TOKENS_WITH_BALANCE = 5;
 
 // * Action Creator
 export const setSwapsLiveness = (live, chainId) => ({ type: SWAPS_SET_LIVENESS, payload: { live, chainId } });
-export const setSwapsHasOnboarded = hasOnboarded => ({ type: SWAPS_SET_HAS_ONBOARDED, payload: hasOnboarded });
+export const setSwapsHasOnboarded = (hasOnboarded) => ({ type: SWAPS_SET_HAS_ONBOARDED, payload: hasOnboarded });
 
 // * Functions
 
@@ -19,7 +19,7 @@ function addMetadata(chainId, tokens) {
 	if (!isMainnetByChainId(chainId)) {
 		return tokens;
 	}
-	return tokens.map(token => {
+	return tokens.map((token) => {
 		const tokenMetadata = contractMetadata[safeToChecksumAddress(token.address)];
 		if (tokenMetadata) {
 			return { ...token, name: tokenMetadata.name };
@@ -31,8 +31,8 @@ function addMetadata(chainId, tokens) {
 
 // * Selectors
 
-const chainIdSelector = state => state.engine.backgroundState.NetworkController.provider.chainId;
-const swapsStateSelector = state => state.swaps;
+const chainIdSelector = (state) => state.engine.backgroundState.NetworkController.provider.chainId;
+const swapsStateSelector = (state) => state.swaps;
 /**
  * Returns the swaps liveness state
  */
@@ -47,69 +47,57 @@ export const swapsLivenessSelector = createSelector(
  * Returns the swaps onboarded state
  */
 
-export const swapsHasOnboardedSelector = createSelector(
-	swapsStateSelector,
-	swapsState => swapsState.hasOnboarded
-);
+export const swapsHasOnboardedSelector = createSelector(swapsStateSelector, (swapsState) => swapsState.hasOnboarded);
 
 /**
  * Returns the swaps tokens from the state
  */
-const swapsControllerTokens = state => state.engine.backgroundState.SwapsController.tokens;
-const tokensSelectors = state => state.engine.backgroundState.TokensController.tokens;
+const swapsControllerTokens = (state) => state.engine.backgroundState.SwapsController.tokens;
+const tokensSelectors = (state) => state.engine.backgroundState.TokensController.tokens;
 
-const swapsControllerAndUserTokens = createSelector(
-	swapsControllerTokens,
-	tokensSelectors,
-	(swapsTokens, tokens) => {
-		const values = [...(swapsTokens || []), ...(tokens || [])]
-			.reduce((map, { balanceError, image, ...token }) => {
-				const key = token.address.toLowerCase();
+const swapsControllerAndUserTokens = createSelector(swapsControllerTokens, tokensSelectors, (swapsTokens, tokens) => {
+	const values = [...(swapsTokens || []), ...(tokens || [])]
+		.reduce((map, { balanceError, image, ...token }) => {
+			const key = token.address.toLowerCase();
 
-				if (!map.has(key)) {
-					map.set(key, {
-						occurrences: 0,
-						...token,
-						decimals: Number(token.decimals),
-						address: key
-					});
-				}
-				return map;
-			}, new Map())
-			.values();
+			if (!map.has(key)) {
+				map.set(key, {
+					occurrences: 0,
+					...token,
+					decimals: Number(token.decimals),
+					address: key,
+				});
+			}
+			return map;
+		}, new Map())
+		.values();
 
-		return [...values];
+	return [...values];
+});
+
+export const swapsTokensSelector = createSelector(chainIdSelector, swapsControllerAndUserTokens, (chainId, tokens) => {
+	if (!tokens) {
+		return [];
 	}
-);
 
-export const swapsTokensSelector = createSelector(
-	chainIdSelector,
-	swapsControllerAndUserTokens,
-	(chainId, tokens) => {
-		if (!tokens) {
-			return [];
-		}
+	return addMetadata(chainId, tokens);
+});
 
-		return addMetadata(chainId, tokens);
-	}
-);
-
-const topAssets = state => state.engine.backgroundState.SwapsController.topAssets;
+const topAssets = (state) => state.engine.backgroundState.SwapsController.topAssets;
 
 /**
  * Returns a memoized object that only has the addesses of the tokens as keys
  * and undefined as value. Useful to check if a token is supported by swaps.
  */
-export const swapsTokensObjectSelector = createSelector(
-	swapsControllerAndUserTokens,
-	tokens => (tokens?.length > 0 ? tokens.reduce((acc, token) => ({ ...acc, [token.address]: undefined }), {}) : {})
+export const swapsTokensObjectSelector = createSelector(swapsControllerAndUserTokens, (tokens) =>
+	tokens?.length > 0 ? tokens.reduce((acc, token) => ({ ...acc, [token.address]: undefined }), {}) : {}
 );
 
 /**
  * Balances
  */
 
-const balances = state => state.engine.backgroundState.TokenBalancesController.contractBalances;
+const balances = (state) => state.engine.backgroundState.TokenBalancesController.contractBalances;
 
 /**
  * Returns an array of tokens to display by default on the selector modal
@@ -167,7 +155,7 @@ export const swapsTopAssetsSelector = createSelector(
 			return [];
 		}
 		const result = topAssets
-			.map(({ address }) => tokens?.find(token => toLowerCaseEquals(token.address, address)))
+			.map(({ address }) => tokens?.find((token) => toLowerCaseEquals(token.address, address)))
 			.filter(Boolean);
 		return addMetadata(chainId, result);
 	}
@@ -178,9 +166,9 @@ export const initialState = {
 	isLive: true, // TODO: should we remove it?
 	hasOnboarded: false,
 
-	'1': {
-		isLive: true
-	}
+	1: {
+		isLive: true,
+	},
 };
 
 function swapsReducer(state = initialState, action) {
@@ -192,14 +180,14 @@ function swapsReducer(state = initialState, action) {
 				...state,
 				[chainId]: {
 					...data,
-					isLive: live
-				}
+					isLive: live,
+				},
 			};
 		}
 		case SWAPS_SET_HAS_ONBOARDED: {
 			return {
 				...state,
-				hasOnboarded: Boolean(action.payload)
+				hasOnboarded: Boolean(action.payload),
 			};
 		}
 		default: {

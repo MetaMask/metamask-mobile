@@ -8,27 +8,27 @@ const styles = StyleSheet.create({
 	header: {
 		width: '100%',
 		position: 'relative',
-		paddingBottom: 20
+		paddingBottom: 20,
 	},
 	title: {
 		...fontStyles.bold,
 		color: colors.black,
 		fontSize: 14,
 		textAlign: 'center',
-		paddingVertical: 12
+		paddingVertical: 12,
 	},
 	back: {
 		position: 'absolute',
 		zIndex: 1,
 		paddingVertical: 10,
-		paddingRight: 10
-	}
+		paddingRight: 10,
+	},
 });
 
 class ConnectHeader extends Component {
 	static propTypes = {
 		action: PropTypes.func.isRequired,
-		title: PropTypes.string.isRequired
+		title: PropTypes.string.isRequired,
 	};
 
 	render() {

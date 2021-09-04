@@ -22,20 +22,20 @@ const IMG_PADDING = Device.isIphoneX() ? 100 : Device.isIphone5S() ? 180 : 220;
 const styles = StyleSheet.create({
 	mainWrapper: {
 		backgroundColor: colors.white,
-		flex: 1
+		flex: 1,
 	},
 	scrollviewWrapper: {
-		flexGrow: 1
+		flexGrow: 1,
 	},
 	wrapper: {
 		flex: 1,
 		padding: 20,
 		paddingTop: 0,
-		paddingBottom: 0
+		paddingBottom: 0,
 	},
 	content: {
 		alignItems: 'center',
-		paddingBottom: 16
+		paddingBottom: 16,
 	},
 	title: {
 		fontSize: 24,
@@ -44,28 +44,28 @@ const styles = StyleSheet.create({
 		marginBottom: 16,
 		color: colors.fontPrimary,
 		justifyContent: 'center',
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	text: {
 		marginBottom: 16,
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	label: {
 		lineHeight: 20,
 		fontSize: 16,
 		color: colors.fontPrimary,
 		textAlign: 'left',
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	bold: {
 		lineHeight: 25,
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	image: {
 		marginTop: 14,
 		marginBottom: 8,
 		width: DEVICE_WIDTH - IMG_PADDING,
-		height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_1_RATIO
+		height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_1_RATIO,
 	},
 	card: {
 		backgroundColor: colors.white,
@@ -75,30 +75,30 @@ const styles = StyleSheet.create({
 		shadowColor: colors.black,
 		shadowOffset: {
 			width: 1,
-			height: 4
+			height: 4,
 		},
 		shadowOpacity: 0.1,
 		shadowRadius: 2.62,
 
 		elevation: 4,
 		padding: 16,
-		marginBottom: 20
+		marginBottom: 20,
 	},
 
 	modalNoBorder: {
-		borderTopWidth: 0
+		borderTopWidth: 0,
 	},
 	secureModalContainer: { flex: 1, padding: 27, flexDirection: 'column' },
 	secureModalXButton: {
 		padding: 5,
-		alignItems: 'flex-end'
+		alignItems: 'flex-end',
 	},
 	whySecureTitle: {
 		flex: 1,
 		fontSize: 18,
 		color: colors.fontPrimary,
 		textAlign: 'center',
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	learnMoreText: {
 		marginTop: 21,
@@ -106,91 +106,91 @@ const styles = StyleSheet.create({
 		fontSize: 15,
 		lineHeight: 20,
 		color: colors.blue,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	blue: {
-		color: colors.blue
+		color: colors.blue,
 	},
 	titleIcon: {
-		fontSize: 32
+		fontSize: 32,
 	},
 	centerContent: {
 		flexDirection: 'row',
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	infoIcon: {
 		fontSize: 15,
-		marginRight: 6
+		marginRight: 6,
 	},
 	whyImportantText: {
 		fontSize: 14,
-		color: colors.blue
+		color: colors.blue,
 	},
 	manualTitle: {
 		fontSize: 16,
 		marginBottom: 8,
 		lineHeight: 17,
 		color: colors.fontPrimary,
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	paragraph: {
 		lineHeight: 17,
 		marginBottom: 20,
 		fontSize: 12,
-		color: colors.fontPrimary
+		color: colors.fontPrimary,
 	},
 	smallParagraph: {
 		lineHeight: 17,
 		fontSize: 12,
-		color: colors.fontPrimary
+		color: colors.fontPrimary,
 	},
 	barsTitle: {
 		lineHeight: 17,
 		marginBottom: 8,
 		fontSize: 12,
-		color: colors.fontPrimary
+		color: colors.fontPrimary,
 	},
 	barsContainer: {
 		lineHeight: 17,
 		flexDirection: 'row',
-		marginBottom: 20
+		marginBottom: 20,
 	},
 	bar: {
 		lineHeight: 17,
 		width: 32,
 		height: 6,
 		backgroundColor: colors.blue,
-		marginRight: 2
+		marginRight: 2,
 	},
 	secureModalXIcon: {
-		fontSize: 16
+		fontSize: 16,
 	},
 	auxCenterView: {
-		width: 26
+		width: 26,
 	},
 	secureModalTitleContainer: {
 		flexDirection: 'row',
 		justifyContent: 'center',
 		alignItems: 'center',
-		marginBottom: 16
+		marginBottom: 16,
 	},
 	explainBackupContainer: {
 		flexDirection: 'column',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	whySecureText: {
 		textAlign: 'center',
 		lineHeight: 20,
-		color: colors.fontPrimary
-	}
+		color: colors.fontPrimary,
+	},
 });
 
 /**
  * View that's shown during the first step of
  * the backup seed phrase flow
  */
-const AccountBackupStep1B = props => {
+const AccountBackupStep1B = (props) => {
 	const [showWhySecureWalletModal, setWhySecureWalletModal] = useState(false);
 	const [showWhatIsSeedphraseModal, setWhatIsSeedphraseModal] = useState(false);
 
@@ -204,8 +204,8 @@ const AccountBackupStep1B = props => {
 			screen: 'SimpleWebview',
 			params: {
 				url: 'https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-Tips',
-				title: strings('drawer.metamask_support')
-			}
+				title: strings('drawer.metamask_support'),
+			},
 		});
 	};
 
@@ -331,7 +331,7 @@ AccountBackupStep1B.propTypes = {
 	/**
 	 * Object that represents the current route info like params passed to it
 	 */
-	route: PropTypes.object
+	route: PropTypes.object,
 };
 
 AccountBackupStep1B.navigationOptions = ({ navigation, route }) => getOnboardingNavbarOptions(navigation, route);

@@ -2,7 +2,7 @@ const initialState = {
 	isVisible: false,
 	autodismiss: null,
 	content: null,
-	data: null
+	data: null,
 };
 
 const alertReducer = (state = initialState, action) => {
@@ -13,13 +13,13 @@ const alertReducer = (state = initialState, action) => {
 				isVisible: true,
 				autodismiss: action.autodismiss,
 				content: action.content,
-				data: action.data
+				data: action.data,
 			};
 		case 'HIDE_ALERT':
 			return {
 				...state,
 				isVisible: false,
-				autodismiss: null
+				autodismiss: null,
 			};
 		default:
 			return state;

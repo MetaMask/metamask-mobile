@@ -43,7 +43,7 @@ function containsUserRejectedError(errorMessage, errorCode) {
 	try {
 		if (!errorMessage || !(typeof errorMessage === 'string')) return false;
 
-		const userRejectedErrorMessage = USER_REJECTED_ERRORS.some(userRejectedError =>
+		const userRejectedErrorMessage = USER_REJECTED_ERRORS.some((userRejectedError) =>
 			errorMessage.toLowerCase().includes(userRejectedError.toLowerCase())
 		);
 
@@ -84,7 +84,7 @@ export function createLoggerMiddleware(opts) {
 						const errorParams = {
 							message: 'Error in RPC response',
 							orginalError: error,
-							res: resWithoutError
+							res: resWithoutError,
 						};
 
 						if (error.message) {

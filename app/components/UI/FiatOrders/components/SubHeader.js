@@ -5,17 +5,17 @@ import Text from '../../../Base/Text';
 
 const style = StyleSheet.create({
 	subHeader: {
-		margin: 5
-	}
+		margin: 5,
+	},
 });
 
 const SubHeader = ({ style: externalStyle, ...props }) => <Text style={[style.subHeader, externalStyle]} {...props} />;
 
 SubHeader.defaultProps = {
-	style: undefined
+	style: undefined,
 };
 SubHeader.propTypes = {
-	style: PropTypes.oneOfType([PropTypes.object, PropTypes.array])
+	style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
 };
 
 export default SubHeader;

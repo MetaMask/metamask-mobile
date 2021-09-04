@@ -16,24 +16,24 @@ const styles = StyleSheet.create({
 	messageText: {
 		color: colors.black,
 		...fontStyles.normal,
-		fontFamily: Device.isIos() ? 'Courier' : 'Roboto'
+		fontFamily: Device.isIos() ? 'Courier' : 'Roboto',
 	},
 	message: {
-		marginLeft: 10
+		marginLeft: 10,
 	},
 	truncatedMessageWrapper: {
 		marginBottom: 4,
-		overflow: 'hidden'
+		overflow: 'hidden',
 	},
 	iosHeight: {
-		height: 70
+		height: 70,
 	},
 	androidHeight: {
-		height: 97
+		height: 97,
 	},
 	msgKey: {
-		fontWeight: 'bold'
-	}
+		fontWeight: 'bold',
+	},
 });
 
 /**
@@ -68,11 +68,11 @@ export default class TypedSign extends PureComponent {
 		/**
 		 * Indicated whether or not the expanded message is shown
 		 */
-		showExpandedMessage: PropTypes.bool
+		showExpandedMessage: PropTypes.bool,
 	};
 
 	state = {
-		truncateMessage: false
+		truncateMessage: false,
 	};
 
 	getAnalyticsParams = () => {
@@ -87,7 +87,7 @@ export default class TypedSign extends PureComponent {
 				network_name: type,
 				chain_id: chainId,
 				sign_type: 'typed',
-				version: messageParams?.version
+				version: messageParams?.version,
 			};
 		} catch (error) {
 			return {};
@@ -108,7 +108,7 @@ export default class TypedSign extends PureComponent {
 					title: confirmation
 						? strings('notifications.wc_signed_title')
 						: strings('notifications.wc_signed_rejected_title'),
-					description: strings('notifications.wc_description')
+					description: strings('notifications.wc_description'),
 				});
 		});
 	};
@@ -144,7 +144,7 @@ export default class TypedSign extends PureComponent {
 		this.props.onConfirm();
 	};
 
-	shouldTruncateMessage = e => {
+	shouldTruncateMessage = (e) => {
 		if (
 			(Device.isIos() && e.nativeEvent.layout.height > 70) ||
 			(Device.isAndroid() && e.nativeEvent.layout.height > 100)
@@ -155,8 +155,8 @@ export default class TypedSign extends PureComponent {
 		this.setState({ truncateMessage: false });
 	};
 
-	renderTypedMessageV3 = obj =>
-		Object.keys(obj).map(key => (
+	renderTypedMessageV3 = (obj) =>
+		Object.keys(obj).map((key) => (
 			<View style={styles.message} key={key}>
 				{obj[key] && typeof obj[key] === 'object' ? (
 					<View>

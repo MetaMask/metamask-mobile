@@ -52,7 +52,7 @@ export function setQuotesNavigationsParams(
 		destinationTokenAddress,
 		sourceAmount,
 		slippage,
-		tokens
+		tokens,
 	};
 }
 
@@ -72,7 +72,7 @@ export function getQuotesNavigationsParams(route) {
 		destinationTokenAddress,
 		sourceAmount,
 		slippage,
-		tokens
+		tokens,
 	};
 }
 
@@ -94,8 +94,8 @@ export function getFetchParams({ slippage = 1, sourceToken, destinationToken, so
 		walletAddress,
 		metaData: {
 			sourceTokenInfo: sourceToken,
-			destinationTokenInfo: destinationToken
-		}
+			destinationTokenInfo: destinationToken,
+		},
 	};
 }
 
@@ -126,7 +126,7 @@ export function getErrorMessage(errorKey) {
 			return [
 				strings('swaps.error_fetching_quote'),
 				strings('swaps.unexpected_error', { error: errorKey || 'error-not-provided' }),
-				errorAction
+				errorAction,
 			];
 		}
 	}
@@ -138,14 +138,14 @@ export function getQuotesSourceMessage(type) {
 			return [
 				strings('swaps.quote_source_dex.1'),
 				strings('swaps.quote_source_dex.2'),
-				strings('swaps.quote_source_dex.3')
+				strings('swaps.quote_source_dex.3'),
 			];
 		}
 		case 'RFQ': {
 			return [
 				strings('swaps.quote_source_rfq.1'),
 				strings('swaps.quote_source_rfq.2'),
-				strings('swaps.quote_source_rfq.3')
+				strings('swaps.quote_source_rfq.3'),
 			];
 		}
 		case 'CONTRACT':
@@ -153,7 +153,7 @@ export function getQuotesSourceMessage(type) {
 			return [
 				strings('swaps.quote_source_cnt.1'),
 				strings('swaps.quote_source_cnt.2'),
-				strings('swaps.quote_source_cnt.3')
+				strings('swaps.quote_source_cnt.3'),
 			];
 		}
 		case 'AGG':
@@ -161,7 +161,7 @@ export function getQuotesSourceMessage(type) {
 			return [
 				strings('swaps.quote_source_agg.1'),
 				strings('swaps.quote_source_agg.2'),
-				strings('swaps.quote_source_agg.3')
+				strings('swaps.quote_source_agg.3'),
 			];
 		}
 	}

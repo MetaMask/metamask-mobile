@@ -76,14 +76,14 @@ export class BackgroundBridge extends EventEmitter {
 	onUnlock() {
 		this.sendNotification({
 			method: NOTIFICATION_NAMES.unlockStateChanged,
-			params: true
+			params: true,
 		});
 	}
 
 	onLock() {
 		this.sendNotification({
 			method: NOTIFICATION_NAMES.unlockStateChanged,
-			params: false
+			params: false,
 		});
 	}
 
@@ -106,7 +106,7 @@ export class BackgroundBridge extends EventEmitter {
 
 		const result = {
 			networkVersion: network,
-			chainId
+			chainId,
 		};
 		return result;
 	}
@@ -123,7 +123,7 @@ export class BackgroundBridge extends EventEmitter {
 
 		this.sendNotification({
 			method: NOTIFICATION_NAMES.chainChanged,
-			params: publicState
+			params: publicState,
 		});
 	}
 
@@ -135,7 +135,7 @@ export class BackgroundBridge extends EventEmitter {
 		const memState = this.getState();
 		return {
 			isUnlocked: this.isUnlocked(),
-			...this.getProviderNetworkState(memState)
+			...this.getProviderNetworkState(memState),
 		};
 	}
 
@@ -143,7 +143,7 @@ export class BackgroundBridge extends EventEmitter {
 		this.emit('update');
 	};
 
-	onMessage = msg => {
+	onMessage = (msg) => {
 		this.port.emit('message', { name: msg.name, data: msg.data });
 	};
 
@@ -161,9 +161,9 @@ export class BackgroundBridge extends EventEmitter {
 		// setup connection
 		const providerStream = createEngineStream({ engine: this.engine });
 
-		pump(outStream, providerStream, outStream, err => {
+		pump(outStream, providerStream, outStream, (err) => {
 			// handle any middleware cleanup
-			this.engine._middleware.forEach(mid => {
+			this.engine._middleware.forEach((mid) => {
 				if (mid.destroy && typeof mid.destroy === 'function') {
 					mid.destroy();
 				}
@@ -188,7 +188,7 @@ export class BackgroundBridge extends EventEmitter {
 
 		// create subscription polyfill middleware
 		const subscriptionManager = createSubscriptionManager({ provider, blockTracker });
-		subscriptionManager.events.on('notification', message => engine.emit('notification', message));
+		subscriptionManager.events.on('notification', (message) => engine.emit('notification', message));
 
 		// metadata
 		engine.push(createOriginMiddleware({ origin }));
@@ -202,7 +202,7 @@ export class BackgroundBridge extends EventEmitter {
 		engine.push(
 			this.createMiddleware({
 				hostname: this.hostname,
-				getProviderState: this.getProviderState.bind(this)
+				getProviderState: this.getProviderState.bind(this),
 			})
 		);
 
@@ -227,7 +227,7 @@ export class BackgroundBridge extends EventEmitter {
 			isInitialized: !!vault,
 			isUnlocked: true,
 			network,
-			selectedAddress
+			selectedAddress,
 		};
 	}
 }

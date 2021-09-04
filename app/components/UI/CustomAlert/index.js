@@ -7,33 +7,33 @@ import { colors, fontStyles } from '../../../styles/common';
 
 const styles = StyleSheet.create({
 	modal: {
-		padding: 20
+		padding: 20,
 	},
 	content: {
 		backgroundColor: colors.white,
-		borderRadius: 16
+		borderRadius: 16,
 	},
 	header: {
 		paddingVertical: 15,
 		height: 130,
 		alignItems: 'center',
 		borderTopEndRadius: 16,
-		borderTopLeftRadius: 16
+		borderTopLeftRadius: 16,
 	},
 	body: {
 		paddingVertical: 20,
-		paddingHorizontal: 35
+		paddingHorizontal: 35,
 	},
 	title: {
 		textAlign: 'center',
 		fontSize: 16,
 		...fontStyles.bold,
-		marginBottom: 15
+		marginBottom: 15,
 	},
 	footer: {
 		padding: 20,
-		paddingTop: 10
-	}
+		paddingTop: 10,
+	},
 });
 
 /**
@@ -85,7 +85,7 @@ export default class CustomAlert extends PureComponent {
 		/**
 		/* Children components
 		*/
-		children: PropTypes.any
+		children: PropTypes.any,
 	};
 
 	render() {

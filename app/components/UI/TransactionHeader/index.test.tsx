@@ -12,11 +12,11 @@ const initialState = {
 			NetworkController: {
 				provider: {
 					type: ROPSTEN,
-					nickname: 'Ropsten'
-				}
-			}
-		}
-	}
+					nickname: 'Ropsten',
+				},
+			},
+		},
+	},
 };
 const store = mockStore(initialState);
 

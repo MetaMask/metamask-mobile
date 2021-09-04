@@ -10,24 +10,24 @@ const styles = StyleSheet.create({
 	coachmark: {
 		backgroundColor: colors.blue,
 		borderRadius: 8,
-		padding: 18
+		padding: 18,
 	},
 	progress: {
 		flexDirection: 'row',
-		justifyContent: 'space-between'
+		justifyContent: 'space-between',
 	},
 	actions: {
-		flexDirection: 'column'
+		flexDirection: 'column',
 	},
 	actionButton: {
 		width: '100%',
-		marginTop: 10
+		marginTop: 10,
 	},
 	title: {
 		...fontStyles.bold,
 		color: colors.white,
 		fontSize: 18,
-		alignSelf: 'center'
+		alignSelf: 'center',
 	},
 	triangle: {
 		width: 0,
@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
 		borderLeftColor: colors.transparent,
 		borderRightColor: colors.transparent,
 		borderBottomColor: colors.blue,
-		position: 'absolute'
+		position: 'absolute',
 	},
 	triangleDown: {
 		width: 0,
@@ -53,46 +53,46 @@ const styles = StyleSheet.create({
 		borderLeftColor: colors.transparent,
 		borderRightColor: colors.transparent,
 		borderTopColor: colors.blue,
-		position: 'absolute'
+		position: 'absolute',
 	},
 	progressButton: {
 		width: 75,
 		height: 45,
-		padding: 5
+		padding: 5,
 	},
 	leftProgessButton: {
-		left: 0
+		left: 0,
 	},
 	rightProgessButton: {
-		right: 0
+		right: 0,
 	},
 	topCenter: {
 		marginBottom: 10,
 		bottom: -2,
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	topLeft: {
 		marginBottom: 10,
 		bottom: -2,
 		alignItems: 'flex-start',
-		marginLeft: 30
+		marginLeft: 30,
 	},
 	topLeftCorner: {
 		marginBottom: 10,
 		bottom: -2,
 		alignItems: 'flex-start',
-		marginLeft: 12
+		marginLeft: 12,
 	},
 	bottomCenter: {
 		marginBottom: 10,
 		top: -2,
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	bottomLeft: {
 		marginBottom: 10,
 		top: -2,
 		alignItems: 'flex-start',
-		marginLeft: 30
+		marginLeft: 30,
 	},
 	circle: {
 		width: 6,
@@ -100,15 +100,15 @@ const styles = StyleSheet.create({
 		borderRadius: 6 / 2,
 		backgroundColor: colors.white,
 		opacity: 0.4,
-		margin: 3
+		margin: 3,
 	},
 	solidCircle: {
-		opacity: 1
+		opacity: 1,
 	},
 	progessContainer: {
 		flexDirection: 'row',
-		alignSelf: 'center'
-	}
+		alignSelf: 'center',
+	},
 });
 
 export default class Coachmark extends PureComponent {
@@ -152,11 +152,11 @@ export default class Coachmark extends PureComponent {
 		/**
 		 * Bottom indicator position
 		 */
-		bottomIndicatorPosition: PropTypes.oneOf([false, 'bottomCenter', 'bottomLeft'])
+		bottomIndicatorPosition: PropTypes.oneOf([false, 'bottomCenter', 'bottomLeft']),
 	};
 
 	state = {
-		ready: false
+		ready: false,
 	};
 
 	opacity = new Animated.Value(0);
@@ -166,7 +166,7 @@ export default class Coachmark extends PureComponent {
 			toValue: 1,
 			duration: 500,
 			useNativeDriver: true,
-			isInteraction: false
+			isInteraction: false,
 		}).start();
 	};
 
@@ -175,7 +175,7 @@ export default class Coachmark extends PureComponent {
 			toValue: 0,
 			duration: 500,
 			useNativeDriver: true,
-			isInteraction: false
+			isInteraction: false,
 		}).start();
 	};
 
@@ -201,12 +201,12 @@ export default class Coachmark extends PureComponent {
 	 * @param {string} topIndicatorPosition - Indicator position
 	 * @returns {Object} - Corresponding style object
 	 */
-	getIndicatorStyle = topIndicatorPosition => {
+	getIndicatorStyle = (topIndicatorPosition) => {
 		const positions = {
 			topCenter: styles.topCenter,
 			topLeft: styles.topLeft,
 			topLeftCorner: styles.topLeftCorner,
-			[undefined]: styles.topCenter
+			[undefined]: styles.topCenter,
 		};
 		return positions[topIndicatorPosition];
 	};
@@ -217,11 +217,11 @@ export default class Coachmark extends PureComponent {
 	 * @param {string} bottomIndicatorPosition - Indicator position
 	 * @returns {Object} - Corresponding style object
 	 */
-	getBotttomIndicatorStyle = bottomIndicatorPosition => {
+	getBotttomIndicatorStyle = (bottomIndicatorPosition) => {
 		const positions = {
 			bottomCenter: styles.bottomCenter,
 			bottomLeft: styles.bottomLeft,
-			[undefined]: styles.bottomCenter
+			[undefined]: styles.bottomCenter,
 		};
 		return positions[bottomIndicatorPosition];
 	};
@@ -243,7 +243,7 @@ export default class Coachmark extends PureComponent {
 					{strings('onboarding_wizard.coachmark.progress_back')}
 				</StyledButton>
 				<View style={styles.progessContainer}>
-					{[1, 2, 3, 4, 5, 6].map(i => (
+					{[1, 2, 3, 4, 5, 6].map((i) => (
 						<View key={i} style={[styles.circle, currentStep === i ? styles.solidCircle : {}]} />
 					))}
 				</View>

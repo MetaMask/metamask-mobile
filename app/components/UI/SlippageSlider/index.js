@@ -18,10 +18,10 @@ const styles = StyleSheet.create({
 	root: {
 		position: 'relative',
 		justifyContent: 'center',
-		height: COMPONENT_HEIGHT
+		height: COMPONENT_HEIGHT,
 	},
 	rootDisabled: {
-		opacity: 0.5
+		opacity: 0.5,
 	},
 	slider: {
 		position: 'absolute',
@@ -34,15 +34,15 @@ const styles = StyleSheet.create({
 		shadowColor: colors.black,
 		shadowOffset: {
 			width: 0,
-			height: 0
+			height: 0,
 		},
 		shadowOpacity: 0.18,
-		shadowRadius: 14
+		shadowRadius: 14,
 	},
 	trackBackContainer: {
 		position: 'absolute',
 		paddingHorizontal: DIAMETER / 2 - 2 * TRACK_PADDING,
-		bottom: DIAMETER / 2 - (TICK_DIAMETER + 2 * TRACK_PADDING) / 2
+		bottom: DIAMETER / 2 - (TICK_DIAMETER + 2 * TRACK_PADDING) / 2,
 	},
 	trackBack: {
 		flexDirection: 'row',
@@ -52,14 +52,14 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.blue000,
 		borderRadius: TICK_DIAMETER + 2 * TRACK_PADDING,
 		borderWidth: TRACK_PADDING,
-		borderColor: colors.blue000
+		borderColor: colors.blue000,
 	},
 	tick: {
 		height: TICK_DIAMETER,
 		width: TICK_DIAMETER,
 		borderRadius: TICK_DIAMETER,
 		backgroundColor: colors.spinnerColor,
-		opacity: 0.5
+		opacity: 0.5,
 	},
 	trackFront: {
 		position: 'absolute',
@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
 		bottom: DIAMETER / 2 - (TICK_DIAMETER + 2 * TRACK_PADDING) / 2,
 		left: DIAMETER / 2 - 2 * TRACK_PADDING,
 		height: TICK_DIAMETER + 2 * TRACK_PADDING,
-		borderRadius: TICK_DIAMETER + 2 * TRACK_PADDING
+		borderRadius: TICK_DIAMETER + 2 * TRACK_PADDING,
 	},
 	tooltipContainer: {
 		position: 'absolute',
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
 		borderRadius: 8,
 		minHeight: TOOLTIP_HEIGHT,
 		minWidth: 40,
-		top: 0
+		top: 0,
 	},
 	tooltipTail: {
 		position: 'absolute',
@@ -88,13 +88,13 @@ const styles = StyleSheet.create({
 		width: TAIL_WIDTH,
 		height: TAIL_WIDTH,
 		backgroundColor: colors.grey700,
-		transform: [{ rotate: '45deg' }]
+		transform: [{ rotate: '45deg' }],
 	},
 	tooltipText: {
 		...fontStyles.normal,
 		color: colors.white,
-		fontSize: 12
-	}
+		fontSize: 12,
+	},
 });
 
 const setAnimatedValue = (animatedValue, value) => animatedValue.setValue(value);
@@ -121,13 +121,13 @@ const SlippageSlider = ({ range, increment, onChange, value, formatTooltipText, 
 	const sliderPosition = slider.interpolate({
 		inputRange: [0, trackWidth],
 		outputRange: [0, trackWidth - DIAMETER],
-		extrapolate: 'clamp'
+		extrapolate: 'clamp',
 	});
 
 	const sliderColor = sliderPosition.interpolate({
 		inputRange: [0, trackWidth],
 		outputRange: [colors.spinnerColor, colors.red],
-		extrapolate: 'clamp'
+		extrapolate: 'clamp',
 	});
 
 	/* Value effect, this updates the UI if the value prop changes */
@@ -141,7 +141,7 @@ const SlippageSlider = ({ range, increment, onChange, value, formatTooltipText, 
 
 	/* Get the slider position value (snaps to points) and the value for the onChange callback */
 	const getValuesByProgress = useCallback(
-		progressPercent => {
+		(progressPercent) => {
 			const multiplier = Math.round(progressPercent * ticksLength);
 			const sliderValue = (multiplier / ticksLength) * trackWidth;
 			const newValue = r0 + multiplier * increment;
@@ -170,7 +170,7 @@ const SlippageSlider = ({ range, increment, onChange, value, formatTooltipText, 
 						.interpolate({
 							inputRange: [0, trackWidth],
 							outputRange: [0, trackWidth],
-							extrapolate: 'clamp'
+							extrapolate: 'clamp',
 						})
 						.__getValue();
 
@@ -193,7 +193,7 @@ const SlippageSlider = ({ range, increment, onChange, value, formatTooltipText, 
 						onChange(newValue);
 					}
 					setIsResponderGranted(false);
-				}
+				},
 			}),
 		[changeOnRelease, disabled, getValuesByProgress, onChange, pan, slider, trackWidth]
 	);
@@ -204,11 +204,11 @@ const SlippageSlider = ({ range, increment, onChange, value, formatTooltipText, 
 	return (
 		<View
 			style={[styles.root, disabled && styles.rootDisabled]}
-			onLayout={e => setComponentWidth(e.nativeEvent.layout.width)}
+			onLayout={(e) => setComponentWidth(e.nativeEvent.layout.width)}
 		>
 			<View
 				style={[styles.trackBackContainer, { width: componentWidth }]}
-				onLayout={e => setTrackWidth(e.nativeEvent.layout.width)}
+				onLayout={(e) => setTrackWidth(e.nativeEvent.layout.width)}
 			>
 				<View style={styles.trackBack}>
 					{new Array(ticksLength + 1).fill().map((_, i) => (
@@ -222,9 +222,9 @@ const SlippageSlider = ({ range, increment, onChange, value, formatTooltipText, 
 			<Animated.View
 				style={[
 					styles.tooltipContainer,
-					{ left: Animated.subtract(sliderPosition, (tooltipWidth - DIAMETER) / 2) }
+					{ left: Animated.subtract(sliderPosition, (tooltipWidth - DIAMETER) / 2) },
 				]}
-				onLayout={e => setTooltipWidth(e.nativeEvent.layout.width)}
+				onLayout={(e) => setTooltipWidth(e.nativeEvent.layout.width)}
 			>
 				<View style={[styles.tooltipTail, { left: (tooltipWidth - TAIL_WIDTH) / 2 }]} />
 				<Text style={styles.tooltipText}>{formatTooltipText(displayValue)}</Text>
@@ -265,7 +265,7 @@ SlippageSlider.propTypes = {
 	/**
 	 * Wether to call onChange only on gesture release
 	 */
-	changeOnRelease: PropTypes.bool
+	changeOnRelease: PropTypes.bool,
 };
 
 export default SlippageSlider;

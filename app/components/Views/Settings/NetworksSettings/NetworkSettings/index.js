@@ -23,62 +23,62 @@ const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
 		flex: 1,
-		flexDirection: 'column'
+		flexDirection: 'column',
 	},
 	informationWrapper: {
 		flex: 1,
-		paddingHorizontal: 24
+		paddingHorizontal: 24,
 	},
 	scrollWrapper: {
 		flex: 1,
-		paddingVertical: 12
+		paddingVertical: 12,
 	},
 	input: {
 		...fontStyles.normal,
 		borderColor: colors.grey200,
 		borderRadius: 5,
 		borderWidth: 2,
-		padding: 10
+		padding: 10,
 	},
 	warningText: {
 		...fontStyles.normal,
 		color: colors.red,
 		marginTop: 4,
 		paddingLeft: 2,
-		paddingRight: 4
+		paddingRight: 4,
 	},
 	warningContainer: {
 		marginTop: 4,
 		flexGrow: 1,
-		flexShrink: 1
+		flexShrink: 1,
 	},
 	label: {
 		fontSize: 14,
 		paddingVertical: 12,
 		color: colors.fontPrimary,
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	title: {
 		fontSize: 20,
 		paddingVertical: 12,
 		color: colors.fontPrimary,
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	desc: {
 		fontSize: 14,
 		color: colors.fontPrimary,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	buttonsWrapper: {
 		marginVertical: 12,
 		flexDirection: 'row',
-		alignSelf: 'flex-end'
+		alignSelf: 'flex-end',
 	},
 	buttonsContainer: {
 		flex: 1,
 		flexDirection: 'column',
-		alignSelf: 'flex-end'
-	}
+		alignSelf: 'flex-end',
+	},
 });
 
 const allNetworks = getAllNetworks();
@@ -99,7 +99,7 @@ class NetworkSettings extends PureComponent {
 		/**
 		 * Object that represents the current route info like params passed to it
 		 */
-		route: PropTypes.object
+		route: PropTypes.object,
 	};
 
 	static navigationOptions = ({ navigation }) =>
@@ -119,7 +119,7 @@ class NetworkSettings extends PureComponent {
 		validatedChainId: true,
 		initialState: undefined,
 		enableAction: false,
-		inputWidth: { width: '99%' }
+		inputWidth: { width: '99%' },
 	};
 
 	inputRpcURL = React.createRef();
@@ -135,7 +135,7 @@ class NetworkSettings extends PureComponent {
 		let blockExplorerUrl, chainId, nickname, ticker, editable, rpcUrl;
 		// If no navigation param, user clicked on add network
 		if (network) {
-			if (allNetworks.find(net => network === net)) {
+			if (allNetworks.find((net) => network === net)) {
 				blockExplorerUrl = getEtherscanBaseUrl(network);
 				const networkInformation = Networks[network];
 				nickname = networkInformation.name;
@@ -159,7 +159,7 @@ class NetworkSettings extends PureComponent {
 		}
 		setTimeout(() => {
 			this.setState({
-				inputWidth: { width: '100%' }
+				inputWidth: { width: '100%' },
 			});
 		}, 100);
 	};
@@ -232,7 +232,7 @@ class NetworkSettings extends PureComponent {
 			}
 
 			errorMessage = strings('app_settings.endpoint_returned_different_chain_id', {
-				chainIdReturned: endpointChainId
+				chainIdReturned: endpointChainId,
 			});
 		}
 
@@ -270,7 +270,7 @@ class NetworkSettings extends PureComponent {
 			!isprivateConnection(url.hostname) && url.set('protocol', 'https:');
 			CurrencyRateController.setNativeCurrency(ticker);
 			PreferencesController.addToFrequentRpcList(url.href, decimalChainId, ticker, nickname, {
-				blockExplorerUrl
+				blockExplorerUrl,
 			});
 			NetworkController.setRpcTarget(url.href, decimalChainId, ticker, nickname);
 
@@ -280,7 +280,7 @@ class NetworkSettings extends PureComponent {
 				source: 'Settings',
 				symbol: ticker,
 				block_explorer_url: blockExplorerUrl,
-				network_name: 'rpc'
+				network_name: 'rpc',
 			};
 			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_ADDED, analyticsParamsAdd);
 
@@ -321,7 +321,7 @@ class NetworkSettings extends PureComponent {
 		if (!chainId) {
 			return this.setState({
 				warningChainId: strings('app_settings.chain_id_required'),
-				validatedChainId: true
+				validatedChainId: true,
 			});
 		}
 
@@ -343,7 +343,7 @@ class NetworkSettings extends PureComponent {
 		if (errorMessage) {
 			return this.setState({
 				warningChainId: errorMessage,
-				validatedChainId: true
+				validatedChainId: true,
 			});
 		}
 
@@ -351,9 +351,9 @@ class NetworkSettings extends PureComponent {
 		if (!isSafeChainId(this.getDecimalChainIdNumber(chainId))) {
 			return this.setState({
 				warningChainId: strings('app_settings.invalid_number_range', {
-					maxSafeChainId: AppConstants.MAX_SAFE_CHAIN_ID
+					maxSafeChainId: AppConstants.MAX_SAFE_CHAIN_ID,
 				}),
-				validatedChainId: true
+				validatedChainId: true,
 			});
 		}
 
@@ -395,27 +395,27 @@ class NetworkSettings extends PureComponent {
 		return validatedChainId && !!warningChainId;
 	};
 
-	onRpcUrlChange = async url => {
+	onRpcUrlChange = async (url) => {
 		await this.setState({ rpcUrl: url, validatedRpcURL: false });
 		this.getCurrentState();
 	};
 
-	onNicknameChange = async nickname => {
+	onNicknameChange = async (nickname) => {
 		await this.setState({ nickname });
 		this.getCurrentState();
 	};
 
-	onChainIDChange = async chainId => {
+	onChainIDChange = async (chainId) => {
 		await this.setState({ chainId, validatedChainId: false });
 		this.getCurrentState();
 	};
 
-	onTickerChange = async ticker => {
+	onTickerChange = async (ticker) => {
 		await this.setState({ ticker });
 		this.getCurrentState();
 	};
 
-	onBlockExplorerUrlChange = async blockExplorerUrl => {
+	onBlockExplorerUrlChange = async (blockExplorerUrl) => {
 		await this.setState({ blockExplorerUrl });
 		this.getCurrentState();
 	};
@@ -449,7 +449,7 @@ class NetworkSettings extends PureComponent {
 			warningRpcUrl,
 			warningChainId,
 			enableAction,
-			inputWidth
+			inputWidth,
 		} = this.state;
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'new-rpc-screen'}>
@@ -571,8 +571,8 @@ class NetworkSettings extends PureComponent {
 	}
 }
 
-const mapStateToProps = state => ({
-	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList
+const mapStateToProps = (state) => ({
+	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList,
 });
 
 export default connect(mapStateToProps)(NetworkSettings);

@@ -4,6 +4,7 @@ import AppConstants from '../../core/AppConstants';
 import { MAINNET, ROPSTEN, KOVAN, RINKEBY, GOERLI, RPC } from '../../../app/constants/network';
 import { util } from '@metamask/controllers';
 import Engine from '../../core/Engine';
+import { toLowerCaseEquals } from './../general';
 
 /**
  * List of the supported networks
@@ -20,7 +21,7 @@ const NetworkList = {
 		chainId: 1,
 		hexChainId: '0x1',
 		color: '#3cc29e',
-		networkType: 'mainnet'
+		networkType: 'mainnet',
 	},
 	[ROPSTEN]: {
 		name: 'Ropsten Test Network',
@@ -29,7 +30,7 @@ const NetworkList = {
 		chainId: 3,
 		hexChainId: '0x3',
 		color: '#ff4a8d',
-		networkType: 'ropsten'
+		networkType: 'ropsten',
 	},
 	[KOVAN]: {
 		name: 'Kovan Test Network',
@@ -38,7 +39,7 @@ const NetworkList = {
 		chainId: 42,
 		hexChainId: '0x2a',
 		color: '#7057ff',
-		networkType: 'kovan'
+		networkType: 'kovan',
 	},
 	[RINKEBY]: {
 		name: 'Rinkeby Test Network',
@@ -47,7 +48,7 @@ const NetworkList = {
 		chainId: 4,
 		hexChainId: '0x4',
 		color: '#f6c343',
-		networkType: 'rinkeby'
+		networkType: 'rinkeby',
 	},
 	[GOERLI]: {
 		name: 'Goerli Test Network',
@@ -56,40 +57,40 @@ const NetworkList = {
 		chainId: 5,
 		hexChainId: '0x5',
 		color: '#3099f2',
-		networkType: 'goerly'
+		networkType: 'goerly',
 	},
 	[RPC]: {
 		name: 'Private Network',
 		shortName: 'Private',
 		color: colors.grey000,
-		networkType: 'rpc'
-	}
+		networkType: 'rpc',
+	},
 };
 
 const NetworkListKeys = Object.keys(NetworkList);
 
 export default NetworkList;
 
-export const getAllNetworks = () => NetworkListKeys.filter(name => name !== RPC);
+export const getAllNetworks = () => NetworkListKeys.filter((name) => name !== RPC);
 
-export const isMainNet = network => network?.provider?.type === MAINNET || network === String(1);
+export const isMainNet = (network) => network?.provider?.type === MAINNET || network === String(1);
 
-export const getDecimalChainId = chainId => {
+export const getDecimalChainId = (chainId) => {
 	if (!chainId || typeof chainId !== 'string' || !chainId.startsWith('0x')) {
 		return chainId;
 	}
 	return parseInt(chainId, 16).toString(10);
 };
 
-export const isMainnetByChainId = chainId => getDecimalChainId(String(chainId)) === String(1);
+export const isMainnetByChainId = (chainId) => getDecimalChainId(String(chainId)) === String(1);
 
-export const getNetworkName = id => NetworkListKeys.find(key => NetworkList[key].networkId === Number(id));
+export const getNetworkName = (id) => NetworkListKeys.find((key) => NetworkList[key].networkId === Number(id));
 
 export function getNetworkTypeById(id) {
 	if (!id) {
 		throw new Error('Missing network Id');
 	}
-	const network = NetworkListKeys.filter(key => NetworkList[key].networkId === parseInt(id, 10));
+	const network = NetworkListKeys.filter((key) => NetworkList[key].networkId === parseInt(id, 10));
 	if (network.length > 0) {
 		return network[0];
 	}
@@ -97,12 +98,28 @@ export function getNetworkTypeById(id) {
 	throw new Error(`Unknown network with id ${id}`);
 }
 
+export function getDefaultNetworkByChainId(chainId) {
+	if (!chainId) {
+		throw new Error('Missing chain Id');
+	}
+
+	let returnNetwork;
+
+	getAllNetworks().forEach((type) => {
+		if (toLowerCaseEquals(String(NetworkList[type].chainId), chainId)) {
+			returnNetwork = NetworkList[type];
+		}
+	});
+
+	return returnNetwork;
+}
+
 export function hasBlockExplorer(key) {
 	return key.toLowerCase() !== RPC;
 }
 
 export function isKnownNetwork(id) {
-	const knownNetworks = NetworkListKeys.map(key => NetworkList[key].networkId).filter(id => id !== undefined);
+	const knownNetworks = NetworkListKeys.map((key) => NetworkList[key].networkId).filter((id) => id !== undefined);
 	return knownNetworks.includes(parseInt(id, 10));
 }
 

@@ -9,10 +9,10 @@ const initialState = {
 	engine: {
 		backgroundState: {
 			PreferencesController: {
-				selectedAddress: '0x1'
-			}
-		}
-	}
+				selectedAddress: '0x1',
+			},
+		},
+	},
 };
 const store = mockStore(initialState);
 

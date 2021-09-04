@@ -9,16 +9,16 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		fontSize: scaling.scale(14),
 		color: colors.fontPrimary,
-		lineHeight: 28
+		lineHeight: 28,
 	},
 	row: {
 		flexDirection: 'row',
 		alignItems: 'flex-start',
 		flexWrap: 'wrap',
-		marginBottom: 6
+		marginBottom: 6,
 	},
 	val: { width: '8%' },
-	stepTitle: { width: '92%' }
+	stepTitle: { width: '92%' },
 });
 
 const ScanStep = ({ step, children }) => (
@@ -34,7 +34,7 @@ const ScanStep = ({ step, children }) => (
 
 ScanStep.propTypes = {
 	children: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node), PropTypes.node]),
-	step: PropTypes.number
+	step: PropTypes.number,
 };
 
 export default ScanStep;
