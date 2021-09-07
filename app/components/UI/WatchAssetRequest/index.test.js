@@ -13,18 +13,18 @@ describe('WatchAssetRequest', () => {
 			engine: {
 				backgroundState: {
 					TokenBalancesController: {
-						contractBalances: { '0x2': new BN(0) }
+						contractBalances: { '0x2': new BN(0) },
 					},
 					PreferencesController: {
-						selectedAddress: '0xe7E125654064EEa56229f273dA586F10DF96B0a1'
+						selectedAddress: '0xe7E125654064EEa56229f273dA586F10DF96B0a1',
 					},
 					NetworkController: {
 						provider: {
-							type: ROPSTEN
-						}
-					}
-				}
-			}
+							type: ROPSTEN,
+						},
+					},
+				},
+			},
 		};
 
 		const wrapper = shallow(
