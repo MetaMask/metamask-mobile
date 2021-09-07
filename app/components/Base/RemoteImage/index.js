@@ -13,7 +13,7 @@ const RemoteImage = (props) => {
 	const source = resolveAssetSource(props.source);
 	const [imageExists] = useRemoteResourceExists(source.uri);
 
-	if (source && (source.uri && source.uri.match('.svg'))) {
+	if (source && source.uri && source.uri.match('.svg')) {
 		const style = props.style || {};
 		if (source.__packager_asset && typeof style !== 'number') {
 			if (!style.width) {
