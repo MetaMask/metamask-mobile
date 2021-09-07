@@ -9,11 +9,11 @@ const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
 		borderRadius: 10,
-		padding: 20
+		padding: 20,
 	},
 	titleWrapper: {
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100
+		borderColor: colors.grey100,
 	},
 	title: {
 		textAlign: 'center',
@@ -21,34 +21,34 @@ const styles = StyleSheet.create({
 		marginVertical: 12,
 		marginHorizontal: 20,
 		color: colors.fontPrimary,
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	textWrapper: {
 		marginTop: 20,
-		marginBottom: 40
+		marginBottom: 40,
 	},
 	text: {
 		textAlign: 'center',
 		fontSize: 15,
 		lineHeight: 20,
 		marginBottom: 20,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	hint: {
 		textAlign: 'center',
 		fontSize: 15,
 		lineHeight: 20,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	link: {
-		color: colors.blue
+		color: colors.blue,
 	},
 	button: {
-		marginBottom: 10
-	}
+		marginBottom: 10,
+	},
 });
 
-const InvalidCustomNetworkAlert = props => {
+const InvalidCustomNetworkAlert = (props) => {
 	const closeModal = () => props.onClose();
 
 	const goToEditNetwork = () => {
@@ -106,7 +106,7 @@ InvalidCustomNetworkAlert.propTypes = {
 	/**
 	 * String that represents the invalid network
 	 */
-	network: PropTypes.string
+	network: PropTypes.string,
 };
 
 export default InvalidCustomNetworkAlert;

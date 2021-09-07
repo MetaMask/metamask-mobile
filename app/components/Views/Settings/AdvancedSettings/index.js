@@ -29,64 +29,64 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		flex: 1,
 		padding: 24,
-		paddingBottom: 48
+		paddingBottom: 48,
 	},
 	title: {
 		...fontStyles.normal,
 		color: colors.fontPrimary,
 		fontSize: 20,
-		lineHeight: 20
+		lineHeight: 20,
 	},
 	desc: {
 		...fontStyles.normal,
 		color: colors.grey500,
 		fontSize: 14,
 		lineHeight: 20,
-		marginTop: 12
+		marginTop: 12,
 	},
 	marginTop: {
-		marginTop: 18
+		marginTop: 18,
 	},
 	setting: {
-		marginTop: 50
+		marginTop: 50,
 	},
 	firstSetting: {
-		marginTop: 0
+		marginTop: 0,
 	},
 	modalView: {
 		alignItems: 'center',
 		flex: 1,
 		flexDirection: 'column',
 		justifyContent: 'center',
-		padding: 20
+		padding: 20,
 	},
 	modalText: {
 		...fontStyles.normal,
 		fontSize: 16,
 		textAlign: 'center',
-		color: colors.black
+		color: colors.black,
 	},
 	modalTitle: {
 		...fontStyles.bold,
 		fontSize: 24,
 		textAlign: 'center',
 		marginBottom: 20,
-		color: colors.black
+		color: colors.black,
 	},
 	picker: {
 		borderColor: colors.grey200,
 		borderRadius: 5,
 		borderWidth: 2,
-		marginTop: 16
+		marginTop: 16,
 	},
 	inner: {
-		paddingBottom: 48
+		paddingBottom: 48,
 	},
 	ipfsGatewayLoadingWrapper: {
 		height: 37,
 		alignItems: 'center',
-		justifyContent: 'center'
-	}
+		justifyContent: 'center',
+	},
 });
 
 /**
@@ -121,7 +121,7 @@ class AdvancedSettings extends PureComponent {
 		/**
 		 * Entire redux state used to generate state logs
 		 */
-		fullState: PropTypes.object
+		fullState: PropTypes.object,
 	};
 
 	static navigationOptions = ({ navigation }) =>
@@ -131,7 +131,7 @@ class AdvancedSettings extends PureComponent {
 		resetModalVisible: false,
 		inputWidth: Device.isAndroid() ? '99%' : undefined,
 		onlineIpfsGateways: [],
-		gotAvailableGateways: false
+		gotAvailableGateways: false,
 	};
 
 	componentDidMount = async () => {
@@ -149,7 +149,7 @@ class AdvancedSettings extends PureComponent {
 	};
 
 	handleAvailableIpfsGateways = async () => {
-		const ipfsGatewaysPromises = ipfsGateways.map(async ipfsGateway => {
+		const ipfsGatewaysPromises = ipfsGateways.map(async (ipfsGateway) => {
 			const testUrl = ipfsGateway.value + HASH_TO_TEST + '#x-ipfs-companion-no-redirect';
 			try {
 				const res = await timeoutFetch(testUrl, 1200);
@@ -163,7 +163,7 @@ class AdvancedSettings extends PureComponent {
 			}
 		});
 		const ipfsGatewaysAvailability = await Promise.all(ipfsGatewaysPromises);
-		const onlineIpfsGateways = ipfsGatewaysAvailability.filter(ipfsGateway => ipfsGateway.available);
+		const onlineIpfsGateways = ipfsGatewaysAvailability.filter((ipfsGateway) => ipfsGateway.available);
 		const sortedOnlineIpfsGateways = onlineIpfsGateways.sort((a, b) => a.key < b.key);
 		this.setState({ gotAvailableGateways: true, onlineIpfsGateways: sortedOnlineIpfsGateways });
 	};
@@ -214,14 +214,14 @@ class AdvancedSettings extends PureComponent {
 			await Share.open({
 				subject: `${appName} State logs -  v${appVersion} (${buildNumber})`,
 				title: `${appName} State logs -  v${appVersion} (${buildNumber})`,
-				url
+				url,
 			});
 		} catch (err) {
 			Logger.error(err, 'State log error');
 		}
 	};
 
-	setIpfsGateway = ipfsGateway => {
+	setIpfsGateway = (ipfsGateway) => {
 		const { PreferencesController } = Engine.context;
 		PreferencesController.setIpfsGateway(ipfsGateway);
 	};
@@ -322,19 +322,16 @@ class AdvancedSettings extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	ipfsGateway: state.engine.backgroundState.PreferencesController.ipfsGateway,
 	showHexData: state.settings.showHexData,
 	showCustomNonce: state.settings.showCustomNonce,
-	fullState: state
+	fullState: state,
 });
 
-const mapDispatchToProps = dispatch => ({
-	setShowHexData: showHexData => dispatch(setShowHexData(showHexData)),
-	setShowCustomNonce: showCustomNonce => dispatch(setShowCustomNonce(showCustomNonce))
+const mapDispatchToProps = (dispatch) => ({
+	setShowHexData: (showHexData) => dispatch(setShowHexData(showHexData)),
+	setShowCustomNonce: (showCustomNonce) => dispatch(setShowCustomNonce(showCustomNonce)),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(AdvancedSettings);
+export default connect(mapStateToProps, mapDispatchToProps)(AdvancedSettings);

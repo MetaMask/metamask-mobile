@@ -10,22 +10,22 @@ const styles = StyleSheet.create({
 		height: Device.isAndroid() ? 41.5 : 40,
 		width: Device.isAndroid() ? 41.5 : 40,
 		top: Device.isAndroid() ? -6 : -5.5,
-		left: Device.isAndroid() ? -6 : -5.5
+		left: Device.isAndroid() ? -6 : -5.5,
 	},
 	static: {
 		borderWidth: 3.5,
 		borderColor: colors.spinnerBackground,
 		borderRadius: 64,
 		width: 36,
-		height: 36
-	}
+		height: 36,
+	},
 });
 
 export default class AnimatedSpinner extends PureComponent {
 	spinValue = new Animated.Value(0);
 
 	state = {
-		spinning: false
+		spinning: false,
 	};
 
 	componentDidMount() {
@@ -56,7 +56,7 @@ export default class AnimatedSpinner extends PureComponent {
 			duration: 1000,
 			easing: Easing.linear,
 			useNativeDriver: true,
-			isInteraction: false
+			isInteraction: false,
 		}).start(() => {
 			if (this.state.spinning && this.mounted) {
 				this.animation();
@@ -69,7 +69,7 @@ export default class AnimatedSpinner extends PureComponent {
 	render() {
 		const spin = this.spinValue.interpolate({
 			inputRange: [0, 1],
-			outputRange: ['0deg', '360deg']
+			outputRange: ['0deg', '360deg'],
 		});
 
 		return (

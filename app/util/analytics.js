@@ -4,7 +4,7 @@ export const ONBOARDING_WIZARD_STEP_DESCRIPTION = {
 	3: 'Account Name',
 	4: 'Main Navigation',
 	5: 'Browser',
-	6: 'Search'
+	6: 'Search',
 };
 
 const generateOpt = (category, action, name) => ({ category, action, name });
@@ -101,7 +101,7 @@ const NAMES = {
 	WALLET_BUY_ETH: 'Buy ETH',
 	PAYMENTS_SELECTS_DEBIT_OR_ACH: 'Selects debit card or bank account as payment method',
 	PAYMENTS_SELECTS_APPLE_PAY: 'Selects Apple Pay as payment method',
-	SWAPS: 'Swaps'
+	SWAPS: 'Swaps',
 };
 
 const ACTIONS = {
@@ -143,7 +143,7 @@ const ACTIONS = {
 
 	// Swaps
 	QUOTE: 'Quote',
-	SWAP: 'Swap'
+	SWAP: 'Swap',
 };
 
 const CATEGORIES = {
@@ -176,7 +176,7 @@ const CATEGORIES = {
 	NO_QUOTES_AVAILABLE: 'No Quotes Available',
 	GAS_FEES_CHANGED: 'Gas Fees Changed',
 	EDIT_SPEND_LIMIT_OPENED: 'Edit Spend Limit Opened',
-	TOKEN_IMPORTED: 'Custom Token Imported'
+	TOKEN_IMPORTED: 'Custom Token Imported',
 };
 
 export const ANALYTICS_EVENT_OPTS = {
@@ -488,5 +488,5 @@ export const ANALYTICS_EVENT_OPTS = {
 	NO_QUOTES_AVAILABLE: generateOpt(CATEGORIES.NO_QUOTES_AVAILABLE, ACTIONS.QUOTE, NAMES.SWAPS),
 	GAS_FEES_CHANGED: generateOpt(CATEGORIES.GAS_FEES_CHANGED, ACTIONS.QUOTE, NAMES.SWAPS),
 	EDIT_SPEND_LIMIT_OPENED: generateOpt(CATEGORIES.EDIT_SPEND_LIMIT_OPENED, ACTIONS.QUOTE, NAMES.SWAPS),
-	CUSTOM_TOKEN_IMPORTED: generateOpt(CATEGORIES.TOKEN_IMPORTED, ACTIONS.SWAP, NAMES.SWAPS)
+	CUSTOM_TOKEN_IMPORTED: generateOpt(CATEGORIES.TOKEN_IMPORTED, ACTIONS.SWAP, NAMES.SWAPS),
 };

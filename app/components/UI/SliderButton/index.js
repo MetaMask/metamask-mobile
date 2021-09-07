@@ -20,10 +20,10 @@ const styles = StyleSheet.create({
 		shadowOpacity: 0.5,
 		shadowColor: colors.blue200,
 		shadowOffset: { width: 0, height: 3 },
-		elevation: 0 // shadow colors not supported on Android. nothing > gray shadow
+		elevation: 0, // shadow colors not supported on Android. nothing > gray shadow
 	},
 	disabledContainer: {
-		opacity: 0.66
+		opacity: 0.66,
 	},
 	slider: {
 		position: 'absolute',
@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
 		borderRadius: DIAMETER,
 		borderWidth: MARGIN,
 		borderColor: colors.blue600,
-		backgroundColor: colors.white
+		backgroundColor: colors.white,
 	},
 	trackBack: {
 		position: 'relative',
@@ -42,26 +42,26 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'center',
 		borderRadius: DIAMETER,
-		backgroundColor: colors.blue700
+		backgroundColor: colors.blue700,
 	},
 	trackBackGradient: {
 		position: 'absolute',
 		width: '100%',
-		height: '100%'
+		height: '100%',
 	},
 	trackBackGradientPressed: {
-		opacity: 0.66
+		opacity: 0.66,
 	},
 	trackBackShine: {
 		position: 'absolute',
 		height: '200%',
-		left: 0
+		left: 0,
 	},
 	trackFront: {
 		position: 'absolute',
 		overflow: 'hidden',
 		height: '100%',
-		borderRadius: DIAMETER
+		borderRadius: DIAMETER,
 	},
 
 	textFrontContainer: {
@@ -69,18 +69,18 @@ const styles = StyleSheet.create({
 		width: '100%',
 		height: '100%',
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	textBack: {
 		...fontStyles.normal,
 		color: colors.white,
-		fontSize: 16
+		fontSize: 16,
 	},
 	textFront: {
 		...fontStyles.normal,
 		color: colors.white,
-		fontSize: 16
-	}
+		fontSize: 16,
+	},
 });
 
 function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
@@ -98,26 +98,26 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 			pan.x.interpolate({
 				inputRange: [0, Math.max(componentWidth - DIAMETER, 0)],
 				outputRange: [0, componentWidth - DIAMETER],
-				extrapolate: 'clamp'
+				extrapolate: 'clamp',
 			}),
 		[componentWidth, pan.x]
 	);
 
 	const incompleteTextOpacity = sliderPosition.interpolate({
 		inputRange: [0, Math.max(componentWidth - DIAMETER, 0)],
-		outputRange: [1, 0]
+		outputRange: [1, 0],
 	});
 	const shineOpacity = disabled
 		? 0
 		: incompleteTextOpacity.interpolate({
 				inputRange: [0, 0.5, 1],
-				outputRange: [0, 0, 1]
+				outputRange: [0, 0, 1],
 				// eslint-disable-next-line no-mixed-spaces-and-tabs
 		  });
 	const sliderCompletedOpacity = completion.interpolate({ inputRange: [0, 1], outputRange: [1, 0] });
 	const trackFrontBackgroundColor = completion.interpolate({
 		inputRange: [0, 1],
-		outputRange: [colors.blue600, colors.success]
+		outputRange: [colors.blue600, colors.success],
 	});
 
 	const startCompleteAnimation = useCallback(() => {
@@ -128,8 +128,8 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 				Animated.spring(pan, {
 					toValue: { x: componentWidth, y: 0 },
 					useNativeDriver: false,
-					isInteraction: false
-				})
+					isInteraction: false,
+				}),
 			]).start(() => {
 				if (onComplete && !hasCompletedCalled) {
 					setHasCompletedCalled(true);
@@ -156,7 +156,7 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 					} else {
 						Animated.spring(pan, { toValue: { x: 0, y: 0 }, useNativeDriver: false }).start();
 					}
-				}
+				},
 			}),
 		[componentWidth, disabled, hasCompletedCalled, pan, startCompleteAnimation]
 	);
@@ -169,8 +169,8 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 					toValue: 100,
 					duration: 2000,
 					useNativeDriver: false,
-					isInteraction: false
-				})
+					isInteraction: false,
+				}),
 			])
 		);
 		animation.start();
@@ -183,7 +183,7 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 	return (
 		<View
 			style={[styles.container, disabled && styles.disabledContainer]}
-			onLayout={e => {
+			onLayout={(e) => {
 				setComponentWidth(e.nativeEvent.layout.width);
 			}}
 		>
@@ -203,11 +203,11 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 									{
 										translateX: shineOffset.interpolate({
 											inputRange: [0, 100],
-											outputRange: [-142, componentWidth + 142]
-										})
-									}
-								]
-							}
+											outputRange: [-142, componentWidth + 142],
+										}),
+									},
+								],
+							},
 						]}
 						source={SliderShineImg}
 						resizeMode={'contain'}
@@ -215,7 +215,7 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 				)}
 				<Animated.View
 					style={{
-						opacity: incompleteTextOpacity
+						opacity: incompleteTextOpacity,
 					}}
 				>
 					<Text style={styles.textBack}>{incompleteText}</Text>
@@ -226,8 +226,8 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 					styles.trackFront,
 					{
 						backgroundColor: trackFrontBackgroundColor,
-						width: Animated.add(sliderPosition, DIAMETER)
-					}
+						width: Animated.add(sliderPosition, DIAMETER),
+					},
 				]}
 			>
 				<View style={[styles.textFrontContainer, { width: componentWidth }]}>
@@ -238,7 +238,7 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 				{...panResponder.panHandlers}
 				style={[
 					styles.slider,
-					{ opacity: sliderCompletedOpacity, transform: [{ translateX: sliderPosition }] }
+					{ opacity: sliderCompletedOpacity, transform: [{ translateX: sliderPosition }] },
 				]}
 			/>
 		</View>
@@ -261,7 +261,7 @@ SliderButton.propTypes = {
 	/**
 	 * Value that decides whether or not the slider is disabled
 	 */
-	disabled: PropTypes.bool
+	disabled: PropTypes.bool,
 };
 
 export default SliderButton;

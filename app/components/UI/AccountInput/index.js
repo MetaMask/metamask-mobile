@@ -19,25 +19,25 @@ import AppConstants from '../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	root: {
-		flex: 1
+		flex: 1,
 	},
 	arrow: {
 		color: colors.grey100,
 		position: 'absolute',
 		right: 10,
-		top: Device.isAndroid() ? 14 : 12
+		top: Device.isAndroid() ? 14 : 12,
 	},
 	componentContainer: {
 		maxHeight: Device.isAndroid() ? 175 : 200,
 		borderRadius: 4,
-		flex: 1
+		flex: 1,
 	},
 	input: {
 		...fontStyles.bold,
 		backgroundColor: colors.white,
 		marginRight: 24,
 		paddingLeft: 0,
-		minWidth: Device.isSmallDevice() ? 100 : 120
+		minWidth: Device.isSmallDevice() ? 100 : 120,
 	},
 	qrCodeButton: {
 		minHeight: 50,
@@ -45,49 +45,49 @@ const styles = StyleSheet.create({
 		paddingLeft: 12,
 		paddingTop: 2,
 		flexDirection: 'row',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	accountContainer: {
 		flexDirection: 'row',
 		backgroundColor: colors.white,
 		borderColor: colors.grey100,
 		borderRadius: 4,
-		borderWidth: 1
+		borderWidth: 1,
 	},
 	toContainer: {
-		flexDirection: 'column'
+		flexDirection: 'column',
 	},
 	inputContainer: {
 		fontSize: 16,
 		paddingLeft: 8,
 		flexDirection: 'row',
 		alignItems: 'center',
-		marginRight: 48
+		marginRight: 48,
 	},
 	option: {
 		flexDirection: 'row',
 		paddingBottom: 4,
 		paddingLeft: 8,
 		paddingRight: 10,
-		paddingTop: 8
+		paddingTop: 8,
 	},
 	address: {
 		...fontStyles.normal,
-		fontSize: 16
+		fontSize: 16,
 	},
 	accountWithoutName: {
-		marginTop: 4
+		marginTop: 4,
 	},
 	name: {
 		flex: 1,
 		...fontStyles.bold,
 		fontSize: 16,
-		marginBottom: 4
+		marginBottom: 4,
 	},
 	icon: {
 		paddingRight: 8,
 		paddingLeft: 6,
-		paddingTop: 1.5
+		paddingTop: 1.5,
 	},
 	optionList: {
 		backgroundColor: colors.white,
@@ -99,17 +99,17 @@ const styles = StyleSheet.create({
 		width: '100%',
 		top: 0,
 		left: 0,
-		right: 0
+		right: 0,
 	},
 	content: {
 		flex: 1,
-		paddingLeft: 8
+		paddingLeft: 8,
 	},
 	ensAddress: {
 		fontSize: 10,
 		top: Device.isAndroid() ? -16 : 0,
-		paddingLeft: Device.isAndroid() ? 4 : 0
-	}
+		paddingLeft: Device.isAndroid() ? 4 : 0,
+	},
 });
 
 /**
@@ -173,14 +173,14 @@ class AccountInput extends PureComponent {
 		/**
 		 * Callback close all drowpdowns
 		 */
-		closeDropdowns: PropTypes.func
+		closeDropdowns: PropTypes.func,
 	};
 
 	state = {
 		address: undefined,
 		ensRecipient: undefined,
 		value: undefined,
-		inputEnabled: Device.isIos()
+		inputEnabled: Device.isIos(),
 	};
 
 	componentDidMount = async () => {
@@ -208,7 +208,7 @@ class AccountInput extends PureComponent {
 			}, 100);
 	};
 
-	isEnsName = recipient => {
+	isEnsName = (recipient) => {
 		if (!isENS(recipient)) {
 			this.setState({ ensRecipient: undefined });
 			return false;
@@ -216,7 +216,7 @@ class AccountInput extends PureComponent {
 		return true;
 	};
 
-	lookupEnsName = async recipient => {
+	lookupEnsName = async (recipient) => {
 		const { address } = this.state;
 		try {
 			const resolvedAddress = await this.ens.lookup(recipient.trim());
@@ -291,7 +291,7 @@ class AccountInput extends PureComponent {
 		);
 	}
 
-	getVisibleOptions = value => {
+	getVisibleOptions = (value) => {
 		const { accounts, addressBook, network } = this.props;
 		const allAddresses = { ...addressBook[network], ...accounts };
 
@@ -302,7 +302,7 @@ class AccountInput extends PureComponent {
 			}
 
 			const filteredAddresses = {};
-			Object.keys(allAddresses).forEach(address => {
+			Object.keys(allAddresses).forEach((address) => {
 				if (
 					address.toLowerCase().indexOf(value.toLowerCase()) !== -1 ||
 					(allAddresses[address].name &&
@@ -325,7 +325,7 @@ class AccountInput extends PureComponent {
 			<ElevatedView borderRadius={4} elevation={10}>
 				<ScrollView style={styles.componentContainer} keyboardShouldPersistTaps={'handled'} nestedScrollEnabled>
 					<View style={styles.optionList}>
-						{Object.keys(visibleOptions).map(address =>
+						{Object.keys(visibleOptions).map((address) =>
 							this.renderOption(visibleOptions[address], () => {
 								this.selectAccount(visibleOptions[address]);
 							})
@@ -336,10 +336,10 @@ class AccountInput extends PureComponent {
 		);
 	}
 
-	onChange = async value => {
+	onChange = async (value) => {
 		const { onChange, openAccountSelect } = this.props;
 		this.setState({
-			value
+			value,
 		});
 
 		const filteredAccounts = this.getVisibleOptions(value);
@@ -357,12 +357,12 @@ class AccountInput extends PureComponent {
 		openAccountSelect && openAccountSelect(false);
 		this.setState({ isOpen: false });
 		this.props.navigation.navigate('QRScanner', {
-			onScanSuccess: meta => {
+			onScanSuccess: (meta) => {
 				if (meta.target_address) {
 					this.onChange(meta.target_address);
 					closeDropdowns && closeDropdowns();
 				}
-			}
+			},
 		});
 	};
 
@@ -416,11 +416,11 @@ class AccountInput extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	addressBook: state.engine.backgroundState.AddressBookController.addressBook,
 	accounts: state.engine.backgroundState.PreferencesController.identities,
 	activeAddress: state.engine.backgroundState.PreferencesController.activeAddress,
-	network: state.engine.backgroundState.NetworkController.network
+	network: state.engine.backgroundState.NetworkController.network,
 });
 
 export default connect(mapStateToProps)(AccountInput);

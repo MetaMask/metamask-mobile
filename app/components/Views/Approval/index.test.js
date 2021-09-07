@@ -7,13 +7,13 @@ import { ROPSTEN } from '../../../constants/network';
 const mockStore = configureMockStore();
 const navigation = { state: { params: { address: '0x1' } } };
 // noop
-navigation.setParams = params => ({ ...params });
+navigation.setParams = (params) => ({ ...params });
 
 describe('Approval', () => {
 	it('should render correctly', () => {
 		const initialState = {
 			settings: {
-				showCustomNonce: false
+				showCustomNonce: false,
 			},
 			transaction: {
 				value: '',
@@ -23,27 +23,27 @@ describe('Approval', () => {
 				gasPrice: '',
 				to: '0x2',
 				selectedAsset: { symbol: 'ETH' },
-				assetType: undefined
+				assetType: undefined,
 			},
 			engine: {
 				backgroundState: {
 					TransactionController: {
-						transactions: []
+						transactions: [],
 					},
 					AddressBookController: {
-						addressBook: {}
+						addressBook: {},
 					},
 					NetworkController: {
 						provider: {
-							type: ROPSTEN
-						}
-					}
-				}
-			}
+							type: ROPSTEN,
+						},
+					},
+				},
+			},
 		};
 
 		const wrapper = shallow(<Approval navigation={navigation} />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});

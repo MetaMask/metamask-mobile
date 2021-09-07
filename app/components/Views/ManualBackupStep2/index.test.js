@@ -10,8 +10,8 @@ describe('ManualBackupStep2', () => {
 		const initialState = {
 			user: {
 				passwordSet: true,
-				seedphraseBackedUp: false
-			}
+				seedphraseBackedUp: false,
+			},
 		};
 
 		const wrapper = shallow(
@@ -30,14 +30,14 @@ describe('ManualBackupStep2', () => {
 							'business',
 							'category',
 							'champion',
-							'cinnamon'
+							'cinnamon',
 						],
-						steps: ['one', 'two', 'three']
-					}
+						steps: ['one', 'two', 'three'],
+					},
 				}}
 			/>,
 			{
-				context: { store: mockStore(initialState) }
+				context: { store: mockStore(initialState) },
 			}
 		);
 		expect(wrapper.dive()).toMatchSnapshot();

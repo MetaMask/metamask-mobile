@@ -11,17 +11,17 @@ describe('TransactionReviewData', () => {
 			engine: {
 				backgroundState: {
 					TokenRatesController: {
-						contractExchangeRates: {}
+						contractExchangeRates: {},
 					},
 					CurrencyRateController: {
 						currentCurrency: 'usd',
-						conversionRate: 0.1
-					}
-				}
+						conversionRate: 0.1,
+					},
+				},
 			},
 			transaction: {
 				transaction: {
-					data: ''
+					data: '',
 				},
 				value: '',
 				from: '0x1',
@@ -29,14 +29,14 @@ describe('TransactionReviewData', () => {
 				gasPrice: '',
 				to: '0x2',
 				selectedAsset: undefined,
-				assetType: undefined
-			}
+				assetType: undefined,
+			},
 		};
 
 		const wrapper = shallow(
 			<TransactionReviewData transactionData={{ amount: 0, gas: 0, gasPrice: 1, from: '0x0' }} />,
 			{
-				context: { store: mockStore(initialState) }
+				context: { store: mockStore(initialState) },
 			}
 		);
 		expect(wrapper.dive()).toMatchSnapshot();

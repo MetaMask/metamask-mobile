@@ -6,7 +6,7 @@ import { ViewPropTypes, TouchableOpacity } from 'react-native';
  * UI component that renders a button
  * specifically for iOS
  */
-const GenericButton = props => (
+const GenericButton = (props) => (
 	<TouchableOpacity onPress={props.onPress} style={props.style} delayPressIn={50}>
 		{props.children}
 	</TouchableOpacity>
@@ -26,7 +26,7 @@ GenericButton.propTypes = {
 	/**
 	 * Function to be called on press
 	 */
-	onPress: PropTypes.func
+	onPress: PropTypes.func,
 };
 
 export default GenericButton;

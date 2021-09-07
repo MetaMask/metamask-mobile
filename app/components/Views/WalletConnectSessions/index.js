@@ -13,51 +13,51 @@ import { WALLETCONNECT_SESSIONS } from '../../../constants/storage';
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
-		flex: 1
+		flex: 1,
 	},
 	scrollviewContent: {
-		paddingTop: 20
+		paddingTop: 20,
 	},
 	websiteIcon: {
 		width: 44,
-		height: 44
+		height: 44,
 	},
 	row: {
 		flexDirection: 'row',
 		paddingVertical: 10,
 		paddingHorizontal: 20,
 		borderBottomColor: colors.grey000,
-		borderBottomWidth: 1
+		borderBottomWidth: 1,
 	},
 	info: {
 		marginLeft: 20,
-		flex: 1
+		flex: 1,
 	},
 	name: {
 		...fontStyles.bold,
 		fontSize: 16,
-		marginBottom: 10
+		marginBottom: 10,
 	},
 	desc: {
 		marginBottom: 10,
 		...fontStyles.normal,
-		fontSize: 12
+		fontSize: 12,
 	},
 	url: {
 		marginBottom: 10,
 		...fontStyles.normal,
 		fontSize: 12,
-		color: colors.fontSecondary
+		color: colors.fontSecondary,
 	},
 	emptyWrapper: {
 		flex: 1,
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	emptyText: {
 		...fontStyles.normal,
-		fontSize: 16
-	}
+		fontSize: 16,
+	},
 });
 
 /**
@@ -68,7 +68,7 @@ export default class WalletConnectSessions extends PureComponent {
 		getNavigationOptionsTitle(strings(`experimental_settings.wallet_connect_dapps`), navigation);
 
 	state = {
-		sessions: []
+		sessions: [],
 	};
 
 	actionSheet = null;
@@ -88,7 +88,7 @@ export default class WalletConnectSessions extends PureComponent {
 		this.setState({ ready: true, sessions });
 	};
 
-	renderDesc = meta => {
+	renderDesc = (meta) => {
 		const { description } = meta;
 		if (description) {
 			return <Text style={styles.desc}>{meta.description}</Text>;
@@ -96,16 +96,16 @@ export default class WalletConnectSessions extends PureComponent {
 		return null;
 	};
 
-	onLongPress = session => {
+	onLongPress = (session) => {
 		this.sessionToRemove = session;
 		this.actionSheet.show();
 	};
 
-	createActionSheetRef = ref => {
+	createActionSheetRef = (ref) => {
 		this.actionSheet = ref;
 	};
 
-	onActionSheetPress = index => (index === 0 ? this.killSession() : null);
+	onActionSheetPress = (index) => (index === 0 ? this.killSession() : null);
 
 	killSession = async () => {
 		try {
@@ -122,7 +122,7 @@ export default class WalletConnectSessions extends PureComponent {
 
 	renderSessions = () => {
 		const { sessions } = this.state;
-		return sessions.map(session => (
+		return sessions.map((session) => (
 			<TouchableOpacity
 				// eslint-disable-next-line react/jsx-no-bind
 				onLongPress={() => this.onLongPress(session)}

@@ -8,7 +8,7 @@ import {
 	View,
 	TouchableWithoutFeedback,
 	ActivityIndicator,
-	InteractionManager
+	InteractionManager,
 } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
@@ -41,12 +41,12 @@ import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 const styles = StyleSheet.create({
 	modal: {
 		margin: 0,
-		justifyContent: 'flex-end'
+		justifyContent: 'flex-end',
 	},
 	modalView: {
 		backgroundColor: colors.white,
 		borderTopLeftRadius: 10,
-		borderTopRightRadius: 10
+		borderTopRightRadius: 10,
 	},
 	inputWrapper: {
 		flexDirection: 'row',
@@ -57,57 +57,57 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 5,
 		borderRadius: 5,
 		borderWidth: 1,
-		borderColor: colors.grey100
+		borderColor: colors.grey100,
 	},
 	searchIcon: {
-		marginHorizontal: 8
+		marginHorizontal: 8,
 	},
 	input: {
 		...fontStyles.normal,
-		flex: 1
+		flex: 1,
 	},
 	modalTitle: {
 		marginTop: Device.isIphone5() ? 10 : 15,
-		marginBottom: Device.isIphone5() ? 5 : 5
+		marginBottom: Device.isIphone5() ? 5 : 5,
 	},
 	resultsView: {
 		height: Device.isSmallDevice() ? 200 : 280,
-		marginTop: 10
+		marginTop: 10,
 	},
 	resultRow: {
 		borderTopWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100
+		borderColor: colors.grey100,
 	},
 	emptyList: {
 		marginVertical: 10,
-		marginHorizontal: 30
+		marginHorizontal: 30,
 	},
 	importButton: {
 		paddingVertical: 6,
 		paddingHorizontal: 10,
 		backgroundColor: colors.blue,
-		borderRadius: 100
+		borderRadius: 100,
 	},
 	importButtonText: {
-		color: colors.white
+		color: colors.white,
 	},
 	loadingIndicator: {
-		margin: 10
+		margin: 10,
 	},
 	loadingTokenView: {
 		marginVertical: 10,
 		marginHorizontal: 30,
 		justifyContent: 'center',
 		alignItems: 'center',
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	footer: {
-		padding: 30
+		padding: 30,
 	},
 	footerIcon: {
 		paddingTop: 4,
-		paddingRight: 8
-	}
+		paddingRight: 8,
+	},
 });
 
 const MAX_TOKENS_RESULTS = 20;
@@ -128,7 +128,7 @@ function TokenSelectModal({
 	chainId,
 	provider,
 	frequentRpcList,
-	balances
+	balances,
 }) {
 	const navigation = useNavigation();
 	const searchInput = useRef(null);
@@ -137,18 +137,19 @@ function TokenSelectModal({
 	const explorer = useBlockExplorer(provider, frequentRpcList);
 	const [isTokenImportVisible, , showTokenImportModal, hideTokenImportModal] = useModalHandler(false);
 
-	const excludedAddresses = useMemo(() => excludeAddresses.filter(Boolean).map(address => address.toLowerCase()), [
-		excludeAddresses
-	]);
+	const excludedAddresses = useMemo(
+		() => excludeAddresses.filter(Boolean).map((address) => address.toLowerCase()),
+		[excludeAddresses]
+	);
 
 	const filteredTokens = useMemo(
-		() => tokens?.filter(token => !excludedAddresses.includes(token.address?.toLowerCase())),
+		() => tokens?.filter((token) => !excludedAddresses.includes(token.address?.toLowerCase())),
 		[tokens, excludedAddresses]
 	);
 	const filteredInitialTokens = useMemo(
 		() =>
 			initialTokens?.length > 0
-				? initialTokens.filter(token => !excludedAddresses.includes(token.address?.toLowerCase()))
+				? initialTokens.filter((token) => !excludedAddresses.includes(token.address?.toLowerCase()))
 				: filteredTokens,
 		[excludedAddresses, filteredTokens, initialTokens]
 	);
@@ -161,7 +162,7 @@ function TokenSelectModal({
 				distance: 100,
 				maxPatternLength: 32,
 				minMatchCharLength: 1,
-				keys: ['symbol', 'address', 'name']
+				keys: ['symbol', 'address', 'name'],
 			}),
 		[filteredTokens]
 	);
@@ -232,7 +233,7 @@ function TokenSelectModal({
 	}, [showTokenImportModal]);
 
 	const handlePressImportToken = useCallback(
-		item => {
+		(item) => {
 			const { address, symbol } = item;
 			InteractionManager.runAfterInteractions(() => {
 				Analytics.trackEventWithParameters(
@@ -252,8 +253,8 @@ function TokenSelectModal({
 			screen: 'SimpleWebview',
 			params: {
 				url: shouldFetchToken ? explorer.token(searchString) : explorer.token('').replace('token/', 'tokens/'),
-				title: strings(shouldFetchToken ? 'swaps.verify' : 'swaps.find_token_address')
-			}
+				title: strings(shouldFetchToken ? 'swaps.verify' : 'swaps.find_token_address'),
+			},
 		});
 		dismiss();
 	}, [dismiss, explorer, navigation, searchString, shouldFetchToken]);
@@ -266,7 +267,7 @@ function TokenSelectModal({
 						<FAIcon name="info-circle" style={styles.footerIcon} color={colors.blue} size={15} />
 					)}
 				>
-					{textStyle => (
+					{(textStyle) => (
 						<Text style={textStyle}>
 							<Text reset bold>
 								{strings('swaps.cant_find_token')}
@@ -298,7 +299,7 @@ function TokenSelectModal({
 		[searchString]
 	);
 
-	const handleSearchTextChange = useCallback(text => {
+	const handleSearchTextChange = useCallback((text) => {
 		setSearchString(text);
 		if (list.current) list.current.scrollToOffset({ animated: false, y: 0 });
 	}, []);
@@ -418,7 +419,7 @@ function TokenSelectModal({
 						keyboardShouldPersistTaps="always"
 						data={tokenSearchResults}
 						renderItem={renderItem}
-						keyExtractor={item => item.address}
+						keyExtractor={(item) => item.address}
 						ListEmptyComponent={renderEmptyList}
 						ListFooterComponent={renderFooter}
 						ListFooterComponentStyle={[styles.resultRow, styles.footer]}
@@ -472,10 +473,10 @@ TokenSelectModal.propTypes = {
 	/**
 	 * Frequent RPC list from PreferencesController
 	 */
-	frequentRpcList: PropTypes.array
+	frequentRpcList: PropTypes.array,
 };
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
@@ -484,7 +485,7 @@ const mapStateToProps = state => ({
 	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	provider: state.engine.backgroundState.NetworkController.provider,
-	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList
+	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList,
 });
 
 export default connect(mapStateToProps)(TokenSelectModal);

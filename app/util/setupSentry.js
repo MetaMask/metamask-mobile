@@ -13,6 +13,6 @@ export default function setupSentry() {
 		dsn,
 		debug: __DEV__,
 		environment,
-		integrations: [new Dedupe(), new ExtraErrorData()]
+		integrations: [new Dedupe(), new ExtraErrorData()],
 	});
 }

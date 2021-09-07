@@ -19,23 +19,23 @@ async function start() {
 				title: 'iOS',
 				text: 'Install via TestFlight',
 				thumb_url:
-					'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/202px-Apple_logo_black.svg.png'
+					'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/202px-Apple_logo_black.svg.png',
 			},
 			{
 				title_link: ANDROID_APK_LINK,
 				title: 'Android',
 				text: 'Download APK via Bitrise',
 				thumb_url:
-					'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Android_robot.svg/511px-Android_robot.svg.png'
-			}
-		]
+					'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Android_robot.svg/511px-Android_robot.svg.png',
+			},
+		],
 	};
 
 	const JSON_PAYLOAD = JSON.stringify(content);
 	const SLACK_API_URI = `https://hooks.slack.com/services/${SLACK_TOKEN}/${SLACK_SECRET}/${SLACK_ROOM}`;
 
 	const headers = {
-		'Content-type': 'application/json'
+		'Content-type': 'application/json',
 	};
 	await axios.post(SLACK_API_URI, JSON_PAYLOAD, { headers });
 }

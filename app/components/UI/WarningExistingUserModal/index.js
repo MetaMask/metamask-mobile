@@ -7,25 +7,25 @@ import ActionModal from '../ActionModal';
 
 const styles = StyleSheet.create({
 	warningModalView: {
-		margin: 24
+		margin: 24,
 	},
 	warningModalTitle: {
 		...fontStyles.bold,
 		color: colors.red,
 		textAlign: 'center',
 		fontSize: 20,
-		marginBottom: 16
+		marginBottom: 16,
 	},
 	warningModalText: {
 		...fontStyles.normal,
 		color: colors.black,
 		textAlign: 'center',
 		fontSize: 14,
-		lineHeight: 18
+		lineHeight: 18,
 	},
 	warningModalTextBold: {
-		...fontStyles.bold
-	}
+		...fontStyles.bold,
+	},
 });
 
 const Default = () => (
@@ -52,7 +52,7 @@ export default function WarningExistingUserModal({
 	onConfirmPress,
 	children,
 	cancelText,
-	confirmText
+	confirmText,
 }) {
 	return (
 		<ActionModal
@@ -92,5 +92,5 @@ WarningExistingUserModal.propTypes = {
 	/**
 	 * Confirm callback
 	 */
-	onConfirmPress: PropTypes.func.isRequired
+	onConfirmPress: PropTypes.func.isRequired,
 };

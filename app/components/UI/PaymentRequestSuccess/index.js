@@ -7,7 +7,7 @@ import {
 	Text,
 	StyleSheet,
 	InteractionManager,
-	TouchableOpacity
+	TouchableOpacity,
 } from 'react-native';
 import Clipboard from '@react-native-community/clipboard';
 import { connect } from 'react-redux';
@@ -31,26 +31,26 @@ import { protectWalletModalVisible } from '../../../actions/user';
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
-		flex: 1
+		flex: 1,
 	},
 	contentWrapper: {
-		padding: 24
+		padding: 24,
 	},
 	button: {
-		marginBottom: 16
+		marginBottom: 16,
 	},
 	titleText: {
 		...fontStyles.bold,
 		fontSize: 24,
 		marginVertical: 16,
-		alignSelf: 'center'
+		alignSelf: 'center',
 	},
 	descriptionText: {
 		...fontStyles.normal,
 		fontSize: 14,
 		alignSelf: 'center',
 		textAlign: 'center',
-		marginVertical: 8
+		marginVertical: 8,
 	},
 	linkText: {
 		...fontStyles.normal,
@@ -58,77 +58,77 @@ const styles = StyleSheet.create({
 		color: colors.blue,
 		alignSelf: 'center',
 		textAlign: 'center',
-		marginVertical: 16
+		marginVertical: 16,
 	},
 	buttonsWrapper: {
 		flex: 1,
 		flexDirection: 'row',
-		alignSelf: 'center'
+		alignSelf: 'center',
 	},
 	buttonsContainer: {
 		flex: 1,
 		flexDirection: 'column',
-		alignSelf: 'flex-end'
+		alignSelf: 'flex-end',
 	},
 	scrollViewContainer: {
-		flexGrow: 1
+		flexGrow: 1,
 	},
 	icon: {
 		color: colors.blue,
-		marginBottom: 16
+		marginBottom: 16,
 	},
 	blueIcon: {
-		color: colors.white
+		color: colors.white,
 	},
 	iconWrapper: {
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	buttonText: {
 		...fontStyles.bold,
 		color: colors.blue,
 		fontSize: 14,
-		marginLeft: 8
+		marginLeft: 8,
 	},
 	blueButtonText: {
 		...fontStyles.bold,
 		color: colors.white,
 		fontSize: 14,
-		marginLeft: 8
+		marginLeft: 8,
 	},
 	buttonContent: {
 		flexDirection: 'row',
-		alignSelf: 'center'
+		alignSelf: 'center',
 	},
 	buttonIconWrapper: {
 		flexDirection: 'column',
-		alignSelf: 'center'
+		alignSelf: 'center',
 	},
 	buttonTextWrapper: {
 		flexDirection: 'column',
-		alignSelf: 'center'
+		alignSelf: 'center',
 	},
 	detailsWrapper: {
 		padding: 10,
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	addressTitle: {
 		fontSize: 16,
 		marginBottom: 16,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	informationWrapper: {
-		paddingHorizontal: 40
+		paddingHorizontal: 40,
 	},
 	linkWrapper: {
-		paddingHorizontal: 24
+		paddingHorizontal: 24,
 	},
 	titleQr: {
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	closeIcon: {
 		position: 'absolute',
 		right: Device.isIos() ? -30 : -40,
-		bottom: Device.isIos() ? 8 : 10
+		bottom: Device.isIos() ? 8 : 10,
 	},
 	qrCode: {
 		marginBottom: 16,
@@ -138,14 +138,14 @@ const styles = StyleSheet.create({
 		paddingBottom: 24,
 		paddingTop: 16,
 		backgroundColor: colors.grey000,
-		borderRadius: 8
+		borderRadius: 8,
 	},
 	qrCodeWrapper: {
 		borderColor: colors.grey300,
 		borderRadius: 8,
 		borderWidth: 1,
-		padding: 15
-	}
+		padding: 15,
+	},
 });
 
 /**
@@ -166,7 +166,7 @@ class PaymentRequestSuccess extends PureComponent {
 		/**
 		/* Prompts protect wallet modal
 		*/
-		protectWalletModalVisible: PropTypes.func
+		protectWalletModalVisible: PropTypes.func,
 	};
 
 	state = {
@@ -174,7 +174,7 @@ class PaymentRequestSuccess extends PureComponent {
 		qrLink: '',
 		amount: '',
 		symbol: '',
-		qrModalVisible: false
+		qrModalVisible: false,
 	};
 
 	/**
@@ -204,7 +204,7 @@ class PaymentRequestSuccess extends PureComponent {
 				isVisible: true,
 				autodismiss: 1500,
 				content: 'clipboard-alert',
-				data: { msg: strings('payment_request.link_copied') }
+				data: { msg: strings('payment_request.link_copied') },
 			});
 		});
 	};
@@ -215,8 +215,8 @@ class PaymentRequestSuccess extends PureComponent {
 	onShare = () => {
 		const { link } = this.state;
 		Share.open({
-			message: link
-		}).catch(err => {
+			message: link,
+		}).catch((err) => {
 			Logger.log('Error while trying to share payment request', err);
 		});
 	};
@@ -335,12 +335,9 @@ class PaymentRequestSuccess extends PureComponent {
 	}
 }
 
-const mapDispatchToProps = dispatch => ({
-	showAlert: config => dispatch(showAlert(config)),
-	protectWalletModalVisible: () => dispatch(protectWalletModalVisible())
+const mapDispatchToProps = (dispatch) => ({
+	showAlert: (config) => dispatch(showAlert(config)),
+	protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
 });
 
-export default connect(
-	null,
-	mapDispatchToProps
-)(PaymentRequestSuccess);
+export default connect(null, mapDispatchToProps)(PaymentRequestSuccess);

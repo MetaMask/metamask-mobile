@@ -11,10 +11,10 @@ describe('CollectibleContractOverview', () => {
 			engine: {
 				backgroundState: {
 					CollectiblesController: {
-						collectibles: []
-					}
-				}
-			}
+						collectibles: [],
+					},
+				},
+			},
 		};
 
 		const wrapper = shallow(
@@ -24,11 +24,11 @@ describe('CollectibleContractOverview', () => {
 					symbol: 'symbol',
 					description: 'description',
 					address: '0x123',
-					totalSupply: 1
+					totalSupply: 1,
 				}}
 			/>,
 			{
-				context: { store: mockStore(initialState) }
+				context: { store: mockStore(initialState) },
 			}
 		);
 		expect(wrapper.dive()).toMatchSnapshot();

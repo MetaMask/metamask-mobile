@@ -46,7 +46,7 @@ export const WYRE_ERROR_TYPE = {
 	RateLimitException: 'RateLimitException', // Your requests have exceeded your usage restrictions. Please contact us if you need this increased. 429
 	AccountLockedException: 'AccountLockedException', // The account has had a locked placed on it for potential fraud reasons. The customer should contact Wyre support for follow-up. 400
 	LockoutException: 'LockoutException', // The account or IP has been blocked due to detected malicious behavior. 403
-	UnknownException: 'UnknownException' // A problem with our services internally. This should rarely happen. 500
+	UnknownException: 'UnknownException', // A problem with our services internally. This should rarely happen. 500
 };
 
 /**
@@ -77,7 +77,7 @@ export const WYRE_ORDER_STATES = {
 	RUNNING_CHECKS: 'RUNNING_CHECKS',
 	FAILED: 'FAILED',
 	PROCESSING: 'PROCESSING',
-	COMPLETE: 'COMPLETE'
+	COMPLETE: 'COMPLETE',
 };
 
 /**
@@ -124,230 +124,230 @@ export const SUPPORTED_COUNTRIES = {
 		code: 'AU',
 		currency: 'AUD',
 		label: '🇦🇺',
-		name: 'Australia'
+		name: 'Australia',
 	},
 	AT: {
 		code: 'AT',
 		currency: 'EUR',
 		label: '🇦🇹',
-		name: 'Austria'
+		name: 'Austria',
 	},
 	BE: {
 		code: 'BE',
 		currency: 'EUR',
 		label: '🇧🇪',
-		name: 'Belgium'
+		name: 'Belgium',
 	},
 	BR: {
 		code: 'BR',
 		currency: 'BRL',
 		label: '🇧🇷',
-		name: 'Brazil'
+		name: 'Brazil',
 	},
 	CA: {
 		code: 'CA',
 		currency: 'CAD',
 		label: '🇨🇦',
-		name: 'Canada'
+		name: 'Canada',
 	},
 	CY: {
 		code: 'CY',
 		currency: 'EUR',
 		label: '🇨🇾',
-		name: 'Cyprus'
+		name: 'Cyprus',
 	},
 	CZ: {
 		code: 'CZ',
 		currency: 'CZK',
 		label: '🇨🇿',
-		name: 'Czech Republic'
+		name: 'Czech Republic',
 	},
 	DK: {
 		code: 'DK',
 		currency: 'DKK',
 		label: '🇩🇰',
-		name: 'Denmark'
+		name: 'Denmark',
 	},
 	EE: {
 		code: 'EE',
 		currency: 'EUR',
 		label: '🇪🇪',
-		name: 'Estonia'
+		name: 'Estonia',
 	},
 	FI: {
 		code: 'FI',
 		currency: 'EUR',
 		label: '🇫🇮',
-		name: 'Finland'
+		name: 'Finland',
 	},
 	FR: {
 		code: 'FR',
 		currency: 'EUR',
 		label: '🇫🇷',
-		name: 'France'
+		name: 'France',
 	},
 	DE: {
 		code: 'DE',
 		currency: 'EUR',
 		label: '🇩🇪',
-		name: 'Germany'
+		name: 'Germany',
 	},
 	GR: {
 		code: 'GR',
 		currency: 'EUR',
 		label: '🇬🇷',
-		name: 'Greece'
+		name: 'Greece',
 	},
 	HK: {
 		code: 'HK',
 		currency: 'HKD',
 		label: '🇭🇰',
-		name: 'Hong Kong'
+		name: 'Hong Kong',
 	},
 	IS: {
 		code: 'IS',
 		currency: 'ISK',
 		label: '🇮🇸',
-		name: 'Iceland'
+		name: 'Iceland',
 	},
 	IE: {
 		code: 'IE',
 		currency: 'EUR',
 		label: '🇮🇪',
-		name: 'Ireland'
+		name: 'Ireland',
 	},
 	IT: {
 		code: 'IT',
 		currency: 'EUR',
 		label: '🇮🇹',
-		name: 'Italy'
+		name: 'Italy',
 	},
 	JP: {
 		code: 'JP',
 		currency: 'JPY',
 		label: '🇯🇵',
-		name: 'Japan'
+		name: 'Japan',
 	},
 	LV: {
 		code: 'LV',
 		currency: 'EUR',
 		label: '🇱🇻',
-		name: 'Latvia'
+		name: 'Latvia',
 	},
 	LT: {
 		code: 'LT',
 		currency: 'EUR',
 		label: '🇱🇹',
-		name: 'Lithuania'
+		name: 'Lithuania',
 	},
 	LU: {
 		code: 'LU',
 		currency: 'EUR',
 		label: '🇱🇺',
-		name: 'Luxembourg'
+		name: 'Luxembourg',
 	},
 	NL: {
 		code: 'NL',
 		currency: 'EUR',
 		label: '🇳🇱',
-		name: 'Netherlands'
+		name: 'Netherlands',
 	},
 	NZ: {
 		code: 'NZ',
 		currency: 'NZD',
 		label: '🇳🇿',
-		name: 'New Zealand'
+		name: 'New Zealand',
 	},
 	NO: {
 		code: 'NO',
 		currency: 'NOK',
 		label: '🇳🇴',
-		name: 'Norway'
+		name: 'Norway',
 	},
 	PL: {
 		code: 'PL',
 		currency: 'PLN',
 		label: '🇵🇱',
-		name: 'Poland'
+		name: 'Poland',
 	},
 	PT: {
 		code: 'PT',
 		currency: 'EUR',
 		label: '🇵🇹',
-		name: 'Portugal'
+		name: 'Portugal',
 	},
 	SG: {
 		code: 'SG',
 		currency: 'SGD',
 		label: '🇸🇬',
-		name: 'Singapore'
+		name: 'Singapore',
 	},
 	SK: {
 		code: 'SK',
 		currency: 'EUR',
 		label: '🇸🇰',
-		name: 'Slovakia'
+		name: 'Slovakia',
 	},
 	SI: {
 		code: 'SI',
 		currency: 'EUR',
 		label: '🇸🇮',
-		name: 'Slovenia'
+		name: 'Slovenia',
 	},
 	ES: {
 		code: 'ES',
 		currency: 'EUR',
 		label: '🇪🇸',
-		name: 'Spain'
+		name: 'Spain',
 	},
 	SE: {
 		code: 'SE',
 		currency: 'SEK',
 		label: '🇸🇪',
-		name: 'Sweden'
+		name: 'Sweden',
 	},
 	CH: {
 		code: 'CH',
 		currency: 'CHF',
 		label: '🇨🇭',
-		name: 'Switzerland'
+		name: 'Switzerland',
 	},
 	GB: {
 		code: 'GB',
 		currency: 'GBP',
 		label: '🇬🇧',
-		name: 'United Kingdom'
+		name: 'United Kingdom',
 	},
 	US: {
 		code: 'US',
 		currency: 'USD',
 		label: '🇺🇸',
-		name: 'United States'
-	}
+		name: 'United States',
+	},
 };
 
-const getMerchantIdentifier = network => (network === '1' ? WYRE_MERCHANT_ID : WYRE_MERCHANT_ID_TEST);
-const getPartnerId = network => (network === '1' ? WYRE_ACCOUNT_ID : WYRE_ACCOUNT_ID_TEST);
+const getMerchantIdentifier = (network) => (network === '1' ? WYRE_MERCHANT_ID : WYRE_MERCHANT_ID_TEST);
+const getPartnerId = (network) => (network === '1' ? WYRE_ACCOUNT_ID : WYRE_ACCOUNT_ID_TEST);
 
 //* API */
 
 const wyreAPI = axios.create({
-	baseURL: WYRE_API_ENDPOINT
+	baseURL: WYRE_API_ENDPOINT,
 });
 
 const wyreTestAPI = axios.create({
-	baseURL: WYRE_API_ENDPOINT_TEST
+	baseURL: WYRE_API_ENDPOINT_TEST,
 });
 
-const getWyreAPI = network => (network === '1' ? wyreAPI : wyreTestAPI);
+const getWyreAPI = (network) => (network === '1' ? wyreAPI : wyreTestAPI);
 
-const getRates = network => getWyreAPI(network).get(`v3/rates`, { params: { as: 'PRICED' } });
+const getRates = (network) => getWyreAPI(network).get(`v3/rates`, { params: { as: 'PRICED' } });
 const createFiatOrder = (network, payload) =>
 	getWyreAPI(network).post('v3/apple-pay/process/partner', payload, {
 		// * This promise will always be resolved, use response.status to handle errors
-		validateStatus: status => status >= 200,
+		validateStatus: (status) => status >= 200,
 		// * Apple Pay timeouts at ~30s without throwing error, we want to catch that before and throw
-		timeout: 25000
+		timeout: 25000,
 	});
 const getOrderStatus = (network, orderId) => getWyreAPI(network).get(`v3/orders/${orderId}`);
 const getTransferStatus = (network, transferId) => getWyreAPI(network).get(`v2/transfer/${transferId}/track`);
@@ -362,14 +362,14 @@ export const getOrderQuotation = (network, { amount, currency, address, country 
 			dest: `ethereum:${address}`,
 			accountId: getPartnerId(network),
 			country,
-			walletType: 'APPLE_PAY'
+			walletType: 'APPLE_PAY',
 		},
 		{ cancelToken }
 	);
 
 //* Helpers
 
-const destToAddress = dest => (dest.indexOf('ethereum:') === 0 ? dest.substring(9) : dest);
+const destToAddress = (dest) => (dest.indexOf('ethereum:') === 0 ? dest.substring(9) : dest);
 
 export class WyreException extends Error {
 	/**
@@ -389,7 +389,7 @@ export class WyreException extends Error {
  * Transforms a WyreOrder state into a FiatOrder state
  * @param {WYRE_ORDER_STATES} wyreOrderState
  */
-const wyreOrderStateToFiatState = wyreOrderState => {
+const wyreOrderStateToFiatState = (wyreOrderState) => {
 	switch (wyreOrderState) {
 		case WYRE_ORDER_STATES.COMPLETE: {
 			return FIAT_ORDER_STATES.COMPLETED;
@@ -410,7 +410,7 @@ const wyreOrderStateToFiatState = wyreOrderState => {
  * @param {WyreOrder} wyreOrder Wyre order object
  * @returns {FiatOrder} Fiat order object to store in the state
  */
-const wyreOrderToFiatOrder = wyreOrder => ({
+const wyreOrderToFiatOrder = (wyreOrder) => ({
 	id: wyreOrder.id,
 	provider: FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY,
 	createdAt: wyreOrder.createdAt,
@@ -424,8 +424,8 @@ const wyreOrderToFiatOrder = wyreOrder => ({
 	account: destToAddress(wyreOrder.dest),
 	txHash: null,
 	data: {
-		order: wyreOrder
-	}
+		order: wyreOrder,
+	},
 });
 
 /**
@@ -434,11 +434,11 @@ const wyreOrderToFiatOrder = wyreOrder => ({
  * @param {WyreTransfer} wyreTransfer Wyre transfer object
  * @returns {FiatOrder} Partial fiat order object to store in the state
  */
-const wyreTransferToFiatOrder = wyreTransfer => ({
+const wyreTransferToFiatOrder = (wyreTransfer) => ({
 	fee: wyreTransfer.fee,
 	cryptoAmount: wyreTransfer.destAmount,
 	cryptoFee: wyreTransfer.fees ? wyreTransfer.fees[wyreTransfer.destCurrency] : null,
-	txHash: wyreTransfer.blockchainNetworkTx
+	txHash: wyreTransfer.blockchainNetworkTx,
 });
 
 //* Handlers
@@ -463,21 +463,21 @@ export async function processWyreApplePayOrder(order) {
 						...wyreTransferToFiatOrder(transferResponse.data),
 						data: {
 							order: data,
-							transfer: transferResponse.data
-						}
+							transfer: transferResponse.data,
+						},
 					};
 				}
 			} catch (error) {
 				Logger.error(error, {
 					message: 'FiatOrders::WyreApplePayProcessor error while processing transfer',
-					order
+					order,
 				});
 			}
 		}
 
 		return {
 			...order,
-			...wyreOrderToFiatOrder(data)
+			...wyreOrderToFiatOrder(data),
 		};
 	} catch (error) {
 		Logger.error(error, { message: 'FiatOrders::WyreApplePayProcessor error while processing order', order });
@@ -492,7 +492,7 @@ const ABORTED = 'ABORTED';
 const PAYMENT_REQUEST_COMPLETE = {
 	SUCCESS: 'success',
 	UNKNOWN: 'unknown',
-	FAIL: 'fail'
+	FAIL: 'fail',
 };
 
 const getMethodData = (currency, network) => [
@@ -502,33 +502,33 @@ const getMethodData = (currency, network) => [
 			countryCode: 'US',
 			currencyCode: currency,
 			supportedNetworks: ['visa', 'mastercard', 'discover'],
-			merchantIdentifier: getMerchantIdentifier(network)
-		}
-	}
+			merchantIdentifier: getMerchantIdentifier(network),
+		},
+	},
 ];
 
 const getPaymentDetails = (cryptoCurrency, currency, amount, fee, total) => ({
 	displayItems: [
 		{
 			amount: { currency, value: `${amount}` },
-			label: strings('fiat_on_ramp.wyre_purchase', { currency: cryptoCurrency })
+			label: strings('fiat_on_ramp.wyre_purchase', { currency: cryptoCurrency }),
 		},
 		{
 			amount: { currency, value: `${fee}` },
-			label: strings('fiat_on_ramp.Fee')
-		}
+			label: strings('fiat_on_ramp.Fee'),
+		},
 	],
 	total: {
 		amount: { currency, value: `${total}` },
-		label: strings('fiat_on_ramp.wyre_total_label')
-	}
+		label: strings('fiat_on_ramp.wyre_total_label'),
+	},
 });
 
 const paymentOptions = {
 	requestPayerPhone: true,
 	requestPayerEmail: true,
 	requestBilling: true,
-	merchantCapabilities: ['debit']
+	merchantCapabilities: ['debit'],
 };
 
 const createPayload = (network, amount, address, currency, paymentDetails) => {
@@ -537,7 +537,7 @@ const createPayload = (network, amount, address, currency, paymentDetails) => {
 		paymentData,
 		paymentMethod,
 		shippingContact,
-		transactionIdentifier
+		transactionIdentifier,
 	} = paymentDetails;
 	const dest = `ethereum:${address}`;
 
@@ -551,13 +551,13 @@ const createPayload = (network, amount, address, currency, paymentDetails) => {
 		locality: postalAddress.city,
 		postalCode: postalAddress.postalCode,
 		subAdministrativeArea: postalAddress.subAdministrativeArea,
-		subLocality: postalAddress.subLocality
+		subLocality: postalAddress.subLocality,
 	};
 
 	const formattedShippingContact = {
 		...formattedBillingContact,
 		emailAddress: shippingContact.emailAddress,
-		phoneNumber: shippingContact.phoneNumber
+		phoneNumber: shippingContact.phoneNumber,
 	};
 
 	const partnerId = getPartnerId(network);
@@ -570,7 +570,7 @@ const createPayload = (network, amount, address, currency, paymentDetails) => {
 				dest,
 				destCurrency: ETH_CURRENCY_CODE,
 				referrerAccountId: partnerId,
-				sourceCurrency: currency
+				sourceCurrency: currency,
 			},
 			paymentObject: {
 				billingContact: formattedBillingContact,
@@ -579,12 +579,12 @@ const createPayload = (network, amount, address, currency, paymentDetails) => {
 					paymentData,
 					paymentMethod: {
 						...paymentMethod,
-						type: 'debit'
+						type: 'debit',
 					},
-					transactionIdentifier
-				}
-			}
-		}
+					transactionIdentifier,
+				},
+			},
+		},
 	};
 };
 
@@ -594,7 +594,7 @@ export function useCountryCurrency(country) {
 	const currency = useMemo(() => SUPPORTED_COUNTRIES[country]?.currency, [country]);
 	return {
 		...useCurrency(currency),
-		currency
+		currency,
 	};
 }
 
@@ -608,7 +608,7 @@ export function useWyreRates(network, currencies) {
 				setRates([]);
 				const { data } = await getRates(network);
 				const rates = [];
-				currencies.forEach(pair => {
+				currencies.forEach((pair) => {
 					if (pair.length % 2 === 0 && pair.slice(0, pair.length / 2) === pair.slice(pair.length / 2)) {
 						rates.push({ [pair.slice(pair.length / 2)]: 1 });
 					} else {
@@ -642,14 +642,14 @@ export function useWyreOrderQuotation(network, amount, currency, address, countr
 					cancelTokenSource = axios.CancelToken.source();
 					setIsLoading(true);
 					setQuotation(null);
-					await new Promise(resolve => setTimeout(resolve, delay));
+					await new Promise((resolve) => setTimeout(resolve, delay));
 					const { data: quotation } = await getOrderQuotation(
 						network,
 						{
 							amount,
 							currency,
 							address,
-							country
+							country,
 						},
 						cancelTokenSource.token
 					);
@@ -718,8 +718,8 @@ export function useWyreTerms(navigation) {
 				screen: 'SimpleWebview',
 				params: {
 					url: 'https://www.sendwyre.com/user-agreement/',
-					title: strings('fiat_on_ramp.wyre_user_agreement')
-				}
+					title: strings('fiat_on_ramp.wyre_user_agreement'),
+				},
 			}),
 		[navigation]
 	);

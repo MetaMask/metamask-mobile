@@ -8,8 +8,8 @@ import TokenIcon from './TokenIcon';
 
 const styles = StyleSheet.create({
 	icon: {
-		marginRight: 8
-	}
+		marginRight: 8,
+	},
 });
 
 function TokenSelectButton({ icon, symbol, onPress, disabled, label }) {
@@ -28,7 +28,7 @@ TokenSelectButton.propTypes = {
 	symbol: PropTypes.string,
 	label: PropTypes.string,
 	onPress: PropTypes.func,
-	disabled: PropTypes.bool
+	disabled: PropTypes.bool,
 };
 
 export default TokenSelectButton;

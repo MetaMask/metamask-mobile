@@ -23,7 +23,7 @@ export default class PubNubWrapper {
 			subscribeKey: SUB_KEY,
 			publishKey: PUB_KEY,
 			cipherKey,
-			ssl: true
+			ssl: true,
 		});
 		this.cipherKey = cipherKey;
 		this.channelName = channelName;
@@ -49,11 +49,11 @@ export default class PubNubWrapper {
 			this.pubnub.publish(
 				{
 					message: {
-						event: 'start-sync'
+						event: 'start-sync',
 					},
 					channel: this.channelName,
 					sendByPost: false,
-					storeInHistory: false
+					storeInHistory: false,
 				},
 				(status, response) => {
 					setTimeout(() => {
@@ -84,11 +84,11 @@ export default class PubNubWrapper {
 			{
 				message: {
 					event: 'end-sync',
-					data: { status: 'success' }
+					data: { status: 'success' },
 				},
 				channel: this.channelName,
 				sendByPost: false,
-				storeInHistory: false
+				storeInHistory: false,
 			},
 			() => {
 				this.disconnectWebsockets();
@@ -106,18 +106,18 @@ export default class PubNubWrapper {
 	 * @returns - Promise resolving with this process is finished
 	 */
 	establishConnection(selectedAddress) {
-		return new Promise(resolve => {
+		return new Promise((resolve) => {
 			const { cipherKey, channelName } = this.generateCipherKeyAndChannelName(selectedAddress);
 			this.pubnub.publish(
 				{
 					message: {
 						event: 'connection-info',
 						channel: channelName,
-						cipher: cipherKey
+						cipher: cipherKey,
 					},
 					channel: this.channelName,
 					sendByPost: false,
-					storeInHistory: false
+					storeInHistory: false,
 				},
 				(status, response) => {
 					this.disconnectWebsockets();
@@ -125,7 +125,7 @@ export default class PubNubWrapper {
 						subscribeKey: SUB_KEY,
 						publishKey: PUB_KEY,
 						cipherKey,
-						ssl: true
+						ssl: true,
 					});
 					this.channelName = channelName;
 					this.cipherKey = cipherKey;
@@ -152,7 +152,7 @@ export default class PubNubWrapper {
 					Logger.error(new Error('Unrecognized message'), {
 						thisChannelName: this.channelName,
 						channel,
-						message
+						message,
 					});
 					this.timeout = false;
 					return false;
@@ -177,7 +177,7 @@ export default class PubNubWrapper {
 						}
 					}
 				}
-			}
+			},
 		};
 
 		this.pubnub.addListener(this.pubnubListener);
@@ -189,7 +189,7 @@ export default class PubNubWrapper {
 	subscribe() {
 		this.pubnub.subscribe({
 			channels: [this.channelName],
-			withPresence: false
+			withPresence: false,
 		});
 	}
 

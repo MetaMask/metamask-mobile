@@ -32,25 +32,25 @@ const styles = StyleSheet.create({
 	screen: {
 		flex: 1,
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	content: {
 		width: '100%',
 		paddingHorizontal: 60,
-		marginVertical: 15
+		marginVertical: 15,
 	},
 	progressWrapper: {
 		backgroundColor: colors.grey100,
 		height: 3,
 		borderRadius: 3,
-		marginVertical: 15
+		marginVertical: 15,
 	},
 	progressBar: {
 		backgroundColor: colors.blue,
 		height: 3,
 		width: 3,
 		borderRadius: 3,
-		flex: 1
+		flex: 1,
 	},
 	aggContainer: {
 		position: 'absolute',
@@ -63,20 +63,20 @@ const styles = StyleSheet.create({
 		left: '50%',
 		shadowOffset: {
 			width: 0,
-			height: 4
+			height: 4,
 		},
 		shadowOpacity: 0.45,
 		shadowRadius: 10,
-		elevation: 15
+		elevation: 15,
 	},
 	aggImage: {
 		width: 75,
-		height: 30
+		height: 30,
 	},
 	foxContainer: {
 		width: STAGE_SIZE,
-		height: STAGE_SIZE
-	}
+		height: STAGE_SIZE,
+	},
 });
 
 const customStyle = `
@@ -122,7 +122,7 @@ function LoadingAnimation({ finish, onAnimationEnd, aggregatorMetadata, headPan 
 	const progressValue = useRef(new Animated.Value(0)).current;
 	const progressWidth = progressValue.interpolate({
 		inputRange: [0, 100],
-		outputRange: ['0%', '100%']
+		outputRange: ['0%', '100%'],
 	});
 
 	/* Animation constructions */
@@ -161,7 +161,7 @@ function LoadingAnimation({ finish, onAnimationEnd, aggregatorMetadata, headPan 
 
 						return {
 							...acc,
-							[curr.key]: [panRadioX, panRadioY, radioX, radioY]
+							[curr.key]: [panRadioX, panRadioY, radioX, radioY],
 						};
 						// eslint-disable-next-line no-mixed-spaces-and-tabs
 				  }, {})
@@ -176,7 +176,7 @@ function LoadingAnimation({ finish, onAnimationEnd, aggregatorMetadata, headPan 
 				? metadata.reduce(
 						(acc, curr) => ({
 							...acc,
-							[curr.key]: new Animated.Value(0)
+							[curr.key]: new Animated.Value(0),
 						}),
 						{}
 						// eslint-disable-next-line no-mixed-spaces-and-tabs
@@ -200,7 +200,7 @@ function LoadingAnimation({ finish, onAnimationEnd, aggregatorMetadata, headPan 
 								Animated.timing(currentQuoteIndexValue, {
 									toValue: index,
 									duration: 0,
-									useNativeDriver: true
+									useNativeDriver: true,
 								}),
 								Animated.parallel([
 									// If is not the first aggregator, reduce previous aggregator opacity to 1
@@ -208,28 +208,28 @@ function LoadingAnimation({ finish, onAnimationEnd, aggregatorMetadata, headPan 
 										Animated.timing(opacities[array[index - 1].key], {
 											toValue: 0,
 											duration: PAN_DURATION,
-											useNativeDriver: true
+											useNativeDriver: true,
 										}),
 									// Set current aggregator opacity to 1
 									Animated.timing(opacities[cur.key], {
 										toValue: 1,
 										duration: PAN_DURATION,
-										useNativeDriver: true
+										useNativeDriver: true,
 									}),
 									// Update progress bar given the current index
 									Animated.timing(progressValue, {
 										toValue: (FINALIZING_PERCENTAGE / array.length) * (index + 1),
 										duration: PAN_DURATION,
-										useNativeDriver: false
+										useNativeDriver: false,
 									}),
 									// Make the fox head pan to the aggregator position
 									!Device.isAndroid() &&
 										Animated.timing(foxHeadPan, {
 											toValue: { x: positions[cur.key][0], y: positions[cur.key][1] },
 											duration: PAN_DURATION,
-											useNativeDriver: true
-										})
-								])
+											useNativeDriver: true,
+										}),
+								]),
 							],
 							[]
 						),
@@ -237,19 +237,19 @@ function LoadingAnimation({ finish, onAnimationEnd, aggregatorMetadata, headPan 
 						Animated.delay(DELAY),
 						Animated.parallel([
 							// Set last aggregator icon opacity to 0
-							Animated.timing(opacities[([...metadata].pop()?.key)], {
+							Animated.timing(opacities[[...metadata].pop()?.key], {
 								toValue: 0,
 								duration: PAN_DURATION,
-								useNativeDriver: true
+								useNativeDriver: true,
 							}),
 							// Reset to fox head to origing
 							!Device.isAndroid() &&
 								Animated.timing(foxHeadPan, {
 									toValue: { x: 0, y: 0 },
 									duration: PAN_DURATION,
-									useNativeDriver: true
-								})
-						])
+									useNativeDriver: true,
+								}),
+						]),
 						// eslint-disable-next-line no-mixed-spaces-and-tabs
 				  ]
 				: [],
@@ -268,7 +268,7 @@ function LoadingAnimation({ finish, onAnimationEnd, aggregatorMetadata, headPan 
 		Animated.timing(progressValue, {
 			toValue: 100,
 			duration: FINISH_DURATION,
-			useNativeDriver: false
+			useNativeDriver: false,
 		}).start(() => {
 			if (onAnimationEnd) {
 				onAnimationEnd();
@@ -294,7 +294,7 @@ function LoadingAnimation({ finish, onAnimationEnd, aggregatorMetadata, headPan 
 			} else {
 				const metadata = Object.entries(aggregatorMetadata).map(([key, value]) => ({
 					key,
-					...value
+					...value,
 				}));
 				setMetadata(metadata);
 				setShouldStart(true);
@@ -412,7 +412,7 @@ function LoadingAnimation({ finish, onAnimationEnd, aggregatorMetadata, headPan 
 				{renderLogos &&
 					headPan &&
 					metadata &&
-					metadata.map(agg => (
+					metadata.map((agg) => (
 						<Animated.View
 							key={agg.key}
 							style={[
@@ -423,9 +423,9 @@ function LoadingAnimation({ finish, onAnimationEnd, aggregatorMetadata, headPan 
 									opacity: opacities[agg.key],
 									transform: [
 										{ translateX: positions[agg.key][2] },
-										{ translateY: positions[agg.key][3] }
-									]
-								}
+										{ translateY: positions[agg.key][3] },
+									],
+								},
 							]}
 						>
 							<Image style={styles.aggImage} resizeMode="contain" source={{ uri: agg.iconPng }} />
@@ -452,7 +452,7 @@ LoadingAnimation.propTypes = {
 	/**
 	 * Wether to show head panning animation with aggregators logos
 	 */
-	headPan: PropTypes.bool
+	headPan: PropTypes.bool,
 };
 
 export default LoadingAnimation;

@@ -10,8 +10,8 @@ const styles = StyleSheet.create({
 	infoIcon: {
 		fontSize: 12,
 		margin: 3,
-		color: colors.blue
-	}
+		color: colors.blue,
+	},
 });
 function Ratio({ sourceAmount, sourceToken, destinationAmount, destinationToken, boldSymbol = false }) {
 	/* Get the ratio between the assets given the selected quote*/
@@ -26,7 +26,7 @@ function Ratio({ sourceAmount, sourceToken, destinationAmount, destinationToken,
 
 	const ratio = useRatio(numerator?.amount, numerator?.decimals, denominator?.amount, denominator?.decimals);
 
-	const handleRatioSwitch = () => setRatioAsSource(isSource => !isSource);
+	const handleRatioSwitch = () => setRatioAsSource((isSource) => !isSource);
 
 	return (
 		<TouchableOpacity onPress={handleRatioSwitch}>
@@ -49,14 +49,14 @@ Ratio.propTypes = {
 	sourceAmount: PropTypes.string,
 	sourceToken: PropTypes.shape({
 		symbol: PropTypes.string,
-		decimals: PropTypes.number
+		decimals: PropTypes.number,
 	}),
 	destinationAmount: PropTypes.string,
 	destinationToken: PropTypes.shape({
 		symbol: PropTypes.string,
-		decimals: PropTypes.number
+		decimals: PropTypes.number,
 	}),
-	boldSymbol: PropTypes.bool
+	boldSymbol: PropTypes.bool,
 };
 
 export default Ratio;

@@ -22,7 +22,7 @@ class TransakWebView extends PureComponent {
 				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_EXITED, {
 					payment_rails: PAYMENT_RAILS.MULTIPLE,
 					payment_category: PAYMENT_CATEGORY.MULTIPLE,
-					'on-ramp_provider': FIAT_ORDER_PROVIDERS.TRANSAK
+					'on-ramp_provider': FIAT_ORDER_PROVIDERS.TRANSAK,
 				});
 			});
 		});
@@ -44,10 +44,10 @@ class TransakWebView extends PureComponent {
 		/**
 		 * Object that represents the current route info like params passed to it
 		 */
-		route: PropTypes.object
+		route: PropTypes.object,
 	};
 
-	handleNavigationStateChange = async navState => {
+	handleNavigationStateChange = async (navState) => {
 		if (navState.url.indexOf(AppConstants.FIAT_ORDERS.TRANSAK_REDIRECT_URL) > -1) {
 			const order = handleTransakRedirect(navState.url, this.props.network);
 			this.props.addOrder(order);
@@ -63,7 +63,7 @@ class TransakWebView extends PureComponent {
 					fee_in_crypto: { value: order.cryptoFee, anonymous: true },
 					fiat_amount_in_usd: { value: order.amountInUSD, anonymous: true },
 					order_id: { value: order.id, anonymous: true },
-					'on-ramp_provider': { value: FIAT_ORDER_PROVIDERS.TRANSAK, anonymous: true }
+					'on-ramp_provider': { value: FIAT_ORDER_PROVIDERS.TRANSAK, anonymous: true },
 				});
 				NotificationManager.showSimpleNotification(getNotificationDetails(order));
 			});
@@ -87,16 +87,13 @@ class TransakWebView extends PureComponent {
 	}
 }
 
-const mapStateToProps = state => ({
-	network: state.engine.backgroundState.NetworkController.network
+const mapStateToProps = (state) => ({
+	network: state.engine.backgroundState.NetworkController.network,
 });
 
-const mapDispatchToProps = dispatch => ({
-	addOrder: order => dispatch(addFiatOrder(order)),
-	protectWalletModalVisible: () => dispatch(protectWalletModalVisible())
+const mapDispatchToProps = (dispatch) => ({
+	addOrder: (order) => dispatch(addFiatOrder(order)),
+	protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(TransakWebView);
+export default connect(mapStateToProps, mapDispatchToProps)(TransakWebView);

@@ -11,33 +11,33 @@ import Device from '../../../util/device';
 const styles = StyleSheet.create({
 	wrapper: {
 		alignItems: 'center',
-		flex: 1
+		flex: 1,
 	},
 	network: {
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	networkName: {
 		fontSize: 11,
 		color: colors.grey400,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	networkIcon: {
 		width: 5,
 		height: 5,
 		borderRadius: 100,
 		marginRight: 5,
-		marginTop: Device.isIos() ? 4 : 5
+		marginTop: Device.isIos() ? 4 : 5,
 	},
 	title: {
 		fontSize: 18,
 		...fontStyles.normal,
-		color: colors.black
+		color: colors.black,
 	},
 	otherNetworkIcon: {
 		backgroundColor: colors.transparent,
 		borderColor: colors.grey100,
-		borderWidth: 1
-	}
+		borderWidth: 1,
+	},
 });
 
 /**
@@ -65,11 +65,11 @@ class NavbarTitle extends PureComponent {
 		/**
 		 * Boolean that specifies if the network can be changed
 		 */
-		disableNetwork: PropTypes.bool
+		disableNetwork: PropTypes.bool,
 	};
 
 	static defaultProps = {
-		translate: true
+		translate: true,
 	};
 
 	animating = false;
@@ -124,13 +124,10 @@ class NavbarTitle extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({
-	network: state.engine.backgroundState.NetworkController
+const mapStateToProps = (state) => ({
+	network: state.engine.backgroundState.NetworkController,
 });
-const mapDispatchToProps = dispatch => ({
-	toggleNetworkModal: () => dispatch(toggleNetworkModal())
+const mapDispatchToProps = (dispatch) => ({
+	toggleNetworkModal: () => dispatch(toggleNetworkModal()),
 });
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(NavbarTitle);
+export default connect(mapStateToProps, mapDispatchToProps)(NavbarTitle);

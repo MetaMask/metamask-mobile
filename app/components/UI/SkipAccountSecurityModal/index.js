@@ -13,10 +13,10 @@ const styles = StyleSheet.create({
 	imageWarning: {
 		width: 56,
 		height: 56,
-		alignSelf: 'center'
+		alignSelf: 'center',
 	},
 	modalNoBorder: {
-		borderTopWidth: 0
+		borderTopWidth: 0,
 	},
 	skipTitle: {
 		fontSize: 24,
@@ -24,37 +24,37 @@ const styles = StyleSheet.create({
 		marginBottom: 16,
 		color: colors.fontPrimary,
 		textAlign: 'center',
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	skipModalContainer: {
 		flex: 1,
 		margin: 24,
-		flexDirection: 'column'
+		flexDirection: 'column',
 	},
 	skipModalXButton: {
 		flex: 1,
-		alignItems: 'flex-end'
+		alignItems: 'flex-end',
 	},
 	skipModalXIcon: {
-		fontSize: 16
+		fontSize: 16,
 	},
 	skipModalActionButtons: {
 		flexDirection: 'row',
-		alignItems: 'flex-start'
+		alignItems: 'flex-start',
 	},
 	skipModalCheckbox: {
 		height: 18,
 		width: 18,
 		marginRight: 12,
-		marginTop: 3
+		marginTop: 3,
 	},
 	skipModalText: {
 		flex: 1,
 		...fontStyles.normal,
 		lineHeight: 20,
 		fontSize: 14,
-		paddingHorizontal: 10
-	}
+		paddingHorizontal: 10,
+	},
 });
 
 const SkipAccountSecurityModal = ({ modalVisible, onConfirm, onCancel, onPress, toggleSkipCheckbox, skipCheckbox }) => (
@@ -108,12 +108,12 @@ const propTypes = {
 	onCancel: PropTypes.func.isRequired,
 	onPress: PropTypes.func.isRequired,
 	toggleSkipCheckbox: PropTypes.func.isRequired,
-	skipCheckbox: PropTypes.bool.isRequired
+	skipCheckbox: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
 	modalVisible: false,
-	skipCheckbox: false
+	skipCheckbox: false,
 };
 
 SkipAccountSecurityModal.propTypes = propTypes;

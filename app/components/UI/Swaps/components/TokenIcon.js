@@ -24,39 +24,39 @@ const styles = StyleSheet.create({
 	icon: {
 		width: REGULAR_SIZE,
 		height: REGULAR_SIZE,
-		borderRadius: REGULAR_RADIUS
+		borderRadius: REGULAR_RADIUS,
 	},
 	iconMedium: {
 		width: MEDIUM_SIZE,
 		height: MEDIUM_SIZE,
-		borderRadius: MEDIUM_RADIUS
+		borderRadius: MEDIUM_RADIUS,
 	},
 	iconBig: {
 		width: BIG_SIZE,
 		height: BIG_SIZE,
-		borderRadius: BIG_RADIUS
+		borderRadius: BIG_RADIUS,
 	},
 	iconBiggest: {
 		width: BIGGEST_SIZE,
 		height: BIGGEST_SIZE,
-		borderRadius: BIGGEST_RADIUS
+		borderRadius: BIGGEST_RADIUS,
 	},
 	emptyIcon: {
 		backgroundColor: colors.grey200,
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	tokenSymbol: {
 		fontSize: 16,
 		textAlign: 'center',
-		textAlignVertical: 'center'
+		textAlignVertical: 'center',
 	},
 	tokenSymbolMedium: {
-		fontSize: 22
+		fontSize: 22,
 	},
 	tokenSymbolBig: {
-		fontSize: 26
-	}
+		fontSize: 26,
+	},
 });
 
 const EmptyIcon = ({ medium, big, biggest, style, ...props }) => (
@@ -67,7 +67,7 @@ const EmptyIcon = ({ medium, big, biggest, style, ...props }) => (
 			big && styles.iconBig,
 			biggest && styles.iconBiggest,
 			styles.emptyIcon,
-			style
+			style,
 		]}
 		{...props}
 	/>
@@ -77,7 +77,7 @@ EmptyIcon.propTypes = {
 	medium: PropTypes.bool,
 	big: PropTypes.bool,
 	biggest: PropTypes.bool,
-	style: PropTypes.oneOfType([PropTypes.object, PropTypes.array])
+	style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
 };
 
 function TokenIcon({ symbol, icon, medium, big, biggest, style }) {
@@ -91,7 +91,7 @@ function TokenIcon({ symbol, icon, medium, big, biggest, style }) {
 					medium && styles.iconMedium,
 					big && styles.iconBig,
 					biggest && styles.iconBiggest,
-					style
+					style,
 				]}
 			/>
 		);
@@ -105,7 +105,7 @@ function TokenIcon({ symbol, icon, medium, big, biggest, style }) {
 					medium && styles.iconMedium,
 					big && styles.iconBig,
 					biggest && styles.iconBiggest,
-					style
+					style,
 				]}
 			/>
 		);
@@ -117,7 +117,7 @@ function TokenIcon({ symbol, icon, medium, big, biggest, style }) {
 						styles.tokenSymbol,
 						medium && styles.tokenSymbolMedium,
 						(big || biggest) && styles.tokenSymbolBig,
-						biggest && styles.tokenSymbolBiggest
+						biggest && styles.tokenSymbolBiggest,
 					]}
 				>
 					{symbol[0].toUpperCase()}
@@ -135,7 +135,7 @@ TokenIcon.propTypes = {
 	medium: PropTypes.bool,
 	big: PropTypes.bool,
 	biggest: PropTypes.bool,
-	style: PropTypes.oneOfType([PropTypes.object, PropTypes.array])
+	style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
 };
 
 export default TokenIcon;

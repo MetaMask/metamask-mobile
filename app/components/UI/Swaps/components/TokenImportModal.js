@@ -15,30 +15,30 @@ import { strings } from '../../../../../locales/i18n';
 const styles = StyleSheet.create({
 	modal: {
 		margin: 0,
-		justifyContent: 'flex-end'
+		justifyContent: 'flex-end',
 	},
 	modalView: {
 		backgroundColor: colors.white,
 		borderTopLeftRadius: 10,
-		borderTopRightRadius: 10
+		borderTopRightRadius: 10,
 	},
 	content: {
 		marginVertical: 14,
 		paddingHorizontal: 30,
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	alertIcon: {
 		paddingTop: 4,
-		paddingRight: 8
+		paddingRight: 8,
 	},
 	title: {
 		fontSize: 24,
-		marginVertical: 14
+		marginVertical: 14,
 	},
 	tokenTitle: {
 		fontSize: 18,
 		textAlign: 'center',
-		marginVertical: 14
+		marginVertical: 14,
 	},
 	tokenAddress: {
 		backgroundColor: colors.grey000,
@@ -46,12 +46,12 @@ const styles = StyleSheet.create({
 		borderRadius: 20,
 		marginVertical: 6,
 		paddingHorizontal: 8,
-		paddingVertical: 4
+		paddingVertical: 4,
 	},
 	cta: {
 		marginTop: 10,
-		width: '100%'
-	}
+		width: '100%',
+	},
 });
 
 function TokenImportModal({ isVisible, dismiss, token, onPressImport }) {
@@ -74,7 +74,7 @@ function TokenImportModal({ isVisible, dismiss, token, onPressImport }) {
 							<FAIcon name="info-circle" style={styles.alertIcon} color={colors.red} size={15} />
 						)}
 					>
-						{textStyle => <Text style={textStyle}>{strings('swaps.add_warning')}</Text>}
+						{(textStyle) => <Text style={textStyle}>{strings('swaps.add_warning')}</Text>}
 					</Alert>
 					<Text bold primary centered style={styles.title}>
 						{strings('swaps.import_token')}
@@ -108,8 +108,8 @@ TokenImportModal.propTypes = {
 		name: PropTypes.string,
 		symbol: PropTypes.string,
 		decimals: PropTypes.number,
-		iconUrl: PropTypes.string
+		iconUrl: PropTypes.string,
 	}),
-	onPressImport: PropTypes.func
+	onPressImport: PropTypes.func,
 };
 export default TokenImportModal;

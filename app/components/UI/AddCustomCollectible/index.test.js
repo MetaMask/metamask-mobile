@@ -11,14 +11,14 @@ describe('AddCustomCollectible', () => {
 			engine: {
 				backgroundState: {
 					PreferencesController: {
-						selectedAddress: '0x1'
-					}
-				}
-			}
+						selectedAddress: '0x1',
+					},
+				},
+			},
 		};
 
 		const wrapper = shallow(<AddCustomCollectible route={{ params: {} }} />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});

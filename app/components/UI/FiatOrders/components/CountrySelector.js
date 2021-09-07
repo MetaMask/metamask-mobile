@@ -11,19 +11,19 @@ import { SUPPORTED_COUNTRIES } from '../orderProcessor/wyreApplePay';
 const styles = StyleSheet.create({
 	flagText: {
 		marginVertical: 3,
-		marginHorizontal: 0
-	}
+		marginHorizontal: 0,
+	},
 });
 
 function CountrySelector({ selectedCountry, setCountry, ...props }) {
 	const [isVisible, , showModal, hideModal] = useModalHandler(false);
 	const countriesArray = useMemo(() => Object.values(SUPPORTED_COUNTRIES), []);
-	const country = useMemo(() => countriesArray.find(country => country.code === selectedCountry), [
-		selectedCountry,
-		countriesArray
-	]);
+	const country = useMemo(
+		() => countriesArray.find((country) => country.code === selectedCountry),
+		[selectedCountry, countriesArray]
+	);
 	const handleCountryPress = useCallback(
-		countryCode => {
+		(countryCode) => {
 			setCountry(countryCode);
 			hideModal();
 		},
@@ -48,7 +48,7 @@ function CountrySelector({ selectedCountry, setCountry, ...props }) {
 
 CountrySelector.propTypes = {
 	selectedCountry: PropTypes.string,
-	setCountry: PropTypes.func.isRequired
+	setCountry: PropTypes.func.isRequired,
 };
 
 export default CountrySelector;

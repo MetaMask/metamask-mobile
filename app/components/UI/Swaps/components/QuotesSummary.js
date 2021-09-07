@@ -15,10 +15,10 @@ const styles = StyleSheet.create({
 		borderColor: colors.blue,
 		borderTopRightRadius: 10,
 		borderTopLeftRadius: 10,
-		backgroundColor: colors.blue000
+		backgroundColor: colors.blue000,
 	},
 	headerWithPiggy: {
-		paddingLeft: 15 + 32 + 10
+		paddingLeft: 15 + 32 + 10,
 	},
 	piggyBar: {
 		position: 'absolute',
@@ -27,17 +27,17 @@ const styles = StyleSheet.create({
 		height: 0,
 		width: 19,
 		borderTopWidth: 1,
-		borderColor: colors.blue000
+		borderColor: colors.blue000,
 	},
 	piggyBank: {
 		position: 'absolute',
 		top: -12,
 		left: 15,
 		width: 32,
-		height: 44
+		height: 44,
 	},
 	headerText: {
-		color: colors.blue
+		color: colors.blue,
 	},
 	body: {
 		paddingVertical: 10,
@@ -46,18 +46,18 @@ const styles = StyleSheet.create({
 		borderTopWidth: 0,
 		borderColor: colors.blue,
 		borderBottomRightRadius: 10,
-		borderBottomLeftRadius: 10
+		borderBottomLeftRadius: 10,
 	},
 	separator: {
 		height: 0,
 		width: '100%',
 		borderTopWidth: 1,
 		marginVertical: 6,
-		borderTopColor: colors.grey100
-	}
+		borderTopColor: colors.grey100,
+	},
 });
 
-const QuotesSummary = props => <View {...props} />;
+const QuotesSummary = (props) => <View {...props} />;
 
 const Header = ({ style, savings, children, ...props }) => (
 	<View style={[styles.header, savings && styles.headerWithPiggy, style]} {...props}>
@@ -84,19 +84,19 @@ Header.propTypes = {
 	style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
 	/** Wether the piggybank is shown or not */
 	savings: PropTypes.bool,
-	children: PropTypes.node
+	children: PropTypes.node,
 };
 
 Body.propTypes = {
-	style: PropTypes.oneOfType([PropTypes.object, PropTypes.array])
+	style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
 };
 
 HeaderText.propTypes = {
-	style: PropTypes.oneOfType([PropTypes.object, PropTypes.array])
+	style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
 };
 
 Separator.propTypes = {
-	style: PropTypes.oneOfType([PropTypes.object, PropTypes.array])
+	style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
 };
 
 export default QuotesSummary;
