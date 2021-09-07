@@ -4,8 +4,8 @@ import { BN } from '@metamask/controllers';
 
 /**
  * Hook to handle the balance of ERC20 tokens
- * @property tokenAddress Token contract address
- * @property userAddress Public address which holds the token
+ * @property requestedTokenAddress Token contract address
+ * @property userCurrentAddress Public address which holds the token
  * @returns Array that consists of `[balance, loading, error]`
  */
 
