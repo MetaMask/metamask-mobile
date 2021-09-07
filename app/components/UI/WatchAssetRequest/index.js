@@ -6,7 +6,6 @@ import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import ActionView from '../ActionView';
 import { renderFromTokenMinimalUnit } from '../../../util/number';
-import { toLowerCaseEquals } from '../../../util/general';
 import TokenImage from '../../UI/TokenImage';
 import Device from '../../../util/device';
 import Engine from '../../../core/Engine';
@@ -80,14 +79,7 @@ const styles = StyleSheet.create({
 	},
 });
 
-const WatchAssetRequest = ({
-	suggestedAssetMeta,
-	contractBalances,
-	currentPageInformation,
-	selectedAddress,
-	onCancel,
-	onConfirm
-}) => {
+const WatchAssetRequest = ({ suggestedAssetMeta, currentPageInformation, selectedAddress, onCancel, onConfirm }) => {
 	useEffect(
 		() => async () => {
 			const { TokensController } = Engine.context;
@@ -125,12 +117,10 @@ const WatchAssetRequest = ({
 	};
 
 	const { asset } = suggestedAssetMeta;
-
-	const address = Object.keys(contractBalances).find(key => toLowerCaseEquals(key, asset.address));
 	let [balance] = useTokenBalance(asset.address, selectedAddress);
 
 	try {
-		balance = renderFromTokenMinimalUnit(address ? contractBalances[address] : balance, asset.decimals);
+		balance = renderFromTokenMinimalUnit(balance, asset.decimals);
 	} catch (e) {
 		balance = 0;
 	}
@@ -167,7 +157,7 @@ const WatchAssetRequest = ({
 										<TokenImage
 											asset={{
 												...asset,
-												logo: asset.image
+												logo: asset.image,
 											}}
 											logoDefined
 										/>
@@ -213,19 +203,13 @@ WatchAssetRequest.propTypes = {
 	 */
 	selectedAddress: PropTypes.string,
 	/**
-	 * Object containing token balances in the format address => balance
-	 */
-	contractBalances: PropTypes.object,
-	/**
 	 * Object containing current page title, url, and icon href
 	 */
-	currentPageInformation: PropTypes.object
+	currentPageInformation: PropTypes.object,
 };
 
-const mapStateToProps = state => ({
-	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
+const mapStateToProps = (state) => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	provider: state.engine.backgroundState.NetworkController.provider
 });
 
 export default connect(mapStateToProps)(WatchAssetRequest);
