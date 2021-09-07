@@ -1,11 +1,12 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import { StyleSheet, Text, ScrollView, View } from 'react-native';
+import { Alert, StyleSheet, Text, ScrollView, View } from 'react-native';
 import { connect } from 'react-redux';
 import StyledButton from '../../../UI/StyledButton';
 import { colors, fontStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { strings } from '../../../../../locales/i18n';
+import WalletConnect from '../../../../core/WalletConnect';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -53,6 +54,14 @@ class ExperimentalSettings extends PureComponent {
 		this.props.navigation.navigate('WalletConnectSessionsView');
 	};
 
+	killAllWalletConnectSessions = async () => {
+		await WalletConnect.killAllSessions();
+		Alert.alert(
+			strings('walletconnect_sessions.wallet_connect_all_sessions_ended_title'),
+			strings('walletconnect_sessions.wallet_connect_all_sessions_ended_desc')
+		);
+	};
+
 	render = () => (
 		<ScrollView style={styles.wrapper}>
 			<View style={styles.setting}>
@@ -65,6 +74,13 @@ class ExperimentalSettings extends PureComponent {
 						containerStyle={styles.clearHistoryConfirm}
 					>
 						{strings('experimental_settings.wallet_connect_dapps_cta')}
+					</StyledButton>
+					<StyledButton
+						type="normal"
+						onPress={this.killAllWalletConnectSessions}
+						containerStyle={styles.clearHistoryConfirm}
+					>
+						{strings('experimental_settings.wallet_connect_kill_all')}
 					</StyledButton>
 				</View>
 			</View>

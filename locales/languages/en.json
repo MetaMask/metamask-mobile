@@ -1267,6 +1267,9 @@
 		"wallet_connect_dapps": "WalletConnect Sessions",
 		"wallet_connect_dapps_desc": "View the list of active WalletConnect sessions",
 		"wallet_connect_dapps_cta": "VIEW SESSIONS",
+		"wallet_connect_kill_all": "KILL ALL SESSIONS",
+		"wallet_connect_all_sessions_ended_title": "All Sessions Ended",
+		"wallet_connect_all_sessions_ended_desc": "All sessions have been terminated",
 		"network_not_supported": "Current network not supported",
 		"switch_network": "Please switch to mainnet or rinkeby"
 	},

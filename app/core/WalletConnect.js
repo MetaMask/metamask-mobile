@@ -382,6 +382,18 @@ const instance = {
 		// 3) Persist the list
 		await persistSessions();
 	},
+	killAllSessions: async () => {
+		// 1) First kill all sessions
+		for (const connectorToKill in connectors) {
+			if (connectorToKill && connectorToKill.walletConnector) {
+				await connectorToKill.killSession();
+			}
+		}
+		// 2) Remove everything from the list of connectors
+		connectors = [];
+		// 3) Persist the list
+		await persistSessions();
+	},
 	hub,
 	shutdown() {
 		Engine.context.TransactionController.hub.removeAllListeners();
