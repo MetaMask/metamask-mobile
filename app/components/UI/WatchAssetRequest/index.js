@@ -118,12 +118,7 @@ const WatchAssetRequest = ({ suggestedAssetMeta, currentPageInformation, selecte
 
 	const { asset } = suggestedAssetMeta;
 	let [balance] = useTokenBalance(asset.address, selectedAddress);
-
-	try {
-		balance = renderFromTokenMinimalUnit(balance, asset.decimals);
-	} catch (e) {
-		balance = 0;
-	}
+	balance = renderFromTokenMinimalUnit(balance, asset.decimals);
 
 	return (
 		<View style={styles.root}>
