@@ -306,7 +306,6 @@ class Transactions extends PureComponent {
 			});
 			close && close();
 		} catch (e) {
-			// eslint-disable-next-line no-console
 			Logger.error(e, { message: `can't get a block explorer link for network `, network });
 		}
 	};
@@ -359,11 +358,21 @@ class Transactions extends PureComponent {
 		this.cancelTxId = null;
 	};
 
+	handleSpeedUpTransactionFailure = (e) => {
+		const speedUpTxId = this.speedUpTxId;
+		Logger.error(e, { message: `speedUpTransaction failed `, speedUpTxId });
+	};
+
+	handleCancelTransactionFailure = (e) => {
+		const cancelTxId = this.cancelTxId;
+		Logger.error(e, { message: `cancelTransaction failed `, cancelTxId });
+	};
+
 	speedUpTransaction = () => {
 		try {
 			Engine.context.TransactionController.speedUpTransaction(this.speedUpTxId);
 		} catch (e) {
-			// ignore because transaction already went through
+			this.handleSpeedUpTransactionFailure(e);
 		}
 		this.onSpeedUpCompleted();
 	};
@@ -372,7 +381,7 @@ class Transactions extends PureComponent {
 		try {
 			Engine.context.TransactionController.stopTransaction(this.cancelTxId);
 		} catch (e) {
-			// ignore because transaction already went through
+			this.handleCancelTransactionFailure(e);
 		}
 		this.onCancelCompleted();
 	};
