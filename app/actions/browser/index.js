@@ -9,7 +9,7 @@ export function addToHistory({ url, name }) {
 	return {
 		type: 'ADD_TO_BROWSER_HISTORY',
 		url,
-		name
+		name,
 	};
 }
 
@@ -18,7 +18,7 @@ export function addToHistory({ url, name }) {
  */
 export function clearHistory() {
 	return {
-		type: 'CLEAR_BROWSER_HISTORY'
+		type: 'CLEAR_BROWSER_HISTORY',
 	};
 }
 
@@ -30,7 +30,7 @@ export function clearHistory() {
 export function addToWhitelist(url) {
 	return {
 		type: 'ADD_TO_BROWSER_WHITELIST',
-		url
+		url,
 	};
 }
 
@@ -39,7 +39,7 @@ export function addToWhitelist(url) {
  */
 export function closeAllTabs() {
 	return {
-		type: 'CLOSE_ALL_TABS'
+		type: 'CLOSE_ALL_TABS',
 	};
 }
 
@@ -52,7 +52,7 @@ export function createNewTab(url) {
 	return {
 		type: 'CREATE_NEW_TAB',
 		url,
-		id: Date.now()
+		id: Date.now(),
 	};
 }
 
@@ -64,7 +64,7 @@ export function createNewTab(url) {
 export function closeTab(id) {
 	return {
 		type: 'CLOSE_TAB',
-		id
+		id,
 	};
 }
 
@@ -76,7 +76,7 @@ export function closeTab(id) {
 export function setActiveTab(id) {
 	return {
 		type: 'SET_ACTIVE_TAB',
-		id
+		id,
 	};
 }
 
@@ -90,6 +90,6 @@ export function updateTab(id, data) {
 	return {
 		type: 'UPDATE_TAB',
 		id,
-		data
+		data,
 	};
 }

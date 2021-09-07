@@ -9,7 +9,7 @@ const wallet_switchEthereumChain = async ({
 	showSwitchCustomNetworkDialog,
 	switchCustomNetworkRequest,
 	setCustomNetworkToSwitch,
-	setShowSwitchCustomNetworkDialog
+	setShowSwitchCustomNetworkDialog,
 }) => {
 	if (showSwitchCustomNetworkDialog) return;
 	switchCustomNetworkRequest.current = null;
@@ -19,17 +19,17 @@ const wallet_switchEthereumChain = async ({
 
 	if (!params || typeof params !== 'object') {
 		throw ethErrors.rpc.invalidParams({
-			message: `Expected single, object parameter. Received:\n${JSON.stringify(req.params)}`
+			message: `Expected single, object parameter. Received:\n${JSON.stringify(req.params)}`,
 		});
 	}
 
 	const { chainId } = params;
 
 	const allowedKeys = {
-		chainId: true
+		chainId: true,
 	};
 
-	const extraKeys = Object.keys(params).filter(key => !allowedKeys[key]);
+	const extraKeys = Object.keys(params).filter((key) => !allowedKeys[key]);
 	if (extraKeys.length) {
 		throw ethErrors.rpc.invalidParams(
 			`Received unexpected keys on object parameter. Unsupported keys:\n${extraKeys}`
@@ -54,7 +54,7 @@ const wallet_switchEthereumChain = async ({
 
 	const frequentRpcList = PreferencesController.state.frequentRpcList;
 	const existingNetworkDefault = getDefaultNetworkByChainId(chainIdDecimal);
-	const existingNetworkRPC = frequentRpcList.find(rpc => rpc.chainId === chainIdDecimal);
+	const existingNetworkRPC = frequentRpcList.find((rpc) => rpc.chainId === chainIdDecimal);
 	if (existingNetworkRPC || existingNetworkDefault) {
 		const currentChainId = NetworkController.state.provider.chainId;
 		if (currentChainId === chainIdDecimal) {
@@ -67,14 +67,14 @@ const wallet_switchEthereumChain = async ({
 				rpcUrl: existingNetworkRPC.rpcUrl,
 				chainId: _chainId,
 				chainName: existingNetworkRPC.nickname,
-				ticker: existingNetworkRPC.ticker
+				ticker: existingNetworkRPC.ticker,
 			});
 		} else {
 			setCustomNetworkToSwitch({
 				chainId: _chainId,
 				chainColor: existingNetworkDefault.color,
 				chainName: existingNetworkDefault.shortName,
-				ticker: 'ETH'
+				ticker: 'ETH',
 			});
 		}
 
@@ -86,7 +86,7 @@ const wallet_switchEthereumChain = async ({
 
 		let analyticsParams = {
 			chain_id: _chainId,
-			source: 'Switch Network API'
+			source: 'Switch Network API',
 		};
 		if (existingNetworkRPC) {
 			analyticsParams = {
@@ -94,12 +94,12 @@ const wallet_switchEthereumChain = async ({
 				rpc_url: existingNetworkRPC?.rpcUrl,
 				symbol: existingNetworkRPC?.ticker,
 				block_explorer_url: existingNetworkRPC?.blockExplorerUrl,
-				network_name: 'rpc'
+				network_name: 'rpc',
 			};
 		} else {
 			analyticsParams = {
 				...analyticsParams,
-				network_name: existingNetworkDefault?.shortName
+				network_name: existingNetworkDefault?.shortName,
 			};
 		}
 
@@ -129,7 +129,7 @@ const wallet_switchEthereumChain = async ({
 
 	throw ethErrors.provider.custom({
 		code: 4902, // To-be-standardized "unrecognized chain ID" error
-		message: `Unrecognized chain ID "${_chainId}". Try adding the chain using wallet_addEthereumChain first.`
+		message: `Unrecognized chain ID "${_chainId}". Try adding the chain using wallet_addEthereumChain first.`,
 	});
 };
 

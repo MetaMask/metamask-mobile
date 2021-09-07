@@ -13,8 +13,8 @@ describe('AddressList', () => {
 					NetworkController: {
 						network: '1',
 						provider: {
-							chainId: '1'
-						}
+							chainId: '1',
+						},
 					},
 					AddressBookController: {
 						addressBook: {
@@ -23,26 +23,26 @@ describe('AddressList', () => {
 								chainId: '1',
 								isEns: false,
 								memo: '',
-								name: 'aa'
-							}
-						}
+								name: 'aa',
+							},
+						},
 					},
 					PreferencesController: {
 						identities: {
 							'0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b': {
 								address: '0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b',
-								name: 'Account 1'
-							}
-						}
+								name: 'Account 1',
+							},
+						},
 					},
 					TransactionController: {
-						transactions: []
-					}
-				}
-			}
+						transactions: [],
+					},
+				},
+			},
 		};
 		const wrapper = shallow(<AddressList inputSearch="" />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});

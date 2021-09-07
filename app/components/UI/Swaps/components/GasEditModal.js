@@ -21,15 +21,15 @@ const GAS_OPTIONS = AppConstants.GAS_OPTIONS;
 const styles = StyleSheet.create({
 	bottomModal: {
 		justifyContent: 'flex-end',
-		margin: 0
+		margin: 0,
 	},
 	keyboardAwareWrapper: {
 		flex: 1,
-		justifyContent: 'flex-end'
+		justifyContent: 'flex-end',
 	},
 	text: {
-		lineHeight: 20
-	}
+		lineHeight: 20,
+	},
 });
 
 const RECOMMENDED = GAS_OPTIONS.HIGH;
@@ -55,7 +55,7 @@ function GasEditModal({
 	primaryCurrency,
 	chainId,
 	ticker,
-	animateOnChange
+	animateOnChange,
 }) {
 	const [gasSelected, setGasSelected] = useState(
 		customGasFee
@@ -68,9 +68,8 @@ function GasEditModal({
 	const [hasEnoughEthBalance, setHasEnoughEthBalance] = useState(true);
 	const [EIP1559TransactionDataTemp, setEIP1559TransactionDataTemp] = useState({});
 	const [LegacyTransactionDataTemp, setLegacyTransactionDataTemp] = useState({});
-	const [isGasFeeRecommendationVisible, , showGasFeeRecommendation, hideGasFeeRecommendation] = useModalHandler(
-		false
-	);
+	const [isGasFeeRecommendationVisible, , showGasFeeRecommendation, hideGasFeeRecommendation] =
+		useModalHandler(false);
 	const [isAnimating, setIsAnimating] = useState(false);
 
 	useEffect(() => {
@@ -103,14 +102,14 @@ function GasEditModal({
 							suggestedEstimatedGasLimit: tradeGasLimit,
 							estimatedBaseFee: gasFeeEstimates.estimatedBaseFee,
 							selectedOption: gasSelected,
-							recommended: RECOMMENDED
+							recommended: RECOMMENDED,
 						},
 						swapsParams: {
 							isNativeAsset,
 							tradeValue,
-							sourceAmount
+							sourceAmount,
 						},
-						gasFeeEstimates
+						gasFeeEstimates,
 					},
 					{ onlyGas: true }
 				)
@@ -127,8 +126,8 @@ function GasEditModal({
 							suggestedGasPrice:
 								gasEstimateType === GAS_ESTIMATE_TYPES.ETH_GASPRICE
 									? gasFeeEstimates.gasPrice
-									: gasFeeEstimates[gasSelected]
-						}
+									: gasFeeEstimates[gasSelected],
+						},
 					},
 					{ onlyGas: true }
 				)
@@ -147,7 +146,7 @@ function GasEditModal({
 		stopUpdateGas,
 		ticker,
 		tradeGasLimit,
-		tradeValue
+		tradeValue,
 	]);
 
 	const calculateTempGasFee = useCallback(
@@ -157,7 +156,7 @@ function GasEditModal({
 				suggestedMaxPriorityFeePerGas,
 				suggestedGasLimit,
 				estimatedBaseFee,
-				suggestedEstimatedGasLimit
+				suggestedEstimatedGasLimit,
 			},
 			selected
 		) => {
@@ -178,14 +177,14 @@ function GasEditModal({
 							suggestedEstimatedGasLimit,
 							estimatedBaseFee,
 							selectedOption: selected,
-							recommended: RECOMMENDED
+							recommended: RECOMMENDED,
 						},
 						swapsParams: {
 							isNativeAsset,
 							tradeValue,
-							sourceAmount
+							sourceAmount,
 						},
-						gasFeeEstimates
+						gasFeeEstimates,
 					},
 					{ onlyGas: true }
 				)
@@ -202,7 +201,7 @@ function GasEditModal({
 			isNativeAsset,
 			nativeCurrency,
 			sourceAmount,
-			tradeValue
+			tradeValue,
 		]
 	);
 
@@ -218,8 +217,8 @@ function GasEditModal({
 						ticker,
 						selectedGasFee: {
 							suggestedGasLimit: selected ? initialGasLimit : suggestedGasLimit,
-							suggestedGasPrice
-						}
+							suggestedGasPrice,
+						},
 					},
 					{ onlyGas: true }
 				)
@@ -229,20 +228,20 @@ function GasEditModal({
 	);
 
 	const saveGasEdition = useCallback(
-		selected => {
+		(selected) => {
 			if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
 				const {
 					suggestedMaxFeePerGas: maxFeePerGas,
 					suggestedMaxPriorityFeePerGas: maxPriorityFeePerGas,
 					estimatedBaseFee,
-					suggestedGasLimit
+					suggestedGasLimit,
 				} = EIP1559TransactionDataTemp;
 				onGasUpdate(
 					{
 						maxFeePerGas,
 						maxPriorityFeePerGas,
 						estimatedBaseFee,
-						selected
+						selected,
 					},
 					suggestedGasLimit
 				);
@@ -251,7 +250,7 @@ function GasEditModal({
 				onGasUpdate(
 					{
 						gasPrice,
-						selected
+						selected,
 					},
 					suggestedGasLimit
 				);
@@ -341,7 +340,7 @@ function GasEditModal({
 											/>
 										</Text>
 									</TouchableOpacity>
-								)
+								),
 							}}
 							view="Swaps"
 							animateOnChange={animateOnChange}
@@ -474,15 +473,15 @@ GasEditModal.propTypes = {
 	/**
 	 * If the values should animate upon update or not
 	 */
-	animateOnChange: PropTypes.bool
+	animateOnChange: PropTypes.bool,
 };
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	nativeCurrency: state.engine.backgroundState.CurrencyRateController.nativeCurrency,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-	primaryCurrency: state.settings.primaryCurrency
+	primaryCurrency: state.settings.primaryCurrency,
 });
 
 export default connect(mapStateToProps)(GasEditModal);

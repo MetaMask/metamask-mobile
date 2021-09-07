@@ -24,49 +24,49 @@ const styles = StyleSheet.create({
 	root: {
 		paddingHorizontal: 24,
 		paddingTop: 24,
-		paddingBottom: Device.isIphoneX() ? 48 : 24
+		paddingBottom: Device.isIphoneX() ? 48 : 24,
 	},
 	customGasHeader: {
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 		alignItems: 'center',
 		width: '100%',
-		paddingBottom: 20
+		paddingBottom: 20,
 	},
 	customGasModalTitleText: {
 		...fontStyles.bold,
 		color: colors.black,
 		fontSize: 14,
-		alignSelf: 'center'
+		alignSelf: 'center',
 	},
 	optionsContainer: {
 		flexDirection: 'row',
 		justifyContent: 'center',
 		alignItems: 'center',
-		paddingBottom: 20
+		paddingBottom: 20,
 	},
 	basicButton: {
 		width: 116,
 		height: 36,
 		padding: 8,
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	optionSelected: {
 		backgroundColor: colors.grey000,
 		borderWidth: 1,
 		borderRadius: 20,
-		borderColor: colors.grey100
+		borderColor: colors.grey100,
 	},
 	textOptions: {
 		...fontStyles.normal,
 		fontSize: 14,
-		color: colors.black
+		color: colors.black,
 	},
 	message: {
 		...fontStyles.normal,
 		color: colors.black,
-		fontSize: 12
+		fontSize: 12,
 	},
 	warningWrapper: {
 		alignItems: 'center',
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
 		alignSelf: 'center',
 		textAlign: 'center',
 		width: '100%',
-		marginBottom: 10
+		marginBottom: 10,
 	},
 	warningTextWrapper: {
 		width: '100%',
@@ -86,36 +86,36 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		justifyContent: 'center',
 		alignItems: 'center',
-		flexWrap: 'wrap'
+		flexWrap: 'wrap',
 	},
 	warningText: {
 		color: colors.red,
 		fontSize: 12,
 		textAlign: 'center',
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	invisible: {
-		opacity: 0
+		opacity: 0,
 	},
 	titleContainer: {
 		width: '100%',
 		flexDirection: 'row',
-		justifyContent: 'space-between'
+		justifyContent: 'space-between',
 	},
 	radio: {
-		marginLeft: 'auto'
+		marginLeft: 'auto',
 	},
 	gasSelectorWrapper: {
 		position: 'absolute',
 		alignSelf: 'center',
 		width: '100%',
-		paddingTop: 24
+		paddingTop: 24,
 	},
 	selectors: {
 		position: 'relative',
 		flexDirection: 'row',
 		justifyContent: 'space-evenly',
-		marginBottom: 8
+		marginBottom: 8,
 	},
 	selector: {
 		alignSelf: 'stretch',
@@ -126,63 +126,63 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 12,
 		borderWidth: 1,
 		borderColor: colors.grey100,
-		marginLeft: -2
+		marginLeft: -2,
 	},
 	selectorSelected: {
 		backgroundColor: colors.blue000,
 		borderColor: colors.blue,
-		zIndex: 1
+		zIndex: 1,
 	},
 	first: {
 		borderBottomStartRadius: 6,
-		borderTopStartRadius: 6
+		borderTopStartRadius: 6,
 	},
 	last: {
 		borderBottomEndRadius: 6,
-		borderTopEndRadius: 6
+		borderTopEndRadius: 6,
 	},
 	text: {
 		...fontStyles.normal,
 		fontSize: 10,
-		color: colors.black
+		color: colors.black,
 	},
 	textGasFee: {
-		fontSize: 12
+		fontSize: 12,
 	},
 	textTitle: {
 		...fontStyles.bold,
 		fontSize: 10,
-		color: colors.black
+		color: colors.black,
 	},
 	advancedOptionsContainer: {
 		flexDirection: 'column',
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	valueRow: {
 		width: '100%',
 		flexDirection: 'row',
 		alignItems: 'center',
-		marginBottom: 20
+		marginBottom: 20,
 	},
 	advancedOptionsText: {
 		flex: 1,
 		textAlign: 'left',
 		...fontStyles.light,
 		color: colors.black,
-		fontSize: 14
+		fontSize: 14,
 	},
 	totalGasWrapper: {
 		flex: 1,
 		flexDirection: 'row',
 		justifyContent: 'flex-start',
 		paddingVertical: 8,
-		paddingRight: 20
+		paddingRight: 20,
 	},
 	textTotalGas: {
 		...fontStyles.bold,
 		color: colors.black,
-		fontSize: 14
+		fontSize: 14,
 	},
 	gasInput: {
 		flex: 1,
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		paddingHorizontal: 10,
 		paddingVertical: 8,
-		position: 'relative'
+		position: 'relative',
 	},
 	gasInputError: {
 		flex: 1,
@@ -208,19 +208,19 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		paddingHorizontal: 10,
 		paddingVertical: 8,
-		position: 'relative'
+		position: 'relative',
 	},
 	buttonTransform: {
 		transform: [
 			{
-				translateY: 70
-			}
-		]
+				translateY: 70,
+			},
+		],
 	},
 	hidden: {
 		opacity: 0,
-		height: 0
-	}
+		height: 0,
+	},
 });
 
 /**
@@ -342,7 +342,7 @@ class CustomGas extends PureComponent {
 		/**
 		 * The currently selected gas speed
 		 */
-		gasSpeedSelected: PropTypes.string
+		gasSpeedSelected: PropTypes.string,
 	};
 
 	state = {
@@ -357,7 +357,7 @@ class CustomGas extends PureComponent {
 		warningGasPriceHigh: '',
 		warningSufficientFunds: '',
 		headerHeight: null,
-		gasInputHeight: null
+		gasInputHeight: null,
 	};
 
 	componentDidMount = async () => {
@@ -372,13 +372,13 @@ class CustomGas extends PureComponent {
 		this.setState({ warningSufficientFunds, advancedCustomGas: ticker && ticker !== 'ETH' });
 	};
 
-	componentDidUpdate = prevProps => {
+	componentDidUpdate = (prevProps) => {
 		if (this.props.advancedCustomGas) {
 			this.handleGasRecalculationForCustomGasInput(prevProps);
 		}
 	};
 
-	handleGasRecalculationForCustomGasInput = prevProps => {
+	handleGasRecalculationForCustomGasInput = (prevProps) => {
 		const actualGasLimitWei = renderWei(hexToBN(this.props.gas));
 		if (renderWei(hexToBN(prevProps.gas)) !== actualGasLimitWei)
 			this.setState({ customGasLimit: actualGasLimitWei });
@@ -387,7 +387,7 @@ class CustomGas extends PureComponent {
 	//Validate locally instead of in TransactionEditor, otherwise cannot change back to review mode if insufficient funds
 	hasSufficientFunds = (gas, gasPrice) => {
 		const {
-			transaction: { from, value }
+			transaction: { from, value },
 		} = this.props;
 		const checksummedFrom = safeToChecksumAddress(from);
 		const fromAccount = this.props.accounts[checksummedFrom];
@@ -396,16 +396,16 @@ class CustomGas extends PureComponent {
 		return '';
 	};
 
-	onPressGas = speed => {
+	onPressGas = (speed) => {
 		const {
 			onPress,
-			basicGasEstimates: { averageGwei, fastGwei, safeLowGwei }
+			basicGasEstimates: { averageGwei, fastGwei, safeLowGwei },
 		} = this.props;
 		onPress && onPress(speed);
 		const speedMap = {
 			[FAST]: fastGwei,
 			[AVERAGE]: averageGwei,
-			[SLOW]: safeLowGwei
+			[SLOW]: safeLowGwei,
 		};
 		const gwei = speedMap[speed];
 		const gasPriceBN = apiEstimateModifiedToWEI(gwei);
@@ -413,36 +413,31 @@ class CustomGas extends PureComponent {
 			gasSpeedSelected: speed,
 			customGasPrice: gwei,
 			customGasPriceBNWei: gasPriceBN,
-			warningGasPriceHigh: ''
+			warningGasPriceHigh: '',
 		});
 	};
 
 	toggleEditionOption = () => {
-		const {
-			gas,
-			advancedCustomGas,
-			toggleAdvancedCustomGas,
-			animate,
-			getAnimatedModalValueForAdvancedCG
-		} = this.props;
+		const { gas, advancedCustomGas, toggleAdvancedCustomGas, animate, getAnimatedModalValueForAdvancedCG } =
+			this.props;
 		toggleAdvancedCustomGas();
 		if (!advancedCustomGas) {
 			animate({
 				modalEndValue: getAnimatedModalValueForAdvancedCG(),
 				xTranslationName: 'editToAdvanced',
-				xTranslationEndValue: 1
+				xTranslationEndValue: 1,
 			});
 			this.setState({ customGasLimit: fromWei(gas, 'wei') });
 		} else {
 			animate({
 				modalEndValue: 0,
 				xTranslationName: 'editToAdvanced',
-				xTranslationEndValue: 0
+				xTranslationEndValue: 0,
 			});
 		}
 	};
 
-	onGasLimitChange = value => {
+	onGasLimitChange = (value) => {
 		const { customGasPriceBNWei } = this.state;
 		const bnValue = new BN(value);
 		const warningSufficientFunds = this.hasSufficientFunds(bnValue, customGasPriceBNWei);
@@ -452,17 +447,17 @@ class CustomGas extends PureComponent {
 		else if (bnValue.lt(new BN(21000))) warningGasLimit = strings('custom_gas.warning_gas_limit');
 		else if (this.props.minimumGasLimit && bnValue.lt(new BN(this.props.minimumGasLimit)))
 			warningGasLimit = strings('custom_gas.warning_gas_limit_estimated', {
-				gas: this.props.minimumGasLimit.toString(10)
+				gas: this.props.minimumGasLimit.toString(10),
 			});
 		this.setState({
 			customGasLimit: value,
 			customGasLimitBN: bnValue,
 			warningGasLimit,
-			warningSufficientFunds
+			warningSufficientFunds,
 		});
 	};
 
-	onGasPriceChange = value => {
+	onGasPriceChange = (value) => {
 		const { customGasLimitBN } = this.state;
 		//Added because apiEstimateModifiedToWEI doesn't like empty strings
 		const gasPrice = value === '' ? '0' : value.replace(/\s|[a-zA-Z]/, '').replace(',', '.');
@@ -502,7 +497,7 @@ class CustomGas extends PureComponent {
 			customGasPriceBN: gasPriceBN,
 			warningGasPrice,
 			warningGasPriceHigh,
-			warningSufficientFunds
+			warningSufficientFunds,
 		});
 	};
 
@@ -516,7 +511,7 @@ class CustomGas extends PureComponent {
 				chain_id: chainId,
 				function_type: view,
 				gas_mode: advancedCustomGas ? 'Advanced' : 'Basic',
-				speed_set: advancedCustomGas ? undefined : gasSpeedSelected
+				speed_set: advancedCustomGas ? undefined : gasSpeedSelected,
 			};
 		} catch (error) {
 			return {};
@@ -533,13 +528,13 @@ class CustomGas extends PureComponent {
 				apiEstimateModifiedToWEI(customGasPrice),
 				this.state.warningGasPriceHigh,
 				{
-					mode: 'advanced'
+					mode: 'advanced',
 				}
 			);
 		} else {
 			const mode = { mode: gasSpeedSelected };
 			const {
-				basicGasEstimates: { fastGwei, averageGwei, safeLowGwei }
+				basicGasEstimates: { fastGwei, averageGwei, safeLowGwei },
 			} = this.props;
 			const noGasWarning = '';
 			if (gasSpeedSelected === SLOW)
@@ -565,7 +560,7 @@ class CustomGas extends PureComponent {
 			hideSlow,
 			hideAverage,
 			hideFast,
-			basicGasEstimates: { averageGwei, fastGwei, safeLowGwei }
+			basicGasEstimates: { averageGwei, fastGwei, safeLowGwei },
 		} = this.props;
 		const ticker = getTicker(this.props.ticker);
 		const topOffset = { top: headerHeight };
@@ -578,7 +573,7 @@ class CustomGas extends PureComponent {
 					styles.gasSelectorWrapper,
 					generateTransform('editToAdvanced', [0, -Device.getDeviceWidth()]),
 					topOffset,
-					hideGasSelectors && styles.hidden
+					hideGasSelectors && styles.hidden,
 				]}
 			>
 				<View style={styles.selectors}>
@@ -642,7 +637,7 @@ class CustomGas extends PureComponent {
 									{getRenderableFiatGasFee(fastGwei, conversionRate, currentCurrency, gas)}
 								</Text>
 							</TouchableOpacity>
-						)
+						),
 					]
 						.filter(Boolean)
 						.map((Component, index, array) =>
@@ -650,8 +645,8 @@ class CustomGas extends PureComponent {
 								style: [
 									...Component.props.style,
 									index === 0 && styles.first,
-									index === array.length - 1 && styles.last
-								]
+									index === array.length - 1 && styles.last,
+								],
 							})
 						)}
 				</View>
@@ -670,7 +665,7 @@ class CustomGas extends PureComponent {
 			<Animated.View
 				style={[
 					styles.advancedOptionsContainer,
-					this.onlyAdvanced() ? {} : generateTransform('editToAdvanced', [Device.getDeviceWidth(), 0])
+					this.onlyAdvanced() ? {} : generateTransform('editToAdvanced', [Device.getDeviceWidth(), 0]),
 				]}
 				onLayout={this.saveGasInputHeight}
 			>
@@ -720,10 +715,10 @@ class CustomGas extends PureComponent {
 		);
 	};
 
-	saveHeaderHeight = event =>
+	saveHeaderHeight = (event) =>
 		!this.state.headerHeight && this.setState({ headerHeight: event.nativeEvent.layout.height });
 
-	saveGasInputHeight = event => {
+	saveGasInputHeight = (event) => {
 		!this.state.gasInputHeight && this.setState({ gasInputHeight: event.nativeEvent.layout.height });
 	};
 
@@ -737,15 +732,8 @@ class CustomGas extends PureComponent {
 
 	render = () => {
 		const { warningGasLimit, warningGasPrice, warningSufficientFunds } = this.state;
-		const {
-			review,
-			gasError,
-			saveCustomGasHeight,
-			advancedCustomGas,
-			generateTransform,
-			mode,
-			toAdvancedFrom
-		} = this.props;
+		const { review, gasError, saveCustomGasHeight, advancedCustomGas, generateTransform, mode, toAdvancedFrom } =
+			this.props;
 		let buttonStyle;
 
 		if (toAdvancedFrom === 'edit' && mode === 'edit') {
@@ -815,7 +803,7 @@ const mapStateToProps = (state, props) => ({
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	transaction: props.customTransaction || getNormalizedTxState(state),
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
-	chainId: state.engine.backgroundState.NetworkController.provider.chainId
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 });
 
 export default connect(mapStateToProps)(CustomGas);

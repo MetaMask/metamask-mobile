@@ -9,32 +9,32 @@ import { colors } from '../../../styles/common';
 
 const styles = StyleSheet.create({
 	keypad: {
-		paddingHorizontal: 25
+		paddingHorizontal: 25,
 	},
 	keypadRow: {
 		flexDirection: 'row',
-		justifyContent: 'space-around'
+		justifyContent: 'space-around',
 	},
 	keypadButton: {
 		paddingHorizontal: 20,
 		paddingVertical: Device.isMediumDevice() ? (Device.isIphone5() ? 4 : 8) : 12,
 		flex: 1,
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	keypadButtonText: {
 		color: colors.black,
 		textAlign: 'center',
-		fontSize: 30
+		fontSize: 30,
 	},
 	deleteIcon: {
 		fontSize: 25,
-		marginTop: 5
-	}
+		marginTop: 5,
+	},
 });
 
-const KeypadContainer = props => <View style={styles.keypad} {...props} />;
-const KeypadRow = props => <View style={styles.keypadRow} {...props} />;
+const KeypadContainer = (props) => <View style={styles.keypad} {...props} />;
+const KeypadRow = (props) => <View style={styles.keypadRow} {...props} />;
 const KeypadButton = ({ children, ...props }) => (
 	<TouchableOpacity style={styles.keypadButton} {...props}>
 		<Text style={styles.keypadButtonText}>{children}</Text>
@@ -42,10 +42,10 @@ const KeypadButton = ({ children, ...props }) => (
 );
 
 KeypadButton.propTypes = {
-	children: PropTypes.node
+	children: PropTypes.node,
 };
 
-const KeypadDeleteButton = props => (
+const KeypadDeleteButton = (props) => (
 	<TouchableOpacity style={styles.keypadButton} {...props}>
 		<IonicIcon style={[styles.keypadButtonText, styles.deleteIcon]} name="md-arrow-back" />
 	</TouchableOpacity>

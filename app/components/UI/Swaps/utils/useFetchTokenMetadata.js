@@ -5,7 +5,7 @@ import { swapsUtils } from '@metamask/swaps-controller';
 const defaultTokenMetadata = {
 	valid: null,
 	error: false,
-	metadata: null
+	metadata: null,
 };
 
 function useFetchTokenMetadata(address, chainId) {
@@ -26,9 +26,9 @@ function useFetchTokenMetadata(address, chainId) {
 				const { data } = await axios.request({
 					url: swapsUtils.getTokenMetadataURL(chainId),
 					params: {
-						address
+						address,
 					},
-					cancelToken: cancelTokenSource.token
+					cancelToken: cancelTokenSource.token,
 				});
 				setTokenMetadata({ error: false, valid: true, metadata: data });
 			} catch (error) {

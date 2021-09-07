@@ -33,14 +33,14 @@ const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
 		borderTopLeftRadius: 10,
-		borderTopRightRadius: 10
+		borderTopRightRadius: 10,
 	},
 	body: {
 		alignItems: 'center',
-		paddingHorizontal: 15
+		paddingHorizontal: 15,
 	},
 	qrWrapper: {
-		margin: 15
+		margin: 15,
 	},
 	addressWrapper: {
 		flexDirection: 'row',
@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
 		padding: 9,
 		paddingHorizontal: 15,
 		backgroundColor: colors.grey000,
-		borderRadius: 30
+		borderRadius: 30,
 	},
 	copyButton: {
 		backgroundColor: colors.grey050,
@@ -58,26 +58,26 @@ const styles = StyleSheet.create({
 		overflow: 'hidden',
 		paddingVertical: 3,
 		paddingHorizontal: 6,
-		marginHorizontal: 6
+		marginHorizontal: 6,
 	},
 	actionRow: {
 		flexDirection: 'row',
-		marginBottom: 15
+		marginBottom: 15,
 	},
 	actionButton: {
 		flex: 1,
-		marginHorizontal: 8
+		marginHorizontal: 8,
 	},
 	title: {
 		...fontStyles.normal,
 		color: colors.fontPrimary,
 		fontSize: 18,
 		flexDirection: 'row',
-		alignSelf: 'center'
+		alignSelf: 'center',
 	},
 	titleWrapper: {
-		marginTop: 10
-	}
+		marginTop: 10,
+	},
 });
 
 /**
@@ -121,12 +121,12 @@ class ReceiveRequest extends PureComponent {
 		 * redux flag that indicates if the user
 		 * completed the seed phrase backup flow
 		 */
-		seedphraseBackedUp: PropTypes.bool
+		seedphraseBackedUp: PropTypes.bool,
 	};
 
 	state = {
 		qrModalVisible: false,
-		buyModalVisible: false
+		buyModalVisible: false,
 	};
 
 	/**
@@ -135,13 +135,13 @@ class ReceiveRequest extends PureComponent {
 	onShare = () => {
 		const { selectedAddress } = this.props;
 		Share.open({
-			message: generateUniversalLinkAddress(selectedAddress)
+			message: generateUniversalLinkAddress(selectedAddress),
 		})
 			.then(() => {
 				this.props.hideModal();
 				setTimeout(() => this.props.protectWalletModalVisible(), 1000);
 			})
-			.catch(err => {
+			.catch((err) => {
 				Logger.log('Error while trying to share address', err);
 			});
 		InteractionManager.runAfterInteractions(() => {
@@ -163,7 +163,7 @@ class ReceiveRequest extends PureComponent {
 				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
 				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_OPENED, {
 					button_location: 'Receive Modal',
-					button_copy: 'Buy ETH'
+					button_copy: 'Buy ETH',
 				});
 			});
 		}
@@ -176,7 +176,7 @@ class ReceiveRequest extends PureComponent {
 			isVisible: true,
 			autodismiss: 1500,
 			content: 'clipboard-alert',
-			data: { msg: strings('account_details.account_copied_to_clipboard') }
+			data: { msg: strings('account_details.account_copied_to_clipboard') },
 		});
 		if (!this.props.seedphraseBackedUp) {
 			setTimeout(() => this.props.hideModal(), 1000);
@@ -187,7 +187,7 @@ class ReceiveRequest extends PureComponent {
 	/**
 	 * Closes QR code modal
 	 */
-	closeQrModal = toggleModal => {
+	closeQrModal = (toggleModal) => {
 		this.props.hideModal();
 		toggleModal();
 	};
@@ -206,7 +206,7 @@ class ReceiveRequest extends PureComponent {
 		this.props.toggleReceiveModal();
 		this.props.navigation.navigate('PaymentRequestView', {
 			screen: 'PaymentRequest',
-			params: { receiveAsset: this.props.receiveAsset }
+			params: { receiveAsset: this.props.receiveAsset },
 		});
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST);
@@ -300,20 +300,17 @@ class ReceiveRequest extends PureComponent {
 	}
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	network: state.engine.backgroundState.NetworkController.network,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	receiveAsset: state.modals.receiveAsset,
-	seedphraseBackedUp: state.user.seedphraseBackedUp
+	seedphraseBackedUp: state.user.seedphraseBackedUp,
 });
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch) => ({
 	toggleReceiveModal: () => dispatch(toggleReceiveModal()),
-	showAlert: config => dispatch(showAlert(config)),
-	protectWalletModalVisible: () => dispatch(protectWalletModalVisible())
+	showAlert: (config) => dispatch(showAlert(config)),
+	protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(ReceiveRequest);
+export default connect(mapStateToProps, mapDispatchToProps)(ReceiveRequest);

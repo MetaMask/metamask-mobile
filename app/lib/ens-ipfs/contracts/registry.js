@@ -5,7 +5,7 @@ export default [
 		name: 'resolver',
 		outputs: [{ name: '', type: 'address' }],
 		payable: false,
-		type: 'function'
+		type: 'function',
 	},
 	{
 		constant: true,
@@ -13,27 +13,30 @@ export default [
 		name: 'owner',
 		outputs: [{ name: '', type: 'address' }],
 		payable: false,
-		type: 'function'
+		type: 'function',
 	},
 	{
 		constant: false,
 		inputs: [
 			{ name: 'node', type: 'bytes32' },
 			{ name: 'label', type: 'bytes32' },
-			{ name: 'owner', type: 'address' }
+			{ name: 'owner', type: 'address' },
 		],
 		name: 'setSubnodeOwner',
 		outputs: [],
 		payable: false,
-		type: 'function'
+		type: 'function',
 	},
 	{
 		constant: false,
-		inputs: [{ name: 'node', type: 'bytes32' }, { name: 'ttl', type: 'uint64' }],
+		inputs: [
+			{ name: 'node', type: 'bytes32' },
+			{ name: 'ttl', type: 'uint64' },
+		],
 		name: 'setTTL',
 		outputs: [],
 		payable: false,
-		type: 'function'
+		type: 'function',
 	},
 	{
 		constant: true,
@@ -41,53 +44,65 @@ export default [
 		name: 'ttl',
 		outputs: [{ name: '', type: 'uint64' }],
 		payable: false,
-		type: 'function'
+		type: 'function',
 	},
 	{
 		constant: false,
-		inputs: [{ name: 'node', type: 'bytes32' }, { name: 'resolver', type: 'address' }],
+		inputs: [
+			{ name: 'node', type: 'bytes32' },
+			{ name: 'resolver', type: 'address' },
+		],
 		name: 'setResolver',
 		outputs: [],
 		payable: false,
-		type: 'function'
+		type: 'function',
 	},
 	{
 		constant: false,
-		inputs: [{ name: 'node', type: 'bytes32' }, { name: 'owner', type: 'address' }],
+		inputs: [
+			{ name: 'node', type: 'bytes32' },
+			{ name: 'owner', type: 'address' },
+		],
 		name: 'setOwner',
 		outputs: [],
 		payable: false,
-		type: 'function'
+		type: 'function',
 	},
 	{
 		anonymous: false,
-		inputs: [{ indexed: true, name: 'node', type: 'bytes32' }, { indexed: false, name: 'owner', type: 'address' }],
+		inputs: [
+			{ indexed: true, name: 'node', type: 'bytes32' },
+			{ indexed: false, name: 'owner', type: 'address' },
+		],
 		name: 'Transfer',
-		type: 'event'
+		type: 'event',
 	},
 	{
 		anonymous: false,
 		inputs: [
 			{ indexed: true, name: 'node', type: 'bytes32' },
 			{ indexed: true, name: 'label', type: 'bytes32' },
-			{ indexed: false, name: 'owner', type: 'address' }
+			{ indexed: false, name: 'owner', type: 'address' },
 		],
 		name: 'NewOwner',
-		type: 'event'
+		type: 'event',
 	},
 	{
 		anonymous: false,
 		inputs: [
 			{ indexed: true, name: 'node', type: 'bytes32' },
-			{ indexed: false, name: 'resolver', type: 'address' }
+			{ indexed: false, name: 'resolver', type: 'address' },
 		],
 		name: 'NewResolver',
-		type: 'event'
+		type: 'event',
 	},
 	{
 		anonymous: false,
-		inputs: [{ indexed: true, name: 'node', type: 'bytes32' }, { indexed: false, name: 'ttl', type: 'uint64' }],
+		inputs: [
+			{ indexed: true, name: 'node', type: 'bytes32' },
+			{ indexed: false, name: 'ttl', type: 'uint64' },
+		],
 		name: 'NewTTL',
-		type: 'event'
-	}
+		type: 'event',
+	},
 ];

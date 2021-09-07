@@ -10,34 +10,34 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		justifyContent: 'center',
 		alignItems: 'center',
-		marginHorizontal: 24
+		marginHorizontal: 24,
 	},
 	viewContainer: {
 		width: '100%',
 		backgroundColor: colors.white,
-		borderRadius: 10
+		borderRadius: 10,
 	},
 	actionHorizontalContainer: {
 		flexDirection: 'row',
 		padding: 16,
 		borderTopWidth: 1,
-		borderTopColor: colors.grey200
+		borderTopColor: colors.grey200,
 	},
 	actionVerticalContainer: {
 		flexDirection: 'column',
 		paddingHorizontal: 16,
-		paddingVertical: 8
+		paddingVertical: 8,
 	},
 	childrenContainer: {
 		flexDirection: 'row',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	button: {
-		margin: 8
+		margin: 8,
 	},
 	buttonHorizontal: {
-		flex: 1
-	}
+		flex: 1,
+	},
 });
 
 /**
@@ -63,7 +63,7 @@ export default function ActionContent({
 	viewContainerStyle,
 	actionContainerStyle,
 	childrenContainerStyle,
-	verticalButtons
+	verticalButtons,
 }) {
 	return (
 		<View style={[styles.viewWrapper, viewWrapperStyle]}>
@@ -72,7 +72,7 @@ export default function ActionContent({
 				<View
 					style={[
 						verticalButtons ? styles.actionVerticalContainer : styles.actionHorizontalContainer,
-						actionContainerStyle
+						actionContainerStyle,
 					]}
 				>
 					{displayCancelButton && (
@@ -116,7 +116,7 @@ ActionContent.defaultProps = {
 	displayConfirmButton: true,
 	viewWrapperStyle: null,
 	viewContainerStyle: null,
-	childrenContainerStyle: null
+	childrenContainerStyle: null,
 };
 
 ActionContent.propTypes = {
@@ -188,5 +188,5 @@ ActionContent.propTypes = {
 	/**
 	 * Children container style
 	 */
-	childrenContainerStyle: PropTypes.object
+	childrenContainerStyle: PropTypes.object,
 };

@@ -8,7 +8,7 @@ import {
 	InteractionManager,
 	TextInput,
 	KeyboardAvoidingView,
-	TouchableOpacity
+	TouchableOpacity,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
@@ -28,27 +28,27 @@ import {
 	MANUAL_BACKUP_STEPS,
 	SEED_PHRASE,
 	CONFIRM_PASSWORD,
-	WRONG_PASSWORD_ERROR
+	WRONG_PASSWORD_ERROR,
 } from '../../../constants/onboarding';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
 		backgroundColor: colors.white,
-		flex: 1
+		flex: 1,
 	},
 	wrapper: {
 		flex: 1,
-		paddingHorizontal: 32
+		paddingHorizontal: 32,
 	},
 	onBoardingWrapper: {
-		paddingHorizontal: 20
+		paddingHorizontal: 20,
 	},
 	loader: {
 		backgroundColor: colors.white,
 		flex: 1,
 		minHeight: 300,
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	action: {
 		fontSize: 18,
@@ -56,18 +56,18 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		justifyContent: 'center',
 		textAlign: 'center',
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	infoWrapper: {
 		marginBottom: 16,
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	info: {
 		fontSize: 14,
 		color: colors.fontPrimary,
 		textAlign: 'center',
 		...fontStyles.normal,
-		paddingHorizontal: 6
+		paddingHorizontal: 6,
 	},
 	seedPhraseConcealer: {
 		position: 'absolute',
@@ -78,13 +78,13 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		borderRadius: 8,
 		paddingHorizontal: 24,
-		paddingVertical: 45
+		paddingVertical: 45,
 	},
 	touchableOpacity: {
 		position: 'absolute',
 		width: '100%',
 		height: '100%',
-		borderRadius: 8
+		borderRadius: 8,
 	},
 	blurView: {
 		position: 'absolute',
@@ -92,14 +92,14 @@ const styles = StyleSheet.create({
 		left: 0,
 		bottom: 0,
 		right: 0,
-		borderRadius: 8
+		borderRadius: 8,
 	},
 	icon: {
 		width: 24,
 		height: 24,
 		color: colors.white,
 		textAlign: 'center',
-		marginBottom: 32
+		marginBottom: 32,
 	},
 	reveal: {
 		fontSize: Device.isMediumDevice() ? 13 : 16,
@@ -107,18 +107,18 @@ const styles = StyleSheet.create({
 		color: colors.white,
 		lineHeight: 22,
 		marginBottom: 8,
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	watching: {
 		fontSize: Device.isMediumDevice() ? 10 : 12,
 		color: colors.white,
 		lineHeight: 17,
 		marginBottom: 32,
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	viewButtonContainer: {
 		width: 155,
-		padding: 12
+		padding: 12,
 	},
 	seedPhraseWrapper: {
 		backgroundColor: colors.white,
@@ -127,17 +127,17 @@ const styles = StyleSheet.create({
 		borderColor: colors.grey100,
 		borderWidth: 1,
 		marginBottom: 64,
-		minHeight: 275
+		minHeight: 275,
 	},
 	wordColumn: {
 		flex: 1,
 		alignItems: 'center',
 		paddingHorizontal: Device.isMediumDevice() ? 18 : 24,
 		paddingVertical: 18,
-		justifyContent: 'space-between'
+		justifyContent: 'space-between',
 	},
 	wordWrapper: {
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	word: {
 		paddingHorizontal: 8,
@@ -151,18 +151,18 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		textAlignVertical: 'center',
 		lineHeight: 14,
-		flex: 1
+		flex: 1,
 	},
 	confirmPasswordWrapper: {
 		flex: 1,
 		padding: 30,
-		paddingTop: 0
+		paddingTop: 0,
 	},
 	passwordRequiredContent: {
-		marginBottom: 20
+		marginBottom: 20,
 	},
 	content: {
-		alignItems: 'flex-start'
+		alignItems: 'flex-start',
 	},
 	title: {
 		fontSize: 32,
@@ -171,24 +171,24 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		justifyContent: 'center',
 		textAlign: 'left',
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	text: {
 		marginBottom: 10,
 		marginTop: 20,
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	label: {
 		fontSize: 16,
 		lineHeight: 23,
 		color: colors.fontPrimary,
 		textAlign: 'left',
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	buttonWrapper: {
 		flex: 1,
 		marginTop: 20,
-		justifyContent: 'flex-end'
+		justifyContent: 'flex-end',
 	},
 	input: {
 		borderWidth: 2,
@@ -196,18 +196,18 @@ const styles = StyleSheet.create({
 		width: '100%',
 		borderColor: colors.grey000,
 		padding: 10,
-		height: 40
+		height: 40,
 	},
 	warningMessageText: {
 		paddingVertical: 10,
 		color: colors.red,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	keyboardAvoidingView: {
 		flex: 1,
 		flexDirection: 'row',
-		alignSelf: 'center'
-	}
+		alignSelf: 'center',
+	},
 });
 
 /**
@@ -225,7 +225,7 @@ export default class ManualBackupStep1 extends PureComponent {
 		/**
 		 * Object that represents the current route info like params passed to it
 		 */
-		route: PropTypes.object
+		route: PropTypes.object,
 	};
 
 	steps = MANUAL_BACKUP_STEPS;
@@ -236,7 +236,7 @@ export default class ManualBackupStep1 extends PureComponent {
 		password: undefined,
 		warningIncorrectPassword: undefined,
 		ready: false,
-		view: SEED_PHRASE
+		view: SEED_PHRASE,
 	};
 
 	async componentDidMount() {
@@ -258,7 +258,7 @@ export default class ManualBackupStep1 extends PureComponent {
 		InteractionManager.runAfterInteractions(() => PreventScreenshot.forbid());
 	}
 
-	onPasswordChange = password => {
+	onPasswordChange = (password) => {
 		this.setState({ password });
 	};
 
@@ -268,16 +268,14 @@ export default class ManualBackupStep1 extends PureComponent {
 
 	revealSeedPhrase = () => this.setState({ seedPhraseHidden: false });
 
-	tryExportSeedPhrase = async password => {
+	tryExportSeedPhrase = async (password) => {
 		const { KeyringController } = Engine.context;
 		const mnemonic = await KeyringController.exportSeedPhrase(password);
-		const seed = JSON.stringify(mnemonic)
-			.replace(/"/g, '')
-			.split(' ');
+		const seed = JSON.stringify(mnemonic).replace(/"/g, '').split(' ');
 		return seed;
 	};
 
-	tryUnlockWithPassword = async password => {
+	tryUnlockWithPassword = async (password) => {
 		this.setState({ ready: false });
 		try {
 			this.words = await this.tryExportSeedPhrase(password);
@@ -289,7 +287,7 @@ export default class ManualBackupStep1 extends PureComponent {
 			}
 			this.setState({
 				warningIncorrectPassword: msg,
-				ready: true
+				ready: true,
 			});
 		}
 	};

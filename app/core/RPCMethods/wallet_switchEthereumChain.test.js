@@ -1,12 +1,12 @@
 import wallet_switchEthereumChain from './wallet_switchEthereumChain';
 import Engine from '../Engine';
 const correctParams = {
-	chainId: '0x1'
+	chainId: '0x1',
 };
 
 const otherOptions = {
 	res: {},
-	switchCustomNetworkRequest: {}
+	switchCustomNetworkRequest: {},
 };
 
 describe('RPC Method - wallet_switchEthereumChain', () => {
@@ -14,17 +14,17 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
 		context: {
 			PreferencesController: {
 				state: {
-					frequentRpcList: []
-				}
+					frequentRpcList: [],
+				},
 			},
 			NetworkController: {
 				state: {
 					provider: {
-						chainId: '1'
-					}
-				}
-			}
-		}
+						chainId: '1',
+					},
+				},
+			},
+		},
 	};
 	Engine.context = MOCK_ENGINE.context;
 
@@ -32,9 +32,9 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
 		try {
 			await wallet_switchEthereumChain({
 				req: {
-					params: null
+					params: null,
 				},
-				...otherOptions
+				...otherOptions,
 			});
 		} catch (error) {
 			expect(error.message).toContain('Expected single, object parameter.');
@@ -45,9 +45,9 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
 		try {
 			await wallet_switchEthereumChain({
 				req: {
-					params: [{ ...correctParams, extraKey: 10 }]
+					params: [{ ...correctParams, extraKey: 10 }],
 				},
-				...otherOptions
+				...otherOptions,
 			});
 		} catch (error) {
 			expect(error.message).toContain('Received unexpected keys on object parameter. Unsupported keys');
@@ -58,9 +58,9 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
 		try {
 			await wallet_switchEthereumChain({
 				req: {
-					params: [{ ...correctParams, chainId: '10' }]
+					params: [{ ...correctParams, chainId: '10' }],
 				},
-				...otherOptions
+				...otherOptions,
 			});
 		} catch (error) {
 			expect(error.message).toContain(`Expected 0x-prefixed, unpadded, non-zero hexadecimal string 'chainId'.`);
@@ -71,9 +71,9 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
 		try {
 			await wallet_switchEthereumChain({
 				req: {
-					params: [{ ...correctParams, chainId: '0xFFFFFFFFFFFED' }]
+					params: [{ ...correctParams, chainId: '0xFFFFFFFFFFFED' }],
 				},
-				...otherOptions
+				...otherOptions,
 			});
 		} catch (error) {
 			expect(error.message).toContain('numerical value greater than max safe value.');

@@ -33,30 +33,30 @@ import AssetSwapButton from '../Swaps/components/AssetSwapButton';
 
 const styles = StyleSheet.create({
 	scrollView: {
-		backgroundColor: colors.white
+		backgroundColor: colors.white,
 	},
 	wrapper: {
 		paddingTop: 20,
 		paddingHorizontal: 20,
 		paddingBottom: 0,
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	info: {
 		justifyContent: 'center',
 		alignItems: 'center',
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	data: {
 		textAlign: 'center',
-		paddingTop: 7
+		paddingTop: 7,
 	},
 	label: {
 		fontSize: 24,
 		textAlign: 'center',
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	labelInput: {
-		marginBottom: Device.isAndroid() ? -10 : 0
+		marginBottom: Device.isAndroid() ? -10 : 0,
 	},
 	addressWrapper: {
 		backgroundColor: colors.blue000,
@@ -64,39 +64,39 @@ const styles = StyleSheet.create({
 		marginTop: 20,
 		marginBottom: 20,
 		paddingVertical: 7,
-		paddingHorizontal: 15
+		paddingHorizontal: 15,
 	},
 	address: {
 		fontSize: 12,
 		color: colors.grey400,
 		...fontStyles.normal,
-		letterSpacing: 0.8
+		letterSpacing: 0.8,
 	},
 	amountFiat: {
 		fontSize: 12,
 		paddingTop: 5,
 		color: colors.fontSecondary,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	identiconBorder: {
 		borderRadius: 80,
 		borderWidth: 2,
 		padding: 2,
-		borderColor: colors.blue
+		borderColor: colors.blue,
 	},
 	onboardingWizardLabel: {
 		borderWidth: 2,
 		borderRadius: 4,
 		paddingVertical: Device.isIos() ? 2 : -4,
 		paddingHorizontal: Device.isIos() ? 5 : 5,
-		top: Device.isIos() ? 0 : -2
+		top: Device.isIos() ? 0 : -2,
 	},
 	actions: {
 		flex: 1,
 		justifyContent: 'center',
 		alignItems: 'flex-start',
-		flexDirection: 'row'
-	}
+		flexDirection: 'row',
+	},
 });
 
 /**
@@ -169,14 +169,14 @@ class AccountOverview extends PureComponent {
 		/**
 		 * Current provider ticker
 		 */
-		ticker: PropTypes.string
+		ticker: PropTypes.string,
 	};
 
 	state = {
 		accountLabelEditable: false,
 		accountLabel: '',
 		originalAccountLabel: '',
-		ens: undefined
+		ens: undefined,
 	};
 
 	editableLabelRef = React.createRef();
@@ -224,7 +224,7 @@ class AccountOverview extends PureComponent {
 		this.setState({ accountLabelEditable: false });
 	};
 
-	onAccountLabelChange = accountLabel => {
+	onAccountLabelChange = (accountLabel) => {
 		this.setState({ accountLabel });
 	};
 
@@ -250,7 +250,7 @@ class AccountOverview extends PureComponent {
 			isVisible: true,
 			autodismiss: 1500,
 			content: 'clipboard-alert',
-			data: { msg: strings('account_details.account_copied_to_clipboard') }
+			data: { msg: strings('account_details.account_copied_to_clipboard') },
 		});
 		setTimeout(() => this.props.protectWalletModalVisible(), 2000);
 		InteractionManager.runAfterInteractions(() => {
@@ -272,7 +272,7 @@ class AccountOverview extends PureComponent {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
 			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_OPENED, {
 				button_location: 'Home Screen',
-				button_copy: 'Buy'
+				button_copy: 'Buy',
 			});
 		});
 	};
@@ -281,8 +281,8 @@ class AccountOverview extends PureComponent {
 		this.props.navigation.navigate('Swaps', {
 			screen: 'SwapsAmountView',
 			params: {
-				sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS
-			}
+				sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+			},
 		});
 
 	doENSLookup = async () => {
@@ -300,7 +300,7 @@ class AccountOverview extends PureComponent {
 			currentCurrency,
 			onboardingWizard,
 			chainId,
-			swapsIsLive
+			swapsIsLive,
 		} = this.props;
 
 		const fiatBalance = `${renderFiat(Engine.getTotalFiatAccountBalance(), currentCurrency)}`;
@@ -333,7 +333,7 @@ class AccountOverview extends PureComponent {
 										styles.label,
 										styles.labelInput,
 										styles.onboardingWizardLabel,
-										onboardingWizard ? { borderColor: colors.blue } : { borderColor: colors.white }
+										onboardingWizard ? { borderColor: colors.blue } : { borderColor: colors.white },
 									]}
 									editable={accountLabelEditable}
 									onChangeText={this.onAccountLabelChange}
@@ -356,7 +356,7 @@ class AccountOverview extends PureComponent {
 											styles.onboardingWizardLabel,
 											onboardingWizard
 												? { borderColor: colors.blue }
-												: { borderColor: colors.white }
+												: { borderColor: colors.white },
 										]}
 										numberOfLines={1}
 										testID={'edit-account-label'}
@@ -406,25 +406,22 @@ class AccountOverview extends PureComponent {
 	}
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	network: state.engine.backgroundState.NetworkController.network,
-	swapsIsLive: swapsLivenessSelector(state)
+	swapsIsLive: swapsLivenessSelector(state),
 });
 
-const mapDispatchToProps = dispatch => ({
-	showAlert: config => dispatch(showAlert(config)),
+const mapDispatchToProps = (dispatch) => ({
+	showAlert: (config) => dispatch(showAlert(config)),
 	toggleAccountsModal: () => dispatch(toggleAccountsModal()),
 	protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
-	newAssetTransaction: selectedAsset => dispatch(newAssetTransaction(selectedAsset)),
-	toggleReceiveModal: asset => dispatch(toggleReceiveModal(asset))
+	newAssetTransaction: (selectedAsset) => dispatch(newAssetTransaction(selectedAsset)),
+	toggleReceiveModal: (asset) => dispatch(toggleReceiveModal(asset)),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(AccountOverview);
+export default connect(mapStateToProps, mapDispatchToProps)(AccountOverview);

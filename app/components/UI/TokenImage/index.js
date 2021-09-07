@@ -10,12 +10,12 @@ import { connect } from 'react-redux';
 const styles = StyleSheet.create({
 	itemLogoWrapper: {
 		width: 50,
-		height: 50
+		height: 50,
 	},
 	roundImage: {
 		overflow: 'hidden',
-		borderRadius: 25
-	}
+		borderRadius: 25,
+	},
 });
 
 export function TokenImage({ asset, containerStyle, iconStyle, logoDefined, swapsTokens }) {
@@ -52,11 +52,11 @@ TokenImage.propTypes = {
 	containerStyle: PropTypes.object,
 	iconStyle: PropTypes.object,
 	logoDefined: PropTypes.bool,
-	swapsTokens: PropTypes.arrayOf(PropTypes.object)
+	swapsTokens: PropTypes.arrayOf(PropTypes.object),
 };
 
-const mapStateToProps = state => ({
-	swapsTokens: state.engine.backgroundState.SwapsController.tokens
+const mapStateToProps = (state) => ({
+	swapsTokens: state.engine.backgroundState.SwapsController.tokens,
 });
 
 export default connect(mapStateToProps)(TokenImage);

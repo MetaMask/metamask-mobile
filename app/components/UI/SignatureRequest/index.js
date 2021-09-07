@@ -22,27 +22,27 @@ const styles = StyleSheet.create({
 		minHeight: '90%',
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
-		paddingBottom: Device.isIphoneX() ? 20 : 0
+		paddingBottom: Device.isIphoneX() ? 20 : 0,
 	},
 	expandedHeight2: {
-		minHeight: '90%'
+		minHeight: '90%',
 	},
 	expandedHeight1: {
-		minHeight: '90%'
+		minHeight: '90%',
 	},
 	signingInformation: {
 		alignItems: 'center',
-		marginVertical: 24
+		marginVertical: 24,
 	},
 	domainLogo: {
 		width: 40,
 		height: 40,
 		marginRight: 8,
-		borderRadius: 20
+		borderRadius: 20,
 	},
 	messageColumn: {
 		width: '75%',
-		justifyContent: 'space-between'
+		justifyContent: 'space-between',
 	},
 	warningLink: {
 		...fontStyles.normal,
@@ -50,34 +50,34 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		paddingHorizontal: 10,
 		paddingBottom: 10,
-		textDecorationLine: 'underline'
+		textDecorationLine: 'underline',
 	},
 	signText: {
 		...fontStyles.bold,
 		fontSize: 20,
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	messageLabelText: {
 		...fontStyles.bold,
 		fontSize: 16,
-		marginBottom: 4
+		marginBottom: 4,
 	},
 	readMore: {
 		color: colors.blue,
 		fontSize: 14,
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	warningWrapper: {
 		width: '100%',
 		paddingHorizontal: 24,
-		paddingTop: 24
+		paddingTop: 24,
 	},
 	actionViewChild: {
-		paddingHorizontal: 24
+		paddingHorizontal: 24,
 	},
 	accountInfoCardWrapper: {
 		marginBottom: 20,
-		width: '100%'
+		width: '100%',
 	},
 	children: {
 		alignSelf: 'center',
@@ -87,15 +87,15 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderColor: colors.grey200,
 		borderRadius: 10,
-		padding: 16
+		padding: 16,
 	},
 	arrowIconWrapper: {
 		flexGrow: 1,
-		alignItems: 'flex-end'
+		alignItems: 'flex-end',
 	},
 	arrowIcon: {
-		color: colors.grey200
-	}
+		color: colors.grey200,
+	},
 });
 
 /**
@@ -142,7 +142,7 @@ class SignatureRequest extends PureComponent {
 		/**
 		 * Expands the message box on press.
 		 */
-		toggleExpandedMessage: PropTypes.func
+		toggleExpandedMessage: PropTypes.func,
 	};
 
 	/**
@@ -176,7 +176,7 @@ class SignatureRequest extends PureComponent {
 		const { type, networkType } = this.props;
 		return {
 			network: networkType,
-			functionType: type
+			functionType: type,
 		};
 	};
 
@@ -186,8 +186,8 @@ class SignatureRequest extends PureComponent {
 			screen: 'SimpleWebview',
 			params: {
 				url: 'https://metamask.zendesk.com/hc/en-us/articles/360015488751',
-				title: 'metamask.zendesk.com'
-			}
+				title: 'metamask.zendesk.com',
+			},
 		});
 	};
 
@@ -268,8 +268,8 @@ class SignatureRequest extends PureComponent {
 	}
 }
 
-const mapStateToProps = state => ({
-	networkType: state.engine.backgroundState.NetworkController.provider.type
+const mapStateToProps = (state) => ({
+	networkType: state.engine.backgroundState.NetworkController.provider.type,
 });
 
 export default connect(mapStateToProps)(SignatureRequest);

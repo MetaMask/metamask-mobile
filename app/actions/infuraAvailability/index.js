@@ -2,12 +2,12 @@ import { INFURA_AVAILABILITY_BLOCKED, INFURA_AVAILABILITY_NOT_BLOCKED } from '..
 
 export function setInfuraAvailabilityBlocked() {
 	return {
-		type: INFURA_AVAILABILITY_BLOCKED
+		type: INFURA_AVAILABILITY_BLOCKED,
 	};
 }
 
 export function setInfuraAvailabilityNotBlocked() {
 	return {
-		type: INFURA_AVAILABILITY_NOT_BLOCKED
+		type: INFURA_AVAILABILITY_NOT_BLOCKED,
 	};
 }

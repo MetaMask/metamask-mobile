@@ -8,7 +8,7 @@ import {
 	Text,
 	View,
 	TouchableOpacity,
-	ScrollView
+	ScrollView,
 } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -23,12 +23,12 @@ import DefaultPreference from 'react-native-default-preference';
 const styles = StyleSheet.create({
 	mainWrapper: {
 		backgroundColor: colors.white,
-		flex: 1
+		flex: 1,
 	},
 	wrapper: {
 		flex: 1,
 		padding: 30,
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	title: {
 		fontSize: 32,
@@ -37,27 +37,27 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		justifyContent: 'center',
 		textAlign: 'center',
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	textContainer: {
-		flex: 1
+		flex: 1,
 	},
 	text: {
 		marginTop: 20,
 		fontSize: 16,
 		textAlign: 'center',
 		color: colors.fontPrimary,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	bold: {
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	button: {
 		marginTop: 40,
-		flex: 1
+		flex: 1,
 	},
 	check: {
-		fontSize: 45
+		fontSize: 45,
 	},
 	passwordTipContainer: {
 		padding: 16,
@@ -65,29 +65,29 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderColor: colors.blue200,
 		borderRadius: 8,
-		marginTop: 29
+		marginTop: 29,
 	},
 	passwordTipText: {
 		fontSize: 12,
 		lineHeight: 17,
-		color: colors.blue600
+		color: colors.blue600,
 	},
 	learnMoreText: {
 		marginTop: 29,
 		textAlign: 'center',
 		fontSize: 16,
 		color: colors.blue,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	buttonContainer: {
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	hitSlopLearnMore: {
 		top: 10,
 		left: 10,
 		bottom: 10,
-		right: 10
-	}
+		right: 10,
+	},
 });
 
 const hardwareBackPress = () => ({});
@@ -106,12 +106,12 @@ class SyncWithExtensionSuccess extends PureComponent {
 		/**
 		 * Action to set onboarding wizard step
 		 */
-		setOnboardingWizardStep: PropTypes.func
+		setOnboardingWizardStep: PropTypes.func,
 	};
 
 	static navigationOptions = ({ navigation, route }) => ({
 		...getOnboardingNavbarOptions(navigation, route),
-		headerLeft: () => <View />
+		headerLeft: () => <View />,
 	});
 
 	iconSpringVal = new Animated.Value(0.4);
@@ -130,7 +130,7 @@ class SyncWithExtensionSuccess extends PureComponent {
 			toValue: 1,
 			friction: 2,
 			useNativeDriver: true,
-			isInteraction: false
+			isInteraction: false,
 		}).start();
 	}
 
@@ -154,8 +154,8 @@ class SyncWithExtensionSuccess extends PureComponent {
 			screen: 'SimpleWebview',
 			params: {
 				url: 'https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-Tips',
-				title: strings('drawer.metamask_support')
-			}
+				title: strings('drawer.metamask_support'),
+			},
 		});
 	};
 
@@ -167,8 +167,8 @@ class SyncWithExtensionSuccess extends PureComponent {
 					style={[
 						styles.iconWrapper,
 						{
-							transform: [{ scale: this.iconSpringVal }]
-						}
+							transform: [{ scale: this.iconSpringVal }],
+						},
 					]}
 				>
 					<Text style={styles.check}>✅</Text>
@@ -198,11 +198,8 @@ class SyncWithExtensionSuccess extends PureComponent {
 	);
 }
 
-const mapDispatchToProps = dispatch => ({
-	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
+const mapDispatchToProps = (dispatch) => ({
+	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 });
 
-export default connect(
-	null,
-	mapDispatchToProps
-)(SyncWithExtensionSuccess);
+export default connect(null, mapDispatchToProps)(SyncWithExtensionSuccess);

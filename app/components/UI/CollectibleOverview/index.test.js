@@ -9,20 +9,20 @@ describe('CollectibleOverview', () => {
 	it('should render correctly', () => {
 		const initialState = {
 			collectibles: {
-				favorites: {}
+				favorites: {},
 			},
 			engine: {
 				backgroundState: {
 					NetworkController: {
 						provider: {
-							chainId: 1
-						}
+							chainId: 1,
+						},
 					},
 					PreferencesController: {
-						selectedAddress: '0x1'
-					}
-				}
-			}
+						selectedAddress: '0x1',
+					},
+				},
+			},
 		};
 
 		const wrapper = shallow(
@@ -32,11 +32,11 @@ describe('CollectibleOverview', () => {
 					tokenId: 6904,
 					address: '0x06012c8cf97BEaD5deAe237070F9587f8E7A266d',
 					externalLink: 'https://nft.example.com',
-					tradable: true
+					tradable: true,
 				}}
 			/>,
 			{
-				context: { store: mockStore(initialState) }
+				context: { store: mockStore(initialState) },
 			}
 		);
 		expect(wrapper.dive()).toMatchSnapshot();

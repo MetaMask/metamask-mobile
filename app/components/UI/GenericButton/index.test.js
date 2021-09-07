@@ -11,7 +11,7 @@ describe('GenericButton', () => {
 
 	it('should render correctly on android', () => {
 		jest.doMock('react-native/Libraries/Utilities/Platform', () => ({
-			OS: 'android'
+			OS: 'android',
 		}));
 		const wrapper = shallow(<GenericButtonAndroid />);
 		expect(wrapper).toMatchSnapshot();

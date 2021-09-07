@@ -16,42 +16,42 @@ const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const styles = StyleSheet.create({
 	transactionHeader: {
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	domainLogo: {
 		width: 56,
 		height: 56,
-		borderRadius: 32
+		borderRadius: 32,
 	},
 	assetLogo: {
 		alignItems: 'center',
 		justifyContent: 'center',
-		borderRadius: 10
+		borderRadius: 10,
 	},
 	domanUrlContainer: {
 		alignItems: 'center',
 		justifyContent: 'center',
 		flexDirection: 'row',
-		marginTop: 10
+		marginTop: 10,
 	},
 	secureIcon: {
-		marginRight: 5
+		marginRight: 5,
 	},
 	domainUrl: {
 		...fontStyles.bold,
 		textAlign: 'center',
 		fontSize: 14,
-		color: colors.black
+		color: colors.black,
 	},
 	networkContainer: {
 		alignItems: 'center',
 		justifyContent: 'center',
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	networkStatusIndicator: {
 		borderRadius: 2.5,
 		height: 5,
-		width: 5
+		width: 5,
 	},
 	network: {
 		...fontStyles.normal,
@@ -59,25 +59,25 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		padding: 5,
 		color: colors.black,
-		textTransform: 'capitalize'
+		textTransform: 'capitalize',
 	},
 	deeplinkIconContainer: {
 		borderWidth: 1,
 		borderColor: colors.grey600,
 		width: 56,
 		height: 56,
-		borderRadius: 38
+		borderRadius: 38,
 	},
 	deeplinkIcon: {
 		alignSelf: 'center',
-		lineHeight: 56
-	}
+		lineHeight: 56,
+	},
 });
 
 /**
  * PureComponent that renders the transaction header used for signing, granting permissions and sending
  */
-const TransactionHeader = props => {
+const TransactionHeader = (props) => {
 	const originIsDeeplink =
 		props.currentPageInformation.origin === ORIGIN_DEEPLINK ||
 		props.currentPageInformation.origin === ORIGIN_QR_CODE;
@@ -179,12 +179,12 @@ TransactionHeader.propTypes = {
 	/**
 	 * Provider name
 	 */
-	nickname: PropTypes.string
+	nickname: PropTypes.string,
 };
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
-	nickname: state.engine.backgroundState.NetworkController.provider.nickname
+	nickname: state.engine.backgroundState.NetworkController.provider.nickname,
 });
 
 export default connect(mapStateToProps)(TransactionHeader);

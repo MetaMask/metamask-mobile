@@ -11,15 +11,15 @@ describe('AssetOverview', () => {
 	it('should render correctly', () => {
 		const initialState = {
 			settings: {
-				primaryCurrency: 'ETH'
-			}
+				primaryCurrency: 'ETH',
+			},
 		};
 		const asset = {
 			balance: 4,
 			balanceFiat: 1500,
 			logo: 'https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg',
 			symbol: 'ETH',
-			name: 'Ethereum'
+			name: 'Ethereum',
 		};
 
 		const wrapper = shallow(
@@ -27,7 +27,7 @@ describe('AssetOverview', () => {
 				<AssetOverview asset={asset} />
 			</Provider>,
 			{
-				context: { store: mockStore(initialState) }
+				context: { store: mockStore(initialState) },
 			}
 		);
 		expect(wrapper).toMatchSnapshot();

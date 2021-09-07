@@ -11,7 +11,7 @@ import {
 	FlatList,
 	Dimensions,
 	InteractionManager,
-	TouchableOpacity
+	TouchableOpacity,
 } from 'react-native';
 import { getNetworkTypeById, findBlockExplorerForRpc, getBlockExplorerName } from '../../../util/networks';
 import { getEtherscanAddressUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
@@ -33,33 +33,33 @@ import BigNumber from 'bignumber.js';
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
-		flex: 1
+		flex: 1,
 	},
 	emptyContainer: {
 		flex: 1,
 		justifyContent: 'center',
 		alignItems: 'center',
 		backgroundColor: colors.white,
-		minHeight: Dimensions.get('window').height / 2
+		minHeight: Dimensions.get('window').height / 2,
 	},
 	loader: {
-		alignSelf: 'center'
+		alignSelf: 'center',
 	},
 	text: {
 		fontSize: 20,
 		color: colors.fontTertiary,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	viewMoreBody: {
 		marginBottom: 36,
-		marginTop: 24
+		marginTop: 24,
 	},
 	viewOnEtherscan: {
 		fontSize: 16,
 		color: colors.blue,
 		...fontStyles.normal,
-		textAlign: 'center'
-	}
+		textAlign: 'center',
+	},
 });
 
 const ROW_HEIGHT = (Device.isIos() ? 95 : 100) + StyleSheet.hairlineWidth;
@@ -150,11 +150,11 @@ class Transactions extends PureComponent {
 		/**
 		 * The network native currency
 		 */
-		nativeCurrency: PropTypes.string
+		nativeCurrency: PropTypes.string,
 	};
 
 	static defaultProps = {
-		headerHeight: 0
+		headerHeight: 0,
 	};
 
 	state = {
@@ -165,7 +165,7 @@ class Transactions extends PureComponent {
 		cancelConfirmDisabled: false,
 		speedUpIsOpen: false,
 		speedUpConfirmDisabled: false,
-		rpcBlockExplorer: undefined
+		rpcBlockExplorer: undefined,
 	};
 
 	existingGas = null;
@@ -186,9 +186,9 @@ class Transactions extends PureComponent {
 
 		const {
 			network: {
-				provider: { rpcTarget, type }
+				provider: { rpcTarget, type },
 			},
-			frequentRpcList
+			frequentRpcList,
 		} = this.props;
 		let blockExplorer;
 		if (type === RPC) {
@@ -202,7 +202,7 @@ class Transactions extends PureComponent {
 		const txToView = NotificationManager.getTransactionToView();
 		if (txToView) {
 			setTimeout(() => {
-				const index = this.props.transactions.findIndex(tx => txToView === tx.id);
+				const index = this.props.transactions.findIndex((tx) => txToView === tx.id);
 				if (index >= 0) {
 					this.toggleDetailsView(txToView, index);
 				}
@@ -214,7 +214,7 @@ class Transactions extends PureComponent {
 		this.mounted = false;
 	}
 
-	scrollToIndex = index => {
+	scrollToIndex = (index) => {
 		if (!this.scrolling && (this.props.headerHeight || index)) {
 			this.scrolling = true;
 			// eslint-disable-next-line no-unused-expressions
@@ -236,7 +236,7 @@ class Transactions extends PureComponent {
 				this.toggleDetailsView(id, index);
 			});
 		} else {
-			this.setState(state => {
+			this.setState((state) => {
 				const selectedTx = new Map(state.selectedTx);
 				const show = !selectedTx.get(id);
 				selectedTx.set(id, show);
@@ -280,10 +280,10 @@ class Transactions extends PureComponent {
 			navigation,
 			network: {
 				network,
-				provider: { type }
+				provider: { type },
 			},
 			selectedAddress,
-			close
+			close,
 		} = this.props;
 		const { rpcBlockExplorer } = this.state;
 		try {
@@ -301,8 +301,8 @@ class Transactions extends PureComponent {
 				screen: 'SimpleWebview',
 				params: {
 					url,
-					title
-				}
+					title,
+				},
 			});
 			close && close();
 		} catch (e) {
@@ -328,10 +328,10 @@ class Transactions extends PureComponent {
 	getItemLayout = (data, index) => ({
 		length: ROW_HEIGHT,
 		offset: this.props.headerHeight + ROW_HEIGHT * index,
-		index
+		index,
 	});
 
-	keyExtractor = item => item.id.toString();
+	keyExtractor = (item) => item.id.toString();
 
 	onSpeedUpAction = (speedUpAction, existingGas, tx) => {
 		this.setState({ speedUpIsOpen: speedUpAction });
@@ -410,7 +410,7 @@ class Transactions extends PureComponent {
 			header,
 			currentCurrency,
 			conversionRate,
-			nativeCurrency
+			nativeCurrency,
 		} = this.props;
 		const { cancelConfirmDisabled, speedUpConfirmDisabled } = this.state;
 		const transactions =
@@ -435,15 +435,13 @@ class Transactions extends PureComponent {
 						selectedGasFee: {
 							suggestedMaxFeePerGas: newDecMaxFeePerGas,
 							suggestedMaxPriorityFeePerGas: newDecMaxPriorityFeePerGas,
-							suggestedGasLimit: '1'
-						}
+							suggestedGasLimit: '1',
+						},
 					},
 					{ onlyGas: true }
 				);
 
-				return `Max fee\n ${gasEIP1559.renderableMaxFeePerGasNative} \n\n Max priority fee\n ${
-					gasEIP1559.renderableMaxPriorityFeeNative
-				}`;
+				return `Max fee\n ${gasEIP1559.renderableMaxFeePerGasNative} \n\n Max priority fee\n ${gasEIP1559.renderableMaxPriorityFeeNative}`;
 			}
 			return `${renderFromWei(Math.floor(this.existingGas.gasPrice * SPEED_UP_RATE))} ${strings('unit.eth')}`;
 		};
@@ -465,15 +463,13 @@ class Transactions extends PureComponent {
 						selectedGasFee: {
 							suggestedMaxFeePerGas: newDecMaxFeePerGas,
 							suggestedMaxPriorityFeePerGas: newDecMaxPriorityFeePerGas,
-							suggestedGasLimit: '1'
-						}
+							suggestedGasLimit: '1',
+						},
 					},
 					{ onlyGas: true }
 				);
 
-				return `Max fee per gas\n ${gasEIP1559.renderableMaxFeePerGasNative} \n\n Max priority fee per gas\n ${
-					gasEIP1559.renderableMaxPriorityFeeNative
-				}`;
+				return `Max fee per gas\n ${gasEIP1559.renderableMaxFeePerGasNative} \n\n Max priority fee per gas\n ${gasEIP1559.renderableMaxPriorityFeeNative}`;
 			}
 			return `${renderFromWei(Math.floor(this.existingGas.gasPrice * CANCEL_RATE))} ${strings('unit.eth')}`;
 		};
@@ -529,7 +525,7 @@ class Transactions extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	collectibleContracts: state.engine.backgroundState.CollectiblesController.collectibleContracts,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
@@ -543,14 +539,11 @@ const mapStateToProps = state => ({
 		tokens[token.address] = token;
 		return tokens;
 	}, {}),
-	nativeCurrency: state.engine.backgroundState.CurrencyRateController.nativeCurrency
+	nativeCurrency: state.engine.backgroundState.CurrencyRateController.nativeCurrency,
 });
 
-const mapDispatchToProps = dispatch => ({
-	showAlert: config => dispatch(showAlert(config))
+const mapDispatchToProps = (dispatch) => ({
+	showAlert: (config) => dispatch(showAlert(config)),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(Transactions);
+export default connect(mapStateToProps, mapDispatchToProps)(Transactions);

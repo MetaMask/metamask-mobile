@@ -11,7 +11,7 @@ const styles = StyleSheet.create({
 		alignSelf: 'center',
 		justifyContent: 'flex-end',
 		flexDirection: 'row',
-		marginRight: 24
+		marginRight: 24,
 	},
 	wrapper: {
 		padding: 12,
@@ -21,20 +21,20 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'center',
 		width: '100%',
-		marginTop: 10
+		marginTop: 10,
 	},
 	icon: {
-		marginRight: 4
+		marginRight: 4,
 	},
 	red: {
-		backgroundColor: colors.red000
+		backgroundColor: colors.red000,
 	},
 	normal: {
-		backgroundColor: colors.grey000
+		backgroundColor: colors.grey000,
 	},
 	check: {
-		color: colors.green500
-	}
+		color: colors.green500,
+	},
 });
 
 const WarningIcon = () => <Icon style={styles.icon} size={16} color={colors.red} name="exclamation-triangle" />;
@@ -44,20 +44,20 @@ const propTypes = {
 	style: PropTypes.object,
 	isWarning: PropTypes.bool,
 	isNotification: PropTypes.bool,
-	children: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node), PropTypes.node])
+	children: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node), PropTypes.node]),
 };
 
 const defaultProps = {
 	style: {},
 	isWarning: false,
-	isHighlighted: false
+	isHighlighted: false,
 };
 
 const SettingsNotification = ({ style, isWarning, isNotification, children }) => (
 	<View
 		style={[
 			isNotification ? Object.assign({}, styles.menuItemWarning, style) : styles.wrapper,
-			isNotification ? null : isWarning ? styles.red : styles.normal
+			isNotification ? null : isWarning ? styles.red : styles.normal,
 		]}
 	>
 		{isWarning ? <WarningIcon /> : <CheckIcon />}

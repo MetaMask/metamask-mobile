@@ -11,8 +11,8 @@ const styles = StyleSheet.create({
 		top: 0,
 		bottom: 0,
 		left: 0,
-		right: 0
-	}
+		right: 0,
+	},
 });
 
 /**
@@ -21,11 +21,11 @@ const styles = StyleSheet.create({
 export default class FadeOutOverlay extends PureComponent {
 	static propTypes = {
 		style: PropTypes.any,
-		duration: PropTypes.number
+		duration: PropTypes.number,
 	};
 
 	state = {
-		done: false
+		done: false,
 	};
 
 	opacity = new Animated.Value(1);
@@ -35,7 +35,7 @@ export default class FadeOutOverlay extends PureComponent {
 			toValue: 0,
 			duration: this.props.duration,
 			useNativeDriver: true,
-			isInteraction: false
+			isInteraction: false,
 		}).start(() => {
 			this.setState({ done: true });
 		});
@@ -49,5 +49,5 @@ export default class FadeOutOverlay extends PureComponent {
 
 FadeOutOverlay.defaultProps = {
 	style: null,
-	duration: Device.isAndroid() ? 300 : 300
+	duration: Device.isAndroid() ? 300 : 300,
 };

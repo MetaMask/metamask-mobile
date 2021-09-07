@@ -5,8 +5,8 @@ import { WebView } from 'react-native-webview';
 
 const styles = StyleSheet.create({
 	webView: {
-		flex: 1
-	}
+		flex: 1,
+	},
 });
 
 function Fox({ style, customStyle, customContent = '', forwardedRef, ...props }) {
@@ -1501,7 +1501,7 @@ function Fox({ style, customStyle, customContent = '', forwardedRef, ...props })
 					</script>
 					</body>
 					</html>
-				`
+				`,
 			}}
 			javaScriptEnabled
 			bounces={false}
@@ -1515,7 +1515,7 @@ Fox.propTypes = {
 	style: PropTypes.object,
 	customStyle: PropTypes.string,
 	customContent: PropTypes.string,
-	forwardedRef: PropTypes.any
+	forwardedRef: PropTypes.any,
 };
 
 const FoxWithRef = forwardRef((props, ref) => <Fox {...props} forwardedRef={ref} />);

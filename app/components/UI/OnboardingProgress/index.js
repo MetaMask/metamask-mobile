@@ -7,7 +7,7 @@ const strokeWidth = 2;
 
 export default class OnboardingProgress extends PureComponent {
 	static defaultProps = {
-		currentStep: 0
+		currentStep: 0,
 	};
 
 	static propTypes = {
@@ -18,7 +18,7 @@ export default class OnboardingProgress extends PureComponent {
 		/**
 		 * array of text strings representing each step
 		 */
-		steps: PropTypes.array.isRequired
+		steps: PropTypes.array.isRequired,
 	};
 
 	customStyles = {
@@ -45,7 +45,7 @@ export default class OnboardingProgress extends PureComponent {
 		labelFontFamily: fontStyles.normal.fontFamily,
 		labelSize: 10,
 		currentStepLabelColor: colors.blue,
-		finishedStepLabelColor: colors.blue
+		finishedStepLabelColor: colors.blue,
 	};
 
 	render() {

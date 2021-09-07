@@ -12,12 +12,12 @@ describe('ChoosePasswordSimple', () => {
 		const initialState = {
 			user: {
 				passwordSet: true,
-				seedphraseBackedUp: false
-			}
+				seedphraseBackedUp: false,
+			},
 		};
 
 		const wrapper = shallow(<ChoosePasswordSimple route={{ params: {} }} />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});

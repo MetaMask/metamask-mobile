@@ -14,15 +14,15 @@ describe('GeneralSettings', () => {
 					CurrencyRateController: { currentCurrency: 'USD' },
 					NetworkController: {
 						provider: {
-							type: 'mainnet'
-						}
+							type: 'mainnet',
+						},
 					},
-					PreferencesController: { selectedAddress: '0x0' }
-				}
-			}
+					PreferencesController: { selectedAddress: '0x0' },
+				},
+			},
 		};
 		const wrapper = shallow(<GeneralSettings route={{ params: {} }} />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});

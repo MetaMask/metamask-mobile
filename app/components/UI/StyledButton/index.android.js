@@ -60,16 +60,16 @@ export default class StyledButton extends PureComponent {
 		/**
 		 * Font Scaling
 		 */
-		allowFontScaling: PropTypes.bool
+		allowFontScaling: PropTypes.bool,
 	};
 
 	static defaultProps = {
 		...PureComponent.defaultProps,
 		styleDisabled: { opacity: 0.6 },
-		disabledContainerStyle: { opacity: 0.6 }
+		disabledContainerStyle: { opacity: 0.6 },
 	};
 
-	renderGroupedChildren = fontStyle => {
+	renderGroupedChildren = (fontStyle) => {
 		const { disabled } = this.props;
 		const style = [...fontStyle, this.props.style, disabled ? this.props.styleDisabled : null];
 
@@ -98,7 +98,7 @@ export default class StyledButton extends PureComponent {
 		const containerStyles = [
 			...containerStyle,
 			this.props.disabled ? this.props.disabledContainerStyle : null,
-			this.props.containerStyle
+			this.props.containerStyle,
 		];
 
 		if (!this.props.disabled) {

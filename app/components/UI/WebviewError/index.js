@@ -13,47 +13,47 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		justifyContent: 'center',
 		alignItems: 'center',
-		zIndex: 99999999999999
+		zIndex: 99999999999999,
 	},
 	foxWrapper: {
 		backgroundColor: colors.white,
 		marginTop: -100,
 		width: 110,
 		marginBottom: 20,
-		height: 110
+		height: 110,
 	},
 	textWrapper: {
 		width: 300,
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	image: {
 		alignSelf: 'center',
 		width: 110,
-		height: 110
+		height: 110,
 	},
 	errorTitle: {
 		color: colors.fontPrimary,
 		...fontStyles.bold,
 		fontSize: 18,
-		marginBottom: 15
+		marginBottom: 15,
 	},
 	errorMessage: {
 		textAlign: 'center',
 		color: colors.fontSecondary,
 		...fontStyles.normal,
 		fontSize: 14,
-		marginBottom: 10
+		marginBottom: 10,
 	},
 	errorInfo: {
 		color: colors.fontTertiary,
 		...fontStyles.normal,
-		fontSize: 12
+		fontSize: 12,
 	},
 	buttonWrapper: {
 		width: 120,
-		marginTop: 30
-	}
+		marginTop: 30,
+	},
 });
 
 /**
@@ -68,11 +68,11 @@ export default class WebviewError extends PureComponent {
 		/**
 		 * Function that reloads the page
 		 */
-		onReload: PropTypes.func
+		onReload: PropTypes.func,
 	};
 
 	static defaultProps = {
-		error: false
+		error: false,
 	};
 
 	onReload = () => {

@@ -10,7 +10,7 @@ describe('EditGasFeeLegacy', () => {
 					maxWaitTimeEstimate: 150000,
 					minWaitTimeEstimate: 0,
 					suggestedGasLimit: '21000',
-					suggestedGasPrice: '10'
+					suggestedGasPrice: '10',
 				}}
 			/>
 		);

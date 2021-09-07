@@ -30,7 +30,7 @@ describe('WatchAssetRequest', () => {
 		const wrapper = shallow(
 			<WatchAssetRequest suggestedAssetMeta={{ asset: { address: '0x2', symbol: 'TKN', decimals: 0 } }} />,
 			{
-				context: { store: mockStore(initialState) }
+				context: { store: mockStore(initialState) },
 			}
 		);
 		expect(wrapper.dive()).toMatchSnapshot();

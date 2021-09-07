@@ -8,8 +8,8 @@ describe('SlippageSlider', () => {
 			<SlippageSlider
 				range={[1, 5]}
 				increment={1}
-				onChange={value => undefined}
-				formatTooltipText={text => `${text}%`}
+				onChange={(value) => undefined}
+				formatTooltipText={(text) => `${text}%`}
 			/>
 		);
 		expect(wrapper).toMatchSnapshot();

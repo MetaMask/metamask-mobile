@@ -3,7 +3,7 @@ import Analytics from '../../core/Analytics';
 import { store } from '../../store';
 
 const initialState = {
-	enabled: false
+	enabled: false,
 };
 
 function initalizeAnalytics(enabled = true) {
