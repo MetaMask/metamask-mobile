@@ -6,20 +6,20 @@ import { fontStyles } from '../../../../styles/common';
 const styles = StyleSheet.create({
 	icon: {
 		paddingTop: 5,
-		paddingRight: 8
+		paddingRight: 8,
 	},
 	option: {
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	symbol: {
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	balance: {
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	optionContent: {
-		paddingLeft: 8
-	}
+		paddingLeft: 8,
+	},
 });
 
 /**
@@ -43,7 +43,7 @@ export default class SelectableAsset extends PureComponent {
 		/**
 		 * Callback when asset is selected
 		 */
-		icon: PropTypes.object
+		icon: PropTypes.object,
 	};
 
 	render = () => {

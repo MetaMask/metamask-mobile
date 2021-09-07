@@ -13,35 +13,35 @@ import FadeAnimationView from '../../FadeAnimationView';
 
 const styles = StyleSheet.create({
 	overview: {
-		marginHorizontal: 24
+		marginHorizontal: 24,
 	},
 	loader: {
 		backgroundColor: colors.white,
 		height: 10,
 		flex: 1,
-		alignItems: 'flex-end'
+		alignItems: 'flex-end',
 	},
 	over: {
-		color: colors.red
+		color: colors.red,
 	},
 	valuesContainer: {
 		flex: 1,
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	gasInfoContainer: {
-		paddingHorizontal: 2
+		paddingHorizontal: 2,
 	},
 	gasInfoIcon: {
-		color: colors.blue
+		color: colors.blue,
 	},
 	amountContainer: {
-		flex: 1
+		flex: 1,
 	},
 	gasFeeTitleContainer: {
 		flexDirection: 'row',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
-	primaryContainer: flex => {
+	primaryContainer: (flex) => {
 		if (flex) return { flex: 1 };
 		return { width: 86, marginLeft: 2 };
 	},
@@ -49,8 +49,8 @@ const styles = StyleSheet.create({
 		top: 10,
 		left: 10,
 		bottom: 10,
-		right: 10
-	}
+		right: 10,
+	},
 });
 
 /**
@@ -121,14 +121,14 @@ class TransactionReviewFeeCard extends PureComponent {
 		/**
 		 * Boolean to determine if the animation is happening
 		 */
-		isAnimating: PropTypes.bool
+		isAnimating: PropTypes.bool,
 	};
 
 	state = {
-		showGasTooltip: false
+		showGasTooltip: false,
 	};
 
-	renderIfGasEstimationReady = children => {
+	renderIfGasEstimationReady = (children) => {
 		const { gasEstimationReady } = this.props;
 		return !gasEstimationReady ? (
 			<View style={styles.loader}>
@@ -142,7 +142,7 @@ class TransactionReviewFeeCard extends PureComponent {
 	openLinkAboutGas = () =>
 		Linking.openURL('https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172');
 
-	toggleGasTooltip = () => this.setState(state => ({ showGasTooltip: !state.showGasTooltip }));
+	toggleGasTooltip = () => this.setState((state) => ({ showGasTooltip: !state.showGasTooltip }));
 
 	renderGasTooltip = () => {
 		const isMainnet = isMainnetByChainId(this.props.chainId);
@@ -188,7 +188,7 @@ class TransactionReviewFeeCard extends PureComponent {
 			onUpdatingValuesStart,
 			onUpdatingValuesEnd,
 			animateOnChange,
-			isAnimating
+			isAnimating,
 		} = this.props;
 
 		const isMainnet = isMainnetByChainId(chainId);
@@ -342,10 +342,10 @@ class TransactionReviewFeeCard extends PureComponent {
 	}
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	chainId: state.engine.backgroundState.NetworkController.provider.chainId
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 });
 
 export default connect(mapStateToProps)(TransactionReviewFeeCard);

@@ -5,13 +5,13 @@ const correctParams = {
 	chainName: 'xDai',
 	blockExplorerUrls: ['https://blockscout.com/xdai/mainnet'],
 	nativeCurrency: { symbol: 'xDai', decimals: 18 },
-	rpcUrls: ['https://rpc.xdaichain.com/']
+	rpcUrls: ['https://rpc.xdaichain.com/'],
 };
 
 const otherOptions = {
 	res: {},
 	addCustomNetworkRequest: {},
-	switchCustomNetworkRequest: {}
+	switchCustomNetworkRequest: {},
 };
 
 describe('RPC Method - wallet_addEthereumChain', () => {
@@ -19,17 +19,17 @@ describe('RPC Method - wallet_addEthereumChain', () => {
 		context: {
 			PreferencesController: {
 				state: {
-					frequentRpcList: []
-				}
+					frequentRpcList: [],
+				},
 			},
 			NetworkController: {
 				state: {
 					provider: {
-						chainId: '1'
-					}
-				}
-			}
-		}
+						chainId: '1',
+					},
+				},
+			},
+		},
 	};
 	Engine.context = MOCK_ENGINE.context;
 
@@ -37,9 +37,9 @@ describe('RPC Method - wallet_addEthereumChain', () => {
 		try {
 			await wallet_addEthereumChain({
 				req: {
-					params: null
+					params: null,
 				},
-				...otherOptions
+				...otherOptions,
 			});
 		} catch (error) {
 			expect(error.message).toContain('Expected single, object parameter.');
@@ -50,9 +50,9 @@ describe('RPC Method - wallet_addEthereumChain', () => {
 		try {
 			await wallet_addEthereumChain({
 				req: {
-					params: [{ ...correctParams, extraKey: 10 }]
+					params: [{ ...correctParams, extraKey: 10 }],
 				},
-				...otherOptions
+				...otherOptions,
 			});
 		} catch (error) {
 			expect(error.message).toContain('Received unexpected keys on object parameter. Unsupported keys');
@@ -63,9 +63,9 @@ describe('RPC Method - wallet_addEthereumChain', () => {
 		try {
 			await wallet_addEthereumChain({
 				req: {
-					params: [{ ...correctParams, rpcUrls: ['invalid'] }]
+					params: [{ ...correctParams, rpcUrls: ['invalid'] }],
 				},
-				...otherOptions
+				...otherOptions,
 			});
 		} catch (error) {
 			expect(error.message).toContain(`Expected an array with at least one valid string HTTPS url 'rpcUrls'`);
@@ -76,9 +76,9 @@ describe('RPC Method - wallet_addEthereumChain', () => {
 		try {
 			await wallet_addEthereumChain({
 				req: {
-					params: [{ ...correctParams, blockExplorerUrls: ['invalid'] }]
+					params: [{ ...correctParams, blockExplorerUrls: ['invalid'] }],
 				},
-				...otherOptions
+				...otherOptions,
 			});
 		} catch (error) {
 			expect(error.message).toContain(
@@ -91,9 +91,9 @@ describe('RPC Method - wallet_addEthereumChain', () => {
 		try {
 			await wallet_addEthereumChain({
 				req: {
-					params: [{ ...correctParams, chainId: '10' }]
+					params: [{ ...correctParams, chainId: '10' }],
 				},
-				...otherOptions
+				...otherOptions,
 			});
 		} catch (error) {
 			expect(error.message).toContain(`Expected 0x-prefixed, unpadded, non-zero hexadecimal string 'chainId'.`);
@@ -104,9 +104,9 @@ describe('RPC Method - wallet_addEthereumChain', () => {
 		try {
 			await wallet_addEthereumChain({
 				req: {
-					params: [{ ...correctParams, chainId: '0xFFFFFFFFFFFED' }]
+					params: [{ ...correctParams, chainId: '0xFFFFFFFFFFFED' }],
 				},
-				...otherOptions
+				...otherOptions,
 			});
 		} catch (error) {
 			expect(error.message).toContain('numerical value greater than max safe value.');
@@ -117,9 +117,9 @@ describe('RPC Method - wallet_addEthereumChain', () => {
 		try {
 			await wallet_addEthereumChain({
 				req: {
-					params: [{ ...correctParams, chainId: '0x65' }]
+					params: [{ ...correctParams, chainId: '0x65' }],
 				},
-				...otherOptions
+				...otherOptions,
 			});
 		} catch (error) {
 			expect(error.message).toContain('does not match');
@@ -130,9 +130,9 @@ describe('RPC Method - wallet_addEthereumChain', () => {
 		try {
 			await wallet_addEthereumChain({
 				req: {
-					params: [{ ...correctParams, chainName: undefined }]
+					params: [{ ...correctParams, chainName: undefined }],
 				},
-				...otherOptions
+				...otherOptions,
 			});
 		} catch (error) {
 			expect(error.message).toContain(`Expected non-empty string 'chainName'.`);
@@ -143,9 +143,9 @@ describe('RPC Method - wallet_addEthereumChain', () => {
 		try {
 			await wallet_addEthereumChain({
 				req: {
-					params: [{ ...correctParams, nativeCurrency: 'invalid' }]
+					params: [{ ...correctParams, nativeCurrency: 'invalid' }],
 				},
-				...otherOptions
+				...otherOptions,
 			});
 		} catch (error) {
 			expect(error.message).toContain(`Expected null or object 'nativeCurrency'.`);
@@ -156,9 +156,9 @@ describe('RPC Method - wallet_addEthereumChain', () => {
 		try {
 			await wallet_addEthereumChain({
 				req: {
-					params: [{ ...correctParams, nativeCurrency: { symbol: 'xDai', decimals: 10 } }]
+					params: [{ ...correctParams, nativeCurrency: { symbol: 'xDai', decimals: 10 } }],
 				},
-				...otherOptions
+				...otherOptions,
 			});
 		} catch (error) {
 			expect(error.message).toContain(
@@ -171,9 +171,9 @@ describe('RPC Method - wallet_addEthereumChain', () => {
 		try {
 			await wallet_addEthereumChain({
 				req: {
-					params: [{ ...correctParams, nativeCurrency: { symbol: null, decimals: 18 } }]
+					params: [{ ...correctParams, nativeCurrency: { symbol: null, decimals: 18 } }],
 				},
-				...otherOptions
+				...otherOptions,
 			});
 		} catch (error) {
 			expect(error.message).toContain(`Expected a string 'nativeCurrency.symbol'.`);

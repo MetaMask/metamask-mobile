@@ -6,7 +6,7 @@ import { baseStyles, colors, fontStyles } from '../../../styles/common';
 const styles = StyleSheet.create({
 	root: {
 		...baseStyles.flexGrow,
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	circle: {
 		width: 12,
@@ -17,17 +17,17 @@ const styles = StyleSheet.create({
 		margin: 2,
 		borderWidth: 2,
 		borderColor: colors.grey300,
-		marginRight: 6
+		marginRight: 6,
 	},
 	option: {
-		flex: 1
+		flex: 1,
 	},
 	touchableOption: {
 		flex: 1,
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	optionText: {
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	selectedCircle: {
 		width: 12,
@@ -36,8 +36,8 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.blue,
 		opacity: 1,
 		margin: 2,
-		marginRight: 6
-	}
+		marginRight: 6,
+	},
 });
 
 /**
@@ -68,7 +68,7 @@ export default class PickComponent extends PureComponent {
 		/**
 		 * Current selected value
 		 */
-		selectedValue: PropTypes.string
+		selectedValue: PropTypes.string,
 	};
 
 	pickFirst = () => {

@@ -15,8 +15,8 @@ import { toLowerCaseEquals } from '../../../util/general';
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
-		flex: 1
-	}
+		flex: 1,
+	},
 });
 
 /**
@@ -46,12 +46,12 @@ class Collectible extends PureComponent {
 		/**
 		 * Object that represents the current route info like params passed to it
 		 */
-		route: PropTypes.object
+		route: PropTypes.object,
 	};
 
 	state = {
 		refreshing: false,
-		collectibles: []
+		collectibles: [],
 	};
 
 	static navigationOptions = ({ navigation, route }) =>
@@ -72,15 +72,15 @@ class Collectible extends PureComponent {
 		const {
 			route: { params },
 			navigation,
-			collectibleContractModalVisible
+			collectibleContractModalVisible,
 		} = this.props;
 		const collectibleContract = params;
 		const address = params.address;
 		const { collectibles } = this.props;
-		const filteredCollectibles = collectibles.filter(collectible =>
+		const filteredCollectibles = collectibles.filter((collectible) =>
 			toLowerCaseEquals(collectible.address, address)
 		);
-		filteredCollectibles.map(collectible => {
+		filteredCollectibles.map((collectible) => {
 			if (!collectible.name || collectible.name === '') {
 				collectible.name = collectibleContract.name;
 			}
@@ -132,16 +132,13 @@ class Collectible extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
-	collectibleContractModalVisible: state.modals.collectibleContractModalVisible
+	collectibleContractModalVisible: state.modals.collectibleContractModalVisible,
 });
 
-const mapDispatchToProps = dispatch => ({
-	toggleCollectibleContractModal: () => dispatch(toggleCollectibleContractModal())
+const mapDispatchToProps = (dispatch) => ({
+	toggleCollectibleContractModal: () => dispatch(toggleCollectibleContractModal()),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(Collectible);
+export default connect(mapStateToProps, mapDispatchToProps)(Collectible);

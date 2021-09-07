@@ -15,8 +15,8 @@ import ErrorBoundary from '../ErrorBoundary';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		flex: 1
-	}
+		flex: 1,
+	},
 });
 
 function ActivityView({ hasOrders, ...props }) {
@@ -47,11 +47,11 @@ function ActivityView({ hasOrders, ...props }) {
 }
 
 ActivityView.defaultProps = {
-	hasOrders: false
+	hasOrders: false,
 };
 
 ActivityView.propTypes = {
-	hasOrders: PropTypes.bool
+	hasOrders: PropTypes.bool,
 };
 
 ActivityView.navigationOptions = ({ navigation, route }) => {
@@ -59,8 +59,8 @@ ActivityView.navigationOptions = ({ navigation, route }) => {
 	return getNavbarOptions(title, navigation);
 };
 
-const mapStateToProps = state => ({
-	hasOrders: getHasOrders(state)
+const mapStateToProps = (state) => ({
+	hasOrders: getHasOrders(state),
 });
 
 export default connect(mapStateToProps)(ActivityView);

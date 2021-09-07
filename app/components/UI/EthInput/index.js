@@ -13,7 +13,7 @@ import {
 	fiatNumberToWei,
 	isDecimal,
 	weiToFiatNumber,
-	balanceToFiatNumber
+	balanceToFiatNumber,
 } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import TokenImage from '../TokenImage';
@@ -29,7 +29,7 @@ import { toLowerCaseEquals } from '../../../util/general';
 
 const styles = StyleSheet.create({
 	root: {
-		flex: 1
+		flex: 1,
 	},
 	container: {
 		flex: 1,
@@ -40,10 +40,10 @@ const styles = StyleSheet.create({
 		position: 'relative',
 		borderColor: colors.grey100,
 		borderRadius: 4,
-		borderWidth: 1
+		borderWidth: 1,
 	},
 	wrapper: {
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	input: {
 		...fontStyles.bold,
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
 		paddingLeft: 0,
 		paddingTop: 0,
 		maxWidth: Device.isSmallDevice() ? '40%' : '70%',
-		minWidth: 35
+		minWidth: 35,
 	},
 	eth: {
 		...fontStyles.bold,
@@ -63,56 +63,56 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		paddingTop: Device.isAndroid() ? 1 : 0,
 		paddingLeft: Device.isSmallDevice() ? 4 : 10,
-		alignSelf: 'center'
+		alignSelf: 'center',
 	},
 	secondaryValue: {
 		...fontStyles.normal,
-		fontSize: 12
+		fontSize: 12,
 	},
 	secondaryCurrency: {
 		...fontStyles.normal,
 		fontSize: 12,
-		textTransform: 'uppercase'
+		textTransform: 'uppercase',
 	},
 	secondaryValues: {
 		flexDirection: 'row',
-		maxWidth: '70%'
+		maxWidth: '70%',
 	},
 	split: {
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	splitNoSecondaryAmount: {
-		top: Device.isAndroid() ? 5 : 8
+		top: Device.isAndroid() ? 5 : 8,
 	},
 	ethContainer: {
 		flex: 1,
 		marginLeft: 6,
 		marginRight: 10,
-		maxWidth: '65%'
+		maxWidth: '65%',
 	},
 	icon: {
 		paddingVertical: Device.isAndroid() ? 8 : 6,
-		marginRight: 10
+		marginRight: 10,
 	},
 	logo: {
 		width: 22,
 		height: 22,
-		borderRadius: 11
+		borderRadius: 11,
 	},
 	actions: {
 		position: 'absolute',
 		right: 10,
 		flexDirection: 'row',
-		top: Device.isAndroid() ? 18 : 15
+		top: Device.isAndroid() ? 18 : 15,
 	},
 	switch: {
 		transform: [{ rotate: '270deg' }],
 		marginVertical: 3,
-		marginHorizontal: Device.isSmallDevice() ? 0 : 3
+		marginHorizontal: Device.isSmallDevice() ? 0 : 3,
 	},
 	scrollContainer: {
 		position: 'relative',
-		maxHeight: 200
+		maxHeight: 200,
 	},
 	optionList: {
 		backgroundColor: colors.white,
@@ -121,12 +121,12 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		paddingHorizontal: 14,
 		paddingVertical: 6,
-		flexGrow: 1
+		flexGrow: 1,
 	},
 	selectableAsset: {
 		flex: 1,
-		paddingVertical: 6
-	}
+		paddingVertical: 6,
+	},
 });
 
 /**
@@ -205,7 +205,7 @@ class EthInput extends PureComponent {
 		/**
 		 * Current provider ticker
 		 */
-		ticker: PropTypes.string
+		ticker: PropTypes.string,
 	};
 
 	state = {
@@ -213,7 +213,7 @@ class EthInput extends PureComponent {
 		assets: undefined,
 		secondaryAmount: undefined,
 		internalPrimaryCurrency: this.props.primaryCurrency,
-		inputEnabled: Device.isIos()
+		inputEnabled: Device.isIos(),
 	};
 
 	/**
@@ -253,11 +253,11 @@ class EthInput extends PureComponent {
 						{
 							name: 'Ether',
 							symbol: 'ETH',
-							isETH: true
+							isETH: true,
 						},
-						...this.props.tokens
+						...this.props.tokens,
 					],
-					readableValue: processedReadableValue
+					readableValue: processedReadableValue,
 				});
 				break;
 			case 'ETHER_TRANSACTION':
@@ -265,29 +265,29 @@ class EthInput extends PureComponent {
 					assets: [
 						{
 							name: 'Ether',
-							symbol: 'ETH'
-						}
+							symbol: 'ETH',
+						},
 					],
-					readableValue: processedReadableValue
+					readableValue: processedReadableValue,
 				});
 				break;
 			case 'INDIVIDUAL_TOKEN_TRANSACTION':
 				this.setState({
 					assets: [transaction.selectedAsset],
-					readableValue: processedReadableValue
+					readableValue: processedReadableValue,
 				});
 				break;
 			case 'INDIVIDUAL_COLLECTIBLE_TRANSACTION':
 				this.setState({
-					assets: [transaction.selectedAsset]
+					assets: [transaction.selectedAsset],
 				});
 				break;
 			case 'CONTRACT_COLLECTIBLE_TRANSACTION': {
-				const collectiblesToShow = collectibles.filter(collectible =>
+				const collectiblesToShow = collectibles.filter((collectible) =>
 					toLowerCaseEquals(collectible.address, transaction.selectedAsset.address)
 				);
 				this.setState({
-					assets: collectiblesToShow
+					assets: collectiblesToShow,
 				});
 				break;
 			}
@@ -307,7 +307,7 @@ class EthInput extends PureComponent {
 	 *
 	 * @param {object} asset - Asset to be selected
 	 */
-	selectAsset = async asset => {
+	selectAsset = async (asset) => {
 		Keyboard.dismiss();
 		const { handleUpdateAsset, onChange, openEthInput } = this.props;
 		openEthInput && openEthInput(false);
@@ -348,7 +348,7 @@ class EthInput extends PureComponent {
 					<CollectibleMedia small collectible={asset} containerStyle={styles.logo} iconStyle={styles.logo} />
 				);
 				return { title, subTitle, icon };
-			}
+			},
 		};
 		let assetType;
 		if (asset.isETH) {
@@ -370,12 +370,12 @@ class EthInput extends PureComponent {
 	renderAssetsList = () => {
 		const { assets } = this.state;
 		const {
-			transaction: { selectedAsset, assetType }
+			transaction: { selectedAsset, assetType },
 		} = this.props;
 		const assetsLists = {
-			ETH: () => assets.filter(asset => asset.symbol !== 'ETH'),
-			ERC20: () => assets.filter(asset => asset.symbol !== selectedAsset.symbol),
-			ERC721: () => assets.filter(asset => asset.tokenId !== selectedAsset.tokenId)
+			ETH: () => assets.filter((asset) => asset.symbol !== 'ETH'),
+			ERC20: () => assets.filter((asset) => asset.symbol !== selectedAsset.symbol),
+			ERC721: () => assets.filter((asset) => asset.tokenId !== selectedAsset.tokenId),
 		};
 		const assetsList = assetsLists[assetType]();
 		return (
@@ -407,7 +407,7 @@ class EthInput extends PureComponent {
 		const {
 			transaction: { selectedAsset, assetType },
 			conversionRate,
-			contractExchangeRates
+			contractExchangeRates,
 		} = this.props;
 		internalPrimaryCurrency = internalPrimaryCurrency || this.state.internalPrimaryCurrency;
 		let processedValue, processedReadableValue;
@@ -427,7 +427,7 @@ class EthInput extends PureComponent {
 				case 'ERC20': {
 					const exchangeRate =
 						selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
-					if (internalPrimaryCurrency !== 'ETH' && (exchangeRate && exchangeRate !== 0)) {
+					if (internalPrimaryCurrency !== 'ETH' && exchangeRate && exchangeRate !== 0) {
 						processedValue = fiatNumberToTokenMinimalUnit(
 							readableValue,
 							conversionRate,
@@ -455,12 +455,12 @@ class EthInput extends PureComponent {
 	 * @param {Object} value - Transaction value
 	 * @returns {String} - Readable transaction value depending on primaryCurrency
 	 */
-	processFromValue = value => {
+	processFromValue = (value) => {
 		if (!value) return undefined;
 		const {
 			transaction: { selectedAsset, assetType },
 			conversionRate,
-			contractExchangeRates
+			contractExchangeRates,
 		} = this.props;
 		const { internalPrimaryCurrency } = this.state;
 		let processedReadableValue;
@@ -476,7 +476,7 @@ class EthInput extends PureComponent {
 			case 'ERC20': {
 				const exchangeRate =
 					selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
-				if (internalPrimaryCurrency !== 'ETH' && (exchangeRate && exchangeRate !== 0)) {
+				if (internalPrimaryCurrency !== 'ETH' && exchangeRate && exchangeRate !== 0) {
 					processedReadableValue = balanceToFiatNumber(value, conversionRate, exchangeRate).toString();
 				} else {
 					processedReadableValue = renderFromTokenMinimalUnit(value, selectedAsset.decimals);
@@ -489,7 +489,7 @@ class EthInput extends PureComponent {
 	/**
 	 * On value change, callback to props 'onChange' and update 'readableValue'
 	 */
-	onChange = value => {
+	onChange = (value) => {
 		const { onChange } = this.props;
 		value = value && value.replace(/\s+/g, '');
 		const { processedValue } = this.processValue(value && value.replace(',', '.'));
@@ -577,7 +577,7 @@ class EthInput extends PureComponent {
 			contractExchangeRates,
 			conversionRate,
 			transaction: { assetType, selectedAsset, value },
-			ticker
+			ticker,
 		} = this.props;
 		const { internalPrimaryCurrency } = this.state;
 
@@ -651,7 +651,7 @@ class EthInput extends PureComponent {
 						</View>
 					</View>
 				);
-			}
+			},
 		};
 		return assetType && inputs[assetType]();
 	};
@@ -659,15 +659,15 @@ class EthInput extends PureComponent {
 	/**
 	 * Handle change of primary currency
 	 */
-	switchInternalPrimaryCurrency = secondaryAmount => {
+	switchInternalPrimaryCurrency = (secondaryAmount) => {
 		const { internalPrimaryCurrency } = this.state;
 		const primarycurrencies = {
 			ETH: 'Fiat',
-			Fiat: 'ETH'
+			Fiat: 'ETH',
 		};
 		this.setState({
 			readableValue: secondaryAmount,
-			internalPrimaryCurrency: primarycurrencies[internalPrimaryCurrency]
+			internalPrimaryCurrency: primarycurrencies[internalPrimaryCurrency],
 		});
 	};
 
@@ -684,7 +684,7 @@ class EthInput extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
@@ -695,7 +695,7 @@ const mapStateToProps = state => ({
 	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
 	transaction: getNormalizedTxState(state),
 	primaryCurrency: state.settings.primaryCurrency,
-	ticker: state.engine.backgroundState.NetworkController.provider.ticker
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 });
 
 export default connect(mapStateToProps)(EthInput);

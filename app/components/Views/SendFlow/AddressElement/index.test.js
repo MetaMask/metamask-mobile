@@ -10,13 +10,13 @@ describe('AddressElement', () => {
 			engine: {
 				backgroundState: {
 					NetworkController: {
-						network: '1'
-					}
-				}
-			}
+						network: '1',
+					},
+				},
+			},
 		};
 		const wrapper = shallow(<AddressElement />, {
-			context: { store: mockStore(initialState) }
+			context: { store: mockStore(initialState) },
 		});
 		expect(wrapper.dive()).toMatchSnapshot();
 	});

@@ -15,19 +15,19 @@ import Engine from '../../../core/Engine';
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: colors.black
+		backgroundColor: colors.black,
 	},
 	preview: {
-		flex: 1
+		flex: 1,
 	},
 	innerView: {
-		flex: 1
+		flex: 1,
 	},
 	closeIcon: {
 		marginTop: 20,
 		marginRight: 20,
 		width: 40,
-		alignSelf: 'flex-end'
+		alignSelf: 'flex-end',
 	},
 	frame: {
 		width: 250,
@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
 		alignSelf: 'center',
 		justifyContent: 'center',
 		marginTop: 100,
-		opacity: 0.5
+		opacity: 0.5,
 	},
 	text: {
 		flex: 1,
@@ -43,8 +43,8 @@ const styles = StyleSheet.create({
 		color: colors.white,
 		textAlign: 'center',
 		justifyContent: 'center',
-		marginTop: 100
-	}
+		marginTop: 100,
+	},
 });
 
 const frameImage = require('../../../images/frame.png'); // eslint-disable-line import/no-commonjs
@@ -61,7 +61,7 @@ export default class QrScanner extends PureComponent {
 		/**
 		 * Object that represents the current route info like params passed to it
 		 */
-		route: PropTypes.object
+		route: PropTypes.object,
 	};
 
 	mounted = false;
@@ -85,7 +85,7 @@ export default class QrScanner extends PureComponent {
 		route.params.onScanSuccess(data, content);
 	};
 
-	onBarCodeRead = response => {
+	onBarCodeRead = (response) => {
 		if (!this.mounted) return false;
 		const content = response.data;
 
@@ -137,7 +137,7 @@ export default class QrScanner extends PureComponent {
 			// Checking if it can be handled like deeplinks
 			const handledByDeeplink = SharedDeeplinkManager.parse(content, {
 				origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
-				onHandled: () => this.props.navigation.pop(2)
+				onHandled: () => this.props.navigation.pop(2),
 			});
 
 			if (handledByDeeplink) {
@@ -164,7 +164,7 @@ export default class QrScanner extends PureComponent {
 		this.end(data, content);
 	};
 
-	onError = error => {
+	onError = (error) => {
 		this.props.navigation.goBack();
 		InteractionManager.runAfterInteractions(() => {
 			if (this.props.route.params.onScanError && error) {
@@ -173,7 +173,7 @@ export default class QrScanner extends PureComponent {
 		});
 	};
 
-	onStatusChange = event => {
+	onStatusChange = (event) => {
 		if (event.cameraStatus === 'NOT_AUTHORIZED') {
 			this.props.navigation.goBack();
 		}
@@ -192,7 +192,7 @@ export default class QrScanner extends PureComponent {
 					title: strings('qr_scanner.allow_camera_dialog_title'),
 					message: strings('qr_scanner.allow_camera_dialog_message'),
 					buttonPositive: strings('qr_scanner.ok'),
-					buttonNegative: strings('qr_scanner.cancel')
+					buttonNegative: strings('qr_scanner.cancel'),
 				}}
 				onStatusChange={this.onStatusChange}
 			>

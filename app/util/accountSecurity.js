@@ -14,7 +14,7 @@ export default async function findFirstIncomingTransaction(networkType, selected
 	const networkId = Networks[networkType].networkId;
 	if (transactions.length) {
 		const txs = transactions.filter(
-			tx =>
+			(tx) =>
 				tx.transaction.to &&
 				toChecksumAddress(tx.transaction.to) === selectedAddress &&
 				((networkId && networkId.toString() === tx.networkID) ||
@@ -25,7 +25,7 @@ export default async function findFirstIncomingTransaction(networkType, selected
 			return {
 				asset: 'ETH',
 				from: toChecksumAddress(txs[0].transaction.from),
-				amount: `${renderFromWei(hexToBN(txs[0].transaction.value))} ${strings('unit.eth')}`
+				amount: `${renderFromWei(hexToBN(txs[0].transaction.value))} ${strings('unit.eth')}`,
 			};
 		}
 	}
@@ -34,11 +34,11 @@ export default async function findFirstIncomingTransaction(networkType, selected
 	const { contractBalances: tokenBalances } = TokenBalancesController.state;
 	const { tokens } = TokensController.state;
 	let tokenFound = null;
-	tokens.forEach(token => {
+	tokens.forEach((token) => {
 		if (tokenBalances[token.address].gt(toBN('0'))) {
 			tokenFound = {
 				asset: token.symbol,
-				amount: `${renderFromTokenMinimalUnit(tokenBalances[token.address], token.decimals)} ${token.symbol}`
+				amount: `${renderFromTokenMinimalUnit(tokenBalances[token.address], token.decimals)} ${token.symbol}`,
 			};
 		}
 	});

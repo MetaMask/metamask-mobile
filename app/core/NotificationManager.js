@@ -13,7 +13,7 @@ import { PUSH_NOTIFICATIONS_PROMPT_COUNT, PUSH_NOTIFICATIONS_PROMPT_TIME } from 
 import { RPC } from '../constants/network';
 import { safeToChecksumAddress } from '../util/address';
 
-const constructTitleAndMessage = data => {
+const constructTitleAndMessage = (data) => {
 	let title, message;
 	switch (data.type) {
 		case 'pending':
@@ -55,14 +55,14 @@ const constructTitleAndMessage = data => {
 		case 'received':
 			title = strings('notifications.received_title', {
 				amount: data.transaction.amount,
-				assetType: data.transaction.assetType
+				assetType: data.transaction.assetType,
 			});
 			message = strings('notifications.received_message');
 			break;
 		case 'received_payment':
 			title = strings('notifications.received_payment_title');
 			message = strings('notifications.received_payment_message', {
-				amount: data.transaction.amount
+				amount: data.transaction.amount,
 			});
 			break;
 	}
@@ -94,16 +94,16 @@ class NotificationManager {
 	 */
 	_transactionsWatchTable = {};
 
-	_handleAppStateChange = appState => {
+	_handleAppStateChange = (appState) => {
 		this._backgroundMode = appState === 'background';
 	};
 
-	_viewTransaction = id => {
+	_viewTransaction = (id) => {
 		this._transactionToView.push(id);
 		this.goTo('TransactionsHome');
 	};
 
-	_removeListeners = transactionId => {
+	_removeListeners = (transactionId) => {
 		const { TransactionController } = Engine.context;
 		TransactionController.hub.removeAllListeners(`${transactionId}:confirmed`);
 		TransactionController.hub.removeAllListeners(`${transactionId}:finished`);
@@ -117,7 +117,7 @@ class NotificationManager {
 				title,
 				message,
 				largeIcon: 'ic_notification',
-				smallIcon: 'ic_notification_small'
+				smallIcon: 'ic_notification_small',
 			};
 			const id = data?.transaction?.id || null;
 
@@ -137,12 +137,12 @@ class NotificationManager {
 			this._showTransactionNotification({
 				autodismiss: data.duration,
 				transaction: data.transaction,
-				status: data.type
+				status: data.type,
 			});
 		}
 	}
 
-	_finishedCallback = transactionMeta => {
+	_finishedCallback = (transactionMeta) => {
 		// If it fails we hide the pending tx notification
 		this._removeNotificationById(transactionMeta.id);
 		const transaction = this._transactionsWatchTable[transactionMeta.transaction.nonce];
@@ -154,7 +154,7 @@ class NotificationManager {
 					type: transactionMeta.status === 'cancelled' ? 'cancelled' : 'error',
 					autoHide: true,
 					transaction: { id: transactionMeta.id },
-					duration: 5000
+					duration: 5000,
 				});
 				// Clean up
 				this._removeListeners(transactionMeta.id);
@@ -173,9 +173,9 @@ class NotificationManager {
 					autoHide: true,
 					transaction: {
 						id: transactionMeta.id,
-						nonce: `${hexToBN(transactionMeta.transaction.nonce).toString()}`
+						nonce: `${hexToBN(transactionMeta.transaction.nonce).toString()}`,
 					},
-					duration: 5000
+					duration: 5000,
 				});
 				// Clean up
 				this._removeListeners(transactionMeta.id);
@@ -207,7 +207,7 @@ class NotificationManager {
 			}, 2000);
 	};
 
-	_speedupCallback = transactionMeta => {
+	_speedupCallback = (transactionMeta) => {
 		this.watchSubmittedTransaction(transactionMeta, true);
 		setTimeout(() => {
 			this._showNotification({
@@ -215,8 +215,8 @@ class NotificationManager {
 				type: 'speedup',
 				transaction: {
 					id: transactionMeta.id,
-					nonce: `${hexToBN(transactionMeta.transaction.nonce).toString()}`
-				}
+					nonce: `${hexToBN(transactionMeta.transaction.nonce).toString()}`,
+				},
 			});
 		}, 2000);
 	};
@@ -260,7 +260,7 @@ class NotificationManager {
 	requestPushNotificationsPermission = async () => {
 		const promptCount = await AsyncStorage.getItem(PUSH_NOTIFICATIONS_PROMPT_COUNT);
 		if (!promptCount || Number(promptCount) < AppConstants.MAX_PUSH_NOTIFICATION_PROMPT_TIMES) {
-			PushNotification.checkPermissions(permissions => {
+			PushNotification.checkPermissions((permissions) => {
 				if (!permissions || !permissions.alert) {
 					Alert.alert(
 						strings('notifications.prompt_title'),
@@ -269,12 +269,12 @@ class NotificationManager {
 							{
 								text: strings('notifications.prompt_cancel'),
 								onPress: () => false,
-								style: 'default'
+								style: 'default',
 							},
 							{
 								text: strings('notifications.prompt_ok'),
-								onPress: () => PushNotification.requestPermissions()
-							}
+								onPress: () => PushNotification.requestPermissions(),
+							},
 						],
 						{ cancelable: false }
 					);
@@ -298,21 +298,21 @@ class NotificationManager {
 	 * Sets the id of the transaction that should
 	 * be displayed in memory
 	 */
-	setTransactionToView = id => {
+	setTransactionToView = (id) => {
 		this._transactionToView.push(id);
 	};
 
 	/**
 	 * Shows a notification with title and description
 	 */
-	showSimpleNotification = data => {
+	showSimpleNotification = (data) => {
 		const id = Date.now();
 		this._showSimpleNotification({
 			id,
 			autodismiss: data.duration,
 			title: data.title,
 			description: data.description,
-			status: data.status
+			status: data.status,
 		});
 		return id;
 	};
@@ -332,21 +332,21 @@ class NotificationManager {
 				type: 'pending',
 				autoHide: false,
 				transaction: {
-					id: transaction.id
-				}
+					id: transaction.id,
+				},
 			});
 
 		this._transactionsWatchTable[nonce]
 			? this._transactionsWatchTable[nonce].push(transaction.id)
 			: (this._transactionsWatchTable[nonce] = [transaction.id]);
 
-		TransactionController.hub.once(`${transaction.id}:confirmed`, transactionMeta => {
+		TransactionController.hub.once(`${transaction.id}:confirmed`, (transactionMeta) => {
 			this._confirmedCallback(transactionMeta, transaction);
 		});
-		TransactionController.hub.once(`${transaction.id}:finished`, transactionMeta => {
+		TransactionController.hub.once(`${transaction.id}:finished`, (transactionMeta) => {
 			this._finishedCallback(transactionMeta);
 		});
-		TransactionController.hub.once(`${transaction.id}:speedup`, transactionMeta => {
+		TransactionController.hub.once(`${transaction.id}:speedup`, (transactionMeta) => {
 			this._speedupCallback(transactionMeta);
 		});
 	}
@@ -354,13 +354,9 @@ class NotificationManager {
 	/**
 	 * Generates a notification for an incoming transaction
 	 */
-	gotIncomingTransaction = async lastBlock => {
-		const {
-			AccountTrackerController,
-			TransactionController,
-			PreferencesController,
-			NetworkController
-		} = Engine.context;
+	gotIncomingTransaction = async (lastBlock) => {
+		const { AccountTrackerController, TransactionController, PreferencesController, NetworkController } =
+			Engine.context;
 		const { selectedAddress } = PreferencesController.state;
 		const { type: networkType } = NetworkController.state.provider;
 
@@ -375,7 +371,7 @@ class NotificationManager {
 			const txs = transactions
 				.reverse()
 				.filter(
-					tx =>
+					(tx) =>
 						safeToChecksumAddress(tx.transaction?.to) === selectedAddress &&
 						safeToChecksumAddress(tx.transaction?.from) !== selectedAddress &&
 						((networkId && networkId.toString() === tx.networkID) ||
@@ -391,10 +387,10 @@ class NotificationManager {
 						nonce: `${hexToBN(txs[0].transaction.nonce).toString()}`,
 						amount: `${renderFromWei(hexToBN(txs[0].transaction.value))}`,
 						id: txs[0]?.id,
-						assetType: strings('unit.eth')
+						assetType: strings('unit.eth'),
 					},
 					autoHide: true,
-					duration: 5000
+					duration: 5000,
 				});
 			}
 		}
@@ -411,7 +407,7 @@ export default {
 		showTransactionNotification,
 		hideCurrentNotification,
 		showSimpleNotification,
-		removeNotificationById
+		removeNotificationById,
 	}) {
 		instance = new NotificationManager(
 			navigation,
@@ -439,5 +435,5 @@ export default {
 	},
 	showSimpleNotification(data) {
 		return instance?.showSimpleNotification(data);
-	}
+	},
 };

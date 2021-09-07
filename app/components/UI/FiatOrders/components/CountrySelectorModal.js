@@ -7,7 +7,7 @@ import {
 	TextInput,
 	TouchableOpacity,
 	TouchableWithoutFeedback,
-	View
+	View,
 } from 'react-native';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -24,12 +24,12 @@ import { colors, fontStyles } from '../../../../styles/common';
 const styles = StyleSheet.create({
 	modal: {
 		margin: 0,
-		justifyContent: 'flex-end'
+		justifyContent: 'flex-end',
 	},
 	modalView: {
 		backgroundColor: colors.white,
 		borderTopLeftRadius: 10,
-		borderTopRightRadius: 10
+		borderTopRightRadius: 10,
 	},
 	inputWrapper: {
 		flexDirection: 'row',
@@ -40,36 +40,36 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 5,
 		borderRadius: 5,
 		borderWidth: 1,
-		borderColor: colors.grey100
+		borderColor: colors.grey100,
 	},
 	searchIcon: {
-		marginHorizontal: 8
+		marginHorizontal: 8,
 	},
 	input: {
 		...fontStyles.normal,
-		flex: 1
+		flex: 1,
 	},
 	modalTitle: {
 		marginTop: Device.isIphone5() ? 10 : 15,
 		marginBottom: Device.isIphone5() ? 5 : 5,
-		marginHorizontal: 36
+		marginHorizontal: 36,
 	},
 	resultsView: {
 		height: Device.isSmallDevice() ? 130 : 250,
-		marginTop: 10
+		marginTop: 10,
 	},
 	resultRow: {
 		borderTopWidth: StyleSheet.hairlineWidth,
 		borderColor: colors.grey100,
-		paddingHorizontal: 20
+		paddingHorizontal: 20,
 	},
 	flag: {
-		fontSize: 24
+		fontSize: 24,
 	},
 	emptyList: {
 		marginVertical: 10,
-		marginHorizontal: 30
-	}
+		marginHorizontal: 30,
+	},
 });
 
 function CountrySelectorModal({ isVisible, dismiss, countries, onItemPress }) {
@@ -86,7 +86,7 @@ function CountrySelectorModal({ isVisible, dismiss, countries, onItemPress }) {
 				distance: 100,
 				maxPatternLength: 32,
 				minMatchCharLength: 1,
-				keys: ['name', 'currency', 'code', 'label']
+				keys: ['name', 'currency', 'code', 'label'],
 			}),
 		[countries]
 	);
@@ -98,7 +98,7 @@ function CountrySelectorModal({ isVisible, dismiss, countries, onItemPress }) {
 
 	const handleSearchPress = () => searchInput?.current?.focus();
 
-	const handleSearchTextChange = useCallback(text => {
+	const handleSearchTextChange = useCallback((text) => {
 		setSearchString(text);
 		if (list.current) list.current.scrollToOffset({ animated: false, y: 0 });
 	}, []);
@@ -172,7 +172,7 @@ function CountrySelectorModal({ isVisible, dismiss, countries, onItemPress }) {
 					keyboardShouldPersistTaps="always"
 					data={countriesSearchResults}
 					renderItem={renderItem}
-					keyExtractor={item => item.code}
+					keyExtractor={(item) => item.code}
 					ListEmptyComponent={renderEmptyList}
 				/>
 			</SafeAreaView>
@@ -184,7 +184,7 @@ CountrySelectorModal.propTypes = {
 	isVisible: PropTypes.bool,
 	dismiss: PropTypes.func,
 	countries: PropTypes.array,
-	onItemPress: PropTypes.func
+	onItemPress: PropTypes.func,
 };
 
 export default CountrySelectorModal;

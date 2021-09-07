@@ -13,28 +13,28 @@ import useModalHandler from '../../../Base/hooks/useModalHandler';
 const styles = StyleSheet.create({
 	title: {
 		flex: 1,
-		flexWrap: 'wrap'
+		flexWrap: 'wrap',
 	},
 	logo: {
 		marginVertical: 5,
 		aspectRatio: 95 / 25,
 		width: Device.isIphone5() ? 80 : 95,
 		height: Device.isIphone5() ? 20 : 25,
-		marginLeft: 5
+		marginLeft: 5,
 	},
 	cta: {
 		marginTop: 25,
-		marginBottom: 5
+		marginBottom: 5,
 	},
 	countryList: {
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	countryCol: {
-		width: '50%'
+		width: '50%',
 	},
 	spacer: {
-		marginVertical: 5
-	}
+		marginVertical: 5,
+	},
 });
 
 // eslint-disable-next-line import/no-commonjs
@@ -155,10 +155,10 @@ const TransakPaymentMethod = ({ onPress }) => {
 };
 
 TransakPaymentMethod.propTypes = {
-	onPress: PropTypes.func
+	onPress: PropTypes.func,
 };
 TransakPaymentMethod.defaultProps = {
-	onPress: undefined
+	onPress: undefined,
 };
 
 export default TransakPaymentMethod;

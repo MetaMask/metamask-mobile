@@ -4,12 +4,12 @@ export const addFavoriteCollectible = (selectedAddress, chainId, collectible) =>
 	type: ADD_FAVORITE_COLLECTIBLE,
 	selectedAddress,
 	chainId,
-	collectible
+	collectible,
 });
 
 export const removeFavoriteCollectible = (selectedAddress, chainId, collectible) => ({
 	type: REMOVE_FAVORITE_COLLECTIBLE,
 	selectedAddress,
 	chainId,
-	collectible
+	collectible,
 });

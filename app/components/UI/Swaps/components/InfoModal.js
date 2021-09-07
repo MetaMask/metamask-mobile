@@ -17,16 +17,16 @@ const styles = StyleSheet.create({
 		shadowColor: colors.black,
 		shadowOffset: {
 			width: 0,
-			height: 5
+			height: 5,
 		},
 		shadowOpacity: 0.36,
 		shadowRadius: 6.68,
-		elevation: 11
+		elevation: 11,
 	},
 	modal: {
 		margin: 0,
 		width: '100%',
-		padding: 25
+		padding: 25,
 	},
 	title: {
 		width: '100%',
@@ -35,17 +35,17 @@ const styles = StyleSheet.create({
 		paddingBottom: 5,
 		flexDirection: 'row',
 		alignItems: 'center',
-		justifyContent: 'space-between'
+		justifyContent: 'space-between',
 	},
 	closeIcon: {
-		color: colors.black
+		color: colors.black,
 	},
 	body: {
 		width: '100%',
 		paddingVertical: 5,
 		marginBottom: 15,
-		paddingHorizontal: 20
-	}
+		paddingHorizontal: 20,
+	},
 });
 
 function InfoModal({ title, body, isVisible, toggleModal, propagateSwipe }) {
@@ -76,7 +76,7 @@ InfoModal.propTypes = {
 	title: PropTypes.node,
 	body: PropTypes.node,
 	toggleModal: PropTypes.func,
-	propagateSwipe: PropTypes.bool
+	propagateSwipe: PropTypes.bool,
 };
 
 export default InfoModal;

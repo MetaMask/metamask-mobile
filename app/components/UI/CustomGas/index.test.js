@@ -16,26 +16,26 @@ describe('CustomGas', () => {
 				backgroundState: {
 					CurrencyRateController: {
 						currentCurrency: 'usd',
-						conversionRate: 0.1
+						conversionRate: 0.1,
 					},
 					AccountTrackerController: {
 						accounts: {
-							'0x': '0x'
-						}
+							'0x': '0x',
+						},
 					},
 					NetworkController: {
 						provider: {
 							ticker: 'ETH',
-							chainId: '1'
-						}
-					}
-				}
+							chainId: '1',
+						},
+					},
+				},
 			},
 			transaction: {
 				from: '0x',
-				value: 100
+				value: 100,
 			},
-			customGasPriceBN: 10
+			customGasPriceBN: 10,
 		};
 
 		const wrapper = shallow(
@@ -48,7 +48,7 @@ describe('CustomGas', () => {
 				warningGasPriceHigh=""
 			/>,
 			{
-				context: { store: mockStore(initialState) }
+				context: { store: mockStore(initialState) },
 			}
 		);
 		expect(wrapper.dive()).toMatchSnapshot();
