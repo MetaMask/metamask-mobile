@@ -1,0 +1,18 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CollectibleContractOverview should render correctly 1`] = `
+<CollectibleContractOverview
+  collectibleContract={
+    Object {
+      "address": "0x123",
+      "description": "description",
+      "name": "name",
+      "symbol": "symbol",
+      "totalSupply": 1,
+    }
+  }
+  collectibles={Array []}
+  newAssetTransaction={[Function]}
+  toggleCollectibleContractModal={[Function]}
+/>
+`;

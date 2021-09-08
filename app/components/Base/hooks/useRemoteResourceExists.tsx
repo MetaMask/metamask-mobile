@@ -14,9 +14,9 @@ const useRemoteResourceExists = (uri: string): boolean[] => {
 	const [resourceExists, setResourceExists] = useState<boolean>(false);
 	const [isLoading, setIsLoading] = useState<boolean>(true);
 
-	const fetchStatus = async (uri: string): Promise<void> => {
-		fetch(uri, { method: 'HEAD' })
-			.then(res => setResourceExists(res.status === 200))
+	const fetchStatus = async (innerUri: string): Promise<void> => {
+		fetch(innerUri, { method: 'HEAD' })
+			.then((res) => setResourceExists(res.status === 200))
 			.catch(() => setResourceExists(false))
 			.finally(() => setIsLoading(false));
 	};
