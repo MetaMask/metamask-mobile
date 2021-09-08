@@ -246,21 +246,21 @@ class WalletConnect {
 								meta: {
 									title: meta && meta.name,
 									url: meta && meta.url,
-									icon: meta && meta.icons && meta.icons[0]
+									icon: meta && meta.icons && meta.icons[0],
 								},
-								origin: WALLET_CONNECT_ORIGIN
+								origin: WALLET_CONNECT_ORIGIN,
 							},
 							'V4'
 						);
 
 						this.walletConnector.approveRequest({
 							id: payload.id,
-							result: rawSig
+							result: rawSig,
 						});
 					} catch (error) {
 						this.walletConnector.rejectRequest({
 							id: payload.id,
-							error
+							error,
 						});
 					}
 				}
