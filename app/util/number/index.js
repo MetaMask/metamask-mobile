@@ -190,7 +190,7 @@ export function toTokenMinimalUnit(tokenValue, decimals) {
  * If value is less than 5 precision decimals will show '< 0.00001'
  */
 export function renderFromTokenMinimalUnit(tokenValue, decimals, decimalsToShow = 5) {
-	const minimalUnit = fromTokenMinimalUnit(tokenValue, decimals);
+	const minimalUnit = fromTokenMinimalUnit(tokenValue || 0, decimals);
 	const minimalUnitNumber = parseFloat(minimalUnit);
 	let renderMinimalUnit;
 	if (minimalUnitNumber < 0.00001 && minimalUnitNumber > 0) {
