@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Text, View, ScrollView, StyleSheet, Image, Dimensions } from 'react-native';
+import { Text, View, ScrollView, StyleSheet, Image, Dimensions, InteractionManager } from 'react-native';
 import StyledButton from '../../UI/StyledButton';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -127,16 +127,18 @@ class OnboardingCarousel extends PureComponent {
 		currentTab: 1,
 	};
 
-	trackEvent = async (...eventArgs) => {
-		const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
-		if (metricsOptIn) {
-			AnalyticsV2.trackEvent(...eventArgs);
-		} else {
-			this.props.saveOnboardingEvent(eventArgs);
-		}
+	trackEvent = (...eventArgs) => {
+		InteractionManager.runAfterInteractions(async () => {
+			const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
+			if (metricsOptIn) {
+				AnalyticsV2.trackEvent(...eventArgs);
+			} else {
+				this.props.saveOnboardingEvent(eventArgs);
+			}
+		});
 	};
 
-	onPresGetStarted = () => {
+	onPressGetStarted = () => {
 		this.props.navigation.navigate('Onboarding');
 		this.trackEvent(ANALYTICS_EVENTS_V2.ONBOARDING_STARTED);
 	};
@@ -203,7 +205,7 @@ class OnboardingCarousel extends PureComponent {
 						<View style={styles.ctaWrapper}>
 							<StyledButton
 								type={'normal'}
-								onPress={this.onPresGetStarted}
+								onPress={this.onPressGetStarted}
 								testID={'onboarding-get-started-button'}
 							>
 								{strings('onboarding_carousel.get_started')}
