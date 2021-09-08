@@ -38,8 +38,6 @@ import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import AccountList from '../../../UI/AccountList';
 import CustomNonceModal from '../../../UI/CustomNonceModal';
-import AnimatedTransactionModal from '../../../UI/AnimatedTransactionModal';
-import CustomGas from '../../../UI/CustomGas';
 import { doENSReverseLookup } from '../../../../util/ENSUtils';
 import NotificationManager from '../../../../core/NotificationManager';
 import { strings } from '../../../../../locales/i18n';
@@ -346,7 +344,6 @@ class Confirm extends PureComponent {
 		fromAccountName: this.props.transactionState.transactionFromName,
 		fromSelectedAddress: this.props.transactionState.transaction.from,
 		hexDataModalVisible: false,
-		gasError: undefined,
 		warningGasPriceHigh: undefined,
 		ready: false,
 		transactionValue: undefined,
@@ -910,51 +907,6 @@ class Confirm extends PureComponent {
 		this.setState({ fromAccountModalVisible: !fromAccountModalVisible });
 	};
 
-	renderCustomGasModal = () => {
-		const { basicGasEstimates, gasError, gasEstimationReady, mode, gasSpeedSelected } = this.state;
-		const {
-			transaction: { gas, gasPrice },
-		} = this.props;
-
-		return (
-			<Modal
-				isVisible
-				animationIn="slideInUp"
-				animationOut="slideOutDown"
-				style={styles.bottomModal}
-				backdropOpacity={0.7}
-				animationInTiming={600}
-				animationOutTiming={600}
-				onBackdropPress={this.review}
-				onBackButtonPress={this.review}
-				onSwipeComplete={this.review}
-				swipeDirection={'down'}
-				propagateSwipe
-			>
-				<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
-					<AnimatedTransactionModal
-						onModeChange={this.onModeChange}
-						ready={gasEstimationReady}
-						review={this.review}
-					>
-						<CustomGas
-							handleGasFeeSelection={this.handleSetGasFee}
-							basicGasEstimates={basicGasEstimates}
-							gas={gas}
-							gasPrice={gasPrice}
-							gasError={gasError}
-							mode={mode}
-							onPress={this.handleSetGasSpeed}
-							gasSpeedSelected={gasSpeedSelected}
-							view={'SendTo (Confirm)'}
-							analyticsParams={this.getGasAnalyticsParams()}
-						/>
-					</AnimatedTransactionModal>
-				</KeyboardAwareScrollView>
-			</Modal>
-		);
-	};
-
 	cancelGasEdition = () => {
 		this.setState({
 			EIP1559TransactionDataTemp: { ...this.state.EIP1559TransactionData },
@@ -1258,6 +1210,7 @@ class Confirm extends PureComponent {
 			: strings('transaction.get_ether', { networkName });
 
 		const { EIP1559TransactionData } = this.state;
+
 		return (
 			<SafeAreaView edges={['bottom']} style={styles.wrapper} testID={'txn-confirm-screen'}>
 				<View style={styles.inputWrapper}>
