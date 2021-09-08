@@ -1,0 +1,18 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NetworkList should render correctly 1`] = `
+<NetworkList
+  dispatch={[Function]}
+  frequentRpcList={
+    Array [
+      "http://10.0.2.2:8545",
+    ]
+  }
+  provider={
+    Object {
+      "rpcTarget": "http://10.0.2.2:8545",
+      "type": "mainnet",
+    }
+  }
+/>
+`;

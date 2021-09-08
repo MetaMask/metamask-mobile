@@ -1,0 +1,38 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CustomGas should render correctly 1`] = `
+<CustomGas
+  accounts={
+    Object {
+      "0x": "0x",
+    }
+  }
+  basicGasEstimates={
+    Object {
+      "averageGwei": 10,
+      "fastGwei": 10,
+      "safeLowGwei": 10,
+    }
+  }
+  chainId="1"
+  conversionRate={0.1}
+  currentCurrency="usd"
+  dispatch={[Function]}
+  gas={"0"}
+  gasPrice={"0"}
+  generateTransform={[MockFunction]}
+  route={
+    Object {
+      "params": Object {},
+    }
+  }
+  ticker="ETH"
+  transaction={
+    Object {
+      "from": "0x",
+      "value": 100,
+    }
+  }
+  warningGasPriceHigh=""
+/>
+`;
