@@ -1,8 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`OptinMetrics should render correctly 1`] = `
-<OptinMetrics
-  clearOnboardingEvents={[Function]}
-  setOnboardingWizardStep={[Function]}
-/>
-`;

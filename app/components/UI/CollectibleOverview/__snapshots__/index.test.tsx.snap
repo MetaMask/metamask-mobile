@@ -1,0 +1,20 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CollectibleOverview should render correctly 1`] = `
+<CollectibleOverview
+  addFavoriteCollectible={[Function]}
+  chainId={1}
+  collectible={
+    Object {
+      "address": "0x06012c8cf97BEaD5deAe237070F9587f8E7A266d",
+      "externalLink": "https://nft.example.com",
+      "name": "Leopard",
+      "tokenId": 6904,
+      "tradable": true,
+    }
+  }
+  isInFavorites={false}
+  removeFavoriteCollectible={[Function]}
+  selectedAddress="0x1"
+/>
+`;
