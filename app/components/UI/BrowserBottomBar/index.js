@@ -110,22 +110,22 @@ export default class BrowserBottomBar extends PureComponent {
 		const { canGoBack, goBack, canGoForward, goForward, showTabs, goHome, showUrlModal, toggleOptions } =
 			this.props;
 
-		const search = () => {
+		const onSearchPress = () => {
 			showUrlModal();
 			this.trackSearchEvent();
 		};
 
-		const back = () => {
+		const onBackPress = () => {
 			goBack();
 			this.trackNavigationEvent('Go Back');
 		};
 
-		const forward = () => {
+		const onForwardPress = () => {
 			goForward();
 			this.trackNavigationEvent('Go Forward');
 		};
 
-		const home = () => {
+		const onHomePress = () => {
 			goHome();
 			this.trackNavigationEvent('Go Home');
 		};
@@ -133,7 +133,7 @@ export default class BrowserBottomBar extends PureComponent {
 		return (
 			<ElevatedView elevation={11} style={styles.bottomBar}>
 				<TouchableOpacity
-					onPress={back}
+					onPress={onBackPress}
 					style={styles.iconButton}
 					testID={'go-back-button'}
 					disabled={!canGoBack}
@@ -141,7 +141,7 @@ export default class BrowserBottomBar extends PureComponent {
 					<Icon name="angle-left" size={24} style={[styles.icon, !canGoBack ? styles.disabledIcon : {}]} />
 				</TouchableOpacity>
 				<TouchableOpacity
-					onPress={forward}
+					onPress={onForwardPress}
 					style={styles.iconButton}
 					testID={'go-forward-button'}
 					disabled={!canGoForward}
@@ -152,14 +152,14 @@ export default class BrowserBottomBar extends PureComponent {
 						style={[styles.icon, !canGoForward ? styles.disabledIcon : {}]}
 					/>
 				</TouchableOpacity>
-				<TouchableOpacity onPress={search} style={styles.iconButton} testID={'search-button'}>
+				<TouchableOpacity onPress={onSearchPress} style={styles.iconButton} testID={'search-button'}>
 					<FeatherIcons name="search" size={24} style={styles.icon} />
 				</TouchableOpacity>
 
 				<TouchableOpacity onPress={showTabs} style={styles.iconButton} testID={'show-tabs-button'}>
 					<TabCountIcon style={styles.tabIcon} />
 				</TouchableOpacity>
-				<TouchableOpacity onPress={home} style={styles.iconButton} testID={'home-button'}>
+				<TouchableOpacity onPress={onHomePress} style={styles.iconButton} testID={'home-button'}>
 					<SimpleLineIcons name="home" size={22} style={styles.icon} />
 				</TouchableOpacity>
 
