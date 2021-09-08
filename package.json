@@ -185,7 +185,7 @@
     "react-native-reanimated": "^1.13.2",
     "react-native-redash": "14.1.1",
     "react-native-safe-area-context": "^3.1.9",
-    "react-native-screens": "^3.3.0",
+    "react-native-screens": "^3.6.0",
     "react-native-scrollable-tab-view": "^1.0.0",
     "react-native-search-api": "ombori/react-native-search-api#8/head",
     "react-native-sensors": "5.3.0",
