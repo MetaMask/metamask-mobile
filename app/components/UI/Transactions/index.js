@@ -64,19 +64,21 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		justifyContent: 'center',
 		alignItems: 'center',
-		marginHorizontal: 24,
 		paddingVertical: 24,
+		width: '100%',
 	},
 	modalText: {
 		...fontStyles.normal,
 		fontSize: 14,
 		textAlign: 'center',
 		paddingVertical: 8,
+		color: colors.black,
 	},
 	modalTitle: {
 		...fontStyles.bold,
 		fontSize: 22,
 		textAlign: 'center',
+		color: colors.black,
 	},
 	modal: {
 		margin: 0,
@@ -86,11 +88,9 @@ const styles = StyleSheet.create({
 
 import ActionModal from '../ActionModal';
 
-const RetryModal = ({ retryIsOpen }) => {
-	const confirmText = 'retry?';
-	const cancelText = 'cancel';
-	const onConfirmPress = () => ({});
-	const onCancelPress = () => ({});
+const RetryModal = ({ retryIsOpen, onConfirmPress, onCancelPress }) => {
+	const confirmText = 'Retry?';
+	const cancelText = 'Cancel';
 	return (
 		<ActionModal
 			modalStyle={styles.modal}
@@ -111,6 +111,8 @@ const RetryModal = ({ retryIsOpen }) => {
 
 RetryModal.propTypes = {
 	retryIsOpen: PropTypes.bool,
+	onConfirmPress: PropTypes.func,
+	onCancelPress: PropTypes.func,
 };
 
 const ROW_HEIGHT = (Device.isIos() ? 95 : 100) + StyleSheet.hairlineWidth;
@@ -413,13 +415,12 @@ class Transactions extends PureComponent {
 	handleSpeedUpTransactionFailure = (e) => {
 		const speedUpTxId = this.speedUpTxId;
 		Logger.error(e, { message: `speedUpTransaction failed `, speedUpTxId });
-		this.setState({ retryIsOpen: true });
+		InteractionManager.runAfterInteractions(this.toggleRetry);
 	};
 
 	handleCancelTransactionFailure = (e) => {
 		const cancelTxId = this.cancelTxId;
 		Logger.error(e, { message: `cancelTransaction failed `, cancelTxId });
-		this.setState({ retryIsOpen: true });
 	};
 
 	speedUpTransaction = () => {
@@ -459,6 +460,8 @@ class Transactions extends PureComponent {
 			navigation={this.props.navigation}
 		/>
 	);
+
+	toggleRetry = () => this.setState((state) => ({ retryIsOpen: !state.retryIsOpen }));
 
 	render = () => {
 		if (!this.state.ready || this.props.loading) {
@@ -584,7 +587,7 @@ class Transactions extends PureComponent {
 					descriptionText={strings('transaction.speedup_tx_message')}
 				/>
 
-				<RetryModal retryIsOpen={this.state.retryIsOpen} />
+				<RetryModal onCancelPress={this.toggleRetry} retryIsOpen={this.state.retryIsOpen} />
 			</View>
 		);
 	};
