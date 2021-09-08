@@ -15,24 +15,27 @@ To learn how to develop MetaMask-compatible applications, visit our [Developer D
 ### Building Locally
 
 The code is built using React-Native and running code locally requires a Mac or Linux OS.
-- Install [sentry-cli](https://github.com/getsentry/sentry-cli) tools: `brew install getsentry/tools/sentry-cli`
 
-- Install [Node.js](https://nodejs.org) **version 10 (latest stable) and yarn@1 (latest)**
-  - If you are using [nvm](https://github.com/creationix/nvm#installation) (recommended) running `nvm use` will automatically choose the right node version for you.
+-   Install [sentry-cli](https://github.com/getsentry/sentry-cli) tools: `brew install getsentry/tools/sentry-cli`
 
-- Install the shared React Native dependencies (`React Native CLI`, _not_ `Expo CLI`)
-  - [macOS](https://facebook.github.io/react-native/docs/getting-started.html#installing-dependencies-1)
-  - [Linux](https://facebook.github.io/react-native/docs/getting-started.html#installing-dependencies-2)
+-   Install [Node.js](https://nodejs.org) **version 10 (latest stable) and yarn@1 (latest)**
 
-- Install [cocoapods](https://guides.cocoapods.org/using/getting-started.html) by running:
+    -   If you are using [nvm](https://github.com/creationix/nvm#installation) (recommended) running `nvm use` will automatically choose the right node version for you.
 
-```bash 
+-   Install the shared React Native dependencies (`React Native CLI`, _not_ `Expo CLI`)
+
+    -   [macOS](https://facebook.github.io/react-native/docs/getting-started.html#installing-dependencies-1)
+    -   [Linux](https://facebook.github.io/react-native/docs/getting-started.html#installing-dependencies-2)
+
+-   Install [cocoapods](https://guides.cocoapods.org/using/getting-started.html) by running:
+
+```bash
 sudo gem install cocoapods
 ```
 
-- _MetaMask Only:_ Rename the `.*.env.example` files (remove the `.example`) in the root of the project and fill in the appropriate values for each key. Get the values from another MetaMask Mobile developer.
+-   _MetaMask Only:_ Rename the `.*.env.example` files (remove the `.example`) in the root of the project and fill in the appropriate values for each key. Get the values from another MetaMask Mobile developer.
 
-- Clone this repo and install our dependencies:
+-   Clone this repo and install our dependencies:
 
 ```bash
 git clone ...
@@ -41,15 +44,17 @@ yarn install # this will run a lengthy postinstall flow
 cd ios && pod install && cd .. # install pods for iOS
 ```
 
-- _Non-MetaMask Only:_ In the project root folder run
+-   _Non-MetaMask Only:_ In the project root folder run
+
 ```
   cp .ios.env.example .ios.env && \
   cp .android.env.example .android.env && \
   cp .js.env.example .js.env
- ``` 
-- _Non-MetaMask Only:_ Create an account and generate your own API key at [Infura](https://infura.io) in order to connect to main and test nets. Fill `MM_INFURA_PROJECT_ID` in `.js.env`. (App will run without it, but will not be able to connect to actual network.)
+```
 
-- Then, in one terminal, run:
+-   _Non-MetaMask Only:_ Create an account and generate your own API key at [Infura](https://infura.io) in order to connect to main and test nets. Fill `MM_INFURA_PROJECT_ID` in `.js.env`. (App will run without it, but will not be able to connect to actual network.)
+
+-   Then, in one terminal, run:
 
 ```bash
 yarn watch
@@ -57,19 +62,26 @@ yarn watch
 
 #### Android
 
-- Install the Android SDK, via [Android Studio](https://developer.android.com/studio).
-  - _MetaMask Only:_ To create production builds, you need to install Google Play Licensing Library via the SDK Manager in Android Studio.
-- Linux only:
-  - Ensure that you have the `secret-tool` binary on your machine.
-    - Part of the [libsecret-tools](https://launchpad.net/ubuntu/bionic/+package/libsecret-tools) package on Debian/Ubuntu based distributions.
-- Install the correct emulator
-  - Follow the instructions at:
-    - [React Native Getting Started - Android](https://facebook.github.io/react-native/docs/getting-started.html#installing-dependencies-1) _(React Native CLI Quickstart -> [your OS] -> Android)_
-    - More details can be found [on the Android Developer site](https://developer.android.com/studio/run/emulator)
-  - You should use the following:
-    - **Android OS Version:** Latest, unless told otherwise
-    - **Device:** Google Pixel 3
-- Finally, start the emulator from Android Studio, and run:
+-   Install the Android SDK, via [Android Studio](https://developer.android.com/studio).
+    -   _MetaMask Only:_ To create production builds, you need to install Google Play Licensing Library via the SDK Manager in Android Studio.
+-   Install the Android NDK, via [Android Studio](https://developer.android.com/studio)'s SDK Manager.
+    -   In the SDK Manager, select the `SDK Tools` tab and install NDK version `17.2.4988734`.
+        -   In the `android` directory, update the `local.properties` file by adding line:
+        ```
+        ndk.dir=/Users/YOUR_HOME_DIRECTORY/Library/Android/sdk/ndk/17.2.4988734
+        ```
+        _(You may have to create local.properties if it doesn't exist.)_
+-   Linux only:
+    -   Ensure that you have the `secret-tool` binary on your machine.
+        -   Part of the [libsecret-tools](https://launchpad.net/ubuntu/bionic/+package/libsecret-tools) package on Debian/Ubuntu based distributions.
+-   Install the correct emulator
+    -   Follow the instructions at:
+        -   [React Native Getting Started - Android](https://facebook.github.io/react-native/docs/getting-started.html#installing-dependencies-1) _(React Native CLI Quickstart -> [your OS] -> Android)_
+        -   More details can be found [on the Android Developer site](https://developer.android.com/studio/run/emulator)
+    -   You should use the following:
+        -   **Android OS Version:** Latest, unless told otherwise
+        -   **Device:** Google Pixel 3
+-   Finally, start the emulator from Android Studio, and run:
 
 ```bash
 yarn start:android
@@ -77,12 +89,12 @@ yarn start:android
 
 #### iOS
 
-- Install the iOS dependencies
-  - [React Native Getting Started - iOS](https://facebook.github.io/react-native/docs/getting-started.html#installing-dependencies-1) _(React Native CLI Quickstart -> [your OS] -> iOS)_
-    - You do **not** need CocoaPods
-- Install the correct simulator
-  - **iOS OS Version:** Latest, unless told otherwise
-  - **Device:** iPhone 11 Pro
+-   Install the iOS dependencies
+    -   [React Native Getting Started - iOS](https://facebook.github.io/react-native/docs/getting-started.html#installing-dependencies-1) _(React Native CLI Quickstart -> [your OS] -> iOS)_
+        -   You do **not** need CocoaPods
+-   Install the correct simulator
+    -   **iOS OS Version:** Latest, unless told otherwise
+    -   **Device:** iPhone 11 Pro
 
 ```bash
 yarn start:ios
@@ -117,48 +129,47 @@ If `yarn link` fails after going through these steps, try directly `yarn add`ing
 
 First, make sure you have the following running:
 
-- `yarn watch`
-- Your Android emulator or iOS simulator
-- `yarn start:android` or `yarn start:ios`
+-   `yarn watch`
+-   Your Android emulator or iOS simulator
+-   `yarn start:android` or `yarn start:ios`
 
 Next, check that the React Native Debugger is working:
 
-- Open your emulator or simulator, and select `Debug JS Remotely` (or something similar) from its developer menu
-- To open the developer menu:
-  - iOS Simulator: `Cmd + D`
-  - Android Emulator
-    - macOS: `Cmd + M`
-	- Windows, Linux: `Ctrl + M`
-- If it doesn't open automatically, try navigating to this URL in Chrome: http://localhost:8081/debugger-ui/
-- If these steps do not take you to the React Native Debugger, something is wrong
+-   Open your emulator or simulator, and select `Debug JS Remotely` (or something similar) from its developer menu
+-   To open the developer menu:
+    -   iOS Simulator: `Cmd + D`
+    -   Android Emulator
+        -   macOS: `Cmd + M` - Windows, Linux: `Ctrl + M`
+-   If it doesn't open automatically, try navigating to this URL in Chrome: http://localhost:8081/debugger-ui/
+-   If these steps do not take you to the React Native Debugger, something is wrong
 
 #### Debugging iOS (macOS Only)
 
 For more details, see [this page](https://medium.com/@mattcroak718/debugging-your-iphone-mobile-web-app-using-safari-development-tools-71240657c487).
 
-- You should be able to inspect the mobile app using the console in the React Native Debugger in Chrome
-- To debug a website (dapp) in the browser:
-  - Navigate to the website in the app's browser
-  - Open Safari
-    - Go to: _Preferences -> Advanced_ and select `Show Develop menu in menu bar`
-  - Select `Develop` in the menu bar
-    - Find your simulator in the second section from the top
-    - Select the relevant WebView from the list
-      - The simulator will highlight the WebView when you hover over it in Safari
+-   You should be able to inspect the mobile app using the console in the React Native Debugger in Chrome
+-   To debug a website (dapp) in the browser:
+    -   Navigate to the website in the app's browser
+    -   Open Safari
+        -   Go to: _Preferences -> Advanced_ and select `Show Develop menu in menu bar`
+    -   Select `Develop` in the menu bar
+        -   Find your simulator in the second section from the top
+        -   Select the relevant WebView from the list
+            -   The simulator will highlight the WebView when you hover over it in Safari
 
 #### Debugging Android
 
 For more details, see [this page](https://developers.google.com/web/tools/chrome-devtools/remote-debugging/webviews).
 
-- You should be able to inspect the mobile app using the console in the React Native Debugger in Chrome
-- To debug a website (dapp) in the browser:
-  - Navigate to the website in the app's browser
-  - Go to chrome://inspect
-  - Select the relevant WebView under **Remote Target**
+-   You should be able to inspect the mobile app using the console in the React Native Debugger in Chrome
+-   To debug a website (dapp) in the browser:
+    -   Navigate to the website in the app's browser
+    -   Go to chrome://inspect
+    -   Select the relevant WebView under **Remote Target**
 
 #### Miscellaneous
 
-- [Troubleshooting for React Native](https://facebook.github.io/react-native/docs/troubleshooting#content)
+-   [Troubleshooting for React Native](https://facebook.github.io/react-native/docs/troubleshooting#content)
 
 ### Running Tests
 
