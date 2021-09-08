@@ -9,13 +9,13 @@ const initialState = {
 	engine: {
 		backgroundState: {
 			SwapsController: {
-				tokens: []
-			}
-		}
+				tokens: [],
+			},
+		},
 	},
 	settings: {
-		primaryCurrency: 'usd'
-	}
+		primaryCurrency: 'usd',
+	},
 };
 const store = mockStore(initialState);
 

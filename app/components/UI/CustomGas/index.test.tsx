@@ -1,51 +1,54 @@
+jest.useFakeTimers();
+
 import React from 'react';
-import TransactionReviewInformation from './';
+import CustomGas from './';
 import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
+import { BN } from 'ethereumjs-util';
 import { Provider } from 'react-redux';
 
+const generateTransform = jest.fn();
 const mockStore = configureMockStore();
 const initialState = {
 	engine: {
 		backgroundState: {
-			PreferencesController: {
-				selectedAddress: '0x2',
-			},
-			TokenRatesController: {
-				contractExchangeRates: {},
-			},
 			CurrencyRateController: {
 				currentCurrency: 'usd',
 				conversionRate: 0.1,
 			},
+			AccountTrackerController: {
+				accounts: {
+					'0x': '0x',
+				},
+			},
 			NetworkController: {
 				provider: {
 					ticker: 'ETH',
+					chainId: '1',
 				},
 			},
 		},
 	},
 	transaction: {
-		value: '',
-		data: '',
-		from: '0x1',
-		gas: '',
-		gasPrice: '',
-		to: '0x2',
-		selectedAsset: undefined,
-		assetType: undefined,
+		from: '0x',
+		value: 100,
 	},
-	settings: {
-		primaryCurrency: 'ETH',
-	},
+	customGasPriceBN: 10,
 };
 const store = mockStore(initialState);
 
-describe('TransactionReviewInformation', () => {
+describe('CustomGas', () => {
 	it('should render correctly', () => {
 		const wrapper = shallow(
 			<Provider store={store}>
-				<TransactionReviewInformation EIP1559GasData={{}} />
+				<CustomGas
+					route={{ params: {} }}
+					basicGasEstimates={{ averageGwei: 10, fastGwei: 10, safeLowGwei: 10 }}
+					generateTransform={generateTransform}
+					gas={new BN(0)}
+					gasPrice={new BN(0)}
+					warningGasPriceHigh=""
+				/>
 			</Provider>
 		);
 		expect(wrapper.dive()).toMatchSnapshot();

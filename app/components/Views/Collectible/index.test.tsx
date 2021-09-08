@@ -9,13 +9,13 @@ const initialState = {
 	engine: {
 		backgroundState: {
 			CollectiblesController: {
-				collectibles: [{ address: '0x0', name: 'collectible', tokenId: 0, image: 'image' }]
-			}
-		}
+				collectibles: [{ address: '0x0', name: 'collectible', tokenId: 0, image: 'image' }],
+			},
+		},
 	},
 	modals: {
-		collectibleContractModalVisible: false
-	}
+		collectibleContractModalVisible: false,
+	},
 };
 const store = mockStore(initialState);
 

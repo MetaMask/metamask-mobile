@@ -10,10 +10,10 @@ const initialState = {
 	engine: {
 		backgroundState: {
 			PreferencesController: {
-				identities: { '0x1': { name: 'Account 1' } }
-			}
-		}
-	}
+				identities: { '0x1': { name: 'Account 1' } },
+			},
+		},
+	},
 };
 const store = mockStore(initialState);
 
