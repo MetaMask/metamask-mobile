@@ -178,10 +178,6 @@ class ApproveTransactionReview extends PureComponent {
 		 */
 		gasError: PropTypes.string,
 		/**
-		 * Warning coming from high gas set in CustomGas component
-		 */
-		warningGasPriceHigh: PropTypes.string,
-		/**
 		 * Primary currency, either ETH or Fiat
 		 */
 		primaryCurrency: PropTypes.string,
@@ -512,7 +508,6 @@ class ApproveTransactionReview extends PureComponent {
 			transaction: { origin },
 			network,
 			over,
-			warningGasPriceHigh,
 			EIP1559GasData,
 			LegacyGasData,
 			gasEstimateType,
@@ -625,13 +620,6 @@ class ApproveTransactionReview extends PureComponent {
 														</Text>
 													)}
 												</TouchableOpacity>
-											</View>
-										)}
-										{!!warningGasPriceHigh && (
-											<View style={styles.errorWrapper}>
-												<Text reset style={styles.error}>
-													{warningGasPriceHigh}
-												</Text>
 											</View>
 										)}
 										{!gasError && (
