@@ -2,7 +2,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import QrScanner from './';
 
-const noop = () => {};
+const noop = () => null;
 
 describe('QrScanner', () => {
 	it('should render correctly', () => {
@@ -13,8 +13,8 @@ describe('QrScanner', () => {
 					params: {
 						onScanError: noop,
 						onScanSuccess: noop,
-						onStartScan: noop
-					}
+						onStartScan: noop,
+					},
 				}}
 			/>
 		);

@@ -2,12 +2,8 @@
 
 exports[`WatchAssetRequest should render correctly 1`] = `
 <WatchAssetRequest
-  contractBalances={
-    Object {
-      "0x2": "0",
-    }
-  }
   dispatch={[Function]}
+  selectedAddress="0xe7E125654064EEa56229f273dA586F10DF96B0a1"
   suggestedAssetMeta={
     Object {
       "asset": Object {
