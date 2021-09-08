@@ -1,0 +1,24 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AdvancedSettings should render correctly 1`] = `
+<AdvancedSettings
+  fullState={
+    Object {
+      "engine": Object {
+        "backgroundState": Object {
+          "PreferencesController": Object {
+            "ipfsGateway": "https://ipfs.io/ipfs/",
+          },
+        },
+      },
+      "settings": Object {
+        "showHexData": true,
+      },
+    }
+  }
+  ipfsGateway="https://ipfs.io/ipfs/"
+  setShowCustomNonce={[Function]}
+  setShowHexData={[Function]}
+  showHexData={true}
+/>
+`;

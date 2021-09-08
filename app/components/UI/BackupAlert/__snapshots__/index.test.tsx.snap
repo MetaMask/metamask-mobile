@@ -1,0 +1,8 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BackupAlert should render correctly 1`] = `
+<BackupAlert
+  backUpSeedphraseAlertNotVisible={[Function]}
+  seedphraseBackedUp={false}
+/>
+`;
