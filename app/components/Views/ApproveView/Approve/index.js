@@ -1,11 +1,10 @@
 import React, { PureComponent } from 'react';
-import { StyleSheet, Alert, InteractionManager, AppState } from 'react-native';
+import { StyleSheet, Alert, InteractionManager, AppState, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../../UI/Navbar';
 import { connect } from 'react-redux';
 import { safeToChecksumAddress } from '../../../../util/address';
 import Engine from '../../../../core/Engine';
-import CustomGas from '../../../UI/CustomGas';
 import AnimatedTransactionModal from '../../../UI/AnimatedTransactionModal';
 import ApproveTransactionReview from '../../../UI/ApproveTransactionReview';
 import Modal from 'react-native-modal';
@@ -19,7 +18,7 @@ import {
 	parseTransactionEIP1559,
 	parseTransactionLegacy,
 } from '../../../../util/transactions';
-import { apiEstimateModifiedToWEI, getBasicGasEstimatesByChainId, getGasLimit } from '../../../../util/custom-gas';
+import { getGasLimit } from '../../../../util/custom-gas';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import NotificationManager from '../../../../core/NotificationManager';
 import Analytics from '../../../../core/Analytics';
@@ -119,7 +118,6 @@ class Approve extends PureComponent {
 	state = {
 		approved: false,
 		gasError: undefined,
-		warningGasPriceHigh: undefined,
 		ready: false,
 		mode: REVIEW,
 		over: false,
@@ -319,15 +317,6 @@ class Approve extends PureComponent {
 		}
 	};
 
-	handleFetchBasicEstimates = async () => {
-		this.setState({ ready: false });
-		const basicGasEstimates = await getBasicGasEstimatesByChainId();
-		if (basicGasEstimates) {
-			this.handleSetGasFee(this.props.transaction.gas, apiEstimateModifiedToWEI(basicGasEstimates.averageGwei));
-		}
-		return this.setState({ basicGasEstimates, ready: true });
-	};
-
 	trackApproveEvent = (event) => {
 		const { transaction, tokensLength, accountsLength, providerType } = this.props;
 		InteractionManager.runAfterInteractions(() => {
@@ -338,19 +327,6 @@ class Approve extends PureComponent {
 				network: providerType,
 			});
 		});
-	};
-
-	handleSetGasFee = (customGas, customGasPrice, warningGasPriceHigh) => {
-		const { setTransactionObject } = this.props;
-		this.setState({ gasEstimationReady: false });
-		this.setState({ warningGasPriceHigh });
-		setTransactionObject({ gas: customGas, gasPrice: customGasPrice });
-		setTimeout(() => {
-			this.setState({
-				gasEstimationReady: true,
-				errorMessage: undefined,
-			});
-		}, 100);
 	};
 
 	cancelGasEdition = () => {
@@ -541,12 +517,9 @@ class Approve extends PureComponent {
 
 	render = () => {
 		const {
-			gasError,
-			basicGasEstimates,
 			mode,
 			ready,
 			over,
-			warningGasPriceHigh,
 			EIP1559GasData,
 			EIP1559GasDataTemp,
 			LegacyGasData,
@@ -578,7 +551,6 @@ class Approve extends PureComponent {
 						<AnimatedTransactionModal onModeChange={this.onModeChange} ready={ready} review={this.review}>
 							<ApproveTransactionReview
 								gasError={EIP1559GasData.error || LegacyGasData.error}
-								warningGasPriceHigh={warningGasPriceHigh}
 								onCancel={this.onCancel}
 								onConfirm={this.onConfirm}
 								over={over}
@@ -592,16 +564,8 @@ class Approve extends PureComponent {
 								isAnimating={isAnimating}
 								gasEstimationReady={ready}
 							/>
-							<CustomGas
-								handleGasFeeSelection={this.handleSetGasFee}
-								basicGasEstimates={basicGasEstimates}
-								gas={transaction.gas}
-								gasPrice={transaction.gasPrice}
-								gasError={gasError}
-								mode={mode}
-								view={'Approve'}
-								analyticsParams={this.getGasAnalyticsParams()}
-							/>
+							{/** View fixes layout issue after removing <CustomGas/> */}
+							<View />
 						</AnimatedTransactionModal>
 					)}
 
