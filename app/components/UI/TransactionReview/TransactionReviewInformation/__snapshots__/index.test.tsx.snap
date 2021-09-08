@@ -1,0 +1,26 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TransactionReviewInformation should render correctly 1`] = `
+<TransactionReviewInformation
+  EIP1559GasData={Object {}}
+  contractExchangeRates={Object {}}
+  conversionRate={0.1}
+  currentCurrency="usd"
+  primaryCurrency="ETH"
+  setNonce={[Function]}
+  setProposedNonce={[Function]}
+  ticker="ETH"
+  transaction={
+    Object {
+      "assetType": undefined,
+      "data": "",
+      "from": "0x1",
+      "gas": "",
+      "gasPrice": "",
+      "selectedAsset": undefined,
+      "to": "0x2",
+      "value": "",
+    }
+  }
+/>
+`;
