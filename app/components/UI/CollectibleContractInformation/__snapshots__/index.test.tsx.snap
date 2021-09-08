@@ -1,0 +1,23 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CollectibleContractInformation should render correctly 1`] = `
+<CollectibleContractInformation
+  collectibleContract={
+    Object {
+      "address": "0x123",
+      "description": "description",
+      "name": "name",
+      "symbol": "symbol",
+      "totalSupply": 1,
+    }
+  }
+  dispatch={[Function]}
+  network={
+    Object {
+      "provider": Object {
+        "type": "mainnet",
+      },
+    }
+  }
+/>
+`;

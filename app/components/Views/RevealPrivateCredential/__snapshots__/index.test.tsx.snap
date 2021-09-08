@@ -1,0 +1,16 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`RevealPrivateCredential should render correctly 1`] = `
+<RevealPrivateCredential
+  passwordSet={false}
+  route={
+    Object {
+      "params": Object {
+        "privateCredentialName": "private_key",
+      },
+    }
+  }
+  selectedAddress="0xe7E125654064EEa56229f273dA586F10DF96B0a1"
+  showAlert={[Function]}
+/>
+`;
