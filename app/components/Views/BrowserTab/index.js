@@ -1639,7 +1639,6 @@ export const BrowserTab = (props) => {
 	 */
 	const onNewTabPress = () => {
 		openNewTab();
-		console.log('new tab');
 		trackNewTabEvent();
 	};
 

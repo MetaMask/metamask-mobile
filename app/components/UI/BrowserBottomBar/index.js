@@ -120,7 +120,7 @@ export default class BrowserBottomBar extends PureComponent {
 			this.trackNavigationEvent('Go Back');
 		};
 
-		const foward = () => {
+		const forward = () => {
 			goForward();
 			this.trackNavigationEvent('Go Forward');
 		};
@@ -141,7 +141,7 @@ export default class BrowserBottomBar extends PureComponent {
 					<Icon name="angle-left" size={24} style={[styles.icon, !canGoBack ? styles.disabledIcon : {}]} />
 				</TouchableOpacity>
 				<TouchableOpacity
-					onPress={foward}
+					onPress={forward}
 					style={styles.iconButton}
 					testID={'go-forward-button'}
 					disabled={!canGoForward}
