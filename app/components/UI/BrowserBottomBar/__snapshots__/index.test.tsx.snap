@@ -142,6 +142,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     />
   </TouchableOpacity>
   <TouchableOpacity
+    onPress={[Function]}
     style={
       Object {
         "alignItems": "center",
