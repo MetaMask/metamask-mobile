@@ -155,8 +155,8 @@ class Tokens extends PureComponent {
 	renderItem = (asset) => {
 		const { conversionRate, currentCurrency, tokenBalances, tokenExchangeRates, primaryCurrency, tokenList } =
 			this.props;
-		const itemAddress = safeToChecksumAddress(asset.address)?.toLowerCase?.();
-		const logo = tokenList?.[itemAddress]?.iconUrl;
+		const itemAddress = safeToChecksumAddress(asset.address);
+		const logo = tokenList?.[itemAddress?.toLowerCase?.()]?.iconUrl;
 		const exchangeRate = itemAddress in tokenExchangeRates ? tokenExchangeRates[itemAddress] : undefined;
 		const balance =
 			asset.balance ||

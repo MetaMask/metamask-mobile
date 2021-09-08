@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
 
 const WalletTabHome = () => (
 	<Stack.Navigator initialRouteName={'WalletView'}>
-		<Stack.Screen name="WalletView" component={Wallet} options={Wallet.navigationOptions} />
+		<Stack.Screen name="WalletView" component={Wallet} />
 		<Stack.Screen name="Asset" component={Asset} options={Asset.navigationOptions} />
 		<Stack.Screen name="AddAsset" component={AddAsset} options={AddAsset.navigationOptions} />
 
