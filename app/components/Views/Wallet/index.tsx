@@ -1,7 +1,6 @@
-import React, { PureComponent } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { RefreshControl, ScrollView, InteractionManager, ActivityIndicator, StyleSheet, View } from 'react-native';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+import { useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
@@ -16,7 +15,6 @@ import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
-import { showTransactionNotification, hideCurrentNotification } from '../../../actions/notification';
 import ErrorBoundary from '../ErrorBoundary';
 
 const styles = StyleSheet.create({
@@ -34,7 +32,7 @@ const styles = StyleSheet.create({
 	textStyle: {
 		fontSize: 12,
 		letterSpacing: 0.5,
-		...fontStyles.bold,
+		...(fontStyles.bold as any),
 	},
 	loader: {
 		backgroundColor: colors.white,
@@ -47,79 +45,66 @@ const styles = StyleSheet.create({
 /**
  * Main view for the wallet
  */
-class Wallet extends PureComponent {
-	static navigationOptions = ({ navigation }) => getWalletNavbarOptions('wallet.title', navigation);
+const Wallet = ({ navigation }: any) => {
+	const [refreshing, setRefreshing] = useState(false);
+	const accountOverviewRef = useRef(null);
+	/**
+	 * Map of accounts to information objects including balances
+	 */
+	const accounts = useSelector((state: any) => state.engine.backgroundState.AccountTrackerController.accounts);
+	/**
+	 * ETH to current currency conversion rate
+	 */
+	const conversionRate = useSelector(
+		(state: any) => state.engine.backgroundState.CurrencyRateController.conversionRate
+	);
+	/**
+	 * Currency code of the currently-active currency
+	 */
+	const currentCurrency = useSelector(
+		(state: any) => state.engine.backgroundState.CurrencyRateController.currentCurrency
+	);
+	/**
+	 * An object containing each identity in the format address => account
+	 */
+	const identities = useSelector((state: any) => state.engine.backgroundState.PreferencesController.identities);
+	/**
+	 * A string that represents the selected address
+	 */
+	const selectedAddress = useSelector(
+		(state: any) => state.engine.backgroundState.PreferencesController.selectedAddress
+	);
+	/**
+	 * An array that represents the user tokens
+	 */
+	const tokens = useSelector((state: any) => state.engine.backgroundState.TokensController.tokens);
+	/**
+	 * Current provider ticker
+	 */
+	const ticker = useSelector((state: any) => state.engine.backgroundState.NetworkController.provider.ticker);
+	/**
+	 * Current onboarding wizard step
+	 */
+	const wizardStep = useSelector((state: any) => state.wizard.step);
 
-	static propTypes = {
-		/**
-		 * Map of accounts to information objects including balances
-		 */
-		accounts: PropTypes.object,
-		/**
-		 * ETH to current currency conversion rate
-		 */
-		conversionRate: PropTypes.number,
-		/**
-		 * Currency code of the currently-active currency
-		 */
-		currentCurrency: PropTypes.string,
-		/**
-		/* navigation object required to push new views
-		*/
-		navigation: PropTypes.object,
-		/**
-		 * An object containing each identity in the format address => account
-		 */
-		identities: PropTypes.object,
-		/**
-		 * A string that represents the selected address
-		 */
-		selectedAddress: PropTypes.string,
-		/**
-		 * An array that represents the user tokens
-		 */
-		tokens: PropTypes.array,
-		/**
-		 * An array that represents the user collectibles
-		 */
-		collectibles: PropTypes.array,
-		/**
-		 * Current provider ticker
-		 */
-		ticker: PropTypes.string,
-		/**
-		 * Current onboarding wizard step
-		 */
-		wizardStep: PropTypes.number,
-	};
-
-	state = {
-		refreshing: false,
-	};
-
-	accountOverviewRef = React.createRef();
-
-	mounted = false;
-
-	componentDidMount = () => {
+	useEffect(() => {
+		navigation.setOptions(getWalletNavbarOptions('wallet.title', navigation));
 		requestAnimationFrame(async () => {
-			const { AssetsDetectionController, AccountTrackerController } = Engine.context;
+			const { AssetsDetectionController, AccountTrackerController } = Engine.context as any;
 			AssetsDetectionController.detectAssets();
 			AccountTrackerController.refresh();
-
-			this.mounted = true;
 		});
-	};
+	}, [navigation]);
 
-	onRefresh = async () => {
+	const onRefresh = useCallback(async () => {
 		requestAnimationFrame(async () => {
-			this.setState({ refreshing: true });
+			setRefreshing(true);
 			const {
 				AssetsDetectionController,
 				AccountTrackerController,
 				CurrencyRateController,
 				TokenRatesController,
-			} = Engine.context;
+			} = Engine.context as any;
 			const actions = [
 				AssetsDetectionController.detectAssets(),
 				AccountTrackerController.refresh(),
@@ -127,16 +112,12 @@ class Wallet extends PureComponent {
 				TokenRatesController.poll(),
 			];
 			await Promise.all(actions);
-			this.setState({ refreshing: false });
+			setRefreshing(false);
 		});
-	};
+	}, [setRefreshing]);
 
-	componentWillUnmount() {
-		this.mounted = false;
-	}
-
-	renderTabBar() {
-		return (
+	const renderTabBar = useCallback(
+		() => (
 			<DefaultTabBar
 				underlineStyle={styles.tabUnderlineStyle}
 				activeTextColor={colors.blue}
@@ -145,10 +126,11 @@ class Wallet extends PureComponent {
 				tabStyle={styles.tabStyle}
 				textStyle={styles.textStyle}
 			/>
-		);
-	}
+		),
+		[]
+	);
 
-	onChangeTab = (obj) => {
+	const onChangeTab = useCallback((obj) => {
 		InteractionManager.runAfterInteractions(() => {
 			if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
 				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_TOKENS);
@@ -156,26 +138,14 @@ class Wallet extends PureComponent {
 				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_COLLECTIBLES);
 			}
 		});
-	};
+	}, []);
 
-	onRef = (ref) => {
-		this.accountOverviewRef = ref;
-	};
+	const onRef = useCallback((ref) => {
+		accountOverviewRef.current = ref;
+	}, []);
 
-	renderContent() {
-		const {
-			accounts,
-			conversionRate,
-			currentCurrency,
-			identities,
-			selectedAddress,
-			tokens,
-			collectibles,
-			navigation,
-			ticker,
-		} = this.props;
-
-		let balance = 0;
+	const renderContent = useCallback(() => {
+		let balance: any = 0;
 		let assets = tokens;
 		if (accounts[selectedAddress]) {
 			balance = renderFromWei(accounts[selectedAddress].balance);
@@ -185,7 +155,11 @@ class Wallet extends PureComponent {
 					symbol: getTicker(ticker),
 					isETH: true,
 					balance,
-					balanceFiat: weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency),
+					balanceFiat: weiToFiat(
+						hexToBN(accounts[selectedAddress].balance) as any,
+						conversionRate,
+						currentCurrency
+					),
 					logo: '../images/eth-logo.png',
 				},
 				...(tokens || []),
@@ -194,75 +168,67 @@ class Wallet extends PureComponent {
 			assets = tokens;
 		}
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
+
 		return (
 			<View style={styles.wrapper}>
-				<AccountOverview account={account} navigation={navigation} onRef={this.onRef} />
+				<AccountOverview account={account} navigation={navigation} onRef={onRef} />
 				<ScrollableTabView
-					renderTabBar={this.renderTabBar}
+					renderTabBar={renderTabBar}
 					// eslint-disable-next-line react/jsx-no-bind
-					onChangeTab={(obj) => this.onChangeTab(obj)}
+					onChangeTab={onChangeTab}
 				>
-					<Tokens navigation={navigation} tabLabel={strings('wallet.tokens')} tokens={assets} />
-					<CollectibleContracts
-						navigation={navigation}
-						tabLabel={strings('wallet.collectibles')}
-						collectibles={collectibles}
-					/>
+					<Tokens key={'tokens-tab'} navigation={navigation} tokens={assets} />
+					<CollectibleContracts key={'nfts-tab'} navigation={navigation} />
 				</ScrollableTabView>
 			</View>
 		);
-	}
+	}, [
+		renderTabBar,
+		accounts,
+		conversionRate,
+		currentCurrency,
+		identities,
+		navigation,
+		onChangeTab,
+		onRef,
+		selectedAddress,
+		ticker,
+		tokens,
+	]);
 
-	renderLoader() {
-		return (
+	const renderLoader = useCallback(
+		() => (
 			<View style={styles.loader}>
 				<ActivityIndicator size="small" />
 			</View>
-		);
-	}
+		),
+		[]
+	);
 
 	/**
 	 * Return current step of onboarding wizard if not step 5 nor 0
 	 */
-	renderOnboardingWizard = () => {
-		const { wizardStep } = this.props;
-		return (
+	const renderOnboardingWizard = useCallback(
+		() =>
 			[1, 2, 3, 4].includes(wizardStep) && (
-				<OnboardingWizard navigation={this.props.navigation} coachmarkRef={this.accountOverviewRef} />
-			)
-		);
-	};
+				<OnboardingWizard navigation={navigation} coachmarkRef={accountOverviewRef.current} />
+			),
+		[navigation, wizardStep]
+	);
 
-	render = () => (
+	return (
 		<ErrorBoundary view="Wallet">
 			<View style={baseStyles.flexGrow} testID={'wallet-screen'}>
 				<ScrollView
 					style={styles.wrapper}
-					refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
+					refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
 				>
-					{this.props.selectedAddress ? this.renderContent() : this.renderLoader()}
+					{selectedAddress ? renderContent() : renderLoader()}
 				</ScrollView>
-				{this.renderOnboardingWizard()}
+				{renderOnboardingWizard()}
 			</View>
 		</ErrorBoundary>
 	);
-}
+};
 
-const mapStateToProps = (state) => ({
-	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
-	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	identities: state.engine.backgroundState.PreferencesController.identities,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	tokens: state.engine.backgroundState.TokensController.tokens,
-	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
-	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	wizardStep: state.wizard.step,
-});
-
-const mapDispatchToProps = (dispatch) => ({
-	showTransactionNotification: (args) => dispatch(showTransactionNotification(args)),
-	hideCurrentNotification: () => dispatch(hideCurrentNotification()),
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(Wallet);
+export default Wallet;
