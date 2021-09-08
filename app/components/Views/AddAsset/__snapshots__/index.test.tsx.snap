@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AddAsset should render correctly 1`] = `
+<AddAsset
+  chainId="1"
+  dispatch={[Function]}
+  route={
+    Object {
+      "params": Object {
+        "assetType": "token",
+      },
+    }
+  }
+/>
+`;
