@@ -12,8 +12,8 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
-		flex: 1
-	}
+		flex: 1,
+	},
 });
 
 /**
@@ -23,25 +23,25 @@ export default class SearchTokenAutocomplete extends PureComponent {
 	state = {
 		searchResults: [],
 		searchQuery: '',
-		selectedAsset: {}
+		selectedAsset: {},
 	};
 
 	static propTypes = {
 		/**
 		/* navigation object required to push new views
 		*/
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
 	};
 
 	cancelAddToken = () => {
 		this.props.navigation.goBack();
 	};
 
-	handleSearch = opts => {
+	handleSearch = (opts) => {
 		this.setState({ searchResults: opts.results, searchQuery: opts.searchQuery });
 	};
 
-	handleSelectAsset = asset => {
+	handleSelectAsset = (asset) => {
 		this.setState({ selectedAsset: asset });
 	};
 
@@ -59,7 +59,7 @@ export default class SearchTokenAutocomplete extends PureComponent {
 				token_symbol: symbol,
 				network_name: type,
 				chain_id: chainId,
-				source: 'Add token dropdown'
+				source: 'Add token dropdown',
 			};
 		} catch (error) {
 			return {};
@@ -78,7 +78,7 @@ export default class SearchTokenAutocomplete extends PureComponent {
 			{
 				searchResults: [],
 				searchQuery: '',
-				selectedAsset: {}
+				selectedAsset: {},
 			},
 			() => {
 				InteractionManager.runAfterInteractions(() => {

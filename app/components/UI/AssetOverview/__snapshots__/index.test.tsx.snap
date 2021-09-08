@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AssetOverview should render correctly 1`] = `
+<Connect(AssetOverview)
+  asset={
+    Object {
+      "balance": 4,
+      "balanceFiat": 1500,
+      "logo": "https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg",
+      "name": "Ethereum",
+      "symbol": "ETH",
+    }
+  }
+/>
+`;

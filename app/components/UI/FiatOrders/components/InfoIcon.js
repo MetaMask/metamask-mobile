@@ -6,11 +6,11 @@ import { colors } from '../../../../styles/common';
 
 const styles = StyleSheet.create({
 	icon: {
-		color: colors.grey200
-	}
+		color: colors.grey200,
+	},
 });
 
-const InfoIcon = props => (
+const InfoIcon = (props) => (
 	<IonicIcon
 		name={Device.isAndroid() ? 'md-information-circle' : 'ios-information-circle'}
 		style={styles.icon}

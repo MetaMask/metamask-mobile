@@ -17,38 +17,38 @@ const styles = StyleSheet.create({
 		flex: 1,
 		paddingHorizontal: 25,
 		justifyContent: 'space-between',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	content: {
 		flex: 1,
 		justifyContent: 'center',
-		marginVertical: 14
+		marginVertical: 14,
 	},
 	images: {
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	title: {
 		fontSize: Device.isSmallDevice() ? 20 : 24,
 		marginHorizontal: 15,
-		marginBottom: Device.isSmallDevice() ? 16 : 24
+		marginBottom: Device.isSmallDevice() ? 16 : 24,
 	},
 	aggregatorsImage: {
 		marginVertical: 14,
 		width: Device.isSmallDevice() ? 230 : 300,
-		height: Device.isSmallDevice() ? 85 : 110
+		height: Device.isSmallDevice() ? 85 : 110,
 	},
 	learnMore: {
-		marginVertical: 14
+		marginVertical: 14,
 	},
 	learnMoreLink: {
-		paddingVertical: Device.isSmallDevice() ? 4 : 8
+		paddingVertical: Device.isSmallDevice() ? 4 : 8,
 	},
 	actionButtonWrapper: {
-		width: '100%'
+		width: '100%',
 	},
 	actionButton: {
-		marginVertical: 10
-	}
+		marginVertical: 10,
+	},
 });
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -66,8 +66,8 @@ function Onboarding({ setHasOnboarded }) {
 		navigation.navigate('Webview', {
 			screen: 'SimpleWebview',
 			params: {
-				url: 'https://consensys.net/diligence/audits/2020/08/metaswap/'
-			}
+				url: 'https://consensys.net/diligence/audits/2020/08/metaswap/',
+			},
 		});
 	}, [navigation]);
 
@@ -114,7 +114,7 @@ function Onboarding({ setHasOnboarded }) {
 }
 
 Onboarding.propTypes = {
-	setHasOnboarded: PropTypes.func
+	setHasOnboarded: PropTypes.func,
 };
 
 export default Onboarding;

@@ -18,69 +18,69 @@ const styles = StyleSheet.create({
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
 		minHeight: 200,
-		paddingBottom: Device.isIphoneX() ? 20 : 0
+		paddingBottom: Device.isIphoneX() ? 20 : 0,
 	},
 	accountCardWrapper: {
 		borderWidth: 1,
 		borderColor: colors.grey200,
 		borderRadius: 10,
 		padding: 16,
-		margin: 24
+		margin: 24,
 	},
 	intro: {
 		fontSize: Device.isSmallDevice() ? 18 : 24,
 		marginBottom: 16,
 		marginTop: 16,
 		marginRight: 24,
-		marginLeft: 24
+		marginLeft: 24,
 	},
 	warning: {
 		paddingHorizontal: 24,
 		fontSize: 13,
 		width: '100%',
-		paddingBottom: 12
+		paddingBottom: 12,
 	},
 	warningSubtext: {
 		lineHeight: 20,
 		paddingHorizontal: 24,
 		fontSize: 13,
-		width: '100%'
+		width: '100%',
 	},
 	actionContainer: {
 		flex: 0,
 		flexDirection: 'row',
-		padding: 24
+		padding: 24,
 	},
 	button: {
-		flex: 1
+		flex: 1,
 	},
 	cancel: {
-		marginRight: 8
+		marginRight: 8,
 	},
 	confirm: {
-		marginLeft: 8
+		marginLeft: 8,
 	},
 	actionTouchable: {
 		flexDirection: 'column',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	viewDetailsText: {
 		fontSize: 12,
-		lineHeight: 16
+		lineHeight: 16,
 	},
 	textSection: {
 		flexDirection: 'row',
-		paddingBottom: 7
+		paddingBottom: 7,
 	},
 	textSectionLast: {
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	networkInfoTitle: {
-		paddingRight: 10
+		paddingRight: 10,
 	},
 	networkInfoValue: {
 		flex: 1,
-		fontSize: 13
+		fontSize: 13,
 	},
 	detailsBackButton: {
 		height: 24,
@@ -88,34 +88,34 @@ const styles = StyleSheet.create({
 		justifyContent: 'space-around',
 		alignItems: 'center',
 		textAlign: 'center',
-		padding: 24
+		padding: 24,
 	},
 	detailsBackIcon: {
 		width: 24,
 		height: 24,
 		color: colors.black,
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	detailsContainer: {
 		flexDirection: 'row',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	flexAux: {
-		flex: 1
+		flex: 1,
 	},
 	alertContainer: {
 		marginHorizontal: 24,
-		marginBottom: 16
+		marginBottom: 16,
 	},
 	alertIcon: {
 		fontSize: 20,
 		...fontStyles.bold,
 		color: colors.yellow,
-		marginRight: 6
+		marginRight: 6,
 	},
 	alertText: {
-		lineHeight: 18
-	}
+		lineHeight: 18,
+	},
 });
 
 /**
@@ -142,10 +142,10 @@ const AddCustomNetwork = ({ customNetworkInformation, currentPageInformation, on
 	 * Toggle network details
 	 */
 	const toggleViewDetails = () => {
-		setViewDetails(viewDetails => !viewDetails);
+		setViewDetails((viewDetails) => !viewDetails);
 	};
 
-	const renderNetworkInfo = moreDetails => (
+	const renderNetworkInfo = (moreDetails) => (
 		<View style={styles.accountCardWrapper}>
 			<View style={styles.textSection}>
 				<Text small primary noMargin style={styles.networkInfoTitle}>
@@ -325,7 +325,7 @@ AddCustomNetwork.propTypes = {
 	/**
 	 * Object containing info of the network to add
 	 */
-	customNetworkInformation: PropTypes.object
+	customNetworkInformation: PropTypes.object,
 };
 
 export default AddCustomNetwork;

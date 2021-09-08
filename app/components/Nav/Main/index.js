@@ -7,7 +7,7 @@ import {
 	View,
 	Alert,
 	InteractionManager,
-	PushNotificationIOS // eslint-disable-line react-native/split-platform-components
+	PushNotificationIOS, // eslint-disable-line react-native/split-platform-components
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
@@ -35,7 +35,7 @@ import {
 	TOKEN_METHOD_TRANSFER,
 	decodeTransferData,
 	APPROVE_FUNCTION_SIGNATURE,
-	decodeApproveData
+	decodeApproveData,
 } from '../../../util/transactions';
 import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
@@ -50,7 +50,7 @@ import {
 	hideCurrentNotification,
 	showSimpleNotification,
 	removeNotificationById,
-	removeNotVisibleNotifications
+	removeNotVisibleNotifications,
 } from '../../../actions/notification';
 import { toggleDappTransactionModal, toggleApproveModal } from '../../../actions/modals';
 import AccountApproval from '../../UI/AccountApproval';
@@ -69,20 +69,20 @@ import { toLowerCaseEquals } from '../../../util/general';
 
 const styles = StyleSheet.create({
 	flex: {
-		flex: 1
+		flex: 1,
 	},
 	loader: {
 		backgroundColor: colors.white,
 		flex: 1,
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	bottomModal: {
 		justifyContent: 'flex-end',
-		margin: 0
-	}
+		margin: 0,
+	},
 });
-const Main = props => {
+const Main = (props) => {
 	const [connected, setConnected] = useState(true);
 	const [forceReload, setForceReload] = useState(false);
 	const [signMessage, setSignMessage] = useState(false);
@@ -109,7 +109,7 @@ const Main = props => {
 	const setEtherTransaction = props.setEtherTransaction;
 	const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
 
-	const usePrevious = value => {
+	const usePrevious = (value) => {
 		const ref = useRef();
 		useEffect(() => {
 			ref.current = value;
@@ -140,7 +140,7 @@ const Main = props => {
 	};
 
 	const connectionChangeHandler = useCallback(
-		state => {
+		(state) => {
 			if (!state) return;
 			const { isConnected } = state;
 			// Show the modal once the status changes to offline
@@ -174,11 +174,11 @@ const Main = props => {
 		props.navigation,
 		props.providerType,
 		props.setInfuraAvailabilityBlocked,
-		props.setInfuraAvailabilityNotBlocked
+		props.setInfuraAvailabilityNotBlocked,
 	]);
 
 	const initializeWalletConnect = () => {
-		WalletConnect.hub.on('walletconnectSessionRequest', peerInfo => {
+		WalletConnect.hub.on('walletconnectSessionRequest', (peerInfo) => {
 			setWalletConnectRequest(true);
 			setWalletConnectRequestInfo(peerInfo);
 		});
@@ -191,31 +191,27 @@ const Main = props => {
 				const { TransactionController } = Engine.context;
 				const newSwapsTransactions = props.swapsTransactions;
 				const swapTransaction = newSwapsTransactions[transactionMeta.id];
-				const {
-					sentAt,
-					gasEstimate,
-					ethAccountBalance,
-					approvalTransactionMetaId
-				} = swapTransaction.paramsForAnalytics;
+				const { sentAt, gasEstimate, ethAccountBalance, approvalTransactionMetaId } =
+					swapTransaction.paramsForAnalytics;
 
 				const approvalTransaction = TransactionController.state.transactions.find(
 					({ id }) => id === approvalTransactionMetaId
 				);
 				const ethBalance = await util.query(TransactionController.ethQuery, 'getBalance', [
-					props.selectedAddress
+					props.selectedAddress,
 				]);
 				const receipt = await util.query(TransactionController.ethQuery, 'getTransactionReceipt', [
-					transactionMeta.transactionHash
+					transactionMeta.transactionHash,
 				]);
 
 				const currentBlock = await util.query(TransactionController.ethQuery, 'getBlockByHash', [
 					receipt.blockHash,
-					false
+					false,
 				]);
 				let approvalReceipt;
 				if (approvalTransaction?.transactionHash) {
 					approvalReceipt = await util.query(TransactionController.ethQuery, 'getTransactionReceipt', [
-						approvalTransaction.transactionHash
+						approvalTransaction.transactionHash,
 					]);
 				}
 				const tokensReceived = swapsUtils.getSwapsTokensReceived(
@@ -261,7 +257,7 @@ const Main = props => {
 						time_to_mine: timeToMine,
 						estimated_vs_used_gasRatio: estimatedVsUsedGasRatio,
 						quote_vs_executionRatio: quoteVsExecutionRatio,
-						token_to_amount_received: tokenToAmountReceived.toString()
+						token_to_amount_received: tokenToAmountReceived.toString(),
 					};
 					Analytics.trackEventWithParameters(event, {});
 					Analytics.trackEventWithParameters(event, parameters, true);
@@ -277,15 +273,15 @@ const Main = props => {
 	);
 
 	const autoSign = useCallback(
-		async transactionMeta => {
+		async (transactionMeta) => {
 			const { TransactionController } = Engine.context;
 			try {
-				TransactionController.hub.once(`${transactionMeta.id}:finished`, transactionMeta => {
+				TransactionController.hub.once(`${transactionMeta.id}:finished`, (transactionMeta) => {
 					if (transactionMeta.status === 'submitted') {
 						props.navigation.pop?.();
 						NotificationManager.watchSubmittedTransaction({
 							...transactionMeta,
-							assetType: transactionMeta.transaction.assetType
+							assetType: transactionMeta.transaction.assetType,
 						});
 					} else {
 						if (props.swapsTransactions[transactionMeta.id]?.analytics) {
@@ -294,7 +290,7 @@ const Main = props => {
 						throw transactionMeta.error;
 					}
 				});
-				TransactionController.hub.once(`${transactionMeta.id}:confirmed`, transactionMeta => {
+				TransactionController.hub.once(`${transactionMeta.id}:confirmed`, (transactionMeta) => {
 					if (props.swapsTransactions[transactionMeta.id]?.analytics) {
 						trackSwaps(ANALYTICS_EVENT_OPTS.SWAP_COMPLETED, transactionMeta);
 					}
@@ -302,7 +298,7 @@ const Main = props => {
 				await TransactionController.approveTransaction(transactionMeta.id);
 			} catch (error) {
 				Alert.alert(strings('transactions.transaction_error'), error && error.message, [
-					{ text: strings('navigation.ok') }
+					{ text: strings('navigation.ok') },
 				]);
 				Logger.error(error, 'error while trying to send transaction (Main)');
 			}
@@ -311,7 +307,7 @@ const Main = props => {
 	);
 
 	const onUnapprovedTransaction = useCallback(
-		async transactionMeta => {
+		async (transactionMeta) => {
 			if (transactionMeta.origin === TransactionTypes.MMM) return;
 
 			const to = transactionMeta.transaction.to?.toLowerCase();
@@ -332,7 +328,7 @@ const Main = props => {
 				}
 			} else {
 				const {
-					transaction: { value, gas, gasPrice, data }
+					transaction: { value, gas, gasPrice, data },
 				} = transactionMeta;
 				const { AssetsContractController } = Engine.context;
 				transactionMeta.transaction.gas = hexToBN(gas);
@@ -377,7 +373,7 @@ const Main = props => {
 						selectedAsset: asset,
 						id: transactionMeta.id,
 						origin: transactionMeta.origin,
-						...transactionMeta.transaction
+						...transactionMeta.transaction,
 					});
 				} else {
 					transactionMeta.transaction.value = hexToBN(value);
@@ -386,7 +382,7 @@ const Main = props => {
 					setEtherTransaction({
 						id: transactionMeta.id,
 						origin: transactionMeta.origin,
-						...transactionMeta.transaction
+						...transactionMeta.transaction,
 					});
 				}
 
@@ -405,12 +401,12 @@ const Main = props => {
 			toggleApproveModal,
 			toggleDappTransactionModal,
 			autoSign,
-			tokenList
+			tokenList,
 		]
 	);
 
 	const handleAppStateChange = useCallback(
-		appState => {
+		(appState) => {
 			const newModeIsBackground = appState === 'background';
 			// If it was in background and it's not anymore
 			// we need to stop the Background timer
@@ -536,7 +532,7 @@ const Main = props => {
 					onConfirm={onWalletConnectSessionApproval}
 					currentPageInformation={{
 						title: meta && meta.name,
-						url: meta && meta.url
+						url: meta && meta.url,
 					}}
 					walletConnectRequest
 				/>
@@ -568,7 +564,7 @@ const Main = props => {
 		toggleRemindLater();
 		props.navigation.navigate('SetPasswordFlow', {
 			screen: 'AccountBackupStep1B',
-			params: { ...props.route.params }
+			params: { ...props.route.params },
 		});
 	};
 
@@ -606,7 +602,7 @@ const Main = props => {
 		lockManager.current = new LockManager(props.navigation, props.lockTime);
 		PushNotification.configure({
 			requestPermissions: false,
-			onNotification: notification => {
+			onNotification: (notification) => {
 				let data = null;
 				if (Device.isAndroid()) {
 					if (notification.tag) {
@@ -625,18 +621,18 @@ const Main = props => {
 				if (Device.isIos()) {
 					notification.finish(PushNotificationIOS.FetchResult.NoData);
 				}
-			}
+			},
 		});
 
-		Engine.context.MessageManager.hub.on('unapprovedMessage', messageParams =>
+		Engine.context.MessageManager.hub.on('unapprovedMessage', (messageParams) =>
 			onUnapprovedMessage(messageParams, 'eth')
 		);
 
-		Engine.context.PersonalMessageManager.hub.on('unapprovedMessage', messageParams =>
+		Engine.context.PersonalMessageManager.hub.on('unapprovedMessage', (messageParams) =>
 			onUnapprovedMessage(messageParams, 'personal')
 		);
 
-		Engine.context.TypedMessageManager.hub.on('unapprovedMessage', messageParams =>
+		Engine.context.TypedMessageManager.hub.on('unapprovedMessage', (messageParams) =>
 			onUnapprovedMessage(messageParams, 'typed')
 		);
 
@@ -646,7 +642,7 @@ const Main = props => {
 				showTransactionNotification: props.showTransactionNotification,
 				hideCurrentNotification: props.hideCurrentNotification,
 				showSimpleNotification: props.showSimpleNotification,
-				removeNotificationById: props.removeNotificationById
+				removeNotificationById: props.removeNotificationById,
 			});
 			pollForIncomingTransactions();
 			checkInfuraAvailability();
@@ -776,10 +772,10 @@ Main.propTypes = {
 	/**
 	 * Object that represents the current route info like params passed to it
 	 */
-	route: PropTypes.object
+	route: PropTypes.object,
 };
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	lockTime: state.settings.lockTime,
 	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
@@ -788,24 +784,21 @@ const mapStateToProps = state => ({
 	dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
 	approveModalVisible: state.modals.approveModalVisible,
 	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {},
-	providerType: state.engine.backgroundState.NetworkController.provider.type
+	providerType: state.engine.backgroundState.NetworkController.provider.type,
 });
 
-const mapDispatchToProps = dispatch => ({
-	setEtherTransaction: transaction => dispatch(setEtherTransaction(transaction)),
-	setTransactionObject: transaction => dispatch(setTransactionObject(transaction)),
-	showTransactionNotification: args => dispatch(showTransactionNotification(args)),
-	showSimpleNotification: args => dispatch(showSimpleNotification(args)),
+const mapDispatchToProps = (dispatch) => ({
+	setEtherTransaction: (transaction) => dispatch(setEtherTransaction(transaction)),
+	setTransactionObject: (transaction) => dispatch(setTransactionObject(transaction)),
+	showTransactionNotification: (args) => dispatch(showTransactionNotification(args)),
+	showSimpleNotification: (args) => dispatch(showSimpleNotification(args)),
 	hideCurrentNotification: () => dispatch(hideCurrentNotification()),
-	removeNotificationById: id => dispatch(removeNotificationById(id)),
+	removeNotificationById: (id) => dispatch(removeNotificationById(id)),
 	toggleDappTransactionModal: (show = null) => dispatch(toggleDappTransactionModal(show)),
-	toggleApproveModal: show => dispatch(toggleApproveModal(show)),
+	toggleApproveModal: (show) => dispatch(toggleApproveModal(show)),
 	setInfuraAvailabilityBlocked: () => dispatch(setInfuraAvailabilityBlocked()),
 	setInfuraAvailabilityNotBlocked: () => dispatch(setInfuraAvailabilityNotBlocked()),
-	removeNotVisibleNotifications: () => dispatch(removeNotVisibleNotifications())
+	removeNotVisibleNotifications: () => dispatch(removeNotVisibleNotifications()),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(Main);
+export default connect(mapStateToProps, mapDispatchToProps)(Main);

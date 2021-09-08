@@ -1,0 +1,10 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ImportFromSeed should render correctly 1`] = `
+<ImportFromSeed
+  passwordSet={[Function]}
+  seedphraseBackedUp={[Function]}
+  setLockTime={[Function]}
+  setOnboardingWizardStep={[Function]}
+/>
+`;

@@ -10,14 +10,14 @@ import Device from '../../../../util/device';
 
 const styles = StyleSheet.create({
 	main: {
-		flex: 1
+		flex: 1,
 	},
 	coachmarkContainer: {
 		flex: 1,
 		position: 'absolute',
 		left: 0,
-		right: 0
-	}
+		right: 0,
+	},
 });
 
 class Step6 extends PureComponent {
@@ -33,12 +33,12 @@ class Step6 extends PureComponent {
 		/**
 		 * Callback to call when closing
 		 */
-		onClose: PropTypes.func
+		onClose: PropTypes.func,
 	};
 
 	state = {
 		ready: false,
-		coachmarkTop: 0
+		coachmarkTop: 0,
 	};
 
 	componentDidMount() {
@@ -106,11 +106,8 @@ class Step6 extends PureComponent {
 	}
 }
 
-const mapDispatchToProps = dispatch => ({
-	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
+const mapDispatchToProps = (dispatch) => ({
+	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 });
 
-export default connect(
-	null,
-	mapDispatchToProps
-)(Step6);
+export default connect(null, mapDispatchToProps)(Step6);

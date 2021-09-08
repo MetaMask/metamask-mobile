@@ -14,24 +14,24 @@ import AppConstants from '../../../core/AppConstants';
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
-		flex: 1
+		flex: 1,
 	},
 	rowWrapper: {
-		padding: 20
+		padding: 20,
 	},
 	textInput: {
 		borderWidth: 1,
 		borderRadius: 4,
 		borderColor: colors.grey100,
 		padding: 16,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	warningText: {
 		marginTop: 15,
 		color: colors.red,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
-	warningContainer: { marginHorizontal: 20, marginTop: 20, paddingRight: 0 }
+	warningContainer: { marginHorizontal: 20, marginTop: 20, paddingRight: 0 },
 });
 
 /**
@@ -44,14 +44,14 @@ export default class AddCustomToken extends PureComponent {
 		decimals: '',
 		warningAddress: '',
 		warningSymbol: '',
-		warningDecimals: ''
+		warningDecimals: '',
 	};
 
 	static propTypes = {
 		/**
 		/* navigation object required to push new views
 		*/
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
 	};
 
 	getAnalyticsParams = () => {
@@ -64,7 +64,7 @@ export default class AddCustomToken extends PureComponent {
 				token_symbol: symbol,
 				network_name: type,
 				chain_id: chainId,
-				source: 'Custom token'
+				source: 'Custom token',
 			};
 		} catch (error) {
 			return {};
@@ -87,7 +87,7 @@ export default class AddCustomToken extends PureComponent {
 				decimals: '',
 				warningAddress: '',
 				warningSymbol: '',
-				warningDecimals: ''
+				warningDecimals: '',
 			},
 			() => {
 				InteractionManager.runAfterInteractions(() => {
@@ -101,15 +101,15 @@ export default class AddCustomToken extends PureComponent {
 		this.props.navigation.goBack();
 	};
 
-	onAddressChange = address => {
+	onAddressChange = (address) => {
 		this.setState({ address });
 	};
 
-	onSymbolChange = symbol => {
+	onSymbolChange = (symbol) => {
 		this.setState({ symbol });
 	};
 
-	onDecimalsChange = decimals => {
+	onDecimalsChange = (decimals) => {
 		this.setState({ decimals });
 	};
 
@@ -204,8 +204,8 @@ export default class AddCustomToken extends PureComponent {
 								screen: 'SimpleWebview',
 								params: {
 									url: AppConstants.URLS.SECURITY,
-									title: strings('add_asset.security_tips')
-								}
+									title: strings('add_asset.security_tips'),
+								},
 							});
 						}}
 						style={{ color: colors.blue }}

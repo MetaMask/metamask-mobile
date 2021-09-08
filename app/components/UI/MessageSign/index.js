@@ -15,11 +15,11 @@ const styles = StyleSheet.create({
 	expandedMessage: {
 		textAlign: 'center',
 		...fontStyles.regular,
-		fontSize: 14
+		fontSize: 14,
 	},
 	messageWrapper: {
-		marginBottom: 4
-	}
+		marginBottom: 4,
+	},
 });
 
 /**
@@ -54,11 +54,11 @@ export default class MessageSign extends PureComponent {
 		/**
 		 * Indicated whether or not the expanded message is shown
 		 */
-		showExpandedMessage: PropTypes.bool
+		showExpandedMessage: PropTypes.bool,
 	};
 
 	state = {
-		truncateMessage: false
+		truncateMessage: false,
 	};
 
 	getAnalyticsParams = () => {
@@ -72,7 +72,7 @@ export default class MessageSign extends PureComponent {
 				dapp_url: currentPageInformation?.url,
 				network_name: type,
 				chain_id: chainId,
-				sign_type: 'eth'
+				sign_type: 'eth',
 			};
 		} catch (error) {
 			return {};
@@ -93,7 +93,7 @@ export default class MessageSign extends PureComponent {
 					title: confirmation
 						? strings('notifications.wc_signed_title')
 						: strings('notifications.wc_signed_rejected_title'),
-					description: strings('notifications.wc_description')
+					description: strings('notifications.wc_description'),
 				});
 		});
 	};
@@ -147,7 +147,7 @@ export default class MessageSign extends PureComponent {
 		return messageText;
 	};
 
-	shouldTruncateMessage = e => {
+	shouldTruncateMessage = (e) => {
 		if (e.nativeEvent.lines.length > 5) {
 			this.setState({ truncateMessage: true });
 			return;

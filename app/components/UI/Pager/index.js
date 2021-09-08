@@ -8,16 +8,16 @@ const defaultMargin = 4;
 const styles = StyleSheet.create({
 	wrapper: {
 		width: Dimensions.get('window').width,
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	page: {
 		height: 7,
 		backgroundColor: colors.grey100,
-		marginRight: defaultMargin
+		marginRight: defaultMargin,
 	},
 	selected: {
-		backgroundColor: colors.blue
-	}
+		backgroundColor: colors.blue,
+	},
 });
 
 export default class Pager extends PureComponent {
@@ -29,7 +29,7 @@ export default class Pager extends PureComponent {
 		/**
 		 * The number of the selected page (1 index based)
 		 */
-		selected: PropTypes.number
+		selected: PropTypes.number,
 	};
 
 	render() {
@@ -46,7 +46,7 @@ export default class Pager extends PureComponent {
 							style={[
 								styles.page,
 								{ width: pageWidth },
-								this.props.selected >= i + 1 ? styles.selected : null
+								this.props.selected >= i + 1 ? styles.selected : null,
 							]}
 						/>
 					))}

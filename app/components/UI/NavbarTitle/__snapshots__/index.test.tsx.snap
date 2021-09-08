@@ -1,0 +1,14 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NavbarTitle should render correctly 1`] = `
+<Connect(NavbarTitle)
+  network={
+    Object {
+      "provider": Object {
+        "type": "mainnet",
+      },
+    }
+  }
+  title="Test"
+/>
+`;

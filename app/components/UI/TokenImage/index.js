@@ -10,12 +10,12 @@ import { getTokenList } from '../../../reducers/tokens';
 const styles = StyleSheet.create({
 	itemLogoWrapper: {
 		width: 50,
-		height: 50
+		height: 50,
 	},
 	roundImage: {
 		overflow: 'hidden',
-		borderRadius: 25
-	}
+		borderRadius: 25,
+	},
 });
 
 export function TokenImage({ asset, containerStyle, iconStyle, logoDefined, swapsTokens, tokenList }) {
@@ -49,12 +49,12 @@ TokenImage.propTypes = {
 	iconStyle: PropTypes.object,
 	logoDefined: PropTypes.bool,
 	swapsTokens: PropTypes.arrayOf(PropTypes.object),
-	tokenList: PropTypes.object
+	tokenList: PropTypes.object,
 };
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	swapsTokens: state.engine.backgroundState.SwapsController.tokens,
-	tokenList: getTokenList(state)
+	tokenList: getTokenList(state),
 });
 
 export default connect(mapStateToProps)(TokenImage);

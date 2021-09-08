@@ -30,46 +30,46 @@ const styles = StyleSheet.create({
 		flex: 1,
 		margin: 0,
 		position: 'absolute',
-		backgroundColor: colors.transparent
+		backgroundColor: colors.transparent,
 	},
 	main: {
 		flex: 1,
-		backgroundColor: colors.transparent
+		backgroundColor: colors.transparent,
 	},
 	smallSkipWrapper: {
 		alignItems: 'center',
 		alignSelf: 'center',
-		bottom: Device.isIos() ? 30 : 35
+		bottom: Device.isIos() ? 30 : 35,
 	},
 	largeSkipWrapper: {
 		alignItems: 'center',
 		alignSelf: 'center',
-		bottom: Device.isIos() && Device.isIphoneX() ? 98 : 66
+		bottom: Device.isIos() && Device.isIphoneX() ? 98 : 66,
 	},
 	skip: {
 		height: 30,
 		borderRadius: 30,
 		backgroundColor: colors.white,
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	androidElevated: {
 		width: 120,
-		borderRadius: 30
+		borderRadius: 30,
 	},
 	iosTouchable: {
-		width: 120
+		width: 120,
 	},
 	skipTextWrapper: {
 		flex: 1,
 		flexDirection: 'column',
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	skipText: {
 		...fontStyles.normal,
 		fontSize: 12,
-		color: colors.blue
-	}
+		color: colors.blue,
+	},
 });
 
 class OnboardingWizard extends PureComponent {
@@ -89,7 +89,7 @@ class OnboardingWizard extends PureComponent {
 		/**
 		 * Coachmark ref to get position
 		 */
-		coachmarkRef: PropTypes.object
+		coachmarkRef: PropTypes.object,
 	};
 
 	/**
@@ -99,7 +99,7 @@ class OnboardingWizard extends PureComponent {
 		const {
 			setOnboardingWizardStep,
 			navigation,
-			wizard: { step }
+			wizard: { step },
 		} = this.props;
 		await DefaultPreference.set(ONBOARDING_WIZARD, EXPLORED);
 		setOnboardingWizardStep && setOnboardingWizardStep(0);
@@ -107,12 +107,12 @@ class OnboardingWizard extends PureComponent {
 		closing &&
 			InteractionManager.runAfterInteractions(() => {
 				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_SKIP_TUTORIAL, {
-					View: ONBOARDING_WIZARD_STEP_DESCRIPTION[step]
+					View: ONBOARDING_WIZARD_STEP_DESCRIPTION[step],
 				});
 			});
 	};
 
-	onboardingWizardNavigator = step => {
+	onboardingWizardNavigator = (step) => {
 		const steps = {
 			1: <Step1 onClose={this.closeOnboardingWizard} />,
 			2: <Step2 coachmarkRef={this.props.coachmarkRef} />,
@@ -125,7 +125,7 @@ class OnboardingWizard extends PureComponent {
 					navigation={this.props.navigation}
 					onClose={this.closeOnboardingWizard}
 				/>
-			)
+			),
 		};
 		return steps[step];
 	};
@@ -134,7 +134,7 @@ class OnboardingWizard extends PureComponent {
 		const {
 			wizard: { step },
 			navigation,
-			setOnboardingWizardStep
+			setOnboardingWizardStep,
 		} = this.props;
 		if (step === 1) {
 			return this.closeOnboardingWizard();
@@ -151,7 +151,7 @@ class OnboardingWizard extends PureComponent {
 
 	render() {
 		const {
-			wizard: { step }
+			wizard: { step },
 		} = this.props;
 		return (
 			<Modal
@@ -170,7 +170,7 @@ class OnboardingWizard extends PureComponent {
 						elevation={10}
 						style={[
 							Device.isSmallDevice() ? styles.smallSkipWrapper : styles.largeSkipWrapper,
-							Device.isIos() ? {} : styles.androidElevated
+							Device.isIos() ? {} : styles.androidElevated,
 						]}
 					>
 						<TouchableOpacity
@@ -188,15 +188,12 @@ class OnboardingWizard extends PureComponent {
 	}
 }
 
-const mapDispatchToProps = dispatch => ({
-	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
+const mapDispatchToProps = (dispatch) => ({
+	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 });
 
-const mapStateToProps = state => ({
-	wizard: state.wizard
+const mapStateToProps = (state) => ({
+	wizard: state.wizard,
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(OnboardingWizard);
+export default connect(mapStateToProps, mapDispatchToProps)(OnboardingWizard);

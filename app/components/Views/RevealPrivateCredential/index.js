@@ -7,7 +7,7 @@ import {
 	Text,
 	TextInput,
 	TouchableOpacity,
-	InteractionManager
+	InteractionManager,
 } from 'react-native';
 import Clipboard from '@react-native-community/clipboard';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -30,12 +30,12 @@ import { BIOMETRY_CHOICE } from '../../../constants/storage';
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
-		flex: 1
+		flex: 1,
 	},
 	header: {
 		borderBottomColor: colors.grey400,
 		borderBottomWidth: 1,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	seedPhrase: {
 		backgroundColor: colors.white,
@@ -48,84 +48,84 @@ const styles = StyleSheet.create({
 		fontSize: 20,
 		textAlign: 'center',
 		color: colors.black,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	seedPhraseView: {
 		borderRadius: 10,
 		borderWidth: 1,
 		borderColor: colors.grey400,
 		marginTop: 10,
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	privateCredentialAction: {
 		flex: 1,
 		flexDirection: 'row',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	rowWrapper: {
-		padding: 20
+		padding: 20,
 	},
 	warningWrapper: {
-		backgroundColor: colors.red000
+		backgroundColor: colors.red000,
 	},
 	warningRowWrapper: {
 		flex: 1,
 		flexDirection: 'row',
 		alignContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	warningText: {
 		marginTop: 10,
 		color: colors.red,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	input: {
 		borderWidth: 2,
 		borderRadius: 5,
 		borderColor: colors.grey000,
-		padding: 10
+		padding: 10,
 	},
 	icon: {
 		margin: 10,
-		color: colors.red
+		color: colors.red,
 	},
 	actionIcon: {
 		margin: 10,
-		color: colors.blue
+		color: colors.blue,
 	},
 	actionText: {
-		color: colors.blue
+		color: colors.blue,
 	},
 	warningMessageText: {
 		marginLeft: 10,
 		marginRight: 40,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	enterPassword: {
-		marginBottom: 15
+		marginBottom: 15,
 	},
 	tabContent: {
-		padding: 20
+		padding: 20,
 	},
 	qrCodeWrapper: {
 		marginTop: 20,
 		flex: 1,
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	tabUnderlineStyle: {
 		height: 2,
-		backgroundColor: colors.blue
+		backgroundColor: colors.blue,
 	},
 	tabStyle: {
 		paddingBottom: 0,
-		backgroundColor: colors.beige
+		backgroundColor: colors.beige,
 	},
 	textStyle: {
 		fontSize: 12,
 		letterSpacing: 0.5,
-		...fontStyles.bold
-	}
+		...fontStyles.bold,
+	},
 });
 
 const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
@@ -138,7 +138,7 @@ class RevealPrivateCredential extends PureComponent {
 		privateCredential: '',
 		unlocked: false,
 		password: '',
-		warningIncorrectPassword: ''
+		warningIncorrectPassword: '',
 	};
 
 	static navigationOptions = ({ navigation, route }) =>
@@ -174,7 +174,7 @@ class RevealPrivateCredential extends PureComponent {
 		/**
 		 * Object that represents the current route info like params passed to it
 		 */
-		route: PropTypes.object
+		route: PropTypes.object,
 	};
 
 	async componentDidMount() {
@@ -232,7 +232,7 @@ class RevealPrivateCredential extends PureComponent {
 
 			this.setState({
 				unlock: false,
-				warningIncorrectPassword: msg
+				warningIncorrectPassword: msg,
 			});
 		}
 	}
@@ -242,7 +242,7 @@ class RevealPrivateCredential extends PureComponent {
 		this.tryUnlockWithPassword(password);
 	};
 
-	onPasswordChange = password => {
+	onPasswordChange = (password) => {
 		this.setState({ password });
 	};
 
@@ -255,7 +255,7 @@ class RevealPrivateCredential extends PureComponent {
 			isVisible: true,
 			autodismiss: 1500,
 			content: 'clipboard-alert',
-			data: { msg: strings(`reveal_credential.${privateCredentialName}_copied`) }
+			data: { msg: strings(`reveal_credential.${privateCredentialName}_copied`) },
 		});
 	};
 
@@ -362,16 +362,13 @@ class RevealPrivateCredential extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	passwordSet: state.user.passwordSet
+	passwordSet: state.user.passwordSet,
 });
 
-const mapDispatchToProps = dispatch => ({
-	showAlert: config => dispatch(showAlert(config))
+const mapDispatchToProps = (dispatch) => ({
+	showAlert: (config) => dispatch(showAlert(config)),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(RevealPrivateCredential);
+export default connect(mapStateToProps, mapDispatchToProps)(RevealPrivateCredential);

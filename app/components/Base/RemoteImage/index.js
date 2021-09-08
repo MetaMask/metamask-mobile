@@ -6,11 +6,14 @@ import FadeIn from 'react-native-fade-in-image';
 import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
 import { SvgCssUri } from 'react-native-svg';
 import ComponentErrorBoundary from '../../UI/ComponentErrorBoundary';
+import useRemoteResourceExists from '../hooks/useRemoteResourceExists';
 
-const RemoteImage = props => {
+const RemoteImage = (props) => {
 	// Avoid using this component with animated SVG
 	const source = resolveAssetSource(props.source);
-	if (source && (source.uri && source.uri.match('.svg'))) {
+	const [imageExists] = useRemoteResourceExists(source.uri);
+
+	if (source && source.uri && source.uri.match('.svg')) {
 		const style = props.style || {};
 		if (source.__packager_asset && typeof style !== 'number') {
 			if (!style.width) {
@@ -26,10 +29,9 @@ const RemoteImage = props => {
 				<View style={style}>
 					<SvgCssUri
 						{...props}
-						uri={source.uri}
+						uri={imageExists ? source.uri : undefined}
 						width={'100%'}
 						height={'100%'}
-						// Default fill for svgs without fill. Some svgs do not have fill and appear invisible.
 						fill={'black'}
 					/>
 				</View>
@@ -40,11 +42,11 @@ const RemoteImage = props => {
 	if (props.fadeIn) {
 		return (
 			<FadeIn placeholderStyle={props.placeholderStyle}>
-				<Image {...props} />
+				<Image {...props} source={{ uri: imageExists ? source.uri : undefined }} />
 			</FadeIn>
 		);
 	}
-	return <Image {...props} />;
+	return <Image {...props} source={{ uri: imageExists ? source.uri : undefined }} />;
 };
 
 RemoteImage.propTypes = {
@@ -67,7 +69,7 @@ RemoteImage.propTypes = {
 	/**
 	 * Called when there is an error
 	 */
-	onError: PropTypes.func
+	onError: PropTypes.func,
 };
 
 export default RemoteImage;

@@ -20,65 +20,65 @@ const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
 		flex: 1,
-		minHeight: 500
+		minHeight: 500,
 	},
 	emptyView: {
 		backgroundColor: colors.white,
 		justifyContent: 'center',
 		alignItems: 'center',
-		marginTop: 50
+		marginTop: 50,
 	},
 	text: {
 		fontSize: 20,
 		color: colors.fontTertiary,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	add: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	addText: {
 		fontSize: 14,
 		color: colors.blue,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	footer: {
 		flex: 1,
 		paddingBottom: 30,
 		alignItems: 'center',
-		marginTop: 24
+		marginTop: 24,
 	},
 	balances: {
 		flex: 1,
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	balance: {
 		fontSize: 16,
 		color: colors.fontPrimary,
 		...fontStyles.normal,
-		textTransform: 'uppercase'
+		textTransform: 'uppercase',
 	},
 	balanceFiat: {
 		fontSize: 12,
 		color: colors.fontSecondary,
 		...fontStyles.normal,
-		textTransform: 'uppercase'
+		textTransform: 'uppercase',
 	},
 	balanceFiatTokenError: {
-		textTransform: 'capitalize'
+		textTransform: 'capitalize',
 	},
 	ethLogo: {
 		width: 50,
 		height: 50,
 		overflow: 'hidden',
-		marginRight: 20
+		marginRight: 20,
 	},
 	emptyText: {
 		color: colors.greyAssetVisibility,
 		marginBottom: 8,
-		fontSize: 14
-	}
+		fontSize: 14,
+	},
 });
 
 /**
@@ -126,7 +126,7 @@ class Tokens extends PureComponent {
 		/**
 		 * List of tokens from TokenListController
 		 */
-		tokenList: PropTypes.object
+		tokenList: PropTypes.object,
 	};
 
 	actionSheet = null;
@@ -139,7 +139,7 @@ class Tokens extends PureComponent {
 		</View>
 	);
 
-	onItemPress = token => {
+	onItemPress = (token) => {
 		this.props.navigation.navigate('Asset', { ...token, transactions: this.props.transactions });
 	};
 
@@ -152,15 +152,9 @@ class Tokens extends PureComponent {
 		</View>
 	);
 
-	renderItem = asset => {
-		const {
-			conversionRate,
-			currentCurrency,
-			tokenBalances,
-			tokenExchangeRates,
-			primaryCurrency,
-			tokenList
-		} = this.props;
+	renderItem = (asset) => {
+		const { conversionRate, currentCurrency, tokenBalances, tokenExchangeRates, primaryCurrency, tokenList } =
+			this.props;
 		const itemAddress = safeToChecksumAddress(asset.address)?.toLowerCase?.();
 		const logo = tokenList?.[itemAddress]?.iconUrl;
 		const exchangeRate = itemAddress in tokenExchangeRates ? tokenExchangeRates[itemAddress] : undefined;
@@ -218,7 +212,7 @@ class Tokens extends PureComponent {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
 			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_OPENED, {
 				button_location: 'Home Screen',
-				button_copy: 'Buy ETH'
+				button_copy: 'Buy ETH',
 			});
 		});
 	};
@@ -226,7 +220,7 @@ class Tokens extends PureComponent {
 	renderList() {
 		const { tokens, hideZeroBalanceTokens, tokenBalances } = this.props;
 		const tokensToDisplay = hideZeroBalanceTokens
-			? tokens.filter(token => {
+			? tokens.filter((token) => {
 					const { address, isETH } = token;
 					return (tokenBalances[address] && !tokenBalances[address]?.isZero?.()) || isETH;
 					// eslint-disable-next-line no-mixed-spaces-and-tabs
@@ -235,7 +229,7 @@ class Tokens extends PureComponent {
 
 		return (
 			<View>
-				{tokensToDisplay.map(item => this.renderItem(item))}
+				{tokensToDisplay.map((item) => this.renderItem(item))}
 				{this.renderFooter()}
 			</View>
 		);
@@ -248,7 +242,7 @@ class Tokens extends PureComponent {
 		});
 	};
 
-	showRemoveMenu = token => {
+	showRemoveMenu = (token) => {
 		this.tokenToRemove = token;
 		this.actionSheet.show();
 	};
@@ -259,11 +253,11 @@ class Tokens extends PureComponent {
 		Alert.alert(strings('wallet.token_removed_title'), strings('wallet.token_removed_desc'));
 	};
 
-	createActionSheetRef = ref => {
+	createActionSheetRef = (ref) => {
 		this.actionSheet = ref;
 	};
 
-	onActionSheetPress = index => (index === 0 ? this.removeToken() : null);
+	onActionSheetPress = (index) => (index === 0 ? this.removeToken() : null);
 
 	render = () => {
 		const { tokens } = this.props;
@@ -283,14 +277,14 @@ class Tokens extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	primaryCurrency: state.settings.primaryCurrency,
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	hideZeroBalanceTokens: state.settings.hideZeroBalanceTokens,
-	tokenList: getTokenList(state)
+	tokenList: getTokenList(state),
 });
 
 export default connect(mapStateToProps)(Tokens);

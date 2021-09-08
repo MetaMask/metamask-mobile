@@ -14,7 +14,7 @@ export default class AndroidBackHandler extends PureComponent {
 		/**
 		 * Custom callback to call on back press event
 		 */
-		customBackPress: PropTypes.func
+		customBackPress: PropTypes.func,
 	};
 
 	pressed = false;

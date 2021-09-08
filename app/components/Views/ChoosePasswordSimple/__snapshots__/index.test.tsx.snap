@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ChoosePasswordSimple should render correctly 1`] = `
+<ChoosePasswordSimple
+  passwordSet={[Function]}
+  route={
+    Object {
+      "params": Object {},
+    }
+  }
+  setLockTime={[Function]}
+/>
+`;

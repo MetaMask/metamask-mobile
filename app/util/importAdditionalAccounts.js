@@ -30,11 +30,11 @@ const getBalance = async (address, ethQuery) =>
  * Updates identities in the preferences controllers
  * @param {array} accounts - an array of addresses
  */
-const updateIdentities = async accounts => {
+const updateIdentities = async (accounts) => {
 	const { KeyringController, PreferencesController } = Engine.context;
 	const newAccounts = await KeyringController.getAccounts();
 	PreferencesController.updateIdentities(newAccounts);
-	newAccounts.forEach(selectedAddress => {
+	newAccounts.forEach((selectedAddress) => {
 		if (!accounts.includes(selectedAddress)) {
 			PreferencesController.update({ selectedAddress });
 		}
@@ -56,7 +56,7 @@ export default async () => {
 	let lastBalance = await getBalance(accounts[accounts.length - 1], ethQuery);
 
 	const { keyrings } = KeyringController.state;
-	const filteredKeyrings = keyrings.filter(keyring => keyring.type === HD_KEY_TREE);
+	const filteredKeyrings = keyrings.filter((keyring) => keyring.type === HD_KEY_TREE);
 	const primaryKeyring = filteredKeyrings[0];
 	if (!primaryKeyring) throw new Error(HD_KEY_TREE_ERROR);
 

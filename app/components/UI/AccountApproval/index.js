@@ -18,10 +18,10 @@ const styles = StyleSheet.create({
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
 		minHeight: 200,
-		paddingBottom: Device.isIphoneX() ? 20 : 0
+		paddingBottom: Device.isIphoneX() ? 20 : 0,
 	},
 	accountCardWrapper: {
-		paddingHorizontal: 24
+		paddingHorizontal: 24,
 	},
 	intro: {
 		...fontStyles.bold,
@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		fontSize: Device.isSmallDevice() ? 16 : 20,
 		marginBottom: 8,
-		marginTop: 16
+		marginTop: 16,
 	},
 	warning: {
 		...fontStyles.thin,
@@ -38,23 +38,23 @@ const styles = StyleSheet.create({
 		marginBottom: 16,
 		fontSize: 14,
 		width: '100%',
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	actionContainer: {
 		flex: 0,
 		flexDirection: 'row',
 		paddingVertical: 16,
-		paddingHorizontal: 24
+		paddingHorizontal: 24,
 	},
 	button: {
-		flex: 1
+		flex: 1,
 	},
 	cancel: {
-		marginRight: 8
+		marginRight: 8,
 	},
 	confirm: {
-		marginLeft: 8
-	}
+		marginLeft: 8,
+	},
 });
 
 /**
@@ -93,11 +93,11 @@ class AccountApproval extends PureComponent {
 		/**
 		 * A string representing the network chainId
 		 */
-		chainId: PropTypes.string
+		chainId: PropTypes.string,
 	};
 
 	state = {
-		start: Date.now()
+		start: Date.now(),
 	};
 
 	getAnalyticsParams = () => {
@@ -108,7 +108,7 @@ class AccountApproval extends PureComponent {
 				dapp_host_name: url?.host,
 				dapp_url: currentPageInformation?.url,
 				network_name: networkType,
-				chain_id: chainId
+				chain_id: chainId,
 			};
 		} catch (error) {
 			return {};
@@ -131,7 +131,7 @@ class AccountApproval extends PureComponent {
 					title: confirmation
 						? strings('notifications.wc_connected_title', { title })
 						: strings('notifications.wc_connected_rejected_title'),
-					description: strings('notifications.wc_description')
+					description: strings('notifications.wc_description'),
 				});
 			});
 		}
@@ -166,14 +166,14 @@ class AccountApproval extends PureComponent {
 			tokensLength,
 			accountsLength,
 			networkType,
-			currentPageInformation: { url }
+			currentPageInformation: { url },
 		} = this.props;
 		return {
 			view: url,
 			numberOfTokens: tokensLength,
 			numberOfAccounts: accountsLength,
 			network: networkType,
-			timeOpen: (Date.now() - this.state.start) / 1000
+			timeOpen: (Date.now() - this.state.start) / 1000,
 		};
 	};
 
@@ -210,11 +210,11 @@ class AccountApproval extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts || {}).length,
 	tokensLength: state.engine.backgroundState.TokensController.tokens.length,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
-	chainId: state.engine.backgroundState.NetworkController.provider.chainId
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 });
 
 export default connect(mapStateToProps)(AccountApproval);

@@ -6,7 +6,7 @@ import useCurrency from './useCurrency';
 function KeypadComponent({ onChange, value, currency }) {
 	const { handler, decimalSeparator } = useCurrency(currency);
 	const handleKeypadPress = useCallback(
-		pressedKey => {
+		(pressedKey) => {
 			const newValue = handler(value, pressedKey);
 			onChange(newValue, pressedKey);
 		},
@@ -22,10 +22,10 @@ function KeypadComponent({ onChange, value, currency }) {
 	const handleKeypadPress8 = useCallback(() => handleKeypadPress(KEYS.DIGIT_8), [handleKeypadPress]);
 	const handleKeypadPress9 = useCallback(() => handleKeypadPress(KEYS.DIGIT_9), [handleKeypadPress]);
 	const handleKeypadPress0 = useCallback(() => handleKeypadPress(KEYS.DIGIT_0), [handleKeypadPress]);
-	const handleKeypadPressPeriod = useCallback(() => decimalSeparator && handleKeypadPress(KEYS.PERIOD), [
-		decimalSeparator,
-		handleKeypadPress
-	]);
+	const handleKeypadPressPeriod = useCallback(
+		() => decimalSeparator && handleKeypadPress(KEYS.PERIOD),
+		[decimalSeparator, handleKeypadPress]
+	);
 	const handleKeypadPressBack = useCallback(() => handleKeypadPress(KEYS.BACK), [handleKeypadPress]);
 	const handleKeypadLongPressBack = useCallback(() => handleKeypadPress(KEYS.INITIAL), [handleKeypadPress]);
 
@@ -71,7 +71,7 @@ KeypadComponent.propTypes = {
 	/**
 	 * Current value used to create new value when a key is pressed.
 	 */
-	value: PropTypes.string
+	value: PropTypes.string,
 };
 
 export { KEYS };

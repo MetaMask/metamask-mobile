@@ -6,5 +6,5 @@ export default {
 	hide: jest.fn().mockImplementation(() => {
 		// eslint-disable-next-line no-console
 		console.log('hide splash screen');
-	})
+	}),
 };

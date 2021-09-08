@@ -13,8 +13,8 @@ const styles = StyleSheet.create({
 		marginLeft: Device.isAndroid() ? 7 : 0,
 		marginBottom: 12,
 		alignItems: 'center',
-		justifyContent: 'center'
-	}
+		justifyContent: 'center',
+	},
 });
 
 /**
@@ -30,7 +30,7 @@ class AccountRightButton extends PureComponent {
 		/**
 		 * Action that toggles the account modal
 		 */
-		toggleAccountsModal: PropTypes.func
+		toggleAccountsModal: PropTypes.func,
 	};
 
 	animating = false;
@@ -59,11 +59,8 @@ class AccountRightButton extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({ address: state.engine.backgroundState.PreferencesController.selectedAddress });
-const mapDispatchToProps = dispatch => ({
-	toggleAccountsModal: () => dispatch(toggleAccountsModal())
+const mapStateToProps = (state) => ({ address: state.engine.backgroundState.PreferencesController.selectedAddress });
+const mapDispatchToProps = (dispatch) => ({
+	toggleAccountsModal: () => dispatch(toggleAccountsModal()),
 });
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(AccountRightButton);
+export default connect(mapStateToProps, mapDispatchToProps)(AccountRightButton);

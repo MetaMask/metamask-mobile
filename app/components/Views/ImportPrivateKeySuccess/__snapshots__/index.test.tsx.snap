@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ImportPrivateKeySuccess should render correctly 1`] = `
+<Connect(ImportPrivateKeySuccess)
+  route={
+    Object {
+      "params": Object {},
+    }
+  }
+/>
+`;

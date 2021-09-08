@@ -3,7 +3,7 @@ import Engine from '../../core/Engine';
 import { store } from '../../store';
 
 const initialState = {
-	backgroundState: {}
+	backgroundState: {},
 };
 
 let engineInitialized = false;

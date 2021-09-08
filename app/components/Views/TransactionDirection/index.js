@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
 		borderTopWidth: 1,
 		flexDirection: 'row',
 		flexGrow: 0,
-		flexShrink: 0
+		flexShrink: 0,
 	},
 	arrow: {
 		backgroundColor: colors.white,
@@ -36,59 +36,59 @@ const styles = StyleSheet.create({
 		left: '50%',
 		position: 'absolute',
 		zIndex: 1,
-		alignSelf: 'center'
+		alignSelf: 'center',
 	},
 	arrowIcon: {
 		color: colors.grey400,
 		marginLeft: 3,
-		marginTop: 3
+		marginTop: 3,
 	},
 	fromGraphic: {
 		borderColor: colors.grey100,
 		borderRightWidth: 1,
 		paddingRight: 35,
-		paddingLeft: 24
+		paddingLeft: 24,
 	},
 	addressText: {
 		...fontStyles.normal,
 		color: colors.black,
-		marginHorizontal: 8
+		marginHorizontal: 8,
 	},
 	addressGraphic: {
 		alignItems: 'center',
 		flexDirection: 'row',
 		minHeight: 42,
 		width: '50%',
-		flex: 1
+		flex: 1,
 	},
 	toGraphic: {
 		paddingRight: 20,
-		paddingLeft: 35
+		paddingLeft: 35,
 	},
 	ensRecipientContainer: {
 		flex: 1,
-		marginLeft: 9
+		marginLeft: 9,
 	},
 	ensRecipient: {
 		...fontStyles.bold,
 		color: colors.black,
-		fontSize: FONT_SIZE
+		fontSize: FONT_SIZE,
 	},
 	ensAddress: {
 		...fontStyles.normal,
 		color: colors.black,
-		fontSize: 10
+		fontSize: 10,
 	},
 	addressWrapper: { flex: 1 },
 	contractLogo: {
 		height: 24,
 		width: 24,
-		backgroundColor: colors.white
+		backgroundColor: colors.white,
 	},
 	contractLogoWrapper: {
 		backgroundColor: colors.white,
-		alignItems: 'flex-start'
-	}
+		alignItems: 'flex-start',
+	},
 });
 
 /**
@@ -109,7 +109,7 @@ class TransactionDirection extends PureComponent {
 		/**
 		 * List of tokens from TokenListController
 		 */
-		tokenList: PropTypes.object
+		tokenList: PropTypes.object,
 	};
 
 	state = {};
@@ -117,7 +117,7 @@ class TransactionDirection extends PureComponent {
 	renderToAddressDirection = () => {
 		const {
 			transaction: { to, ensRecipient },
-			identities
+			identities,
 		} = this.props;
 		let child;
 		if (ensRecipient) {
@@ -152,7 +152,7 @@ class TransactionDirection extends PureComponent {
 		);
 	};
 
-	renderToContractDirection = contract => (
+	renderToContractDirection = (contract) => (
 		<View style={[styles.addressGraphic, styles.toGraphic]}>
 			<View style={styles.contractLogoWrapper}>
 				<AssetIcon logo={contract.iconUrl} customStyle={styles.contractLogo} />
@@ -167,7 +167,7 @@ class TransactionDirection extends PureComponent {
 		const {
 			transaction: { from, to },
 			identities,
-			tokenList
+			tokenList,
 		} = this.props;
 		const contract = tokenList[safeToChecksumAddress(to)];
 		return (
@@ -187,10 +187,10 @@ class TransactionDirection extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	transaction: getNormalizedTxState(state),
-	tokenList: getTokenList(state)
+	tokenList: getTokenList(state),
 });
 
 export default connect(mapStateToProps)(TransactionDirection);

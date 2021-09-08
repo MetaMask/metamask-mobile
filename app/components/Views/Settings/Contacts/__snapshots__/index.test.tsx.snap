@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Contacts should render correctly 1`] = `
+<Contacts
+  addressBook={
+    Object {
+      "0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b": Object {
+        "address": "0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b",
+        "chainId": "1",
+        "isEns": false,
+        "memo": "",
+        "name": "aa",
+      },
+    }
+  }
+  dispatch={[Function]}
+  network="1"
+/>
+`;

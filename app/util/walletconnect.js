@@ -5,8 +5,8 @@ export const CLIENT_OPTIONS = {
 		url: 'https://metamask.io',
 		icons: ['https://raw.githubusercontent.com/MetaMask/brand-resources/master/SVG/metamask-fox.svg'],
 		name: 'MetaMask',
-		ssl: true
-	}
+		ssl: true,
+	},
 };
 
 export const WALLET_CONNECT_ORIGIN = 'wc::';

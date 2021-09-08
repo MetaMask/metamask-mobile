@@ -8,8 +8,8 @@ const styles = StyleSheet.create({
 	leftButton: {
 		marginTop: 12,
 		marginLeft: 12,
-		marginBottom: 12
-	}
+		marginBottom: 12,
+	},
 });
 
 /**
@@ -25,7 +25,7 @@ class NavbarLeftButton extends PureComponent {
 		/**
 		 * action to be fired on press
 		 */
-		onPress: PropTypes.func
+		onPress: PropTypes.func,
 	};
 
 	render = () => {
@@ -38,5 +38,5 @@ class NavbarLeftButton extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({ address: state.engine.backgroundState.PreferencesController.selectedAddress });
+const mapStateToProps = (state) => ({ address: state.engine.backgroundState.PreferencesController.selectedAddress });
 export default connect(mapStateToProps)(NavbarLeftButton);

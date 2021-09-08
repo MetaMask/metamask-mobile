@@ -11,8 +11,8 @@ import { strings } from '../../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	disabledButton: {
-		opacity: 0.5
-	}
+		opacity: 0.5,
+	},
 });
 
 function AssetSwapButton({ isFeatureLive, isNetworkAllowed, isAssetAllowed, onPress }) {
@@ -48,7 +48,7 @@ AssetSwapButton.propTypes = {
 	isFeatureLive: PropTypes.bool,
 	isNetworkAllowed: PropTypes.bool,
 	isAssetAllowed: PropTypes.bool,
-	onPress: PropTypes.func
+	onPress: PropTypes.func,
 };
 
 export default AssetSwapButton;

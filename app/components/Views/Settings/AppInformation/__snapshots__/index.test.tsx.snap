@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AppInformation should render correctly 1`] = `
+<AppInformation
+  route={
+    Object {
+      "params": Object {},
+    }
+  }
+/>
+`;

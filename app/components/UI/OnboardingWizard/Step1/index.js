@@ -12,18 +12,18 @@ import Analytics from '../../../../core/Analytics';
 
 const styles = StyleSheet.create({
 	main: {
-		flex: 1
+		flex: 1,
 	},
 	coachmark: {
-		marginHorizontal: 16
+		marginHorizontal: 16,
 	},
 	coachmarkContainer: {
 		flex: 1,
 		position: 'absolute',
 		left: 0,
 		right: 0,
-		bottom: Device.isIphoneX() ? 36 : Device.isIos() ? 16 : 36
-	}
+		bottom: Device.isIphoneX() ? 36 : Device.isIos() ? 16 : 36,
+	},
 });
 
 class Step1 extends PureComponent {
@@ -35,7 +35,7 @@ class Step1 extends PureComponent {
 		/**
 		 * Dispatch set onboarding wizard step
 		 */
-		setOnboardingWizardStep: PropTypes.func
+		setOnboardingWizardStep: PropTypes.func,
 	};
 
 	/**
@@ -88,11 +88,8 @@ class Step1 extends PureComponent {
 	}
 }
 
-const mapDispatchToProps = dispatch => ({
-	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
+const mapDispatchToProps = (dispatch) => ({
+	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 });
 
-export default connect(
-	null,
-	mapDispatchToProps
-)(Step1);
+export default connect(null, mapDispatchToProps)(Step1);
