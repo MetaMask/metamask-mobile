@@ -54,7 +54,7 @@ export const ANALYTICS_EVENTS_V2 = {
 	BROWSER_SWITCH_NETWORK: generateOpt('Browser switch network'),
 	BROWSER_SWITCH_ACCOUNT: generateOpt('Browser switch account'),
 	BROWSER_NAVIGATION: generateOpt('Browser navigation used'),
-	BROWSER_SHARE_SITE: generateOpt('browser share site'),
+	BROWSER_SHARE_SITE: generateOpt('Browser share site'),
 	BROWSER_RELOAD: generateOpt('Browser reload site'),
 	BROWSER_ADD_FAVORITES: generateOpt('Browser add site to favorites'),
 };
