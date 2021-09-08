@@ -60,7 +60,58 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		textAlign: 'center',
 	},
+	modalView: {
+		flexDirection: 'column',
+		justifyContent: 'center',
+		alignItems: 'center',
+		marginHorizontal: 24,
+		paddingVertical: 24,
+	},
+	modalText: {
+		...fontStyles.normal,
+		fontSize: 14,
+		textAlign: 'center',
+		paddingVertical: 8,
+	},
+	modalTitle: {
+		...fontStyles.bold,
+		fontSize: 22,
+		textAlign: 'center',
+	},
+	modal: {
+		margin: 0,
+		width: '100%',
+	},
 });
+
+import ActionModal from '../ActionModal';
+
+const RetryModal = ({ retryIsOpen }) => {
+	const confirmText = 'retry?';
+	const cancelText = 'cancel';
+	const onConfirmPress = () => ({});
+	const onCancelPress = () => ({});
+	return (
+		<ActionModal
+			modalStyle={styles.modal}
+			modalVisible={retryIsOpen}
+			confirmText={confirmText}
+			cancelText={cancelText}
+			onConfirmPress={onConfirmPress}
+			onCancelPress={onCancelPress}
+			onRequestClose={onCancelPress}
+		>
+			<View style={styles.modalView}>
+				<Text style={styles.modalTitle}>Speed Up Failed</Text>
+				<Text style={styles.modalText}>would you like to try again?</Text>
+			</View>
+		</ActionModal>
+	);
+};
+
+RetryModal.propTypes = {
+	retryIsOpen: PropTypes.bool,
+};
 
 const ROW_HEIGHT = (Device.isIos() ? 95 : 100) + StyleSheet.hairlineWidth;
 
@@ -164,6 +215,7 @@ class Transactions extends PureComponent {
 		cancelIsOpen: false,
 		cancelConfirmDisabled: false,
 		speedUpIsOpen: false,
+		retryIsOpen: false,
 		speedUpConfirmDisabled: false,
 		rpcBlockExplorer: undefined,
 	};
@@ -361,11 +413,13 @@ class Transactions extends PureComponent {
 	handleSpeedUpTransactionFailure = (e) => {
 		const speedUpTxId = this.speedUpTxId;
 		Logger.error(e, { message: `speedUpTransaction failed `, speedUpTxId });
+		this.setState({ retryIsOpen: true });
 	};
 
 	handleCancelTransactionFailure = (e) => {
 		const cancelTxId = this.cancelTxId;
 		Logger.error(e, { message: `cancelTransaction failed `, cancelTxId });
+		this.setState({ retryIsOpen: true });
 	};
 
 	speedUpTransaction = () => {
@@ -529,6 +583,8 @@ class Transactions extends PureComponent {
 					gasTitleText={strings('transaction.gas_speedup_fee')}
 					descriptionText={strings('transaction.speedup_tx_message')}
 				/>
+
+				<RetryModal retryIsOpen={this.state.retryIsOpen} />
 			</View>
 		);
 	};
