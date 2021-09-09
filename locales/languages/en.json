@@ -308,17 +308,17 @@
 		"title": "Transactions"
 	},
 	"add_asset": {
-		"title": "Add Asset",
-		"title_nft": "Add NFT",
+		"title": "Import tokens",
+		"title_nft": "Import NFT",
 		"search_token": "SEARCH",
 		"custom_token": "CUSTOM TOKEN",
 		"tokens": {
 			"cancel_add_token": "CANCEL",
-			"add_token": "ADD TOKEN"
+			"add_token": "IMPORT"
 		},
 		"collectibles": {
 			"cancel_add_collectible": "CANCEL",
-			"add_collectible": "ADD"
+			"add_collectible": "IMPORT"
 		},
 		"warning_body_description": "Anyone can create a token, including creating fake versions of existing tokens. Learn more about ",
 		"warning_link": "scams and security risks.",
