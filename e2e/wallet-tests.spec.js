@@ -246,6 +246,7 @@ describe('Wallet Tests', () => {
 		// Check that we are on the wallet screen
 		await TestHelpers.checkIfVisible('wallet-screen');
 		// Check that SAI is added to wallet
+		await TestHelpers.delay(2000);
 		await TestHelpers.checkIfElementWithTextIsVisible('0 SAI');
 		// Tap on SAI to remove network
 		await element(by.text('0 SAI')).longPress();
