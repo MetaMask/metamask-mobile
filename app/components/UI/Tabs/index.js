@@ -6,6 +6,7 @@ import { strings } from '../../../../locales/i18n';
 import TabThumbnail from './TabThumbnail';
 import { colors, fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 const THUMB_VERTICAL_MARGIN = 15;
 const NAVBAR_SIZE = Device.isIphoneX() ? 88 : 64;
@@ -226,7 +227,16 @@ export default class Tabs extends PureComponent {
 	}
 
 	onNewTabPress = () => {
-		this.props.newTab();
+		const { tabs, newTab } = this.props;
+		newTab();
+		this.trackNewTabEvent(tabs.length);
+	};
+
+	trackNewTabEvent = (tabsNumber) => {
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_NEW_TAB, {
+			option: 'Browser Bottom Bar Menu',
+			tabs: tabsNumber,
+		});
 	};
 
 	renderTabActions() {

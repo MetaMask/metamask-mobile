@@ -1,0 +1,34 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Approval should render correctly 1`] = `
+<Approval
+  navigation={
+    Object {
+      "setParams": [Function],
+      "state": Object {
+        "params": Object {
+          "address": "0x1",
+        },
+      },
+    }
+  }
+  networkType="ropsten"
+  resetTransaction={[Function]}
+  showCustomNonce={false}
+  transaction={
+    Object {
+      "assetType": undefined,
+      "data": "",
+      "from": "0x1",
+      "gas": "",
+      "gasPrice": "",
+      "selectedAsset": Object {
+        "symbol": "ETH",
+      },
+      "to": "0x2",
+      "value": "",
+    }
+  }
+  transactions={Array []}
+/>
+`;
