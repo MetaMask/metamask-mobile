@@ -4,6 +4,7 @@
 
 ## v3.3.0 - September 9 2021
 - [FEATURE] Transaction state improvement
+- [UPGRADE] react-native-rebview 11.0.2 -> 11.13.0
 - [#3101](https://github.com/MetaMask/metamask-mobile/pull/3101): [UPDATE] update swaps-controller and send clientId on fetchSwapsFeatureLiveness
 - [#2977](https://github.com/MetaMask/metamask-mobile/pull/2977): [FIX] Fix undefined values in CustomGas component
 - [FEATURE] Add browser analytics
