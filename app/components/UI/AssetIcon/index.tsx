@@ -38,7 +38,7 @@ function isUrl(string: string) {
  */
 // eslint-disable-next-line react/display-name
 const AssetIcon = memo((props: Props) => {
-	if (!props.logo) return null;
+	if (!props.logo || props.logo.substr(0, 4) === 'ipfs') return null;
 	const style = [styles.logo, props.customStyle];
 	const source: ImageSourcePropType = isUrl(props.logo) ? { uri: props.logo } : (staticLogos as any)[props.logo];
 

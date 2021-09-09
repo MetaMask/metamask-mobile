@@ -29,16 +29,14 @@ const main = async () => {
 
 	// Generate images modules file
 	await fs.appendFileSync(imageModulesPath, `// Generated file - Do not edit - This will auto generate on build`);
-	await fs.appendFileSync(imageModulesPath, `\n/* eslint-disable no-dupe-keys */`);
-	await fs.appendFileSync(imageModulesPath, `\n/* eslint-disable import/no-commonjs */`);
+	await fs.appendFileSync(imageModulesPath, `\n/* eslint-disable */`);
 	await fs.appendFileSync(imageModulesPath, `\n\nexport default {`);
 	for (let i = 0; i < cmKeys.length; i++) {
 		const address = cmKeys[i];
 		const token = contractMetadata[address];
-		const trailingComma = i === numberOfAssets - 1 ? '' : ',';
 		await fs.appendFileSync(
 			imageModulesPath,
-			`\n\t'${token.logo}': require('metamask/node_modules/@metamask/contract-metadata/images/${token.logo}')${trailingComma}`
+			`\n\t'${token.logo}': require('metamask/node_modules/@metamask/contract-metadata/images/${token.logo}'),`
 		);
 	}
 	await fs.appendFileSync(imageModulesPath, '\n};\n');

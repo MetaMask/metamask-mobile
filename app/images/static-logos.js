@@ -1,6 +1,5 @@
 // Generated file - Do not edit - This will auto generate on build
-/* eslint-disable no-dupe-keys */
-/* eslint-disable import/no-commonjs */
+/* eslint-disable */
 
 export default {
 	'ubt.svg': require('metamask/node_modules/@metamask/contract-metadata/images/ubt.svg'),
