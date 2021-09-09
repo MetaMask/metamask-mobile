@@ -410,7 +410,7 @@ export function getSendFlowTitle(title, navigation, route) {
  */
 export function getBrowserViewNavbarOptions(navigation, route) {
 	const url = route.params?.url ?? '';
-	let hostname = null;
+	let host = null;
 	let isHttps = false;
 
 	const isHomepage = (url) => getHost(url) === getHost(HOMEPAGE_URL);
@@ -420,15 +420,16 @@ export function getBrowserViewNavbarOptions(navigation, route) {
 	if (url && !isHomepage(url)) {
 		isHttps = url && url.toLowerCase().substr(0, 6) === 'https:';
 		const urlObj = new URL(url);
-		hostname = urlObj.hostname.toLowerCase().replace(/^www\./, '');
+		//Using host so the port number will be displayed on the address bar
+		host = urlObj.host.toLowerCase().replace(/^www\./, '');
 		if (isGatewayUrl(urlObj) && url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) === -1) {
 			const ensUrl = route.params?.currentEnsName ?? '';
 			if (ensUrl) {
-				hostname = ensUrl.toLowerCase().replace(/^www\./, '');
+				host = ensUrl.toLowerCase().replace(/^www\./, '');
 			}
 		}
 	} else {
-		hostname = strings('browser.title');
+		host = strings('browser.title');
 	}
 
 	function onPress() {
@@ -455,7 +456,7 @@ export function getBrowserViewNavbarOptions(navigation, route) {
 				navigation={navigation}
 				route={route}
 				url={url}
-				hostname={hostname}
+				hostname={host}
 				https={isHttps}
 			/>
 		),

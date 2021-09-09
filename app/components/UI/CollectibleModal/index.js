@@ -90,6 +90,7 @@ const CollectibleModal = (props) => {
 						onClose={() => modalRef.current.dismissModal()}
 						cover
 						renderAnimation
+						resizeMode={'contain'}
 						collectible={collectible}
 						style={styles.round}
 					/>
