@@ -291,7 +291,6 @@ export const BrowserTab = (props) => {
 				url = url.replace(replace(key), `https://${sessionENSNames[key].hostname}/`);
 			}
 		}
-
 		return url;
 	};
 
@@ -1267,13 +1266,15 @@ export const BrowserTab = (props) => {
 	 */
 	const onLoadStart = async ({ nativeEvent }) => {
 		const { hostname } = new URL(nativeEvent.url);
-
 		if (!isAllowedUrl(hostname)) {
 			return handleNotAllowedUrl(nativeEvent.url);
 		}
 		webviewUrlPostMessagePromiseResolve.current = null;
 		setError(false);
-		changeUrl(nativeEvent, 'start');
+
+		//For Android url on the navigation bar should only update upon load.
+		if (Device.isAndroid()) changeUrl(nativeEvent, 'start');
+
 		icon.current = null;
 		if (isHomepage()) {
 			injectHomePageScripts();
@@ -1290,6 +1291,11 @@ export const BrowserTab = (props) => {
 	 */
 	const onLoadProgress = ({ nativeEvent: { progress } }) => {
 		setProgress(progress);
+	};
+
+	const onLoad = ({ nativeEvent }) => {
+		//For iOS url on the navigation bar should only update upon load.
+		if (Device.isIos()) changeUrl(nativeEvent, 'start');
 	};
 
 	/**
@@ -1897,6 +1903,7 @@ export const BrowserTab = (props) => {
 							injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
 							style={styles.webview}
 							onLoadStart={onLoadStart}
+							onLoad={onLoad}
 							onLoadEnd={onLoadEnd}
 							onLoadProgress={onLoadProgress}
 							onMessage={onMessage}
