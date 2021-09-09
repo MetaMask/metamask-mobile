@@ -177,8 +177,17 @@ const Wallet = ({ navigation }: any) => {
 					// eslint-disable-next-line react/jsx-no-bind
 					onChangeTab={onChangeTab}
 				>
-					<Tokens key={'tokens-tab'} navigation={navigation} tokens={assets} />
-					<CollectibleContracts key={'nfts-tab'} navigation={navigation} />
+					<Tokens
+						tabLabel={strings('wallet.tokens')}
+						key={'tokens-tab'}
+						navigation={navigation}
+						tokens={assets}
+					/>
+					<CollectibleContracts
+						tabLabel={strings('wallet.collectibles')}
+						key={'nfts-tab'}
+						navigation={navigation}
+					/>
 				</ScrollableTabView>
 			</View>
 		);
