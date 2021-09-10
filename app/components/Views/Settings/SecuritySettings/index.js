@@ -444,21 +444,28 @@ class Settings extends PureComponent {
 		this.props.setThirdPartyApiMode(value);
 	};
 
+	/**
+	 * Track the event of opt in or opt out.
+	 * @param AnalyticsOptionSelected - User selected option regarding the tracking of events
+	 */
+	trackOptInEvent = (AnalyticsOptionSelected) => {
+		InteractionManager.runAfterInteractions(async () => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ANALYTICS_PREFERENCE_SELECTED, {
+				analytics_option_selected: AnalyticsOptionSelected,
+				updated_after_onboarding: true,
+			});
+		});
+	};
+
 	toggleMetricsOptIn = async (value) => {
 		if (value) {
 			Analytics.enable();
 			this.setState({ metricsOptIn: true });
-			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ANALYTICS_PREFERENCE_SELECTED, {
-				analytics_option_selected: 'Metrics Opt In',
-				updated_after_onboarding: true,
-			});
+			await this.trackOptInEvent('Metrics Opt In');
 		} else {
+			await this.trackOptInEvent('Metrics Opt Out');
 			Analytics.disable();
 			this.setState({ metricsOptIn: false });
-			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ANALYTICS_PREFERENCE_SELECTED, {
-				analytics_option_selected: 'Metrics Opt Out',
-				updated_after_onboarding: true,
-			});
 			Alert.alert(
 				strings('app_settings.metametrics_opt_out'),
 				strings('app_settings.metrametrics_restart_required')
