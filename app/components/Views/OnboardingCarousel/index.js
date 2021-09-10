@@ -127,11 +127,11 @@ class OnboardingCarousel extends PureComponent {
 		currentTab: 1,
 	};
 
-	trackEvent = (...eventArgs) => {
+	trackEvent = (eventArgs) => {
 		InteractionManager.runAfterInteractions(async () => {
 			const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
 			if (metricsOptIn) {
-				AnalyticsV2.trackEvent(...eventArgs);
+				AnalyticsV2.trackEvent(eventArgs);
 			} else {
 				this.props.saveOnboardingEvent(eventArgs);
 			}
