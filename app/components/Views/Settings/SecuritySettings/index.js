@@ -448,9 +448,17 @@ class Settings extends PureComponent {
 		if (value) {
 			Analytics.enable();
 			this.setState({ metricsOptIn: true });
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ANALYTICS_PREFERENCE_SELECTED, {
+				analytics_option_selected: 'Metrics Opt In',
+				updated_after_onboarding: true,
+			});
 		} else {
 			Analytics.disable();
 			this.setState({ metricsOptIn: false });
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ANALYTICS_PREFERENCE_SELECTED, {
+				analytics_option_selected: 'Metrics Opt Out',
+				updated_after_onboarding: true,
+			});
 			Alert.alert(
 				strings('app_settings.metametrics_opt_out'),
 				strings('app_settings.metrametrics_restart_required')
