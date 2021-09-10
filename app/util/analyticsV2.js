@@ -59,6 +59,8 @@ export const ANALYTICS_EVENTS_V2 = {
 	WALLET_SECURITY_PROTECT_VIEWED: generateOpt('Protect Your Wallet Viewed'),
 	WALLET_SECURITY_PROTECT_ENGAGED: generateOpt('Protect Your Wallet Engaged'),
 	WALLET_SECURITY_PROTECT_DISMISSED: generateOpt('Protect Your Wallet Dismissed'),
+	// Analytics
+	ANALYTICS_PREFERENCE_SELECTED: generateOpt('Analytics Preference Selected'),
 	// Onboarding
 	ONBOARDING_WELCOME_MESSAGE_VIEWED: generateOpt('Welcome Message Viewed'),
 	ONBOARDING_WELCOME_SCREEN_ENGAGEMENT: generateOpt('Welcome Screen Engagement'),
