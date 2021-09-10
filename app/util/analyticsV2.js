@@ -104,6 +104,7 @@ export const ANALYTICS_EVENTS_V2 = {
  */
 export const trackEventV2 = (eventName, params) => {
 	InteractionManager.runAfterInteractions(() => {
+		let anonymousEvent = false;
 		try {
 			if (!params) {
 				Analytics.trackEvent(eventName);
@@ -117,6 +118,7 @@ export const trackEventV2 = (eventName, params) => {
 
 				if (property && typeof property === 'object') {
 					if (property.anonymous) {
+						anonymousEvent = true;
 						// Anonymous property - add only to anonymous params
 						anonymousParams[key] = property.value;
 					} else {
@@ -137,7 +139,7 @@ export const trackEventV2 = (eventName, params) => {
 			}
 
 			// Log all anonymous properties
-			if (Object.keys(anonymousParams).length) {
+			if (anonymousEvent && Object.keys(anonymousParams).length) {
 				Analytics.trackEventWithParameters(eventName, anonymousParams, true);
 			}
 		} catch (error) {
