@@ -40,7 +40,7 @@ import WhatsNewModal from '../WhatsNewModal';
 import InvalidCustomNetworkAlert from '../InvalidCustomNetworkAlert';
 import { RPC } from '../../../constants/network';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
-import AnalyticsV2, { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
+import { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
 import { isDefaultAccountName, doENSReverseLookup } from '../../../util/ENSUtils';
 
 const styles = StyleSheet.create({
@@ -512,14 +512,6 @@ class DrawerView extends PureComponent {
 		});
 	};
 
-	trackOpenBrowserEvent = () => {
-		const { network } = this.props;
-		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_OPENED, {
-			referral_source: 'In-app Navigation',
-			chain_id: network,
-		});
-	};
-
 	onReceive = () => {
 		this.toggleReceiveModal();
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_RECEIVE);
@@ -535,7 +527,6 @@ class DrawerView extends PureComponent {
 	goToBrowser = () => {
 		this.props.navigation.navigate('BrowserTabHome');
 		this.hideDrawer();
-		this.trackOpenBrowserEvent();
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_BROWSER);
 	};
 

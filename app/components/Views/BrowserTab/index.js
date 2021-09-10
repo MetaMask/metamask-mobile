@@ -48,7 +48,6 @@ import AppConstants from '../../../core/AppConstants';
 import SearchApi from 'react-native-search-api';
 import WatchAssetRequest from '../../UI/WatchAssetRequest';
 import Analytics from '../../../core/Analytics';
-import AnalyticsV2, { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { toggleNetworkModal } from '../../../actions/modals';
 import setOnboardingWizardStep from '../../../actions/wizard';
@@ -67,6 +66,7 @@ import { RPC } from '../../../constants/network';
 import RPCMethods from '../../../core/RPCMethods';
 import AddCustomNetwork from '../../UI/AddCustomNetwork';
 import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
+import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
@@ -1488,46 +1488,6 @@ export const BrowserTab = (props) => {
 	};
 
 	/**
-	 * Track new tab event
-	 */
-	const trackNewTabEvent = () => {
-		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_NEW_TAB, {
-			option: 'Browser Options',
-		});
-	};
-
-	/**
-	 * Track add site to favorites event
-	 */
-	const trackAddToFavoritesEvent = () => {
-		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_ADD_FAVORITES, {
-			dapp_name: title.current || '',
-			dapp_url: url.current || '',
-		});
-	};
-
-	/**
-	 * Track share site event
-	 */
-	const trackShareEvent = () => {
-		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_SHARE_SITE);
-	};
-
-	/**
-	 * Track change network event
-	 */
-	const trackSwitchNetworkEvent = ({ from }) => {
-		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_SWITCH_NETWORK, { from });
-	};
-
-	/**
-	 * Track reload site event
-	 */
-	const trackReloadEvent = () => {
-		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_RELOAD);
-	};
-
-	/**
 	 * Add bookmark
 	 */
 	const addBookmark = () => {
@@ -1558,7 +1518,7 @@ export const BrowserTab = (props) => {
 				},
 			},
 		});
-		trackAddToFavoritesEvent();
+
 		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_ADD_TO_FAVORITE);
 	};
 
@@ -1572,7 +1532,6 @@ export const BrowserTab = (props) => {
 		}).catch((err) => {
 			Logger.log('Error while trying to share address', err);
 		});
-		trackShareEvent();
 	};
 
 	/**
@@ -1587,14 +1546,6 @@ export const BrowserTab = (props) => {
 	};
 
 	/**
-	 * Handles reload button press
-	 */
-	const onReloadPress = () => {
-		reload();
-		trackReloadEvent();
-	};
-
-	/**
 	 * Render non-homepage options menu
 	 */
 	const renderNonHomeOptions = () => {
@@ -1602,7 +1553,7 @@ export const BrowserTab = (props) => {
 
 		return (
 			<React.Fragment>
-				<Button onPress={onReloadPress} style={styles.option}>
+				<Button onPress={reload} style={styles.option}>
 					<View style={styles.optionIconWrapper}>
 						<Icon name="refresh" size={15} style={styles.optionIcon} />
 					</View>
@@ -1645,17 +1596,14 @@ export const BrowserTab = (props) => {
 	 */
 	const onNewTabPress = () => {
 		openNewTab();
-		trackNewTabEvent();
 	};
 
 	/**
 	 * Handle switch network press
 	 */
 	const switchNetwork = () => {
-		const { toggleNetworkModal, network } = props;
 		toggleOptionsIfNeeded();
-		toggleNetworkModal();
-		trackSwitchNetworkEvent({ from: network });
+		props.toggleNetworkModal();
 	};
 
 	/**
