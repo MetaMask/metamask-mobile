@@ -65,7 +65,7 @@ yarn watch
 -   Install the Android SDK, via [Android Studio](https://developer.android.com/studio).
     -   _MetaMask Only:_ To create production builds, you need to install Google Play Licensing Library via the SDK Manager in Android Studio.
 -   Install the Android NDK, via [Android Studio](https://developer.android.com/studio)'s SDK Manager.
-    -   In the SDK Manager, select the `SDK Tools` tab and install NDK version `17.2.4988734`.
+    -   In the SDK Manager, select the `SDK Tools` tab and install NDK version `17.2.4988734`. You'll need to click "Show Package Details" in order to select the appropriate version.
         -   In the `android` directory, update the `local.properties` file by adding line:
         ```
         ndk.dir=/Users/YOUR_HOME_DIRECTORY/Library/Android/sdk/ndk/17.2.4988734
