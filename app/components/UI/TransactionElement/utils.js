@@ -33,7 +33,7 @@ const { isEIP1559Transaction } = util;
 const { getSwapsContractAddress } = swapsUtils;
 
 function calculateTotalGas(transaction) {
-	const { gas, gasPrice, estimatedBaseFee, maxPriorityFeePerGas, maxFeePerGas } = transaction;
+	const { gas, gasPrice, gasUsed, estimatedBaseFee, maxPriorityFeePerGas, maxFeePerGas } = transaction;
 
 	if (isEIP1559Transaction(transaction)) {
 		const eip1559GasHex = calculateEIP1559GasFeeHexes({
@@ -46,8 +46,17 @@ function calculateTotalGas(transaction) {
 	}
 	const gasBN = hexToBN(gas);
 	const gasPriceBN = hexToBN(gasPrice);
+	const gasUsedBN = gasUsed ? hexToBN(gasUsed) : null;
 
-	return isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
+	if (gasUsedBN && isBN(gasUsedBN) && isBN(gasPriceBN)) {
+		return gasUsedBN.mul(gasPriceBN);
+	}
+
+	if (isBN(gasBN) && isBN(gasPriceBN)) {
+		return gasBN.mul(gasPriceBN);
+	}
+
+	return toBN('0x0');
 }
 
 function renderGwei(transaction) {
