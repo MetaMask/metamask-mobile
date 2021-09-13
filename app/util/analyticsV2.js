@@ -48,15 +48,15 @@ export const ANALYTICS_EVENTS_V2 = {
 	ONRAMP_PURCHASE_CANCELLED: generateOpt('On-ramp Purchase Cancelled'),
 	ONRAMP_PURCHASE_COMPLETED: generateOpt('On-ramp Purchase Completed'),
 	// BROWSER
-	BROWSER_OPENED: generateOpt('Browser opened'),
-	BROWSER_SEARCH_USED: generateOpt('Browser search used'),
-	BROWSER_NEW_TAB: generateOpt('Browser new tab opened'),
-	BROWSER_SWITCH_NETWORK: generateOpt('Browser switch network'),
-	BROWSER_SWITCH_ACCOUNT: generateOpt('Browser switch account'),
-	BROWSER_NAVIGATION: generateOpt('Browser navigation used'),
-	BROWSER_SHARE_SITE: generateOpt('Browser share site'),
-	BROWSER_RELOAD: generateOpt('Browser reload site'),
-	BROWSER_ADD_FAVORITES: generateOpt('Browser add site to favorites'),
+	BROWSER_OPENED: generateOpt('Browser Opened'),
+	BROWSER_SEARCH_USED: generateOpt('Search Used'),
+	BROWSER_NEW_TAB: generateOpt('New Tab Opened'),
+	BROWSER_SWITCH_NETWORK: generateOpt('Switch Network'),
+	BROWSER_SWITCH_ACCOUNT: generateOpt('Switch Account'),
+	BROWSER_NAVIGATION: generateOpt('Browser Menu Navigation Used'),
+	BROWSER_SHARE_SITE: generateOpt('Shared A Site'),
+	BROWSER_RELOAD: generateOpt('Reload Browser'),
+	BROWSER_ADD_FAVORITES: generateOpt('Added Site To Favorites'),
 };
 
 /**
