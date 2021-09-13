@@ -11,7 +11,6 @@
 - [#3066](https://github.com/MetaMask/metamask-mobile/pull/3066): [UPGRADE] Redux and tests
 - [#2866](https://github.com/MetaMask/metamask-mobile/pull/2866): [FIX] Bug in token balance
 - [#3100](https://github.com/MetaMask/metamask-mobile/pull/3100): [FIX] Catch undefined navigate on buy eth
-- [#2964](https://github.com/MetaMask/metamask-mobile/pull/2964): [FIX] Handle token icon remote resource
 - [#3088](https://github.com/MetaMask/metamask-mobile/pull/3088): [UPDATE] Add typescript eslint from metamask
 - [#3084](https://github.com/MetaMask/metamask-mobile/pull/3084): [UPGRADE] Bump eth-url-parser from 1.0.2 to 1.0.4
 - [#2852](https://github.com/MetaMask/metamask-mobile/pull/2852): [UPDATE] Feature/improve warning eth sign
