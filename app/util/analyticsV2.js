@@ -57,7 +57,6 @@ export const ANALYTICS_EVENTS_V2 = {
 	BROWSER_SHARE_SITE: generateOpt('Shared A Site'),
 	BROWSER_RELOAD: generateOpt('Reload Browser'),
 	BROWSER_ADD_FAVORITES: generateOpt('Added Site To Favorites'),
-	BROWSER_FAVORITES_OPENED: generateOpt('Opened Favorites'),
 };
 
 /**
