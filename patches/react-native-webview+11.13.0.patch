@@ -1,39 +1,51 @@
 diff --git a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
-index 2190ae7..236a4f2 100644
+index f743bbc..beda825 100644
 --- a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
 +++ b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
-@@ -1,5 +1,30 @@
- package com.reactnativecommunity.webview;
+@@ -30,6 +30,8 @@ import android.webkit.DownloadListener;
+ import android.webkit.GeolocationPermissions;
+ import android.webkit.JavascriptInterface;
+ import android.webkit.RenderProcessGoneDetail;
++import android.webkit.ServiceWorkerClient;
++import android.webkit.ServiceWorkerController;
+ import android.webkit.SslErrorHandler;
+ import android.webkit.PermissionRequest;
+ import android.webkit.URLUtil;
+@@ -88,10 +90,17 @@ import com.reactnativecommunity.webview.events.TopRenderProcessGoneEvent;
+ import org.json.JSONException;
+ import org.json.JSONObject;
  
 +import java.io.ByteArrayInputStream;
 +import java.io.IOException;
 +import java.io.InputStream;
+ import java.io.UnsupportedEncodingException;
++import java.net.HttpURLConnection;
+ import java.net.MalformedURLException;
+ import java.net.URL;
+ import java.net.URLEncoder;
 +import java.nio.charset.Charset;
 +import java.nio.charset.StandardCharsets;
 +import java.nio.charset.UnsupportedCharsetException;
-+
+ import java.util.ArrayList;
+ import java.util.Collections;
+ import java.util.HashMap;
+@@ -100,6 +109,15 @@ import java.util.Locale;
+ import java.util.Map;
+ import java.util.concurrent.atomic.AtomicReference;
+ 
 +import okhttp3.MediaType;
 +import okhttp3.OkHttpClient;
-+import okhttp3.OkHttpClient.Builder;
 +import okhttp3.Request;
 +import okhttp3.Response;
-+import org.json.JSONException;
-+import org.json.JSONObject;
-+import java.net.HttpURLConnection;
-+
-+import android.util.Log;
 +
 +import android.view.inputmethod.BaseInputConnection;
 +import android.view.inputmethod.EditorInfo;
 +import android.view.inputmethod.InputConnection;
-+import android.webkit.ServiceWorkerController;
-+import android.webkit.ServiceWorkerClient;
 +
-+
- import android.annotation.SuppressLint;
- import android.annotation.TargetApi;
- import android.app.DownloadManager;
-@@ -129,13 +154,19 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+ /**
+  * Manages instances of {@link WebView}
+  * <p>
+@@ -137,13 +155,19 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
    public static final int COMMAND_LOAD_URL = 7;
    public static final int COMMAND_FOCUS = 8;
  
@@ -54,7 +66,7 @@ index 2190ae7..236a4f2 100644
    protected static final String HTML_MIME_TYPE = "text/html";
    protected static final String JAVASCRIPT_INTERFACE = "ReactNativeWebView";
    protected static final String HTTP_METHOD_POST = "POST";
-@@ -150,11 +181,20 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -158,11 +182,20 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
    protected @Nullable String mUserAgent = null;
    protected @Nullable String mUserAgentWithApplicationName = null;
  
@@ -68,14 +80,14 @@ index 2190ae7..236a4f2 100644
        }
      };
 +
-+    httpClient = new Builder()
++    httpClient = new OkHttpClient.Builder()
 +    .followRedirects(false)
 +    .followSslRedirects(false)
 +    .build();
    }
  
    public RNCWebViewManager(WebViewConfig webViewConfig) {
-@@ -181,6 +221,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -182,6 +215,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
    protected WebView createViewInstance(ThemedReactContext reactContext) {
      RNCWebView webView = createRNCWebViewInstance(reactContext);
@@ -83,7 +95,7 @@ index 2190ae7..236a4f2 100644
      setupWebChromeClient(reactContext, webView);
      reactContext.addLifecycleEventListener(webView);
      mWebViewConfig.configWebView(webView);
-@@ -246,9 +287,96 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -247,9 +281,96 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        }
      });
  
@@ -107,12 +119,12 @@ index 2190ae7..236a4f2 100644
  
 +  private Boolean urlStringLooksInvalid(String urlString) {
 +    return urlString == null ||
-+       urlString.trim().equals("") ||
-+       !(urlString.startsWith("http") && !urlString.startsWith("www")) ||
-+       urlString.contains("|");
++        urlString.trim().equals("") ||
++        !(urlString.startsWith("http") && !urlString.startsWith("www")) ||
++        urlString.contains("|");
 +  }
 +
-+public static Boolean responseRequiresJSInjection(Response response) {
++  public static Boolean responseRequiresJSInjection(Response response) {
 +    if (response.isRedirect()) {
 +      return false;
 +    }
@@ -180,7 +192,7 @@ index 2190ae7..236a4f2 100644
    @ReactProp(name = "javaScriptEnabled")
    public void setJavaScriptEnabled(WebView view, boolean enabled) {
      view.getSettings().setJavaScriptEnabled(enabled);
-@@ -778,8 +906,94 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -842,8 +963,95 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      }
    }
  
@@ -197,6 +209,7 @@ index 2190ae7..236a4f2 100644
 +    private boolean scriptWasInjected = false;
 +    private StringBuffer contentBuffer = new StringBuffer();
 +
++    @SuppressLint("LongLogTag")
 +    private static Charset getCharset(String charsetName) {
 +        Charset cs = StandardCharsets.UTF_8;
 +        try {
@@ -206,7 +219,7 @@ index 2190ae7..236a4f2 100644
 +        } catch (UnsupportedCharsetException e) {
 +            Log.d(REACT_CLASS, "wrong charset: " + charsetName);
 +        }
-+
+ 
 +        return cs;
 +    }
 +
@@ -271,22 +284,22 @@ index 2190ae7..236a4f2 100644
 +  }
 +
 +  protected class RNCWebViewClient extends WebViewClient {
- 
++
 +    protected static final String REACT_CLASS = "RNCWebViewClient";
      protected boolean mLastLoadFailed = false;
      protected @Nullable
      ReadableArray mUrlPrefixesForDefaultIntent;
-@@ -808,9 +1022,6 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -872,9 +1080,6 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        super.onPageStarted(webView, url, favicon);
        mLastLoadFailed = false;
  
 -      RNCWebView reactWebView = (RNCWebView) webView;
 -      reactWebView.callInjectedJavaScriptBeforeContentLoaded();
 -
-       dispatchEvent(
+       ((RNCWebView) webView).dispatchEvent(
          webView,
          new TopLoadingStartEvent(
-@@ -818,6 +1029,16 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -882,6 +1087,16 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
            createWebViewEvent(webView, url)));
      }
  
@@ -303,7 +316,7 @@ index 2190ae7..236a4f2 100644
      @Override
      public boolean shouldOverrideUrlLoading(WebView view, String url) {
        final RNCWebView rncWebView = (RNCWebView) view;
-@@ -870,6 +1091,21 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -934,6 +1149,21 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      @TargetApi(Build.VERSION_CODES.N)
      @Override
      public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
@@ -325,21 +338,22 @@ index 2190ae7..236a4f2 100644
        final String url = request.getUrl().toString();
        return this.shouldOverrideUrlLoading(view, url);
      }
-@@ -1232,6 +1468,12 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
-     private OnScrollDispatchHelper mOnScrollDispatchHelper;
-     protected boolean hasScrollEvent = false;
+@@ -1447,6 +1677,13 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+     protected boolean nestedScrollEnabled = false;
      protected ProgressChangedFilter progressChangedFilter;
+     
 +    /**
 +     * Taken from EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING We can't use that
 +     * value directly as it was only added on Oreo, but we can apply the value
 +     * anyway.
 +     */
 +    private static final int IME_FLAG_NO_PERSONALIZED_LEARNING = 0x1000000;
- 
++
      /**
       * WebView must be created with an context of the current activity
-@@ -1257,6 +1499,19 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
-       this.hasScrollEvent = hasScrollEvent;
+      * <p>
+@@ -1475,6 +1712,19 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+       this.nestedScrollEnabled = nestedScrollEnabled;
      }
  
 +    @Override
@@ -359,10 +373,10 @@ index 2190ae7..236a4f2 100644
      public void onHostResume() {
        // do nothing
 diff --git a/node_modules/react-native-webview/apple/RNCWebView.m b/node_modules/react-native-webview/apple/RNCWebView.m
-index 02005db..c9b51d9 100644
+index 28c078a..6939753 100644
 --- a/node_modules/react-native-webview/apple/RNCWebView.m
 +++ b/node_modules/react-native-webview/apple/RNCWebView.m
-@@ -801,11 +801,13 @@ - (void)                    webView:(WKWebView *)webView
+@@ -851,11 +851,13 @@ - (void)                    webView:(WKWebView *)webView
  - (void)webView:(WKWebView *)webView runJavaScriptAlertPanelWithMessage:(NSString *)message initiatedByFrame:(WKFrameInfo *)frame completionHandler:(void (^)(void))completionHandler
  {
  #if !TARGET_OS_OSX
