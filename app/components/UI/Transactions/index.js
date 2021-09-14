@@ -192,6 +192,10 @@ class Transactions extends PureComponent {
 		 */
 		selectedAddress: PropTypes.string,
 		/**
+		 * Selected asset from current transaction state
+		 */
+		selectedAsset: PropTypes.object,
+		/**
 		 * ETH to current currency conversion rate
 		 */
 		conversionRate: PropTypes.number,
@@ -236,10 +240,6 @@ class Transactions extends PureComponent {
 		 * A string representing the network type
 		 */
 		networkType: PropTypes.string,
-		/**
-		 * Selected asset from current transaction state
-		 */
-		selectedAsset: PropTypes.object,
 	};
 
 	static defaultProps = {
@@ -259,13 +259,13 @@ class Transactions extends PureComponent {
 		errorMsg: undefined,
 		gasSelected: AppConstants.GAS_OPTIONS.MEDIUM,
 		gasSelectedTemp: AppConstants.GAS_OPTIONS.MEDIUM,
-		EIP1559TransactionData: {},
-		EIP1559TransactionDataTemp: {},
 		stopUpdateGas: false,
 		advancedGasInserted: false,
+		EIP1559TransactionDataTemp: {},
 	};
 
 	existingGas = null;
+	existingTx = null;
 	cancelTxId = null;
 	speedUpTxId = null;
 
@@ -429,11 +429,15 @@ class Transactions extends PureComponent {
 
 	getGasAnalyticsParams = () => {
 		const { selectedAsset, gasEstimateType, networkType } = this.props;
+		const { chainId, gasSelected } = this.state;
 
 		return {
-			active_currency: { value: selectedAsset.symbol, anonymous: true },
-			gas_estimate_type: gasEstimateType,
+			active_currency: { value: selectedAsset?.symbol, anonymous: true },
 			network_name: networkType,
+			chain_id: chainId,
+			gas_estimate_type: gasEstimateType,
+			gas_mode: gasSelected ? 'Basic' : 'Advanced',
+			speed_set: gasSelected || undefined,
 		};
 	};
 
@@ -446,45 +450,60 @@ class Transactions extends PureComponent {
 	keyExtractor = (item) => item.id.toString();
 
 	onSpeedUpAction = (speedUpAction, existingGas, tx) => {
+		const { gasFeeEstimates } = this.props;
+
 		console.log('Inject speed up view');
 		this.setState({ speedUpIsOpen: speedUpAction });
 		this.existingGas = existingGas;
+		this.existingTx = tx;
 		this.speedUpTxId = tx.id;
+
+		if (existingGas.isEIP1559Transaction) {
+			this.setState({
+				EIP1559TransactionDataTemp: parseTransactionEIP1559(
+					{
+						...this.props,
+						selectedGasFee: {
+							suggestedMaxFeePerGas: gasFeeEstimates.medium.suggestedMaxFeePerGas,
+							suggestedMaxPriorityFeePerGas: gasFeeEstimates.medium.suggestedMaxPriorityFeePerGas,
+							suggestedGasLimit: '21000',
+						},
+					},
+					{ onlyGas: true }
+				),
+			});
+		}
+
 		const speedUpConfirmDisabled = validateTransactionActionBalance(tx, SPEED_UP_RATE, this.props.accounts);
 		this.setState({ speedUpIsOpen: speedUpAction, speedUpConfirmDisabled });
 	};
 
 	calculateTempGasFee = (gas, selected) => {
+		const { EIP1559TransactionDataTemp } = this.state;
+
 		if (selected && gas) {
-			gas.suggestedGasLimit = fromWei(this.existingGas.gas, 'wei');
+			gas.suggestedGasLimit = fromWei(EIP1559TransactionDataTemp.gas, 'wei');
 		}
+
 		this.setState({
-			existingGas: this.parseTransactionDataEIP1559({ ...gas, selectedOption: selected }),
+			EIP1559TransactionDataTemp: parseTransactionEIP1559(
+				{
+					...this.props,
+					selectedGasFee: { ...gas, estimatedBaseFee: this.props.gasFeeEstimates.estimatedBaseFee },
+				},
+				{ onlyGas: true },
+				selected
+			),
 			stopUpdateGas: !selected,
 			gasSelectedTemp: selected,
 		});
-	};
-
-	parseTransactionDataEIP1559 = (gasFee, options) => {
-		const parsedTransactionEIP1559 = parseTransactionEIP1559(
-			{
-				...this.existingGas,
-				selectedGasFee: { ...gasFee, estimatedBaseFee: this.props.gasFeeEstimates.estimatedBaseFee },
-			},
-			options
-		);
-		parsedTransactionEIP1559.error = this.validateAmount({
-			transaction: this.existingGas,
-			total: parsedTransactionEIP1559.totalMaxHex,
-		});
-
-		return parsedTransactionEIP1559;
 	};
 
 	onSpeedUpCompleted = () => {
 		this.setState({ speedUpIsOpen: false });
 		this.existingGas = null;
 		this.speedUpTxId = null;
+		this.existingTx = null;
 	};
 
 	onCancelAction = (cancelAction, existingGas, tx) => {
@@ -554,36 +573,11 @@ class Transactions extends PureComponent {
 	toggleRetry = () => this.setState((state) => ({ retryIsOpen: !state.retryIsOpen, errorMsg: undefined }));
 
 	renderSpeedUpGas = () => {
-		const { currentCurrency, primaryCurrency, conversionRate, nativeCurrency, gasFeeEstimates } = this.props;
-
-		const { chainId, gasSelected, isAnimating, animateOnChange } = this.state;
-		console.log('primaryCurrency', primaryCurrency);
+		const { primaryCurrency, gasFeeEstimates } = this.props;
+		const { chainId, gasSelected, isAnimating, animateOnChange, EIP1559TransactionDataTemp } = this.state;
 
 		if (!this.existingGas) return null;
 		if (this.existingGas.isEIP1559Transaction) {
-			const newDecMaxFeePerGas = new BigNumber(this.existingGas.maxFeePerGas).times(new BigNumber(SPEED_UP_RATE));
-			const newDecMaxPriorityFeePerGas = new BigNumber(this.existingGas.maxPriorityFeePerGas).times(
-				new BigNumber(SPEED_UP_RATE)
-			);
-			const gasEIP1559 = parseTransactionEIP1559(
-				{
-					currentCurrency,
-					conversionRate,
-					nativeCurrency,
-					selectedGasFee: {
-						suggestedMaxFeePerGas: newDecMaxFeePerGas,
-						suggestedMaxPriorityFeePerGas: newDecMaxPriorityFeePerGas,
-						suggestedGasLimit: '1',
-					},
-				},
-				{ onlyGas: true }
-			);
-
-			console.log('existingGas', this.existingGas);
-			console.log('GasSelected', gasSelected);
-			console.log('GasFee', gasEIP1559);
-			console.log('GasOptions', gasFeeEstimates);
-
 			return (
 				<Modal
 					isVisible
@@ -602,36 +596,34 @@ class Transactions extends PureComponent {
 					<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
 						<EditGasFee1559
 							selected={gasSelected}
-							gasFee={gasEIP1559}
+							gasFee={EIP1559TransactionDataTemp}
 							gasOptions={gasFeeEstimates}
 							onChange={this.calculateTempGasFee}
-							gasFeeNative={gasEIP1559.renderableGasFeeMinNative}
-							gasFeeConversion={gasEIP1559.renderableGasFeeMinConversion}
-							gasFeeMaxNative={gasEIP1559.renderableGasFeeMaxNative}
-							gasFeeMaxConversion={gasEIP1559.renderableGasFeeMaxConversion}
-							maxPriorityFeeNative={gasEIP1559.renderableMaxPriorityFeeNative}
-							maxPriorityFeeConversion={gasEIP1559.renderableMaxPriorityFeeConversion}
-							maxFeePerGasNative={gasEIP1559.renderableMaxFeePerGasNative}
-							maxFeePerGasConversion={gasEIP1559.renderableMaxFeePerGasConversion}
+							gasFeeNative={EIP1559TransactionDataTemp.renderableGasFeeMinNative}
+							gasFeeConversion={EIP1559TransactionDataTemp.renderableGasFeeMinConversion}
+							gasFeeMaxNative={EIP1559TransactionDataTemp.renderableGasFeeMaxNative}
+							gasFeeMaxConversion={EIP1559TransactionDataTemp.renderableGasFeeMaxConversion}
+							maxPriorityFeeNative={EIP1559TransactionDataTemp.renderableMaxPriorityFeeNative}
+							maxPriorityFeeConversion={EIP1559TransactionDataTemp.renderableMaxPriorityFeeConversion}
+							maxFeePerGasNative={EIP1559TransactionDataTemp.renderableMaxFeePerGasNative}
+							maxFeePerGasConversion={EIP1559TransactionDataTemp.renderableMaxFeePerGasConversion}
 							primaryCurrency={primaryCurrency}
 							chainId={chainId}
-							timeEstimate={gasEIP1559.timeEstimate}
-							timeEstimateColor={gasEIP1559.timeEstimateColor}
-							timeEstimateId={gasEIP1559.timeEstimateId}
+							timeEstimate={EIP1559TransactionDataTemp.timeEstimate}
+							timeEstimateColor={EIP1559TransactionDataTemp.timeEstimateColor}
+							timeEstimateId={EIP1559TransactionDataTemp.timeEstimateId}
 							onCancel={this.onSpeedUpCompleted}
 							onSave={this.speedUpTransaction}
-							error={gasEIP1559.error}
+							error={EIP1559TransactionDataTemp.error}
 							animateOnChange={animateOnChange}
 							ignoreOptions={[AppConstants.GAS_OPTIONS.LOW]}
 							isAnimating={isAnimating}
-							analyticsParams={this.getGasAnalyticsParams}
+							analyticsParams={this.getGasAnalyticsParams()}
 							view={'SendTo (Confirm)'}
 						/>
 					</KeyboardAwareScrollView>
 				</Modal>
 			);
-
-			// return `Max fee\n ${gasEIP1559.renderableMaxFeePerGasNative} \n\n Max priority fee\n ${gasEIP1559.renderableMaxPriorityFeeNative}`;
 		}
 		return `${renderFromWei(Math.floor(this.existingGas.gasPrice * SPEED_UP_RATE))} ${strings('unit.eth')}`;
 	};
@@ -651,7 +643,7 @@ class Transactions extends PureComponent {
 			conversionRate,
 			nativeCurrency,
 		} = this.props;
-		const { cancelConfirmDisabled, speedUpConfirmDisabled } = this.state;
+		const { cancelConfirmDisabled } = this.state;
 		const transactions =
 			submittedTransactions && submittedTransactions.length
 				? submittedTransactions.concat(confirmedTransactions)
@@ -683,50 +675,6 @@ class Transactions extends PureComponent {
 				return `Max fee per gas\n ${gasEIP1559.renderableMaxFeePerGasNative} \n\n Max priority fee per gas\n ${gasEIP1559.renderableMaxPriorityFeeNative}`;
 			}
 			return `${renderFromWei(Math.floor(this.existingGas.gasPrice * CANCEL_RATE))} ${strings('unit.eth')}`;
-		};
-
-		renderCustomGasModalLegacy = () => {
-			const { gasEstimateType, gasFeeEstimates } = this.props;
-			const { primaryCurrency, chainId, LegacyTransactionDataTemp, gasSelected, isAnimating, animateOnChange } =
-				this.state;
-			return (
-				<Modal
-					isVisible
-					animationIn="slideInUp"
-					animationOut="slideOutDown"
-					style={styles.bottomModal}
-					backdropOpacity={0.7}
-					animationInTiming={600}
-					animationOutTiming={600}
-					onBackdropPress={this.cancelGasEdition}
-					onBackButtonPress={this.cancelGasEdition}
-					onSwipeComplete={this.cancelGasEdition}
-					swipeDirection={'down'}
-					propagateSwipe
-				>
-					<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
-						<EditGasFeeLegacy
-							selected={gasSelected}
-							gasFee={LegacyTransactionDataTemp}
-							gasEstimateType={gasEstimateType}
-							gasOptions={gasFeeEstimates}
-							onChange={this.calculateTempGasFeeLegacy}
-							gasFeeNative={LegacyTransactionDataTemp.transactionFee}
-							gasFeeConversion={LegacyTransactionDataTemp.transactionFeeFiat}
-							gasPriceConversion={LegacyTransactionDataTemp.transactionFeeFiat}
-							error={LegacyTransactionDataTemp.error}
-							primaryCurrency={primaryCurrency}
-							chainId={chainId}
-							onCancel={this.cancelGasEdition}
-							onSave={this.saveGasEdition}
-							animateOnChange={animateOnChange}
-							isAnimating={isAnimating}
-							analyticsParams={this.getGasAnalyticsParams()}
-							view={'SendTo (Confirm)'}
-						/>
-					</KeyboardAwareScrollView>
-				</Modal>
-			);
 		};
 
 		return (
@@ -814,6 +762,7 @@ const mapStateToProps = (state) => ({
 	gasEstimateType: state.engine.backgroundState.GasFeeController.gasEstimateType,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	selectedAsset: state.transaction.selectedAsset,
+	transactionState: state.transaction,
 });
 
 const mapDispatchToProps = (dispatch) => ({
