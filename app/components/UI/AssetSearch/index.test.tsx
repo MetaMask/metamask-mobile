@@ -20,7 +20,7 @@ describe('AssetSearch', () => {
 	it('should render correctly', () => {
 		const wrapper = shallow(
 			<Provider store={store}>
-				<AssetSearch />
+				<AssetSearch onSearch={() => null} />
 			</Provider>
 		);
 		expect(wrapper).toMatchSnapshot();

@@ -10,7 +10,6 @@ exports[`TokenImage should render correctly 1`] = `
     }
   }
   dispatch={[Function]}
-  swapsTokens={Array []}
   tokenList={Object {}}
 />
 `;

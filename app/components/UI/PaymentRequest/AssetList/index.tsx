@@ -7,6 +7,7 @@ import Identicon from '../../Identicon';
 import NetworkMainAssetLogo from '../../NetworkMainAssetLogo';
 import { useSelector } from 'react-redux';
 import { getTokenList } from '../../../../reducers/tokens';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
 	item: {
@@ -75,7 +76,7 @@ const AssetList = ({ searchResults, handleSelectAsset, emptyMessage }: Props) =>
 			if (isETH) {
 				return <NetworkMainAssetLogo big style={styles.ethLogo} />;
 			}
-			const token = tokenList?.[(address || '')?.toLowerCase?.()];
+			const token = tokenList?.[toChecksumAddress(address)] || tokenList?.[address.toLowerCase()];
 			const iconUrl = token?.iconUrl;
 			if (!iconUrl) {
 				return <Identicon address={address} />;
@@ -88,7 +89,6 @@ const AssetList = ({ searchResults, handleSelectAsset, emptyMessage }: Props) =>
 	return (
 		<View testID={'add-searched-token-screen'}>
 			{searchResults.slice(0, 6).map((_: any, i: number) => {
-				console.log(searchResults);
 				const { symbol, name } = searchResults[i] || {};
 				return (
 					<StyledButton
