@@ -56,9 +56,9 @@ export const ANALYTICS_EVENTS_V2 = {
 	WALLET_SECURITY_SKIP_CONFIRMED: generateOpt('Wallet Security Skip Confirmed'),
 	WALLET_SECURITY_RECOVERY_HINT_SAVED: generateOpt('Recovery Hint Saved'),
 	WALLET_SECURITY_COMPLETED: generateOpt('Wallet Security Completed'),
-	WALLET_SECURITY_PROTECT_VIEWED: generateOpt('Protect Your Wallet Viewed'),
-	WALLET_SECURITY_PROTECT_ENGAGED: generateOpt('Protect Your Wallet Engaged'),
-	WALLET_SECURITY_PROTECT_DISMISSED: generateOpt('Protect Your Wallet Dismissed'),
+	WALLET_SECURITY_PROTECT_VIEWED: generateOpt('Wallet  Security Reminder Viewed'),
+	WALLET_SECURITY_PROTECT_ENGAGED: generateOpt('Wallet  Security Reminder Engaged'),
+	WALLET_SECURITY_PROTECT_DISMISSED: generateOpt('Wallet  Security Reminder Dismissed'),
 	// Analytics
 	ANALYTICS_PREFERENCE_SELECTED: generateOpt('Analytics Preference Selected'),
 	// Onboarding
