@@ -1492,7 +1492,8 @@ export const BrowserTab = (props) => {
 	 */
 	const trackNewTabEvent = () => {
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_NEW_TAB, {
-			option: 'Browser Options',
+			option_chosen: 'Browser Options',
+			number_of_tabs: undefined,
 		});
 	};
 
@@ -1517,7 +1518,9 @@ export const BrowserTab = (props) => {
 	 * Track change network event
 	 */
 	const trackSwitchNetworkEvent = ({ from }) => {
-		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_SWITCH_NETWORK, { from });
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_SWITCH_NETWORK, {
+			from_chain_id: from,
+		});
 	};
 
 	/**
