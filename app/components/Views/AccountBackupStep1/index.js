@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView, TouchableOpacity, Text, View, SafeAreaView, StyleSheet, BackHandler } from 'react-native';
+import {
+	ScrollView,
+	TouchableOpacity,
+	Text,
+	View,
+	SafeAreaView,
+	StyleSheet,
+	BackHandler,
+	InteractionManager,
+} from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
@@ -11,12 +20,13 @@ import SeedphraseModal from '../../UI/SeedphraseModal';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import scaling from '../../../util/scaling';
 import Engine from '../../../core/Engine';
-import { ONBOARDING_WIZARD, METRICS_OPT_IN } from '../../../constants/storage';
+import { ONBOARDING_WIZARD } from '../../../constants/storage';
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import SeedPhraseVideo from '../../UI/SeedPhraseVideo';
 import { connect } from 'react-redux';
 import setOnboardingWizardStep from '../../../actions/wizard';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 
 const styles = StyleSheet.create({
@@ -131,12 +141,18 @@ const AccountBackupStep1 = (props) => {
 
 	const goNext = () => {
 		props.navigation.navigate('AccountBackupStep1B', { ...props.route.params });
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_STARTED);
+		});
 	};
 
 	const showRemindLater = () => {
 		if (hasFunds) return;
 
 		setRemindLaterModal(true);
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_SKIP_INITIATED);
+		});
 	};
 
 	const toggleSkipCheckbox = () => (skipCheckbox ? setToggleSkipCheckbox(false) : setToggleSkipCheckbox(true));
@@ -153,13 +169,12 @@ const AccountBackupStep1 = (props) => {
 
 	const skip = async () => {
 		hideRemindLaterModal();
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_SKIP_CONFIRMED);
+		});
 		// Get onboarding wizard state
 		const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
-		// Check if user passed through metrics opt-in screen
-		const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
-		if (!metricsOptIn) {
-			props.navigation.navigate('OptinMetrics');
-		} else if (onboardingWizard) {
+		if (onboardingWizard) {
 			props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
 		} else {
 			props.setOnboardingWizardStep(1);
