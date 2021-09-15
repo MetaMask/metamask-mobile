@@ -20,8 +20,9 @@ import { strings } from '../../../../locales/i18n';
 import TransactionElement from '../TransactionElement';
 import Engine from '../../../core/Engine';
 import { showAlert } from '../../../actions/alert';
+import { shallowEqual } from '../../../util/general';
 import NotificationManager from '../../../core/NotificationManager';
-import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/controllers';
+import { CANCEL_RATE, SPEED_UP_RATE, GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import { renderFromWei, fromWei } from '../../../util/number';
 import Device from '../../../util/device';
 import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../constants/network';
@@ -311,12 +312,73 @@ class Transactions extends PureComponent {
 		}
 	}
 
+	componentDidUpdate = (prevProps, prevState) => {
+		if (
+			this.props.gasFeeEstimates &&
+			this.existingTx?.transaction?.gas &&
+			!shallowEqual(prevProps.gasFeeEstimates, this.props.gasFeeEstimates)
+		) {
+			const gas = this.existingTx.transaction.gas;
+			const gasEstimateTypeChanged = prevProps.gasEstimateType !== this.props.gasEstimateType;
+			const gasSelected = gasEstimateTypeChanged ? AppConstants.GAS_OPTIONS.MEDIUM : this.state.gasSelected;
+			const gasSelectedTemp = gasEstimateTypeChanged
+				? AppConstants.GAS_OPTIONS.MEDIUM
+				: this.state.gasSelectedTemp;
+
+			if ((!this.state.stopUpdateGas && !this.state.advancedGasInserted) || gasEstimateTypeChanged) {
+				if (this.props.gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+					const suggestedGasLimit = fromWei(gas, 'wei');
+
+					const EIP1559TransactionData = this.parseTransactionDataEIP1559({
+						...this.props.gasFeeEstimates[gasSelected],
+						suggestedGasLimit,
+						selectedOption: gasSelected,
+					});
+
+					let EIP1559TransactionDataTemp;
+					if (gasSelected === gasSelectedTemp) {
+						EIP1559TransactionDataTemp = EIP1559TransactionData;
+					} else {
+						EIP1559TransactionDataTemp = this.parseTransactionDataEIP1559({
+							...this.props.gasFeeEstimates[gasSelectedTemp],
+							suggestedGasLimit,
+							selectedOption: gasSelectedTemp,
+						});
+					}
+
+					this.setError(EIP1559TransactionDataTemp.error);
+
+					// eslint-disable-next-line react/no-did-update-set-state
+					this.setState(
+						{
+							gasEstimationReady: true,
+							EIP1559TransactionDataTemp,
+							animateOnChange: true,
+							gasSelected,
+							gasSelectedTemp,
+						},
+						() => {
+							this.setState({ animateOnChange: false });
+						}
+					);
+				}
+			}
+		}
+	};
+
+	setError = (errorMessage) => {
+		this.setState({ errorMessage }, () => {
+			if (errorMessage) {
+				this.scrollView.scrollToEnd({ animated: true });
+			}
+		});
+	};
+
 	componentWillUnmount() {
 		const { GasFeeController } = Engine.context;
 		GasFeeController.stopPolling(this.state.pollToken);
 		this.mounted = false;
 	}
-
 	scrollToIndex = (index) => {
 		if (!this.scrolling && (this.props.headerHeight || index)) {
 			this.scrolling = true;
@@ -451,8 +513,6 @@ class Transactions extends PureComponent {
 
 	onSpeedUpAction = (speedUpAction, existingGas, tx) => {
 		const { gasFeeEstimates } = this.props;
-
-		console.log('Inject speed up view');
 		this.setState({ speedUpIsOpen: speedUpAction });
 		this.existingGas = existingGas;
 		this.existingTx = tx;
@@ -466,7 +526,7 @@ class Transactions extends PureComponent {
 						selectedGasFee: {
 							suggestedMaxFeePerGas: gasFeeEstimates.medium.suggestedMaxFeePerGas,
 							suggestedMaxPriorityFeePerGas: gasFeeEstimates.medium.suggestedMaxPriorityFeePerGas,
-							suggestedGasLimit: '21000',
+							suggestedGasLimit: fromWei(this.existingTx.gas, 'wei'),
 						},
 					},
 					{ onlyGas: true }
@@ -478,25 +538,27 @@ class Transactions extends PureComponent {
 		this.setState({ speedUpIsOpen: speedUpAction, speedUpConfirmDisabled });
 	};
 
-	calculateTempGasFee = (gas, selected) => {
-		const { EIP1559TransactionDataTemp } = this.state;
-
-		if (selected && gas) {
-			gas.suggestedGasLimit = fromWei(EIP1559TransactionDataTemp.gas, 'wei');
+	calculateTempGasFee = (gas, options) => {
+		if (options && gas) {
+			gas.suggestedGasLimit = fromWei(this.existingTx?.transaction?.gas, 'wei');
 		}
-
 		this.setState({
-			EIP1559TransactionDataTemp: parseTransactionEIP1559(
-				{
-					...this.props,
-					selectedGasFee: { ...gas, estimatedBaseFee: this.props.gasFeeEstimates.estimatedBaseFee },
-				},
-				{ onlyGas: true },
-				selected
-			),
-			stopUpdateGas: !selected,
-			gasSelectedTemp: selected,
+			EIP1559TransactionDataTemp: this.parseTransactionDataEIP1559({ ...gas, selectedOption: options }),
+			stopUpdateGas: !options,
+			gasSelectedTemp: options,
 		});
+	};
+
+	parseTransactionDataEIP1559 = (gasFee, options) => {
+		const parsedTransactionEIP1559 = parseTransactionEIP1559(
+			{
+				...this.props,
+				selectedGasFee: { ...gasFee, estimatedBaseFee: this.props.gasFeeEstimates.estimatedBaseFee },
+			},
+			{ onlyGas: true },
+			options
+		);
+		return parsedTransactionEIP1559;
 	};
 
 	onSpeedUpCompleted = () => {
@@ -617,6 +679,7 @@ class Transactions extends PureComponent {
 							error={EIP1559TransactionDataTemp.error}
 							animateOnChange={animateOnChange}
 							ignoreOptions={[AppConstants.GAS_OPTIONS.LOW]}
+							speedUpOption
 							isAnimating={isAnimating}
 							analyticsParams={this.getGasAnalyticsParams()}
 							view={'SendTo (Confirm)'}

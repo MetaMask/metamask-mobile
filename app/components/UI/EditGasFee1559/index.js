@@ -46,6 +46,12 @@ const styles = StyleSheet.create({
 		width: '100%',
 		paddingBottom: 20,
 	},
+	newGasFeeHeader: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		width: '100%',
+		justifyContent: 'center',
+	},
 	headerContainer: {
 		alignItems: 'center',
 		marginBottom: 22,
@@ -151,6 +157,7 @@ const EditGasFee1559 = ({
 	warning,
 	dappSuggestedGas,
 	ignoreOptions,
+	speedUpOption = false,
 	extendOptions = {},
 	recommended,
 	warningMinimumEstimateOption,
@@ -162,7 +169,7 @@ const EditGasFee1559 = ({
 	analyticsParams,
 	view,
 }) => {
-	const [showRangeInfoModal, setShowRangeInfoModal] = useState(false);
+	const [showInfoModal, setShowInfoModal] = useState(false);
 	const [showAdvancedOptions, setShowAdvancedOptions] = useState(!selected);
 	const [maxPriorityFeeError, setMaxPriorityFeeError] = useState(null);
 	const [maxFeeError, setMaxFeeError] = useState(null);
@@ -350,7 +357,7 @@ const EditGasFee1559 = ({
 
 											<TouchableOpacity
 												hitSlop={styles.hitSlop}
-												onPress={() => setShowRangeInfoModal('gas_limit')}
+												onPress={() => setShowInfoModal('gas_limit')}
 											>
 												<MaterialCommunityIcon
 													name="information"
@@ -377,7 +384,7 @@ const EditGasFee1559 = ({
 
 											<TouchableOpacity
 												hitSlop={styles.hitSlop}
-												onPress={() => setShowRangeInfoModal('max_priority_fee')}
+												onPress={() => setShowInfoModal('max_priority_fee')}
 											>
 												<MaterialCommunityIcon
 													name="information"
@@ -415,7 +422,7 @@ const EditGasFee1559 = ({
 
 											<TouchableOpacity
 												hitSlop={styles.hitSlop}
-												onPress={() => setShowRangeInfoModal('max_fee')}
+												onPress={() => setShowInfoModal('max_fee')}
 											>
 												<MaterialCommunityIcon
 													name="information"
@@ -517,10 +524,26 @@ const EditGasFee1559 = ({
 									<Icon name={'ios-arrow-back'} size={24} color={colors.black} />
 								</TouchableOpacity>
 								<Text bold black>
-									{strings('edit_gas_fee_eip1559.edit_priority')}
+									{speedUpOption
+										? strings('edit_gas_fee_eip1559.speed_up_transaction')
+										: strings('edit_gas_fee_eip1559.edit_priority')}
 								</Text>
 								<Icon name={'ios-arrow-back'} size={24} color={colors.white} />
 							</View>
+							{speedUpOption && (
+								<View style={styles.newGasFeeHeader}>
+									<Text black bold noMargin>
+										{strings('edit_gas_fee_eip1559.new_gas_fee')}{' '}
+									</Text>
+
+									<TouchableOpacity
+										hitSlop={styles.hitSlop}
+										onPress={() => setShowInfoModal('new_gas_fee')}
+									>
+										<MaterialCommunityIcon name="information" size={14} style={styles.labelInfo} />
+									</TouchableOpacity>
+								</View>
+							)}
 						</View>
 						{renderWarning}
 						{renderError}
@@ -562,26 +585,30 @@ const EditGasFee1559 = ({
 							renderInputs()
 						)}
 						<InfoModal
-							isVisible={Boolean(showRangeInfoModal)}
+							isVisible={Boolean(showInfoModal)}
 							title={
-								showRangeInfoModal === 'gas_limit'
+								showInfoModal === 'gas_limit'
 									? strings('edit_gas_fee_eip1559.gas_limit')
-									: showRangeInfoModal === 'max_priority_fee'
+									: showInfoModal === 'max_priority_fee'
 									? strings('edit_gas_fee_eip1559.max_priority_fee')
-									: showRangeInfoModal === 'max_fee'
+									: showInfoModal === 'max_fee'
 									? strings('edit_gas_fee_eip1559.max_fee')
+									: showInfoModal === 'new_gas_fee'
+									? strings('edit_gas_fee_eip1559.new_gas_fee')
 									: null
 							}
-							toggleModal={() => setShowRangeInfoModal(null)}
+							toggleModal={() => setShowInfoModal(null)}
 							body={
 								<View>
 									<Text grey infoModal>
-										{showRangeInfoModal === 'gas_limit' &&
+										{showInfoModal === 'gas_limit' &&
 											strings('edit_gas_fee_eip1559.learn_more_gas_limit')}
-										{showRangeInfoModal === 'max_priority_fee' &&
+										{showInfoModal === 'max_priority_fee' &&
 											strings('edit_gas_fee_eip1559.learn_more_max_priority_fee')}
-										{showRangeInfoModal === 'max_fee' &&
+										{showInfoModal === 'max_fee' &&
 											strings('edit_gas_fee_eip1559.learn_more_max_fee')}
+										{showInfoModal === 'new_gas_fee' &&
+											strings('edit_gas_fee_eip1559.learn_more_new_gas_fee')}
 									</Text>
 								</View>
 							}
@@ -740,6 +767,10 @@ EditGasFee1559.propTypes = {
 	 * Ignore option array
 	 */
 	ignoreOptions: PropTypes.array,
+	/**
+	 * Option to display speed up view
+	 */
+	speedUpOption: PropTypes.bool,
 	/**
 	 * Extend options object. Object has option keys and properties will be spread
 	 */
