@@ -16,19 +16,19 @@ const style = StyleSheet.create({
 		paddingVertical: 15,
 		paddingHorizontal: 20,
 		marginHorizontal: Device.isIphone5() ? 15 : 25,
-		marginVertical: 12
+		marginVertical: 12,
 	},
 	title: {
 		flexDirection: 'row',
 		width: '100%',
-		justifyContent: 'space-between'
+		justifyContent: 'space-between',
 	},
 	badgeWrapper: {
 		position: 'absolute',
 		alignItems: 'center',
 		top: -14,
 		left: 0,
-		right: 0
+		right: 0,
 	},
 	badge: {
 		fontSize: 12,
@@ -39,18 +39,18 @@ const style = StyleSheet.create({
 		margin: 0,
 		borderRadius: 12,
 		overflow: 'hidden',
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	details: {},
 	infoIconLine: {
 		alignItems: 'center',
 		flexDirection: 'row',
-		flexWrap: 'wrap'
+		flexWrap: 'wrap',
 	},
 	infoIcon: {
 		margin: 5,
-		color: colors.grey200
-	}
+		color: colors.grey200,
+	},
 });
 
 const PaymentMethod = ({ onPress, ...props }) => (
@@ -59,25 +59,25 @@ const PaymentMethod = ({ onPress, ...props }) => (
 
 PaymentMethod.propTypes = {
 	onPress: PropTypes.func,
-	children: PropTypes.node
+	children: PropTypes.node,
 };
 
 PaymentMethod.defaultProps = {
 	onPress: undefined,
-	children: undefined
+	children: undefined,
 };
 
-const Badge = props => (
+const Badge = (props) => (
 	<View style={style.badgeWrapper}>
 		<Text style={style.badge} {...props} />
 	</View>
 );
 
-const Title = props => <View style={style.title} {...props} />;
-const Content = props => <View style={style.content} {...props} />;
-const Details = props => <View style={style.details} {...props} />;
-const InfoIconLine = props => <View style={style.infoIconLine} {...props} />;
-const PaymentMethodInfoIcon = props => <InfoIcon size={16} style={style.infoIcon} {...props} />;
+const Title = (props) => <View style={style.title} {...props} />;
+const Content = (props) => <View style={style.content} {...props} />;
+const Details = (props) => <View style={style.details} {...props} />;
+const InfoIconLine = (props) => <View style={style.infoIconLine} {...props} />;
+const PaymentMethodInfoIcon = (props) => <InfoIcon size={16} style={style.infoIcon} {...props} />;
 
 PaymentMethod.Badge = Badge;
 PaymentMethod.Title = Title;

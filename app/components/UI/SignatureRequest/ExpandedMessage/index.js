@@ -15,7 +15,7 @@ const styles = StyleSheet.create({
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
 		padding: 24,
-		paddingBottom: Device.isIphoneX() ? 44 : 24
+		paddingBottom: Device.isIphoneX() ? 44 : 24,
 	},
 
 	expandedMessageHeader: {
@@ -23,39 +23,39 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 		alignItems: 'center',
-		marginBottom: 20
+		marginBottom: 20,
 	},
 	arrowIcon: {
 		...baseStyles.flexGrow,
-		color: colors.grey200
+		color: colors.grey200,
 	},
 	iconHidden: {
-		...baseStyles.flexGrow
+		...baseStyles.flexGrow,
 	},
 	messageLabelTextExpanded: {
 		...baseStyles.flexGrow,
 		textAlign: 'center',
 		...fontStyles.bold,
-		fontSize: 16
+		fontSize: 16,
 	},
 	messageIntroWrapper: {
 		alignItems: 'center',
-		marginBottom: 20
+		marginBottom: 20,
 	},
 	domainLogo: {
 		width: 40,
 		height: 40,
 		borderRadius: 20,
-		marginBottom: 20
+		marginBottom: 20,
 	},
 	messageFromLabel: {
 		textAlign: 'center',
 		...fontStyles.bold,
-		fontSize: 16
+		fontSize: 16,
 	},
 	scrollView: {
-		...baseStyles.flexGrow
-	}
+		...baseStyles.flexGrow,
+	},
 });
 
 /**
@@ -74,7 +74,7 @@ export default class ExpandedMessage extends PureComponent {
 		/**
 		 * Expands the message box on press.
 		 */
-		toggleExpandedMessage: PropTypes.func
+		toggleExpandedMessage: PropTypes.func,
 	};
 
 	render() {

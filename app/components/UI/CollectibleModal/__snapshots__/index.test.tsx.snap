@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CollectibleModal should render correctly 1`] = `
+<Connect(CollectibleModal)
+  navigation={Object {}}
+  route={
+    Object {
+      "params": Object {
+        "collectible": Object {
+          "address": "0x123",
+          "name": "Leopard",
+          "tokenId": 6904,
+        },
+        "contractName": "Opensea",
+      },
+    }
+  }
+/>
+`;

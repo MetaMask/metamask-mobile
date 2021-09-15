@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
 		height: 22,
 		marginRight: 5,
 		marginLeft: 2,
-		marginTop: 1
+		marginTop: 1,
 	},
 	tabSiteName: {
 		color: colors.white,
@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
 		fontSize: 18,
 		marginRight: 40,
 		marginLeft: 5,
-		marginTop: 0
+		marginTop: 0,
 	},
 	tabHeader: {
 		flexDirection: 'row',
@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'flex-start',
 		backgroundColor: colors.grey500,
 		paddingVertical: 10,
-		paddingHorizontal: 10
+		paddingHorizontal: 10,
 	},
 	tabWrapper: {
 		marginBottom: 15,
@@ -56,28 +56,28 @@ const styles = StyleSheet.create({
 		borderColor: colors.grey100,
 		borderWidth: 1,
 		width,
-		height
+		height,
 	},
 	checkWrapper: {
 		backgroundColor: colors.transparent,
-		overflow: 'hidden'
+		overflow: 'hidden',
 	},
 	tab: {
 		backgroundColor: colors.white,
 		flex: 1,
 		alignItems: 'flex-start',
-		justifyContent: 'flex-start'
+		justifyContent: 'flex-start',
 	},
 	tabImage: {
 		...StyleSheet.absoluteFillObject,
 		paddingTop,
 		width: null,
 		height: null,
-		resizeMode: 'cover'
+		resizeMode: 'cover',
 	},
 	activeTab: {
 		borderWidth: 5,
-		borderColor: colors.blue
+		borderColor: colors.blue,
 	},
 	closeTabIcon: {
 		paddingHorizontal: 10,
@@ -86,20 +86,20 @@ const styles = StyleSheet.create({
 		color: colors.white,
 		right: 0,
 		marginTop: -7,
-		position: 'absolute'
+		position: 'absolute',
 	},
 	titleButton: {
 		backgroundColor: colors.transparent,
 		flex: 1,
 		flexDirection: 'row',
-		marginRight: 40
+		marginRight: 40,
 	},
 	closeTabButton: {
 		backgroundColor: colors.transparent,
 		width: Device.isIos() ? 30 : 35,
 		height: 24,
-		marginRight: -5
-	}
+		marginRight: -5,
+	},
 });
 
 const { HOMEPAGE_URL } = AppConstants;
@@ -126,7 +126,7 @@ export default class TabThumbnail extends PureComponent {
 		/**
 		 * Switches to a specific tab
 		 */
-		onSwitch: PropTypes.func
+		onSwitch: PropTypes.func,
 	};
 
 	getContainer = () => (Device.isAndroid() ? View : ElevatedView);

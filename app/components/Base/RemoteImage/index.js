@@ -7,10 +7,11 @@ import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource'
 import { SvgCssUri } from 'react-native-svg';
 import ComponentErrorBoundary from '../../UI/ComponentErrorBoundary';
 
-const RemoteImage = props => {
+const RemoteImage = (props) => {
 	// Avoid using this component with animated SVG
 	const source = resolveAssetSource(props.source);
-	if (source && (source.uri && source.uri.match('.svg'))) {
+
+	if (source && source.uri && source.uri.match('.svg')) {
 		const style = props.style || {};
 		if (source.__packager_asset && typeof style !== 'number') {
 			if (!style.width) {
@@ -32,11 +33,11 @@ const RemoteImage = props => {
 	if (props.fadeIn) {
 		return (
 			<FadeIn placeholderStyle={props.placeholderStyle}>
-				<Image {...props} />
+				<Image {...props} source={{ uri: source.uri }} />
 			</FadeIn>
 		);
 	}
-	return <Image {...props} />;
+	return <Image {...props} source={{ uri: source.uri }} />;
 };
 
 RemoteImage.propTypes = {
@@ -59,7 +60,7 @@ RemoteImage.propTypes = {
 	/**
 	 * Called when there is an error
 	 */
-	onError: PropTypes.func
+	onError: PropTypes.func,
 };
 
 export default RemoteImage;

@@ -13,15 +13,15 @@ const styles = StyleSheet.create({
 		paddingVertical: 10,
 		paddingHorizontal: 15,
 		height: 40,
-		borderRadius: 4
-	}
+		borderRadius: 4,
+	},
 });
 
 /**
  * UI component that wraps GenericButton
  * which renders the appropiate UI elements for each platform (android & iOS)
  */
-const Button = props => (
+const Button = (props) => (
 	<GenericButton onPress={props.onPress} style={[styles.button, props.style]}>
 		{props.children}
 	</GenericButton>
@@ -41,7 +41,7 @@ Button.propTypes = {
 	/**
 	 * Function to be called on press
 	 */
-	onPress: PropTypes.func
+	onPress: PropTypes.func,
 };
 
 export default Button;

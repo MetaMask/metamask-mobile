@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ReceiveRequest should render correctly 1`] = `
+<ReceiveRequest
+  network="1"
+  protectWalletModalVisible={[Function]}
+  receiveAsset={Object {}}
+  seedphraseBackedUp={true}
+  selectedAddress="0x"
+  showAlert={[Function]}
+  toggleReceiveModal={[Function]}
+/>
+`;

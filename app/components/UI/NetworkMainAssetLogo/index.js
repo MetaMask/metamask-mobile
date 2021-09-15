@@ -11,9 +11,9 @@ function NetworkMainAssetLogo({ chainId, ticker, style, big, biggest }) {
 	return <TokenIcon big={big} biggest={biggest} symbol={ticker} style={style} />;
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-	ticker: state.engine.backgroundState.NetworkController.provider.ticker
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 });
 
 NetworkMainAssetLogo.propTypes = {
@@ -21,7 +21,7 @@ NetworkMainAssetLogo.propTypes = {
 	ticker: PropTypes.string,
 	style: PropTypes.object,
 	big: PropTypes.bool,
-	biggest: PropTypes.bool
+	biggest: PropTypes.bool,
 };
 
 export default connect(mapStateToProps)(NetworkMainAssetLogo);

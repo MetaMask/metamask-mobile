@@ -11,7 +11,7 @@ import { safeToChecksumAddress } from '../../../util/address';
 
 const styles = StyleSheet.create({
 	root: {
-		flex: 1
+		flex: 1,
 	},
 	componentContainer: {
 		position: 'absolute',
@@ -22,44 +22,44 @@ const styles = StyleSheet.create({
 		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1,
-		elevation: 11
+		elevation: 11,
 	},
 	activeOption: {
 		backgroundColor: colors.white,
 		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1,
-		position: 'relative'
+		position: 'relative',
 	},
 	option: {
 		flexDirection: 'row',
 		paddingHorizontal: 10,
-		paddingVertical: 8
+		paddingVertical: 8,
 	},
 	info: {
 		...fontStyles.normal,
 		fontSize: 12,
-		lineHeight: 16
+		lineHeight: 16,
 	},
 	name: {
 		...fontStyles.bold,
 		fontSize: 16,
-		marginBottom: 4
+		marginBottom: 4,
 	},
 	icon: {
 		paddingRight: 8,
 		paddingLeft: 2,
-		paddingTop: 1.5
+		paddingTop: 1.5,
 	},
 	content: {
 		flex: 1,
-		paddingHorizontal: 8
+		paddingHorizontal: 8,
 	},
 	arrow: {
 		color: colors.grey100,
 		position: 'absolute',
 		right: 10,
-		top: 25
+		top: 25,
 	},
 	optionList: {
 		backgroundColor: colors.white,
@@ -72,8 +72,8 @@ const styles = StyleSheet.create({
 		left: 0,
 		right: 0,
 		elevation: 10,
-		width: '100%'
-	}
+		width: '100%',
+	},
 });
 
 /**
@@ -128,11 +128,11 @@ class AccountSelect extends PureComponent {
 		/**
 		 * Current provider ticker
 		 */
-		ticker: PropTypes.string
+		ticker: PropTypes.string,
 	};
 
 	static defaultProps = {
-		enabled: true
+		enabled: true,
 	};
 
 	componentDidMount() {
@@ -194,7 +194,7 @@ class AccountSelect extends PureComponent {
 		return (
 			<ScrollView style={styles.componentContainer}>
 				<View style={styles.optionList}>
-					{Object.keys(identities).map(address =>
+					{Object.keys(identities).map((address) =>
 						this.renderOption({ ...identities[address], ...accounts[address] }, () => {
 							this.setState({ value: address });
 							openAccountSelect && openAccountSelect(true);
@@ -214,14 +214,14 @@ class AccountSelect extends PureComponent {
 	);
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	primaryCurrency: state.settings.primaryCurrency,
-	ticker: state.engine.backgroundState.NetworkController.provider.ticker
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 });
 
 export default connect(mapStateToProps)(AccountSelect);

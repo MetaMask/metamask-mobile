@@ -1,5 +1,14 @@
 import React, { PureComponent } from 'react';
-import { Alert, BackHandler, Text, View, StyleSheet, Keyboard, TouchableOpacity } from 'react-native';
+import {
+	Alert,
+	BackHandler,
+	Text,
+	View,
+	StyleSheet,
+	Keyboard,
+	TouchableOpacity,
+	InteractionManager,
+} from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
@@ -14,23 +23,24 @@ import Device from '../../../util/device';
 import Confetti from '../../UI/Confetti';
 import HintModal from '../../UI/HintModal';
 import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
-import { ONBOARDING_WIZARD, METRICS_OPT_IN, SEED_PHRASE_HINTS } from '../../../constants/storage';
+import { ONBOARDING_WIZARD, SEED_PHRASE_HINTS } from '../../../constants/storage';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
 		backgroundColor: colors.white,
-		flex: 1
+		flex: 1,
 	},
 	actionView: {
-		paddingTop: 40
+		paddingTop: 40,
 	},
 	wrapper: {
 		flex: 1,
-		paddingHorizontal: 50
+		paddingHorizontal: 50,
 	},
 	onBoardingWrapper: {
-		paddingHorizontal: 20
+		paddingHorizontal: 20,
 	},
 	congratulations: {
 		fontSize: Device.isMediumDevice() ? 28 : 32,
@@ -38,32 +48,32 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		justifyContent: 'center',
 		textAlign: 'center',
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	baseText: {
 		fontSize: 16,
 		color: colors.fontPrimary,
 		textAlign: 'center',
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	successText: {
-		marginBottom: 32
+		marginBottom: 32,
 	},
 	hintText: {
 		marginBottom: 26,
-		color: colors.blue
+		color: colors.blue,
 	},
 	learnText: {
-		color: colors.blue
+		color: colors.blue,
 	},
 	recoverText: {
-		marginBottom: 26
+		marginBottom: 26,
 	},
 	emoji: {
 		textAlign: 'center',
 		fontSize: 65,
-		marginBottom: 16
-	}
+		marginBottom: 16,
+	},
 });
 
 const hardwareBackPress = () => ({});
@@ -84,7 +94,7 @@ class ManualBackupStep3 extends PureComponent {
 	state = {
 		currentStep: 4,
 		showHint: false,
-		hintText: ''
+		hintText: '',
 	};
 
 	static propTypes = {
@@ -95,7 +105,7 @@ class ManualBackupStep3 extends PureComponent {
 		/**
 		 * Object that represents the current route info like params passed to it
 		 */
-		route: PropTypes.object
+		route: PropTypes.object,
 	};
 
 	componentWillUnmount = () => {
@@ -107,13 +117,16 @@ class ManualBackupStep3 extends PureComponent {
 		const parsedHints = currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
 		const manualBackup = parsedHints?.manualBackup;
 		this.setState({
-			hintText: manualBackup
+			hintText: manualBackup,
+		});
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_COMPLETED);
 		});
 		BackHandler.addEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
 	};
 
 	toggleHint = () => {
-		this.setState(state => ({ showHint: !state.showHint }));
+		this.setState((state) => ({ showHint: !state.showHint }));
 	};
 
 	learnMore = () =>
@@ -121,14 +134,14 @@ class ManualBackupStep3 extends PureComponent {
 			screen: 'SimpleWebview',
 			params: {
 				url: 'https://support.metamask.io',
-				title: strings('drawer.metamask_support')
-			}
+				title: strings('drawer.metamask_support'),
+			},
 		});
 
-	isHintSeedPhrase = hintText => {
+	isHintSeedPhrase = (hintText) => {
 		const words = this.props.route.params?.words;
 		if (words) {
-			const lower = string => String(string).toLowerCase();
+			const lower = (string) => String(string).toLowerCase();
 			return lower(hintText) === lower(words.join(' '));
 		}
 		return false;
@@ -145,22 +158,21 @@ class ManualBackupStep3 extends PureComponent {
 		const currentSeedphraseHints = await AsyncStorage.getItem(SEED_PHRASE_HINTS);
 		const parsedHints = JSON.parse(currentSeedphraseHints);
 		await AsyncStorage.setItem(SEED_PHRASE_HINTS, JSON.stringify({ ...parsedHints, manualBackup: hintText }));
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_RECOVERY_HINT_SAVED);
+		});
 	};
 
 	done = async () => {
 		const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
-		// Check if user passed through metrics opt-in screen
-		const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
-		if (!metricsOptIn) {
-			this.props.navigation.navigate('OptinMetrics');
-		} else if (onboardingWizard) {
+		if (onboardingWizard) {
 			this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
 		} else {
 			this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
 		}
 	};
 
-	handleChangeText = text => this.setState({ hintText: text });
+	handleChangeText = (text) => this.setState({ hintText: text });
 
 	renderHint = () => {
 		const { showHint, hintText } = this.state;
@@ -221,11 +233,8 @@ class ManualBackupStep3 extends PureComponent {
 	}
 }
 
-const mapDispatchToProps = dispatch => ({
-	showAlert: config => dispatch(showAlert(config))
+const mapDispatchToProps = (dispatch) => ({
+	showAlert: (config) => dispatch(showAlert(config)),
 });
 
-export default connect(
-	null,
-	mapDispatchToProps
-)(ManualBackupStep3);
+export default connect(null, mapDispatchToProps)(ManualBackupStep3);

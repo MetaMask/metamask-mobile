@@ -9,7 +9,7 @@ import {
 	TextInput,
 	SafeAreaView,
 	StyleSheet,
-	TouchableOpacity
+	TouchableOpacity,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { connect } from 'react-redux';
@@ -27,25 +27,25 @@ import { getPasswordStrengthWord, passwordRequirementsMet } from '../../../util/
 const styles = StyleSheet.create({
 	mainWrapper: {
 		backgroundColor: colors.white,
-		flex: 1
+		flex: 1,
 	},
 	wrapper: {
 		flex: 1,
-		padding: 20
+		padding: 20,
 	},
 	content: {
-		alignItems: 'flex-start'
+		alignItems: 'flex-start',
 	},
 	subtitle: {
 		fontSize: 16,
 		lineHeight: 23,
 		color: colors.fontPrimary,
 		textAlign: 'left',
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	text: {
 		marginBottom: 10,
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 
 	label: {
@@ -55,11 +55,11 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		color: colors.fontSecondary,
 		textAlign: 'left',
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	field: {
 		marginTop: 20,
-		marginBottom: 10
+		marginBottom: 10,
 	},
 	input: {
 		borderBottomWidth: Device.isAndroid() ? 0 : 1,
@@ -69,15 +69,15 @@ const styles = StyleSheet.create({
 		borderRadius: 4,
 		fontSize: 14,
 		height: 50,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	ctaWrapper: {
 		marginTop: 20,
-		paddingHorizontal: 10
+		paddingHorizontal: 10,
 	},
 	errorMsg: {
 		color: colors.red,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	passwordStrengthLabel: {
 		height: 20,
@@ -86,31 +86,31 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		color: colors.fontSecondary,
 		textAlign: 'left',
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_weak: {
-		color: colors.red
+		color: colors.red,
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_good: {
-		color: colors.blue
+		color: colors.blue,
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_strong: {
-		color: colors.green300
+		color: colors.green300,
 	},
 	showHideToggle: {
 		backgroundColor: colors.white,
 		position: 'absolute',
 		marginTop: 8,
-		alignSelf: 'flex-end'
+		alignSelf: 'flex-end',
 	},
 	showMatchingPasswords: {
 		position: 'absolute',
 		marginTop: 8,
-		alignSelf: 'flex-end'
-	}
+		alignSelf: 'flex-end',
+	},
 });
 
 /**
@@ -129,7 +129,7 @@ class ChoosePasswordSimple extends PureComponent {
 		/**
 		 * Object that represents the current route info like params passed to it
 		 */
-		route: PropTypes.object
+		route: PropTypes.object,
 	};
 
 	state = {
@@ -142,7 +142,7 @@ class ChoosePasswordSimple extends PureComponent {
 		labelsScaleNew: new Animated.Value(1),
 		labelsScaleConfirm: new Animated.Value(1),
 		loading: false,
-		error: null
+		error: null,
 	};
 
 	startX = 0;
@@ -185,7 +185,7 @@ class ChoosePasswordSimple extends PureComponent {
 		current && current.focus();
 	};
 
-	animateInLabel = label => {
+	animateInLabel = (label) => {
 		if (
 			(label === 'new' && this.state.password !== '') ||
 			(label === 'confirm' && this.state.confirmPassword !== '')
@@ -196,20 +196,20 @@ class ChoosePasswordSimple extends PureComponent {
 			toValue: 1,
 			duration: 200,
 			useNativeDriver: true,
-			isInteraction: false
+			isInteraction: false,
 		}).start();
 	};
 
-	animateOutLabel = label => {
+	animateOutLabel = (label) => {
 		Animated.timing(label === 'new' ? this.state.labelsScaleNew : this.state.labelsScaleConfirm, {
 			toValue: 0.66,
 			duration: 200,
 			useNativeDriver: true,
-			isInteraction: false
+			isInteraction: false,
 		}).start();
 	};
 
-	onPasswordChange = val => {
+	onPasswordChange = (val) => {
 		const passInfo = zxcvbn(val);
 
 		this.setState({ password: val, passwordStrength: passInfo.score });
@@ -219,7 +219,7 @@ class ChoosePasswordSimple extends PureComponent {
 		this.setState({ secureTextEntry: !this.state.secureTextEntry });
 	};
 
-	setConfirmPassword = val => this.setState({ confirmPassword: val });
+	setConfirmPassword = (val) => this.setState({ confirmPassword: val });
 
 	render() {
 		const { passwordStrength, startX, startY, width, height, initialScale, endX, endY } = this;
@@ -242,28 +242,28 @@ class ChoosePasswordSimple extends PureComponent {
 										{
 											transform: [
 												{
-													scale: this.state.labelsScaleNew
+													scale: this.state.labelsScaleNew,
 												},
 												{
 													translateX: this.state.labelsScaleNew.interpolate({
 														inputRange: [0, 1],
 														outputRange: [
 															startX - width / 2 - (width * initialScale) / 2,
-															endX
-														]
-													})
+															endX,
+														],
+													}),
 												},
 												{
 													translateY: this.state.labelsScaleNew.interpolate({
 														inputRange: [0, 1],
 														outputRange: [
 															startY - height / 2 - (height * initialScale) / 2,
-															endY
-														]
-													})
-												}
-											]
-										}
+															endY,
+														],
+													}),
+												},
+											],
+										},
 									]}
 								>
 									{strings('choose_password.password')}
@@ -305,28 +305,28 @@ class ChoosePasswordSimple extends PureComponent {
 										{
 											transform: [
 												{
-													scale: this.state.labelsScaleConfirm
+													scale: this.state.labelsScaleConfirm,
 												},
 												{
 													translateX: this.state.labelsScaleConfirm.interpolate({
 														inputRange: [0, 1],
 														outputRange: [
 															startX - width / 2 - (width * initialScale) / 2,
-															endX
-														]
-													})
+															endX,
+														],
+													}),
 												},
 												{
 													translateY: this.state.labelsScaleConfirm.interpolate({
 														inputRange: [0, 1],
 														outputRange: [
 															startY - height / 2 - (height * initialScale) / 2,
-															endY
-														]
-													})
-												}
-											]
-										}
+															endY,
+														],
+													}),
+												},
+											],
+										},
 									]}
 								>
 									{strings('choose_password.confirm_password')}
@@ -383,12 +383,9 @@ class ChoosePasswordSimple extends PureComponent {
 	}
 }
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch) => ({
 	passwordSet: () => dispatch(passwordSet()),
-	setLockTime: time => dispatch(setLockTime(time))
+	setLockTime: (time) => dispatch(setLockTime(time)),
 });
 
-export default connect(
-	null,
-	mapDispatchToProps
-)(ChoosePasswordSimple);
+export default connect(null, mapDispatchToProps)(ChoosePasswordSimple);

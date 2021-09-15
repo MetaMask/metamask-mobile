@@ -5,7 +5,7 @@ const initialState = {
 	receiveModalVisible: false,
 	receiveAsset: undefined,
 	dappTransactionModalVisible: false,
-	approveModalVisible: false
+	approveModalVisible: false,
 };
 
 const modalsReducer = (state = initialState, action) => {
@@ -13,34 +13,34 @@ const modalsReducer = (state = initialState, action) => {
 		case 'TOGGLE_NETWORK_MODAL':
 			return {
 				...state,
-				networkModalVisible: !state.networkModalVisible
+				networkModalVisible: !state.networkModalVisible,
 			};
 		case 'TOGGLE_RECEIVE_MODAL': {
 			return {
 				...state,
 				receiveModalVisible: !state.receiveModalVisible,
-				receiveAsset: action.asset
+				receiveAsset: action.asset,
 			};
 		}
 		case 'TOGGLE_ACCOUNT_MODAL':
 			return {
 				...state,
-				accountsModalVisible: !state.accountsModalVisible
+				accountsModalVisible: !state.accountsModalVisible,
 			};
 		case 'TOGGLE_COLLECTIBLE_CONTRACT_MODAL':
 			return {
 				...state,
-				collectibleContractModalVisible: !state.collectibleContractModalVisible
+				collectibleContractModalVisible: !state.collectibleContractModalVisible,
 			};
 		case 'TOGGLE_DAPP_TRANSACTION_MODAL':
 			return {
 				...state,
-				dappTransactionModalVisible: action.show === null ? !state.dappTransactionModalVisible : action.show
+				dappTransactionModalVisible: action.show === null ? !state.dappTransactionModalVisible : action.show,
 			};
 		case 'TOGGLE_APPROVE_MODAL':
 			return {
 				...state,
-				approveModalVisible: !state.approveModalVisible
+				approveModalVisible: !state.approveModalVisible,
 			};
 		default:
 			return state;

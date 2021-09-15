@@ -274,12 +274,13 @@
 		"collectible": "Collectible",
 		"collectibles": "NFTs",
 		"transactions": "TRANSACTIONS",
-		"no_collectibles": "Don’t see your NFT?",
+		"no_collectibles": "Your NFTs will show up here. If you don’t see your NFT, try importing manually.",
 		"add_tokens": "ADD TOKENS",
 		"no_tokens": "You don't have any tokens!",
-		"no_nfts_yet": "No NFTs yet",
+		"no_nfts_to_show": "No NFTs to show",
 		"learn_more": "Learn more",
 		"add_collectibles": "ADD NFTs",
+		"manually_import_nfts": "Import manually",
 		"no_transactions": "You have no transactions!",
 		"send_button": "Send",
 		"deposit_button": "Deposit",
@@ -943,7 +944,7 @@
 		"message_from": "Message from",
 		"learn_more": "Learn More",
 		"read_more": "Read more",
-		"eth_sign_warning": "Proceed with caution. This action can potentially be used to withdraw assets from your account. Make sure you trust this site."
+		"eth_sign_warning": "Signing this message can be dangerous. This signature could potentially perform any operation on your account's behalf, including granting complete control of your account and all of its assets to the requesting site. Only sign this message if you know what you're doing or completely trust the requesting site."
 	},
 	"watch_asset_request": {
 		"title": "Add Suggested Token",
@@ -1455,7 +1456,7 @@
 		"no_tokens_result": "No tokens match “{{searchString}}”",
 		"find_token_address": "Find token address",
 		"cant_find_token": "Can’t find a token?",
-		"manually_pasting": "You can manually add any token by pasting its address.",
+		"manually_pasting": "Manually add a token by pasting its address.",
 		"token_address_can_be_found": "Token contract addresses can be found on",
 		"gathering_token_details": "Gathering token details...",
 		"error_gathering_token_details": "Oops, there was an error gathering token details.",

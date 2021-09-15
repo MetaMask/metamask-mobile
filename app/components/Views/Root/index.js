@@ -18,11 +18,11 @@ import ErrorBoundary from '../ErrorBoundary';
  */
 export default class Root extends PureComponent {
 	static propTypes = {
-		foxCode: PropTypes.string
+		foxCode: PropTypes.string,
 	};
 
 	static defaultProps = {
-		foxCode: 'null'
+		foxCode: 'null',
 	};
 
 	errorHandler = (error, stackTrace) => {

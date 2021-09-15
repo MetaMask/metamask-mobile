@@ -10,13 +10,13 @@ const styles = StyleSheet.create({
 	status: {
 		marginTop: 4,
 		fontSize: 12,
-		letterSpacing: 0.5
-	}
+		letterSpacing: 0.5,
+	},
 });
 
-export const ConfirmedText = props => <Text bold green style={styles.status} {...props} />;
-export const PendingText = props => <Text bold style={[styles.status, { color: colors.orange }]} {...props} />;
-export const FailedText = props => <Text bold style={[styles.status, { color: colors.red }]} {...props} />;
+export const ConfirmedText = (props) => <Text bold green style={styles.status} {...props} />;
+export const PendingText = (props) => <Text bold style={[styles.status, { color: colors.orange }]} {...props} />;
+export const FailedText = (props) => <Text bold style={[styles.status, { color: colors.red }]} {...props} />;
 
 function StatusText({ status, context, ...props }) {
 	switch (status) {
@@ -53,12 +53,12 @@ function StatusText({ status, context, ...props }) {
 }
 
 StatusText.defaultProps = {
-	context: 'transaction'
+	context: 'transaction',
 };
 
 StatusText.propTypes = {
 	status: PropTypes.string.isRequired,
-	context: PropTypes.string
+	context: PropTypes.string,
 };
 
 export default StatusText;

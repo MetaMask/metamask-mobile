@@ -15,11 +15,10 @@ import { recreateVaultWithSamePassword } from '../../../core/Vault';
 import {
 	EXISTING_USER,
 	ONBOARDING_WIZARD,
-	METRICS_OPT_IN,
 	ENCRYPTION_LIB,
 	ORIGINAL,
 	CURRENT_APP_VERSION,
-	LAST_APP_VERSION
+	LAST_APP_VERSION,
 } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
 import DefaultPreference from 'react-native-default-preference';
@@ -35,7 +34,7 @@ const LOGO_PADDING = 25;
 const styles = StyleSheet.create({
 	main: {
 		flex: 1,
-		backgroundColor: colors.white
+		backgroundColor: colors.white,
 	},
 	metamaskName: {
 		marginTop: 10,
@@ -43,36 +42,36 @@ const styles = StyleSheet.create({
 		width: 170,
 		alignSelf: 'center',
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	logoWrapper: {
 		backgroundColor: colors.white,
 		paddingTop: 50,
 		marginTop: Dimensions.get('window').height / 2 - LOGO_SIZE / 2 - LOGO_PADDING,
-		height: LOGO_SIZE + LOGO_PADDING * 2
+		height: LOGO_SIZE + LOGO_PADDING * 2,
 	},
 	foxAndName: {
 		alignSelf: 'center',
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	animation: {
 		width: 110,
 		height: 110,
 		alignSelf: 'center',
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	fox: {
 		width: 110,
 		height: 110,
 		alignSelf: 'center',
 		alignItems: 'center',
-		justifyContent: 'center'
-	}
+		justifyContent: 'center',
+	},
 });
 
-const Entry = props => {
+const Entry = (props) => {
 	const [viewToGo, setViewToGo] = useState(null);
 
 	const animation = useRef(null);
@@ -84,12 +83,12 @@ const Entry = props => {
 			toValue: 0,
 			duration: 300,
 			useNativeDriver: true,
-			isInteraction: false
+			isInteraction: false,
 		}).start(() => {
 			if (viewToGo === 'OptinMetrics') {
 				props.navigation.navigate('OnboardingRootNav', {
 					screen: 'OnboardingNav',
-					params: { screen: 'OptinMetrics' }
+					params: { screen: 'OptinMetrics' },
 				});
 			} else if (viewToGo && (viewToGo !== 'WalletView' || viewToGo !== 'Onboarding')) {
 				props.navigation.navigate(viewToGo);
@@ -102,7 +101,7 @@ const Entry = props => {
 	}, [opacity, viewToGo, props.navigation]);
 
 	const animateAndGoTo = useCallback(
-		viewToGo => {
+		(viewToGo) => {
 			setViewToGo(viewToGo);
 			if (Device.isAndroid()) {
 				animation && animation.current ? animation.current.play(0, 25) : onAnimationFinished();
@@ -131,11 +130,7 @@ const Entry = props => {
 				}
 				// Get onboarding wizard state
 				const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
-				// Check if user passed through metrics opt-in screen
-				const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
-				if (!metricsOptIn) {
-					animateAndGoTo('OptinMetrics');
-				} else if (onboardingWizard) {
+				if (onboardingWizard) {
 					animateAndGoTo('HomeNav');
 				} else {
 					props.setOnboardingWizardStep(1);
@@ -240,21 +235,18 @@ Entry.propTypes = {
 	/**
 	 * Dispatch set onboarding wizard step
 	 */
-	setOnboardingWizardStep: PropTypes.func
+	setOnboardingWizardStep: PropTypes.func,
 };
 
-const mapDispatchToProps = dispatch => ({
-	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
+const mapDispatchToProps = (dispatch) => ({
+	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 });
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	passwordSet: state.user.passwordSet,
 	selectedAddress:
 		state.engine.backgroundState.PreferencesController &&
-		state.engine.backgroundState.PreferencesController.selectedAddress
+		state.engine.backgroundState.PreferencesController.selectedAddress,
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(withNavigation(Entry));
+export default connect(mapStateToProps, mapDispatchToProps)(withNavigation(Entry));

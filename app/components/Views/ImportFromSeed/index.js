@@ -9,7 +9,8 @@ import {
 	View,
 	TextInput,
 	SafeAreaView,
-	StyleSheet
+	StyleSheet,
+	InteractionManager,
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -36,22 +37,22 @@ import {
 	NEXT_MAKER_REMINDER,
 	ONBOARDING_WIZARD,
 	EXISTING_USER,
-	METRICS_OPT_IN,
-	TRUE
+	TRUE,
 } from '../../../constants/storage';
 import Logger from '../../../util/Logger';
 import { getPasswordStrengthWord, passwordRequirementsMet, MIN_PASSWORD_LENGTH } from '../../../util/password';
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
 		backgroundColor: colors.white,
-		flex: 1
+		flex: 1,
 	},
 	wrapper: {
 		flex: 1,
-		paddingHorizontal: 32
+		paddingHorizontal: 32,
 	},
 	title: {
 		fontSize: Device.isAndroid() ? 20 : 25,
@@ -60,36 +61,36 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		justifyContent: 'center',
 		textAlign: 'center',
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	field: {
 		marginVertical: 5,
-		position: 'relative'
+		position: 'relative',
 	},
 	fieldRow: {
 		flexDirection: 'row',
-		alignItems: 'flex-end'
+		alignItems: 'flex-end',
 	},
 	fieldCol: {
-		width: '70%'
+		width: '70%',
 	},
 	fieldColRight: {
 		flexDirection: 'row-reverse',
-		width: '30%'
+		width: '30%',
 	},
 	label: {
 		color: colors.black,
 		fontSize: 16,
 		marginBottom: 12,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	ctaWrapper: {
-		marginTop: 20
+		marginTop: 20,
 	},
 	errorMsg: {
 		color: colors.red,
 		textAlign: 'center',
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	seedPhrase: {
 		marginBottom: 10,
@@ -103,51 +104,51 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderColor: colors.grey500,
 		backgroundColor: colors.white,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	padding: {
-		paddingRight: 46
+		paddingRight: 46,
 	},
 	biometrics: {
 		alignItems: 'flex-start',
-		marginTop: 10
+		marginTop: 10,
 	},
 	biometryLabel: {
 		flex: 1,
 		fontSize: 16,
 		color: colors.black,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	biometrySwitch: {
 		marginTop: 10,
-		flex: 0
+		flex: 0,
 	},
 	termsAndConditions: {
-		paddingVertical: 10
+		paddingVertical: 10,
 	},
 	passwordStrengthLabel: {
 		height: 20,
 		fontSize: 15,
 		color: colors.black,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_weak: {
-		color: colors.red
+		color: colors.red,
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_good: {
-		color: colors.blue
+		color: colors.blue,
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_strong: {
-		color: colors.green300
+		color: colors.green300,
 	},
 	showMatchingPasswords: {
 		position: 'absolute',
 		top: 52,
 		right: 17,
-		alignSelf: 'flex-end'
+		alignSelf: 'flex-end',
 	},
 	qrCode: {
 		marginRight: 10,
@@ -158,17 +159,17 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 6,
 		marginTop: -50,
 		marginBottom: 30,
-		alignSelf: 'flex-end'
+		alignSelf: 'flex-end',
 	},
 	inputFocused: {
 		borderColor: colors.blue,
-		borderWidth: 2
+		borderWidth: 2,
 	},
 	input: {
 		...fontStyles.normal,
 		fontSize: 16,
-		paddingTop: 2
-	}
+		paddingTop: 2,
+	},
 });
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
@@ -203,7 +204,7 @@ class ImportFromSeed extends PureComponent {
 		/**
 		 * Action to set onboarding wizard step
 		 */
-		setOnboardingWizardStep: PropTypes.func
+		setOnboardingWizardStep: PropTypes.func,
 	};
 
 	state = {
@@ -218,7 +219,7 @@ class ImportFromSeed extends PureComponent {
 		error: null,
 		seedphraseInputFocused: false,
 		inputWidth: { width: '99%' },
-		hideSeedPhraseInput: true
+		hideSeedPhraseInput: true,
 	};
 
 	passwordInput = React.createRef();
@@ -245,6 +246,9 @@ class ImportFromSeed extends PureComponent {
 		const parsedSeed = parseSeedPhrase(seed);
 
 		if (loading) return;
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_IMPORT_ATTEMPTED);
+		});
 		let error = null;
 		if (!passwordRequirementsMet(password)) {
 			error = strings('import_from_seed.password_length_error');
@@ -260,6 +264,12 @@ class ImportFromSeed extends PureComponent {
 
 		if (error) {
 			Alert.alert(strings('import_from_seed.error'), error);
+			InteractionManager.runAfterInteractions(() => {
+				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_FAILURE, {
+					wallet_setup_type: 'import',
+					error_type: error,
+				});
+			});
 		} else {
 			try {
 				this.setState({ loading: true });
@@ -278,8 +288,6 @@ class ImportFromSeed extends PureComponent {
 				}
 				// Get onboarding wizard state
 				const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
-				// Check if user passed through metrics opt-in screen
-				const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
 				// mark the user as existing so it doesn't see the create password screen again
 				await AsyncStorage.setItem(EXISTING_USER, TRUE);
 				await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
@@ -287,9 +295,16 @@ class ImportFromSeed extends PureComponent {
 				this.props.passwordSet();
 				this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 				this.props.seedphraseBackedUp();
-				if (!metricsOptIn) {
-					this.props.navigation.navigate('OptinMetrics');
-				} else if (onboardingWizard) {
+				InteractionManager.runAfterInteractions(() => {
+					AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_IMPORTED, {
+						biometrics_enabled: Boolean(this.state.biometryType),
+					});
+					AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_COMPLETED, {
+						wallet_setup_type: 'import',
+						new_wallet: false,
+					});
+				});
+				if (onboardingWizard) {
 					this.props.navigation.navigate('ManualBackupStep3');
 				} else {
 					this.props.setOnboardingWizardStep(1);
@@ -308,25 +323,31 @@ class ImportFromSeed extends PureComponent {
 					this.setState({ loading: false, error: error.toString() });
 					Logger.log('Error with seed phrase import', error);
 				}
+				InteractionManager.runAfterInteractions(() => {
+					AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_FAILURE, {
+						wallet_setup_type: 'import',
+						error_type: error.toString(),
+					});
+				});
 			}
 		}
 	};
 
-	onBiometryChoiceChange = value => {
+	onBiometryChoiceChange = (value) => {
 		this.setState({ biometryChoice: value });
 	};
 
-	onSeedWordsChange = seed => {
+	onSeedWordsChange = (seed) => {
 		this.setState({ seed });
 	};
 
-	onPasswordChange = val => {
+	onPasswordChange = (val) => {
 		const passInfo = zxcvbn(val);
 
 		this.setState({ password: val, passwordStrength: passInfo.score });
 	};
 
-	onPasswordConfirmChange = val => {
+	onPasswordConfirmChange = (val) => {
 		this.setState({ confirmPassword: val });
 	};
 
@@ -340,7 +361,7 @@ class ImportFromSeed extends PureComponent {
 		current && current.focus();
 	};
 
-	updateBiometryChoice = async biometryChoice => {
+	updateBiometryChoice = async (biometryChoice) => {
 		if (!biometryChoice) {
 			await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 		} else {
@@ -371,7 +392,7 @@ class ImportFromSeed extends PureComponent {
 			<View style={styles.biometrics}>
 				<Text style={styles.biometryLabel}>{strings(`choose_password.remember_me`)}</Text>
 				<Switch
-					onValueChange={rememberMe => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
+					onValueChange={(rememberMe) => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
 					value={this.state.rememberMe}
 					style={styles.biometrySwitch}
 					trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
@@ -403,9 +424,9 @@ class ImportFromSeed extends PureComponent {
 				}
 				this.toggleHideSeedPhraseInput();
 			},
-			onScanError: error => {
+			onScanError: (error) => {
 				this.toggleHideSeedPhraseInput();
-			}
+			},
 		});
 	};
 
@@ -422,7 +443,7 @@ class ImportFromSeed extends PureComponent {
 			secureTextEntry,
 			error,
 			loading,
-			hideSeedPhraseInput
+			hideSeedPhraseInput,
 		} = this.state;
 
 		const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
@@ -589,14 +610,11 @@ class ImportFromSeed extends PureComponent {
 	}
 }
 
-const mapDispatchToProps = dispatch => ({
-	setLockTime: time => dispatch(setLockTime(time)),
-	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step)),
+const mapDispatchToProps = (dispatch) => ({
+	setLockTime: (time) => dispatch(setLockTime(time)),
+	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 	passwordSet: () => dispatch(passwordSet()),
-	seedphraseBackedUp: () => dispatch(seedphraseBackedUp())
+	seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
 });
 
-export default connect(
-	null,
-	mapDispatchToProps
-)(ImportFromSeed);
+export default connect(null, mapDispatchToProps)(ImportFromSeed);

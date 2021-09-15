@@ -25,7 +25,7 @@ export default class Logger {
 			console.log.apply(null, args); // eslint-disable-line no-console
 		} else if (metricsOptIn === AGREED) {
 			addBreadcrumb({
-				message: JSON.stringify(args)
+				message: JSON.stringify(args),
 			});
 		}
 	}
@@ -81,7 +81,7 @@ export default class Logger {
 				if (typeof extra === 'string') {
 					extra = { message: extra };
 				}
-				withScope(scope => {
+				withScope((scope) => {
 					scope.setExtras(extra);
 					captureException(exception);
 				});

@@ -1,0 +1,32 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ManualBackupStep2 should render correctly 1`] = `
+<ManualBackupStep2
+  route={
+    Object {
+      "params": Object {
+        "steps": Array [
+          "one",
+          "two",
+          "three",
+        ],
+        "words": Array [
+          "abstract",
+          "accident",
+          "acoustic",
+          "announce",
+          "artefact",
+          "attitude",
+          "bachelor",
+          "broccoli",
+          "business",
+          "category",
+          "champion",
+          "cinnamon",
+        ],
+      },
+    }
+  }
+  seedphraseBackedUp={[Function]}
+/>
+`;

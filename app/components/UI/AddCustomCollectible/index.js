@@ -15,23 +15,23 @@ import { toLowerCaseEquals } from '../../../util/general';
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
-		flex: 1
+		flex: 1,
 	},
 	rowWrapper: {
-		padding: 20
+		padding: 20,
 	},
 	textInput: {
 		borderWidth: 1,
 		borderRadius: 4,
 		borderColor: colors.grey100,
 		padding: 16,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	warningText: {
 		marginTop: 15,
 		color: colors.red,
-		...fontStyles.normal
-	}
+		...fontStyles.normal,
+	},
 });
 
 /**
@@ -41,7 +41,7 @@ class AddCustomCollectible extends PureComponent {
 	state = {
 		address: '',
 		tokenId: '',
-		inputWidth: Device.isAndroid() ? '99%' : undefined
+		inputWidth: Device.isAndroid() ? '99%' : undefined,
 	};
 
 	static propTypes = {
@@ -56,7 +56,7 @@ class AddCustomCollectible extends PureComponent {
 		/**
 		 * Collectible contract object of collectible to add
 		 */
-		collectibleContract: PropTypes.object
+		collectibleContract: PropTypes.object,
 	};
 
 	componentDidMount = () => {
@@ -80,7 +80,7 @@ class AddCustomCollectible extends PureComponent {
 			const { chainId, type } = NetworkController?.state?.provider || {};
 			return {
 				network_name: type,
-				chain_id: chainId
+				chain_id: chainId,
 			};
 		} catch (error) {
 			return {};
@@ -107,11 +107,11 @@ class AddCustomCollectible extends PureComponent {
 		this.props.navigation.goBack();
 	};
 
-	onAddressChange = address => {
+	onAddressChange = (address) => {
 		this.setState({ address });
 	};
 
-	onTokenIdChange = tokenId => {
+	onTokenIdChange = (tokenId) => {
 		this.setState({ tokenId });
 	};
 
@@ -195,7 +195,7 @@ class AddCustomCollectible extends PureComponent {
 							<TextInput
 								style={[
 									styles.textInput,
-									this.state.inputWidth ? { width: this.state.inputWidth } : {}
+									this.state.inputWidth ? { width: this.state.inputWidth } : {},
 								]}
 								placeholder={'0x...'}
 								placeholderTextColor={colors.grey100}
@@ -214,7 +214,7 @@ class AddCustomCollectible extends PureComponent {
 							<TextInput
 								style={[
 									styles.textInput,
-									this.state.inputWidth ? { width: this.state.inputWidth } : {}
+									this.state.inputWidth ? { width: this.state.inputWidth } : {},
 								]}
 								value={this.state.tokenId}
 								keyboardType="numeric"
@@ -238,8 +238,8 @@ class AddCustomCollectible extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
+const mapStateToProps = (state) => ({
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 });
 
 export default connect(mapStateToProps)(AddCustomCollectible);

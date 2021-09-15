@@ -12,8 +12,8 @@ import { toLowerCaseEquals } from '../../../util/general';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		flex: 1
-	}
+		flex: 1,
+	},
 });
 
 const TransactionsView = ({
@@ -25,7 +25,7 @@ const TransactionsView = ({
 	currentCurrency,
 	transactions,
 	chainId,
-	tokens
+	tokens,
 }) => {
 	const [allTransactions, setAllTransactions] = useState([]);
 	const [submittedTxs, setSubmittedTxs] = useState([]);
@@ -39,11 +39,11 @@ const TransactionsView = ({
 		let accountAddedTimeInsertPointFound = false;
 		const addedAccountTime = identities[selectedAddress]?.importTime;
 
-		const ethFilter = tx => {
+		const ethFilter = (tx) => {
 			const {
 				transaction: { from, to },
 				isTransfer,
-				transferInformation
+				transferInformation,
 			} = tx;
 			if (
 				(safeToChecksumAddress(from) === selectedAddress || safeToChecksumAddress(to) === selectedAddress) &&
@@ -65,7 +65,7 @@ const TransactionsView = ({
 
 		const allTransactionsSorted = transactions.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
 
-		const allTransactions = allTransactionsSorted.filter(tx => {
+		const allTransactions = allTransactionsSorted.filter((tx) => {
 			const filter = ethFilter(tx);
 			if (!filter) return false;
 
@@ -89,10 +89,10 @@ const TransactionsView = ({
 		});
 
 		const submittedNonces = [];
-		const submittedTxsFiltered = submittedTxs.filter(transaction => {
+		const submittedTxsFiltered = submittedTxs.filter((transaction) => {
 			const alreadySubmitted = submittedNonces.includes(transaction.transaction.nonce);
 			const alreadyConfirmed = confirmedTxs.find(
-				tx =>
+				(tx) =>
 					safeToChecksumAddress(tx.transaction.from) === selectedAddress &&
 					tx.transaction.nonce === transaction.transaction.nonce
 			);
@@ -179,10 +179,10 @@ TransactionsView.propTypes = {
 	/**
 	 * Current chainId
 	 */
-	chainId: PropTypes.string
+	chainId: PropTypes.string,
 };
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
@@ -190,14 +190,11 @@ const mapStateToProps = state => ({
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
-	chainId: state.engine.backgroundState.NetworkController.provider.chainId
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 });
 
-const mapDispatchToProps = dispatch => ({
-	showAlert: config => dispatch(showAlert(config))
+const mapDispatchToProps = (dispatch) => ({
+	showAlert: (config) => dispatch(showAlert(config)),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(withNavigation(TransactionsView));
+export default connect(mapStateToProps, mapDispatchToProps)(withNavigation(TransactionsView));
