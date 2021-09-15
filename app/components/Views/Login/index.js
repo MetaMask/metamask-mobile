@@ -33,7 +33,6 @@ import Logger from '../../../util/Logger';
 import {
 	BIOMETRY_CHOICE_DISABLED,
 	ONBOARDING_WIZARD,
-	METRICS_OPT_IN,
 	ENCRYPTION_LIB,
 	TRUE,
 	ORIGINAL,
@@ -300,14 +299,7 @@ class Login extends PureComponent {
 
 			// Get onboarding wizard state
 			const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
-			// Check if user passed through metrics opt-in screen
-			const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
-			if (!metricsOptIn) {
-				this.props.navigation.navigate('OnboardingRootNav', {
-					screen: 'OnboardingNav',
-					params: { screen: 'OptinMetrics' },
-				});
-			} else if (onboardingWizard) {
+			if (onboardingWizard) {
 				this.props.navigation.navigate('HomeNav');
 			} else {
 				this.props.setOnboardingWizardStep(1);
@@ -359,9 +351,18 @@ class Login extends PureComponent {
 	deleteExistingUser = async () => {
 		try {
 			await AsyncStorage.removeItem(EXISTING_USER);
-			this.props.navigation.navigate('OnboardingRootNav', {
-				screen: 'OnboardingNav',
-				params: { screen: 'Onboarding', params: { delete: true } },
+			// We need to reset instead of navigate here otherwise, OnboardingRootNav remembers the last screen that it was on, which is most likely not OnboardingNav.
+			this.props.navigation.original.reset({
+				routes: [
+					{
+						name: 'OnboardingRootNav',
+						state: {
+							routes: [
+								{ name: 'OnboardingNav', params: { screen: 'Onboarding', params: { delete: true } } },
+							],
+						},
+					},
+				],
 			});
 		} catch (error) {
 			Logger.log(error, `Failed to remove key: ${EXISTING_USER} from AsyncStorage`);

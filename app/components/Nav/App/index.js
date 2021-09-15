@@ -7,8 +7,8 @@ import Login from '../../Views/Login';
 import QRScanner from '../../Views/QRScanner';
 import Onboarding from '../../Views/Onboarding';
 import OnboardingCarousel from '../../Views/OnboardingCarousel';
-import CreateWallet from '../../Views/CreateWallet';
 import ChoosePassword from '../../Views/ChoosePassword';
+import ExtensionSync from '../../Views/ExtensionSync';
 import AccountBackupStep1 from '../../Views/AccountBackupStep1';
 import AccountBackupStep1B from '../../Views/AccountBackupStep1B';
 import ManualBackupStep1 from '../../Views/ManualBackupStep1';
@@ -43,8 +43,8 @@ const OnboardingNav = () => (
 			component={OnboardingCarousel}
 			options={OnboardingCarousel.navigationOptions}
 		/>
-		<Stack.Screen name="CreateWallet" component={CreateWallet} options={CreateWallet.navigationOptions} />
 		<Stack.Screen name="ChoosePassword" component={ChoosePassword} options={ChoosePassword.navigationOptions} />
+		<Stack.Screen name="ExtensionSync" component={ExtensionSync} />
 		<Stack.Screen
 			name="AccountBackupStep1"
 			component={AccountBackupStep1}
@@ -86,7 +86,7 @@ const SimpleWebviewScreen = () => (
 );
 
 const OnboardingRootNav = () => (
-	<Stack.Navigator mode="modal" screenOptions={{ headerShown: false }}>
+	<Stack.Navigator initialRouteName={'OnboardingNav'} mode="modal" screenOptions={{ headerShown: false }}>
 		<Stack.Screen name="OnboardingNav" component={OnboardingNav} />
 		<Stack.Screen name="SyncWithExtensionSuccess" component={SyncWithExtensionSuccess} />
 		<Stack.Screen name="QRScanner" component={QRScanner} header={null} />
