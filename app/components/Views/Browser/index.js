@@ -61,14 +61,11 @@ class Browser extends PureComponent {
 	};
 	static navigationOptions = ({ navigation, route }) => getBrowserViewNavbarOptions(navigation, route);
 
-	constructor(props) {
-		super(props);
-
-		if (!props.tabs.length) {
+	componentDidMount() {
+		if (!this.props.tabs.length) {
 			this.newTab();
 		}
-	}
-	componentDidMount() {
+
 		const activeTab = this.props.tabs.find((tab) => tab.id === this.props.activeTab);
 		if (activeTab) {
 			this.switchToTab(activeTab);
