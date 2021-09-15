@@ -1250,6 +1250,13 @@ export const BrowserTab = (props) => {
 		</Modal>
 	);
 
+	const trackEventSearchUsed = () => {
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_SEARCH_USED, {
+			option_chosen: 'Search on URL',
+			number_of_tabs: undefined,
+		});
+	};
+
 	/**
 	 * Stops normal loading when it's ens, instead call go to be properly set up
 	 */
@@ -1395,6 +1402,7 @@ export const BrowserTab = (props) => {
 	 */
 	const onUrlInputSubmit = async (input = null) => {
 		const inputValue = (typeof input === 'string' && input) || autocompleteValue;
+		trackEventSearchUsed();
 		if (!inputValue) {
 			toggleUrlModal();
 			return;
