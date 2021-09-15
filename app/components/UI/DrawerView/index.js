@@ -436,6 +436,12 @@ class DrawerView extends PureComponent {
 			) {
 				// eslint-disable-next-line react/no-did-update-set-state
 				this.setState({ showProtectWalletModal: true });
+				InteractionManager.runAfterInteractions(() => {
+					AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_VIEWED, {
+						wallet_protection_required: false,
+						source: 'Backup Alert',
+					});
+				});
 			} else {
 				// eslint-disable-next-line react/no-did-update-set-state
 				this.setState({ showProtectWalletModal: false });
@@ -840,6 +846,12 @@ class DrawerView extends PureComponent {
 			'SetPasswordFlow',
 			this.props.passwordSet ? { screen: 'AccountBackupStep1' } : undefined
 		);
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_ENGAGED, {
+				wallet_protection_required: true,
+				source: 'Modal',
+			});
+		});
 	};
 
 	renderProtectModal = () => (

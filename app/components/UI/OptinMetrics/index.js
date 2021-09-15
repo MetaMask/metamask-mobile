@@ -1,5 +1,15 @@
 import React, { PureComponent } from 'react';
-import { View, SafeAreaView, Text, StyleSheet, TouchableOpacity, ScrollView, BackHandler, Alert } from 'react-native';
+import {
+	View,
+	SafeAreaView,
+	Text,
+	StyleSheet,
+	TouchableOpacity,
+	ScrollView,
+	BackHandler,
+	Alert,
+	InteractionManager,
+} from 'react-native';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles, colors } from '../../../styles/common';
 import Entypo from 'react-native-vector-icons/Entypo';
@@ -9,10 +19,10 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 import { connect } from 'react-redux';
 import StyledButton from '../StyledButton';
 import Analytics from '../../../core/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { ONBOARDING_WIZARD, METRICS_OPT_IN, DENIED, AGREED } from '../../../constants/storage';
 import AppConstants from '../../../core/AppConstants';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 
 const styles = StyleSheet.create({
@@ -104,6 +114,10 @@ class OptinMetrics extends PureComponent {
 		 * Action to erase any event stored in onboarding state
 		 */
 		clearOnboardingEvents: PropTypes.func,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object,
 	};
 
 	actionsList = [1, 2, 3, 4, 5, 6].map((value) => ({
@@ -131,6 +145,11 @@ class OptinMetrics extends PureComponent {
 	 * Action to be triggered when pressing any button
 	 */
 	continue = async () => {
+		const onContinue = this.props.route?.params?.onContinue;
+		if (onContinue) {
+			return onContinue();
+		}
+
 		// Get onboarding wizard state
 		const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
 		if (onboardingWizard) {
@@ -159,14 +178,29 @@ class OptinMetrics extends PureComponent {
 	);
 
 	/**
+	 * Track the event of opt in or opt out.
+	 * @param AnalyticsOptionSelected - User selected option regarding the tracking of events
+	 */
+	trackOptInEvent = (AnalyticsOptionSelected) => {
+		InteractionManager.runAfterInteractions(async () => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ANALYTICS_PREFERENCE_SELECTED, {
+				analytics_option_selected: AnalyticsOptionSelected,
+				updated_after_onboarding: false,
+			});
+		});
+	};
+
+	/**
 	 * Callback on press cancel
 	 */
 	onCancel = async () => {
+		const { events } = this.props;
+		const metricsOptionSelected = 'Metrics Opt Out';
 		setTimeout(async () => {
-			if (this.props.events && this.props.events.length) {
-				this.props.events.forEach((e) => Analytics.trackEvent(e));
+			if (events && events.length) {
+				events.forEach((eventArgs) => AnalyticsV2.trackEvent(...eventArgs));
 			}
-			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_OUT);
+			this.trackOptInEvent(metricsOptionSelected);
 			this.props.clearOnboardingEvents();
 			await DefaultPreference.set(METRICS_OPT_IN, DENIED);
 			Analytics.disableInstance();
@@ -178,11 +212,13 @@ class OptinMetrics extends PureComponent {
 	 * Callback on press confirm
 	 */
 	onConfirm = async () => {
+		const { events } = this.props;
+		const metricsOptionSelected = 'Metrics Opt In';
 		setTimeout(async () => {
-			if (this.props.events && this.props.events.length) {
-				this.props.events.forEach((e) => Analytics.trackEvent(e));
+			if (events && events.length) {
+				events.forEach((eventArgs) => AnalyticsV2.trackEvent(...eventArgs));
 			}
-			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_IN);
+			this.trackOptInEvent(metricsOptionSelected);
 			this.props.clearOnboardingEvents();
 			await DefaultPreference.set(METRICS_OPT_IN, AGREED);
 		}, 200);

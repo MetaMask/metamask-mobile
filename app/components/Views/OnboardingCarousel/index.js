@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Text, View, ScrollView, StyleSheet, Image, Dimensions } from 'react-native';
+import { Text, View, ScrollView, StyleSheet, Image, Dimensions, InteractionManager } from 'react-native';
 import StyledButton from '../../UI/StyledButton';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -9,6 +9,11 @@ import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import Device from '../../../util/device';
+import { saveOnboardingEvent } from '../../../actions/onboarding';
+import { connect } from 'react-redux';
+import AnalyticsV2, { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
+import DefaultPreference from 'react-native-default-preference';
+import { METRICS_OPT_IN } from '../../../constants/storage';
 
 const IMAGE_3_RATIO = 215 / 315;
 const IMAGE_2_RATIO = 222 / 239;
@@ -104,7 +109,7 @@ const carousel_images = [onboarding_carousel_1, onboarding_carousel_2, onboardin
 /**
  * View that is displayed to first time (new) users
  */
-export default class OnboardingCarousel extends PureComponent {
+class OnboardingCarousel extends PureComponent {
 	static navigationOptions = ({ navigation }) => getTransparentOnboardingNavbarOptions(navigation);
 
 	static propTypes = {
@@ -112,18 +117,43 @@ export default class OnboardingCarousel extends PureComponent {
 		 * The navigator object
 		 */
 		navigation: PropTypes.object,
+		/**
+		 * Save onboarding event to state
+		 */
+		saveOnboardingEvent: PropTypes.func,
 	};
 
 	state = {
 		currentTab: 1,
 	};
 
-	onPresGetStarted = () => this.props.navigation.navigate('Onboarding');
+	trackEvent = (eventArgs) => {
+		InteractionManager.runAfterInteractions(async () => {
+			const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
+			if (metricsOptIn) {
+				AnalyticsV2.trackEvent(eventArgs);
+			} else {
+				this.props.saveOnboardingEvent(eventArgs);
+			}
+		});
+	};
+
+	onPressGetStarted = () => {
+		this.props.navigation.navigate('Onboarding');
+		this.trackEvent(ANALYTICS_EVENTS_V2.ONBOARDING_STARTED);
+	};
 
 	renderTabBar = () => <View />;
 
 	onChangeTab = (obj) => {
 		this.setState({ currentTab: obj.i + 1 });
+		this.trackEvent(ANALYTICS_EVENTS_V2.ONBOARDING_WELCOME_SCREEN_ENGAGEMENT, {
+			message_title: strings(`onboarding_carousel.title${[obj.i + 1]}`, { locale: 'en' }),
+		});
+	};
+
+	componentDidMount = () => {
+		this.trackEvent(ANALYTICS_EVENTS_V2.ONBOARDING_WELCOME_MESSAGE_VIEWED);
 	};
 
 	render() {
@@ -175,7 +205,7 @@ export default class OnboardingCarousel extends PureComponent {
 						<View style={styles.ctaWrapper}>
 							<StyledButton
 								type={'normal'}
-								onPress={this.onPresGetStarted}
+								onPress={this.onPressGetStarted}
 								testID={'onboarding-get-started-button'}
 							>
 								{strings('onboarding_carousel.get_started')}
@@ -188,3 +218,9 @@ export default class OnboardingCarousel extends PureComponent {
 		);
 	}
 }
+
+const mapDispatchToProps = (dispatch) => ({
+	saveOnboardingEvent: (...eventArgs) => dispatch(saveOnboardingEvent(eventArgs)),
+});
+
+export default connect(null, mapDispatchToProps)(OnboardingCarousel);
