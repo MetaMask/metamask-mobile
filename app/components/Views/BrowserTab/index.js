@@ -251,6 +251,7 @@ export const BrowserTab = (props) => {
 	const [blockedUrl, setBlockedUrl] = useState(undefined);
 	const [watchAsset, setWatchAsset] = useState(false);
 	const [suggestedAssetMeta, setSuggestedAssetMeta] = useState(undefined);
+	const currentNetwork = useRef(props.network);
 
 	const [customNetworkToAdd, setCustomNetworkToAdd] = useState(null);
 	const [showAddCustomNetworkDialog, setShowAddCustomNetworkDialog] = useState(false);
@@ -1044,10 +1045,19 @@ export const BrowserTab = (props) => {
 	 * Reload current page
 	 */
 	const reload = useCallback(() => {
-		toggleOptionsIfNeeded();
 		const { current } = webviewRef;
 		current && current.reload();
-	}, [toggleOptionsIfNeeded]);
+	}, []);
+
+	/**
+	 * Reload page if network changes
+	 */
+	useEffect(() => {
+		if (props.network === 'loading') return;
+		if (currentNetwork.current === props.network) return;
+		currentNetwork.current = props.network;
+		reload();
+	}, [currentNetwork, props.network, reload]);
 
 	/**
 	 * Handle when the drawer (app menu) is opened
@@ -1077,16 +1087,12 @@ export const BrowserTab = (props) => {
 			setWatchAsset(true);
 		});
 
-		// Listen to network changes
-		Engine.context.TransactionController.hub.on('networkChange', reload);
-
 		// Specify how to clean up after this effect:
 		return function cleanup() {
 			backgroundBridges.current.forEach((bridge) => bridge.onDisconnect());
 
 			// Remove all Engine listeners
 			Engine.context.TokensController.hub.removeAllListeners();
-			Engine.context.TransactionController.hub.removeListener('networkChange', reload);
 		};
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1590,6 +1596,7 @@ export const BrowserTab = (props) => {
 	 * Handles reload button press
 	 */
 	const onReloadPress = () => {
+		toggleOptionsIfNeeded();
 		reload();
 		trackReloadEvent();
 	};
