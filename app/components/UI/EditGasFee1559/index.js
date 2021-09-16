@@ -224,10 +224,17 @@ const EditGasFee1559 = ({
 			const higherValue = new BigNumber(gasOptions?.high?.suggestedMaxPriorityFeePerGas).multipliedBy(
 				new BigNumber(1.5)
 			);
+			const speedUpFloor = speedUpOption.maxPriortyFeeThreshold;
 
 			const valueBN = new BigNumber(value);
 
-			if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
+			if (!speedUpFloor?.isNaN() && valueBN.lt(speedUpFloor)) {
+				setMaxPriorityFeeError(
+					strings('edit_gas_fee_eip1559.max_priority_fee_speed_up_low', {
+						speed_up_floor_value: speedUpFloor,
+					})
+				);
+			} else if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
 				setMaxPriorityFeeError(strings('edit_gas_fee_eip1559.max_priority_fee_low'));
 			} else if (!higherValue.isNaN() && valueBN.gt(higherValue)) {
 				setMaxPriorityFeeError(strings('edit_gas_fee_eip1559.max_priority_fee_high'));
@@ -239,17 +246,24 @@ const EditGasFee1559 = ({
 
 			changeGas(newGas, null);
 		},
-		[changeGas, gasFee, gasOptions, warningMinimumEstimateOption]
+		[changeGas, gasFee, gasOptions, speedUpOption, warningMinimumEstimateOption]
 	);
 
 	const changedMaxFeePerGas = useCallback(
 		(value) => {
 			const lowerValue = new BigNumber(gasOptions?.[warningMinimumEstimateOption]?.suggestedMaxFeePerGas);
 			const higherValue = new BigNumber(gasOptions?.high?.suggestedMaxFeePerGas).multipliedBy(new BigNumber(1.5));
+			const speedUpFloor = speedUpOption.maxFeeThreshold;
 
 			const valueBN = new BigNumber(value);
 
-			if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
+			if (!speedUpFloor?.isNaN() && valueBN.lt(speedUpFloor)) {
+				setMaxFeeError(
+					strings('edit_gas_fee_eip1559.max_fee_speed_up_low', {
+						speed_up_floor_value: speedUpFloor,
+					})
+				);
+			} else if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
 				setMaxFeeError(strings('edit_gas_fee_eip1559.max_fee_low'));
 			} else if (!higherValue.isNaN() && valueBN.gt(higherValue)) {
 				setMaxFeeError(strings('edit_gas_fee_eip1559.max_fee_high'));
@@ -260,7 +274,7 @@ const EditGasFee1559 = ({
 			const newGas = { ...gasFee, suggestedMaxFeePerGas: value };
 			changeGas(newGas, null);
 		},
-		[changeGas, gasFee, gasOptions, warningMinimumEstimateOption]
+		[changeGas, gasFee, gasOptions, speedUpOption, warningMinimumEstimateOption]
 	);
 
 	const changedGasLimit = useCallback(
@@ -345,7 +359,7 @@ const EditGasFee1559 = ({
 							<Icon name={`ios-arrow-${showAdvancedOptions ? 'up' : 'down'}`} />
 						</Text>
 					</TouchableOpacity>
-					{showAdvancedOptions && (
+					{(showAdvancedOptions || speedUpOption?.showAdvanced) && (
 						<View style={styles.advancedOptionsInputsContainer}>
 							<View style={styles.rangeInputContainer}>
 								<RangeInput
@@ -461,7 +475,7 @@ const EditGasFee1559 = ({
 					</Text>
 				</TouchableOpacity>
 				<StyledButton type={'confirm'} onPress={save} disabled={Boolean(error) || isAnimating}>
-					{strings('edit_gas_fee_eip1559.save')}
+					{speedUpOption ? strings('edit_gas_fee_eip1559.submit') : strings('edit_gas_fee_eip1559.save')}
 				</StyledButton>
 			</View>
 		</View>
@@ -770,7 +784,7 @@ EditGasFee1559.propTypes = {
 	/**
 	 * Option to display speed up view
 	 */
-	speedUpOption: PropTypes.bool,
+	speedUpOption: PropTypes.object,
 	/**
 	 * Extend options object. Object has option keys and properties will be spread
 	 */

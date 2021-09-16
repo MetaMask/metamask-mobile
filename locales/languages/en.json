@@ -1689,10 +1689,13 @@
 			"link": "Learn more about customizing gas."
 		},
 		"save": "Save",
+		"submit": "Submit",
 		"max_priority_fee_low": "Max Priority Fee is low for current network conditions",
 		"max_priority_fee_high": "Max Priority Fee is higher than necessary",
+		"max_priority_fee_speed_up_low": "Max Priority Fee must be at least {{speed_up_floor_value}} GWEI (10% higher than intial transaction)",
 		"max_fee_low": "Max Fee is low for current network conditions",
 		"max_fee_high": "Max Fee is higher than necessary",
+		"max_fee_speed_up_low": "Max Fee must be at least {{speed_up_floor_value}} GWEI (10% higher than intial transaction)",
 		"learn_more_gas_limit": "Gas limit is the maximum units of gas you are willing to use. Units of gas are a multiplier to “Max priority fee” and “Max fee”. ",
 		"learn_more_max_priority_fee": "Max priority fee (aka “miner tip”) goes directly to miners and incentivizes them to prioritize your transaction. You’ll most often pay your max setting. ",
 		"learn_more_max_fee": "The max fee is the most you’ll pay (base fee + priority fee). ",

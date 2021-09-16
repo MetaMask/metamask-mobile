@@ -246,7 +246,7 @@ class Transactions extends PureComponent {
 		/**
 		 * Current provider ticker
 		 */
-		ticker: PropTypes.string,		
+		ticker: PropTypes.string,
 	};
 
 	static defaultProps = {
@@ -260,6 +260,7 @@ class Transactions extends PureComponent {
 		cancelIsOpen: false,
 		cancelConfirmDisabled: false,
 		speedUpIsOpen: false,
+		speedUp1559IsOpen: false,
 		retryIsOpen: false,
 		speedUpConfirmDisabled: false,
 		rpcBlockExplorer: undefined,
@@ -275,7 +276,6 @@ class Transactions extends PureComponent {
 	existingTx = null;
 	cancelTxId = null;
 	speedUpTxId = null;
-
 	selectedTx = null;
 
 	flatList = React.createRef();
@@ -299,9 +299,8 @@ class Transactions extends PureComponent {
 			blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList) || NO_RPC_BLOCK_EXPLORER;
 		}
 		this.setState({ rpcBlockExplorer: blockExplorer });
-		const { GasFeeController } = Engine.context;
-		const pollToken = await GasFeeController.getGasFeeEstimatesAndStartPolling(this.state.pollToken);
-		this.setState({ pollToken });
+
+		this.startGasEstimatePolling();
 	};
 
 	init() {
@@ -315,64 +314,6 @@ class Transactions extends PureComponent {
 				}
 			}, 1000);
 		}
-	}
-
-	componentDidUpdate = (prevProps) => {
-		if (
-			this.props.gasFeeEstimates &&
-			this.existingTx?.transaction?.gas &&
-			!shallowEqual(prevProps.gasFeeEstimates, this.props.gasFeeEstimates)
-		) {
-			const gas = this.existingTx.transaction.gas;
-			const gasEstimateTypeChanged = prevProps.gasEstimateType !== this.props.gasEstimateType;
-			const gasSelected = gasEstimateTypeChanged ? AppConstants.GAS_OPTIONS.MEDIUM : this.state.gasSelected;
-			const gasSelectedTemp = gasEstimateTypeChanged
-				? AppConstants.GAS_OPTIONS.MEDIUM
-				: this.state.gasSelectedTemp;
-
-			if ((!this.state.stopUpdateGas && !this.state.advancedGasInserted) || gasEstimateTypeChanged) {
-				if (this.props.gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-					const suggestedGasLimit = fromWei(gas, 'wei');
-
-					const EIP1559TransactionData = this.parseTransactionDataEIP1559({
-						...this.props.gasFeeEstimates[gasSelected],
-						suggestedGasLimit,
-						selectedOption: gasSelected,
-					});
-
-					let EIP1559TransactionDataTemp;
-					if (gasSelected === gasSelectedTemp) {
-						EIP1559TransactionDataTemp = EIP1559TransactionData;
-					} else {
-						EIP1559TransactionDataTemp = this.parseTransactionDataEIP1559({
-							...this.props.gasFeeEstimates[gasSelectedTemp],
-							suggestedGasLimit,
-							selectedOption: gasSelectedTemp,
-						});
-					}
-
-					// eslint-disable-next-line react/no-did-update-set-state
-					this.setState(
-						{
-							gasEstimationReady: true,
-							EIP1559TransactionDataTemp,
-							animateOnChange: true,
-							gasSelected,
-							gasSelectedTemp,
-						},
-						() => {
-							this.setState({ animateOnChange: false });
-						}
-					);
-				}
-			}
-		}
-	};
-
-	componentWillUnmount() {
-		const { GasFeeController } = Engine.context;
-		GasFeeController.stopPolling(this.state.pollToken);
-		this.mounted = false;
 	}
 
 	scrollToIndex = (index) => {
@@ -485,6 +426,32 @@ class Transactions extends PureComponent {
 		</View>
 	);
 
+	getItemLayout = (data, index) => ({
+		length: ROW_HEIGHT,
+		offset: this.props.headerHeight + ROW_HEIGHT * index,
+		index,
+	});
+
+	keyExtractor = (item) => item.id.toString();
+
+	onSpeedUpAction = (speedUpAction, existingGas, tx) => {
+		this.existingGas = existingGas;
+		this.speedUpTxId = tx.id;
+		this.existingTx = tx;
+		if (existingGas.isEIP1559Transaction) {
+			//Create the inital 1559 speed up transaction as speed up initializes
+			this.initializes1559SpeedUpTransaction(this.existingTx, this.existingGas);
+			this.setState({ speedUp1559IsOpen: speedUpAction });
+		} else {
+			const speedUpConfirmDisabled = validateTransactionActionBalance(tx, SPEED_UP_RATE, this.props.accounts);
+			this.setState({ speedUpIsOpen: speedUpAction, speedUpConfirmDisabled });
+		}
+	};
+
+	/** BEGIN the core of methods specifically related to 1559 Speed Up */
+
+	speedUp1559Options = null;
+
 	getGasAnalyticsParams = () => {
 		const { selectedAsset, gasEstimateType, networkType } = this.props;
 		const { chainId, gasSelected } = this.state;
@@ -499,43 +466,114 @@ class Transactions extends PureComponent {
 		};
 	};
 
-	getItemLayout = (data, index) => ({
-		length: ROW_HEIGHT,
-		offset: this.props.headerHeight + ROW_HEIGHT * index,
-		index,
-	});
+	startGasEstimatePolling = async () => {
+		const { GasFeeController } = Engine.context;
+		const pollToken = await GasFeeController.getGasFeeEstimatesAndStartPolling(this.state.pollToken);
+		this.setState({ pollToken });
+	};
 
-	keyExtractor = (item) => item.id.toString();
+	componentDidUpdate = (prevProps) => {
+		if (
+			this.props.gasFeeEstimates &&
+			this.existingTx?.transaction?.gas &&
+			!shallowEqual(prevProps.gasFeeEstimates, this.props.gasFeeEstimates)
+		) {
+			const gas = this.existingTx.transaction.gas;
+			const gasEstimateTypeChanged = prevProps.gasEstimateType !== this.props.gasEstimateType;
+			const gasSelected = gasEstimateTypeChanged ? AppConstants.GAS_OPTIONS.MEDIUM : this.state.gasSelected;
+			const gasSelectedTemp = gasEstimateTypeChanged
+				? AppConstants.GAS_OPTIONS.MEDIUM
+				: this.state.gasSelectedTemp;
 
-	onSpeedUpAction = (speedUpAction, existingGas, tx) => {
-		const { gasFeeEstimates } = this.props;
-		this.setState({ speedUpIsOpen: speedUpAction });
-		this.existingGas = existingGas;
-		this.existingTx = tx;
-		this.speedUpTxId = tx.id;
+			if ((!this.state.stopUpdateGas && !this.state.advancedGasInserted) || gasEstimateTypeChanged) {
+				if (this.props.gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+					const suggestedGasLimit = fromWei(gas, 'wei');
 
-		//Create the inital 1559 speed up transaction as speed up initializes
-		if (existingGas.isEIP1559Transaction) {
-			this.setState({
-				EIP1559TransactionDataTemp: parseTransactionEIP1559(
-					{
-						...this.props,
-						selectedGasFee: {
-							suggestedMaxFeePerGas: gasFeeEstimates.medium.suggestedMaxFeePerGas,
-							suggestedMaxPriorityFeePerGas: gasFeeEstimates.medium.suggestedMaxPriorityFeePerGas,
-							suggestedGasLimit: fromWei(this.existingTx?.transaction?.gas, 'wei'),
+					const EIP1559TransactionData = this.parseTransactionDataEIP1559({
+						...this.props.gasFeeEstimates[gasSelected],
+						suggestedGasLimit,
+						selectedOption: gasSelected,
+					});
+
+					let EIP1559TransactionDataTemp;
+					if (gasSelected === gasSelectedTemp) {
+						EIP1559TransactionDataTemp = EIP1559TransactionData;
+					} else {
+						EIP1559TransactionDataTemp = this.parseTransactionDataEIP1559({
+							...this.props.gasFeeEstimates[gasSelectedTemp],
+							suggestedGasLimit,
+							selectedOption: gasSelectedTemp,
+						});
+					}
+
+					// eslint-disable-next-line react/no-did-update-set-state
+					this.setState(
+						{
+							gasEstimationReady: true,
+							EIP1559TransactionDataTemp,
+							animateOnChange: true,
+							gasSelected,
+							gasSelectedTemp,
 						},
-					},
-					{ onlyGas: true }
-				),
-			});
-		} else {
-			const speedUpConfirmDisabled = validateTransactionActionBalance(tx, SPEED_UP_RATE, this.props.accounts);
-			this.setState({ speedUpIsOpen: speedUpAction, speedUpConfirmDisabled });
+						() => {
+							this.setState({ animateOnChange: false });
+						}
+					);
+				}
+			}
 		}
 	};
 
-	calculateTempGasFee = (gas, options) => {
+	componentWillUnmount() {
+		const { GasFeeController } = Engine.context;
+		GasFeeController.stopPolling(this.state.pollToken);
+		this.mounted = false;
+	}
+
+	initializes1559SpeedUpTransaction = (existingTx, existingGas) => {
+		const { gasFeeEstimates } = this.props;
+
+		//Calculate speed up with 1.1 * existing gas
+		const newDecMaxFeePerGas = new BigNumber(existingGas.maxFeePerGas).times(new BigNumber(SPEED_UP_RATE));
+		const newDecMaxPriorityFeePerGas = new BigNumber(existingGas.maxPriorityFeePerGas).times(
+			new BigNumber(SPEED_UP_RATE)
+		);
+
+		//Check to see if default SPEED_UP_RATE is greater than current market medium value
+		if (
+			newDecMaxPriorityFeePerGas.gte(new BigNumber(gasFeeEstimates.medium.suggestedMaxPriorityFeePerGas)) ||
+			newDecMaxFeePerGas.gte(new BigNumber(gasFeeEstimates.medium.suggestedMaxFeePerGas))
+		) {
+			this.speedUp1559Options = {
+				maxPriortyFeeThreshold: newDecMaxPriorityFeePerGas,
+				maxFeeThreshold: newDecMaxFeePerGas,
+				showAdvanced: true,
+			};
+			//Disable polling and a preselected option
+			this.setState({ gasSelected: null, stopUpdateGas: true });
+		} else
+			this.speedUp1559Options = {
+				maxPriortyFeeThreshold: gasFeeEstimates.medium.suggestedMaxPriorityFeePerGas,
+				maxFeeThreshold: gasFeeEstimates.medium.suggestedMaxFeePerGas,
+				showAdvanced: false,
+			};
+
+		this.setState({
+			EIP1559TransactionDataTemp: parseTransactionEIP1559(
+				{
+					...this.props,
+					selectedGasFee: {
+						suggestedMaxFeePerGas: this.speedUp1559Options.maxFeeThreshold,
+						suggestedMaxPriorityFeePerGas: this.speedUp1559Options.maxPriortyFeeThreshold,
+						suggestedGasLimit: fromWei(existingTx?.transaction?.gas ?? 21000, 'wei'),
+					},
+				},
+				{ onlyGas: true }
+			),
+		});
+	};
+
+	calculate1559TempGasFee = (gas, options) => {
 		if (options && gas) {
 			gas.suggestedGasLimit = fromWei(this.existingTx?.transaction?.gas, 'wei');
 		}
@@ -557,53 +595,43 @@ class Transactions extends PureComponent {
 			options
 		);
 
-		// parsedTransactionEIP1559.error = this.validateSpeedUpAmount(
-		// 	this.existingTx.transaction,
-		// 	parsedTransactionEIP1559.totalMaxHex
-		// );
-
-		console.log('Error', parsedTransactionEIP1559.error);
+		parsedTransactionEIP1559.error = this.validateSpeedUpAmount(
+			this.existingTx.transaction,
+			parsedTransactionEIP1559
+		);
 
 		return parsedTransactionEIP1559;
 	};
 
-	// validateSpeedUpAmount = (transaction, total) => {
-	// 	const { accounts, selectedAsset, selectedAddress, ticker } = this.props;
-	// 	let weiBalance, weiInput, error;
+	validateSpeedUpAmount = (transaction, speedUpTx) => {
+		const { accounts, selectedAddress, ticker } = this.props;
+		let weiBalance, error;
 
-	// 	console.log('tx.value', transaction.value);
-	// 	console.log('total', `0x${total}`);hus
-	// 	if (isDecimal(transaction.value)) {
-	// 		if (selectedAsset.isETH || selectedAsset.tokenId) {
-	// 			weiBalance = hexToBN(accounts[selectedAddress].balance);
-	// 			const totalTransactionValue = hexToBN(`0x${total}`);
-	// 			if (!weiBalance.gte(totalTransactionValue)) {
-	// 				const amount = renderFromWei(totalTransactionValue.sub(weiBalance));
-	// 				const tokenSymbol = getTicker(ticker);
-	// 				error = strings('transaction.insufficient_amount', { amount, tokenSymbol });
-	// 			}
-	// 		}
-	// 	// 	} else {
-	// 	// 		const [, , amount] = decodeTransferData('transfer', transaction.data);
-	// 	// 		weiBalance = contractBalances[selectedAsset.address];
-	// 	// 		weiInput = hexToBN(amount);
-	// 	// 		error =
-	// 	// 			weiBalance && weiBalance.gte(weiInput)
-	// 	// 				? undefined
-	// 	// 				: strings('transaction.insufficient_tokens', { token: selectedAsset.symbol });
-	// 	// 	}
-	// 	} else {
-	// 		error = strings('transaction.invalid_amount');
-	// 	}
+		if (isDecimal(transaction.value)) {
+			weiBalance = hexToBN(accounts[selectedAddress].balance);
+			const totalTransactionValue = hexToBN(`0x${speedUpTx.totalMaxHex}`);
+			if (!weiBalance.gte(totalTransactionValue)) {
+				const amount = renderFromWei(totalTransactionValue.sub(weiBalance));
+				const tokenSymbol = getTicker(ticker);
+				error = strings('transaction.insufficient_amount', { amount, tokenSymbol });
+			}
+			//TODO What if the tx is a contract?
+		} else {
+			error = strings('transaction.invalid_amount');
+		}
 
-	// 	return error;
-	// };
+		return error;
+	};
+
+	/** END of methods specifically related to 1559 Speed Up */
 
 	onSpeedUpCompleted = () => {
+		this.setState({ speedUp1559IsOpen: false });
 		this.setState({ speedUpIsOpen: false });
 		this.existingGas = null;
 		this.speedUpTxId = null;
 		this.existingTx = null;
+		this.speedUp1559Options = null;
 	};
 
 	onCancelAction = (cancelAction, existingGas, tx) => {
@@ -635,7 +663,6 @@ class Transactions extends PureComponent {
 	speedUpTransaction = () => {
 		try {
 			const { EIP1559TransactionDataTemp } = this.state;
-			console.log(this.existingGas);
 			//Do we have a place in the app where we convert a hex string (0232323) to the hex string format (0x0232323)?
 			Engine.context.TransactionController.speedUpTransaction(this.speedUpTxId, {
 				maxFeePerGas: `0x${EIP1559TransactionDataTemp?.suggestedMaxFeePerGasHex}`,
@@ -704,7 +731,7 @@ class Transactions extends PureComponent {
 							selected={gasSelected}
 							gasFee={EIP1559TransactionDataTemp}
 							gasOptions={gasFeeEstimates}
-							onChange={this.calculateTempGasFee}
+							onChange={this.calculate1559TempGasFee}
 							gasFeeNative={EIP1559TransactionDataTemp.renderableGasFeeMinNative}
 							gasFeeConversion={EIP1559TransactionDataTemp.renderableGasFeeMinConversion}
 							gasFeeMaxNative={EIP1559TransactionDataTemp.renderableGasFeeMaxNative}
@@ -722,8 +749,12 @@ class Transactions extends PureComponent {
 							onSave={this.speedUpTransaction}
 							error={EIP1559TransactionDataTemp.error}
 							animateOnChange={animateOnChange}
-							ignoreOptions={[AppConstants.GAS_OPTIONS.LOW]}
-							speedUpOption
+							ignoreOptions={
+								!gasSelected
+									? [AppConstants.GAS_OPTIONS.LOW, AppConstants.GAS_OPTIONS.MEDIUM]
+									: [AppConstants.GAS_OPTIONS.LOW]
+							}
+							speedUpOption={this.speedUp1559Options}
 							isAnimating={isAnimating}
 							analyticsParams={this.getGasAnalyticsParams()}
 							view={'Transactions (Speed Up)'}
@@ -819,7 +850,6 @@ class Transactions extends PureComponent {
 						gasTitleText={strings('transaction.gas_cancel_fee')}
 						descriptionText={strings('transaction.cancel_tx_message')}
 					/>
-{/* 
 					<TransactionActionModal
 						isVisible={this.state.speedUpIsOpen}
 						confirmDisabled={speedUpConfirmDisabled}
@@ -832,7 +862,7 @@ class Transactions extends PureComponent {
 						titleText={strings('transaction.speedup_tx_title')}
 						gasTitleText={strings('transaction.gas_speedup_fee')}
 						descriptionText={strings('transaction.speedup_tx_message')}
-					/> */}
+					/>
 
 					<RetryModal
 						errorMsg={this.state.errorMsg}
@@ -841,7 +871,7 @@ class Transactions extends PureComponent {
 					/>
 				</View>
 				{/* {mode === EDIT && this.renderCustomGasModalLegacy()} */}
-				{this.state.speedUpIsOpen && this.renderSpeedUpGas()}
+				{this.state.speedUp1559IsOpen && this.renderSpeedUpGas()}
 			</SafeAreaView>
 		);
 	};
