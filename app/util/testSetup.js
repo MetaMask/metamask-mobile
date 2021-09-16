@@ -5,6 +5,7 @@ import Engine from '../core/Engine';
 import NotificationManager from '../core/NotificationManager';
 import { NativeModules } from 'react-native';
 import mockAsyncStorage from '../../node_modules/@react-native-community/async-storage/jest/async-storage-mock';
+import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock.js';
 
 Enzyme.configure({ adapter: new Adapter() });
 
@@ -136,3 +137,5 @@ jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
 	clearInteractionHandle: jest.fn(),
 	setDeadline: jest.fn(),
 }));
+
+jest.mock('@react-native-clipboard/clipboard', () => mockClipboard);

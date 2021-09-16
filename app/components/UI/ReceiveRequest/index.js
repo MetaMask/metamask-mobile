@@ -4,7 +4,6 @@ import { InteractionManager, TouchableOpacity, SafeAreaView, Dimensions, StyleSh
 import Modal from 'react-native-modal';
 import Share from 'react-native-share';
 import QRCode from 'react-native-qrcode-svg';
-import Clipboard from '@react-native-community/clipboard';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import { connect } from 'react-redux';
 
@@ -28,6 +27,7 @@ import AddressQRCode from '../../Views/AddressQRCode';
 import EthereumAddress from '../EthereumAddress';
 import GlobalAlert from '../GlobalAlert';
 import StyledButton from '../StyledButton';
+import ClipboardManager from '../../../core/ClipboardManager';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -171,7 +171,7 @@ class ReceiveRequest extends PureComponent {
 
 	copyAccountToClipboard = async () => {
 		const { selectedAddress } = this.props;
-		Clipboard.setString(selectedAddress);
+		ClipboardManager.setString(selectedAddress);
 		this.props.showAlert({
 			isVisible: true,
 			autodismiss: 1500,

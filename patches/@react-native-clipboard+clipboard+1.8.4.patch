@@ -1,0 +1,115 @@
+diff --git a/node_modules/@react-native-clipboard/clipboard/android/src/main/java/com/reactnativecommunity/clipboard/ClipboardModule.java b/node_modules/@react-native-clipboard/clipboard/android/src/main/java/com/reactnativecommunity/clipboard/ClipboardModule.java
+index 248fbf8..20fa37f 100644
+--- a/node_modules/@react-native-clipboard/clipboard/android/src/main/java/com/reactnativecommunity/clipboard/ClipboardModule.java
++++ b/node_modules/@react-native-clipboard/clipboard/android/src/main/java/com/reactnativecommunity/clipboard/ClipboardModule.java
+@@ -72,6 +72,16 @@ public class ClipboardModule extends ContextBaseJavaModule {
+     }
+   }
+ 
++  @ReactMethod
++  public void clearString() {
++    try {
++      ClipboardManager clipboard = getClipboardService();
++      clipboard.clearPrimaryClip();
++    } catch (Exception e) {
++      e.printStackTrace();
++    }
++  }
++
+   @ReactMethod
+   public void hasString(Promise promise) {
+     try {
+diff --git a/node_modules/@react-native-clipboard/clipboard/dist/Clipboard.d.ts b/node_modules/@react-native-clipboard/clipboard/dist/Clipboard.d.ts
+index 988c553..ea44978 100644
+--- a/node_modules/@react-native-clipboard/clipboard/dist/Clipboard.d.ts
++++ b/node_modules/@react-native-clipboard/clipboard/dist/Clipboard.d.ts
+@@ -40,6 +40,25 @@ export declare const Clipboard: {
+      * @param the content to be stored in the clipboard.
+      */
+     setString(content: string): void;
++	/**
++     * [IOS ONLY] Set content of string type with an expiry date of 60 seconds. You can use following code to set clipboard content
++     * ```javascript
++     * _setContent() {
++     *   Clipboard.setStringExpire('hello world');
++     * }
++     * ```
++     * @param the content to be stored in the clipboard.
++     */
++	setStringExpire(content: string): void;
++	/**
++     * [ANDROID ONLY] Clears the primary clip on Android
++     * ```javascript
++     * _clearContent() {
++     *   Clipboard.clearString();
++     * }
++     * ```
++     */
++	clearString(): void;
+     /**
+      * Returns whether the clipboard has content or is empty.
+      * This method returns a `Promise`, so you can use following code to get clipboard content
+diff --git a/node_modules/@react-native-clipboard/clipboard/dist/Clipboard.js b/node_modules/@react-native-clipboard/clipboard/dist/Clipboard.js
+index 7bdc989..cde4c6d 100644
+--- a/node_modules/@react-native-clipboard/clipboard/dist/Clipboard.js
++++ b/node_modules/@react-native-clipboard/clipboard/dist/Clipboard.js
+@@ -71,6 +71,29 @@ exports.Clipboard = {
+     setString: function (content) {
+         NativeClipboard_1.default.setString(content);
+     },
++	/**
++     * [IOS ONLY] Set content of string type. You can use following code to set clipboard content
++     * ```javascript
++     * _setContent() {
++     *   Clipboard.setString('hello world');
++     * }
++     * ```
++     * @param the content to be stored in the clipboard.
++     */
++	setStringExpire: function (content) {
++        NativeClipboard_1.default.setStringExpire(content);
++	},
++	/**
++     * [ANDROID ONLY] Clears the primary clip on Android
++     * ```javascript
++     * _clearContent() {
++     *   Clipboard.clearString();
++     * }
++     * ```
++     */
++	clearString: function () {
++		NativeClipboard_1.default.clearString();
++	},
+     /**
+      * Returns whether the clipboard has content or is empty.
+      * This method returns a `Promise`, so you can use following code to get clipboard content
+diff --git a/node_modules/@react-native-clipboard/clipboard/ios/RNCClipboard.m b/node_modules/@react-native-clipboard/clipboard/ios/RNCClipboard.m
+index 57efb09..9e0773c 100644
+--- a/node_modules/@react-native-clipboard/clipboard/ios/RNCClipboard.m
++++ b/node_modules/@react-native-clipboard/clipboard/ios/RNCClipboard.m
+@@ -4,7 +4,7 @@
+ #import <UIKit/UIKit.h>
+ #import <React/RCTBridge.h>
+ #import <React/RCTEventDispatcher.h>
+-
++#import <MobileCoreServices/UTCoreTypes.h>
+ 
+ @implementation RNCClipboard {
+     BOOL isObserving;
+@@ -66,6 +66,16 @@ - (void) listener:(NSNotification *) notification
+   clipboard.string = (content ? : @"");
+ }
+ 
++RCT_EXPORT_METHOD(setStringExpire:(NSString *)content)
++{
++  NSMutableDictionary *text = [NSMutableDictionary dictionaryWithCapacity:1];
++  [text setValue:content forKey:(NSString *)kUTTypeUTF8PlainText];
++
++  NSArray *pasteboardItems = @[text];
++  NSDictionary *pasteboardOptions = @{UIPasteboardOptionExpirationDate : [[NSDate date] dateByAddingTimeInterval:60]};
++  [[UIPasteboard generalPasteboard] setItems:pasteboardItems options:pasteboardOptions];
++}
++
+ RCT_EXPORT_METHOD(getString:(RCTPromiseResolveBlock)resolve
+                   reject:(__unused RCTPromiseRejectBlock)reject)
+ {
