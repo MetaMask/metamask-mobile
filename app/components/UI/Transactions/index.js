@@ -22,19 +22,21 @@ import Engine from '../../../core/Engine';
 import { showAlert } from '../../../actions/alert';
 import { shallowEqual } from '../../../util/general';
 import NotificationManager from '../../../core/NotificationManager';
-import { CANCEL_RATE, SPEED_UP_RATE, GAS_ESTIMATE_TYPES } from '@metamask/controllers';
-import { renderFromWei, fromWei } from '../../../util/number';
+import { util, CANCEL_RATE, SPEED_UP_RATE, GAS_ESTIMATE_TYPES } from '@metamask/controllers';
+import { isDecimal, renderFromWei, fromWei } from '../../../util/number';
 import Device from '../../../util/device';
 import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../constants/network';
 import TransactionActionModal from '../TransactionActionModal';
 import Logger from '../../../util/Logger';
-import { parseTransactionEIP1559, validateTransactionActionBalance } from '../../../util/transactions';
+import { getTicker, parseTransactionEIP1559, validateTransactionActionBalance } from '../../../util/transactions';
 import BigNumber from 'bignumber.js';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Modal from 'react-native-modal';
 import AppConstants from '../../../core/AppConstants';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import EditGasFee1559 from '../EditGasFee1559';
+
+const { hexToBN } = util;
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -241,6 +243,10 @@ class Transactions extends PureComponent {
 		 * A string representing the network type
 		 */
 		networkType: PropTypes.string,
+		/**
+		 * Current provider ticker
+		 */
+		ticker: PropTypes.string,		
 	};
 
 	static defaultProps = {
@@ -293,7 +299,6 @@ class Transactions extends PureComponent {
 			blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList) || NO_RPC_BLOCK_EXPLORER;
 		}
 		this.setState({ rpcBlockExplorer: blockExplorer });
-
 		const { GasFeeController } = Engine.context;
 		const pollToken = await GasFeeController.getGasFeeEstimatesAndStartPolling(this.state.pollToken);
 		this.setState({ pollToken });
@@ -312,7 +317,7 @@ class Transactions extends PureComponent {
 		}
 	}
 
-	componentDidUpdate = (prevProps, prevState) => {
+	componentDidUpdate = (prevProps) => {
 		if (
 			this.props.gasFeeEstimates &&
 			this.existingTx?.transaction?.gas &&
@@ -346,8 +351,6 @@ class Transactions extends PureComponent {
 						});
 					}
 
-					this.setError(EIP1559TransactionDataTemp.error);
-
 					// eslint-disable-next-line react/no-did-update-set-state
 					this.setState(
 						{
@@ -366,19 +369,12 @@ class Transactions extends PureComponent {
 		}
 	};
 
-	setError = (errorMessage) => {
-		this.setState({ errorMessage }, () => {
-			if (errorMessage) {
-				this.scrollView.scrollToEnd({ animated: true });
-			}
-		});
-	};
-
 	componentWillUnmount() {
 		const { GasFeeController } = Engine.context;
 		GasFeeController.stopPolling(this.state.pollToken);
 		this.mounted = false;
 	}
+
 	scrollToIndex = (index) => {
 		if (!this.scrolling && (this.props.headerHeight || index)) {
 			this.scrolling = true;
@@ -518,30 +514,33 @@ class Transactions extends PureComponent {
 		this.existingTx = tx;
 		this.speedUpTxId = tx.id;
 
+		//Create the inital 1559 speed up transaction as speed up initializes
 		if (existingGas.isEIP1559Transaction) {
 			this.setState({
 				EIP1559TransactionDataTemp: parseTransactionEIP1559(
 					{
 						...this.props,
 						selectedGasFee: {
-							suggestedMaxFeePerGas: gasFeeEstimates.medium.suggestedMaxFeePerGas,
-							suggestedMaxPriorityFeePerGas: gasFeeEstimates.medium.suggestedMaxPriorityFeePerGas,
-							suggestedGasLimit: fromWei(this.existingTx.gas, 'wei'),
+							suggestedMaxFeePerGas: gasFeeEstimates.medium.suggestedMaxFeePerGas * SPEED_UP_RATE,
+							suggestedMaxPriorityFeePerGas:
+								gasFeeEstimates.medium.suggestedMaxPriorityFeePerGas * SPEED_UP_RATE,
+							suggestedGasLimit: fromWei(this.existingTx?.transaction?.gas, 'wei'),
 						},
 					},
 					{ onlyGas: true }
 				),
 			});
+		} else {
+			const speedUpConfirmDisabled = validateTransactionActionBalance(tx, SPEED_UP_RATE, this.props.accounts);
+			this.setState({ speedUpIsOpen: speedUpAction, speedUpConfirmDisabled });
 		}
-
-		const speedUpConfirmDisabled = validateTransactionActionBalance(tx, SPEED_UP_RATE, this.props.accounts);
-		this.setState({ speedUpIsOpen: speedUpAction, speedUpConfirmDisabled });
 	};
 
 	calculateTempGasFee = (gas, options) => {
 		if (options && gas) {
 			gas.suggestedGasLimit = fromWei(this.existingTx?.transaction?.gas, 'wei');
 		}
+
 		this.setState({
 			EIP1559TransactionDataTemp: this.parseTransactionDataEIP1559({ ...gas, selectedOption: options }),
 			stopUpdateGas: !options,
@@ -558,8 +557,49 @@ class Transactions extends PureComponent {
 			{ onlyGas: true },
 			options
 		);
+
+		// parsedTransactionEIP1559.error = this.validateSpeedUpAmount(
+		// 	this.existingTx.transaction,
+		// 	parsedTransactionEIP1559.totalMaxHex
+		// );
+
+		console.log('Error', parsedTransactionEIP1559.error);
+
 		return parsedTransactionEIP1559;
 	};
+
+	// validateSpeedUpAmount = (transaction, total) => {
+	// 	const { accounts, selectedAsset, selectedAddress, ticker } = this.props;
+	// 	let weiBalance, weiInput, error;
+
+	// 	console.log('tx.value', transaction.value);
+	// 	console.log('total', `0x${total}`);
+	
+	// 	if (isDecimal(transaction.value)) {
+	// 		if (selectedAsset.isETH || selectedAsset.tokenId) {
+	// 			weiBalance = hexToBN(accounts[selectedAddress].balance);
+	// 			const totalTransactionValue = hexToBN(`0x${total}`);
+	// 			if (!weiBalance.gte(totalTransactionValue)) {
+	// 				const amount = renderFromWei(totalTransactionValue.sub(weiBalance));
+	// 				const tokenSymbol = getTicker(ticker);
+	// 				error = strings('transaction.insufficient_amount', { amount, tokenSymbol });
+	// 			}
+	// 		}
+	// 	// 	} else {
+	// 	// 		const [, , amount] = decodeTransferData('transfer', transaction.data);
+	// 	// 		weiBalance = contractBalances[selectedAsset.address];
+	// 	// 		weiInput = hexToBN(amount);
+	// 	// 		error =
+	// 	// 			weiBalance && weiBalance.gte(weiInput)
+	// 	// 				? undefined
+	// 	// 				: strings('transaction.insufficient_tokens', { token: selectedAsset.symbol });
+	// 	// 	}
+	// 	} else {
+	// 		error = strings('transaction.invalid_amount');
+	// 	}
+
+	// 	return error;
+	// };
 
 	onSpeedUpCompleted = () => {
 		this.setState({ speedUpIsOpen: false });
@@ -596,7 +636,13 @@ class Transactions extends PureComponent {
 
 	speedUpTransaction = () => {
 		try {
-			Engine.context.TransactionController.speedUpTransaction(this.speedUpTxId);
+			const { EIP1559TransactionDataTemp } = this.state;
+			console.log(this.existingGas);
+			//Do we have a place in the app where we convert a hex string (0232323) to the hex string format (0x0232323)?
+			Engine.context.TransactionController.speedUpTransaction(this.speedUpTxId, {
+				maxFeePerGas: `0x${EIP1559TransactionDataTemp?.suggestedMaxFeePerGasHex}`,
+				maxPriorityFeePerGas: `0x${EIP1559TransactionDataTemp?.suggestedMaxPriorityFeePerGasHex}`,
+			});
 		} catch (e) {
 			this.handleSpeedUpTransactionFailure(e);
 		}
@@ -649,9 +695,9 @@ class Transactions extends PureComponent {
 					backdropOpacity={0.7}
 					animationInTiming={600}
 					animationOutTiming={600}
-					// onBackdropPress={this.cancelGasEdition}
-					// onBackButtonPress={this.cancelGasEdition}
-					// onSwipeComplete={this.cancelGasEdition}
+					onBackdropPress={this.onSpeedUpCompleted}
+					onBackButtonPress={this.onSpeedUpCompleted}
+					onSwipeComplete={this.onSpeedUpCompleted}
 					swipeDirection={'down'}
 					propagateSwipe
 				>
@@ -682,7 +728,7 @@ class Transactions extends PureComponent {
 							speedUpOption
 							isAnimating={isAnimating}
 							analyticsParams={this.getGasAnalyticsParams()}
-							view={'SendTo (Confirm)'}
+							view={'Transactions (Speed Up)'}
 						/>
 					</KeyboardAwareScrollView>
 				</Modal>
@@ -706,7 +752,7 @@ class Transactions extends PureComponent {
 			conversionRate,
 			nativeCurrency,
 		} = this.props;
-		const { cancelConfirmDisabled } = this.state;
+		const { cancelConfirmDisabled, speedUpConfirmDisabled } = this.state;
 		const transactions =
 			submittedTransactions && submittedTransactions.length
 				? submittedTransactions.concat(confirmedTransactions)
@@ -775,21 +821,20 @@ class Transactions extends PureComponent {
 						gasTitleText={strings('transaction.gas_cancel_fee')}
 						descriptionText={strings('transaction.cancel_tx_message')}
 					/>
-
-					{/*
-				<TransactionActionModal
-					isVisible={this.state.speedUpIsOpen}
-					confirmDisabled={speedUpConfirmDisabled}
-					onCancelPress={this.onSpeedUpCompleted}
-					onConfirmPress={this.speedUpTransaction}
-					confirmText={strings('transaction.lets_try')}
-					confirmButtonMode={'confirm'}
-					cancelText={strings('transaction.nevermind')}
-					feeText={renderSpeedUpGas()}
-					titleText={strings('transaction.speedup_tx_title')}
-					gasTitleText={strings('transaction.gas_speedup_fee')}
-					descriptionText={strings('transaction.speedup_tx_message')}
-				/> */}
+{/* 
+					<TransactionActionModal
+						isVisible={this.state.speedUpIsOpen}
+						confirmDisabled={speedUpConfirmDisabled}
+						onCancelPress={this.onSpeedUpCompleted}
+						onConfirmPress={this.speedUpTransaction}
+						confirmText={strings('transaction.lets_try')}
+						confirmButtonMode={'confirm'}
+						cancelText={strings('transaction.nevermind')}
+						feeText={this.renderSpeedUpGas}
+						titleText={strings('transaction.speedup_tx_title')}
+						gasTitleText={strings('transaction.gas_speedup_fee')}
+						descriptionText={strings('transaction.speedup_tx_message')}
+					/> */}
 
 					<RetryModal
 						errorMsg={this.state.errorMsg}
@@ -807,6 +852,7 @@ class Transactions extends PureComponent {
 const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	collectibleContracts: state.engine.backgroundState.CollectiblesController.collectibleContracts,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
