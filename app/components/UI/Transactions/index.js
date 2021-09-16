@@ -521,9 +521,8 @@ class Transactions extends PureComponent {
 					{
 						...this.props,
 						selectedGasFee: {
-							suggestedMaxFeePerGas: gasFeeEstimates.medium.suggestedMaxFeePerGas * SPEED_UP_RATE,
-							suggestedMaxPriorityFeePerGas:
-								gasFeeEstimates.medium.suggestedMaxPriorityFeePerGas * SPEED_UP_RATE,
+							suggestedMaxFeePerGas: gasFeeEstimates.medium.suggestedMaxFeePerGas,
+							suggestedMaxPriorityFeePerGas: gasFeeEstimates.medium.suggestedMaxPriorityFeePerGas,
 							suggestedGasLimit: fromWei(this.existingTx?.transaction?.gas, 'wei'),
 						},
 					},
@@ -573,8 +572,7 @@ class Transactions extends PureComponent {
 	// 	let weiBalance, weiInput, error;
 
 	// 	console.log('tx.value', transaction.value);
-	// 	console.log('total', `0x${total}`);
-	
+	// 	console.log('total', `0x${total}`);hus
 	// 	if (isDecimal(transaction.value)) {
 	// 		if (selectedAsset.isETH || selectedAsset.tokenId) {
 	// 			weiBalance = hexToBN(accounts[selectedAddress].balance);
