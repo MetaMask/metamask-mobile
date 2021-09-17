@@ -17,14 +17,14 @@ const styles = StyleSheet.create({
 		width: '100%',
 	},
 	modalText: {
-		...fontStyles.normal,
+		...(fontStyles.normal as any),
 		fontSize: 14,
 		textAlign: 'center',
 		paddingVertical: 8,
 		color: colors.black,
 	},
 	modalTitle: {
-		...fontStyles.bold,
+		...(fontStyles.bold as any),
 		fontSize: 22,
 		textAlign: 'center',
 		color: colors.black,
@@ -32,10 +32,10 @@ const styles = StyleSheet.create({
 });
 
 interface Props {
-	retryIsOpen: any;
-	onConfirmPress: any;
-	onCancelPress: any;
-	errorMsg: any;
+	retryIsOpen: boolean;
+	onConfirmPress: () => void;
+	onCancelPress: () => void;
+	errorMsg: string;
 }
 
 const RetryModal = ({ retryIsOpen, onConfirmPress, onCancelPress, errorMsg }: Props) => {
