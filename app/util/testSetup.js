@@ -138,4 +138,5 @@ jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
 	setDeadline: jest.fn(),
 }));
 
+jest.mock('../images/static-logos.js', () => ({}));
 jest.mock('@react-native-clipboard/clipboard', () => mockClipboard);

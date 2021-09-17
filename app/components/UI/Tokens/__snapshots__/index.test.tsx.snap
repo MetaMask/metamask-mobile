@@ -2,7 +2,6 @@
 
 exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
 <Tokens
-  chainId="1"
   conversionRate={1}
   currentCurrency="USD"
   dispatch={[Function]}
@@ -15,6 +14,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
     }
   }
   tokenExchangeRates={Object {}}
+  tokenList={Object {}}
   tokens={
     Array [
       Object {
@@ -40,18 +40,17 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
 
 exports[`Tokens should render correctly 1`] = `
 <Tokens
-  chainId="1"
   conversionRate={1}
   currentCurrency="USD"
   dispatch={[Function]}
   primaryCurrency="usd"
   tokenExchangeRates={Object {}}
+  tokenList={Object {}}
 />
 `;
 
 exports[`Tokens should show all balance tokens when hideZeroBalanceTokens setting is off 1`] = `
 <Tokens
-  chainId="1"
   conversionRate={1}
   currentCurrency="USD"
   dispatch={[Function]}
@@ -64,6 +63,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
     }
   }
   tokenExchangeRates={Object {}}
+  tokenList={Object {}}
   tokens={
     Array [
       Object {
