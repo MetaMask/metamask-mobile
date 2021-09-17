@@ -10,8 +10,8 @@ const mockStore = configureMockStore();
 const initialState = {
 	user: {
 		passwordSet: true,
-		seedphraseBackedUp: false
-	}
+		seedphraseBackedUp: false,
+	},
 };
 const store = mockStore(initialState);
 

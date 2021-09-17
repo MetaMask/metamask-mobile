@@ -7,16 +7,16 @@ import { Provider } from 'react-redux';
 const mockStore = configureMockStore();
 const initialState = {
 	privacy: {
-		approvedHosts: {}
+		approvedHosts: {},
 	},
 	engine: {
 		backgroundState: {
 			NetworkController: {
-				provider: { type: 'mainnet', rpcTarget: 'http://10.0.2.2:8545' }
+				provider: { type: 'mainnet', rpcTarget: 'http://10.0.2.2:8545' },
 			},
-			PreferencesController: { frequentRpcList: ['http://10.0.2.2:8545'] }
-		}
-	}
+			PreferencesController: { frequentRpcList: ['http://10.0.2.2:8545'] },
+		},
+	},
 };
 const store = mockStore(initialState);
 

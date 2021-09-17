@@ -43,6 +43,10 @@ function initalizeEngine(state = {}) {
 		store.dispatch({ type: 'UPDATE_BG_STATE', key: 'AssetsDetectionController' });
 	});
 
+	Engine.controllerMessenger.subscribe(`${Engine.context.TokenListController.name}:stateChange`, () => {
+		store.dispatch({ type: 'UPDATE_BG_STATE', key: 'TokenListController' });
+	});
+
 	Engine.controllerMessenger.subscribe(`${Engine.context.CurrencyRateController.name}:stateChange`, () => {
 		store.dispatch({ type: 'UPDATE_BG_STATE', key: 'CurrencyRateController' });
 	});
@@ -102,11 +106,11 @@ const engineReducer = (state = initialState, action) => {
 			return state;
 		case 'INIT_BG_STATE':
 			return { backgroundState: Engine.state };
-		case 'UPDATE_BG_STATE':
-			// eslint-disable-next-line no-case-declarations
+		case 'UPDATE_BG_STATE': {
 			const newState = { ...state };
 			newState.backgroundState[action.key] = Engine.state[action.key];
 			return newState;
+		}
 		default:
 			return state;
 	}
