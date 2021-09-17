@@ -18,6 +18,11 @@ describe('Request Token Flow', () => {
 		await TestHelpers.checkIfVisible('onboarding-screen');
 		// Check that Create a new wallet CTA is visible & tap it
 		await TestHelpers.waitAndTap('create-wallet-button');
+
+		await TestHelpers.checkIfVisible('metaMetrics-OptIn');
+		// Check that "No thanks" CTA is visible and tap it
+		await TestHelpers.waitAndTap('cancel-button', 15000);
+
 		// Check that we are on the Create password screen
 		await TestHelpers.checkIfVisible('create-password-screen');
 		// Input new password
@@ -48,10 +53,6 @@ describe('Request Token Flow', () => {
 		}
 		// Tap on Skip button
 		await TestHelpers.tapByText('Skip');
-		// Check that we are on the metametrics optIn screen
-		await TestHelpers.checkIfVisible('metaMetrics-OptIn');
-		// Check that I Agree CTA is visible and tap it
-		await TestHelpers.waitAndTap('agree-button');
 		// Check that we are on the wallet screen
 		if (!device.getPlatform() === 'android') {
 			// Check that we are on the wallet screen
