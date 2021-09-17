@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import { StyleSheet, View, TouchableOpacity, InteractionManager, Linking } from 'react-native';
 import ActionView from '../../UI/ActionView';
-import Clipboard from '@react-native-community/clipboard';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../UI/Navbar';
 import { colors, fontStyles } from '../../../styles/common';
@@ -41,6 +40,7 @@ import Logger from '../../../util/Logger';
 import InfoModal from '../Swaps/components/InfoModal';
 import Text from '../../Base/Text';
 import TransactionReviewEIP1559 from '../../UI/TransactionReview/TransactionReviewEIP1559';
+import ClipboardManager from '../../../core/ClipboardManager';
 
 const { hexToBN } = util;
 const styles = StyleSheet.create({
@@ -399,7 +399,7 @@ class ApproveTransactionReview extends PureComponent {
 
 	copyContractAddress = async () => {
 		const { transaction } = this.props;
-		await Clipboard.setString(transaction.to);
+		await ClipboardManager.setString(transaction.to);
 		this.props.showAlert({
 			isVisible: true,
 			autodismiss: 1500,

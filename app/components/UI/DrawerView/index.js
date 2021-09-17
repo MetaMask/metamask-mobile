@@ -1,6 +1,5 @@
 import React, { PureComponent } from 'react';
 import { Alert, TouchableOpacity, View, Image, StyleSheet, Text, ScrollView, InteractionManager } from 'react-native';
-import Clipboard from '@react-native-community/clipboard';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Share from 'react-native-share';
@@ -42,6 +41,7 @@ import { RPC } from '../../../constants/network';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import AnalyticsV2, { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
 import { isDefaultAccountName, doENSReverseLookup } from '../../../util/ENSUtils';
+import ClipboardManager from '../../../core/ClipboardManager';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -436,6 +436,12 @@ class DrawerView extends PureComponent {
 			) {
 				// eslint-disable-next-line react/no-did-update-set-state
 				this.setState({ showProtectWalletModal: true });
+				InteractionManager.runAfterInteractions(() => {
+					AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_VIEWED, {
+						wallet_protection_required: false,
+						source: 'Backup Alert',
+					});
+				});
 			} else {
 				// eslint-disable-next-line react/no-did-update-set-state
 				this.setState({ showProtectWalletModal: false });
@@ -786,7 +792,7 @@ class DrawerView extends PureComponent {
 
 	copyAccountToClipboard = async () => {
 		const { selectedAddress } = this.props;
-		await Clipboard.setString(selectedAddress);
+		await ClipboardManager.setString(selectedAddress);
 		this.toggleReceiveModal();
 		InteractionManager.runAfterInteractions(() => {
 			this.props.showAlert({
@@ -840,6 +846,12 @@ class DrawerView extends PureComponent {
 			'SetPasswordFlow',
 			this.props.passwordSet ? { screen: 'AccountBackupStep1' } : undefined
 		);
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_ENGAGED, {
+				wallet_protection_required: true,
+				source: 'Modal',
+			});
+		});
 	};
 
 	renderProtectModal = () => (

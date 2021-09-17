@@ -5,9 +5,9 @@ import RevealPrivateCredential from '../RevealPrivateCredential';
 import Logger from '../../../util/Logger';
 import { colors, fontStyles } from '../../../styles/common';
 import { ScrollView } from 'react-native-gesture-handler';
-import Clipboard from '@react-native-community/clipboard';
 import { strings } from '../../../../locales/i18n';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import ClipboardManager from '../../../core/ClipboardManager';
 
 // eslint-disable-next-line import/no-commonjs
 const metamaskErrorImage = require('../../../images/metamask-error.png');
@@ -191,7 +191,7 @@ class ErrorBoundary extends Component {
 	getErrorMessage = () => `View: ${this.props.view}\n${this.state.error.toString()}`;
 
 	copyErrorToClipboard = async () => {
-		await Clipboard.setString(this.getErrorMessage());
+		await ClipboardManager.setString(this.getErrorMessage());
 		Alert.alert(strings('error_screen.copied_clipboard'), '', [{ text: strings('error_screen.ok') }], {
 			cancelable: true,
 		});
