@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { View, StyleSheet, InteractionManager, Text } from 'react-native';
+import { View, StyleSheet, InteractionManager, Text, LayoutAnimation } from 'react-native';
 import { colors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import ActionView from '../ActionView';
@@ -9,6 +9,8 @@ import Engine from '../../../core/Engine';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import Alert, { AlertType } from '../../Base/Alert';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { useSelector } from 'react-redux';
+import { MAINNET } from '../../../constants/network';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -38,7 +40,22 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 	const [searchResults, setSearchResults] = useState([]);
 	const [searchQuery, setSearchQuery] = useState('');
 	const [selectedAsset, setSelectedAsset] = useState({});
+	const [isSearchFocused, setIsSearchFocused] = useState(false);
 	const { address, symbol, decimals } = selectedAsset as any;
+	const isTokenDetectionEnabled = useSelector(
+		(state: any) => !state.engine.backgroundState.PreferencesController.useStaticTokenList
+	);
+	const isMainnet = useSelector(
+		(state: any) => state.engine.backgroundState.NetworkController.provider.type === MAINNET
+	);
+
+	const setFocusState = useCallback(
+		(isFocused: boolean) => {
+			LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+			setIsSearchFocused(isFocused);
+		},
+		[setIsSearchFocused]
+	);
 
 	const getAnalyticsParams = useCallback(() => {
 		try {
@@ -91,8 +108,11 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 		});
 	}, [address, symbol, decimals, setSearchResults, setSearchQuery, setSelectedAsset, navigation, getAnalyticsParams]);
 
-	const renderTokenDetectionBanner = useCallback(
-		() => (
+	const renderTokenDetectionBanner = useCallback(() => {
+		if (isTokenDetectionEnabled || !isMainnet || isSearchFocused) {
+			return null;
+		}
+		return (
 			<Alert
 				type={AlertType.Info}
 				style={styles.tokenDetectionBanner}
@@ -123,9 +143,8 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 					</Text>
 				</>
 			</Alert>
-		),
-		[navigation]
-	);
+		);
+	}, [navigation, isSearchFocused, isTokenDetectionEnabled, isMainnet]);
 
 	return (
 		<View style={styles.wrapper} testID={'search-token-screen'}>
@@ -138,7 +157,13 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 			>
 				<View>
 					{renderTokenDetectionBanner()}
-					<AssetSearch onSearch={handleSearch} />
+					<AssetSearch
+						onSearch={handleSearch}
+						onFocus={() => {
+							setFocusState(true);
+						}}
+						onBlur={() => setFocusState(false)}
+					/>
 					<AssetList
 						searchResults={searchResults}
 						handleSelectAsset={handleSelectAsset}

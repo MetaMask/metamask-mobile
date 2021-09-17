@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { TextInput, View, StyleSheet } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -19,31 +19,36 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		borderWidth: 1,
 		borderRadius: 4,
-		borderColor: colors.grey100
+		borderColor: colors.grey100,
 	},
 	textInput: {
-		...fontStyles.normal
+		...fontStyles.normal,
 	} as StyleSheet.NamedStyles<any>,
 	icon: {
-		padding: 16
-	}
+		padding: 16,
+	},
 });
 
-const fuse = new Fuse([], {
+const fuse = new Fuse<TokenListToken>([], {
 	shouldSort: true,
 	threshold: 0.45,
 	location: 0,
 	distance: 100,
 	maxPatternLength: 32,
 	minMatchCharLength: 1,
-	keys: [{ name: 'name', weight: 0.5 }, { name: 'symbol', weight: 0.5 }]
+	keys: [
+		{ name: 'name', weight: 0.5 },
+		{ name: 'symbol', weight: 0.5 },
+	],
 });
 
-type Props = {
+interface Props {
 	onSearch: ({ results, searchQuery }: { results: TokenListToken[]; searchQuery: string }) => void;
-};
+	onFocus: () => void;
+	onBlur: () => void;
+}
 
-const AssetSearch = memo(({ onSearch }: Props) => {
+const AssetSearch = ({ onSearch, onFocus, onBlur }: Props) => {
 	const [searchQuery, setSearchQuery] = useState('');
 	const [inputWidth, setInputWidth] = useState('85%');
 	const tokenList = useSelector<any, TokenListToken[]>(getTokenListArray);
@@ -60,12 +65,12 @@ const AssetSearch = memo(({ onSearch }: Props) => {
 	}, [tokenList]);
 
 	const handleSearch = useCallback(
-		(searchQuery: string) => {
-			setSearchQuery(searchQuery);
-			const fuseSearchResult = fuse.search(searchQuery);
-			const addressSearchResult = tokenList.filter(token => toLowerCaseEquals(token.address, searchQuery));
+		(searchText: string) => {
+			setSearchQuery(searchText);
+			const fuseSearchResult = fuse.search(searchText);
+			const addressSearchResult = tokenList.filter((token) => toLowerCaseEquals(token.address, searchText));
 			const results = [...addressSearchResult, ...fuseSearchResult];
-			onSearch({ searchQuery, results });
+			onSearch({ searchQuery: searchText, results });
 		},
 		[setSearchQuery, onSearch, tokenList]
 	);
@@ -76,6 +81,8 @@ const AssetSearch = memo(({ onSearch }: Props) => {
 			<TextInput
 				style={[styles.textInput, { width: inputWidth }]}
 				value={searchQuery}
+				onFocus={onFocus}
+				onBlur={onBlur}
 				placeholder={strings('token.search_tokens_placeholder')}
 				placeholderTextColor={colors.grey100}
 				onChangeText={handleSearch}
@@ -83,6 +90,6 @@ const AssetSearch = memo(({ onSearch }: Props) => {
 			/>
 		</View>
 	);
-});
+};
 
 export default AssetSearch;
