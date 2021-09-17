@@ -4,6 +4,7 @@ import ExperimentalSettings from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
+import { NetworksChainId } from '@metamask/controllers';
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -13,6 +14,7 @@ const initialState = {
 			NetworkController: {
 				provider: {
 					type: MAINNET,
+					chainId: NetworksChainId.mainnet,
 				},
 			},
 		},

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
-import { StyleSheet, Text, ScrollView, View, Switch } from 'react-native';
+import { StyleSheet, Text, ScrollView, View, Switch, InteractionManager } from 'react-native';
 import StyledButton from '../../../UI/StyledButton';
 import { colors, fontStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
@@ -8,6 +8,7 @@ import Device from '../../../../util/device';
 import Engine from '../../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
+import AnalyticsV2 from '../../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -62,6 +63,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 	const isMainnet = useSelector(
 		(state: any) => state.engine.backgroundState.NetworkController.provider.type === MAINNET
 	);
+	const chainId = useSelector((state: any) => state.engine.backgroundState.NetworkController.provider.chainId);
 
 	useEffect(
 		() => {
@@ -77,10 +79,20 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 		navigation.navigate('WalletConnectSessionsView');
 	}, [navigation]);
 
-	const toggleTokenDetection = useCallback((enabled) => {
-		const { PreferencesController } = Engine.context as any;
-		PreferencesController.setUseStaticTokenList(!enabled);
-	}, []);
+	const toggleTokenDetection = useCallback(
+		(enabled) => {
+			const { PreferencesController } = Engine.context as any;
+			const eventOn = AnalyticsV2.ANALYTICS_EVENTS.SETTINGS_TOKEN_DETECTION_ON;
+			const eventOff = AnalyticsV2.ANALYTICS_EVENTS.SETTINGS_TOKEN_DETECTION_OFF;
+			PreferencesController.setUseStaticTokenList(!enabled);
+			InteractionManager.runAfterInteractions(() => {
+				AnalyticsV2.trackEvent((enabled ? eventOn : eventOff) as any, {
+					chain_id: chainId,
+				});
+			});
+		},
+		[chainId]
+	);
 
 	const renderTokenDetectionSection = useCallback(
 		() =>
