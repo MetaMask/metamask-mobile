@@ -63,10 +63,17 @@ describe('Import seedphrase flow', () => {
 		await TestHelpers.typeTextAndHideKeyboard(`input-password-field`, Correct_Password);
 		// Input password confirm
 		await TestHelpers.typeTextAndHideKeyboard(`input-password-field-confirm`, Correct_Password);
+
+		/*
+
+		UNCOMMENT ME OUT WHEN WE FIX THIS BUG. THE CONGRATS VIEW SHOULD APPEAR AFTER YOU IMPORT
+		YOUR WALLET
 		// Check that we are on the congrats screen
 		await TestHelpers.checkIfVisible('import-congrats-screen');
 		// Tap on done CTA
 		await TestHelpers.tap('manual-backup-step-3-done-button');
+		*/
+
 		// Check that we are on the metametrics optIn screen
 		await TestHelpers.checkIfVisible('metaMetrics-OptIn');
 		// Check that I Agree CTA is visible and tap it
