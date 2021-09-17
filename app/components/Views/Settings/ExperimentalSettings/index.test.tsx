@@ -12,9 +12,9 @@ const initialState = {
 	engine: {
 		backgroundState: {
 			PreferencesController: { selectedAddress: '0x', identities: { '0x': { name: 'Account 1' } } },
-			AccountTrackerController: { accounts: {} }
-		}
-	}
+			AccountTrackerController: { accounts: {} },
+		},
+	},
 };
 const store = mockStore(initialState);
 

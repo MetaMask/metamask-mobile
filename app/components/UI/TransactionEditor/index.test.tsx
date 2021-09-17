@@ -10,38 +10,38 @@ const initialState = {
 	engine: {
 		backgroundState: {
 			AccountTrackerController: {
-				accounts: { '0x2': { balance: '0' } }
+				accounts: { '0x2': { balance: '0' } },
 			},
 			CurrencyRateController: {
-				conversionRate: 621.92
+				conversionRate: 621.92,
 			},
 			TokenBalancesController: {
-				contractBalances: { '0x2': new BN(0) }
+				contractBalances: { '0x2': new BN(0) },
 			},
 			PreferencesController: {
-				selectedAddress: '0x0'
+				selectedAddress: '0x0',
 			},
 			TokensController: {
-				tokens: []
+				tokens: [],
 			},
 			CollectiblesController: {
-				collectibles: []
+				collectibles: [],
 			},
 			NetworkController: {
 				provider: {
 					type: 'mainnet',
-					chainId: '1'
-				}
+					chainId: '1',
+				},
 			},
 			GasFeeController: {
-				gasEstimates: {}
-			}
-		}
+				gasEstimates: {},
+			},
+		},
 	},
 	transaction: { value: 0, data: '0x0', gas: 0, gasPrice: 1, from: '0x0', to: '0x1' },
 	settings: {
-		primaryCurrency: 'fiat'
-	}
+		primaryCurrency: 'fiat',
+	},
 };
 const store = mockStore(initialState);
 

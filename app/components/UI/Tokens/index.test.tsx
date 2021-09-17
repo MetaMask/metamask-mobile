@@ -15,6 +15,9 @@ describe('Tokens', () => {
 					TokensController: {
 						tokens: [],
 					},
+					TokenListController: {
+						tokenList: {},
+					},
 					TokenRatesController: {
 						contractExchangeRates: {},
 					},
@@ -54,6 +57,9 @@ describe('Tokens', () => {
 							{ symbol: 'BAT', address: '0x01', decimals: 18 },
 							{ symbol: 'LINK', address: '0x02', decimals: 18 },
 						],
+					},
+					TokenListController: {
+						tokenList: {},
 					},
 					TokenRatesController: {
 						contractExchangeRates: {},
@@ -99,6 +105,9 @@ describe('Tokens', () => {
 							{ symbol: 'BAT', address: '0x01', decimals: 18 },
 							{ symbol: 'LINK', address: '0x02', decimals: 18 },
 						],
+					},
+					TokenListController: {
+						tokenList: {},
 					},
 					TokenRatesController: {
 						contractExchangeRates: {},

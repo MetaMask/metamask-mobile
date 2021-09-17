@@ -12,46 +12,46 @@ const initialState = {
 				network: '1',
 				provider: {
 					ticker: 'ETH',
-					type: 'mainnet'
-				}
+					type: 'mainnet',
+				},
 			},
 			AccountTrackerController: {
-				accounts: { '0x2': { balance: '0' } }
+				accounts: { '0x2': { balance: '0' } },
 			},
 			TransactionController: {
-				transactions: []
+				transactions: [],
 			},
 			TokenRatesController: {
-				contractExchangeRates: {}
+				contractExchangeRates: {},
 			},
 			CurrencyRateController: {
 				currentCurrency: 'USD',
-				conversionRate: 1
+				conversionRate: 1,
 			},
 			TokenBalancesController: {
-				contractBalances: {}
+				contractBalances: {},
 			},
 			PreferencesController: {
-				identities: {}
+				identities: {},
 			},
 			KeyringController: {
-				keyrings: [{ accounts: ['0x'], type: 'HD Key Tree' }]
+				keyrings: [{ accounts: ['0x'], type: 'HD Key Tree' }],
 			},
 			GasFeeController: {
-				gasEstimates: {}
-			}
-		}
+				gasEstimates: {},
+			},
+		},
 	},
 	settings: {
-		showHexData: true
+		showHexData: true,
 	},
 	transaction: {
 		selectedAsset: {},
 		transaction: {
 			from: '0x1',
-			to: '0x2'
-		}
-	}
+			to: '0x2',
+		},
+	},
 };
 const store = mockStore(initialState);
 
