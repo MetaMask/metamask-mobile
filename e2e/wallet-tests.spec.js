@@ -26,6 +26,12 @@ describe('Wallet Tests', () => {
 		await TestHelpers.checkIfVisible('onboarding-screen');
 		// Check that Import using seed phrase CTA is visible & tap it
 		await TestHelpers.waitAndTap('import-wallet-import-from-seed-button');
+
+		// Check that we are on the metametrics optIn screen
+		await TestHelpers.checkIfVisible('metaMetrics-OptIn');
+		// Check that I Agree CTA is visible and tap it
+		await TestHelpers.waitAndTap('agree-button');
+
 		// Check that we are on the import wallet screen
 		await TestHelpers.checkIfVisible('import-from-seed-screen');
 		// Input seed phrase
@@ -48,10 +54,6 @@ describe('Wallet Tests', () => {
 		await TestHelpers.tap('manual-backup-step-3-done-button');
 		*/
 
-		// Check that we are on the metametrics optIn screen
-		await TestHelpers.checkIfVisible('metaMetrics-OptIn');
-		// Check that I Agree CTA is visible and tap it
-		await TestHelpers.waitAndTap('agree-button', 15000);
 		// Should be on wallet screen
 		if (!device.getPlatform() === 'android') {
 			// Check that we are on the wallet screen
