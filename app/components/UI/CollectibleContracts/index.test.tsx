@@ -7,17 +7,17 @@ import { Provider } from 'react-redux';
 const mockStore = configureMockStore();
 const initialState = {
 	collectibles: {
-		favorites: {}
+		favorites: {},
 	},
 	engine: {
 		backgroundState: {
 			NetworkController: {
 				provider: {
-					chainId: 1
-				}
+					chainId: 1,
+				},
 			},
 			PreferencesController: {
-				selectedAddress: '0x1'
+				selectedAddress: '0x1',
 			},
 			CollectiblesController: {
 				collectibleContracts: [
@@ -27,20 +27,20 @@ const initialState = {
 						address: '0x0',
 						symbol: 'NM',
 						description: 'description',
-						totalSupply: 10
-					}
+						totalSupply: 10,
+					},
 				],
 				collectibles: [
 					{
 						address: '0x0',
 						tokenId: 10,
 						name: 'name',
-						image: 'image'
-					}
-				]
-			}
-		}
-	}
+						image: 'image',
+					},
+				],
+			},
+		},
+	},
 };
 const store = mockStore(initialState);
 

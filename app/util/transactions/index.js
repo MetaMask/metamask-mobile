@@ -2,7 +2,6 @@ import { addHexPrefix, toChecksumAddress, BN } from 'ethereumjs-util';
 import { rawEncode, rawDecode } from 'ethereumjs-abi';
 import Engine from '../../core/Engine';
 import I18n, { strings } from '../../../locales/i18n';
-import contractMap from '@metamask/contract-metadata';
 import { safeToChecksumAddress } from '../address';
 import { util } from '@metamask/controllers';
 import { swapsUtils } from '@metamask/swaps-controller';
@@ -244,7 +243,7 @@ export async function isSmartContractAddress(address, chainId) {
 	if (!address) return false;
 	address = toChecksumAddress(address);
 	// If in contract map we don't need to cache it
-	if (isMainnetByChainId(chainId) && contractMap[address]) {
+	if (isMainnetByChainId(chainId) && Engine.context.TokenListController.state.tokenList[address]) {
 		return Promise.resolve(true);
 	}
 	const { TransactionController } = Engine.context;

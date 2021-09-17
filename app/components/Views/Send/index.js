@@ -13,7 +13,6 @@ import { connect } from 'react-redux';
 import { resetTransaction, setTransactionObject } from '../../../actions/transaction';
 import { toggleDappTransactionModal } from '../../../actions/modals';
 import NotificationManager from '../../../core/NotificationManager';
-import contractMap from '@metamask/contract-metadata';
 import { showAlert } from '../../../actions/alert';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
@@ -29,6 +28,7 @@ import TransactionTypes from '../../../core/TransactionTypes';
 import { MAINNET } from '../../../constants/network';
 import BigNumber from 'bignumber.js';
 import { WalletDevice } from '@metamask/controllers/';
+import { getTokenList } from '../../../reducers/tokens';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -114,6 +114,10 @@ class Send extends PureComponent {
 		 * A list of custom RPCs to provide the user
 		 */
 		frequentRpcList: PropTypes.array,
+		/**
+		 * List of tokens from TokenListController
+		 */
+		tokenList: PropTypes.object,
 		/**
 		 * Object that represents the current route info like params passed to it
 		 */
@@ -372,11 +376,11 @@ class Send extends PureComponent {
 	 * @returns ERC20 asset, containing address, symbol and decimals
 	 */
 	handleTokenDeeplink = async (address) => {
-		const { tokens } = this.props;
+		const { tokens, tokenList } = this.props;
 		address = toChecksumAddress(address);
-		// First check if we have token information in contractMap
-		if (address in contractMap) {
-			return contractMap[address];
+		// First check if we have token information in token list
+		if (address in tokenList) {
+			return tokenList[address];
 		}
 		// Then check if the token is already in state
 		const stateToken = tokens.find((token) => token.address === address);
@@ -668,6 +672,7 @@ const mapStateToProps = (state) => ({
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
+	tokenList: getTokenList(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

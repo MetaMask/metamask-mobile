@@ -1,8 +1,8 @@
 import React, { memo } from 'react';
-import { ImageStyle, StyleSheet, StyleProp } from 'react-native';
+import { ImageStyle, StyleSheet, StyleProp, ImageSourcePropType } from 'react-native';
 import RemoteImage from '../../Base/RemoteImage';
-import getAssetLogoPath from '../../../util/assets';
 import { colors } from '../../../styles/common';
+import staticLogos from 'images/static-logos';
 
 interface Props {
 	/**
@@ -26,15 +26,23 @@ const styles = StyleSheet.create({
 	},
 });
 
+function isUrl(string: string) {
+	if (/^(http:\/\/|https:\/\/)/.test(string)) {
+		return true;
+	}
+	return false;
+}
+
 /**
  * PureComponent that provides an asset icon dependent on OS.
  */
 // eslint-disable-next-line react/display-name
 const AssetIcon = memo((props: Props) => {
-	if (!props.logo) return null;
-	const uri = props.watchedAsset ? props.logo : getAssetLogoPath(props.logo);
+	if (!props.logo || props.logo.substr(0, 4) === 'ipfs') return null;
 	const style = [styles.logo, props.customStyle];
-	return <RemoteImage fadeIn placeholderStyle={{ backgroundColor: colors.white }} source={{ uri }} style={style} />;
+	const source: ImageSourcePropType = isUrl(props.logo) ? { uri: props.logo } : (staticLogos as any)[props.logo];
+
+	return <RemoteImage fadeIn placeholderStyle={{ backgroundColor: colors.white }} source={source} style={style} />;
 });
 
 export default AssetIcon;
