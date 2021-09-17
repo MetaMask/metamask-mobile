@@ -9,7 +9,6 @@ import {
 	InteractionManager,
 	TouchableOpacity,
 } from 'react-native';
-import Clipboard from '@react-native-community/clipboard';
 import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../styles/common';
 import { getPaymentRequestSuccessOptionsTitle } from '../../UI/Navbar';
@@ -27,6 +26,7 @@ import { renderNumber } from '../../../util/number';
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
 import { protectWalletModalVisible } from '../../../actions/user';
+import ClipboardManager from '../../../core/ClipboardManager';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -198,7 +198,7 @@ class PaymentRequestSuccess extends PureComponent {
 	 */
 	copyAccountToClipboard = async () => {
 		const { link } = this.state;
-		await Clipboard.setString(link);
+		await ClipboardManager.setString(link);
 		InteractionManager.runAfterInteractions(() => {
 			this.props.showAlert({
 				isVisible: true,
