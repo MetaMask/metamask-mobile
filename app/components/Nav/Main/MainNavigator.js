@@ -162,6 +162,11 @@ const SettingsView = () => (
 		/>
 		<Stack.Screen name="ResetPassword" component={ResetPassword} options={ResetPassword.navigationOptions} />
 		<Stack.Screen
+			name="AccountBackupStep1B"
+			component={AccountBackupStep1B}
+			options={AccountBackupStep1B.navigationOptions}
+		/>
+		<Stack.Screen
 			name="ManualBackupStep1"
 			component={ManualBackupStep1}
 			options={ManualBackupStep1.navigationOptions}

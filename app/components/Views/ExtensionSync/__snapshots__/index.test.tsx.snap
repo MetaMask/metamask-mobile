@@ -1,0 +1,3 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ExtensionSync should render correctly 1`] = `<ExtensionSync />`;
