@@ -4,7 +4,7 @@ import SearchTokenAutocomplete from './';
 
 describe('SearchTokenAutocomplete', () => {
 	it('should render correctly', () => {
-		const wrapper = shallow(<SearchTokenAutocomplete />);
+		const wrapper = shallow(<SearchTokenAutocomplete navigation={{}} />);
 		expect(wrapper).toMatchSnapshot();
 	});
 });

@@ -45,12 +45,17 @@ interface Props {
 	/* navigation object required to push new views
 	*/
 	navigation: any;
+	/**
+	 * contains params that are passed in from navigation
+	 */
+	route: any;
 }
 
 /**
  * Main view for app Experimental Settings
  */
-const ExperimentalSettings = ({ navigation }: Props) => {
+const ExperimentalSettings = ({ navigation, route }: Props) => {
+	const isFullScreenModal = route?.params?.isFullScreenModal;
 	const isTokenDetectionEnabled = useSelector(
 		(state: any) => !state.engine.backgroundState.PreferencesController.useStaticTokenList
 	);
@@ -60,7 +65,9 @@ const ExperimentalSettings = ({ navigation }: Props) => {
 
 	useEffect(
 		() => {
-			navigation.setOptions(getNavigationOptionsTitle(strings('app_settings.experimental_title'), navigation));
+			navigation.setOptions(
+				getNavigationOptionsTitle(strings('app_settings.experimental_title'), navigation, isFullScreenModal)
+			);
 		},
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[]

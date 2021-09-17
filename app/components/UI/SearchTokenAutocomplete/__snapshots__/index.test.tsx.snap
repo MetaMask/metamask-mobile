@@ -24,6 +24,38 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
     showConfirmButton={true}
   >
     <View>
+      <Alert
+        renderIcon={[Function]}
+        style={
+          Object {
+            "marginHorizontal": 20,
+            "marginTop": 20,
+            "paddingRight": 0,
+          }
+        }
+        type="Info"
+      >
+        <Text
+          style={
+            Object {
+              "color": "#24292E",
+            }
+          }
+        >
+          New! Improved token detection is available on Ethereum Mainnet as an experimental feature. 
+        </Text>
+        <Text
+          onPress={[Function]}
+          style={
+            Object {
+              "color": "#037dd6",
+            }
+          }
+          suppressHighlighting={true}
+        >
+          Enable it from Settings.
+        </Text>
+      </Alert>
       <Memo()
         onSearch={[Function]}
       />

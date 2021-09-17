@@ -322,7 +322,9 @@
 		},
 		"warning_body_description": "Anyone can create a token, including creating fake versions of existing tokens. Learn more about ",
 		"warning_link": "scams and security risks.",
-		"security_tips": "Security Tips"
+		"security_tips": "Security Tips",
+		"token_detection_feature": "New! Improved token detection is available on Ethereum Mainnet as an experimental feature. ",
+		"token_detection_link": "Enable it from Settings."
 	},
 	"terms_and_conditions": {
 		"title": "Terms and Conditions",
