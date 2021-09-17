@@ -2,17 +2,23 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
 import EditGasFee1559 from '../EditGasFee1559';
 import { connect } from 'react-redux';
-import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
-import { fromWei } from '../../../util/number';
-import { parseTransactionEIP1559 } from '../../../util/transactions';
+import { SPEED_UP_RATE, GAS_ESTIMATE_TYPES } from '@metamask/controllers';
+import { hexToBN, fromWei, renderFromWei } from '../../../util/number';
+import BigNumber from 'bignumber.js';
+import { getTicker, parseTransactionEIP1559 } from '../../../util/transactions';
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
+import { strings } from '../../../../locales/i18n';
 
 /**
  * View that renders a list of transactions for a specific asset
  */
 const SpeedUpEIP1559TX = ({
 	gas,
+	accounts,
+	selectedAddress,
+	ticker,
+	existingGas,
 	gasFeeEstimates,
 	gasEstimateType,
 	contractExchangeRates,
@@ -26,8 +32,10 @@ const SpeedUpEIP1559TX = ({
 }) => {
 	const [EIP1559TransactionData, setEIP1559TransactionData] = useState({});
 	const [animateOnGasChange, setAnimateOnGasChange] = useState(false);
-	const gasSelected = useRef(AppConstants.GAS_OPTIONS.MEDIUM);
+	const [gasSelected, setGasSelected] = useState(AppConstants.GAS_OPTIONS.MEDIUM);
 	const stopUpdateGas = useRef(false);
+	const onlyDisplayHigh = useRef(false); //Flag to only display high in the event
+	const speedUp1559Options = useRef({});
 	const pollToken = useRef(undefined);
 	const firstTime = useRef(true);
 
@@ -48,11 +56,28 @@ const SpeedUpEIP1559TX = ({
 		};
 	}, []);
 
+	const validateSpeedUpAmount = useCallback(
+		(speedUpTx) => {
+			let error;
+
+			const speedUpCost = hexToBN(`0x${speedUpTx.totalMaxHex}`);
+			const accountBalance = hexToBN(accounts[selectedAddress].balance);
+			if (accountBalance.lt(speedUpCost)) {
+				const amount = renderFromWei(speedUpCost.sub(accountBalance));
+				const tokenSymbol = getTicker(ticker);
+				error = strings('transaction.insufficient_amount', { amount, tokenSymbol });
+			}
+
+			return error;
+		},
+		[accounts, selectedAddress, ticker]
+	);
+
 	const parseTransactionDataEIP1559 = useCallback(
 		(gasFee) => {
 			const parsedTransactionEIP1559 = parseTransactionEIP1559(
 				{
-					gasSelected: gasSelected.current,
+					gasSelected,
 					contractExchangeRates,
 					conversionRate,
 					currentCurrency,
@@ -63,9 +88,19 @@ const SpeedUpEIP1559TX = ({
 				{ onlyGas: true }
 			);
 
+			parsedTransactionEIP1559.error = validateSpeedUpAmount(parsedTransactionEIP1559);
+
 			return parsedTransactionEIP1559;
 		},
-		[contractExchangeRates, conversionRate, currentCurrency, gasFeeEstimates, nativeCurrency]
+		[
+			contractExchangeRates,
+			conversionRate,
+			currentCurrency,
+			gasFeeEstimates,
+			nativeCurrency,
+			gasSelected,
+			validateSpeedUpAmount,
+		]
 	);
 
 	useEffect(() => {
@@ -73,45 +108,87 @@ const SpeedUpEIP1559TX = ({
 		if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
 			const suggestedGasLimit = fromWei(gas, 'wei');
 
-			const EIP1559TransactionData = parseTransactionDataEIP1559({
-				...gasFeeEstimates[gasSelected.current],
-				suggestedGasLimit,
-				selectedOption: gasSelected.current,
-			});
+			let speedUpTxEstimates = gasFeeEstimates[gasSelected];
 
 			if (firstTime.current) {
-				// TODO MOVE THE initializes1559SpeedUpTransaction INTO HERE
+				const newDecMaxFeePerGas = new BigNumber(existingGas.maxFeePerGas).times(new BigNumber(SPEED_UP_RATE));
+				const newDecMaxPriorityFeePerGas = new BigNumber(existingGas.maxPriorityFeePerGas).times(
+					new BigNumber(SPEED_UP_RATE)
+				);
+
+				//Check to see if default SPEED_UP_RATE is greater than current market medium value
+				if (
+					newDecMaxPriorityFeePerGas.gte(
+						new BigNumber(gasFeeEstimates.medium.suggestedMaxPriorityFeePerGas)
+					) ||
+					newDecMaxFeePerGas.gte(new BigNumber(gasFeeEstimates.medium.suggestedMaxFeePerGas))
+				) {
+					speedUp1559Options.current = {
+						maxPriortyFeeThreshold: newDecMaxPriorityFeePerGas,
+						maxFeeThreshold: newDecMaxFeePerGas,
+						showAdvanced: true,
+					};
+
+					speedUpTxEstimates = {
+						selectedOption: undefined,
+						suggestedMaxFeePerGas: newDecMaxFeePerGas,
+						suggestedMaxPriorityFeePerGas: newDecMaxPriorityFeePerGas,
+					};
+
+					onlyDisplayHigh.current = true;
+					//Disable polling
+					stopUpdateGas.current = true;
+					setGasSelected(undefined);
+				} else {
+					speedUp1559Options.current = {
+						maxPriortyFeeThreshold: gasFeeEstimates.medium.suggestedMaxPriorityFeePerGas,
+						maxFeeThreshold: gasFeeEstimates.medium.suggestedMaxFeePerGas,
+						showAdvanced: false,
+					};
+					setAnimateOnGasChange(true);
+				}
 			}
+
+			const EIP1559TransactionData = parseTransactionDataEIP1559({
+				...speedUpTxEstimates,
+				suggestedGasLimit,
+				selectedOption: gasSelected,
+			});
 
 			firstTime.current = false;
 
-			setAnimateOnGasChange(true);
 			setEIP1559TransactionData(EIP1559TransactionData);
 		}
-	}, [gas, gasEstimateType, gasFeeEstimates, parseTransactionDataEIP1559]);
+	}, [
+		existingGas.maxFeePerGas,
+		existingGas.maxPriorityFeePerGas,
+		gas,
+		gasEstimateType,
+		gasFeeEstimates,
+		gasSelected,
+		parseTransactionDataEIP1559,
+	]);
 
 	const calculate1559TempGasFee = (gasValues, selected) => {
 		if (selected && gas) {
 			gasValues.suggestedGasLimit = fromWei(gas, 'wei');
+			setAnimateOnGasChange(true);
 		}
-
 		setEIP1559TransactionData(parseTransactionDataEIP1559({ ...gasValues, selectedOption: selected }));
 		stopUpdateGas.current = !selected;
-		gasSelected.current = selected;
+		setGasSelected(selected);
 	};
 
 	const getGasAnalyticsParams = () => ({
-		//active_currency: { value: selectedAsset?.symbol, anonymous: true },
-		//network_name: networkType,
 		chain_id: chainId,
 		gas_estimate_type: gasEstimateType,
-		gas_mode: gasSelected.current ? 'Basic' : 'Advanced',
-		speed_set: gasSelected.current || undefined,
+		gas_mode: gasSelected ? 'Basic' : 'Advanced',
+		speed_set: gasSelected || undefined,
 	});
 
 	return (
 		<EditGasFee1559
-			selected={gasSelected.current}
+			selected={gasSelected}
 			gasFee={EIP1559TransactionData}
 			gasOptions={gasFeeEstimates}
 			onChange={calculate1559TempGasFee}
@@ -132,11 +209,11 @@ const SpeedUpEIP1559TX = ({
 			onSave={() => onSave(EIP1559TransactionData)}
 			error={EIP1559TransactionData.error}
 			ignoreOptions={
-				!gasSelected
+				onlyDisplayHigh.current
 					? [AppConstants.GAS_OPTIONS.LOW, AppConstants.GAS_OPTIONS.MEDIUM]
 					: [AppConstants.GAS_OPTIONS.LOW]
 			}
-			//speedUpOption={}
+			speedUpOption={speedUp1559Options.current}
 			analyticsParams={getGasAnalyticsParams()}
 			view={'Transactions (Speed Up)'}
 			animateOnChange={animateOnGasChange}
@@ -145,6 +222,10 @@ const SpeedUpEIP1559TX = ({
 };
 
 SpeedUpEIP1559TX.propTypes = {
+	/**
+	 * Map of accounts to information objects including balances
+	 */
+	accounts: PropTypes.object,
 	/**
 	 * ETH to current currency conversion rate
 	 */
@@ -173,6 +254,15 @@ SpeedUpEIP1559TX.propTypes = {
 	 * Estimate type returned by the gas fee controller, can be market-fee, legacy or eth_gasPrice
 	 */
 	gasEstimateType: PropTypes.string,
+	/**
+	 * A string that represents the selected address
+	 */
+	selectedAddress: PropTypes.string,
+	/**
+	 * Current provider ticker
+	 */
+	ticker: PropTypes.string,
+	existingGas: PropTypes.object,
 	nativeCurrency: PropTypes.string,
 	gas: PropTypes.string,
 	onCancel: PropTypes.func,
@@ -180,6 +270,9 @@ SpeedUpEIP1559TX.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	gasFeeEstimates: state.engine.backgroundState.GasFeeController.gasFeeEstimates,
 	gasEstimateType: state.engine.backgroundState.GasFeeController.gasEstimateType,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,

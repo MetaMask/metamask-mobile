@@ -1225,6 +1225,12 @@
 		"body_for_seedphrase": "Now that value was added to your wallet, protect your wallet by setting a password and saving your Secret Recovery Phrase (required).",
 		"button": "Protect wallet"
 	},
+	"speed_up_retry_modal": {
+		"title": "Speed Up Failed",
+		"text": "Would you like to try again?",
+		"cancel_button": "Retry",
+		"retry_button": "Retry"
+	},
 	"payment_request": {
 		"title": "Request",
 		"search_top_picks": "Top picks",

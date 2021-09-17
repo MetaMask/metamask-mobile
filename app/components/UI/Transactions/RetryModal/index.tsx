@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
 import ActionModal from '../../ActionModal';
+import { strings } from '../../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	modal: {
@@ -38,26 +39,21 @@ interface Props {
 	errorMsg: string;
 }
 
-const RetryModal = ({ retryIsOpen, onConfirmPress, onCancelPress, errorMsg }: Props) => {
-	const confirmText = 'Retry?';
-	const cancelText = 'Cancel';
-	return (
-		<ActionModal
-			modalStyle={styles.modal}
-			modalVisible={retryIsOpen}
-			confirmText={confirmText}
-			cancelText={cancelText}
-			onConfirmPress={onConfirmPress}
-			onCancelPress={onCancelPress}
-			onRequestClose={onCancelPress}
-		>
-			<View style={styles.modalView}>
-				<Text style={styles.modalTitle}>Speed Up Failed</Text>
-				{errorMsg && <Text style={styles.modalText}>Reason: {errorMsg}</Text>}
-				<Text style={styles.modalText}>would you like to try again?</Text>
-			</View>
-		</ActionModal>
-	);
-};
+const RetryModal = ({ retryIsOpen, onConfirmPress, onCancelPress }: Props) => (
+	<ActionModal
+		modalStyle={styles.modal}
+		modalVisible={retryIsOpen}
+		confirmText={strings('speed_up_retry_modal.retry_button')}
+		cancelText={strings('speed_up_retry_modal.cancel_button')}
+		onConfirmPress={onConfirmPress}
+		onCancelPress={onCancelPress}
+		onRequestClose={onCancelPress}
+	>
+		<View style={styles.modalView}>
+			<Text style={styles.modalTitle}>{strings('speed_up_retry_modal.title')}</Text>
+			<Text style={styles.modalText}>{strings('speed_up_retry_modal.text')}</Text>
+		</View>
+	</ActionModal>
+);
 
 export default RetryModal;

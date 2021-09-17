@@ -21,19 +21,19 @@ import TransactionElement from '../TransactionElement';
 import Engine from '../../../core/Engine';
 import { showAlert } from '../../../actions/alert';
 import NotificationManager from '../../../core/NotificationManager';
-import { util, CANCEL_RATE, SPEED_UP_RATE } from '@metamask/controllers';
-import { isDecimal, renderFromWei } from '../../../util/number';
+import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/controllers';
+import { renderFromWei } from '../../../util/number';
 import Device from '../../../util/device';
 import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../constants/network';
 import TransactionActionModal from '../TransactionActionModal';
 import Logger from '../../../util/Logger';
-import { getTicker, parseTransactionEIP1559, validateTransactionActionBalance } from '../../../util/transactions';
+import { parseTransactionEIP1559, validateTransactionActionBalance } from '../../../util/transactions';
 import BigNumber from 'bignumber.js';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Modal from 'react-native-modal';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-
-const { hexToBN } = util;
+import RetryModal from './RetryModal';
+import SpeedUpEIP1559Tx from '../SpeedUpEIP1559Tx';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -73,64 +73,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		textAlign: 'center',
 	},
-	modalView: {
-		flexDirection: 'column',
-		justifyContent: 'center',
-		alignItems: 'center',
-		paddingVertical: 24,
-		paddingHorizontal: 24,
-		width: '100%',
-	},
-	modalText: {
-		...fontStyles.normal,
-		fontSize: 14,
-		textAlign: 'center',
-		paddingVertical: 8,
-		color: colors.black,
-	},
-	modalTitle: {
-		...fontStyles.bold,
-		fontSize: 22,
-		textAlign: 'center',
-		color: colors.black,
-	},
-	modal: {
-		margin: 0,
-		width: '100%',
-	},
 });
-
-import ActionModal from '../ActionModal';
-import SpeedUpEIP1559Tx from '../SpeedUpEIP1559Tx';
-
-const RetryModal = ({ retryIsOpen, onConfirmPress, onCancelPress, errorMsg }) => {
-	const confirmText = 'Retry?';
-	const cancelText = 'Cancel';
-	return (
-		<ActionModal
-			modalStyle={styles.modal}
-			modalVisible={retryIsOpen}
-			confirmText={confirmText}
-			cancelText={cancelText}
-			onConfirmPress={onConfirmPress}
-			onCancelPress={onCancelPress}
-			onRequestClose={onCancelPress}
-		>
-			<View style={styles.modalView}>
-				<Text style={styles.modalTitle}>Speed Up Failed</Text>
-				{errorMsg && <Text style={styles.modalText}>Reason: {errorMsg}</Text>}
-				<Text style={styles.modalText}>would you like to try again?</Text>
-			</View>
-		</ActionModal>
-	);
-};
-
-RetryModal.propTypes = {
-	retryIsOpen: PropTypes.bool,
-	onConfirmPress: PropTypes.func,
-	onCancelPress: PropTypes.func,
-	errorMsg: PropTypes.oneOfType([PropTypes.undefined, PropTypes.string]),
-};
 
 const ROW_HEIGHT = (Device.isIos() ? 95 : 100) + StyleSheet.hairlineWidth;
 
@@ -221,10 +164,6 @@ class Transactions extends PureComponent {
 		 * The network native currency
 		 */
 		nativeCurrency: PropTypes.string,
-		/**
-		 * Current provider ticker
-		 */
-		ticker: PropTypes.string,
 	};
 
 	static defaultProps = {
@@ -273,6 +212,10 @@ class Transactions extends PureComponent {
 		}
 		this.setState({ rpcBlockExplorer: blockExplorer });
 	};
+
+	componentWillUnmount() {
+		this.mounted = false;
+	}
 
 	init() {
 		this.mounted && this.setState({ ready: true });
@@ -410,8 +353,7 @@ class Transactions extends PureComponent {
 		this.speedUpTxId = tx.id;
 		this.existingTx = tx;
 		if (existingGas.isEIP1559Transaction) {
-			//Create the inital 1559 speed up transaction as speed up initializes
-			//this.initializes1559SpeedUpTransaction(this.existingTx, this.existingGas);
+			console.log('1559', speedUpAction, this.state.ready);
 			this.setState({ speedUp1559IsOpen: speedUpAction });
 		} else {
 			const speedUpConfirmDisabled = validateTransactionActionBalance(tx, SPEED_UP_RATE, this.props.accounts);
@@ -419,43 +361,12 @@ class Transactions extends PureComponent {
 		}
 	};
 
-	/** BEGIN the core of methods specifically related to 1559 Speed Up */
-
-	speedUp1559Options = null;
-
-	componentWillUnmount() {
-		this.mounted = false;
-	}
-
-	validateSpeedUpAmount = (transaction, speedUpTx) => {
-		const { accounts, selectedAddress, ticker } = this.props;
-		let weiBalance, error;
-
-		if (isDecimal(transaction.value)) {
-			weiBalance = hexToBN(accounts[selectedAddress].balance);
-			const totalTransactionValue = hexToBN(`0x${speedUpTx.totalMaxHex}`);
-			if (!weiBalance.gte(totalTransactionValue)) {
-				const amount = renderFromWei(totalTransactionValue.sub(weiBalance));
-				const tokenSymbol = getTicker(ticker);
-				error = strings('transaction.insufficient_amount', { amount, tokenSymbol });
-			}
-			//TODO What if the tx is a contract?
-		} else {
-			error = strings('transaction.invalid_amount');
-		}
-
-		return error;
-	};
-
-	/** END of methods specifically related to 1559 Speed Up */
-
 	onSpeedUpCompleted = () => {
 		this.setState({ speedUp1559IsOpen: false });
 		this.setState({ speedUpIsOpen: false });
 		this.existingGas = null;
 		this.speedUpTxId = null;
 		this.existingTx = null;
-		this.speedUp1559Options = null;
 	};
 
 	onCancelAction = (cancelAction, existingGas, tx) => {
@@ -474,9 +385,7 @@ class Transactions extends PureComponent {
 		const speedUpTxId = this.speedUpTxId;
 		Logger.error(e, { message: `speedUpTransaction failed `, speedUpTxId });
 		InteractionManager.runAfterInteractions(this.toggleRetry);
-		// do we want to bubble up the error message?
-		// could be helpful for CS and giving users the opportunity to get "unstuck"
-		this.setState({ errorMsg: e.message });
+		this.setState({ errorMsg: e.message, speedUp1559IsOpen: false, speedUpIsOpen: false });
 	};
 
 	handleCancelTransactionFailure = (e) => {
@@ -491,10 +400,10 @@ class Transactions extends PureComponent {
 				maxFeePerGas: `0x${EIP1559TransactionData?.suggestedMaxFeePerGasHex}`,
 				maxPriorityFeePerGas: `0x${EIP1559TransactionData?.suggestedMaxPriorityFeePerGasHex}`,
 			});
+			this.onSpeedUpCompleted();
 		} catch (e) {
 			this.handleSpeedUpTransactionFailure(e);
 		}
-		this.onSpeedUpCompleted();
 	};
 
 	cancelTransaction = () => {
@@ -526,7 +435,17 @@ class Transactions extends PureComponent {
 		/>
 	);
 
-	toggleRetry = () => this.setState((state) => ({ retryIsOpen: !state.retryIsOpen, errorMsg: undefined }));
+	toggleRetry = () => {
+		this.setState((state) => ({ retryIsOpen: !state.retryIsOpen, errorMsg: undefined }));
+	};
+
+	retry = () => {
+		this.setState((state) => ({ retryIsOpen: !state.retryIsOpen, errorMsg: undefined }));
+		//TODO need a better solution
+		setTimeout(() => {
+			this.onSpeedUpAction(true, this.existingGas, this.existingTx);
+		}, 500);
+	};
 
 	renderSpeedUpGas = () => {
 		if (!this.existingGas) {
@@ -559,6 +478,7 @@ class Transactions extends PureComponent {
 							gas={this.existingTx.transaction.gas}
 							onSave={this.speedUpTransaction}
 							onCancel={this.onSpeedUpCompleted}
+							existingGas={this.existingGas}
 						/>
 					</KeyboardAwareScrollView>
 				</Modal>
@@ -656,8 +576,8 @@ class Transactions extends PureComponent {
 				/>
 
 				<RetryModal
-					errorMsg={this.state.errorMsg}
 					onCancelPress={this.toggleRetry}
+					onConfirmPress={this.retry}
 					retryIsOpen={this.state.retryIsOpen}
 				/>
 			</View>
@@ -671,7 +591,6 @@ class Transactions extends PureComponent {
 				: !this.props.transactions.length
 				? this.renderEmpty()
 				: this.renderList()}
-			{/* {mode === EDIT && this.renderCustomGasModalLegacy()} */}
 			{this.state.speedUp1559IsOpen && this.renderSpeedUpEIP1559Gas()}
 		</SafeAreaView>
 	);
@@ -680,7 +599,6 @@ class Transactions extends PureComponent {
 const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	collectibleContracts: state.engine.backgroundState.CollectiblesController.collectibleContracts,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
@@ -698,8 +616,6 @@ const mapStateToProps = (state) => ({
 	nativeCurrency: state.engine.backgroundState.CurrencyRateController.nativeCurrency,
 	gasEstimateType: state.engine.backgroundState.GasFeeController.gasEstimateType,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
-	selectedAsset: state.transaction.selectedAsset,
-	transactionState: state.transaction,
 });
 
 const mapDispatchToProps = (dispatch) => ({
