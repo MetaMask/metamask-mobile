@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { memo, useEffect, useState, useCallback } from 'react';
 import { TextInput, View, StyleSheet } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -48,7 +48,8 @@ interface Props {
 	onBlur: () => void;
 }
 
-const AssetSearch = ({ onSearch, onFocus, onBlur }: Props) => {
+// eslint-disable-next-line react/display-name
+const AssetSearch = memo(({ onSearch, onFocus, onBlur }: Props) => {
 	const [searchQuery, setSearchQuery] = useState('');
 	const [inputWidth, setInputWidth] = useState('85%');
 	const tokenList = useSelector<any, TokenListToken[]>(getTokenListArray);
@@ -90,6 +91,6 @@ const AssetSearch = ({ onSearch, onFocus, onBlur }: Props) => {
 			/>
 		</View>
 	);
-};
+});
 
 export default AssetSearch;
