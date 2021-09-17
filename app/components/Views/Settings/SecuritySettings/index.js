@@ -10,6 +10,7 @@ import {
 	ActivityIndicator,
 	TouchableOpacity,
 	Keyboard,
+	InteractionManager,
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
@@ -43,7 +44,7 @@ import {
 import CookieManager from '@react-native-community/cookies';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import HintModal from '../../../UI/HintModal';
-import { trackErrorAsAnalytics } from '../../../../util/analyticsV2';
+import AnalyticsV2, { trackErrorAsAnalytics } from '../../../../util/analyticsV2';
 import SeedPhraseVideo from '../../../UI/SeedPhraseVideo';
 
 const isIos = Device.isIos();
@@ -443,11 +444,26 @@ class Settings extends PureComponent {
 		this.props.setThirdPartyApiMode(value);
 	};
 
+	/**
+	 * Track the event of opt in or opt out.
+	 * @param AnalyticsOptionSelected - User selected option regarding the tracking of events
+	 */
+	trackOptInEvent = (AnalyticsOptionSelected) => {
+		InteractionManager.runAfterInteractions(async () => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ANALYTICS_PREFERENCE_SELECTED, {
+				analytics_option_selected: AnalyticsOptionSelected,
+				updated_after_onboarding: true,
+			});
+		});
+	};
+
 	toggleMetricsOptIn = async (value) => {
 		if (value) {
 			Analytics.enable();
 			this.setState({ metricsOptIn: true });
+			await this.trackOptInEvent('Metrics Opt In');
 		} else {
+			await this.trackOptInEvent('Metrics Opt Out');
 			Analytics.disable();
 			this.setState({ metricsOptIn: false });
 			Alert.alert(
@@ -467,6 +483,15 @@ class Settings extends PureComponent {
 
 	selectLockTime = (lockTime) => {
 		this.props.setLockTime(parseInt(lockTime, 10));
+	};
+
+	goToBackup = () => {
+		this.props.navigation.navigate('AccountBackupStep1B');
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_STARTED, {
+				source: 'Settings',
+			});
+		});
 	};
 
 	manualBackup = () => {
@@ -567,7 +592,7 @@ class Settings extends PureComponent {
 							) : null}
 						</SettingsNotification>
 						{!seedphraseBackedUp ? (
-							<StyledButton type="blue" onPress={this.manualBackup} containerStyle={styles.confirm}>
+							<StyledButton type="blue" onPress={this.goToBackup} containerStyle={styles.confirm}>
 								{strings('app_settings.back_up_now')}
 							</StyledButton>
 						) : (

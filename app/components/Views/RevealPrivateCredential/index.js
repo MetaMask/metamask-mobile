@@ -9,7 +9,6 @@ import {
 	TouchableOpacity,
 	InteractionManager,
 } from 'react-native';
-import Clipboard from '@react-native-community/clipboard';
 import AsyncStorage from '@react-native-community/async-storage';
 import { colors, fontStyles } from '../../../styles/common';
 import PropTypes from 'prop-types';
@@ -26,6 +25,7 @@ import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import { BIOMETRY_CHOICE } from '../../../constants/storage';
+import ClipboardManager from '../../../core/ClipboardManager';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -249,13 +249,17 @@ class RevealPrivateCredential extends PureComponent {
 	copyPrivateCredentialToClipboard = async () => {
 		const { privateCredential } = this.state;
 		const privateCredentialName = this.props.privateCredentialName || this.props.route.params.privateCredentialName;
-
-		await Clipboard.setString(privateCredential);
+		await ClipboardManager.setStringExpire(privateCredential);
 		this.props.showAlert({
 			isVisible: true,
 			autodismiss: 1500,
 			content: 'clipboard-alert',
-			data: { msg: strings(`reveal_credential.${privateCredentialName}_copied`) },
+			data: {
+				msg: `${strings(`reveal_credential.${privateCredentialName}_copied`)}\n${strings(
+					`reveal_credential.${privateCredentialName}_copied_time`
+				)}`,
+				width: '70%',
+			},
 		});
 	};
 

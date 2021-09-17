@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { TouchableOpacity, StyleSheet } from 'react-native';
+import { Platform, TouchableOpacity, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import ElevatedView from 'react-native-elevated-view';
 import TabCountIcon from '../Tabs/TabCountIcon';
@@ -7,6 +7,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import FeatherIcons from 'react-native-vector-icons/Feather';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import Device from '../../../util/device';
 import { colors } from '../../../styles/common';
 
@@ -92,14 +93,47 @@ export default class BrowserBottomBar extends PureComponent {
 		toggleOptions: PropTypes.func,
 	};
 
+	trackSearchEvent = () => {
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_SEARCH_USED, {
+			option: 'Browser Bottom Bar Menu',
+		});
+	};
+
+	trackNavigationEvent = (navigationOption) => {
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_NAVIGATION, {
+			option: navigationOption,
+			os: Platform.OS,
+		});
+	};
+
 	render() {
 		const { canGoBack, goBack, canGoForward, goForward, showTabs, goHome, showUrlModal, toggleOptions } =
 			this.props;
 
+		const onSearchPress = () => {
+			showUrlModal();
+			this.trackSearchEvent();
+		};
+
+		const onBackPress = () => {
+			goBack();
+			this.trackNavigationEvent('Go Back');
+		};
+
+		const onForwardPress = () => {
+			goForward();
+			this.trackNavigationEvent('Go Forward');
+		};
+
+		const onHomePress = () => {
+			goHome();
+			this.trackNavigationEvent('Go Home');
+		};
+
 		return (
 			<ElevatedView elevation={11} style={styles.bottomBar}>
 				<TouchableOpacity
-					onPress={goBack}
+					onPress={onBackPress}
 					style={styles.iconButton}
 					testID={'go-back-button'}
 					disabled={!canGoBack}
@@ -107,7 +141,7 @@ export default class BrowserBottomBar extends PureComponent {
 					<Icon name="angle-left" size={24} style={[styles.icon, !canGoBack ? styles.disabledIcon : {}]} />
 				</TouchableOpacity>
 				<TouchableOpacity
-					onPress={goForward}
+					onPress={onForwardPress}
 					style={styles.iconButton}
 					testID={'go-forward-button'}
 					disabled={!canGoForward}
@@ -118,14 +152,14 @@ export default class BrowserBottomBar extends PureComponent {
 						style={[styles.icon, !canGoForward ? styles.disabledIcon : {}]}
 					/>
 				</TouchableOpacity>
-				<TouchableOpacity onPress={showUrlModal} style={styles.iconButton} testID={'search-button'}>
+				<TouchableOpacity onPress={onSearchPress} style={styles.iconButton} testID={'search-button'}>
 					<FeatherIcons name="search" size={24} style={styles.icon} />
 				</TouchableOpacity>
 
 				<TouchableOpacity onPress={showTabs} style={styles.iconButton} testID={'show-tabs-button'}>
 					<TabCountIcon style={styles.tabIcon} />
 				</TouchableOpacity>
-				<TouchableOpacity onPress={goHome} style={styles.iconButton} testID={'home-button'}>
+				<TouchableOpacity onPress={onHomePress} style={styles.iconButton} testID={'home-button'}>
 					<SimpleLineIcons name="home" size={22} style={styles.icon} />
 				</TouchableOpacity>
 
