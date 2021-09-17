@@ -3,12 +3,18 @@ import { shallow } from 'enzyme';
 import ExperimentalSettings from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
+import { MAINNET } from 'app/constants/network';
 
 const mockStore = configureMockStore();
 const initialState = {
 	engine: {
 		backgroundState: {
 			PreferencesController: { useStaticTokenList: true },
+			NetworkController: {
+				provider: {
+					type: MAINNET,
+				},
+			},
 		},
 	},
 };

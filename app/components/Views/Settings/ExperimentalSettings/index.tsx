@@ -7,6 +7,7 @@ import { strings } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
 import Engine from '../../../../core/Engine';
 import { useSelector } from 'react-redux';
+import { MAINNET } from '../../../../constants/network';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -53,6 +54,9 @@ const ExperimentalSettings = ({ navigation }: Props) => {
 	const isTokenDetectionEnabled = useSelector(
 		(state: any) => !state.engine.backgroundState.PreferencesController.useStaticTokenList
 	);
+	const isMainnet = useSelector(
+		(state: any) => state.engine.backgroundState.NetworkController.provider.type === MAINNET
+	);
 
 	useEffect(
 		() => {
@@ -72,21 +76,22 @@ const ExperimentalSettings = ({ navigation }: Props) => {
 	}, []);
 
 	const renderTokenDetectionSection = useCallback(
-		() => (
-			<View style={styles.setting} testID={'token-detection-section'}>
-				<Text style={styles.title}>{strings('app_settings.token_detection_title')}</Text>
-				<Text style={styles.desc}>{strings('app_settings.token_detection_description')}</Text>
-				<View style={styles.switchElement}>
-					<Switch
-						value={isTokenDetectionEnabled}
-						onValueChange={toggleTokenDetection}
-						trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : undefined}
-						ios_backgroundColor={colors.grey000}
-					/>
+		() =>
+			isMainnet ? (
+				<View style={styles.setting} testID={'token-detection-section'}>
+					<Text style={styles.title}>{strings('app_settings.token_detection_title')}</Text>
+					<Text style={styles.desc}>{strings('app_settings.token_detection_description')}</Text>
+					<View style={styles.switchElement}>
+						<Switch
+							value={isTokenDetectionEnabled}
+							onValueChange={toggleTokenDetection}
+							trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : undefined}
+							ios_backgroundColor={colors.grey000}
+						/>
+					</View>
 				</View>
-			</View>
-		),
-		[isTokenDetectionEnabled, toggleTokenDetection]
+			) : null,
+		[isTokenDetectionEnabled, toggleTokenDetection, isMainnet]
 	);
 
 	return (
