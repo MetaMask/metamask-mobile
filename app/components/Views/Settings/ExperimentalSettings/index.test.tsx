@@ -6,13 +6,9 @@ import { Provider } from 'react-redux';
 
 const mockStore = configureMockStore();
 const initialState = {
-	privacy: { approvedHosts: {}, privacyMode: true },
-	browser: { history: [] },
-	settings: { lockTime: 1000 },
 	engine: {
 		backgroundState: {
-			PreferencesController: { selectedAddress: '0x', identities: { '0x': { name: 'Account 1' } } },
-			AccountTrackerController: { accounts: {} },
+			PreferencesController: { useStaticTokenList: true },
 		},
 	},
 };
@@ -22,9 +18,9 @@ describe('ExperimentalSettings', () => {
 	it('should render correctly', () => {
 		const wrapper = shallow(
 			<Provider store={store}>
-				<ExperimentalSettings />
+				<ExperimentalSettings navigation={{}} />
 			</Provider>
 		);
-		expect(wrapper.dive()).toMatchSnapshot();
+		expect(wrapper).toMatchSnapshot();
 	});
 });
