@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import PropTypes from 'prop-types';
 import EditGasFee1559 from '../EditGasFee1559';
 import { connect } from 'react-redux';
 import { CANCEL_RATE, SPEED_UP_RATE, GAS_ESTIMATE_TYPES } from '@metamask/controllers';
@@ -13,6 +12,93 @@ import { strings } from '../../../../locales/i18n';
 /**
  * View that renders a list of transactions for a specific asset
  */
+
+interface Props {
+	/**
+	 * Map of accounts to information objects including balances
+	 */
+	accounts: any;
+	/**
+	 * ETH to current currency conversion rate
+	 */
+	conversionRate: number;
+	/**
+	 * Currency code of the currently-active currency
+	 */
+	currentCurrency: string;
+	/**
+	 * Object containing token exchange rates in the format address => exchangeRate
+	 */
+	contractExchangeRates: any;
+	/**
+	 * Chain Id
+	 */
+	chainId: string;
+	/**
+	 * ETH or fiat, depending on user setting
+	 */
+	primaryCurrency: string;
+	/**
+	 * Gas fee estimates returned by the gas fee controller
+	 */
+	gasFeeEstimates: any;
+	/**
+	 * Estimate type returned by the gas fee controller, can be market-fee, legacy or eth_gasPrice
+	 */
+	gasEstimateType: string;
+	/**
+	 * A string that represents the selected address
+	 */
+	selectedAddress: string;
+	/**
+	 * A bool indicates whether tx is speed up/cancel
+	 */
+	isCancel: boolean;
+	/**
+	 * Current provider ticker
+	 */
+	ticker: string;
+	/**
+	 * The max fee and max priorty fee selected tx
+	 */
+	existingGas: any;
+	/**
+	 * Native currency set by user
+	 */
+	nativeCurrency: string;
+	/**
+	 * Gas object used to get suggestedGasLimit
+	 */
+	gas: any;
+	/**
+	 * Function that cancels the tx update
+	 */
+	onCancel: () => void;
+	/**
+	 * Function that performs the rest of the tx update
+	 */
+	onSave: (tx: any) => void;
+}
+
+interface UpdateTx1559Options {
+	/**
+	 * The legacy calculated max priorty fee used in subcomponent for threshold warning messages
+	 */
+	maxPriortyFeeThreshold: BigNumber;
+	/**
+	 * The legacy calculated max fee used in subcomponent for threshold warning messages
+	 */
+	maxFeeThreshold: BigNumber;
+	/**
+	 * Boolean to indicate to sumcomponent if the view should display only advanced settings
+	 */
+	showAdvanced: boolean;
+	/**
+	 * Boolean to indicate if this is a cancel tx update
+	 */
+	isCancel: boolean;
+}
+
 const UpdateEIP1559Tx = ({
 	gas,
 	accounts,
@@ -30,13 +116,19 @@ const UpdateEIP1559Tx = ({
 	chainId,
 	onCancel,
 	onSave,
-}) => {
-	const [EIP1559TransactionData, setEIP1559TransactionData] = useState({});
+}: Props) => {
+	const [EIP1559TransactionData, setEIP1559TransactionData] = useState<any>({});
 	const [animateOnGasChange, setAnimateOnGasChange] = useState(false);
 	const [gasSelected, setGasSelected] = useState(AppConstants.GAS_OPTIONS.MEDIUM);
 	const stopUpdateGas = useRef(false);
-	const onlyDisplayHigh = useRef(false); //Flag to only display high in the event
-	const updateTx1559Options = useRef({});
+	/**
+	 * Flag to only display high gas selection option if the legacy is higher then low/med
+	 */
+	const onlyDisplayHigh = useRef(false);
+	/**
+	 * Options
+	 */
+	const updateTx1559Options = useRef<UpdateTx1559Options | undefined>();
 	const pollToken = useRef(undefined);
 	const firstTime = useRef(true);
 
@@ -45,7 +137,7 @@ const UpdateEIP1559Tx = ({
 	}, [animateOnGasChange]);
 
 	useEffect(() => {
-		const { GasFeeController } = Engine.context;
+		const { GasFeeController }: any = Engine.context;
 		const startGasEstimatePolling = async () => {
 			pollToken.current = await GasFeeController.getGasFeeEstimatesAndStartPolling(pollToken.current);
 		};
@@ -61,8 +153,8 @@ const UpdateEIP1559Tx = ({
 		(updateTx) => {
 			let error;
 
-			const updateTxCost = hexToBN(`0x${updateTx.totalMaxHex}`);
-			const accountBalance = hexToBN(accounts[selectedAddress].balance);
+			const updateTxCost: any = hexToBN(`0x${updateTx.totalMaxHex}`);
+			const accountBalance: any = hexToBN(accounts[selectedAddress].balance);
 			if (accountBalance.lt(updateTxCost)) {
 				const amount = renderFromWei(updateTxCost.sub(accountBalance));
 				const tokenSymbol = getTicker(ticker);
@@ -76,10 +168,10 @@ const UpdateEIP1559Tx = ({
 
 	const parseTransactionDataEIP1559 = useCallback(
 		(gasFee) => {
-			const parsedTransactionEIP1559 = parseTransactionEIP1559(
+			const parsedTransactionEIP1559: any = parseTransactionEIP1559(
 				{
-					gasSelected,
 					contractExchangeRates,
+					swapsParams: undefined,
 					conversionRate,
 					currentCurrency,
 					nativeCurrency,
@@ -93,15 +185,7 @@ const UpdateEIP1559Tx = ({
 
 			return parsedTransactionEIP1559;
 		},
-		[
-			contractExchangeRates,
-			conversionRate,
-			currentCurrency,
-			gasFeeEstimates,
-			nativeCurrency,
-			gasSelected,
-			validateAmount,
-		]
+		[contractExchangeRates, conversionRate, currentCurrency, gasFeeEstimates, nativeCurrency, validateAmount]
 	);
 
 	useEffect(() => {
@@ -142,7 +226,7 @@ const UpdateEIP1559Tx = ({
 					onlyDisplayHigh.current = true;
 					//Disable polling
 					stopUpdateGas.current = true;
-					setGasSelected(undefined);
+					setGasSelected('');
 				} else {
 					updateTx1559Options.current = {
 						maxPriortyFeeThreshold: gasFeeEstimates.medium.suggestedMaxPriorityFeePerGas,
@@ -154,7 +238,7 @@ const UpdateEIP1559Tx = ({
 				}
 			}
 
-			const EIP1559TransactionData = parseTransactionDataEIP1559({
+			const parsedTransactionEIP1559: any = parseTransactionDataEIP1559({
 				...updateTxEstimates,
 				suggestedGasLimit,
 				selectedOption: gasSelected,
@@ -162,20 +246,20 @@ const UpdateEIP1559Tx = ({
 
 			firstTime.current = false;
 
-			setEIP1559TransactionData(EIP1559TransactionData);
+			setEIP1559TransactionData(parsedTransactionEIP1559);
 		}
 	}, [
 		existingGas.maxFeePerGas,
 		existingGas.maxPriorityFeePerGas,
-		gas,
 		gasEstimateType,
 		gasFeeEstimates,
 		gasSelected,
 		parseTransactionDataEIP1559,
 		isCancel,
+		gas,
 	]);
 
-	const calculate1559TempGasFee = (gasValues, selected) => {
+	const calculate1559TempGasFee = (gasValues: any, selected: string) => {
 		if (selected && gas) {
 			gasValues.suggestedGasLimit = fromWei(gas, 'wei');
 		}
@@ -220,65 +304,13 @@ const UpdateEIP1559Tx = ({
 			}
 			updateOption={updateTx1559Options.current}
 			analyticsParams={getGasAnalyticsParams()}
-			view={'Transactions (Speed Up)'}
+			view={isCancel ? 'Transactions (Cancel)' : 'Transactions (Speed Up)'}
 			animateOnChange={animateOnGasChange}
 		/>
 	);
 };
 
-UpdateEIP1559Tx.propTypes = {
-	/**
-	 * Map of accounts to information objects including balances
-	 */
-	accounts: PropTypes.object,
-	/**
-	 * ETH to current currency conversion rate
-	 */
-	conversionRate: PropTypes.number,
-	/**
-	 * Currency code of the currently-active currency
-	 */
-	currentCurrency: PropTypes.string,
-	/**
-	 * Object containing token exchange rates in the format address => exchangeRate
-	 */
-	contractExchangeRates: PropTypes.object,
-	/**
-	 * Chain Id
-	 */
-	chainId: PropTypes.string,
-	/**
-	 * ETH or fiat, depending on user setting
-	 */
-	primaryCurrency: PropTypes.string,
-	/**
-	 * Gas fee estimates returned by the gas fee controller
-	 */
-	gasFeeEstimates: PropTypes.object,
-	/**
-	 * Estimate type returned by the gas fee controller, can be market-fee, legacy or eth_gasPrice
-	 */
-	gasEstimateType: PropTypes.string,
-	/**
-	 * A string that represents the selected address
-	 */
-	selectedAddress: PropTypes.string,
-	/**
-	 * A bool indicates whether tx is speed up/cancel
-	 */
-	isCancel: PropTypes.bool,
-	/**
-	 * Current provider ticker
-	 */
-	ticker: PropTypes.string,
-	existingGas: PropTypes.object,
-	nativeCurrency: PropTypes.string,
-	gas: PropTypes.string,
-	onCancel: PropTypes.func,
-	onSave: PropTypes.func,
-};
-
-const mapStateToProps = (state) => ({
+const mapStateToProps = (state: any) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,

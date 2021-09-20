@@ -158,7 +158,7 @@ const EditGasFee1559 = ({
 	warning,
 	dappSuggestedGas,
 	ignoreOptions,
-	updateOption = false,
+	updateOption,
 	extendOptions = {},
 	recommended,
 	warningMinimumEstimateOption,
