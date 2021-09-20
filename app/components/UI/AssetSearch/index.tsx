@@ -44,7 +44,13 @@ const fuse = new Fuse<TokenListToken>([], {
 
 interface Props {
 	onSearch: ({ results, searchQuery }: { results: TokenListToken[]; searchQuery: string }) => void;
+	/**
+	 * Callback that is called when the text input is focused
+	 */
 	onFocus: () => void;
+	/**
+	 * Callback that is called when the text input is blurred
+	 */
 	onBlur: () => void;
 }
 
