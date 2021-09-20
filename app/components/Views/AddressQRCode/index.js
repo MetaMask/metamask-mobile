@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, Dimensions, StyleSheet, View, Text } from 'react-native';
-import Clipboard from '@react-native-community/clipboard';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import QRCode from 'react-native-qrcode-svg';
@@ -11,6 +10,7 @@ import Device from '../../../util/device';
 import { showAlert } from '../../../actions/alert';
 import GlobalAlert from '../../UI/GlobalAlert';
 import { protectWalletModalVisible } from '../../../actions/user';
+import ClipboardManager from '../../../core/ClipboardManager';
 
 const WIDTH = Dimensions.get('window').width - 88;
 
@@ -99,7 +99,7 @@ class AddressQRCode extends PureComponent {
 
 	copyAccountToClipboard = async () => {
 		const { selectedAddress } = this.props;
-		await Clipboard.setString(selectedAddress);
+		await ClipboardManager.setString(selectedAddress);
 		this.props.showAlert({
 			isVisible: true,
 			autodismiss: 1500,

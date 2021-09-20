@@ -10,16 +10,16 @@ const initialState = {
 		backgroundState: {
 			CurrencyRateController: {
 				currentCurrency: 'usd',
-				conversionRate: 0.1
+				conversionRate: 0.1,
 			},
 			NetworkController: {
 				provider: {
 					ticker: 'ETH',
-					chainId: '1'
-				}
-			}
-		}
-	}
+					chainId: '1',
+				},
+			},
+		},
+	},
 };
 const store = mockStore(initialState);
 

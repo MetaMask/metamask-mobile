@@ -9,44 +9,44 @@ const mockStore = configureMockStore();
 const initialState = {
 	transaction: {},
 	settings: {
-		primaryCurrency: 'Fiat'
+		primaryCurrency: 'Fiat',
 	},
 	browser: {
 		activeTab: 1592878266671,
-		tabs: [{ id: 1592878266671, url: 'https://metamask.github.io/test-dapp/' }]
+		tabs: [{ id: 1592878266671, url: 'https://metamask.github.io/test-dapp/' }],
 	},
 	engine: {
 		backgroundState: {
 			AccountTrackerController: {
-				accounts: { '0x2': { balance: '0' } }
+				accounts: { '0x2': { balance: '0' } },
 			},
 			NetworkController: {
 				provider: {
-					ticker: 'ETH'
-				}
+					ticker: 'ETH',
+				},
 			},
 			TransactionController: {
-				transactions: []
+				transactions: [],
 			},
 			CurrencyRateController: {
 				currentCurrency: 'USD',
-				conversionRate: 100
+				conversionRate: 100,
 			},
 			PreferencesController: {
 				selectedAddress: '0x1',
-				identities: { '0x1': { name: 'Account 1' } }
+				identities: { '0x1': { name: 'Account 1' } },
 			},
 			TokenBalancesController: {
-				contractBalances: { '0x2': new BN(0) }
+				contractBalances: { '0x2': new BN(0) },
 			},
 			TokensController: {
-				tokens: []
+				tokens: [],
 			},
 			GasFeeController: {
-				gasEstimates: {}
-			}
-		}
-	}
+				gasEstimates: {},
+			},
+		},
+	},
 };
 const store = mockStore(initialState);
 

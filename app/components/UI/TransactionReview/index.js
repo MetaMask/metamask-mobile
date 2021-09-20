@@ -20,7 +20,6 @@ import {
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import Device from '../../../util/device';
-import contractMap from '@metamask/contract-metadata';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewSummary from './TransactionReviewSummary';
@@ -31,6 +30,7 @@ import TransactionHeader from '../TransactionHeader';
 import AccountInfoCard from '../AccountInfoCard';
 import ActionView from '../ActionView';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
+import { getTokenList } from '../../../reducers/tokens';
 
 const styles = StyleSheet.create({
 	tabUnderlineStyle: {
@@ -180,6 +180,10 @@ class TransactionReview extends PureComponent {
 		isAnimating: PropTypes.bool,
 		dappSuggestedGas: PropTypes.bool,
 		/**
+		 * List of tokens from TokenListController
+		 */
+		tokenList: PropTypes.object,
+		/**
 		 * Object that represents the navigator
 		 */
 		navigation: PropTypes.object,
@@ -207,6 +211,7 @@ class TransactionReview extends PureComponent {
 			transaction: { data, to },
 			tokens,
 			chainId,
+			tokenList,
 			ready,
 		} = this.props;
 		let { showHexData } = this.props;
@@ -216,7 +221,7 @@ class TransactionReview extends PureComponent {
 		const error = ready && validate && (await validate());
 		const actionKey = await getTransactionReviewActionKey(transaction, chainId);
 		if (approveTransaction) {
-			let contract = contractMap[safeToChecksumAddress(to)];
+			let contract = tokenList[safeToChecksumAddress(to)];
 			if (!contract) {
 				contract = tokens.find(({ address }) => address === safeToChecksumAddress(to));
 			}
@@ -422,6 +427,7 @@ const mapStateToProps = (state) => ({
 	transaction: getNormalizedTxState(state),
 	browser: state.browser,
 	primaryCurrency: state.settings.primaryCurrency,
+	tokenList: getTokenList(state),
 });
 
 export default connect(mapStateToProps)(TransactionReview);

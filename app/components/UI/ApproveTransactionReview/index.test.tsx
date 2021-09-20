@@ -9,30 +9,30 @@ const initialState = {
 	engine: {
 		backgroundState: {
 			AccountTrackerController: {
-				accounts: { '0x2': { balance: '0' } }
+				accounts: { '0x2': { balance: '0' } },
 			},
 			CurrencyRateController: {
-				conversionRate: 5
+				conversionRate: 5,
 			},
 			NetworkController: {
 				provider: {
 					ticker: 'ETH',
-					type: 'ETH'
-				}
+					type: 'ETH',
+				},
 			},
 			TokensController: {
-				tokens: []
-			}
-		}
+				tokens: [],
+			},
+		},
 	},
 	transaction: {},
 	settings: {
-		primaryCurrency: 'fiat'
+		primaryCurrency: 'fiat',
 	},
 	browser: {
 		activeTab: 1605778647042,
-		tabs: [{ id: 1605778647042, url: 'https://metamask.github.io/test-dapp/' }]
-	}
+		tabs: [{ id: 1605778647042, url: 'https://metamask.github.io/test-dapp/' }],
+	},
 };
 const store = mockStore(initialState);
 

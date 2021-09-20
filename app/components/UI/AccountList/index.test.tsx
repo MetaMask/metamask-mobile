@@ -11,11 +11,11 @@ const store = mockStore({
 		backgroundState: {
 			AccountTrackerController: {
 				accounts: {
-					[address]: { name: 'account 1', address, balance: 0 }
-				}
-			}
-		}
-	}
+					[address]: { name: 'account 1', address, balance: 0 },
+				},
+			},
+		},
+	},
 });
 
 describe('Accounts', () => {

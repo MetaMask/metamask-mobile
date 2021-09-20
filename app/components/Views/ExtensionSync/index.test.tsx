@@ -9,15 +9,15 @@ const initialState = {
 	user: {
 		passwordSet: false,
 		loadingSet: false,
-		loadingMsg: ''
+		loadingMsg: '',
 	},
 	engine: {
 		backgroundState: {
 			PreferencesController: {
-				selectedAddress: ''
-			}
-		}
-	}
+				selectedAddress: '',
+			},
+		},
+	},
 };
 const store = mockStore(initialState);
 

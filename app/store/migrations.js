@@ -77,7 +77,8 @@ export const migrations = {
 		return state;
 	},
 	4: (state) => {
-		const { allCollectibleContracts, allCollectibles, allTokens } = state.engine.backgroundState.AssetsController;
+		const { allTokens } = state.engine.backgroundState.TokensController;
+		const { allCollectibleContracts, allCollectibles } = state.engine.backgroundState.CollectiblesController;
 		const { frequentRpcList } = state.engine.backgroundState.PreferencesController;
 
 		const newAllCollectibleContracts = {};
@@ -124,9 +125,12 @@ export const migrations = {
 			});
 		});
 
-		state.engine.backgroundState.AssetsController = {
-			...state.engine.backgroundState.AssetsController,
+		state.engine.backgroundState.TokensController = {
+			...state.engine.backgroundState.TokensController,
 			allTokens: newAllTokens,
+		};
+		state.engine.backgroundState.CollectiblesController = {
+			...state.engine.backgroundState.CollectiblesController,
 			allCollectibles: newAllCollectibles,
 			allCollectibleContracts: newAllCollectibleContracts,
 		};
