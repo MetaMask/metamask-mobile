@@ -344,7 +344,11 @@ function SwapsAmountView({
 		if (!isSwapsNativeAsset(sourceToken) && !isTokenInBalances && !balanceAsUnits?.isZero()) {
 			const { TokensController } = Engine.context;
 			const { address, symbol, decimals } = sourceToken;
-			await TokensController.addToken(address, symbol, decimals);
+			try {
+				await TokensController.addToken(address, symbol, decimals);
+			} catch (error) {
+				Logger.log('Error while trying to add a token from swaps', error);
+			}
 		}
 		return navigation.navigate(
 			'SwapsQuotesView',

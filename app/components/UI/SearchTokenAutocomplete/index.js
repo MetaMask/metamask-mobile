@@ -8,6 +8,7 @@ import AssetSearch from '../AssetSearch';
 import AssetList from '../AssetList';
 import Engine from '../../../core/Engine';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import Logger from '../../../util/Logger';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -69,7 +70,11 @@ export default class SearchTokenAutocomplete extends PureComponent {
 	addToken = async () => {
 		const { TokensController } = Engine.context;
 		const { address, symbol, decimals } = this.state.selectedAsset;
-		await TokensController.addToken(address, symbol, decimals);
+		try {
+			await TokensController.addToken(address, symbol, decimals);
+		} catch (error) {
+			Logger.log('Error while trying to add a token from search', error);
+		}
 
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.TOKEN_ADDED, this.getAnalyticsParams());
 
