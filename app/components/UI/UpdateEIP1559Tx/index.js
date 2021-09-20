@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
 import EditGasFee1559 from '../EditGasFee1559';
 import { connect } from 'react-redux';
-import { SPEED_UP_RATE, GAS_ESTIMATE_TYPES } from '@metamask/controllers';
+import { CANCEL_RATE, SPEED_UP_RATE, GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import { hexToBN, fromWei, renderFromWei } from '../../../util/number';
 import BigNumber from 'bignumber.js';
 import { getTicker, parseTransactionEIP1559 } from '../../../util/transactions';
@@ -13,7 +13,7 @@ import { strings } from '../../../../locales/i18n';
 /**
  * View that renders a list of transactions for a specific asset
  */
-const SpeedUpEIP1559TX = ({
+const UpdateEIP1559Tx = ({
 	gas,
 	accounts,
 	selectedAddress,
@@ -26,6 +26,7 @@ const SpeedUpEIP1559TX = ({
 	currentCurrency,
 	nativeCurrency,
 	conversionRate,
+	isCancel,
 	chainId,
 	onCancel,
 	onSave,
@@ -35,7 +36,7 @@ const SpeedUpEIP1559TX = ({
 	const [gasSelected, setGasSelected] = useState(AppConstants.GAS_OPTIONS.MEDIUM);
 	const stopUpdateGas = useRef(false);
 	const onlyDisplayHigh = useRef(false); //Flag to only display high in the event
-	const speedUp1559Options = useRef({});
+	const updateTx1559Options = useRef({});
 	const pollToken = useRef(undefined);
 	const firstTime = useRef(true);
 
@@ -56,14 +57,14 @@ const SpeedUpEIP1559TX = ({
 		};
 	}, []);
 
-	const validateSpeedUpAmount = useCallback(
-		(speedUpTx) => {
+	const validateAmount = useCallback(
+		(updateTx) => {
 			let error;
 
-			const speedUpCost = hexToBN(`0x${speedUpTx.totalMaxHex}`);
+			const updateTxCost = hexToBN(`0x${updateTx.totalMaxHex}`);
 			const accountBalance = hexToBN(accounts[selectedAddress].balance);
-			if (accountBalance.lt(speedUpCost)) {
-				const amount = renderFromWei(speedUpCost.sub(accountBalance));
+			if (accountBalance.lt(updateTxCost)) {
+				const amount = renderFromWei(updateTxCost.sub(accountBalance));
 				const tokenSymbol = getTicker(ticker);
 				error = strings('transaction.insufficient_amount', { amount, tokenSymbol });
 			}
@@ -88,7 +89,7 @@ const SpeedUpEIP1559TX = ({
 				{ onlyGas: true }
 			);
 
-			parsedTransactionEIP1559.error = validateSpeedUpAmount(parsedTransactionEIP1559);
+			parsedTransactionEIP1559.error = validateAmount(parsedTransactionEIP1559);
 
 			return parsedTransactionEIP1559;
 		},
@@ -99,7 +100,7 @@ const SpeedUpEIP1559TX = ({
 			gasFeeEstimates,
 			nativeCurrency,
 			gasSelected,
-			validateSpeedUpAmount,
+			validateAmount,
 		]
 	);
 
@@ -108,28 +109,31 @@ const SpeedUpEIP1559TX = ({
 		if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
 			const suggestedGasLimit = fromWei(gas, 'wei');
 
-			let speedUpTxEstimates = gasFeeEstimates[gasSelected];
+			let updateTxEstimates = gasFeeEstimates[gasSelected];
 
 			if (firstTime.current) {
-				const newDecMaxFeePerGas = new BigNumber(existingGas.maxFeePerGas).times(new BigNumber(SPEED_UP_RATE));
+				const newDecMaxFeePerGas = new BigNumber(existingGas.maxFeePerGas).times(
+					new BigNumber(isCancel ? CANCEL_RATE : SPEED_UP_RATE)
+				);
 				const newDecMaxPriorityFeePerGas = new BigNumber(existingGas.maxPriorityFeePerGas).times(
-					new BigNumber(SPEED_UP_RATE)
+					new BigNumber(isCancel ? CANCEL_RATE : SPEED_UP_RATE)
 				);
 
-				//Check to see if default SPEED_UP_RATE is greater than current market medium value
+				//Check to see if default SPEED_UP_RATE/CANCEL_RATE is greater than current market medium value
 				if (
 					newDecMaxPriorityFeePerGas.gte(
 						new BigNumber(gasFeeEstimates.medium.suggestedMaxPriorityFeePerGas)
 					) ||
 					newDecMaxFeePerGas.gte(new BigNumber(gasFeeEstimates.medium.suggestedMaxFeePerGas))
 				) {
-					speedUp1559Options.current = {
+					updateTx1559Options.current = {
 						maxPriortyFeeThreshold: newDecMaxPriorityFeePerGas,
 						maxFeeThreshold: newDecMaxFeePerGas,
 						showAdvanced: true,
+						isCancel,
 					};
 
-					speedUpTxEstimates = {
+					updateTxEstimates = {
 						selectedOption: undefined,
 						suggestedMaxFeePerGas: newDecMaxFeePerGas,
 						suggestedMaxPriorityFeePerGas: newDecMaxPriorityFeePerGas,
@@ -140,17 +144,18 @@ const SpeedUpEIP1559TX = ({
 					stopUpdateGas.current = true;
 					setGasSelected(undefined);
 				} else {
-					speedUp1559Options.current = {
+					updateTx1559Options.current = {
 						maxPriortyFeeThreshold: gasFeeEstimates.medium.suggestedMaxPriorityFeePerGas,
 						maxFeeThreshold: gasFeeEstimates.medium.suggestedMaxFeePerGas,
 						showAdvanced: false,
+						isCancel,
 					};
 					setAnimateOnGasChange(true);
 				}
 			}
 
 			const EIP1559TransactionData = parseTransactionDataEIP1559({
-				...speedUpTxEstimates,
+				...updateTxEstimates,
 				suggestedGasLimit,
 				selectedOption: gasSelected,
 			});
@@ -167,6 +172,7 @@ const SpeedUpEIP1559TX = ({
 		gasFeeEstimates,
 		gasSelected,
 		parseTransactionDataEIP1559,
+		isCancel,
 	]);
 
 	const calculate1559TempGasFee = (gasValues, selected) => {
@@ -212,7 +218,7 @@ const SpeedUpEIP1559TX = ({
 					? [AppConstants.GAS_OPTIONS.LOW, AppConstants.GAS_OPTIONS.MEDIUM]
 					: [AppConstants.GAS_OPTIONS.LOW]
 			}
-			speedUpOption={speedUp1559Options.current}
+			updateOption={updateTx1559Options.current}
 			analyticsParams={getGasAnalyticsParams()}
 			view={'Transactions (Speed Up)'}
 			animateOnChange={animateOnGasChange}
@@ -220,7 +226,7 @@ const SpeedUpEIP1559TX = ({
 	);
 };
 
-SpeedUpEIP1559TX.propTypes = {
+UpdateEIP1559Tx.propTypes = {
 	/**
 	 * Map of accounts to information objects including balances
 	 */
@@ -258,6 +264,10 @@ SpeedUpEIP1559TX.propTypes = {
 	 */
 	selectedAddress: PropTypes.string,
 	/**
+	 * A bool indicates whether tx is speed up/cancel
+	 */
+	isCancel: PropTypes.bool,
+	/**
 	 * Current provider ticker
 	 */
 	ticker: PropTypes.string,
@@ -282,4 +292,4 @@ const mapStateToProps = (state) => ({
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 });
 
-export default connect(mapStateToProps)(SpeedUpEIP1559TX);
+export default connect(mapStateToProps)(UpdateEIP1559Tx);
