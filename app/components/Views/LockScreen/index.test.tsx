@@ -7,8 +7,8 @@ import { Provider } from 'react-redux';
 const mockStore = configureMockStore();
 const initialState = {
 	user: {
-		passwordSet: false
-	}
+		passwordSet: false,
+	},
 };
 const store = mockStore(initialState);
 

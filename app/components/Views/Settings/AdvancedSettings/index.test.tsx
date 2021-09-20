@@ -10,10 +10,10 @@ const initialState = {
 	engine: {
 		backgroundState: {
 			PreferencesController: {
-				ipfsGateway: 'https://ipfs.io/ipfs/'
-			}
-		}
-	}
+				ipfsGateway: 'https://ipfs.io/ipfs/',
+			},
+		},
+	},
 };
 const store = mockStore(initialState);
 

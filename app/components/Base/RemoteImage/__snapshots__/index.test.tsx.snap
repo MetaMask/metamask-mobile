@@ -8,6 +8,7 @@ exports[`RemoteImage should render correctly 1`] = `
     style={Object {}}
   >
     <SvgCssUri
+      fill="black"
       height="100%"
       source={
         Object {

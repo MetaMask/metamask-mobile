@@ -50,6 +50,7 @@ import useBalance from './utils/useBalance';
 import useBlockExplorer from './utils/useBlockExplorer';
 import InfoModal from './components/InfoModal';
 import { toLowerCaseEquals } from '../../../util/general';
+import { AlertType } from '../../Base/Alert';
 
 const styles = StyleSheet.create({
 	screen: {
@@ -590,9 +591,9 @@ function SwapsAmountView({
 						) : (
 							<ActionAlert
 								type={
-									!destinationToken.occurrences || isDynamicToken(destinationToken)
-										? 'error'
-										: 'warning'
+									!destinationToken.occurances || isDynamicToken(destinationToken)
+										? AlertType.Error
+										: AlertType.Warning
 								}
 								style={styles.tokenAlert}
 								action={hasDismissedTokenAlert ? null : strings('swaps.continue')}
