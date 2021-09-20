@@ -361,8 +361,7 @@ class Transactions extends PureComponent {
 	};
 
 	onSpeedUpCompleted = () => {
-		this.setState({ speedUp1559IsOpen: false });
-		this.setState({ speedUpIsOpen: false });
+		this.setState({ speedUp1559IsOpen: false, speedUpIsOpen: false });
 		this.existingGas = null;
 		this.speedUpTxId = null;
 		this.existingTx = null;
@@ -439,10 +438,10 @@ class Transactions extends PureComponent {
 
 	retry = () => {
 		this.setState((state) => ({ retryIsOpen: !state.retryIsOpen, errorMsg: undefined }));
-		//TODO need a better solution
-		setTimeout(() => {
+
+		InteractionManager.runAfterInteractions(() => {
 			this.onSpeedUpAction(true, this.existingGas, this.existingTx);
-		}, 500);
+		});
 	};
 
 	renderSpeedUpGas = () => {
