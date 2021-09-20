@@ -203,6 +203,53 @@ export const migrations = {
 
 		return state;
 	},
+	8: (state) => {
+		// This migration removes tokens with missing addresses. FYI: This logic is not ideal since we want to find the origin of the issue.
+		const allTokens = state.engine.backgroundState.TokensController.allTokens || {};
+		const allIgnoredTokens = state.engine.backgroundState.TokensController.allIgnoredTokens || {};
+		const tokens = state.engine.backgroundState.TokensController.tokens || [];
+		const ignoredTokens = state.engine.backgroundState.TokensController.ignoredTokens || [];
+
+		const newTokens = tokens.filter(({ address }) => !!address);
+		const newIgnoredTokens = ignoredTokens.filter(({ address }) => !!address);
+		const newAllTokens = {};
+		Object.entries(allTokens).forEach(([chainId, tokensByAccountAddress]) => {
+			Object.entries(tokensByAccountAddress).forEach(([accountAddress, tokens]) => {
+				const newTokens = tokens.filter(({ address }) => !!address);
+				if (newAllTokens[chainId] === undefined) {
+					newAllTokens[chainId] = { [accountAddress]: newTokens };
+				} else {
+					newAllTokens[chainId] = {
+						...newAllTokens[chainId],
+						[accountAddress]: newTokens,
+					};
+				}
+			});
+		});
+		const newAllIgnoredTokens = {};
+		Object.entries(allIgnoredTokens).forEach(([chainId, tokensByAccountAddress]) => {
+			Object.entries(tokensByAccountAddress).forEach(([accountAddress, tokens]) => {
+				const newTokens = tokens.filter(({ address }) => !!address);
+				if (newAllIgnoredTokens[chainId] === undefined) {
+					newAllIgnoredTokens[chainId] = { [accountAddress]: newTokens };
+				} else {
+					newAllIgnoredTokens[chainId] = {
+						...newAllIgnoredTokens[chainId],
+						[accountAddress]: newTokens,
+					};
+				}
+			});
+		});
+
+		state.engine.backgroundState.TokensController = {
+			allTokens: newAllTokens,
+			allIgnoredTokens: newAllIgnoredTokens,
+			tokens: newTokens,
+			ignoredTokens: newIgnoredTokens,
+		};
+
+		return state;
+	},
 };
 
-export const version = 7;
+export const version = 8;
