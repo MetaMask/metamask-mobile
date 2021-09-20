@@ -192,7 +192,7 @@ class Transactions extends PureComponent {
 
 	flatList = React.createRef();
 
-	componentDidMount = async () => {
+	componentDidMount = () => {
 		this.mounted = true;
 		setTimeout(() => {
 			this.mounted && this.setState({ ready: true });
