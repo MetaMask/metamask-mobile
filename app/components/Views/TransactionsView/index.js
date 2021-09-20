@@ -65,9 +65,6 @@ const TransactionsView = ({
 
 		const allTransactionsSorted = transactions.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
 
-		// make the first tx always submitted (do not commit this!)
-		allTransactionsSorted[0].status = 'submitted';
-
 		const allTransactions = allTransactionsSorted.filter((tx) => {
 			const filter = ethFilter(tx);
 			if (!filter) return false;
