@@ -353,7 +353,6 @@ class Transactions extends PureComponent {
 		this.speedUpTxId = tx.id;
 		this.existingTx = tx;
 		if (existingGas.isEIP1559Transaction) {
-			console.log('1559', speedUpAction, this.state.ready);
 			this.setState({ speedUp1559IsOpen: speedUpAction });
 		} else {
 			const speedUpConfirmDisabled = validateTransactionActionBalance(tx, SPEED_UP_RATE, this.props.accounts);
@@ -395,7 +394,6 @@ class Transactions extends PureComponent {
 
 	speedUpTransaction = (EIP1559TransactionData) => {
 		try {
-			//Do we have a place in the app where we convert a hex string (0232323) to the hex string format (0x0232323)?
 			Engine.context.TransactionController.speedUpTransaction(this.speedUpTxId, {
 				maxFeePerGas: `0x${EIP1559TransactionData?.suggestedMaxFeePerGasHex}`,
 				maxPriorityFeePerGas: `0x${EIP1559TransactionData?.suggestedMaxPriorityFeePerGasHex}`,

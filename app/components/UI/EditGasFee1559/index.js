@@ -351,7 +351,11 @@ const EditGasFee1559 = ({
 					<HorizontalSelector selected={selectedOption} onPress={selectOption} options={renderOptions} />
 				</View>
 				<View style={styles.advancedOptionsContainer}>
-					<TouchableOpacity onPress={toggleAdvancedOptions} style={styles.advancedOptionsButton}>
+					<TouchableOpacity
+						disable={speedUpOption?.showAdvanced}
+						onPress={toggleAdvancedOptions}
+						style={styles.advancedOptionsButton}
+					>
 						<Text noMargin link bold>
 							{strings('edit_gas_fee_eip1559.advanced_options')}
 						</Text>

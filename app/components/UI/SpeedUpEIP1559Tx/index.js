@@ -172,7 +172,6 @@ const SpeedUpEIP1559TX = ({
 	const calculate1559TempGasFee = (gasValues, selected) => {
 		if (selected && gas) {
 			gasValues.suggestedGasLimit = fromWei(gas, 'wei');
-			setAnimateOnGasChange(true);
 		}
 		setEIP1559TransactionData(parseTransactionDataEIP1559({ ...gasValues, selectedOption: selected }));
 		stopUpdateGas.current = !selected;

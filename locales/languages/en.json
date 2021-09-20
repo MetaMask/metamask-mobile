@@ -1234,7 +1234,7 @@
 	"speed_up_retry_modal": {
 		"title": "Speed Up Failed",
 		"text": "Would you like to try again?",
-		"cancel_button": "Retry",
+		"cancel_button": "Cancel",
 		"retry_button": "Retry"
 	},
 	"payment_request": {
