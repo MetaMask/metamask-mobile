@@ -19,10 +19,7 @@ describe('BackupAlert', () => {
 		const wrapper = shallow(
 			<Provider store={store}>
 				<BackupAlert />
-			</Provider>,
-			{
-				context: { store: mockStore(initialState) },
-			}
+			</Provider>
 		);
 		expect(wrapper.dive()).toMatchSnapshot();
 	});

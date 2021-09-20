@@ -10,29 +10,29 @@ const initialState = {
 		backgroundState: {
 			PreferencesController: {
 				selectedAddress: '0x1',
-				identities: { '0xbar': { name: 'Account 1', address: '0x0', importTime: Date.now() } }
+				identities: { '0xbar': { name: 'Account 1', address: '0x0', importTime: Date.now() } },
 			},
 			CurrencyRateController: {
 				currentCurrency: 'usd',
-				conversionRate: 0.1
+				conversionRate: 0.1,
 			},
 			NetworkController: {
 				provider: {
 					ticker: 'ETH',
-					type: 'mainnet'
-				}
+					type: 'mainnet',
+				},
 			},
 			TransactionController: {
-				swapsTransactions: {}
+				swapsTransactions: {},
 			},
 			SwapsController: {
-				tokens: []
-			}
-		}
+				tokens: [],
+			},
+		},
 	},
 	settings: {
-		primaryCurrency: 'ETH'
-	}
+		primaryCurrency: 'ETH',
+	},
 };
 const store = mockStore(initialState);
 

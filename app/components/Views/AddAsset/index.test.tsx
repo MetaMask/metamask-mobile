@@ -10,11 +10,11 @@ const initialState = {
 		backgroundState: {
 			NetworkController: {
 				provider: {
-					chainId: '1'
-				}
-			}
-		}
-	}
+					chainId: '1',
+				},
+			},
+		},
+	},
 };
 const store = mockStore(initialState);
 

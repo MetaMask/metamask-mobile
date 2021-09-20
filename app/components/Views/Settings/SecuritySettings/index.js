@@ -10,6 +10,7 @@ import {
 	ActivityIndicator,
 	TouchableOpacity,
 	Keyboard,
+	InteractionManager,
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
@@ -43,7 +44,7 @@ import {
 import CookieManager from '@react-native-community/cookies';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import HintModal from '../../../UI/HintModal';
-import { trackErrorAsAnalytics } from '../../../../util/analyticsV2';
+import AnalyticsV2, { trackErrorAsAnalytics } from '../../../../util/analyticsV2';
 import SeedPhraseVideo from '../../../UI/SeedPhraseVideo';
 
 const isIos = Device.isIos();
@@ -174,7 +175,7 @@ class Settings extends PureComponent {
 		 * Called to toggle privacy mode
 		 */
 		setPrivacyMode: PropTypes.func,
-		/**`
+		/**
 		 * Called to toggle set party api mode
 		 */
 		setThirdPartyApiMode: PropTypes.func,
@@ -182,6 +183,10 @@ class Settings extends PureComponent {
 		 * Indicates whether third party API mode is enabled
 		 */
 		thirdPartyApiMode: PropTypes.bool,
+		/**
+		 * Indicates whether token detection mode is enabled
+		 */
+		isTokenDetectionEnabled: PropTypes.bool,
 		/**
 		 * Called to set the passwordSet flag
 		 */
@@ -443,11 +448,26 @@ class Settings extends PureComponent {
 		this.props.setThirdPartyApiMode(value);
 	};
 
+	/**
+	 * Track the event of opt in or opt out.
+	 * @param AnalyticsOptionSelected - User selected option regarding the tracking of events
+	 */
+	trackOptInEvent = (AnalyticsOptionSelected) => {
+		InteractionManager.runAfterInteractions(async () => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ANALYTICS_PREFERENCE_SELECTED, {
+				analytics_option_selected: AnalyticsOptionSelected,
+				updated_after_onboarding: true,
+			});
+		});
+	};
+
 	toggleMetricsOptIn = async (value) => {
 		if (value) {
 			Analytics.enable();
 			this.setState({ metricsOptIn: true });
+			await this.trackOptInEvent('Metrics Opt In');
 		} else {
+			await this.trackOptInEvent('Metrics Opt Out');
 			Analytics.disable();
 			this.setState({ metricsOptIn: false });
 			Alert.alert(
@@ -467,6 +487,15 @@ class Settings extends PureComponent {
 
 	selectLockTime = (lockTime) => {
 		this.props.setLockTime(parseInt(lockTime, 10));
+	};
+
+	goToBackup = () => {
+		this.props.navigation.navigate('AccountBackupStep1B');
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_STARTED, {
+				source: 'Settings',
+			});
+		});
 	};
 
 	manualBackup = () => {
@@ -507,6 +536,30 @@ class Settings extends PureComponent {
 	};
 
 	onBack = () => this.props.navigation.goBack();
+
+	toggleTokenDetection = (enabled) => {
+		const { PreferencesController } = Engine.context;
+		PreferencesController.setUseStaticTokenList(!enabled);
+	};
+
+	renderTokenDetectionSection = () => {
+		const { isTokenDetectionEnabled } = this.props;
+
+		return (
+			<View style={styles.setting} testID={'token-detection-section'}>
+				<Text style={styles.title}>{strings('app_settings.token_detection_title')}</Text>
+				<Text style={styles.desc}>{strings('app_settings.token_detection_description')}</Text>
+				<View style={styles.switchElement}>
+					<Switch
+						value={isTokenDetectionEnabled}
+						onValueChange={this.toggleTokenDetection}
+						trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
+						ios_backgroundColor={colors.grey000}
+					/>
+				</View>
+			</View>
+		);
+	};
 
 	render = () => {
 		const { approvedHosts, seedphraseBackedUp, browserHistory, privacyMode, thirdPartyApiMode } = this.props;
@@ -567,7 +620,7 @@ class Settings extends PureComponent {
 							) : null}
 						</SettingsNotification>
 						{!seedphraseBackedUp ? (
-							<StyledButton type="blue" onPress={this.manualBackup} containerStyle={styles.confirm}>
+							<StyledButton type="blue" onPress={this.goToBackup} containerStyle={styles.confirm}>
 								{strings('app_settings.back_up_now')}
 							</StyledButton>
 						) : (
@@ -729,6 +782,7 @@ class Settings extends PureComponent {
 							/>
 						</View>
 					</View>
+					{this.renderTokenDetectionSection()}
 					<ActionModal
 						modalVisible={approvalModalVisible}
 						confirmText={strings('app_settings.clear')}
@@ -787,6 +841,7 @@ const mapStateToProps = (state) => ({
 	lockTime: state.settings.lockTime,
 	privacyMode: state.privacy.privacyMode,
 	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
+	isTokenDetectionEnabled: !state.engine.backgroundState.PreferencesController.useStaticTokenList,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	identities: state.engine.backgroundState.PreferencesController.identities,

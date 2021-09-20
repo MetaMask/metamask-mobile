@@ -1,27 +1,31 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import TransactionDirection from './';
-import configureMockStore from 'redux-mock-store';
+import ExtensionSync from './';
 import { Provider } from 'react-redux';
+import createMockStore from 'redux-mock-store';
 
-const mockStore = configureMockStore();
+const mockStore = createMockStore();
 const initialState = {
-	transaction: {},
+	user: {
+		passwordSet: false,
+		loadingSet: false,
+		loadingMsg: '',
+	},
 	engine: {
 		backgroundState: {
 			PreferencesController: {
-				identities: { '0x1': { name: 'Account 1' } }
-			}
-		}
-	}
+				selectedAddress: '',
+			},
+		},
+	},
 };
 const store = mockStore(initialState);
 
-describe('TransactionDirection', () => {
+describe('ExtensionSync', () => {
 	it('should render correctly', () => {
 		const wrapper = shallow(
 			<Provider store={store}>
-				<TransactionDirection />
+				<ExtensionSync />
 			</Provider>
 		);
 		expect(wrapper).toMatchSnapshot();

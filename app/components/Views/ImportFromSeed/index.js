@@ -10,6 +10,7 @@ import {
 	TextInput,
 	SafeAreaView,
 	StyleSheet,
+	InteractionManager,
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -36,12 +37,12 @@ import {
 	NEXT_MAKER_REMINDER,
 	ONBOARDING_WIZARD,
 	EXISTING_USER,
-	METRICS_OPT_IN,
 	TRUE,
 } from '../../../constants/storage';
 import Logger from '../../../util/Logger';
 import { getPasswordStrengthWord, passwordRequirementsMet, MIN_PASSWORD_LENGTH } from '../../../util/password';
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 
 const styles = StyleSheet.create({
@@ -245,6 +246,9 @@ class ImportFromSeed extends PureComponent {
 		const parsedSeed = parseSeedPhrase(seed);
 
 		if (loading) return;
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_IMPORT_ATTEMPTED);
+		});
 		let error = null;
 		if (!passwordRequirementsMet(password)) {
 			error = strings('import_from_seed.password_length_error');
@@ -260,6 +264,12 @@ class ImportFromSeed extends PureComponent {
 
 		if (error) {
 			Alert.alert(strings('import_from_seed.error'), error);
+			InteractionManager.runAfterInteractions(() => {
+				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_FAILURE, {
+					wallet_setup_type: 'import',
+					error_type: error,
+				});
+			});
 		} else {
 			try {
 				this.setState({ loading: true });
@@ -278,8 +288,6 @@ class ImportFromSeed extends PureComponent {
 				}
 				// Get onboarding wizard state
 				const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
-				// Check if user passed through metrics opt-in screen
-				const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
 				// mark the user as existing so it doesn't see the create password screen again
 				await AsyncStorage.setItem(EXISTING_USER, TRUE);
 				await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
@@ -287,9 +295,16 @@ class ImportFromSeed extends PureComponent {
 				this.props.passwordSet();
 				this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 				this.props.seedphraseBackedUp();
-				if (!metricsOptIn) {
-					this.props.navigation.navigate('OptinMetrics');
-				} else if (onboardingWizard) {
+				InteractionManager.runAfterInteractions(() => {
+					AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_IMPORTED, {
+						biometrics_enabled: Boolean(this.state.biometryType),
+					});
+					AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_COMPLETED, {
+						wallet_setup_type: 'import',
+						new_wallet: false,
+					});
+				});
+				if (onboardingWizard) {
 					this.props.navigation.navigate('ManualBackupStep3');
 				} else {
 					this.props.setOnboardingWizardStep(1);
@@ -308,6 +323,12 @@ class ImportFromSeed extends PureComponent {
 					this.setState({ loading: false, error: error.toString() });
 					Logger.log('Error with seed phrase import', error);
 				}
+				InteractionManager.runAfterInteractions(() => {
+					AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_FAILURE, {
+						wallet_setup_type: 'import',
+						error_type: error.toString(),
+					});
+				});
 			}
 		}
 	};
