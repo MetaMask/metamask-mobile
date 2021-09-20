@@ -43,15 +43,15 @@ const RetryModal = ({ retryIsOpen, onConfirmPress, onCancelPress }: Props) => (
 	<ActionModal
 		modalStyle={styles.modal}
 		modalVisible={retryIsOpen}
-		confirmText={strings('speed_up_retry_modal.retry_button')}
-		cancelText={strings('speed_up_retry_modal.cancel_button')}
+		confirmText={strings('transaction_update_retry_modal.retry_button')}
+		cancelText={strings('transaction_update_retry_modal.cancel_button')}
 		onConfirmPress={onConfirmPress}
 		onCancelPress={onCancelPress}
 		onRequestClose={onCancelPress}
 	>
 		<View style={styles.modalView}>
-			<Text style={styles.modalTitle}>{strings('speed_up_retry_modal.title')}</Text>
-			<Text style={styles.modalText}>{strings('speed_up_retry_modal.text')}</Text>
+			<Text style={styles.modalTitle}>{strings('transaction_update_retry_modal.title')}</Text>
+			<Text style={styles.modalText}>{strings('transaction_update_retry_modal.text')}</Text>
 		</View>
 	</ActionModal>
 );

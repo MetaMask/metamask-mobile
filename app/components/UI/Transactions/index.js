@@ -386,14 +386,14 @@ class Transactions extends PureComponent {
 	handleSpeedUpTransactionFailure = (e) => {
 		const speedUpTxId = this.speedUpTxId;
 		Logger.error(e, { message: `speedUpTransaction failed `, speedUpTxId });
-		InteractionManager.runAfterInteractions(this.toggleRetry);
+		InteractionManager.runAfterInteractions(this.toggleRetry(e));
 		this.setState({ errorMsg: e.message, speedUp1559IsOpen: false, speedUpIsOpen: false });
 	};
 
 	handleCancelTransactionFailure = (e) => {
 		const cancelTxId = this.cancelTxId;
 		Logger.error(e, { message: `cancelTransaction failed `, cancelTxId });
-		InteractionManager.runAfterInteractions(this.toggleRetry);
+		InteractionManager.runAfterInteractions(this.toggleRetry(e));
 		this.setState({ errorMsg: e.message, cancel1559IsOpen: false, cancelIsOpen: false });
 	};
 
@@ -423,10 +423,10 @@ class Transactions extends PureComponent {
 			} else {
 				Engine.context.TransactionController.stopTransaction(this.cancelTxId);
 			}
+			this.onCancelCompleted();
 		} catch (e) {
 			this.handleCancelTransactionFailure(e);
 		}
-		this.onCancelCompleted();
 	};
 
 	renderItem = ({ item, index }) => (
@@ -449,16 +449,22 @@ class Transactions extends PureComponent {
 		/>
 	);
 
-	toggleRetry = () => {
-		this.setState((state) => ({ retryIsOpen: !state.retryIsOpen, errorMsg: undefined }));
+	toggleRetry = (errorMsg) => {
+		this.setState((state) => ({ retryIsOpen: !state.retryIsOpen, errorMsg }));
 	};
 
 	retry = () => {
 		this.setState((state) => ({ retryIsOpen: !state.retryIsOpen, errorMsg: undefined }));
 
-		InteractionManager.runAfterInteractions(() => {
-			this.onSpeedUpAction(true, this.existingGas, this.existingTx);
-		});
+		//If the exitsing TX id true then it is a speed up retry
+		if (this.existingTxId)
+			InteractionManager.runAfterInteractions(() => {
+				this.onSpeedUpAction(true, this.existingGas, this.existingTx);
+			});
+		else
+			InteractionManager.runAfterInteractions(() => {
+				this.onCancelAction(true, this.existingGas, this.existingTx);
+			});
 	};
 
 	renderUpdateTxEIP1559Gas = (isCancel) => {
