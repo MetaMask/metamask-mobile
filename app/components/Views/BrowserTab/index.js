@@ -1276,7 +1276,7 @@ export const BrowserTab = (props) => {
 		if (Device.isAndroid()) changeUrl(nativeEvent, 'start');
 
 		icon.current = null;
-		if (isHomepage()) {
+		if (isHomepage(nativeEvent.url)) {
 			injectHomePageScripts();
 		}
 		// Reset the previous bridges
