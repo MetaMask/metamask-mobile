@@ -9,7 +9,7 @@ import { colors } from '../../../styles/common';
 import InfoModal from '../Swaps/components/InfoModal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../locales/i18n';
-import Alert from '../../Base/Alert';
+import Alert, { AlertType } from '../../Base/Alert';
 import HorizontalSelector from '../../Base/HorizontalSelector';
 import Device from '../../../util/device';
 import { isMainnetByChainId } from '../../../util/networks';
@@ -466,7 +466,7 @@ const EditGasFee1559 = ({
 			return (
 				<Alert
 					small
-					type="warning"
+					type={AlertType.Warning}
 					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.yellow} />}
 					style={styles.warningContainer}
 				>
@@ -489,7 +489,7 @@ const EditGasFee1559 = ({
 			return (
 				<Alert
 					small
-					type="error"
+					type={AlertType.Error}
 					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.red} />}
 					style={styles.warningContainer}
 				>

@@ -1,39 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`SearchTokenAutocomplete should render correctly 1`] = `
-<View
-  style={
-    Object {
-      "backgroundColor": "#FFFFFF",
-      "flex": 1,
-    }
-  }
-  testID="search-token-screen"
->
-  <ActionView
-    cancelTestID=""
-    cancelText="CANCEL"
-    confirmButtonMode="normal"
-    confirmDisabled={true}
-    confirmTestID=""
-    confirmText="IMPORT"
-    confirmed={false}
-    onCancelPress={[Function]}
-    onConfirmPress={[Function]}
-    showCancelButton={true}
-    showConfirmButton={true}
-  >
-    <View>
-      <Memo()
-        onSearch={[Function]}
-      />
-      <AssetList
-        handleSelectAsset={[Function]}
-        searchQuery=""
-        searchResults={Array []}
-        selectedAsset={Object {}}
-      />
-    </View>
-  </ActionView>
-</View>
+<SearchTokenAutocomplete
+  navigation={Object {}}
+/>
 `;
