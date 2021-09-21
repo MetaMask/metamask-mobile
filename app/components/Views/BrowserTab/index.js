@@ -1250,6 +1250,13 @@ export const BrowserTab = (props) => {
 		</Modal>
 	);
 
+	const trackEventSearchUsed = () => {
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_SEARCH_USED, {
+			option_chosen: 'Search on URL',
+			number_of_tabs: undefined,
+		});
+	};
+
 	/**
 	 * Stops normal loading when it's ens, instead call go to be properly set up
 	 */
@@ -1395,6 +1402,7 @@ export const BrowserTab = (props) => {
 	 */
 	const onUrlInputSubmit = async (input = null) => {
 		const inputValue = (typeof input === 'string' && input) || autocompleteValue;
+		trackEventSearchUsed();
 		if (!inputValue) {
 			toggleUrlModal();
 			return;
@@ -1492,7 +1500,8 @@ export const BrowserTab = (props) => {
 	 */
 	const trackNewTabEvent = () => {
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_NEW_TAB, {
-			option: 'Browser Options',
+			option_chosen: 'Browser Options',
+			number_of_tabs: undefined,
 		});
 	};
 
@@ -1517,7 +1526,9 @@ export const BrowserTab = (props) => {
 	 * Track change network event
 	 */
 	const trackSwitchNetworkEvent = ({ from }) => {
-		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_SWITCH_NETWORK, { from });
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_SWITCH_NETWORK, {
+			from_chain_id: from,
+		});
 	};
 
 	/**
