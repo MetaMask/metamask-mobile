@@ -9,14 +9,14 @@ const initialState = {
 	engine: {
 		backgroundState: {
 			NetworkController: {
-				provider: { type: 'mainnet', rpcTarget: 'http://10.0.2.2:8545' }
+				provider: { type: 'mainnet', rpcTarget: 'http://10.0.2.2:8545' },
 			},
-			PreferencesController: { frequentRpcList: ['http://10.0.2.2:8545'] }
-		}
+			PreferencesController: { frequentRpcList: ['http://10.0.2.2:8545'] },
+		},
 	},
 	privacy: {
-		thirdPartyApiMode: true
-	}
+		thirdPartyApiMode: true,
+	},
 };
 const store = mockStore(initialState);
 

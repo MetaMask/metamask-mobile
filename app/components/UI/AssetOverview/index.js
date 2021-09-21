@@ -201,17 +201,13 @@ class AssetOverview extends PureComponent {
 
 	renderLogo = () => {
 		const {
-			asset: { address, image, logo, isETH },
+			asset: { address, image, logo: iconUrl, isETH },
 		} = this.props;
 		if (isETH) {
 			return <NetworkMainAssetLogo biggest style={styles.ethLogo} />;
 		}
-		const watchedAsset = image !== undefined;
-		return logo || image ? (
-			<AssetIcon watchedAsset={watchedAsset} logo={image || logo} />
-		) : (
-			<Identicon address={address} />
-		);
+
+		return iconUrl || image ? <AssetIcon logo={iconUrl || image} /> : <Identicon address={address} />;
 	};
 
 	componentDidMount = async () => {

@@ -154,7 +154,6 @@ const WatchAssetRequest = ({ suggestedAssetMeta, currentPageInformation, selecte
 												...asset,
 												logo: asset.image,
 											}}
-											logoDefined
 										/>
 									</View>
 									<Text style={styles.text}>{asset.symbol}</Text>

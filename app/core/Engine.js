@@ -3,6 +3,7 @@ import {
 	AddressBookController,
 	AssetsContractController,
 	AssetsDetectionController,
+	TokenListController,
 	ControllerMessenger,
 	ComposableController,
 	CurrencyRateController,
@@ -31,7 +32,6 @@ import AppConstants from './AppConstants';
 import { store } from '../store';
 import { renderFromTokenMinimalUnit, balanceToFiatNumber, weiToFiatNumber } from '../util/number';
 import NotificationManager from './NotificationManager';
-import contractMap from '@metamask/contract-metadata';
 import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
 
@@ -65,6 +65,9 @@ class Engine {
 				{},
 				{
 					ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL,
+					useStaticTokenList:
+						(initialState.PreferencesController && initialState.PreferencesController.useStaticTokenList) ||
+						undefined,
 				}
 			);
 			const networkController = new NetworkController({
@@ -109,13 +112,19 @@ class Engine {
 				getAssetSymbol: assetsContractController.getAssetSymbol.bind(assetsContractController),
 				getCollectibleTokenURI: assetsContractController.getCollectibleTokenURI.bind(assetsContractController),
 			});
-
 			const tokensController = new TokensController({
 				onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
 				onNetworkStateChange: (listener) => networkController.subscribe(listener),
 				config: { provider: networkController.provider },
 			});
 			this.controllerMessenger = new ControllerMessenger();
+			const tokenListController = new TokenListController({
+				chainId: networkController.provider.chainId,
+				onNetworkStateChange: (listener) => networkController.subscribe(listener),
+				useStaticTokenList: preferencesController.state.useStaticTokenList,
+				onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
+				messenger: this.controllerMessenger,
+			});
 			const currencyRateController = new CurrencyRateController({
 				messenger: this.controllerMessenger,
 				state: initialState.CurrencyRateController,
@@ -159,6 +168,7 @@ class Engine {
 				assetsContractController,
 				collectiblesController,
 				tokensController,
+				tokenListController,
 				new AssetsDetectionController({
 					onCollectiblesStateChange: (listener) => collectiblesController.subscribe(listener),
 					onTokensStateChange: (listener) => tokensController.subscribe(listener),
@@ -169,17 +179,9 @@ class Engine {
 						assetsContractController.getBalancesInSingleCall.bind(assetsContractController),
 					addTokens: tokensController.addTokens.bind(tokensController),
 					addCollectible: collectiblesController.addCollectible.bind(collectiblesController),
-					getCollectiblesState: () => collectiblesController.state,
 					getTokensState: () => tokensController.state,
-					getTokenListState: () => {
-						const tokenList = Object.entries(contractMap).reduce((final, [key, value]) => {
-							if (value.erc20) {
-								final[key] = value;
-							}
-							return final;
-						}, {});
-						return { tokenList };
-					},
+					getTokenListState: () => tokenListController.state,
+					getCollectiblesState: () => collectiblesController.state,
 				}),
 				currencyRateController,
 				new PersonalMessageManager(),
@@ -241,8 +243,11 @@ class Engine {
 				KeyringController: keyring,
 				NetworkController: network,
 				TransactionController: transaction,
+				TokenListController: tokenList,
 			} = this.context;
 
+			// Start polling tokens
+			tokenList.start();
 			collectibles.setApiKey(process.env.MM_OPENSEA_KEY);
 			network.refreshNetwork();
 			transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
@@ -418,13 +423,19 @@ class Engine {
 		// get rid of the old data from state
 		const {
 			TransactionController,
+			TokensController,
 			CollectiblesController,
 			TokenBalancesController,
 			TokenRatesController,
-			TokensController,
 		} = this.context;
 
 		//Clear assets info
+		TokensController.update({
+			allTokens: {},
+			ignoredTokens: [],
+			tokens: [],
+			suggestedAssets: [],
+		});
 		CollectiblesController.update({
 			allCollectibleContracts: {},
 			allCollectibles: {},
@@ -554,6 +565,7 @@ export default {
 			AssetsContractController,
 			CollectiblesController,
 			AssetsDetectionController,
+			TokenListController,
 			CurrencyRateController,
 			KeyringController,
 			PersonalMessageManager,
@@ -582,6 +594,7 @@ export default {
 			AssetsContractController,
 			CollectiblesController,
 			AssetsDetectionController,
+			TokenListController,
 			CurrencyRateController: modifiedCurrencyRateControllerState,
 			KeyringController,
 			PersonalMessageManager,

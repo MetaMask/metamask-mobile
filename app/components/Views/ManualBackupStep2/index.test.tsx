@@ -8,8 +8,8 @@ const mockStore = configureMockStore();
 const initialState = {
 	user: {
 		passwordSet: true,
-		seedphraseBackedUp: false
-	}
+		seedphraseBackedUp: false,
+	},
 };
 const store = mockStore(initialState);
 
@@ -32,10 +32,10 @@ describe('ManualBackupStep2', () => {
 								'business',
 								'category',
 								'champion',
-								'cinnamon'
+								'cinnamon',
 							],
-							steps: ['one', 'two', 'three']
-						}
+							steps: ['one', 'two', 'three'],
+						},
 					}}
 				/>
 			</Provider>
