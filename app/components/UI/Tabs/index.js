@@ -234,8 +234,8 @@ export default class Tabs extends PureComponent {
 
 	trackNewTabEvent = (tabsNumber) => {
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_NEW_TAB, {
-			option: 'Browser Bottom Bar Menu',
-			tabs: tabsNumber,
+			option_chosen: 'Browser Bottom Bar Menu',
+			number_of_tabs: tabsNumber,
 		});
 	};
 

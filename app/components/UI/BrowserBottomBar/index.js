@@ -95,13 +95,14 @@ export default class BrowserBottomBar extends PureComponent {
 
 	trackSearchEvent = () => {
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_SEARCH_USED, {
-			option: 'Browser Bottom Bar Menu',
+			option_chosen: 'Browser Bottom Bar Menu',
+			number_of_tabs: undefined,
 		});
 	};
 
 	trackNavigationEvent = (navigationOption) => {
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_NAVIGATION, {
-			option: navigationOption,
+			option_chosen: navigationOption,
 			os: Platform.OS,
 		});
 	};
