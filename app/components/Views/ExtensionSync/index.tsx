@@ -1,13 +1,11 @@
-import React, { useEffect, useCallback } from 'react';
-import { View, StyleSheet, Text, Image, InteractionManager, ActivityIndicator } from 'react-native';
+import React, { useEffect, useCallback, useRef } from 'react';
+import { View, StyleSheet, Text, Image, InteractionManager, ActivityIndicator, Alert } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import StyledButton from '../../UI/StyledButton';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Alert } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import PubNubWrapper from '../../../util/syncWithExtension';
-import { useRef } from 'react';
 import Logger from '../../../util/Logger';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import Analytics from '../../../core/Analytics';
@@ -39,6 +37,58 @@ import { setLockTime as lockTimeSet } from '../../../actions/settings';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import scaling from '../../../util/scaling';
 
+const styles = StyleSheet.create({
+	container: {
+		flex: 1,
+		backgroundColor: colors.white,
+		paddingHorizontal: 16,
+		justifyContent: 'space-between',
+		paddingBottom: 16,
+	},
+	fill: {
+		flex: 1,
+	},
+	syncImage: {
+		height: 44,
+		marginTop: 48,
+		width: 112,
+		alignSelf: 'center',
+	},
+	titleLabel: {
+		textAlign: 'center',
+		color: colors.black,
+		fontSize: 24,
+		fontFamily: fontStyles.bold.fontFamily,
+		marginTop: 32,
+	},
+	stepsContainer: {
+		marginTop: 32,
+	},
+	stepLabel: {
+		color: colors.black,
+		fontSize: scaling.scale(16),
+		fontFamily: fontStyles.normal.fontFamily,
+		marginBottom: 8,
+	},
+	wrapper: {
+		flex: 1,
+		alignItems: 'center',
+		paddingVertical: 30,
+	},
+	loader: {
+		marginTop: 180,
+		justifyContent: 'center',
+		textAlign: 'center',
+	},
+	loadingText: {
+		marginTop: 30,
+		fontSize: 14,
+		textAlign: 'center',
+		color: colors.fontPrimary,
+		fontFamily: fontStyles.normal.fontFamily,
+	},
+});
+
 // TODO: This file needs typings
 const ExtensionSync = ({ navigation, route }: any) => {
 	const pubnubWrapperRef = useRef<any>(null);
@@ -55,23 +105,27 @@ const ExtensionSync = ({ navigation, route }: any) => {
 	const loadingMsg = useSelector((state: any) => state.user.loadingMsg);
 
 	const dispatch = useDispatch();
-	const saveOnboardingEvent = (event: any) => dispatch(saveEvent(event));
-	const setLoading = (msg: string) => dispatch(loadingSet(msg));
-	const unsetLoading = () => dispatch(loadingUnset());
-	const passwordHasBeenSet = () => dispatch(passwordIsSet());
-	const seedphraseBackedUp = () => dispatch(backedUpSeed());
-	const setLockTime = (time: number) => dispatch(lockTimeSet(time));
+	const saveOnboardingEvent = useCallback((event: any) => dispatch(saveEvent(event)), [dispatch]);
+	const setLoading = useCallback((msg: string) => dispatch(loadingSet(msg)), [dispatch]);
+	const unsetLoading = useCallback(() => dispatch(loadingUnset()), [dispatch]);
+	const passwordHasBeenSet = useCallback(() => dispatch(passwordIsSet()), [dispatch]);
+	const seedphraseBackedUp = useCallback(() => dispatch(backedUpSeed()), [dispatch]);
+	const setLockTime = useCallback((time: number) => dispatch(lockTimeSet(time)), [dispatch]);
 
-	useEffect(() => {
-		// Set navigation options
-		navigation.setOptions(getOnboardingNavbarOptions(navigation, route));
-		// Unmount
-		return () => {
-			pubnubWrapperRef.current?.disconnectWebsockets?.();
-			unsetLoading();
-			InteractionManager.runAfterInteractions(PreventScreenshot.allow);
-		};
-	}, []);
+	useEffect(
+		() => {
+			// Set navigation options
+			navigation.setOptions(getOnboardingNavbarOptions(navigation, route));
+			// Unmount
+			return () => {
+				pubnubWrapperRef.current?.disconnectWebsockets?.();
+				unsetLoading();
+				InteractionManager.runAfterInteractions(PreventScreenshot.allow);
+			};
+		},
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[]
+	);
 
 	// TODO: Don't spread this, break it out and type it
 	const track = useCallback(
@@ -136,7 +190,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
 				navigation.goBack();
 			}
 		},
-		[unsetLoading, passwordHasBeenSet, setLockTime, seedphraseBackedUp, track]
+		[unsetLoading, passwordHasBeenSet, setLockTime, seedphraseBackedUp, track, navigation]
 	);
 
 	const disconnect = useCallback(async () => {
@@ -266,31 +320,43 @@ const ExtensionSync = ({ navigation, route }: any) => {
 		[selectedAddress]
 	);
 
-	const onScanSuccess = useCallback(async (data) => {
-		if (data.content && data.content.search('metamask-sync:') !== -1) {
-			await startSync();
-		} else {
-			Alert.alert(
-				strings('sync_with_extension.invalid_qr_code'),
-				strings('sync_with_extension.invalid_qr_code_desc')
-			);
-		}
-	}, []);
+	const onScanSuccess = useCallback(
+		async (data) => {
+			if (data.content && data.content.search('metamask-sync:') !== -1) {
+				await startSync();
+			} else {
+				Alert.alert(
+					strings('sync_with_extension.invalid_qr_code'),
+					strings('sync_with_extension.invalid_qr_code_desc')
+				);
+			}
+		},
+		[startSync]
+	);
 
 	const triggerScan = useCallback(() => {
 		navigation.push('QRScanner', {
 			onStartScan,
 			onScanSuccess,
 		});
-	}, [onStartScan, onScanSuccess]);
+	}, [onStartScan, onScanSuccess, navigation]);
 
-	const renderSyncImage = useCallback(() => {
-		return <Image style={styles.syncImage} source={require('../../../images/sync-icon.png')} />;
-	}, []);
+	const renderSyncImage = useCallback(
+		() => (
+			<Image
+				style={styles.syncImage}
+				// eslint-disable-next-line @typescript-eslint/no-require-imports
+				source={require('../../../images/sync-icon.png')}
+			/>
+		),
 
-	const renderTitle = useCallback(() => {
-		return <Text style={styles.titleLabel}>{strings('onboarding.scan_title')}</Text>;
-	}, []);
+		[]
+	);
+
+	const renderTitle = useCallback(
+		() => <Text style={styles.titleLabel}>{strings('onboarding.scan_title')}</Text>,
+		[]
+	);
 
 	const renderSteps = useCallback(() => {
 		const steps = [1, 2, 3, 4];
@@ -308,27 +374,29 @@ const ExtensionSync = ({ navigation, route }: any) => {
 		);
 	}, []);
 
-	const renderScanButton = useCallback(() => {
-		return (
+	const renderScanButton = useCallback(
+		() => (
 			<StyledButton type={'blue'} onPress={triggerScan} testID={'create-wallet-button'}>
 				{strings('onboarding.scan')}
 			</StyledButton>
-		);
-	}, [triggerScan]);
+		),
+		[triggerScan]
+	);
 
-	const renderLoader = useCallback(() => {
-		return (
+	const renderLoader = useCallback(
+		() => (
 			<View style={styles.wrapper}>
 				<View style={styles.loader}>
 					<ActivityIndicator size="small" />
 					<Text style={styles.loadingText}>{loadingMsg}</Text>
 				</View>
 			</View>
-		);
-	}, [loading, loadingMsg]);
+		),
+		[loadingMsg]
+	);
 
-	const renderContent = useCallback(() => {
-		return (
+	const renderContent = useCallback(
+		() => (
 			<React.Fragment>
 				<View style={styles.fill}>
 					{renderSyncImage()}
@@ -337,8 +405,9 @@ const ExtensionSync = ({ navigation, route }: any) => {
 				</View>
 				{renderScanButton()}
 			</React.Fragment>
-		);
-	}, [renderSyncImage, renderTitle, renderSteps, renderScanButton]);
+		),
+		[renderSyncImage, renderTitle, renderSteps, renderScanButton]
+	);
 
 	return (
 		<SafeAreaView edges={['bottom']} style={styles.container}>
@@ -346,57 +415,5 @@ const ExtensionSync = ({ navigation, route }: any) => {
 		</SafeAreaView>
 	);
 };
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		backgroundColor: colors.white,
-		paddingHorizontal: 16,
-		justifyContent: 'space-between',
-		paddingBottom: 16,
-	},
-	fill: {
-		flex: 1,
-	},
-	syncImage: {
-		height: 44,
-		marginTop: 48,
-		width: 112,
-		alignSelf: 'center',
-	},
-	titleLabel: {
-		textAlign: 'center',
-		color: colors.black,
-		fontSize: 24,
-		fontFamily: fontStyles.bold.fontFamily,
-		marginTop: 32,
-	},
-	stepsContainer: {
-		marginTop: 32,
-	},
-	stepLabel: {
-		color: colors.black,
-		fontSize: scaling.scale(16),
-		fontFamily: fontStyles.normal.fontFamily,
-		marginBottom: 8,
-	},
-	wrapper: {
-		flex: 1,
-		alignItems: 'center',
-		paddingVertical: 30,
-	},
-	loader: {
-		marginTop: 180,
-		justifyContent: 'center',
-		textAlign: 'center',
-	},
-	loadingText: {
-		marginTop: 30,
-		fontSize: 14,
-		textAlign: 'center',
-		color: colors.fontPrimary,
-		fontFamily: fontStyles.normal.fontFamily,
-	},
-});
 
 export default ExtensionSync;

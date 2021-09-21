@@ -19,6 +19,7 @@ exports[`TransactionReview should render correctly 1`] = `
   primaryCurrency="ETH"
   showHexData={true}
   ticker="ETH"
+  tokenList={Object {}}
   tokens={Array []}
   transaction={
     Object {

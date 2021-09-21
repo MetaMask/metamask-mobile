@@ -8,6 +8,8 @@ import { isValidAddress } from 'ethereumjs-util';
 import ActionView from '../ActionView';
 import { isSmartContractAddress } from '../../../util/transactions';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import WarningMessage from '../../Views/SendFlow/WarningMessage';
+import AppConstants from '../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -29,6 +31,7 @@ const styles = StyleSheet.create({
 		color: colors.red,
 		...fontStyles.normal,
 	},
+	warningContainer: { marginHorizontal: 20, marginTop: 20, paddingRight: 0 },
 });
 
 /**
@@ -187,6 +190,33 @@ export default class AddCustomToken extends PureComponent {
 		current && current.focus();
 	};
 
+	renderWarning = () => (
+		<WarningMessage
+			style={styles.warningContainer}
+			warningMessage={
+				<>
+					{strings('add_asset.warning_body_description')}
+					<Text
+						suppressHighlighting
+						onPress={() => {
+							// TODO: This functionality exists in a bunch of other places. We need to unify this into a utils function
+							this.props.navigation.navigate('Webview', {
+								screen: 'SimpleWebview',
+								params: {
+									url: AppConstants.URLS.SECURITY,
+									title: strings('add_asset.security_tips'),
+								},
+							});
+						}}
+						style={{ color: colors.blue }}
+					>
+						{strings('add_asset.warning_link')}
+					</Text>
+				</>
+			}
+		/>
+	);
+
 	render = () => {
 		const { address, symbol, decimals } = this.state;
 		return (
@@ -202,6 +232,7 @@ export default class AddCustomToken extends PureComponent {
 					confirmDisabled={!(address && symbol && decimals)}
 				>
 					<View>
+						{this.renderWarning()}
 						<View style={styles.rowWrapper}>
 							<Text style={fontStyles.normal}>{strings('token.token_address')}</Text>
 							<TextInput

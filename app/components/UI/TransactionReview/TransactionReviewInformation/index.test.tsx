@@ -9,21 +9,21 @@ const initialState = {
 	engine: {
 		backgroundState: {
 			PreferencesController: {
-				selectedAddress: '0x2'
+				selectedAddress: '0x2',
 			},
 			TokenRatesController: {
-				contractExchangeRates: {}
+				contractExchangeRates: {},
 			},
 			CurrencyRateController: {
 				currentCurrency: 'usd',
-				conversionRate: 0.1
+				conversionRate: 0.1,
 			},
 			NetworkController: {
 				provider: {
-					ticker: 'ETH'
-				}
-			}
-		}
+					ticker: 'ETH',
+				},
+			},
+		},
 	},
 	transaction: {
 		value: '',
@@ -33,11 +33,11 @@ const initialState = {
 		gasPrice: '',
 		to: '0x2',
 		selectedAsset: undefined,
-		assetType: undefined
+		assetType: undefined,
 	},
 	settings: {
-		primaryCurrency: 'ETH'
-	}
+		primaryCurrency: 'ETH',
+	},
 };
 const store = mockStore(initialState);
 
