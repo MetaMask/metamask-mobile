@@ -1,8 +1,8 @@
 import { createSelector } from 'reselect';
-import contractMetadata from '@metamask/contract-metadata';
 import { isMainnetByChainId } from '../../util/networks';
 import { safeToChecksumAddress } from '../../util/address';
 import { toLowerCaseEquals } from '../../util/general';
+import Engine from '../../core/Engine';
 
 // * Constants
 export const SWAPS_SET_LIVENESS = 'SWAPS_SET_LIVENESS';
@@ -20,7 +20,7 @@ function addMetadata(chainId, tokens) {
 		return tokens;
 	}
 	return tokens.map((token) => {
-		const tokenMetadata = contractMetadata[safeToChecksumAddress(token.address)];
+		const tokenMetadata = Engine.context.TokenListController.state.tokenList[safeToChecksumAddress(token.address)];
 		if (tokenMetadata) {
 			return { ...token, name: tokenMetadata.name };
 		}

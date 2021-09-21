@@ -1,49 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AssetSearch should render correctly 1`] = `
-<View
-  style={
-    Object {
-      "alignItems": "center",
-      "borderColor": "#d6d9dc",
-      "borderRadius": 4,
-      "borderWidth": 1,
-      "flex": 1,
-      "flexDirection": "row",
-      "justifyContent": "center",
-      "margin": 20,
-      "marginBottom": 0,
-    }
-  }
-  testID="add-searched-token-screen"
->
-  <Icon
-    allowFontScaling={false}
-    name="search"
-    size={22}
-    style={
-      Object {
-        "padding": 16,
-      }
-    }
-  />
-  <TextInput
-    onChangeText={[Function]}
-    placeholder="Search Tokens"
-    placeholderTextColor="#d6d9dc"
-    style={
-      Array [
-        Object {
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontWeight": "400",
-        },
-        Object {
-          "width": "85%",
-        },
-      ]
-    }
-    testID="input-search-asset"
-    value=""
-  />
-</View>
+<Memo()
+  onSearch={[Function]}
+/>
 `;

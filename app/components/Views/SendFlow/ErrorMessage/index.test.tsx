@@ -5,6 +5,6 @@ import ErrorMessage from './';
 describe('ErrorMessage', () => {
 	it('should render correctly', () => {
 		const wrapper = shallow(<ErrorMessage errorMessage={'error'} />);
-		expect(wrapper.dive()).toMatchSnapshot();
+		expect(wrapper).toMatchSnapshot();
 	});
 });

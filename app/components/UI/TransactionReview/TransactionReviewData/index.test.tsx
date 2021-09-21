@@ -9,17 +9,17 @@ const initialState = {
 	engine: {
 		backgroundState: {
 			TokenRatesController: {
-				contractExchangeRates: {}
+				contractExchangeRates: {},
 			},
 			CurrencyRateController: {
 				currentCurrency: 'usd',
-				conversionRate: 0.1
-			}
-		}
+				conversionRate: 0.1,
+			},
+		},
 	},
 	transaction: {
 		transaction: {
-			data: ''
+			data: '',
 		},
 		value: '',
 		from: '0x1',
@@ -27,8 +27,8 @@ const initialState = {
 		gasPrice: '',
 		to: '0x2',
 		selectedAsset: undefined,
-		assetType: undefined
-	}
+		assetType: undefined,
+	},
 };
 const store = mockStore(initialState);
 
