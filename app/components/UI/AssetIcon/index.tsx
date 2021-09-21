@@ -40,9 +40,18 @@ function isUrl(string: string) {
 const AssetIcon = memo((props: Props) => {
 	if (!props.logo || props.logo.substr(0, 4) === 'ipfs') return null;
 	const style = [styles.logo, props.customStyle];
-	const source: ImageSourcePropType = isUrl(props.logo) ? { uri: props.logo } : (staticLogos as any)[props.logo];
+	const isImageUrl = isUrl(props.logo);
+	const source: ImageSourcePropType = isImageUrl ? { uri: props.logo } : (staticLogos as any)[props.logo];
 
-	return <RemoteImage fadeIn placeholderStyle={{ backgroundColor: colors.white }} source={source} style={style} />;
+	return (
+		<RemoteImage
+			isUrl={isImageUrl}
+			fadeIn
+			placeholderStyle={{ backgroundColor: colors.white }}
+			source={source}
+			style={style}
+		/>
+	);
 });
 
 export default AssetIcon;
