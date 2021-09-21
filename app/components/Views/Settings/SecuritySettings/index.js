@@ -184,10 +184,6 @@ class Settings extends PureComponent {
 		 */
 		thirdPartyApiMode: PropTypes.bool,
 		/**
-		 * Indicates whether token detection mode is enabled
-		 */
-		isTokenDetectionEnabled: PropTypes.bool,
-		/**
 		 * Called to set the passwordSet flag
 		 */
 		passwordSet: PropTypes.func,
@@ -537,30 +533,6 @@ class Settings extends PureComponent {
 
 	onBack = () => this.props.navigation.goBack();
 
-	toggleTokenDetection = (enabled) => {
-		const { PreferencesController } = Engine.context;
-		PreferencesController.setUseStaticTokenList(!enabled);
-	};
-
-	renderTokenDetectionSection = () => {
-		const { isTokenDetectionEnabled } = this.props;
-
-		return (
-			<View style={styles.setting} testID={'token-detection-section'}>
-				<Text style={styles.title}>{strings('app_settings.token_detection_title')}</Text>
-				<Text style={styles.desc}>{strings('app_settings.token_detection_description')}</Text>
-				<View style={styles.switchElement}>
-					<Switch
-						value={isTokenDetectionEnabled}
-						onValueChange={this.toggleTokenDetection}
-						trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
-						ios_backgroundColor={colors.grey000}
-					/>
-				</View>
-			</View>
-		);
-	};
-
 	render = () => {
 		const { approvedHosts, seedphraseBackedUp, browserHistory, privacyMode, thirdPartyApiMode } = this.props;
 		const {
@@ -782,7 +754,6 @@ class Settings extends PureComponent {
 							/>
 						</View>
 					</View>
-					{this.renderTokenDetectionSection()}
 					<ActionModal
 						modalVisible={approvalModalVisible}
 						confirmText={strings('app_settings.clear')}
@@ -841,7 +812,6 @@ const mapStateToProps = (state) => ({
 	lockTime: state.settings.lockTime,
 	privacyMode: state.privacy.privacyMode,
 	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
-	isTokenDetectionEnabled: !state.engine.backgroundState.PreferencesController.useStaticTokenList,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	identities: state.engine.backgroundState.PreferencesController.identities,
