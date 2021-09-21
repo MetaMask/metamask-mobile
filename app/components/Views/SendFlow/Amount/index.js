@@ -812,6 +812,7 @@ class Amount extends PureComponent {
 			const exchangeRate = contractExchangeRates[address];
 			balanceFiat = balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
 		}
+
 		return (
 			<TouchableOpacity
 				key={index}

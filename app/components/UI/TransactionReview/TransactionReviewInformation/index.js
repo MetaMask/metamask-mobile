@@ -312,17 +312,6 @@ class TransactionReviewInformation extends PureComponent {
 			contractExchangeRates,
 		} = this.props;
 
-		const { totalMinNative, totalMinConversion, totalMaxNative, totalMaxConversion } = calculateAmountsEIP1559({
-			value: value && BNToHex(value),
-			nativeCurrency,
-			currentCurrency,
-			conversionRate,
-			gasFeeMinConversion,
-			gasFeeMinNative,
-			gasFeeMaxNative,
-			gasFeeMaxConversion,
-		});
-
 		let renderableTotalMinNative,
 			renderableTotalMinConversion,
 			renderableTotalMaxNative,
@@ -330,6 +319,18 @@ class TransactionReviewInformation extends PureComponent {
 
 		const totals = {
 			ETH: () => {
+				const { totalMinNative, totalMinConversion, totalMaxNative, totalMaxConversion } =
+					calculateAmountsEIP1559({
+						value: value && BNToHex(value),
+						nativeCurrency,
+						currentCurrency,
+						conversionRate,
+						gasFeeMinConversion,
+						gasFeeMinNative,
+						gasFeeMaxNative,
+						gasFeeMaxConversion,
+					});
+
 				[
 					renderableTotalMinNative,
 					renderableTotalMinConversion,
@@ -352,6 +353,18 @@ class TransactionReviewInformation extends PureComponent {
 				];
 			},
 			ERC20: () => {
+				const { totalMinNative, totalMinConversion, totalMaxNative, totalMaxConversion } =
+					calculateAmountsEIP1559({
+						value: '0x0',
+						nativeCurrency,
+						currentCurrency,
+						conversionRate,
+						gasFeeMinConversion,
+						gasFeeMinNative,
+						gasFeeMaxNative,
+						gasFeeMaxConversion,
+					});
+
 				const tokenAmount = renderFromTokenMinimalUnit(value, selectedAsset.decimals);
 				const exchangeRate = contractExchangeRates[selectedAsset.address];
 				const symbol = selectedAsset.symbol;
@@ -381,6 +394,18 @@ class TransactionReviewInformation extends PureComponent {
 				];
 			},
 			ERC721: () => {
+				const { totalMinNative, totalMinConversion, totalMaxNative, totalMaxConversion } =
+					calculateAmountsEIP1559({
+						value: '0x0',
+						nativeCurrency,
+						currentCurrency,
+						conversionRate,
+						gasFeeMinConversion,
+						gasFeeMinNative,
+						gasFeeMaxNative,
+						gasFeeMaxConversion,
+					});
+
 				[
 					renderableTotalMinNative,
 					renderableTotalMinConversion,

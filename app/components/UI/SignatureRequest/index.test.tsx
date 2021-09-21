@@ -10,19 +10,19 @@ const initialState = {
 	engine: {
 		backgroundState: {
 			AccountTrackerController: {
-				accounts: { '0x2': { balance: '0' } }
+				accounts: { '0x2': { balance: '0' } },
 			},
 			PreferencesController: {
 				selectedAddress: '0x2',
-				identities: { '0x2': { address: '0x2', name: 'Account 1' } }
+				identities: { '0x2': { address: '0x2', name: 'Account 1' } },
 			},
 			NetworkController: {
 				provider: {
-					type: ROPSTEN
-				}
-			}
-		}
-	}
+					type: ROPSTEN,
+				},
+			},
+		},
+	},
 };
 const store = mockStore(initialState);
 

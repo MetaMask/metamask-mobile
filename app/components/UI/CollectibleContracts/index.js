@@ -2,8 +2,7 @@ import React, { useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, View, InteractionManager, Image } from 'react-native';
 import { connect } from 'react-redux';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { baseStyles, colors, fontStyles } from '../../../styles/common';
+import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import CollectibleContractElement from '../CollectibleContractElement';
 import Analytics from '../../../core/Analytics';
@@ -11,7 +10,6 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { favoritesCollectiblesObjectSelector } from '../../../reducers/collectibles';
 import Text from '../../Base/Text';
 import AppConstants from '../../../core/AppConstants';
-import StyledButton from '../StyledButton';
 import { toLowerCaseEquals } from '../../../util/general';
 
 const styles = StyleSheet.create({
@@ -32,18 +30,19 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 	},
 	addText: {
-		fontSize: 15,
+		fontSize: 14,
 		color: colors.blue,
 		...fontStyles.normal,
 	},
 	footer: {
 		flex: 1,
 		paddingBottom: 30,
+		alignItems: 'center',
+		marginTop: 24,
 	},
 	emptyContainer: {
 		flex: 1,
-		marginBottom: 42,
-		marginHorizontal: 56,
+		marginBottom: 18,
 		justifyContent: 'center',
 		alignItems: 'center',
 	},
@@ -57,8 +56,9 @@ const styles = StyleSheet.create({
 		color: colors.grey200,
 	},
 	emptyText: {
-		color: colors.grey200,
+		color: colors.greyAssetVisibility,
 		marginBottom: 8,
+		fontSize: 14,
 	},
 });
 
@@ -74,23 +74,20 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 		[navigation]
 	);
 
-	const goToAddCollectible = useCallback(() => {
+	const goToAddCollectible = () => {
 		navigation.push('AddAsset', { assetType: 'collectible' });
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_ADD_COLLECTIBLES);
 		});
-	}, [navigation]);
+	};
 
-	const renderFooter = useCallback(
-		() => (
-			<View style={styles.footer} key={'collectible-contracts-footer'}>
-				<TouchableOpacity style={styles.add} onPress={goToAddCollectible} testID={'add-collectible-button'}>
-					<Icon name="plus" size={16} color={colors.blue} />
-					<Text style={styles.addText}>{strings('wallet.add_collectibles')}</Text>
-				</TouchableOpacity>
-			</View>
-		),
-		[goToAddCollectible]
+	const renderFooter = () => (
+		<View style={styles.footer} key={'collectible-contracts-footer'}>
+			<Text style={styles.emptyText}>{strings('wallet.no_collectibles')}</Text>
+			<TouchableOpacity style={styles.add} onPress={goToAddCollectible} testID={'add-collectible-button'}>
+				<Text style={styles.addText}>{strings('wallet.add_collectibles')}</Text>
+			</TouchableOpacity>
+		</View>
 	);
 
 	const renderCollectibleContract = useCallback(
@@ -135,10 +132,9 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 			<View>
 				{renderFavoriteCollectibles()}
 				<View>{collectibleContracts?.map((item, index) => renderCollectibleContract(item, index))}</View>
-				{renderFooter()}
 			</View>
 		),
-		[collectibleContracts, renderFavoriteCollectibles, renderCollectibleContract, renderFooter]
+		[collectibleContracts, renderFavoriteCollectibles, renderCollectibleContract]
 	);
 
 	const goToLearnMore = () =>
@@ -152,21 +148,10 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 					source={require('../../../images/no-nfts-placeholder.png')}
 					resizeMode={'contain'}
 				/>
-				<Text center style={[styles.emptyTitleText, styles.emptySectionText]}>
-					{strings('wallet.no_nfts_to_show')}
+				<Text center style={styles.emptyTitleText} bold>
+					{strings('wallet.no_nfts_yet')}
 				</Text>
-
-				<Text center style={[styles.emptyText, styles.emptySectionText]}>
-					{strings('wallet.no_collectibles')}
-				</Text>
-				<StyledButton
-					type={'blue'}
-					onPress={goToAddCollectible}
-					containerStyle={[baseStyles.flexGrow, styles.emptySectionText]}
-				>
-					{strings('wallet.manually_import_nfts')}
-				</StyledButton>
-				<Text center big link style={styles.emptySectionText} onPress={goToLearnMore}>
+				<Text center big link onPress={goToLearnMore}>
 					{strings('wallet.learn_more')}
 				</Text>
 			</View>
@@ -176,6 +161,7 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 	return (
 		<View style={styles.wrapper} testID={'collectible-contracts'}>
 			{collectibles.length ? renderList() : renderEmpty()}
+			{renderFooter()}
 		</View>
 	);
 };

@@ -16,7 +16,7 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
     confirmButtonMode="normal"
     confirmDisabled={true}
     confirmTestID=""
-    confirmText="ADD TOKEN"
+    confirmText="IMPORT"
     confirmed={false}
     onCancelPress={[Function]}
     onConfirmPress={[Function]}
@@ -24,7 +24,7 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
     showConfirmButton={true}
   >
     <View>
-      <AssetSearch
+      <Memo()
         onSearch={[Function]}
       />
       <AssetList

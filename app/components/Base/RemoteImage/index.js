@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { View, Image, ViewPropTypes } from 'react-native';
+import { Image, ViewPropTypes, View } from 'react-native';
 import FadeIn from 'react-native-fade-in-image';
 // eslint-disable-next-line import/default
 import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
@@ -21,10 +21,11 @@ const RemoteImage = (props) => {
 				style.height = source.height;
 			}
 		}
+
 		return (
 			<ComponentErrorBoundary onError={props.onError} componentLabel="RemoteImage-SVG">
 				<View style={style}>
-					<SvgCssUri {...props} uri={source.uri} width={'100%'} height={'100%'} />
+					<SvgCssUri {...props} uri={source.uri} width={'100%'} height={'100%'} fill={'black'} />
 				</View>
 			</ComponentErrorBoundary>
 		);

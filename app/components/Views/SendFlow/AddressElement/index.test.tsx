@@ -9,10 +9,10 @@ const initialState = {
 	engine: {
 		backgroundState: {
 			NetworkController: {
-				network: '1'
-			}
-		}
-	}
+				network: '1',
+			},
+		},
+	},
 };
 const store = mockStore(initialState);
 
