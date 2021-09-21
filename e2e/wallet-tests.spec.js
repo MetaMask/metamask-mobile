@@ -186,7 +186,7 @@ describe('Wallet Tests', () => {
 		// Check that warning appears
 		await TestHelpers.checkIfVisible('collectible-address-warning');
 		// Tap on ADD button
-		await TestHelpers.tapByText('ADD');
+		await TestHelpers.tapByText('IMPORT');
 		// Check that identifier warning appears
 		await TestHelpers.checkIfVisible('collectible-identifier-warning');
 		// Go Back one view
@@ -237,21 +237,21 @@ describe('Wallet Tests', () => {
 		// Tap on Add Tokens
 		await TestHelpers.tap('add-token-button');
 		// Search for SAI
-		await TestHelpers.typeTextAndHideKeyboard('input-search-asset', 'SAI Stablecoin');
+		await TestHelpers.typeTextAndHideKeyboard('input-search-asset', 'DAI Stablecoin');
 		// Wait for results to load
 		await TestHelpers.delay(2000);
 		// Select SAI
 		await TestHelpers.tapItemAtIndex('searched-token-result');
 		await TestHelpers.delay(500);
 		// Tap on Add Token button
-		await TestHelpers.tapByText('ADD TOKEN');
+		await TestHelpers.tapByText('IMPORT');
 		// Check that we are on the wallet screen
 		await TestHelpers.checkIfVisible('wallet-screen');
 		// Check that SAI is added to wallet
 		await TestHelpers.delay(2000);
-		await TestHelpers.checkIfElementWithTextIsVisible('0 SAI');
+		await TestHelpers.checkIfElementWithTextIsVisible('0 DAI');
 		// Tap on SAI to remove network
-		await element(by.text('0 SAI')).longPress();
+		await element(by.text('0 DAI')).longPress();
 		// Tap remove
 		await TestHelpers.tapByText('Remove');
 		// Tap OK in alert box
