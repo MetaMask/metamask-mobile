@@ -250,11 +250,12 @@ class Tokens extends PureComponent {
 
 	removeToken = () => {
 		const { TokensController } = Engine.context;
+		const tokenAddress = this.tokenToRemove?.address;
 		try {
-			TokensController.removeAndIgnoreToken(this.tokenToRemove.address);
+			TokensController.removeAndIgnoreToken(tokenAddress);
 			Alert.alert(strings('wallet.token_removed_title'), strings('wallet.token_removed_desc'));
 		} catch (error) {
-			Logger.log('Error while trying to remove token', error);
+			Logger.log('Error while trying to remove token', error, tokenAddress);
 			Alert.alert(strings('wallet.token_removal_issue_title'), strings('wallet.token_removal_issue_desc'));
 		}
 	};
