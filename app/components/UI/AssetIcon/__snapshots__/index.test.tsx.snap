@@ -3,6 +3,7 @@
 exports[`AssetIcon should render correctly 1`] = `
 <RemoteImage
   fadeIn={true}
+  isUrl={true}
   placeholderStyle={
     Object {
       "backgroundColor": "#FFFFFF",
@@ -10,7 +11,7 @@ exports[`AssetIcon should render correctly 1`] = `
   }
   source={
     Object {
-      "uri": "https://raw.githubusercontent.com/metamask/contract-metadata/master/images/metamark.svg",
+      "uri": "https://s3.amazonaws.com/airswap-token-images/WBTC.png",
     }
   }
   style={

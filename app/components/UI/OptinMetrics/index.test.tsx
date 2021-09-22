@@ -7,8 +7,8 @@ import { Provider } from 'react-redux';
 const mockStore = configureMockStore();
 const initialState = {
 	onboarding: {
-		event: 'event'
-	}
+		event: 'event',
+	},
 };
 const store = mockStore(initialState);
 

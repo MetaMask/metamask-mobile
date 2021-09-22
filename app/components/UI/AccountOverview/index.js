@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { ScrollView, TextInput, StyleSheet, Text, View, TouchableOpacity, InteractionManager } from 'react-native';
-import Clipboard from '@react-native-community/clipboard';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { connect } from 'react-redux';
 import Engine from '../../../core/Engine';
@@ -30,6 +29,7 @@ import EthereumAddress from '../EthereumAddress';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { allowedToBuy } from '../FiatOrders';
 import AssetSwapButton from '../Swaps/components/AssetSwapButton';
+import ClipboardManager from '../../../core/ClipboardManager';
 
 const styles = StyleSheet.create({
 	scrollView: {
@@ -245,7 +245,7 @@ class AccountOverview extends PureComponent {
 
 	copyAccountToClipboard = async () => {
 		const { selectedAddress } = this.props;
-		await Clipboard.setString(selectedAddress);
+		await ClipboardManager.setString(selectedAddress);
 		this.props.showAlert({
 			isVisible: true,
 			autodismiss: 1500,

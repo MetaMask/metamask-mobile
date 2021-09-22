@@ -5,6 +5,7 @@ describe('Engine', () => {
 		expect(engine.context).toHaveProperty('AccountTrackerController');
 		expect(engine.context).toHaveProperty('AddressBookController');
 		expect(engine.context).toHaveProperty('AssetsContractController');
+		expect(engine.context).toHaveProperty('TokenListController');
 		expect(engine.context).toHaveProperty('AssetsDetectionController');
 		expect(engine.context).toHaveProperty('CollectiblesController');
 		expect(engine.context).toHaveProperty('CurrencyRateController');

@@ -9,7 +9,7 @@ const initialState = {
 	engine: {
 		backgroundState: {
 			NetworkController: {
-				network: '1'
+				network: '1',
 			},
 			AddressBookController: {
 				addressBook: {
@@ -18,12 +18,12 @@ const initialState = {
 						chainId: '1',
 						isEns: false,
 						memo: '',
-						name: 'aa'
-					}
-				}
-			}
-		}
-	}
+						name: 'aa',
+					},
+				},
+			},
+		},
+	},
 };
 const store = mockStore(initialState);
 

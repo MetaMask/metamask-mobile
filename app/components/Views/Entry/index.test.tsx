@@ -7,13 +7,13 @@ import { Provider } from 'react-redux';
 const mockStore = configureMockStore();
 const initialState = {
 	user: {
-		passwordSet: false
+		passwordSet: false,
 	},
 	engine: {
 		backgroundState: {
-			PreferencesController: {}
-		}
-	}
+			PreferencesController: {},
+		},
+	},
 };
 const store = mockStore(initialState);
 
