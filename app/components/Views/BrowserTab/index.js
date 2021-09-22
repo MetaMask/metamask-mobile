@@ -1053,8 +1053,7 @@ export const BrowserTab = (props) => {
 	 * Reload page if network changes
 	 */
 	useEffect(() => {
-		if (props.network === 'loading') return;
-		if (currentNetwork.current === props.network) return;
+		if (props.network === 'loading' || currentNetwork.current === props.network) return;
 		currentNetwork.current = props.network;
 		reload();
 	}, [currentNetwork, props.network, reload]);
