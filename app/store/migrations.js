@@ -204,44 +204,23 @@ export const migrations = {
 		return state;
 	},
 	8: (state) => {
-		// This migration removes tokens with missing addresses. FYI: This logic is not ideal since we want to find the origin of the issue.
-		const allTokens = state.engine.backgroundState.TokensController.allTokens || {};
+		// This migration ensures that ignored tokens are in the correct form
 		const allIgnoredTokens = state.engine.backgroundState.TokensController.allIgnoredTokens || {};
-		const tokens = state.engine.backgroundState.TokensController.tokens || [];
 		const ignoredTokens = state.engine.backgroundState.TokensController.ignoredTokens || [];
 
-		const newTokens = tokens.map((token) => {
-			const tokenAddress = (typeof token === 'string' && token) || token?.address || '';
-			return !!tokenAddress;
-		});
-		const newIgnoredTokens = ignoredTokens.map((token) => {
-			const tokenAddress = (typeof token === 'string' && token) || token?.address || '';
-			return !!tokenAddress;
-		});
-		const newAllTokens = {};
-		Object.entries(allTokens).forEach(([chainId, tokensByAccountAddress]) => {
-			Object.entries(tokensByAccountAddress).forEach(([accountAddress, tokens]) => {
-				const newTokens = tokens.map((token) => {
-					const tokenAddress = (typeof token === 'string' && token) || token?.address || '';
-					return !!tokenAddress;
-				});
-				if (newAllTokens[chainId] === undefined) {
-					newAllTokens[chainId] = { [accountAddress]: newTokens };
-				} else {
-					newAllTokens[chainId] = {
-						...newAllTokens[chainId],
-						[accountAddress]: newTokens,
-					};
-				}
-			});
-		});
+		const reduceTokens = (tokens) =>
+			tokens.reduce((final, token) => {
+				const tokenAddress = (typeof token === 'string' && token) || token?.address || '';
+				tokenAddress && final.push(tokenAddress);
+				return final;
+			}, []);
+
+		const newIgnoredTokens = reduceTokens(ignoredTokens);
+
 		const newAllIgnoredTokens = {};
 		Object.entries(allIgnoredTokens).forEach(([chainId, tokensByAccountAddress]) => {
 			Object.entries(tokensByAccountAddress).forEach(([accountAddress, tokens]) => {
-				const newTokens = tokens.map((token) => {
-					const tokenAddress = (typeof token === 'string' && token) || token?.address || '';
-					return !!tokenAddress;
-				});
+				const newTokens = reduceTokens(tokens);
 				if (newAllIgnoredTokens[chainId] === undefined) {
 					newAllIgnoredTokens[chainId] = { [accountAddress]: newTokens };
 				} else {
@@ -254,9 +233,7 @@ export const migrations = {
 		});
 
 		state.engine.backgroundState.TokensController = {
-			allTokens: newAllTokens,
 			allIgnoredTokens: newAllIgnoredTokens,
-			tokens: newTokens,
 			ignoredTokens: newIgnoredTokens,
 		};
 
