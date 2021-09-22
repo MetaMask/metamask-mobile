@@ -288,9 +288,9 @@
 		"remove_token_title": "Do you want to remove this token?",
 		"remove_collectible_title": "Do you want to remove this collectible?",
 		"token_removed_title": "Token removed!",
-		"token_removed_desc": "If you change your mind, you can add it back by tapping on \"+ ADD TOKENS\"",
+		"token_removed_desc": "If you change your mind, you can add it back by tapping on \"Import Tokens\"",
 		"collectible_removed_title": "Collectible removed!",
-		"collectible_removed_desc": "If you change your mind, you can add it back by tapping on \"+ ADD NFTs\"",
+		"collectible_removed_desc": "If you change your mind, you can add it back by tapping on \"Import NFTs\"",
 		"remove": "Remove",
 		"cancel": "Cancel",
 		"yes": "Yes",
@@ -322,7 +322,9 @@
 		},
 		"warning_body_description": "Anyone can create a token, including creating fake versions of existing tokens. Learn more about ",
 		"warning_link": "scams and security risks.",
-		"security_tips": "Security Tips"
+		"security_tips": "Security Tips",
+		"token_detection_feature": "New! Improved token detection is available on Ethereum Mainnet as an experimental feature. ",
+		"token_detection_link": "Enable it from Settings."
 	},
 	"terms_and_conditions": {
 		"title": "Terms and Conditions",
