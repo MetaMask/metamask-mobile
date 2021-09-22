@@ -210,12 +210,21 @@ export const migrations = {
 		const tokens = state.engine.backgroundState.TokensController.tokens || [];
 		const ignoredTokens = state.engine.backgroundState.TokensController.ignoredTokens || [];
 
-		const newTokens = tokens.filter(({ address }) => !!address);
-		const newIgnoredTokens = ignoredTokens.filter(({ address }) => !!address);
+		const newTokens = tokens.map((token) => {
+			const tokenAddress = (typeof token === 'string' && token) || token?.address || '';
+			return !!tokenAddress;
+		});
+		const newIgnoredTokens = ignoredTokens.map((token) => {
+			const tokenAddress = (typeof token === 'string' && token) || token?.address || '';
+			return !!tokenAddress;
+		});
 		const newAllTokens = {};
 		Object.entries(allTokens).forEach(([chainId, tokensByAccountAddress]) => {
 			Object.entries(tokensByAccountAddress).forEach(([accountAddress, tokens]) => {
-				const newTokens = tokens.filter(({ address }) => !!address);
+				const newTokens = tokens.map((token) => {
+					const tokenAddress = (typeof token === 'string' && token) || token?.address || '';
+					return !!tokenAddress;
+				});
 				if (newAllTokens[chainId] === undefined) {
 					newAllTokens[chainId] = { [accountAddress]: newTokens };
 				} else {
@@ -229,7 +238,10 @@ export const migrations = {
 		const newAllIgnoredTokens = {};
 		Object.entries(allIgnoredTokens).forEach(([chainId, tokensByAccountAddress]) => {
 			Object.entries(tokensByAccountAddress).forEach(([accountAddress, tokens]) => {
-				const newTokens = tokens.filter(({ address }) => !!address);
+				const newTokens = tokens.map((token) => {
+					const tokenAddress = (typeof token === 'string' && token) || token?.address || '';
+					return !!tokenAddress;
+				});
 				if (newAllIgnoredTokens[chainId] === undefined) {
 					newAllIgnoredTokens[chainId] = { [accountAddress]: newTokens };
 				} else {
