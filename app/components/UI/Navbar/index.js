@@ -158,7 +158,7 @@ export default function getNavbarOptions(title, navigation, disableNetwork = fal
  * @param {Object} navigation - Navigation object required to push new views
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
-export function getNavigationOptionsTitle(title, navigation) {
+export function getNavigationOptionsTitle(title, navigation, isFullScreenModal) {
 	function navigationPop() {
 		navigation.pop();
 	}
@@ -170,15 +170,22 @@ export function getNavigationOptionsTitle(title, navigation) {
 			...fontStyles.normal,
 		},
 		headerTintColor: colors.blue,
-		headerLeft: () => (
-			<TouchableOpacity onPress={navigationPop} style={styles.backButton} testID={'title-back-arrow-button'}>
-				<IonicIcon
-					name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
-					size={Device.isAndroid() ? 24 : 28}
-					style={styles.backIcon}
-				/>
-			</TouchableOpacity>
-		),
+		headerRight: () =>
+			isFullScreenModal ? (
+				<TouchableOpacity onPress={navigationPop} style={styles.closeButton}>
+					<IonicIcon name={'ios-close'} size={38} style={[styles.backIcon, styles.backIconIOS]} />
+				</TouchableOpacity>
+			) : null,
+		headerLeft: () =>
+			isFullScreenModal ? null : (
+				<TouchableOpacity onPress={navigationPop} style={styles.backButton} testID={'title-back-arrow-button'}>
+					<IonicIcon
+						name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
+						size={Device.isAndroid() ? 24 : 28}
+						style={styles.backIcon}
+					/>
+				</TouchableOpacity>
+			),
 	};
 }
 

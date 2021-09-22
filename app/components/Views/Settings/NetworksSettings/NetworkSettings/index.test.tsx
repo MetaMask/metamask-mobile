@@ -9,10 +9,10 @@ const initialState = {
 	engine: {
 		backgroundState: {
 			PreferencesController: {
-				frequentRpcList: []
-			}
-		}
-	}
+				frequentRpcList: [],
+			},
+		},
+	},
 };
 const store = mockStore(initialState);
 

@@ -274,13 +274,13 @@
 		"collectible": "Collectible",
 		"collectibles": "NFTs",
 		"transactions": "TRANSACTIONS",
-		"no_collectibles": "Your NFTs will show up here. If you don’t see your NFT, try importing manually.",
-		"add_tokens": "ADD TOKENS",
+		"no_collectibles": "Don’t see your NFT?",
+		"no_available_tokens": "Don't see your token?",
+		"add_tokens": "Import Tokens",
 		"no_tokens": "You don't have any tokens!",
-		"no_nfts_to_show": "No NFTs to show",
+		"no_nfts_yet": "No NFTs yet",
 		"learn_more": "Learn more",
-		"add_collectibles": "ADD NFTs",
-		"manually_import_nfts": "Import manually",
+		"add_collectibles": "Import NFTs",
 		"no_transactions": "You have no transactions!",
 		"send_button": "Send",
 		"deposit_button": "Deposit",
@@ -288,9 +288,9 @@
 		"remove_token_title": "Do you want to remove this token?",
 		"remove_collectible_title": "Do you want to remove this collectible?",
 		"token_removed_title": "Token removed!",
-		"token_removed_desc": "If you change your mind, you can add it back by tapping on \"+ ADD TOKENS\"",
+		"token_removed_desc": "If you change your mind, you can add it back by tapping on \"Import Tokens\"",
 		"collectible_removed_title": "Collectible removed!",
-		"collectible_removed_desc": "If you change your mind, you can add it back by tapping on \"+ ADD NFTs\"",
+		"collectible_removed_desc": "If you change your mind, you can add it back by tapping on \"Import NFTs\"",
 		"remove": "Remove",
 		"cancel": "Cancel",
 		"yes": "Yes",
@@ -308,18 +308,23 @@
 		"title": "Transactions"
 	},
 	"add_asset": {
-		"title": "Add Asset",
-		"title_nft": "Add NFT",
+		"title": "Import tokens",
+		"title_nft": "Import NFT",
 		"search_token": "SEARCH",
 		"custom_token": "CUSTOM TOKEN",
 		"tokens": {
 			"cancel_add_token": "CANCEL",
-			"add_token": "ADD TOKEN"
+			"add_token": "IMPORT"
 		},
 		"collectibles": {
 			"cancel_add_collectible": "CANCEL",
-			"add_collectible": "ADD"
-		}
+			"add_collectible": "IMPORT"
+		},
+		"warning_body_description": "Anyone can create a token, including creating fake versions of existing tokens. Learn more about ",
+		"warning_link": "scams and security risks.",
+		"security_tips": "Security Tips",
+		"token_detection_feature": "New! Improved token detection is available on Ethereum Mainnet as an experimental feature. ",
+		"token_detection_link": "Enable it from Settings."
 	},
 	"terms_and_conditions": {
 		"title": "Terms and Conditions",
@@ -522,7 +527,9 @@
 		"invalid_number_leading_zeros": "Invalid number. Remove any leading zeros.",
 		"invalid_number_range": "Invalid number. Enter a number between 1 and %{maxSafeChainId}",
 		"hide_zero_balance_tokens_title": "Hide Tokens Without Balance",
-		"hide_zero_balance_tokens_desc": "Prevents tokens with no balance from displaying in your token listing."
+		"hide_zero_balance_tokens_desc": "Prevents tokens with no balance from displaying in your token listing.",
+		"token_detection_title": "Token Detection",
+		"token_detection_description": "We use third-party APIs to detect and display new tokens sent to your wallet. Turn off if you don’t want the app to pull data from those those services."
 	},
 	"app_information": {
 		"title": "Information",
@@ -550,8 +557,10 @@
 		"private_key": "Your private key",
 		"copy_to_clipboard": "Copy to clipboard",
 		"enter_password": "Enter password to continue",
-		"seed_phrase_copied": "Secret Recovery Phrase copied to clipboard",
-		"private_key_copied": "Private key copied to clipboard",
+		"seed_phrase_copied": "Secret Recovery Phrase temporarily copied to clipboard",
+		"seed_phrase_copied_time": "(stored for 1 minute)",
+		"private_key_copied": "Private key temporarily copied to clipboard",
+		"private_key_copied_time": "(stored for 1 minute)",
 		"warning_incorrect_password": "Incorrect password",
 		"unknown_error": "Couldn't unlock your account. Please try again.",
 		"seed_warning": "This is your wallet's 12 word phrase. This phrase can be used to take control of all of your current and future accounts, including the ability to send away any of their funds. Keep this phrase stored safely, DO NOT share it with anyone.",

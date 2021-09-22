@@ -17,8 +17,8 @@ describe('CollectibleModal', () => {
 					route={{
 						params: {
 							contractName: 'Opensea',
-							collectible: { name: 'Leopard', tokenId: 6904, address: '0x123' }
-						}
+							collectible: { name: 'Leopard', tokenId: 6904, address: '0x123' },
+						},
 					}}
 				/>
 			</Provider>

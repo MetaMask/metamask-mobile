@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { View, Image, ViewPropTypes } from 'react-native';
+import { Image, ViewPropTypes, View } from 'react-native';
 import FadeIn from 'react-native-fade-in-image';
 // eslint-disable-next-line import/default
 import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
@@ -11,7 +11,7 @@ const RemoteImage = (props) => {
 	// Avoid using this component with animated SVG
 	const source = resolveAssetSource(props.source);
 
-	if (source && source.uri && source.uri.match('.svg')) {
+	if (source && source.uri && source.uri.match('.svg') && !props.isUrl) {
 		const style = props.style || {};
 		if (source.__packager_asset && typeof style !== 'number') {
 			if (!style.width) {
@@ -21,10 +21,11 @@ const RemoteImage = (props) => {
 				style.height = source.height;
 			}
 		}
+
 		return (
 			<ComponentErrorBoundary onError={props.onError} componentLabel="RemoteImage-SVG">
 				<View style={style}>
-					<SvgCssUri {...props} uri={source.uri} width={'100%'} height={'100%'} />
+					<SvgCssUri {...props} uri={source.uri} width={'100%'} height={'100%'} fill={'black'} />
 				</View>
 			</ComponentErrorBoundary>
 		);
@@ -61,6 +62,10 @@ RemoteImage.propTypes = {
 	 * Called when there is an error
 	 */
 	onError: PropTypes.func,
+	/**
+	 * This is set if we know that an image is remote
+	 */
+	isUrl: PropTypes.bool,
 };
 
 export default RemoteImage;
