@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react';
 import { Text, TextInput, View, StyleSheet, InteractionManager } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
-import Logger from '../../../util/Logger';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
 import { isValidAddress } from 'ethereumjs-util';
@@ -76,11 +75,7 @@ export default class AddCustomToken extends PureComponent {
 		if (!(await this.validateCustomToken())) return;
 		const { TokensController } = Engine.context;
 		const { address, symbol, decimals } = this.state;
-		try {
-			await TokensController.addToken(address, symbol, decimals);
-		} catch (error) {
-			Logger.log('Error while trying to add a custom token', error);
-		}
+		await TokensController.addToken(address, symbol, decimals);
 
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.TOKEN_ADDED, this.getAnalyticsParams());
 

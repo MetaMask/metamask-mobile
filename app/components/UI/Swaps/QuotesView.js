@@ -279,11 +279,7 @@ async function addTokenToAssetsController(newToken) {
 		!TokensController.state.tokens.includes((token) => toLowerCaseEquals(token.address, newToken.address))
 	) {
 		const { address, symbol, decimals } = newToken;
-		try {
-			await TokensController.addToken(address, symbol, decimals);
-		} catch (error) {
-			Logger.log('Error while trying to add a token from swaps quotes', error);
-		}
+		await TokensController.addToken(address, symbol, decimals);
 	}
 }
 
