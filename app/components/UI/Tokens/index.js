@@ -7,6 +7,7 @@ import { strings } from '../../../../locales/i18n';
 import ActionSheet from 'react-native-actionsheet';
 import { renderFromTokenMinimalUnit, balanceToFiat } from '../../../util/number';
 import Engine from '../../../core/Engine';
+import Logger from '../../../util/Logger';
 import AssetElement from '../AssetElement';
 import { connect } from 'react-redux';
 import { safeToChecksumAddress } from '../../../util/address';
@@ -249,8 +250,14 @@ class Tokens extends PureComponent {
 
 	removeToken = () => {
 		const { TokensController } = Engine.context;
-		TokensController.removeAndIgnoreToken(this.tokenToRemove.address);
-		Alert.alert(strings('wallet.token_removed_title'), strings('wallet.token_removed_desc'));
+		const tokenAddress = this.tokenToRemove?.address;
+		try {
+			TokensController.removeAndIgnoreToken(tokenAddress);
+			Alert.alert(strings('wallet.token_removed_title'), strings('wallet.token_removed_desc'));
+		} catch (error) {
+			Logger.log('Error while trying to remove token', error, tokenAddress);
+			Alert.alert(strings('wallet.token_removal_issue_title'), strings('wallet.token_removal_issue_desc'));
+		}
 	};
 
 	createActionSheetRef = (ref) => {
