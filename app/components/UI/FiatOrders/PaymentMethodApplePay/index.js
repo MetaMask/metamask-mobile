@@ -244,7 +244,8 @@ function PaymentMethodApplePay({
 		try {
 			const order = await pay(
 				roundAmount,
-				quotation.fees[selectedCurrency] + quotation.fees.ETH / quotation.exchangeRate
+				quotation.fees[selectedCurrency] + quotation.fees.ETH / quotation.exchangeRate,
+				decimalSeparator ? 2 : 0 // TODO: retrieve decimals with useCurrency in the future
 			);
 			if (order !== ABORTED) {
 				if (order) {
@@ -294,6 +295,7 @@ function PaymentMethodApplePay({
 		setLockTime,
 		pay,
 		roundAmount,
+		decimalSeparator,
 		selectedCurrency,
 		ABORTED,
 		addOrder,
