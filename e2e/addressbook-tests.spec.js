@@ -68,6 +68,9 @@ describe('Addressbook Tests', () => {
 		// Check that the onboarding wizard is gone
 		await TestHelpers.checkIfNotVisible('onboarding-wizard-step1-view');
 		// Check that the protect your wallet modal is visible
+	});
+
+	it('should dismiss the protect your wallet modal', async () => {
 		await TestHelpers.checkIfVisible('backup-alert');
 		// Tap on remind me later
 		await TestHelpers.tap('notification-remind-later-button');

@@ -11,7 +11,7 @@ describe('Custom RPC Tests', () => {
 		jest.setTimeout(170000);
 	});
 
-	it('should create new wallet and dismiss tutorial', async () => {
+	it('should create new wallet', async () => {
 		// Check that we are on the onboarding carousel screen
 		await TestHelpers.checkIfVisible('onboarding-carousel-screen');
 		// Check that Get started CTA is visible & tap it
@@ -42,6 +42,9 @@ describe('Custom RPC Tests', () => {
 		}
 		// Tap on create password button
 		await TestHelpers.tap('submit-button');
+	});
+
+	it('Should skip backup check and dismiss tutorial', async () => {
 		// Check that we are on the Secure your wallet screen
 		await TestHelpers.checkIfVisible('protect-your-account-screen');
 		// Tap on the remind me later button
@@ -68,8 +71,13 @@ describe('Custom RPC Tests', () => {
 		await TestHelpers.waitAndTap('onboarding-wizard-back-button');
 		// Check that the onboarding wizard is gone
 		await TestHelpers.checkIfNotVisible('onboarding-wizard-step1-view');
-		// Check that the protect your wallet modal is visible
+	});
+
+	it('should dismiss the protect your wallet modal', async () => {
 		await TestHelpers.checkIfVisible('backup-alert');
+
+		await TestHelpers.delay(1000);
+
 		// Tap on remind me later
 		await TestHelpers.tap('notification-remind-later-button');
 		// Check the box to state you understand
