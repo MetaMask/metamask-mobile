@@ -1,3 +1,4 @@
+/* eslint-disable no-mixed-spaces-and-tabs */
 /* eslint-disable react/display-name */
 import React, { useCallback, useState, useMemo } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView, TouchableWithoutFeedback } from 'react-native';
@@ -45,6 +46,12 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		width: '100%',
 		paddingBottom: 20,
+	},
+	newGasFeeHeader: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		width: '100%',
+		justifyContent: 'center',
 	},
 	headerContainer: {
 		alignItems: 'center',
@@ -151,6 +158,7 @@ const EditGasFee1559 = ({
 	warning,
 	dappSuggestedGas,
 	ignoreOptions,
+	updateOption,
 	extendOptions = {},
 	recommended,
 	warningMinimumEstimateOption,
@@ -162,7 +170,7 @@ const EditGasFee1559 = ({
 	analyticsParams,
 	view,
 }) => {
-	const [showRangeInfoModal, setShowRangeInfoModal] = useState(false);
+	const [showInfoModal, setShowInfoModal] = useState(false);
 	const [showAdvancedOptions, setShowAdvancedOptions] = useState(!selected);
 	const [maxPriorityFeeError, setMaxPriorityFeeError] = useState(null);
 	const [maxFeeError, setMaxFeeError] = useState(null);
@@ -217,10 +225,21 @@ const EditGasFee1559 = ({
 			const higherValue = new BigNumber(gasOptions?.high?.suggestedMaxPriorityFeePerGas).multipliedBy(
 				new BigNumber(1.5)
 			);
+			const updateFloor = new BigNumber(updateOption?.maxPriortyFeeThreshold);
 
 			const valueBN = new BigNumber(value);
 
-			if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
+			if (updateFloor && !updateFloor.isNaN() && valueBN.lt(updateFloor)) {
+				setMaxPriorityFeeError(
+					updateOption?.isCancel
+						? strings('edit_gas_fee_eip1559.max_priority_fee_cancel_low', {
+								cancel_value: updateFloor,
+						  })
+						: strings('edit_gas_fee_eip1559.max_priority_fee_speed_up_low', {
+								speed_up_floor_value: updateFloor,
+						  })
+				);
+			} else if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
 				setMaxPriorityFeeError(strings('edit_gas_fee_eip1559.max_priority_fee_low'));
 			} else if (!higherValue.isNaN() && valueBN.gt(higherValue)) {
 				setMaxPriorityFeeError(strings('edit_gas_fee_eip1559.max_priority_fee_high'));
@@ -232,17 +251,28 @@ const EditGasFee1559 = ({
 
 			changeGas(newGas, null);
 		},
-		[changeGas, gasFee, gasOptions, warningMinimumEstimateOption]
+		[changeGas, gasFee, gasOptions, updateOption, warningMinimumEstimateOption]
 	);
 
 	const changedMaxFeePerGas = useCallback(
 		(value) => {
 			const lowerValue = new BigNumber(gasOptions?.[warningMinimumEstimateOption]?.suggestedMaxFeePerGas);
 			const higherValue = new BigNumber(gasOptions?.high?.suggestedMaxFeePerGas).multipliedBy(new BigNumber(1.5));
+			const updateFloor = new BigNumber(updateOption?.maxFeeThreshold);
 
 			const valueBN = new BigNumber(value);
 
-			if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
+			if (updateFloor && !updateFloor.isNaN() && valueBN.lt(updateFloor)) {
+				setMaxFeeError(
+					updateOption?.isCancel
+						? strings('edit_gas_fee_eip1559.max_fee_cancel_low', {
+								cancel_value: updateFloor,
+						  })
+						: strings('edit_gas_fee_eip1559.max_fee_speed_up_low', {
+								speed_up_floor_value: updateFloor,
+						  })
+				);
+			} else if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
 				setMaxFeeError(strings('edit_gas_fee_eip1559.max_fee_low'));
 			} else if (!higherValue.isNaN() && valueBN.gt(higherValue)) {
 				setMaxFeeError(strings('edit_gas_fee_eip1559.max_fee_high'));
@@ -253,7 +283,7 @@ const EditGasFee1559 = ({
 			const newGas = { ...gasFee, suggestedMaxFeePerGas: value };
 			changeGas(newGas, null);
 		},
-		[changeGas, gasFee, gasOptions, warningMinimumEstimateOption]
+		[changeGas, gasFee, gasOptions, updateOption, warningMinimumEstimateOption]
 	);
 
 	const changedGasLimit = useCallback(
@@ -330,7 +360,11 @@ const EditGasFee1559 = ({
 					<HorizontalSelector selected={selectedOption} onPress={selectOption} options={renderOptions} />
 				</View>
 				<View style={styles.advancedOptionsContainer}>
-					<TouchableOpacity onPress={toggleAdvancedOptions} style={styles.advancedOptionsButton}>
+					<TouchableOpacity
+						disable={updateOption?.showAdvanced}
+						onPress={toggleAdvancedOptions}
+						style={styles.advancedOptionsButton}
+					>
 						<Text noMargin link bold>
 							{strings('edit_gas_fee_eip1559.advanced_options')}
 						</Text>
@@ -338,7 +372,7 @@ const EditGasFee1559 = ({
 							<Icon name={`ios-arrow-${showAdvancedOptions ? 'up' : 'down'}`} />
 						</Text>
 					</TouchableOpacity>
-					{showAdvancedOptions && (
+					{(showAdvancedOptions || updateOption?.showAdvanced) && (
 						<View style={styles.advancedOptionsInputsContainer}>
 							<View style={styles.rangeInputContainer}>
 								<RangeInput
@@ -350,7 +384,7 @@ const EditGasFee1559 = ({
 
 											<TouchableOpacity
 												hitSlop={styles.hitSlop}
-												onPress={() => setShowRangeInfoModal('gas_limit')}
+												onPress={() => setShowInfoModal('gas_limit')}
 											>
 												<MaterialCommunityIcon
 													name="information"
@@ -377,7 +411,7 @@ const EditGasFee1559 = ({
 
 											<TouchableOpacity
 												hitSlop={styles.hitSlop}
-												onPress={() => setShowRangeInfoModal('max_priority_fee')}
+												onPress={() => setShowInfoModal('max_priority_fee')}
 											>
 												<MaterialCommunityIcon
 													name="information"
@@ -415,7 +449,7 @@ const EditGasFee1559 = ({
 
 											<TouchableOpacity
 												hitSlop={styles.hitSlop}
-												onPress={() => setShowRangeInfoModal('max_fee')}
+												onPress={() => setShowInfoModal('max_fee')}
 											>
 												<MaterialCommunityIcon
 													name="information"
@@ -454,7 +488,7 @@ const EditGasFee1559 = ({
 					</Text>
 				</TouchableOpacity>
 				<StyledButton type={'confirm'} onPress={save} disabled={Boolean(error) || isAnimating}>
-					{strings('edit_gas_fee_eip1559.save')}
+					{updateOption ? strings('edit_gas_fee_eip1559.submit') : strings('edit_gas_fee_eip1559.save')}
 				</StyledButton>
 			</View>
 		</View>
@@ -506,6 +540,14 @@ const EditGasFee1559 = ({
 		return error;
 	}, [error]);
 
+	const renderDisplayTitle = useMemo(() => {
+		if (updateOption)
+			return updateOption.isCancel
+				? strings('edit_gas_fee_eip1559.cancel_transaction')
+				: strings('edit_gas_fee_eip1559.speed_up_transaction');
+		return strings('edit_gas_fee_eip1559.edit_priority');
+	}, [updateOption]);
+
 	return (
 		<View style={styles.root}>
 			<ScrollView style={styles.wrapper}>
@@ -517,10 +559,24 @@ const EditGasFee1559 = ({
 									<Icon name={'ios-arrow-back'} size={24} color={colors.black} />
 								</TouchableOpacity>
 								<Text bold black>
-									{strings('edit_gas_fee_eip1559.edit_priority')}
+									{renderDisplayTitle}
 								</Text>
 								<Icon name={'ios-arrow-back'} size={24} color={colors.white} />
 							</View>
+							{updateOption && (
+								<View style={styles.newGasFeeHeader}>
+									<Text black bold noMargin>
+										{strings('edit_gas_fee_eip1559.new_gas_fee')}{' '}
+									</Text>
+
+									<TouchableOpacity
+										hitSlop={styles.hitSlop}
+										onPress={() => setShowInfoModal('new_gas_fee')}
+									>
+										<MaterialCommunityIcon name="information" size={14} style={styles.labelInfo} />
+									</TouchableOpacity>
+								</View>
+							)}
 						</View>
 						{renderWarning}
 						{renderError}
@@ -562,26 +618,31 @@ const EditGasFee1559 = ({
 							renderInputs()
 						)}
 						<InfoModal
-							isVisible={Boolean(showRangeInfoModal)}
+							isVisible={Boolean(showInfoModal)}
 							title={
-								showRangeInfoModal === 'gas_limit'
+								showInfoModal === 'gas_limit'
 									? strings('edit_gas_fee_eip1559.gas_limit')
-									: showRangeInfoModal === 'max_priority_fee'
+									: showInfoModal === 'max_priority_fee'
 									? strings('edit_gas_fee_eip1559.max_priority_fee')
-									: showRangeInfoModal === 'max_fee'
+									: showInfoModal === 'max_fee'
 									? strings('edit_gas_fee_eip1559.max_fee')
+									: showInfoModal === 'new_gas_fee'
+									? strings('edit_gas_fee_eip1559.new_gas_fee')
 									: null
 							}
-							toggleModal={() => setShowRangeInfoModal(null)}
+							toggleModal={() => setShowInfoModal(null)}
 							body={
 								<View>
 									<Text grey infoModal>
-										{showRangeInfoModal === 'gas_limit' &&
+										{showInfoModal === 'gas_limit' &&
 											strings('edit_gas_fee_eip1559.learn_more_gas_limit')}
-										{showRangeInfoModal === 'max_priority_fee' &&
+										{showInfoModal === 'max_priority_fee' &&
 											strings('edit_gas_fee_eip1559.learn_more_max_priority_fee')}
-										{showRangeInfoModal === 'max_fee' &&
+										{showInfoModal === 'max_fee' &&
 											strings('edit_gas_fee_eip1559.learn_more_max_fee')}
+										{showInfoModal === 'new_gas_fee' && updateOption && updateOption.isCancel
+											? strings('edit_gas_fee_eip1559.learn_more_cancel_gas_fee')
+											: strings('edit_gas_fee_eip1559.learn_more_new_gas_fee')}
 									</Text>
 								</View>
 							}
@@ -740,6 +801,10 @@ EditGasFee1559.propTypes = {
 	 * Ignore option array
 	 */
 	ignoreOptions: PropTypes.array,
+	/**
+	 * Option to display speed up/cancel view
+	 */
+	updateOption: PropTypes.object,
 	/**
 	 * Extend options object. Object has option keys and properties will be spread
 	 */
