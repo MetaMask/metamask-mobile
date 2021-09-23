@@ -35,10 +35,20 @@ const initialState = {
 					chainId: '1',
 				},
 			},
+			GasFeeController: {
+				gasFeeEstimates: {
+					high: {},
+					medium: {},
+					low: {},
+				},
+			},
 		},
 	},
 	privacy: {
 		thirdPartyApiMode: true,
+	},
+	settings: {
+		primaryCurrency: 'USD',
 	},
 };
 const store = mockStore(initialState);
