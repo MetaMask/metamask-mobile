@@ -58,6 +58,10 @@ describe('Request Token Flow', () => {
 			// Check that we are on the wallet screen
 			await TestHelpers.checkIfExists('wallet-screen');
 		}
+	});
+
+	it('should dismiss the onboarding wizard', async () => {
+		await TestHelpers.delay(1000);
 		// Check that the onboarding wizard is present
 		await TestHelpers.checkIfVisible('onboarding-wizard-step1-view');
 		// Check that No thanks CTA is visible and tap it
@@ -65,6 +69,7 @@ describe('Request Token Flow', () => {
 		// Check that the onboarding wizard is gone
 		await TestHelpers.checkIfNotVisible('onboarding-wizard-step1-view');
 	});
+
 	it('should dismiss the protect your wallet modal', async () => {
 		await TestHelpers.checkIfVisible('backup-alert');
 		// Tap on remind me later

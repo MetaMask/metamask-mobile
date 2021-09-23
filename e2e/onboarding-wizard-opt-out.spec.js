@@ -55,11 +55,14 @@ describe('Onboarding wizard opt-out', () => {
 			// Check that we are on the wallet screen
 			await TestHelpers.checkIfExists('wallet-screen');
 		}
+		await TestHelpers.delay(2000);
 		// Check that No thanks CTA is visible and tap it
 		await TestHelpers.waitAndTap('onboarding-wizard-back-button');
 		// Check that the onboarding wizard is gone
 		await TestHelpers.checkIfNotVisible('onboarding-wizard-step1-view');
-		// Check that the protect your wallet modal is visible
+	});
+
+	it('should dismiss the protect your wallet modal', async () => {
 		await TestHelpers.checkIfVisible('backup-alert');
 		// Tap on remind me later
 		await TestHelpers.tap('notification-remind-later-button');

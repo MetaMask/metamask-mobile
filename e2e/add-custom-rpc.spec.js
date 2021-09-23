@@ -65,6 +65,10 @@ describe('Custom RPC Tests', () => {
 			// Check that we are on the wallet screen
 			await TestHelpers.checkIfExists('wallet-screen');
 		}
+	});
+
+	it('should dismiss the onboarding wizard', async () => {
+		await TestHelpers.delay(1000);
 		// Check that the onboarding wizard is present
 		await TestHelpers.checkIfVisible('onboarding-wizard-step1-view');
 		// Check that No thanks CTA is visible and tap it
