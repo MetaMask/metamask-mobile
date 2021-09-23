@@ -3,16 +3,20 @@ import { shallow } from 'enzyme';
 import ExperimentalSettings from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
+import { MAINNET } from '../../../../constants/network';
+import { NetworksChainId } from '@metamask/controllers';
 
 const mockStore = configureMockStore();
 const initialState = {
-	privacy: { approvedHosts: {}, privacyMode: true },
-	browser: { history: [] },
-	settings: { lockTime: 1000 },
 	engine: {
 		backgroundState: {
-			PreferencesController: { selectedAddress: '0x', identities: { '0x': { name: 'Account 1' } } },
-			AccountTrackerController: { accounts: {} },
+			PreferencesController: { useStaticTokenList: true },
+			NetworkController: {
+				provider: {
+					type: MAINNET,
+					chainId: NetworksChainId.mainnet,
+				},
+			},
 		},
 	},
 };
@@ -22,9 +26,9 @@ describe('ExperimentalSettings', () => {
 	it('should render correctly', () => {
 		const wrapper = shallow(
 			<Provider store={store}>
-				<ExperimentalSettings />
+				<ExperimentalSettings navigation={{}} route={{}} />
 			</Provider>
 		);
-		expect(wrapper.dive()).toMatchSnapshot();
+		expect(wrapper).toMatchSnapshot();
 	});
 });
