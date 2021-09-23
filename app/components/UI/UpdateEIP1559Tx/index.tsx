@@ -1,3 +1,4 @@
+/* eslint-disable no-mixed-spaces-and-tabs */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import EditGasFee1559 from '../EditGasFee1559';
 import { connect } from 'react-redux';
@@ -149,21 +150,70 @@ const UpdateEIP1559Tx = ({
 		};
 	}, []);
 
+	const isMaxFeePerGasMoreThanLegacy = useCallback(
+		(maxFeePerGas: BigNumber) => {
+			const newDecMaxFeePerGas = new BigNumber(existingGas.maxFeePerGas).times(
+				new BigNumber(isCancel ? CANCEL_RATE : SPEED_UP_RATE)
+			);
+			return { result: maxFeePerGas.gte(newDecMaxFeePerGas), value: newDecMaxFeePerGas };
+		},
+		[existingGas.maxFeePerGas, isCancel]
+	);
+
+	const isMaxPriorityFeePerGasMoreThanLegacy = useCallback(
+		(maxPriorityFeePerGas: BigNumber) => {
+			const newDecMaxPriorityFeePerGas = new BigNumber(existingGas.maxPriorityFeePerGas).times(
+				new BigNumber(isCancel ? CANCEL_RATE : SPEED_UP_RATE)
+			);
+			return { result: maxPriorityFeePerGas.gte(newDecMaxPriorityFeePerGas), value: newDecMaxPriorityFeePerGas };
+		},
+		[existingGas.maxPriorityFeePerGas, isCancel]
+	);
+
 	const validateAmount = useCallback(
 		(updateTx) => {
 			let error;
 
 			const updateTxCost: any = hexToBN(`0x${updateTx.totalMaxHex}`);
 			const accountBalance: any = hexToBN(accounts[selectedAddress].balance);
+			const isMaxFeePerGasMoreThanLegacyResult = isMaxFeePerGasMoreThanLegacy(
+				new BigNumber(updateTx.suggestedMaxFeePerGas)
+			);
+			const isMaxPriorityFeePerGasMoreThanLegacyResult = isMaxPriorityFeePerGasMoreThanLegacy(
+				new BigNumber(updateTx.suggestedMaxPriorityFeePerGas)
+			);
 			if (accountBalance.lt(updateTxCost)) {
 				const amount = renderFromWei(updateTxCost.sub(accountBalance));
 				const tokenSymbol = getTicker(ticker);
 				error = strings('transaction.insufficient_amount', { amount, tokenSymbol });
+			} else if (!isMaxFeePerGasMoreThanLegacyResult.result) {
+				error = isCancel
+					? strings('edit_gas_fee_eip1559.max_fee_cancel_low', {
+							cancel_value: isMaxFeePerGasMoreThanLegacyResult.value,
+					  })
+					: strings('edit_gas_fee_eip1559.max_fee_speed_up_low', {
+							speed_up_floor_value: isMaxFeePerGasMoreThanLegacyResult.value,
+					  });
+			} else if (!isMaxPriorityFeePerGasMoreThanLegacyResult.result) {
+				error = isCancel
+					? strings('edit_gas_fee_eip1559.max_priority_fee_cancel_low', {
+							cancel_value: isMaxPriorityFeePerGasMoreThanLegacyResult.value,
+					  })
+					: strings('edit_gas_fee_eip1559.max_priority_fee_speed_up_low', {
+							speed_up_floor_value: isMaxPriorityFeePerGasMoreThanLegacyResult.value,
+					  });
 			}
 
 			return error;
 		},
-		[accounts, selectedAddress, ticker]
+		[
+			accounts,
+			selectedAddress,
+			isMaxFeePerGasMoreThanLegacy,
+			isMaxPriorityFeePerGasMoreThanLegacy,
+			ticker,
+			isCancel,
+		]
 	);
 
 	const parseTransactionDataEIP1559 = useCallback(
@@ -205,10 +255,10 @@ const UpdateEIP1559Tx = ({
 
 				//Check to see if default SPEED_UP_RATE/CANCEL_RATE is greater than current market medium value
 				if (
-					newDecMaxPriorityFeePerGas.gte(
-						new BigNumber(gasFeeEstimates.medium.suggestedMaxPriorityFeePerGas)
-					) ||
-					newDecMaxFeePerGas.gte(new BigNumber(gasFeeEstimates.medium.suggestedMaxFeePerGas))
+					!isMaxFeePerGasMoreThanLegacy(new BigNumber(gasFeeEstimates.medium.suggestedMaxPriorityFeePerGas))
+						.result ||
+					!isMaxPriorityFeePerGasMoreThanLegacy(new BigNumber(gasFeeEstimates.medium.suggestedMaxFeePerGas))
+						.result
 				) {
 					updateTx1559Options.current = {
 						maxPriortyFeeThreshold: newDecMaxPriorityFeePerGas,
@@ -257,6 +307,8 @@ const UpdateEIP1559Tx = ({
 		parseTransactionDataEIP1559,
 		isCancel,
 		gas,
+		isMaxFeePerGasMoreThanLegacy,
+		isMaxPriorityFeePerGasMoreThanLegacy,
 	]);
 
 	const calculate1559TempGasFee = (gasValues: any, selected: string) => {
