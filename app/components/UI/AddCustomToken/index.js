@@ -32,6 +32,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 	},
 	warningContainer: { marginHorizontal: 20, marginTop: 20, paddingRight: 0 },
+	warningLink: { color: colors.blue },
 });
 
 /**
@@ -208,7 +209,7 @@ export default class AddCustomToken extends PureComponent {
 								},
 							});
 						}}
-						style={{ color: colors.blue }}
+						style={styles.warningLink}
 					>
 						{strings('add_asset.warning_link')}
 					</Text>

@@ -676,10 +676,12 @@ export function useWyreOrderQuotation(network, amount, currency, address, countr
 
 export function useWyreApplePay(address, currency, network) {
 	const showRequest = useCallback(
-		async (amount, fee) => {
-			const total = (Number(amount) + Number(fee)).toFixed(2);
+		async (amount, fee, decimals) => {
+			const fixedAmount = Number(amount).toFixed(decimals);
+			const fixedFee = Number(fee).toFixed(decimals);
+			const total = (Number(amount) + Number(fee)).toFixed(decimals);
 			const methodData = getMethodData(currency, network);
-			const paymentDetails = getPaymentDetails(ETH_CURRENCY_CODE, currency, amount, fee, total);
+			const paymentDetails = getPaymentDetails(ETH_CURRENCY_CODE, currency, fixedAmount, fixedFee, total);
 			const paymentRequest = new PaymentRequest(methodData, paymentDetails, paymentOptions);
 			try {
 				const paymentResponse = await paymentRequest.show();
