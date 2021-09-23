@@ -233,6 +233,7 @@ export const migrations = {
 		});
 
 		state.engine.backgroundState.TokensController = {
+			...state.engine.backgroundState.TokensController,
 			allIgnoredTokens: newAllIgnoredTokens,
 			ignoredTokens: newIgnoredTokens,
 		};
