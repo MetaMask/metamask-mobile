@@ -3,6 +3,7 @@
 exports[`AssetIcon should render correctly 1`] = `
 <RemoteImage
   fadeIn={true}
+  isUrl={true}
   placeholderStyle={
     Object {
       "backgroundColor": "#FFFFFF",
