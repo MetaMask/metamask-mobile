@@ -2,7 +2,6 @@ import { addHexPrefix, toChecksumAddress, BN } from 'ethereumjs-util';
 import { rawEncode, rawDecode } from 'ethereumjs-abi';
 import Engine from '../../core/Engine';
 import I18n, { strings } from '../../../locales/i18n';
-import contractMap from '@metamask/contract-metadata';
 import { safeToChecksumAddress } from '../address';
 import { util } from '@metamask/controllers';
 import { swapsUtils } from '@metamask/swaps-controller';
@@ -32,6 +31,8 @@ import {
 
 import humanizeDuration from 'humanize-duration';
 import Logger from '../../util/Logger';
+
+import BigNumber from 'bignumber.js';
 
 const { SAI_ADDRESS } = AppConstants;
 
@@ -179,7 +180,7 @@ export function decodeTransferData(type, data) {
 	switch (type) {
 		case 'transfer': {
 			const encodedAddress = data.substr(10, 64);
-			const encodedAmount = data.substr(74, 138);
+			const encodedAmount = data.substr(74, 64);
 			const bufferEncodedAddress = rawEncode(['address'], [addHexPrefix(encodedAddress)]);
 			return [
 				addHexPrefix(rawDecode(['address'], bufferEncodedAddress)[0]),
@@ -244,7 +245,7 @@ export async function isSmartContractAddress(address, chainId) {
 	if (!address) return false;
 	address = toChecksumAddress(address);
 	// If in contract map we don't need to cache it
-	if (isMainnetByChainId(chainId) && contractMap[address]) {
+	if (isMainnetByChainId(chainId) && Engine.context.TokenListController.state.tokenList[address]) {
 		return Promise.resolve(true);
 	}
 	const { TransactionController } = Engine.context;
@@ -1112,4 +1113,57 @@ export function validateTransactionActionBalance(transaction, rate, accounts) {
 	} catch (e) {
 		return false;
 	}
+}
+
+export function calcTokenAmount(value, decimals) {
+	const multiplier = Math.pow(10, Number(decimals || 0));
+	return new BigNumber(String(value)).div(multiplier);
+}
+
+export function calcTokenValue(value, decimals) {
+	const multiplier = Math.pow(10, Number(decimals || 0));
+	return new BigNumber(String(value)).times(multiplier);
+}
+
+/**
+ * Attempts to get the address parameter of the given token transaction data
+ * (i.e. function call) per the Human Standard Token ABI, in the following
+ * order:
+ *   - The '_to' parameter, if present
+ *   - The first parameter, if present
+ *
+ * @param {Object} tokenData - ethers Interface token data.
+ * @returns {string | undefined} A lowercase address string.
+ */
+export function getTokenAddressParam(tokenData = {}) {
+	const value = tokenData?.args?._to || tokenData?.args?.[0];
+	return value?.toString().toLowerCase();
+}
+
+/**
+ * Gets the '_hex' parameter of the given token transaction data
+ * (i.e function call) per the Human Standard Token ABI, if present.
+ *
+ * @param {Object} tokenData - ethers Interface token data.
+ * @returns {string | undefined} A hex string value.
+ */
+export function getTokenValueParamAsHex(tokenData = {}) {
+	const value = tokenData?.args?._value?._hex || tokenData?.args?.[1]._hex;
+	return value?.toLowerCase();
+}
+
+/**
+ * Gets the '_value' parameter of the given token transaction data
+ * (i.e function call) per the Human Standard Token ABI, if present.
+ *
+ * @param {Object} tokenData - ethers Interface token data.
+ * @returns {string | undefined} A decimal string value.
+ */
+export function getTokenValueParam(tokenData = {}) {
+	return tokenData?.args?._value?.toString();
+}
+
+export function getTokenValue(tokenParams = []) {
+	const valueData = tokenParams.find((param) => param.name === '_value');
+	return valueData && valueData.value;
 }

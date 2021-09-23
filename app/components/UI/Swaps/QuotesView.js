@@ -34,7 +34,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { getSwapsQuotesNavbar } from '../Navbar';
 import ScreenView from '../FiatOrders/components/ScreenView';
 import Text from '../../Base/Text';
-import Alert from '../../Base/Alert';
+import Alert, { AlertType } from '../../Base/Alert';
 import StyledButton from '../StyledButton';
 import SliderButton from '../SliderButton';
 
@@ -55,6 +55,7 @@ import { toLowerCaseEquals } from '../../../util/general';
 import { swapsTokensSelector } from '../../../reducers/swaps';
 import { decGWEIToHexWEI } from '../../../util/conversions';
 import FadeAnimationView from '../FadeAnimationView';
+import Logger from '../../../util/Logger';
 
 const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
@@ -883,7 +884,11 @@ function SwapsQuotesView({
 	}, [selectedQuote]);
 
 	const buyEth = useCallback(() => {
-		navigation.navigate('FiatOnRamp');
+		try {
+			navigation.navigate('FiatOnRamp');
+		} catch (error) {
+			Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
+		}
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST);
 		});
@@ -1182,7 +1187,7 @@ function SwapsQuotesView({
 			<View style={styles.topBar}>
 				{(!hasEnoughTokenBalance || !hasEnoughEthBalance) && (
 					<View style={styles.alertBar}>
-						<Alert small type="info">
+						<Alert small type={AlertType.Info}>
 							{`${strings('swaps.you_need')} `}
 							<Text reset bold>
 								{!hasEnoughTokenBalance && !isSwapsNativeAsset(sourceToken)
@@ -1205,17 +1210,14 @@ function SwapsQuotesView({
 						</Alert>
 					</View>
 				)}
-				{/* {!!warningGasPriceHigh && !(!hasEnoughTokenBalance || !hasEnoughEthBalance) && (
-					<View style={styles.alertBar}>
-						<Alert small type="error">
-							<Text reset>{warningGasPriceHigh}</Text>
-						</Alert>
-					</View>
-				)} */}
 				{!!selectedQuote && hasEnoughTokenBalance && hasEnoughEthBalance && shouldDisplaySlippage && (
 					<View style={styles.alertBar}>
 						<ActionAlert
-							type={selectedQuote.priceSlippage?.bucket === SLIPPAGE_BUCKETS.HIGH ? 'error' : 'warning'}
+							type={
+								selectedQuote.priceSlippage?.bucket === SLIPPAGE_BUCKETS.HIGH
+									? AlertType.Error
+									: AlertType.Warning
+							}
 							action={hasDismissedSlippageAlert ? undefined : strings('swaps.i_understand')}
 							onPress={handleSlippageAlertPress}
 							onInfoPress={

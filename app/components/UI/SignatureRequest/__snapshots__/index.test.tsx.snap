@@ -1,0 +1,14 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SignatureRequest should render correctly 1`] = `
+<SignatureRequest
+  currentPageInformation={
+    Object {
+      "title": "title",
+      "url": "url",
+    }
+  }
+  dispatch={[Function]}
+  networkType="ropsten"
+/>
+`;

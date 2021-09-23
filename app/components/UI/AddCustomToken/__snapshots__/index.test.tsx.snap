@@ -1,0 +1,204 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AddCustomToken should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+    }
+  }
+  testID="add-custom-token-screen"
+>
+  <ActionView
+    cancelTestID="add-custom-asset-cancel-button"
+    cancelText="CANCEL"
+    confirmButtonMode="normal"
+    confirmDisabled={true}
+    confirmTestID="add-custom-asset-confirm-button"
+    confirmText="IMPORT"
+    confirmed={false}
+    onCancelPress={[Function]}
+    onConfirmPress={[Function]}
+    showCancelButton={true}
+    showConfirmButton={true}
+    testID="add-asset-cancel-button"
+  >
+    <View>
+      <WarningMessage
+        style={
+          Object {
+            "marginHorizontal": 20,
+            "marginTop": 20,
+            "paddingRight": 0,
+          }
+        }
+        warningMessage={
+          <React.Fragment>
+            Anyone can create a token, including creating fake versions of existing tokens. Learn more about 
+            <Text
+              onPress={[Function]}
+              style={
+                Object {
+                  "color": "#037dd6",
+                }
+              }
+              suppressHighlighting={true}
+            >
+              scams and security risks.
+            </Text>
+          </React.Fragment>
+        }
+      />
+      <View
+        style={
+          Object {
+            "padding": 20,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontWeight": "400",
+            }
+          }
+        >
+          Token Address
+        </Text>
+        <TextInput
+          onBlur={[Function]}
+          onChangeText={[Function]}
+          onSubmitEditing={[Function]}
+          placeholder="0x..."
+          placeholderTextColor="#d6d9dc"
+          returnKeyType="next"
+          style={
+            Object {
+              "borderColor": "#d6d9dc",
+              "borderRadius": 4,
+              "borderWidth": 1,
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontWeight": "400",
+              "padding": 16,
+            }
+          }
+          testID="input-token-address"
+          value=""
+        />
+        <Text
+          style={
+            Object {
+              "color": "#D73A49",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontWeight": "400",
+              "marginTop": 15,
+            }
+          }
+          testID="token-address-warning"
+        />
+      </View>
+      <View
+        style={
+          Object {
+            "padding": 20,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontWeight": "400",
+            }
+          }
+        >
+          Token Symbol
+        </Text>
+        <TextInput
+          onBlur={[Function]}
+          onChangeText={[Function]}
+          onSubmitEditing={[Function]}
+          placeholder="GNO"
+          placeholderTextColor="#d6d9dc"
+          returnKeyType="next"
+          style={
+            Object {
+              "borderColor": "#d6d9dc",
+              "borderRadius": 4,
+              "borderWidth": 1,
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontWeight": "400",
+              "padding": 16,
+            }
+          }
+          testID="input-token-symbol"
+          value=""
+        />
+        <Text
+          style={
+            Object {
+              "color": "#D73A49",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontWeight": "400",
+              "marginTop": 15,
+            }
+          }
+        />
+      </View>
+      <View
+        style={
+          Object {
+            "padding": 20,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontWeight": "400",
+            }
+          }
+        >
+          Token of Precision
+        </Text>
+        <TextInput
+          keyboardType="numeric"
+          maxLength={2}
+          onBlur={[Function]}
+          onChangeText={[Function]}
+          onSubmitEditing={[Function]}
+          placeholder="18"
+          placeholderTextColor="#d6d9dc"
+          returnKeyType="done"
+          style={
+            Object {
+              "borderColor": "#d6d9dc",
+              "borderRadius": 4,
+              "borderWidth": 1,
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontWeight": "400",
+              "padding": 16,
+            }
+          }
+          testID="input-token-decimals"
+          value=""
+        />
+        <Text
+          style={
+            Object {
+              "color": "#D73A49",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontWeight": "400",
+              "marginTop": 15,
+            }
+          }
+          testID="token-decimals-warning"
+        />
+      </View>
+    </View>
+  </ActionView>
+</View>
+`;

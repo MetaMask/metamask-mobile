@@ -1,0 +1,37 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TransactionReview should render correctly 1`] = `
+<TransactionReview
+  accounts={Array []}
+  browser={
+    Object {
+      "tabs": Array [],
+    }
+  }
+  contractExchangeRates={
+    Object {
+      "0x": "0.1",
+    }
+  }
+  currentCurrency="usd"
+  dispatch={[Function]}
+  generateTransform={[MockFunction]}
+  primaryCurrency="ETH"
+  showHexData={true}
+  ticker="ETH"
+  tokenList={Object {}}
+  tokens={Array []}
+  transaction={
+    Object {
+      "assetType": undefined,
+      "data": "",
+      "from": "0x1",
+      "gas": "",
+      "gasPrice": "",
+      "selectedAsset": undefined,
+      "to": "0x2",
+      "value": "",
+    }
+  }
+/>
+`;

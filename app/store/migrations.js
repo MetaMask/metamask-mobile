@@ -77,7 +77,8 @@ export const migrations = {
 		return state;
 	},
 	4: (state) => {
-		const { allCollectibleContracts, allCollectibles, allTokens } = state.engine.backgroundState.AssetsController;
+		const { allTokens } = state.engine.backgroundState.TokensController;
+		const { allCollectibleContracts, allCollectibles } = state.engine.backgroundState.CollectiblesController;
 		const { frequentRpcList } = state.engine.backgroundState.PreferencesController;
 
 		const newAllCollectibleContracts = {};
@@ -124,9 +125,12 @@ export const migrations = {
 			});
 		});
 
-		state.engine.backgroundState.AssetsController = {
-			...state.engine.backgroundState.AssetsController,
+		state.engine.backgroundState.TokensController = {
+			...state.engine.backgroundState.TokensController,
 			allTokens: newAllTokens,
+		};
+		state.engine.backgroundState.CollectiblesController = {
+			...state.engine.backgroundState.CollectiblesController,
 			allCollectibles: newAllCollectibles,
 			allCollectibleContracts: newAllCollectibleContracts,
 		};
@@ -199,6 +203,43 @@ export const migrations = {
 
 		return state;
 	},
+	8: (state) => {
+		// This migration ensures that ignored tokens are in the correct form
+		const allIgnoredTokens = state.engine.backgroundState.TokensController.allIgnoredTokens || {};
+		const ignoredTokens = state.engine.backgroundState.TokensController.ignoredTokens || [];
+
+		const reduceTokens = (tokens) =>
+			tokens.reduce((final, token) => {
+				const tokenAddress = (typeof token === 'string' && token) || token?.address || '';
+				tokenAddress && final.push(tokenAddress);
+				return final;
+			}, []);
+
+		const newIgnoredTokens = reduceTokens(ignoredTokens);
+
+		const newAllIgnoredTokens = {};
+		Object.entries(allIgnoredTokens).forEach(([chainId, tokensByAccountAddress]) => {
+			Object.entries(tokensByAccountAddress).forEach(([accountAddress, tokens]) => {
+				const newTokens = reduceTokens(tokens);
+				if (newAllIgnoredTokens[chainId] === undefined) {
+					newAllIgnoredTokens[chainId] = { [accountAddress]: newTokens };
+				} else {
+					newAllIgnoredTokens[chainId] = {
+						...newAllIgnoredTokens[chainId],
+						[accountAddress]: newTokens,
+					};
+				}
+			});
+		});
+
+		state.engine.backgroundState.TokensController = {
+			...state.engine.backgroundState.TokensController,
+			allIgnoredTokens: newAllIgnoredTokens,
+			ignoredTokens: newIgnoredTokens,
+		};
+
+		return state;
+	},
 };
 
-export const version = 7;
+export const version = 8;

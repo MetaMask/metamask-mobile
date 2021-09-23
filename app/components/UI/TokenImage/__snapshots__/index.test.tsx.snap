@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TokenImage should render correctly 1`] = `
+<TokenImage
+  asset={
+    Object {
+      "address": "0x123",
+      "decimals": 18,
+      "symbol": "ABC",
+    }
+  }
+  dispatch={[Function]}
+  tokenList={Object {}}
+/>
+`;

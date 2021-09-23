@@ -31,6 +31,7 @@ import { setNonce, setProposedNonce } from '../../../../actions/transaction';
 import TransactionReviewEIP1559 from '../TransactionReviewEIP1559';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import CustomNonce from '../../../UI/CustomNonce';
+import Logger from '../../../../util/Logger';
 
 const styles = StyleSheet.create({
 	overviewAlert: {
@@ -241,7 +242,11 @@ class TransactionReviewInformation extends PureComponent {
 		const { navigation } = this.props;
 		/* this is kinda weird, we have to reject the transaction to collapse the modal */
 		this.onCancelPress();
-		navigation.navigate('FiatOnRamp');
+		try {
+			navigation.navigate('FiatOnRamp');
+		} catch (error) {
+			Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
+		}
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST);
 		});
@@ -307,17 +312,6 @@ class TransactionReviewInformation extends PureComponent {
 			contractExchangeRates,
 		} = this.props;
 
-		const { totalMinNative, totalMinConversion, totalMaxNative, totalMaxConversion } = calculateAmountsEIP1559({
-			value: value && BNToHex(value),
-			nativeCurrency,
-			currentCurrency,
-			conversionRate,
-			gasFeeMinConversion,
-			gasFeeMinNative,
-			gasFeeMaxNative,
-			gasFeeMaxConversion,
-		});
-
 		let renderableTotalMinNative,
 			renderableTotalMinConversion,
 			renderableTotalMaxNative,
@@ -325,6 +319,18 @@ class TransactionReviewInformation extends PureComponent {
 
 		const totals = {
 			ETH: () => {
+				const { totalMinNative, totalMinConversion, totalMaxNative, totalMaxConversion } =
+					calculateAmountsEIP1559({
+						value: value && BNToHex(value),
+						nativeCurrency,
+						currentCurrency,
+						conversionRate,
+						gasFeeMinConversion,
+						gasFeeMinNative,
+						gasFeeMaxNative,
+						gasFeeMaxConversion,
+					});
+
 				[
 					renderableTotalMinNative,
 					renderableTotalMinConversion,
@@ -347,6 +353,18 @@ class TransactionReviewInformation extends PureComponent {
 				];
 			},
 			ERC20: () => {
+				const { totalMinNative, totalMinConversion, totalMaxNative, totalMaxConversion } =
+					calculateAmountsEIP1559({
+						value: '0x0',
+						nativeCurrency,
+						currentCurrency,
+						conversionRate,
+						gasFeeMinConversion,
+						gasFeeMinNative,
+						gasFeeMaxNative,
+						gasFeeMaxConversion,
+					});
+
 				const tokenAmount = renderFromTokenMinimalUnit(value, selectedAsset.decimals);
 				const exchangeRate = contractExchangeRates[selectedAsset.address];
 				const symbol = selectedAsset.symbol;
@@ -376,6 +394,18 @@ class TransactionReviewInformation extends PureComponent {
 				];
 			},
 			ERC721: () => {
+				const { totalMinNative, totalMinConversion, totalMaxNative, totalMaxConversion } =
+					calculateAmountsEIP1559({
+						value: '0x0',
+						nativeCurrency,
+						currentCurrency,
+						conversionRate,
+						gasFeeMinConversion,
+						gasFeeMinNative,
+						gasFeeMaxNative,
+						gasFeeMaxConversion,
+					});
+
 				[
 					renderableTotalMinNative,
 					renderableTotalMinConversion,

@@ -158,7 +158,7 @@ export default function getNavbarOptions(title, navigation, disableNetwork = fal
  * @param {Object} navigation - Navigation object required to push new views
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
-export function getNavigationOptionsTitle(title, navigation) {
+export function getNavigationOptionsTitle(title, navigation, isFullScreenModal) {
 	function navigationPop() {
 		navigation.pop();
 	}
@@ -170,15 +170,22 @@ export function getNavigationOptionsTitle(title, navigation) {
 			...fontStyles.normal,
 		},
 		headerTintColor: colors.blue,
-		headerLeft: () => (
-			<TouchableOpacity onPress={navigationPop} style={styles.backButton} testID={'title-back-arrow-button'}>
-				<IonicIcon
-					name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
-					size={Device.isAndroid() ? 24 : 28}
-					style={styles.backIcon}
-				/>
-			</TouchableOpacity>
-		),
+		headerRight: () =>
+			isFullScreenModal ? (
+				<TouchableOpacity onPress={navigationPop} style={styles.closeButton}>
+					<IonicIcon name={'ios-close'} size={38} style={[styles.backIcon, styles.backIconIOS]} />
+				</TouchableOpacity>
+			) : null,
+		headerLeft: () =>
+			isFullScreenModal ? null : (
+				<TouchableOpacity onPress={navigationPop} style={styles.backButton} testID={'title-back-arrow-button'}>
+					<IonicIcon
+						name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
+						size={Device.isAndroid() ? 24 : 28}
+						style={styles.backIcon}
+					/>
+				</TouchableOpacity>
+			),
 	};
 }
 
@@ -410,7 +417,7 @@ export function getSendFlowTitle(title, navigation, route) {
  */
 export function getBrowserViewNavbarOptions(navigation, route) {
 	const url = route.params?.url ?? '';
-	let hostname = null;
+	let host = null;
 	let isHttps = false;
 
 	const isHomepage = (url) => getHost(url) === getHost(HOMEPAGE_URL);
@@ -420,15 +427,16 @@ export function getBrowserViewNavbarOptions(navigation, route) {
 	if (url && !isHomepage(url)) {
 		isHttps = url && url.toLowerCase().substr(0, 6) === 'https:';
 		const urlObj = new URL(url);
-		hostname = urlObj.hostname.toLowerCase().replace(/^www\./, '');
+		//Using host so the port number will be displayed on the address bar
+		host = urlObj.host.toLowerCase().replace(/^www\./, '');
 		if (isGatewayUrl(urlObj) && url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) === -1) {
 			const ensUrl = route.params?.currentEnsName ?? '';
 			if (ensUrl) {
-				hostname = ensUrl.toLowerCase().replace(/^www\./, '');
+				host = ensUrl.toLowerCase().replace(/^www\./, '');
 			}
 		}
 	} else {
-		hostname = strings('browser.title');
+		host = strings('browser.title');
 	}
 
 	function onPress() {
@@ -455,7 +463,7 @@ export function getBrowserViewNavbarOptions(navigation, route) {
 				navigation={navigation}
 				route={route}
 				url={url}
-				hostname={hostname}
+				hostname={host}
 				https={isHttps}
 			/>
 		),

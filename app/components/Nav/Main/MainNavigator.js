@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
 
 const WalletTabHome = () => (
 	<Stack.Navigator initialRouteName={'WalletView'}>
-		<Stack.Screen name="WalletView" component={Wallet} options={Wallet.navigationOptions} />
+		<Stack.Screen name="WalletView" component={Wallet} />
 		<Stack.Screen name="Asset" component={Asset} options={Asset.navigationOptions} />
 		<Stack.Screen name="AddAsset" component={AddAsset} options={AddAsset.navigationOptions} />
 
@@ -161,6 +161,11 @@ const SettingsView = () => (
 			options={ChoosePasswordSimple.navigationOptions}
 		/>
 		<Stack.Screen name="ResetPassword" component={ResetPassword} options={ResetPassword.navigationOptions} />
+		<Stack.Screen
+			name="AccountBackupStep1B"
+			component={AccountBackupStep1B}
+			options={AccountBackupStep1B.navigationOptions}
+		/>
 		<Stack.Screen
 			name="ManualBackupStep1"
 			component={ManualBackupStep1}

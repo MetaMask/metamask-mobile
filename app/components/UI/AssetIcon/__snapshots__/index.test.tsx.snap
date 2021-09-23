@@ -1,0 +1,27 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AssetIcon should render correctly 1`] = `
+<RemoteImage
+  fadeIn={true}
+  isUrl={true}
+  placeholderStyle={
+    Object {
+      "backgroundColor": "#FFFFFF",
+    }
+  }
+  source={
+    Object {
+      "uri": "https://s3.amazonaws.com/airswap-token-images/WBTC.png",
+    }
+  }
+  style={
+    Array [
+      Object {
+        "height": 50,
+        "width": 50,
+      },
+      undefined,
+    ]
+  }
+/>
+`;

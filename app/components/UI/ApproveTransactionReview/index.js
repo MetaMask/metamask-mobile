@@ -1,13 +1,11 @@
 import React, { PureComponent } from 'react';
 import { StyleSheet, View, TouchableOpacity, InteractionManager, Linking } from 'react-native';
 import ActionView from '../../UI/ActionView';
-import Clipboard from '@react-native-community/clipboard';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../UI/Navbar';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { getHost } from '../../../util/browser';
-import contractMap from '@metamask/contract-metadata';
 import { safeToChecksumAddress, renderShortAddress } from '../../../util/address';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
@@ -40,7 +38,9 @@ import EditPermission, { MINIMUM_VALUE } from './EditPermission';
 import Logger from '../../../util/Logger';
 import InfoModal from '../Swaps/components/InfoModal';
 import Text from '../../Base/Text';
+import { getTokenList } from '../../../reducers/tokens';
 import TransactionReviewEIP1559 from '../../UI/TransactionReview/TransactionReviewEIP1559';
+import ClipboardManager from '../../../core/ClipboardManager';
 
 const { hexToBN } = util;
 const styles = StyleSheet.create({
@@ -178,10 +178,6 @@ class ApproveTransactionReview extends PureComponent {
 		 */
 		gasError: PropTypes.string,
 		/**
-		 * Warning coming from high gas set in CustomGas component
-		 */
-		warningGasPriceHigh: PropTypes.string,
-		/**
 		 * Primary currency, either ETH or Fiat
 		 */
 		primaryCurrency: PropTypes.string,
@@ -241,6 +237,10 @@ class ApproveTransactionReview extends PureComponent {
 		 * If the gas estimations are ready
 		 */
 		gasEstimationReady: PropTypes.bool,
+		/**
+		 * List of tokens from TokenListController
+		 */
+		tokenList: PropTypes.object,
 	};
 
 	state = {
@@ -268,11 +268,12 @@ class ApproveTransactionReview extends PureComponent {
 		const {
 			transaction: { origin, to, gas, gasPrice, data },
 			conversionRate,
+			tokenList,
 		} = this.props;
 		const { AssetsContractController } = Engine.context;
 		const host = getHost(this.originIsWalletConnect ? origin.split(WALLET_CONNECT_ORIGIN)[1] : origin);
 		let tokenSymbol, tokenDecimals;
-		const contract = contractMap[safeToChecksumAddress(to)];
+		const contract = tokenList[safeToChecksumAddress(to)];
 		if (!contract) {
 			try {
 				tokenDecimals = await AssetsContractController.getTokenDecimals(to);
@@ -403,7 +404,7 @@ class ApproveTransactionReview extends PureComponent {
 
 	copyContractAddress = async () => {
 		const { transaction } = this.props;
-		await Clipboard.setString(transaction.to);
+		await ClipboardManager.setString(transaction.to);
 		this.props.showAlert({
 			isVisible: true,
 			autodismiss: 1500,
@@ -512,7 +513,6 @@ class ApproveTransactionReview extends PureComponent {
 			transaction: { origin },
 			network,
 			over,
-			warningGasPriceHigh,
 			EIP1559GasData,
 			LegacyGasData,
 			gasEstimateType,
@@ -627,13 +627,6 @@ class ApproveTransactionReview extends PureComponent {
 												</TouchableOpacity>
 											</View>
 										)}
-										{!!warningGasPriceHigh && (
-											<View style={styles.errorWrapper}>
-												<Text reset style={styles.error}>
-													{warningGasPriceHigh}
-												</Text>
-											</View>
-										)}
 										{!gasError && (
 											<TouchableOpacity
 												style={styles.actionTouchable}
@@ -689,7 +682,11 @@ class ApproveTransactionReview extends PureComponent {
 		const { navigation } = this.props;
 		/* this is kinda weird, we have to reject the transaction to collapse the modal */
 		this.onCancelPress();
-		navigation.navigate('FiatOnRamp');
+		try {
+			navigation.navigate('FiatOnRamp');
+		} catch (error) {
+			Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
+		}
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST);
 		});
@@ -742,6 +739,7 @@ const mapStateToProps = (state) => ({
 	activeTabUrl: getActiveTabUrl(state),
 	network: state.engine.backgroundState.NetworkController.network,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+	tokenList: getTokenList(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
