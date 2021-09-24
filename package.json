@@ -74,7 +74,8 @@
     "pubnub/**/netmask": "^2.0.1",
     "**/optimist/minimist": "^1.2.5",
     "react-native-level-fs/**/bl": "^1.2.3",
-    "react-native-level-fs/**/semver": "^4.3.2"
+    "react-native-level-fs/**/semver": "^4.3.2",
+    "@metamask/contract-metadata": "^1.30.0"
   },
   "dependencies": {
     "@exodus/react-native-payments": "https://github.com/wachunei/react-native-payments.git#package-json-hack",
@@ -82,7 +83,7 @@
     "@metamask/controllers": "^17.0.0",
     "@metamask/etherscan-link": "^2.0.0",
     "@metamask/swaps-controller": "^6.3.0",
-	"@react-native-clipboard/clipboard": "^1.8.4",
+    "@react-native-clipboard/clipboard": "^1.8.4",
     "@react-native-community/async-storage": "1.12.1",
     "@react-native-community/blur": "^3.6.0",
     "@react-native-community/checkbox": "^0.4.2",
