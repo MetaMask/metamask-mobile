@@ -338,7 +338,7 @@ describe('Wallet Tests', () => {
 		// Tap the Next CTA
 		await TestHelpers.waitAndTap('address-book-next-button');
 		// Check that we are on the amount view
-		await TestHelpers.checkIfVisible('amount-screen');
+		await TestHelpers.checkIfElementWithTextIsVisible('Amount');
 	});
 
 	it('should input and validate amount', async () => {
