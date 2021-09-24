@@ -2,6 +2,10 @@
 /* eslint-disable */
 
 export default {
+	'cryptokek.svg': require('metamask/node_modules/@metamask/contract-metadata/images/cryptokek.svg'),
+	'MYST.svg': require('metamask/node_modules/@metamask/contract-metadata/images/MYST.svg'),
+	'Insula.svg': require('metamask/node_modules/@metamask/contract-metadata/images/Insula.svg'),
+	'dehive.svg': require('metamask/node_modules/@metamask/contract-metadata/images/dehive.svg'),
 	'ubt.svg': require('metamask/node_modules/@metamask/contract-metadata/images/ubt.svg'),
 	'HogeFinanceLogo.svg': require('metamask/node_modules/@metamask/contract-metadata/images/HogeFinanceLogo.svg'),
 	'AXS.svg': require('metamask/node_modules/@metamask/contract-metadata/images/AXS.svg'),
@@ -334,7 +338,7 @@ export default {
 	'disciplina.svg': require('metamask/node_modules/@metamask/contract-metadata/images/disciplina.svg'),
 	'DAY.png': require('metamask/node_modules/@metamask/contract-metadata/images/DAY.png'),
 	'plat.png': require('metamask/node_modules/@metamask/contract-metadata/images/plat.png'),
-	'pax.svg': require('metamask/node_modules/@metamask/contract-metadata/images/pax.svg'),
+	'usdp.svg': require('metamask/node_modules/@metamask/contract-metadata/images/usdp.svg'),
 	'paxg.svg': require('metamask/node_modules/@metamask/contract-metadata/images/paxg.svg'),
 	'TUSD.svg': require('metamask/node_modules/@metamask/contract-metadata/images/TUSD.svg'),
 	'busd.svg': require('metamask/node_modules/@metamask/contract-metadata/images/busd.svg'),
@@ -347,6 +351,7 @@ export default {
 	'neeo.png': require('metamask/node_modules/@metamask/contract-metadata/images/neeo.png'),
 	'neu.svg': require('metamask/node_modules/@metamask/contract-metadata/images/neu.svg'),
 	'streamr.svg': require('metamask/node_modules/@metamask/contract-metadata/images/streamr.svg'),
+	'streamr_old.svg': require('metamask/node_modules/@metamask/contract-metadata/images/streamr_old.svg'),
 	'CRO.png': require('metamask/node_modules/@metamask/contract-metadata/images/CRO.png'),
 	'starbase.png': require('metamask/node_modules/@metamask/contract-metadata/images/starbase.png'),
 	'santiment.svg': require('metamask/node_modules/@metamask/contract-metadata/images/santiment.svg'),
@@ -427,6 +432,7 @@ export default {
 	'crust.svg': require('metamask/node_modules/@metamask/contract-metadata/images/crust.svg'),
 	'badger.svg': require('metamask/node_modules/@metamask/contract-metadata/images/badger.svg'),
 	'yield-logo.svg': require('metamask/node_modules/@metamask/contract-metadata/images/yield-logo.svg'),
+	'NWC.svg': require('metamask/node_modules/@metamask/contract-metadata/images/NWC.svg'),
 	'USDx.svg': require('metamask/node_modules/@metamask/contract-metadata/images/USDx.svg'),
 	'quiverx.svg': require('metamask/node_modules/@metamask/contract-metadata/images/quiverx.svg'),
 	'glq.svg': require('metamask/node_modules/@metamask/contract-metadata/images/glq.svg'),
@@ -473,6 +479,7 @@ export default {
 	'CR.svg': require('metamask/node_modules/@metamask/contract-metadata/images/CR.svg'),
 	'punks-comic.svg': require('metamask/node_modules/@metamask/contract-metadata/images/punks-comic.svg'),
 	'coreto.svg': require('metamask/node_modules/@metamask/contract-metadata/images/coreto.svg'),
+	'million.svg': require('metamask/node_modules/@metamask/contract-metadata/images/million.svg'),
 	'ic_token_bzrx.svg': require('metamask/node_modules/@metamask/contract-metadata/images/ic_token_bzrx.svg'),
 	'ic_token_vbzrx.svg': require('metamask/node_modules/@metamask/contract-metadata/images/ic_token_vbzrx.svg'),
 	'ic_token_ieth.svg': require('metamask/node_modules/@metamask/contract-metadata/images/ic_token_ieth.svg'),
@@ -489,5 +496,8 @@ export default {
 	'ic_token_iaave.svg': require('metamask/node_modules/@metamask/contract-metadata/images/ic_token_iaave.svg'),
 	'ic_token_ilrc.svg': require('metamask/node_modules/@metamask/contract-metadata/images/ic_token_ilrc.svg'),
 	'ic_token_icomp.svg': require('metamask/node_modules/@metamask/contract-metadata/images/ic_token_icomp.svg'),
+	'stos.svg': require('metamask/node_modules/@metamask/contract-metadata/images/stos.svg'),
 	'inj.svg': require('metamask/node_modules/@metamask/contract-metadata/images/inj.svg'),
+	'spwn.svg': require('metamask/node_modules/@metamask/contract-metadata/images/spwn.svg'),
+	'polkadog.svg': require('metamask/node_modules/@metamask/contract-metadata/images/polkadog.svg'),
 };
