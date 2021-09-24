@@ -13,3 +13,4 @@ babel.config.js
 metro.config.js
 jest.preprocessor.js
 scripts/metamask-bot-build-announce.js
+CHANGELOG.md
