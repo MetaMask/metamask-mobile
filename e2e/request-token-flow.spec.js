@@ -115,10 +115,10 @@ describe('Request Token Flow', () => {
 		// Go back
 		await TestHelpers.tap('request-search-asset-back-button');
 
-		await TestHelpers.delay(2500);
+		await TestHelpers.delay(3500);
 
 		// Make sure we're on the right screen
-		//await TestHelpers.checkIfVisible('request-screen');
+		await TestHelpers.checkIfVisible('request-screen');
 	});
 
 	it('should request DAI', async () => {

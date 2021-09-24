@@ -103,9 +103,9 @@ describe('Addressbook Tests', () => {
 		// Tap on Send button
 		await TestHelpers.tap('drawer-send-button');
 
-		await TestHelpers.delay(4000);
+		await TestHelpers.delay(4500); // because of bitrise laggy behavior
 		// Check that we are on the send screen
-		//await TestHelpers.checkIfVisible('send-screen');
+		await TestHelpers.checkIfVisible('send-screen');
 		// Make sure view with my accounts visible
 		await TestHelpers.checkIfExists('my-accounts-button');
 	});

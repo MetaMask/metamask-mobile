@@ -77,6 +77,11 @@ describe('Start Exploring', () => {
 	});
 
 	it('should tap I Agree and land on the wallet view with tutorial open', async () => {
+		await device.reloadReactNative();
+		// Check that we are on the login screen
+		await TestHelpers.checkIfVisible('login');
+		// Enter password and login
+		await TestHelpers.typeTextAndHideKeyboard('login-password-input', PASSWORD);
 		// Check that we are on the wallet screen
 		if (!device.getPlatform() === 'android') {
 			await TestHelpers.checkIfExists('wallet-screen');
