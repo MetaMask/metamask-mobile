@@ -91,7 +91,7 @@ describe('Request Token Flow', () => {
 		await TestHelpers.tapByText('Skip');
 	});
 
-	it('should navigate to the receive view', async () => {
+	it('should tap on the receive button', async () => {
 		// Open Drawer
 		await TestHelpers.tap('hamburger-menu-button-wallet');
 		// Check that the drawer is visbile
@@ -102,17 +102,23 @@ describe('Request Token Flow', () => {
 		await TestHelpers.checkIfVisible('receive-request-screen');
 	});
 
-	it('should request DAI', async () => {
+	it('should go to the request view', async () => {
 		// Tap on request payment button
 		await TestHelpers.tap('request-payment-button');
 		// Tap on ETH
 		await TestHelpers.tapItemAtIndex('searched-asset-results');
+
+		await TestHelpers.delay(2500);
+
 		// Make sure we're on the right screen
 		await TestHelpers.checkIfVisible('request-amount-screen');
 		// Go back
 		await TestHelpers.tap('request-search-asset-back-button');
 		// Make sure we're on the right screen
 		await TestHelpers.checkIfVisible('request-screen');
+	});
+
+	it('should request DAI', async () => {
 		// Search by SAI contract address
 		await TestHelpers.replaceTextInField('request-search-asset-input', SAI_CONTRACT_ADDRESS);
 		// Make sure SAI shows up in the results

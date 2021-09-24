@@ -102,6 +102,8 @@ describe('Addressbook Tests', () => {
 		await TestHelpers.checkIfVisible('drawer-screen');
 		// Tap on Send button
 		await TestHelpers.tap('drawer-send-button');
+
+		await TestHelpers.delay(2000);
 		// Check that we are on the send screen
 		await TestHelpers.checkIfVisible('send-screen');
 		// Make sure view with my accounts visible

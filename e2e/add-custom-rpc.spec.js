@@ -116,6 +116,7 @@ describe('Custom RPC Tests', () => {
 
 	it('should add xDai network', async () => {
 		// Tap on Add Network button
+		await TestHelpers.delay(3000);
 		await TestHelpers.tap('add-network-button');
 		// Check that we are on the add new rpc network screen
 		await TestHelpers.checkIfVisible('new-rpc-screen');
@@ -133,7 +134,7 @@ describe('Custom RPC Tests', () => {
 		await TestHelpers.typeTextAndHideKeyboard('input-chain-id', '100');
 		// Input Symbol
 		await TestHelpers.typeTextAndHideKeyboard('input-network-symbol', 'xDAI');
-		await TestHelpers.delay(1000);
+		await TestHelpers.delay(3000);
 		// Focus outside of text input field
 		await TestHelpers.tap('rpc-screen-title');
 		// Tap on Add button
