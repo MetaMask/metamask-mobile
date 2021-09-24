@@ -21,7 +21,7 @@ export function TokenImage({ asset, containerStyle, iconStyle, tokenList }) {
 	const iconUrl = tokenList[asset?.address]?.iconUrl || tokenList[asset?.address?.toLowerCase()]?.iconUrl || '';
 
 	return (
-		<View style={[styles.itemLogoWrapper, containerStyle, iconUrl ? {} : styles.roundImage]}>
+		<View style={[styles.itemLogoWrapper, containerStyle, styles.roundImage]}>
 			{iconUrl ? (
 				<AssetIcon logo={iconUrl} customStyle={iconStyle} />
 			) : (
