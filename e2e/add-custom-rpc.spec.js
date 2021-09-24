@@ -128,14 +128,15 @@ describe('Custom RPC Tests', () => {
 		await TestHelpers.checkIfVisible('rpc-url-warning');
 		// Clear RPC URL field
 		await TestHelpers.clearField('input-rpc-url');
+
 		// Input correct RPC URL for Ganache network
 		await TestHelpers.typeTextAndHideKeyboard('input-rpc-url', XDAI_URL);
 		// Input Chain ID value
 		await TestHelpers.typeTextAndHideKeyboard('input-chain-id', '100');
 		// Input Symbol
 		await TestHelpers.typeTextAndHideKeyboard('input-network-symbol', 'xDAI\n');
-		await TestHelpers.delay(3000);
 		// Focus outside of text input field
+		await TestHelpers.swipe('input-rpc-url', 'down', 'fast');
 		await TestHelpers.tap('rpc-screen-title');
 
 		// NEED To disable the keyboard

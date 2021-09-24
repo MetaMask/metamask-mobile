@@ -107,16 +107,10 @@ describe('Request Token Flow', () => {
 		await TestHelpers.tap('request-payment-button');
 		// Tap on ETH
 		await TestHelpers.tapItemAtIndex('searched-asset-results');
-
-		await TestHelpers.delay(2500);
-
 		// Make sure we're on the right screen
-		await TestHelpers.checkIfVisible('request-amount-screen');
+		await TestHelpers.checkIfElementWithTextIsVisible('Request');
 		// Go back
 		await TestHelpers.tap('request-search-asset-back-button');
-
-		await TestHelpers.delay(3500);
-
 		// Make sure we're on the right screen
 		await TestHelpers.checkIfVisible('request-screen');
 	});

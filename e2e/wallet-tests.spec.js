@@ -333,9 +333,6 @@ describe('Wallet Tests', () => {
 		await TestHelpers.checkIfVisible('drawer-screen');
 		// Tap on Send button
 		await TestHelpers.tap('drawer-send-button');
-		// Check that we are on the send screen
-		await TestHelpers.delay(4500); // because of bitrise laggy behavior
-		await TestHelpers.checkIfVisible('send-screen');
 		// Input test address
 		await TestHelpers.replaceTextInField('txn-to-address-input', VALID_ADDRESS);
 		// Tap the Next CTA
