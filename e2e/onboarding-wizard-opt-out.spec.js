@@ -127,6 +127,7 @@ describe('Onboarding wizard opt-out', () => {
 			await TestHelpers.delay(1000);
 			await TestHelpers.checkIfExists('wallet-screen');
 		} else {
+			await TestHelpers.delay(2000);
 			await TestHelpers.checkIfVisible('wallet-screen');
 		}
 		// Check that the wizard is not visible anymore
