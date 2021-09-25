@@ -308,7 +308,7 @@ describe('Wallet Tests', () => {
 		// Check that we are on the wallet screen
 		await TestHelpers.checkIfVisible('wallet-screen');
 
-		await TestHelpers.delay(6500);
+		await TestHelpers.delay(7500); // because adding a custom token is that slow on bitrise
 		// Check that TENX is added to wallet
 		await TestHelpers.checkIfElementWithTextIsVisible('0 BLT');
 	});
