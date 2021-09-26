@@ -133,7 +133,7 @@ describe('Onboarding wizard opt-out', () => {
 			await TestHelpers.checkIfVisible('wallet-screen');
 		}
 		// Check that the wizard is not visible anymore
-		await TestHelpers.checkIfNotVisible('onboarding-wizard-step1-view');
+		await TestHelpers.checkIfElementWithTextIsNotVisible('Welcome to your new wallet!');
 	});
 
 	it('should take tour and skip tutorial', async () => {
