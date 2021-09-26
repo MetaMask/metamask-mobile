@@ -71,7 +71,7 @@ describe('Request Token Flow', () => {
 			// Check that the onboarding wizard is gone
 			await TestHelpers.checkIfNotVisible('onboarding-wizard-step1-view');
 		} catch (e) {
-			console.log(e);
+			console.log('');
 		}
 	});
 
