@@ -73,7 +73,7 @@ describe('Browser Tests', () => {
 			// Check that the onboarding wizard is gone
 			await TestHelpers.checkIfNotVisible('onboarding-wizard-step1-view');
 		} catch (e) {
-			console.log(e);
+			console.log('');
 		}
 	});
 
@@ -250,6 +250,8 @@ describe('Browser Tests', () => {
 			await TestHelpers.tapAtPoint('browser-screen', { x: 56, y: 284 });
 			await TestHelpers.delay(700);
 		}
+
+		await TestHelpers.delay(4700); // to prevent flakey behavior in bitrise
 		// Tap on Back to safety button
 		await TestHelpers.tapByText('Back to safety');
 		// Check that we are on the browser screen

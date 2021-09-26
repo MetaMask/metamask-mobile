@@ -78,7 +78,7 @@ describe('Custom RPC Tests', () => {
 			// Check that the onboarding wizard is gone
 			await TestHelpers.checkIfNotVisible('onboarding-wizard-step1-view');
 		} catch (e) {
-			console.log(e);
+			console.log('');
 		}
 	});
 
