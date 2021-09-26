@@ -106,6 +106,8 @@ describe('Onboarding wizard opt-out', () => {
 		} else {
 			await TestHelpers.swipe('change-password-section', 'up', 'fast');
 		}
+		await TestHelpers.swipe('privacy-mode-section', 'up', 'fast');
+
 		// Toggle Metametrics on
 		await TestHelpers.tap('metametrics-switch');
 		TestHelpers.delay(1000);
