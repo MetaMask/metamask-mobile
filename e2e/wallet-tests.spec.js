@@ -248,7 +248,7 @@ describe('Wallet Tests', () => {
 		// Check that we are on the wallet screen
 		await TestHelpers.checkIfVisible('wallet-screen');
 		// Check that SAI is added to wallet
-		await TestHelpers.delay(7500);
+		await TestHelpers.delay(10000); // to prevent flakey behavior in bitrise
 		await TestHelpers.checkIfElementWithTextIsVisible('0 DAI');
 		// Tap on SAI to remove network
 		await element(by.text('0 DAI')).longPress();
@@ -308,7 +308,7 @@ describe('Wallet Tests', () => {
 		// Check that we are on the wallet screen
 		await TestHelpers.checkIfVisible('wallet-screen');
 
-		await TestHelpers.delay(8000); // to prevent flakey behavior in bitrise
+		await TestHelpers.delay(10000); // to prevent flakey behavior in bitrise
 		// Check that TENX is added to wallet
 		await TestHelpers.checkIfElementWithTextIsVisible('0 BLT');
 	});
