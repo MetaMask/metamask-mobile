@@ -251,7 +251,7 @@ describe('Browser Tests', () => {
 			await TestHelpers.delay(700);
 		}
 
-		await TestHelpers.delay(4700); // to prevent flakey behavior in bitrise
+		await TestHelpers.delay(8000); // to prevent flakey behavior in bitrise
 		// Tap on Back to safety button
 		await TestHelpers.tapByText('Back to safety');
 		// Check that we are on the browser screen
