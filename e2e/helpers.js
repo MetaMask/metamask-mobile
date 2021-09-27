@@ -11,10 +11,12 @@ export default class TestHelpers {
 		return element(by.id(elementId)).tap();
 	}
 
-	static tapByText(text, index) {
-		return element(by.text(text))
-			.atIndex(index || 0)
-			.tap();
+	static tapByText(text) {
+		return (
+			element(by.text(text))
+				//.atIndex(index || 0)
+				.tap()
+		);
 	}
 
 	static tapAtPoint(elementId, point) {
