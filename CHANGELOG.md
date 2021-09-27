@@ -1,7 +1,8 @@
 # Changelog
 
-## v3.4.0 - September 25 2021
-- [#3171](https://github.com/MetaMask/metamask-mobile/pull/3171): [FIX] Update contract-metadata library to v1.30.0 
+## Current Develop Branch
+## v3.4.0 - September 27 2021
+- [#3173](https://github.com/MetaMask/metamask-mobile/pull/3173): [FIX] Lock contract metadata version to v1.30.0
 - [#3020](https://github.com/MetaMask/metamask-mobile/pull/3020): [IMPROVEMENT] Handle eth_signTypedData_v4 in wallet connect.
 - [#3106](https://github.com/MetaMask/metamask-mobile/pull/3106): [FEATURE] Enable variables for speed up and cancel transactions
 - [#3155](https://github.com/MetaMask/metamask-mobile/pull/3155): [IMPROVEMENT] Improve transaction state management for custom networks
