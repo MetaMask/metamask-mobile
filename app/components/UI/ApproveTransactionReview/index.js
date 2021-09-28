@@ -241,6 +241,10 @@ class ApproveTransactionReview extends PureComponent {
 		 * List of tokens from TokenListController
 		 */
 		tokenList: PropTypes.object,
+		/**
+		 * Whether the transaction was confirmed or not
+		 */
+		transactionConfirmed: PropTypes.bool,
 	};
 
 	state = {
@@ -521,6 +525,7 @@ class ApproveTransactionReview extends PureComponent {
 			animateOnChange,
 			isAnimating,
 			gasEstimationReady,
+			transactionConfirmed,
 		} = this.props;
 		const is_main_net = isMainNet(network);
 		const originIsDeeplink = origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
@@ -559,7 +564,7 @@ class ApproveTransactionReview extends PureComponent {
 							confirmText={strings('transactions.approve')}
 							onCancelPress={this.onCancelPress}
 							onConfirmPress={this.onConfirmPress}
-							confirmDisabled={Boolean(gasError)}
+							confirmDisabled={Boolean(gasError) || transactionConfirmed}
 						>
 							<View style={styles.actionViewChildren}>
 								<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleEditPermission}>
