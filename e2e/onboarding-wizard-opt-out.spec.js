@@ -124,6 +124,9 @@ describe('Onboarding wizard opt-out', () => {
 		await TestHelpers.checkIfVisible('login');
 		// Enter password and login
 		await TestHelpers.typeTextAndHideKeyboard('login-password-input', PASSWORD);
+
+		await TestHelpers.delay(10000); // to prevent flakey behavior in bitrise
+
 		// Check that we are on the wallet screen
 		if (device.getPlatform() === 'android') {
 			await TestHelpers.delay(1000);
