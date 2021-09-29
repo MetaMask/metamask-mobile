@@ -110,9 +110,10 @@ describe('Onboarding wizard opt-out', () => {
 
 		// Toggle Metametrics on
 		await TestHelpers.tap('metametrics-switch');
-		TestHelpers.delay(1000);
+		TestHelpers.delay(3000);
 		// Toggle Metametrics off
 		await TestHelpers.tap('metametrics-switch');
+		await TestHelpers.delay(3000); // to prevent flakey behavior in bitrise
 		// Tap OK in alert box
 		await TestHelpers.tapAlertWithButton('OK');
 		await TestHelpers.delay(3000); // to prevent flakey behavior in bitrise
