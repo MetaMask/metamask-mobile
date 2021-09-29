@@ -56,7 +56,8 @@ export class BackgroundBridge extends EventEmitter {
 
 		this.engine = null;
 
-		this.chainIdSent = null;
+		this.chainIdSent = Engine.context.NetworkController.state.provider.chainId;
+		this.networkVersionSent = Engine.context.NetworkController.state.network;
 
 		const portStream = new MobilePortStream(this.port, url);
 		// setup multiplexing
@@ -118,13 +119,18 @@ export class BackgroundBridge extends EventEmitter {
 		const publicState = this.getProviderNetworkState(memState);
 
 		// Check if update already sent
-		if (this.chainIdSent === publicState.chainId) return;
-		this.chainIdSent = publicState.chainId;
-
-		this.sendNotification({
-			method: NOTIFICATION_NAMES.chainChanged,
-			params: publicState,
-		});
+		if (
+			this.chainIdSent !== publicState.chainId &&
+			this.networkVersionSent !== publicState.networkVersion &&
+			publicState.networkVersion !== 'loading'
+		) {
+			this.chainIdSent = publicState.chainId;
+			this.networkVersionSent = publicState.networkVersion;
+			this.sendNotification({
+				method: NOTIFICATION_NAMES.chainChanged,
+				params: publicState,
+			});
+		}
 	}
 
 	isUnlocked() {
