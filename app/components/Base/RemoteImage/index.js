@@ -7,11 +7,19 @@ import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource'
 import { SvgCssUri } from 'react-native-svg';
 import ComponentErrorBoundary from '../../UI/ComponentErrorBoundary';
 
+function isUrl(string) {
+	if (/^(http:\/\/|https:\/\/)/.test(string)) {
+		return true;
+	}
+	return false;
+}
+
 const RemoteImage = (props) => {
 	// Avoid using this component with animated SVG
 	const source = resolveAssetSource(props.source);
+	const isImageUrl = isUrl(props?.source?.uri);
 
-	if (source && source.uri && source.uri.match('.svg') && !props.isUrl) {
+	if (source && source.uri && source.uri.match('.svg') && isImageUrl) {
 		const style = props.style || {};
 		if (source.__packager_asset && typeof style !== 'number') {
 			if (!style.width) {
