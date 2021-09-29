@@ -5,7 +5,7 @@ const ENS_Example = 'https://brunobarbieri.eth';
 const ENS_TLD = 'https://inbox.mailchain.xyz';
 const UNISWAP = 'https://uniswap.exchange';
 const PASSWORD = '12345678';
-
+const PHISHING_SITE = 'http://www.empowr.com/FanFeed/Home.aspx';
 describe('Browser Tests', () => {
 	beforeEach(() => {
 		jest.setTimeout(150000);
@@ -238,10 +238,10 @@ describe('Browser Tests', () => {
 		// Clear text
 		await TestHelpers.clearField('url-input');
 		// Navigate to URL
-		await TestHelpers.typeTextAndHideKeyboard('url-input', 'home - empowr');
-		// Wait for page to load
-		await TestHelpers.delay(1000);
-		// Check that we are on the browser screen
+		await TestHelpers.replaceTextInField('url-input', PHISHING_SITE);
+		await element(by.id('url-input')).tapReturnKey();
+
+		/*
 		await TestHelpers.checkIfVisible('browser-screen');
 		// Tap on empowr from search results
 		if (device.getPlatform() === 'ios') {
@@ -250,7 +250,10 @@ describe('Browser Tests', () => {
 			await TestHelpers.tapAtPoint('browser-screen', { x: 56, y: 284 });
 			await TestHelpers.delay(700);
 		}
-		await TestHelpers.delay(13000); // to prevent flakey behavior in bitrise
+		*/
+
+		//Wait for page to load
+		await TestHelpers.delay(9000); // to prevent flakey behavior in bitrise
 
 		await TestHelpers.checkIfElementWithTextIsVisible('Back to safety');
 		// Tap on Back to safety button

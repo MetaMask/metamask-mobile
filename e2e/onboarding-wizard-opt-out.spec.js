@@ -115,26 +115,21 @@ describe('Onboarding wizard opt-out', () => {
 		await TestHelpers.tap('metametrics-switch');
 		// Tap OK in alert box
 		await TestHelpers.tapAlertWithButton('OK');
+		await TestHelpers.delay(3000); // to prevent flakey behavior in bitrise
 	});
 
-	it('should check that wizard is gone after reloading app', async () => {
+	it('should relaunch app and log in', async () => {
 		// Relaunch the app
 		await device.reloadReactNative();
 		// Check that we are on the login screen
 		await TestHelpers.checkIfVisible('login');
 		// Enter password and login
 		await TestHelpers.typeTextAndHideKeyboard('login-password-input', PASSWORD);
-
+	});
+	it('should check that wizard is gone after reloading app', async () => {
 		await TestHelpers.delay(10000); // to prevent flakey behavior in bitrise
-
-		// Check that we are on the wallet screen
-		if (device.getPlatform() === 'android') {
-			await TestHelpers.delay(1000);
-			await TestHelpers.checkIfExists('wallet-screen');
-		} else {
-			await TestHelpers.delay(2000);
-			await TestHelpers.checkIfVisible('wallet-screen');
-		}
+		// Ensure you are on the wallet view
+		await TestHelpers.checkIfExists('wallet-screen');
 		// Check that the wizard is not visible anymore
 		await TestHelpers.checkIfElementWithTextIsNotVisible('Welcome to your new wallet!');
 	});
