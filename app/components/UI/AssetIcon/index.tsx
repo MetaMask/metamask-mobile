@@ -1,5 +1,6 @@
 import React, { memo } from 'react';
 import { ImageStyle, StyleSheet, StyleProp, ImageSourcePropType } from 'react-native';
+import isUrl from 'is-url';
 import RemoteImage from '../../Base/RemoteImage';
 import { colors } from '../../../styles/common';
 import staticLogos from 'images/static-logos';
@@ -28,13 +29,6 @@ const styles = StyleSheet.create({
 	},
 	placeholder: { backgroundColor: colors.white },
 });
-
-function isUrl(string: string) {
-	if (/^(http:\/\/|https:\/\/)/.test(string)) {
-		return true;
-	}
-	return false;
-}
 
 /**
  * PureComponent that provides an asset icon dependent on OS.
