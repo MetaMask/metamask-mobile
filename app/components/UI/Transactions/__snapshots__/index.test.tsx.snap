@@ -3,10 +3,18 @@
 exports[`Transactions should render correctly 1`] = `
 <Transactions
   accounts={Object {}}
+  chainId="1"
   collectibleContracts={Object {}}
   contractExchangeRates={Object {}}
   conversionRate={1}
   currentCurrency="USD"
+  gasFeeEstimates={
+    Object {
+      "high": Object {},
+      "low": Object {},
+      "medium": Object {},
+    }
+  }
   headerHeight={0}
   loading={false}
   network={
@@ -16,6 +24,7 @@ exports[`Transactions should render correctly 1`] = `
       },
     }
   }
+  primaryCurrency="USD"
   selectedAddress="0x0"
   showAlert={[Function]}
   thirdPartyApiMode={true}

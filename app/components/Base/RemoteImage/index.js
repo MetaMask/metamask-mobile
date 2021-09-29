@@ -5,13 +5,15 @@ import FadeIn from 'react-native-fade-in-image';
 // eslint-disable-next-line import/default
 import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
 import { SvgCssUri } from 'react-native-svg';
+import isUrl from 'is-url';
 import ComponentErrorBoundary from '../../UI/ComponentErrorBoundary';
 
 const RemoteImage = (props) => {
 	// Avoid using this component with animated SVG
 	const source = resolveAssetSource(props.source);
+	const isImageUrl = isUrl(props?.source?.uri);
 
-	if (source && source.uri && source.uri.match('.svg') && !props.isUrl) {
+	if (source && source.uri && source.uri.match('.svg') && isImageUrl) {
 		const style = props.style || {};
 		if (source.__packager_asset && typeof style !== 'number') {
 			if (!style.width) {
