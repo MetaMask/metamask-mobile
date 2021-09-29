@@ -84,6 +84,7 @@ class Approval extends PureComponent {
 	state = {
 		mode: REVIEW,
 		transactionHandled: false,
+		transactionConfirmed: false,
 	};
 
 	componentWillUnmount = () => {
@@ -222,8 +223,10 @@ class Approval extends PureComponent {
 		} = this.props;
 		let { transaction } = this.props;
 		const { nonce } = transaction;
+		const { transactionConfirmed } = this.state;
+		if (transactionConfirmed) return;
 		if (showCustomNonce && nonce) transaction.nonce = BNToHex(nonce);
-
+		this.setState({ transactionConfirmed: true });
 		try {
 			if (assetType === 'ETH') {
 				transaction = this.prepareTransaction({ transaction, gasEstimateType, EIP1559GasData });
@@ -265,6 +268,7 @@ class Approval extends PureComponent {
 			AnalyticsV2.ANALYTICS_EVENTS.DAPP_TRANSACTION_COMPLETED,
 			this.getAnalyticsParams({ gasEstimateType, gasSelected })
 		);
+		this.setState({ transactionConfirmed: false });
 	};
 
 	/**
@@ -338,7 +342,7 @@ class Approval extends PureComponent {
 
 	render = () => {
 		const { transaction, dappTransactionModalVisible } = this.props;
-		const { mode } = this.state;
+		const { mode, transactionConfirmed } = this.state;
 		return (
 			<Modal
 				isVisible={dappTransactionModalVisible}
@@ -362,6 +366,7 @@ class Approval extends PureComponent {
 					onModeChange={this.onModeChange}
 					transaction={transaction}
 					dappTransactionModalVisible={dappTransactionModalVisible}
+					transactionConfirmed={transactionConfirmed}
 				/>
 			</Modal>
 		);
