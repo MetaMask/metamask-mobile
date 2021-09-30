@@ -180,7 +180,7 @@ export function decodeTransferData(type, data) {
 	switch (type) {
 		case 'transfer': {
 			const encodedAddress = data.substr(10, 64);
-			const encodedAmount = data.substr(74, 64);
+			const encodedAmount = data.substr(74, 138);
 			const bufferEncodedAddress = rawEncode(['address'], [addHexPrefix(encodedAddress)]);
 			return [
 				addHexPrefix(rawDecode(['address'], bufferEncodedAddress)[0]),
