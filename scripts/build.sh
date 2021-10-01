@@ -159,7 +159,8 @@ buildAndroidRunE2E(){
 	then
 		source $ANDROID_ENV_FILE
 	fi
-	cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug && cd ..
+	cd android && ./gradlew assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=debug && cd ..
+	react-native run-android
 }
 
 buildIosSimulator(){
@@ -209,13 +210,14 @@ buildIosReleaseE2E(){
 	if [ "$PRE_RELEASE" = true ] ; then
 		echo "Setting up env vars...";
 		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
-		echo "Build started..."
+		echo "Pre-release E2E Build started..."
 		brew install watchman
 		cd ios 
 		generateArchivePackages 
 		# Generate sourcemaps
 		yarn sourcemaps:ios
 	else
+		echo "Release E2E Build started..."
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
 		fi
@@ -251,7 +253,7 @@ buildAndroidRelease(){
 
 buildAndroidReleaseE2E(){
 	prebuild_android
-	cd android && ./gradlew assembleRelease assembleAndroidTest -DtestBuildType=release
+	cd android && ./gradlew assembleRelease assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=release
 }
 
 buildAndroid() {
@@ -297,20 +299,21 @@ startWatcher() {
 checkAuthToken() {
 	local propertiesFileName="$1"
 
-	if [ ! -e "./${propertiesFileName}" ]; then
-		if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
-			cp "./${propertiesFileName}.example" "./${propertiesFileName}"
-		else
-			printError "Missing '${propertiesFileName}' file (see '${propertiesFileName}.example' or set MM_SENTRY_AUTH_TOKEN to generate)"
-			exit 1
-		fi
-	fi
-
 	if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
 		sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" "./${propertiesFileName}";
 	elif ! grep -qE '^auth.token=[[:alnum:]]+$' "./${propertiesFileName}"; then
 		printError "Missing auth token in '${propertiesFileName}'; add the token, or set it as MM_SENTRY_AUTH_TOKEN"
 		exit 1
+	fi
+
+	if [ ! -e "./${propertiesFileName}" ]; then
+		if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
+			cp "./${propertiesFileName}.example" "./${propertiesFileName}"
+			sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" "./${propertiesFileName}";
+		else
+			printError "Missing '${propertiesFileName}' file (see '${propertiesFileName}.example' or set MM_SENTRY_AUTH_TOKEN to generate)"
+			exit 1
+		fi
 	fi
 }
 
@@ -318,15 +321,18 @@ checkParameters "$@"
 
 printTitle
 
-if [ "$MODE" == "release" ]; then
+if [ "$MODE" == "release" ] || [ "$MODE" == "releaseE2E" ]; then
 
 	if [ "$PRE_RELEASE" = false ]; then
+		echo "RELEASE SENTRY PROPS"
  		checkAuthToken 'sentry.release.properties'
  		export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"
  	else
+	 	echo "DEBUG SENTRY PROPS"
  		checkAuthToken 'sentry.debug.properties'
  		export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
  	fi
+
 
 	if [ -z "$METAMASK_ENVIRONMENT" ]; then
 		printError "Missing METAMASK_ENVIRONMENT; set to 'production' for a production release, 'prerelease' for a pre-release, or 'local' otherwise"

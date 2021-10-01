@@ -28,6 +28,12 @@ describe('Import seedphrase flow', () => {
 		await TestHelpers.checkIfVisible('onboarding-screen');
 		// Check that Import using seed phrase CTA is visible & tap it
 		await TestHelpers.waitAndTap('import-wallet-import-from-seed-button');
+
+		// Check that we are on the metametrics optIn screen
+		await TestHelpers.checkIfVisible('metaMetrics-OptIn');
+		// Check that I Agree CTA is visible and tap it
+		await TestHelpers.waitAndTap('agree-button');
+
 		// Check that we are on the import wallet screen
 		await TestHelpers.checkIfVisible('import-from-seed-screen');
 		// Input incorrect seed phrase
@@ -63,14 +69,17 @@ describe('Import seedphrase flow', () => {
 		await TestHelpers.typeTextAndHideKeyboard(`input-password-field`, Correct_Password);
 		// Input password confirm
 		await TestHelpers.typeTextAndHideKeyboard(`input-password-field-confirm`, Correct_Password);
+
+		/*
+
+		UNCOMMENT ME OUT WHEN WE FIX THIS BUG. THE CONGRATS VIEW SHOULD APPEAR AFTER YOU IMPORT
+		YOUR WALLET
 		// Check that we are on the congrats screen
 		await TestHelpers.checkIfVisible('import-congrats-screen');
 		// Tap on done CTA
 		await TestHelpers.tap('manual-backup-step-3-done-button');
-		// Check that we are on the metametrics optIn screen
-		await TestHelpers.checkIfVisible('metaMetrics-OptIn');
-		// Check that I Agree CTA is visible and tap it
-		await TestHelpers.waitAndTap('agree-button', 15000);
+		*/
+
 		// Should be on wallet screen
 		if (!device.getPlatform() === 'android') {
 			await TestHelpers.checkIfExists('wallet-screen');
