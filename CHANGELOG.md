@@ -2,6 +2,7 @@
 
 ## Current Develop Branch
 ## v3.4.0 - September 27 2021
+- [#3243](https://github.com/MetaMask/metamask-mobile/pull/3243): [FIX] Fix decode transfer data
 - [#3221](https://github.com/MetaMask/metamask-mobile/pull/3221): [IMPROVEMENT] Replacing swaps source image to include new 1inch logo.
 - [#3203](https://github.com/MetaMask/metamask-mobile/pull/3203): [FIX] Disable confirm button when transaction is submitted
 - [#3211](https://github.com/MetaMask/metamask-mobile/pull/3211): [FIX] Reflect network change on Browser
