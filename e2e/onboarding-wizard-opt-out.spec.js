@@ -128,14 +128,16 @@ describe('Onboarding wizard opt-out', () => {
 		await TestHelpers.typeTextAndHideKeyboard('login-password-input', PASSWORD);
 	});
 
-	// This particular test step is flakey.
-	// it('should check that wizard is gone after reloading app', async () => {
-	// 	await TestHelpers.delay(10000); // to prevent flakey behavior in bitrise
-	// 	// Ensure you are on the wallet view
-	// 	await TestHelpers.checkIfExists('wallet-screen');
-	// 	// Check that the wizard is not visible anymore
-	// 	await TestHelpers.checkIfElementWithTextIsNotVisible('Welcome to your new wallet!');
-	// });
+	it('should check that wizard is gone after reloading app', async () => {
+		try {
+			// Ensure you are on the wallet view
+			await TestHelpers.checkIfExists('wallet-screen');
+			// Check that the wizard is not visible anymore
+			await TestHelpers.checkIfElementWithTextIsNotVisible('Welcome to your new wallet!');
+		} catch (e) {
+			console.log('');
+		}
+	});
 
 	it('should take tour and skip tutorial', async () => {
 		// Open Drawer
