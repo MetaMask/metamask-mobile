@@ -37,8 +37,8 @@
     "test:unit": "jest ./app/",
     "test:unit:update": "time jest -u ./app/",
     "test:e2e": "yarn test:e2e:ios && yarn test:e2e:android",
-    "test:e2e:ios": "detox build -c ios.sim.release && detox test -c ios.sim.release",
-    "test:e2e:android": "detox build -c android.emu.release && detox test -c android.emu.release",
+    "test:e2e:ios": "detox build -c ios.sim.release && detox test -c ios.sim.release --record-videos failing",
+    "test:e2e:android": "detox build -c android.emu.release && detox test -c android.emu.release --record-videos failing",
     "postinstall": "./scripts/postinstall.sh",
     "sourcemaps:android": "node_modules/.bin/react-native bundle --platform android --entry-file index.js --dev false --reset-cache --bundle-output /tmp/bundle.android.js --assets-dest /tmp/ --sourcemap-output sourcemaps/android/index.js.map",
     "sourcemaps:ios": "node_modules/.bin/react-native bundle --platform ios --entry-file index.js --dev false --reset-cache --bundle-output /tmp/bundle.ios.js --assets-dest /tmp/ --sourcemap-output sourcemaps/ios/index.js.map",
@@ -242,12 +242,11 @@
     "babel-eslint": "10.1.0",
     "babel-jest": "^26.6.3",
     "concat-cli": "4.0.0",
-    "detox": "17.14.9",
-    "enzyme": "3.11.0",
-    "enzyme-adapter-react-16": "1.15.6",
-    "enzyme-to-json": "3.6.2",
-    "eslint": "^7.23.0",
-    "eslint-config-prettier": "^8.1.0",
+    "detox": "18.20.2",
+    "enzyme": "3.9.0",
+    "enzyme-adapter-react-16": "1.10.0",
+    "enzyme-to-json": "3.3.5",
+    "eslint": "^7.14.0",
     "eslint-config-react-native": "4.0.0",
     "eslint-import-resolver-typescript": "^2.4.0",
     "eslint-plugin-import": "^2.22.1",
@@ -305,7 +304,7 @@
         "build": "METAMASK_ENVIRONMENT='production' yarn build:android:release:e2e",
         "type": "android.emulator",
         "device": {
-          "avdName": "Pixel_3_API_29"
+          "avdName": "emulator"
         }
       }
     },
