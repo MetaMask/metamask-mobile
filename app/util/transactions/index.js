@@ -169,6 +169,8 @@ export function decodeApproveData(data) {
 	};
 }
 
+const BASE = 4 * 16;
+
 /**
  * Decode transfer data for specified method data
  *
@@ -179,8 +181,8 @@ export function decodeApproveData(data) {
 export function decodeTransferData(type, data) {
 	switch (type) {
 		case 'transfer': {
-			const encodedAddress = data.substr(10, 64);
-			const encodedAmount = data.substr(74, 138);
+			const encodedAddress = data.substr(10, BASE);
+			const encodedAmount = data.substr(74, BASE);
 			const bufferEncodedAddress = rawEncode(['address'], [addHexPrefix(encodedAddress)]);
 			return [
 				addHexPrefix(rawDecode(['address'], bufferEncodedAddress)[0]),
@@ -189,9 +191,9 @@ export function decodeTransferData(type, data) {
 			];
 		}
 		case 'transferFrom': {
-			const encodedFromAddress = data.substr(10, 64);
-			const encodedToAddress = data.substr(74, 64);
-			const encodedTokenId = data.substr(138, 64);
+			const encodedFromAddress = data.substr(10, BASE);
+			const encodedToAddress = data.substr(74, BASE);
+			const encodedTokenId = data.substr(138, BASE);
 			const bufferEncodedFromAddress = rawEncode(['address'], [addHexPrefix(encodedFromAddress)]);
 			const bufferEncodedToAddress = rawEncode(['address'], [addHexPrefix(encodedToAddress)]);
 			return [
