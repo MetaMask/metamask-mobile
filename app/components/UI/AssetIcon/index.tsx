@@ -1,5 +1,6 @@
 import React, { memo } from 'react';
 import { ImageStyle, StyleSheet, StyleProp, ImageSourcePropType } from 'react-native';
+import isUrl from 'is-url';
 import RemoteImage from '../../Base/RemoteImage';
 import { colors } from '../../../styles/common';
 import staticLogos from 'images/static-logos';
@@ -26,14 +27,8 @@ const styles = StyleSheet.create({
 		borderRadius: 25,
 		overflow: 'hidden',
 	},
+	placeholder: { backgroundColor: colors.white },
 });
-
-function isUrl(string: string) {
-	if (/^(http:\/\/|https:\/\/)/.test(string)) {
-		return true;
-	}
-	return false;
-}
 
 /**
  * PureComponent that provides an asset icon dependent on OS.
@@ -45,15 +40,11 @@ const AssetIcon = memo((props: Props) => {
 	const isImageUrl = isUrl(props.logo);
 	const source: ImageSourcePropType = isImageUrl ? { uri: props.logo } : (staticLogos as any)[props.logo];
 
-	return (
-		<RemoteImage
-			isUrl={isImageUrl}
-			fadeIn
-			placeholderStyle={{ backgroundColor: colors.white }}
-			source={source}
-			style={style}
-		/>
-	);
+	if (!source) {
+		return null;
+	}
+
+	return <RemoteImage fadeIn placeholderStyle={styles.placeholder} source={source} style={style} />;
 });
 
 export default AssetIcon;

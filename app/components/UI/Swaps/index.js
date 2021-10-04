@@ -185,10 +185,8 @@ function SwapsAmountView({
 	useEffect(() => {
 		(async () => {
 			try {
-				const { mobile_active: liveness } = await swapsUtils.fetchSwapsFeatureLiveness(
-					chainId,
-					AppConstants.SWAPS.CLIENT_ID
-				);
+				const data = await swapsUtils.fetchSwapsFeatureLiveness(chainId, AppConstants.SWAPS.CLIENT_ID);
+				const liveness = typeof data === 'boolean' ? data : data?.mobile_active ?? false;
 				setLiveness(liveness, chainId);
 				if (liveness) {
 					// Triggered when a user enters the MetaMask Swap feature

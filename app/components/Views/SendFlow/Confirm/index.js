@@ -813,7 +813,8 @@ class Confirm extends PureComponent {
 			resetTransaction,
 			gasEstimateType,
 		} = this.props;
-		const { EIP1559TransactionData, LegacyTransactionData } = this.state;
+		const { EIP1559TransactionData, LegacyTransactionData, transactionConfirmed } = this.state;
+		if (transactionConfirmed) return;
 		this.setState({ transactionConfirmed: true, stopUpdateGas: true });
 		try {
 			const transaction = this.prepareTransactionToSend();
@@ -1326,7 +1327,7 @@ class Confirm extends PureComponent {
 				<View style={styles.buttonNextWrapper}>
 					<StyledButton
 						type={'confirm'}
-						disabled={!gasEstimationReady || Boolean(errorMessage) || isAnimating}
+						disabled={transactionConfirmed || !gasEstimationReady || Boolean(errorMessage) || isAnimating}
 						containerStyle={styles.buttonNext}
 						onPress={this.onNext}
 						testID={'txn-confirm-send-button'}
