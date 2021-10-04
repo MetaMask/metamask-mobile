@@ -1,5 +1,5 @@
 'use strict';
-import TestHelpers from './helpers';
+import TestHelpers from '../helpers';
 
 const PASSWORD = '12345678';
 

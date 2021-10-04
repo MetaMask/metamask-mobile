@@ -1,6 +1,6 @@
 'use strict';
-import TestHelpers from './helpers';
-import { strings } from '../locales/i18n';
+import TestHelpers from '../helpers';
+import { strings } from '../../locales/i18n';
 
 // use i18n for these
 // this way if the strings ever change the tests will not break :)

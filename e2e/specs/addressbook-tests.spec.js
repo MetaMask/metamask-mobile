@@ -1,5 +1,5 @@
 'use strict';
-import TestHelpers from './helpers';
+import TestHelpers from '../helpers';
 
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
 const TETHER_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';

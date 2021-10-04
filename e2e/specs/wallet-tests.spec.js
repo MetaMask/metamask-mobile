@@ -1,5 +1,5 @@
 'use strict';
-import TestHelpers from './helpers';
+import TestHelpers from '../helpers';
 
 const CORRECT_SEED_WORDS = 'fold media south add since false relax immense pause cloth just raven';
 const CORRECT_PASSWORD = `12345678`;

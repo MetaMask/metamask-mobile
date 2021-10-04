@@ -1,5 +1,5 @@
 'use strict';
-import TestHelpers from './helpers';
+import TestHelpers from '../helpers';
 
 const ACCOUNT = 'Test Account One';
 const PASSWORD = '12345678';

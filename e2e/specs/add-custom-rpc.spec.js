@@ -1,5 +1,5 @@
 'use strict';
-import TestHelpers from './helpers';
+import TestHelpers from '../helpers';
 
 const RINKEBY = 'Rinkeby Test Network';
 const XDAI_URL = 'https://dai.poa.network/';

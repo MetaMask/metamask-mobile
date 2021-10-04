@@ -1,5 +1,5 @@
 'use strict';
-import TestHelpers from './helpers';
+import TestHelpers from '../helpers';
 
 const ENS_Example = 'https://brunobarbieri.eth';
 const ENS_TLD = 'https://inbox.mailchain.xyz';
