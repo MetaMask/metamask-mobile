@@ -1,43 +1,40 @@
 import TestHelpers from '../../helpers';
 
-export default class CreatePassword {
-	constructor() {
-		this.container = 'create-password-screen';
-		this.passwordInputBox = 'input-password';
-		this.confirmpasswordInputBox = 'input-password-confirm';
-		this.iosIUnderstandButton = 'password-understand-box';
-		this.androidIUnderstandButton = 'i-understand-text';
-		this.createPasswordButton = 'submit-button';
+const container = 'create-password-screen';
+const passwordInputBox = 'input-password';
+const confirmpasswordInputBox = 'input-password-confirm';
+const iosIUnderstandButton = 'password-understand-box';
+const androidIUnderstandButton = 'i-understand-text';
+const createPasswordButton = 'submit-button';
+export default class CreatePasswordView {
+	static async enterPassword(password) {
+		await TestHelpers.typeTextAndHideKeyboard(passwordInputBox, password);
 	}
 
-	async enterPassword(password) {
-		await TestHelpers.typeTextAndHideKeyboard(this.passwordInputBox, password);
+	static async reEnterPassword(password) {
+		await TestHelpers.typeTextAndHideKeyboard(confirmpasswordInputBox, password);
 	}
 
-	async reEnterPassword(password) {
-		await TestHelpers.typeTextAndHideKeyboard(this.confirmpasswordInputBox, password);
-	}
-
-	async tapIUnderstandCheckBox() {
+	static async tapIUnderstandCheckBox() {
 		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tap(this.iosIUnderstandButton);
+			await TestHelpers.tap(iosIUnderstandButton);
 		} else {
 			// Tap by the I understand text
 			await TestHelpers.delay(1000);
-			await TestHelpers.tap(this.androidIUnderstandButton);
+			await TestHelpers.tap(androidIUnderstandButton);
 		}
 	}
 
-	async tapCreatePasswordButton() {
-		await TestHelpers.tap(this.createPasswordButton);
+	static async tapCreatePasswordButton() {
+		await TestHelpers.tap(createPasswordButton);
 	}
 
 	// Assertions
-	async isVisible() {
-		await TestHelpers.checkIfVisible(this.container);
+	static async isVisible() {
+		await TestHelpers.checkIfVisible(container);
 	}
 
-	async isNotVisible() {
-		await TestHelpers.checkIfNotVisible(this.container);
+	static async isNotVisible() {
+		await TestHelpers.checkIfNotVisible(container);
 	}
 }

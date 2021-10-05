@@ -1,16 +1,18 @@
 import TestHelpers from '../../helpers';
+
+const container = 'onboarding-screen';
+const createWalletButton = 'create-wallet-button';
+//const importUsingSecretRecoveryPhrase = 'import-wallet-import-from-seed-button';
 export default class OnboardingView {
-	constructor() {
-		this.container = 'onboarding-screen';
-		this.createWalletButton = 'create-wallet-button';
-		this.importUsingSecretRecoveryPhrase = 'import-wallet-import-from-seed-button';
+	static async tapCreateWallet() {
+		await TestHelpers.tap(createWalletButton);
 	}
 
-	async isVisible() {
-		await TestHelpers.checkIfVisible(this.container);
+	static async isVisible() {
+		await TestHelpers.checkIfVisible(container);
 	}
 
-	async isNotVisible() {
-		await TestHelpers.checkIfNotVisible(this.container);
+	static async isNotVisible() {
+		await TestHelpers.checkIfNotVisible(container);
 	}
 }

@@ -1,25 +1,22 @@
 import TestHelpers from '../helpers';
 
+const container = 'metaMetrics-OptIn';
+const agreeButton = 'agree-button';
+const noThanksButton = 'cancel-button';
 export default class MetaMetricsOptIn {
-	constructor() {
-		this.container = 'metaMetrics-OptIn-screen';
-		this.agreeButton = 'agree-button';
-		this.noThanksButton = 'cancel-button';
+	static async tapAgreeButton() {
+		await TestHelpers.waitAndTap(agreeButton);
 	}
 
-	async tapAgreeButton() {
-		await TestHelpers.waitAndTap('agree-button');
+	static async tapNoThanksButton() {
+		await TestHelpers.waitAndTap(noThanksButton);
 	}
 
-	async tapNoThanksButton() {
-		await TestHelpers.waitAndTap('cancel-button');
+	static async isVisible() {
+		await TestHelpers.checkIfVisible(container);
 	}
 
-	async isVisible() {
-		await TestHelpers.checkIfVisible(this.container);
-	}
-
-	async isNotVisible() {
-		await TestHelpers.checkIfNotVisible(this.container);
+	static async isNotVisible() {
+		await TestHelpers.checkIfNotVisible(container);
 	}
 }

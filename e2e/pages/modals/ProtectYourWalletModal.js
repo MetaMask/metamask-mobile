@@ -1,12 +1,17 @@
 import TestHelpers from '../../helpers';
 
+const container = 'backup-alert';
+const remindMeLaterButton = 'notification-remind-later-button';
 export default class ProtectYourWalletModal {
-	constructor() {
-		this.container = 'backup-alert';
-		this.remindMeLaterButton = 'notification-remind-later-button';
+	static async tapRemindMeLaterButton() {
+		await TestHelpers.tap(remindMeLaterButton);
 	}
 
-	async tapRemindMeLaterButton() {
-		await TestHelpers.tap(this.remindMeLaterButton);
+	static async isVisible() {
+		await TestHelpers.checkIfVisible(container);
+	}
+
+	static async isNotVisible() {
+		await TestHelpers.checkIfNotVisible(container);
 	}
 }

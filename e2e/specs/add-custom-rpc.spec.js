@@ -1,6 +1,23 @@
 'use strict';
 import TestHelpers from '../helpers';
 
+import OnboardingView from '../pages/Onboarding/OnboardingView';
+import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
+import ProtectYourWalletView from '../pages/Onboarding/ProtectYourWalletView';
+import CreatePasswordView from '../pages/Onboarding/CreatePasswordView';
+
+import NetworkView from '../pages/Drawer/Settings/NetworksView';
+
+import MetaMetricsOptIn from '../pages/MetaMetricsOptInView';
+import WalletView from '../pages/WalletView';
+import DrawerView from '../pages/Drawer/DrawerView';
+import SettingsView from '../pages/Drawer/Settings/SettingsView';
+
+import NetworkListModal from '../pages/modals/NetworkListModal';
+import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
+import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
+import ProtectYourWalletModal from '../pages/modals/ProtectYourWalletModal';
+
 const RINKEBY = 'Rinkeby Test Network';
 const XDAI_URL = 'https://dai.poa.network/';
 const MAINNET = 'Ethereum Main Network';
@@ -12,199 +29,123 @@ describe('Custom RPC Tests', () => {
 	});
 
 	it('should create new wallet', async () => {
-		// Check that we are on the onboarding carousel screen
-		await TestHelpers.checkIfVisible('onboarding-carousel-screen');
-		// Check that Get started CTA is visible & tap it
-		await TestHelpers.waitAndTap('onboarding-get-started-button');
-		// Check that we are on the onboarding screen
-		await TestHelpers.checkIfVisible('onboarding-screen');
-		// Check that Create a new wallet CTA is visible & tap it
-		await TestHelpers.waitAndTap('create-wallet-button');
-		// Check that we are on the metametrics optIn screen
-		await TestHelpers.checkIfVisible('metaMetrics-OptIn');
-		// Check that I Agree CTA is visible and tap it
-		await TestHelpers.waitAndTap('agree-button');
+		await OnboardingCarouselView.isVisible();
+		await OnboardingCarouselView.tapOnGetStartedButton();
 
-		// Check that we are on the Create password screen
-		await TestHelpers.checkIfVisible('create-password-screen');
+		await OnboardingView.isVisible();
+		await OnboardingView.tapCreateWallet();
 
-		// Input new password
-		await TestHelpers.typeTextAndHideKeyboard('input-password', PASSWORD);
-		// Input confirm password
-		await TestHelpers.typeTextAndHideKeyboard('input-password-confirm', PASSWORD);
-		// Mark the checkbox that you understand the password cannot be recovered
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tap('password-understand-box');
-		} else {
-			// Tap by the I understand text
-			await TestHelpers.delay(1000);
-			await TestHelpers.tap('i-understand-text');
-		}
-		// Tap on create password button
-		await TestHelpers.tap('submit-button');
+		await MetaMetricsOptIn.isVisible();
+		await MetaMetricsOptIn.tapAgreeButton();
+
+		await CreatePasswordView.isVisible();
+		await CreatePasswordView.enterPassword(PASSWORD);
+		await CreatePasswordView.reEnterPassword(PASSWORD);
+		await CreatePasswordView.tapIUnderstandCheckBox();
+		await CreatePasswordView.tapCreatePasswordButton();
 	});
 
 	it('Should skip backup check and dismiss tutorial', async () => {
 		// Check that we are on the Secure your wallet screen
-		await TestHelpers.checkIfVisible('protect-your-account-screen');
-		// Tap on the remind me later button
-		await TestHelpers.tap('remind-me-later-button');
-		// Check the box to state you understand
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tap('skip-backup-check');
-		} else {
-			// Tap by the I understand text
-			await TestHelpers.delay(1000);
-			await TestHelpers.tap('skip-backup-text');
-		}
-		// Tap on Skip button
-		await TestHelpers.tapByText('Skip');
+		await ProtectYourWalletView.isVisible();
+		await ProtectYourWalletView.tapOnRemindMeLaterButton();
 
-		// Check that we are on the wallet screen
-		if (!device.getPlatform() === 'android') {
-			// Check that we are on the wallet screen
-			await TestHelpers.checkIfExists('wallet-screen');
-		}
+		await SkipAccountSecurityModal.tapIUnderstandCheckBox();
+		await SkipAccountSecurityModal.tapSkipButton();
+		await WalletView.isVisible();
 	});
 
 	it('should dismiss the onboarding wizard', async () => {
-		// dealing with flakiness
+		// dealing with flakiness on bitrise
 		await TestHelpers.delay(1000);
 		try {
-			// Check that the onboarding wizard is present
-			await TestHelpers.checkIfVisible('onboarding-wizard-step1-view');
-			// Check that No thanks CTA is visible and tap it
-			await TestHelpers.waitAndTap('onboarding-wizard-back-button');
-			// Check that the onboarding wizard is gone
-			await TestHelpers.checkIfNotVisible('onboarding-wizard-step1-view');
+			await OnboardingWizardModal.isVisible();
+			await OnboardingWizardModal.tapNoThanksButton();
+			await OnboardingWizardModal.isNotVisible();
 		} catch (e) {
 			console.log('');
 		}
 	});
 
 	it('should dismiss the protect your wallet modal', async () => {
-		await TestHelpers.checkIfVisible('backup-alert');
-
+		await ProtectYourWalletModal.isVisible();
 		await TestHelpers.delay(1000);
 
-		// Tap on remind me later
-		await TestHelpers.tap('notification-remind-later-button');
-		// Check the box to state you understand
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tap('skip-backup-check');
-		} else {
-			// Tap by the I understand text
-			await TestHelpers.delay(1000);
-			await TestHelpers.tap('skip-backup-text');
-		}
-		// Tap on Skip button
-		await TestHelpers.tapByText('Skip');
+		await ProtectYourWalletModal.tapRemindMeLaterButton();
+
+		await SkipAccountSecurityModal.tapIUnderstandCheckBox();
+		await SkipAccountSecurityModal.tapSkipButton();
+
+		await WalletView.isVisible();
 	});
 
 	it('should go to settings then networks', async () => {
 		// Open Drawer
-		await TestHelpers.tap('hamburger-menu-button-wallet');
-		// Check that the drawer is visbile
-		await TestHelpers.checkIfVisible('drawer-screen');
-		// Tap on settings
-		await TestHelpers.tapByText('Settings');
-		// Tap on the "Networks" option
-		await TestHelpers.tapByText('Networks');
-		// Check that we are on the networks screen
-		await TestHelpers.checkIfVisible('networks-screen');
+		await WalletView.tapDrawerButton(); // tapping burger menu
+
+		await DrawerView.isVisible();
+		await DrawerView.tapSettings();
+
+		await SettingsView.tapNetworks();
+
+		await NetworkView.isNetworkViewVisible();
 	});
 
 	it('should add xDai network', async () => {
 		// Tap on Add Network button
 		await TestHelpers.delay(3000);
-		await TestHelpers.tap('add-network-button');
-		// Check that we are on the add new rpc network screen
-		await TestHelpers.checkIfVisible('new-rpc-screen');
-		// Input Network Name
-		await TestHelpers.typeTextAndHideKeyboard('input-network-name', 'xDai');
-		// Input incorrect RPC URL
-		await TestHelpers.typeTextAndHideKeyboard('input-rpc-url', 'abc');
-		// Check that warning is displayed
-		await TestHelpers.checkIfVisible('rpc-url-warning');
-		// Clear RPC URL field
-		await TestHelpers.clearField('input-rpc-url');
+		await NetworkView.tapAddNetworkButton();
 
-		// Input correct RPC URL for Ganache network
-		await TestHelpers.typeTextAndHideKeyboard('input-rpc-url', XDAI_URL);
-		// Input Chain ID value
-		await TestHelpers.typeTextAndHideKeyboard('input-chain-id', '100');
-		// Input Symbol
-		await TestHelpers.typeTextAndHideKeyboard('input-network-symbol', 'xDAI\n');
-		// Focus outside of text input field
-		await TestHelpers.swipe('input-rpc-url', 'down', 'fast');
-		await TestHelpers.tap('rpc-screen-title');
+		await NetworkView.isRpcViewVisible();
+		await NetworkView.typeInNetworkName('xDai');
+		await NetworkView.typeInRpcUrl('abc'); // Input incorrect RPC URL
+		await NetworkView.isRPCWarningVisble(); // Check that warning is displayed
+		await NetworkView.clearRpcInputBox();
+		await NetworkView.typeInRpcUrl(XDAI_URL);
+		await NetworkView.typeInChainId('100');
+		await NetworkView.typeInNetworkSymbol('xDAI\n');
 
-		// NEED To disable the keyboard
-		await TestHelpers.delay(3000);
-		// Tap on Add button
-		await TestHelpers.waitAndTap('network-add-button');
-		// Check that we are on the wallet screen
-		await TestHelpers.checkIfVisible('wallet-screen');
-		// Check that we are on correct network
-		await TestHelpers.checkIfElementHasString('network-name', 'xDai');
+		await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
+		await NetworkView.tapRpcNetworkAddButton();
+
+		await WalletView.isVisible();
+		await WalletView.isNetworkNameVisible('xDai');
 	});
 
 	it('should validate that xDai is added to network list then switch networks', async () => {
 		// Tap to prompt network list
-		await TestHelpers.tap('open-networks-button');
-		// Check that networks list is visible
-		await TestHelpers.checkIfVisible('networks-list');
-		// Check that our network is added
-		await TestHelpers.checkIfElementHasString('other-network-name', 'xDai');
-		// Change to Rinkeby Network
-		await TestHelpers.tapByText(RINKEBY);
-		// Check that we are on correct network
-		await TestHelpers.checkIfElementHasString('network-name', RINKEBY);
-		// Tap to prompt network list
-		await TestHelpers.tap('open-networks-button');
-		// Check that networks list is visible
-		await TestHelpers.checkIfVisible('networks-list');
-		// Swipe up on networks list
-		await TestHelpers.swipe('other-networks-scroll', 'up', 'fast');
-		await TestHelpers.delay(1000);
+		await WalletView.tapNetworksButtonOnNavBar();
+
+		await NetworkListModal.isVisible();
+		await NetworkListModal.isNetworkNameVisibleInListOfNetworks('xDai');
+		await NetworkListModal.changeNetwork(RINKEBY);
+
+		await WalletView.isNetworkNameVisible(RINKEBY);
+		await WalletView.tapNetworksButtonOnNavBar();
+
+		await NetworkListModal.isVisible();
+		await NetworkListModal.scrollToBottomOfNetworkList();
+
 		// Change to back to xDai Network
-		await TestHelpers.tapByText('xDai');
-		// Check that we are on the wallet screen
-		await TestHelpers.checkIfVisible('wallet-screen');
-		// Check that we are on correct network
-		await TestHelpers.checkIfElementHasString('network-name', 'xDai');
+		await NetworkListModal.changeNetwork('xDai');
+
+		await WalletView.isVisible();
+		await WalletView.isNetworkNameVisible('xDai');
 	});
 
 	it('should go to settings networks and remove xDai network', async () => {
 		// Open Drawer
-		await TestHelpers.tap('hamburger-menu-button-wallet');
-		// Check that the drawer is visbile
-		await TestHelpers.checkIfVisible('drawer-screen');
-		// Tap on settings
-		await TestHelpers.tapByText('Settings');
-		// Tap on the "Networks" option
-		await TestHelpers.tapByText('Networks');
-		// Check that we are on the networks screen
-		await TestHelpers.checkIfVisible('networks-screen');
-		// Tap on xDai to remove network
-		await TestHelpers.tapAndLongPressAtIndex('rpc-networks', 0);
-		//Remove xDAI and verify removed on wallet view
-		//Tap remove
-		await TestHelpers.tapByText('Remove');
-		// Go back to wallet screen
-		if (device.getPlatform() === 'ios') {
-			// Tap on back arrow
-			await TestHelpers.tap('nav-ios-back');
-			// Tap close
-			await TestHelpers.tapByText('Close');
-		} else {
-			// Go Back for android
-			await TestHelpers.tap('nav-android-back');
-			await TestHelpers.tap('nav-android-back');
-		}
-		// Check that we are on the wallet screen
-		await TestHelpers.checkIfExists('wallet-screen');
-		// Check that we are on Mainnet
-		await TestHelpers.checkIfElementHasString('network-name', MAINNET);
+		await WalletView.tapDrawerButton(); // tapping burger menu
+		await DrawerView.isVisible();
+		await DrawerView.tapSettings();
+
+		await SettingsView.tapNetworks();
+
+		await NetworkView.isNetworkViewVisible();
+		await NetworkView.removeNetwork(); // Tap on xDai to remove network
+		await NetworkView.tapBackButtonAndReturnToWallet();
+
+		await WalletView.isVisible();
+		await WalletView.isNetworkNameVisible(MAINNET);
 	});
 });

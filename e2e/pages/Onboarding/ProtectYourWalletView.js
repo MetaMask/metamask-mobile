@@ -1,12 +1,17 @@
 import TestHelpers from '../../helpers';
 
+const container = 'protect-your-account-screen';
+const remindMeLaterButton = 'remind-me-later-button';
 export default class ProtectYourWalletView {
-	constructor() {
-		this.container = 'protect-your-account-screen';
-		this.remindMeLaterButton = 'remind-me-later-button';
+	static async tapOnRemindMeLaterButton() {
+		await TestHelpers.tap(remindMeLaterButton);
 	}
 
-	async tapOnRemindMeLaterButton() {
-		await TestHelpers.tap(this.remindMeLaterButton);
+	static async isVisible() {
+		await TestHelpers.checkIfVisible(container);
+	}
+
+	static async isNotVisible() {
+		await TestHelpers.checkIfNotVisible(container);
 	}
 }

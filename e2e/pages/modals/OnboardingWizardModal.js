@@ -1,21 +1,32 @@
 import TestHelpers from '../../helpers';
 
+const container = 'onboarding-wizard-step1-view';
+const noThanksButton = 'onboarding-wizard-back-button';
+/*
+		const takeTourButton = 'onboarding-wizard-next-button';
+		const secondStep = 'step2-title';
+		const thirdStep = 'step3-title';
+		const fourthStep = 'step4-title';
+		const fifthStep = 'step5-title';
+		const sixStep = 'step6-title';
+*/
 export default class OnboardingWizardModal {
-	constructor() {
-		this.container = 'onboarding-wizard-step1-view';
-		this.nextButton = 'onboarding-wizard-next-button';
-		this.backButton = 'onboarding-wizard-back-button';
-		this.secondStep = 'step2-title';
-		this.thirdStep = 'step3-title';
-		this.fourthStep = 'step4-title';
-		this.fifthStep = 'step5-title';
-		this.sixStep = 'step6-title';
+	static async tapNoThanksButton() {
+		await TestHelpers.waitAndTap(noThanksButton);
 	}
 
-	async tapGotItButton() {
+	static async tapGotItButton() {
 		await TestHelpers.tapByText('Got it!');
 	}
-	async tapBackButton() {
+	static async tapBackButton() {
 		await TestHelpers.tapByText('Back');
+	}
+
+	static async isVisible() {
+		await TestHelpers.checkIfVisible(container);
+	}
+
+	static async isNotVisible() {
+		await TestHelpers.checkIfNotVisible(container);
 	}
 }

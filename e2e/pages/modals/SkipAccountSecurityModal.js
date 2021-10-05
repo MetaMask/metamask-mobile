@@ -1,32 +1,29 @@
 import TestHelpers from '../../helpers';
 
+const container = 'skip-backup-modal';
+const iosIUnderstandButton = 'skip-backup-check';
+const androidIUnderstandButton = 'skip-backup-text';
+const skipButton = 'Skip';
 export default class SkipAccountSecurityModal {
-	constructor() {
-		this.container = 'skip-backup-modal';
-		this.iosIUnderstandButton = 'skip-backup-check';
-		this.androidIUnderstandButton = 'skip-backup-text';
-		this.skipButton = 'Skip';
-	}
-
-	async tapIUnderstandCheckBox() {
+	static async tapIUnderstandCheckBox() {
 		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tap(this.iosIUnderstandButton);
+			await TestHelpers.tap(iosIUnderstandButton);
 		} else {
 			// Tap by the I understand text
 			await TestHelpers.delay(1000);
-			await TestHelpers.tap(this.androidIUnderstandButton);
+			await TestHelpers.tap(androidIUnderstandButton);
 		}
 	}
 
-	async tapSkipButton() {
-		await TestHelpers.tapByText(this.skipButton);
+	static async tapSkipButton() {
+		await TestHelpers.tapByText(skipButton);
 	}
 
-	async isVisible() {
-		await TestHelpers.checkIfVisible(this.container);
+	static async isVisible() {
+		await TestHelpers.checkIfVisible(container);
 	}
 
-	async isNotVisible() {
-		await TestHelpers.checkIfNotVisible(this.container);
+	static async isNotVisible() {
+		await TestHelpers.checkIfNotVisible(container);
 	}
 }
