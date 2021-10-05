@@ -1,7 +1,8 @@
 # Changelog
 
 ## Current Develop Branch
-## v3.4.1 - Oct 5 2021
+
+## v3.4.1 - October 5 2021
 - [#3260](https://github.com/MetaMask/metamask-mobile/pull/3260): [FIX] Turn off token detection by default
 - [#3261](https://github.com/MetaMask/metamask-mobile/pull/3261): [FIX] Fix blank screen on fresh start
 - [#3254](https://github.com/MetaMask/metamask-mobile/pull/3254): [IMPROVEMENT] Isolate LICENSE file
