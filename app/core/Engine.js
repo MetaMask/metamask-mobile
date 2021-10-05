@@ -66,9 +66,8 @@ class Engine {
 				{
 					ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL,
 					useStaticTokenList:
-						initialState?.PreferencesController?.useStaticTokenList === undefined
-							? true
-							: initialState.PreferencesController.useStaticTokenList,
+initialState?.PreferencesController?.useStaticTokenList === undefined ||
+initialState.PreferencesController.useStaticTokenList,
 				}
 			);
 			const networkController = new NetworkController({
