@@ -1,4 +1,4 @@
-import TestHelpers from '../helpers';
+import TestHelpers from '../../helpers';
 export default class OnboardingView {
 	constructor() {
 		this.container = 'onboarding-screen';

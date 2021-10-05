@@ -1,6 +1,6 @@
 import TestHelpers from '../../helpers';
 
-export default class SkipAccountSecurity {
+export default class SkipAccountSecurityModal {
 	constructor() {
 		this.container = 'skip-backup-modal';
 		this.iosIUnderstandButton = 'skip-backup-check';
