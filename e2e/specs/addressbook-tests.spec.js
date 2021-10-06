@@ -1,4 +1,24 @@
 'use strict';
+import OnboardingView from '../pages/Onboarding/OnboardingView';
+import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
+import ProtectYourWalletView from '../pages/Onboarding/ProtectYourWalletView';
+import CreatePasswordView from '../pages/Onboarding/CreatePasswordView';
+
+import SendView from '../pages/SendView';
+
+import MetaMetricsOptIn from '../pages/MetaMetricsOptInView';
+import WalletView from '../pages/WalletView';
+import DrawerView from '../pages/Drawer/DrawerView';
+
+import SettingsView from '../pages/Drawer/Settings/SettingsView';
+import ContactsView from '../pages/Drawer/Settings/Contacts/ContactsView';
+import AddContactView from '../pages/Drawer/Settings/Contacts/AddContactView';
+
+import AddAddressModal from '../pages/modals/AddAddressModal';
+import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
+import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
+import ProtectYourWalletModal from '../pages/modals/ProtectYourWalletModal';
+
 import TestHelpers from '../helpers';
 
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
@@ -12,229 +32,135 @@ describe('Addressbook Tests', () => {
 		jest.setTimeout(150000);
 	});
 
-	it('should create new wallet and dismiss tutorial', async () => {
-		// Check that we are on the onboarding carousel screen
-		await TestHelpers.checkIfVisible('onboarding-carousel-screen');
-		// Check that Get started CTA is visible & tap it
-		await TestHelpers.waitAndTap('onboarding-get-started-button');
-		// Check that we are on the onboarding screen
-		await TestHelpers.checkIfVisible('onboarding-screen');
-		// Check that Create a new wallet CTA is visible & tap it
-		await TestHelpers.waitAndTap('create-wallet-button');
-		// Check that we are on the metametrics optIn screen
-		await TestHelpers.checkIfVisible('metaMetrics-OptIn');
-		// Check that I Agree CTA is visible and tap it
-		await TestHelpers.waitAndTap('agree-button');
+	it('should create new wallet', async () => {
+		await OnboardingCarouselView.isVisible();
+		await OnboardingCarouselView.tapOnGetStartedButton();
 
-		// Check that we are on the Create password screen
-		await TestHelpers.checkIfVisible('create-password-screen');
-		// Input new password
-		await TestHelpers.typeTextAndHideKeyboard('input-password', PASSWORD);
-		// Input confirm password
-		await TestHelpers.typeTextAndHideKeyboard('input-password-confirm', PASSWORD);
-		// Mark the checkbox that you understand the password cannot be recovered
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tap('password-understand-box');
-		} else {
-			// Tap by the I understand text
-			await TestHelpers.delay(1000);
-			await TestHelpers.tap('i-understand-text');
-		}
-		// Tap on create password button
-		await TestHelpers.tap('submit-button');
+		await OnboardingView.isVisible();
+		await OnboardingView.tapCreateWallet();
+
+		await MetaMetricsOptIn.isVisible();
+		await MetaMetricsOptIn.tapAgreeButton();
+
+		await CreatePasswordView.isVisible();
+		await CreatePasswordView.enterPassword(PASSWORD);
+		await CreatePasswordView.reEnterPassword(PASSWORD);
+		await CreatePasswordView.tapIUnderstandCheckBox();
+		await CreatePasswordView.tapCreatePasswordButton();
+	});
+
+	it('Should skip backup check and dismiss tutorial', async () => {
 		// Check that we are on the Secure your wallet screen
-		await TestHelpers.checkIfVisible('protect-your-account-screen');
-		// Tap on the remind me later button
-		await TestHelpers.tap('remind-me-later-button');
-		// Check the box to state you understand
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tap('skip-backup-check');
-		} else {
-			// Tap by the I understand text
-			await TestHelpers.delay(1000);
-			await TestHelpers.tap('skip-backup-text');
-		}
-		// Tap on Skip button
-		await TestHelpers.tapByText('Skip');
-		// Check that we are on the wallet screen
-		if (!device.getPlatform() === 'android') {
-			// Check that we are on the wallet screen
-			await TestHelpers.checkIfExists('wallet-screen');
-		}
+		await ProtectYourWalletView.isVisible();
+		await ProtectYourWalletView.tapOnRemindMeLaterButton();
+
+		await SkipAccountSecurityModal.tapIUnderstandCheckBox();
+		await SkipAccountSecurityModal.tapSkipButton();
+		await WalletView.isVisible();
 	});
 
 	it('should dismiss the onboarding wizard', async () => {
+		// dealing with flakiness on bitrise.
 		await TestHelpers.delay(1000);
 		try {
-			// Check that the onboarding wizard is present
-			await TestHelpers.checkIfVisible('onboarding-wizard-step1-view');
-			// Check that No thanks CTA is visible and tap it
-			await TestHelpers.waitAndTap('onboarding-wizard-back-button');
-			// Check that the onboarding wizard is gone
-			await TestHelpers.checkIfNotVisible('onboarding-wizard-step1-view');
+			await OnboardingWizardModal.isVisible();
+			await OnboardingWizardModal.tapNoThanksButton();
+			await OnboardingWizardModal.isNotVisible();
 		} catch (e) {
 			console.log('');
 		}
 	});
 
 	it('should dismiss the protect your wallet modal', async () => {
-		await TestHelpers.checkIfVisible('backup-alert');
-		// Tap on remind me later
-		await TestHelpers.tap('notification-remind-later-button');
-		// Check the box to state you understand
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tap('skip-backup-check');
-		} else {
-			// Tap by the I understand text
-			await TestHelpers.delay(1000);
-			await TestHelpers.tap('skip-backup-text');
-		}
-		// Tap on Skip button
-		await TestHelpers.tapByText('Skip');
+		await ProtectYourWalletModal.isVisible();
+		await TestHelpers.delay(1000);
+
+		await ProtectYourWalletModal.tapRemindMeLaterButton();
+
+		await SkipAccountSecurityModal.tapIUnderstandCheckBox();
+		await SkipAccountSecurityModal.tapSkipButton();
+
+		await WalletView.isVisible();
 	});
 
 	it('should go to send view', async () => {
-		// Check that we are on the wallet screen
-		await TestHelpers.checkIfVisible('wallet-screen');
 		// Open Drawer
-		await TestHelpers.tap('hamburger-menu-button-wallet');
-		// Check that the drawer is visbile
-		await TestHelpers.checkIfVisible('drawer-screen');
-		// Tap on Send button
-		await TestHelpers.tap('drawer-send-button');
+		await WalletView.tapDrawerButton();
+
+		await DrawerView.isVisible();
+		await DrawerView.tapSendButton();
+
 		// Make sure view with my accounts visible
-		await TestHelpers.checkIfExists('my-accounts-button');
+		await SendView.isTransferBetweenMyAccountsButtonVisible();
 	});
 
 	it('should input a valid address to send to', async () => {
-		// Input incorrect address Currently commented out until https://github.com/MetaMask/metamask-mobile/issues/2533 is fixed
-		// if (device.getPlatform() === 'android') {
-		// 	await TestHelpers.replaceTextInField('txn-to-address-input', INVALID_ADDRESS);
-		// 	await element(by.id('txn-to-address-input')).tapReturnKey();
-		// } else {
-		// 	await TestHelpers.typeTextAndHideKeyboard('txn-to-address-input', INVALID_ADDRESS);
-		// }
-		// // Check that the error is displayed
-		// await TestHelpers.checkIfVisible('address-error');
-		//Input token address to test for error
-		if (device.getPlatform() === 'android') {
-			await TestHelpers.replaceTextInField('txn-to-address-input', TETHER_ADDRESS);
-		} else {
-			await TestHelpers.typeTextAndHideKeyboard('txn-to-address-input', TETHER_ADDRESS);
-		}
-		// Check that the error is displayed
-		await TestHelpers.checkIfVisible('address-error');
-		// Tap x to remove address
-		await TestHelpers.tap('clear-address-button');
-		await TestHelpers.delay(1000);
-		// Input valid myth address
-		if (device.getPlatform() === 'android') {
-			await TestHelpers.replaceTextInField('txn-to-address-input', MYTH_ADDRESS);
-			await TestHelpers.delay(1000);
-		} else {
-			// Clear text
-			await TestHelpers.clearField('txn-to-address-input');
-			await TestHelpers.typeTextAndHideKeyboard('txn-to-address-input', MYTH_ADDRESS);
-		}
-		// Check that the warning appears at the bottom of the screen
-		await TestHelpers.checkIfVisible('no-eth-message');
+		await SendView.inputAddress(TETHER_ADDRESS); //Input token address to test for error
+		await SendView.incorrectAddressErrorMessageIsVisible();
+		await SendView.removeAddress();
+		await SendView.inputAddress(MYTH_ADDRESS);
+		await SendView.noEthWarningMessageIsVisible();
 	});
 
 	it('should add a new address to address book via send flow', async () => {
-		// Tap on add this address to your address book
-		await TestHelpers.waitAndTap('add-address-button');
-		// Make sure address book modal is displayed
-		await TestHelpers.checkIfExists('add-address-modal');
-		// Input alias
-		if (device.getPlatform() === 'android') {
-			await TestHelpers.replaceTextInField('address-alias-input', 'Myth');
-			await element(by.id('address-alias-input')).tapReturnKey();
-		} else {
-			await TestHelpers.typeTextAndHideKeyboard('address-alias-input', 'Myth');
-		}
-		// Save contact
-		await TestHelpers.tapByText('Save');
-		// Clear address
-		await TestHelpers.tap('clear-address-button');
-		// Check that the new account is on the address list
-		await TestHelpers.checkIfElementWithTextIsVisible('Myth');
+		await SendView.tapAddAddressToAddressBook();
+
+		await AddAddressModal.isVisible();
+		await AddAddressModal.typeInAlias('Myth');
+		await AddAddressModal.tapSaveButton();
+
+		await SendView.removeAddress();
+		await SendView.isSavedAliasVisible('Myth'); // Check that the new account is on the address list
 	});
 
 	it('should go to settings then select contacts', async () => {
-		// Tap on cancel button
-		await TestHelpers.tap('send-cancel-button');
+		await SendView.tapcancelButton();
+
 		// Check that we are on the wallet screen
-		await TestHelpers.checkIfVisible('wallet-screen');
-		// Open Drawer
-		await TestHelpers.tap('hamburger-menu-button-wallet');
-		// Check that the drawer is visbile
-		await TestHelpers.checkIfVisible('drawer-screen');
-		// Tap on settings
-		await TestHelpers.tapByText('Settings');
-		// Tap on the "Contacts" option
-		await TestHelpers.tapByText('Contacts');
-		// Check that we are on the contacts screen
-		await TestHelpers.checkIfVisible('contacts-screen');
-		// Check that Myth address is saved in the address book
-		await TestHelpers.checkIfElementWithTextIsVisible('Myth');
+		await WalletView.isVisible();
+		await WalletView.tapDrawerButton();
+
+		await DrawerView.isVisible();
+		await DrawerView.tapSettings();
+
+		await SettingsView.tapContacts();
+
+		await ContactsView.isVisible();
+		await ContactsView.isContactAliasVisible('Myth');
 	});
 
 	it('should add an address via the contacts view', async () => {
-		// Tap on add contact button
-		await TestHelpers.tap('add-contact-button');
-		// Check that we are on the add contact screen
-		await TestHelpers.checkIfVisible('add-contact-screen');
-		// Input a name
-		if (device.getPlatform() === 'android') {
-			await TestHelpers.replaceTextInField('contact-name-input', 'Ibrahim');
-			await element(by.id('contact-name-input')).tapReturnKey();
-		} else {
-			await TestHelpers.typeTextAndHideKeyboard('contact-name-input', 'Ibrahim');
-		}
+		await ContactsView.tapAddContactButton();
+
+		await AddContactView.isVisible();
+		await AddContactView.typeInName('Ibrahim');
+
 		// Input invalid address
-		await TestHelpers.replaceTextInField('contact-address-input', INVALID_ADDRESS);
-		// Check that warning is shown
-		await TestHelpers.checkIfVisible('error-message-warning');
-		// Check warning is for the right reason
-		await TestHelpers.checkIfElementHasString('error-message-warning', 'Invalid address');
-		// Clear address input field
-		await TestHelpers.clearField('contact-address-input');
-		// Replace address with valid ENS address
-		await TestHelpers.replaceTextInField('contact-address-input', 'ibrahim.team.mask.eth');
-		// Add a memo
-		await TestHelpers.replaceTextInField('contact-memo-input', MEMO);
-		// Tap add contact button
-		if (device.getPlatform() === 'android') {
-			await TestHelpers.tap('contact-add-contact-button');
-			await TestHelpers.delay(700);
-			await TestHelpers.tap('contact-add-contact-button');
-		} else {
-			await TestHelpers.tap('contact-add-contact-button');
-		}
-		// Check that we are on the contacts screen
-		await TestHelpers.checkIfVisible('contacts-screen');
-		// Check that Ibrahim address is saved in the address book
-		await TestHelpers.checkIfElementWithTextIsVisible('Ibrahim');
+		await AddContactView.typeInAddress(INVALID_ADDRESS);
+		await AddContactView.isErrorMessageVisible();
+		await AddContactView.isErrorMessageTextCorrect();
+
+		await AddContactView.clearAddressInputBox();
+		await AddContactView.typeInAddress('ibrahim.team.mask.eth');
+		await AddContactView.typeInMemo(MEMO);
+		await AddContactView.tapAddContactButton();
+
+		await ContactsView.isVisible(); // Check that we are on the contacts screen
+		await ContactsView.isContactAliasVisible('Ibrahim'); // Check that Ibrahim address is saved in the address book
 	});
 
 	it('should edit a contact', async () => {
-		// Tap on Myth address
-		await TestHelpers.tapByText('Myth');
-		// Tap on edit
-		await TestHelpers.tapByText('Edit');
-		// Change name from Myth to Moon
-		await TestHelpers.replaceTextInField('contact-name-input', 'Moon');
-		// Tap on Edit contact button
-		await TestHelpers.tapByText('Edit contact');
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapByText('Edit contact');
-		}
-		// Check that we are on the contacts screen
-		await TestHelpers.checkIfVisible('contacts-screen');
+		await ContactsView.tapOnAlias('Myth'); // Tap on Myth address
+		await AddContactView.tapEditButton();
+		await AddContactView.typeInName('Moon'); // Change name from Myth to Moon
+
+		await AddContactView.tapEditContactCTA();
+		await ContactsView.isVisible();
+
 		// Check that Ibrahim address is saved in the address book
-		await TestHelpers.checkIfElementWithTextIsVisible('Moon');
+		await ContactsView.isContactAliasVisible('Moon'); // Check that Ibrahim address is saved in the address book
 		// Ensure Myth is not visible
-		await TestHelpers.checkIfElementWithTextIsNotVisible('Myth');
+		await ContactsView.isContactAliasNotVisible('Myth');
 	});
 
 	it('should remove a contact', async () => {

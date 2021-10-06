@@ -16,6 +16,11 @@ export default class TestHelpers {
 			.atIndex(index || 0)
 			.tap();
 	}
+	static doubleTapByText(text, index) {
+		return element(by.text(text))
+			.atIndex(index || 0)
+			.multiTap(2);
+	}
 
 	static tapAtPoint(elementId, point) {
 		return element(by.id(elementId)).tapAtPoint(point);
