@@ -1,17 +1,17 @@
 import TestHelpers from '../../helpers';
 
-const container = 'backup-alert';
-const remindMeLaterButton = 'notification-remind-later-button';
+const PROTECT_YOUR_WALLET_MODAL_CONTAINER_ID = 'backup-alert';
+const REMIND_ME_LATER_BUTTON_ID = 'notification-remind-later-button';
 export default class ProtectYourWalletModal {
 	static async tapRemindMeLaterButton() {
-		await TestHelpers.tap(remindMeLaterButton);
+		await TestHelpers.tap(REMIND_ME_LATER_BUTTON_ID);
 	}
 
 	static async isVisible() {
-		await TestHelpers.checkIfVisible(container);
+		await TestHelpers.checkIfVisible(PROTECT_YOUR_WALLET_MODAL_CONTAINER_ID);
 	}
 
 	static async isNotVisible() {
-		await TestHelpers.checkIfNotVisible(container);
+		await TestHelpers.checkIfNotVisible(PROTECT_YOUR_WALLET_MODAL_CONTAINER_ID);
 	}
 }

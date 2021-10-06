@@ -1,57 +1,57 @@
 import TestHelpers from '../../../helpers';
 
-const networkViewContainer = 'networks-screen';
-const rpcViewContainer = 'new-rpc-screen';
-const addNetworkButton = 'add-network-button';
-const rpcNetworkName = 'rpc-networks';
+const NETWORK_VIEW_CONTAINER_ID = 'networks-screen';
+const RPC_VIEW_CONTAINER_ID = 'new-rpc-screen';
+const ADD_NETWORK_BUTTON_ID = 'add-network-button';
+const RPC_NETWORK_NAME_ID = 'rpc-networks';
 
-const rpcTitleText = 'rpc-screen-title';
-const networkNameInputBox = 'input-network-name';
-const rPCUrlInputBox = 'input-rpc-url';
-const chainIDInputBox = 'input-chain-id';
-const networkSymbolInputBox = 'input-network-symbol';
-const rpcWarningBanner = 'rpc-url-warning';
-const addButton = 'network-add-button';
+const RPC_TITLE_TEXT_ID = 'rpc-screen-title';
+const NETWORK_NAME_INPUT_BOX_ID = 'input-network-name';
+const RPC_URL_SYMBOL_INPUT_BOX_ID = 'input-rpc-url';
+const CHAIN_ID_INPUT_BOX_ID = 'input-chain-id';
+const NETWORKS_SYMBOL_INPUT_BOX_ID = 'input-network-symbol';
+const RPC_WARNING_BANNER_ID = 'rpc-url-warning';
+const ADD_BUTTON_ID = 'network-add-button';
 
 export default class NetworkView {
 	static async tapAddNetworkButton() {
-		await TestHelpers.tap(addNetworkButton);
+		await TestHelpers.tap(ADD_NETWORK_BUTTON_ID);
 	}
 
 	static async tapNetworks() {
 		await TestHelpers.tapByText('Networks');
 	}
 	static async typeInNetworkName(networkName) {
-		await TestHelpers.typeTextAndHideKeyboard(networkNameInputBox, networkName);
+		await TestHelpers.typeTextAndHideKeyboard(NETWORK_NAME_INPUT_BOX_ID, networkName);
 	}
 	static async typeInRpcUrl(rPCUrl) {
-		await TestHelpers.typeTextAndHideKeyboard(rPCUrlInputBox, rPCUrl);
+		await TestHelpers.typeTextAndHideKeyboard(RPC_URL_SYMBOL_INPUT_BOX_ID, rPCUrl);
 	}
 	static async typeInChainId(chainID) {
-		await TestHelpers.typeTextAndHideKeyboard(chainIDInputBox, chainID);
+		await TestHelpers.typeTextAndHideKeyboard(CHAIN_ID_INPUT_BOX_ID, chainID);
 	}
 	static async typeInNetworkSymbol(networkSymbol) {
-		await TestHelpers.typeTextAndHideKeyboard(networkSymbolInputBox, networkSymbol);
+		await TestHelpers.typeTextAndHideKeyboard(NETWORKS_SYMBOL_INPUT_BOX_ID, networkSymbol);
 	}
 
 	static async clearRpcInputBox() {
-		await TestHelpers.clearField(rPCUrlInputBox);
+		await TestHelpers.clearField(RPC_URL_SYMBOL_INPUT_BOX_ID);
 	}
 
 	static async tapRpcNetworkAddButton() {
-		await TestHelpers.tap(addButton);
+		await TestHelpers.tap(ADD_BUTTON_ID);
 	}
 
 	static async swipeToRPCTitleAndDismissKeyboard() {
 		// Because in bitrise the keyboard is blocking the "Add" CTA
 
-		await TestHelpers.swipe(rPCUrlInputBox, 'down', 'fast');
-		await TestHelpers.tap(rpcTitleText);
+		await TestHelpers.swipe(RPC_URL_SYMBOL_INPUT_BOX_ID, 'down', 'fast');
+		await TestHelpers.tap(RPC_TITLE_TEXT_ID);
 		await TestHelpers.delay(3000);
 	}
 
 	static async removeNetwork() {
-		await TestHelpers.tapAndLongPressAtIndex(rpcNetworkName, 0);
+		await TestHelpers.tapAndLongPressAtIndex(RPC_NETWORK_NAME_ID, 0);
 		//Remove xDAI and verify removed on wallet view
 		//Tap remove
 		await TestHelpers.tapByText('Remove');
@@ -71,22 +71,22 @@ export default class NetworkView {
 	}
 
 	static async isNetworkViewVisible() {
-		await TestHelpers.checkIfVisible(networkViewContainer);
+		await TestHelpers.checkIfVisible(NETWORK_VIEW_CONTAINER_ID);
 	}
 
 	static async networkViewNotVisible() {
-		await TestHelpers.checkIfNotVisible(networkViewContainer);
+		await TestHelpers.checkIfNotVisible(NETWORK_VIEW_CONTAINER_ID);
 	}
 
 	static async isRpcViewVisible() {
-		await TestHelpers.checkIfVisible(rpcViewContainer);
+		await TestHelpers.checkIfVisible(RPC_VIEW_CONTAINER_ID);
 	}
 
 	static async RpcViewNotVisible() {
-		await TestHelpers.checkIfNotVisible(rpcViewContainer);
+		await TestHelpers.checkIfNotVisible(RPC_VIEW_CONTAINER_ID);
 	}
 
 	static async isRPCWarningVisble() {
-		await TestHelpers.checkIfVisible(rpcWarningBanner);
+		await TestHelpers.checkIfVisible(RPC_WARNING_BANNER_ID);
 	}
 }

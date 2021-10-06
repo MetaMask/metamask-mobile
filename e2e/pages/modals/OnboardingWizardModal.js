@@ -1,7 +1,7 @@
 import TestHelpers from '../../helpers';
 
-const container = 'onboarding-wizard-step1-view';
-const noThanksButton = 'onboarding-wizard-back-button';
+const ONBOARDING_WIZARD_MODAL_CONTAINER_ID = 'onboarding-wizard-step1-view';
+const NO_THANKS_BUTTON_ID = 'onboarding-wizard-back-button';
 /*
 		const takeTourButton = 'onboarding-wizard-next-button';
 		const secondStep = 'step2-title';
@@ -12,7 +12,7 @@ const noThanksButton = 'onboarding-wizard-back-button';
 */
 export default class OnboardingWizardModal {
 	static async tapNoThanksButton() {
-		await TestHelpers.waitAndTap(noThanksButton);
+		await TestHelpers.waitAndTap(NO_THANKS_BUTTON_ID);
 	}
 
 	static async tapGotItButton() {
@@ -23,10 +23,10 @@ export default class OnboardingWizardModal {
 	}
 
 	static async isVisible() {
-		await TestHelpers.checkIfVisible(container);
+		await TestHelpers.checkIfVisible(ONBOARDING_WIZARD_MODAL_CONTAINER_ID);
 	}
 
 	static async isNotVisible() {
-		await TestHelpers.checkIfNotVisible(container);
+		await TestHelpers.checkIfNotVisible(ONBOARDING_WIZARD_MODAL_CONTAINER_ID);
 	}
 }

@@ -1,16 +1,16 @@
 import TestHelpers from '../../../../helpers';
 
-const container = 'contacts-screen';
-const addContactButton = 'add-contact-button';
-const addressInputBox = 'contact-address-input';
+const CONTACTS_CONTAINER_ID = 'contacts-screen';
+const ADD_CONTACT_BUTTON_ID = 'add-contact-button';
+const CONTACTS_VIEW_ADDRESS_INPUT_BOX_ID = 'contact-address-input';
 
 export default class ContactsView {
 	static async tapAddContactButton() {
-		await TestHelpers.tap(addContactButton);
+		await TestHelpers.tap(ADD_CONTACT_BUTTON_ID);
 	}
 
 	static async clearAddressInputBox() {
-		await TestHelpers.clearField(addressInputBox);
+		await TestHelpers.clearField(CONTACTS_VIEW_ADDRESS_INPUT_BOX_ID);
 	}
 
 	static async tapOnAlias(alias) {
@@ -20,11 +20,11 @@ export default class ContactsView {
 	// Assertions
 
 	static async isVisible() {
-		await TestHelpers.checkIfVisible(container);
+		await TestHelpers.checkIfVisible(CONTACTS_CONTAINER_ID);
 	}
 
 	static async isNotVisible() {
-		await TestHelpers.checkIfNotVisible(container);
+		await TestHelpers.checkIfNotVisible(CONTACTS_CONTAINER_ID);
 	}
 
 	static async isContactAliasVisible(alias) {

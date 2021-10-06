@@ -1,8 +1,7 @@
 import TestHelpers from '../../helpers';
 
-const container = 'drawer-screen';
-//this.settingsButton = 'Settings';
-const sendButton = 'drawer-send-button';
+const DRAWER_CONTAINER_ID = 'drawer-screen';
+const SEND_BUTTON_ID = 'drawer-send-button';
 
 export default class DrawerView {
 	static async tapSettings() {
@@ -17,14 +16,14 @@ export default class DrawerView {
 	}
 
 	static async tapSendButton() {
-		await TestHelpers.tap(sendButton);
+		await TestHelpers.tap(SEND_BUTTON_ID);
 	}
 
 	static async isVisible() {
-		await TestHelpers.checkIfVisible(container);
+		await TestHelpers.checkIfVisible(DRAWER_CONTAINER_ID);
 	}
 
 	static async isNotVisible() {
-		await TestHelpers.checkIfNotVisible(container);
+		await TestHelpers.checkIfNotVisible(DRAWER_CONTAINER_ID);
 	}
 }

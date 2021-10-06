@@ -1,49 +1,49 @@
 import TestHelpers from '../helpers';
 
-const addressInputBox = 'txn-to-address-input';
-const addToAddressBookButton = 'add-address-button';
-const cancelButton = 'send-cancel-button';
-const incorrectAddressError = 'address-error';
-const noEthWarningMessage = 'no-eth-message';
-const myAccountsButton = 'my-accounts-button';
-const removeAddressButton = 'clear-address-button';
+const ADDRESS_INPUT_BOX_ID = 'txn-to-address-input';
+const ADD_TO_ADDRESS_BOOK_BUTTON_ID = 'add-address-button';
+const CANCEL_BUTTON_ID = 'send-cancel-button';
+const INCORRECT_ADDRESS_ERROR_ID = 'address-error';
+const NO_ETH_WARNING_MESSAGE_ID = 'no-eth-message';
+const MY_ACCOUNTS_BUTTON_ID = 'my-accounts-button';
+const REMOVE_ADDRESS_BUTTON_ID = 'clear-address-button';
 
 export default class SendView {
 	static async tapcancelButton() {
-		await TestHelpers.tap(cancelButton);
+		await TestHelpers.tap(CANCEL_BUTTON_ID);
 	}
 
 	static async inputAddress(address) {
 		if (device.getPlatform() === 'android') {
-			await TestHelpers.replaceTextInField(addressInputBox, address);
+			await TestHelpers.replaceTextInField(ADDRESS_INPUT_BOX_ID, address);
 		} else {
-			await TestHelpers.typeTextAndHideKeyboard(addressInputBox, address);
+			await TestHelpers.typeTextAndHideKeyboard(ADDRESS_INPUT_BOX_ID, address);
 		}
 	}
 
 	static async tapAddAddressToAddressBook() {
-		await TestHelpers.waitAndTap(addToAddressBookButton);
+		await TestHelpers.waitAndTap(ADD_TO_ADDRESS_BOOK_BUTTON_ID);
 	}
 
 	static async removeAddress() {
 		// Tap x to remove address
-		await TestHelpers.tap(removeAddressButton);
+		await TestHelpers.tap(REMOVE_ADDRESS_BUTTON_ID);
 		await TestHelpers.delay(1000);
 	}
 
 	// Assertions
 
 	static async isTransferBetweenMyAccountsButtonVisible() {
-		await TestHelpers.checkIfExists(myAccountsButton);
+		await TestHelpers.checkIfExists(MY_ACCOUNTS_BUTTON_ID);
 	}
 
 	static async incorrectAddressErrorMessageIsVisible() {
-		await TestHelpers.checkIfVisible(incorrectAddressError);
+		await TestHelpers.checkIfVisible(INCORRECT_ADDRESS_ERROR_ID);
 	}
 
 	static async noEthWarningMessageIsVisible() {
 		//Check that the warning appears at the bottom of the screen
-		await TestHelpers.checkIfVisible(noEthWarningMessage);
+		await TestHelpers.checkIfVisible(NO_ETH_WARNING_MESSAGE_ID);
 	}
 
 	static async isSavedAliasVisible(name) {

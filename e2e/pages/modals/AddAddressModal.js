@@ -1,15 +1,15 @@
 import TestHelpers from '../../helpers';
 
-const container = 'add-address-modal';
-const enterAliasInputBox = 'address-alias-input';
+const ADD_ADDRESS_MODAL_CONTAINER_ID = 'add-address-modal';
+const ENTER_ALIAS_INPUT_BOX_ID = 'address-alias-input';
 
 export default class AddAddressModal {
 	static async typeInAlias(name) {
 		if (device.getPlatform() === 'android') {
-			await TestHelpers.replaceTextInField(enterAliasInputBox, name);
-			await element(by.id(enterAliasInputBox)).tapReturnKey();
+			await TestHelpers.replaceTextInField(ENTER_ALIAS_INPUT_BOX_ID, name);
+			await element(by.id(ENTER_ALIAS_INPUT_BOX_ID)).tapReturnKey();
 		} else {
-			await TestHelpers.typeTextAndHideKeyboard(enterAliasInputBox, name);
+			await TestHelpers.typeTextAndHideKeyboard(ENTER_ALIAS_INPUT_BOX_ID, name);
 		}
 	}
 
@@ -18,10 +18,10 @@ export default class AddAddressModal {
 	}
 
 	static async isVisible() {
-		await TestHelpers.checkIfVisible(container);
+		await TestHelpers.checkIfVisible(ADD_ADDRESS_MODAL_CONTAINER_ID);
 	}
 
 	static async isNotVisible() {
-		await TestHelpers.checkIfNotVisible(container);
+		await TestHelpers.checkIfNotVisible(ADD_ADDRESS_MODAL_CONTAINER_ID);
 	}
 }

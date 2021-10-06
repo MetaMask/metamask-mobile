@@ -89,7 +89,6 @@ describe('Addressbook Tests', () => {
 
 		await DrawerView.isVisible();
 		await DrawerView.tapSendButton();
-
 		// Make sure view with my accounts visible
 		await SendView.isTransferBetweenMyAccountsButtonVisible();
 	});
@@ -151,52 +150,38 @@ describe('Addressbook Tests', () => {
 
 	it('should edit a contact', async () => {
 		await ContactsView.tapOnAlias('Myth'); // Tap on Myth address
+
 		await AddContactView.tapEditButton();
 		await AddContactView.typeInName('Moon'); // Change name from Myth to Moon
 
 		await AddContactView.tapEditContactCTA();
-		await ContactsView.isVisible();
 
-		// Check that Ibrahim address is saved in the address book
+		await ContactsView.isVisible();
 		await ContactsView.isContactAliasVisible('Moon'); // Check that Ibrahim address is saved in the address book
-		// Ensure Myth is not visible
-		await ContactsView.isContactAliasNotVisible('Myth');
+		await ContactsView.isContactAliasNotVisible('Myth'); // Ensure Myth is not visible
 	});
 
 	it('should remove a contact', async () => {
 		// Tap on Moon address
-		await TestHelpers.tapByText('Moon');
+		await ContactsView.tapOnAlias('Moon'); // Tap on Myth address
 		// Tap on edit
-		await TestHelpers.tapByText('Edit');
-		// Tap on Delete
-		await TestHelpers.tapByText('Delete');
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapByText('Delete', 1);
-		} else {
-			await TestHelpers.tapByText('Delete');
-		}
-		// Ensure Moon is not visible
-		await TestHelpers.checkIfElementWithTextIsNotVisible('Moon');
+		await AddContactView.tapEditButton();
+		await AddContactView.tapDeleteContactCTA();
+
+		await ContactsView.isContactAliasNotVisible('Moon');
 	});
 
 	it('should go back to send flow to validate newly added address is displayed', async () => {
 		// tap on the back arrow
-		await TestHelpers.tap('title-back-arrow-button');
-		// tap to get out of settings view
-		if (device.getPlatform() === 'android') {
-			await TestHelpers.tap('nav-android-back');
-		} else {
-			await TestHelpers.tapByText('Close');
-		}
-		// check we are on wallet screen
-		await TestHelpers.checkIfVisible('wallet-screen');
-		// Open Drawer
-		await TestHelpers.tap('hamburger-menu-button-wallet');
-		// Check that the drawer is visbile
-		await TestHelpers.checkIfVisible('drawer-screen');
-		// Tap on send
-		await TestHelpers.tapByText('Send');
-		// Check that the new account is on the address list
-		await TestHelpers.checkIfElementWithTextIsVisible('Ibrahim');
+		await AddContactView.tapBackButton();
+		await SettingsView.tapCloseButton();
+
+		await WalletView.isVisible();
+		await WalletView.tapDrawerButton();
+
+		await DrawerView.isVisible();
+		await DrawerView.tapSendButton();
+
+		await SendView.isSavedAliasVisible('Ibrahim');
 	});
 });
