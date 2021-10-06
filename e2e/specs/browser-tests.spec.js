@@ -1,111 +1,90 @@
 'use strict';
 import TestHelpers from '../helpers';
 
+import OnboardingView from '../pages/Onboarding/OnboardingView';
+import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
+import ProtectYourWalletView from '../pages/Onboarding/ProtectYourWalletView';
+import CreatePasswordView from '../pages/Onboarding/CreatePasswordView';
+
+import MetaMetricsOptIn from '../pages/MetaMetricsOptInView';
+import WalletView from '../pages/WalletView';
+import DrawerView from '../pages/Drawer/DrawerView';
+import Browser from '../pages/Drawer/Browser';
+
+import ConnectModal from '../pages/modals/ConnectModal';
+import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
+import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
+import ProtectYourWalletModal from '../pages/modals/ProtectYourWalletModal';
+
 const ENS_Example = 'https://brunobarbieri.eth';
 const ENS_TLD = 'https://inbox.mailchain.xyz';
 const UNISWAP = 'https://uniswap.exchange';
 const PASSWORD = '12345678';
 const PHISHING_SITE = 'http://www.empowr.com/FanFeed/Home.aspx';
+
 describe('Browser Tests', () => {
 	beforeEach(() => {
 		jest.setTimeout(150000);
 	});
 
-	it('should create new wallet and dismiss tutorial', async () => {
-		// Check that we are on the onboarding carousel screen
-		await TestHelpers.checkIfVisible('onboarding-carousel-screen');
-		// Check that Get started CTA is visible & tap it
-		await TestHelpers.waitAndTap('onboarding-get-started-button');
-		// Check that we are on the onboarding screen
-		await TestHelpers.checkIfVisible('onboarding-screen');
-		// Check that Create a new wallet CTA is visible & tap it
-		await TestHelpers.waitAndTap('create-wallet-button');
-		// Check that we are on the metametrics optIn screen
-		await TestHelpers.checkIfVisible('metaMetrics-OptIn');
-		// Check that I Agree CTA is visible and tap it
-		await TestHelpers.waitAndTap('agree-button');
-		// Check that we are on the Create password screen
-		await TestHelpers.checkIfVisible('create-password-screen');
-		// Input new password
-		await TestHelpers.typeTextAndHideKeyboard('input-password', PASSWORD);
-		// Input confirm password
-		await TestHelpers.typeTextAndHideKeyboard('input-password-confirm', PASSWORD);
-		// Mark the checkbox that you understand the password cannot be recovered
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tap('password-understand-box');
-		} else {
-			// Tap by the I understand text
-			await TestHelpers.delay(1000);
-			await TestHelpers.tap('i-understand-text');
-		}
-		// Tap on create password button
-		await TestHelpers.tap('submit-button');
+	it('should create new wallet', async () => {
+		await OnboardingCarouselView.isVisible();
+		await OnboardingCarouselView.tapOnGetStartedButton();
+
+		await OnboardingView.isVisible();
+		await OnboardingView.tapCreateWallet();
+
+		await MetaMetricsOptIn.isVisible();
+		await MetaMetricsOptIn.tapAgreeButton();
+
+		await CreatePasswordView.isVisible();
+		await CreatePasswordView.enterPassword(PASSWORD);
+		await CreatePasswordView.reEnterPassword(PASSWORD);
+		await CreatePasswordView.tapIUnderstandCheckBox();
+		await CreatePasswordView.tapCreatePasswordButton();
+	});
+
+	it('Should skip backup check and dismiss tutorial', async () => {
 		// Check that we are on the Secure your wallet screen
-		await TestHelpers.checkIfVisible('protect-your-account-screen');
-		// Tap on the remind me later button
-		await TestHelpers.tap('remind-me-later-button');
-		// Check the box to state you understand
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tap('skip-backup-check');
-		} else {
-			// Tap by the I understand text
-			await TestHelpers.delay(1000);
-			await TestHelpers.tap('skip-backup-text');
-		}
-		// Tap on Skip button
-		await TestHelpers.tapByText('Skip');
-		// Check that we are on the wallet screen
-		if (!device.getPlatform() === 'android') {
-			// Check that we are on the wallet screen
-			await TestHelpers.checkIfExists('wallet-screen');
-		}
+		await ProtectYourWalletView.isVisible();
+		await ProtectYourWalletView.tapOnRemindMeLaterButton();
+
+		await SkipAccountSecurityModal.tapIUnderstandCheckBox();
+		await SkipAccountSecurityModal.tapSkipButton();
+		await WalletView.isVisible();
 	});
 
 	it('should dismiss the onboarding wizard', async () => {
+		// dealing with flakiness on bitrise.
 		await TestHelpers.delay(1000);
-
-		// dealing with flakiness
 		try {
-			// Check that the onboarding wizard is present
-			await TestHelpers.checkIfVisible('onboarding-wizard-step1-view');
-			// Check that No thanks CTA is visible and tap it
-			await TestHelpers.waitAndTap('onboarding-wizard-back-button');
-			// Check that the onboarding wizard is gone
-			await TestHelpers.checkIfNotVisible('onboarding-wizard-step1-view');
+			await OnboardingWizardModal.isVisible();
+			await OnboardingWizardModal.tapNoThanksButton();
+			await OnboardingWizardModal.isNotVisible();
 		} catch (e) {
 			console.log('');
 		}
 	});
 
 	it('should dismiss the protect your wallet modal', async () => {
-		await TestHelpers.delay(2000);
+		await ProtectYourWalletModal.isVisible();
+		await TestHelpers.delay(1000);
 
-		await TestHelpers.checkIfVisible('backup-alert');
-		// Tap on remind me later
-		await TestHelpers.tap('notification-remind-later-button');
-		// Check the box to state you understand
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tap('skip-backup-check');
-		} else {
-			// Tap by the I understand text
-			await TestHelpers.delay(1000);
-			await TestHelpers.tap('skip-backup-text');
-		}
-		// Tap on Skip button
-		await TestHelpers.tapByText('Skip');
+		await ProtectYourWalletModal.tapRemindMeLaterButton();
+
+		await SkipAccountSecurityModal.tapIUnderstandCheckBox();
+		await SkipAccountSecurityModal.tapSkipButton();
+
+		await WalletView.isVisible();
 	});
 
 	it('should navigate to browser', async () => {
-		// Open Drawer
-		await TestHelpers.tap('hamburger-menu-button-wallet');
-		// Check that the drawer is visbile
-		await TestHelpers.checkIfVisible('drawer-screen');
-		// Tap on Browser
-		await TestHelpers.tapByText('Browser');
-		// Wait for page to load
-		await TestHelpers.delay(1000);
+		await WalletView.tapDrawerButton();
+
+		await DrawerView.isVisible();
+		await DrawerView.tapBrowser();
 		// Check that we are on the browser screen
-		await TestHelpers.checkIfVisible('browser-screen');
+		await Browser.isVisible();
 	});
 
 	it('should go to first explore tab and navigate back to homepage', async () => {
@@ -122,89 +101,73 @@ describe('Browser Tests', () => {
 			// Wait for page to load
 			await TestHelpers.delay(1000);
 			// Check that we are on the browser screen
-			await TestHelpers.checkIfVisible('browser-screen');
+			await Browser.isVisible();
 		}
 	});
 
 	it('should go to uniswap', async () => {
-		// Tap on home on bottom navbar
-		// await TestHelpers.tap('home-button');
-		// Wait for page to load
 		await TestHelpers.delay(3000);
 		// Tap on search in bottom navbar
-		await TestHelpers.tap('search-button');
-		// Navigate to URL
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.clearField('url-input');
-			await TestHelpers.typeTextAndHideKeyboard('url-input', UNISWAP);
-			await TestHelpers.delay(2000);
-		} else {
-			await TestHelpers.tap('android-cancel-url-button');
-			await TestHelpers.replaceTextInField('url-input', UNISWAP);
-			await element(by.id('url-input')).tapReturnKey();
-		}
+		await Browser.tapBrowser();
+		await Browser.navigateToURL(UNISWAP);
+
 		// Wait for page to load
-		await TestHelpers.delay(5000);
+		await Browser.waitForBrowserPageToLoad();
+
 		if (device.getPlatform() === 'android') {
 			// Check that the dapp title is correct
 			await TestHelpers.checkIfElementWithTextIsVisible('app.uniswap.org', 0);
 		}
-		// Tap on CANCEL button
-		await TestHelpers.tap('connect-cancel-button');
-
+		await ConnectModal.tapCancelButton();
 		// THIS SUCKS BUT UNISWAP IS ASKING TO CONNECT TWICE
-		// Tap on CANCEL button
-		// Wait for page to load
 		await TestHelpers.delay(3000);
-		await TestHelpers.tap('connect-cancel-button');
+		await ConnectModal.tapCancelButton();
+
 		// Android has weird behavior where the URL modal stays open, so this closes it
 		// Close URL modal
 		if (device.getPlatform() === 'android') {
 			await device.pressBack();
 		}
-		// Check that we are still on the browser screen
-		await TestHelpers.checkIfVisible('browser-screen');
+		await Browser.isVisible();
 	});
 
 	it('should add uniswap to favorites', async () => {
 		// Check that we are still on the browser screen
-		await TestHelpers.checkIfVisible('browser-screen');
+		await Browser.isVisible();
 		// Tap on options
-		await TestHelpers.waitAndTap('options-button');
-		// Tap on Add to Favorites
-		await TestHelpers.tapByText('Add to Favorites');
-		// Check that we are on the correct screen
-		await TestHelpers.checkIfVisible('add-bookmark-screen');
-		// Tap on ADD button
-		await TestHelpers.tap('add-bookmark-confirm-button');
+		await Browser.tapOptionsButton();
+		await Browser.tapAddToFavoritesButton();
+		await Browser.isAddBookmarkScreenVisible();
+		await Browser.tapAddBookmarksButton();
+
+		await Browser.isAddBookmarkScreenNotVisible(); // Add bookmark screen should not be visible
 	});
 
 	it('should go back home and navigate to favorites', async () => {
 		// Tap on home on bottom navbar
-		await TestHelpers.tap('home-button');
+		await Browser.tapHomeButton();
 		// Wait for page to load
 		await TestHelpers.delay(1000);
-		// Check that we are still on the browser screen
-		await TestHelpers.checkIfVisible('browser-screen');
+		await Browser.isVisible();
 		// Tap on Favorites tab
 		if (device.getPlatform() === 'ios') {
 			// Tap on options
-			await TestHelpers.waitAndTap('options-button');
+			await Browser.tapOptionsButton();
 			// Open new tab
 			await TestHelpers.tapByText('New tab');
-			await TestHelpers.tapAtPoint('browser-screen', { x: 174, y: 281 });
+			await TestHelpers.tapAtPoint(Browser.BROWSER_SCREEN_ID, { x: 174, y: 281 });
 			await TestHelpers.delay(1500);
 		} else {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 274, y: 223 });
-			await TestHelpers.tapAtPoint('browser-screen', { x: 180, y: 275 });
+			await TestHelpers.tapAtPoint(Browser.BROWSER_SCREEN_ID, { x: 274, y: 223 });
+			await TestHelpers.tapAtPoint(Browser.BROWSER_SCREEN_ID, { x: 180, y: 275 });
 			await TestHelpers.delay(1500);
 		}
 		// Wait for connect prompt to display
 		await TestHelpers.delay(5000);
 		// Tap on Connect button
-		await TestHelpers.tap('connect-approve-button');
+		await ConnectModal.tapConnectButton();
 		// Check that we are still on the browser screen
-		await TestHelpers.checkIfVisible('browser-screen');
+		await Browser.isVisible();
 	});
 
 	it('should test ENS sites', async () => {
