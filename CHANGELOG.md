@@ -1,7 +1,13 @@
 # Changelog
 
 ## Current Develop Branch
-## v3.4.0 - September 27 2021
+
+## v3.4.1 - October 5 2021
+- [#3260](https://github.com/MetaMask/metamask-mobile/pull/3260): [FIX] Turn off token detection by default
+- [#3261](https://github.com/MetaMask/metamask-mobile/pull/3261): [FIX] Fix blank screen on fresh start
+- [#3254](https://github.com/MetaMask/metamask-mobile/pull/3254): [IMPROVEMENT] Isolate LICENSE file
+- [#3251](https://github.com/MetaMask/metamask-mobile/pull/3251): [IMPROVEMENT] Enable CLA signing
+- [#3146](https://github.com/MetaMask/metamask-mobile/pull/3146): [IMPROVEMENT] Stabilizing Detox Tests
 - [#3247](https://github.com/MetaMask/metamask-mobile/pull/3247): [IMPROVEMENT] Add timeout to redux-persist
 - [#3243](https://github.com/MetaMask/metamask-mobile/pull/3243): [FIX] Fix decode transfer data
 - [#3221](https://github.com/MetaMask/metamask-mobile/pull/3221): [IMPROVEMENT] Replacing swaps source image to include new 1inch logo.
