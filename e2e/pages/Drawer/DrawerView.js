@@ -2,7 +2,7 @@ import TestHelpers from '../../helpers';
 
 const DRAWER_CONTAINER_ID = 'drawer-screen';
 const SEND_BUTTON_ID = 'drawer-send-button';
-
+const ADD_FUNDS_BUTTON_ID = 'drawer-receive-button';
 export default class DrawerView {
 	static async tapBrowser() {
 		await TestHelpers.tapByText('Browser');
@@ -22,6 +22,10 @@ export default class DrawerView {
 
 	static async tapSendButton() {
 		await TestHelpers.tap(SEND_BUTTON_ID);
+	}
+
+	static async tapOnAddFundsButton() {
+		await TestHelpers.tap(ADD_FUNDS_BUTTON_ID);
 	}
 
 	static async isVisible() {

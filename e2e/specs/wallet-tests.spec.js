@@ -1,6 +1,23 @@
 'use strict';
 import TestHelpers from '../helpers';
 
+import OnboardingView from '../pages/Onboarding/OnboardingView';
+import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
+import ImportWalletView from '../pages/Onboarding/ImportWalletView';
+
+//import SecurityAndPrivacy from '../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+//import RevealSecretRecoveryPhrase from '../pages/Drawer/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
+
+import MetaMetricsOptIn from '../pages/MetaMetricsOptInView';
+import WalletView from '../pages/WalletView';
+//import LoginView from '../pages/LoginView';
+
+import DrawerView from '../pages/Drawer/DrawerView';
+//import SettingsView from '../pages/Drawer/Settings/SettingsView';
+
+import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
+import NetworkListModal from '../pages/modals/NetworkListModal';
+
 const CORRECT_SEED_WORDS = 'fold media south add since false relax immense pause cloth just raven';
 const CORRECT_PASSWORD = `12345678`;
 const TEST_PUBLIC_ADDRESS = '0xd3B9Cbea7856AECf4A6F7c3F4E8791F79cBeeD62';
@@ -17,56 +34,38 @@ describe('Wallet Tests', () => {
 		jest.setTimeout(200000);
 	});
 
-	it('should import wallet via seed phrase', async () => {
-		// Check that we are on the onboarding carousel screen
-		await TestHelpers.checkIfVisible('onboarding-carousel-screen');
-		// Check that Get started CTA is visible & tap it
-		await TestHelpers.waitAndTap('onboarding-get-started-button');
-		// Check that we are on the onboarding screen
-		await TestHelpers.checkIfVisible('onboarding-screen');
-		// Check that Import using seed phrase CTA is visible & tap it
-		await TestHelpers.waitAndTap('import-wallet-import-from-seed-button');
+	it('should tap on import seed phrase button', async () => {
+		await OnboardingCarouselView.isVisible();
+		await OnboardingCarouselView.tapOnGetStartedButton();
 
-		// Check that we are on the metametrics optIn screen
-		await TestHelpers.checkIfVisible('metaMetrics-OptIn');
-		// Check that I Agree CTA is visible and tap it
-		await TestHelpers.waitAndTap('agree-button');
+		await OnboardingView.isVisible();
+		await OnboardingView.tapImportWalletFromSeedPhrase();
 
-		// Check that we are on the import wallet screen
-		await TestHelpers.checkIfVisible('import-from-seed-screen');
-		// Input seed phrase
-		if (device.getPlatform() === 'android') {
-			await TestHelpers.replaceTextInField(`input-seed-phrase`, CORRECT_SEED_WORDS);
-		} else {
-			await TestHelpers.typeTextAndHideKeyboard(`input-seed-phrase`, CORRECT_SEED_WORDS);
+		await MetaMetricsOptIn.isVisible();
+		await MetaMetricsOptIn.tapAgreeButton();
+
+		await ImportWalletView.isVisible();
+	});
+
+	it('should import wallet with secret recovery phrase', async () => {
+		await ImportWalletView.clearSecretRecoveryPhraseInputBox();
+		await ImportWalletView.enterSecretRecoveryPhrase(CORRECT_SEED_WORDS);
+		await ImportWalletView.enterPassword(CORRECT_PASSWORD);
+		await ImportWalletView.reEnterPassword(CORRECT_PASSWORD);
+		await WalletView.isVisible();
+	});
+
+	it('should dismiss the onboarding wizard', async () => {
+		// dealing with flakiness on bitrise.
+		await TestHelpers.delay(1000);
+		try {
+			await OnboardingWizardModal.isVisible();
+			await OnboardingWizardModal.tapNoThanksButton();
+			await OnboardingWizardModal.isNotVisible();
+		} catch (e) {
+			console.log('');
 		}
-		// Input password
-		await TestHelpers.typeTextAndHideKeyboard(`input-password-field`, CORRECT_PASSWORD);
-		// Input password confirm
-		await TestHelpers.typeTextAndHideKeyboard(`input-password-field-confirm`, CORRECT_PASSWORD);
-		/*
-
-		UNCOMMENT ME OUT WHEN WE FIX THIS BUG. THE CONGRATS VIEW SHOULD APPEAR AFTER YOU IMPORT
-		YOUR WALLET
-		// Check that we are on the congrats screen
-		await TestHelpers.checkIfVisible('import-congrats-screen');
-		// Tap on done CTA
-		await TestHelpers.tap('manual-backup-step-3-done-button');
-		*/
-
-		// Should be on wallet screen
-		if (!device.getPlatform() === 'android') {
-			// Check that we are on the wallet screen
-			await TestHelpers.checkIfExists('wallet-screen');
-		}
-		// Check that the onboarding wizard is present
-		await TestHelpers.checkIfVisible('onboarding-wizard-step1-view');
-		// Check that No thanks CTA is visible and tap it
-		await TestHelpers.waitAndTap('onboarding-wizard-back-button');
-		// Check that the onboarding wizard is gone
-		await TestHelpers.checkIfNotVisible('onboarding-wizard-step1-view');
-		// Ensure ETH Value is correct
-		await TestHelpers.checkIfElementHasString('balance', '0 ETH');
+		await WalletView.isAccountBalanceCorrect();
 	});
 
 	it('should be able to add new accounts', async () => {
@@ -111,16 +110,16 @@ describe('Wallet Tests', () => {
 		// Tap X to close modal
 		await TestHelpers.tap('import-close-button');
 		// Check that we are on the wallet screen
-		await TestHelpers.checkIfExists('wallet-screen');
+		await WalletView.isVisible();
 		// Check if account was added
 		await TestHelpers.checkIfElementHasString('account-label-text-input', 'Account 3');
 	});
 
 	it('should be able to switch accounts', async () => {
 		// Open Drawer
-		await TestHelpers.tap('hamburger-menu-button-wallet');
+		await WalletView.tapDrawerButton();
 		// Check that the drawer is visbile
-		await TestHelpers.checkIfVisible('drawer-screen');
+		await DrawerView.isVisible();
 		// Tap on account button to expand modal
 		await TestHelpers.waitAndTap('navbar-account-button');
 		// Check that the account list view is visible
@@ -130,7 +129,7 @@ describe('Wallet Tests', () => {
 		// Open Drawer
 		await TestHelpers.tap('hamburger-menu-button-wallet');
 		// Check that the drawer is visbile
-		await TestHelpers.checkIfVisible('drawer-screen');
+		await DrawerView.isVisible();
 		// Tap on Receive button
 		await TestHelpers.waitAndTap('drawer-receive-button');
 		// Check that we are on the receive screen
@@ -144,7 +143,7 @@ describe('Wallet Tests', () => {
 			await device.pressBack();
 			await TestHelpers.delay(1000);
 			// Check that you are on the drawer screen
-			await TestHelpers.checkIfVisible('drawer-screen');
+			await DrawerView.isVisible();
 			// Close drawer
 			await device.pressBack();
 			await TestHelpers.delay(1000);
@@ -152,29 +151,25 @@ describe('Wallet Tests', () => {
 			// Close modal
 			await TestHelpers.swipe('receive-request-screen', 'down');
 			// Check that you are on the drawer screen
-			await TestHelpers.checkIfVisible('drawer-screen');
+			await DrawerView.isVisible();
 			// Close drawer
 			await TestHelpers.swipe('drawer-screen', 'left');
 		}
 
 		// Check that we are on the wallet screen
-		await TestHelpers.checkIfVisible('wallet-screen');
+		await WalletView.isVisible();
 	});
 
 	it('should switch to Rinkeby network', async () => {
-		// Tap on Ethereum Main Network to prompt modal
-		await TestHelpers.waitAndTap('open-networks-button');
-		// Check that the Networks modal pops up
-		await TestHelpers.checkIfVisible('networks-list');
-		// Tap on Rinkeby Test Nework
-		await TestHelpers.tapByText(RINKEBY);
-		// Check that we are on Rinkeby network
-		await TestHelpers.checkIfElementWithTextIsVisible(RINKEBY);
+		await WalletView.tapNetworksButtonOnNavBar();
+		await NetworkListModal.isVisible();
+		await NetworkListModal.changeNetwork(RINKEBY);
+		await WalletView.isNetworkNameVisible(RINKEBY);
 	});
 
 	it('should add a collectible', async () => {
 		// Check that we are on the wallet screen
-		await TestHelpers.checkIfVisible('wallet-screen');
+		await WalletView.isVisible();
 		// Tap on COLLECTIBLES tab
 		await TestHelpers.tapByText('NFTs');
 		// Tap on the add collectibles button
@@ -205,7 +200,7 @@ describe('Wallet Tests', () => {
 		// Input correct identifier
 		await TestHelpers.typeTextAndHideKeyboard('input-token-decimals', COLLECTIBLE_IDENTIFIER);
 		// Check that we are on the wallet screen
-		await TestHelpers.checkIfExists('wallet-screen');
+		await WalletView.isVisible();
 		// Wait for asset to load
 		await TestHelpers.delay(3000);
 		// Check that the crypto kitty was added
@@ -223,17 +218,16 @@ describe('Wallet Tests', () => {
 
 	it('should add a token', async () => {
 		// Check that we are on the wallet screen
-		await TestHelpers.checkIfVisible('wallet-screen');
+		await WalletView.isVisible();
 		// Tap on TOKENS tab
 		await TestHelpers.tapByText('TOKENS');
 		// Switch to mainnet
-		await TestHelpers.waitAndTap('open-networks-button');
-		// Check that the Networks modal pops up
-		await TestHelpers.checkIfVisible('networks-list');
-		// Tap on Eth Mainnet
-		await TestHelpers.tapByText(ETHEREUM);
-		// Check that we are on Eth Mainnet
-		await TestHelpers.checkIfElementWithTextIsVisible(ETHEREUM);
+		await WalletView.tapNetworksButtonOnNavBar();
+
+		await NetworkListModal.isVisible();
+		await NetworkListModal.changeNetwork(ETHEREUM);
+		await WalletView.isNetworkNameVisible(ETHEREUM);
+
 		// Tap on Add Tokens
 		await TestHelpers.tap('add-token-button');
 		// Search for SAI
@@ -246,7 +240,7 @@ describe('Wallet Tests', () => {
 		// Tap on Add Token button
 		await TestHelpers.tapByText('IMPORT');
 		// Check that we are on the wallet screen
-		await TestHelpers.checkIfVisible('wallet-screen');
+		await WalletView.isVisible();
 		// Check that SAI is added to wallet
 		await TestHelpers.delay(10000); // to prevent flakey behavior in bitrise
 		await TestHelpers.checkIfElementWithTextIsVisible('0 DAI');
@@ -306,7 +300,7 @@ describe('Wallet Tests', () => {
 			await TestHelpers.tap('add-custom-asset-confirm-button');
 		}
 		// Check that we are on the wallet screen
-		await TestHelpers.checkIfVisible('wallet-screen');
+		await WalletView.isVisible();
 
 		await TestHelpers.delay(10000); // to prevent flakey behavior in bitrise
 		// Check that TENX is added to wallet
@@ -314,25 +308,21 @@ describe('Wallet Tests', () => {
 	});
 
 	it('should switch back to Rinkeby network', async () => {
-		// Tap on Ethereum Main Network to prompt modal
-		await TestHelpers.waitAndTap('open-networks-button');
-		// Check that the Networks modal pops up
-		await TestHelpers.checkIfVisible('networks-list');
-		// Tap on Rinkeby Test Nework
-		await TestHelpers.tapByText(RINKEBY);
-		// Check that we are on Rinkeby network
-		await TestHelpers.checkIfElementWithTextIsVisible(RINKEBY);
+		await WalletView.tapNetworksButtonOnNavBar();
+		await NetworkListModal.isVisible();
+		await NetworkListModal.changeNetwork(RINKEBY);
+		await WalletView.isNetworkNameVisible(RINKEBY);
 	});
 
 	it('should input a valid address', async () => {
 		// Check that we are on the wallet screen
-		await TestHelpers.checkIfVisible('wallet-screen');
+		await WalletView.isVisible();
 		// Open Drawer
-		await TestHelpers.tap('hamburger-menu-button-wallet');
+		await WalletView.tapDrawerButton();
 		// Check that the drawer is visbile
-		await TestHelpers.checkIfVisible('drawer-screen');
+		await DrawerView.isVisible();
 		// Tap on Send button
-		await TestHelpers.tap('drawer-send-button');
+		await DrawerView.tapSendButton();
 		// Input test address
 		await TestHelpers.replaceTextInField('txn-to-address-input', VALID_ADDRESS);
 		// Tap the Next CTA
@@ -362,6 +352,6 @@ describe('Wallet Tests', () => {
 		// Tap on the Send CTA
 		await TestHelpers.tap('txn-confirm-send-button');
 		// Check that we are on the wallet screen
-		await TestHelpers.checkIfVisible('wallet-screen');
+		await WalletView.isVisible();
 	});
 });

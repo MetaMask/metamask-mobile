@@ -12,7 +12,7 @@ export default class WalletView {
 	}
 
 	static async tapNetworksButtonOnNavBar() {
-		await TestHelpers.tap(NETWORKS_BUTTON_ID);
+		await TestHelpers.waitAndTap(NETWORKS_BUTTON_ID);
 	}
 
 	static async editAccountName(accountName) {
@@ -43,5 +43,8 @@ export default class WalletView {
 
 	static async isAccountNameCorrect(accountName) {
 		await TestHelpers.checkIfElementHasString(NETWORK_NAME_TEXT_ID, accountName);
+	}
+	static async isAccountBalanceCorrect(accountBalance) {
+		await TestHelpers.checkIfElementHasString('balance', accountBalance);
 	}
 }
