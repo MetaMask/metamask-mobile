@@ -199,6 +199,9 @@ class AdvancedSettings extends PureComponent {
 		delete fullState.engine.backgroundState.PhishingController;
 		delete fullState.engine.backgroundState.AssetsContractController;
 
+		// Remove encrypted vault from logs
+		delete fullState.engine.backgroundState.KeyringController.vault;
+
 		// Add extra stuff
 		fullState.engine.backgroundState.KeyringController.keyrings = Engine.context.KeyringController.state.keyrings;
 		try {
