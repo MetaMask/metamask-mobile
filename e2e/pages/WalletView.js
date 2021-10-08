@@ -6,13 +6,21 @@ const NETWORKS_BUTTON_ID = 'open-networks-button';
 const NETWORK_NAME_TEXT_ID = 'network-name';
 const EDIT_ACCOUNT_TEXT_ID = 'edit-account-label';
 const ACCOUNT_NAME_TEXT_ID = 'account-label-text-input';
+const IDENTICON_ID = 'wallet-account-identicon';
 export default class WalletView {
+	static async tapIdenticon() {
+		await TestHelpers.tap(IDENTICON_ID);
+	}
+
 	static async tapDrawerButton() {
 		await TestHelpers.tap(DRAWER_BUTTON_ID);
 	}
 
 	static async tapNetworksButtonOnNavBar() {
 		await TestHelpers.waitAndTap(NETWORKS_BUTTON_ID);
+	}
+	static async tapNFTButton() {
+		await TestHelpers.tapByText('NFTs');
 	}
 
 	static async editAccountName(accountName) {
@@ -42,7 +50,7 @@ export default class WalletView {
 	}
 
 	static async isAccountNameCorrect(accountName) {
-		await TestHelpers.checkIfElementHasString(NETWORK_NAME_TEXT_ID, accountName);
+		await TestHelpers.checkIfElementHasString(ACCOUNT_NAME_TEXT_ID, accountName);
 	}
 	static async isAccountBalanceCorrect(accountBalance) {
 		await TestHelpers.checkIfElementHasString('balance', accountBalance);

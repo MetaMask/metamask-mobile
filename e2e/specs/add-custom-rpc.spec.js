@@ -8,7 +8,7 @@ import CreatePasswordView from '../pages/Onboarding/CreatePasswordView';
 
 import NetworkView from '../pages/Drawer/Settings/NetworksView';
 
-import MetaMetricsOptIn from '../pages/MetaMetricsOptInView';
+import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
 import DrawerView from '../pages/Drawer/DrawerView';
 import SettingsView from '../pages/Drawer/Settings/SettingsView';
@@ -68,7 +68,7 @@ describe('Custom RPC Tests', () => {
 	});
 
 	it('should dismiss the protect your wallet modal', async () => {
-		await ProtectYourWalletModal.isVisible();
+		await ProtectYourWalletModal.isCollapsedBackUpYourWalletModalVisible();
 		await TestHelpers.delay(1000);
 
 		await ProtectYourWalletModal.tapRemindMeLaterButton();

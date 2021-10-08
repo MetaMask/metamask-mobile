@@ -6,7 +6,7 @@ import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
 import ProtectYourWalletView from '../pages/Onboarding/ProtectYourWalletView';
 import CreatePasswordView from '../pages/Onboarding/CreatePasswordView';
 
-import MetaMetricsOptIn from '../pages/MetaMetricsOptInView';
+import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
 import DrawerView from '../pages/Drawer/DrawerView';
 import { BROWSER_SCREEN_ID, Browser } from '../pages/Drawer/Browser';
@@ -67,7 +67,7 @@ describe('Browser Tests', () => {
 	});
 
 	it('should dismiss the protect your wallet modal', async () => {
-		await ProtectYourWalletModal.isVisible();
+		await ProtectYourWalletModal.isCollapsedBackUpYourWalletModalVisible();
 		await TestHelpers.delay(1000);
 
 		await ProtectYourWalletModal.tapRemindMeLaterButton();

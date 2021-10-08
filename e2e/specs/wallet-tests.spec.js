@@ -4,19 +4,19 @@ import TestHelpers from '../helpers';
 import OnboardingView from '../pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
 import ImportWalletView from '../pages/Onboarding/ImportWalletView';
+import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 
-//import SecurityAndPrivacy from '../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
-//import RevealSecretRecoveryPhrase from '../pages/Drawer/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
-
-import MetaMetricsOptIn from '../pages/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
-//import LoginView from '../pages/LoginView';
+import AccountListView from '../pages/AccountListView';
+import ImportAccountView from '../pages/ImportAccountView';
 
 import DrawerView from '../pages/Drawer/DrawerView';
-//import SettingsView from '../pages/Drawer/Settings/SettingsView';
+import SendView from '../pages/SendView';
+import AmountView from '../pages/AmountView';
 
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import NetworkListModal from '../pages/modals/NetworkListModal';
+import RequestPaymentModal from '../pages/modals/RequestPaymentModal';
 
 const CORRECT_SEED_WORDS = 'fold media south add since false relax immense pause cloth just raven';
 const CORRECT_PASSWORD = `12345678`;
@@ -70,92 +70,60 @@ describe('Wallet Tests', () => {
 
 	it('should be able to add new accounts', async () => {
 		// Tap on account icon to prompt modal
-		await TestHelpers.tap('wallet-account-identicon');
-		// Check that the account list view is visible
-		await TestHelpers.checkIfVisible('account-list');
+		await WalletView.tapIdenticon();
+		await AccountListView.isVisible();
+
 		// Tap on Create New Account
-		await TestHelpers.waitAndTap('create-account-button');
-		// Check if account was added
-		if (device.getPlatform() === 'android') {
-			await TestHelpers.checkIfElementWithTextIsVisible('Account 2');
-		}
+		await AccountListView.tapCreateAccountButton();
+		await AccountListView.isnewAccountNameVisible();
 	});
 
 	it('should be able to import account', async () => {
-		// Check that the account list view is visible
-		await TestHelpers.checkIfVisible('account-list');
-		// Tap to import an account
-		await TestHelpers.waitAndTap('import-account-button');
-		// Check that we are on the import screen
-		await TestHelpers.checkIfVisible('import-account-screen');
+		await AccountListView.isVisible();
+		await AccountListView.tapImportAccountButton();
+
+		await ImportAccountView.isVisible();
 		// Tap on import button to make sure alert pops up
-		await TestHelpers.waitAndTap('import-button');
-		// Dimsiss alert
-		await TestHelpers.tapAlertWithButton('OK');
+		await ImportAccountView.tapImportButton();
+		await ImportAccountView.tapOKAlertButton();
+
 		// Input incorrect private key
-		await TestHelpers.typeTextAndHideKeyboard('input-private-key', '1234');
-		// Dimsiss alert
-		await TestHelpers.tapAlertWithButton('OK');
-		// Clear text
-		await TestHelpers.clearField('input-private-key');
-		// Input correct private key
-		if (device.getPlatform() === 'android') {
-			await TestHelpers.replaceTextInField('input-private-key', TEST_PRIVATE_KEY);
-			await element(by.id('input-private-key')).tapReturnKey();
-		} else {
-			await TestHelpers.typeTextAndHideKeyboard('input-private-key', TEST_PRIVATE_KEY);
-		}
+		await ImportAccountView.enterPrivateKey('1234');
+		await ImportAccountView.tapOKAlertButton();
+		await ImportAccountView.clearPrivateKeyInputBox();
+
+		await ImportAccountView.enterPrivateKey(TEST_PRIVATE_KEY);
 		// Check that we are on the account succesfully imported screen
-		await TestHelpers.checkIfVisible('import-success-screen');
-		// Tap X to close modal
-		await TestHelpers.tap('import-close-button');
-		// Check that we are on the wallet screen
+		await ImportAccountView.isImportSuccessSreenVisible();
+		await ImportAccountView.tapCloseButtonOnImportSuccess();
+
 		await WalletView.isVisible();
-		// Check if account was added
-		await TestHelpers.checkIfElementHasString('account-label-text-input', 'Account 3');
+		await WalletView.isAccountNameCorrect('Account 3');
 	});
 
 	it('should be able to switch accounts', async () => {
 		// Open Drawer
 		await WalletView.tapDrawerButton();
-		// Check that the drawer is visbile
+
 		await DrawerView.isVisible();
-		// Tap on account button to expand modal
-		await TestHelpers.waitAndTap('navbar-account-button');
-		// Check that the account list view is visible
-		await TestHelpers.checkIfVisible('account-list');
-		// Switch to account 1
-		await TestHelpers.tapByText('Account 1');
-		// Open Drawer
-		await TestHelpers.tap('hamburger-menu-button-wallet');
-		// Check that the drawer is visbile
+		await DrawerView.tapAccountCaretButton();
+
+		await AccountListView.isVisible();
+		await AccountListView.tapAccountByName('Account 1');
+
+		await WalletView.tapDrawerButton();
+
 		await DrawerView.isVisible();
-		// Tap on Receive button
-		await TestHelpers.waitAndTap('drawer-receive-button');
-		// Check that we are on the receive screen
-		await TestHelpers.checkIfVisible('receive-request-screen');
-		// Check that the public address matches that of account 1
-		await TestHelpers.checkIfElementHasString('account-address', TEST_PUBLIC_ADDRESS);
+		await DrawerView.tapOnAddFundsButton();
+
+		await RequestPaymentModal.isVisible();
+		await RequestPaymentModal.isPublicAddressCorrect(TEST_PUBLIC_ADDRESS);
 
 		// Close Receive screen and go back to wallet screen
-		if (device.getPlatform() === 'android') {
-			// Close modal
-			await device.pressBack();
-			await TestHelpers.delay(1000);
-			// Check that you are on the drawer screen
-			await DrawerView.isVisible();
-			// Close drawer
-			await device.pressBack();
-			await TestHelpers.delay(1000);
-		} else {
-			// Close modal
-			await TestHelpers.swipe('receive-request-screen', 'down');
-			// Check that you are on the drawer screen
-			await DrawerView.isVisible();
-			// Close drawer
-			await TestHelpers.swipe('drawer-screen', 'left');
-		}
+		await RequestPaymentModal.closeRequestModal();
 
+		await DrawerView.isVisible();
+		await DrawerView.closeDrawer();
 		// Check that we are on the wallet screen
 		await WalletView.isVisible();
 	});
@@ -171,7 +139,7 @@ describe('Wallet Tests', () => {
 		// Check that we are on the wallet screen
 		await WalletView.isVisible();
 		// Tap on COLLECTIBLES tab
-		await TestHelpers.tapByText('NFTs');
+		await WalletView.tapNFTButton();
 		// Tap on the add collectibles button
 		await TestHelpers.tap('add-collectible-button');
 		// Check that we are on the add collectible asset screen
@@ -319,29 +287,28 @@ describe('Wallet Tests', () => {
 		await WalletView.isVisible();
 		// Open Drawer
 		await WalletView.tapDrawerButton();
-		// Check that the drawer is visbile
+
 		await DrawerView.isVisible();
-		// Tap on Send button
 		await DrawerView.tapSendButton();
-		// Input test address
-		await TestHelpers.replaceTextInField('txn-to-address-input', VALID_ADDRESS);
-		// Tap the Next CTA
-		await TestHelpers.waitAndTap('address-book-next-button');
+
+		await SendView.inputAddress(VALID_ADDRESS);
+		await SendView.tapNextButton();
 		// Check that we are on the amount view
-		await TestHelpers.checkIfElementWithTextIsVisible('Amount');
+		await AmountView.isVisible();
 	});
 
 	it('should input and validate amount', async () => {
 		// Input amount
-		await TestHelpers.replaceTextInField('txn-amount-input', '5');
-		// Tap Next CTA
-		await TestHelpers.tap('txn-amount-next-button');
+		await AmountView.typeInTransactionAmount('5');
+		await AmountView.tapNextButton();
+
 		// Check that the insufficient funds warning pops up
-		await TestHelpers.checkIfVisible('amount-error');
+		await AmountView.isInsufficientFundsErrorVisible();
+
 		// Input acceptable value
-		await TestHelpers.replaceTextInField('txn-amount-input', '0.00004');
-		// Tap Next CTA
-		await TestHelpers.tap('txn-amount-next-button');
+		await AmountView.typeInTransactionAmount('0.00004');
+		await AmountView.tapNextButton();
+
 		// Check that we are on the confirm view
 		await TestHelpers.checkIfVisible('txn-confirm-screen');
 	});

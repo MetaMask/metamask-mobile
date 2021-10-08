@@ -5,7 +5,7 @@ import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
 import ProtectYourWalletView from '../pages/Onboarding/ProtectYourWalletView';
 import CreatePasswordView from '../pages/Onboarding/CreatePasswordView';
 
-import MetaMetricsOptIn from '../pages/MetaMetricsOptInView';
+import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
 
 import { Browser } from '../pages/Drawer/Browser';

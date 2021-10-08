@@ -9,7 +9,7 @@ import ImportWalletView from '../pages/Onboarding/ImportWalletView';
 import SecurityAndPrivacy from '../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import RevealSecretRecoveryPhrase from '../pages/Drawer/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
 
-import MetaMetricsOptIn from '../pages/MetaMetricsOptInView';
+import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
 import LoginView from '../pages/LoginView';
 
@@ -18,8 +18,6 @@ import SettingsView from '../pages/Drawer/Settings/SettingsView';
 
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 
-// use i18n for these
-// this way if the strings ever change the tests will not break :)
 const Incorrect_Seed_Words = 'fold media south add since false relax immense pause cloth just falcon';
 const Correct_Seed_Words = 'fold media south add since false relax immense pause cloth just raven';
 const Correct_Password = `12345678`;

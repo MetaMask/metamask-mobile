@@ -6,7 +6,7 @@ import CreatePasswordView from '../pages/Onboarding/CreatePasswordView';
 
 import SendView from '../pages/SendView';
 
-import MetaMetricsOptIn from '../pages/MetaMetricsOptInView';
+import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
 import DrawerView from '../pages/Drawer/DrawerView';
 
@@ -72,7 +72,7 @@ describe('Addressbook Tests', () => {
 	});
 
 	it('should dismiss the protect your wallet modal', async () => {
-		await ProtectYourWalletModal.isVisible();
+		await ProtectYourWalletModal.isCollapsedBackUpYourWalletModalVisible();
 		await TestHelpers.delay(1000);
 
 		await ProtectYourWalletModal.tapRemindMeLaterButton();

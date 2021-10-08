@@ -2,10 +2,19 @@ import TestHelpers from '../helpers';
 
 const ACCOUNT_LIST_ID = 'account-list';
 const CREATE_ACCOUNT_BUTTON_ID = 'create-account-button';
+const IMPORT_ACCOUNT_BUTTON_ID = 'import-account-button';
 
 export default class AccountListView {
 	static async tapCreateAccountButton() {
 		await TestHelpers.waitAndTap(CREATE_ACCOUNT_BUTTON_ID);
+	}
+
+	static async tapImportAccountButton() {
+		await TestHelpers.waitAndTap(IMPORT_ACCOUNT_BUTTON_ID);
+	}
+
+	static async tapAccountByName(accountName) {
+		await TestHelpers.tapByText(accountName);
 	}
 
 	static async isVisible() {

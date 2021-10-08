@@ -1,8 +1,9 @@
 import TestHelpers from '../../helpers';
 
+const ACCOUNT_CARET_BUTTON_ID = 'navbar-account-button';
+const ADD_FUNDS_BUTTON_ID = 'drawer-receive-button';
 const DRAWER_CONTAINER_ID = 'drawer-screen';
 const SEND_BUTTON_ID = 'drawer-send-button';
-const ADD_FUNDS_BUTTON_ID = 'drawer-receive-button';
 export default class DrawerView {
 	static async tapBrowser() {
 		await TestHelpers.tapByText('Browser');
@@ -18,6 +19,19 @@ export default class DrawerView {
 	}
 	static async tapLogOut() {
 		await TestHelpers.tapByText('Log Out');
+	}
+
+	static async tapAccountCaretButton() {
+		await TestHelpers.waitAndTap(ACCOUNT_CARET_BUTTON_ID);
+	}
+	static async closeDrawer() {
+		if (device.getPlatform() === 'android') {
+			await device.pressBack();
+			await TestHelpers.delay(1000);
+		} else {
+			// Close drawer
+			await TestHelpers.swipe(DRAWER_CONTAINER_ID, 'left');
+		}
 	}
 
 	static async tapSendButton() {

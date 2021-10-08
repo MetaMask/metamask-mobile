@@ -4,14 +4,13 @@ import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
 import ProtectYourWalletView from '../pages/Onboarding/ProtectYourWalletView';
 import CreatePasswordView from '../pages/Onboarding/CreatePasswordView';
 
-//import SendView from '../pages/SendView';
+import SendLinkView from '../pages/SendLinkView';
 import RequestPaymentView from '../pages/RequestPaymentView';
 
-import MetaMetricsOptIn from '../pages/MetaMetricsOptInView';
+import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
 import DrawerView from '../pages/Drawer/DrawerView';
 
-//import AddAddressModal from '../pages/modals/AddAddressModal';
 import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import ProtectYourWalletModal from '../pages/modals/ProtectYourWalletModal';
@@ -66,7 +65,7 @@ describe('Request Token Flow', () => {
 	});
 
 	it('should dismiss the protect your wallet modal', async () => {
-		await ProtectYourWalletModal.isVisible();
+		await ProtectYourWalletModal.isCollapsedBackUpYourWalletModalVisible();
 		await TestHelpers.delay(1000);
 
 		await ProtectYourWalletModal.tapRemindMeLaterButton();
@@ -78,7 +77,6 @@ describe('Request Token Flow', () => {
 	});
 
 	it('should go to send view', async () => {
-		// Open Drawer
 		await WalletView.tapDrawerButton();
 
 		await DrawerView.isVisible();
@@ -88,49 +86,35 @@ describe('Request Token Flow', () => {
 	});
 
 	it('should go to the request view', async () => {
-		// Tap on request payment button
 		await RequestPaymentModal.tapRequestPaymentButton();
-		// Tap on ETH
 		await RequestPaymentView.tapETH();
-		// Make sure we're on the right screen
+
 		await RequestPaymentView.isRequestTitleVisible();
-		// Go back
+
 		await RequestPaymentView.tapBackButton();
-		// Make sure we're on the right screen
+
 		await RequestPaymentView.isVisible();
 	});
 
 	it('should request DAI', async () => {
 		// Search by SAI contract address
 		await RequestPaymentView.searchForToken(SAI_CONTRACT_ADDRESS);
-		// Make sure SAI shows up in the results
 		await RequestPaymentView.isTokenVisibleInSearchResults('SAI');
 
-		// Search DAI
-		if (device.getPlatform() === 'android') {
-			await TestHelpers.typeTextAndHideKeyboard('request-search-asset-input', 'DAI');
-		} else {
-			await TestHelpers.replaceTextInField('request-search-asset-input', 'DAI');
-			await TestHelpers.delay(1000);
-		}
-		// Select DAI from search results
-		await TestHelpers.tapByText('DAI', 1);
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapByText('DAI', 1);
-		}
-		// Request 5.50 DAI
-		await TestHelpers.typeTextAndHideKeyboard('request-amount-input', 5.5);
-		// Make sure we're on the right screen
-		await TestHelpers.checkIfVisible('send-link-screen');
+		await RequestPaymentView.searchForToken('DAI');
+		await RequestPaymentView.tapOnToken('DAI');
+		await RequestPaymentView.typeInTokenAmount(5.5);
+
+		await SendLinkView.isVisible();
 		// Tap on QR Code Button
-		await TestHelpers.tap('request-qrcode-button');
+		await SendLinkView.tapQRCodeButton();
 		// Check that the QR code is visible
-		await TestHelpers.checkIfVisible('payment-request-qrcode');
+		await SendLinkView.isQRModalVisible();
 		// Close QR Code
-		await TestHelpers.tap('payment-request-qrcode-close-button');
+		await SendLinkView.tapQRCodeCloseButton();
 		// Close view
-		await TestHelpers.tap('send-link-close-button');
+		await SendLinkView.tapCloseSendLinkButton();
 		// Ensure protect your wallet modal is visible
-		await TestHelpers.checkIfVisible('protect-wallet-modal');
+		await ProtectYourWalletModal.isVisible();
 	});
 });

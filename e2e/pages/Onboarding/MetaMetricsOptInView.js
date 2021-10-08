@@ -1,4 +1,4 @@
-import TestHelpers from '../helpers';
+import TestHelpers from '../../helpers';
 
 const METAMETRICS_OPT_IN_CONTAINER_ID = 'metaMetrics-OptIn';
 const AGREE_BUTTON_ID = 'agree-button';
