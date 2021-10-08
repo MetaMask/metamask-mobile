@@ -26,6 +26,8 @@ export default class AccountListView {
 	}
 
 	static async isnewAccountNameVisible() {
-		await TestHelpers.checkIfElementWithTextIsVisible('Account 2');
+		if (device.getPlatform() === 'android') {
+			await TestHelpers.checkIfElementWithTextIsVisible('Account 2');
+		}
 	}
 }

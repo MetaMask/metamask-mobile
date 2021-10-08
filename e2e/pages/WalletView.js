@@ -7,7 +7,14 @@ const NETWORK_NAME_TEXT_ID = 'network-name';
 const EDIT_ACCOUNT_TEXT_ID = 'edit-account-label';
 const ACCOUNT_NAME_TEXT_ID = 'account-label-text-input';
 const IDENTICON_ID = 'wallet-account-identicon';
+const IMPORT_NFT_BUTTON_ID = 'add-collectible-button';
+const IMPORT_TOKEN_BUTTON_ID = 'add-token-button';
+const NFT_CONTAINER_ID = 'collectible-name';
 export default class WalletView {
+	static async tapOKAlertButton() {
+		await TestHelpers.tapAlertWithButton('OK');
+	}
+
 	static async tapIdenticon() {
 		await TestHelpers.tap(IDENTICON_ID);
 	}
@@ -19,8 +26,27 @@ export default class WalletView {
 	static async tapNetworksButtonOnNavBar() {
 		await TestHelpers.waitAndTap(NETWORKS_BUTTON_ID);
 	}
-	static async tapNFTButton() {
+	static async tapNftTab() {
 		await TestHelpers.tapByText('NFTs');
+	}
+	static async tapTokensTab() {
+		await TestHelpers.tapByText('TOKENS');
+	}
+
+	static async tapImportNFTButton() {
+		await TestHelpers.tap(IMPORT_NFT_BUTTON_ID);
+	}
+
+	static async tapImportTokensButton() {
+		await TestHelpers.tap(IMPORT_TOKEN_BUTTON_ID);
+	}
+	static async tapOnNFTInWallet(nftName) {
+		await TestHelpers.tapByText(nftName);
+	}
+
+	static async removeTokenFromWallet(token) {
+		await element(by.text(token)).longPress();
+		await TestHelpers.tapByText('Remove');
 	}
 
 	static async editAccountName(accountName) {
@@ -43,6 +69,20 @@ export default class WalletView {
 	}
 	static async isNotVisible() {
 		await TestHelpers.checkIfNotVisible(WALLET_CONTAINER_ID);
+	}
+	static async isNFTVisibleInWallet(nftName) {
+		await TestHelpers.checkIfElementByTextIsVisible(nftName);
+	}
+	static async isTokenVisibleInWallet(tokenName) {
+		await TestHelpers.checkIfElementByTextIsVisible(tokenName);
+	}
+
+	static async TokenIsNotVisibleInWallet(tokenName) {
+		await TestHelpers.checkIfElementWithTextIsNotVisible(tokenName);
+	}
+
+	static async isNFTAppearing(nftName) {
+		await TestHelpers.checkIfElementHasString(NFT_CONTAINER_ID, nftName);
 	}
 
 	static async isNetworkNameVisible(networkName) {

@@ -13,6 +13,9 @@ import ImportAccountView from '../pages/ImportAccountView';
 import DrawerView from '../pages/Drawer/DrawerView';
 import SendView from '../pages/SendView';
 import AmountView from '../pages/AmountView';
+import TransactionConfirmationView from '../pages/TransactionConfirmView';
+import AddCustomTokenView from '../pages/AddCustomTokenView';
+import ImportTokensView from '../pages/ImportTokensView';
 
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import NetworkListModal from '../pages/modals/NetworkListModal';
@@ -136,59 +139,45 @@ describe('Wallet Tests', () => {
 	});
 
 	it('should add a collectible', async () => {
-		// Check that we are on the wallet screen
 		await WalletView.isVisible();
 		// Tap on COLLECTIBLES tab
-		await WalletView.tapNFTButton();
+		await WalletView.tapNftTab();
 		// Tap on the add collectibles button
-		await TestHelpers.tap('add-collectible-button');
-		// Check that we are on the add collectible asset screen
-		await TestHelpers.checkIfVisible('add-custom-token-screen');
+		await WalletView.tapImportNFTButton();
+
+		await AddCustomTokenView.isVisible();
+
 		// Input incorrect contract address
-		await TestHelpers.typeTextAndHideKeyboard('input-collectible-address', '1234');
-		// Check that warning appears
-		await TestHelpers.checkIfVisible('collectible-address-warning');
-		// Tap on ADD button
-		await TestHelpers.tapByText('IMPORT');
+		await AddCustomTokenView.typeInNFTAddress('1234');
+		await AddCustomTokenView.isNFTAddressWarningVisible(); // Check that warning appears
+		await AddCustomTokenView.tapImportButton();
 		// Check that identifier warning appears
-		await TestHelpers.checkIfVisible('collectible-identifier-warning');
-		// Go Back one view
-		await TestHelpers.tap('asset-back-button');
-		// Tap on the add collectibles button
-		await TestHelpers.tap('add-collectible-button');
-		// Check that we are on the add collectible asset screen
-		await TestHelpers.checkIfVisible('add-custom-token-screen');
-		// Input incorrect contract address
-		if (device.getPlatform() === 'android') {
-			await TestHelpers.replaceTextInField(`input-collectible-address`, COLLECTIBLE_CONTRACT_ADDRESS);
-			await element(by.id('input-collectible-address')).tapReturnKey();
-		} else {
-			await TestHelpers.typeTextAndHideKeyboard(`input-collectible-address`, COLLECTIBLE_CONTRACT_ADDRESS);
-		}
-		// Input correct identifier
-		await TestHelpers.typeTextAndHideKeyboard('input-token-decimals', COLLECTIBLE_IDENTIFIER);
-		// Check that we are on the wallet screen
+		await AddCustomTokenView.isNFTIdentifierWarningVisible(); // Check that warning appears
+
+		await AddCustomTokenView.tapBackButton();
+
+		await WalletView.tapImportNFTButton();
+
+		await AddCustomTokenView.isVisible();
+		await AddCustomTokenView.typeInNFTAddress(COLLECTIBLE_CONTRACT_ADDRESS);
+		await AddCustomTokenView.typeInNFTIdentifier(COLLECTIBLE_IDENTIFIER);
+
 		await WalletView.isVisible();
 		// Wait for asset to load
 		await TestHelpers.delay(3000);
 		// Check that the crypto kitty was added
-		await TestHelpers.checkIfElementByTextIsVisible('CryptoKitties');
+		await WalletView.isNFTVisibleInWallet('CryptoKitties');
 		// Tap on Crypto Kitty
-		await TestHelpers.tapByText('CryptoKitties');
-		// Check that we are on the overview screen
+		await WalletView.tapOnNFTInWallet('CryptoKitties');
 
-		// DO WE NEED THIS CHECK?
-		//await TestHelpers.checkIfVisible('collectible-overview-screen');
-
-		// Check that the asset is correct
-		await TestHelpers.checkIfElementHasString('collectible-name', '1 CryptoKitties');
+		await WalletView.isNFTAppearing('1 CryptoKitties');
 	});
 
 	it('should add a token', async () => {
 		// Check that we are on the wallet screen
 		await WalletView.isVisible();
 		// Tap on TOKENS tab
-		await TestHelpers.tapByText('TOKENS');
+		await WalletView.tapTokensTab();
 		// Switch to mainnet
 		await WalletView.tapNetworksButtonOnNavBar();
 
@@ -197,82 +186,68 @@ describe('Wallet Tests', () => {
 		await WalletView.isNetworkNameVisible(ETHEREUM);
 
 		// Tap on Add Tokens
-		await TestHelpers.tap('add-token-button');
+		await WalletView.tapImportTokensButton();
 		// Search for SAI
-		await TestHelpers.typeTextAndHideKeyboard('input-search-asset', 'DAI Stablecoin');
+		await ImportTokensView.typeInTokenName('DAI Stablecoin');
 		// Wait for results to load
 		await TestHelpers.delay(2000);
-		// Select SAI
-		await TestHelpers.tapItemAtIndex('searched-token-result');
+
+		await ImportTokensView.tapOnToken(); // taps the first token in the returned list
 		await TestHelpers.delay(500);
-		// Tap on Add Token button
-		await TestHelpers.tapByText('IMPORT');
+
+		await ImportTokensView.tapImportButton();
 		// Check that we are on the wallet screen
 		await WalletView.isVisible();
-		// Check that SAI is added to wallet
-		await TestHelpers.delay(10000); // to prevent flakey behavior in bitrise
-		await TestHelpers.checkIfElementWithTextIsVisible('0 DAI');
-		// Tap on SAI to remove network
-		await element(by.text('0 DAI')).longPress();
-		// Tap remove
-		await TestHelpers.tapByText('Remove');
-		// Tap OK in alert box
-		await TestHelpers.tapAlertWithButton('OK');
+		await TestHelpers.delay(8000); // to prevent flakey behavior in bitrise
+
+		await WalletView.isTokenVisibleInWallet('0 DAI');
+		await WalletView.removeTokenFromWallet('0 DAI');
+
+		await WalletView.tapOKAlertButton();
+		await TestHelpers.delay(1500);
+		await WalletView.TokenIsNotVisibleInWallet('0 DAI');
 	});
 
 	it('should add a custom token', async () => {
 		// Tap on Add Tokens
-		await TestHelpers.tap('add-token-button');
+		await WalletView.tapImportTokensButton();
 		// Tap on CUSTOM TOKEN
-		await TestHelpers.tapByText('CUSTOM TOKEN');
+		await AddCustomTokenView.tapCustomTokenTab();
 		// Check that we are on the custom token screen
-		await TestHelpers.checkIfVisible('add-custom-token-screen');
+		await AddCustomTokenView.isVisible();
 		// Type incorrect token address
-		await TestHelpers.typeTextAndHideKeyboard('input-token-address', '1234');
+		await AddCustomTokenView.typeTokenAddress('1234');
 		// Check that address warning is displayed
-		await TestHelpers.checkIfVisible('token-address-warning');
+		await AddCustomTokenView.isTokenAddressWarningVisible();
+
 		// Type incorrect token symbol
-		await TestHelpers.typeTextAndHideKeyboard('input-token-symbol', 'ROCK');
+		await AddCustomTokenView.typeTokenSymbol('ROCK');
 		// Tap to focus outside of text input field
 		await TestHelpers.delay(700);
-		await TestHelpers.tapByText('Token Address');
+		await AddCustomTokenView.tapTokenSymbolText();
 		await TestHelpers.delay(700);
 		// Check that token decimals warning is displayed
-		await TestHelpers.checkIfVisible('token-decimals-warning');
+		await AddCustomTokenView.isTokenSymbolWarningVisible();
 		// Go back
-		if (device.getPlatform() === 'android') {
-			await device.pressBack();
-		} else {
-			await TestHelpers.tap('asset-back-button');
-		}
+		await AddCustomTokenView.tapBackButton();
+
 		// Tap on Add Tokens
-		await TestHelpers.tap('add-token-button');
+		await WalletView.tapImportTokensButton();
 		// Tap on CUSTOM TOKEN
-		await TestHelpers.tapByText('CUSTOM TOKEN');
+		await AddCustomTokenView.tapCustomTokenTab();
 		// Check that we are on the custom token screen
-		await TestHelpers.checkIfVisible('add-custom-token-screen');
+		await AddCustomTokenView.isVisible();
 		// Type correct token address
-		if (device.getPlatform() === 'android') {
-			await TestHelpers.replaceTextInField(`input-token-address`, TOKEN_ADDRESS);
-			await element(by.id('input-token-address')).tapReturnKey();
-		} else {
-			await TestHelpers.typeText('input-token-address', TOKEN_ADDRESS);
-		}
-		// Add token
-		if (device.getPlatform() === 'android') {
-			await TestHelpers.tapByText('Token Address');
-			await TestHelpers.delay(1500);
-			await TestHelpers.tap('add-custom-asset-confirm-button');
-		} else {
-			await TestHelpers.tapByText('Token Address');
-			await TestHelpers.tap('add-custom-asset-confirm-button');
-		}
+
+		await AddCustomTokenView.typeTokenAddress(TOKEN_ADDRESS);
+		await AddCustomTokenView.tapTokenSymbolText();
+		await AddCustomTokenView.tapCustomTokenImportButton();
+
 		// Check that we are on the wallet screen
 		await WalletView.isVisible();
-
 		await TestHelpers.delay(10000); // to prevent flakey behavior in bitrise
-		// Check that TENX is added to wallet
-		await TestHelpers.checkIfElementWithTextIsVisible('0 BLT');
+
+		await WalletView.isTokenVisibleInWallet('0 BLT');
 	});
 
 	it('should switch back to Rinkeby network', async () => {
@@ -310,14 +285,14 @@ describe('Wallet Tests', () => {
 		await AmountView.tapNextButton();
 
 		// Check that we are on the confirm view
-		await TestHelpers.checkIfVisible('txn-confirm-screen');
+		await TransactionConfirmationView.isVisible();
 	});
 
 	it('should send ETH to Account 2', async () => {
 		// Check that the amount is correct
-		await TestHelpers.checkIfHasText('confirm-txn-amount', '0.00004 ETH');
+		await TransactionConfirmationView.isTransactionTotalCorrect('0.00004 ETH');
 		// Tap on the Send CTA
-		await TestHelpers.tap('txn-confirm-send-button');
+		await TransactionConfirmationView.tapConfirmButton();
 		// Check that we are on the wallet screen
 		await WalletView.isVisible();
 	});
