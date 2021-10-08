@@ -45,7 +45,7 @@ describe('Custom RPC Tests', () => {
 		await CreatePasswordView.tapCreatePasswordButton();
 	});
 
-	it('Should skip backup check and dismiss tutorial', async () => {
+	it('Should skip backup check', async () => {
 		// Check that we are on the Secure your wallet screen
 		await ProtectYourWalletView.isVisible();
 		await ProtectYourWalletView.tapOnRemindMeLaterButton();

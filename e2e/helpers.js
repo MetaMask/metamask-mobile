@@ -132,6 +132,13 @@ export default class TestHelpers {
 		return expect(element(by.id(elementID))).toString(text);
 	}
 
+	static checkIfToggleIsOn(elementID) {
+		return expect(element(by.id(elementID))).toHaveToggleValue(true);
+	}
+	static checkIfToggleIsOff(elementID) {
+		return expect(element(by.id(elementID))).toHaveToggleValue(false);
+	}
+
 	static relaunchApp() {
 		return device.launchApp({ newInstance: true });
 	}

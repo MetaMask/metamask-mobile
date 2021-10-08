@@ -1,13 +1,25 @@
 'use strict';
+
 import TestHelpers from '../helpers';
-import { strings } from '../../locales/i18n';
+
+import OnboardingView from '../pages/Onboarding/OnboardingView';
+import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
+import ImportWalletView from '../pages/Onboarding/ImportWalletView';
+
+import SecurityAndPrivacy from '../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+import RevealSecretRecoveryPhrase from '../pages/Drawer/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
+
+import MetaMetricsOptIn from '../pages/MetaMetricsOptInView';
+import WalletView from '../pages/WalletView';
+import LoginView from '../pages/LoginView';
+
+import DrawerView from '../pages/Drawer/DrawerView';
+import SettingsView from '../pages/Drawer/Settings/SettingsView';
+
+import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 
 // use i18n for these
 // this way if the strings ever change the tests will not break :)
-const Incorrect_Password_Length = strings('import_from_seed.password_length_error');
-const Invalid_Seed_Error = strings('import_from_seed.invalid_seed_phrase');
-const Password_Warning = strings('reveal_credential.unknown_error');
-
 const Incorrect_Seed_Words = 'fold media south add since false relax immense pause cloth just falcon';
 const Correct_Seed_Words = 'fold media south add since false relax immense pause cloth just raven';
 const Correct_Password = `12345678`;
@@ -20,111 +32,88 @@ describe('Import seedphrase flow', () => {
 	});
 
 	it('should import via seed phrase and validate in settings', async () => {
-		// Check that we are on the onboarding carousel screen
-		await TestHelpers.checkIfVisible('onboarding-carousel-screen');
-		// Check that Get started CTA is visible & tap it
-		await TestHelpers.waitAndTap('onboarding-get-started-button');
-		// Check that we are on the onboarding screen
-		await TestHelpers.checkIfVisible('onboarding-screen');
-		// Check that Import using seed phrase CTA is visible & tap it
-		await TestHelpers.waitAndTap('import-wallet-import-from-seed-button');
+		await OnboardingCarouselView.isVisible();
+		await OnboardingCarouselView.tapOnGetStartedButton();
 
-		// Check that we are on the metametrics optIn screen
-		await TestHelpers.checkIfVisible('metaMetrics-OptIn');
-		// Check that I Agree CTA is visible and tap it
-		await TestHelpers.waitAndTap('agree-button');
+		await OnboardingView.isVisible();
+		await OnboardingView.tapImportWalletFromSeedPhrase();
 
-		// Check that we are on the import wallet screen
-		await TestHelpers.checkIfVisible('import-from-seed-screen');
-		// Input incorrect seed phrase
-		if (device.getPlatform() === 'android') {
-			await TestHelpers.replaceTextInField(`input-seed-phrase`, Incorrect_Seed_Words);
-			await element(by.id('input-seed-phrase')).tapReturnKey();
-		} else {
-			await TestHelpers.typeTextAndHideKeyboard(`input-seed-phrase`, Incorrect_Seed_Words);
+		await MetaMetricsOptIn.isVisible();
+		await MetaMetricsOptIn.tapAgreeButton();
+
+		await ImportWalletView.isVisible();
+	});
+
+	it('should attempt to import wallet with invalid secret recovery phrase', async () => {
+		await ImportWalletView.enterSecretRecoveryPhrase(Incorrect_Seed_Words);
+		await ImportWalletView.enterPassword(Incorrect_Password);
+		await ImportWalletView.reEnterPassword(Incorrect_Password);
+		await ImportWalletView.secretRecoveryPhraseErrorIsVisible();
+		await ImportWalletView.tapOKAlertButton();
+
+		///
+	});
+
+	it('should import wallet with valid secret recovery phrase but short password', async () => {
+		await ImportWalletView.clearSecretRecoveryPhraseInputBox();
+		await ImportWalletView.enterSecretRecoveryPhrase(Correct_Seed_Words);
+		await ImportWalletView.enterPassword(Incorrect_Password);
+		await ImportWalletView.reEnterPassword(Incorrect_Password);
+		await ImportWalletView.passwordLengthErrorIsVisible();
+		await ImportWalletView.tapOKAlertButton();
+	});
+
+	it('should import wallet with valid secret recovery phrase and password', async () => {
+		await ImportWalletView.enterPassword(Correct_Password);
+		await ImportWalletView.reEnterPassword(Correct_Password);
+		await WalletView.isVisible();
+	});
+
+	it('should dismiss the onboarding wizard', async () => {
+		// dealing with flakiness on bitrise.
+		await TestHelpers.delay(1000);
+		try {
+			await OnboardingWizardModal.isVisible();
+			await OnboardingWizardModal.tapNoThanksButton();
+			await OnboardingWizardModal.isNotVisible();
+		} catch (e) {
+			console.log('');
 		}
-		// Input short password
-		await TestHelpers.typeTextAndHideKeyboard(`input-password-field`, Incorrect_Password);
-		// Input short password confirm
-		await TestHelpers.typeTextAndHideKeyboard(`input-password-field-confirm`, Incorrect_Password);
-		// ensure alert box is displayed with correct text
-		await TestHelpers.checkIfElementByTextIsVisible(Invalid_Seed_Error);
-		// dismiss alert by tapping ok
-		await TestHelpers.tapAlertWithButton('OK');
-		// Clear field content
-		await TestHelpers.clearField('input-seed-phrase');
-		// Input correct seed phrase
-		if (device.getPlatform() === 'android') {
-			await TestHelpers.replaceTextInField(`input-seed-phrase`, Correct_Seed_Words);
-			await element(by.id('input-seed-phrase')).tapReturnKey();
-		} else {
-			await TestHelpers.typeTextAndHideKeyboard(`input-seed-phrase`, Correct_Seed_Words);
-		}
-		await TestHelpers.typeTextAndHideKeyboard(`input-password-field`, Incorrect_Password);
-		// Input short password confirm
-		await TestHelpers.typeTextAndHideKeyboard(`input-password-field-confirm`, Incorrect_Password);
-		await TestHelpers.checkIfElementByTextIsVisible(Incorrect_Password_Length);
-		await TestHelpers.tapAlertWithButton('OK');
-		// Input password
-		await TestHelpers.typeTextAndHideKeyboard(`input-password-field`, Correct_Password);
-		// Input password confirm
-		await TestHelpers.typeTextAndHideKeyboard(`input-password-field-confirm`, Correct_Password);
+	});
 
-		/*
+	it('should validate secret recovery phrase in settings', async () => {
+		await WalletView.tapDrawerButton();
 
-		UNCOMMENT ME OUT WHEN WE FIX THIS BUG. THE CONGRATS VIEW SHOULD APPEAR AFTER YOU IMPORT
-		YOUR WALLET
-		// Check that we are on the congrats screen
-		await TestHelpers.checkIfVisible('import-congrats-screen');
-		// Tap on done CTA
-		await TestHelpers.tap('manual-backup-step-3-done-button');
-		*/
+		await DrawerView.isVisible();
+		await DrawerView.tapSettings();
 
-		// Should be on wallet screen
-		if (!device.getPlatform() === 'android') {
-			await TestHelpers.checkIfExists('wallet-screen');
-		}
-		// Check that No thanks CTA is visible and tap it
-		await TestHelpers.waitAndTap('onboarding-wizard-back-button');
-		// Check that the onboarding wizard is gone
-		await TestHelpers.checkIfNotVisible('onboarding-wizard-step1-view');
-		// Open Drawer
-		await TestHelpers.tap('hamburger-menu-button-wallet');
-		// Check that the drawer is visbile
-		await TestHelpers.checkIfVisible('drawer-screen');
-		// Tap on settings
-		await TestHelpers.tapByText('Settings');
-		// Tap on the "Security & Privacy" option
-		await TestHelpers.tapByText('Security & Privacy');
-		// Tap on Reveal Seed Phrase Button
-		await TestHelpers.waitAndTap('reveal-seed-button');
-		// Check that we are on the reveal seed phrase screen
-		await TestHelpers.checkIfVisible('reveal-private-credential-screen');
-		// Input incorrect password
-		await TestHelpers.typeTextAndHideKeyboard('private-credential-password-text-input', Incorrect_Password);
+		await SettingsView.tapSecurityAndPrivacy();
+
+		await SecurityAndPrivacy.tapRevealSecretRecoveryPhrase();
+		await RevealSecretRecoveryPhrase.isVisible();
+		await RevealSecretRecoveryPhrase.enterPassword(Incorrect_Password);
 		// Ensure error is displayed
-		await TestHelpers.checkIfHasText('password-warning', Password_Warning);
-		// Input correct password
-		await TestHelpers.typeTextAndHideKeyboard('private-credential-password-text-input', Correct_Password);
-		// Ensure password field no longer is shown
-		await TestHelpers.checkIfNotVisible('private-credential-password-text-input');
+		await RevealSecretRecoveryPhrase.passwordWarningIsVisible();
+		await RevealSecretRecoveryPhrase.enterPassword(Correct_Password);
+
+		await RevealSecretRecoveryPhrase.passwordInputIsNotVisible();
 		// Seed phrase should now be revealed
-		await TestHelpers.checkIfVisible('private-credential-touchable');
+		await RevealSecretRecoveryPhrase.isSecretRecoveryPhraseTouchableBoxVisible();
 		// Check that the seed phrase displayed matches what we inputted in the beginning
-		await TestHelpers.checkIfHasText('private-credential-text', Correct_Seed_Words);
+		await RevealSecretRecoveryPhrase.isSecretRecoveryPhraseTextCorrect(Correct_Seed_Words);
 	});
 
 	it('should be able to log in', async () => {
 		// Relaunch app
 		await TestHelpers.relaunchApp();
+
 		// Check that we are on login screen
-		await TestHelpers.checkIfVisible('login');
-		// Fail login attempt
-		await TestHelpers.typeTextAndHideKeyboard('login-password-input', Incorrect_Password2);
-		await TestHelpers.checkIfVisible('invalid-password-error');
-		// Login
-		await TestHelpers.typeTextAndHideKeyboard('login-password-input', Correct_Password);
-		// Check that we are on the wallet screen
-		await TestHelpers.checkIfVisible('wallet-screen');
+		await LoginView.isVisible();
+		await LoginView.enterPassword(Incorrect_Password2);
+		await LoginView.isLoginErrorVisible();
+
+		await LoginView.enterPassword(Correct_Password);
+
+		await WalletView.isVisible();
 	});
 });

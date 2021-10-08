@@ -1,5 +1,17 @@
 'use strict';
-import TestHelpers from '../helpers';
+
+import OnboardingView from '../pages/Onboarding/OnboardingView';
+import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
+import ProtectYourWalletView from '../pages/Onboarding/ProtectYourWalletView';
+import CreatePasswordView from '../pages/Onboarding/CreatePasswordView';
+
+import MetaMetricsOptIn from '../pages/MetaMetricsOptInView';
+import WalletView from '../pages/WalletView';
+
+import { Browser } from '../pages/Drawer/Browser';
+
+import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
+import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 
 const ACCOUNT = 'Test Account One';
 const PASSWORD = '12345678';
@@ -11,147 +23,102 @@ describe('Start Exploring', () => {
 
 	it('should show the onboarding screen', async () => {
 		// Check that we are on the onboarding carousel screen
-		await TestHelpers.checkIfVisible('onboarding-carousel-screen');
-		// Check that title of screen 1 is correct
-		await TestHelpers.checkIfElementHasString('carousel-screen-one', 'Welcome to MetaMask');
-		// Check that right image is displayed
-		await TestHelpers.checkIfVisible('carousel-one-image');
+		await OnboardingCarouselView.isVisible();
+		await OnboardingCarouselView.isMetaMaskWelcomeTextVisible();
+		await OnboardingCarouselView.isWelcomeToMetaMaskImageVisible();
 		// Swipe left
-		await TestHelpers.swipe('onboarding-carousel-screen', 'left');
+		await OnboardingCarouselView.swipeCarousel();
+		await OnboardingCarouselView.isManageYourDigitalTextVisible();
+
 		// Check that title of screen 2 is correct
-		await TestHelpers.checkIfElementHasString('carousel-screen-two', 'Say hello to your wallet...');
-		// Check that right image is displayed
-		await TestHelpers.checkIfVisible('carousel-two-image');
+		await OnboardingCarouselView.isManageYourDigitalTextVisible();
+		await OnboardingCarouselView.isManageYourDigitalImageVisible();
 		// Swipe left
-		await TestHelpers.swipe('onboarding-carousel-screen', 'left');
+		await OnboardingCarouselView.swipeCarousel();
 		// Check that title of screen 3 is correct
-		await TestHelpers.checkIfElementHasString('carousel-screen-three', 'Explore decentralized apps');
-		// Check that right image is displayed
-		await TestHelpers.checkIfVisible('carousel-three-image');
+		await OnboardingCarouselView.isYourGatewayToWeb3TextVisible();
+		await OnboardingCarouselView.isYourGatewayToWeb3ImageVisible();
 		// Check that Get started CTA is visible & tap it
-		await TestHelpers.waitAndTap('onboarding-get-started-button');
-		// Check that we are on the onboarding screen
-		await TestHelpers.checkIfVisible('onboarding-screen');
-		// Check that the title is correct
-		await TestHelpers.checkIfElementHasString('onboarding-screen-title', 'Get started!');
+		await OnboardingCarouselView.tapOnGetStartedButton();
+		await OnboardingView.isVisible();
 	});
 
-	it('should allow you to create a new wallet', async () => {
-		// Check that Create a new wallet CTA is visible & tap it
-		await TestHelpers.waitAndTap('create-wallet-button');
-		// Check that we are on the metametrics optIn screen
-		await TestHelpers.checkIfVisible('metaMetrics-OptIn');
-		// Check that I Agree CTA is visible and tap it
-		await TestHelpers.waitAndTap('agree-button');
+	it('should create new wallet', async () => {
+		await OnboardingView.tapCreateWallet();
 
-		// Check that we are on the Create password screen
-		await TestHelpers.checkIfVisible('create-password-screen');
-		// Input new password
-		await TestHelpers.typeTextAndHideKeyboard('input-password', PASSWORD);
-		// Input confirm password
-		await TestHelpers.typeTextAndHideKeyboard('input-password-confirm', PASSWORD);
-		// Mark the checkbox that you understand the password cannot be recovered
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tap('password-understand-box');
-		} else {
-			// Tap by the I understand text
-			await TestHelpers.delay(1000);
-			await TestHelpers.tap('i-understand-text');
-		}
-		// Tap on create password button
-		await TestHelpers.tap('submit-button');
+		await MetaMetricsOptIn.isVisible();
+		await MetaMetricsOptIn.tapAgreeButton();
+
+		await CreatePasswordView.isVisible();
+		await CreatePasswordView.enterPassword(PASSWORD);
+		await CreatePasswordView.reEnterPassword(PASSWORD);
+		await CreatePasswordView.tapIUnderstandCheckBox();
+		await CreatePasswordView.tapCreatePasswordButton();
+	});
+
+	it('Should skip backup check', async () => {
 		// Check that we are on the Secure your wallet screen
-		await TestHelpers.checkIfVisible('protect-your-account-screen');
-		// Tap on the remind me later button
-		await TestHelpers.tap('remind-me-later-button');
-		// Check the box to state you understand
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tap('skip-backup-check');
-		} else {
-			// Tap by the I understand text
-			await TestHelpers.delay(1000);
-			await TestHelpers.tap('skip-backup-text');
-		}
-		// Tap on Skip button
-		await TestHelpers.tapByText('Skip');
-	});
+		await ProtectYourWalletView.isVisible();
+		await ProtectYourWalletView.tapOnRemindMeLaterButton();
 
-	it('should tap I Agree and land on the wallet view with tutorial open', async () => {
-		await device.reloadReactNative();
-		// Check that we are on the login screen
-		await TestHelpers.checkIfVisible('login');
-		// Enter password and login
-		await TestHelpers.typeTextAndHideKeyboard('login-password-input', PASSWORD);
-		// Check that we are on the wallet screen
-		if (!device.getPlatform() === 'android') {
-			await TestHelpers.checkIfExists('wallet-screen');
-		}
-		// Check that the onboarding wizard is present
-		await TestHelpers.checkIfVisible('onboarding-wizard-step1-view');
+		await SkipAccountSecurityModal.tapIUnderstandCheckBox();
+		await SkipAccountSecurityModal.tapSkipButton();
+		await WalletView.isVisible();
 	});
 
 	it('should go through the onboarding wizard flow', async () => {
 		// Check that Take the tour CTA is visible and tap it
-		await TestHelpers.waitAndTap('onboarding-wizard-next-button');
-		// Ensure step 2 is shown correctly
-		await TestHelpers.checkIfVisible('step2-title');
-		// Check that Got it! CTA is visible and tap it
-		await TestHelpers.tapByText('Got it!');
+		await OnboardingWizardModal.isVisible();
+		await OnboardingWizardModal.tapTakeTourButton();
+
+		await OnboardingWizardModal.isYourAccountsTutorialStepVisible();
+		await OnboardingWizardModal.tapGotItButton();
+
 		// Ensure step 3 is shown correctly
-		await TestHelpers.checkIfVisible('step3-title');
-		// Focus into account 1 name
-		if (device.getPlatform() === 'android') {
-			await TestHelpers.tapAndLongPress('edit-account-label');
-			// Clear text
-			await TestHelpers.clearField('account-label-text-input');
-			// Change account name
-			await TestHelpers.replaceTextInField('account-label-text-input', ACCOUNT);
-			await element(by.id('account-label-text-input')).tapReturnKey();
-		}
-		// Check that Got it! CTA is visible and tap it
-		if (!device.getPlatform() === 'android') {
-			await TestHelpers.tapByText('Got it!');
-		}
-		await TestHelpers.tapByText('Got it!');
-		// Check that the account name edit stuck
-		await TestHelpers.checkIfElementHasString('account-label-text-input', ACCOUNT);
+		await OnboardingWizardModal.isEditAccountNameTutorialStepVisible();
+
+		await WalletView.editAccountName(ACCOUNT);
+
+		await OnboardingWizardModal.tapGotItButton();
+
+		await WalletView.isAccountNameCorrect(ACCOUNT);
+
 		// Ensure step 4 is shown correctly
-		await TestHelpers.checkIfVisible('step4-title');
-		// Tap on the menu navigation
-		await TestHelpers.waitAndTap('hamburger-menu-button-wallet-fake');
+		await OnboardingWizardModal.isMainNavigationTutorialStepVisible();
+
+		await WalletView.tapDrawerButton();
 		// Ensure step 5 is shown correctly
-		await TestHelpers.checkIfVisible('step5-title');
+
+		await OnboardingWizardModal.isExploreTheBrowserTutorialStepVisible();
 		// Tap on Back
-		await TestHelpers.tapByText('Back');
+		await OnboardingWizardModal.tapBackButton();
+
 		// Ensure step 4 is shown correctly
-		await TestHelpers.checkIfVisible('step4-title');
-		// Check that Got it! CTA is visible and tap it
-		await TestHelpers.tapByText('Got it!');
+		await OnboardingWizardModal.isMainNavigationTutorialStepVisible();
+		await OnboardingWizardModal.tapGotItButton();
+
 		// Ensure step 5 is shown correctly
-		await TestHelpers.checkIfVisible('step5-title');
-		// Check that Got it! CTA is visible and tap it
-		await TestHelpers.tapByText('Got it!');
+		await OnboardingWizardModal.isExploreTheBrowserTutorialStepVisible();
+		await OnboardingWizardModal.tapGotItButton();
+
 		// Ensure step 6 is shown correctly
-		await TestHelpers.checkIfVisible('step6-title');
-		// Tap on Back
-		await TestHelpers.tapByText('Back');
+		await OnboardingWizardModal.isBrowserSearchStepTutorialVisible();
+		await OnboardingWizardModal.tapBackButton();
 		// Ensure step 5 is shown correctly
-		await TestHelpers.checkIfVisible('step5-title');
-		// Tap on Back
-		await TestHelpers.tapByText('Back');
+		await OnboardingWizardModal.isExploreTheBrowserTutorialStepVisible();
+		await OnboardingWizardModal.tapBackButton();
+
 		// Ensure step 4 is shown correctly
-		await TestHelpers.checkIfVisible('step4-title');
-		// Check that Got it! CTA is visible and tap it
-		await TestHelpers.tapByText('Got it!');
-		// Ensure step 5 is shown correctly
-		await TestHelpers.checkIfVisible('step5-title');
-		// Check that Got it! CTA is visible and tap it
-		await TestHelpers.tapByText('Got it!');
+		await OnboardingWizardModal.isMainNavigationTutorialStepVisible();
+		await OnboardingWizardModal.tapGotItButton();
+
+		await OnboardingWizardModal.isExploreTheBrowserTutorialStepVisible();
+		await OnboardingWizardModal.tapGotItButton();
+
 		// Ensure step 6 is shown correctly
-		await TestHelpers.checkIfVisible('step6-title');
-		// Check that Got it! CTA is visible and tap it
-		await TestHelpers.tapByText('Got it!');
+		await OnboardingWizardModal.isBrowserSearchStepTutorialVisible();
+		await OnboardingWizardModal.tapGotItButton();
 		// Check that we are on the Browser page
-		await TestHelpers.checkIfVisible('browser-screen');
+		await Browser.isVisible();
 	});
 });

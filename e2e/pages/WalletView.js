@@ -4,7 +4,8 @@ const WALLET_CONTAINER_ID = 'wallet-screen';
 const DRAWER_BUTTON_ID = 'hamburger-menu-button-wallet';
 const NETWORKS_BUTTON_ID = 'open-networks-button';
 const NETWORK_NAME_TEXT_ID = 'network-name';
-
+const EDIT_ACCOUNT_TEXT_ID = 'edit-account-label';
+const ACCOUNT_NAME_TEXT_ID = 'account-label-text-input';
 export default class WalletView {
 	static async tapDrawerButton() {
 		await TestHelpers.tap(DRAWER_BUTTON_ID);
@@ -12,6 +13,18 @@ export default class WalletView {
 
 	static async tapNetworksButtonOnNavBar() {
 		await TestHelpers.tap(NETWORKS_BUTTON_ID);
+	}
+
+	static async editAccountName(accountName) {
+		// For now this method only works for android.
+		if (device.getPlatform() === 'android') {
+			await TestHelpers.tapAndLongPress(EDIT_ACCOUNT_TEXT_ID);
+			// Clear text
+			await TestHelpers.clearField(ACCOUNT_NAME_TEXT_ID);
+			// Change account name
+			await TestHelpers.replaceTextInField(ACCOUNT_NAME_TEXT_ID, accountName);
+			await element(by.id(ACCOUNT_NAME_TEXT_ID)).tapReturnKey();
+		}
 	}
 
 	static async isVisible() {
@@ -26,5 +39,9 @@ export default class WalletView {
 
 	static async isNetworkNameVisible(networkName) {
 		await TestHelpers.checkIfElementHasString(NETWORK_NAME_TEXT_ID, networkName);
+	}
+
+	static async isAccountNameCorrect(accountName) {
+		await TestHelpers.checkIfElementHasString(NETWORK_NAME_TEXT_ID, accountName);
 	}
 }

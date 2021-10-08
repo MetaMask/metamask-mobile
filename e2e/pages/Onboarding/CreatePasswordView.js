@@ -1,40 +1,40 @@
 import TestHelpers from '../../helpers';
 
-const container = 'create-password-screen';
-const passwordInputBox = 'input-password';
-const confirmpasswordInputBox = 'input-password-confirm';
-const iosIUnderstandButton = 'password-understand-box';
-const androidIUnderstandButton = 'i-understand-text';
-const createPasswordButton = 'submit-button';
+const CREATE_PASSWORD_CONTAINER_ID = 'create-password-screen';
+const CREATE_PASSWORD_INPUT_BOX_ID = 'input-password';
+const CONFIRM_PASSWORD_INPUT_BOX_ID = 'input-password-confirm';
+const IOS_I_UNDERSTAND_BUTTON_ID = 'password-understand-box';
+const ANDROID_I_UNDERSTAND_BUTTON_ID = 'i-understand-text';
+const CREATE_PASSWORD_BUTTON_ID = 'submit-button';
 export default class CreatePasswordView {
 	static async enterPassword(password) {
-		await TestHelpers.typeTextAndHideKeyboard(passwordInputBox, password);
+		await TestHelpers.typeTextAndHideKeyboard(CREATE_PASSWORD_INPUT_BOX_ID, password);
 	}
 
 	static async reEnterPassword(password) {
-		await TestHelpers.typeTextAndHideKeyboard(confirmpasswordInputBox, password);
+		await TestHelpers.typeTextAndHideKeyboard(CONFIRM_PASSWORD_INPUT_BOX_ID, password);
 	}
 
 	static async tapIUnderstandCheckBox() {
 		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tap(iosIUnderstandButton);
+			await TestHelpers.tap(IOS_I_UNDERSTAND_BUTTON_ID);
 		} else {
 			// Tap by the I understand text
 			await TestHelpers.delay(1000);
-			await TestHelpers.tap(androidIUnderstandButton);
+			await TestHelpers.tap(ANDROID_I_UNDERSTAND_BUTTON_ID);
 		}
 	}
 
 	static async tapCreatePasswordButton() {
-		await TestHelpers.tap(createPasswordButton);
+		await TestHelpers.tap(CREATE_PASSWORD_BUTTON_ID);
 	}
 
 	// Assertions
 	static async isVisible() {
-		await TestHelpers.checkIfVisible(container);
+		await TestHelpers.checkIfVisible(CREATE_PASSWORD_CONTAINER_ID);
 	}
 
 	static async isNotVisible() {
-		await TestHelpers.checkIfNotVisible(container);
+		await TestHelpers.checkIfNotVisible(CREATE_PASSWORD_CONTAINER_ID);
 	}
 }

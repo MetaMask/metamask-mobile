@@ -9,7 +9,7 @@ import CreatePasswordView from '../pages/Onboarding/CreatePasswordView';
 import MetaMetricsOptIn from '../pages/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
 import DrawerView from '../pages/Drawer/DrawerView';
-import Browser from '../pages/Drawer/Browser';
+import { BROWSER_SCREEN_ID, Browser } from '../pages/Drawer/Browser';
 
 import ConnectModal from '../pages/modals/ConnectModal';
 import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
@@ -44,7 +44,7 @@ describe('Browser Tests', () => {
 		await CreatePasswordView.tapCreatePasswordButton();
 	});
 
-	it('Should skip backup check and dismiss tutorial', async () => {
+	it('Should skip backup check', async () => {
 		// Check that we are on the Secure your wallet screen
 		await ProtectYourWalletView.isVisible();
 		await ProtectYourWalletView.tapOnRemindMeLaterButton();
@@ -91,14 +91,12 @@ describe('Browser Tests', () => {
 		// This can only be done on Android since we removed option for iOS due to Appstore
 		if (!device.getPlatform() === 'android') {
 			// Tap on first category
-			await TestHelpers.tapAtPoint('browser-screen', { x: 100, y: 425 });
+			await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 100, y: 425 });
 			// Tap on first option
-			await TestHelpers.tapAtPoint('browser-screen', { x: 80, y: 100 });
+			await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 80, y: 100 });
 			// Tap back button
-			await TestHelpers.waitAndTap('go-back-button');
-			// Tap back button
-			await TestHelpers.waitAndTap('go-back-button');
-			// Wait for page to load
+			await Browser.tapBrowserBackButton();
+			await Browser.tapBrowserBackButton();
 			await TestHelpers.delay(1000);
 			// Check that we are on the browser screen
 			await Browser.isVisible();
@@ -143,88 +141,63 @@ describe('Browser Tests', () => {
 		await Browser.isAddBookmarkScreenNotVisible(); // Add bookmark screen should not be visible
 	});
 
-	it('should go back home and navigate to favorites', async () => {
+	it('should go back home', async () => {
 		// Tap on home on bottom navbar
 		await Browser.tapHomeButton();
 		// Wait for page to load
 		await TestHelpers.delay(1000);
 		await Browser.isVisible();
-		// Tap on Favorites tab
+	});
+	it('should navigate to favorites', async () => {
 		if (device.getPlatform() === 'ios') {
-			// Tap on options
 			await Browser.tapOptionsButton();
-			// Open new tab
-			await TestHelpers.tapByText('New tab');
-			await TestHelpers.tapAtPoint(Browser.BROWSER_SCREEN_ID, { x: 174, y: 281 });
+			await Browser.tapOpenTabButton();
+
+			// Tapping on favourite tap
+			await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 174, y: 281 });
 			await TestHelpers.delay(1500);
 		} else {
-			await TestHelpers.tapAtPoint(Browser.BROWSER_SCREEN_ID, { x: 274, y: 223 });
-			await TestHelpers.tapAtPoint(Browser.BROWSER_SCREEN_ID, { x: 180, y: 275 });
+			// Tapping on favourite tap on Android
+			await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 274, y: 223 });
+			await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 180, y: 275 });
 			await TestHelpers.delay(1500);
 		}
 		// Wait for connect prompt to display
-		await TestHelpers.delay(5000);
-		// Tap on Connect button
+		await TestHelpers.delay(3000);
 		await ConnectModal.tapConnectButton();
-		// Check that we are still on the browser screen
 		await Browser.isVisible();
 	});
 
 	it('should test ENS sites', async () => {
 		// Tap on home on bottom navbar
-		await TestHelpers.tap('home-button');
-		// Wait for page to load
+		await Browser.tapHomeButton();
 		await TestHelpers.delay(1000);
-		// Tap on search in bottom navbar
-		await TestHelpers.tap('search-button');
+
+		await Browser.tapBottomSearchBar();
+
+		// Navigate to ENS URL
+		await Browser.navigateToURL(ENS_Example);
+		await Browser.isVisible();
+
+		await Browser.tapBottomSearchBar();
 		// Navigate to URL
-		await TestHelpers.replaceTextInField('url-input', ENS_Example);
-		await element(by.id('url-input')).tapReturnKey();
-		// Wait for page to load
-		await TestHelpers.delay(1000);
-		// Check that we are on the browser screen
-		await TestHelpers.checkIfVisible('browser-screen');
-		// Tap on search in bottom navbar
-		await TestHelpers.tap('search-button');
-		// Navigate to URL
-		await TestHelpers.replaceTextInField('url-input', ENS_TLD);
-		await element(by.id('url-input')).tapReturnKey();
-		// Wait for page to load
-		await TestHelpers.delay(1000);
-		// Check that we are on the browser screen
-		await TestHelpers.checkIfVisible('browser-screen');
+		await Browser.navigateToURL(ENS_TLD);
+		await Browser.isVisible();
 	});
 
 	it('should test phishing sites', async () => {
-		// Tap on search in bottom navbar
-		await TestHelpers.tap('search-button');
-		// Clear text
-		await TestHelpers.clearField('url-input');
-		// Navigate to URL
-		await TestHelpers.replaceTextInField('url-input', PHISHING_SITE);
-		await element(by.id('url-input')).tapReturnKey();
+		await Browser.tapBottomSearchBar();
+		// Clear text & Navigate to URL
+		await Browser.navigateToURL(PHISHING_SITE);
+		await Browser.waitForBrowserPageToLoad();
 
-		/*
-		await TestHelpers.checkIfVisible('browser-screen');
-		// Tap on empowr from search results
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 60, y: 270 });
-		} else {
-			await TestHelpers.tapAtPoint('browser-screen', { x: 56, y: 284 });
-			await TestHelpers.delay(700);
-		}
-		*/
+		await Browser.isBackToSafetyButtonVisible();
+		await Browser.tapBackToSafetyButton();
 
-		//Wait for page to load
-		await TestHelpers.delay(9000); // to prevent flakey behavior in bitrise
-
-		await TestHelpers.checkIfElementWithTextIsVisible('Back to safety');
-		// Tap on Back to safety button
-		await TestHelpers.tapByText('Back to safety');
 		// Check that we are on the browser screen
 		if (!device.getPlatform() === 'android') {
 			await TestHelpers.delay(1500);
 		}
-		await TestHelpers.checkIfVisible('browser-screen');
+		await Browser.isVisible();
 	});
 });
