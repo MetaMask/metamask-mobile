@@ -1,5 +1,7 @@
 'use strict';
 
+import TestHelpers from '../helpers';
+
 import OnboardingView from '../pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
 import ProtectYourWalletView from '../pages/Onboarding/ProtectYourWalletView';
@@ -68,6 +70,9 @@ describe('Start Exploring', () => {
 
 	it('should go through the onboarding wizard flow', async () => {
 		// Check that Take the tour CTA is visible and tap it
+
+		await TestHelpers.delay(3000);
+
 		await OnboardingWizardModal.isVisible();
 		await OnboardingWizardModal.tapTakeTourButton();
 

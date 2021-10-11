@@ -112,14 +112,10 @@ describe('Onboarding wizard opt-out', () => {
 	});
 
 	it('should check that wizard is gone after reloading app', async () => {
-		try {
-			// Ensure you are on the wallet view
-			await WalletView.isVisible();
-			// Check that the wizard is not visible anymore
-			await TestHelpers.checkIfElementWithTextIsNotVisible('Welcome to your new wallet!');
-		} catch (e) {
-			console.log('');
-		}
+		// Ensure you are on the wallet view
+		await WalletView.isVisible();
+		// Check that the wizard is not visible anymore
+		await TestHelpers.checkIfElementWithTextIsNotVisible('Welcome to your new wallet!');
 	});
 
 	it('should take tour and skip tutorial', async () => {
