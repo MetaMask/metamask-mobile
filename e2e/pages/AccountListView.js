@@ -25,7 +25,7 @@ export default class AccountListView {
 		await TestHelpers.checkIfNotVisible(ACCOUNT_LIST_ID);
 	}
 
-	static async isnewAccountNameVisible() {
+	static async isNewAccountNameVisible() {
 		if (device.getPlatform() === 'android') {
 			await TestHelpers.checkIfElementWithTextIsVisible('Account 2');
 		}
