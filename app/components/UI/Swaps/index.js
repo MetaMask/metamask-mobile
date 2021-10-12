@@ -12,7 +12,7 @@ import {
 	fromTokenMinimalUnitString,
 	renderFromTokenMinimalUnit,
 	toTokenMinimalUnit,
-	weiToFiat
+	weiToFiat,
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import { swapsUtils } from '@metamask/swaps-controller';
@@ -24,10 +24,10 @@ import {
 	swapsHasOnboardedSelector,
 	swapsTokensSelector,
 	swapsTokensWithBalanceSelector,
-	swapsTopAssetsSelector
+	swapsTopAssetsSelector,
 } from '../../../reducers/swaps';
 import Analytics from '../../../core/Analytics';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 
@@ -50,64 +50,65 @@ import useBalance from './utils/useBalance';
 import useBlockExplorer from './utils/useBlockExplorer';
 import InfoModal from './components/InfoModal';
 import { toLowerCaseEquals } from '../../../util/general';
+import { AlertType } from '../../Base/Alert';
 
 const styles = StyleSheet.create({
 	screen: {
 		flexGrow: 1,
-		justifyContent: 'space-between'
+		justifyContent: 'space-between',
 	},
 	content: {
 		flexGrow: 1,
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	keypad: {
 		flexGrow: 1,
-		justifyContent: 'space-around'
+		justifyContent: 'space-around',
 	},
 	tokenButtonContainer: {
 		flexDirection: 'row',
 		justifyContent: 'center',
-		margin: Device.isIphone5() ? 5 : 10
+		margin: Device.isIphone5() ? 5 : 10,
 	},
 	amountContainer: {
 		alignItems: 'center',
 		justifyContent: 'center',
-		marginHorizontal: 25
+		marginHorizontal: 25,
 	},
 	amount: {
 		textAlignVertical: 'center',
 		fontSize: Device.isIphone5() ? 30 : 40,
-		height: Device.isIphone5() ? 40 : 50
+		height: Device.isIphone5() ? 40 : 50,
 	},
 	amountInvalid: {
-		color: colors.red
+		color: colors.red,
 	},
 	verifyToken: {
-		marginHorizontal: 40
+		marginHorizontal: 40,
 	},
 	tokenAlert: {
 		marginTop: 10,
-		marginHorizontal: 30
+		marginHorizontal: 30,
 	},
 	linkText: {
-		color: colors.blue
+		color: colors.blue,
 	},
 	horizontalRuleContainer: {
 		flexDirection: 'row',
 		paddingHorizontal: 30,
 		marginVertical: Device.isIphone5() ? 5 : 10,
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	horizontalRule: {
 		flex: 1,
 		borderBottomWidth: StyleSheet.hairlineWidth,
 		height: 1,
-		borderBottomColor: colors.grey100
+		borderBottomColor: colors.grey100,
 	},
 	arrowDown: {
 		color: colors.blue,
 		fontSize: 25,
-		marginHorizontal: 15
+		marginHorizontal: 15,
 	},
 	buttonsContainer: {
 		marginTop: Device.isIphone5() ? 10 : 30,
@@ -115,21 +116,21 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 30,
 		flexDirection: 'row',
 		alignItems: 'center',
-		justifyContent: 'space-between'
+		justifyContent: 'space-between',
 	},
 	column: {
-		flex: 1
+		flex: 1,
 	},
 	ctaContainer: {
 		flexDirection: 'row',
-		justifyContent: 'flex-end'
+		justifyContent: 'flex-end',
 	},
 	cta: {
-		paddingHorizontal: Device.isIphone5() ? 10 : 20
+		paddingHorizontal: Device.isIphone5() ? 10 : 20,
 	},
 	disabled: {
-		opacity: 0.4
-	}
+		opacity: 0.4,
+	},
 });
 
 const SWAPS_NATIVE_ADDRESS = swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS;
@@ -151,7 +152,7 @@ function SwapsAmountView({
 	currentCurrency,
 	userHasOnboarded,
 	setHasOnboarded,
-	setLiveness
+	setLiveness,
 }) {
 	const navigation = useNavigation();
 	const route = useRoute();
@@ -163,40 +164,39 @@ function SwapsAmountView({
 	const [isInitialLoadingTokens, setInitialLoadingTokens] = useState(false);
 	const [, setLoadingTokens] = useState(false);
 	const [isSourceSet, setIsSourceSet] = useState(() =>
-		Boolean(swapsTokens?.find(token => toLowerCaseEquals(token.address, initialSource)))
+		Boolean(swapsTokens?.find((token) => toLowerCaseEquals(token.address, initialSource)))
 	);
 
 	const [sourceToken, setSourceToken] = useState(() =>
-		swapsTokens?.find(token => toLowerCaseEquals(token.address, initialSource))
+		swapsTokens?.find((token) => toLowerCaseEquals(token.address, initialSource))
 	);
 	const [destinationToken, setDestinationToken] = useState(null);
 	const [hasDismissedTokenAlert, setHasDismissedTokenAlert] = useState(true);
 	const [contractBalance, setContractBalance] = useState(null);
 	const [contractBalanceAsUnits, setContractBalanceAsUnits] = useState(numberToBN(0));
+	const [isDirectWrapping, setIsDirectWrapping] = useState(false);
 
 	const [isSourceModalVisible, toggleSourceModal] = useModalHandler(false);
 	const [isDestinationModalVisible, toggleDestinationModal] = useModalHandler(false);
 	const [isSlippageModalVisible, toggleSlippageModal] = useModalHandler(false);
-	const [
-		isTokenVerificationModalVisisble,
-		toggleTokenVerificationModal,
-		,
-		hideTokenVerificationModal
-	] = useModalHandler(false);
+	const [isTokenVerificationModalVisisble, toggleTokenVerificationModal, , hideTokenVerificationModal] =
+		useModalHandler(false);
 
 	useEffect(() => {
 		(async () => {
 			try {
-				const { mobile_active: liveness } = await swapsUtils.fetchSwapsFeatureLiveness(chainId);
+				const data = await swapsUtils.fetchSwapsFeatureLiveness(chainId, AppConstants.SWAPS.CLIENT_ID);
+				const liveness = typeof data === 'boolean' ? data : data?.mobile_active ?? false;
 				setLiveness(liveness, chainId);
 				if (liveness) {
 					// Triggered when a user enters the MetaMask Swap feature
 					InteractionManager.runAfterInteractions(() => {
 						const parameters = {
 							source: initialSource === SWAPS_NATIVE_ADDRESS ? 'MainView' : 'TokenView',
-							activeCurrency: swapsTokens?.find(token => toLowerCaseEquals(token.address, initialSource))
-								?.symbol,
-							chain_id: chainId
+							activeCurrency: swapsTokens?.find((token) =>
+								toLowerCaseEquals(token.address, initialSource)
+							)?.symbol,
+							chain_id: chainId,
 						};
 						Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAPS_OPENED, {});
 						Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAPS_OPENED, parameters, true);
@@ -250,7 +250,7 @@ function SwapsAmountView({
 	useEffect(() => {
 		if (!isSourceSet && initialSource && swapsTokens && !sourceToken) {
 			setIsSourceSet(true);
-			setSourceToken(swapsTokens.find(token => toLowerCaseEquals(token.address, initialSource)));
+			setSourceToken(swapsTokens.find((token) => toLowerCaseEquals(token.address, initialSource)));
 		}
 	}, [initialSource, isSourceSet, sourceToken, swapsTokens]);
 
@@ -287,11 +287,10 @@ function SwapsAmountView({
 		return false;
 	}, [amount, sourceToken]);
 
-	const amountAsUnits = useMemo(() => toTokenMinimalUnit(hasInvalidDecimals ? '0' : amount, sourceToken?.decimals), [
-		amount,
-		hasInvalidDecimals,
-		sourceToken
-	]);
+	const amountAsUnits = useMemo(
+		() => toTokenMinimalUnit(hasInvalidDecimals ? '0' : amount, sourceToken?.decimals),
+		[amount, hasInvalidDecimals, sourceToken]
+	);
 	const controllerBalance = useBalance(accounts, balances, selectedAddress, sourceToken);
 	const controllerBalanceAsUnits = useBalance(accounts, balances, selectedAddress, sourceToken, { asUnits: true });
 
@@ -332,7 +331,7 @@ function SwapsAmountView({
 		if (!destinationToken || isSwapsNativeAsset(destinationToken)) {
 			return true;
 		}
-		return destinationToken?.occurances > TOKEN_MINIMUM_SOURCES;
+		return destinationToken?.occurrences > TOKEN_MINIMUM_SOURCES;
 	}, [destinationToken]);
 
 	/* Navigation handler */
@@ -363,12 +362,12 @@ function SwapsAmountView({
 		isTokenInBalances,
 		navigation,
 		slippage,
-		sourceToken
+		sourceToken,
 	]);
 
 	/* Keypad Handlers */
 	const handleKeypadChange = useCallback(
-		value => {
+		(value) => {
 			if (value === amount) {
 				return;
 			}
@@ -378,20 +377,40 @@ function SwapsAmountView({
 		[amount]
 	);
 
+	const setSlippageAfterTokenPress = useCallback(
+		(sourceTokenAddress, destinationTokenAddress) => {
+			const enableDirectWrapping = swapsUtils.shouldEnableDirectWrapping(
+				chainId,
+				sourceTokenAddress,
+				destinationTokenAddress
+			);
+			if (enableDirectWrapping && !isDirectWrapping) {
+				setSlippage(0);
+				setIsDirectWrapping(true);
+			} else if (isDirectWrapping && !enableDirectWrapping) {
+				setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
+				setIsDirectWrapping(false);
+			}
+		},
+		[setSlippage, chainId, isDirectWrapping]
+	);
+
 	const handleSourceTokenPress = useCallback(
-		item => {
+		(item) => {
 			toggleSourceModal();
 			setSourceToken(item);
+			setSlippageAfterTokenPress(item.address, destinationToken?.address);
 		},
-		[toggleSourceModal]
+		[toggleSourceModal, setSlippageAfterTokenPress, destinationToken]
 	);
 
 	const handleDestinationTokenPress = useCallback(
-		item => {
+		(item) => {
 			toggleDestinationModal();
 			setDestinationToken(item);
+			setSlippageAfterTokenPress(sourceToken?.address, item.address);
 		},
-		[toggleDestinationModal]
+		[toggleDestinationModal, setSlippageAfterTokenPress, sourceToken]
 	);
 
 	const handleUseMax = useCallback(() => {
@@ -401,7 +420,7 @@ function SwapsAmountView({
 		setAmount(fromTokenMinimalUnitString(balanceAsUnits.toString(10), sourceToken.decimals));
 	}, [balanceAsUnits, sourceToken]);
 
-	const handleSlippageChange = useCallback(value => {
+	const handleSlippageChange = useCallback((value) => {
 		setSlippage(value);
 	}, []);
 
@@ -418,8 +437,8 @@ function SwapsAmountView({
 			screen: 'SimpleWebview',
 			params: {
 				url: explorer.token(destinationToken.address),
-				title: strings('swaps.verify')
-			}
+				title: strings('swaps.verify'),
+			},
 		});
 	}, [explorer, destinationToken, hideTokenVerificationModal, navigation]);
 
@@ -483,7 +502,7 @@ function SwapsAmountView({
 								{hasInvalidDecimals
 									? strings('swaps.allows_up_to_decimals', {
 											symbol: sourceToken.symbol,
-											decimals: sourceToken.decimals
+											decimals: sourceToken.decimals,
 											// eslint-disable-next-line no-mixed-spaces-and-tabs
 									  })
 									: strings('swaps.not_enough', { symbol: sourceToken.symbol })}
@@ -493,7 +512,7 @@ function SwapsAmountView({
 								{!!sourceToken &&
 									balance !== null &&
 									strings('swaps.available_to_swap', {
-										asset: `${balance} ${sourceToken.symbol}`
+										asset: `${balance} ${sourceToken.symbol}`,
 									})}
 								{!isSwapsNativeAsset(sourceToken) && hasBalance && (
 									<Text style={styles.linkText} onPress={handleUseMax}>
@@ -535,7 +554,9 @@ function SwapsAmountView({
 						tokens={swapsTokens}
 						initialTokens={[
 							swapsUtils.getNativeSwapsToken(chainId),
-							...tokensTopAssets.slice(0, MAX_TOP_ASSETS)
+							...tokensTopAssets
+								.slice(0, MAX_TOP_ASSETS)
+								.filter((asset) => asset.address !== swapsUtils.getNativeSwapsToken(chainId).address),
 						]}
 						onItemPress={handleDestinationTokenPress}
 						excludeAddresses={[sourceToken?.address]}
@@ -550,7 +571,9 @@ function SwapsAmountView({
 							>
 								<Text small centered>
 									<Text reset bold>
-										{strings('swaps.verified_on_sources', { sources: destinationToken.occurances })}
+										{strings('swaps.verified_on_sources', {
+											sources: destinationToken.occurrences,
+										})}
 									</Text>
 									{` ${strings('swaps.verify_on')} `}
 									{explorer.isValid ? (
@@ -567,29 +590,29 @@ function SwapsAmountView({
 							<ActionAlert
 								type={
 									!destinationToken.occurances || isDynamicToken(destinationToken)
-										? 'error'
-										: 'warning'
+										? AlertType.Error
+										: AlertType.Warning
 								}
 								style={styles.tokenAlert}
 								action={hasDismissedTokenAlert ? null : strings('swaps.continue')}
 								onPress={handleDimissTokenAlert}
 								onInfoPress={toggleTokenVerificationModal}
 							>
-								{textStyle => (
+								{(textStyle) => (
 									<TouchableOpacity onPress={explorer.isValid ? handleVerifyPress : undefined}>
 										<Text style={textStyle} bold centered>
-											{!destinationToken.occurances || isDynamicToken(destinationToken)
+											{!destinationToken.occurrences || isDynamicToken(destinationToken)
 												? strings('swaps.added_manually', {
-														symbol: destinationToken.symbol
+														symbol: destinationToken.symbol,
 														// eslint-disable-next-line no-mixed-spaces-and-tabs
 												  })
 												: strings('swaps.only_verified_on', {
 														symbol: destinationToken.symbol,
-														occurances: destinationToken.occurances
+														occurrences: destinationToken.occurrences,
 														// eslint-disable-next-line no-mixed-spaces-and-tabs
 												  })}
 										</Text>
-										{!destinationToken.occurances || isDynamicToken(destinationToken) ? (
+										{!destinationToken.occurrences || isDynamicToken(destinationToken) ? (
 											<Text style={textStyle} centered>
 												{`${strings('swaps.verify_this_token_on')} `}
 												{explorer.isValid ? (
@@ -635,9 +658,12 @@ function SwapsAmountView({
 						<TouchableOpacity
 							onPress={toggleSlippageModal}
 							hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
+							disabled={isDirectWrapping}
 						>
-							<Text bold link>
-								{strings('swaps.max_slippage_amount', { slippage: `${slippage}%` })}
+							<Text bold link={!isDirectWrapping}>
+								{strings('swaps.max_slippage_amount', {
+									slippage: `${slippage}%`,
+								})}
 							</Text>
 						</TouchableOpacity>
 					</View>
@@ -743,10 +769,10 @@ SwapsAmountView.propTypes = {
 	/**
 	 * Function to set liveness
 	 */
-	setLiveness: PropTypes.func
+	setLiveness: PropTypes.func,
 };
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	swapsTokens: swapsTokensSelector(state),
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
@@ -759,15 +785,12 @@ const mapStateToProps = state => ({
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	tokensWithBalance: swapsTokensWithBalanceSelector(state),
 	tokensTopAssets: swapsTopAssetsSelector(state),
-	userHasOnboarded: swapsHasOnboardedSelector(state)
+	userHasOnboarded: swapsHasOnboardedSelector(state),
 });
 
-const mapDispatchToProps = dispatch => ({
-	setHasOnboarded: hasOnboarded => dispatch(setSwapsHasOnboarded(hasOnboarded)),
-	setLiveness: (liveness, chainId) => dispatch(setSwapsLiveness(liveness, chainId))
+const mapDispatchToProps = (dispatch) => ({
+	setHasOnboarded: (hasOnboarded) => dispatch(setSwapsHasOnboarded(hasOnboarded)),
+	setLiveness: (liveness, chainId) => dispatch(setSwapsLiveness(liveness, chainId)),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(SwapsAmountView);
+export default connect(mapStateToProps, mapDispatchToProps)(SwapsAmountView);

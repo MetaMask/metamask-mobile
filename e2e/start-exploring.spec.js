@@ -39,6 +39,11 @@ describe('Start Exploring', () => {
 	it('should allow you to create a new wallet', async () => {
 		// Check that Create a new wallet CTA is visible & tap it
 		await TestHelpers.waitAndTap('create-wallet-button');
+		// Check that we are on the metametrics optIn screen
+		await TestHelpers.checkIfVisible('metaMetrics-OptIn');
+		// Check that I Agree CTA is visible and tap it
+		await TestHelpers.waitAndTap('agree-button');
+
 		// Check that we are on the Create password screen
 		await TestHelpers.checkIfVisible('create-password-screen');
 		// Input new password
@@ -69,13 +74,14 @@ describe('Start Exploring', () => {
 		}
 		// Tap on Skip button
 		await TestHelpers.tapByText('Skip');
-		// Check that we are on the metametrics optIn screen
-		await TestHelpers.checkIfVisible('metaMetrics-OptIn');
 	});
 
 	it('should tap I Agree and land on the wallet view with tutorial open', async () => {
-		// Check that I Agree CTA is visible and tap it
-		await TestHelpers.waitAndTap('agree-button');
+		await device.reloadReactNative();
+		// Check that we are on the login screen
+		await TestHelpers.checkIfVisible('login');
+		// Enter password and login
+		await TestHelpers.typeTextAndHideKeyboard('login-password-input', PASSWORD);
 		// Check that we are on the wallet screen
 		if (!device.getPlatform() === 'android') {
 			await TestHelpers.checkIfExists('wallet-screen');

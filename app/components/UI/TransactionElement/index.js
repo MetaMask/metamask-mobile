@@ -24,45 +24,45 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		flex: 1,
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100
+		borderColor: colors.grey100,
 	},
 	actionContainerStyle: {
 		height: 25,
 		width: 70,
-		padding: 0
+		padding: 0,
 	},
 	speedupActionContainerStyle: {
-		marginRight: 10
+		marginRight: 10,
 	},
 	actionStyle: {
 		fontSize: 10,
 		padding: 0,
-		paddingHorizontal: 10
+		paddingHorizontal: 10,
 	},
 	icon: {
 		width: 28,
-		height: 28
+		height: 28,
 	},
 	summaryWrapper: {
-		padding: 15
+		padding: 15,
 	},
 	fromDeviceText: {
 		color: colors.fontSecondary,
 		fontSize: 14,
 		marginBottom: 10,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	importText: {
 		color: colors.fontSecondary,
 		fontSize: 14,
 		...fontStyles.bold,
-		alignContent: 'center'
+		alignContent: 'center',
 	},
 	importRowBody: {
 		alignItems: 'center',
 		backgroundColor: colors.grey000,
-		paddingTop: 10
-	}
+		paddingTop: 10,
+	},
 });
 
 /* eslint-disable import/no-commonjs */
@@ -116,7 +116,7 @@ class TransactionElement extends PureComponent {
 		/**
 		 * Chain Id
 		 */
-		chainId: PropTypes.string
+		chainId: PropTypes.string,
 	};
 
 	state = {
@@ -127,7 +127,7 @@ class TransactionElement extends PureComponent {
 		importModalVisible: false,
 		transactionGas: { gasBN: undefined, gasPriceBN: undefined, gasTotal: undefined },
 		transactionElement: undefined,
-		transactionDetails: undefined
+		transactionDetails: undefined,
 	};
 
 	mounted = false;
@@ -137,7 +137,7 @@ class TransactionElement extends PureComponent {
 			...this.props,
 			swapsTransactions: this.props.swapsTransactions,
 			swapsTokens: this.props.swapsTokens,
-			assetSymbol: this.props.assetSymbol
+			assetSymbol: this.props.assetSymbol,
 		});
 		this.mounted = true;
 		this.mounted && this.setState({ transactionElement, transactionDetails });
@@ -233,12 +233,12 @@ class TransactionElement extends PureComponent {
 	 *
 	 * @param {object} transactionElement - Transaction information to render, containing addressTo, actionKey, value, fiatValue, contractDeployment
 	 */
-	renderTxElement = transactionElement => {
+	renderTxElement = (transactionElement) => {
 		const {
 			identities,
 			chainId,
 			selectedAddress,
-			tx: { time, status }
+			tx: { time, status },
 		} = this.props;
 		const { value, fiatValue = false, actionKey } = transactionElement;
 		const renderTxActions = status === 'submitted' || status === 'approved';
@@ -294,7 +294,7 @@ class TransactionElement extends PureComponent {
 				existingGas = {
 					isEIP1559Transaction: true,
 					maxFeePerGas: weiHexToGweiDec(transaction.maxFeePerGas),
-					maxPriorityFeePerGas: weiHexToGweiDec(transaction.maxPriorityFeePerGas)
+					maxPriorityFeePerGas: weiHexToGweiDec(transaction.maxPriorityFeePerGas),
 				};
 			} else {
 				const existingGasPrice = tx.transaction ? tx.transaction.gasPrice : '0x0';
@@ -394,13 +394,13 @@ class TransactionElement extends PureComponent {
 	}
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	primaryCurrency: state.settings.primaryCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {},
-	swapsTokens: state.engine.backgroundState.SwapsController.tokens
+	swapsTokens: state.engine.backgroundState.SwapsController.tokens,
 });
 export default connect(mapStateToProps)(TransactionElement);

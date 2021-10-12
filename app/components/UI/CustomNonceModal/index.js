@@ -14,24 +14,24 @@ import EvilIcons from 'react-native-vector-icons/EvilIcons';
 const styles = StyleSheet.create({
 	bottomModal: {
 		justifyContent: 'flex-end',
-		margin: 0
+		margin: 0,
 	},
 	keyboardAwareWrapper: {
 		flex: 1,
-		justifyContent: 'flex-end'
+		justifyContent: 'flex-end',
 	},
 	modal: {
 		minHeight: 200,
 		backgroundColor: colors.white,
 		borderTopLeftRadius: 20,
-		borderTopRightRadius: 20
+		borderTopRightRadius: 20,
 	},
 	modalContainer: {
-		margin: 24
+		margin: 24,
 	},
 	title: {
 		fontSize: 14,
-		color: colors.black
+		color: colors.black,
 	},
 	nonceInput: {
 		width: 80,
@@ -39,31 +39,31 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 		color: colors.black,
 		textAlign: 'center',
-		marginHorizontal: 24
+		marginHorizontal: 24,
 	},
 	desc: {
 		color: colors.black,
 		fontSize: 12,
 		lineHeight: 16,
-		marginVertical: 10
+		marginVertical: 10,
 	},
 	nonceInputContainer: {
 		display: 'flex',
 		flexDirection: 'row',
 		alignItems: 'center',
 		alignSelf: 'center',
-		marginVertical: 10
+		marginVertical: 10,
 	},
 	incrementDecrementNonceContainer: {
 		display: 'flex',
 		flexDirection: 'row',
 		alignItems: 'center',
-		alignSelf: 'center'
+		alignSelf: 'center',
 	},
 	currentSuggested: {
 		fontSize: 14,
 		color: colors.grey500,
-		marginBottom: 10
+		marginBottom: 10,
 	},
 	nonceWarning: {
 		borderWidth: 1,
@@ -74,43 +74,43 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		borderRadius: 8,
 		marginTop: 10,
-		marginBottom: 16
+		marginBottom: 16,
 	},
 	nonceWarningText: {
 		color: colors.black,
 		fontSize: 12,
 		lineHeight: 16,
 		width: '100%',
-		flex: 1
+		flex: 1,
 	},
 	descWarningContainer: {
-		height: 240
+		height: 240,
 	},
 	actionRow: {
 		flexDirection: 'row',
-		marginBottom: 15
+		marginBottom: 15,
 	},
 	actionButton: {
 		flex: 1,
-		marginHorizontal: 8
+		marginHorizontal: 8,
 	},
 	incrementHit: {
-		padding: 4
+		padding: 4,
 	},
 	icon: {
 		flex: 0,
 		marginTop: 6,
-		paddingRight: 14
+		paddingRight: 14,
 	},
 	incrementDecrementIcon: {
-		color: colors.blue
-	}
+		color: colors.blue,
+	},
 });
 
 const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 	const [nonce, onChangeText] = React.useState(nonceValue);
 
-	const incrementDecrementNonce = decrement => {
+	const incrementDecrementNonce = (decrement) => {
 		let newValue = nonce;
 		newValue = decrement ? --newValue : ++newValue;
 		onChangeText(newValue > 1 ? newValue : 1);
@@ -218,7 +218,7 @@ CustomModalNonce.propTypes = {
 	proposedNonce: PropTypes.number.isRequired,
 	nonceValue: PropTypes.number.isRequired,
 	save: PropTypes.func.isRequired,
-	close: PropTypes.func.isRequired
+	close: PropTypes.func.isRequired,
 };
 
 export default CustomModalNonce;

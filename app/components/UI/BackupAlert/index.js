@@ -1,14 +1,15 @@
 import React, { PureComponent } from 'react';
-import { Text, StyleSheet, View, TouchableOpacity } from 'react-native';
+import { Text, StyleSheet, View, TouchableOpacity, InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import ElevatedView from 'react-native-elevated-view';
 import { strings } from '../../../../locales/i18n';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import { connect } from 'react-redux';
 import { backUpSeedphraseAlertNotVisible } from '../../../actions/user';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 const BROWSER_ROUTE = 'BrowserView';
 
@@ -22,21 +23,21 @@ const styles = StyleSheet.create({
 		left: 16,
 		right: 16,
 		borderRadius: 8,
-		padding: 14
+		padding: 14,
 	},
 	backupAlertIconWrapper: {
-		marginRight: 10
+		marginRight: 10,
 	},
 	backupAlertIcon: {
 		fontSize: 22,
 		...fontStyles.bold,
-		color: colors.black
+		color: colors.black,
 	},
 	backupAlertTitle: {
 		fontSize: 14,
 		marginBottom: 14,
 		color: colors.black,
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	backupAlertMessage: {
 		fontSize: 12,
@@ -44,25 +45,25 @@ const styles = StyleSheet.create({
 		marginLeft: 14,
 		flex: 1,
 		textAlign: 'right',
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	touchableView: {
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	modalViewInBrowserView: {
-		bottom: Device.isIphoneX() ? 90 : 80
+		bottom: Device.isIphoneX() ? 90 : 80,
 	},
 	modalViewNotInBrowserView: {
-		bottom: Device.isIphoneX() ? 20 : 10
+		bottom: Device.isIphoneX() ? 20 : 10,
 	},
 	buttonsWrapper: {
 		flexDirection: 'row-reverse',
 		alignContent: 'flex-end',
-		flex: 1
+		flex: 1,
 	},
 	dismissButton: {
-		flex: 1
-	}
+		flex: 1,
+	},
 });
 
 const BLOCKED_LIST = [
@@ -76,7 +77,7 @@ const BLOCKED_LIST = [
 	'AddBookmark',
 	'RevealPrivateCredentialView',
 	'AccountBackupStep',
-	'ManualBackupStep'
+	'ManualBackupStep',
 ];
 
 /**
@@ -103,15 +104,15 @@ class BackupAlert extends PureComponent {
 		 * A second prop to be used in conjunction with the above
 		 * currently used to toggle the backup reminder modal (a second time)
 		 */
-		onDismiss: PropTypes.func
+		onDismiss: PropTypes.func,
 	};
 
 	state = {
 		inBrowserView: false,
-		inAccountBackupStep: false
+		inAccountBackupStep: false,
 	};
 
-	componentDidUpdate = async prevProps => {
+	componentDidUpdate = async (prevProps) => {
 		if (prevProps.navigation.dangerouslyGetState() !== this.props.navigation.dangerouslyGetState()) {
 			const currentRouteName = findRouteNameFromNavigatorState(
 				this.props.navigation.dangerouslyGetState().routes
@@ -119,7 +120,7 @@ class BackupAlert extends PureComponent {
 
 			const inBrowserView = currentRouteName === BROWSER_ROUTE;
 			const blockedView =
-				BLOCKED_LIST.find(path => currentRouteName.includes(path)) || currentRouteName === 'SetPasswordFlow';
+				BLOCKED_LIST.find((path) => currentRouteName.includes(path)) || currentRouteName === 'SetPasswordFlow';
 			// eslint-disable-next-line react/no-did-update-set-state
 			this.setState({ inBrowserView, blockedView });
 		}
@@ -127,11 +128,23 @@ class BackupAlert extends PureComponent {
 
 	goToBackupFlow = () => {
 		this.props.navigation.navigate('SetPasswordFlow', { screen: 'AccountBackupStep1' });
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_ENGAGED, {
+				wallet_protection_required: false,
+				source: 'Backup Alert',
+			});
+		});
 	};
 
 	onDismiss = () => {
 		const { onDismiss, backUpSeedphraseAlertNotVisible } = this.props;
 		backUpSeedphraseAlertNotVisible();
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_DISMISSED, {
+				wallet_protection_required: false,
+				source: 'Backup Alert',
+			});
+		});
 		if (onDismiss) onDismiss();
 	};
 
@@ -144,7 +157,7 @@ class BackupAlert extends PureComponent {
 				elevation={99}
 				style={[
 					styles.backupAlertWrapper,
-					inBrowserView ? styles.modalViewInBrowserView : styles.modalViewNotInBrowserView
+					inBrowserView ? styles.modalViewInBrowserView : styles.modalViewNotInBrowserView,
 				]}
 			>
 				<View style={styles.touchableView} testID={'backup-alert'}>
@@ -172,16 +185,13 @@ class BackupAlert extends PureComponent {
 	}
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	seedphraseBackedUp: state.user.seedphraseBackedUp,
-	backUpSeedphraseVisible: state.user.backUpSeedphraseVisible
+	backUpSeedphraseVisible: state.user.backUpSeedphraseVisible,
 });
 
-const mapDispatchToProps = dispatch => ({
-	backUpSeedphraseAlertNotVisible: () => dispatch(backUpSeedphraseAlertNotVisible())
+const mapDispatchToProps = (dispatch) => ({
+	backUpSeedphraseAlertNotVisible: () => dispatch(backUpSeedphraseAlertNotVisible()),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(BackupAlert);
+export default connect(mapStateToProps, mapDispatchToProps)(BackupAlert);

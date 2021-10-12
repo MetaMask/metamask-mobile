@@ -21,6 +21,11 @@ describe('Addressbook Tests', () => {
 		await TestHelpers.checkIfVisible('onboarding-screen');
 		// Check that Create a new wallet CTA is visible & tap it
 		await TestHelpers.waitAndTap('create-wallet-button');
+		// Check that we are on the metametrics optIn screen
+		await TestHelpers.checkIfVisible('metaMetrics-OptIn');
+		// Check that I Agree CTA is visible and tap it
+		await TestHelpers.waitAndTap('agree-button');
+
 		// Check that we are on the Create password screen
 		await TestHelpers.checkIfVisible('create-password-screen');
 		// Input new password
@@ -51,22 +56,28 @@ describe('Addressbook Tests', () => {
 		}
 		// Tap on Skip button
 		await TestHelpers.tapByText('Skip');
-		// Check that we are on the metametrics optIn screen
-		await TestHelpers.checkIfVisible('metaMetrics-OptIn');
-		// Check that I Agree CTA is visible and tap it
-		await TestHelpers.waitAndTap('agree-button');
 		// Check that we are on the wallet screen
 		if (!device.getPlatform() === 'android') {
 			// Check that we are on the wallet screen
 			await TestHelpers.checkIfExists('wallet-screen');
 		}
-		// Check that the onboarding wizard is present
-		await TestHelpers.checkIfVisible('onboarding-wizard-step1-view');
-		// Check that No thanks CTA is visible and tap it
-		await TestHelpers.waitAndTap('onboarding-wizard-back-button');
-		// Check that the onboarding wizard is gone
-		await TestHelpers.checkIfNotVisible('onboarding-wizard-step1-view');
-		// Check that the protect your wallet modal is visible
+	});
+
+	it('should dismiss the onboarding wizard', async () => {
+		await TestHelpers.delay(1000);
+		try {
+			// Check that the onboarding wizard is present
+			await TestHelpers.checkIfVisible('onboarding-wizard-step1-view');
+			// Check that No thanks CTA is visible and tap it
+			await TestHelpers.waitAndTap('onboarding-wizard-back-button');
+			// Check that the onboarding wizard is gone
+			await TestHelpers.checkIfNotVisible('onboarding-wizard-step1-view');
+		} catch (e) {
+			console.log('');
+		}
+	});
+
+	it('should dismiss the protect your wallet modal', async () => {
 		await TestHelpers.checkIfVisible('backup-alert');
 		// Tap on remind me later
 		await TestHelpers.tap('notification-remind-later-button');
@@ -91,8 +102,6 @@ describe('Addressbook Tests', () => {
 		await TestHelpers.checkIfVisible('drawer-screen');
 		// Tap on Send button
 		await TestHelpers.tap('drawer-send-button');
-		// Check that we are on the send screen
-		await TestHelpers.checkIfVisible('send-screen');
 		// Make sure view with my accounts visible
 		await TestHelpers.checkIfExists('my-accounts-button');
 	});

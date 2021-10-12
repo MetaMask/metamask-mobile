@@ -1,0 +1,10 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ErrorMessage should render correctly 1`] = `
+<Alert
+  testID="error-message-warning"
+  type="Error"
+>
+  <Component />
+</Alert>
+`;

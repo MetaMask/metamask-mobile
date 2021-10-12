@@ -1,110 +1,120 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView, TouchableOpacity, Text, View, SafeAreaView, StyleSheet, BackHandler } from 'react-native';
+import {
+	ScrollView,
+	TouchableOpacity,
+	Text,
+	View,
+	SafeAreaView,
+	StyleSheet,
+	BackHandler,
+	InteractionManager,
+} from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import OnboardingProgress from '../../UI/OnboardingProgress';
 import { strings } from '../../../../locales/i18n';
 import AndroidBackHandler from '../AndroidBackHandler';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import SeedphraseModal from '../../UI/SeedphraseModal';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import scaling from '../../../util/scaling';
 import Engine from '../../../core/Engine';
-import { ONBOARDING_WIZARD, METRICS_OPT_IN } from '../../../constants/storage';
+import { ONBOARDING_WIZARD } from '../../../constants/storage';
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import SeedPhraseVideo from '../../UI/SeedPhraseVideo';
 import { connect } from 'react-redux';
 import setOnboardingWizardStep from '../../../actions/wizard';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
 		backgroundColor: colors.white,
-		flex: 1
+		flex: 1,
 	},
 	scrollviewWrapper: {
-		flexGrow: 1
+		flexGrow: 1,
 	},
 	wrapper: {
 		flex: 1,
 		padding: 20,
 		paddingTop: 0,
-		paddingBottom: 0
+		paddingBottom: 0,
 	},
 	content: {
 		alignItems: 'center',
 		justifyContent: 'flex-start',
 		flex: 1,
-		marginBottom: 10
+		marginBottom: 10,
 	},
 	title: {
 		fontSize: 24,
 		marginBottom: 24,
 		color: colors.fontPrimary,
 		textAlign: 'center',
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	text: {
 		marginTop: 32,
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	label: {
 		lineHeight: scaling.scale(20),
 		fontSize: scaling.scale(14),
 		color: colors.fontPrimary,
 		textAlign: 'center',
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	buttonWrapper: {
 		flex: 1,
-		justifyContent: 'flex-end'
+		justifyContent: 'flex-end',
 	},
 	bold: {
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	blue: {
-		color: colors.blue
+		color: colors.blue,
 	},
 	remindLaterText: {
 		textAlign: 'center',
 		fontSize: 15,
 		lineHeight: 20,
 		color: colors.blue,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	remindLaterSubText: {
 		textAlign: 'center',
 		fontSize: 11,
 		lineHeight: 20,
 		color: colors.grey600,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	startSubText: {
 		textAlign: 'center',
 		fontSize: 11,
 		marginTop: 12,
 		color: colors.grey600,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	remindLaterContainer: {
-		marginBottom: 34
+		marginBottom: 34,
 	},
 	remindLaterButton: {
 		elevation: 10,
-		zIndex: 10
+		zIndex: 10,
 	},
 	ctaContainer: {
-		marginBottom: 30
-	}
+		marginBottom: 30,
+	},
 });
 
 /**
  * View that's shown during the first step of
  * the backup seed phrase flow
  */
-const AccountBackupStep1 = props => {
+const AccountBackupStep1 = (props) => {
 	const [showRemindLaterModal, setRemindLaterModal] = useState(false);
 	const [showWhatIsSeedphraseModal, setWhatIsSeedphraseModal] = useState(false);
 	const [skipCheckbox, setToggleSkipCheckbox] = useState(false);
@@ -131,12 +141,18 @@ const AccountBackupStep1 = props => {
 
 	const goNext = () => {
 		props.navigation.navigate('AccountBackupStep1B', { ...props.route.params });
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_STARTED);
+		});
 	};
 
 	const showRemindLater = () => {
 		if (hasFunds) return;
 
 		setRemindLaterModal(true);
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_SKIP_INITIATED);
+		});
 	};
 
 	const toggleSkipCheckbox = () => (skipCheckbox ? setToggleSkipCheckbox(false) : setToggleSkipCheckbox(true));
@@ -153,13 +169,12 @@ const AccountBackupStep1 = props => {
 
 	const skip = async () => {
 		hideRemindLaterModal();
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_SKIP_CONFIRMED);
+		});
 		// Get onboarding wizard state
 		const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
-		// Check if user passed through metrics opt-in screen
-		const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
-		if (!metricsOptIn) {
-			props.navigation.navigate('OptinMetrics');
-		} else if (onboardingWizard) {
+		if (onboardingWizard) {
 			props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
 		} else {
 			props.setOnboardingWizardStep(1);
@@ -255,20 +270,17 @@ AccountBackupStep1.propTypes = {
 	/**
 	 * Action to set onboarding wizard step
 	 */
-	setOnboardingWizardStep: PropTypes.func
+	setOnboardingWizardStep: PropTypes.func,
 };
 
 AccountBackupStep1.navigationOptions = ({ navigation, route }) => ({
 	// eslint-disable-next-line react/display-name
 	...getOnboardingNavbarOptions(navigation, route, { headerLeft: () => <View /> }),
-	gesturesEnabled: false
+	gesturesEnabled: false,
 });
 
-const mapDispatchToProps = dispatch => ({
-	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
+const mapDispatchToProps = (dispatch) => ({
+	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 });
 
-export default connect(
-	null,
-	mapDispatchToProps
-)(AccountBackupStep1);
+export default connect(null, mapDispatchToProps)(AccountBackupStep1);

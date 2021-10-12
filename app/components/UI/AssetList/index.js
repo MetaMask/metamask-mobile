@@ -9,23 +9,23 @@ import Text from '../../Base/Text';
 
 const styles = StyleSheet.create({
 	rowWrapper: {
-		padding: 20
+		padding: 20,
 	},
 	item: {
 		marginBottom: 5,
-		borderWidth: 2
+		borderWidth: 2,
 	},
 	assetListElement: {
 		flex: 1,
 		flexDirection: 'row',
-		alignItems: 'flex-start'
+		alignItems: 'flex-start',
 	},
 	text: {
-		padding: 16
+		padding: 16,
 	},
 	normalText: {
-		...fontStyles.normal
-	}
+		...fontStyles.normal,
+	},
 });
 
 /**
@@ -48,10 +48,10 @@ export default class AssetList extends PureComponent {
 		/**
 		 * Search query that generated "searchResults"
 		 */
-		searchQuery: PropTypes.string
+		searchQuery: PropTypes.string,
 	};
 
-	onToggleAsset = key => {
+	onToggleAsset = (key) => {
 		const { searchResults, handleSelectAsset } = this.props;
 		handleSelectAsset(searchResults[key]);
 	};
@@ -70,8 +70,9 @@ export default class AssetList extends PureComponent {
 					<Text style={styles.normalText}>{strings('token.no_tokens_found')}</Text>
 				) : null}
 				{searchResults.slice(0, 6).map((_, i) => {
-					const { symbol, name, address, logo } = searchResults[i] || {};
+					const { symbol, name, address, iconUrl } = searchResults[i] || {};
 					const isSelected = selectedAsset && selectedAsset.address === address;
+
 					return (
 						<StyledButton
 							type={isSelected ? 'normal' : 'transparent'}
@@ -81,7 +82,7 @@ export default class AssetList extends PureComponent {
 							testID={'searched-token-result'}
 						>
 							<View style={styles.assetListElement}>
-								<AssetIcon logo={logo} />
+								<AssetIcon logo={iconUrl} />
 								<Text style={styles.text}>
 									{name} ({symbol})
 								</Text>

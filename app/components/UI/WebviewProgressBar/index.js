@@ -11,7 +11,7 @@ import FadeView from '../FadeView';
  */
 export default class WebviewProgressBar extends PureComponent {
 	state = {
-		visible: true
+		visible: true,
 	};
 
 	static propTypes = {
@@ -19,7 +19,7 @@ export default class WebviewProgressBar extends PureComponent {
 		 * Float that represents the progress complete
 		 * between 0 and 1
 		 */
-		progress: PropTypes.any
+		progress: PropTypes.any,
 	};
 
 	componentDidMount() {

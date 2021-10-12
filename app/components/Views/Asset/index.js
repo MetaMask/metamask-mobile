@@ -16,17 +16,17 @@ import { toLowerCaseEquals } from '../../../util/general';
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
-		flex: 1
+		flex: 1,
 	},
 	assetOverviewWrapper: {
-		height: 280
+		height: 280,
 	},
 	loader: {
 		backgroundColor: colors.white,
 		flex: 1,
 		alignItems: 'center',
-		justifyContent: 'center'
-	}
+		justifyContent: 'center',
+	},
 });
 
 /**
@@ -77,7 +77,7 @@ class Asset extends PureComponent {
 		/**
 		 * Object that represents the current route info like params passed to it
 		 */
-		route: PropTypes.object
+		route: PropTypes.object,
 	};
 
 	state = {
@@ -86,7 +86,7 @@ class Asset extends PureComponent {
 		transactionsUpdated: false,
 		submittedTxs: [],
 		confirmedTxs: [],
-		transactions: []
+		transactions: [],
 	};
 
 	txs = [];
@@ -132,14 +132,14 @@ class Asset extends PureComponent {
 		this.mounted = false;
 	}
 
-	didTxStatusesChange = newTxsPending => this.txsPending.length !== newTxsPending.length;
+	didTxStatusesChange = (newTxsPending) => this.txsPending.length !== newTxsPending.length;
 
-	ethFilter = tx => {
+	ethFilter = (tx) => {
 		const { selectedAddress, chainId } = this.props;
 		const {
 			transaction: { from, to },
 			isTransfer,
-			transferInformation
+			transferInformation,
 		} = tx;
 
 		const network = Engine.context.NetworkController.state.network;
@@ -157,12 +157,12 @@ class Asset extends PureComponent {
 		return false;
 	};
 
-	noEthFilter = tx => {
+	noEthFilter = (tx) => {
 		const { chainId, swapsTransactions, selectedAddress } = this.props;
 		const {
 			transaction: { to, from },
 			isTransfer,
-			transferInformation
+			transferInformation,
 		} = tx;
 		const network = Engine.context.NetworkController.state.network;
 		if (
@@ -196,7 +196,7 @@ class Asset extends PureComponent {
 		const { chainId, transactions } = this.props;
 		if (transactions.length) {
 			transactions.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
-			const txs = transactions.filter(tx => {
+			const txs = transactions.filter((tx) => {
 				const filterResult = this.filter(tx);
 				if (filterResult) {
 					tx.insertImportTime = addAccountTimeFlagFilter(
@@ -223,10 +223,10 @@ class Asset extends PureComponent {
 			});
 
 			const submittedNonces = [];
-			submittedTxs = submittedTxs.filter(transaction => {
+			submittedTxs = submittedTxs.filter((transaction) => {
 				const alreadySubmitted = submittedNonces.includes(transaction.transaction.nonce);
 				const alreadyConfirmed = confirmedTxs.find(
-					tx =>
+					(tx) =>
 						safeToChecksumAddress(tx.transaction.from) === selectedAddress &&
 						tx.transaction.nonce === transaction.transaction.nonce
 				);
@@ -256,7 +256,7 @@ class Asset extends PureComponent {
 					loading: false,
 					transactions: txs,
 					submittedTxs,
-					confirmedTxs
+					confirmedTxs,
 				});
 			}
 		} else if (!this.state.transactionsUpdated) {
@@ -286,7 +286,7 @@ class Asset extends PureComponent {
 			conversionRate,
 			currentCurrency,
 			selectedAddress,
-			chainId
+			chainId,
 		} = this.props;
 
 		return (
@@ -318,7 +318,7 @@ class Asset extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {},
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
@@ -327,7 +327,7 @@ const mapStateToProps = state => ({
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	tokens: state.engine.backgroundState.TokensController.tokens,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
-	thirdPartyApiMode: state.privacy.thirdPartyApiMode
+	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
 });
 
 export default connect(mapStateToProps)(Asset);

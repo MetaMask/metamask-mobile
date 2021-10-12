@@ -1,11 +1,10 @@
 import React, { PureComponent } from 'react';
-import { StyleSheet, Alert, InteractionManager, AppState } from 'react-native';
+import { StyleSheet, Alert, InteractionManager, AppState, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../../UI/Navbar';
 import { connect } from 'react-redux';
 import { safeToChecksumAddress } from '../../../../util/address';
 import Engine from '../../../../core/Engine';
-import CustomGas from '../../../UI/CustomGas';
 import AnimatedTransactionModal from '../../../UI/AnimatedTransactionModal';
 import ApproveTransactionReview from '../../../UI/ApproveTransactionReview';
 import Modal from 'react-native-modal';
@@ -17,9 +16,9 @@ import {
 	getNormalizedTxState,
 	getTicker,
 	parseTransactionEIP1559,
-	parseTransactionLegacy
+	parseTransactionLegacy,
 } from '../../../../util/transactions';
-import { apiEstimateModifiedToWEI, getBasicGasEstimatesByChainId, getGasLimit } from '../../../../util/custom-gas';
+import { getGasLimit } from '../../../../util/custom-gas';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import NotificationManager from '../../../../core/NotificationManager';
 import Analytics from '../../../../core/Analytics';
@@ -39,12 +38,12 @@ const REVIEW = 'review';
 const styles = StyleSheet.create({
 	keyboardAwareWrapper: {
 		flex: 1,
-		justifyContent: 'flex-end'
+		justifyContent: 'flex-end',
 	},
 	bottomModal: {
 		justifyContent: 'flex-end',
-		margin: 0
-	}
+		margin: 0,
+	},
 });
 
 /**
@@ -113,13 +112,12 @@ class Approve extends PureComponent {
 		/**
 		 * A string representing the network type
 		 */
-		networkType: PropTypes.string
+		networkType: PropTypes.string,
 	};
 
 	state = {
 		approved: false,
 		gasError: undefined,
-		warningGasPriceHigh: undefined,
 		ready: false,
 		mode: REVIEW,
 		over: false,
@@ -129,7 +127,8 @@ class Approve extends PureComponent {
 		EIP1559GasData: {},
 		EIP1559GasDataTemp: {},
 		LegacyGasData: {},
-		LegacyGasDataTemp: {}
+		LegacyGasDataTemp: {},
+		transactionConfirmed: false,
 	};
 
 	computeGasEstimates = (overrideGasPrice, overrideGasLimit, gasEstimateTypeChanged) => {
@@ -142,7 +141,7 @@ class Approve extends PureComponent {
 			const overrideGas = overrideGasPrice
 				? {
 						suggestedMaxFeePerGas: fromWei(overrideGasPrice, 'gwei'),
-						suggestedMaxPriorityFeePerGas: fromWei(overrideGasPrice, 'gwei')
+						suggestedMaxPriorityFeePerGas: fromWei(overrideGasPrice, 'gwei'),
 						// eslint-disable-next-line no-mixed-spaces-and-tabs
 				  }
 				: null;
@@ -155,7 +154,7 @@ class Approve extends PureComponent {
 			const EIP1559GasData = this.parseTransactionDataEIP1559({
 				...initialGas,
 				suggestedGasLimit,
-				selectedOption: gasSelected
+				selectedOption: gasSelected,
 			});
 
 			let EIP1559GasDataTemp;
@@ -165,7 +164,7 @@ class Approve extends PureComponent {
 				EIP1559GasDataTemp = this.parseTransactionDataEIP1559({
 					...initialGasTemp,
 					suggestedGasLimit,
-					selectedOption: gasSelectedTemp
+					selectedOption: gasSelectedTemp,
 				});
 			}
 
@@ -179,7 +178,7 @@ class Approve extends PureComponent {
 					LegacyGasDataTemp: {},
 					animateOnChange: true,
 					gasSelected,
-					gasSelectedTemp
+					gasSelectedTemp,
 				},
 				() => {
 					this.setState({ animateOnChange: false });
@@ -188,7 +187,7 @@ class Approve extends PureComponent {
 		} else {
 			const suggestedGasLimit = fromWei(overrideGasLimit || transaction.gas, 'wei');
 
-			const getGas = selected =>
+			const getGas = (selected) =>
 				overrideGasPrice
 					? fromWei(overrideGasPrice, 'gwei')
 					: gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
@@ -198,7 +197,7 @@ class Approve extends PureComponent {
 			const LegacyGasData = this.parseTransactionDataLegacy(
 				{
 					suggestedGasPrice: getGas(gasSelected),
-					suggestedGasLimit
+					suggestedGasLimit,
 				},
 				{ onlyGas: true }
 			);
@@ -210,7 +209,7 @@ class Approve extends PureComponent {
 				LegacyGasDataTemp = this.parseTransactionDataLegacy(
 					{
 						suggestedGasPrice: getGas(gasSelectedTemp),
-						suggestedGasLimit
+						suggestedGasLimit,
 					},
 					{ onlyGas: true }
 				);
@@ -226,7 +225,7 @@ class Approve extends PureComponent {
 					EIP1559GasDataTemp: {},
 					animateOnChange: true,
 					gasSelected,
-					gasSelectedTemp
+					gasSelectedTemp,
 				},
 				() => {
 					this.setState({ animateOnChange: false });
@@ -259,7 +258,7 @@ class Approve extends PureComponent {
 		setTransactionObject({ gas: estimation.gas });
 	};
 
-	componentDidUpdate = prevProps => {
+	componentDidUpdate = (prevProps) => {
 		const { transaction } = this.props;
 
 		const gasEstimateTypeChanged = prevProps.gasEstimateType !== this.props.gasEstimateType;
@@ -280,7 +279,7 @@ class Approve extends PureComponent {
 		const parsedTransactionEIP1559 = parseTransactionEIP1559(
 			{
 				...this.props,
-				selectedGasFee: { ...gasFee, estimatedBaseFee: this.props.gasFeeEstimates.estimatedBaseFee }
+				selectedGasFee: { ...gasFee, estimatedBaseFee: this.props.gasFeeEstimates.estimatedBaseFee },
 			},
 			{ onlyGas: true }
 		);
@@ -293,7 +292,7 @@ class Approve extends PureComponent {
 		const parsedTransactionLegacy = parseTransactionLegacy(
 			{
 				...this.props,
-				selectedGasFee: gasFee
+				selectedGasFee: gasFee,
 			},
 			{ onlyGas: true }
 		);
@@ -311,7 +310,7 @@ class Approve extends PureComponent {
 		if (!approved) Engine.context.TransactionController.cancelTransaction(transaction.id);
 	};
 
-	handleAppStateChange = appState => {
+	handleAppStateChange = (appState) => {
 		if (appState !== 'active') {
 			const { transaction } = this.props;
 			transaction && transaction.id && Engine.context.TransactionController.cancelTransaction(transaction.id);
@@ -319,38 +318,16 @@ class Approve extends PureComponent {
 		}
 	};
 
-	handleFetchBasicEstimates = async () => {
-		this.setState({ ready: false });
-		const basicGasEstimates = await getBasicGasEstimatesByChainId();
-		if (basicGasEstimates) {
-			this.handleSetGasFee(this.props.transaction.gas, apiEstimateModifiedToWEI(basicGasEstimates.averageGwei));
-		}
-		return this.setState({ basicGasEstimates, ready: true });
-	};
-
-	trackApproveEvent = event => {
+	trackApproveEvent = (event) => {
 		const { transaction, tokensLength, accountsLength, providerType } = this.props;
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEventWithParameters(event, {
 				view: transaction.origin,
 				numberOfTokens: tokensLength,
 				numberOfAccounts: accountsLength,
-				network: providerType
+				network: providerType,
 			});
 		});
-	};
-
-	handleSetGasFee = (customGas, customGasPrice, warningGasPriceHigh) => {
-		const { setTransactionObject } = this.props;
-		this.setState({ gasEstimationReady: false });
-		this.setState({ warningGasPriceHigh });
-		setTransactionObject({ gas: customGas, gasPrice: customGasPrice });
-		setTimeout(() => {
-			this.setState({
-				gasEstimationReady: true,
-				errorMessage: undefined
-			});
-		}, 100);
 	};
 
 	cancelGasEdition = () => {
@@ -358,29 +335,29 @@ class Approve extends PureComponent {
 			EIP1559GasDataTemp: { ...this.state.EIP1559GasData },
 			LegacyGasDataTemp: { ...this.state.LegacyGasData },
 			stopUpdateGas: false,
-			gasSelectedTemp: this.state.gasSelected
+			gasSelectedTemp: this.state.gasSelected,
 		});
 		this.review();
 	};
 
-	saveGasEdition = gasSelected => {
+	saveGasEdition = (gasSelected) => {
 		this.setState({
 			EIP1559GasData: { ...this.state.EIP1559GasDataTemp },
 			LegacyGasData: { ...this.state.LegacyGasDataTemp },
 			gasSelected,
 			gasSelectedTemp: gasSelected,
 			advancedGasInserted: !gasSelected,
-			stopUpdateGas: false
+			stopUpdateGas: false,
 		});
 		this.review();
 	};
 
-	validateGas = total => {
+	validateGas = (total) => {
 		let error;
 		const {
 			ticker,
 			transaction: { from },
-			accounts
+			accounts,
 		} = this.props;
 
 		const fromAccount = accounts[safeToChecksumAddress(from)];
@@ -396,14 +373,14 @@ class Approve extends PureComponent {
 		return error;
 	};
 
-	prepareTransaction = transaction => {
+	prepareTransaction = (transaction) => {
 		const { gasEstimateType } = this.props;
 		const { LegacyGasData, EIP1559GasData } = this.state;
 		const transactionToSend = {
 			...transaction,
 			value: BNToHex(transaction.value),
 			to: safeToChecksumAddress(transaction.to),
-			from: safeToChecksumAddress(transaction.from)
+			from: safeToChecksumAddress(transaction.from),
 		};
 
 		if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
@@ -427,7 +404,7 @@ class Approve extends PureComponent {
 				...analyticsParams,
 				gas_estimate_type: gasEstimateType,
 				gas_mode: gasSelected ? 'Basic' : 'Advanced',
-				speed_set: gasSelected || undefined
+				speed_set: gasSelected || undefined,
 			};
 		} catch (error) {
 			return {};
@@ -437,21 +414,22 @@ class Approve extends PureComponent {
 	onConfirm = async () => {
 		const { TransactionController } = Engine.context;
 		const { transactions, gasEstimateType } = this.props;
-		const { EIP1559GasData, LegacyGasData } = this.state;
+		const { EIP1559GasData, LegacyGasData, transactionConfirmed } = this.state;
 
 		if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
 			if (this.validateGas(EIP1559GasData.totalMaxHex)) return;
 		} else if (this.validateGas(LegacyGasData.totalHex)) return;
-
+		if (transactionConfirmed) return;
+		this.setState({ transactionConfirmed: true });
 		try {
 			const transaction = this.prepareTransaction(this.props.transaction);
-			TransactionController.hub.once(`${transaction.id}:finished`, transactionMeta => {
+			TransactionController.hub.once(`${transaction.id}:finished`, (transactionMeta) => {
 				if (transactionMeta.status === 'submitted') {
 					this.setState({ approved: true });
 					this.props.toggleApproveModal();
 					NotificationManager.watchSubmittedTransaction({
 						...transactionMeta,
-						assetType: 'ETH'
+						assetType: 'ETH',
 					});
 				} else {
 					throw transactionMeta.error;
@@ -468,6 +446,7 @@ class Approve extends PureComponent {
 			Logger.error(error, 'error while trying to send transaction (Approve)');
 			this.setState({ transactionHandled: false });
 		}
+		this.setState({ transactionConfirmed: true });
 	};
 
 	onCancel = () => {
@@ -479,7 +458,7 @@ class Approve extends PureComponent {
 		this.onModeChange(REVIEW);
 	};
 
-	onModeChange = mode => {
+	onModeChange = (mode) => {
 		this.setState({ mode });
 		if (mode === EDIT) {
 			InteractionManager.runAfterInteractions(() => {
@@ -488,7 +467,7 @@ class Approve extends PureComponent {
 		}
 	};
 
-	setAnalyticsParams = analyticsParams => {
+	setAnalyticsParams = (analyticsParams) => {
 		this.setState({ analyticsParams });
 	};
 
@@ -501,7 +480,7 @@ class Approve extends PureComponent {
 				dapp_url: analyticsParams?.dapp_url,
 				active_currency: { value: analyticsParams?.active_currency, anonymous: true },
 				gas_estimate_type: gasEstimateType,
-				network_name: networkType
+				network_name: networkType,
 			};
 		} catch (error) {
 			return {};
@@ -516,7 +495,7 @@ class Approve extends PureComponent {
 		this.setState({
 			EIP1559GasDataTemp: this.parseTransactionDataEIP1559({ ...gas, selectedOption: selected }),
 			stopUpdateGas: !selected,
-			gasSelectedTemp: selected
+			gasSelectedTemp: selected,
 		});
 	};
 
@@ -528,7 +507,7 @@ class Approve extends PureComponent {
 		this.setState({
 			LegacyGasDataTemp: this.parseTransactionDataLegacy(gas),
 			stopUpdateGas: !selected,
-			gasSelectedTemp: selected
+			gasSelectedTemp: selected,
 		});
 	};
 
@@ -541,19 +520,17 @@ class Approve extends PureComponent {
 
 	render = () => {
 		const {
-			gasError,
-			basicGasEstimates,
 			mode,
 			ready,
 			over,
-			warningGasPriceHigh,
 			EIP1559GasData,
 			EIP1559GasDataTemp,
 			LegacyGasData,
 			LegacyGasDataTemp,
 			gasSelected,
 			animateOnChange,
-			isAnimating
+			isAnimating,
+			transactionConfirmed,
 		} = this.state;
 		const { transaction, gasEstimateType, gasFeeEstimates, primaryCurrency, chainId } = this.props;
 
@@ -578,7 +555,6 @@ class Approve extends PureComponent {
 						<AnimatedTransactionModal onModeChange={this.onModeChange} ready={ready} review={this.review}>
 							<ApproveTransactionReview
 								gasError={EIP1559GasData.error || LegacyGasData.error}
-								warningGasPriceHigh={warningGasPriceHigh}
 								onCancel={this.onCancel}
 								onConfirm={this.onConfirm}
 								over={over}
@@ -591,17 +567,10 @@ class Approve extends PureComponent {
 								animateOnChange={animateOnChange}
 								isAnimating={isAnimating}
 								gasEstimationReady={ready}
+								transactionConfirmed={transactionConfirmed}
 							/>
-							<CustomGas
-								handleGasFeeSelection={this.handleSetGasFee}
-								basicGasEstimates={basicGasEstimates}
-								gas={transaction.gas}
-								gasPrice={transaction.gasPrice}
-								gasError={gasError}
-								mode={mode}
-								view={'Approve'}
-								analyticsParams={this.getGasAnalyticsParams()}
-							/>
+							{/** View fixes layout issue after removing <CustomGas/> */}
+							<View />
 						</AnimatedTransactionModal>
 					)}
 
@@ -664,7 +633,7 @@ class Approve extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	transaction: getNormalizedTxState(state),
@@ -678,14 +647,11 @@ const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	nativeCurrency: state.engine.backgroundState.CurrencyRateController.nativeCurrency,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
-	networkType: state.engine.backgroundState.NetworkController.provider.type
+	networkType: state.engine.backgroundState.NetworkController.provider.type,
 });
 
-const mapDispatchToProps = dispatch => ({
-	setTransactionObject: transaction => dispatch(setTransactionObject(transaction))
+const mapDispatchToProps = (dispatch) => ({
+	setTransactionObject: (transaction) => dispatch(setTransactionObject(transaction)),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(Approve);
+export default connect(mapStateToProps, mapDispatchToProps)(Approve);

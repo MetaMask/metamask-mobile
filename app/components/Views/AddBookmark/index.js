@@ -9,22 +9,22 @@ import { getNavigationOptionsTitle } from '../../UI/Navbar';
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
-		flex: 1
+		flex: 1,
 	},
 	rowWrapper: {
-		padding: 20
+		padding: 20,
 	},
 	textInput: {
 		borderWidth: 1,
 		borderRadius: 4,
 		borderColor: colors.grey100,
 		padding: 16,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	warningText: {
 		color: colors.red,
-		...fontStyles.normal
-	}
+		...fontStyles.normal,
+	},
 });
 
 /**
@@ -35,7 +35,7 @@ export default class AddBookmark extends PureComponent {
 
 	state = {
 		title: '',
-		url: ''
+		url: '',
 	};
 
 	static propTypes = {
@@ -46,7 +46,7 @@ export default class AddBookmark extends PureComponent {
 		/**
 		 * Object that represents the current route info like params passed to it
 		 */
-		route: PropTypes.object
+		route: PropTypes.object,
 	};
 
 	componentDidMount() {
@@ -57,7 +57,7 @@ export default class AddBookmark extends PureComponent {
 		const { route } = this.props;
 		this.setState({
 			title: route.params?.title ?? '',
-			url: route.params?.url ?? ''
+			url: route.params?.url ?? '',
 		});
 	}
 
@@ -72,11 +72,11 @@ export default class AddBookmark extends PureComponent {
 		this.props.navigation.pop();
 	};
 
-	onTitleChange = title => {
+	onTitleChange = (title) => {
 		this.setState({ title });
 	};
 
-	onUrlChange = url => {
+	onUrlChange = (url) => {
 		this.setState({ url });
 	};
 

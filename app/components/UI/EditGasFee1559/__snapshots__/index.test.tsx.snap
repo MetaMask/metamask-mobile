@@ -1,0 +1,896 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`EditGasFee1559 should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "borderTopLeftRadius": 20,
+      "borderTopRightRadius": 20,
+      "maxHeight": "95%",
+      "minHeight": 200,
+      "paddingBottom": 32,
+      "paddingTop": 24,
+    }
+  }
+>
+  <ScrollView
+    style={
+      Object {
+        "paddingHorizontal": 24,
+      }
+    }
+  >
+    <TouchableWithoutFeedback>
+      <View>
+        <View>
+          <View
+            style={
+              Object {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "justifyContent": "space-between",
+                "paddingBottom": 20,
+                "width": "100%",
+              }
+            }
+          >
+            <TouchableOpacity>
+              <Icon
+                allowFontScaling={false}
+                color="#24292E"
+                name="ios-arrow-back"
+                size={24}
+              />
+            </TouchableOpacity>
+            <Text
+              black={true}
+              blue={false}
+              bold={true}
+              centered={false}
+              disclaimer={false}
+              green={false}
+              link={false}
+              modal={false}
+              primary={false}
+              red={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
+              underline={false}
+              upper={false}
+            >
+              Edit priority
+            </Text>
+            <Icon
+              allowFontScaling={false}
+              color="#FFFFFF"
+              name="ios-arrow-back"
+              size={24}
+            />
+          </View>
+        </View>
+        <FadeAnimationView
+          style={
+            Object {
+              "alignItems": "center",
+              "marginBottom": 22,
+            }
+          }
+          valueToWatch="undefinedundefined"
+        >
+          <View
+            style={
+              Object {
+                "flexDirection": "row",
+              }
+            }
+          >
+            <Text
+              adjustsFontSizeToFit={true}
+              black={true}
+              blue={false}
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              green={false}
+              link={false}
+              modal={false}
+              noMargin={true}
+              numberOfLines={1}
+              primary={false}
+              red={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
+              style={
+                Object {
+                  "flex": 1,
+                  "fontSize": 48,
+                  "textAlign": "center",
+                }
+              }
+              underline={false}
+              upper={false}
+            >
+              ~
+            </Text>
+          </View>
+          <Text
+            big={true}
+            black={true}
+            blue={false}
+            bold={false}
+            centered={false}
+            disclaimer={false}
+            green={false}
+            link={false}
+            modal={false}
+            noMargin={true}
+            primary={false}
+            red={false}
+            reset={false}
+            right={false}
+            small={false}
+            strikethrough={false}
+            style={
+              Object {
+                "marginBottom": 6,
+              }
+            }
+            underline={false}
+            upper={false}
+          >
+            <Text
+              black={true}
+              blue={false}
+              bold={true}
+              centered={false}
+              disclaimer={false}
+              green={false}
+              link={false}
+              modal={false}
+              noMargin={true}
+              primary={false}
+              red={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
+              underline={false}
+              upper={false}
+            >
+              Max fee
+              :
+               
+            </Text>
+             (
+            )
+          </Text>
+          <View
+            style={
+              Object {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <Text
+              black={false}
+              blue={false}
+              bold={true}
+              centered={false}
+              disclaimer={false}
+              green={false}
+              link={false}
+              modal={false}
+              primary={false}
+              red={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
+              underline={false}
+              upper={false}
+            />
+          </View>
+        </FadeAnimationView>
+        <View>
+          <FadeAnimationView
+            valueToWatch="undefinedundefined"
+          >
+            <View>
+              <HorizontalSelector
+                onPress={[Function]}
+                options={
+                  Array [
+                    Object {
+                      "label": [Function],
+                      "name": "low",
+                      "topLabel": false,
+                    },
+                    Object {
+                      "label": [Function],
+                      "name": "medium",
+                      "topLabel": false,
+                    },
+                    Object {
+                      "label": [Function],
+                      "name": "high",
+                      "topLabel": false,
+                    },
+                  ]
+                }
+              />
+            </View>
+            <View
+              style={
+                Object {
+                  "marginBottom": 30,
+                  "marginTop": 25,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  Object {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "justifyContent": "center",
+                  }
+                }
+              >
+                <Text
+                  black={false}
+                  blue={false}
+                  bold={true}
+                  centered={false}
+                  disclaimer={false}
+                  green={false}
+                  link={true}
+                  modal={false}
+                  noMargin={true}
+                  primary={false}
+                  red={false}
+                  reset={false}
+                  right={false}
+                  small={false}
+                  strikethrough={false}
+                  underline={false}
+                  upper={false}
+                >
+                  Advanced options
+                </Text>
+                <Text
+                  black={false}
+                  blue={false}
+                  bold={true}
+                  centered={false}
+                  disclaimer={false}
+                  green={false}
+                  link={true}
+                  modal={false}
+                  noMargin={true}
+                  primary={false}
+                  red={false}
+                  reset={false}
+                  right={false}
+                  small={false}
+                  strikethrough={false}
+                  style={
+                    Object {
+                      "marginLeft": 5,
+                      "paddingTop": 1,
+                    }
+                  }
+                  underline={false}
+                  upper={false}
+                >
+                  <Icon
+                    allowFontScaling={false}
+                    name="ios-arrow-up"
+                    size={12}
+                  />
+                </Text>
+              </TouchableOpacity>
+              <View
+                style={
+                  Object {
+                    "marginTop": 14,
+                  }
+                }
+              >
+                <View
+                  style={
+                    Object {
+                      "marginBottom": 20,
+                    }
+                  }
+                >
+                  <RangeInput
+                    increment={"1000"}
+                    leftLabelComponent={
+                      <View
+                        style={
+                          Object {
+                            "alignItems": "center",
+                            "flexDirection": "row",
+                          }
+                        }
+                      >
+                        <Text
+                          black={true}
+                          blue={false}
+                          bold={true}
+                          centered={false}
+                          disclaimer={false}
+                          green={false}
+                          link={false}
+                          modal={false}
+                          noMargin={true}
+                          primary={false}
+                          red={false}
+                          reset={false}
+                          right={false}
+                          small={false}
+                          strikethrough={false}
+                          underline={false}
+                          upper={false}
+                        >
+                          Gas limit
+                           
+                        </Text>
+                        <TouchableOpacity
+                          hitSlop={
+                            Object {
+                              "bottom": 10,
+                              "left": 10,
+                              "right": 10,
+                              "top": 10,
+                            }
+                          }
+                          onPress={[Function]}
+                        >
+                          <Icon
+                            allowFontScaling={false}
+                            name="information"
+                            size={14}
+                            style={
+                              Object {
+                                "color": "#bbc0c5",
+                              }
+                            }
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    }
+                    min={"21000"}
+                    name="Gas limit"
+                    onChangeValue={[Function]}
+                  />
+                </View>
+                <View
+                  style={
+                    Object {
+                      "marginBottom": 20,
+                    }
+                  }
+                >
+                  <RangeInput
+                    error={null}
+                    increment={"1"}
+                    leftLabelComponent={
+                      <View
+                        style={
+                          Object {
+                            "alignItems": "center",
+                            "flexDirection": "row",
+                          }
+                        }
+                      >
+                        <Text
+                          black={true}
+                          blue={false}
+                          bold={true}
+                          centered={false}
+                          disclaimer={false}
+                          green={false}
+                          link={false}
+                          modal={false}
+                          noMargin={true}
+                          primary={false}
+                          red={false}
+                          reset={false}
+                          right={false}
+                          small={false}
+                          strikethrough={false}
+                          underline={false}
+                          upper={false}
+                        >
+                          Max priority fee
+                           
+                        </Text>
+                        <TouchableOpacity
+                          hitSlop={
+                            Object {
+                              "bottom": 10,
+                              "left": 10,
+                              "right": 10,
+                              "top": 10,
+                            }
+                          }
+                          onPress={[Function]}
+                        >
+                          <Icon
+                            allowFontScaling={false}
+                            name="information"
+                            size={14}
+                            style={
+                              Object {
+                                "color": "#bbc0c5",
+                              }
+                            }
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    }
+                    min={"0.000001"}
+                    name="Max priority fee"
+                    onChangeValue={[Function]}
+                    rightLabelComponent={
+                      <Text
+                        black={false}
+                        blue={false}
+                        bold={false}
+                        centered={false}
+                        disclaimer={false}
+                        green={false}
+                        grey={true}
+                        link={false}
+                        modal={false}
+                        noMargin={true}
+                        primary={false}
+                        red={false}
+                        reset={false}
+                        right={false}
+                        small={true}
+                        strikethrough={false}
+                        underline={false}
+                        upper={false}
+                      >
+                        <Text
+                          black={false}
+                          blue={false}
+                          bold={true}
+                          centered={false}
+                          disclaimer={false}
+                          green={false}
+                          link={false}
+                          modal={false}
+                          primary={false}
+                          red={false}
+                          reset={true}
+                          right={false}
+                          small={false}
+                          strikethrough={false}
+                          underline={false}
+                          upper={false}
+                        >
+                          Estimate
+                          :
+                        </Text>
+                         
+                         GWEI
+                      </Text>
+                    }
+                    unit="GWEI"
+                    value="2"
+                  />
+                </View>
+                <View
+                  style={
+                    Object {
+                      "marginBottom": 20,
+                    }
+                  }
+                >
+                  <RangeInput
+                    error={null}
+                    increment={"1"}
+                    leftLabelComponent={
+                      <View
+                        style={
+                          Object {
+                            "alignItems": "center",
+                            "flexDirection": "row",
+                          }
+                        }
+                      >
+                        <Text
+                          black={true}
+                          blue={false}
+                          bold={true}
+                          centered={false}
+                          disclaimer={false}
+                          green={false}
+                          link={false}
+                          modal={false}
+                          noMargin={true}
+                          primary={false}
+                          red={false}
+                          reset={false}
+                          right={false}
+                          small={false}
+                          strikethrough={false}
+                          underline={false}
+                          upper={false}
+                        >
+                          Max fee
+                           
+                        </Text>
+                        <TouchableOpacity
+                          hitSlop={
+                            Object {
+                              "bottom": 10,
+                              "left": 10,
+                              "right": 10,
+                              "top": 10,
+                            }
+                          }
+                          onPress={[Function]}
+                        >
+                          <Icon
+                            allowFontScaling={false}
+                            name="information"
+                            size={14}
+                            style={
+                              Object {
+                                "color": "#bbc0c5",
+                              }
+                            }
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    }
+                    min={"0.000001"}
+                    name="Max fee"
+                    onChangeValue={[Function]}
+                    rightLabelComponent={
+                      <Text
+                        black={false}
+                        blue={false}
+                        bold={false}
+                        centered={false}
+                        disclaimer={false}
+                        green={false}
+                        grey={true}
+                        link={false}
+                        modal={false}
+                        noMargin={true}
+                        primary={false}
+                        red={false}
+                        reset={false}
+                        right={false}
+                        small={true}
+                        strikethrough={false}
+                        underline={false}
+                        upper={false}
+                      >
+                        <Text
+                          black={false}
+                          blue={false}
+                          bold={true}
+                          centered={false}
+                          disclaimer={false}
+                          green={false}
+                          link={false}
+                          modal={false}
+                          primary={false}
+                          red={false}
+                          reset={true}
+                          right={false}
+                          small={false}
+                          strikethrough={false}
+                          underline={false}
+                          upper={false}
+                        >
+                          Estimate
+                          :
+                        </Text>
+                         
+                         GWEI
+                      </Text>
+                    }
+                    unit="GWEI"
+                    value="50"
+                  />
+                </View>
+              </View>
+            </View>
+          </FadeAnimationView>
+          <View>
+            <TouchableOpacity
+              onPress={[Function]}
+              style={
+                Object {
+                  "marginBottom": 20,
+                }
+              }
+            >
+              <Text
+                black={false}
+                blue={false}
+                bold={false}
+                centered={true}
+                disclaimer={false}
+                green={false}
+                link={true}
+                modal={false}
+                primary={false}
+                red={false}
+                reset={false}
+                right={false}
+                small={false}
+                strikethrough={false}
+                underline={false}
+                upper={false}
+              >
+                How should I choose?
+              </Text>
+            </TouchableOpacity>
+            <StyledButton
+              disabledContainerStyle={
+                Object {
+                  "opacity": 0.6,
+                }
+              }
+              onPress={[Function]}
+              styleDisabled={
+                Object {
+                  "opacity": 0.6,
+                }
+              }
+              type="confirm"
+            >
+              Save
+            </StyledButton>
+          </View>
+        </View>
+        <InfoModal
+          body={
+            <View>
+              <Text
+                black={false}
+                blue={false}
+                bold={false}
+                centered={false}
+                disclaimer={false}
+                green={false}
+                grey={true}
+                infoModal={true}
+                link={false}
+                modal={false}
+                primary={false}
+                red={false}
+                reset={false}
+                right={false}
+                small={false}
+                strikethrough={false}
+                underline={false}
+                upper={false}
+              >
+                We have updated the gas fee based on current network conditions and have increased it by at least 10% (required by the network). 
+              </Text>
+            </View>
+          }
+          isVisible={false}
+          title={null}
+          toggleModal={[Function]}
+        />
+        <InfoModal
+          body={
+            <View
+              style={
+                Object {
+                  "maxHeight": 933.8,
+                }
+              }
+            >
+              <ScrollView>
+                <TouchableWithoutFeedback>
+                  <View>
+                    <Text
+                      black={false}
+                      blue={false}
+                      bold={false}
+                      centered={false}
+                      disclaimer={false}
+                      green={false}
+                      grey={true}
+                      infoModal={true}
+                      link={false}
+                      modal={false}
+                      noMargin={true}
+                      primary={false}
+                      red={false}
+                      reset={false}
+                      right={false}
+                      small={false}
+                      strikethrough={false}
+                      underline={false}
+                      upper={false}
+                    >
+                      Selecting the right gas fee depends on the type of transaction and how important it is to you.
+                    </Text>
+                    <Text
+                      black={false}
+                      blue={false}
+                      bold={true}
+                      centered={false}
+                      disclaimer={false}
+                      green={false}
+                      infoModal={true}
+                      link={false}
+                      modal={false}
+                      noMargin={true}
+                      primary={true}
+                      red={false}
+                      reset={false}
+                      right={false}
+                      small={false}
+                      strikethrough={false}
+                      style={
+                        Object {
+                          "marginTop": 9,
+                        }
+                      }
+                      underline={false}
+                      upper={false}
+                    >
+                      High
+                    </Text>
+                    <Text
+                      black={false}
+                      blue={false}
+                      bold={false}
+                      centered={false}
+                      disclaimer={false}
+                      green={false}
+                      grey={true}
+                      infoModal={true}
+                      link={false}
+                      modal={false}
+                      noMargin={true}
+                      primary={false}
+                      red={false}
+                      reset={false}
+                      right={false}
+                      small={false}
+                      strikethrough={false}
+                      underline={false}
+                      upper={false}
+                    >
+                      This is best for time sensitive transactions (like Swaps) as it increases the likelihood of a successful transaction. If a Swap takes too long to process it may fail and result in losing some of your gas fee.
+                    </Text>
+                    <Text
+                      black={false}
+                      blue={false}
+                      bold={true}
+                      centered={false}
+                      disclaimer={false}
+                      green={false}
+                      infoModal={true}
+                      link={false}
+                      modal={false}
+                      noMargin={true}
+                      primary={true}
+                      red={false}
+                      reset={false}
+                      right={false}
+                      small={false}
+                      strikethrough={false}
+                      style={
+                        Object {
+                          "marginTop": 9,
+                        }
+                      }
+                      underline={false}
+                      upper={false}
+                    >
+                      Medium
+                    </Text>
+                    <Text
+                      black={false}
+                      blue={false}
+                      bold={false}
+                      centered={false}
+                      disclaimer={false}
+                      green={false}
+                      grey={true}
+                      infoModal={true}
+                      link={false}
+                      modal={false}
+                      noMargin={true}
+                      primary={false}
+                      red={false}
+                      reset={false}
+                      right={false}
+                      small={false}
+                      strikethrough={false}
+                      underline={false}
+                      upper={false}
+                    >
+                      A medium gas fee is good for sending, withdrawing or other non-time sensitive transactions. This setting will most often result in a successful transaction.
+                    </Text>
+                    <Text
+                      black={false}
+                      blue={false}
+                      bold={true}
+                      centered={false}
+                      disclaimer={false}
+                      green={false}
+                      infoModal={true}
+                      link={false}
+                      modal={false}
+                      noMargin={true}
+                      primary={true}
+                      red={false}
+                      reset={false}
+                      right={false}
+                      small={false}
+                      strikethrough={false}
+                      style={
+                        Object {
+                          "marginTop": 9,
+                        }
+                      }
+                      underline={false}
+                      upper={false}
+                    >
+                      Low
+                    </Text>
+                    <Text
+                      black={false}
+                      blue={false}
+                      bold={false}
+                      centered={false}
+                      disclaimer={false}
+                      green={false}
+                      grey={true}
+                      infoModal={true}
+                      link={false}
+                      modal={false}
+                      noMargin={true}
+                      primary={false}
+                      red={false}
+                      reset={false}
+                      right={false}
+                      small={false}
+                      strikethrough={false}
+                      underline={false}
+                      upper={false}
+                    >
+                      A low gas fee should only be used for unimportant transactions or when network traffic is very low. With a lower fee it can be hard to predict when (or if) your transaction will be successful.
+                    </Text>
+                  </View>
+                </TouchableWithoutFeedback>
+              </ScrollView>
+            </View>
+          }
+          isVisible={false}
+          propagateSwipe={true}
+          title="How should I choose?"
+          toggleModal={[Function]}
+        />
+        <TimeEstimateInfoModal
+          isVisible={false}
+          onHideModal={[Function]}
+        />
+      </View>
+    </TouchableWithoutFeedback>
+  </ScrollView>
+</View>
+`;

@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, Image, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, Image, TouchableOpacity, InteractionManager } from 'react-native';
 import ActionModal from '../ActionModal';
 import { fontStyles, colors } from '../../../styles/common';
 import { connect } from 'react-redux';
@@ -8,6 +8,7 @@ import { protectWalletModalNotVisible } from '../../../actions/user';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
 import scaling from '../../../util/scaling';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 const protectWalletImage = require('../../../images/protect-wallet.jpg'); // eslint-disable-line
 
@@ -15,48 +16,48 @@ const styles = StyleSheet.create({
 	wrapper: {
 		marginTop: 24,
 		marginHorizontal: 24,
-		flex: 1
+		flex: 1,
 	},
 	title: {
 		...fontStyles.bold,
 		color: colors.black,
 		textAlign: 'center',
 		fontSize: 20,
-		flex: 1
+		flex: 1,
 	},
 	imageWrapper: { flexDirection: 'column', alignItems: 'center', marginBottom: 12, marginTop: 30 },
 	image: {
 		width: scaling.scale(135, { baseModel: 1 }),
-		height: scaling.scale(160, { baseModel: 1 })
+		height: scaling.scale(160, { baseModel: 1 }),
 	},
 	text: {
 		...fontStyles.normal,
 		color: colors.black,
 		textAlign: 'center',
 		fontSize: 14,
-		marginBottom: 24
+		marginBottom: 24,
 	},
 	closeIcon: {
-		padding: 5
+		padding: 5,
 	},
 	learnMoreText: {
 		textAlign: 'center',
 		...fontStyles.normal,
 		color: colors.blue,
 		marginBottom: 14,
-		fontSize: 14
+		fontSize: 14,
 	},
 	modalXIcon: {
-		fontSize: 16
+		fontSize: 16,
 	},
 	titleWrapper: {
 		flexDirection: 'row',
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	auxCenter: {
-		width: 26
-	}
+		width: 26,
+	},
 });
 
 /**
@@ -76,7 +77,7 @@ class ProtectYourWalletModal extends PureComponent {
 		/**
 		 * Boolean that determines if the user has set a password before
 		 */
-		passwordSet: PropTypes.bool
+		passwordSet: PropTypes.bool,
 	};
 
 	goToBackupFlow = () => {
@@ -85,6 +86,12 @@ class ProtectYourWalletModal extends PureComponent {
 			'SetPasswordFlow',
 			this.props.passwordSet ? { screen: 'AccountBackupStep1' } : undefined
 		);
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_ENGAGED, {
+				wallet_protection_required: false,
+				source: 'Modal',
+			});
+		});
 	};
 
 	onLearnMore = () => {
@@ -93,8 +100,18 @@ class ProtectYourWalletModal extends PureComponent {
 			screen: 'SimpleWebview',
 			params: {
 				url: 'https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-Tips',
-				title: strings('protect_wallet_modal.title')
-			}
+				title: strings('protect_wallet_modal.title'),
+			},
+		});
+	};
+
+	onDismiss = () => {
+		this.props.protectWalletModalNotVisible();
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_DISMISSED, {
+				wallet_protection_required: false,
+				source: 'Modal',
+			});
 		});
 	};
 
@@ -105,8 +122,8 @@ class ProtectYourWalletModal extends PureComponent {
 				cancelText={strings('protect_wallet_modal.top_button')}
 				confirmText={strings('protect_wallet_modal.bottom_button')}
 				onCancelPress={this.goToBackupFlow}
-				onRequestClose={this.props.protectWalletModalNotVisible}
-				onConfirmPress={this.props.protectWalletModalNotVisible}
+				onRequestClose={this.onDismiss}
+				onConfirmPress={this.onDismiss}
 				cancelButtonMode={'sign'}
 				confirmButtonMode={'transparent-blue'}
 				verticalButtons
@@ -116,7 +133,7 @@ class ProtectYourWalletModal extends PureComponent {
 						<View style={styles.auxCenter} />
 						<Text style={styles.title}>{strings('protect_wallet_modal.title')}</Text>
 						<TouchableOpacity
-							onPress={this.props.protectWalletModalNotVisible}
+							onPress={this.onDismiss}
 							style={styles.closeIcon}
 							hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
 						>
@@ -141,16 +158,13 @@ class ProtectYourWalletModal extends PureComponent {
 	}
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	protectWalletModalVisible: state.user.protectWalletModalVisible,
-	passwordSet: state.user.passwordSet
+	passwordSet: state.user.passwordSet,
 });
 
-const mapDispatchToProps = dispatch => ({
-	protectWalletModalNotVisible: enable => dispatch(protectWalletModalNotVisible())
+const mapDispatchToProps = (dispatch) => ({
+	protectWalletModalNotVisible: (enable) => dispatch(protectWalletModalNotVisible()),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(ProtectYourWalletModal);
+export default connect(mapStateToProps, mapDispatchToProps)(ProtectYourWalletModal);

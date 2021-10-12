@@ -11,23 +11,23 @@ const styles = StyleSheet.create({
 		width: 50,
 		height: 50,
 		borderRadius: 10,
-		overflow: 'hidden'
+		overflow: 'hidden',
 	},
 	fullWrapper: {
 		width: 260,
 		height: 260,
 		flex: 1,
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	listImage: {
 		width: 50,
-		height: 50
+		height: 50,
 	},
 	fullImage: {
 		height: 260,
-		width: 260
-	}
+		width: 260,
+	},
 });
 
 /**
@@ -83,5 +83,5 @@ CollectibleMediaPlayer.propTypes = {
 	/**
 	 * Image style
 	 */
-	iconStyle: PropTypes.object
+	iconStyle: PropTypes.object,
 };

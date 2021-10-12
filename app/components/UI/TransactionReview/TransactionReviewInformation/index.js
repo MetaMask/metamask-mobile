@@ -12,7 +12,7 @@ import {
 	balanceToFiatNumber,
 	renderFromTokenMinimalUnit,
 	renderFromWei,
-	BNToHex
+	BNToHex,
 } from '../../../../util/number';
 import { strings } from '../../../../../locales/i18n';
 import {
@@ -20,7 +20,7 @@ import {
 	getNormalizedTxState,
 	calculateAmountsEIP1559,
 	calculateEthEIP1559,
-	calculateERC20EIP1559
+	calculateERC20EIP1559,
 } from '../../../../util/transactions';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
@@ -31,6 +31,7 @@ import { setNonce, setProposedNonce } from '../../../../actions/transaction';
 import TransactionReviewEIP1559 from '../TransactionReviewEIP1559';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import CustomNonce from '../../../UI/CustomNonce';
+import Logger from '../../../../util/Logger';
 
 const styles = StyleSheet.create({
 	overviewAlert: {
@@ -43,32 +44,32 @@ const styles = StyleSheet.create({
 		height: 32,
 		paddingHorizontal: 16,
 		marginHorizontal: 24,
-		marginTop: 12
+		marginTop: 12,
 	},
 	overviewAlertText: {
 		...fontStyles.normal,
 		color: colors.red,
 		flex: 1,
 		fontSize: 12,
-		marginLeft: 8
+		marginLeft: 8,
 	},
 	overviewAlertIcon: {
 		color: colors.red,
-		flex: 0
+		flex: 0,
 	},
 	viewDataWrapper: {
 		flex: 1,
-		marginTop: 16
+		marginTop: 16,
 	},
 	viewDataButton: {
-		alignSelf: 'center'
+		alignSelf: 'center',
 	},
 	viewDataText: {
 		color: colors.blue,
 		textAlign: 'center',
 		fontSize: 12,
 		...fontStyles.bold,
-		alignSelf: 'center'
+		alignSelf: 'center',
 	},
 	errorWrapper: {
 		marginHorizontal: 24,
@@ -80,19 +81,19 @@ const styles = StyleSheet.create({
 		borderRadius: 8,
 		borderWidth: 1,
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	error: {
 		color: colors.red,
 		fontSize: 12,
 		lineHeight: 16,
 		...fontStyles.normal,
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	underline: {
 		textDecorationLine: 'underline',
-		...fontStyles.bold
-	}
+		...fontStyles.bold,
+	},
 });
 
 /**
@@ -191,14 +192,14 @@ class TransactionReviewInformation extends PureComponent {
 		/**
 		 * If it's a eip1559 network and dapp suggest legact gas then it should show a warning
 		 */
-		originWarning: PropTypes.bool
+		originWarning: PropTypes.bool,
 	};
 
 	state = {
 		toFocused: false,
 		amountError: '',
 		actionKey: strings('transactions.tx_review_confirm'),
-		nonceModalVisible: false
+		nonceModalVisible: false,
 	};
 
 	componentDidMount = async () => {
@@ -213,7 +214,7 @@ class TransactionReviewInformation extends PureComponent {
 		setProposedNonce(proposedNonce);
 	};
 
-	toggleNonceModal = () => this.setState(state => ({ nonceModalVisible: !state.nonceModalVisible }));
+	toggleNonceModal = () => this.setState((state) => ({ nonceModalVisible: !state.nonceModalVisible }));
 
 	renderCustomNonceModal = () => {
 		const { setNonce } = this.props;
@@ -241,7 +242,11 @@ class TransactionReviewInformation extends PureComponent {
 		const { navigation } = this.props;
 		/* this is kinda weird, we have to reject the transaction to collapse the modal */
 		this.onCancelPress();
-		navigation.navigate('FiatOnRamp');
+		try {
+			navigation.navigate('FiatOnRamp');
+		} catch (error) {
+			Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
+		}
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST);
 		});
@@ -258,7 +263,7 @@ class TransactionReviewInformation extends PureComponent {
 			currentCurrency,
 			conversionRate,
 			contractExchangeRates,
-			ticker
+			ticker,
 		} = this.props;
 
 		const totals = {
@@ -293,7 +298,7 @@ class TransactionReviewInformation extends PureComponent {
 				)} ${getTicker(ticker)}`;
 				return [totalFiat, totalValue];
 			},
-			default: () => [undefined, undefined]
+			default: () => [undefined, undefined],
 		};
 		return totals[assetType] || totals.default;
 	};
@@ -304,19 +309,8 @@ class TransactionReviewInformation extends PureComponent {
 			nativeCurrency,
 			currentCurrency,
 			conversionRate,
-			contractExchangeRates
+			contractExchangeRates,
 		} = this.props;
-
-		const { totalMinNative, totalMinConversion, totalMaxNative, totalMaxConversion } = calculateAmountsEIP1559({
-			value: value && BNToHex(value),
-			nativeCurrency,
-			currentCurrency,
-			conversionRate,
-			gasFeeMinConversion,
-			gasFeeMinNative,
-			gasFeeMaxNative,
-			gasFeeMaxConversion
-		});
 
 		let renderableTotalMinNative,
 			renderableTotalMinConversion,
@@ -325,28 +319,52 @@ class TransactionReviewInformation extends PureComponent {
 
 		const totals = {
 			ETH: () => {
+				const { totalMinNative, totalMinConversion, totalMaxNative, totalMaxConversion } =
+					calculateAmountsEIP1559({
+						value: value && BNToHex(value),
+						nativeCurrency,
+						currentCurrency,
+						conversionRate,
+						gasFeeMinConversion,
+						gasFeeMinNative,
+						gasFeeMaxNative,
+						gasFeeMaxConversion,
+					});
+
 				[
 					renderableTotalMinNative,
 					renderableTotalMinConversion,
 					renderableTotalMaxNative,
-					renderableTotalMaxConversion
+					renderableTotalMaxConversion,
 				] = calculateEthEIP1559({
 					nativeCurrency,
 					currentCurrency,
 					totalMinNative,
 					totalMinConversion,
 					totalMaxNative,
-					totalMaxConversion
+					totalMaxConversion,
 				});
 
 				return [
 					renderableTotalMinNative,
 					renderableTotalMinConversion,
 					renderableTotalMaxNative,
-					renderableTotalMaxConversion
+					renderableTotalMaxConversion,
 				];
 			},
 			ERC20: () => {
+				const { totalMinNative, totalMinConversion, totalMaxNative, totalMaxConversion } =
+					calculateAmountsEIP1559({
+						value: '0x0',
+						nativeCurrency,
+						currentCurrency,
+						conversionRate,
+						gasFeeMinConversion,
+						gasFeeMinNative,
+						gasFeeMaxNative,
+						gasFeeMaxConversion,
+					});
+
 				const tokenAmount = renderFromTokenMinimalUnit(value, selectedAsset.decimals);
 				const exchangeRate = contractExchangeRates[selectedAsset.address];
 				const symbol = selectedAsset.symbol;
@@ -355,7 +373,7 @@ class TransactionReviewInformation extends PureComponent {
 					renderableTotalMinNative,
 					renderableTotalMinConversion,
 					renderableTotalMaxNative,
-					renderableTotalMaxConversion
+					renderableTotalMaxConversion,
 				] = calculateERC20EIP1559({
 					currentCurrency,
 					nativeCurrency,
@@ -366,46 +384,58 @@ class TransactionReviewInformation extends PureComponent {
 					totalMaxConversion,
 					symbol,
 					totalMinNative,
-					totalMaxNative
+					totalMaxNative,
 				});
 				return [
 					renderableTotalMinNative,
 					renderableTotalMinConversion,
 					renderableTotalMaxNative,
-					renderableTotalMaxConversion
+					renderableTotalMaxConversion,
 				];
 			},
 			ERC721: () => {
+				const { totalMinNative, totalMinConversion, totalMaxNative, totalMaxConversion } =
+					calculateAmountsEIP1559({
+						value: '0x0',
+						nativeCurrency,
+						currentCurrency,
+						conversionRate,
+						gasFeeMinConversion,
+						gasFeeMinNative,
+						gasFeeMaxNative,
+						gasFeeMaxConversion,
+					});
+
 				[
 					renderableTotalMinNative,
 					renderableTotalMinConversion,
 					renderableTotalMaxNative,
-					renderableTotalMaxConversion
+					renderableTotalMaxConversion,
 				] = calculateEthEIP1559({
 					nativeCurrency,
 					currentCurrency,
 					totalMinNative,
 					totalMinConversion,
 					totalMaxNative,
-					totalMaxConversion
+					totalMaxConversion,
 				});
 
-				renderableTotalMinNative = `${selectedAsset.name} ${' (#' +
-					selectedAsset.tokenId +
-					')'} + ${renderableTotalMinNative}`;
+				renderableTotalMinNative = `${selectedAsset.name} ${
+					' (#' + selectedAsset.tokenId + ')'
+				} + ${renderableTotalMinNative}`;
 
-				renderableTotalMaxNative = `${selectedAsset.name} ${' (#' +
-					selectedAsset.tokenId +
-					')'} + ${renderableTotalMaxNative}`;
+				renderableTotalMaxNative = `${selectedAsset.name} ${
+					' (#' + selectedAsset.tokenId + ')'
+				} + ${renderableTotalMaxNative}`;
 
 				return [
 					renderableTotalMinNative,
 					renderableTotalMinConversion,
 					renderableTotalMaxNative,
-					renderableTotalMaxConversion
+					renderableTotalMaxConversion,
 				];
 			},
-			default: () => [undefined, undefined]
+			default: () => [undefined, undefined],
 		};
 		return totals[assetType] || totals.default;
 	};
@@ -420,7 +450,7 @@ class TransactionReviewInformation extends PureComponent {
 		InteractionManager.runAfterInteractions(() => {
 			this.onCancelPress();
 			this.props.navigation.navigate('BrowserView', {
-				newTabUrl: mmFaucetUrl
+				newTabUrl: mmFaucetUrl,
 			});
 		});
 	};
@@ -435,17 +465,14 @@ class TransactionReviewInformation extends PureComponent {
 			onUpdatingValuesEnd,
 			animateOnChange,
 			isAnimating,
-			ready
+			ready,
 		} = this.props;
 		let host;
 		if (origin) {
 			host = new URL(origin).hostname;
 		}
-		const [
-			renderableTotalMinNative,
-			renderableTotalMinConversion,
-			renderableTotalMaxNative
-		] = this.getRenderTotalsEIP1559(EIP1559GasData)();
+		const [renderableTotalMinNative, renderableTotalMinConversion, renderableTotalMaxNative] =
+			this.getRenderTotalsEIP1559(EIP1559GasData)();
 		return (
 			<TransactionReviewEIP1559
 				totalNative={renderableTotalMinNative}
@@ -483,7 +510,7 @@ class TransactionReviewInformation extends PureComponent {
 			onUpdatingValuesStart,
 			onUpdatingValuesEnd,
 			animateOnChange,
-			isAnimating
+			isAnimating,
 		} = this.props;
 
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
@@ -518,7 +545,7 @@ class TransactionReviewInformation extends PureComponent {
 			over,
 			network,
 			showCustomNonce,
-			gasEstimateType
+			gasEstimateType,
 		} = this.props;
 		const { nonce } = this.props.transaction;
 
@@ -576,7 +603,7 @@ class TransactionReviewInformation extends PureComponent {
 	}
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	network: state.engine.backgroundState.NetworkController.network,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
@@ -585,15 +612,12 @@ const mapStateToProps = state => ({
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	primaryCurrency: state.settings.primaryCurrency,
 	showCustomNonce: state.settings.showCustomNonce,
-	nativeCurrency: state.engine.backgroundState.CurrencyRateController.nativeCurrency
+	nativeCurrency: state.engine.backgroundState.CurrencyRateController.nativeCurrency,
 });
 
-const mapDispatchToProps = dispatch => ({
-	setNonce: nonce => dispatch(setNonce(nonce)),
-	setProposedNonce: nonce => dispatch(setProposedNonce(nonce))
+const mapDispatchToProps = (dispatch) => ({
+	setNonce: (nonce) => dispatch(setNonce(nonce)),
+	setProposedNonce: (nonce) => dispatch(setProposedNonce(nonce)),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(TransactionReviewInformation);
+export default connect(mapStateToProps, mapDispatchToProps)(TransactionReviewInformation);

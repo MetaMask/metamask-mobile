@@ -4,7 +4,7 @@ import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
 import TransactionEditor from '../../UI/TransactionEditor';
 import Modal from 'react-native-modal';
-import { addHexPrefix, BNToHex, hexToBN } from '../../../util/number';
+import { addHexPrefix, BNToHex } from '../../../util/number';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { resetTransaction } from '../../../actions/transaction';
 import { connect } from 'react-redux';
@@ -26,8 +26,8 @@ const APPROVAL = 'Approval';
 const styles = StyleSheet.create({
 	bottomModal: {
 		justifyContent: 'flex-end',
-		margin: 0
-	}
+		margin: 0,
+	},
 });
 
 /**
@@ -78,12 +78,13 @@ class Approval extends PureComponent {
 		/**
 		 * A string representing the network chainId
 		 */
-		chainId: PropTypes.string
+		chainId: PropTypes.string,
 	};
 
 	state = {
 		mode: REVIEW,
-		transactionHandled: false
+		transactionHandled: false,
+		transactionConfirmed: false,
 	};
 
 	componentWillUnmount = () => {
@@ -97,7 +98,7 @@ class Approval extends PureComponent {
 		this.clear();
 	};
 
-	handleAppStateChange = appState => {
+	handleAppStateChange = (appState) => {
 		if (appState !== 'active') {
 			const { transaction } = this.props;
 			transaction && transaction.id && Engine.context.TransactionController.cancelTransaction(transaction.id);
@@ -128,7 +129,7 @@ class Approval extends PureComponent {
 		const actionKey = await getTransactionReviewActionKey(transaction);
 		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.TRANSACTIONS_EDIT_TRANSACTION, {
 			...this.getTrackingParams(),
-			actionKey
+			actionKey,
 		});
 	};
 
@@ -143,16 +144,6 @@ class Approval extends PureComponent {
 	};
 
 	/**
-	 * Call Analytics to track confirm pressed
-	 */
-	trackOnConfirm = () => {
-		Analytics.trackEventWithParameters(
-			ANALYTICS_EVENT_OPTS.TRANSACTIONS_COMPLETED_TRANSACTION,
-			this.getTrackingParams()
-		);
-	};
-
-	/**
 	 * Returns corresponding tracking params to send
 	 *
 	 * @return {object} - Object containing view, network, activeCurrency and assetType
@@ -160,13 +151,13 @@ class Approval extends PureComponent {
 	getTrackingParams = () => {
 		const {
 			networkType,
-			transaction: { selectedAsset, assetType }
+			transaction: { selectedAsset, assetType },
 		} = this.props;
 		return {
 			view: APPROVAL,
 			network: networkType,
 			activeCurrency: selectedAsset.symbol || selectedAsset.contractName,
-			assetType
+			assetType,
 		};
 	};
 
@@ -183,7 +174,7 @@ class Approval extends PureComponent {
 				asset_type: { value: transaction?.assetType, anonymous: true },
 				gas_estimate_type: gasEstimateType,
 				gas_mode: gasSelected ? 'Basic' : 'Advanced',
-				speed_set: gasSelected || undefined
+				speed_set: gasSelected || undefined,
 			};
 		} catch (error) {
 			return {};
@@ -208,7 +199,7 @@ class Approval extends PureComponent {
 					title: confirmation
 						? strings('notifications.wc_sent_tx_title')
 						: strings('notifications.wc_sent_tx_rejected_title'),
-					description: strings('notifications.wc_description')
+					description: strings('notifications.wc_description'),
 				});
 		});
 	};
@@ -228,12 +219,14 @@ class Approval extends PureComponent {
 		const {
 			transactions,
 			transaction: { assetType, selectedAsset },
-			showCustomNonce
+			showCustomNonce,
 		} = this.props;
 		let { transaction } = this.props;
 		const { nonce } = transaction;
+		const { transactionConfirmed } = this.state;
+		if (transactionConfirmed) return;
 		if (showCustomNonce && nonce) transaction.nonce = BNToHex(nonce);
-
+		this.setState({ transactionConfirmed: true });
 		try {
 			if (assetType === 'ETH') {
 				transaction = this.prepareTransaction({ transaction, gasEstimateType, EIP1559GasData });
@@ -242,17 +235,17 @@ class Approval extends PureComponent {
 					transaction,
 					selectedAsset,
 					gasEstimateType,
-					EIP1559GasData
+					EIP1559GasData,
 				});
 			}
 
-			TransactionController.hub.once(`${transaction.id}:finished`, transactionMeta => {
+			TransactionController.hub.once(`${transaction.id}:finished`, (transactionMeta) => {
 				if (transactionMeta.status === 'submitted') {
 					this.setState({ transactionHandled: true });
 					this.props.toggleDappTransactionModal();
 					NotificationManager.watchSubmittedTransaction({
 						...transactionMeta,
-						assetType: transaction.assetType
+						assetType: transaction.assetType,
 					});
 				} else {
 					throw transactionMeta.error;
@@ -266,7 +259,7 @@ class Approval extends PureComponent {
 			this.showWalletConnectNotification(true);
 		} catch (error) {
 			Alert.alert(strings('transactions.transaction_error'), error && error.message, [
-				{ text: strings('navigation.ok') }
+				{ text: strings('navigation.ok') },
 			]);
 			Logger.error(error, 'error while trying to send transaction (Approval)');
 			this.setState({ transactionHandled: false });
@@ -275,6 +268,7 @@ class Approval extends PureComponent {
 			AnalyticsV2.ANALYTICS_EVENTS.DAPP_TRANSACTION_COMPLETED,
 			this.getAnalyticsParams({ gasEstimateType, gasSelected })
 		);
+		this.setState({ transactionConfirmed: false });
 	};
 
 	/**
@@ -283,7 +277,7 @@ class Approval extends PureComponent {
 	 *
 	 * @param mode - Transaction mode, review or edit
 	 */
-	onModeChange = mode => {
+	onModeChange = (mode) => {
 		const { navigation } = this.props;
 		navigation && navigation.setParams({ mode });
 		this.setState({ mode });
@@ -302,7 +296,7 @@ class Approval extends PureComponent {
 		const transactionToSend = {
 			...transaction,
 			value: BNToHex(transaction.value),
-			to: safeToChecksumAddress(transaction.to)
+			to: safeToChecksumAddress(transaction.to),
 		};
 
 		if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
@@ -330,14 +324,13 @@ class Approval extends PureComponent {
 		const transactionToSend = {
 			...transaction,
 			value: '0x0',
-			to: selectedAsset.address
+			to: selectedAsset.address,
 		};
 
 		if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
 			transactionToSend.gas = EIP1559GasData.gasLimitHex;
 			transactionToSend.maxFeePerGas = addHexPrefix(EIP1559GasData.suggestedMaxFeePerGasHex); //'0x2540be400'
 			transactionToSend.maxPriorityFeePerGas = addHexPrefix(EIP1559GasData.suggestedMaxPriorityFeePerGasHex); //'0x3b9aca00';
-			transactionToSend.to = safeToChecksumAddress(transaction.to);
 			delete transactionToSend.gasPrice;
 		} else {
 			transactionToSend.gas = BNToHex(transaction.gas);
@@ -347,16 +340,9 @@ class Approval extends PureComponent {
 		return transactionToSend;
 	};
 
-	sanitizeTransaction(transaction) {
-		transaction.gas = hexToBN(transaction.gas);
-		transaction.gasPrice = hexToBN(transaction.gasPrice);
-		transaction.value = hexToBN(transaction.value);
-		return transaction;
-	}
-
 	render = () => {
 		const { transaction, dappTransactionModalVisible } = this.props;
-		const { mode } = this.state;
+		const { mode, transactionConfirmed } = this.state;
 		return (
 			<Modal
 				isVisible={dappTransactionModalVisible}
@@ -380,26 +366,24 @@ class Approval extends PureComponent {
 					onModeChange={this.onModeChange}
 					transaction={transaction}
 					dappTransactionModalVisible={dappTransactionModalVisible}
+					transactionConfirmed={transactionConfirmed}
 				/>
 			</Modal>
 		);
 	};
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	transaction: getNormalizedTxState(state),
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	showCustomNonce: state.settings.showCustomNonce,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-	activeTabUrl: getActiveTabUrl(state)
+	activeTabUrl: getActiveTabUrl(state),
 });
 
-const mapDispatchToProps = dispatch => ({
-	resetTransaction: () => dispatch(resetTransaction())
+const mapDispatchToProps = (dispatch) => ({
+	resetTransaction: () => dispatch(resetTransaction()),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(Approval);
+export default connect(mapStateToProps, mapDispatchToProps)(Approval);

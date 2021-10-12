@@ -8,24 +8,26 @@ import { colors, fontStyles } from '../../../../styles/common';
 import AccountOverview from '../../AccountOverview';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
-import Device from '../../../../util/Device';
+import Device from '../../../../util/device';
+import AnalyticsV2 from '../../../../util/analyticsV2';
+import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../../util/analytics';
 
 const styles = StyleSheet.create({
 	main: {
 		flex: 1,
-		position: 'absolute'
+		position: 'absolute',
 	},
 	coachmarkContainer: {
 		flex: 1,
 		left: 0,
-		right: 0
+		right: 0,
 	},
 	accountLabelContainer: {
 		flex: 1,
 		width: Dimensions.get('window').width,
 		alignItems: 'center',
-		backgroundColor: colors.transparent
-	}
+		backgroundColor: colors.transparent,
+	},
 });
 
 class Step3 extends PureComponent {
@@ -53,14 +55,14 @@ class Step3 extends PureComponent {
 		/**
 		 * Coachmark ref to get position
 		 */
-		coachmarkRef: PropTypes.object
+		coachmarkRef: PropTypes.object,
 	};
 
 	state = {
 		coachmarkTop: 0,
 		viewTop: 0,
 		coachmarkTopReady: false,
-		viewTopReady: false
+		viewTopReady: false,
 	};
 
 	/**
@@ -74,13 +76,13 @@ class Step3 extends PureComponent {
 	/**
 	 * Sets coachmark top position getting AccountOverview component ref from Wallet
 	 */
-	getCoachmarkPosition = ref => {
+	getCoachmarkPosition = (ref) => {
 		ref &&
 			ref.current &&
 			ref.current.measure((fx, fy, width, height) => {
 				this.setState({
 					coachmarkTop: 2 * height,
-					coachmarkTopReady: true
+					coachmarkTopReady: true,
 				});
 			});
 	};
@@ -88,7 +90,7 @@ class Step3 extends PureComponent {
 	/**
 	 * Sets view top position getting accountOverview component ref from Wallet
 	 */
-	getViewPosition = ref => {
+	getViewPosition = (ref) => {
 		ref &&
 			ref.current &&
 			ref.current.measure((fx, fy, width, height, px, py) => {
@@ -96,7 +98,7 @@ class Step3 extends PureComponent {
 				const viewTop = Device.isIos() ? py : py + 1;
 				this.setState({
 					viewTop,
-					viewTopReady: true
+					viewTopReady: true,
 				});
 			});
 	};
@@ -107,6 +109,10 @@ class Step3 extends PureComponent {
 	onNext = () => {
 		const { setOnboardingWizardStep } = this.props;
 		setOnboardingWizardStep && setOnboardingWizardStep(4);
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_STEP_COMPLETED, {
+			tutorial_step_count: 3,
+			tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[3],
+		});
 	};
 
 	/**
@@ -115,6 +121,10 @@ class Step3 extends PureComponent {
 	onBack = () => {
 		const { setOnboardingWizardStep } = this.props;
 		setOnboardingWizardStep && setOnboardingWizardStep(2);
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_STEP_REVISITED, {
+			tutorial_step_count: 3,
+			tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[3],
+		});
 	};
 
 	/**
@@ -158,18 +168,15 @@ class Step3 extends PureComponent {
 	}
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	identities: state.engine.backgroundState.PreferencesController.identities
+	identities: state.engine.backgroundState.PreferencesController.identities,
 });
 
-const mapDispatchToProps = dispatch => ({
-	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
+const mapDispatchToProps = (dispatch) => ({
+	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(Step3);
+export default connect(mapStateToProps, mapDispatchToProps)(Step3);

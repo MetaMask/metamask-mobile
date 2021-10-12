@@ -3,14 +3,13 @@ import PropTypes from 'prop-types';
 import {
 	ActivityIndicator,
 	BackHandler,
-	FlatList,
 	Text,
 	View,
 	ScrollView,
 	StyleSheet,
 	Alert,
 	Image,
-	InteractionManager
+	InteractionManager,
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import StyledButton from '../../UI/StyledButton';
@@ -24,82 +23,63 @@ import Engine from '../../../core/Engine';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import TermsAndConditions from '../TermsAndConditions';
 import Analytics from '../../../core/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { getTransparentBackOnboardingNavbarOptions, getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
-import ScanStep from '../../UI/ScanStep';
-import PubNubWrapper from '../../../util/syncWithExtension';
-import ActionModal from '../../UI/ActionModal';
-import Logger from '../../../util/Logger';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
 import Animated, { Easing } from 'react-native-reanimated';
 import ElevatedView from 'react-native-elevated-view';
-import { passwordSet, seedphraseBackedUp, loadingSet, loadingUnset } from '../../../actions/user';
-import { setLockTime } from '../../../actions/settings';
-import AppConstants from '../../../core/AppConstants';
+import { loadingSet, loadingUnset } from '../../../actions/user';
 import AnimatedFox from 'react-native-animated-fox';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
-import {
-	SEED_PHRASE_HINTS,
-	EXISTING_USER,
-	BIOMETRY_CHOICE,
-	BIOMETRY_CHOICE_DISABLED,
-	NEXT_MAKER_REMINDER,
-	METRICS_OPT_IN,
-	TRUE
-} from '../../../constants/storage';
+import { EXISTING_USER, METRICS_OPT_IN } from '../../../constants/storage';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 
 const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 
 const styles = StyleSheet.create({
 	scroll: {
-		flex: 1
+		flex: 1,
 	},
 	wrapper: {
 		flex: 1,
 		alignItems: 'center',
-		paddingVertical: 30
-	},
-	modalWrapper: {
-		flexGrow: 1,
-		paddingHorizontal: 24,
-		marginTop: 24
+		paddingVertical: 30,
 	},
 	foxWrapper: {
 		width: Device.isIos() ? 90 : 45,
 		height: Device.isIos() ? 90 : 45,
-		marginVertical: 20
+		marginVertical: 20,
 	},
 	image: {
 		alignSelf: 'center',
 		width: Device.isIos() ? 90 : 45,
-		height: Device.isIos() ? 90 : 45
+		height: Device.isIos() ? 90 : 45,
 	},
 	termsAndConditions: {
-		paddingBottom: 30
+		paddingBottom: 30,
 	},
 	title: {
 		fontSize: 24,
 		color: colors.fontPrimary,
 		...fontStyles.bold,
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	ctas: {
 		flex: 1,
-		position: 'relative'
+		position: 'relative',
 	},
 	footer: {
 		marginTop: -20,
-		marginBottom: 20
+		marginBottom: 20,
 	},
 	login: {
 		fontSize: 18,
 		color: colors.blue,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	buttonDescription: {
 		...fontStyles.normal,
@@ -107,41 +87,30 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		marginBottom: 16,
 		color: colors.fontPrimary,
-		lineHeight: 20
+		lineHeight: 20,
 	},
 	importWrapper: {
-		marginVertical: 24
+		marginVertical: 24,
 	},
 	createWrapper: {
 		flex: 1,
 		justifyContent: 'flex-end',
-		marginBottom: 24
+		marginBottom: 24,
 	},
 	buttonWrapper: {
-		marginBottom: 16
-	},
-	scanTitle: {
-		...fontStyles.bold,
-		fontSize: 18,
-		color: colors.fontPrimary,
-		textAlign: 'center',
-		lineHeight: 28
+		marginBottom: 16,
 	},
 	loader: {
 		marginTop: 180,
 		justifyContent: 'center',
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	loadingText: {
 		marginTop: 30,
 		fontSize: 14,
 		textAlign: 'center',
 		color: colors.fontPrimary,
-		...fontStyles.normal
-	},
-	column: {
-		marginVertical: 24,
-		alignItems: 'flex-start'
+		...fontStyles.normal,
 	},
 	modalTypeView: {
 		position: 'absolute',
@@ -149,21 +118,13 @@ const styles = StyleSheet.create({
 		paddingBottom: Device.isIphoneX() ? 20 : 10,
 		left: 0,
 		right: 0,
-		backgroundColor: colors.transparent
+		backgroundColor: colors.transparent,
 	},
 	notificationContainer: {
 		flex: 0.1,
 		flexDirection: 'row',
-		alignItems: 'flex-end'
-	}
-});
-
-const keyExtractor = ({ id }) => id;
-
-const createStep = step => ({
-	id: `ONBOARDING_SCAN_STEPS-${step}`,
-	step,
-	text: strings(`onboarding.scan_step_${step}`)
+		alignItems: 'flex-end',
+	},
 });
 
 /**
@@ -189,25 +150,6 @@ class Onboarding extends PureComponent {
 		 */
 		saveOnboardingEvent: PropTypes.func,
 		/**
-		 * Selected address
-		 */
-		selectedAddress: PropTypes.string,
-		/**
-		 * The action to update the password set flag
-		 * in the redux store
-		 */
-		passwordHasBeenSet: PropTypes.func,
-		/**
-		 * The action to update set the locktime
-		 * in the redux store
-		 */
-		setLockTime: PropTypes.func,
-		/**
-		 * The action to update the seedphrase backed up flag
-		 * in the redux store
-		 */
-		seedphraseBackedUp: PropTypes.func,
-		/**
 		 * loading status
 		 */
 		loading: PropTypes.bool,
@@ -226,7 +168,7 @@ class Onboarding extends PureComponent {
 		/**
 		 * Object that represents the current route info like params passed to it
 		 */
-		route: PropTypes.object
+		route: PropTypes.object,
 	};
 
 	notificationAnimated = new Animated.Value(100);
@@ -239,7 +181,7 @@ class Onboarding extends PureComponent {
 			toValue,
 			duration: 500,
 			easing: Easing.linear,
-			useNativeDriver: true
+			useNativeDriver: true,
 		}).start();
 	};
 
@@ -247,7 +189,6 @@ class Onboarding extends PureComponent {
 		warningModalVisible: false,
 		loading: false,
 		existingUser: false,
-		qrCodeModalVisible: false
 	};
 
 	seedwords = null;
@@ -304,183 +245,6 @@ class Onboarding extends PureComponent {
 		}
 	}
 
-	toggleQrCodeModal = () => {
-		this.setState(state => ({ qrCodeModalVisible: !state.qrCodeModalVisible }));
-	};
-
-	initWebsockets() {
-		this.loading = true;
-		this.mounted && this.props.setLoading(strings('sync_with_extension.please_wait'));
-
-		this.pubnubWrapper.addMessageListener(
-			() => {
-				Alert.alert(strings('sync_with_extension.error_title'), strings('sync_with_extension.error_message'));
-				this.loading = false;
-				this.props.unsetLoading();
-				return false;
-			},
-			data => {
-				this.incomingDataStr = null;
-				const { pwd, seed, importedAccounts } = data.udata;
-				this.password = pwd;
-				this.seedWords = seed;
-				this.importedAccounts = importedAccounts;
-				delete data.udata;
-				this.dataToSync = { ...data };
-				this.pubnubWrapper.endSync(() => this.disconnect());
-			}
-		);
-
-		this.pubnubWrapper.subscribe();
-	}
-
-	startSync = async firstAttempt => {
-		try {
-			this.initWebsockets();
-			await this.pubnubWrapper.startSync();
-			return true;
-		} catch (e) {
-			this.props.unsetLoading();
-			if (!firstAttempt) {
-				if (e.message === 'Sync::timeout') {
-					Alert.alert(
-						strings('sync_with_extension.outdated_qr_code'),
-						strings('sync_with_extension.outdated_qr_code_desc')
-					);
-				} else {
-					Alert.alert(
-						strings('sync_with_extension.something_wrong'),
-						strings('sync_with_extension.something_wrong_desc')
-					);
-				}
-			}
-			Logger.error(e, { message: 'Sync::startSync', firstAttempt });
-			return false;
-		}
-	};
-
-	async disconnect() {
-		let password;
-		try {
-			// If there's a password set, let's keep it
-			if (this.props.passwordSet) {
-				// This could also come from the previous step if it's a first time user
-				const credentials = await SecureKeychain.getGenericPassword();
-				if (credentials) {
-					password = credentials.password;
-				} else {
-					password = this.password;
-				}
-				// Otherwise use the password from the extension
-			} else {
-				password = this.password;
-			}
-		} catch (e) {
-			password = this.password;
-		}
-
-		if (password === this.password) {
-			let biometryType = await SecureKeychain.getSupportedBiometryType();
-			if (biometryType) {
-				if (Device.isAndroid()) biometryType = 'biometrics';
-				this.setState({ biometryType, biometryChoice: true });
-				Alert.alert(
-					strings('sync_with_extension.allow_biometrics_title', { biometrics: biometryType }),
-					strings('sync_with_extension.allow_biometrics_desc', { biometrics: biometryType }),
-					[
-						{
-							text: strings('sync_with_extension.warning_cancel_button'),
-							onPress: async () => {
-								await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-								await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-								this.finishSync({ biometrics: false, password });
-							},
-							style: 'cancel'
-						},
-						{
-							text: strings('sync_with_extension.warning_ok_button'),
-							onPress: async () => {
-								await AsyncStorage.setItem(BIOMETRY_CHOICE, biometryType);
-								await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
-								this.finishSync({ biometrics: true, biometryType, password });
-							}
-						}
-					],
-					{ cancelable: false }
-				);
-			} else {
-				this.finishSync({ biometrics: false, password });
-			}
-		} else {
-			this.finishSync({ biometrics: false, password });
-		}
-	}
-
-	finishSync = async opts => {
-		if (opts.biometrics) {
-			try {
-				await SecureKeychain.setGenericPassword(opts.password, SecureKeychain.TYPES.BIOMETRICS);
-			} catch (e) {
-				await SecureKeychain.resetGenericPassword();
-			}
-		} else {
-			await SecureKeychain.resetGenericPassword();
-		}
-
-		try {
-			await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
-			await Engine.resetState();
-			await Engine.sync({
-				...this.dataToSync,
-				seed: this.seedWords,
-				importedAccounts: this.importedAccounts,
-				pass: opts.password
-			});
-			await AsyncStorage.setItem(EXISTING_USER, TRUE);
-			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
-			this.props.passwordHasBeenSet();
-			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
-			this.props.seedphraseBackedUp();
-			this.done = true;
-			this.dataToSync = null;
-			this.props.navigation.push('SyncWithExtensionSuccess');
-			this.props.unsetLoading();
-		} catch (e) {
-			Logger.error(e, 'Sync::disconnect');
-			Alert.alert(strings('sync_with_extension.error_title'), strings('sync_with_extension.error_message'));
-			this.props.unsetLoading();
-			this.props.navigation.goBack();
-		}
-	};
-
-	showQrCode = () => {
-		this.toggleQrCodeModal();
-		this.props.navigation.push('QRScanner', {
-			onStartScan: async data => {
-				if (data.content && data.content.search('metamask-sync:') !== -1) {
-					const [channelName, cipherKey] = data.content.replace('metamask-sync:', '').split('|@|');
-					this.pubnubWrapper = new PubNubWrapper(channelName, cipherKey);
-					await this.pubnubWrapper.establishConnection(this.props.selectedAddress);
-				} else {
-					Alert.alert(
-						strings('sync_with_extension.invalid_qr_code'),
-						strings('sync_with_extension.invalid_qr_code_desc')
-					);
-				}
-			},
-			onScanSuccess: async data => {
-				if (data.content && data.content.search('metamask-sync:') !== -1) {
-					(await this.startSync(true)) || (await this.startSync(false));
-				} else {
-					Alert.alert(
-						strings('sync_with_extension.invalid_qr_code'),
-						strings('sync_with_extension.invalid_qr_code_desc')
-					);
-				}
-			}
-		});
-	};
-
 	onLogin = async () => {
 		const { passwordSet } = this.props;
 		if (!passwordSet) {
@@ -494,7 +258,7 @@ class Onboarding extends PureComponent {
 		}
 	};
 
-	handleExistingUser = action => {
+	handleExistingUser = (action) => {
 		if (this.state.existingUser) {
 			this.alertExistingUser(action);
 		} else {
@@ -503,29 +267,28 @@ class Onboarding extends PureComponent {
 	};
 
 	onPressCreate = () => {
-		const action = () => {
-			this.props.navigation.navigate('ChoosePassword', {
-				[PREVIOUS_SCREEN]: ONBOARDING
-			});
-			this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_PASSWORD);
+		const action = async () => {
+			const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
+			if (metricsOptIn) {
+				this.props.navigation.navigate('ChoosePassword', {
+					[PREVIOUS_SCREEN]: ONBOARDING,
+				});
+				this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_STARTED);
+			} else {
+				this.props.navigation.navigate('OptinMetrics', {
+					onContinue: () => {
+						this.props.navigation.replace('ChoosePassword', {
+							[PREVIOUS_SCREEN]: ONBOARDING,
+						});
+						this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_STARTED);
+					},
+				});
+			}
 		};
 		this.handleExistingUser(action);
 	};
 
 	onPressSync = () => {
-		const { existingUser } = this.state;
-		const action = () =>
-			setTimeout(() => {
-				this.safeSync();
-			}, 500);
-		if (existingUser) {
-			this.alertExistingUser(action);
-		} else {
-			action();
-		}
-	};
-
-	safeSync = () => {
 		if (!PUB_KEY) {
 			// Dev message
 			Alert.alert(
@@ -534,32 +297,59 @@ class Onboarding extends PureComponent {
 			);
 			return false;
 		}
-		this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_SYNC_WITH_EXTENSION);
-		this.toggleQrCodeModal();
-	};
-
-	onPressImport = () => {
-		const action = () => {
-			this.props.navigation.push('ImportFromSeed');
-			this.track(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WALLET);
+		const action = async () => {
+			const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
+			if (metricsOptIn) {
+				this.props.navigation.navigate('ExtensionSync', {
+					[PREVIOUS_SCREEN]: ONBOARDING,
+				});
+				this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SYNC_STARTED);
+			} else {
+				this.props.navigation.navigate('OptinMetrics', {
+					onContinue: () => {
+						this.props.navigation.replace('ExtensionSync', {
+							[PREVIOUS_SCREEN]: ONBOARDING,
+						});
+						this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SYNC_STARTED);
+					},
+				});
+			}
 		};
 		this.handleExistingUser(action);
 	};
 
-	track = key => {
+	onPressImport = () => {
+		const action = async () => {
+			const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
+			if (metricsOptIn) {
+				this.props.navigation.push('ImportFromSeed');
+				this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_IMPORT_STARTED);
+			} else {
+				this.props.navigation.navigate('OptinMetrics', {
+					onContinue: () => {
+						this.props.navigation.replace('ImportFromSeed');
+						this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_IMPORT_STARTED);
+					},
+				});
+			}
+		};
+		this.handleExistingUser(action);
+	};
+
+	track = (...eventArgs) => {
 		InteractionManager.runAfterInteractions(async () => {
 			if (Analytics.getEnabled()) {
-				Analytics.trackEvent(key);
+				AnalyticsV2.trackEvent(...eventArgs);
 				return;
 			}
 			const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
 			if (!metricsOptIn) {
-				this.props.saveOnboardingEvent(key);
+				this.props.saveOnboardingEvent(eventArgs);
 			}
 		});
 	};
 
-	alertExistingUser = callback => {
+	alertExistingUser = (callback) => {
 		this.warningCallback = () => {
 			callback();
 			this.toggleWarningModal();
@@ -644,9 +434,7 @@ class Onboarding extends PureComponent {
 
 	render() {
 		const { loading } = this.props;
-		const { qrCodeModalVisible, existingUser } = this.state;
-		const renderScanStep = ({ item: { step, text } }) => <ScanStep step={step}>{text}</ScanStep>;
-		const ONBOARDING_SCAN_STEPS = [1, 2, 3, 4].map(createStep);
+		const { existingUser } = this.state;
 
 		return (
 			<View style={baseStyles.flexGrow} testID={'onboarding-screen'}>
@@ -690,49 +478,22 @@ class Onboarding extends PureComponent {
 					onRequestClose={this.toggleWarningModal}
 					onConfirmPress={this.toggleWarningModal}
 				/>
-
-				<ActionModal
-					modalVisible={qrCodeModalVisible}
-					onConfirmPress={this.showQrCode}
-					onCancelPress={this.toggleQrCodeModal}
-					onRequestClose={this.toggleQrCodeModal}
-					confirmText={strings(`onboarding.scan`)}
-					confirmButtonMode="confirm"
-				>
-					<View style={styles.modalWrapper}>
-						<Text style={styles.scanTitle}>{strings('onboarding.scan_title')}</Text>
-						<View style={styles.column}>
-							<FlatList
-								data={ONBOARDING_SCAN_STEPS}
-								renderItem={renderScanStep}
-								keyExtractor={keyExtractor}
-							/>
-						</View>
-					</View>
-				</ActionModal>
 			</View>
 		);
 	}
 }
 
-const mapStateToProps = state => ({
-	selectedAddress: state?.engine?.backgroundState?.PreferencesController?.selectedAddress,
+const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	passwordSet: state.user.passwordSet,
 	loading: state.user.loadingSet,
-	loadingMsg: state.user.loadingMsg
+	loadingMsg: state.user.loadingMsg,
 });
 
-const mapDispatchToProps = dispatch => ({
-	setLoading: msg => dispatch(loadingSet(msg)),
+const mapDispatchToProps = (dispatch) => ({
+	setLoading: (msg) => dispatch(loadingSet(msg)),
 	unsetLoading: () => dispatch(loadingUnset()),
-	passwordHasBeenSet: () => dispatch(passwordSet()),
-	setLockTime: time => dispatch(setLockTime(time)),
-	seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
-	saveOnboardingEvent: event => dispatch(saveOnboardingEvent(event))
+	saveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(Onboarding);
+export default connect(mapStateToProps, mapDispatchToProps)(Onboarding);

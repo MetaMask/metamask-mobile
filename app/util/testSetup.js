@@ -5,6 +5,7 @@ import Engine from '../core/Engine';
 import NotificationManager from '../core/NotificationManager';
 import { NativeModules } from 'react-native';
 import mockAsyncStorage from '../../node_modules/@react-native-community/async-storage/jest/async-storage-mock';
+import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock.js';
 
 Enzyme.configure({ adapter: new Adapter() });
 
@@ -38,7 +39,7 @@ jest.mock('react-native-fs', () => ({
 	readDir: jest.fn(),
 	readDirAssets: jest.fn(),
 	readFile: () =>
-		new Promise(resolve => {
+		new Promise((resolve) => {
 			resolve('console.log()');
 		}),
 	readFileAssets: jest.fn(),
@@ -52,7 +53,7 @@ jest.mock('react-native-fs', () => ({
 	unlink: jest.fn(),
 	uploadFiles: jest.fn(),
 	write: jest.fn(),
-	writeFile: jest.fn()
+	writeFile: jest.fn(),
 }));
 
 Date.now = jest.fn(() => 123);
@@ -60,8 +61,8 @@ Date.now = jest.fn(() => 123);
 jest.mock('../core/NotificationManager', () => ({
 	init: () => NotificationManager.init({}),
 	getTransactionToView: () => null,
-	setTransactionToView: id => NotificationManager.setTransactionToView(id),
-	gotIncomingTransaction: () => null
+	setTransactionToView: (id) => NotificationManager.setTransactionToView(id),
+	gotIncomingTransaction: () => null,
 }));
 
 jest.mock('../core/Engine', () => ({
@@ -71,15 +72,15 @@ jest.mock('../core/Engine', () => ({
 			keyring: {
 				keyrings: [
 					{
-						mnemonic: 'one two three four five six seven eight nine ten eleven twelve'
-					}
-				]
-			}
-		}
+						mnemonic: 'one two three four five six seven eight nine ten eleven twelve',
+					},
+				],
+			},
+		},
 	},
 	refreshTransactionHistory: () => {
 		Promise.resolve();
-	}
+	},
 }));
 
 jest.mock('react-native-keychain', () => ({ getSupportedBiometryType: () => Promise.resolve('FaceId') }));
@@ -87,7 +88,7 @@ jest.mock('react-native-share', () => 'RNShare');
 jest.mock('react-native-branch', () => ({
 	BranchSubscriber: () => {
 		() => 'RNBranch';
-	}
+	},
 }));
 jest.mock('react-native-sensors', () => 'RNSensors');
 jest.mock('react-native-search-api', () => 'SearchApi');
@@ -103,7 +104,7 @@ NativeModules.RNGestureHandlerModule = {
 	updateGestureHandler: jest.fn(),
 	forceTouchAvailable: jest.fn(),
 	State: {},
-	Directions: {}
+	Directions: {},
 };
 
 NativeModules.RNCNetInfo = {
@@ -111,17 +112,17 @@ NativeModules.RNCNetInfo = {
 	isConnectionMetered: jest.fn(),
 	addListener: jest.fn(),
 	removeListeners: jest.fn(),
-	getCurrentState: jest.fn(() => Promise.resolve())
+	getCurrentState: jest.fn(() => Promise.resolve()),
 };
 
 NativeModules.RCTAnalytics = {
 	optIn: jest.fn(),
 	trackEvent: jest.fn(),
-	getRemoteVariables: jest.fn()
+	getRemoteVariables: jest.fn(),
 };
 
 NativeModules.PlatformConstants = {
-	forceTouchAvailable: false
+	forceTouchAvailable: false,
 };
 
 jest.mock('react-native/Libraries/Components/Touchable/TouchableOpacity', () => 'TouchableOpacity');
@@ -134,5 +135,8 @@ jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
 	runAfterInteractions: jest.fn(),
 	createInteractionHandle: jest.fn(),
 	clearInteractionHandle: jest.fn(),
-	setDeadline: jest.fn()
+	setDeadline: jest.fn(),
 }));
+
+jest.mock('../images/static-logos.js', () => ({}));
+jest.mock('@react-native-clipboard/clipboard', () => mockClipboard);

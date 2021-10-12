@@ -15,6 +15,7 @@ export const colors = {
 	black: '#24292E',
 	white: '#FFFFFF',
 	white100: '#F9FAFB',
+	greyAssetVisibility: '#6A737D',
 	grey450: '#8E8E93',
 	grey700: '#3C3F42',
 	grey600: '#5B5D67',
@@ -31,6 +32,7 @@ export const colors = {
 	red: '#D73A49',
 	red000: '#fcf2f3',
 	blue: '#037dd6',
+	blue100: '#EAF6FF',
 	blue000: '#eaf6ff',
 	blue200: '#75C4FD',
 	blue500: '#1097FB',
@@ -43,6 +45,8 @@ export const colors = {
 	green200: '#afecbd',
 	green100: '#e6f9ea',
 	yellow: '#FFD33D',
+	yellowWarningBorder: '#FADF83',
+	yellowWarningIcon: '#F8C000',
 	yellow700: '#705700',
 	yellow200: '#ffe281',
 	yellow300: '#FFD33D',
@@ -58,7 +62,7 @@ export const colors = {
 	overlay: 'rgba(0,0,0,.5)',
 	darkAlert: 'rgba(0,0,0,.75)',
 	normalAlert: 'rgba(55,55,55,.97)',
-	spinnerBackground: `rgba(185, 156, 171, 0.396)`
+	spinnerBackground: `rgba(185, 156, 171, 0.396)`,
 };
 
 /**
@@ -66,11 +70,11 @@ export const colors = {
  */
 export const baseStyles = {
 	flexGrow: {
-		flex: 1
+		flex: 1,
 	},
 	flexStatic: {
-		flex: 0
-	}
+		flex: 0,
+	},
 };
 
 /**
@@ -79,18 +83,18 @@ export const baseStyles = {
 export const fontStyles = {
 	normal: {
 		fontFamily: 'EuclidCircularB-Regular',
-		fontWeight: '400'
+		fontWeight: '400',
 	},
 	light: {
 		fontFamily: 'EuclidCircularB-Regular',
-		fontWeight: '300'
+		fontWeight: '300',
 	},
 	thin: {
 		fontFamily: 'EuclidCircularB-Regular',
-		fontWeight: '100'
+		fontWeight: '100',
 	},
 	bold: {
 		fontFamily: 'EuclidCircularB-Bold',
-		fontWeight: '600'
-	}
+		fontWeight: '600',
+	},
 };

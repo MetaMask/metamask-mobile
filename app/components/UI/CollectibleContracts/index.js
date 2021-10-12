@@ -2,7 +2,6 @@ import React, { useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, View, InteractionManager, Image } from 'react-native';
 import { connect } from 'react-redux';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import CollectibleContractElement from '../CollectibleContractElement';
@@ -18,46 +17,49 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		flex: 1,
 		minHeight: 500,
-		marginTop: 16
+		marginTop: 16,
 	},
 	emptyView: {
 		justifyContent: 'center',
 		alignItems: 'center',
-		marginTop: 40
+		marginTop: 40,
 	},
 	add: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	addText: {
-		fontSize: 15,
+		fontSize: 14,
 		color: colors.blue,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	footer: {
 		flex: 1,
-		paddingBottom: 30
+		paddingBottom: 30,
+		alignItems: 'center',
+		marginTop: 24,
 	},
 	emptyContainer: {
 		flex: 1,
-		marginBottom: 42,
+		marginBottom: 18,
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	emptyImageContainer: {
 		width: 76,
 		height: 76,
-		marginBottom: 12
+		marginBottom: 12,
 	},
 	emptyTitleText: {
 		fontSize: 24,
-		color: colors.grey200
+		color: colors.grey200,
 	},
 	emptyText: {
-		color: colors.grey200,
-		marginBottom: 8
-	}
+		color: colors.greyAssetVisibility,
+		marginBottom: 8,
+		fontSize: 14,
+	},
 });
 
 /**
@@ -81,8 +83,8 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 
 	const renderFooter = () => (
 		<View style={styles.footer} key={'collectible-contracts-footer'}>
+			<Text style={styles.emptyText}>{strings('wallet.no_collectibles')}</Text>
 			<TouchableOpacity style={styles.add} onPress={goToAddCollectible} testID={'add-collectible-button'}>
-				<Icon name="plus" size={16} color={colors.blue} />
 				<Text style={styles.addText}>{strings('wallet.add_collectibles')}</Text>
 			</TouchableOpacity>
 		</View>
@@ -90,7 +92,7 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 
 	const renderCollectibleContract = useCallback(
 		(item, index) => {
-			const contractCollectibles = collectibles?.filter(collectible =>
+			const contractCollectibles = collectibles?.filter((collectible) =>
 				toLowerCaseEquals(collectible.address, item.address)
 			);
 			return (
@@ -107,7 +109,7 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 	);
 
 	const renderFavoriteCollectibles = useCallback(() => {
-		const filteredCollectibles = favoriteCollectibles.map(collectible =>
+		const filteredCollectibles = favoriteCollectibles.map((collectible) =>
 			collectibles.find(
 				({ tokenId, address }) => collectible.tokenId === tokenId && collectible.address === address
 			)
@@ -153,9 +155,6 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 					{strings('wallet.learn_more')}
 				</Text>
 			</View>
-			<Text big style={styles.emptyText}>
-				{strings('wallet.no_collectibles')}
-			</Text>
 		</View>
 	);
 
@@ -184,13 +183,13 @@ CollectibleContracts.propTypes = {
 	/**
 	 * Object of collectibles
 	 */
-	favoriteCollectibles: PropTypes.array
+	favoriteCollectibles: PropTypes.array,
 };
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	collectibleContracts: state.engine.backgroundState.CollectiblesController.collectibleContracts,
 	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
-	favoriteCollectibles: favoritesCollectiblesObjectSelector(state)
+	favoriteCollectibles: favoritesCollectiblesObjectSelector(state),
 });
 
 export default connect(mapStateToProps)(CollectibleContracts);

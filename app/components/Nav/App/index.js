@@ -7,8 +7,8 @@ import Login from '../../Views/Login';
 import QRScanner from '../../Views/QRScanner';
 import Onboarding from '../../Views/Onboarding';
 import OnboardingCarousel from '../../Views/OnboardingCarousel';
-import CreateWallet from '../../Views/CreateWallet';
 import ChoosePassword from '../../Views/ChoosePassword';
+import ExtensionSync from '../../Views/ExtensionSync';
 import AccountBackupStep1 from '../../Views/AccountBackupStep1';
 import AccountBackupStep1B from '../../Views/AccountBackupStep1B';
 import ManualBackupStep1 from '../../Views/ManualBackupStep1';
@@ -43,8 +43,8 @@ const OnboardingNav = () => (
 			component={OnboardingCarousel}
 			options={OnboardingCarousel.navigationOptions}
 		/>
-		<Stack.Screen name="CreateWallet" component={CreateWallet} options={CreateWallet.navigationOptions} />
 		<Stack.Screen name="ChoosePassword" component={ChoosePassword} options={ChoosePassword.navigationOptions} />
+		<Stack.Screen name="ExtensionSync" component={ExtensionSync} />
 		<Stack.Screen
 			name="AccountBackupStep1"
 			component={AccountBackupStep1}
@@ -86,7 +86,7 @@ const SimpleWebviewScreen = () => (
 );
 
 const OnboardingRootNav = () => (
-	<Stack.Navigator mode="modal" screenOptions={{ headerShown: false }}>
+	<Stack.Navigator initialRouteName={'OnboardingNav'} mode="modal" screenOptions={{ headerShown: false }}>
 		<Stack.Screen name="OnboardingNav" component={OnboardingNav} />
 		<Stack.Screen name="SyncWithExtensionSuccess" component={SyncWithExtensionSuccess} />
 		<Stack.Screen name="QRScanner" component={QRScanner} header={null} />
@@ -101,11 +101,11 @@ const OnboardingRootNav = () => (
 
 const HomeNav = () => (
 	<Drawer.Navigator
-		drawerContent={props => <DrawerView {...props} />}
+		drawerContent={(props) => <DrawerView {...props} />}
 		// eslint-disable-next-line
 		drawerStyle={{
 			backgroundColor: 'rgba(0, 0, 0, 0.5)',
-			width: 315
+			width: 315,
 		}}
 	>
 		<Drawer.Screen name="Main" component={Main} />
@@ -142,16 +142,16 @@ const AppNavigator = createSwitchNavigator(
 		OnboardingRootNav,
 		Login,
 		OnboardingCarousel,
-		LockScreen
+		LockScreen,
 	},
 	{
-		initialRouteName: 'Entry'
+		initialRouteName: 'Entry',
 	}
 );
 
 const App = () => {
 	const unsubscribeFromBranch = useRef();
-	const navigator = useRef();
+	let navigator = useRef();
 
 	const handleDeeplink = useCallback(({ error, params, uri }) => {
 		if (error) {
@@ -172,15 +172,16 @@ const App = () => {
 	}, []);
 
 	const branchSubscriber = new BranchSubscriber({
-		onOpenStart: opts => handleDeeplink(opts),
-		onOpenComplete: opts => handleDeeplink(opts)
+		onOpenStart: (opts) => handleDeeplink(opts),
+		onOpenComplete: (opts) => handleDeeplink(opts),
 	});
 
 	useEffect(() => {
 		SharedDeeplinkManager.init({
 			navigate: (routeName, opts) => {
-				navigator.current.dispatch(CommonActions.navigate({ routeName, params: opts }));
-			}
+				const params = { name: routeName, params: opts };
+				navigator.dispatch(CommonActions.navigate(params));
+			},
 		});
 
 		unsubscribeFromBranch.current = branchSubscriber.subscribe();
@@ -190,8 +191,8 @@ const App = () => {
 
 	return (
 		<NavigationContainer
-			ref={nav => {
-				this.navigator = nav;
+			ref={(nav) => {
+				navigator = nav;
 			}}
 		>
 			<AppNavigator />

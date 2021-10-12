@@ -16,6 +16,7 @@ import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { isSwapsAllowed } from '../Swaps/utils';
 import { swapsLivenessSelector, swapsTokensObjectSelector } from '../../../reducers/swaps';
+import { getTokenList } from '../../../reducers/tokens';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import Analytics from '../../../core/Analytics';
@@ -33,41 +34,41 @@ const styles = StyleSheet.create({
 		borderBottomColor: colors.grey100,
 		alignContent: 'center',
 		alignItems: 'center',
-		paddingBottom: 30
+		paddingBottom: 30,
 	},
 	assetLogo: {
 		marginTop: 15,
 		alignItems: 'center',
 		justifyContent: 'center',
 		borderRadius: 10,
-		marginBottom: 10
+		marginBottom: 10,
 	},
 	ethLogo: {
 		width: 70,
-		height: 70
+		height: 70,
 	},
 	balance: {
 		alignItems: 'center',
 		marginTop: 10,
-		marginBottom: 20
+		marginBottom: 20,
 	},
 	amount: {
 		fontSize: 30,
 		color: colors.fontPrimary,
 		...fontStyles.normal,
-		textTransform: 'uppercase'
+		textTransform: 'uppercase',
 	},
 	amountFiat: {
 		fontSize: 18,
 		color: colors.fontSecondary,
 		...fontStyles.light,
-		textTransform: 'uppercase'
+		textTransform: 'uppercase',
 	},
 	actions: {
 		flex: 1,
 		justifyContent: 'center',
 		alignItems: 'flex-start',
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	warning: {
 		borderRadius: 8,
@@ -78,11 +79,11 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderColor: colors.yellow,
 		backgroundColor: colors.yellow100,
-		padding: 20
+		padding: 20,
 	},
 	warningLinks: {
-		color: colors.blue
-	}
+		color: colors.blue,
+	},
 });
 
 /**
@@ -151,7 +152,11 @@ class AssetOverview extends PureComponent {
 		/**
 		 * Network ticker
 		 */
-		ticker: PropTypes.string
+		ticker: PropTypes.string,
+		/**
+		 * Object that contains tokens by token addresses as key
+		 */
+		tokenList: PropTypes.object,
 	};
 
 	onReceive = () => {
@@ -165,7 +170,7 @@ class AssetOverview extends PureComponent {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
 			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_OPENED, {
 				button_location: 'Token Screen',
-				button_copy: 'Buy'
+				button_copy: 'Buy',
 			});
 		});
 	};
@@ -185,8 +190,8 @@ class AssetOverview extends PureComponent {
 		this.props.navigation.navigate('Swaps', {
 			screen: 'SwapsAmountView',
 			params: {
-				sourceToken: this.props.asset.isETH ? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS : this.props.asset.address
-			}
+				sourceToken: this.props.asset.isETH ? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS : this.props.asset.address,
+			},
 		});
 	};
 
@@ -194,24 +199,22 @@ class AssetOverview extends PureComponent {
 		this.props.navigation.navigate('BrowserTabHome', {
 			screen: 'BrowserView',
 			params: {
-				newTabUrl: url
-			}
+				newTabUrl: url,
+			},
 		});
 	}
 
 	renderLogo = () => {
 		const {
-			asset: { address, image, logo, isETH }
+			tokenList,
+			asset: { address, isETH },
 		} = this.props;
 		if (isETH) {
 			return <NetworkMainAssetLogo biggest style={styles.ethLogo} />;
 		}
-		const watchedAsset = image !== undefined;
-		return logo || image ? (
-			<AssetIcon watchedAsset={watchedAsset} logo={image || logo} />
-		) : (
-			<Identicon address={address} />
-		);
+		const iconUrl = tokenList[address]?.iconUrl || tokenList[address?.toLowerCase()]?.iconUrl || '';
+
+		return iconUrl ? <AssetIcon logo={iconUrl} /> : <Identicon address={address} />;
 	};
 
 	componentDidMount = async () => {
@@ -225,7 +228,7 @@ class AssetOverview extends PureComponent {
 
 	renderWarning = () => {
 		const {
-			asset: { symbol }
+			asset: { symbol },
 		} = this.props;
 
 		const supportArticleUrl =
@@ -253,7 +256,7 @@ class AssetOverview extends PureComponent {
 			currentCurrency,
 			chainId,
 			swapsIsLive,
-			swapsTokens
+			swapsTokens,
 		} = this.props;
 		let mainBalance, secondaryBalance;
 		const itemAddress = safeToChecksumAddress(address);
@@ -326,7 +329,7 @@ class AssetOverview extends PureComponent {
 	}
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
@@ -337,15 +340,13 @@ const mapStateToProps = state => ({
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	swapsIsLive: swapsLivenessSelector(state),
-	swapsTokens: swapsTokensObjectSelector(state)
+	swapsTokens: swapsTokensObjectSelector(state),
+	tokenList: getTokenList(state),
 });
 
-const mapDispatchToProps = dispatch => ({
-	toggleReceiveModal: asset => dispatch(toggleReceiveModal(asset)),
-	newAssetTransaction: selectedAsset => dispatch(newAssetTransaction(selectedAsset))
+const mapDispatchToProps = (dispatch) => ({
+	toggleReceiveModal: (asset) => dispatch(toggleReceiveModal(asset)),
+	newAssetTransaction: (selectedAsset) => dispatch(newAssetTransaction(selectedAsset)),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(AssetOverview);
+export default connect(mapStateToProps, mapDispatchToProps)(AssetOverview);

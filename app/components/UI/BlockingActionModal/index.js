@@ -7,7 +7,7 @@ import { colors, baseStyles } from '../../../styles/common';
 const styles = StyleSheet.create({
 	modal: {
 		margin: 0,
-		width: '100%'
+		width: '100%',
 	},
 	modalView: {
 		justifyContent: 'center',
@@ -17,11 +17,11 @@ const styles = StyleSheet.create({
 		width: '90%',
 		borderRadius: 6,
 		minHeight: 200,
-		padding: 15
+		padding: 15,
 	},
 	loader: {
-		marginTop: 30
-	}
+		marginTop: 30,
+	},
 });
 
 /**
@@ -52,5 +52,5 @@ BlockingActionModal.propTypes = {
 	/**
 	 * Content to display above the action buttons
 	 */
-	children: PropTypes.node
+	children: PropTypes.node,
 };

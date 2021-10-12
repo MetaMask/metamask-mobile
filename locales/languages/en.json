@@ -133,7 +133,7 @@
 		"reset_wallet": "Reset Wallet",
 		"cant_proceed": "You can’t proceed till you type the word ‘Delete’. With this action you are opting in to erase your current wallet.",
 		"invalid_password": "Invalid password",
-		"type_delete": "Type ‘delete’ to erase current wallet permanently",
+		"type_delete": "Type ‘%{delete}’ to erase current wallet permanently",
 		"delete_my": "Delete my wallet",
 		"are_you_sure": "Are you sure you want to erase your wallet?",
 		"your_current_wallet": "Your current wallet, accounts and assets will be ",
@@ -275,21 +275,24 @@
 		"collectibles": "NFTs",
 		"transactions": "TRANSACTIONS",
 		"no_collectibles": "Don’t see your NFT?",
-		"add_tokens": "ADD TOKENS",
+		"no_available_tokens": "Don't see your token?",
+		"add_tokens": "Import Tokens",
 		"no_tokens": "You don't have any tokens!",
 		"no_nfts_yet": "No NFTs yet",
 		"learn_more": "Learn more",
-		"add_collectibles": "ADD NFTs",
+		"add_collectibles": "Import NFTs",
 		"no_transactions": "You have no transactions!",
 		"send_button": "Send",
 		"deposit_button": "Deposit",
 		"copy_address": "Copy",
 		"remove_token_title": "Do you want to remove this token?",
 		"remove_collectible_title": "Do you want to remove this collectible?",
+		"token_removal_issue_title": "Issue removing token.",
+		"token_removal_issue_desc": "There was a problem when trying to remove the token. Try again.",
 		"token_removed_title": "Token removed!",
-		"token_removed_desc": "If you change your mind, you can add it back by tapping on \"+ ADD TOKENS\"",
+		"token_removed_desc": "If you change your mind, you can add it back by tapping on \"Import Tokens\"",
 		"collectible_removed_title": "Collectible removed!",
-		"collectible_removed_desc": "If you change your mind, you can add it back by tapping on \"+ ADD NFTs\"",
+		"collectible_removed_desc": "If you change your mind, you can add it back by tapping on \"Import NFTs\"",
 		"remove": "Remove",
 		"cancel": "Cancel",
 		"yes": "Yes",
@@ -307,18 +310,23 @@
 		"title": "Transactions"
 	},
 	"add_asset": {
-		"title": "Add Asset",
-		"title_nft": "Add NFT",
+		"title": "Import tokens",
+		"title_nft": "Import NFT",
 		"search_token": "SEARCH",
 		"custom_token": "CUSTOM TOKEN",
 		"tokens": {
 			"cancel_add_token": "CANCEL",
-			"add_token": "ADD TOKEN"
+			"add_token": "IMPORT"
 		},
 		"collectibles": {
 			"cancel_add_collectible": "CANCEL",
-			"add_collectible": "ADD"
-		}
+			"add_collectible": "IMPORT"
+		},
+		"warning_body_description": "Anyone can create a token, including creating fake versions of existing tokens. Learn more about ",
+		"warning_link": "scams and security risks.",
+		"security_tips": "Security Tips",
+		"token_detection_feature": "New! Improved token detection is available on Ethereum Mainnet as an experimental feature. ",
+		"token_detection_link": "Enable it from Settings."
 	},
 	"terms_and_conditions": {
 		"title": "Terms and Conditions",
@@ -521,7 +529,9 @@
 		"invalid_number_leading_zeros": "Invalid number. Remove any leading zeros.",
 		"invalid_number_range": "Invalid number. Enter a number between 1 and %{maxSafeChainId}",
 		"hide_zero_balance_tokens_title": "Hide Tokens Without Balance",
-		"hide_zero_balance_tokens_desc": "Prevents tokens with no balance from displaying in your token listing."
+		"hide_zero_balance_tokens_desc": "Prevents tokens with no balance from displaying in your token listing.",
+		"token_detection_title": "Token Detection",
+		"token_detection_description": "We use third-party APIs to detect and display new tokens sent to your wallet. Turn off if you don’t want the app to pull data from those those services."
 	},
 	"app_information": {
 		"title": "Information",
@@ -549,8 +559,10 @@
 		"private_key": "Your private key",
 		"copy_to_clipboard": "Copy to clipboard",
 		"enter_password": "Enter password to continue",
-		"seed_phrase_copied": "Secret Recovery Phrase copied to clipboard",
-		"private_key_copied": "Private key copied to clipboard",
+		"seed_phrase_copied": "Secret Recovery Phrase temporarily copied to clipboard",
+		"seed_phrase_copied_time": "(stored for 1 minute)",
+		"private_key_copied": "Private key temporarily copied to clipboard",
+		"private_key_copied_time": "(stored for 1 minute)",
 		"warning_incorrect_password": "Incorrect password",
 		"unknown_error": "Couldn't unlock your account. Please try again.",
 		"seed_warning": "This is your wallet's 12 word phrase. This phrase can be used to take control of all of your current and future accounts, including the ability to send away any of their funds. Keep this phrase stored safely, DO NOT share it with anyone.",
@@ -943,7 +955,7 @@
 		"message_from": "Message from",
 		"learn_more": "Learn More",
 		"read_more": "Read more",
-		"eth_sign_warning": "Proceed with caution. This action can potentially be used to withdraw assets from your account. Make sure you trust this site."
+		"eth_sign_warning": "Signing this message can be dangerous. This signature could potentially perform any operation on your account's behalf, including granting complete control of your account and all of its assets to the requesting site. Only sign this message if you know what you're doing or completely trust the requesting site."
 	},
 	"watch_asset_request": {
 		"title": "Add Suggested Token",
@@ -1223,6 +1235,12 @@
 		"body_for_seedphrase": "Now that value was added to your wallet, protect your wallet by setting a password and saving your Secret Recovery Phrase (required).",
 		"button": "Protect wallet"
 	},
+	"transaction_update_retry_modal": {
+		"title": "Transaction Update Failed",
+		"text": "Would you like to try again?",
+		"cancel_button": "Cancel",
+		"retry_button": "Retry"
+	},
 	"payment_request": {
 		"title": "Request",
 		"search_top_picks": "Top picks",
@@ -1441,7 +1459,7 @@
 		"verify_address_on": "Verify token address on",
 		"added_manually": "This token has been added manually.",
 		"verify_this_token_on": "Verify this token on",
-		"only_verified_on": "{{symbol}} is only verified on {{occurances}} source.",
+		"only_verified_on": "{{symbol}} is only verified on {{occurrences}} source.",
 		"block_explorer": "block explorer",
 		"a_block_explorer": "a block explorer",
 		"make_sure_trade": "and make sure this is the token you want to trade.",
@@ -1455,7 +1473,7 @@
 		"no_tokens_result": "No tokens match “{{searchString}}”",
 		"find_token_address": "Find token address",
 		"cant_find_token": "Can’t find a token?",
-		"manually_pasting": "You can manually add any token by pasting its address.",
+		"manually_pasting": "Manually add a token by pasting its address.",
 		"token_address_can_be_found": "Token contract addresses can be found on",
 		"gathering_token_details": "Gathering token details...",
 		"error_gathering_token_details": "Oops, there was an error gathering token details.",
@@ -1475,6 +1493,7 @@
 		"allows_up_to_decimals": "{{symbol}} allows up to {{decimals}} decimals",
 		"get_quotes": "Get quotes",
 		"starting": "Starting...",
+		"fetching_quotes": "Fetching quotes",
 		"finalizing": "Finalizing...",
 		"quote": "Quote",
 		"of": "of",
@@ -1548,6 +1567,11 @@
 			"1": "This quote comes from an",
 			"2": "aggregator",
 			"3": "which finds the best price by splitting your order between different decentralized exchanges."
+		},
+		"quote_source_cnt": {
+			"1": "This quote comes directly from a",
+			"2": "smart contract",
+			"3": "that wraps and unwraps native tokens which can save on gas costs."
 		},
 		"quotes_timeout": "Quotes timeout",
 		"request_new_quotes": "Please request new quotes to get the latest best rate.",
@@ -1683,17 +1707,27 @@
 			"link": "Learn more about customizing gas."
 		},
 		"save": "Save",
+		"submit": "Submit",
 		"max_priority_fee_low": "Max Priority Fee is low for current network conditions",
 		"max_priority_fee_high": "Max Priority Fee is higher than necessary",
+		"max_priority_fee_speed_up_low": "Max Priority Fee must be at least {{speed_up_floor_value}} GWEI (10% higher than intial transaction)",
+		"max_priority_fee_cancel_low": "Max Priority Fee must be at least {{cancel_value}} GWEI (50% higher than intial transaction)",
 		"max_fee_low": "Max Fee is low for current network conditions",
 		"max_fee_high": "Max Fee is higher than necessary",
+		"max_fee_speed_up_low": "Max Fee must be at least {{speed_up_floor_value}} GWEI (10% higher than intial transaction)",
+		"max_fee_cancel_low": "Max Fee must be at least {{cancel_value}} GWEI (50% higher than intial transaction)",
 		"learn_more_gas_limit": "Gas limit is the maximum units of gas you are willing to use. Units of gas are a multiplier to “Max priority fee” and “Max fee”. ",
 		"learn_more_max_priority_fee": "Max priority fee (aka “miner tip”) goes directly to miners and incentivizes them to prioritize your transaction. You’ll most often pay your max setting. ",
 		"learn_more_max_fee": "The max fee is the most you’ll pay (base fee + priority fee). ",
+		"learn_more_new_gas_fee": "We have updated the gas fee based on current network conditions and have increased it by at least 10% (required by the network). ",
+		"learn_more_cancel_gas_fee": "We have updated the gas fee based on current network conditions and have increased it by at least 50% (required by the network). ",
 		"low": "Low",
 		"medium": "Medium",
 		"high": "High",
 		"edit_priority": "Edit priority",
+		"speed_up_transaction": "Speed up transaction",
+		"cancel_transaction": "Cancel transaction",
+		"new_gas_fee": "New gas fee",
 		"edit_suggested_gas_fee": "Edit suggested gas fee",
 		"gas_price": "Gas price",
 		"learn_more_gas_limit_legacy": "Gas limit is the maximum units of gas you are willing to use. Units of gas are a multiplier to “Gas price”.",

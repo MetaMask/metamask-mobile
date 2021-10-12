@@ -6,18 +6,20 @@ import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
-import Device from '../../../../util/Device';
+import Device from '../../../../util/device';
+import AnalyticsV2 from '../../../../util/analyticsV2';
+import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../../util/analytics';
 
 const styles = StyleSheet.create({
 	main: {
-		flex: 1
+		flex: 1,
 	},
 	coachmarkContainer: {
 		flex: 1,
 		position: 'absolute',
 		left: 0,
-		right: 0
-	}
+		right: 0,
+	},
 });
 
 class Step6 extends PureComponent {
@@ -33,12 +35,12 @@ class Step6 extends PureComponent {
 		/**
 		 * Callback to call when closing
 		 */
-		onClose: PropTypes.func
+		onClose: PropTypes.func,
 	};
 
 	state = {
 		ready: false,
-		coachmarkTop: 0
+		coachmarkTop: 0,
 	};
 
 	componentDidMount() {
@@ -63,6 +65,10 @@ class Step6 extends PureComponent {
 		const { setOnboardingWizardStep, navigation } = this.props;
 		navigation && navigation.openDrawer();
 		setOnboardingWizardStep && setOnboardingWizardStep(5);
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_STEP_REVISITED, {
+			tutorial_step_count: 6,
+			tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[6],
+		});
 	};
 
 	/**
@@ -106,11 +112,8 @@ class Step6 extends PureComponent {
 	}
 }
 
-const mapDispatchToProps = dispatch => ({
-	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
+const mapDispatchToProps = (dispatch) => ({
+	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 });
 
-export default connect(
-	null,
-	mapDispatchToProps
-)(Step6);
+export default connect(null, mapDispatchToProps)(Step6);
