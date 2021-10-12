@@ -67,6 +67,13 @@
     ]
   },
   "resolutions": {
+    "react-native-svg/**/nth-check": "^2.0.1",
+    "**/set-value": "^4.0.1",
+    "**/pac-resolver": "^5.0.0",
+    "**/ansi-regex": "^5.0.1",
+    "**/immer": "^9.0.6",
+    "**/node-fetch": "^2.6.1",
+    "**/node-notifier": "^8.0.1",
     "**/lodash": "^4.17.21",
     "**/ua-parser-js": "^0.7.24",
     "**/elliptic": "^6.5.4",
@@ -104,7 +111,7 @@
     "@walletconnect/client": "^1.5.1",
     "@walletconnect/utils": "^1.5.1",
     "asyncstorage-down": "4.2.0",
-    "axios": "^0.21.1",
+    "axios": "^0.21.2",
     "babel-plugin-transform-inline-environment-variables": "0.4.3",
     "babel-plugin-transform-remove-console": "6.9.4",
     "base-64": "1.0.0",
