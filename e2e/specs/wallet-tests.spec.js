@@ -78,7 +78,7 @@ describe('Wallet Tests', () => {
 
 		// Tap on Create New Account
 		await AccountListView.tapCreateAccountButton();
-		await AccountListView.isnewAccountNameVisible();
+		await AccountListView.isNewAccountNameVisible();
 	});
 
 	it('should be able to import account', async () => {

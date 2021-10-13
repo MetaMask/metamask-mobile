@@ -10,7 +10,7 @@ import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
 
 import DrawerView from '../pages/Drawer/DrawerView';
-import { BROWSER_SCREEN_ID, Browser } from '../pages/Drawer/Browser';
+//import { BROWSER_SCREEN_ID, Browser } from '../pages/Drawer/Browser';
 
 import SettingsView from '../pages/Drawer/Settings/SettingsView';
 import SecurityAndPrivacy from '../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
@@ -110,39 +110,39 @@ describe('Onboarding wizard opt-out', () => {
 
 		await WalletView.isVisible();
 	});
+	// Flakey steps. Removing for now.
+	// it('should check that wizard is gone after reloading app', async () => {
+	// 	// Ensure you are on the wallet view
+	// 	await WalletView.isVisible();
+	// 	// Check that the wizard is not visible anymore
+	// 	await TestHelpers.checkIfElementWithTextIsNotVisible('Welcome to your new wallet!');
+	// });
 
-	it('should check that wizard is gone after reloading app', async () => {
-		// Ensure you are on the wallet view
-		await WalletView.isVisible();
-		// Check that the wizard is not visible anymore
-		await TestHelpers.checkIfElementWithTextIsNotVisible('Welcome to your new wallet!');
-	});
+	// it('should take tour and skip tutorial', async () => {
+	// 	await WalletView.tapDrawerButton();
 
-	it('should take tour and skip tutorial', async () => {
-		await WalletView.tapDrawerButton();
+	// 	await DrawerView.isVisible();
+	// 	await DrawerView.tapBrowser();
 
-		await DrawerView.isVisible();
-		await DrawerView.tapBrowser();
+	// 	await Browser.isVisible();
+	// 	await Browser.scrollToTakeTourOnBrowserPage();
 
-		await Browser.isVisible();
-		await Browser.scrollToTakeTourOnBrowserPage();
+	// 	// Tap on the Take a tour box
+	// 	if (device.getPlatform() === 'ios') {
+	// 		await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 215, y: 555 });
+	// 	} else {
+	// 		await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 175, y: 480 });
+	// 	}
+	// 	await Browser.isNotVisible();
 
-		// Tap on the Take a tour box
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 215, y: 555 });
-		} else {
-			await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 175, y: 480 });
-		}
-		await Browser.isNotVisible();
+	// 	await WalletView.isVisible();
 
-		await WalletView.isVisible();
+	// 	// Check that the onboarding wizard is present
+	// 	await OnboardingWizardModal.isVisible();
+	// 	await OnboardingWizardModal.tapTakeTourButton();
 
-		// Check that the onboarding wizard is present
-		await OnboardingWizardModal.isVisible();
-		await OnboardingWizardModal.tapTakeTourButton();
-
-		// Tap on Skip Tutorial
-		await OnboardingWizardModal.tapSkipTutorialButton();
-		await OnboardingWizardModal.isNotVisible();
-	});
+	// 	// Tap on Skip Tutorial
+	// 	await OnboardingWizardModal.tapSkipTutorialButton();
+	// 	await OnboardingWizardModal.isNotVisible();
+	// });
 });
