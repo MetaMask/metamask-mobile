@@ -1,13 +1,14 @@
 import { useSelector } from 'react-redux';
+import AppConstants from '../../core/AppConstants';
 
-const DEFAULT_GATEWAY = 'https://ipfs.io/ipfs/';
+const IPFS_DEFAULT_GATEWAY_URL = AppConstants.IPFS_DEFAULT_GATEWAY_URL;
 
 function useIpfsGateway(): string {
 	const selectedIpfsGateway = useSelector(
 		(state: any) => state.engine.backgroundState.PreferencesController.ipfsGateway
 	);
 
-	return selectedIpfsGateway || DEFAULT_GATEWAY;
+	return selectedIpfsGateway || IPFS_DEFAULT_GATEWAY_URL;
 }
 
 export default useIpfsGateway;
