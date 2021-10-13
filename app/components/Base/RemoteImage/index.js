@@ -25,7 +25,7 @@ const RemoteImage = (props) => {
 		}
 	}, [props.source.uri]);
 
-	const uri = ipfsHash ? ipfsGateway + ipfsHash : source.uri;
+	const uri = ipfsHash ? `${ipfsGateway}${ipfsHash}` : source.uri;
 
 	if (source && source.uri && source.uri.match('.svg') && isImageUrl) {
 		// TODO handle ipfs svgs
