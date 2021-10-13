@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { Image, ViewPropTypes, View } from 'react-native';
 import FadeIn from 'react-native-fade-in-image';
@@ -7,13 +7,28 @@ import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource'
 import { SvgCssUri } from 'react-native-svg';
 import isUrl from 'is-url';
 import ComponentErrorBoundary from '../../UI/ComponentErrorBoundary';
+import useIpfsGateway from '../../hooks/useIpfsGateway';
 
 const RemoteImage = (props) => {
 	// Avoid using this component with animated SVG
 	const source = resolveAssetSource(props.source);
 	const isImageUrl = isUrl(props?.source?.uri);
+	const ipfsGateway = useIpfsGateway();
+
+	const ipfsHash = useMemo(() => {
+		try {
+			const url = new URL(props.source.uri);
+			if (url.protocol !== 'ipfs:') return false;
+			return url.host;
+		} catch {
+			return false;
+		}
+	}, [props.source.uri]);
+
+	const uri = ipfsHash ? ipfsGateway + ipfsHash : source.uri;
 
 	if (source && source.uri && source.uri.match('.svg') && isImageUrl) {
+		// TODO handle ipfs svgs
 		const style = props.style || {};
 		if (source.__packager_asset && typeof style !== 'number') {
 			if (!style.width) {
@@ -36,11 +51,11 @@ const RemoteImage = (props) => {
 	if (props.fadeIn) {
 		return (
 			<FadeIn placeholderStyle={props.placeholderStyle}>
-				<Image {...props} source={{ uri: source.uri }} />
+				<Image {...props} source={{ uri }} />
 			</FadeIn>
 		);
 	}
-	return <Image {...props} source={{ uri: source.uri }} />;
+	return <Image {...props} source={{ uri }} />;
 };
 
 RemoteImage.propTypes = {
