@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
-index f743bbc..beda825 100644
+index f743bbc..77ca184 100644
 --- a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
 +++ b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
 @@ -30,6 +30,8 @@ import android.webkit.DownloadListener;
@@ -45,7 +45,19 @@ index f743bbc..beda825 100644
  /**
   * Manages instances of {@link WebView}
   * <p>
-@@ -137,13 +155,19 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -128,6 +146,11 @@ import java.util.concurrent.atomic.AtomicReference;
+ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+   private static final String TAG = "RNCWebViewManager";
+ 
++  /** Samsung Manufacturer Name */
++  private static final String SAMSUNG_MANUFACTURER_NAME = "samsung";
++  /** Samsung Device Check */
++  private static final Boolean IS_SAMSUNG_DEVICE = Build.MANUFACTURER.equals(SAMSUNG_MANUFACTURER_NAME);
++
+   public static final int COMMAND_GO_BACK = 1;
+   public static final int COMMAND_GO_FORWARD = 2;
+   public static final int COMMAND_RELOAD = 3;
+@@ -137,13 +160,19 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
    public static final int COMMAND_LOAD_URL = 7;
    public static final int COMMAND_FOCUS = 8;
  
@@ -66,7 +78,7 @@ index f743bbc..beda825 100644
    protected static final String HTML_MIME_TYPE = "text/html";
    protected static final String JAVASCRIPT_INTERFACE = "ReactNativeWebView";
    protected static final String HTTP_METHOD_POST = "POST";
-@@ -158,11 +182,20 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -158,11 +187,20 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
    protected @Nullable String mUserAgent = null;
    protected @Nullable String mUserAgentWithApplicationName = null;
  
@@ -87,7 +99,7 @@ index f743bbc..beda825 100644
    }
  
    public RNCWebViewManager(WebViewConfig webViewConfig) {
-@@ -182,6 +215,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -182,6 +220,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
    protected WebView createViewInstance(ThemedReactContext reactContext) {
      RNCWebView webView = createRNCWebViewInstance(reactContext);
@@ -95,7 +107,7 @@ index f743bbc..beda825 100644
      setupWebChromeClient(reactContext, webView);
      reactContext.addLifecycleEventListener(webView);
      mWebViewConfig.configWebView(webView);
-@@ -247,9 +281,96 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -247,9 +286,96 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        }
      });
  
@@ -192,7 +204,7 @@ index f743bbc..beda825 100644
    @ReactProp(name = "javaScriptEnabled")
    public void setJavaScriptEnabled(WebView view, boolean enabled) {
      view.getSettings().setJavaScriptEnabled(enabled);
-@@ -842,8 +963,95 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -842,8 +968,95 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      }
    }
  
@@ -219,7 +231,7 @@ index f743bbc..beda825 100644
 +        } catch (UnsupportedCharsetException e) {
 +            Log.d(REACT_CLASS, "wrong charset: " + charsetName);
 +        }
- 
++
 +        return cs;
 +    }
 +
@@ -284,12 +296,12 @@ index f743bbc..beda825 100644
 +  }
 +
 +  protected class RNCWebViewClient extends WebViewClient {
-+
+ 
 +    protected static final String REACT_CLASS = "RNCWebViewClient";
      protected boolean mLastLoadFailed = false;
      protected @Nullable
      ReadableArray mUrlPrefixesForDefaultIntent;
-@@ -872,9 +1080,6 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -872,9 +1085,6 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        super.onPageStarted(webView, url, favicon);
        mLastLoadFailed = false;
  
@@ -299,7 +311,7 @@ index f743bbc..beda825 100644
        ((RNCWebView) webView).dispatchEvent(
          webView,
          new TopLoadingStartEvent(
-@@ -882,6 +1087,16 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -882,6 +1092,16 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
            createWebViewEvent(webView, url)));
      }
  
@@ -316,7 +328,7 @@ index f743bbc..beda825 100644
      @Override
      public boolean shouldOverrideUrlLoading(WebView view, String url) {
        final RNCWebView rncWebView = (RNCWebView) view;
-@@ -934,6 +1149,21 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -934,6 +1154,21 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      @TargetApi(Build.VERSION_CODES.N)
      @Override
      public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
@@ -338,10 +350,10 @@ index f743bbc..beda825 100644
        final String url = request.getUrl().toString();
        return this.shouldOverrideUrlLoading(view, url);
      }
-@@ -1447,6 +1677,13 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1447,6 +1682,13 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      protected boolean nestedScrollEnabled = false;
      protected ProgressChangedFilter progressChangedFilter;
-     
+ 
 +    /**
 +     * Taken from EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING We can't use that
 +     * value directly as it was only added on Oreo, but we can apply the value
@@ -352,20 +364,25 @@ index f743bbc..beda825 100644
      /**
       * WebView must be created with an context of the current activity
       * <p>
-@@ -1475,6 +1712,19 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1475,6 +1717,24 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        this.nestedScrollEnabled = nestedScrollEnabled;
      }
  
 +    @Override
 +    public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
-+      InputConnection inputConnection = new BaseInputConnection(this, false);
-+
-+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-+        outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING;
++      InputConnection inputConnection;
++      if (IS_SAMSUNG_DEVICE) {
++        inputConnection = super.onCreateInputConnection(outAttrs);
 +      } else {
-+        // Cover OS versions below Oreo
-+        outAttrs.imeOptions = IME_FLAG_NO_PERSONALIZED_LEARNING;
++        inputConnection = new BaseInputConnection(this, false);
++        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
++          outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING;
++        } else {
++          // Cover OS versions below Oreo
++          outAttrs.imeOptions = IME_FLAG_NO_PERSONALIZED_LEARNING;
++        }
 +      }
++
 +      return inputConnection;
 +    }
 +
