@@ -19,7 +19,7 @@ const RemoteImage = (props) => {
 		try {
 			const url = new URL(props.source.uri);
 			if (url.protocol !== 'ipfs:') return false;
-			return url.host;
+			return `${url.hostname}${url.pathname}`;
 		} catch {
 			return false;
 		}
@@ -27,8 +27,7 @@ const RemoteImage = (props) => {
 
 	const uri = ipfsHash ? `${ipfsGateway}${ipfsHash}` : source.uri;
 
-	if (source && source.uri && source.uri.match('.svg') && isImageUrl) {
-		// TODO handle ipfs svgs
+	if (source && source.uri && source.uri.match('.svg') && (isImageUrl || ipfsHash)) {
 		const style = props.style || {};
 		if (source.__packager_asset && typeof style !== 'number') {
 			if (!style.width) {
@@ -42,7 +41,7 @@ const RemoteImage = (props) => {
 		return (
 			<ComponentErrorBoundary onError={props.onError} componentLabel="RemoteImage-SVG">
 				<View style={style}>
-					<SvgCssUri {...props} uri={source.uri} width={'100%'} height={'100%'} fill={'black'} />
+					<SvgCssUri {...props} uri={uri} width={'100%'} height={'100%'} fill={'black'} />
 				</View>
 			</ComponentErrorBoundary>
 		);
