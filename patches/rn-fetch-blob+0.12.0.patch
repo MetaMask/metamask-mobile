@@ -25,11 +25,9 @@ index a4d7015..7d2766f 100644
 +					while (i > -1) {
 +						byte[] bytes = stringToBytes(data.substring(offset, Math.min((offset + CHUNK_LENGTH), dataLength)), encoding);
 +						fout.write(bytes);
-+						offset += CHUNK_LENGTH;
-+						written++;
++						written += bytes.length;
 +						i--;
 +					}
-+					written = 0;
 +				} finally {
 +					if (fout != null) {
 +						fout.close();
