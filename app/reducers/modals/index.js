@@ -6,6 +6,8 @@ const initialState = {
 	receiveAsset: undefined,
 	dappTransactionModalVisible: false,
 	approveModalVisible: false,
+	addEthereumChainRequest: undefined,
+	switchEthereumChainRequest: undefined,
 };
 
 const modalsReducer = (state = initialState, action) => {
@@ -41,6 +43,16 @@ const modalsReducer = (state = initialState, action) => {
 			return {
 				...state,
 				approveModalVisible: !state.approveModalVisible,
+			};
+		case 'TOGGLE_ADD_ETHEREUM_CHAIN_MODAL':
+			return {
+				...state,
+				addEthereumChainRequest: Object.assign({}, action.req),
+			};
+		case 'TOGGLE_SWITCH_ETHEREUM_CHAIN_MODAL':
+			return {
+				...state,
+				switchEthereumChainRequest: Object.assign({}, action.req),
 			};
 		default:
 			return state;

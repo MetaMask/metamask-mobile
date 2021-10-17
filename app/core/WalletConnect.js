@@ -8,6 +8,8 @@ import AsyncStorage from '@react-native-community/async-storage';
 import { CLIENT_OPTIONS, WALLET_CONNECT_ORIGIN } from '../util/walletconnect';
 import { WALLETCONNECT_SESSIONS } from '../constants/storage';
 import { WalletDevice } from '@metamask/controllers/';
+import { setAddEthereumChainRequest, setSwitchEthereumChainRequest } from '../actions/modals';
+import { store } from '../store';
 
 const hub = new EventEmitter();
 let connectors = [];
@@ -236,6 +238,10 @@ class WalletConnect {
 							error,
 						});
 					}
+				} else if (payload.method && payload.method === 'wallet_addEthereumChain') {
+					store.dispatch(setAddEthereumChainRequest(payload));
+				} else if (payload.method && payload.method === 'wallet_switchEthereumChain') {
+					store.dispatch(setSwitchEthereumChainRequest(payload));
 				}
 				this.redirectIfNeeded();
 			}

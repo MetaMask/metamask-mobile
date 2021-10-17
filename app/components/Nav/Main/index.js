@@ -55,7 +55,12 @@ import {
 	removeNotificationById,
 	removeNotVisibleNotifications,
 } from '../../../actions/notification';
-import { toggleDappTransactionModal, toggleApproveModal } from '../../../actions/modals';
+import {
+	toggleDappTransactionModal,
+	toggleApproveModal,
+	setAddEthereumChainRequest,
+	setSwitchEthereumChainRequest,
+} from '../../../actions/modals';
 import AccountApproval from '../../UI/AccountApproval';
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
@@ -71,6 +76,9 @@ import { getTokenList } from '../../../reducers/tokens';
 import { toLowerCaseEquals } from '../../../util/general';
 import { ethers } from 'ethers';
 import abi from 'human-standard-token-abi';
+import AddCustomNetwork from '../../UI/AddCustomNetwork';
+import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
+import RPCMethods from '../../../core/RPCMethods';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -107,6 +115,13 @@ const Main = (props) => {
 	const locale = useRef(I18n.locale);
 	const lockManager = useRef();
 	const removeConnectionStatusListener = useRef();
+	const addCustomNetworkRequest = useRef(null);
+	const switchCustomNetworkRequest = useRef(null);
+
+	const [customNetworkToAdd, setCustomNetworkToAdd] = useState(null);
+	const [showAddCustomNetworkDialog, setShowAddCustomNetworkDialog] = useState(false);
+	const [customNetworkToSwitch, setCustomNetworkToSwitch] = useState(null);
+	const [showSwitchCustomNetworkDialog, setShowSwitchCustomNetworkDialog] = useState(undefined);
 
 	const tokenList = useSelector(getTokenList);
 
@@ -580,6 +595,106 @@ const Main = (props) => {
 		if (skipCheckbox) toggleRemindLater();
 	};
 
+	const onAddCustomNetworkReject = () => {
+		setShowAddCustomNetworkDialog(false);
+		props.setAddEthereumChainRequest();
+		addCustomNetworkRequest?.current?.resolve?.(false);
+	};
+
+	const onAddCustomNetworkConfirm = () => {
+		setShowAddCustomNetworkDialog(false);
+		props.setAddEthereumChainRequest();
+		addCustomNetworkRequest?.current?.resolve?.(true);
+	};
+
+	const renderAddCustomNetworkModal = () => (
+		<Modal
+			isVisible={showAddCustomNetworkDialog}
+			animationIn="slideInUp"
+			animationOut="slideOutDown"
+			style={styles.bottomModal}
+			backdropOpacity={0.7}
+			animationInTiming={300}
+			animationOutTiming={300}
+			onSwipeComplete={onAddCustomNetworkReject}
+			onBackdropPress={onAddCustomNetworkReject}
+		>
+			<AddCustomNetwork
+				onCancel={onAddCustomNetworkReject}
+				onConfirm={onAddCustomNetworkConfirm}
+				currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
+				customNetworkInformation={customNetworkToAdd}
+			/>
+		</Modal>
+	);
+
+	const onSwitchCustomNetworkReject = () => {
+		setShowSwitchCustomNetworkDialog(undefined);
+		props.setSwitchEthereumChainRequest();
+		switchCustomNetworkRequest?.current?.resolve?.(false);
+	};
+
+	const onSwitchCustomNetworkConfirm = () => {
+		setShowSwitchCustomNetworkDialog(undefined);
+		props.setSwitchEthereumChainRequest();
+		switchCustomNetworkRequest?.current?.resolve?.(true);
+	};
+
+	const renderSwitchCustomNetworkModal = () => (
+		<Modal
+			isVisible={!!showSwitchCustomNetworkDialog}
+			animationIn="slideInUp"
+			animationOut="slideOutDown"
+			style={styles.bottomModal}
+			backdropOpacity={0.7}
+			animationInTiming={300}
+			animationOutTiming={300}
+			onSwipeComplete={onSwitchCustomNetworkReject}
+			onBackdropPress={onSwitchCustomNetworkReject}
+			swipeDirection={'down'}
+		>
+			<SwitchCustomNetwork
+				onCancel={onSwitchCustomNetworkReject}
+				onConfirm={onSwitchCustomNetworkConfirm}
+				currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
+				customNetworkInformation={customNetworkToSwitch}
+				type={showSwitchCustomNetworkDialog}
+			/>
+		</Modal>
+	);
+
+	useEffect(() => {
+		if (props.addEthereumChainRequest) {
+			RPCMethods.wallet_addEthereumChain({
+				req: props.addEthereumChainRequest,
+				res: {},
+				showAddCustomNetworkDialog,
+				showSwitchCustomNetworkDialog,
+				addCustomNetworkRequest,
+				switchCustomNetworkRequest,
+				setCustomNetworkToSwitch,
+				setShowSwitchCustomNetworkDialog,
+				setCustomNetworkToAdd,
+				setShowAddCustomNetworkDialog,
+			});
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [props.addEthereumChainRequest]);
+
+	useEffect(() => {
+		if (props.switchEthereumChainRequest) {
+			RPCMethods.wallet_switchEthereumChain({
+				req: props.switchEthereumChainRequest,
+				res: {},
+				showSwitchCustomNetworkDialog,
+				switchCustomNetworkRequest,
+				setCustomNetworkToSwitch,
+				setShowSwitchCustomNetworkDialog,
+			});
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [props.switchEthereumChainRequest]);
+
 	useEffect(() => {
 		if (locale.current !== I18n.locale) {
 			locale.current = I18n.locale;
@@ -692,6 +807,8 @@ const Main = (props) => {
 			{renderWalletConnectSessionRequestModal()}
 			{renderDappTransactionModal()}
 			{renderApproveModal()}
+			{renderAddCustomNetworkModal()}
+			{renderSwitchCustomNetworkModal()}
 		</React.Fragment>
 	);
 };
@@ -753,6 +870,20 @@ Main.propTypes = {
 	/* Token approve modal visible or not
 	*/
 	approveModalVisible: PropTypes.bool,
+
+	/**
+	 * wallet_addEthereumChain and
+	 * wallet_switchEthereumChain request
+	 */
+	addEthereumChainRequest: PropTypes.object,
+	switchEthereumChainRequest: PropTypes.object,
+
+	/**
+	 * Reset wallet_addEthereumChain
+	 * and wallet_switchEthereumChain requests
+	 */
+	setAddEthereumChainRequest: PropTypes.func,
+	setSwitchEthereumChainRequest: PropTypes.func,
 	/**
 	 * Selected address
 	 */
@@ -791,6 +922,8 @@ const mapStateToProps = (state) => ({
 	tokens: state.engine.backgroundState.TokensController.tokens,
 	dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
 	approveModalVisible: state.modals.approveModalVisible,
+	addEthereumChainRequest: state.modals.addEthereumChainRequest,
+	switchEthereumChainRequest: state.modals.switchEthereumChainRequest,
 	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {},
 	providerType: state.engine.backgroundState.NetworkController.provider.type,
 });
@@ -807,6 +940,8 @@ const mapDispatchToProps = (dispatch) => ({
 	setInfuraAvailabilityBlocked: () => dispatch(setInfuraAvailabilityBlocked()),
 	setInfuraAvailabilityNotBlocked: () => dispatch(setInfuraAvailabilityNotBlocked()),
 	removeNotVisibleNotifications: () => dispatch(removeNotVisibleNotifications()),
+	setAddEthereumChainRequest: (req = null) => dispatch(setAddEthereumChainRequest(req)),
+	setSwitchEthereumChainRequest: (req = null) => dispatch(setSwitchEthereumChainRequest(req)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Main);

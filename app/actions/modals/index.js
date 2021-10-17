@@ -37,3 +37,17 @@ export function toggleApproveModal(show) {
 		show,
 	};
 }
+
+export function setAddEthereumChainRequest(req) {
+	return {
+		type: 'TOGGLE_ADD_ETHEREUM_CHAIN_MODAL',
+		req,
+	};
+}
+
+export function setSwitchEthereumChainRequest(req) {
+	return {
+		type: 'TOGGLE_SWITCH_ETHEREUM_CHAIN_MODAL',
+		req,
+	};
+}
