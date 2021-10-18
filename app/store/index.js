@@ -1,5 +1,5 @@
 import { createStore } from 'redux';
-import { persistStore, persistReducer, createMigrate } from 'redux-persist';
+import { persistStore, persistReducer, createMigrate, createTransform } from 'redux-persist';
 import AsyncStorage from '@react-native-community/async-storage';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
@@ -45,11 +45,28 @@ const MigratedStorage = {
 	},
 };
 
+const engineTransform = createTransform(
+	(inboundState, key) => {
+		if (key === 'engine') {
+			// Removes static token list from the persist store
+			if (inboundState.backgroundState?.TokenListController)
+				delete inboundState.backgroundState?.TokenListController?.tokenlist;
+
+			// Removes phishing contoller list from the persist store
+			if (inboundState.backgroundState?.PhishingController)
+				delete inboundState.backgroundState?.PhishingController?.phishing;
+		}
+		return { ...inboundState };
+	},
+	{ whitelist: ['engine'] }
+);
+
 const persistConfig = {
 	key: 'root',
 	version,
 	blacklist: ['onboarding', 'analytics'],
 	storage: MigratedStorage,
+	transforms: [engineTransform],
 	stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
 	migrate: createMigrate(migrations, { debug: false }),
 	timeout: TIMEOUT,
