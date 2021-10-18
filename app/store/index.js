@@ -50,13 +50,17 @@ const engineTransform = createTransform(
 		if (key === 'engine') {
 			// Removes static token list from the persist store
 			if (inboundState.backgroundState?.TokenListController)
-				delete inboundState.backgroundState?.TokenListController?.tokenlist;
+				delete inboundState.backgroundState?.TokenListController.tokenList;
 
 			// Removes phishing contoller list from the persist store
 			if (inboundState.backgroundState?.PhishingController)
-				delete inboundState.backgroundState?.PhishingController?.phishing;
+				delete inboundState.backgroundState?.PhishingController.phishing;
+
+			// Removes SWAPS contoller aggregator metadata from the persist store
+			if (inboundState.backgroundState?.SwapsController)
+				delete inboundState.backgroundState?.SwapsController.aggregatorMetadata;
 		}
-		return { ...inboundState };
+		return inboundState;
 	},
 	{ whitelist: ['engine'] }
 );
