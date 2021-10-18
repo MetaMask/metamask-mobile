@@ -9,7 +9,6 @@ import ActionView from '../ActionView';
 import { isSmartContractAddress } from '../../../util/transactions';
 import Device from '../../../util/device';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { toLowerCaseEquals } from '../../../util/general';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -18,6 +17,10 @@ const styles = StyleSheet.create({
 	},
 	rowWrapper: {
 		padding: 20,
+	},
+	rowTitleText: {
+		paddingBottom: 3,
+		...(fontStyles.normal as any),
 	},
 	textInput: {
 		borderWidth: 1,
@@ -83,19 +86,11 @@ const AddCustomCollectible = ({ navigation, collectibleContract }: AddCustomColl
 		}
 	};
 
-	const handleNotCollectibleOwner = (): void => {
-		Alert.alert(strings('collectible.ownership_error_title'), strings('collectible.ownership_error'));
-	};
-
-	const validateCustomCollectibleTokenId = () => {
-		let validated = true;
-		if (tokenId.length === 0) {
-			setWarningTokenId(strings('collectible.token_id_cant_be_empty'));
-			validated = false;
-		} else {
-			setWarningTokenId(``);
-		}
-		return validated;
+	/**
+	 * Method to handle the error message due to an unverified ownership.
+	 */
+	const handleCollectibleOwnershipError = (errorMessage: string): void => {
+		Alert.alert(strings('collectible.ownership_error_title'), errorMessage);
 	};
 
 	const validateCustomCollectibleAddress = async (): Promise<boolean> => {
@@ -116,29 +111,49 @@ const AddCustomCollectible = ({ navigation, collectibleContract }: AddCustomColl
 		return validated;
 	};
 
+	const validateCustomCollectibleTokenId = (): boolean => {
+		let validated = true;
+		if (tokenId.length === 0) {
+			setWarningTokenId(strings('collectible.token_id_cant_be_empty'));
+			validated = false;
+		} else {
+			setWarningTokenId(``);
+		}
+		return validated;
+	};
+
 	const validateCustomCollectible = async (): Promise<boolean> => {
 		const validatedAddress = await validateCustomCollectibleAddress();
 		const validatedTokenId = validateCustomCollectibleTokenId();
 		return validatedAddress && validatedTokenId;
 	};
 
-	const validateCollectibleOwnership = async () => {
+	/**
+	 * Method to validate collectible ownership.
+	 *
+	 * @returns Promise that resolves ownershio as a boolean.
+	 */
+	const validateCollectibleOwnership = async (): Promise<boolean> => {
 		try {
-			const { AssetsContractController } = Engine.context as any;
-			const owner = await AssetsContractController.getOwnerOf(address, tokenId);
-			return toLowerCaseEquals(owner, selectedAddress);
-		} catch (e) {
+			const { CollectiblesController } = Engine.context as any;
+			const isOwner = await CollectiblesController.checkCollectibleOwnership(selectedAddress, address, tokenId);
+
+			if (!isOwner) handleCollectibleOwnershipError(strings('collectible.ownership_error'));
+
+			return isOwner;
+		} catch {
+			handleCollectibleOwnershipError(
+				'Unable to verify ownership. Probably because the standard is not supported or the chain is incorrect.'
+			);
+
 			return false;
 		}
 	};
 
-	const addCollectible = async () => {
+	const addCollectible = async (): Promise<void> => {
 		if (!(await validateCustomCollectible())) return;
-		const isOwner = await validateCollectibleOwnership();
-		if (!isOwner) {
-			handleNotCollectibleOwner();
-			return;
-		}
+		if (!(await validateCollectibleOwnership())) return;
+
 		const { CollectiblesController } = Engine.context as any;
 		CollectiblesController.addCollectible(address, tokenId);
 
@@ -147,7 +162,7 @@ const AddCustomCollectible = ({ navigation, collectibleContract }: AddCustomColl
 		navigation.goBack();
 	};
 
-	const cancelAddCollectible = () => {
+	const cancelAddCollectible = (): void => {
 		navigation.goBack();
 	};
 
@@ -159,7 +174,7 @@ const AddCustomCollectible = ({ navigation, collectibleContract }: AddCustomColl
 		setTokenId(newTokenId);
 	};
 
-	const jumpToAssetTokenId = () => {
+	const jumpToAssetTokenId = (): void => {
 		assetTokenIdInput.current?.focus();
 	};
 
@@ -176,7 +191,7 @@ const AddCustomCollectible = ({ navigation, collectibleContract }: AddCustomColl
 			>
 				<View>
 					<View style={styles.rowWrapper}>
-						<Text style={fontStyles.normal as any}>{strings('collectible.collectible_address')}</Text>
+						<Text style={styles.rowTitleText}>{strings('collectible.collectible_address')}</Text>
 						<TextInput
 							style={[styles.textInput, inputWidth ? { width: inputWidth } : {}]}
 							placeholder={'0x...'}
@@ -192,7 +207,7 @@ const AddCustomCollectible = ({ navigation, collectibleContract }: AddCustomColl
 						</Text>
 					</View>
 					<View style={styles.rowWrapper}>
-						<Text style={fontStyles.normal as any}>{strings('collectible.collectible_token_id')}</Text>
+						<Text style={styles.rowTitleText}>{strings('collectible.collectible_token_id')}</Text>
 						<TextInput
 							style={[styles.textInput, inputWidth ? { width: inputWidth } : {}]}
 							value={tokenId}
