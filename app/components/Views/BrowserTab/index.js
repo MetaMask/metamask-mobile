@@ -28,7 +28,7 @@ import Engine from '../../../core/Engine';
 import PhishingModal from '../../UI/PhishingModal';
 import WebviewProgressBar from '../../UI/WebviewProgressBar';
 import { colors, baseStyles, fontStyles } from '../../../styles/common';
-import Networks, { getAllNetworks } from '../../../util/networks';
+import Networks, { blockTagParamIndex, getAllNetworks } from '../../../util/networks';
 import Logger from '../../../util/Logger';
 import onUrlSubmit, { getHost, getUrlObj } from '../../../util/browser';
 import { SPA_urlChangeListener, JS_DESELECT_TEXT, JS_WEBVIEW_URL } from '../../../util/browserScripts';
@@ -775,6 +775,13 @@ export const BrowserTab = (props) => {
 						setShowSwitchCustomNetworkDialog,
 					}),
 			};
+
+			const blockRefIndex = blockTagParamIndex(req);
+			const blockRef = req.params?.[blockRefIndex];
+			// omitted blockRef implies "latest"
+			if (blockRef === undefined) {
+				req.params[blockRefIndex] = 'latest';
+			}
 
 			if (!rpcMethods[req.method]) {
 				return next();
