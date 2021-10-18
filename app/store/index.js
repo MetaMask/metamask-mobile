@@ -8,6 +8,7 @@ import { migrations, version } from './migrations';
 import Logger from '../util/Logger';
 
 const TIMEOUT = 40000;
+const ENGINE_TAG = 'engine';
 
 const MigratedStorage = {
 	async getItem(key) {
@@ -47,22 +48,19 @@ const MigratedStorage = {
 
 const engineTransform = createTransform(
 	(inboundState, key) => {
-		if (key === 'engine') {
-			// Removes static token list from the persist store
-			if (inboundState.backgroundState?.TokenListController)
-				delete inboundState.backgroundState?.TokenListController.tokenList;
-
-			// Removes phishing contoller list from the persist store
-			if (inboundState.backgroundState?.PhishingController)
-				delete inboundState.backgroundState?.PhishingController.phishing;
-
+		const tempInBoundState = { ...inboundState };
+		if (key === ENGINE_TAG) {
 			// Removes SWAPS contoller aggregator metadata from the persist store
-			if (inboundState.backgroundState?.SwapsController)
-				delete inboundState.backgroundState?.SwapsController.aggregatorMetadata;
+			if (tempInBoundState.backgroundState?.SwapsController) {
+				tempInBoundState.backgroundState.SwapsController = {
+					...tempInBoundState.backgroundState.SwapsController,
+					aggregatorMetadata: {},
+				};
+			}
 		}
-		return inboundState;
+		return tempInBoundState;
 	},
-	{ whitelist: ['engine'] }
+	{ whitelist: [ENGINE_TAG] }
 );
 
 const persistConfig = {
