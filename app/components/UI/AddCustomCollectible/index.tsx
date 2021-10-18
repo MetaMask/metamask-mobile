@@ -37,8 +37,8 @@ const styles = StyleSheet.create({
 });
 
 interface AddCustomCollectibleProps {
-	navigation: any;
-	collectibleContract: {
+	navigation?: any;
+	collectibleContract?: {
 		address: string;
 	};
 }
