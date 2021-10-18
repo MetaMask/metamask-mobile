@@ -34,8 +34,8 @@ const styles = StyleSheet.create({
 });
 
 interface AddCustomCollectibleProps {
-	navigation: any;
-	collectibleContract: {
+	navigation?: any;
+	collectibleContract?: {
 		address: string;
 	};
 }
@@ -87,7 +87,7 @@ const AddCustomCollectible = ({ navigation, collectibleContract }: AddCustomColl
 		Alert.alert(strings('collectible.ownership_error_title'), strings('collectible.ownership_error'));
 	};
 
-	const validateCustomCollectibleTokenId = () => {
+	const validateCustomCollectibleTokenId = (): boolean => {
 		let validated = true;
 		if (tokenId.length === 0) {
 			setWarningTokenId(strings('collectible.token_id_cant_be_empty'));
@@ -116,13 +116,7 @@ const AddCustomCollectible = ({ navigation, collectibleContract }: AddCustomColl
 		return validated;
 	};
 
-	const validateCustomCollectible = async (): Promise<boolean> => {
-		const validatedAddress = await validateCustomCollectibleAddress();
-		const validatedTokenId = validateCustomCollectibleTokenId();
-		return validatedAddress && validatedTokenId;
-	};
-
-	const validateCollectibleOwnership = async () => {
+	const validateCollectibleOwnership = async (): Promise<boolean> => {
 		try {
 			const { AssetsContractController } = Engine.context as any;
 			const owner = await AssetsContractController.getOwnerOf(address, tokenId);
@@ -132,7 +126,13 @@ const AddCustomCollectible = ({ navigation, collectibleContract }: AddCustomColl
 		}
 	};
 
-	const addCollectible = async () => {
+	const validateCustomCollectible = async (): Promise<boolean> => {
+		const validatedAddress = await validateCustomCollectibleAddress();
+		const validatedTokenId = validateCustomCollectibleTokenId();
+		return validatedAddress && validatedTokenId;
+	};
+
+	const addCollectible = async (): Promise<void> => {
 		if (!(await validateCustomCollectible())) return;
 		const isOwner = await validateCollectibleOwnership();
 		if (!isOwner) {
@@ -147,7 +147,7 @@ const AddCustomCollectible = ({ navigation, collectibleContract }: AddCustomColl
 		navigation.goBack();
 	};
 
-	const cancelAddCollectible = () => {
+	const cancelAddCollectible = (): void => {
 		navigation.goBack();
 	};
 
@@ -159,7 +159,7 @@ const AddCustomCollectible = ({ navigation, collectibleContract }: AddCustomColl
 		setTokenId(newTokenId);
 	};
 
-	const jumpToAssetTokenId = () => {
+	const jumpToAssetTokenId = (): void => {
 		assetTokenIdInput.current?.focus();
 	};
 
