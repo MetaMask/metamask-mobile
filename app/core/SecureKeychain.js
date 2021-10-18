@@ -57,7 +57,7 @@ export default {
 	init(salt) {
 		instance = new SecureKeychain(salt);
 
-		if (Device.isAndroid && Keychain.SECURITY_LEVEL.SECURE_HARDWARE)
+		if (Device.isAndroid && Keychain.SECURITY_LEVEL?.SECURE_HARDWARE)
 			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ANDROID_HARDWARE_KEYSTORE);
 
 		Object.freeze(instance);
