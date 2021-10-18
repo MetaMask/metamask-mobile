@@ -175,7 +175,7 @@ class Settings extends PureComponent {
 		 * Called to toggle privacy mode
 		 */
 		setPrivacyMode: PropTypes.func,
-		/**`
+		/**
 		 * Called to toggle set party api mode
 		 */
 		setThirdPartyApiMode: PropTypes.func,

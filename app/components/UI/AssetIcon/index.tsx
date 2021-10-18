@@ -1,8 +1,9 @@
 import React, { memo } from 'react';
-import { ImageStyle, StyleSheet, StyleProp } from 'react-native';
+import { ImageStyle, StyleSheet, StyleProp, ImageSourcePropType } from 'react-native';
+import isUrl from 'is-url';
 import RemoteImage from '../../Base/RemoteImage';
-import getAssetLogoPath from '../../../util/assets';
 import { colors } from '../../../styles/common';
+import staticLogos from 'images/static-logos';
 
 interface Props {
 	/**
@@ -23,7 +24,10 @@ const styles = StyleSheet.create({
 	logo: {
 		width: 50,
 		height: 50,
+		borderRadius: 25,
+		overflow: 'hidden',
 	},
+	placeholder: { backgroundColor: colors.white },
 });
 
 /**
@@ -31,10 +35,16 @@ const styles = StyleSheet.create({
  */
 // eslint-disable-next-line react/display-name
 const AssetIcon = memo((props: Props) => {
-	if (!props.logo) return null;
-	const uri = props.watchedAsset ? props.logo : getAssetLogoPath(props.logo);
+	if (!props.logo || props.logo.substr(0, 4) === 'ipfs') return null;
 	const style = [styles.logo, props.customStyle];
-	return <RemoteImage fadeIn placeholderStyle={{ backgroundColor: colors.white }} source={{ uri }} style={style} />;
+	const isImageUrl = isUrl(props.logo);
+	const source: ImageSourcePropType = isImageUrl ? { uri: props.logo } : (staticLogos as any)[props.logo];
+
+	if (!source) {
+		return null;
+	}
+
+	return <RemoteImage fadeIn placeholderStyle={styles.placeholder} source={source} style={style} />;
 });
 
 export default AssetIcon;

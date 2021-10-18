@@ -11,19 +11,19 @@ const initialState = {
 		backgroundState: {
 			CurrencyRateController: {
 				conversionRate: 2,
-				currentCurrency: 'USD'
+				currentCurrency: 'USD',
 			},
 			PreferencesController: {
-				frequentRpcList: []
+				frequentRpcList: [],
 			},
 			NetworkController: {
 				provider: {
 					rpcTarget: '',
-					type: RPC
-				}
-			}
-		}
-	}
+					type: RPC,
+				},
+			},
+		},
+	},
 };
 const store = mockStore(initialState);
 
@@ -36,8 +36,8 @@ describe('TransactionDetails', () => {
 						networkID: '1',
 						status: 'confirmed',
 						transaction: {
-							nonce: ''
-						}
+							nonce: '',
+						},
 					}}
 					transactionDetails={{
 						renderFrom: '0x0',
@@ -47,7 +47,7 @@ describe('TransactionDetails', () => {
 						renderGas: '21000',
 						renderGasPrice: '2',
 						renderTotalValue: '2 TKN / 0.001 ETH',
-						renderTotalValueFiat: ''
+						renderTotalValueFiat: '',
 					}}
 				/>
 			</Provider>

@@ -7,8 +7,8 @@ import { Provider } from 'react-redux';
 const mockStore = configureMockStore();
 const initialState = {
 	infuraAvailability: {
-		isBlocked: false
-	}
+		isBlocked: false,
+	},
 };
 const store = mockStore(initialState);
 

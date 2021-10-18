@@ -6,7 +6,6 @@ import { getApproveNavbar } from '../../UI/Navbar';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { getHost } from '../../../util/browser';
-import contractMap from '@metamask/contract-metadata';
 import { safeToChecksumAddress, renderShortAddress } from '../../../util/address';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
@@ -39,6 +38,7 @@ import EditPermission, { MINIMUM_VALUE } from './EditPermission';
 import Logger from '../../../util/Logger';
 import InfoModal from '../Swaps/components/InfoModal';
 import Text from '../../Base/Text';
+import { getTokenList } from '../../../reducers/tokens';
 import TransactionReviewEIP1559 from '../../UI/TransactionReview/TransactionReviewEIP1559';
 import ClipboardManager from '../../../core/ClipboardManager';
 
@@ -237,6 +237,14 @@ class ApproveTransactionReview extends PureComponent {
 		 * If the gas estimations are ready
 		 */
 		gasEstimationReady: PropTypes.bool,
+		/**
+		 * List of tokens from TokenListController
+		 */
+		tokenList: PropTypes.object,
+		/**
+		 * Whether the transaction was confirmed or not
+		 */
+		transactionConfirmed: PropTypes.bool,
 	};
 
 	state = {
@@ -264,11 +272,12 @@ class ApproveTransactionReview extends PureComponent {
 		const {
 			transaction: { origin, to, gas, gasPrice, data },
 			conversionRate,
+			tokenList,
 		} = this.props;
 		const { AssetsContractController } = Engine.context;
 		const host = getHost(this.originIsWalletConnect ? origin.split(WALLET_CONNECT_ORIGIN)[1] : origin);
 		let tokenSymbol, tokenDecimals;
-		const contract = contractMap[safeToChecksumAddress(to)];
+		const contract = tokenList[safeToChecksumAddress(to)];
 		if (!contract) {
 			try {
 				tokenDecimals = await AssetsContractController.getTokenDecimals(to);
@@ -516,6 +525,7 @@ class ApproveTransactionReview extends PureComponent {
 			animateOnChange,
 			isAnimating,
 			gasEstimationReady,
+			transactionConfirmed,
 		} = this.props;
 		const is_main_net = isMainNet(network);
 		const originIsDeeplink = origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
@@ -554,7 +564,7 @@ class ApproveTransactionReview extends PureComponent {
 							confirmText={strings('transactions.approve')}
 							onCancelPress={this.onCancelPress}
 							onConfirmPress={this.onConfirmPress}
-							confirmDisabled={Boolean(gasError)}
+							confirmDisabled={Boolean(gasError) || transactionConfirmed}
 						>
 							<View style={styles.actionViewChildren}>
 								<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleEditPermission}>
@@ -734,6 +744,7 @@ const mapStateToProps = (state) => ({
 	activeTabUrl: getActiveTabUrl(state),
 	network: state.engine.backgroundState.NetworkController.network,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+	tokenList: getTokenList(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

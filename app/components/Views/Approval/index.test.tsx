@@ -8,7 +8,7 @@ import { Provider } from 'react-redux';
 const mockStore = configureMockStore();
 const initialState = {
 	settings: {
-		showCustomNonce: false
+		showCustomNonce: false,
 	},
 	transaction: {
 		value: '',
@@ -18,23 +18,23 @@ const initialState = {
 		gasPrice: '',
 		to: '0x2',
 		selectedAsset: { symbol: 'ETH' },
-		assetType: undefined
+		assetType: undefined,
 	},
 	engine: {
 		backgroundState: {
 			TransactionController: {
-				transactions: []
+				transactions: [],
 			},
 			AddressBookController: {
-				addressBook: {}
+				addressBook: {},
 			},
 			NetworkController: {
 				provider: {
-					type: ROPSTEN
-				}
-			}
-		}
-	}
+					type: ROPSTEN,
+				},
+			},
+		},
+	},
 };
 const store = mockStore(initialState);
 const navigation = { state: { params: { address: '0x1' } } } as any;

@@ -50,6 +50,7 @@ import useBalance from './utils/useBalance';
 import useBlockExplorer from './utils/useBlockExplorer';
 import InfoModal from './components/InfoModal';
 import { toLowerCaseEquals } from '../../../util/general';
+import { AlertType } from '../../Base/Alert';
 
 const styles = StyleSheet.create({
 	screen: {
@@ -184,10 +185,8 @@ function SwapsAmountView({
 	useEffect(() => {
 		(async () => {
 			try {
-				const { mobile_active: liveness } = await swapsUtils.fetchSwapsFeatureLiveness(
-					chainId,
-					AppConstants.SWAPS.CLIENT_ID
-				);
+				const data = await swapsUtils.fetchSwapsFeatureLiveness(chainId, AppConstants.SWAPS.CLIENT_ID);
+				const liveness = typeof data === 'boolean' ? data : data?.mobile_active ?? false;
 				setLiveness(liveness, chainId);
 				if (liveness) {
 					// Triggered when a user enters the MetaMask Swap feature
@@ -590,9 +589,9 @@ function SwapsAmountView({
 						) : (
 							<ActionAlert
 								type={
-									!destinationToken.occurrences || isDynamicToken(destinationToken)
-										? 'error'
-										: 'warning'
+									!destinationToken.occurances || isDynamicToken(destinationToken)
+										? AlertType.Error
+										: AlertType.Warning
 								}
 								style={styles.tokenAlert}
 								action={hasDismissedTokenAlert ? null : strings('swaps.continue')}

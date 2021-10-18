@@ -9,10 +9,10 @@ const initialState = {
 	engine: {
 		backgroundState: {
 			CollectiblesController: {
-				collectibles: []
-			}
-		}
-	}
+				collectibles: [],
+			},
+		},
+	},
 };
 const store = mockStore(initialState);
 
@@ -26,7 +26,7 @@ describe('CollectibleContractOverview', () => {
 						symbol: 'symbol',
 						description: 'description',
 						address: '0x123',
-						totalSupply: 1
+						totalSupply: 1,
 					}}
 				/>
 			</Provider>

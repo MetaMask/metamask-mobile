@@ -22,11 +22,11 @@ import {
 	TRANSACTION_TYPES,
 	calculateEIP1559GasFeeHexes,
 } from '../../../util/transactions';
-import contractMap from '@metamask/contract-metadata';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { isSwapsNativeAsset } from '../Swaps/utils';
 import { toLowerCaseEquals } from '../../../util/general';
+import Engine from '../../../core/Engine';
 import { util } from '@metamask/controllers';
 const { isEIP1559Transaction } = util;
 
@@ -37,7 +37,7 @@ function calculateTotalGas(transaction) {
 
 	if (isEIP1559Transaction(transaction)) {
 		const eip1559GasHex = calculateEIP1559GasFeeHexes({
-			gasLimitHex: gas,
+			gasLimitHex: gasUsed || gas,
 			estimatedBaseFeeHex: estimatedBaseFee || '0x0',
 			suggestedMaxPriorityFeePerGasHex: maxPriorityFeePerGas,
 			suggestedMaxFeePerGasHex: maxFeePerGas,
@@ -523,9 +523,10 @@ function decodeConfirmTx(args) {
 	const renderFrom = renderFullAddress(from);
 	const renderTo = renderFullAddress(to);
 
+	const tokenList = Engine.context.TokenListController.state.tokenList;
 	let symbol;
-	if (renderTo in contractMap) {
-		symbol = contractMap[renderTo].symbol;
+	if (renderTo in tokenList) {
+		symbol = tokenList[renderTo].symbol;
 	}
 	let transactionType;
 	if (actionKey === strings('transactions.approve')) transactionType = TRANSACTION_TYPES.APPROVE;

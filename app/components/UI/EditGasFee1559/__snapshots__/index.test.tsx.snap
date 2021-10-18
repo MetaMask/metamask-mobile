@@ -681,7 +681,9 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                 strikethrough={false}
                 underline={false}
                 upper={false}
-              />
+              >
+                We have updated the gas fee based on current network conditions and have increased it by at least 10% (required by the network). 
+              </Text>
             </View>
           }
           isVisible={false}
