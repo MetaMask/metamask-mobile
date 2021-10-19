@@ -25,6 +25,6 @@ export default function setupSentry() {
 				routingInstrumentation,
 			}),
 		],
-		tracesSampleRate: 1,
+		tracesSampleRate: 0.2,
 	});
 }
