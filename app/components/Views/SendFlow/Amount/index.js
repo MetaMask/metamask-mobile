@@ -463,7 +463,7 @@ class Amount extends PureComponent {
 			selectedAddress,
 		} = this.props;
 		try {
-			return await CollectiblesController.checkCollectibleOwnership(selectedAddress, address, tokenId);
+			return await CollectiblesController.isCollectibleOwner(selectedAddress, address, tokenId);
 		} catch (e) {
 			return false;
 		}

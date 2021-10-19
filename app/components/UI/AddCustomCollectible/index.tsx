@@ -136,7 +136,7 @@ const AddCustomCollectible = ({ navigation, collectibleContract }: AddCustomColl
 	const validateCollectibleOwnership = async (): Promise<boolean> => {
 		try {
 			const { CollectiblesController } = Engine.context as any;
-			const isOwner = await CollectiblesController.checkCollectibleOwnership(selectedAddress, address, tokenId);
+			const isOwner = await CollectiblesController.isCollectibleOwner(selectedAddress, address, tokenId);
 
 			if (!isOwner) handleCollectibleOwnershipError(strings('collectible.ownership_error'));
 
