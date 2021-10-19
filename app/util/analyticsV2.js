@@ -97,6 +97,8 @@ export const ANALYTICS_EVENTS_V2 = {
 	// SETTINGS
 	SETTINGS_TOKEN_DETECTION_ON: generateOpt(`Token detection turned ON`),
 	SETTINGS_TOKEN_DETECTION_OFF: generateOpt(`Token detection turned OFF`),
+	// KEY MANAGMENT INVESTIGATION
+	ANDROID_HARDWARE_KEYSTORE: generateOpt('Android Hardware Keystore'),
 };
 
 /**

@@ -85,7 +85,7 @@ const SkipAccountSecurityModal = ({ modalVisible, onConfirm, onCancel, onPress, 
 				testID={'skip_backup_warning'}
 			/>
 			<Text style={styles.skipTitle}>{strings('account_backup_step_1.skip_title')}</Text>
-			<View style={styles.skipModalActionButtons}>
+			<View style={styles.skipModalActionButtons} testID={'skip-backup-modal'}>
 				<CheckBox
 					style={styles.skipModalCheckbox}
 					value={skipCheckbox}
