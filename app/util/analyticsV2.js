@@ -104,7 +104,7 @@ export const ANALYTICS_EVENTS_V2 = {
 /**
  * This takes params with the following structure:
  * { foo : 'this is not anonymous', bar: {value: 'this is anonymous', anonymous: true} }
- * @param {String} eventName
+ * @param {Object} eventName
  * @param {Object} params
  */
 export const trackEventV2 = (eventName, params) => {
