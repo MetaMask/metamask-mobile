@@ -10,6 +10,8 @@ import {
 	PASSCODE_DISABLED,
 	TRUE,
 } from '../constants/storage';
+import Device from '../util/device';
+import AnalyticsV2 from '../util/analyticsV2';
 
 const privates = new WeakMap();
 const encryptor = new Encryptor();
@@ -37,6 +39,7 @@ class SecureKeychain {
 			privates.set(this, { code });
 			SecureKeychain.instance = this;
 		}
+
 		return SecureKeychain.instance;
 	}
 
@@ -53,6 +56,10 @@ let instance;
 export default {
 	init(salt) {
 		instance = new SecureKeychain(salt);
+
+		if (Device.isAndroid && Keychain.SECURITY_LEVEL?.SECURE_HARDWARE)
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ANDROID_HARDWARE_KEYSTORE);
+
 		Object.freeze(instance);
 		return instance;
 	},
