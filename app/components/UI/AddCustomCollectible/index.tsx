@@ -40,9 +40,6 @@ interface AddCustomCollectibleProps {
 	};
 }
 
-/**
- * PureComponent that provides ability to add custom collectibles.
- */
 const AddCustomCollectible = ({ navigation, collectibleContract }: AddCustomCollectibleProps) => {
 	const [mounted, setMounted] = useState<boolean>(true);
 	const [address, setAddress] = useState<string>('');
