@@ -11,6 +11,7 @@ import { favoritesCollectiblesObjectSelector } from '../../../reducers/collectib
 import Text from '../../Base/Text';
 import AppConstants from '../../../core/AppConstants';
 import { toLowerCaseEquals } from '../../../util/general';
+import StyledButton from '../StyledButton';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -81,12 +82,29 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 		});
 	};
 
+	const goToCreateCollectible = () => {
+		navigation.push('CreateCollectible');
+		//TODO CREATE_NFT
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_ADD_COLLECTIBLES);
+		});
+	};
+
 	const renderFooter = () => (
 		<View style={styles.footer} key={'collectible-contracts-footer'}>
 			<Text style={styles.emptyText}>{strings('wallet.no_collectibles')}</Text>
 			<TouchableOpacity style={styles.add} onPress={goToAddCollectible} testID={'add-collectible-button'}>
 				<Text style={styles.addText}>{strings('wallet.add_collectibles')}</Text>
 			</TouchableOpacity>
+			<StyledButton
+				type={'confirm'}
+				onPress={goToCreateCollectible}
+				// eslint-disable-next-line react-native/no-inline-styles
+				containerStyle={{ marginTop: 10 }}
+				testID={'connect-approve-button'}
+			>
+				Create your NFT
+			</StyledButton>
 		</View>
 	);
 

@@ -326,7 +326,8 @@
 		"warning_link": "scams and security risks.",
 		"security_tips": "Security Tips",
 		"token_detection_feature": "New! Improved token detection is available on Ethereum Mainnet as an experimental feature. ",
-		"token_detection_link": "Enable it from Settings."
+		"token_detection_link": "Enable it from Settings.",
+		"create_nft": "Create NFT"
 	},
 	"terms_and_conditions": {
 		"title": "Terms and Conditions",

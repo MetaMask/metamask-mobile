@@ -52,6 +52,7 @@ import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import GasEducationCarousel from '../../Views/GasEducationCarousel';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
+import CreateCollectible from '../../Views/CreateCollectible';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -77,6 +78,12 @@ const WalletTabHome = () => (
 		<Stack.Screen name="AddAsset" component={AddAsset} options={AddAsset.navigationOptions} />
 
 		<Stack.Screen name="Collectible" component={Collectible} options={Collectible.navigationOptions} />
+
+		<Stack.Screen
+			name="CreateCollectible"
+			component={CreateCollectible}
+			options={CreateCollectible.navigationOptions}
+		/>
 
 		<Stack.Screen
 			name="RevealPrivateCredentialView"
