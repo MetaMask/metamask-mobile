@@ -58,3 +58,19 @@ export const shallowEqual = (object1, object2) => {
 
 	return true;
 };
+
+/**
+ * Returns short string format
+ *
+ * @param text - String corresponding to the text.
+ * @param chars - Number of characters to show at the end and beginning. Defaults to 4.
+ * @returns String corresponding to short text format.
+ */
+export const renderShortText = (text, chars = 4) => {
+	try {
+		if (text.length < chars * 2 + 3) return text;
+		return `${text.substr(0, chars + 2)}...${text.substr(-chars)}`;
+	} catch {
+		return text;
+	}
+};
