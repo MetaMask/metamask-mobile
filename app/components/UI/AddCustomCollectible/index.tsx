@@ -43,9 +43,6 @@ interface AddCustomCollectibleProps {
 	};
 }
 
-/**
- * PureComponent that provides ability to add custom collectibles.
- */
 const AddCustomCollectible = ({ navigation, collectibleContract }: AddCustomCollectibleProps) => {
 	const [mounted, setMounted] = useState<boolean>(true);
 	const [address, setAddress] = useState<string>('');
@@ -138,13 +135,11 @@ const AddCustomCollectible = ({ navigation, collectibleContract }: AddCustomColl
 			const { CollectiblesController } = Engine.context as any;
 			const isOwner = await CollectiblesController.isCollectibleOwner(selectedAddress, address, tokenId);
 
-			if (!isOwner) handleCollectibleOwnershipError(strings('collectible.ownership_error'));
+			if (!isOwner) handleCollectibleOwnershipError(strings('collectible.not_owner_error'));
 
 			return isOwner;
 		} catch {
-			handleCollectibleOwnershipError(
-				'Unable to verify ownership. Probably because the standard is not supported or the chain is incorrect.'
-			);
+			handleCollectibleOwnershipError(strings('collectible.ownership_verification_error'));
 
 			return false;
 		}
