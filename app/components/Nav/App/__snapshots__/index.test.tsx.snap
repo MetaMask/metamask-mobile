@@ -1,7 +1,19 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`App should render correctly 1`] = `
-<ForwardRef(NavigationContainer)>
-  <Navigator />
-</ForwardRef(NavigationContainer)>
+<__Sentry.TouchEventBoundary
+  breadcrumbCategory="touch"
+  breadcrumbType="user"
+  ignoreNames={Array []}
+  maxComponentTreeSize={20}
+>
+  <ReactNativeProfiler
+    disabled={false}
+    includeRender={true}
+    includeUpdates={true}
+    name="Root"
+  >
+    <App />
+  </ReactNativeProfiler>
+</__Sentry.TouchEventBoundary>
 `;
