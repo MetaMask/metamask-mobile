@@ -83,13 +83,6 @@ const AddCustomCollectible = ({ navigation, collectibleContract }: AddCustomColl
 		}
 	};
 
-	/**
-	 * Method to handle the error message due to an unverified ownership.
-	 */
-	const handleCollectibleOwnershipError = (errorMessage: string): void => {
-		Alert.alert(strings('collectible.ownership_error_title'), errorMessage);
-	};
-
 	const validateCustomCollectibleAddress = async (): Promise<boolean> => {
 		let validated = true;
 		const isValidEthAddress = isValidAddress(address);
@@ -135,11 +128,15 @@ const AddCustomCollectible = ({ navigation, collectibleContract }: AddCustomColl
 			const { CollectiblesController } = Engine.context as any;
 			const isOwner = await CollectiblesController.isCollectibleOwner(selectedAddress, address, tokenId);
 
-			if (!isOwner) handleCollectibleOwnershipError(strings('collectible.not_owner_error'));
+			if (!isOwner)
+				Alert.alert(strings('collectible.ownership_error_title'), strings('collectible.not_owner_error'));
 
 			return isOwner;
 		} catch {
-			handleCollectibleOwnershipError(strings('collectible.ownership_verification_error'));
+			Alert.alert(
+				strings('collectible.ownership_verification_error_title'),
+				strings('collectible.ownership_verification_error')
+			);
 
 			return false;
 		}
