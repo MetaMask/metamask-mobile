@@ -37,7 +37,7 @@ const MigratedStorage = {
 		try {
 			return await FilesystemStorage.setItem(key, value);
 		} catch (error) {
-			Logger.error(error, { message: 'Failed to set item' });
+			Logger.error(error, { message: 'Failed to store item' });
 		}
 	},
 	async removeItem(key) {
