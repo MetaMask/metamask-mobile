@@ -1,11 +1,12 @@
 import { createStore } from 'redux';
-import { persistStore, persistReducer, createMigrate, createTransform } from 'redux-persist';
+import { persistStore, persistReducer, createMigrate } from 'redux-persist';
 import AsyncStorage from '@react-native-community/async-storage';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import rootReducer from '../reducers';
 import { migrations, version } from './migrations';
 import Logger from '../util/Logger';
+import createCompressor from 'redux-persist-transform-compress';
 
 const TIMEOUT = 40000;
 const ENGINE_TAG = 'engine';
@@ -50,29 +51,14 @@ const MigratedStorage = {
 	},
 };
 
-const engineTransform = createTransform(
-	(inboundState, key) => {
-		const tempInBoundState = { ...inboundState };
-		if (key === ENGINE_TAG) {
-			// Removes SWAPS contoller aggregator metadata from the persist store
-			if (tempInBoundState.backgroundState?.SwapsController) {
-				tempInBoundState.backgroundState.SwapsController = {
-					...tempInBoundState.backgroundState.SwapsController,
-					aggregatorMetadata: {},
-				};
-			}
-		}
-		return tempInBoundState;
-	},
-	{ whitelist: [ENGINE_TAG] }
-);
+const compressor = createCompressor({ whitelist: [ENGINE_TAG] });
 
 const persistConfig = {
 	key: 'root',
 	version,
 	blacklist: ['onboarding', 'analytics'],
 	storage: MigratedStorage,
-	transforms: [engineTransform],
+	transforms: [compressor],
 	stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
 	migrate: createMigrate(migrations, { debug: false }),
 	timeout: TIMEOUT,
