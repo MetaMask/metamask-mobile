@@ -339,8 +339,8 @@
 		"address_must_be_smart_contract": "检测到个人地址。输入收藏品合约地址。",
 		"address_cant_be_empty": "收藏品地址不能为空。",
 		"token_id_cant_be_empty": "收藏品标识符不能为空。",
-		"ownership_error_title": "糟糕！出问题了。",
-		"ownership_error": "您不是此收藏品的所有者，因此不能添加它。",
+		"not_owner_error_title": "糟糕！出问题了。",
+		"not_owner_error": "您不是此收藏品的所有者，因此不能添加它。",
 		"powered_by_opensea": "技术支持：",
 		"id_placeholder": "输入收藏品 ID"
 	},
