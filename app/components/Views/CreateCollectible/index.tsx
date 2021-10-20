@@ -1,9 +1,11 @@
-import React, { useCallback, useState } from 'react';
-import { View, StyleSheet, TextInput } from 'react-native';
+import React, { useCallback, useRef, useState } from 'react';
+import { View, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { getNetworkNavbarOptions } from '../../../components/UI/Navbar';
 import { colors, fontStyles } from '../../../styles/common';
 import Text from '../../Base/Text';
 import AssetActionButton from '../../../components/UI/AssetActionButton';
+import ActionSheet from 'react-native-actionsheet';
+import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -29,6 +31,18 @@ const styles = StyleSheet.create({
 	traitsRow: {
 		flexDirection: 'row',
 	},
+	mediaButton: {
+		borderWidth: 1,
+		borderColor: colors.blue,
+		padding: 30,
+		borderRadius: 5,
+		marginBottom: 20,
+	},
+	buttonText: {
+		color: colors.blue,
+		fontSize: 16,
+		textAlign: 'center',
+	},
 });
 
 const CreateCollectible = () => {
@@ -36,6 +50,8 @@ const CreateCollectible = () => {
 	const [name, setName] = useState('');
 	const [description, setDescription] = useState('');
 	const [traits, setTraits] = useState([{ trait_type: '', value: '' }]);
+
+	const actionSheetRef = useRef();
 
 	const addTrait = useCallback(() => {
 		const newTraits = [...traits, { trait_type: '', value: '' }];
@@ -62,7 +78,11 @@ const CreateCollectible = () => {
 
 	return (
 		<View style={styles.wrapper}>
-			<Text>IMAGE</Text>
+			<Text>NFT Image or Video</Text>
+			<TouchableOpacity style={styles.mediaButton} onPress={() => actionSheetRef.current?.show()}>
+				<Text style={styles.buttonText}>Choose NFT Media</Text>
+			</TouchableOpacity>
+
 			<Text>Name</Text>
 			<TextInput
 				style={styles.textInput}
@@ -99,6 +119,15 @@ const CreateCollectible = () => {
 				</View>
 			))}
 			<AssetActionButton icon="add" label={'Add another trait'} onPress={addTrait} />
+
+			<ActionSheet
+				ref={actionSheetRef}
+				title={'Select action'}
+				options={[strings('wallet.cancel'), 'Take image', 'Record video', 'Select from gallery']}
+				cancelButtonIndex={0}
+				// eslint-disable-next-line react/jsx-no-bind
+				onPress={() => null}
+			/>
 		</View>
 	);
 };
