@@ -734,8 +734,6 @@ export default async function decodeTransaction(args) {
 	const actionKey = await getActionKey(tx, selectedAddress, ticker, chainId);
 	let transactionElement, transactionDetails;
 
-	console.log('actionKey:', actionKey);
-
 	if (tx.transaction.to?.toLowerCase() === getSwapsContractAddress(chainId) || swapsTransactions[tx.id]) {
 		const [transactionElement, transactionDetails] = decodeSwapsTx({ ...args, actionKey });
 		if (transactionElement && transactionDetails) return [transactionElement, transactionDetails];
