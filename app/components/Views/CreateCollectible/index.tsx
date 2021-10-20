@@ -1,10 +1,12 @@
-import React, { useCallback, useRef, useState } from 'react';
-import { View, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { View, StyleSheet, TextInput, Platform } from 'react-native';
+import PropTypes from 'prop-types';
 import { getNetworkNavbarOptions } from '../../../components/UI/Navbar';
 import { colors, fontStyles } from '../../../styles/common';
 import Text from '../../Base/Text';
 import AssetActionButton from '../../../components/UI/AssetActionButton';
-import ActionSheet from 'react-native-actionsheet';
+import MediaSelector from '../../../components/UI/MediaSelector';
+import ActionView from '../../../components/UI/ActionView';
 import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
@@ -31,27 +33,16 @@ const styles = StyleSheet.create({
 	traitsRow: {
 		flexDirection: 'row',
 	},
-	mediaButton: {
-		borderWidth: 1,
-		borderColor: colors.blue,
-		padding: 30,
-		borderRadius: 5,
-		marginBottom: 20,
-	},
-	buttonText: {
-		color: colors.blue,
-		fontSize: 16,
-		textAlign: 'center',
+	container: {
+		marginBottom: 50,
 	},
 });
 
-const CreateCollectible = () => {
-	//const [mediaURL, setMediaURL] = useState('');
+const CreateCollectible = ({ navigation }) => {
+	const [media, setMedia] = useState('');
 	const [name, setName] = useState('');
 	const [description, setDescription] = useState('');
 	const [traits, setTraits] = useState([{ trait_type: '', value: '' }]);
-
-	const actionSheetRef = useRef();
 
 	const addTrait = useCallback(() => {
 		const newTraits = [...traits, { trait_type: '', value: '' }];
@@ -76,60 +67,107 @@ const CreateCollectible = () => {
 		[traits]
 	);
 
+	const setMediaToSend = useCallback((mediaToSend) => {
+		setMedia(mediaToSend);
+	}, []);
+
+	const handleSubmit = useCallback(async () => {
+		const formData = new FormData();
+
+		const params = {
+			name: media.fileName || 'nft',
+			type: media.type,
+			uri: Platform.OS === 'ios' ? media.uri.replace('file://', '') : media.uri,
+		};
+		console.log('params', params);
+		formData.append('file', params);
+
+		const ipfsAddMediaResponse = await fetch('https://ipfs.infura.io:5001/api/v0/add', {
+			method: 'POST',
+			body: formData,
+		});
+		const ipfsAddMediaResponseJson = await ipfsAddMediaResponse.json();
+
+		console.log(ipfsAddMediaResponseJson);
+
+		const metadata = { name, description, image: `ipfs://${ipfsAddMediaResponseJson.Hash}` };
+		console.log('metadata', metadata, JSON.stringify(metadata));
+
+		try {
+			const formDataMetadata = new FormData();
+			formDataMetadata.append('file', JSON.stringify(metadata));
+			const ipfsAddMetadataResponse = await fetch('https://ipfs.infura.io:5001/api/v0/add', {
+				method: 'POST',
+				body: formDataMetadata,
+			});
+			const ipfsAddMetadataResponseJson = await ipfsAddMetadataResponse.json();
+
+			console.log(ipfsAddMetadataResponseJson);
+		} catch (e) {
+			console.log('ERROR', e);
+		}
+	}, [description, media, name]);
+
+	const handleCancel = useCallback(() => {
+		navigation.goBack();
+	}, [navigation]);
+
 	return (
-		<View style={styles.wrapper}>
-			<Text>NFT Image or Video</Text>
-			<TouchableOpacity style={styles.mediaButton} onPress={() => actionSheetRef.current?.show()}>
-				<Text style={styles.buttonText}>Choose NFT Media</Text>
-			</TouchableOpacity>
-
-			<Text>Name</Text>
-			<TextInput
-				style={styles.textInput}
-				placeholder={'Name'}
-				placeholderTextColor={colors.grey100}
-				value={name}
-				onChangeText={(value) => setName(value)}
-			/>
-			<Text>Description</Text>
-			<TextInput
-				style={styles.textInput}
-				placeholder={'Description'}
-				placeholderTextColor={colors.grey100}
-				value={description}
-				onChangeText={(value) => setDescription(value)}
-			/>
-			<Text>Traits</Text>
-			{traits.map((trait, index) => (
-				<View style={styles.traitsRow} key={index}>
-					<TextInput
-						style={[styles.textInput, styles.traitKey]}
-						placeholder={'Trait Type'}
-						placeholderTextColor={colors.grey100}
-						value={trait.trait_type}
-						onChangeText={(value) => changeTraitType(index, value)}
-					/>
-					<TextInput
-						style={[styles.textInput, styles.traitValue]}
-						placeholder={'Value'}
-						placeholderTextColor={colors.grey100}
-						value={trait.value}
-						onChangeText={(value) => changeTraitValue(index, value)}
-					/>
-				</View>
-			))}
-			<AssetActionButton icon="add" label={'Add another trait'} onPress={addTrait} />
-
-			<ActionSheet
-				ref={actionSheetRef}
-				title={'Select action'}
-				options={[strings('wallet.cancel'), 'Take image', 'Record video', 'Select from gallery']}
-				cancelButtonIndex={0}
-				// eslint-disable-next-line react/jsx-no-bind
-				onPress={() => null}
-			/>
-		</View>
+		<ActionView
+			style={styles.wrapper}
+			cancelTestID={'create-custom-asset-cancel-button'}
+			confirmTestID={'creaate-custom-asset-confirm-button'}
+			cancelText={strings('add_asset.collectibles.cancel_add_collectible')}
+			confirmText={'Create NFT'}
+			onCancelPress={handleCancel}
+			onConfirmPress={handleSubmit}
+		>
+			<View style={styles.container}>
+				<Text>NFT Image or Video</Text>
+				<MediaSelector setMediaToSend={setMediaToSend} />
+				<Text>Name</Text>
+				<TextInput
+					style={styles.textInput}
+					placeholder={'Name'}
+					placeholderTextColor={colors.grey100}
+					value={name}
+					onChangeText={(value) => setName(value)}
+				/>
+				<Text>Description</Text>
+				<TextInput
+					style={styles.textInput}
+					placeholder={'Description'}
+					placeholderTextColor={colors.grey100}
+					value={description}
+					onChangeText={(value) => setDescription(value)}
+				/>
+				<Text>Attributes</Text>
+				{traits.map((trait, index) => (
+					<View style={styles.traitsRow} key={index}>
+						<TextInput
+							style={[styles.textInput, styles.traitKey]}
+							placeholder={'Trait Type'}
+							placeholderTextColor={colors.grey100}
+							value={trait.trait_type}
+							onChangeText={(value) => changeTraitType(index, value)}
+						/>
+						<TextInput
+							style={[styles.textInput, styles.traitValue]}
+							placeholder={'Value'}
+							placeholderTextColor={colors.grey100}
+							value={trait.value}
+							onChangeText={(value) => changeTraitValue(index, value)}
+						/>
+					</View>
+				))}
+				<AssetActionButton icon="add" label={'Add another trait'} onPress={addTrait} />
+			</View>
+		</ActionView>
 	);
+};
+
+CreateCollectible.propTypes = {
+	navigation: PropTypes.object,
 };
 
 CreateCollectible.navigationOptions = ({ navigation }) =>

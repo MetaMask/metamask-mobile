@@ -52,7 +52,9 @@
 		</dict>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>MetaMask needs camera access to scan QR codes</string>
+	<string>MetaMask needs camera access to scan QR codes and create NFTs</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>MetaMask needs microphone access to create video NFTs</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>$(PRODUCT_NAME) needs to authenticate</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
