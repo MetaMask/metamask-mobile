@@ -68,7 +68,8 @@ export const shallowEqual = (object1, object2) => {
  */
 export const renderShortText = (text, chars = 4) => {
 	try {
-		if (text.length < chars * 2 + 3) return text;
+		// The 5 constant represents the 2 extra chars and the 3 dots.
+		if (text.length <= chars * 2 + 5) return text;
 		return `${text.substr(0, chars + 2)}...${text.substr(-chars)}`;
 	} catch {
 		return text;
