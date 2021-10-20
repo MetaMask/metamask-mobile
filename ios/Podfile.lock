@@ -400,18 +400,18 @@ PODS:
     - React-RCTImage
   - RNSensors (5.3.0):
     - React
-  - RNSentry (2.4.2):
+  - RNSentry (3.1.1):
     - React-Core
-    - Sentry (= 6.1.4)
+    - Sentry (= 7.3.0)
   - RNShare (5.3.0):
     - React-Core
   - RNSVG (12.1.1):
     - React
   - RNVectorIcons (6.4.2):
     - React
-  - Sentry (6.1.4):
-    - Sentry/Core (= 6.1.4)
-  - Sentry/Core (6.1.4)
+  - Sentry (7.3.0):
+    - Sentry/Core (= 7.3.0)
+  - Sentry/Core (7.3.0)
   - TcpSockets (4.0.0):
     - CocoaAsyncSocket
     - React
@@ -730,11 +730,11 @@ SPEC CHECKSUMS:
   RNReanimated: 514a11da3a2bcc6c3dfd9de32b38e2b9bf101926
   RNScreens: 21b73c94c9117e1110a79ee0ee80c93ccefed8ce
   RNSensors: c363d486c879e181905dea84a2535e49af1c2d25
-  RNSentry: e86fb2e2fec0365644f4b582938bf66be515acce
+  RNSentry: 49abc89b0190b4c8afe0fa5d065f98e36cb53233
   RNShare: 4df87d1791f50a2c7b1d89432fb9bbb7c02a9c9a
   RNSVG: 551acb6562324b1d52a4e0758f7ca0ec234e278f
   RNVectorIcons: 6607bd3a30291d0edb56f9bbe7ae411ee2b928b0
-  Sentry: 9d055e2de30a77685e86b219acf02e59b82091fc
+  Sentry: 9a4e621430e2dae4477d791f2f7e905720b6efbf
   TcpSockets: a8eb6b5867fe643e6cfed5db2e4de62f4d1e8fd0
   Yoga: 4bd86afe9883422a7c4028c00e34790f560923d6
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
