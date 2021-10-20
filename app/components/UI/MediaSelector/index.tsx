@@ -1,8 +1,7 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { ImagePickerResponse, launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import ActionSheet from 'react-native-actionsheet';
-import VideoRecorder from 'react-native-beautiful-video-recorder';
 import PropTypes from 'prop-types';
 import Text from '../../Base/Text';
 import { strings } from '../../../../locales/i18n';
@@ -25,10 +24,8 @@ const styles = StyleSheet.create({
 });
 
 const MediaSelector = ({ setMediaToSend }) => {
-	const [media, setMedia] = React.useState(null);
-
+	const [media, setMedia] = useState(null);
 	const actionSheetRef = useRef();
-	const videoRecorder = useRef();
 
 	const handleChooseMedia = (index: number) => {
 		switch (index) {
@@ -81,7 +78,6 @@ const MediaSelector = ({ setMediaToSend }) => {
 					<Text style={styles.buttonText}>Choose NFT Media</Text>
 				</TouchableOpacity>
 			)}
-			<VideoRecorder ref={videoRecorder} />
 			<ActionSheet
 				ref={actionSheetRef}
 				title={'Select action'}
