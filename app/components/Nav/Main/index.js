@@ -338,6 +338,7 @@ const Main = (props) => {
 			// if approval data includes metaswap contract
 			// if destination address is metaswap contract
 			if (
+				transactionMeta.origin === process.env.MM_FOX_CODE &&
 				to &&
 				(swapsUtils.isValidContractAddress(props.chainId, to) ||
 					(data &&
@@ -345,9 +346,7 @@ const Main = (props) => {
 						decodeApproveData(data).spenderAddress?.toLowerCase() ===
 							swapsUtils.getSwapsContractAddress(props.chainId)))
 			) {
-				if (transactionMeta.origin === process.env.MM_FOX_CODE) {
-					autoSign(transactionMeta);
-				}
+				autoSign(transactionMeta);
 			} else {
 				const {
 					transaction: { value, gas, gasPrice, data },
