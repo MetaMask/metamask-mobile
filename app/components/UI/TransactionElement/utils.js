@@ -411,6 +411,7 @@ function decodeTransferFromTx(args) {
 			summaryFee: `${renderFromWei(totalGas)} ${ticker}`,
 			summarySecondaryTotalAmount: weiToFiat(totalGas, conversionRate, currentCurrency),
 			summaryTotalAmount: `${renderCollectible} ${strings('unit.divisor')} ${renderFromWei(totalGas)} ${ticker}`,
+			transactionType,
 		};
 	} else {
 		transactionDetails = {
@@ -421,6 +422,7 @@ function decodeTransferFromTx(args) {
 				totalGas
 			)} ${ticker}`,
 			summaryTotalAmount: weiToFiat(totalGas, conversionRate, currentCurrency),
+			transactionType,
 		};
 	}
 
@@ -731,6 +733,8 @@ export default async function decodeTransaction(args) {
 
 	const actionKey = await getActionKey(tx, selectedAddress, ticker, chainId);
 	let transactionElement, transactionDetails;
+
+	console.log('actionKey:', actionKey);
 
 	if (tx.transaction.to?.toLowerCase() === getSwapsContractAddress(chainId) || swapsTransactions[tx.id]) {
 		const [transactionElement, transactionDetails] = decodeSwapsTx({ ...args, actionKey });
