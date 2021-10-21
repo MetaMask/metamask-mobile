@@ -32,15 +32,16 @@ class AccountRightButton extends PureComponent {
 		 * Action that toggles the account modal
 		 */
 		toggleAccountsModal: PropTypes.func,
+		/**
+		 * List of accounts from the AccountTrackerController
+		 */
+		accounts: PropTypes.object,
 	};
 
 	animating = false;
 
-	trackEventOpenedAccountSwitcher() {
-		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_OPEN_ACCOUNT_SWITCH);
-	}
-
 	toggleAccountsModal = () => {
+		const { accounts } = this.props;
 		if (!this.animating) {
 			this.animating = true;
 			this.props.toggleAccountsModal();
@@ -48,7 +49,10 @@ class AccountRightButton extends PureComponent {
 				this.animating = false;
 			}, 500);
 		}
-		this.trackEventOpenedAccountSwitcher();
+		// Track Event: "Opened Acount Switcher"
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_OPEN_ACCOUNT_SWITCH, {
+			number_of_accounts: Object.keys(accounts).length,
+		});
 	};
 
 	render = () => {
@@ -65,8 +69,13 @@ class AccountRightButton extends PureComponent {
 	};
 }
 
-const mapStateToProps = (state) => ({ address: state.engine.backgroundState.PreferencesController.selectedAddress });
+const mapStateToProps = (state) => ({
+	address: state.engine.backgroundState.PreferencesController.selectedAddress,
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+});
+
 const mapDispatchToProps = (dispatch) => ({
 	toggleAccountsModal: () => dispatch(toggleAccountsModal()),
 });
+
 export default connect(mapStateToProps, mapDispatchToProps)(AccountRightButton);
