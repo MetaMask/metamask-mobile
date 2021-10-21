@@ -6,7 +6,7 @@ import { Provider } from 'react-redux';
 
 const mockStore = configureMockStore();
 const initialState = {
-	engine: {
+	tempEngine: {
 		backgroundState: {
 			SwapsController: {
 				tokens: [],

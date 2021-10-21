@@ -6,6 +6,13 @@ import { Provider } from 'react-redux';
 
 const mockStore = configureMockStore();
 const initialState = {
+	tempEngine: {
+		backgroundState: {
+			SwapsController: {
+				tokens: [],
+			},
+		},
+	},
 	engine: {
 		backgroundState: {
 			PreferencesController: {
@@ -24,9 +31,6 @@ const initialState = {
 			},
 			TransactionController: {
 				swapsTransactions: {},
-			},
-			SwapsController: {
-				tokens: [],
 			},
 		},
 	},

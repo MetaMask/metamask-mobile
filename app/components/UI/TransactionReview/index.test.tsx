@@ -7,6 +7,13 @@ import { Provider } from 'react-redux';
 const generateTransform = jest.fn();
 const mockStore = configureMockStore();
 const initialState = {
+	tempEngine: {
+		backgroundState: {
+			TokenListController: {
+				tokenList: {},
+			},
+		},
+	},
 	engine: {
 		backgroundState: {
 			PreferencesController: {
@@ -17,9 +24,6 @@ const initialState = {
 			},
 			TokensController: {
 				tokens: [],
-			},
-			TokenListController: {
-				tokenList: {},
 			},
 			CurrencyRateController: {
 				currentCurrency: 'usd',

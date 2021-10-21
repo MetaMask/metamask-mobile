@@ -10,13 +10,17 @@ const mockStore = configureMockStore();
 describe('Tokens', () => {
 	it('should render correctly', () => {
 		const initialState = {
+			tempEngine: {
+				backgroundState: {
+					TokenListController: {
+						tokenList: {},
+					},
+				},
+			},
 			engine: {
 				backgroundState: {
 					TokensController: {
 						tokens: [],
-					},
-					TokenListController: {
-						tokenList: {},
 					},
 					TokenRatesController: {
 						contractExchangeRates: {},
@@ -49,6 +53,13 @@ describe('Tokens', () => {
 
 	it('should hide zero balance tokens when setting is on', () => {
 		const initialState = {
+			tempEngine: {
+				backgroundState: {
+					TokenListController: {
+						tokenList: {},
+					},
+				},
+			},
 			engine: {
 				backgroundState: {
 					TokensController: {
@@ -57,9 +68,6 @@ describe('Tokens', () => {
 							{ symbol: 'BAT', address: '0x01', decimals: 18 },
 							{ symbol: 'LINK', address: '0x02', decimals: 18 },
 						],
-					},
-					TokenListController: {
-						tokenList: {},
 					},
 					TokenRatesController: {
 						contractExchangeRates: {},
@@ -97,6 +105,13 @@ describe('Tokens', () => {
 
 	it('should show all balance tokens when hideZeroBalanceTokens setting is off', () => {
 		const initialState = {
+			tempEngine: {
+				backgroundState: {
+					TokenListController: {
+						tokenList: {},
+					},
+				},
+			},
 			engine: {
 				backgroundState: {
 					TokensController: {
@@ -105,9 +120,6 @@ describe('Tokens', () => {
 							{ symbol: 'BAT', address: '0x01', decimals: 18 },
 							{ symbol: 'LINK', address: '0x02', decimals: 18 },
 						],
-					},
-					TokenListController: {
-						tokenList: {},
 					},
 					TokenRatesController: {
 						contractExchangeRates: {},
