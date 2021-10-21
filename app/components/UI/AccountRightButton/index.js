@@ -51,7 +51,7 @@ class AccountRightButton extends PureComponent {
 		}
 		// Track Event: "Opened Acount Switcher"
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_OPEN_ACCOUNT_SWITCH, {
-			number_of_accounts: Object.keys(accounts).length,
+			number_of_accounts: Object.keys(accounts ?? {}).length,
 		});
 	};
 

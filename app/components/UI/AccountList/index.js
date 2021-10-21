@@ -204,7 +204,7 @@ class AccountList extends PureComponent {
 				setTimeout(() => {
 					// Track Event: "Switched Account"
 					AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SWITCHED_ACCOUNT, {
-						number_of_accounts: Object.keys(accounts).length,
+						number_of_accounts: Object.keys(accounts ?? {}).length,
 					});
 				}, 1000);
 			});
