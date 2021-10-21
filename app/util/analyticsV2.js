@@ -89,6 +89,7 @@ export const ANALYTICS_EVENTS_V2 = {
 	BROWSER_SEARCH_USED: generateOpt('Search Used'),
 	BROWSER_NEW_TAB: generateOpt('New Tab Opened'),
 	BROWSER_SWITCH_NETWORK: generateOpt('Switch Network'),
+	BROWSER_OPEN_ACCOUNT_SWITCH: generateOpt('Opened Account Switcher'),
 	BROWSER_SWITCH_ACCOUNT: generateOpt('Switch Account'),
 	BROWSER_NAVIGATION: generateOpt('Browser Menu Navigation Used'),
 	BROWSER_SHARE_SITE: generateOpt('Shared A Site'),

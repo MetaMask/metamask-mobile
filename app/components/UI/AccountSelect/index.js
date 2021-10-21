@@ -194,7 +194,6 @@ class AccountSelect extends PureComponent {
 		return (
 			<ScrollView style={styles.componentContainer}>
 				<View style={styles.optionList}>
-					<Text>Hello</Text>
 					{Object.keys(identities).map((address) =>
 						this.renderOption({ ...identities[address], ...accounts[address] }, () => {
 							this.setState({ value: address });
