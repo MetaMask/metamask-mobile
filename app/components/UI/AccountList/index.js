@@ -202,7 +202,7 @@ class AccountList extends PureComponent {
 			}
 			InteractionManager.runAfterInteractions(() => {
 				setTimeout(() => {
-					// Track Event: "Opened Acount Switcher"
+					// Track Event: "Switched Account"
 					AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_SWITCHED_ACCOUNT, {
 						number_of_accounts: Object.keys(accounts).length,
 					});
