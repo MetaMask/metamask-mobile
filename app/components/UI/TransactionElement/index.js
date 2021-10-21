@@ -401,6 +401,6 @@ const mapStateToProps = (state) => ({
 	primaryCurrency: state.settings.primaryCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {},
-	swapsTokens: state.engine.backgroundState.SwapsController.tokens,
+	swapsTokens: state.tempEngine.backgroundState.SwapsController.tokens,
 });
 export default connect(mapStateToProps)(TransactionElement);

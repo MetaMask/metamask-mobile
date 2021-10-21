@@ -1,6 +1,6 @@
 import bookmarksReducer from './bookmarks';
 import browserReducer from './browser';
-import engineReducer from './engine';
+import { engineReducer, tempEngineReducer } from './engine';
 import privacyReducer from './privacy';
 import modalsReducer from './modals';
 import settingsReducer from './settings';
@@ -22,6 +22,7 @@ const rootReducer = combineReducers({
 	analytics: analyticsReducer,
 	collectibles: collectiblesReducer,
 	engine: engineReducer,
+	tempEngine: tempEngineReducer,
 	privacy: privacyReducer,
 	bookmarks: bookmarksReducer,
 	recents: recentsReducer,

@@ -385,7 +385,7 @@ const mapStateToProps = (state) => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	primaryCurrency: state.settings.primaryCurrency,
 	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {},
-	swapsTokens: state.engine.backgroundState.SwapsController.tokens,
+	swapsTokens: state.tempEngine.backgroundState.SwapsController.tokens,
 });
 
 export default connect(mapStateToProps)(TransactionNotification);

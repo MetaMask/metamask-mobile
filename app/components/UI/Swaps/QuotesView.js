@@ -1739,7 +1739,7 @@ const mapStateToProps = (state) => ({
 	quotesLastFetched: state.engine.backgroundState.SwapsController.quotesLastFetched,
 	pollingCyclesLeft: state.engine.backgroundState.SwapsController.pollingCyclesLeft,
 	topAggId: state.engine.backgroundState.SwapsController.topAggId,
-	aggregatorMetadata: state.engine.backgroundState.SwapsController.aggregatorMetadata,
+	aggregatorMetadata: state.tempEngine.backgroundState.SwapsController.aggregatorMetadata,
 	quotes: state.engine.backgroundState.SwapsController.quotes,
 	quoteValues: state.engine.backgroundState.SwapsController.quoteValues,
 	approvalTransaction: state.engine.backgroundState.SwapsController.approvalTransaction,

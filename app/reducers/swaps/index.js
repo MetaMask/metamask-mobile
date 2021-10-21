@@ -52,7 +52,7 @@ export const swapsHasOnboardedSelector = createSelector(swapsStateSelector, (swa
 /**
  * Returns the swaps tokens from the state
  */
-const swapsControllerTokens = (state) => state.engine.backgroundState.SwapsController.tokens;
+const swapsControllerTokens = (state) => state.tempEngine.backgroundState.SwapsController.tokens;
 const tokensSelectors = (state) => state.engine.backgroundState.TokensController.tokens;
 
 const swapsControllerAndUserTokens = createSelector(swapsControllerTokens, tokensSelectors, (swapsTokens, tokens) => {
@@ -83,7 +83,7 @@ export const swapsTokensSelector = createSelector(chainIdSelector, swapsControll
 	return addMetadata(chainId, tokens);
 });
 
-const topAssets = (state) => state.engine.backgroundState.SwapsController.topAssets;
+const topAssets = (state) => state.tempEngine.backgroundState.SwapsController.topAssets;
 
 /**
  * Returns a memoized object that only has the addesses of the tokens as keys

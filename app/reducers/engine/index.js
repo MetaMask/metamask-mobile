@@ -1,3 +1,4 @@
+'use strict';
 import { REHYDRATE } from 'redux-persist';
 import Engine from '../../core/Engine';
 import { store } from '../../store';
@@ -14,7 +15,41 @@ function initalizeEngine(state = {}) {
 	Engine.datamodel &&
 		Engine.datamodel.subscribe(() => {
 			if (!engineInitialized) {
-				store.dispatch({ type: 'INIT_BG_STATE' });
+				const { TokenListController, SwapsController, ...controllers } = Engine.state;
+				const { tokenList, ...tokenListControllerState } = TokenListController;
+				const {
+					aggregatorMetadata,
+					aggregatorMetadataLastFetched,
+					chainCache,
+					tokens,
+					tokensLastFetched,
+					topAssets,
+					topAssetsLastFetched,
+					...swapsControllerState
+				} = SwapsController;
+				const backgroundState = {
+					...controllers,
+					TokenListController: tokenListControllerState,
+					SwapsController: swapsControllerState,
+				};
+				store.dispatch({ type: 'INIT_BG_STATE', payload: backgroundState });
+				store.dispatch({
+					type: 'UPDATE_TEMP_BG_STATE',
+					payload: {
+						TokenListController: {
+							tokenList,
+						},
+						SwapsController: {
+							aggregatorMetadata,
+							aggregatorMetadataLastFetched,
+							chainCache,
+							tokens,
+							tokensLastFetched,
+							topAssets,
+							topAssetsLastFetched,
+						},
+					},
+				});
 				engineInitialized = true;
 			}
 		});
@@ -44,7 +79,10 @@ function initalizeEngine(state = {}) {
 	});
 
 	Engine.controllerMessenger.subscribe(`${Engine.context.TokenListController.name}:stateChange`, () => {
-		store.dispatch({ type: 'UPDATE_BG_STATE', key: 'TokenListController' });
+		const controllerName = 'TokenListController';
+		const { tokenList, ...tokenListControllerState } = Engine.state[controllerName];
+		store.dispatch({ type: 'UPDATE_BG_STATE', key: controllerName, payload: tokenListControllerState });
+		store.dispatch({ type: 'UPDATE_TEMP_CONTROLLER_STATE', key: controllerName, payload: { tokenList } });
 	});
 
 	Engine.controllerMessenger.subscribe(`${Engine.context.CurrencyRateController.name}:stateChange`, () => {
@@ -88,7 +126,31 @@ function initalizeEngine(state = {}) {
 	});
 
 	Engine.context.SwapsController.subscribe(() => {
-		store.dispatch({ type: 'UPDATE_BG_STATE', key: 'SwapsController' });
+		const controllerName = 'SwapsController';
+		const {
+			aggregatorMetadata,
+			aggregatorMetadataLastFetched,
+			chainCache,
+			tokens,
+			tokensLastFetched,
+			topAssets,
+			topAssetsLastFetched,
+			...swapsControllerState
+		} = Engine.state[controllerName];
+		store.dispatch({ type: 'UPDATE_BG_STATE', key: controllerName, payload: swapsControllerState });
+		store.dispatch({
+			type: 'UPDATE_TEMP_CONTROLLER_STATE',
+			key: controllerName,
+			payload: {
+				aggregatorMetadata,
+				aggregatorMetadataLastFetched,
+				chainCache,
+				tokens,
+				tokensLastFetched,
+				topAssets,
+				topAssetsLastFetched,
+			},
+		});
 	});
 
 	Engine.controllerMessenger.subscribe(`${Engine.context.GasFeeController.name}:stateChange`, () => {
@@ -97,23 +159,44 @@ function initalizeEngine(state = {}) {
 }
 
 const engineReducer = (state = initialState, action) => {
+	const newState = state;
 	switch (action.type) {
 		case REHYDRATE:
 			initalizeEngine(action.payload && action.payload.engine && action.payload.engine.backgroundState);
 			if (action.payload && action.payload.engine) {
-				return { ...state, ...action.payload.engine };
+				return { ...newState, ...action.payload.engine };
 			}
 			return state;
 		case 'INIT_BG_STATE':
-			return { backgroundState: Engine.state };
-		case 'UPDATE_BG_STATE': {
-			const newState = { ...state };
-			newState.backgroundState[action.key] = Engine.state[action.key];
-			return newState;
-		}
+			newState.backgroundState = action.payload;
+			break;
+		case 'UPDATE_BG_STATE':
+			{
+				const controllerState = action.payload;
+				newState.backgroundState[action.key] = controllerState || Engine.state[action.key];
+			}
+			break;
+
 		default:
-			return state;
 	}
+	return newState;
 };
 
-export default engineReducer;
+const tempEngineReducer = (state = initialState, action) => {
+	const newState = { ...state };
+	switch (action.type) {
+		case 'UPDATE_TEMP_BG_STATE':
+			newState.backgroundState = action.payload;
+			break;
+		case 'UPDATE_TEMP_CONTROLLER_STATE':
+			{
+				const controllerState = action.payload;
+				newState.backgroundState[action.key] = controllerState;
+			}
+			break;
+		default:
+	}
+	return newState;
+};
+
+export { engineReducer, tempEngineReducer };
