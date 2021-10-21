@@ -9,6 +9,8 @@ import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock
 
 Enzyme.configure({ adapter: new Adapter() });
 
+jest.useFakeTimers();
+
 jest.mock('react-native-fs', () => ({
 	CachesDirectoryPath: jest.fn(),
 	DocumentDirectoryPath: jest.fn(),

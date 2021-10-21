@@ -2,13 +2,6 @@
 format_version: '8'
 default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
-trigger_map:
-    - push_branch: 'develop'
-      workflow: ci_test
-    - push_branch: 'main'
-      workflow: ci_test
-    - pull_request_source_branch: '*'
-      workflow: ci_test
 workflows:
     # Code Setups
     setup:
@@ -99,6 +92,7 @@ workflows:
             - avd-manager@1:
                   inputs:
                       - api_level: '29'
+                      - create_command_flags: '--sdcard 4096M'
                       - profile: pixel
             - wait-for-android-emulator@1: {}
             - file-downloader@1:
@@ -145,7 +139,6 @@ workflows:
             - build-router-start@0:
                   inputs:
                       - workflows: |-
-                            android_e2e_test
                             ios_e2e_test
                       - wait_for_builds: 'true'
                       - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
@@ -304,10 +297,10 @@ app:
           PROJECT_LOCATION_IOS: ios
         - opts:
               is_expand: false
-          VERSION_NAME: 3.4.0
+          VERSION_NAME: 3.4.1
         - opts:
               is_expand: false
-          VERSION_NUMBER: 780
+          VERSION_NUMBER: 785
         - opts:
               is_expand: false
           ANDROID_APK_LINK: ''
