@@ -5,6 +5,7 @@ import { TouchableOpacity, StyleSheet } from 'react-native';
 import Identicon from '../Identicon';
 import { toggleAccountsModal } from '../../../actions/modals';
 import Device from '../../../util/device';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	leftButton: {
@@ -35,6 +36,10 @@ class AccountRightButton extends PureComponent {
 
 	animating = false;
 
+	trackEventOpenedAccountSwitcher() {
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_OPEN_ACCOUNT_SWITCH);
+	}
+
 	toggleAccountsModal = () => {
 		if (!this.animating) {
 			this.animating = true;
@@ -43,6 +48,7 @@ class AccountRightButton extends PureComponent {
 				this.animating = false;
 			}, 500);
 		}
+		this.trackEventOpenedAccountSwitcher();
 	};
 
 	render = () => {
