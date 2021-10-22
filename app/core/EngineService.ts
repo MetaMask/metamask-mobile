@@ -1,5 +1,4 @@
 import UntypedEngine from './Engine';
-const Engine = UntypedEngine as any;
 
 class EngineService {
 	private engineInitialized = false;
@@ -12,6 +11,7 @@ class EngineService {
 	initalizeEngine = (store: any) => {
 		const reduxState = store.getState?.();
 		const state = reduxState?.engine?.backgroundState || {};
+		const Engine = UntypedEngine as any;
 
 		Engine.init(state);
 
