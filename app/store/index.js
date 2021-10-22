@@ -1,5 +1,5 @@
 import { createStore } from 'redux';
-import { persistStore, persistReducer, createMigrate } from 'redux-persist';
+import { persistStore, persistReducer, createMigrate, createTransform } from 'redux-persist';
 import AsyncStorage from '@react-native-community/async-storage';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
@@ -8,6 +8,7 @@ import { migrations, version } from './migrations';
 import Logger from '../util/Logger';
 import EngineService from '../reducers/engine/EngineService';
 import AnalyticsService from '../reducers/analytics/AnalyticsService';
+import { omit } from 'lodash';
 
 const TIMEOUT = 40000;
 
@@ -51,11 +52,38 @@ const MigratedStorage = {
 	},
 };
 
+const persistTransform = createTransform(
+	(inboundState) => {
+		const { TokenListController, SwapsController, ...controllers } = inboundState.backgroundState || {};
+		const persistedTokenListController = omit({ ...TokenListController }, ['tokenList', 'tokensChainsCache']);
+		const persistedSwapsController = omit({ ...SwapsController }, [
+			'aggregatorMetadata',
+			'aggregatorMetadataLastFetched',
+			'chainCache',
+			'tokens',
+			'tokensLastFetched',
+			'topAssets',
+			'topAssetsLastFetched',
+		]);
+		const newState = {
+			backgroundState: {
+				...controllers,
+				TokenListController: persistedTokenListController,
+				SwapsController: persistedSwapsController,
+			},
+		};
+		return newState;
+	},
+	null,
+	{ whitelist: ['engine'] }
+);
+
 const persistConfig = {
 	key: 'root',
 	version,
 	blacklist: ['onboarding', 'analytics'],
 	storage: MigratedStorage,
+	transforms: [persistTransform],
 	stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
 	migrate: createMigrate(migrations, { debug: false }),
 	timeout: TIMEOUT,
