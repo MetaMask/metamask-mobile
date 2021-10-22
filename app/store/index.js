@@ -6,8 +6,8 @@ import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import rootReducer from '../reducers';
 import { migrations, version } from './migrations';
 import Logger from '../util/Logger';
-import EngineService from '../reducers/engine/EngineService';
-import AnalyticsService from '../reducers/analytics/AnalyticsService';
+import EngineService from '../core/EngineService';
+import AnalyticsService from '../core/AnalyticsService';
 
 const TIMEOUT = 40000;
 
@@ -98,10 +98,13 @@ const persistConfig = {
 const pReducer = persistReducer(persistConfig, rootReducer);
 
 export const store = createStore(pReducer);
-export const persistor = persistStore(store, null, () => {
-	const reduxState = store.getState?.();
-	const backgroundState = reduxState?.engine?.backgroundState || {};
-	const analyticsEnabled = reduxState?.analytics?.enabled;
-	EngineService.initalizeEngine(backgroundState);
-	AnalyticsService.initalizeAnalytics(analyticsEnabled);
-});
+
+/**
+ * Initialize services after persist is completed
+ */
+const onPersistComplete = () => {
+	EngineService.initalizeEngine(store);
+	AnalyticsService.initalizeAnalytics(store);
+};
+
+export const persistor = persistStore(store, null, onPersistComplete);

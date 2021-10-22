@@ -1,10 +1,18 @@
-import UntypedEngine from '../../core/Engine';
-import { store } from '../../store';
+import UntypedEngine from './Engine';
 const Engine = UntypedEngine as any;
+
 class EngineService {
 	private engineInitialized = false;
 
-	initalizeEngine = (state = {}) => {
+	/**
+	 * Initializer for the EngineService
+	 *
+	 * @param store - Redux store
+	 */
+	initalizeEngine = (store: any) => {
+		const reduxState = store.getState?.();
+		const state = reduxState?.engine?.backgroundState || {};
+
 		Engine.init(state);
 
 		Engine?.datamodel?.subscribe?.(() => {
