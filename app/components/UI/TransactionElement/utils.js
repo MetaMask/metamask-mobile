@@ -411,6 +411,7 @@ function decodeTransferFromTx(args) {
 			summaryFee: `${renderFromWei(totalGas)} ${ticker}`,
 			summarySecondaryTotalAmount: weiToFiat(totalGas, conversionRate, currentCurrency),
 			summaryTotalAmount: `${renderCollectible} ${strings('unit.divisor')} ${renderFromWei(totalGas)} ${ticker}`,
+			transactionType,
 		};
 	} else {
 		transactionDetails = {
@@ -421,6 +422,7 @@ function decodeTransferFromTx(args) {
 				totalGas
 			)} ${ticker}`,
 			summaryTotalAmount: weiToFiat(totalGas, conversionRate, currentCurrency),
+			transactionType,
 		};
 	}
 
