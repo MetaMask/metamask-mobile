@@ -8,7 +8,6 @@ import { migrations, version } from './migrations';
 import Logger from '../util/Logger';
 import EngineService from '../reducers/engine/EngineService';
 import AnalyticsService from '../reducers/analytics/AnalyticsService';
-import { omit } from 'lodash';
 
 const TIMEOUT = 40000;
 
@@ -52,19 +51,25 @@ const MigratedStorage = {
 	},
 };
 
+/**
+ * Transform middleware that blacklists fields from redux persist that we deem too large for persisted storage
+ */
 const persistTransform = createTransform(
 	(inboundState) => {
 		const { TokenListController, SwapsController, ...controllers } = inboundState.backgroundState || {};
-		const persistedTokenListController = omit({ ...TokenListController }, ['tokenList', 'tokensChainsCache']);
-		const persistedSwapsController = omit({ ...SwapsController }, [
-			'aggregatorMetadata',
-			'aggregatorMetadataLastFetched',
-			'chainCache',
-			'tokens',
-			'tokensLastFetched',
-			'topAssets',
-			'topAssetsLastFetched',
-		]);
+		const { tokenList, tokensChainCache, ...persistedTokenListController } = TokenListController;
+		const {
+			aggregatorMetadata,
+			aggregatorMetadataLastFetched,
+			chainCache,
+			tokens,
+			tokensLastFetched,
+			topAssets,
+			topAssetsLastFetched,
+			...persistedSwapsController
+		} = SwapsController;
+
+		// Reconstruct data to persist
 		const newState = {
 			backgroundState: {
 				...controllers,
