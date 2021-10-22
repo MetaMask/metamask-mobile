@@ -1,5 +1,3 @@
-import { REHYDRATE } from 'redux-persist';
-
 const initialState = {
 	loadingMsg: '',
 	loadingSet: false,
@@ -12,11 +10,6 @@ const initialState = {
 
 const userReducer = (state = initialState, action) => {
 	switch (action.type) {
-		case REHYDRATE:
-			if (action.payload && action.payload.user) {
-				return { ...state, ...action.payload.user };
-			}
-			return state;
 		case 'LOADING_SET':
 			return {
 				...state,
