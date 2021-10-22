@@ -18,6 +18,7 @@ import { strings } from '../../../../locales/i18n';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
 import Analytics from '../../../core/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { doENSReverseLookup } from '../../../util/ENSUtils';
 import AccountElement from './AccountElement';
@@ -166,7 +167,7 @@ class AccountList extends PureComponent {
 	onAccountChange = async (newIndex) => {
 		const previousIndex = this.state.selectedAccountIndex;
 		const { PreferencesController } = Engine.context;
-		const { keyrings } = this.props;
+		const { keyrings, accounts } = this.props;
 
 		requestAnimationFrame(async () => {
 			try {
@@ -201,7 +202,10 @@ class AccountList extends PureComponent {
 			}
 			InteractionManager.runAfterInteractions(() => {
 				setTimeout(() => {
-					Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ACCOUNTS_SWITCHED_ACCOUNTS);
+					// Track Event: "Switched Account"
+					AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SWITCHED_ACCOUNT, {
+						number_of_accounts: Object.keys(accounts ?? {}).length,
+					});
 				}, 1000);
 			});
 			const orderedAccounts = this.getAccounts();
