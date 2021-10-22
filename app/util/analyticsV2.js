@@ -84,12 +84,14 @@ export const ANALYTICS_EVENTS_V2 = {
 	ONBOARDING_TOUR_STEP_REVISITED: generateOpt('Onboarding Tour Step Completed'),
 	ONBOARDING_TOUR_COMPLETED: generateOpt('Onboarding Tour Completed'),
 	ONBOARDING_COMPLETED: generateOpt('Onboarding Completed'),
+	// ACCOUNT
+	SWITCHED_ACCOUNT: generateOpt('Switched Account'),
 	// BROWSER
 	BROWSER_OPENED: generateOpt('Browser Opened'),
 	BROWSER_SEARCH_USED: generateOpt('Search Used'),
 	BROWSER_NEW_TAB: generateOpt('New Tab Opened'),
 	BROWSER_SWITCH_NETWORK: generateOpt('Switch Network'),
-	BROWSER_SWITCH_ACCOUNT: generateOpt('Switch Account'),
+	BROWSER_OPEN_ACCOUNT_SWITCH: generateOpt('Opened Account Switcher'),
 	BROWSER_NAVIGATION: generateOpt('Browser Menu Navigation Used'),
 	BROWSER_SHARE_SITE: generateOpt('Shared A Site'),
 	BROWSER_RELOAD: generateOpt('Reload Browser'),

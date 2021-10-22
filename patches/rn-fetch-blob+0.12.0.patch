@@ -1,0 +1,38 @@
+diff --git a/node_modules/rn-fetch-blob/android/src/main/java/com/RNFetchBlob/RNFetchBlobFS.java b/node_modules/rn-fetch-blob/android/src/main/java/com/RNFetchBlob/RNFetchBlobFS.java
+index a4d7015..268d64a 100644
+--- a/node_modules/rn-fetch-blob/android/src/main/java/com/RNFetchBlob/RNFetchBlobFS.java
++++ b/node_modules/rn-fetch-blob/android/src/main/java/com/RNFetchBlob/RNFetchBlobFS.java
+@@ -99,14 +99,25 @@ class RNFetchBlobFS {
+                 }
+             }
+             else {
+-                byte[] bytes = stringToBytes(data, encoding);
+-                FileOutputStream fout = new FileOutputStream(f, append);
+-                try {
+-                    fout.write(bytes);
+-                    written = bytes.length;
+-                } finally {
+-                    fout.close();
+-                }
++                FileOutputStream fout = null;
++				try {
++					final int CHUNK_LENGTH =  1024;
++					int dataLength = data.length();
++					int i = dataLength / CHUNK_LENGTH;
++					int offset = 0;
++					fout = new FileOutputStream(f, append);
++					written = 0;
++					while (i > -1) {
++						byte[] bytes = stringToBytes(data.substring(offset, Math.min((offset + CHUNK_LENGTH), dataLength)), encoding);
++						fout.write(bytes);
++						written += bytes.length;
++						i--;
++					}
++				} finally {
++					if (fout != null) {
++						fout.close();
++					}
++				}
+             }
+             promise.resolve(written);
+         } catch (FileNotFoundException e) {
