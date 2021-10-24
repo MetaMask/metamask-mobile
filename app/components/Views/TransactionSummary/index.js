@@ -36,6 +36,17 @@ export default class TransactionSummary extends PureComponent {
 		);
 	};
 
+	renderAmountTitle = () => {
+		const { transactionType } = this.props;
+		if (
+			transactionType === TRANSACTION_TYPES.SENT_COLLECTIBLE ||
+			transactionType === TRANSACTION_TYPES.RECEIVED_COLLECTIBLE
+		) {
+			return strings('transaction.token_id');
+		}
+		return strings('transaction.amount');
+	};
+
 	render = () => {
 		const { amount, fee, totalAmount, secondaryTotalAmount, gasEstimationReady, onEditPress } = this.props;
 		if (
@@ -66,7 +77,7 @@ export default class TransactionSummary extends PureComponent {
 			<Summary>
 				<Summary.Row>
 					<Text small primary>
-						{strings('transaction.amount')}
+						{this.renderAmountTitle()}
 					</Text>
 					<Text small primary upper>
 						{amount}
