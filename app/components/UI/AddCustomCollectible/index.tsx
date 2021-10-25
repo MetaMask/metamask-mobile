@@ -129,7 +129,7 @@ const AddCustomCollectible = ({ navigation, collectibleContract }: AddCustomColl
 			const isOwner = await CollectiblesController.isCollectibleOwner(selectedAddress, address, tokenId);
 
 			if (!isOwner)
-				Alert.alert(strings('collectible.ownership_error_title'), strings('collectible.not_owner_error'));
+				Alert.alert(strings('collectible.not_owner_error_title'), strings('collectible.not_owner_error'));
 
 			return isOwner;
 		} catch {
