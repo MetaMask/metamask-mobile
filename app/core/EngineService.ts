@@ -49,16 +49,9 @@ class EngineService {
 
 		controllers.forEach((controller) => {
 			const { name, key = undefined } = controller;
-
-			if (!key) {
-				Engine.context[name].subscribe(() => {
-					store.dispatch({ type: UPDATE_BG_STATE_KEY, key: name });
-				});
-			} else {
-				Engine.controllerMessenger.subscribe(key, () => {
-					store.dispatch({ type: UPDATE_BG_STATE_KEY, key: name });
-				});
-			}
+			const update_bg_state_cb = () => store.dispatch({ type: UPDATE_BG_STATE_KEY, key: name });
+			if (!key) Engine.context[name].subscribe(update_bg_state_cb);
+			else Engine.controllerMessenger.subscribe(key, update_bg_state_cb);
 		});
 	};
 }
