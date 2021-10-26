@@ -59,8 +59,11 @@ export default class Encryptor {
 	 */
 	decrypt = async (password, encryptedString) => {
 		const encryptedData = JSON.parse(encryptedString);
+		console.log(encryptedData);
 		const key = await this._keyFromPassword(password, encryptedData.salt, encryptedData.lib);
+		console.log(key);
 		const data = await this._decryptWithKey(encryptedData, key, encryptedData.lib);
+		console.log('Password', key);
 		return JSON.parse(data);
 	};
 }

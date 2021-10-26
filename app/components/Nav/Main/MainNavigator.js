@@ -52,6 +52,7 @@ import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import GasEducationCarousel from '../../Views/GasEducationCarousel';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
+import VaultRecoveryView from '../../Views/VaultRecoveryView';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -154,6 +155,11 @@ const SettingsView = () => (
 			name="WalletConnectSessionsView"
 			component={WalletConnectSessions}
 			options={WalletConnectSessions.navigationOptions}
+		/>
+		<Stack.Screen
+			name="VaultRecoveryView"
+			component={VaultRecoveryView}
+			options={VaultRecoveryView.navigationOptions}
 		/>
 		<Stack.Screen
 			name="ChoosePasswordSimple"

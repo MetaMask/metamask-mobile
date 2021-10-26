@@ -79,6 +79,10 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 		navigation.navigate('WalletConnectSessionsView');
 	}, [navigation]);
 
+	const goToVaultRecovery = useCallback(() => {
+		navigation.navigate('VaultRecoveryView');
+	}, [navigation]);
+
 	const toggleTokenDetection = useCallback(
 		(enabled) => {
 			const { PreferencesController } = Engine.context as any;
@@ -92,6 +96,21 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 			});
 		},
 		[chainId]
+	);
+
+	const renderVaultRecoverySection = useCallback(
+		() => (
+			<View style={styles.setting}>
+				<Text style={styles.title}>Vault Recovery</Text>
+				<Text style={styles.desc}>
+					This is a tool to attempt to recover your seed phrase from a raw vault payload and associated passowrd. Instructions to recovery your vault can be found here:
+				</Text>
+				<StyledButton type="normal" onPress={goToVaultRecovery} containerStyle={styles.clearHistoryConfirm}>
+					VAULT DECRYPTOR
+				</StyledButton>
+			</View>
+		),
+		[goToVaultRecovery]
 	);
 
 	const renderTokenDetectionSection = useCallback(
@@ -129,6 +148,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 				</View>
 			</View>
 			{renderTokenDetectionSection()}
+			{renderVaultRecoverySection()}
 		</ScrollView>
 	);
 };
