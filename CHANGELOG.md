@@ -2,11 +2,12 @@
 
 ## Current Develop Branch
 
-## v3.5.0 - October 22 2021
+## v3.5.0 - October 26 2021
+- [#3340](https://github.com/MetaMask/metamask-mobile/pull/3340): [IMPROVEMENT] Reduce persisted data
+- [#3330](https://github.com/MetaMask/metamask-mobile/pull/3330): [IMPROVEMENT] Refactor EngineService
 - [#3325](https://github.com/MetaMask/metamask-mobile/pull/3325): [IMPROVEMENT] Isolate persisted data
 - [#3314](https://github.com/MetaMask/metamask-mobile/pull/3314): [IMPROVEMENT] Update copy for token ID in collectible transaction
-- [#3321](https://github.com/MetaMask/metamask-mobile/pull/3321): [FIX] Patch rn-fetch-block OOM crash on Android
-- [#3319](https://github.com/MetaMask/metamask-mobile/pull/3319): Analytics - Track "Account Switcher" events
+- [#3319](https://github.com/MetaMask/metamask-mobile/pull/3319): [IMPROVEMENT] Analytics - Track "Account Switcher" events
 - [#3297](https://github.com/MetaMask/metamask-mobile/pull/3297): [IMPROVEMENT] Add IPFS support for tokens
 - [#3298](https://github.com/MetaMask/metamask-mobile/pull/3298): [FEATURE] Move CI to GitHub Actions
 - [#3302](https://github.com/MetaMask/metamask-mobile/pull/3302): [REFACTOR] Refactor AddCustomCollectible component
