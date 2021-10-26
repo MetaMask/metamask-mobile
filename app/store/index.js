@@ -56,7 +56,8 @@ const MigratedStorage = {
  */
 const persistTransform = createTransform(
 	(inboundState) => {
-		const { TokenListController, SwapsController, ...controllers } = inboundState.backgroundState || {};
+		const { TokenListController, SwapsController, PhishingController, ...controllers } =
+			inboundState.backgroundState || {};
 		const { tokenList, tokensChainCache, ...persistedTokenListController } = TokenListController;
 		const {
 			aggregatorMetadata,
@@ -68,6 +69,7 @@ const persistTransform = createTransform(
 			topAssetsLastFetched,
 			...persistedSwapsController
 		} = SwapsController;
+		const { phishing, whitelist, ...persistedPhishingController } = PhishingController;
 
 		// Reconstruct data to persist
 		const newState = {
@@ -75,6 +77,7 @@ const persistTransform = createTransform(
 				...controllers,
 				TokenListController: persistedTokenListController,
 				SwapsController: persistedSwapsController,
+				PhishingController: persistedPhishingController,
 			},
 		};
 		return newState;
