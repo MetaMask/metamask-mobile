@@ -14,6 +14,7 @@ import { renderShortText } from '../../../util/general';
 import { toLocaleDate } from '../../../util/date';
 import { renderFromWei } from '../../../util/number';
 import { renderShortAddress } from '../../../util/address';
+import { isMainNet } from '../../../util/networks';
 import etherscanLink from '@metamask/etherscan-link';
 import { addFavoriteCollectible, removeFavoriteCollectible } from '../../../actions/collectibles';
 import { favoritesCollectiblesObjectSelector, isCollectibleInFavorites } from '../../../reducers/collectibles';
@@ -179,11 +180,12 @@ const CollectibleOverview = ({
 		renderCollectibleInfoRow(strings('collectible.collectible_link'), collectible?.externalLink, () =>
 			openLink(collectible?.externalLink)
 		),
-		renderCollectibleInfoRow(
-			strings('collectible.collectible_asset_contract'),
-			renderShortAddress(collectible?.address),
-			() => openLink(etherscanLink.createTokenTrackerLink(collectible?.address, chainId))
-		),
+		isMainNet(chainId) &&
+			renderCollectibleInfoRow(
+				strings('collectible.collectible_asset_contract'),
+				renderShortAddress(collectible?.address),
+				() => openLink(etherscanLink.createTokenTrackerLink(collectible?.address, chainId))
+			),
 	];
 
 	const collectibleToFavorites = useCallback(() => {
