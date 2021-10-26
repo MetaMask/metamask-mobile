@@ -8,18 +8,19 @@ import { SvgCssUri } from 'react-native-svg';
 import isUrl from 'is-url';
 import ComponentErrorBoundary from '../../UI/ComponentErrorBoundary';
 import useIpfsGateway from '../../hooks/useIpfsGateway';
+import { util } from '@metamask/controllers';
 
 const RemoteImage = (props) => {
 	// Avoid using this component with animated SVG
 	const source = resolveAssetSource(props.source);
 	const isImageUrl = isUrl(props?.source?.uri);
 	const ipfsGateway = useIpfsGateway();
-
 	const ipfsHash = useMemo(() => {
 		try {
 			const url = new URL(props.source.uri);
 			if (url.protocol !== 'ipfs:') return false;
-			return `${url.hostname}${url.pathname}`;
+			const contentIdentifier = util.getIpfsUrlContentIdentifier(props.source.uri);
+			return contentIdentifier;
 		} catch {
 			return false;
 		}
