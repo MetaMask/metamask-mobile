@@ -3,7 +3,7 @@
 ## Current Develop Branch
 
 ## v3.5.0 - October 26 2021
-- [#3340](https://github.com/MetaMask/metamask-mobile/pull/3340): [IMPROVEMENT] Exclude PhishingController state from persist
+- [#3340](https://github.com/MetaMask/metamask-mobile/pull/3340): [IMPROVEMENT] Reduce persisted data
 - [#3330](https://github.com/MetaMask/metamask-mobile/pull/3330): [IMPROVEMENT] Refactor EngineService
 - [#3325](https://github.com/MetaMask/metamask-mobile/pull/3325): [IMPROVEMENT] Isolate persisted data
 - [#3314](https://github.com/MetaMask/metamask-mobile/pull/3314): [IMPROVEMENT] Update copy for token ID in collectible transaction
