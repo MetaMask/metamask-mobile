@@ -1,5 +1,8 @@
 import UntypedEngine from './Engine';
 
+const UPDATE_BG_STATE_KEY = 'UPDATE_BG_STATE';
+const INIT_BG_STATE_KEY = 'INIT_BG_STATE';
+
 class EngineService {
 	private engineInitialized = false;
 
@@ -15,87 +18,40 @@ class EngineService {
 
 		Engine.init(state);
 
+		const controllers = [
+			{ name: 'AccountTrackerController' },
+			{ name: 'AddressBookController' },
+			{ name: 'AssetsContractController' },
+			{ name: 'CollectiblesController' },
+			{ name: 'TokensController' },
+			{ name: 'AssetsDetectionController' },
+			{ name: 'KeyringController' },
+			{ name: 'AccountTrackerController' },
+			{ name: 'NetworkController' },
+			{ name: 'PhishingController' },
+			{ name: 'PreferencesController' },
+			{ name: 'TokenBalancesController' },
+			{ name: 'TokenRatesController' },
+			{ name: 'TransactionController' },
+			{ name: 'TypedMessageManager' },
+			{ name: 'SwapsController' },
+			{ name: 'TokenListController', key: `${Engine.context.TokenListController.name}:stateChange` },
+			{ name: 'CurrencyRateController', key: `${Engine.context.CurrencyRateController.name}:stateChange` },
+			{ name: 'GasFeeController', key: `${Engine.context.GasFeeController.name}:stateChange` },
+		];
+
 		Engine?.datamodel?.subscribe?.(() => {
 			if (!this.engineInitialized) {
-				store.dispatch({ type: 'INIT_BG_STATE' });
+				store.dispatch({ type: INIT_BG_STATE_KEY });
 				this.engineInitialized = true;
 			}
 		});
 
-		Engine.context.AccountTrackerController.subscribe(() => {
-			store.dispatch({ type: 'UPDATE_BG_STATE', key: 'AccountTrackerController' });
-		});
-
-		Engine.context.AddressBookController.subscribe(() => {
-			store.dispatch({ type: 'UPDATE_BG_STATE', key: 'AddressBookController' });
-		});
-
-		Engine.context.AssetsContractController.subscribe(() => {
-			store.dispatch({ type: 'UPDATE_BG_STATE', key: 'AssetsContractController' });
-		});
-
-		Engine.context.CollectiblesController.subscribe(() => {
-			store.dispatch({ type: 'UPDATE_BG_STATE', key: 'CollectiblesController' });
-		});
-
-		Engine.context.TokensController.subscribe(() => {
-			store.dispatch({ type: 'UPDATE_BG_STATE', key: 'TokensController' });
-		});
-
-		Engine.context.AssetsDetectionController.subscribe(() => {
-			store.dispatch({ type: 'UPDATE_BG_STATE', key: 'AssetsDetectionController' });
-		});
-
-		Engine.controllerMessenger.subscribe(`${Engine.context.TokenListController.name}:stateChange`, () => {
-			store.dispatch({ type: 'UPDATE_BG_STATE', key: 'TokenListController' });
-		});
-
-		Engine.controllerMessenger.subscribe(`${Engine.context.CurrencyRateController.name}:stateChange`, () => {
-			store.dispatch({ type: 'UPDATE_BG_STATE', key: 'CurrencyRateController' });
-		});
-
-		Engine.context.KeyringController.subscribe(() => {
-			store.dispatch({ type: 'UPDATE_BG_STATE', key: 'KeyringController' });
-		});
-
-		Engine.context.PersonalMessageManager.subscribe(() => {
-			store.dispatch({ type: 'UPDATE_BG_STATE', key: 'AccountTrackerController' });
-		});
-
-		Engine.context.NetworkController.subscribe(() => {
-			store.dispatch({ type: 'UPDATE_BG_STATE', key: 'NetworkController' });
-		});
-
-		Engine.context.PhishingController.subscribe(() => {
-			store.dispatch({ type: 'UPDATE_BG_STATE', key: 'PhishingController' });
-		});
-
-		Engine.context.PreferencesController.subscribe(() => {
-			store.dispatch({ type: 'UPDATE_BG_STATE', key: 'PreferencesController' });
-		});
-
-		Engine.context.TokenBalancesController.subscribe(() => {
-			store.dispatch({ type: 'UPDATE_BG_STATE', key: 'TokenBalancesController' });
-		});
-
-		Engine.context.TokenRatesController.subscribe(() => {
-			store.dispatch({ type: 'UPDATE_BG_STATE', key: 'TokenRatesController' });
-		});
-
-		Engine.context.TransactionController.subscribe(() => {
-			store.dispatch({ type: 'UPDATE_BG_STATE', key: 'TransactionController' });
-		});
-
-		Engine.context.TypedMessageManager.subscribe(() => {
-			store.dispatch({ type: 'UPDATE_BG_STATE', key: 'TypedMessageManager' });
-		});
-
-		Engine.context.SwapsController.subscribe(() => {
-			store.dispatch({ type: 'UPDATE_BG_STATE', key: 'SwapsController' });
-		});
-
-		Engine.controllerMessenger.subscribe(`${Engine.context.GasFeeController.name}:stateChange`, () => {
-			store.dispatch({ type: 'UPDATE_BG_STATE', key: 'GasFeeController' });
+		controllers.forEach((controller) => {
+			const { name, key = undefined } = controller;
+			const update_bg_state_cb = () => store.dispatch({ type: UPDATE_BG_STATE_KEY, key: name });
+			if (!key) Engine.context[name].subscribe(update_bg_state_cb);
+			else Engine.controllerMessenger.subscribe(key, update_bg_state_cb);
 		});
 	};
 }
