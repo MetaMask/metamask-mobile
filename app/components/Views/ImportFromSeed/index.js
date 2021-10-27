@@ -29,7 +29,12 @@ import TermsAndConditions from '../TermsAndConditions';
 import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Device from '../../../util/device';
-import { failedSeedPhraseRequirements, isValidMnemonic, parseSeedPhrase } from '../../../util/validators';
+import {
+	failedSeedPhraseRequirements,
+	isValidMnemonic,
+	parseSeedPhrase,
+	parseVaultValue,
+} from '../../../util/validators';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import {
 	SEED_PHRASE_HINTS,
@@ -44,7 +49,6 @@ import { getPasswordStrengthWord, passwordRequirementsMet, MIN_PASSWORD_LENGTH }
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
-import Encryptor from '../../../core/Encryptor';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -245,8 +249,7 @@ class ImportFromSeed extends PureComponent {
 	onPressImport = async () => {
 		const { loading, seed, password, confirmPassword } = this.state;
 
-		const vaultSeed = await this.parseVaultValue(password, seed);
-
+		const vaultSeed = this.checkIfVault(password, seed);
 		const parsedSeed = parseSeedPhrase(vaultSeed || seed);
 
 		if (loading) return;
@@ -337,21 +340,9 @@ class ImportFromSeed extends PureComponent {
 		}
 	};
 
-	parseVaultValue = async (password, seed) => {
-		let vaultSeed;
-
-		if (seed[0] === '{' && seed[seed.length - 1] === '}')
-			try {
-				const seedObject = JSON.parse(seed);
-				if (seedObject?.cipher && seedObject?.salt && seedObject?.iv && seedObject?.lib) {
-					const encryptor = new Encryptor();
-					const result = await encryptor.decrypt(password, seed);
-					vaultSeed = result[0]?.data?.mnemonic;
-					this.setState({ seed: vaultSeed });
-				}
-			} catch (error) {
-				//No-op
-			}
+	checkIfVault = async (password, seed) => {
+		const vaultSeed = await parseVaultValue(password, seed);
+		this.setState({ seed: vaultSeed });
 		return vaultSeed;
 	};
 
