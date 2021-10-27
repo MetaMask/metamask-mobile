@@ -180,7 +180,7 @@ class AccountApproval extends PureComponent {
 	render = () => {
 		const { currentPageInformation } = this.props;
 		return (
-			<View style={styles.root}>
+			<View style={styles.root} testID={'account-approval-modal-container'}>
 				<TransactionHeader currentPageInformation={currentPageInformation} />
 				<Text style={styles.intro}>{strings('accountApproval.action')}</Text>
 				<Text style={styles.warning}>{strings('accountApproval.warning')}</Text>

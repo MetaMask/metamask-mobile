@@ -16,6 +16,11 @@ export default class TestHelpers {
 			.atIndex(index || 0)
 			.tap();
 	}
+	static doubleTapByText(text, index) {
+		return element(by.text(text))
+			.atIndex(index || 0)
+			.multiTap(2);
+	}
 
 	static tapAtPoint(elementId, point) {
 		return element(by.id(elementId)).tapAtPoint(point);
@@ -125,6 +130,13 @@ export default class TestHelpers {
 
 	static checkIfElementHasString(elementID, text) {
 		return expect(element(by.id(elementID))).toString(text);
+	}
+
+	static checkIfToggleIsOn(elementID) {
+		return expect(element(by.id(elementID))).toHaveToggleValue(true);
+	}
+	static checkIfToggleIsOff(elementID) {
+		return expect(element(by.id(elementID))).toHaveToggleValue(false);
 	}
 
 	static relaunchApp() {
