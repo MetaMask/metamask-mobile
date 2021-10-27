@@ -249,7 +249,7 @@ class ImportFromSeed extends PureComponent {
 	onPressImport = async () => {
 		const { loading, seed, password, confirmPassword } = this.state;
 
-		const vaultSeed = this.checkIfVault(password, seed);
+		const vaultSeed = await this.checkIfVault(password, seed);
 		const parsedSeed = parseSeedPhrase(vaultSeed || seed);
 
 		if (loading) return;
