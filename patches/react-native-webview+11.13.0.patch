@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
-index f743bbc..0804410 100644
+index f743bbc..c4af95a 100644
 --- a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
 +++ b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
 @@ -5,6 +5,7 @@ import android.annotation.TargetApi;
@@ -214,7 +214,7 @@ index f743bbc..0804410 100644
    @ReactProp(name = "javaScriptEnabled")
    public void setJavaScriptEnabled(WebView view, boolean enabled) {
      view.getSettings().setJavaScriptEnabled(enabled);
-@@ -842,13 +970,101 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -842,13 +970,102 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      }
    }
  
@@ -313,11 +313,12 @@ index f743bbc..0804410 100644
      ReadableArray mUrlPrefixesForDefaultIntent;
      protected RNCWebView.ProgressChangedFilter progressChangedFilter = null;
      protected @Nullable String ignoreErrFailedForThisURL = null;
++    //Allow list is used to support specific deeplinks in the webview. 
 +    private final String[] DEEPLINK_ALLOW_LIST = new String[] {"https://twitter.com/i/wallet/verify"};
  
      public void setIgnoreErrFailedForThisURL(@Nullable String url) {
        ignoreErrFailedForThisURL = url;
-@@ -872,9 +1088,6 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -872,9 +1089,6 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        super.onPageStarted(webView, url, favicon);
        mLastLoadFailed = false;
  
@@ -327,7 +328,7 @@ index f743bbc..0804410 100644
        ((RNCWebView) webView).dispatchEvent(
          webView,
          new TopLoadingStartEvent(
-@@ -882,6 +1095,16 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -882,6 +1096,16 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
            createWebViewEvent(webView, url)));
      }
  
@@ -344,11 +345,14 @@ index f743bbc..0804410 100644
      @Override
      public boolean shouldOverrideUrlLoading(WebView view, String url) {
        final RNCWebView rncWebView = (RNCWebView) view;
-@@ -919,6 +1142,14 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -919,6 +1143,17 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
          RNCWebViewModule.shouldOverrideUrlLoadingLock.removeLock(lockIdentifier);
  
          return shouldOverride;
 +      } else if (url != null && Arrays.asList(DEEPLINK_ALLOW_LIST).contains(url)) {
++        // This case is used to support deeplinking within the webview. We are limiting this but 
++        // if more links are to be supported we should consider a more scaleable solution. That is 
++        // secure and scaleable.
 +        Intent intent = new Intent(Intent.ACTION_VIEW);
 +        intent.setData(Uri.parse(url));
 +        if(intent.resolveActivity(view.getContext().getPackageManager()) != null) {
@@ -359,7 +363,7 @@ index f743bbc..0804410 100644
        } else {
          FLog.w(TAG, "Couldn't use blocking synchronous call for onShouldStartLoadWithRequest due to debugging or missing Catalyst instance, falling back to old event-and-load.");
          progressChangedFilter.setWaitingForCommandLoadUrl(true);
-@@ -934,6 +1165,21 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -934,6 +1169,21 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      @TargetApi(Build.VERSION_CODES.N)
      @Override
      public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
@@ -381,7 +385,7 @@ index f743bbc..0804410 100644
        final String url = request.getUrl().toString();
        return this.shouldOverrideUrlLoading(view, url);
      }
-@@ -1447,6 +1693,13 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1447,6 +1697,13 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      protected boolean nestedScrollEnabled = false;
      protected ProgressChangedFilter progressChangedFilter;
  
@@ -395,7 +399,7 @@ index f743bbc..0804410 100644
      /**
       * WebView must be created with an context of the current activity
       * <p>
-@@ -1475,6 +1728,24 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1475,6 +1732,24 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        this.nestedScrollEnabled = nestedScrollEnabled;
      }
  
