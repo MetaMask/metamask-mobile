@@ -180,12 +180,13 @@ const CollectibleOverview = ({
 		renderCollectibleInfoRow(strings('collectible.collectible_link'), collectible?.externalLink, () =>
 			openLink(collectible?.externalLink)
 		),
-		isMainNet(chainId) &&
-			renderCollectibleInfoRow(
-				strings('collectible.collectible_asset_contract'),
-				renderShortAddress(collectible?.address),
-				() => openLink(etherscanLink.createTokenTrackerLink(collectible?.address, chainId))
-			),
+		renderCollectibleInfoRow(
+			strings('collectible.collectible_asset_contract'),
+			renderShortAddress(collectible?.address),
+			() => {
+				if (isMainNet(chainId)) openLink(etherscanLink.createTokenTrackerLink(collectible?.address, chainId));
+			}
+		),
 	];
 
 	const collectibleToFavorites = useCallback(() => {
