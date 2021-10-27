@@ -2,7 +2,6 @@ import {
 	AccountTrackerController,
 	AddressBookController,
 	AssetsContractController,
-	AssetsDetectionController,
 	TokenListController,
 	ControllerMessenger,
 	ComposableController,
@@ -22,6 +21,8 @@ import {
 	GasFeeController,
 	TokensController,
 	CollectiblesController,
+	TokenDetectionController,
+	CollectibleDetectionController,
 } from '@metamask/controllers';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -173,18 +174,22 @@ class Engine {
 				collectiblesController,
 				tokensController,
 				tokenListController,
-				new AssetsDetectionController({
-					onCollectiblesStateChange: (listener) => collectiblesController.subscribe(listener),
+				new TokenDetectionController({
 					onTokensStateChange: (listener) => tokensController.subscribe(listener),
+					onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
+					onNetworkStateChange: (listener) => networkController.subscribe(listener),
+					addTokens: tokensController.addTokens.bind(tokensController),
+					getTokensState: () => tokensController.state,
+					getTokenListState: () => tokenListController.state,
+				}),
+				new CollectibleDetectionController({
+					onCollectiblesStateChange: (listener) => collectiblesController.subscribe(listener),
 					onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
 					onNetworkStateChange: (listener) => networkController.subscribe(listener),
 					getOpenSeaApiKey: () => collectiblesController.openSeaApiKey,
 					getBalancesInSingleCall:
 						assetsContractController.getBalancesInSingleCall.bind(assetsContractController),
-					addTokens: tokensController.addTokens.bind(tokensController),
 					addCollectible: collectiblesController.addCollectible.bind(collectiblesController),
-					getTokensState: () => tokensController.state,
-					getTokenListState: () => tokenListController.state,
 					getCollectiblesState: () => collectiblesController.state,
 				}),
 				currencyRateController,
@@ -274,7 +279,8 @@ class Engine {
 		const {
 			AccountTrackerController,
 			AssetsContractController,
-			AssetsDetectionController,
+			TokenDetectionController,
+			CollectibleDetectionController,
 			NetworkController: { provider, state: NetworkControllerState },
 			TransactionController,
 			SwapsController,
@@ -291,7 +297,8 @@ class Engine {
 		});
 		TransactionController.configure({ provider });
 		TransactionController.hub.emit('networkChange');
-		AssetsDetectionController.detectAssets();
+		TokenDetectionController.detectTokens();
+		CollectibleDetectionController.detectCollectibles();
 		AccountTrackerController.refresh();
 	}
 
@@ -568,7 +575,6 @@ export default {
 			AddressBookController,
 			AssetsContractController,
 			CollectiblesController,
-			AssetsDetectionController,
 			TokenListController,
 			CurrencyRateController,
 			KeyringController,
@@ -597,7 +603,6 @@ export default {
 			AddressBookController,
 			AssetsContractController,
 			CollectiblesController,
-			AssetsDetectionController,
 			TokenListController,
 			CurrencyRateController: modifiedCurrencyRateControllerState,
 			KeyringController,
