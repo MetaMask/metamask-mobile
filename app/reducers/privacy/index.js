@@ -1,5 +1,3 @@
-import { REHYDRATE } from 'redux-persist';
-
 const initialState = {
 	approvedHosts: {},
 	privacyMode: true,
@@ -9,11 +7,6 @@ const initialState = {
 const privacyReducer = (state = initialState, action) => {
 	const newHosts = { ...state.approvedHosts };
 	switch (action.type) {
-		case REHYDRATE:
-			if (action.payload && action.payload.privacy) {
-				return { ...state, ...action.payload.privacy };
-			}
-			return state;
 		case 'APPROVE_HOST':
 			return {
 				...state,
