@@ -1,7 +1,5 @@
-/* eslint-disable import/no-namespace */
 import React, { useCallback, useEffect, useRef } from 'react';
 import { NavigationContainer, CommonActions } from '@react-navigation/native';
-import * as Sentry from '@sentry/react-native';
 import { createSwitchNavigator } from '@react-navigation/compat';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
@@ -30,7 +28,6 @@ import { BranchSubscriber } from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
-import { routingInstrumentation } from '../../../util/setupSentry';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -154,7 +151,7 @@ const AppNavigator = createSwitchNavigator(
 
 const App = () => {
 	const unsubscribeFromBranch = useRef();
-	const navigator = useRef();
+	let navigator = useRef();
 
 	const handleDeeplink = useCallback(({ error, params, uri }) => {
 		if (error) {
@@ -183,7 +180,7 @@ const App = () => {
 		SharedDeeplinkManager.init({
 			navigate: (routeName, opts) => {
 				const params = { name: routeName, params: opts };
-				navigator.current?.dispatch?.(CommonActions.navigate(params));
+				navigator.dispatch(CommonActions.navigate(params));
 			},
 		});
 
@@ -194,9 +191,8 @@ const App = () => {
 
 	return (
 		<NavigationContainer
-			ref={navigator}
-			onReady={() => {
-				routingInstrumentation.registerNavigationContainer(navigator);
+			ref={(nav) => {
+				navigator = nav;
 			}}
 		>
 			<AppNavigator />
@@ -204,4 +200,4 @@ const App = () => {
 	);
 };
 
-export default Sentry.wrap(App);
+export default App;
