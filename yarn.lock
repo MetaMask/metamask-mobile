@@ -1589,9 +1589,9 @@
     web3 "^0.20.7"
     web3-provider-engine "^16.0.3"
 
-"@metamask/controllers@file:./metamask-controllers-v17.0.0-7d27391-1.tgz":
-  version "17.0.0-7d27391-1"
-  resolved "file:./metamask-controllers-v17.0.0-7d27391-1.tgz#33f990c6892b4a3029b60f97248a479f8cbd2a03"
+"@metamask/controllers@file:./metamask-controllers-v17.0.0-b9974c3.tgz":
+  version "17.0.0-b9974c3"
+  resolved "file:./metamask-controllers-v17.0.0-b9974c3.tgz#4611cc5d9d563e0b1b707a1fed8397f45e1a862a"
   dependencies:
     "@ethereumjs/common" "^2.3.1"
     "@ethereumjs/tx" "^3.2.1"
