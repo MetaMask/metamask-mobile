@@ -893,6 +893,7 @@ class Amount extends PureComponent {
 
 	renderAssetsModal = () => {
 		const { assetsModalVisible } = this.state;
+		const tradableCollectibles = this.collectibles.filter(({ standard }) => standard === 'ERC721');
 
 		return (
 			<Modal
@@ -909,7 +910,7 @@ class Amount extends PureComponent {
 						<View style={styles.dragger} />
 					</View>
 					<FlatList
-						data={[...this.tokens, ...this.collectibles]}
+						data={[...this.tokens, ...tradableCollectibles]}
 						keyExtractor={this.assetKeyExtractor}
 						renderItem={this.renderAsset}
 					/>
