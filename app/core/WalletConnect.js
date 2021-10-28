@@ -209,7 +209,7 @@ class WalletConnect {
 							error,
 						});
 					}
-				} else if (payload.method && payload.method === 'eth_signTypedData') {
+				} else if (payload.method === 'eth_signTypedData') {
 					const { TypedMessageManager } = Engine.context;
 					try {
 						const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
@@ -236,7 +236,7 @@ class WalletConnect {
 							error,
 						});
 					}
-				} else if (payload.method && payload.method === 'eth_signTypedData_v3') {
+				} else if (payload.method === 'eth_signTypedData_v3') {
 					const { TypedMessageManager } = Engine.context;
 					try {
 						const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
