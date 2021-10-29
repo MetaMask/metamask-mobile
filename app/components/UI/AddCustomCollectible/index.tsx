@@ -102,12 +102,12 @@ const AddCustomCollectible = ({ navigation, collectibleContract }: AddCustomColl
 	};
 
 	const validateCustomCollectibleTokenId = (): boolean => {
-		let validated = true;
+		let validated = false;
 		if (tokenId.length === 0) {
 			setWarningTokenId(strings('collectible.token_id_cant_be_empty'));
-			validated = false;
 		} else {
 			setWarningTokenId(``);
+			validated = true;
 		}
 		return validated;
 	};
