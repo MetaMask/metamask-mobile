@@ -111,6 +111,10 @@ class Engine {
 				getAssetName: assetsContractController.getAssetName.bind(assetsContractController),
 				getAssetSymbol: assetsContractController.getAssetSymbol.bind(assetsContractController),
 				getCollectibleTokenURI: assetsContractController.getCollectibleTokenURI.bind(assetsContractController),
+				getOwnerOf: assetsContractController.getOwnerOf.bind(assetsContractController),
+				balanceOfERC1155Collectible:
+					assetsContractController.balanceOfERC1155Collectible.bind(assetsContractController),
+				uriERC1155Collectible: assetsContractController.uriERC1155Collectible.bind(assetsContractController),
 			});
 			const tokensController = new TokensController({
 				onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
