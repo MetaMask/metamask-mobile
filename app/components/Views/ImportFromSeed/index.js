@@ -249,8 +249,10 @@ class ImportFromSeed extends PureComponent {
 	onPressImport = async () => {
 		const { loading, seed, password, confirmPassword } = this.state;
 
-		const vaultSeed = await this.checkIfVault(password, seed);
+		const vaultSeed = await parseVaultValue(password, seed);
 		const parsedSeed = parseSeedPhrase(vaultSeed || seed);
+		//Set the seed state with a valid parsed seed phrase (handle vault scenario)
+		this.setState({ seed: parsedSeed });
 
 		if (loading) return;
 		InteractionManager.runAfterInteractions(() => {
@@ -338,12 +340,6 @@ class ImportFromSeed extends PureComponent {
 				});
 			}
 		}
-	};
-
-	checkIfVault = async (password, seed) => {
-		const vaultSeed = await parseVaultValue(password, seed);
-		this.setState({ seed: vaultSeed });
-		return vaultSeed;
 	};
 
 	onBiometryChoiceChange = (value) => {
