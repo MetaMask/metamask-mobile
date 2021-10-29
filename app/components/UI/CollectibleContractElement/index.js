@@ -88,7 +88,7 @@ function CollectibleContractElement({
 	const [collectiblesGrid, setCollectiblesGrid] = useState([]);
 	const [collectiblesVisible, setCollectiblesVisible] = useState(propsCollectiblesVisible);
 	const actionSheetRef = useRef();
-	const collectibleToRemove = useRef(null);
+	const longPressedCollectible = useRef(null);
 
 	const toggleCollectibles = useCallback(() => {
 		setCollectiblesVisible(!collectiblesVisible);
@@ -104,17 +104,34 @@ function CollectibleContractElement({
 
 	const onLongPressCollectible = useCallback((collectible) => {
 		actionSheetRef.current.show();
-		collectibleToRemove.current = collectible;
+		longPressedCollectible.current = collectible;
 	}, []);
 
 	const removeCollectible = () => {
 		const { CollectiblesController } = Engine.context;
-		removeFavoriteCollectible(selectedAddress, chainId, collectibleToRemove.current);
+		removeFavoriteCollectible(selectedAddress, chainId, longPressedCollectible.current);
 		CollectiblesController.removeAndIgnoreCollectible(
-			collectibleToRemove.current.address,
-			collectibleToRemove.current.tokenId
+			longPressedCollectible.current.address,
+			longPressedCollectible.current.tokenId
 		);
 		Alert.alert(strings('wallet.collectible_removed_title'), strings('wallet.collectible_removed_desc'));
+	};
+
+	const refreshMetadata = () => {
+		const { CollectiblesController } = Engine.context;
+
+		CollectiblesController.addCollectible(
+			longPressedCollectible.current.address,
+			longPressedCollectible.current.tokenId
+		);
+	};
+
+	const handleMenuAction = (index) => {
+		if (index === 1) {
+			removeCollectible();
+		} else if (index === 0) {
+			refreshMetadata();
+		}
 	};
 
 	const renderCollectible = useCallback(
@@ -183,12 +200,12 @@ function CollectibleContractElement({
 			)}
 			<ActionSheet
 				ref={actionSheetRef}
-				title={strings('wallet.remove_collectible_title')}
-				options={[strings('wallet.remove'), strings('wallet.cancel')]}
-				cancelButtonIndex={1}
-				destructiveButtonIndex={0}
+				title={strings('wallet.collectible_action_title')}
+				options={[strings('wallet.refresh_metadata'), strings('wallet.remove'), strings('wallet.cancel')]}
+				cancelButtonIndex={2}
+				destructiveButtonIndex={1}
 				// eslint-disable-next-line react/jsx-no-bind
-				onPress={(index) => (index === 0 ? removeCollectible() : null)}
+				onPress={handleMenuAction}
 			/>
 		</View>
 	);
