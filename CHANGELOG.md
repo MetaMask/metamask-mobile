@@ -2,6 +2,13 @@
 
 ## Current Develop Branch
 
+## v3.6.0 - October 29 2021
+- [#3301](https://github.com/MetaMask/metamask-mobile/pull/3301): [FEATURE] ERC-1155 Support
+- [#3343](https://github.com/MetaMask/metamask-mobile/pull/3343): [IMPROVEMENT] Add IPFS support for NFTs
+- [#3352](https://github.com/MetaMask/metamask-mobile/pull/3352): [FIX] Fix rendering issue when viewing data on transaction review screen
+- [#3348](https://github.com/MetaMask/metamask-mobile/pull/3348): [IMPROVEMENT] Add webview deeplink support for Android
+- [#3290](https://github.com/MetaMask/metamask-mobile/pull/3290): [FIX] Fix lost data when using wallet connect for ERC20 token transaction
+
 ## v3.5.0 - October 26 2021
 - [#3340](https://github.com/MetaMask/metamask-mobile/pull/3340): [IMPROVEMENT] Reduce persisted data
 - [#3330](https://github.com/MetaMask/metamask-mobile/pull/3330): [IMPROVEMENT] Refactor EngineService
