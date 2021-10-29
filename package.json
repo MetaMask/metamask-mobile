@@ -39,6 +39,7 @@
     "test:e2e": "yarn test:e2e:ios && yarn test:e2e:android",
     "test:e2e:ios": "detox build -c ios.sim.release && detox test -c ios.sim.release --record-videos failing",
     "test:e2e:android": "detox build -c android.emu.release && detox test -c android.emu.release --record-videos failing",
+    "test:tgz-check": "./scripts/tgz-check.sh",
     "postinstall": "./scripts/postinstall.sh",
     "sourcemaps:android": "node_modules/.bin/react-native bundle --platform android --entry-file index.js --dev false --reset-cache --bundle-output /tmp/bundle.android.js --assets-dest /tmp/ --sourcemap-output sourcemaps/android/index.js.map",
     "sourcemaps:ios": "node_modules/.bin/react-native bundle --platform ios --entry-file index.js --dev false --reset-cache --bundle-output /tmp/bundle.ios.js --assets-dest /tmp/ --sourcemap-output sourcemaps/ios/index.js.map",
