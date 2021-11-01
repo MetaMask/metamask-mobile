@@ -3,10 +3,10 @@ import reducer, { ADD_FAVORITE_COLLECTIBLE, REMOVE_FAVORITE_COLLECTIBLE } from '
 
 const emptyAction = { type: null };
 
-const collectibleA1 = { tokenId: 101, address: '0xA' };
-const collectibleA2 = { tokenId: 102, address: '0xA' };
-const collectibleB1 = { tokenId: 101, address: '0xB' };
-const collectibleB2 = { tokenId: 102, address: '0xB' };
+const collectibleA1 = { tokenId: '101', address: '0xA' };
+const collectibleA2 = { tokenId: '102', address: '0xA' };
+const collectibleB1 = { tokenId: '101', address: '0xB' };
+const collectibleB2 = { tokenId: '102', address: '0xB' };
 const selectedAddressA = '0x0A';
 const selectedAddressB = '0x0B';
 
@@ -98,6 +98,7 @@ describe('swaps reducer', () => {
 			chainId: NetworksChainId.mainnet,
 			collectible: collectibleB1,
 		});
+		console.log(secondState);
 		expect(secondState).toEqual({
 			favorites: {
 				[selectedAddressA]: { [NetworksChainId.mainnet]: [collectibleA1, collectibleA2] },
