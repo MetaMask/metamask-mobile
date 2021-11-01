@@ -1,9 +1,10 @@
-import React, { useCallback } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, View, InteractionManager, Image } from 'react-native';
 import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
+import Engine from '../../../core/Engine';
 import CollectibleContractElement from '../CollectibleContractElement';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
@@ -73,6 +74,34 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 		},
 		[navigation]
 	);
+
+	/**
+	 *	Method to check the token id data type of the current collectibles.
+	 *
+	 * @param collectible - Collectible object.
+	 * @returns Boolean indicating if collectible should be  updated.
+	 */
+	const shouldUpdateCollectibleMetadata = (collectible) => typeof collectible.tokenId === 'number';
+
+	/**
+	 * Method to updated collectible and avoid backwards compatibility issues.
+	 * @param address - Collectible address.
+	 * @param tokenId - Collectible token ID.
+	 */
+	const updateCollectibleMetadata = ({ address, tokenId }) => {
+		const { CollectiblesController } = Engine.context;
+		CollectiblesController.removeCollectible(address, tokenId);
+		CollectiblesController.addCollectible(address, String(tokenId));
+	};
+
+	useEffect(() => {
+		// TO DO: Move this fix to the controllers layer
+		collectibles.forEach((collectible) => {
+			if (shouldUpdateCollectibleMetadata(collectible)) {
+				updateCollectibleMetadata(collectible);
+			}
+		});
+	});
 
 	const goToAddCollectible = () => {
 		navigation.push('AddAsset', { assetType: 'collectible' });
