@@ -98,7 +98,6 @@ describe('swaps reducer', () => {
 			chainId: NetworksChainId.mainnet,
 			collectible: collectibleB1,
 		});
-		console.log(secondState);
 		expect(secondState).toEqual({
 			favorites: {
 				[selectedAddressA]: { [NetworksChainId.mainnet]: [collectibleA1, collectibleA2] },
