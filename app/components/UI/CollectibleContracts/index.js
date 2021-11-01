@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
  * View that renders a list of CollectibleContract
  * also known as ERC-721 Tokens
  */
-const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, favoriteCollectibles }) => {
+const CollectibleContracts = ({ navigation, collectibleContracts, collectibles, favoriteCollectibles }) => {
 	const onItemPress = useCallback(
 		(collectible, contractName) => {
 			navigation.navigate('CollectiblesDetails', { collectible, contractName });
@@ -79,7 +79,7 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 	 *	Method to check the token id data type of the current collectibles.
 	 *
 	 * @param collectible - Collectible object.
-	 * @returns Boolean indicating if collectible should be  updated.
+	 * @returns Boolean indicating if the collectible should be updated.
 	 */
 	const shouldUpdateCollectibleMetadata = (collectible) => typeof collectible.tokenId === 'number';
 
@@ -140,7 +140,10 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 	const renderFavoriteCollectibles = useCallback(() => {
 		const filteredCollectibles = favoriteCollectibles.map((collectible) =>
 			collectibles.find(
-				({ tokenId, address }) => collectible.tokenId === tokenId && collectible.address === address
+				({ tokenId, address }) =>
+					(typeof tokenId === 'number'
+						? collectible.tokenId === String(tokenId)
+						: collectible.tokenId === tokenId) && collectible.address === address
 			)
 		);
 		return (

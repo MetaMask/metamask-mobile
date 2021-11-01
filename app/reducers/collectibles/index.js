@@ -51,7 +51,10 @@ const fiatOrderReducer = (state = initialState, action) => {
 			const { selectedAddress, chainId, collectible } = action;
 			const collectibles = getFavoritesCollectibles(state.favorites, selectedAddress, chainId);
 			const indexToRemove = collectibles.findIndex(
-				({ tokenId, address }) => tokenId === collectible.tokenId && address === collectible.address
+				({ tokenId, address }) =>
+					(typeof tokenId === 'number'
+						? String(tokenId) === collectible.tokenId
+						: tokenId === collectible.tokenId) && address === collectible.address
 			);
 			collectibles.splice(indexToRemove, 1);
 			const selectedAddressCollectibles = state.favorites[selectedAddress] || [];
