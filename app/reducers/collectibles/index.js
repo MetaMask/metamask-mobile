@@ -52,6 +52,7 @@ const fiatOrderReducer = (state = initialState, action) => {
 			const collectibles = getFavoritesCollectibles(state.favorites, selectedAddress, chainId);
 			const indexToRemove = collectibles.findIndex(
 				({ tokenId, address }) =>
+					// TO DO: Remove after moving favorites to controllers.
 					(typeof tokenId === 'number'
 						? String(tokenId) === collectible.tokenId
 						: tokenId === collectible.tokenId) && address === collectible.address
