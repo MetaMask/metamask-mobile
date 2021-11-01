@@ -95,6 +95,7 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 	};
 
 	useEffect(() => {
+		// TO DO: Move this fix to the controllers layer
 		collectibles.forEach((collectible) => {
 			if (shouldUpdateCollectibleMetadata(collectible)) {
 				updateCollectibleMetadata(collectible);
