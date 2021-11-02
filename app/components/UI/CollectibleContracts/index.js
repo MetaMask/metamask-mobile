@@ -91,7 +91,9 @@ const CollectibleContracts = ({ navigation, collectibleContracts, collectibles, 
 	const updateCollectibleMetadata = ({ address, tokenId }) => {
 		const { CollectiblesController } = Engine.context;
 		CollectiblesController.removeCollectible(address, tokenId);
-		CollectiblesController.addCollectible(address, String(tokenId));
+		if (!String(tokenId).includes('e+')) {
+			CollectiblesController.addCollectible(address, String(tokenId));
+		}
 	};
 
 	useEffect(() => {
