@@ -36,6 +36,7 @@ jobs:
       - run: yarn --frozen-lockfile
       - run: yarn lint
       - run: yarn audit:ci
+      - run: yarn test:tgz-check
       - run: NODE_OPTIONS=--max_old_space_size=20480 yarn test:unit --forceExit --silent
   all-jobs-pass:
     name: All jobs pass
