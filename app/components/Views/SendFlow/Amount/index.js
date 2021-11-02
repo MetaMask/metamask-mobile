@@ -53,7 +53,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import NetworkMainAssetLogo from '../../../UI/NetworkMainAssetLogo';
 import { isMainNet } from '../../../../util/networks';
-import { toLowerCaseEquals } from '../../../../util/general';
+import { renderShortText } from '../../../../util/general';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { decGWEIToHexWEI } from '../../../../util/conversions';
 import AppConstants from '../../../../core/AppConstants';
@@ -449,8 +449,13 @@ class Amount extends PureComponent {
 		});
 	};
 
+	/**
+	 * Method to validate collectible ownership.
+	 *
+	 * @returns Promise that resolves ownershio as a boolean.
+	 */
 	validateCollectibleOwnership = async () => {
-		const { AssetsContractController } = Engine.context;
+		const { CollectiblesController } = Engine.context;
 		const {
 			transactionState: {
 				selectedAsset: { address, tokenId },
@@ -458,12 +463,7 @@ class Amount extends PureComponent {
 			selectedAddress,
 		} = this.props;
 		try {
-			const owner = await AssetsContractController.getOwnerOf(address, tokenId);
-			const isOwner = toLowerCaseEquals(owner, selectedAddress);
-			if (!isOwner) {
-				return strings('transaction.invalid_collectible_ownership');
-			}
-			return undefined;
+			return await CollectiblesController.isCollectibleOwner(selectedAddress, address, tokenId);
 		} catch (e) {
 			return false;
 		}
@@ -499,10 +499,11 @@ class Amount extends PureComponent {
 		if (!selectedAsset.tokenId && this.validateAmount(value)) {
 			return;
 		} else if (selectedAsset.tokenId) {
-			const invalidCollectibleOwnership = await this.validateCollectibleOwnership();
-			if (invalidCollectibleOwnership) {
-				this.setState({ amountError: invalidCollectibleOwnership });
+			const isOwner = await this.validateCollectibleOwnership();
+			if (!isOwner) {
+				this.setState({ amountError: strings('transaction.invalid_collectible_ownership') });
 				dismissKeyboard();
+				return;
 			}
 		}
 
@@ -892,6 +893,7 @@ class Amount extends PureComponent {
 
 	renderAssetsModal = () => {
 		const { assetsModalVisible } = this.state;
+		const tradableCollectibles = this.collectibles.filter(({ standard }) => standard === 'ERC721');
 
 		return (
 			<Modal
@@ -908,7 +910,7 @@ class Amount extends PureComponent {
 						<View style={styles.dragger} />
 					</View>
 					<FlatList
-						data={[...this.tokens, ...this.collectibles]}
+						data={[...this.tokens, ...tradableCollectibles]}
 						keyExtractor={this.assetKeyExtractor}
 						renderItem={this.renderAsset}
 					/>
@@ -983,6 +985,7 @@ class Amount extends PureComponent {
 	};
 
 	renderCollectibleInput = () => {
+		const { amountError } = this.state;
 		const { selectedAsset } = this.props;
 		return (
 			<View style={styles.collectibleInputWrapper}>
@@ -996,8 +999,13 @@ class Amount extends PureComponent {
 				</View>
 				<View style={styles.collectibleInputInformationWrapper}>
 					<Text style={styles.collectibleName}>{selectedAsset.name}</Text>
-					<Text style={styles.collectibleId}>{`#${selectedAsset.tokenId}`}</Text>
+					<Text style={styles.collectibleId}>{`#${renderShortText(selectedAsset.tokenId, 10)}`}</Text>
 				</View>
+				{amountError && (
+					<View style={styles.errorMessageWrapper} testID={'amount-error'}>
+						<ErrorMessage errorMessage={amountError} />
+					</View>
+				)}
 			</View>
 		);
 	};

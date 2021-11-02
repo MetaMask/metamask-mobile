@@ -18,7 +18,7 @@ The code is built using React-Native and running code locally requires a Mac or 
 
 -   Install [sentry-cli](https://github.com/getsentry/sentry-cli) tools: `brew install getsentry/tools/sentry-cli`
 
--   Install [Node.js](https://nodejs.org) **version 10 (latest stable) and yarn@1 (latest)**
+-   Install [Node.js](https://nodejs.org) **version 14 (latest stable) and yarn@1 (latest)**
 
     -   If you are using [nvm](https://github.com/creationix/nvm#installation) (recommended) running `nvm use` will automatically choose the right node version for you.
 
@@ -73,7 +73,7 @@ yarn watch
         -   Part of the [libsecret-tools](https://launchpad.net/ubuntu/bionic/+package/libsecret-tools) package on Debian/Ubuntu based distributions.
 -   Install the correct emulator
     -   Follow the instructions at:
-        -   [React Native Getting Started - Android](https://facebook.github.io/react-native/docs/getting-started.html#installing-dependencies-1) _(React Native CLI Quickstart -> [your OS] -> Android)_
+        -   [React Native Getting Started - Android](https://reactnative.dev/docs/environment-setup#installing-dependencies) _(React Native CLI Quickstart -> [your OS] -> Android)_
         -   More details can be found [on the Android Developer site](https://developer.android.com/studio/run/emulator)
     -   You should use the following:
         -   **Android OS Version:** Latest, unless told otherwise
@@ -87,7 +87,7 @@ yarn start:android
 #### iOS
 
 -   Install the iOS dependencies
-    -   [React Native Getting Started - iOS](https://facebook.github.io/react-native/docs/getting-started.html#installing-dependencies-1) _(React Native CLI Quickstart -> [your OS] -> iOS)_
+    -   [React Native Getting Started - iOS](https://reactnative.dev/docs/environment-setup#installing-dependencies) _(React Native CLI Quickstart -> [your OS] -> iOS)_
         -   You do **not** need CocoaPods
 -   Install the correct simulator
     -   **iOS OS Version:** Latest, unless told otherwise
