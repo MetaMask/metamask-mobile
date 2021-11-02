@@ -153,7 +153,6 @@ const CollectibleContracts = ({
 	);
 
 	const renderFavoriteCollectibles = useCallback(() => {
-		console.log(favoriteCollectibles);
 		const filteredCollectibles = favoriteCollectibles.map((collectible) =>
 			collectibles.find(
 				({ tokenId, address }) =>
