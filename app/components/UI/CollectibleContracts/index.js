@@ -141,8 +141,8 @@ const CollectibleContracts = ({ navigation, collectibleContracts, collectibles, 
 		const filteredCollectibles = favoriteCollectibles.map((collectible) =>
 			collectibles.find(
 				({ tokenId, address }) =>
-					(typeof tokenId === 'number'
-						? collectible.tokenId === String(tokenId)
+					(typeof collectible.tokenId === 'number'
+						? String(collectible.tokenId) === tokenId
 						: collectible.tokenId === tokenId) && collectible.address === address
 			)
 		);

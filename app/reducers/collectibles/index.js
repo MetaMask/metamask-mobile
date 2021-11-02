@@ -18,7 +18,10 @@ export const favoritesCollectiblesObjectSelector = createSelector(
 export const isCollectibleInFavorites = (favoriteCollectibles, collectible) =>
 	Boolean(
 		favoriteCollectibles.find(
-			({ tokenId, address }) => collectible.tokenId === tokenId && collectible.address === address
+			({ tokenId, address }) =>
+				(typeof tokenId === 'number'
+					? collectible.tokenId === String(tokenId)
+					: collectible.tokenId === tokenId) && collectible.address === address
 		)
 	);
 
