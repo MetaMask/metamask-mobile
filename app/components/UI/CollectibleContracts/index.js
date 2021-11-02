@@ -8,7 +8,7 @@ import Engine from '../../../core/Engine';
 import CollectibleContractElement from '../CollectibleContractElement';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
-import { favoritesCollectiblesObjectSelector, isCollectibleInFavorites } from '../../../reducers/collectibles';
+import { favoritesCollectiblesObjectSelector } from '../../../reducers/collectibles';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import Text from '../../Base/Text';
 import AppConstants from '../../../core/AppConstants';
@@ -103,8 +103,7 @@ const CollectibleContracts = ({
 		const { address, tokenId } = collectible;
 		CollectiblesController.removeCollectible(address, tokenId);
 		if (String(tokenId).includes('e+')) {
-			isCollectibleInFavorites(favoriteCollectibles, collectible) &&
-				removeFavoriteCollectible(selectedAddress, chainId, collectible);
+			removeFavoriteCollectible(selectedAddress, chainId, collectible);
 		} else {
 			CollectiblesController.addCollectible(address, String(tokenId));
 		}
@@ -154,6 +153,7 @@ const CollectibleContracts = ({
 	);
 
 	const renderFavoriteCollectibles = useCallback(() => {
+		console.log(favoriteCollectibles);
 		const filteredCollectibles = favoriteCollectibles.map((collectible) =>
 			collectibles.find(
 				({ tokenId, address }) =>
