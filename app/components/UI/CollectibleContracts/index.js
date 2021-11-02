@@ -9,9 +9,11 @@ import CollectibleContractElement from '../CollectibleContractElement';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { favoritesCollectiblesObjectSelector } from '../../../reducers/collectibles';
+import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import Text from '../../Base/Text';
 import AppConstants from '../../../core/AppConstants';
 import { toLowerCaseEquals } from '../../../util/general';
+import { compareTokenIds } from '../../../util/tokens';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -67,7 +69,15 @@ const styles = StyleSheet.create({
  * View that renders a list of CollectibleContract
  * also known as ERC-721 Tokens
  */
-const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, favoriteCollectibles }) => {
+const CollectibleContracts = ({
+	selectedAddress,
+	chainId,
+	navigation,
+	collectibleContracts,
+	collectibles,
+	favoriteCollectibles,
+	removeFavoriteCollectible,
+}) => {
 	const onItemPress = useCallback(
 		(collectible, contractName) => {
 			navigation.navigate('CollectiblesDetails', { collectible, contractName });
@@ -79,7 +89,7 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 	 *	Method to check the token id data type of the current collectibles.
 	 *
 	 * @param collectible - Collectible object.
-	 * @returns Boolean indicating if collectible should be  updated.
+	 * @returns Boolean indicating if the collectible should be updated.
 	 */
 	const shouldUpdateCollectibleMetadata = (collectible) => typeof collectible.tokenId === 'number';
 
@@ -88,10 +98,15 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 	 * @param address - Collectible address.
 	 * @param tokenId - Collectible token ID.
 	 */
-	const updateCollectibleMetadata = ({ address, tokenId }) => {
+	const updateCollectibleMetadata = (collectible) => {
 		const { CollectiblesController } = Engine.context;
+		const { address, tokenId } = collectible;
 		CollectiblesController.removeCollectible(address, tokenId);
-		CollectiblesController.addCollectible(address, String(tokenId));
+		if (String(tokenId).includes('e+')) {
+			removeFavoriteCollectible(selectedAddress, chainId, collectible);
+		} else {
+			CollectiblesController.addCollectible(address, String(tokenId));
+		}
 	};
 
 	useEffect(() => {
@@ -140,7 +155,8 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 	const renderFavoriteCollectibles = useCallback(() => {
 		const filteredCollectibles = favoriteCollectibles.map((collectible) =>
 			collectibles.find(
-				({ tokenId, address }) => collectible.tokenId === tokenId && collectible.address === address
+				({ tokenId, address }) =>
+					compareTokenIds(collectible.tokenId, tokenId) && collectible.address === address
 			)
 		);
 		return (
@@ -197,6 +213,14 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 
 CollectibleContracts.propTypes = {
 	/**
+	 * Chain id
+	 */
+	chainId: PropTypes.string,
+	/**
+	 * Selected address
+	 */
+	selectedAddress: PropTypes.string,
+	/**
 	 * Array of collectibleContract objects
 	 */
 	collectibleContracts: PropTypes.array,
@@ -213,12 +237,23 @@ CollectibleContracts.propTypes = {
 	 * Object of collectibles
 	 */
 	favoriteCollectibles: PropTypes.array,
+	/**
+	 * Dispatch remove collectible from favorites action
+	 */
+	removeFavoriteCollectible: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	collectibleContracts: state.engine.backgroundState.CollectiblesController.collectibleContracts,
 	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
 	favoriteCollectibles: favoritesCollectiblesObjectSelector(state),
 });
 
-export default connect(mapStateToProps)(CollectibleContracts);
+const mapDispatchToProps = (dispatch) => ({
+	removeFavoriteCollectible: (selectedAddress, chainId, collectible) =>
+		dispatch(removeFavoriteCollectible(selectedAddress, chainId, collectible)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(CollectibleContracts);

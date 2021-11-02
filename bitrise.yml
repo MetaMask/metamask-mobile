@@ -300,7 +300,7 @@ app:
           VERSION_NAME: 3.6.0
         - opts:
               is_expand: false
-          VERSION_NUMBER: 789
+          VERSION_NUMBER: 790
         - opts:
               is_expand: false
           ANDROID_APK_LINK: ''
