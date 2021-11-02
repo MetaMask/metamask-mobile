@@ -90,10 +90,7 @@ export const getRpcMethodMiddleware = ({
 				privacy: { privacyMode },
 			} = store.getState();
 
-			let { selectedAddress } = Engine?.context?.PreferencesController.state;
-
-			selectedAddress = selectedAddress?.toLowerCase();
-
+			const selectedAddress = Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
 			const isEnabled = !privacyMode || getApprovedHosts()[hostname];
 
 			return isEnabled && selectedAddress ? [selectedAddress] : [];
