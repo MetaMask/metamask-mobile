@@ -1,4 +1,5 @@
 import { createSelector } from 'reselect';
+import { compareTokenIds } from '../../util/tokens';
 
 const getFavoritesCollectibles = (favoriteCollectibles, selectedAddress, chainId) =>
 	favoriteCollectibles[selectedAddress]?.[chainId] || [];
@@ -18,7 +19,9 @@ export const favoritesCollectiblesObjectSelector = createSelector(
 export const isCollectibleInFavorites = (favoriteCollectibles, collectible) =>
 	Boolean(
 		favoriteCollectibles.find(
-			({ tokenId, address }) => collectible.tokenId === tokenId && collectible.address === address
+			({ tokenId, address }) =>
+				// TO DO: Remove after moving favorites to controllers.
+				compareTokenIds(tokenId, collectible.tokenId) && address === collectible.address
 		)
 	);
 
@@ -51,7 +54,9 @@ const fiatOrderReducer = (state = initialState, action) => {
 			const { selectedAddress, chainId, collectible } = action;
 			const collectibles = getFavoritesCollectibles(state.favorites, selectedAddress, chainId);
 			const indexToRemove = collectibles.findIndex(
-				({ tokenId, address }) => tokenId === collectible.tokenId && address === collectible.address
+				({ tokenId, address }) =>
+					// TO DO: Remove after moving favorites to controllers.
+					compareTokenIds(tokenId, collectible.tokenId) && address === collectible.address
 			);
 			collectibles.splice(indexToRemove, 1);
 			const selectedAddressCollectibles = state.favorites[selectedAddress] || [];
