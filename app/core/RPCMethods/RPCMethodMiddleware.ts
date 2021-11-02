@@ -2,7 +2,7 @@ import { Alert } from 'react-native';
 import { getVersion } from 'react-native-device-info';
 import { createAsyncMiddleware } from 'json-rpc-engine';
 import { ethErrors } from 'eth-json-rpc-errors';
-import RPCMethods from './';
+import RPCMethods from '.';
 import { RPC } from '../../constants/network';
 import { NetworksChainId } from '@metamask/controllers';
 import Networks, { blockTagParamIndex, getAllNetworks } from '../../util/networks';
@@ -15,6 +15,38 @@ import { removeBookmark } from '../../actions/bookmarks';
 import setOnboardingWizardStep from '../../actions/wizard';
 
 let appVersion = '';
+
+interface RPCMethodsMiddleParameters {
+	hostname: string;
+	getProviderState: () => any;
+	navigation: any;
+	getApprovedHosts: any;
+	url: { current: string };
+	title: { current: string };
+	icon: { current: string };
+	// eth_requestAccounts
+	showApprovalDialog: boolean;
+	setShowApprovalDialog: (showApprovalDialog: boolean) => void;
+	setShowApprovalDialogHostname: (hostname: string) => void;
+	approvalRequest: { current: { resolve: (value: boolean) => void; reject: () => void } };
+	// Bookmarks
+	isHomepage: () => boolean;
+	// Show autocomplete
+	fromHomepage: { current: boolean };
+	setAutocompleteValue: (value: string) => void;
+	setShowUrlModal: (showUrlModal: boolean) => void;
+	// Wizard
+	wizardScrollAdjusted: { current: boolean };
+	// wallet_addEthereumChain && wallet_switchEthereumChain
+	showAddCustomNetworkDialog: (addCustomNetworkDialog: boolean) => void;
+	showSwitchCustomNetworkDialog: (switchCustomNetworkDialog: boolean) => void;
+	addCustomNetworkRequest: { current: boolean | null };
+	switchCustomNetworkRequest: { current: boolean | null };
+	setCustomNetworkToSwitch: (customNetworkToSwitch: any) => void;
+	setShowSwitchCustomNetworkDialog: (showSwitchCustomNetworkDialog: string | undefined) => void;
+	setCustomNetworkToAdd: (customNetworkToAdd: any) => void;
+	setShowAddCustomNetworkDialog: (showAddCustomNetworkDialog: boolean) => void;
+}
 
 /**
  * Handle RPC methods called by dapps
@@ -50,15 +82,15 @@ export const getRpcMethodMiddleware = ({
 	setShowSwitchCustomNetworkDialog,
 	setCustomNetworkToAdd,
 	setShowAddCustomNetworkDialog,
-}) =>
+}: RPCMethodsMiddleParameters) =>
 	// all user facing RPC calls not implemented by the provider
-	createAsyncMiddleware(async (req, res, next) => {
+	createAsyncMiddleware(async (req: any, res: any, next: any) => {
 		const getAccounts = async () => {
 			const {
 				privacy: { privacyMode },
 			} = store.getState();
 
-			let { selectedAddress } = Engine.context.PreferencesController.state;
+			let { selectedAddress } = Engine?.context?.PreferencesController.state;
 
 			selectedAddress = selectedAddress?.toLowerCase();
 
@@ -67,7 +99,7 @@ export const getRpcMethodMiddleware = ({
 			return isEnabled && selectedAddress ? [selectedAddress] : [];
 		};
 
-		const rpcMethods = {
+		const rpcMethods: any = {
 			eth_getTransactionByHash: async () => {
 				res.result = await polyfillGasPrice('getTransactionByHash', req.params);
 			},
@@ -298,9 +330,9 @@ export const getRpcMethodMiddleware = ({
 			},
 
 			wallet_scanQRCode: () =>
-				new Promise((resolve, reject) => {
+				new Promise<void>((resolve, reject) => {
 					navigation.navigate('QRScanner', {
-						onScanSuccess: (data) => {
+						onScanSuccess: (data: any) => {
 							const regex = new RegExp(req.params[0]);
 							if (regex && !regex.exec(data)) {
 								reject({ message: 'NO_REGEX_MATCH', data });
@@ -316,7 +348,7 @@ export const getRpcMethodMiddleware = ({
 							res.result = result;
 							resolve();
 						},
-						onScanError: (e) => {
+						onScanError: (e: { toString: () => any }) => {
 							throw ethErrors.rpc.internal(e.toString());
 						},
 					});
@@ -434,10 +466,12 @@ export const getRpcMethodMiddleware = ({
 		};
 
 		const blockRefIndex = blockTagParamIndex(req);
-		const blockRef = req.params?.[blockRefIndex];
-		// omitted blockRef implies "latest"
-		if (blockRef === undefined) {
-			req.params[blockRefIndex] = 'latest';
+		if (blockRefIndex) {
+			const blockRef = req.params?.[blockRefIndex];
+			// omitted blockRef implies "latest"
+			if (blockRef === undefined) {
+				req.params[blockRefIndex] = 'latest';
+			}
 		}
 
 		if (!rpcMethods[req.method]) {
