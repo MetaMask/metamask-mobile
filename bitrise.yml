@@ -20,7 +20,7 @@ workflows:
             - yarn@0:
                   inputs:
                       - cache_local_deps: 'yes'
-                      - command: setup --network-timeout 300000 --network-concurrency 1
+                      - command: setup
                   title: Yarn Setup
             - yarn@0:
                   inputs:
@@ -41,7 +41,7 @@ workflows:
             - yarn@0:
                   inputs:
                       - cache_local_deps: 'yes'
-                      - command: setup --network-timeout 300000 --network-concurrency 1
+                      - command: setup
                   title: Yarn Setup
             - yarn@0:
                   inputs:

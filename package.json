@@ -9,7 +9,7 @@
     "clean:ios": "rm -rf ios/build",
     "pod:install": "command -v pod && (cd ios/ && pod install && cd ..) || echo \"pod command not found\"",
     "clean:android": "rm -rf android/app/build",
-    "clean:node": "rm -rf node_modules && yarn install --frozen-lockfile",
+    "clean:node": "rm -rf node_modules && yarn install --frozen-lockfile --network-timeout 300000 --network-concurrency 1",
     "clean": "yarn clean:ios && yarn clean:android && yarn clean:node && yarn pod:install",
     "clean-android": "yarn clean:android && yarn clean:node",
     "lint": "eslint '**/*.js' --ignore-path=.prettierignore",
