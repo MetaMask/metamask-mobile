@@ -2,7 +2,7 @@
 
 # MetaMask
 
-![BitriseCI](https://app.bitrise.io/app/be69d4368ee7e86d/status.svg?token=OBhpG-OxuDtWGezLhceqhw&branch=develop)
+![CI](https://github.com/MetaMask/metamask-mobile/actions/workflows/ci.yml/badge.svg?branch=develop) ![CLA](https://github.com/MetaMask/metamask-mobile/actions/workflows/cla.yml/badge.svg?branch=develop)
 
 MetaMask is a mobile web browser that provides easy access to websites that use the [Ethereum](https://ethereum.org/) blockchain.
 
