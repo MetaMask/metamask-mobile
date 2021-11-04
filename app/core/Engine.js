@@ -183,6 +183,8 @@ class Engine {
 						assetsContractController.getBalancesInSingleCall.bind(assetsContractController),
 					addTokens: tokensController.addTokens.bind(tokensController),
 					addCollectible: collectiblesController.addCollectible.bind(collectiblesController),
+					updateCollectibleFavoriteStatus: () =>
+						collectiblesController.updateCollectibleFavoriteStatus.bind(collectiblesController),
 					getTokensState: () => tokensController.state,
 					getTokenListState: () => tokenListController.state,
 					getCollectiblesState: () => collectiblesController.state,

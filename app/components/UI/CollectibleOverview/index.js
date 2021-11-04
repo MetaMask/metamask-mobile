@@ -16,11 +16,10 @@ import { renderFromWei } from '../../../util/number';
 import { renderShortAddress } from '../../../util/address';
 import { isMainNet } from '../../../util/networks';
 import etherscanLink from '@metamask/etherscan-link';
-import { addFavoriteCollectible, removeFavoriteCollectible } from '../../../actions/collectibles';
-import { favoritesCollectiblesObjectSelector, isCollectibleInFavorites } from '../../../reducers/collectibles';
 import Share from 'react-native-share';
 import { PanGestureHandler, gestureHandlerRootHOC, ScrollView } from 'react-native-gesture-handler';
 import AppConstants from '../../../core/AppConstants';
+import Engine from '../../../core/Engine';
 
 const ANIMATION_VELOCITY = 250;
 const HAS_NOTCH = Device.hasNotch();
@@ -111,21 +110,11 @@ const styles = StyleSheet.create({
 /**
  * View that displays the information of a specific ERC-721 Token
  */
-const CollectibleOverview = ({
-	chainId,
-	collectible,
-	selectedAddress,
-	tradable,
-	onSend,
-	addFavoriteCollectible,
-	removeFavoriteCollectible,
-	isInFavorites,
-	openLink,
-	onTranslation,
-}) => {
+const CollectibleOverview = ({ chainId, collectible, tradable, onSend, openLink, onTranslation }) => {
 	const [headerHeight, setHeaderHeight] = useState(0);
 	const [wrapperHeight, setWrapperHeight] = useState(0);
 	const [position, setPosition] = useState(0);
+	const [favorite, setFavorite] = useState(collectible.favorite);
 	const positionAnimated = useRef(new Animated.Value(0)).current;
 	const scrollViewRef = useRef(null);
 
@@ -190,9 +179,11 @@ const CollectibleOverview = ({
 	];
 
 	const collectibleToFavorites = useCallback(() => {
-		const action = isInFavorites ? removeFavoriteCollectible : addFavoriteCollectible;
-		action(selectedAddress, chainId, collectible);
-	}, [selectedAddress, chainId, collectible, isInFavorites, addFavoriteCollectible, removeFavoriteCollectible]);
+		const { CollectiblesController } = Engine.context;
+		const { address, tokenId } = collectible;
+		CollectiblesController.updateCollectibleFavoriteStatus(address, tokenId, !favorite);
+		setFavorite(!favorite);
+	}, [collectible, favorite]);
 
 	const shareCollectible = useCallback(() => {
 		if (!collectible?.externalLink) return;
@@ -340,7 +331,7 @@ const CollectibleOverview = ({
 							onPressOut={collectibleToFavorites}
 						>
 							<Text link noMargin>
-								<AntIcons name={isInFavorites ? 'star' : 'staro'} size={24} />
+								<AntIcons name={favorite ? 'star' : 'staro'} size={24} />
 							</Text>
 						</StyledButton>
 					</View>
@@ -406,18 +397,6 @@ CollectibleOverview.propTypes = {
 	 */
 	selectedAddress: PropTypes.string,
 	/**
-	 * Dispatch add collectible to favorites action
-	 */
-	addFavoriteCollectible: PropTypes.func,
-	/**
-	 * Dispatch remove collectible from favorites action
-	 */
-	removeFavoriteCollectible: PropTypes.func,
-	/**
-	 * Whether the current collectible is favorited
-	 */
-	isInFavorites: PropTypes.bool,
-	/**
 	 * Function to open a link on a webview
 	 */
 	openLink: PropTypes.func.isRequired,
@@ -427,25 +406,12 @@ CollectibleOverview.propTypes = {
 	onTranslation: PropTypes.func,
 };
 
-const mapStateToProps = (state, props) => {
-	const favoriteCollectibles = favoritesCollectiblesObjectSelector(state);
-	return {
-		chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-		selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-		isInFavorites: isCollectibleInFavorites(favoriteCollectibles, props.collectible),
-	};
-};
-const mapDispatchToProps = (dispatch) => ({
-	addFavoriteCollectible: (selectedAddress, chainId, collectible) =>
-		dispatch(addFavoriteCollectible(selectedAddress, chainId, collectible)),
-	removeFavoriteCollectible: (selectedAddress, chainId, collectible) =>
-		dispatch(removeFavoriteCollectible(selectedAddress, chainId, collectible)),
+const mapStateToProps = (state) => ({
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(
+export default connect(mapStateToProps)(
 	Device.isIos()
 		? CollectibleOverview
 		: gestureHandlerRootHOC(CollectibleOverview, { flex: 0, zIndex: 0, elevation: 0 })

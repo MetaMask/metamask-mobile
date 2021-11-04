@@ -11,7 +11,6 @@ import Text from '../../Base/Text';
 import ActionSheet from 'react-native-actionsheet';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
-import { removeFavoriteCollectible } from '../../../actions/collectibles';
 
 const DEVICE_WIDTH = Device.getDeviceWidth();
 const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
@@ -83,7 +82,6 @@ function CollectibleContractElement({
 	collectibleContracts,
 	chainId,
 	selectedAddress,
-	removeFavoriteCollectible,
 }) {
 	const [collectiblesGrid, setCollectiblesGrid] = useState([]);
 	const [collectiblesVisible, setCollectiblesVisible] = useState(propsCollectiblesVisible);
@@ -109,7 +107,6 @@ function CollectibleContractElement({
 
 	const removeCollectible = () => {
 		const { CollectiblesController } = Engine.context;
-		removeFavoriteCollectible(selectedAddress, chainId, longPressedCollectible.current);
 		CollectiblesController.removeAndIgnoreCollectible(
 			longPressedCollectible.current.address,
 			longPressedCollectible.current.tokenId
@@ -237,10 +234,6 @@ CollectibleContractElement.propTypes = {
 	 * Chain id
 	 */
 	chainId: PropTypes.string,
-	/**
-	 * Dispatch remove collectible from favorites action
-	 */
-	removeFavoriteCollectible: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({
@@ -249,9 +242,4 @@ const mapStateToProps = (state) => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 });
 
-const mapDispatchToProps = (dispatch) => ({
-	removeFavoriteCollectible: (selectedAddress, chainId, collectible) =>
-		dispatch(removeFavoriteCollectible(selectedAddress, chainId, collectible)),
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(CollectibleContractElement);
+export default connect(mapStateToProps)(CollectibleContractElement);

@@ -55,7 +55,6 @@ import AnalyticsV2 from '../../../../util/analyticsV2';
 import { collectConfusables } from '../../../../util/validators';
 import InfoModal from '../../../UI/Swaps/components/InfoModal';
 import { addHexPrefix, toChecksumAddress } from 'ethereumjs-util';
-import { removeFavoriteCollectible } from '../../../../actions/collectibles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import TransactionReviewEIP1559 from '../../../UI/TransactionReview/TransactionReviewEIP1559';
 import EditGasFee1559 from '../../../UI/EditGasFee1559';
@@ -744,10 +743,8 @@ class Confirm extends PureComponent {
 			transactionState: { selectedAsset, assetType },
 			chainId,
 		} = this.props;
-		const { fromSelectedAddress } = this.state;
 		if (assetType === 'ERC721' && chainId !== NetworksChainId.mainnet) {
 			const { CollectiblesController } = Engine.context;
-			removeFavoriteCollectible(fromSelectedAddress, chainId, selectedAsset);
 			CollectiblesController.removeCollectible(selectedAsset.address, selectedAsset.tokenId);
 		}
 	};
@@ -1383,8 +1380,6 @@ const mapDispatchToProps = (dispatch) => ({
 	resetTransaction: () => dispatch(resetTransaction()),
 	setNonce: (nonce) => dispatch(setNonce(nonce)),
 	setProposedNonce: (nonce) => dispatch(setProposedNonce(nonce)),
-	removeFavoriteCollectible: (selectedAddress, chainId, collectible) =>
-		dispatch(removeFavoriteCollectible(selectedAddress, chainId, collectible)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Confirm);

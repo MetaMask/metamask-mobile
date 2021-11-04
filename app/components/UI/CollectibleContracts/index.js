@@ -8,12 +8,9 @@ import Engine from '../../../core/Engine';
 import CollectibleContractElement from '../CollectibleContractElement';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
-import { favoritesCollectiblesObjectSelector } from '../../../reducers/collectibles';
-import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import Text from '../../Base/Text';
 import AppConstants from '../../../core/AppConstants';
 import { toLowerCaseEquals } from '../../../util/general';
-import { compareTokenIds } from '../../../util/tokens';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -69,15 +66,7 @@ const styles = StyleSheet.create({
  * View that renders a list of CollectibleContract
  * also known as ERC-721 Tokens
  */
-const CollectibleContracts = ({
-	selectedAddress,
-	chainId,
-	navigation,
-	collectibleContracts,
-	collectibles,
-	favoriteCollectibles,
-	removeFavoriteCollectible,
-}) => {
+const CollectibleContracts = ({ selectedAddress, chainId, navigation, collectibleContracts, collectibles }) => {
 	const onItemPress = useCallback(
 		(collectible, contractName) => {
 			navigation.navigate('CollectiblesDetails', { collectible, contractName });
@@ -102,9 +91,7 @@ const CollectibleContracts = ({
 		const { CollectiblesController } = Engine.context;
 		const { address, tokenId } = collectible;
 		CollectiblesController.removeCollectible(address, tokenId);
-		if (String(tokenId).includes('e+')) {
-			removeFavoriteCollectible(selectedAddress, chainId, collectible);
-		} else {
+		if (!String(tokenId).includes('e+')) {
 			CollectiblesController.addCollectible(address, String(tokenId));
 		}
 	};
@@ -153,12 +140,7 @@ const CollectibleContracts = ({
 	);
 
 	const renderFavoriteCollectibles = useCallback(() => {
-		const filteredCollectibles = favoriteCollectibles.map((collectible) =>
-			collectibles.find(
-				({ tokenId, address }) =>
-					compareTokenIds(collectible.tokenId, tokenId) && collectible.address === address
-			)
-		);
+		const filteredCollectibles = collectibles.filter(({ favorite }) => favorite);
 		return (
 			Boolean(filteredCollectibles.length) && (
 				<CollectibleContractElement
@@ -170,7 +152,7 @@ const CollectibleContracts = ({
 				/>
 			)
 		);
-	}, [favoriteCollectibles, collectibles, onItemPress]);
+	}, [collectibles, onItemPress]);
 
 	const renderList = useCallback(
 		() => (
@@ -233,14 +215,6 @@ CollectibleContracts.propTypes = {
 	 * the Asset detail view
 	 */
 	navigation: PropTypes.object,
-	/**
-	 * Object of collectibles
-	 */
-	favoriteCollectibles: PropTypes.array,
-	/**
-	 * Dispatch remove collectible from favorites action
-	 */
-	removeFavoriteCollectible: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({
@@ -248,12 +222,6 @@ const mapStateToProps = (state) => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	collectibleContracts: state.engine.backgroundState.CollectiblesController.collectibleContracts,
 	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
-	favoriteCollectibles: favoritesCollectiblesObjectSelector(state),
 });
 
-const mapDispatchToProps = (dispatch) => ({
-	removeFavoriteCollectible: (selectedAddress, chainId, collectible) =>
-		dispatch(removeFavoriteCollectible(selectedAddress, chainId, collectible)),
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(CollectibleContracts);
+export default connect(mapStateToProps)(CollectibleContracts);
