@@ -66,7 +66,14 @@ const styles = StyleSheet.create({
  * View that renders a list of CollectibleContract
  * also known as ERC-721 Tokens
  */
-const CollectibleContracts = ({ selectedAddress, chainId, navigation, collectibleContracts, collectibles }) => {
+const CollectibleContracts = ({
+	selectedAddress,
+	chainId,
+	navigation,
+	collectibleContracts,
+	collectibles,
+	favorites,
+}) => {
 	const onItemPress = useCallback(
 		(collectible, contractName) => {
 			navigation.navigate('CollectiblesDetails', { collectible, contractName });
@@ -97,12 +104,22 @@ const CollectibleContracts = ({ selectedAddress, chainId, navigation, collectibl
 	};
 
 	useEffect(() => {
+		const { CollectiblesController } = Engine.context;
+
 		// TO DO: Move this fix to the controllers layer
 		collectibles.forEach((collectible) => {
 			if (shouldUpdateCollectibleMetadata(collectible)) {
 				updateCollectibleMetadata(collectible);
 			}
 		});
+
+		// BACKWARDS COMPATIBILITY: Favorite collectibles
+		const previousFavorites = favorites[selectedAddress]?.[chainId] || [];
+		if (previousFavorites.length > 0) {
+			previousFavorites.forEach(({ address, tokenId }) => {
+				CollectiblesController.updateCollectibleFavoriteStatus(address, tokenId, true);
+			});
+		}
 	});
 
 	const goToAddCollectible = () => {
@@ -215,6 +232,10 @@ CollectibleContracts.propTypes = {
 	 * the Asset detail view
 	 */
 	navigation: PropTypes.object,
+	/**
+	 * Array with favorite collectibles
+	 */
+	favorites: PropTypes.array,
 };
 
 const mapStateToProps = (state) => ({
@@ -222,6 +243,7 @@ const mapStateToProps = (state) => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	collectibleContracts: state.engine.backgroundState.CollectiblesController.collectibleContracts,
 	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
+	favorites: state.collectibles.favorites,
 });
 
 export default connect(mapStateToProps)(CollectibleContracts);
