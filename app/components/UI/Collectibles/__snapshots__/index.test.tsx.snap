@@ -42,16 +42,17 @@ exports[`Collectibles should render correctly 1`] = `
     </View>
   </ScrollView>
   <ActionSheet
-    cancelButtonIndex={1}
-    destructiveButtonIndex={0}
+    cancelButtonIndex={2}
+    destructiveButtonIndex={1}
     onPress={[Function]}
     options={
       Array [
+        "Refresh Metadata",
         "Remove",
         "Cancel",
       ]
     }
-    title="Do you want to remove this collectible?"
+    title="Collectible Options"
   />
 </View>
 `;

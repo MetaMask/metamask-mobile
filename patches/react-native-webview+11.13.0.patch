@@ -1,8 +1,16 @@
 diff --git a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
-index f743bbc..77ca184 100644
+index f743bbc..c4af95a 100644
 --- a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
 +++ b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
-@@ -30,6 +30,8 @@ import android.webkit.DownloadListener;
+@@ -5,6 +5,7 @@ import android.annotation.TargetApi;
+ import android.app.Activity;
+ import android.app.DownloadManager;
+ import android.content.Context;
++import android.content.Intent;
+ import android.content.pm.ActivityInfo;
+ import android.content.pm.PackageManager;
+ import android.graphics.Bitmap;
+@@ -30,6 +31,8 @@ import android.webkit.DownloadListener;
  import android.webkit.GeolocationPermissions;
  import android.webkit.JavascriptInterface;
  import android.webkit.RenderProcessGoneDetail;
@@ -11,7 +19,7 @@ index f743bbc..77ca184 100644
  import android.webkit.SslErrorHandler;
  import android.webkit.PermissionRequest;
  import android.webkit.URLUtil;
-@@ -88,10 +90,17 @@ import com.reactnativecommunity.webview.events.TopRenderProcessGoneEvent;
+@@ -88,11 +91,19 @@ import com.reactnativecommunity.webview.events.TopRenderProcessGoneEvent;
  import org.json.JSONException;
  import org.json.JSONObject;
  
@@ -27,9 +35,11 @@ index f743bbc..77ca184 100644
 +import java.nio.charset.StandardCharsets;
 +import java.nio.charset.UnsupportedCharsetException;
  import java.util.ArrayList;
++import java.util.Arrays;
  import java.util.Collections;
  import java.util.HashMap;
-@@ -100,6 +109,15 @@ import java.util.Locale;
+ import java.util.List;
+@@ -100,6 +111,15 @@ import java.util.Locale;
  import java.util.Map;
  import java.util.concurrent.atomic.AtomicReference;
  
@@ -45,7 +55,7 @@ index f743bbc..77ca184 100644
  /**
   * Manages instances of {@link WebView}
   * <p>
-@@ -128,6 +146,11 @@ import java.util.concurrent.atomic.AtomicReference;
+@@ -128,6 +148,11 @@ import java.util.concurrent.atomic.AtomicReference;
  public class RNCWebViewManager extends SimpleViewManager<WebView> {
    private static final String TAG = "RNCWebViewManager";
  
@@ -57,7 +67,7 @@ index f743bbc..77ca184 100644
    public static final int COMMAND_GO_BACK = 1;
    public static final int COMMAND_GO_FORWARD = 2;
    public static final int COMMAND_RELOAD = 3;
-@@ -137,13 +160,19 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -137,13 +162,19 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
    public static final int COMMAND_LOAD_URL = 7;
    public static final int COMMAND_FOCUS = 8;
  
@@ -78,7 +88,7 @@ index f743bbc..77ca184 100644
    protected static final String HTML_MIME_TYPE = "text/html";
    protected static final String JAVASCRIPT_INTERFACE = "ReactNativeWebView";
    protected static final String HTTP_METHOD_POST = "POST";
-@@ -158,11 +187,20 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -158,11 +189,20 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
    protected @Nullable String mUserAgent = null;
    protected @Nullable String mUserAgentWithApplicationName = null;
  
@@ -99,7 +109,7 @@ index f743bbc..77ca184 100644
    }
  
    public RNCWebViewManager(WebViewConfig webViewConfig) {
-@@ -182,6 +220,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -182,6 +222,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
    protected WebView createViewInstance(ThemedReactContext reactContext) {
      RNCWebView webView = createRNCWebViewInstance(reactContext);
@@ -107,7 +117,7 @@ index f743bbc..77ca184 100644
      setupWebChromeClient(reactContext, webView);
      reactContext.addLifecycleEventListener(webView);
      mWebViewConfig.configWebView(webView);
-@@ -247,9 +286,96 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -247,9 +288,96 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        }
      });
  
@@ -204,7 +214,7 @@ index f743bbc..77ca184 100644
    @ReactProp(name = "javaScriptEnabled")
    public void setJavaScriptEnabled(WebView view, boolean enabled) {
      view.getSettings().setJavaScriptEnabled(enabled);
-@@ -842,8 +968,95 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -842,13 +970,102 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      }
    }
  
@@ -301,7 +311,14 @@ index f743bbc..77ca184 100644
      protected boolean mLastLoadFailed = false;
      protected @Nullable
      ReadableArray mUrlPrefixesForDefaultIntent;
-@@ -872,9 +1085,6 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+     protected RNCWebView.ProgressChangedFilter progressChangedFilter = null;
+     protected @Nullable String ignoreErrFailedForThisURL = null;
++    //Allow list is used to support specific deeplinks in the webview. 
++    private final String[] DEEPLINK_ALLOW_LIST = new String[] {"https://twitter.com/i/wallet/verify"};
+ 
+     public void setIgnoreErrFailedForThisURL(@Nullable String url) {
+       ignoreErrFailedForThisURL = url;
+@@ -872,9 +1089,6 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        super.onPageStarted(webView, url, favicon);
        mLastLoadFailed = false;
  
@@ -311,7 +328,7 @@ index f743bbc..77ca184 100644
        ((RNCWebView) webView).dispatchEvent(
          webView,
          new TopLoadingStartEvent(
-@@ -882,6 +1092,16 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -882,6 +1096,16 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
            createWebViewEvent(webView, url)));
      }
  
@@ -328,7 +345,25 @@ index f743bbc..77ca184 100644
      @Override
      public boolean shouldOverrideUrlLoading(WebView view, String url) {
        final RNCWebView rncWebView = (RNCWebView) view;
-@@ -934,6 +1154,21 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -919,6 +1143,17 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+         RNCWebViewModule.shouldOverrideUrlLoadingLock.removeLock(lockIdentifier);
+ 
+         return shouldOverride;
++      } else if (url != null && Arrays.asList(DEEPLINK_ALLOW_LIST).contains(url)) {
++        // This case is used to support deeplinking within the webview. We are limiting this but 
++        // if more links are to be supported we should consider a more scaleable solution. That is 
++        // secure and scaleable.
++        Intent intent = new Intent(Intent.ACTION_VIEW);
++        intent.setData(Uri.parse(url));
++        if(intent.resolveActivity(view.getContext().getPackageManager()) != null) {
++          view.getContext().startActivity(intent);
++          return true;
++        } else
++          return false;
+       } else {
+         FLog.w(TAG, "Couldn't use blocking synchronous call for onShouldStartLoadWithRequest due to debugging or missing Catalyst instance, falling back to old event-and-load.");
+         progressChangedFilter.setWaitingForCommandLoadUrl(true);
+@@ -934,6 +1169,21 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      @TargetApi(Build.VERSION_CODES.N)
      @Override
      public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
@@ -350,7 +385,7 @@ index f743bbc..77ca184 100644
        final String url = request.getUrl().toString();
        return this.shouldOverrideUrlLoading(view, url);
      }
-@@ -1447,6 +1682,13 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1447,6 +1697,13 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      protected boolean nestedScrollEnabled = false;
      protected ProgressChangedFilter progressChangedFilter;
  
@@ -364,7 +399,7 @@ index f743bbc..77ca184 100644
      /**
       * WebView must be created with an context of the current activity
       * <p>
-@@ -1475,6 +1717,24 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1475,6 +1732,24 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        this.nestedScrollEnabled = nestedScrollEnabled;
      }
  
