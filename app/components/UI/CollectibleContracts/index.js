@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, View, InteractionManager, Image } from 'react-native';
-import { connect } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
@@ -66,14 +66,15 @@ const styles = StyleSheet.create({
  * View that renders a list of CollectibleContract
  * also known as ERC-721 Tokens
  */
-const CollectibleContracts = ({
-	selectedAddress,
-	chainId,
-	navigation,
-	collectibleContracts,
-	collectibles,
-	favorites,
-}) => {
+const CollectibleContracts = ({ navigation }) => {
+	const selectedAddress = useSelector((state) => state.engine.backgroundState.PreferencesController.selectedAddress);
+	const chainId = useSelector((state) => state.engine.backgroundState.NetworkController.provider.chainId);
+	const collectibleContracts = useSelector(
+		(state) => state.engine.backgroundState.CollectiblesController.collectibleContracts
+	);
+	const collectibles = useSelector((state) => state.engine.backgroundState.CollectiblesController.collectibles);
+	const favorites = useSelector((state) => state.collectibles.favorites);
+
 	const onItemPress = useCallback(
 		(collectible, contractName) => {
 			navigation.navigate('CollectiblesDetails', { collectible, contractName });
@@ -212,38 +213,10 @@ const CollectibleContracts = ({
 
 CollectibleContracts.propTypes = {
 	/**
-	 * Chain id
-	 */
-	chainId: PropTypes.string,
-	/**
-	 * Selected address
-	 */
-	selectedAddress: PropTypes.string,
-	/**
-	 * Array of collectibleContract objects
-	 */
-	collectibleContracts: PropTypes.array,
-	/**
-	 * Array of collectibles objects
-	 */
-	collectibles: PropTypes.array,
-	/**
 	 * Navigation object required to push
 	 * the Asset detail view
 	 */
 	navigation: PropTypes.object,
-	/**
-	 * Array with favorite collectibles
-	 */
-	favorites: PropTypes.array,
 };
 
-const mapStateToProps = (state) => ({
-	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	collectibleContracts: state.engine.backgroundState.CollectiblesController.collectibleContracts,
-	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
-	favorites: state.collectibles.favorites,
-});
-
-export default connect(mapStateToProps)(CollectibleContracts);
+export default CollectibleContracts;
