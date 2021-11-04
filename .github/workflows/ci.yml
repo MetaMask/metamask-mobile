@@ -37,7 +37,7 @@ jobs:
       - run: yarn lint
       - run: yarn audit:ci
       - run: yarn test:tgz-check
-      - run: NODE_OPTIONS=--max_old_space_size=20480 yarn test:unit --forceExit --silent --maxWorkers=50%
+      - run: NODE_OPTIONS=--max_old_space_size=20480 yarn test:unit --forceExit --silent --maxWorkers=50% --runInBand
   all-jobs-pass:
     name: All jobs pass
     runs-on: ubuntu-20.04
