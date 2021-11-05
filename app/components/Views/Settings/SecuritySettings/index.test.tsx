@@ -17,6 +17,7 @@ const initialState = {
 			KeyringController: { keyrings: [{ accounts: ['0x'], type: 'HD Key Tree' }] },
 		},
 	},
+	analytics: { enabled: false },
 };
 const store = mockStore(initialState);
 

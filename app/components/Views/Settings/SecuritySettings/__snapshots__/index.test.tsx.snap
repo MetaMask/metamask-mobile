@@ -3,6 +3,7 @@
 exports[`SecuritySettings should render correctly 1`] = `
 <Settings
   accounts={Object {}}
+  analyticsEnabled={false}
   approvedHosts={Object {}}
   browserHistory={Array []}
   clearBrowserHistory={[Function]}
