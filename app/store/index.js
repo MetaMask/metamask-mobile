@@ -89,7 +89,7 @@ const persistTransform = createTransform(
 const persistConfig = {
 	key: 'root',
 	version,
-	blacklist: ['onboarding'], // QUESTION: Why is anayltics not being persisted?
+	blacklist: ['onboarding'],
 	storage: MigratedStorage,
 	transforms: [persistTransform],
 	stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
