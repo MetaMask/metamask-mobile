@@ -8,7 +8,7 @@ class AnalyticsService {
 	 */
 	initalizeAnalytics = (store: any) => {
 		const reduxState = store.getState?.();
-		const analyticsEnabled = reduxState?.analytics?.enabled || true;
+		const analyticsEnabled = reduxState?.analytics?.enabled;
 
 		Analytics.init(analyticsEnabled);
 
