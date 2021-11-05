@@ -2,7 +2,7 @@ import { Alert } from 'react-native';
 import { getVersion } from 'react-native-device-info';
 import { createAsyncMiddleware } from 'json-rpc-engine';
 import { ethErrors } from 'eth-json-rpc-errors';
-import RPCMethods from '.';
+import RPCMethods from './index.js';
 import { RPC } from '../../constants/network';
 import { NetworksChainId } from '@metamask/controllers';
 import Networks, { blockTagParamIndex, getAllNetworks } from '../../util/networks';
