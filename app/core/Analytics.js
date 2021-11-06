@@ -21,13 +21,13 @@ class Analytics {
 	enabled;
 
 	/**
-	 * Persist current Metrics OptIn in user preferences datastore
+	 * Persist current Metrics OptIn flag in user preferences datastore
 	 */
 	_storeMetricsOptInPreference = async () => {
 		try {
 			await DefaultPreference.set(METRICS_OPT_IN, this.enabled ? AGREED : DENIED);
 		} catch (e) {
-			Logger.error('');
+			Logger.error(e, 'Error storing Metrics OptIn flag in user preferences');
 		}
 	};
 
@@ -39,7 +39,7 @@ class Analytics {
 	};
 
 	/**
-	 * Track event if metricsOptIn and not DEV mode
+	 * Track event if enabled and not DEV mode
 	 */
 	_trackEvent(name, { event, params = {}, value, info, anonymously = false }) {
 		if (!this.enabled) return;
@@ -199,7 +199,8 @@ class Analytics {
 let instance;
 
 export default {
-	init: async (metricsOptIn) => {
+	init: async () => {
+		const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
 		instance = new Analytics(metricsOptIn);
 		try {
 			const vars = await RCTAnalytics.getRemoteVariables();
