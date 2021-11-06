@@ -28,7 +28,7 @@ import { BranchSubscriber } from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
-import AnalyticsService from '../../../core/AnalyticsService';
+import Analytics from '../../../core/Analytics';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -191,11 +191,11 @@ const App = () => {
 	}, [branchSubscriber]);
 
 	useEffect(() => {
-		const initalizeAnalytics = async () => {
-			await AnalyticsService.initalizeAnalytics();
+		const initAnalytics = async () => {
+			await Analytics.init();
 		};
 
-		initalizeAnalytics();
+		initAnalytics();
 	}, []);
 
 	return (
