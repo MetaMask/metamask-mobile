@@ -1,4 +1,6 @@
+import { METRICS_OPT_IN } from '../constants/storage';
 import Analytics from './Analytics';
+import DefaultPreference from 'react-native-default-preference';
 
 class AnalyticsService {
 	/**
@@ -6,15 +8,9 @@ class AnalyticsService {
 	 *
 	 * @param store - Redux store
 	 */
-	initalizeAnalytics = (store: any) => {
-		const reduxState = store.getState?.();
-		const analyticsEnabled = reduxState?.analytics?.enabled;
-
-		Analytics.init(analyticsEnabled);
-
-		Analytics.subscribe(() => {
-			store.dispatch({ type: 'UPDATE_ANALYTICS_STATE' });
-		});
+	initalizeAnalytics = async () => {
+		const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
+		Analytics.init(metricsOptIn);
 	};
 }
 

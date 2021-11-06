@@ -232,10 +232,6 @@ class Settings extends PureComponent {
 		 * completed the seed phrase backup flow
 		 */
 		seedphraseBackedUp: PropTypes.bool,
-		/**
-		 * Indicates whether analytics is enabled
-		 */
-		analyticsEnabled: PropTypes.bool,
 	};
 
 	static navigationOptions = ({ navigation }) =>
@@ -247,6 +243,7 @@ class Settings extends PureComponent {
 		biometryType: false,
 		browserHistoryModalVisible: false,
 		cookiesModalVisible: false,
+		analyticsEnabled: false,
 		passcodeChoice: false,
 		showHint: false,
 		hintText: '',
@@ -297,6 +294,7 @@ class Settings extends PureComponent {
 
 	componentDidMount = async () => {
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
+		const analyticsEnabled = Analytics.getEnabled();
 		const currentSeedphraseHints = await AsyncStorage.getItem(SEED_PHRASE_HINTS);
 		const parsedHints = currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
 		const manualBackup = parsedHints?.manualBackup;
@@ -313,11 +311,13 @@ class Settings extends PureComponent {
 			this.setState({
 				biometryType: biometryType && Device.isAndroid() ? 'biometrics' : biometryType,
 				biometryChoice: !!biometryChoice,
+				analyticsEnabled,
 				passcodeChoice: passcodeEnabled,
 				hintText: manualBackup,
 			});
 		} else {
 			this.setState({
+				analyticsEnabled,
 				hintText: manualBackup,
 			});
 		}
@@ -459,10 +459,12 @@ class Settings extends PureComponent {
 	toggleMetricsOptIn = async (value) => {
 		if (value) {
 			Analytics.enable();
+			this.setState({ analyticsEnabled: true });
 			await this.trackOptInEvent('Metrics Opt In');
 		} else {
 			await this.trackOptInEvent('Metrics Opt Out');
 			Analytics.disable();
+			this.setState({ analyticsEnabled: false });
 			Alert.alert(
 				strings('app_settings.metametrics_opt_out'),
 				strings('app_settings.metrametrics_restart_required')
@@ -531,13 +533,13 @@ class Settings extends PureComponent {
 	onBack = () => this.props.navigation.goBack();
 
 	render = () => {
-		const { approvedHosts, seedphraseBackedUp, browserHistory, privacyMode, thirdPartyApiMode, analyticsEnabled } =
-			this.props;
+		const { approvedHosts, seedphraseBackedUp, browserHistory, privacyMode, thirdPartyApiMode } = this.props;
 		const {
 			approvalModalVisible,
 			biometryType,
 			browserHistoryModalVisible,
 			cookiesModalVisible,
+			analyticsEnabled,
 			loading,
 			hintText,
 		} = this.state;
@@ -815,7 +817,6 @@ const mapStateToProps = (state) => ({
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
 	passwordHasBeenSet: state.user.passwordSet,
 	seedphraseBackedUp: state.user.seedphraseBackedUp,
-	analyticsEnabled: state.analytics.enabled,
 });
 
 const mapDispatchToProps = (dispatch) => ({

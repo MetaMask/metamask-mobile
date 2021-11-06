@@ -7,7 +7,6 @@ import rootReducer from '../reducers';
 import { migrations, version } from './migrations';
 import Logger from '../util/Logger';
 import EngineService from '../core/EngineService';
-import AnalyticsService from '../core/AnalyticsService';
 
 const TIMEOUT = 40000;
 
@@ -107,7 +106,6 @@ export const store = createStore(pReducer);
  */
 const onPersistComplete = () => {
 	EngineService.initalizeEngine(store);
-	AnalyticsService.initalizeAnalytics(store);
 };
 
 export const persistor = persistStore(store, null, onPersistComplete);

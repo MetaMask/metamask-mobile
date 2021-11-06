@@ -20,7 +20,7 @@ import { connect } from 'react-redux';
 import StyledButton from '../StyledButton';
 import Analytics from '../../../core/Analytics';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
-import { ONBOARDING_WIZARD, METRICS_OPT_IN, DENIED, AGREED } from '../../../constants/storage';
+import { ONBOARDING_WIZARD } from '../../../constants/storage';
 import AppConstants from '../../../core/AppConstants';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
@@ -204,7 +204,6 @@ class OptinMetrics extends PureComponent {
 			}
 			this.trackOptInEvent(metricsOptionSelected);
 			this.props.clearOnboardingEvents();
-			await DefaultPreference.set(METRICS_OPT_IN, DENIED);
 			Analytics.disableInstance();
 		}, 200);
 		this.continue();
@@ -222,7 +221,6 @@ class OptinMetrics extends PureComponent {
 			}
 			this.trackOptInEvent(metricsOptionSelected);
 			this.props.clearOnboardingEvents();
-			await DefaultPreference.set(METRICS_OPT_IN, AGREED);
 		}, 200);
 		this.continue();
 	};
