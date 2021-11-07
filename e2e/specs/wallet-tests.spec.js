@@ -65,8 +65,8 @@ describe('Wallet Tests', () => {
 			await OnboardingWizardModal.isVisible();
 			await OnboardingWizardModal.tapNoThanksButton();
 			await OnboardingWizardModal.isNotVisible();
-		} catch (e) {
-			console.log('');
+		} catch {
+			//
 		}
 		await WalletView.isAccountBalanceCorrect();
 	});

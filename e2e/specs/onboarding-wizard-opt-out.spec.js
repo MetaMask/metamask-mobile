@@ -58,8 +58,8 @@ describe('Onboarding wizard opt-out', () => {
 			await OnboardingWizardModal.isVisible();
 			await OnboardingWizardModal.tapNoThanksButton();
 			await OnboardingWizardModal.isNotVisible();
-		} catch (e) {
-			console.log('');
+		} catch {
+			//
 		}
 	});
 
