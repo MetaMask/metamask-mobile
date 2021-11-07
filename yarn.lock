@@ -1552,9 +1552,9 @@
   resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-1.30.0.tgz#fa8e1b0c3e7aaa963986088f691fb553ffbe3904"
   integrity sha512-b2usYW/ptQYnE6zhUmr4T+nvOAQJK5ABcpKudyQANpy4K099elpv4aN0WcrcOcwV99NHOdMzFP3ZuG0HoAyOBQ==
 
-"@metamask/controllers@./metamask-controllers-v19.0.0-v2.tgz":
-  version "19.0.0-v2"
-  resolved "./metamask-controllers-v19.0.0-v2.tgz#dd235ce6af6c9da588d88b8d3cca98bf8354ce08"
+"@metamask/controllers@./metamask-controllers-v19.0.0-v4.tgz":
+  version "19.0.0-v4"
+  resolved "./metamask-controllers-v19.0.0-v4.tgz#fef963141d090ca4cc0475a788a1f9065537c299"
   dependencies:
     "@ethereumjs/common" "^2.3.1"
     "@ethereumjs/tx" "^3.2.1"
