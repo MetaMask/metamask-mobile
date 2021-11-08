@@ -502,7 +502,7 @@
 		"third_party_title": "Nhận các giao dịch đến",
 		"third_party_description": "API của bên thứ ba (Etherscan) được dùng để hiển thị cho bạn những giao dịch đến từ trước đến nay. Tắt tùy chọn này nếu bạn không muốn chúng tôi lấy dữ liệu từ các dịch vụ đó.",
 		"metametrics_opt_out": "Chọn không tham gia MetaMetrics",
-		"metrametrics_restart_required": "Bạn cần khởi động lại ứng dụng để các thay đổi có hiệu lực.",
+		"metametrics_restart_required": "Bạn cần khởi động lại ứng dụng để các thay đổi có hiệu lực.",
 		"create_password": "Tạo mật khẩu",
 		"invalid_password": "Mật khẩu không hợp lệ",
 		"invalid_password_message": "Mật khẩu không đúng. Vui lòng thử lại.",

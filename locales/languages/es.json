@@ -502,7 +502,7 @@
 		"third_party_title": "Obtener transacciones entrantes",
 		"third_party_description": "Las API de terceros (Etherscan) se usan para mostrar las transacciones entrantes en el historial. Desactive esta opción si no quiere que extraigamos datos provenientes de esos servicios.",
 		"metametrics_opt_out": "Desactivar MetaMetrics",
-		"metrametrics_restart_required": "Debe reiniciar la aplicación para que los cambios surtan efecto.",
+		"metametrics_restart_required": "Debe reiniciar la aplicación para que los cambios surtan efecto.",
 		"create_password": "Crear contraseña",
 		"invalid_password": "Contraseña no válida",
 		"invalid_password_message": "La contraseña no era correcta. Vuelva a intentarlo.",
