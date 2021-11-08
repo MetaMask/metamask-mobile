@@ -9,12 +9,13 @@
     "clean:ios": "rm -rf ios/build",
     "pod:install": "command -v pod && (cd ios/ && pod install && cd ..) || echo \"pod command not found\"",
     "clean:android": "rm -rf android/app/build",
-    "clean:node": "rm -rf node_modules && yarn install",
+    "clean:node": "rm -rf node_modules && yarn --frozen-lockfile",
     "clean": "yarn clean:ios && yarn clean:android && yarn clean:node && yarn pod:install",
     "clean-android": "yarn clean:android && yarn clean:node",
     "lint": "eslint '**/*.js' --ignore-path=.prettierignore",
     "lint:fix": "eslint '**/*.js' --fix --ignore-path=.prettierignore",
     "format": "prettier '**/*.{js,json}' --write",
+    "setup": "yarn clean && yarn allow-scripts",
     "start:ios": "./scripts/build.sh ios debug",
     "start:ios:e2e": "./scripts/build.sh ios debugE2E",
     "start:ios:device": "./scripts/build.sh ios debug --device",
@@ -234,6 +235,7 @@
   "devDependencies": {
     "@babel/core": "^7.8.4",
     "@babel/runtime": "^7.8.4",
+    "@lavamoat/allow-scripts": "^1.0.6",
     "@metamask/eslint-config": "^7.0.0",
     "@metamask/eslint-config-typescript": "^7.0.0",
     "@metamask/mobile-provider": "^2.1.0",
@@ -354,9 +356,19 @@
     "node": "^14.0.0",
     "yarn": "^1.22.0"
   },
-  "rnpm": {
-    "assets": [
-      "./app/fonts"
-    ]
+  "lavamoat": {
+    "allowScripts": {
+      "@sentry/cli": true,
+      "detox": true,
+      "husky": true,
+      "secp256k1": true,
+      "keccak": true,
+      "@lavamoat/preinstall-always-fail": false,
+      "core-js-pure": false,
+      "dtrace-provider": false,
+      "core-js": false,
+      "fsevents": false,
+      "sharp": false
+    }
   }
 }
