@@ -10,9 +10,11 @@ import StyledButton from '../../UI/StyledButton';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import AntIcons from 'react-native-vector-icons/AntDesign';
 import Device from '../../../util/device';
+import { renderShortText } from '../../../util/general';
 import { toLocaleDate } from '../../../util/date';
 import { renderFromWei } from '../../../util/number';
 import { renderShortAddress } from '../../../util/address';
+import { isMainNet } from '../../../util/networks';
 import etherscanLink from '@metamask/etherscan-link';
 import { addFavoriteCollectible, removeFavoriteCollectible } from '../../../actions/collectibles';
 import { favoritesCollectiblesObjectSelector, isCollectibleInFavorites } from '../../../reducers/collectibles';
@@ -181,7 +183,9 @@ const CollectibleOverview = ({
 		renderCollectibleInfoRow(
 			strings('collectible.collectible_asset_contract'),
 			renderShortAddress(collectible?.address),
-			() => openLink(etherscanLink.createTokenTrackerLink(collectible?.address, chainId))
+			() => {
+				if (isMainNet(chainId)) openLink(etherscanLink.createTokenTrackerLink(collectible?.address, chainId));
+			}
 		),
 	];
 
@@ -303,7 +307,7 @@ const CollectibleOverview = ({
 						</Text>
 						<Text primary noMargin big>
 							{strings('unit.token_id')}
-							{collectible.tokenId}
+							{renderShortText(collectible.tokenId, 8)}
 						</Text>
 					</View>
 
