@@ -20,8 +20,8 @@ workflows:
             - yarn@0:
                   inputs:
                       - cache_local_deps: 'yes'
-                      - command: install --network-timeout 300000 --frozen-lockfile --network-concurrency 1
-                  title: Yarn Install
+                      - command: setup
+                  title: Yarn Setup
             - yarn@0:
                   inputs:
                       - cache_local_deps: 'yes'
@@ -41,8 +41,8 @@ workflows:
             - yarn@0:
                   inputs:
                       - cache_local_deps: 'yes'
-                      - command: install --network-timeout 300000 --frozen-lockfile --network-concurrency 1
-                  title: Yarn Install
+                      - command: setup
+                  title: Yarn Setup
             - yarn@0:
                   inputs:
                       - cache_local_deps: 'yes'
