@@ -83,7 +83,8 @@
     "**/optimist/minimist": "^1.2.5",
     "react-native-level-fs/**/bl": "^1.2.3",
     "react-native-level-fs/**/semver": "^4.3.2",
-    "@metamask/contract-metadata": "^1.30.0"
+    "@metamask/contract-metadata": "^1.30.0",
+    "@exodus/react-native-payments/validator": "^13.7.0"
   },
   "dependencies": {
     "@exodus/react-native-payments": "https://github.com/wachunei/react-native-payments.git#package-json-hack",
