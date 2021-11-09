@@ -215,6 +215,10 @@ workflows:
                   title: Bitrise Deploy Checksum
             - deploy-to-bitrise-io@1:
                   inputs:
+                      - deploy_path: $PROJECT_LOCATION/app/build/outputs/release/mapping.txt
+                  title: Bitrise ProGuard Map Files
+            - deploy-to-bitrise-io@1:
+                  inputs:
                       - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/release/app-release.aab
                   title: Bitrise Deploy AAB
             - deploy-to-bitrise-io@1:
