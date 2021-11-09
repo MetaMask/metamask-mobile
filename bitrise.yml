@@ -179,7 +179,7 @@ workflows:
                       - command: build:announce
                   title: Accouncing pre-release
                   is_always_run: false
- android_internal_release:
+ android_test_release_step:
         before_run:
             - code_setup
         steps:
@@ -223,7 +223,7 @@ workflows:
                   title: Bitrise Deploy Sourcemaps
     android_store_release_step:
         before_run:
-            - android_internal_release
+            - android_test_release_step
         steps:
             - google-play-deploy@3:
                   inputs:
@@ -235,7 +235,7 @@ workflows:
             - opts:
                   is_expand: false
               MM_ANDROID_PACKAGE_NAME: io.metamask
-    ios_internal_release_step:
+    ios_test_release_step:
         before_run:
             - code_setup_cache
         steps:
@@ -269,7 +269,7 @@ workflows:
                   title: Deploy Source Map
     ios_store_release_step:
         before_run:
-            - ios_internal_release_step
+            - ios_test_release_step
         steps:
             - deploy-to-itunesconnect-application-loader@1:
                   inputs:
