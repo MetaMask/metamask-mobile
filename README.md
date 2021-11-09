@@ -2,7 +2,7 @@
 
 # MetaMask
 
-![BitriseCI](https://app.bitrise.io/app/be69d4368ee7e86d/status.svg?token=OBhpG-OxuDtWGezLhceqhw&branch=develop)
+[![CI](https://github.com/MetaMask/metamask-mobile/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/MetaMask/metamask-mobile/actions/workflows/ci.yml) [![CLA](https://github.com/MetaMask/metamask-mobile/actions/workflows/cla.yml/badge.svg?branch=develop)](https://github.com/MetaMask/metamask-mobile/actions/workflows/cla.yml)
 
 MetaMask is a mobile web browser that provides easy access to websites that use the [Ethereum](https://ethereum.org/) blockchain.
 
@@ -37,7 +37,7 @@ sudo gem install cocoapods
 ```bash
 git clone ...
 cd metamask-mobile
-yarn install # this will run a lengthy postinstall flow
+yarn setup # not the usual install command, this will run a lengthy postinstall flow
 cd ios && pod install && cd .. # install pods for iOS
 ```
 
@@ -189,6 +189,16 @@ yarn test:e2e:ios
 ```bash
 yarn test:e2e:android
 ```
+
+### Changing dependencies
+
+Whenever you change dependencies (adding, removing, or updating, either in `package.json` or `yarn.lock`), there are various files that must be kept up-to-date.
+
+* `yarn.lock`:
+  * Run `yarn setup` again after your changes to ensure `yarn.lock` has been properly updated.
+* The `allow-scripts` configuration in `package.json`
+  * Run `yarn allow-scripts auto` to update the `allow-scripts` configuration automatically. This config determines whether the package's install/postinstall scripts are allowed to run. Review each new package to determine whether the install script needs to run or not, testing if necessary.
+  * Unfortunately, `yarn allow-scripts auto` will behave inconsistently on different platforms. macOS and Windows users may see extraneous changes relating to optional dependencies.
 
 ### Architecture
 
