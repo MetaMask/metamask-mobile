@@ -179,7 +179,7 @@ workflows:
                       - command: build:announce
                   title: Accouncing pre-release
                   is_always_run: false
- android_test_release_step:
+    android_test_release_step:
         before_run:
             - code_setup
         steps:
