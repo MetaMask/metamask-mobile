@@ -128,11 +128,6 @@ apply from: "../../node_modules/@sentry/react-native/sentry.gradle"
 def enableSeparateBuildPerCPUArchitecture = false
 
 /**
- * Run Proguard to shrink the Java bytecode in release builds.
- */
-def enableProguardInReleaseBuilds = false
-
-/**
  * The preferred build flavor of JavaScriptCore.
  *
  * For example, to use the international variant, you can use:
@@ -168,7 +163,6 @@ android {
 		targetSdkVersion rootProject.ext.targetSdkVersion
 		versionCode 790
 		versionName "3.6.0"
-		multiDexEnabled true
 		testBuildType System.getProperty('testBuildType', 'debug')
 		missingDimensionStrategy "minReactNative", "minReactNative46"
 		testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -189,7 +183,6 @@ android {
 	}
 
 	signingConfigs {
-		def pass = ""
 		release {
 			storeFile file('../keystores/release.keystore')
 			storePassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PASSWORD")
@@ -217,10 +210,12 @@ android {
 		debug {
 			manifestPlaceholders = [isDebug:true]
 			signingConfig signingConfigs.debug
+			multiDexEnabled true
 		}
 		release {
 			manifestPlaceholders = [isDebug:false]
-			minifyEnabled enableProguardInReleaseBuilds
+			minifyEnabled true
+			multiDexEnabled false
 			proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
 			signingConfig signingConfigs.release
 		}
