@@ -398,7 +398,7 @@ class ChoosePassword extends PureComponent {
 
 	/**
 	 * This function handles the case when the user rejects the OS prompt for allowing use of biometrics.
-	 * It resets the state and and prompts the user set the remember me state and try agian.
+	 * It resets the state and and prompts the user to both set the "Remember Me" state and to try again.
 	 * @param {*} error - error provide from try catch wrapping the biometric set password attempt
 	 */
 	handleRejectedOsBiometricPrompt = async (error) => {
