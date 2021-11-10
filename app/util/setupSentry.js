@@ -1,4 +1,5 @@
-import Sentry from '@sentry/react-native';
+/* eslint-disable import/no-namespace */
+import * as Sentry from '@sentry/react-native';
 import { Dedupe, ExtraErrorData } from '@sentry/integrations';
 
 const METAMASK_ENVIRONMENT = process.env['METAMASK_ENVIRONMENT'] || 'local'; // eslint-disable-line dot-notation
