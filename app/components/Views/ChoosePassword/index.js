@@ -405,7 +405,7 @@ class ChoosePassword extends PureComponent {
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
 		if (error.toString().includes(IOS_DENY_BIOMETRIC_ERROR) && !biometryType) {
 			this.setState({
-				biometryType: Device.isAndroid() ? 'biometrics' : biometryType,
+				biometryType,
 				biometryChoice: true,
 			});
 			this.updateBiometryChoice();
