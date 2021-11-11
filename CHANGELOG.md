@@ -2,6 +2,9 @@
 
 ## Current Develop Branch
 
+## v3.6.1 - November 11 2021
+- [FIX] - Deep Link Bug
+
 ## v3.6.0 - November 1 2021
 - [#3301](https://github.com/MetaMask/metamask-mobile/pull/3301): [FEATURE] ERC-1155 and custom network support
 - [#3343](https://github.com/MetaMask/metamask-mobile/pull/3343): [IMPROVEMENT] Add IPFS support for NFTs
