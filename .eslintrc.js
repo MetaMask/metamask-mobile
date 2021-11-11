@@ -33,7 +33,7 @@ module.exports = {
 	},
 	rules: {
 		'no-catch-shadow': 0,
-		'no-console': ['error', { allow: ['warn', 'error'] }],
+		// 'no-console': ['error', { allow: ['warn', 'error'] }],
 		quotes: [
 			'error',
 			'single',

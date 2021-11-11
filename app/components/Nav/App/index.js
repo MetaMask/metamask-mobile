@@ -189,6 +189,8 @@ const App = () => {
 		return () => unsubscribeFromBranch.current?.();
 	}, [branchSubscriber]);
 
+	console.log('MM JS App View');
+
 	return (
 		<NavigationContainer
 			ref={(nav) => {

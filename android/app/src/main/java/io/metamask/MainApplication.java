@@ -58,9 +58,14 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 			initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
 		}
 
-		RNBranchModule.getAutoInstance(this);
+		new Runnable(){
+			@Override
+			public void run() {
+				RNBranchModule.getAutoInstance(MainApplication.this);
+			}
+		};
 
-		Log.i(MainApplication.class.getSimpleName() + " MM onStart", Long.toString(System.currentTimeMillis() - onCreateS));
+		Log.i(MainApplication.class.getSimpleName() + " MM onCreate", Long.toString(System.currentTimeMillis() - onCreateS));
 		Log.i(MainApplication.class.getSimpleName() + " MM total", Long.toString(System.currentTimeMillis() - totalS));
 	}
 
