@@ -55,15 +55,10 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 
 		if (BuildConfig.DEBUG) {
 			WebView.setWebContentsDebuggingEnabled(true);
-			initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
 		}
 
-		new Runnable(){
-			@Override
-			public void run() {
-				RNBranchModule.getAutoInstance(MainApplication.this);
-			}
-		};
+		initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
+		RNBranchModule.getAutoInstance(this);
 
 		Log.i(MainApplication.class.getSimpleName() + " MM onCreate", Long.toString(System.currentTimeMillis() - onCreateS));
 		Log.i(MainApplication.class.getSimpleName() + " MM total", Long.toString(System.currentTimeMillis() - totalS));

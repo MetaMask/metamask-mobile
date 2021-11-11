@@ -234,10 +234,10 @@ buildAndroidRelease(){
 	# GENERATE APK
 	cd android && ./gradlew assembleRelease --no-daemon --max-workers 2
 
-	# GENERATE BUNDLE
-	if [ "$GENERATE_BUNDLE" = true ] ; then
-		./gradlew bundleRelease
-	fi
+	# # GENERATE BUNDLE
+	# if [ "$GENERATE_BUNDLE" = true ] ; then
+	# 	./gradlew bundleRelease
+	# fi
 
 	if [ "$PRE_RELEASE" = true ] ; then
 		# Generate sourcemaps

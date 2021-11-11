@@ -50,19 +50,16 @@ public class MainActivity extends ReactActivity {
 
 		super.onStart();
 
-		new Runnable(){
-			@Override
-			public void run() {
-				RNBranchModule.initSession(getIntent().getData(), MainActivity.this);
-				try {
-					ApplicationInfo ai = MainActivity.this.getPackageManager().getApplicationInfo(MainActivity.this.getPackageName(), PackageManager.GET_META_DATA);
-					String mixpanelToken = (String) ai.metaData.get("com.mixpanel.android.mpmetrics.MixpanelAPI.token");
-					MixpanelAPI.getInstance(MainActivity.this, mixpanelToken);
-				} catch (PackageManager.NameNotFoundException e) {
-					Log.d("RCTAnalytics", "init:token missing");
-				}
-			}
-		};
+
+		RNBranchModule.initSession(getIntent().getData(), this);
+		try {
+			ApplicationInfo ai = this.getPackageManager().getApplicationInfo(this.getPackageName(), PackageManager.GET_META_DATA);
+			String mixpanelToken = (String) ai.metaData.get("com.mixpanel.android.mpmetrics.MixpanelAPI.token");
+			MixpanelAPI.getInstance(this, mixpanelToken);
+		} catch (PackageManager.NameNotFoundException e) {
+			Log.d("RCTAnalytics", "init:token missing");
+		}
+
 
 		Log.i(MainActivity.class.getSimpleName() + " MM onStart", Long.toString(System.currentTimeMillis() - onStartS));
 		Log.i(MainActivity.class.getSimpleName() + " MM total", Long.toString(System.currentTimeMillis() - totalS));
