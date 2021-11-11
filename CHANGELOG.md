@@ -2,6 +2,31 @@
 
 ## Current Develop Branch
 
+## v3.6.0 - November 1 2021
+- [#3301](https://github.com/MetaMask/metamask-mobile/pull/3301): [FEATURE] ERC-1155 and custom network support
+- [#3343](https://github.com/MetaMask/metamask-mobile/pull/3343): [IMPROVEMENT] Add IPFS support for NFTs
+- [#3352](https://github.com/MetaMask/metamask-mobile/pull/3352): [FIX] Fix rendering issue when viewing data on transaction review screen
+- [#3348](https://github.com/MetaMask/metamask-mobile/pull/3348): [IMPROVEMENT] Add webview deeplink support for Android
+- [#3290](https://github.com/MetaMask/metamask-mobile/pull/3290): [FIX] Fix lost data when using wallet connect for ERC20 token transaction
+
+## v3.5.0 - October 26 2021
+- [#3340](https://github.com/MetaMask/metamask-mobile/pull/3340): [IMPROVEMENT] Reduce persisted data
+- [#3330](https://github.com/MetaMask/metamask-mobile/pull/3330): [IMPROVEMENT] Refactor EngineService
+- [#3325](https://github.com/MetaMask/metamask-mobile/pull/3325): [IMPROVEMENT] Isolate persisted data
+- [#3314](https://github.com/MetaMask/metamask-mobile/pull/3314): [IMPROVEMENT] Update copy for token ID in collectible transaction
+- [#3319](https://github.com/MetaMask/metamask-mobile/pull/3319): [IMPROVEMENT] Analytics - Track "Account Switcher" events
+- [#3297](https://github.com/MetaMask/metamask-mobile/pull/3297): [IMPROVEMENT] Add IPFS support for tokens
+- [#3298](https://github.com/MetaMask/metamask-mobile/pull/3298): [FEATURE] Move CI to GitHub Actions
+- [#3302](https://github.com/MetaMask/metamask-mobile/pull/3302): [REFACTOR] Refactor AddCustomCollectible component
+- [#3292](https://github.com/MetaMask/metamask-mobile/pull/3292): [FEATURE] Add analytics for android keystore
+- [#3295](https://github.com/MetaMask/metamask-mobile/pull/3295): [FIX] Fix approval transaction getting mistakenly treated as a swap transaction
+- [#3265](https://github.com/MetaMask/metamask-mobile/pull/3265): [FIX] Populate block number
+- [#3294](https://github.com/MetaMask/metamask-mobile/pull/3294): [FIX] Fix empty text input on Android
+- [#3293](https://github.com/MetaMask/metamask-mobile/pull/3293): [FIX] Fix Detox assertion test
+- [#3255](https://github.com/MetaMask/metamask-mobile/pull/3255): [IMPROVEMENT] Detox Page Object Model
+- [#3272](https://github.com/MetaMask/metamask-mobile/pull/3272): [IMPROVEMENT] Update recommended node.js version
+- [#3271](https://github.com/MetaMask/metamask-mobile/pull/3271): [FIX] Update React Native dependecy links in README.md
+
 ## v3.4.1 - October 5 2021
 - [#3260](https://github.com/MetaMask/metamask-mobile/pull/3260): [FIX] Turn off token detection by default
 - [#3261](https://github.com/MetaMask/metamask-mobile/pull/3261): [FIX] Fix blank screen on fresh start

@@ -20,7 +20,7 @@ exports[`AnimatedTransactionModal should render correctly 1`] = `
         ],
       },
       Object {
-        "height": 70,
+        "height": 470,
       },
     ]
   }

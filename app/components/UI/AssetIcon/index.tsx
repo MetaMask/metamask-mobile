@@ -35,9 +35,9 @@ const styles = StyleSheet.create({
  */
 // eslint-disable-next-line react/display-name
 const AssetIcon = memo((props: Props) => {
-	if (!props.logo || props.logo.substr(0, 4) === 'ipfs') return null;
+	if (!props.logo) return null;
 	const style = [styles.logo, props.customStyle];
-	const isImageUrl = isUrl(props.logo);
+	const isImageUrl = isUrl(props.logo) || props.logo.substr(0, 4) === 'ipfs';
 	const source: ImageSourcePropType = isImageUrl ? { uri: props.logo } : (staticLogos as any)[props.logo];
 
 	if (!source) {

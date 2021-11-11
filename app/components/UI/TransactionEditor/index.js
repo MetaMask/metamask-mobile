@@ -474,6 +474,13 @@ class TransactionEditor extends PureComponent {
 		const to = opts.to ? opts.to : transaction.to;
 		const generateData = {
 			ERC20: () => {
+				// Use raw data when transaction with walletconnect
+				// Additional parameters can enrich the transaction information for ERC20, such as orders or goods
+				// These additional parameters have been tested on the metamask-extension and Ethereum mainnet
+				if (transaction.data) {
+					return transaction.data;
+				}
+
 				const tokenAmountToSend = selectedAsset && value && value.toString(16);
 				return to && tokenAmountToSend
 					? generateTransferData('transfer', { toAddress: to, amount: tokenAmountToSend })

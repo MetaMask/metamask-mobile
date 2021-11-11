@@ -1,4 +1,3 @@
-import { REHYDRATE } from 'redux-persist';
 import AppConstants from '../../core/AppConstants';
 
 const initialState = {
@@ -11,11 +10,6 @@ const initialState = {
 
 const settingsReducer = (state = initialState, action) => {
 	switch (action.type) {
-		case REHYDRATE:
-			if (action.payload && action.payload.settings) {
-				return { ...state, ...action.payload.settings };
-			}
-			return state;
 		case 'SET_SEARCH_ENGINE':
 			return {
 				...state,
