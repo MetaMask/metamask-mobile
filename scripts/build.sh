@@ -112,9 +112,11 @@ prebuild(){
 	yarn --ignore-engines build:static-logos
 
 	# Load JS specific env variables
+	echo 'hello!'
 	if [ "$PRE_RELEASE" = false ] ; then
 		if [ -e $JS_ENV_FILE ]
 		then
+			cat $JS_ENV_FILE
 			source $JS_ENV_FILE
 		fi
 	fi
@@ -132,6 +134,7 @@ prebuild_ios(){
 }
 
 prebuild_android(){
+	echo "hello 1"
 	adb kill-server
 	adb start-server
 	prebuild
@@ -285,6 +288,7 @@ buildIos() {
 }
 
 startWatcher() {
+	cat $JS_ENV_FILE
 	source $JS_ENV_FILE
 	yarn --ignore-engines build:static-logos
 	if [ "$MODE" == "clean" ]; then
@@ -316,7 +320,7 @@ checkAuthToken() {
 		fi
 	fi
 }
-
+echo "hello 0"
 checkParameters "$@"
 
 printTitle

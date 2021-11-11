@@ -23,6 +23,7 @@ export default class TransactionSummary extends PureComponent {
 		gasEstimationReady: PropTypes.bool,
 		onEditPress: PropTypes.func,
 		transactionType: PropTypes.string,
+		l1Fee: PropTypes.string,
 	};
 
 	renderIfGastEstimationReady = (children) => {
@@ -48,7 +49,7 @@ export default class TransactionSummary extends PureComponent {
 	};
 
 	render = () => {
-		const { amount, fee, totalAmount, secondaryTotalAmount, gasEstimationReady, onEditPress } = this.props;
+		const { amount, fee, totalAmount, secondaryTotalAmount, gasEstimationReady, onEditPress, l1Fee } = this.props;
 		if (
 			this.props.transactionType === TRANSACTION_TYPES.RECEIVED_TOKEN ||
 			this.props.transactionType === TRANSACTION_TYPES.RECEIVED
@@ -113,7 +114,7 @@ export default class TransactionSummary extends PureComponent {
 				<Summary.Separator />
 				<Summary.Row>
 					<Text small bold primary>
-						{strings('transaction.total_amount')}
+						{l1Fee ? strings('transactions.layer_2_total') : strings('transaction.total_amount')}
 					</Text>
 					{this.renderIfGastEstimationReady(
 						<Text small bold primary upper>
@@ -121,6 +122,18 @@ export default class TransactionSummary extends PureComponent {
 						</Text>
 					)}
 				</Summary.Row>
+				{l1Fee && (
+					<Summary.Row>
+						<Text small bold primary>
+							{strings('transactions.layer_1_fees')}
+						</Text>
+						{this.renderIfGastEstimationReady(
+							<Text small bold primary upper>
+								{l1Fee}
+							</Text>
+						)}
+					</Summary.Row>
+				)}
 				<Summary.Row end last>
 					{this.renderIfGastEstimationReady(
 						<Text small right upper>

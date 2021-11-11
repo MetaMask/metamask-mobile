@@ -67,6 +67,9 @@ const NetworkList = {
 	},
 };
 
+export const OPTIMISM_CHAIN_ID = 10;
+export const OPTIMISM_TESTNET_CHAIN_ID = 69;
+
 const NetworkListKeys = Object.keys(NetworkList);
 
 export default NetworkList;
@@ -210,3 +213,6 @@ export function blockTagParamIndex(payload) {
 			return undefined;
 	}
 }
+
+export const isOptimismByChainId = (chainId) =>
+	Number(chainId) === OPTIMISM_CHAIN_ID || Number(chainId) === OPTIMISM_TESTNET_CHAIN_ID;

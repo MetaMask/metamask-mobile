@@ -8,8 +8,10 @@ import {
 	findBlockExplorerForRpc,
 	getBlockExplorerName,
 	isMainNet,
+	isOptimismByChainId,
 } from '../../../../util/networks';
 import { getEtherscanTransactionUrl, getEtherscanBaseUrl } from '../../../../util/etherscan';
+import { hexToBN, fromWei } from '../../../../util/number';
 import Logger from '../../../../util/Logger';
 import { connect } from 'react-redux';
 import URL from 'url-parse';
@@ -22,6 +24,8 @@ import Text from '../../../Base/Text';
 import DetailsModal from '../../../Base/DetailsModal';
 import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../../constants/network';
 import { withNavigation } from '@react-navigation/compat';
+import { util } from '@metamask/controllers';
+import Engine from '../../../../core/Engine';
 
 const styles = StyleSheet.create({
 	viewOnEtherscan: {
@@ -99,20 +103,38 @@ class TransactionDetails extends PureComponent {
 	state = {
 		rpcBlockExplorer: undefined,
 		renderTxActions: true,
+		l1Fee: undefined,
 	};
 
 	componentDidMount = () => {
+		const { TransactionController } = Engine.context;
 		const {
 			network: {
-				provider: { rpcTarget, type },
+				provider: { rpcTarget, type, ticker },
 			},
 			frequentRpcList,
+			transactionDetails = {},
+			chainId,
 		} = this.props;
 		let blockExplorer;
 		if (type === RPC) {
 			blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList) || NO_RPC_BLOCK_EXPLORER;
 		}
 		this.setState({ rpcBlockExplorer: blockExplorer });
+
+		const isOptimism = isOptimismByChainId(chainId);
+
+		if (isOptimism) {
+			util.query(TransactionController.ethQuery, 'getTransactionReceipt', [
+				transactionDetails.transactionHash,
+			]).then((result) => {
+				const { l1Fee: l1HexGasTotal } = result;
+
+				const l1Fee = `${fromWei(hexToBN(l1HexGasTotal))} ${ticker}`;
+
+				this.setState({ l1Fee });
+			});
+		}
 	};
 
 	viewOnEtherscan = () => {
@@ -187,7 +209,8 @@ class TransactionDetails extends PureComponent {
 			},
 		} = this.props;
 		const renderTxActions = status === 'submitted' || status === 'approved';
-		const { rpcBlockExplorer } = this.state;
+		const { rpcBlockExplorer, l1Fee } = this.state;
+
 		return (
 			<DetailsModal.Body>
 				<DetailsModal.Section borderBottom>
@@ -240,6 +263,7 @@ class TransactionDetails extends PureComponent {
 						}
 						gasEstimationReady
 						transactionType={transactionDetails.transactionType}
+						l1Fee={l1Fee}
 					/>
 				</View>
 

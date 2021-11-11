@@ -88,6 +88,9 @@
     "@exodus/react-native-payments/validator": "^13.7.0"
   },
   "dependencies": {
+    "@eth-optimism/contracts": "0.0.0-2021919175625",
+    "@ethereumjs/common": "^2.3.1",
+    "@ethereumjs/tx": "^3.2.1",
     "@exodus/react-native-payments": "https://github.com/wachunei/react-native-payments.git#package-json-hack",
     "@metamask/contract-metadata": "^1.30.0",
     "@metamask/controllers": "^18.0.0",
@@ -134,6 +137,7 @@
     "ethereumjs-abi": "0.6.6",
     "ethereumjs-util": "6.1.0",
     "ethers": "^5.0.14",
+    "ethjs": "^0.4.0",
     "ethjs-contract": "0.2.3",
     "ethjs-ens": "2.0.1",
     "ethjs-query": "0.3.8",

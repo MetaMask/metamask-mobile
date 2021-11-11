@@ -1276,6 +1276,7 @@ class Confirm extends PureComponent {
 							animateOnChange={animateOnChange}
 							isAnimating={isAnimating}
 							gasEstimationReady={gasEstimationReady}
+							transaction={this.props.transaction}
 							legacy
 						/>
 					) : (
