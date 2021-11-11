@@ -20,6 +20,10 @@ import org.devio.rn.splashscreen.SplashScreen;
 
 public class MainActivity extends ReactFragmentActivity {
 
+	long onCreateS;
+	long onStartS;
+	long totalS;
+
 	/**
 	* Returns the name of the main component registered from JavaScript. This is used to schedule
 	* rendering of the component.
@@ -30,8 +34,20 @@ public class MainActivity extends ReactFragmentActivity {
 	}
 
 	// Override onStart, onNewIntent:
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		totalS = System.currentTimeMillis();
+		onCreateS = System.currentTimeMillis();
+		SplashScreen.show(this);
+		super.onCreate(null);
+		Log.i(MainActivity.class.getSimpleName() + " MM onCreate", Long.toString(System.currentTimeMillis() - onCreateS ));
+	}
+
 	@Override
 	protected void onStart() {
+		onStartS = System.currentTimeMillis();
+
 		super.onStart();
 		RNBranchModule.initSession(getIntent().getData(), this);
 		try{
@@ -41,14 +57,10 @@ public class MainActivity extends ReactFragmentActivity {
 		}catch (PackageManager.NameNotFoundException e){
 			Log.d("RCTAnalytics","init:token missing");
 		}
-
+		Log.i(MainActivity.class.getSimpleName() + " MM onStart", Long.toString(System.currentTimeMillis() - onStartS ));
+		Log.i(MainActivity.class.getSimpleName() + " MM total", Long.toString(System.currentTimeMillis() - totalS ));
 	}
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		SplashScreen.show(this); 
-		super.onCreate(null);
-	}
 	@Override
 	public void onNewIntent(Intent intent) {
 		super.onNewIntent(intent);

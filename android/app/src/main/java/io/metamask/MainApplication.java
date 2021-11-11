@@ -17,6 +17,8 @@ import cl.json.ShareApplication;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import io.metamask.nativeModules.PreventScreenshotPackage;
+
+import android.util.Log;
 import android.webkit.WebView;
 
 import androidx.multidex.MultiDexApplication;
@@ -58,6 +60,9 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 
 	@Override
 	public void onCreate() {
+		long totalS = System.currentTimeMillis();
+		long onCreateS = System.currentTimeMillis();
+
 		super.onCreate();
 
 		try {
@@ -75,6 +80,8 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 		initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
 		RNBranchModule.getAutoInstance(this);
 
+		Log.i(MainActivity.class.getSimpleName() + " MM onStart", Long.toString(System.currentTimeMillis() - onCreateS ));
+		Log.i(MainActivity.class.getSimpleName() + " MM total", Long.toString(System.currentTimeMillis() - totalS ));
     }
     /**
      * Loads Flipper in React Native templates. Call this in the onCreate method with something like
