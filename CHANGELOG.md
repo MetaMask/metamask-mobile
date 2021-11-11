@@ -2,7 +2,10 @@
 
 ## Current Develop Branch
 
+
 ## v3.6.1 - November 11 2021
+- [UPDATE] - updated android SDK version 30 minimum
+- [#3378](https://github.com/MetaMask/metamask-mobile/pull/3378): [FIX] patch validator via resolution
 - [FIX] - Deep Link Bug
 
 ## v3.6.0 - November 1 2021
