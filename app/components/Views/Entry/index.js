@@ -139,6 +139,7 @@ const Entry = (props) => {
 
 	useEffect(() => {
 		async function startApp() {
+			// console.log(' MM JS Entry View');
 			const existingUser = await AsyncStorage.getItem(EXISTING_USER);
 			try {
 				const currentVersion = await getVersion();

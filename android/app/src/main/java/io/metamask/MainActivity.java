@@ -1,7 +1,7 @@
 package io.metamask;
 
+import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
-import com.facebook.react.ReactFragmentActivity;
 import com.facebook.react.ReactRootView;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.swmansion.gesturehandler.react.RNGestureHandlerEnabledRootView;
@@ -18,16 +18,16 @@ import androidx.annotation.NonNull;
 
 import org.devio.rn.splashscreen.SplashScreen;
 
-public class MainActivity extends ReactFragmentActivity {
+public class MainActivity extends ReactActivity {
 
 	long onCreateS;
 	long onStartS;
 	long totalS;
 
 	/**
-	* Returns the name of the main component registered from JavaScript. This is used to schedule
-	* rendering of the component.
-	*/
+	 * Returns the name of the main component registered from JavaScript. This is used to schedule
+	 * rendering of the component.
+	 */
 	@Override
 	protected String getMainComponentName() {
 		return "MetaMask";
@@ -41,7 +41,7 @@ public class MainActivity extends ReactFragmentActivity {
 		onCreateS = System.currentTimeMillis();
 		SplashScreen.show(this);
 		super.onCreate(null);
-		Log.i(MainActivity.class.getSimpleName() + " MM onCreate", Long.toString(System.currentTimeMillis() - onCreateS ));
+		Log.i(MainActivity.class.getSimpleName() + " MM onCreate", Long.toString(System.currentTimeMillis() - onCreateS));
 	}
 
 	@Override
@@ -50,15 +50,15 @@ public class MainActivity extends ReactFragmentActivity {
 
 		super.onStart();
 		RNBranchModule.initSession(getIntent().getData(), this);
-		try{
+		try {
 			ApplicationInfo ai = this.getPackageManager().getApplicationInfo(this.getPackageName(), PackageManager.GET_META_DATA);
-			String mixpanelToken = (String)ai.metaData.get("com.mixpanel.android.mpmetrics.MixpanelAPI.token");
+			String mixpanelToken = (String) ai.metaData.get("com.mixpanel.android.mpmetrics.MixpanelAPI.token");
 			MixpanelAPI.getInstance(this, mixpanelToken);
-		}catch (PackageManager.NameNotFoundException e){
-			Log.d("RCTAnalytics","init:token missing");
+		} catch (PackageManager.NameNotFoundException e) {
+			Log.d("RCTAnalytics", "init:token missing");
 		}
-		Log.i(MainActivity.class.getSimpleName() + " MM onStart", Long.toString(System.currentTimeMillis() - onStartS ));
-		Log.i(MainActivity.class.getSimpleName() + " MM total", Long.toString(System.currentTimeMillis() - totalS ));
+		Log.i(MainActivity.class.getSimpleName() + " MM onStart", Long.toString(System.currentTimeMillis() - onStartS));
+		Log.i(MainActivity.class.getSimpleName() + " MM total", Long.toString(System.currentTimeMillis() - totalS));
 	}
 
 	@Override
@@ -74,20 +74,20 @@ public class MainActivity extends ReactFragmentActivity {
 			@Override
 			protected Bundle getLaunchOptions() {
 				Bundle bundle = new Bundle();
-				if(BuildConfig.foxCode != null){
+				if (BuildConfig.foxCode != null) {
 					bundle.putString("foxCode", BuildConfig.foxCode);
 				} else {
 					bundle.putString("foxCode", "debug");
 				}
 				return bundle;
 			}
+
 			@Override
 			protected ReactRootView createRootView() {
 				return new RNGestureHandlerEnabledRootView(MainActivity.this);
 			}
 		};
 	}
-
 
 
 }
