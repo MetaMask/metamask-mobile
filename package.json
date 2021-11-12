@@ -368,7 +368,7 @@
       "dtrace-provider": false,
       "core-js": false,
       "fsevents": false,
-      "sharp": false
+      "sharp": true
     }
   }
 }
