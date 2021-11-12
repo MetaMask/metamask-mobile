@@ -77,7 +77,7 @@ const Entry = (props) => {
 	const animation = useRef(null);
 	const animationName = useRef(null);
 	const opacity = useRef(new Animated.Value(1)).current;
-
+	console.log('Hermes Enabled', !!global.HermesInternal);
 	const onAnimationFinished = useCallback(() => {
 		Animated.timing(opacity, {
 			toValue: 0,
