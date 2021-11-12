@@ -1,0 +1,25 @@
+diff --git a/node_modules/@react-native-community/viewpager/android/src/main/java/com/reactnativecommunity/viewpager/ReactViewPagerManager.java b/node_modules/@react-native-community/viewpager/android/src/main/java/com/reactnativecommunity/viewpager/ReactViewPagerManager.java
+index 7b1ea21..7b38acf 100644
+--- a/node_modules/@react-native-community/viewpager/android/src/main/java/com/reactnativecommunity/viewpager/ReactViewPagerManager.java
++++ b/node_modules/@react-native-community/viewpager/android/src/main/java/com/reactnativecommunity/viewpager/ReactViewPagerManager.java
+@@ -22,7 +22,7 @@ import com.facebook.react.uimanager.annotations.ReactProp;
+ import javax.annotation.Nullable;
+ 
+ /**
+- * Instance of {@link com.facebook.react.uimanager.ViewManager} that provides native {@link android.support.v4.view.ViewPager} view.
++ * Instance of {@link com.facebook.react.uimanager.ViewManager} that provides native {@link androidx.viewpager.widget.ViewPager} view.
+  */
+ public class ReactViewPagerManager extends ViewGroupManager<ReactViewPager> {
+ 
+diff --git a/node_modules/@react-native-community/viewpager/ios/ReactNativePageView.h b/node_modules/@react-native-community/viewpager/ios/ReactNativePageView.h
+index a131c73..f1df35d 100644
+--- a/node_modules/@react-native-community/viewpager/ios/ReactNativePageView.h
++++ b/node_modules/@react-native-community/viewpager/ios/ReactNativePageView.h
+@@ -2,6 +2,7 @@
+ #import <React/RCTShadowView.h>
+ #import <React/UIView+React.h>
+ #import <UIKit/UIKit.h>
++#import <React/RCTEventDispatcher.h>
+ 
+ NS_ASSUME_NONNULL_BEGIN
+ 
