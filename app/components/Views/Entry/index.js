@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { withNavigation } from '@react-navigation/compat';
 import PropTypes from 'prop-types';
-import { Animated, Dimensions, StyleSheet, View } from 'react-native';
+import { Animated, Dimensions, StyleSheet, View, Text } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import Engine from '../../../core/Engine';
 import LottieView from 'lottie-react-native';
@@ -77,7 +77,6 @@ const Entry = (props) => {
 	const animation = useRef(null);
 	const animationName = useRef(null);
 	const opacity = useRef(new Animated.Value(1)).current;
-	console.log('Hermes Enabled', !!global.HermesInternal);
 	const onAnimationFinished = useCallback(() => {
 		Animated.timing(opacity, {
 			toValue: 0,
@@ -200,6 +199,7 @@ const Entry = (props) => {
 
 	return (
 		<View style={styles.main}>
+			<Text>{`Hermes Enabled: ${!!global.HermesInternal}`}</Text>
 			<Animated.View style={[styles.logoWrapper, { opacity }]}>
 				<View style={styles.fox}>{renderAnimations()}</View>
 			</Animated.View>
