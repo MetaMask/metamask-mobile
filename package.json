@@ -192,7 +192,7 @@
     "react-native-modal": "^11.5.6",
     "react-native-os": "^1.2.6",
     "react-native-progress": "3.5.0",
-    "react-native-push-notification": "git+https://github.com/MetaMask/react-native-push-notification.git#7adf4ade7d47ea7ed19169ce11ea8a70ef6869f5",
+    "react-native-push-notification": "git+https://github.com/MetaMask/react-native-push-notification.git#975e0e6757c40e3dce2d1b6dd3d66fc91127ac4c",
     "react-native-qrcode-svg": "5.1.2",
     "react-native-randombytes": "^3.5.3",
     "react-native-reanimated": "^1.13.2",

@@ -11706,9 +11706,9 @@ react-native-progress@3.5.0:
   dependencies:
     prop-types "^15.5.8"
 
-"react-native-push-notification@git+https://github.com/MetaMask/react-native-push-notification.git#7adf4ade7d47ea7ed19169ce11ea8a70ef6869f5":
-  version "3.1.2"
-  resolved "git+https://github.com/MetaMask/react-native-push-notification.git#7adf4ade7d47ea7ed19169ce11ea8a70ef6869f5"
+"react-native-push-notification@git+https://github.com/MetaMask/react-native-push-notification.git#975e0e6757c40e3dce2d1b6dd3d66fc91127ac4c":
+  version "3.1.3"
+  resolved "git+https://github.com/MetaMask/react-native-push-notification.git#975e0e6757c40e3dce2d1b6dd3d66fc91127ac4c"
 
 react-native-qrcode-svg@5.1.2:
   version "5.1.2"
