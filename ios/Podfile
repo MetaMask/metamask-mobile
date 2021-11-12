@@ -45,7 +45,7 @@ target 'MetaMask' do
   pod 'React-RCTPushNotification', :path => '../node_modules/react-native/Libraries/PushNotificationIOS'
 
   # you should disable the next line.
-  use_flipper!()
+  # use_flipper!()
   post_install do |installer|
     react_native_post_install(installer)
     __apply_Xcode_12_5_M1_post_install_workaround(installer)
