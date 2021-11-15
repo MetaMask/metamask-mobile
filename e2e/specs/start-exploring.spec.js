@@ -54,7 +54,7 @@ describe('Start Exploring', () => {
 		await CreatePasswordView.isVisible();
 	});
 
-	it('should be able to opt-out of the onboarding-wizard', async () => {
+	it('should be able to create a new wallet', async () => {
 		await CreatePasswordView.enterPassword(PASSWORD);
 		await CreatePasswordView.reEnterPassword(PASSWORD);
 		await CreatePasswordView.tapIUnderstandCheckBox();
