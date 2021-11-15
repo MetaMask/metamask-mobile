@@ -57,7 +57,7 @@ const NetworkList = {
 		chainId: 5,
 		hexChainId: '0x5',
 		color: '#3099f2',
-		networkType: 'goerly',
+		networkType: 'goerli',
 	},
 	[RPC]: {
 		name: 'Private Network',
