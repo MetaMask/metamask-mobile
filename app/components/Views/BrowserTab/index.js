@@ -606,8 +606,8 @@ export const BrowserTab = (props) => {
 					const { TypedMessageManager } = Engine.context;
 					const data = JSON.parse(req.params[1]);
 					const chainId = data.domain.chainId;
-					const activeChainId =
-						props.networkType === RPC ? props.network : Networks[props.networkType].networkId;
+					const { networkType, networkProvider } = props;
+					const activeChainId = networkType === RPC ? networkProvider.chainId : NetworksChainId[networkType];
 
 					// eslint-disable-next-line eqeqeq
 					if (chainId && chainId != activeChainId) {
