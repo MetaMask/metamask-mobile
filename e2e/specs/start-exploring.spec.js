@@ -45,22 +45,25 @@ describe('Start Exploring', () => {
 		await OnboardingView.isVisible();
 	});
 
-	it('should create new wallet', async () => {
+	it('should be able to opt-out of the onboarding-wizard', async () => {
 		await OnboardingView.tapCreateWallet();
 
 		await MetaMetricsOptIn.isVisible();
-		await MetaMetricsOptIn.tapAgreeButton();
+		await MetaMetricsOptIn.tapNoThanksButton();
 
 		await CreatePasswordView.isVisible();
+	});
+
+	it('should be able to opt-out of the onboarding-wizard', async () => {
 		await CreatePasswordView.enterPassword(PASSWORD);
 		await CreatePasswordView.reEnterPassword(PASSWORD);
 		await CreatePasswordView.tapIUnderstandCheckBox();
 		await CreatePasswordView.tapCreatePasswordButton();
+		await ProtectYourWalletView.isVisible();
 	});
 
 	it('Should skip backup check', async () => {
 		// Check that we are on the Secure your wallet screen
-		await ProtectYourWalletView.isVisible();
 		await ProtectYourWalletView.tapOnRemindMeLaterButton();
 
 		await SkipAccountSecurityModal.tapIUnderstandCheckBox();
