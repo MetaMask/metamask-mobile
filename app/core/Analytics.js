@@ -2,6 +2,7 @@
 
 import { NativeModules } from 'react-native';
 import Logger from '../util/Logger';
+import { ANALYTICS_EVENTS_V2 } from '../util/analyticsV2';
 const RCTAnalytics = NativeModules.Analytics;
 
 /**
@@ -42,7 +43,8 @@ class Analytics {
 	 * Track event if enabled and not DEV mode
 	 */
 	_trackEvent(name, { event, params = {}, value, info, anonymously = false }) {
-		if (!this.enabled) return;
+		const isAnalyticsPreferenceSelectedEvent = ANALYTICS_EVENTS_V2.ANALYTICS_PREFERENCE_SELECTED === event;
+		if (!this.enabled && !isAnalyticsPreferenceSelectedEvent) return;
 		if (!__DEV__) {
 			if (!anonymously) {
 				RCTAnalytics.trackEvent({
