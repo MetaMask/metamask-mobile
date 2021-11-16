@@ -206,6 +206,7 @@ const styles = StyleSheet.create({
 });
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
+const IOS_DENY_BIOMETRIC_ERROR = 'The user name or passphrase you entered is not correct.';
 
 /**
  * View where users can set their password for the first time
@@ -341,7 +342,12 @@ class ChoosePassword extends PureComponent {
 			// Set state in app as it was with password
 			await SecureKeychain.resetGenericPassword();
 			if (this.state.biometryType && this.state.biometryChoice) {
-				await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.BIOMETRICS);
+				try {
+					await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.BIOMETRICS);
+				} catch (error) {
+					if (Device.isIos) await this.handleRejectedOsBiometricPrompt(error);
+					throw error;
+				}
 			} else if (this.state.rememberMe) {
 				await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.REMEMBER_ME);
 			} else {
@@ -351,7 +357,6 @@ class ChoosePassword extends PureComponent {
 			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
 			this.props.passwordSet();
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
-
 			this.setState({ loading: false });
 			this.props.navigation.navigate('AccountBackupStep1');
 			InteractionManager.runAfterInteractions(() => {
@@ -388,6 +393,23 @@ class ChoosePassword extends PureComponent {
 					error_type: error.toString(),
 				});
 			});
+		}
+	};
+
+	/**
+	 * This function handles the case when the user rejects the OS prompt for allowing use of biometrics.
+	 * It resets the state and and prompts the user to both set the "Remember Me" state and to try again.
+	 * @param {*} error - error provide from try catch wrapping the biometric set password attempt
+	 */
+	handleRejectedOsBiometricPrompt = async (error) => {
+		const biometryType = await SecureKeychain.getSupportedBiometryType();
+		if (error.toString().includes(IOS_DENY_BIOMETRIC_ERROR) && !biometryType) {
+			this.setState({
+				biometryType,
+				biometryChoice: true,
+			});
+			this.updateBiometryChoice();
+			throw Error(strings('choose_password.disable_biometric_error'));
 		}
 	};
 
