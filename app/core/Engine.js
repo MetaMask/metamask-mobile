@@ -252,11 +252,8 @@ class Engine {
 				KeyringController: keyring,
 				NetworkController: network,
 				TransactionController: transaction,
-				TokenListController: tokenList,
 			} = this.context;
 
-			// Start polling tokens
-			tokenList.start();
 			collectibles.setApiKey(process.env.MM_OPENSEA_KEY);
 			network.refreshNetwork();
 			transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
@@ -270,9 +267,17 @@ class Engine {
 				}
 			});
 			this.configureControllersOnNetworkChange();
+			this.startPolling();
 			Engine.instance = this;
 		}
 		return Engine.instance;
+	}
+
+	startPolling() {
+		const { CollectibleDetectionController, TokenDetectionController, TokenListController } = this.context;
+		TokenListController.start();
+		CollectibleDetectionController.start();
+		TokenDetectionController.start();
 	}
 
 	configureControllersOnNetworkChange() {
