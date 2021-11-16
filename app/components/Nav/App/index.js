@@ -28,6 +28,7 @@ import { BranchSubscriber } from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
+import { routingInstrumentation } from '../../../util/setupSentry';
 import Analytics from '../../../core/Analytics';
 
 const Stack = createStackNavigator();
@@ -152,7 +153,7 @@ const AppNavigator = createSwitchNavigator(
 
 const App = () => {
 	const unsubscribeFromBranch = useRef();
-	let navigator = useRef();
+	const navigator = useRef();
 
 	const handleDeeplink = useCallback(({ error, params, uri }) => {
 		if (error) {
@@ -181,7 +182,7 @@ const App = () => {
 		SharedDeeplinkManager.init({
 			navigate: (routeName, opts) => {
 				const params = { name: routeName, params: opts };
-				navigator.dispatch(CommonActions.navigate(params));
+				navigator.current?.dispatch?.(CommonActions.navigate(params));
 			},
 		});
 
@@ -200,8 +201,9 @@ const App = () => {
 
 	return (
 		<NavigationContainer
-			ref={(nav) => {
-				navigator = nav;
+			ref={navigator}
+			onReady={() => {
+				routingInstrumentation.registerNavigationContainer(navigator);
 			}}
 		>
 			<AppNavigator />
