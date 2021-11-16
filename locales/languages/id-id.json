@@ -502,7 +502,7 @@
 		"third_party_title": "Dapatkan transaksi yang masuk",
 		"third_party_description": "API pihak ketiga (Etherscan) digunakan untuk menampilkan transaksi Anda yang masuk dalam riwayat. Nonaktifkan jika Anda tidak ingin kami menarik data dari layanan tersebut.",
 		"metametrics_opt_out": "Penyisihan dari MetaMetric",
-		"metrametrics_restart_required": "Anda perlu memulai ulang aplikasi agar perubahan dapat diterapkan.",
+		"metametrics_restart_required": "Anda perlu memulai ulang aplikasi agar perubahan dapat diterapkan.",
 		"create_password": "Buat Kata Sandi",
 		"invalid_password": "Kata sandi tidak valid",
 		"invalid_password_message": "Kata sandi salah. Silakan coba lagi.",
