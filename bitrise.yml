@@ -2,13 +2,6 @@
 format_version: '8'
 default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
-trigger_map:
-    - push_branch: 'develop'
-      workflow: ci_test
-    - push_branch: 'main'
-      workflow: ci_test
-    - pull_request_source_branch: '*'
-      workflow: ci_test
 workflows:
     # Code Setups
     setup:
@@ -27,8 +20,8 @@ workflows:
             - yarn@0:
                   inputs:
                       - cache_local_deps: 'yes'
-                      - command: install --network-timeout 300000 --frozen-lockfile --network-concurrency 1
-                  title: Yarn Install
+                      - command: setup
+                  title: Yarn Setup
             - yarn@0:
                   inputs:
                       - cache_local_deps: 'yes'
@@ -48,8 +41,8 @@ workflows:
             - yarn@0:
                   inputs:
                       - cache_local_deps: 'yes'
-                      - command: install --network-timeout 300000 --frozen-lockfile --network-concurrency 1
-                  title: Yarn Install
+                      - command: setup
+                  title: Yarn Setup
             - yarn@0:
                   inputs:
                       - cache_local_deps: 'yes'
@@ -99,6 +92,7 @@ workflows:
             - avd-manager@1:
                   inputs:
                       - api_level: '29'
+                      - create_command_flags: '--sdcard 4096M'
                       - profile: pixel
             - wait-for-android-emulator@1: {}
             - file-downloader@1:
@@ -145,7 +139,6 @@ workflows:
             - build-router-start@0:
                   inputs:
                       - workflows: |-
-                            android_e2e_test
                             ios_e2e_test
                       - wait_for_builds: 'true'
                       - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
@@ -182,10 +175,10 @@ workflows:
                       - deploy_path: $BITRISE_DEPLOY_DIR/app-release.apk
                   title: Bitrise Deploy APK
             - yarn@0:
-                inputs:
-                - command: build:announce
-                title: Accouncing pre-release
-                is_always_run: false
+                  inputs:
+                      - command: build:announce
+                  title: Accouncing pre-release
+                  is_always_run: false
     android_test_release_step:
         before_run:
             - code_setup
@@ -229,14 +222,14 @@ workflows:
                       - deploy_path: sourcemaps/android/index.js.map
                   title: Bitrise Deploy Sourcemaps
             - google-play-deploy@3:
-                inputs:
-                - app_path: $PROJECT_LOCATION/app/build/outputs/bundle/release/app-release.aab
-                - track: internal
-                - service_account_json_key_path: $BITRISEIO_BITRISEIO_SERVICE_ACCOUNT_JSON_KEY_URL_URL
-                - package_name: $MM_ANDROID_PACKAGE_NAME
+                  inputs:
+                      - app_path: $PROJECT_LOCATION/app/build/outputs/bundle/release/app-release.aab
+                      - track: internal
+                      - service_account_json_key_path: $BITRISEIO_BITRISEIO_SERVICE_ACCOUNT_JSON_KEY_URL_URL
+                      - package_name: $MM_ANDROID_PACKAGE_NAME
         envs:
             - opts:
-                  is_expand: false 
+                  is_expand: false
               MM_ANDROID_PACKAGE_NAME: io.metamask
     ios_test_release_step:
         before_run:
@@ -271,15 +264,15 @@ workflows:
                       - deploy_path: sourcemaps/ios/index.js.map
                   title: Deploy Source Map
             - deploy-to-itunesconnect-application-loader@1:
-                inputs:
-                - ipa_path: ios/build/output/MetaMask.ipa
+                  inputs:
+                      - ipa_path: ios/build/output/MetaMask.ipa
 app:
     envs:
         - opts:
               is_expand: false
           PROJECT_LOCATION: android
         - opts:
-                is_expand: false
+              is_expand: false
           NDK_VERSION: 17b
         - opts:
               is_expand: false
@@ -304,10 +297,10 @@ app:
           PROJECT_LOCATION_IOS: ios
         - opts:
               is_expand: false
-          VERSION_NAME: 3.3.0
+          VERSION_NAME: 3.6.0
         - opts:
               is_expand: false
-          VERSION_NUMBER: 775
+          VERSION_NUMBER: 790
         - opts:
               is_expand: false
           ANDROID_APK_LINK: ''

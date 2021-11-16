@@ -47,6 +47,10 @@ const styles = StyleSheet.create({
 	textWrapper: {
 		textAlign: 'center',
 	},
+	textWrapperIcon: {
+		textAlign: 'center',
+		fontSize: 18,
+	},
 	mediaPlayer: {
 		minHeight: 10,
 	},
@@ -71,7 +75,7 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 	}, [collectible, small, big, setSourceUri, setIsUniV3NFT]);
 
 	const renderMedia = useCallback(() => {
-		if (renderAnimation && collectible.animation?.includes('.mp4')) {
+		if (renderAnimation && collectible.animation && collectible.animation.includes('.mp4')) {
 			return (
 				<MediaPlayer
 					onClose={onClose}
@@ -111,9 +115,9 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 					cover && styles.cover,
 				]}
 			>
-				<Text big={big} small={tiny || small} style={styles.textWrapper}>{`${collectible.name || ''} #${
-					collectible.tokenId
-				}`}</Text>
+				<Text big={big} small={tiny || small} style={tiny ? styles.textWrapperIcon : styles.textWrapper}>
+					{tiny ? collectible.name[0] || 'C' : `${collectible.name || ''} #${collectible.tokenId}`}
+				</Text>
 			</View>
 		);
 	}, [collectible, sourceUri, isUniV3NFT, onClose, renderAnimation, style, tiny, small, big, cover]);

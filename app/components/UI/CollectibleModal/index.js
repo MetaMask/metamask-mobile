@@ -46,14 +46,15 @@ const CollectibleModal = (props) => {
 	}, [contractName, collectible, newAssetTransaction, navigation]);
 
 	const isTradable = useCallback(() => {
+		// This might be deprecated
 		const lowerAddress = collectible.address.toLowerCase();
 		const tradable =
 			lowerAddress in collectiblesTransferInformation
 				? collectiblesTransferInformation[lowerAddress].tradable
 				: true;
 
-		return tradable;
-	}, [collectible.address]);
+		return tradable && collectible.standard === 'ERC721';
+	}, [collectible]);
 
 	const openLink = useCallback(
 		(url) => {
@@ -90,7 +91,6 @@ const CollectibleModal = (props) => {
 						onClose={() => modalRef.current.dismissModal()}
 						cover
 						renderAnimation
-						resizeMode={'contain'}
 						collectible={collectible}
 						style={styles.round}
 					/>

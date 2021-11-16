@@ -14,12 +14,12 @@ const initialState = {
 			CurrencyRateController: { currentCurrency: 'USD' },
 			NetworkController: {
 				provider: {
-					type: 'mainnet'
-				}
+					type: 'mainnet',
+				},
 			},
-			PreferencesController: { selectedAddress: '0x0' }
-		}
-	}
+			PreferencesController: { selectedAddress: '0x0' },
+		},
+	},
 };
 const store = mockStore(initialState);
 

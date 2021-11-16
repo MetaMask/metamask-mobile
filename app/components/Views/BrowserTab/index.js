@@ -28,7 +28,7 @@ import Engine from '../../../core/Engine';
 import PhishingModal from '../../UI/PhishingModal';
 import WebviewProgressBar from '../../UI/WebviewProgressBar';
 import { colors, baseStyles, fontStyles } from '../../../styles/common';
-import Networks, { getAllNetworks } from '../../../util/networks';
+import Networks, { blockTagParamIndex, getAllNetworks } from '../../../util/networks';
 import Logger from '../../../util/Logger';
 import onUrlSubmit, { getHost, getUrlObj } from '../../../util/browser';
 import { SPA_urlChangeListener, JS_DESELECT_TEXT, JS_WEBVIEW_URL } from '../../../util/browserScripts';
@@ -251,6 +251,7 @@ export const BrowserTab = (props) => {
 	const [blockedUrl, setBlockedUrl] = useState(undefined);
 	const [watchAsset, setWatchAsset] = useState(false);
 	const [suggestedAssetMeta, setSuggestedAssetMeta] = useState(undefined);
+	const currentNetwork = useRef(props.network);
 
 	const [customNetworkToAdd, setCustomNetworkToAdd] = useState(null);
 	const [showAddCustomNetworkDialog, setShowAddCustomNetworkDialog] = useState(false);
@@ -775,6 +776,13 @@ export const BrowserTab = (props) => {
 					}),
 			};
 
+			const blockRefIndex = blockTagParamIndex(req);
+			const blockRef = req.params?.[blockRefIndex];
+			// omitted blockRef implies "latest"
+			if (blockRef === undefined) {
+				req.params[blockRefIndex] = 'latest';
+			}
+
 			if (!rpcMethods[req.method]) {
 				return next();
 			}
@@ -1044,10 +1052,18 @@ export const BrowserTab = (props) => {
 	 * Reload current page
 	 */
 	const reload = useCallback(() => {
-		toggleOptionsIfNeeded();
 		const { current } = webviewRef;
 		current && current.reload();
-	}, [toggleOptionsIfNeeded]);
+	}, []);
+
+	/**
+	 * Reload page if network changes
+	 */
+	useEffect(() => {
+		if (props.network === 'loading' || currentNetwork.current === props.network) return;
+		currentNetwork.current = props.network;
+		reload();
+	}, [currentNetwork, props.network, reload]);
 
 	/**
 	 * Handle when the drawer (app menu) is opened
@@ -1077,16 +1093,12 @@ export const BrowserTab = (props) => {
 			setWatchAsset(true);
 		});
 
-		// Listen to network changes
-		Engine.context.TransactionController.hub.on('networkChange', reload);
-
 		// Specify how to clean up after this effect:
 		return function cleanup() {
 			backgroundBridges.current.forEach((bridge) => bridge.onDisconnect());
 
 			// Remove all Engine listeners
 			Engine.context.TokensController.hub.removeAllListeners();
-			Engine.context.TransactionController.hub.removeListener('networkChange', reload);
 		};
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1250,6 +1262,13 @@ export const BrowserTab = (props) => {
 		</Modal>
 	);
 
+	const trackEventSearchUsed = () => {
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_SEARCH_USED, {
+			option_chosen: 'Search on URL',
+			number_of_tabs: undefined,
+		});
+	};
+
 	/**
 	 * Stops normal loading when it's ens, instead call go to be properly set up
 	 */
@@ -1276,7 +1295,7 @@ export const BrowserTab = (props) => {
 		if (Device.isAndroid()) changeUrl(nativeEvent, 'start');
 
 		icon.current = null;
-		if (isHomepage()) {
+		if (isHomepage(nativeEvent.url)) {
 			injectHomePageScripts();
 		}
 		// Reset the previous bridges
@@ -1395,6 +1414,7 @@ export const BrowserTab = (props) => {
 	 */
 	const onUrlInputSubmit = async (input = null) => {
 		const inputValue = (typeof input === 'string' && input) || autocompleteValue;
+		trackEventSearchUsed();
 		if (!inputValue) {
 			toggleUrlModal();
 			return;
@@ -1492,7 +1512,8 @@ export const BrowserTab = (props) => {
 	 */
 	const trackNewTabEvent = () => {
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_NEW_TAB, {
-			option: 'Browser Options',
+			option_chosen: 'Browser Options',
+			number_of_tabs: undefined,
 		});
 	};
 
@@ -1517,7 +1538,9 @@ export const BrowserTab = (props) => {
 	 * Track change network event
 	 */
 	const trackSwitchNetworkEvent = ({ from }) => {
-		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_SWITCH_NETWORK, { from });
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_SWITCH_NETWORK, {
+			from_chain_id: from,
+		});
 	};
 
 	/**
@@ -1590,6 +1613,7 @@ export const BrowserTab = (props) => {
 	 * Handles reload button press
 	 */
 	const onReloadPress = () => {
+		toggleOptionsIfNeeded();
 		reload();
 		trackReloadEvent();
 	};

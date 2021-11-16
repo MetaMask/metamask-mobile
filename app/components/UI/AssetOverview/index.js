@@ -16,6 +16,7 @@ import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { isSwapsAllowed } from '../Swaps/utils';
 import { swapsLivenessSelector, swapsTokensObjectSelector } from '../../../reducers/swaps';
+import { getTokenList } from '../../../reducers/tokens';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import Analytics from '../../../core/Analytics';
@@ -152,6 +153,10 @@ class AssetOverview extends PureComponent {
 		 * Network ticker
 		 */
 		ticker: PropTypes.string,
+		/**
+		 * Object that contains tokens by token addresses as key
+		 */
+		tokenList: PropTypes.object,
 	};
 
 	onReceive = () => {
@@ -201,17 +206,15 @@ class AssetOverview extends PureComponent {
 
 	renderLogo = () => {
 		const {
-			asset: { address, image, logo, isETH },
+			tokenList,
+			asset: { address, isETH },
 		} = this.props;
 		if (isETH) {
 			return <NetworkMainAssetLogo biggest style={styles.ethLogo} />;
 		}
-		const watchedAsset = image !== undefined;
-		return logo || image ? (
-			<AssetIcon watchedAsset={watchedAsset} logo={image || logo} />
-		) : (
-			<Identicon address={address} />
-		);
+		const iconUrl = tokenList[address]?.iconUrl || tokenList[address?.toLowerCase()]?.iconUrl || '';
+
+		return iconUrl ? <AssetIcon logo={iconUrl} /> : <Identicon address={address} />;
 	};
 
 	componentDidMount = async () => {
@@ -338,6 +341,7 @@ const mapStateToProps = (state) => ({
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	swapsIsLive: swapsLivenessSelector(state),
 	swapsTokens: swapsTokensObjectSelector(state),
+	tokenList: getTokenList(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

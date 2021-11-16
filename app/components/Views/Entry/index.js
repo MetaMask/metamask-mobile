@@ -15,7 +15,6 @@ import { recreateVaultWithSamePassword } from '../../../core/Vault';
 import {
 	EXISTING_USER,
 	ONBOARDING_WIZARD,
-	METRICS_OPT_IN,
 	ENCRYPTION_LIB,
 	ORIGINAL,
 	CURRENT_APP_VERSION,
@@ -86,18 +85,8 @@ const Entry = (props) => {
 			useNativeDriver: true,
 			isInteraction: false,
 		}).start(() => {
-			if (viewToGo === 'OptinMetrics') {
-				props.navigation.navigate('OnboardingRootNav', {
-					screen: 'OnboardingNav',
-					params: { screen: 'OptinMetrics' },
-				});
-			} else if (viewToGo && (viewToGo !== 'WalletView' || viewToGo !== 'Onboarding')) {
-				props.navigation.navigate(viewToGo);
-			} else if (viewToGo === 'Onboarding') {
-				props.navigation.navigate('OnboardingRootNav');
-			} else {
-				props.navigation.navigate('HomeNav');
-			}
+			const screen = viewToGo || 'OnboardingRootNav';
+			props.navigation.navigate(screen);
 		});
 	}, [opacity, viewToGo, props.navigation]);
 
@@ -131,16 +120,10 @@ const Entry = (props) => {
 				}
 				// Get onboarding wizard state
 				const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
-				// Check if user passed through metrics opt-in screen
-				const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
-				if (!metricsOptIn) {
-					animateAndGoTo('OptinMetrics');
-				} else if (onboardingWizard) {
-					animateAndGoTo('HomeNav');
-				} else {
+				if (!onboardingWizard) {
 					props.setOnboardingWizardStep(1);
-					animateAndGoTo('WalletView');
 				}
+				animateAndGoTo('HomeNav');
 			} else if (props.passwordSet) {
 				animateAndGoTo('Login');
 			} else {

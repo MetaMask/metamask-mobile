@@ -13,8 +13,8 @@ const styles = StyleSheet.create({
 		margin: 0,
 		width: '100%',
 	},
-	copyAlert: {
-		width: 180,
+	copyAlert: (width) => ({
+		width: width || 180,
 		backgroundColor: colors.darkAlert,
 		padding: 20,
 		paddingTop: 30,
@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		borderRadius: 8,
-	},
+	}),
 	copyAlertIcon: {
 		marginBottom: 20,
 	},
@@ -84,7 +84,7 @@ class GlobalAlert extends PureComponent {
 	}
 
 	renderClipboardAlert = () => (
-		<ElevatedView style={styles.copyAlert} elevation={5}>
+		<ElevatedView style={styles.copyAlert(this.props.data && this.props.data.width)} elevation={5}>
 			<View style={styles.copyAlertIcon}>
 				<Icon name={'check-circle'} size={64} color={colors.white} />
 			</View>

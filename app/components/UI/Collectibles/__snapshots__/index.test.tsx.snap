@@ -37,21 +37,22 @@ exports[`Collectibles should render correctly 1`] = `
           }
         }
       >
-        Your NFTs will show up here. If you don’t see your NFT, try importing manually.
+        Don’t see your NFT?
       </Text>
     </View>
   </ScrollView>
   <ActionSheet
-    cancelButtonIndex={1}
-    destructiveButtonIndex={0}
+    cancelButtonIndex={2}
+    destructiveButtonIndex={1}
     onPress={[Function]}
     options={
       Array [
+        "Refresh Metadata",
         "Remove",
         "Cancel",
       ]
     }
-    title="Do you want to remove this collectible?"
+    title="Collectible Options"
   />
 </View>
 `;

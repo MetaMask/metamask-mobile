@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import GlobalAlert from '../../UI/GlobalAlert';
 import BackgroundTimer from 'react-native-background-timer';
 import Approval from '../../Views/Approval';
@@ -23,7 +23,7 @@ import I18n, { strings } from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
 import LockManager from '../../../core/LockManager';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import { hexToBN, fromWei, renderFromTokenMinimalUnit } from '../../../util/number';
+import { hexToBN, fromWei } from '../../../util/number';
 import { setEtherTransaction, setTransactionObject } from '../../../actions/transaction';
 import PersonalSign from '../../UI/PersonalSign';
 import TypedSign from '../../UI/TypedSign';
@@ -33,13 +33,15 @@ import Device from '../../../util/device';
 import {
 	getMethodData,
 	TOKEN_METHOD_TRANSFER,
-	decodeTransferData,
 	APPROVE_FUNCTION_SIGNATURE,
 	decodeApproveData,
+	getTokenValueParam,
+	getTokenAddressParam,
+	calcTokenAmount,
+	getTokenValueParamAsHex,
 } from '../../../util/transactions';
 import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
-import contractMap from '@metamask/contract-metadata';
 import MessageSign from '../../UI/MessageSign';
 import Approve from '../../Views/ApproveView/Approve';
 import TransactionTypes from '../../../core/TransactionTypes';
@@ -65,7 +67,12 @@ import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import BigNumber from 'bignumber.js';
 import { setInfuraAvailabilityBlocked, setInfuraAvailabilityNotBlocked } from '../../../actions/infuraAvailability';
+import { getTokenList } from '../../../reducers/tokens';
 import { toLowerCaseEquals } from '../../../util/general';
+import { ethers } from 'ethers';
+import abi from 'human-standard-token-abi';
+
+const hstInterface = new ethers.utils.Interface(abi);
 
 const styles = StyleSheet.create({
 	flex: {
@@ -93,7 +100,6 @@ const Main = (props) => {
 	const [showExpandedMessage, setShowExpandedMessage] = useState(false);
 	const [currentPageTitle, setCurrentPageTitle] = useState('');
 	const [currentPageUrl, setCurrentPageUrl] = useState('');
-
 	const [showRemindLaterModal, setShowRemindLaterModal] = useState(false);
 	const [skipCheckbox, setSkipCheckbox] = useState(false);
 
@@ -101,6 +107,8 @@ const Main = (props) => {
 	const locale = useRef(I18n.locale);
 	const lockManager = useRef();
 	const removeConnectionStatusListener = useRef();
+
+	const tokenList = useSelector(getTokenList);
 
 	const setTransactionObject = props.setTransactionObject;
 	const toggleApproveModal = props.toggleApproveModal;
@@ -315,6 +323,7 @@ const Main = (props) => {
 			// if approval data includes metaswap contract
 			// if destination address is metaswap contract
 			if (
+				transactionMeta.origin === process.env.MM_FOX_CODE &&
 				to &&
 				(swapsUtils.isValidContractAddress(props.chainId, to) ||
 					(data &&
@@ -322,9 +331,7 @@ const Main = (props) => {
 						decodeApproveData(data).spenderAddress?.toLowerCase() ===
 							swapsUtils.getSwapsContractAddress(props.chainId)))
 			) {
-				if (transactionMeta.origin === process.env.MM_FOX_CODE) {
-					autoSign(transactionMeta);
-				}
+				autoSign(transactionMeta);
 			} else {
 				const {
 					transaction: { value, gas, gasPrice, data },
@@ -342,10 +349,7 @@ const Main = (props) => {
 					let asset = props.tokens.find(({ address }) => toLowerCaseEquals(address, to));
 					if (!asset) {
 						// try to lookup contract by lowercased address `to`
-						const contractMapKey = Object.keys(contractMap).find((key) => toLowerCaseEquals(key, to));
-						if (contractMapKey) {
-							asset = contractMap[contractMapKey];
-						}
+						asset = tokenList[to];
 
 						if (!asset) {
 							try {
@@ -362,13 +366,14 @@ const Main = (props) => {
 						}
 					}
 
-					const decodedData = decodeTransferData('transfer', data);
-					transactionMeta.transaction.value = hexToBN(decodedData[2]);
-					transactionMeta.transaction.readableValue = renderFromTokenMinimalUnit(
-						hexToBN(decodedData[2]),
-						asset.decimals
-					);
-					transactionMeta.transaction.to = decodedData[0];
+					const tokenData = hstInterface.parseTransaction({ data });
+					const tokenValue = getTokenValueParam(tokenData);
+					const toAddress = getTokenAddressParam(tokenData);
+					const tokenAmount = tokenData && calcTokenAmount(tokenValue, asset.decimals).toFixed();
+
+					transactionMeta.transaction.value = hexToBN(getTokenValueParamAsHex(tokenData));
+					transactionMeta.transaction.readableValue = tokenAmount;
+					transactionMeta.transaction.to = toAddress;
 
 					setTransactionObject({
 						type: 'INDIVIDUAL_TOKEN_TRANSACTION',
@@ -403,6 +408,7 @@ const Main = (props) => {
 			toggleApproveModal,
 			toggleDappTransactionModal,
 			autoSign,
+			tokenList,
 		]
 	);
 

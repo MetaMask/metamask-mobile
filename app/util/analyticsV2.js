@@ -47,26 +47,71 @@ export const ANALYTICS_EVENTS_V2 = {
 	ONRAMP_PURCHASE_FAILED: generateOpt('On-ramp Purchase Failed'),
 	ONRAMP_PURCHASE_CANCELLED: generateOpt('On-ramp Purchase Cancelled'),
 	ONRAMP_PURCHASE_COMPLETED: generateOpt('On-ramp Purchase Completed'),
+	// Wallet Security
+	WALLET_SECURITY_STARTED: generateOpt('Wallet Security Started'),
+	WALLET_SECURITY_MANUAL_BACKUP_INITIATED: generateOpt('Manual Backup Initiated'),
+	WALLET_SECURITY_PHRASE_REVEALED: generateOpt('Phrase Revealed'),
+	WALLET_SECURITY_PHRASE_CONFIRMED: generateOpt('Phrase Confirmed'),
+	WALLET_SECURITY_SKIP_INITIATED: generateOpt('Wallet Security Skip Initiated'),
+	WALLET_SECURITY_SKIP_CONFIRMED: generateOpt('Wallet Security Skip Confirmed'),
+	WALLET_SECURITY_RECOVERY_HINT_SAVED: generateOpt('Recovery Hint Saved'),
+	WALLET_SECURITY_COMPLETED: generateOpt('Wallet Security Completed'),
+	WALLET_SECURITY_PROTECT_VIEWED: generateOpt('Wallet Security Reminder Viewed'),
+	WALLET_SECURITY_PROTECT_ENGAGED: generateOpt('Wallet Security Reminder Engaged'),
+	WALLET_SECURITY_PROTECT_DISMISSED: generateOpt('Wallet Security Reminder Dismissed'),
+	// Analytics
+	ANALYTICS_PREFERENCE_SELECTED: generateOpt('Analytics Preference Selected'),
+	// Onboarding
+	ONBOARDING_WELCOME_MESSAGE_VIEWED: generateOpt('Welcome Message Viewed'),
+	ONBOARDING_WELCOME_SCREEN_ENGAGEMENT: generateOpt('Welcome Screen Engagement'),
+	ONBOARDING_STARTED: generateOpt('Onboarding Started'),
+	// Wallet Setup
+	WALLET_SETUP_STARTED: generateOpt('Wallet Setup Started'),
+	WALLET_IMPORT_STARTED: generateOpt('Wallet Import Started'),
+	WALLET_IMPORT_ATTEMPTED: generateOpt('Wallet Import Attempted'),
+	WALLET_IMPORTED: generateOpt('Wallet Imported'),
+	WALLET_SYNC_STARTED: generateOpt('Wallet Sync Started'),
+	WALLET_SYNC_ATTEMPTED: generateOpt('Wallet Sync Attempted'),
+	WALLET_SYNC_SUCCESSFUL: generateOpt('Wallet Sync Successful'),
+	WALLET_CREATION_ATTEMPTED: generateOpt('Wallet Creation Attempted'),
+	WALLET_CREATED: generateOpt('Wallet Created'),
+	WALLET_SETUP_FAILURE: generateOpt('Wallet Setup Failure'),
+	WALLET_SETUP_COMPLETED: generateOpt('Wallet Setup Completed'),
+	// Onboarding Tour
+	ONBOARDING_TOUR_STARTED: generateOpt('Onboarding Tour Started'),
+	ONBOARDING_TOUR_SKIPPED: generateOpt('Onboarding Tour Skipped'),
+	ONBOARDING_TOUR_STEP_COMPLETED: generateOpt('Onboarding Tour Step Completed'),
+	ONBOARDING_TOUR_STEP_REVISITED: generateOpt('Onboarding Tour Step Completed'),
+	ONBOARDING_TOUR_COMPLETED: generateOpt('Onboarding Tour Completed'),
+	ONBOARDING_COMPLETED: generateOpt('Onboarding Completed'),
+	// ACCOUNT
+	SWITCHED_ACCOUNT: generateOpt('Switched Account'),
 	// BROWSER
-	BROWSER_OPENED: generateOpt('Browser opened'),
-	BROWSER_SEARCH_USED: generateOpt('Browser search used'),
-	BROWSER_NEW_TAB: generateOpt('Browser new tab opened'),
-	BROWSER_SWITCH_NETWORK: generateOpt('Browser switch network'),
-	BROWSER_SWITCH_ACCOUNT: generateOpt('Browser switch account'),
-	BROWSER_NAVIGATION: generateOpt('Browser navigation used'),
-	BROWSER_SHARE_SITE: generateOpt('Browser share site'),
-	BROWSER_RELOAD: generateOpt('Browser reload site'),
-	BROWSER_ADD_FAVORITES: generateOpt('Browser add site to favorites'),
+	BROWSER_OPENED: generateOpt('Browser Opened'),
+	BROWSER_SEARCH_USED: generateOpt('Search Used'),
+	BROWSER_NEW_TAB: generateOpt('New Tab Opened'),
+	BROWSER_SWITCH_NETWORK: generateOpt('Switch Network'),
+	BROWSER_OPEN_ACCOUNT_SWITCH: generateOpt('Opened Account Switcher'),
+	BROWSER_NAVIGATION: generateOpt('Browser Menu Navigation Used'),
+	BROWSER_SHARE_SITE: generateOpt('Shared A Site'),
+	BROWSER_RELOAD: generateOpt('Reload Browser'),
+	BROWSER_ADD_FAVORITES: generateOpt('Added Site To Favorites'),
+	// SETTINGS
+	SETTINGS_TOKEN_DETECTION_ON: generateOpt(`Token detection turned ON`),
+	SETTINGS_TOKEN_DETECTION_OFF: generateOpt(`Token detection turned OFF`),
+	// KEY MANAGMENT INVESTIGATION
+	ANDROID_HARDWARE_KEYSTORE: generateOpt('Android Hardware Keystore'),
 };
 
 /**
  * This takes params with the following structure:
  * { foo : 'this is not anonymous', bar: {value: 'this is anonymous', anonymous: true} }
- * @param {String} eventName
+ * @param {Object} eventName
  * @param {Object} params
  */
 export const trackEventV2 = (eventName, params) => {
 	InteractionManager.runAfterInteractions(() => {
+		let anonymousEvent = false;
 		try {
 			if (!params) {
 				Analytics.trackEvent(eventName);
@@ -80,6 +125,7 @@ export const trackEventV2 = (eventName, params) => {
 
 				if (property && typeof property === 'object') {
 					if (property.anonymous) {
+						anonymousEvent = true;
 						// Anonymous property - add only to anonymous params
 						anonymousParams[key] = property.value;
 					} else {
@@ -100,7 +146,7 @@ export const trackEventV2 = (eventName, params) => {
 			}
 
 			// Log all anonymous properties
-			if (Object.keys(anonymousParams).length) {
+			if (anonymousEvent && Object.keys(anonymousParams).length) {
 				Analytics.trackEventWithParameters(eventName, anonymousParams, true);
 			}
 		} catch (error) {

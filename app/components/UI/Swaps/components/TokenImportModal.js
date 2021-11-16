@@ -7,7 +7,7 @@ import { colors } from '../../../../styles/common';
 
 import ModalDragger from '../../../Base/ModalDragger';
 import Text from '../../../Base/Text';
-import Alert from '../../../Base/Alert';
+import Alert, { AlertType } from '../../../Base/Alert';
 import TokenIcon from './TokenIcon';
 import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
@@ -69,7 +69,7 @@ function TokenImportModal({ isVisible, dismiss, token, onPressImport }) {
 				<ModalDragger borderless />
 				<View style={styles.content}>
 					<Alert
-						type="error"
+						type={AlertType.Error}
 						renderIcon={() => (
 							<FAIcon name="info-circle" style={styles.alertIcon} color={colors.red} size={15} />
 						)}

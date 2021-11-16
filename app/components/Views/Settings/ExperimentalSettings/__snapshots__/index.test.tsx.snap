@@ -2,7 +2,7 @@
 
 exports[`ExperimentalSettings should render correctly 1`] = `
 <ExperimentalSettings
-  dispatch={[Function]}
-  selectedAddress="0x"
+  navigation={Object {}}
+  route={Object {}}
 />
 `;
