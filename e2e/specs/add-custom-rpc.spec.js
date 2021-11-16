@@ -36,7 +36,7 @@ describe('Custom RPC Tests', () => {
 		await OnboardingView.tapCreateWallet();
 
 		await MetaMetricsOptIn.isVisible();
-		await MetaMetricsOptIn.tapAgreeButton();
+		await MetaMetricsOptIn.tapNoThanksButton();
 
 		await CreatePasswordView.isVisible();
 		await CreatePasswordView.enterPassword(PASSWORD);
