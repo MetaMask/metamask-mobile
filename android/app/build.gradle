@@ -188,7 +188,6 @@ android {
 	}
 
 	signingConfigs {
-		def pass = ""
 		release {
 			storeFile file('../keystores/release.keystore')
 			storePassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PASSWORD")

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useMemo } from 'react';
 import { NavigationContainer, CommonActions } from '@react-navigation/native';
 import { createSwitchNavigator } from '@react-navigation/compat';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -28,6 +28,8 @@ import { BranchSubscriber } from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
+import { routingInstrumentation } from '../../../util/setupSentry';
+import Analytics from '../../../core/Analytics';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -151,7 +153,7 @@ const AppNavigator = createSwitchNavigator(
 
 const App = () => {
 	const unsubscribeFromBranch = useRef();
-	let navigator = useRef();
+	const navigator = useRef();
 
 	const handleDeeplink = useCallback(({ error, params, uri }) => {
 		if (error) {
@@ -171,16 +173,21 @@ const App = () => {
 		}
 	}, []);
 
-	const branchSubscriber = new BranchSubscriber({
-		onOpenStart: (opts) => handleDeeplink(opts),
-		onOpenComplete: (opts) => handleDeeplink(opts),
-	});
+	const branchSubscriber = useMemo(
+		() =>
+			new BranchSubscriber({
+				onOpenStart: (opts) => handleDeeplink(opts),
+				onOpenComplete: (opts) => handleDeeplink(opts),
+			}),
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[]
+	);
 
 	useEffect(() => {
 		SharedDeeplinkManager.init({
 			navigate: (routeName, opts) => {
 				const params = { name: routeName, params: opts };
-				navigator.dispatch(CommonActions.navigate(params));
+				navigator.current?.dispatch?.(CommonActions.navigate(params));
 			},
 		});
 
@@ -189,10 +196,19 @@ const App = () => {
 		return () => unsubscribeFromBranch.current?.();
 	}, [branchSubscriber]);
 
+	useEffect(() => {
+		const initAnalytics = async () => {
+			await Analytics.init();
+		};
+
+		initAnalytics();
+	}, []);
+
 	return (
 		<NavigationContainer
-			ref={(nav) => {
-				navigator = nav;
+			ref={navigator}
+			onReady={() => {
+				routingInstrumentation.registerNavigationContainer(navigator);
 			}}
 		>
 			<AppNavigator />
