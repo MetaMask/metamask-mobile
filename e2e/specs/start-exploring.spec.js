@@ -59,11 +59,11 @@ describe('Start Exploring', () => {
 		await CreatePasswordView.reEnterPassword(PASSWORD);
 		await CreatePasswordView.tapIUnderstandCheckBox();
 		await CreatePasswordView.tapCreatePasswordButton();
-		await ProtectYourWalletView.isVisible();
 	});
 
 	it('Should skip backup check', async () => {
 		// Check that we are on the Secure your wallet screen
+		await ProtectYourWalletView.isVisible();
 		await ProtectYourWalletView.tapOnRemindMeLaterButton();
 
 		await SkipAccountSecurityModal.tapIUnderstandCheckBox();

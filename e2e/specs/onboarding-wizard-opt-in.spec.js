@@ -34,6 +34,8 @@ describe('Onboarding wizard opt-in, metametrics opt out from settings', () => {
 		await MetaMetricsOptIn.tapAgreeButton();
 
 		await CreatePasswordView.isVisible();
+	});
+	it('should be able to create a new wallet', async () => {
 		await CreatePasswordView.enterPassword(PASSWORD);
 		await CreatePasswordView.reEnterPassword(PASSWORD);
 		await CreatePasswordView.tapIUnderstandCheckBox();
@@ -95,8 +97,6 @@ describe('Onboarding wizard opt-in, metametrics opt out from settings', () => {
 		TestHelpers.delay(1500);
 		await SecurityAndPrivacy.tapOKAlertButton();
 		await SecurityAndPrivacy.isMetaMetricsToggleOff();
-
-		TestHelpers.delay(1500);
 	});
 	it('should relaunch the app and log in', async () => {
 		// Relaunch app
@@ -108,7 +108,7 @@ describe('Onboarding wizard opt-in, metametrics opt out from settings', () => {
 		await WalletView.isVisible();
 	});
 
-	it('should dismiss the onboarding wizard', async () => {
+	it('should dismiss the onboarding wizard after logging in', async () => {
 		// dealing with flakiness on bitrise.
 		await TestHelpers.delay(1000);
 		try {
