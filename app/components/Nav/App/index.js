@@ -29,6 +29,7 @@ import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { routingInstrumentation } from '../../../util/setupSentry';
+import Analytics from '../../../core/Analytics';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -189,6 +190,14 @@ const App = () => {
 
 		return () => unsubscribeFromBranch.current?.();
 	}, [branchSubscriber]);
+
+	useEffect(() => {
+		const initAnalytics = async () => {
+			await Analytics.init();
+		};
+
+		initAnalytics();
+	}, []);
 
 	return (
 		<NavigationContainer

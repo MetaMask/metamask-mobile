@@ -502,7 +502,7 @@
 		"third_party_title": "受信トランザクションの取得",
 		"third_party_description": "サード パーティ API (Etherscan) を使用して、受信トランザクションを履歴に表示します。これらのサービスがデータを取得しないように設定する場合は、オフにします。",
 		"metametrics_opt_out": "MetaMetrics のオプトアウト",
-		"metrametrics_restart_required": "変更を有効にするには、アプリを再起動する必要があります。",
+		"metametrics_restart_required": "変更を有効にするには、アプリを再起動する必要があります。",
 		"create_password": "パスワードの作成",
 		"invalid_password": "無効なパスワード",
 		"invalid_password_message": "パスワードが正しくありませんでした。もう一度実行してください。",

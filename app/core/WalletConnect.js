@@ -209,7 +209,7 @@ class WalletConnect {
 							error,
 						});
 					}
-				} else if (payload.method && payload.method === 'eth_signTypedData') {
+				} else if (payload.method === 'eth_signTypedData' || payload.method === 'eth_signTypedData_v3') {
 					const { TypedMessageManager } = Engine.context;
 					try {
 						const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
@@ -224,6 +224,33 @@ class WalletConnect {
 								origin: WALLET_CONNECT_ORIGIN,
 							},
 							'V3'
+						);
+
+						this.walletConnector.approveRequest({
+							id: payload.id,
+							result: rawSig,
+						});
+					} catch (error) {
+						this.walletConnector.rejectRequest({
+							id: payload.id,
+							error,
+						});
+					}
+				} else if (payload.method === 'eth_signTypedData_v4') {
+					const { TypedMessageManager } = Engine.context;
+					try {
+						const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
+							{
+								data: payload.params[1],
+								from: payload.params[0],
+								meta: {
+									title: meta && meta.name,
+									url: meta && meta.url,
+									icon: meta && meta.icons && meta.icons[0],
+								},
+								origin: WALLET_CONNECT_ORIGIN,
+							},
+							'V4'
 						);
 
 						this.walletConnector.approveRequest({
