@@ -179,7 +179,8 @@
 		"i_understand": "I understand that MetaMask cannot recover this password for me.",
 		"learn_more": "Learn more.",
 		"secure": "Secure wallet",
-		"confirm": "Confirm Secret Recovery Phrase"
+		"confirm": "Confirm Secret Recovery Phrase",
+		"disable_biometric_error": "You have disabled biometrics for the app. Update Remember Me settings and try again."
 	},
 	"reset_password": {
 		"title": "Change password",
