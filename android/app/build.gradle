@@ -189,7 +189,6 @@ android {
 	}
 
 	signingConfigs {
-		def pass = ""
 		release {
 			storeFile file('../keystores/release.keystore')
 			storePassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PASSWORD")
@@ -264,6 +263,10 @@ dependencies {
 	androidTestImplementation('com.wix:detox:+') { transitive = true }
 	androidTestImplementation 'junit:junit:4.12'
 	implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
+	implementation "com.squareup.okhttp3:okhttp:4.9.1"
+	implementation "com.squareup.okhttp3:logging-interceptor:4.9.1"
+	implementation "com.squareup.okhttp3:okhttp-urlconnection:4.9.1"
+
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
       exclude group:'com.facebook.fbjni'
     }
