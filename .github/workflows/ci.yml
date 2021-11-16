@@ -33,7 +33,7 @@ jobs:
         with:
           path: ${{ steps.yarn-cache-dir.outputs.YARN_CACHE_DIR }}
           key: yarn-cache-${{ runner.os }}-${{ steps.yarn-version.outputs.YARN_VERSION }}-${{ hashFiles('yarn.lock') }}
-      - run: yarn --frozen-lockfile
+      - run: yarn setup
       - run: yarn lint
       - run: yarn audit:ci
       - run: yarn test:tgz-check
