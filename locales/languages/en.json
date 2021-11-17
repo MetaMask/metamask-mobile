@@ -387,7 +387,8 @@
 		"collectible_link": "Link",
 		"collectible_asset_contract": "Asset contract",
 		"share_check_out_nft": "Check out my NFT!",
-		"share_via": "Shared via"
+		"share_via": "Shared via",
+		"untitled_collection": "Untitled Collection"
 	},
 	"transfer": {
 		"title": "Transfer",
