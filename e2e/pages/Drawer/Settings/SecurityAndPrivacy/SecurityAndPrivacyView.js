@@ -25,7 +25,7 @@ export default class SecurityAndPrivacy {
 		await TestHelpers.tapAlertWithButton('OK');
 	}
 
-	static async tapMetaMetricsToggleOn() {
+	static async tapMetaMetricsToggle() {
 		await TestHelpers.tap(METAMETRICS_SWITCH_ID);
 	}
 
