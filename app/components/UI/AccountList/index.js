@@ -166,7 +166,7 @@ class AccountList extends PureComponent {
 
 	onAccountChange = async (newIndex) => {
 		const previousIndex = this.state.selectedAccountIndex;
-		const { PreferencesController } = Engine.context;
+		const { PreferencesController, CollectiblesController } = Engine.context;
 		const { keyrings, accounts } = this.props;
 
 		requestAnimationFrame(async () => {
@@ -185,6 +185,7 @@ class AccountList extends PureComponent {
 					return;
 				}
 
+				CollectiblesController.update(CollectiblesController.defaultState);
 				PreferencesController.setSelectedAddress(accountsOrdered[newIndex]);
 
 				this.props.onAccountChange();
