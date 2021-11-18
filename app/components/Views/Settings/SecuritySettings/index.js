@@ -243,7 +243,7 @@ class Settings extends PureComponent {
 		biometryType: false,
 		browserHistoryModalVisible: false,
 		cookiesModalVisible: false,
-		metricsOptIn: false,
+		analyticsEnabled: false,
 		passcodeChoice: false,
 		showHint: false,
 		hintText: '',
@@ -294,8 +294,7 @@ class Settings extends PureComponent {
 
 	componentDidMount = async () => {
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
-		const metricsOptIn = Analytics.getEnabled();
-
+		const analyticsEnabled = Analytics.getEnabled();
 		const currentSeedphraseHints = await AsyncStorage.getItem(SEED_PHRASE_HINTS);
 		const parsedHints = currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
 		const manualBackup = parsedHints?.manualBackup;
@@ -312,13 +311,13 @@ class Settings extends PureComponent {
 			this.setState({
 				biometryType: biometryType && Device.isAndroid() ? 'biometrics' : biometryType,
 				biometryChoice: !!biometryChoice,
-				metricsOptIn,
+				analyticsEnabled,
 				passcodeChoice: passcodeEnabled,
 				hintText: manualBackup,
 			});
 		} else {
 			this.setState({
-				metricsOptIn,
+				analyticsEnabled,
 				hintText: manualBackup,
 			});
 		}
@@ -460,15 +459,15 @@ class Settings extends PureComponent {
 	toggleMetricsOptIn = async (value) => {
 		if (value) {
 			Analytics.enable();
-			this.setState({ metricsOptIn: true });
+			this.setState({ analyticsEnabled: true });
 			await this.trackOptInEvent('Metrics Opt In');
 		} else {
 			await this.trackOptInEvent('Metrics Opt Out');
 			Analytics.disable();
-			this.setState({ metricsOptIn: false });
+			this.setState({ analyticsEnabled: false });
 			Alert.alert(
 				strings('app_settings.metametrics_opt_out'),
-				strings('app_settings.metrametrics_restart_required')
+				strings('app_settings.metametrics_restart_required')
 			);
 		}
 	};
@@ -540,7 +539,7 @@ class Settings extends PureComponent {
 			biometryType,
 			browserHistoryModalVisible,
 			cookiesModalVisible,
-			metricsOptIn,
+			analyticsEnabled,
 			loading,
 			hintText,
 		} = this.state;
@@ -734,7 +733,7 @@ class Settings extends PureComponent {
 						<Text style={styles.desc}>{strings('app_settings.metametrics_description')}</Text>
 						<View style={styles.switchElement}>
 							<Switch
-								value={metricsOptIn}
+								value={analyticsEnabled}
 								onValueChange={this.toggleMetricsOptIn}
 								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
 								ios_backgroundColor={colors.grey000}
