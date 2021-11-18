@@ -390,36 +390,32 @@ const DrawerView = ({ navigation }: Props) => {
 		[frequentRpcList, network]
 	);
 
-	const getIcon = (name: string, size?: number) => {
-		return <Icon name={name} size={size || 24} color={colors.grey400} />;
-	};
+	const getIcon = ({
+		type,
+		name,
+		size,
+		isSelected,
+	}: {
+		type: 'Icon' | 'Feather' | 'Image' | 'Material';
+		name: string;
+		size?: number;
+		isSelected?: boolean;
+	}) => {
+		const iconColor = isSelected ? colors.blue : colors.grey400;
+		const iconSize = size || 24;
 
-	const getFeatherIcon = (name: string, size?: number) => {
-		return <FeatherIcon name={name} size={size || 24} color={colors.grey400} />;
-	};
-
-	const getMaterialIcon = (name: string, size?: number) => {
-		return <MaterialIcon name={name} size={size || 24} color={colors.grey400} />;
-	};
-
-	const getImageIcon = (name: string) => {
-		return <Image source={(ICON_IMAGES as any)[name]} style={styles.menuItemIconImage} />;
-	};
-
-	const getSelectedIcon = (name: string, size?: number) => {
-		return <Icon name={name} size={size || 24} color={colors.blue} />;
-	};
-
-	const getSelectedFeatherIcon = (name: string, size?: number) => {
-		return <FeatherIcon name={name} size={size || 24} color={colors.blue} />;
-	};
-
-	const getSelectedMaterialIcon = (name: string, size?: number) => {
-		return <MaterialIcon name={name} size={size || 24} color={colors.blue} />;
-	};
-
-	const getSelectedImageIcon = (name: string) => {
-		return <Image source={(ICON_IMAGES as any)[`selected-${name}`]} style={styles.menuItemIconImage} />;
+		switch (type) {
+			case 'Image': {
+				const iconName = isSelected ? `selected-${name}` : name;
+				return <Image source={(ICON_IMAGES as any)[iconName]} style={styles.menuItemIconImage} />;
+			}
+			case 'Icon':
+				return <Icon name={name} size={iconSize} color={iconColor} />;
+			case 'Feather':
+				return <FeatherIcon name={name} size={iconSize} color={iconColor} />;
+			case 'Material':
+				return <MaterialIcon name={name} size={iconSize} color={iconColor} />;
+		}
 	};
 
 	const onShare = useCallback(() => {
@@ -446,22 +442,22 @@ const DrawerView = ({ navigation }: Props) => {
 			[
 				{
 					name: strings('drawer.browser'),
-					icon: getIcon('globe'),
-					selectedIcon: getSelectedIcon('globe'),
+					icon: getIcon({ type: 'Icon', name: 'globe' }),
+					selectedIcon: getIcon({ type: 'Icon', name: 'globe', isSelected: true }),
 					action: goToBrowser,
 					routeNames: ['BrowserView', 'AddBookmark'],
 				},
 				{
 					name: strings('drawer.wallet'),
-					icon: getImageIcon('wallet'),
-					selectedIcon: getSelectedImageIcon('wallet'),
+					icon: getIcon({ type: 'Image', name: 'wallet' }),
+					selectedIcon: getIcon({ type: 'Image', name: 'wallet', isSelected: true }),
 					action: showWallet,
 					routeNames: ['WalletView', 'Asset', 'AddAsset', 'Collectible'],
 				},
 				{
 					name: strings('drawer.transaction_history'),
-					icon: getFeatherIcon('list'),
-					selectedIcon: getSelectedFeatherIcon('list'),
+					icon: getIcon({ type: 'Feather', name: 'list' }),
+					selectedIcon: getIcon({ type: 'Feather', name: 'list', isSelected: true }),
 					action: goToTransactionHistory,
 					routeNames: ['TransactionsView'],
 				},
@@ -469,37 +465,37 @@ const DrawerView = ({ navigation }: Props) => {
 			[
 				{
 					name: strings('drawer.share_address'),
-					icon: getMaterialIcon('share-variant'),
+					icon: getIcon({ type: 'Material', name: 'share-variant' }),
 					action: onShare,
 				},
 				{
 					name:
 						(blockExplorer && `${strings('drawer.view_in')} ${blockExplorerName}`) ||
 						strings('drawer.view_in_etherscan'),
-					icon: getIcon('eye'),
+					icon: getIcon({ type: 'Icon', name: 'eye' }),
 					action: viewInEtherscan,
 				},
 			],
 			[
 				{
 					name: strings('drawer.settings'),
-					icon: getFeatherIcon('settings'),
+					icon: getIcon({ type: 'Feather', name: 'settings' }),
 					warning: strings('drawer.settings_warning_short'),
 					action: showSettings,
 				},
 				{
 					name: strings('drawer.help'),
-					icon: getFeatherIcon('help-circle'),
+					icon: getIcon({ type: 'Feather', name: 'help-circle' }),
 					action: showHelp,
 				},
 				{
 					name: strings('drawer.request_feature'),
-					icon: getFeatherIcon('message-square'),
+					icon: getIcon({ type: 'Feather', name: 'message-square' }),
 					action: submitFeedback,
 				},
 				{
 					name: strings('drawer.logout'),
-					icon: getFeatherIcon('log-out'),
+					icon: getIcon({ type: 'Feather', name: 'log-out' }),
 					action: logout,
 				},
 			],
@@ -508,7 +504,6 @@ const DrawerView = ({ navigation }: Props) => {
 		network,
 		frequentRpcList,
 		getIcon,
-		getSelectedIcon,
 		goToBrowser,
 		viewInEtherscan,
 		showSettings,
@@ -516,13 +511,7 @@ const DrawerView = ({ navigation }: Props) => {
 		submitFeedback,
 		logout,
 		goToTransactionHistory,
-		getImageIcon,
-		getSelectedImageIcon,
 		showWallet,
-		getFeatherIcon,
-		getSelectedFeatherIcon,
-		getMaterialIcon,
-		getSelectedMaterialIcon,
 		onShare,
 	]);
 
