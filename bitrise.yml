@@ -153,7 +153,7 @@ workflows:
                   title: All Tests Passed
                   is_always_run: false
     # Parallel Build & Deploy Steps
-    start_release_builds:
+    start_bitrise_release_builds:
         before_run:
             - code_setup_cache
         steps:
@@ -162,6 +162,23 @@ workflows:
                       - workflows: |-
                             android_test_release_step
                             ios_test_release_step
+                      - wait_for_builds: 'true'
+                      - abort_on_fail: 'yes'
+                      - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
+            - build-router-wait@0:
+                  inputs:
+                      - abort_on_fail: 'yes'
+                      - build_artifacts_save_path: $BITRISE_DEPLOY_DIR
+                      - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
+    start_store_release_builds:
+        before_run:
+            - code_setup_cache
+        steps:
+            - build-router-start@0:
+                  inputs:
+                      - workflows: |-
+                            android_store_release_step
+                            ios_store_release_step
                       - wait_for_builds: 'true'
                       - abort_on_fail: 'yes'
                       - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
