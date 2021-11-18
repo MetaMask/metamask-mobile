@@ -181,14 +181,14 @@ class Engine {
 					addTokens: tokensController.addTokens.bind(tokensController),
 					getTokensState: () => tokensController.state,
 					getTokenListState: () => tokenListController.state,
+					getBalancesInSingleCall:
+						assetsContractController.getBalancesInSingleCall.bind(assetsContractController),
 				}),
 				new CollectibleDetectionController({
 					onCollectiblesStateChange: (listener) => collectiblesController.subscribe(listener),
 					onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
 					onNetworkStateChange: (listener) => networkController.subscribe(listener),
 					getOpenSeaApiKey: () => collectiblesController.openSeaApiKey,
-					getBalancesInSingleCall:
-						assetsContractController.getBalancesInSingleCall.bind(assetsContractController),
 					addCollectible: collectiblesController.addCollectible.bind(collectiblesController),
 					getCollectiblesState: () => collectiblesController.state,
 				}),
@@ -594,6 +594,8 @@ export default {
 			SwapsController,
 			GasFeeController,
 			TokensController,
+			TokenDetectionController,
+			CollectibleDetectionController,
 		} = instance.datamodel.state;
 
 		// normalize `null` currencyRate to `0`
@@ -622,6 +624,8 @@ export default {
 			TypedMessageManager,
 			SwapsController,
 			GasFeeController,
+			TokenDetectionController,
+			CollectibleDetectionController,
 		};
 	},
 	get datamodel() {
