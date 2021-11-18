@@ -1,8 +1,7 @@
 /* eslint-disable */
 import React, { useRef, useState, useCallback, useEffect } from 'react';
-import { Alert, TouchableOpacity, View, Image, StyleSheet, Text, ScrollView, InteractionManager } from 'react-native';
+import { Alert, TouchableOpacity, View, Image, Text, ScrollView, InteractionManager } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/core';
 import Share from 'react-native-share';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import FeatherIcon from 'react-native-vector-icons/Feather';
@@ -23,9 +22,8 @@ import {
 	toggleAccountsModal as importedToggleAccountsModal,
 	toggleReceiveModal as importedToggleReceiveModal,
 } from '../../../actions/modals';
-import { showAlert as importedShowAlert } from '../../../actions/alert';
 import { getEtherscanAddressUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
-import Engine from '../../../core/Engine';
+import importedEngine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 // import PropTypes from 'prop-types';
 // import Device from '../../../util/device';
@@ -47,7 +45,6 @@ import { RPC } from '../../../constants/network';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import AnalyticsV2, { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
 import { isDefaultAccountName, doENSReverseLookup } from '../../../util/ENSUtils';
-import ClipboardManager from '../../../core/ClipboardManager';
 import RenderCounter from '../../../core/RenderCounter';
 import { Props } from './types';
 import styles from './styles';
@@ -63,9 +60,9 @@ const ICON_IMAGES = {
  * View component that displays the MetaMask fox
  * in the middle of the screen
  */
-const DrawerView = (props: Props) => {
-	const navigation = useNavigation();
+const DrawerView = ({ navigation }: Props) => {
 	const dispatch = useDispatch();
+	const Engine = importedEngine as any;
 
 	const [showProtectWalletModal, setShowProtectWalletModal] = useState<any>(undefined);
 	const [invalidCustomNetwork, setInvalidCustomNetwork] = useState<any>(undefined);
@@ -108,7 +105,6 @@ const DrawerView = (props: Props) => {
 	const toggleNetworkModal = () => dispatch(importedToggleNetworkModal());
 	const toggleAccountsModal = () => dispatch(importedToggleAccountsModal());
 	const toggleReceiveModal = () => dispatch(importedToggleReceiveModal());
-	const showAlert = (config: any) => dispatch(importedShowAlert(config));
 	const newAssetTransaction = (selectedAsset: any) => dispatch(importedNewAssetTransaction(selectedAsset));
 
 	const isCurrentAccountImported = () => {
@@ -530,19 +526,6 @@ const DrawerView = (props: Props) => {
 		onShare,
 	]);
 
-	const copyAccountToClipboard = useCallback(async () => {
-		await ClipboardManager.setString(selectedAddress);
-		toggleReceiveModal();
-		InteractionManager.runAfterInteractions(() => {
-			showAlert({
-				isVisible: true,
-				autodismiss: 1500,
-				content: 'clipboard-alert',
-				data: { msg: strings('account_details.account_copied_to_clipboard') },
-			});
-		});
-	}, [selectedAddress, toggleReceiveModal, showAlert]);
-
 	const closeInvalidCustomNetworkAlert = () => {
 		setInvalidCustomNetwork(null);
 	};
@@ -616,6 +599,7 @@ const DrawerView = (props: Props) => {
 	currentBalanceRef.current = fiatBalance;
 	const fiatBalanceStr = renderFiat(currentBalanceRef.current, currentCurrency);
 	const currentRoute = findRouteNameFromNavigatorState(navigation.dangerouslyGetState().routes);
+
 	return (
 		<View style={styles.wrapper} testID={'drawer-screen'}>
 			<ScrollView>

@@ -1,5 +1,9 @@
 export interface Props {
 	/**
+	 * Navigation object
+	 */
+	navigation: any;
+	/**
 	 * Object representing the selected the selected network
 	 */
 	network: any;
