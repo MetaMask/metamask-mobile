@@ -179,7 +179,8 @@
 		"i_understand": "I understand that MetaMask cannot recover this password for me.",
 		"learn_more": "Learn more.",
 		"secure": "Secure wallet",
-		"confirm": "Confirm Secret Recovery Phrase"
+		"confirm": "Confirm Secret Recovery Phrase",
+		"disable_biometric_error": "You have disabled biometrics for the app. Update Remember Me settings and try again."
 	},
 	"reset_password": {
 		"title": "Change password",
@@ -518,7 +519,7 @@
 		"third_party_title": "Get incoming transactions",
 		"third_party_description": "Third party APIs (Etherscan) are used to show your incoming transactions in the history. Turn off if you don’t want us to pull data from those services.",
 		"metametrics_opt_out": "MetaMetrics Opt-out",
-		"metrametrics_restart_required": "You need to restart the app for the changes to take effect.",
+		"metametrics_restart_required": "You need to restart the app for the changes to take effect.",
 		"create_password": "Create Password",
 		"invalid_password": "Invalid password",
 		"invalid_password_message": "The password was not correct. Please try again.",
