@@ -27,7 +27,6 @@ REACT_NATIVE_VERSION="0.66.0"
 rm -rf node_modules/react-native/packages
 mkdir -p node_modules/react-native/packages && cd node_modules/react-native/packages
 curl --proto '=https' --tlsv1.2 -LJO https://github.com/facebook/react-native/archive/refs/tags/v${REACT_NATIVE_VERSION}.tar.gz
-tar -zxvf react-native-${REACT_NATIVE_VERSION}.tar.gz react-native-${REACT_NATIVE_VERSION}/packages/react-native-codegen/
-mv react-native-${REACT_NATIVE_VERSION}/packages/react-native-codegen/ .
+tar -zxvf react-native-${REACT_NATIVE_VERSION}.tar.gz react-native-${REACT_NATIVE_VERSION}/packages/react-native-codegen/ --strip-components=2
 # cleanup
-rm -rf react-native-${REACT_NATIVE_VERSION}/ react-native-${REACT_NATIVE_VERSION}.tar.gz
+rm react-native-${REACT_NATIVE_VERSION}.tar.gz
