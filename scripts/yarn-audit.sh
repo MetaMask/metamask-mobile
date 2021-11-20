@@ -6,7 +6,7 @@ set -o pipefail
 # yarn audit --level moderate --groups dependencies
 # use `improved-yarn-audit` since that allows for exclude
 # exclude `ws` until we can come up with a better solution
-yarn run improved-yarn-audit --ignore-dev-deps --min-severity moderate --exclude 1748,1769,1002531
+yarn run improved-yarn-audit --ignore-dev-deps --min-severity moderate --exclude 1005099
 audit_status="$?"
 
 # Use a bitmask to ignore INFO and LOW severity audit results
