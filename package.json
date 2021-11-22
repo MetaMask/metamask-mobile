@@ -68,6 +68,8 @@
     ]
   },
   "resolutions": {
+    "@sentry/react-native/**/xmldom": "^0.6.0",
+    "@walletconnect/**/ws": "^7.4.6",
     "react-native-svg/**/nth-check": "^2.0.1",
     "**/set-value": "^4.0.1",
     "**/pac-resolver": "^5.0.0",
@@ -142,7 +144,7 @@
     "https-browserify": "0.0.1",
     "human-standard-token-abi": "^2.0.0",
     "humanize-duration": "^3.27.0",
-    "improved-yarn-audit": "^2.3.3",
+    "improved-yarn-audit": "^3.0.0",
     "is-url": "^1.2.4",
     "json-rpc-engine": "^6.1.0",
     "json-rpc-middleware-stream": "3.0.0",
