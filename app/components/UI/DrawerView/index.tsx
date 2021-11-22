@@ -1,7 +1,7 @@
-/* eslint-disable */
-import React, { useRef, useState, useCallback, useEffect } from 'react';
-import { Alert, TouchableOpacity, View, Image, Text, ScrollView, InteractionManager } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { PureComponent } from 'react';
+import { Alert, TouchableOpacity, View, Image, StyleSheet, Text, ScrollView, InteractionManager } from 'react-native';
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 import Share from 'react-native-share';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import FeatherIcon from 'react-native-vector-icons/Feather';
@@ -11,38 +11,251 @@ import { hasBlockExplorer, findBlockExplorerForRpc, getBlockExplorerName } from 
 import Identicon from '../Identicon';
 import StyledButton from '../StyledButton';
 import AccountList from '../AccountList';
+import NetworkList from '../NetworkList';
 import { renderFromWei, renderFiat } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
+import { DrawerActions } from '@react-navigation/native';
 import Modal from 'react-native-modal';
 import SecureKeychain from '../../../core/SecureKeychain';
-import {
-	toggleAccountsModal as importedToggleAccountsModal,
-	toggleReceiveModal as importedToggleReceiveModal,
-} from '../../../actions/modals';
+import { toggleNetworkModal, toggleAccountsModal, toggleReceiveModal } from '../../../actions/modals';
+import { showAlert } from '../../../actions/alert';
 import { getEtherscanAddressUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
-import importedEngine from '../../../core/Engine';
+import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
-// import PropTypes from 'prop-types';
-// import Device from '../../../util/device';
-import DeeplinkManager from '../../../core/DeeplinkManager';
-import AppConstants from '../../../core/AppConstants';
+import Device from '../../../util/device';
 import OnboardingWizard from '../OnboardingWizard';
 import ReceiveRequest from '../ReceiveRequest';
 import Analytics from '../../../core/Analytics';
+import AppConstants from '../../../core/AppConstants';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import URL from 'url-parse';
 import EthereumAddress from '../EthereumAddress';
 import { getEther } from '../../../util/transactions';
-import { newAssetTransaction as importedNewAssetTransaction } from '../../../actions/transaction';
+import { newAssetTransaction } from '../../../actions/transaction';
 import { protectWalletModalVisible } from '../../../actions/user';
+import DeeplinkManager from '../../../core/DeeplinkManager';
 import SettingsNotification from '../SettingsNotification';
 import WhatsNewModal from '../WhatsNewModal';
+import InvalidCustomNetworkAlert from '../InvalidCustomNetworkAlert';
 import { RPC } from '../../../constants/network';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import AnalyticsV2, { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
 import { isDefaultAccountName, doENSReverseLookup } from '../../../util/ENSUtils';
-import { Props } from './types';
-import styles from './styles';
+import ClipboardManager from '../../../core/ClipboardManager';
+
+const styles = StyleSheet.create({
+	wrapper: {
+		flex: 1,
+		backgroundColor: colors.white,
+	},
+	header: {
+		paddingTop: Device.isIphoneX() ? 60 : 24,
+		backgroundColor: colors.grey000,
+		height: Device.isIphoneX() ? 110 : 74,
+		flexDirection: 'column',
+		paddingBottom: 0,
+	},
+	metamaskLogo: {
+		flexDirection: 'row',
+		flex: 1,
+		marginTop: Device.isAndroid() ? 0 : 12,
+		marginLeft: 15,
+		paddingTop: Device.isAndroid() ? 10 : 0,
+	},
+	metamaskFox: {
+		height: 27,
+		width: 27,
+		marginRight: 15,
+	},
+	metamaskName: {
+		marginTop: 4,
+		width: 90,
+		height: 18,
+	},
+	account: {
+		flex: 1,
+		backgroundColor: colors.grey000,
+	},
+	accountBgOverlay: {
+		borderBottomColor: colors.grey100,
+		borderBottomWidth: 1,
+		padding: 17,
+	},
+	identiconWrapper: {
+		marginBottom: 12,
+		width: 56,
+		height: 56,
+	},
+	identiconBorder: {
+		borderRadius: 96,
+		borderWidth: 2,
+		padding: 2,
+		borderColor: colors.blue,
+	},
+	accountNameWrapper: {
+		flexDirection: 'row',
+		paddingRight: 17,
+	},
+	accountName: {
+		fontSize: 20,
+		lineHeight: 24,
+		marginBottom: 5,
+		color: colors.fontPrimary,
+		...fontStyles.normal,
+	},
+	caretDown: {
+		textAlign: 'right',
+		marginLeft: 7,
+		marginTop: 3,
+		fontSize: 18,
+		color: colors.fontPrimary,
+	},
+	accountBalance: {
+		fontSize: 14,
+		lineHeight: 17,
+		marginBottom: 5,
+		color: colors.fontPrimary,
+		...fontStyles.normal,
+	},
+	accountAddress: {
+		fontSize: 12,
+		lineHeight: 17,
+		color: colors.fontSecondary,
+		...fontStyles.normal,
+	},
+	buttons: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center',
+		borderBottomColor: colors.grey100,
+		borderBottomWidth: 1,
+		padding: 15,
+	},
+	button: {
+		flex: 1,
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center',
+		borderRadius: 30,
+		borderWidth: 1.5,
+	},
+	leftButton: {
+		marginRight: 5,
+	},
+	rightButton: {
+		marginLeft: 5,
+	},
+	buttonText: {
+		paddingLeft: 8,
+		fontSize: 15,
+		color: colors.blue,
+		...fontStyles.normal,
+	},
+	buttonContent: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
+	buttonIcon: {
+		marginTop: 0,
+	},
+	buttonReceive: {
+		transform: [{ rotate: '90deg' }],
+	},
+	menu: {},
+	noTopBorder: {
+		borderTopWidth: 0,
+	},
+	menuSection: {
+		borderTopWidth: 1,
+		borderColor: colors.grey100,
+		paddingVertical: 10,
+	},
+	menuItem: {
+		flex: 1,
+		flexDirection: 'row',
+		paddingVertical: 9,
+		paddingLeft: 17,
+	},
+	selectedRoute: {
+		backgroundColor: colors.blue000,
+		marginRight: 10,
+		borderTopRightRadius: 20,
+		borderBottomRightRadius: 20,
+	},
+	selectedName: {
+		color: colors.blue,
+	},
+	menuItemName: {
+		flex: 1,
+		paddingHorizontal: 15,
+		paddingTop: 2,
+		fontSize: 16,
+		color: colors.grey400,
+		...fontStyles.normal,
+	},
+	menuItemWarningText: {
+		color: colors.red,
+		fontSize: 12,
+		...fontStyles.normal,
+	},
+	noIcon: {
+		paddingLeft: 0,
+	},
+	menuItemIconImage: {
+		width: 22,
+		height: 22,
+	},
+	bottomModal: {
+		justifyContent: 'flex-end',
+		margin: 0,
+	},
+	importedWrapper: {
+		marginTop: 10,
+		width: 73,
+		paddingHorizontal: 10,
+		paddingVertical: 3,
+		borderRadius: 10,
+		borderWidth: 1,
+		borderColor: colors.grey400,
+	},
+	importedText: {
+		color: colors.grey400,
+		fontSize: 10,
+		...fontStyles.bold,
+	},
+	protectWalletContainer: {
+		backgroundColor: colors.white,
+		paddingTop: 24,
+		borderTopLeftRadius: 20,
+		borderTopRightRadius: 20,
+		paddingVertical: 16,
+		paddingBottom: Device.isIphoneX() ? 20 : 0,
+		paddingHorizontal: 40,
+	},
+	protectWalletIconContainer: {
+		alignSelf: 'center',
+		width: 56,
+		height: 56,
+		borderRadius: 28,
+		backgroundColor: colors.red000,
+		borderColor: colors.red,
+		borderWidth: 1,
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
+	protectWalletIcon: { alignSelf: 'center', color: colors.red },
+	protectWalletTitle: { textAlign: 'center', fontSize: 18, marginVertical: 8, ...fontStyles.bold },
+	protectWalletContent: {
+		textAlign: 'center',
+		fontSize: 14,
+		marginVertical: 8,
+		justifyContent: 'center',
+		...fontStyles.normal,
+	},
+	protectWalletButtonWrapper: { marginVertical: 8 },
+});
 
 const metamask_name = require('../../../images/metamask-name.png'); // eslint-disable-line
 const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
@@ -55,54 +268,128 @@ const ICON_IMAGES = {
  * View component that displays the MetaMask fox
  * in the middle of the screen
  */
-const DrawerView = ({ navigation, onCloseDrawer }: Props) => {
-	const dispatch = useDispatch();
-	const Engine = importedEngine as any;
+class DrawerView extends PureComponent {
+	static propTypes = {
+		/**
+		/* navigation object required to push new views
+		*/
+		navigation: PropTypes.object,
+		/**
+		 * Object representing the selected the selected network
+		 */
+		network: PropTypes.object.isRequired,
+		/**
+		 * Selected address as string
+		 */
+		selectedAddress: PropTypes.string,
+		/**
+		 * List of accounts from the AccountTrackerController
+		 */
+		accounts: PropTypes.object,
+		/**
+		 * List of accounts from the PreferencesController
+		 */
+		identities: PropTypes.object,
+		/**
+		/* Selected currency
+		*/
+		currentCurrency: PropTypes.string,
+		/**
+		 * List of keyrings
+		 */
+		keyrings: PropTypes.array,
+		/**
+		 * Action that toggles the network modal
+		 */
+		toggleNetworkModal: PropTypes.func,
+		/**
+		 * Action that toggles the accounts modal
+		 */
+		toggleAccountsModal: PropTypes.func,
+		/**
+		 * Action that toggles the receive modal
+		 */
+		toggleReceiveModal: PropTypes.func,
+		/**
+		 * Action that shows the global alert
+		 */
+		showAlert: PropTypes.func.isRequired,
+		/**
+		 * Boolean that determines the status of the networks modal
+		 */
+		networkModalVisible: PropTypes.bool.isRequired,
+		/**
+		 * Boolean that determines the status of the receive modal
+		 */
+		receiveModalVisible: PropTypes.bool.isRequired,
+		/**
+		 * Start transaction with asset
+		 */
+		newAssetTransaction: PropTypes.func.isRequired,
+		/**
+		 * Boolean that determines the status of the networks modal
+		 */
+		accountsModalVisible: PropTypes.bool.isRequired,
+		/**
+		 * Boolean that determines if the user has set a password before
+		 */
+		passwordSet: PropTypes.bool,
+		/**
+		 * Wizard onboarding state
+		 */
+		wizard: PropTypes.object,
+		/**
+		 * Current provider ticker
+		 */
+		ticker: PropTypes.string,
+		/**
+		 * Frequent RPC list from PreferencesController
+		 */
+		frequentRpcList: PropTypes.array,
+		/**
+		 * Array of ERC20 assets
+		 */
+		tokens: PropTypes.array,
+		/**
+		 * Array of ERC721 assets
+		 */
+		collectibles: PropTypes.array,
+		/**
+		 * redux flag that indicates if the user
+		 * completed the seed phrase backup flow
+		 */
+		seedphraseBackedUp: PropTypes.bool,
+		/**
+		 * An object containing token balances for current account and network in the format address => balance
+		 */
+		tokenBalances: PropTypes.object,
+		/**
+		 * Prompts protect wallet modal
+		 */
+		protectWalletModalVisible: PropTypes.func,
+	};
 
-	const [showProtectWalletModal, setShowProtectWalletModal] = useState<any>(undefined);
-	const [account, setAccount] = useState({
-		ens: undefined,
-		name: undefined,
-		address: undefined,
-		currentNetwork: undefined,
-	});
-	const browserSectionRef = useRef(null);
-	let currentBalanceRef = useRef<number | null>(null);
-	let previousBalanceRef = useRef<number | null>(null);
-	let [animatingAccountsModal, setAnimatingAccountsModal] = useState(false);
+	state = {
+		showProtectWalletModal: undefined,
+		account: {
+			ens: undefined,
+			name: undefined,
+			address: undefined,
+			currentNetwork: undefined,
+		},
+	};
 
-	// const accounts = useSelector((state: any) =>state.engine.backgroundState.AccountTrackerController.accounts)
-	const tokens = useSelector((state: any) => state.engine.backgroundState.TokensController.tokens);
-	const tokenBalances = useSelector(
-		(state: any) => state.engine.backgroundState.TokenBalancesController.contractBalances
-	);
-	const collectibles = useSelector((state: any) => state.engine.backgroundState.CollectiblesController.collectibles);
-	const network = useSelector((state: any) => state.engine.backgroundState.NetworkController);
+	browserSectionRef = React.createRef();
 
-	const selectedAddress = useSelector(
-		(state: any) => state.engine.backgroundState.PreferencesController.selectedAddress
-	);
-	const identities = useSelector((state: any) => state.engine.backgroundState.PreferencesController.identities);
-	const frequentRpcList = useSelector(
-		(state: any) => state.engine.backgroundState.PreferencesController.frequentRpcList
-	);
-	const currentCurrency = useSelector(
-		(state: any) => state.engine.backgroundState.CurrencyRateController.currentCurrency
-	);
-	const keyrings = useSelector((state: any) => state.engine.backgroundState.KeyringController.keyrings);
-	const accountsModalVisible = useSelector((state: any) => state.modals.accountsModalVisible);
-	const receiveModalVisible = useSelector((state: any) => state.modals.receiveModalVisible);
-	const passwordSet = useSelector((state: any) => state.user.passwordSet);
-	const wizard = useSelector((state: any) => state.wizard);
-	const ticker = useSelector((state: any) => state.engine.backgroundState.NetworkController.provider.ticker);
-	const seedphraseBackedUp = useSelector((state: any) => state.user.seedphraseBackedUp);
+	currentBalance = null;
+	previousBalance = null;
+	processedNewBalance = false;
+	animatingNetworksModal = false;
+	animatingAccountsModal = false;
 
-	const toggleAccountsModal = () => dispatch(importedToggleAccountsModal());
-	const toggleReceiveModal = () => dispatch(importedToggleReceiveModal());
-	const newAssetTransaction = (selectedAsset: any) => dispatch(importedNewAssetTransaction(selectedAsset));
-
-	const isCurrentAccountImported = () => {
+	isCurrentAccountImported() {
 		let ret = false;
+		const { keyrings, selectedAddress } = this.props;
 		const allKeyrings = keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
 		for (const keyring of allKeyrings) {
 			if (keyring.accounts.includes(selectedAddress)) {
@@ -112,186 +399,186 @@ const DrawerView = ({ navigation, onCloseDrawer }: Props) => {
 		}
 
 		return ret;
-	};
+	}
 
-	const updateAccountInfo = useCallback(async () => {
-		const { currentNetwork, address, name } = account;
+	async componentDidUpdate() {
+		const route = findRouteNameFromNavigatorState(this.props.navigation.dangerouslyGetState().routes);
+		if (!this.props.passwordSet || !this.props.seedphraseBackedUp) {
+			if (
+				[
+					'SetPasswordFlow',
+					'ChoosePassword',
+					'AccountBackupStep1',
+					'AccountBackupStep1B',
+					'ManualBackupStep1',
+					'ManualBackupStep2',
+					'ManualBackupStep3',
+					'Webview',
+					'LockScreen',
+				].includes(route)
+			) {
+				// eslint-disable-next-line react/no-did-update-set-state
+				this.state.showProtectWalletModal && this.setState({ showProtectWalletModal: false });
+				return;
+			}
+			let tokenFound = false;
+
+			this.props.tokens.forEach((token) => {
+				if (this.props.tokenBalances[token.address] && !this.props.tokenBalances[token.address]?.isZero()) {
+					tokenFound = true;
+				}
+			});
+			if (
+				!this.props.passwordSet ||
+				this.currentBalance > 0 ||
+				tokenFound ||
+				this.props.collectibles.length > 0
+			) {
+				// eslint-disable-next-line react/no-did-update-set-state
+				this.setState({ showProtectWalletModal: true });
+				InteractionManager.runAfterInteractions(() => {
+					AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_VIEWED, {
+						wallet_protection_required: false,
+						source: 'Backup Alert',
+					});
+				});
+			} else {
+				// eslint-disable-next-line react/no-did-update-set-state
+				this.setState({ showProtectWalletModal: false });
+			}
+		} else {
+			// eslint-disable-next-line react/no-did-update-set-state
+			this.setState({ showProtectWalletModal: false });
+		}
+		const pendingDeeplink = DeeplinkManager.getPendingDeeplink();
+		const { KeyringController } = Engine.context;
+		if (pendingDeeplink && KeyringController.isUnlocked() && route !== 'LockScreen') {
+			DeeplinkManager.expireDeeplink();
+			DeeplinkManager.parse(pendingDeeplink, { origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK });
+		}
+		await this.updateAccountInfo();
+	}
+
+	updateAccountInfo = async () => {
+		const { identities, network, selectedAddress } = this.props;
+		const { currentNetwork, address, name } = this.state.account;
 		const accountName = identities[selectedAddress].name;
 		if (currentNetwork !== network || address !== selectedAddress || name !== accountName) {
 			const ens = await doENSReverseLookup(selectedAddress, network.provider.chainId);
-			setAccount({
-				ens,
-				name: accountName,
-				currentNetwork: network,
-				address: selectedAddress,
-			});
+			this.setState((state) => ({
+				account: {
+					ens,
+					name: accountName,
+					currentNetwork: network,
+					address: selectedAddress,
+				},
+			}));
 		}
-	}, [account, identities, selectedAddress, network]);
-
-	useEffect(() => {
-		const onComponentUpdate = async () => {
-			const route = findRouteNameFromNavigatorState(navigation.dangerouslyGetState().routes);
-			if (!passwordSet || !seedphraseBackedUp) {
-				if (
-					[
-						'SetPasswordFlow',
-						'ChoosePassword',
-						'AccountBackupStep1',
-						'AccountBackupStep1B',
-						'ManualBackupStep1',
-						'ManualBackupStep2',
-						'ManualBackupStep3',
-						'Webview',
-						'LockScreen',
-					].includes(route)
-				) {
-					// eslint-disable-next-line react/no-did-update-set-state
-					showProtectWalletModal && showProtectWalletModal(false);
-					return;
-				}
-				let tokenFound = false;
-
-				tokens.forEach((token: any) => {
-					if (tokenBalances[token.address] && !tokenBalances[token.address]?.isZero()) {
-						tokenFound = true;
-					}
-				});
-				if (!passwordSet || currentBalanceRef.current > 0 || tokenFound || collectibles.length > 0) {
-					// eslint-disable-next-line react/no-did-update-set-state
-					setShowProtectWalletModal(true);
-					InteractionManager.runAfterInteractions(() => {
-						AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_VIEWED, {
-							wallet_protection_required: false,
-							source: 'Backup Alert',
-						});
-					});
-				} else {
-					// eslint-disable-next-line react/no-did-update-set-state
-					setShowProtectWalletModal(false);
-				}
-			} else {
-				// eslint-disable-next-line react/no-did-update-set-state
-				setShowProtectWalletModal(false);
-			}
-			const pendingDeeplink = DeeplinkManager.getPendingDeeplink();
-			const { KeyringController } = Engine.context;
-			if (pendingDeeplink && KeyringController.isUnlocked() && route !== 'LockScreen') {
-				DeeplinkManager.expireDeeplink();
-				DeeplinkManager.parse(pendingDeeplink, { origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK });
-			}
-			await updateAccountInfo();
-		};
-		onComponentUpdate();
-	}, [
-		navigation,
-		passwordSet,
-		seedphraseBackedUp,
-		showProtectWalletModal,
-		setShowProtectWalletModal,
-		collectibles,
-		tokenBalances,
-		tokens,
-		updateAccountInfo,
-	]);
-
-	const hideDrawer = () => {
-		onCloseDrawer();
 	};
 
-	const goToBrowserUrl = useCallback(
-		(url, title) => {
-			navigation.navigate('Webview', {
-				screen: 'SimpleWebview',
-				params: {
-					url,
-					title,
-				},
-			});
-			hideDrawer();
-		},
-		[navigation, hideDrawer]
-	);
+	toggleAccountsModal = async () => {
+		if (!this.animatingAccountsModal) {
+			this.animatingAccountsModal = true;
+			this.props.toggleAccountsModal();
+			setTimeout(() => {
+				this.animatingAccountsModal = false;
+			}, 500);
+		}
+		!this.props.accountsModalVisible && this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_ACCOUNT_NAME);
+	};
 
-	const trackEvent = (event: any) => {
+	toggleReceiveModal = () => {
+		this.props.toggleReceiveModal();
+	};
+
+	onNetworksModalClose = async (manualClose) => {
+		this.toggleNetworksModal();
+		if (!manualClose) {
+			await this.hideDrawer();
+		}
+	};
+
+	toggleNetworksModal = () => {
+		if (!this.animatingNetworksModal) {
+			this.animatingNetworksModal = true;
+			this.props.toggleNetworkModal();
+			setTimeout(() => {
+				this.animatingNetworksModal = false;
+			}, 500);
+		}
+	};
+
+	showReceiveModal = () => {
+		this.toggleReceiveModal();
+	};
+
+	trackEvent = (event) => {
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(event);
 		});
 	};
 
-	const trackOpenBrowserEvent = useCallback(() => {
+	trackOpenBrowserEvent = () => {
+		const { network } = this.props;
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_OPENED, {
 			referral_source: 'In-app Navigation',
 			chain_id: network,
 		});
-	}, [network]);
+	};
 
-	const triggerToggleAccountsModal = useCallback(() => {
-		if (!animatingAccountsModal) {
-			setAnimatingAccountsModal(true);
-			toggleAccountsModal();
-			setTimeout(() => {
-				setAnimatingAccountsModal(false);
-			}, 500);
-		}
-		!accountsModalVisible && trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_ACCOUNT_NAME);
-	}, [animatingAccountsModal, setAnimatingAccountsModal, toggleAccountsModal, accountsModalVisible, trackEvent]);
+	onReceive = () => {
+		this.toggleReceiveModal();
+		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_RECEIVE);
+	};
 
-	const triggerToggleReceiveModal = useCallback(() => {
-		toggleReceiveModal();
-	}, [toggleReceiveModal]);
+	onSend = async () => {
+		this.props.newAssetTransaction(getEther(this.props.ticker));
+		this.props.navigation.navigate('SendFlowView');
+		this.hideDrawer();
+		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SEND);
+	};
 
-	const onReceive = useCallback(() => {
-		toggleReceiveModal();
-		trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_RECEIVE);
-	}, [toggleReceiveModal, trackEvent]);
+	goToBrowser = () => {
+		this.props.navigation.navigate('BrowserTabHome');
+		this.hideDrawer();
+		this.trackOpenBrowserEvent();
+		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_BROWSER);
+	};
 
-	const onSend = useCallback(() => {
-		newAssetTransaction(getEther(ticker));
-		navigation.navigate('SendFlowView');
-		hideDrawer();
-		trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SEND);
-	}, [newAssetTransaction, ticker, navigation, hideDrawer, trackEvent]);
+	showWallet = () => {
+		this.props.navigation.navigate('WalletTabHome');
+		this.hideDrawer();
+		this.trackEvent(ANALYTICS_EVENTS_V2.WALLET_OPENED);
+	};
 
-	const goToBrowser = useCallback(() => {
-		navigation.navigate('BrowserTabHome');
-		hideDrawer();
-		trackOpenBrowserEvent();
-		trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_BROWSER);
-	}, [navigation, hideDrawer, trackOpenBrowserEvent, trackEvent]);
+	goToTransactionHistory = () => {
+		this.props.navigation.navigate('TransactionsHome');
+		this.hideDrawer();
+		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_TRANSACTION_HISTORY);
+	};
 
-	const showWallet = useCallback(() => {
-		navigation.navigate('WalletTabHome');
-		hideDrawer();
-		trackEvent(ANALYTICS_EVENTS_V2.WALLET_OPENED);
-	}, [navigation, hideDrawer, trackEvent]);
+	showSettings = async () => {
+		this.props.navigation.navigate('SettingsView');
+		this.hideDrawer();
+		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SETTINGS);
+	};
 
-	const goToTransactionHistory = useCallback(() => {
-		navigation.navigate('TransactionsHome');
-		hideDrawer();
-		trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_TRANSACTION_HISTORY);
-	}, [navigation, hideDrawer, trackEvent]);
-
-	const showSettings = useCallback(() => {
-		navigation.navigate('SettingsView');
-		hideDrawer();
-		trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SETTINGS);
-	}, [navigation, hideDrawer, trackEvent]);
-
-	const onPress = useCallback(async () => {
+	onPress = async () => {
+		const { passwordSet } = this.props;
 		const { KeyringController } = Engine.context;
 		await SecureKeychain.resetGenericPassword();
 		await KeyringController.setLocked();
 		if (!passwordSet) {
-			navigation.navigate('OnboardingRootNav', {
+			this.props.navigation.navigate('OnboardingRootNav', {
 				screen: 'OnboardingNav',
 				params: { screen: 'Onboarding' },
 			});
 		} else {
-			navigation.navigate('Login');
+			this.props.navigation.navigate('Login');
 		}
-	}, [passwordSet, navigation]);
+	};
 
-	const logout = useCallback(() => {
+	logout = () => {
 		Alert.alert(
 			strings('drawer.logout_title'),
 			'',
@@ -303,109 +590,137 @@ const DrawerView = ({ navigation, onCloseDrawer }: Props) => {
 				},
 				{
 					text: strings('drawer.logout_ok'),
-					onPress: onPress,
+					onPress: this.onPress,
 				},
 			],
 			{ cancelable: false }
 		);
-		trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_LOGOUT);
-	}, [onPress, trackEvent]);
+		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_LOGOUT);
+	};
 
-	const viewInEtherscan = useCallback(() => {
-		const { rpcTarget, type } = network.provider;
-		if (type === RPC) {
+	viewInEtherscan = () => {
+		const {
+			selectedAddress,
+			network,
+			network: {
+				provider: { rpcTarget },
+			},
+			frequentRpcList,
+		} = this.props;
+		if (network.provider.type === RPC) {
 			const blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList);
 			const url = `${blockExplorer}/address/${selectedAddress}`;
 			const title = new URL(blockExplorer).hostname;
-			goToBrowserUrl(url, title);
+			this.goToBrowserUrl(url, title);
 		} else {
 			const url = getEtherscanAddressUrl(network.provider.type, selectedAddress);
 			const etherscan_url = getEtherscanBaseUrl(network.provider.type).replace('https://', '');
-			goToBrowserUrl(url, etherscan_url);
+			this.goToBrowserUrl(url, etherscan_url);
 		}
-		trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_VIEW_ETHERSCAN);
-	}, [network, frequentRpcList, goToBrowserUrl, trackEvent, selectedAddress]);
-
-	const submitFeedback = useCallback(() => {
-		trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SEND_FEEDBACK);
-		goToBrowserUrl('https://community.metamask.io/c/feature-requests-ideas/', strings('drawer.request_feature'));
-	}, [trackEvent, goToBrowserUrl]);
-
-	const showHelp = useCallback(() => {
-		goToBrowserUrl('https://support.metamask.io', strings('drawer.metamask_support'));
-		trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_GET_HELP);
-	}, [goToBrowserUrl, trackEvent]);
-
-	const onAccountChange = useCallback(() => {
-		setTimeout(() => {
-			toggleAccountsModal();
-			hideDrawer();
-		}, 300);
-	}, [toggleAccountsModal, hideDrawer]);
-
-	const onImportAccount = useCallback(() => {
-		toggleAccountsModal();
-		navigation.navigate('ImportPrivateKeyView');
-		hideDrawer();
-	}, [toggleAccountsModal, navigation, hideDrawer]);
-
-	const triggerHasBlockExplorer = useCallback(
-		(providerType: any) => {
-			if (providerType === RPC) {
-				const { rpcTarget } = network.provider;
-				const blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList);
-				if (blockExplorer) {
-					return true;
-				}
-			}
-			return hasBlockExplorer(providerType);
-		},
-		[frequentRpcList, network]
-	);
-
-	const getIcon = ({
-		type,
-		name,
-		size,
-		isSelected,
-	}: {
-		type: 'Icon' | 'Feather' | 'Image' | 'Material';
-		name: string;
-		size?: number;
-		isSelected?: boolean;
-	}) => {
-		const iconColor = isSelected ? colors.blue : colors.grey400;
-		const iconSize = size || 24;
-
-		switch (type) {
-			case 'Image': {
-				const iconName = isSelected ? `selected-${name}` : name;
-				return <Image source={(ICON_IMAGES as any)[iconName]} style={styles.menuItemIconImage} />;
-			}
-			case 'Icon':
-				return <Icon name={name} size={iconSize} color={iconColor} />;
-			case 'Feather':
-				return <FeatherIcon name={name} size={iconSize} color={iconColor} />;
-			case 'Material':
-				return <MaterialIcon name={name} size={iconSize} color={iconColor} />;
-		}
+		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_VIEW_ETHERSCAN);
 	};
 
-	const onShare = useCallback(() => {
-		Share.open({
-			message: selectedAddress,
-		})
-			.then(() => {
-				protectWalletModalVisible();
-			})
-			.catch((err) => {
-				Logger.log('Error while trying to share address', err);
-			});
-		trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SHARE_PUBLIC_ADDRESS);
-	}, [selectedAddress, trackEvent, protectWalletModalVisible]);
+	submitFeedback = () => {
+		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SEND_FEEDBACK);
+		this.goToBrowserUrl(
+			'https://community.metamask.io/c/feature-requests-ideas/',
+			strings('drawer.request_feature')
+		);
+	};
 
-	const getSections = useCallback(() => {
-		const { type, rpcTarget } = network;
+	showHelp = () => {
+		this.goToBrowserUrl('https://support.metamask.io', strings('drawer.metamask_support'));
+		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_GET_HELP);
+	};
+
+	goToBrowserUrl(url, title) {
+		this.props.navigation.navigate('Webview', {
+			screen: 'SimpleWebview',
+			params: {
+				url,
+				title,
+			},
+		});
+		this.hideDrawer();
+	}
+
+	hideDrawer() {
+		return new Promise((resolve) => {
+			this.props.navigation.dispatch(DrawerActions.closeDrawer());
+			setTimeout(() => {
+				resolve();
+			}, 300);
+		});
+	}
+
+	onAccountChange = () => {
+		setTimeout(() => {
+			this.toggleAccountsModal();
+			this.hideDrawer();
+		}, 300);
+	};
+
+	onImportAccount = () => {
+		this.toggleAccountsModal();
+		this.props.navigation.navigate('ImportPrivateKeyView');
+		this.hideDrawer();
+	};
+
+	hasBlockExplorer = (providerType) => {
+		const { frequentRpcList } = this.props;
+		if (providerType === RPC) {
+			const {
+				network: {
+					provider: { rpcTarget },
+				},
+			} = this.props;
+			const blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList);
+			if (blockExplorer) {
+				return true;
+			}
+		}
+		return hasBlockExplorer(providerType);
+	};
+
+	getIcon(name, size) {
+		return <Icon name={name} size={size || 24} color={colors.grey400} />;
+	}
+
+	getFeatherIcon(name, size) {
+		return <FeatherIcon name={name} size={size || 24} color={colors.grey400} />;
+	}
+
+	getMaterialIcon(name, size) {
+		return <MaterialIcon name={name} size={size || 24} color={colors.grey400} />;
+	}
+
+	getImageIcon(name) {
+		return <Image source={ICON_IMAGES[name]} style={styles.menuItemIconImage} />;
+	}
+
+	getSelectedIcon(name, size) {
+		return <Icon name={name} size={size || 24} color={colors.blue} />;
+	}
+
+	getSelectedFeatherIcon(name, size) {
+		return <FeatherIcon name={name} size={size || 24} color={colors.blue} />;
+	}
+
+	getSelectedMaterialIcon(name, size) {
+		return <MaterialIcon name={name} size={size || 24} color={colors.blue} />;
+	}
+
+	getSelectedImageIcon(name) {
+		return <Image source={ICON_IMAGES[`selected-${name}`]} style={styles.menuItemIconImage} />;
+	}
+
+	getSections = () => {
+		const {
+			network: {
+				provider: { type, rpcTarget },
+			},
+			frequentRpcList,
+		} = this.props;
 		let blockExplorer, blockExplorerName;
 		if (type === RPC) {
 			blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList);
@@ -415,234 +730,285 @@ const DrawerView = ({ navigation, onCloseDrawer }: Props) => {
 			[
 				{
 					name: strings('drawer.browser'),
-					icon: getIcon({ type: 'Icon', name: 'globe' }),
-					selectedIcon: getIcon({ type: 'Icon', name: 'globe', isSelected: true }),
-					action: goToBrowser,
+					icon: this.getIcon('globe'),
+					selectedIcon: this.getSelectedIcon('globe'),
+					action: this.goToBrowser,
 					routeNames: ['BrowserView', 'AddBookmark'],
 				},
 				{
 					name: strings('drawer.wallet'),
-					icon: getIcon({ type: 'Image', name: 'wallet' }),
-					selectedIcon: getIcon({ type: 'Image', name: 'wallet', isSelected: true }),
-					action: showWallet,
+					icon: this.getImageIcon('wallet'),
+					selectedIcon: this.getSelectedImageIcon('wallet'),
+					action: this.showWallet,
 					routeNames: ['WalletView', 'Asset', 'AddAsset', 'Collectible'],
 				},
 				{
 					name: strings('drawer.transaction_history'),
-					icon: getIcon({ type: 'Feather', name: 'list' }),
-					selectedIcon: getIcon({ type: 'Feather', name: 'list', isSelected: true }),
-					action: goToTransactionHistory,
+					icon: this.getFeatherIcon('list'),
+					selectedIcon: this.getSelectedFeatherIcon('list'),
+					action: this.goToTransactionHistory,
 					routeNames: ['TransactionsView'],
 				},
 			],
 			[
 				{
 					name: strings('drawer.share_address'),
-					icon: getIcon({ type: 'Material', name: 'share-variant' }),
-					action: onShare,
+					icon: this.getMaterialIcon('share-variant'),
+					action: this.onShare,
 				},
 				{
 					name:
 						(blockExplorer && `${strings('drawer.view_in')} ${blockExplorerName}`) ||
 						strings('drawer.view_in_etherscan'),
-					icon: getIcon({ type: 'Icon', name: 'eye' }),
-					action: viewInEtherscan,
+					icon: this.getIcon('eye'),
+					action: this.viewInEtherscan,
 				},
 			],
 			[
 				{
 					name: strings('drawer.settings'),
-					icon: getIcon({ type: 'Feather', name: 'settings' }),
+					icon: this.getFeatherIcon('settings'),
 					warning: strings('drawer.settings_warning_short'),
-					action: showSettings,
+					action: this.showSettings,
 				},
 				{
 					name: strings('drawer.help'),
-					icon: getIcon({ type: 'Feather', name: 'help-circle' }),
-					action: showHelp,
+					icon: this.getFeatherIcon('help-circle'),
+					action: this.showHelp,
 				},
 				{
 					name: strings('drawer.request_feature'),
-					icon: getIcon({ type: 'Feather', name: 'message-square' }),
-					action: submitFeedback,
+					icon: this.getFeatherIcon('message-square'),
+					action: this.submitFeedback,
 				},
 				{
 					name: strings('drawer.logout'),
-					icon: getIcon({ type: 'Feather', name: 'log-out' }),
-					action: logout,
+					icon: this.getFeatherIcon('log-out'),
+					action: this.logout,
 				},
 			],
 		];
-	}, [
-		network,
-		frequentRpcList,
-		getIcon,
-		goToBrowser,
-		viewInEtherscan,
-		showSettings,
-		showHelp,
-		submitFeedback,
-		logout,
-		goToTransactionHistory,
-		showWallet,
-		onShare,
-	]);
+	};
+
+	copyAccountToClipboard = async () => {
+		const { selectedAddress } = this.props;
+		await ClipboardManager.setString(selectedAddress);
+		this.toggleReceiveModal();
+		InteractionManager.runAfterInteractions(() => {
+			this.props.showAlert({
+				isVisible: true,
+				autodismiss: 1500,
+				content: 'clipboard-alert',
+				data: { msg: strings('account_details.account_copied_to_clipboard') },
+			});
+		});
+	};
+
+	onShare = () => {
+		const { selectedAddress } = this.props;
+		Share.open({
+			message: selectedAddress,
+		})
+			.then(() => {
+				this.props.protectWalletModalVisible();
+			})
+			.catch((err) => {
+				Logger.log('Error while trying to share address', err);
+			});
+		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SHARE_PUBLIC_ADDRESS);
+	};
+
+	closeInvalidCustomNetworkAlert = () => {
+		this.setState({ invalidCustomNetwork: null });
+	};
+
+	showInvalidCustomNetworkAlert = (network) => {
+		InteractionManager.runAfterInteractions(() => {
+			this.setState({ invalidCustomNetwork: network });
+		});
+	};
 
 	/**
 	 * Return step 5 of onboarding wizard if that is the current step
 	 */
-	const renderOnboardingWizard = useCallback(() => {
-		const { step } = wizard;
-		return step === 5 && <OnboardingWizard navigation={navigation} coachmarkRef={browserSectionRef} />;
-	}, [navigation]);
+	renderOnboardingWizard = () => {
+		const {
+			wizard: { step },
+		} = this.props;
+		return (
+			step === 5 && <OnboardingWizard navigation={this.props.navigation} coachmarkRef={this.browserSectionRef} />
+		);
+	};
 
-	const onSecureWalletModalAction = useCallback(() => {
-		setShowProtectWalletModal(false);
-		navigation.navigate('SetPasswordFlow', passwordSet ? { screen: 'AccountBackupStep1' } : undefined);
+	onSecureWalletModalAction = () => {
+		this.setState({ showProtectWalletModal: false });
+		this.props.navigation.navigate(
+			'SetPasswordFlow',
+			this.props.passwordSet ? { screen: 'AccountBackupStep1' } : undefined
+		);
 		InteractionManager.runAfterInteractions(() => {
 			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_ENGAGED, {
 				wallet_protection_required: true,
 				source: 'Modal',
 			});
 		});
-	}, [setShowProtectWalletModal, navigation, passwordSet]);
+	};
 
-	const renderProtectModal = useCallback(
-		() => (
-			<Modal
-				isVisible={showProtectWalletModal}
-				animationIn="slideInUp"
-				animationOut="slideOutDown"
-				style={styles.bottomModal}
-				backdropOpacity={0.7}
-				animationInTiming={600}
-				animationOutTiming={600}
-			>
-				<View style={styles.protectWalletContainer}>
-					<View style={styles.protectWalletIconContainer}>
-						<FeatherIcon style={styles.protectWalletIcon} name="alert-triangle" size={20} />
-					</View>
-					<Text style={styles.protectWalletTitle}>{strings('protect_your_wallet_modal.title')}</Text>
-					<Text style={styles.protectWalletContent}>
-						{!passwordSet
-							? strings('protect_your_wallet_modal.body_for_password')
-							: strings('protect_your_wallet_modal.body_for_seedphrase')}
-					</Text>
-					<View style={styles.protectWalletButtonWrapper}>
-						<StyledButton type={'confirm'} onPress={onSecureWalletModalAction}>
-							{strings('protect_your_wallet_modal.button')}
-						</StyledButton>
-					</View>
+	renderProtectModal = () => (
+		<Modal
+			isVisible={this.state.showProtectWalletModal}
+			animationIn="slideInUp"
+			animationOut="slideOutDown"
+			style={styles.bottomModal}
+			backdropOpacity={0.7}
+			animationInTiming={600}
+			animationOutTiming={600}
+		>
+			<View style={styles.protectWalletContainer}>
+				<View style={styles.protectWalletIconContainer}>
+					<FeatherIcon style={styles.protectWalletIcon} name="alert-triangle" size={20} />
 				</View>
-			</Modal>
-		),
-		[showProtectWalletModal, passwordSet, onSecureWalletModalAction]
+				<Text style={styles.protectWalletTitle}>{strings('protect_your_wallet_modal.title')}</Text>
+				<Text style={styles.protectWalletContent}>
+					{!this.props.passwordSet
+						? strings('protect_your_wallet_modal.body_for_password')
+						: strings('protect_your_wallet_modal.body_for_seedphrase')}
+				</Text>
+				<View style={styles.protectWalletButtonWrapper}>
+					<StyledButton type={'confirm'} onPress={this.onSecureWalletModalAction}>
+						{strings('protect_your_wallet_modal.button')}
+					</StyledButton>
+				</View>
+			</View>
+		</Modal>
 	);
 
-	const { name, ens } = account;
-	// const constructedAccount = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
-	// constructedAccount.balance = (accounts[selectedAddress] && renderFromWei(accounts[selectedAddress].balance)) || 0;
-	const fiatBalance = Engine.getTotalFiatAccountBalance();
-	if (fiatBalance !== previousBalanceRef.current) {
-		previousBalanceRef.current = currentBalanceRef.current;
-	}
-	currentBalanceRef.current = fiatBalance;
-	const fiatBalanceStr = renderFiat(currentBalanceRef.current, currentCurrency);
-	const currentRoute = findRouteNameFromNavigatorState(navigation.dangerouslyGetState().routes);
+	render() {
+		const {
+			network,
+			accounts,
+			identities,
+			selectedAddress,
+			keyrings,
+			currentCurrency,
+			ticker,
+			seedphraseBackedUp,
+		} = this.props;
 
-	return (
-		<View style={styles.wrapper} testID={'drawer-screen'}>
-			<ScrollView>
-				<View style={styles.header}>
-					<View style={styles.metamaskLogo}>
-						<Image source={metamask_fox} style={styles.metamaskFox} resizeMethod={'auto'} />
-						<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+		const {
+			invalidCustomNetwork,
+			showProtectWalletModal,
+			account: { name, ens },
+		} = this.state;
+		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
+		account.balance = (accounts[selectedAddress] && renderFromWei(accounts[selectedAddress].balance)) || 0;
+		const fiatBalance = Engine.getTotalFiatAccountBalance();
+		if (fiatBalance !== this.previousBalance) {
+			this.previousBalance = this.currentBalance;
+		}
+		this.currentBalance = fiatBalance;
+		const fiatBalanceStr = renderFiat(this.currentBalance, currentCurrency);
+		const currentRoute = findRouteNameFromNavigatorState(this.props.navigation.dangerouslyGetState().routes);
+		return (
+			<View style={styles.wrapper} testID={'drawer-screen'}>
+				<ScrollView>
+					<View style={styles.header}>
+						<View style={styles.metamaskLogo}>
+							<Image source={metamask_fox} style={styles.metamaskFox} resizeMethod={'auto'} />
+							<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+						</View>
 					</View>
-				</View>
-				<View style={styles.account}>
-					<View style={styles.accountBgOverlay}>
-						<TouchableOpacity
-							style={styles.identiconWrapper}
-							onPress={triggerToggleAccountsModal}
-							testID={'navbar-account-identicon'}
-						>
-							<View style={styles.identiconBorder}>
-								<Identicon diameter={48} address={selectedAddress} />
-							</View>
-						</TouchableOpacity>
-						<TouchableOpacity onPress={triggerToggleAccountsModal} testID={'navbar-account-button'}>
-							<View style={styles.accountNameWrapper}>
-								<Text style={styles.accountName} numberOfLines={1}>
-									{isDefaultAccountName(name) && ens ? ens : name}
-								</Text>
-								<Icon name="caret-down" size={24} style={styles.caretDown} />
-							</View>
-							<Text style={styles.accountBalance}>{fiatBalanceStr}</Text>
-							<EthereumAddress address={selectedAddress} style={styles.accountAddress} type={'short'} />
-							{isCurrentAccountImported() && (
-								<View style={styles.importedWrapper}>
-									<Text numberOfLines={1} style={styles.importedText}>
-										{strings('accounts.imported')}
-									</Text>
+					<View style={styles.account}>
+						<View style={styles.accountBgOverlay}>
+							<TouchableOpacity
+								style={styles.identiconWrapper}
+								onPress={this.toggleAccountsModal}
+								testID={'navbar-account-identicon'}
+							>
+								<View style={styles.identiconBorder}>
+									<Identicon diameter={48} address={selectedAddress} />
 								</View>
-							)}
-						</TouchableOpacity>
+							</TouchableOpacity>
+							<TouchableOpacity
+								style={styles.accountInfo}
+								onPress={this.toggleAccountsModal}
+								testID={'navbar-account-button'}
+							>
+								<View style={styles.accountNameWrapper}>
+									<Text style={styles.accountName} numberOfLines={1}>
+										{isDefaultAccountName(name) && ens ? ens : name}
+									</Text>
+									<Icon name="caret-down" size={24} style={styles.caretDown} />
+								</View>
+								<Text style={styles.accountBalance}>{fiatBalanceStr}</Text>
+								<EthereumAddress
+									address={account.address}
+									style={styles.accountAddress}
+									type={'short'}
+								/>
+								{this.isCurrentAccountImported() && (
+									<View style={styles.importedWrapper}>
+										<Text numberOfLines={1} style={styles.importedText}>
+											{strings('accounts.imported')}
+										</Text>
+									</View>
+								)}
+							</TouchableOpacity>
+						</View>
 					</View>
-				</View>
-				<View style={styles.buttons}>
-					<StyledButton
-						type={'rounded-normal'}
-						onPress={onSend}
-						containerStyle={[styles.button, styles.leftButton]}
-						testID={'drawer-send-button'}
-					>
-						<View style={styles.buttonContent}>
-							<MaterialIcon
-								name={'arrow-top-right'}
-								size={22}
-								color={colors.blue}
-								style={styles.buttonIcon}
-							/>
-							<Text style={styles.buttonText}>{strings('drawer.send_button')}</Text>
-						</View>
-					</StyledButton>
-					<StyledButton
-						type={'rounded-normal'}
-						onPress={onReceive}
-						containerStyle={[styles.button, styles.rightButton]}
-						testID={'drawer-receive-button'}
-					>
-						<View style={styles.buttonContent}>
-							<MaterialIcon
-								name={'keyboard-tab'}
-								size={22}
-								color={colors.blue}
-								style={[styles.buttonIcon, styles.buttonReceive]}
-							/>
-							<Text style={styles.buttonText}>{strings('drawer.receive_button')}</Text>
-						</View>
-					</StyledButton>
-				</View>
-				<View style={styles.menu}>
-					{getSections().map(
-						(section, i) =>
-							section?.length > 0 && (
-								<View
-									key={`section_${i}`}
-									style={[styles.menuSection, i === 0 ? styles.noTopBorder : null]}
-								>
-									{section
-										.filter((item) => {
-											if (!item) return undefined;
-											const { name = undefined } = item;
-											if (name && name.toLowerCase().indexOf('etherscan') !== -1) {
-												const type = network.provider?.type;
-												return (type && triggerHasBlockExplorer(type)) || undefined;
-											}
-											return true;
-										})
-										.map((item, j) => {
-											return (
+					<View style={styles.buttons}>
+						<StyledButton
+							type={'rounded-normal'}
+							onPress={this.onSend}
+							containerStyle={[styles.button, styles.leftButton]}
+							testID={'drawer-send-button'}
+						>
+							<View style={styles.buttonContent}>
+								<MaterialIcon
+									name={'arrow-top-right'}
+									size={22}
+									color={colors.blue}
+									style={styles.buttonIcon}
+								/>
+								<Text style={styles.buttonText}>{strings('drawer.send_button')}</Text>
+							</View>
+						</StyledButton>
+						<StyledButton
+							type={'rounded-normal'}
+							onPress={this.onReceive}
+							containerStyle={[styles.button, styles.rightButton]}
+							testID={'drawer-receive-button'}
+						>
+							<View style={styles.buttonContent}>
+								<MaterialIcon
+									name={'keyboard-tab'}
+									size={22}
+									color={colors.blue}
+									style={[styles.buttonIcon, styles.buttonReceive]}
+								/>
+								<Text style={styles.buttonText}>{strings('drawer.receive_button')}</Text>
+							</View>
+						</StyledButton>
+					</View>
+					<View style={styles.menu}>
+						{this.getSections().map(
+							(section, i) =>
+								section?.length > 0 && (
+									<View
+										key={`section_${i}`}
+										style={[styles.menuSection, i === 0 ? styles.noTopBorder : null]}
+									>
+										{section
+											.filter((item) => {
+												if (!item) return undefined;
+												const { name = undefined } = item;
+												if (name && name.toLowerCase().indexOf('etherscan') !== -1) {
+													const type = network.provider?.type;
+													return (type && this.hasBlockExplorer(type)) || undefined;
+												}
+												return true;
+											})
+											.map((item, j) => (
 												<TouchableOpacity
 													key={`item_${i}_${j}`}
 													style={[
@@ -652,9 +1018,8 @@ const DrawerView = ({ navigation, onCloseDrawer }: Props) => {
 															: null,
 													]}
 													ref={
-														item.name === strings('drawer.browser')
-															? browserSectionRef
-															: null
+														item.name === strings('drawer.browser') &&
+														this.browserSectionRef
 													}
 													onPress={() => item.action()} // eslint-disable-line
 												>
@@ -683,49 +1048,103 @@ const DrawerView = ({ navigation, onCloseDrawer }: Props) => {
 														</SettingsNotification>
 													) : null}
 												</TouchableOpacity>
-											);
-										})}
-								</View>
-							)
-					)}
-				</View>
-			</ScrollView>
-			<Modal
-				isVisible={accountsModalVisible}
-				style={styles.bottomModal}
-				onBackdropPress={triggerToggleAccountsModal}
-				onBackButtonPress={triggerToggleAccountsModal}
-				onSwipeComplete={triggerToggleAccountsModal}
-				swipeDirection={'down'}
-				propagateSwipe
-			>
-				<AccountList
-					enableAccountsAddition
-					identities={identities}
-					selectedAddress={selectedAddress}
-					keyrings={keyrings}
-					onAccountChange={onAccountChange}
-					onImportAccount={onImportAccount}
-					ticker={ticker}
-				/>
-			</Modal>
-			{renderOnboardingWizard()}
-			<Modal
-				isVisible={receiveModalVisible}
-				onBackdropPress={triggerToggleReceiveModal}
-				onBackButtonPress={triggerToggleReceiveModal}
-				onSwipeComplete={triggerToggleReceiveModal}
-				swipeDirection={'down'}
-				propagateSwipe
-				style={styles.bottomModal}
-			>
-				<ReceiveRequest navigation={navigation} hideModal={triggerToggleReceiveModal} />
-			</Modal>
-			<WhatsNewModal enabled={showProtectWalletModal === false} />
+											))}
+									</View>
+								)
+						)}
+					</View>
+				</ScrollView>
+				<Modal
+					isVisible={this.props.networkModalVisible}
+					onBackdropPress={this.toggleNetworksModal}
+					onBackButtonPress={this.toggleNetworksModal}
+					onSwipeComplete={this.toggleNetworksModal}
+					swipeDirection={'down'}
+					propagateSwipe
+				>
+					<NetworkList
+						navigation={this.props.navigation}
+						onClose={this.onNetworksModalClose}
+						showInvalidCustomNetworkAlert={this.showInvalidCustomNetworkAlert}
+					/>
+				</Modal>
+				<Modal isVisible={!!invalidCustomNetwork}>
+					<InvalidCustomNetworkAlert
+						navigation={this.props.navigation}
+						network={invalidCustomNetwork}
+						onClose={this.closeInvalidCustomNetworkAlert}
+					/>
+				</Modal>
+				<Modal
+					isVisible={this.props.accountsModalVisible}
+					style={styles.bottomModal}
+					onBackdropPress={this.toggleAccountsModal}
+					onBackButtonPress={this.toggleAccountsModal}
+					onSwipeComplete={this.toggleAccountsModal}
+					swipeDirection={'down'}
+					propagateSwipe
+				>
+					<AccountList
+						enableAccountsAddition
+						identities={identities}
+						selectedAddress={selectedAddress}
+						keyrings={keyrings}
+						onAccountChange={this.onAccountChange}
+						onImportAccount={this.onImportAccount}
+						ticker={ticker}
+					/>
+				</Modal>
+				{this.renderOnboardingWizard()}
+				<Modal
+					isVisible={this.props.receiveModalVisible}
+					onBackdropPress={this.toggleReceiveModal}
+					onBackButtonPress={this.toggleReceiveModal}
+					onSwipeComplete={this.toggleReceiveModal}
+					swipeDirection={'down'}
+					propagateSwipe
+					style={styles.bottomModal}
+				>
+					<ReceiveRequest
+						navigation={this.props.navigation}
+						hideModal={this.toggleReceiveModal}
+						showReceiveModal={this.showReceiveModal}
+					/>
+				</Modal>
+				<WhatsNewModal navigation={this.props.navigation} enabled={showProtectWalletModal === false} />
 
-			{renderProtectModal()}
-		</View>
-	);
-};
+				{this.renderProtectModal()}
+			</View>
+		);
+	}
+}
 
-export default DrawerView;
+const mapStateToProps = (state) => ({
+	network: state.engine.backgroundState.NetworkController,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	identities: state.engine.backgroundState.PreferencesController.identities,
+	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList,
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	keyrings: state.engine.backgroundState.KeyringController.keyrings,
+	networkModalVisible: state.modals.networkModalVisible,
+	accountsModalVisible: state.modals.accountsModalVisible,
+	receiveModalVisible: state.modals.receiveModalVisible,
+	passwordSet: state.user.passwordSet,
+	wizard: state.wizard,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+	tokens: state.engine.backgroundState.TokensController.tokens,
+	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
+	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
+	seedphraseBackedUp: state.user.seedphraseBackedUp,
+});
+
+const mapDispatchToProps = (dispatch) => ({
+	toggleNetworkModal: () => dispatch(toggleNetworkModal()),
+	toggleAccountsModal: () => dispatch(toggleAccountsModal()),
+	toggleReceiveModal: () => dispatch(toggleReceiveModal()),
+	showAlert: (config) => dispatch(showAlert(config)),
+	newAssetTransaction: (selectedAsset) => dispatch(newAssetTransaction(selectedAsset)),
+	protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(DrawerView);
