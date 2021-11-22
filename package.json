@@ -68,6 +68,7 @@
     ]
   },
   "resolutions": {
+    "**/json-schema": "^0.4.0",
     "@sentry/react-native/**/xmldom": "^0.6.0",
     "@walletconnect/**/ws": "^7.4.6",
     "react-native-svg/**/nth-check": "^2.0.1",
