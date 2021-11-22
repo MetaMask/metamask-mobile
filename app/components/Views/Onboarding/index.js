@@ -390,6 +390,7 @@ class Onboarding extends PureComponent {
 							{strings('import_wallet.import_from_seed_button')}
 						</StyledButton>
 					</View>
+					{/* Temporarily Disable Sync until the new improved version is ready for release */}
 					{__DEV__ && (
 						<View style={styles.buttonWrapper}>
 							<StyledButton
