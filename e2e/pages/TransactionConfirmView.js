@@ -9,11 +9,18 @@ export default class TransactionConfirmationView {
 		await TestHelpers.tap(CONFIRM_TRANSACTION_BUTTON_ID);
 	}
 
+	static async tapConfirmButtonInTestDapp() {
+		await TestHelpers.tapByText('Confirm');
+	}
+
 	static async isTransactionTotalCorrect(amount) {
 		await TestHelpers.checkIfElementHasString(TRANSACTION_AMOUNT_ID, amount);
 	}
 
 	static async isVisible() {
 		await TestHelpers.checkIfVisible(TRANSACTION_VIEW_CONTAINER_ID);
+	}
+	static async isNotVisible() {
+		await TestHelpers.checkIfNotVisible(TRANSACTION_VIEW_CONTAINER_ID);
 	}
 }

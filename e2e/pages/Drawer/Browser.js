@@ -50,6 +50,10 @@ export class Browser {
 		await TestHelpers.tap(GO_BACK_BUTTON_ID);
 	}
 
+	static async tapNoThanksButton() {
+		await TestHelpers.tapAlertWithButton('No, thanks');
+	}
+
 	static async navigateToURL(url) {
 		if (device.getPlatform() === 'ios') {
 			await TestHelpers.clearField(URL_INPUT_BOX_ID);
