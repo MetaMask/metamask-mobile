@@ -1,17 +1,17 @@
-import React, { useEffect } from 'react';
+import React, { useContext, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
-import { connect } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { getHasOrders } from '../../../reducers/fiatOrders';
-
 import getNavbarOptions from '../../UI/Navbar';
 import TransactionsView from '../TransactionsView';
 import TabBar from '../../Base/TabBar';
 import { strings } from '../../../../locales/i18n';
 import FiatOrdersView from '../FiatOrdersView';
 import ErrorBoundary from '../ErrorBoundary';
+import { DrawerContext } from '../../Nav/Main/MainNavigator';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -19,16 +19,15 @@ const styles = StyleSheet.create({
 	},
 });
 
-function ActivityView({ hasOrders, ...props }) {
+function ActivityView() {
 	const navigation = useNavigation();
+	const hasOrders = useSelector((state) => getHasOrders(state)) || false;
+	const { drawerRef } = useContext(DrawerContext);
 
-	useEffect(
-		() => {
-			navigation.setParams({ hasOrders });
-		},
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[hasOrders]
-	);
+	useEffect(() => {
+		const title = hasOrders ?? false ? 'activity_view.title' : 'transactions_view.title';
+		navigation.setOptions(getNavbarOptions(title, false, drawerRef));
+	}, [navigation, hasOrders]);
 
 	return (
 		<ErrorBoundary view="ActivityView">
@@ -46,21 +45,8 @@ function ActivityView({ hasOrders, ...props }) {
 	);
 }
 
-ActivityView.defaultProps = {
-	hasOrders: false,
-};
-
 ActivityView.propTypes = {
 	hasOrders: PropTypes.bool,
 };
 
-ActivityView.navigationOptions = ({ navigation, route }) => {
-	const title = route.params?.hasOrders ?? false ? 'activity_view.title' : 'transactions_view.title';
-	return getNavbarOptions(title, navigation);
-};
-
-const mapStateToProps = (state) => ({
-	hasOrders: getHasOrders(state),
-});
-
-export default connect(mapStateToProps)(ActivityView);
+export default ActivityView;

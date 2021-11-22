@@ -4,7 +4,6 @@ import {
 	StyleSheet,
 	TextInput,
 	View,
-	TouchableWithoutFeedback,
 	Alert,
 	TouchableOpacity,
 	Linking,
@@ -50,7 +49,6 @@ import WatchAssetRequest from '../../UI/WatchAssetRequest';
 import Analytics from '../../../core/Analytics';
 import AnalyticsV2, { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
-import { toggleNetworkModal } from '../../../actions/modals';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
@@ -96,8 +94,7 @@ const styles = StyleSheet.create({
 		zIndex: 999999,
 	},
 	optionsOverlay: {
-		position: 'absolute',
-		zIndex: 99999998,
+		zIndex: 1,
 		top: 0,
 		bottom: 0,
 		left: 0,
@@ -105,7 +102,6 @@ const styles = StyleSheet.create({
 	},
 	optionsWrapper: {
 		position: 'absolute',
-		zIndex: 99999999,
 		width: 200,
 		borderWidth: 1,
 		borderColor: colors.grey100,
@@ -113,21 +109,11 @@ const styles = StyleSheet.create({
 		borderRadius: 10,
 		paddingBottom: 5,
 		paddingTop: 10,
-	},
-	optionsWrapperAndroid: {
 		shadowColor: colors.grey400,
 		shadowOffset: { width: 0, height: 2 },
 		shadowOpacity: 0.5,
 		shadowRadius: 3,
-		bottom: 65,
-		right: 5,
-	},
-	optionsWrapperIos: {
-		shadowColor: colors.grey400,
-		shadowOffset: { width: 0, height: 2 },
-		shadowOpacity: 0.5,
-		shadowRadius: 3,
-		bottom: 90,
+		bottom: 20,
 		right: 5,
 	},
 	option: {
@@ -225,6 +211,7 @@ const styles = StyleSheet.create({
 	fullScreenModal: {
 		flex: 1,
 	},
+	absoluteFill: StyleSheet.absoluteFillObject,
 });
 
 let wizardScrollAdjusted = false;
@@ -1676,9 +1663,9 @@ export const BrowserTab = (props) => {
 	 * Handle switch network press
 	 */
 	const switchNetwork = () => {
-		const { toggleNetworkModal, network } = props;
+		const { network } = props;
 		toggleOptionsIfNeeded();
-		toggleNetworkModal();
+		props.navigation.navigate('NetworkSwitcherModal');
 		trackSwitchNetworkEvent({ from: network });
 	};
 
@@ -1688,34 +1675,28 @@ export const BrowserTab = (props) => {
 	const renderOptions = () => {
 		if (showOptions) {
 			return (
-				<TouchableWithoutFeedback onPress={toggleOptions}>
-					<View style={styles.optionsOverlay}>
-						<View
-							style={[
-								styles.optionsWrapper,
-								Device.isAndroid() ? styles.optionsWrapperAndroid : styles.optionsWrapperIos,
-							]}
-						>
-							<Button onPress={onNewTabPress} style={styles.option}>
-								<View style={styles.optionIconWrapper}>
-									<MaterialCommunityIcon name="plus" size={18} style={styles.optionIcon} />
-								</View>
-								<Text style={styles.optionText} numberOfLines={1}>
-									{strings('browser.new_tab')}
-								</Text>
-							</Button>
-							{renderNonHomeOptions()}
-							<Button onPress={switchNetwork} style={styles.option}>
-								<View style={styles.optionIconWrapper}>
-									<MaterialCommunityIcon name="earth" size={18} style={styles.optionIcon} />
-								</View>
-								<Text style={styles.optionText} numberOfLines={2}>
-									{strings('browser.switch_network')}
-								</Text>
-							</Button>
-						</View>
+				<View style={styles.optionsOverlay}>
+					<TouchableOpacity onPress={toggleOptions} style={styles.absoluteFill} />
+					<View style={styles.optionsWrapper}>
+						<Button onPress={onNewTabPress} style={styles.option}>
+							<View style={styles.optionIconWrapper}>
+								<MaterialCommunityIcon name="plus" size={18} style={styles.optionIcon} />
+							</View>
+							<Text style={styles.optionText} numberOfLines={1}>
+								{strings('browser.new_tab')}
+							</Text>
+						</Button>
+						{renderNonHomeOptions()}
+						<Button onPress={switchNetwork} style={styles.option}>
+							<View style={styles.optionIconWrapper}>
+								<MaterialCommunityIcon name="earth" size={18} style={styles.optionIcon} />
+							</View>
+							<Text style={styles.optionText} numberOfLines={2}>
+								{strings('browser.switch_network')}
+							</Text>
+						</Button>
 					</View>
-				</TouchableWithoutFeedback>
+				</View>
 			);
 		}
 	};
@@ -2020,10 +2001,6 @@ BrowserTab.propTypes = {
 	 */
 	url: PropTypes.string,
 	/**
-	 * Function to toggle the network switcher modal
-	 */
-	toggleNetworkModal: PropTypes.func,
-	/**
 	 * Function to open a new tab
 	 */
 	newTab: PropTypes.func,
@@ -2102,7 +2079,6 @@ const mapDispatchToProps = (dispatch) => ({
 	removeBookmark: (bookmark) => dispatch(removeBookmark(bookmark)),
 	addToBrowserHistory: ({ url, name }) => dispatch(addToHistory({ url, name })),
 	addToWhitelist: (url) => dispatch(addToWhitelist(url)),
-	toggleNetworkModal: () => dispatch(toggleNetworkModal()),
 	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 });
 

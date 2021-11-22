@@ -4,6 +4,10 @@ export interface Props {
 	 */
 	navigation: any;
 	/**
+	 * Callback for closing drawer
+	 */
+	onCloseDrawer: () => void;
+	/**
 	 * Object representing the selected the selected network
 	 */
 	network: any;
@@ -27,10 +31,6 @@ export interface Props {
 	 * List of keyrings
 	 */
 	keyrings: any;
-	/**
-	 * Action that toggles the network modal
-	 */
-	toggleNetworkModal: any;
 	/**
 	 * Action that toggles the accounts modal
 	 */

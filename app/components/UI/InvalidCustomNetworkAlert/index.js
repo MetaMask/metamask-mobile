@@ -4,6 +4,7 @@ import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import StyledButton from '../StyledButton';
 import PropTypes from 'prop-types';
+import { useNavigation } from '@react-navigation/core';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -49,23 +50,28 @@ const styles = StyleSheet.create({
 });
 
 const InvalidCustomNetworkAlert = (props) => {
-	const closeModal = () => props.onClose();
+	const { network, onClose, navigateTo } = props;
+	const navigation = useNavigation();
+
+	const closeModal = () => {
+		onClose();
+	};
 
 	const goToEditNetwork = () => {
-		closeModal();
-		props.navigation.navigate('SettingsView', { screen: 'NetworkSettings', params: { network: props.network } });
+		navigateTo(() => navigation.navigate('SettingsView', { screen: 'NetworkSettings', params: { network } }));
 	};
 
 	const openLink = () => {
-		closeModal();
-		props.navigation.navigate('Webview', { screen: 'SimpleWebview', params: { url: 'https://chainid.network' } });
+		navigateTo(() =>
+			navigation.navigate('Webview', { screen: 'SimpleWebview', params: { url: 'https://chainid.network' } })
+		);
 	};
 
 	return (
 		<SafeAreaView testID={'invalid-custom-network-alert'}>
 			<View style={styles.wrapper}>
 				<View style={styles.titleWrapper}>
-					<Text style={styles.title}>{strings('invalid_network.title', { network: props.network })}</Text>
+					<Text style={styles.title}>{strings('invalid_network.title', { network })}</Text>
 				</View>
 				<View style={styles.textWrapper}>
 					<Text style={styles.text}>
@@ -74,7 +80,7 @@ const InvalidCustomNetworkAlert = (props) => {
 					<Text style={styles.hint}>
 						{strings('invalid_network.hint')}
 						<Text style={styles.link} onPress={openLink}>
-							chainId.network
+							{'chainId.network'}
 						</Text>
 						.
 					</Text>
@@ -96,10 +102,6 @@ const InvalidCustomNetworkAlert = (props) => {
 
 InvalidCustomNetworkAlert.propTypes = {
 	/**
-	 * Object that represents the navigator
-	 */
-	navigation: PropTypes.object,
-	/**
 	 * Function to close the modal window
 	 */
 	onClose: PropTypes.func.isRequired,
@@ -107,6 +109,10 @@ InvalidCustomNetworkAlert.propTypes = {
 	 * String that represents the invalid network
 	 */
 	network: PropTypes.string,
+	/**
+	 * Callback to navigate to another screen
+	 */
+	navigateTo: PropTypes.func.isRequired,
 };
 
 export default InvalidCustomNetworkAlert;

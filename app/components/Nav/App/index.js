@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { View } from 'react-native';
 import { NavigationContainer, CommonActions } from '@react-navigation/native';
 import { createSwitchNavigator } from '@react-navigation/compat';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -101,18 +102,21 @@ const OnboardingRootNav = () => (
  * after the user is already onboarded
  */
 
-const HomeNav = () => (
-	<Drawer.Navigator
-		drawerContent={(props) => <DrawerView {...props} />}
-		// eslint-disable-next-line
-		drawerStyle={{
-			backgroundColor: 'rgba(0, 0, 0, 0.5)',
-			width: 315,
-		}}
-	>
-		<Drawer.Screen name="Main" component={Main} />
-	</Drawer.Navigator>
-);
+const HomeNav = () => {
+	console.log('HOME');
+	return (
+		<Drawer.Navigator
+			drawerContent={(props) => <DrawerView {...props} />}
+			// eslint-disable-next-line
+			drawerStyle={{
+				backgroundColor: 'rgba(0, 0, 0, 0.5)',
+				width: 315,
+			}}
+		>
+			<Drawer.Screen name="Main" component={Main} />
+		</Drawer.Navigator>
+	);
+};
 
 // Is this necessary?
 /**
@@ -137,21 +141,22 @@ HomeNav.router.getStateForAction = (action, state) => {
  * which top level view to show
  */
 
-const AppNavigator = createSwitchNavigator(
-	{
-		Entry,
-		HomeNav,
-		OnboardingRootNav,
-		Login,
-		OnboardingCarousel,
-		LockScreen,
-	},
-	{
-		initialRouteName: 'Entry',
-	}
-);
+// const AppNavigator = createSwitchNavigator(
+// 	{
+// 		Entry,
+// 		HomeNav,
+// 		OnboardingRootNav,
+// 		Login,
+// 		OnboardingCarousel,
+// 		LockScreen,
+// 	},
+// 	{
+// 		initialRouteName: 'Entry',
+// 	}
+// );
 
 const App = () => {
+	console.log('APP!');
 	const unsubscribeFromBranch = useRef();
 	const navigator = useRef();
 
@@ -199,14 +204,17 @@ const App = () => {
 		initAnalytics();
 	}, []);
 
+	const [showData, setShowData] = useState(false);
+
 	return (
 		<NavigationContainer
 			ref={navigator}
 			onReady={() => {
+				setShowData(true);
 				routingInstrumentation.registerNavigationContainer(navigator);
 			}}
 		>
-			<AppNavigator />
+			{showData ? <Main /> : null}
 		</NavigationContainer>
 	);
 };

@@ -11,14 +11,11 @@ import { hasBlockExplorer, findBlockExplorerForRpc, getBlockExplorerName } from 
 import Identicon from '../Identicon';
 import StyledButton from '../StyledButton';
 import AccountList from '../AccountList';
-import NetworkList from '../NetworkList';
 import { renderFromWei, renderFiat } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
-import { DrawerActions } from '@react-navigation/native';
 import Modal from 'react-native-modal';
 import SecureKeychain from '../../../core/SecureKeychain';
 import {
-	toggleNetworkModal as importedToggleNetworkModal,
 	toggleAccountsModal as importedToggleAccountsModal,
 	toggleReceiveModal as importedToggleReceiveModal,
 } from '../../../actions/modals';
@@ -27,8 +24,8 @@ import importedEngine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 // import PropTypes from 'prop-types';
 // import Device from '../../../util/device';
-// import DeeplinkManager from '../../../core/DeeplinkManager';
-// import AppConstants from '../../../core/AppConstants';
+import DeeplinkManager from '../../../core/DeeplinkManager';
+import AppConstants from '../../../core/AppConstants';
 import OnboardingWizard from '../OnboardingWizard';
 import ReceiveRequest from '../ReceiveRequest';
 import Analytics from '../../../core/Analytics';
@@ -40,12 +37,10 @@ import { newAssetTransaction as importedNewAssetTransaction } from '../../../act
 import { protectWalletModalVisible } from '../../../actions/user';
 import SettingsNotification from '../SettingsNotification';
 import WhatsNewModal from '../WhatsNewModal';
-import InvalidCustomNetworkAlert from '../InvalidCustomNetworkAlert';
 import { RPC } from '../../../constants/network';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import AnalyticsV2, { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
 import { isDefaultAccountName, doENSReverseLookup } from '../../../util/ENSUtils';
-import RenderCounter from '../../../core/RenderCounter';
 import { Props } from './types';
 import styles from './styles';
 
@@ -60,12 +55,11 @@ const ICON_IMAGES = {
  * View component that displays the MetaMask fox
  * in the middle of the screen
  */
-const DrawerView = ({ navigation }: Props) => {
+const DrawerView = ({ navigation, onCloseDrawer }: Props) => {
 	const dispatch = useDispatch();
 	const Engine = importedEngine as any;
 
 	const [showProtectWalletModal, setShowProtectWalletModal] = useState<any>(undefined);
-	const [invalidCustomNetwork, setInvalidCustomNetwork] = useState<any>(undefined);
 	const [account, setAccount] = useState({
 		ens: undefined,
 		name: undefined,
@@ -75,14 +69,16 @@ const DrawerView = ({ navigation }: Props) => {
 	const browserSectionRef = useRef(null);
 	let currentBalanceRef = useRef<number | null>(null);
 	let previousBalanceRef = useRef<number | null>(null);
-	let [animatingNetworksModal, setAnimatingNetworksModal] = useState(false);
 	let [animatingAccountsModal, setAnimatingAccountsModal] = useState(false);
 
 	// const accounts = useSelector((state: any) =>state.engine.backgroundState.AccountTrackerController.accounts)
-	// const tokens = useSelector((state: any) =>state.engine.backgroundState.TokensController.tokens)
-	// const tokenBalances = useSelector((state: any) =>state.engine.backgroundState.TokenBalancesController.contractBalances)
-	// const collectibles = useSelector((state: any) =>state.engine.backgroundState.CollectiblesController.collectibles)
+	const tokens = useSelector((state: any) => state.engine.backgroundState.TokensController.tokens);
+	const tokenBalances = useSelector(
+		(state: any) => state.engine.backgroundState.TokenBalancesController.contractBalances
+	);
+	const collectibles = useSelector((state: any) => state.engine.backgroundState.CollectiblesController.collectibles);
 	const network = useSelector((state: any) => state.engine.backgroundState.NetworkController);
+
 	const selectedAddress = useSelector(
 		(state: any) => state.engine.backgroundState.PreferencesController.selectedAddress
 	);
@@ -94,7 +90,6 @@ const DrawerView = ({ navigation }: Props) => {
 		(state: any) => state.engine.backgroundState.CurrencyRateController.currentCurrency
 	);
 	const keyrings = useSelector((state: any) => state.engine.backgroundState.KeyringController.keyrings);
-	const networkModalVisible = useSelector((state: any) => state.modals.networkModalVisible);
 	const accountsModalVisible = useSelector((state: any) => state.modals.accountsModalVisible);
 	const receiveModalVisible = useSelector((state: any) => state.modals.receiveModalVisible);
 	const passwordSet = useSelector((state: any) => state.user.passwordSet);
@@ -102,7 +97,6 @@ const DrawerView = ({ navigation }: Props) => {
 	const ticker = useSelector((state: any) => state.engine.backgroundState.NetworkController.provider.ticker);
 	const seedphraseBackedUp = useSelector((state: any) => state.user.seedphraseBackedUp);
 
-	const toggleNetworkModal = () => dispatch(importedToggleNetworkModal());
 	const toggleAccountsModal = () => dispatch(importedToggleAccountsModal());
 	const toggleReceiveModal = () => dispatch(importedToggleReceiveModal());
 	const newAssetTransaction = (selectedAsset: any) => dispatch(importedNewAssetTransaction(selectedAsset));
@@ -120,64 +114,6 @@ const DrawerView = ({ navigation }: Props) => {
 		return ret;
 	};
 
-	// async componentDidUpdate() {
-	// 	const route = findRouteNameFromNavigatorState(this.props.navigation.dangerouslyGetState().routes);
-	// 	if (!this.props.passwordSet || !this.props.seedphraseBackedUp) {
-	// 		if (
-	// 			[
-	// 				'SetPasswordFlow',
-	// 				'ChoosePassword',
-	// 				'AccountBackupStep1',
-	// 				'AccountBackupStep1B',
-	// 				'ManualBackupStep1',
-	// 				'ManualBackupStep2',
-	// 				'ManualBackupStep3',
-	// 				'Webview',
-	// 				'LockScreen',
-	// 			].includes(route)
-	// 		) {
-	// 			// eslint-disable-next-line react/no-did-update-set-state
-	// 			this.state.showProtectWalletModal && this.setState({ showProtectWalletModal: false });
-	// 			return;
-	// 		}
-	// 		let tokenFound = false;
-
-	// 		this.props.tokens.forEach((token) => {
-	// 			if (this.props.tokenBalances[token.address] && !this.props.tokenBalances[token.address]?.isZero()) {
-	// 				tokenFound = true;
-	// 			}
-	// 		});
-	// 		if (
-	// 			!this.props.passwordSet ||
-	// 			this.currentBalance > 0 ||
-	// 			tokenFound ||
-	// 			this.props.collectibles.length > 0
-	// 		) {
-	// 			// eslint-disable-next-line react/no-did-update-set-state
-	// 			this.setState({ showProtectWalletModal: true });
-	// 			InteractionManager.runAfterInteractions(() => {
-	// 				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_VIEWED, {
-	// 					wallet_protection_required: false,
-	// 					source: 'Backup Alert',
-	// 				});
-	// 			});
-	// 		} else {
-	// 			// eslint-disable-next-line react/no-did-update-set-state
-	// 			this.setState({ showProtectWalletModal: false });
-	// 		}
-	// 	} else {
-	// 		// eslint-disable-next-line react/no-did-update-set-state
-	// 		this.setState({ showProtectWalletModal: false });
-	// 	}
-	// 	const pendingDeeplink = DeeplinkManager.getPendingDeeplink();
-	// 	const { KeyringController } = Engine.context;
-	// 	if (pendingDeeplink && KeyringController.isUnlocked() && route !== 'LockScreen') {
-	// 		DeeplinkManager.expireDeeplink();
-	// 		DeeplinkManager.parse(pendingDeeplink, { origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK });
-	// 	}
-	// 	await updateAccountInfo();
-	// }
-
 	const updateAccountInfo = useCallback(async () => {
 		const { currentNetwork, address, name } = account;
 		const accountName = identities[selectedAddress].name;
@@ -192,13 +128,74 @@ const DrawerView = ({ navigation }: Props) => {
 		}
 	}, [account, identities, selectedAddress, network]);
 
+	useEffect(() => {
+		const onComponentUpdate = async () => {
+			const route = findRouteNameFromNavigatorState(navigation.dangerouslyGetState().routes);
+			if (!passwordSet || !seedphraseBackedUp) {
+				if (
+					[
+						'SetPasswordFlow',
+						'ChoosePassword',
+						'AccountBackupStep1',
+						'AccountBackupStep1B',
+						'ManualBackupStep1',
+						'ManualBackupStep2',
+						'ManualBackupStep3',
+						'Webview',
+						'LockScreen',
+					].includes(route)
+				) {
+					// eslint-disable-next-line react/no-did-update-set-state
+					showProtectWalletModal && showProtectWalletModal(false);
+					return;
+				}
+				let tokenFound = false;
+
+				tokens.forEach((token: any) => {
+					if (tokenBalances[token.address] && !tokenBalances[token.address]?.isZero()) {
+						tokenFound = true;
+					}
+				});
+				if (!passwordSet || currentBalanceRef.current > 0 || tokenFound || collectibles.length > 0) {
+					// eslint-disable-next-line react/no-did-update-set-state
+					setShowProtectWalletModal(true);
+					InteractionManager.runAfterInteractions(() => {
+						AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_VIEWED, {
+							wallet_protection_required: false,
+							source: 'Backup Alert',
+						});
+					});
+				} else {
+					// eslint-disable-next-line react/no-did-update-set-state
+					setShowProtectWalletModal(false);
+				}
+			} else {
+				// eslint-disable-next-line react/no-did-update-set-state
+				setShowProtectWalletModal(false);
+			}
+			const pendingDeeplink = DeeplinkManager.getPendingDeeplink();
+			const { KeyringController } = Engine.context;
+			if (pendingDeeplink && KeyringController.isUnlocked() && route !== 'LockScreen') {
+				DeeplinkManager.expireDeeplink();
+				DeeplinkManager.parse(pendingDeeplink, { origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK });
+			}
+			await updateAccountInfo();
+		};
+		onComponentUpdate();
+	}, [
+		navigation,
+		passwordSet,
+		seedphraseBackedUp,
+		showProtectWalletModal,
+		setShowProtectWalletModal,
+		collectibles,
+		tokenBalances,
+		tokens,
+		updateAccountInfo,
+	]);
+
 	const hideDrawer = () => {
-		return new Promise((resolve) => {
-			navigation.dispatch(DrawerActions.closeDrawer());
-			setTimeout(() => {
-				resolve(null);
-			}, 300);
-		});
+		onCloseDrawer();
 	};
 
 	const goToBrowserUrl = useCallback(
@@ -239,31 +236,7 @@ const DrawerView = ({ navigation }: Props) => {
 		!accountsModalVisible && trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_ACCOUNT_NAME);
 	}, [animatingAccountsModal, setAnimatingAccountsModal, toggleAccountsModal, accountsModalVisible, trackEvent]);
 
-	const triggerToggleNetworksModal = useCallback(() => {
-		if (!animatingNetworksModal) {
-			setAnimatingNetworksModal(true);
-			toggleNetworkModal();
-			setTimeout(() => {
-				setAnimatingNetworksModal(false);
-			}, 500);
-		}
-	}, [animatingNetworksModal, setAnimatingNetworksModal, toggleNetworkModal]);
-
-	const onNetworksModalClose = useCallback(
-		async (manualClose: boolean) => {
-			triggerToggleNetworksModal();
-			if (!manualClose) {
-				await hideDrawer();
-			}
-		},
-		[triggerToggleNetworksModal, hideDrawer]
-	);
-
 	const triggerToggleReceiveModal = useCallback(() => {
-		toggleReceiveModal();
-	}, [toggleReceiveModal]);
-
-	const showReceiveModal = useCallback(() => {
 		toggleReceiveModal();
 	}, [toggleReceiveModal]);
 
@@ -515,16 +488,6 @@ const DrawerView = ({ navigation }: Props) => {
 		onShare,
 	]);
 
-	const closeInvalidCustomNetworkAlert = () => {
-		setInvalidCustomNetwork(null);
-	};
-
-	const showInvalidCustomNetworkAlert = (network: any) => {
-		InteractionManager.runAfterInteractions(() => {
-			setInvalidCustomNetwork(network);
-		});
-	};
-
 	/**
 	 * Return step 5 of onboarding wizard if that is the current step
 	 */
@@ -576,8 +539,6 @@ const DrawerView = ({ navigation }: Props) => {
 		[showProtectWalletModal, passwordSet, onSecureWalletModalAction]
 	);
 
-	RenderCounter.recordRender('Drawer');
-
 	const { name, ens } = account;
 	// const constructedAccount = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
 	// constructedAccount.balance = (accounts[selectedAddress] && renderFromWei(accounts[selectedAddress].balance)) || 0;
@@ -609,11 +570,7 @@ const DrawerView = ({ navigation }: Props) => {
 								<Identicon diameter={48} address={selectedAddress} />
 							</View>
 						</TouchableOpacity>
-						<TouchableOpacity
-							style={styles.accountInfo}
-							onPress={triggerToggleAccountsModal}
-							testID={'navbar-account-button'}
-						>
+						<TouchableOpacity onPress={triggerToggleAccountsModal} testID={'navbar-account-button'}>
 							<View style={styles.accountNameWrapper}>
 								<Text style={styles.accountName} numberOfLines={1}>
 									{isDefaultAccountName(name) && ens ? ens : name}
@@ -684,68 +641,55 @@ const DrawerView = ({ navigation }: Props) => {
 											}
 											return true;
 										})
-										.map((item, j) => (
-											<TouchableOpacity
-												key={`item_${i}_${j}`}
-												style={[
-													styles.menuItem,
-													item.routeNames && item.routeNames.includes(currentRoute)
-														? styles.selectedRoute
-														: null,
-												]}
-												ref={item.name === strings('drawer.browser') ? browserSectionRef : null}
-												onPress={() => item.action()} // eslint-disable-line
-											>
-												{item.icon
-													? item.routeNames && item.routeNames.includes(currentRoute)
-														? item.selectedIcon
-														: item.icon
-													: null}
-												<Text
+										.map((item, j) => {
+											return (
+												<TouchableOpacity
+													key={`item_${i}_${j}`}
 													style={[
-														styles.menuItemName,
-														!item.icon ? styles.noIcon : null,
+														styles.menuItem,
 														item.routeNames && item.routeNames.includes(currentRoute)
-															? styles.selectedName
+															? styles.selectedRoute
 															: null,
 													]}
-													numberOfLines={1}
+													ref={
+														item.name === strings('drawer.browser')
+															? browserSectionRef
+															: null
+													}
+													onPress={() => item.action()} // eslint-disable-line
 												>
-													{item.name}
-												</Text>
-												{!seedphraseBackedUp && item.warning ? (
-													<SettingsNotification isNotification isWarning>
-														<Text style={styles.menuItemWarningText}>{item.warning}</Text>
-													</SettingsNotification>
-												) : null}
-											</TouchableOpacity>
-										))}
+													{item.icon
+														? item.routeNames && item.routeNames.includes(currentRoute)
+															? item.selectedIcon
+															: item.icon
+														: null}
+													<Text
+														style={[
+															styles.menuItemName,
+															!item.icon ? styles.noIcon : null,
+															item.routeNames && item.routeNames.includes(currentRoute)
+																? styles.selectedName
+																: null,
+														]}
+														numberOfLines={1}
+													>
+														{item.name}
+													</Text>
+													{!seedphraseBackedUp && item.warning ? (
+														<SettingsNotification isNotification isWarning>
+															<Text style={styles.menuItemWarningText}>
+																{item.warning}
+															</Text>
+														</SettingsNotification>
+													) : null}
+												</TouchableOpacity>
+											);
+										})}
 								</View>
 							)
 					)}
 				</View>
 			</ScrollView>
-			<Modal
-				isVisible={networkModalVisible}
-				onBackdropPress={triggerToggleNetworksModal}
-				onBackButtonPress={triggerToggleNetworksModal}
-				onSwipeComplete={triggerToggleNetworksModal}
-				swipeDirection={'down'}
-				propagateSwipe
-			>
-				<NetworkList
-					navigation={navigation}
-					onClose={onNetworksModalClose}
-					showInvalidCustomNetworkAlert={showInvalidCustomNetworkAlert}
-				/>
-			</Modal>
-			<Modal isVisible={!!invalidCustomNetwork}>
-				<InvalidCustomNetworkAlert
-					navigation={navigation}
-					network={invalidCustomNetwork}
-					onClose={closeInvalidCustomNetworkAlert}
-				/>
-			</Modal>
 			<Modal
 				isVisible={accountsModalVisible}
 				style={styles.bottomModal}
@@ -775,13 +719,9 @@ const DrawerView = ({ navigation }: Props) => {
 				propagateSwipe
 				style={styles.bottomModal}
 			>
-				<ReceiveRequest
-					navigation={navigation}
-					hideModal={triggerToggleReceiveModal}
-					showReceiveModal={showReceiveModal}
-				/>
+				<ReceiveRequest navigation={navigation} hideModal={triggerToggleReceiveModal} />
 			</Modal>
-			<WhatsNewModal navigation={navigation} enabled={showProtectWalletModal === false} />
+			<WhatsNewModal enabled={showProtectWalletModal === false} />
 
 			{renderProtectModal()}
 		</View>

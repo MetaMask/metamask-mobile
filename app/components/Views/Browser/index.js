@@ -1,8 +1,13 @@
-import React, { PureComponent } from 'react';
-import { connect } from 'react-redux';
+import React, { useContext, useEffect, useRef } from 'react';
 import { View, Dimensions } from 'react-native';
 import PropTypes from 'prop-types';
-import { createNewTab, closeAllTabs, closeTab, setActiveTab, updateTab } from '../../../actions/browser';
+import {
+	createNewTab as importedCreateNewTab,
+	closeAllTabs as importedCloseAllTabs,
+	closeTab as importedClosedTab,
+	setActiveTab as importedSetActiveTab,
+	updateTab as importedUpdateTab,
+} from '../../../actions/browser';
 import Tabs from '../../UI/Tabs';
 import { getBrowserViewNavbarOptions } from '../../UI/Navbar';
 import { captureScreen } from 'react-native-view-shot';
@@ -11,139 +16,151 @@ import Device from '../../../util/device';
 import BrowserTab from '../BrowserTab';
 import AppConstants from '../../../core/AppConstants';
 import { baseStyles } from '../../../styles/common';
+import { DrawerContext } from '../../Nav/Main/MainNavigator';
+import { useNavigation } from '@react-navigation/core';
+import { useDispatch, useSelector } from 'react-redux';
 
 const margin = 16;
 const THUMB_WIDTH = Dimensions.get('window').width / 2 - margin * 2;
 const THUMB_HEIGHT = Device.isIos() ? THUMB_WIDTH * 1.81 : THUMB_WIDTH * 1.48;
 
+// interface Props {
+// 	/**
+// 	 * react-navigation object used to switch between screens
+// 	 */
+// 	navigation: PropTypes.object,
+// 	/**
+// 	 * Function to create a new tab
+// 	 */
+// 	createNewTab: PropTypes.func,
+// 	/**
+// 	 * Function to close all the existing tabs
+// 	 */
+// 	closeAllTabs: PropTypes.func,
+// 	/**
+// 	 * Function to close a specific tab
+// 	 */
+// 	closeTab: PropTypes.func,
+// 	/**
+// 	 * Function to set the active tab
+// 	 */
+// 	setActiveTab: PropTypes.func,
+// 	/**
+// 	 * Function to set the update the url of a tab
+// 	 */
+// 	updateTab: PropTypes.func,
+// 	/**
+// 	 * Array of tabs
+// 	 */
+// 	tabs: PropTypes.array,
+// 	/**
+// 	 * ID of the active tab
+// 	 */
+// 	activeTab: PropTypes.number,
+// 	/**
+// 	 * Object that represents the current route info like params passed to it
+// 	 */
+// 	route: PropTypes.object,
+// }
+
 /**
  * PureComponent that wraps all the browser
  * individual tabs and the tabs view
  */
-class Browser extends PureComponent {
-	static propTypes = {
-		/**
-		 * react-navigation object used to switch between screens
-		 */
-		navigation: PropTypes.object,
-		/**
-		 * Function to create a new tab
-		 */
-		createNewTab: PropTypes.func,
-		/**
-		 * Function to close all the existing tabs
-		 */
-		closeAllTabs: PropTypes.func,
-		/**
-		 * Function to close a specific tab
-		 */
-		closeTab: PropTypes.func,
-		/**
-		 * Function to set the active tab
-		 */
-		setActiveTab: PropTypes.func,
-		/**
-		 * Function to set the update the url of a tab
-		 */
-		updateTab: PropTypes.func,
-		/**
-		 * Array of tabs
-		 */
-		tabs: PropTypes.array,
-		/**
-		 * ID of the active tab
-		 */
-		activeTab: PropTypes.number,
-		/**
-		 * Object that represents the current route info like params passed to it
-		 */
-		route: PropTypes.object,
-	};
-	static navigationOptions = ({ navigation, route }) => getBrowserViewNavbarOptions(navigation, route);
+const Browser = ({ route }) => {
+	const navigation = useNavigation();
+	const dispatch = useDispatch();
+	const { drawerRef } = useContext(DrawerContext);
 
-	componentDidMount() {
-		if (!this.props.tabs.length) {
-			this.newTab();
+	const newTabUrlRef = useRef(undefined);
+
+	const tabs = useSelector((state) => state.browser.tabs);
+	const activeTab = useSelector((state) => state.browser.activeTab);
+	const createNewTab = (url) => dispatch(importedCreateNewTab(url));
+	const triggerCloseAllTabs = () => dispatch(importedCloseAllTabs());
+	const triggerCloseTab = (id) => dispatch(importedClosedTab(id));
+	const setActiveTab = (id) => dispatch(importedSetActiveTab(id));
+	const updateTab = (id, url) => dispatch(importedUpdateTab(id, url));
+
+	useEffect(() => {
+		navigation.setOptions(getBrowserViewNavbarOptions(navigation, route, drawerRef));
+	}, [navigation, route]);
+
+	// componentDidMount
+	useEffect(() => {
+		if (!tabs.length) {
+			newTab();
 		}
 
-		const activeTab = this.props.tabs.find((tab) => tab.id === this.props.activeTab);
+		const activeTab = tabs.find((tab) => tab.id === activeTab);
 		if (activeTab) {
-			this.switchToTab(activeTab);
+			switchToTab(activeTab);
 		} else {
-			this.props.tabs.length > 0 && this.switchToTab(this.props.tabs[0]);
+			tabs.length > 0 && switchToTab(tabs[0]);
 		}
 
-		const currentUrl = this.props.route.params?.newTabUrl;
-		if (currentUrl) this.goToNewTab(currentUrl);
-	}
+		const currentUrl = route.params?.newTabUrl;
+		if (currentUrl) goToNewTab(currentUrl);
+	}, []);
 
-	componentDidUpdate(prevProps) {
-		const prevRoute = prevProps.route;
-		const { route } = this.props;
-
-		if (prevRoute && route) {
-			const prevUrl = prevRoute.params?.newTabUrl;
-			const currentUrl = route.params?.newTabUrl;
-
-			if (currentUrl && prevUrl !== currentUrl) {
-				this.goToNewTab(currentUrl);
-			}
+	useEffect(() => {
+		const newTabUrl = route.params?.newTabUrl;
+		if (newTabUrlRef.current !== newTabUrl) {
+			newTabUrlRef.current = newTabUrl;
+			goToNewTab(newTabUrl);
 		}
-	}
+	}, [route.params?.newTabUrl]);
 
-	goToNewTab = (url) => {
-		this.newTab(url);
-		this.props.navigation.setParams({
-			...this.props.route.params,
+	const goToNewTab = (url) => {
+		newTab(url);
+		navigation.setParams({
+			...route.params,
 			newTabUrl: null,
 		});
 	};
 
-	showTabs = async () => {
+	const showTabs = async () => {
 		try {
-			const activeTab = this.props.tabs.find((tab) => tab.id === this.props.activeTab);
-			await this.takeScreenshot(activeTab.url, activeTab.id);
+			const activeTab = tabs.find((tab) => tab.id === activeTab);
+			await takeScreenshot(activeTab.url, activeTab.id);
 		} catch (e) {
 			Logger.error(e);
 		}
 
-		this.props.navigation.setParams({
-			...this.props.route.params,
+		navigation.setParams({
+			...route.params,
 			showTabs: true,
 		});
 	};
 
-	hideTabsAndUpdateUrl = (url) => {
-		this.props.navigation.setParams({
-			...this.props.route.params,
+	const hideTabsAndUpdateUrl = (url) => {
+		navigation.setParams({
+			...route.params,
 			showTabs: false,
 			url,
 			silent: false,
 		});
 	};
 
-	closeAllTabs = () => {
-		if (this.props.tabs.length) {
-			this.props.closeAllTabs();
-			this.props.navigation.setParams({
-				...this.props.route.params,
+	const closeAllTabs = () => {
+		if (tabs.length) {
+			triggerCloseAllTabs();
+			navigation.setParams({
+				...route.params,
 				url: null,
 				silent: true,
 			});
 		}
 	};
 
-	newTab = (url) => {
-		this.props.createNewTab(url || AppConstants.HOMEPAGE_URL);
+	const newTab = (url) => {
+		createNewTab(url || AppConstants.HOMEPAGE_URL);
 		setTimeout(() => {
-			const { tabs } = this.props;
-			this.switchToTab(tabs[tabs.length - 1]);
+			switchToTab(tabs[tabs.length - 1]);
 		}, 100);
 	};
 
-	closeTab = (tab) => {
-		const { activeTab, tabs } = this.props;
-
+	const closeTab = (tab) => {
 		// If the tab was selected we have to select
 		// the next one, and if there's no next one,
 		// we select the previous one.
@@ -155,67 +172,66 @@ class Browser extends PureComponent {
 						if (tabs[i + 1]) {
 							newTab = tabs[i + 1];
 						}
-						this.props.setActiveTab(newTab.id);
-						this.props.navigation.setParams({
-							...this.props.route.params,
+						setActiveTab(newTab.id);
+						navigation.setParams({
+							...route.params,
 							url: newTab.url,
 							silent: true,
 						});
 					}
 				});
 			} else {
-				this.props.navigation.setParams({
-					...this.props.route.params,
+				navigation.setParams({
+					...route.params,
 					url: null,
 					silent: true,
 				});
 			}
 		}
 
-		this.props.closeTab(tab.id);
+		triggerCloseTab(tab.id);
 	};
 
-	closeTabsView = () => {
-		if (this.props.tabs.length) {
-			this.props.navigation.setParams({
-				...this.props.route.params,
+	const closeTabsView = () => {
+		if (tabs.length) {
+			navigation.setParams({
+				...route.params,
 				showTabs: false,
 				silent: true,
 			});
 		}
 	};
 
-	switchToTab = (tab) => {
-		this.props.setActiveTab(tab.id);
-		this.hideTabsAndUpdateUrl(tab.url);
-		this.updateTabInfo(tab.url, tab.id);
+	const switchToTab = (tab) => {
+		setActiveTab(tab.id);
+		hideTabsAndUpdateUrl(tab.url);
+		updateTabInfo(tab.url, tab.id);
 	};
 
-	renderTabsView() {
-		const { tabs, activeTab } = this.props;
-		const showTabs = this.props.route.params?.showTabs;
+	const renderTabsView = () => {
+		const showTabs = route.params?.showTabs;
 		if (showTabs) {
 			return (
 				<Tabs
 					tabs={tabs}
 					activeTab={activeTab}
-					switchToTab={this.switchToTab}
-					newTab={this.newTab}
-					closeTab={this.closeTab}
-					closeTabsView={this.closeTabsView}
-					closeAllTabs={this.closeAllTabs}
+					switchToTab={switchToTab}
+					newTab={newTab}
+					closeTab={closeTab}
+					closeTabsView={closeTabsView}
+					closeAllTabs={closeAllTabs}
 				/>
 			);
 		}
 		return null;
-	}
+	};
 
-	updateTabInfo = (url, tabID) =>
-		this.props.updateTab(tabID, {
+	const updateTabInfo = (url, tabID) =>
+		updateTab(tabID, {
 			url,
 		});
 
-	takeScreenshot = (url, tabID) =>
+	const takeScreenshot = (url, tabID) =>
 		new Promise((resolve, reject) => {
 			captureScreen({
 				format: 'jpg',
@@ -224,8 +240,6 @@ class Browser extends PureComponent {
 				THUMB_HEIGHT,
 			}).then(
 				(uri) => {
-					const { updateTab } = this.props;
-
 					updateTab(tabID, {
 						url,
 						image: uri,
@@ -239,39 +253,24 @@ class Browser extends PureComponent {
 			);
 		});
 
-	renderBrowserTabs = () =>
-		this.props.tabs.map((tab) => (
+	const renderBrowserTabs = () =>
+		tabs.map((tab) => (
 			<BrowserTab
 				id={tab.id}
 				key={`tab_${tab.id}`}
 				initialUrl={tab.url || AppConstants.HOMEPAGE_URL}
-				updateTabInfo={this.updateTabInfo}
-				showTabs={this.showTabs}
-				newTab={this.newTab}
+				updateTabInfo={updateTabInfo}
+				showTabs={showTabs}
+				newTab={newTab}
 			/>
 		));
 
-	render() {
-		return (
-			<View style={baseStyles.flexGrow} testID={'browser-screen'}>
-				{this.renderBrowserTabs()}
-				{this.renderTabsView()}
-			</View>
-		);
-	}
-}
+	return (
+		<View style={baseStyles.flexGrow} testID={'browser-screen'}>
+			{renderBrowserTabs()}
+			{renderTabsView()}
+		</View>
+	);
+};
 
-const mapStateToProps = (state) => ({
-	tabs: state.browser.tabs,
-	activeTab: state.browser.activeTab,
-});
-
-const mapDispatchToProps = (dispatch) => ({
-	createNewTab: (url) => dispatch(createNewTab(url)),
-	closeAllTabs: () => dispatch(closeAllTabs()),
-	closeTab: (id) => dispatch(closeTab(id)),
-	setActiveTab: (id) => dispatch(setActiveTab(id)),
-	updateTab: (id, url) => dispatch(updateTab(id, url)),
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(Browser);
+export default Browser;

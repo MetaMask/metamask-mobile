@@ -5,6 +5,7 @@ import Device from '../../../util/device';
 export default StyleSheet.create({
 	wrapper: {
 		flex: 1,
+		width: 315,
 		backgroundColor: colors.white,
 	},
 	header: {

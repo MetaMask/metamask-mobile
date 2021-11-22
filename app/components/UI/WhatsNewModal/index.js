@@ -9,7 +9,7 @@ import {
 	Image,
 	InteractionManager,
 } from 'react-native';
-import { useNavigationState } from '@react-navigation/native';
+import { useNavigationState } from '@react-navigation/core';
 import ActionModal from '../ActionModal';
 import { colors, fontStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/FontAwesome';

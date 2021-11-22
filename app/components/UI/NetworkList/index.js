@@ -140,9 +140,13 @@ export class NetworkList extends PureComponent {
 
 	getOtherNetworks = () => getAllNetworks().slice(1);
 
+	closeModal = () => {
+		this.props.onClose();
+	};
+
 	onNetworkChange = (type) => {
 		requestAnimationFrame(() => {
-			this.props.onClose(false);
+			this.closeModal();
 			InteractionManager.runAfterInteractions(() => {
 				const { NetworkController, CurrencyRateController } = Engine.context;
 				CurrencyRateController.setNativeCurrency('ETH');
@@ -161,10 +165,6 @@ export class NetworkList extends PureComponent {
 		});
 	};
 
-	closeModal = () => {
-		this.props.onClose(true);
-	};
-
 	onSetRpcTarget = async (rpcTarget) => {
 		const { frequentRpcList } = this.props;
 		const { NetworkController, CurrencyRateController } = Engine.context;
@@ -180,7 +180,6 @@ export class NetworkList extends PureComponent {
 		// If the network does not have chainId then show invalid custom network alert
 		const chainIdNumber = parseInt(chainId, 10);
 		if (!isSafeChainId(chainIdNumber)) {
-			this.props.onClose(false);
 			this.props.showInvalidCustomNetworkAlert(rpcTarget);
 			return;
 		}
@@ -197,7 +196,7 @@ export class NetworkList extends PureComponent {
 			network_name: 'rpc',
 		});
 
-		this.props.onClose(false);
+		this.closeModal();
 	};
 
 	networkElement = (selected, onPress, name, color, i, network) => (

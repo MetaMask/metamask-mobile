@@ -16,7 +16,7 @@ export default function setupSentry() {
 	const dsn = environment === 'production' ? SENTRY_DSN_PROD : SENTRY_DSN_DEV;
 	Sentry.init({
 		dsn,
-		debug: __DEV__,
+		debug: false,
 		environment,
 		integrations: [
 			new Dedupe(),
