@@ -95,10 +95,7 @@ const styles = StyleSheet.create({
 	},
 	optionsOverlay: {
 		zIndex: 1,
-		top: 0,
-		bottom: 0,
-		left: 0,
-		right: 0,
+		...StyleSheet.absoluteFillObject,
 	},
 	optionsWrapper: {
 		position: 'absolute',
@@ -113,8 +110,13 @@ const styles = StyleSheet.create({
 		shadowOffset: { width: 0, height: 2 },
 		shadowOpacity: 0.5,
 		shadowRadius: 3,
-		bottom: 20,
 		right: 5,
+	},
+	optionsWrapperIos: {
+		bottom: 90,
+	},
+	optionsWrapperAndroid: {
+		bottom: 65,
 	},
 	option: {
 		paddingVertical: 10,
@@ -1677,7 +1679,12 @@ export const BrowserTab = (props) => {
 			return (
 				<View style={styles.optionsOverlay}>
 					<TouchableOpacity onPress={toggleOptions} style={styles.absoluteFill} />
-					<View style={styles.optionsWrapper}>
+					<View
+						style={[
+							styles.optionsWrapper,
+							Device.isAndroid() ? styles.optionsWrapperAndroid : styles.optionsWrapperIos,
+						]}
+					>
 						<Button onPress={onNewTabPress} style={styles.option}>
 							<View style={styles.optionIconWrapper}>
 								<MaterialCommunityIcon name="plus" size={18} style={styles.optionIcon} />
