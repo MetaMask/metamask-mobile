@@ -169,6 +169,7 @@ class Onboarding extends PureComponent {
 		 * Object that represents the current route info like params passed to it
 		 */
 		route: PropTypes.object,
+		logOut: PropTypes.func,
 	};
 
 	notificationAnimated = new Animated.Value(100);
@@ -245,6 +246,11 @@ class Onboarding extends PureComponent {
 		}
 	}
 
+	logOut = () => {
+		this.props.navigation.navigate('Login');
+		this.props.logOut();
+	};
+
 	onLogin = async () => {
 		const { passwordSet } = this.props;
 		if (!passwordSet) {
@@ -254,7 +260,7 @@ class Onboarding extends PureComponent {
 			await SecureKeychain.resetGenericPassword();
 			this.props.navigation.navigate('HomeNav');
 		} else {
-			this.props.navigation.navigate('Login');
+			this.logOut();
 		}
 	};
 
