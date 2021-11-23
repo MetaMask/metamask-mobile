@@ -28,6 +28,7 @@ import Engine from '../../../core/Engine';
 import { useDispatch, useSelector } from 'react-redux';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import {
+	logIn,
 	loadingSet,
 	loadingUnset,
 	seedphraseNotBackedUp as backedUpSeed,
@@ -111,6 +112,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
 	const passwordHasBeenSet = useCallback(() => dispatch(passwordIsSet()), [dispatch]);
 	const seedphraseBackedUp = useCallback(() => dispatch(backedUpSeed()), [dispatch]);
 	const setLockTime = useCallback((time: number) => dispatch(lockTimeSet(time)), [dispatch]);
+	const setLogIn = useCallback(() => dispatch(logIn()), [dispatch]);
 
 	useEffect(
 		() => {
@@ -168,6 +170,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
 				await AsyncStorage.setItem(EXISTING_USER, TRUE);
 				await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
 				passwordHasBeenSet();
+				setLogIn();
 				setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 				seedphraseBackedUp();
 				dataToSyncRef.current = null;
@@ -190,7 +193,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
 				navigation.goBack();
 			}
 		},
-		[unsetLoading, passwordHasBeenSet, setLockTime, seedphraseBackedUp, track, navigation]
+		[setLogIn, unsetLoading, passwordHasBeenSet, setLockTime, seedphraseBackedUp, track, navigation]
 	);
 
 	const disconnect = useCallback(async () => {

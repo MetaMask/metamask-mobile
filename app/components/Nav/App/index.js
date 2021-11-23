@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { NavigationContainer, CommonActions } from '@react-navigation/native';
-import { createSwitchNavigator } from '@react-navigation/compat';
+import { Animated } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import Login from '../../Views/Login';
@@ -16,11 +16,10 @@ import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ImportFromSeed from '../../Views/ImportFromSeed';
 import SyncWithExtensionSuccess from '../../Views/SyncWithExtensionSuccess';
-import Entry from '../../Views/Entry';
-import LockScreen from '../../Views/LockScreen';
 import Main from '../Main';
 import DrawerView from '../../UI/DrawerView';
 import OptinMetrics from '../../UI/OptinMetrics';
+import MetaMaskAnimation from '../../UI/MetaMaskAnimation';
 import SimpleWebview from '../../Views/SimpleWebview';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager';
 import Engine from '../../../core/Engine';
@@ -30,6 +29,11 @@ import Logger from '../../../util/Logger';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { routingInstrumentation } from '../../../util/setupSentry';
 import Analytics from '../../../core/Analytics';
+import AsyncStorage from '@react-native-community/async-storage';
+import { connect } from 'react-redux';
+
+import { EXISTING_USER, CURRENT_APP_VERSION, LAST_APP_VERSION } from '../../../constants/storage';
+import { getVersion } from 'react-native-device-info';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -132,28 +136,16 @@ HomeNav.router.getStateForAction = (action, state) => {
 };
 */
 
-/**
- * Top level switch navigator which decides
- * which top level view to show
- */
-
-const AppNavigator = createSwitchNavigator(
-	{
-		Entry,
-		HomeNav,
-		OnboardingRootNav,
-		Login,
-		OnboardingCarousel,
-		LockScreen,
-	},
-	{
-		initialRouteName: 'Entry',
-	}
-);
-
-const App = () => {
+const App = ({ userLoggedIn }) => {
 	const unsubscribeFromBranch = useRef();
+
+	const animation = useRef(null);
+	const animationName = useRef(null);
+	const opacity = useRef(new Animated.Value(1)).current;
 	const navigator = useRef();
+
+	const [route, setRoute] = useState();
+	const [animationPlayed, setAnimationPlayed] = useState();
 
 	const handleDeeplink = useCallback(({ error, params, uri }) => {
 		if (error) {
@@ -199,16 +191,98 @@ const App = () => {
 		initAnalytics();
 	}, []);
 
+	useEffect(() => {
+		async function checkExsiting() {
+			const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+			const route = !existingUser ? 'OnboardingRootNav' : 'Login';
+			setRoute(route);
+		}
+
+		checkExsiting();
+	});
+
+	useEffect(() => {
+		async function startApp() {
+			const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+			try {
+				const currentVersion = await getVersion();
+				const savedVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
+				if (currentVersion !== savedVersion) {
+					if (savedVersion) await AsyncStorage.setItem(LAST_APP_VERSION, savedVersion);
+					await AsyncStorage.setItem(CURRENT_APP_VERSION, currentVersion);
+				}
+
+				const lastVersion = await AsyncStorage.getItem(LAST_APP_VERSION);
+				if (!lastVersion) {
+					if (existingUser) {
+						// Setting last version to first version if user exists and lastVersion does not, to simulate update
+						await AsyncStorage.setItem(LAST_APP_VERSION, '0.0.1');
+					} else {
+						// Setting last version to current version so that it's not treated as an update
+						await AsyncStorage.setItem(LAST_APP_VERSION, currentVersion);
+					}
+				}
+			} catch (error) {
+				Logger.error(error);
+			}
+
+			animation?.current?.play();
+			animationName?.current?.play();
+		}
+
+		startApp();
+	}, []);
+
+	const onAnimationFinished = useCallback(() => {
+		Animated.timing(opacity, {
+			toValue: 0,
+			duration: 300,
+			useNativeDriver: true,
+			isInteraction: false,
+		}).start(() => {
+			setAnimationPlayed(true);
+		});
+	}, [opacity]);
+
+	if (!animationPlayed) {
+		return (
+			<MetaMaskAnimation
+				animation={animation}
+				animationName={animationName}
+				opacity={opacity}
+				onAnimationFinish={onAnimationFinished}
+			/>
+		);
+	}
+
 	return (
-		<NavigationContainer
-			ref={navigator}
-			onReady={() => {
-				routingInstrumentation.registerNavigationContainer(navigator);
-			}}
-		>
-			<AppNavigator />
-		</NavigationContainer>
+		// do not render unless a route is defined
+		(route && (
+			<NavigationContainer
+				ref={navigator}
+				onReady={() => {
+					routingInstrumentation.registerNavigationContainer(navigator);
+				}}
+			>
+				<Stack.Navigator route={route} initialRouteName={route}>
+					<Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
+					<Stack.Screen
+						name="OnboardingRootNav"
+						component={OnboardingRootNav}
+						options={{ headerShown: false }}
+					/>
+					{userLoggedIn && (
+						<Stack.Screen name="HomeNav" component={HomeNav} options={{ headerShown: false }} />
+					)}
+				</Stack.Navigator>
+			</NavigationContainer>
+		)) ||
+		null
 	);
 };
 
-export default App;
+const mapStateToProps = (state) => ({
+	userLoggedIn: state.user.userLoggedIn,
+});
+
+export default connect(mapStateToProps)(App);
