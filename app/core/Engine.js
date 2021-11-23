@@ -181,14 +181,14 @@ class Engine {
 					addTokens: tokensController.addTokens.bind(tokensController),
 					getTokensState: () => tokensController.state,
 					getTokenListState: () => tokenListController.state,
+					getBalancesInSingleCall:
+						assetsContractController.getBalancesInSingleCall.bind(assetsContractController),
 				}),
 				new CollectibleDetectionController({
 					onCollectiblesStateChange: (listener) => collectiblesController.subscribe(listener),
 					onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
 					onNetworkStateChange: (listener) => networkController.subscribe(listener),
 					getOpenSeaApiKey: () => collectiblesController.openSeaApiKey,
-					getBalancesInSingleCall:
-						assetsContractController.getBalancesInSingleCall.bind(assetsContractController),
 					addCollectible: collectiblesController.addCollectible.bind(collectiblesController),
 					getCollectiblesState: () => collectiblesController.state,
 				}),
@@ -252,11 +252,8 @@ class Engine {
 				KeyringController: keyring,
 				NetworkController: network,
 				TransactionController: transaction,
-				TokenListController: tokenList,
 			} = this.context;
 
-			// Start polling tokens
-			tokenList.start();
 			collectibles.setApiKey(process.env.MM_OPENSEA_KEY);
 			network.refreshNetwork();
 			transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
@@ -270,9 +267,17 @@ class Engine {
 				}
 			});
 			this.configureControllersOnNetworkChange();
+			this.startPolling();
 			Engine.instance = this;
 		}
 		return Engine.instance;
+	}
+
+	startPolling() {
+		const { CollectibleDetectionController, TokenDetectionController, TokenListController } = this.context;
+		TokenListController.start();
+		CollectibleDetectionController.start();
+		TokenDetectionController.start();
 	}
 
 	configureControllersOnNetworkChange() {
@@ -589,6 +594,8 @@ export default {
 			SwapsController,
 			GasFeeController,
 			TokensController,
+			TokenDetectionController,
+			CollectibleDetectionController,
 		} = instance.datamodel.state;
 
 		// normalize `null` currencyRate to `0`
@@ -617,6 +624,8 @@ export default {
 			TypedMessageManager,
 			SwapsController,
 			GasFeeController,
+			TokenDetectionController,
+			CollectibleDetectionController,
 		};
 	},
 	get datamodel() {

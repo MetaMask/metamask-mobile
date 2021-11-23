@@ -29,7 +29,12 @@ import TermsAndConditions from '../TermsAndConditions';
 import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Device from '../../../util/device';
-import { failedSeedPhraseRequirements, isValidMnemonic, parseSeedPhrase } from '../../../util/validators';
+import {
+	failedSeedPhraseRequirements,
+	isValidMnemonic,
+	parseSeedPhrase,
+	parseVaultValue,
+} from '../../../util/validators';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import {
 	SEED_PHRASE_HINTS,
@@ -243,7 +248,11 @@ class ImportFromSeed extends PureComponent {
 
 	onPressImport = async () => {
 		const { loading, seed, password, confirmPassword } = this.state;
-		const parsedSeed = parseSeedPhrase(seed);
+
+		const vaultSeed = await parseVaultValue(password, seed);
+		const parsedSeed = parseSeedPhrase(vaultSeed || seed);
+		//Set the seed state with a valid parsed seed phrase (handle vault scenario)
+		this.setState({ seed: parsedSeed });
 
 		if (loading) return;
 		InteractionManager.runAfterInteractions(() => {

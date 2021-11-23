@@ -502,7 +502,7 @@
 		"third_party_title": "수신 거래 받기",
 		"third_party_description": "타사 API(Etherscan)는 수신 거래를 기록에 표시하는 데 사용됩니다. 해당 서비스에서 데이터를 가져오지 않으려면 설정을 끄세요.",
 		"metametrics_opt_out": "MetaMetrics 옵트아웃",
-		"metrametrics_restart_required": "변경 사항을 적용하려면 앱을 다시 시작해야 합니다.",
+		"metametrics_restart_required": "변경 사항을 적용하려면 앱을 다시 시작해야 합니다.",
 		"create_password": "암호 생성",
 		"invalid_password": "잘못된 암호",
 		"invalid_password_message": "암호가 올바르지 않습니다. 다시 시도하세요.",

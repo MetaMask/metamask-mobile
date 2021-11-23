@@ -21,6 +21,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import {
 	setSwapsHasOnboarded,
 	setSwapsLiveness,
+	swapsControllerTokens,
 	swapsHasOnboardedSelector,
 	swapsTokensSelector,
 	swapsTokensWithBalanceSelector,
@@ -139,6 +140,7 @@ const MAX_TOP_ASSETS = 20;
 
 function SwapsAmountView({
 	swapsTokens,
+	swapsControllerTokens,
 	accounts,
 	selectedAddress,
 	chainId,
@@ -231,7 +233,7 @@ function SwapsAmountView({
 		(async () => {
 			const { SwapsController } = Engine.context;
 			try {
-				if (swapsTokens === null) {
+				if (!swapsControllerTokens || !swapsTokens || swapsTokens?.length === 0) {
 					setInitialLoadingTokens(true);
 				}
 				setLoadingTokens(true);
@@ -245,14 +247,14 @@ function SwapsAmountView({
 				setInitialLoadingTokens(false);
 			}
 		})();
-	}, [swapsTokens]);
+	}, [swapsControllerTokens, swapsTokens]);
 
 	useEffect(() => {
-		if (!isSourceSet && initialSource && swapsTokens && !sourceToken) {
+		if (!isSourceSet && initialSource && swapsControllerTokens && swapsTokens?.length > 0 && !sourceToken) {
 			setIsSourceSet(true);
 			setSourceToken(swapsTokens.find((token) => toLowerCaseEquals(token.address, initialSource)));
 		}
-	}, [initialSource, isSourceSet, sourceToken, swapsTokens]);
+	}, [initialSource, isSourceSet, sourceToken, swapsControllerTokens, swapsTokens]);
 
 	useEffect(() => {
 		setHasDismissedTokenAlert(false);
@@ -720,6 +722,7 @@ SwapsAmountView.navigationOptions = ({ navigation, route }) => getSwapsAmountNav
 
 SwapsAmountView.propTypes = {
 	swapsTokens: PropTypes.arrayOf(PropTypes.object),
+	swapsControllerTokens: PropTypes.arrayOf(PropTypes.object),
 	tokensWithBalance: PropTypes.arrayOf(PropTypes.object),
 	tokensTopAssets: PropTypes.arrayOf(PropTypes.object),
 	/**
@@ -774,6 +777,7 @@ SwapsAmountView.propTypes = {
 
 const mapStateToProps = (state) => ({
 	swapsTokens: swapsTokensSelector(state),
+	swapsControllerTokens: swapsControllerTokens(state),
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	balances: state.engine.backgroundState.TokenBalancesController.contractBalances,
