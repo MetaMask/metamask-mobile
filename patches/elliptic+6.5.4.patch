@@ -1,0 +1,38 @@
+diff --git a/node_modules/elliptic/lib/elliptic/ec/key.js b/node_modules/elliptic/lib/elliptic/ec/key.js
+index 55bf299..e85b845 100644
+--- a/node_modules/elliptic/lib/elliptic/ec/key.js
++++ b/node_modules/elliptic/lib/elliptic/ec/key.js
+@@ -3,6 +3,11 @@
+ var BN = require('bn.js');
+ var utils = require('../utils');
+ var assert = utils.assert;
++import {
++	NativeModules,
++	Platform
++} from 'react-native';
++const { SECP256K1 } = NativeModules;
+ 
+ function KeyPair(ec, options) {
+   this.ec = ec;
+@@ -57,8 +62,19 @@ KeyPair.prototype.getPublic = function getPublic(compact, enc) {
+     compact = null;
+   }
+ 
+-  if (!this.pub)
+-    this.pub = this.ec.g.mul(this.priv);
++  if (!this.pub){
++    // For Android use native lib
++    if (Platform.OS === 'android'){
++      try{
++        const point = SECP256K1.getPoint(this.priv.toString('hex'), false);
++        this.pub = this.ec.curve.point(point[0], point[1]);
++	  }catch(e){
++		this.pub = this.ec.g.mul(this.priv);
++	  }
++    } else {
++      this.pub = this.ec.g.mul(this.priv);
++    }
++  }
+ 
+   if (!enc)
+     return this.pub;
