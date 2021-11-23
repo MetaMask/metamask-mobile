@@ -457,14 +457,16 @@ class Transactions extends PureComponent {
 		this.setState((state) => ({ retryIsOpen: !state.retryIsOpen, errorMsg: undefined }));
 
 		//If the exitsing TX id true then it is a speed up retry
-		if (this.existingTxId)
+		if (this.speedUpTxId) {
 			InteractionManager.runAfterInteractions(() => {
 				this.onSpeedUpAction(true, this.existingGas, this.existingTx);
 			});
-		else
+		}
+		if (this.cancelTxId) {
 			InteractionManager.runAfterInteractions(() => {
 				this.onCancelAction(true, this.existingGas, this.existingTx);
 			});
+		}
 	};
 
 	renderUpdateTxEIP1559Gas = (isCancel) => {
