@@ -22,7 +22,6 @@ import Analytics from '../../../core/Analytics';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { ONBOARDING_WIZARD, METRICS_OPT_IN, DENIED, AGREED } from '../../../constants/storage';
 import AppConstants from '../../../core/AppConstants';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 
@@ -189,7 +188,6 @@ class OptinMetrics extends PureComponent {
 				updated_after_onboarding: false,
 			});
 		});
-		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_IN);
 	};
 
 	/**

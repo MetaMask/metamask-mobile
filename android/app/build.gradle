@@ -161,8 +161,9 @@ android {
 		applicationId "io.metamask"
 		minSdkVersion rootProject.ext.minSdkVersion
 		targetSdkVersion rootProject.ext.targetSdkVersion
-		versionCode 790
-		versionName "3.6.0"
+		versionCode 795
+		versionName "3.7.0"
+		multiDexEnabled true
 		testBuildType System.getProperty('testBuildType', 'debug')
 		missingDimensionStrategy "minReactNative", "minReactNative46"
 		testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -259,6 +260,10 @@ dependencies {
 	androidTestImplementation('com.wix:detox:+') { transitive = true }
 	androidTestImplementation 'junit:junit:4.12'
 	implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
+	implementation "com.squareup.okhttp3:okhttp:4.9.1"
+	implementation "com.squareup.okhttp3:logging-interceptor:4.9.1"
+	implementation "com.squareup.okhttp3:okhttp-urlconnection:4.9.1"
+
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
       exclude group:'com.facebook.fbjni'
     }
