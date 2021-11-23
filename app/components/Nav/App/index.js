@@ -30,6 +30,7 @@ import Logger from '../../../util/Logger';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { routingInstrumentation } from '../../../util/setupSentry';
 import Analytics from '../../../core/Analytics';
+import ReviewManager from '../../../core/ReviewManager';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -204,6 +205,7 @@ const App = () => {
 			ref={navigator}
 			onReady={() => {
 				routingInstrumentation.registerNavigationContainer(navigator);
+				ReviewManager.navigationRef = navigator;
 			}}
 		>
 			<AppNavigator />
