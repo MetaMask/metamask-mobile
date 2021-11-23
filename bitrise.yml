@@ -153,7 +153,7 @@ workflows:
                   title: All Tests Passed
                   is_always_run: false
     # Parallel Build & Deploy Steps
-    start_release_builds:
+    start_bitrise_release_builds:
         before_run:
             - code_setup_cache
         steps:
@@ -162,6 +162,23 @@ workflows:
                       - workflows: |-
                             android_test_release_step
                             ios_test_release_step
+                      - wait_for_builds: 'true'
+                      - abort_on_fail: 'yes'
+                      - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
+            - build-router-wait@0:
+                  inputs:
+                      - abort_on_fail: 'yes'
+                      - build_artifacts_save_path: $BITRISE_DEPLOY_DIR
+                      - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
+    start_store_release_builds:
+        before_run:
+            - code_setup_cache
+        steps:
+            - build-router-start@0:
+                  inputs:
+                      - workflows: |-
+                            android_store_release_step
+                            ios_store_release_step
                       - wait_for_builds: 'true'
                       - abort_on_fail: 'yes'
                       - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
@@ -215,12 +232,20 @@ workflows:
                   title: Bitrise Deploy Checksum
             - deploy-to-bitrise-io@1:
                   inputs:
+                      - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/release/mapping.txt
+                  title: Bitrise ProGuard Map Files
+            - deploy-to-bitrise-io@1:
+                  inputs:
                       - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/release/app-release.aab
                   title: Bitrise Deploy AAB
             - deploy-to-bitrise-io@1:
                   inputs:
                       - deploy_path: sourcemaps/android/index.js.map
                   title: Bitrise Deploy Sourcemaps
+    android_store_release_step:
+        before_run:
+            - android_test_release_step
+        steps:
             - google-play-deploy@3:
                   inputs:
                       - app_path: $PROJECT_LOCATION/app/build/outputs/bundle/release/app-release.aab
@@ -263,6 +288,10 @@ workflows:
                   inputs:
                       - deploy_path: sourcemaps/ios/index.js.map
                   title: Deploy Source Map
+    ios_store_release_step:
+        before_run:
+            - ios_test_release_step
+        steps:
             - deploy-to-itunesconnect-application-loader@1:
                   inputs:
                       - ipa_path: ios/build/output/MetaMask.ipa
