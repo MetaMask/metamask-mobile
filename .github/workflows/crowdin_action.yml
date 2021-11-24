@@ -8,6 +8,7 @@ on:
   push:
     branches:
       - develop
+      - feature/crowdin
   schedule:
     - cron: "0 */12 * * *"
 
