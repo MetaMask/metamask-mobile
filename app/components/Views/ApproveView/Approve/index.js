@@ -21,6 +21,7 @@ import {
 import { getGasLimit } from '../../../../util/custom-gas';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import NotificationManager from '../../../../core/NotificationManager';
+import ReviewManager from '../../../../core/ReviewManager';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import Logger from '../../../../util/Logger';
@@ -431,6 +432,7 @@ class Approve extends PureComponent {
 						...transactionMeta,
 						assetType: 'ETH',
 					});
+					ReviewManager.watchSubmittedTransactionToPromptReview(transactionMeta);
 				} else {
 					throw transactionMeta.error;
 				}

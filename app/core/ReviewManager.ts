@@ -102,6 +102,14 @@ class ReviewManager {
 			this.handleAndroidPrompt();
 		}
 	};
+
+	watchSubmittedTransactionToPromptReview = (transaction: any) => {
+		if (transaction.silent) return false;
+		const { TransactionController } = Engine.context as any;
+		TransactionController.hub.once(`${transaction.id}:confirmed`, async () => {
+			await this.promptReview();
+		});
+	};
 }
 
 export default new ReviewManager();

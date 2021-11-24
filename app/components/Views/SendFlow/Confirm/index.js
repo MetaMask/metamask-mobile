@@ -40,6 +40,7 @@ import AccountList from '../../../UI/AccountList';
 import CustomNonceModal from '../../../UI/CustomNonceModal';
 import { doENSReverseLookup } from '../../../../util/ENSUtils';
 import NotificationManager from '../../../../core/NotificationManager';
+import ReviewManager from '../../../../core/ReviewManager';
 import { strings } from '../../../../../locales/i18n';
 import collectiblesTransferInformation from '../../../../util/collectibles-transfer';
 import CollectibleMedia from '../../../UI/CollectibleMedia';
@@ -847,6 +848,8 @@ class Confirm extends PureComponent {
 					...transactionMeta,
 					assetType,
 				});
+				ReviewManager.watchSubmittedTransactionToPromptReview(transactionMeta);
+
 				this.checkRemoveCollectible();
 				AnalyticsV2.trackEvent(
 					AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_COMPLETED,

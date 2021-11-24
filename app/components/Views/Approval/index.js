@@ -9,6 +9,7 @@ import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { resetTransaction } from '../../../actions/transaction';
 import { connect } from 'react-redux';
 import NotificationManager from '../../../core/NotificationManager';
+import ReviewManager from '../../../core/ReviewManager';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { getTransactionReviewActionKey, getNormalizedTxState, getActiveTabUrl } from '../../../util/transactions';
@@ -247,6 +248,7 @@ class Approval extends PureComponent {
 						...transactionMeta,
 						assetType: transaction.assetType,
 					});
+					ReviewManager.watchSubmittedTransactionToPromptReview(transactionMeta);
 				} else {
 					throw transactionMeta.error;
 				}
