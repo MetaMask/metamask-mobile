@@ -6,10 +6,21 @@ const initialState = {
 	backUpSeedphraseVisible: false,
 	protectWalletModalVisible: false,
 	gasEducationCarouselSeen: false,
+	userLoggedIn: false,
 };
 
 const userReducer = (state = initialState, action) => {
 	switch (action.type) {
+		case 'LOGIN':
+			return {
+				...state,
+				userLoggedIn: true,
+			};
+		case 'LOGOUT':
+			return {
+				...state,
+				userLoggedIn: false,
+			};
 		case 'LOADING_SET':
 			return {
 				...state,
