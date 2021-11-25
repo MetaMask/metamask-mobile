@@ -6,10 +6,10 @@ import InAppReview from 'react-native-in-app-review';
 import DefaultPreference from 'react-native-default-preference';
 import { REVIEW_EVENT_COUNT, REVIEW_SHOWN_TIME } from '../constants/storage';
 import AppConstants from './AppConstants';
+import Engine from './Engine';
 
 const EVENT_THRESHOLD = 10;
 const TIME_THRESHOLD = 10519200000; // 4 months in milliseconds
-const MM_APP_STORE_DEEPLINK = `itms-apps://apps.apple.com/app/id${AppConstants.BUNDLE_IDS.IOS}?action=write-review`;
 const MM_PLAY_STORE_DEEPLINK = `market://details?id=${AppConstants.BUNDLE_IDS.ANDROID}`;
 
 class ReviewManager {
@@ -28,7 +28,6 @@ class ReviewManager {
 	private openFallbackStoreReview = async () => {
 		const storeDeepLink =
 			Platform.select({
-				ios: MM_APP_STORE_DEEPLINK,
 				android: MM_PLAY_STORE_DEEPLINK,
 			}) || '';
 		try {
