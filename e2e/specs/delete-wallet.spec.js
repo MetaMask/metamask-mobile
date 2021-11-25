@@ -56,7 +56,7 @@ describe('Import wallet with 24 word seedphrase and delete wallet flow', () => {
 		}
 	});
 
-	it('should validate secret recovery phrase in settings', async () => {
+	it('should open drawer and log out', async () => {
 		await WalletView.tapDrawerButton();
 
 		await DrawerView.isVisible();
