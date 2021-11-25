@@ -68,6 +68,9 @@
     ]
   },
   "resolutions": {
+    "**/json-schema": "^0.4.0",
+    "@sentry/react-native/**/xmldom": "^0.6.0",
+    "@walletconnect/**/ws": "^7.4.6",
     "react-native-svg/**/nth-check": "^2.0.1",
     "**/set-value": "^4.0.1",
     "**/pac-resolver": "^5.0.0",
@@ -89,7 +92,7 @@
   "dependencies": {
     "@exodus/react-native-payments": "git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5",
     "@metamask/contract-metadata": "^1.30.0",
-    "@metamask/controllers": "git+https://github.com/MetaMask/controllers.git#qa/fix/opensea-collection-name",
+    "@metamask/controllers": "git+https://github.com/MetaMask/controllers.git#09ee3a9eb7e9695adf4b0431a8998623390575e9",
     "@metamask/etherscan-link": "^2.0.0",
     "@metamask/swaps-controller": "^6.3.0",
     "@react-native-clipboard/clipboard": "^1.8.4",
@@ -142,7 +145,7 @@
     "https-browserify": "0.0.1",
     "human-standard-token-abi": "^2.0.0",
     "humanize-duration": "^3.27.0",
-    "improved-yarn-audit": "^2.3.3",
+    "improved-yarn-audit": "^3.0.0",
     "is-url": "^1.2.4",
     "json-rpc-engine": "^6.1.0",
     "json-rpc-middleware-stream": "3.0.0",

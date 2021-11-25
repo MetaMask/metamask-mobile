@@ -169,6 +169,7 @@ class Onboarding extends PureComponent {
 		 * Object that represents the current route info like params passed to it
 		 */
 		route: PropTypes.object,
+		logOut: PropTypes.func,
 	};
 
 	notificationAnimated = new Animated.Value(100);
@@ -245,6 +246,11 @@ class Onboarding extends PureComponent {
 		}
 	}
 
+	logOut = () => {
+		this.props.navigation.navigate('Login');
+		this.props.logOut();
+	};
+
 	onLogin = async () => {
 		const { passwordSet } = this.props;
 		if (!passwordSet) {
@@ -254,7 +260,7 @@ class Onboarding extends PureComponent {
 			await SecureKeychain.resetGenericPassword();
 			this.props.navigation.navigate('HomeNav');
 		} else {
-			this.props.navigation.navigate('Login');
+			this.logOut();
 		}
 	};
 
@@ -390,16 +396,19 @@ class Onboarding extends PureComponent {
 							{strings('import_wallet.import_from_seed_button')}
 						</StyledButton>
 					</View>
-					<View style={styles.buttonWrapper}>
-						<StyledButton
-							style={styles.button}
-							type={'normal'}
-							onPress={this.onPressSync}
-							testID={'onboarding-import-button'}
-						>
-							{strings('import_wallet.sync_from_browser_extension_button')}
-						</StyledButton>
-					</View>
+					{/* Temporarily Disable Sync until the new improved version is ready for release */}
+					{__DEV__ && (
+						<View style={styles.buttonWrapper}>
+							<StyledButton
+								style={styles.button}
+								type={'normal'}
+								onPress={this.onPressSync}
+								testID={'onboarding-import-button'}
+							>
+								{strings('import_wallet.sync_from_browser_extension_button')}
+							</StyledButton>
+						</View>
+					)}
 					<View style={styles.buttonWrapper}>
 						<StyledButton
 							style={styles.button}
