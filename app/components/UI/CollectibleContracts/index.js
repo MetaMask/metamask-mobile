@@ -8,7 +8,11 @@ import Engine from '../../../core/Engine';
 import CollectibleContractElement from '../CollectibleContractElement';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
-import { favoritesCollectiblesObjectSelector } from '../../../reducers/collectibles';
+import {
+	collectibleContractsSelector,
+	collectiblesSelector,
+	favoritesCollectiblesSelector,
+} from '../../../reducers/collectibles';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import Text from '../../Base/Text';
 import AppConstants from '../../../core/AppConstants';
@@ -246,9 +250,9 @@ CollectibleContracts.propTypes = {
 const mapStateToProps = (state) => ({
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	collectibleContracts: state.engine.backgroundState.CollectiblesController.collectibleContracts,
-	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
-	favoriteCollectibles: favoritesCollectiblesObjectSelector(state),
+	collectibleContracts: collectibleContractsSelector(state),
+	collectibles: collectiblesSelector(state),
+	favoriteCollectibles: favoritesCollectiblesSelector(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
