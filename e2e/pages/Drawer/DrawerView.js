@@ -21,6 +21,10 @@ export default class DrawerView {
 		await TestHelpers.tapByText('Log Out');
 	}
 
+	static async tapYesAlertButton() {
+		await TestHelpers.tapAlertWithButton('YES'); // Do you really want to log out modal
+	}
+
 	static async tapAccountCaretButton() {
 		await TestHelpers.waitAndTap(ACCOUNT_CARET_BUTTON_ID);
 	}
