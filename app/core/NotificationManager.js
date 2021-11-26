@@ -180,7 +180,12 @@ class NotificationManager {
 				// Clean up
 				this._removeListeners(transactionMeta.id);
 
-				const { TokenBalancesController, AssetsDetectionController, AccountTrackerController } = Engine.context;
+				const {
+					TokenBalancesController,
+					TokenDetectionController,
+					CollectibleDetectionController,
+					AccountTrackerController,
+				} = Engine.context;
 				// account balances for ETH txs
 				// Detect assets and tokens for ERC20 txs
 				// Detect assets for ERC721 txs
@@ -188,11 +193,11 @@ class NotificationManager {
 				const pollPromises = [AccountTrackerController.refresh()];
 				switch (originalTransaction.assetType) {
 					case 'ERC20': {
-						pollPromises.push(...[TokenBalancesController.poll(), AssetsDetectionController.poll()]);
+						pollPromises.push(...[TokenBalancesController.poll(), TokenDetectionController.start()]);
 						break;
 					}
 					case 'ERC721':
-						pollPromises.push(AssetsDetectionController.poll());
+						pollPromises.push(CollectibleDetectionController.start());
 						break;
 				}
 				Promise.all(pollPromises);
