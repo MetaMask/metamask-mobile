@@ -1,9 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`App should render correctly 1`] = `
-<ForwardRef(NavigationContainer)
-  onReady={[Function]}
->
-  <Navigator />
-</ForwardRef(NavigationContainer)>
+exports[`App should render correctly when logged in 1`] = `
+<App
+  dispatch={[Function]}
+/>
+`;
+
+exports[`App should render correctly when logged in 2`] = `
+<App
+  dispatch={[Function]}
+/>
 `;
