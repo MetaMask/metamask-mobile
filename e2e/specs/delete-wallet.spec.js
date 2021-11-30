@@ -73,7 +73,6 @@ describe('Import wallet with 24 word seedphrase and delete wallet flow', () => {
 	it('should delete wallet', async () => {
 		await DeleteWalletModal.tapIUnderstandButton();
 		await DeleteWalletModal.typeDeleteInInputBox();
-		//await DeleteWalletModal.tapDeleteMyWalletButton();
 
 		await TestHelpers.delay(2000);
 		await OnboardingView.isVisible();
