@@ -1,9 +1,10 @@
 import TestHelpers from '../helpers';
-
-const LOGIN_CONTAINER_ID = 'login';
-const PASSWORD_INPUT_BOX_ID = 'login-password-input';
-const LOGIN_PASSWORD_ERROR = 'invalid-password-error';
-const RESET_WALLET_ID = 'reset-wallet-button';
+import {
+	PASSWORD_INPUT_BOX_ID,
+	RESET_WALLET_ID,
+	LOGIN_CONTAINER_ID,
+	LOGIN_PASSWORD_ERROR,
+} from 'app/constants/test-ids';
 export default class LoginView {
 	static async enterPassword(password) {
 		await TestHelpers.typeTextAndHideKeyboard(PASSWORD_INPUT_BOX_ID, password);
