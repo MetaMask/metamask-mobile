@@ -360,7 +360,10 @@ class ImportFromSeed extends PureComponent {
 
 	onSeedWordsChange = async (seed) => {
 		this.setState({ seed });
-		await this.clearSecretRecoveryPhrase();
+		// only clear on android since iOS will notify users when we getString()
+		if (Device.isAndroid()) {
+			await this.clearSecretRecoveryPhrase();
+		}
 	};
 
 	onPasswordChange = (val) => {
