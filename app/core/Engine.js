@@ -69,6 +69,8 @@ class Engine {
 					useStaticTokenList:
 						initialState?.PreferencesController?.useStaticTokenList === undefined ||
 						initialState.PreferencesController.useStaticTokenList,
+					useCollectibleDetection: true,
+					openSeaEnabled: true,
 				}
 			);
 			const networkController = new NetworkController({
