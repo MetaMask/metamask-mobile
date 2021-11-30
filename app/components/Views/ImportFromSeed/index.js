@@ -349,9 +349,16 @@ class ImportFromSeed extends PureComponent {
 		this.setState({ biometryChoice: value });
 	};
 
+	clearSecretRecoveryPhrase = async () => {
+		// get clipboard contents
+		const clipboardContents = await Clipboard.getString();
+		// only clear clipboard if contents isValidMnemonic
+		if (isValidMnemonic(clipboardContents)) await Clipboard.clearString();
+	};
+
 	onSeedWordsChange = async (seed) => {
 		this.setState({ seed });
-		await Clipboard.clearString();
+		await this.clearSecretRecoveryPhrase();
 	};
 
 	onPasswordChange = (val) => {
