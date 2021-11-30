@@ -847,7 +847,6 @@ class Confirm extends PureComponent {
 					...transactionMeta,
 					assetType,
 				});
-
 				this.checkRemoveCollectible();
 				AnalyticsV2.trackEvent(
 					AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_COMPLETED,
