@@ -353,7 +353,9 @@ class ImportFromSeed extends PureComponent {
 		// get clipboard contents
 		const clipboardContents = await Clipboard.getString();
 		// only clear clipboard if contents isValidMnemonic
-		if (isValidMnemonic(clipboardContents)) await Clipboard.clearString();
+		if (!failedSeedPhraseRequirements(clipboardContents) && isValidMnemonic(clipboardContents)) {
+			await Clipboard.clearString();
+		}
 	};
 
 	onSeedWordsChange = async (seed) => {
