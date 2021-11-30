@@ -6,10 +6,11 @@ import InAppReview from 'react-native-in-app-review';
 import DefaultPreference from 'react-native-default-preference';
 import { REVIEW_EVENT_COUNT, REVIEW_SHOWN_TIME } from '../constants/storage';
 import AppConstants from './AppConstants';
-import Engine from './Engine';
+import Logger from '../util/Logger';
 
 const EVENT_THRESHOLD = 10;
 const TIME_THRESHOLD = 10519200000; // 4 months in milliseconds
+const MM_APP_STORE_DEEPLINK = `itms-apps://apps.apple.com/app/id${AppConstants.BUNDLE_IDS.IOS}?action=write-review`;
 const MM_PLAY_STORE_DEEPLINK = `market://details?id=${AppConstants.BUNDLE_IDS.ANDROID}`;
 
 class ReviewManager {
@@ -22,18 +23,6 @@ class ReviewManager {
 			await DefaultPreference.set(REVIEW_EVENT_COUNT, `${newCount}`);
 		} catch (error) {
 			// Failed to add event count
-		}
-	};
-
-	private openFallbackStoreReview = async () => {
-		const storeDeepLink =
-			Platform.select({
-				android: MM_PLAY_STORE_DEEPLINK,
-			}) || '';
-		try {
-			await Linking.openURL(storeDeepLink);
-		} catch (error) {
-			// Failed to open store review
 		}
 	};
 
@@ -64,24 +53,21 @@ class ReviewManager {
 		}
 	};
 
-	private handleIosPrompt = () => {
-		this.promptNativeReview();
-	};
-
-	private handleAndroidPrompt = () => {
-		this.navigationRef?.current?.navigate('ReviewModal');
-	};
-
-	promptNativeReview = async () => {
+	private handlePrompt = async () => {
 		try {
 			await InAppReview.RequestInAppReview();
 		} catch (error) {
 			// Failed to prompt review
-			this.openFallbackStoreReview();
+			this.openMetaMaskReview();
+			Logger.log('Falling back to MM review prompt', error);
 		} finally {
 			// Reset criteria
 			this.resetReviewCriteria();
 		}
+	};
+
+	private openMetaMaskReview = () => {
+		this.navigationRef?.current?.navigate('ReviewModal');
 	};
 
 	promptReview = async () => {
@@ -95,19 +81,20 @@ class ReviewManager {
 		}
 
 		// 3. Handle prompt
-		if (Platform.OS === 'ios') {
-			this.handleIosPrompt();
-		} else {
-			this.handleAndroidPrompt();
-		}
+		this.handlePrompt();
 	};
 
-	watchSubmittedTransactionToPromptReview = (transaction: any) => {
-		if (transaction.silent) return false;
-		const { TransactionController } = Engine.context as any;
-		TransactionController.hub.once(`${transaction.id}:confirmed`, async () => {
-			await this.promptReview();
-		});
+	openFallbackStoreReview = async () => {
+		const storeDeepLink =
+			Platform.select({
+				ios: MM_APP_STORE_DEEPLINK,
+				android: MM_PLAY_STORE_DEEPLINK,
+			}) || '';
+		try {
+			await Linking.openURL(storeDeepLink);
+		} catch (error) {
+			// Failed to open store review
+		}
 	};
 }
 

@@ -44,7 +44,7 @@ const ReviewModal = () => {
 
 	const triggerShowReviewPrompt = async () => {
 		dismissModal();
-		ReviewManager.promptNativeReview();
+		ReviewManager.openFallbackStoreReview();
 	};
 
 	const triggerShowHelpOptions = () => {
