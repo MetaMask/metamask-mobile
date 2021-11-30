@@ -502,7 +502,7 @@
 		"third_party_title": "Makuha ang mga papasok na transaksyon",
 		"third_party_description": "Ang mga third party AP (Etherscan) ay ginagamit para ipakita ang iyong mga papasok na transakyon sa history. I-off kung ayaw mong i-pull namin ang data mula sa mga serbisyong iyon.",
 		"metametrics_opt_out": "Pag-opt out sa MetaMetrics",
-		"metrametrics_restart_required": "Kailangan mong i-restart ang app para mailapat ang mga pagbabago.",
+		"metametrics_restart_required": "Kailangan mong i-restart ang app para mailapat ang mga pagbabago.",
 		"create_password": "Gumawa ng Password",
 		"invalid_password": "Hindi valid ang password",
 		"invalid_password_message": "Mali ang password. Pakisubukan ulit.",

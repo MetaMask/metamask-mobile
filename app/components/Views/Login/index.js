@@ -12,6 +12,7 @@ import {
 	InteractionManager,
 	TouchableWithoutFeedback,
 	Keyboard,
+	BackHandler,
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -24,6 +25,7 @@ import { strings } from '../../../../locales/i18n';
 import SecureKeychain from '../../../core/SecureKeychain';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import setOnboardingWizardStep from '../../../actions/wizard';
+import { logIn, logOut } from '../../../actions/user';
 import { connect } from 'react-redux';
 import Device from '../../../util/device';
 import { OutlinedTextField } from 'react-native-material-textfield';
@@ -210,6 +212,8 @@ class Login extends PureComponent {
 		 * A string representing the selected address => account
 		 */
 		selectedAddress: PropTypes.string,
+		logIn: PropTypes.func,
+		logOut: PropTypes.func,
 	};
 
 	state = {
@@ -225,16 +229,21 @@ class Login extends PureComponent {
 		disableDelete: true,
 		deleteText: '',
 		showDeleteWarning: false,
+		hasBiometricCredentials: false,
 	};
-
-	mounted = true;
 
 	fieldRef = React.createRef();
 
 	async componentDidMount() {
+		const { KeyringController } = Engine.context;
+		BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
+
+		if (KeyringController.isUnlocked()) {
+			await KeyringController.setLocked();
+		}
+
 		if (!this.props.passwordSet) {
 			try {
-				const { KeyringController } = Engine.context;
 				await KeyringController.submitPassword('');
 				await SecureKeychain.resetGenericPassword();
 				this.props.navigation.navigate('HomeNav');
@@ -255,32 +264,67 @@ class Login extends PureComponent {
 					biometryChoice: enabled,
 					biometryPreviouslyDisabled: !!previouslyDisabled,
 				});
-
 				try {
 					if (enabled && !previouslyDisabled) {
-						const hasCredentials = await this.tryBiometric();
-						this.setState({ hasCredentials });
+						const hasBiometricCredentials = await this.tryBiometric();
+						this.setState({ hasBiometricCredentials });
 					}
 				} catch (e) {
 					console.warn(e);
 				}
+			} else {
+				this.checkIfRememberMeEnabled();
 			}
 		}
 	}
 
 	componentWillUnmount() {
-		this.mounted = false;
+		BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
 	}
+
+	handleBackPress = () => {
+		this.props.logOut();
+		return false;
+	};
+
+	/**
+	 * Checks to see if the user has enabled Remember Me and logs
+	 * into the application if it is enabled.
+	 */
+	checkIfRememberMeEnabled = async () => {
+		const credentials = await SecureKeychain.getGenericPassword();
+		//This
+		if (credentials) {
+			this.setState({ rememberMe: true });
+			// Restore vault with existing credentials
+			const { KeyringController } = Engine.context;
+			await KeyringController.submitPassword(credentials.password);
+			const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
+			if (encryptionLib !== ORIGINAL) {
+				await recreateVaultWithSamePassword(credentials.password, this.props.selectedAddress);
+				await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
+			}
+			// Get onboarding wizard state
+			const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
+			if (!onboardingWizard) {
+				this.props.setOnboardingWizardStep(1);
+			}
+
+			delete credentials.password;
+			this.props.logIn();
+			this.props.navigation.navigate('HomeNav');
+		}
+	};
 
 	onLogin = async () => {
 		const { password } = this.state;
+		const { current: field } = this.fieldRef;
 		const locked = !passwordRequirementsMet(password);
 		if (locked) this.setState({ error: strings('login.invalid_password') });
 		if (this.state.loading || locked) return;
 		try {
 			this.setState({ loading: true, error: null });
 			const { KeyringController } = Engine.context;
-
 			// Restore vault with user entered password
 			await KeyringController.submitPassword(this.state.password);
 			const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
@@ -289,13 +333,18 @@ class Login extends PureComponent {
 				await recreateVaultWithSamePassword(this.state.password, this.props.selectedAddress);
 				await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
 			}
-			if (this.state.biometryChoice && this.state.biometryType) {
-				await SecureKeychain.setGenericPassword(this.state.password, SecureKeychain.TYPES.BIOMETRICS);
-			} else if (this.state.rememberMe) {
-				await SecureKeychain.setGenericPassword(this.state.password, SecureKeychain.TYPES.REMEMBER_ME);
-			} else {
-				await SecureKeychain.resetGenericPassword();
+			// If the tryBiometric has been called and they password was retrived don't set it again
+			if (!this.state.hasBiometricCredentials) {
+				if (this.state.biometryChoice && this.state.biometryType) {
+					await SecureKeychain.setGenericPassword(this.state.password, SecureKeychain.TYPES.BIOMETRICS);
+				} else if (this.state.rememberMe) {
+					await SecureKeychain.setGenericPassword(this.state.password, SecureKeychain.TYPES.REMEMBER_ME);
+				} else {
+					await SecureKeychain.resetGenericPassword();
+				}
 			}
+
+			this.props.logIn();
 
 			// Get onboarding wizard state
 			const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
@@ -305,7 +354,8 @@ class Login extends PureComponent {
 				this.props.setOnboardingWizardStep(1);
 				this.props.navigation.navigate('HomeNav');
 			}
-			this.setState({ loading: false });
+			this.setState({ loading: false, password: '' });
+			field.setValue('');
 		} catch (e) {
 			// Should we force people to enable passcode / biometrics?
 			const error = e.toString();
@@ -352,7 +402,7 @@ class Login extends PureComponent {
 		try {
 			await AsyncStorage.removeItem(EXISTING_USER);
 			// We need to reset instead of navigate here otherwise, OnboardingRootNav remembers the last screen that it was on, which is most likely not OnboardingNav.
-			this.props.navigation.original.reset({
+			this.props.navigation?.reset({
 				routes: [
 					{
 						name: 'OnboardingRootNav',
@@ -548,7 +598,7 @@ class Login extends PureComponent {
 											!(
 												this.state.biometryChoice &&
 												this.state.biometryType &&
-												this.state.hasCredentials
+												this.state.hasBiometricCredentials
 											)
 										}
 										type={this.state.biometryType}
@@ -591,11 +641,13 @@ class Login extends PureComponent {
 
 const mapStateToProps = (state) => ({
 	passwordSet: state.user.passwordSet,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	selectedAddress: state.engine.backgroundState.PreferencesController?.selectedAddress,
 });
 
 const mapDispatchToProps = (dispatch) => ({
 	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
+	logIn: () => dispatch(logIn()),
+	logOut: () => dispatch(logOut()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Login);
