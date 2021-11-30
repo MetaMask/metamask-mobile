@@ -49,6 +49,7 @@ import { getPasswordStrengthWord, passwordRequirementsMet, MIN_PASSWORD_LENGTH }
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
+import Clipboard from '@react-native-clipboard/clipboard';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -348,8 +349,9 @@ class ImportFromSeed extends PureComponent {
 		this.setState({ biometryChoice: value });
 	};
 
-	onSeedWordsChange = (seed) => {
+	onSeedWordsChange = async (seed) => {
 		this.setState({ seed });
+		await Clipboard.clearString();
 	};
 
 	onPasswordChange = (val) => {
