@@ -16,6 +16,7 @@ import GlobalAlert from '../../UI/GlobalAlert';
 import BackgroundTimer from 'react-native-background-timer';
 import Approval from '../../Views/Approval';
 import NotificationManager from '../../../core/NotificationManager';
+import ReviewManager from '../../../core/ReviewManager';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import PushNotification from 'react-native-push-notification';
@@ -293,6 +294,7 @@ const Main = (props) => {
 							...transactionMeta,
 							assetType: transactionMeta.transaction.assetType,
 						});
+						ReviewManager.watchSubmittedTransactionToPromptReview(transactionMeta);
 					} else {
 						if (props.swapsTransactions[transactionMeta.id]?.analytics) {
 							trackSwaps(ANALYTICS_EVENT_OPTS.SWAP_FAILED, transactionMeta);
