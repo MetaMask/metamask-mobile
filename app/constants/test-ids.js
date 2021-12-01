@@ -9,3 +9,6 @@ export const RESET_WALLET_ID = 'reset-wallet-button';
 export const ACCOUNT_APROVAL_MODAL_CONTAINER_ID = 'account-approval-modal-container';
 export const CANCEL_BUTTON_ID = 'connect-cancel-button';
 export const CONNECT_BUTTON_ID = 'connect-approve-button';
+
+export const ADD_ADDRESS_MODAL_CONTAINER_ID = 'add-address-modal';
+export const ENTER_ALIAS_INPUT_BOX_ID = 'address-alias-input';
