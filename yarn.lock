@@ -1902,11 +1902,6 @@
   resolved "https://registry.yarnpkg.com/@react-native-community/eslint-plugin/-/eslint-plugin-1.1.0.tgz#e42b1bef12d2415411519fd528e64b593b1363dc"
   integrity sha512-W/J0fNYVO01tioHjvYWQ9m6RgndVtbElzYozBq1ZPrHO/iCzlqoySHl4gO/fpCl9QEFjvJfjPgtPMTMlsoq5DQ==
 
-"@react-native-community/masked-view@^0.1.10":
-  version "0.1.11"
-  resolved "https://registry.yarnpkg.com/@react-native-community/masked-view/-/masked-view-0.1.11.tgz#2f4c6e10bee0786abff4604e39a37ded6f3980ce"
-  integrity sha512-rQfMIGSR/1r/SyN87+VD8xHHzDYeHaJq6elOSCAD+0iLagXkSI2pfA0LmSXP21uw5i3em7GkkRjfJ8wpqWXZNw==
-
 "@react-native-community/netinfo@6.0.0":
   version "6.0.0"
   resolved "https://registry.yarnpkg.com/@react-native-community/netinfo/-/netinfo-6.0.0.tgz#2a4d7190b508dd0c2293656c9c1aa068f6f60a71"
@@ -1926,6 +1921,11 @@
   version "3.3.1"
   resolved "https://registry.yarnpkg.com/@react-native-community/viewpager/-/viewpager-3.3.1.tgz#c2c530fb99653252a4272c8cf1bb85dbd1edf57d"
   integrity sha512-UeCJBS172uCcsiAOLhAOsVjiWsj4YdeM44v0bGik/JXqFoplSmo/SPKFQm5ZQWRjYTckcOL5zkli+WULBwzJgQ==
+
+"@react-native-masked-view/masked-view@^0.2.6":
+  version "0.2.6"
+  resolved "https://registry.yarnpkg.com/@react-native-masked-view/masked-view/-/masked-view-0.2.6.tgz#b26c52d5db3ad0926b13deea79c69620966a9221"
+  integrity sha512-303CxmetUmgiX9NSUxatZkNh9qTYYdiM8xkGf9I3Uj20U3eGY3M78ljeNQ4UVCJA+FNGS5nC1dtS9GjIqvB4dg==
 
 "@react-navigation/bottom-tabs@^5.11.11":
   version "5.11.11"
@@ -11707,6 +11707,11 @@ react-native-level-fs@3.0.1:
     level-filesystem "^1.0.1"
     levelup "^0.18.2"
 
+react-native-linear-gradient@2.5.6:
+  version "2.5.6"
+  resolved "https://registry.yarnpkg.com/react-native-linear-gradient/-/react-native-linear-gradient-2.5.6.tgz#96215cbc5ec7a01247a20890888aa75b834d44a0"
+  integrity sha512-HDwEaXcQIuXXCV70O+bK1rizFong3wj+5Q/jSyifKFLg0VWF95xh8XQgfzXwtq0NggL9vNjPKXa016KuFu+VFg==
+
 react-native-material-textfield@0.16.1:
   version "0.16.1"
   resolved "https://registry.yarnpkg.com/react-native-material-textfield/-/react-native-material-textfield-0.16.1.tgz#649e71344bb8a7225d5cea7c7b51cd38bcb2bbfc"
@@ -11714,10 +11719,10 @@ react-native-material-textfield@0.16.1:
   dependencies:
     prop-types "^15.5.9"
 
-react-native-modal@^11.5.6:
-  version "11.10.0"
-  resolved "https://registry.yarnpkg.com/react-native-modal/-/react-native-modal-11.10.0.tgz#94a6d3a2428ba5228cfb4dc174cacea79c871591"
-  integrity sha512-syRYDJYSh16bR37R5EKU9T/wC+5bEOfF17IUqf5URdhbEDd+hxyMInC++l45E8oI+MtdOaEp9yAws5xDqk8dnA==
+react-native-modal@^12.1.0:
+  version "12.1.0"
+  resolved "https://registry.yarnpkg.com/react-native-modal/-/react-native-modal-12.1.0.tgz#5949c9c7d4de4e99df83cc777ad26b84ad7002a0"
+  integrity sha512-9myTNZ75gz6MPg1Cngm01x59JbaVkTeWoZvmChmW//PbSAdfbP/dFPnzbidL9IDrRh6Ftuuq8WSuM0aoS5m2lg==
   dependencies:
     prop-types "^15.6.2"
     react-native-animatable "1.3.3"
@@ -11815,10 +11820,10 @@ react-native-share@^5.2.2:
   resolved "https://registry.yarnpkg.com/react-native-share/-/react-native-share-5.3.0.tgz#e501f974f2c0e12f8c78aa744dfc5bdf6bc54978"
   integrity sha512-VHRVxCyENhKThfap2Y7eXawuCqMpSvKYsvANZUfeTKrTlZ86hVi9h0+ITXKTLIj8gOB8qmSYUzKG7o6Kj4wKJg==
 
-react-native-skeleton-placeholder@^4.0.0:
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/react-native-skeleton-placeholder/-/react-native-skeleton-placeholder-4.0.0.tgz#8c982cd9e00ffc69d5193da94945b75191eaa7c4"
-  integrity sha512-nX0NM6GhurCIgz8Yf+H9VYIaxSF2mbtdozLgaJNh/8QIH9mi+aJ2G9BVHSpjQ0o1fNdKYbGzrXDsC+6v4hmqAA==
+react-native-skeleton-placeholder@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/react-native-skeleton-placeholder/-/react-native-skeleton-placeholder-5.0.0.tgz#899fca447c2f0b81f98566e350e792157a3c9df9"
+  integrity sha512-7sdG+Y2ENEVcxFC9XlpCgHy59XKkxaUyVqDwuAb66hvl7lwFr25uA5kHJ+JuDJ84ptVil5UEowW/2avwhsfoYg==
 
 "react-native-splash-screen@git+https://github.com/MetaMask/react-native-splash-screen.git#1f45c08c0824cd94fdc6fb699529688a73614fee":
   version "3.2.0"
