@@ -513,7 +513,7 @@ class Login extends PureComponent {
 				onRequestClose={this.toggleWarningModal}
 				onConfirmPress={this.toggleWarningModal}
 			>
-				<View style={styles.areYouSure}>
+				<View style={styles.areYouSure} testID={'delete-wallet-modal-container'}>
 					<Icon style={styles.warningIcon} size={46} color={colors.red} name="exclamation-triangle" />
 					<Text style={[styles.heading, styles.red]}>{strings('login.are_you_sure')}</Text>
 					<Text style={styles.warningText}>
@@ -545,6 +545,7 @@ class Login extends PureComponent {
 						</Text>
 						<OutlinedTextField
 							style={styles.input}
+							testID={'delete-wallet-inputbox'}
 							autoFocus
 							returnKeyType={'done'}
 							onChangeText={this.checkDelete}
@@ -627,7 +628,11 @@ class Login extends PureComponent {
 
 						<View style={styles.footer}>
 							<Text style={styles.cant}>{strings('login.go_back')}</Text>
-							<Button style={styles.goBack} onPress={this.toggleWarningModal}>
+							<Button
+								style={styles.goBack}
+								onPress={this.toggleWarningModal}
+								testID={'reset-wallet-button'}
+							>
 								{strings('login.reset_wallet')}
 							</Button>
 						</View>
