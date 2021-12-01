@@ -31,7 +31,6 @@ exports[`CustomNonceModal should render correctly 1`] = `
   scrollOffset={0}
   scrollOffsetMax={0}
   scrollTo={null}
-  statusBarTranslucent={false}
   style={
     Object {
       "justifyContent": "flex-end",
