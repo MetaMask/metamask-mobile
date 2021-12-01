@@ -10,6 +10,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import Alert, { AlertType } from '../../Base/Alert';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import Text from '../../Base/Text';
+import { CANCEL_BUTTON_ID } from '../../../constants/test-ids';
 
 const styles = StyleSheet.create({
 	root: {
@@ -290,7 +291,7 @@ const AddCustomNetwork = ({ customNetworkInformation, currentPageInformation, on
 					type={'cancel'}
 					onPress={cancel}
 					containerStyle={[styles.button, styles.cancel]}
-					testID={'connect-cancel-button'}
+					testID={CANCEL_BUTTON_ID}
 				>
 					{strings('spend_limit_edition.cancel')}
 				</StyledButton>
