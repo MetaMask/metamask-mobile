@@ -77,7 +77,7 @@ export default class WalletView {
 		await TestHelpers.checkIfElementByTextIsVisible(tokenName);
 	}
 
-	static async TokenIsNotVisibleInWallet(tokenName) {
+	static async tokenIsNotVisibleInWallet(tokenName) {
 		await TestHelpers.checkIfElementWithTextIsNotVisible(tokenName);
 	}
 
