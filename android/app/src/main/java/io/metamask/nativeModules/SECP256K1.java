@@ -39,17 +39,16 @@ public class SECP256K1 extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod(isBlockingSynchronousMethod = true)
-  public WritableArray getPoint(String privateKey, boolean compressed)
+  public WritableArray getPoint(String privateKey)
   {
-
     BigInteger privateKeyInteger = new BigInteger(privateKey, 16);
     ECPoint point = CURVE_PARAMS.getG().multiply(privateKeyInteger);
 	ECPoint pointNormalized = point.normalize();
 
 	WritableArray pointArray = Arguments.createArray();
-
 	pointArray.pushString(pointNormalized.getXCoord().toString());
 	pointArray.pushString(pointNormalized.getYCoord().toString());
+
 	return pointArray;
   }
 }
