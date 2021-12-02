@@ -9,7 +9,7 @@ const LOGO_PADDING = 25;
 
 const styles = StyleSheet.create({
 	main: {
-		flex: 1,
+		...StyleSheet.absoluteFillObject,
 		backgroundColor: colors.white,
 	},
 	metamaskName: {

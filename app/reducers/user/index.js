@@ -7,10 +7,16 @@ const initialState = {
 	protectWalletModalVisible: false,
 	gasEducationCarouselSeen: false,
 	userLoggedIn: false,
+	isAuthChecked: false,
 };
 
 const userReducer = (state = initialState, action) => {
 	switch (action.type) {
+		case 'CHECKED_AUTH':
+			return {
+				...state,
+				isAuthChecked: true,
+			};
 		case 'LOGIN':
 			return {
 				...state,

@@ -25,7 +25,7 @@ import { strings } from '../../../../locales/i18n';
 import SecureKeychain from '../../../core/SecureKeychain';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import setOnboardingWizardStep from '../../../actions/wizard';
-import { logIn, logOut } from '../../../actions/user';
+import { logIn, logOut, checkedAuth } from '../../../actions/user';
 import { connect } from 'react-redux';
 import Device from '../../../util/device';
 import { OutlinedTextField } from 'react-native-material-textfield';
@@ -214,6 +214,10 @@ class Login extends PureComponent {
 		selectedAddress: PropTypes.string,
 		logIn: PropTypes.func,
 		logOut: PropTypes.func,
+		/**
+		 * TEMPORARY state for animation control on Nav/App/index.js
+		 */
+		checkedAuth: PropTypes.func,
 	};
 
 	state = {
@@ -273,9 +277,11 @@ class Login extends PureComponent {
 					console.warn(e);
 				}
 			} else {
-				this.checkIfRememberMeEnabled();
+				await this.checkIfRememberMeEnabled();
 			}
 		}
+
+		this.props.checkedAuth();
 	}
 
 	componentWillUnmount() {
@@ -653,6 +659,7 @@ const mapDispatchToProps = (dispatch) => ({
 	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 	logIn: () => dispatch(logIn()),
 	logOut: () => dispatch(logOut()),
+	checkedAuth: () => dispatch(checkedAuth()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Login);
