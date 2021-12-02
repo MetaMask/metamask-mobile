@@ -71,6 +71,7 @@ class Engine {
 						initialState.PreferencesController.useStaticTokenList,
 					// TODO: Use previous value when preferences UI is available
 					useCollectibleDetection: true,
+					openSeaEnabled: true,
 				}
 			);
 			const networkController = new NetworkController({

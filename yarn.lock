@@ -1607,9 +1607,10 @@
     web3 "^0.20.7"
     web3-provider-engine "^16.0.3"
 
-"@metamask/controllers@git+https://github.com/MetaMask/controllers.git#e2877ab":
-  version "20.1.0"
-  resolved "git+https://github.com/MetaMask/controllers.git#e2877ab73b475ae685d04087b047004aa095c545"
+"@metamask/controllers@^21.0.1":
+  version "21.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-21.0.1.tgz#f7776a448afd3869dce76ecb34549e867fa78ec4"
+  integrity sha512-E8JLRlTC7jyUgJSaXgFYa3g5pt5NCtA87hyarZFoolNKL6yrQgLHxqRyfGV28TsNsawl1i++rxb/8rgAJSRPHw==
   dependencies:
     "@ethereumjs/common" "^2.3.1"
     "@ethereumjs/tx" "^3.2.1"
@@ -1632,7 +1633,7 @@
     ethjs-unit "^0.1.6"
     ethjs-util "^0.1.6"
     human-standard-collectible-abi "^1.0.2"
-    human-standard-multi-collectible-abi "^1.0.2"
+    human-standard-multi-collectible-abi "^1.0.4"
     human-standard-token-abi "^2.0.0"
     immer "^9.0.6"
     isomorphic-fetch "^3.0.0"
@@ -7618,10 +7619,10 @@ human-standard-collectible-abi@^1.0.2:
   resolved "https://registry.yarnpkg.com/human-standard-collectible-abi/-/human-standard-collectible-abi-1.0.2.tgz#077bae9ed1b0b0b82bc46932104b4b499c941aa0"
   integrity sha512-nD3ITUuSAIBgkaCm9J2BGwlHL8iEzFjJfTleDAC5Wi8RBJEXXhxV0JeJjd95o+rTwf98uTE5MW+VoBKOIYQh0g==
 
-human-standard-multi-collectible-abi@^1.0.2:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/human-standard-multi-collectible-abi/-/human-standard-multi-collectible-abi-1.0.3.tgz#be5896b13f8622289cff70040e478366931bf3d7"
-  integrity sha512-1VXqats7JQqDZozLKhpmFG0S33hVePrkLNRJNKfJTxewR0heYKjSoz72kqs+6O/Tywi0zW4fWe7dfTaPX4j7gQ==
+human-standard-multi-collectible-abi@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/human-standard-multi-collectible-abi/-/human-standard-multi-collectible-abi-1.0.4.tgz#981625bc1a6bea5fef90567f9e12c11581fac497"
+  integrity sha512-ylR9JDXClDJAxWD/QJxsjXJJdLTUmhipTquMAgrfybXL3qX3x3P/vmKg92A7qFu7SqVOf2hyv5dA8vX0j+0Thg==
 
 human-standard-token-abi@^2.0.0:
   version "2.0.0"
