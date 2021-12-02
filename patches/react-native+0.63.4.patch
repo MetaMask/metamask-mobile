@@ -29,10 +29,10 @@ index a4e0cc0..4f4c9ea 100644
  
  const {Recording: RecordingModule} = NativeModules;
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
-index d1783a3..351cce0 100644
+index d1783a3..cefc747 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
-@@ -29,6 +29,7 @@ import android.view.KeyEvent;
+@@ -29,10 +29,14 @@ import android.view.KeyEvent;
  import android.view.MotionEvent;
  import android.view.View;
  import android.view.accessibility.AccessibilityNodeInfo;
@@ -40,7 +40,25 @@ index d1783a3..351cce0 100644
  import android.view.inputmethod.EditorInfo;
  import android.view.inputmethod.InputConnection;
  import android.view.inputmethod.InputMethodManager;
-@@ -74,6 +75,16 @@ public class ReactEditText extends AppCompatEditText {
++import android.view.inputmethod.InputMethodSubtype;
++
+ import androidx.annotation.Nullable;
++import androidx.annotation.RequiresApi;
+ import androidx.appcompat.widget.AppCompatEditText;
+ import androidx.core.view.AccessibilityDelegateCompat;
+ import androidx.core.view.ViewCompat;
+@@ -47,7 +51,10 @@ import com.facebook.react.views.text.ReactTypefaceUtils;
+ import com.facebook.react.views.text.TextAttributes;
+ import com.facebook.react.views.text.TextInlineImageSpan;
+ import com.facebook.react.views.view.ReactViewBackgroundManager;
++
++import java.lang.reflect.Field;
+ import java.util.ArrayList;
++import java.util.Objects;
+ 
+ /**
+  * A wrapper around the EditText that lets us better control what happens when an EditText gets
+@@ -74,6 +81,12 @@ public class ReactEditText extends AppCompatEditText {
    /** A count of events sent to JS or C++. */
    protected int mNativeEventCount;
  
@@ -50,14 +68,14 @@ index d1783a3..351cce0 100644
 +   * anyway.
 +   */
 +  private static final int IME_FLAG_NO_PERSONALIZED_LEARNING = 0x1000000;
-+  /** Samsung Manufacturer Name */
-+  private static final String SAMSUNG_MANUFACTURER_NAME = "samsung";
-+  /** Samsung Device Check */
-+  private static final Boolean IS_SAMSUNG_DEVICE = Build.MANUFACTURER.equals(SAMSUNG_MANUFACTURER_NAME);
    private static final int UNSET = -1;
  
    private @Nullable ArrayList<TextWatcher> mListeners;
-@@ -215,16 +226,31 @@ public class ReactEditText extends AppCompatEditText {
+@@ -212,23 +225,58 @@ public class ReactEditText extends AppCompatEditText {
+     }
+   }
+ 
++  @RequiresApi(api = Build.VERSION_CODES.KITKAT)
    @Override
    public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
      ReactContext reactContext = getReactContext(this);
@@ -65,7 +83,7 @@ index d1783a3..351cce0 100644
 +
 +    InputConnection inputConnection;
 +    // Don't apply learning flag on Samsung devices. Samsung Keyboards do not support incognito mode.
-+    if (IS_SAMSUNG_DEVICE) {
++    if (!usingGoogleKeyboard()) {
 +    	// Default React-Native implementation
 +    	inputConnection = super.onCreateInputConnection(outAttrs);
 +    	if (isMultiline() && getBlurOnSubmit()) {
@@ -94,3 +112,27 @@ index d1783a3..351cce0 100644
      return inputConnection;
    }
  
+-  @Override
++	@RequiresApi(api = Build.VERSION_CODES.KITKAT)
++	public boolean usingGoogleKeyboard() {
++		final InputMethodManager richImm =
++			(InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
++
++		boolean isKeyboard = false;
++
++		final Field field;
++		try {
++			field = richImm.getClass().getDeclaredField("mCurId");
++			field.setAccessible(true);
++			Object value = field.get(richImm);
++			isKeyboard = Objects.equals(value, "com.google.android.inputmethod.latin/com.android.inputmethod.latin.LatinIME");
++		} catch (IllegalAccessException | NoSuchFieldException e) {
++			return false;
++		}
++		return isKeyboard;
++	}
++
++	@Override
+   public void clearFocus() {
+     setFocusableInTouchMode(false);
+     super.clearFocus();
