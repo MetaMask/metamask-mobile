@@ -37,12 +37,18 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.InvalidKeyException;
 import java.util.concurrent.Executor;
 
 public class SECP256K1Test extends TestCase {
 
-	public void testGetPoint() {
-		SECP256K1 test = new SECP256K1(new mockReactContext(new mockContext()));
+	SECP256K1 test;
+
+	public void setUp (){
+		test = new SECP256K1(new mockReactContext(new mockContext()));
+	}
+
+	public void testSuccessfulGetPoint() throws Exception {
 		//MM Private Key 0
 		WritableArray pointValues = test.getPoint("c2ef448dd6bbb0eb81fb74ce89e218da4acb7f258c1899233c5b2962de0b09ed");
 		assertEquals("X Coordinate", "9ee354bf351314f4bf28d2ba5ad99c99f55c3da5d6e84f84cb9a76d2666d5f9b", pointValues.getString(0));
@@ -51,7 +57,6 @@ public class SECP256K1Test extends TestCase {
 		pointValues = test.getPoint("c2ef448dd6bbb0eb81fb74ce89e218da4acb7f258c1899233c5b2962de0b09ed".toUpperCase());
 		assertEquals("X Coordinate", "9ee354bf351314f4bf28d2ba5ad99c99f55c3da5d6e84f84cb9a76d2666d5f9b", pointValues.getString(0));
 		assertEquals("Y Coordinate", "34b02f368de97272048ffb0dcb53067bdb77bd1cc46cd384dd430d856aaf59a3", pointValues.getString(1));
-
 
 		//MM Private Key 1
 		pointValues = test.getPoint("bce8be7587c4773d4dc3e69416d2f065f2f929fe42acfb8d74c59cfbb1c7a165");
@@ -70,25 +75,53 @@ public class SECP256K1Test extends TestCase {
 		pointValues = test.getPoint("ad95d9b9e22dc2fed21a921fb24bc3aea3fed718c24377994fe3d8c6ecff7aeb");
 		assertEquals("X Coordinate", "48ebe2e313de2b474ae549150f11fc8bed7d64ade4d9d97fe313fbf9be33733f", pointValues.getString(0));
 		assertEquals("Y Coordinate", "533609c203d1d4939ce69564d1cba87126ac1fa777ac9ddebfdbfb16b6a75c0b", pointValues.getString(1));
+	}
 
+	public void testWrongPublicPointsGetPoint() throws Exception {
 		//Keys don't match
-		pointValues = test.getPoint("ad95d9b9e22dc2fed21a921fb24bc3aea3fed718c24377994fe3d8c6ecff7000");
+		WritableArray pointValues = test.getPoint("ad95d9b9e22dc2fed21a921fb24bc3aea3fed718c24377994fe3d8c6ecff7000");
 		assertNotSame("X Coordinate", "48ebe2e313de2b474ae549150f11fc8bed7d64ade4d9d97fe313fbf9be33733f", pointValues.getString(0));
 		assertNotSame("Y Coordinate", "533609c203d1d4939ce69564d1cba87126ac1fa777ac9ddebfdbfb16b6a75c0b", pointValues.getString(1));
+	}
 
+	public void testInvalidKeyGetPoint() throws Exception {
+		try {
+			WritableArray pointValues = test.getPoint("ad95d9b9e22dc2fed21a921fb2");
+		} catch (InvalidKeyException e) {
+			assertNotNull(e);
+			return;
+		}
+
+		fail();
+
+	}
+
+	public void testCorrectPublicKey() throws Exception {
+		//Uncompressed Key
+		String publicKey = test.publicKeyCreate("c2ef448dd6bbb0eb81fb74ce89e218da4acb7f258c1899233c5b2962de0b09ed", false);
+		assertEquals("49ee354bf351314f4bf28d2ba5ad99c99f55c3da5d6e84f84cb9a76d2666d5f9b34b02f368de97272048ffb0dcb53067bdb77bd1cc46cd384dd430d856aaf59a3", publicKey);
+
+		//Compressed Key
+		publicKey = test.publicKeyCreate("c2ef448dd6bbb0eb81fb74ce89e218da4acb7f258c1899233c5b2962de0b09ed", true);
+		assertEquals("39ee354bf351314f4bf28d2ba5ad99c99f55c3da5d6e84f84cb9a76d2666d5f9b", publicKey);
+	}
+
+	public void testWrongPublicKey() throws Exception {
 		//Keys don't match
-		pointValues = test.getPoint("ad95d9b9e22dc2fed21a921fb2");
+		String publicKey = test.publicKeyCreate("ad95d9b9e22dc2fed21a921fb24bc3aea3fed718c24377994fe3d8c6ecff7000", false);
+		assertFalse(publicKey.contains("48ebe2e313de2b474ae549150f11fc8bed7d64ade4d9d97fe313fbf9be33733f"));
+		assertFalse(publicKey.contains("533609c203d1d4939ce69564d1cba87126ac1fa777ac9ddebfdbfb16b6a75c0b"));
+	}
 
+	public void testInvalidKeyPublicKey() throws Exception {
+		try {
+			String publicKey = test.publicKeyCreate("ad95d9b9e22dc2fed21a921fb2", false);
+		} catch (InvalidKeyException e) {
+			assertNotNull(e);
+			return;
+		}
 
-//		WritableArray pointValues = test.getPoint("c2ef448dd6bbb0eb81fb74ce89e218da4acb7f258c1899233c5b2962de0b09ed");
-//		assertNotNull(pointValues);
-//
-//		WritableArray pointValues = test.getPoint("c2ef448dd6bbb0eb81fb74ce89e218da4acb7f258c1899233c5b2962de0b09ed");
-//		assertNotNull(pointValues);
-//
-//		WritableArray pointValues = test.getPoint("c2ef448dd6bbb0eb81fb74ce89e218da4acb7f258c1899233c5b2962de0b09ed");
-//		assertNotNull(pointValues);
-
+		fail();
 	}
 }
 

@@ -105,7 +105,7 @@ import com.android.build.OutputFile
 
 project.ext.react = [
 	entryFile: "index.js",
-	enableHermes: false,  // clean and rebuild if changing
+	enableHermes: System.getenv('METAMASK_ENVIRONMENT') == 'production'
 ]
 
 apply from: "../../node_modules/react-native/react.gradle"
@@ -125,12 +125,7 @@ apply from: "../../node_modules/@sentry/react-native/sentry.gradle"
  * Upload all the APKs to the Play Store and people will download
  * the correct one based on the CPU architecture of their device.
  */
-def enableSeparateBuildPerCPUArchitecture = false
-
-/**
- * Run Proguard to shrink the Java bytecode in release builds.
- */
-def enableProguardInReleaseBuilds = false
+def enableSeparateBuildPerCPUArchitecture = true
 
 /**
  * The preferred build flavor of JavaScriptCore.
@@ -208,7 +203,6 @@ android {
 			reset()
 			enable enableSeparateBuildPerCPUArchitecture
 			universalApk false  // If true, also generate a universal APK
-			include "armeabi-v7a", "x86", "arm64-v8a", "x86_64"
 		}
 	}
 
@@ -216,10 +210,13 @@ android {
 		debug {
 			manifestPlaceholders = [isDebug:true]
 			signingConfig signingConfigs.debug
+			multiDexEnabled true
 		}
 		release {
 			manifestPlaceholders = [isDebug:false]
-			minifyEnabled enableProguardInReleaseBuilds
+			minifyEnabled true
+			multiDexEnabled false
+			shrinkResources true
 			proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
 			signingConfig signingConfigs.release
 		}

@@ -69,6 +69,7 @@ exports[`Browser should render correctly 1`] = `
       scrollOffset={0}
       scrollOffsetMax={0}
       scrollTo={null}
+      statusBarTranslucent={false}
       style={
         Object {
           "flex": 1,
@@ -120,6 +121,7 @@ exports[`Browser should render correctly 1`] = `
       scrollOffset={0}
       scrollOffsetMax={0}
       scrollTo={null}
+      statusBarTranslucent={false}
       style={
         Object {
           "justifyContent": "flex-start",
@@ -235,6 +237,7 @@ exports[`Browser should render correctly 1`] = `
       scrollOffset={0}
       scrollOffsetMax={0}
       scrollTo={null}
+      statusBarTranslucent={false}
       style={
         Object {
           "justifyContent": "flex-end",
@@ -293,6 +296,7 @@ exports[`Browser should render correctly 1`] = `
       scrollOffset={0}
       scrollOffsetMax={0}
       scrollTo={null}
+      statusBarTranslucent={false}
       style={
         Object {
           "justifyContent": "flex-end",
@@ -361,6 +365,7 @@ exports[`Browser should render correctly 1`] = `
       scrollOffset={0}
       scrollOffsetMax={0}
       scrollTo={null}
+      statusBarTranslucent={false}
       style={
         Object {
           "justifyContent": "flex-end",
@@ -419,6 +424,7 @@ exports[`Browser should render correctly 1`] = `
       scrollOffset={0}
       scrollOffsetMax={0}
       scrollTo={null}
+      statusBarTranslucent={false}
       style={
         Object {
           "justifyContent": "flex-end",
