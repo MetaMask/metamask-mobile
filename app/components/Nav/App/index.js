@@ -265,14 +265,17 @@ const App = ({ userLoggedIn }) => {
 				}}
 			>
 				<Stack.Navigator route={route} initialRouteName={route}>
-					<Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
-					<Stack.Screen
-						name="OnboardingRootNav"
-						component={OnboardingRootNav}
-						options={{ headerShown: false }}
-					/>
-					{userLoggedIn && (
+					{userLoggedIn ? (
 						<Stack.Screen name="HomeNav" component={HomeNav} options={{ headerShown: false }} />
+					) : (
+						<>
+							<Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
+							<Stack.Screen
+								name="OnboardingRootNav"
+								component={OnboardingRootNav}
+								options={{ headerShown: false }}
+							/>
+						</>
 					)}
 				</Stack.Navigator>
 			</NavigationContainer>

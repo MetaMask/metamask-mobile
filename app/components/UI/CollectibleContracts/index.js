@@ -8,6 +8,7 @@ import Engine from '../../../core/Engine';
 import CollectibleContractElement from '../CollectibleContractElement';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { collectibleContractsSelector, collectiblesSelector } from '../../../reducers/collectibles';
 import Text from '../../Base/Text';
 import AppConstants from '../../../core/AppConstants';
 import { toLowerCaseEquals } from '../../../util/general';
@@ -69,10 +70,8 @@ const styles = StyleSheet.create({
 const CollectibleContracts = ({ navigation }) => {
 	const selectedAddress = useSelector((state) => state.engine.backgroundState.PreferencesController.selectedAddress);
 	const chainId = useSelector((state) => state.engine.backgroundState.NetworkController.provider.chainId);
-	const collectibleContracts = useSelector(
-		(state) => state.engine.backgroundState.CollectiblesController.collectibleContracts
-	);
-	const collectibles = useSelector((state) => state.engine.backgroundState.CollectiblesController.collectibles);
+	const collectibleContracts = useSelector((state) => collectibleContractsSelector(state));
+	const collectibles = useSelector((state) => collectiblesSelector(state));
 	const favorites = useSelector((state) => state.collectibles.favorites);
 
 	const onItemPress = useCallback(

@@ -69,6 +69,8 @@ class Engine {
 					useStaticTokenList:
 						initialState?.PreferencesController?.useStaticTokenList === undefined ||
 						initialState.PreferencesController.useStaticTokenList,
+					// TODO: Use previous value when preferences UI is available
+					useCollectibleDetection: true,
 				}
 			);
 			const networkController = new NetworkController({

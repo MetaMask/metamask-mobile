@@ -13,6 +13,7 @@ const initialState = {
 				provider: {
 					ticker: 'ETH',
 					type: 'mainnet',
+					chainId: '1',
 				},
 			},
 			AccountTrackerController: {
@@ -30,6 +31,7 @@ const initialState = {
 				},
 			},
 			PreferencesController: {
+				selectedAddress: '0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b',
 				identities: {
 					'0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b': {
 						address: '0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b',
@@ -44,7 +46,8 @@ const initialState = {
 				tokens: [],
 			},
 			CollectiblesController: {
-				collectibles: {},
+				allCollectibles: { '0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b': { '1': [] } },
+				allCollectibleContracts: { '0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b': { '1': [] } },
 			},
 			TokenRatesController: {
 				contractExchangeRates: {},
