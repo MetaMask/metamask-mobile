@@ -136,4 +136,3 @@ index d1783a3..cefc747 100644
    public void clearFocus() {
      setFocusableInTouchMode(false);
      super.clearFocus();
-     
