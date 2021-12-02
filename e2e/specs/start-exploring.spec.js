@@ -25,6 +25,7 @@ describe('Start Exploring', () => {
 
 	it('should show the onboarding screen', async () => {
 		// Check that we are on the onboarding carousel screen
+		await device.launchApp({ newInstance: true }); // because of a flakey test step. We can improve this
 		await OnboardingCarouselView.isVisible();
 		await OnboardingCarouselView.isMetaMaskWelcomeTextVisible();
 		await OnboardingCarouselView.isWelcomeToMetaMaskImageVisible();
