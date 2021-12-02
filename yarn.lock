@@ -1607,10 +1607,9 @@
     web3 "^0.20.7"
     web3-provider-engine "^16.0.3"
 
-"@metamask/controllers@^21.0.1":
-  version "21.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-21.0.1.tgz#f7776a448afd3869dce76ecb34549e867fa78ec4"
-  integrity sha512-E8JLRlTC7jyUgJSaXgFYa3g5pt5NCtA87hyarZFoolNKL6yrQgLHxqRyfGV28TsNsawl1i++rxb/8rgAJSRPHw==
+"@metamask/controllers@git+https://github.com/MetaMask/controllers.git#cbf1333":
+  version "22.0.0"
+  resolved "git+https://github.com/MetaMask/controllers.git#cbf1333901c216e5535b9a91d934f2259a1be17c"
   dependencies:
     "@ethereumjs/common" "^2.3.1"
     "@ethereumjs/tx" "^3.2.1"
@@ -1638,6 +1637,7 @@
     immer "^9.0.6"
     isomorphic-fetch "^3.0.0"
     jsonschema "^1.2.4"
+    multiformats "^9.5.2"
     nanoid "^3.1.12"
     punycode "^2.1.1"
     single-call-balance-checker-abi "^1.0.0"
@@ -10121,6 +10121,11 @@ multicodec@^1.0.0:
   dependencies:
     buffer "^5.6.0"
     varint "^5.0.0"
+
+multiformats@^9.5.2:
+  version "9.5.2"
+  resolved "https://registry.yarnpkg.com/multiformats/-/multiformats-9.5.2.tgz#14256e49bac8b6a5ecb558c4d3c347bb94873d65"
+  integrity sha512-nLQ9s7YOVtZdeNOVvCkNyFiZdS3wyq0gvCIvdm7Zy1zw3zBoColJKjMkIPXNdTqT7ruuq+G7HrezIN0cXiAZ0w==
 
 multihashes@0.4.14:
   version "0.4.14"

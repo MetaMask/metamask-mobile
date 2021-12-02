@@ -13,7 +13,8 @@ export const collectibleContractsSelector = createSelector(
 	addressSelector,
 	chainIdSelector,
 	allCollectibleContractsSelector,
-	(address, chainId, allCollectibleContracts) => allCollectibleContracts[address]?.[chainId] || []
+	(address, chainId, allCollectibleContracts) =>
+		allCollectibleContracts[address]?.[chainId].filter(({ logo }) => logo) || []
 );
 
 export const collectiblesSelector = createSelector(

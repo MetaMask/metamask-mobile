@@ -209,7 +209,7 @@ const CollectibleContracts = ({
 
 	return (
 		<View style={styles.wrapper} testID={'collectible-contracts'}>
-			{collectibles.length ? renderList() : renderEmpty()}
+			{collectibleContracts.length > 0 ? renderList() : renderEmpty()}
 			{renderFooter()}
 		</View>
 	);
