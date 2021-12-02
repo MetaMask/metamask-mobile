@@ -161,7 +161,7 @@ android {
 		applicationId "io.metamask"
 		minSdkVersion rootProject.ext.minSdkVersion
 		targetSdkVersion rootProject.ext.targetSdkVersion
-		versionCode 796
+		versionCode 795
 		versionName "3.7.0"
 		multiDexEnabled true
 		testBuildType System.getProperty('testBuildType', 'debug')
@@ -215,7 +215,7 @@ android {
 		release {
 			manifestPlaceholders = [isDebug:false]
 			minifyEnabled true
-			multiDexEnabled false
+			multiDexEnabled true
 			shrinkResources true
 			proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
 			signingConfig signingConfigs.release
