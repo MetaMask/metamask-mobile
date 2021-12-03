@@ -1,10 +1,9 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, View, InteractionManager, Image } from 'react-native';
 import { useSelector } from 'react-redux';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import Engine from '../../../core/Engine';
 import CollectibleContractElement from '../CollectibleContractElement';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
@@ -68,11 +67,8 @@ const styles = StyleSheet.create({
  * also known as ERC-721 Tokens
  */
 const CollectibleContracts = ({ navigation }) => {
-	const selectedAddress = useSelector((state) => state.engine.backgroundState.PreferencesController.selectedAddress);
-	const chainId = useSelector((state) => state.engine.backgroundState.NetworkController.provider.chainId);
 	const collectibleContracts = useSelector((state) => collectibleContractsSelector(state));
 	const collectibles = useSelector((state) => collectiblesSelector(state));
-	const favorites = useSelector((state) => state.collectibles.favorites);
 
 	const onItemPress = useCallback(
 		(collectible, contractName) => {
@@ -80,47 +76,6 @@ const CollectibleContracts = ({ navigation }) => {
 		},
 		[navigation]
 	);
-
-	/**
-	 *	Method to check the token id data type of the current collectibles.
-	 *
-	 * @param collectible - Collectible object.
-	 * @returns Boolean indicating if the collectible should be updated.
-	 */
-	const shouldUpdateCollectibleMetadata = (collectible) => typeof collectible.tokenId === 'number';
-
-	/**
-	 * Method to updated collectible and avoid backwards compatibility issues.
-	 * @param address - Collectible address.
-	 * @param tokenId - Collectible token ID.
-	 */
-	const updateCollectibleMetadata = (collectible) => {
-		const { CollectiblesController } = Engine.context;
-		const { address, tokenId } = collectible;
-		CollectiblesController.removeCollectible(address, tokenId);
-		if (!String(tokenId).includes('e+')) {
-			CollectiblesController.addCollectible(address, String(tokenId));
-		}
-	};
-
-	useEffect(() => {
-		const { CollectiblesController } = Engine.context;
-
-		// TO DO: Move this fix to the controllers layer
-		collectibles.forEach((collectible) => {
-			if (shouldUpdateCollectibleMetadata(collectible)) {
-				updateCollectibleMetadata(collectible);
-			}
-		});
-
-		// BACKWARDS COMPATIBILITY: Favorite collectibles
-		const previousFavorites = favorites[selectedAddress]?.[chainId] || [];
-		if (previousFavorites.length > 0) {
-			previousFavorites.forEach(({ address, tokenId }) => {
-				CollectiblesController.updateCollectibleFavoriteStatus(address, tokenId, true);
-			});
-		}
-	});
 
 	const goToAddCollectible = () => {
 		navigation.push('AddAsset', { assetType: 'collectible' });
