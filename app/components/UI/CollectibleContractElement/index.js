@@ -175,7 +175,11 @@ function CollectibleContractElement({
 					{!asset.favorites ? (
 						<CollectibleMedia
 							iconStyle={styles.collectibleContractIcon}
-							collectible={{ ...asset, image: asset.logo }}
+							collectible={{
+								name: strings('collectible.untitled_collection'),
+								...asset,
+								image: asset.logo,
+							}}
 							tiny
 						/>
 					) : (
@@ -186,7 +190,7 @@ function CollectibleContractElement({
 				</View>
 				<View style={styles.verticalAlignedContainer}>
 					<Text numberOfLines={1} style={styles.titleText}>
-						{asset.name}
+						{asset?.name || strings('collectible.untitled_collection')}
 					</Text>
 				</View>
 			</TouchableOpacity>
