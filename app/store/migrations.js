@@ -247,6 +247,54 @@ export const migrations = {
 		};
 		return state;
 	},
+	10: (state) => {
+		const allCollectibles = state.engine.backgroundState.CollectiblesController.allCollectibles;
+		const favorites = state.collectibles.favorites;
+
+		const migratedColletibles = {};
+
+		Object.entries(allCollectibles).forEach(([address, networks]) => {
+			if (!networks) {
+				migratedColletibles[address] = networks;
+				return;
+			}
+			migratedColletibles[address] = {};
+			Object.entries(networks).forEach(([network, collectibles]) => {
+				if (!collectibles) {
+					migratedColletibles[address][network] = collectibles;
+					return;
+				}
+				migratedColletibles[address][network] = collectibles
+					.map((collectible) => {
+						const favorite = Boolean(
+							favorites[address][network] &&
+								favorites[address][network].findIndex(
+									(favorite) =>
+										collectible.address === favorite.address &&
+										collectible.tokenId === favorite.tokenId
+								) !== -1
+						);
+						const tokenId =
+							typeof collectible.tokenId === 'number'
+								? collectible.tokenId.toString()
+								: collectible.tokenId;
+						if (tokenId.includes('.') || tokenId.includes('e+')) {
+							return null;
+						}
+
+						return { ...collectible, tokenId, favorite };
+					})
+					.filter(Boolean);
+			});
+		});
+
+		state.engine.backgroundState.CollectiblesController = {
+			...state.engine.backgroundState.CollectiblesController,
+			allCollectibles: migratedColletibles,
+		};
+
+		return state;
+	},
 };
 
 export const version = 9;
