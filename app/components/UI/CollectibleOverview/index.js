@@ -165,6 +165,7 @@ const CollectibleOverview = ({
 	}, []);
 
 	const renderCollectibleInfo = () => [
+		renderCollectibleInfoRow(strings('collectible.collectible_token_standard'), collectible?.standard),
 		renderCollectibleInfoRow(
 			strings('collectible.collectible_last_sold'),
 			collectible?.lastSale?.event_timestamp &&
