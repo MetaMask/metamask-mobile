@@ -1607,9 +1607,10 @@
     web3 "^0.20.7"
     web3-provider-engine "^16.0.3"
 
-"@metamask/controllers@git+https://github.com/MetaMask/controllers.git#cbf1333":
+"@metamask/controllers@^22.0.0":
   version "22.0.0"
-  resolved "git+https://github.com/MetaMask/controllers.git#cbf1333901c216e5535b9a91d934f2259a1be17c"
+  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-22.0.0.tgz#54f172be2ae7e32ce47536a1ff06e35cc6ee3c80"
+  integrity sha512-5m4aT+B87IOAvvlbfgqI5n7Pd6VSQUjHBfm34qMBBL5jjUFUSfK6BL0h6ef2jxTE2VCuyBibQ8A7sETQ1+Hd+Q==
   dependencies:
     "@ethereumjs/common" "^2.3.1"
     "@ethereumjs/tx" "^3.2.1"
