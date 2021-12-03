@@ -57,6 +57,7 @@ import { renderShortText } from '../../../../util/general';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { decGWEIToHexWEI } from '../../../../util/conversions';
 import AppConstants from '../../../../core/AppConstants';
+import { collectibleContractsSelector, collectiblesSelector } from '../../../../reducers/collectibles';
 
 const { hexToBN, BNToHex } = util;
 
@@ -1086,8 +1087,8 @@ const mapStateToProps = (state, ownProps) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
-	collectibleContracts: state.engine.backgroundState.CollectiblesController.collectibleContracts,
+	collectibles: collectiblesSelector(state),
+	collectibleContracts: collectibleContractsSelector(state),
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	providerType: state.engine.backgroundState.NetworkController.provider.type,
