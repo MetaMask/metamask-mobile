@@ -21,8 +21,8 @@ import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import NetworkListModal from '../pages/modals/NetworkListModal';
 import RequestPaymentModal from '../pages/modals/RequestPaymentModal';
 
-const CORRECT_SEED_WORDS = 'fold media south add since false relax immense pause cloth just raven';
-const CORRECT_PASSWORD = `12345678`;
+const SECRET_RECOVERY_PHRASE = 'fold media south add since false relax immense pause cloth just raven';
+const PASSWORD = `12345678`;
 const TEST_PUBLIC_ADDRESS = '0xd3B9Cbea7856AECf4A6F7c3F4E8791F79cBeeD62';
 const RINKEBY = 'Rinkeby Test Network';
 const ETHEREUM = 'Ethereum Main Network';
@@ -52,9 +52,9 @@ describe('Wallet Tests', () => {
 
 	it('should import wallet with secret recovery phrase', async () => {
 		await ImportWalletView.clearSecretRecoveryPhraseInputBox();
-		await ImportWalletView.enterSecretRecoveryPhrase(CORRECT_SEED_WORDS);
-		await ImportWalletView.enterPassword(CORRECT_PASSWORD);
-		await ImportWalletView.reEnterPassword(CORRECT_PASSWORD);
+		await ImportWalletView.enterSecretRecoveryPhrase(SECRET_RECOVERY_PHRASE);
+		await ImportWalletView.enterPassword(PASSWORD);
+		await ImportWalletView.reEnterPassword(PASSWORD);
 		await WalletView.isVisible();
 	});
 
@@ -205,7 +205,7 @@ describe('Wallet Tests', () => {
 
 		await WalletView.tapOKAlertButton();
 		await TestHelpers.delay(1500);
-		await WalletView.TokenIsNotVisibleInWallet('0 DAI');
+		await WalletView.tokenIsNotVisibleInWallet('0 DAI');
 	});
 
 	it('should add a custom token', async () => {
