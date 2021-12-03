@@ -42,6 +42,7 @@ import { findRouteNameFromNavigatorState } from '../../../util/general';
 import AnalyticsV2, { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
 import { isDefaultAccountName, doENSReverseLookup } from '../../../util/ENSUtils';
 import ClipboardManager from '../../../core/ClipboardManager';
+import { collectiblesSelector } from '../../../reducers/collectibles';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -1140,7 +1141,7 @@ const mapStateToProps = (state) => ({
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	tokens: state.engine.backgroundState.TokensController.tokens,
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
-	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
+	collectibles: collectiblesSelector(state),
 	seedphraseBackedUp: state.user.seedphraseBackedUp,
 });
 
