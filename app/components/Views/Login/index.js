@@ -276,6 +276,9 @@ class Login extends PureComponent {
 				} catch (e) {
 					console.warn(e);
 				}
+				if (!enabled) {
+					await this.checkIfRememberMeEnabled();
+				}
 			} else {
 				await this.checkIfRememberMeEnabled();
 			}
@@ -299,7 +302,6 @@ class Login extends PureComponent {
 	 */
 	checkIfRememberMeEnabled = async () => {
 		const credentials = await SecureKeychain.getGenericPassword();
-		//This
 		if (credentials) {
 			this.setState({ rememberMe: true });
 			// Restore vault with existing credentials
@@ -446,6 +448,8 @@ class Login extends PureComponent {
 	updateBiometryChoice = async (biometryChoice) => {
 		if (!biometryChoice) {
 			await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+			// This line will disable biometrics the next time SecureKeychain.getGenericPassword is called
+			await SecureKeychain.resetGenericPassword();
 		} else {
 			await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
 		}
