@@ -9,6 +9,9 @@ export default StyleSheet.create({
 		borderRadius: 8,
 		paddingVertical: 36,
 	},
+	contentContainer: {
+		alignItems: 'center',
+	},
 	optionsContainer: { flexDirection: 'row', marginTop: 14 },
 	option: { alignItems: 'center', paddingHorizontal: 14 },
 	optionIcon: { fontSize: 24 },

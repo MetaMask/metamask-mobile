@@ -60,7 +60,7 @@ const ReviewModal = () => {
 	);
 
 	const renderReviewContent = () => (
-		<React.Fragment>
+		<View style={styles.contentContainer}>
 			<Image style={styles.fox} source={foxImage} />
 			<Text style={styles.questionLabel}>{strings('review_prompt.mobile_sentiment')}</Text>
 			<View style={styles.optionsContainer}>
@@ -75,12 +75,12 @@ const ReviewModal = () => {
 					</Text>
 				</TouchableOpacity>
 			</View>
-		</React.Fragment>
+		</View>
 	);
 
 	const renderHelpContent = useCallback(
 		() => (
-			<React.Fragment>
+			<View style={styles.contentContainer}>
 				<Text style={styles.questionLabel}>{strings('review_prompt.help_title')}</Text>
 				<Text style={styles.description}>
 					{strings('review_prompt.help_description_1')}
@@ -102,7 +102,7 @@ const ReviewModal = () => {
 						</TouchableOpacity>
 					);
 				})}
-			</React.Fragment>
+			</View>
 		),
 		[openUrl]
 	);
