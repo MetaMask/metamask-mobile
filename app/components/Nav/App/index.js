@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { NavigationContainer, CommonActions } from '@react-navigation/native';
-import { Animated } from 'react-native';
+import { Animated, StyleSheet, View } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import Login from '../../Views/Login';
@@ -30,10 +30,14 @@ import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { routingInstrumentation } from '../../../util/setupSentry';
 import Analytics from '../../../core/Analytics';
 import AsyncStorage from '@react-native-community/async-storage';
-import { connect } from 'react-redux';
-
+import { connect, useSelector, useDispatch } from 'react-redux';
 import { EXISTING_USER, CURRENT_APP_VERSION, LAST_APP_VERSION } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
+import { checkedAuth } from '../../../actions/user';
+
+const styles = StyleSheet.create({
+	fill: { flex: 1 },
+});
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -147,6 +151,10 @@ const App = ({ userLoggedIn }) => {
 	const [route, setRoute] = useState();
 	const [animationPlayed, setAnimationPlayed] = useState();
 
+	const isAuthChecked = useSelector((state) => state.user.isAuthChecked);
+	const dispatch = useDispatch();
+	const triggerCheckedAuth = () => dispatch(checkedAuth());
+
 	const handleDeeplink = useCallback(({ error, params, uri }) => {
 		if (error) {
 			trackErrorAsAnalytics(error, 'Branch:');
@@ -196,6 +204,9 @@ const App = ({ userLoggedIn }) => {
 			const existingUser = await AsyncStorage.getItem(EXISTING_USER);
 			const route = !existingUser ? 'OnboardingRootNav' : 'Login';
 			setRoute(route);
+			if (!existingUser) {
+				triggerCheckedAuth();
+			}
 		}
 
 		checkExsiting();
@@ -225,13 +236,22 @@ const App = ({ userLoggedIn }) => {
 			} catch (error) {
 				Logger.error(error);
 			}
-
-			animation?.current?.play();
-			animationName?.current?.play();
 		}
 
 		startApp();
 	}, []);
+
+	useEffect(() => {
+		if (!isAuthChecked) {
+			return;
+		}
+		const startAnimation = async () => {
+			await new Promise((res) => setTimeout(res, 50));
+			animation?.current?.play();
+			animationName?.current?.play();
+		};
+		startAnimation();
+	}, [isAuthChecked]);
 
 	const onAnimationFinished = useCallback(() => {
 		Animated.timing(opacity, {
@@ -244,41 +264,44 @@ const App = ({ userLoggedIn }) => {
 		});
 	}, [opacity]);
 
-	if (!animationPlayed) {
-		return (
-			<MetaMaskAnimation
-				animation={animation}
-				animationName={animationName}
-				opacity={opacity}
-				onAnimationFinish={onAnimationFinished}
-			/>
-		);
-	}
+	const renderSplash = () => {
+		if (!animationPlayed) {
+			return (
+				<MetaMaskAnimation
+					animation={animation}
+					animationName={animationName}
+					opacity={opacity}
+					onAnimationFinish={onAnimationFinished}
+				/>
+			);
+		}
+		return null;
+	};
 
 	return (
 		// do not render unless a route is defined
 		(route && (
-			<NavigationContainer
-				ref={navigator}
-				onReady={() => {
-					routingInstrumentation.registerNavigationContainer(navigator);
-				}}
-			>
-				<Stack.Navigator route={route} initialRouteName={route}>
-					{userLoggedIn ? (
-						<Stack.Screen name="HomeNav" component={HomeNav} options={{ headerShown: false }} />
-					) : (
-						<>
-							<Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
-							<Stack.Screen
-								name="OnboardingRootNav"
-								component={OnboardingRootNav}
-								options={{ headerShown: false }}
-							/>
-						</>
-					)}
-				</Stack.Navigator>
-			</NavigationContainer>
+			<View style={styles.fill}>
+				<NavigationContainer
+					ref={navigator}
+					onReady={() => {
+						routingInstrumentation.registerNavigationContainer(navigator);
+					}}
+				>
+					<Stack.Navigator route={route} initialRouteName={route}>
+						<Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
+						<Stack.Screen
+							name="OnboardingRootNav"
+							component={OnboardingRootNav}
+							options={{ headerShown: false }}
+						/>
+						{userLoggedIn && (
+							<Stack.Screen name="HomeNav" component={HomeNav} options={{ headerShown: false }} />
+						)}
+					</Stack.Navigator>
+				</NavigationContainer>
+				{renderSplash()}
+			</View>
 		)) ||
 		null
 	);
