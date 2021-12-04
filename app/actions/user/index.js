@@ -76,3 +76,9 @@ export function logOut() {
 		type: 'LOGOUT',
 	};
 }
+
+export function checkedAuth() {
+	return {
+		type: 'CHECKED_AUTH',
+	};
+}

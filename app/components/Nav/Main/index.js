@@ -79,7 +79,10 @@ import abi from 'human-standard-token-abi';
 import AddCustomNetwork from '../../UI/AddCustomNetwork';
 import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
 import RPCMethods from '../../../core/RPCMethods';
+import { createStackNavigator } from '@react-navigation/stack';
+import ReviewModal from '../../UI/ReviewModal';
 
+const Stack = createStackNavigator();
 const hstInterface = new ethers.utils.Interface(abi);
 
 const styles = StyleSheet.create({
@@ -943,4 +946,17 @@ const mapDispatchToProps = (dispatch) => ({
 	setSwitchEthereumChainRequest: (req = null) => dispatch(setSwitchEthereumChainRequest(req)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Main);
+const ConnectedMain = connect(mapStateToProps, mapDispatchToProps)(Main);
+
+const MainFlow = () => (
+	<Stack.Navigator
+		initialRouteName={'Main'}
+		mode={'modal'}
+		screenOptions={{ headerShown: false, cardStyle: { backgroundColor: 'transparent' } }}
+	>
+		<Stack.Screen name={'Main'} component={ConnectedMain} />
+		<Stack.Screen name={'ReviewModal'} component={ReviewModal} options={{ animationEnabled: false }} />
+	</Stack.Navigator>
+);
+
+export default MainFlow;
