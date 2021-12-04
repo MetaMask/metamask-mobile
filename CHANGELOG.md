@@ -1,22 +1,22 @@
 # Changelog
 
 ## Current Develop Branch
-- [#3467](https://github.com/MetaMask/metamask-mobile/pull/3467): Bug/3464 fix login bug
-- [#3387](https://github.com/MetaMask/metamask-mobile/pull/3387): [FIX] Minor NFTs bugs
-- [#3458](https://github.com/MetaMask/metamask-mobile/pull/3458): Fix collectibles autodetection
-- [#3459](https://github.com/MetaMask/metamask-mobile/pull/3459): [FIX] Android Keyboard Text Entry
-- [#3465](https://github.com/MetaMask/metamask-mobile/pull/3465): Bug/3464 fix login bug
-- [#3439](https://github.com/MetaMask/metamask-mobile/pull/3439): Performance - Bump modules
+
+## v3.8.0 - December 3 2021
+- [#3457](https://github.com/MetaMask/metamask-mobile/pull/3457): [FEAT] User review prompt
+- [#3465](https://github.com/MetaMask/metamask-mobile/pull/3465): [FIX] 3464 fix login bug
 - [#3456](https://github.com/MetaMask/metamask-mobile/pull/3456): Delete Wallet Spec
-- [#3453](https://github.com/MetaMask/metamask-mobile/pull/3453): Fix typo
+- [#3453](https://github.com/MetaMask/metamask-mobile/pull/3453): [FIX] typo
+- [#3430](https://github.com/MetaMask/metamask-mobile/pull/3430): [IMPROVEMENT] Add better initial state for swaps loading tokens
+- [#3387](https://github.com/MetaMask/metamask-mobile/pull/3387): [FIX] Minor NFTs bugs
+- [#3458](https://github.com/MetaMask/metamask-mobile/pull/3458): [FIX] Collectibles Autodetection
+- [#3459](https://github.com/MetaMask/metamask-mobile/pull/3459): [FIX] Android Keyboard Text Entry
 - [#3380](https://github.com/MetaMask/metamask-mobile/pull/3380): Consume split TokenDetectionsController and CollectibleDetectionController (previously AssetDetectionController)
-- [#3452](https://github.com/MetaMask/metamask-mobile/pull/3452): fix `this.existingTxId` always false
-- Merge pull request from GHSA-r267-fcwv-42jm
-- [#3423](https://github.com/MetaMask/metamask-mobile/pull/3423): [IMPROVEMENT] Android APK Size, App Load Time, Bitrise Build Steps
-- [#3443](https://github.com/MetaMask/metamask-mobile/pull/3443): Disable Sync with Extension
+- [#3452](https://github.com/MetaMask/metamask-mobile/pull/3452): [FIX] `this.existingTxId` always false
+- [#3423](https://github.com/MetaMask/metamask-mobile/pull/3423): [IMPROVEMENT] Android APK Size, App Load Time
+- [#3443](https://github.com/MetaMask/metamask-mobile/pull/3443): [UPDATE] Disable Sync with Extension
 - [#3430](https://github.com/MetaMask/metamask-mobile/pull/3430): Add better initial state for swaps loading tokens
-- [#3445](https://github.com/MetaMask/metamask-mobile/pull/3445): patch json schema via resolution
-- [#3440](https://github.com/MetaMask/metamask-mobile/pull/3440): Update imrpove-yarn-audit and patch/ignore advisories
+- [#3445](https://github.com/MetaMask/metamask-mobile/pull/3445): Patch json schema via resolution
 
 ## v3.7.0 - November 16 2021
 - [#3405](https://github.com/MetaMask/metamask-mobile/pull/3405): [FIX] Remove Metric Opt In event
