@@ -848,11 +848,7 @@
 				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMaskDebug.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-<<<<<<< HEAD
 				CURRENT_PROJECT_VERSION = 797;
-=======
-				CURRENT_PROJECT_VERSION = 796;
->>>>>>> develop
 				DEAD_CODE_STRIPPING = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 48XVW22RCG;
