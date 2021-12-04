@@ -6,7 +6,7 @@ interface AndroidKeyData {
 	publicPointY: string;
 }
 
-describe('Encoded Public Key Test', () => {
+describe('Genearting Public Key From Private Key Test', () => {
 	const ec = elliptic.curves.secp256k1;
 
 	const androidGeneratedKeySet1: AndroidKeyData = {
@@ -25,7 +25,7 @@ describe('Encoded Public Key Test', () => {
 		publicPointY: '533609c203d1d4939ce69564d1cba87126ac1fa777ac9ddebfdbfb16b6a75c0b',
 	};
 
-	it('- Successful Generation', () => {
+	it('- Success Generation', () => {
 		const result_point1 = ec.curve.point(
 			androidGeneratedKeySet1.publicPointX,
 			androidGeneratedKeySet1.publicPointY
@@ -54,7 +54,7 @@ describe('Encoded Public Key Test', () => {
 		expect(result_point3.encode()).toStrictEqual(result_js3.encode());
 	});
 
-	it('- Failed Generation', () => {
+	it('- Fails Generation', () => {
 		const result_point1 = ec.curve.point(
 			androidGeneratedKeySet1.publicPointX,
 			androidGeneratedKeySet1.publicPointY
