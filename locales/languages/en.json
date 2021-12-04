@@ -1770,5 +1770,19 @@
 		"warning_low": "This lowers your maximum fee but if network traffic increases your transaction may be delayed or fail.",
 		"warning_low_title": "Low priority",
 		"warning_unknown_title": "Unknown processing time"
+	},
+	"review_prompt": {
+		"high_fees": "Why are fees so high?",
+		"missing_tokens": "I'm missing tokens...",
+		"swap_issues": "I'm unable to swap...",
+		"mobile_sentiment": "How do you feel about MetaMask mobile?",
+		"sentiment_good_face": "😁",
+		"sentiment_bad_face": "☹️",
+		"sentiment_good": "Love it!",
+		"sentiment_bad": "Not great...",
+		"help_title": "Oh no! Can we help?",
+		"help_description_1": "We're here to help! Check out the FAQs below or ",
+		"help_description_2": "contact support",
+		"help_description_3": " for help!"
 	}
 }
