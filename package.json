@@ -186,6 +186,7 @@
     "react-native-fs": "^2.16.6",
     "react-native-gesture-handler": "^1.10.3",
     "react-native-i18n": "2.0.15",
+    "react-native-in-app-review": "^3.2.3",
     "react-native-jazzicon": "^0.1.2",
     "react-native-keyboard-aware-scroll-view": "^0.9.3",
     "react-native-keychain": "^6.2.0",
