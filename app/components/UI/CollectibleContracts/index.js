@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
 
 /**
  * View that renders a list of CollectibleContract
- * also known as ERC-721 Tokens
+ * ERC-721 and ERC-1155
  */
 const CollectibleContracts = ({ navigation }) => {
 	const collectibleContracts = useSelector((state) => collectibleContractsSelector(state));
@@ -159,7 +159,7 @@ const CollectibleContracts = ({ navigation }) => {
 
 	return (
 		<View style={styles.wrapper} testID={'collectible-contracts'}>
-			{collectibles.length ? renderList() : renderEmpty()}
+			{collectibleContracts.length > 0 ? renderList() : renderEmpty()}
 			{renderFooter()}
 		</View>
 	);
