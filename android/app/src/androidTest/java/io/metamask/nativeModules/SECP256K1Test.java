@@ -78,9 +78,26 @@ public class SECP256K1Test extends TestCase {
 	}
 
 	public void testSECP256K1GeneratedSuccessfulGetPoint () throws Exception {
+		// https://chuckbatson.wordpress.com/2014/11/26/secp256k1-test-vectors/
+		//Curve: secp256k1
+
 		WritableArray pointValues = test.getPoint("0000000000000000000000000000000000000000000000000000000000000001");
-		assertEquals("X Coordinate", "79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798".toLowerCase(), pointValues.getString(0));
-		assertEquals("Y Coordinate", "483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8".toLowerCase(), pointValues.getString(1));
+		assertEquals("X Coordinate", "79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798", pointValues.getString(0));
+		assertEquals("Y Coordinate", "483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8", pointValues.getString(1));
+
+		pointValues = test.getPoint("0000000000000000000000000000000000000000000000000000000000000014");
+		assertEquals("X Coordinate", "4ce119c96e2fa357200b559b2f7dd5a5f02d5290aff74b03f3e471b273211c97", pointValues.getString(0));
+		assertEquals("Y Coordinate", "12ba26dcb10ec1625da61fa10a844c676162948271d96967450288ee9233dc3a", pointValues.getString(1));
+
+		pointValues = test.getPoint("00000000000000000000000000000000000000000000000000000000000000A0");
+		assertEquals("X Coordinate", "308913a27a52d9222bc776838f73f576a4d047122a9b184b05ec32ad51b03f6c", pointValues.getString(0));
+		assertEquals("Y Coordinate", "f4a5b09543febe5f91e3531f66c0375da8333fea82bd1f1260ab5efce8fe4c67", pointValues.getString(1));
+	}
+
+	public void testMetaMaskExtensionGetPoint () throws Exception {
+		WritableArray pointValues = test.getPoint("00000000000000000000000000000000000000000000000000000000000000A0");
+		assertEquals("X Coordinate", "308913a27a52d9222bc776838f73f576a4d047122a9b184b05ec32ad51b03f6c", pointValues.getString(0));
+		assertEquals("Y Coordinate", "f4a5b09543febe5f91e3531f66c0375da8333fea82bd1f1260ab5efce8fe4c67", pointValues.getString(1));
 	}
 
 	public void testWrongPublicPointsGetPoint() throws Exception {
@@ -101,8 +118,6 @@ public class SECP256K1Test extends TestCase {
 		fail();
 
 	}
-
-
 
 	public void testCorrectPublicKey() throws Exception {
 		//Uncompressed Key
