@@ -33,6 +33,7 @@ import Modal from 'react-native-modal';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import RetryModal from './RetryModal';
 import UpdateEIP1559Tx from '../UpdateEIP1559Tx';
+import { collectibleContractsSelector } from '../../../reducers/collectibles';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -592,7 +593,7 @@ class Transactions extends PureComponent {
 const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-	collectibleContracts: state.engine.backgroundState.CollectiblesController.collectibleContracts,
+	collectibleContracts: collectibleContractsSelector(state),
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,

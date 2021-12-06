@@ -11,6 +11,7 @@ import Modal from 'react-native-modal';
 import CollectibleContractInformation from '../../UI/CollectibleContractInformation';
 import { toggleCollectibleContractModal } from '../../../actions/modals';
 import { toLowerCaseEquals } from '../../../util/general';
+import { collectiblesSelector } from '../../../reducers/collectibles';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -133,7 +134,7 @@ class Collectible extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
+	collectibles: collectiblesSelector(state),
 	collectibleContractModalVisible: state.modals.collectibleContractModalVisible,
 });
 

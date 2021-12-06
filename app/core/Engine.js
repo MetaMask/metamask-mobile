@@ -69,6 +69,9 @@ class Engine {
 					useStaticTokenList:
 						initialState?.PreferencesController?.useStaticTokenList === undefined ||
 						initialState.PreferencesController.useStaticTokenList,
+					// TODO: Use previous value when preferences UI is available
+					useCollectibleDetection: true,
+					openSeaEnabled: true,
 				}
 			);
 			const networkController = new NetworkController({
@@ -106,17 +109,24 @@ class Engine {
 				},
 			});
 			const assetsContractController = new AssetsContractController();
-			const collectiblesController = new CollectiblesController({
-				onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
-				onNetworkStateChange: (listener) => networkController.subscribe(listener),
-				getAssetName: assetsContractController.getAssetName.bind(assetsContractController),
-				getAssetSymbol: assetsContractController.getAssetSymbol.bind(assetsContractController),
-				getCollectibleTokenURI: assetsContractController.getCollectibleTokenURI.bind(assetsContractController),
-				getOwnerOf: assetsContractController.getOwnerOf.bind(assetsContractController),
-				balanceOfERC1155Collectible:
-					assetsContractController.balanceOfERC1155Collectible.bind(assetsContractController),
-				uriERC1155Collectible: assetsContractController.uriERC1155Collectible.bind(assetsContractController),
-			});
+			const collectiblesController = new CollectiblesController(
+				{
+					onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
+					onNetworkStateChange: (listener) => networkController.subscribe(listener),
+					getAssetName: assetsContractController.getAssetName.bind(assetsContractController),
+					getAssetSymbol: assetsContractController.getAssetSymbol.bind(assetsContractController),
+					getCollectibleTokenURI:
+						assetsContractController.getCollectibleTokenURI.bind(assetsContractController),
+					getOwnerOf: assetsContractController.getOwnerOf.bind(assetsContractController),
+					balanceOfERC1155Collectible:
+						assetsContractController.balanceOfERC1155Collectible.bind(assetsContractController),
+					uriERC1155Collectible:
+						assetsContractController.uriERC1155Collectible.bind(assetsContractController),
+				},
+				{
+					useIPFSSubdomains: false,
+				}
+			);
 			const tokensController = new TokensController({
 				onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
 				onNetworkStateChange: (listener) => networkController.subscribe(listener),
