@@ -25,7 +25,7 @@ import { strings } from '../../../../locales/i18n';
 import SecureKeychain from '../../../core/SecureKeychain';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import setOnboardingWizardStep from '../../../actions/wizard';
-import { logIn, logOut } from '../../../actions/user';
+import { logIn, logOut, checkedAuth } from '../../../actions/user';
 import { connect } from 'react-redux';
 import Device from '../../../util/device';
 import { OutlinedTextField } from 'react-native-material-textfield';
@@ -214,6 +214,10 @@ class Login extends PureComponent {
 		selectedAddress: PropTypes.string,
 		logIn: PropTypes.func,
 		logOut: PropTypes.func,
+		/**
+		 * TEMPORARY state for animation control on Nav/App/index.js
+		 */
+		checkedAuth: PropTypes.func,
 	};
 
 	state = {
@@ -272,10 +276,15 @@ class Login extends PureComponent {
 				} catch (e) {
 					console.warn(e);
 				}
+				if (!enabled) {
+					await this.checkIfRememberMeEnabled();
+				}
 			} else {
-				this.checkIfRememberMeEnabled();
+				await this.checkIfRememberMeEnabled();
 			}
 		}
+
+		this.props.checkedAuth();
 	}
 
 	componentWillUnmount() {
@@ -293,7 +302,6 @@ class Login extends PureComponent {
 	 */
 	checkIfRememberMeEnabled = async () => {
 		const credentials = await SecureKeychain.getGenericPassword();
-		//This
 		if (credentials) {
 			this.setState({ rememberMe: true });
 			// Restore vault with existing credentials
@@ -440,6 +448,8 @@ class Login extends PureComponent {
 	updateBiometryChoice = async (biometryChoice) => {
 		if (!biometryChoice) {
 			await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+			// This line will disable biometrics the next time SecureKeychain.getGenericPassword is called
+			await SecureKeychain.resetGenericPassword();
 		} else {
 			await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
 		}
@@ -653,6 +663,7 @@ const mapDispatchToProps = (dispatch) => ({
 	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 	logIn: () => dispatch(logIn()),
 	logOut: () => dispatch(logOut()),
+	checkedAuth: () => dispatch(checkedAuth()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Login);

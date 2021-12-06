@@ -18,6 +18,7 @@ import Device from '../../../../util/device';
 import ElevatedView from 'react-native-elevated-view';
 import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/controllers';
 import BigNumber from 'bignumber.js';
+import { collectibleContractsSelector } from '../../../../reducers/collectibles';
 
 const WINDOW_WIDTH = Dimensions.get('window').width;
 const ACTION_CANCEL = 'cancel';
@@ -379,7 +380,7 @@ const mapStateToProps = (state) => ({
 		tokens[token.address] = token;
 		return tokens;
 	}, {}),
-	collectibleContracts: state.engine.backgroundState.CollectiblesController.collectibleContracts,
+	collectibleContracts: collectibleContractsSelector(state),
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
