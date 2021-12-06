@@ -64,3 +64,21 @@ export function setGasEducationCarouselSeen() {
 		type: 'SET_GAS_EDUCATION_CAROUSEL_SEEN',
 	};
 }
+
+export function logIn() {
+	return {
+		type: 'LOGIN',
+	};
+}
+
+export function logOut() {
+	return {
+		type: 'LOGOUT',
+	};
+}
+
+export function checkedAuth() {
+	return {
+		type: 'CHECKED_AUTH',
+	};
+}
