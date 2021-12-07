@@ -506,7 +506,7 @@ class Login extends PureComponent {
 			this.setState({ password: credentials.password });
 			field.setValue(credentials.password);
 			field.blur();
-			this.onLogin(true);
+			await this.onLogin(true);
 		} catch (error) {
 			Logger.log(error);
 		}
