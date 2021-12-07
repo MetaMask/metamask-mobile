@@ -16,7 +16,6 @@ import { renderFromWei, renderFiat } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import { DrawerActions } from '@react-navigation/native';
 import Modal from 'react-native-modal';
-import SecureKeychain from '../../../core/SecureKeychain';
 import { toggleNetworkModal, toggleAccountsModal, toggleReceiveModal } from '../../../actions/modals';
 import { showAlert } from '../../../actions/alert';
 import { getEtherscanAddressUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
@@ -573,7 +572,6 @@ class DrawerView extends PureComponent {
 	onPress = async () => {
 		const { passwordSet } = this.props;
 		const { KeyringController } = Engine.context;
-		await SecureKeychain.resetGenericPassword();
 		await KeyringController.setLocked();
 		if (!passwordSet) {
 			this.props.navigation.navigate('OnboardingRootNav', {

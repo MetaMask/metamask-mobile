@@ -324,7 +324,7 @@ class Login extends PureComponent {
 		}
 	};
 
-	onLogin = async () => {
+	onLogin = async (hasCredentials = false) => {
 		const { password } = this.state;
 		const { current: field } = this.fieldRef;
 		const locked = !passwordRequirementsMet(password);
@@ -342,7 +342,7 @@ class Login extends PureComponent {
 				await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
 			}
 			// If the tryBiometric has been called and they password was retrived don't set it again
-			if (!this.state.hasBiometricCredentials) {
+			if (!hasCredentials) {
 				if (this.state.biometryChoice && this.state.biometryType) {
 					await SecureKeychain.setGenericPassword(this.state.password, SecureKeychain.TYPES.BIOMETRICS);
 				} else if (this.state.rememberMe) {
@@ -506,7 +506,7 @@ class Login extends PureComponent {
 			this.setState({ password: credentials.password });
 			field.setValue(credentials.password);
 			field.blur();
-			this.onLogin();
+			this.onLogin(true);
 		} catch (error) {
 			Logger.log(error);
 		}
