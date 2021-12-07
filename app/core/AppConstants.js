@@ -94,4 +94,15 @@ export default {
 		LESS_THAN: 'less_than',
 		RANGE: 'range',
 	},
+	REVIEW_PROMPT: {
+		HIGH_GAS_FEES: 'https://metamask.zendesk.com/hc/en-us/articles/360058751211-Why-my-gas-fees-are-so-high',
+		MISSING_TOKENS:
+			'https://metamask.zendesk.com/hc/en-us/articles/360015489031-How-to-add-unlisted-tokens-custom-tokens-in-MetaMask',
+		SWAP_ISSUES: 'https://metamask.zendesk.com/hc/en-us/articles/360060329612-Error-fetching-quote',
+		SUPPORT: 'https://support.metamask.io',
+	},
+	BUNDLE_IDS: {
+		IOS: 'io.metamask.MetaMask',
+		ANDROID: 'io.metamask',
+	},
 };
