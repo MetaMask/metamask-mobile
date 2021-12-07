@@ -45,10 +45,10 @@ public class SECP256K1 extends ReactContextBaseJavaModule {
 
     BigInteger privateKeyInteger = new BigInteger(privateKey, 16);
     ECPoint point = CURVE_PARAMS.getG().multiply(privateKeyInteger);
-	byte[] publicKeyByte = point.getEncoded(compressed);
- 	BigInteger publicKey = new BigInteger(1, publicKeyByte);
+	  byte[] publicKeyByte = point.getEncoded(compressed);
+ 	  BigInteger publicKey = new BigInteger(1, publicKeyByte);
 
-	return publicKey.toString(16);
+	  return publicKey.toString(16);
   }
 
   /**
@@ -67,12 +67,12 @@ public class SECP256K1 extends ReactContextBaseJavaModule {
 
     BigInteger privateKeyInteger = new BigInteger(privateKey, 16);
     ECPoint point = CURVE_PARAMS.getG().multiply(privateKeyInteger);
-	ECPoint pointNormalized = point.normalize();
+	  ECPoint pointNormalized = point.normalize();
 
-	WritableArray pointArray = Arguments.createArray();
-	pointArray.pushString(pointNormalized.getXCoord().toString());
-	pointArray.pushString(pointNormalized.getYCoord().toString());
-
-	return pointArray;
+  	WritableArray pointArray = Arguments.createArray();
+  	pointArray.pushString(pointNormalized.getXCoord().toString());
+	  pointArray.pushString(pointNormalized.getYCoord().toString());
+  
+	  return pointArray;
   }
 }
