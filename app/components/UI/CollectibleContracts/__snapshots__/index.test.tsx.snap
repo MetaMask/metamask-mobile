@@ -2,7 +2,6 @@
 
 exports[`CollectibleContracts should render correctly 1`] = `
 <CollectibleContracts
-  chainId={1}
   collectibleContracts={
     Array [
       Object {
@@ -25,8 +24,6 @@ exports[`CollectibleContracts should render correctly 1`] = `
       },
     ]
   }
-  favoriteCollectibles={Array []}
-  removeFavoriteCollectible={[Function]}
-  selectedAddress="0x1"
+  dispatch={[Function]}
 />
 `;

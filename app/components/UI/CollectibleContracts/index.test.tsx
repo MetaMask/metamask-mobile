@@ -6,9 +6,6 @@ import { Provider } from 'react-redux';
 
 const mockStore = configureMockStore();
 const initialState = {
-	collectibles: {
-		favorites: {},
-	},
 	engine: {
 		backgroundState: {
 			NetworkController: {

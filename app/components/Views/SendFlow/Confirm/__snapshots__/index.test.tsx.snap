@@ -28,7 +28,6 @@ exports[`Confirm should render correctly 1`] = `
   networkType="mainnet"
   prepareTransaction={[Function]}
   providerType="mainnet"
-  removeFavoriteCollectible={[Function]}
   resetTransaction={[Function]}
   selectedAsset={Object {}}
   setNonce={[Function]}

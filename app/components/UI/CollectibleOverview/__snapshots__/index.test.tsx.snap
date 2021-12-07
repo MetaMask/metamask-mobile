@@ -2,7 +2,6 @@
 
 exports[`CollectibleOverview should render correctly 1`] = `
 <CollectibleOverview
-  addFavoriteCollectible={[Function]}
   chainId={1}
   collectible={
     Object {
@@ -13,8 +12,7 @@ exports[`CollectibleOverview should render correctly 1`] = `
       "tradable": true,
     }
   }
-  isInFavorites={false}
-  removeFavoriteCollectible={[Function]}
+  dispatch={[Function]}
   selectedAddress="0x1"
 />
 `;
