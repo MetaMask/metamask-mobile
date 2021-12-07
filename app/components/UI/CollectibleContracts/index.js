@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, View, InteractionManager, Image } from 'react-native';
-import { useSelector } from 'react-redux';
+import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import CollectibleContractElement from '../CollectibleContractElement';
@@ -66,10 +66,7 @@ const styles = StyleSheet.create({
  * View that renders a list of CollectibleContract
  * ERC-721 and ERC-1155
  */
-const CollectibleContracts = ({ navigation }) => {
-	const collectibleContracts = useSelector((state) => collectibleContractsSelector(state));
-	const collectibles = useSelector((state) => collectiblesSelector(state));
-
+const CollectibleContracts = ({ navigation, collectibleContracts, collectibles }) => {
 	const onItemPress = useCallback(
 		(collectible, contractName) => {
 			navigation.navigate('CollectiblesDetails', { collectible, contractName });
@@ -171,6 +168,19 @@ CollectibleContracts.propTypes = {
 	 * the Asset detail view
 	 */
 	navigation: PropTypes.object,
+	/**
+	 * Array of collectibleContract objects
+	 */
+	collectibleContracts: PropTypes.array,
+	/**
+	 * Array of collectibles objects
+	 */
+	collectibles: PropTypes.array,
 };
 
-export default CollectibleContracts;
+const mapStateToProps = (state) => ({
+	collectibleContracts: collectibleContractsSelector(state),
+	collectibles: collectiblesSelector(state),
+});
+
+export default connect(mapStateToProps)(CollectibleContracts);
