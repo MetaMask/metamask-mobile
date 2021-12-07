@@ -92,7 +92,7 @@
   "dependencies": {
     "@exodus/react-native-payments": "git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5",
     "@metamask/contract-metadata": "^1.30.0",
-    "@metamask/controllers": "git+https://github.com/MetaMask/controllers.git#e5b2871d04bcd9b6f50a52c3b5e2953479c243f3",
+    "@metamask/controllers": "git+https://github.com/MetaMask/controllers.git#a8edf9d80496f573911b69d71545918313013f26",
     "@metamask/etherscan-link": "^2.0.0",
     "@metamask/swaps-controller": "^6.3.0",
     "@react-native-clipboard/clipboard": "^1.8.4",
