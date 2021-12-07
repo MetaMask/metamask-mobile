@@ -400,10 +400,10 @@ export const BrowserTab = (props) => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [notifyAllConnections, props.approvedHosts, props.selectedAddress]);
 
-	const initializeBackgroundBridge = (url, isMainFrame) => {
+	const initializeBackgroundBridge = (urlBridge, isMainFrame) => {
 		const newBridge = new BackgroundBridge({
 			webview: webviewRef,
-			url,
+			url: urlBridge,
 			getRpcMethodMiddleware: ({ hostname, getProviderState }) =>
 				getRpcMethodMiddleware({
 					hostname,
