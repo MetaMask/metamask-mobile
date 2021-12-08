@@ -153,7 +153,7 @@ const App = ({ userLoggedIn }) => {
 
 	const isAuthChecked = useSelector((state) => state.user.isAuthChecked);
 	const dispatch = useDispatch();
-	const triggerCheckedAuth = () => dispatch(checkedAuth());
+	const triggerCheckedAuth = () => dispatch(checkedAuth('onboarding'));
 
 	const handleDeeplink = useCallback(({ error, params, uri }) => {
 		if (error) {
