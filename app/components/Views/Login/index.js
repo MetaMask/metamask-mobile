@@ -251,11 +251,8 @@ class Login extends PureComponent {
 
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
 		if (biometryType) {
-			let enabled = true;
 			const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
-			if (previouslyDisabled && previouslyDisabled === TRUE) {
-				enabled = false;
-			}
+			const enabled = !(previouslyDisabled && previouslyDisabled === TRUE);
 
 			this.setState({
 				biometryType: Device.isAndroid() ? 'biometrics' : biometryType,
