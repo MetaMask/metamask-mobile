@@ -205,9 +205,9 @@ class Login extends PureComponent {
 		 */
 		setOnboardingWizardStep: PropTypes.func,
 		/**
-		 * Boolean flag that determines if password has been set
+		 * Temporary string that controls if componentDidMount should handle initial auth logic on mount
 		 */
-		passwordSet: PropTypes.bool,
+		initialScreen: PropTypes.string,
 		/**
 		 * A string representing the selected address => account
 		 */
@@ -239,39 +239,30 @@ class Login extends PureComponent {
 	fieldRef = React.createRef();
 
 	async componentDidMount() {
+		const { initialScreen } = this.props;
 		const { KeyringController } = Engine.context;
+		const shouldHandleInitialAuth = initialScreen !== 'onboarding';
 		BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 
+		// Lock keyring just in case
 		if (KeyringController.isUnlocked()) {
 			await KeyringController.setLocked();
 		}
 
-		if (!this.props.passwordSet) {
-			try {
-				await KeyringController.submitPassword('');
-				await SecureKeychain.resetGenericPassword();
-				this.props.navigation.navigate('HomeNav');
-			} catch (e) {
-				//
-			}
-		} else {
-			const biometryType = await SecureKeychain.getSupportedBiometryType();
-			if (biometryType) {
-				let enabled = true;
-				const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
-				if (previouslyDisabled && previouslyDisabled === TRUE) {
-					enabled = false;
-				}
+		const biometryType = await SecureKeychain.getSupportedBiometryType();
+		if (biometryType) {
+			const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
+			const enabled = !(previouslyDisabled && previouslyDisabled === TRUE);
 
-				this.setState({
-					biometryType: Device.isAndroid() ? 'biometrics' : biometryType,
-					biometryChoice: enabled,
-					biometryPreviouslyDisabled: !!previouslyDisabled,
-				});
+			this.setState({
+				biometryType: Device.isAndroid() ? 'biometrics' : biometryType,
+				biometryChoice: enabled,
+				biometryPreviouslyDisabled: !!previouslyDisabled,
+			});
+			if (shouldHandleInitialAuth) {
 				try {
 					if (enabled && !previouslyDisabled) {
-						const hasBiometricCredentials = await this.tryBiometric();
-						this.setState({ hasBiometricCredentials });
+						await this.tryBiometric();
 					}
 				} catch (e) {
 					console.warn(e);
@@ -279,9 +270,9 @@ class Login extends PureComponent {
 				if (!enabled) {
 					await this.checkIfRememberMeEnabled();
 				}
-			} else {
-				await this.checkIfRememberMeEnabled();
 			}
+		} else {
+			shouldHandleInitialAuth && (await this.checkIfRememberMeEnabled());
 		}
 
 		this.props.checkedAuth();
@@ -318,13 +309,15 @@ class Login extends PureComponent {
 				this.props.setOnboardingWizardStep(1);
 			}
 
+			// Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
+			this.setState({ hasBiometricCredentials: false });
 			delete credentials.password;
 			this.props.logIn();
 			this.props.navigation.navigate('HomeNav');
 		}
 	};
 
-	onLogin = async () => {
+	onLogin = async (hasCredentials = false) => {
 		const { password } = this.state;
 		const { current: field } = this.fieldRef;
 		const locked = !passwordRequirementsMet(password);
@@ -342,7 +335,7 @@ class Login extends PureComponent {
 				await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
 			}
 			// If the tryBiometric has been called and they password was retrived don't set it again
-			if (!this.state.hasBiometricCredentials) {
+			if (!hasCredentials) {
 				if (this.state.biometryChoice && this.state.biometryType) {
 					await SecureKeychain.setGenericPassword(this.state.password, SecureKeychain.TYPES.BIOMETRICS);
 				} else if (this.state.rememberMe) {
@@ -362,7 +355,8 @@ class Login extends PureComponent {
 				this.props.setOnboardingWizardStep(1);
 				this.props.navigation.navigate('HomeNav');
 			}
-			this.setState({ loading: false, password: '' });
+			// Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
+			this.setState({ loading: false, password: '', hasBiometricCredentials: false });
 			field.setValue('');
 		} catch (e) {
 			// Should we force people to enable passcode / biometrics?
@@ -392,6 +386,10 @@ class Login extends PureComponent {
 			}
 			Logger.error(error, 'Failed to login');
 		}
+	};
+
+	triggerLogIn = () => {
+		this.onLogin();
 	};
 
 	delete = async () => {
@@ -448,8 +446,6 @@ class Login extends PureComponent {
 	updateBiometryChoice = async (biometryChoice) => {
 		if (!biometryChoice) {
 			await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-			// This line will disable biometrics the next time SecureKeychain.getGenericPassword is called
-			await SecureKeychain.resetGenericPassword();
 		} else {
 			await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
 		}
@@ -501,17 +497,24 @@ class Login extends PureComponent {
 		field.blur();
 		try {
 			const credentials = await SecureKeychain.getGenericPassword();
-			if (!credentials) return false;
+			if (!credentials) {
+				this.setState({ hasBiometricCredentials: false });
+				return;
+			}
 			field.blur();
 			this.setState({ password: credentials.password });
 			field.setValue(credentials.password);
 			field.blur();
-			this.onLogin();
+			await this.onLogin(true);
 		} catch (error) {
+			const errObj = new Error(error);
+			const canceledBiometrics = errObj.message === 'Error: User canceled the operation.';
+			if (canceledBiometrics) {
+				this.setState({ hasBiometricCredentials: true });
+			}
 			Logger.log(error);
 		}
 		field.blur();
-		return true;
 	};
 
 	render = () => (
@@ -601,7 +604,7 @@ class Login extends PureComponent {
 								value={this.state.password}
 								baseColor={colors.grey500}
 								tintColor={colors.blue}
-								onSubmitEditing={this.onLogin}
+								onSubmitEditing={this.triggerLogIn}
 								renderRightAccessory={() => (
 									<BiometryButton
 										onPress={this.tryBiometric}
@@ -627,7 +630,7 @@ class Login extends PureComponent {
 						)}
 
 						<View style={styles.ctaWrapper} testID={'log-in-button'}>
-							<StyledButton type={'confirm'} onPress={this.onLogin}>
+							<StyledButton type={'confirm'} onPress={this.triggerLogIn}>
 								{this.state.loading ? (
 									<ActivityIndicator size="small" color="white" />
 								) : (
@@ -655,15 +658,15 @@ class Login extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-	passwordSet: state.user.passwordSet,
 	selectedAddress: state.engine.backgroundState.PreferencesController?.selectedAddress,
+	initialScreen: state.user.initialScreen,
 });
 
 const mapDispatchToProps = (dispatch) => ({
 	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 	logIn: () => dispatch(logIn()),
 	logOut: () => dispatch(logOut()),
-	checkedAuth: () => dispatch(checkedAuth()),
+	checkedAuth: () => dispatch(checkedAuth('login')),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Login);
