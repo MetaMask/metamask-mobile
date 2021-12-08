@@ -153,7 +153,7 @@ const App = ({ userLoggedIn }) => {
 
 	const isAuthChecked = useSelector((state) => state.user.isAuthChecked);
 	const dispatch = useDispatch();
-	const triggerCheckedAuth = () => dispatch(checkedAuth());
+	const triggerCheckedAuth = () => dispatch(checkedAuth('onboarding'));
 
 	const handleDeeplink = useCallback(({ error, params, uri }) => {
 		if (error) {
@@ -288,7 +288,7 @@ const App = ({ userLoggedIn }) => {
 						routingInstrumentation.registerNavigationContainer(navigator);
 					}}
 				>
-					<Stack.Navigator route={route} initialRouteName={route}>
+					<Stack.Navigator route={route} initialRouteName={route} screenOptions={{ gestureEnabled: false }}>
 						<Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
 						<Stack.Screen
 							name="OnboardingRootNav"
