@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform, Linking } from 'react-native';
+import { Platform, Linking, Alert } from 'react-native';
 /* eslint-disable-next-line */
 import { NavigationContainerRef } from '@react-navigation/core';
 import InAppReview from 'react-native-in-app-review';
@@ -8,8 +8,8 @@ import { REVIEW_EVENT_COUNT, REVIEW_SHOWN_TIME } from '../constants/storage';
 import AppConstants from './AppConstants';
 import Logger from '../util/Logger';
 
-const EVENT_THRESHOLD = 6;
-const TIME_THRESHOLD = 10519200000; // 4 months in milliseconds
+const EVENT_THRESHOLD = 2; //6;
+const TIME_THRESHOLD = 300000; //10519200000; // 4 months in milliseconds
 const MM_APP_STORE_DEEPLINK = `itms-apps://apps.apple.com/app/id${AppConstants.BUNDLE_IDS.IOS}?action=write-review`;
 const MM_PLAY_STORE_DEEPLINK = `market://details?id=${AppConstants.BUNDLE_IDS.ANDROID}`;
 
@@ -29,6 +29,7 @@ class ReviewManager {
 	private checkReviewCriteria = async () => {
 		const isReviewAvailable = InAppReview.isAvailable();
 		if (!isReviewAvailable) {
+			Alert.alert('REVIEW NOT AVAILABLE');
 			return false;
 		}
 
@@ -38,7 +39,8 @@ class ReviewManager {
 			const satisfiedEventCount = parseInt(eventCount) >= EVENT_THRESHOLD;
 			const satisfiedTime = Date.now() - parseInt(lastShownTime) > TIME_THRESHOLD;
 			return satisfiedEventCount && satisfiedTime;
-		} catch (error) {
+		} catch (error: any) {
+			Alert.alert('FAILED TO CHECK CRITERIA', error?.message);
 			return false;
 		}
 	};
@@ -55,11 +57,13 @@ class ReviewManager {
 
 	private handlePrompt = async () => {
 		try {
-			await InAppReview.RequestInAppReview();
+			const promptResult = await InAppReview.RequestInAppReview();
+			Alert.alert('SHOULD SHOW REVIEW PROMPT', String(promptResult));
 		} catch (error) {
 			// Failed to prompt review
 			this.openMetaMaskReview();
 			Logger.log('Falling back to MM review prompt', error);
+			Alert.alert('FALLBACK TO CUSTOM PROMPT');
 		} finally {
 			// Reset criteria
 			this.resetReviewCriteria();
