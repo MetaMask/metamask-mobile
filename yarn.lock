@@ -7505,11 +7505,6 @@ hash.js@1.1.7, hash.js@^1.0.0, hash.js@^1.0.3, hash.js@^1.1.7:
     inherits "^2.0.3"
     minimalistic-assert "^1.0.1"
 
-hermes-engine@0.5.2-rc1:
-  version "0.5.2-rc1"
-  resolved "https://registry.yarnpkg.com/hermes-engine/-/hermes-engine-0.5.2-rc1.tgz#01faccf58b45f6a4592443c1acf98f0ddbd5bf36"
-  integrity sha512-+cLjML2+XVSLPdEtU/b5FwtF+3yhxV8dfuviRS3MPdMxlxDlG/Iu3wFvTByOzTzWaQyPg+Q/68o5HLrL4QqJng==
-
 hermes-engine@~0.5.0:
   version "0.5.1"
   resolved "https://registry.yarnpkg.com/hermes-engine/-/hermes-engine-0.5.1.tgz#601115e4b1e0a17d9aa91243b96277de4e926e09"

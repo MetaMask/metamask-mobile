@@ -142,7 +142,6 @@
     "ethjs-unit": "0.1.6",
     "events": "3.0.0",
     "fuse.js": "3.4.4",
-    "hermes-engine": "0.5.2-rc1",
     "https-browserify": "0.0.1",
     "human-standard-token-abi": "^2.0.0",
     "humanize-duration": "^3.27.0",
