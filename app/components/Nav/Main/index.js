@@ -288,7 +288,6 @@ const Main = (props) => {
 			try {
 				TransactionController.hub.once(`${transactionMeta.id}:finished`, (transactionMeta) => {
 					if (transactionMeta.status === 'submitted') {
-						props.navigation.pop?.();
 						NotificationManager.watchSubmittedTransaction({
 							...transactionMeta,
 							assetType: transactionMeta.transaction.assetType,
@@ -313,7 +312,7 @@ const Main = (props) => {
 				Logger.error(error, 'error while trying to send transaction (Main)');
 			}
 		},
-		[props.navigation, props.swapsTransactions, trackSwaps]
+		[props.swapsTransactions, trackSwaps]
 	);
 
 	const onUnapprovedTransaction = useCallback(
