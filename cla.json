@@ -119,6 +119,14 @@
       "comment_id": 989816499,
       "created_at": "2021-12-09T12:41:26Z",
       "repoId": 141427485
+    },
+    {
+      "id": 9333845,
+      "name": "andreahaku",
+      "pullRequestNo": 3495,
+      "comment_id": 990007107,
+      "created_at": "2021-12-09T16:22:39Z",
+      "repoId": 141427485
     }
   ]
 }
