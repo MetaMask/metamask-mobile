@@ -507,11 +507,7 @@ class Login extends PureComponent {
 			field.blur();
 			await this.onLogin(true);
 		} catch (error) {
-			const errObj = new Error(error);
-			const canceledBiometrics = errObj.message === 'Error: User canceled the operation.';
-			if (canceledBiometrics) {
-				this.setState({ hasBiometricCredentials: true });
-			}
+			this.setState({ hasBiometricCredentials: true });
 			Logger.log(error);
 		}
 		field.blur();
