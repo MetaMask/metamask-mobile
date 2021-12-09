@@ -141,6 +141,7 @@ export class BackgroundBridge extends EventEmitter {
 		const memState = this.getState();
 		return {
 			isUnlocked: this.isUnlocked(),
+			selectedAddress: memState.selectedAddress,
 			...this.getProviderNetworkState(memState),
 		};
 	}

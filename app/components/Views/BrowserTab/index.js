@@ -427,7 +427,8 @@ export const BrowserTab = (props) => {
 		// all user facing RPC calls not implemented by the provider
 		createAsyncMiddleware(async (req, res, next) => {
 			const getAccounts = async () => {
-				const { privacyMode, selectedAddress } = props;
+				const { privacyMode } = props;
+				const { selectedAddress } = getProviderState();
 				const isEnabled = !privacyMode || approvedHosts[hostname];
 
 				return isEnabled && selectedAddress ? [selectedAddress] : [];
@@ -471,7 +472,8 @@ export const BrowserTab = (props) => {
 				},
 				eth_requestAccounts: async () => {
 					const { params } = req;
-					const { privacyMode, selectedAddress } = props;
+					const { privacyMode } = props;
+					const { selectedAddress } = getProviderState();
 
 					if (!privacyMode || ((!params || !params.force) && approvedHosts[hostname])) {
 						res.result = [selectedAddress];
