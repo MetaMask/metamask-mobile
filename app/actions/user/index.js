@@ -77,8 +77,17 @@ export function logOut() {
 	};
 }
 
-export function checkedAuth() {
+/**
+ * Temporary action to control auth flow
+ *
+ * @param {string} initialScreen - "login" or "onboarding"
+ * @returns - void
+ */
+export function checkedAuth(initialScreen) {
 	return {
 		type: 'CHECKED_AUTH',
+		payload: {
+			initialScreen,
+		},
 	};
 }
