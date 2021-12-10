@@ -313,7 +313,7 @@ class Login extends PureComponent {
 			this.setState({ hasBiometricCredentials: false });
 			delete credentials.password;
 			this.props.logIn();
-			this.props.navigation.navigate('HomeNav');
+			this.props.navigation.replace('HomeNav');
 		}
 	};
 
@@ -350,10 +350,10 @@ class Login extends PureComponent {
 			// Get onboarding wizard state
 			const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
 			if (onboardingWizard) {
-				this.props.navigation.navigate('HomeNav');
+				this.props.navigation.replace('HomeNav');
 			} else {
 				this.props.setOnboardingWizardStep(1);
-				this.props.navigation.navigate('HomeNav');
+				this.props.navigation.replace('HomeNav');
 			}
 			// Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
 			this.setState({ loading: false, password: '', hasBiometricCredentials: false });
