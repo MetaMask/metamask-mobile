@@ -1,13 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import {
-	RefreshControl,
-	ScrollView,
-	InteractionManager,
-	ActivityIndicator,
-	StyleSheet,
-	View,
-	BackHandler,
-} from 'react-native';
+import { RefreshControl, ScrollView, InteractionManager, ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
@@ -94,12 +86,6 @@ const Wallet = ({ navigation }: any) => {
 	 * Current onboarding wizard step
 	 */
 	const wizardStep = useSelector((state: any) => state.wizard.step);
-
-	// Prevent Android back handler
-	useEffect(() => {
-		const backHandler = BackHandler.addEventListener('hardwareBackPress', () => true);
-		return () => backHandler.remove();
-	}, []);
 
 	useEffect(() => {
 		navigation.setOptions(getWalletNavbarOptions('wallet.title', navigation));
