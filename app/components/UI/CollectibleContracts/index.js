@@ -1,9 +1,10 @@
 import React, { useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { TouchableOpacity, StyleSheet, View, InteractionManager, Image } from 'react-native';
+import { TouchableOpacity, StyleSheet, View, InteractionManager } from 'react-native';
 import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
+import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 import Engine from '../../../core/Engine';
 import CollectibleContractElement from '../CollectibleContractElement';
 import Analytics from '../../../core/Analytics';
@@ -17,7 +18,6 @@ import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import Text from '../../Base/Text';
 import AppConstants from '../../../core/AppConstants';
 import { toLowerCaseEquals } from '../../../util/general';
-import StyledButton from '../StyledButton';
 import { compareTokenIds } from '../../../util/tokens';
 
 const styles = StyleSheet.create({
@@ -32,11 +32,6 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		marginTop: 40,
 	},
-	add: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
 	addText: {
 		fontSize: 14,
 		color: colors.blue,
@@ -45,28 +40,54 @@ const styles = StyleSheet.create({
 	footer: {
 		flex: 1,
 		paddingBottom: 30,
-		alignItems: 'center',
 		marginTop: 24,
-	},
-	emptyContainer: {
-		flex: 1,
-		marginBottom: 18,
+		flexDirection: 'row',
 		justifyContent: 'center',
-		alignItems: 'center',
 	},
-	emptyImageContainer: {
-		width: 76,
-		height: 76,
-		marginBottom: 12,
-	},
-	emptyTitleText: {
-		fontSize: 24,
-		color: colors.grey200,
+	icon: {
+		color: colors.blue,
+		marginBottom: 8,
 	},
 	emptyText: {
 		color: colors.greyAssetVisibility,
 		marginBottom: 8,
 		fontSize: 14,
+		marginRight: 4,
+	},
+	row: {
+		flexDirection: 'row',
+		justifyContent: 'center',
+	},
+	frameRow: {
+		width: 120,
+		height: 20,
+	},
+	frameBottomRow: {
+		marginBottom: 40,
+	},
+	frame: {
+		height: 20,
+		width: 20,
+		borderColor: colors.blue,
+	},
+	nftText: {
+		color: colors.blue,
+	},
+	middle: {
+		height: 20,
+		width: '100%',
+	},
+	top: {
+		borderTopWidth: 3,
+	},
+	bottom: {
+		borderBottomWidth: 3,
+	},
+	left: {
+		borderLeftWidth: 3,
+	},
+	right: {
+		borderRightWidth: 3,
 	},
 });
 
@@ -130,29 +151,12 @@ const CollectibleContracts = ({
 		});
 	};
 
-	const goToCreateCollectible = () => {
-		navigation.push('CreateCollectible');
-		//TODO CREATE_NFT
-		InteractionManager.runAfterInteractions(() => {
-			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_ADD_COLLECTIBLES);
-		});
-	};
-
 	const renderFooter = () => (
 		<View style={styles.footer} key={'collectible-contracts-footer'}>
 			<Text style={styles.emptyText}>{strings('wallet.no_collectibles')}</Text>
-			<TouchableOpacity style={styles.add} onPress={goToAddCollectible} testID={'add-collectible-button'}>
+			<TouchableOpacity link onPress={goToAddCollectible} testID={'add-collectible-button'}>
 				<Text style={styles.addText}>{strings('wallet.add_collectibles')}</Text>
 			</TouchableOpacity>
-			<StyledButton
-				type={'confirm'}
-				onPress={goToCreateCollectible}
-				// eslint-disable-next-line react-native/no-inline-styles
-				containerStyle={{ marginTop: 10 }}
-				testID={'connect-approve-button'}
-			>
-				Create your NFT
-			</StyledButton>
 		</View>
 	);
 
@@ -207,22 +211,65 @@ const CollectibleContracts = ({
 	const goToLearnMore = () =>
 		navigation.navigate('Webview', { screen: 'SimpleWebview', params: { url: AppConstants.URLS.NFT } });
 
+	const Frame = ({ top, bottom, middle, left, right }) => (
+		<View
+			style={[
+				styles.frame,
+				top ? styles.top : null,
+				bottom ? styles.bottom : null,
+				left ? styles.left : null,
+				right ? styles.right : null,
+				middle ? styles.middle : null,
+			]}
+		/>
+	);
+
+	Frame.propTypes = {
+		top: PropTypes.bool,
+		bottom: PropTypes.bool,
+		middle: PropTypes.bool,
+		left: PropTypes.bool,
+		right: PropTypes.bool,
+	};
+
+	const goToCreateCollectible = () => {
+		navigation.push('CreateCollectible');
+		//TODO CREATE_NFT
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_ADD_COLLECTIBLES);
+		});
+	};
+
+	const CreateNFTButton = () => (
+		<TouchableOpacity style={styles.emptyView} onPress={goToCreateCollectible}>
+			<View style={[styles.row, styles.frameRow]}>
+				<Frame top left />
+				<Frame middle />
+				<Frame top right />
+			</View>
+
+			<FontAwesomeIcon name="camera-retro" size={34} style={styles.icon} />
+			<Text style={[styles.emptyText, styles.nftText]}>{strings('wallet.create_nft')}</Text>
+
+			<View style={[styles.row, styles.frameRow, styles.frameBottomRow]}>
+				<Frame bottom left />
+				<Frame middle />
+				<Frame bottom right />
+			</View>
+		</TouchableOpacity>
+	);
+
 	const renderEmpty = () => (
-		<View style={styles.emptyView}>
-			<View style={styles.emptyContainer}>
-				<Image
-					style={styles.emptyImageContainer}
-					source={require('../../../images/no-nfts-placeholder.png')}
-					resizeMode={'contain'}
-				/>
-				<Text center style={styles.emptyTitleText} bold>
-					{strings('wallet.no_nfts_yet')}
-				</Text>
-				<Text center big link onPress={goToLearnMore}>
+		<React.Fragment>
+			<CreateNFTButton />
+
+			<View style={styles.row}>
+				<Text style={styles.emptyText}>{strings('wallet.no_nfts_yet')}</Text>
+				<Text link onPress={goToLearnMore}>
 					{strings('wallet.learn_more')}
 				</Text>
 			</View>
-		</View>
+		</React.Fragment>
 	);
 
 	return (

@@ -274,6 +274,7 @@
 		"tokens": "TOKENS",
 		"collectible": "Collectible",
 		"collectibles": "NFTs",
+		"create_nft": "Create an NFT",
 		"transactions": "TRANSACTIONS",
 		"no_collectibles": "Don’t see your NFT?",
 		"no_available_tokens": "Don't see your token?",
