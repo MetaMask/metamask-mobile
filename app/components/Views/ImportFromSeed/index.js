@@ -16,7 +16,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { connect } from 'react-redux';
-import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
+import { logIn, passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
@@ -29,7 +29,12 @@ import TermsAndConditions from '../TermsAndConditions';
 import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Device from '../../../util/device';
-import { failedSeedPhraseRequirements, isValidMnemonic, parseSeedPhrase } from '../../../util/validators';
+import {
+	failedSeedPhraseRequirements,
+	isValidMnemonic,
+	parseSeedPhrase,
+	parseVaultValue,
+} from '../../../util/validators';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import {
 	SEED_PHRASE_HINTS,
@@ -205,6 +210,7 @@ class ImportFromSeed extends PureComponent {
 		 * Action to set onboarding wizard step
 		 */
 		setOnboardingWizardStep: PropTypes.func,
+		logIn: PropTypes.func,
 	};
 
 	state = {
@@ -243,7 +249,11 @@ class ImportFromSeed extends PureComponent {
 
 	onPressImport = async () => {
 		const { loading, seed, password, confirmPassword } = this.state;
-		const parsedSeed = parseSeedPhrase(seed);
+
+		const vaultSeed = await parseVaultValue(password, seed);
+		const parsedSeed = parseSeedPhrase(vaultSeed || seed);
+		//Set the seed state with a valid parsed seed phrase (handle vault scenario)
+		this.setState({ seed: parsedSeed });
 
 		if (loading) return;
 		InteractionManager.runAfterInteractions(() => {
@@ -295,6 +305,7 @@ class ImportFromSeed extends PureComponent {
 				this.props.passwordSet();
 				this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 				this.props.seedphraseBackedUp();
+				this.props.logIn();
 				InteractionManager.runAfterInteractions(() => {
 					AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_IMPORTED, {
 						biometrics_enabled: Boolean(this.state.biometryType),
@@ -305,10 +316,10 @@ class ImportFromSeed extends PureComponent {
 					});
 				});
 				if (onboardingWizard) {
-					this.props.navigation.navigate('ManualBackupStep3');
+					this.props.navigation.replace('ManualBackupStep3');
 				} else {
 					this.props.setOnboardingWizardStep(1);
-					this.props.navigation.navigate('HomeNav', { screen: 'WalletView' });
+					this.props.navigation.replace('HomeNav', { screen: 'WalletView' });
 				}
 				await importAdditionalAccounts();
 			} catch (error) {
@@ -615,6 +626,7 @@ const mapDispatchToProps = (dispatch) => ({
 	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 	passwordSet: () => dispatch(passwordSet()),
 	seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
+	logIn: () => dispatch(logIn()),
 });
 
 export default connect(null, mapDispatchToProps)(ImportFromSeed);

@@ -615,28 +615,9 @@ export function getClosableNavigationOptions(title, backButtonText, navigation) 
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
  */
-export function getOfflineModalNavbar(navigation) {
+export function getOfflineModalNavbar() {
 	return {
-		headerStyle: {
-			shadowColor: colors.transparent,
-			elevation: 0,
-			backgroundColor: colors.white,
-			borderBottomWidth: 0,
-		},
-		headerLeft: () =>
-			Device.isAndroid() ? (
-				// eslint-disable-next-line react/jsx-no-bind
-				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
-					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
-				</TouchableOpacity>
-			) : null,
-		headerRight: () =>
-			Device.isIos() ? (
-				// eslint-disable-next-line react/jsx-no-bind
-				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
-					<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
-				</TouchableOpacity>
-			) : null,
+		headerShown: false,
 	};
 }
 

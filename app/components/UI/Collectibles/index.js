@@ -78,7 +78,7 @@ export default class Collectibles extends PureComponent {
 
 	actionSheet = null;
 
-	collectibleToRemove = null;
+	longPressedCollectible = null;
 
 	renderEmpty = () => (
 		<ScrollView refreshControl={<RefreshControl refreshing={this.state.refreshing} />}>
@@ -104,15 +104,32 @@ export default class Collectibles extends PureComponent {
 	};
 
 	showRemoveMenu = (collectible) => {
-		this.collectibleToRemove = collectible;
+		this.longPressedCollectible = collectible;
 		this.actionSheet.show();
+	};
+
+	refreshMetadata = () => {
+		const { CollectiblesController } = Engine.context;
+
+		CollectiblesController.addCollectible(
+			this.longPressedCollectible.current.address,
+			this.longPressedCollectible.current.tokenId
+		);
+	};
+
+	handleMenuAction = (index) => {
+		if (index === 1) {
+			this.removeCollectible();
+		} else if (index === 0) {
+			this.refreshMetadata();
+		}
 	};
 
 	removeCollectible = () => {
 		const { CollectiblesController } = Engine.context;
 		CollectiblesController.removeAndIgnoreCollectible(
-			this.collectibleToRemove.address,
-			this.collectibleToRemove.tokenId
+			this.longPressedCollectible.address,
+			this.longPressedCollectible.tokenId
 		);
 		Alert.alert(strings('wallet.collectible_removed_title'), strings('wallet.collectible_removed_desc'));
 	};
@@ -158,12 +175,12 @@ export default class Collectibles extends PureComponent {
 				{collectibles && collectibles.length ? this.renderCollectiblesList() : this.renderEmpty()}
 				<ActionSheet
 					ref={this.createActionSheetRef}
-					title={strings('wallet.remove_collectible_title')}
-					options={[strings('wallet.remove'), strings('wallet.cancel')]}
-					cancelButtonIndex={1}
-					destructiveButtonIndex={0}
+					title={strings('wallet.collectible_action_title')}
+					options={[strings('wallet.refresh_metadata'), strings('wallet.remove'), strings('wallet.cancel')]}
+					cancelButtonIndex={2}
+					destructiveButtonIndex={1}
 					// eslint-disable-next-line react/jsx-no-bind
-					onPress={(index) => (index === 0 ? this.removeCollectible() : null)}
+					onPress={this.handleMenuAction}
 				/>
 			</View>
 		);

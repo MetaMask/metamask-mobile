@@ -1,8 +1,23 @@
 diff --git a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
-index f743bbc..77ca184 100644
+index f743bbc..fb6b4c1 100644
 --- a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
 +++ b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
-@@ -30,6 +30,8 @@ import android.webkit.DownloadListener;
+@@ -5,6 +5,7 @@ import android.annotation.TargetApi;
+ import android.app.Activity;
+ import android.app.DownloadManager;
+ import android.content.Context;
++import android.content.Intent;
+ import android.content.pm.ActivityInfo;
+ import android.content.pm.PackageManager;
+ import android.graphics.Bitmap;
+@@ -24,12 +25,15 @@ import android.view.View;
+ import android.view.ViewGroup;
+ import android.view.ViewGroup.LayoutParams;
+ import android.view.WindowManager;
++import android.view.inputmethod.InputMethodManager;
+ import android.webkit.ConsoleMessage;
+ import android.webkit.CookieManager;
+ import android.webkit.DownloadListener;
  import android.webkit.GeolocationPermissions;
  import android.webkit.JavascriptInterface;
  import android.webkit.RenderProcessGoneDetail;
@@ -11,7 +26,7 @@ index f743bbc..77ca184 100644
  import android.webkit.SslErrorHandler;
  import android.webkit.PermissionRequest;
  import android.webkit.URLUtil;
-@@ -88,10 +90,17 @@ import com.reactnativecommunity.webview.events.TopRenderProcessGoneEvent;
+@@ -88,18 +92,37 @@ import com.reactnativecommunity.webview.events.TopRenderProcessGoneEvent;
  import org.json.JSONException;
  import org.json.JSONObject;
  
@@ -19,6 +34,7 @@ index f743bbc..77ca184 100644
 +import java.io.IOException;
 +import java.io.InputStream;
  import java.io.UnsupportedEncodingException;
++import java.lang.reflect.Field;
 +import java.net.HttpURLConnection;
  import java.net.MalformedURLException;
  import java.net.URL;
@@ -27,10 +43,13 @@ index f743bbc..77ca184 100644
 +import java.nio.charset.StandardCharsets;
 +import java.nio.charset.UnsupportedCharsetException;
  import java.util.ArrayList;
++import java.util.Arrays;
  import java.util.Collections;
  import java.util.HashMap;
-@@ -100,6 +109,15 @@ import java.util.Locale;
+ import java.util.List;
+ import java.util.Locale;
  import java.util.Map;
++import java.util.Objects;
  import java.util.concurrent.atomic.AtomicReference;
  
 +import okhttp3.MediaType;
@@ -45,18 +64,6 @@ index f743bbc..77ca184 100644
  /**
   * Manages instances of {@link WebView}
   * <p>
-@@ -128,6 +146,11 @@ import java.util.concurrent.atomic.AtomicReference;
- public class RNCWebViewManager extends SimpleViewManager<WebView> {
-   private static final String TAG = "RNCWebViewManager";
- 
-+  /** Samsung Manufacturer Name */
-+  private static final String SAMSUNG_MANUFACTURER_NAME = "samsung";
-+  /** Samsung Device Check */
-+  private static final Boolean IS_SAMSUNG_DEVICE = Build.MANUFACTURER.equals(SAMSUNG_MANUFACTURER_NAME);
-+
-   public static final int COMMAND_GO_BACK = 1;
-   public static final int COMMAND_GO_FORWARD = 2;
-   public static final int COMMAND_RELOAD = 3;
 @@ -137,13 +160,19 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
    public static final int COMMAND_LOAD_URL = 7;
    public static final int COMMAND_FOCUS = 8;
@@ -204,7 +211,7 @@ index f743bbc..77ca184 100644
    @ReactProp(name = "javaScriptEnabled")
    public void setJavaScriptEnabled(WebView view, boolean enabled) {
      view.getSettings().setJavaScriptEnabled(enabled);
-@@ -842,8 +968,95 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -842,13 +968,102 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      }
    }
  
@@ -301,7 +308,14 @@ index f743bbc..77ca184 100644
      protected boolean mLastLoadFailed = false;
      protected @Nullable
      ReadableArray mUrlPrefixesForDefaultIntent;
-@@ -872,9 +1085,6 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+     protected RNCWebView.ProgressChangedFilter progressChangedFilter = null;
+     protected @Nullable String ignoreErrFailedForThisURL = null;
++    //Allow list is used to support specific deeplinks in the webview.
++    private final String[] DEEPLINK_ALLOW_LIST = new String[] {"https://twitter.com/i/wallet/verify"};
+ 
+     public void setIgnoreErrFailedForThisURL(@Nullable String url) {
+       ignoreErrFailedForThisURL = url;
+@@ -872,9 +1087,6 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        super.onPageStarted(webView, url, favicon);
        mLastLoadFailed = false;
  
@@ -311,7 +325,7 @@ index f743bbc..77ca184 100644
        ((RNCWebView) webView).dispatchEvent(
          webView,
          new TopLoadingStartEvent(
-@@ -882,6 +1092,16 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -882,6 +1094,16 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
            createWebViewEvent(webView, url)));
      }
  
@@ -328,7 +342,25 @@ index f743bbc..77ca184 100644
      @Override
      public boolean shouldOverrideUrlLoading(WebView view, String url) {
        final RNCWebView rncWebView = (RNCWebView) view;
-@@ -934,6 +1154,21 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -919,6 +1141,17 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+         RNCWebViewModule.shouldOverrideUrlLoadingLock.removeLock(lockIdentifier);
+ 
+         return shouldOverride;
++      } else if (url != null && Arrays.asList(DEEPLINK_ALLOW_LIST).contains(url)) {
++        // This case is used to support deeplinking within the webview. We are limiting this but
++        // if more links are to be supported we should consider a more scaleable solution. That is
++        // secure and scaleable.
++        Intent intent = new Intent(Intent.ACTION_VIEW);
++        intent.setData(Uri.parse(url));
++        if(intent.resolveActivity(view.getContext().getPackageManager()) != null) {
++          view.getContext().startActivity(intent);
++          return true;
++        } else
++          return false;
+       } else {
+         FLog.w(TAG, "Couldn't use blocking synchronous call for onShouldStartLoadWithRequest due to debugging or missing Catalyst instance, falling back to old event-and-load.");
+         progressChangedFilter.setWaitingForCommandLoadUrl(true);
+@@ -934,6 +1167,21 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      @TargetApi(Build.VERSION_CODES.N)
      @Override
      public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
@@ -350,7 +382,7 @@ index f743bbc..77ca184 100644
        final String url = request.getUrl().toString();
        return this.shouldOverrideUrlLoading(view, url);
      }
-@@ -1447,6 +1682,13 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1447,6 +1695,13 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      protected boolean nestedScrollEnabled = false;
      protected ProgressChangedFilter progressChangedFilter;
  
@@ -364,14 +396,14 @@ index f743bbc..77ca184 100644
      /**
       * WebView must be created with an context of the current activity
       * <p>
-@@ -1475,6 +1717,24 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1475,6 +1730,42 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        this.nestedScrollEnabled = nestedScrollEnabled;
      }
  
 +    @Override
 +    public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
 +      InputConnection inputConnection;
-+      if (IS_SAMSUNG_DEVICE) {
++      if (!usingGoogleKeyboard()) {
 +        inputConnection = super.onCreateInputConnection(outAttrs);
 +      } else {
 +        inputConnection = new BaseInputConnection(this, false);
@@ -384,6 +416,24 @@ index f743bbc..77ca184 100644
 +      }
 +
 +      return inputConnection;
++    }
++
++    public boolean usingGoogleKeyboard() {
++      final InputMethodManager richImm =
++        (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
++
++      boolean isKeyboard = false;
++
++      final Field field;
++      try {
++        field = richImm.getClass().getDeclaredField("mCurId");
++        field.setAccessible(true);
++        Object value = field.get(richImm);
++        isKeyboard = Objects.equals(value, "com.google.android.inputmethod.latin/com.android.inputmethod.latin.LatinIME");
++      } catch (IllegalAccessException | NoSuchFieldException e) {
++        return false;
++      }
++      return isKeyboard;
 +    }
 +
      @Override

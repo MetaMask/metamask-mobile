@@ -1,11 +1,12 @@
 import { createStore } from 'redux';
-import { persistStore, persistReducer, createMigrate } from 'redux-persist';
+import { persistStore, persistReducer, createMigrate, createTransform } from 'redux-persist';
 import AsyncStorage from '@react-native-community/async-storage';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import rootReducer from '../reducers';
 import { migrations, version } from './migrations';
 import Logger from '../util/Logger';
+import EngineService from '../core/EngineService';
 
 const TIMEOUT = 40000;
 
@@ -34,7 +35,11 @@ const MigratedStorage = {
 		}
 	},
 	async setItem(key, value) {
-		return await FilesystemStorage.setItem(key, value);
+		try {
+			return await FilesystemStorage.setItem(key, value);
+		} catch (error) {
+			Logger.error(error, { message: 'Failed to set item' });
+		}
 	},
 	async removeItem(key) {
 		try {
@@ -45,11 +50,57 @@ const MigratedStorage = {
 	},
 };
 
+/**
+ * Transform middleware that blacklists fields from redux persist that we deem too large for persisted storage
+ */
+const persistTransform = createTransform(
+	(inboundState) => {
+		const { TokenListController, SwapsController, PhishingController, ...controllers } =
+			inboundState.backgroundState || {};
+		const { tokenList, tokensChainCache, ...persistedTokenListController } = TokenListController;
+		const {
+			aggregatorMetadata,
+			aggregatorMetadataLastFetched,
+			chainCache,
+			tokens,
+			tokensLastFetched,
+			topAssets,
+			topAssetsLastFetched,
+			...persistedSwapsController
+		} = SwapsController;
+		const { phishing, whitelist, ...persistedPhishingController } = PhishingController;
+
+		// Reconstruct data to persist
+		const newState = {
+			backgroundState: {
+				...controllers,
+				TokenListController: persistedTokenListController,
+				SwapsController: persistedSwapsController,
+				PhishingController: persistedPhishingController,
+			},
+		};
+		return newState;
+	},
+	null,
+	{ whitelist: ['engine'] }
+);
+
+const persistUserTransform = createTransform(
+	(inboundState) => {
+		const { initialScreen, isAuthChecked, ...state } = inboundState;
+		// Reconstruct data to persist
+		return state;
+	},
+	null,
+	{ whitelist: ['user'] }
+);
+
 const persistConfig = {
 	key: 'root',
 	version,
-	blacklist: ['onboarding', 'analytics'],
+	blacklist: ['onboarding'],
 	storage: MigratedStorage,
+	transforms: [persistTransform, persistUserTransform],
 	stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
 	migrate: createMigrate(migrations, { debug: false }),
 	timeout: TIMEOUT,
@@ -59,4 +110,12 @@ const persistConfig = {
 const pReducer = persistReducer(persistConfig, rootReducer);
 
 export const store = createStore(pReducer);
-export const persistor = persistStore(store);
+
+/**
+ * Initialize services after persist is completed
+ */
+const onPersistComplete = () => {
+	EngineService.initalizeEngine(store);
+};
+
+export const persistor = persistStore(store, null, onPersistComplete);
