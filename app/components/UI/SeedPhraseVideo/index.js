@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
 
 const SeedPhraseVideo = ({ style, onClose }) => {
 	const video_source_uri =
-		'https://github.com/MetaMask/metamask-mobile/blob/develop/app/videos/recovery-phrase.mp4?raw=true';
+		'https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/recovery-phrase.mp4?raw=true';
 
 	const subtitle_source_tracks = [
 		{
