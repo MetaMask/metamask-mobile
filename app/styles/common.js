@@ -89,8 +89,6 @@ export const colors = {
 	borderDefault: baseColors.grey100,
 	shadowColor: baseColors.gray900,
 	// needs auditing
-	white: '#FFFFFF',
-	white100: '#F9FAFB',
 	greyAssetVisibility: '#6A737D',
 	grey450: '#8E8E93',
 	grey700: '#3C3F42',

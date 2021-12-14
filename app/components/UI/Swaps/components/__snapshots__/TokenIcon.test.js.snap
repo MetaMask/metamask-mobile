@@ -29,7 +29,6 @@ exports[`TokenIcon component should Render correctly 2`] = `
 exports[`TokenIcon component should Render correctly 3`] = `
 <EmptyIcon>
   <Text
-    black={false}
     blue={false}
     bold={false}
     centered={false}
@@ -55,6 +54,7 @@ exports[`TokenIcon component should Render correctly 3`] = `
         undefined,
       ]
     }
+    textDefault={false}
     underline={false}
     upper={false}
   >
@@ -126,7 +126,6 @@ exports[`TokenIcon component should Render correctly 7`] = `
   medium={true}
 >
   <Text
-    black={false}
     blue={false}
     bold={false}
     centered={false}
@@ -154,6 +153,7 @@ exports[`TokenIcon component should Render correctly 7`] = `
         undefined,
       ]
     }
+    textDefault={false}
     underline={false}
     upper={false}
   >

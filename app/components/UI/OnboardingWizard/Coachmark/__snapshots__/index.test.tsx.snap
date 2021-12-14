@@ -25,7 +25,7 @@ exports[`Coachmark should render correctly 1`] = `
       style={
         Object {
           "backgroundColor": "transparent",
-          "borderBottomColor": "#037dd6",
+          "borderBottomColor": "#037DD6",
           "borderBottomWidth": 12,
           "borderLeftColor": "transparent",
           "borderLeftWidth": 15,
@@ -43,7 +43,7 @@ exports[`Coachmark should render correctly 1`] = `
     style={
       Array [
         Object {
-          "backgroundColor": "#037dd6",
+          "backgroundColor": "#037DD6",
           "borderRadius": 8,
           "padding": 18,
         },

@@ -17,7 +17,6 @@ exports[`CustomNonce should render correctly 1`] = `
   }
 >
   <Text
-    black={true}
     blue={false}
     bold={true}
     centered={false}
@@ -31,13 +30,13 @@ exports[`CustomNonce should render correctly 1`] = `
     right={false}
     small={false}
     strikethrough={false}
+    textDefault={true}
     underline={false}
     upper={false}
   >
     Nonce
   </Text>
   <Text
-    black={false}
     blue={false}
     bold={true}
     centered={false}
@@ -51,6 +50,7 @@ exports[`CustomNonce should render correctly 1`] = `
     right={false}
     small={false}
     strikethrough={false}
+    textDefault={false}
     underline={false}
     upper={false}
   >
@@ -58,7 +58,6 @@ exports[`CustomNonce should render correctly 1`] = `
     Edit
   </Text>
   <Text
-    black={true}
     blue={false}
     bold={true}
     centered={false}
@@ -77,6 +76,7 @@ exports[`CustomNonce should render correctly 1`] = `
         "marginLeft": "auto",
       }
     }
+    textDefault={true}
     underline={false}
     upper={false}
   />

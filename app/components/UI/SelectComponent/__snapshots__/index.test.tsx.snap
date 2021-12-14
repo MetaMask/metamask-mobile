@@ -30,7 +30,7 @@ exports[`SelectComponent should render correctly 1`] = `
           style={
             Object {
               "alignSelf": "flex-start",
-              "color": "#000000",
+              "color": "#24272A",
               "flex": 1,
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
@@ -43,7 +43,7 @@ exports[`SelectComponent should render correctly 1`] = `
         />
         <Icon
           allowFontScaling={false}
-          color="#000000"
+          color="#24272A"
           name="arrow-drop-down"
           size={24}
           style={

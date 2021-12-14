@@ -14,7 +14,6 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
   }
 >
   <Text
-    black={false}
     blue={false}
     bold={true}
     centered={true}
@@ -38,13 +37,13 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
         "marginTop": 16,
       }
     }
+    textDefault={false}
     underline={false}
     upper={false}
   >
     New network added
   </Text>
   <Text
-    black={false}
     blue={false}
     bold={false}
     centered={false}
@@ -68,11 +67,11 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
         "width": "100%",
       }
     }
+    textDefault={false}
     underline={false}
     upper={false}
   >
     <Text
-      black={false}
       blue={false}
       bold={false}
       centered={false}
@@ -86,11 +85,11 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
       right={false}
       small={false}
       strikethrough={false}
+      textDefault={false}
       underline={false}
       upper={false}
     >
       <Text
-        black={false}
         blue={false}
         bold={true}
         centered={false}
@@ -105,13 +104,13 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
         right={false}
         small={false}
         strikethrough={false}
+        textDefault={false}
         underline={false}
         upper={false}
       >
         ""
       </Text>
       <Text
-        black={false}
         blue={false}
         bold={false}
         centered={false}
@@ -126,6 +125,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
         right={false}
         small={false}
         strikethrough={false}
+        textDefault={false}
         underline={false}
         upper={false}
       >

@@ -77,7 +77,7 @@ exports[`HintModal should render correctly 1`] = `
     <Text
       style={
         Object {
-          "color": "#000000",
+          "color": "#24272A",
           "fontFamily": "EuclidCircularB-Bold",
           "fontSize": 24,
           "fontWeight": "600",
@@ -112,7 +112,7 @@ exports[`HintModal should render correctly 1`] = `
         testID="skip-backup-check"
         tintColors={
           Object {
-            "true": "#037dd6",
+            "true": "#037DD6",
           }
         }
         value={false}

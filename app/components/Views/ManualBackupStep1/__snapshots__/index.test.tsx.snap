@@ -51,7 +51,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#000000",
+            "color": "#24272A",
             "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 18,
             "fontWeight": "600",
@@ -74,7 +74,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#000000",
+              "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
@@ -122,10 +122,10 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
               style={
                 Object {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#037dd6",
+                  "borderColor": "#037DD6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#000000",
+                  "color": "#24272A",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -151,10 +151,10 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
               style={
                 Object {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#037dd6",
+                  "borderColor": "#037DD6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#000000",
+                  "color": "#24272A",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -180,10 +180,10 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
               style={
                 Object {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#037dd6",
+                  "borderColor": "#037DD6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#000000",
+                  "color": "#24272A",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -209,10 +209,10 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
               style={
                 Object {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#037dd6",
+                  "borderColor": "#037DD6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#000000",
+                  "color": "#24272A",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -238,10 +238,10 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
               style={
                 Object {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#037dd6",
+                  "borderColor": "#037DD6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#000000",
+                  "color": "#24272A",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -267,10 +267,10 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
               style={
                 Object {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#037dd6",
+                  "borderColor": "#037DD6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#000000",
+                  "color": "#24272A",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -308,10 +308,10 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
               style={
                 Object {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#037dd6",
+                  "borderColor": "#037DD6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#000000",
+                  "color": "#24272A",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -337,10 +337,10 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
               style={
                 Object {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#037dd6",
+                  "borderColor": "#037DD6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#000000",
+                  "color": "#24272A",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -366,10 +366,10 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
               style={
                 Object {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#037dd6",
+                  "borderColor": "#037DD6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#000000",
+                  "color": "#24272A",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -395,10 +395,10 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
               style={
                 Object {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#037dd6",
+                  "borderColor": "#037DD6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#000000",
+                  "color": "#24272A",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -424,10 +424,10 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
               style={
                 Object {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#037dd6",
+                  "borderColor": "#037DD6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#000000",
+                  "color": "#24272A",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -453,10 +453,10 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
               style={
                 Object {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#037dd6",
+                  "borderColor": "#037DD6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#000000",
+                  "color": "#24272A",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -500,10 +500,10 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             style={
               Object {
                 "alignItems": "center",
-                "backgroundColor": "#3C3F42",
+                "backgroundColor": "#6a737d",
                 "borderRadius": 8,
                 "height": "100%",
-                "opacity": 0.7,
+                "opacity": 0.75,
                 "paddingHorizontal": 24,
                 "paddingVertical": 45,
                 "position": "absolute",

@@ -60,7 +60,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
           size={15}
           style={
             Object {
-              "color": "#777777",
+              "color": "#5B5D67",
               "fontSize": 28,
             }
           }
@@ -90,7 +90,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#000000",
+              "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 32,
               "fontWeight": "400",
@@ -113,7 +113,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#000000",
+                "color": "#24272A",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -135,7 +135,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
             onPress={[Function]}
             style={
               Object {
-                "color": "#000000",
+                "color": "#24272A",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -226,7 +226,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
             <Text
               style={
                 Object {
-                  "color": "#037dd6",
+                  "color": "#037DD6",
                   "fontSize": 14,
                 }
               }

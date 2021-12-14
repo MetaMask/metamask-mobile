@@ -142,7 +142,7 @@ exports[`SlippageSlider should render correctly 1`] = `
       Array [
         Object {
           "alignItems": "center",
-          "backgroundColor": "#3C3F42",
+          "backgroundColor": "rgba(0,0,0,.75)",
           "borderRadius": 8,
           "justifyContent": "center",
           "minHeight": 29,
@@ -215,7 +215,7 @@ exports[`SlippageSlider should render correctly 1`] = `
           "bottom": 0,
           "height": 30,
           "position": "absolute",
-          "shadowColor": "#24292E",
+          "shadowColor": "#24272A",
           "shadowOffset": Object {
             "height": 0,
             "width": 0,

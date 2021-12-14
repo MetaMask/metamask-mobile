@@ -4,7 +4,7 @@ exports[`QrScanner should render correctly 1`] = `
 <View
   style={
     Object {
-      "backgroundColor": "#24292E",
+      "backgroundColor": "#24272A",
       "flex": 1,
     }
   }

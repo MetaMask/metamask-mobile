@@ -30,7 +30,7 @@ exports[`Collectibles should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#AAAAAA",
+            "color": "#5B5D67",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 20,
             "fontWeight": "400",

@@ -38,13 +38,12 @@ exports[`EditGasFee1559 should render correctly 1`] = `
             <TouchableOpacity>
               <Icon
                 allowFontScaling={false}
-                color="#24292E"
+                color="#24272A"
                 name="ios-arrow-back"
                 size={24}
               />
             </TouchableOpacity>
             <Text
-              black={true}
               blue={false}
               bold={true}
               centered={false}
@@ -58,6 +57,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
               right={false}
               small={false}
               strikethrough={false}
+              textDefault={true}
               underline={false}
               upper={false}
             >
@@ -89,7 +89,6 @@ exports[`EditGasFee1559 should render correctly 1`] = `
           >
             <Text
               adjustsFontSizeToFit={true}
-              black={true}
               blue={false}
               bold={false}
               centered={false}
@@ -112,6 +111,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                   "textAlign": "center",
                 }
               }
+              textDefault={true}
               underline={false}
               upper={false}
             >
@@ -120,7 +120,6 @@ exports[`EditGasFee1559 should render correctly 1`] = `
           </View>
           <Text
             big={true}
-            black={true}
             blue={false}
             bold={false}
             centered={false}
@@ -140,11 +139,11 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                 "marginBottom": 6,
               }
             }
+            textDefault={true}
             underline={false}
             upper={false}
           >
             <Text
-              black={true}
               blue={false}
               bold={true}
               centered={false}
@@ -159,6 +158,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
               right={false}
               small={false}
               strikethrough={false}
+              textDefault={true}
               underline={false}
               upper={false}
             >
@@ -178,7 +178,6 @@ exports[`EditGasFee1559 should render correctly 1`] = `
             }
           >
             <Text
-              black={false}
               blue={false}
               bold={true}
               centered={false}
@@ -192,6 +191,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
               right={false}
               small={false}
               strikethrough={false}
+              textDefault={false}
               underline={false}
               upper={false}
             />
@@ -244,7 +244,6 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                 }
               >
                 <Text
-                  black={false}
                   blue={false}
                   bold={true}
                   centered={false}
@@ -259,13 +258,13 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                   right={false}
                   small={false}
                   strikethrough={false}
+                  textDefault={false}
                   underline={false}
                   upper={false}
                 >
                   Advanced options
                 </Text>
                 <Text
-                  black={false}
                   blue={false}
                   bold={true}
                   centered={false}
@@ -286,6 +285,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                       "paddingTop": 1,
                     }
                   }
+                  textDefault={false}
                   underline={false}
                   upper={false}
                 >
@@ -322,7 +322,6 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                         }
                       >
                         <Text
-                          black={true}
                           blue={false}
                           bold={true}
                           centered={false}
@@ -337,6 +336,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                           right={false}
                           small={false}
                           strikethrough={false}
+                          textDefault={true}
                           underline={false}
                           upper={false}
                         >
@@ -360,7 +360,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                             size={14}
                             style={
                               Object {
-                                "color": "#bbc0c5",
+                                "color": "#5B5D67",
                               }
                             }
                           />
@@ -392,7 +392,6 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                         }
                       >
                         <Text
-                          black={true}
                           blue={false}
                           bold={true}
                           centered={false}
@@ -407,6 +406,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                           right={false}
                           small={false}
                           strikethrough={false}
+                          textDefault={true}
                           underline={false}
                           upper={false}
                         >
@@ -430,7 +430,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                             size={14}
                             style={
                               Object {
-                                "color": "#bbc0c5",
+                                "color": "#5B5D67",
                               }
                             }
                           />
@@ -442,7 +442,6 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                     onChangeValue={[Function]}
                     rightLabelComponent={
                       <Text
-                        black={false}
                         blue={false}
                         bold={false}
                         centered={false}
@@ -458,11 +457,11 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                         right={false}
                         small={true}
                         strikethrough={false}
+                        textDefault={false}
                         underline={false}
                         upper={false}
                       >
                         <Text
-                          black={false}
                           blue={false}
                           bold={true}
                           centered={false}
@@ -476,6 +475,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                           right={false}
                           small={false}
                           strikethrough={false}
+                          textDefault={false}
                           underline={false}
                           upper={false}
                         >
@@ -510,7 +510,6 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                         }
                       >
                         <Text
-                          black={true}
                           blue={false}
                           bold={true}
                           centered={false}
@@ -525,6 +524,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                           right={false}
                           small={false}
                           strikethrough={false}
+                          textDefault={true}
                           underline={false}
                           upper={false}
                         >
@@ -548,7 +548,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                             size={14}
                             style={
                               Object {
-                                "color": "#bbc0c5",
+                                "color": "#5B5D67",
                               }
                             }
                           />
@@ -560,7 +560,6 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                     onChangeValue={[Function]}
                     rightLabelComponent={
                       <Text
-                        black={false}
                         blue={false}
                         bold={false}
                         centered={false}
@@ -576,11 +575,11 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                         right={false}
                         small={true}
                         strikethrough={false}
+                        textDefault={false}
                         underline={false}
                         upper={false}
                       >
                         <Text
-                          black={false}
                           blue={false}
                           bold={true}
                           centered={false}
@@ -594,6 +593,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                           right={false}
                           small={false}
                           strikethrough={false}
+                          textDefault={false}
                           underline={false}
                           upper={false}
                         >
@@ -621,7 +621,6 @@ exports[`EditGasFee1559 should render correctly 1`] = `
               }
             >
               <Text
-                black={false}
                 blue={false}
                 bold={false}
                 centered={true}
@@ -635,6 +634,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                 right={false}
                 small={false}
                 strikethrough={false}
+                textDefault={false}
                 underline={false}
                 upper={false}
               >
@@ -663,7 +663,6 @@ exports[`EditGasFee1559 should render correctly 1`] = `
           body={
             <View>
               <Text
-                black={false}
                 blue={false}
                 bold={false}
                 centered={false}
@@ -679,6 +678,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                 right={false}
                 small={false}
                 strikethrough={false}
+                textDefault={false}
                 underline={false}
                 upper={false}
               >
@@ -703,7 +703,6 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                 <TouchableWithoutFeedback>
                   <View>
                     <Text
-                      black={false}
                       blue={false}
                       bold={false}
                       centered={false}
@@ -720,13 +719,13 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                       right={false}
                       small={false}
                       strikethrough={false}
+                      textDefault={false}
                       underline={false}
                       upper={false}
                     >
                       Selecting the right gas fee depends on the type of transaction and how important it is to you.
                     </Text>
                     <Text
-                      black={false}
                       blue={false}
                       bold={true}
                       centered={false}
@@ -747,13 +746,13 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                           "marginTop": 9,
                         }
                       }
+                      textDefault={false}
                       underline={false}
                       upper={false}
                     >
                       High
                     </Text>
                     <Text
-                      black={false}
                       blue={false}
                       bold={false}
                       centered={false}
@@ -770,13 +769,13 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                       right={false}
                       small={false}
                       strikethrough={false}
+                      textDefault={false}
                       underline={false}
                       upper={false}
                     >
                       This is best for time sensitive transactions (like Swaps) as it increases the likelihood of a successful transaction. If a Swap takes too long to process it may fail and result in losing some of your gas fee.
                     </Text>
                     <Text
-                      black={false}
                       blue={false}
                       bold={true}
                       centered={false}
@@ -797,13 +796,13 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                           "marginTop": 9,
                         }
                       }
+                      textDefault={false}
                       underline={false}
                       upper={false}
                     >
                       Medium
                     </Text>
                     <Text
-                      black={false}
                       blue={false}
                       bold={false}
                       centered={false}
@@ -820,13 +819,13 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                       right={false}
                       small={false}
                       strikethrough={false}
+                      textDefault={false}
                       underline={false}
                       upper={false}
                     >
                       A medium gas fee is good for sending, withdrawing or other non-time sensitive transactions. This setting will most often result in a successful transaction.
                     </Text>
                     <Text
-                      black={false}
                       blue={false}
                       bold={true}
                       centered={false}
@@ -847,13 +846,13 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                           "marginTop": 9,
                         }
                       }
+                      textDefault={false}
                       underline={false}
                       upper={false}
                     >
                       Low
                     </Text>
                     <Text
-                      black={false}
                       blue={false}
                       bold={false}
                       centered={false}
@@ -870,6 +869,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                       right={false}
                       small={false}
                       strikethrough={false}
+                      textDefault={false}
                       underline={false}
                       upper={false}
                     >

@@ -12,7 +12,6 @@ exports[`TokenSelectButton component should Render correctly 1`] = `
     <TokenIcon />
   </View>
   <Text
-    black={false}
     blue={false}
     bold={false}
     centered={false}
@@ -26,6 +25,7 @@ exports[`TokenSelectButton component should Render correctly 1`] = `
     right={false}
     small={false}
     strikethrough={false}
+    textDefault={false}
     underline={false}
     upper={false}
   >
@@ -48,7 +48,6 @@ exports[`TokenSelectButton component should Render correctly 2`] = `
     />
   </View>
   <Text
-    black={false}
     blue={false}
     bold={false}
     centered={false}
@@ -62,6 +61,7 @@ exports[`TokenSelectButton component should Render correctly 2`] = `
     right={false}
     small={false}
     strikethrough={false}
+    textDefault={false}
     underline={false}
     upper={false}
   >
@@ -84,7 +84,6 @@ exports[`TokenSelectButton component should Render correctly 3`] = `
     />
   </View>
   <Text
-    black={false}
     blue={false}
     bold={false}
     centered={false}
@@ -98,6 +97,7 @@ exports[`TokenSelectButton component should Render correctly 3`] = `
     right={false}
     small={false}
     strikethrough={false}
+    textDefault={false}
     underline={false}
     upper={false}
   >
@@ -121,7 +121,6 @@ exports[`TokenSelectButton component should Render correctly 4`] = `
     />
   </View>
   <Text
-    black={false}
     blue={false}
     bold={false}
     centered={false}
@@ -135,6 +134,7 @@ exports[`TokenSelectButton component should Render correctly 4`] = `
     right={false}
     small={false}
     strikethrough={false}
+    textDefault={false}
     underline={false}
     upper={false}
   >
@@ -160,7 +160,6 @@ exports[`TokenSelectButton component should Render correctly 5`] = `
     />
   </View>
   <Text
-    black={false}
     blue={false}
     bold={false}
     centered={false}
@@ -174,6 +173,7 @@ exports[`TokenSelectButton component should Render correctly 5`] = `
     right={false}
     small={false}
     strikethrough={false}
+    textDefault={false}
     underline={false}
     upper={false}
   >

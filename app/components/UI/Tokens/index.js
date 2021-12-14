@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
 		marginRight: 20,
 	},
 	emptyText: {
-		color: colors.greyAssetVisibility,
+		color: colors.textAlternative,
 		marginBottom: 8,
 		fontSize: 14,
 	},

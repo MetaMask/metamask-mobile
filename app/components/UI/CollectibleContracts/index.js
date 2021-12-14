@@ -60,10 +60,10 @@ const styles = StyleSheet.create({
 	},
 	emptyTitleText: {
 		fontSize: 24,
-		color: colors.grey200,
+		color: colors.textAlternative,
 	},
 	emptyText: {
-		color: colors.greyAssetVisibility,
+		color: colors.textAlternative,
 		marginBottom: 8,
 		fontSize: 14,
 	},

@@ -30,7 +30,7 @@ export default StyleSheet.create({
 	description: {
 		fontSize: 14,
 		fontFamily: 'EuclidCircularB-Regular',
-		color: colors.greyAssetVisibility,
+		color: colors.textAlternative,
 		textAlign: 'center',
 		lineHeight: 20,
 		paddingHorizontal: 30,
