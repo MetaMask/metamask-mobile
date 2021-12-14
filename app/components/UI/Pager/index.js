@@ -12,7 +12,7 @@ const styles = StyleSheet.create({
 	},
 	page: {
 		height: 7,
-		backgroundColor: colors.grey100,
+		backgroundColor: colors.muted,
 		marginRight: defaultMargin,
 	},
 	selected: {

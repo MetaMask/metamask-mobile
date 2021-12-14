@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
 	imputWrapper: {
 		flex: 0,
 		borderBottomWidth: 1,
-		borderBottomColor: colors.grey050,
+		borderBottomColor: colors.borderDefault,
 		paddingHorizontal: 8,
 	},
 	bottomModal: {
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
 	addTextSubtitle: {
 		...fontStyles.normal,
 		fontSize: 16,
-		color: colors.grey600,
+		color: colors.textAlternative,
 		marginBottom: 24,
 	},
 	addTextInput: {
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		borderWidth: 1,
 		borderRadius: 8,
-		borderColor: colors.grey050,
+		borderColor: colors.borderDefault,
 		height: 50,
 		width: '100%',
 	},
@@ -491,7 +491,7 @@ class SendFlow extends PureComponent {
 										autoCorrect={false}
 										onChangeText={this.onChangeAlias}
 										placeholder={strings('address_book.enter_an_alias_placeholder')}
-										placeholderTextColor={colors.grey100}
+										placeholderTextColor={colors.muted}
 										spellCheck={false}
 										style={styles.addTextInput}
 										numberOfLines={1}

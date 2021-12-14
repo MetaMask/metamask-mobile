@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
 	},
 	currentSuggested: {
 		fontSize: 14,
-		color: colors.grey500,
+		color: colors.textAlternative,
 		marginBottom: 10,
 	},
 	nonceWarning: {
@@ -155,7 +155,7 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 								autoCorrect={false}
 								onChangeText={onChangeText}
 								placeholder={String(proposedNonce)}
-								placeholderTextColor={colors.grey100}
+								placeholderTextColor={colors.muted}
 								spellCheck={false}
 								editable
 								style={styles.nonceInput}

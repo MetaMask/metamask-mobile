@@ -463,8 +463,8 @@ class Login extends PureComponent {
 						onValueChange={(biometryChoice) => this.updateBiometryChoice(biometryChoice)} // eslint-disable-line react/jsx-no-bind
 						value={this.state.biometryChoice}
 						style={styles.biometrySwitch}
-						trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
-						ios_backgroundColor={colors.grey300}
+						trackColor={Device.isIos() ? { true: colors.primary, false: colors.ui1 } : null}
+						ios_backgroundColor={colors.ui1}
 					/>
 				</View>
 			);
@@ -477,8 +477,8 @@ class Login extends PureComponent {
 					onValueChange={(rememberMe) => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
 					value={this.state.rememberMe}
 					style={styles.biometrySwitch}
-					trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
-					ios_backgroundColor={colors.grey300}
+					trackColor={Device.isIos() ? { true: colors.primary, false: colors.ui1 } : null}
+					ios_backgroundColor={colors.ui1}
 				/>
 			</View>
 		);
@@ -560,7 +560,7 @@ class Login extends PureComponent {
 							onChangeText={this.checkDelete}
 							autoCapitalize="none"
 							value={this.state.deleteText}
-							baseColor={colors.grey500}
+							baseColor={colors.ui4}
 							tintColor={colors.primary}
 							onSubmitEditing={this.submitDelete}
 						/>
@@ -598,7 +598,7 @@ class Login extends PureComponent {
 								ref={this.fieldRef}
 								onChangeText={this.setPassword}
 								value={this.state.password}
-								baseColor={colors.grey500}
+								baseColor={colors.ui4}
 								tintColor={colors.primary}
 								onSubmitEditing={this.triggerLogIn}
 								renderRightAccessory={() => (

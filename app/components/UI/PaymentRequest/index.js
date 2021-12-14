@@ -68,8 +68,8 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.backgroundDefault,
 		height: 40,
 		width: '100%',
-		color: colors.grey400,
-		borderColor: colors.grey100,
+		color: colors.textAlternative,
+		borderColor: colors.borderDefault,
 		borderWidth: 1,
 		...fontStyles.normal,
 	},
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
 		paddingLeft: 14,
 		position: 'relative',
 		backgroundColor: colors.backgroundDefault,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 		borderRadius: 4,
 		borderWidth: 1,
 	},
@@ -394,7 +394,7 @@ class PaymentRequest extends PureComponent {
 							onChangeText={this.handleSearch}
 							onSubmitEditing={this.handleSearch}
 							placeholder={strings('payment_request.search_assets')}
-							placeholderTextColor={colors.grey400}
+							placeholderTextColor={colors.muted}
 							returnKeyType="go"
 							value={this.state.searchInputValue}
 							blurOnSubmit
@@ -404,7 +404,7 @@ class PaymentRequest extends PureComponent {
 							onPress={this.focusInput}
 							name="search"
 							size={18}
-							color={colors.grey400}
+							color={colors.textAlternative}
 							style={styles.searchIcon}
 						/>
 					</View>
@@ -610,7 +610,7 @@ class PaymentRequest extends PureComponent {
 										numberOfLines={1}
 										onChangeText={this.updateAmount}
 										placeholder={strings('payment_request.amount_placeholder')}
-										placeholderTextColor={colors.grey100}
+										placeholderTextColor={colors.muted}
 										spellCheck={false}
 										style={styles.input}
 										value={amount}
@@ -643,7 +643,7 @@ class PaymentRequest extends PureComponent {
 											onPress={this.focusInput}
 											name="exchange"
 											size={18}
-											color={colors.grey200}
+											color={colors.textAlternative}
 											style={{ transform: [{ rotate: '270deg' }] }}
 										/>
 									</TouchableOpacity>

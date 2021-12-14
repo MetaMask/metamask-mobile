@@ -61,10 +61,17 @@ const baseColors = {
  */
 
 export const colors = {
+	// Lightmode
 	textDefault: baseColors.grey800,
 	textAlternative: baseColors.grey600,
 	backgroundDefault: baseColors.white,
-	backgroundAlternative: baseColors.gray000,
+	backgroundAlternative: baseColors.grey000,
+	// Darkmode
+	// textDefault: baseColors.white,
+	// textAlternative: baseColors.grey000,
+	// backgroundDefault: baseColors.grey900,
+	// backgroundAlternative: baseColors.grey800,
+	//
 	primary: baseColors.blue500,
 	onPrimary: baseColors.white,
 	success: baseColors.green500,
@@ -78,31 +85,18 @@ export const colors = {
 	alert: 'rgba(0,0,0,.75)',
 	onAlert: baseColors.white,
 	// UI escape hatches for grey colors with no general purpose
-	ui4: baseColors.grey500,
-	onUi4: baseColors.white,
-	ui3: baseColors.grey200,
-	onUi3: baseColors.white,
-	ui2: baseColors.grey100,
-	onUi2: baseColors.grey800,
 	ui1: baseColors.grey000,
 	onUi1: baseColors.grey800,
+	ui2: baseColors.grey100,
+	onUi2: baseColors.grey800,
+	ui3: baseColors.grey200,
+	onUi3: baseColors.white,
+	ui4: baseColors.grey500,
+	onUi4: baseColors.white,
 	borderDefault: baseColors.grey100,
 	shadowColor: baseColors.gray900,
+	muted: baseColors.grey100,
 	// needs auditing
-	greyAssetVisibility: '#6A737D',
-	grey450: '#8E8E93',
-	grey700: '#3C3F42',
-	grey600: '#5B5D67',
-	grey500: '#6a737d',
-	grey400: '#848c96',
-	grey300: '#9fa6ae',
-	grey200: '#bbc0c5',
-	grey100: '#d6d9dc',
-	grey050: '#D8D8D8',
-	grey000: '#f2f3f4',
-	greytransparent: 'rgba(36, 41, 46, 0.6)',
-	greytransparent100: 'rgba(115, 115, 115, 0.5)',
-	grey: '#333333',
 	red: '#D73A49',
 	red000: '#fcf2f3',
 	blue: '#037dd6',
@@ -133,8 +127,6 @@ export const colors = {
 	transparent: 'transparent',
 	lightOverlay: 'rgba(0,0,0,.2)',
 	overlay: 'rgba(0,0,0,.5)',
-	darkAlert: 'rgba(0,0,0,.75)',
-	normalAlert: 'rgba(55,55,55,.97)',
 	spinnerBackground: `rgba(185, 156, 171, 0.396)`,
 };
 

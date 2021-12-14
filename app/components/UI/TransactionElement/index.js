@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 	},
 	actionContainerStyle: {
 		height: 25,
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
 	},
 	importRowBody: {
 		alignItems: 'center',
-		backgroundColor: colors.grey000,
+		backgroundColor: colors.ui1,
 		paddingTop: 10,
 	},
 });
@@ -342,7 +342,7 @@ class TransactionElement extends PureComponent {
 				<TouchableHighlight
 					style={styles.row}
 					onPress={this.onPressItem}
-					underlayColor={colors.grey000}
+					underlayColor={colors.ui1}
 					activeOpacity={1}
 				>
 					{this.renderTxElement(transactionElement)}

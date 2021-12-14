@@ -6,7 +6,7 @@ import { colors } from '../../../../styles/common';
 
 const styles = StyleSheet.create({
 	icon: {
-		color: colors.grey200,
+		color: colors.textAlternative,
 	},
 });
 

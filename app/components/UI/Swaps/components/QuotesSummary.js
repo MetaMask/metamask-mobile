@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
 		width: '100%',
 		borderTopWidth: 1,
 		marginVertical: 6,
-		borderTopColor: colors.grey100,
+		borderTopColor: colors.muted,
 	},
 });
 

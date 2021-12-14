@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
 	textInput: {
 		borderWidth: 1,
 		borderRadius: 4,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 		padding: 16,
 		...fontStyles.normal,
 	},
@@ -103,7 +103,7 @@ export default class AddBookmark extends PureComponent {
 						<TextInput
 							style={styles.textInput}
 							placeholder={''}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.muted}
 							value={this.state.title}
 							onChangeText={this.onTitleChange}
 							testID={'add-bookmark-title'}

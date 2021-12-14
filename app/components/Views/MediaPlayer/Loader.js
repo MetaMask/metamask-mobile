@@ -11,7 +11,7 @@ const styles = StyleSheet.create({
 	container: {
 		flex: 1,
 		borderRadius: 12,
-		backgroundColor: colors.grey100,
+		backgroundColor: colors.muted,
 	},
 	content: {
 		flex: 1,
@@ -42,9 +42,9 @@ function Loader({ error, onClose }) {
 			<View style={styles.content}>
 				<View style={styles.item}>
 					{error ? (
-						<FA5Icon name="video-slash" color={colors.grey400} size={40} />
+						<FA5Icon name="video-slash" color={colors.ui4} size={40} />
 					) : (
-						<ActivityIndicator color={colors.grey400} size="large" />
+						<ActivityIndicator color={colors.ui4} size="large" />
 					)}
 				</View>
 				<View style={styles.item}>

@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
 	privacyPolicy: {
 		...fontStyles.normal,
 		fontSize: 14,
-		color: colors.grey400,
+		color: colors.textAlternative,
 		marginTop: 10,
 	},
 	link: {

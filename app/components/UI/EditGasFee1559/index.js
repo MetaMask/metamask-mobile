@@ -422,7 +422,7 @@ const EditGasFee1559 = ({
 										</View>
 									}
 									rightLabelComponent={
-										<Text noMargin small grey>
+										<Text noMargin small textAlternative>
 											<Text bold reset>
 												{strings('edit_gas_fee_eip1559.estimate')}:
 											</Text>{' '}
@@ -460,7 +460,7 @@ const EditGasFee1559 = ({
 										</View>
 									}
 									rightLabelComponent={
-										<Text noMargin small grey>
+										<Text noMargin small textAlternative>
 											<Text bold reset>
 												{strings('edit_gas_fee_eip1559.estimate')}:
 											</Text>{' '}
@@ -639,7 +639,7 @@ const EditGasFee1559 = ({
 							toggleModal={() => setShowInfoModal(null)}
 							body={
 								<View>
-									<Text grey infoModal>
+									<Text textAlternative infoModal>
 										{showInfoModal === 'gas_limit' &&
 											strings('edit_gas_fee_eip1559.learn_more_gas_limit')}
 										{showInfoModal === 'max_priority_fee' &&
@@ -663,30 +663,30 @@ const EditGasFee1559 = ({
 									<ScrollView>
 										<TouchableWithoutFeedback>
 											<View>
-												<Text noMargin grey infoModal>
+												<Text noMargin textAlternative infoModal>
 													{strings('edit_gas_fee_eip1559.learn_more.intro')}
 												</Text>
 												<Text noMargin primary infoModal bold style={styles.learnMoreLabels}>
 													{strings('edit_gas_fee_eip1559.learn_more.high_label')}
 												</Text>
-												<Text noMargin grey infoModal>
+												<Text noMargin textAlternative infoModal>
 													{strings('edit_gas_fee_eip1559.learn_more.high_text')}
 												</Text>
 												<Text noMargin primary infoModal bold style={styles.learnMoreLabels}>
 													{strings('edit_gas_fee_eip1559.learn_more.medium_label')}
 												</Text>
-												<Text noMargin grey infoModal>
+												<Text noMargin textAlternative infoModal>
 													{strings('edit_gas_fee_eip1559.learn_more.medium_text')}
 												</Text>
 												<Text noMargin primary infoModal bold style={styles.learnMoreLabels}>
 													{strings('edit_gas_fee_eip1559.learn_more.low_label')}
 												</Text>
-												<Text noMargin grey infoModal>
+												<Text noMargin textAlternative infoModal>
 													{strings('edit_gas_fee_eip1559.learn_more.low_text')}
 												</Text>
 												{/* TODO(eip1559) add link when available
 												<TouchableOpacity style={styles.learnMoreLink}>
-													<Text grey infoModal link>
+													<Text textAlternative infoModal link>
 														{strings('edit_gas_fee_eip1559.learn_more.link')}
 													</Text>
 												</TouchableOpacity>*/}

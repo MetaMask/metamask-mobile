@@ -53,6 +53,7 @@ const styles = StyleSheet.create({
 	label: {
 		fontSize: 24,
 		textAlign: 'center',
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	labelInput: {
@@ -68,7 +69,7 @@ const styles = StyleSheet.create({
 	},
 	address: {
 		fontSize: 12,
-		color: colors.grey400,
+		color: colors.textAlternative,
 		...fontStyles.normal,
 		letterSpacing: 0.8,
 	},

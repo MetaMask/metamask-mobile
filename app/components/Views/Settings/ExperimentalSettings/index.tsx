@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
 	},
 	desc: {
 		...(fontStyles.normal as any),
-		color: colors.grey500,
+		color: colors.textAlternative,
 		fontSize: 14,
 		lineHeight: 20,
 		marginTop: 12,
@@ -104,8 +104,8 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 						<Switch
 							value={isTokenDetectionEnabled}
 							onValueChange={toggleTokenDetection}
-							trackColor={Device.isIos() ? { true: colors.primary, false: colors.grey000 } : undefined}
-							ios_backgroundColor={colors.grey000}
+							trackColor={Device.isIos() ? { true: colors.primary, false: colors.ui1 } : undefined}
+							ios_backgroundColor={colors.ui1}
 						/>
 					</View>
 				</View>

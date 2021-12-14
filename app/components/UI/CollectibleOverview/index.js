@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
 		width: 48,
 		height: 5,
 		borderRadius: 4,
-		backgroundColor: colors.grey100,
+		backgroundColor: colors.muted,
 	},
 	scrollableDescription: {
 		maxHeight: Device.getDeviceHeight() / 5,

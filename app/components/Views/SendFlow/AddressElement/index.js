@@ -13,7 +13,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		borderBottomWidth: 1,
-		borderBottomColor: colors.grey050,
+		borderBottomColor: colors.borderDefault,
 	},
 	addressElementInformation: {
 		flex: 1,
@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
 	addressTextAddress: {
 		...fontStyles.normal,
 		fontSize: 12,
-		color: colors.grey500,
+		color: colors.textAlternative,
 	},
 });
 

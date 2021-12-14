@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
 		height: 15,
 		borderRadius: 100,
 		marginTop: 2,
-		backgroundColor: colors.grey100,
+		backgroundColor: colors.muted,
 	},
 	network: {
 		flex: 1,

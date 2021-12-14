@@ -13,7 +13,7 @@ const styles = StyleSheet.create({
 	},
 	titleWrapper: {
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 	},
 	title: {
 		textAlign: 'center',

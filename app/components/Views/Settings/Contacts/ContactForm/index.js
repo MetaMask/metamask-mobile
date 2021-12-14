@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		flex: 1,
 		fontSize: 12,
-		borderColor: colors.grey200,
+		borderColor: colors.borderDefault,
 		borderRadius: 5,
 		borderWidth: 2,
 		padding: 10,
@@ -266,7 +266,7 @@ class ContactForm extends PureComponent {
 							autoCorrect={false}
 							onChangeText={this.onChangeName}
 							placeholder={strings('address_book.nickname')}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.muted}
 							spellCheck={false}
 							numberOfLines={1}
 							style={[
@@ -288,7 +288,7 @@ class ContactForm extends PureComponent {
 									autoCorrect={false}
 									onChangeText={this.onChangeAddress}
 									placeholder={strings('address_book.add_input_placeholder')}
-									placeholderTextColor={colors.grey100}
+									placeholderTextColor={colors.muted}
 									spellCheck={false}
 									numberOfLines={1}
 									style={[styles.textInput, inputWidth ? { width: inputWidth } : {}]}
@@ -302,7 +302,12 @@ class ContactForm extends PureComponent {
 
 							{editable && (
 								<TouchableOpacity onPress={this.onScan} style={styles.iconWrapper}>
-									<AntIcon name="scan1" size={20} color={colors.grey500} style={styles.scanIcon} />
+									<AntIcon
+										name="scan1"
+										size={20}
+										color={colors.textAlternative}
+										style={styles.scanIcon}
+									/>
 								</TouchableOpacity>
 							)}
 						</View>
@@ -317,7 +322,7 @@ class ContactForm extends PureComponent {
 									autoCorrect={false}
 									onChangeText={this.onChangeMemo}
 									placeholder={strings('address_book.memo')}
-									placeholderTextColor={colors.grey100}
+									placeholderTextColor={colors.muted}
 									spellCheck={false}
 									numberOfLines={1}
 									style={[styles.textInput, inputWidth ? { width: inputWidth } : {}]}

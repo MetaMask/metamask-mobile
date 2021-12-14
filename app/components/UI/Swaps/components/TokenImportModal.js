@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
 		marginVertical: 14,
 	},
 	tokenAddress: {
-		backgroundColor: colors.grey000,
+		backgroundColor: colors.ui1,
 		width: '100%',
 		borderRadius: 20,
 		marginVertical: 6,

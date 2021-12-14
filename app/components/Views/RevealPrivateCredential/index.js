@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 	},
 	header: {
-		borderBottomColor: colors.grey400,
+		borderBottomColor: colors.borderDefault,
 		borderBottomWidth: 1,
 		...fontStyles.normal,
 	},
@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
 		paddingBottom: 20,
 		paddingLeft: 20,
 		paddingRight: 20,
-		borderColor: colors.grey400,
+		borderColor: colors.borderDefault,
 		borderBottomWidth: 1,
 		fontSize: 20,
 		textAlign: 'center',
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
 	seedPhraseView: {
 		borderRadius: 10,
 		borderWidth: 1,
-		borderColor: colors.grey400,
+		borderColor: colors.borderDefault,
 		marginTop: 10,
 		alignItems: 'center',
 	},
@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
 	input: {
 		borderWidth: 2,
 		borderRadius: 5,
-		borderColor: colors.grey000,
+		borderColor: colors.borderDefault,
 		padding: 10,
 	},
 	icon: {
@@ -348,7 +348,7 @@ class RevealPrivateCredential extends PureComponent {
 										style={styles.input}
 										testID={'private-credential-password-text-input'}
 										placeholder={'Password'}
-										placeholderTextColor={colors.grey100}
+										placeholderTextColor={colors.muted}
 										onChangeText={this.onPasswordChange}
 										secureTextEntry
 										onSubmitEditing={this.tryUnlock}

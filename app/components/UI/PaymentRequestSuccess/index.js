@@ -137,11 +137,11 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 36,
 		paddingBottom: 24,
 		paddingTop: 16,
-		backgroundColor: colors.grey000,
+		backgroundColor: colors.ui1,
 		borderRadius: 8,
 	},
 	qrCodeWrapper: {
-		borderColor: colors.grey300,
+		borderColor: colors.borderDefault,
 		borderRadius: 8,
 		borderWidth: 1,
 		padding: 15,

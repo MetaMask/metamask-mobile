@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
 	},
 	accountCardWrapper: {
 		borderWidth: 1,
-		borderColor: colors.grey200,
+		borderColor: colors.borderDefault,
 		borderRadius: 10,
 		padding: 16,
 		margin: 24,

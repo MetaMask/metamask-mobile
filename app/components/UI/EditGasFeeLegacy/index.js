@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
 		right: 10,
 	},
 	labelInfo: {
-		color: colors.grey200,
+		color: colors.textAlternative,
 	},
 	advancedOptionsContainer: {
 		marginTop: 25,
@@ -440,7 +440,7 @@ const EditGasFeeLegacy = ({
 							toggleModal={() => setShowRangeInfoModal(null)}
 							body={
 								<View>
-									<Text grey infoModal>
+									<Text textAlternative infoModal>
 										{showRangeInfoModal === 'gas_limit' &&
 											strings('edit_gas_fee_eip1559.learn_more_gas_limit_legacy')}
 										{showRangeInfoModal === 'gas_price' &&

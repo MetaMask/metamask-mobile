@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
 	},
 	deeplinkIconContainer: {
 		borderWidth: 1,
-		borderColor: colors.grey600,
+		borderColor: colors.ui4,
 		width: 56,
 		height: 56,
 		borderRadius: 38,
@@ -121,7 +121,7 @@ const TransactionHeader = (props) => {
 						style={styles.deeplinkIcon}
 						name={origin === ORIGIN_DEEPLINK ? 'link' : 'qrcode'}
 						size={32}
-						color={colors.grey600}
+						color={colors.ui4}
 					/>
 				</View>
 			);

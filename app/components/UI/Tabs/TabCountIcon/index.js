@@ -8,13 +8,13 @@ import Device from '../../../../util/device';
 const styles = StyleSheet.create({
 	tabIcon: {
 		borderWidth: 2,
-		borderColor: colors.grey500,
+		borderColor: colors.borderDefault,
 		borderRadius: 6,
 		alignItems: 'center',
 		justifyContent: 'center',
 	},
 	tabCount: {
-		color: colors.grey500,
+		color: colors.textAlternative,
 		flex: 0,
 		lineHeight: Device.isAndroid() ? 3 : 15,
 		fontSize: Device.isAndroid() ? 3 : 15,

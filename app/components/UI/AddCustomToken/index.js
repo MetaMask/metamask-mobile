@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
 	textInput: {
 		borderWidth: 1,
 		borderRadius: 4,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 		padding: 16,
 		...fontStyles.normal,
 	},
@@ -239,7 +239,7 @@ export default class AddCustomToken extends PureComponent {
 							<TextInput
 								style={styles.textInput}
 								placeholder={'0x...'}
-								placeholderTextColor={colors.grey100}
+								placeholderTextColor={colors.muted}
 								value={this.state.address}
 								onChangeText={this.onAddressChange}
 								onBlur={this.onAddressBlur}
@@ -256,7 +256,7 @@ export default class AddCustomToken extends PureComponent {
 							<TextInput
 								style={styles.textInput}
 								placeholder={'GNO'}
-								placeholderTextColor={colors.grey100}
+								placeholderTextColor={colors.muted}
 								value={this.state.symbol}
 								onChangeText={this.onSymbolChange}
 								onBlur={this.validateCustomTokenSymbol}
@@ -275,7 +275,7 @@ export default class AddCustomToken extends PureComponent {
 								keyboardType="numeric"
 								maxLength={2}
 								placeholder={'18'}
-								placeholderTextColor={colors.grey100}
+								placeholderTextColor={colors.muted}
 								onChangeText={this.onDecimalsChange}
 								onBlur={this.validateCustomTokenDecimals}
 								testID={'input-token-decimals'}

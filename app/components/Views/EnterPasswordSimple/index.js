@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
 	input: {
 		borderWidth: 2,
 		borderRadius: 5,
-		borderColor: colors.grey000,
+		borderColor: colors.borderDefault,
 		padding: 10,
 	},
 	ctaWrapper: {
@@ -90,7 +90,7 @@ export default class EnterPasswordSimple extends PureComponent {
 								<TextInput
 									style={styles.input}
 									placeholder={strings('enter_password.password')}
-									placeholderTextColor={colors.grey100}
+									placeholderTextColor={colors.muted}
 									onChangeText={this.onPasswordChange}
 									secureTextEntry
 									onSubmitEditing={this.onPressConfirm}

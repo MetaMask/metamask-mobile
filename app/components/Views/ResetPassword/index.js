@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
 		borderWidth: 2,
 		borderRadius: 5,
 		width: '100%',
-		borderColor: colors.grey000,
+		borderColor: colors.borderDefault,
 		padding: 10,
 		height: 40,
 	},
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
 	},
 	input: {
 		borderWidth: 1,
-		borderColor: colors.grey500,
+		borderColor: colors.borderDefault,
 		padding: 10,
 		borderRadius: 6,
 		fontSize: 14,
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
 		height: 20,
 		marginTop: 14,
 		fontSize: 12,
-		color: colors.grey450,
+		color: colors.textAlternative,
 		textAlign: 'left',
 		...fontStyles.normal,
 	},
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_strong: {
-		color: colors.green300,
+		color: colors.primary,
 	},
 	showMatchingPasswords: {
 		position: 'absolute',
@@ -503,8 +503,8 @@ class ResetPassword extends PureComponent {
 								onValueChange={this.updateBiometryChoice} // eslint-disable-line react/jsx-no-bind
 								value={biometryChoice}
 								style={styles.biometrySwitch}
-								trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
-								ios_backgroundColor={colors.grey300}
+								trackColor={Device.isIos() ? { true: colors.primary, false: colors.ui1 } : null}
+								ios_backgroundColor={colors.ui1}
 							/>
 						</View>
 					</>
@@ -515,8 +515,8 @@ class ResetPassword extends PureComponent {
 							onValueChange={(rememberMe) => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
 							value={rememberMe}
 							style={styles.biometrySwitch}
-							trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
-							ios_backgroundColor={colors.grey300}
+							trackColor={Device.isIos() ? { true: colors.primary, false: colors.ui1 } : null}
+							ios_backgroundColor={colors.ui1}
 						/>
 					</>
 				)}
@@ -599,7 +599,7 @@ class ResetPassword extends PureComponent {
 							<TextInput
 								style={styles.confirm_input}
 								placeholder={'Password'}
-								placeholderTextColor={colors.grey100}
+								placeholderTextColor={colors.muted}
 								onChangeText={this.onPasswordChange}
 								secureTextEntry
 								onSubmitEditing={this.tryUnlock}
@@ -648,7 +648,10 @@ class ResetPassword extends PureComponent {
 								<AnimatedFox />
 							)}
 						</View>
-						<ActivityIndicator size="large" color={Device.isAndroid() ? colors.primary : colors.grey} />
+						<ActivityIndicator
+							size="large"
+							color={Device.isAndroid() ? colors.primary : colors.textAlternative}
+						/>
 						<Text style={styles.title}>
 							{strings(
 								previousScreen === ONBOARDING
@@ -707,16 +710,14 @@ class ResetPassword extends PureComponent {
 										onChangeText={this.setConfirmPassword}
 										secureTextEntry={secureTextEntry}
 										placeholder={''}
-										placeholderTextColor={colors.grey100}
+										placeholderTextColor={colors.muted}
 										testID={'input-password-confirm'}
 										onSubmitEditing={this.onPressCreate}
 										returnKeyType={'done'}
 										autoCapitalize="none"
 									/>
 									<View style={styles.showMatchingPasswords}>
-										{passwordsMatch ? (
-											<Icon name="check" size={16} color={colors.green300} />
-										) : null}
+										{passwordsMatch ? <Icon name="check" size={16} color={colors.primary} /> : null}
 									</View>
 									<Text style={styles.hintLabel}>
 										{strings('reset_password.must_be_at_least', { number: 8 })}

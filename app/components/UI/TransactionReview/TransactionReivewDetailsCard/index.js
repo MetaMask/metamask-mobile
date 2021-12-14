@@ -14,7 +14,7 @@ const styles = StyleSheet.create({
 	},
 	viewData: {
 		borderWidth: 1,
-		borderColor: colors.grey200,
+		borderColor: colors.borderDefault,
 		borderRadius: 10,
 		padding: 16,
 		marginTop: 20,
@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
 	},
 	transactionDetails: {
 		borderWidth: 1,
-		borderColor: colors.grey200,
+		borderColor: colors.borderDefault,
 		borderRadius: 10,
 		padding: 16,
 	},
@@ -143,7 +143,7 @@ export default class TransactionReviewDetailsCard extends Component {
 							<IonicIcon
 								name={`ios-arrow-${displayViewData ? 'up' : 'down'}`}
 								size={16}
-								color={colors.grey500}
+								color={colors.textAlternative}
 							/>
 						</View>
 					</TouchableOpacity>

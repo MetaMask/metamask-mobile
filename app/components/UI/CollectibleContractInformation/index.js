@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
 	},
 	titleWrapper: {
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 	},
 	title: {
 		textAlign: 'center',
@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
 	},
 	label: {
 		marginTop: 0,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 		...fontStyles.bold,
 	},
 	informationWrapper: {
@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
 	},
 	content: {
 		fontSize: 16,
-		color: colors.grey400,
+		color: colors.textAlternative,
 		paddingTop: 10,
 		...fontStyles.normal,
 	},
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
 	},
 	footer: {
 		borderTopWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 		height: 60,
 		justifyContent: 'center',
 		flexDirection: 'row',

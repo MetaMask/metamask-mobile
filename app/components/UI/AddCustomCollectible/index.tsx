@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
 	textInput: {
 		borderWidth: 1,
 		borderRadius: 4,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 		padding: 16,
 		...(fontStyles.normal as any),
 	},
@@ -187,7 +187,7 @@ const AddCustomCollectible = ({ navigation, collectibleContract }: AddCustomColl
 						<TextInput
 							style={[styles.textInput, inputWidth ? { width: inputWidth } : {}]}
 							placeholder={'0x...'}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.muted}
 							value={address}
 							onChangeText={onAddressChange}
 							onBlur={validateCustomCollectibleAddress}
@@ -211,7 +211,7 @@ const AddCustomCollectible = ({ navigation, collectibleContract }: AddCustomColl
 							onSubmitEditing={addCollectible}
 							returnKeyType={'done'}
 							placeholder={strings('collectible.id_placeholder')}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.muted}
 						/>
 						<Text style={styles.warningText} testID={'collectible-identifier-warning'}>
 							{warningTokenId}

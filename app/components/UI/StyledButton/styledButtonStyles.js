@@ -60,10 +60,10 @@ const styles = StyleSheet.create({
 	cancel: {
 		backgroundColor: colors.backgroundDefault,
 		borderWidth: 1,
-		borderColor: colors.grey400,
+		borderColor: colors.textAlternative,
 	},
 	cancelText: {
-		color: colors.grey400,
+		color: colors.textAlternative,
 	},
 	signingCancel: {
 		backgroundColor: colors.backgroundDefault,
@@ -90,10 +90,10 @@ const styles = StyleSheet.create({
 	neutral: {
 		backgroundColor: colors.backgroundDefault,
 		borderWidth: 1,
-		borderColor: colors.grey500,
+		borderColor: colors.borderDefault,
 	},
 	neutralText: {
-		color: colors.grey500,
+		color: colors.textAlternative,
 	},
 	sign: {
 		backgroundColor: colors.primary,

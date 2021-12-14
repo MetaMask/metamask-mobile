@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.red000,
 	},
 	normal: {
-		backgroundColor: colors.grey000,
+		backgroundColor: colors.ui1,
 	},
 	check: {
 		color: colors.green500,

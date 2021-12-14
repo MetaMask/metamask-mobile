@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
 	},
 	desc: {
 		...fontStyles.normal,
-		color: colors.grey500,
+		color: colors.textAlternative,
 		fontSize: 14,
 		lineHeight: 20,
 		marginTop: 12,
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
 		marginTop: 18,
 	},
 	picker: {
-		borderColor: colors.grey200,
+		borderColor: colors.borderDefault,
 		borderRadius: 5,
 		borderWidth: 2,
 		marginTop: 16,
@@ -284,8 +284,8 @@ class Settings extends PureComponent {
 							<Switch
 								value={hideZeroBalanceTokens}
 								onValueChange={this.toggleHideZeroBalanceTokens}
-								trackColor={Device.isIos() && { true: colors.primary, false: colors.grey000 }}
-								ios_backgroundColor={colors.grey000}
+								trackColor={Device.isIos() && { true: colors.primary, false: colors.ui1 }}
+								ios_backgroundColor={colors.ui1}
 							/>
 						</View>
 					</View>

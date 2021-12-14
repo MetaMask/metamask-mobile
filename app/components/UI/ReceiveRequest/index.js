@@ -48,12 +48,12 @@ const styles = StyleSheet.create({
 		margin: 15,
 		padding: 9,
 		paddingHorizontal: 15,
-		backgroundColor: colors.grey000,
+		backgroundColor: colors.ui1,
 		borderRadius: 30,
 	},
 	copyButton: {
-		backgroundColor: colors.grey050,
-		color: colors.textDefault,
+		backgroundColor: colors.ui1,
+		color: colors.onUi1,
 		borderRadius: 12,
 		overflow: 'hidden',
 		paddingVertical: 3,
@@ -273,7 +273,7 @@ class ReceiveRequest extends PureComponent {
 							<EvilIcons
 								name={Device.isIos() ? 'share-apple' : 'share-google'}
 								size={25}
-								color={colors.grey600}
+								color={colors.ui4}
 							/>
 						</TouchableOpacity>
 					</TouchableOpacity>

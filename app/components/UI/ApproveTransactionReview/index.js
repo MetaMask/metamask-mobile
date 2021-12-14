@@ -466,16 +466,16 @@ class ApproveTransactionReview extends PureComponent {
 				toggleModal={this.toggleGasTooltip}
 				body={
 					<View>
-						<Text grey infoModal>
+						<Text textAlternative infoModal>
 							{strings('transaction.gas_education_1')}
 							{strings(`transaction.gas_education_2${isMainnet ? '_ethereum' : ''}`)}{' '}
 							<Text bold>{strings('transaction.gas_education_3')}</Text>
 						</Text>
-						<Text grey infoModal>
+						<Text textAlternative infoModal>
 							{strings('transaction.gas_education_4')}
 						</Text>
 						<TouchableOpacity onPress={this.openLinkAboutGas}>
-							<Text grey link infoModal>
+							<Text textAlternative link infoModal>
 								{strings('transaction.gas_education_learn_more')}
 							</Text>
 						</TouchableOpacity>

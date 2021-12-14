@@ -1462,7 +1462,7 @@ export const BrowserTab = (props) => {
 						onChangeText={onURLChange}
 						onSubmitEditing={onUrlInputSubmit}
 						placeholder={strings('autocomplete.placeholder')}
-						placeholderTextColor={colors.grey400}
+						placeholderTextColor={colors.muted}
 						returnKeyType="go"
 						style={styles.urlInput}
 						value={autocompleteValue}

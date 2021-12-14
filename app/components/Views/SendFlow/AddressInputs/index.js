@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
 	textBalance: {
 		...fontStyles.normal,
 		fontSize: 12,
-		color: colors.grey500,
+		color: colors.textAlternative,
 	},
 	label: {
 		flexDirection: 'row',
@@ -94,13 +94,13 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 	},
 	iconOpaque: {
-		color: colors.grey500,
+		color: colors.textAlternative,
 	},
 	iconHighlighted: {
 		color: colors.primary,
 	},
 	borderOpaque: {
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 	},
 	borderHighlighted: {
 		borderColor: colors.primary,
@@ -197,7 +197,7 @@ export const AddressTo = (props) => {
 							autoCorrect={false}
 							onChangeText={onToSelectedAddressChange}
 							placeholder={strings('transactions.address_to_placeholder')}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.muted}
 							spellCheck={false}
 							style={[styles.textInput, inputWidth]}
 							numberOfLines={1}

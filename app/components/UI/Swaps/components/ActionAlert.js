@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
 		right: 3,
 	},
 	warningInfoIcon: {
-		color: colors.grey500,
+		color: colors.textAlternative,
 	},
 	errorInfoIcon: {
 		color: colors.red,

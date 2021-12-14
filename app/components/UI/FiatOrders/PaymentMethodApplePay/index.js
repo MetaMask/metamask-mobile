@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
 	},
 	quickAmount: {
 		borderRadius: 18,
-		borderColor: colors.grey200,
+		borderColor: colors.borderDefault,
 		borderWidth: 1,
 		paddingVertical: 5,
 		paddingHorizontal: 8,
@@ -87,8 +87,8 @@ const styles = StyleSheet.create({
 		minWidth: 49,
 	},
 	quickAmountPlaceholder: {
-		backgroundColor: colors.grey000,
-		borderColor: colors.grey000,
+		backgroundColor: colors.ui1,
+		borderColor: colors.borderDefault,
 	},
 	quickAmountSelected: {
 		backgroundColor: colors.primary,

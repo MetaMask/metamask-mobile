@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
 		bottom: -5,
 		width: TAIL_WIDTH,
 		height: TAIL_WIDTH,
-		backgroundColor: colors.grey700,
+		backgroundColor: colors.ui4,
 		transform: [{ rotate: '45deg' }],
 	},
 	tooltipText: {

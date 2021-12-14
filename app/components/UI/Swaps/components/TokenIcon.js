@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
 		borderRadius: BIGGEST_RADIUS,
 	},
 	emptyIcon: {
-		backgroundColor: colors.grey200,
+		backgroundColor: colors.textAlternative,
 		alignItems: 'center',
 		justifyContent: 'center',
 	},

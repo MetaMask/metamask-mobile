@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		padding: 20,
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderBottomColor: colors.grey100,
+		borderBottomColor: colors.borderDefault,
 		alignContent: 'center',
 		alignItems: 'center',
 		paddingBottom: 30,

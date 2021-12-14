@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
 	},
 	header: {
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 		flexDirection: 'row',
 		paddingHorizontal: 16,
 	},
@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 	},
 	sectionBorderBottom: {
-		borderBottomColor: colors.grey100,
+		borderBottomColor: colors.borderDefault,
 		borderBottomWidth: 1,
 	},
 	column: {
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
 	sectionTitle: {
 		...fontStyles.normal,
 		fontSize: 10,
-		color: colors.grey500,
+		color: colors.textAlternative,
 		marginBottom: 8,
 	},
 });

@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		borderWidth: 2,
 		borderRadius: 9999,
-		borderColor: colors.grey200,
+		borderColor: colors.borderDefault,
 	}),
 	circleSelected: {
 		borderColor: colors.primary,
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
 		width: 0,
 		height: 4,
 		borderLeftWidth: 1,
-		borderColor: colors.grey200,
+		borderColor: colors.borderDefault,
 	},
 	topVerticalLine: {
 		marginTop: 0,
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
 	},
 	lineVisible: {
 		borderTopWidth: 1,
-		borderColor: colors.grey200,
+		borderColor: colors.borderDefault,
 	},
 	circleHitSlop: {
 		top: 0,

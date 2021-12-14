@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
 	},
 	row: {
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 	},
 });
 
@@ -37,7 +37,7 @@ const renderItem = ({ item }) => (
 				<TouchableHighlight
 					style={styles.row}
 					onPress={toggleModal}
-					underlayColor={colors.grey000}
+					underlayColor={colors.ui4}
 					activeOpacity={1}
 				>
 					<OrderListItem order={item} />

@@ -6,7 +6,7 @@ import { fontStyles, colors } from '../../styles/common';
 const style = StyleSheet.create({
 	text: {
 		...fontStyles.normal,
-		color: colors.grey600,
+		color: colors.textDefault,
 		marginVertical: 2,
 		fontSize: 14,
 	},
@@ -19,11 +19,17 @@ const style = StyleSheet.create({
 	red: {
 		color: colors.red,
 	},
+	error: {
+		color: colors.error,
+	},
 	orange: {
 		color: colors.orange,
 	},
 	textDefault: {
 		color: colors.textDefault,
+	},
+	textAlternative: {
+		color: colors.textAlternative,
 	},
 	bold: fontStyles.bold,
 	blue: {
@@ -31,9 +37,6 @@ const style = StyleSheet.create({
 	},
 	green: {
 		color: colors.green400,
-	},
-	grey: {
-		color: colors.grey500,
 	},
 	primary: {
 		color: colors.textDefault,
@@ -81,9 +84,10 @@ const Text = ({
 	bold,
 	green,
 	textDefault,
+	textAlternative,
 	blue,
-	grey,
 	red,
+	error,
 	orange,
 	primary,
 	small,
@@ -107,10 +111,11 @@ const Text = ({
 			bold && style.bold,
 			green && style.green,
 			blue && style.blue,
-			grey && style.grey,
 			red && style.red,
+			error && style.error,
 			orange && style.orange,
 			textDefault && style.textDefault,
+			textAlternative && style.textAlternative,
 			primary && style.primary,
 			disclaimer && [style.small, style.disclaimer],
 			small && style.small,
@@ -135,8 +140,10 @@ Text.defaultProps = {
 	bold: false,
 	green: false,
 	textDefault: false,
+	textAlternative: false,
 	blue: false,
 	red: false,
+	error: false,
 	primary: false,
 	disclaimer: false,
 	modal: false,
@@ -175,17 +182,21 @@ Text.propTypes = {
 	 */
 	textDefault: PropTypes.bool,
 	/**
+	 * Sets the color to the textAlternative of the theme
+	 */
+	textAlternative: PropTypes.bool,
+	/**
 	 * Makes text blue
 	 */
 	blue: PropTypes.bool,
 	/**
-	 * Makes text grey
-	 */
-	grey: PropTypes.bool,
-	/**
 	 * Makes text red
 	 */
 	red: PropTypes.bool,
+	/**
+	 * Makes text error color
+	 */
+	error: PropTypes.bool,
 	/**
 	 * Makes text orange
 	 */

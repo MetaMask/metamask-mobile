@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
 		paddingLeft: 2,
 	},
 	gasInfoIcon: (hasOrigin) => ({
-		color: hasOrigin ? colors.orange : colors.grey200,
+		color: hasOrigin ? colors.orange : colors.textAlternative,
 	}),
 	amountContainer: {
 		flex: 1,
@@ -172,7 +172,7 @@ const TransactionReviewEIP1559 = ({
 									<Text
 										upper
 										right
-										grey={nativeCurrencySelected}
+										textAlternative={nativeCurrencySelected}
 										link={!nativeCurrencySelected}
 										underline={!nativeCurrencySelected}
 										style={styles.amountContainer}
@@ -194,7 +194,7 @@ const TransactionReviewEIP1559 = ({
 									primary
 									bold
 									upper
-									grey={!nativeCurrencySelected}
+									textAlternative={!nativeCurrencySelected}
 									link={nativeCurrencySelected}
 									underline={nativeCurrencySelected}
 									right
@@ -245,7 +245,7 @@ const TransactionReviewEIP1559 = ({
 								valueToWatch={valueToWatchAnimation}
 								animateOnChange={animateOnChange}
 							>
-								<Text grey right small>
+								<Text textAlternative right small>
 									<Text bold small noMargin>
 										{strings('transaction_review_eip1559.max_fee')}:{' '}
 									</Text>
@@ -276,7 +276,7 @@ const TransactionReviewEIP1559 = ({
 								>
 									{isMainnet && totalSecondary !== 'undefined' && (
 										<Text
-											grey
+											textAlternative
 											upper
 											right
 											noMargin
@@ -314,7 +314,7 @@ const TransactionReviewEIP1559 = ({
 									valueToWatch={valueToWatchAnimation}
 									animateOnChange={animateOnChange}
 								>
-									<Text grey right small>
+									<Text textAlternative right small>
 										<Text bold small noMargin>
 											{strings('transaction_review_eip1559.max_amount')}:
 										</Text>{' '}

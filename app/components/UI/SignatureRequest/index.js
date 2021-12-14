@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'flex-start',
 		width: '100%',
 		borderWidth: 1,
-		borderColor: colors.grey200,
+		borderColor: colors.borderDefault,
 		borderRadius: 10,
 		padding: 16,
 	},
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
 		alignItems: 'flex-end',
 	},
 	arrowIcon: {
-		color: colors.grey200,
+		color: colors.textAlternative,
 	},
 });
 

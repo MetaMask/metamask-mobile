@@ -12,7 +12,7 @@ import { toChecksumAddress } from 'ethereumjs-util';
 const styles = StyleSheet.create({
 	item: {
 		borderWidth: 1,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 		padding: 8,
 		marginBottom: 8,
 		borderRadius: 8,

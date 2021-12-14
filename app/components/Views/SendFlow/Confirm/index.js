@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
 	inputWrapper: {
 		flex: 0,
 		borderBottomWidth: 1,
-		borderBottomColor: colors.grey050,
+		borderBottomColor: colors.borderDefault,
 		paddingHorizontal: 8,
 	},
 	amountWrapper: {
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		fontSize: 14,
 		textAlign: 'center',
-		color: colors.grey500,
+		color: colors.textAlternative,
 		textTransform: 'uppercase',
 		marginVertical: 3,
 	},
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
 	collectibleTokenId: {
 		...fontStyles.normal,
 		fontSize: 12,
-		color: colors.grey500,
+		color: colors.textAlternative,
 		marginTop: 8,
 		textAlign: 'center',
 	},
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 36,
 		paddingBottom: 24,
 		paddingTop: 16,
-		backgroundColor: colors.grey000,
+		backgroundColor: colors.ui1,
 		borderRadius: 8,
 		width: '100%',
 	},

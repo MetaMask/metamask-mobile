@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
 	},
 	titleWrapper: {
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 		flexDirection: 'row',
 	},
 	title: {
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
 	},
 	modalTypeViewDetailsVisible: {
 		height: '100%',
-		backgroundColor: colors.greytransparent,
+		backgroundColor: colors.alert,
 	},
 	modalTypeViewBrowser: {
 		bottom: Device.isIphoneX() ? 70 : 60,

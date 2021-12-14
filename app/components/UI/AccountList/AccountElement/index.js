@@ -16,7 +16,7 @@ const BALANCE_KEY = 'balance';
 const styles = StyleSheet.create({
 	account: {
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 		flexDirection: 'row',
 		paddingHorizontal: 20,
 		paddingVertical: 20,
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
 		alignItems: 'flex-end',
 	},
 	importedText: {
-		color: colors.grey400,
+		color: colors.textAlternative,
 		fontSize: 10,
 		...fontStyles.bold,
 	},
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
 		paddingVertical: 3,
 		borderRadius: 10,
 		borderWidth: 1,
-		borderColor: colors.grey400,
+		borderColor: colors.borderDefault,
 	},
 });
 

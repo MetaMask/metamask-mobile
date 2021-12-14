@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
 	},
 	input: {
 		borderBottomWidth: Device.isAndroid() ? 0 : 1,
-		borderBottomColor: colors.grey100,
+		borderBottomColor: colors.borderDefault,
 		paddingLeft: 0,
 		paddingVertical: 10,
 		borderRadius: 4,
@@ -274,8 +274,8 @@ class ChoosePasswordSimple extends PureComponent {
 									onChangeText={this.onPasswordChange} // eslint-disable-line  react/jsx-no-bind
 									secureTextEntry={this.state.secureTextEntry}
 									placeholder={''}
-									placeholderTextColor={colors.grey100}
-									underlineColorAndroid={colors.grey100}
+									placeholderTextColor={colors.muted}
+									underlineColorAndroid={colors.muted}
 									testID={'input-password'}
 									onSubmitEditing={this.jumpToConfirmPassword}
 									returnKeyType={'next'}
@@ -338,8 +338,8 @@ class ChoosePasswordSimple extends PureComponent {
 									onChangeText={this.setConfirmPassword}
 									secureTextEntry={this.state.secureTextEntry}
 									placeholder={''}
-									placeholderTextColor={colors.grey100}
-									underlineColorAndroid={colors.grey100}
+									placeholderTextColor={colors.muted}
+									underlineColorAndroid={colors.muted}
 									testID={'input-password-confirm'}
 									onSubmitEditing={this.onPressCreate}
 									returnKeyType={'done'}

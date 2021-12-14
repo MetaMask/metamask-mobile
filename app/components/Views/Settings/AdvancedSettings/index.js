@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
 	},
 	desc: {
 		...fontStyles.normal,
-		color: colors.grey500,
+		color: colors.textAlternative,
 		fontSize: 14,
 		lineHeight: 20,
 		marginTop: 12,
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
 		color: colors.textDefault,
 	},
 	picker: {
-		borderColor: colors.grey200,
+		borderColor: colors.borderDefault,
 		borderRadius: 5,
 		borderWidth: 2,
 		marginTop: 16,
@@ -291,8 +291,8 @@ class AdvancedSettings extends PureComponent {
 								<Switch
 									value={showHexData}
 									onValueChange={setShowHexData}
-									trackColor={Device.isIos() && { true: colors.primary, false: colors.grey000 }}
-									ios_backgroundColor={colors.grey000}
+									trackColor={Device.isIos() && { true: colors.primary, false: colors.ui1 }}
+									ios_backgroundColor={colors.ui1}
 								/>
 							</View>
 						</View>
@@ -303,8 +303,8 @@ class AdvancedSettings extends PureComponent {
 								<Switch
 									value={showCustomNonce}
 									onValueChange={setShowCustomNonce}
-									trackColor={Device.isIos() && { true: colors.primary, false: colors.grey000 }}
-									ios_backgroundColor={colors.grey000}
+									trackColor={Device.isIos() && { true: colors.primary, false: colors.ui1 }}
+									ios_backgroundColor={colors.ui1}
 								/>
 							</View>
 						</View>

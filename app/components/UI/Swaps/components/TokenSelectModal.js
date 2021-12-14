@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 5,
 		borderRadius: 5,
 		borderWidth: 1,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 	},
 	searchIcon: {
 		marginHorizontal: 8,
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
 	},
 	resultRow: {
 		borderTopWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 	},
 	emptyList: {
 		marginVertical: 10,
@@ -333,7 +333,7 @@ function TokenSelectModal({
 							ref={searchInput}
 							style={styles.input}
 							placeholder={strings('swaps.search_token')}
-							placeholderTextColor={colors.grey500}
+							placeholderTextColor={colors.muted}
 							value={searchString}
 							onChangeText={handleSearchTextChange}
 						/>
@@ -343,7 +343,7 @@ function TokenSelectModal({
 									name="ios-close-circle"
 									size={20}
 									style={styles.searchIcon}
-									color={colors.grey300}
+									color={colors.textAlternative}
 								/>
 							</TouchableOpacity>
 						)}

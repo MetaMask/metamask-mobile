@@ -9,7 +9,7 @@ import { strings } from '../../../../locales/i18n';
 const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.backgroundDefault,
-		borderBottomColor: colors.grey000,
+		borderBottomColor: colors.borderDefault,
 		borderBottomWidth: 1,
 		flexDirection: 'row',
 		minHeight: 100,
@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
 	},
 	description: {
 		...fontStyles.normal,
-		color: colors.grey500,
+		color: colors.textAlternative,
 		fontSize: 14,
 		lineHeight: 20,
 		paddingRight: 8,
@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
 	},
 	icon: {
 		bottom: 8,
-		color: colors.grey400,
+		color: colors.textAlternative,
 		left: 4,
 		position: 'relative',
 	},

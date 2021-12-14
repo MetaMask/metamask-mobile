@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
 		borderWidth: 2,
 		borderRadius: 5,
 		width: '100%',
-		borderColor: colors.grey000,
+		borderColor: colors.borderDefault,
 		padding: 10,
 		height: 40,
 	},
@@ -346,7 +346,7 @@ export default class ManualBackupStep1 extends PureComponent {
 							<TextInput
 								style={styles.input}
 								placeholder={'Password'}
-								placeholderTextColor={colors.grey100}
+								placeholderTextColor={colors.muted}
 								onChangeText={this.onPasswordChange}
 								secureTextEntry
 								onSubmitEditing={this.tryUnlock}

@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
 	sectionExplanationText: {
 		...fontStyles.normal,
 		fontSize: 12,
-		color: colors.grey500,
+		color: colors.textAlternative,
 		marginVertical: 6,
 	},
 	option: {
@@ -62,11 +62,11 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.backgroundDefault,
 		opacity: 1,
 		borderWidth: 2,
-		borderColor: colors.grey200,
+		borderColor: colors.borderDefault,
 	},
 	input: {
 		padding: 12,
-		borderColor: colors.grey200,
+		borderColor: colors.borderDefault,
 		borderRadius: 10,
 		borderWidth: 2,
 	},
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		fontSize: 12,
 		lineHeight: 18,
-		color: colors.grey500,
+		color: colors.textAlternative,
 	},
 	textBlue: {
 		color: colors.primary,
@@ -208,7 +208,7 @@ function EditPermission({
 							autoCorrect={false}
 							onChangeText={onSpendLimitCustomValueChange}
 							placeholder={`100 ${tokenSymbol}`}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.muted}
 							spellCheck={false}
 							style={styles.input}
 							value={spendLimitCustomValue}

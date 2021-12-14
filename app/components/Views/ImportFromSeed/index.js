@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
 		minHeight: 110,
 		height: 'auto',
 		borderWidth: 1,
-		borderColor: colors.grey500,
+		borderColor: colors.borderDefault,
 		backgroundColor: colors.backgroundDefault,
 		...fontStyles.normal,
 	},
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_strong: {
-		color: colors.green300,
+		color: colors.success,
 	},
 	showMatchingPasswords: {
 		position: 'absolute',
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
 		marginRight: 10,
 		borderWidth: 1,
 		borderRadius: 6,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 		paddingVertical: 4,
 		paddingHorizontal: 6,
 		marginTop: -50,
@@ -392,8 +392,8 @@ class ImportFromSeed extends PureComponent {
 						onValueChange={this.updateBiometryChoice}
 						value={this.state.biometryChoice}
 						style={styles.biometrySwitch}
-						trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
-						ios_backgroundColor={colors.grey300}
+						trackColor={Device.isIos() ? { true: colors.primary, false: colors.ui1 } : null}
+						ios_backgroundColor={colors.ui1}
 					/>
 				</View>
 			);
@@ -406,8 +406,8 @@ class ImportFromSeed extends PureComponent {
 					onValueChange={(rememberMe) => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
 					value={this.state.rememberMe}
 					style={styles.biometrySwitch}
-					trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
-					ios_backgroundColor={colors.grey300}
+					trackColor={Device.isIos() ? { true: colors.primary, false: colors.ui1 } : null}
+					ios_backgroundColor={colors.ui1}
 				/>
 			</View>
 		);
@@ -488,7 +488,7 @@ class ImportFromSeed extends PureComponent {
 								secureTextEntry={hideSeedPhraseInput}
 								onChangeText={this.onSeedWordsChange}
 								value={seed}
-								baseColor={colors.grey500}
+								baseColor={colors.ui4}
 								tintColor={colors.primary}
 								onSubmitEditing={this.jumpToPassword}
 							/>
@@ -500,7 +500,7 @@ class ImportFromSeed extends PureComponent {
 								secureTextEntry
 								multiline={!hideSeedPhraseInput}
 								placeholder={strings('import_from_seed.seed_phrase_placeholder')}
-								placeholderTextColor={colors.grey200}
+								placeholderTextColor={colors.muted}
 								onChangeText={this.onSeedWordsChange}
 								testID="input-seed-phrase"
 								blurOnSubmit
@@ -542,7 +542,7 @@ class ImportFromSeed extends PureComponent {
 								secureTextEntry={secureTextEntry}
 								onChangeText={this.onPasswordChange}
 								value={password}
-								baseColor={colors.grey500}
+								baseColor={colors.ui4}
 								tintColor={colors.primary}
 								onSubmitEditing={this.jumpToConfirmPassword}
 							/>
@@ -571,14 +571,14 @@ class ImportFromSeed extends PureComponent {
 								secureTextEntry={secureTextEntry}
 								placeholder={strings('import_from_seed.confirm_password')}
 								value={confirmPassword}
-								baseColor={colors.grey500}
+								baseColor={colors.ui4}
 								tintColor={colors.primary}
 								onSubmitEditing={this.onPressImport}
 							/>
 
 							<View style={styles.showMatchingPasswords}>
 								{password !== '' && password === confirmPassword ? (
-									<Icon name="check" size={12} color={colors.green300} />
+									<Icon name="check" size={12} color={colors.success} />
 								) : null}
 							</View>
 							<Text style={styles.passwordStrengthLabel}>

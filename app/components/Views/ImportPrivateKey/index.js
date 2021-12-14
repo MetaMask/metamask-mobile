@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
 		borderRadius: 4,
 		height: 120,
 		borderWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 		...fontStyles.normal,
 	},
 	navbarRightButton: {
@@ -236,7 +236,7 @@ export default class ImportPrivateKey extends PureComponent {
 								onSubmitEditing={this.goNext}
 								returnKeyType={'next'}
 								placeholder={strings('import_private_key.example')}
-								placeholderTextColor={colors.grey100}
+								placeholderTextColor={colors.muted}
 								autoCapitalize={'none'}
 							/>
 							<View style={styles.scanPkeyRow}>

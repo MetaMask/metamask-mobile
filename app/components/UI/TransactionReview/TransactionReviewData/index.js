@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
 	dataBox: {
 		padding: 12,
 		borderWidth: 1,
-		borderColor: colors.grey200,
+		borderColor: colors.borderDefault,
 		borderRadius: 8,
 		flex: 1,
 	},

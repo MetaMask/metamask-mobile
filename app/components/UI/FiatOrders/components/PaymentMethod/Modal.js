@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
 		paddingVertical: 15,
 		paddingHorizontal: 20,
 		borderTopWidth: 1,
-		borderTopColor: colors.grey100,
+		borderTopColor: colors.muted,
 	},
 	button: {
 		width: '50%',

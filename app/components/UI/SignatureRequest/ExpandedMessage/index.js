@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
 	},
 	arrowIcon: {
 		...baseStyles.flexGrow,
-		color: colors.grey200,
+		color: colors.textAlternative,
 	},
 	iconHidden: {
 		...baseStyles.flexGrow,

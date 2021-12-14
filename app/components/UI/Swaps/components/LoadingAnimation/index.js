@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
 		marginVertical: 15,
 	},
 	progressWrapper: {
-		backgroundColor: colors.grey100,
+		backgroundColor: colors.muted,
 		height: 3,
 		borderRadius: 3,
 		marginVertical: 15,

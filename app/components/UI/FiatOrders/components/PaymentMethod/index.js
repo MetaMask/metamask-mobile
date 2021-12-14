@@ -49,7 +49,7 @@ const style = StyleSheet.create({
 	},
 	infoIcon: {
 		margin: 5,
-		color: colors.grey200,
+		color: colors.textAlternative,
 	},
 });
 

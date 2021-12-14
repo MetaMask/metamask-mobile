@@ -86,14 +86,14 @@ const styles = StyleSheet.create({
 	},
 	quoteRow: {
 		borderTopWidth: 1,
-		borderTopColor: colors.grey100,
+		borderTopColor: colors.muted,
 		paddingVertical: 15,
 		alignItems: 'center',
 	},
 	detailsRow: {
 		paddingHorizontal: 20,
 		borderTopWidth: 1,
-		borderTopColor: colors.grey100,
+		borderTopColor: colors.muted,
 		paddingVertical: 15,
 	},
 	selectedQuoteRow: {

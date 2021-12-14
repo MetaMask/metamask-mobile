@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
 	subtitle: {
 		fontSize: 14,
 		lineHeight: 20,
-		color: colors.grey500,
+		color: colors.textAlternative,
 		marginTop: 8,
 		textAlign: 'center',
 		...fontStyles.normal,

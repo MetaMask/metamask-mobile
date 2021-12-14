@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		padding: 36,
-		backgroundColor: colors.grey000,
+		backgroundColor: colors.ui1,
 		borderRadius: 8,
 	},
 	addressWrapper: {
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		width: WIDTH,
 		borderRadius: 8,
-		backgroundColor: colors.grey000,
+		backgroundColor: colors.ui1,
 		paddingVertical: 12,
 	},
 	closeIcon: {

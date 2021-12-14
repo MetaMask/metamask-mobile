@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
 		width: '100%',
 	},
 	timerWrapper: {
-		backgroundColor: colors.grey000,
+		backgroundColor: colors.ui1,
 		borderRadius: 20,
 		marginVertical: 12,
 		paddingVertical: 4,
@@ -119,14 +119,14 @@ const styles = StyleSheet.create({
 		marginHorizontal: 5,
 	},
 	tokenText: {
-		color: colors.grey500,
+		color: colors.textAlternative,
 		fontSize: Device.isSmallDevice() ? 16 : 18,
 	},
 	tokenTextDestination: {
 		color: colors.textDefault,
 	},
 	arrowDown: {
-		color: colors.grey100,
+		color: colors.muted,
 		fontSize: Device.isSmallDevice() ? 22 : 25,
 		marginHorizontal: 15,
 		marginTop: Device.isSmallDevice() ? 2 : 4,
@@ -1606,21 +1606,21 @@ function SwapsQuotesView({
 				toggleModal={hideGasTooltip}
 				body={
 					<View>
-						<Text grey infoModal>
+						<Text textAlternative infoModal>
 							{strings('swaps.gas_education_1')}
 							{strings(`swaps.gas_education_2${isMainnet ? '_ethereum' : ''}`)}{' '}
 							<Text bold>{strings('swaps.gas_education_3')}</Text>
 						</Text>
-						<Text grey infoModal>
+						<Text textAlternative infoModal>
 							{strings('swaps.gas_education_4')} <Text bold>{strings('swaps.gas_education_5')} </Text>
 							{strings('swaps.gas_education_6')}
 						</Text>
-						<Text grey infoModal>
+						<Text textAlternative infoModal>
 							<Text bold>{strings('swaps.gas_education_7')} </Text>
 							{strings('swaps.gas_education_8')}
 						</Text>
 						<TouchableOpacity onPress={openLinkAboutGas}>
-							<Text grey link infoModal>
+							<Text textAlternative link infoModal>
 								{strings('swaps.gas_education_learn_more')}
 							</Text>
 						</TouchableOpacity>

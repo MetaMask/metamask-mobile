@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
 	},
 	error: {
 		backgroundColor: colors.red000,
-		borderColor: colors.red,
+		borderColor: colors.error,
 	},
 	baseTextStyle: { fontSize: 14, flex: 1, lineHeight: 17 },
 	textInfo: { color: colors.blue },

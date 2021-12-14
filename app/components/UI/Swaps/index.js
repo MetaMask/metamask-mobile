@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		borderBottomWidth: StyleSheet.hairlineWidth,
 		height: 1,
-		borderBottomColor: colors.grey100,
+		borderBottomColor: colors.borderDefault,
 	},
 	arrowDown: {
 		color: colors.primary,

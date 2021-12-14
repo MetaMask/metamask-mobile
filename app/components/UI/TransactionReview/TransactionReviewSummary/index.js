@@ -9,7 +9,7 @@ const styles = StyleSheet.create({
 	confirmBadge: {
 		...fontStyles.normal,
 		alignItems: 'center',
-		borderColor: colors.grey400,
+		borderColor: colors.borderDefault,
 		borderRadius: 12,
 		borderWidth: 1,
 		color: colors.textDefault,

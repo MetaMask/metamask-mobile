@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
 	hintInput: {
 		borderRadius: 6,
 		borderWidth: 1,
-		borderColor: colors.grey500,
+		borderColor: colors.borderDefault,
 		padding: 16,
 		minHeight: 76,
 		paddingTop: 16,

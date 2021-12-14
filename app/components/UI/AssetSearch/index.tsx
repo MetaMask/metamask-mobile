@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		borderWidth: 1,
 		borderRadius: 4,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 	},
 	textInput: {
 		...fontStyles.normal,
@@ -91,7 +91,7 @@ const AssetSearch = memo(({ onSearch, onFocus, onBlur }: Props) => {
 				onFocus={onFocus}
 				onBlur={onBlur}
 				placeholder={strings('token.search_tokens_placeholder')}
-				placeholderTextColor={colors.grey100}
+				placeholderTextColor={colors.muted}
 				onChangeText={handleSearch}
 				testID={'input-search-asset'}
 			/>

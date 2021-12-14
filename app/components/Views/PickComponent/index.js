@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
 		opacity: 1,
 		margin: 2,
 		borderWidth: 2,
-		borderColor: colors.grey300,
+		borderColor: colors.borderDefault,
 		marginRight: 6,
 	},
 	option: {

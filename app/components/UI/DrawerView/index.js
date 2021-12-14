@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
 	},
 	header: {
 		paddingTop: Device.isIphoneX() ? 60 : 24,
-		backgroundColor: colors.grey000,
+		backgroundColor: colors.ui1,
 		height: Device.isIphoneX() ? 110 : 74,
 		flexDirection: 'column',
 		paddingBottom: 0,
@@ -75,10 +75,10 @@ const styles = StyleSheet.create({
 	},
 	account: {
 		flex: 1,
-		backgroundColor: colors.grey000,
+		backgroundColor: colors.ui1,
 	},
 	accountBgOverlay: {
-		borderBottomColor: colors.grey100,
+		borderBottomColor: colors.borderDefault,
 		borderBottomWidth: 1,
 		padding: 17,
 	},
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'center',
-		borderBottomColor: colors.grey100,
+		borderBottomColor: colors.borderDefault,
 		borderBottomWidth: 1,
 		padding: 15,
 	},
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
 	},
 	menuSection: {
 		borderTopWidth: 1,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 		paddingVertical: 10,
 	},
 	menuItem: {
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 15,
 		paddingTop: 2,
 		fontSize: 16,
-		color: colors.grey400,
+		color: colors.textAlternative,
 		...fontStyles.normal,
 	},
 	menuItemWarningText: {
@@ -218,10 +218,10 @@ const styles = StyleSheet.create({
 		paddingVertical: 3,
 		borderRadius: 10,
 		borderWidth: 1,
-		borderColor: colors.grey400,
+		borderColor: colors.borderDefault,
 	},
 	importedText: {
-		color: colors.grey400,
+		color: colors.textAlternative,
 		fontSize: 10,
 		...fontStyles.bold,
 	},
@@ -690,15 +690,15 @@ class DrawerView extends PureComponent {
 	};
 
 	getIcon(name, size) {
-		return <Icon name={name} size={size || 24} color={colors.grey400} />;
+		return <Icon name={name} size={size || 24} color={colors.textAlternative} />;
 	}
 
 	getFeatherIcon(name, size) {
-		return <FeatherIcon name={name} size={size || 24} color={colors.grey400} />;
+		return <FeatherIcon name={name} size={size || 24} color={colors.textAlternative} />;
 	}
 
 	getMaterialIcon(name, size) {
-		return <MaterialIcon name={name} size={size || 24} color={colors.grey400} />;
+		return <MaterialIcon name={name} size={size || 24} color={colors.textAlternative} />;
 	}
 
 	getImageIcon(name) {

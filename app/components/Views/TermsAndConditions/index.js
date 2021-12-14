@@ -8,7 +8,7 @@ import AppConstants from '../../../core/AppConstants';
 const styles = StyleSheet.create({
 	text: {
 		...fontStyles.normal,
-		color: colors.grey500,
+		color: colors.textAlternative,
 		textAlign: 'center',
 		fontSize: 10,
 	},

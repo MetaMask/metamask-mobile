@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		marginTop: 4,
 		marginRight: 8,
-		color: colors.grey400,
+		color: colors.textAlternative,
 		...fontStyles.normal,
 	},
 });

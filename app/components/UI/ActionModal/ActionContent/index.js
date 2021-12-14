@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		padding: 16,
 		borderTopWidth: 1,
-		borderTopColor: colors.grey200,
+		borderTopColor: colors.borderDefault,
 	},
 	actionVerticalContainer: {
 		flexDirection: 'column',

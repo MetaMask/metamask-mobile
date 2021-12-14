@@ -88,14 +88,14 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		fontSize: 11,
 		lineHeight: 20,
-		color: colors.grey600,
+		color: colors.textAlternative,
 		...fontStyles.normal,
 	},
 	startSubText: {
 		textAlign: 'center',
 		fontSize: 11,
 		marginTop: 12,
-		color: colors.grey600,
+		color: colors.textAlternative,
 		...fontStyles.normal,
 	},
 	remindLaterContainer: {

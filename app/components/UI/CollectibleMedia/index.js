@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
 	textContainer: {
 		alignItems: 'center',
 		justifyContent: 'center',
-		backgroundColor: colors.grey100,
+		backgroundColor: colors.muted,
 		borderRadius: 8,
 	},
 	textWrapper: {

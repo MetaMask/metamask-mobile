@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
 	},
 	input: {
 		borderWidth: 1,
-		borderColor: colors.grey500,
+		borderColor: colors.borderDefault,
 		padding: 10,
 		borderRadius: 6,
 		fontSize: 14,
@@ -521,8 +521,8 @@ class ChoosePassword extends PureComponent {
 								onValueChange={this.updateBiometryChoice} // eslint-disable-line react/jsx-no-bind
 								value={biometryChoice}
 								style={styles.biometrySwitch}
-								trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
-								ios_backgroundColor={colors.grey300}
+								trackColor={Device.isIos() ? { true: colors.primary, false: colors.ui1 } : null}
+								ios_backgroundColor={colors.ui1}
 							/>
 						</View>
 					</>
@@ -533,8 +533,8 @@ class ChoosePassword extends PureComponent {
 							onValueChange={(rememberMe) => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
 							value={rememberMe}
 							style={styles.biometrySwitch}
-							trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
-							ios_backgroundColor={colors.grey300}
+							trackColor={Device.isIos() ? { true: colors.primary, false: colors.ui1 } : null}
+							ios_backgroundColor={colors.ui1}
 						/>
 					</>
 				)}
@@ -587,7 +587,10 @@ class ChoosePassword extends PureComponent {
 								<AnimatedFox />
 							)}
 						</View>
-						<ActivityIndicator size="large" color={Device.isAndroid() ? colors.primary : colors.grey} />
+						<ActivityIndicator
+							size="large"
+							color={Device.isAndroid() ? colors.primary : colors.textAlternative}
+						/>
 						<Text style={styles.title}>
 							{strings(
 								previousScreen === ONBOARDING
@@ -647,7 +650,7 @@ class ChoosePassword extends PureComponent {
 										onChangeText={this.setConfirmPassword}
 										secureTextEntry={secureTextEntry}
 										placeholder={''}
-										placeholderTextColor={colors.grey100}
+										placeholderTextColor={colors.muted}
 										testID={'input-password-confirm'}
 										onSubmitEditing={this.onPressCreate}
 										returnKeyType={'done'}

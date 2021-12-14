@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 	},
 	arrow: {
-		color: colors.grey100,
+		color: colors.muted,
 		position: 'absolute',
 		right: 10,
 		top: Device.isAndroid() ? 14 : 12,
@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
 	accountContainer: {
 		flexDirection: 'row',
 		backgroundColor: colors.backgroundDefault,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 		borderRadius: 4,
 		borderWidth: 1,
 	},
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
 	},
 	optionList: {
 		backgroundColor: colors.backgroundDefault,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 		borderRadius: 4,
 		borderWidth: 1,
 		paddingBottom: 12,
@@ -386,7 +386,7 @@ class AccountInput extends PureComponent {
 								autoCorrect={false}
 								onChangeText={this.onChange}
 								placeholder={Device.isSmallDevice() ? placeholder.substr(0, 13) + '...' : placeholder}
-								placeholderTextColor={colors.grey100}
+								placeholderTextColor={colors.muted}
 								spellCheck={false}
 								editable={this.state.inputEnabled}
 								style={styles.input}

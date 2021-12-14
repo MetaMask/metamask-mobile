@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
 	},
 	tabsView: {
 		flex: 1,
-		backgroundColor: colors.grey100,
+		backgroundColor: colors.muted,
 		position: 'absolute',
 		top: 0,
 		left: 0,
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
 		},
 		shadowOpacity: 0.58,
 		shadowRadius: 15.0,
-		backgroundColor: colors.grey000,
+		backgroundColor: colors.ui1,
 		height: Device.isIphoneX() ? 80 : 50,
 	},
 	tabs: {

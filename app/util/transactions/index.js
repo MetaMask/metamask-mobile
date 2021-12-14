@@ -555,7 +555,7 @@ export const calculateEIP1559Times = ({
 	gasFeeEstimates,
 }) => {
 	let timeEstimate = strings('times_eip1559.unknown');
-	let timeEstimateColor = 'grey';
+	let timeEstimateColor = 'textAlternative';
 	let timeEstimateId = AppConstants.GAS_TIMES.UNKNOWN;
 
 	const LOW = AppConstants.GAS_OPTIONS.LOW;
@@ -565,7 +565,7 @@ export const calculateEIP1559Times = ({
 	if (!recommended) recommended = MEDIUM;
 
 	if (!selectedOption) {
-		timeEstimateColor = 'grey';
+		timeEstimateColor = 'textAlternative';
 	} else if (recommended === HIGH) {
 		if (selectedOption === HIGH) timeEstimateColor = 'green';
 		else timeEstimateColor = 'red';

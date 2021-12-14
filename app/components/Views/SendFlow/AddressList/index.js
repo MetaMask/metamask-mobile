@@ -26,15 +26,15 @@ const styles = StyleSheet.create({
 	},
 	myAccountsTouchable: {
 		borderBottomWidth: 1,
-		borderBottomColor: colors.grey050,
+		borderBottomColor: colors.borderDefault,
 		padding: 16,
 	},
 	labelElementWrapper: {
-		backgroundColor: colors.grey000,
+		backgroundColor: colors.ui1,
 		flexDirection: 'row',
 		alignItems: 'center',
 		borderBottomWidth: 1,
-		borderBottomColor: colors.grey050,
+		borderBottomColor: colors.borderDefault,
 		padding: 8,
 	},
 	labelElementInitialText: {
@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		fontSize: 12,
 		marginHorizontal: 8,
-		color: colors.grey600,
+		color: colors.textAlternative,
 	},
 });
 

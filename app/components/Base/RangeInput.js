@@ -14,7 +14,7 @@ const styles = StyleSheet.create({
 		marginBottom: 14,
 	},
 	rangeInputContainer: (error) => ({
-		borderColor: error ? colors.red : colors.grey200,
+		borderColor: error ? colors.error : colors.borderDefault,
 		borderWidth: 1,
 		borderRadius: 6,
 		flexDirection: 'row',
@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
 		height: 38,
 		minWidth: 10,
 		paddingRight: 6,
-		color: error ? colors.red : colors.textDefault,
+		color: error ? colors.error : colors.textDefault,
 	}),
 	buttonContainerLeft: {
 		marginLeft: 17,
@@ -66,13 +66,13 @@ const styles = StyleSheet.create({
 	},
 	errorContainer: {
 		marginTop: 8,
-		color: colors.red,
+		color: colors.error,
 		flexDirection: 'row',
 		alignItems: 'center',
 	},
 	errorIcon: {
 		paddingRight: 4,
-		color: colors.red,
+		color: colors.error,
 	},
 	conversionEstimation: {
 		paddingLeft: 2,
@@ -180,7 +180,7 @@ const RangeInput = ({
 						ref={textInput}
 					/>
 					{!!unit && (
-						<Text onPress={handleClickUnit} textDefault={!error} red={Boolean(error)}>
+						<Text onPress={handleClickUnit} textDefault={!error} error={Boolean(error)}>
 							{unit}
 						</Text>
 					)}
@@ -197,7 +197,7 @@ const RangeInput = ({
 			{hasError && (
 				<View style={styles.errorContainer}>
 					<FontAwesomeIcon name="exclamation-circle" size={14} style={styles.errorIcon} />
-					<Text red noMargin small>
+					<Text error noMargin small>
 						{error || errorState}
 					</Text>
 				</View>
@@ -240,7 +240,7 @@ RangeInput.propTypes = {
 	 */
 	inputInsideLabel: PropTypes.string,
 	/**
-	 * The error to show bellow the input. Also when the error exists the input text will turn red
+	 * The error to show bellow the input. Also when the error exists the input text will turn the error color
 	 */
 	error: PropTypes.string,
 	/**

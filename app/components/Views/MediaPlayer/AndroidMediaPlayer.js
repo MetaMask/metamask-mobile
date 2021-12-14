@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
 	},
 	seekbarPermanentFill: {
 		width: '100%',
-		backgroundColor: colors.grey400,
+		backgroundColor: colors.ui4,
 	},
 	seekbarHandle: {
 		marginLeft: -10,
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
 	actionButton: {
 		width: 44,
 		height: 44,
-		backgroundColor: colors.greytransparent100,
+		backgroundColor: colors.ui4,
 		borderRadius: 8,
 	},
 	actionSeeker: {
