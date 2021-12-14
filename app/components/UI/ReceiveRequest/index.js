@@ -31,7 +31,7 @@ import ClipboardManager from '../../../core/ClipboardManager';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
 	},
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
 	},
 	copyButton: {
 		backgroundColor: colors.grey050,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		borderRadius: 12,
 		overflow: 'hidden',
 		paddingVertical: 3,
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		...fontStyles.normal,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		fontSize: 18,
 		flexDirection: 'row',
 		alignSelf: 'center',

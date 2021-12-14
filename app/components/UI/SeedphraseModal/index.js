@@ -10,7 +10,7 @@ const styles = {
 	whatIsSeedphraseTitle: {
 		flex: 1,
 		fontSize: 18,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		textAlign: 'center',
 		...fontStyles.bold,
 	},
@@ -40,7 +40,7 @@ const styles = {
 		marginTop: 16,
 		textAlign: 'center',
 		...fontStyles.normal,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		lineHeight: 20,
 	},
 	modalXIcon: {

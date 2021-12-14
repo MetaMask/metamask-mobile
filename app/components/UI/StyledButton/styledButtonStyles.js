@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
 		color: colors.white,
 	},
 	roundedNormal: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderWidth: 1,
 		borderColor: colors.blue,
 		padding: 8,
@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
 		color: colors.blue,
 	},
 	normal: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderWidth: 1,
 		borderColor: colors.blue,
 	},
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
 		borderColor: colors.transparent,
 	},
 	cancel: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderWidth: 1,
 		borderColor: colors.grey400,
 	},
@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
 		color: colors.grey400,
 	},
 	signingCancel: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderWidth: 1,
 		borderColor: colors.blue,
 	},
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.red,
 	},
 	info: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderWidth: 1,
 		borderColor: colors.blue,
 	},
@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
 		color: colors.red,
 	},
 	neutral: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderWidth: 1,
 		borderColor: colors.grey500,
 	},

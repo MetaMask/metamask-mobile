@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
 	skip: {
 		height: 30,
 		borderRadius: 30,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		alignItems: 'center',
 	},
 	androidElevated: {

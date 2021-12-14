@@ -11,7 +11,7 @@ import { passwordRequirementsMet } from '../../../util/password';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	wrapper: {
@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
 		marginTop: 10,
 	},
 	enterPassword: {
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 16,
 		marginBottom: 15,
 	},

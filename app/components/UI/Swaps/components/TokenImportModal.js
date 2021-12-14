@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'flex-end',
 	},
 	modalView: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
 	},

@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
 	},
 	centeredTitle: {
 		fontSize: 20,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		textAlign: 'center',
 		...fontStyles.normal,
 		alignItems: 'center',
@@ -166,7 +166,7 @@ export function getNavigationOptionsTitle(title, navigation, isFullScreenModal) 
 		title,
 		headerTitleStyle: {
 			fontSize: 20,
-			color: colors.fontPrimary,
+			color: colors.textDefault,
 			...fontStyles.normal,
 		},
 		headerTintColor: colors.blue,
@@ -208,7 +208,7 @@ export function getEditableOptions(title, navigation, route) {
 		title,
 		headerTitleStyle: {
 			fontSize: 20,
-			color: colors.fontPrimary,
+			color: colors.textDefault,
 			...fontStyles.normal,
 		},
 		headerTintColor: colors.blue,
@@ -248,7 +248,7 @@ export function getPaymentRequestOptionsTitle(title, navigation, route) {
 		title,
 		headerTitleStyle: {
 			fontSize: 20,
-			color: colors.fontPrimary,
+			color: colors.textDefault,
 			...fontStyles.normal,
 		},
 		headerTintColor: colors.blue,
@@ -289,7 +289,7 @@ export function getPaymentRequestSuccessOptionsTitle(navigation) {
 		headerStyle: {
 			shadowColor: colors.transparent,
 			elevation: 0,
-			backgroundColor: colors.white,
+			backgroundColor: colors.backgroundDefault,
 			borderBottomWidth: 0,
 		},
 		title: null,
@@ -502,7 +502,7 @@ export function getOnboardingNavbarOptions(navigation, route, { headerLeft } = {
 		headerStyle: {
 			shadowColor: colors.transparent,
 			elevation: 0,
-			backgroundColor: colors.white,
+			backgroundColor: colors.backgroundDefault,
 			borderBottomWidth: 0,
 		},
 		headerTitle: () => (
@@ -563,7 +563,7 @@ export function getOptinMetricsNavbarOptions() {
 		headerStyle: {
 			shadowColor: colors.transparent,
 			elevation: 0,
-			backgroundColor: colors.white,
+			backgroundColor: colors.backgroundDefault,
 			borderBottomWidth: 0,
 			height: 100,
 		},
@@ -784,7 +784,7 @@ export function getPaymentMethodApplePayNavbar(navigation, onPop, onExit) {
 		title: strings('fiat_on_ramp.amount_to_buy'),
 		headerTitleStyle: {
 			fontSize: 20,
-			color: colors.fontPrimary,
+			color: colors.textDefault,
 			...fontStyles.normal,
 		},
 		headerRight: () => (
@@ -832,7 +832,7 @@ export function getTransakWebviewNavbar(navigation, route, onPop) {
 		title,
 		headerTitleStyle: {
 			fontSize: 20,
-			color: colors.fontPrimary,
+			color: colors.textDefault,
 			...fontStyles.normal,
 		},
 		headerLeft: () =>

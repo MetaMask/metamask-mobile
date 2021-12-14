@@ -33,7 +33,7 @@ import ClipboardManager from '../../../core/ClipboardManager';
 
 const styles = StyleSheet.create({
 	scrollView: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 	},
 	wrapper: {
 		paddingTop: 20,
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
 	amountFiat: {
 		fontSize: 12,
 		paddingTop: 5,
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 		...fontStyles.normal,
 	},
 	identiconBorder: {
@@ -333,7 +333,9 @@ class AccountOverview extends PureComponent {
 										styles.label,
 										styles.labelInput,
 										styles.onboardingWizardLabel,
-										onboardingWizard ? { borderColor: colors.blue } : { borderColor: colors.white },
+										onboardingWizard
+											? { borderColor: colors.primary }
+											: { borderColor: colors.backgroundDefault },
 									]}
 									editable={accountLabelEditable}
 									onChangeText={this.onAccountLabelChange}
@@ -355,8 +357,8 @@ class AccountOverview extends PureComponent {
 											styles.label,
 											styles.onboardingWizardLabel,
 											onboardingWizard
-												? { borderColor: colors.blue }
-												: { borderColor: colors.white },
+												? { borderColor: colors.primary }
+												: { borderColor: colors.backgroundDefault },
 										]}
 										numberOfLines={1}
 										testID={'edit-account-label'}

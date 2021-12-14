@@ -31,7 +31,7 @@ import DefaultPreference from 'react-native-default-preference';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	scrollviewWrapper: {
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
 	title: {
 		fontSize: 24,
 		marginBottom: 24,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		textAlign: 'center',
 		...fontStyles.bold,
 	},
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
 	label: {
 		lineHeight: scaling.scale(20),
 		fontSize: scaling.scale(14),
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		textAlign: 'center',
 		...fontStyles.normal,
 	},

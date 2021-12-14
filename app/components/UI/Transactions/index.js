@@ -37,7 +37,7 @@ import { collectibleContractsSelector } from '../../../reducers/collectibles';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	bottomModal: {
@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: 'center',
 		alignItems: 'center',
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		minHeight: Dimensions.get('window').height / 2,
 	},
 	keyboardAwareWrapper: {
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
 	},
 	text: {
 		fontSize: 20,
-		color: colors.fontTertiary,
+		color: colors.textAlternative,
 		...fontStyles.normal,
 	},
 	viewMoreBody: {

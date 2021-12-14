@@ -7,7 +7,7 @@ import PropTypes from 'prop-types';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderRadius: 10,
 		padding: 20,
 	},
@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
 		fontSize: 17,
 		marginVertical: 12,
 		marginHorizontal: 20,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.bold,
 	},
 	textWrapper: {

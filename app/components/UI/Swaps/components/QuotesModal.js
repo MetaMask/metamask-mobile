@@ -31,7 +31,7 @@ import Ratio from './Ratio';
 
 const styles = StyleSheet.create({
 	modalView: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		justifyContent: 'center',
 		alignItems: 'center',
 		marginVertical: 50,
@@ -65,14 +65,14 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 	},
 	closeIcon: {
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	backIcon: {
-		color: colors.black,
+		color: colors.textDefault,
 		marginRight: 16,
 	},
 	detailsIcon: {
-		color: colors.black,
+		color: colors.textDefault,
 		paddingHorizontal: 10,
 	},
 	body: {

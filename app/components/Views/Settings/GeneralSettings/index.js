@@ -35,14 +35,14 @@ const infuraCurrencyOptions = sortedCurrencies.map(({ quote: { code, name } }) =
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 		padding: 24,
 		zIndex: 99999999999999,
 	},
 	title: {
 		...fontStyles.normal,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		fontSize: 20,
 		lineHeight: 20,
 	},
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
 		height: diameter + spacing,
 		width: diameter + spacing,
 		borderRadius: (diameter + spacing) / 2,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderWidth: 2,
 		borderColor: colors.white,
 		alignItems: 'center',
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
 		borderColor: colors.blue,
 	},
 	selected_text: {
-		color: colors.black,
+		color: colors.textDefault,
 	},
 });
 

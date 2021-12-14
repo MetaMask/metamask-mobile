@@ -26,7 +26,7 @@ import { getPasswordStrengthWord, passwordRequirementsMet } from '../../../util/
 
 const styles = StyleSheet.create({
 	mainWrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	wrapper: {
@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
 	subtitle: {
 		fontSize: 16,
 		lineHeight: 23,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		textAlign: 'left',
 		...fontStyles.normal,
 	},
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
 		marginTop: -35,
 		marginLeft: 5,
 		fontSize: 16,
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 		textAlign: 'left',
 		...fontStyles.normal,
 	},
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
 		marginLeft: 5,
 		marginTop: 10,
 		fontSize: 12,
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 		textAlign: 'left',
 		...fontStyles.normal,
 	},
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
 		color: colors.green300,
 	},
 	showHideToggle: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		position: 'absolute',
 		marginTop: 8,
 		alignSelf: 'flex-end',

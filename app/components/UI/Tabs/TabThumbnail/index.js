@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
 		overflow: 'hidden',
 	},
 	tab: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 		alignItems: 'flex-start',
 		justifyContent: 'flex-start',

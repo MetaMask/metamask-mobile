@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 24,
 		paddingTop: 24,
 		paddingBottom: Device.isIphoneX() ? 48 : 24,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderTopRightRadius: 20,
 		borderTopLeftRadius: 20,
 	},
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
 		width: 18,
 		height: 18,
 		borderRadius: 18 / 2,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		opacity: 1,
 		borderWidth: 2,
 		borderColor: colors.grey200,
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
 	},
 	spendLimitTitle: {
 		...fontStyles.bold,
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 14,
 		lineHeight: 20,
 		marginBottom: 8,
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
 		color: colors.blue,
 	},
 	textBlack: {
-		color: colors.black,
+		color: colors.textDefault,
 	},
 });
 

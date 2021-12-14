@@ -21,7 +21,7 @@ import AnalyticsV2 from '../../../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 		flexDirection: 'column',
 	},
@@ -55,18 +55,18 @@ const styles = StyleSheet.create({
 	label: {
 		fontSize: 14,
 		paddingVertical: 12,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.bold,
 	},
 	title: {
 		fontSize: 20,
 		paddingVertical: 12,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.bold,
 	},
 	desc: {
 		fontSize: 14,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	buttonsWrapper: {

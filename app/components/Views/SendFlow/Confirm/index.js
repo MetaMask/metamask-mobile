@@ -80,7 +80,7 @@ const { hexToBN, BNToHex } = util;
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 	},
 	inputWrapper: {
 		flex: 0,
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
 	textAmount: {
 		...fontStyles.normal,
 		fontWeight: fontStyles.light.fontWeight,
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 44,
 		textAlign: 'center',
 	},
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
 	collectibleName: {
 		...fontStyles.normal,
 		fontSize: 18,
-		color: colors.black,
+		color: colors.textDefault,
 		textAlign: 'center',
 	},
 	collectibleTokenId: {
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
 	},
 	addressTitle: {
 		...fontStyles.bold,
-		color: colors.black,
+		color: colors.textDefault,
 		alignItems: 'center',
 		justifyContent: 'center',
 		textAlign: 'center',

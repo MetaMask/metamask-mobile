@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		fontSize: 24,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.bold,
 		textAlign: 'center',
 	},
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		textAlign: 'center',
 		marginBottom: 16,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		lineHeight: 20,
 	},
 	importWrapper: {
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
 		marginTop: 30,
 		fontSize: 14,
 		textAlign: 'center',
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	modalTypeView: {

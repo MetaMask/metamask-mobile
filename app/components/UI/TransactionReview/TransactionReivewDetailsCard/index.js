@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
 	},
 	viewDataTitle: {
 		...fontStyles.bold,
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 14,
 	},
 	viewDataText: {
@@ -49,12 +49,12 @@ const styles = StyleSheet.create({
 	},
 	transactionDetailsTextLeft: {
 		...fontStyles.thin,
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 14,
 	},
 	transactionDetailsTextRight: {
 		...fontStyles.bold,
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 14,
 		textAlign: 'right',
 		flexDirection: 'row',

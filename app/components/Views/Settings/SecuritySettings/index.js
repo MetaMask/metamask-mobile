@@ -51,14 +51,14 @@ const isIos = Device.isIos();
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 		padding: 24,
 		paddingBottom: 48,
 	},
 	title: {
 		...fontStyles.normal,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		fontSize: 20,
 		lineHeight: 20,
 	},
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 	},
 	warningText: {
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 12,
 		flex: 1,
 		...fontStyles.normal,
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
 		color: colors.red,
 	},
 	warningTextGreen: {
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	warningBold: {
 		...fontStyles.bold,

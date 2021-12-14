@@ -9,7 +9,7 @@ import Text from './Text';
 const styles = StyleSheet.create({
 	modalContainer: {
 		width: '100%',
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderRadius: 10,
 	},
 	modalView: {
@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
 		fontSize: 18,
 		marginVertical: 12,
 		marginHorizontal: 24,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.bold,
 	},
 	closeIcon: { paddingTop: 4, position: 'absolute', right: 16 },

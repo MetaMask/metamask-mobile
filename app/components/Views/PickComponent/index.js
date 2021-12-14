@@ -12,7 +12,7 @@ const styles = StyleSheet.create({
 		width: 12,
 		height: 12,
 		borderRadius: 12 / 2,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		opacity: 1,
 		margin: 2,
 		borderWidth: 2,

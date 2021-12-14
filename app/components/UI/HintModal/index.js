@@ -9,7 +9,7 @@ import { colors, fontStyles } from '../../../styles/common';
 const styles = StyleSheet.create({
 	hintWrapper: {
 		alignSelf: 'center',
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderRadius: 16,
 		padding: 24,
 	},
@@ -22,12 +22,12 @@ const styles = StyleSheet.create({
 	recovery: {
 		fontSize: 18,
 		...fontStyles.bold,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 	},
 	leaveHint: {
 		fontSize: 14,
 		...fontStyles.regular,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		marginBottom: 16,
 	},
 	noSeedphrase: {

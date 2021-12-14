@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
 	networkName: {
 		fontSize: 11,
 		lineHeight: 11,
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 		...fontStyles.normal,
 	},
 	networkIcon: {

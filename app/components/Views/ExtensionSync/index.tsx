@@ -41,7 +41,7 @@ import scaling from '../../../util/scaling';
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		paddingHorizontal: 16,
 		justifyContent: 'space-between',
 		paddingBottom: 16,
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
 		marginTop: 30,
 		fontSize: 14,
 		textAlign: 'center',
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		fontFamily: fontStyles.normal.fontFamily,
 	},
 });

@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
 	headerText: {
 		...fontStyles.bold,
 		fontSize: 18,
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	newFeatureImageContainer: {
 		flexDirection: 'row',
@@ -79,14 +79,14 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		marginBottom: 12,
 		textAlign: 'center',
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	newFeatureText: {
 		...fontStyles.normal,
 		fontSize: 14,
 		lineHeight: 20,
 		textAlign: 'center',
-		color: colors.black,
+		color: colors.textDefault,
 		marginBottom: 12,
 	},
 	buttonContainer: {

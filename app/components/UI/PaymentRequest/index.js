@@ -45,7 +45,7 @@ import { utils as ethersUtils } from 'ethers';
 const KEYBOARD_OFFSET = 120;
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	contentWrapper: {
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
 		borderRadius: 8,
 		paddingHorizontal: 38,
 		fontSize: 16,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		height: 40,
 		width: '100%',
 		color: colors.grey400,
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
 	},
 	input: {
 		...fontStyles.normal,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderWidth: 0,
 		fontSize: 24,
 		paddingBottom: 0,
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
 		paddingVertical: 10,
 		paddingLeft: 14,
 		position: 'relative',
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1,
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
 		marginTop: 8,
 	},
 	errorText: {
-		color: colors.fontError,
+		color: colors.error,
 		alignSelf: 'center',
 	},
 	assetsWrapper: {

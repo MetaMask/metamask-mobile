@@ -12,7 +12,7 @@ import { MAINNET, RPC } from '../../../constants/network';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderRadius: 10,
 		minHeight: 450,
 	},
@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
 		fontSize: 18,
 		marginVertical: 12,
 		marginHorizontal: 20,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.bold,
 	},
 	otherNetworksHeader: {
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
 		fontSize: 13,
 		marginVertical: 12,
 		marginHorizontal: 20,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.bold,
 	},
 	networksWrapper: {
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
 	},
 	networkLabel: {
 		fontSize: 16,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	footer: {
@@ -219,7 +219,7 @@ export class NetworkList extends PureComponent {
 		return this.getOtherNetworks().map((network, i) => {
 			const { color, name } = Networks[network];
 			const selected =
-				provider.type === network ? <Icon name="check" size={20} color={colors.fontSecondary} /> : null;
+				provider.type === network ? <Icon name="check" size={20} color={colors.textAlternative} /> : null;
 			return this.networkElement(selected, this.onNetworkChange, name, color, i, network);
 		});
 	};
@@ -230,7 +230,7 @@ export class NetworkList extends PureComponent {
 			const { color, name } = { name: nickname || rpcUrl, color: null };
 			const selected =
 				provider.rpcTarget === rpcUrl && provider.type === RPC ? (
-					<Icon name="check" size={20} color={colors.fontSecondary} />
+					<Icon name="check" size={20} color={colors.textAlternative} />
 				) : null;
 			return this.networkElement(selected, this.onSetRpcTarget, name, color, i, rpcUrl);
 		});
@@ -239,7 +239,7 @@ export class NetworkList extends PureComponent {
 	renderMainnet() {
 		const { provider } = this.props;
 		const isMainnet =
-			provider.type === MAINNET ? <Icon name="check" size={15} color={colors.fontSecondary} /> : null;
+			provider.type === MAINNET ? <Icon name="check" size={15} color={colors.textAlternative} /> : null;
 		const { color: mainnetColor, name: mainnetName } = Networks.mainnet;
 
 		return (

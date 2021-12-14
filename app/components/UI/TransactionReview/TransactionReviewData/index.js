@@ -23,14 +23,14 @@ const styles = StyleSheet.create({
 	},
 	dataTitleText: {
 		...fontStyles.bold,
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 14,
 		alignSelf: 'center',
 	},
 	dataDescription: {
 		textAlign: 'center',
 		...fontStyles.normal,
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 14,
 		marginBottom: 28,
 	},
@@ -51,13 +51,13 @@ const styles = StyleSheet.create({
 	},
 	labelText: {
 		...fontStyles.normal,
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 14,
 	},
 	hexData: {
 		...fontStyles.normal,
-		backgroundColor: colors.white,
-		color: colors.black,
+		backgroundColor: colors.backgroundDefault,
+		color: colors.textDefault,
 		fontSize: 14,
 		paddingTop: 0,
 	},

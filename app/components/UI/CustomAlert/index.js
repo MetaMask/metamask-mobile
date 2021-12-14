@@ -10,7 +10,7 @@ const styles = StyleSheet.create({
 		padding: 20,
 	},
 	content: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderRadius: 16,
 	},
 	header: {

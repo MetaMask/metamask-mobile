@@ -13,7 +13,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import URL from 'url-parse';
 const styles = StyleSheet.create({
 	root: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		paddingTop: 24,
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
@@ -26,14 +26,14 @@ const styles = StyleSheet.create({
 	intro: {
 		...fontStyles.bold,
 		textAlign: 'center',
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		fontSize: Device.isSmallDevice() ? 16 : 20,
 		marginBottom: 8,
 		marginTop: 16,
 	},
 	warning: {
 		...fontStyles.thin,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		paddingHorizontal: 24,
 		marginBottom: 16,
 		fontSize: 14,

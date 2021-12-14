@@ -13,7 +13,7 @@ import Text from '../../Base/Text';
 
 const styles = StyleSheet.create({
 	root: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		paddingTop: 24,
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
 	detailsBackIcon: {
 		width: 24,
 		height: 24,
-		color: colors.black,
+		color: colors.textDefault,
 		textAlign: 'center',
 	},
 	detailsContainer: {

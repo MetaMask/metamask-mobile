@@ -26,14 +26,14 @@ const HASH_STRING = 'Hello from IPFS Gateway Checker';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 		padding: 24,
 		paddingBottom: 48,
 	},
 	title: {
 		...fontStyles.normal,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		fontSize: 20,
 		lineHeight: 20,
 	},
@@ -64,14 +64,14 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		fontSize: 16,
 		textAlign: 'center',
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	modalTitle: {
 		...fontStyles.bold,
 		fontSize: 24,
 		textAlign: 'center',
 		marginBottom: 20,
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	picker: {
 		borderColor: colors.grey200,

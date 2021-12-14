@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 		textAlign: 'center',
 		fontSize: 14,
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	networkContainer: {
 		alignItems: 'center',
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		fontSize: 12,
 		padding: 5,
-		color: colors.black,
+		color: colors.textDefault,
 		textTransform: 'capitalize',
 	},
 	deeplinkIconContainer: {

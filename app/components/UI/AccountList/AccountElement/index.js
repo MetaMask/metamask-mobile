@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
 	},
 	accountLabel: {
 		fontSize: 18,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	accountBalanceWrapper: {
@@ -43,11 +43,11 @@ const styles = StyleSheet.create({
 	accountBalance: {
 		paddingTop: 5,
 		fontSize: 12,
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 		...fontStyles.normal,
 	},
 	accountBalanceError: {
-		color: colors.fontError,
+		color: colors.error,
 		marginLeft: 4,
 	},
 	importedView: {

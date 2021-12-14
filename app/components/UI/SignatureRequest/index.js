@@ -17,7 +17,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 
 const styles = StyleSheet.create({
 	root: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		paddingTop: 24,
 		minHeight: '90%',
 		borderTopLeftRadius: 20,

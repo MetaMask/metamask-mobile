@@ -8,7 +8,7 @@ import { getNavigationOptionsTitle } from '../../UI/Navbar';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	rowWrapper: {

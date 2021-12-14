@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
 		elevation: 11,
 	},
 	activeOption: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1,
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
 		top: 25,
 	},
 	optionList: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1,

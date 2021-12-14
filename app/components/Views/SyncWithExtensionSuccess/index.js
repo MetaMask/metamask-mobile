@@ -22,7 +22,7 @@ import DefaultPreference from 'react-native-default-preference';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	wrapper: {
@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
 		fontSize: 32,
 		marginTop: 20,
 		marginBottom: 10,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		justifyContent: 'center',
 		textAlign: 'center',
 		...fontStyles.bold,
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
 		marginTop: 20,
 		fontSize: 16,
 		textAlign: 'center',
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	bold: {

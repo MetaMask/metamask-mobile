@@ -14,7 +14,7 @@ const styles = StyleSheet.create({
 	},
 	viewContainer: {
 		width: '100%',
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderRadius: 10,
 	},
 	actionHorizontalContainer: {

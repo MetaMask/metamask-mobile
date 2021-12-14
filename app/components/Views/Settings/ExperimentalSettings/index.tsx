@@ -12,14 +12,14 @@ import AnalyticsV2 from '../../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 		padding: 24,
 		paddingBottom: 48,
 	},
 	title: {
 		...(fontStyles.normal as any),
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		fontSize: 20,
 		lineHeight: 20,
 	},

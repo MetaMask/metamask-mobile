@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		...fontStyles.bold,
-		color: colors.black,
+		color: colors.textDefault,
 		textAlign: 'center',
 		fontSize: 20,
 		flex: 1,
@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
 	},
 	text: {
 		...fontStyles.normal,
-		color: colors.black,
+		color: colors.textDefault,
 		textAlign: 'center',
 		fontSize: 14,
 		marginBottom: 24,

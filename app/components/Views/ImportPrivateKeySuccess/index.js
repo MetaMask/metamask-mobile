@@ -13,7 +13,7 @@ import PreventScreenshot from '../../../core/PreventScreenshot';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	wrapper: {
@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
 		fontSize: 32,
 		marginTop: 10,
 		marginBottom: 20,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		justifyContent: 'center',
 		textAlign: 'left',
 		...fontStyles.normal,
@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
 	label: {
 		fontSize: 16,
 		lineHeight: 23,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		textAlign: 'left',
 		...fontStyles.normal,
 	},
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
 	},
 	closeIcon: {
 		fontSize: 28,
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 	},
 });
 

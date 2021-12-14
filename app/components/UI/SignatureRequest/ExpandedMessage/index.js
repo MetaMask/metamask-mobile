@@ -10,7 +10,7 @@ import { getHost } from '../../../../util/browser';
 
 const styles = StyleSheet.create({
 	expandedRoot: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		minHeight: Device.isIos() ? '70%' : '80%',
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,

@@ -32,13 +32,13 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		fontSize: 18,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		marginBottom: 10,
 		...fontStyles.bold,
 	},
 	text: {
 		fontSize: 12,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	buttonContainer: {

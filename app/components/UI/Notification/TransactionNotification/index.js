@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
 	modalContainer: {
 		width: '90%',
 		borderRadius: 10,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 	},
 	titleWrapper: {
 		borderBottomWidth: StyleSheet.hairlineWidth,
@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
 		fontSize: 18,
 		marginVertical: 12,
 		marginHorizontal: 24,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.bold,
 	},
 	modalTypeView: {

@@ -9,7 +9,7 @@ import Text from '../../Base/Text';
 
 const styles = StyleSheet.create({
 	loader: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		height: 10,
 	},
 });

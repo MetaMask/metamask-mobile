@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
 	name: {
 		fontSize: 30,
 		textAlign: 'center',
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	actions: {

@@ -13,7 +13,7 @@ import { newAssetTransaction } from '../../../actions/transaction';
 const styles = StyleSheet.create({
 	root: {
 		flex: 1,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 	},
 	wrapper: {
 		flex: 0.9,

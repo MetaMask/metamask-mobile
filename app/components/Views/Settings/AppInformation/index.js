@@ -18,7 +18,7 @@ import AppConstants from '../../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	wrapperContent: {
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
 	},
 	logoWrapper: {
 		flex: 1,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		alignItems: 'center',
 		justifyContent: 'center',
 		top: 20,
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
 		fontSize: 18,
 		textAlign: 'left',
 		marginBottom: 20,
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 		...fontStyles.normal,
 	},
 });

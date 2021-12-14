@@ -18,7 +18,7 @@ import { isMainNet } from '../../../util/networks';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderRadius: 10,
 		minHeight: 450,
 	},
@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
 		fontSize: 18,
 		marginVertical: 12,
 		marginHorizontal: 20,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.bold,
 	},
 	label: {
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
 		textAlignVertical: 'center',
 		paddingRight: 5,
 		marginTop: Device.isAndroid() ? -2 : 4,
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 		...fontStyles.light,
 	},
 	credits: {

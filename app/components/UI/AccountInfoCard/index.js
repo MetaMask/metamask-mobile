@@ -38,19 +38,19 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 		fontSize: 16,
 		marginRight: 2,
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	accountAddress: {
 		flexGrow: 1,
 		...fontStyles.bold,
 		fontSize: 16,
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	balanceText: {
 		...fontStyles.thin,
 		fontSize: 14,
 		alignSelf: 'flex-start',
-		color: colors.black,
+		color: colors.textDefault,
 	},
 });
 

@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
 	selectedOption: {
 		flex: 1,
 		alignSelf: 'flex-start',
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		fontSize: 14,
 		paddingHorizontal: 15,
 		paddingTop: 10,
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
 		padding: 60,
 	},
 	modalView: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		justifyContent: 'center',
 		alignItems: 'center',
 		borderRadius: 10,
@@ -175,7 +175,7 @@ export default class SelectComponent extends PureComponent {
 					<Text style={styles.selectedOption} numberOfLines={1}>
 						{this.getSelectedValue()}
 					</Text>
-					<Icon name={'arrow-drop-down'} size={24} color={colors.fontPrimary} style={styles.iconDropdown} />
+					<Icon name={'arrow-drop-down'} size={24} color={colors.textDefault} style={styles.iconDropdown} />
 				</View>
 			</TouchableOpacity>
 			<Modal

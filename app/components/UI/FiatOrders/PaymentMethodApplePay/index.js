@@ -91,24 +91,24 @@ const styles = StyleSheet.create({
 		borderColor: colors.grey000,
 	},
 	quickAmountSelected: {
-		backgroundColor: colors.blue,
-		borderColor: colors.blue,
+		backgroundColor: colors.primary,
+		borderColor: colors.primary,
 	},
 	quickAmountSelectedText: {
-		color: colors.white,
+		color: colors.onPrimary,
 	},
 	buttonContainer: {
 		paddingBottom: 20,
 	},
 	applePayButton: {
-		backgroundColor: colors.black,
+		backgroundColor: colors.inverse,
 		padding: 10,
 		margin: Device.isIphone5() ? 5 : 10,
 		marginHorizontal: 25,
 		alignItems: 'center',
 	},
 	applePayButtonText: {
-		color: colors.white,
+		color: colors.onInverse,
 	},
 	applePayButtonContentDisabled: {
 		opacity: 0.6,

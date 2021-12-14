@@ -52,7 +52,7 @@ import DefaultPreference from 'react-native-default-preference';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	wrapper: {
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
 		fontSize: Device.isAndroid() ? 20 : 25,
 		marginTop: 20,
 		marginBottom: 20,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		justifyContent: 'center',
 		textAlign: 'center',
 		...fontStyles.bold,
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
 		width: '30%',
 	},
 	label: {
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 16,
 		marginBottom: 12,
 		...fontStyles.normal,
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
 		height: 'auto',
 		borderWidth: 1,
 		borderColor: colors.grey500,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		...fontStyles.normal,
 	},
 	padding: {
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
 	biometryLabel: {
 		flex: 1,
 		fontSize: 16,
-		color: colors.black,
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	biometrySwitch: {
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
 	passwordStrengthLabel: {
 		height: 20,
 		fontSize: 15,
-		color: colors.black,
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
@@ -516,7 +516,7 @@ class ImportFromSeed extends PureComponent {
 							/>
 						)}
 						<TouchableOpacity style={styles.qrCode} onPress={this.onQrCodePress}>
-							<Icon name="qrcode" size={20} color={colors.fontSecondary} />
+							<Icon name="qrcode" size={20} color={colors.textAlternative} />
 						</TouchableOpacity>
 						<View style={styles.field}>
 							<View style={styles.fieldRow}>

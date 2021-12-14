@@ -29,7 +29,7 @@ const GAS_MIN = new BigNumber(0.000001);
 
 const styles = StyleSheet.create({
 	root: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
 		minHeight: 200,
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
 		right: 10,
 	},
 	labelInfo: {
-		color: colors.grey200,
+		color: colors.textAlternative,
 	},
 	advancedOptionsContainer: {
 		marginTop: 25,
@@ -556,12 +556,12 @@ const EditGasFee1559 = ({
 						<View>
 							<View style={styles.customGasHeader}>
 								<TouchableOpacity onPress={onCancel}>
-									<Icon name={'ios-arrow-back'} size={24} color={colors.black} />
+									<Icon name={'ios-arrow-back'} size={24} color={colors.textDefault} />
 								</TouchableOpacity>
 								<Text bold black>
 									{renderDisplayTitle}
 								</Text>
-								<Icon name={'ios-arrow-back'} size={24} color={colors.white} />
+								<Icon name={'ios-arrow-back'} size={24} color={colors.backgroundDefault} />
 							</View>
 							{updateOption && (
 								<View style={styles.newGasFeeHeader}>

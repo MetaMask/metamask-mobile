@@ -47,7 +47,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	wrapper: {
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
 		fontSize: Device.isAndroid() ? 20 : 25,
 		marginTop: 20,
 		marginBottom: 20,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		justifyContent: 'center',
 		textAlign: 'center',
 		...fontStyles.bold,
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
 	subtitle: {
 		fontSize: 16,
 		lineHeight: 23,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		textAlign: 'center',
 		...fontStyles.normal,
 	},
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
 	label: {
 		...fontStyles.normal,
 		fontSize: 14,
-		color: colors.black,
+		color: colors.textDefault,
 		paddingHorizontal: 10,
 		lineHeight: 18,
 	},
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
 	biometryLabel: {
 		flex: 1,
 		fontSize: 16,
-		color: colors.black,
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	biometrySwitch: {
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
 		right: 0,
 	},
 	hintLabel: {
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 16,
 		marginBottom: 12,
 		...fontStyles.normal,
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
 		height: 20,
 		marginTop: 10,
 		fontSize: 15,
-		color: colors.black,
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	showPassword: {

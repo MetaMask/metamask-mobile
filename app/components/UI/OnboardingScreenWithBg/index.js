@@ -6,7 +6,7 @@ import { colors } from '../../../styles/common';
 const styles = StyleSheet.create({
 	flex: {
 		flex: 1,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 	},
 	wrapper: {
 		top: 0,
@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		borderTopWidth: 0,
 		borderColor: colors.white,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 		width: null,
 		height: null,

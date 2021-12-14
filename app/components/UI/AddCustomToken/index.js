@@ -13,7 +13,7 @@ import AppConstants from '../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	rowWrapper: {

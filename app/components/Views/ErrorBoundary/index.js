@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
 		marginTop: 24,
 	},
 	title: {
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 24,
 		lineHeight: 34,
 		...fontStyles.bold,
@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
 		marginTop: 24,
 	},
 	error: {
-		color: colors.black,
+		color: colors.textDefault,
 		padding: 8,
 		fontSize: 14,
 		lineHeight: 20,
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
 		marginTop: 24,
 	},
 	text: {
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 14,
 		lineHeight: 20,
 		...fontStyles.normal,

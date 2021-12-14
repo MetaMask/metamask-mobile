@@ -21,7 +21,7 @@ const { weiHexToGweiDec, isEIP1559Transaction } = util;
 
 const styles = StyleSheet.create({
 	row: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 		borderBottomWidth: StyleSheet.hairlineWidth,
 		borderColor: colors.grey100,
@@ -47,13 +47,13 @@ const styles = StyleSheet.create({
 		padding: 15,
 	},
 	fromDeviceText: {
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 		fontSize: 14,
 		marginBottom: 10,
 		...fontStyles.normal,
 	},
 	importText: {
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 		fontSize: 14,
 		...fontStyles.bold,
 		alignContent: 'center',

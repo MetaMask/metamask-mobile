@@ -31,7 +31,7 @@ const VERTICAL_ALIGNMENT = IS_SMALL_DEVICE ? 12 : 16;
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 0,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderTopEndRadius: 8,
 		borderTopStartRadius: 8,
 	},
@@ -287,7 +287,7 @@ const CollectibleOverview = ({
 							<View style={styles.userContainer}>
 								<RemoteImage
 									fadeIn
-									placeholderStyle={{ backgroundColor: colors.white }}
+									placeholderStyle={{ backgroundColor: colors.backgroundDefault }}
 									source={{ uri: collectible.creator.profile_img_url }}
 									style={styles.userImage}
 								/>

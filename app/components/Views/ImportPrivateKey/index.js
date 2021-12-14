@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
 		fontSize: 32,
 		marginTop: 20,
 		marginBottom: 40,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		justifyContent: 'center',
 		textAlign: 'left',
 		...fontStyles.normal,
@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
 	},
 	label: {
 		fontSize: 14,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		textAlign: 'left',
 		...fontStyles.normal,
 	},
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: 'flex-end',
 		padding: 20,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 	},
 	button: {
 		marginBottom: Device.isIphoneX() ? 20 : 0,
@@ -84,12 +84,12 @@ const styles = StyleSheet.create({
 	bottom: {
 		width: '100%',
 		padding: 30,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 	},
 	input: {
 		marginTop: 20,
 		marginBottom: 10,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		paddingTop: 20,
 		paddingBottom: 20,
 		paddingLeft: 20,
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
 	},
 	closeIcon: {
 		fontSize: 28,
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 	},
 });
 

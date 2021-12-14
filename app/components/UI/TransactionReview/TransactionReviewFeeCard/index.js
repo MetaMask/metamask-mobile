@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
 		marginHorizontal: 24,
 	},
 	loader: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		height: 10,
 		flex: 1,
 		alignItems: 'flex-end',

@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
 	},
 	input: {
 		...fontStyles.bold,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		marginRight: 24,
 		paddingLeft: 0,
 		minWidth: Device.isSmallDevice() ? 100 : 120,
@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
 	},
 	accountContainer: {
 		flexDirection: 'row',
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1,
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
 		paddingTop: 1.5,
 	},
 	optionList: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1,

@@ -77,7 +77,7 @@ const ANIMATION_TIMING = 300;
 const styles = StyleSheet.create({
 	wrapper: {
 		...baseStyles.flexGrow,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 	},
 	hide: {
 		flex: 0,
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
 		width: 200,
 		borderWidth: 1,
 		borderColor: colors.grey100,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderRadius: 10,
 		paddingBottom: 5,
 		paddingTop: 10,
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
 		height: 'auto',
 		minHeight: 44,
 		paddingHorizontal: 15,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'flex-start',
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		paddingTop: Device.isAndroid() ? 10 : Device.isIphoneX() ? 50 : 27,
 		paddingHorizontal: 10,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		height: Device.isAndroid() ? 59 : Device.isIphoneX() ? 87 : 65,
 	},
 	urlModal: {
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
 	},
 	iconCloseButton: {
 		borderRadius: 300,
-		backgroundColor: colors.fontSecondary,
+		backgroundColor: colors.textAlternative,
 		color: colors.white,
 		fontSize: 18,
 		padding: 0,

@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
 		position: 'relative',
 	},
 	exclamation: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderRadius: 12,
 		position: 'absolute',
 		bottom: 8,
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
 	addressWrapper: { flexDirection: 'row' },
 	textAddress: {
 		...fontStyles.normal,
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 14,
 	},
 	textBalance: {
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
 	},
 	labelText: {
 		...fontStyles.normal,
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 16,
 	},
 	textInput: {

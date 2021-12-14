@@ -14,7 +14,7 @@ import URL from 'url-parse';
 
 const styles = StyleSheet.create({
 	messageText: {
-		color: colors.black,
+		color: colors.textDefault,
 		...fontStyles.normal,
 		fontFamily: Device.isIos() ? 'Courier' : 'Roboto',
 	},

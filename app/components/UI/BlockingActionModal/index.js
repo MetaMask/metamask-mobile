@@ -13,7 +13,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'center',
 		alignSelf: 'center',
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		width: '90%',
 		borderRadius: 6,
 		minHeight: 200,

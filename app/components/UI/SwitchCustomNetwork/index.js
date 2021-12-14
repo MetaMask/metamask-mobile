@@ -10,7 +10,7 @@ import Text from '../../Base/Text';
 
 const styles = StyleSheet.create({
 	root: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		paddingTop: 24,
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,

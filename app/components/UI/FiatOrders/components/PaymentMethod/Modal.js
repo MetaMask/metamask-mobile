@@ -12,7 +12,7 @@ import Device from '../../../../../util/device';
 
 const styles = StyleSheet.create({
 	modalView: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		justifyContent: 'center',
 		alignItems: 'center',
 		marginVertical: 50,
@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'space-between',
 	},
 	closeIcon: {
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	body: {
 		width: '100%',

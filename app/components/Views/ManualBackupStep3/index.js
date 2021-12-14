@@ -29,7 +29,7 @@ import DefaultPreference from 'react-native-default-preference';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	actionView: {
@@ -45,14 +45,14 @@ const styles = StyleSheet.create({
 	congratulations: {
 		fontSize: Device.isMediumDevice() ? 28 : 32,
 		marginBottom: 12,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		justifyContent: 'center',
 		textAlign: 'center',
 		...fontStyles.bold,
 	},
 	baseText: {
 		fontSize: 16,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		textAlign: 'center',
 		...fontStyles.normal,
 	},

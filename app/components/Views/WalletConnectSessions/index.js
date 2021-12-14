@@ -12,7 +12,7 @@ import { WALLETCONNECT_SESSIONS } from '../../../constants/storage';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	scrollviewContent: {
@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
 		marginBottom: 10,
 		...fontStyles.normal,
 		fontSize: 12,
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 	},
 	emptyWrapper: {
 		flex: 1,

@@ -14,7 +14,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	wrapper: {
@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
 	action: {
 		fontSize: 18,
 		marginBottom: 16,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		justifyContent: 'center',
 		textAlign: 'center',
 		...fontStyles.bold,
@@ -38,13 +38,13 @@ const styles = StyleSheet.create({
 	},
 	info: {
 		fontSize: 16,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		textAlign: 'center',
 		...fontStyles.normal,
 		paddingHorizontal: 6,
 	},
 	seedPhraseWrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderRadius: 8,
 		flexDirection: 'row',
 		justifyContent: 'space-between',
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 8,
 		paddingVertical: 6,
 		width: Device.isMediumDevice() ? 75 : 95,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderColor: colors.grey050,
 		borderWidth: 1,
 		borderRadius: 34,
@@ -89,16 +89,16 @@ const styles = StyleSheet.create({
 	},
 	word: {
 		fontSize: 14,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		lineHeight: 14,
 		textAlign: 'center',
 	},
 	selectableWord: {
 		paddingHorizontal: 8,
 		paddingVertical: 6,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		width: 95,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderColor: colors.blue,
 		borderWidth: 1,
 		marginBottom: 6,
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		fontSize: 14,
 		lineHeight: 14,
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	words: {
 		flexDirection: 'row',

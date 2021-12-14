@@ -22,9 +22,9 @@ function TabBar({ ...props }) {
 	return (
 		<DefaultTabBar
 			underlineStyle={styles.tabUnderlineStyle}
-			activeTextColor={colors.blue}
-			inactiveTextColor={colors.fontSecondary}
-			backgroundColor={colors.white}
+			activeTextColor={colors.primary}
+			inactiveTextColor={colors.textAlternative}
+			backgroundColor={colors.backgroundDefault}
 			tabStyle={styles.tabStyle}
 			textStyle={styles.textStyle}
 			{...props}

@@ -3,16 +3,80 @@
  */
 
 /**
- * Map of color names to HEX values
+ * Base colors
+ * Should not be used anywhere else in the code base apart from theme files
+ * This is the single source of truth for colors specific design tokens
  */
+const baseColors = {
+	white: '#FFFFFF',
+	grey000: '#f2f3f4',
+	grey100: '#d6d9dc',
+	grey200: '#bbc0c5',
+	grey300: '#9fa6ae',
+	grey400: '#848c96',
+	grey500: '#6a737d',
+	grey600: '#5B5D67',
+	grey700: '#3C3F42',
+	grey800: '#24272A',
+	grey900: '#141618',
+	red000: '#fcf2f3',
+	red100: '#F7D5D8',
+	red200: '#F1B9BE',
+	red300: '#E88F97',
+	red400: '#E06470',
+	red500: '#D73A49',
+	red600: '#B92534',
+	red700: '#8E1D28',
+	red800: '#64141C',
+	red900: '#3A0C10',
+	blue100: '#EAF6FF',
+	blue200: '#75C4FD',
+	blue500: '#1097FB',
+	blue600: '#0260A4',
+	blue700: '#0074C8',
+	green100: '#e6f9ea',
+	green200: '#afecbd',
+	green300: '#86e29b',
+	green400: '#28A745',
+	green500: '#28a745',
+	green600: '#1e7e34',
+	yellow700: '#705700',
+	yellow200: '#ffe281',
+	yellow300: '#FFD33D',
+	yellow100: '#fffcdb',
+	orange000: '#fef5ef',
+	orange300: '#faa66c',
+	orange500: '#F66A0A',
+	transparent: 'transparent',
+};
+
+/**
+ * Map of color names to HEX values
+ * Definitions
+ * background - Colors starting with the word "background" are reserved for background elements that all other components sit on. Nothing can be behind a "background" color. Or a "background" color cannot be used for a component that sits on any other component
+ * primary - the primary action color. Used for components that usually sit on top of a "background" color component
+ * onPrimary - the color that is used for the component that sits on top of the primary color
+ * state colors e.g. success, error, warning, all represent a state and should be used accordingly
+ */
+
 export const colors = {
-	fontPrimary: '#000000',
-	fontSecondary: '#777777',
-	fontTertiary: '#AAAAAA',
-	fontError: '#D73A49',
-	fontWarning: '#f66a0a',
-	primaryFox: '#f66a0a',
-	black: '#24292E',
+	textDefault: baseColors.grey800,
+	textAlternative: baseColors.grey600,
+	backgroundDefault: baseColors.white,
+	backgroundAlternative: baseColors.gray000,
+	primary: baseColors.blue500,
+	onPrimary: baseColors.white,
+	success: baseColors.green500,
+	onSuccess: baseColors.white,
+	error: baseColors.red500,
+	onError: baseColors.white,
+	warning: baseColors.orange500,
+	onWarning: baseColors.white,
+	inverse: baseColors.grey800,
+	onInverse: baseColors.white,
+	alert: 'rgba(0,0,0,.75)',
+	onAlert: baseColors.white,
+	// needs auditing
 	white: '#FFFFFF',
 	white100: '#F9FAFB',
 	greyAssetVisibility: '#6A737D',
@@ -32,7 +96,6 @@ export const colors = {
 	red: '#D73A49',
 	red000: '#fcf2f3',
 	blue: '#037dd6',
-	blue100: '#EAF6FF',
 	blue000: '#eaf6ff',
 	blue200: '#75C4FD',
 	blue500: '#1097FB',
@@ -51,11 +114,10 @@ export const colors = {
 	yellow200: '#ffe281',
 	yellow300: '#FFD33D',
 	yellow100: '#fffcdb',
-	orange: '#f66a0a',
+	orange: baseColors.orange500,
 	orange300: '#faa66c',
 	orange000: '#fef5ef',
 	spinnerColor: '#037DD6',
-	success: '#219E37',
 	dimmed: '#00000080',
 	transparent: 'transparent',
 	lightOverlay: 'rgba(0,0,0,.2)',

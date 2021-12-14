@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
 	phishingModalContent: {
 		height: 495,
 		borderRadius: 4,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 	},
 	phishingModalTitle: {
 		...fontStyles.bold,
@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 	},
 	phishingModalHeader: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		paddingVertical: 20,
 		flexDirection: 'row',
 		alignItems: 'center',
@@ -44,11 +44,11 @@ const styles = StyleSheet.create({
 	phishingText: {
 		...fontStyles.normal,
 		fontSize: 11,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		marginBottom: 15,
 	},
 	link: {
-		textDecorationColor: colors.fontPrimary,
+		textDecorationColor: colors.textDefault,
 		textDecorationLine: 'underline',
 	},
 	bold: {

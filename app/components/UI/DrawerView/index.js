@@ -47,7 +47,7 @@ import { collectiblesSelector } from '../../../reducers/collectibles';
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 	},
 	header: {
 		paddingTop: Device.isIphoneX() ? 60 : 24,
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
 		fontSize: 20,
 		lineHeight: 24,
 		marginBottom: 5,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	caretDown: {
@@ -109,19 +109,19 @@ const styles = StyleSheet.create({
 		marginLeft: 7,
 		marginTop: 3,
 		fontSize: 18,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 	},
 	accountBalance: {
 		fontSize: 14,
 		lineHeight: 17,
 		marginBottom: 5,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	accountAddress: {
 		fontSize: 12,
 		lineHeight: 17,
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 		...fontStyles.normal,
 	},
 	buttons: {
@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 	},
 	protectWalletContainer: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		paddingTop: 24,
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,

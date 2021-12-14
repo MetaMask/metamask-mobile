@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
 		borderRadius: DIAMETER,
 		borderWidth: MARGIN,
 		borderColor: colors.blue600,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 	},
 	trackBack: {
 		position: 'relative',

@@ -23,7 +23,7 @@ const style = StyleSheet.create({
 		color: colors.orange,
 	},
 	black: {
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	bold: fontStyles.bold,
 	blue: {
@@ -36,7 +36,7 @@ const style = StyleSheet.create({
 		color: colors.grey500,
 	},
 	primary: {
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 	},
 	small: {
 		fontSize: 12,
@@ -52,7 +52,7 @@ const style = StyleSheet.create({
 		letterSpacing: 0.15,
 	},
 	modal: {
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		fontSize: 16,
 		lineHeight: 22.4, // 1.4 * fontSize
 	},

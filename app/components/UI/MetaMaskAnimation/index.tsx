@@ -10,7 +10,7 @@ const LOGO_PADDING = 25;
 const styles = StyleSheet.create({
 	main: {
 		...StyleSheet.absoluteFillObject,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 	},
 	metamaskName: {
 		marginTop: 10,
@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 	},
 	logoWrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		paddingTop: 50,
 		marginTop: Dimensions.get('window').height / 2 - LOGO_SIZE / 2 - LOGO_PADDING,
 		height: LOGO_SIZE + LOGO_PADDING * 2,

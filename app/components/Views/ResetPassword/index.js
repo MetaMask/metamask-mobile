@@ -41,7 +41,7 @@ import { syncPrefs } from '../../../util/sync';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	scrollviewWrapper: {
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
 		fontSize: 32,
 		marginTop: 10,
 		marginBottom: 10,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		justifyContent: 'center',
 		textAlign: 'left',
 		...fontStyles.normal,
@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
 	confirm_label: {
 		fontSize: 16,
 		lineHeight: 23,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		textAlign: 'left',
 		...fontStyles.normal,
 	},
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
 		fontSize: 24,
 		marginTop: 20,
 		marginBottom: 20,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		justifyContent: 'center',
 		textAlign: 'center',
 		width: '100%',
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
 	subtitle: {
 		fontSize: 16,
 		lineHeight: 23,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		textAlign: 'center',
 		...fontStyles.normal,
 	},
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
 	label: {
 		...fontStyles.normal,
 		fontSize: 14,
-		color: colors.black,
+		color: colors.textDefault,
 		paddingHorizontal: 10,
 		lineHeight: 18,
 	},
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
 	},
 	biometryLabel: {
 		fontSize: 14,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		position: 'absolute',
 		top: 0,
 		left: 0,

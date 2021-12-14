@@ -17,7 +17,7 @@ import ActionSheet from 'react-native-actionsheet';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 		flexDirection: 'column',
 	},
@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
 	label: {
 		fontSize: 14,
 		paddingVertical: 12,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.bold,
 	},
 	buttonsWrapper: {
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		padding: 0,
 		paddingRight: 8,
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	inputWrapper: {
 		flex: 1,

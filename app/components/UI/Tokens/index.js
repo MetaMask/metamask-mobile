@@ -19,19 +19,19 @@ import { getTokenList } from '../../../reducers/tokens';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 		minHeight: 500,
 	},
 	emptyView: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		justifyContent: 'center',
 		alignItems: 'center',
 		marginTop: 50,
 	},
 	text: {
 		fontSize: 20,
-		color: colors.fontTertiary,
+		color: colors.textAlternative,
 		...fontStyles.normal,
 	},
 	add: {
@@ -56,13 +56,13 @@ const styles = StyleSheet.create({
 	},
 	balance: {
 		fontSize: 16,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.normal,
 		textTransform: 'uppercase',
 	},
 	balanceFiat: {
 		fontSize: 12,
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 		...fontStyles.normal,
 		textTransform: 'uppercase',
 	},

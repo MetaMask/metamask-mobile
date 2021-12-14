@@ -22,13 +22,13 @@ const styles = StyleSheet.create({
 	},
 	noTabsTitle: {
 		...fontStyles.normal,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		fontSize: 18,
 		marginBottom: 10,
 	},
 	noTabsDesc: {
 		...fontStyles.normal,
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 		fontSize: 14,
 	},
 	tabAction: {
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 	},
 	actionDisabled: {
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 	},
 	tabsView: {
 		flex: 1,

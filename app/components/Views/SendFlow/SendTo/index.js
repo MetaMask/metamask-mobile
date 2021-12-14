@@ -36,7 +36,7 @@ const { hexToBN } = util;
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 	},
 	imputWrapper: {
 		flex: 0,
@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
 	addTextTitle: {
 		...fontStyles.normal,
 		fontSize: 24,
-		color: colors.black,
+		color: colors.textDefault,
 		marginBottom: 24,
 	},
 	addTextSubtitle: {
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
 	},
 	addTextInput: {
 		...fontStyles.normal,
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 20,
 	},
 	addInputWrapper: {
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
 		marginBottom: 32,
 	},
 	buyEth: {
-		color: colors.black,
+		color: colors.textDefault,
 		textDecorationLine: 'underline',
 	},
 	confusabeError: {
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
 		paddingRight: 10,
 	},
 	black: {
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	warningIcon: {
 		marginRight: 8,

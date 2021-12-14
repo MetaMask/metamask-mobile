@@ -30,7 +30,7 @@ import ClipboardManager from '../../../core/ClipboardManager';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	contentWrapper: {

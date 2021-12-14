@@ -293,7 +293,7 @@ class TransactionReview extends PureComponent {
 			<DefaultTabBar
 				underlineStyle={styles.tabUnderlineStyle}
 				activeTextColor={colors.blue}
-				inactiveTextColor={colors.fontTertiary}
+				inactiveTextColor={colors.textAlternative}
 				backgroundColor={colors.white}
 				tabStyle={styles.tabStyle}
 				textStyle={styles.textStyle}

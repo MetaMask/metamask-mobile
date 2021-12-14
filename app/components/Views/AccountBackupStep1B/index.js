@@ -32,7 +32,7 @@ const IMG_PADDING = Device.isIphoneX() ? 100 : Device.isIphone5S() ? 180 : 220;
 
 const styles = StyleSheet.create({
 	mainWrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	scrollviewWrapper: {
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
 		marginLeft: 0,
 		marginTop: 16,
 		marginBottom: 16,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		justifyContent: 'center',
 		...fontStyles.bold,
 	},
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
 	label: {
 		lineHeight: 20,
 		fontSize: 16,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		textAlign: 'left',
 		...fontStyles.normal,
 	},
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
 		height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_1_RATIO,
 	},
 	card: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderWidth: 1,
 		borderColor: colors.grey100,
 		borderRadius: 10,
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
 	whySecureTitle: {
 		flex: 1,
 		fontSize: 18,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		textAlign: 'center',
 		...fontStyles.bold,
 	},
@@ -142,25 +142,25 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		marginBottom: 8,
 		lineHeight: 17,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.bold,
 	},
 	paragraph: {
 		lineHeight: 17,
 		marginBottom: 20,
 		fontSize: 12,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 	},
 	smallParagraph: {
 		lineHeight: 17,
 		fontSize: 12,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 	},
 	barsTitle: {
 		lineHeight: 17,
 		marginBottom: 8,
 		fontSize: 12,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 	},
 	barsContainer: {
 		lineHeight: 17,
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
 	whySecureText: {
 		textAlign: 'center',
 		lineHeight: 20,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 	},
 });
 

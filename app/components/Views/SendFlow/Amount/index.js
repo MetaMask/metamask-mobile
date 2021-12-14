@@ -66,7 +66,7 @@ const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 	},
 	scrollWrapper: {
 		marginBottom: 60,
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
 	inputCurrencyText: {
 		...fontStyles.normal,
 		fontWeight: fontStyles.light.fontWeight,
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 44,
 		marginRight: 8,
 		paddingVertical: Device.isIos() ? 0 : 8,
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
 		fontWeight: fontStyles.light.fontWeight,
 		fontSize: 44,
 		textAlign: 'center',
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	switch: {
 		flex: 1,
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
 	},
 	assetElementWrapper: {
 		height: 70,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderWidth: 1,
 		borderColor: colors.grey000,
 		flexDirection: 'row',
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 	},
 	assetsModalWrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
 		height: 450,

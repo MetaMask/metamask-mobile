@@ -29,7 +29,7 @@ import ClipboardManager from '../../../core/ClipboardManager';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	header: {
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 	},
 	seedPhrase: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		marginTop: 10,
 		paddingBottom: 20,
 		paddingLeft: 20,
@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
 		borderBottomWidth: 1,
 		fontSize: 20,
 		textAlign: 'center',
-		color: colors.black,
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	seedPhraseView: {
@@ -268,7 +268,7 @@ class RevealPrivateCredential extends PureComponent {
 			<DefaultTabBar
 				underlineStyle={styles.tabUnderlineStyle}
 				activeTextColor={colors.blue}
-				inactiveTextColor={colors.fontTertiary}
+				inactiveTextColor={colors.textAlternative}
 				backgroundColor={colors.white}
 				tabStyle={styles.tabStyle}
 				textStyle={styles.textStyle}

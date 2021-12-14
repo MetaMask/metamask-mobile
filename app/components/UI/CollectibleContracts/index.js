@@ -21,7 +21,7 @@ import { compareTokenIds } from '../../../util/tokens';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 		minHeight: 500,
 		marginTop: 16,

@@ -16,7 +16,7 @@ const defaultBottomBarPadding = 0;
 
 const styles = StyleSheet.create({
 	bottomBar: {
-		backgroundColor: Device.isAndroid() ? colors.white : colors.grey000,
+		backgroundColor: Device.isAndroid() ? colors.backgroundDefault : colors.grey000,
 		flexDirection: 'row',
 		paddingBottom:
 			Device.isIphoneX() && Device.isIos()

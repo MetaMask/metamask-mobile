@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
 		fontSize: Device.isSmallDevice() ? 16 : 18,
 	},
 	tokenTextDestination: {
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 	},
 	arrowDown: {
 		color: colors.grey100,

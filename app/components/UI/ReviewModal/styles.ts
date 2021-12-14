@@ -4,7 +4,7 @@ import { colors } from '../../../styles/common';
 export default StyleSheet.create({
 	screen: { justifyContent: 'center', paddingHorizontal: 24 },
 	modal: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		alignItems: 'center',
 		borderRadius: 8,
 		paddingVertical: 36,
@@ -17,7 +17,7 @@ export default StyleSheet.create({
 	optionIcon: { fontSize: 24 },
 	optionLabel: { fontSize: 14, fontFamily: 'EuclidCircularB-Regular', color: colors.blue },
 	helpOption: { marginVertical: 12 },
-	optionLabelRed: { color: colors.fontError },
+	optionLabelRed: { color: colors.error },
 	fox: { height: 44, width: 44, marginBottom: 12 },
 	questionLabel: {
 		fontSize: 18,

@@ -55,7 +55,7 @@ export default function CollectibleMediaPlayer({ collectible, renderFull, contai
 				<RemoteImage
 					fadeIn
 					resizeMode={'contain'}
-					placeholderStyle={{ backgroundColor: colors.white }}
+					placeholderStyle={{ backgroundColor: colors.backgroundDefault }}
 					source={{ uri: fallbackImage || collectible.image }}
 					style={renderFull ? styles.fullImage : [styles.listImage, iconStyle]}
 					onError={fallback}

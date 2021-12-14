@@ -28,7 +28,7 @@ import DefaultPreference from 'react-native-default-preference';
 const styles = StyleSheet.create({
 	root: {
 		...baseStyles.flexGrow,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 	},
 	checkIcon: {
 		color: colors.green500,
@@ -47,18 +47,18 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		...fontStyles.bold,
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 22,
 	},
 	description: {
 		...fontStyles.normal,
-		color: colors.black,
+		color: colors.textDefault,
 		flex: 1,
 	},
 	content: {
 		...fontStyles.normal,
 		fontSize: 14,
-		color: colors.black,
+		color: colors.textDefault,
 		paddingVertical: 10,
 	},
 	wrapper: {

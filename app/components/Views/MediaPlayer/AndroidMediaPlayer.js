@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
 		height: 4,
 		width: '100%',
 		borderRadius: 2,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 	},
 	seekbarPermanentFill: {
 		width: '100%',
@@ -444,7 +444,10 @@ export default function VideoPlayer({
 				</View>
 
 				<View style={[styles.seekbarHandle, { left: seekerPosition }]} pointerEvents={'none'}>
-					<View style={[styles.seekbarCircle, { backgroundColor: colors.white }]} pointerEvents={'none'} />
+					<View
+						style={[styles.seekbarCircle, { backgroundColor: colors.backgroundDefault }]}
+						pointerEvents={'none'}
+					/>
 				</View>
 			</View>
 		),

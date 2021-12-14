@@ -12,7 +12,7 @@ const styles = StyleSheet.create({
 	wrapper: {
 		paddingVertical: 15,
 		flex: 1,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 	},
 	bookmarkIco: {
 		width: 26,
@@ -25,12 +25,12 @@ const styles = StyleSheet.create({
 	},
 	name: {
 		fontSize: 14,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	url: {
 		fontSize: 12,
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 		...fontStyles.normal,
 	},
 	item: {

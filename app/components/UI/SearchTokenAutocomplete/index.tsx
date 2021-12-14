@@ -14,7 +14,7 @@ import { MAINNET } from '../../../constants/network';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	tokenDetectionBanner: { marginHorizontal: 20, marginTop: 20, paddingRight: 0 },

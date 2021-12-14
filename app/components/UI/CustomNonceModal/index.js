@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
 	},
 	modal: {
 		minHeight: 200,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
 	},
@@ -31,18 +31,18 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		fontSize: 14,
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	nonceInput: {
 		width: 80,
 		fontSize: 36,
 		...fontStyles.bold,
-		color: colors.black,
+		color: colors.textDefault,
 		textAlign: 'center',
 		marginHorizontal: 24,
 	},
 	desc: {
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 12,
 		lineHeight: 16,
 		marginVertical: 10,
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
 		marginBottom: 16,
 	},
 	nonceWarningText: {
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 12,
 		lineHeight: 16,
 		width: '100%',

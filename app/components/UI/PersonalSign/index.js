@@ -15,7 +15,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 const styles = StyleSheet.create({
 	messageText: {
 		fontSize: 14,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.normal,
 		textAlign: 'center',
 	},

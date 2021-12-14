@@ -54,13 +54,13 @@ const styles = StyleSheet.create({
 	},
 	amount: {
 		fontSize: 30,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.normal,
 		textTransform: 'uppercase',
 	},
 	amountFiat: {
 		fontSize: 18,
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 		...fontStyles.light,
 		textTransform: 'uppercase',
 	},
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
 	},
 	warning: {
 		borderRadius: 8,
-		color: colors.black,
+		color: colors.textDefault,
 		...fontStyles.normal,
 		fontSize: 14,
 		lineHeight: 20,

@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
 	},
 	titleText: {
 		fontSize: 18,
-		color: colors.black,
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	collectibleIcon: {
@@ -184,7 +184,7 @@ function CollectibleContractElement({
 						/>
 					) : (
 						<View style={styles.favoritesLogoWrapper}>
-							<AntIcons color={colors.white} name={'star'} size={24} />
+							<AntIcons color={colors.backgroundDefault} name={'star'} size={24} />
 						</View>
 					)}
 				</View>

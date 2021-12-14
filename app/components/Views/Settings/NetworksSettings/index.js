@@ -13,7 +13,7 @@ import { MAINNET, RPC } from '../../../../constants/network';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 		paddingVertical: 12,
 		paddingHorizontal: 24,
@@ -44,13 +44,13 @@ const styles = StyleSheet.create({
 	},
 	networkLabel: {
 		fontSize: 16,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	sectionLabel: {
 		fontSize: 14,
 		paddingVertical: 12,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.bold,
 	},
 });

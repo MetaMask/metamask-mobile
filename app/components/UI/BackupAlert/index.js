@@ -31,12 +31,12 @@ const styles = StyleSheet.create({
 	backupAlertIcon: {
 		fontSize: 22,
 		...fontStyles.bold,
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	backupAlertTitle: {
 		fontSize: 14,
 		marginBottom: 14,
-		color: colors.black,
+		color: colors.textDefault,
 		...fontStyles.bold,
 	},
 	backupAlertMessage: {

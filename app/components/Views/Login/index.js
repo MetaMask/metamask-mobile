@@ -53,7 +53,7 @@ const breakPoint = deviceHeight < 700;
 
 const styles = StyleSheet.create({
 	mainWrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	wrapper: {
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
 		fontSize: Device.isAndroid() ? 30 : 35,
 		marginTop: 20,
 		marginBottom: 20,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		justifyContent: 'center',
 		textAlign: 'center',
 		...fontStyles.bold,
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 	},
 	label: {
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 16,
 		marginBottom: 12,
 		...fontStyles.normal,
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
 	biometryLabel: {
 		flex: 1,
 		fontSize: 16,
-		color: colors.black,
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	biometrySwitch: {
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		fontSize: 16,
 		lineHeight: 24,
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	areYouSure: {
 		width: '100%',
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
 	},
 	heading: {
 		marginHorizontal: 6,
-		color: colors.black,
+		color: colors.textDefault,
 		...fontStyles.bold,
 		fontSize: 20,
 		textAlign: 'center',
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		fontSize: 14,
 		lineHeight: breakPoint ? 18 : 22,
-		color: colors.black,
+		color: colors.textDefault,
 		marginTop: 20,
 	},
 	warningIcon: {

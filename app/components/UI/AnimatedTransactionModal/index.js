@@ -6,7 +6,7 @@ import Device from '../../../util/device';
 
 const styles = StyleSheet.create({
 	root: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		minHeight: 200,
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
