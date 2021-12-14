@@ -65,6 +65,13 @@ export function setGasEducationCarouselSeen() {
 	};
 }
 
+export function setAppTheme(theme) {
+	return {
+		type: 'SET_APP_THEME',
+		payload: { theme },
+	};
+}
+
 export function logIn() {
 	return {
 		type: 'LOGIN',

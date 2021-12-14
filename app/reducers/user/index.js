@@ -1,3 +1,5 @@
+import { AppThemeNames } from '../../util/theme/models';
+
 const initialState = {
 	loadingMsg: '',
 	loadingSet: false,
@@ -9,6 +11,7 @@ const initialState = {
 	userLoggedIn: false,
 	isAuthChecked: false,
 	initialScreen: '',
+	appTheme: AppThemeNames.Playful,
 };
 
 const userReducer = (state = initialState, action) => {
@@ -89,6 +92,11 @@ const userReducer = (state = initialState, action) => {
 			return {
 				...state,
 				gasEducationCarouselSeen: true,
+			};
+		case 'SET_APP_THEME':
+			return {
+				...state,
+				appTheme: action.payload.theme,
 			};
 		default:
 			return state;
