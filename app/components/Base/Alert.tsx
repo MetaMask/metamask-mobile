@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
 	},
 	baseTextStyle: { fontSize: 14, flex: 1, lineHeight: 17 },
 	textInfo: { color: colors.blue },
-	textWarning: { color: colors.black },
+	textWarning: { color: colors.textDefault },
 	textError: { color: colors.red },
 	textIconStyle: { marginRight: 12 },
 	iconWrapper: {
@@ -65,8 +65,8 @@ const styles = StyleSheet.create({
 const Alert = ({ type = AlertType.Info, small, renderIcon, style, onPress, children, ...props }: Props) => {
 	const Wrapper: React.ComponentClass<TouchableOpacityProps | ViewProps> = onPress ? TouchableOpacity : View;
 
-	const getStyles: (type: AlertType) => [StyleProp<ViewStyle>, StyleProp<TextStyle>] = useCallback(() => {
-		switch (type) {
+	const getStyles: (type: AlertType) => [StyleProp<ViewStyle>, StyleProp<TextStyle>] = useCallback((alertType) => {
+		switch (alertType) {
 			case AlertType.Warning: {
 				return [styles.warning, { ...styles.textWarning, ...styles.baseTextStyle }];
 			}
@@ -78,7 +78,7 @@ const Alert = ({ type = AlertType.Info, small, renderIcon, style, onPress, child
 				return [styles.info, { ...styles.textInfo, ...styles.baseTextStyle }];
 			}
 		}
-	}, [type]);
+	}, []);
 
 	const [wrapperStyle, textStyle] = getStyles(type);
 
