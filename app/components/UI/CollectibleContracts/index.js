@@ -31,6 +31,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'center',
 		marginTop: 40,
+		flex: 1,
 	},
 	addText: {
 		fontSize: 14,
@@ -50,7 +51,6 @@ const styles = StyleSheet.create({
 	},
 	emptyText: {
 		color: colors.greyAssetVisibility,
-		marginBottom: 8,
 		fontSize: 14,
 		marginRight: 4,
 	},
@@ -65,28 +65,28 @@ const styles = StyleSheet.create({
 	frameBottomRow: {
 		marginBottom: 40,
 	},
+	nftText: {
+		color: colors.blue,
+	},
 	frame: {
 		height: 20,
 		width: 20,
 		borderColor: colors.blue,
 	},
-	nftText: {
-		color: colors.blue,
-	},
-	middle: {
+	frameMiddle: {
 		height: 20,
 		width: '100%',
 	},
-	top: {
+	frameTop: {
 		borderTopWidth: 3,
 	},
-	bottom: {
+	frameBottom: {
 		borderBottomWidth: 3,
 	},
-	left: {
+	frameLeft: {
 		borderLeftWidth: 3,
 	},
-	right: {
+	frameRight: {
 		borderRightWidth: 3,
 	},
 });
@@ -215,11 +215,11 @@ const CollectibleContracts = ({
 		<View
 			style={[
 				styles.frame,
-				top ? styles.top : null,
-				bottom ? styles.bottom : null,
-				left ? styles.left : null,
-				right ? styles.right : null,
-				middle ? styles.middle : null,
+				top ? styles.frameTop : null,
+				bottom ? styles.frameBottom : null,
+				left ? styles.frameLeft : null,
+				right ? styles.frameRight : null,
+				middle ? styles.frameMiddle : null,
 			]}
 		/>
 	);
