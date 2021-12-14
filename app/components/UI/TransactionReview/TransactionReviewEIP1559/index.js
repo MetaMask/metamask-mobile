@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
 		paddingLeft: 2,
 	},
 	gasInfoIcon: (hasOrigin) => ({
-		color: hasOrigin ? colors.orange : colors.textAlternative,
+		color: hasOrigin ? colors.onWarning : colors.textAlternative,
 	}),
 	amountContainer: {
 		flex: 1,
@@ -217,7 +217,11 @@ const TransactionReviewEIP1559 = ({
 						{gasEstimationReady ? (
 							<FadeAnimationView valueToWatch={valueToWatchAnimation} animateOnChange={animateOnChange}>
 								<View style={styles.timeEstimateContainer}>
-									<Text small green={timeEstimateColor === 'green'} red={timeEstimateColor === 'red'}>
+									<Text
+										small
+										success={timeEstimateColor === 'green'}
+										red={timeEstimateColor === 'red'}
+									>
 										{timeEstimate}
 									</Text>
 									{(timeEstimateId === AppConstants.GAS_TIMES.MAYBE ||

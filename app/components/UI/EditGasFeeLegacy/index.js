@@ -243,7 +243,7 @@ const EditGasFeeLegacy = ({
 				<Alert
 					small
 					type={AlertType.Warning}
-					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.yellow} />}
+					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.onWarning} />}
 					style={styles.warningContainer}
 				>
 					{() => (

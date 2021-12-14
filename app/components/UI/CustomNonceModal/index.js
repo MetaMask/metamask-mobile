@@ -67,8 +67,8 @@ const styles = StyleSheet.create({
 	},
 	nonceWarning: {
 		borderWidth: 1,
-		borderColor: colors.yellow,
-		backgroundColor: colors.yellow100,
+		borderColor: colors.onWarning,
+		backgroundColor: colors.warning,
 		padding: 16,
 		display: 'flex',
 		flexDirection: 'row',
@@ -183,7 +183,7 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 								<View style={styles.nonceWarning}>
 									<Icon
 										name="exclamation-circle"
-										color={colors.yellow}
+										color={colors.onWarning}
 										size={16}
 										style={styles.icon}
 									/>

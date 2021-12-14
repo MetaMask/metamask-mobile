@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.ui1,
 	},
 	check: {
-		color: colors.green500,
+		color: colors.onSuccess,
 	},
 });
 

@@ -33,7 +33,6 @@ exports[`CollectibleMedia should render correctly 1`] = `
       centered={false}
       disclaimer={false}
       error={false}
-      green={false}
       link={false}
       modal={false}
       primary={false}
@@ -47,6 +46,7 @@ exports[`CollectibleMedia should render correctly 1`] = `
           "textAlign": "center",
         }
       }
+      success={false}
       textAlternative={false}
       textDefault={false}
       underline={false}

@@ -35,8 +35,8 @@ const style = StyleSheet.create({
 	blue: {
 		color: colors.primary,
 	},
-	green: {
-		color: colors.green400,
+	success: {
+		color: colors.onSuccess,
 	},
 	primary: {
 		color: colors.textDefault,
@@ -82,7 +82,7 @@ const Text = ({
 	centered,
 	right,
 	bold,
-	green,
+	success,
 	textDefault,
 	textAlternative,
 	blue,
@@ -109,7 +109,7 @@ const Text = ({
 			centered && style.centered,
 			right && style.right,
 			bold && style.bold,
-			green && style.green,
+			success && style.success,
 			blue && style.blue,
 			red && style.red,
 			error && style.error,
@@ -138,7 +138,7 @@ Text.defaultProps = {
 	centered: false,
 	right: false,
 	bold: false,
-	green: false,
+	success: false,
 	textDefault: false,
 	textAlternative: false,
 	blue: false,
@@ -174,15 +174,15 @@ Text.propTypes = {
 	 */
 	bold: PropTypes.bool,
 	/**
-	 * Makes text green
+	 * Sets the color to the success theme color
 	 */
-	green: PropTypes.bool,
+	success: PropTypes.bool,
 	/**
-	 * Sets the color to the textDefault of the theme
+	 * Sets the color to the textDefault theme color
 	 */
 	textDefault: PropTypes.bool,
 	/**
-	 * Sets the color to the textAlternative of the theme
+	 * Sets the color to the textAlternative theme color
 	 */
 	textAlternative: PropTypes.bool,
 	/**

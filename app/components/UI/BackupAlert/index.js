@@ -16,8 +16,8 @@ const BROWSER_ROUTE = 'BrowserView';
 const styles = StyleSheet.create({
 	backupAlertWrapper: {
 		flex: 1,
-		backgroundColor: colors.orange000,
-		borderColor: colors.yellow300,
+		backgroundColor: colors.warning,
+		borderColor: colors.onWarning,
 		borderWidth: 1,
 		position: 'absolute',
 		left: 16,

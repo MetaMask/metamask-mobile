@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
 		marginBottom: 24,
 	},
 	seedPhraseWrapperComplete: {
-		borderColor: colors.green500,
+		borderColor: colors.onSuccess,
 	},
 	seedPhraseWrapperError: {
 		borderColor: colors.onError,
@@ -286,7 +286,7 @@ class ManualBackupStep2 extends PureComponent {
 
 	renderSuccess = () => (
 		<View style={styles.successRow}>
-			<MaterialIcon name="check-circle" size={15} color={colors.green500} />
+			<MaterialIcon name="check-circle" size={15} color={colors.onSuccess} />
 			<Text style={styles.successText}>{strings('manual_backup_step_2.success')}</Text>
 		</View>
 	);

@@ -243,7 +243,7 @@ export const AddressTo = (props) => {
 										{renderShortAddress(toSelectedAddress)}
 									</Text>
 									<View style={(styles.checkIconWrapper, toAddressName ? {} : { paddingTop: 2 })}>
-										<AntIcon name="check" color={colors.green600} size={15} />
+										<AntIcon name="check" color={colors.onSuccess} size={15} />
 									</View>
 								</View>
 							</View>

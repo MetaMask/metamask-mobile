@@ -35,7 +35,6 @@ exports[`AssetActionButtons should render correctly 1`] = `
     centered={true}
     disclaimer={false}
     error={false}
-    green={false}
     link={false}
     modal={false}
     numberOfLines={1}
@@ -52,6 +51,7 @@ exports[`AssetActionButtons should render correctly 1`] = `
         "marginTop": 8,
       }
     }
+    success={false}
     textAlternative={false}
     textDefault={false}
     underline={false}
@@ -109,7 +109,6 @@ exports[`AssetActionButtons should render type add correctly 1`] = `
     centered={true}
     disclaimer={false}
     error={false}
-    green={false}
     link={false}
     modal={false}
     numberOfLines={1}
@@ -126,6 +125,7 @@ exports[`AssetActionButtons should render type add correctly 1`] = `
         "marginTop": 8,
       }
     }
+    success={false}
     textAlternative={false}
     textDefault={false}
     underline={false}
@@ -183,7 +183,6 @@ exports[`AssetActionButtons should render type information correctly 1`] = `
     centered={true}
     disclaimer={false}
     error={false}
-    green={false}
     link={false}
     modal={false}
     numberOfLines={1}
@@ -200,6 +199,7 @@ exports[`AssetActionButtons should render type information correctly 1`] = `
         "marginTop": 8,
       }
     }
+    success={false}
     textAlternative={false}
     textDefault={false}
     underline={false}
@@ -269,7 +269,6 @@ exports[`AssetActionButtons should render type receive correctly 1`] = `
     centered={true}
     disclaimer={false}
     error={false}
-    green={false}
     link={false}
     modal={false}
     numberOfLines={1}
@@ -286,6 +285,7 @@ exports[`AssetActionButtons should render type receive correctly 1`] = `
         "marginTop": 8,
       }
     }
+    success={false}
     textAlternative={false}
     textDefault={false}
     underline={false}
@@ -343,7 +343,6 @@ exports[`AssetActionButtons should render type send correctly 1`] = `
     centered={true}
     disclaimer={false}
     error={false}
-    green={false}
     link={false}
     modal={false}
     numberOfLines={1}
@@ -360,6 +359,7 @@ exports[`AssetActionButtons should render type send correctly 1`] = `
         "marginTop": 8,
       }
     }
+    success={false}
     textAlternative={false}
     textDefault={false}
     underline={false}
@@ -423,7 +423,6 @@ exports[`AssetActionButtons should render type swap correctly 1`] = `
     centered={true}
     disclaimer={false}
     error={false}
-    green={false}
     link={false}
     modal={false}
     numberOfLines={1}
@@ -440,6 +439,7 @@ exports[`AssetActionButtons should render type swap correctly 1`] = `
         "marginTop": 8,
       }
     }
+    success={false}
     textAlternative={false}
     textDefault={false}
     underline={false}

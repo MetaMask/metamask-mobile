@@ -90,7 +90,7 @@ exports[`AddCustomToken should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#F66A0A",
+              "color": "#FFFFFF",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
               "marginTop": 15,
@@ -139,7 +139,7 @@ exports[`AddCustomToken should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#F66A0A",
+              "color": "#FFFFFF",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
               "marginTop": 15,
@@ -189,7 +189,7 @@ exports[`AddCustomToken should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#F66A0A",
+              "color": "#FFFFFF",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
               "marginTop": 15,

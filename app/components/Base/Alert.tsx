@@ -45,8 +45,8 @@ const styles = StyleSheet.create({
 		borderColor: colors.onInfo,
 	},
 	warning: {
-		backgroundColor: colors.yellow100,
-		borderColor: colors.yellowWarningBorder,
+		backgroundColor: colors.warning,
+		borderColor: colors.onWarning,
 	},
 	error: {
 		backgroundColor: colors.error,

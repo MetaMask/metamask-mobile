@@ -137,8 +137,8 @@ const styles = StyleSheet.create({
 		borderRadius: 8,
 	},
 	confusabeWarning: {
-		borderColor: colors.yellow,
-		backgroundColor: colors.yellow100,
+		borderColor: colors.onWarning,
+		backgroundColor: colors.warning,
 	},
 	confusableTitle: {
 		marginTop: -3,

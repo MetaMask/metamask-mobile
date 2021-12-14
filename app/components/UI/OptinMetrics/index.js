@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.backgroundDefault,
 	},
 	checkIcon: {
-		color: colors.green500,
+		color: colors.onSuccess,
 	},
 	crossIcon: {
 		color: colors.onError,

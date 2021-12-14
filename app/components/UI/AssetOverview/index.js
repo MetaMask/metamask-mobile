@@ -77,8 +77,8 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		lineHeight: 20,
 		borderWidth: 1,
-		borderColor: colors.yellow,
-		backgroundColor: colors.yellow100,
+		borderColor: colors.onWarning,
+		backgroundColor: colors.warning,
 		padding: 20,
 	},
 	warningLinks: {

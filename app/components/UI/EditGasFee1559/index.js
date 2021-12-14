@@ -501,7 +501,7 @@ const EditGasFee1559 = ({
 				<Alert
 					small
 					type={AlertType.Warning}
-					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.yellow} />}
+					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.onWarning} />}
 					style={styles.warningContainer}
 				>
 					{() => (
@@ -524,7 +524,7 @@ const EditGasFee1559 = ({
 				<Alert
 					small
 					type={AlertType.Error}
-					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.error} />}
+					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.onWarning} />}
 					style={styles.warningContainer}
 				>
 					{() => (
@@ -603,7 +603,11 @@ const EditGasFee1559 = ({
 								{gasFeeMaxPrimary} ({gasFeeMaxSecondary})
 							</Text>
 							<View style={styles.labelTextContainer}>
-								<Text green={timeEstimateColor === 'green'} error={timeEstimateColor === 'error'} bold>
+								<Text
+									success={timeEstimateColor === 'green'}
+									error={timeEstimateColor === 'error'}
+									bold
+								>
 									{timeEstimate}
 								</Text>
 								{(timeEstimateId === AppConstants.GAS_TIMES.MAYBE ||

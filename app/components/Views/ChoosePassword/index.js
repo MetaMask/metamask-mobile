@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_strong: {
-		color: colors.green300,
+		color: colors.onSuccess,
 	},
 	showMatchingPasswords: {
 		position: 'absolute',
@@ -658,7 +658,7 @@ class ChoosePassword extends PureComponent {
 									/>
 									<View style={styles.showMatchingPasswords}>
 										{passwordsMatch ? (
-											<Icon name="check" size={16} color={colors.green300} />
+											<Icon name="check" size={16} color={colors.onSuccess} />
 										) : null}
 									</View>
 									<Text style={styles.passwordStrengthLabel}>

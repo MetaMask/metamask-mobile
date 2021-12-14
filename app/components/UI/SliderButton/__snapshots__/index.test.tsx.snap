@@ -107,7 +107,7 @@ exports[`SliderButton should render correctly 1`] = `
           "position": "absolute",
         },
         Object {
-          "backgroundColor": "rgba(234, 246, 255, 1)",
+          "backgroundColor": "rgba(3, 125, 214, 1)",
           "width": 60,
         },
       ]

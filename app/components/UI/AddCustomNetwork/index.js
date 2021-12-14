@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
 	alertIcon: {
 		fontSize: 20,
 		...fontStyles.bold,
-		color: colors.yellow,
+		color: colors.onWarning,
 		marginRight: 6,
 	},
 	alertText: {
