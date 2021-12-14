@@ -71,7 +71,7 @@ function TokenImportModal({ isVisible, dismiss, token, onPressImport }) {
 					<Alert
 						type={AlertType.Error}
 						renderIcon={() => (
-							<FAIcon name="info-circle" style={styles.alertIcon} color={colors.red} size={15} />
+							<FAIcon name="info-circle" style={styles.alertIcon} color={colors.onError} size={15} />
 						)}
 					>
 						{(textStyle) => <Text style={textStyle}>{strings('swaps.add_warning')}</Text>}

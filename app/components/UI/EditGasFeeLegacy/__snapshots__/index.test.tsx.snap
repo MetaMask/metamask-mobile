@@ -48,6 +48,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
               bold={true}
               centered={false}
               disclaimer={false}
+              error={false}
               green={false}
               link={false}
               modal={false}
@@ -57,6 +58,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
               right={false}
               small={false}
               strikethrough={false}
+              textAlternative={false}
               textDefault={true}
               underline={false}
               upper={false}
@@ -99,6 +101,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                   bold={false}
                   centered={false}
                   disclaimer={false}
+                  error={false}
                   green={false}
                   link={false}
                   modal={false}
@@ -113,6 +116,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                       "fontSize": 48,
                     }
                   }
+                  textAlternative={false}
                   textDefault={true}
                   underline={false}
                   upper={false}
@@ -125,6 +129,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                 bold={false}
                 centered={false}
                 disclaimer={false}
+                error={false}
                 green={false}
                 link={false}
                 modal={false}
@@ -139,6 +144,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                     "fontSize": 48,
                   }
                 }
+                textAlternative={false}
                 textDefault={true}
                 underline={false}
                 upper={false}
@@ -157,6 +163,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
               bold={false}
               centered={false}
               disclaimer={false}
+              error={false}
               green={false}
               link={false}
               modal={false}
@@ -166,6 +173,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
               right={false}
               small={false}
               strikethrough={false}
+              textAlternative={false}
               textDefault={true}
               underline={false}
               upper={false}
@@ -175,6 +183,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                 bold={true}
                 centered={false}
                 disclaimer={false}
+                error={false}
                 green={false}
                 link={false}
                 modal={false}
@@ -184,6 +193,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                 right={false}
                 small={false}
                 strikethrough={false}
+                textAlternative={false}
                 textDefault={true}
                 underline={false}
                 upper={false}
@@ -228,6 +238,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                         bold={true}
                         centered={false}
                         disclaimer={false}
+                        error={false}
                         green={false}
                         link={false}
                         modal={false}
@@ -238,6 +249,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                         right={false}
                         small={false}
                         strikethrough={false}
+                        textAlternative={false}
                         textDefault={true}
                         underline={false}
                         upper={false}
@@ -262,7 +274,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                           size={14}
                           style={
                             Object {
-                              "color": "#bbc0c5",
+                              "color": "#5B5D67",
                             }
                           }
                         />
@@ -298,6 +310,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                         bold={true}
                         centered={false}
                         disclaimer={false}
+                        error={false}
                         green={false}
                         link={false}
                         modal={false}
@@ -308,6 +321,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                         right={false}
                         small={false}
                         strikethrough={false}
+                        textAlternative={false}
                         textDefault={true}
                         underline={false}
                         upper={false}
@@ -332,7 +346,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                           size={14}
                           style={
                             Object {
-                              "color": "#bbc0c5",
+                              "color": "#5B5D67",
                             }
                           }
                         />
@@ -375,8 +389,8 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                 bold={false}
                 centered={false}
                 disclaimer={false}
+                error={false}
                 green={false}
-                textAlternative={true}
                 infoModal={true}
                 link={false}
                 modal={false}
@@ -386,6 +400,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                 right={false}
                 small={false}
                 strikethrough={false}
+                textAlternative={true}
                 textDefault={false}
                 underline={false}
                 upper={false}

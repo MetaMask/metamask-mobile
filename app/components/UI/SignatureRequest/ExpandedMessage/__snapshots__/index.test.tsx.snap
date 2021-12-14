@@ -30,7 +30,7 @@ exports[`ExpandedMessage should render correctly 1`] = `
       size={30}
       style={
         Object {
-          "color": "#bbc0c5",
+          "color": "#5B5D67",
           "flex": 1,
         }
       }

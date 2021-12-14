@@ -130,7 +130,7 @@ class NavbarBrowserTitle extends PureComponent {
 					{https && !error ? <Icon name="lock" size={14} style={styles.lockIcon} /> : null}
 				</View>
 				<View style={styles.network}>
-					<View style={[styles.networkIcon, { backgroundColor: color || colors.red }]} />
+					<View style={[styles.networkIcon, { backgroundColor: color || colors.error }]} />
 					<Text style={styles.networkName} testID={'navbar-title-network'}>
 						{name}
 					</Text>

@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
 		color: colors.green500,
 	},
 	crossIcon: {
-		color: colors.red,
+		color: colors.onError,
 	},
 	icon: {
 		marginRight: 5,

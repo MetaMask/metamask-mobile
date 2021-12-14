@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
 		minHeight: 22,
 	},
 	amountError: {
-		color: colors.red,
+		color: colors.onError,
 	},
 	content: {
 		flexGrow: 1,

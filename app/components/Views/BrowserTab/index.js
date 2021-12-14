@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
 	optionIconWrapper: {
 		flex: 0,
 		borderRadius: 5,
-		backgroundColor: colors.blue000,
+		backgroundColor: colors.info,
 		padding: 3,
 		marginRight: 10,
 		alignSelf: 'center',
@@ -1246,7 +1246,7 @@ export const BrowserTab = (props) => {
 			animationOut="slideOutDown"
 			style={styles.fullScreenModal}
 			backdropOpacity={1}
-			backdropColor={colors.red}
+			backdropcolor={colors.onError}
 			animationInTiming={300}
 			animationOutTiming={300}
 			useNativeDriver

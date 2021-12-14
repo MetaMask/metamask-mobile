@@ -4,7 +4,7 @@ exports[`CustomNonce should render correctly 1`] = `
 <TouchableOpacity
   style={
     Object {
-      "borderColor": "#D8D8D8",
+      "borderColor": "#d6d9dc",
       "borderRadius": 8,
       "borderWidth": 1,
       "display": "flex",
@@ -21,6 +21,7 @@ exports[`CustomNonce should render correctly 1`] = `
     bold={true}
     centered={false}
     disclaimer={false}
+    error={false}
     green={false}
     link={false}
     modal={false}
@@ -30,6 +31,7 @@ exports[`CustomNonce should render correctly 1`] = `
     right={false}
     small={false}
     strikethrough={false}
+    textAlternative={false}
     textDefault={true}
     underline={false}
     upper={false}
@@ -41,6 +43,7 @@ exports[`CustomNonce should render correctly 1`] = `
     bold={true}
     centered={false}
     disclaimer={false}
+    error={false}
     green={false}
     link={true}
     modal={false}
@@ -50,6 +53,7 @@ exports[`CustomNonce should render correctly 1`] = `
     right={false}
     small={false}
     strikethrough={false}
+    textAlternative={false}
     textDefault={false}
     underline={false}
     upper={false}
@@ -62,6 +66,7 @@ exports[`CustomNonce should render correctly 1`] = `
     bold={true}
     centered={false}
     disclaimer={false}
+    error={false}
     green={false}
     link={false}
     modal={false}
@@ -76,6 +81,7 @@ exports[`CustomNonce should render correctly 1`] = `
         "marginLeft": "auto",
       }
     }
+    textAlternative={false}
     textDefault={true}
     underline={false}
     upper={false}

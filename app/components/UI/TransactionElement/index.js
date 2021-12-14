@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
 	},
 	importRowBody: {
 		alignItems: 'center',
-		backgroundColor: colors.ui1,
+		backgroundColor: colors.backgroundAlternative,
 		paddingTop: 10,
 	},
 });

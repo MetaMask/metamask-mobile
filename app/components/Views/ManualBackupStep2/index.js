@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
 		borderColor: colors.green500,
 	},
 	seedPhraseWrapperError: {
-		borderColor: colors.red,
+		borderColor: colors.onError,
 	},
 	colLeft: {
 		paddingTop: 18,

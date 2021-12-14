@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
 		marginTop: 20,
 	},
 	menuItemWarningText: {
-		color: colors.red,
+		color: colors.onError,
 		fontSize: 12,
 		...fontStyles.normal,
 	},

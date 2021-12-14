@@ -91,7 +91,7 @@ exports[`HintModal should render correctly 1`] = `
         placeholder="e.g. Mom's house"
         style={
           Object {
-            "borderColor": "#6a737d",
+            "borderColor": "#d6d9dc",
             "borderRadius": 6,
             "borderWidth": 1,
             "minHeight": 76,

@@ -33,6 +33,7 @@ exports[`TokenIcon component should Render correctly 3`] = `
     bold={false}
     centered={false}
     disclaimer={false}
+    error={false}
     green={false}
     link={false}
     modal={false}
@@ -54,6 +55,7 @@ exports[`TokenIcon component should Render correctly 3`] = `
         undefined,
       ]
     }
+    textAlternative={false}
     textDefault={false}
     underline={false}
     upper={false}
@@ -130,6 +132,7 @@ exports[`TokenIcon component should Render correctly 7`] = `
     bold={false}
     centered={false}
     disclaimer={false}
+    error={false}
     green={false}
     link={false}
     modal={false}
@@ -153,6 +156,7 @@ exports[`TokenIcon component should Render correctly 7`] = `
         undefined,
       ]
     }
+    textAlternative={false}
     textDefault={false}
     underline={false}
     upper={false}

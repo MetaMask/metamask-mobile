@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
 		paddingVertical: 15,
 	},
 	selectedQuoteRow: {
-		backgroundColor: colors.blue000,
+		backgroundColor: colors.info,
 	},
 	columnAmount: {
 		flex: 3,
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
 		marginRight: 5,
 	},
 	red: {
-		color: colors.red,
+		color: colors.onError,
 	},
 	bestBadge: {
 		flexDirection: 'row',

@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
 		fontVariant: ['tabular-nums'],
 	},
 	timerHiglight: {
-		color: colors.red,
+		color: colors.onError,
 	},
 	content: {
 		paddingHorizontal: 20,
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
 	errorIcon: {
 		fontSize: 46,
 		marginVertical: 4,
-		color: colors.red,
+		color: colors.onError,
 	},
 	expiredIcon: {
 		color: colors.primary,

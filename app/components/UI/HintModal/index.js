@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
 	noSeedphrase: {
 		fontSize: 14,
 		...fontStyles.regular,
-		color: colors.red,
+		color: colors.onError,
 		marginBottom: 16,
 	},
 	hintInput: {

@@ -49,10 +49,10 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'space-between',
 		height: TICK_DIAMETER + 2 * TRACK_PADDING,
-		backgroundColor: colors.blue000,
+		backgroundColor: colors.info,
 		borderRadius: TICK_DIAMETER + 2 * TRACK_PADDING,
 		borderWidth: TRACK_PADDING,
-		borderColor: colors.blue000,
+		borderColor: colors.info,
 	},
 	tick: {
 		height: TICK_DIAMETER,
@@ -126,7 +126,7 @@ const SlippageSlider = ({ range, increment, onChange, value, formatTooltipText, 
 
 	const sliderColor = sliderPosition.interpolate({
 		inputRange: [0, trackWidth],
-		outputRange: [colors.spinnerColor, colors.red],
+		outputRange: [colors.spinnerColor, colors.onError],
 		extrapolate: 'clamp',
 	});
 

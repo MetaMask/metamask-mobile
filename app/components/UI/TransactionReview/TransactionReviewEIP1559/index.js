@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
 		right: 10,
 	},
 	redInfo: {
-		color: colors.red,
+		color: colors.onError,
 	},
 	timeEstimateContainer: {
 		alignItems: 'center',

@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
 		alignItems: 'flex-end',
 	},
 	over: {
-		color: colors.red,
+		color: colors.onError,
 	},
 	valuesContainer: {
 		flex: 1,

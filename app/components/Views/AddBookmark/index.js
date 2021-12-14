@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 	},
 	warningText: {
-		color: colors.red,
+		color: colors.onError,
 		...fontStyles.normal,
 	},
 });

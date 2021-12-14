@@ -266,12 +266,12 @@ const EditGasFeeLegacy = ({
 				<Alert
 					small
 					type={AlertType.Error}
-					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.red} />}
+					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.error} />}
 					style={styles.warningContainer}
 				>
 					{() => (
 						<View style={styles.warningTextContainer}>
-							<Text red style={styles.warningText}>
+							<Text error style={styles.warningText}>
 								{error}
 							</Text>
 						</View>

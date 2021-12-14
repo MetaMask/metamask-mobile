@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 	},
 	warningTextRed: {
-		color: colors.red,
+		color: colors.onError,
 	},
 	warningTextGreen: {
 		color: colors.textDefault,
@@ -155,7 +155,7 @@ const Heading = ({ children, first }) => (
 	</View>
 );
 
-const WarningIcon = () => <Icon size={16} color={colors.red} name="exclamation-triangle" />;
+const WarningIcon = () => <Icon size={16} color={colors.onError} name="exclamation-triangle" />;
 
 Heading.propTypes = {
 	children: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node), PropTypes.node]),

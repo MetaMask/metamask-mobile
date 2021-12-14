@@ -89,7 +89,8 @@ const TransactionHeader = (props) => {
 	 */
 	const renderNetworkStatusIndicator = () => {
 		const { networkType } = props;
-		const networkStatusIndicatorColor = (networkList[networkType] && networkList[networkType].color) || colors.red;
+		const networkStatusIndicatorColor =
+			(networkList[networkType] && networkList[networkType].color) || colors.onError;
 		const networkStatusIndicator = (
 			<View style={[styles.networkStatusIndicator, { backgroundColor: networkStatusIndicatorColor }]} />
 		);

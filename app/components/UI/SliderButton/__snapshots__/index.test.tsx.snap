@@ -7,7 +7,7 @@ exports[`SliderButton should render correctly 1`] = `
     Array [
       Object {
         "elevation": 0,
-        "shadowColor": "#75C4FD",
+        "shadowColor": "#EAF6FF",
         "shadowOffset": Object {
           "height": 3,
           "width": 0,
@@ -23,7 +23,7 @@ exports[`SliderButton should render correctly 1`] = `
     style={
       Object {
         "alignItems": "center",
-        "backgroundColor": "#0074C8",
+        "backgroundColor": "#037DD6",
         "borderRadius": 60,
         "height": 60,
         "justifyContent": "center",
@@ -107,7 +107,7 @@ exports[`SliderButton should render correctly 1`] = `
           "position": "absolute",
         },
         Object {
-          "backgroundColor": "rgba(2, 96, 164, 1)",
+          "backgroundColor": "rgba(234, 246, 255, 1)",
           "width": 60,
         },
       ]
@@ -160,7 +160,7 @@ exports[`SliderButton should render correctly 1`] = `
       Array [
         Object {
           "backgroundColor": "#FFFFFF",
-          "borderColor": "#0260A4",
+          "borderColor": "#037DD6",
           "borderRadius": 60,
           "borderWidth": 9.6,
           "height": 60,

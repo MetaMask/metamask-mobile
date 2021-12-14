@@ -157,12 +157,12 @@ const styles = StyleSheet.create({
 		flexGrow: 1,
 	},
 	errorWrapper: {
-		backgroundColor: colors.red000,
+		backgroundColor: colors.error,
 		borderRadius: 4,
 		marginTop: 8,
 	},
 	errorText: {
-		color: colors.error,
+		color: colors.onError,
 		alignSelf: 'center',
 	},
 	assetsWrapper: {

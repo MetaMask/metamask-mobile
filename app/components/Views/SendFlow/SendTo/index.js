@@ -132,8 +132,8 @@ const styles = StyleSheet.create({
 		margin: 16,
 		padding: 16,
 		borderWidth: 1,
-		borderColor: colors.red,
-		backgroundColor: colors.red000,
+		borderColor: colors.onError,
+		backgroundColor: colors.error,
 		borderRadius: 8,
 	},
 	confusabeWarning: {
@@ -142,12 +142,12 @@ const styles = StyleSheet.create({
 	},
 	confusableTitle: {
 		marginTop: -3,
-		color: colors.red,
+		color: colors.onError,
 		...fontStyles.bold,
 		fontSize: 14,
 	},
 	confusableMsg: {
-		color: colors.red,
+		color: colors.onError,
 		fontSize: 12,
 		lineHeight: 16,
 		paddingRight: 10,
@@ -642,7 +642,7 @@ class SendFlow extends PureComponent {
 									<View style={styles.warningIcon}>
 										<Icon
 											size={16}
-											color={displayAsWarning ? colors.textDefault : colors.red}
+											color={displayAsWarning ? colors.textDefault : colors.onError}
 											name="exclamation-triangle"
 										/>
 									</View>

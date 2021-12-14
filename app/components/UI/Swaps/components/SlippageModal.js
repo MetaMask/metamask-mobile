@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
 		left: 10,
 	},
 	warningText: {
-		color: colors.red,
+		color: colors.onError,
 	},
 });
 

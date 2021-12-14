@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
 		padding: 20,
 	},
 	warningWrapper: {
-		backgroundColor: colors.red000,
+		backgroundColor: colors.error,
 	},
 	warningRowWrapper: {
 		flex: 1,
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
 	},
 	warningText: {
 		marginTop: 10,
-		color: colors.red,
+		color: colors.onError,
 		...fontStyles.normal,
 	},
 	input: {
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
 	},
 	icon: {
 		margin: 10,
-		color: colors.red,
+		color: colors.onError,
 	},
 	actionIcon: {
 		margin: 10,

@@ -61,16 +61,16 @@ const styles = StyleSheet.create({
 	},
 	passwordTipContainer: {
 		padding: 16,
-		backgroundColor: colors.blue000,
+		backgroundColor: colors.info,
 		borderWidth: 1,
-		borderColor: colors.blue200,
+		borderColor: colors.onInfo,
 		borderRadius: 8,
 		marginTop: 29,
 	},
 	passwordTipText: {
 		fontSize: 12,
 		lineHeight: 17,
-		color: colors.blue600,
+		color: colors.onInfo,
 	},
 	learnMoreText: {
 		marginTop: 29,

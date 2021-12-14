@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
 		marginRight: 4,
 	},
 	red: {
-		backgroundColor: colors.red000,
+		backgroundColor: colors.error,
 	},
 	normal: {
 		backgroundColor: colors.ui1,
@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
 	},
 });
 
-const WarningIcon = () => <Icon style={styles.icon} size={16} color={colors.red} name="exclamation-triangle" />;
+const WarningIcon = () => <Icon style={styles.icon} size={16} color={colors.onError} name="exclamation-triangle" />;
 const CheckIcon = () => <MaterialIcon style={[styles.icon, styles.check]} size={16} name="check-circle" />;
 
 const propTypes = {

@@ -224,7 +224,7 @@ export const AddressTo = (props) => {
 						<Identicon address={toSelectedAddress} diameter={30} />
 						{displayExclamation && (
 							<View style={styles.exclamation}>
-								<FontAwesome color={colors.red} name="exclamation-circle" size={14} />
+								<FontAwesome color={colors.onError} name="exclamation-circle" size={14} />
 							</View>
 						)}
 						<View style={styles.toInputWrapper}>

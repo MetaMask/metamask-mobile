@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 	},
 	errorContainer: {
-		backgroundColor: colors.red000,
+		backgroundColor: colors.error,
 		borderRadius: 8,
 		marginTop: 24,
 	},

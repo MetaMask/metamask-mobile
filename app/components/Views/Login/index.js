@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
 		marginVertical: 40,
 	},
 	errorMsg: {
-		color: colors.red,
+		color: colors.onError,
 		...fontStyles.normal,
 		lineHeight: 20,
 	},
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
 	},
 	red: {
 		marginHorizontal: 24,
-		color: colors.red,
+		color: colors.onError,
 	},
 	warningText: {
 		...fontStyles.normal,
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
 	},
 	warningIcon: {
 		alignSelf: 'center',
-		color: colors.red,
+		color: colors.onError,
 		marginVertical: 10,
 	},
 	bold: {
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		lineHeight: 20,
 		marginTop: 10,
-		color: colors.red,
+		color: colors.onError,
 	},
 });
 
@@ -523,7 +523,7 @@ class Login extends PureComponent {
 				onConfirmPress={this.toggleWarningModal}
 			>
 				<View style={styles.areYouSure} testID={'delete-wallet-modal-container'}>
-					<Icon style={styles.warningIcon} size={46} color={colors.red} name="exclamation-triangle" />
+					<Icon style={styles.warningIcon} size={46} color={colors.onError} name="exclamation-triangle" />
 					<Text style={[styles.heading, styles.red]}>{strings('login.are_you_sure')}</Text>
 					<Text style={styles.warningText}>
 						<Text>{strings('login.your_current_wallet')}</Text>

@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
 	},
 	warningMessageText: {
 		paddingVertical: 10,
-		color: colors.red,
+		color: colors.onError,
 		...fontStyles.normal,
 	},
 	keyboardAvoidingView: {

@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
 
 export const ConfirmedText = (props) => <Text bold green style={styles.status} {...props} />;
 export const PendingText = (props) => <Text bold style={[styles.status, { color: colors.orange }]} {...props} />;
-export const FailedText = (props) => <Text bold style={[styles.status, { color: colors.error }]} {...props} />;
+export const FailedText = (props) => <Text bold style={[styles.status, { color: colors.onError }]} {...props} />;
 
 function StatusText({ status, context, ...props }) {
 	switch (status) {

@@ -4,7 +4,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
 <View
   style={
     Object {
-      "backgroundColor": "#eaf6ff",
+      "backgroundColor": "#EAF6FF",
     }
   }
 >
@@ -28,7 +28,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
     }
     style={
       Object {
-        "backgroundColor": "#eaf6ff",
+        "backgroundColor": "#EAF6FF",
       }
     }
     testID="first-incoming-transaction-screen"

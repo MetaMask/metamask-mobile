@@ -86,6 +86,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
           bold={true}
           centered={true}
           disclaimer={false}
+          error={false}
           green={false}
           link={false}
           modal={false}
@@ -101,6 +102,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
               "fontSize": 14,
             }
           }
+          textAlternative={false}
           textDefault={false}
           underline={false}
           upper={false}
@@ -149,6 +151,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
           bold={false}
           centered={true}
           disclaimer={false}
+          error={false}
           green={false}
           link={false}
           modal={false}
@@ -160,11 +163,12 @@ exports[`CustomNonceModal should render correctly 1`] = `
           strikethrough={false}
           style={
             Object {
-              "color": "#6a737d",
+              "color": "#5B5D67",
               "fontSize": 14,
               "marginBottom": 10,
             }
           }
+          textAlternative={false}
           textDefault={false}
           underline={false}
           upper={false}
@@ -176,6 +180,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
             bold={true}
             centered={false}
             disclaimer={false}
+            error={false}
             green={false}
             link={false}
             modal={false}
@@ -185,6 +190,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
             right={false}
             small={false}
             strikethrough={false}
+            textAlternative={false}
             textDefault={false}
             underline={false}
             upper={false}
@@ -281,6 +287,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
               bold={false}
               centered={false}
               disclaimer={false}
+              error={false}
               green={false}
               link={false}
               modal={false}
@@ -299,6 +306,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
                   "width": "100%",
                 }
               }
+              textAlternative={false}
               textDefault={false}
               underline={false}
               upper={false}
@@ -311,6 +319,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
             bold={true}
             centered={false}
             disclaimer={false}
+            error={false}
             green={false}
             link={false}
             modal={false}
@@ -328,6 +337,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
                 "marginVertical": 10,
               }
             }
+            textAlternative={false}
             textDefault={false}
             underline={false}
             upper={false}
@@ -339,6 +349,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
             bold={false}
             centered={false}
             disclaimer={false}
+            error={false}
             green={false}
             link={false}
             modal={false}
@@ -356,6 +367,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
                 "marginVertical": 10,
               }
             }
+            textAlternative={false}
             textDefault={false}
             underline={false}
             upper={false}

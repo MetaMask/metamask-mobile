@@ -67,7 +67,7 @@ const DetailsModalHeader = ({ style, ...props }) => <View style={[styles.header,
 const DetailsModalTitle = ({ style, ...props }) => <Text style={[styles.title, style]} {...props} />;
 const DetailsModalCloseIcon = ({ style, ...props }) => (
 	<TouchableOpacity style={[styles.closeIcon, style]} {...props}>
-		<Ionicons name={'ios-close'} size={38} />
+		<Ionicons name={'ios-close'} size={38} color={colors.textDefault} />
 	</TouchableOpacity>
 );
 const DetailsModalBody = ({ style, ...props }) => <View style={[styles.body, style]} {...props} />;

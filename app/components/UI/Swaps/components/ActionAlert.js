@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.yellow,
 	},
 	errorButton: {
-		backgroundColor: colors.error,
+		backgroundColor: colors.onError,
 	},
 	errorButtonText: {
 		color: colors.onError,
@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
 		color: colors.textAlternative,
 	},
 	errorInfoIcon: {
-		color: colors.red,
+		color: colors.onError,
 	},
 });
 

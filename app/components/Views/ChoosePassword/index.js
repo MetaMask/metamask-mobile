@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 10,
 	},
 	errorMsg: {
-		color: colors.red,
+		color: colors.onError,
 		...fontStyles.normal,
 	},
 	biometrics: {
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_weak: {
-		color: colors.red,
+		color: colors.onError,
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_good: {

@@ -18,7 +18,7 @@ exports[`TransactionReviewSummary should render correctly 1`] = `
       style={
         Object {
           "alignItems": "center",
-          "borderColor": "#848c96",
+          "borderColor": "#d6d9dc",
           "borderRadius": 12,
           "borderWidth": 1,
           "color": "#24272A",

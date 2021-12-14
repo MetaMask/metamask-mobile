@@ -23,7 +23,7 @@ import PreventScreenshot from '../../../core/PreventScreenshot';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
-		backgroundColor: colors.blue000,
+		backgroundColor: colors.info,
 	},
 	wrapper: {
 		flexGrow: 1,

@@ -128,9 +128,9 @@ const styles = StyleSheet.create({
 	learnMoreModal: {
 		maxHeight: Device.getDeviceHeight() * 0.7,
 	},
-	redInfo: {
+	errorInfo: {
 		marginLeft: 2,
-		color: colors.red,
+		color: colors.onError,
 	},
 });
 
@@ -443,7 +443,7 @@ const EditGasFee1559 = ({
 								<RangeInput
 									leftLabelComponent={
 										<View style={styles.labelTextContainer}>
-											<Text textDefault={!maxFeeError} red={Boolean(maxFeeError)} bold noMargin>
+											<Text textDefault={!maxFeeError} error={Boolean(maxFeeError)} bold noMargin>
 												{strings('edit_gas_fee_eip1559.max_fee')}{' '}
 											</Text>
 
@@ -524,12 +524,12 @@ const EditGasFee1559 = ({
 				<Alert
 					small
 					type={AlertType.Error}
-					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.red} />}
+					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.error} />}
 					style={styles.warningContainer}
 				>
 					{() => (
 						<View style={styles.warningTextContainer}>
-							<Text red style={styles.warningText}>
+							<Text error style={styles.warningText}>
 								{error}
 							</Text>
 						</View>
@@ -603,13 +603,13 @@ const EditGasFee1559 = ({
 								{gasFeeMaxPrimary} ({gasFeeMaxSecondary})
 							</Text>
 							<View style={styles.labelTextContainer}>
-								<Text green={timeEstimateColor === 'green'} red={timeEstimateColor === 'red'} bold>
+								<Text green={timeEstimateColor === 'green'} error={timeEstimateColor === 'error'} bold>
 									{timeEstimate}
 								</Text>
 								{(timeEstimateId === AppConstants.GAS_TIMES.MAYBE ||
 									timeEstimateId === AppConstants.GAS_TIMES.UNKNOWN) && (
 									<TouchableOpacity hitSlop={styles.hitSlop} onPress={showTimeEstimateInfoModal}>
-										<MaterialCommunityIcon name="information" size={14} style={styles.redInfo} />
+										<MaterialCommunityIcon name="information" size={14} style={styles.errorInfo} />
 									</TouchableOpacity>
 								)}
 							</View>

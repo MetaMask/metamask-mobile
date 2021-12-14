@@ -17,10 +17,10 @@ const style = StyleSheet.create({
 		textAlign: 'right',
 	},
 	red: {
-		color: colors.red,
+		color: colors.onError,
 	},
 	error: {
-		color: colors.error,
+		color: colors.onError,
 	},
 	orange: {
 		color: colors.orange,

@@ -29,7 +29,7 @@ exports[`PickComponent should render correctly 1`] = `
         style={
           Object {
             "backgroundColor": "#FFFFFF",
-            "borderColor": "#9fa6ae",
+            "borderColor": "#d6d9dc",
             "borderRadius": 6,
             "borderWidth": 2,
             "height": 12,

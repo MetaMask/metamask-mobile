@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
 		borderColor: colors.primary,
 	},
 	circleError: {
-		borderColor: colors.red,
+		borderColor: colors.onError,
 	},
 	circleDisabled: {
 		opacity: 0.4,
@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
 		borderRadius: 999,
 	}),
 	innerCircleError: {
-		backgroundColor: colors.red,
+		backgroundColor: colors.onError,
 	},
 	verticalLine: {
 		marginTop: 2,

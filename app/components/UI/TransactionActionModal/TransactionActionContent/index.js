@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
 	warningText: {
 		...fontStyles.normal,
 		fontSize: 12,
-		color: colors.red,
+		color: colors.onError,
 		paddingVertical: 8,
 		textAlign: 'center',
 	},

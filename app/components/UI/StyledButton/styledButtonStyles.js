@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
 		color: colors.primary,
 	},
 	warning: {
-		backgroundColor: colors.red,
+		backgroundColor: colors.onError,
 	},
 	info: {
 		backgroundColor: colors.backgroundDefault,
@@ -104,8 +104,8 @@ const styles = StyleSheet.create({
 		color: colors.onPrimary,
 	},
 	danger: {
-		backgroundColor: colors.red,
-		borderColor: colors.red,
+		backgroundColor: colors.onError,
+		borderColor: colors.onError,
 		borderWidth: 1,
 	},
 	whiteText: {

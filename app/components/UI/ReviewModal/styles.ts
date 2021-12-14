@@ -17,7 +17,7 @@ export default StyleSheet.create({
 	optionIcon: { fontSize: 24 },
 	optionLabel: { fontSize: 14, fontFamily: 'EuclidCircularB-Regular', color: colors.primary },
 	helpOption: { marginVertical: 12 },
-	optionLabelRed: { color: colors.error },
+	optionLabelRed: { color: colors.onError },
 	fox: { height: 44, width: 44, marginBottom: 12 },
 	questionLabel: {
 		fontSize: 18,

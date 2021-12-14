@@ -41,21 +41,21 @@ const styles = StyleSheet.create({
 		paddingVertical: 8,
 	},
 	info: {
-		backgroundColor: colors.blue100,
-		borderColor: colors.blue,
+		backgroundColor: colors.info,
+		borderColor: colors.onInfo,
 	},
 	warning: {
 		backgroundColor: colors.yellow100,
 		borderColor: colors.yellowWarningBorder,
 	},
 	error: {
-		backgroundColor: colors.red000,
-		borderColor: colors.error,
+		backgroundColor: colors.error,
+		borderColor: colors.onError,
 	},
 	baseTextStyle: { fontSize: 14, flex: 1, lineHeight: 17 },
-	textInfo: { color: colors.blue },
+	textInfo: { color: colors.onInfo },
 	textWarning: { color: colors.textDefault },
-	textError: { color: colors.red },
+	textError: { color: colors.onError },
 	textIconStyle: { marginRight: 12 },
 	iconWrapper: {
 		alignItems: 'center',

@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
 		height: Device.isIphone5() ? 40 : 50,
 	},
 	amountInvalid: {
-		color: colors.red,
+		color: colors.onError,
 	},
 	verifyToken: {
 		marginHorizontal: 40,

@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 	},
 	accountBalanceError: {
-		color: colors.error,
+		color: colors.onError,
 		marginLeft: 4,
 	},
 	importedView: {

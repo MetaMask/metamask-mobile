@@ -20,6 +20,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
       bold={true}
       centered={true}
       disclaimer={false}
+      error={false}
       green={false}
       link={false}
       modal={false}
@@ -39,6 +40,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           "marginTop": 16,
         }
       }
+      textAlternative={false}
       textDefault={false}
       underline={false}
       upper={false}
@@ -50,6 +52,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
       bold={false}
       centered={true}
       disclaimer={false}
+      error={false}
       green={false}
       link={false}
       modal={false}
@@ -68,6 +71,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           "width": "100%",
         }
       }
+      textAlternative={false}
       textDefault={false}
       underline={false}
       upper={false}
@@ -79,6 +83,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
       bold={false}
       centered={true}
       disclaimer={false}
+      error={false}
       green={false}
       link={false}
       modal={false}
@@ -97,6 +102,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           "width": "100%",
         }
       }
+      textAlternative={false}
       textDefault={false}
       underline={false}
       upper={false}
@@ -106,6 +112,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
         bold={true}
         centered={false}
         disclaimer={false}
+        error={false}
         green={false}
         link={false}
         modal={false}
@@ -116,6 +123,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
         right={false}
         small={false}
         strikethrough={false}
+        textAlternative={false}
         textDefault={false}
         underline={false}
         upper={false}
@@ -129,6 +137,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
         bold={false}
         centered={false}
         disclaimer={false}
+        error={false}
         green={false}
         link={true}
         modal={false}
@@ -140,6 +149,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
         right={false}
         small={false}
         strikethrough={false}
+        textAlternative={false}
         textDefault={false}
         underline={false}
         upper={false}
@@ -152,7 +162,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
     <View
       style={
         Object {
-          "borderColor": "#bbc0c5",
+          "borderColor": "#d6d9dc",
           "borderRadius": 10,
           "borderWidth": 1,
           "margin": 24,
@@ -173,6 +183,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           bold={false}
           centered={false}
           disclaimer={false}
+          error={false}
           green={false}
           link={false}
           modal={false}
@@ -188,6 +199,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
               "paddingRight": 10,
             }
           }
+          textAlternative={false}
           textDefault={false}
           underline={false}
           upper={false}
@@ -199,6 +211,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           bold={true}
           centered={false}
           disclaimer={false}
+          error={false}
           green={false}
           link={false}
           modal={false}
@@ -215,6 +228,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
               "fontSize": 13,
             }
           }
+          textAlternative={false}
           textDefault={false}
           underline={false}
           upper={false}
@@ -233,6 +247,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           bold={false}
           centered={false}
           disclaimer={false}
+          error={false}
           green={false}
           link={false}
           modal={false}
@@ -248,6 +263,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
               "paddingRight": 10,
             }
           }
+          textAlternative={false}
           textDefault={false}
           underline={false}
           upper={false}
@@ -259,6 +275,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           bold={true}
           centered={false}
           disclaimer={false}
+          error={false}
           green={false}
           link={false}
           modal={false}
@@ -275,6 +292,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
               "fontSize": 13,
             }
           }
+          textAlternative={false}
           textDefault={false}
           underline={false}
           upper={false}
@@ -292,6 +310,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           bold={false}
           centered={false}
           disclaimer={false}
+          error={false}
           green={false}
           link={false}
           modal={false}
@@ -307,6 +326,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
               "paddingRight": 10,
             }
           }
+          textAlternative={false}
           textDefault={false}
           underline={false}
           upper={false}
@@ -318,6 +338,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           bold={true}
           centered={false}
           disclaimer={false}
+          error={false}
           green={false}
           link={false}
           modal={false}
@@ -334,6 +355,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
               "fontSize": 13,
             }
           }
+          textAlternative={false}
           textDefault={false}
           underline={false}
           upper={false}
@@ -355,6 +377,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           bold={true}
           centered={true}
           disclaimer={false}
+          error={false}
           green={false}
           link={true}
           modal={false}
@@ -371,6 +394,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
               "lineHeight": 16,
             }
           }
+          textAlternative={false}
           textDefault={false}
           underline={false}
           upper={false}

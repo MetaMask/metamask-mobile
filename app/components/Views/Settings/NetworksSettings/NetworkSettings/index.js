@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
 	},
 	warningText: {
 		...fontStyles.normal,
-		color: colors.red,
+		color: colors.onError,
 		marginTop: 4,
 		paddingLeft: 2,
 		paddingRight: 4,

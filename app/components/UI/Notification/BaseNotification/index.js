@@ -67,9 +67,9 @@ const getIcon = (status) => {
 			return <IonicIcon color={colors.green500} size={36} name="md-checkmark" style={styles.checkIcon} />;
 		case 'cancelled':
 		case 'error':
-			return <MaterialIcon color={colors.red} size={36} name="alert-circle-outline" style={styles.checkIcon} />;
+			return <MaterialIcon color={colors.error} size={36} name="alert-circle-outline" style={styles.checkIcon} />;
 		case 'simple_notification_rejected':
-			return <AntIcon color={colors.red} size={36} name="closecircleo" style={styles.checkIcon} />;
+			return <AntIcon color={colors.error} size={36} name="closecircleo" style={styles.checkIcon} />;
 		case 'simple_notification':
 			return <AntIcon color={colors.green500} size={36} name="checkcircleo" style={styles.checkIcon} />;
 	}

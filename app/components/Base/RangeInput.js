@@ -66,13 +66,13 @@ const styles = StyleSheet.create({
 	},
 	errorContainer: {
 		marginTop: 8,
-		color: colors.error,
+		color: colors.onError,
 		flexDirection: 'row',
 		alignItems: 'center',
 	},
 	errorIcon: {
 		paddingRight: 4,
-		color: colors.error,
+		color: colors.onError,
 	},
 	conversionEstimation: {
 		paddingLeft: 2,

@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
 		marginTop: 20,
 	},
 	errorMsg: {
-		color: colors.red,
+		color: colors.onError,
 		textAlign: 'center',
 		...fontStyles.normal,
 	},
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_weak: {
-		color: colors.red,
+		color: colors.onError,
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_good: {
