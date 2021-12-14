@@ -29,6 +29,12 @@ const styles = StyleSheet.create({
 	indicator: {
 		marginBottom: 5,
 	},
+	// eslint-disable-next-line react-native/no-color-literals
+	media: {
+		borderWidth: 0.5,
+		borderColor: '#00000020',
+		marginBottom: 12,
+	},
 });
 
 const MediaSelector = ({ setMediaToSend }) => {
@@ -92,10 +98,11 @@ const MediaSelector = ({ setMediaToSend }) => {
 					}}
 					cover
 					renderAnimation
+					style={styles.media}
 				/>
 			) : (
 				<TouchableOpacity style={styles.mediaButton} onPress={() => actionSheetRef.current?.show()}>
-					<LinearGradient colors={['#FFFFFF', '#EAF6FF']} style={styles.gradient}>
+					<LinearGradient colors={[colors.white, colors.blue100]} style={styles.gradient}>
 						{isLoading ? (
 							<React.Fragment>
 								<ActivityIndicator color={colors.blue} style={styles.indicator} />

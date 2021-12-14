@@ -11679,10 +11679,10 @@ react-native-i18n@2.0.15:
   dependencies:
     i18n-js "3.0.11"
 
-react-native-image-picker@^4.1.2:
-  version "4.1.2"
-  resolved "https://registry.yarnpkg.com/react-native-image-picker/-/react-native-image-picker-4.1.2.tgz#1b4b4980a6878930675396c23dffbaa802cbbcc6"
-  integrity sha512-e4frAekSJkOgEmL9UOLukGhjtPwHSD7qSf3Rmwk+850ofxKqZFfAIfWc9MO3UmCb6G7oB6PkckyTOGOXybrN5A==
+react-native-image-picker@4.6.0:
+  version "4.6.0"
+  resolved "https://registry.yarnpkg.com/react-native-image-picker/-/react-native-image-picker-4.6.0.tgz#9df927baa20835fd7adba76185359241e6204e00"
+  integrity sha512-Kb0GbPlHm0zAjJpI0vJ/41WSS0mHfbn851cwvn61myse+eMJCku1nixqPlCp4SbpM0lMZIGJgXqZBkqalZnWjg==
 
 react-native-in-app-review@^3.2.3:
   version "3.2.3"
