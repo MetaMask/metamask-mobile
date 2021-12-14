@@ -18,7 +18,7 @@ import AnimatedFox from 'react-native-animated-fox';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
-import { passwordSet, passwordUnset, seedphraseNotBackedUp } from '../../../actions/user';
+import { logIn, passwordSet, passwordUnset, seedphraseNotBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
@@ -246,6 +246,7 @@ class ChoosePassword extends PureComponent {
 		 * Object that represents the current route info like params passed to it
 		 */
 		route: PropTypes.object,
+		logIn: PropTypes.func,
 	};
 
 	state = {
@@ -356,9 +357,10 @@ class ChoosePassword extends PureComponent {
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
 			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
 			this.props.passwordSet();
+			this.props.logIn();
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 			this.setState({ loading: false });
-			this.props.navigation.navigate('AccountBackupStep1');
+			this.props.navigation.replace('AccountBackupStep1');
 			InteractionManager.runAfterInteractions(() => {
 				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_CREATED, {
 					biometrics_enabled: Boolean(this.state.biometryType),
@@ -708,6 +710,7 @@ const mapDispatchToProps = (dispatch) => ({
 	passwordUnset: () => dispatch(passwordUnset()),
 	setLockTime: (time) => dispatch(setLockTime(time)),
 	seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp()),
+	logIn: () => dispatch(logIn()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(ChoosePassword);

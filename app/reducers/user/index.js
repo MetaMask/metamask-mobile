@@ -6,10 +6,29 @@ const initialState = {
 	backUpSeedphraseVisible: false,
 	protectWalletModalVisible: false,
 	gasEducationCarouselSeen: false,
+	userLoggedIn: false,
+	isAuthChecked: false,
+	initialScreen: '',
 };
 
 const userReducer = (state = initialState, action) => {
 	switch (action.type) {
+		case 'CHECKED_AUTH':
+			return {
+				...state,
+				isAuthChecked: true,
+				initialScreen: action.payload.initialScreen,
+			};
+		case 'LOGIN':
+			return {
+				...state,
+				userLoggedIn: true,
+			};
+		case 'LOGOUT':
+			return {
+				...state,
+				userLoggedIn: false,
+			};
 		case 'LOADING_SET':
 			return {
 				...state,

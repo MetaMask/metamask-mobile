@@ -64,3 +64,30 @@ export function setGasEducationCarouselSeen() {
 		type: 'SET_GAS_EDUCATION_CAROUSEL_SEEN',
 	};
 }
+
+export function logIn() {
+	return {
+		type: 'LOGIN',
+	};
+}
+
+export function logOut() {
+	return {
+		type: 'LOGOUT',
+	};
+}
+
+/**
+ * Temporary action to control auth flow
+ *
+ * @param {string} initialScreen - "login" or "onboarding"
+ * @returns - void
+ */
+export function checkedAuth(initialScreen) {
+	return {
+		type: 'CHECKED_AUTH',
+		payload: {
+			initialScreen,
+		},
+	};
+}

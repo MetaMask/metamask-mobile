@@ -84,7 +84,7 @@ const CollectibleModal = (props) => {
 	const modalRef = useRef(null);
 
 	return (
-		<ReusableModal ref={modalRef} onDismiss={() => navigation.navigate('WalletView')} style={styles.bottomModal}>
+		<ReusableModal ref={modalRef} style={styles.bottomModal}>
 			<>
 				<View style={[styles.collectibleMediaWrapper, { zIndex: mediaZIndex, elevation: mediaZIndex }]}>
 					<CollectibleMedia

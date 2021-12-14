@@ -117,7 +117,7 @@ describe('RPC Method - wallet_addEthereumChain', () => {
 		try {
 			await wallet_addEthereumChain({
 				req: {
-					params: [{ ...correctParams, chainId: '0x65' }],
+					params: [{ ...correctParams, chainId: '0x63' }],
 				},
 				...otherOptions,
 			});

@@ -16,7 +16,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { connect } from 'react-redux';
-import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
+import { logIn, passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
@@ -210,6 +210,7 @@ class ImportFromSeed extends PureComponent {
 		 * Action to set onboarding wizard step
 		 */
 		setOnboardingWizardStep: PropTypes.func,
+		logIn: PropTypes.func,
 	};
 
 	state = {
@@ -304,6 +305,7 @@ class ImportFromSeed extends PureComponent {
 				this.props.passwordSet();
 				this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 				this.props.seedphraseBackedUp();
+				this.props.logIn();
 				InteractionManager.runAfterInteractions(() => {
 					AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_IMPORTED, {
 						biometrics_enabled: Boolean(this.state.biometryType),
@@ -314,10 +316,10 @@ class ImportFromSeed extends PureComponent {
 					});
 				});
 				if (onboardingWizard) {
-					this.props.navigation.navigate('ManualBackupStep3');
+					this.props.navigation.replace('ManualBackupStep3');
 				} else {
 					this.props.setOnboardingWizardStep(1);
-					this.props.navigation.navigate('HomeNav', { screen: 'WalletView' });
+					this.props.navigation.replace('HomeNav', { screen: 'WalletView' });
 				}
 				await importAdditionalAccounts();
 			} catch (error) {
@@ -624,6 +626,7 @@ const mapDispatchToProps = (dispatch) => ({
 	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 	passwordSet: () => dispatch(passwordSet()),
 	seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
+	logIn: () => dispatch(logIn()),
 });
 
 export default connect(null, mapDispatchToProps)(ImportFromSeed);
