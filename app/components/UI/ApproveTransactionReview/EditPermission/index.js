@@ -46,14 +46,14 @@ const styles = StyleSheet.create({
 		height: 8,
 		borderRadius: 8 / 2,
 		margin: 3,
-		backgroundColor: colors.blue,
+		backgroundColor: colors.primary,
 	},
 	outSelectedCircle: {
 		width: 18,
 		height: 18,
 		borderRadius: 18 / 2,
 		borderWidth: 2,
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 	},
 	circle: {
 		width: 18,
@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
 		color: colors.grey500,
 	},
 	textBlue: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	textBlack: {
 		color: colors.textDefault,

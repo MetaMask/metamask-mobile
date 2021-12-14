@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 	},
 	tabActionText: {
-		color: colors.blue,
+		color: colors.primary,
 		...fontStyles.normal,
 		fontSize: 16,
 	},
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
 	},
 	newTabIcon: {
 		marginTop: Device.isIos() ? 3 : 2.5,
-		color: colors.white,
+		color: colors.onPrimary,
 		fontSize: 24,
 		textAlign: 'center',
 		justifyContent: 'center',
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
 		alignSelf: 'center',
 		justifyContent: 'flex-start',
 		alignContent: 'flex-start',
-		backgroundColor: colors.blue,
+		backgroundColor: colors.primary,
 		borderRadius: 100,
 		width: 30,
 		height: 30,

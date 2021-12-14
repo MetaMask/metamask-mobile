@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
 	},
 	actionDropdown: {
 		...fontStyles.normal,
-		backgroundColor: colors.blue,
+		backgroundColor: colors.primary,
 		paddingHorizontal: 16,
 		paddingVertical: 2,
 		borderRadius: 100,
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
 	textDropdown: {
 		...fontStyles.normal,
 		fontSize: 14,
-		color: colors.white,
+		color: colors.backgroundDefault,
 		paddingVertical: 2,
 	},
 	iconDropdown: {
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
 	maxText: {
 		...fontStyles.normal,
 		fontSize: 12,
-		color: colors.blue,
+		color: colors.primary,
 		alignSelf: 'flex-end',
 		textTransform: 'uppercase',
 	},
@@ -965,7 +965,7 @@ class Amount extends PureComponent {
 									<MaterialCommunityIcons
 										name="swap-vertical"
 										size={16}
-										color={colors.blue}
+										color={colors.primary}
 										style={styles.switch}
 									/>
 								</View>
@@ -1037,7 +1037,7 @@ class Amount extends PureComponent {
 										<Ionicons
 											name="ios-arrow-down"
 											size={16}
-											color={colors.white}
+											color={colors.onPrimary}
 											style={styles.iconDropdown}
 										/>
 									</View>

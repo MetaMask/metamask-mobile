@@ -13,10 +13,10 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 	},
 	blue: {
-		backgroundColor: colors.blue,
+		backgroundColor: colors.primary,
 	},
 	blueText: {
-		color: colors.white,
+		color: colors.onPrimary,
 	},
 	orange: {
 		borderColor: colors.orange,
@@ -26,31 +26,31 @@ const styles = StyleSheet.create({
 		color: colors.orange,
 	},
 	infoText: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	confirm: {
-		backgroundColor: colors.blue,
+		backgroundColor: colors.primary,
 		minHeight: 50,
 	},
 	confirmText: {
-		color: colors.white,
+		color: colors.onPrimary,
 	},
 	roundedNormal: {
 		backgroundColor: colors.backgroundDefault,
 		borderWidth: 1,
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 		padding: 8,
 	},
 	roundedNormalText: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	normal: {
 		backgroundColor: colors.backgroundDefault,
 		borderWidth: 1,
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 	},
 	normalText: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	transparent: {
 		backgroundColor: colors.transparent,
@@ -68,10 +68,10 @@ const styles = StyleSheet.create({
 	signingCancel: {
 		backgroundColor: colors.backgroundDefault,
 		borderWidth: 1,
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 	},
 	signingCancelText: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	warning: {
 		backgroundColor: colors.red,
@@ -79,13 +79,13 @@ const styles = StyleSheet.create({
 	info: {
 		backgroundColor: colors.backgroundDefault,
 		borderWidth: 1,
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 	},
 	warningText: {
-		color: colors.white,
+		color: colors.onWarning,
 	},
 	warningTextEmpty: {
-		color: colors.red,
+		color: colors.warning,
 	},
 	neutral: {
 		backgroundColor: colors.backgroundDefault,
@@ -96,12 +96,12 @@ const styles = StyleSheet.create({
 		color: colors.grey500,
 	},
 	sign: {
-		backgroundColor: colors.blue,
+		backgroundColor: colors.primary,
 		borderWidth: 1,
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 	},
 	signText: {
-		color: colors.white,
+		color: colors.onPrimary,
 	},
 	danger: {
 		backgroundColor: colors.red,
@@ -110,16 +110,16 @@ const styles = StyleSheet.create({
 	},
 	whiteText: {
 		...fontStyles.bold,
-		color: colors.white,
+		color: colors.onPrimary,
 	},
 	viewText: {
 		fontSize: 18,
 		...fontStyles.bold,
-		color: colors.white,
+		color: colors.onPrimary,
 	},
 	view: {
 		borderWidth: 1,
-		borderColor: colors.white,
+		borderColor: colors.onPrimary,
 	},
 });
 

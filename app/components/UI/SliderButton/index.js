@@ -73,12 +73,12 @@ const styles = StyleSheet.create({
 	},
 	textBack: {
 		...fontStyles.normal,
-		color: colors.white,
+		color: colors.onPrimary,
 		fontSize: 16,
 	},
 	textFront: {
 		...fontStyles.normal,
-		color: colors.white,
+		color: colors.onPrimary,
 		fontSize: 16,
 	},
 });

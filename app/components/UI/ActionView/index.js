@@ -2,7 +2,7 @@ import React from 'react';
 import StyledButton from '../StyledButton';
 import PropTypes from 'prop-types';
 import { Keyboard, StyleSheet, View, ActivityIndicator, TouchableWithoutFeedback } from 'react-native';
-import { baseStyles } from '../../../styles/common';
+import { baseStyles, colors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
@@ -84,7 +84,7 @@ export default function ActionView({
 							containerStyle={[styles.button, styles.confirm]}
 							disabled={confirmed || confirmDisabled}
 						>
-							{confirmed ? <ActivityIndicator size="small" color="white" /> : confirmText}
+							{confirmed ? <ActivityIndicator size="small" color={colors.onInverse} /> : confirmText}
 						</StyledButton>
 					)}
 				</View>

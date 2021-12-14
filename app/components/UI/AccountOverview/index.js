@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
 		borderRadius: 80,
 		borderWidth: 2,
 		padding: 2,
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 	},
 	onboardingWizardLabel: {
 		borderWidth: 2,

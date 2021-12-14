@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 	},
 	warningContainer: { marginHorizontal: 20, marginTop: 20, paddingRight: 0 },
-	warningLink: { color: colors.blue },
+	warningLink: { color: colors.primary },
 });
 
 /**

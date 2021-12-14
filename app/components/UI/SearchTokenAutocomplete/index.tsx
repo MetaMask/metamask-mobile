@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
 	},
 	tokenDetectionBanner: { marginHorizontal: 20, marginTop: 20, paddingRight: 0 },
 	tokenDetectionDescription: { color: colors.black },
-	tokenDetectionLink: { color: colors.blue },
+	tokenDetectionLink: { color: colors.primary },
 	tokenDetectionIcon: {
 		paddingTop: 4,
 		paddingRight: 8,
@@ -120,7 +120,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 					<FontAwesome
 						style={styles.tokenDetectionIcon}
 						name={'exclamation-circle'}
-						color={colors.blue}
+						color={colors.primary}
 						size={18}
 					/>
 				)}

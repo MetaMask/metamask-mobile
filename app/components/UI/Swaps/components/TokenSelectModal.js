@@ -85,11 +85,11 @@ const styles = StyleSheet.create({
 	importButton: {
 		paddingVertical: 6,
 		paddingHorizontal: 10,
-		backgroundColor: colors.blue,
+		backgroundColor: colors.primary,
 		borderRadius: 100,
 	},
 	importButtonText: {
-		color: colors.white,
+		color: colors.onPrimary,
 	},
 	loadingIndicator: {
 		margin: 10,
@@ -264,7 +264,7 @@ function TokenSelectModal({
 			<TouchableWithoutFeedback>
 				<Alert
 					renderIcon={() => (
-						<FAIcon name="info-circle" style={styles.footerIcon} color={colors.blue} size={15} />
+						<FAIcon name="info-circle" style={styles.footerIcon} color={colors.primary} size={15} />
 					)}
 				>
 					{(textStyle) => (

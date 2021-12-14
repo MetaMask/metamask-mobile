@@ -56,14 +56,14 @@ const styles = StyleSheet.create({
 	},
 	button: {
 		marginTop: 24,
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 		borderWidth: 1,
 		borderRadius: 50,
 		padding: 12,
 		paddingHorizontal: 34,
 	},
 	buttonText: {
-		color: colors.blue,
+		color: colors.primary,
 		textAlign: 'center',
 		...fontStyles.normal,
 		fontWeight: '500',
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 	},
 	link: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	reportTextContainer: {
 		paddingLeft: 14,

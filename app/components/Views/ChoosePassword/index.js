@@ -125,9 +125,9 @@ const styles = StyleSheet.create({
 		lineHeight: 18,
 	},
 	learnMore: {
-		color: colors.blue,
+		color: colors.primary,
 		textDecorationLine: 'underline',
-		textDecorationColor: colors.blue,
+		textDecorationColor: colors.primary,
 	},
 	field: {
 		marginVertical: 5,
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_good: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_strong: {
@@ -587,7 +587,7 @@ class ChoosePassword extends PureComponent {
 								<AnimatedFox />
 							)}
 						</View>
-						<ActivityIndicator size="large" color={Device.isAndroid() ? colors.blue : colors.grey} />
+						<ActivityIndicator size="large" color={Device.isAndroid() ? colors.primary : colors.grey} />
 						<Text style={styles.title}>
 							{strings(
 								previousScreen === ONBOARDING
@@ -668,7 +668,7 @@ class ChoosePassword extends PureComponent {
 										value={isSelected}
 										onValueChange={this.setSelection}
 										style={styles.checkbox}
-										tintColors={{ true: colors.blue }}
+										tintColors={{ true: colors.primary }}
 										boxType="square"
 										testID={'password-understand-box'}
 									/>

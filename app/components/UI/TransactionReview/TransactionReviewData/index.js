@@ -103,10 +103,10 @@ class TransactionReviewData extends PureComponent {
 			<View style={[styles.root, this.applyRootHeight()]}>
 				<View style={styles.dataHeader}>
 					<TouchableOpacity onPress={toggleDataView}>
-						<IonicIcon name={'ios-arrow-back'} size={24} color={colors.black} />
+						<IonicIcon name={'ios-arrow-back'} size={24} color={colors.inverse} />
 					</TouchableOpacity>
 					<Text style={styles.dataTitleText}>{strings('transaction.data')}</Text>
-					<IonicIcon name={'ios-arrow-back'} size={24} color={colors.white} />
+					<IonicIcon name={'ios-arrow-back'} size={24} color={colors.onInverse} />
 				</View>
 				<Text style={styles.dataDescription}>{strings('transaction.data_description')}</Text>
 				<View style={styles.dataBox}>

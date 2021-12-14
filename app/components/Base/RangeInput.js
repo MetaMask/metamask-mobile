@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
 	button: {
 		borderRadius: 100,
 		borderWidth: 2,
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 		height: 20,
 		width: 20,
 		alignItems: 'center',
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
 	buttonText: {
 		paddingTop: 1,
 		paddingLeft: 0.5,
-		color: colors.blue,
+		color: colors.primary,
 	},
 	hitSlop: {
 		top: 10,
@@ -132,7 +132,7 @@ const RangeInput = ({
 		if (!component) return null;
 		if (typeof component === 'string')
 			return (
-				<Text noMargin black bold>
+				<Text noMargin textDefault bold>
 					{component}
 				</Text>
 			);
@@ -180,7 +180,7 @@ const RangeInput = ({
 						ref={textInput}
 					/>
 					{!!unit && (
-						<Text onPress={handleClickUnit} black={!error} red={Boolean(error)}>
+						<Text onPress={handleClickUnit} textDefault={!error} red={Boolean(error)}>
 							{unit}
 						</Text>
 					)}

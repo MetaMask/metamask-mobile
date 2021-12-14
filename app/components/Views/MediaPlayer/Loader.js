@@ -37,7 +37,7 @@ function Loader({ error, onClose }) {
 	return (
 		<View style={styles.container}>
 			<TouchableOpacity onPress={onClose} style={styles.closeButton}>
-				<AntIcon color={colors.white} size={16} name={'close'} />
+				<AntIcon color={colors.onInverse} size={16} name={'close'} />
 			</TouchableOpacity>
 			<View style={styles.content}>
 				<View style={styles.item}>

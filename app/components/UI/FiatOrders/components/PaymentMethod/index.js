@@ -12,7 +12,7 @@ const style = StyleSheet.create({
 	container: {
 		borderWidth: 1,
 		borderRadius: 8,
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 		paddingVertical: 15,
 		paddingHorizontal: 20,
 		marginHorizontal: Device.isIphone5() ? 15 : 25,

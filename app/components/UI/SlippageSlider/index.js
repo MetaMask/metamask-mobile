@@ -29,9 +29,9 @@ const styles = StyleSheet.create({
 		height: DIAMETER,
 		borderRadius: DIAMETER,
 		borderWidth: 1,
-		borderColor: colors.white,
+		borderColor: colors.onPrimary,
 		bottom: 0,
-		shadowColor: colors.black,
+		shadowColor: colors.inverse,
 		shadowOffset: {
 			width: 0,
 			height: 0,
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
 		height: TICK_DIAMETER,
 		width: TICK_DIAMETER,
 		borderRadius: TICK_DIAMETER,
-		backgroundColor: colors.spinnerColor,
+		backgroundColor: colors.primary,
 		opacity: 0.5,
 	},
 	trackFront: {
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		justifyContent: 'center',
 		alignItems: 'center',
-		backgroundColor: colors.grey700,
+		backgroundColor: colors.alert,
 		padding: 5,
 		borderRadius: 8,
 		minHeight: TOOLTIP_HEIGHT,
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
 	},
 	tooltipText: {
 		...fontStyles.normal,
-		color: colors.white,
+		color: colors.onAlert,
 		fontSize: 12,
 	},
 });

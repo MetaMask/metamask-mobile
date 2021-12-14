@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
 	skipText: {
 		...fontStyles.normal,
 		fontSize: 12,
-		color: colors.blue,
+		color: colors.primary,
 	},
 });
 

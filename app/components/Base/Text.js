@@ -22,12 +22,12 @@ const style = StyleSheet.create({
 	orange: {
 		color: colors.orange,
 	},
-	black: {
+	textDefault: {
 		color: colors.textDefault,
 	},
 	bold: fontStyles.bold,
 	blue: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	green: {
 		color: colors.green400,
@@ -61,7 +61,7 @@ const style = StyleSheet.create({
 		marginVertical: 6,
 	},
 	link: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	strikethrough: {
 		textDecorationLine: 'line-through',
@@ -81,6 +81,7 @@ const Text = ({
 	bold,
 	green,
 	black,
+	textDefault,
 	blue,
 	grey,
 	red,
@@ -112,6 +113,7 @@ const Text = ({
 			red && style.red,
 			orange && style.orange,
 			black && style.black,
+			textDefault && style.textDefault,
 			primary && style.primary,
 			disclaimer && [style.small, style.disclaimer],
 			small && style.small,
@@ -136,6 +138,7 @@ Text.defaultProps = {
 	bold: false,
 	green: false,
 	black: false,
+	textDefault: false,
 	blue: false,
 	red: false,
 	primary: false,
@@ -175,6 +178,10 @@ Text.propTypes = {
 	 * Makes text black
 	 */
 	black: PropTypes.bool,
+	/**
+	 * Sets the color to the textDefault of the theme
+	 */
+	textDefault: PropTypes.bool,
 	/**
 	 * Makes text blue
 	 */

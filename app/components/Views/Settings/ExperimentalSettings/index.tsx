@@ -104,7 +104,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 						<Switch
 							value={isTokenDetectionEnabled}
 							onValueChange={toggleTokenDetection}
-							trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : undefined}
+							trackColor={Device.isIos() ? { true: colors.primary, false: colors.grey000 } : undefined}
 							ios_backgroundColor={colors.grey000}
 						/>
 					</View>

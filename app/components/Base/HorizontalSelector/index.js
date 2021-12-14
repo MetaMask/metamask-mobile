@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
 		borderColor: colors.grey200,
 	}),
 	circleSelected: {
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 	},
 	circleError: {
 		borderColor: colors.red,
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
 		height: size * INNER_CIRCLE_SCALE,
 		flexShrink: 0,
 		flexGrow: 0,
-		backgroundColor: colors.blue,
+		backgroundColor: colors.primary,
 		borderRadius: 999,
 	}),
 	innerCircleError: {
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
 		width: 0,
 		height: 4,
 		borderLeftWidth: 1,
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 	},
 	line: {
 		alignItems: 'center',

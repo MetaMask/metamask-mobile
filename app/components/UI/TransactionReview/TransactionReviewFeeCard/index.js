@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 2,
 	},
 	gasInfoIcon: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	amountContainer: {
 		flex: 1,

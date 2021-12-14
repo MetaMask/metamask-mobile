@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_good: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_strong: {
@@ -371,7 +371,7 @@ class ChoosePasswordSimple extends PureComponent {
 							}
 						>
 							{this.state.loading ? (
-								<ActivityIndicator size="small" color="white" />
+								<ActivityIndicator size="small" color={colors.onInverse} />
 							) : (
 								strings('choose_password.create_button')
 							)}

@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
 	},
 	viewOnEtherscan: {
 		fontSize: 16,
-		color: colors.blue,
+		color: colors.primary,
 		...fontStyles.normal,
 		textAlign: 'center',
 	},

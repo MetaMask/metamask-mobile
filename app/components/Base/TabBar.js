@@ -7,7 +7,7 @@ import { colors, fontStyles } from '../../styles/common';
 const styles = StyleSheet.create({
 	tabUnderlineStyle: {
 		height: 2,
-		backgroundColor: colors.blue,
+		backgroundColor: colors.primary,
 	},
 	tabStyle: {
 		paddingVertical: 8,

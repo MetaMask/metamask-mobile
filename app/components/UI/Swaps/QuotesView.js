@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
 	},
 	sliderButtonText: {
 		fontSize: 16,
-		color: colors.white,
+		color: colors.onPrimary,
 	},
 	quotesSummary: {
 		marginVertical: Device.isSmallDevice() ? 12 : 24,
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
 	infoIcon: {
 		fontSize: 12,
 		margin: 3,
-		color: colors.blue,
+		color: colors.primary,
 	},
 	ctaButton: {
 		width: '100%',
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
 		color: colors.red,
 	},
 	expiredIcon: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	disabled: {
 		opacity: 0.4,
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 2,
 	},
 	gasInfoIcon: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	hitSlop: {
 		top: 10,

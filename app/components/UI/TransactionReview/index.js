@@ -35,7 +35,7 @@ import { getTokenList } from '../../../reducers/tokens';
 const styles = StyleSheet.create({
 	tabUnderlineStyle: {
 		height: 2,
-		backgroundColor: colors.blue,
+		backgroundColor: colors.primary,
 	},
 	tabStyle: {
 		paddingBottom: 0,
@@ -292,9 +292,9 @@ class TransactionReview extends PureComponent {
 		return (
 			<DefaultTabBar
 				underlineStyle={styles.tabUnderlineStyle}
-				activeTextColor={colors.blue}
+				activeTextColor={colors.primary}
 				inactiveTextColor={colors.textAlternative}
-				backgroundColor={colors.white}
+				backgroundColor={colors.backgroundDefault}
 				tabStyle={styles.tabStyle}
 				textStyle={styles.textStyle}
 			/>

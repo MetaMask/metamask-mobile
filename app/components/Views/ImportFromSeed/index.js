@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_good: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_strong: {
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
 		alignSelf: 'flex-end',
 	},
 	inputFocused: {
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 		borderWidth: 2,
 	},
 	input: {
@@ -489,7 +489,7 @@ class ImportFromSeed extends PureComponent {
 								onChangeText={this.onSeedWordsChange}
 								value={seed}
 								baseColor={colors.grey500}
-								tintColor={colors.blue}
+								tintColor={colors.primary}
 								onSubmitEditing={this.jumpToPassword}
 							/>
 						) : (
@@ -543,7 +543,7 @@ class ImportFromSeed extends PureComponent {
 								onChangeText={this.onPasswordChange}
 								value={password}
 								baseColor={colors.grey500}
-								tintColor={colors.blue}
+								tintColor={colors.primary}
 								onSubmitEditing={this.jumpToConfirmPassword}
 							/>
 
@@ -572,7 +572,7 @@ class ImportFromSeed extends PureComponent {
 								placeholder={strings('import_from_seed.confirm_password')}
 								value={confirmPassword}
 								baseColor={colors.grey500}
-								tintColor={colors.blue}
+								tintColor={colors.primary}
 								onSubmitEditing={this.onPressImport}
 							/>
 
@@ -602,7 +602,7 @@ class ImportFromSeed extends PureComponent {
 								disabled={!(password !== '' && password === confirmPassword)}
 							>
 								{loading ? (
-									<ActivityIndicator size="small" color="white" />
+									<ActivityIndicator size="small" color={colors.onInverse} />
 								) : (
 									strings('import_from_seed.import_button')
 								)}

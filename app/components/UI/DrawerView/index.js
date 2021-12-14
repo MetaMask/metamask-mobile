@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
 		borderRadius: 96,
 		borderWidth: 2,
 		padding: 2,
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 	},
 	accountNameWrapper: {
 		flexDirection: 'row',
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
 	buttonText: {
 		paddingLeft: 8,
 		fontSize: 15,
-		color: colors.blue,
+		color: colors.primary,
 		...fontStyles.normal,
 	},
 	buttonContent: {
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
 		borderBottomRightRadius: 20,
 	},
 	selectedName: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	menuItemName: {
 		flex: 1,
@@ -706,15 +706,15 @@ class DrawerView extends PureComponent {
 	}
 
 	getSelectedIcon(name, size) {
-		return <Icon name={name} size={size || 24} color={colors.blue} />;
+		return <Icon name={name} size={size || 24} color={colors.primary} />;
 	}
 
 	getSelectedFeatherIcon(name, size) {
-		return <FeatherIcon name={name} size={size || 24} color={colors.blue} />;
+		return <FeatherIcon name={name} size={size || 24} color={colors.primary} />;
 	}
 
 	getSelectedMaterialIcon(name, size) {
-		return <MaterialIcon name={name} size={size || 24} color={colors.blue} />;
+		return <MaterialIcon name={name} size={size || 24} color={colors.primary} />;
 	}
 
 	getSelectedImageIcon(name) {
@@ -975,7 +975,7 @@ class DrawerView extends PureComponent {
 								<MaterialIcon
 									name={'arrow-top-right'}
 									size={22}
-									color={colors.blue}
+									color={colors.primary}
 									style={styles.buttonIcon}
 								/>
 								<Text style={styles.buttonText}>{strings('drawer.send_button')}</Text>
@@ -991,7 +991,7 @@ class DrawerView extends PureComponent {
 								<MaterialIcon
 									name={'keyboard-tab'}
 									size={22}
-									color={colors.blue}
+									color={colors.primary}
 									style={[styles.buttonIcon, styles.buttonReceive]}
 								/>
 								<Text style={styles.buttonText}>{strings('drawer.receive_button')}</Text>

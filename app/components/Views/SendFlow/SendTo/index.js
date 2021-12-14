@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
 	},
 	myAccountsText: {
 		...fontStyles.normal,
-		color: colors.blue,
+		color: colors.primary,
 		fontSize: 16,
 		alignSelf: 'center',
 	},

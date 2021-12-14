@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
 	},
 	warningBold: {
 		...fontStyles.bold,
-		color: colors.blue,
+		color: colors.primary,
 	},
 	viewHint: {
 		padding: 5,
@@ -644,7 +644,7 @@ class Settings extends PureComponent {
 								<Switch
 									onValueChange={this.onSingInWithBiometrics}
 									value={this.state.biometryChoice}
-									trackColor={isIos ? { true: colors.blue, false: colors.grey000 } : null}
+									trackColor={isIos ? { true: colors.primary, false: colors.grey000 } : null}
 									ios_backgroundColor={colors.grey000}
 								/>
 							</View>
@@ -661,7 +661,7 @@ class Settings extends PureComponent {
 								<Switch
 									onValueChange={this.onSignInWithPasscode}
 									value={this.state.passcodeChoice}
-									trackColor={isIos ? { true: colors.blue, false: colors.grey000 } : null}
+									trackColor={isIos ? { true: colors.primary, false: colors.grey000 } : null}
 									ios_backgroundColor={colors.grey000}
 								/>
 							</View>
@@ -723,7 +723,7 @@ class Settings extends PureComponent {
 							<Switch
 								value={privacyMode}
 								onValueChange={this.togglePrivacy}
-								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
+								trackColor={Device.isIos() ? { true: colors.primary, false: colors.grey000 } : null}
 								ios_backgroundColor={colors.grey000}
 							/>
 						</View>
@@ -735,7 +735,7 @@ class Settings extends PureComponent {
 							<Switch
 								value={analyticsEnabled}
 								onValueChange={this.toggleMetricsOptIn}
-								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
+								trackColor={Device.isIos() ? { true: colors.primary, false: colors.grey000 } : null}
 								ios_backgroundColor={colors.grey000}
 								testID={'metametrics-switch'}
 							/>
@@ -748,7 +748,7 @@ class Settings extends PureComponent {
 							<Switch
 								value={thirdPartyApiMode}
 								onValueChange={this.toggleThirdPartyAPI}
-								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
+								trackColor={Device.isIos() ? { true: colors.primary, false: colors.grey000 } : null}
 								ios_backgroundColor={colors.grey000}
 							/>
 						</View>

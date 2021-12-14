@@ -120,11 +120,11 @@ const styles = StyleSheet.create({
 	bestBadgeWrapper: {
 		paddingVertical: 0,
 		paddingHorizontal: 8,
-		backgroundColor: colors.blue,
+		backgroundColor: colors.primary,
 		borderRadius: 4,
 	},
 	bestBadgeText: {
-		color: colors.white,
+		color: colors.onPrimary,
 	},
 	transparent: {
 		opacity: 0,

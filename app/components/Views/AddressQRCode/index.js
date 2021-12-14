@@ -122,7 +122,7 @@ class AddressQRCode extends PureComponent {
 			<View style={styles.root}>
 				<View style={styles.wrapper}>
 					<TouchableOpacity style={styles.closeIcon} onPress={this.closeQrModal} testID={'close-qr-modal'}>
-						<IonicIcon name={'ios-close'} size={38} color={colors.white} />
+						<IonicIcon name={'ios-close'} size={38} color={colors.onInverse} />
 					</TouchableOpacity>
 					<View style={styles.qrCode}>
 						<QRCode

@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
 	},
 	goBack: {
 		marginVertical: 14,
-		color: colors.blue,
+		color: colors.primary,
 		...fontStyles.normal,
 	},
 	biometrics: {
@@ -561,7 +561,7 @@ class Login extends PureComponent {
 							autoCapitalize="none"
 							value={this.state.deleteText}
 							baseColor={colors.grey500}
-							tintColor={colors.blue}
+							tintColor={colors.primary}
 							onSubmitEditing={this.submitDelete}
 						/>
 						{this.state.showDeleteWarning && (
@@ -599,7 +599,7 @@ class Login extends PureComponent {
 								onChangeText={this.setPassword}
 								value={this.state.password}
 								baseColor={colors.grey500}
-								tintColor={colors.blue}
+								tintColor={colors.primary}
 								onSubmitEditing={this.triggerLogIn}
 								renderRightAccessory={() => (
 									<BiometryButton
@@ -628,7 +628,7 @@ class Login extends PureComponent {
 						<View style={styles.ctaWrapper} testID={'log-in-button'}>
 							<StyledButton type={'confirm'} onPress={this.triggerLogIn}>
 								{this.state.loading ? (
-									<ActivityIndicator size="small" color="white" />
+									<ActivityIndicator size="small" color={colors.onInverse} />
 								) : (
 									strings('login.login_button')
 								)}

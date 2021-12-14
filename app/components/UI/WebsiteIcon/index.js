@@ -8,7 +8,7 @@ import { getHost } from '../../../util/browser';
 const styles = StyleSheet.create({
 	fallback: {
 		alignContent: 'center',
-		backgroundColor: colors.grey400,
+		backgroundColor: colors.ui4,
 		borderRadius: 27,
 		height: 54,
 		justifyContent: 'center',
@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
 	},
 	fallbackText: {
 		...fontStyles.normal,
-		color: colors.white,
+		color: colors.onUi4,
 		fontSize: 24,
 		textAlign: 'center',
 		textTransform: 'uppercase',
@@ -96,7 +96,9 @@ export default class WebsiteIcon extends PureComponent {
 
 		return (
 			<View style={viewStyle}>
-				<FadeIn placeholderStyle={{ backgroundColor: transparent ? colors.transparent : colors.white }}>
+				<FadeIn
+					placeholderStyle={{ backgroundColor: transparent ? colors.transparent : colors.backgroundDefault }}
+				>
 					<Image source={apiLogoUrl} style={style} onError={this.onRenderIconUrlError} />
 				</FadeIn>
 			</View>

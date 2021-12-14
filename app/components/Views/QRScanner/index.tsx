@@ -18,7 +18,7 @@ import Engine from '../../../core/Engine';
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: colors.black,
+		backgroundColor: colors.inverse,
 	},
 	preview: {
 		flex: 1,
@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
 	text: {
 		flex: 1,
 		fontSize: 17,
-		color: colors.white,
+		color: colors.onInverse,
 		textAlign: 'center',
 		justifyContent: 'center',
 		marginTop: 100,

@@ -116,11 +116,11 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		fontSize: 15,
 		lineHeight: 20,
-		color: colors.blue,
+		color: colors.primary,
 		...fontStyles.normal,
 	},
 	blue: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	titleIcon: {
 		fontSize: 32,
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
 	},
 	whyImportantText: {
 		fontSize: 14,
-		color: colors.blue,
+		color: colors.primary,
 	},
 	manualTitle: {
 		fontSize: 16,
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
 		lineHeight: 17,
 		width: 32,
 		height: 6,
-		backgroundColor: colors.blue,
+		backgroundColor: colors.primary,
 		marginRight: 2,
 	},
 	secureModalXIcon: {
@@ -252,7 +252,7 @@ const AccountBackupStep1B = (props) => {
 							</Text>
 						</View>
 						<TouchableOpacity onPress={showWhySecureWallet} style={styles.centerContent}>
-							<Icon name="info-circle" style={styles.infoIcon} color={colors.blue} />
+							<Icon name="info-circle" style={styles.infoIcon} color={colors.primary} />
 							<Text style={styles.whyImportantText}>
 								{strings('account_backup_step_1B.why_important')}
 							</Text>

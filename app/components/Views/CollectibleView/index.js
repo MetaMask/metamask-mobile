@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
 	buttonText: {
 		marginLeft: 8,
 		fontSize: 15,
-		color: colors.white,
+		color: colors.onInverse,
 		...fontStyles.bold,
 	},
 });

@@ -97,13 +97,13 @@ const styles = StyleSheet.create({
 		color: colors.grey500,
 	},
 	iconHighlighted: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	borderOpaque: {
 		borderColor: colors.grey100,
 	},
 	borderHighlighted: {
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 	},
 	iconWrapper: {
 		flexDirection: 'row',

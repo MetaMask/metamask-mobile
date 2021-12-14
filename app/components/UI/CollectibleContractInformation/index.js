@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
 	},
 	closeButton: {
 		fontSize: 16,
-		color: colors.blue,
+		color: colors.primary,
 		...fontStyles.normal,
 	},
 	opensea: {

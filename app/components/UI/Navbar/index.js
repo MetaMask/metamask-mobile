@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
 		marginRight: 10,
 	},
 	backIcon: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	backIconIOS: {
 		marginHorizontal: 4,
@@ -80,10 +80,10 @@ const styles = StyleSheet.create({
 		marginTop: 5,
 	},
 	infoIcon: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	closeButtonText: {
-		color: colors.blue,
+		color: colors.primary,
 		fontSize: 14,
 		...fontStyles.normal,
 	},
@@ -169,7 +169,7 @@ export function getNavigationOptionsTitle(title, navigation, isFullScreenModal) 
 			color: colors.textDefault,
 			...fontStyles.normal,
 		},
-		headerTintColor: colors.blue,
+		headerTintColor: colors.primary,
 		headerRight: () =>
 			isFullScreenModal ? (
 				<TouchableOpacity onPress={navigationPop} style={styles.closeButton}>
@@ -211,7 +211,7 @@ export function getEditableOptions(title, navigation, route) {
 			color: colors.textDefault,
 			...fontStyles.normal,
 		},
-		headerTintColor: colors.blue,
+		headerTintColor: colors.primary,
 		headerLeft: () => (
 			<TouchableOpacity onPress={navigationPop} style={styles.backButton} testID={'edit-contact-back-button'}>
 				<IonicIcon
@@ -251,7 +251,7 @@ export function getPaymentRequestOptionsTitle(title, navigation, route) {
 			color: colors.textDefault,
 			...fontStyles.normal,
 		},
-		headerTintColor: colors.blue,
+		headerTintColor: colors.primary,
 		headerLeft: () =>
 			goBack ? (
 				// eslint-disable-next-line react/jsx-no-bind
@@ -293,7 +293,7 @@ export function getPaymentRequestSuccessOptionsTitle(navigation) {
 			borderBottomWidth: 0,
 		},
 		title: null,
-		headerTintColor: colors.blue,
+		headerTintColor: colors.primary,
 		headerLeft: () => <View />,
 		headerRight: () => (
 			<TouchableOpacity

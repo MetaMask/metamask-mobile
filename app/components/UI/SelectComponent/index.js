@@ -202,7 +202,7 @@ export default class SelectComponent extends PureComponent {
 										{option.label}
 									</Text>
 									{this.props.selectedValue === option.value ? (
-										<IconCheck style={styles.icon} name="check" size={24} color={colors.blue} />
+										<IconCheck style={styles.icon} name="check" size={24} color={colors.primary} />
 									) : null}
 								</TouchableOpacity>
 							))}

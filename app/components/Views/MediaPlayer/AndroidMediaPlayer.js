@@ -414,7 +414,7 @@ export default function VideoPlayer({
 	const renderMuteUnmuteControl = useCallback(
 		() =>
 			renderControl(
-				<FA5Icon color={colors.white} size={18} name={`volume-${muted ? 'mute' : 'up'}`} />,
+				<FA5Icon color={colors.onInverse} size={18} name={`volume-${muted ? 'mute' : 'up'}`} />,
 				toggleMuted,
 				styles.controlsMuteUnmute
 			),
@@ -457,7 +457,7 @@ export default function VideoPlayer({
 	const renderPlayPause = useCallback(
 		() =>
 			renderControl(
-				<FA5Icon color={colors.white} size={16} name={paused ? 'play' : 'pause'} />,
+				<FA5Icon color={colors.onInverse} size={16} name={paused ? 'play' : 'pause'} />,
 				togglePlayPause,
 				styles.controlsPlayPause
 			),
@@ -497,7 +497,7 @@ export default function VideoPlayer({
 	};
 
 	const renderClose = useCallback(
-		() => renderControl(<AntIcon color={colors.white} size={16} name={'close'} />, onClose, {}),
+		() => renderControl(<AntIcon color={colors.onInverse} size={16} name={'close'} />, onClose, {}),
 		[onClose]
 	);
 

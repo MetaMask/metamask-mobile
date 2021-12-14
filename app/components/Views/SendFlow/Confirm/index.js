@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
 	},
 	actionText: {
 		...fontStyles.normal,
-		color: colors.blue,
+		color: colors.primary,
 		fontSize: 14,
 		alignSelf: 'center',
 	},
@@ -1336,7 +1336,7 @@ class Confirm extends PureComponent {
 						testID={'txn-confirm-send-button'}
 					>
 						{transactionConfirmed ? (
-							<ActivityIndicator size="small" color="white" />
+							<ActivityIndicator size="small" color={colors.onInverse} />
 						) : (
 							strings('transaction.send')
 						)}

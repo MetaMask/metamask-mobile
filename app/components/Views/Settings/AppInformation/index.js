@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
 		textAlign: 'left',
 		marginBottom: 20,
 		...fontStyles.normal,
-		color: colors.blue,
+		color: colors.primary,
 	},
 	division: {
 		borderBottomColor: colors.grey400,

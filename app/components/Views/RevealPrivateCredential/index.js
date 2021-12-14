@@ -91,10 +91,10 @@ const styles = StyleSheet.create({
 	},
 	actionIcon: {
 		margin: 10,
-		color: colors.blue,
+		color: colors.primary,
 	},
 	actionText: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	warningMessageText: {
 		marginLeft: 10,
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
 	},
 	tabUnderlineStyle: {
 		height: 2,
-		backgroundColor: colors.blue,
+		backgroundColor: colors.primary,
 	},
 	tabStyle: {
 		paddingBottom: 0,
@@ -267,9 +267,9 @@ class RevealPrivateCredential extends PureComponent {
 		return (
 			<DefaultTabBar
 				underlineStyle={styles.tabUnderlineStyle}
-				activeTextColor={colors.blue}
+				activeTextColor={colors.primary}
 				inactiveTextColor={colors.textAlternative}
-				backgroundColor={colors.white}
+				backgroundColor={colors.backgroundDefault}
 				tabStyle={styles.tabStyle}
 				textStyle={styles.textStyle}
 			/>

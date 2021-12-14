@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
 		alignSelf: 'center',
 	},
 	viewDataText: {
-		color: colors.blue,
+		color: colors.primary,
 		textAlign: 'center',
 		fontSize: 12,
 		...fontStyles.bold,

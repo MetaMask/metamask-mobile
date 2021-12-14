@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 	},
 	link: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	button: {
 		marginBottom: 10,

@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
 	},
 	backupAlertMessage: {
 		fontSize: 12,
-		color: colors.blue,
+		color: colors.primary,
 		marginLeft: 14,
 		flex: 1,
 		textAlign: 'right',

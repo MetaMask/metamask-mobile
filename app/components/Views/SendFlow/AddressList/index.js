@@ -14,7 +14,7 @@ const styles = StyleSheet.create({
 	},
 	messageText: {
 		...fontStyles.normal,
-		color: colors.blue,
+		color: colors.primary,
 		fontSize: 16,
 		textAlign: 'center',
 	},

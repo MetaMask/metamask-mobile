@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
 		paddingRight: 14,
 	},
 	incrementDecrementIcon: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 });
 

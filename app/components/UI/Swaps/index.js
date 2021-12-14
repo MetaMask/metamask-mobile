@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
 		marginHorizontal: 30,
 	},
 	linkText: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	horizontalRuleContainer: {
 		flexDirection: 'row',
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
 		borderBottomColor: colors.grey100,
 	},
 	arrowDown: {
-		color: colors.blue,
+		color: colors.primary,
 		fontSize: 25,
 		marginHorizontal: 15,
 	},

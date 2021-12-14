@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
 		padding: 20,
 	},
 	warningLinks: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 });
 

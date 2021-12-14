@@ -35,10 +35,10 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.yellow,
 	},
 	errorButton: {
-		backgroundColor: colors.red,
+		backgroundColor: colors.error,
 	},
 	errorButtonText: {
-		color: colors.white,
+		color: colors.onError,
 	},
 	infoWrapper: {
 		position: 'absolute',

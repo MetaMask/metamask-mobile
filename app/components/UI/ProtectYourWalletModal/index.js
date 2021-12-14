@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
 	learnMoreText: {
 		textAlign: 'center',
 		...fontStyles.normal,
-		color: colors.blue,
+		color: colors.primary,
 		marginBottom: 14,
 		fontSize: 14,
 	},

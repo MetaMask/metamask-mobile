@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
 		color: colors.textDefault,
 		width: 95,
 		backgroundColor: colors.backgroundDefault,
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 		borderWidth: 1,
 		marginBottom: 6,
 		borderRadius: 13,
@@ -123,24 +123,24 @@ const styles = StyleSheet.create({
 	},
 	successText: {
 		fontSize: 12,
-		color: colors.green500,
+		color: colors.ui4,
 		marginLeft: 4,
 	},
 	selectedWord: {
-		backgroundColor: colors.grey400,
+		backgroundColor: colors.ui4,
 		borderWidth: 1,
-		borderColor: colors.grey400,
+		borderColor: colors.ui4,
 	},
 	selectedWordText: {
-		color: colors.white,
+		color: colors.onUi4,
 	},
 	currentWord: {
 		borderWidth: 1,
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 	},
 	confirmedWord: {
 		borderWidth: 1,
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 		borderStyle: 'solid',
 	},
 });

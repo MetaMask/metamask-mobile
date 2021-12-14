@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
 	},
 	scanPkeyText: {
 		fontSize: 14,
-		color: colors.blue,
+		color: colors.primary,
 	},
 	icon: {
 		textAlign: 'left',
@@ -256,7 +256,7 @@ export default class ImportPrivateKey extends PureComponent {
 							testID={'import-button'}
 						>
 							{this.state.loading ? (
-								<ActivityIndicator size="small" color="white" />
+								<ActivityIndicator size="small" color={colors.onInverse} />
 							) : (
 								strings('import_private_key.cta_text')
 							)}

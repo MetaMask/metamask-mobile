@@ -15,7 +15,7 @@ const styles = StyleSheet.create({
 		right: 0,
 		position: 'absolute',
 		borderTopWidth: 0,
-		borderColor: colors.white,
+		borderColor: colors.backgroundDefault,
 		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 		width: null,

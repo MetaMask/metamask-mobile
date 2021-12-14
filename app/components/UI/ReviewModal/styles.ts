@@ -15,7 +15,7 @@ export default StyleSheet.create({
 	optionsContainer: { flexDirection: 'row', marginTop: 14 },
 	option: { alignItems: 'center', paddingHorizontal: 14 },
 	optionIcon: { fontSize: 24 },
-	optionLabel: { fontSize: 14, fontFamily: 'EuclidCircularB-Regular', color: colors.blue },
+	optionLabel: { fontSize: 14, fontFamily: 'EuclidCircularB-Regular', color: colors.primary },
 	helpOption: { marginVertical: 12 },
 	optionLabelRed: { color: colors.error },
 	fox: { height: 44, width: 44, marginBottom: 12 },
@@ -38,7 +38,7 @@ export default StyleSheet.create({
 		marginTop: 6,
 	},
 	contactLabel: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	closeButton: { position: 'absolute', right: 16, top: 16 },
 });

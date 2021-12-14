@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
 	},
 	addText: {
 		fontSize: 14,
-		color: colors.blue,
+		color: colors.primary,
 		...fontStyles.normal,
 	},
 	footer: {

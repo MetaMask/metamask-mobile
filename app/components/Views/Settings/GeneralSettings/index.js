@@ -100,12 +100,12 @@ const styles = StyleSheet.create({
 		borderRadius: (diameter + spacing) / 2,
 		backgroundColor: colors.backgroundDefault,
 		borderWidth: 2,
-		borderColor: colors.white,
+		borderColor: colors.backgroundDefault,
 		alignItems: 'center',
 		justifyContent: 'center',
 	},
 	selected: {
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 	},
 	selected_text: {
 		color: colors.textDefault,
@@ -284,7 +284,7 @@ class Settings extends PureComponent {
 							<Switch
 								value={hideZeroBalanceTokens}
 								onValueChange={this.toggleHideZeroBalanceTokens}
-								trackColor={Device.isIos() && { true: colors.blue, false: colors.grey000 }}
+								trackColor={Device.isIos() && { true: colors.primary, false: colors.grey000 }}
 								ios_backgroundColor={colors.grey000}
 							/>
 						</View>

@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
 	},
 	btnText: {
 		fontSize: 14,
-		color: colors.blue,
+		color: colors.primary,
 		...fontStyles.normal,
 	},
 	footerButton: {
@@ -375,7 +375,7 @@ class AccountList extends PureComponent {
 							onPress={this.addAccount}
 						>
 							{this.state.loading ? (
-								<ActivityIndicator size="small" color={colors.blue} />
+								<ActivityIndicator size="small" color={colors.primary} />
 							) : (
 								<Text style={styles.btnText}>{strings('accounts.create_new_account')}</Text>
 							)}

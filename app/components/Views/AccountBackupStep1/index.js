@@ -75,13 +75,13 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 	},
 	blue: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	remindLaterText: {
 		textAlign: 'center',
 		fontSize: 15,
 		lineHeight: 20,
-		color: colors.blue,
+		color: colors.primary,
 		...fontStyles.normal,
 	},
 	remindLaterSubText: {
