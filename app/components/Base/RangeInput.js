@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
 		height: 38,
 		minWidth: 10,
 		paddingRight: 6,
-		color: error ? colors.red : colors.black,
+		color: error ? colors.red : colors.textDefault,
 	}),
 	buttonContainerLeft: {
 		marginLeft: 17,

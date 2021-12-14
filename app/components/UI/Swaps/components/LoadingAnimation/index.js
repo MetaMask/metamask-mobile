@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
 	},
 	aggContainer: {
 		position: 'absolute',
-		backgroundColor: colors.black,
+		backgroundColor: colors.inverse,
 		paddingHorizontal: 10,
 		paddingVertical: 5,
 		borderRadius: 20,

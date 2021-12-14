@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
 	textBlue: {
 		color: colors.primary,
 	},
-	textBlack: {
+	colorTextDefault: {
 		color: colors.textDefault,
 	},
 });
@@ -165,7 +165,7 @@ function EditPermission({
 						<Text
 							style={[
 								styles.optionText,
-								spendLimitUnlimitedSelected ? styles.textBlue : styles.textBlack,
+								spendLimitUnlimitedSelected ? styles.textBlue : styles.colorTextDefault,
 							]}
 						>
 							{strings('spend_limit_edition.proposed')}
@@ -175,7 +175,7 @@ function EditPermission({
 							<Text style={fontStyles.bold}>{` ${host}`}</Text>
 						</Text>
 						<Text
-							style={[styles.optionText, styles.textBlack]}
+							style={[styles.optionText, styles.colorTextDefault]}
 						>{`${originalApproveAmount} ${tokenSymbol}`}</Text>
 					</View>
 				</View>
@@ -194,7 +194,7 @@ function EditPermission({
 						<Text
 							style={[
 								styles.optionText,
-								!spendLimitUnlimitedSelected ? styles.textBlue : styles.textBlack,
+								!spendLimitUnlimitedSelected ? styles.textBlue : styles.colorTextDefault,
 							]}
 						>
 							{strings('spend_limit_edition.custom_spend_limit')}

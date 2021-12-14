@@ -24,7 +24,7 @@ export default StyleSheet.create({
 		paddingHorizontal: 30,
 		fontFamily: 'EuclidCircularB-Bold',
 		textAlign: 'center',
-		color: colors.black,
+		color: colors.textDefault,
 		lineHeight: 26,
 	},
 	description: {

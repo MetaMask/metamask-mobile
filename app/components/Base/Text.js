@@ -80,7 +80,6 @@ const Text = ({
 	right,
 	bold,
 	green,
-	black,
 	textDefault,
 	blue,
 	grey,
@@ -107,12 +106,10 @@ const Text = ({
 			right && style.right,
 			bold && style.bold,
 			green && style.green,
-			black && style.black,
 			blue && style.blue,
 			grey && style.grey,
 			red && style.red,
 			orange && style.orange,
-			black && style.black,
 			textDefault && style.textDefault,
 			primary && style.primary,
 			disclaimer && [style.small, style.disclaimer],
@@ -137,7 +134,6 @@ Text.defaultProps = {
 	right: false,
 	bold: false,
 	green: false,
-	black: false,
 	textDefault: false,
 	blue: false,
 	red: false,
@@ -174,10 +170,6 @@ Text.propTypes = {
 	 * Makes text green
 	 */
 	green: PropTypes.bool,
-	/**
-	 * Makes text black
-	 */
-	black: PropTypes.bool,
 	/**
 	 * Sets the color to the textDefault of the theme
 	 */

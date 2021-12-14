@@ -248,7 +248,7 @@ const EditGasFeeLegacy = ({
 				>
 					{() => (
 						<View style={styles.warningTextContainer}>
-							<Text black style={styles.warningText}>
+							<Text textDefault style={styles.warningText}>
 								{warning}
 							</Text>
 						</View>
@@ -305,7 +305,7 @@ const EditGasFeeLegacy = ({
 								<TouchableOpacity onPress={onCancel}>
 									<Icon name={'ios-arrow-back'} size={24} color={colors.textDefault} />
 								</TouchableOpacity>
-								<Text bold black>
+								<Text bold textDefault>
 									{strings('transaction.edit_network_fee')}
 								</Text>
 								<Icon name={'ios-arrow-back'} size={24} color={colors.backgroundDefault} />
@@ -322,17 +322,17 @@ const EditGasFeeLegacy = ({
 							<View style={styles.headerContainer}>
 								<View style={styles.headerTitle}>
 									<View style={styles.headerTitleSide}>
-										<Text right black style={styles.headerText}>
+										<Text right textDefault style={styles.headerText}>
 											~
 										</Text>
 									</View>
-									<Text black style={styles.headerText}>
+									<Text textDefault style={styles.headerText}>
 										{gasFeePrimary}
 									</Text>
 									<View style={styles.headerTitleSide} />
 								</View>
-								<Text big black>
-									<Text bold black>
+								<Text big textDefault>
+									<Text bold textDefault>
 										{gasFeeSecondary}
 									</Text>
 								</Text>
@@ -366,7 +366,7 @@ const EditGasFeeLegacy = ({
 											<RangeInput
 												leftLabelComponent={
 													<View style={styles.labelTextContainer}>
-														<Text black bold noMargin>
+														<Text textDefault bold noMargin>
 															{strings('edit_gas_fee_eip1559.gas_limit')}{' '}
 														</Text>
 
@@ -393,7 +393,7 @@ const EditGasFeeLegacy = ({
 											<RangeInput
 												leftLabelComponent={
 													<View style={styles.labelTextContainer}>
-														<Text black bold noMargin>
+														<Text textDefault bold noMargin>
 															{strings('edit_gas_fee_eip1559.gas_price')}{' '}
 														</Text>
 

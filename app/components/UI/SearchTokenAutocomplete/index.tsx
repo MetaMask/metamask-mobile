@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 	},
 	tokenDetectionBanner: { marginHorizontal: 20, marginTop: 20, paddingRight: 0 },
-	tokenDetectionDescription: { color: colors.black },
+	tokenDetectionDescription: { color: colors.textDefault },
 	tokenDetectionLink: { color: colors.primary },
 	tokenDetectionIcon: {
 		paddingTop: 4,

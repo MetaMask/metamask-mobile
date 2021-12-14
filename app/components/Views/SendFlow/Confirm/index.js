@@ -1055,7 +1055,7 @@ class Confirm extends PureComponent {
 			>
 				<View style={styles.hexDataWrapper}>
 					<TouchableOpacity style={styles.hexDataClose} onPress={this.toggleHexDataModal}>
-						<IonicIcon name={'ios-close'} size={28} color={colors.black} />
+						<IonicIcon name={'ios-close'} size={28} color={colors.textDefault} />
 					</TouchableOpacity>
 					<View style={styles.qrCode}>
 						<Text style={styles.addressTitle}>{strings('transaction.hex_data')}</Text>

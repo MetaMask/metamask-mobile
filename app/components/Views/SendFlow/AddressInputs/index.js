@@ -143,7 +143,7 @@ const AddressName = ({ toAddressName, confusableCollection = [] }) => {
 				);
 			}
 			return (
-				<Text black key={index}>
+				<Text textDefault key={index}>
 					{char}
 				</Text>
 			);

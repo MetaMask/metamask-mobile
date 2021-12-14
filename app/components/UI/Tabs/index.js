@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		marginBottom: Device.isIphoneX() ? 0 : 0,
 		paddingTop: 17,
-		shadowColor: colors.black,
+		shadowColor: colors.shadowColor,
 		shadowOffset: {
 			width: 0,
 			height: 12,

@@ -22,13 +22,13 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		textAlign: 'center',
 		paddingVertical: 8,
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	modalTitle: {
 		...(fontStyles.bold as any),
 		fontSize: 22,
 		textAlign: 'center',
-		color: colors.black,
+		color: colors.textDefault,
 	},
 });
 

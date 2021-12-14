@@ -167,7 +167,7 @@ function CollectibleContractElement({
 					<Icon
 						name={`ios-arrow-${collectiblesVisible ? 'down' : 'forward'}`}
 						size={12}
-						color={colors.black}
+						color={colors.textDefault}
 						style={styles.arrowIcon}
 					/>
 				</View>

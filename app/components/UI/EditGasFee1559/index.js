@@ -378,7 +378,7 @@ const EditGasFee1559 = ({
 								<RangeInput
 									leftLabelComponent={
 										<View style={styles.labelTextContainer}>
-											<Text black bold noMargin>
+											<Text textDefault bold noMargin>
 												{strings('edit_gas_fee_eip1559.gas_limit')}{' '}
 											</Text>
 
@@ -405,7 +405,7 @@ const EditGasFee1559 = ({
 								<RangeInput
 									leftLabelComponent={
 										<View style={styles.labelTextContainer}>
-											<Text black bold noMargin>
+											<Text textDefault bold noMargin>
 												{strings('edit_gas_fee_eip1559.max_priority_fee')}{' '}
 											</Text>
 
@@ -443,7 +443,7 @@ const EditGasFee1559 = ({
 								<RangeInput
 									leftLabelComponent={
 										<View style={styles.labelTextContainer}>
-											<Text black={!maxFeeError} red={Boolean(maxFeeError)} bold noMargin>
+											<Text textDefault={!maxFeeError} red={Boolean(maxFeeError)} bold noMargin>
 												{strings('edit_gas_fee_eip1559.max_fee')}{' '}
 											</Text>
 
@@ -506,7 +506,7 @@ const EditGasFee1559 = ({
 				>
 					{() => (
 						<View style={styles.warningTextContainer}>
-							<Text black style={styles.warningText}>
+							<Text textDefault style={styles.warningText}>
 								{warning}
 							</Text>
 						</View>
@@ -558,14 +558,14 @@ const EditGasFee1559 = ({
 								<TouchableOpacity onPress={onCancel}>
 									<Icon name={'ios-arrow-back'} size={24} color={colors.textDefault} />
 								</TouchableOpacity>
-								<Text bold black>
+								<Text bold textDefault>
 									{renderDisplayTitle}
 								</Text>
 								<Icon name={'ios-arrow-back'} size={24} color={colors.backgroundDefault} />
 							</View>
 							{updateOption && (
 								<View style={styles.newGasFeeHeader}>
-									<Text black bold noMargin>
+									<Text textDefault bold noMargin>
 										{strings('edit_gas_fee_eip1559.new_gas_fee')}{' '}
 									</Text>
 
@@ -586,12 +586,18 @@ const EditGasFee1559 = ({
 							animateOnChange={animateOnChange}
 						>
 							<View style={styles.headerTitle}>
-								<Text black style={styles.headerText} adjustsFontSizeToFit numberOfLines={1} noMargin>
+								<Text
+									textDefault
+									style={styles.headerText}
+									adjustsFontSizeToFit
+									numberOfLines={1}
+									noMargin
+								>
 									~{gasFeePrimary}
 								</Text>
 							</View>
-							<Text big black style={styles.subheader} noMargin>
-								<Text bold black noMargin>
+							<Text big textDefault style={styles.subheader} noMargin>
+								<Text bold textDefault noMargin>
 									{strings('edit_gas_fee_eip1559.max_fee')}:{' '}
 								</Text>
 								{gasFeeMaxPrimary} ({gasFeeMaxSecondary})

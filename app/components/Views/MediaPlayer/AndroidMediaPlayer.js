@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
 		right: 0,
 		bottom: 0,
 		left: 0,
-		backgroundColor: colors.black,
+		backgroundColor: colors.inverse,
 		borderRadius: 12,
 	},
 	errorContainer: {

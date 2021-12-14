@@ -48,7 +48,7 @@ function Loader({ error, onClose }) {
 					)}
 				</View>
 				<View style={styles.item}>
-					<Text style={styles.text} black>
+					<Text style={styles.text} textDefault>
 						{strings(`media_player.${error ? 'not_found' : 'loading'}`)}
 					</Text>
 				</View>

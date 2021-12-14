@@ -87,6 +87,7 @@ export const colors = {
 	ui1: baseColors.grey000,
 	onUi1: baseColors.grey800,
 	borderDefault: baseColors.grey100,
+	shadowColor: baseColors.gray900,
 	// needs auditing
 	white: '#FFFFFF',
 	white100: '#F9FAFB',
@@ -108,6 +109,7 @@ export const colors = {
 	red000: '#fcf2f3',
 	blue: '#037dd6',
 	blue000: '#eaf6ff',
+	blue100: baseColors.blue100,
 	blue200: '#75C4FD',
 	blue500: '#1097FB',
 	blue600: '#0260A4',

@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
 		lineHeight: 16,
 		paddingRight: 10,
 	},
-	black: {
+	textDefault: {
 		color: colors.textDefault,
 	},
 	warningIcon: {
@@ -642,15 +642,15 @@ class SendFlow extends PureComponent {
 									<View style={styles.warningIcon}>
 										<Icon
 											size={16}
-											color={displayAsWarning ? colors.black : colors.red}
+											color={displayAsWarning ? colors.textDefault : colors.red}
 											name="exclamation-triangle"
 										/>
 									</View>
 									<View>
-										<Text style={[styles.confusableTitle, displayAsWarning && styles.black]}>
+										<Text style={[styles.confusableTitle, displayAsWarning && styles.textDefault]}>
 											{strings('transaction.confusable_title')}
 										</Text>
-										<Text style={[styles.confusableMsg, displayAsWarning && styles.black]}>
+										<Text style={[styles.confusableMsg, displayAsWarning && styles.textDefault]}>
 											{strings('transaction.confusable_msg')}
 										</Text>
 									</View>

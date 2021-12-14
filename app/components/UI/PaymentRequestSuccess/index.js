@@ -321,7 +321,7 @@ class PaymentRequestSuccess extends PureComponent {
 									onPress={this.closeQRModal}
 									testID={'payment-request-qrcode-close-button'}
 								>
-									<IonicIcon name={'ios-close'} size={28} color={colors.black} />
+									<IonicIcon name={'ios-close'} size={28} color={colors.textDefault} />
 								</TouchableOpacity>
 							</View>
 							<View style={styles.qrCodeWrapper}>

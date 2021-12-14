@@ -123,7 +123,7 @@ const ReviewModal = () => {
 					hitSlop={{ top: 12, right: 12, bottom: 12, left: 12 }}
 					onPress={triggerClose}
 				>
-					<Icon color={colors.black} size={20} name={'x'} />
+					<Icon color={colors.textDefault} size={20} name={'x'} />
 				</TouchableOpacity>
 			</View>
 		</ReusableModal>

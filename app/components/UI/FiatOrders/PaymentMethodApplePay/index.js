@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
 	},
 	amount: {
 		...fontStyles.light,
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: Device.isIphone5() ? 48 : 48,
 		height: Device.isIphone5() ? 50 : 60,
 	},

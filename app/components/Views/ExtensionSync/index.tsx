@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
 	},
 	titleLabel: {
 		textAlign: 'center',
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 24,
 		fontFamily: fontStyles.bold.fontFamily,
 		marginTop: 32,
@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
 		marginTop: 32,
 	},
 	stepLabel: {
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: scaling.scale(16),
 		fontFamily: fontStyles.normal.fontFamily,
 		marginBottom: 8,

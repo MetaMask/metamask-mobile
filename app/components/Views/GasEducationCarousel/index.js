@@ -146,7 +146,7 @@ const GasEducationCarousel = ({ navigation, route, conversionRate, currentCurren
 		if (key === 1) {
 			return (
 				<View style={styles.tab}>
-					<Text noMargin bold black style={styles.title} testID={`carousel-screen-${key}`}>
+					<Text noMargin bold textDefault style={styles.title} testID={`carousel-screen-${key}`}>
 						{strings('fiat_on_ramp.gas_education_carousel.step_1.title')}
 					</Text>
 					<Text grey noMargin bold style={styles.subheader}>
@@ -165,7 +165,7 @@ const GasEducationCarousel = ({ navigation, route, conversionRate, currentCurren
 		if (key === 2) {
 			return (
 				<View style={styles.tab}>
-					<Text noMargin bold black style={styles.title} testID={`carousel-screen-${key}`}>
+					<Text noMargin bold textDefault style={styles.title} testID={`carousel-screen-${key}`}>
 						{strings('fiat_on_ramp.gas_education_carousel.step_2.title')}
 					</Text>
 					<Text grey noMargin style={styles.subtitle}>
@@ -185,7 +185,7 @@ const GasEducationCarousel = ({ navigation, route, conversionRate, currentCurren
 		if (key === 3) {
 			return (
 				<View style={styles.tab}>
-					<Text noMargin bold black style={styles.title} testID={`carousel-screen-${key}`}>
+					<Text noMargin bold textDefault style={styles.title} testID={`carousel-screen-${key}`}>
 						{strings('fiat_on_ramp.gas_education_carousel.step_3.title')}
 					</Text>
 					<Text noMargin bold style={styles.subheader}>
