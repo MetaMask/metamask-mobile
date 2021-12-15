@@ -7,7 +7,7 @@ import { colors, fontStyles } from '../../styles/common';
 const styles = StyleSheet.create({
 	tabUnderlineStyle: {
 		height: 2,
-		backgroundColor: colors.blue,
+		backgroundColor: colors.primary,
 	},
 	tabStyle: {
 		paddingVertical: 8,
@@ -22,9 +22,9 @@ function TabBar({ ...props }) {
 	return (
 		<DefaultTabBar
 			underlineStyle={styles.tabUnderlineStyle}
-			activeTextColor={colors.blue}
-			inactiveTextColor={colors.fontSecondary}
-			backgroundColor={colors.white}
+			activeTextColor={colors.primary}
+			inactiveTextColor={colors.textAlternative}
+			backgroundColor={colors.backgroundDefault}
 			tabStyle={styles.tabStyle}
 			textStyle={styles.textStyle}
 			{...props}

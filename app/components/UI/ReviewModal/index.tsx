@@ -1,5 +1,6 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { View, Image, Text, TouchableOpacity, LayoutAnimation } from 'react-native';
+import { View, Image, TouchableOpacity, LayoutAnimation } from 'react-native';
+import Text from '../../Base/Text';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import Icon from 'react-native-vector-icons/Feather';
 import { colors } from '../../../styles/common';
@@ -123,7 +124,7 @@ const ReviewModal = () => {
 					hitSlop={{ top: 12, right: 12, bottom: 12, left: 12 }}
 					onPress={triggerClose}
 				>
-					<Icon color={colors.black} size={20} name={'x'} />
+					<Icon color={colors.textDefault} size={20} name={'x'} />
 				</TouchableOpacity>
 			</View>
 		</ReusableModal>

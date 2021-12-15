@@ -27,17 +27,17 @@ const styles = StyleSheet.create({
 		paddingLeft: 1,
 		justifyContent: 'center',
 		alignContent: 'center',
-		backgroundColor: colors.blue,
+		backgroundColor: colors.primary,
 	},
 	buttonIcon: {
 		justifyContent: 'center',
 		alignContent: 'center',
 		textAlign: 'center',
-		color: colors.white,
+		color: colors.onPrimary,
 	},
 	buttonText: {
 		marginTop: 8,
-		color: colors.blue,
+		color: colors.primary,
 		fontSize: 14,
 	},
 	receive: {
@@ -65,7 +65,7 @@ function getIcon(type) {
 				<MaterialCommunityIcon
 					name={'keyboard-tab'}
 					size={20}
-					color={colors.white}
+					color={colors.onPrimary}
 					style={[styles.buttonIcon, styles.receive]}
 				/>
 			);

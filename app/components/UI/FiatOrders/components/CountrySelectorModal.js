@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'flex-end',
 	},
 	modalView: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
 	},
@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 5,
 		borderRadius: 5,
 		borderWidth: 1,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 	},
 	searchIcon: {
 		marginHorizontal: 8,
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
 	},
 	resultRow: {
 		borderTopWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 		paddingHorizontal: 20,
 	},
 	flag: {
@@ -159,7 +159,7 @@ function CountrySelectorModal({ isVisible, dismiss, countries, onItemPress }) {
 							ref={searchInput}
 							style={styles.input}
 							placeholder={strings('fiat_on_ramp.search_country')}
-							placeholderTextColor={colors.grey500}
+							placeholderTextColor={colors.muted}
 							value={searchString}
 							onChangeText={handleSearchTextChange}
 						/>

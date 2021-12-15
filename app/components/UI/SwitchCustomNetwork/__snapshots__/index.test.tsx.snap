@@ -4,7 +4,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
 <View
   style={
     Object {
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#141618",
       "borderTopLeftRadius": 20,
       "borderTopRightRadius": 20,
       "minHeight": 200,
@@ -14,17 +14,15 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
   }
 >
   <Text
-    black={false}
-    blue={false}
     bold={true}
     centered={true}
     disclaimer={false}
-    green={false}
+    error={false}
+    info={false}
     link={false}
     modal={false}
     noMargin={true}
     primary={true}
-    red={false}
     reset={false}
     right={false}
     small={false}
@@ -38,23 +36,25 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
         "marginTop": 16,
       }
     }
+    success={false}
+    textAlternative={false}
+    textDefault={false}
     underline={false}
     upper={false}
+    warning={false}
   >
     New network added
   </Text>
   <Text
-    black={false}
-    blue={false}
     bold={false}
     centered={false}
     disclaimer={false}
-    green={false}
+    error={false}
+    info={false}
     link={false}
     modal={false}
     noMargin={true}
     primary={true}
-    red={false}
     reset={false}
     right={false}
     small={false}
@@ -68,66 +68,76 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
         "width": "100%",
       }
     }
+    success={false}
+    textAlternative={false}
+    textDefault={false}
     underline={false}
     upper={false}
+    warning={false}
   >
     <Text
-      black={false}
-      blue={false}
       bold={false}
       centered={false}
       disclaimer={false}
-      green={false}
+      error={false}
+      info={false}
       link={false}
       modal={false}
       primary={false}
-      red={false}
       reset={false}
       right={false}
       small={false}
       strikethrough={false}
+      success={false}
+      textAlternative={false}
+      textDefault={false}
       underline={false}
       upper={false}
+      warning={false}
     >
       <Text
-        black={false}
-        blue={false}
         bold={true}
         centered={false}
         disclaimer={false}
-        green={false}
+        error={false}
+        info={false}
         link={false}
         modal={false}
         noMargin={true}
         primary={true}
-        red={false}
         reset={false}
         right={false}
         small={false}
         strikethrough={false}
+        success={false}
+        textAlternative={false}
+        textDefault={false}
         underline={false}
         upper={false}
+        warning={false}
       >
         ""
       </Text>
       <Text
-        black={false}
-        blue={false}
         bold={false}
         centered={false}
         disclaimer={false}
-        green={false}
+        error={false}
+        info={false}
         link={false}
         modal={false}
         noMargin={true}
         primary={false}
-        red={false}
         reset={false}
         right={false}
         small={false}
         strikethrough={false}
+        success={false}
+        textAlternative={false}
+        textDefault={false}
         underline={false}
         upper={false}
+        warning={false}
       >
          
         is now available in the network selector.

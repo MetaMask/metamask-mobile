@@ -12,10 +12,10 @@ const styles = StyleSheet.create({
 		paddingVertical: 10,
 		paddingHorizontal: 15,
 		borderWidth: 1,
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 		borderTopRightRadius: 10,
 		borderTopLeftRadius: 10,
-		backgroundColor: colors.blue000,
+		backgroundColor: colors.info,
 	},
 	headerWithPiggy: {
 		paddingLeft: 15 + 32 + 10,
@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
 		height: 0,
 		width: 19,
 		borderTopWidth: 1,
-		borderColor: colors.blue000,
+		borderColor: colors.info,
 	},
 	piggyBank: {
 		position: 'absolute',
@@ -37,14 +37,14 @@ const styles = StyleSheet.create({
 		height: 44,
 	},
 	headerText: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	body: {
 		paddingVertical: 10,
 		paddingHorizontal: 15,
 		borderWidth: 1,
 		borderTopWidth: 0,
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 		borderBottomRightRadius: 10,
 		borderBottomLeftRadius: 10,
 	},
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
 		width: '100%',
 		borderTopWidth: 1,
 		marginVertical: 6,
-		borderTopColor: colors.grey100,
+		borderTopColor: colors.muted,
 	},
 });
 

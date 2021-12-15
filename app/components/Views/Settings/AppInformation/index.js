@@ -1,14 +1,6 @@
 import React, { PureComponent } from 'react';
-import {
-	SafeAreaView,
-	StyleSheet,
-	Image,
-	Text,
-	InteractionManager,
-	View,
-	ScrollView,
-	TouchableOpacity,
-} from 'react-native';
+import { SafeAreaView, StyleSheet, Image, InteractionManager, View, ScrollView, TouchableOpacity } from 'react-native';
+import Text from '../../../Base/Text';
 import { getApplicationName, getVersion, getBuildNumber } from 'react-native-device-info';
 import { colors, fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
@@ -18,7 +10,7 @@ import AppConstants from '../../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	wrapperContent: {
@@ -37,10 +29,10 @@ const styles = StyleSheet.create({
 		textAlign: 'left',
 		marginBottom: 20,
 		...fontStyles.normal,
-		color: colors.blue,
+		color: colors.primary,
 	},
 	division: {
-		borderBottomColor: colors.grey400,
+		borderBottomColor: colors.borderDefault,
 		borderBottomWidth: 1,
 		width: '30%',
 		marginBottom: 20,
@@ -51,7 +43,7 @@ const styles = StyleSheet.create({
 	},
 	logoWrapper: {
 		flex: 1,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		alignItems: 'center',
 		justifyContent: 'center',
 		top: 20,
@@ -62,7 +54,7 @@ const styles = StyleSheet.create({
 		fontSize: 18,
 		textAlign: 'left',
 		marginBottom: 20,
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 		...fontStyles.normal,
 	},
 });

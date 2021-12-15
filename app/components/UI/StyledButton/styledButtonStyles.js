@@ -12,45 +12,38 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		...fontStyles.bold,
 	},
-	blue: {
-		backgroundColor: colors.blue,
+	primary: {
+		backgroundColor: colors.primary,
 	},
-	blueText: {
-		color: colors.white,
-	},
-	orange: {
-		borderColor: colors.orange,
-		borderWidth: 1,
-	},
-	orangeText: {
-		color: colors.orange,
+	primaryText: {
+		color: colors.onPrimary,
 	},
 	infoText: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	confirm: {
-		backgroundColor: colors.blue,
+		backgroundColor: colors.primary,
 		minHeight: 50,
 	},
 	confirmText: {
-		color: colors.white,
+		color: colors.onPrimary,
 	},
 	roundedNormal: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderWidth: 1,
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 		padding: 8,
 	},
 	roundedNormalText: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	normal: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderWidth: 1,
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 	},
 	normalText: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	transparent: {
 		backgroundColor: colors.transparent,
@@ -58,81 +51,77 @@ const styles = StyleSheet.create({
 		borderColor: colors.transparent,
 	},
 	cancel: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderWidth: 1,
-		borderColor: colors.grey400,
+		borderColor: colors.textAlternative,
 	},
 	cancelText: {
-		color: colors.grey400,
+		color: colors.textAlternative,
 	},
 	signingCancel: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderWidth: 1,
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 	},
 	signingCancelText: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	warning: {
-		backgroundColor: colors.red,
+		backgroundColor: colors.onError,
 	},
 	info: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderWidth: 1,
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 	},
 	warningText: {
-		color: colors.white,
+		color: colors.onWarning,
 	},
 	warningTextEmpty: {
-		color: colors.red,
+		color: colors.onWarning,
 	},
 	neutral: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderWidth: 1,
-		borderColor: colors.grey500,
+		borderColor: colors.borderDefault,
 	},
 	neutralText: {
-		color: colors.grey500,
+		color: colors.textAlternative,
 	},
 	sign: {
-		backgroundColor: colors.blue,
+		backgroundColor: colors.primary,
 		borderWidth: 1,
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 	},
 	signText: {
-		color: colors.white,
+		color: colors.onPrimary,
 	},
 	danger: {
-		backgroundColor: colors.red,
-		borderColor: colors.red,
+		backgroundColor: colors.onError,
+		borderColor: colors.onError,
 		borderWidth: 1,
 	},
 	whiteText: {
 		...fontStyles.bold,
-		color: colors.white,
+		color: colors.onPrimary,
 	},
 	viewText: {
 		fontSize: 18,
 		...fontStyles.bold,
-		color: colors.white,
+		color: colors.onPrimary,
 	},
 	view: {
 		borderWidth: 1,
-		borderColor: colors.white,
+		borderColor: colors.onPrimary,
 	},
 });
 
 function getStyles(type) {
 	let fontStyle, containerStyle;
 	switch (type) {
-		case 'orange':
-			fontStyle = styles.orangeText;
-			containerStyle = styles.orange;
-			break;
-		case 'blue':
-			fontStyle = styles.blueText;
-			containerStyle = styles.blue;
+		case 'primary':
+			fontStyle = styles.primaryText;
+			containerStyle = styles.primary;
 			break;
 		case 'confirm':
 			fontStyle = styles.confirmText;
@@ -156,10 +145,6 @@ function getStyles(type) {
 			break;
 		case 'transparent':
 			fontStyle = styles.whiteText;
-			containerStyle = styles.transparent;
-			break;
-		case 'transparent-blue':
-			fontStyle = styles.normalText;
 			containerStyle = styles.transparent;
 			break;
 		case 'warning':

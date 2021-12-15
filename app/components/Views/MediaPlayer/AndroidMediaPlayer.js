@@ -9,11 +9,11 @@ import {
 	Easing,
 	Image,
 	View,
-	Text,
 	ViewPropTypes,
 	TouchableNativeFeedback,
 	TouchableHighlight,
 } from 'react-native';
+import Text from '../../Base/Text';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import { baseStyles, colors } from '../../../styles/common';
@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
 		right: 0,
 		bottom: 0,
 		left: 0,
-		backgroundColor: colors.black,
+		backgroundColor: colors.inverse,
 		borderRadius: 12,
 	},
 	errorContainer: {
@@ -113,11 +113,11 @@ const styles = StyleSheet.create({
 		height: 4,
 		width: '100%',
 		borderRadius: 2,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 	},
 	seekbarPermanentFill: {
 		width: '100%',
-		backgroundColor: colors.grey400,
+		backgroundColor: colors.ui4,
 	},
 	seekbarHandle: {
 		marginLeft: -10,
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
 	actionButton: {
 		width: 44,
 		height: 44,
-		backgroundColor: colors.greytransparent100,
+		backgroundColor: colors.ui4,
 		borderRadius: 8,
 	},
 	actionSeeker: {
@@ -414,7 +414,7 @@ export default function VideoPlayer({
 	const renderMuteUnmuteControl = useCallback(
 		() =>
 			renderControl(
-				<FA5Icon color={colors.white} size={18} name={`volume-${muted ? 'mute' : 'up'}`} />,
+				<FA5Icon color={colors.onInverse} size={18} name={`volume-${muted ? 'mute' : 'up'}`} />,
 				toggleMuted,
 				styles.controlsMuteUnmute
 			),
@@ -444,7 +444,10 @@ export default function VideoPlayer({
 				</View>
 
 				<View style={[styles.seekbarHandle, { left: seekerPosition }]} pointerEvents={'none'}>
-					<View style={[styles.seekbarCircle, { backgroundColor: colors.white }]} pointerEvents={'none'} />
+					<View
+						style={[styles.seekbarCircle, { backgroundColor: colors.backgroundDefault }]}
+						pointerEvents={'none'}
+					/>
 				</View>
 			</View>
 		),
@@ -454,7 +457,7 @@ export default function VideoPlayer({
 	const renderPlayPause = useCallback(
 		() =>
 			renderControl(
-				<FA5Icon color={colors.white} size={16} name={paused ? 'play' : 'pause'} />,
+				<FA5Icon color={colors.onInverse} size={16} name={paused ? 'play' : 'pause'} />,
 				togglePlayPause,
 				styles.controlsPlayPause
 			),
@@ -494,7 +497,7 @@ export default function VideoPlayer({
 	};
 
 	const renderClose = useCallback(
-		() => renderControl(<AntIcon color={colors.white} size={16} name={'close'} />, onClose, {}),
+		() => renderControl(<AntIcon color={colors.onInverse} size={16} name={'close'} />, onClose, {}),
 		[onClose]
 	);
 

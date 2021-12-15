@@ -5,7 +5,6 @@ import {
 	Switch,
 	ActivityIndicator,
 	Alert,
-	Text,
 	View,
 	TextInput,
 	SafeAreaView,
@@ -14,6 +13,7 @@ import {
 	Image,
 	InteractionManager,
 } from 'react-native';
+import Text from '../../Base/Text';
 // eslint-disable-next-line import/no-unresolved
 import CheckBox from '@react-native-community/checkbox';
 import AnimatedFox from 'react-native-animated-fox';
@@ -41,7 +41,7 @@ import { syncPrefs } from '../../../util/sync';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	scrollviewWrapper: {
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
 		fontSize: 32,
 		marginTop: 10,
 		marginBottom: 10,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		justifyContent: 'center',
 		textAlign: 'left',
 		...fontStyles.normal,
@@ -60,14 +60,14 @@ const styles = StyleSheet.create({
 		borderWidth: 2,
 		borderRadius: 5,
 		width: '100%',
-		borderColor: colors.grey000,
+		borderColor: colors.borderDefault,
 		padding: 10,
 		height: 40,
 	},
 	confirm_label: {
 		fontSize: 16,
 		lineHeight: 23,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		textAlign: 'left',
 		...fontStyles.normal,
 	},
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
 		fontSize: 24,
 		marginTop: 20,
 		marginBottom: 20,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		justifyContent: 'center',
 		textAlign: 'center',
 		width: '100%',
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
 	subtitle: {
 		fontSize: 16,
 		lineHeight: 23,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		textAlign: 'center',
 		...fontStyles.normal,
 	},
@@ -144,21 +144,21 @@ const styles = StyleSheet.create({
 	label: {
 		...fontStyles.normal,
 		fontSize: 14,
-		color: colors.black,
+		color: colors.textDefault,
 		paddingHorizontal: 10,
 		lineHeight: 18,
 	},
 	learnMore: {
-		color: colors.blue,
+		color: colors.primary,
 		textDecorationLine: 'underline',
-		textDecorationColor: colors.blue,
+		textDecorationColor: colors.primary,
 	},
 	field: {
 		position: 'relative',
 	},
 	input: {
 		borderWidth: 1,
-		borderColor: colors.grey500,
+		borderColor: colors.borderDefault,
 		padding: 10,
 		borderRadius: 6,
 		fontSize: 14,
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 10,
 	},
 	errorMsg: {
-		color: colors.red,
+		color: colors.onError,
 		...fontStyles.normal,
 	},
 	biometrics: {
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
 	},
 	biometryLabel: {
 		fontSize: 14,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		position: 'absolute',
 		top: 0,
 		left: 0,
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
 		height: 20,
 		marginTop: 14,
 		fontSize: 12,
-		color: colors.grey450,
+		color: colors.textAlternative,
 		textAlign: 'left',
 		...fontStyles.normal,
 	},
@@ -206,15 +206,15 @@ const styles = StyleSheet.create({
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_weak: {
-		color: colors.red,
+		color: colors.onError,
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_good: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_strong: {
-		color: colors.green300,
+		color: colors.primary,
 	},
 	showMatchingPasswords: {
 		position: 'absolute',
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
 	},
 	warningMessageText: {
 		paddingVertical: 10,
-		color: colors.red,
+		color: colors.onError,
 		...fontStyles.normal,
 	},
 	keyboardAvoidingView: {
@@ -503,8 +503,8 @@ class ResetPassword extends PureComponent {
 								onValueChange={this.updateBiometryChoice} // eslint-disable-line react/jsx-no-bind
 								value={biometryChoice}
 								style={styles.biometrySwitch}
-								trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
-								ios_backgroundColor={colors.grey300}
+								trackColor={Device.isIos() ? { true: colors.primary, false: colors.muted } : null}
+								ios_backgroundColor={colors.muted}
 							/>
 						</View>
 					</>
@@ -515,8 +515,8 @@ class ResetPassword extends PureComponent {
 							onValueChange={(rememberMe) => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
 							value={rememberMe}
 							style={styles.biometrySwitch}
-							trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
-							ios_backgroundColor={colors.grey300}
+							trackColor={Device.isIos() ? { true: colors.primary, false: colors.muted } : null}
+							ios_backgroundColor={colors.muted}
 						/>
 					</>
 				)}
@@ -599,7 +599,7 @@ class ResetPassword extends PureComponent {
 							<TextInput
 								style={styles.confirm_input}
 								placeholder={'Password'}
-								placeholderTextColor={colors.grey100}
+								placeholderTextColor={colors.muted}
 								onChangeText={this.onPasswordChange}
 								secureTextEntry
 								onSubmitEditing={this.tryUnlock}
@@ -648,7 +648,10 @@ class ResetPassword extends PureComponent {
 								<AnimatedFox />
 							)}
 						</View>
-						<ActivityIndicator size="large" color={Device.isAndroid() ? colors.blue : colors.grey} />
+						<ActivityIndicator
+							size="large"
+							color={Device.isAndroid() ? colors.primary : colors.textAlternative}
+						/>
 						<Text style={styles.title}>
 							{strings(
 								previousScreen === ONBOARDING
@@ -707,16 +710,14 @@ class ResetPassword extends PureComponent {
 										onChangeText={this.setConfirmPassword}
 										secureTextEntry={secureTextEntry}
 										placeholder={''}
-										placeholderTextColor={colors.grey100}
+										placeholderTextColor={colors.muted}
 										testID={'input-password-confirm'}
 										onSubmitEditing={this.onPressCreate}
 										returnKeyType={'done'}
 										autoCapitalize="none"
 									/>
 									<View style={styles.showMatchingPasswords}>
-										{passwordsMatch ? (
-											<Icon name="check" size={16} color={colors.green300} />
-										) : null}
+										{passwordsMatch ? <Icon name="check" size={16} color={colors.primary} /> : null}
 									</View>
 									<Text style={styles.hintLabel}>
 										{strings('reset_password.must_be_at_least', { number: 8 })}
@@ -728,7 +729,7 @@ class ResetPassword extends PureComponent {
 										value={isSelected}
 										onValueChange={this.setSelection}
 										style={styles.checkbox}
-										tintColors={{ true: colors.blue }}
+										tintColors={{ true: colors.primary }}
 										boxType="square"
 										testID={'password-understand-box'}
 									/>
@@ -745,7 +746,7 @@ class ResetPassword extends PureComponent {
 
 							<View style={styles.ctaWrapper}>
 								<StyledButton
-									type={'blue'}
+									type={'primary'}
 									onPress={this.onPressCreate}
 									testID={'submit-button'}
 									disabled={!canSubmit}

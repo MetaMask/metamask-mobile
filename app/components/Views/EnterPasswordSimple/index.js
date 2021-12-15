@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { ActivityIndicator, Alert, Text, View, TextInput, SafeAreaView, StyleSheet } from 'react-native';
+import { ActivityIndicator, Alert, View, TextInput, SafeAreaView, StyleSheet } from 'react-native';
+import Text from '../../Base/Text';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import StyledButton from '../../UI/StyledButton';
 
@@ -11,7 +12,7 @@ import { passwordRequirementsMet } from '../../../util/password';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	wrapper: {
@@ -21,14 +22,14 @@ const styles = StyleSheet.create({
 	input: {
 		borderWidth: 2,
 		borderRadius: 5,
-		borderColor: colors.grey000,
+		borderColor: colors.borderDefault,
 		padding: 10,
 	},
 	ctaWrapper: {
 		marginTop: 10,
 	},
 	enterPassword: {
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 16,
 		marginBottom: 15,
 	},
@@ -90,7 +91,7 @@ export default class EnterPasswordSimple extends PureComponent {
 								<TextInput
 									style={styles.input}
 									placeholder={strings('enter_password.password')}
-									placeholderTextColor={colors.grey100}
+									placeholderTextColor={colors.muted}
 									onChangeText={this.onPasswordChange}
 									secureTextEntry
 									onSubmitEditing={this.onPressConfirm}
@@ -98,7 +99,7 @@ export default class EnterPasswordSimple extends PureComponent {
 							</View>
 							<View style={styles.ctaWrapper}>
 								<StyledButton
-									type={'blue'}
+									type={'primary'}
 									onPress={this.onPressConfirm}
 									testID={'submit-button'}
 									disabled={
@@ -106,7 +107,7 @@ export default class EnterPasswordSimple extends PureComponent {
 									}
 								>
 									{this.state.loading ? (
-										<ActivityIndicator size="small" color="white" />
+										<ActivityIndicator size="small" color={colors.onInverse} />
 									) : (
 										strings('enter_password.confirm_button')
 									)}

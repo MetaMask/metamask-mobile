@@ -1,5 +1,6 @@
 import React from 'react';
-import { TouchableOpacity, Text, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
+import Text from '../../Base/Text';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { colors, fontStyles } from '../../../styles/common';
@@ -10,7 +11,7 @@ const styles = {
 	whatIsSeedphraseTitle: {
 		flex: 1,
 		fontSize: 18,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		textAlign: 'center',
 		...fontStyles.bold,
 	},
@@ -40,7 +41,7 @@ const styles = {
 		marginTop: 16,
 		textAlign: 'center',
 		...fontStyles.normal,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		lineHeight: 20,
 	},
 	modalXIcon: {

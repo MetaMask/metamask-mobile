@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Animated, PanResponder, StyleSheet, Text, Image } from 'react-native';
+import { View, Animated, PanResponder, StyleSheet, Image } from 'react-native';
+import Text from '../../Base/Text';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 
@@ -29,9 +30,9 @@ const styles = StyleSheet.create({
 		height: DIAMETER,
 		borderRadius: DIAMETER,
 		borderWidth: 1,
-		borderColor: colors.white,
+		borderColor: colors.onPrimary,
 		bottom: 0,
-		shadowColor: colors.black,
+		shadowColor: colors.inverse,
 		shadowOffset: {
 			width: 0,
 			height: 0,
@@ -49,16 +50,16 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'space-between',
 		height: TICK_DIAMETER + 2 * TRACK_PADDING,
-		backgroundColor: colors.blue000,
+		backgroundColor: colors.info,
 		borderRadius: TICK_DIAMETER + 2 * TRACK_PADDING,
 		borderWidth: TRACK_PADDING,
-		borderColor: colors.blue000,
+		borderColor: colors.info,
 	},
 	tick: {
 		height: TICK_DIAMETER,
 		width: TICK_DIAMETER,
 		borderRadius: TICK_DIAMETER,
-		backgroundColor: colors.spinnerColor,
+		backgroundColor: colors.primary,
 		opacity: 0.5,
 	},
 	trackFront: {
@@ -73,7 +74,7 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		justifyContent: 'center',
 		alignItems: 'center',
-		backgroundColor: colors.grey700,
+		backgroundColor: colors.alert,
 		padding: 5,
 		borderRadius: 8,
 		minHeight: TOOLTIP_HEIGHT,
@@ -87,12 +88,12 @@ const styles = StyleSheet.create({
 		bottom: -5,
 		width: TAIL_WIDTH,
 		height: TAIL_WIDTH,
-		backgroundColor: colors.grey700,
+		backgroundColor: colors.ui4,
 		transform: [{ rotate: '45deg' }],
 	},
 	tooltipText: {
 		...fontStyles.normal,
-		color: colors.white,
+		color: colors.onAlert,
 		fontSize: 12,
 	},
 });
@@ -126,7 +127,7 @@ const SlippageSlider = ({ range, increment, onChange, value, formatTooltipText, 
 
 	const sliderColor = sliderPosition.interpolate({
 		inputRange: [0, trackWidth],
-		outputRange: [colors.spinnerColor, colors.red],
+		outputRange: [colors.onInfo, colors.onError],
 		extrapolate: 'clamp',
 	});
 

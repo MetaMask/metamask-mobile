@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, InteractionManager } from 'react-native';
+import { StyleSheet, View, InteractionManager } from 'react-native';
+import Text from '../../Base/Text';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';

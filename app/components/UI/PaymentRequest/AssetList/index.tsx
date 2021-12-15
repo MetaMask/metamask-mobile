@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
-import { Text, View, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import Text from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
 import AssetIcon from '../../AssetIcon';
 import { colors, fontStyles } from '../../../../styles/common';
@@ -12,7 +13,7 @@ import { toChecksumAddress } from 'ethereumjs-util';
 const styles = StyleSheet.create({
 	item: {
 		borderWidth: 1,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 		padding: 8,
 		marginBottom: 8,
 		borderRadius: 8,

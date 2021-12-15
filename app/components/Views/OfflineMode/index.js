@@ -32,13 +32,13 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		fontSize: 18,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		marginBottom: 10,
 		...fontStyles.bold,
 	},
 	text: {
 		fontSize: 12,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	buttonContainer: {
@@ -85,7 +85,7 @@ const OfflineMode = ({ navigation, infuraBlocked }) => {
 					</Text>
 				</View>
 				<View style={styles.buttonContainer}>
-					<StyledButton type={'blue'} onPress={action}>
+					<StyledButton type={'primary'} onPress={action}>
 						{strings(`offline_mode.${infuraBlocked ? 'learn_more' : 'try_again'}`)}
 					</StyledButton>
 				</View>

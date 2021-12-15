@@ -26,11 +26,23 @@ exports[`SelectComponent should render correctly 1`] = `
         }
       >
         <Text
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          error={false}
+          info={false}
+          link={false}
+          modal={false}
           numberOfLines={1}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
               "alignSelf": "flex-start",
-              "color": "#000000",
+              "color": "#ffffff",
               "flex": 1,
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
@@ -40,10 +52,16 @@ exports[`SelectComponent should render correctly 1`] = `
               "paddingTop": 10,
             }
           }
+          success={false}
+          textAlternative={false}
+          textDefault={false}
+          underline={false}
+          upper={false}
+          warning={false}
         />
         <Icon
           allowFontScaling={false}
-          color="#000000"
+          color="#ffffff"
           name="arrow-drop-down"
           size={24}
           style={
@@ -108,7 +126,7 @@ exports[`SelectComponent should render correctly 1`] = `
         style={
           Object {
             "alignItems": "center",
-            "backgroundColor": "#FFFFFF",
+            "backgroundColor": "#141618",
             "borderRadius": 10,
             "justifyContent": "center",
           }
@@ -117,7 +135,7 @@ exports[`SelectComponent should render correctly 1`] = `
         <View
           style={
             Object {
-              "borderBottomColor": "#d6d9dc",
+              "borderBottomColor": "#848c96",
               "borderBottomWidth": 1,
               "height": 50,
               "paddingTop": 5,
@@ -126,6 +144,18 @@ exports[`SelectComponent should render correctly 1`] = `
           }
         >
           <Text
+            bold={false}
+            centered={false}
+            disclaimer={false}
+            error={false}
+            info={false}
+            link={false}
+            modal={false}
+            primary={false}
+            reset={false}
+            right={false}
+            small={false}
+            strikethrough={false}
             style={
               Object {
                 "flex": 1,
@@ -136,6 +166,12 @@ exports[`SelectComponent should render correctly 1`] = `
                 "textAlign": "center",
               }
             }
+            success={false}
+            textAlternative={false}
+            textDefault={false}
+            underline={false}
+            upper={false}
+            warning={false}
           >
             Choose an option
           </Text>
@@ -168,7 +204,19 @@ exports[`SelectComponent should render correctly 1`] = `
               }
             >
               <Text
+                bold={false}
+                centered={false}
+                disclaimer={false}
+                error={false}
+                info={false}
+                link={false}
+                modal={false}
                 numberOfLines={1}
+                primary={false}
+                reset={false}
+                right={false}
+                small={false}
+                strikethrough={false}
                 style={
                   Object {
                     "flex": 1,
@@ -178,6 +226,12 @@ exports[`SelectComponent should render correctly 1`] = `
                     "paddingVertical": 10,
                   }
                 }
+                success={false}
+                textAlternative={false}
+                textDefault={false}
+                underline={false}
+                upper={false}
+                warning={false}
               >
                 option 1
               </Text>
@@ -195,7 +249,19 @@ exports[`SelectComponent should render correctly 1`] = `
               }
             >
               <Text
+                bold={false}
+                centered={false}
+                disclaimer={false}
+                error={false}
+                info={false}
+                link={false}
+                modal={false}
                 numberOfLines={1}
+                primary={false}
+                reset={false}
+                right={false}
+                small={false}
+                strikethrough={false}
                 style={
                   Object {
                     "flex": 1,
@@ -205,6 +271,12 @@ exports[`SelectComponent should render correctly 1`] = `
                     "paddingVertical": 10,
                   }
                 }
+                success={false}
+                textAlternative={false}
+                textDefault={false}
+                underline={false}
+                upper={false}
+                warning={false}
               >
                 option 2
               </Text>

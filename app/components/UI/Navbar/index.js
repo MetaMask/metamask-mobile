@@ -4,7 +4,8 @@ import NavbarTitle from '../NavbarTitle';
 import ModalNavbarTitle from '../ModalNavbarTitle';
 import AccountRightButton from '../AccountRightButton';
 import NavbarBrowserTitle from '../NavbarBrowserTitle';
-import { Alert, Text, TouchableOpacity, View, StyleSheet, Image, Keyboard, InteractionManager } from 'react-native';
+import { Alert, TouchableOpacity, View, StyleSheet, Image, Keyboard, InteractionManager } from 'react-native';
+import Text from '../../Base/Text';
 import { fontStyles, colors } from '../../../styles/common';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import AntIcon from 'react-native-vector-icons/AntDesign';
@@ -20,6 +21,7 @@ import { importAccountFromPrivateKey } from '../../../util/address';
 import Device from '../../../util/device';
 import { isGatewayUrl } from '../../../lib/ens-ipfs/resolver';
 import { getHost } from '../../../util/browser';
+import LogoWord from '../LogoWord';
 
 const { HOMEPAGE_URL } = AppConstants;
 
@@ -50,7 +52,7 @@ const styles = StyleSheet.create({
 		marginRight: 10,
 	},
 	backIcon: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	backIconIOS: {
 		marginHorizontal: 4,
@@ -80,10 +82,10 @@ const styles = StyleSheet.create({
 		marginTop: 5,
 	},
 	infoIcon: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	closeButtonText: {
-		color: colors.blue,
+		color: colors.primary,
 		fontSize: 14,
 		...fontStyles.normal,
 	},
@@ -109,14 +111,14 @@ const styles = StyleSheet.create({
 	},
 	centeredTitle: {
 		fontSize: 20,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		textAlign: 'center',
 		...fontStyles.normal,
 		alignItems: 'center',
 	},
 });
 
-const metamask_name = require('../../../images/metamask-name.png'); // eslint-disable-line
+const metamask_name = require('../../../images/metamask-name-inverse.png'); // eslint-disable-line
 const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
 /**
  * Function that returns the navigation options
@@ -166,10 +168,10 @@ export function getNavigationOptionsTitle(title, navigation, isFullScreenModal) 
 		title,
 		headerTitleStyle: {
 			fontSize: 20,
-			color: colors.fontPrimary,
+			color: colors.textDefault,
 			...fontStyles.normal,
 		},
-		headerTintColor: colors.blue,
+		headerTintColor: colors.primary,
 		headerRight: () =>
 			isFullScreenModal ? (
 				<TouchableOpacity onPress={navigationPop} style={styles.closeButton}>
@@ -208,10 +210,10 @@ export function getEditableOptions(title, navigation, route) {
 		title,
 		headerTitleStyle: {
 			fontSize: 20,
-			color: colors.fontPrimary,
+			color: colors.textDefault,
 			...fontStyles.normal,
 		},
-		headerTintColor: colors.blue,
+		headerTintColor: colors.primary,
 		headerLeft: () => (
 			<TouchableOpacity onPress={navigationPop} style={styles.backButton} testID={'edit-contact-back-button'}>
 				<IonicIcon
@@ -248,10 +250,10 @@ export function getPaymentRequestOptionsTitle(title, navigation, route) {
 		title,
 		headerTitleStyle: {
 			fontSize: 20,
-			color: colors.fontPrimary,
+			color: colors.textDefault,
 			...fontStyles.normal,
 		},
-		headerTintColor: colors.blue,
+		headerTintColor: colors.primary,
 		headerLeft: () =>
 			goBack ? (
 				// eslint-disable-next-line react/jsx-no-bind
@@ -289,11 +291,11 @@ export function getPaymentRequestSuccessOptionsTitle(navigation) {
 		headerStyle: {
 			shadowColor: colors.transparent,
 			elevation: 0,
-			backgroundColor: colors.white,
+			backgroundColor: colors.backgroundDefault,
 			borderBottomWidth: 0,
 		},
 		title: null,
-		headerTintColor: colors.blue,
+		headerTintColor: colors.primary,
 		headerLeft: () => <View />,
 		headerRight: () => (
 			<TouchableOpacity
@@ -502,12 +504,12 @@ export function getOnboardingNavbarOptions(navigation, route, { headerLeft } = {
 		headerStyle: {
 			shadowColor: colors.transparent,
 			elevation: 0,
-			backgroundColor: colors.white,
+			backgroundColor: colors.backgroundDefault,
 			borderBottomWidth: 0,
 		},
 		headerTitle: () => (
 			<View style={styles.metamaskNameTransparentWrapper}>
-				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+				<LogoWord />
 			</View>
 		),
 		headerBackTitle: strings('navigation.back'),
@@ -563,7 +565,7 @@ export function getOptinMetricsNavbarOptions() {
 		headerStyle: {
 			shadowColor: colors.transparent,
 			elevation: 0,
-			backgroundColor: colors.white,
+			backgroundColor: colors.backgroundDefault,
 			borderBottomWidth: 0,
 			height: 100,
 		},
@@ -784,7 +786,7 @@ export function getPaymentMethodApplePayNavbar(navigation, onPop, onExit) {
 		title: strings('fiat_on_ramp.amount_to_buy'),
 		headerTitleStyle: {
 			fontSize: 20,
-			color: colors.fontPrimary,
+			color: colors.textDefault,
 			...fontStyles.normal,
 		},
 		headerRight: () => (
@@ -832,7 +834,7 @@ export function getTransakWebviewNavbar(navigation, route, onPop) {
 		title,
 		headerTitleStyle: {
 			fontSize: 20,
-			color: colors.fontPrimary,
+			color: colors.textDefault,
 			...fontStyles.normal,
 		},
 		headerLeft: () =>

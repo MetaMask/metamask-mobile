@@ -8,10 +8,10 @@ import {
 	FlatList,
 	TouchableOpacity,
 	StyleSheet,
-	Text,
 	View,
 	SafeAreaView,
 } from 'react-native';
+import Text from '../../Base/Text';
 import { colors, fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
@@ -26,7 +26,7 @@ import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
 		minHeight: 450,
@@ -37,13 +37,13 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 	},
 	dragger: {
 		width: 48,
 		height: 5,
 		borderRadius: 4,
-		backgroundColor: colors.grey400,
+		backgroundColor: colors.ui4,
 		opacity: Device.isAndroid() ? 0.6 : 0.5,
 	},
 	accountsWrapper: {
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
 	},
 	btnText: {
 		fontSize: 14,
-		color: colors.blue,
+		color: colors.primary,
 		...fontStyles.normal,
 	},
 	footerButton: {
@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		borderTopWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 	},
 });
 
@@ -375,7 +375,7 @@ class AccountList extends PureComponent {
 							onPress={this.addAccount}
 						>
 							{this.state.loading ? (
-								<ActivityIndicator size="small" color={colors.blue} />
+								<ActivityIndicator size="small" color={colors.primary} />
 							) : (
 								<Text style={styles.btnText}>{strings('accounts.create_new_account')}</Text>
 							)}

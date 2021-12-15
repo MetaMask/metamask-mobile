@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import Text from '../../../Base/Text';
 import { colors, fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
@@ -14,7 +15,7 @@ const styles = StyleSheet.create({
 	},
 	viewData: {
 		borderWidth: 1,
-		borderColor: colors.grey200,
+		borderColor: colors.borderDefault,
 		borderRadius: 10,
 		padding: 16,
 		marginTop: 20,
@@ -26,7 +27,7 @@ const styles = StyleSheet.create({
 	},
 	viewDataTitle: {
 		...fontStyles.bold,
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 14,
 	},
 	viewDataText: {
@@ -37,7 +38,7 @@ const styles = StyleSheet.create({
 	},
 	transactionDetails: {
 		borderWidth: 1,
-		borderColor: colors.grey200,
+		borderColor: colors.borderDefault,
 		borderRadius: 10,
 		padding: 16,
 	},
@@ -49,12 +50,12 @@ const styles = StyleSheet.create({
 	},
 	transactionDetailsTextLeft: {
 		...fontStyles.thin,
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 14,
 	},
 	transactionDetailsTextRight: {
 		...fontStyles.bold,
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 14,
 		textAlign: 'right',
 		flexDirection: 'row',
@@ -72,7 +73,7 @@ const styles = StyleSheet.create({
 	},
 	address: {
 		...fontStyles.bold,
-		color: colors.blue,
+		color: colors.primary,
 	},
 });
 
@@ -121,7 +122,7 @@ export default class TransactionReviewDetailsCard extends Component {
 							<Feather
 								name="copy"
 								size={16}
-								color={colors.blue}
+								color={colors.primary}
 								style={styles.copyIcon}
 								onPress={copyContractAddress}
 							/>
@@ -143,7 +144,7 @@ export default class TransactionReviewDetailsCard extends Component {
 							<IonicIcon
 								name={`ios-arrow-${displayViewData ? 'up' : 'down'}`}
 								size={16}
-								color={colors.grey500}
+								color={colors.textAlternative}
 							/>
 						</View>
 					</TouchableOpacity>

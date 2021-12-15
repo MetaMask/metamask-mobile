@@ -4,7 +4,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
 <ForwardRef(SafeAreaView)
   style={
     Object {
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#141618",
       "flex": 1,
     }
   }
@@ -49,9 +49,21 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
       testID="manual_backup_step_1-screen"
     >
       <Text
+        bold={false}
+        centered={false}
+        disclaimer={false}
+        error={false}
+        info={false}
+        link={false}
+        modal={false}
+        primary={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
         style={
           Object {
-            "color": "#000000",
+            "color": "#ffffff",
             "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 18,
             "fontWeight": "600",
@@ -60,6 +72,12 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             "textAlign": "center",
           }
         }
+        success={false}
+        textAlternative={false}
+        textDefault={false}
+        underline={false}
+        upper={false}
+        warning={false}
       >
         Write down your Secret Recovery Phrase
       </Text>
@@ -72,9 +90,21 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
         }
       >
         <Text
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          error={false}
+          info={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
-              "color": "#000000",
+              "color": "#ffffff",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
@@ -82,6 +112,12 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
               "textAlign": "center",
             }
           }
+          success={false}
+          textAlternative={false}
+          textDefault={false}
+          underline={false}
+          upper={false}
+          warning={false}
         >
           This is your Secret Recovery Phrase. Write it down on a paper and keep it in a safe place. You'll be asked to re-enter this phrase (in order) on the next step.
         </Text>
@@ -89,8 +125,8 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
       <View
         style={
           Object {
-            "backgroundColor": "#FFFFFF",
-            "borderColor": "#d6d9dc",
+            "backgroundColor": "#141618",
+            "borderColor": "#848c96",
             "borderRadius": 8,
             "borderWidth": 1,
             "flexDirection": "row",
@@ -119,13 +155,25 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             }
           >
             <Text
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              error={false}
+              info={false}
+              link={false}
+              modal={false}
+              primary={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
               style={
                 Object {
-                  "backgroundColor": "#FFFFFF",
+                  "backgroundColor": "#141618",
                   "borderColor": "#037dd6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#000000",
+                  "color": "#ffffff",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -135,6 +183,12 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "textAlignVertical": "center",
                 }
               }
+              success={false}
+              textAlternative={false}
+              textDefault={false}
+              underline={false}
+              upper={false}
+              warning={false}
             >
               1. abstract
             </Text>
@@ -148,13 +202,25 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             }
           >
             <Text
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              error={false}
+              info={false}
+              link={false}
+              modal={false}
+              primary={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
               style={
                 Object {
-                  "backgroundColor": "#FFFFFF",
+                  "backgroundColor": "#141618",
                   "borderColor": "#037dd6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#000000",
+                  "color": "#ffffff",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -164,6 +230,12 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "textAlignVertical": "center",
                 }
               }
+              success={false}
+              textAlternative={false}
+              textDefault={false}
+              underline={false}
+              upper={false}
+              warning={false}
             >
               2. accident
             </Text>
@@ -177,13 +249,25 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             }
           >
             <Text
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              error={false}
+              info={false}
+              link={false}
+              modal={false}
+              primary={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
               style={
                 Object {
-                  "backgroundColor": "#FFFFFF",
+                  "backgroundColor": "#141618",
                   "borderColor": "#037dd6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#000000",
+                  "color": "#ffffff",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -193,6 +277,12 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "textAlignVertical": "center",
                 }
               }
+              success={false}
+              textAlternative={false}
+              textDefault={false}
+              underline={false}
+              upper={false}
+              warning={false}
             >
               3. acoustic
             </Text>
@@ -206,13 +296,25 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             }
           >
             <Text
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              error={false}
+              info={false}
+              link={false}
+              modal={false}
+              primary={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
               style={
                 Object {
-                  "backgroundColor": "#FFFFFF",
+                  "backgroundColor": "#141618",
                   "borderColor": "#037dd6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#000000",
+                  "color": "#ffffff",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -222,6 +324,12 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "textAlignVertical": "center",
                 }
               }
+              success={false}
+              textAlternative={false}
+              textDefault={false}
+              underline={false}
+              upper={false}
+              warning={false}
             >
               4. announce
             </Text>
@@ -235,13 +343,25 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             }
           >
             <Text
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              error={false}
+              info={false}
+              link={false}
+              modal={false}
+              primary={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
               style={
                 Object {
-                  "backgroundColor": "#FFFFFF",
+                  "backgroundColor": "#141618",
                   "borderColor": "#037dd6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#000000",
+                  "color": "#ffffff",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -251,6 +371,12 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "textAlignVertical": "center",
                 }
               }
+              success={false}
+              textAlternative={false}
+              textDefault={false}
+              underline={false}
+              upper={false}
+              warning={false}
             >
               5. artefact
             </Text>
@@ -264,13 +390,25 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             }
           >
             <Text
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              error={false}
+              info={false}
+              link={false}
+              modal={false}
+              primary={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
               style={
                 Object {
-                  "backgroundColor": "#FFFFFF",
+                  "backgroundColor": "#141618",
                   "borderColor": "#037dd6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#000000",
+                  "color": "#ffffff",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -280,6 +418,12 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "textAlignVertical": "center",
                 }
               }
+              success={false}
+              textAlternative={false}
+              textDefault={false}
+              underline={false}
+              upper={false}
+              warning={false}
             >
               6. attitude
             </Text>
@@ -305,13 +449,25 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             }
           >
             <Text
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              error={false}
+              info={false}
+              link={false}
+              modal={false}
+              primary={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
               style={
                 Object {
-                  "backgroundColor": "#FFFFFF",
+                  "backgroundColor": "#141618",
                   "borderColor": "#037dd6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#000000",
+                  "color": "#ffffff",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -321,6 +477,12 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "textAlignVertical": "center",
                 }
               }
+              success={false}
+              textAlternative={false}
+              textDefault={false}
+              underline={false}
+              upper={false}
+              warning={false}
             >
               7. bachelor
             </Text>
@@ -334,13 +496,25 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             }
           >
             <Text
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              error={false}
+              info={false}
+              link={false}
+              modal={false}
+              primary={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
               style={
                 Object {
-                  "backgroundColor": "#FFFFFF",
+                  "backgroundColor": "#141618",
                   "borderColor": "#037dd6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#000000",
+                  "color": "#ffffff",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -350,6 +524,12 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "textAlignVertical": "center",
                 }
               }
+              success={false}
+              textAlternative={false}
+              textDefault={false}
+              underline={false}
+              upper={false}
+              warning={false}
             >
               8. broccoli
             </Text>
@@ -363,13 +543,25 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             }
           >
             <Text
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              error={false}
+              info={false}
+              link={false}
+              modal={false}
+              primary={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
               style={
                 Object {
-                  "backgroundColor": "#FFFFFF",
+                  "backgroundColor": "#141618",
                   "borderColor": "#037dd6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#000000",
+                  "color": "#ffffff",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -379,6 +571,12 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "textAlignVertical": "center",
                 }
               }
+              success={false}
+              textAlternative={false}
+              textDefault={false}
+              underline={false}
+              upper={false}
+              warning={false}
             >
               9. business
             </Text>
@@ -392,13 +590,25 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             }
           >
             <Text
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              error={false}
+              info={false}
+              link={false}
+              modal={false}
+              primary={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
               style={
                 Object {
-                  "backgroundColor": "#FFFFFF",
+                  "backgroundColor": "#141618",
                   "borderColor": "#037dd6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#000000",
+                  "color": "#ffffff",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -408,6 +618,12 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "textAlignVertical": "center",
                 }
               }
+              success={false}
+              textAlternative={false}
+              textDefault={false}
+              underline={false}
+              upper={false}
+              warning={false}
             >
               10. category
             </Text>
@@ -421,13 +637,25 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             }
           >
             <Text
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              error={false}
+              info={false}
+              link={false}
+              modal={false}
+              primary={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
               style={
                 Object {
-                  "backgroundColor": "#FFFFFF",
+                  "backgroundColor": "#141618",
                   "borderColor": "#037dd6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#000000",
+                  "color": "#ffffff",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -437,6 +665,12 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "textAlignVertical": "center",
                 }
               }
+              success={false}
+              textAlternative={false}
+              textDefault={false}
+              underline={false}
+              upper={false}
+              warning={false}
             >
               11. champion
             </Text>
@@ -450,13 +684,25 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             }
           >
             <Text
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              error={false}
+              info={false}
+              link={false}
+              modal={false}
+              primary={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
               style={
                 Object {
-                  "backgroundColor": "#FFFFFF",
+                  "backgroundColor": "#141618",
                   "borderColor": "#037dd6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#000000",
+                  "color": "#ffffff",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -466,6 +712,12 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "textAlignVertical": "center",
                 }
               }
+              success={false}
+              textAlternative={false}
+              textDefault={false}
+              underline={false}
+              upper={false}
+              warning={false}
             >
               12. cinnamon
             </Text>
@@ -500,10 +752,10 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             style={
               Object {
                 "alignItems": "center",
-                "backgroundColor": "#3C3F42",
+                "backgroundColor": "#6a737d",
                 "borderRadius": 8,
                 "height": "100%",
-                "opacity": 0.7,
+                "opacity": 0.75,
                 "paddingHorizontal": 24,
                 "paddingVertical": 45,
                 "position": "absolute",
@@ -517,7 +769,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
               size={24}
               style={
                 Object {
-                  "color": "#FFFFFF",
+                  "color": "#ffffff",
                   "height": 24,
                   "marginBottom": 32,
                   "textAlign": "center",
@@ -526,9 +778,21 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
               }
             />
             <Text
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              error={false}
+              info={false}
+              link={false}
+              modal={false}
+              primary={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
               style={
                 Object {
-                  "color": "#FFFFFF",
+                  "color": "#ffffff",
                   "fontFamily": "EuclidCircularB-Bold",
                   "fontSize": 16,
                   "fontWeight": "600",
@@ -537,19 +801,43 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "textAlign": "center",
                 }
               }
+              success={false}
+              textAlternative={false}
+              textDefault={false}
+              underline={false}
+              upper={false}
+              warning={false}
             >
               Tap to reveal your Secret Recovery Phrase
             </Text>
             <Text
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              error={false}
+              info={false}
+              link={false}
+              modal={false}
+              primary={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
               style={
                 Object {
-                  "color": "#FFFFFF",
+                  "color": "#ffffff",
                   "fontSize": 12,
                   "lineHeight": 17,
                   "marginBottom": 32,
                   "textAlign": "center",
                 }
               }
+              success={false}
+              textAlternative={false}
+              textDefault={false}
+              underline={false}
+              upper={false}
+              warning={false}
             >
               Make sure no one is watching your screen.
             </Text>

@@ -31,12 +31,12 @@ import Ratio from './Ratio';
 
 const styles = StyleSheet.create({
 	modalView: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		justifyContent: 'center',
 		alignItems: 'center',
 		marginVertical: 50,
 		borderRadius: 10,
-		shadowColor: colors.black,
+		shadowColor: colors.shadowColor,
 		shadowOffset: {
 			width: 0,
 			height: 5,
@@ -65,14 +65,14 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 	},
 	closeIcon: {
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	backIcon: {
-		color: colors.black,
+		color: colors.textDefault,
 		marginRight: 16,
 	},
 	detailsIcon: {
-		color: colors.black,
+		color: colors.textDefault,
 		paddingHorizontal: 10,
 	},
 	body: {
@@ -86,18 +86,18 @@ const styles = StyleSheet.create({
 	},
 	quoteRow: {
 		borderTopWidth: 1,
-		borderTopColor: colors.grey100,
+		borderTopColor: colors.muted,
 		paddingVertical: 15,
 		alignItems: 'center',
 	},
 	detailsRow: {
 		paddingHorizontal: 20,
 		borderTopWidth: 1,
-		borderTopColor: colors.grey100,
+		borderTopColor: colors.muted,
 		paddingVertical: 15,
 	},
 	selectedQuoteRow: {
-		backgroundColor: colors.blue000,
+		backgroundColor: colors.info,
 	},
 	columnAmount: {
 		flex: 3,
@@ -111,20 +111,17 @@ const styles = StyleSheet.create({
 		flex: 3,
 		marginRight: 5,
 	},
-	red: {
-		color: colors.red,
-	},
 	bestBadge: {
 		flexDirection: 'row',
 	},
 	bestBadgeWrapper: {
 		paddingVertical: 0,
 		paddingHorizontal: 8,
-		backgroundColor: colors.blue,
+		backgroundColor: colors.primary,
 		borderRadius: 4,
 	},
 	bestBadgeText: {
-		color: colors.white,
+		color: colors.onPrimary,
 	},
 	transparent: {
 		opacity: 0,
@@ -410,7 +407,7 @@ function QuotesModal({
 																<Text> - </Text>
 															)
 														) : showOverallValue ? (
-															<Text primary style={styles.red}>
+															<Text error>
 																-
 																{weiToFiat(
 																	toWei(
@@ -424,7 +421,7 @@ function QuotesModal({
 																)}
 															</Text>
 														) : (
-															<Text style={styles.red}>
+															<Text error>
 																-
 																{renderFromTokenMinimalUnit(
 																	new BigNumber(quotes[0].destinationAmount)

@@ -13,7 +13,7 @@ const styles = StyleSheet.create({
 		paddingVertical: 24,
 	},
 	feeWrapper: {
-		backgroundColor: colors.grey000,
+		backgroundColor: colors.backgroundAlternative,
 		textAlign: 'center',
 		padding: 16,
 		borderRadius: 8,
@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
 	warningText: {
 		...fontStyles.normal,
 		fontSize: 12,
-		color: colors.red,
+		color: colors.onError,
 		paddingVertical: 8,
 		textAlign: 'center',
 	},

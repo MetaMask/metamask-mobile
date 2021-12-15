@@ -11,7 +11,7 @@ import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 		paddingLeft: 18,
 		zIndex: 99999999999999,

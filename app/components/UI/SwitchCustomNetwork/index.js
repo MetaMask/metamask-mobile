@@ -10,7 +10,7 @@ import Text from '../../Base/Text';
 
 const styles = StyleSheet.create({
 	root: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		paddingTop: 24,
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
@@ -54,8 +54,8 @@ const styles = StyleSheet.create({
 		marginTop: 1,
 	},
 	otherNetworkIcon: {
-		backgroundColor: colors.grey100,
-		borderColor: colors.grey100,
+		backgroundColor: colors.muted,
+		borderColor: colors.borderDefault,
 		borderWidth: 2,
 	},
 	networkContainer: {
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
 	},
 	networkBadge: {
 		flexDirection: 'row',
-		borderColor: colors.grey200,
+		borderColor: colors.borderDefault,
 		borderRadius: 100,
 		borderWidth: 1,
 		padding: 10,

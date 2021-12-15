@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { Text, TextInput, View, StyleSheet, InteractionManager } from 'react-native';
+import { TextInput, View, StyleSheet, InteractionManager } from 'react-native';
+import Text from '../../Base/Text';
 import { colors, fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
@@ -13,7 +14,7 @@ import AppConstants from '../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	rowWrapper: {
@@ -22,17 +23,17 @@ const styles = StyleSheet.create({
 	textInput: {
 		borderWidth: 1,
 		borderRadius: 4,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 		padding: 16,
 		...fontStyles.normal,
 	},
 	warningText: {
 		marginTop: 15,
-		color: colors.red,
+		color: colors.onError,
 		...fontStyles.normal,
 	},
-	warningContainer: { marginHorizontal: 20, marginTop: 20, paddingRight: 0 },
-	warningLink: { color: colors.blue },
+	warningContainer: { marginHorizontal: 20, marginTop: 20, paddingRight: 0, color: colors.onWarnding },
+	warningLink: { color: colors.primary },
 });
 
 /**
@@ -239,7 +240,7 @@ export default class AddCustomToken extends PureComponent {
 							<TextInput
 								style={styles.textInput}
 								placeholder={'0x...'}
-								placeholderTextColor={colors.grey100}
+								placeholderTextColor={colors.muted}
 								value={this.state.address}
 								onChangeText={this.onAddressChange}
 								onBlur={this.onAddressBlur}
@@ -256,7 +257,7 @@ export default class AddCustomToken extends PureComponent {
 							<TextInput
 								style={styles.textInput}
 								placeholder={'GNO'}
-								placeholderTextColor={colors.grey100}
+								placeholderTextColor={colors.muted}
 								value={this.state.symbol}
 								onChangeText={this.onSymbolChange}
 								onBlur={this.validateCustomTokenSymbol}
@@ -275,7 +276,7 @@ export default class AddCustomToken extends PureComponent {
 								keyboardType="numeric"
 								maxLength={2}
 								placeholder={'18'}
-								placeholderTextColor={colors.grey100}
+								placeholderTextColor={colors.muted}
 								onChangeText={this.onDecimalsChange}
 								onBlur={this.validateCustomTokenDecimals}
 								testID={'input-token-decimals'}

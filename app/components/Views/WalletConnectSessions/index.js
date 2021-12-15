@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { Alert, ScrollView, SafeAreaView, StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { Alert, ScrollView, SafeAreaView, StyleSheet, View, TouchableOpacity } from 'react-native';
+import Text from '../../Base/Text';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
@@ -12,7 +13,7 @@ import { WALLETCONNECT_SESSIONS } from '../../../constants/storage';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	scrollviewContent: {
@@ -26,7 +27,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		paddingVertical: 10,
 		paddingHorizontal: 20,
-		borderBottomColor: colors.grey000,
+		borderBottomColor: colors.borderDefault,
 		borderBottomWidth: 1,
 	},
 	info: {
@@ -47,7 +48,7 @@ const styles = StyleSheet.create({
 		marginBottom: 10,
 		...fontStyles.normal,
 		fontSize: 12,
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 	},
 	emptyWrapper: {
 		flex: 1,

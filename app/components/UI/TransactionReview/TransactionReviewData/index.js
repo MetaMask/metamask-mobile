@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, View, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import Text from '../../../Base/Text';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { colors, fontStyles } from '../../../../styles/common';
@@ -23,21 +24,21 @@ const styles = StyleSheet.create({
 	},
 	dataTitleText: {
 		...fontStyles.bold,
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 14,
 		alignSelf: 'center',
 	},
 	dataDescription: {
 		textAlign: 'center',
 		...fontStyles.normal,
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 14,
 		marginBottom: 28,
 	},
 	dataBox: {
 		padding: 12,
 		borderWidth: 1,
-		borderColor: colors.grey200,
+		borderColor: colors.borderDefault,
 		borderRadius: 8,
 		flex: 1,
 	},
@@ -51,13 +52,13 @@ const styles = StyleSheet.create({
 	},
 	labelText: {
 		...fontStyles.normal,
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 14,
 	},
 	hexData: {
 		...fontStyles.normal,
-		backgroundColor: colors.white,
-		color: colors.black,
+		backgroundColor: colors.backgroundDefault,
+		color: colors.textDefault,
 		fontSize: 14,
 		paddingTop: 0,
 	},
@@ -103,10 +104,10 @@ class TransactionReviewData extends PureComponent {
 			<View style={[styles.root, this.applyRootHeight()]}>
 				<View style={styles.dataHeader}>
 					<TouchableOpacity onPress={toggleDataView}>
-						<IonicIcon name={'ios-arrow-back'} size={24} color={colors.black} />
+						<IonicIcon name={'ios-arrow-back'} size={24} color={colors.inverse} />
 					</TouchableOpacity>
 					<Text style={styles.dataTitleText}>{strings('transaction.data')}</Text>
-					<IonicIcon name={'ios-arrow-back'} size={24} color={colors.white} />
+					<IonicIcon name={'ios-arrow-back'} size={24} color={colors.onInverse} />
 				</View>
 				<Text style={styles.dataDescription}>{strings('transaction.data_description')}</Text>
 				<View style={styles.dataBox}>

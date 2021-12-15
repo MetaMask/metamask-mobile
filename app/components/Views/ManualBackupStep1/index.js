@@ -1,6 +1,5 @@
 import React, { PureComponent } from 'react';
 import {
-	Text,
 	View,
 	SafeAreaView,
 	StyleSheet,
@@ -10,6 +9,7 @@ import {
 	KeyboardAvoidingView,
 	TouchableOpacity,
 } from 'react-native';
+import Text from '../../Base/Text';
 import PropTypes from 'prop-types';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
@@ -34,7 +34,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	wrapper: {
@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 20,
 	},
 	loader: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 		minHeight: 300,
 		justifyContent: 'center',
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
 	action: {
 		fontSize: 18,
 		marginVertical: 16,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		justifyContent: 'center',
 		textAlign: 'center',
 		...fontStyles.bold,
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
 	},
 	info: {
 		fontSize: 14,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		textAlign: 'center',
 		...fontStyles.normal,
 		paddingHorizontal: 6,
@@ -74,8 +74,8 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		width: '100%',
 		height: '100%',
-		backgroundColor: colors.grey700,
-		opacity: 0.7,
+		backgroundColor: colors.ui4,
+		opacity: 0.75,
 		alignItems: 'center',
 		borderRadius: 8,
 		paddingHorizontal: 24,
@@ -98,21 +98,21 @@ const styles = StyleSheet.create({
 	icon: {
 		width: 24,
 		height: 24,
-		color: colors.white,
+		color: colors.onUi4,
 		textAlign: 'center',
 		marginBottom: 32,
 	},
 	reveal: {
 		fontSize: Device.isMediumDevice() ? 13 : 16,
 		...fontStyles.bold,
-		color: colors.white,
+		color: colors.onUi4,
 		lineHeight: 22,
 		marginBottom: 8,
 		textAlign: 'center',
 	},
 	watching: {
 		fontSize: Device.isMediumDevice() ? 10 : 12,
-		color: colors.white,
+		color: colors.onUi4,
 		lineHeight: 17,
 		marginBottom: 32,
 		textAlign: 'center',
@@ -122,10 +122,10 @@ const styles = StyleSheet.create({
 		padding: 12,
 	},
 	seedPhraseWrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderRadius: 8,
 		flexDirection: 'row',
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 		borderWidth: 1,
 		marginBottom: 64,
 		minHeight: 275,
@@ -144,9 +144,9 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 8,
 		paddingVertical: 6,
 		fontSize: 14,
-		color: colors.fontPrimary,
-		backgroundColor: colors.white,
-		borderColor: colors.blue,
+		color: colors.textDefault,
+		backgroundColor: colors.backgroundDefault,
+		borderColor: colors.primary,
 		borderWidth: 1,
 		borderRadius: 13,
 		textAlign: 'center',
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
 		fontSize: 32,
 		marginTop: 20,
 		marginBottom: 10,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		justifyContent: 'center',
 		textAlign: 'left',
 		...fontStyles.normal,
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
 	label: {
 		fontSize: 16,
 		lineHeight: 23,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		textAlign: 'left',
 		...fontStyles.normal,
 	},
@@ -195,13 +195,13 @@ const styles = StyleSheet.create({
 		borderWidth: 2,
 		borderRadius: 5,
 		width: '100%',
-		borderColor: colors.grey000,
+		borderColor: colors.borderDefault,
 		padding: 10,
 		height: 40,
 	},
 	warningMessageText: {
 		paddingVertical: 10,
-		color: colors.red,
+		color: colors.onError,
 		...fontStyles.normal,
 	},
 	keyboardAvoidingView: {
@@ -346,7 +346,7 @@ export default class ManualBackupStep1 extends PureComponent {
 							<TextInput
 								style={styles.input}
 								placeholder={'Password'}
-								placeholderTextColor={colors.grey100}
+								placeholderTextColor={colors.muted}
 								onChangeText={this.onPasswordChange}
 								secureTextEntry
 								onSubmitEditing={this.tryUnlock}

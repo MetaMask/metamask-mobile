@@ -4,13 +4,13 @@ import {
 	Animated,
 	ActivityIndicator,
 	Alert,
-	Text,
 	View,
 	TextInput,
 	SafeAreaView,
 	StyleSheet,
 	TouchableOpacity,
 } from 'react-native';
+import Text from '../../Base/Text';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { connect } from 'react-redux';
 import { passwordSet } from '../../../actions/user';
@@ -26,7 +26,7 @@ import { getPasswordStrengthWord, passwordRequirementsMet } from '../../../util/
 
 const styles = StyleSheet.create({
 	mainWrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	wrapper: {
@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
 	subtitle: {
 		fontSize: 16,
 		lineHeight: 23,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		textAlign: 'left',
 		...fontStyles.normal,
 	},
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
 		marginTop: -35,
 		marginLeft: 5,
 		fontSize: 16,
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 		textAlign: 'left',
 		...fontStyles.normal,
 	},
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
 	},
 	input: {
 		borderBottomWidth: Device.isAndroid() ? 0 : 1,
-		borderBottomColor: colors.grey100,
+		borderBottomColor: colors.borderDefault,
 		paddingLeft: 0,
 		paddingVertical: 10,
 		borderRadius: 4,
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 10,
 	},
 	errorMsg: {
-		color: colors.red,
+		color: colors.onError,
 		...fontStyles.normal,
 	},
 	passwordStrengthLabel: {
@@ -84,24 +84,24 @@ const styles = StyleSheet.create({
 		marginLeft: 5,
 		marginTop: 10,
 		fontSize: 12,
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 		textAlign: 'left',
 		...fontStyles.normal,
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_weak: {
-		color: colors.red,
+		color: colors.onError,
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_good: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_strong: {
-		color: colors.green300,
+		color: colors.onSuccess,
 	},
 	showHideToggle: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		position: 'absolute',
 		marginTop: 8,
 		alignSelf: 'flex-end',
@@ -274,8 +274,8 @@ class ChoosePasswordSimple extends PureComponent {
 									onChangeText={this.onPasswordChange} // eslint-disable-line  react/jsx-no-bind
 									secureTextEntry={this.state.secureTextEntry}
 									placeholder={''}
-									placeholderTextColor={colors.grey100}
-									underlineColorAndroid={colors.grey100}
+									placeholderTextColor={colors.muted}
+									underlineColorAndroid={colors.muted}
 									testID={'input-password'}
 									onSubmitEditing={this.jumpToConfirmPassword}
 									returnKeyType={'next'}
@@ -338,8 +338,8 @@ class ChoosePasswordSimple extends PureComponent {
 									onChangeText={this.setConfirmPassword}
 									secureTextEntry={this.state.secureTextEntry}
 									placeholder={''}
-									placeholderTextColor={colors.grey100}
-									underlineColorAndroid={colors.grey100}
+									placeholderTextColor={colors.muted}
+									underlineColorAndroid={colors.muted}
 									testID={'input-password-confirm'}
 									onSubmitEditing={this.onPressCreate}
 									returnKeyType={'done'}
@@ -350,7 +350,7 @@ class ChoosePasswordSimple extends PureComponent {
 								<View style={styles.showMatchingPasswords}>
 									{this.state.password !== '' &&
 									this.state.password === this.state.confirmPassword ? (
-										<Icon name="check" size={12} color={colors.green300} />
+										<Icon name="check" size={12} color={colors.onSuccess} />
 									) : null}
 								</View>
 								<Text style={styles.passwordStrengthLabel}>
@@ -363,7 +363,7 @@ class ChoosePasswordSimple extends PureComponent {
 					</KeyboardAwareScrollView>
 					<View style={styles.ctaWrapper}>
 						<StyledButton
-							type={'blue'}
+							type={'primary'}
 							onPress={this.onPressCreate}
 							testID={'submit-button'}
 							disabled={
@@ -371,7 +371,7 @@ class ChoosePasswordSimple extends PureComponent {
 							}
 						>
 							{this.state.loading ? (
-								<ActivityIndicator size="small" color="white" />
+								<ActivityIndicator size="small" color={colors.onInverse} />
 							) : (
 								strings('choose_password.create_button')
 							)}

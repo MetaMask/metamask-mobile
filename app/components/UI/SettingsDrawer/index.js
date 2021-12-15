@@ -1,5 +1,6 @@
 import React from 'react';
-import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import Text from '../../Base/Text';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -8,8 +9,8 @@ import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	root: {
-		backgroundColor: colors.white,
-		borderBottomColor: colors.grey000,
+		backgroundColor: colors.backgroundDefault,
+		borderBottomColor: colors.borderDefault,
 		borderBottomWidth: 1,
 		flexDirection: 'row',
 		minHeight: 100,
@@ -20,13 +21,13 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		...fontStyles.normal,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		fontSize: 20,
 		marginBottom: 8,
 	},
 	description: {
 		...fontStyles.normal,
-		color: colors.grey500,
+		color: colors.textAlternative,
 		fontSize: 14,
 		lineHeight: 20,
 		paddingRight: 8,
@@ -37,7 +38,7 @@ const styles = StyleSheet.create({
 	},
 	icon: {
 		bottom: 8,
-		color: colors.grey400,
+		color: colors.textAlternative,
 		left: 4,
 		position: 'relative',
 	},
@@ -49,7 +50,7 @@ const styles = StyleSheet.create({
 		marginTop: 20,
 	},
 	menuItemWarningText: {
-		color: colors.red,
+		color: colors.onError,
 		fontSize: 12,
 		...fontStyles.normal,
 	},

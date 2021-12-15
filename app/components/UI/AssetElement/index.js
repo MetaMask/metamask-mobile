@@ -11,7 +11,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 15,
 		paddingVertical: 10,
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderBottomColor: colors.grey100,
+		borderBottomColor: colors.borderDefault,
 	},
 	arrow: {
 		flex: 1,
@@ -65,7 +65,7 @@ export default class AssetElement extends PureComponent {
 			>
 				{children}
 				<View styles={styles.arrow}>
-					<Icon name="ios-arrow-forward" size={24} color={colors.fontTertiary} style={styles.arrowIcon} />
+					<Icon name="ios-arrow-forward" size={24} color={colors.textAlternative} style={styles.arrowIcon} />
 				</View>
 			</TouchableOpacity>
 		);

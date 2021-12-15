@@ -1,15 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import {
-	Animated,
-	BackHandler,
-	SafeAreaView,
-	StyleSheet,
-	Text,
-	View,
-	TouchableOpacity,
-	ScrollView,
-} from 'react-native';
+import { Animated, BackHandler, SafeAreaView, StyleSheet, View, TouchableOpacity, ScrollView } from 'react-native';
+import Text from '../../Base/Text';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import StyledButton from '../../UI/StyledButton';
@@ -22,7 +14,7 @@ import DefaultPreference from 'react-native-default-preference';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	wrapper: {
@@ -34,7 +26,7 @@ const styles = StyleSheet.create({
 		fontSize: 32,
 		marginTop: 20,
 		marginBottom: 10,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		justifyContent: 'center',
 		textAlign: 'center',
 		...fontStyles.bold,
@@ -46,7 +38,7 @@ const styles = StyleSheet.create({
 		marginTop: 20,
 		fontSize: 16,
 		textAlign: 'center',
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	bold: {
@@ -61,22 +53,22 @@ const styles = StyleSheet.create({
 	},
 	passwordTipContainer: {
 		padding: 16,
-		backgroundColor: colors.blue000,
+		backgroundColor: colors.info,
 		borderWidth: 1,
-		borderColor: colors.blue200,
+		borderColor: colors.onInfo,
 		borderRadius: 8,
 		marginTop: 29,
 	},
 	passwordTipText: {
 		fontSize: 12,
 		lineHeight: 17,
-		color: colors.blue600,
+		color: colors.onInfo,
 	},
 	learnMoreText: {
 		marginTop: 29,
 		textAlign: 'center',
 		fontSize: 16,
-		color: colors.blue,
+		color: colors.primary,
 		...fontStyles.normal,
 	},
 	buttonContainer: {
@@ -185,7 +177,7 @@ class SyncWithExtensionSuccess extends PureComponent {
 					</View>
 				</View>
 				<View style={styles.buttonContainer}>
-					<StyledButton type="blue" onPress={this.continue} containerStyle={styles.button}>
+					<StyledButton type="primary" onPress={this.continue} containerStyle={styles.button}>
 						{strings('sync_with_extension_success.button_continue')}
 					</StyledButton>
 				</View>

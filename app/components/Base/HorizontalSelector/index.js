@@ -36,13 +36,13 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		borderWidth: 2,
 		borderRadius: 9999,
-		borderColor: colors.grey200,
+		borderColor: colors.borderDefault,
 	}),
 	circleSelected: {
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 	},
 	circleError: {
-		borderColor: colors.red,
+		borderColor: colors.onError,
 	},
 	circleDisabled: {
 		opacity: 0.4,
@@ -52,11 +52,11 @@ const styles = StyleSheet.create({
 		height: size * INNER_CIRCLE_SCALE,
 		flexShrink: 0,
 		flexGrow: 0,
-		backgroundColor: colors.blue,
+		backgroundColor: colors.primary,
 		borderRadius: 999,
 	}),
 	innerCircleError: {
-		backgroundColor: colors.red,
+		backgroundColor: colors.onError,
 	},
 	verticalLine: {
 		marginTop: 2,
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
 		width: 0,
 		height: 4,
 		borderLeftWidth: 1,
-		borderColor: colors.grey200,
+		borderColor: colors.borderDefault,
 	},
 	topVerticalLine: {
 		marginTop: 0,
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
 		width: 0,
 		height: 4,
 		borderLeftWidth: 1,
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 	},
 	line: {
 		alignItems: 'center',
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
 	},
 	lineVisible: {
 		borderTopWidth: 1,
-		borderColor: colors.grey200,
+		borderColor: colors.borderDefault,
 	},
 	circleHitSlop: {
 		top: 0,

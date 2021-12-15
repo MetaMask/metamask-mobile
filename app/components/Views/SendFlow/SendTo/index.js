@@ -36,12 +36,12 @@ const { hexToBN } = util;
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 	},
 	imputWrapper: {
 		flex: 0,
 		borderBottomWidth: 1,
-		borderBottomColor: colors.grey050,
+		borderBottomColor: colors.borderDefault,
 		paddingHorizontal: 8,
 	},
 	bottomModal: {
@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
 	},
 	myAccountsText: {
 		...fontStyles.normal,
-		color: colors.blue,
+		color: colors.primary,
 		fontSize: 16,
 		alignSelf: 'center',
 	},
@@ -68,25 +68,25 @@ const styles = StyleSheet.create({
 	addTextTitle: {
 		...fontStyles.normal,
 		fontSize: 24,
-		color: colors.black,
+		color: colors.textDefault,
 		marginBottom: 24,
 	},
 	addTextSubtitle: {
 		...fontStyles.normal,
 		fontSize: 16,
-		color: colors.grey600,
+		color: colors.textAlternative,
 		marginBottom: 24,
 	},
 	addTextInput: {
 		...fontStyles.normal,
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 20,
 	},
 	addInputWrapper: {
 		flexDirection: 'row',
 		borderWidth: 1,
 		borderRadius: 8,
-		borderColor: colors.grey050,
+		borderColor: colors.borderDefault,
 		height: 50,
 		width: '100%',
 	},
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
 		marginBottom: 32,
 	},
 	buyEth: {
-		color: colors.black,
+		color: colors.textDefault,
 		textDecorationLine: 'underline',
 	},
 	confusabeError: {
@@ -132,28 +132,28 @@ const styles = StyleSheet.create({
 		margin: 16,
 		padding: 16,
 		borderWidth: 1,
-		borderColor: colors.red,
-		backgroundColor: colors.red000,
+		borderColor: colors.onError,
+		backgroundColor: colors.error,
 		borderRadius: 8,
 	},
 	confusabeWarning: {
-		borderColor: colors.yellow,
-		backgroundColor: colors.yellow100,
+		borderColor: colors.onWarning,
+		backgroundColor: colors.warning,
 	},
 	confusableTitle: {
 		marginTop: -3,
-		color: colors.red,
+		color: colors.onError,
 		...fontStyles.bold,
 		fontSize: 14,
 	},
 	confusableMsg: {
-		color: colors.red,
+		color: colors.onError,
 		fontSize: 12,
 		lineHeight: 16,
 		paddingRight: 10,
 	},
-	black: {
-		color: colors.black,
+	textDefault: {
+		color: colors.textDefault,
 	},
 	warningIcon: {
 		marginRight: 8,
@@ -491,7 +491,7 @@ class SendFlow extends PureComponent {
 										autoCorrect={false}
 										onChangeText={this.onChangeAlias}
 										placeholder={strings('address_book.enter_an_alias_placeholder')}
-										placeholderTextColor={colors.grey100}
+										placeholderTextColor={colors.muted}
 										spellCheck={false}
 										style={styles.addTextInput}
 										numberOfLines={1}
@@ -642,15 +642,15 @@ class SendFlow extends PureComponent {
 									<View style={styles.warningIcon}>
 										<Icon
 											size={16}
-											color={displayAsWarning ? colors.black : colors.red}
+											color={displayAsWarning ? colors.textDefault : colors.onError}
 											name="exclamation-triangle"
 										/>
 									</View>
 									<View>
-										<Text style={[styles.confusableTitle, displayAsWarning && styles.black]}>
+										<Text style={[styles.confusableTitle, displayAsWarning && styles.textDefault]}>
 											{strings('transaction.confusable_title')}
 										</Text>
-										<Text style={[styles.confusableMsg, displayAsWarning && styles.black]}>
+										<Text style={[styles.confusableMsg, displayAsWarning && styles.textDefault]}>
 											{strings('transaction.confusable_msg')}
 										</Text>
 									</View>

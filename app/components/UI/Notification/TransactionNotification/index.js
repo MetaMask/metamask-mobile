@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { StyleSheet, View, Text, Dimensions } from 'react-native';
+import { StyleSheet, View, Dimensions } from 'react-native';
+import Text from '../../../Base/Text';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import Animated from 'react-native-reanimated';
@@ -36,11 +37,11 @@ const styles = StyleSheet.create({
 	modalContainer: {
 		width: '90%',
 		borderRadius: 10,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 	},
 	titleWrapper: {
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 		flexDirection: 'row',
 	},
 	title: {
@@ -49,7 +50,7 @@ const styles = StyleSheet.create({
 		fontSize: 18,
 		marginVertical: 12,
 		marginHorizontal: 24,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.bold,
 	},
 	modalTypeView: {
@@ -65,7 +66,7 @@ const styles = StyleSheet.create({
 	},
 	modalTypeViewDetailsVisible: {
 		height: '100%',
-		backgroundColor: colors.greytransparent,
+		backgroundColor: colors.alert,
 	},
 	modalTypeViewBrowser: {
 		bottom: Device.isIphoneX() ? 70 : 60,

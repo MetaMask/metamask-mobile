@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
-import { StyleSheet, Text, ScrollView, View, Switch, InteractionManager } from 'react-native';
+import { StyleSheet, ScrollView, View, Switch, InteractionManager } from 'react-native';
+import Text from '../../../Base/Text';
 import StyledButton from '../../../UI/StyledButton';
 import { colors, fontStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
@@ -12,20 +13,20 @@ import AnalyticsV2 from '../../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 		padding: 24,
 		paddingBottom: 48,
 	},
 	title: {
 		...(fontStyles.normal as any),
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		fontSize: 20,
 		lineHeight: 20,
 	},
 	desc: {
 		...(fontStyles.normal as any),
-		color: colors.grey500,
+		color: colors.textAlternative,
 		fontSize: 14,
 		lineHeight: 20,
 		marginTop: 12,
@@ -104,8 +105,8 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 						<Switch
 							value={isTokenDetectionEnabled}
 							onValueChange={toggleTokenDetection}
-							trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : undefined}
-							ios_backgroundColor={colors.grey000}
+							trackColor={Device.isIos() ? { true: colors.primary, false: colors.muted } : undefined}
+							ios_backgroundColor={colors.muted}
 						/>
 					</View>
 				</View>

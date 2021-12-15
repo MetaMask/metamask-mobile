@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react';
 import {
 	View,
 	SafeAreaView,
-	Text,
 	StyleSheet,
 	TouchableOpacity,
 	ScrollView,
@@ -10,6 +9,7 @@ import {
 	Alert,
 	InteractionManager,
 } from 'react-native';
+import Text from '../../Base/Text';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles, colors } from '../../../styles/common';
 import Entypo from 'react-native-vector-icons/Entypo';
@@ -28,13 +28,13 @@ import DefaultPreference from 'react-native-default-preference';
 const styles = StyleSheet.create({
 	root: {
 		...baseStyles.flexGrow,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 	},
 	checkIcon: {
-		color: colors.green500,
+		color: colors.onSuccess,
 	},
 	crossIcon: {
-		color: colors.red,
+		color: colors.onError,
 	},
 	icon: {
 		marginRight: 5,
@@ -47,18 +47,18 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		...fontStyles.bold,
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 22,
 	},
 	description: {
 		...fontStyles.normal,
-		color: colors.black,
+		color: colors.textDefault,
 		flex: 1,
 	},
 	content: {
 		...fontStyles.normal,
 		fontSize: 14,
-		color: colors.black,
+		color: colors.textDefault,
 		paddingVertical: 10,
 	},
 	wrapper: {
@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
 	privacyPolicy: {
 		...fontStyles.normal,
 		fontSize: 14,
-		color: colors.grey400,
+		color: colors.textAlternative,
 		marginTop: 10,
 	},
 	link: {

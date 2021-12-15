@@ -1,5 +1,6 @@
 import React, { useEffect, useCallback, useRef } from 'react';
-import { View, StyleSheet, Text, Image, InteractionManager, ActivityIndicator, Alert } from 'react-native';
+import { View, StyleSheet, Image, InteractionManager, ActivityIndicator, Alert } from 'react-native';
+import Text from '../../Base/Text';
 import { colors, fontStyles } from '../../../styles/common';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import StyledButton from '../../UI/StyledButton';
@@ -41,7 +42,7 @@ import scaling from '../../../util/scaling';
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		paddingHorizontal: 16,
 		justifyContent: 'space-between',
 		paddingBottom: 16,
@@ -57,7 +58,7 @@ const styles = StyleSheet.create({
 	},
 	titleLabel: {
 		textAlign: 'center',
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 24,
 		fontFamily: fontStyles.bold.fontFamily,
 		marginTop: 32,
@@ -66,7 +67,7 @@ const styles = StyleSheet.create({
 		marginTop: 32,
 	},
 	stepLabel: {
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: scaling.scale(16),
 		fontFamily: fontStyles.normal.fontFamily,
 		marginBottom: 8,
@@ -85,7 +86,7 @@ const styles = StyleSheet.create({
 		marginTop: 30,
 		fontSize: 14,
 		textAlign: 'center',
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		fontFamily: fontStyles.normal.fontFamily,
 	},
 });
@@ -379,7 +380,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
 
 	const renderScanButton = useCallback(
 		() => (
-			<StyledButton type={'blue'} onPress={triggerScan} testID={'create-wallet-button'}>
+			<StyledButton type={'primary'} onPress={triggerScan} testID={'create-wallet-button'}>
 				{strings('onboarding.scan')}
 			</StyledButton>
 		),

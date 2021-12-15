@@ -8,7 +8,7 @@ exports[`Browser should render correctly 1`] = `
     style={
       Array [
         Object {
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#141618",
           "flex": 1,
         },
         false,
@@ -18,6 +18,7 @@ exports[`Browser should render correctly 1`] = `
     <View
       style={
         Object {
+          "backgroundColor": "#141618",
           "flex": 1,
           "zIndex": 1,
         }
@@ -46,10 +47,11 @@ exports[`Browser should render correctly 1`] = `
       animationOut="slideOutDown"
       animationOutTiming={300}
       avoidKeyboard={false}
-      backdropColor="#D73A49"
+      backdropColor="black"
       backdropOpacity={1}
       backdropTransitionInTiming={300}
       backdropTransitionOutTiming={300}
+      backdropcolor="#d73a49"
       coverScreen={true}
       customBackdrop={null}
       deviceHeight={null}
@@ -140,7 +142,7 @@ exports[`Browser should render correctly 1`] = `
       <View
         style={
           Object {
-            "backgroundColor": "#FFFFFF",
+            "backgroundColor": "#141618",
             "flexDirection": "row",
             "height": 87,
             "paddingHorizontal": 10,
@@ -157,12 +159,12 @@ exports[`Browser should render correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder="Search or Type URL"
-          placeholderTextColor="#848c96"
+          placeholderTextColor="#3c3f42"
           returnKeyType="go"
           selectTextOnFocus={true}
           style={
             Object {
-              "backgroundColor": "#f2f3f4",
+              "backgroundColor": "#24272a",
               "borderRadius": 30,
               "flex": 1,
               "fontFamily": "EuclidCircularB-Regular",
@@ -188,6 +190,18 @@ exports[`Browser should render correctly 1`] = `
           testID="ios-cancel-url-button"
         >
           <Text
+            bold={false}
+            centered={false}
+            disclaimer={false}
+            error={false}
+            info={false}
+            link={false}
+            modal={false}
+            primary={false}
+            reset={false}
+            right={false}
+            small={false}
+            strikethrough={false}
             style={
               Object {
                 "color": "#037dd6",
@@ -196,6 +210,12 @@ exports[`Browser should render correctly 1`] = `
                 "fontWeight": "400",
               }
             }
+            success={false}
+            textAlternative={false}
+            textDefault={false}
+            underline={false}
+            upper={false}
+            warning={false}
           >
             Cancel
           </Text>

@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import { StyleSheet, Text, ScrollView, Switch, View, Image, TouchableOpacity } from 'react-native';
+import { StyleSheet, ScrollView, Switch, View, Image, TouchableOpacity } from 'react-native';
+import Text from '../../../Base/Text';
 import { connect } from 'react-redux';
 
 import Engine from '../../../../core/Engine';
@@ -35,20 +36,20 @@ const infuraCurrencyOptions = sortedCurrencies.map(({ quote: { code, name } }) =
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 		padding: 24,
 		zIndex: 99999999999999,
 	},
 	title: {
 		...fontStyles.normal,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		fontSize: 20,
 		lineHeight: 20,
 	},
 	desc: {
 		...fontStyles.normal,
-		color: colors.grey500,
+		color: colors.textAlternative,
 		fontSize: 14,
 		lineHeight: 20,
 		marginTop: 12,
@@ -57,7 +58,7 @@ const styles = StyleSheet.create({
 		marginTop: 18,
 	},
 	picker: {
-		borderColor: colors.grey200,
+		borderColor: colors.borderDefault,
 		borderRadius: 5,
 		borderWidth: 2,
 		marginTop: 16,
@@ -98,17 +99,17 @@ const styles = StyleSheet.create({
 		height: diameter + spacing,
 		width: diameter + spacing,
 		borderRadius: (diameter + spacing) / 2,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderWidth: 2,
-		borderColor: colors.white,
+		borderColor: colors.backgroundDefault,
 		alignItems: 'center',
 		justifyContent: 'center',
 	},
 	selected: {
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 	},
 	selected_text: {
-		color: colors.black,
+		color: colors.textDefault,
 	},
 });
 
@@ -284,8 +285,8 @@ class Settings extends PureComponent {
 							<Switch
 								value={hideZeroBalanceTokens}
 								onValueChange={this.toggleHideZeroBalanceTokens}
-								trackColor={Device.isIos() && { true: colors.blue, false: colors.grey000 }}
-								ios_backgroundColor={colors.grey000}
+								trackColor={Device.isIos() && { true: colors.primary, false: colors.muted }}
+								ios_backgroundColor={colors.muted}
 							/>
 						</View>
 					</View>

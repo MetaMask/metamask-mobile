@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import Text from '../../Base/Text';
 import { baseStyles, colors, fontStyles } from '../../../styles/common';
 
 const styles = StyleSheet.create({
@@ -12,11 +13,11 @@ const styles = StyleSheet.create({
 		width: 12,
 		height: 12,
 		borderRadius: 12 / 2,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		opacity: 1,
 		margin: 2,
 		borderWidth: 2,
-		borderColor: colors.grey300,
+		borderColor: colors.borderDefault,
 		marginRight: 6,
 	},
 	option: {
@@ -33,7 +34,7 @@ const styles = StyleSheet.create({
 		width: 12,
 		height: 12,
 		borderRadius: 12 / 2,
-		backgroundColor: colors.blue,
+		backgroundColor: colors.primary,
 		opacity: 1,
 		margin: 2,
 		marginRight: 6,

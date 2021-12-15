@@ -6,7 +6,7 @@ import Device from '../../../util/device';
 
 const styles = StyleSheet.create({
 	view: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		position: 'absolute',
 		top: 0,
 		bottom: 0,

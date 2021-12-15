@@ -1,7 +1,8 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { TouchableOpacity, View, StyleSheet, Text, Image } from 'react-native';
+import { TouchableOpacity, View, StyleSheet, Image } from 'react-native';
+import Text from '../../Base/Text';
 import { colors, fontStyles } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -19,7 +20,7 @@ const styles = StyleSheet.create({
 	networkName: {
 		fontSize: 11,
 		lineHeight: 11,
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 		...fontStyles.normal,
 	},
 	networkIcon: {
@@ -130,7 +131,7 @@ class NavbarBrowserTitle extends PureComponent {
 					{https && !error ? <Icon name="lock" size={14} style={styles.lockIcon} /> : null}
 				</View>
 				<View style={styles.network}>
-					<View style={[styles.networkIcon, { backgroundColor: color || colors.red }]} />
+					<View style={[styles.networkIcon, { backgroundColor: color || colors.error }]} />
 					<Text style={styles.networkName} testID={'navbar-title-network'}>
 						{name}
 					</Text>

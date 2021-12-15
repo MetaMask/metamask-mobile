@@ -6,7 +6,7 @@ import { fontStyles, colors } from '../../styles/common';
 const style = StyleSheet.create({
 	text: {
 		...fontStyles.normal,
-		color: colors.grey600,
+		color: colors.textDefault,
 		marginVertical: 2,
 		fontSize: 14,
 	},
@@ -16,27 +16,27 @@ const style = StyleSheet.create({
 	right: {
 		textAlign: 'right',
 	},
-	red: {
-		color: colors.red,
+	error: {
+		color: colors.onError,
 	},
-	orange: {
-		color: colors.orange,
+	warning: {
+		color: colors.onWarning,
 	},
-	black: {
-		color: colors.black,
+	textDefault: {
+		color: colors.textDefault,
+	},
+	textAlternative: {
+		color: colors.textAlternative,
 	},
 	bold: fontStyles.bold,
-	blue: {
-		color: colors.blue,
+	info: {
+		color: colors.onInfo,
 	},
-	green: {
-		color: colors.green400,
-	},
-	grey: {
-		color: colors.grey500,
+	success: {
+		color: colors.onSuccess,
 	},
 	primary: {
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 	},
 	small: {
 		fontSize: 12,
@@ -52,7 +52,7 @@ const style = StyleSheet.create({
 		letterSpacing: 0.15,
 	},
 	modal: {
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		fontSize: 16,
 		lineHeight: 22.4, // 1.4 * fontSize
 	},
@@ -61,7 +61,7 @@ const style = StyleSheet.create({
 		marginVertical: 6,
 	},
 	link: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	strikethrough: {
 		textDecorationLine: 'line-through',
@@ -79,12 +79,12 @@ const Text = ({
 	centered,
 	right,
 	bold,
-	green,
-	black,
-	blue,
-	grey,
-	red,
-	orange,
+	success,
+	textDefault,
+	textAlternative,
+	info,
+	error,
+	warning,
 	primary,
 	small,
 	big,
@@ -105,13 +105,12 @@ const Text = ({
 			centered && style.centered,
 			right && style.right,
 			bold && style.bold,
-			green && style.green,
-			black && style.black,
-			blue && style.blue,
-			grey && style.grey,
-			red && style.red,
-			orange && style.orange,
-			black && style.black,
+			success && style.success,
+			info && style.info,
+			error && style.error,
+			warning && style.warning,
+			textDefault && style.textDefault,
+			textAlternative && style.textAlternative,
 			primary && style.primary,
 			disclaimer && [style.small, style.disclaimer],
 			small && style.small,
@@ -134,10 +133,12 @@ Text.defaultProps = {
 	centered: false,
 	right: false,
 	bold: false,
-	green: false,
-	black: false,
-	blue: false,
-	red: false,
+	success: false,
+	textDefault: false,
+	textAlternative: false,
+	info: false,
+	error: false,
+	warning: false,
 	primary: false,
 	disclaimer: false,
 	modal: false,
@@ -168,29 +169,29 @@ Text.propTypes = {
 	 */
 	bold: PropTypes.bool,
 	/**
-	 * Makes text green
+	 * Sets the color to the success theme color
 	 */
-	green: PropTypes.bool,
+	success: PropTypes.bool,
 	/**
-	 * Makes text black
+	 * Sets the color to the textDefault theme color
 	 */
-	black: PropTypes.bool,
+	textDefault: PropTypes.bool,
 	/**
-	 * Makes text blue
+	 * Sets the color to the textAlternative theme color
 	 */
-	blue: PropTypes.bool,
+	textAlternative: PropTypes.bool,
 	/**
-	 * Makes text grey
+	 * Sets the color to the info theme color
 	 */
-	grey: PropTypes.bool,
+	info: PropTypes.bool,
 	/**
-	 * Makes text red
+	 * Makes text error color
 	 */
-	red: PropTypes.bool,
+	error: PropTypes.bool,
 	/**
-	 * Makes text orange
+	 * Sets the color to the warning theme color
 	 */
-	orange: PropTypes.bool,
+	warning: PropTypes.bool,
 	/**
 	 * Makes text fontPrimary color
 	 */

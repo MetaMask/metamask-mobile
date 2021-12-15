@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, Text, View, SafeAreaView } from 'react-native';
+import { StyleSheet, View, SafeAreaView } from 'react-native';
+import Text from '../../Base/Text';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import StyledButton from '../StyledButton';
@@ -7,20 +8,20 @@ import PropTypes from 'prop-types';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderRadius: 10,
 		padding: 20,
 	},
 	titleWrapper: {
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 	},
 	title: {
 		textAlign: 'center',
 		fontSize: 17,
 		marginVertical: 12,
 		marginHorizontal: 20,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.bold,
 	},
 	textWrapper: {
@@ -41,7 +42,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 	},
 	link: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	button: {
 		marginBottom: 10,

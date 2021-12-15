@@ -6,7 +6,7 @@ import { colors } from '../../../../app/styles/common';
 const Radio = ({ selected }) => (
 	<Svg width="12" height="12" viewBox="0 0 12 12">
 		{selected ? (
-			<Circle cx="6" cy="6" r="4" stroke={colors.blue} strokeWidth="4" fill="none" />
+			<Circle cx="6" cy="6" r="4" stroke={colors.primary} strokeWidth="4" fill="none" />
 		) : (
 			<Circle cx="6" cy="6" r="5.5" stroke="#D2D8DD" fill="none" />
 		)}

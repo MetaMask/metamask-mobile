@@ -12,7 +12,7 @@ import ActionSheet from 'react-native-actionsheet';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	addContact: {

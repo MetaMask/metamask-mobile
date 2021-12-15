@@ -32,13 +32,13 @@ const styles = StyleSheet.create({
 		borderRadius: 100,
 	},
 	warningButton: {
-		backgroundColor: colors.yellow,
+		backgroundColor: colors.warning,
 	},
 	errorButton: {
-		backgroundColor: colors.red,
+		backgroundColor: colors.onError,
 	},
 	errorButtonText: {
-		color: colors.white,
+		color: colors.onError,
 	},
 	infoWrapper: {
 		position: 'absolute',
@@ -46,10 +46,10 @@ const styles = StyleSheet.create({
 		right: 3,
 	},
 	warningInfoIcon: {
-		color: colors.grey500,
+		color: colors.textAlternative,
 	},
 	errorInfoIcon: {
-		color: colors.red,
+		color: colors.onError,
 	},
 });
 

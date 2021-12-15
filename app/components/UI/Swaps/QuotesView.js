@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
 		width: '100%',
 	},
 	timerWrapper: {
-		backgroundColor: colors.grey000,
+		backgroundColor: colors.backgroundAlternative,
 		borderRadius: 20,
 		marginVertical: 12,
 		paddingVertical: 4,
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
 		fontVariant: ['tabular-nums'],
 	},
 	timerHiglight: {
-		color: colors.red,
+		color: colors.onError,
 	},
 	content: {
 		paddingHorizontal: 20,
@@ -119,14 +119,14 @@ const styles = StyleSheet.create({
 		marginHorizontal: 5,
 	},
 	tokenText: {
-		color: colors.grey500,
+		color: colors.textAlternative,
 		fontSize: Device.isSmallDevice() ? 16 : 18,
 	},
 	tokenTextDestination: {
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 	},
 	arrowDown: {
-		color: colors.grey100,
+		color: colors.muted,
 		fontSize: Device.isSmallDevice() ? 22 : 25,
 		marginHorizontal: 15,
 		marginTop: Device.isSmallDevice() ? 2 : 4,
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
 	},
 	sliderButtonText: {
 		fontSize: 16,
-		color: colors.white,
+		color: colors.onPrimary,
 	},
 	quotesSummary: {
 		marginVertical: Device.isSmallDevice() ? 12 : 24,
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
 	infoIcon: {
 		fontSize: 12,
 		margin: 3,
-		color: colors.blue,
+		color: colors.primary,
 	},
 	ctaButton: {
 		width: '100%',
@@ -194,10 +194,10 @@ const styles = StyleSheet.create({
 	errorIcon: {
 		fontSize: 46,
 		marginVertical: 4,
-		color: colors.red,
+		color: colors.onError,
 	},
 	expiredIcon: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	disabled: {
 		opacity: 0.4,
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 2,
 	},
 	gasInfoIcon: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	hitSlop: {
 		top: 10,
@@ -1171,7 +1171,7 @@ function SwapsQuotesView({
 					</Text>
 				</View>
 				<View style={styles.bottomSection}>
-					<StyledButton type="blue" containerStyle={styles.ctaButton} onPress={handleRetryFetchQuotes}>
+					<StyledButton type="primary" containerStyle={styles.ctaButton} onPress={handleRetryFetchQuotes}>
 						{errorAction}
 					</StyledButton>
 				</View>
@@ -1606,21 +1606,21 @@ function SwapsQuotesView({
 				toggleModal={hideGasTooltip}
 				body={
 					<View>
-						<Text grey infoModal>
+						<Text textAlternative infoModal>
 							{strings('swaps.gas_education_1')}
 							{strings(`swaps.gas_education_2${isMainnet ? '_ethereum' : ''}`)}{' '}
 							<Text bold>{strings('swaps.gas_education_3')}</Text>
 						</Text>
-						<Text grey infoModal>
+						<Text textAlternative infoModal>
 							{strings('swaps.gas_education_4')} <Text bold>{strings('swaps.gas_education_5')} </Text>
 							{strings('swaps.gas_education_6')}
 						</Text>
-						<Text grey infoModal>
+						<Text textAlternative infoModal>
 							<Text bold>{strings('swaps.gas_education_7')} </Text>
 							{strings('swaps.gas_education_8')}
 						</Text>
 						<TouchableOpacity onPress={openLinkAboutGas}>
-							<Text grey link infoModal>
+							<Text textAlternative link infoModal>
 								{strings('swaps.gas_education_learn_more')}
 							</Text>
 						</TouchableOpacity>

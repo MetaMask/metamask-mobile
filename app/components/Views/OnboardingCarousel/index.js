@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Text, View, ScrollView, StyleSheet, Image, Dimensions, InteractionManager } from 'react-native';
+import { View, ScrollView, StyleSheet, Image, Dimensions, InteractionManager } from 'react-native';
+import Text from '../../Base/Text';
 import StyledButton from '../../UI/StyledButton';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -33,7 +34,7 @@ const styles = StyleSheet.create({
 	title: {
 		fontSize: 24,
 		marginBottom: 12,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		justifyContent: 'center',
 		textAlign: 'center',
 		...fontStyles.bold,
@@ -43,7 +44,7 @@ const styles = StyleSheet.create({
 		lineHeight: 19,
 		marginTop: 12,
 		marginBottom: 25,
-		color: colors.grey500,
+		color: colors.textAlternative,
 		justifyContent: 'center',
 		textAlign: 'center',
 		...fontStyles.normal,
@@ -83,7 +84,7 @@ const styles = StyleSheet.create({
 		width: 8,
 		height: 8,
 		borderRadius: 8 / 2,
-		backgroundColor: colors.grey500,
+		backgroundColor: colors.ui4,
 		opacity: 0.4,
 		marginHorizontal: 8,
 	},

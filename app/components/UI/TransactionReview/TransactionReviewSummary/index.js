@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import Text from '../../../Base/Text';
 import { colors, fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import WarningMessage from '../../../Views/SendFlow/WarningMessage';
@@ -9,10 +10,10 @@ const styles = StyleSheet.create({
 	confirmBadge: {
 		...fontStyles.normal,
 		alignItems: 'center',
-		borderColor: colors.grey400,
+		borderColor: colors.borderDefault,
 		borderRadius: 12,
 		borderWidth: 1,
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 10,
 		paddingVertical: 4,
 		paddingHorizontal: 8,
@@ -27,7 +28,7 @@ const styles = StyleSheet.create({
 	},
 	summaryPrimary: {
 		...fontStyles.normal,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		fontSize: 44,
 		paddingTop: 16,
 		paddingBottom: 4,
@@ -36,7 +37,7 @@ const styles = StyleSheet.create({
 	},
 	summarySecondary: {
 		...fontStyles.normal,
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 24,
 		textTransform: 'uppercase',
 		textAlign: 'center',

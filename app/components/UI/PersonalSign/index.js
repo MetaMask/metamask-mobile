@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, InteractionManager } from 'react-native';
+import { StyleSheet, View, InteractionManager } from 'react-native';
+import Text from '../../Base/Text';
 import { colors, fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
@@ -15,7 +16,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 const styles = StyleSheet.create({
 	messageText: {
 		fontSize: 14,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.normal,
 		textAlign: 'center',
 	},

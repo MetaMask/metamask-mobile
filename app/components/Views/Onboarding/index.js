@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import {
 	ActivityIndicator,
 	BackHandler,
-	Text,
 	View,
 	ScrollView,
 	StyleSheet,
@@ -11,6 +10,7 @@ import {
 	Image,
 	InteractionManager,
 } from 'react-native';
+import Text from '../../Base/Text';
 import AsyncStorage from '@react-native-community/async-storage';
 import StyledButton from '../../UI/StyledButton';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		fontSize: 24,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.bold,
 		textAlign: 'center',
 	},
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
 	},
 	login: {
 		fontSize: 18,
-		color: colors.blue,
+		color: colors.primary,
 		...fontStyles.normal,
 	},
 	buttonDescription: {
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		textAlign: 'center',
 		marginBottom: 16,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		lineHeight: 20,
 	},
 	importWrapper: {
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
 		marginTop: 30,
 		fontSize: 14,
 		textAlign: 'center',
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	modalTypeView: {
@@ -412,7 +412,7 @@ class Onboarding extends PureComponent {
 					<View style={styles.buttonWrapper}>
 						<StyledButton
 							style={styles.button}
-							type={'blue'}
+							type={'primary'}
 							onPress={this.onPressCreate}
 							testID={'create-wallet-button'}
 						>

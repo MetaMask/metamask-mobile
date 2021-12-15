@@ -6,7 +6,7 @@ import { colors } from '../../styles/common';
 const styles = StyleSheet.create({
 	wrapper: {
 		borderWidth: 1,
-		borderColor: colors.grey050,
+		borderColor: colors.borderDefault,
 		borderRadius: 8,
 		padding: 16,
 	},
@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
 	},
 	separator: {
 		borderBottomWidth: 1,
-		borderBottomColor: colors.grey050,
+		borderBottomColor: colors.borderDefault,
 		marginVertical: 6,
 	},
 });

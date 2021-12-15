@@ -12,12 +12,12 @@ import Device from '../../../../../util/device';
 
 const styles = StyleSheet.create({
 	modalView: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		justifyContent: 'center',
 		alignItems: 'center',
 		marginVertical: 50,
 		borderRadius: 10,
-		shadowColor: colors.black,
+		shadowColor: colors.shadowColor,
 		shadowOffset: {
 			width: 0,
 			height: 5,
@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'space-between',
 	},
 	closeIcon: {
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	body: {
 		width: '100%',
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
 		paddingVertical: 15,
 		paddingHorizontal: 20,
 		borderTopWidth: 1,
-		borderTopColor: colors.grey100,
+		borderTopColor: colors.muted,
 	},
 	button: {
 		width: '50%',
@@ -85,7 +85,7 @@ const PaymentMethodModal = ({ isVisible, title, dismiss, children }) => (
 				<View onStartShouldSetResponder={() => true}>{children}</View>
 			</ScrollView>
 			<View style={styles.action}>
-				<StyledButton type="blue" onPress={dismiss} containerStyle={[styles.button]}>
+				<StyledButton type="primary" onPress={dismiss} containerStyle={[styles.button]}>
 					{strings('fiat_on_ramp.purchase_method_modal_close')}
 				</StyledButton>
 			</View>

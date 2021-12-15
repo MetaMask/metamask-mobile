@@ -15,11 +15,11 @@ import { NetworksChainId } from '@metamask/controllers';
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 	},
 	tabUnderlineStyle: {
 		height: 2,
-		backgroundColor: colors.blue,
+		backgroundColor: colors.primary,
 	},
 	tabStyle: {
 		paddingBottom: 0,
@@ -67,9 +67,9 @@ class AddAsset extends PureComponent {
 		return (
 			<DefaultTabBar
 				underlineStyle={styles.tabUnderlineStyle}
-				activeTextColor={colors.blue}
-				inactiveTextColor={colors.fontTertiary}
-				backgroundColor={colors.white}
+				activeTextColor={colors.primary}
+				inactiveTextColor={colors.textAlternative}
+				backgroundColor={colors.backgroundDefault}
 				tabStyle={styles.tabStyle}
 				textStyle={styles.textStyle}
 			/>

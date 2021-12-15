@@ -4,7 +4,7 @@ exports[`QrScanner should render correctly 1`] = `
 <View
   style={
     Object {
-      "backgroundColor": "#24292E",
+      "backgroundColor": "#24272a",
       "flex": 1,
     }
   }
@@ -135,9 +135,21 @@ exports[`QrScanner should render correctly 1`] = `
         }
       />
       <Text
+        bold={false}
+        centered={false}
+        disclaimer={false}
+        error={false}
+        info={false}
+        link={false}
+        modal={false}
+        primary={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
         style={
           Object {
-            "color": "#FFFFFF",
+            "color": "#ffffff",
             "flex": 1,
             "fontSize": 17,
             "justifyContent": "center",
@@ -145,6 +157,12 @@ exports[`QrScanner should render correctly 1`] = `
             "textAlign": "center",
           }
         }
+        success={false}
+        textAlternative={false}
+        textDefault={false}
+        underline={false}
+        upper={false}
+        warning={false}
       >
         scanning...
       </Text>

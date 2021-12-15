@@ -5,7 +5,7 @@ import { colors } from '../../../styles/common';
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		alignItems: 'center',
 		justifyContent: 'center',
 		position: 'absolute',

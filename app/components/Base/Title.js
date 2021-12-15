@@ -8,7 +8,7 @@ const style = StyleSheet.create({
 	text: {
 		fontSize: 18,
 		marginVertical: 3,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.bold,
 	},
 	hero: {

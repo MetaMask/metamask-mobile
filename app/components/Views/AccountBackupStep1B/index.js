@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
 	ScrollView,
 	TouchableOpacity,
-	Text,
 	View,
 	SafeAreaView,
 	StyleSheet,
@@ -10,6 +9,7 @@ import {
 	Dimensions,
 	InteractionManager,
 } from 'react-native';
+import Text from '../../Base/Text';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { colors, fontStyles } from '../../../styles/common';
@@ -32,7 +32,7 @@ const IMG_PADDING = Device.isIphoneX() ? 100 : Device.isIphone5S() ? 180 : 220;
 
 const styles = StyleSheet.create({
 	mainWrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	scrollviewWrapper: {
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
 		marginLeft: 0,
 		marginTop: 16,
 		marginBottom: 16,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		justifyContent: 'center',
 		...fontStyles.bold,
 	},
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
 	label: {
 		lineHeight: 20,
 		fontSize: 16,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		textAlign: 'left',
 		...fontStyles.normal,
 	},
@@ -79,11 +79,11 @@ const styles = StyleSheet.create({
 		height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_1_RATIO,
 	},
 	card: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderWidth: 1,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 		borderRadius: 10,
-		shadowColor: colors.black,
+		shadowColor: colors.shadowColor,
 		shadowOffset: {
 			width: 1,
 			height: 4,
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
 	whySecureTitle: {
 		flex: 1,
 		fontSize: 18,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		textAlign: 'center',
 		...fontStyles.bold,
 	},
@@ -116,11 +116,8 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		fontSize: 15,
 		lineHeight: 20,
-		color: colors.blue,
+		color: colors.primary,
 		...fontStyles.normal,
-	},
-	blue: {
-		color: colors.blue,
 	},
 	titleIcon: {
 		fontSize: 32,
@@ -136,31 +133,31 @@ const styles = StyleSheet.create({
 	},
 	whyImportantText: {
 		fontSize: 14,
-		color: colors.blue,
+		color: colors.primary,
 	},
 	manualTitle: {
 		fontSize: 16,
 		marginBottom: 8,
 		lineHeight: 17,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.bold,
 	},
 	paragraph: {
 		lineHeight: 17,
 		marginBottom: 20,
 		fontSize: 12,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 	},
 	smallParagraph: {
 		lineHeight: 17,
 		fontSize: 12,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 	},
 	barsTitle: {
 		lineHeight: 17,
 		marginBottom: 8,
 		fontSize: 12,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 	},
 	barsContainer: {
 		lineHeight: 17,
@@ -171,7 +168,7 @@ const styles = StyleSheet.create({
 		lineHeight: 17,
 		width: 32,
 		height: 6,
-		backgroundColor: colors.blue,
+		backgroundColor: colors.primary,
 		marginRight: 2,
 	},
 	secureModalXIcon: {
@@ -193,7 +190,7 @@ const styles = StyleSheet.create({
 	whySecureText: {
 		textAlign: 'center',
 		lineHeight: 20,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 	},
 });
 
@@ -246,13 +243,13 @@ const AccountBackupStep1B = (props) => {
 						<View style={styles.text}>
 							<Text style={styles.label}>
 								{strings('account_backup_step_1B.subtitle_1')}{' '}
-								<Text style={styles.blue} onPress={showWhatIsSeedphrase}>
+								<Text primary onPress={showWhatIsSeedphrase}>
 									{strings('account_backup_step_1B.subtitle_2')}
 								</Text>
 							</Text>
 						</View>
 						<TouchableOpacity onPress={showWhySecureWallet} style={styles.centerContent}>
-							<Icon name="info-circle" style={styles.infoIcon} color={colors.blue} />
+							<Icon name="info-circle" style={styles.infoIcon} color={colors.primary} />
 							<Text style={styles.whyImportantText}>
 								{strings('account_backup_step_1B.why_important')}
 							</Text>

@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
 		height: Device.isIphone5() ? 40 : 50,
 	},
 	amountInvalid: {
-		color: colors.red,
+		color: colors.onError,
 	},
 	verifyToken: {
 		marginHorizontal: 40,
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
 		marginHorizontal: 30,
 	},
 	linkText: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	horizontalRuleContainer: {
 		flexDirection: 'row',
@@ -104,10 +104,10 @@ const styles = StyleSheet.create({
 		flex: 1,
 		borderBottomWidth: StyleSheet.hairlineWidth,
 		height: 1,
-		borderBottomColor: colors.grey100,
+		borderBottomColor: colors.borderDefault,
 	},
 	arrowDown: {
-		color: colors.blue,
+		color: colors.primary,
 		fontSize: 25,
 		marginHorizontal: 15,
 	},
@@ -672,7 +672,7 @@ function SwapsAmountView({
 					<View style={styles.column}>
 						<View style={styles.ctaContainer}>
 							<StyledButton
-								type="blue"
+								type="primary"
 								onPress={handleGetQuotesPress}
 								containerStyle={styles.cta}
 								disabled={

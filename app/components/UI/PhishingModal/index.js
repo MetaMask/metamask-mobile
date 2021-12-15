@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { ScrollView, View, Text, Image, StyleSheet } from 'react-native';
+import { ScrollView, View, Image, StyleSheet } from 'react-native';
+import Text from '../../Base/Text';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import StyledButton from '../../UI/StyledButton';
@@ -9,7 +10,7 @@ import URL from 'url-parse';
 
 const styles = StyleSheet.create({
 	warningIcon: {
-		color: colors.red,
+		color: colors.onError,
 		marginRight: 10,
 	},
 	phishingModalWrapper: {
@@ -19,22 +20,22 @@ const styles = StyleSheet.create({
 	phishingModalContent: {
 		height: 495,
 		borderRadius: 4,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 	},
 	phishingModalTitle: {
 		...fontStyles.bold,
-		color: colors.red,
+		color: colors.onError,
 		textAlign: 'center',
 	},
 	phishingModalHeader: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		paddingVertical: 20,
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'center',
 	},
 	phishingModalInfo: {
-		backgroundColor: colors.grey000,
+		backgroundColor: colors.backgroundAlternative,
 		paddingTop: 20,
 		paddingHorizontal: 20,
 	},
@@ -44,11 +45,11 @@ const styles = StyleSheet.create({
 	phishingText: {
 		...fontStyles.normal,
 		fontSize: 11,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		marginBottom: 15,
 	},
 	link: {
-		textDecorationColor: colors.fontPrimary,
+		textDecorationColor: colors.textDefault,
 		textDecorationLine: 'underline',
 	},
 	bold: {
@@ -63,7 +64,7 @@ const styles = StyleSheet.create({
 		padding: 10,
 	},
 	backToSafetyText: {
-		color: colors.red,
+		color: colors.onError,
 		fontSize: 12,
 	},
 	foxImage: {

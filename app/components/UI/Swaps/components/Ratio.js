@@ -10,7 +10,7 @@ const styles = StyleSheet.create({
 	infoIcon: {
 		fontSize: 12,
 		margin: 3,
-		color: colors.blue,
+		color: colors.primary,
 	},
 });
 function Ratio({ sourceAmount, sourceToken, destinationAmount, destinationToken, boldSymbol = false }) {

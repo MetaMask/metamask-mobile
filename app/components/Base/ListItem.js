@@ -12,7 +12,7 @@ const styles = StyleSheet.create({
 		// minHeight: Device.isIos() ? 55 : 100
 	},
 	date: {
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 		fontSize: 12,
 		marginBottom: 10,
 		...fontStyles.normal,
@@ -40,15 +40,15 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		fontSize: 15,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 	},
 	amount: {
 		fontSize: 15,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 	},
 	fiatAmount: {
 		fontSize: 12,
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 		textTransform: 'uppercase',
 	},
 });

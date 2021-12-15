@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import { ActivityIndicator, SafeAreaView, StyleSheet, Switch, Text, View } from 'react-native';
+import { ActivityIndicator, SafeAreaView, StyleSheet, Switch, View } from 'react-native';
+import Text from '../../../Base/Text';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import ActionModal from '../../../UI/ActionModal';
@@ -26,20 +27,20 @@ const HASH_STRING = 'Hello from IPFS Gateway Checker';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 		padding: 24,
 		paddingBottom: 48,
 	},
 	title: {
 		...fontStyles.normal,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		fontSize: 20,
 		lineHeight: 20,
 	},
 	desc: {
 		...fontStyles.normal,
-		color: colors.grey500,
+		color: colors.textAlternative,
 		fontSize: 14,
 		lineHeight: 20,
 		marginTop: 12,
@@ -64,17 +65,17 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		fontSize: 16,
 		textAlign: 'center',
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	modalTitle: {
 		...fontStyles.bold,
 		fontSize: 24,
 		textAlign: 'center',
 		marginBottom: 20,
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	picker: {
-		borderColor: colors.grey200,
+		borderColor: colors.borderDefault,
 		borderRadius: 5,
 		borderWidth: 2,
 		marginTop: 16,
@@ -291,8 +292,8 @@ class AdvancedSettings extends PureComponent {
 								<Switch
 									value={showHexData}
 									onValueChange={setShowHexData}
-									trackColor={Device.isIos() && { true: colors.blue, false: colors.grey000 }}
-									ios_backgroundColor={colors.grey000}
+									trackColor={Device.isIos() && { true: colors.primary, false: colors.muted }}
+									ios_backgroundColor={colors.muted}
 								/>
 							</View>
 						</View>
@@ -303,8 +304,8 @@ class AdvancedSettings extends PureComponent {
 								<Switch
 									value={showCustomNonce}
 									onValueChange={setShowCustomNonce}
-									trackColor={Device.isIos() && { true: colors.blue, false: colors.grey000 }}
-									ios_backgroundColor={colors.grey000}
+									trackColor={Device.isIos() && { true: colors.primary, false: colors.muted }}
+									ios_backgroundColor={colors.muted}
 								/>
 							</View>
 						</View>

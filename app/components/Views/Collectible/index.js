@@ -15,7 +15,7 @@ import { collectiblesSelector } from '../../../reducers/collectibles';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 });

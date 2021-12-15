@@ -4,7 +4,6 @@ import {
 	Switch,
 	Alert,
 	ActivityIndicator,
-	Text,
 	View,
 	SafeAreaView,
 	StyleSheet,
@@ -14,6 +13,7 @@ import {
 	Keyboard,
 	BackHandler,
 } from 'react-native';
+import Text from '../../Base/Text';
 import AsyncStorage from '@react-native-community/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Button from 'react-native-button';
@@ -53,7 +53,7 @@ const breakPoint = deviceHeight < 700;
 
 const styles = StyleSheet.create({
 	mainWrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	wrapper: {
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
 		fontSize: Device.isAndroid() ? 30 : 35,
 		marginTop: 20,
 		marginBottom: 20,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		justifyContent: 'center',
 		textAlign: 'center',
 		...fontStyles.bold,
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 	},
 	label: {
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 16,
 		marginBottom: 12,
 		...fontStyles.normal,
@@ -99,13 +99,13 @@ const styles = StyleSheet.create({
 		marginVertical: 40,
 	},
 	errorMsg: {
-		color: colors.red,
+		color: colors.onError,
 		...fontStyles.normal,
 		lineHeight: 20,
 	},
 	goBack: {
 		marginVertical: 14,
-		color: colors.blue,
+		color: colors.primary,
 		...fontStyles.normal,
 	},
 	biometrics: {
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
 	biometryLabel: {
 		flex: 1,
 		fontSize: 16,
-		color: colors.black,
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	biometrySwitch: {
@@ -127,6 +127,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		fontSize: 16,
 		paddingTop: 2,
+		color: colors.textDefault,
 	},
 	cant: {
 		width: 280,
@@ -136,7 +137,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		fontSize: 16,
 		lineHeight: 24,
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	areYouSure: {
 		width: '100%',
@@ -146,27 +147,27 @@ const styles = StyleSheet.create({
 	},
 	heading: {
 		marginHorizontal: 6,
-		color: colors.black,
+		color: colors.textDefault,
 		...fontStyles.bold,
 		fontSize: 20,
 		textAlign: 'center',
 		lineHeight: breakPoint ? 24 : 26,
 	},
-	red: {
+	error: {
 		marginHorizontal: 24,
-		color: colors.red,
+		color: colors.onError,
 	},
 	warningText: {
 		...fontStyles.normal,
 		textAlign: 'center',
 		fontSize: 14,
 		lineHeight: breakPoint ? 18 : 22,
-		color: colors.black,
+		color: colors.textDefault,
 		marginTop: 20,
 	},
 	warningIcon: {
 		alignSelf: 'center',
-		color: colors.red,
+		color: colors.onError,
 		marginVertical: 10,
 	},
 	bold: {
@@ -180,7 +181,7 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		lineHeight: 20,
 		marginTop: 10,
-		color: colors.red,
+		color: colors.onError,
 	},
 });
 
@@ -463,8 +464,8 @@ class Login extends PureComponent {
 						onValueChange={(biometryChoice) => this.updateBiometryChoice(biometryChoice)} // eslint-disable-line react/jsx-no-bind
 						value={this.state.biometryChoice}
 						style={styles.biometrySwitch}
-						trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
-						ios_backgroundColor={colors.grey300}
+						trackColor={Device.isIos() ? { true: colors.primary, false: colors.muted } : null}
+						ios_backgroundColor={colors.muted}
 					/>
 				</View>
 			);
@@ -477,8 +478,8 @@ class Login extends PureComponent {
 					onValueChange={(rememberMe) => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
 					value={this.state.rememberMe}
 					style={styles.biometrySwitch}
-					trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
-					ios_backgroundColor={colors.grey300}
+					trackColor={Device.isIos() ? { true: colors.primary, false: colors.muted } : null}
+					ios_backgroundColor={colors.muted}
 				/>
 			</View>
 		);
@@ -523,8 +524,8 @@ class Login extends PureComponent {
 				onConfirmPress={this.toggleWarningModal}
 			>
 				<View style={styles.areYouSure} testID={'delete-wallet-modal-container'}>
-					<Icon style={styles.warningIcon} size={46} color={colors.red} name="exclamation-triangle" />
-					<Text style={[styles.heading, styles.red]}>{strings('login.are_you_sure')}</Text>
+					<Icon style={styles.warningIcon} size={46} color={colors.onError} name="exclamation-triangle" />
+					<Text style={[styles.heading, styles.error]}>{strings('login.are_you_sure')}</Text>
 					<Text style={styles.warningText}>
 						<Text>{strings('login.your_current_wallet')}</Text>
 						<Text style={styles.bold}>{strings('login.removed_from')}</Text>
@@ -560,9 +561,10 @@ class Login extends PureComponent {
 							onChangeText={this.checkDelete}
 							autoCapitalize="none"
 							value={this.state.deleteText}
-							baseColor={colors.grey500}
-							tintColor={colors.blue}
+							baseColor={colors.borderDefault}
+							tintColor={colors.primary}
 							onSubmitEditing={this.submitDelete}
+							placeholderTextColor={colors.muted}
 						/>
 						{this.state.showDeleteWarning && (
 							<Text style={styles.deleteWarningMsg}>{strings('login.cant_proceed')}</Text>
@@ -591,6 +593,7 @@ class Login extends PureComponent {
 							<OutlinedTextField
 								style={styles.input}
 								placeholder={strings('login.password')}
+								placeholderTextColor={colors.muted}
 								testID={'login-password-input'}
 								returnKeyType={'done'}
 								autoCapitalize="none"
@@ -598,8 +601,8 @@ class Login extends PureComponent {
 								ref={this.fieldRef}
 								onChangeText={this.setPassword}
 								value={this.state.password}
-								baseColor={colors.grey500}
-								tintColor={colors.blue}
+								baseColor={colors.borderDefault}
+								tintColor={colors.primary}
 								onSubmitEditing={this.triggerLogIn}
 								renderRightAccessory={() => (
 									<BiometryButton
@@ -628,7 +631,7 @@ class Login extends PureComponent {
 						<View style={styles.ctaWrapper} testID={'log-in-button'}>
 							<StyledButton type={'confirm'} onPress={this.triggerLogIn}>
 								{this.state.loading ? (
-									<ActivityIndicator size="small" color="white" />
+									<ActivityIndicator size="small" color={colors.onInverse} />
 								) : (
 									strings('login.login_button')
 								)}

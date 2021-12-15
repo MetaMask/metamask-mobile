@@ -9,7 +9,7 @@ import Text from './Text';
 const styles = StyleSheet.create({
 	modalContainer: {
 		width: '100%',
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderRadius: 10,
 	},
 	modalView: {
@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
 	},
 	header: {
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 		flexDirection: 'row',
 		paddingHorizontal: 16,
 	},
@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
 		fontSize: 18,
 		marginVertical: 12,
 		marginHorizontal: 24,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.bold,
 	},
 	closeIcon: { paddingTop: 4, position: 'absolute', right: 16 },
@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 	},
 	sectionBorderBottom: {
-		borderBottomColor: colors.grey100,
+		borderBottomColor: colors.borderDefault,
 		borderBottomWidth: 1,
 	},
 	column: {
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
 	sectionTitle: {
 		...fontStyles.normal,
 		fontSize: 10,
-		color: colors.grey500,
+		color: colors.textAlternative,
 		marginBottom: 8,
 	},
 });
@@ -67,7 +67,7 @@ const DetailsModalHeader = ({ style, ...props }) => <View style={[styles.header,
 const DetailsModalTitle = ({ style, ...props }) => <Text style={[styles.title, style]} {...props} />;
 const DetailsModalCloseIcon = ({ style, ...props }) => (
 	<TouchableOpacity style={[styles.closeIcon, style]} {...props}>
-		<Ionicons name={'ios-close'} size={38} />
+		<Ionicons name={'ios-close'} size={38} color={colors.textDefault} />
 	</TouchableOpacity>
 );
 const DetailsModalBody = ({ style, ...props }) => <View style={[styles.body, style]} {...props} />;

@@ -40,7 +40,7 @@ const Identicon = React.memo((props) => {
 	if (noFadeIn) {
 		return image;
 	}
-	return <FadeIn placeholderStyle={{ backgroundColor: colors.white }}>{image}</FadeIn>;
+	return <FadeIn placeholderStyle={{ backgroundColor: colors.backgroundDefault }}>{image}</FadeIn>;
 });
 
 Identicon.propTypes = {

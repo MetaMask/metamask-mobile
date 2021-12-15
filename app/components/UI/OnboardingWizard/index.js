@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { TouchableOpacity, View, StyleSheet, Text, Dimensions, InteractionManager } from 'react-native';
+import { TouchableOpacity, View, StyleSheet, Dimensions, InteractionManager } from 'react-native';
+import Text from '../../Base/Text';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import Step1 from './Step1';
@@ -49,7 +50,7 @@ const styles = StyleSheet.create({
 	skip: {
 		height: 30,
 		borderRadius: 30,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		alignItems: 'center',
 	},
 	androidElevated: {
@@ -68,7 +69,7 @@ const styles = StyleSheet.create({
 	skipText: {
 		...fontStyles.normal,
 		fontSize: 12,
-		color: colors.blue,
+		color: colors.primary,
 	},
 });
 

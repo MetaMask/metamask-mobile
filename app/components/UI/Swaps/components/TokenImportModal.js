@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'flex-end',
 	},
 	modalView: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
 	},
@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
 		marginVertical: 14,
 	},
 	tokenAddress: {
-		backgroundColor: colors.grey000,
+		backgroundColor: colors.backgroundAlternative,
 		width: '100%',
 		borderRadius: 20,
 		marginVertical: 6,
@@ -71,7 +71,7 @@ function TokenImportModal({ isVisible, dismiss, token, onPressImport }) {
 					<Alert
 						type={AlertType.Error}
 						renderIcon={() => (
-							<FAIcon name="info-circle" style={styles.alertIcon} color={colors.red} size={15} />
+							<FAIcon name="info-circle" style={styles.alertIcon} color={colors.onError} size={15} />
 						)}
 					>
 						{(textStyle) => <Text style={textStyle}>{strings('swaps.add_warning')}</Text>}
@@ -91,7 +91,7 @@ function TokenImportModal({ isVisible, dismiss, token, onPressImport }) {
 							{token.address}
 						</Text>
 					</View>
-					<StyledButton type="blue" containerStyle={styles.cta} onPress={onPressImport}>
+					<StyledButton type="primary" containerStyle={styles.cta} onPress={onPressImport}>
 						{strings('swaps.Import')}
 					</StyledButton>
 				</View>

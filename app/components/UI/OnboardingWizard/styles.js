@@ -13,7 +13,7 @@ export default StyleSheet.create({
 	},
 	content: {
 		...fontStyles.normal,
-		color: colors.white,
+		color: colors.onPrimary,
 		fontSize: 14,
 		textAlign: 'center',
 		marginBottom: SMALL_DEVICE ? 5 : 20,

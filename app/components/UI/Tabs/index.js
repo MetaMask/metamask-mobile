@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { InteractionManager, Dimensions, View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { InteractionManager, Dimensions, View, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import Text from '../../Base/Text';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
@@ -22,13 +23,13 @@ const styles = StyleSheet.create({
 	},
 	noTabsTitle: {
 		...fontStyles.normal,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		fontSize: 18,
 		marginBottom: 10,
 	},
 	noTabsDesc: {
 		...fontStyles.normal,
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 		fontSize: 14,
 	},
 	tabAction: {
@@ -49,16 +50,16 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 	},
 	tabActionText: {
-		color: colors.blue,
+		color: colors.primary,
 		...fontStyles.normal,
 		fontSize: 16,
 	},
 	actionDisabled: {
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 	},
 	tabsView: {
 		flex: 1,
-		backgroundColor: colors.grey100,
+		backgroundColor: colors.muted,
 		position: 'absolute',
 		top: 0,
 		left: 0,
@@ -70,14 +71,14 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		marginBottom: Device.isIphoneX() ? 0 : 0,
 		paddingTop: 17,
-		shadowColor: colors.black,
+		shadowColor: colors.shadowColor,
 		shadowOffset: {
 			width: 0,
 			height: 12,
 		},
 		shadowOpacity: 0.58,
 		shadowRadius: 15.0,
-		backgroundColor: colors.grey000,
+		backgroundColor: colors.backgroundAlternative,
 		height: Device.isIphoneX() ? 80 : 50,
 	},
 	tabs: {
@@ -90,7 +91,7 @@ const styles = StyleSheet.create({
 	},
 	newTabIcon: {
 		marginTop: Device.isIos() ? 3 : 2.5,
-		color: colors.white,
+		color: colors.onPrimary,
 		fontSize: 24,
 		textAlign: 'center',
 		justifyContent: 'center',
@@ -100,7 +101,7 @@ const styles = StyleSheet.create({
 		alignSelf: 'center',
 		justifyContent: 'flex-start',
 		alignContent: 'flex-start',
-		backgroundColor: colors.blue,
+		backgroundColor: colors.primary,
 		borderRadius: 100,
 		width: 30,
 		height: 30,

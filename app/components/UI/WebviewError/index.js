@@ -10,13 +10,13 @@ import Device from '../../../util/device';
 const styles = StyleSheet.create({
 	wrapper: {
 		...StyleSheet.absoluteFillObject,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		justifyContent: 'center',
 		alignItems: 'center',
 		zIndex: 99999999999999,
 	},
 	foxWrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		marginTop: -100,
 		width: 110,
 		marginBottom: 20,
@@ -33,20 +33,20 @@ const styles = StyleSheet.create({
 		height: 110,
 	},
 	errorTitle: {
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.bold,
 		fontSize: 18,
 		marginBottom: 15,
 	},
 	errorMessage: {
 		textAlign: 'center',
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 		...fontStyles.normal,
 		fontSize: 14,
 		marginBottom: 10,
 	},
 	errorInfo: {
-		color: colors.fontTertiary,
+		color: colors.textAlternative,
 		...fontStyles.normal,
 		fontSize: 12,
 	},

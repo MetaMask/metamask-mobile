@@ -29,7 +29,7 @@ const GAS_MIN = new BigNumber(0.000001);
 
 const styles = StyleSheet.create({
 	root: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
 		minHeight: 200,
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
 		right: 10,
 	},
 	labelInfo: {
-		color: colors.grey200,
+		color: colors.textAlternative,
 	},
 	advancedOptionsContainer: {
 		marginTop: 25,
@@ -128,9 +128,9 @@ const styles = StyleSheet.create({
 	learnMoreModal: {
 		maxHeight: Device.getDeviceHeight() * 0.7,
 	},
-	redInfo: {
+	errorInfo: {
 		marginLeft: 2,
-		color: colors.red,
+		color: colors.onError,
 	},
 });
 
@@ -378,7 +378,7 @@ const EditGasFee1559 = ({
 								<RangeInput
 									leftLabelComponent={
 										<View style={styles.labelTextContainer}>
-											<Text black bold noMargin>
+											<Text textDefault bold noMargin>
 												{strings('edit_gas_fee_eip1559.gas_limit')}{' '}
 											</Text>
 
@@ -405,7 +405,7 @@ const EditGasFee1559 = ({
 								<RangeInput
 									leftLabelComponent={
 										<View style={styles.labelTextContainer}>
-											<Text black bold noMargin>
+											<Text textDefault bold noMargin>
 												{strings('edit_gas_fee_eip1559.max_priority_fee')}{' '}
 											</Text>
 
@@ -422,7 +422,7 @@ const EditGasFee1559 = ({
 										</View>
 									}
 									rightLabelComponent={
-										<Text noMargin small grey>
+										<Text noMargin small textAlternative>
 											<Text bold reset>
 												{strings('edit_gas_fee_eip1559.estimate')}:
 											</Text>{' '}
@@ -443,7 +443,7 @@ const EditGasFee1559 = ({
 								<RangeInput
 									leftLabelComponent={
 										<View style={styles.labelTextContainer}>
-											<Text black={!maxFeeError} red={Boolean(maxFeeError)} bold noMargin>
+											<Text textDefault={!maxFeeError} error={Boolean(maxFeeError)} bold noMargin>
 												{strings('edit_gas_fee_eip1559.max_fee')}{' '}
 											</Text>
 
@@ -460,7 +460,7 @@ const EditGasFee1559 = ({
 										</View>
 									}
 									rightLabelComponent={
-										<Text noMargin small grey>
+										<Text noMargin small textAlternative>
 											<Text bold reset>
 												{strings('edit_gas_fee_eip1559.estimate')}:
 											</Text>{' '}
@@ -501,12 +501,12 @@ const EditGasFee1559 = ({
 				<Alert
 					small
 					type={AlertType.Warning}
-					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.yellow} />}
+					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.onWarning} />}
 					style={styles.warningContainer}
 				>
 					{() => (
 						<View style={styles.warningTextContainer}>
-							<Text black style={styles.warningText}>
+							<Text warning style={styles.warningText}>
 								{warning}
 							</Text>
 						</View>
@@ -524,12 +524,12 @@ const EditGasFee1559 = ({
 				<Alert
 					small
 					type={AlertType.Error}
-					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.red} />}
+					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.onError} />}
 					style={styles.warningContainer}
 				>
 					{() => (
 						<View style={styles.warningTextContainer}>
-							<Text red style={styles.warningText}>
+							<Text error style={styles.warningText}>
 								{error}
 							</Text>
 						</View>
@@ -556,16 +556,16 @@ const EditGasFee1559 = ({
 						<View>
 							<View style={styles.customGasHeader}>
 								<TouchableOpacity onPress={onCancel}>
-									<Icon name={'ios-arrow-back'} size={24} color={colors.black} />
+									<Icon name={'ios-arrow-back'} size={24} color={colors.textDefault} />
 								</TouchableOpacity>
-								<Text bold black>
+								<Text bold textDefault>
 									{renderDisplayTitle}
 								</Text>
-								<Icon name={'ios-arrow-back'} size={24} color={colors.white} />
+								<Icon name={'ios-arrow-back'} size={24} color={colors.backgroundDefault} />
 							</View>
 							{updateOption && (
 								<View style={styles.newGasFeeHeader}>
-									<Text black bold noMargin>
+									<Text textDefault bold noMargin>
 										{strings('edit_gas_fee_eip1559.new_gas_fee')}{' '}
 									</Text>
 
@@ -586,31 +586,37 @@ const EditGasFee1559 = ({
 							animateOnChange={animateOnChange}
 						>
 							<View style={styles.headerTitle}>
-								<Text black style={styles.headerText} adjustsFontSizeToFit numberOfLines={1} noMargin>
+								<Text
+									textDefault
+									style={styles.headerText}
+									adjustsFontSizeToFit
+									numberOfLines={1}
+									noMargin
+								>
 									~{gasFeePrimary}
 								</Text>
 							</View>
-							<Text big black style={styles.subheader} noMargin>
-								<Text bold black noMargin>
+							<Text big textDefault style={styles.subheader} noMargin>
+								<Text bold textDefault noMargin>
 									{strings('edit_gas_fee_eip1559.max_fee')}:{' '}
 								</Text>
 								{gasFeeMaxPrimary} ({gasFeeMaxSecondary})
 							</Text>
 							<View style={styles.labelTextContainer}>
-								<Text green={timeEstimateColor === 'green'} red={timeEstimateColor === 'red'} bold>
+								<Text success={timeEstimateColor === 'green'} error={timeEstimateColor === 'red'} bold>
 									{timeEstimate}
 								</Text>
 								{(timeEstimateId === AppConstants.GAS_TIMES.MAYBE ||
 									timeEstimateId === AppConstants.GAS_TIMES.UNKNOWN) && (
 									<TouchableOpacity hitSlop={styles.hitSlop} onPress={showTimeEstimateInfoModal}>
-										<MaterialCommunityIcon name="information" size={14} style={styles.redInfo} />
+										<MaterialCommunityIcon name="information" size={14} style={styles.errorInfo} />
 									</TouchableOpacity>
 								)}
 							</View>
 						</FadeAnimationView>
 						{!showInputs ? (
 							<View style={styles.dappEditGasContainer}>
-								<StyledButton type={'orange'} onPress={() => setShowInputs(true)}>
+								<StyledButton type={'info'} onPress={() => setShowInputs(true)}>
 									{strings('edit_gas_fee_eip1559.edit_suggested_gas_fee')}
 								</StyledButton>
 							</View>
@@ -633,7 +639,7 @@ const EditGasFee1559 = ({
 							toggleModal={() => setShowInfoModal(null)}
 							body={
 								<View>
-									<Text grey infoModal>
+									<Text textAlternative infoModal>
 										{showInfoModal === 'gas_limit' &&
 											strings('edit_gas_fee_eip1559.learn_more_gas_limit')}
 										{showInfoModal === 'max_priority_fee' &&
@@ -657,30 +663,30 @@ const EditGasFee1559 = ({
 									<ScrollView>
 										<TouchableWithoutFeedback>
 											<View>
-												<Text noMargin grey infoModal>
+												<Text noMargin textAlternative infoModal>
 													{strings('edit_gas_fee_eip1559.learn_more.intro')}
 												</Text>
 												<Text noMargin primary infoModal bold style={styles.learnMoreLabels}>
 													{strings('edit_gas_fee_eip1559.learn_more.high_label')}
 												</Text>
-												<Text noMargin grey infoModal>
+												<Text noMargin textAlternative infoModal>
 													{strings('edit_gas_fee_eip1559.learn_more.high_text')}
 												</Text>
 												<Text noMargin primary infoModal bold style={styles.learnMoreLabels}>
 													{strings('edit_gas_fee_eip1559.learn_more.medium_label')}
 												</Text>
-												<Text noMargin grey infoModal>
+												<Text noMargin textAlternative infoModal>
 													{strings('edit_gas_fee_eip1559.learn_more.medium_text')}
 												</Text>
 												<Text noMargin primary infoModal bold style={styles.learnMoreLabels}>
 													{strings('edit_gas_fee_eip1559.learn_more.low_label')}
 												</Text>
-												<Text noMargin grey infoModal>
+												<Text noMargin textAlternative infoModal>
 													{strings('edit_gas_fee_eip1559.learn_more.low_text')}
 												</Text>
 												{/* TODO(eip1559) add link when available
 												<TouchableOpacity style={styles.learnMoreLink}>
-													<Text grey infoModal link>
+													<Text textAlternative infoModal link>
 														{strings('edit_gas_fee_eip1559.learn_more.link')}
 													</Text>
 												</TouchableOpacity>*/}

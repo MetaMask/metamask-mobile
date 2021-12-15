@@ -31,7 +31,7 @@ const VERTICAL_ALIGNMENT = IS_SMALL_DEVICE ? 12 : 16;
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 0,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderTopEndRadius: 8,
 		borderTopStartRadius: 8,
 	},
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
 		width: 48,
 		height: 5,
 		borderRadius: 4,
-		backgroundColor: colors.grey100,
+		backgroundColor: colors.muted,
 	},
 	scrollableDescription: {
 		maxHeight: Device.getDeviceHeight() / 5,
@@ -144,14 +144,14 @@ const CollectibleOverview = ({
 		if (!value) return null;
 		return (
 			<View style={styles.collectibleInfoContainer} key={key}>
-				<Text noMargin black bold big={!IS_SMALL_DEVICE} style={styles.collectibleInfoKey}>
+				<Text noMargin textDefault bold big={!IS_SMALL_DEVICE} style={styles.collectibleInfoKey}>
 					{key}
 				</Text>
 				<Text
 					noMargin
 					big={!IS_SMALL_DEVICE}
 					link={!!onPress}
-					black={!onPress}
+					textDefault={!onPress}
 					right
 					style={baseStyles.flexGrow}
 					numberOfLines={1}
@@ -287,17 +287,17 @@ const CollectibleOverview = ({
 							<View style={styles.userContainer}>
 								<RemoteImage
 									fadeIn
-									placeholderStyle={{ backgroundColor: colors.white }}
+									placeholderStyle={{ backgroundColor: colors.backgroundDefault }}
 									source={{ uri: collectible.creator.profile_img_url }}
 									style={styles.userImage}
 								/>
 								<View numberOfLines={1} style={styles.userInfoContainer}>
 									{collectible.creator.user?.username && (
-										<Text black bold noMargin big={!IS_SMALL_DEVICE}>
+										<Text textDefault bold noMargin big={!IS_SMALL_DEVICE}>
 											{collectible.creator.user.username}
 										</Text>
 									)}
-									<Text numberOfLines={1} black noMargin small>
+									<Text numberOfLines={1} textDefault noMargin small>
 										{collectible.contractName}
 									</Text>
 								</View>
@@ -350,7 +350,7 @@ const CollectibleOverview = ({
 					<View style={styles.information}>
 						<View style={[styles.generalContainer, styles.row]}>
 							<View>
-								<Text noMargin black bold big={!IS_SMALL_DEVICE}>
+								<Text noMargin textDefault bold big={!IS_SMALL_DEVICE}>
 									{strings('collectible.collectible_description')}
 								</Text>
 							</View>
@@ -362,14 +362,14 @@ const CollectibleOverview = ({
 									style={[styles.description, styles.scrollableDescription]}
 								>
 									<TouchableWithoutFeedback>
-										<Text noMargin black style={styles.collectibleDescription}>
+										<Text noMargin textDefault style={styles.collectibleDescription}>
 											{collectible.description}
 										</Text>
 									</TouchableWithoutFeedback>
 								</ScrollView>
 							) : (
 								<View style={styles.description}>
-									<Text noMargin black style={styles.collectibleDescription}>
+									<Text noMargin textDefault style={styles.collectibleDescription}>
 										{collectible.description}
 									</Text>
 								</View>

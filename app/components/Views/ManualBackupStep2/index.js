@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { InteractionManager, Alert, Text, TouchableOpacity, View, SafeAreaView, StyleSheet } from 'react-native';
+import { InteractionManager, Alert, TouchableOpacity, View, SafeAreaView, StyleSheet } from 'react-native';
+import Text from '../../Base/Text';
 import PropTypes from 'prop-types';
 import OnboardingProgress from '../../UI/OnboardingProgress';
 import { colors, fontStyles } from '../../../styles/common';
@@ -14,7 +15,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	wrapper: {
@@ -27,7 +28,7 @@ const styles = StyleSheet.create({
 	action: {
 		fontSize: 18,
 		marginBottom: 16,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		justifyContent: 'center',
 		textAlign: 'center',
 		...fontStyles.bold,
@@ -38,25 +39,25 @@ const styles = StyleSheet.create({
 	},
 	info: {
 		fontSize: 16,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		textAlign: 'center',
 		...fontStyles.normal,
 		paddingHorizontal: 6,
 	},
 	seedPhraseWrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderRadius: 8,
 		flexDirection: 'row',
 		justifyContent: 'space-between',
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 		borderWidth: 1,
 		marginBottom: 24,
 	},
 	seedPhraseWrapperComplete: {
-		borderColor: colors.green500,
+		borderColor: colors.onSuccess,
 	},
 	seedPhraseWrapperError: {
-		borderColor: colors.red,
+		borderColor: colors.onError,
 	},
 	colLeft: {
 		paddingTop: 18,
@@ -80,8 +81,8 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 8,
 		paddingVertical: 6,
 		width: Device.isMediumDevice() ? 75 : 95,
-		backgroundColor: colors.white,
-		borderColor: colors.grey050,
+		backgroundColor: colors.backgroundDefault,
+		borderColor: colors.borderDefault,
 		borderWidth: 1,
 		borderRadius: 34,
 		borderStyle: 'dashed',
@@ -89,17 +90,17 @@ const styles = StyleSheet.create({
 	},
 	word: {
 		fontSize: 14,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		lineHeight: 14,
 		textAlign: 'center',
 	},
 	selectableWord: {
 		paddingHorizontal: 8,
 		paddingVertical: 6,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		width: 95,
-		backgroundColor: colors.white,
-		borderColor: colors.blue,
+		backgroundColor: colors.backgroundDefault,
+		borderColor: colors.primary,
 		borderWidth: 1,
 		marginBottom: 6,
 		borderRadius: 13,
@@ -109,7 +110,7 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		fontSize: 14,
 		lineHeight: 14,
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	words: {
 		flexDirection: 'row',
@@ -123,24 +124,24 @@ const styles = StyleSheet.create({
 	},
 	successText: {
 		fontSize: 12,
-		color: colors.green500,
+		color: colors.ui4,
 		marginLeft: 4,
 	},
 	selectedWord: {
-		backgroundColor: colors.grey400,
+		backgroundColor: colors.ui4,
 		borderWidth: 1,
-		borderColor: colors.grey400,
+		borderColor: colors.ui4,
 	},
 	selectedWordText: {
-		color: colors.white,
+		color: colors.onUi4,
 	},
 	currentWord: {
 		borderWidth: 1,
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 	},
 	confirmedWord: {
 		borderWidth: 1,
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 		borderStyle: 'solid',
 	},
 });
@@ -286,7 +287,7 @@ class ManualBackupStep2 extends PureComponent {
 
 	renderSuccess = () => (
 		<View style={styles.successRow}>
-			<MaterialIcon name="check-circle" size={15} color={colors.green500} />
+			<MaterialIcon name="check-circle" size={15} color={colors.onSuccess} />
 			<Text style={styles.successText}>{strings('manual_backup_step_2.success')}</Text>
 		</View>
 	);

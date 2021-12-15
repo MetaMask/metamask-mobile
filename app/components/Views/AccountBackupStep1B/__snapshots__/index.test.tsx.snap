@@ -4,7 +4,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
 <ForwardRef(SafeAreaView)
   style={
     Object {
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#141618",
       "flex": 1,
     }
   }
@@ -17,7 +17,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
     }
     style={
       Object {
-        "backgroundColor": "#FFFFFF",
+        "backgroundColor": "#141618",
         "flex": 1,
       }
     }
@@ -53,18 +53,48 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         }
       >
         <Text
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          error={false}
+          info={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
               "fontSize": 32,
             }
           }
+          success={false}
+          textAlternative={false}
+          textDefault={false}
+          underline={false}
+          upper={false}
+          warning={false}
         >
           🔒
         </Text>
         <Text
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          error={false}
+          info={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
-              "color": "#000000",
+              "color": "#ffffff",
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 24,
               "fontWeight": "600",
@@ -74,6 +104,12 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
               "marginTop": 16,
             }
           }
+          success={false}
+          textAlternative={false}
+          textDefault={false}
+          underline={false}
+          upper={false}
+          warning={false}
         >
           Secure your wallet
         </Text>
@@ -86,9 +122,21 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
           }
         >
           <Text
+            bold={false}
+            centered={false}
+            disclaimer={false}
+            error={false}
+            info={false}
+            link={false}
+            modal={false}
+            primary={false}
+            reset={false}
+            right={false}
+            small={false}
+            strikethrough={false}
             style={
               Object {
-                "color": "#000000",
+                "color": "#ffffff",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 16,
                 "fontWeight": "400",
@@ -96,16 +144,35 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                 "textAlign": "left",
               }
             }
+            success={false}
+            textAlternative={false}
+            textDefault={false}
+            underline={false}
+            upper={false}
+            warning={false}
           >
             Secure your wallet's
              
             <Text
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              error={false}
+              info={false}
+              link={false}
+              modal={false}
               onPress={[Function]}
-              style={
-                Object {
-                  "color": "#037dd6",
-                }
-              }
+              primary={true}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
+              success={false}
+              textAlternative={false}
+              textDefault={false}
+              underline={false}
+              upper={false}
+              warning={false}
             >
               Secret Recovery Phrase.
             </Text>
@@ -134,12 +201,30 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
             }
           />
           <Text
+            bold={false}
+            centered={false}
+            disclaimer={false}
+            error={false}
+            info={false}
+            link={false}
+            modal={false}
+            primary={false}
+            reset={false}
+            right={false}
+            small={false}
+            strikethrough={false}
             style={
               Object {
                 "color": "#037dd6",
                 "fontSize": 14,
               }
             }
+            success={false}
+            textAlternative={false}
+            textDefault={false}
+            underline={false}
+            upper={false}
+            warning={false}
           >
             Why is it important?
           </Text>
@@ -148,14 +233,14 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
       <View
         style={
           Object {
-            "backgroundColor": "#FFFFFF",
-            "borderColor": "#d6d9dc",
+            "backgroundColor": "#141618",
+            "borderColor": "#848c96",
             "borderRadius": 10,
             "borderWidth": 1,
             "elevation": 4,
             "marginBottom": 20,
             "padding": 16,
-            "shadowColor": "#24292E",
+            "shadowColor": undefined,
             "shadowOffset": Object {
               "height": 4,
               "width": 1,
@@ -166,9 +251,21 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         }
       >
         <Text
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          error={false}
+          info={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
-              "color": "#000000",
+              "color": "#ffffff",
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 16,
               "fontWeight": "600",
@@ -176,30 +273,72 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
               "marginBottom": 8,
             }
           }
+          success={false}
+          textAlternative={false}
+          textDefault={false}
+          underline={false}
+          upper={false}
+          warning={false}
         >
           Manual
         </Text>
         <Text
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          error={false}
+          info={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
-              "color": "#000000",
+              "color": "#ffffff",
               "fontSize": 12,
               "lineHeight": 17,
               "marginBottom": 20,
             }
           }
+          success={false}
+          textAlternative={false}
+          textDefault={false}
+          underline={false}
+          upper={false}
+          warning={false}
         >
           Write down your Secret Recovery Phrase on a piece of paper and store in a safe place.
         </Text>
         <Text
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          error={false}
+          info={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
-              "color": "#000000",
+              "color": "#ffffff",
               "fontSize": 12,
               "lineHeight": 17,
               "marginBottom": 8,
             }
           }
+          success={false}
+          textAlternative={false}
+          textDefault={false}
+          underline={false}
+          upper={false}
+          warning={false}
         >
           Security level: Very strong
         </Text>
@@ -247,109 +386,271 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
           />
         </View>
         <Text
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          error={false}
+          info={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
-              "color": "#000000",
+              "color": "#ffffff",
               "fontSize": 12,
               "lineHeight": 17,
             }
           }
+          success={false}
+          textAlternative={false}
+          textDefault={false}
+          underline={false}
+          upper={false}
+          warning={false}
         >
           Risks are:
         </Text>
         <Text
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          error={false}
+          info={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
-              "color": "#000000",
+              "color": "#ffffff",
               "fontSize": 12,
               "lineHeight": 17,
             }
           }
+          success={false}
+          textAlternative={false}
+          textDefault={false}
+          underline={false}
+          upper={false}
+          warning={false}
         >
           • 
           You lose it
         </Text>
         <Text
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          error={false}
+          info={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
-              "color": "#000000",
+              "color": "#ffffff",
               "fontSize": 12,
               "lineHeight": 17,
             }
           }
+          success={false}
+          textAlternative={false}
+          textDefault={false}
+          underline={false}
+          upper={false}
+          warning={false}
         >
           • 
           You forget where you put it
         </Text>
         <Text
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          error={false}
+          info={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
-              "color": "#000000",
+              "color": "#ffffff",
               "fontSize": 12,
               "lineHeight": 17,
               "marginBottom": 20,
             }
           }
+          success={false}
+          textAlternative={false}
+          textDefault={false}
+          underline={false}
+          upper={false}
+          warning={false}
         >
           • 
           Someone else finds it
         </Text>
         <Text
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          error={false}
+          info={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
-              "color": "#000000",
+              "color": "#ffffff",
               "fontSize": 12,
               "lineHeight": 17,
               "marginBottom": 20,
             }
           }
+          success={false}
+          textAlternative={false}
+          textDefault={false}
+          underline={false}
+          upper={false}
+          warning={false}
         >
           Other options: Doesn’t have to be paper!
         </Text>
         <Text
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          error={false}
+          info={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
-              "color": "#000000",
+              "color": "#ffffff",
               "fontSize": 12,
               "lineHeight": 17,
             }
           }
+          success={false}
+          textAlternative={false}
+          textDefault={false}
+          underline={false}
+          upper={false}
+          warning={false}
         >
           Tips:
         </Text>
         <Text
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          error={false}
+          info={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
-              "color": "#000000",
+              "color": "#ffffff",
               "fontSize": 12,
               "lineHeight": 17,
             }
           }
+          success={false}
+          textAlternative={false}
+          textDefault={false}
+          underline={false}
+          upper={false}
+          warning={false}
         >
           • 
           Store in bank vault
         </Text>
         <Text
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          error={false}
+          info={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
-              "color": "#000000",
+              "color": "#ffffff",
               "fontSize": 12,
               "lineHeight": 17,
             }
           }
+          success={false}
+          textAlternative={false}
+          textDefault={false}
+          underline={false}
+          upper={false}
+          warning={false}
         >
           • 
           Store in a safe
         </Text>
         <Text
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          error={false}
+          info={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
-              "color": "#000000",
+              "color": "#ffffff",
               "fontSize": 12,
               "lineHeight": 17,
               "marginBottom": 20,
             }
           }
+          success={false}
+          textAlternative={false}
+          textDefault={false}
+          underline={false}
+          upper={false}
+          warning={false}
         >
           • 
           Store in multiple secret places
@@ -420,9 +721,21 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
           }
         />
         <Text
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          error={false}
+          info={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
-              "color": "#000000",
+              "color": "#ffffff",
               "flex": 1,
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 18,
@@ -430,6 +743,12 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
               "textAlign": "center",
             }
           }
+          success={false}
+          textAlternative={false}
+          textDefault={false}
+          underline={false}
+          upper={false}
+          warning={false}
         >
           Protect your wallet
         </Text>
@@ -488,16 +807,46 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
           testID="carousel-one-image"
         />
         <Text
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          error={false}
+          info={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
-              "color": "#000000",
+              "color": "#ffffff",
               "lineHeight": 20,
               "textAlign": "center",
             }
           }
+          success={false}
+          textAlternative={false}
+          textDefault={false}
+          underline={false}
+          upper={false}
+          warning={false}
         >
           Don’t risk losing your funds. Protect your wallet by saving your Secret Recovery Phrase in a place you trust.
           <Text
+            bold={false}
+            centered={false}
+            disclaimer={false}
+            error={false}
+            info={false}
+            link={false}
+            modal={false}
+            primary={false}
+            reset={false}
+            right={false}
+            small={false}
+            strikethrough={false}
             style={
               Object {
                 "fontFamily": "EuclidCircularB-Bold",
@@ -505,6 +854,12 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                 "lineHeight": 25,
               }
             }
+            success={false}
+            textAlternative={false}
+            textDefault={false}
+            underline={false}
+            upper={false}
+            warning={false}
           >
              It’s the only way to recover your wallet if you get locked out of the app or get a new device.
           </Text>
@@ -521,6 +876,18 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
           onPress={[Function]}
         >
           <Text
+            bold={false}
+            centered={false}
+            disclaimer={false}
+            error={false}
+            info={false}
+            link={false}
+            modal={false}
+            primary={false}
+            reset={false}
+            right={false}
+            small={false}
+            strikethrough={false}
             style={
               Object {
                 "color": "#037dd6",
@@ -532,6 +899,12 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                 "textAlign": "center",
               }
             }
+            success={false}
+            textAlternative={false}
+            textDefault={false}
+            underline={false}
+            upper={false}
+            warning={false}
           >
             Learn More
           </Text>

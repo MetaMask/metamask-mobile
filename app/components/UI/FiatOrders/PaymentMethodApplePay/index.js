@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
 	},
 	amount: {
 		...fontStyles.light,
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: Device.isIphone5() ? 48 : 48,
 		height: Device.isIphone5() ? 50 : 60,
 	},
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
 		minHeight: 22,
 	},
 	amountError: {
-		color: colors.red,
+		color: colors.onError,
 	},
 	content: {
 		flexGrow: 1,
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
 	},
 	quickAmount: {
 		borderRadius: 18,
-		borderColor: colors.grey200,
+		borderColor: colors.borderDefault,
 		borderWidth: 1,
 		paddingVertical: 5,
 		paddingHorizontal: 8,
@@ -87,28 +87,28 @@ const styles = StyleSheet.create({
 		minWidth: 49,
 	},
 	quickAmountPlaceholder: {
-		backgroundColor: colors.grey000,
-		borderColor: colors.grey000,
+		backgroundColor: colors.backgroundAlternative,
+		borderColor: colors.borderDefault,
 	},
 	quickAmountSelected: {
-		backgroundColor: colors.blue,
-		borderColor: colors.blue,
+		backgroundColor: colors.primary,
+		borderColor: colors.primary,
 	},
 	quickAmountSelectedText: {
-		color: colors.white,
+		color: colors.onPrimary,
 	},
 	buttonContainer: {
 		paddingBottom: 20,
 	},
 	applePayButton: {
-		backgroundColor: colors.black,
+		backgroundColor: colors.inverse,
 		padding: 10,
 		margin: Device.isIphone5() ? 5 : 10,
 		marginHorizontal: 25,
 		alignItems: 'center',
 	},
 	applePayButtonText: {
-		color: colors.white,
+		color: colors.onInverse,
 	},
 	applePayButtonContentDisabled: {
 		opacity: 0.6,
@@ -413,7 +413,7 @@ function PaymentMethodApplePay({
 				<Keypad currency={selectedCurrency} onChange={handleKeypadChange} value={amount} />
 				<View style={styles.buttonContainer}>
 					<StyledButton
-						type="blue"
+						type="primary"
 						disabled={disabledButton}
 						containerStyle={styles.applePayButton}
 						onPress={handlePressApplePay}

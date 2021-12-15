@@ -26,18 +26,18 @@ const styles = StyleSheet.create({
 	icon: {
 		marginRight: 4,
 	},
-	red: {
-		backgroundColor: colors.red000,
+	error: {
+		backgroundColor: colors.error,
 	},
 	normal: {
-		backgroundColor: colors.grey000,
+		backgroundColor: colors.backgroundAlternative,
 	},
 	check: {
-		color: colors.green500,
+		color: colors.onSuccess,
 	},
 });
 
-const WarningIcon = () => <Icon style={styles.icon} size={16} color={colors.red} name="exclamation-triangle" />;
+const WarningIcon = () => <Icon style={styles.icon} size={16} color={colors.onError} name="exclamation-triangle" />;
 const CheckIcon = () => <MaterialIcon style={[styles.icon, styles.check]} size={16} name="check-circle" />;
 
 const propTypes = {
@@ -57,7 +57,7 @@ const SettingsNotification = ({ style, isWarning, isNotification, children }) =>
 	<View
 		style={[
 			isNotification ? Object.assign({}, styles.menuItemWarning, style) : styles.wrapper,
-			isNotification ? null : isWarning ? styles.red : styles.normal,
+			isNotification ? null : isWarning ? styles.error : styles.normal,
 		]}
 	>
 		{isWarning ? <WarningIcon /> : <CheckIcon />}

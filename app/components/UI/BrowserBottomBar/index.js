@@ -16,7 +16,7 @@ const defaultBottomBarPadding = 0;
 
 const styles = StyleSheet.create({
 	bottomBar: {
-		backgroundColor: Device.isAndroid() ? colors.white : colors.grey000,
+		backgroundColor: Device.isAndroid() ? colors.backgroundDefault : colors.backgroundAlternative,
 		flexDirection: 'row',
 		paddingBottom:
 			Device.isIphoneX() && Device.isIos()
@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
 				: defaultBottomBarPadding,
 		flex: 0,
 		borderTopWidth: Device.isAndroid() ? 0 : StyleSheet.hairlineWidth,
-		borderColor: colors.grey200,
+		borderColor: colors.borderDefault,
 		justifyContent: 'space-between',
 	},
 	iconButton: {
@@ -41,14 +41,15 @@ const styles = StyleSheet.create({
 		marginTop: 0,
 		width: 24,
 		height: 24,
+		color: colors.textAlternative,
 	},
 	disabledIcon: {
-		color: colors.grey100,
+		color: colors.muted,
 	},
 	icon: {
 		width: 24,
 		height: 24,
-		color: colors.grey500,
+		color: colors.textAlternative,
 		textAlign: 'center',
 	},
 });

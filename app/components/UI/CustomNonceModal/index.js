@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
 	},
 	modal: {
 		minHeight: 200,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
 	},
@@ -31,18 +31,18 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		fontSize: 14,
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	nonceInput: {
 		width: 80,
 		fontSize: 36,
 		...fontStyles.bold,
-		color: colors.black,
+		color: colors.textDefault,
 		textAlign: 'center',
 		marginHorizontal: 24,
 	},
 	desc: {
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 12,
 		lineHeight: 16,
 		marginVertical: 10,
@@ -62,13 +62,13 @@ const styles = StyleSheet.create({
 	},
 	currentSuggested: {
 		fontSize: 14,
-		color: colors.grey500,
+		color: colors.textAlternative,
 		marginBottom: 10,
 	},
 	nonceWarning: {
 		borderWidth: 1,
-		borderColor: colors.yellow,
-		backgroundColor: colors.yellow100,
+		borderColor: colors.onWarning,
+		backgroundColor: colors.warning,
 		padding: 16,
 		display: 'flex',
 		flexDirection: 'row',
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
 		marginBottom: 16,
 	},
 	nonceWarningText: {
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 12,
 		lineHeight: 16,
 		width: '100%',
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
 		paddingRight: 14,
 	},
 	incrementDecrementIcon: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 });
 
@@ -155,7 +155,7 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 								autoCorrect={false}
 								onChangeText={onChangeText}
 								placeholder={String(proposedNonce)}
-								placeholderTextColor={colors.grey100}
+								placeholderTextColor={colors.muted}
 								spellCheck={false}
 								editable
 								style={styles.nonceInput}
@@ -183,7 +183,7 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 								<View style={styles.nonceWarning}>
 									<Icon
 										name="exclamation-circle"
-										color={colors.yellow}
+										color={colors.onWarning}
 										size={16}
 										style={styles.icon}
 									/>
@@ -201,7 +201,7 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 							{strings('transaction.cancel')}
 						</StyledButton>
 						<StyledButton
-							type={'blue'}
+							type={'primary'}
 							onPress={() => saveAndClose(nonce)}
 							containerStyle={styles.actionButton}
 						>

@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
 		borderRadius: 25,
 		overflow: 'hidden',
 	},
-	placeholder: { backgroundColor: colors.white },
+	placeholder: { backgroundColor: colors.backgroundDefault },
 });
 
 /**

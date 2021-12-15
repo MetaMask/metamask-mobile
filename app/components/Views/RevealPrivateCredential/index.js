@@ -4,11 +4,11 @@ import {
 	SafeAreaView,
 	StyleSheet,
 	View,
-	Text,
 	TextInput,
 	TouchableOpacity,
 	InteractionManager,
 } from 'react-native';
+import Text from '../../Base/Text';
 import AsyncStorage from '@react-native-community/async-storage';
 import { colors, fontStyles } from '../../../styles/common';
 import PropTypes from 'prop-types';
@@ -29,31 +29,31 @@ import ClipboardManager from '../../../core/ClipboardManager';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	header: {
-		borderBottomColor: colors.grey400,
+		borderBottomColor: colors.borderDefault,
 		borderBottomWidth: 1,
 		...fontStyles.normal,
 	},
 	seedPhrase: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		marginTop: 10,
 		paddingBottom: 20,
 		paddingLeft: 20,
 		paddingRight: 20,
-		borderColor: colors.grey400,
+		borderColor: colors.borderDefault,
 		borderBottomWidth: 1,
 		fontSize: 20,
 		textAlign: 'center',
-		color: colors.black,
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	seedPhraseView: {
 		borderRadius: 10,
 		borderWidth: 1,
-		borderColor: colors.grey400,
+		borderColor: colors.borderDefault,
 		marginTop: 10,
 		alignItems: 'center',
 	},
@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
 		padding: 20,
 	},
 	warningWrapper: {
-		backgroundColor: colors.red000,
+		backgroundColor: colors.error,
 	},
 	warningRowWrapper: {
 		flex: 1,
@@ -76,25 +76,25 @@ const styles = StyleSheet.create({
 	},
 	warningText: {
 		marginTop: 10,
-		color: colors.red,
+		color: colors.onError,
 		...fontStyles.normal,
 	},
 	input: {
 		borderWidth: 2,
 		borderRadius: 5,
-		borderColor: colors.grey000,
+		borderColor: colors.borderDefault,
 		padding: 10,
 	},
 	icon: {
 		margin: 10,
-		color: colors.red,
+		color: colors.onError,
 	},
 	actionIcon: {
 		margin: 10,
-		color: colors.blue,
+		color: colors.primary,
 	},
 	actionText: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	warningMessageText: {
 		marginLeft: 10,
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
 	},
 	tabUnderlineStyle: {
 		height: 2,
-		backgroundColor: colors.blue,
+		backgroundColor: colors.primary,
 	},
 	tabStyle: {
 		paddingBottom: 0,
@@ -267,9 +267,9 @@ class RevealPrivateCredential extends PureComponent {
 		return (
 			<DefaultTabBar
 				underlineStyle={styles.tabUnderlineStyle}
-				activeTextColor={colors.blue}
-				inactiveTextColor={colors.fontTertiary}
-				backgroundColor={colors.white}
+				activeTextColor={colors.primary}
+				inactiveTextColor={colors.textAlternative}
+				backgroundColor={colors.backgroundDefault}
 				tabStyle={styles.tabStyle}
 				textStyle={styles.textStyle}
 			/>
@@ -348,7 +348,7 @@ class RevealPrivateCredential extends PureComponent {
 										style={styles.input}
 										testID={'private-credential-password-text-input'}
 										placeholder={'Password'}
-										placeholderTextColor={colors.grey100}
+										placeholderTextColor={colors.muted}
 										onChangeText={this.onPasswordChange}
 										secureTextEntry
 										onSubmitEditing={this.tryUnlock}

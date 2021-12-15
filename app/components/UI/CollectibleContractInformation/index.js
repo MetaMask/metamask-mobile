@@ -1,15 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import {
-	ScrollView,
-	TouchableOpacity,
-	StyleSheet,
-	Text,
-	View,
-	SafeAreaView,
-	InteractionManager,
-	Image,
-} from 'react-native';
+import { ScrollView, TouchableOpacity, StyleSheet, View, SafeAreaView, InteractionManager, Image } from 'react-native';
+import Text from '../../Base/Text';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
@@ -18,25 +10,25 @@ import { isMainNet } from '../../../util/networks';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderRadius: 10,
 		minHeight: 450,
 	},
 	titleWrapper: {
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 	},
 	title: {
 		textAlign: 'center',
 		fontSize: 18,
 		marginVertical: 12,
 		marginHorizontal: 20,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.bold,
 	},
 	label: {
 		marginTop: 0,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 		...fontStyles.bold,
 	},
 	informationWrapper: {
@@ -45,7 +37,7 @@ const styles = StyleSheet.create({
 	},
 	content: {
 		fontSize: 16,
-		color: colors.grey400,
+		color: colors.textAlternative,
 		paddingTop: 10,
 		...fontStyles.normal,
 	},
@@ -57,7 +49,7 @@ const styles = StyleSheet.create({
 	},
 	footer: {
 		borderTopWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 		height: 60,
 		justifyContent: 'center',
 		flexDirection: 'row',
@@ -72,7 +64,7 @@ const styles = StyleSheet.create({
 	},
 	closeButton: {
 		fontSize: 16,
-		color: colors.blue,
+		color: colors.primary,
 		...fontStyles.normal,
 	},
 	opensea: {
@@ -80,7 +72,7 @@ const styles = StyleSheet.create({
 		textAlignVertical: 'center',
 		paddingRight: 5,
 		marginTop: Device.isAndroid() ? -2 : 4,
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 		...fontStyles.light,
 	},
 	credits: {

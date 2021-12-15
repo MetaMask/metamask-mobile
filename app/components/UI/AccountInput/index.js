@@ -2,7 +2,8 @@ import React, { PureComponent } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Identicon from '../Identicon';
 import PropTypes from 'prop-types';
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Keyboard } from 'react-native';
+import { ScrollView, StyleSheet, TextInput, TouchableOpacity, View, Keyboard } from 'react-native';
+import Text from '../../Base/Text';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { renderShortAddress, isENS } from '../../../util/address';
@@ -22,7 +23,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 	},
 	arrow: {
-		color: colors.grey100,
+		color: colors.muted,
 		position: 'absolute',
 		right: 10,
 		top: Device.isAndroid() ? 14 : 12,
@@ -34,7 +35,7 @@ const styles = StyleSheet.create({
 	},
 	input: {
 		...fontStyles.bold,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		marginRight: 24,
 		paddingLeft: 0,
 		minWidth: Device.isSmallDevice() ? 100 : 120,
@@ -49,8 +50,8 @@ const styles = StyleSheet.create({
 	},
 	accountContainer: {
 		flexDirection: 'row',
-		backgroundColor: colors.white,
-		borderColor: colors.grey100,
+		backgroundColor: colors.backgroundDefault,
+		borderColor: colors.borderDefault,
 		borderRadius: 4,
 		borderWidth: 1,
 	},
@@ -90,8 +91,8 @@ const styles = StyleSheet.create({
 		paddingTop: 1.5,
 	},
 	optionList: {
-		backgroundColor: colors.white,
-		borderColor: colors.grey100,
+		backgroundColor: colors.backgroundDefault,
+		borderColor: colors.borderDefault,
 		borderRadius: 4,
 		borderWidth: 1,
 		paddingBottom: 12,
@@ -386,7 +387,7 @@ class AccountInput extends PureComponent {
 								autoCorrect={false}
 								onChangeText={this.onChange}
 								placeholder={Device.isSmallDevice() ? placeholder.substr(0, 13) + '...' : placeholder}
-								placeholderTextColor={colors.grey100}
+								placeholderTextColor={colors.muted}
 								spellCheck={false}
 								editable={this.state.inputEnabled}
 								style={styles.input}

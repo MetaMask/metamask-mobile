@@ -12,7 +12,7 @@ const style = StyleSheet.create({
 	container: {
 		borderWidth: 1,
 		borderRadius: 8,
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 		paddingVertical: 15,
 		paddingHorizontal: 20,
 		marginHorizontal: Device.isIphone5() ? 15 : 25,
@@ -34,8 +34,8 @@ const style = StyleSheet.create({
 		fontSize: 12,
 		paddingVertical: 4,
 		paddingHorizontal: 8,
-		backgroundColor: colors.blue,
-		color: colors.white,
+		backgroundColor: colors.primary,
+		color: colors.onPrimary,
 		margin: 0,
 		borderRadius: 12,
 		overflow: 'hidden',
@@ -49,7 +49,7 @@ const style = StyleSheet.create({
 	},
 	infoIcon: {
 		margin: 5,
-		color: colors.grey200,
+		color: colors.textAlternative,
 	},
 });
 

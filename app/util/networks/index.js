@@ -62,7 +62,7 @@ const NetworkList = {
 	[RPC]: {
 		name: 'Private Network',
 		shortName: 'Private',
-		color: colors.grey000,
+		color: colors.textAlternative,
 		networkType: 'rpc',
 	},
 };

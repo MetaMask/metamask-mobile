@@ -13,7 +13,7 @@ import Text from '../../Base/Text';
 
 const styles = StyleSheet.create({
 	root: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		paddingTop: 24,
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
 	},
 	accountCardWrapper: {
 		borderWidth: 1,
-		borderColor: colors.grey200,
+		borderColor: colors.borderDefault,
 		borderRadius: 10,
 		padding: 16,
 		margin: 24,
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
 	detailsBackIcon: {
 		width: 24,
 		height: 24,
-		color: colors.black,
+		color: colors.textDefault,
 		textAlign: 'center',
 	},
 	detailsContainer: {
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
 	alertIcon: {
 		fontSize: 20,
 		...fontStyles.bold,
-		color: colors.yellow,
+		color: colors.onWarning,
 		marginRight: 6,
 	},
 	alertText: {

@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { View, StyleSheet, Text } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import Text from '../../../Base/Text';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../../styles/common';
 import { connect } from 'react-redux';
@@ -8,13 +9,13 @@ import Device from '../../../../util/device';
 const styles = StyleSheet.create({
 	tabIcon: {
 		borderWidth: 2,
-		borderColor: colors.grey500,
+		borderColor: colors.borderDefault,
 		borderRadius: 6,
 		alignItems: 'center',
 		justifyContent: 'center',
 	},
 	tabCount: {
-		color: colors.grey500,
+		color: colors.textAlternative,
 		flex: 0,
 		lineHeight: Device.isAndroid() ? 3 : 15,
 		fontSize: Device.isAndroid() ? 3 : 15,

@@ -21,7 +21,7 @@ import { compareTokenIds } from '../../../util/tokens';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 		minHeight: 500,
 		marginTop: 16,
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
 	},
 	addText: {
 		fontSize: 14,
-		color: colors.blue,
+		color: colors.primary,
 		...fontStyles.normal,
 	},
 	footer: {
@@ -60,10 +60,10 @@ const styles = StyleSheet.create({
 	},
 	emptyTitleText: {
 		fontSize: 24,
-		color: colors.grey200,
+		color: colors.textAlternative,
 	},
 	emptyText: {
-		color: colors.greyAssetVisibility,
+		color: colors.textAlternative,
 		marginBottom: 8,
 		fontSize: 14,
 	},

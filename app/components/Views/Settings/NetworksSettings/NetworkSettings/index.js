@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import { StyleSheet, Text, View, TextInput, SafeAreaView } from 'react-native';
+import { StyleSheet, View, TextInput, SafeAreaView } from 'react-native';
+import Text from '../../../../Base/Text';
 import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../../UI/Navbar';
@@ -21,7 +22,7 @@ import AnalyticsV2 from '../../../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 		flexDirection: 'column',
 	},
@@ -35,14 +36,14 @@ const styles = StyleSheet.create({
 	},
 	input: {
 		...fontStyles.normal,
-		borderColor: colors.grey200,
+		borderColor: colors.borderDefault,
 		borderRadius: 5,
 		borderWidth: 2,
 		padding: 10,
 	},
 	warningText: {
 		...fontStyles.normal,
-		color: colors.red,
+		color: colors.onError,
 		marginTop: 4,
 		paddingLeft: 2,
 		paddingRight: 4,
@@ -55,18 +56,18 @@ const styles = StyleSheet.create({
 	label: {
 		fontSize: 14,
 		paddingVertical: 12,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.bold,
 	},
 	title: {
 		fontSize: 20,
 		paddingVertical: 12,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.bold,
 	},
 	desc: {
 		fontSize: 14,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	buttonsWrapper: {
@@ -471,7 +472,7 @@ class NetworkSettings extends PureComponent {
 							editable={editable}
 							onChangeText={this.onNicknameChange}
 							placeholder={strings('app_settings.network_name_placeholder')}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.muted}
 							onSubmitEditing={this.jumpToRpcURL}
 							testID={'input-network-name'}
 						/>
@@ -487,7 +488,7 @@ class NetworkSettings extends PureComponent {
 							onChangeText={this.onRpcUrlChange}
 							onBlur={this.validateRpcUrl}
 							placeholder={strings('app_settings.network_rpc_placeholder')}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.muted}
 							onSubmitEditing={this.jumpToChainId}
 							testID={'input-rpc-url'}
 						/>
@@ -508,7 +509,7 @@ class NetworkSettings extends PureComponent {
 							onChangeText={this.onChainIDChange}
 							onBlur={this.validateChainId}
 							placeholder={strings('app_settings.network_chain_id_placeholder')}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.muted}
 							onSubmitEditing={this.jumpToSymbol}
 							keyboardType={'numbers-and-punctuation'}
 							testID={'input-chain-id'}
@@ -529,7 +530,7 @@ class NetworkSettings extends PureComponent {
 							editable={editable}
 							onChangeText={this.onTickerChange}
 							placeholder={strings('app_settings.network_symbol_placeholder')}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.muted}
 							onSubmitEditing={this.jumpBlockExplorerURL}
 							testID={'input-network-symbol'}
 						/>
@@ -544,7 +545,7 @@ class NetworkSettings extends PureComponent {
 							editable={editable}
 							onChangeText={this.onBlockExplorerUrlChange}
 							placeholder={strings('app_settings.network_block_explorer_placeholder')}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.muted}
 							onSubmitEditing={this.addRpcUrl}
 						/>
 					</View>

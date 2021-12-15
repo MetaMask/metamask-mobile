@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
-	Text,
 	StyleSheet,
 	TextInput,
 	View,
@@ -12,6 +11,7 @@ import {
 	BackHandler,
 	InteractionManager,
 } from 'react-native';
+import Text from '../../Base/Text';
 import { withNavigation } from '@react-navigation/compat';
 import { WebView } from 'react-native-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -77,7 +77,7 @@ const ANIMATION_TIMING = 300;
 const styles = StyleSheet.create({
 	wrapper: {
 		...baseStyles.flexGrow,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 	},
 	hide: {
 		flex: 0,
@@ -108,14 +108,14 @@ const styles = StyleSheet.create({
 		zIndex: 99999999,
 		width: 200,
 		borderWidth: 1,
-		borderColor: colors.grey100,
-		backgroundColor: colors.white,
+		borderColor: colors.borderDefault,
+		backgroundColor: colors.backgroundDefault,
 		borderRadius: 10,
 		paddingBottom: 5,
 		paddingTop: 10,
 	},
 	optionsWrapperAndroid: {
-		shadowColor: colors.grey400,
+		shadowColor: colors.ui4,
 		shadowOffset: { width: 0, height: 2 },
 		shadowOpacity: 0.5,
 		shadowRadius: 3,
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
 		right: 5,
 	},
 	optionsWrapperIos: {
-		shadowColor: colors.grey400,
+		shadowColor: colors.ui4,
 		shadowOffset: { width: 0, height: 2 },
 		shadowOpacity: 0.5,
 		shadowRadius: 3,
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
 		height: 'auto',
 		minHeight: 44,
 		paddingHorizontal: 15,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'flex-start',
@@ -147,20 +147,20 @@ const styles = StyleSheet.create({
 		alignSelf: 'center',
 		justifyContent: 'center',
 		marginTop: 3,
-		color: colors.blue,
+		color: colors.primary,
 		flex: 1,
 		...fontStyles.fontPrimary,
 	},
 	optionIconWrapper: {
 		flex: 0,
 		borderRadius: 5,
-		backgroundColor: colors.blue000,
+		backgroundColor: colors.info,
 		padding: 3,
 		marginRight: 10,
 		alignSelf: 'center',
 	},
 	optionIcon: {
-		color: colors.blue,
+		color: colors.primary,
 		textAlign: 'center',
 		alignSelf: 'center',
 		fontSize: 18,
@@ -168,12 +168,13 @@ const styles = StyleSheet.create({
 	webview: {
 		...baseStyles.flexGrow,
 		zIndex: 1,
+		backgroundColor: colors.backgroundDefault,
 	},
 	urlModalContent: {
 		flexDirection: 'row',
 		paddingTop: Device.isAndroid() ? 10 : Device.isIphoneX() ? 50 : 27,
 		paddingHorizontal: 10,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		height: Device.isAndroid() ? 59 : Device.isIphoneX() ? 87 : 65,
 	},
 	urlModal: {
@@ -182,7 +183,7 @@ const styles = StyleSheet.create({
 	},
 	urlInput: {
 		...fontStyles.normal,
-		backgroundColor: Device.isAndroid() ? colors.white : colors.grey000,
+		backgroundColor: Device.isAndroid() ? colors.backgroundDefault : colors.backgroundAlternative,
 		borderRadius: 30,
 		fontSize: Device.isAndroid() ? 16 : 14,
 		padding: 8,
@@ -197,13 +198,13 @@ const styles = StyleSheet.create({
 	},
 	cancelButtonText: {
 		fontSize: 14,
-		color: colors.blue,
+		color: colors.primary,
 		...fontStyles.normal,
 	},
 	iconCloseButton: {
 		borderRadius: 300,
-		backgroundColor: colors.fontSecondary,
-		color: colors.white,
+		backgroundColor: colors.ui4,
+		color: colors.onUi4,
 		fontSize: 18,
 		padding: 0,
 		height: 20,
@@ -215,7 +216,7 @@ const styles = StyleSheet.create({
 		marginRight: 5,
 	},
 	iconClose: {
-		color: colors.white,
+		color: colors.onUi4,
 		fontSize: 18,
 	},
 	bottomModal: {
@@ -1246,7 +1247,7 @@ export const BrowserTab = (props) => {
 			animationOut="slideOutDown"
 			style={styles.fullScreenModal}
 			backdropOpacity={1}
-			backdropColor={colors.red}
+			backdropcolor={colors.onError}
 			animationInTiming={300}
 			animationOutTiming={300}
 			useNativeDriver
@@ -1462,7 +1463,7 @@ export const BrowserTab = (props) => {
 						onChangeText={onURLChange}
 						onSubmitEditing={onUrlInputSubmit}
 						placeholder={strings('autocomplete.placeholder')}
-						placeholderTextColor={colors.grey400}
+						placeholderTextColor={colors.muted}
 						returnKeyType="go"
 						style={styles.urlInput}
 						value={autocompleteValue}

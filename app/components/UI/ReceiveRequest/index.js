@@ -31,7 +31,7 @@ import ClipboardManager from '../../../core/ClipboardManager';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
 	},
@@ -48,12 +48,12 @@ const styles = StyleSheet.create({
 		margin: 15,
 		padding: 9,
 		paddingHorizontal: 15,
-		backgroundColor: colors.grey000,
+		backgroundColor: colors.backgroundAlternative,
 		borderRadius: 30,
 	},
 	copyButton: {
-		backgroundColor: colors.grey050,
-		color: colors.fontPrimary,
+		backgroundColor: colors.backgroundAlternative,
+		color: colors.textDefault,
 		borderRadius: 12,
 		overflow: 'hidden',
 		paddingVertical: 3,
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		...fontStyles.normal,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		fontSize: 18,
 		flexDirection: 'row',
 		alignSelf: 'center',
@@ -273,13 +273,13 @@ class ReceiveRequest extends PureComponent {
 							<EvilIcons
 								name={Device.isIos() ? 'share-apple' : 'share-google'}
 								size={25}
-								color={colors.grey600}
+								color={colors.ui4}
 							/>
 						</TouchableOpacity>
 					</TouchableOpacity>
 					<View style={styles.actionRow}>
 						{allowedToBuy(this.props.network) && (
-							<StyledButton type={'blue'} containerStyle={styles.actionButton} onPress={this.onBuy}>
+							<StyledButton type={'primary'} containerStyle={styles.actionButton} onPress={this.onBuy}>
 								{strings('fiat_on_ramp.buy_eth')}
 							</StyledButton>
 						)}

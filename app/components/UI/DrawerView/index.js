@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { Alert, TouchableOpacity, View, Image, StyleSheet, Text, ScrollView, InteractionManager } from 'react-native';
+import { Alert, TouchableOpacity, View, Image, StyleSheet, ScrollView, InteractionManager } from 'react-native';
+import Text from '../../Base/Text';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Share from 'react-native-share';
@@ -47,11 +48,11 @@ import { collectiblesSelector } from '../../../reducers/collectibles';
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 	},
 	header: {
 		paddingTop: Device.isIphoneX() ? 60 : 24,
-		backgroundColor: colors.grey000,
+		backgroundColor: colors.backgroundAlternative,
 		height: Device.isIphoneX() ? 110 : 74,
 		flexDirection: 'column',
 		paddingBottom: 0,
@@ -72,13 +73,14 @@ const styles = StyleSheet.create({
 		marginTop: 4,
 		width: 90,
 		height: 18,
+		color: colors.textDefault,
 	},
 	account: {
 		flex: 1,
-		backgroundColor: colors.grey000,
+		backgroundColor: colors.backgroundAlternative,
 	},
 	accountBgOverlay: {
-		borderBottomColor: colors.grey100,
+		borderBottomColor: colors.borderDefault,
 		borderBottomWidth: 1,
 		padding: 17,
 	},
@@ -91,7 +93,7 @@ const styles = StyleSheet.create({
 		borderRadius: 96,
 		borderWidth: 2,
 		padding: 2,
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 	},
 	accountNameWrapper: {
 		flexDirection: 'row',
@@ -101,7 +103,7 @@ const styles = StyleSheet.create({
 		fontSize: 20,
 		lineHeight: 24,
 		marginBottom: 5,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	caretDown: {
@@ -109,26 +111,26 @@ const styles = StyleSheet.create({
 		marginLeft: 7,
 		marginTop: 3,
 		fontSize: 18,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 	},
 	accountBalance: {
 		fontSize: 14,
 		lineHeight: 17,
 		marginBottom: 5,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	accountAddress: {
 		fontSize: 12,
 		lineHeight: 17,
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 		...fontStyles.normal,
 	},
 	buttons: {
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'center',
-		borderBottomColor: colors.grey100,
+		borderBottomColor: colors.borderDefault,
 		borderBottomWidth: 1,
 		padding: 15,
 	},
@@ -149,7 +151,7 @@ const styles = StyleSheet.create({
 	buttonText: {
 		paddingLeft: 8,
 		fontSize: 15,
-		color: colors.blue,
+		color: colors.primary,
 		...fontStyles.normal,
 	},
 	buttonContent: {
@@ -169,7 +171,7 @@ const styles = StyleSheet.create({
 	},
 	menuSection: {
 		borderTopWidth: 1,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 		paddingVertical: 10,
 	},
 	menuItem: {
@@ -179,24 +181,24 @@ const styles = StyleSheet.create({
 		paddingLeft: 17,
 	},
 	selectedRoute: {
-		backgroundColor: colors.blue000,
+		backgroundColor: colors.backgroundAlternative,
 		marginRight: 10,
 		borderTopRightRadius: 20,
 		borderBottomRightRadius: 20,
 	},
 	selectedName: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	menuItemName: {
 		flex: 1,
 		paddingHorizontal: 15,
 		paddingTop: 2,
 		fontSize: 16,
-		color: colors.grey400,
+		color: colors.textAlternative,
 		...fontStyles.normal,
 	},
 	menuItemWarningText: {
-		color: colors.red,
+		color: colors.onError,
 		fontSize: 12,
 		...fontStyles.normal,
 	},
@@ -218,15 +220,15 @@ const styles = StyleSheet.create({
 		paddingVertical: 3,
 		borderRadius: 10,
 		borderWidth: 1,
-		borderColor: colors.grey400,
+		borderColor: colors.borderDefault,
 	},
 	importedText: {
-		color: colors.grey400,
+		color: colors.textAlternative,
 		fontSize: 10,
 		...fontStyles.bold,
 	},
 	protectWalletContainer: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		paddingTop: 24,
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
@@ -239,14 +241,14 @@ const styles = StyleSheet.create({
 		width: 56,
 		height: 56,
 		borderRadius: 28,
-		backgroundColor: colors.red000,
-		borderColor: colors.red,
+		backgroundColor: colors.error,
+		borderColor: colors.onError,
 		borderWidth: 1,
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'center',
 	},
-	protectWalletIcon: { alignSelf: 'center', color: colors.red },
+	protectWalletIcon: { alignSelf: 'center', color: colors.onError },
 	protectWalletTitle: { textAlign: 'center', fontSize: 18, marginVertical: 8, ...fontStyles.bold },
 	protectWalletContent: {
 		textAlign: 'center',
@@ -258,7 +260,7 @@ const styles = StyleSheet.create({
 	protectWalletButtonWrapper: { marginVertical: 8 },
 });
 
-const metamask_name = require('../../../images/metamask-name.png'); // eslint-disable-line
+const metamask_name = require('../../../images/metamask-name-inverse.png'); // eslint-disable-line
 const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
 const ICON_IMAGES = {
 	wallet: require('../../../images/wallet-icon.png'), // eslint-disable-line
@@ -690,15 +692,15 @@ class DrawerView extends PureComponent {
 	};
 
 	getIcon(name, size) {
-		return <Icon name={name} size={size || 24} color={colors.grey400} />;
+		return <Icon name={name} size={size || 24} color={colors.textAlternative} />;
 	}
 
 	getFeatherIcon(name, size) {
-		return <FeatherIcon name={name} size={size || 24} color={colors.grey400} />;
+		return <FeatherIcon name={name} size={size || 24} color={colors.textAlternative} />;
 	}
 
 	getMaterialIcon(name, size) {
-		return <MaterialIcon name={name} size={size || 24} color={colors.grey400} />;
+		return <MaterialIcon name={name} size={size || 24} color={colors.textAlternative} />;
 	}
 
 	getImageIcon(name) {
@@ -706,15 +708,15 @@ class DrawerView extends PureComponent {
 	}
 
 	getSelectedIcon(name, size) {
-		return <Icon name={name} size={size || 24} color={colors.blue} />;
+		return <Icon name={name} size={size || 24} color={colors.primary} />;
 	}
 
 	getSelectedFeatherIcon(name, size) {
-		return <FeatherIcon name={name} size={size || 24} color={colors.blue} />;
+		return <FeatherIcon name={name} size={size || 24} color={colors.primary} />;
 	}
 
 	getSelectedMaterialIcon(name, size) {
-		return <MaterialIcon name={name} size={size || 24} color={colors.blue} />;
+		return <MaterialIcon name={name} size={size || 24} color={colors.primary} />;
 	}
 
 	getSelectedImageIcon(name) {
@@ -975,7 +977,7 @@ class DrawerView extends PureComponent {
 								<MaterialIcon
 									name={'arrow-top-right'}
 									size={22}
-									color={colors.blue}
+									color={colors.primary}
 									style={styles.buttonIcon}
 								/>
 								<Text style={styles.buttonText}>{strings('drawer.send_button')}</Text>
@@ -991,7 +993,7 @@ class DrawerView extends PureComponent {
 								<MaterialIcon
 									name={'keyboard-tab'}
 									size={22}
-									color={colors.blue}
+									color={colors.primary}
 									style={[styles.buttonIcon, styles.buttonReceive]}
 								/>
 								<Text style={styles.buttonText}>{strings('drawer.receive_button')}</Text>

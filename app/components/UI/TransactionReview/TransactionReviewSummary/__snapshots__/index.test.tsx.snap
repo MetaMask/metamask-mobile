@@ -14,14 +14,26 @@ exports[`TransactionReviewSummary should render correctly 1`] = `
     }
   >
     <Text
+      bold={false}
+      centered={false}
+      disclaimer={false}
+      error={false}
+      info={false}
+      link={false}
+      modal={false}
       numberOfLines={1}
+      primary={false}
+      reset={false}
+      right={false}
+      small={false}
+      strikethrough={false}
       style={
         Object {
           "alignItems": "center",
           "borderColor": "#848c96",
           "borderRadius": 12,
           "borderWidth": 1,
-          "color": "#24292E",
+          "color": "#ffffff",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 10,
           "fontWeight": "400",
@@ -30,11 +42,29 @@ exports[`TransactionReviewSummary should render correctly 1`] = `
           "textAlign": "center",
         }
       }
+      success={false}
+      textAlternative={false}
+      textDefault={false}
+      underline={false}
+      upper={false}
+      warning={false}
     />
     <Text
+      bold={false}
+      centered={false}
+      disclaimer={false}
+      error={false}
+      info={false}
+      link={false}
+      modal={false}
+      primary={false}
+      reset={false}
+      right={false}
+      small={false}
+      strikethrough={false}
       style={
         Object {
-          "color": "#000000",
+          "color": "#ffffff",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 44,
           "fontWeight": "400",
@@ -44,6 +74,12 @@ exports[`TransactionReviewSummary should render correctly 1`] = `
           "textTransform": "uppercase",
         }
       }
+      success={false}
+      textAlternative={false}
+      textDefault={false}
+      underline={false}
+      upper={false}
+      warning={false}
     />
   </View>
 </View>

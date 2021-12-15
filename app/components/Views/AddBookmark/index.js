@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { SafeAreaView, Text, TextInput, View, StyleSheet } from 'react-native';
+import { SafeAreaView, TextInput, View, StyleSheet } from 'react-native';
+import Text from '../../Base/Text';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
 import { colors, fontStyles } from '../../../styles/common';
@@ -8,7 +9,7 @@ import { getNavigationOptionsTitle } from '../../UI/Navbar';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	rowWrapper: {
@@ -17,12 +18,12 @@ const styles = StyleSheet.create({
 	textInput: {
 		borderWidth: 1,
 		borderRadius: 4,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 		padding: 16,
 		...fontStyles.normal,
 	},
 	warningText: {
-		color: colors.red,
+		color: colors.onError,
 		...fontStyles.normal,
 	},
 });
@@ -103,7 +104,7 @@ export default class AddBookmark extends PureComponent {
 						<TextInput
 							style={styles.textInput}
 							placeholder={''}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.muted}
 							value={this.state.title}
 							onChangeText={this.onTitleChange}
 							testID={'add-bookmark-title'}

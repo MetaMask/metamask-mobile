@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
+import Text from '../../Base/Text';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -8,7 +9,7 @@ import AppConstants from '../../../core/AppConstants';
 const styles = StyleSheet.create({
 	text: {
 		...fontStyles.normal,
-		color: colors.grey500,
+		color: colors.textAlternative,
 		textAlign: 'center',
 		fontSize: 10,
 	},

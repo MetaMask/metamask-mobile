@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import { SafeAreaView, Text, TouchableOpacity, View, StyleSheet, Image, Linking, Alert } from 'react-native';
+import { SafeAreaView, TouchableOpacity, View, StyleSheet, Image, Linking, Alert } from 'react-native';
+import Text from '../../Base/Text';
 import PropTypes from 'prop-types';
 import RevealPrivateCredential from '../RevealPrivateCredential';
 import Logger from '../../../util/Logger';
@@ -29,7 +30,7 @@ const styles = StyleSheet.create({
 		marginTop: 24,
 	},
 	title: {
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 24,
 		lineHeight: 34,
 		...fontStyles.bold,
@@ -37,18 +38,18 @@ const styles = StyleSheet.create({
 	subtitle: {
 		fontSize: 14,
 		lineHeight: 20,
-		color: colors.grey500,
+		color: colors.textAlternative,
 		marginTop: 8,
 		textAlign: 'center',
 		...fontStyles.normal,
 	},
 	errorContainer: {
-		backgroundColor: colors.red000,
+		backgroundColor: colors.error,
 		borderRadius: 8,
 		marginTop: 24,
 	},
 	error: {
-		color: colors.black,
+		color: colors.textDefault,
 		padding: 8,
 		fontSize: 14,
 		lineHeight: 20,
@@ -56,14 +57,14 @@ const styles = StyleSheet.create({
 	},
 	button: {
 		marginTop: 24,
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 		borderWidth: 1,
 		borderRadius: 50,
 		padding: 12,
 		paddingHorizontal: 34,
 	},
 	buttonText: {
-		color: colors.blue,
+		color: colors.primary,
 		textAlign: 'center',
 		...fontStyles.normal,
 		fontWeight: '500',
@@ -72,13 +73,13 @@ const styles = StyleSheet.create({
 		marginTop: 24,
 	},
 	text: {
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 14,
 		lineHeight: 20,
 		...fontStyles.normal,
 	},
 	link: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	reportTextContainer: {
 		paddingLeft: 14,

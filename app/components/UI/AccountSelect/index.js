@@ -2,7 +2,8 @@ import React, { PureComponent } from 'react';
 import Identicon from '../Identicon';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, TouchableOpacity, View, ScrollView } from 'react-native';
+import { StyleSheet, TouchableOpacity, View, ScrollView } from 'react-native';
+import Text from '../../Base/Text';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { hexToBN, weiToFiat, renderFromWei } from '../../../util/number';
@@ -19,14 +20,14 @@ const styles = StyleSheet.create({
 		width: '100%',
 		marginTop: 75,
 		maxHeight: 200,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 		borderRadius: 4,
 		borderWidth: 1,
 		elevation: 11,
 	},
 	activeOption: {
-		backgroundColor: colors.white,
-		borderColor: colors.grey100,
+		backgroundColor: colors.backgroundDefault,
+		borderColor: colors.borderDefault,
 		borderRadius: 4,
 		borderWidth: 1,
 		position: 'relative',
@@ -56,14 +57,14 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 8,
 	},
 	arrow: {
-		color: colors.grey100,
+		color: colors.muted,
 		position: 'absolute',
 		right: 10,
 		top: 25,
 	},
 	optionList: {
-		backgroundColor: colors.white,
-		borderColor: colors.grey100,
+		backgroundColor: colors.backgroundDefault,
+		borderColor: colors.borderDefault,
 		borderRadius: 4,
 		borderWidth: 1,
 		paddingBottom: 12,

@@ -12,22 +12,24 @@ exports[`TokenSelectButton component should Render correctly 1`] = `
     <TokenIcon />
   </View>
   <Text
-    black={false}
-    blue={false}
     bold={false}
     centered={false}
     disclaimer={false}
-    green={false}
+    error={false}
+    info={false}
     link={false}
     modal={false}
     primary={true}
-    red={false}
     reset={false}
     right={false}
     small={false}
     strikethrough={false}
+    success={false}
+    textAlternative={false}
+    textDefault={false}
     underline={false}
     upper={false}
+    warning={false}
   >
     Select a token
   </Text>
@@ -48,22 +50,24 @@ exports[`TokenSelectButton component should Render correctly 2`] = `
     />
   </View>
   <Text
-    black={false}
-    blue={false}
     bold={false}
     centered={false}
     disclaimer={false}
-    green={false}
+    error={false}
+    info={false}
     link={false}
     modal={false}
     primary={true}
-    red={false}
     reset={false}
     right={false}
     small={false}
     strikethrough={false}
+    success={false}
+    textAlternative={false}
+    textDefault={false}
     underline={false}
     upper={false}
+    warning={false}
   >
     ETH
   </Text>
@@ -84,22 +88,24 @@ exports[`TokenSelectButton component should Render correctly 3`] = `
     />
   </View>
   <Text
-    black={false}
-    blue={false}
     bold={false}
     centered={false}
     disclaimer={false}
-    green={false}
+    error={false}
+    info={false}
     link={false}
     modal={false}
     primary={true}
-    red={false}
     reset={false}
     right={false}
     small={false}
     strikethrough={false}
+    success={false}
+    textAlternative={false}
+    textDefault={false}
     underline={false}
     upper={false}
+    warning={false}
   >
     cDAI
   </Text>
@@ -121,22 +127,24 @@ exports[`TokenSelectButton component should Render correctly 4`] = `
     />
   </View>
   <Text
-    black={false}
-    blue={false}
     bold={false}
     centered={false}
     disclaimer={false}
-    green={false}
+    error={false}
+    info={false}
     link={false}
     modal={false}
     primary={true}
-    red={false}
     reset={false}
     right={false}
     small={false}
     strikethrough={false}
+    success={false}
+    textAlternative={false}
+    textDefault={false}
     underline={false}
     upper={false}
+    warning={false}
   >
     DAI
   </Text>
@@ -160,22 +168,24 @@ exports[`TokenSelectButton component should Render correctly 5`] = `
     />
   </View>
   <Text
-    black={false}
-    blue={false}
     bold={false}
     centered={false}
     disclaimer={false}
-    green={false}
+    error={false}
+    info={false}
     link={false}
     modal={false}
     primary={true}
-    red={false}
     reset={false}
     right={false}
     small={false}
     strikethrough={false}
+    success={false}
+    textAlternative={false}
+    textDefault={false}
     underline={false}
     upper={false}
+    warning={false}
   >
     DAI
   </Text>

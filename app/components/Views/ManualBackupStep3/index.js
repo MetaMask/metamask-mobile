@@ -1,14 +1,6 @@
 import React, { PureComponent } from 'react';
-import {
-	Alert,
-	BackHandler,
-	Text,
-	View,
-	StyleSheet,
-	Keyboard,
-	TouchableOpacity,
-	InteractionManager,
-} from 'react-native';
+import { Alert, BackHandler, View, StyleSheet, Keyboard, TouchableOpacity, InteractionManager } from 'react-native';
+import Text from '../../Base/Text';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
@@ -29,7 +21,7 @@ import DefaultPreference from 'react-native-default-preference';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	actionView: {
@@ -45,14 +37,14 @@ const styles = StyleSheet.create({
 	congratulations: {
 		fontSize: Device.isMediumDevice() ? 28 : 32,
 		marginBottom: 12,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		justifyContent: 'center',
 		textAlign: 'center',
 		...fontStyles.bold,
 	},
 	baseText: {
 		fontSize: 16,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		textAlign: 'center',
 		...fontStyles.normal,
 	},
@@ -61,10 +53,10 @@ const styles = StyleSheet.create({
 	},
 	hintText: {
 		marginBottom: 26,
-		color: colors.blue,
+		color: colors.primary,
 	},
 	learnText: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	recoverText: {
 		marginBottom: 26,

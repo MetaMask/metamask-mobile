@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { View, Image, TouchableOpacity, StyleSheet, Text, Dimensions } from 'react-native';
+import { View, Image, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import Text from '../../../Base/Text';
 import PropTypes from 'prop-types';
 import ElevatedView from 'react-native-elevated-view';
 import WebsiteIcon from '../../WebsiteIcon';
@@ -32,7 +33,7 @@ const styles = StyleSheet.create({
 		marginTop: 1,
 	},
 	tabSiteName: {
-		color: colors.white,
+		color: colors.onInverse,
 		...fontStyles.bold,
 		fontSize: 18,
 		marginRight: 40,
@@ -43,7 +44,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'flex-start',
 		justifyContent: 'flex-start',
-		backgroundColor: colors.grey500,
+		backgroundColor: colors.inverse,
 		paddingVertical: 10,
 		paddingHorizontal: 10,
 	},
@@ -53,7 +54,7 @@ const styles = StyleSheet.create({
 		elevation: 8,
 		justifyContent: 'space-evenly',
 		overflow: 'hidden',
-		borderColor: colors.grey100,
+		borderColor: colors.textDefault,
 		borderWidth: 1,
 		width,
 		height,
@@ -63,7 +64,7 @@ const styles = StyleSheet.create({
 		overflow: 'hidden',
 	},
 	tab: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 		alignItems: 'flex-start',
 		justifyContent: 'flex-start',
@@ -77,13 +78,13 @@ const styles = StyleSheet.create({
 	},
 	activeTab: {
 		borderWidth: 5,
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 	},
 	closeTabIcon: {
 		paddingHorizontal: 10,
 		paddingTop: 3,
 		fontSize: 32,
-		color: colors.white,
+		color: colors.onInverse,
 		right: 0,
 		marginTop: -7,
 		position: 'absolute',

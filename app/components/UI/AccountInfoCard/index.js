@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import Text from '../../Base/Text';
 import { colors, fontStyles } from '../../../styles/common';
 import { renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import Identicon from '../Identicon';
@@ -15,7 +16,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		justifyContent: 'flex-start',
 		borderWidth: 1,
-		borderColor: colors.grey200,
+		borderColor: colors.borderDefault,
 		borderRadius: 10,
 		padding: 16,
 	},
@@ -38,19 +39,19 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 		fontSize: 16,
 		marginRight: 2,
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	accountAddress: {
 		flexGrow: 1,
 		...fontStyles.bold,
 		fontSize: 16,
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	balanceText: {
 		...fontStyles.thin,
 		fontSize: 14,
 		alignSelf: 'flex-start',
-		color: colors.black,
+		color: colors.textDefault,
 	},
 });
 

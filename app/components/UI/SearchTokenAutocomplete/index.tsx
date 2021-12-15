@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import { View, StyleSheet, InteractionManager, Text, LayoutAnimation } from 'react-native';
+import { View, StyleSheet, InteractionManager, LayoutAnimation } from 'react-native';
+import Text from '../../Base/Text';
 import { colors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import ActionView from '../ActionView';
@@ -14,12 +15,12 @@ import { MAINNET } from '../../../constants/network';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	tokenDetectionBanner: { marginHorizontal: 20, marginTop: 20, paddingRight: 0 },
-	tokenDetectionDescription: { color: colors.black },
-	tokenDetectionLink: { color: colors.blue },
+	tokenDetectionDescription: { color: colors.textDefault },
+	tokenDetectionLink: { color: colors.primary },
 	tokenDetectionIcon: {
 		paddingTop: 4,
 		paddingRight: 8,
@@ -120,7 +121,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 					<FontAwesome
 						style={styles.tokenDetectionIcon}
 						name={'exclamation-circle'}
-						color={colors.blue}
+						color={colors.primary}
 						size={18}
 					/>
 				)}

@@ -11,7 +11,7 @@ const styles = StyleSheet.create({
 	container: {
 		flex: 1,
 		borderRadius: 12,
-		backgroundColor: colors.grey100,
+		backgroundColor: colors.muted,
 	},
 	content: {
 		flex: 1,
@@ -37,18 +37,18 @@ function Loader({ error, onClose }) {
 	return (
 		<View style={styles.container}>
 			<TouchableOpacity onPress={onClose} style={styles.closeButton}>
-				<AntIcon color={colors.white} size={16} name={'close'} />
+				<AntIcon color={colors.onInverse} size={16} name={'close'} />
 			</TouchableOpacity>
 			<View style={styles.content}>
 				<View style={styles.item}>
 					{error ? (
-						<FA5Icon name="video-slash" color={colors.grey400} size={40} />
+						<FA5Icon name="video-slash" color={colors.ui4} size={40} />
 					) : (
-						<ActivityIndicator color={colors.grey400} size="large" />
+						<ActivityIndicator color={colors.ui4} size="large" />
 					)}
 				</View>
 				<View style={styles.item}>
-					<Text style={styles.text} black>
+					<Text style={styles.text} textDefault>
 						{strings(`media_player.${error ? 'not_found' : 'loading'}`)}
 					</Text>
 				</View>

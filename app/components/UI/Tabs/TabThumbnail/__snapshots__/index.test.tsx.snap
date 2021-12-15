@@ -15,7 +15,7 @@ exports[`TabThumbnail should render correctly 1`] = `
     style={
       Array [
         Object {
-          "borderColor": "#d6d9dc",
+          "borderColor": "#ffffff",
           "borderRadius": 10,
           "borderWidth": 1,
           "elevation": 8,
@@ -36,7 +36,7 @@ exports[`TabThumbnail should render correctly 1`] = `
       style={
         Object {
           "alignItems": "flex-start",
-          "backgroundColor": "#6a737d",
+          "backgroundColor": "#24272a",
           "flexDirection": "row",
           "justifyContent": "flex-start",
           "paddingHorizontal": 10,
@@ -70,10 +70,22 @@ exports[`TabThumbnail should render correctly 1`] = `
           url="about:blank"
         />
         <Text
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          error={false}
+          info={false}
+          link={false}
+          modal={false}
           numberOfLines={1}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
-              "color": "#FFFFFF",
+              "color": "#ffffff",
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 18,
               "fontWeight": "600",
@@ -82,6 +94,12 @@ exports[`TabThumbnail should render correctly 1`] = `
               "marginTop": 0,
             }
           }
+          success={false}
+          textAlternative={false}
+          textDefault={false}
+          underline={false}
+          upper={false}
+          warning={false}
         >
           about:blank
         </Text>
@@ -103,7 +121,7 @@ exports[`TabThumbnail should render correctly 1`] = `
           size={12}
           style={
             Object {
-              "color": "#FFFFFF",
+              "color": "#ffffff",
               "fontSize": 32,
               "marginTop": -7,
               "paddingHorizontal": 10,
@@ -119,7 +137,7 @@ exports[`TabThumbnail should render correctly 1`] = `
       style={
         Object {
           "alignItems": "flex-start",
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#141618",
           "flex": 1,
           "justifyContent": "flex-start",
         }

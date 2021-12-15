@@ -4,7 +4,7 @@ exports[`CustomNonce should render correctly 1`] = `
 <TouchableOpacity
   style={
     Object {
-      "borderColor": "#D8D8D8",
+      "borderColor": "#848c96",
       "borderRadius": 8,
       "borderWidth": 1,
       "display": "flex",
@@ -17,57 +17,59 @@ exports[`CustomNonce should render correctly 1`] = `
   }
 >
   <Text
-    black={true}
-    blue={false}
     bold={true}
     centered={false}
     disclaimer={false}
-    green={false}
+    error={false}
+    info={false}
     link={false}
     modal={false}
     primary={false}
-    red={false}
     reset={false}
     right={false}
     small={false}
     strikethrough={false}
+    success={false}
+    textAlternative={false}
+    textDefault={true}
     underline={false}
     upper={false}
+    warning={false}
   >
     Nonce
   </Text>
   <Text
-    black={false}
-    blue={false}
     bold={true}
     centered={false}
     disclaimer={false}
-    green={false}
+    error={false}
+    info={false}
     link={true}
     modal={false}
     primary={false}
-    red={false}
     reset={false}
     right={false}
     small={false}
     strikethrough={false}
+    success={false}
+    textAlternative={false}
+    textDefault={false}
     underline={false}
     upper={false}
+    warning={false}
   >
       
     Edit
   </Text>
   <Text
-    black={true}
-    blue={false}
     bold={true}
     centered={false}
     disclaimer={false}
-    green={false}
+    error={false}
+    info={false}
     link={false}
     modal={false}
     primary={false}
-    red={false}
     reset={false}
     right={false}
     small={false}
@@ -77,8 +79,12 @@ exports[`CustomNonce should render correctly 1`] = `
         "marginLeft": "auto",
       }
     }
+    success={false}
+    textAlternative={false}
+    textDefault={true}
     underline={false}
     upper={false}
+    warning={false}
   />
 </TouchableOpacity>
 `;

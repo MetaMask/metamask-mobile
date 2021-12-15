@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { TouchableOpacity, TouchableHighlight, StyleSheet, Image, Text, View } from 'react-native';
+import { TouchableOpacity, TouchableHighlight, StyleSheet, Image, View } from 'react-native';
+import Text from '../../Base/Text';
 import { colors, fontStyles } from '../../../styles/common';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
@@ -21,10 +22,10 @@ const { weiHexToGweiDec, isEIP1559Transaction } = util;
 
 const styles = StyleSheet.create({
 	row: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 	},
 	actionContainerStyle: {
 		height: 25,
@@ -47,20 +48,20 @@ const styles = StyleSheet.create({
 		padding: 15,
 	},
 	fromDeviceText: {
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 		fontSize: 14,
 		marginBottom: 10,
 		...fontStyles.normal,
 	},
 	importText: {
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 		fontSize: 14,
 		...fontStyles.bold,
 		alignContent: 'center',
 	},
 	importRowBody: {
 		alignItems: 'center',
-		backgroundColor: colors.grey000,
+		backgroundColor: colors.backgroundAlternative,
 		paddingTop: 10,
 	},
 });
@@ -342,7 +343,7 @@ class TransactionElement extends PureComponent {
 				<TouchableHighlight
 					style={styles.row}
 					onPress={this.onPressItem}
-					underlayColor={colors.grey000}
+					underlayColor={colors.muted}
 					activeOpacity={1}
 				>
 					{this.renderTxElement(transactionElement)}

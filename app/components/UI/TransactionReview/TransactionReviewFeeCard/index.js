@@ -16,13 +16,13 @@ const styles = StyleSheet.create({
 		marginHorizontal: 24,
 	},
 	loader: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		height: 10,
 		flex: 1,
 		alignItems: 'flex-end',
 	},
 	over: {
-		color: colors.red,
+		color: colors.onError,
 	},
 	valuesContainer: {
 		flex: 1,
@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 2,
 	},
 	gasInfoIcon: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	amountContainer: {
 		flex: 1,
@@ -153,16 +153,16 @@ class TransactionReviewFeeCard extends PureComponent {
 				toggleModal={this.toggleGasTooltip}
 				body={
 					<View>
-						<Text grey infoModal>
+						<Text textAlternative infoModal>
 							{strings('transaction.gas_education_1')}
 							{strings(`transaction.gas_education_2${isMainnet ? '_ethereum' : ''}`)}{' '}
 							<Text bold>{strings('transaction.gas_education_3')}</Text>
 						</Text>
-						<Text grey infoModal>
+						<Text textAlternative infoModal>
 							{strings('transaction.gas_education_4')}
 						</Text>
 						<TouchableOpacity onPress={this.openLinkAboutGas}>
-							<Text grey link infoModal>
+							<Text textAlternative link infoModal>
 								{strings('transaction.gas_education_learn_more')}
 							</Text>
 						</TouchableOpacity>
@@ -233,7 +233,7 @@ class TransactionReviewFeeCard extends PureComponent {
 							animateOnChange={animateOnChange}
 						>
 							{isMainnet && (
-								<Text upper right grey style={styles.amountContainer}>
+								<Text upper right textAlternative style={styles.amountContainer}>
 									{amount}
 								</Text>
 							)}
@@ -312,10 +312,10 @@ class TransactionReviewFeeCard extends PureComponent {
 								>
 									{isMainnet && (
 										<Text
-											grey={!over}
+											textAlternative={!over}
 											upper
 											right
-											red={Boolean(over)}
+											error={Boolean(over)}
 											style={styles.amountContainer}
 										>
 											{totalAmount}
@@ -325,7 +325,7 @@ class TransactionReviewFeeCard extends PureComponent {
 									<Text
 										bold
 										primary={!over}
-										red={Boolean(over)}
+										error={Boolean(over)}
 										upper
 										right
 										style={styles.primaryContainer(!isMainnet)}

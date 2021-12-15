@@ -4,7 +4,6 @@ import {
 	Switch,
 	ActivityIndicator,
 	Alert,
-	Text,
 	View,
 	TextInput,
 	SafeAreaView,
@@ -12,6 +11,7 @@ import {
 	Image,
 	InteractionManager,
 } from 'react-native';
+import Text from '../../Base/Text';
 // eslint-disable-next-line import/no-unresolved
 import CheckBox from '@react-native-community/checkbox';
 import AnimatedFox from 'react-native-animated-fox';
@@ -47,7 +47,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	wrapper: {
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
 		fontSize: Device.isAndroid() ? 20 : 25,
 		marginTop: 20,
 		marginBottom: 20,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		justifyContent: 'center',
 		textAlign: 'center',
 		...fontStyles.bold,
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
 	subtitle: {
 		fontSize: 16,
 		lineHeight: 23,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		textAlign: 'center',
 		...fontStyles.normal,
 	},
@@ -120,14 +120,14 @@ const styles = StyleSheet.create({
 	label: {
 		...fontStyles.normal,
 		fontSize: 14,
-		color: colors.black,
+		color: colors.textDefault,
 		paddingHorizontal: 10,
 		lineHeight: 18,
 	},
 	learnMore: {
-		color: colors.blue,
+		color: colors.primary,
 		textDecorationLine: 'underline',
-		textDecorationColor: colors.blue,
+		textDecorationColor: colors.primary,
 	},
 	field: {
 		marginVertical: 5,
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
 	},
 	input: {
 		borderWidth: 1,
-		borderColor: colors.grey500,
+		borderColor: colors.borderDefault,
 		padding: 10,
 		borderRadius: 6,
 		fontSize: 14,
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 10,
 	},
 	errorMsg: {
-		color: colors.red,
+		color: colors.onError,
 		...fontStyles.normal,
 	},
 	biometrics: {
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
 	biometryLabel: {
 		flex: 1,
 		fontSize: 16,
-		color: colors.black,
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	biometrySwitch: {
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
 		right: 0,
 	},
 	hintLabel: {
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 16,
 		marginBottom: 12,
 		...fontStyles.normal,
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
 		height: 20,
 		marginTop: 10,
 		fontSize: 15,
-		color: colors.black,
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	showPassword: {
@@ -187,15 +187,15 @@ const styles = StyleSheet.create({
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_weak: {
-		color: colors.red,
+		color: colors.onError,
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_good: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_strong: {
-		color: colors.green300,
+		color: colors.onSuccess,
 	},
 	showMatchingPasswords: {
 		position: 'absolute',
@@ -521,8 +521,8 @@ class ChoosePassword extends PureComponent {
 								onValueChange={this.updateBiometryChoice} // eslint-disable-line react/jsx-no-bind
 								value={biometryChoice}
 								style={styles.biometrySwitch}
-								trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
-								ios_backgroundColor={colors.grey300}
+								trackColor={Device.isIos() ? { true: colors.primary, false: colors.muted } : null}
+								ios_backgroundColor={colors.muted}
 							/>
 						</View>
 					</>
@@ -533,8 +533,8 @@ class ChoosePassword extends PureComponent {
 							onValueChange={(rememberMe) => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
 							value={rememberMe}
 							style={styles.biometrySwitch}
-							trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
-							ios_backgroundColor={colors.grey300}
+							trackColor={Device.isIos() ? { true: colors.primary, false: colors.muted } : null}
+							ios_backgroundColor={colors.muted}
 						/>
 					</>
 				)}
@@ -587,7 +587,10 @@ class ChoosePassword extends PureComponent {
 								<AnimatedFox />
 							)}
 						</View>
-						<ActivityIndicator size="large" color={Device.isAndroid() ? colors.blue : colors.grey} />
+						<ActivityIndicator
+							size="large"
+							color={Device.isAndroid() ? colors.primary : colors.textAlternative}
+						/>
 						<Text style={styles.title}>
 							{strings(
 								previousScreen === ONBOARDING
@@ -647,7 +650,7 @@ class ChoosePassword extends PureComponent {
 										onChangeText={this.setConfirmPassword}
 										secureTextEntry={secureTextEntry}
 										placeholder={''}
-										placeholderTextColor={colors.grey100}
+										placeholderTextColor={colors.muted}
 										testID={'input-password-confirm'}
 										onSubmitEditing={this.onPressCreate}
 										returnKeyType={'done'}
@@ -655,7 +658,7 @@ class ChoosePassword extends PureComponent {
 									/>
 									<View style={styles.showMatchingPasswords}>
 										{passwordsMatch ? (
-											<Icon name="check" size={16} color={colors.green300} />
+											<Icon name="check" size={16} color={colors.onSuccess} />
 										) : null}
 									</View>
 									<Text style={styles.passwordStrengthLabel}>
@@ -668,7 +671,7 @@ class ChoosePassword extends PureComponent {
 										value={isSelected}
 										onValueChange={this.setSelection}
 										style={styles.checkbox}
-										tintColors={{ true: colors.blue }}
+										tintColors={{ true: colors.primary }}
 										boxType="square"
 										testID={'password-understand-box'}
 									/>
@@ -685,7 +688,7 @@ class ChoosePassword extends PureComponent {
 
 							<View style={styles.ctaWrapper}>
 								<StyledButton
-									type={'blue'}
+									type={'primary'}
 									onPress={this.onPressCreate}
 									testID={'submit-button'}
 									disabled={!canSubmit}

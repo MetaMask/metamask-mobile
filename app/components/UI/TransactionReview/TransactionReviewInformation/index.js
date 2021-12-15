@@ -1,7 +1,8 @@
 import React, { PureComponent } from 'react';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, View, TouchableOpacity, InteractionManager } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, InteractionManager } from 'react-native';
+import Text from '../../../Base/Text';
 import { colors, fontStyles } from '../../../../styles/common';
 import { connect } from 'react-redux';
 import {
@@ -36,8 +37,8 @@ import Logger from '../../../../util/Logger';
 const styles = StyleSheet.create({
 	overviewAlert: {
 		alignItems: 'center',
-		backgroundColor: colors.red000,
-		borderColor: colors.red,
+		backgroundColor: colors.error,
+		borderColor: colors.onError,
 		borderRadius: 4,
 		borderWidth: 1,
 		flexDirection: 'row',
@@ -48,13 +49,13 @@ const styles = StyleSheet.create({
 	},
 	overviewAlertText: {
 		...fontStyles.normal,
-		color: colors.red,
+		color: colors.onError,
 		flex: 1,
 		fontSize: 12,
 		marginLeft: 8,
 	},
 	overviewAlertIcon: {
-		color: colors.red,
+		color: colors.onError,
 		flex: 0,
 	},
 	viewDataWrapper: {
@@ -65,7 +66,7 @@ const styles = StyleSheet.create({
 		alignSelf: 'center',
 	},
 	viewDataText: {
-		color: colors.blue,
+		color: colors.primary,
 		textAlign: 'center',
 		fontSize: 12,
 		...fontStyles.bold,
@@ -76,15 +77,15 @@ const styles = StyleSheet.create({
 		marginTop: 12,
 		paddingHorizontal: 10,
 		paddingVertical: 6,
-		backgroundColor: colors.red000,
-		borderColor: colors.red,
+		backgroundColor: colors.error,
+		borderColor: colors.onError,
 		borderRadius: 8,
 		borderWidth: 1,
 		justifyContent: 'center',
 		alignItems: 'center',
 	},
 	error: {
-		color: colors.red,
+		color: colors.onError,
 		fontSize: 12,
 		lineHeight: 16,
 		...fontStyles.normal,

@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, Image, TouchableOpacity, InteractionManager } from 'react-native';
+import { StyleSheet, View, Image, TouchableOpacity, InteractionManager } from 'react-native';
+import Text from '../../Base/Text';
 import ActionModal from '../ActionModal';
 import { fontStyles, colors } from '../../../styles/common';
 import { connect } from 'react-redux';
@@ -20,7 +21,7 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		...fontStyles.bold,
-		color: colors.black,
+		color: colors.textDefault,
 		textAlign: 'center',
 		fontSize: 20,
 		flex: 1,
@@ -32,7 +33,7 @@ const styles = StyleSheet.create({
 	},
 	text: {
 		...fontStyles.normal,
-		color: colors.black,
+		color: colors.textDefault,
 		textAlign: 'center',
 		fontSize: 14,
 		marginBottom: 24,
@@ -43,7 +44,7 @@ const styles = StyleSheet.create({
 	learnMoreText: {
 		textAlign: 'center',
 		...fontStyles.normal,
-		color: colors.blue,
+		color: colors.primary,
 		marginBottom: 14,
 		fontSize: 14,
 	},
@@ -125,7 +126,7 @@ class ProtectYourWalletModal extends PureComponent {
 				onRequestClose={this.onDismiss}
 				onConfirmPress={this.onDismiss}
 				cancelButtonMode={'sign'}
-				confirmButtonMode={'transparent-blue'}
+				confirmButtonMode={'primary'}
 				verticalButtons
 			>
 				<View style={styles.wrapper} testID={'protect-wallet-modal'}>

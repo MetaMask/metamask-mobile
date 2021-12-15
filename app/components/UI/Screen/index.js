@@ -17,7 +17,7 @@ export default class Screen extends PureComponent {
 	componentDidMount() {
 		StatusBar.setBarStyle('dark-content', true);
 		if (Device.isAndroid()) {
-			StatusBar.setBackgroundColor(colors.grey100);
+			StatusBar.setBackgroundColor(colors.muted);
 		}
 	}
 

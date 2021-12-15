@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { InteractionManager, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { InteractionManager, StyleSheet, View, TouchableOpacity } from 'react-native';
+import Text from '../../Base/Text';
 import PropTypes from 'prop-types';
 import { swapsUtils } from '@metamask/swaps-controller';
 import AssetIcon from '../AssetIcon';
@@ -31,7 +32,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		padding: 20,
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderBottomColor: colors.grey100,
+		borderBottomColor: colors.borderDefault,
 		alignContent: 'center',
 		alignItems: 'center',
 		paddingBottom: 30,
@@ -54,13 +55,13 @@ const styles = StyleSheet.create({
 	},
 	amount: {
 		fontSize: 30,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.normal,
 		textTransform: 'uppercase',
 	},
 	amountFiat: {
 		fontSize: 18,
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 		...fontStyles.light,
 		textTransform: 'uppercase',
 	},
@@ -72,17 +73,17 @@ const styles = StyleSheet.create({
 	},
 	warning: {
 		borderRadius: 8,
-		color: colors.black,
+		color: colors.textDefault,
 		...fontStyles.normal,
 		fontSize: 14,
 		lineHeight: 20,
 		borderWidth: 1,
-		borderColor: colors.yellow,
-		backgroundColor: colors.yellow100,
+		borderColor: colors.onWarning,
+		backgroundColor: colors.warning,
 		padding: 20,
 	},
 	warningLinks: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 });
 

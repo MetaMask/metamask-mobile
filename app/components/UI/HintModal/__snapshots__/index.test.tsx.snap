@@ -25,7 +25,7 @@ exports[`HintModal should render correctly 1`] = `
       style={
         Object {
           "alignSelf": "center",
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#141618",
           "borderRadius": 16,
           "padding": 24,
         }
@@ -42,14 +42,32 @@ exports[`HintModal should render correctly 1`] = `
         }
       >
         <Text
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          error={false}
+          info={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
-              "color": "#000000",
+              "color": "#ffffff",
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 18,
               "fontWeight": "600",
             }
           }
+          success={false}
+          textAlternative={false}
+          textDefault={false}
+          underline={false}
+          upper={false}
+          warning={false}
         >
           Recovery hint
         </Text>
@@ -64,24 +82,60 @@ exports[`HintModal should render correctly 1`] = `
         </TouchableOpacity>
       </View>
       <Text
+        bold={false}
+        centered={false}
+        disclaimer={false}
+        error={false}
+        info={false}
+        link={false}
+        modal={false}
+        primary={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
         style={
           Object {
-            "color": "#000000",
+            "color": "#ffffff",
             "fontSize": 14,
             "marginBottom": 16,
           }
         }
+        success={false}
+        textAlternative={false}
+        textDefault={false}
+        underline={false}
+        upper={false}
+        warning={false}
       >
         Leave yourself a hint. Write the location / where you saved it to remind yourself how you can access it. This information does not leave your device.
       </Text>
       <Text
+        bold={false}
+        centered={false}
+        disclaimer={false}
+        error={false}
+        info={false}
+        link={false}
+        modal={false}
+        primary={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
         style={
           Object {
-            "color": "#D73A49",
+            "color": "#d73a49",
             "fontSize": 14,
             "marginBottom": 16,
           }
         }
+        success={false}
+        textAlternative={false}
+        textDefault={false}
+        underline={false}
+        upper={false}
+        warning={false}
       >
         Do not use this to write your Secret Recovery Phrase.
       </Text>
@@ -91,7 +145,7 @@ exports[`HintModal should render correctly 1`] = `
         placeholder="e.g. Mom's house"
         style={
           Object {
-            "borderColor": "#6a737d",
+            "borderColor": "#848c96",
             "borderRadius": 6,
             "borderWidth": 1,
             "minHeight": 76,

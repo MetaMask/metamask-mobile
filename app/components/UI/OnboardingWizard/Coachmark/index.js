@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Animated, View, Text, StyleSheet } from 'react-native';
+import { Animated, View, StyleSheet } from 'react-native';
+import Text from '../../../Base/Text';
 import { colors, fontStyles } from '../../../../styles/common';
 import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
@@ -8,7 +9,7 @@ import onboardingStyles from './../styles';
 
 const styles = StyleSheet.create({
 	coachmark: {
-		backgroundColor: colors.blue,
+		backgroundColor: colors.primary,
 		borderRadius: 8,
 		padding: 18,
 	},
@@ -25,7 +26,7 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		...fontStyles.bold,
-		color: colors.white,
+		color: colors.onPrimary,
 		fontSize: 18,
 		alignSelf: 'center',
 	},
@@ -39,7 +40,7 @@ const styles = StyleSheet.create({
 		borderBottomWidth: 12,
 		borderLeftColor: colors.transparent,
 		borderRightColor: colors.transparent,
-		borderBottomColor: colors.blue,
+		borderBottomColor: colors.primary,
 		position: 'absolute',
 	},
 	triangleDown: {
@@ -52,7 +53,7 @@ const styles = StyleSheet.create({
 		borderTopWidth: 12,
 		borderLeftColor: colors.transparent,
 		borderRightColor: colors.transparent,
-		borderTopColor: colors.blue,
+		borderTopColor: colors.primary,
 		position: 'absolute',
 	},
 	progressButton: {
@@ -98,7 +99,7 @@ const styles = StyleSheet.create({
 		width: 6,
 		height: 6,
 		borderRadius: 6 / 2,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		opacity: 0.4,
 		margin: 3,
 	},

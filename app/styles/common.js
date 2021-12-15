@@ -3,66 +3,102 @@
  */
 
 /**
- * Map of color names to HEX values
+ * Base colors
+ * Should not be used anywhere else in the code base apart from theme files
+ * This is the single source of truth for colors specific design tokens
  */
-export const colors = {
-	fontPrimary: '#000000',
-	fontSecondary: '#777777',
-	fontTertiary: '#AAAAAA',
-	fontError: '#D73A49',
-	fontWarning: '#f66a0a',
-	primaryFox: '#f66a0a',
-	black: '#24292E',
-	white: '#FFFFFF',
-	white100: '#F9FAFB',
-	greyAssetVisibility: '#6A737D',
-	grey450: '#8E8E93',
-	grey700: '#3C3F42',
-	grey600: '#5B5D67',
-	grey500: '#6a737d',
-	grey400: '#848c96',
-	grey300: '#9fa6ae',
-	grey200: '#bbc0c5',
-	grey100: '#d6d9dc',
-	grey050: '#D8D8D8',
+const baseColors = {
+	white: '#ffffff',
 	grey000: '#f2f3f4',
-	greytransparent: 'rgba(36, 41, 46, 0.6)',
-	greytransparent100: 'rgba(115, 115, 115, 0.5)',
-	grey: '#333333',
-	red: '#D73A49',
+	grey100: '#d6d9dc',
+	grey200: '#bbc0c5',
+	grey300: '#9fa6ae',
+	grey400: '#848c96',
+	grey500: '#6a737d',
+	grey600: '#5b5d67',
+	grey700: '#3c3f42',
+	grey800: '#24272a',
+	grey900: '#141618',
 	red000: '#fcf2f3',
-	blue: '#037dd6',
-	blue100: '#EAF6FF',
+	red100: '#f7d5d8',
+	red200: '#f1b9be',
+	red300: '#e88f97',
+	red400: '#e06470',
+	red500: '#d73a49',
+	red600: '#b92534',
+	red700: '#8e1d28',
+	red800: '#64141c',
+	red900: '#3a0c10',
 	blue000: '#eaf6ff',
-	blue200: '#75C4FD',
-	blue500: '#1097FB',
-	blue600: '#0260A4',
-	blue700: '#0074C8',
-	green600: '#1e7e34',
-	green500: '#28a745',
-	green400: '#28A745',
-	green300: '#86e29b',
-	green200: '#afecbd',
+	blue100: '#a7d9fe',
+	blue200: '#75c4fd',
+	blue500: '#037dd6',
+	blue600: '#0260a4',
+	blue700: '#024272',
 	green100: '#e6f9ea',
-	yellow: '#FFD33D',
-	yellowWarningBorder: '#FADF83',
-	yellowWarningIcon: '#F8C000',
-	yellow700: '#705700',
-	yellow200: '#ffe281',
-	yellow300: '#FFD33D',
-	yellow100: '#fffcdb',
-	orange: '#f66a0a',
-	orange300: '#faa66c',
+	green200: '#afecbd',
+	green300: '#86e29b',
+	green400: '#28a745',
+	green500: '#28a745',
+	green600: '#1e7e34',
+	yellow000: '#fffdf8',
+	yellow100: '#fefcde',
+	yellow200: '#fff2c5',
+	yellow300: '#ffeaa3',
+	yellow400: '#ffdf70',
+	yellow500: '#ffd33d',
+	yellow600: '#ffc70a',
 	orange000: '#fef5ef',
-	spinnerColor: '#037DD6',
-	success: '#219E37',
-	dimmed: '#00000080',
+	orange300: '#faa66c',
+	orange500: '#f66a0a',
 	transparent: 'transparent',
-	lightOverlay: 'rgba(0,0,0,.2)',
-	overlay: 'rgba(0,0,0,.5)',
-	darkAlert: 'rgba(0,0,0,.75)',
-	normalAlert: 'rgba(55,55,55,.97)',
-	spinnerBackground: `rgba(185, 156, 171, 0.396)`,
+};
+
+/**
+ * Map of color names to HEX values
+ * Definitions
+ * background - Colors starting with the word "background" are reserved for background elements that all other components sit on. Nothing can be behind a "background" color. Or a "background" color cannot be used for a component that sits on any other component
+ * primary - the primary action color. Used for components that usually sit on top of a "background" color component
+ * onPrimary - the color that is used for the component that sits on top of the primary color
+ * state colors e.g. success, error, warning, all represent a state and should be used accordingly
+ */
+
+export const colors = {
+	// Lightmode
+	// textDefault: baseColors.grey800,
+	// textAlternative: baseColors.grey600,
+	// backgroundDefault: baseColors.white,
+	// backgroundAlternative: baseColors.grey000,
+	// borderDefault: baseColors.grey100,
+	// muted: baseColors.grey100,
+	// Darkmode
+	textDefault: baseColors.white,
+	textAlternative: baseColors.grey100,
+	backgroundDefault: baseColors.grey900,
+	backgroundAlternative: baseColors.grey800,
+	borderDefault: baseColors.grey400,
+	muted: baseColors.grey700,
+
+	primary: baseColors.blue500,
+	onPrimary: baseColors.white,
+	info: baseColors.blue000,
+	onInfo: baseColors.blue500,
+	error: baseColors.red000,
+	onError: baseColors.red500,
+	success: baseColors.green100,
+	onSuccess: baseColors.green500,
+	warning: baseColors.yellow000,
+	onWarning: baseColors.yellow600,
+	inverse: baseColors.grey800,
+	onInverse: baseColors.white,
+	alert: 'rgba(0,0,0,.75)',
+	onAlert: baseColors.white,
+	// UI escape hatches for grey colors with no general purpose
+	ui4: baseColors.grey500,
+	onUi4: baseColors.white,
+	shadowColor: baseColors.gray900,
+	// needs auditing
+	transparent: 'transparent',
 };
 
 /**

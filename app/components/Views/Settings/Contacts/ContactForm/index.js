@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { Platform, SafeAreaView, StyleSheet, TextInput, View, Text, TouchableOpacity } from 'react-native';
+import { Platform, SafeAreaView, StyleSheet, TextInput, View, TouchableOpacity } from 'react-native';
+import Text from '../../../../Base/Text';
 import { colors, fontStyles } from '../../../../../styles/common';
 import PropTypes from 'prop-types';
 import { getEditableOptions } from '../../../../UI/Navbar';
@@ -17,7 +18,7 @@ import ActionSheet from 'react-native-actionsheet';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 		flexDirection: 'column',
 	},
@@ -29,7 +30,8 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		flex: 1,
 		fontSize: 12,
-		borderColor: colors.grey200,
+		borderColor: colors.borderDefault,
+		color: colors.textDefault,
 		borderRadius: 5,
 		borderWidth: 2,
 		padding: 10,
@@ -47,7 +49,7 @@ const styles = StyleSheet.create({
 	label: {
 		fontSize: 14,
 		paddingVertical: 12,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.bold,
 	},
 	buttonsWrapper: {
@@ -71,13 +73,13 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		padding: 0,
 		paddingRight: 8,
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	inputWrapper: {
 		flex: 1,
 		flexDirection: 'column',
 	},
-	textInputDisaled: {
+	textInputDisabled: {
 		borderColor: colors.transparent,
 	},
 	actionButton: {
@@ -266,13 +268,13 @@ class ContactForm extends PureComponent {
 							autoCorrect={false}
 							onChangeText={this.onChangeName}
 							placeholder={strings('address_book.nickname')}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.muted}
 							spellCheck={false}
 							numberOfLines={1}
 							style={[
 								styles.input,
 								inputWidth ? { width: inputWidth } : {},
-								editable ? {} : styles.textInputDisaled,
+								editable ? {} : styles.textInputDisabled,
 							]}
 							value={name}
 							onSubmitEditing={this.jumpToAddressInput}
@@ -280,7 +282,7 @@ class ContactForm extends PureComponent {
 						/>
 
 						<Text style={styles.label}>{strings('address_book.address')}</Text>
-						<View style={[styles.input, editable ? {} : styles.textInputDisaled]}>
+						<View style={[styles.input, editable ? {} : styles.textInputDisabled]}>
 							<View style={styles.inputWrapper}>
 								<TextInput
 									editable={editable}
@@ -288,7 +290,7 @@ class ContactForm extends PureComponent {
 									autoCorrect={false}
 									onChangeText={this.onChangeAddress}
 									placeholder={strings('address_book.add_input_placeholder')}
-									placeholderTextColor={colors.grey100}
+									placeholderTextColor={colors.muted}
 									spellCheck={false}
 									numberOfLines={1}
 									style={[styles.textInput, inputWidth ? { width: inputWidth } : {}]}
@@ -302,13 +304,18 @@ class ContactForm extends PureComponent {
 
 							{editable && (
 								<TouchableOpacity onPress={this.onScan} style={styles.iconWrapper}>
-									<AntIcon name="scan1" size={20} color={colors.grey500} style={styles.scanIcon} />
+									<AntIcon
+										name="scan1"
+										size={20}
+										color={colors.textAlternative}
+										style={styles.scanIcon}
+									/>
 								</TouchableOpacity>
 							)}
 						</View>
 
 						<Text style={styles.label}>{strings('address_book.memo')}</Text>
-						<View style={[styles.input, editable ? {} : styles.textInputDisaled]}>
+						<View style={[styles.input, editable ? {} : styles.textInputDisabled]}>
 							<View style={styles.inputWrapper}>
 								<TextInput
 									multiline
@@ -317,7 +324,7 @@ class ContactForm extends PureComponent {
 									autoCorrect={false}
 									onChangeText={this.onChangeMemo}
 									placeholder={strings('address_book.memo')}
-									placeholderTextColor={colors.grey100}
+									placeholderTextColor={colors.muted}
 									spellCheck={false}
 									numberOfLines={1}
 									style={[styles.textInput, inputWidth ? { width: inputWidth } : {}]}

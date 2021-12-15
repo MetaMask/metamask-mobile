@@ -4,7 +4,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
 <View
   style={
     Object {
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#141618",
       "borderTopLeftRadius": 20,
       "borderTopRightRadius": 20,
       "maxHeight": "95%",
@@ -38,34 +38,36 @@ exports[`EditGasFee1559 should render correctly 1`] = `
             <TouchableOpacity>
               <Icon
                 allowFontScaling={false}
-                color="#24292E"
+                color="#ffffff"
                 name="ios-arrow-back"
                 size={24}
               />
             </TouchableOpacity>
             <Text
-              black={true}
-              blue={false}
               bold={true}
               centered={false}
               disclaimer={false}
-              green={false}
+              error={false}
+              info={false}
               link={false}
               modal={false}
               primary={false}
-              red={false}
               reset={false}
               right={false}
               small={false}
               strikethrough={false}
+              success={false}
+              textAlternative={false}
+              textDefault={true}
               underline={false}
               upper={false}
+              warning={false}
             >
               Edit priority
             </Text>
             <Icon
               allowFontScaling={false}
-              color="#FFFFFF"
+              color="#141618"
               name="ios-arrow-back"
               size={24}
             />
@@ -89,18 +91,16 @@ exports[`EditGasFee1559 should render correctly 1`] = `
           >
             <Text
               adjustsFontSizeToFit={true}
-              black={true}
-              blue={false}
               bold={false}
               centered={false}
               disclaimer={false}
-              green={false}
+              error={false}
+              info={false}
               link={false}
               modal={false}
               noMargin={true}
               numberOfLines={1}
               primary={false}
-              red={false}
               reset={false}
               right={false}
               small={false}
@@ -112,25 +112,27 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                   "textAlign": "center",
                 }
               }
+              success={false}
+              textAlternative={false}
+              textDefault={true}
               underline={false}
               upper={false}
+              warning={false}
             >
               ~
             </Text>
           </View>
           <Text
             big={true}
-            black={true}
-            blue={false}
             bold={false}
             centered={false}
             disclaimer={false}
-            green={false}
+            error={false}
+            info={false}
             link={false}
             modal={false}
             noMargin={true}
             primary={false}
-            red={false}
             reset={false}
             right={false}
             small={false}
@@ -140,27 +142,33 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                 "marginBottom": 6,
               }
             }
+            success={false}
+            textAlternative={false}
+            textDefault={true}
             underline={false}
             upper={false}
+            warning={false}
           >
             <Text
-              black={true}
-              blue={false}
               bold={true}
               centered={false}
               disclaimer={false}
-              green={false}
+              error={false}
+              info={false}
               link={false}
               modal={false}
               noMargin={true}
               primary={false}
-              red={false}
               reset={false}
               right={false}
               small={false}
               strikethrough={false}
+              success={false}
+              textAlternative={false}
+              textDefault={true}
               underline={false}
               upper={false}
+              warning={false}
             >
               Max fee
               :
@@ -178,22 +186,24 @@ exports[`EditGasFee1559 should render correctly 1`] = `
             }
           >
             <Text
-              black={false}
-              blue={false}
               bold={true}
               centered={false}
               disclaimer={false}
-              green={false}
+              error={false}
+              info={false}
               link={false}
               modal={false}
               primary={false}
-              red={false}
               reset={false}
               right={false}
               small={false}
               strikethrough={false}
+              success={false}
+              textAlternative={false}
+              textDefault={false}
               underline={false}
               upper={false}
+              warning={false}
             />
           </View>
         </FadeAnimationView>
@@ -244,38 +254,38 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                 }
               >
                 <Text
-                  black={false}
-                  blue={false}
                   bold={true}
                   centered={false}
                   disclaimer={false}
-                  green={false}
+                  error={false}
+                  info={false}
                   link={true}
                   modal={false}
                   noMargin={true}
                   primary={false}
-                  red={false}
                   reset={false}
                   right={false}
                   small={false}
                   strikethrough={false}
+                  success={false}
+                  textAlternative={false}
+                  textDefault={false}
                   underline={false}
                   upper={false}
+                  warning={false}
                 >
                   Advanced options
                 </Text>
                 <Text
-                  black={false}
-                  blue={false}
                   bold={true}
                   centered={false}
                   disclaimer={false}
-                  green={false}
+                  error={false}
+                  info={false}
                   link={true}
                   modal={false}
                   noMargin={true}
                   primary={false}
-                  red={false}
                   reset={false}
                   right={false}
                   small={false}
@@ -286,8 +296,12 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                       "paddingTop": 1,
                     }
                   }
+                  success={false}
+                  textAlternative={false}
+                  textDefault={false}
                   underline={false}
                   upper={false}
+                  warning={false}
                 >
                   <Icon
                     allowFontScaling={false}
@@ -322,23 +336,25 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                         }
                       >
                         <Text
-                          black={true}
-                          blue={false}
                           bold={true}
                           centered={false}
                           disclaimer={false}
-                          green={false}
+                          error={false}
+                          info={false}
                           link={false}
                           modal={false}
                           noMargin={true}
                           primary={false}
-                          red={false}
                           reset={false}
                           right={false}
                           small={false}
                           strikethrough={false}
+                          success={false}
+                          textAlternative={false}
+                          textDefault={true}
                           underline={false}
                           upper={false}
+                          warning={false}
                         >
                           Gas limit
                            
@@ -360,7 +376,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                             size={14}
                             style={
                               Object {
-                                "color": "#bbc0c5",
+                                "color": "#d6d9dc",
                               }
                             }
                           />
@@ -392,23 +408,25 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                         }
                       >
                         <Text
-                          black={true}
-                          blue={false}
                           bold={true}
                           centered={false}
                           disclaimer={false}
-                          green={false}
+                          error={false}
+                          info={false}
                           link={false}
                           modal={false}
                           noMargin={true}
                           primary={false}
-                          red={false}
                           reset={false}
                           right={false}
                           small={false}
                           strikethrough={false}
+                          success={false}
+                          textAlternative={false}
+                          textDefault={true}
                           underline={false}
                           upper={false}
+                          warning={false}
                         >
                           Max priority fee
                            
@@ -430,7 +448,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                             size={14}
                             style={
                               Object {
-                                "color": "#bbc0c5",
+                                "color": "#d6d9dc",
                               }
                             }
                           />
@@ -442,42 +460,45 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                     onChangeValue={[Function]}
                     rightLabelComponent={
                       <Text
-                        black={false}
-                        blue={false}
                         bold={false}
                         centered={false}
                         disclaimer={false}
-                        green={false}
-                        grey={true}
+                        error={false}
+                        info={false}
                         link={false}
                         modal={false}
                         noMargin={true}
                         primary={false}
-                        red={false}
                         reset={false}
                         right={false}
                         small={true}
                         strikethrough={false}
+                        success={false}
+                        textAlternative={true}
+                        textDefault={false}
                         underline={false}
                         upper={false}
+                        warning={false}
                       >
                         <Text
-                          black={false}
-                          blue={false}
                           bold={true}
                           centered={false}
                           disclaimer={false}
-                          green={false}
+                          error={false}
+                          info={false}
                           link={false}
                           modal={false}
                           primary={false}
-                          red={false}
                           reset={true}
                           right={false}
                           small={false}
                           strikethrough={false}
+                          success={false}
+                          textAlternative={false}
+                          textDefault={false}
                           underline={false}
                           upper={false}
+                          warning={false}
                         >
                           Estimate
                           :
@@ -510,23 +531,25 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                         }
                       >
                         <Text
-                          black={true}
-                          blue={false}
                           bold={true}
                           centered={false}
                           disclaimer={false}
-                          green={false}
+                          error={false}
+                          info={false}
                           link={false}
                           modal={false}
                           noMargin={true}
                           primary={false}
-                          red={false}
                           reset={false}
                           right={false}
                           small={false}
                           strikethrough={false}
+                          success={false}
+                          textAlternative={false}
+                          textDefault={true}
                           underline={false}
                           upper={false}
+                          warning={false}
                         >
                           Max fee
                            
@@ -548,7 +571,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                             size={14}
                             style={
                               Object {
-                                "color": "#bbc0c5",
+                                "color": "#d6d9dc",
                               }
                             }
                           />
@@ -560,42 +583,45 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                     onChangeValue={[Function]}
                     rightLabelComponent={
                       <Text
-                        black={false}
-                        blue={false}
                         bold={false}
                         centered={false}
                         disclaimer={false}
-                        green={false}
-                        grey={true}
+                        error={false}
+                        info={false}
                         link={false}
                         modal={false}
                         noMargin={true}
                         primary={false}
-                        red={false}
                         reset={false}
                         right={false}
                         small={true}
                         strikethrough={false}
+                        success={false}
+                        textAlternative={true}
+                        textDefault={false}
                         underline={false}
                         upper={false}
+                        warning={false}
                       >
                         <Text
-                          black={false}
-                          blue={false}
                           bold={true}
                           centered={false}
                           disclaimer={false}
-                          green={false}
+                          error={false}
+                          info={false}
                           link={false}
                           modal={false}
                           primary={false}
-                          red={false}
                           reset={true}
                           right={false}
                           small={false}
                           strikethrough={false}
+                          success={false}
+                          textAlternative={false}
+                          textDefault={false}
                           underline={false}
                           upper={false}
+                          warning={false}
                         >
                           Estimate
                           :
@@ -621,22 +647,24 @@ exports[`EditGasFee1559 should render correctly 1`] = `
               }
             >
               <Text
-                black={false}
-                blue={false}
                 bold={false}
                 centered={true}
                 disclaimer={false}
-                green={false}
+                error={false}
+                info={false}
                 link={true}
                 modal={false}
                 primary={false}
-                red={false}
                 reset={false}
                 right={false}
                 small={false}
                 strikethrough={false}
+                success={false}
+                textAlternative={false}
+                textDefault={false}
                 underline={false}
                 upper={false}
+                warning={false}
               >
                 How should I choose?
               </Text>
@@ -663,24 +691,25 @@ exports[`EditGasFee1559 should render correctly 1`] = `
           body={
             <View>
               <Text
-                black={false}
-                blue={false}
                 bold={false}
                 centered={false}
                 disclaimer={false}
-                green={false}
-                grey={true}
+                error={false}
+                info={false}
                 infoModal={true}
                 link={false}
                 modal={false}
                 primary={false}
-                red={false}
                 reset={false}
                 right={false}
                 small={false}
                 strikethrough={false}
+                success={false}
+                textAlternative={true}
+                textDefault={false}
                 underline={false}
                 upper={false}
+                warning={false}
               >
                 We have updated the gas fee based on current network conditions and have increased it by at least 10% (required by the network). 
               </Text>
@@ -703,41 +732,40 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                 <TouchableWithoutFeedback>
                   <View>
                     <Text
-                      black={false}
-                      blue={false}
                       bold={false}
                       centered={false}
                       disclaimer={false}
-                      green={false}
-                      grey={true}
+                      error={false}
+                      info={false}
                       infoModal={true}
                       link={false}
                       modal={false}
                       noMargin={true}
                       primary={false}
-                      red={false}
                       reset={false}
                       right={false}
                       small={false}
                       strikethrough={false}
+                      success={false}
+                      textAlternative={true}
+                      textDefault={false}
                       underline={false}
                       upper={false}
+                      warning={false}
                     >
                       Selecting the right gas fee depends on the type of transaction and how important it is to you.
                     </Text>
                     <Text
-                      black={false}
-                      blue={false}
                       bold={true}
                       centered={false}
                       disclaimer={false}
-                      green={false}
+                      error={false}
+                      info={false}
                       infoModal={true}
                       link={false}
                       modal={false}
                       noMargin={true}
                       primary={true}
-                      red={false}
                       reset={false}
                       right={false}
                       small={false}
@@ -747,47 +775,50 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                           "marginTop": 9,
                         }
                       }
+                      success={false}
+                      textAlternative={false}
+                      textDefault={false}
                       underline={false}
                       upper={false}
+                      warning={false}
                     >
                       High
                     </Text>
                     <Text
-                      black={false}
-                      blue={false}
                       bold={false}
                       centered={false}
                       disclaimer={false}
-                      green={false}
-                      grey={true}
+                      error={false}
+                      info={false}
                       infoModal={true}
                       link={false}
                       modal={false}
                       noMargin={true}
                       primary={false}
-                      red={false}
                       reset={false}
                       right={false}
                       small={false}
                       strikethrough={false}
+                      success={false}
+                      textAlternative={true}
+                      textDefault={false}
                       underline={false}
                       upper={false}
+                      warning={false}
                     >
                       This is best for time sensitive transactions (like Swaps) as it increases the likelihood of a successful transaction. If a Swap takes too long to process it may fail and result in losing some of your gas fee.
                     </Text>
                     <Text
-                      black={false}
-                      blue={false}
                       bold={true}
                       centered={false}
                       disclaimer={false}
-                      green={false}
+                      error={false}
+                      info={false}
                       infoModal={true}
                       link={false}
                       modal={false}
                       noMargin={true}
                       primary={true}
-                      red={false}
                       reset={false}
                       right={false}
                       small={false}
@@ -797,47 +828,50 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                           "marginTop": 9,
                         }
                       }
+                      success={false}
+                      textAlternative={false}
+                      textDefault={false}
                       underline={false}
                       upper={false}
+                      warning={false}
                     >
                       Medium
                     </Text>
                     <Text
-                      black={false}
-                      blue={false}
                       bold={false}
                       centered={false}
                       disclaimer={false}
-                      green={false}
-                      grey={true}
+                      error={false}
+                      info={false}
                       infoModal={true}
                       link={false}
                       modal={false}
                       noMargin={true}
                       primary={false}
-                      red={false}
                       reset={false}
                       right={false}
                       small={false}
                       strikethrough={false}
+                      success={false}
+                      textAlternative={true}
+                      textDefault={false}
                       underline={false}
                       upper={false}
+                      warning={false}
                     >
                       A medium gas fee is good for sending, withdrawing or other non-time sensitive transactions. This setting will most often result in a successful transaction.
                     </Text>
                     <Text
-                      black={false}
-                      blue={false}
                       bold={true}
                       centered={false}
                       disclaimer={false}
-                      green={false}
+                      error={false}
+                      info={false}
                       infoModal={true}
                       link={false}
                       modal={false}
                       noMargin={true}
                       primary={true}
-                      red={false}
                       reset={false}
                       right={false}
                       small={false}
@@ -847,31 +881,36 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                           "marginTop": 9,
                         }
                       }
+                      success={false}
+                      textAlternative={false}
+                      textDefault={false}
                       underline={false}
                       upper={false}
+                      warning={false}
                     >
                       Low
                     </Text>
                     <Text
-                      black={false}
-                      blue={false}
                       bold={false}
                       centered={false}
                       disclaimer={false}
-                      green={false}
-                      grey={true}
+                      error={false}
+                      info={false}
                       infoModal={true}
                       link={false}
                       modal={false}
                       noMargin={true}
                       primary={false}
-                      red={false}
                       reset={false}
                       right={false}
                       small={false}
                       strikethrough={false}
+                      success={false}
+                      textAlternative={true}
+                      textDefault={false}
                       underline={false}
                       upper={false}
+                      warning={false}
                     >
                       A low gas fee should only be used for unimportant transactions or when network traffic is very low. With a lower fee it can be hard to predict when (or if) your transaction will be successful.
                     </Text>

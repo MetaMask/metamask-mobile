@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView, TouchableWithoutFeedback } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, ScrollView, TouchableWithoutFeedback } from 'react-native';
+import Text from '../../../Base/Text';
 import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import WebsiteIcon from '../../WebsiteIcon';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -10,7 +11,7 @@ import { getHost } from '../../../../util/browser';
 
 const styles = StyleSheet.create({
 	expandedRoot: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		minHeight: Device.isIos() ? '70%' : '80%',
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
@@ -27,7 +28,7 @@ const styles = StyleSheet.create({
 	},
 	arrowIcon: {
 		...baseStyles.flexGrow,
-		color: colors.grey200,
+		color: colors.textAlternative,
 	},
 	iconHidden: {
 		...baseStyles.flexGrow,

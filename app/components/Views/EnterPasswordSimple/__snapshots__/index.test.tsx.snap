@@ -5,7 +5,7 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
   emulateUnlessSupported={true}
   style={
     Object {
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#141618",
       "flex": 1,
     }
   }
@@ -49,13 +49,31 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
       >
         <View>
           <Text
+            bold={false}
+            centered={false}
+            disclaimer={false}
+            error={false}
+            info={false}
+            link={false}
+            modal={false}
+            primary={false}
+            reset={false}
+            right={false}
+            small={false}
+            strikethrough={false}
             style={
               Object {
-                "color": "#24292E",
+                "color": "#ffffff",
                 "fontSize": 16,
                 "marginBottom": 15,
               }
             }
+            success={false}
+            textAlternative={false}
+            textDefault={false}
+            underline={false}
+            upper={false}
+            warning={false}
           >
             Please enter your password in order to continue
           </Text>
@@ -63,11 +81,11 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
             onChangeText={[Function]}
             onSubmitEditing={[Function]}
             placeholder="Password"
-            placeholderTextColor="#d6d9dc"
+            placeholderTextColor="#3c3f42"
             secureTextEntry={true}
             style={
               Object {
-                "borderColor": "#f2f3f4",
+                "borderColor": "#848c96",
                 "borderRadius": 5,
                 "borderWidth": 2,
                 "padding": 10,
@@ -96,7 +114,7 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
               }
             }
             testID="submit-button"
-            type="blue"
+            type="primary"
           >
             Confirm
           </StyledButton>

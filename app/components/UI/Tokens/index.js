@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Alert, TouchableOpacity, StyleSheet, Text, View, InteractionManager } from 'react-native';
+import { Alert, TouchableOpacity, StyleSheet, View, InteractionManager } from 'react-native';
+import Text from '../../Base/Text';
 import TokenImage from '../TokenImage';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -19,19 +20,19 @@ import { getTokenList } from '../../../reducers/tokens';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 		minHeight: 500,
 	},
 	emptyView: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		justifyContent: 'center',
 		alignItems: 'center',
 		marginTop: 50,
 	},
 	text: {
 		fontSize: 20,
-		color: colors.fontTertiary,
+		color: colors.textAlternative,
 		...fontStyles.normal,
 	},
 	add: {
@@ -41,7 +42,7 @@ const styles = StyleSheet.create({
 	},
 	addText: {
 		fontSize: 14,
-		color: colors.blue,
+		color: colors.primary,
 		...fontStyles.normal,
 	},
 	footer: {
@@ -56,13 +57,13 @@ const styles = StyleSheet.create({
 	},
 	balance: {
 		fontSize: 16,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.normal,
 		textTransform: 'uppercase',
 	},
 	balanceFiat: {
 		fontSize: 12,
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 		...fontStyles.normal,
 		textTransform: 'uppercase',
 	},
@@ -76,7 +77,7 @@ const styles = StyleSheet.create({
 		marginRight: 20,
 	},
 	emptyText: {
-		color: colors.greyAssetVisibility,
+		color: colors.textAlternative,
 		marginBottom: 8,
 		fontSize: 14,
 	},

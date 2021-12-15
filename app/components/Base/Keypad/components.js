@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 	},
 	keypadButtonText: {
-		color: colors.black,
+		color: colors.textDefault,
 		textAlign: 'center',
 		fontSize: 30,
 	},

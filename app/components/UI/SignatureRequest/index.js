@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import Text from '../../Base/Text';
 import { colors, fontStyles } from '../../../styles/common';
 import { getHost } from '../../../util/browser';
 import { strings } from '../../../../locales/i18n';
@@ -17,7 +18,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 
 const styles = StyleSheet.create({
 	root: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		paddingTop: 24,
 		minHeight: '90%',
 		borderTopLeftRadius: 20,
@@ -46,7 +47,7 @@ const styles = StyleSheet.create({
 	},
 	warningLink: {
 		...fontStyles.normal,
-		color: colors.blue,
+		color: colors.primary,
 		textAlign: 'center',
 		paddingHorizontal: 10,
 		paddingBottom: 10,
@@ -63,7 +64,7 @@ const styles = StyleSheet.create({
 		marginBottom: 4,
 	},
 	readMore: {
-		color: colors.blue,
+		color: colors.primary,
 		fontSize: 14,
 		...fontStyles.bold,
 	},
@@ -85,7 +86,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'flex-start',
 		width: '100%',
 		borderWidth: 1,
-		borderColor: colors.grey200,
+		borderColor: colors.borderDefault,
 		borderRadius: 10,
 		padding: 16,
 	},
@@ -94,7 +95,7 @@ const styles = StyleSheet.create({
 		alignItems: 'flex-end',
 	},
 	arrowIcon: {
-		color: colors.grey200,
+		color: colors.textAlternative,
 	},
 });
 

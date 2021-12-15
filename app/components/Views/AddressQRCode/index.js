@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		padding: 36,
-		backgroundColor: colors.grey000,
+		backgroundColor: colors.backgroundAlternative,
 		borderRadius: 8,
 	},
 	addressWrapper: {
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		width: WIDTH,
 		borderRadius: 8,
-		backgroundColor: colors.grey000,
+		backgroundColor: colors.backgroundAlternative,
 		paddingVertical: 12,
 	},
 	closeIcon: {
@@ -122,7 +122,7 @@ class AddressQRCode extends PureComponent {
 			<View style={styles.root}>
 				<View style={styles.wrapper}>
 					<TouchableOpacity style={styles.closeIcon} onPress={this.closeQrModal} testID={'close-qr-modal'}>
-						<IonicIcon name={'ios-close'} size={38} color={colors.white} />
+						<IonicIcon name={'ios-close'} size={38} color={colors.onInverse} />
 					</TouchableOpacity>
 					<View style={styles.qrCode}>
 						<QRCode

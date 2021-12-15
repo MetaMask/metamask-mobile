@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import Text from '../../Base/Text';
 import PropTypes from 'prop-types';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { colors, fontStyles } from '../../../styles/common';
@@ -12,7 +13,7 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		...fontStyles.bold,
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 14,
 		textAlign: 'center',
 		paddingVertical: 12,
@@ -36,7 +37,7 @@ class ConnectHeader extends Component {
 		return (
 			<View style={styles.header}>
 				<TouchableOpacity style={styles.back} onPress={action}>
-					<IonicIcon name={'ios-arrow-back'} size={24} color={colors.black} />
+					<IonicIcon name={'ios-arrow-back'} size={24} color={colors.textDefault} />
 				</TouchableOpacity>
 				<Text style={styles.title}>{title}</Text>
 			</View>

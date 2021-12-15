@@ -16,14 +16,14 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 24,
 		paddingTop: 24,
 		paddingBottom: Device.isIphoneX() ? 48 : 24,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderTopRightRadius: 20,
 		borderTopLeftRadius: 20,
 	},
 	sectionExplanationText: {
 		...fontStyles.normal,
 		fontSize: 12,
-		color: colors.grey500,
+		color: colors.textAlternative,
 		marginVertical: 6,
 	},
 	option: {
@@ -46,27 +46,27 @@ const styles = StyleSheet.create({
 		height: 8,
 		borderRadius: 8 / 2,
 		margin: 3,
-		backgroundColor: colors.blue,
+		backgroundColor: colors.primary,
 	},
 	outSelectedCircle: {
 		width: 18,
 		height: 18,
 		borderRadius: 18 / 2,
 		borderWidth: 2,
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 	},
 	circle: {
 		width: 18,
 		height: 18,
 		borderRadius: 18 / 2,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		opacity: 1,
 		borderWidth: 2,
-		borderColor: colors.grey200,
+		borderColor: colors.borderDefault,
 	},
 	input: {
 		padding: 12,
-		borderColor: colors.grey200,
+		borderColor: colors.borderDefault,
 		borderRadius: 10,
 		borderWidth: 2,
 	},
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
 	},
 	spendLimitTitle: {
 		...fontStyles.bold,
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 14,
 		lineHeight: 20,
 		marginBottom: 8,
@@ -85,13 +85,13 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		fontSize: 12,
 		lineHeight: 18,
-		color: colors.grey500,
+		color: colors.textAlternative,
 	},
-	textBlue: {
-		color: colors.blue,
+	primary: {
+		color: colors.primary,
 	},
-	textBlack: {
-		color: colors.black,
+	colorTextDefault: {
+		color: colors.textDefault,
 	},
 });
 
@@ -165,7 +165,7 @@ function EditPermission({
 						<Text
 							style={[
 								styles.optionText,
-								spendLimitUnlimitedSelected ? styles.textBlue : styles.textBlack,
+								spendLimitUnlimitedSelected ? styles.primary : styles.colorTextDefault,
 							]}
 						>
 							{strings('spend_limit_edition.proposed')}
@@ -175,7 +175,7 @@ function EditPermission({
 							<Text style={fontStyles.bold}>{` ${host}`}</Text>
 						</Text>
 						<Text
-							style={[styles.optionText, styles.textBlack]}
+							style={[styles.optionText, styles.colorTextDefault]}
 						>{`${originalApproveAmount} ${tokenSymbol}`}</Text>
 					</View>
 				</View>
@@ -194,7 +194,7 @@ function EditPermission({
 						<Text
 							style={[
 								styles.optionText,
-								!spendLimitUnlimitedSelected ? styles.textBlue : styles.textBlack,
+								!spendLimitUnlimitedSelected ? styles.primary : styles.colorTextDefault,
 							]}
 						>
 							{strings('spend_limit_edition.custom_spend_limit')}
@@ -208,7 +208,7 @@ function EditPermission({
 							autoCorrect={false}
 							onChangeText={onSpendLimitCustomValueChange}
 							placeholder={`100 ${tokenSymbol}`}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.muted}
 							spellCheck={false}
 							style={styles.input}
 							value={spendLimitCustomValue}

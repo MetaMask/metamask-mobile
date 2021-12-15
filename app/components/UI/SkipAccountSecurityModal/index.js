@@ -1,7 +1,8 @@
 import React from 'react';
 import ActionModal from '../../UI/ActionModal';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { View, Image, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { View, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import Text from '../../Base/Text';
 import { strings } from '../../../../locales/i18n';
 // eslint-disable-next-line import/no-unresolved
 import CheckBox from '@react-native-community/checkbox';
@@ -22,7 +23,7 @@ const styles = StyleSheet.create({
 		fontSize: 24,
 		marginTop: 12,
 		marginBottom: 16,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		textAlign: 'center',
 		...fontStyles.bold,
 	},
@@ -91,7 +92,7 @@ const SkipAccountSecurityModal = ({ modalVisible, onConfirm, onCancel, onPress, 
 					value={skipCheckbox}
 					onValueChange={toggleSkipCheckbox}
 					boxType={'square'}
-					tintColors={{ true: colors.blue }}
+					tintColors={{ true: colors.primary }}
 					testID={'skip-backup-check'}
 				/>
 				<Text onPress={toggleSkipCheckbox} style={styles.skipModalText} testID={'skip-backup-text'}>

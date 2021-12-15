@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { ScrollView, View, StyleSheet, Text, SafeAreaView } from 'react-native';
+import { ScrollView, View, StyleSheet, SafeAreaView } from 'react-native';
+import Text from '../../Base/Text';
 import PropTypes from 'prop-types';
 import CollectibleOverview from '../../UI/CollectibleOverview';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
@@ -13,7 +14,7 @@ import { newAssetTransaction } from '../../../actions/transaction';
 const styles = StyleSheet.create({
 	root: {
 		flex: 1,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 	},
 	wrapper: {
 		flex: 0.9,
@@ -30,7 +31,7 @@ const styles = StyleSheet.create({
 	buttonText: {
 		marginLeft: 8,
 		fontSize: 15,
-		color: colors.white,
+		color: colors.onInverse,
 		...fontStyles.bold,
 	},
 });

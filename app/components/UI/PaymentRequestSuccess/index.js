@@ -4,11 +4,11 @@ import {
 	SafeAreaView,
 	View,
 	ScrollView,
-	Text,
 	StyleSheet,
 	InteractionManager,
 	TouchableOpacity,
 } from 'react-native';
+import Text from '../../Base/Text';
 import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../styles/common';
 import { getPaymentRequestSuccessOptionsTitle } from '../../UI/Navbar';
@@ -30,7 +30,7 @@ import ClipboardManager from '../../../core/ClipboardManager';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	contentWrapper: {
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
 	linkText: {
 		...fontStyles.normal,
 		fontSize: 14,
-		color: colors.blue,
+		color: colors.primary,
 		alignSelf: 'center',
 		textAlign: 'center',
 		marginVertical: 16,
@@ -74,24 +74,24 @@ const styles = StyleSheet.create({
 		flexGrow: 1,
 	},
 	icon: {
-		color: colors.blue,
+		color: colors.primary,
 		marginBottom: 16,
 	},
-	blueIcon: {
-		color: colors.white,
+	primaryIcon: {
+		color: colors.onPrimary,
 	},
 	iconWrapper: {
 		alignItems: 'center',
 	},
 	buttonText: {
 		...fontStyles.bold,
-		color: colors.blue,
+		color: colors.primary,
 		fontSize: 14,
 		marginLeft: 8,
 	},
-	blueButtonText: {
+	primaryButtonText: {
 		...fontStyles.bold,
-		color: colors.white,
+		color: colors.onPrimary,
 		fontSize: 14,
 		marginLeft: 8,
 	},
@@ -137,11 +137,11 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 36,
 		paddingBottom: 24,
 		paddingTop: 16,
-		backgroundColor: colors.grey000,
+		backgroundColor: colors.backgroundAlternative,
 		borderRadius: 8,
 	},
 	qrCodeWrapper: {
-		borderColor: colors.grey300,
+		borderColor: colors.borderDefault,
 		borderRadius: 8,
 		borderWidth: 1,
 		padding: 15,
@@ -264,7 +264,7 @@ class PaymentRequestSuccess extends PureComponent {
 							>
 								<View style={styles.buttonContent}>
 									<View style={styles.buttonIconWrapper}>
-										<IonicIcon name={'ios-link'} size={18} color={colors.blue} />
+										<IonicIcon name={'ios-link'} size={18} color={colors.primary} />
 									</View>
 									<View style={styles.buttonTextWrapper}>
 										<Text style={styles.buttonText}>
@@ -281,20 +281,20 @@ class PaymentRequestSuccess extends PureComponent {
 							>
 								<View style={styles.buttonContent}>
 									<View style={styles.buttonIconWrapper}>
-										<FontAwesome name={'qrcode'} size={18} color={colors.blue} />
+										<FontAwesome name={'qrcode'} size={18} color={colors.primary} />
 									</View>
 									<View style={styles.buttonTextWrapper}>
 										<Text style={styles.buttonText}>{strings('payment_request.qr_code')}</Text>
 									</View>
 								</View>
 							</StyledButton>
-							<StyledButton type={'blue'} onPress={this.onShare} containerStyle={styles.button}>
+							<StyledButton type={'primary'} onPress={this.onShare} containerStyle={styles.button}>
 								<View style={styles.buttonContent}>
 									<View style={styles.buttonIconWrapper}>
-										<EvilIcons name="share-apple" size={24} style={styles.blueIcon} />
+										<EvilIcons name="share-apple" size={24} style={styles.primaryIcon} />
 									</View>
 									<View style={styles.buttonTextWrapper}>
-										<Text style={styles.blueButtonText}>
+										<Text style={styles.primaryButtonText}>
 											{strings('payment_request.send_link')}
 										</Text>
 									</View>
@@ -321,7 +321,7 @@ class PaymentRequestSuccess extends PureComponent {
 									onPress={this.closeQRModal}
 									testID={'payment-request-qrcode-close-button'}
 								>
-									<IonicIcon name={'ios-close'} size={28} color={colors.black} />
+									<IonicIcon name={'ios-close'} size={28} color={colors.textDefault} />
 								</TouchableOpacity>
 							</View>
 							<View style={styles.qrCodeWrapper}>

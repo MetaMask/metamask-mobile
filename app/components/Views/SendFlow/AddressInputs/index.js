@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
 		position: 'relative',
 	},
 	exclamation: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderRadius: 12,
 		position: 'absolute',
 		bottom: 8,
@@ -65,13 +65,13 @@ const styles = StyleSheet.create({
 	addressWrapper: { flexDirection: 'row' },
 	textAddress: {
 		...fontStyles.normal,
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 14,
 	},
 	textBalance: {
 		...fontStyles.normal,
 		fontSize: 12,
-		color: colors.grey500,
+		color: colors.textAlternative,
 	},
 	label: {
 		flexDirection: 'row',
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
 	},
 	labelText: {
 		...fontStyles.normal,
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 16,
 	},
 	textInput: {
@@ -94,16 +94,16 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 	},
 	iconOpaque: {
-		color: colors.grey500,
+		color: colors.textAlternative,
 	},
 	iconHighlighted: {
-		color: colors.blue,
+		color: colors.primary,
 	},
 	borderOpaque: {
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 	},
 	borderHighlighted: {
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 	},
 	iconWrapper: {
 		flexDirection: 'row',
@@ -132,18 +132,18 @@ const styles = StyleSheet.create({
 const AddressName = ({ toAddressName, confusableCollection = [] }) => {
 	if (confusableCollection.length) {
 		const texts = toAddressName.split('').map((char, index) => {
-			// if text has a confusable highlight it red
+			// if text has a confusable highlight it error color
 			if (confusableCollection.includes(char)) {
 				// if the confusable is zero width, replace it with `?`
 				const replacement = hasZeroWidthPoints(char) ? '?' : char;
 				return (
-					<Text red key={index}>
+					<Text error key={index}>
 						{replacement}
 					</Text>
 				);
 			}
 			return (
-				<Text black key={index}>
+				<Text textDefault key={index}>
 					{char}
 				</Text>
 			);
@@ -197,7 +197,7 @@ export const AddressTo = (props) => {
 							autoCorrect={false}
 							onChangeText={onToSelectedAddressChange}
 							placeholder={strings('transactions.address_to_placeholder')}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.muted}
 							spellCheck={false}
 							style={[styles.textInput, inputWidth]}
 							numberOfLines={1}
@@ -224,7 +224,7 @@ export const AddressTo = (props) => {
 						<Identicon address={toSelectedAddress} diameter={30} />
 						{displayExclamation && (
 							<View style={styles.exclamation}>
-								<FontAwesome color={colors.red} name="exclamation-circle" size={14} />
+								<FontAwesome color={colors.onError} name="exclamation-circle" size={14} />
 							</View>
 						)}
 						<View style={styles.toInputWrapper}>
@@ -243,7 +243,7 @@ export const AddressTo = (props) => {
 										{renderShortAddress(toSelectedAddress)}
 									</Text>
 									<View style={(styles.checkIconWrapper, toAddressName ? {} : { paddingTop: 2 })}>
-										<AntIcon name="check" color={colors.green600} size={15} />
+										<AntIcon name="check" color={colors.onSuccess} size={15} />
 									</View>
 								</View>
 							</View>

@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
 		width: 8,
 		height: 8,
 		borderRadius: 8 / 2,
-		backgroundColor: colors.grey500,
+		backgroundColor: colors.ui4,
 		opacity: 0.4,
 		marginHorizontal: 8,
 	},
@@ -146,16 +146,16 @@ const GasEducationCarousel = ({ navigation, route, conversionRate, currentCurren
 		if (key === 1) {
 			return (
 				<View style={styles.tab}>
-					<Text noMargin bold black style={styles.title} testID={`carousel-screen-${key}`}>
+					<Text noMargin bold textDefault style={styles.title} testID={`carousel-screen-${key}`}>
 						{strings('fiat_on_ramp.gas_education_carousel.step_1.title')}
 					</Text>
-					<Text grey noMargin bold style={styles.subheader}>
+					<Text textAlternative noMargin bold style={styles.subheader}>
 						{strings('fiat_on_ramp.gas_education_carousel.step_1.average_gas_fee')} {gasFiat}
 					</Text>
-					<Text grey noMargin style={styles.subtitle}>
+					<Text textAlternative noMargin style={styles.subtitle}>
 						{strings('fiat_on_ramp.gas_education_carousel.step_1.subtitle_1')}
 					</Text>
-					<Text grey noMargin style={styles.subtitle}>
+					<Text textAlternative noMargin style={styles.subtitle}>
 						{strings('fiat_on_ramp.gas_education_carousel.step_1.subtitle_2')}{' '}
 						<Text bold>{strings('fiat_on_ramp.gas_education_carousel.step_1.subtitle_3')}</Text>
 					</Text>
@@ -165,13 +165,13 @@ const GasEducationCarousel = ({ navigation, route, conversionRate, currentCurren
 		if (key === 2) {
 			return (
 				<View style={styles.tab}>
-					<Text noMargin bold black style={styles.title} testID={`carousel-screen-${key}`}>
+					<Text noMargin bold textDefault style={styles.title} testID={`carousel-screen-${key}`}>
 						{strings('fiat_on_ramp.gas_education_carousel.step_2.title')}
 					</Text>
-					<Text grey noMargin style={styles.subtitle}>
+					<Text textAlternative noMargin style={styles.subtitle}>
 						{strings('fiat_on_ramp.gas_education_carousel.step_2.subtitle_1')}
 					</Text>
-					<Text grey noMargin bold style={styles.subtitle}>
+					<Text textAlternative noMargin bold style={styles.subtitle}>
 						{strings('fiat_on_ramp.gas_education_carousel.step_2.subtitle_2')}
 					</Text>
 					<TouchableOpacity onPress={openLink}>
@@ -185,7 +185,7 @@ const GasEducationCarousel = ({ navigation, route, conversionRate, currentCurren
 		if (key === 3) {
 			return (
 				<View style={styles.tab}>
-					<Text noMargin bold black style={styles.title} testID={`carousel-screen-${key}`}>
+					<Text noMargin bold textDefault style={styles.title} testID={`carousel-screen-${key}`}>
 						{strings('fiat_on_ramp.gas_education_carousel.step_3.title')}
 					</Text>
 					<Text noMargin bold style={styles.subheader}>

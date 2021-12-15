@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { ScrollView, TextInput, StyleSheet, Text, View, TouchableOpacity, InteractionManager } from 'react-native';
+import { ScrollView, TextInput, StyleSheet, View, TouchableOpacity, InteractionManager } from 'react-native';
+import Text from '../../Base/Text';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { connect } from 'react-redux';
 import Engine from '../../../core/Engine';
@@ -33,7 +34,7 @@ import ClipboardManager from '../../../core/ClipboardManager';
 
 const styles = StyleSheet.create({
 	scrollView: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 	},
 	wrapper: {
 		paddingTop: 20,
@@ -53,13 +54,14 @@ const styles = StyleSheet.create({
 	label: {
 		fontSize: 24,
 		textAlign: 'center',
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	labelInput: {
 		marginBottom: Device.isAndroid() ? -10 : 0,
 	},
 	addressWrapper: {
-		backgroundColor: colors.blue000,
+		backgroundColor: colors.backgroundAlternative,
 		borderRadius: 40,
 		marginTop: 20,
 		marginBottom: 20,
@@ -68,21 +70,21 @@ const styles = StyleSheet.create({
 	},
 	address: {
 		fontSize: 12,
-		color: colors.grey400,
+		color: colors.textAlternative,
 		...fontStyles.normal,
 		letterSpacing: 0.8,
 	},
 	amountFiat: {
 		fontSize: 12,
 		paddingTop: 5,
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 		...fontStyles.normal,
 	},
 	identiconBorder: {
 		borderRadius: 80,
 		borderWidth: 2,
 		padding: 2,
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 	},
 	onboardingWizardLabel: {
 		borderWidth: 2,
@@ -333,7 +335,9 @@ class AccountOverview extends PureComponent {
 										styles.label,
 										styles.labelInput,
 										styles.onboardingWizardLabel,
-										onboardingWizard ? { borderColor: colors.blue } : { borderColor: colors.white },
+										onboardingWizard
+											? { borderColor: colors.primary }
+											: { borderColor: colors.backgroundDefault },
 									]}
 									editable={accountLabelEditable}
 									onChangeText={this.onAccountLabelChange}
@@ -355,8 +359,8 @@ class AccountOverview extends PureComponent {
 											styles.label,
 											styles.onboardingWizardLabel,
 											onboardingWizard
-												? { borderColor: colors.blue }
-												: { borderColor: colors.white },
+												? { borderColor: colors.primary }
+												: { borderColor: colors.backgroundDefault },
 										]}
 										numberOfLines={1}
 										testID={'edit-account-label'}

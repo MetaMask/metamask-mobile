@@ -40,13 +40,13 @@ const styles = StyleSheet.create({
 		marginVertical: 15,
 	},
 	progressWrapper: {
-		backgroundColor: colors.grey100,
+		backgroundColor: colors.muted,
 		height: 3,
 		borderRadius: 3,
 		marginVertical: 15,
 	},
 	progressBar: {
-		backgroundColor: colors.blue,
+		backgroundColor: colors.primary,
 		height: 3,
 		width: 3,
 		borderRadius: 3,
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
 	},
 	aggContainer: {
 		position: 'absolute',
-		backgroundColor: colors.black,
+		backgroundColor: colors.inverse,
 		paddingHorizontal: 10,
 		paddingVertical: 5,
 		borderRadius: 20,

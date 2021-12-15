@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'flex-end',
 	},
 	modalView: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
 	},
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 5,
 		borderRadius: 5,
 		borderWidth: 1,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 	},
 	searchIcon: {
 		marginHorizontal: 8,
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
 	},
 	resultRow: {
 		borderTopWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 	},
 	emptyList: {
 		marginVertical: 10,
@@ -85,11 +85,11 @@ const styles = StyleSheet.create({
 	importButton: {
 		paddingVertical: 6,
 		paddingHorizontal: 10,
-		backgroundColor: colors.blue,
+		backgroundColor: colors.primary,
 		borderRadius: 100,
 	},
 	importButtonText: {
-		color: colors.white,
+		color: colors.onPrimary,
 	},
 	loadingIndicator: {
 		margin: 10,
@@ -264,7 +264,7 @@ function TokenSelectModal({
 			<TouchableWithoutFeedback>
 				<Alert
 					renderIcon={() => (
-						<FAIcon name="info-circle" style={styles.footerIcon} color={colors.blue} size={15} />
+						<FAIcon name="info-circle" style={styles.footerIcon} color={colors.primary} size={15} />
 					)}
 				>
 					{(textStyle) => (
@@ -333,7 +333,7 @@ function TokenSelectModal({
 							ref={searchInput}
 							style={styles.input}
 							placeholder={strings('swaps.search_token')}
-							placeholderTextColor={colors.grey500}
+							placeholderTextColor={colors.muted}
 							value={searchString}
 							onChangeText={handleSearchTextChange}
 						/>
@@ -343,7 +343,7 @@ function TokenSelectModal({
 									name="ios-close-circle"
 									size={20}
 									style={styles.searchIcon}
-									color={colors.grey300}
+									color={colors.textAlternative}
 								/>
 							</TouchableOpacity>
 						)}

@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import Text from '../../Base/Text';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -18,7 +19,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		paddingHorizontal: 20,
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderBottomColor: colors.grey100,
+		borderBottomColor: colors.borderDefault,
 		alignContent: 'center',
 		alignItems: 'center',
 		paddingBottom: 30,
@@ -35,7 +36,7 @@ const styles = StyleSheet.create({
 	name: {
 		fontSize: 30,
 		textAlign: 'center',
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	actions: {

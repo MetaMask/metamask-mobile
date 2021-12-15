@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
 	},
 	titleText: {
 		fontSize: 18,
-		color: colors.black,
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	collectibleIcon: {
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		justifyContent: 'center',
 		alignItems: 'center',
-		backgroundColor: colors.yellow,
+		backgroundColor: colors.warning,
 		width: 32,
 		height: 32,
 		borderRadius: 16,
@@ -167,7 +167,7 @@ function CollectibleContractElement({
 					<Icon
 						name={`ios-arrow-${collectiblesVisible ? 'down' : 'forward'}`}
 						size={12}
-						color={colors.black}
+						color={colors.textDefault}
 						style={styles.arrowIcon}
 					/>
 				</View>
@@ -184,7 +184,7 @@ function CollectibleContractElement({
 						/>
 					) : (
 						<View style={styles.favoritesLogoWrapper}>
-							<AntIcons color={colors.white} name={'star'} size={24} />
+							<AntIcons color={colors.backgroundDefault} name={'star'} size={24} />
 						</View>
 					)}
 				</View>

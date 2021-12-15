@@ -27,7 +27,7 @@ const GAS_PRICE_MIN = new BigNumber(0.000001);
 
 const styles = StyleSheet.create({
 	root: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
 		minHeight: 200,
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
 		right: 10,
 	},
 	labelInfo: {
-		color: colors.grey200,
+		color: colors.textAlternative,
 	},
 	advancedOptionsContainer: {
 		marginTop: 25,
@@ -243,12 +243,12 @@ const EditGasFeeLegacy = ({
 				<Alert
 					small
 					type={AlertType.Warning}
-					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.yellow} />}
+					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.onWarning} />}
 					style={styles.warningContainer}
 				>
 					{() => (
 						<View style={styles.warningTextContainer}>
-							<Text black style={styles.warningText}>
+							<Text textDefault style={styles.warningText}>
 								{warning}
 							</Text>
 						</View>
@@ -266,12 +266,12 @@ const EditGasFeeLegacy = ({
 				<Alert
 					small
 					type={AlertType.Error}
-					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.red} />}
+					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.error} />}
 					style={styles.warningContainer}
 				>
 					{() => (
 						<View style={styles.warningTextContainer}>
-							<Text red style={styles.warningText}>
+							<Text error style={styles.warningText}>
 								{error}
 							</Text>
 						</View>
@@ -303,12 +303,12 @@ const EditGasFeeLegacy = ({
 						<View>
 							<View style={styles.customGasHeader}>
 								<TouchableOpacity onPress={onCancel}>
-									<Icon name={'ios-arrow-back'} size={24} color={colors.black} />
+									<Icon name={'ios-arrow-back'} size={24} color={colors.textDefault} />
 								</TouchableOpacity>
-								<Text bold black>
+								<Text bold textDefault>
 									{strings('transaction.edit_network_fee')}
 								</Text>
-								<Icon name={'ios-arrow-back'} size={24} color={colors.white} />
+								<Icon name={'ios-arrow-back'} size={24} color={colors.backgroundDefault} />
 							</View>
 						</View>
 						{renderWarning}
@@ -322,17 +322,17 @@ const EditGasFeeLegacy = ({
 							<View style={styles.headerContainer}>
 								<View style={styles.headerTitle}>
 									<View style={styles.headerTitleSide}>
-										<Text right black style={styles.headerText}>
+										<Text right textDefault style={styles.headerText}>
 											~
 										</Text>
 									</View>
-									<Text black style={styles.headerText}>
+									<Text textDefault style={styles.headerText}>
 										{gasFeePrimary}
 									</Text>
 									<View style={styles.headerTitleSide} />
 								</View>
-								<Text big black>
-									<Text bold black>
+								<Text big textDefault>
+									<Text bold textDefault>
 										{gasFeeSecondary}
 									</Text>
 								</Text>
@@ -366,7 +366,7 @@ const EditGasFeeLegacy = ({
 											<RangeInput
 												leftLabelComponent={
 													<View style={styles.labelTextContainer}>
-														<Text black bold noMargin>
+														<Text textDefault bold noMargin>
 															{strings('edit_gas_fee_eip1559.gas_limit')}{' '}
 														</Text>
 
@@ -393,7 +393,7 @@ const EditGasFeeLegacy = ({
 											<RangeInput
 												leftLabelComponent={
 													<View style={styles.labelTextContainer}>
-														<Text black bold noMargin>
+														<Text textDefault bold noMargin>
 															{strings('edit_gas_fee_eip1559.gas_price')}{' '}
 														</Text>
 
@@ -440,7 +440,7 @@ const EditGasFeeLegacy = ({
 							toggleModal={() => setShowRangeInfoModal(null)}
 							body={
 								<View>
-									<Text grey infoModal>
+									<Text textAlternative infoModal>
 										{showRangeInfoModal === 'gas_limit' &&
 											strings('edit_gas_fee_eip1559.learn_more_gas_limit_legacy')}
 										{showRangeInfoModal === 'gas_price' &&

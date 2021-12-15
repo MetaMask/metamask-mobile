@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
-import { Text, View, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, TextInput } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, TextInput } from 'react-native';
+import Text from '../../Base/Text';
 import React from 'react';
 import ActionModal from '../../UI/ActionModal';
 import Icon from 'react-native-vector-icons/Octicons';
@@ -9,7 +10,7 @@ import { colors, fontStyles } from '../../../styles/common';
 const styles = StyleSheet.create({
 	hintWrapper: {
 		alignSelf: 'center',
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderRadius: 16,
 		padding: 24,
 	},
@@ -22,24 +23,24 @@ const styles = StyleSheet.create({
 	recovery: {
 		fontSize: 18,
 		...fontStyles.bold,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 	},
 	leaveHint: {
 		fontSize: 14,
 		...fontStyles.regular,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		marginBottom: 16,
 	},
 	noSeedphrase: {
 		fontSize: 14,
 		...fontStyles.regular,
-		color: colors.red,
+		color: colors.onError,
 		marginBottom: 16,
 	},
 	hintInput: {
 		borderRadius: 6,
 		borderWidth: 1,
-		borderColor: colors.grey500,
+		borderColor: colors.borderDefault,
 		padding: 16,
 		minHeight: 76,
 		paddingTop: 16,

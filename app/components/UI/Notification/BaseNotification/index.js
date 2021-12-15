@@ -11,7 +11,7 @@ import Text from '../../../Base/Text';
 
 const styles = StyleSheet.create({
 	defaultFlashFloating: {
-		backgroundColor: colors.normalAlert,
+		backgroundColor: colors.alert,
 		padding: 16,
 		marginHorizontal: 16,
 		flexDirection: 'row',
@@ -20,20 +20,20 @@ const styles = StyleSheet.create({
 	flashLabel: {
 		flex: 1,
 		flexDirection: 'column',
-		color: colors.white,
+		color: colors.onAlert,
 	},
 	flashText: {
 		flex: 1,
 		fontSize: 12,
 		lineHeight: 18,
-		color: colors.white,
+		color: colors.onAlert,
 	},
 	flashTitle: {
 		flex: 1,
 		fontSize: 14,
 		marginBottom: 2,
 		lineHeight: 18,
-		color: colors.white,
+		color: colors.onAlert,
 		...fontStyles.bold,
 	},
 	flashIcon: {
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
 	},
 	closeIcon: {
 		flex: 1,
-		color: colors.white,
+		color: colors.onAlert,
 		alignItems: 'flex-start',
 		marginTop: -8,
 	},
@@ -64,14 +64,14 @@ const getIcon = (status) => {
 		case 'success':
 		case 'received':
 		case 'received_payment':
-			return <IonicIcon color={colors.green500} size={36} name="md-checkmark" style={styles.checkIcon} />;
+			return <IonicIcon color={colors.onSuccess} size={36} name="md-checkmark" style={styles.checkIcon} />;
 		case 'cancelled':
 		case 'error':
-			return <MaterialIcon color={colors.red} size={36} name="alert-circle-outline" style={styles.checkIcon} />;
+			return <MaterialIcon color={colors.error} size={36} name="alert-circle-outline" style={styles.checkIcon} />;
 		case 'simple_notification_rejected':
-			return <AntIcon color={colors.red} size={36} name="closecircleo" style={styles.checkIcon} />;
+			return <AntIcon color={colors.error} size={36} name="closecircleo" style={styles.checkIcon} />;
 		case 'simple_notification':
-			return <AntIcon color={colors.green500} size={36} name="checkcircleo" style={styles.checkIcon} />;
+			return <AntIcon color={colors.onSuccess} size={36} name="checkcircleo" style={styles.checkIcon} />;
 	}
 };
 

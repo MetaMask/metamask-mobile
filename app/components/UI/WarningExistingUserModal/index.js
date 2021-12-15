@@ -11,14 +11,14 @@ const styles = StyleSheet.create({
 	},
 	warningModalTitle: {
 		...fontStyles.bold,
-		color: colors.red,
+		color: colors.onError,
 		textAlign: 'center',
 		fontSize: 20,
 		marginBottom: 16,
 	},
 	warningModalText: {
 		...fontStyles.normal,
-		color: colors.black,
+		color: colors.textDefault,
 		textAlign: 'center',
 		fontSize: 14,
 		lineHeight: 18,

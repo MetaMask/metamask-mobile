@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import {
 	ScrollView,
 	TouchableOpacity,
-	Text,
 	View,
 	SafeAreaView,
 	StyleSheet,
 	BackHandler,
 	InteractionManager,
 } from 'react-native';
+import Text from '../../Base/Text';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
@@ -31,7 +31,7 @@ import DefaultPreference from 'react-native-default-preference';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	scrollviewWrapper: {
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
 	title: {
 		fontSize: 24,
 		marginBottom: 24,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		textAlign: 'center',
 		...fontStyles.bold,
 	},
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
 	label: {
 		lineHeight: scaling.scale(20),
 		fontSize: scaling.scale(14),
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		textAlign: 'center',
 		...fontStyles.normal,
 	},
@@ -74,28 +74,25 @@ const styles = StyleSheet.create({
 	bold: {
 		...fontStyles.bold,
 	},
-	blue: {
-		color: colors.blue,
-	},
 	remindLaterText: {
 		textAlign: 'center',
 		fontSize: 15,
 		lineHeight: 20,
-		color: colors.blue,
+		color: colors.primary,
 		...fontStyles.normal,
 	},
 	remindLaterSubText: {
 		textAlign: 'center',
 		fontSize: 11,
 		lineHeight: 20,
-		color: colors.grey600,
+		color: colors.textAlternative,
 		...fontStyles.normal,
 	},
 	startSubText: {
 		textAlign: 'center',
 		fontSize: 11,
 		marginTop: 12,
-		color: colors.grey600,
+		color: colors.textAlternative,
 		...fontStyles.normal,
 	},
 	remindLaterContainer: {
@@ -201,7 +198,7 @@ const AccountBackupStep1 = (props) => {
 						<View style={styles.text}>
 							<Text style={styles.label}>
 								{strings('account_backup_step_1.info_text_1_1')}{' '}
-								<Text style={styles.blue} onPress={showWhatIsSeedphrase}>
+								<Text primary onPress={showWhatIsSeedphrase}>
 									{strings('account_backup_step_1.info_text_1_2')}
 								</Text>{' '}
 								{strings('account_backup_step_1.info_text_1_3')}{' '}

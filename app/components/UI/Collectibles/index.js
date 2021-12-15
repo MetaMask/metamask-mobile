@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Alert, ScrollView, RefreshControl, FlatList, StyleSheet, Text, View } from 'react-native';
+import { Alert, ScrollView, RefreshControl, FlatList, StyleSheet, View } from 'react-native';
+import Text from '../../Base/Text';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import ActionSheet from 'react-native-actionsheet';
@@ -10,18 +11,18 @@ import AssetElement from '../AssetElement';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	emptyView: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		justifyContent: 'center',
 		alignItems: 'center',
 		marginTop: 50,
 	},
 	text: {
 		fontSize: 20,
-		color: colors.fontTertiary,
+		color: colors.textAlternative,
 		...fontStyles.normal,
 	},
 	itemWrapper: {
@@ -35,14 +36,14 @@ const styles = StyleSheet.create({
 	},
 	name: {
 		fontSize: 16,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	tokenId: {
 		fontSize: 12,
 		marginTop: 4,
 		marginRight: 8,
-		color: colors.grey400,
+		color: colors.textAlternative,
 		...fontStyles.normal,
 	},
 });

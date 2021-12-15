@@ -6,13 +6,13 @@ import {
 	ActivityIndicator,
 	RefreshControl,
 	StyleSheet,
-	Text,
 	View,
 	FlatList,
 	Dimensions,
 	InteractionManager,
 	TouchableOpacity,
 } from 'react-native';
+import Text from '../../Base/Text';
 import { getNetworkTypeById, findBlockExplorerForRpc, getBlockExplorerName } from '../../../util/networks';
 import { getEtherscanAddressUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
@@ -37,7 +37,7 @@ import { collectibleContractsSelector } from '../../../reducers/collectibles';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	bottomModal: {
@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: 'center',
 		alignItems: 'center',
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		minHeight: Dimensions.get('window').height / 2,
 	},
 	keyboardAwareWrapper: {
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
 	},
 	text: {
 		fontSize: 20,
-		color: colors.fontTertiary,
+		color: colors.textAlternative,
 		...fontStyles.normal,
 	},
 	viewMoreBody: {
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
 	},
 	viewOnEtherscan: {
 		fontSize: 16,
-		color: colors.blue,
+		color: colors.primary,
 		...fontStyles.normal,
 		textAlign: 'center',
 	},

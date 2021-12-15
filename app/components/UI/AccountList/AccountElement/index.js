@@ -1,7 +1,8 @@
 import React, { PureComponent } from 'react';
 import Identicon from '../../Identicon';
 import PropTypes from 'prop-types';
-import { TouchableOpacity, StyleSheet, Text, View } from 'react-native';
+import { TouchableOpacity, StyleSheet, View } from 'react-native';
+import Text from '../../../Base/Text';
 import { colors, fontStyles } from '../../../../styles/common';
 import { renderFromWei } from '../../../../util/number';
 import { getTicker } from '../../../../util/transactions';
@@ -16,7 +17,7 @@ const BALANCE_KEY = 'balance';
 const styles = StyleSheet.create({
 	account: {
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 		flexDirection: 'row',
 		paddingHorizontal: 20,
 		paddingVertical: 20,
@@ -33,7 +34,7 @@ const styles = StyleSheet.create({
 	},
 	accountLabel: {
 		fontSize: 18,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	accountBalanceWrapper: {
@@ -43,11 +44,11 @@ const styles = StyleSheet.create({
 	accountBalance: {
 		paddingTop: 5,
 		fontSize: 12,
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 		...fontStyles.normal,
 	},
 	accountBalanceError: {
-		color: colors.fontError,
+		color: colors.onError,
 		marginLeft: 4,
 	},
 	importedView: {
@@ -64,7 +65,7 @@ const styles = StyleSheet.create({
 		alignItems: 'flex-end',
 	},
 	importedText: {
-		color: colors.grey400,
+		color: colors.textAlternative,
 		fontSize: 10,
 		...fontStyles.bold,
 	},
@@ -74,7 +75,7 @@ const styles = StyleSheet.create({
 		paddingVertical: 3,
 		borderRadius: 10,
 		borderWidth: 1,
-		borderColor: colors.grey400,
+		borderColor: colors.borderDefault,
 	},
 });
 
@@ -121,7 +122,7 @@ class AccountElement extends PureComponent {
 	render() {
 		const { disabled, updatedBalanceFromStore, ticker } = this.props;
 		const { address, name, ens, isSelected, isImported, balanceError } = this.props.item;
-		const selected = isSelected ? <Icon name="check-circle" size={30} color={colors.blue} /> : null;
+		const selected = isSelected ? <Icon name="check-circle" size={30} color={colors.primary} /> : null;
 		const imported = isImported ? (
 			<View style={styles.importedWrapper}>
 				<Text numberOfLines={1} style={styles.importedText}>

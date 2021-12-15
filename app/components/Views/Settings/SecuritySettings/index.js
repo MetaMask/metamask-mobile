@@ -4,7 +4,6 @@ import {
 	Alert,
 	StyleSheet,
 	Switch,
-	Text,
 	ScrollView,
 	View,
 	ActivityIndicator,
@@ -12,6 +11,7 @@ import {
 	Keyboard,
 	InteractionManager,
 } from 'react-native';
+import Text from '../../../Base/Text';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
 import ActionModal from '../../../UI/ActionModal';
@@ -51,14 +51,14 @@ const isIos = Device.isIos();
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 		padding: 24,
 		paddingBottom: 48,
 	},
 	title: {
 		...fontStyles.normal,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		fontSize: 20,
 		lineHeight: 20,
 	},
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
 	},
 	desc: {
 		...fontStyles.normal,
-		color: colors.grey500,
+		color: colors.textAlternative,
 		fontSize: 14,
 		lineHeight: 20,
 		marginTop: 12,
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
 		paddingBottom: 112,
 	},
 	picker: {
-		borderColor: colors.grey200,
+		borderColor: colors.borderDefault,
 		borderRadius: 5,
 		borderWidth: 2,
 		marginTop: 16,
@@ -129,20 +129,20 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 	},
 	warningText: {
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 12,
 		flex: 1,
 		...fontStyles.normal,
 	},
 	warningTextRed: {
-		color: colors.red,
+		color: colors.onError,
 	},
 	warningTextGreen: {
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	warningBold: {
 		...fontStyles.bold,
-		color: colors.blue,
+		color: colors.primary,
 	},
 	viewHint: {
 		padding: 5,
@@ -155,7 +155,7 @@ const Heading = ({ children, first }) => (
 	</View>
 );
 
-const WarningIcon = () => <Icon size={16} color={colors.red} name="exclamation-triangle" />;
+const WarningIcon = () => <Icon size={16} color={colors.onError} name="exclamation-triangle" />;
 
 Heading.propTypes = {
 	children: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node), PropTypes.node]),
@@ -591,7 +591,7 @@ class Settings extends PureComponent {
 							) : null}
 						</SettingsNotification>
 						{!seedphraseBackedUp ? (
-							<StyledButton type="blue" onPress={this.goToBackup} containerStyle={styles.confirm}>
+							<StyledButton type="primary" onPress={this.goToBackup} containerStyle={styles.confirm}>
 								{strings('app_settings.back_up_now')}
 							</StyledButton>
 						) : (
@@ -604,7 +604,7 @@ class Settings extends PureComponent {
 									{strings('app_settings.back_up_again')}
 								</StyledButton>
 								<StyledButton
-									type="blue"
+									type="primary"
 									onPress={this.goToRevealPrivateCredential}
 									containerStyle={[styles.confirm, styles.col]}
 									testID={'reveal-seed-button'}
@@ -644,8 +644,8 @@ class Settings extends PureComponent {
 								<Switch
 									onValueChange={this.onSingInWithBiometrics}
 									value={this.state.biometryChoice}
-									trackColor={isIos ? { true: colors.blue, false: colors.grey000 } : null}
-									ios_backgroundColor={colors.grey000}
+									trackColor={isIos ? { true: colors.primary, false: colors.muted } : null}
+									ios_backgroundColor={colors.muted}
 								/>
 							</View>
 						</View>
@@ -661,8 +661,8 @@ class Settings extends PureComponent {
 								<Switch
 									onValueChange={this.onSignInWithPasscode}
 									value={this.state.passcodeChoice}
-									trackColor={isIos ? { true: colors.blue, false: colors.grey000 } : null}
-									ios_backgroundColor={colors.grey000}
+									trackColor={isIos ? { true: colors.primary, false: colors.muted } : null}
+									ios_backgroundColor={colors.muted}
 								/>
 							</View>
 						</View>
@@ -723,8 +723,8 @@ class Settings extends PureComponent {
 							<Switch
 								value={privacyMode}
 								onValueChange={this.togglePrivacy}
-								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
-								ios_backgroundColor={colors.grey000}
+								trackColor={Device.isIos() ? { true: colors.primary, false: colors.muted } : null}
+								ios_backgroundColor={colors.muted}
 							/>
 						</View>
 					</View>
@@ -735,8 +735,8 @@ class Settings extends PureComponent {
 							<Switch
 								value={analyticsEnabled}
 								onValueChange={this.toggleMetricsOptIn}
-								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
-								ios_backgroundColor={colors.grey000}
+								trackColor={Device.isIos() ? { true: colors.primary, false: colors.muted } : null}
+								ios_backgroundColor={colors.muted}
 								testID={'metametrics-switch'}
 							/>
 						</View>
@@ -748,8 +748,8 @@ class Settings extends PureComponent {
 							<Switch
 								value={thirdPartyApiMode}
 								onValueChange={this.toggleThirdPartyAPI}
-								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
-								ios_backgroundColor={colors.grey000}
+								trackColor={Device.isIos() ? { true: colors.primary, false: colors.muted } : null}
+								ios_backgroundColor={colors.muted}
 							/>
 						</View>
 					</View>

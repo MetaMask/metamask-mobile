@@ -15,7 +15,7 @@ import useTokenBalance from '../../hooks/useTokenBalance';
 
 const styles = StyleSheet.create({
 	root: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
 		paddingBottom: Device.isIphoneX() ? 20 : 0,
@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
 		fontSize: 18,
 		marginVertical: 12,
 		marginHorizontal: 20,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		...fontStyles.bold,
 	},
 	text: {
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
 	},
 	children: {
 		alignItems: 'center',
-		borderTopColor: colors.grey200,
+		borderTopColor: colors.borderDefault,
 		borderTopWidth: 1,
 	},
 });

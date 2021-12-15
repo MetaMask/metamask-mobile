@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react';
 import { colors, fontStyles } from '../../../../styles/common';
 import {
 	StyleSheet,
-	Text,
 	View,
 	TouchableOpacity,
 	TextInput,
@@ -20,6 +19,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Modal from 'react-native-modal';
 import TokenImage from '../../../UI/TokenImage';
+import Text from '../../../Base/Text';
 import {
 	renderFromTokenMinimalUnit,
 	balanceToFiat,
@@ -66,7 +66,7 @@ const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 	},
 	scrollWrapper: {
 		marginBottom: 60,
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
 	},
 	actionDropdown: {
 		...fontStyles.normal,
-		backgroundColor: colors.blue,
+		backgroundColor: colors.primary,
 		paddingHorizontal: 16,
 		paddingVertical: 2,
 		borderRadius: 100,
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
 	textDropdown: {
 		...fontStyles.normal,
 		fontSize: 14,
-		color: colors.white,
+		color: colors.onPrimary,
 		paddingVertical: 2,
 	},
 	iconDropdown: {
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
 	maxText: {
 		...fontStyles.normal,
 		fontSize: 12,
-		color: colors.blue,
+		color: colors.primary,
 		alignSelf: 'flex-end',
 		textTransform: 'uppercase',
 	},
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
 	inputCurrencyText: {
 		...fontStyles.normal,
 		fontWeight: fontStyles.light.fontWeight,
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 44,
 		marginRight: 8,
 		paddingVertical: Device.isIos() ? 0 : 8,
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
 		fontWeight: fontStyles.light.fontWeight,
 		fontSize: 44,
 		textAlign: 'center',
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	switch: {
 		flex: 1,
@@ -160,14 +160,14 @@ const styles = StyleSheet.create({
 		paddingVertical: 2,
 		borderRadius: 8,
 		flexDirection: 'row',
-		borderColor: colors.grey500,
+		borderColor: colors.borderDefault,
 		borderWidth: 1,
 		right: -2,
 	},
 	textSwitch: {
 		...fontStyles.normal,
 		fontSize: 14,
-		color: colors.grey500,
+		color: colors.textAlternative,
 		textTransform: 'uppercase',
 	},
 	switchWrapper: {
@@ -185,9 +185,9 @@ const styles = StyleSheet.create({
 	},
 	assetElementWrapper: {
 		height: 70,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderWidth: 1,
-		borderColor: colors.grey000,
+		borderColor: colors.borderDefault,
 		flexDirection: 'row',
 		alignItems: 'center',
 		paddingHorizontal: 24,
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 	},
 	assetsModalWrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
 		height: 450,
@@ -208,13 +208,13 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 	},
 	dragger: {
 		width: 48,
 		height: 5,
 		borderRadius: 4,
-		backgroundColor: colors.grey400,
+		backgroundColor: colors.ui4,
 		opacity: Device.isAndroid() ? 0.6 : 0.5,
 	},
 	textAssetTitle: {
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
 	textAssetFiat: {
 		...fontStyles.normal,
 		fontSize: 12,
-		color: colors.grey500,
+		color: colors.textAlternative,
 		textAlign: 'right',
 		textTransform: 'uppercase',
 	},
@@ -253,13 +253,13 @@ const styles = StyleSheet.create({
 	collectibleName: {
 		...fontStyles.normal,
 		fontSize: 32,
-		color: colors.grey500,
+		color: colors.textAlternative,
 		textAlign: 'center',
 	},
 	collectibleId: {
 		...fontStyles.normal,
 		fontSize: 14,
-		color: colors.grey500,
+		color: colors.textAlternative,
 		marginTop: 8,
 		textAlign: 'center',
 	},
@@ -285,6 +285,7 @@ const styles = StyleSheet.create({
 		alignSelf: 'center',
 		fontSize: 12,
 		lineHeight: 16,
+		color: colors.textDefault,
 	},
 });
 
@@ -950,6 +951,7 @@ class Amount extends PureComponent {
 							onChangeText={this.onInputChange}
 							keyboardType={'numeric'}
 							placeholder={'0'}
+							placeholderTextColor={colors.muted}
 							testID={'txn-amount-input'}
 						/>
 					</View>
@@ -965,7 +967,7 @@ class Amount extends PureComponent {
 									<MaterialCommunityIcons
 										name="swap-vertical"
 										size={16}
-										color={colors.blue}
+										color={colors.primary}
 										style={styles.switch}
 									/>
 								</View>
@@ -974,7 +976,9 @@ class Amount extends PureComponent {
 					</View>
 				)}
 				<View style={styles.balanceWrapper}>
-					<Text style={styles.balanceText}>{`${strings('transaction.balance')}: ${currentBalance}`}</Text>
+					<Text textDefault style={styles.balanceText}>{`${strings(
+						'transaction.balance'
+					)}: ${currentBalance}`}</Text>
 				</View>
 				{amountError && (
 					<View style={styles.errorMessageWrapper} testID={'amount-error'}>
@@ -1037,7 +1041,7 @@ class Amount extends PureComponent {
 										<Ionicons
 											name="ios-arrow-down"
 											size={16}
-											color={colors.white}
+											color={colors.onPrimary}
 											style={styles.iconDropdown}
 										/>
 									</View>

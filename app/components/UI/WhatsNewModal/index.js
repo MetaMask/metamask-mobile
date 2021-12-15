@@ -2,13 +2,13 @@ import React, { useEffect, useState } from 'react';
 import {
 	StyleSheet,
 	View,
-	Text,
 	TouchableOpacity,
 	ScrollView,
 	TouchableWithoutFeedback,
 	Image,
 	InteractionManager,
 } from 'react-native';
+import Text from '../../Base/Text';
 import { useNavigationState } from '@react-navigation/native';
 import ActionModal from '../ActionModal';
 import { colors, fontStyles } from '../../../styles/common';
@@ -31,14 +31,14 @@ const styles = StyleSheet.create({
 	},
 	button: {
 		marginTop: 16,
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 		borderWidth: 1,
 		borderRadius: 50,
 		padding: 12,
 		paddingHorizontal: 34,
 	},
 	buttonText: {
-		color: colors.blue,
+		color: colors.primary,
 		textAlign: 'center',
 		...fontStyles.normal,
 		fontWeight: '500',
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
 	headerText: {
 		...fontStyles.bold,
 		fontSize: 18,
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	newFeatureImageContainer: {
 		flexDirection: 'row',
@@ -79,14 +79,14 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		marginBottom: 12,
 		textAlign: 'center',
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	newFeatureText: {
 		...fontStyles.normal,
 		fontSize: 14,
 		lineHeight: 20,
 		textAlign: 'center',
-		color: colors.black,
+		color: colors.textDefault,
 		marginBottom: 12,
 	},
 	buttonContainer: {

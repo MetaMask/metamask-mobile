@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 		textAlign: 'center',
 		fontSize: 14,
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	networkContainer: {
 		alignItems: 'center',
@@ -58,12 +58,12 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		fontSize: 12,
 		padding: 5,
-		color: colors.black,
+		color: colors.textDefault,
 		textTransform: 'capitalize',
 	},
 	deeplinkIconContainer: {
 		borderWidth: 1,
-		borderColor: colors.grey600,
+		borderColor: colors.ui4,
 		width: 56,
 		height: 56,
 		borderRadius: 38,
@@ -83,13 +83,14 @@ const TransactionHeader = (props) => {
 		props.currentPageInformation.origin === ORIGIN_QR_CODE;
 	const originIsWalletConnect = props.currentPageInformation.origin?.includes(WALLET_CONNECT_ORIGIN);
 	/**
-	 * Returns a small circular indicator, red if the current selected network is offline, green if it's online.
+	 * Returns a small circular indicator, error color if the current selected network is offline, success color if it's online.
 	 *
 	 * @return {element} - JSX view element
 	 */
 	const renderNetworkStatusIndicator = () => {
 		const { networkType } = props;
-		const networkStatusIndicatorColor = (networkList[networkType] && networkList[networkType].color) || colors.red;
+		const networkStatusIndicatorColor =
+			(networkList[networkType] && networkList[networkType].color) || colors.onError;
 		const networkStatusIndicator = (
 			<View style={[styles.networkStatusIndicator, { backgroundColor: networkStatusIndicatorColor }]} />
 		);
@@ -121,7 +122,7 @@ const TransactionHeader = (props) => {
 						style={styles.deeplinkIcon}
 						name={origin === ORIGIN_DEEPLINK ? 'link' : 'qrcode'}
 						size={32}
-						color={colors.grey600}
+						color={colors.ui4}
 					/>
 				</View>
 			);

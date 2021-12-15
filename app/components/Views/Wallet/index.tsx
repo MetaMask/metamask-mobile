@@ -20,11 +20,11 @@ import ErrorBoundary from '../ErrorBoundary';
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 	},
 	tabUnderlineStyle: {
 		height: 2,
-		backgroundColor: colors.blue,
+		backgroundColor: colors.primary,
 	},
 	tabStyle: {
 		paddingBottom: 0,
@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
 		...(fontStyles.bold as any),
 	},
 	loader: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 		justifyContent: 'center',
 		alignItems: 'center',
@@ -124,9 +124,9 @@ const Wallet = ({ navigation }: any) => {
 		() => (
 			<DefaultTabBar
 				underlineStyle={styles.tabUnderlineStyle}
-				activeTextColor={colors.blue}
-				inactiveTextColor={colors.fontTertiary}
-				backgroundColor={colors.white}
+				activeTextColor={colors.primary}
+				inactiveTextColor={colors.textAlternative}
+				backgroundColor={colors.backgroundDefault}
 				tabStyle={styles.tabStyle}
 				textStyle={styles.textStyle}
 			/>

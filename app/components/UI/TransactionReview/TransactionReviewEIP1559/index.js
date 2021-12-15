@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
 		paddingLeft: 2,
 	},
 	gasInfoIcon: (hasOrigin) => ({
-		color: hasOrigin ? colors.orange : colors.grey200,
+		color: hasOrigin ? colors.onWarning : colors.textAlternative,
 	}),
 	amountContainer: {
 		flex: 1,
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
 		right: 10,
 	},
 	redInfo: {
-		color: colors.red,
+		color: colors.onError,
 	},
 	timeEstimateContainer: {
 		alignItems: 'center',
@@ -141,7 +141,7 @@ const TransactionReviewEIP1559 = ({
 			<Summary.Row>
 				<View style={styles.gasRowContainer}>
 					<View style={styles.gasRowContainer}>
-						<Text primary={!originWarning} bold orange={Boolean(originWarning)} noMargin>
+						<Text primary={!originWarning} bold warning={Boolean(originWarning)} noMargin>
 							{!origin
 								? strings('transaction_review_eip1559.estimated_gas_fee')
 								: strings('transaction_review_eip1559.suggested_gas_fee', { origin })}
@@ -172,7 +172,7 @@ const TransactionReviewEIP1559 = ({
 									<Text
 										upper
 										right
-										grey={nativeCurrencySelected}
+										textAlternative={nativeCurrencySelected}
 										link={!nativeCurrencySelected}
 										underline={!nativeCurrencySelected}
 										style={styles.amountContainer}
@@ -194,7 +194,7 @@ const TransactionReviewEIP1559 = ({
 									primary
 									bold
 									upper
-									grey={!nativeCurrencySelected}
+									textAlternative={!nativeCurrencySelected}
 									link={nativeCurrencySelected}
 									underline={nativeCurrencySelected}
 									right
@@ -217,7 +217,11 @@ const TransactionReviewEIP1559 = ({
 						{gasEstimationReady ? (
 							<FadeAnimationView valueToWatch={valueToWatchAnimation} animateOnChange={animateOnChange}>
 								<View style={styles.timeEstimateContainer}>
-									<Text small green={timeEstimateColor === 'green'} red={timeEstimateColor === 'red'}>
+									<Text
+										small
+										success={timeEstimateColor === 'green'}
+										error={timeEstimateColor === 'red'}
+									>
 										{timeEstimate}
 									</Text>
 									{(timeEstimateId === AppConstants.GAS_TIMES.MAYBE ||
@@ -245,7 +249,7 @@ const TransactionReviewEIP1559 = ({
 								valueToWatch={valueToWatchAnimation}
 								animateOnChange={animateOnChange}
 							>
-								<Text grey right small>
+								<Text textAlternative right small>
 									<Text bold small noMargin>
 										{strings('transaction_review_eip1559.max_fee')}:{' '}
 									</Text>
@@ -276,7 +280,7 @@ const TransactionReviewEIP1559 = ({
 								>
 									{isMainnet && totalSecondary !== 'undefined' && (
 										<Text
-											grey
+											textAlternative
 											upper
 											right
 											noMargin
@@ -314,7 +318,7 @@ const TransactionReviewEIP1559 = ({
 									valueToWatch={valueToWatchAnimation}
 									animateOnChange={animateOnChange}
 								>
-									<Text grey right small>
+									<Text textAlternative right small>
 										<Text bold small noMargin>
 											{strings('transaction_review_eip1559.max_amount')}:
 										</Text>{' '}

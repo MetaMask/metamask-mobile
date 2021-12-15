@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import { renderShortAddress } from '../../../../util/address';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import Text from '../../../Base/Text';
 import Identicon from '../../../UI/Identicon';
 import { fontStyles, colors } from '../../../../styles/common';
 import PropTypes from 'prop-types';
@@ -13,7 +14,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		borderBottomWidth: 1,
-		borderBottomColor: colors.grey050,
+		borderBottomColor: colors.borderDefault,
 	},
 	addressElementInformation: {
 		flex: 1,
@@ -25,13 +26,13 @@ const styles = StyleSheet.create({
 	addressTextNickname: {
 		...fontStyles.normal,
 		flex: 1,
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 14,
 	},
 	addressTextAddress: {
 		...fontStyles.normal,
 		fontSize: 12,
-		color: colors.grey500,
+		color: colors.textAlternative,
 	},
 });
 

@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 		fontSize: scaling.scale(24),
 		textAlign: 'center',
-		color: colors.black,
+		color: colors.textDefault,
 		lineHeight: 34,
 		marginVertical: 16,
 		paddingHorizontal: 16,
@@ -62,26 +62,26 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		fontSize: 14,
 		textAlign: 'center',
-		color: colors.black,
+		color: colors.textDefault,
 		lineHeight: 20,
 		paddingHorizontal: 16,
 	},
 	editPermissionText: {
 		...fontStyles.bold,
-		color: colors.blue,
+		color: colors.primary,
 		fontSize: 12,
 		lineHeight: 20,
 		textAlign: 'center',
 		marginVertical: 20,
 		borderWidth: 1,
 		borderRadius: 20,
-		borderColor: colors.blue,
+		borderColor: colors.primary,
 		paddingVertical: 8,
 		paddingHorizontal: 16,
 	},
 	viewDetailsText: {
 		...fontStyles.normal,
-		color: colors.blue,
+		color: colors.primary,
 		fontSize: 12,
 		lineHeight: 16,
 		marginTop: 8,
@@ -95,15 +95,15 @@ const styles = StyleSheet.create({
 		marginTop: 12,
 		paddingHorizontal: 10,
 		paddingVertical: 8,
-		backgroundColor: colors.red000,
-		borderColor: colors.red,
+		backgroundColor: colors.error,
+		borderColor: colors.onError,
 		borderRadius: 8,
 		borderWidth: 1,
 		justifyContent: 'center',
 		alignItems: 'center',
 	},
 	error: {
-		color: colors.red,
+		color: colors.onError,
 		fontSize: 12,
 		lineHeight: 16,
 		...fontStyles.normal,
@@ -466,16 +466,16 @@ class ApproveTransactionReview extends PureComponent {
 				toggleModal={this.toggleGasTooltip}
 				body={
 					<View>
-						<Text grey infoModal>
+						<Text textAlternative infoModal>
 							{strings('transaction.gas_education_1')}
 							{strings(`transaction.gas_education_2${isMainnet ? '_ethereum' : ''}`)}{' '}
 							<Text bold>{strings('transaction.gas_education_3')}</Text>
 						</Text>
-						<Text grey infoModal>
+						<Text textAlternative infoModal>
 							{strings('transaction.gas_education_4')}
 						</Text>
 						<TouchableOpacity onPress={this.openLinkAboutGas}>
-							<Text grey link infoModal>
+							<Text textAlternative link infoModal>
 								{strings('transaction.gas_education_learn_more')}
 							</Text>
 						</TouchableOpacity>

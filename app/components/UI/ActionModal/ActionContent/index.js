@@ -14,14 +14,14 @@ const styles = StyleSheet.create({
 	},
 	viewContainer: {
 		width: '100%',
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		borderRadius: 10,
 	},
 	actionHorizontalContainer: {
 		flexDirection: 'row',
 		padding: 16,
 		borderTopWidth: 1,
-		borderTopColor: colors.grey200,
+		borderTopColor: colors.borderDefault,
 	},
 	actionVerticalContainer: {
 		flexDirection: 'column',

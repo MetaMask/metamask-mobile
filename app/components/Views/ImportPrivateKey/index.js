@@ -4,11 +4,11 @@ import {
 	ActivityIndicator,
 	TouchableOpacity,
 	TextInput,
-	Text,
 	View,
 	StyleSheet,
 	InteractionManager,
 } from 'react-native';
+import Text from '../../Base/Text';
 
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
@@ -23,7 +23,7 @@ import PreventScreenshot from '../../../core/PreventScreenshot';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
-		backgroundColor: colors.blue000,
+		backgroundColor: colors.info,
 	},
 	wrapper: {
 		flexGrow: 1,
@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
 		fontSize: 32,
 		marginTop: 20,
 		marginBottom: 40,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		justifyContent: 'center',
 		textAlign: 'left',
 		...fontStyles.normal,
@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
 	},
 	label: {
 		fontSize: 14,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		textAlign: 'left',
 		...fontStyles.normal,
 	},
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
 	},
 	scanPkeyText: {
 		fontSize: 14,
-		color: colors.blue,
+		color: colors.primary,
 	},
 	icon: {
 		textAlign: 'left',
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: 'flex-end',
 		padding: 20,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 	},
 	button: {
 		marginBottom: Device.isIphoneX() ? 20 : 0,
@@ -84,12 +84,12 @@ const styles = StyleSheet.create({
 	bottom: {
 		width: '100%',
 		padding: 30,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 	},
 	input: {
 		marginTop: 20,
 		marginBottom: 10,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		paddingTop: 20,
 		paddingBottom: 20,
 		paddingLeft: 20,
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
 		borderRadius: 4,
 		height: 120,
 		borderWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 		...fontStyles.normal,
 	},
 	navbarRightButton: {
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
 	},
 	closeIcon: {
 		fontSize: 28,
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 	},
 });
 
@@ -236,7 +236,7 @@ export default class ImportPrivateKey extends PureComponent {
 								onSubmitEditing={this.goNext}
 								returnKeyType={'next'}
 								placeholder={strings('import_private_key.example')}
-								placeholderTextColor={colors.grey100}
+								placeholderTextColor={colors.muted}
 								autoCapitalize={'none'}
 							/>
 							<View style={styles.scanPkeyRow}>
@@ -256,7 +256,7 @@ export default class ImportPrivateKey extends PureComponent {
 							testID={'import-button'}
 						>
 							{this.state.loading ? (
-								<ActivityIndicator size="small" color="white" />
+								<ActivityIndicator size="small" color={colors.onInverse} />
 							) : (
 								strings('import_private_key.cta_text')
 							)}

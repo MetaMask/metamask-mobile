@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { Alert, Text, TextInput, View, StyleSheet } from 'react-native';
+import { Alert, TextInput, View, StyleSheet } from 'react-native';
+import Text from '../../Base/Text';
 import { colors, fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
@@ -12,7 +13,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	rowWrapper: {
@@ -25,13 +26,13 @@ const styles = StyleSheet.create({
 	textInput: {
 		borderWidth: 1,
 		borderRadius: 4,
-		borderColor: colors.grey100,
+		borderColor: colors.borderDefault,
 		padding: 16,
 		...(fontStyles.normal as any),
 	},
 	warningText: {
 		marginTop: 15,
-		color: colors.red,
+		color: colors.onWarning,
 		...(fontStyles.normal as any),
 	},
 });
@@ -187,7 +188,7 @@ const AddCustomCollectible = ({ navigation, collectibleContract }: AddCustomColl
 						<TextInput
 							style={[styles.textInput, inputWidth ? { width: inputWidth } : {}]}
 							placeholder={'0x...'}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.muted}
 							value={address}
 							onChangeText={onAddressChange}
 							onBlur={validateCustomCollectibleAddress}
@@ -211,7 +212,7 @@ const AddCustomCollectible = ({ navigation, collectibleContract }: AddCustomColl
 							onSubmitEditing={addCollectible}
 							returnKeyType={'done'}
 							placeholder={strings('collectible.id_placeholder')}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.muted}
 						/>
 						<Text style={styles.warningText} testID={'collectible-identifier-warning'}>
 							{warningTokenId}

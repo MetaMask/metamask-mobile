@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView, FlatList } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, ScrollView, FlatList } from 'react-native';
+import Text from '../../../Base/Text';
 import { colors, fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -10,11 +11,11 @@ import AddressElement from '../AddressElement';
 const styles = StyleSheet.create({
 	root: {
 		flex: 1,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 	},
 	messageText: {
 		...fontStyles.normal,
-		color: colors.blue,
+		color: colors.primary,
 		fontSize: 16,
 		textAlign: 'center',
 	},
@@ -26,15 +27,15 @@ const styles = StyleSheet.create({
 	},
 	myAccountsTouchable: {
 		borderBottomWidth: 1,
-		borderBottomColor: colors.grey050,
+		borderBottomColor: colors.borderDefault,
 		padding: 16,
 	},
 	labelElementWrapper: {
-		backgroundColor: colors.grey000,
+		backgroundColor: colors.backgroundAlternative,
 		flexDirection: 'row',
 		alignItems: 'center',
 		borderBottomWidth: 1,
-		borderBottomColor: colors.grey050,
+		borderBottomColor: colors.borderDefault,
 		padding: 8,
 	},
 	labelElementInitialText: {
@@ -44,7 +45,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		fontSize: 12,
 		marginHorizontal: 8,
-		color: colors.grey600,
+		color: colors.textAlternative,
 	},
 });
 

@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { Text, StyleSheet, View, TouchableOpacity, InteractionManager } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, InteractionManager } from 'react-native';
+import Text from '../../Base/Text';
 import PropTypes from 'prop-types';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import ElevatedView from 'react-native-elevated-view';
@@ -16,8 +17,8 @@ const BROWSER_ROUTE = 'BrowserView';
 const styles = StyleSheet.create({
 	backupAlertWrapper: {
 		flex: 1,
-		backgroundColor: colors.orange000,
-		borderColor: colors.yellow300,
+		backgroundColor: colors.warning,
+		borderColor: colors.onWarning,
 		borderWidth: 1,
 		position: 'absolute',
 		left: 16,
@@ -31,17 +32,17 @@ const styles = StyleSheet.create({
 	backupAlertIcon: {
 		fontSize: 22,
 		...fontStyles.bold,
-		color: colors.black,
+		color: colors.textDefault,
 	},
 	backupAlertTitle: {
 		fontSize: 14,
 		marginBottom: 14,
-		color: colors.black,
+		color: colors.textDefault,
 		...fontStyles.bold,
 	},
 	backupAlertMessage: {
 		fontSize: 12,
-		color: colors.blue,
+		color: colors.primary,
 		marginLeft: 14,
 		flex: 1,
 		textAlign: 'right',

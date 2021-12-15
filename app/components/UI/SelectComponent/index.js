@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { ScrollView, StyleSheet, View, TouchableOpacity } from 'react-native';
+import Text from '../../Base/Text';
 import { Picker } from '@react-native-community/picker';
 import { fontStyles, colors, baseStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -25,7 +26,7 @@ const styles = StyleSheet.create({
 	selectedOption: {
 		flex: 1,
 		alignSelf: 'flex-start',
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		fontSize: 14,
 		paddingHorizontal: 15,
 		paddingTop: 10,
@@ -36,7 +37,7 @@ const styles = StyleSheet.create({
 		width: '100%',
 		paddingTop: 5,
 		height: 50,
-		borderBottomColor: colors.grey100,
+		borderBottomColor: colors.borderDefault,
 		borderBottomWidth: 1,
 	},
 	label: {
@@ -52,7 +53,7 @@ const styles = StyleSheet.create({
 		padding: 60,
 	},
 	modalView: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		justifyContent: 'center',
 		alignItems: 'center',
 		borderRadius: 10,
@@ -175,7 +176,7 @@ export default class SelectComponent extends PureComponent {
 					<Text style={styles.selectedOption} numberOfLines={1}>
 						{this.getSelectedValue()}
 					</Text>
-					<Icon name={'arrow-drop-down'} size={24} color={colors.fontPrimary} style={styles.iconDropdown} />
+					<Icon name={'arrow-drop-down'} size={24} color={colors.textDefault} style={styles.iconDropdown} />
 				</View>
 			</TouchableOpacity>
 			<Modal
@@ -202,7 +203,7 @@ export default class SelectComponent extends PureComponent {
 										{option.label}
 									</Text>
 									{this.props.selectedValue === option.value ? (
-										<IconCheck style={styles.icon} name="check" size={24} color={colors.blue} />
+										<IconCheck style={styles.icon} name="check" size={24} color={colors.primary} />
 									) : null}
 								</TouchableOpacity>
 							))}

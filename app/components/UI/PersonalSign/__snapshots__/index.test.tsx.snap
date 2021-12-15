@@ -21,14 +21,44 @@ exports[`PersonalSign should render correctly 1`] = `
     }
   >
     <Text
+      bold={false}
+      centered={false}
+      disclaimer={false}
+      error={false}
+      info={false}
+      link={false}
+      modal={false}
       onTextLayout={[Function]}
+      primary={false}
+      reset={false}
+      right={false}
+      small={false}
+      strikethrough={false}
+      success={false}
+      textAlternative={false}
+      textDefault={false}
+      underline={false}
+      upper={false}
+      warning={false}
     >
       <Text
+        bold={false}
+        centered={false}
+        disclaimer={false}
+        error={false}
+        info={false}
         key="txt_0"
+        link={false}
+        modal={false}
+        primary={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
         style={
           Array [
             Object {
-              "color": "#000000",
+              "color": "#ffffff",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
@@ -39,6 +69,12 @@ exports[`PersonalSign should render correctly 1`] = `
             },
           ]
         }
+        success={false}
+        textAlternative={false}
+        textDefault={false}
+        underline={false}
+        upper={false}
+        warning={false}
       >
         
 

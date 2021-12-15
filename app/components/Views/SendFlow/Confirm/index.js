@@ -80,12 +80,12 @@ const { hexToBN, BNToHex } = util;
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 	},
 	inputWrapper: {
 		flex: 0,
 		borderBottomWidth: 1,
-		borderBottomColor: colors.grey050,
+		borderBottomColor: colors.borderDefault,
 		paddingHorizontal: 8,
 	},
 	amountWrapper: {
@@ -96,14 +96,14 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		fontSize: 14,
 		textAlign: 'center',
-		color: colors.grey500,
+		color: colors.textAlternative,
 		textTransform: 'uppercase',
 		marginVertical: 3,
 	},
 	textAmount: {
 		...fontStyles.normal,
 		fontWeight: fontStyles.light.fontWeight,
-		color: colors.black,
+		color: colors.textDefault,
 		fontSize: 44,
 		textAlign: 'center',
 	},
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
 	},
 	actionText: {
 		...fontStyles.normal,
-		color: colors.blue,
+		color: colors.primary,
 		fontSize: 14,
 		alignSelf: 'center',
 	},
@@ -137,13 +137,13 @@ const styles = StyleSheet.create({
 	collectibleName: {
 		...fontStyles.normal,
 		fontSize: 18,
-		color: colors.black,
+		color: colors.textDefault,
 		textAlign: 'center',
 	},
 	collectibleTokenId: {
 		...fontStyles.normal,
 		fontSize: 12,
-		color: colors.grey500,
+		color: colors.textAlternative,
 		marginTop: 8,
 		textAlign: 'center',
 	},
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 36,
 		paddingBottom: 24,
 		paddingTop: 16,
-		backgroundColor: colors.grey000,
+		backgroundColor: colors.backgroundAlternative,
 		borderRadius: 8,
 		width: '100%',
 	},
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
 	},
 	addressTitle: {
 		...fontStyles.bold,
-		color: colors.black,
+		color: colors.textDefault,
 		alignItems: 'center',
 		justifyContent: 'center',
 		textAlign: 'center',
@@ -195,15 +195,15 @@ const styles = StyleSheet.create({
 		marginTop: 12,
 		paddingHorizontal: 10,
 		paddingVertical: 8,
-		backgroundColor: colors.red000,
-		borderColor: colors.red,
+		backgroundColor: colors.error,
+		borderColor: colors.onError,
 		borderRadius: 8,
 		borderWidth: 1,
 		justifyContent: 'center',
 		alignItems: 'center',
 	},
 	error: {
-		color: colors.red,
+		color: colors.onError,
 		fontSize: 12,
 		lineHeight: 16,
 		...fontStyles.normal,
@@ -1055,7 +1055,7 @@ class Confirm extends PureComponent {
 			>
 				<View style={styles.hexDataWrapper}>
 					<TouchableOpacity style={styles.hexDataClose} onPress={this.toggleHexDataModal}>
-						<IonicIcon name={'ios-close'} size={28} color={colors.black} />
+						<IonicIcon name={'ios-close'} size={28} color={colors.textDefault} />
 					</TouchableOpacity>
 					<View style={styles.qrCode}>
 						<Text style={styles.addressTitle}>{strings('transaction.hex_data')}</Text>
@@ -1336,7 +1336,7 @@ class Confirm extends PureComponent {
 						testID={'txn-confirm-send-button'}
 					>
 						{transactionConfirmed ? (
-							<ActivityIndicator size="small" color="white" />
+							<ActivityIndicator size="small" color={colors.onInverse} />
 						) : (
 							strings('transaction.send')
 						)}

@@ -10,7 +10,7 @@ const styles = StyleSheet.create({
 		marginTop: 10,
 		marginHorizontal: 24,
 		borderWidth: 1,
-		borderColor: colors.grey050,
+		borderColor: colors.borderDefault,
 		borderRadius: 8,
 		paddingVertical: 14,
 		paddingHorizontal: 16,
@@ -24,14 +24,14 @@ const styles = StyleSheet.create({
 
 const CustomNonce = ({ nonce, onNonceEdit }) => (
 	<TouchableOpacity style={styles.customNonce} onPress={onNonceEdit}>
-		<Text bold black>
+		<Text bold textDefault>
 			{strings('transaction.custom_nonce')}
 		</Text>
 		<Text bold link>
 			{'  '}
 			{strings('transaction.edit')}
 		</Text>
-		<Text bold black style={styles.nonceNumber}>
+		<Text bold textDefault style={styles.nonceNumber}>
 			{nonce}
 		</Text>
 	</TouchableOpacity>

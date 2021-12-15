@@ -7,7 +7,7 @@ import {
 	StyleProp,
 	TouchableOpacityProps,
 	ViewProps,
-	TextStyle
+	TextStyle,
 } from 'react-native';
 import { colors } from '../../styles/common';
 import CustomText from './Text';
@@ -17,27 +17,60 @@ const Text = CustomText as any;
 export enum AlertType {
 	Info = 'Info',
 	Warning = 'Warning',
-	Error = 'Error'
+	ErrorType = 'Error',
 }
 
-type Props = {
+interface Props {
 	type: AlertType;
 	style?: StyleProp<ViewStyle>;
 	small?: boolean;
 	renderIcon?: () => ReactNode;
 	onPress?: () => void;
 	children?: ReactNode;
-};
+}
+
+const styles = StyleSheet.create({
+	base: {
+		paddingHorizontal: 12,
+		paddingVertical: 8,
+		borderWidth: 1,
+		borderRadius: 8,
+		flexDirection: 'row',
+	},
+	baseSmall: {
+		paddingVertical: 8,
+	},
+	info: {
+		backgroundColor: colors.info,
+		borderColor: colors.onInfo,
+	},
+	warning: {
+		backgroundColor: colors.warning,
+		borderColor: colors.onWarning,
+	},
+	error: {
+		backgroundColor: colors.error,
+		borderColor: colors.onError,
+	},
+	baseTextStyle: { fontSize: 14, flex: 1, lineHeight: 17 },
+	textInfo: { color: colors.onInfo },
+	textWarning: { color: colors.onWarning },
+	textError: { color: colors.onError },
+	textIconStyle: { marginRight: 12 },
+	iconWrapper: {
+		alignItems: 'center',
+	},
+});
 
 const Alert = ({ type = AlertType.Info, small, renderIcon, style, onPress, children, ...props }: Props) => {
 	const Wrapper: React.ComponentClass<TouchableOpacityProps | ViewProps> = onPress ? TouchableOpacity : View;
 
-	const getStyles: (type: AlertType) => [StyleProp<ViewStyle>, StyleProp<TextStyle>] = useCallback(type => {
-		switch (type) {
+	const getStyles: (type: AlertType) => [StyleProp<ViewStyle>, StyleProp<TextStyle>] = useCallback((alertType) => {
+		switch (alertType) {
 			case AlertType.Warning: {
 				return [styles.warning, { ...styles.textWarning, ...styles.baseTextStyle }];
 			}
-			case AlertType.Error: {
+			case AlertType.ErrorType: {
 				return [styles.error, { ...styles.textError, ...styles.baseTextStyle }];
 			}
 			case AlertType.Info:
@@ -62,38 +95,5 @@ const Alert = ({ type = AlertType.Info, small, renderIcon, style, onPress, child
 		</Wrapper>
 	);
 };
-
-const styles = StyleSheet.create({
-	base: {
-		paddingHorizontal: 12,
-		paddingVertical: 8,
-		borderWidth: 1,
-		borderRadius: 8,
-		flexDirection: 'row'
-	},
-	baseSmall: {
-		paddingVertical: 8
-	},
-	info: {
-		backgroundColor: colors.blue100,
-		borderColor: colors.blue
-	},
-	warning: {
-		backgroundColor: colors.yellow100,
-		borderColor: colors.yellowWarningBorder
-	},
-	error: {
-		backgroundColor: colors.red000,
-		borderColor: colors.red
-	},
-	baseTextStyle: { fontSize: 14, flex: 1, lineHeight: 17 },
-	textInfo: { color: colors.blue },
-	textWarning: { color: colors.black },
-	textError: { color: colors.red },
-	textIconStyle: { marginRight: 12 },
-	iconWrapper: {
-		alignItems: 'center'
-	}
-});
 
 export default Alert;

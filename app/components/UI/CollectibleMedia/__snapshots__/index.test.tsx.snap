@@ -15,7 +15,7 @@ exports[`CollectibleMedia should render correctly 1`] = `
       Array [
         Object {
           "alignItems": "center",
-          "backgroundColor": "#d6d9dc",
+          "backgroundColor": "#3c3f42",
           "borderRadius": 8,
           "justifyContent": "center",
         },
@@ -28,16 +28,14 @@ exports[`CollectibleMedia should render correctly 1`] = `
     }
   >
     <Text
-      black={false}
-      blue={false}
       bold={false}
       centered={false}
       disclaimer={false}
-      green={false}
+      error={false}
+      info={false}
       link={false}
       modal={false}
       primary={false}
-      red={false}
       reset={false}
       right={false}
       small={false}
@@ -47,8 +45,12 @@ exports[`CollectibleMedia should render correctly 1`] = `
           "textAlign": "center",
         }
       }
+      success={false}
+      textAlternative={false}
+      textDefault={false}
       underline={false}
       upper={false}
+      warning={false}
     >
       NAME #123
     </Text>

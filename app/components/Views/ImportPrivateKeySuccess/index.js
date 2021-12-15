@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { TouchableOpacity, ScrollView, Text, View, StyleSheet, InteractionManager, BackHandler } from 'react-native';
+import { TouchableOpacity, ScrollView, View, StyleSheet, InteractionManager, BackHandler } from 'react-native';
+import Text from '../../Base/Text';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
@@ -13,7 +14,7 @@ import PreventScreenshot from '../../../core/PreventScreenshot';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.backgroundDefault,
 		flex: 1,
 	},
 	wrapper: {
@@ -26,7 +27,7 @@ const styles = StyleSheet.create({
 		fontSize: 32,
 		marginTop: 10,
 		marginBottom: 20,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		justifyContent: 'center',
 		textAlign: 'left',
 		...fontStyles.normal,
@@ -37,7 +38,7 @@ const styles = StyleSheet.create({
 	label: {
 		fontSize: 16,
 		lineHeight: 23,
-		color: colors.fontPrimary,
+		color: colors.textDefault,
 		textAlign: 'left',
 		...fontStyles.normal,
 	},
@@ -60,7 +61,7 @@ const styles = StyleSheet.create({
 	},
 	closeIcon: {
 		fontSize: 28,
-		color: colors.fontSecondary,
+		color: colors.textAlternative,
 	},
 });
 
@@ -129,7 +130,7 @@ class ImportPrivateKeySuccess extends PureComponent {
 							<MaterialIcon name="close" size={15} style={styles.closeIcon} />
 						</TouchableOpacity>
 						<View style={styles.top}>
-							<Icon name="ios-checkmark-circle-outline" style={styles.icon} color={colors.green500} />
+							<Icon name="ios-checkmark-circle-outline" style={styles.icon} color={colors.onSuccess} />
 							<Text style={styles.title}>{strings('import_private_key_success.title')}</Text>
 							<View style={styles.dataRow}>
 								<Text style={styles.label}>
