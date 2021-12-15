@@ -482,13 +482,14 @@ class ImportFromSeed extends PureComponent {
 								containerStyle={inputWidth}
 								inputContainerStyle={styles.padding}
 								placeholder={strings('import_from_seed.seed_phrase_placeholder')}
+								placeholderTextColor={colors.muted}
 								testID="input-seed-phrase"
 								returnKeyType="next"
 								autoCapitalize="none"
 								secureTextEntry={hideSeedPhraseInput}
 								onChangeText={this.onSeedWordsChange}
 								value={seed}
-								baseColor={colors.ui4}
+								baseColor={colors.borderDefault}
 								tintColor={colors.primary}
 								onSubmitEditing={this.jumpToPassword}
 							/>
@@ -536,13 +537,14 @@ class ImportFromSeed extends PureComponent {
 								containerStyle={inputWidth}
 								ref={this.passwordInput}
 								placeholder={strings('import_from_seed.new_password')}
+								placeholderTextColor={colors.muted}
 								testID={'input-password-field'}
 								returnKeyType={'next'}
 								autoCapitalize="none"
 								secureTextEntry={secureTextEntry}
 								onChangeText={this.onPasswordChange}
 								value={password}
-								baseColor={colors.ui4}
+								baseColor={colors.borderDefault}
 								tintColor={colors.primary}
 								onSubmitEditing={this.jumpToConfirmPassword}
 							/>
@@ -570,8 +572,9 @@ class ImportFromSeed extends PureComponent {
 								autoCapitalize="none"
 								secureTextEntry={secureTextEntry}
 								placeholder={strings('import_from_seed.confirm_password')}
+								placeholderTextColor={colors.muted}
 								value={confirmPassword}
-								baseColor={colors.ui4}
+								baseColor={colors.borderDefault}
 								tintColor={colors.primary}
 								onSubmitEditing={this.onPressImport}
 							/>

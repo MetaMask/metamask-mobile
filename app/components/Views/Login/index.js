@@ -127,6 +127,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		fontSize: 16,
 		paddingTop: 2,
+		color: colors.textDefault,
 	},
 	cant: {
 		width: 280,
@@ -560,9 +561,10 @@ class Login extends PureComponent {
 							onChangeText={this.checkDelete}
 							autoCapitalize="none"
 							value={this.state.deleteText}
-							baseColor={colors.ui4}
+							baseColor={colors.borderDefault}
 							tintColor={colors.primary}
 							onSubmitEditing={this.submitDelete}
+							placeholderTextColor={colors.muted}
 						/>
 						{this.state.showDeleteWarning && (
 							<Text style={styles.deleteWarningMsg}>{strings('login.cant_proceed')}</Text>
@@ -591,6 +593,7 @@ class Login extends PureComponent {
 							<OutlinedTextField
 								style={styles.input}
 								placeholder={strings('login.password')}
+								placeholderTextColor={colors.muted}
 								testID={'login-password-input'}
 								returnKeyType={'done'}
 								autoCapitalize="none"
@@ -598,7 +601,7 @@ class Login extends PureComponent {
 								ref={this.fieldRef}
 								onChangeText={this.setPassword}
 								value={this.state.password}
-								baseColor={colors.ui4}
+								baseColor={colors.borderDefault}
 								tintColor={colors.primary}
 								onSubmitEditing={this.triggerLogIn}
 								renderRightAccessory={() => (
