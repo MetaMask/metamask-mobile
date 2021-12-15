@@ -36,6 +36,7 @@ const styles = StyleSheet.create({
 	input: {
 		...fontStyles.bold,
 		backgroundColor: colors.backgroundDefault,
+		color: colors.textDefault,
 		marginRight: 24,
 		paddingLeft: 0,
 		minWidth: Device.isSmallDevice() ? 100 : 120,

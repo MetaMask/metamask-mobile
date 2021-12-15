@@ -22,6 +22,7 @@ const styles = StyleSheet.create({
 		borderColor: colors.borderDefault,
 	},
 	textInput: {
+		color: colors.textDefault,
 		...fontStyles.normal,
 	} as StyleSheet.NamedStyles<any>,
 	icon: {

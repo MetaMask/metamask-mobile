@@ -100,6 +100,7 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 						cover && styles.cover,
 						style,
 					]}
+					placeholderStyle={{ backgroundColor: colors.backgroundAlternative }}
 					onError={fallback}
 				/>
 			);

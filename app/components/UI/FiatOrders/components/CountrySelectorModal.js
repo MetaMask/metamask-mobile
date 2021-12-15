@@ -47,6 +47,7 @@ const styles = StyleSheet.create({
 	},
 	input: {
 		...fontStyles.normal,
+		color: colors.textDefault,
 		flex: 1,
 	},
 	modalTitle: {

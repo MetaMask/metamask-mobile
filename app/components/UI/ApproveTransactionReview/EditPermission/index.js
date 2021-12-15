@@ -69,6 +69,7 @@ const styles = StyleSheet.create({
 		borderColor: colors.borderDefault,
 		borderRadius: 10,
 		borderWidth: 2,
+		color: colors.textDefault,
 	},
 	spendLimitContent: {
 		marginLeft: 8,

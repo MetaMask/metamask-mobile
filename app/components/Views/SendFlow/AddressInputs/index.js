@@ -88,6 +88,7 @@ const styles = StyleSheet.create({
 		paddingLeft: 0,
 		paddingRight: 8,
 		width: '100%',
+		color: colors.textDefault,
 	},
 	scanIcon: {
 		flexDirection: 'column',

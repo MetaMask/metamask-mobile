@@ -73,7 +73,6 @@ const styles = StyleSheet.create({
 		marginTop: 4,
 		width: 90,
 		height: 18,
-		color: colors.textDefault,
 	},
 	account: {
 		flex: 1,
