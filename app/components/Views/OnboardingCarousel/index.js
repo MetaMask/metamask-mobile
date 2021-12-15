@@ -20,7 +20,7 @@ const IMAGE_2_RATIO = 222 / 239;
 const IMAGE_1_RATIO = 285 / 203;
 const DEVICE_WIDTH = Dimensions.get('window').width;
 
-const IMG_PADDING = Device.isIphoneX() ? 100 : Device.isIphone5S() ? 180 : 220;
+const IMG_PADDING = Device.isIpad() ? DEVICE_WIDTH / 2 : Device.isIphoneX() ? 100 : Device.isIphone5S() ? 180 : 200;
 
 const styles = StyleSheet.create({
 	scroll: {
@@ -52,8 +52,10 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 40,
 		paddingBottom: Device.isIphoneX() ? 40 : 20,
 		flexDirection: 'column',
+		alignItems: Device.isIpad() ? 'center' : undefined,
 	},
 	ctaWrapper: {
+		width: Device.isIpad() ? Device.maxWidth : undefined,
 		justifyContent: 'flex-end',
 	},
 	carouselImage: {},
@@ -185,7 +187,7 @@ class OnboardingCarousel extends PureComponent {
 												<Image
 													source={carousel_images[index]}
 													style={[styles.carouselImage, styles[imgStyleKey]]}
-													resizeMethod={'auto'}
+													resizeMode={'contain'}
 													testID={`carousel-${value}-image`}
 												/>
 											</View>

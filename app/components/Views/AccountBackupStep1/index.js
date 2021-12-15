@@ -70,6 +70,7 @@ const styles = StyleSheet.create({
 	buttonWrapper: {
 		flex: 1,
 		justifyContent: 'flex-end',
+		alignItems: Device.isIpad() ? 'center' : undefined,
 	},
 	bold: {
 		...fontStyles.bold,
@@ -100,6 +101,7 @@ const styles = StyleSheet.create({
 	},
 	remindLaterContainer: {
 		marginBottom: 34,
+		width: Device.isIpad() ? Device.maxWidth : undefined,
 	},
 	remindLaterButton: {
 		elevation: 10,
@@ -107,6 +109,7 @@ const styles = StyleSheet.create({
 	},
 	ctaContainer: {
 		marginBottom: 30,
+		width: Device.isIpad() ? Device.maxWidth : undefined,
 	},
 });
 

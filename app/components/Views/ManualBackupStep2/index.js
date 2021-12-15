@@ -20,6 +20,7 @@ const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
 		paddingHorizontal: 32,
+		...(Device.isIpad() ? { width: Device.maxWidth, alignSelf: 'center' } : {}),
 	},
 	onBoardingWrapper: {
 		paddingHorizontal: 20,

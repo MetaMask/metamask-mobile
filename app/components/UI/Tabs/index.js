@@ -85,6 +85,9 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.transparent,
 	},
 	tabsContent: {
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+		justifyContent: 'space-between',
 		padding: 15,
 		backgroundColor: colors.transparent,
 	},
@@ -211,11 +214,11 @@ export default class Tabs extends PureComponent {
 	renderTabs(tabs, activeTab) {
 		return (
 			<ScrollView style={styles.tabs} contentContainerStyle={styles.tabsContent} ref={this.scrollview}>
-				{tabs.map((tab) => (
+				{tabs.map((tab, index) => (
 					// eslint-disable-next-line react/jsx-key
 					<TabThumbnail
 						ref={this.thumbnails[tab.id]}
-						key={tab.id}
+						key={`${tab.id}-${index}`}
 						tab={tab}
 						isActiveTab={activeTab === tab.id}
 						onClose={this.props.closeTab}

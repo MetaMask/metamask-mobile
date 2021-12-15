@@ -14,12 +14,6 @@ const styles = StyleSheet.create({
 		left: 0,
 		right: 0,
 		position: 'absolute',
-		borderTopWidth: 0,
-		borderColor: colors.white,
-		backgroundColor: colors.white,
-		flex: 1,
-		width: null,
-		height: null,
 	},
 });
 

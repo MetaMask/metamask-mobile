@@ -34,6 +34,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
+		...(Device.isIpad() ? { width: Device.maxWidth, alignSelf: 'center' } : {}),
 	},
 	body: {
 		alignItems: 'center',
@@ -238,7 +239,7 @@ class ReceiveRequest extends PureComponent {
 								>
 									<QRCode
 										value={`ethereum:${this.props.selectedAddress}`}
-										size={Dimensions.get('window').width / 2}
+										size={(Device.isIpad() ? Device.maxWidth : Dimensions.get('window').width) / 2}
 									/>
 								</TouchableOpacity>
 								<Modal

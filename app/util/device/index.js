@@ -95,4 +95,6 @@ export default class Device {
 	static hasNotch() {
 		return hasNotch();
 	}
+
+	static maxWidth = 420;
 }

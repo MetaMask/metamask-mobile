@@ -146,6 +146,7 @@ const styles = StyleSheet.create({
 		marginBottom: 6,
 		alignItems: 'stretch',
 		paddingHorizontal: 20,
+		...(Device.isIpad() ? { alignSelf: 'center', width: Device.maxWidth } : {}),
 	},
 	sliderButtonText: {
 		fontSize: 16,

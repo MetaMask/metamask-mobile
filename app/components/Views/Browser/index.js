@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
-import { View, Dimensions } from 'react-native';
+import { View, Dimensions, LayoutAnimation } from 'react-native';
 import PropTypes from 'prop-types';
 import { createNewTab, closeAllTabs, closeTab, setActiveTab, updateTab } from '../../../actions/browser';
 import Tabs from '../../UI/Tabs';
@@ -124,6 +124,8 @@ class Browser extends PureComponent {
 
 	closeAllTabs = () => {
 		if (this.props.tabs.length) {
+			LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+
 			this.props.closeAllTabs();
 			this.props.navigation.setParams({
 				...this.props.route.params,
@@ -142,6 +144,8 @@ class Browser extends PureComponent {
 	};
 
 	closeTab = (tab) => {
+		LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+
 		const { activeTab, tabs } = this.props;
 
 		// If the tab was selected we have to select

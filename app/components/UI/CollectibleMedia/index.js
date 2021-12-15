@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, ViewPropTypes } from 'react-native';
+import { StyleSheet, useWindowDimensions, View, ViewPropTypes } from 'react-native';
 import RemoteImage from '../../Base/RemoteImage';
 import MediaPlayer from '../../Views/MediaPlayer';
 import { colors } from '../../../styles/common';
@@ -62,6 +62,18 @@ const styles = StyleSheet.create({
 export default function CollectibleMedia({ collectible, renderAnimation, style, tiny, small, big, cover, onClose }) {
 	const [sourceUri, setSourceUri] = useState(null);
 	const [isUniV3NFT, setIsUniV3NFT] = useState(false);
+	const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+
+	const coverDimensions = useMemo(() => {
+		if (!cover || !Device.isIpad()) return null;
+		const isPortrait = windowHeight > windowWidth;
+
+		return {
+			height: isPortrait
+				? scaling.scale(windowWidth - MEDIA_WIDTH_MARGIN, { baseModel: 2 })
+				: scaling.scale((windowHeight * 3) / 5 - MEDIA_WIDTH_MARGIN, { baseModel: 2 }),
+		};
+	}, [cover, windowHeight, windowWidth]);
 
 	const fallback = () => setSourceUri(null);
 
@@ -80,7 +92,7 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 				<MediaPlayer
 					onClose={onClose}
 					uri={collectible.animation}
-					style={[styles.mediaPlayer, cover && styles.cover, style]}
+					style={[styles.mediaPlayer, cover && styles.cover, cover && coverDimensions, style]}
 				/>
 			);
 		} else if (sourceUri && (!isUniV3NFT || tiny)) {
@@ -98,6 +110,7 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 						small && styles.smallImage,
 						big && styles.bigImage,
 						cover && styles.cover,
+						cover && coverDimensions,
 						style,
 					]}
 					onError={fallback}
@@ -120,7 +133,7 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 				</Text>
 			</View>
 		);
-	}, [collectible, sourceUri, isUniV3NFT, onClose, renderAnimation, style, tiny, small, big, cover]);
+	}, [collectible, sourceUri, isUniV3NFT, onClose, renderAnimation, style, tiny, small, big, cover, coverDimensions]);
 
 	return <View style={styles.container(collectible.backgroundColor)}>{renderMedia()}</View>;
 }

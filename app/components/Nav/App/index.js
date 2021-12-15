@@ -34,6 +34,7 @@ import { connect, useSelector, useDispatch } from 'react-redux';
 import { EXISTING_USER, CURRENT_APP_VERSION, LAST_APP_VERSION } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
 import { checkedAuth } from '../../../actions/user';
+import Device from '../../../util/device';
 
 const styles = StyleSheet.create({
 	fill: { flex: 1 },
@@ -112,6 +113,7 @@ const OnboardingRootNav = () => (
 const HomeNav = () => (
 	<Drawer.Navigator
 		drawerContent={(props) => <DrawerView {...props} />}
+		drawerType={Device.isIpad() ? 'slide' : 'front'}
 		// eslint-disable-next-line
 		drawerStyle={{
 			backgroundColor: 'rgba(0, 0, 0, 0.5)',

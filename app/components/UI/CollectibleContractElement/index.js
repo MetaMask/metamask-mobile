@@ -1,11 +1,11 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Alert, useWindowDimensions } from 'react-native';
 import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../styles/common';
 import CollectibleMedia from '../CollectibleMedia';
 import Icon from 'react-native-vector-icons/Ionicons';
-import Device from '../../../util/device';
+
 import AntIcons from 'react-native-vector-icons/AntDesign';
 import Text from '../../Base/Text';
 import ActionSheet from 'react-native-actionsheet';
@@ -13,9 +13,6 @@ import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
-
-const DEVICE_WIDTH = Device.getDeviceWidth();
-const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
 
 const styles = StyleSheet.create({
 	itemWrapper: {
@@ -36,10 +33,6 @@ const styles = StyleSheet.create({
 		fontSize: 18,
 		color: colors.black,
 		...fontStyles.normal,
-	},
-	collectibleIcon: {
-		width: COLLECTIBLE_WIDTH,
-		height: COLLECTIBLE_WIDTH,
 	},
 	collectibleInTheMiddle: {
 		marginHorizontal: 8,
@@ -134,6 +127,15 @@ function CollectibleContractElement({
 			refreshMetadata();
 		}
 	};
+	const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+	const collectibleIconDimensions = useMemo(() => {
+		const isPortrait = windowHeight > windowWidth;
+		const size = (windowWidth - 30 - 16) / (isPortrait ? 3 : 6);
+		return {
+			width: size,
+			height: size,
+		};
+	}, [windowWidth, windowHeight]);
 
 	const renderCollectible = useCallback(
 		(collectible, index) => {
@@ -146,13 +148,16 @@ function CollectibleContractElement({
 				<View key={collectible.address + collectible.tokenId} styles={styles.collectibleBox}>
 					<TouchableOpacity onPress={onPress} onLongPress={onLongPress}>
 						<View style={index === 1 ? styles.collectibleInTheMiddle : {}}>
-							<CollectibleMedia style={styles.collectibleIcon} collectible={{ ...collectible, name }} />
+							<CollectibleMedia
+								style={collectibleIconDimensions}
+								collectible={{ ...collectible, name }}
+							/>
 						</View>
 					</TouchableOpacity>
 				</View>
 			);
 		},
-		[asset.favorites, collectibleContracts, onPressCollectible, onLongPressCollectible]
+		[asset.favorites, collectibleContracts, onPressCollectible, onLongPressCollectible, collectibleIconDimensions]
 	);
 
 	useEffect(() => {

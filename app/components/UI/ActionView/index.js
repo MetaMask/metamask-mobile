@@ -5,6 +5,7 @@ import { Keyboard, StyleSheet, View, ActivityIndicator, TouchableWithoutFeedback
 import { baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import Device from '../../../util/device';
 
 const styles = StyleSheet.create({
 	actionContainer: {
@@ -12,6 +13,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		paddingVertical: 16,
 		paddingHorizontal: 24,
+		...(Device.isIpad() ? { width: Device.maxWidth, alignSelf: 'center' } : {}),
 	},
 	button: {
 		flex: 1,

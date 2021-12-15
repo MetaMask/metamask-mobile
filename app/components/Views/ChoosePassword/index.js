@@ -115,7 +115,6 @@ const styles = StyleSheet.create({
 		width: 18,
 		height: 18,
 		margin: 10,
-		marginTop: -5,
 	},
 	label: {
 		...fontStyles.normal,

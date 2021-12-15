@@ -18,7 +18,7 @@ const IMAGE_2_RATIO = 353 / 416;
 const IMAGE_1_RATIO = 295 / 354;
 const DEVICE_WIDTH = Dimensions.get('window').width;
 
-const IMG_PADDING = Device.isIphone5() ? 220 : 200;
+const IMG_PADDING = Device.isIpad() ? DEVICE_WIDTH / 2 : Device.isIphoneX() ? 100 : Device.isIphone5S() ? 180 : 200;
 
 const styles = StyleSheet.create({
 	scroll: {

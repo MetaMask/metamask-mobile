@@ -22,7 +22,7 @@ import Share from 'react-native-share';
 import { PanGestureHandler, gestureHandlerRootHOC, ScrollView } from 'react-native-gesture-handler';
 import AppConstants from '../../../core/AppConstants';
 
-const ANIMATION_VELOCITY = 250;
+const ANIMATION_VELOCITY = 200;
 const HAS_NOTCH = Device.hasNotch();
 const ANIMATION_OFFSET = HAS_NOTCH ? 30 : 50;
 const IS_SMALL_DEVICE = Device.isSmallDevice();
@@ -228,7 +228,7 @@ const CollectibleOverview = ({
 			Animated.timing(positionAnimated, {
 				toValue,
 				duration,
-				easing: Easing.ease,
+				easing: Easing.exp,
 				useNativeDriver: true,
 			}).start(() => {
 				setPosition(toValue);

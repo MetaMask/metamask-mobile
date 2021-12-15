@@ -1,5 +1,6 @@
 import React from 'react';
-import { SafeAreaView, StyleSheet, ScrollView } from 'react-native';
+import { StyleSheet, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '../../../../styles/common';
 
 const styles = StyleSheet.create({
@@ -10,7 +11,7 @@ const styles = StyleSheet.create({
 });
 
 const ScreenView = (props) => (
-	<SafeAreaView style={styles.wrapper}>
+	<SafeAreaView style={styles.wrapper} edges={['bottom']}>
 		<ScrollView {...props} />
 	</SafeAreaView>
 );
