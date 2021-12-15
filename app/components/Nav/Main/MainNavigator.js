@@ -50,6 +50,7 @@ import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import GasEducationCarousel from '../../Views/GasEducationCarousel';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
+import ThemeSettings from '../../UI/ThemeSettings';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -115,77 +116,104 @@ const Webview = () => (
 	</Stack.Navigator>
 );
 
-const SettingsView = () => (
-	<Stack.Navigator>
-		<Stack.Screen name="Settings" component={Settings} options={Settings.navigationOptions} />
-		<Stack.Screen name="GeneralSettings" component={GeneralSettings} options={GeneralSettings.navigationOptions} />
-		<Stack.Screen
-			name="AdvancedSettings"
-			component={AdvancedSettings}
-			options={AdvancedSettings.navigationOptions}
-		/>
-		<Stack.Screen
-			name="SecuritySettings"
-			component={SecuritySettings}
-			options={SecuritySettings.navigationOptions}
-		/>
-		<Stack.Screen
-			name="ExperimentalSettings"
-			component={ExperimentalSettings}
-			options={ExperimentalSettings.navigationOptions}
-		/>
-		<Stack.Screen
-			name="NetworksSettings"
-			component={NetworksSettings}
-			options={NetworksSettings.navigationOptions}
-		/>
-		<Stack.Screen name="NetworkSettings" component={NetworkSettings} options={NetworkSettings.navigationOptions} />
-		<Stack.Screen name="CompanySettings" component={AppInformation} options={AppInformation.navigationOptions} />
-		<Stack.Screen name="ContactsSettings" component={Contacts} options={Contacts.navigationOptions} />
-		<Stack.Screen name="ContactForm" component={ContactForm} options={ContactForm.navigationOptions} />
-		<Stack.Screen
-			name="RevealPrivateCredentialView"
-			component={RevealPrivateCredential}
-			options={RevealPrivateCredential.navigationOptions}
-		/>
-		<Stack.Screen
-			name="WalletConnectSessionsView"
-			component={WalletConnectSessions}
-			options={WalletConnectSessions.navigationOptions}
-		/>
-		<Stack.Screen
-			name="ChoosePasswordSimple"
-			component={ChoosePasswordSimple}
-			options={ChoosePasswordSimple.navigationOptions}
-		/>
-		<Stack.Screen name="ResetPassword" component={ResetPassword} options={ResetPassword.navigationOptions} />
-		<Stack.Screen
-			name="AccountBackupStep1B"
-			component={AccountBackupStep1B}
-			options={AccountBackupStep1B.navigationOptions}
-		/>
-		<Stack.Screen
-			name="ManualBackupStep1"
-			component={ManualBackupStep1}
-			options={ManualBackupStep1.navigationOptions}
-		/>
-		<Stack.Screen
-			name="ManualBackupStep2"
-			component={ManualBackupStep2}
-			options={ManualBackupStep2.navigationOptions}
-		/>
-		<Stack.Screen
-			name="ManualBackupStep3"
-			component={ManualBackupStep3}
-			options={ManualBackupStep3.navigationOptions}
-		/>
-		<Stack.Screen
-			name="EnterPasswordSimple"
-			component={EnterPasswordSimple}
-			options={EnterPasswordSimple.navigationOptions}
-		/>
-	</Stack.Navigator>
-);
+const SettingsView = () => {
+	return (
+		<Stack.Navigator>
+			<Stack.Screen name="Settings" component={Settings} options={Settings.navigationOptions} />
+			<Stack.Screen
+				name="GeneralSettings"
+				component={GeneralSettings}
+				options={GeneralSettings.navigationOptions}
+			/>
+			<Stack.Screen
+				name="AdvancedSettings"
+				component={AdvancedSettings}
+				options={AdvancedSettings.navigationOptions}
+			/>
+			<Stack.Screen
+				name="SecuritySettings"
+				component={SecuritySettings}
+				options={SecuritySettings.navigationOptions}
+			/>
+			<Stack.Screen
+				name="ExperimentalSettings"
+				component={ExperimentalSettings}
+				options={ExperimentalSettings.navigationOptions}
+			/>
+			<Stack.Screen
+				name="NetworksSettings"
+				component={NetworksSettings}
+				options={NetworksSettings.navigationOptions}
+			/>
+			<Stack.Screen
+				name="NetworkSettings"
+				component={NetworkSettings}
+				options={NetworkSettings.navigationOptions}
+			/>
+			<Stack.Screen
+				name="CompanySettings"
+				component={AppInformation}
+				options={AppInformation.navigationOptions}
+			/>
+			<Stack.Screen name="ContactsSettings" component={Contacts} options={Contacts.navigationOptions} />
+			<Stack.Screen name="ContactForm" component={ContactForm} options={ContactForm.navigationOptions} />
+			<Stack.Screen
+				name="RevealPrivateCredentialView"
+				component={RevealPrivateCredential}
+				options={RevealPrivateCredential.navigationOptions}
+			/>
+			<Stack.Screen
+				name="WalletConnectSessionsView"
+				component={WalletConnectSessions}
+				options={WalletConnectSessions.navigationOptions}
+			/>
+			<Stack.Screen
+				name="ChoosePasswordSimple"
+				component={ChoosePasswordSimple}
+				options={ChoosePasswordSimple.navigationOptions}
+			/>
+			<Stack.Screen name="ResetPassword" component={ResetPassword} options={ResetPassword.navigationOptions} />
+			<Stack.Screen
+				name="AccountBackupStep1B"
+				component={AccountBackupStep1B}
+				options={AccountBackupStep1B.navigationOptions}
+			/>
+			<Stack.Screen
+				name="ManualBackupStep1"
+				component={ManualBackupStep1}
+				options={ManualBackupStep1.navigationOptions}
+			/>
+			<Stack.Screen
+				name="ManualBackupStep2"
+				component={ManualBackupStep2}
+				options={ManualBackupStep2.navigationOptions}
+			/>
+			<Stack.Screen
+				name="ManualBackupStep3"
+				component={ManualBackupStep3}
+				options={ManualBackupStep3.navigationOptions}
+			/>
+			<Stack.Screen
+				name="EnterPasswordSimple"
+				component={EnterPasswordSimple}
+				options={EnterPasswordSimple.navigationOptions}
+			/>
+		</Stack.Navigator>
+	);
+};
+
+const SettingsModalStack = () => {
+	return (
+		<Stack.Navigator
+			initialRouteName={'Settings'}
+			mode={'modal'}
+			screenOptions={{ headerShown: false, cardStyle: { backgroundColor: 'transparent' } }}
+		>
+			<Stack.Screen name={'Settings'} component={SettingsView} />
+			<Stack.Screen name={'ThemeSettings'} component={ThemeSettings} options={{ animationEnabled: false }} />
+		</Stack.Navigator>
+	);
+};
 
 const ImportPrivateKeyView = () => (
 	<Stack.Navigator
@@ -318,7 +346,7 @@ const MainNavigator = () => (
 		/>
 		<Stack.Screen name="Home" tabBarVisible={false} component={HomeTabs} />
 		<Stack.Screen name="Webview" component={Webview} />
-		<Stack.Screen name="SettingsView" component={SettingsView} />
+		<Stack.Screen name="SettingsView" component={SettingsModalStack} />
 		<Stack.Screen name="ImportPrivateKeyView" component={ImportPrivateKeyView} />
 		<Stack.Screen name="SendView" component={SendView} />
 		<Stack.Screen name="SendFlowView" component={SendFlowView} />

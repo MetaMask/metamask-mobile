@@ -18,7 +18,8 @@ import Animated, {
 	set,
 } from 'react-native-reanimated';
 import { onGestureEvent, withSpring, clamp, timing } from 'react-native-redash';
-import styles from './styles';
+// import styles from './styles';
+import { useAppThemeFromContext } from '../../../util/theme';
 const screenHeight = Dimensions.get('window').height;
 
 type DismissModal = () => void;
@@ -41,6 +42,20 @@ const ReusableModal = forwardRef<ReusableModalRef, Props>((props, ref) => {
 	const navigation = useNavigation();
 	const safeAreaInsets = useSafeAreaInsets();
 	const trigger = useRef<DismissModal>();
+
+	const { colors } = useAppThemeFromContext();
+	const styles = StyleSheet.create({
+		container: {
+			flex: 1,
+		},
+		overlayBackground: {
+			backgroundColor: colors.overlay,
+			...StyleSheet.absoluteFillObject,
+		},
+		fill: {
+			flex: 1,
+		},
+	});
 
 	// Animation config
 	const animationConfig: Omit<Animated.SpringConfig, 'toValue'> = {
@@ -129,7 +144,7 @@ const ReusableModal = forwardRef<ReusableModalRef, Props>((props, ref) => {
 				flex: 1,
 			},
 		};
-	}, [topOffset, bottomOffset, translateY, safeAreaInsets]);
+	}, [topOffset, bottomOffset, translateY, safeAreaInsets, styles]);
 
 	// Declarative logic that animates overlay
 	useCode(
@@ -187,7 +202,7 @@ const ReusableModal = forwardRef<ReusableModalRef, Props>((props, ref) => {
 
 	const renderOverlay = useCallback(() => {
 		return <Animated.View style={[styles.overlayBackground, animatedStyles.overlayBackground]} />;
-	}, [animatedStyles]);
+	}, [animatedStyles, styles]);
 
 	const renderContent = useCallback(() => {
 		return (

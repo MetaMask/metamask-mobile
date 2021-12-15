@@ -2,6 +2,7 @@ import { Colors } from '../models';
 
 const colors: Colors = {
 	white: '#ffffff',
+	overlay: 'rgba(0,0,0, 0.7)',
 	grey000: '#f2f3f4',
 	grey100: '#d6d9dc',
 	grey200: '#bbc0c5',

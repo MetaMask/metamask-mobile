@@ -8,6 +8,7 @@ const colors: Colors = {
 	backgroundAlternative: baseColors.grey000,
 	borderDefault: baseColors.grey100,
 	muted: baseColors.grey100,
+	overlay: baseColors.overlay,
 };
 
 export default colors;

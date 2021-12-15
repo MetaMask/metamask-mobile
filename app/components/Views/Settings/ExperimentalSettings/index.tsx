@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
-import { StyleSheet, ScrollView, View, Switch, InteractionManager } from 'react-native';
+import { StyleSheet, ScrollView, View, Switch, InteractionManager, TouchableOpacity } from 'react-native';
 import Text from '../../../Base/Text';
 import StyledButton from '../../../UI/StyledButton';
 import { fontStyles } from '../../../../styles/common';
@@ -113,8 +113,19 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 					</View>
 				</View>
 			) : null,
-		[isTokenDetectionEnabled, toggleTokenDetection, isMainnet, colors]
+		[isTokenDetectionEnabled, toggleTokenDetection, isMainnet, colors, styles]
 	);
+
+	const renderThemeSettingsSection = () => {
+		return (
+			<TouchableOpacity
+				style={{ height: 50, width: 50, backgroundColor: 'red' }}
+				onPress={() => {
+					navigation.navigate('ThemeSettings');
+				}}
+			/>
+		);
+	};
 
 	return (
 		<ScrollView style={styles.wrapper}>
@@ -132,6 +143,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 				</View>
 			</View>
 			{renderTokenDetectionSection()}
+			{renderThemeSettingsSection()}
 		</ScrollView>
 	);
 };
