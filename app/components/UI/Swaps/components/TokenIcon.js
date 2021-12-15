@@ -93,6 +93,7 @@ function TokenIcon({ symbol, icon, medium, big, biggest, style }) {
 					biggest && styles.iconBiggest,
 					style,
 				]}
+				placeholderStyle={{ backgroundColor: colors.backgroundAlternative }}
 			/>
 		);
 	} else if (icon) {
@@ -107,6 +108,7 @@ function TokenIcon({ symbol, icon, medium, big, biggest, style }) {
 					biggest && styles.iconBiggest,
 					style,
 				]}
+				placeholderStyle={{ backgroundColor: colors.backgroundAlternative }}
 			/>
 		);
 	} else if (symbol) {

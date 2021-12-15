@@ -75,7 +75,7 @@ const MetaMaskAnimation = ({
 						style={styles.metamaskName}
 						loop={false}
 						// eslint-disable-next-line
-						source={require('../../../animations/wordmark.json')}
+						source={require('../../../animations/wordmark-reverse.json')}
 					/>
 				</View>
 			</View>
