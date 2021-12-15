@@ -27,79 +27,11 @@ import { isSwapsAllowed } from '../Swaps/utils';
 import Identicon from '../Identicon';
 import AssetActionButton from '../AssetActionButton';
 import EthereumAddress from '../EthereumAddress';
-import { colors, fontStyles, baseStyles } from '../../../styles/common';
+import { fontStyles, baseStyles } from '../../../styles/common';
 import { allowedToBuy } from '../FiatOrders';
 import AssetSwapButton from '../Swaps/components/AssetSwapButton';
 import ClipboardManager from '../../../core/ClipboardManager';
-
-const styles = StyleSheet.create({
-	scrollView: {
-		backgroundColor: colors.backgroundDefault,
-	},
-	wrapper: {
-		paddingTop: 20,
-		paddingHorizontal: 20,
-		paddingBottom: 0,
-		alignItems: 'center',
-	},
-	info: {
-		justifyContent: 'center',
-		alignItems: 'center',
-		textAlign: 'center',
-	},
-	data: {
-		textAlign: 'center',
-		paddingTop: 7,
-	},
-	label: {
-		fontSize: 24,
-		textAlign: 'center',
-		color: colors.textDefault,
-		...fontStyles.normal,
-	},
-	labelInput: {
-		marginBottom: Device.isAndroid() ? -10 : 0,
-	},
-	addressWrapper: {
-		backgroundColor: colors.backgroundAlternative,
-		borderRadius: 40,
-		marginTop: 20,
-		marginBottom: 20,
-		paddingVertical: 7,
-		paddingHorizontal: 15,
-	},
-	address: {
-		fontSize: 12,
-		color: colors.textAlternative,
-		...fontStyles.normal,
-		letterSpacing: 0.8,
-	},
-	amountFiat: {
-		fontSize: 12,
-		paddingTop: 5,
-		color: colors.textAlternative,
-		...fontStyles.normal,
-	},
-	identiconBorder: {
-		borderRadius: 80,
-		borderWidth: 2,
-		padding: 2,
-		borderColor: colors.primary,
-	},
-	onboardingWizardLabel: {
-		borderWidth: 2,
-		borderRadius: 4,
-		paddingVertical: Device.isIos() ? 2 : -4,
-		paddingHorizontal: Device.isIos() ? 5 : 5,
-		top: Device.isIos() ? 0 : -2,
-	},
-	actions: {
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'flex-start',
-		flexDirection: 'row',
-	},
-});
+import { ThemeContext } from '../../../components/Nav/App/context';
 
 /**
  * View that's part of the <Wallet /> component
@@ -310,6 +242,76 @@ class AccountOverview extends PureComponent {
 		if (!address) return null;
 		const { accountLabelEditable, accountLabel, ens } = this.state;
 
+		const { colors } = this.context;
+		const styles = StyleSheet.create({
+			scrollView: {
+				backgroundColor: colors.backgroundDefault,
+			},
+			wrapper: {
+				paddingTop: 20,
+				paddingHorizontal: 20,
+				paddingBottom: 0,
+				alignItems: 'center',
+			},
+			info: {
+				justifyContent: 'center',
+				alignItems: 'center',
+				textAlign: 'center',
+			},
+			data: {
+				textAlign: 'center',
+				paddingTop: 7,
+			},
+			label: {
+				fontSize: 24,
+				textAlign: 'center',
+				color: colors.textDefault,
+				...fontStyles.normal,
+			},
+			labelInput: {
+				marginBottom: Device.isAndroid() ? -10 : 0,
+			},
+			addressWrapper: {
+				backgroundColor: colors.backgroundAlternative,
+				borderRadius: 40,
+				marginTop: 20,
+				marginBottom: 20,
+				paddingVertical: 7,
+				paddingHorizontal: 15,
+			},
+			address: {
+				fontSize: 12,
+				color: colors.textAlternative,
+				...fontStyles.normal,
+				letterSpacing: 0.8,
+			},
+			amountFiat: {
+				fontSize: 12,
+				paddingTop: 5,
+				color: colors.textAlternative,
+				...fontStyles.normal,
+			},
+			identiconBorder: {
+				borderRadius: 80,
+				borderWidth: 2,
+				padding: 2,
+				borderColor: colors.primary,
+			},
+			onboardingWizardLabel: {
+				borderWidth: 2,
+				borderRadius: 4,
+				paddingVertical: Device.isIos() ? 2 : -4,
+				paddingHorizontal: Device.isIos() ? 5 : 5,
+				top: Device.isIos() ? 0 : -2,
+			},
+			actions: {
+				flex: 1,
+				justifyContent: 'center',
+				alignItems: 'flex-start',
+				flexDirection: 'row',
+			},
+		});
+
 		return (
 			<View style={baseStyles.flexGrow} ref={this.scrollViewContainer} collapsable={false}>
 				<ScrollView
@@ -409,6 +411,8 @@ class AccountOverview extends PureComponent {
 		);
 	}
 }
+
+AccountOverview.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
