@@ -591,7 +591,7 @@ class Settings extends PureComponent {
 							) : null}
 						</SettingsNotification>
 						{!seedphraseBackedUp ? (
-							<StyledButton type="blue" onPress={this.goToBackup} containerStyle={styles.confirm}>
+							<StyledButton type="primary" onPress={this.goToBackup} containerStyle={styles.confirm}>
 								{strings('app_settings.back_up_now')}
 							</StyledButton>
 						) : (
@@ -604,7 +604,7 @@ class Settings extends PureComponent {
 									{strings('app_settings.back_up_again')}
 								</StyledButton>
 								<StyledButton
-									type="blue"
+									type="primary"
 									onPress={this.goToRevealPrivateCredential}
 									containerStyle={[styles.confirm, styles.col]}
 									testID={'reveal-seed-button'}

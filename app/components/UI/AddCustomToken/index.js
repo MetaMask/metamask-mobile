@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
 	},
 	warningText: {
 		marginTop: 15,
-		color: colors.warning,
+		color: colors.onError,
 		...fontStyles.normal,
 	},
 	warningContainer: { marginHorizontal: 20, marginTop: 20, paddingRight: 0 },

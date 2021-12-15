@@ -34,10 +34,10 @@ exports[`TokenIcon component should Render correctly 3`] = `
     centered={false}
     disclaimer={false}
     error={false}
+    info={false}
     link={false}
     modal={false}
     primary={false}
-    red={false}
     reset={false}
     right={false}
     small={false}
@@ -59,6 +59,7 @@ exports[`TokenIcon component should Render correctly 3`] = `
     textDefault={false}
     underline={false}
     upper={false}
+    warning={false}
   >
     C
   </Text>
@@ -133,10 +134,10 @@ exports[`TokenIcon component should Render correctly 7`] = `
     centered={false}
     disclaimer={false}
     error={false}
+    info={false}
     link={false}
     modal={false}
     primary={false}
-    red={false}
     reset={false}
     right={false}
     small={false}
@@ -160,6 +161,7 @@ exports[`TokenIcon component should Render correctly 7`] = `
     textDefault={false}
     underline={false}
     upper={false}
+    warning={false}
   >
     C
   </Text>

@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		lineHeight: breakPoint ? 24 : 26,
 	},
-	red: {
+	error: {
 		marginHorizontal: 24,
 		color: colors.onError,
 	},
@@ -524,7 +524,7 @@ class Login extends PureComponent {
 			>
 				<View style={styles.areYouSure} testID={'delete-wallet-modal-container'}>
 					<Icon style={styles.warningIcon} size={46} color={colors.onError} name="exclamation-triangle" />
-					<Text style={[styles.heading, styles.red]}>{strings('login.are_you_sure')}</Text>
+					<Text style={[styles.heading, styles.error]}>{strings('login.are_you_sure')}</Text>
 					<Text style={styles.warningText}>
 						<Text>{strings('login.your_current_wallet')}</Text>
 						<Text style={styles.bold}>{strings('login.removed_from')}</Text>

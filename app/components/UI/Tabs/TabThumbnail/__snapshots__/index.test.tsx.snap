@@ -15,7 +15,7 @@ exports[`TabThumbnail should render correctly 1`] = `
     style={
       Array [
         Object {
-          "borderColor": "#24272A",
+          "borderColor": "#24272a",
           "borderRadius": 10,
           "borderWidth": 1,
           "elevation": 8,
@@ -26,7 +26,7 @@ exports[`TabThumbnail should render correctly 1`] = `
           "width": 720,
         },
         Object {
-          "borderColor": "#037DD6",
+          "borderColor": "#037dd6",
           "borderWidth": 5,
         },
       ]
@@ -36,7 +36,7 @@ exports[`TabThumbnail should render correctly 1`] = `
       style={
         Object {
           "alignItems": "flex-start",
-          "backgroundColor": "#24272A",
+          "backgroundColor": "#24272a",
           "flexDirection": "row",
           "justifyContent": "flex-start",
           "paddingHorizontal": 10,
@@ -73,7 +73,7 @@ exports[`TabThumbnail should render correctly 1`] = `
           numberOfLines={1}
           style={
             Object {
-              "color": "#FFFFFF",
+              "color": "#ffffff",
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 18,
               "fontWeight": "600",
@@ -103,7 +103,7 @@ exports[`TabThumbnail should render correctly 1`] = `
           size={12}
           style={
             Object {
-              "color": "#FFFFFF",
+              "color": "#ffffff",
               "fontSize": 32,
               "marginTop": -7,
               "paddingHorizontal": 10,
@@ -119,7 +119,7 @@ exports[`TabThumbnail should render correctly 1`] = `
       style={
         Object {
           "alignItems": "flex-start",
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#ffffff",
           "flex": 1,
           "justifyContent": "flex-start",
         }

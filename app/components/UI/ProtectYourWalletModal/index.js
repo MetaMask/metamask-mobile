@@ -125,7 +125,7 @@ class ProtectYourWalletModal extends PureComponent {
 				onRequestClose={this.onDismiss}
 				onConfirmPress={this.onDismiss}
 				cancelButtonMode={'sign'}
-				confirmButtonMode={'transparent-blue'}
+				confirmButtonMode={'primary'}
 				verticalButtons
 			>
 				<View style={styles.wrapper} testID={'protect-wallet-modal'}>

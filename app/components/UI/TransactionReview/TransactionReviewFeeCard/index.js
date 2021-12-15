@@ -315,7 +315,7 @@ class TransactionReviewFeeCard extends PureComponent {
 											textAlternative={!over}
 											upper
 											right
-											red={Boolean(over)}
+											error={Boolean(over)}
 											style={styles.amountContainer}
 										>
 											{totalAmount}
@@ -325,7 +325,7 @@ class TransactionReviewFeeCard extends PureComponent {
 									<Text
 										bold
 										primary={!over}
-										red={Boolean(over)}
+										error={Boolean(over)}
 										upper
 										right
 										style={styles.primaryContainer(!isMainnet)}

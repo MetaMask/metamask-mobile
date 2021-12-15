@@ -7,7 +7,7 @@ exports[`InvalidCustomNetworkAlert should render correctly 1`] = `
   <View
     style={
       Object {
-        "backgroundColor": "#FFFFFF",
+        "backgroundColor": "#ffffff",
         "borderRadius": 10,
         "padding": 20,
       }
@@ -24,7 +24,7 @@ exports[`InvalidCustomNetworkAlert should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#24272A",
+            "color": "#24272a",
             "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 17,
             "fontWeight": "600",
@@ -79,7 +79,7 @@ exports[`InvalidCustomNetworkAlert should render correctly 1`] = `
           onPress={[Function]}
           style={
             Object {
-              "color": "#037DD6",
+              "color": "#037dd6",
             }
           }
         >

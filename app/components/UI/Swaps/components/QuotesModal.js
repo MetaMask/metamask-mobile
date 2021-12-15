@@ -111,9 +111,6 @@ const styles = StyleSheet.create({
 		flex: 3,
 		marginRight: 5,
 	},
-	red: {
-		color: colors.onError,
-	},
 	bestBadge: {
 		flexDirection: 'row',
 	},
@@ -410,7 +407,7 @@ function QuotesModal({
 																<Text> - </Text>
 															)
 														) : showOverallValue ? (
-															<Text primary style={styles.red}>
+															<Text error>
 																-
 																{weiToFiat(
 																	toWei(
@@ -424,7 +421,7 @@ function QuotesModal({
 																)}
 															</Text>
 														) : (
-															<Text style={styles.red}>
+															<Text error>
 																-
 																{renderFromTokenMinimalUnit(
 																	new BigNumber(quotes[0].destinationAmount)

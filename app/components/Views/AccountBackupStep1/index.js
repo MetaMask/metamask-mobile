@@ -74,9 +74,6 @@ const styles = StyleSheet.create({
 	bold: {
 		...fontStyles.bold,
 	},
-	blue: {
-		color: colors.primary,
-	},
 	remindLaterText: {
 		textAlign: 'center',
 		fontSize: 15,
@@ -201,7 +198,7 @@ const AccountBackupStep1 = (props) => {
 						<View style={styles.text}>
 							<Text style={styles.label}>
 								{strings('account_backup_step_1.info_text_1_1')}{' '}
-								<Text style={styles.blue} onPress={showWhatIsSeedphrase}>
+								<Text primary onPress={showWhatIsSeedphrase}>
 									{strings('account_backup_step_1.info_text_1_2')}
 								</Text>{' '}
 								{strings('account_backup_step_1.info_text_1_3')}{' '}

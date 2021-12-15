@@ -132,12 +132,12 @@ const styles = StyleSheet.create({
 const AddressName = ({ toAddressName, confusableCollection = [] }) => {
 	if (confusableCollection.length) {
 		const texts = toAddressName.split('').map((char, index) => {
-			// if text has a confusable highlight it red
+			// if text has a confusable highlight it error color
 			if (confusableCollection.includes(char)) {
 				// if the confusable is zero width, replace it with `?`
 				const replacement = hasZeroWidthPoints(char) ? '?' : char;
 				return (
-					<Text red key={index}>
+					<Text error key={index}>
 						{replacement}
 					</Text>
 				);

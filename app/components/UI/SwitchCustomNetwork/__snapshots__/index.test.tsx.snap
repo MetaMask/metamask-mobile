@@ -4,7 +4,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
 <View
   style={
     Object {
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#ffffff",
       "borderTopLeftRadius": 20,
       "borderTopRightRadius": 20,
       "minHeight": 200,
@@ -19,11 +19,11 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
     centered={true}
     disclaimer={false}
     error={false}
+    info={false}
     link={false}
     modal={false}
     noMargin={true}
     primary={true}
-    red={false}
     reset={false}
     right={false}
     small={false}
@@ -42,6 +42,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
     textDefault={false}
     underline={false}
     upper={false}
+    warning={false}
   >
     New network added
   </Text>
@@ -51,11 +52,11 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
     centered={false}
     disclaimer={false}
     error={false}
+    info={false}
     link={false}
     modal={false}
     noMargin={true}
     primary={true}
-    red={false}
     reset={false}
     right={false}
     small={false}
@@ -74,6 +75,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
     textDefault={false}
     underline={false}
     upper={false}
+    warning={false}
   >
     <Text
       blue={false}
@@ -81,10 +83,10 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
       centered={false}
       disclaimer={false}
       error={false}
+      info={false}
       link={false}
       modal={false}
       primary={false}
-      red={false}
       reset={false}
       right={false}
       small={false}
@@ -94,6 +96,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
       textDefault={false}
       underline={false}
       upper={false}
+      warning={false}
     >
       <Text
         blue={false}
@@ -101,11 +104,11 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
         centered={false}
         disclaimer={false}
         error={false}
+        info={false}
         link={false}
         modal={false}
         noMargin={true}
         primary={true}
-        red={false}
         reset={false}
         right={false}
         small={false}
@@ -115,6 +118,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
         textDefault={false}
         underline={false}
         upper={false}
+        warning={false}
       >
         ""
       </Text>
@@ -124,11 +128,11 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
         centered={false}
         disclaimer={false}
         error={false}
+        info={false}
         link={false}
         modal={false}
         noMargin={true}
         primary={false}
-        red={false}
         reset={false}
         right={false}
         small={false}
@@ -138,6 +142,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
         textDefault={false}
         underline={false}
         upper={false}
+        warning={false}
       >
          
         is now available in the network selector.

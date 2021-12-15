@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
 	},
 	warningText: {
 		marginTop: 15,
-		color: colors.warning,
+		color: colors.onWarning,
 		...(fontStyles.normal as any),
 	},
 });

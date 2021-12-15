@@ -91,7 +91,7 @@ function TokenImportModal({ isVisible, dismiss, token, onPressImport }) {
 							{token.address}
 						</Text>
 					</View>
-					<StyledButton type="blue" containerStyle={styles.cta} onPress={onPressImport}>
+					<StyledButton type="primary" containerStyle={styles.cta} onPress={onPressImport}>
 						{strings('swaps.Import')}
 					</StyledButton>
 				</View>

@@ -668,7 +668,7 @@ class PaymentRequest extends PureComponent {
 							{strings('payment_request.reset')}
 						</StyledButton>
 						<StyledButton
-							type={'blue'}
+							type={'primary'}
 							onPress={this.onNext}
 							containerStyle={[styles.button]}
 							disabled={!cryptoAmount || cryptoAmount === '0'}

@@ -8,7 +8,7 @@ exports[`Browser should render correctly 1`] = `
     style={
       Array [
         Object {
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#ffffff",
           "flex": 1,
         },
         false,
@@ -50,7 +50,7 @@ exports[`Browser should render correctly 1`] = `
       backdropOpacity={1}
       backdropTransitionInTiming={300}
       backdropTransitionOutTiming={300}
-      backdropcolor="#D73A49"
+      backdropcolor="#d73a49"
       coverScreen={true}
       customBackdrop={null}
       deviceHeight={null}
@@ -141,7 +141,7 @@ exports[`Browser should render correctly 1`] = `
       <View
         style={
           Object {
-            "backgroundColor": "#FFFFFF",
+            "backgroundColor": "#ffffff",
             "flexDirection": "row",
             "height": 87,
             "paddingHorizontal": 10,
@@ -191,7 +191,7 @@ exports[`Browser should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#037DD6",
+                "color": "#037dd6",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",

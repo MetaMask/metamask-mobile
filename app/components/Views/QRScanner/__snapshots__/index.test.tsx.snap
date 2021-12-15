@@ -4,7 +4,7 @@ exports[`QrScanner should render correctly 1`] = `
 <View
   style={
     Object {
-      "backgroundColor": "#24272A",
+      "backgroundColor": "#24272a",
       "flex": 1,
     }
   }
@@ -137,7 +137,7 @@ exports[`QrScanner should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#FFFFFF",
+            "color": "#ffffff",
             "flex": 1,
             "fontSize": 17,
             "justifyContent": "center",

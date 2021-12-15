@@ -33,10 +33,10 @@ exports[`CollectibleMedia should render correctly 1`] = `
       centered={false}
       disclaimer={false}
       error={false}
+      info={false}
       link={false}
       modal={false}
       primary={false}
-      red={false}
       reset={false}
       right={false}
       small={false}
@@ -51,6 +51,7 @@ exports[`CollectibleMedia should render correctly 1`] = `
       textDefault={false}
       underline={false}
       upper={false}
+      warning={false}
     >
       NAME #123
     </Text>

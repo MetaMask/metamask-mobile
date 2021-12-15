@@ -119,9 +119,6 @@ const styles = StyleSheet.create({
 		color: colors.primary,
 		...fontStyles.normal,
 	},
-	blue: {
-		color: colors.primary,
-	},
 	titleIcon: {
 		fontSize: 32,
 	},
@@ -246,7 +243,7 @@ const AccountBackupStep1B = (props) => {
 						<View style={styles.text}>
 							<Text style={styles.label}>
 								{strings('account_backup_step_1B.subtitle_1')}{' '}
-								<Text style={styles.blue} onPress={showWhatIsSeedphrase}>
+								<Text primary onPress={showWhatIsSeedphrase}>
 									{strings('account_backup_step_1B.subtitle_2')}
 								</Text>
 							</Text>

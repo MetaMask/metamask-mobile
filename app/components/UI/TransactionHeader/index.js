@@ -83,7 +83,7 @@ const TransactionHeader = (props) => {
 		props.currentPageInformation.origin === ORIGIN_QR_CODE;
 	const originIsWalletConnect = props.currentPageInformation.origin?.includes(WALLET_CONNECT_ORIGIN);
 	/**
-	 * Returns a small circular indicator, red if the current selected network is offline, green if it's online.
+	 * Returns a small circular indicator, error color if the current selected network is offline, success color if it's online.
 	 *
 	 * @return {element} - JSX view element
 	 */

@@ -10,10 +10,10 @@ exports[`TimeEstimateInfoModal should render correctly 1`] = `
         centered={false}
         disclaimer={false}
         error={false}
+        info={false}
         link={false}
         modal={false}
         primary={false}
-        red={false}
         reset={false}
         right={false}
         small={false}
@@ -23,6 +23,7 @@ exports[`TimeEstimateInfoModal should render correctly 1`] = `
         textDefault={false}
         underline={false}
         upper={false}
+        warning={false}
       />
     </View>
   }

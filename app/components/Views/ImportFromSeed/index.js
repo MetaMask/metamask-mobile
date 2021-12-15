@@ -596,7 +596,7 @@ class ImportFromSeed extends PureComponent {
 
 						<View style={styles.ctaWrapper}>
 							<StyledButton
-								type={'blue'}
+								type={'primary'}
 								onPress={this.onPressImport}
 								testID={'submit'}
 								disabled={!(password !== '' && password === confirmPassword)}

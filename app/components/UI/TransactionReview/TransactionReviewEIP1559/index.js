@@ -141,7 +141,7 @@ const TransactionReviewEIP1559 = ({
 			<Summary.Row>
 				<View style={styles.gasRowContainer}>
 					<View style={styles.gasRowContainer}>
-						<Text primary={!originWarning} bold orange={Boolean(originWarning)} noMargin>
+						<Text primary={!originWarning} bold warning={Boolean(originWarning)} noMargin>
 							{!origin
 								? strings('transaction_review_eip1559.estimated_gas_fee')
 								: strings('transaction_review_eip1559.suggested_gas_fee', { origin })}
@@ -220,7 +220,7 @@ const TransactionReviewEIP1559 = ({
 									<Text
 										small
 										success={timeEstimateColor === 'green'}
-										red={timeEstimateColor === 'red'}
+										error={timeEstimateColor === 'red'}
 									>
 										{timeEstimate}
 									</Text>

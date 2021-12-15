@@ -4,7 +4,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
 <View
   style={
     Object {
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#ffffff",
       "borderTopLeftRadius": 20,
       "borderTopRightRadius": 20,
       "maxHeight": "95%",
@@ -38,7 +38,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
             <TouchableOpacity>
               <Icon
                 allowFontScaling={false}
-                color="#24272A"
+                color="#24272a"
                 name="ios-arrow-back"
                 size={24}
               />
@@ -49,10 +49,10 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
               centered={false}
               disclaimer={false}
               error={false}
+              info={false}
               link={false}
               modal={false}
               primary={false}
-              red={false}
               reset={false}
               right={false}
               small={false}
@@ -62,12 +62,13 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
               textDefault={true}
               underline={false}
               upper={false}
+              warning={false}
             >
               Edit gas fee
             </Text>
             <Icon
               allowFontScaling={false}
-              color="#FFFFFF"
+              color="#ffffff"
               name="ios-arrow-back"
               size={24}
             />
@@ -102,10 +103,10 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                   centered={false}
                   disclaimer={false}
                   error={false}
+                  info={false}
                   link={false}
                   modal={false}
                   primary={false}
-                  red={false}
                   reset={false}
                   right={true}
                   small={false}
@@ -120,6 +121,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                   textDefault={true}
                   underline={false}
                   upper={false}
+                  warning={false}
                 >
                   ~
                 </Text>
@@ -130,10 +132,10 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                 centered={false}
                 disclaimer={false}
                 error={false}
+                info={false}
                 link={false}
                 modal={false}
                 primary={false}
-                red={false}
                 reset={false}
                 right={false}
                 small={false}
@@ -148,6 +150,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                 textDefault={true}
                 underline={false}
                 upper={false}
+                warning={false}
               />
               <View
                 style={
@@ -164,10 +167,10 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
               centered={false}
               disclaimer={false}
               error={false}
+              info={false}
               link={false}
               modal={false}
               primary={false}
-              red={false}
               reset={false}
               right={false}
               small={false}
@@ -177,6 +180,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
               textDefault={true}
               underline={false}
               upper={false}
+              warning={false}
             >
               <Text
                 blue={false}
@@ -184,10 +188,10 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                 centered={false}
                 disclaimer={false}
                 error={false}
+                info={false}
                 link={false}
                 modal={false}
                 primary={false}
-                red={false}
                 reset={false}
                 right={false}
                 small={false}
@@ -197,6 +201,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                 textDefault={true}
                 underline={false}
                 upper={false}
+                warning={false}
               />
             </Text>
           </View>
@@ -239,11 +244,11 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                         centered={false}
                         disclaimer={false}
                         error={false}
+                        info={false}
                         link={false}
                         modal={false}
                         noMargin={true}
                         primary={false}
-                        red={false}
                         reset={false}
                         right={false}
                         small={false}
@@ -253,6 +258,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                         textDefault={true}
                         underline={false}
                         upper={false}
+                        warning={false}
                       >
                         Gas limit
                          
@@ -274,7 +280,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                           size={14}
                           style={
                             Object {
-                              "color": "#5B5D67",
+                              "color": "#5b5d67",
                             }
                           }
                         />
@@ -311,11 +317,11 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                         centered={false}
                         disclaimer={false}
                         error={false}
+                        info={false}
                         link={false}
                         modal={false}
                         noMargin={true}
                         primary={false}
-                        red={false}
                         reset={false}
                         right={false}
                         small={false}
@@ -325,6 +331,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                         textDefault={true}
                         underline={false}
                         upper={false}
+                        warning={false}
                       >
                         Gas price
                          
@@ -346,7 +353,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                           size={14}
                           style={
                             Object {
-                              "color": "#5B5D67",
+                              "color": "#5b5d67",
                             }
                           }
                         />
@@ -390,11 +397,11 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                 centered={false}
                 disclaimer={false}
                 error={false}
+                info={false}
                 infoModal={true}
                 link={false}
                 modal={false}
                 primary={false}
-                red={false}
                 reset={false}
                 right={false}
                 small={false}
@@ -404,6 +411,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                 textDefault={false}
                 underline={false}
                 upper={false}
+                warning={false}
               />
             </View>
           }

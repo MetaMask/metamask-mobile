@@ -506,7 +506,7 @@ const EditGasFee1559 = ({
 				>
 					{() => (
 						<View style={styles.warningTextContainer}>
-							<Text textDefault style={styles.warningText}>
+							<Text warning style={styles.warningText}>
 								{warning}
 							</Text>
 						</View>
@@ -524,7 +524,7 @@ const EditGasFee1559 = ({
 				<Alert
 					small
 					type={AlertType.Error}
-					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.onWarning} />}
+					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.onError} />}
 					style={styles.warningContainer}
 				>
 					{() => (
@@ -603,11 +603,7 @@ const EditGasFee1559 = ({
 								{gasFeeMaxPrimary} ({gasFeeMaxSecondary})
 							</Text>
 							<View style={styles.labelTextContainer}>
-								<Text
-									success={timeEstimateColor === 'green'}
-									error={timeEstimateColor === 'error'}
-									bold
-								>
+								<Text success={timeEstimateColor === 'green'} error={timeEstimateColor === 'red'} bold>
 									{timeEstimate}
 								</Text>
 								{(timeEstimateId === AppConstants.GAS_TIMES.MAYBE ||
@@ -620,7 +616,7 @@ const EditGasFee1559 = ({
 						</FadeAnimationView>
 						{!showInputs ? (
 							<View style={styles.dappEditGasContainer}>
-								<StyledButton type={'orange'} onPress={() => setShowInputs(true)}>
+								<StyledButton type={'info'} onPress={() => setShowInputs(true)}>
 									{strings('edit_gas_fee_eip1559.edit_suggested_gas_fee')}
 								</StyledButton>
 							</View>

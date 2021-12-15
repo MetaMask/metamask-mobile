@@ -4,7 +4,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
 <View
   style={
     Object {
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#ffffff",
       "borderTopLeftRadius": 20,
       "borderTopRightRadius": 20,
       "maxHeight": "95%",
@@ -38,7 +38,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
             <TouchableOpacity>
               <Icon
                 allowFontScaling={false}
-                color="#24272A"
+                color="#24272a"
                 name="ios-arrow-back"
                 size={24}
               />
@@ -49,10 +49,10 @@ exports[`EditGasFee1559 should render correctly 1`] = `
               centered={false}
               disclaimer={false}
               error={false}
+              info={false}
               link={false}
               modal={false}
               primary={false}
-              red={false}
               reset={false}
               right={false}
               small={false}
@@ -62,12 +62,13 @@ exports[`EditGasFee1559 should render correctly 1`] = `
               textDefault={true}
               underline={false}
               upper={false}
+              warning={false}
             >
               Edit priority
             </Text>
             <Icon
               allowFontScaling={false}
-              color="#FFFFFF"
+              color="#ffffff"
               name="ios-arrow-back"
               size={24}
             />
@@ -96,12 +97,12 @@ exports[`EditGasFee1559 should render correctly 1`] = `
               centered={false}
               disclaimer={false}
               error={false}
+              info={false}
               link={false}
               modal={false}
               noMargin={true}
               numberOfLines={1}
               primary={false}
-              red={false}
               reset={false}
               right={false}
               small={false}
@@ -118,6 +119,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
               textDefault={true}
               underline={false}
               upper={false}
+              warning={false}
             >
               ~
             </Text>
@@ -129,11 +131,11 @@ exports[`EditGasFee1559 should render correctly 1`] = `
             centered={false}
             disclaimer={false}
             error={false}
+            info={false}
             link={false}
             modal={false}
             noMargin={true}
             primary={false}
-            red={false}
             reset={false}
             right={false}
             small={false}
@@ -148,6 +150,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
             textDefault={true}
             underline={false}
             upper={false}
+            warning={false}
           >
             <Text
               blue={false}
@@ -155,11 +158,11 @@ exports[`EditGasFee1559 should render correctly 1`] = `
               centered={false}
               disclaimer={false}
               error={false}
+              info={false}
               link={false}
               modal={false}
               noMargin={true}
               primary={false}
-              red={false}
               reset={false}
               right={false}
               small={false}
@@ -169,6 +172,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
               textDefault={true}
               underline={false}
               upper={false}
+              warning={false}
             >
               Max fee
               :
@@ -191,10 +195,10 @@ exports[`EditGasFee1559 should render correctly 1`] = `
               centered={false}
               disclaimer={false}
               error={false}
+              info={false}
               link={false}
               modal={false}
               primary={false}
-              red={false}
               reset={false}
               right={false}
               small={false}
@@ -204,6 +208,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
               textDefault={false}
               underline={false}
               upper={false}
+              warning={false}
             />
           </View>
         </FadeAnimationView>
@@ -259,11 +264,11 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                   centered={false}
                   disclaimer={false}
                   error={false}
+                  info={false}
                   link={true}
                   modal={false}
                   noMargin={true}
                   primary={false}
-                  red={false}
                   reset={false}
                   right={false}
                   small={false}
@@ -273,6 +278,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                   textDefault={false}
                   underline={false}
                   upper={false}
+                  warning={false}
                 >
                   Advanced options
                 </Text>
@@ -282,11 +288,11 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                   centered={false}
                   disclaimer={false}
                   error={false}
+                  info={false}
                   link={true}
                   modal={false}
                   noMargin={true}
                   primary={false}
-                  red={false}
                   reset={false}
                   right={false}
                   small={false}
@@ -302,6 +308,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                   textDefault={false}
                   underline={false}
                   upper={false}
+                  warning={false}
                 >
                   <Icon
                     allowFontScaling={false}
@@ -341,11 +348,11 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                           centered={false}
                           disclaimer={false}
                           error={false}
+                          info={false}
                           link={false}
                           modal={false}
                           noMargin={true}
                           primary={false}
-                          red={false}
                           reset={false}
                           right={false}
                           small={false}
@@ -355,6 +362,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                           textDefault={true}
                           underline={false}
                           upper={false}
+                          warning={false}
                         >
                           Gas limit
                            
@@ -376,7 +384,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                             size={14}
                             style={
                               Object {
-                                "color": "#5B5D67",
+                                "color": "#5b5d67",
                               }
                             }
                           />
@@ -413,11 +421,11 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                           centered={false}
                           disclaimer={false}
                           error={false}
+                          info={false}
                           link={false}
                           modal={false}
                           noMargin={true}
                           primary={false}
-                          red={false}
                           reset={false}
                           right={false}
                           small={false}
@@ -427,6 +435,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                           textDefault={true}
                           underline={false}
                           upper={false}
+                          warning={false}
                         >
                           Max priority fee
                            
@@ -448,7 +457,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                             size={14}
                             style={
                               Object {
-                                "color": "#5B5D67",
+                                "color": "#5b5d67",
                               }
                             }
                           />
@@ -465,11 +474,11 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                         centered={false}
                         disclaimer={false}
                         error={false}
+                        info={false}
                         link={false}
                         modal={false}
                         noMargin={true}
                         primary={false}
-                        red={false}
                         reset={false}
                         right={false}
                         small={true}
@@ -479,6 +488,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                         textDefault={false}
                         underline={false}
                         upper={false}
+                        warning={false}
                       >
                         <Text
                           blue={false}
@@ -486,10 +496,10 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                           centered={false}
                           disclaimer={false}
                           error={false}
+                          info={false}
                           link={false}
                           modal={false}
                           primary={false}
-                          red={false}
                           reset={true}
                           right={false}
                           small={false}
@@ -499,6 +509,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                           textDefault={false}
                           underline={false}
                           upper={false}
+                          warning={false}
                         >
                           Estimate
                           :
@@ -536,11 +547,11 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                           centered={false}
                           disclaimer={false}
                           error={false}
+                          info={false}
                           link={false}
                           modal={false}
                           noMargin={true}
                           primary={false}
-                          red={false}
                           reset={false}
                           right={false}
                           small={false}
@@ -550,6 +561,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                           textDefault={true}
                           underline={false}
                           upper={false}
+                          warning={false}
                         >
                           Max fee
                            
@@ -571,7 +583,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                             size={14}
                             style={
                               Object {
-                                "color": "#5B5D67",
+                                "color": "#5b5d67",
                               }
                             }
                           />
@@ -588,11 +600,11 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                         centered={false}
                         disclaimer={false}
                         error={false}
+                        info={false}
                         link={false}
                         modal={false}
                         noMargin={true}
                         primary={false}
-                        red={false}
                         reset={false}
                         right={false}
                         small={true}
@@ -602,6 +614,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                         textDefault={false}
                         underline={false}
                         upper={false}
+                        warning={false}
                       >
                         <Text
                           blue={false}
@@ -609,10 +622,10 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                           centered={false}
                           disclaimer={false}
                           error={false}
+                          info={false}
                           link={false}
                           modal={false}
                           primary={false}
-                          red={false}
                           reset={true}
                           right={false}
                           small={false}
@@ -622,6 +635,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                           textDefault={false}
                           underline={false}
                           upper={false}
+                          warning={false}
                         >
                           Estimate
                           :
@@ -652,10 +666,10 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                 centered={true}
                 disclaimer={false}
                 error={false}
+                info={false}
                 link={true}
                 modal={false}
                 primary={false}
-                red={false}
                 reset={false}
                 right={false}
                 small={false}
@@ -665,6 +679,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                 textDefault={false}
                 underline={false}
                 upper={false}
+                warning={false}
               >
                 How should I choose?
               </Text>
@@ -696,11 +711,11 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                 centered={false}
                 disclaimer={false}
                 error={false}
+                info={false}
                 infoModal={true}
                 link={false}
                 modal={false}
                 primary={false}
-                red={false}
                 reset={false}
                 right={false}
                 small={false}
@@ -710,6 +725,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                 textDefault={false}
                 underline={false}
                 upper={false}
+                warning={false}
               >
                 We have updated the gas fee based on current network conditions and have increased it by at least 10% (required by the network). 
               </Text>
@@ -737,12 +753,12 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                       centered={false}
                       disclaimer={false}
                       error={false}
+                      info={false}
                       infoModal={true}
                       link={false}
                       modal={false}
                       noMargin={true}
                       primary={false}
-                      red={false}
                       reset={false}
                       right={false}
                       small={false}
@@ -752,6 +768,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                       textDefault={false}
                       underline={false}
                       upper={false}
+                      warning={false}
                     >
                       Selecting the right gas fee depends on the type of transaction and how important it is to you.
                     </Text>
@@ -761,12 +778,12 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                       centered={false}
                       disclaimer={false}
                       error={false}
+                      info={false}
                       infoModal={true}
                       link={false}
                       modal={false}
                       noMargin={true}
                       primary={true}
-                      red={false}
                       reset={false}
                       right={false}
                       small={false}
@@ -781,6 +798,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                       textDefault={false}
                       underline={false}
                       upper={false}
+                      warning={false}
                     >
                       High
                     </Text>
@@ -790,12 +808,12 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                       centered={false}
                       disclaimer={false}
                       error={false}
+                      info={false}
                       infoModal={true}
                       link={false}
                       modal={false}
                       noMargin={true}
                       primary={false}
-                      red={false}
                       reset={false}
                       right={false}
                       small={false}
@@ -805,6 +823,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                       textDefault={false}
                       underline={false}
                       upper={false}
+                      warning={false}
                     >
                       This is best for time sensitive transactions (like Swaps) as it increases the likelihood of a successful transaction. If a Swap takes too long to process it may fail and result in losing some of your gas fee.
                     </Text>
@@ -814,12 +833,12 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                       centered={false}
                       disclaimer={false}
                       error={false}
+                      info={false}
                       infoModal={true}
                       link={false}
                       modal={false}
                       noMargin={true}
                       primary={true}
-                      red={false}
                       reset={false}
                       right={false}
                       small={false}
@@ -834,6 +853,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                       textDefault={false}
                       underline={false}
                       upper={false}
+                      warning={false}
                     >
                       Medium
                     </Text>
@@ -843,12 +863,12 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                       centered={false}
                       disclaimer={false}
                       error={false}
+                      info={false}
                       infoModal={true}
                       link={false}
                       modal={false}
                       noMargin={true}
                       primary={false}
-                      red={false}
                       reset={false}
                       right={false}
                       small={false}
@@ -858,6 +878,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                       textDefault={false}
                       underline={false}
                       upper={false}
+                      warning={false}
                     >
                       A medium gas fee is good for sending, withdrawing or other non-time sensitive transactions. This setting will most often result in a successful transaction.
                     </Text>
@@ -867,12 +888,12 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                       centered={false}
                       disclaimer={false}
                       error={false}
+                      info={false}
                       infoModal={true}
                       link={false}
                       modal={false}
                       noMargin={true}
                       primary={true}
-                      red={false}
                       reset={false}
                       right={false}
                       small={false}
@@ -887,6 +908,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                       textDefault={false}
                       underline={false}
                       upper={false}
+                      warning={false}
                     >
                       Low
                     </Text>
@@ -896,12 +918,12 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                       centered={false}
                       disclaimer={false}
                       error={false}
+                      info={false}
                       infoModal={true}
                       link={false}
                       modal={false}
                       noMargin={true}
                       primary={false}
-                      red={false}
                       reset={false}
                       right={false}
                       small={false}
@@ -911,6 +933,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                       textDefault={false}
                       underline={false}
                       upper={false}
+                      warning={false}
                     >
                       A low gas fee should only be used for unimportant transactions or when network traffic is very low. With a lower fee it can be hard to predict when (or if) your transaction will be successful.
                     </Text>

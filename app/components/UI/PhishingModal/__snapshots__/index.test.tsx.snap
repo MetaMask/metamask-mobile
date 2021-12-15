@@ -29,7 +29,7 @@ exports[`PhishingModal should render correctly 1`] = `
   <View
     style={
       Object {
-        "backgroundColor": "#FFFFFF",
+        "backgroundColor": "#ffffff",
         "borderRadius": 4,
         "height": 495,
       }
@@ -39,7 +39,7 @@ exports[`PhishingModal should render correctly 1`] = `
       style={
         Object {
           "alignItems": "center",
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#ffffff",
           "flexDirection": "row",
           "justifyContent": "center",
           "paddingVertical": 20,
@@ -52,7 +52,7 @@ exports[`PhishingModal should render correctly 1`] = `
         size={15}
         style={
           Object {
-            "color": "#D73A49",
+            "color": "#d73a49",
             "marginRight": 10,
           }
         }
@@ -60,7 +60,7 @@ exports[`PhishingModal should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#D73A49",
+            "color": "#d73a49",
             "fontFamily": "EuclidCircularB-Bold",
             "fontWeight": "600",
             "textAlign": "center",
@@ -87,7 +87,7 @@ exports[`PhishingModal should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#24272A",
+            "color": "#24272a",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 11,
             "fontWeight": "400",
@@ -108,7 +108,7 @@ exports[`PhishingModal should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#24272A",
+            "color": "#24272a",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 11,
             "fontWeight": "400",
@@ -120,7 +120,7 @@ exports[`PhishingModal should render correctly 1`] = `
         <Text
           style={
             Object {
-              "textDecorationColor": "#24272A",
+              "textDecorationColor": "#24272a",
               "textDecorationLine": "underline",
             }
           }
@@ -133,7 +133,7 @@ exports[`PhishingModal should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#24272A",
+            "color": "#24272a",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 11,
             "fontWeight": "400",
@@ -145,7 +145,7 @@ exports[`PhishingModal should render correctly 1`] = `
         <Text
           style={
             Object {
-              "textDecorationColor": "#24272A",
+              "textDecorationColor": "#24272a",
               "textDecorationLine": "underline",
             }
           }
@@ -156,7 +156,7 @@ exports[`PhishingModal should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#24272A",
+            "color": "#24272a",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 11,
             "fontWeight": "400",
@@ -168,7 +168,7 @@ exports[`PhishingModal should render correctly 1`] = `
         <Text
           style={
             Object {
-              "textDecorationColor": "#24272A",
+              "textDecorationColor": "#24272a",
               "textDecorationLine": "underline",
             }
           }
@@ -179,7 +179,7 @@ exports[`PhishingModal should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#24272A",
+            "color": "#24272a",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 11,
             "fontWeight": "400",
@@ -191,7 +191,7 @@ exports[`PhishingModal should render correctly 1`] = `
         <Text
           style={
             Object {
-              "textDecorationColor": "#24272A",
+              "textDecorationColor": "#24272a",
               "textDecorationLine": "underline",
             }
           }
@@ -223,7 +223,7 @@ exports[`PhishingModal should render correctly 1`] = `
       }
       style={
         Object {
-          "color": "#D73A49",
+          "color": "#d73a49",
           "fontSize": 12,
         }
       }

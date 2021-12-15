@@ -98,7 +98,7 @@ export default class EnterPasswordSimple extends PureComponent {
 							</View>
 							<View style={styles.ctaWrapper}>
 								<StyledButton
-									type={'blue'}
+									type={'primary'}
 									onPress={this.onPressConfirm}
 									testID={'submit-button'}
 									disabled={

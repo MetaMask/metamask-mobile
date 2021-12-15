@@ -672,7 +672,7 @@ function SwapsAmountView({
 					<View style={styles.column}>
 						<View style={styles.ctaContainer}>
 							<StyledButton
-								type="blue"
+								type="primary"
 								onPress={handleGetQuotesPress}
 								containerStyle={styles.cta}
 								disabled={

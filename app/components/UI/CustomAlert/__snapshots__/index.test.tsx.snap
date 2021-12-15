@@ -48,7 +48,7 @@ exports[`CustomAlert should render correctly 1`] = `
   <View
     style={
       Object {
-        "backgroundColor": "#FFFFFF",
+        "backgroundColor": "#ffffff",
         "borderRadius": 16,
       }
     }

@@ -14,7 +14,7 @@ const styles = StyleSheet.create({
 	},
 	static: {
 		borderWidth: 3.5,
-		borderColor: colors.spinnerBackground,
+		borderColor: colors.ui1,
 		borderRadius: 64,
 		width: 36,
 		height: 36,
@@ -75,7 +75,7 @@ export default class AnimatedSpinner extends PureComponent {
 		return (
 			<View style={styles.static}>
 				<Animated.View style={[styles.view, { transform: [{ rotate: spin }] }]}>
-					<Icon name="loading" size={36} color={colors.spinnerColor} />
+					<Icon name="loading" size={36} color={colors.onInfo} />
 				</Animated.View>
 			</View>
 		);

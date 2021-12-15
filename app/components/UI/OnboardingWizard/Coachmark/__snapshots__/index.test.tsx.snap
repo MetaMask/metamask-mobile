@@ -25,7 +25,7 @@ exports[`Coachmark should render correctly 1`] = `
       style={
         Object {
           "backgroundColor": "transparent",
-          "borderBottomColor": "#037DD6",
+          "borderBottomColor": "#037dd6",
           "borderBottomWidth": 12,
           "borderLeftColor": "transparent",
           "borderLeftWidth": 15,
@@ -43,7 +43,7 @@ exports[`Coachmark should render correctly 1`] = `
     style={
       Array [
         Object {
-          "backgroundColor": "#037DD6",
+          "backgroundColor": "#037dd6",
           "borderRadius": 8,
           "padding": 18,
         },
@@ -62,7 +62,7 @@ exports[`Coachmark should render correctly 1`] = `
         style={
           Object {
             "alignSelf": "center",
-            "color": "#FFFFFF",
+            "color": "#ffffff",
             "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 18,
             "fontWeight": "600",
@@ -122,7 +122,7 @@ exports[`Coachmark should render correctly 1`] = `
           style={
             Array [
               Object {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderRadius": 3,
                 "height": 6,
                 "margin": 3,
@@ -140,7 +140,7 @@ exports[`Coachmark should render correctly 1`] = `
           style={
             Array [
               Object {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderRadius": 3,
                 "height": 6,
                 "margin": 3,
@@ -156,7 +156,7 @@ exports[`Coachmark should render correctly 1`] = `
           style={
             Array [
               Object {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderRadius": 3,
                 "height": 6,
                 "margin": 3,
@@ -172,7 +172,7 @@ exports[`Coachmark should render correctly 1`] = `
           style={
             Array [
               Object {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderRadius": 3,
                 "height": 6,
                 "margin": 3,
@@ -188,7 +188,7 @@ exports[`Coachmark should render correctly 1`] = `
           style={
             Array [
               Object {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderRadius": 3,
                 "height": 6,
                 "margin": 3,
@@ -204,7 +204,7 @@ exports[`Coachmark should render correctly 1`] = `
           style={
             Array [
               Object {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderRadius": 3,
                 "height": 6,
                 "margin": 3,

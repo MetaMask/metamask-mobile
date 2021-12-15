@@ -12,18 +12,11 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		...fontStyles.bold,
 	},
-	blue: {
+	primary: {
 		backgroundColor: colors.primary,
 	},
-	blueText: {
+	primaryText: {
 		color: colors.onPrimary,
-	},
-	orange: {
-		borderColor: colors.orange,
-		borderWidth: 1,
-	},
-	orangeText: {
-		color: colors.orange,
 	},
 	infoText: {
 		color: colors.primary,
@@ -85,7 +78,7 @@ const styles = StyleSheet.create({
 		color: colors.onWarning,
 	},
 	warningTextEmpty: {
-		color: colors.warning,
+		color: colors.onWarning,
 	},
 	neutral: {
 		backgroundColor: colors.backgroundDefault,
@@ -126,13 +119,9 @@ const styles = StyleSheet.create({
 function getStyles(type) {
 	let fontStyle, containerStyle;
 	switch (type) {
-		case 'orange':
-			fontStyle = styles.orangeText;
-			containerStyle = styles.orange;
-			break;
-		case 'blue':
-			fontStyle = styles.blueText;
-			containerStyle = styles.blue;
+		case 'primary':
+			fontStyle = styles.primaryText;
+			containerStyle = styles.primary;
 			break;
 		case 'confirm':
 			fontStyle = styles.confirmText;
@@ -156,10 +145,6 @@ function getStyles(type) {
 			break;
 		case 'transparent':
 			fontStyle = styles.whiteText;
-			containerStyle = styles.transparent;
-			break;
-		case 'transparent-blue':
-			fontStyle = styles.normalText;
 			containerStyle = styles.transparent;
 			break;
 		case 'warning':

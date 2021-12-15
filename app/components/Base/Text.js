@@ -16,14 +16,11 @@ const style = StyleSheet.create({
 	right: {
 		textAlign: 'right',
 	},
-	red: {
-		color: colors.onError,
-	},
 	error: {
 		color: colors.onError,
 	},
-	orange: {
-		color: colors.orange,
+	warning: {
+		color: colors.onWarning,
 	},
 	textDefault: {
 		color: colors.textDefault,
@@ -32,8 +29,8 @@ const style = StyleSheet.create({
 		color: colors.textAlternative,
 	},
 	bold: fontStyles.bold,
-	blue: {
-		color: colors.primary,
+	info: {
+		color: colors.onInfo,
 	},
 	success: {
 		color: colors.onSuccess,
@@ -85,10 +82,9 @@ const Text = ({
 	success,
 	textDefault,
 	textAlternative,
-	blue,
-	red,
+	info,
 	error,
-	orange,
+	warning,
 	primary,
 	small,
 	big,
@@ -110,10 +106,9 @@ const Text = ({
 			right && style.right,
 			bold && style.bold,
 			success && style.success,
-			blue && style.blue,
-			red && style.red,
+			info && style.info,
 			error && style.error,
-			orange && style.orange,
+			warning && style.warning,
 			textDefault && style.textDefault,
 			textAlternative && style.textAlternative,
 			primary && style.primary,
@@ -141,9 +136,9 @@ Text.defaultProps = {
 	success: false,
 	textDefault: false,
 	textAlternative: false,
-	blue: false,
-	red: false,
+	info: false,
 	error: false,
+	warning: false,
 	primary: false,
 	disclaimer: false,
 	modal: false,
@@ -186,21 +181,17 @@ Text.propTypes = {
 	 */
 	textAlternative: PropTypes.bool,
 	/**
-	 * Makes text blue
+	 * Sets the color to the info theme color
 	 */
-	blue: PropTypes.bool,
-	/**
-	 * Makes text red
-	 */
-	red: PropTypes.bool,
+	info: PropTypes.bool,
 	/**
 	 * Makes text error color
 	 */
 	error: PropTypes.bool,
 	/**
-	 * Makes text orange
+	 * Sets the color to the warning theme color
 	 */
-	orange: PropTypes.bool,
+	warning: PropTypes.bool,
 	/**
 	 * Makes text fontPrimary color
 	 */

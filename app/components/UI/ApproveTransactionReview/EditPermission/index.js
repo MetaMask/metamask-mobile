@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
 		lineHeight: 18,
 		color: colors.textAlternative,
 	},
-	textBlue: {
+	primary: {
 		color: colors.primary,
 	},
 	colorTextDefault: {
@@ -165,7 +165,7 @@ function EditPermission({
 						<Text
 							style={[
 								styles.optionText,
-								spendLimitUnlimitedSelected ? styles.textBlue : styles.colorTextDefault,
+								spendLimitUnlimitedSelected ? styles.primary : styles.colorTextDefault,
 							]}
 						>
 							{strings('spend_limit_edition.proposed')}
@@ -194,7 +194,7 @@ function EditPermission({
 						<Text
 							style={[
 								styles.optionText,
-								!spendLimitUnlimitedSelected ? styles.textBlue : styles.colorTextDefault,
+								!spendLimitUnlimitedSelected ? styles.primary : styles.colorTextDefault,
 							]}
 						>
 							{strings('spend_limit_edition.custom_spend_limit')}

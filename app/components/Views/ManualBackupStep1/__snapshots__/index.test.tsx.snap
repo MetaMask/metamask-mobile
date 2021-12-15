@@ -4,7 +4,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
 <ForwardRef(SafeAreaView)
   style={
     Object {
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#ffffff",
       "flex": 1,
     }
   }
@@ -51,7 +51,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#24272A",
+            "color": "#24272a",
             "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 18,
             "fontWeight": "600",
@@ -74,7 +74,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#24272A",
+              "color": "#24272a",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
@@ -89,7 +89,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
       <View
         style={
           Object {
-            "backgroundColor": "#FFFFFF",
+            "backgroundColor": "#ffffff",
             "borderColor": "#d6d9dc",
             "borderRadius": 8,
             "borderWidth": 1,
@@ -121,11 +121,11 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             <Text
               style={
                 Object {
-                  "backgroundColor": "#FFFFFF",
-                  "borderColor": "#037DD6",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#037dd6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#24272A",
+                  "color": "#24272a",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -150,11 +150,11 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             <Text
               style={
                 Object {
-                  "backgroundColor": "#FFFFFF",
-                  "borderColor": "#037DD6",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#037dd6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#24272A",
+                  "color": "#24272a",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -179,11 +179,11 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             <Text
               style={
                 Object {
-                  "backgroundColor": "#FFFFFF",
-                  "borderColor": "#037DD6",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#037dd6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#24272A",
+                  "color": "#24272a",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -208,11 +208,11 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             <Text
               style={
                 Object {
-                  "backgroundColor": "#FFFFFF",
-                  "borderColor": "#037DD6",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#037dd6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#24272A",
+                  "color": "#24272a",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -237,11 +237,11 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             <Text
               style={
                 Object {
-                  "backgroundColor": "#FFFFFF",
-                  "borderColor": "#037DD6",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#037dd6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#24272A",
+                  "color": "#24272a",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -266,11 +266,11 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             <Text
               style={
                 Object {
-                  "backgroundColor": "#FFFFFF",
-                  "borderColor": "#037DD6",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#037dd6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#24272A",
+                  "color": "#24272a",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -307,11 +307,11 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             <Text
               style={
                 Object {
-                  "backgroundColor": "#FFFFFF",
-                  "borderColor": "#037DD6",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#037dd6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#24272A",
+                  "color": "#24272a",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -336,11 +336,11 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             <Text
               style={
                 Object {
-                  "backgroundColor": "#FFFFFF",
-                  "borderColor": "#037DD6",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#037dd6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#24272A",
+                  "color": "#24272a",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -365,11 +365,11 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             <Text
               style={
                 Object {
-                  "backgroundColor": "#FFFFFF",
-                  "borderColor": "#037DD6",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#037dd6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#24272A",
+                  "color": "#24272a",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -394,11 +394,11 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             <Text
               style={
                 Object {
-                  "backgroundColor": "#FFFFFF",
-                  "borderColor": "#037DD6",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#037dd6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#24272A",
+                  "color": "#24272a",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -423,11 +423,11 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             <Text
               style={
                 Object {
-                  "backgroundColor": "#FFFFFF",
-                  "borderColor": "#037DD6",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#037dd6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#24272A",
+                  "color": "#24272a",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -452,11 +452,11 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             <Text
               style={
                 Object {
-                  "backgroundColor": "#FFFFFF",
-                  "borderColor": "#037DD6",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#037dd6",
                   "borderRadius": 13,
                   "borderWidth": 1,
-                  "color": "#24272A",
+                  "color": "#24272a",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 14,
@@ -517,7 +517,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
               size={24}
               style={
                 Object {
-                  "color": "#FFFFFF",
+                  "color": "#ffffff",
                   "height": 24,
                   "marginBottom": 32,
                   "textAlign": "center",
@@ -528,7 +528,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             <Text
               style={
                 Object {
-                  "color": "#FFFFFF",
+                  "color": "#ffffff",
                   "fontFamily": "EuclidCircularB-Bold",
                   "fontSize": 16,
                   "fontWeight": "600",
@@ -543,7 +543,7 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             <Text
               style={
                 Object {
-                  "color": "#FFFFFF",
+                  "color": "#ffffff",
                   "fontSize": 12,
                   "lineHeight": 17,
                   "marginBottom": 32,

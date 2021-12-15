@@ -85,7 +85,7 @@ const PaymentMethodModal = ({ isVisible, title, dismiss, children }) => (
 				<View onStartShouldSetResponder={() => true}>{children}</View>
 			</ScrollView>
 			<View style={styles.action}>
-				<StyledButton type="blue" onPress={dismiss} containerStyle={[styles.button]}>
+				<StyledButton type="primary" onPress={dismiss} containerStyle={[styles.button]}>
 					{strings('fiat_on_ramp.purchase_method_modal_close')}
 				</StyledButton>
 			</View>

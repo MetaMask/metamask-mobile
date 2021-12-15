@@ -126,7 +126,7 @@ const SlippageSlider = ({ range, increment, onChange, value, formatTooltipText, 
 
 	const sliderColor = sliderPosition.interpolate({
 		inputRange: [0, trackWidth],
-		outputRange: [colors.spinnerColor, colors.onError],
+		outputRange: [colors.onInfo, colors.onError],
 		extrapolate: 'clamp',
 	});
 

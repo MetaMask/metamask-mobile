@@ -412,7 +412,7 @@ class Onboarding extends PureComponent {
 					<View style={styles.buttonWrapper}>
 						<StyledButton
 							style={styles.button}
-							type={'blue'}
+							type={'primary'}
 							onPress={this.onPressCreate}
 							testID={'create-wallet-button'}
 						>

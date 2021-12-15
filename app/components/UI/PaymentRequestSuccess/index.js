@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
 		color: colors.primary,
 		marginBottom: 16,
 	},
-	blueIcon: {
+	primaryIcon: {
 		color: colors.onPrimary,
 	},
 	iconWrapper: {
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		marginLeft: 8,
 	},
-	blueButtonText: {
+	primaryButtonText: {
 		...fontStyles.bold,
 		color: colors.onPrimary,
 		fontSize: 14,
@@ -288,13 +288,13 @@ class PaymentRequestSuccess extends PureComponent {
 									</View>
 								</View>
 							</StyledButton>
-							<StyledButton type={'blue'} onPress={this.onShare} containerStyle={styles.button}>
+							<StyledButton type={'primary'} onPress={this.onShare} containerStyle={styles.button}>
 								<View style={styles.buttonContent}>
 									<View style={styles.buttonIconWrapper}>
-										<EvilIcons name="share-apple" size={24} style={styles.blueIcon} />
+										<EvilIcons name="share-apple" size={24} style={styles.primaryIcon} />
 									</View>
 									<View style={styles.buttonTextWrapper}>
-										<Text style={styles.blueButtonText}>
+										<Text style={styles.primaryButtonText}>
 											{strings('payment_request.send_link')}
 										</Text>
 									</View>

@@ -25,7 +25,7 @@ exports[`AssetElement should render correctly 1`] = `
   >
     <Icon
       allowFontScaling={false}
-      color="#5B5D67"
+      color="#5b5d67"
       name="ios-arrow-forward"
       size={24}
       style={

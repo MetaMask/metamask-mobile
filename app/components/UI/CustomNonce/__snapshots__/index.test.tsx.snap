@@ -22,10 +22,10 @@ exports[`CustomNonce should render correctly 1`] = `
     centered={false}
     disclaimer={false}
     error={false}
+    info={false}
     link={false}
     modal={false}
     primary={false}
-    red={false}
     reset={false}
     right={false}
     small={false}
@@ -35,6 +35,7 @@ exports[`CustomNonce should render correctly 1`] = `
     textDefault={true}
     underline={false}
     upper={false}
+    warning={false}
   >
     Nonce
   </Text>
@@ -44,10 +45,10 @@ exports[`CustomNonce should render correctly 1`] = `
     centered={false}
     disclaimer={false}
     error={false}
+    info={false}
     link={true}
     modal={false}
     primary={false}
-    red={false}
     reset={false}
     right={false}
     small={false}
@@ -57,6 +58,7 @@ exports[`CustomNonce should render correctly 1`] = `
     textDefault={false}
     underline={false}
     upper={false}
+    warning={false}
   >
       
     Edit
@@ -67,10 +69,10 @@ exports[`CustomNonce should render correctly 1`] = `
     centered={false}
     disclaimer={false}
     error={false}
+    info={false}
     link={false}
     modal={false}
     primary={false}
-    red={false}
     reset={false}
     right={false}
     small={false}
@@ -85,6 +87,7 @@ exports[`CustomNonce should render correctly 1`] = `
     textDefault={true}
     underline={false}
     upper={false}
+    warning={false}
   />
 </TouchableOpacity>
 `;

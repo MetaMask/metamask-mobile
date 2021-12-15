@@ -379,7 +379,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
 
 	const renderScanButton = useCallback(
 		() => (
-			<StyledButton type={'blue'} onPress={triggerScan} testID={'create-wallet-button'}>
+			<StyledButton type={'primary'} onPress={triggerScan} testID={'create-wallet-button'}>
 				{strings('onboarding.scan')}
 			</StyledButton>
 		),

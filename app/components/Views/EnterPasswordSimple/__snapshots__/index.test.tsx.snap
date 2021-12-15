@@ -5,7 +5,7 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
   emulateUnlessSupported={true}
   style={
     Object {
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#ffffff",
       "flex": 1,
     }
   }
@@ -51,7 +51,7 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#24272A",
+                "color": "#24272a",
                 "fontSize": 16,
                 "marginBottom": 15,
               }
@@ -96,7 +96,7 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
               }
             }
             testID="submit-button"
-            type="blue"
+            type="primary"
           >
             Confirm
           </StyledButton>

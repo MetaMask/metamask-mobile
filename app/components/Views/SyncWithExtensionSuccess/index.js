@@ -185,7 +185,7 @@ class SyncWithExtensionSuccess extends PureComponent {
 					</View>
 				</View>
 				<View style={styles.buttonContainer}>
-					<StyledButton type="blue" onPress={this.continue} containerStyle={styles.button}>
+					<StyledButton type="primary" onPress={this.continue} containerStyle={styles.button}>
 						{strings('sync_with_extension_success.button_continue')}
 					</StyledButton>
 				</View>

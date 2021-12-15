@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
 		borderRadius: 100,
 	},
 	warningButton: {
-		backgroundColor: colors.onWarning,
+		backgroundColor: colors.warning,
 	},
 	errorButton: {
 		backgroundColor: colors.onError,

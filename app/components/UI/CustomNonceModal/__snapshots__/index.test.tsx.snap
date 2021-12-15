@@ -66,7 +66,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
     <ForwardRef(SafeAreaView)
       style={
         Object {
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#ffffff",
           "borderTopLeftRadius": 20,
           "borderTopRightRadius": 20,
           "minHeight": 200,
@@ -87,17 +87,17 @@ exports[`CustomNonceModal should render correctly 1`] = `
           centered={true}
           disclaimer={false}
           error={false}
+          info={false}
           link={false}
           modal={false}
           primary={false}
-          red={false}
           reset={false}
           right={false}
           small={false}
           strikethrough={false}
           style={
             Object {
-              "color": "#24272A",
+              "color": "#24272a",
               "fontSize": 14,
             }
           }
@@ -106,6 +106,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
           textDefault={false}
           underline={false}
           upper={false}
+          warning={false}
         >
           Edit transaction nonce
         </Text>
@@ -134,7 +135,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
             spellCheck={false}
             style={
               Object {
-                "color": "#24272A",
+                "color": "#24272a",
                 "fontFamily": "EuclidCircularB-Bold",
                 "fontSize": 36,
                 "fontWeight": "600",
@@ -152,17 +153,17 @@ exports[`CustomNonceModal should render correctly 1`] = `
           centered={true}
           disclaimer={false}
           error={false}
+          info={false}
           link={false}
           modal={false}
           primary={false}
-          red={false}
           reset={false}
           right={false}
           small={false}
           strikethrough={false}
           style={
             Object {
-              "color": "#5B5D67",
+              "color": "#5b5d67",
               "fontSize": 14,
               "marginBottom": 10,
             }
@@ -172,6 +173,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
           textDefault={false}
           underline={false}
           upper={false}
+          warning={false}
         >
           Current suggested nonce:
            
@@ -181,10 +183,10 @@ exports[`CustomNonceModal should render correctly 1`] = `
             centered={false}
             disclaimer={false}
             error={false}
+            info={false}
             link={false}
             modal={false}
             primary={false}
-            red={false}
             reset={false}
             right={false}
             small={false}
@@ -194,6 +196,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
             textDefault={false}
             underline={false}
             upper={false}
+            warning={false}
           >
             26
           </Text>
@@ -222,7 +225,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
               size={64}
               style={
                 Object {
-                  "color": "#037DD6",
+                  "color": "#037dd6",
                 }
               }
             />
@@ -241,7 +244,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
               size={64}
               style={
                 Object {
-                  "color": "#037DD6",
+                  "color": "#037dd6",
                 }
               }
             />
@@ -257,8 +260,8 @@ exports[`CustomNonceModal should render correctly 1`] = `
           <View
             style={
               Object {
-                "backgroundColor": "#fffcdb",
-                "borderColor": "#FFD33D",
+                "backgroundColor": "#fffdf8",
+                "borderColor": "#ffc70a",
                 "borderRadius": 8,
                 "borderWidth": 1,
                 "display": "flex",
@@ -271,7 +274,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
           >
             <Icon
               allowFontScaling={false}
-              color="#FFD33D"
+              color="#ffc70a"
               name="exclamation-circle"
               size={16}
               style={
@@ -288,17 +291,17 @@ exports[`CustomNonceModal should render correctly 1`] = `
               centered={false}
               disclaimer={false}
               error={false}
+              info={false}
               link={false}
               modal={false}
               primary={false}
-              red={false}
               reset={false}
               right={false}
               small={false}
               strikethrough={false}
               style={
                 Object {
-                  "color": "#24272A",
+                  "color": "#24272a",
                   "flex": 1,
                   "fontSize": 12,
                   "lineHeight": 16,
@@ -310,6 +313,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
               textDefault={false}
               underline={false}
               upper={false}
+              warning={false}
             >
               Warning: You may encounter issues with future transactions if you continue. Use with caution.
             </Text>
@@ -320,17 +324,17 @@ exports[`CustomNonceModal should render correctly 1`] = `
             centered={false}
             disclaimer={false}
             error={false}
+            info={false}
             link={false}
             modal={false}
             primary={false}
-            red={false}
             reset={false}
             right={false}
             small={false}
             strikethrough={false}
             style={
               Object {
-                "color": "#24272A",
+                "color": "#24272a",
                 "fontSize": 12,
                 "lineHeight": 16,
                 "marginVertical": 10,
@@ -341,6 +345,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
             textDefault={false}
             underline={false}
             upper={false}
+            warning={false}
           >
             This is an advanced feature used to cancel or speed up any pending transactions.
           </Text>
@@ -350,17 +355,17 @@ exports[`CustomNonceModal should render correctly 1`] = `
             centered={false}
             disclaimer={false}
             error={false}
+            info={false}
             link={false}
             modal={false}
             primary={false}
-            red={false}
             reset={false}
             right={false}
             small={false}
             strikethrough={false}
             style={
               Object {
-                "color": "#24272A",
+                "color": "#24272a",
                 "fontSize": 12,
                 "lineHeight": 16,
                 "marginVertical": 10,
@@ -371,6 +376,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
             textDefault={false}
             underline={false}
             upper={false}
+            warning={false}
           >
             Think of the nonce as the transaction number of an account. Every account's nonce begins with 0 for the first transaction and continues in sequential order.
           </Text>
@@ -424,7 +430,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
               "opacity": 0.6,
             }
           }
-          type="blue"
+          type="primary"
         >
           Save
         </StyledButton>

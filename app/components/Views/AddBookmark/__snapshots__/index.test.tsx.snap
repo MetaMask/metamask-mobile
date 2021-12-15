@@ -4,7 +4,7 @@ exports[`AddBookmark should render correctly 1`] = `
 <ForwardRef(SafeAreaView)
   style={
     Object {
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#ffffff",
       "flex": 1,
     }
   }
@@ -62,7 +62,7 @@ exports[`AddBookmark should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#D73A49",
+              "color": "#d73a49",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
             }
@@ -106,7 +106,7 @@ exports[`AddBookmark should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#D73A49",
+              "color": "#d73a49",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
             }

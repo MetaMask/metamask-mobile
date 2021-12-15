@@ -29,7 +29,7 @@ exports[`Radio should render correctly when selected 1`] = `
     cy="6"
     fill="none"
     r="4"
-    stroke="#037DD6"
+    stroke="#037dd6"
     strokeWidth="4"
   />
 </Svg>

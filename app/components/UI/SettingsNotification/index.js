@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
 	icon: {
 		marginRight: 4,
 	},
-	red: {
+	error: {
 		backgroundColor: colors.error,
 	},
 	normal: {
@@ -57,7 +57,7 @@ const SettingsNotification = ({ style, isWarning, isNotification, children }) =>
 	<View
 		style={[
 			isNotification ? Object.assign({}, styles.menuItemWarning, style) : styles.wrapper,
-			isNotification ? null : isWarning ? styles.red : styles.normal,
+			isNotification ? null : isWarning ? styles.error : styles.normal,
 		]}
 	>
 		{isWarning ? <WarningIcon /> : <CheckIcon />}

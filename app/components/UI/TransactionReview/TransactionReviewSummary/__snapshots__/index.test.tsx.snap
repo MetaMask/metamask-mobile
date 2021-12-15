@@ -21,7 +21,7 @@ exports[`TransactionReviewSummary should render correctly 1`] = `
           "borderColor": "#d6d9dc",
           "borderRadius": 12,
           "borderWidth": 1,
-          "color": "#24272A",
+          "color": "#24272a",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 10,
           "fontWeight": "400",
@@ -34,7 +34,7 @@ exports[`TransactionReviewSummary should render correctly 1`] = `
     <Text
       style={
         Object {
-          "color": "#24272A",
+          "color": "#24272a",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 44,
           "fontWeight": "400",
