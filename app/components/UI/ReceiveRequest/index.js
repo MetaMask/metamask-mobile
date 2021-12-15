@@ -19,7 +19,7 @@ import { showAlert } from '../../../actions/alert';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { protectWalletModalVisible } from '../../../actions/user';
 
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import Text from '../../Base/Text';
 import ModalHandler from '../../Base/ModalHandler';
 import ModalDragger from '../../Base/ModalDragger';
@@ -28,57 +28,7 @@ import EthereumAddress from '../EthereumAddress';
 import GlobalAlert from '../GlobalAlert';
 import StyledButton from '../StyledButton';
 import ClipboardManager from '../../../core/ClipboardManager';
-
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.backgroundDefault,
-		borderTopLeftRadius: 10,
-		borderTopRightRadius: 10,
-	},
-	body: {
-		alignItems: 'center',
-		paddingHorizontal: 15,
-	},
-	qrWrapper: {
-		margin: 15,
-	},
-	addressWrapper: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		margin: 15,
-		padding: 9,
-		paddingHorizontal: 15,
-		backgroundColor: colors.backgroundAlternative,
-		borderRadius: 30,
-	},
-	copyButton: {
-		backgroundColor: colors.backgroundAlternative,
-		color: colors.textDefault,
-		borderRadius: 12,
-		overflow: 'hidden',
-		paddingVertical: 3,
-		paddingHorizontal: 6,
-		marginHorizontal: 6,
-	},
-	actionRow: {
-		flexDirection: 'row',
-		marginBottom: 15,
-	},
-	actionButton: {
-		flex: 1,
-		marginHorizontal: 8,
-	},
-	title: {
-		...fontStyles.normal,
-		color: colors.textDefault,
-		fontSize: 18,
-		flexDirection: 'row',
-		alignSelf: 'center',
-	},
-	titleWrapper: {
-		marginTop: 10,
-	},
-});
+import { ThemeContext } from '../../../components/Nav/App/context';
 
 /**
  * PureComponent that renders receive options
@@ -214,6 +164,57 @@ class ReceiveRequest extends PureComponent {
 	};
 
 	render() {
+		const { colors } = this.context;
+		const styles = StyleSheet.create({
+			wrapper: {
+				backgroundColor: colors.backgroundDefault,
+				borderTopLeftRadius: 10,
+				borderTopRightRadius: 10,
+			},
+			body: {
+				alignItems: 'center',
+				paddingHorizontal: 15,
+			},
+			qrWrapper: {
+				margin: 15,
+			},
+			addressWrapper: {
+				flexDirection: 'row',
+				alignItems: 'center',
+				margin: 15,
+				padding: 9,
+				paddingHorizontal: 15,
+				backgroundColor: colors.backgroundAlternative,
+				borderRadius: 30,
+			},
+			copyButton: {
+				backgroundColor: colors.backgroundAlternative,
+				color: colors.textDefault,
+				borderRadius: 12,
+				overflow: 'hidden',
+				paddingVertical: 3,
+				paddingHorizontal: 6,
+				marginHorizontal: 6,
+			},
+			actionRow: {
+				flexDirection: 'row',
+				marginBottom: 15,
+			},
+			actionButton: {
+				flex: 1,
+				marginHorizontal: 8,
+			},
+			title: {
+				...fontStyles.normal,
+				color: colors.textDefault,
+				fontSize: 18,
+				flexDirection: 'row',
+				alignSelf: 'center',
+			},
+			titleWrapper: {
+				marginTop: 10,
+			},
+		});
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<ModalDragger />
@@ -299,6 +300,8 @@ class ReceiveRequest extends PureComponent {
 		);
 	}
 }
+
+ReceiveRequest.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	network: state.engine.backgroundState.NetworkController.network,

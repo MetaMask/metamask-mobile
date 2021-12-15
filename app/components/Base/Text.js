@@ -1,78 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Text as RNText, StyleSheet } from 'react-native';
-import { fontStyles, colors } from '../../styles/common';
-
-const style = StyleSheet.create({
-	text: {
-		...fontStyles.normal,
-		color: colors.textDefault,
-		marginVertical: 2,
-		fontSize: 14,
-	},
-	centered: {
-		textAlign: 'center',
-	},
-	right: {
-		textAlign: 'right',
-	},
-	error: {
-		color: colors.onError,
-	},
-	warning: {
-		color: colors.onWarning,
-	},
-	textDefault: {
-		color: colors.textDefault,
-	},
-	textAlternative: {
-		color: colors.textAlternative,
-	},
-	bold: fontStyles.bold,
-	info: {
-		color: colors.onInfo,
-	},
-	success: {
-		color: colors.onSuccess,
-	},
-	primary: {
-		color: colors.textDefault,
-	},
-	small: {
-		fontSize: 12,
-	},
-	big: {
-		fontSize: 16,
-	},
-	upper: {
-		textTransform: 'uppercase',
-	},
-	disclaimer: {
-		fontStyle: 'italic',
-		letterSpacing: 0.15,
-	},
-	modal: {
-		color: colors.textDefault,
-		fontSize: 16,
-		lineHeight: 22.4, // 1.4 * fontSize
-	},
-	infoModal: {
-		lineHeight: 20,
-		marginVertical: 6,
-	},
-	link: {
-		color: colors.primary,
-	},
-	strikethrough: {
-		textDecorationLine: 'line-through',
-	},
-	underline: {
-		textDecorationLine: 'underline',
-	},
-	noMargin: {
-		marginVertical: 0,
-	},
-});
+import { fontStyles } from '../../styles/common';
+import { useAppThemeFromContext } from '../../util/theme';
 
 const Text = ({
 	reset,
@@ -98,35 +28,108 @@ const Text = ({
 	style: externalStyle,
 	noMargin,
 	...props
-}) => (
-	<RNText
-		style={[
-			!reset && style.text,
-			centered && style.centered,
-			right && style.right,
-			bold && style.bold,
-			success && style.success,
-			info && style.info,
-			error && style.error,
-			warning && style.warning,
-			textDefault && style.textDefault,
-			textAlternative && style.textAlternative,
-			primary && style.primary,
-			disclaimer && [style.small, style.disclaimer],
-			small && style.small,
-			big && style.big,
-			upper && style.upper,
-			modal && style.modal,
-			infoModal && style.infoModal,
-			link && style.link,
-			strikethrough && style.strikethrough,
-			underline && style.underline,
-			noMargin && style.noMargin,
-			externalStyle,
-		]}
-		{...props}
-	/>
-);
+}) => {
+	const { colors } = useAppThemeFromContext();
+	const style = StyleSheet.create({
+		text: {
+			...fontStyles.normal,
+			color: colors.textDefault,
+			marginVertical: 2,
+			fontSize: 14,
+		},
+		centered: {
+			textAlign: 'center',
+		},
+		right: {
+			textAlign: 'right',
+		},
+		error: {
+			color: colors.onError,
+		},
+		warning: {
+			color: colors.onWarning,
+		},
+		textDefault: {
+			color: colors.textDefault,
+		},
+		textAlternative: {
+			color: colors.textAlternative,
+		},
+		bold: fontStyles.bold,
+		info: {
+			color: colors.onInfo,
+		},
+		success: {
+			color: colors.onSuccess,
+		},
+		primary: {
+			color: colors.textDefault,
+		},
+		small: {
+			fontSize: 12,
+		},
+		big: {
+			fontSize: 16,
+		},
+		upper: {
+			textTransform: 'uppercase',
+		},
+		disclaimer: {
+			fontStyle: 'italic',
+			letterSpacing: 0.15,
+		},
+		modal: {
+			color: colors.textDefault,
+			fontSize: 16,
+			lineHeight: 22.4, // 1.4 * fontSize
+		},
+		infoModal: {
+			lineHeight: 20,
+			marginVertical: 6,
+		},
+		link: {
+			color: colors.primary,
+		},
+		strikethrough: {
+			textDecorationLine: 'line-through',
+		},
+		underline: {
+			textDecorationLine: 'underline',
+		},
+		noMargin: {
+			marginVertical: 0,
+		},
+	});
+	return (
+		<RNText
+			style={[
+				!reset && style.text,
+				centered && style.centered,
+				right && style.right,
+				bold && style.bold,
+				success && style.success,
+				info && style.info,
+				error && style.error,
+				warning && style.warning,
+				textDefault && style.textDefault,
+				textAlternative && style.textAlternative,
+				primary && style.primary,
+				disclaimer && [style.small, style.disclaimer],
+				small && style.small,
+				big && style.big,
+				upper && style.upper,
+				modal && style.modal,
+				infoModal && style.infoModal,
+				link && style.link,
+				strikethrough && style.strikethrough,
+				underline && style.underline,
+				noMargin && style.noMargin,
+				externalStyle,
+			]}
+			{...props}
+		/>
+	);
+};
 
 Text.defaultProps = {
 	reset: false,

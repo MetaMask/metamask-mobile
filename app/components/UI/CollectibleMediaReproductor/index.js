@@ -3,8 +3,9 @@ import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
 import RemoteImage from '../../Base/RemoteImage';
 import Identicon from '../Identicon';
-import { colors } from '../../../styles/common';
+
 import MediaPlayer from '../../Views/MediaPlayer';
+import { useAppThemeFromContext } from '../../../util/theme';
 
 const styles = StyleSheet.create({
 	listWrapper: {
@@ -35,7 +36,7 @@ const styles = StyleSheet.create({
  */
 export default function CollectibleMediaPlayer({ collectible, renderFull, containerStyle, iconStyle }) {
 	const [fallbackImage, setFallbackImage] = useState(null);
-
+	const { colors } = useAppThemeFromContext();
 	const fallback = () => {
 		const { address, tokenId } = collectible;
 		setFallbackImage(`https://storage.opensea.io/${address.toLowerCase()}/${tokenId}.png`);

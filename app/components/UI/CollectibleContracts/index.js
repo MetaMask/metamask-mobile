@@ -2,7 +2,7 @@ import React, { useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, View, InteractionManager, Image } from 'react-native';
 import { connect } from 'react-redux';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import CollectibleContractElement from '../CollectibleContractElement';
@@ -18,56 +18,7 @@ import Text from '../../Base/Text';
 import AppConstants from '../../../core/AppConstants';
 import { toLowerCaseEquals } from '../../../util/general';
 import { compareTokenIds } from '../../../util/tokens';
-
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.backgroundDefault,
-		flex: 1,
-		minHeight: 500,
-		marginTop: 16,
-	},
-	emptyView: {
-		justifyContent: 'center',
-		alignItems: 'center',
-		marginTop: 40,
-	},
-	add: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	addText: {
-		fontSize: 14,
-		color: colors.primary,
-		...fontStyles.normal,
-	},
-	footer: {
-		flex: 1,
-		paddingBottom: 30,
-		alignItems: 'center',
-		marginTop: 24,
-	},
-	emptyContainer: {
-		flex: 1,
-		marginBottom: 18,
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	emptyImageContainer: {
-		width: 76,
-		height: 76,
-		marginBottom: 12,
-	},
-	emptyTitleText: {
-		fontSize: 24,
-		color: colors.textAlternative,
-	},
-	emptyText: {
-		color: colors.textAlternative,
-		marginBottom: 8,
-		fontSize: 14,
-	},
-});
+import { useAppThemeFromContext } from '../../../util/theme';
 
 /**
  * View that renders a list of CollectibleContract
@@ -88,6 +39,56 @@ const CollectibleContracts = ({
 		},
 		[navigation]
 	);
+	const { colors } = useAppThemeFromContext();
+	const styles = StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.backgroundDefault,
+			flex: 1,
+			minHeight: 500,
+			marginTop: 16,
+		},
+		emptyView: {
+			justifyContent: 'center',
+			alignItems: 'center',
+			marginTop: 40,
+		},
+		add: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+		addText: {
+			fontSize: 14,
+			color: colors.primary,
+			...fontStyles.normal,
+		},
+		footer: {
+			flex: 1,
+			paddingBottom: 30,
+			alignItems: 'center',
+			marginTop: 24,
+		},
+		emptyContainer: {
+			flex: 1,
+			marginBottom: 18,
+			justifyContent: 'center',
+			alignItems: 'center',
+		},
+		emptyImageContainer: {
+			width: 76,
+			height: 76,
+			marginBottom: 12,
+		},
+		emptyTitleText: {
+			fontSize: 24,
+			color: colors.textAlternative,
+		},
+		emptyText: {
+			color: colors.textAlternative,
+			marginBottom: 8,
+			fontSize: 14,
+		},
+	});
 
 	/**
 	 *	Method to check the token id data type of the current collectibles.

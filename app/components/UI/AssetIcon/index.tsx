@@ -2,8 +2,8 @@ import React, { memo } from 'react';
 import { ImageStyle, StyleSheet, StyleProp, ImageSourcePropType } from 'react-native';
 import isUrl from 'is-url';
 import RemoteImage from '../../Base/RemoteImage';
-import { colors } from '../../../styles/common';
 import staticLogos from 'images/static-logos';
+import { useAppThemeFromContext } from '../../../util/theme';
 
 interface Props {
 	/**
@@ -20,21 +20,21 @@ interface Props {
 	customStyle?: StyleProp<ImageStyle>;
 }
 
-const styles = StyleSheet.create({
-	logo: {
-		width: 50,
-		height: 50,
-		borderRadius: 25,
-		overflow: 'hidden',
-	},
-	placeholder: { backgroundColor: colors.backgroundAlternative },
-});
-
 /**
  * PureComponent that provides an asset icon dependent on OS.
  */
 // eslint-disable-next-line react/display-name
 const AssetIcon = memo((props: Props) => {
+	const { colors } = useAppThemeFromContext();
+	const styles = StyleSheet.create({
+		logo: {
+			width: 50,
+			height: 50,
+			borderRadius: 25,
+			overflow: 'hidden',
+		},
+		placeholder: { backgroundColor: colors.backgroundAlternative },
+	});
 	if (!props.logo) return null;
 	const style = [styles.logo, props.customStyle];
 	const isImageUrl = isUrl(props.logo) || props.logo.substr(0, 4) === 'ipfs';

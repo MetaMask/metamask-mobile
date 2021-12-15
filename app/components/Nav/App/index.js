@@ -283,6 +283,11 @@ const App = ({ userLoggedIn }) => {
 
 	const theme = useAppTheme();
 
+	const triggerSetAppTheme = (theme) => dispatch(setAppTheme(theme));
+	useEffect(() => {
+		triggerSetAppTheme(AppThemeNames.Dark);
+	});
+
 	return (
 		// do not render unless a route is defined
 		(route && (

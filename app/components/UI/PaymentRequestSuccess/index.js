@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import Text from '../../Base/Text';
 import { connect } from 'react-redux';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { getPaymentRequestSuccessOptionsTitle } from '../../UI/Navbar';
 import PropTypes from 'prop-types';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
@@ -27,126 +27,7 @@ import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
 import { protectWalletModalVisible } from '../../../actions/user';
 import ClipboardManager from '../../../core/ClipboardManager';
-
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.backgroundDefault,
-		flex: 1,
-	},
-	contentWrapper: {
-		padding: 24,
-	},
-	button: {
-		marginBottom: 16,
-	},
-	titleText: {
-		...fontStyles.bold,
-		fontSize: 24,
-		marginVertical: 16,
-		alignSelf: 'center',
-	},
-	descriptionText: {
-		...fontStyles.normal,
-		fontSize: 14,
-		alignSelf: 'center',
-		textAlign: 'center',
-		marginVertical: 8,
-	},
-	linkText: {
-		...fontStyles.normal,
-		fontSize: 14,
-		color: colors.primary,
-		alignSelf: 'center',
-		textAlign: 'center',
-		marginVertical: 16,
-	},
-	buttonsWrapper: {
-		flex: 1,
-		flexDirection: 'row',
-		alignSelf: 'center',
-	},
-	buttonsContainer: {
-		flex: 1,
-		flexDirection: 'column',
-		alignSelf: 'flex-end',
-	},
-	scrollViewContainer: {
-		flexGrow: 1,
-	},
-	icon: {
-		color: colors.primary,
-		marginBottom: 16,
-	},
-	primaryIcon: {
-		color: colors.onPrimary,
-	},
-	iconWrapper: {
-		alignItems: 'center',
-	},
-	buttonText: {
-		...fontStyles.bold,
-		color: colors.primary,
-		fontSize: 14,
-		marginLeft: 8,
-	},
-	primaryButtonText: {
-		...fontStyles.bold,
-		color: colors.onPrimary,
-		fontSize: 14,
-		marginLeft: 8,
-	},
-	buttonContent: {
-		flexDirection: 'row',
-		alignSelf: 'center',
-	},
-	buttonIconWrapper: {
-		flexDirection: 'column',
-		alignSelf: 'center',
-	},
-	buttonTextWrapper: {
-		flexDirection: 'column',
-		alignSelf: 'center',
-	},
-	detailsWrapper: {
-		padding: 10,
-		alignItems: 'center',
-	},
-	addressTitle: {
-		fontSize: 16,
-		marginBottom: 16,
-		...fontStyles.normal,
-	},
-	informationWrapper: {
-		paddingHorizontal: 40,
-	},
-	linkWrapper: {
-		paddingHorizontal: 24,
-	},
-	titleQr: {
-		flexDirection: 'row',
-	},
-	closeIcon: {
-		position: 'absolute',
-		right: Device.isIos() ? -30 : -40,
-		bottom: Device.isIos() ? 8 : 10,
-	},
-	qrCode: {
-		marginBottom: 16,
-		alignItems: 'center',
-		justifyContent: 'center',
-		paddingHorizontal: 36,
-		paddingBottom: 24,
-		paddingTop: 16,
-		backgroundColor: colors.backgroundAlternative,
-		borderRadius: 8,
-	},
-	qrCodeWrapper: {
-		borderColor: colors.borderDefault,
-		borderRadius: 8,
-		borderWidth: 1,
-		padding: 15,
-	},
-});
+import { ThemeContext } from '../../../components/Nav/App/context';
 
 /**
  * View to interact with a previously generated payment request link
@@ -237,6 +118,126 @@ class PaymentRequestSuccess extends PureComponent {
 
 	render() {
 		const { link, amount, symbol, qrModalVisible } = this.state;
+		const { colors } = this.context;
+		const styles = StyleSheet.create({
+			wrapper: {
+				backgroundColor: colors.backgroundDefault,
+				flex: 1,
+			},
+			contentWrapper: {
+				padding: 24,
+			},
+			button: {
+				marginBottom: 16,
+			},
+			titleText: {
+				...fontStyles.bold,
+				fontSize: 24,
+				marginVertical: 16,
+				alignSelf: 'center',
+			},
+			descriptionText: {
+				...fontStyles.normal,
+				fontSize: 14,
+				alignSelf: 'center',
+				textAlign: 'center',
+				marginVertical: 8,
+			},
+			linkText: {
+				...fontStyles.normal,
+				fontSize: 14,
+				color: colors.primary,
+				alignSelf: 'center',
+				textAlign: 'center',
+				marginVertical: 16,
+			},
+			buttonsWrapper: {
+				flex: 1,
+				flexDirection: 'row',
+				alignSelf: 'center',
+			},
+			buttonsContainer: {
+				flex: 1,
+				flexDirection: 'column',
+				alignSelf: 'flex-end',
+			},
+			scrollViewContainer: {
+				flexGrow: 1,
+			},
+			icon: {
+				color: colors.primary,
+				marginBottom: 16,
+			},
+			primaryIcon: {
+				color: colors.onPrimary,
+			},
+			iconWrapper: {
+				alignItems: 'center',
+			},
+			buttonText: {
+				...fontStyles.bold,
+				color: colors.primary,
+				fontSize: 14,
+				marginLeft: 8,
+			},
+			primaryButtonText: {
+				...fontStyles.bold,
+				color: colors.onPrimary,
+				fontSize: 14,
+				marginLeft: 8,
+			},
+			buttonContent: {
+				flexDirection: 'row',
+				alignSelf: 'center',
+			},
+			buttonIconWrapper: {
+				flexDirection: 'column',
+				alignSelf: 'center',
+			},
+			buttonTextWrapper: {
+				flexDirection: 'column',
+				alignSelf: 'center',
+			},
+			detailsWrapper: {
+				padding: 10,
+				alignItems: 'center',
+			},
+			addressTitle: {
+				fontSize: 16,
+				marginBottom: 16,
+				...fontStyles.normal,
+			},
+			informationWrapper: {
+				paddingHorizontal: 40,
+			},
+			linkWrapper: {
+				paddingHorizontal: 24,
+			},
+			titleQr: {
+				flexDirection: 'row',
+			},
+			closeIcon: {
+				position: 'absolute',
+				right: Device.isIos() ? -30 : -40,
+				bottom: Device.isIos() ? 8 : 10,
+			},
+			qrCode: {
+				marginBottom: 16,
+				alignItems: 'center',
+				justifyContent: 'center',
+				paddingHorizontal: 36,
+				paddingBottom: 24,
+				paddingTop: 16,
+				backgroundColor: colors.backgroundAlternative,
+				borderRadius: 8,
+			},
+			qrCodeWrapper: {
+				borderColor: colors.borderDefault,
+				borderRadius: 8,
+				borderWidth: 1,
+				padding: 15,
+			},
+		});
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'send-link-screen'}>
 				<ScrollView style={styles.contentWrapper} contentContainerStyle={styles.scrollViewContainer}>
@@ -334,6 +335,8 @@ class PaymentRequestSuccess extends PureComponent {
 		);
 	}
 }
+
+PaymentRequestSuccess.contextType = ThemeContext;
 
 const mapDispatchToProps = (dispatch) => ({
 	showAlert: (config) => dispatch(showAlert(config)),

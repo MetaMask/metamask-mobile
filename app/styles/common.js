@@ -56,29 +56,15 @@ const baseColors = {
 
 /**
  * Map of color names to HEX values
- * Definitions
- * background - Colors starting with the word "background" are reserved for background elements that all other components sit on. Nothing can be behind a "background" color. Or a "background" color cannot be used for a component that sits on any other component
- * primary - the primary action color. Used for components that usually sit on top of a "background" color component
- * onPrimary - the color that is used for the component that sits on top of the primary color
- * state colors e.g. success, error, warning, all represent a state and should be used accordingly
  */
 
 export const colors = {
-	// Lightmode
-	// textDefault: baseColors.grey800,
-	// textAlternative: baseColors.grey600,
-	// backgroundDefault: baseColors.white,
-	// backgroundAlternative: baseColors.grey000,
-	// borderDefault: baseColors.grey100,
-	// muted: baseColors.grey100,
-	// Darkmode
-	textDefault: baseColors.white,
-	textAlternative: baseColors.grey100,
-	backgroundDefault: baseColors.grey900,
-	backgroundAlternative: baseColors.grey800,
-	borderDefault: baseColors.grey400,
-	muted: baseColors.grey700,
-
+	textDefault: baseColors.grey800,
+	textAlternative: baseColors.grey600,
+	backgroundDefault: baseColors.white,
+	backgroundAlternative: baseColors.grey000,
+	borderDefault: baseColors.grey100,
+	muted: baseColors.grey100,
 	primary: baseColors.blue500,
 	onPrimary: baseColors.white,
 	info: baseColors.blue000,

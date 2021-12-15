@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { Alert, TouchableOpacity, StyleSheet, View, InteractionManager } from 'react-native';
 import Text from '../../Base/Text';
 import TokenImage from '../TokenImage';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import ActionSheet from 'react-native-actionsheet';
 import { renderFromTokenMinimalUnit, balanceToFiat } from '../../../util/number';
@@ -17,71 +17,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { getTokenList } from '../../../reducers/tokens';
-
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.backgroundDefault,
-		flex: 1,
-		minHeight: 500,
-	},
-	emptyView: {
-		backgroundColor: colors.backgroundDefault,
-		justifyContent: 'center',
-		alignItems: 'center',
-		marginTop: 50,
-	},
-	text: {
-		fontSize: 20,
-		color: colors.textAlternative,
-		...fontStyles.normal,
-	},
-	add: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	addText: {
-		fontSize: 14,
-		color: colors.primary,
-		...fontStyles.normal,
-	},
-	footer: {
-		flex: 1,
-		paddingBottom: 30,
-		alignItems: 'center',
-		marginTop: 24,
-	},
-	balances: {
-		flex: 1,
-		justifyContent: 'center',
-	},
-	balance: {
-		fontSize: 16,
-		color: colors.textDefault,
-		...fontStyles.normal,
-		textTransform: 'uppercase',
-	},
-	balanceFiat: {
-		fontSize: 12,
-		color: colors.textAlternative,
-		...fontStyles.normal,
-		textTransform: 'uppercase',
-	},
-	balanceFiatTokenError: {
-		textTransform: 'capitalize',
-	},
-	ethLogo: {
-		width: 50,
-		height: 50,
-		overflow: 'hidden',
-		marginRight: 20,
-	},
-	emptyText: {
-		color: colors.textAlternative,
-		marginBottom: 8,
-		fontSize: 14,
-	},
-});
+import { ThemeContext } from '../../../components/Nav/App/context';
 
 /**
  * View that renders a list of ERC-20 Tokens
@@ -135,25 +71,66 @@ class Tokens extends PureComponent {
 
 	tokenToRemove = null;
 
-	renderEmpty = () => (
-		<View style={styles.emptyView}>
-			<Text style={styles.text}>{strings('wallet.no_tokens')}</Text>
-		</View>
-	);
+	renderEmpty = () => {
+		const { colors } = this.context;
+		const styles = StyleSheet.create({
+			emptyView: {
+				backgroundColor: colors.backgroundDefault,
+				justifyContent: 'center',
+				alignItems: 'center',
+				marginTop: 50,
+			},
+			text: {
+				fontSize: 20,
+				color: colors.textAlternative,
+				...fontStyles.normal,
+			},
+		});
+		return (
+			<View style={styles.emptyView}>
+				<Text style={styles.text}>{strings('wallet.no_tokens')}</Text>
+			</View>
+		);
+	};
 
 	onItemPress = (token) => {
 		this.props.navigation.navigate('Asset', { ...token, transactions: this.props.transactions });
 	};
 
-	renderFooter = () => (
-		<View style={styles.footer} key={'tokens-footer'}>
-			<Text style={styles.emptyText}>{strings('wallet.no_available_tokens')}</Text>
-			<TouchableOpacity style={styles.add} onPress={this.goToAddToken} testID={'add-token-button'}>
-				<Text style={styles.addText}>{strings('wallet.add_tokens')}</Text>
-			</TouchableOpacity>
-		</View>
-	);
-
+	renderFooter = () => {
+		const { colors } = this.context;
+		const styles = StyleSheet.create({
+			add: {
+				flexDirection: 'row',
+				alignItems: 'center',
+				justifyContent: 'center',
+			},
+			addText: {
+				fontSize: 14,
+				color: colors.primary,
+				...fontStyles.normal,
+			},
+			footer: {
+				flex: 1,
+				paddingBottom: 30,
+				alignItems: 'center',
+				marginTop: 24,
+			},
+			emptyText: {
+				color: colors.textAlternative,
+				marginBottom: 8,
+				fontSize: 14,
+			},
+		});
+		return (
+			<View style={styles.footer} key={'tokens-footer'}>
+				<Text style={styles.emptyText}>{strings('wallet.no_available_tokens')}</Text>
+				<TouchableOpacity style={styles.add} onPress={this.goToAddToken} testID={'add-token-button'}>
+					<Text style={styles.addText}>{strings('wallet.add_tokens')}</Text>
+				</TouchableOpacity>
+			</View>
+		);
+	};
 	renderItem = (asset) => {
 		const { conversionRate, currentCurrency, tokenBalances, tokenExchangeRates, primaryCurrency, tokenList } =
 			this.props;
@@ -165,6 +142,34 @@ class Tokens extends PureComponent {
 			(itemAddress in tokenBalances ? renderFromTokenMinimalUnit(tokenBalances[itemAddress], asset.decimals) : 0);
 		const balanceFiat = asset.balanceFiat || balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
 		const balanceValue = `${balance} ${asset.symbol}`;
+		const { colors } = this.context;
+		const styles = StyleSheet.create({
+			balances: {
+				flex: 1,
+				justifyContent: 'center',
+			},
+			balance: {
+				fontSize: 16,
+				color: colors.textDefault,
+				...fontStyles.normal,
+				textTransform: 'uppercase',
+			},
+			balanceFiat: {
+				fontSize: 12,
+				color: colors.textAlternative,
+				...fontStyles.normal,
+				textTransform: 'uppercase',
+			},
+			balanceFiatTokenError: {
+				textTransform: 'capitalize',
+			},
+			ethLogo: {
+				width: 50,
+				height: 50,
+				overflow: 'hidden',
+				marginRight: 20,
+			},
+		});
 
 		// render balances according to primary currency
 		let mainBalance, secondaryBalance;
@@ -269,6 +274,72 @@ class Tokens extends PureComponent {
 
 	render = () => {
 		const { tokens } = this.props;
+		const { colors } = this.context;
+		const styles = StyleSheet.create({
+			wrapper: {
+				backgroundColor: colors.backgroundDefault,
+				flex: 1,
+				minHeight: 500,
+			},
+			emptyView: {
+				backgroundColor: colors.backgroundDefault,
+				justifyContent: 'center',
+				alignItems: 'center',
+				marginTop: 50,
+			},
+			text: {
+				fontSize: 20,
+				color: colors.textAlternative,
+				...fontStyles.normal,
+			},
+			add: {
+				flexDirection: 'row',
+				alignItems: 'center',
+				justifyContent: 'center',
+			},
+			addText: {
+				fontSize: 14,
+				color: colors.primary,
+				...fontStyles.normal,
+			},
+			footer: {
+				flex: 1,
+				paddingBottom: 30,
+				alignItems: 'center',
+				marginTop: 24,
+			},
+			balances: {
+				flex: 1,
+				justifyContent: 'center',
+			},
+			balance: {
+				fontSize: 16,
+				color: colors.textDefault,
+				...fontStyles.normal,
+				textTransform: 'uppercase',
+			},
+			balanceFiat: {
+				fontSize: 12,
+				color: colors.textAlternative,
+				...fontStyles.normal,
+				textTransform: 'uppercase',
+			},
+			balanceFiatTokenError: {
+				textTransform: 'capitalize',
+			},
+			ethLogo: {
+				width: 50,
+				height: 50,
+				overflow: 'hidden',
+				marginRight: 20,
+			},
+			emptyText: {
+				color: colors.textAlternative,
+				marginBottom: 8,
+				fontSize: 14,
+			},
+		});
+
 		return (
 			<View style={styles.wrapper} testID={'tokens'}>
 				{tokens && tokens.length ? this.renderList() : this.renderEmpty()}
@@ -284,6 +355,7 @@ class Tokens extends PureComponent {
 		);
 	};
 }
+Tokens.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
