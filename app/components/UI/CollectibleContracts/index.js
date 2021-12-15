@@ -22,15 +22,14 @@ import { compareTokenIds } from '../../../util/tokens';
 
 const styles = StyleSheet.create({
 	wrapper: {
+		flexGrow: 1,
+		justifyContent: 'space-between',
 		backgroundColor: colors.white,
-		flex: 1,
-		minHeight: 500,
-		marginTop: 16,
+		marginBottom: 90,
 	},
 	emptyView: {
-		justifyContent: 'center',
 		alignItems: 'center',
-		marginTop: 40,
+		justifyContent: 'space-between',
 		flex: 1,
 	},
 	addText: {
@@ -39,15 +38,18 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 	},
 	footer: {
-		flex: 1,
 		paddingBottom: 30,
 		marginTop: 24,
-		flexDirection: 'row',
 		justifyContent: 'center',
 	},
 	icon: {
 		color: colors.blue,
 		marginBottom: 8,
+	},
+	smallIcon: {
+		color: colors.blue,
+		marginTop: 4,
+		marginRight: 8,
 	},
 	emptyText: {
 		color: colors.greyAssetVisibility,
@@ -88,6 +90,17 @@ const styles = StyleSheet.create({
 	},
 	frameRight: {
 		borderRightWidth: 3,
+	},
+	pixel: {
+		height: 1,
+		width: 1,
+	},
+	nftButton: {
+		justifyContent: 'center',
+		alignItems: 'center',
+	},
+	smallCreate: {
+		marginBottom: 8,
 	},
 });
 
@@ -151,12 +164,29 @@ const CollectibleContracts = ({
 		});
 	};
 
+	const goToCreateCollectible = useCallback(() => {
+		navigation.push('CreateCollectible');
+		//TODO CREATE_NFT
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_ADD_COLLECTIBLES);
+		});
+	}, [navigation]);
+
 	const renderFooter = () => (
 		<View style={styles.footer} key={'collectible-contracts-footer'}>
-			<Text style={styles.emptyText}>{strings('wallet.no_collectibles')}</Text>
-			<TouchableOpacity link onPress={goToAddCollectible} testID={'add-collectible-button'}>
-				<Text style={styles.addText}>{strings('wallet.add_collectibles')}</Text>
-			</TouchableOpacity>
+			{!collectibleContracts?.length > 0 && (
+				<TouchableOpacity style={[styles.row, styles.smallCreate]} onPress={goToCreateCollectible}>
+					<FontAwesomeIcon name="camera-retro" size={14} style={styles.smallIcon} />
+					<Text blue>{strings('wallet.create_nft')}</Text>
+				</TouchableOpacity>
+			)}
+
+			<View style={styles.row}>
+				<Text style={styles.emptyText}>{strings('wallet.no_collectibles')}</Text>
+				<TouchableOpacity link onPress={goToAddCollectible} testID={'add-collectible-button'}>
+					<Text style={styles.addText}>{strings('wallet.add_collectibles')}</Text>
+				</TouchableOpacity>
+			</View>
 		</View>
 	);
 
@@ -205,7 +235,7 @@ const CollectibleContracts = ({
 				<View>{collectibleContracts?.map((item, index) => renderCollectibleContract(item, index))}</View>
 			</View>
 		),
-		[collectibleContracts, renderFavoriteCollectibles, renderCollectibleContract]
+		[renderFavoriteCollectibles, collectibleContracts, renderCollectibleContract]
 	);
 
 	const goToLearnMore = () =>
@@ -232,16 +262,8 @@ const CollectibleContracts = ({
 		right: PropTypes.bool,
 	};
 
-	const goToCreateCollectible = () => {
-		navigation.push('CreateCollectible');
-		//TODO CREATE_NFT
-		InteractionManager.runAfterInteractions(() => {
-			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_ADD_COLLECTIBLES);
-		});
-	};
-
 	const CreateNFTButton = () => (
-		<TouchableOpacity style={styles.emptyView} onPress={goToCreateCollectible}>
+		<TouchableOpacity style={styles.nftButton} onPress={goToCreateCollectible}>
 			<View style={[styles.row, styles.frameRow]}>
 				<Frame top left />
 				<Frame middle />
@@ -260,7 +282,8 @@ const CollectibleContracts = ({
 	);
 
 	const renderEmpty = () => (
-		<React.Fragment>
+		<View style={styles.emptyView}>
+			<View style={styles.pixel} />
 			<CreateNFTButton />
 
 			<View style={styles.row}>
@@ -269,7 +292,7 @@ const CollectibleContracts = ({
 					{strings('wallet.learn_more')}
 				</Text>
 			</View>
-		</React.Fragment>
+		</View>
 	);
 
 	return (
