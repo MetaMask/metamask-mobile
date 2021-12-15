@@ -3,58 +3,14 @@ import PropTypes from 'prop-types';
 import { StyleSheet, View, ViewPropTypes } from 'react-native';
 import RemoteImage from '../../Base/RemoteImage';
 import MediaPlayer from '../../Views/MediaPlayer';
-import { colors } from '../../../styles/common';
 import AppConstants from '../../../core/AppConstants';
 import scaling from '../../../util/scaling';
 import { toLowerCaseEquals } from '../../../util/general';
 import Text from '../../Base/Text';
 import Device from '../../../util/device';
+import { useAppThemeFromContext } from '../../../util/theme';
 
 const MEDIA_WIDTH_MARGIN = Device.isMediumDevice() ? 32 : 0;
-
-const styles = StyleSheet.create({
-	container(backgroundColor) {
-		return {
-			flex: 0,
-			borderRadius: 12,
-			backgroundColor: `#${backgroundColor}`,
-		};
-	},
-	tinyImage: {
-		width: 32,
-		height: 32,
-	},
-	smallImage: {
-		width: 50,
-		height: 50,
-	},
-	bigImage: {
-		height: 260,
-		width: 260,
-	},
-	cover: {
-		height: scaling.scale(Device.getDeviceWidth() - MEDIA_WIDTH_MARGIN, { baseModel: 2 }),
-	},
-	image: {
-		borderRadius: 12,
-	},
-	textContainer: {
-		alignItems: 'center',
-		justifyContent: 'center',
-		backgroundColor: colors.muted,
-		borderRadius: 8,
-	},
-	textWrapper: {
-		textAlign: 'center',
-	},
-	textWrapperIcon: {
-		textAlign: 'center',
-		fontSize: 18,
-	},
-	mediaPlayer: {
-		minHeight: 10,
-	},
-});
 
 /**
  * View that renders an ERC-721 Token image
@@ -62,6 +18,51 @@ const styles = StyleSheet.create({
 export default function CollectibleMedia({ collectible, renderAnimation, style, tiny, small, big, cover, onClose }) {
 	const [sourceUri, setSourceUri] = useState(null);
 	const [isUniV3NFT, setIsUniV3NFT] = useState(false);
+
+	const { colors } = useAppThemeFromContext();
+	const styles = StyleSheet.create({
+		container(backgroundColor) {
+			return {
+				flex: 0,
+				borderRadius: 12,
+				backgroundColor: `#${backgroundColor}`,
+			};
+		},
+		tinyImage: {
+			width: 32,
+			height: 32,
+		},
+		smallImage: {
+			width: 50,
+			height: 50,
+		},
+		bigImage: {
+			height: 260,
+			width: 260,
+		},
+		cover: {
+			height: scaling.scale(Device.getDeviceWidth() - MEDIA_WIDTH_MARGIN, { baseModel: 2 }),
+		},
+		image: {
+			borderRadius: 12,
+		},
+		textContainer: {
+			alignItems: 'center',
+			justifyContent: 'center',
+			backgroundColor: colors.muted,
+			borderRadius: 8,
+		},
+		textWrapper: {
+			textAlign: 'center',
+		},
+		textWrapperIcon: {
+			textAlign: 'center',
+			fontSize: 18,
+		},
+		mediaPlayer: {
+			minHeight: 10,
+		},
+	});
 
 	const fallback = () => setSourceUri(null);
 
@@ -121,7 +122,30 @@ export default function CollectibleMedia({ collectible, renderAnimation, style, 
 				</Text>
 			</View>
 		);
-	}, [collectible, sourceUri, isUniV3NFT, onClose, renderAnimation, style, tiny, small, big, cover]);
+	}, [
+		renderAnimation,
+		collectible.animation,
+		collectible.name,
+		collectible.tokenId,
+		sourceUri,
+		isUniV3NFT,
+		tiny,
+		styles.textContainer,
+		styles.tinyImage,
+		styles.smallImage,
+		styles.bigImage,
+		styles.cover,
+		styles.textWrapperIcon,
+		styles.textWrapper,
+		styles.mediaPlayer,
+		styles.image,
+		style,
+		small,
+		big,
+		cover,
+		onClose,
+		colors.backgroundAlternative,
+	]);
 
 	return <View style={styles.container(collectible.backgroundColor)}>{renderMedia()}</View>;
 }

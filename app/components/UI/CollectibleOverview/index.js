@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { StyleSheet, View, Easing, Animated, SafeAreaView, TouchableWithoutFeedback } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { baseStyles, colors } from '../../../styles/common';
+import { baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Text from '../../Base/Text';
 import RemoteImage from '../../Base/RemoteImage';
@@ -21,92 +21,13 @@ import { isCollectibleInFavoritesSelector } from '../../../reducers/collectibles
 import Share from 'react-native-share';
 import { PanGestureHandler, gestureHandlerRootHOC, ScrollView } from 'react-native-gesture-handler';
 import AppConstants from '../../../core/AppConstants';
+import { useAppThemeFromContext } from '../../../util/theme';
 
 const ANIMATION_VELOCITY = 250;
 const HAS_NOTCH = Device.hasNotch();
 const ANIMATION_OFFSET = HAS_NOTCH ? 30 : 50;
 const IS_SMALL_DEVICE = Device.isSmallDevice();
 const VERTICAL_ALIGNMENT = IS_SMALL_DEVICE ? 12 : 16;
-
-const styles = StyleSheet.create({
-	wrapper: {
-		flex: 0,
-		backgroundColor: colors.backgroundDefault,
-		borderTopEndRadius: 8,
-		borderTopStartRadius: 8,
-	},
-	generalContainer: {
-		paddingHorizontal: 16,
-	},
-	information: {
-		paddingTop: HAS_NOTCH ? 24 : VERTICAL_ALIGNMENT,
-	},
-	row: {
-		paddingVertical: 6,
-	},
-	name: {
-		fontSize: Device.isSmallDevice() ? 16 : 24,
-		marginBottom: 3,
-	},
-	userContainer: {
-		flexDirection: 'row',
-		paddingBottom: 16,
-	},
-	userImage: {
-		width: 38,
-		height: 38,
-		borderRadius: 100,
-		marginRight: 8,
-	},
-	buttonContainer: {
-		flexDirection: 'row',
-		marginTop: VERTICAL_ALIGNMENT,
-	},
-	button: {
-		alignItems: 'center',
-		justifyContent: 'center',
-		borderWidth: 1.5,
-	},
-	iconButtons: {
-		width: 54,
-		height: 54,
-	},
-	leftButton: {
-		marginRight: 16,
-	},
-	collectibleInfoContainer: {
-		flexDirection: 'row',
-		marginHorizontal: 16,
-		marginBottom: 8,
-	},
-	collectibleInfoKey: {
-		paddingRight: 10,
-	},
-	collectibleDescription: {
-		lineHeight: 22,
-	},
-	userInfoContainer: {
-		justifyContent: 'center',
-	},
-	titleWrapper: {
-		width: '100%',
-		alignItems: 'center',
-		justifyContent: 'center',
-		paddingVertical: VERTICAL_ALIGNMENT,
-	},
-	dragger: {
-		width: 48,
-		height: 5,
-		borderRadius: 4,
-		backgroundColor: colors.muted,
-	},
-	scrollableDescription: {
-		maxHeight: Device.getDeviceHeight() / 5,
-	},
-	description: {
-		marginTop: 8,
-	},
-});
 
 /**
  * View that displays the information of a specific ERC-721 Token
@@ -129,6 +50,87 @@ const CollectibleOverview = ({
 	const positionAnimated = useRef(new Animated.Value(0)).current;
 	const scrollViewRef = useRef(null);
 
+	const { colors } = useAppThemeFromContext();
+	const styles = StyleSheet.create({
+		wrapper: {
+			flex: 0,
+			backgroundColor: colors.backgroundDefault,
+			borderTopEndRadius: 8,
+			borderTopStartRadius: 8,
+		},
+		generalContainer: {
+			paddingHorizontal: 16,
+		},
+		information: {
+			paddingTop: HAS_NOTCH ? 24 : VERTICAL_ALIGNMENT,
+		},
+		row: {
+			paddingVertical: 6,
+		},
+		name: {
+			fontSize: Device.isSmallDevice() ? 16 : 24,
+			marginBottom: 3,
+		},
+		userContainer: {
+			flexDirection: 'row',
+			paddingBottom: 16,
+		},
+		userImage: {
+			width: 38,
+			height: 38,
+			borderRadius: 100,
+			marginRight: 8,
+		},
+		buttonContainer: {
+			flexDirection: 'row',
+			marginTop: VERTICAL_ALIGNMENT,
+		},
+		button: {
+			alignItems: 'center',
+			justifyContent: 'center',
+			borderWidth: 1.5,
+		},
+		iconButtons: {
+			width: 54,
+			height: 54,
+		},
+		leftButton: {
+			marginRight: 16,
+		},
+		collectibleInfoContainer: {
+			flexDirection: 'row',
+			marginHorizontal: 16,
+			marginBottom: 8,
+		},
+		collectibleInfoKey: {
+			paddingRight: 10,
+		},
+		collectibleDescription: {
+			lineHeight: 22,
+		},
+		userInfoContainer: {
+			justifyContent: 'center',
+		},
+		titleWrapper: {
+			width: '100%',
+			alignItems: 'center',
+			justifyContent: 'center',
+			paddingVertical: VERTICAL_ALIGNMENT,
+		},
+		dragger: {
+			width: 48,
+			height: 5,
+			borderRadius: 4,
+			backgroundColor: colors.muted,
+		},
+		scrollableDescription: {
+			maxHeight: Device.getDeviceHeight() / 5,
+		},
+		description: {
+			marginTop: 8,
+		},
+	});
+
 	const translationHeight = useMemo(
 		() => wrapperHeight - headerHeight - ANIMATION_OFFSET,
 		[headerHeight, wrapperHeight]
@@ -140,29 +142,32 @@ const CollectibleOverview = ({
 		return collectible?.description?.length > maxLength;
 	}, [collectible.description]);
 
-	const renderCollectibleInfoRow = useCallback((key, value, onPress) => {
-		if (!value) return null;
-		return (
-			<View style={styles.collectibleInfoContainer} key={key}>
-				<Text noMargin textDefault bold big={!IS_SMALL_DEVICE} style={styles.collectibleInfoKey}>
-					{key}
-				</Text>
-				<Text
-					noMargin
-					big={!IS_SMALL_DEVICE}
-					link={!!onPress}
-					textDefault={!onPress}
-					right
-					style={baseStyles.flexGrow}
-					numberOfLines={1}
-					ellipsizeMode="middle"
-					onPress={onPress}
-				>
-					{value}
-				</Text>
-			</View>
-		);
-	}, []);
+	const renderCollectibleInfoRow = useCallback(
+		(key, value, onPress) => {
+			if (!value) return null;
+			return (
+				<View style={styles.collectibleInfoContainer} key={key}>
+					<Text noMargin textDefault bold big={!IS_SMALL_DEVICE} style={styles.collectibleInfoKey}>
+						{key}
+					</Text>
+					<Text
+						noMargin
+						big={!IS_SMALL_DEVICE}
+						link={!!onPress}
+						textDefault={!onPress}
+						right
+						style={baseStyles.flexGrow}
+						numberOfLines={1}
+						ellipsizeMode="middle"
+						onPress={onPress}
+					>
+						{value}
+					</Text>
+				</View>
+			);
+		},
+		[styles.collectibleInfoContainer, styles.collectibleInfoKey]
+	);
 
 	const renderCollectibleInfo = () => [
 		renderCollectibleInfoRow(strings('collectible.collectible_token_standard'), collectible?.standard),
