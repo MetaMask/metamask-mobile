@@ -11,6 +11,7 @@ import { useSelector } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { useAppThemeFromContext } from '../../../../util/theme';
+import { AppThemeNames, AppThemeLabels } from '../../../../util/theme/models';
 
 interface Props {
 	/**
@@ -36,6 +37,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 	);
 	const chainId = useSelector((state: any) => state.engine.backgroundState.NetworkController.provider.chainId);
 
+	const appTheme: AppThemeNames = useSelector((state: any) => state.user.appTheme);
 	const { colors } = useAppThemeFromContext();
 	const styles = StyleSheet.create({
 		wrapper: {
@@ -116,14 +118,21 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 		[isTokenDetectionEnabled, toggleTokenDetection, isMainnet, colors, styles]
 	);
 
+	const goToThemeSettings = () => {
+		navigation.navigate('ThemeSettings');
+	};
+
 	const renderThemeSettingsSection = () => {
 		return (
-			<TouchableOpacity
-				style={{ height: 50, width: 50, backgroundColor: 'red' }}
-				onPress={() => {
-					navigation.navigate('ThemeSettings');
-				}}
-			/>
+			<View style={styles.setting}>
+				<View>
+					<Text style={styles.title}>{`Theme (${AppThemeLabels[appTheme]})`}</Text>
+					<Text style={styles.desc}>{'Change your app appearance by setting the theme.'}</Text>
+					<StyledButton type="normal" onPress={goToThemeSettings} containerStyle={styles.clearHistoryConfirm}>
+						{'CHANGE THEME'}
+					</StyledButton>
+				</View>
+			</View>
 		);
 	};
 

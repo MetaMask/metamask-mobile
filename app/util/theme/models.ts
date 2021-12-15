@@ -12,3 +12,10 @@ export enum AppThemeNames {
 	Dark = 'dark',
 	Playful = 'playful',
 }
+
+export const AppThemeLabels = {
+	[AppThemeNames.OS]: 'Automatic',
+	[AppThemeNames.Light]: 'Light',
+	[AppThemeNames.Dark]: 'Dark',
+	[AppThemeNames.Playful]: 'Playful',
+};

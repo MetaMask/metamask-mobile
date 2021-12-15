@@ -282,20 +282,6 @@ const App = ({ userLoggedIn }) => {
 	};
 
 	const theme = useAppTheme();
-	const triggerSetAppTheme = (theme) => dispatch(setAppTheme(theme));
-	useEffect(() => {
-		setTimeout(() => {
-			// triggerSetAppTheme('dark');
-			// setTimeout(() => {
-			// 	triggerSetAppTheme('light');
-			// 	setTimeout(() => {
-			// 		triggerSetAppTheme('playful');
-			// 	}, 5000);
-			// }, 5000);
-			triggerSetAppTheme(AppThemeNames.Light);
-			console.log('TRIGGER');
-		}, 8000);
-	}, []);
 
 	return (
 		// do not render unless a route is defined

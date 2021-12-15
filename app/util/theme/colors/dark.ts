@@ -9,6 +9,7 @@ const colors: Colors = {
 	borderDefault: baseColors.grey400,
 	muted: baseColors.grey700,
 	overlay: baseColors.overlay,
+	primary: baseColors.blue500,
 };
 
 export default colors;
