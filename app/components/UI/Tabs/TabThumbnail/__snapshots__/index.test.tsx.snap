@@ -70,7 +70,19 @@ exports[`TabThumbnail should render correctly 1`] = `
           url="about:blank"
         />
         <Text
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          error={false}
+          info={false}
+          link={false}
+          modal={false}
           numberOfLines={1}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
               "color": "#ffffff",
@@ -82,6 +94,12 @@ exports[`TabThumbnail should render correctly 1`] = `
               "marginTop": 0,
             }
           }
+          success={false}
+          textAlternative={false}
+          textDefault={false}
+          underline={false}
+          upper={false}
+          warning={false}
         >
           about:blank
         </Text>

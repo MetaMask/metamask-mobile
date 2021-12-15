@@ -49,6 +49,18 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
       testID="manual_backup_step_1-screen"
     >
       <Text
+        bold={false}
+        centered={false}
+        disclaimer={false}
+        error={false}
+        info={false}
+        link={false}
+        modal={false}
+        primary={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
         style={
           Object {
             "color": "#ffffff",
@@ -60,6 +72,12 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             "textAlign": "center",
           }
         }
+        success={false}
+        textAlternative={false}
+        textDefault={false}
+        underline={false}
+        upper={false}
+        warning={false}
       >
         Write down your Secret Recovery Phrase
       </Text>
@@ -72,6 +90,18 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
         }
       >
         <Text
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          error={false}
+          info={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
               "color": "#ffffff",
@@ -82,6 +112,12 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
               "textAlign": "center",
             }
           }
+          success={false}
+          textAlternative={false}
+          textDefault={false}
+          underline={false}
+          upper={false}
+          warning={false}
         >
           This is your Secret Recovery Phrase. Write it down on a paper and keep it in a safe place. You'll be asked to re-enter this phrase (in order) on the next step.
         </Text>
@@ -119,6 +155,18 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             }
           >
             <Text
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              error={false}
+              info={false}
+              link={false}
+              modal={false}
+              primary={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
               style={
                 Object {
                   "backgroundColor": "#141618",
@@ -135,6 +183,12 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "textAlignVertical": "center",
                 }
               }
+              success={false}
+              textAlternative={false}
+              textDefault={false}
+              underline={false}
+              upper={false}
+              warning={false}
             >
               1. abstract
             </Text>
@@ -148,6 +202,18 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             }
           >
             <Text
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              error={false}
+              info={false}
+              link={false}
+              modal={false}
+              primary={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
               style={
                 Object {
                   "backgroundColor": "#141618",
@@ -164,6 +230,12 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "textAlignVertical": "center",
                 }
               }
+              success={false}
+              textAlternative={false}
+              textDefault={false}
+              underline={false}
+              upper={false}
+              warning={false}
             >
               2. accident
             </Text>
@@ -177,6 +249,18 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             }
           >
             <Text
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              error={false}
+              info={false}
+              link={false}
+              modal={false}
+              primary={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
               style={
                 Object {
                   "backgroundColor": "#141618",
@@ -193,6 +277,12 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "textAlignVertical": "center",
                 }
               }
+              success={false}
+              textAlternative={false}
+              textDefault={false}
+              underline={false}
+              upper={false}
+              warning={false}
             >
               3. acoustic
             </Text>
@@ -206,6 +296,18 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             }
           >
             <Text
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              error={false}
+              info={false}
+              link={false}
+              modal={false}
+              primary={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
               style={
                 Object {
                   "backgroundColor": "#141618",
@@ -222,6 +324,12 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "textAlignVertical": "center",
                 }
               }
+              success={false}
+              textAlternative={false}
+              textDefault={false}
+              underline={false}
+              upper={false}
+              warning={false}
             >
               4. announce
             </Text>
@@ -235,6 +343,18 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             }
           >
             <Text
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              error={false}
+              info={false}
+              link={false}
+              modal={false}
+              primary={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
               style={
                 Object {
                   "backgroundColor": "#141618",
@@ -251,6 +371,12 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "textAlignVertical": "center",
                 }
               }
+              success={false}
+              textAlternative={false}
+              textDefault={false}
+              underline={false}
+              upper={false}
+              warning={false}
             >
               5. artefact
             </Text>
@@ -264,6 +390,18 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             }
           >
             <Text
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              error={false}
+              info={false}
+              link={false}
+              modal={false}
+              primary={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
               style={
                 Object {
                   "backgroundColor": "#141618",
@@ -280,6 +418,12 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "textAlignVertical": "center",
                 }
               }
+              success={false}
+              textAlternative={false}
+              textDefault={false}
+              underline={false}
+              upper={false}
+              warning={false}
             >
               6. attitude
             </Text>
@@ -305,6 +449,18 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             }
           >
             <Text
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              error={false}
+              info={false}
+              link={false}
+              modal={false}
+              primary={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
               style={
                 Object {
                   "backgroundColor": "#141618",
@@ -321,6 +477,12 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "textAlignVertical": "center",
                 }
               }
+              success={false}
+              textAlternative={false}
+              textDefault={false}
+              underline={false}
+              upper={false}
+              warning={false}
             >
               7. bachelor
             </Text>
@@ -334,6 +496,18 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             }
           >
             <Text
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              error={false}
+              info={false}
+              link={false}
+              modal={false}
+              primary={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
               style={
                 Object {
                   "backgroundColor": "#141618",
@@ -350,6 +524,12 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "textAlignVertical": "center",
                 }
               }
+              success={false}
+              textAlternative={false}
+              textDefault={false}
+              underline={false}
+              upper={false}
+              warning={false}
             >
               8. broccoli
             </Text>
@@ -363,6 +543,18 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             }
           >
             <Text
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              error={false}
+              info={false}
+              link={false}
+              modal={false}
+              primary={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
               style={
                 Object {
                   "backgroundColor": "#141618",
@@ -379,6 +571,12 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "textAlignVertical": "center",
                 }
               }
+              success={false}
+              textAlternative={false}
+              textDefault={false}
+              underline={false}
+              upper={false}
+              warning={false}
             >
               9. business
             </Text>
@@ -392,6 +590,18 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             }
           >
             <Text
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              error={false}
+              info={false}
+              link={false}
+              modal={false}
+              primary={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
               style={
                 Object {
                   "backgroundColor": "#141618",
@@ -408,6 +618,12 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "textAlignVertical": "center",
                 }
               }
+              success={false}
+              textAlternative={false}
+              textDefault={false}
+              underline={false}
+              upper={false}
+              warning={false}
             >
               10. category
             </Text>
@@ -421,6 +637,18 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             }
           >
             <Text
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              error={false}
+              info={false}
+              link={false}
+              modal={false}
+              primary={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
               style={
                 Object {
                   "backgroundColor": "#141618",
@@ -437,6 +665,12 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "textAlignVertical": "center",
                 }
               }
+              success={false}
+              textAlternative={false}
+              textDefault={false}
+              underline={false}
+              upper={false}
+              warning={false}
             >
               11. champion
             </Text>
@@ -450,6 +684,18 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
             }
           >
             <Text
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              error={false}
+              info={false}
+              link={false}
+              modal={false}
+              primary={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
               style={
                 Object {
                   "backgroundColor": "#141618",
@@ -466,6 +712,12 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "textAlignVertical": "center",
                 }
               }
+              success={false}
+              textAlternative={false}
+              textDefault={false}
+              underline={false}
+              upper={false}
+              warning={false}
             >
               12. cinnamon
             </Text>
@@ -526,6 +778,18 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
               }
             />
             <Text
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              error={false}
+              info={false}
+              link={false}
+              modal={false}
+              primary={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
               style={
                 Object {
                   "color": "#ffffff",
@@ -537,10 +801,28 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "textAlign": "center",
                 }
               }
+              success={false}
+              textAlternative={false}
+              textDefault={false}
+              underline={false}
+              upper={false}
+              warning={false}
             >
               Tap to reveal your Secret Recovery Phrase
             </Text>
             <Text
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              error={false}
+              info={false}
+              link={false}
+              modal={false}
+              primary={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
               style={
                 Object {
                   "color": "#ffffff",
@@ -550,6 +832,12 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
                   "textAlign": "center",
                 }
               }
+              success={false}
+              textAlternative={false}
+              textDefault={false}
+              underline={false}
+              upper={false}
+              warning={false}
             >
               Make sure no one is watching your screen.
             </Text>

@@ -31,12 +31,30 @@ exports[`AddBookmark should render correctly 1`] = `
         }
       >
         <Text
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          error={false}
+          info={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
             }
           }
+          success={false}
+          textAlternative={false}
+          textDefault={false}
+          underline={false}
+          upper={false}
+          warning={false}
         >
           Name
         </Text>
@@ -44,7 +62,7 @@ exports[`AddBookmark should render correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder=""
-          placeholderTextColor="#f2f3f4"
+          placeholderTextColor="#3c3f42"
           returnKeyType="next"
           style={
             Object {
@@ -60,6 +78,18 @@ exports[`AddBookmark should render correctly 1`] = `
           value=""
         />
         <Text
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          error={false}
+          info={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
               "color": "#d73a49",
@@ -67,6 +97,12 @@ exports[`AddBookmark should render correctly 1`] = `
               "fontWeight": "400",
             }
           }
+          success={false}
+          textAlternative={false}
+          textDefault={false}
+          underline={false}
+          upper={false}
+          warning={false}
         />
       </View>
       <View
@@ -77,12 +113,30 @@ exports[`AddBookmark should render correctly 1`] = `
         }
       >
         <Text
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          error={false}
+          info={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
             }
           }
+          success={false}
+          textAlternative={false}
+          textDefault={false}
+          underline={false}
+          upper={false}
+          warning={false}
         >
           Url
         </Text>
@@ -104,6 +158,18 @@ exports[`AddBookmark should render correctly 1`] = `
           value=""
         />
         <Text
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          error={false}
+          info={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
               "color": "#d73a49",
@@ -111,6 +177,12 @@ exports[`AddBookmark should render correctly 1`] = `
               "fontWeight": "400",
             }
           }
+          success={false}
+          textAlternative={false}
+          textDefault={false}
+          underline={false}
+          upper={false}
+          warning={false}
         />
       </View>
     </View>

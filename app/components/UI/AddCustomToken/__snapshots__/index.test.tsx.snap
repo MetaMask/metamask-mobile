@@ -109,7 +109,7 @@ exports[`AddCustomToken should render correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder="0x..."
-          placeholderTextColor="#f2f3f4"
+          placeholderTextColor="#3c3f42"
           returnKeyType="next"
           style={
             Object {
@@ -194,7 +194,7 @@ exports[`AddCustomToken should render correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder="GNO"
-          placeholderTextColor="#f2f3f4"
+          placeholderTextColor="#3c3f42"
           returnKeyType="next"
           style={
             Object {
@@ -280,7 +280,7 @@ exports[`AddCustomToken should render correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder="18"
-          placeholderTextColor="#f2f3f4"
+          placeholderTextColor="#3c3f42"
           returnKeyType="done"
           style={
             Object {

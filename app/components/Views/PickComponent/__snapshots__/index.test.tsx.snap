@@ -41,12 +41,30 @@ exports[`PickComponent should render correctly 1`] = `
         }
       />
       <Text
+        bold={false}
+        centered={false}
+        disclaimer={false}
+        error={false}
+        info={false}
+        link={false}
+        modal={false}
+        primary={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
         style={
           Object {
             "fontFamily": "EuclidCircularB-Regular",
             "fontWeight": "400",
           }
         }
+        success={false}
+        textAlternative={false}
+        textDefault={false}
+        underline={false}
+        upper={false}
+        warning={false}
       >
         Text First
       </Text>
@@ -82,12 +100,30 @@ exports[`PickComponent should render correctly 1`] = `
         }
       />
       <Text
+        bold={false}
+        centered={false}
+        disclaimer={false}
+        error={false}
+        info={false}
+        link={false}
+        modal={false}
+        primary={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
         style={
           Object {
             "fontFamily": "EuclidCircularB-Regular",
             "fontWeight": "400",
           }
         }
+        success={false}
+        textAlternative={false}
+        textDefault={false}
+        underline={false}
+        upper={false}
+        warning={false}
       >
         Text Second
       </Text>

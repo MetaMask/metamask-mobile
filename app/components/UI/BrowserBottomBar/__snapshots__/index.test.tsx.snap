@@ -5,7 +5,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
   elevation={11}
   style={
     Object {
-      "backgroundColor": "#f2f3f4",
+      "backgroundColor": "#24272a",
       "borderColor": "#848c96",
       "borderTopWidth": 0.5,
       "flex": 0,
@@ -79,7 +79,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
             "width": 24,
           },
           Object {
-            "color": "#f2f3f4",
+            "color": "#3c3f42",
           },
         ]
       }
@@ -134,6 +134,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     <Connect(TabCountIcon)
       style={
         Object {
+          "color": "#d6d9dc",
           "height": 24,
           "marginTop": 0,
           "width": 24,

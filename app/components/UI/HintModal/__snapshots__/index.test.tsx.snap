@@ -42,6 +42,18 @@ exports[`HintModal should render correctly 1`] = `
         }
       >
         <Text
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          error={false}
+          info={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
               "color": "#ffffff",
@@ -50,6 +62,12 @@ exports[`HintModal should render correctly 1`] = `
               "fontWeight": "600",
             }
           }
+          success={false}
+          textAlternative={false}
+          textDefault={false}
+          underline={false}
+          upper={false}
+          warning={false}
         >
           Recovery hint
         </Text>
@@ -64,6 +82,18 @@ exports[`HintModal should render correctly 1`] = `
         </TouchableOpacity>
       </View>
       <Text
+        bold={false}
+        centered={false}
+        disclaimer={false}
+        error={false}
+        info={false}
+        link={false}
+        modal={false}
+        primary={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
         style={
           Object {
             "color": "#ffffff",
@@ -71,10 +101,28 @@ exports[`HintModal should render correctly 1`] = `
             "marginBottom": 16,
           }
         }
+        success={false}
+        textAlternative={false}
+        textDefault={false}
+        underline={false}
+        upper={false}
+        warning={false}
       >
         Leave yourself a hint. Write the location / where you saved it to remind yourself how you can access it. This information does not leave your device.
       </Text>
       <Text
+        bold={false}
+        centered={false}
+        disclaimer={false}
+        error={false}
+        info={false}
+        link={false}
+        modal={false}
+        primary={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
         style={
           Object {
             "color": "#d73a49",
@@ -82,6 +130,12 @@ exports[`HintModal should render correctly 1`] = `
             "marginBottom": 16,
           }
         }
+        success={false}
+        textAlternative={false}
+        textDefault={false}
+        underline={false}
+        upper={false}
+        warning={false}
       >
         Do not use this to write your Secret Recovery Phrase.
       </Text>

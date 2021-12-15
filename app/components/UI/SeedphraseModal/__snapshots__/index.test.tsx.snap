@@ -46,6 +46,18 @@ exports[`SeedphraseModal should render correctly 1`] = `
         }
       />
       <Text
+        bold={false}
+        centered={false}
+        disclaimer={false}
+        error={false}
+        info={false}
+        link={false}
+        modal={false}
+        primary={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
         style={
           Object {
             "color": "#ffffff",
@@ -56,6 +68,12 @@ exports[`SeedphraseModal should render correctly 1`] = `
             "textAlign": "center",
           }
         }
+        success={false}
+        textAlternative={false}
+        textDefault={false}
+        underline={false}
+        upper={false}
+        warning={false}
       >
         What is a ‘Secret Recovery Phrase’
       </Text>
@@ -89,6 +107,18 @@ exports[`SeedphraseModal should render correctly 1`] = `
     </View>
     <View>
       <Text
+        bold={false}
+        centered={false}
+        disclaimer={false}
+        error={false}
+        info={false}
+        link={false}
+        modal={false}
+        primary={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
         style={
           Object {
             "color": "#ffffff",
@@ -100,10 +130,28 @@ exports[`SeedphraseModal should render correctly 1`] = `
             "textAlign": "center",
           }
         }
+        success={false}
+        textAlternative={false}
+        textDefault={false}
+        underline={false}
+        upper={false}
+        warning={false}
       >
         A Secret Recovery Phrase is a set of twelve words that contains all the information about your wallet, including your funds. It’s like a secret code used to access your entire wallet.
       </Text>
       <Text
+        bold={false}
+        centered={false}
+        disclaimer={false}
+        error={false}
+        info={false}
+        link={false}
+        modal={false}
+        primary={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
         style={
           Object {
             "color": "#ffffff",
@@ -115,10 +163,28 @@ exports[`SeedphraseModal should render correctly 1`] = `
             "textAlign": "center",
           }
         }
+        success={false}
+        textAlternative={false}
+        textDefault={false}
+        underline={false}
+        upper={false}
+        warning={false}
       >
         You must keep your Secret Recovery Phrase secret and safe. If someone gets your Secret Recovery Phrase, they’ll gain control over your accounts.
       </Text>
       <Text
+        bold={false}
+        centered={false}
+        disclaimer={false}
+        error={false}
+        info={false}
+        link={false}
+        modal={false}
+        primary={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
         style={
           Object {
             "color": "#ffffff",
@@ -130,6 +196,12 @@ exports[`SeedphraseModal should render correctly 1`] = `
             "textAlign": "center",
           }
         }
+        success={false}
+        textAlternative={false}
+        textDefault={false}
+        underline={false}
+        upper={false}
+        warning={false}
       >
         Save it in a place where only you can access it. If you lose it, not even MetaMask can help you recover it.
       </Text>

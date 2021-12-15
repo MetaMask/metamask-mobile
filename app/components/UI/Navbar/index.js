@@ -21,6 +21,7 @@ import { importAccountFromPrivateKey } from '../../../util/address';
 import Device from '../../../util/device';
 import { isGatewayUrl } from '../../../lib/ens-ipfs/resolver';
 import { getHost } from '../../../util/browser';
+import LogoWord from '../LogoWord';
 
 const { HOMEPAGE_URL } = AppConstants;
 
@@ -508,7 +509,7 @@ export function getOnboardingNavbarOptions(navigation, route, { headerLeft } = {
 		},
 		headerTitle: () => (
 			<View style={styles.metamaskNameTransparentWrapper}>
-				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+				<LogoWord />
 			</View>
 		),
 		headerBackTitle: strings('navigation.back'),

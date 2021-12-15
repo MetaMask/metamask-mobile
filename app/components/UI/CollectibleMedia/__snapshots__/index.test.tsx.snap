@@ -15,7 +15,7 @@ exports[`CollectibleMedia should render correctly 1`] = `
       Array [
         Object {
           "alignItems": "center",
-          "backgroundColor": "#f2f3f4",
+          "backgroundColor": "#3c3f42",
           "borderRadius": 8,
           "justifyContent": "center",
         },
