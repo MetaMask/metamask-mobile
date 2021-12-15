@@ -33,7 +33,9 @@ import Analytics from '../../../core/Analytics';
 import { connect, useSelector, useDispatch } from 'react-redux';
 import { EXISTING_USER, CURRENT_APP_VERSION, LAST_APP_VERSION } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
-import { checkedAuth } from '../../../actions/user';
+import { checkedAuth, setAppTheme } from '../../../actions/user';
+import { ThemeContext } from './context';
+import { useAppTheme } from '../../../util/theme';
 
 const styles = StyleSheet.create({
 	fill: { flex: 1 },
@@ -278,30 +280,47 @@ const App = ({ userLoggedIn }) => {
 		return null;
 	};
 
+	const theme = useAppTheme();
+	const triggerSetAppTheme = (theme) => dispatch(setAppTheme(theme));
+	useEffect(() => {
+		setTimeout(() => {
+			// triggerSetAppTheme('dark');
+			// setTimeout(() => {
+			// 	triggerSetAppTheme('light');
+			// 	setTimeout(() => {
+			// 		triggerSetAppTheme('playful');
+			// 	}, 5000);
+			// }, 5000);
+			console.log('TRIGGER');
+		}, 5000);
+	}, []);
+
 	return (
 		// do not render unless a route is defined
 		(route && (
-			<View style={styles.fill}>
-				<NavigationContainer
-					ref={navigator}
-					onReady={() => {
-						routingInstrumentation.registerNavigationContainer(navigator);
-					}}
-				>
-					<Stack.Navigator route={route} initialRouteName={route}>
-						<Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
-						<Stack.Screen
-							name="OnboardingRootNav"
-							component={OnboardingRootNav}
-							options={{ headerShown: false }}
-						/>
-						{userLoggedIn && (
-							<Stack.Screen name="HomeNav" component={HomeNav} options={{ headerShown: false }} />
-						)}
-					</Stack.Navigator>
-				</NavigationContainer>
-				{renderSplash()}
-			</View>
+			<ThemeContext.Provider value={theme}>
+				<View style={styles.fill}>
+					<NavigationContainer
+						ref={navigator}
+						onReady={() => {
+							routingInstrumentation.registerNavigationContainer(navigator);
+						}}
+					>
+						<Stack.Navigator route={route} initialRouteName={route}>
+							<Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
+							<Stack.Screen
+								name="OnboardingRootNav"
+								component={OnboardingRootNav}
+								options={{ headerShown: false }}
+							/>
+							{userLoggedIn && (
+								<Stack.Screen name="HomeNav" component={HomeNav} options={{ headerShown: false }} />
+							)}
+						</Stack.Navigator>
+					</NavigationContainer>
+					{renderSplash()}
+				</View>
+			</ThemeContext.Provider>
 		)) ||
 		null
 	);
