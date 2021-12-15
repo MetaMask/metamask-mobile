@@ -283,9 +283,9 @@ const App = ({ userLoggedIn }) => {
 
 	const theme = useAppTheme();
 
+	const triggerSetAppTheme = (theme) => dispatch(setAppTheme(theme));
 	useEffect(() => {
-		const triggerSetAppTheme = (theme) => dispatch(setAppTheme(theme));
-		triggerSetAppTheme(AppThemeNames.dark);
+		triggerSetAppTheme(AppThemeNames.Dark);
 	});
 
 	return (
