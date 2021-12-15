@@ -294,7 +294,7 @@ const App = ({ userLoggedIn }) => {
 			// }, 5000);
 			triggerSetAppTheme(AppThemeNames.Light);
 			console.log('TRIGGER');
-		}, 5000);
+		}, 8000);
 	}, []);
 
 	return (

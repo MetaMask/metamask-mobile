@@ -2,7 +2,7 @@ import React, { useCallback, useEffect } from 'react';
 import { StyleSheet, ScrollView, View, Switch, InteractionManager } from 'react-native';
 import Text from '../../../Base/Text';
 import StyledButton from '../../../UI/StyledButton';
-import { colors, fontStyles } from '../../../../styles/common';
+import { fontStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { strings } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
@@ -10,37 +10,7 @@ import Engine from '../../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
 import AnalyticsV2 from '../../../../util/analyticsV2';
-
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.backgroundDefault,
-		flex: 1,
-		padding: 24,
-		paddingBottom: 48,
-	},
-	title: {
-		...(fontStyles.normal as any),
-		color: colors.textDefault,
-		fontSize: 20,
-		lineHeight: 20,
-	},
-	desc: {
-		...(fontStyles.normal as any),
-		color: colors.textAlternative,
-		fontSize: 14,
-		lineHeight: 20,
-		marginTop: 12,
-	},
-	setting: {
-		marginVertical: 18,
-	},
-	clearHistoryConfirm: {
-		marginTop: 18,
-	},
-	switchElement: {
-		marginTop: 18,
-	},
-});
+import { useAppThemeFromContext } from '../../../../util/theme';
 
 interface Props {
 	/**
@@ -65,6 +35,38 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 		(state: any) => state.engine.backgroundState.NetworkController.provider.type === MAINNET
 	);
 	const chainId = useSelector((state: any) => state.engine.backgroundState.NetworkController.provider.chainId);
+
+	const { colors } = useAppThemeFromContext();
+	const styles = StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.backgroundDefault,
+			flex: 1,
+			padding: 24,
+			paddingBottom: 48,
+		},
+		title: {
+			...(fontStyles.normal as any),
+			color: colors.textDefault,
+			fontSize: 20,
+			lineHeight: 20,
+		},
+		desc: {
+			...(fontStyles.normal as any),
+			color: colors.textAlternative,
+			fontSize: 14,
+			lineHeight: 20,
+			marginTop: 12,
+		},
+		setting: {
+			marginVertical: 18,
+		},
+		clearHistoryConfirm: {
+			marginTop: 18,
+		},
+		switchElement: {
+			marginTop: 18,
+		},
+	});
 
 	useEffect(
 		() => {
@@ -111,7 +113,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 					</View>
 				</View>
 			) : null,
-		[isTokenDetectionEnabled, toggleTokenDetection, isMainnet]
+		[isTokenDetectionEnabled, toggleTokenDetection, isMainnet, colors]
 	);
 
 	return (

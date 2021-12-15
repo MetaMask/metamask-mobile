@@ -136,7 +136,7 @@ const Wallet = ({ navigation }: any) => {
 				textStyle={styles.textStyle}
 			/>
 		),
-		[]
+		[colors]
 	);
 
 	const onChangeTab = useCallback((obj) => {
