@@ -2,14 +2,14 @@ import { Colors } from '../models';
 import baseColors from './base-colors';
 
 const colors: Colors = {
-	textDefault: baseColors.grey800,
-	textAlternative: baseColors.grey600,
-	backgroundDefault: baseColors.white,
-	backgroundAlternative: baseColors.grey000,
+	textDefault: '#370B1E',
+	textAlternative: '#6E163C',
+	backgroundDefault: '#E8DEF8',
+	backgroundAlternative: '#F3EDF7',
 	borderDefault: baseColors.grey100,
 	muted: baseColors.grey100,
-	primary: baseColors.blue500,
-	onPrimary: baseColors.white,
+	primary: '#FFD8E4',
+	onPrimary: '#370B1E',
 	info: baseColors.blue000,
 	onInfo: baseColors.blue500,
 	error: baseColors.red000,

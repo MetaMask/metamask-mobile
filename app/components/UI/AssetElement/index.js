@@ -1,26 +1,8 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, View } from 'react-native';
-import { colors } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/Ionicons';
-
-const styles = StyleSheet.create({
-	itemWrapper: {
-		flex: 1,
-		flexDirection: 'row',
-		paddingHorizontal: 15,
-		paddingVertical: 10,
-		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderBottomColor: colors.borderDefault,
-	},
-	arrow: {
-		flex: 1,
-		alignSelf: 'flex-end',
-	},
-	arrowIcon: {
-		marginTop: 16,
-	},
-});
+import { ThemeContext } from '../../../components/Nav/App/context';
 
 /**
  * Customizable view to render assets in lists
@@ -57,6 +39,24 @@ export default class AssetElement extends PureComponent {
 
 	render = () => {
 		const { children } = this.props;
+		const { colors } = this.context;
+		const styles = StyleSheet.create({
+			itemWrapper: {
+				flex: 1,
+				flexDirection: 'row',
+				paddingHorizontal: 15,
+				paddingVertical: 10,
+				borderBottomWidth: StyleSheet.hairlineWidth,
+				borderBottomColor: colors.borderDefault,
+			},
+			arrow: {
+				flex: 1,
+				alignSelf: 'flex-end',
+			},
+			arrowIcon: {
+				marginTop: 16,
+			},
+		});
 		return (
 			<TouchableOpacity
 				onPress={this.handleOnPress}
@@ -71,3 +71,5 @@ export default class AssetElement extends PureComponent {
 		);
 	};
 }
+
+AssetElement.contextType = ThemeContext;
