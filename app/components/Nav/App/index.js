@@ -288,7 +288,7 @@ const App = ({ userLoggedIn }) => {
 						routingInstrumentation.registerNavigationContainer(navigator);
 					}}
 				>
-					<Stack.Navigator route={route} initialRouteName={route} screenOptions={{ gestureEnabled: false }}>
+					<Stack.Navigator route={route} initialRouteName={route}>
 						<Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
 						<Stack.Screen
 							name="OnboardingRootNav"

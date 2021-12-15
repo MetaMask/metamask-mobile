@@ -360,7 +360,7 @@ class ChoosePassword extends PureComponent {
 			this.props.logIn();
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 			this.setState({ loading: false });
-			this.props.navigation.navigate('AccountBackupStep1');
+			this.props.navigation.replace('AccountBackupStep1');
 			InteractionManager.runAfterInteractions(() => {
 				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_CREATED, {
 					biometrics_enabled: Boolean(this.state.biometryType),
