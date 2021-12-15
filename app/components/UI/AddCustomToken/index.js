@@ -25,6 +25,7 @@ const styles = StyleSheet.create({
 		borderRadius: 4,
 		borderColor: colors.borderDefault,
 		padding: 16,
+		color: colors.textDefault,
 		...fontStyles.normal,
 	},
 	warningText: {
