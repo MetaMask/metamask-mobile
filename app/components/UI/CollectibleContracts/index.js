@@ -18,6 +18,7 @@ import Text from '../../Base/Text';
 import AppConstants from '../../../core/AppConstants';
 import { toLowerCaseEquals } from '../../../util/general';
 import { compareTokenIds } from '../../../util/tokens';
+import { useAppThemeFromContext } from '../../../util/theme';
 
 /**
  * View that renders a list of CollectibleContract
@@ -38,6 +39,56 @@ const CollectibleContracts = ({
 		},
 		[navigation]
 	);
+	const { colors } = useAppThemeFromContext();
+	const styles = StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.backgroundDefault,
+			flex: 1,
+			minHeight: 500,
+			marginTop: 16,
+		},
+		emptyView: {
+			justifyContent: 'center',
+			alignItems: 'center',
+			marginTop: 40,
+		},
+		add: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+		addText: {
+			fontSize: 14,
+			color: colors.primary,
+			...fontStyles.normal,
+		},
+		footer: {
+			flex: 1,
+			paddingBottom: 30,
+			alignItems: 'center',
+			marginTop: 24,
+		},
+		emptyContainer: {
+			flex: 1,
+			marginBottom: 18,
+			justifyContent: 'center',
+			alignItems: 'center',
+		},
+		emptyImageContainer: {
+			width: 76,
+			height: 76,
+			marginBottom: 12,
+		},
+		emptyTitleText: {
+			fontSize: 24,
+			color: colors.textAlternative,
+		},
+		emptyText: {
+			color: colors.textAlternative,
+			marginBottom: 8,
+			fontSize: 14,
+		},
+	});
 
 	/**
 	 *	Method to check the token id data type of the current collectibles.
@@ -79,40 +130,14 @@ const CollectibleContracts = ({
 		});
 	};
 
-	const renderFooter = () => {
-		const { colors } = this.context;
-		const styles = StyleSheet.create({
-			emptyView: {
-				justifyContent: 'center',
-				alignItems: 'center',
-				marginTop: 40,
-			},
-			add: {
-				flexDirection: 'row',
-				alignItems: 'center',
-				justifyContent: 'center',
-			},
-			addText: {
-				fontSize: 14,
-				color: colors.primary,
-				...fontStyles.normal,
-			},
-			footer: {
-				flex: 1,
-				paddingBottom: 30,
-				alignItems: 'center',
-				marginTop: 24,
-			},
-		});
-		return (
-			<View style={styles.footer} key={'collectible-contracts-footer'}>
-				<Text style={styles.emptyText}>{strings('wallet.no_collectibles')}</Text>
-				<TouchableOpacity style={styles.add} onPress={goToAddCollectible} testID={'add-collectible-button'}>
-					<Text style={styles.addText}>{strings('wallet.add_collectibles')}</Text>
-				</TouchableOpacity>
-			</View>
-		);
-	};
+	const renderFooter = () => (
+		<View style={styles.footer} key={'collectible-contracts-footer'}>
+			<Text style={styles.emptyText}>{strings('wallet.no_collectibles')}</Text>
+			<TouchableOpacity style={styles.add} onPress={goToAddCollectible} testID={'add-collectible-button'}>
+				<Text style={styles.addText}>{strings('wallet.add_collectibles')}</Text>
+			</TouchableOpacity>
+		</View>
+	);
 
 	const renderCollectibleContract = useCallback(
 		(item, index) => {
@@ -165,58 +190,23 @@ const CollectibleContracts = ({
 	const goToLearnMore = () =>
 		navigation.navigate('Webview', { screen: 'SimpleWebview', params: { url: AppConstants.URLS.NFT } });
 
-	const renderEmpty = () => {
-		const { colors } = this.context;
-		const styles = StyleSheet.create({
-			emptyView: {
-				justifyContent: 'center',
-				alignItems: 'center',
-				marginTop: 40,
-			},
-			emptyContainer: {
-				flex: 1,
-				marginBottom: 18,
-				justifyContent: 'center',
-				alignItems: 'center',
-			},
-			emptyImageContainer: {
-				width: 76,
-				height: 76,
-				marginBottom: 12,
-			},
-			emptyTitleText: {
-				fontSize: 24,
-				color: colors.textAlternative,
-			},
-		});
-		return (
-			<View style={styles.emptyView}>
-				<View style={styles.emptyContainer}>
-					<Image
-						style={styles.emptyImageContainer}
-						source={require('../../../images/no-nfts-placeholder.png')}
-						resizeMode={'contain'}
-					/>
-					<Text center style={styles.emptyTitleText} bold>
-						{strings('wallet.no_nfts_yet')}
-					</Text>
-					<Text center big link onPress={goToLearnMore}>
-						{strings('wallet.learn_more')}
-					</Text>
-				</View>
+	const renderEmpty = () => (
+		<View style={styles.emptyView}>
+			<View style={styles.emptyContainer}>
+				<Image
+					style={styles.emptyImageContainer}
+					source={require('../../../images/no-nfts-placeholder.png')}
+					resizeMode={'contain'}
+				/>
+				<Text center style={styles.emptyTitleText} bold>
+					{strings('wallet.no_nfts_yet')}
+				</Text>
+				<Text center big link onPress={goToLearnMore}>
+					{strings('wallet.learn_more')}
+				</Text>
 			</View>
-		);
-	};
-
-	const { colors } = this.context;
-	const styles = StyleSheet.create({
-		wrapper: {
-			backgroundColor: colors.backgroundDefault,
-			flex: 1,
-			minHeight: 500,
-			marginTop: 16,
-		},
-	});
+		</View>
+	);
 
 	return (
 		<View style={styles.wrapper} testID={'collectible-contracts'}>
