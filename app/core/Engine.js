@@ -22,6 +22,7 @@ import {
 	TokensController,
 	CollectiblesController,
 	TokenDetectionController,
+	CollectibleMintingController,
 	CollectibleDetectionController,
 } from '@metamask/controllers';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
@@ -164,6 +165,18 @@ class Engine {
 				EIP1559APIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
 			});
 
+			// const transactionController = new TransactionController({
+			// 	getNetworkState: () => networkController.state,
+			// 	onNetworkStateChange: (listener) => networkController.subscribe(listener),
+			// 	getProvider: () => networkController.provider,
+			// });
+
+			// const collectibleMintingController = new CollectibleMintingController({
+			// 	onNetworkStateChange: (listener) => networkController.subscribe(listener),
+			// 	addCollectible: collectiblesController.addCollectible,
+			// 	addTransaction: transactionController.addTransaction,
+			// });
+
 			const controllers = [
 				new KeyringController(
 					{
@@ -226,6 +239,11 @@ class Engine {
 					getNetworkState: () => networkController.state,
 					onNetworkStateChange: (listener) => networkController.subscribe(listener),
 					getProvider: () => networkController.provider,
+				}),
+				new CollectibleMintingController({
+					onNetworkStateChange: (listener) => networkController.subscribe(listener),
+					addCollectible: collectiblesController.addCollectible,
+					addTransaction: TransactionController.addTransaction,
 				}),
 				new TypedMessageManager(),
 				new SwapsController(
@@ -606,6 +624,7 @@ export default {
 			TokensController,
 			TokenDetectionController,
 			CollectibleDetectionController,
+			CollectibleMintingController,
 		} = instance.datamodel.state;
 
 		// normalize `null` currencyRate to `0`
@@ -636,6 +655,7 @@ export default {
 			GasFeeController,
 			TokenDetectionController,
 			CollectibleDetectionController,
+			CollectibleMintingController,
 		};
 	},
 	get datamodel() {

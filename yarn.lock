@@ -1607,9 +1607,9 @@
     web3 "^0.20.7"
     web3-provider-engine "^16.0.3"
 
-"@metamask/controllers@git+https://github.com/MetaMask/controllers.git#bcfd6cf850f4c3a11710118503ed121ad1a92d57":
+"@metamask/controllers@git+https://github.com/MetaMask/controllers.git#7cdfadd1841d91b466ea9114cadae8208d76bcc0":
   version "22.0.0-seth-1"
-  resolved "git+https://github.com/MetaMask/controllers.git#bcfd6cf850f4c3a11710118503ed121ad1a92d57"
+  resolved "git+https://github.com/MetaMask/controllers.git#7cdfadd1841d91b466ea9114cadae8208d76bcc0"
   dependencies:
     "@ethereumjs/common" "^2.3.1"
     "@ethereumjs/tx" "^3.2.1"
