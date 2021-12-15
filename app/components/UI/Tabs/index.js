@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { InteractionManager, Dimensions, View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { InteractionManager, Dimensions, View, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import Text from '../../Base/Text';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
@@ -77,7 +78,7 @@ const styles = StyleSheet.create({
 		},
 		shadowOpacity: 0.58,
 		shadowRadius: 15.0,
-		backgroundColor: colors.ui1,
+		backgroundColor: colors.backgroundAlternative,
 		height: Device.isIphoneX() ? 80 : 50,
 	},
 	tabs: {

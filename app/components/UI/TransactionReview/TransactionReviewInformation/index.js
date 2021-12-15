@@ -1,7 +1,8 @@
 import React, { PureComponent } from 'react';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, View, TouchableOpacity, InteractionManager } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, InteractionManager } from 'react-native';
+import Text from '../../../Base/Text';
 import { colors, fontStyles } from '../../../../styles/common';
 import { connect } from 'react-redux';
 import {

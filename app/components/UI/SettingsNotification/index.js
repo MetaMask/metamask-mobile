@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.error,
 	},
 	normal: {
-		backgroundColor: colors.ui1,
+		backgroundColor: colors.backgroundAlternative,
 	},
 	check: {
 		color: colors.onSuccess,

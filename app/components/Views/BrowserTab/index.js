@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
 	},
 	urlInput: {
 		...fontStyles.normal,
-		backgroundColor: Device.isAndroid() ? colors.backgroundDefault : colors.ui1,
+		backgroundColor: Device.isAndroid() ? colors.backgroundDefault : colors.backgroundAlternative,
 		borderRadius: 30,
 		fontSize: Device.isAndroid() ? 16 : 14,
 		padding: 8,

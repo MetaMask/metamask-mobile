@@ -6,7 +6,7 @@ import { colors } from '../../styles/common';
 
 const styles = StyleSheet.create({
 	container: {
-		backgroundColor: colors.ui1,
+		backgroundColor: colors.backgroundAlternative,
 		paddingVertical: 8,
 		paddingHorizontal: 10,
 		borderRadius: 100,
@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
 	},
 	caretDown: {
 		textAlign: 'right',
-		color: colors.onUi1,
+		color: colors.textDefault,
 		marginLeft: 10,
 		marginRight: 5,
 	},

@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import { StyleSheet, Text, ScrollView, Switch, View, Image, TouchableOpacity } from 'react-native';
+import { StyleSheet, ScrollView, Switch, View, Image, TouchableOpacity } from 'react-native';
+import Text from '../../../Base/Text';
 import { connect } from 'react-redux';
 
 import Engine from '../../../../core/Engine';
@@ -284,8 +285,8 @@ class Settings extends PureComponent {
 							<Switch
 								value={hideZeroBalanceTokens}
 								onValueChange={this.toggleHideZeroBalanceTokens}
-								trackColor={Device.isIos() && { true: colors.primary, false: colors.ui1 }}
-								ios_backgroundColor={colors.ui1}
+								trackColor={Device.isIos() && { true: colors.primary, false: colors.muted }}
+								ios_backgroundColor={colors.muted}
 							/>
 						</View>
 					</View>

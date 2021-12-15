@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Alert, TouchableOpacity, StyleSheet, Text, View, InteractionManager } from 'react-native';
+import { Alert, TouchableOpacity, StyleSheet, View, InteractionManager } from 'react-native';
+import Text from '../../Base/Text';
 import TokenImage from '../TokenImage';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';

@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { Text, StyleSheet, View, TouchableOpacity, InteractionManager } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, InteractionManager } from 'react-native';
+import Text from '../../Base/Text';
 import PropTypes from 'prop-types';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import ElevatedView from 'react-native-elevated-view';

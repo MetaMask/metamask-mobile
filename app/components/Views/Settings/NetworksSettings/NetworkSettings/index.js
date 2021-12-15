@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import { StyleSheet, Text, View, TextInput, SafeAreaView } from 'react-native';
+import { StyleSheet, View, TextInput, SafeAreaView } from 'react-native';
+import Text from '../../../../Base/Text';
 import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../../UI/Navbar';

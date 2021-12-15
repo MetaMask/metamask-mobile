@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { Alert, Text, TextInput, View, StyleSheet } from 'react-native';
+import { Alert, TextInput, View, StyleSheet } from 'react-native';
+import Text from '../../Base/Text';
 import { colors, fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';

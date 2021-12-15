@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { SafeAreaView, Text, TextInput, View, StyleSheet } from 'react-native';
+import { SafeAreaView, TextInput, View, StyleSheet } from 'react-native';
+import Text from '../../Base/Text';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
 import { colors, fontStyles } from '../../../styles/common';

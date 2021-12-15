@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Alert, ScrollView, RefreshControl, FlatList, StyleSheet, Text, View } from 'react-native';
+import { Alert, ScrollView, RefreshControl, FlatList, StyleSheet, View } from 'react-native';
+import Text from '../../Base/Text';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import ActionSheet from 'react-native-actionsheet';

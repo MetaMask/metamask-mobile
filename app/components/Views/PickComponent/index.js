@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import Text from '../../Base/Text';
 import { baseStyles, colors, fontStyles } from '../../../styles/common';
 
 const styles = StyleSheet.create({

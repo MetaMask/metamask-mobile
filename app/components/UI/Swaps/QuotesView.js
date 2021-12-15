@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
 		width: '100%',
 	},
 	timerWrapper: {
-		backgroundColor: colors.ui1,
+		backgroundColor: colors.backgroundAlternative,
 		borderRadius: 20,
 		marginVertical: 12,
 		paddingVertical: 4,

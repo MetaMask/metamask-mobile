@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { ScrollView, View, StyleSheet, Text, SafeAreaView } from 'react-native';
+import { ScrollView, View, StyleSheet, SafeAreaView } from 'react-native';
+import Text from '../../Base/Text';
 import PropTypes from 'prop-types';
 import CollectibleOverview from '../../UI/CollectibleOverview';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';

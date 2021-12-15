@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { InteractionManager, Alert, Text, TouchableOpacity, View, SafeAreaView, StyleSheet } from 'react-native';
+import { InteractionManager, Alert, TouchableOpacity, View, SafeAreaView, StyleSheet } from 'react-native';
+import Text from '../../Base/Text';
 import PropTypes from 'prop-types';
 import OnboardingProgress from '../../UI/OnboardingProgress';
 import { colors, fontStyles } from '../../../styles/common';

@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import { View, StyleSheet, InteractionManager, Text, LayoutAnimation } from 'react-native';
+import { View, StyleSheet, InteractionManager, LayoutAnimation } from 'react-native';
+import Text from '../../Base/Text';
 import { colors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import ActionView from '../ActionView';

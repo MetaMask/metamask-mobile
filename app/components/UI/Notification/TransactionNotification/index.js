@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { StyleSheet, View, Text, Dimensions } from 'react-native';
+import { StyleSheet, View, Dimensions } from 'react-native';
+import Text from '../../../Base/Text';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import Animated from 'react-native-reanimated';

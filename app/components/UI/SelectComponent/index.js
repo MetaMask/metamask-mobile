@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { ScrollView, StyleSheet, View, TouchableOpacity } from 'react-native';
+import Text from '../../Base/Text';
 import { Picker } from '@react-native-community/picker';
 import { fontStyles, colors, baseStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/MaterialIcons';

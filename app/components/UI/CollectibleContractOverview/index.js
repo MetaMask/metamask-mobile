@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import Text from '../../Base/Text';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';

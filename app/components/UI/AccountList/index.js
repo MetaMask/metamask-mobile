@@ -8,10 +8,10 @@ import {
 	FlatList,
 	TouchableOpacity,
 	StyleSheet,
-	Text,
 	View,
 	SafeAreaView,
 } from 'react-native';
+import Text from '../../Base/Text';
 import { colors, fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';

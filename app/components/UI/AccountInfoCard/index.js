@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import Text from '../../Base/Text';
 import { colors, fontStyles } from '../../../styles/common';
 import { renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import Identicon from '../Identicon';

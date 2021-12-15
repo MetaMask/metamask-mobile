@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Text, TouchableNativeFeedback, View, ViewPropTypes } from 'react-native';
+import { TouchableNativeFeedback, View, ViewPropTypes } from 'react-native';
+import Text from '../../Base/Text';
 import coalesceNonElementChildren from 'react-native-button/coalesceNonElementChildren';
 import getStyles from './styledButtonStyles';
 

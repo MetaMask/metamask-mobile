@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
-import { Text, View, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, TextInput } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, TextInput } from 'react-native';
+import Text from '../../Base/Text';
 import React from 'react';
 import ActionModal from '../../UI/ActionModal';
 import Icon from 'react-native-vector-icons/Octicons';

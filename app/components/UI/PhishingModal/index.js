@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { ScrollView, View, Text, Image, StyleSheet } from 'react-native';
+import { ScrollView, View, Image, StyleSheet } from 'react-native';
+import Text from '../../Base/Text';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import StyledButton from '../../UI/StyledButton';
@@ -34,7 +35,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 	},
 	phishingModalInfo: {
-		backgroundColor: colors.ui1,
+		backgroundColor: colors.backgroundAlternative,
 		paddingTop: 20,
 		paddingHorizontal: 20,
 	},

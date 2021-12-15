@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { ScrollView, TextInput, StyleSheet, Text, View, TouchableOpacity, InteractionManager } from 'react-native';
+import { ScrollView, TextInput, StyleSheet, View, TouchableOpacity, InteractionManager } from 'react-native';
+import Text from '../../Base/Text';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { connect } from 'react-redux';
 import Engine from '../../../core/Engine';

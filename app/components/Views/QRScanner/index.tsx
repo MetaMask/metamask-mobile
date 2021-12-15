@@ -3,7 +3,8 @@
 
 'use strict';
 import React, { useRef, useCallback } from 'react';
-import { InteractionManager, SafeAreaView, Image, Text, TouchableOpacity, View, StyleSheet, Alert } from 'react-native';
+import { InteractionManager, SafeAreaView, Image, TouchableOpacity, View, StyleSheet, Alert } from 'react-native';
+import Text from '../../Base/Text';
 import { RNCamera } from 'react-native-camera';
 import { colors } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/Ionicons';

@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { InteractionManager, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { InteractionManager, StyleSheet, View, TouchableOpacity } from 'react-native';
+import Text from '../../Base/Text';
 import PropTypes from 'prop-types';
 import { swapsUtils } from '@metamask/swaps-controller';
 import AssetIcon from '../AssetIcon';

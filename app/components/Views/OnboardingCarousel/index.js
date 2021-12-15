@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Text, View, ScrollView, StyleSheet, Image, Dimensions, InteractionManager } from 'react-native';
+import { View, ScrollView, StyleSheet, Image, Dimensions, InteractionManager } from 'react-native';
+import Text from '../../Base/Text';
 import StyledButton from '../../UI/StyledButton';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';

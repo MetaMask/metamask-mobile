@@ -392,8 +392,8 @@ class ImportFromSeed extends PureComponent {
 						onValueChange={this.updateBiometryChoice}
 						value={this.state.biometryChoice}
 						style={styles.biometrySwitch}
-						trackColor={Device.isIos() ? { true: colors.primary, false: colors.ui1 } : null}
-						ios_backgroundColor={colors.ui1}
+						trackColor={Device.isIos() ? { true: colors.primary, false: colors.muted } : null}
+						ios_backgroundColor={colors.muted}
 					/>
 				</View>
 			);
@@ -406,8 +406,8 @@ class ImportFromSeed extends PureComponent {
 					onValueChange={(rememberMe) => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
 					value={this.state.rememberMe}
 					style={styles.biometrySwitch}
-					trackColor={Device.isIos() ? { true: colors.primary, false: colors.ui1 } : null}
-					ios_backgroundColor={colors.ui1}
+					trackColor={Device.isIos() ? { true: colors.primary, false: colors.muted } : null}
+					ios_backgroundColor={colors.muted}
 				/>
 			</View>
 		);

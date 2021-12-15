@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { ActivityIndicator, Alert, Text, View, TextInput, SafeAreaView, StyleSheet } from 'react-native';
+import { ActivityIndicator, Alert, View, TextInput, SafeAreaView, StyleSheet } from 'react-native';
+import Text from '../../Base/Text';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import StyledButton from '../../UI/StyledButton';
 

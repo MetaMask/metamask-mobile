@@ -14,7 +14,7 @@ const styles = StyleSheet.create({
 	},
 	static: {
 		borderWidth: 3.5,
-		borderColor: colors.ui1,
+		borderColor: colors.borderDefault,
 		borderRadius: 64,
 		width: 36,
 		height: 36,

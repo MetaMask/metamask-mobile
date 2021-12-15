@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import { ActivityIndicator, SafeAreaView, StyleSheet, Switch, Text, View } from 'react-native';
+import { ActivityIndicator, SafeAreaView, StyleSheet, Switch, View } from 'react-native';
+import Text from '../../../Base/Text';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import ActionModal from '../../../UI/ActionModal';
@@ -291,8 +292,8 @@ class AdvancedSettings extends PureComponent {
 								<Switch
 									value={showHexData}
 									onValueChange={setShowHexData}
-									trackColor={Device.isIos() && { true: colors.primary, false: colors.ui1 }}
-									ios_backgroundColor={colors.ui1}
+									trackColor={Device.isIos() && { true: colors.primary, false: colors.muted }}
+									ios_backgroundColor={colors.muted}
 								/>
 							</View>
 						</View>
@@ -303,8 +304,8 @@ class AdvancedSettings extends PureComponent {
 								<Switch
 									value={showCustomNonce}
 									onValueChange={setShowCustomNonce}
-									trackColor={Device.isIos() && { true: colors.primary, false: colors.ui1 }}
-									ios_backgroundColor={colors.ui1}
+									trackColor={Device.isIos() && { true: colors.primary, false: colors.muted }}
+									ios_backgroundColor={colors.muted}
 								/>
 							</View>
 						</View>

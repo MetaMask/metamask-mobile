@@ -1,7 +1,8 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { TouchableOpacity, View, StyleSheet, Text, Image } from 'react-native';
+import { TouchableOpacity, View, StyleSheet, Image } from 'react-native';
+import Text from '../../Base/Text';
 import { colors, fontStyles } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import Icon from 'react-native-vector-icons/FontAwesome';

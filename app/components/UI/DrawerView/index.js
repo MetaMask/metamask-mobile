@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { Alert, TouchableOpacity, View, Image, StyleSheet, Text, ScrollView, InteractionManager } from 'react-native';
+import { Alert, TouchableOpacity, View, Image, StyleSheet, ScrollView, InteractionManager } from 'react-native';
+import Text from '../../Base/Text';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Share from 'react-native-share';

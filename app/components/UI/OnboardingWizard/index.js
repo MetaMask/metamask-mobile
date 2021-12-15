@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { TouchableOpacity, View, StyleSheet, Text, Dimensions, InteractionManager } from 'react-native';
+import { TouchableOpacity, View, StyleSheet, Dimensions, InteractionManager } from 'react-native';
+import Text from '../../Base/Text';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import Step1 from './Step1';

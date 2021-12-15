@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { Alert, ScrollView, SafeAreaView, StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { Alert, ScrollView, SafeAreaView, StyleSheet, View, TouchableOpacity } from 'react-native';
+import Text from '../../Base/Text';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';

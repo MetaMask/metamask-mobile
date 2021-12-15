@@ -13,7 +13,7 @@ const styles = StyleSheet.create({
 		paddingVertical: 24,
 	},
 	feeWrapper: {
-		backgroundColor: colors.ui1,
+		backgroundColor: colors.backgroundAlternative,
 		textAlign: 'center',
 		padding: 16,
 		borderRadius: 8,

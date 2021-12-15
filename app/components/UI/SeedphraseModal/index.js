@@ -1,5 +1,6 @@
 import React from 'react';
-import { TouchableOpacity, Text, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
+import Text from '../../Base/Text';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { colors, fontStyles } from '../../../styles/common';

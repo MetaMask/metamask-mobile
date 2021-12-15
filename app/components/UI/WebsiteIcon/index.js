@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, Image } from 'react-native';
+import { StyleSheet, View, Image } from 'react-native';
+import Text from '../../Base/Text';
 import FadeIn from 'react-native-fade-in-image';
 import { colors, fontStyles } from '../../../styles/common';
 import { getHost } from '../../../util/browser';

@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { TouchableOpacity, TouchableHighlight, StyleSheet, Image, Text, View } from 'react-native';
+import { TouchableOpacity, TouchableHighlight, StyleSheet, Image, View } from 'react-native';
+import Text from '../../Base/Text';
 import { colors, fontStyles } from '../../../styles/common';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
@@ -342,7 +343,7 @@ class TransactionElement extends PureComponent {
 				<TouchableHighlight
 					style={styles.row}
 					onPress={this.onPressItem}
-					underlayColor={colors.ui1}
+					underlayColor={colors.muted}
 					activeOpacity={1}
 				>
 					{this.renderTxElement(transactionElement)}

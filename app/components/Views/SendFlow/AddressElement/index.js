@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import { renderShortAddress } from '../../../../util/address';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import Text from '../../../Base/Text';
 import Identicon from '../../../UI/Identicon';
 import { fontStyles, colors } from '../../../../styles/common';
 import PropTypes from 'prop-types';

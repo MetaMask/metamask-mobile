@@ -77,7 +77,7 @@ export const colors = {
 	backgroundDefault: baseColors.grey900,
 	backgroundAlternative: baseColors.grey800,
 	borderDefault: baseColors.grey400,
-	muted: baseColors.grey000,
+	muted: baseColors.grey700,
 
 	primary: baseColors.blue500,
 	onPrimary: baseColors.white,
@@ -94,12 +94,6 @@ export const colors = {
 	alert: 'rgba(0,0,0,.75)',
 	onAlert: baseColors.white,
 	// UI escape hatches for grey colors with no general purpose
-	ui1: baseColors.grey000,
-	onUi1: baseColors.grey800,
-	ui2: baseColors.grey100,
-	onUi2: baseColors.grey800,
-	ui3: baseColors.grey200,
-	onUi3: baseColors.white,
 	ui4: baseColors.grey500,
 	onUi4: baseColors.white,
 	shadowColor: baseColors.gray900,

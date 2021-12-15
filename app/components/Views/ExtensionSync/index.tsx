@@ -1,5 +1,6 @@
 import React, { useEffect, useCallback, useRef } from 'react';
-import { View, StyleSheet, Text, Image, InteractionManager, ActivityIndicator, Alert } from 'react-native';
+import { View, StyleSheet, Image, InteractionManager, ActivityIndicator, Alert } from 'react-native';
+import Text from '../../Base/Text';
 import { colors, fontStyles } from '../../../styles/common';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import StyledButton from '../../UI/StyledButton';

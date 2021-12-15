@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
-import { StyleSheet, Text, ScrollView, View, Switch, InteractionManager } from 'react-native';
+import { StyleSheet, ScrollView, View, Switch, InteractionManager } from 'react-native';
+import Text from '../../../Base/Text';
 import StyledButton from '../../../UI/StyledButton';
 import { colors, fontStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
@@ -104,8 +105,8 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 						<Switch
 							value={isTokenDetectionEnabled}
 							onValueChange={toggleTokenDetection}
-							trackColor={Device.isIos() ? { true: colors.primary, false: colors.ui1 } : undefined}
-							ios_backgroundColor={colors.ui1}
+							trackColor={Device.isIos() ? { true: colors.primary, false: colors.muted } : undefined}
+							ios_backgroundColor={colors.muted}
 						/>
 					</View>
 				</View>

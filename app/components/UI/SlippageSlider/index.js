@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Animated, PanResponder, StyleSheet, Text, Image } from 'react-native';
+import { View, Animated, PanResponder, StyleSheet, Image } from 'react-native';
+import Text from '../../Base/Text';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 

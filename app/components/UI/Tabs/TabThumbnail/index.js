@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { View, Image, TouchableOpacity, StyleSheet, Text, Dimensions } from 'react-native';
+import { View, Image, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import Text from '../../../Base/Text';
 import PropTypes from 'prop-types';
 import ElevatedView from 'react-native-elevated-view';
 import WebsiteIcon from '../../WebsiteIcon';

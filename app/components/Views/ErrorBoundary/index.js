@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import { SafeAreaView, Text, TouchableOpacity, View, StyleSheet, Image, Linking, Alert } from 'react-native';
+import { SafeAreaView, TouchableOpacity, View, StyleSheet, Image, Linking, Alert } from 'react-native';
+import Text from '../../Base/Text';
 import PropTypes from 'prop-types';
 import RevealPrivateCredential from '../RevealPrivateCredential';
 import Logger from '../../../util/Logger';

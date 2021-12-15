@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, View, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import Text from '../../../Base/Text';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { colors, fontStyles } from '../../../../styles/common';

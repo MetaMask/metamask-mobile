@@ -1,7 +1,8 @@
 import React from 'react';
 import ActionModal from '../../UI/ActionModal';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { View, Image, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { View, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import Text from '../../Base/Text';
 import { strings } from '../../../../locales/i18n';
 // eslint-disable-next-line import/no-unresolved
 import CheckBox from '@react-native-community/checkbox';

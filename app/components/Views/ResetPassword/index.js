@@ -503,8 +503,8 @@ class ResetPassword extends PureComponent {
 								onValueChange={this.updateBiometryChoice} // eslint-disable-line react/jsx-no-bind
 								value={biometryChoice}
 								style={styles.biometrySwitch}
-								trackColor={Device.isIos() ? { true: colors.primary, false: colors.ui1 } : null}
-								ios_backgroundColor={colors.ui1}
+								trackColor={Device.isIos() ? { true: colors.primary, false: colors.muted } : null}
+								ios_backgroundColor={colors.muted}
 							/>
 						</View>
 					</>
@@ -515,8 +515,8 @@ class ResetPassword extends PureComponent {
 							onValueChange={(rememberMe) => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
 							value={rememberMe}
 							style={styles.biometrySwitch}
-							trackColor={Device.isIos() ? { true: colors.primary, false: colors.ui1 } : null}
-							ios_backgroundColor={colors.ui1}
+							trackColor={Device.isIos() ? { true: colors.primary, false: colors.muted } : null}
+							ios_backgroundColor={colors.muted}
 						/>
 					</>
 				)}

@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
 		minWidth: 49,
 	},
 	quickAmountPlaceholder: {
-		backgroundColor: colors.ui1,
+		backgroundColor: colors.backgroundAlternative,
 		borderColor: colors.borderDefault,
 	},
 	quickAmountSelected: {
