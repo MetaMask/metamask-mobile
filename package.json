@@ -365,14 +365,12 @@
     "allowScripts": {
       "@sentry/cli": true,
       "detox": true,
-      "husky": true,
+      "husky": false,
       "secp256k1": true,
       "keccak": true,
       "@lavamoat/preinstall-always-fail": false,
-      "core-js-pure": false,
       "dtrace-provider": false,
       "core-js": false,
-      "fsevents": false,
       "sharp": true
     }
   }
