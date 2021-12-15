@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
-	Text,
 	StyleSheet,
 	TextInput,
 	View,
@@ -12,6 +11,7 @@ import {
 	BackHandler,
 	InteractionManager,
 } from 'react-native';
+import Text from '../../Base/Text';
 import { withNavigation } from '@react-navigation/compat';
 import { WebView } from 'react-native-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
 		width: 200,
 		borderWidth: 1,
 		borderColor: colors.borderDefault,
-		backgroundColor: colors.onUi4,
+		backgroundColor: colors.backgroundDefault,
 		borderRadius: 10,
 		paddingBottom: 5,
 		paddingTop: 10,
@@ -168,6 +168,7 @@ const styles = StyleSheet.create({
 	webview: {
 		...baseStyles.flexGrow,
 		zIndex: 1,
+		backgroundColor: colors.backgroundDefault,
 	},
 	urlModalContent: {
 		flexDirection: 'row',

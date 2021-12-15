@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
 	ScrollView,
 	TouchableOpacity,
-	Text,
 	View,
 	SafeAreaView,
 	StyleSheet,
@@ -10,6 +9,7 @@ import {
 	Dimensions,
 	InteractionManager,
 } from 'react-native';
+import Text from '../../Base/Text';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { colors, fontStyles } from '../../../styles/common';

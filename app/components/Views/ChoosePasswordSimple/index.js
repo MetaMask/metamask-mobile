@@ -4,13 +4,13 @@ import {
 	Animated,
 	ActivityIndicator,
 	Alert,
-	Text,
 	View,
 	TextInput,
 	SafeAreaView,
 	StyleSheet,
 	TouchableOpacity,
 } from 'react-native';
+import Text from '../../Base/Text';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { connect } from 'react-redux';
 import { passwordSet } from '../../../actions/user';

@@ -4,7 +4,6 @@ import {
 	Switch,
 	Alert,
 	ActivityIndicator,
-	Text,
 	View,
 	SafeAreaView,
 	StyleSheet,
@@ -14,6 +13,7 @@ import {
 	Keyboard,
 	BackHandler,
 } from 'react-native';
+import Text from '../../Base/Text';
 import AsyncStorage from '@react-native-community/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Button from 'react-native-button';

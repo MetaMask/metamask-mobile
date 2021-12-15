@@ -31,6 +31,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		fontSize: 12,
 		borderColor: colors.borderDefault,
+		color: colors.textDefault,
 		borderRadius: 5,
 		borderWidth: 2,
 		padding: 10,
@@ -78,7 +79,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		flexDirection: 'column',
 	},
-	textInputDisaled: {
+	textInputDisabled: {
 		borderColor: colors.transparent,
 	},
 	actionButton: {
@@ -273,7 +274,7 @@ class ContactForm extends PureComponent {
 							style={[
 								styles.input,
 								inputWidth ? { width: inputWidth } : {},
-								editable ? {} : styles.textInputDisaled,
+								editable ? {} : styles.textInputDisabled,
 							]}
 							value={name}
 							onSubmitEditing={this.jumpToAddressInput}
@@ -281,7 +282,7 @@ class ContactForm extends PureComponent {
 						/>
 
 						<Text style={styles.label}>{strings('address_book.address')}</Text>
-						<View style={[styles.input, editable ? {} : styles.textInputDisaled]}>
+						<View style={[styles.input, editable ? {} : styles.textInputDisabled]}>
 							<View style={styles.inputWrapper}>
 								<TextInput
 									editable={editable}
@@ -314,7 +315,7 @@ class ContactForm extends PureComponent {
 						</View>
 
 						<Text style={styles.label}>{strings('address_book.memo')}</Text>
-						<View style={[styles.input, editable ? {} : styles.textInputDisaled]}>
+						<View style={[styles.input, editable ? {} : styles.textInputDisabled]}>
 							<View style={styles.inputWrapper}>
 								<TextInput
 									multiline

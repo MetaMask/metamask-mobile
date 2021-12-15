@@ -1,6 +1,5 @@
 import React, { PureComponent } from 'react';
 import {
-	Text,
 	View,
 	SafeAreaView,
 	StyleSheet,
@@ -10,6 +9,7 @@ import {
 	KeyboardAvoidingView,
 	TouchableOpacity,
 } from 'react-native';
+import Text from '../../Base/Text';
 import PropTypes from 'prop-types';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';

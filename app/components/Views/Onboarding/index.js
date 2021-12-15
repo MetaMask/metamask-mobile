@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import {
 	ActivityIndicator,
 	BackHandler,
-	Text,
 	View,
 	ScrollView,
 	StyleSheet,
@@ -11,6 +10,7 @@ import {
 	Image,
 	InteractionManager,
 } from 'react-native';
+import Text from '../../Base/Text';
 import AsyncStorage from '@react-native-community/async-storage';
 import StyledButton from '../../UI/StyledButton';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';

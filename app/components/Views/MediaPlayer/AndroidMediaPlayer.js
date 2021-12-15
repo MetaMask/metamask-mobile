@@ -9,11 +9,11 @@ import {
 	Easing,
 	Image,
 	View,
-	Text,
 	ViewPropTypes,
 	TouchableNativeFeedback,
 	TouchableHighlight,
 } from 'react-native';
+import Text from '../../Base/Text';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import { baseStyles, colors } from '../../../styles/common';

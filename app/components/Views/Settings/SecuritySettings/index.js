@@ -4,7 +4,6 @@ import {
 	Alert,
 	StyleSheet,
 	Switch,
-	Text,
 	ScrollView,
 	View,
 	ActivityIndicator,
@@ -12,6 +11,7 @@ import {
 	Keyboard,
 	InteractionManager,
 } from 'react-native';
+import Text from '../../../Base/Text';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
 import ActionModal from '../../../UI/ActionModal';

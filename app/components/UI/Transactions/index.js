@@ -6,13 +6,13 @@ import {
 	ActivityIndicator,
 	RefreshControl,
 	StyleSheet,
-	Text,
 	View,
 	FlatList,
 	Dimensions,
 	InteractionManager,
 	TouchableOpacity,
 } from 'react-native';
+import Text from '../../Base/Text';
 import { getNetworkTypeById, findBlockExplorerForRpc, getBlockExplorerName } from '../../../util/networks';
 import { getEtherscanAddressUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';

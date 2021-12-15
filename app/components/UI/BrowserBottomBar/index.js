@@ -41,6 +41,7 @@ const styles = StyleSheet.create({
 		marginTop: 0,
 		width: 24,
 		height: 24,
+		color: colors.textAlternative,
 	},
 	disabledIcon: {
 		color: colors.muted,

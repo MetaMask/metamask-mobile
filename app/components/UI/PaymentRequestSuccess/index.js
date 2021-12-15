@@ -4,11 +4,11 @@ import {
 	SafeAreaView,
 	View,
 	ScrollView,
-	Text,
 	StyleSheet,
 	InteractionManager,
 	TouchableOpacity,
 } from 'react-native';
+import Text from '../../Base/Text';
 import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../styles/common';
 import { getPaymentRequestSuccessOptionsTitle } from '../../UI/Navbar';

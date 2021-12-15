@@ -2,13 +2,13 @@ import React, { PureComponent } from 'react';
 import {
 	SafeAreaView,
 	TextInput,
-	Text,
 	StyleSheet,
 	View,
 	TouchableOpacity,
 	KeyboardAvoidingView,
 	InteractionManager,
 } from 'react-native';
+import Text from '../../Base/Text';
 import { connect } from 'react-redux';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { getPaymentRequestOptionsTitle } from '../../UI/Navbar';

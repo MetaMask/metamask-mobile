@@ -2,13 +2,13 @@ import React, { useEffect, useState } from 'react';
 import {
 	StyleSheet,
 	View,
-	Text,
 	TouchableOpacity,
 	ScrollView,
 	TouchableWithoutFeedback,
 	Image,
 	InteractionManager,
 } from 'react-native';
+import Text from '../../Base/Text';
 import { useNavigationState } from '@react-navigation/native';
 import ActionModal from '../ActionModal';
 import { colors, fontStyles } from '../../../styles/common';

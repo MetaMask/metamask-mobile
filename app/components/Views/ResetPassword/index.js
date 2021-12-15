@@ -5,7 +5,6 @@ import {
 	Switch,
 	ActivityIndicator,
 	Alert,
-	Text,
 	View,
 	TextInput,
 	SafeAreaView,
@@ -14,6 +13,7 @@ import {
 	Image,
 	InteractionManager,
 } from 'react-native';
+import Text from '../../Base/Text';
 // eslint-disable-next-line import/no-unresolved
 import CheckBox from '@react-native-community/checkbox';
 import AnimatedFox from 'react-native-animated-fox';

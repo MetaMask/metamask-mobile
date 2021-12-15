@@ -4,11 +4,11 @@ import {
 	SafeAreaView,
 	StyleSheet,
 	View,
-	Text,
 	TextInput,
 	TouchableOpacity,
 	InteractionManager,
 } from 'react-native';
+import Text from '../../Base/Text';
 import AsyncStorage from '@react-native-community/async-storage';
 import { colors, fontStyles } from '../../../styles/common';
 import PropTypes from 'prop-types';

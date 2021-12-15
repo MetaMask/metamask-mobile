@@ -5,13 +5,13 @@ import {
 	ActivityIndicator,
 	Alert,
 	TouchableOpacity,
-	Text,
 	View,
 	TextInput,
 	SafeAreaView,
 	StyleSheet,
 	InteractionManager,
 } from 'react-native';
+import Text from '../../Base/Text';
 import AsyncStorage from '@react-native-community/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';

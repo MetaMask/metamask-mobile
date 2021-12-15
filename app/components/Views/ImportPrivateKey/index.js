@@ -4,11 +4,11 @@ import {
 	ActivityIndicator,
 	TouchableOpacity,
 	TextInput,
-	Text,
 	View,
 	StyleSheet,
 	InteractionManager,
 } from 'react-native';
+import Text from '../../Base/Text';
 
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';

@@ -1,14 +1,6 @@
 import React, { PureComponent } from 'react';
-import {
-	Alert,
-	BackHandler,
-	Text,
-	View,
-	StyleSheet,
-	Keyboard,
-	TouchableOpacity,
-	InteractionManager,
-} from 'react-native';
+import { Alert, BackHandler, View, StyleSheet, Keyboard, TouchableOpacity, InteractionManager } from 'react-native';
+import Text from '../../Base/Text';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';

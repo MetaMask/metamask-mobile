@@ -1,15 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import {
-	ScrollView,
-	TouchableOpacity,
-	StyleSheet,
-	Text,
-	View,
-	SafeAreaView,
-	InteractionManager,
-	Image,
-} from 'react-native';
+import { ScrollView, TouchableOpacity, StyleSheet, View, SafeAreaView, InteractionManager, Image } from 'react-native';
+import Text from '../../Base/Text';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';

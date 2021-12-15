@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react';
 import {
 	View,
 	SafeAreaView,
-	Text,
 	StyleSheet,
 	TouchableOpacity,
 	ScrollView,
@@ -10,6 +9,7 @@ import {
 	Alert,
 	InteractionManager,
 } from 'react-native';
+import Text from '../../Base/Text';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles, colors } from '../../../styles/common';
 import Entypo from 'react-native-vector-icons/Entypo';
