@@ -4,7 +4,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
 <View
   style={
     Object {
-      "backgroundColor": "#ffffff",
+      "backgroundColor": "#141618",
       "borderTopLeftRadius": 20,
       "borderTopRightRadius": 20,
       "maxHeight": "95%",
@@ -38,13 +38,12 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
             <TouchableOpacity>
               <Icon
                 allowFontScaling={false}
-                color="#24272a"
+                color="#ffffff"
                 name="ios-arrow-back"
                 size={24}
               />
             </TouchableOpacity>
             <Text
-              blue={false}
               bold={true}
               centered={false}
               disclaimer={false}
@@ -68,7 +67,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
             </Text>
             <Icon
               allowFontScaling={false}
-              color="#ffffff"
+              color="#141618"
               name="ios-arrow-back"
               size={24}
             />
@@ -98,7 +97,6 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                 }
               >
                 <Text
-                  blue={false}
                   bold={false}
                   centered={false}
                   disclaimer={false}
@@ -127,7 +125,6 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                 </Text>
               </View>
               <Text
-                blue={false}
                 bold={false}
                 centered={false}
                 disclaimer={false}
@@ -162,7 +159,6 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
             </View>
             <Text
               big={true}
-              blue={false}
               bold={false}
               centered={false}
               disclaimer={false}
@@ -183,7 +179,6 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
               warning={false}
             >
               <Text
-                blue={false}
                 bold={true}
                 centered={false}
                 disclaimer={false}
@@ -239,7 +234,6 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                       }
                     >
                       <Text
-                        blue={false}
                         bold={true}
                         centered={false}
                         disclaimer={false}
@@ -280,7 +274,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                           size={14}
                           style={
                             Object {
-                              "color": "#5b5d67",
+                              "color": "#d6d9dc",
                             }
                           }
                         />
@@ -312,7 +306,6 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                       }
                     >
                       <Text
-                        blue={false}
                         bold={true}
                         centered={false}
                         disclaimer={false}
@@ -353,7 +346,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                           size={14}
                           style={
                             Object {
-                              "color": "#5b5d67",
+                              "color": "#d6d9dc",
                             }
                           }
                         />
@@ -392,7 +385,6 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
           body={
             <View>
               <Text
-                blue={false}
                 bold={false}
                 centered={false}
                 disclaimer={false}

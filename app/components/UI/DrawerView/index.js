@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
 	},
 	header: {
 		paddingTop: Device.isIphoneX() ? 60 : 24,
-		backgroundColor: colors.ui1,
+		backgroundColor: colors.backgroundAlternative,
 		height: Device.isIphoneX() ? 110 : 74,
 		flexDirection: 'column',
 		paddingBottom: 0,
@@ -72,10 +72,11 @@ const styles = StyleSheet.create({
 		marginTop: 4,
 		width: 90,
 		height: 18,
+		color: colors.textDefault,
 	},
 	account: {
 		flex: 1,
-		backgroundColor: colors.ui1,
+		backgroundColor: colors.backgroundAlternative,
 	},
 	accountBgOverlay: {
 		borderBottomColor: colors.borderDefault,
@@ -179,7 +180,7 @@ const styles = StyleSheet.create({
 		paddingLeft: 17,
 	},
 	selectedRoute: {
-		backgroundColor: colors.info,
+		backgroundColor: colors.backgroundAlternative,
 		marginRight: 10,
 		borderTopRightRadius: 20,
 		borderBottomRightRadius: 20,

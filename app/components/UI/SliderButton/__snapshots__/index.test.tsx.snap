@@ -159,7 +159,7 @@ exports[`SliderButton should render correctly 1`] = `
     style={
       Array [
         Object {
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#141618",
           "borderColor": "#037dd6",
           "borderRadius": 60,
           "borderWidth": 9.6,

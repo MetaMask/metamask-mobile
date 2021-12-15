@@ -15,7 +15,7 @@ exports[`CollectibleMedia should render correctly 1`] = `
       Array [
         Object {
           "alignItems": "center",
-          "backgroundColor": "#d6d9dc",
+          "backgroundColor": "#f2f3f4",
           "borderRadius": 8,
           "justifyContent": "center",
         },
@@ -28,7 +28,6 @@ exports[`CollectibleMedia should render correctly 1`] = `
     }
   >
     <Text
-      blue={false}
       bold={false}
       centered={false}
       disclaimer={false}

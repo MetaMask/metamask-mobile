@@ -5,7 +5,6 @@ exports[`TimeEstimateInfoModal should render correctly 1`] = `
   body={
     <View>
       <Text
-        blue={false}
         bold={false}
         centered={false}
         disclaimer={false}

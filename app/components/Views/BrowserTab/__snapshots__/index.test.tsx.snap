@@ -8,7 +8,7 @@ exports[`Browser should render correctly 1`] = `
     style={
       Array [
         Object {
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#141618",
           "flex": 1,
         },
         false,
@@ -141,7 +141,7 @@ exports[`Browser should render correctly 1`] = `
       <View
         style={
           Object {
-            "backgroundColor": "#ffffff",
+            "backgroundColor": "#141618",
             "flexDirection": "row",
             "height": 87,
             "paddingHorizontal": 10,
@@ -158,7 +158,7 @@ exports[`Browser should render correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder="Search or Type URL"
-          placeholderTextColor="#d6d9dc"
+          placeholderTextColor="#f2f3f4"
           returnKeyType="go"
           selectTextOnFocus={true}
           style={

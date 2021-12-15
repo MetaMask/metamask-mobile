@@ -65,19 +65,19 @@ const baseColors = {
 
 export const colors = {
 	// Lightmode
-	textDefault: baseColors.grey800,
-	textAlternative: baseColors.grey600,
-	backgroundDefault: baseColors.white,
-	backgroundAlternative: baseColors.grey000,
-	borderDefault: baseColors.grey100,
-	muted: baseColors.grey100,
+	// textDefault: baseColors.grey800,
+	// textAlternative: baseColors.grey600,
+	// backgroundDefault: baseColors.white,
+	// backgroundAlternative: baseColors.grey000,
+	// borderDefault: baseColors.grey100,
+	// muted: baseColors.grey100,
 	// Darkmode
-	// textDefault: baseColors.white,
-	// textAlternative: baseColors.grey100,
-	// backgroundDefault: baseColors.grey900,
-	// backgroundAlternative: baseColors.grey800,
-	// borderDefault: baseColors.grey400,
-	// muted: baseColors.grey000,
+	textDefault: baseColors.white,
+	textAlternative: baseColors.grey100,
+	backgroundDefault: baseColors.grey900,
+	backgroundAlternative: baseColors.grey800,
+	borderDefault: baseColors.grey400,
+	muted: baseColors.grey000,
 
 	primary: baseColors.blue500,
 	onPrimary: baseColors.white,

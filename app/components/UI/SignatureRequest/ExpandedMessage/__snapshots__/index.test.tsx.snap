@@ -4,7 +4,7 @@ exports[`ExpandedMessage should render correctly 1`] = `
 <View
   style={
     Object {
-      "backgroundColor": "#ffffff",
+      "backgroundColor": "#141618",
       "borderTopLeftRadius": 20,
       "borderTopRightRadius": 20,
       "minHeight": "70%",
@@ -30,7 +30,7 @@ exports[`ExpandedMessage should render correctly 1`] = `
       size={30}
       style={
         Object {
-          "color": "#5b5d67",
+          "color": "#d6d9dc",
           "flex": 1,
         }
       }

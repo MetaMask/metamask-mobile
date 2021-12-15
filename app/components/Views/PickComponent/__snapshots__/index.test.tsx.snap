@@ -28,8 +28,8 @@ exports[`PickComponent should render correctly 1`] = `
       <View
         style={
           Object {
-            "backgroundColor": "#ffffff",
-            "borderColor": "#d6d9dc",
+            "backgroundColor": "#141618",
+            "borderColor": "#848c96",
             "borderRadius": 6,
             "borderWidth": 2,
             "height": 12,

@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
 		marginBottom: Device.isAndroid() ? -10 : 0,
 	},
 	addressWrapper: {
-		backgroundColor: colors.info,
+		backgroundColor: colors.backgroundAlternative,
 		borderRadius: 40,
 		marginTop: 20,
 		marginBottom: 20,

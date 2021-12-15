@@ -25,7 +25,7 @@ exports[`HintModal should render correctly 1`] = `
       style={
         Object {
           "alignSelf": "center",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#141618",
           "borderRadius": 16,
           "padding": 24,
         }
@@ -44,7 +44,7 @@ exports[`HintModal should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#24272a",
+              "color": "#ffffff",
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 18,
               "fontWeight": "600",
@@ -66,7 +66,7 @@ exports[`HintModal should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#24272a",
+            "color": "#ffffff",
             "fontSize": 14,
             "marginBottom": 16,
           }
@@ -91,7 +91,7 @@ exports[`HintModal should render correctly 1`] = `
         placeholder="e.g. Mom's house"
         style={
           Object {
-            "borderColor": "#d6d9dc",
+            "borderColor": "#848c96",
             "borderRadius": 6,
             "borderWidth": 1,
             "minHeight": 76,

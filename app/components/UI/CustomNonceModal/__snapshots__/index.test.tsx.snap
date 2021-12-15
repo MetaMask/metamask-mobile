@@ -66,7 +66,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
     <ForwardRef(SafeAreaView)
       style={
         Object {
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#141618",
           "borderTopLeftRadius": 20,
           "borderTopRightRadius": 20,
           "minHeight": 200,
@@ -82,7 +82,6 @@ exports[`CustomNonceModal should render correctly 1`] = `
         }
       >
         <Text
-          blue={false}
           bold={true}
           centered={true}
           disclaimer={false}
@@ -97,7 +96,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
           strikethrough={false}
           style={
             Object {
-              "color": "#24272a",
+              "color": "#ffffff",
               "fontSize": 14,
             }
           }
@@ -130,12 +129,12 @@ exports[`CustomNonceModal should render correctly 1`] = `
             onChangeText={[Function]}
             onSubmitEditing={[Function]}
             placeholder="26"
-            placeholderTextColor="#d6d9dc"
+            placeholderTextColor="#f2f3f4"
             showSoftInputOnFocus={false}
             spellCheck={false}
             style={
               Object {
-                "color": "#24272a",
+                "color": "#ffffff",
                 "fontFamily": "EuclidCircularB-Bold",
                 "fontSize": 36,
                 "fontWeight": "600",
@@ -148,7 +147,6 @@ exports[`CustomNonceModal should render correctly 1`] = `
           />
         </View>
         <Text
-          blue={false}
           bold={false}
           centered={true}
           disclaimer={false}
@@ -163,7 +161,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
           strikethrough={false}
           style={
             Object {
-              "color": "#5b5d67",
+              "color": "#d6d9dc",
               "fontSize": 14,
               "marginBottom": 10,
             }
@@ -178,7 +176,6 @@ exports[`CustomNonceModal should render correctly 1`] = `
           Current suggested nonce:
            
           <Text
-            blue={false}
             bold={true}
             centered={false}
             disclaimer={false}
@@ -286,7 +283,6 @@ exports[`CustomNonceModal should render correctly 1`] = `
               }
             />
             <Text
-              blue={false}
               bold={false}
               centered={false}
               disclaimer={false}
@@ -301,7 +297,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
               strikethrough={false}
               style={
                 Object {
-                  "color": "#24272a",
+                  "color": "#ffffff",
                   "flex": 1,
                   "fontSize": 12,
                   "lineHeight": 16,
@@ -319,7 +315,6 @@ exports[`CustomNonceModal should render correctly 1`] = `
             </Text>
           </View>
           <Text
-            blue={false}
             bold={true}
             centered={false}
             disclaimer={false}
@@ -334,7 +329,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
             strikethrough={false}
             style={
               Object {
-                "color": "#24272a",
+                "color": "#ffffff",
                 "fontSize": 12,
                 "lineHeight": 16,
                 "marginVertical": 10,
@@ -350,7 +345,6 @@ exports[`CustomNonceModal should render correctly 1`] = `
             This is an advanced feature used to cancel or speed up any pending transactions.
           </Text>
           <Text
-            blue={false}
             bold={false}
             centered={false}
             disclaimer={false}
@@ -365,7 +359,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
             strikethrough={false}
             style={
               Object {
-                "color": "#24272a",
+                "color": "#ffffff",
                 "fontSize": 12,
                 "lineHeight": 16,
                 "marginVertical": 10,

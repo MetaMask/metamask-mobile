@@ -30,7 +30,7 @@ exports[`SelectComponent should render correctly 1`] = `
           style={
             Object {
               "alignSelf": "flex-start",
-              "color": "#24272a",
+              "color": "#ffffff",
               "flex": 1,
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
@@ -43,7 +43,7 @@ exports[`SelectComponent should render correctly 1`] = `
         />
         <Icon
           allowFontScaling={false}
-          color="#24272a"
+          color="#ffffff"
           name="arrow-drop-down"
           size={24}
           style={
@@ -108,7 +108,7 @@ exports[`SelectComponent should render correctly 1`] = `
         style={
           Object {
             "alignItems": "center",
-            "backgroundColor": "#ffffff",
+            "backgroundColor": "#141618",
             "borderRadius": 10,
             "justifyContent": "center",
           }
@@ -117,7 +117,7 @@ exports[`SelectComponent should render correctly 1`] = `
         <View
           style={
             Object {
-              "borderBottomColor": "#d6d9dc",
+              "borderBottomColor": "#848c96",
               "borderBottomWidth": 1,
               "height": 50,
               "paddingTop": 5,

@@ -18,10 +18,10 @@ exports[`TransactionReviewSummary should render correctly 1`] = `
       style={
         Object {
           "alignItems": "center",
-          "borderColor": "#d6d9dc",
+          "borderColor": "#848c96",
           "borderRadius": 12,
           "borderWidth": 1,
-          "color": "#24272a",
+          "color": "#ffffff",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 10,
           "fontWeight": "400",
@@ -34,7 +34,7 @@ exports[`TransactionReviewSummary should render correctly 1`] = `
     <Text
       style={
         Object {
-          "color": "#24272a",
+          "color": "#ffffff",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 44,
           "fontWeight": "400",

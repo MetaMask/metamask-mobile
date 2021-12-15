@@ -30,7 +30,6 @@ exports[`AssetActionButtons should render correctly 1`] = `
     }
   />
   <Text
-    blue={false}
     bold={false}
     centered={true}
     disclaimer={false}
@@ -105,7 +104,6 @@ exports[`AssetActionButtons should render type add correctly 1`] = `
     />
   </View>
   <Text
-    blue={false}
     bold={false}
     centered={true}
     disclaimer={false}
@@ -180,7 +178,6 @@ exports[`AssetActionButtons should render type information correctly 1`] = `
     />
   </View>
   <Text
-    blue={false}
     bold={false}
     centered={true}
     disclaimer={false}
@@ -267,7 +264,6 @@ exports[`AssetActionButtons should render type receive correctly 1`] = `
     />
   </View>
   <Text
-    blue={false}
     bold={false}
     centered={true}
     disclaimer={false}
@@ -342,7 +338,6 @@ exports[`AssetActionButtons should render type send correctly 1`] = `
     />
   </View>
   <Text
-    blue={false}
     bold={false}
     centered={true}
     disclaimer={false}
@@ -423,7 +418,6 @@ exports[`AssetActionButtons should render type swap correctly 1`] = `
     />
   </View>
   <Text
-    blue={false}
     bold={false}
     centered={true}
     disclaimer={false}

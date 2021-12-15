@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
 		padding: 16,
 	},
 	labelElementWrapper: {
-		backgroundColor: colors.ui1,
+		backgroundColor: colors.backgroundAlternative,
 		flexDirection: 'row',
 		alignItems: 'center',
 		borderBottomWidth: 1,

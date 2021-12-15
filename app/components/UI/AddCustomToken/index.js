@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { Text, TextInput, View, StyleSheet, InteractionManager } from 'react-native';
+import { TextInput, View, StyleSheet, InteractionManager } from 'react-native';
+import Text from '../../Base/Text';
 import { colors, fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
@@ -31,7 +32,7 @@ const styles = StyleSheet.create({
 		color: colors.onError,
 		...fontStyles.normal,
 	},
-	warningContainer: { marginHorizontal: 20, marginTop: 20, paddingRight: 0 },
+	warningContainer: { marginHorizontal: 20, marginTop: 20, paddingRight: 0, color: colors.onWarnding },
 	warningLink: { color: colors.primary },
 });
 

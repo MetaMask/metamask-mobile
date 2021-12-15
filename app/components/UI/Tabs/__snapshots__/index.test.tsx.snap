@@ -4,7 +4,7 @@ exports[`Tabs should render correctly 1`] = `
 <View
   style={
     Object {
-      "backgroundColor": "#d6d9dc",
+      "backgroundColor": "#f2f3f4",
       "bottom": 0,
       "flex": 1,
       "left": 0,

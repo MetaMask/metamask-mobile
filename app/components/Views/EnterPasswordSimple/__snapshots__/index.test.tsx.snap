@@ -5,7 +5,7 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
   emulateUnlessSupported={true}
   style={
     Object {
-      "backgroundColor": "#ffffff",
+      "backgroundColor": "#141618",
       "flex": 1,
     }
   }
@@ -51,7 +51,7 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#24272a",
+                "color": "#ffffff",
                 "fontSize": 16,
                 "marginBottom": 15,
               }
@@ -63,11 +63,11 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
             onChangeText={[Function]}
             onSubmitEditing={[Function]}
             placeholder="Password"
-            placeholderTextColor="#d6d9dc"
+            placeholderTextColor="#f2f3f4"
             secureTextEntry={true}
             style={
               Object {
-                "borderColor": "#d6d9dc",
+                "borderColor": "#848c96",
                 "borderRadius": 5,
                 "borderWidth": 2,
                 "padding": 10,

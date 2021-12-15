@@ -4,7 +4,7 @@ exports[`CustomNonce should render correctly 1`] = `
 <TouchableOpacity
   style={
     Object {
-      "borderColor": "#d6d9dc",
+      "borderColor": "#848c96",
       "borderRadius": 8,
       "borderWidth": 1,
       "display": "flex",
@@ -17,7 +17,6 @@ exports[`CustomNonce should render correctly 1`] = `
   }
 >
   <Text
-    blue={false}
     bold={true}
     centered={false}
     disclaimer={false}
@@ -40,7 +39,6 @@ exports[`CustomNonce should render correctly 1`] = `
     Nonce
   </Text>
   <Text
-    blue={false}
     bold={true}
     centered={false}
     disclaimer={false}
@@ -64,7 +62,6 @@ exports[`CustomNonce should render correctly 1`] = `
     Edit
   </Text>
   <Text
-    blue={false}
     bold={true}
     centered={false}
     disclaimer={false}

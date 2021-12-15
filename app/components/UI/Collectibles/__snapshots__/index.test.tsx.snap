@@ -4,7 +4,7 @@ exports[`Collectibles should render correctly 1`] = `
 <View
   style={
     Object {
-      "backgroundColor": "#ffffff",
+      "backgroundColor": "#141618",
       "flex": 1,
     }
   }
@@ -21,7 +21,7 @@ exports[`Collectibles should render correctly 1`] = `
       style={
         Object {
           "alignItems": "center",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#141618",
           "justifyContent": "center",
           "marginTop": 50,
         }
@@ -30,7 +30,7 @@ exports[`Collectibles should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#5b5d67",
+            "color": "#d6d9dc",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 20,
             "fontWeight": "400",

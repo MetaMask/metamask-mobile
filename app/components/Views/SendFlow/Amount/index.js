@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react';
 import { colors, fontStyles } from '../../../../styles/common';
 import {
 	StyleSheet,
-	Text,
 	View,
 	TouchableOpacity,
 	TextInput,
@@ -20,6 +19,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Modal from 'react-native-modal';
 import TokenImage from '../../../UI/TokenImage';
+import Text from '../../../Base/Text';
 import {
 	renderFromTokenMinimalUnit,
 	balanceToFiat,
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
 	textDropdown: {
 		...fontStyles.normal,
 		fontSize: 14,
-		color: colors.backgroundDefault,
+		color: colors.onPrimary,
 		paddingVertical: 2,
 	},
 	iconDropdown: {
@@ -285,6 +285,7 @@ const styles = StyleSheet.create({
 		alignSelf: 'center',
 		fontSize: 12,
 		lineHeight: 16,
+		color: colors.textDefault,
 	},
 });
 
@@ -950,6 +951,7 @@ class Amount extends PureComponent {
 							onChangeText={this.onInputChange}
 							keyboardType={'numeric'}
 							placeholder={'0'}
+							placeholderTextColor={colors.muted}
 							testID={'txn-amount-input'}
 						/>
 					</View>
@@ -974,7 +976,9 @@ class Amount extends PureComponent {
 					</View>
 				)}
 				<View style={styles.balanceWrapper}>
-					<Text style={styles.balanceText}>{`${strings('transaction.balance')}: ${currentBalance}`}</Text>
+					<Text textDefault style={styles.balanceText}>{`${strings(
+						'transaction.balance'
+					)}: ${currentBalance}`}</Text>
 				</View>
 				{amountError && (
 					<View style={styles.errorMessageWrapper} testID={'amount-error'}>

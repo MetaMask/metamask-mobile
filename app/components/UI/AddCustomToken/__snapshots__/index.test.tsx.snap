@@ -4,7 +4,7 @@ exports[`AddCustomToken should render correctly 1`] = `
 <View
   style={
     Object {
-      "backgroundColor": "#ffffff",
+      "backgroundColor": "#141618",
       "flex": 1,
     }
   }
@@ -28,6 +28,7 @@ exports[`AddCustomToken should render correctly 1`] = `
       <WarningMessage
         style={
           Object {
+            "color": undefined,
             "marginHorizontal": 20,
             "marginTop": 20,
             "paddingRight": 0,
@@ -37,13 +38,31 @@ exports[`AddCustomToken should render correctly 1`] = `
           <React.Fragment>
             Anyone can create a token, including creating fake versions of existing tokens. Learn more about 
             <Text
+              bold={false}
+              centered={false}
+              disclaimer={false}
+              error={false}
+              info={false}
+              link={false}
+              modal={false}
               onPress={[Function]}
+              primary={false}
+              reset={false}
+              right={false}
+              small={false}
+              strikethrough={false}
               style={
                 Object {
                   "color": "#037dd6",
                 }
               }
+              success={false}
               suppressHighlighting={true}
+              textAlternative={false}
+              textDefault={false}
+              underline={false}
+              upper={false}
+              warning={false}
             >
               scams and security risks.
             </Text>
@@ -58,12 +77,30 @@ exports[`AddCustomToken should render correctly 1`] = `
         }
       >
         <Text
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          error={false}
+          info={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
             }
           }
+          success={false}
+          textAlternative={false}
+          textDefault={false}
+          underline={false}
+          upper={false}
+          warning={false}
         >
           Token Address
         </Text>
@@ -72,11 +109,11 @@ exports[`AddCustomToken should render correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder="0x..."
-          placeholderTextColor="#d6d9dc"
+          placeholderTextColor="#f2f3f4"
           returnKeyType="next"
           style={
             Object {
-              "borderColor": "#d6d9dc",
+              "borderColor": "#848c96",
               "borderRadius": 4,
               "borderWidth": 1,
               "fontFamily": "EuclidCircularB-Regular",
@@ -88,6 +125,18 @@ exports[`AddCustomToken should render correctly 1`] = `
           value=""
         />
         <Text
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          error={false}
+          info={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
               "color": "#d73a49",
@@ -96,7 +145,13 @@ exports[`AddCustomToken should render correctly 1`] = `
               "marginTop": 15,
             }
           }
+          success={false}
           testID="token-address-warning"
+          textAlternative={false}
+          textDefault={false}
+          underline={false}
+          upper={false}
+          warning={false}
         />
       </View>
       <View
@@ -107,12 +162,30 @@ exports[`AddCustomToken should render correctly 1`] = `
         }
       >
         <Text
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          error={false}
+          info={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
             }
           }
+          success={false}
+          textAlternative={false}
+          textDefault={false}
+          underline={false}
+          upper={false}
+          warning={false}
         >
           Token Symbol
         </Text>
@@ -121,11 +194,11 @@ exports[`AddCustomToken should render correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder="GNO"
-          placeholderTextColor="#d6d9dc"
+          placeholderTextColor="#f2f3f4"
           returnKeyType="next"
           style={
             Object {
-              "borderColor": "#d6d9dc",
+              "borderColor": "#848c96",
               "borderRadius": 4,
               "borderWidth": 1,
               "fontFamily": "EuclidCircularB-Regular",
@@ -137,6 +210,18 @@ exports[`AddCustomToken should render correctly 1`] = `
           value=""
         />
         <Text
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          error={false}
+          info={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
               "color": "#d73a49",
@@ -145,6 +230,12 @@ exports[`AddCustomToken should render correctly 1`] = `
               "marginTop": 15,
             }
           }
+          success={false}
+          textAlternative={false}
+          textDefault={false}
+          underline={false}
+          upper={false}
+          warning={false}
         />
       </View>
       <View
@@ -155,12 +246,30 @@ exports[`AddCustomToken should render correctly 1`] = `
         }
       >
         <Text
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          error={false}
+          info={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
             }
           }
+          success={false}
+          textAlternative={false}
+          textDefault={false}
+          underline={false}
+          upper={false}
+          warning={false}
         >
           Token of Precision
         </Text>
@@ -171,11 +280,11 @@ exports[`AddCustomToken should render correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder="18"
-          placeholderTextColor="#d6d9dc"
+          placeholderTextColor="#f2f3f4"
           returnKeyType="done"
           style={
             Object {
-              "borderColor": "#d6d9dc",
+              "borderColor": "#848c96",
               "borderRadius": 4,
               "borderWidth": 1,
               "fontFamily": "EuclidCircularB-Regular",
@@ -187,6 +296,18 @@ exports[`AddCustomToken should render correctly 1`] = `
           value=""
         />
         <Text
+          bold={false}
+          centered={false}
+          disclaimer={false}
+          error={false}
+          info={false}
+          link={false}
+          modal={false}
+          primary={false}
+          reset={false}
+          right={false}
+          small={false}
+          strikethrough={false}
           style={
             Object {
               "color": "#d73a49",
@@ -195,7 +316,13 @@ exports[`AddCustomToken should render correctly 1`] = `
               "marginTop": 15,
             }
           }
+          success={false}
           testID="token-decimals-warning"
+          textAlternative={false}
+          textDefault={false}
+          underline={false}
+          upper={false}
+          warning={false}
         />
       </View>
     </View>

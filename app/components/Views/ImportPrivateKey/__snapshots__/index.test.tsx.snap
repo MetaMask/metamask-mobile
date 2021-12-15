@@ -60,7 +60,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
           size={15}
           style={
             Object {
-              "color": "#5b5d67",
+              "color": "#d6d9dc",
               "fontSize": 28,
             }
           }
@@ -90,7 +90,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#24272a",
+              "color": "#ffffff",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 32,
               "fontWeight": "400",
@@ -113,7 +113,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#24272a",
+                "color": "#ffffff",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -135,7 +135,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
             onPress={[Function]}
             style={
               Object {
-                "color": "#24272a",
+                "color": "#ffffff",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -150,7 +150,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
       <View
         style={
           Object {
-            "backgroundColor": "#ffffff",
+            "backgroundColor": "#141618",
             "padding": 30,
             "width": "100%",
           }
@@ -185,13 +185,13 @@ exports[`ImportPrivateKey should render correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder="e.g. 3a1076bf45ab87712ad64ccb3b10217737f7faacbf2872e88fdd9a537d8fe266"
-          placeholderTextColor="#d6d9dc"
+          placeholderTextColor="#f2f3f4"
           returnKeyType="next"
           style={
             Array [
               Object {
-                "backgroundColor": "#ffffff",
-                "borderColor": "#d6d9dc",
+                "backgroundColor": "#141618",
+                "borderColor": "#848c96",
                 "borderRadius": 4,
                 "borderWidth": 0.5,
                 "fontFamily": "EuclidCircularB-Regular",
@@ -240,7 +240,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
     <View
       style={
         Object {
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#141618",
           "flex": 1,
           "justifyContent": "flex-end",
           "padding": 20,

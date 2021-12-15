@@ -4,7 +4,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
 <ForwardRef(SafeAreaView)
   style={
     Object {
-      "backgroundColor": "#ffffff",
+      "backgroundColor": "#141618",
       "flex": 1,
     }
   }
@@ -17,7 +17,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
     }
     style={
       Object {
-        "backgroundColor": "#ffffff",
+        "backgroundColor": "#141618",
         "flex": 1,
       }
     }
@@ -64,7 +64,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#24272a",
+              "color": "#ffffff",
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 24,
               "fontWeight": "600",
@@ -88,7 +88,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#24272a",
+                "color": "#ffffff",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 16,
                 "fontWeight": "400",
@@ -144,8 +144,8 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
       <View
         style={
           Object {
-            "backgroundColor": "#ffffff",
-            "borderColor": "#d6d9dc",
+            "backgroundColor": "#141618",
+            "borderColor": "#848c96",
             "borderRadius": 10,
             "borderWidth": 1,
             "elevation": 4,
@@ -164,7 +164,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#24272a",
+              "color": "#ffffff",
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 16,
               "fontWeight": "600",
@@ -178,7 +178,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#24272a",
+              "color": "#ffffff",
               "fontSize": 12,
               "lineHeight": 17,
               "marginBottom": 20,
@@ -190,7 +190,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#24272a",
+              "color": "#ffffff",
               "fontSize": 12,
               "lineHeight": 17,
               "marginBottom": 8,
@@ -245,7 +245,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#24272a",
+              "color": "#ffffff",
               "fontSize": 12,
               "lineHeight": 17,
             }
@@ -256,7 +256,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#24272a",
+              "color": "#ffffff",
               "fontSize": 12,
               "lineHeight": 17,
             }
@@ -268,7 +268,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#24272a",
+              "color": "#ffffff",
               "fontSize": 12,
               "lineHeight": 17,
             }
@@ -280,7 +280,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#24272a",
+              "color": "#ffffff",
               "fontSize": 12,
               "lineHeight": 17,
               "marginBottom": 20,
@@ -293,7 +293,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#24272a",
+              "color": "#ffffff",
               "fontSize": 12,
               "lineHeight": 17,
               "marginBottom": 20,
@@ -305,7 +305,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#24272a",
+              "color": "#ffffff",
               "fontSize": 12,
               "lineHeight": 17,
             }
@@ -316,7 +316,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#24272a",
+              "color": "#ffffff",
               "fontSize": 12,
               "lineHeight": 17,
             }
@@ -328,7 +328,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#24272a",
+              "color": "#ffffff",
               "fontSize": 12,
               "lineHeight": 17,
             }
@@ -340,7 +340,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#24272a",
+              "color": "#ffffff",
               "fontSize": 12,
               "lineHeight": 17,
               "marginBottom": 20,
@@ -418,7 +418,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#24272a",
+              "color": "#ffffff",
               "flex": 1,
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 18,
@@ -486,7 +486,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#24272a",
+              "color": "#ffffff",
               "lineHeight": 20,
               "textAlign": "center",
             }

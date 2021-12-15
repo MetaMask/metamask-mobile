@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
 	},
 	baseTextStyle: { fontSize: 14, flex: 1, lineHeight: 17 },
 	textInfo: { color: colors.onInfo },
-	textWarning: { color: colors.textDefault },
+	textWarning: { color: colors.onWarning },
 	textError: { color: colors.onError },
 	textIconStyle: { marginRight: 12 },
 	iconWrapper: {

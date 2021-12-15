@@ -7,7 +7,7 @@ exports[`InvalidCustomNetworkAlert should render correctly 1`] = `
   <View
     style={
       Object {
-        "backgroundColor": "#ffffff",
+        "backgroundColor": "#141618",
         "borderRadius": 10,
         "padding": 20,
       }
@@ -17,14 +17,14 @@ exports[`InvalidCustomNetworkAlert should render correctly 1`] = `
       style={
         Object {
           "borderBottomWidth": 0.5,
-          "borderColor": "#d6d9dc",
+          "borderColor": "#848c96",
         }
       }
     >
       <Text
         style={
           Object {
-            "color": "#24272a",
+            "color": "#ffffff",
             "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 17,
             "fontWeight": "600",

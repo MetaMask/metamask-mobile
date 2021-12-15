@@ -4,7 +4,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
 <View
   style={
     Object {
-      "backgroundColor": "#ffffff",
+      "backgroundColor": "#141618",
       "borderTopLeftRadius": 20,
       "borderTopRightRadius": 20,
       "minHeight": 200,
@@ -14,7 +14,6 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
   }
 >
   <Text
-    blue={false}
     bold={true}
     centered={true}
     disclaimer={false}
@@ -47,7 +46,6 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
     New network added
   </Text>
   <Text
-    blue={false}
     bold={false}
     centered={false}
     disclaimer={false}
@@ -78,7 +76,6 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
     warning={false}
   >
     <Text
-      blue={false}
       bold={false}
       centered={false}
       disclaimer={false}
@@ -99,7 +96,6 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
       warning={false}
     >
       <Text
-        blue={false}
         bold={true}
         centered={false}
         disclaimer={false}
@@ -123,7 +119,6 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
         ""
       </Text>
       <Text
-        blue={false}
         bold={false}
         centered={false}
         disclaimer={false}
