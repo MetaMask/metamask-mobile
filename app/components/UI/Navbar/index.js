@@ -629,7 +629,7 @@ export function getOfflineModalNavbar() {
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
  */
-export function getWalletNavbarOptions(title, navigation) {
+export function getWalletNavbarOptions(title, navigation, themeColors) {
 	const onScanSuccess = (data, content) => {
 		if (data.private_key) {
 			Alert.alert(
@@ -699,6 +699,9 @@ export function getWalletNavbarOptions(title, navigation) {
 				<AntIcon name="scan1" size={28} style={styles.infoIcon} />
 			</TouchableOpacity>
 		),
+		headerStyle: {
+			backgroundColor: themeColors.backgroundDefault,
+		},
 	};
 }
 

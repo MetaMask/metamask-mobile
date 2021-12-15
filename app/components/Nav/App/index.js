@@ -36,6 +36,7 @@ import { getVersion } from 'react-native-device-info';
 import { checkedAuth, setAppTheme } from '../../../actions/user';
 import { ThemeContext } from './context';
 import { useAppTheme } from '../../../util/theme';
+import { AppThemeNames } from '../../../util/theme/models';
 
 const styles = StyleSheet.create({
 	fill: { flex: 1 },
@@ -291,6 +292,7 @@ const App = ({ userLoggedIn }) => {
 			// 		triggerSetAppTheme('playful');
 			// 	}, 5000);
 			// }, 5000);
+			triggerSetAppTheme(AppThemeNames.Light);
 			console.log('TRIGGER');
 		}, 5000);
 	}, []);

@@ -3,7 +3,7 @@ import { RefreshControl, ScrollView, InteractionManager, ActivityIndicator, Styl
 import { useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
-import { colors, fontStyles, baseStyles } from '../../../styles/common';
+import { fontStyles, baseStyles } from '../../../styles/common';
 import AccountOverview from '../../UI/AccountOverview';
 import Tokens from '../../UI/Tokens';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
@@ -16,31 +16,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import ErrorBoundary from '../ErrorBoundary';
-
-const styles = StyleSheet.create({
-	wrapper: {
-		flex: 1,
-		backgroundColor: colors.backgroundDefault,
-	},
-	tabUnderlineStyle: {
-		height: 2,
-		backgroundColor: colors.primary,
-	},
-	tabStyle: {
-		paddingBottom: 0,
-	},
-	textStyle: {
-		fontSize: 12,
-		letterSpacing: 0.5,
-		...(fontStyles.bold as any),
-	},
-	loader: {
-		backgroundColor: colors.backgroundDefault,
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-});
+import { useAppThemeFromContext } from '../../../util/theme';
 
 /**
  * Main view for the wallet
@@ -87,8 +63,33 @@ const Wallet = ({ navigation }: any) => {
 	 */
 	const wizardStep = useSelector((state: any) => state.wizard.step);
 
+	const { colors } = useAppThemeFromContext();
+	const styles = StyleSheet.create({
+		wrapper: {
+			flex: 1,
+			backgroundColor: colors.backgroundDefault,
+		},
+		tabUnderlineStyle: {
+			height: 2,
+			backgroundColor: colors.primary,
+		},
+		tabStyle: {
+			paddingBottom: 0,
+		},
+		textStyle: {
+			fontSize: 12,
+			letterSpacing: 0.5,
+			...(fontStyles.bold as any),
+		},
+		loader: {
+			backgroundColor: colors.backgroundDefault,
+			flex: 1,
+			justifyContent: 'center',
+			alignItems: 'center',
+		},
+	});
+
 	useEffect(() => {
-		navigation.setOptions(getWalletNavbarOptions('wallet.title', navigation));
 		requestAnimationFrame(async () => {
 			const { TokenDetectionController, CollectibleDetectionController, AccountTrackerController } =
 				Engine.context as any;
@@ -96,7 +97,11 @@ const Wallet = ({ navigation }: any) => {
 			CollectibleDetectionController.detectCollectibles();
 			AccountTrackerController.refresh();
 		});
-	}, [navigation]);
+	}, []);
+
+	useEffect(() => {
+		navigation.setOptions(getWalletNavbarOptions('wallet.title', navigation, colors));
+	}, [navigation, colors]);
 
 	const onRefresh = useCallback(async () => {
 		requestAnimationFrame(async () => {

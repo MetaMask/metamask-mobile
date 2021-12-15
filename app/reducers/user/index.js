@@ -11,7 +11,7 @@ const initialState = {
 	userLoggedIn: false,
 	isAuthChecked: false,
 	initialScreen: '',
-	appTheme: AppThemeNames.Playful,
+	appTheme: AppThemeNames.Dark,
 };
 
 const userReducer = (state = initialState, action) => {
