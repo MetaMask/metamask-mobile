@@ -42,8 +42,10 @@ exports[`ManualBackupStep1 should render correctly 1`] = `
     <View
       style={
         Object {
+          "alignSelf": "center",
           "flex": 1,
           "paddingHorizontal": 32,
+          "width": 420,
         }
       }
       testID="manual_backup_step_1-screen"
