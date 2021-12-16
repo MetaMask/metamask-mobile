@@ -302,7 +302,7 @@ app:
           PROJECT_LOCATION: android
         - opts:
               is_expand: false
-          NDK_VERSION: 17b
+          NDK_VERSION: 21e
         - opts:
               is_expand: false
           MODULE: app
