@@ -46,7 +46,7 @@ import ClipboardManager from '../../../core/ClipboardManager';
 import { collectiblesSelector } from '../../../reducers/collectibles';
 import { ThemeContext } from '../../../components/Nav/App/context';
 
-const metamask_name = require('../../../images/metamask-name-inverse.png'); // eslint-disable-line
+import LogoWord from '../LogoWord';
 const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
 const ICON_IMAGES = {
 	wallet: require('../../../images/wallet-icon.png'), // eslint-disable-line
@@ -193,6 +193,7 @@ class DrawerView extends PureComponent {
 			metamaskLogo: {
 				flexDirection: 'row',
 				flex: 1,
+				alignItems: 'center',
 				marginTop: Device.isAndroid() ? 0 : 12,
 				marginLeft: 15,
 				paddingTop: Device.isAndroid() ? 10 : 0,
@@ -201,11 +202,6 @@ class DrawerView extends PureComponent {
 				height: 27,
 				width: 27,
 				marginRight: 15,
-			},
-			metamaskName: {
-				marginTop: 4,
-				width: 90,
-				height: 18,
 			},
 			account: {
 				flex: 1,
@@ -928,7 +924,7 @@ class DrawerView extends PureComponent {
 					<View style={this.styles().header}>
 						<View style={this.styles().metamaskLogo}>
 							<Image source={metamask_fox} style={this.styles().metamaskFox} resizeMethod={'auto'} />
-							<Image source={metamask_name} style={this.styles().metamaskName} resizeMethod={'auto'} />
+							<LogoWord width={100} height={13} />
 						</View>
 					</View>
 					<View style={this.styles().account}>
