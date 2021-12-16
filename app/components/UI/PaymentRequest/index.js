@@ -82,8 +82,8 @@ const MODE_AMOUNT = 'amount';
  * View to generate a payment request link
  */
 class PaymentRequest extends PureComponent {
-	static navigationOptions = ({ navigation, route }) =>
-		getPaymentRequestOptionsTitle(strings('payment_request.title'), navigation, route);
+	// static navigationOptions = ({ navigation, route }) =>
+	// 	getPaymentRequestOptionsTitle(strings('payment_request.title'), navigation, route);
 
 	static propTypes = {
 		/**
@@ -152,7 +152,7 @@ class PaymentRequest extends PureComponent {
 	 * Set chainId, internalPrimaryCurrency and receiveAssets, if there is an asset set to this payment request chose it automatically, to state
 	 */
 	componentDidMount = () => {
-		const { primaryCurrency, route, tokenList } = this.props;
+		const { primaryCurrency, route, tokenList, navigation } = this.props;
 		const receiveAsset = route?.params?.receiveAsset;
 		this.setState({
 			internalPrimaryCurrency: primaryCurrency,
@@ -164,6 +164,11 @@ class PaymentRequest extends PureComponent {
 		// TODO: Fuse will only be updated once on mount. When we convert this component to hooks, we can utilize useEffect to update fuse.
 		// Update fuse collection with token list
 		fuse.setCollection(tokenList);
+
+		const { colors } = this.context;
+		navigation.setOptions(
+			getPaymentRequestOptionsTitle(strings('payment_request.title'), navigation, route, colors)
+		);
 	};
 
 	componentDidUpdate = () => {

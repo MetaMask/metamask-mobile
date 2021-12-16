@@ -33,10 +33,9 @@ import Analytics from '../../../core/Analytics';
 import { connect, useSelector, useDispatch } from 'react-redux';
 import { EXISTING_USER, CURRENT_APP_VERSION, LAST_APP_VERSION } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
-import { checkedAuth, setAppTheme } from '../../../actions/user';
+import { checkedAuth } from '../../../actions/user';
 import { ThemeContext } from './context';
 import { useAppTheme } from '../../../util/theme';
-import { AppThemeNames } from '../../../util/theme/models';
 
 const styles = StyleSheet.create({
 	fill: { flex: 1 },
@@ -282,11 +281,6 @@ const App = ({ userLoggedIn }) => {
 	};
 
 	const theme = useAppTheme();
-
-	const triggerSetAppTheme = (theme) => dispatch(setAppTheme(theme));
-	useEffect(() => {
-		triggerSetAppTheme(AppThemeNames.Dark);
-	});
 
 	return (
 		// do not render unless a route is defined

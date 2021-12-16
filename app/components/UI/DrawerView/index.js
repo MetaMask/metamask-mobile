@@ -7,7 +7,7 @@ import Share from 'react-native-share';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { hasBlockExplorer, findBlockExplorerForRpc, getBlockExplorerName } from '../../../util/networks';
 import Identicon from '../Identicon';
 import StyledButton from '../StyledButton';
@@ -44,220 +44,7 @@ import AnalyticsV2, { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
 import { isDefaultAccountName, doENSReverseLookup } from '../../../util/ENSUtils';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { collectiblesSelector } from '../../../reducers/collectibles';
-
-const styles = StyleSheet.create({
-	wrapper: {
-		flex: 1,
-		backgroundColor: colors.backgroundDefault,
-	},
-	header: {
-		paddingTop: Device.isIphoneX() ? 60 : 24,
-		backgroundColor: colors.backgroundAlternative,
-		height: Device.isIphoneX() ? 110 : 74,
-		flexDirection: 'column',
-		paddingBottom: 0,
-	},
-	metamaskLogo: {
-		flexDirection: 'row',
-		flex: 1,
-		marginTop: Device.isAndroid() ? 0 : 12,
-		marginLeft: 15,
-		paddingTop: Device.isAndroid() ? 10 : 0,
-	},
-	metamaskFox: {
-		height: 27,
-		width: 27,
-		marginRight: 15,
-	},
-	metamaskName: {
-		marginTop: 4,
-		width: 90,
-		height: 18,
-	},
-	account: {
-		flex: 1,
-		backgroundColor: colors.backgroundAlternative,
-	},
-	accountBgOverlay: {
-		borderBottomColor: colors.borderDefault,
-		borderBottomWidth: 1,
-		padding: 17,
-	},
-	identiconWrapper: {
-		marginBottom: 12,
-		width: 56,
-		height: 56,
-	},
-	identiconBorder: {
-		borderRadius: 96,
-		borderWidth: 2,
-		padding: 2,
-		borderColor: colors.primary,
-	},
-	accountNameWrapper: {
-		flexDirection: 'row',
-		paddingRight: 17,
-	},
-	accountName: {
-		fontSize: 20,
-		lineHeight: 24,
-		marginBottom: 5,
-		color: colors.textDefault,
-		...fontStyles.normal,
-	},
-	caretDown: {
-		textAlign: 'right',
-		marginLeft: 7,
-		marginTop: 3,
-		fontSize: 18,
-		color: colors.textDefault,
-	},
-	accountBalance: {
-		fontSize: 14,
-		lineHeight: 17,
-		marginBottom: 5,
-		color: colors.textDefault,
-		...fontStyles.normal,
-	},
-	accountAddress: {
-		fontSize: 12,
-		lineHeight: 17,
-		color: colors.textAlternative,
-		...fontStyles.normal,
-	},
-	buttons: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-		borderBottomColor: colors.borderDefault,
-		borderBottomWidth: 1,
-		padding: 15,
-	},
-	button: {
-		flex: 1,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-		borderRadius: 30,
-		borderWidth: 1.5,
-	},
-	leftButton: {
-		marginRight: 5,
-	},
-	rightButton: {
-		marginLeft: 5,
-	},
-	buttonText: {
-		paddingLeft: 8,
-		fontSize: 15,
-		color: colors.primary,
-		...fontStyles.normal,
-	},
-	buttonContent: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	buttonIcon: {
-		marginTop: 0,
-	},
-	buttonReceive: {
-		transform: [{ rotate: '90deg' }],
-	},
-	menu: {},
-	noTopBorder: {
-		borderTopWidth: 0,
-	},
-	menuSection: {
-		borderTopWidth: 1,
-		borderColor: colors.borderDefault,
-		paddingVertical: 10,
-	},
-	menuItem: {
-		flex: 1,
-		flexDirection: 'row',
-		paddingVertical: 9,
-		paddingLeft: 17,
-	},
-	selectedRoute: {
-		backgroundColor: colors.backgroundAlternative,
-		marginRight: 10,
-		borderTopRightRadius: 20,
-		borderBottomRightRadius: 20,
-	},
-	selectedName: {
-		color: colors.primary,
-	},
-	menuItemName: {
-		flex: 1,
-		paddingHorizontal: 15,
-		paddingTop: 2,
-		fontSize: 16,
-		color: colors.textAlternative,
-		...fontStyles.normal,
-	},
-	menuItemWarningText: {
-		color: colors.onError,
-		fontSize: 12,
-		...fontStyles.normal,
-	},
-	noIcon: {
-		paddingLeft: 0,
-	},
-	menuItemIconImage: {
-		width: 22,
-		height: 22,
-	},
-	bottomModal: {
-		justifyContent: 'flex-end',
-		margin: 0,
-	},
-	importedWrapper: {
-		marginTop: 10,
-		width: 73,
-		paddingHorizontal: 10,
-		paddingVertical: 3,
-		borderRadius: 10,
-		borderWidth: 1,
-		borderColor: colors.borderDefault,
-	},
-	importedText: {
-		color: colors.textAlternative,
-		fontSize: 10,
-		...fontStyles.bold,
-	},
-	protectWalletContainer: {
-		backgroundColor: colors.backgroundDefault,
-		paddingTop: 24,
-		borderTopLeftRadius: 20,
-		borderTopRightRadius: 20,
-		paddingVertical: 16,
-		paddingBottom: Device.isIphoneX() ? 20 : 0,
-		paddingHorizontal: 40,
-	},
-	protectWalletIconContainer: {
-		alignSelf: 'center',
-		width: 56,
-		height: 56,
-		borderRadius: 28,
-		backgroundColor: colors.error,
-		borderColor: colors.onError,
-		borderWidth: 1,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	protectWalletIcon: { alignSelf: 'center', color: colors.onError },
-	protectWalletTitle: { textAlign: 'center', fontSize: 18, marginVertical: 8, ...fontStyles.bold },
-	protectWalletContent: {
-		textAlign: 'center',
-		fontSize: 14,
-		marginVertical: 8,
-		justifyContent: 'center',
-		...fontStyles.normal,
-	},
-	protectWalletButtonWrapper: { marginVertical: 8 },
-});
+import { ThemeContext } from '../../../components/Nav/App/context';
 
 const metamask_name = require('../../../images/metamask-name-inverse.png'); // eslint-disable-line
 const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
@@ -389,6 +176,223 @@ class DrawerView extends PureComponent {
 	processedNewBalance = false;
 	animatingNetworksModal = false;
 	animatingAccountsModal = false;
+
+	styles = () => {
+		const style = StyleSheet.create({
+			wrapper: {
+				flex: 1,
+				backgroundColor: this.context.colors.backgroundDefault,
+			},
+			header: {
+				paddingTop: Device.isIphoneX() ? 60 : 24,
+				backgroundColor: this.context.colors.backgroundAlternative,
+				height: Device.isIphoneX() ? 110 : 74,
+				flexDirection: 'column',
+				paddingBottom: 0,
+			},
+			metamaskLogo: {
+				flexDirection: 'row',
+				flex: 1,
+				marginTop: Device.isAndroid() ? 0 : 12,
+				marginLeft: 15,
+				paddingTop: Device.isAndroid() ? 10 : 0,
+			},
+			metamaskFox: {
+				height: 27,
+				width: 27,
+				marginRight: 15,
+			},
+			metamaskName: {
+				marginTop: 4,
+				width: 90,
+				height: 18,
+			},
+			account: {
+				flex: 1,
+				backgroundColor: this.context.colors.backgroundAlternative,
+			},
+			accountBgOverlay: {
+				borderBottomColor: this.context.colors.borderDefault,
+				borderBottomWidth: 1,
+				padding: 17,
+			},
+			identiconWrapper: {
+				marginBottom: 12,
+				width: 56,
+				height: 56,
+			},
+			identiconBorder: {
+				borderRadius: 96,
+				borderWidth: 2,
+				padding: 2,
+				borderColor: this.context.colors.primary,
+			},
+			accountNameWrapper: {
+				flexDirection: 'row',
+				paddingRight: 17,
+			},
+			accountName: {
+				fontSize: 20,
+				lineHeight: 24,
+				marginBottom: 5,
+				color: this.context.colors.textDefault,
+				...fontStyles.normal,
+			},
+			caretDown: {
+				textAlign: 'right',
+				marginLeft: 7,
+				marginTop: 3,
+				fontSize: 18,
+				color: this.context.colors.textDefault,
+			},
+			accountBalance: {
+				fontSize: 14,
+				lineHeight: 17,
+				marginBottom: 5,
+				color: this.context.colors.textDefault,
+				...fontStyles.normal,
+			},
+			accountAddress: {
+				fontSize: 12,
+				lineHeight: 17,
+				color: this.context.colors.textAlternative,
+				...fontStyles.normal,
+			},
+			buttons: {
+				flexDirection: 'row',
+				alignItems: 'center',
+				justifyContent: 'center',
+				borderBottomColor: this.context.colors.borderDefault,
+				borderBottomWidth: 1,
+				padding: 15,
+			},
+			button: {
+				flex: 1,
+				flexDirection: 'row',
+				alignItems: 'center',
+				justifyContent: 'center',
+				borderRadius: 30,
+				borderWidth: 1.5,
+			},
+			leftButton: {
+				marginRight: 5,
+			},
+			rightButton: {
+				marginLeft: 5,
+			},
+			buttonText: {
+				paddingLeft: 8,
+				fontSize: 15,
+				color: this.context.colors.primary,
+				...fontStyles.normal,
+			},
+			buttonContent: {
+				flexDirection: 'row',
+				alignItems: 'center',
+				justifyContent: 'center',
+			},
+			buttonIcon: {
+				marginTop: 0,
+			},
+			buttonReceive: {
+				transform: [{ rotate: '90deg' }],
+			},
+			menu: {},
+			noTopBorder: {
+				borderTopWidth: 0,
+			},
+			menuSection: {
+				borderTopWidth: 1,
+				borderColor: this.context.colors.borderDefault,
+				paddingVertical: 10,
+			},
+			menuItem: {
+				flex: 1,
+				flexDirection: 'row',
+				paddingVertical: 9,
+				paddingLeft: 17,
+			},
+			selectedRoute: {
+				backgroundColor: this.context.colors.backgroundAlternative,
+				marginRight: 10,
+				borderTopRightRadius: 20,
+				borderBottomRightRadius: 20,
+			},
+			selectedName: {
+				color: this.context.colors.primary,
+			},
+			menuItemName: {
+				flex: 1,
+				paddingHorizontal: 15,
+				paddingTop: 2,
+				fontSize: 16,
+				color: this.context.colors.textAlternative,
+				...fontStyles.normal,
+			},
+			menuItemWarningText: {
+				color: this.context.colors.onError,
+				fontSize: 12,
+				...fontStyles.normal,
+			},
+			noIcon: {
+				paddingLeft: 0,
+			},
+			menuItemIconImage: {
+				width: 22,
+				height: 22,
+			},
+			bottomModal: {
+				justifyContent: 'flex-end',
+				margin: 0,
+			},
+			importedWrapper: {
+				marginTop: 10,
+				width: 73,
+				paddingHorizontal: 10,
+				paddingVertical: 3,
+				borderRadius: 10,
+				borderWidth: 1,
+				borderColor: this.context.colors.borderDefault,
+			},
+			importedText: {
+				color: this.context.colors.textAlternative,
+				fontSize: 10,
+				...fontStyles.bold,
+			},
+			protectWalletContainer: {
+				backgroundColor: this.context.colors.backgroundDefault,
+				paddingTop: 24,
+				borderTopLeftRadius: 20,
+				borderTopRightRadius: 20,
+				paddingVertical: 16,
+				paddingBottom: Device.isIphoneX() ? 20 : 0,
+				paddingHorizontal: 40,
+			},
+			protectWalletIconContainer: {
+				alignSelf: 'center',
+				width: 56,
+				height: 56,
+				borderRadius: 28,
+				backgroundColor: this.context.colors.error,
+				borderColor: this.context.colors.onError,
+				borderWidth: 1,
+				flexDirection: 'row',
+				alignItems: 'center',
+				justifyContent: 'center',
+			},
+			protectWalletIcon: { alignSelf: 'center', color: this.context.colors.onError },
+			protectWalletTitle: { textAlign: 'center', fontSize: 18, marginVertical: 8, ...fontStyles.bold },
+			protectWalletContent: {
+				textAlign: 'center',
+				fontSize: 14,
+				marginVertical: 8,
+				justifyContent: 'center',
+				...fontStyles.normal,
+			},
+			protectWalletButtonWrapper: { marginVertical: 8 },
+		});
+		return style;
+	};
 
 	isCurrentAccountImported() {
 		let ret = false;
@@ -691,35 +695,35 @@ class DrawerView extends PureComponent {
 	};
 
 	getIcon(name, size) {
-		return <Icon name={name} size={size || 24} color={colors.textAlternative} />;
+		return <Icon name={name} size={size || 24} color={this.context.colors.textAlternative} />;
 	}
 
 	getFeatherIcon(name, size) {
-		return <FeatherIcon name={name} size={size || 24} color={colors.textAlternative} />;
+		return <FeatherIcon name={name} size={size || 24} color={this.context.colors.textAlternative} />;
 	}
 
 	getMaterialIcon(name, size) {
-		return <MaterialIcon name={name} size={size || 24} color={colors.textAlternative} />;
+		return <MaterialIcon name={name} size={size || 24} color={this.context.colors.textAlternative} />;
 	}
 
 	getImageIcon(name) {
-		return <Image source={ICON_IMAGES[name]} style={styles.menuItemIconImage} />;
+		return <Image source={ICON_IMAGES[name]} style={this.styles().menuItemIconImage} />;
 	}
 
 	getSelectedIcon(name, size) {
-		return <Icon name={name} size={size || 24} color={colors.primary} />;
+		return <Icon name={name} size={size || 24} color={this.context.colors.primary} />;
 	}
 
 	getSelectedFeatherIcon(name, size) {
-		return <FeatherIcon name={name} size={size || 24} color={colors.primary} />;
+		return <FeatherIcon name={name} size={size || 24} color={this.context.colors.primary} />;
 	}
 
 	getSelectedMaterialIcon(name, size) {
-		return <MaterialIcon name={name} size={size || 24} color={colors.primary} />;
+		return <MaterialIcon name={name} size={size || 24} color={this.context.colors.primary} />;
 	}
 
 	getSelectedImageIcon(name) {
-		return <Image source={ICON_IMAGES[`selected-${name}`]} style={styles.menuItemIconImage} />;
+		return <Image source={ICON_IMAGES[`selected-${name}`]} style={this.styles().menuItemIconImage} />;
 	}
 
 	getSections = () => {
@@ -867,22 +871,22 @@ class DrawerView extends PureComponent {
 			isVisible={this.state.showProtectWalletModal}
 			animationIn="slideInUp"
 			animationOut="slideOutDown"
-			style={styles.bottomModal}
+			style={this.styles().bottomModal}
 			backdropOpacity={0.7}
 			animationInTiming={600}
 			animationOutTiming={600}
 		>
-			<View style={styles.protectWalletContainer}>
-				<View style={styles.protectWalletIconContainer}>
-					<FeatherIcon style={styles.protectWalletIcon} name="alert-triangle" size={20} />
+			<View style={this.styles().protectWalletContainer}>
+				<View style={this.styles().protectWalletIconContainer}>
+					<FeatherIcon style={this.styles().protectWalletIcon} name="alert-triangle" size={20} />
 				</View>
-				<Text style={styles.protectWalletTitle}>{strings('protect_your_wallet_modal.title')}</Text>
-				<Text style={styles.protectWalletContent}>
+				<Text style={this.styles().protectWalletTitle}>{strings('protect_your_wallet_modal.title')}</Text>
+				<Text style={this.styles().protectWalletContent}>
 					{!this.props.passwordSet
 						? strings('protect_your_wallet_modal.body_for_password')
 						: strings('protect_your_wallet_modal.body_for_seedphrase')}
 				</Text>
-				<View style={styles.protectWalletButtonWrapper}>
+				<View style={this.styles().protectWalletButtonWrapper}>
 					<StyledButton type={'confirm'} onPress={this.onSecureWalletModalAction}>
 						{strings('protect_your_wallet_modal.button')}
 					</StyledButton>
@@ -919,45 +923,45 @@ class DrawerView extends PureComponent {
 		const fiatBalanceStr = renderFiat(this.currentBalance, currentCurrency);
 		const currentRoute = findRouteNameFromNavigatorState(this.props.navigation.dangerouslyGetState().routes);
 		return (
-			<View style={styles.wrapper} testID={'drawer-screen'}>
+			<View style={this.styles().wrapper} testID={'drawer-screen'}>
 				<ScrollView>
-					<View style={styles.header}>
-						<View style={styles.metamaskLogo}>
-							<Image source={metamask_fox} style={styles.metamaskFox} resizeMethod={'auto'} />
-							<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+					<View style={this.styles().header}>
+						<View style={this.styles().metamaskLogo}>
+							<Image source={metamask_fox} style={this.styles().metamaskFox} resizeMethod={'auto'} />
+							<Image source={metamask_name} style={this.styles().metamaskName} resizeMethod={'auto'} />
 						</View>
 					</View>
-					<View style={styles.account}>
-						<View style={styles.accountBgOverlay}>
+					<View style={this.styles().account}>
+						<View style={this.styles().accountBgOverlay}>
 							<TouchableOpacity
-								style={styles.identiconWrapper}
+								style={this.styles().identiconWrapper}
 								onPress={this.toggleAccountsModal}
 								testID={'navbar-account-identicon'}
 							>
-								<View style={styles.identiconBorder}>
+								<View style={this.styles().identiconBorder}>
 									<Identicon diameter={48} address={selectedAddress} />
 								</View>
 							</TouchableOpacity>
 							<TouchableOpacity
-								style={styles.accountInfo}
+								style={this.styles().accountInfo}
 								onPress={this.toggleAccountsModal}
 								testID={'navbar-account-button'}
 							>
-								<View style={styles.accountNameWrapper}>
-									<Text style={styles.accountName} numberOfLines={1}>
+								<View style={this.styles().accountNameWrapper}>
+									<Text style={this.styles().accountName} numberOfLines={1}>
 										{isDefaultAccountName(name) && ens ? ens : name}
 									</Text>
-									<Icon name="caret-down" size={24} style={styles.caretDown} />
+									<Icon name="caret-down" size={24} style={this.styles().caretDown} />
 								</View>
-								<Text style={styles.accountBalance}>{fiatBalanceStr}</Text>
+								<Text style={this.styles().accountBalance}>{fiatBalanceStr}</Text>
 								<EthereumAddress
 									address={account.address}
-									style={styles.accountAddress}
+									style={this.styles().accountAddress}
 									type={'short'}
 								/>
 								{this.isCurrentAccountImported() && (
-									<View style={styles.importedWrapper}>
-										<Text numberOfLines={1} style={styles.importedText}>
+									<View style={this.styles().importedWrapper}>
+										<Text numberOfLines={1} style={this.styles().importedText}>
 											{strings('accounts.imported')}
 										</Text>
 									</View>
@@ -965,47 +969,47 @@ class DrawerView extends PureComponent {
 							</TouchableOpacity>
 						</View>
 					</View>
-					<View style={styles.buttons}>
+					<View style={this.styles().buttons}>
 						<StyledButton
 							type={'rounded-normal'}
 							onPress={this.onSend}
-							containerStyle={[styles.button, styles.leftButton]}
+							containerStyle={[this.styles().button, this.styles().leftButton]}
 							testID={'drawer-send-button'}
 						>
-							<View style={styles.buttonContent}>
+							<View style={this.styles().buttonContent}>
 								<MaterialIcon
 									name={'arrow-top-right'}
 									size={22}
-									color={colors.primary}
-									style={styles.buttonIcon}
+									color={this.context.colors.primary}
+									style={this.styles().buttonIcon}
 								/>
-								<Text style={styles.buttonText}>{strings('drawer.send_button')}</Text>
+								<Text style={this.styles().buttonText}>{strings('drawer.send_button')}</Text>
 							</View>
 						</StyledButton>
 						<StyledButton
 							type={'rounded-normal'}
 							onPress={this.onReceive}
-							containerStyle={[styles.button, styles.rightButton]}
+							containerStyle={[this.styles().button, this.styles().rightButton]}
 							testID={'drawer-receive-button'}
 						>
-							<View style={styles.buttonContent}>
+							<View style={this.styles().buttonContent}>
 								<MaterialIcon
 									name={'keyboard-tab'}
 									size={22}
-									color={colors.primary}
-									style={[styles.buttonIcon, styles.buttonReceive]}
+									color={this.context.colors.primary}
+									style={[this.styles().buttonIcon, this.styles().buttonReceive]}
 								/>
-								<Text style={styles.buttonText}>{strings('drawer.receive_button')}</Text>
+								<Text style={this.styles().buttonText}>{strings('drawer.receive_button')}</Text>
 							</View>
 						</StyledButton>
 					</View>
-					<View style={styles.menu}>
+					<View style={this.styles().menu}>
 						{this.getSections().map(
 							(section, i) =>
 								section?.length > 0 && (
 									<View
 										key={`section_${i}`}
-										style={[styles.menuSection, i === 0 ? styles.noTopBorder : null]}
+										style={[this.styles().menuSection, i === 0 ? this.styles().noTopBorder : null]}
 									>
 										{section
 											.filter((item) => {
@@ -1021,9 +1025,9 @@ class DrawerView extends PureComponent {
 												<TouchableOpacity
 													key={`item_${i}_${j}`}
 													style={[
-														styles.menuItem,
+														this.styles().menuItem,
 														item.routeNames && item.routeNames.includes(currentRoute)
-															? styles.selectedRoute
+															? this.styles().selectedRoute
 															: null,
 													]}
 													ref={
@@ -1039,10 +1043,10 @@ class DrawerView extends PureComponent {
 														: null}
 													<Text
 														style={[
-															styles.menuItemName,
-															!item.icon ? styles.noIcon : null,
+															this.styles().menuItemName,
+															!item.icon ? this.styles().noIcon : null,
 															item.routeNames && item.routeNames.includes(currentRoute)
-																? styles.selectedName
+																? this.styles().selectedName
 																: null,
 														]}
 														numberOfLines={1}
@@ -1051,7 +1055,7 @@ class DrawerView extends PureComponent {
 													</Text>
 													{!seedphraseBackedUp && item.warning ? (
 														<SettingsNotification isNotification isWarning>
-															<Text style={styles.menuItemWarningText}>
+															<Text style={this.styles().menuItemWarningText}>
 																{item.warning}
 															</Text>
 														</SettingsNotification>
@@ -1086,7 +1090,7 @@ class DrawerView extends PureComponent {
 				</Modal>
 				<Modal
 					isVisible={this.props.accountsModalVisible}
-					style={styles.bottomModal}
+					style={this.styles().bottomModal}
 					onBackdropPress={this.toggleAccountsModal}
 					onBackButtonPress={this.toggleAccountsModal}
 					onSwipeComplete={this.toggleAccountsModal}
@@ -1111,7 +1115,7 @@ class DrawerView extends PureComponent {
 					onSwipeComplete={this.toggleReceiveModal}
 					swipeDirection={'down'}
 					propagateSwipe
-					style={styles.bottomModal}
+					style={this.styles().bottomModal}
 				>
 					<ReceiveRequest
 						navigation={this.props.navigation}
@@ -1146,6 +1150,8 @@ const mapStateToProps = (state) => ({
 	collectibles: collectiblesSelector(state),
 	seedphraseBackedUp: state.user.seedphraseBackedUp,
 });
+
+DrawerView.contextType = ThemeContext;
 
 const mapDispatchToProps = (dispatch) => ({
 	toggleNetworkModal: () => dispatch(toggleNetworkModal()),

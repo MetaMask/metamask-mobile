@@ -244,16 +244,16 @@ export function getEditableOptions(title, navigation, route) {
  * @param {Object} navigation - Navigation object required to push new views
  * @returns {Object} - Corresponding navbar options containing title, headerLeft and headerRight
  */
-export function getPaymentRequestOptionsTitle(title, navigation, route) {
+export function getPaymentRequestOptionsTitle(title, navigation, route, themeColors) {
 	const goBack = route.params?.dispatch;
 	return {
 		title,
 		headerTitleStyle: {
 			fontSize: 20,
-			color: colors.textDefault,
+			color: themeColors.textDefault,
 			...fontStyles.normal,
 		},
-		headerTintColor: colors.primary,
+		headerTintColor: themeColors.primary,
 		headerLeft: () =>
 			goBack ? (
 				// eslint-disable-next-line react/jsx-no-bind
@@ -274,9 +274,16 @@ export function getPaymentRequestOptionsTitle(title, navigation, route) {
 		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
-				<IonicIcon name={'ios-close'} size={38} style={[styles.backIcon, styles.backIconIOS]} />
+				<IonicIcon
+					name={'ios-close'}
+					size={38}
+					style={[styles.backIcon, styles.backIconIOS, { color: themeColors.primary }]}
+				/>
 			</TouchableOpacity>
 		),
+		headerStyle: {
+			backgroundColor: themeColors.backgroundDefault,
+		},
 	};
 }
 
