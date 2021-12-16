@@ -4,8 +4,9 @@ import baseColors from './base-colors';
 const colors: Colors = {
 	textDefault: '#370B1E',
 	textAlternative: '#6E163C',
-	backgroundDefault: '#E8DEF8',
+	backgroundDefault: '#EDE6FA',
 	backgroundAlternative: '#CAB3EF',
+	navbarBackground: '#E8DEF8',
 	borderDefault: '#D14772',
 	muted: '#C091A5',
 	overlay: baseColors.overlay,

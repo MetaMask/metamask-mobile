@@ -6,6 +6,7 @@ const colors: Colors = {
 	textAlternative: baseColors.grey600,
 	backgroundDefault: baseColors.white,
 	backgroundAlternative: baseColors.grey000,
+	navbarBackground: baseColors.white,
 	borderDefault: baseColors.grey100,
 	muted: baseColors.grey100,
 	overlay: baseColors.overlay,

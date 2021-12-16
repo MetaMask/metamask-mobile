@@ -190,7 +190,7 @@ export function getNavigationOptionsTitle(title, navigation, isFullScreenModal, 
 				</TouchableOpacity>
 			),
 		headerStyle: {
-			backgroundColor: themeColors.backgroundDefault,
+			backgroundColor: themeColors.navbarBackground,
 		},
 	};
 }
@@ -292,7 +292,7 @@ export function getPaymentRequestOptionsTitle(title, navigation, route, themeCol
 			</TouchableOpacity>
 		),
 		headerStyle: {
-			backgroundColor: themeColors.backgroundDefault,
+			backgroundColor: themeColors.navbarBackground,
 		},
 	};
 }
@@ -356,18 +356,7 @@ export function getTransactionOptionsTitle(_title, navigation, route) {
 					testID={'confirm-txn-edit-button'}
 				>
 					<Text
-						style={
-							disableModeChange
-								? [
-										{
-											color: themeColors.primary,
-											fontSize: 14,
-											...fontStyles.normal,
-										},
-										styles.disabled,
-								  ]
-								: [styles.closeButtonText]
-						}
+						style={disableModeChange ? [styles.closeButtonText, styles.disabled] : [styles.closeButtonText]}
 					>
 						{leftText}
 					</Text>
@@ -379,15 +368,7 @@ export function getTransactionOptionsTitle(_title, navigation, route) {
 			name === 'Send' ? (
 				// eslint-disable-next-line react/jsx-no-bind
 				<TouchableOpacity onPress={rightAction} style={styles.closeButton} testID={'send-back-button'}>
-					<Text
-						style={{
-							color: themeColors.primary,
-							fontSize: 14,
-							...fontStyles.normal,
-						}}
-					>
-						{rightText}
-					</Text>
+					<Text style={styles.closeButtonText}>{rightText}</Text>
 				</TouchableOpacity>
 			) : (
 				<View />
@@ -650,7 +631,7 @@ export function getClosableNavigationOptions(title, backButtonText, navigation, 
 				</TouchableOpacity>
 			),
 		headerStyle: {
-			backgroundColor: themeColors.backgroundDefault,
+			backgroundColor: themeColors.navbarBackground,
 		},
 	};
 }
@@ -752,7 +733,7 @@ export function getWalletNavbarOptions(title, navigation, themeColors) {
 			</TouchableOpacity>
 		),
 		headerStyle: {
-			backgroundColor: themeColors.backgroundDefault,
+			backgroundColor: themeColors.navbarBackground,
 		},
 	};
 }
@@ -840,7 +821,7 @@ export function getPaymentSelectorMethodNavbar(navigation, onPop, themeColors) {
 			</TouchableOpacity>
 		),
 		headerStyle: {
-			backgroundColor: themeColors.backgroundDefault,
+			backgroundColor: themeColors.navbarBackground,
 		},
 	};
 }
@@ -914,7 +895,7 @@ export function getPaymentMethodApplePayNavbar(navigation, onPop, onExit, themeC
 				</TouchableOpacity>
 			),
 		headerStyle: {
-			backgroundColor: themeColors.backgroundDefault,
+			backgroundColor: themeColors.navbarBackground,
 		},
 	};
 }

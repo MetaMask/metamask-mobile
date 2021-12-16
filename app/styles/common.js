@@ -63,6 +63,7 @@ export const colors = {
 	textAlternative: baseColors.grey600,
 	backgroundDefault: baseColors.white,
 	backgroundAlternative: baseColors.grey000,
+	navbarBackground: baseColors.white,
 	borderDefault: baseColors.grey100,
 	muted: baseColors.grey100,
 	primary: baseColors.blue500,
