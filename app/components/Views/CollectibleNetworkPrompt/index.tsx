@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { View, StyleSheet, SafeAreaView } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { getNetworkNavbarOptions } from '../../../components/UI/Navbar';
 import { colors } from '../../../styles/common';
 import Text from '../../Base/Text';
@@ -10,58 +10,62 @@ import StyledButton from '../../UI/StyledButton';
 // import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 
+const usableWidth = Device.getDeviceWidth() - 80;
+
 const styles = StyleSheet.create({
 	container: {
 		backgroundColor: colors.white,
 		flex: 1,
 		justifyContent: 'space-between',
 		alignItems: 'center',
+		paddingBottom: 30,
 	},
 	main: {
 		justifyContent: 'center',
-		alignItems: 'center',
 		paddingHorizontal: 40,
 	},
 	// eslint-disable-next-line react-native/no-color-literals
 	media: {
-		width: Device.getDeviceWidth() / 2,
-		height: Device.getDeviceWidth() / 2,
+		width: usableWidth,
+		height: usableWidth,
 		borderWidth: 0.5,
 		borderColor: '#00000020',
-		marginBottom: 16,
+		marginBottom: 8,
+		alignSelf: 'center',
 	},
-	selectedNetwork: {
+	nftInfo: {
+		justifyContent: 'flex-start',
+		alignItems: 'flex-start',
+		marginBottom: 24,
+	},
+	networkContainer: {
 		justifyContent: 'center',
 		alignItems: 'center',
 		marginBottom: 12,
 	},
-	networkContainer: {
-		marginBottom: 12,
-	},
 	network: {
 		fontSize: 24,
-		lineHeight: 22,
-	},
-	row: {
-		flexDirection: 'row',
-		justifyContent: 'center',
 	},
 	pixel: {
 		height: 1,
 		width: 1,
 	},
-	differentNetwork: {
-		marginBottom: 16,
+	// differentNetwork: {
+	// 	marginBottom: 16,
+	// },
+	row: {
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		alignItems: 'center',
+		width: usableWidth,
 	},
 });
 
-const GAS_FEE_PLACEHOLDER = '$ChangeME!';
-
 const CollectibleNetworkPrompt = ({ route }) => {
-	const { media } = route.params;
+	const { media, name, description, traits } = route.params;
 
 	return (
-		<SafeAreaView style={styles.container}>
+		<View style={styles.container}>
 			<View style={styles.pixel} />
 
 			<View style={styles.main}>
@@ -78,42 +82,46 @@ const CollectibleNetworkPrompt = ({ route }) => {
 					style={styles.media}
 				/>
 
-				<View style={styles.selectedNetwork}>
-					<Text>{'Create NFT on'}</Text>
+				<View style={styles.nftInfo}>
 					<Text bold style={styles.network}>
-						{'Ethereum Mainnet'}
+						{name}
 					</Text>
+					<Text bold>{'Description'}</Text>
+					<Text>{description}</Text>
+					{traits.map(({ trait_type, value }, index) => (
+						<View style={styles.row} key={index}>
+							<Text bold>{trait_type}</Text>
+							<Text>{value}</Text>
+						</View>
+					))}
 				</View>
 
 				<View style={styles.networkContainer}>
-					<View style={styles.row}>
-						<Text bold grey>
-							{'Estimated Gas Fee:'}
-						</Text>
-						<Text grey>{GAS_FEE_PLACEHOLDER}</Text>
-					</View>
-					<Text small disclaimer grey>
-						{'Gas is a network fee, not a MetaMask fee'}
+					<Text bold style={styles.network}>
+						{'Lazy mint on Rarible'}
+					</Text>
+					<Text small disclaimer grey centered>
+						{'Gas is free for now. You will only pay gas once you sell the NFT'}
 					</Text>
 				</View>
 
-				<View style={styles.differentNetwork}>
+				{/* <View style={styles.differentNetwork}>
 					<Text small blue>
 						{'Use a different network'}
 					</Text>
-				</View>
+				</View> */}
 
-				<Text small centered grey>
+				{/* <Text small centered grey>
 					{
 						'Ethereum Mainnet is the gold standard for NFTs but gas fees can be high. NFTs created on Ethereum Mainnet are available for use on NFT marketplaces like OpenSea.'
 					}
-				</Text>
+				</Text> */}
 			</View>
 
-			<StyledButton type={'normal'} onPress={() => null}>
-				{'Continue on Ethereum Mainnet'}
+			<StyledButton type={'sign'} onPress={() => null}>
+				{'Lazy mint on Rarible'}
 			</StyledButton>
-		</SafeAreaView>
+		</View>
 	);
 };
 

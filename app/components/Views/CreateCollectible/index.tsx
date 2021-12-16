@@ -113,12 +113,12 @@ const CreateCollectible = ({ navigation }) => {
 
 			setIsUploading(false);
 			// eslint-disable-next-line react/prop-types
-			navigation.push('CollectibleNetworkPrompt', { media });
+			navigation.push('CollectibleNetworkPrompt', { media, name, description, traits });
 		} catch (e) {
 			// eslint-disable-next-line no-console
 			console.log('ERROR', e);
 		}
-	}, [description, media, name, navigation]);
+	}, [description, media, name, navigation, traits]);
 
 	return isUploading ? (
 		<View style={styles.indicatorContainer}>
