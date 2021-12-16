@@ -174,7 +174,7 @@ const CollectibleContracts = ({
 
 	const renderFooter = () => (
 		<View style={styles.footer} key={'collectible-contracts-footer'}>
-			{!collectibleContracts?.length > 0 && (
+			{collectibleContracts?.length > 0 && (
 				<TouchableOpacity style={[styles.row, styles.smallCreate]} onPress={goToCreateCollectible}>
 					<FontAwesomeIcon name="camera-retro" size={14} style={styles.smallIcon} />
 					<Text blue>{strings('wallet.create_nft')}</Text>
