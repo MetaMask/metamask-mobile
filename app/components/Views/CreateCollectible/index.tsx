@@ -101,22 +101,16 @@ const CreateCollectible = ({ navigation }) => {
 			// eslint-disable-next-line no-console
 			console.log('testMediaResponse', ipfsAddMediaResponse);
 
-			const metadata: NftMetaData = { name, description, image: `ipfs://${ipfsAddMediaResponse.Hash}` };
+			const tokenUri = 'ipfs://' + ipfsAddMediaResponse.Hash;
+
+			const metadata: NftMetaData = { name, description, image: tokenUri };
 			// eslint-disable-next-line no-console
 			console.log('testMetaData', metadata);
 
 			const ipfsAddMetadataResponse = await CollectibleMintingController.uploadDataToIpfs(metadata);
 
-			const tokenUri = 'ipfs://' + ipfsAddMetadataResponse.Hash;
 			// eslint-disable-next-line no-console
 			console.log(tokenUri);
-
-			// const tx = await CollectibleMintingController.raribleMint(tokenUri, {
-			// 	royalties: [],
-			// 	creatorProfitPercentage: 10000,
-			// 	lazy: false,
-			// });
-			// console.log(tx);
 
 			// eslint-disable-next-line no-console
 			console.log('testMetaDataResponse', ipfsAddMetadataResponse);
