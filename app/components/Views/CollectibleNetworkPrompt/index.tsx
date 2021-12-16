@@ -46,6 +46,9 @@ const styles = StyleSheet.create({
 	network: {
 		fontSize: 24,
 	},
+	description: {
+		marginBottom: 8,
+	},
 	pixel: {
 		height: 1,
 		width: 1,
@@ -87,7 +90,7 @@ const CollectibleNetworkPrompt = ({ route }) => {
 						{name}
 					</Text>
 					<Text bold>{'Description'}</Text>
-					<Text>{description}</Text>
+					<Text style={styles.description}>{description}</Text>
 					{traits.map(({ trait_type, value }, index) => (
 						<View style={styles.row} key={index}>
 							<Text bold>{trait_type}</Text>
