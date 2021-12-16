@@ -708,7 +708,9 @@ export function getWalletNavbarOptions(title, navigation, themeColors) {
 				<IonicIcon
 					name={Device.isAndroid() ? 'md-menu' : 'ios-menu'}
 					size={Device.isAndroid() ? 24 : 28}
-					style={styles.backIcon}
+					style={{
+						color: themeColors.primary,
+					}}
 				/>
 			</TouchableOpacity>
 		),
@@ -718,7 +720,13 @@ export function getWalletNavbarOptions(title, navigation, themeColors) {
 				// eslint-disable-next-line
 				onPress={openQRScanner}
 			>
-				<AntIcon name="scan1" size={28} style={styles.infoIcon} />
+				<AntIcon
+					name="scan1"
+					size={28}
+					style={{
+						color: themeColors.primary,
+					}}
+				/>
 			</TouchableOpacity>
 		),
 		headerStyle: {

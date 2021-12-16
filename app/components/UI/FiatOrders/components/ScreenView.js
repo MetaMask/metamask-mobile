@@ -1,18 +1,20 @@
 import React from 'react';
 import { SafeAreaView, StyleSheet, ScrollView } from 'react-native';
-import { colors } from '../../../../styles/common';
+import { useAppThemeFromContext } from '../../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.backgroundDefault,
-		flex: 1,
-	},
-});
-
-const ScreenView = (props) => (
-	<SafeAreaView style={styles.wrapper}>
-		<ScrollView {...props} />
-	</SafeAreaView>
-);
+const ScreenView = (props) => {
+	const { colors } = useAppThemeFromContext();
+	const styles = StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.backgroundDefault,
+			flex: 1,
+		},
+	});
+	return (
+		<SafeAreaView style={styles.wrapper}>
+			<ScrollView {...props} />
+		</SafeAreaView>
+	);
+};
 
 export default ScreenView;

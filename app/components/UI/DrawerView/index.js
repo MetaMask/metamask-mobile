@@ -749,8 +749,8 @@ class DrawerView extends PureComponent {
 				},
 				{
 					name: strings('drawer.wallet'),
-					icon: this.getImageIcon('wallet'),
-					selectedIcon: this.getSelectedImageIcon('wallet'),
+					icon: this.getMaterialIcon('wallet'),
+					selectedIcon: this.getMaterialIcon('wallet'),
 					action: this.showWallet,
 					routeNames: ['WalletView', 'Asset', 'AddAsset', 'Collectible'],
 				},
