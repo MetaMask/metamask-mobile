@@ -100,11 +100,8 @@ const CollectibleNetworkPrompt = ({ route }) => {
 				</View>
 
 				<View style={styles.networkContainer}>
-					<Text bold style={styles.network}>
-						{'Lazy mint on Rarible'}
-					</Text>
 					<Text small disclaimer grey centered>
-						{'Gas is free for now. You will only pay gas once you sell the NFT'}
+						{"We are using Rarible's Lazy minting so the gas is free for now..."}
 					</Text>
 				</View>
 
