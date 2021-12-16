@@ -795,9 +795,13 @@ export function getWebviewNavbar(navigation, route) {
 	};
 }
 
-export function getPaymentSelectorMethodNavbar(navigation, onPop) {
+export function getPaymentSelectorMethodNavbar(navigation, onPop, themeColors) {
 	return {
-		headerTitle: () => <Text style={styles.centeredTitle}>{strings('fiat_on_ramp.purchase_method')}</Text>,
+		headerTitle: () => (
+			<Text style={[styles.centeredTitle, { color: themeColors.textDefault }]}>
+				{strings('fiat_on_ramp.purchase_method')}
+			</Text>
+		),
 		headerLeft: () => <View />,
 		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
@@ -808,9 +812,14 @@ export function getPaymentSelectorMethodNavbar(navigation, onPop) {
 				}}
 				style={styles.closeButton}
 			>
-				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
+				<Text style={[styles.closeButtonText, { color: themeColors.primary }]}>
+					{strings('navigation.cancel')}
+				</Text>
 			</TouchableOpacity>
 		),
+		headerStyle: {
+			backgroundColor: themeColors.backgroundDefault,
+		},
 	};
 }
 

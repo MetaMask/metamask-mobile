@@ -17,6 +17,7 @@ import Title from '../components/Title';
 import TransakPaymentMethod from './transak';
 
 import { setGasEducationCarouselSeen } from '../../../../actions/user';
+import { useAppThemeFromContext } from '../../../../util/theme';
 
 function PaymentMethodSelectorView({
 	selectedAddress,
@@ -26,6 +27,22 @@ function PaymentMethodSelectorView({
 }) {
 	const navigation = useNavigation();
 	const transakURL = useTransakFlowURL(selectedAddress);
+
+	const { colors } = useAppThemeFromContext();
+
+	useEffect(() => {
+		navigation.setOptions(
+			getPaymentSelectorMethodNavbar(
+				navigation,
+				() => {
+					InteractionManager.runAfterInteractions(() => {
+						AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_CLOSED);
+					});
+				},
+				colors
+			)
+		);
+	}, [navigation]);
 
 	const onPressTransak = useCallback(() => {
 		const goToTransakFlow = () =>
@@ -68,13 +85,6 @@ PaymentMethodSelectorView.propTypes = {
 	gasEducationCarouselSeen: PropTypes.bool,
 	setGasEducationCarouselSeen: PropTypes.func,
 };
-
-PaymentMethodSelectorView.navigationOptions = ({ navigation }) =>
-	getPaymentSelectorMethodNavbar(navigation, () => {
-		InteractionManager.runAfterInteractions(() => {
-			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_CLOSED);
-		});
-	});
 
 const mapStateToProps = (state) => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
