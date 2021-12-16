@@ -160,7 +160,7 @@ export default function getNavbarOptions(title, navigation, disableNetwork = fal
  * @param {Object} navigation - Navigation object required to push new views
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
-export function getNavigationOptionsTitle(title, navigation, isFullScreenModal) {
+export function getNavigationOptionsTitle(title, navigation, isFullScreenModal, themeColors) {
 	function navigationPop() {
 		navigation.pop();
 	}
@@ -168,14 +168,18 @@ export function getNavigationOptionsTitle(title, navigation, isFullScreenModal) 
 		title,
 		headerTitleStyle: {
 			fontSize: 20,
-			color: colors.textDefault,
+			color: themeColors.textDefault,
 			...fontStyles.normal,
 		},
-		headerTintColor: colors.primary,
+		headerTintColor: themeColors.primary,
 		headerRight: () =>
 			isFullScreenModal ? (
 				<TouchableOpacity onPress={navigationPop} style={styles.closeButton}>
-					<IonicIcon name={'ios-close'} size={38} style={[styles.backIcon, styles.backIconIOS]} />
+					<IonicIcon
+						name={'ios-close'}
+						size={38}
+						style={[styles.backIcon, styles.backIconIOS, { color: themeColors.primary }]}
+					/>
 				</TouchableOpacity>
 			) : null,
 		headerLeft: () =>
@@ -184,10 +188,13 @@ export function getNavigationOptionsTitle(title, navigation, isFullScreenModal) 
 					<IonicIcon
 						name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
 						size={Device.isAndroid() ? 24 : 28}
-						style={styles.backIcon}
+						style={[styles.backIcon, { color: themeColors.primary }]}
 					/>
 				</TouchableOpacity>
 			),
+		headerStyle: {
+			backgroundColor: themeColors.backgroundDefault,
+		},
 	};
 }
 
