@@ -10,6 +10,7 @@ const colors: Colors = {
 	muted: baseColors.grey100,
 	overlay: baseColors.overlay,
 	primary: baseColors.blue500,
+	onError: baseColors.red500,
 };
 
 export default colors;
