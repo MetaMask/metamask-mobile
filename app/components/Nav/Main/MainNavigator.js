@@ -51,6 +51,7 @@ import GasEducationCarousel from '../../Views/GasEducationCarousel';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 import CreateCollectible from '../../Views/CreateCollectible';
+import CollectibleNetworkPrompt from '../../Views/CollectibleNetworkPrompt';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -81,6 +82,12 @@ const WalletTabHome = () => (
 			name="CreateCollectible"
 			component={CreateCollectible}
 			options={CreateCollectible.navigationOptions}
+		/>
+
+		<Stack.Screen
+			name="CollectibleNetworkPrompt"
+			component={CollectibleNetworkPrompt}
+			options={CollectibleNetworkPrompt.navigationOptions}
 		/>
 
 		<Stack.Screen

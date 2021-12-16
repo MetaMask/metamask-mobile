@@ -37,14 +37,11 @@ const styles = StyleSheet.create({
 	},
 });
 
-const MediaSelector = ({ setMediaToSend }) => {
+const MediaSelector = ({ setMediaToSend, isLoading }) => {
 	const [media, setMedia] = useState(null);
-	const [isLoading, setIsLoading] = useState(false);
 	const actionSheetRef = useRef();
 
 	const handleChooseMedia = (index: number) => {
-		setIsLoading(true);
-
 		switch (index) {
 			case 1:
 				launchCamera({ mediaType: 'photo' }, (response: ImagePickerResponse) => {
@@ -52,7 +49,6 @@ const MediaSelector = ({ setMediaToSend }) => {
 					console.log(response);
 
 					if (response?.assets) {
-						setIsLoading(false);
 						setMedia(response.assets[0]);
 						setMediaToSend(response.assets[0]);
 					}
@@ -64,7 +60,6 @@ const MediaSelector = ({ setMediaToSend }) => {
 					console.log(response);
 
 					if (response?.assets) {
-						setIsLoading(false);
 						setMedia(response.assets[0]);
 						setMediaToSend(response.assets[0]);
 					}
@@ -76,7 +71,6 @@ const MediaSelector = ({ setMediaToSend }) => {
 					console.log(response);
 
 					if (response?.assets) {
-						setIsLoading(false);
 						setMedia(response.assets[0]);
 						setMediaToSend(response.assets[0]);
 					}
@@ -139,6 +133,7 @@ const MediaSelector = ({ setMediaToSend }) => {
 
 MediaSelector.propTypes = {
 	setMediaToSend: PropTypes.func,
+	isLoading: PropTypes.bool,
 };
 
 export default MediaSelector;
