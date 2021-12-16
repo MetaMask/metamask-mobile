@@ -6,6 +6,7 @@ import { colors } from '../../../styles/common';
 import Text from '../../Base/Text';
 import CollectibleMedia from '../../../components/UI/CollectibleMedia';
 import StyledButton from '../../UI/StyledButton';
+import Engine from '../../../core/Engine';
 
 // import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
@@ -65,7 +66,17 @@ const styles = StyleSheet.create({
 });
 
 const CollectibleNetworkPrompt = ({ route }) => {
-	const { media, name, description, traits } = route.params;
+	const { media, name, description, traits, tokenUri } = route.params;
+
+	const mint = async () => {
+		const { CollectibleMintingController } = Engine.context as any;
+
+		await CollectibleMintingController.raribleMint(tokenUri, {
+			royalties: [],
+			creatorProfitPercentage: 10000,
+			lazy: false,
+		});
+	};
 
 	return (
 		<View style={styles.container}>
@@ -120,7 +131,7 @@ const CollectibleNetworkPrompt = ({ route }) => {
 				</Text> */}
 			</View>
 
-			<StyledButton type={'sign'} onPress={() => null}>
+			<StyledButton type={'sign'} onPress={mint}>
 				{'Lazy mint on Rarible'}
 			</StyledButton>
 		</View>

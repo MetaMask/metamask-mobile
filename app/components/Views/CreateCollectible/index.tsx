@@ -111,23 +111,19 @@ const CreateCollectible = ({ navigation }) => {
 			// eslint-disable-next-line no-console
 			console.log(tokenUri);
 
-			const tx = await CollectibleMintingController.raribleMint(tokenUri, {
-				royalties: [],
-				creatorProfitPercentage: 10000,
-				lazy: false,
-			});
-			// eslint-disable-next-line no-console
-			console.log(tx);
-
-			// eslint-disable-next-line no-console
-			console.log(CollectibleMintingController.config);
+			// const tx = await CollectibleMintingController.raribleMint(tokenUri, {
+			// 	royalties: [],
+			// 	creatorProfitPercentage: 10000,
+			// 	lazy: false,
+			// });
+			// console.log(tx);
 
 			// eslint-disable-next-line no-console
 			console.log('testMetaDataResponse', ipfsAddMetadataResponse);
 
 			setIsUploading(false);
 			// eslint-disable-next-line react/prop-types
-			navigation.push('CollectibleNetworkPrompt', { media, name, description, traits });
+			navigation.push('CollectibleNetworkPrompt', { media, name, description, traits, tokenUri });
 		} catch (e) {
 			// eslint-disable-next-line no-console
 			console.log('ERROR', e);
