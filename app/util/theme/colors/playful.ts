@@ -9,7 +9,7 @@ const colors: Colors = {
 	borderDefault: baseColors.grey100,
 	muted: baseColors.grey100,
 	overlay: baseColors.overlay,
-	primary: '#FFD8E4',
+	primary: '#FF4C83',
 	onPrimary: '#370B1E',
 	info: baseColors.blue000,
 	onInfo: baseColors.blue500,
