@@ -98,6 +98,26 @@ class Engine {
 								end(error);
 							}
 						},
+						eth_signTypedData_v4: async (
+							payload,
+							next: any,
+							end: (arg0: undefined, arg1: undefined) => void
+						) => {
+							const { TypedMessageManager } = this.context;
+							try {
+								const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
+									{
+										data: payload.params[1],
+										from: payload.params[0],
+										meta: { title: 'title', url: 'url' },
+									},
+									'V4'
+								);
+								end(undefined, rawSig);
+							} catch (error) {
+								end(error);
+							}
+						},
 					},
 					getAccounts: (end: (arg0: null, arg1: any[]) => void, payload: { hostname: string | number }) => {
 						const { approvedHosts, privacyMode } = store.getState();
@@ -241,6 +261,7 @@ class Engine {
 					getProvider: () => networkController.provider,
 				}),
 				new CollectibleMintingController({
+					onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
 					onNetworkStateChange: (listener) => networkController.subscribe(listener),
 					addCollectible: collectiblesController.addCollectible,
 					addTransaction: TransactionController.addTransaction,
@@ -314,6 +335,7 @@ class Engine {
 			AssetsContractController,
 			TokenDetectionController,
 			CollectibleDetectionController,
+			CollectibleMintingController,
 			NetworkController: { provider, state: NetworkControllerState },
 			TransactionController,
 			SwapsController,
@@ -322,6 +344,7 @@ class Engine {
 		provider.sendAsync = provider.sendAsync.bind(provider);
 		AccountTrackerController.configure({ provider });
 		AssetsContractController.configure({ provider });
+		CollectibleMintingController.configure({ provider });
 
 		SwapsController.configure({
 			provider,

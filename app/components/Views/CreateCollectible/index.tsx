@@ -85,7 +85,7 @@ const CreateCollectible = () => {
 				uri: Platform.OS === 'ios' ? media.uri.replace('file://', '') : media.uri,
 			};
 
-			const { CollectibleMintingController } = Engine.context;
+			const { CollectibleMintingController } = Engine.context as any;
 
 			const ipfsAddMediaResponse = await CollectibleMintingController.uploadDataToIpfs(params);
 
@@ -97,6 +97,21 @@ const CreateCollectible = () => {
 			console.log('testMetaData', metadata);
 
 			const ipfsAddMetadataResponse = await CollectibleMintingController.uploadDataToIpfs(metadata);
+
+			const tokenUri = 'ipfs://' + ipfsAddMetadataResponse.Hash;
+			// eslint-disable-next-line no-console
+			console.log(tokenUri);
+
+			const tx = await CollectibleMintingController.raribleMint(tokenUri, {
+				royalties: [],
+				creatorProfitPercentage: 10000,
+				lazy: false,
+			});
+			// eslint-disable-next-line no-console
+			console.log(tx);
+
+			// eslint-disable-next-line no-console
+			console.log(CollectibleMintingController.config);
 
 			// eslint-disable-next-line no-console
 			console.log('testMetaDataResponse', ipfsAddMetadataResponse);
