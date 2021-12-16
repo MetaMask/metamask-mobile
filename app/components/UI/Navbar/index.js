@@ -588,7 +588,7 @@ export function getOptinMetricsNavbarOptions() {
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
  */
-export function getClosableNavigationOptions(title, backButtonText, navigation) {
+export function getClosableNavigationOptions(title, backButtonText, navigation, themeColors) {
 	function navigationPop() {
 		navigation.pop();
 	}
@@ -597,17 +597,25 @@ export function getClosableNavigationOptions(title, backButtonText, navigation) 
 		headerTitleStyle: {
 			fontSize: 20,
 			...fontStyles.normal,
+			color: themeColors.textDefault,
 		},
 		headerLeft: () =>
 			Device.isIos() ? (
 				<TouchableOpacity onPress={navigationPop} style={styles.closeButton} testID={'nav-ios-back'}>
-					<Text style={styles.closeButtonText}>{backButtonText}</Text>
+					<Text style={[styles.closeButtonText, { color: themeColors.primary }]}>{backButtonText}</Text>
 				</TouchableOpacity>
 			) : (
 				<TouchableOpacity onPress={navigationPop} style={styles.backButton} testID={'nav-android-back'}>
-					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
+					<IonicIcon
+						name={'md-arrow-back'}
+						size={24}
+						style={[styles.backIcon, { color: themeColors.primary }]}
+					/>
 				</TouchableOpacity>
 			),
+		headerStyle: {
+			backgroundColor: themeColors.backgroundDefault,
+		},
 	};
 }
 
