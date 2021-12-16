@@ -73,11 +73,16 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 	useEffect(
 		() => {
 			navigation.setOptions(
-				getNavigationOptionsTitle(strings('app_settings.experimental_title'), navigation, isFullScreenModal)
+				getNavigationOptionsTitle(
+					strings('app_settings.experimental_title'),
+					navigation,
+					isFullScreenModal,
+					colors
+				)
 			);
 		},
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[]
+		[colors]
 	);
 
 	const goToWalletConnectSessions = useCallback(() => {

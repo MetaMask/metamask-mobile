@@ -160,7 +160,7 @@ export default function getNavbarOptions(title, navigation, disableNetwork = fal
  * @param {Object} navigation - Navigation object required to push new views
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
-export function getNavigationOptionsTitle(title, navigation, isFullScreenModal) {
+export function getNavigationOptionsTitle(title, navigation, isFullScreenModal, themeColors) {
 	function navigationPop() {
 		navigation.pop();
 	}
@@ -168,14 +168,18 @@ export function getNavigationOptionsTitle(title, navigation, isFullScreenModal) 
 		title,
 		headerTitleStyle: {
 			fontSize: 20,
-			color: colors.textDefault,
+			color: themeColors.textDefault,
 			...fontStyles.normal,
 		},
-		headerTintColor: colors.primary,
+		headerTintColor: themeColors.primary,
 		headerRight: () =>
 			isFullScreenModal ? (
 				<TouchableOpacity onPress={navigationPop} style={styles.closeButton}>
-					<IonicIcon name={'ios-close'} size={38} style={[styles.backIcon, styles.backIconIOS]} />
+					<IonicIcon
+						name={'ios-close'}
+						size={38}
+						style={[styles.backIcon, styles.backIconIOS, { color: themeColors.primary }]}
+					/>
 				</TouchableOpacity>
 			) : null,
 		headerLeft: () =>
@@ -184,10 +188,13 @@ export function getNavigationOptionsTitle(title, navigation, isFullScreenModal) 
 					<IonicIcon
 						name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
 						size={Device.isAndroid() ? 24 : 28}
-						style={styles.backIcon}
+						style={[styles.backIcon, { color: themeColors.primary }]}
 					/>
 				</TouchableOpacity>
 			),
+		headerStyle: {
+			backgroundColor: themeColors.backgroundDefault,
+		},
 	};
 }
 
@@ -595,7 +602,7 @@ export function getOptinMetricsNavbarOptions() {
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
  */
-export function getClosableNavigationOptions(title, backButtonText, navigation) {
+export function getClosableNavigationOptions(title, backButtonText, navigation, themeColors) {
 	function navigationPop() {
 		navigation.pop();
 	}
@@ -604,17 +611,25 @@ export function getClosableNavigationOptions(title, backButtonText, navigation) 
 		headerTitleStyle: {
 			fontSize: 20,
 			...fontStyles.normal,
+			color: themeColors.textDefault,
 		},
 		headerLeft: () =>
 			Device.isIos() ? (
 				<TouchableOpacity onPress={navigationPop} style={styles.closeButton} testID={'nav-ios-back'}>
-					<Text style={styles.closeButtonText}>{backButtonText}</Text>
+					<Text style={[styles.closeButtonText, { color: themeColors.primary }]}>{backButtonText}</Text>
 				</TouchableOpacity>
 			) : (
 				<TouchableOpacity onPress={navigationPop} style={styles.backButton} testID={'nav-android-back'}>
-					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
+					<IonicIcon
+						name={'md-arrow-back'}
+						size={24}
+						style={[styles.backIcon, { color: themeColors.primary }]}
+					/>
 				</TouchableOpacity>
 			),
+		headerStyle: {
+			backgroundColor: themeColors.backgroundDefault,
+		},
 	};
 }
 
