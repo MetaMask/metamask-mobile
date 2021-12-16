@@ -7,6 +7,8 @@ import MediaSelector from '../../../components/UI/MediaSelector';
 import ActionView from '../../../components/UI/ActionView';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { strings } from '../../../../locales/i18n';
+import Engine from '../../../core/Engine';
+import { NftMediaData, NftMetaData } from '@metamask/controllers/src/assets/CollectibleMintingController';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -84,43 +86,32 @@ const CreateCollectible = ({ navigation }) => {
 	}, []);
 
 	const handleSubmit = useCallback(async () => {
-		const formData = new FormData();
-
-		const params = {
-			name: media.fileName || 'nft',
-			type: media.type,
-			uri: Platform.OS === 'ios' ? media.uri.replace('file://', '') : media.uri,
-		};
-		// eslint-disable-next-line no-console
-		console.log('params', params);
-		formData.append('file', params);
-
-		const ipfsAddMediaResponse = await fetch('https://ipfs.infura.io:5001/api/v0/add', {
-			method: 'POST',
-			body: formData,
-		});
-		const ipfsAddMediaResponseJson = await ipfsAddMediaResponse.json();
-
-		// eslint-disable-next-line no-console
-		console.log(ipfsAddMediaResponseJson);
-
-		const metadata = { name, description, image: `ipfs://${ipfsAddMediaResponseJson.Hash}` };
-		// eslint-disable-next-line no-console
-		console.log('metadata', metadata, JSON.stringify(metadata));
+		setIsUploading(true);
 
 		try {
-			const formDataMetadata = new FormData();
-			formDataMetadata.append('file', JSON.stringify(metadata));
-			const ipfsAddMetadataResponse = await fetch('https://ipfs.infura.io:5001/api/v0/add', {
-				method: 'POST',
-				body: formDataMetadata,
-			});
-			const ipfsAddMetadataResponseJson = await ipfsAddMetadataResponse.json();
+			const params: NftMediaData = {
+				name: media.fileName || 'nft',
+				type: media.type,
+				uri: Platform.OS === 'ios' ? media.uri.replace('file://', '') : media.uri,
+			};
+
+			const { CollectibleMintingController } = Engine.context;
+
+			const ipfsAddMediaResponse = await CollectibleMintingController.uploadDataToIpfs(params);
 
 			// eslint-disable-next-line no-console
-			console.log(ipfsAddMetadataResponseJson);
-			setIsUploading(false);
+			console.log('testMediaResponse', ipfsAddMediaResponse);
 
+			const metadata: NftMetaData = { name, description, image: `ipfs://${ipfsAddMediaResponse.Hash}` };
+			// eslint-disable-next-line no-console
+			console.log('testMetaData', metadata);
+
+			const ipfsAddMetadataResponse = await CollectibleMintingController.uploadDataToIpfs(metadata);
+
+			// eslint-disable-next-line no-console
+			console.log('testMetaDataResponse', ipfsAddMetadataResponse);
+
+			setIsUploading(false);
 			// eslint-disable-next-line react/prop-types
 			navigation.push('CollectibleNetworkPrompt', { media });
 		} catch (e) {

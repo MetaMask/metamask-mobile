@@ -22,6 +22,7 @@ import {
 	TokensController,
 	CollectiblesController,
 	TokenDetectionController,
+	CollectibleMintingController,
 	CollectibleDetectionController,
 } from '@metamask/controllers';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
@@ -97,6 +98,26 @@ class Engine {
 								end(error);
 							}
 						},
+						eth_signTypedData_v4: async (
+							payload,
+							next: any,
+							end: (arg0: undefined, arg1: undefined) => void
+						) => {
+							const { TypedMessageManager } = this.context;
+							try {
+								const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
+									{
+										data: payload.params[1],
+										from: payload.params[0],
+										meta: { title: 'title', url: 'url' },
+									},
+									'V4'
+								);
+								end(undefined, rawSig);
+							} catch (error) {
+								end(error);
+							}
+						},
 					},
 					getAccounts: (end: (arg0: null, arg1: any[]) => void, payload: { hostname: string | number }) => {
 						const { approvedHosts, privacyMode } = store.getState();
@@ -164,6 +185,18 @@ class Engine {
 				EIP1559APIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
 			});
 
+			// const transactionController = new TransactionController({
+			// 	getNetworkState: () => networkController.state,
+			// 	onNetworkStateChange: (listener) => networkController.subscribe(listener),
+			// 	getProvider: () => networkController.provider,
+			// });
+
+			// const collectibleMintingController = new CollectibleMintingController({
+			// 	onNetworkStateChange: (listener) => networkController.subscribe(listener),
+			// 	addCollectible: collectiblesController.addCollectible,
+			// 	addTransaction: transactionController.addTransaction,
+			// });
+
 			const controllers = [
 				new KeyringController(
 					{
@@ -226,6 +259,11 @@ class Engine {
 					getNetworkState: () => networkController.state,
 					onNetworkStateChange: (listener) => networkController.subscribe(listener),
 					getProvider: () => networkController.provider,
+				}),
+				new CollectibleMintingController({
+					onNetworkStateChange: (listener) => networkController.subscribe(listener),
+					addCollectible: collectiblesController.addCollectible,
+					addTransaction: TransactionController.addTransaction,
 				}),
 				new TypedMessageManager(),
 				new SwapsController(
@@ -296,6 +334,7 @@ class Engine {
 			AssetsContractController,
 			TokenDetectionController,
 			CollectibleDetectionController,
+			CollectibleMintingController,
 			NetworkController: { provider, state: NetworkControllerState },
 			TransactionController,
 			SwapsController,
@@ -304,6 +343,7 @@ class Engine {
 		provider.sendAsync = provider.sendAsync.bind(provider);
 		AccountTrackerController.configure({ provider });
 		AssetsContractController.configure({ provider });
+		CollectibleMintingController.configure({ provider });
 
 		SwapsController.configure({
 			provider,
@@ -606,6 +646,7 @@ export default {
 			TokensController,
 			TokenDetectionController,
 			CollectibleDetectionController,
+			CollectibleMintingController,
 		} = instance.datamodel.state;
 
 		// normalize `null` currencyRate to `0`
@@ -636,6 +677,7 @@ export default {
 			GasFeeController,
 			TokenDetectionController,
 			CollectibleDetectionController,
+			CollectibleMintingController,
 		};
 	},
 	get datamodel() {
