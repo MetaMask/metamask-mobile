@@ -2,7 +2,7 @@ import { Colors } from '../models';
 import baseColors from './base-colors';
 
 const colors: Colors = {
-	textDefault: '#370B1E',
+	textDefault: '#55112E',
 	textAlternative: '#6E163C',
 	backgroundDefault: '#EDE6FA',
 	backgroundAlternative: '#CAB3EF',

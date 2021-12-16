@@ -7,7 +7,7 @@ import AssetIcon from '../AssetIcon';
 import Identicon from '../Identicon';
 import AssetActionButton from '../AssetActionButton';
 import AppConstants from '../../../core/AppConstants';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { connect } from 'react-redux';
@@ -26,66 +26,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { allowedToBuy } from '../FiatOrders';
 import AssetSwapButton from '../Swaps/components/AssetSwapButton';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
-
-const styles = StyleSheet.create({
-	wrapper: {
-		flex: 1,
-		padding: 20,
-		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderBottomColor: colors.borderDefault,
-		alignContent: 'center',
-		alignItems: 'center',
-		paddingBottom: 30,
-	},
-	assetLogo: {
-		marginTop: 15,
-		alignItems: 'center',
-		justifyContent: 'center',
-		borderRadius: 10,
-		marginBottom: 10,
-	},
-	ethLogo: {
-		width: 70,
-		height: 70,
-	},
-	balance: {
-		alignItems: 'center',
-		marginTop: 10,
-		marginBottom: 20,
-	},
-	amount: {
-		fontSize: 30,
-		color: colors.textDefault,
-		...fontStyles.normal,
-		textTransform: 'uppercase',
-	},
-	amountFiat: {
-		fontSize: 18,
-		color: colors.textAlternative,
-		...fontStyles.light,
-		textTransform: 'uppercase',
-	},
-	actions: {
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'flex-start',
-		flexDirection: 'row',
-	},
-	warning: {
-		borderRadius: 8,
-		color: colors.textDefault,
-		...fontStyles.normal,
-		fontSize: 14,
-		lineHeight: 20,
-		borderWidth: 1,
-		borderColor: colors.onWarning,
-		backgroundColor: colors.warning,
-		padding: 20,
-	},
-	warningLinks: {
-		color: colors.primary,
-	},
-});
+import { ThemeContext } from '../../../components/Nav/App/context';
 
 /**
  * View that displays the information of a specific asset (Token or ETH)
@@ -160,6 +101,70 @@ class AssetOverview extends PureComponent {
 		tokenList: PropTypes.object,
 	};
 
+	styles = () => {
+		const style = StyleSheet.create({
+			wrapper: {
+				flex: 1,
+				padding: 20,
+				borderBottomWidth: StyleSheet.hairlineWidth,
+				borderBottomColor: this.context.colors.borderDefault,
+				alignContent: 'center',
+				alignItems: 'center',
+				paddingBottom: 30,
+				backgroundColor: this.context.colors.backgroundDefault,
+			},
+			assetLogo: {
+				marginTop: 15,
+				alignItems: 'center',
+				justifyContent: 'center',
+				borderRadius: 10,
+				marginBottom: 10,
+			},
+			ethLogo: {
+				width: 70,
+				height: 70,
+			},
+			balance: {
+				alignItems: 'center',
+				marginTop: 10,
+				marginBottom: 20,
+			},
+			amount: {
+				fontSize: 30,
+				color: this.context.colors.textDefault,
+				...fontStyles.normal,
+				textTransform: 'uppercase',
+			},
+			amountFiat: {
+				fontSize: 18,
+				color: this.context.colors.textAlternative,
+				...fontStyles.light,
+				textTransform: 'uppercase',
+			},
+			actions: {
+				flex: 1,
+				justifyContent: 'center',
+				alignItems: 'flex-start',
+				flexDirection: 'row',
+			},
+			warning: {
+				borderRadius: 8,
+				color: this.context.colors.textDefault,
+				...fontStyles.normal,
+				fontSize: 14,
+				lineHeight: 20,
+				borderWidth: 1,
+				borderColor: this.context.colors.onWarning,
+				backgroundColor: this.context.colors.warning,
+				padding: 20,
+			},
+			warningLinks: {
+				color: this.context.colors.primary,
+			},
+		});
+		return style;
+	};
+
 	onReceive = () => {
 		const { asset } = this.props;
 		this.props.toggleReceiveModal(asset);
@@ -211,7 +216,7 @@ class AssetOverview extends PureComponent {
 			asset: { address, isETH },
 		} = this.props;
 		if (isETH) {
-			return <NetworkMainAssetLogo biggest style={styles.ethLogo} />;
+			return <NetworkMainAssetLogo biggest style={this.styles().ethLogo} />;
 		}
 		const iconUrl = tokenList[address]?.iconUrl || tokenList[address?.toLowerCase()]?.iconUrl || '';
 
@@ -236,9 +241,9 @@ class AssetOverview extends PureComponent {
 			'https://metamask.zendesk.com/hc/en-us/articles/360028059272-What-to-do-when-your-balance-of-ETH-and-or-ERC20-tokens-is-incorrect-inaccurate';
 		return (
 			<TouchableOpacity onPress={() => this.goToBrowserUrl(supportArticleUrl)}>
-				<Text style={styles.warning}>
+				<Text style={this.styles().warning}>
 					{strings('asset_overview.were_unable')} {symbol} {strings('asset_overview.balance')}{' '}
-					<Text style={styles.warningLinks}>{strings('asset_overview.troubleshooting_missing')}</Text>{' '}
+					<Text style={this.styles().warningLinks}>{strings('asset_overview.troubleshooting_missing')}</Text>{' '}
 					{strings('asset_overview.for_help')}
 				</Text>
 			</TouchableOpacity>
@@ -280,23 +285,23 @@ class AssetOverview extends PureComponent {
 			secondaryBalance = !balanceFiat ? balanceFiat : `${balance} ${symbol}`;
 		}
 		return (
-			<View style={styles.wrapper} testID={'token-asset-overview'}>
-				<View style={styles.assetLogo}>{this.renderLogo()}</View>
-				<View style={styles.balance}>
+			<View style={this.styles().wrapper} testID={'token-asset-overview'}>
+				<View style={this.styles().assetLogo}>{this.renderLogo()}</View>
+				<View style={this.styles().balance}>
 					{balanceError ? (
 						this.renderWarning()
 					) : (
 						<>
-							<Text style={styles.amount} testID={'token-amount'}>
+							<Text style={this.styles().amount} testID={'token-amount'}>
 								{mainBalance}
 							</Text>
-							{secondaryBalance && <Text style={styles.amountFiat}>{secondaryBalance}</Text>}
+							{secondaryBalance && <Text style={this.styles().amountFiat}>{secondaryBalance}</Text>}
 						</>
 					)}
 				</View>
 
 				{!balanceError && (
-					<View style={styles.actions}>
+					<View style={this.styles().actions}>
 						<AssetActionButton
 							icon="receive"
 							onPress={this.onReceive}
@@ -329,6 +334,8 @@ class AssetOverview extends PureComponent {
 		);
 	}
 }
+
+AssetOverview.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,

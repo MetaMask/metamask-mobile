@@ -15,7 +15,7 @@ import {
 import Text from '../../Base/Text';
 import { getNetworkTypeById, findBlockExplorerForRpc, getBlockExplorerName } from '../../../util/networks';
 import { getEtherscanAddressUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
-import { colors, fontStyles, baseStyles } from '../../../styles/common';
+import { fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import TransactionElement from '../TransactionElement';
 import Engine from '../../../core/Engine';
@@ -34,46 +34,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import RetryModal from './RetryModal';
 import UpdateEIP1559Tx from '../UpdateEIP1559Tx';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
-
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.backgroundDefault,
-		flex: 1,
-	},
-	bottomModal: {
-		justifyContent: 'flex-end',
-		margin: 0,
-	},
-	emptyContainer: {
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-		backgroundColor: colors.backgroundDefault,
-		minHeight: Dimensions.get('window').height / 2,
-	},
-	keyboardAwareWrapper: {
-		flex: 1,
-		justifyContent: 'flex-end',
-	},
-	loader: {
-		alignSelf: 'center',
-	},
-	text: {
-		fontSize: 20,
-		color: colors.textAlternative,
-		...fontStyles.normal,
-	},
-	viewMoreBody: {
-		marginBottom: 36,
-		marginTop: 24,
-	},
-	viewOnEtherscan: {
-		fontSize: 16,
-		color: colors.primary,
-		...fontStyles.normal,
-		textAlign: 'center',
-	},
-});
+import { ThemeContext } from '../../../components/Nav/App/context';
 
 const ROW_HEIGHT = (Device.isIos() ? 95 : 100) + StyleSheet.hairlineWidth;
 
@@ -189,6 +150,49 @@ class Transactions extends PureComponent {
 
 	flatList = React.createRef();
 
+	styles = () => {
+		const style = StyleSheet.create({
+			wrapper: {
+				backgroundColor: this.context.colors.backgroundDefault,
+				flex: 1,
+			},
+			bottomModal: {
+				justifyContent: 'flex-end',
+				margin: 0,
+			},
+			emptyContainer: {
+				flex: 1,
+				justifyContent: 'center',
+				alignItems: 'center',
+				backgroundColor: this.context.colors.backgroundDefault,
+				minHeight: Dimensions.get('window').height / 2,
+			},
+			keyboardAwareWrapper: {
+				flex: 1,
+				justifyContent: 'flex-end',
+			},
+			loader: {
+				alignSelf: 'center',
+			},
+			text: {
+				fontSize: 20,
+				color: this.context.colors.textAlternative,
+				...fontStyles.normal,
+			},
+			viewMoreBody: {
+				marginBottom: 36,
+				marginTop: 24,
+			},
+			viewOnEtherscan: {
+				fontSize: 16,
+				color: this.context.colors.primary,
+				...fontStyles.normal,
+				textAlign: 'center',
+			},
+		});
+		return style;
+	};
+
 	componentDidMount = () => {
 		this.mounted = true;
 		setTimeout(() => {
@@ -271,19 +275,19 @@ class Transactions extends PureComponent {
 	};
 
 	renderLoader = () => (
-		<View style={styles.emptyContainer}>
-			<ActivityIndicator style={styles.loader} size="small" />
+		<View style={this.styles().emptyContainer}>
+			<ActivityIndicator style={this.styles().loader} size="small" />
 		</View>
 	);
 
 	renderEmpty = () => (
 		<ScrollView
-			contentContainerStyle={styles.emptyContainer}
+			contentContainerStyle={this.styles().emptyContainer}
 			refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
 		>
 			{this.props.header ? this.props.header : null}
-			<View style={styles.emptyContainer}>
-				<Text style={styles.text}>{strings('wallet.no_transactions')}</Text>
+			<View style={this.styles().emptyContainer}>
+				<Text style={this.styles().text}>{strings('wallet.no_transactions')}</Text>
 			</View>
 		</ScrollView>
 	);
@@ -324,9 +328,9 @@ class Transactions extends PureComponent {
 	};
 
 	renderViewMore = () => (
-		<View style={styles.viewMoreBody}>
-			<TouchableOpacity onPress={this.viewOnBlockExplore} style={styles.touchableViewOnEtherscan}>
-				<Text reset style={styles.viewOnEtherscan}>
+		<View style={this.styles().viewMoreBody}>
+			<TouchableOpacity onPress={this.viewOnBlockExplore} style={this.styles().touchableViewOnEtherscan}>
+				<Text reset style={this.styles().viewOnEtherscan}>
 					{(this.state.rpcBlockExplorer &&
 						`${strings('transactions.view_full_history_on')} ${getBlockExplorerName(
 							this.state.rpcBlockExplorer
@@ -478,7 +482,7 @@ class Transactions extends PureComponent {
 					isVisible
 					animationIn="slideInUp"
 					animationOut="slideOutDown"
-					style={styles.bottomModal}
+					style={this.styles().bottomModal}
 					backdropOpacity={0.7}
 					animationInTiming={600}
 					animationOutTiming={600}
@@ -488,7 +492,7 @@ class Transactions extends PureComponent {
 					swipeDirection={'down'}
 					propagateSwipe
 				>
-					<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
+					<KeyboardAwareScrollView contentContainerStyle={this.styles().keyboardAwareWrapper}>
 						<UpdateEIP1559Tx
 							gas={this.existingTx.transaction.gas}
 							onSave={isCancel ? this.cancelTransaction : this.speedUpTransaction}
@@ -523,7 +527,7 @@ class Transactions extends PureComponent {
 		};
 
 		return (
-			<View style={styles.wrapper} testID={'transactions-screen'}>
+			<View style={this.styles().wrapper} testID={'transactions-screen'}>
 				<FlatList
 					ref={this.flatList}
 					getItemLayout={this.getItemLayout}
@@ -578,7 +582,7 @@ class Transactions extends PureComponent {
 	};
 
 	render = () => (
-		<SafeAreaView edges={['bottom']} style={styles.wrapper} testID={'txn-screen'}>
+		<SafeAreaView edges={['bottom']} style={this.styles().wrapper} testID={'txn-screen'}>
 			{!this.state.ready || this.props.loading
 				? this.renderLoader()
 				: !this.props.transactions.length
@@ -589,6 +593,8 @@ class Transactions extends PureComponent {
 		</SafeAreaView>
 	);
 }
+
+Transactions.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,

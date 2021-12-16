@@ -20,52 +20,6 @@ import { isMainNet } from '../../../util/networks';
 import { WalletDevice, util } from '@metamask/controllers/';
 const { weiHexToGweiDec, isEIP1559Transaction } = util;
 
-const styles = StyleSheet.create({
-	row: {
-		backgroundColor: colors.backgroundDefault,
-		flex: 1,
-		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderDefault,
-	},
-	actionContainerStyle: {
-		height: 25,
-		width: 70,
-		padding: 0,
-	},
-	speedupActionContainerStyle: {
-		marginRight: 10,
-	},
-	actionStyle: {
-		fontSize: 10,
-		padding: 0,
-		paddingHorizontal: 10,
-	},
-	icon: {
-		width: 28,
-		height: 28,
-	},
-	summaryWrapper: {
-		padding: 15,
-	},
-	fromDeviceText: {
-		color: colors.textAlternative,
-		fontSize: 14,
-		marginBottom: 10,
-		...fontStyles.normal,
-	},
-	importText: {
-		color: colors.textAlternative,
-		fontSize: 14,
-		...fontStyles.bold,
-		alignContent: 'center',
-	},
-	importRowBody: {
-		alignItems: 'center',
-		backgroundColor: colors.backgroundAlternative,
-		paddingTop: 10,
-	},
-});
-
 /* eslint-disable import/no-commonjs */
 const transactionIconApprove = require('../../../images/transaction-icons/approve.png');
 const transactionIconInteraction = require('../../../images/transaction-icons/interaction.png');
@@ -76,6 +30,7 @@ const transactionIconApproveFailed = require('../../../images/transaction-icons/
 const transactionIconInteractionFailed = require('../../../images/transaction-icons/interaction-failed.png');
 const transactionIconSentFailed = require('../../../images/transaction-icons/send-failed.png');
 const transactionIconReceivedFailed = require('../../../images/transaction-icons/receive-failed.png');
+import { ThemeContext } from '../../../components/Nav/App/context';
 /* eslint-enable import/no-commonjs */
 
 /**
@@ -132,6 +87,55 @@ class TransactionElement extends PureComponent {
 	};
 
 	mounted = false;
+
+	styles = () => {
+		const style = StyleSheet.create({
+			row: {
+				backgroundColor: this.context.colors.backgroundDefault,
+				flex: 1,
+				borderBottomWidth: StyleSheet.hairlineWidth,
+				borderColor: this.context.colors.borderDefault,
+			},
+			actionContainerStyle: {
+				height: 25,
+				width: 70,
+				padding: 0,
+			},
+			speedupActionContainerStyle: {
+				marginRight: 10,
+			},
+			actionStyle: {
+				fontSize: 10,
+				padding: 0,
+				paddingHorizontal: 10,
+			},
+			icon: {
+				width: 28,
+				height: 28,
+			},
+			summaryWrapper: {
+				padding: 15,
+			},
+			fromDeviceText: {
+				color: this.context.colors.textAlternative,
+				fontSize: 14,
+				marginBottom: 10,
+				...fontStyles.normal,
+			},
+			importText: {
+				color: this.context.colors.textAlternative,
+				fontSize: 14,
+				...fontStyles.bold,
+				alignContent: 'center',
+			},
+			importRowBody: {
+				alignItems: 'center',
+				backgroundColor: this.context.colors.backgroundAlternative,
+				paddingTop: 10,
+			},
+		});
+		return style;
+	};
 
 	componentDidMount = async () => {
 		const [transactionElement, transactionDetails] = await decodeTransaction({
@@ -191,10 +195,10 @@ class TransactionElement extends PureComponent {
 		if (tx.insertImportTime && accountImportTime) {
 			return (
 				<>
-					<TouchableOpacity onPress={this.onPressImportWalletTip} style={styles.importRowBody}>
-						<Text style={styles.importText}>
+					<TouchableOpacity onPress={this.onPressImportWalletTip} style={this.styles().importRowBody}>
+						<Text style={this.styles().importText}>
 							{`${strings('transactions.import_wallet_row')} `}
-							<FAIcon name="info-circle" style={styles.infoIcon} />
+							<FAIcon name="info-circle" style={this.styles().infoIcon} />
 						</Text>
 						<ListItem.Date>{toDateFormat(accountImportTime)}</ListItem.Date>
 					</TouchableOpacity>
@@ -226,7 +230,7 @@ class TransactionElement extends PureComponent {
 				icon = isFailedTransaction ? transactionIconApproveFailed : transactionIconApprove;
 				break;
 		}
-		return <Image source={icon} style={styles.icon} resizeMode="stretch" />;
+		return <Image source={icon} style={this.styles().icon} resizeMode="stretch" />;
 	};
 
 	/**
@@ -277,8 +281,8 @@ class TransactionElement extends PureComponent {
 	renderCancelButton = () => (
 		<StyledButton
 			type={'cancel'}
-			containerStyle={styles.actionContainerStyle}
-			style={styles.actionStyle}
+			containerStyle={this.styles().actionContainerStyle}
+			style={this.styles().actionStyle}
 			onPress={this.showCancelModal}
 		>
 			{strings('transaction.cancel')}
@@ -325,8 +329,8 @@ class TransactionElement extends PureComponent {
 	renderSpeedUpButton = () => (
 		<StyledButton
 			type={'normal'}
-			containerStyle={[styles.actionContainerStyle, styles.speedupActionContainerStyle]}
-			style={styles.actionStyle}
+			containerStyle={[this.styles().actionContainerStyle, this.styles().speedupActionContainerStyle]}
+			style={this.styles().actionStyle}
 			onPress={this.showSpeedUpModal}
 		>
 			{strings('transaction.speedup')}
@@ -341,7 +345,7 @@ class TransactionElement extends PureComponent {
 		return (
 			<>
 				<TouchableHighlight
-					style={styles.row}
+					style={this.styles().row}
 					onPress={this.onPressItem}
 					underlayColor={colors.muted}
 					activeOpacity={1}
@@ -385,8 +389,10 @@ class TransactionElement extends PureComponent {
 							</DetailsModal.Title>
 							<DetailsModal.CloseIcon onPress={this.onCloseImportWalletModal} />
 						</DetailsModal.Header>
-						<View style={styles.summaryWrapper}>
-							<Text style={styles.fromDeviceText}>{strings('transactions.import_wallet_tip')}</Text>
+						<View style={this.styles().summaryWrapper}>
+							<Text style={this.styles().fromDeviceText}>
+								{strings('transactions.import_wallet_tip')}
+							</Text>
 						</View>
 					</DetailsModal>
 				</Modal>
@@ -394,6 +400,8 @@ class TransactionElement extends PureComponent {
 		);
 	}
 }
+
+TransactionElement.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
