@@ -48,7 +48,7 @@ function PaymentMethodSelectorView({
 				colors
 			)
 		);
-	}, [navigation]);
+	}, [colors, navigation]);
 
 	const onPressWyreApplePay = useCallback(() => {
 		const goToApplePay = () => navigation.navigate('PaymentMethodApplePay');

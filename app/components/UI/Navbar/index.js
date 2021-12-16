@@ -81,9 +81,6 @@ const styles = StyleSheet.create({
 		paddingRight: Device.isAndroid() ? 22 : 18,
 		marginTop: 5,
 	},
-	infoIcon: {
-		color: colors.primary,
-	},
 	closeButtonText: {
 		color: colors.primary,
 		fontSize: 14,
@@ -284,7 +281,13 @@ export function getPaymentRequestOptionsTitle(title, navigation, route, themeCol
 				<IonicIcon
 					name={'ios-close'}
 					size={38}
-					style={[styles.backIcon, styles.backIconIOS, { color: themeColors.primary }]}
+					style={[
+						{
+							color: themeColors.primary,
+						},
+						styles.backIconIOS,
+						{ color: themeColors.primary },
+					]}
 				/>
 			</TouchableOpacity>
 		),
@@ -353,7 +356,18 @@ export function getTransactionOptionsTitle(_title, navigation, route) {
 					testID={'confirm-txn-edit-button'}
 				>
 					<Text
-						style={disableModeChange ? [styles.closeButtonText, styles.disabled] : [styles.closeButtonText]}
+						style={
+							disableModeChange
+								? [
+										{
+											color: themeColors.primary,
+											fontSize: 14,
+											...fontStyles.normal,
+										},
+										styles.disabled,
+								  ]
+								: [styles.closeButtonText]
+						}
 					>
 						{leftText}
 					</Text>
@@ -365,7 +379,15 @@ export function getTransactionOptionsTitle(_title, navigation, route) {
 			name === 'Send' ? (
 				// eslint-disable-next-line react/jsx-no-bind
 				<TouchableOpacity onPress={rightAction} style={styles.closeButton} testID={'send-back-button'}>
-					<Text style={styles.closeButtonText}>{rightText}</Text>
+					<Text
+						style={{
+							color: themeColors.primary,
+							fontSize: 14,
+							...fontStyles.normal,
+						}}
+					>
+						{rightText}
+					</Text>
 				</TouchableOpacity>
 			) : (
 				<View />
@@ -823,12 +845,12 @@ export function getPaymentSelectorMethodNavbar(navigation, onPop, themeColors) {
 	};
 }
 
-export function getPaymentMethodApplePayNavbar(navigation, onPop, onExit) {
+export function getPaymentMethodApplePayNavbar(navigation, onPop, onExit, themeColors) {
 	return {
 		title: strings('fiat_on_ramp.amount_to_buy'),
 		headerTitleStyle: {
 			fontSize: 20,
-			color: colors.textDefault,
+			color: themeColors.textDefault,
 			...fontStyles.normal,
 		},
 		headerRight: () => (
@@ -840,7 +862,15 @@ export function getPaymentMethodApplePayNavbar(navigation, onPop, onExit) {
 				}}
 				style={styles.closeButton}
 			>
-				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
+				<Text
+					style={{
+						color: themeColors.primary,
+						fontSize: 14,
+						...fontStyles.normal,
+					}}
+				>
+					{strings('navigation.cancel')}
+				</Text>
 			</TouchableOpacity>
 		),
 		headerLeft: () =>
@@ -851,9 +881,17 @@ export function getPaymentMethodApplePayNavbar(navigation, onPop, onExit) {
 						navigation.pop();
 						onPop?.();
 					}}
-					style={styles.backButton}
+					style={{
+						color: themeColors.primary,
+					}}
 				>
-					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
+					<IonicIcon
+						name={'md-arrow-back'}
+						size={24}
+						style={{
+							color: themeColors.primary,
+						}}
+					/>
 				</TouchableOpacity>
 			) : (
 				// eslint-disable-next-line react/jsx-no-bind
@@ -864,9 +902,20 @@ export function getPaymentMethodApplePayNavbar(navigation, onPop, onExit) {
 					}}
 					style={styles.closeButton}
 				>
-					<Text style={styles.closeButtonText}>{strings('navigation.back')}</Text>
+					<Text
+						style={{
+							color: themeColors.primary,
+							fontSize: 14,
+							...fontStyles.normal,
+						}}
+					>
+						{strings('navigation.back')}
+					</Text>
 				</TouchableOpacity>
 			),
+		headerStyle: {
+			backgroundColor: themeColors.backgroundDefault,
+		},
 	};
 }
 

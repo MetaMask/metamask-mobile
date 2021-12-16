@@ -2,27 +2,27 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { colors } from '../../styles/common';
-
-const styles = StyleSheet.create({
-	container: {
-		backgroundColor: colors.backgroundAlternative,
-		paddingVertical: 8,
-		paddingHorizontal: 10,
-		borderRadius: 100,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	caretDown: {
-		textAlign: 'right',
-		color: colors.textDefault,
-		marginLeft: 10,
-		marginRight: 5,
-	},
-});
+import { useAppThemeFromContext } from '../../util/theme';
 
 function SelectorButton({ onPress, disabled, children, ...props }) {
+	const { colors } = useAppThemeFromContext();
+	const styles = StyleSheet.create({
+		container: {
+			backgroundColor: colors.backgroundAlternative,
+			paddingVertical: 8,
+			paddingHorizontal: 10,
+			borderRadius: 100,
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+		caretDown: {
+			textAlign: 'right',
+			color: colors.textDefault,
+			marginLeft: 10,
+			marginRight: 5,
+		},
+	});
 	return (
 		<TouchableOpacity onPress={onPress} disabled={disabled} {...props}>
 			<View style={styles.container}>
