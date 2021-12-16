@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { View, StyleSheet, TextInput, Platform } from 'react-native';
+import { View, StyleSheet, TextInput, Platform, ActivityIndicator } from 'react-native';
 import { getNetworkNavbarOptions } from '../../../components/UI/Navbar';
 import { colors, fontStyles } from '../../../styles/common';
 import Text from '../../Base/Text';
@@ -42,13 +42,21 @@ const styles = StyleSheet.create({
 	container: {
 		marginBottom: 50,
 	},
+	indicatorContainer: {
+		flex: 1,
+		backgroundColor: colors.white,
+		justifyContent: 'center',
+		alignItems: 'center',
+	},
 });
 
-const CreateCollectible = () => {
+// eslint-disable-next-line react/prop-types
+const CreateCollectible = ({ navigation }) => {
 	const [media, setMedia] = useState('');
 	const [name, setName] = useState('');
 	const [description, setDescription] = useState('');
 	const [traits, setTraits] = useState([{ trait_type: '', value: '' }]);
+	const [isUploading, setIsUploading] = useState(false);
 
 	const addTrait = useCallback(() => {
 		const newTraits = [...traits, { trait_type: '', value: '' }];
@@ -78,6 +86,7 @@ const CreateCollectible = () => {
 	}, []);
 
 	const handleSubmit = useCallback(async () => {
+		setIsUploading(true);
 		try {
 			const params: NftMediaData = {
 				name: media.fileName || 'nft',
@@ -115,13 +124,22 @@ const CreateCollectible = () => {
 
 			// eslint-disable-next-line no-console
 			console.log('testMetaDataResponse', ipfsAddMetadataResponse);
+
+			setIsUploading(false);
+			// eslint-disable-next-line react/prop-types
+			navigation.push('CollectibleNetworkPrompt', { media, name, description, traits });
 		} catch (e) {
 			// eslint-disable-next-line no-console
 			console.log('ERROR', e);
 		}
-	}, [description, media, name]);
+	}, [description, media, name, navigation, traits]);
 
-	return (
+	return isUploading ? (
+		<View style={styles.indicatorContainer}>
+			<ActivityIndicator color={colors.blue} />
+			<Text small blue>{`Uploading to IPFS`}</Text>
+		</View>
+	) : (
 		<ActionView
 			style={styles.wrapper}
 			cancelTestID={'create-custom-asset-cancel-button'}

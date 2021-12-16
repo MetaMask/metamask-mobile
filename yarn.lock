@@ -1798,6 +1798,7 @@
     uuid "^8.3.2"
     web3 "^0.20.7"
     web3-provider-engine "^16.0.3"
+    
 
 "@metamask/controllers@git+https://github.com/MetaMask/controllers.git#e122c6dbab13288b0035d91b7ca93f422726a8b4":
   version "22.0.0-seth-1"
