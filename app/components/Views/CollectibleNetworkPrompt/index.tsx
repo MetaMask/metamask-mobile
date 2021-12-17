@@ -8,7 +8,6 @@ import CollectibleMedia from '../../../components/UI/CollectibleMedia';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
 import SelectComponent from '../../UI/SelectComponent';
-import { strings } from '../../../../locales/i18n';
 
 // import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
@@ -79,15 +78,15 @@ const CollectibleNetworkPrompt = ({ route }) => {
 		{
 			value: 'MetaMaskMint',
 			label: 'MetaMask Mint',
-			key: '0',
+			key: 'MetaMaskMint',
 		},
 		{
 			value: 'RaribleLazyMint',
 			label: 'Rarible Lazy Mint',
-			key: '1',
+			key: 'RaribleLazyMint',
 		},
 	];
-	const [mintOption, setMintOption] = useState('0');
+	const [mintOption, setMintOption] = useState('MetaMaskMint');
 
 	const mint = async () => {
 		const { CollectibleMintingController, CollectiblesController } = Engine.context as any;
@@ -108,9 +107,8 @@ const CollectibleNetworkPrompt = ({ route }) => {
 		navigation?.popToTop();
 	};
 
-	const selectOption = (index) => {
-		console.log(index);
-		setMintOption('1');
+	const selectOption = (selection: string) => {
+		setMintOption(selection);
 	};
 
 	return (
@@ -161,20 +159,23 @@ const CollectibleNetworkPrompt = ({ route }) => {
 				<SelectComponent
 					selectedValue={mintOption}
 					onValueChange={selectOption}
-					label={'Select Minting Option'}
+					label={'Select A Minting Option'}
 					options={mintOptions}
 				/>
 			</View>
-			{mintOption === '0' && (
+
+			{mintOption === 'MetaMaskMint' && (
 				<Text small centered grey>
 					{`By Minting with MetaMask you'll deploy your own smart contract to the blockchain and the NFT will be available for use on NFT marketplaces. You'll need to pay network gas fees to deploy the contract - those are not MetaMask fees.`}
 				</Text>
 			)}
-			{mintOption === '1' && (
+
+			{mintOption === 'RaribleLazyMint' && (
 				<Text small centered grey>
 					{`By using Rarible's Lazy minting the gas is free for now. You will only pay a gas fee once you sell the NFT and it gets added to the blockchain. Your NFT might not show up in other wallets and marketplaces before that.`}
 				</Text>
 			)}
+
 			<StyledButton type={'sign'} onPress={mint}>
 				{'Mint NFT'}
 			</StyledButton>

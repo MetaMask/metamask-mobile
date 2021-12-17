@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import React, { useCallback, useState } from 'react';
 import { View, StyleSheet, TextInput, Platform, ActivityIndicator } from 'react-native';
 import { getNetworkNavbarOptions } from '../../../components/UI/Navbar';
@@ -98,14 +99,10 @@ const CreateCollectible = ({ navigation }) => {
 
 			const ipfsAddMediaResponse = await CollectibleMintingController.uploadDataToIpfs(params);
 
-			console.log(ipfsAddMediaResponse);
-
 			const metadata: NftMetaData = { name, description, image: `ipfs://${ipfsAddMediaResponse.Hash}` };
 
 			const ipfsAddMetadataResponse = await CollectibleMintingController.uploadDataToIpfs(metadata);
 			const tokenUri = `ipfs://${ipfsAddMetadataResponse.Hash}`;
-			console.log(ipfsAddMetadataResponse);
-
 			setIsUploading(false);
 			navigation.push('CollectibleNetworkPrompt', {
 				navigation,
