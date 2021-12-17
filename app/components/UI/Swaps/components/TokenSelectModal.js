@@ -24,7 +24,7 @@ import { balanceToFiat, hexToBN, renderFromTokenMinimalUnit, renderFromWei, weiT
 import { safeToChecksumAddress } from '../../../../util/address';
 import { isSwapsNativeAsset } from '../utils';
 import { strings } from '../../../../../locales/i18n';
-import { colors, fontStyles } from '../../../../styles/common';
+import { fontStyles } from '../../../../styles/common';
 
 import Text from '../../../Base/Text';
 import ListItem from '../../../Base/ListItem';
@@ -37,78 +37,7 @@ import useModalHandler from '../../../Base/hooks/useModalHandler';
 import TokenImportModal from './TokenImportModal';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
-
-const styles = StyleSheet.create({
-	modal: {
-		margin: 0,
-		justifyContent: 'flex-end',
-	},
-	modalView: {
-		backgroundColor: colors.backgroundDefault,
-		borderTopLeftRadius: 10,
-		borderTopRightRadius: 10,
-	},
-	inputWrapper: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		marginHorizontal: 30,
-		marginVertical: 10,
-		paddingVertical: Device.isAndroid() ? 0 : 10,
-		paddingHorizontal: 5,
-		borderRadius: 5,
-		borderWidth: 1,
-		borderColor: colors.borderDefault,
-	},
-	searchIcon: {
-		marginHorizontal: 8,
-	},
-	input: {
-		...fontStyles.normal,
-		flex: 1,
-	},
-	modalTitle: {
-		marginTop: Device.isIphone5() ? 10 : 15,
-		marginBottom: Device.isIphone5() ? 5 : 5,
-	},
-	resultsView: {
-		height: Device.isSmallDevice() ? 200 : 280,
-		marginTop: 10,
-	},
-	resultRow: {
-		borderTopWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderDefault,
-	},
-	emptyList: {
-		marginVertical: 10,
-		marginHorizontal: 30,
-	},
-	importButton: {
-		paddingVertical: 6,
-		paddingHorizontal: 10,
-		backgroundColor: colors.primary,
-		borderRadius: 100,
-	},
-	importButtonText: {
-		color: colors.onPrimary,
-	},
-	loadingIndicator: {
-		margin: 10,
-	},
-	loadingTokenView: {
-		marginVertical: 10,
-		marginHorizontal: 30,
-		justifyContent: 'center',
-		alignItems: 'center',
-		flexDirection: 'row',
-	},
-	footer: {
-		padding: 30,
-	},
-	footerIcon: {
-		paddingTop: 4,
-		paddingRight: 8,
-	},
-});
+import { useAppThemeFromContext } from '../../../../util/theme';
 
 const MAX_TOKENS_RESULTS = 20;
 
@@ -136,6 +65,79 @@ function TokenSelectModal({
 	const [searchString, setSearchString] = useState('');
 	const explorer = useBlockExplorer(provider, frequentRpcList);
 	const [isTokenImportVisible, , showTokenImportModal, hideTokenImportModal] = useModalHandler(false);
+
+	const { colors } = useAppThemeFromContext();
+	const styles = StyleSheet.create({
+		modal: {
+			margin: 0,
+			justifyContent: 'flex-end',
+		},
+		modalView: {
+			backgroundColor: colors.backgroundDefault,
+			borderTopLeftRadius: 10,
+			borderTopRightRadius: 10,
+		},
+		inputWrapper: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			marginHorizontal: 30,
+			marginVertical: 10,
+			paddingVertical: Device.isAndroid() ? 0 : 10,
+			paddingHorizontal: 5,
+			borderRadius: 5,
+			borderWidth: 1,
+			borderColor: colors.borderDefault,
+		},
+		searchIcon: {
+			marginHorizontal: 8,
+		},
+		input: {
+			...fontStyles.normal,
+			flex: 1,
+		},
+		modalTitle: {
+			marginTop: Device.isIphone5() ? 10 : 15,
+			marginBottom: Device.isIphone5() ? 5 : 5,
+		},
+		resultsView: {
+			height: Device.isSmallDevice() ? 200 : 280,
+			marginTop: 10,
+		},
+		resultRow: {
+			borderTopWidth: StyleSheet.hairlineWidth,
+			borderColor: colors.borderDefault,
+		},
+		emptyList: {
+			marginVertical: 10,
+			marginHorizontal: 30,
+		},
+		importButton: {
+			paddingVertical: 6,
+			paddingHorizontal: 10,
+			backgroundColor: colors.primary,
+			borderRadius: 100,
+		},
+		importButtonText: {
+			color: colors.onPrimary,
+		},
+		loadingIndicator: {
+			margin: 10,
+		},
+		loadingTokenView: {
+			marginVertical: 10,
+			marginHorizontal: 30,
+			justifyContent: 'center',
+			alignItems: 'center',
+			flexDirection: 'row',
+		},
+		footer: {
+			padding: 30,
+		},
+		footerIcon: {
+			paddingTop: 4,
+			paddingRight: 8,
+		},
+	});
 
 	const excludedAddresses = useMemo(
 		() => excludeAddresses.filter(Boolean).map((address) => address.toLowerCase()),
