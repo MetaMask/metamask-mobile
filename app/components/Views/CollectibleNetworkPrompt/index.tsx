@@ -66,16 +66,27 @@ const styles = StyleSheet.create({
 });
 
 const CollectibleNetworkPrompt = ({ route }) => {
-	const { media, name, description, traits, tokenUri } = route.params;
+	const { navigation, media, name, description, traits, tokenUri } = route.params;
 
 	const mint = async () => {
-		const { CollectibleMintingController } = Engine.context as any;
+		const { CollectibleMintingController, CollectiblesController } = Engine.context as any;
+		const lazyMinting = true;
 
-		await CollectibleMintingController.raribleMint(tokenUri, {
-			royalties: [],
-			creatorProfitPercentage: 10000,
-			lazy: false,
-		});
+		const response = await CollectibleMintingController.mint(
+			tokenUri,
+			{ nftType: 'rarible' },
+			{
+				royalties: [],
+				creatorProfitPercentage: 10000,
+				lazy: lazyMinting,
+			}
+		);
+
+		console.log(response);
+		const { contract, tokenId } = response;
+		console.log(contract, tokenId);
+		CollectiblesController.addCollectible(contract, tokenId);
+		navigation?.popToTop();
 	};
 
 	return (

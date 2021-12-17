@@ -101,13 +101,12 @@ const CreateCollectible = ({ navigation }) => {
 			// eslint-disable-next-line no-console
 			console.log('testMediaResponse', ipfsAddMediaResponse);
 
-			const tokenUri = 'ipfs://' + ipfsAddMediaResponse.Hash;
-
-			const metadata: NftMetaData = { name, description, image: tokenUri };
+			const metadata: NftMetaData = { name, description, image: `ipfs://${ipfsAddMediaResponse.Hash}` };
 			// eslint-disable-next-line no-console
 			console.log('testMetaData', metadata);
 
 			const ipfsAddMetadataResponse = await CollectibleMintingController.uploadDataToIpfs(metadata);
+			const tokenUri = `ipfs://${ipfsAddMetadataResponse.Hash}`;
 
 			// eslint-disable-next-line no-console
 			console.log(tokenUri);
@@ -116,8 +115,7 @@ const CreateCollectible = ({ navigation }) => {
 			console.log('testMetaDataResponse', ipfsAddMetadataResponse);
 
 			setIsUploading(false);
-			// eslint-disable-next-line react/prop-types
-			navigation.push('CollectibleNetworkPrompt', { media, name, description, traits, tokenUri });
+			navigation.push('CollectibleNetworkPrompt', { navigation, media, name, description, traits, tokenUri });
 		} catch (e) {
 			// eslint-disable-next-line no-console
 			console.log('ERROR', e);
