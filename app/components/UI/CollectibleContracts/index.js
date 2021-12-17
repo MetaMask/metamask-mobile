@@ -26,6 +26,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'space-between',
 		backgroundColor: colors.white,
 		marginBottom: 90,
+		marginTop: 20,
 	},
 	emptyView: {
 		alignItems: 'center',
