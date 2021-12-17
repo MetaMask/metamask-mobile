@@ -26,6 +26,7 @@ import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import { BIOMETRY_CHOICE } from '../../../constants/storage';
 import ClipboardManager from '../../../core/ClipboardManager';
+import Device from '../../../util/device';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -334,7 +335,11 @@ class RevealPrivateCredential extends PureComponent {
 										<View style={styles.qrCodeWrapper}>
 											<QRCode
 												value={privateCredential}
-												size={Dimensions.get('window').width - 160}
+												size={
+													Device.isIpad()
+														? Device.maxWidth
+														: Dimensions.get('window').width - 160
+												}
 											/>
 										</View>
 									</View>

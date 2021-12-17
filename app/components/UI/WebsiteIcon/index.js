@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
 	fallbackText: {
 		...fontStyles.normal,
 		color: colors.white,
-		fontSize: 24,
+		fontSize: 16,
 		textAlign: 'center',
 		textTransform: 'uppercase',
 	},
