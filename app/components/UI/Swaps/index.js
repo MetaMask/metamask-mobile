@@ -33,7 +33,6 @@ import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 
 import { strings } from '../../../../locales/i18n';
-import { colors } from '../../../styles/common';
 import { setQuotesNavigationsParams, isSwapsNativeAsset, isDynamicToken } from './utils';
 import { getSwapsAmountNavbar } from '../Navbar';
 
@@ -52,87 +51,7 @@ import useBlockExplorer from './utils/useBlockExplorer';
 import InfoModal from './components/InfoModal';
 import { toLowerCaseEquals } from '../../../util/general';
 import { AlertType } from '../../Base/Alert';
-
-const styles = StyleSheet.create({
-	screen: {
-		flexGrow: 1,
-		justifyContent: 'space-between',
-	},
-	content: {
-		flexGrow: 1,
-		justifyContent: 'center',
-	},
-	keypad: {
-		flexGrow: 1,
-		justifyContent: 'space-around',
-	},
-	tokenButtonContainer: {
-		flexDirection: 'row',
-		justifyContent: 'center',
-		margin: Device.isIphone5() ? 5 : 10,
-	},
-	amountContainer: {
-		alignItems: 'center',
-		justifyContent: 'center',
-		marginHorizontal: 25,
-	},
-	amount: {
-		textAlignVertical: 'center',
-		fontSize: Device.isIphone5() ? 30 : 40,
-		height: Device.isIphone5() ? 40 : 50,
-	},
-	amountInvalid: {
-		color: colors.onError,
-	},
-	verifyToken: {
-		marginHorizontal: 40,
-	},
-	tokenAlert: {
-		marginTop: 10,
-		marginHorizontal: 30,
-	},
-	linkText: {
-		color: colors.primary,
-	},
-	horizontalRuleContainer: {
-		flexDirection: 'row',
-		paddingHorizontal: 30,
-		marginVertical: Device.isIphone5() ? 5 : 10,
-		alignItems: 'center',
-	},
-	horizontalRule: {
-		flex: 1,
-		borderBottomWidth: StyleSheet.hairlineWidth,
-		height: 1,
-		borderBottomColor: colors.borderDefault,
-	},
-	arrowDown: {
-		color: colors.primary,
-		fontSize: 25,
-		marginHorizontal: 15,
-	},
-	buttonsContainer: {
-		marginTop: Device.isIphone5() ? 10 : 30,
-		marginBottom: 5,
-		paddingHorizontal: 30,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'space-between',
-	},
-	column: {
-		flex: 1,
-	},
-	ctaContainer: {
-		flexDirection: 'row',
-		justifyContent: 'flex-end',
-	},
-	cta: {
-		paddingHorizontal: Device.isIphone5() ? 10 : 20,
-	},
-	disabled: {
-		opacity: 0.4,
-	},
-});
+import { useAppThemeFromContext } from '../../../util/theme';
 
 const SWAPS_NATIVE_ADDRESS = swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS;
 const TOKEN_MINIMUM_SOURCES = 1;
@@ -183,6 +102,88 @@ function SwapsAmountView({
 	const [isSlippageModalVisible, toggleSlippageModal] = useModalHandler(false);
 	const [isTokenVerificationModalVisisble, toggleTokenVerificationModal, , hideTokenVerificationModal] =
 		useModalHandler(false);
+	const { colors } = useAppThemeFromContext();
+
+	const styles = StyleSheet.create({
+		screen: {
+			flexGrow: 1,
+			justifyContent: 'space-between',
+		},
+		content: {
+			flexGrow: 1,
+			justifyContent: 'center',
+		},
+		keypad: {
+			flexGrow: 1,
+			justifyContent: 'space-around',
+		},
+		tokenButtonContainer: {
+			flexDirection: 'row',
+			justifyContent: 'center',
+			margin: Device.isIphone5() ? 5 : 10,
+		},
+		amountContainer: {
+			alignItems: 'center',
+			justifyContent: 'center',
+			marginHorizontal: 25,
+		},
+		amount: {
+			textAlignVertical: 'center',
+			fontSize: Device.isIphone5() ? 30 : 40,
+			height: Device.isIphone5() ? 40 : 50,
+		},
+		amountInvalid: {
+			color: colors.onError,
+		},
+		verifyToken: {
+			marginHorizontal: 40,
+		},
+		tokenAlert: {
+			marginTop: 10,
+			marginHorizontal: 30,
+		},
+		linkText: {
+			color: colors.primary,
+		},
+		horizontalRuleContainer: {
+			flexDirection: 'row',
+			paddingHorizontal: 30,
+			marginVertical: Device.isIphone5() ? 5 : 10,
+			alignItems: 'center',
+		},
+		horizontalRule: {
+			flex: 1,
+			borderBottomWidth: StyleSheet.hairlineWidth,
+			height: 1,
+			borderBottomColor: colors.borderDefault,
+		},
+		arrowDown: {
+			color: colors.primary,
+			fontSize: 25,
+			marginHorizontal: 15,
+		},
+		buttonsContainer: {
+			marginTop: Device.isIphone5() ? 10 : 30,
+			marginBottom: 5,
+			paddingHorizontal: 30,
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'space-between',
+		},
+		column: {
+			flex: 1,
+		},
+		ctaContainer: {
+			flexDirection: 'row',
+			justifyContent: 'flex-end',
+		},
+		cta: {
+			paddingHorizontal: Device.isIphone5() ? 10 : 20,
+		},
+		disabled: {
+			opacity: 0.4,
+		},
+	});
 
 	useEffect(() => {
 		(async () => {
@@ -228,6 +229,10 @@ function SwapsAmountView({
 			}
 		})();
 	}, []);
+
+	useEffect(() => {
+		navigation.setOptions(getSwapsAmountNavbar(navigation, route, colors));
+	}, [navigation, route, colors]);
 
 	useEffect(() => {
 		(async () => {
@@ -717,8 +722,6 @@ function SwapsAmountView({
 		</ScreenView>
 	);
 }
-
-SwapsAmountView.navigationOptions = ({ navigation, route }) => getSwapsAmountNavbar(navigation, route);
 
 SwapsAmountView.propTypes = {
 	swapsTokens: PropTypes.arrayOf(PropTypes.object),

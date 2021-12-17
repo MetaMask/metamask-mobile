@@ -56,6 +56,8 @@ import { swapsTokensSelector } from '../../../reducers/swaps';
 import { decGWEIToHexWEI } from '../../../util/conversions';
 import FadeAnimationView from '../FadeAnimationView';
 import Logger from '../../../util/Logger';
+import { useAppThemeFromContext } from '../../../util/theme';
+import { getSwapsAmountNavbar } from '../Navbar';
 
 const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
@@ -65,163 +67,6 @@ const SLIPPAGE_BUCKETS = {
 
 const DEFAULT_GAS_FEE_OPTION_LEGACY = AppConstants.GAS_OPTIONS.MEDIUM;
 const DEFAULT_GAS_FEE_OPTION_FEE_MARKET = AppConstants.GAS_OPTIONS.HIGH;
-
-const styles = StyleSheet.create({
-	screen: {
-		flexGrow: 1,
-		justifyContent: 'space-between',
-	},
-	topBar: {
-		alignItems: 'center',
-		marginVertical: 12,
-	},
-	alertBar: {
-		paddingHorizontal: 20,
-		marginVertical: 10,
-		width: '100%',
-	},
-	timerWrapper: {
-		backgroundColor: colors.backgroundAlternative,
-		borderRadius: 20,
-		marginVertical: 12,
-		paddingVertical: 4,
-		paddingHorizontal: 15,
-		flexDirection: 'row',
-		alignItems: 'center',
-	},
-	timer: {
-		fontVariant: ['tabular-nums'],
-	},
-	timerHiglight: {
-		color: colors.onError,
-	},
-	content: {
-		paddingHorizontal: 20,
-		alignItems: 'center',
-	},
-	errorViewContent: {
-		flex: 1,
-		marginHorizontal: Device.isSmallDevice() ? 20 : 55,
-		justifyContent: 'center',
-	},
-	errorTitle: {
-		fontSize: 24,
-		marginVertical: 10,
-	},
-	errorText: {
-		fontSize: 14,
-	},
-	sourceTokenContainer: {
-		flexDirection: 'row',
-		alignItems: 'center',
-	},
-	tokenIcon: {
-		marginHorizontal: 5,
-	},
-	tokenText: {
-		color: colors.textAlternative,
-		fontSize: Device.isSmallDevice() ? 16 : 18,
-	},
-	tokenTextDestination: {
-		color: colors.textDefault,
-	},
-	arrowDown: {
-		color: colors.muted,
-		fontSize: Device.isSmallDevice() ? 22 : 25,
-		marginHorizontal: 15,
-		marginTop: Device.isSmallDevice() ? 2 : 4,
-		marginBottom: Device.isSmallDevice() ? 0 : 2,
-	},
-	amount: {
-		textAlignVertical: 'center',
-		fontSize: Device.isSmallDevice() ? 45 : 60,
-		marginBottom: Device.isSmallDevice() ? 8 : 24,
-	},
-	exchangeRate: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		marginVertical: Device.isSmallDevice() ? 1 : 1,
-	},
-	bottomSection: {
-		marginBottom: 6,
-		alignItems: 'stretch',
-		paddingHorizontal: 20,
-	},
-	sliderButtonText: {
-		fontSize: 16,
-		color: colors.onPrimary,
-	},
-	quotesSummary: {
-		marginVertical: Device.isSmallDevice() ? 12 : 24,
-	},
-	quotesSummaryHeader: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
-		flexWrap: 'wrap',
-	},
-	quotesRow: {
-		flexDirection: 'row',
-		flexWrap: 'wrap',
-	},
-	quotesDescription: {
-		flex: 1,
-		flexWrap: 'wrap',
-		flexDirection: 'row',
-		marginRight: 3,
-	},
-	quotesLegend: {
-		flexDirection: 'row',
-		flexWrap: 'wrap',
-		marginRight: 2,
-		alignItems: 'center',
-	},
-	quotesFiatColumn: {
-		flex: 1,
-		marginLeft: 3,
-		flexWrap: 'wrap',
-		flexDirection: 'row',
-		justifyContent: 'flex-end',
-	},
-	infoIcon: {
-		fontSize: 12,
-		margin: 3,
-		color: colors.primary,
-	},
-	ctaButton: {
-		width: '100%',
-	},
-	errorIcon: {
-		fontSize: 46,
-		marginVertical: 4,
-		color: colors.onError,
-	},
-	expiredIcon: {
-		color: colors.primary,
-	},
-	disabled: {
-		opacity: 0.4,
-	},
-	termsButton: {
-		marginTop: 10,
-		marginBottom: 6,
-	},
-	gasInfoContainer: {
-		paddingHorizontal: 2,
-	},
-	gasInfoIcon: {
-		color: colors.primary,
-	},
-	hitSlop: {
-		top: 10,
-		left: 10,
-		bottom: 10,
-		right: 10,
-	},
-	text: {
-		lineHeight: 20,
-	},
-});
 
 async function resetAndStartPolling({ slippage, sourceToken, destinationToken, sourceAmount, walletAddress }) {
 	if (!sourceToken || !destinationToken) {
@@ -311,6 +156,164 @@ function SwapsQuotesView({
 	const navigation = useNavigation();
 	const route = useRoute();
 	/* Get params from navigation */
+
+	const { colors } = useAppThemeFromContext();
+	const styles = StyleSheet.create({
+		screen: {
+			flexGrow: 1,
+			justifyContent: 'space-between',
+		},
+		topBar: {
+			alignItems: 'center',
+			marginVertical: 12,
+		},
+		alertBar: {
+			paddingHorizontal: 20,
+			marginVertical: 10,
+			width: '100%',
+		},
+		timerWrapper: {
+			backgroundColor: colors.backgroundAlternative,
+			borderRadius: 20,
+			marginVertical: 12,
+			paddingVertical: 4,
+			paddingHorizontal: 15,
+			flexDirection: 'row',
+			alignItems: 'center',
+		},
+		timer: {
+			fontVariant: ['tabular-nums'],
+		},
+		timerHiglight: {
+			color: colors.onError,
+		},
+		content: {
+			paddingHorizontal: 20,
+			alignItems: 'center',
+		},
+		errorViewContent: {
+			flex: 1,
+			marginHorizontal: Device.isSmallDevice() ? 20 : 55,
+			justifyContent: 'center',
+		},
+		errorTitle: {
+			fontSize: 24,
+			marginVertical: 10,
+		},
+		errorText: {
+			fontSize: 14,
+		},
+		sourceTokenContainer: {
+			flexDirection: 'row',
+			alignItems: 'center',
+		},
+		tokenIcon: {
+			marginHorizontal: 5,
+		},
+		tokenText: {
+			color: colors.textAlternative,
+			fontSize: Device.isSmallDevice() ? 16 : 18,
+		},
+		tokenTextDestination: {
+			color: colors.textDefault,
+		},
+		arrowDown: {
+			color: colors.muted,
+			fontSize: Device.isSmallDevice() ? 22 : 25,
+			marginHorizontal: 15,
+			marginTop: Device.isSmallDevice() ? 2 : 4,
+			marginBottom: Device.isSmallDevice() ? 0 : 2,
+		},
+		amount: {
+			textAlignVertical: 'center',
+			fontSize: Device.isSmallDevice() ? 45 : 60,
+			marginBottom: Device.isSmallDevice() ? 8 : 24,
+		},
+		exchangeRate: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			marginVertical: Device.isSmallDevice() ? 1 : 1,
+		},
+		bottomSection: {
+			marginBottom: 6,
+			alignItems: 'stretch',
+			paddingHorizontal: 20,
+		},
+		sliderButtonText: {
+			fontSize: 16,
+			color: colors.onPrimary,
+		},
+		quotesSummary: {
+			marginVertical: Device.isSmallDevice() ? 12 : 24,
+		},
+		quotesSummaryHeader: {
+			flexDirection: 'row',
+			justifyContent: 'space-between',
+			alignItems: 'center',
+			flexWrap: 'wrap',
+		},
+		quotesRow: {
+			flexDirection: 'row',
+			flexWrap: 'wrap',
+		},
+		quotesDescription: {
+			flex: 1,
+			flexWrap: 'wrap',
+			flexDirection: 'row',
+			marginRight: 3,
+		},
+		quotesLegend: {
+			flexDirection: 'row',
+			flexWrap: 'wrap',
+			marginRight: 2,
+			alignItems: 'center',
+		},
+		quotesFiatColumn: {
+			flex: 1,
+			marginLeft: 3,
+			flexWrap: 'wrap',
+			flexDirection: 'row',
+			justifyContent: 'flex-end',
+		},
+		infoIcon: {
+			fontSize: 12,
+			margin: 3,
+			color: colors.primary,
+		},
+		ctaButton: {
+			width: '100%',
+		},
+		errorIcon: {
+			fontSize: 46,
+			marginVertical: 4,
+			color: colors.onError,
+		},
+		expiredIcon: {
+			color: colors.primary,
+		},
+		disabled: {
+			opacity: 0.4,
+		},
+		termsButton: {
+			marginTop: 10,
+			marginBottom: 6,
+		},
+		gasInfoContainer: {
+			paddingHorizontal: 2,
+		},
+		gasInfoIcon: {
+			color: colors.primary,
+		},
+		hitSlop: {
+			top: 10,
+			left: 10,
+			bottom: 10,
+			right: 10,
+		},
+		text: {
+			lineHeight: 20,
+		},
+	});
 
 	const { sourceTokenAddress, destinationTokenAddress, sourceAmount, slippage, tokens } = useMemo(
 		() => getQuotesNavigationsParams(route),
@@ -477,6 +480,10 @@ function SwapsQuotesView({
 	useEffect(() => {
 		setApprovalTransaction(originalApprovalTransaction);
 	}, [originalApprovalTransaction]);
+
+	useEffect(() => {
+		navigation.setOptions(getSwapsAmountNavbar(navigation, route, colors));
+	}, [navigation, route, colors]);
 
 	/* Modals, state and handlers */
 	const [isFeeModalVisible, toggleFeeModal, , hideFeeModal] = useModalHandler(false);
@@ -1133,6 +1140,10 @@ function SwapsQuotesView({
 		handleQuotesErrorMetric(error);
 	}, [error, handleQuotesErrorMetric, trackedError]);
 
+	useEffect(() => {
+		navigation.setOptions(getSwapsQuotesNavbar(navigation, route, colors));
+	}, [navigation, route, colors]);
+
 	const openLinkAboutGas = () =>
 		Linking.openURL('https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172');
 
@@ -1671,8 +1682,6 @@ function SwapsQuotesView({
 		</ScreenView>
 	);
 }
-
-SwapsQuotesView.navigationOptions = ({ navigation, route }) => getSwapsQuotesNavbar(navigation, route);
 
 SwapsQuotesView.propTypes = {
 	swapsTokens: PropTypes.arrayOf(PropTypes.object),

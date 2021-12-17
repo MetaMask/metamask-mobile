@@ -936,7 +936,7 @@ export function getTransakWebviewNavbar(navigation, route, onPop) {
 	};
 }
 
-export function getSwapsAmountNavbar(navigation, route) {
+export function getSwapsAmountNavbar(navigation, route, themeColors) {
 	const title = route.params?.title ?? 'Swap';
 	return {
 		headerTitle: () => <NavbarTitle title={title} disableNetwork translate={false} />,
@@ -944,12 +944,17 @@ export function getSwapsAmountNavbar(navigation, route) {
 		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={() => navigation.dangerouslyGetParent()?.pop()} style={styles.closeButton}>
-				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
+				<Text style={[styles.closeButtonText, { color: themeColors.primary }]}>
+					{strings('navigation.cancel')}
+				</Text>
 			</TouchableOpacity>
 		),
+		headerStyle: {
+			backgroundColor: themeColors.navbarBackground,
+		},
 	};
 }
-export function getSwapsQuotesNavbar(navigation, route) {
+export function getSwapsQuotesNavbar(navigation, route, themeColors) {
 	const title = route.params?.title ?? 'Swap';
 	const leftActionText = route.params?.leftAction ?? strings('navigation.back');
 
@@ -989,19 +994,28 @@ export function getSwapsQuotesNavbar(navigation, route) {
 			Device.isAndroid() ? (
 				// eslint-disable-next-line react/jsx-no-bind
 				<TouchableOpacity onPress={leftAction} style={styles.backButton}>
-					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
+					<IonicIcon
+						name={'md-arrow-back'}
+						size={24}
+						style={[styles.backIcon, { color: themeColors.primary }]}
+					/>
 				</TouchableOpacity>
 			) : (
 				// eslint-disable-next-line react/jsx-no-bind
 				<TouchableOpacity onPress={leftAction} style={styles.closeButton}>
-					<Text style={styles.closeButtonText}>{leftActionText}</Text>
+					<Text style={[styles.closeButtonText, { color: themeColors.primary }]}>{leftActionText}</Text>
 				</TouchableOpacity>
 			),
 		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={rightAction} style={styles.closeButton}>
-				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
+				<Text style={[styles.closeButtonText, { color: themeColors.primary }]}>
+					{strings('navigation.cancel')}
+				</Text>
 			</TouchableOpacity>
 		),
+		headerStyle: {
+			backgroundColor: themeColors.navbarBackground,
+		},
 	};
 }
