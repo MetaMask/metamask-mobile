@@ -55,11 +55,11 @@ const CreateCollectible = ({ navigation }) => {
 	const [media, setMedia] = useState('');
 	const [name, setName] = useState('');
 	const [description, setDescription] = useState('');
-	const [traits, setTraits] = useState([{ trait_type: '', value: '' }]);
+	const [traits, setTraits] = useState([{ name: '', value: '' }]);
 	const [isUploading, setIsUploading] = useState(false);
 
 	const addTrait = useCallback(() => {
-		const newTraits = [...traits, { trait_type: '', value: '' }];
+		const newTraits = [...traits, { name: '', value: '' }];
 		setTraits(newTraits);
 	}, [traits]);
 
@@ -75,7 +75,7 @@ const CreateCollectible = ({ navigation }) => {
 	const changeTraitType = useCallback(
 		(index, value) => {
 			const newTraits = [...traits];
-			newTraits[index].trait_type = value;
+			newTraits[index].name = value;
 			setTraits(newTraits);
 		},
 		[traits]
