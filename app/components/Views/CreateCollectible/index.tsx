@@ -104,7 +104,15 @@ const CreateCollectible = ({ navigation }) => {
 			const tokenUri = `ipfs://${ipfsAddMetadataResponse.Hash}`;
 
 			setIsUploading(false);
-			navigation.push('CollectibleNetworkPrompt', { navigation, media, name, description, traits, tokenUri });
+			navigation.push('CollectibleNetworkPrompt', {
+				navigation,
+				media,
+				name,
+				description,
+				traits,
+				tokenUri,
+				imageUri: `ipfs://${ipfsAddMediaResponse.Hash}`,
+			});
 		} catch (e) {
 			// eslint-disable-next-line no-console
 			console.log('ERROR', e);

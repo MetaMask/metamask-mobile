@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
 });
 
 const CollectibleNetworkPrompt = ({ route }) => {
-	const { navigation, media, name, description, traits, tokenUri } = route.params;
+	const { navigation, media, name, description, traits, tokenUri, imageUri } = route.params;
 
 	const mint = async () => {
 		const { CollectibleMintingController, CollectiblesController } = Engine.context as any;
@@ -82,10 +82,8 @@ const CollectibleNetworkPrompt = ({ route }) => {
 			}
 		);
 
-		console.log(response);
 		const { contract, tokenId } = response;
-		console.log(contract, tokenId);
-		CollectiblesController.addCollectible(contract, tokenId);
+		CollectiblesController.addCollectible(contract, tokenId, { name, description, image: imageUri });
 		navigation?.popToTop();
 	};
 
@@ -113,9 +111,9 @@ const CollectibleNetworkPrompt = ({ route }) => {
 					</Text>
 					<Text bold>{'Description'}</Text>
 					<Text style={styles.description}>{description}</Text>
-					{traits.map(({ trait_type, value }, index) => (
+					{traits.map(({ name, value }, index) => (
 						<View style={styles.row} key={index}>
-							<Text bold>{trait_type}</Text>
+							<Text bold>{name}</Text>
 							<Text>{value}</Text>
 						</View>
 					))}

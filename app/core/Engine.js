@@ -263,8 +263,6 @@ class Engine {
 				new CollectibleMintingController({
 					onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
 					onNetworkStateChange: (listener) => networkController.subscribe(listener),
-					addCollectible: collectiblesController.addCollectible,
-					addTransaction: TransactionController.addTransaction,
 				}),
 				new TypedMessageManager(),
 				new SwapsController(
