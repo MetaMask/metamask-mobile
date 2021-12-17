@@ -98,10 +98,13 @@ const CreateCollectible = ({ navigation }) => {
 
 			const ipfsAddMediaResponse = await CollectibleMintingController.uploadDataToIpfs(params);
 
+			console.log(ipfsAddMediaResponse);
+
 			const metadata: NftMetaData = { name, description, image: `ipfs://${ipfsAddMediaResponse.Hash}` };
 
 			const ipfsAddMetadataResponse = await CollectibleMintingController.uploadDataToIpfs(metadata);
 			const tokenUri = `ipfs://${ipfsAddMetadataResponse.Hash}`;
+			console.log(ipfsAddMetadataResponse);
 
 			setIsUploading(false);
 			navigation.push('CollectibleNetworkPrompt', {

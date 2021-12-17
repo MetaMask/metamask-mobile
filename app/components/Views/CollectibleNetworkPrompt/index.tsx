@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React from 'react';
+import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { getNetworkNavbarOptions } from '../../../components/UI/Navbar';
 import { colors } from '../../../styles/common';
@@ -7,6 +7,8 @@ import Text from '../../Base/Text';
 import CollectibleMedia from '../../../components/UI/CollectibleMedia';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
+import SelectComponent from '../../UI/SelectComponent';
+import { strings } from '../../../../locales/i18n';
 
 // import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
@@ -42,7 +44,6 @@ const styles = StyleSheet.create({
 	networkContainer: {
 		justifyContent: 'center',
 		alignItems: 'center',
-		marginBottom: 12,
 	},
 	network: {
 		fontSize: 24,
@@ -63,10 +64,30 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		width: usableWidth,
 	},
+	picker: {
+		borderColor: colors.grey200,
+		borderRadius: 5,
+		borderWidth: 2,
+		width: 250,
+		height: 50,
+	},
 });
 
 const CollectibleNetworkPrompt = ({ route }) => {
 	const { navigation, media, name, description, traits, tokenUri, imageUri } = route.params;
+	const mintOptions = [
+		{
+			value: 'MetaMaskMint',
+			label: 'MetaMask Mint',
+			key: '0',
+		},
+		{
+			value: 'RaribleLazyMint',
+			label: 'Rarible Lazy Mint',
+			key: '1',
+		},
+	];
+	const [mintOption, setMintOption] = useState('0');
 
 	const mint = async () => {
 		const { CollectibleMintingController, CollectiblesController } = Engine.context as any;
@@ -85,6 +106,11 @@ const CollectibleNetworkPrompt = ({ route }) => {
 		const { contract, tokenId } = response;
 		CollectiblesController.addCollectible(contract, tokenId, { name, description, image: imageUri });
 		navigation?.popToTop();
+	};
+
+	const selectOption = (index) => {
+		console.log(index);
+		setMintOption('1');
 	};
 
 	return (
@@ -121,9 +147,7 @@ const CollectibleNetworkPrompt = ({ route }) => {
 
 				<View style={styles.networkContainer}>
 					<Text small disclaimer grey centered>
-						{
-							"We are using Rarible's Lazy minting so the gas is free for now. You will only pay gas fee once you sell the NFT."
-						}
+						{'Choose how you want to mint your NFT'}
 					</Text>
 				</View>
 
@@ -132,16 +156,27 @@ const CollectibleNetworkPrompt = ({ route }) => {
 						{'Use a different network'}
 					</Text>
 				</View> */}
-
-				{/* <Text small centered grey>
-					{
-						'Ethereum Mainnet is the gold standard for NFTs but gas fees can be high. NFTs created on Ethereum Mainnet are available for use on NFT marketplaces like OpenSea.'
-					}
-				</Text> */}
 			</View>
-
+			<View style={styles.picker}>
+				<SelectComponent
+					selectedValue={mintOption}
+					onValueChange={selectOption}
+					label={'Select Minting Option'}
+					options={mintOptions}
+				/>
+			</View>
+			{mintOption === '0' && (
+				<Text small centered grey>
+					{`By Minting with MetaMask you'll deploy your own smart contract to the blockchain and the NFT will be available for use on NFT marketplaces. You'll need to pay network gas fees to deploy the contract - those are not MetaMask fees.`}
+				</Text>
+			)}
+			{mintOption === '1' && (
+				<Text small centered grey>
+					{`By using Rarible's Lazy minting the gas is free for now. You will only pay a gas fee once you sell the NFT and it gets added to the blockchain. Your NFT might not show up in other wallets and marketplaces before that.`}
+				</Text>
+			)}
 			<StyledButton type={'sign'} onPress={mint}>
-				{'Lazy mint on Rarible'}
+				{'Mint NFT'}
 			</StyledButton>
 		</View>
 	);
