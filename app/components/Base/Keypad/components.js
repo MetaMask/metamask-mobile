@@ -4,8 +4,8 @@ import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import Device from '../../../util/device';
 
+import { useAppThemeFromContext } from '../../../util/theme';
 import Text from '../Text';
-import { colors } from '../../../styles/common';
 
 const styles = StyleSheet.create({
 	keypad: {
@@ -15,18 +15,6 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		justifyContent: 'space-around',
 	},
-	keypadButton: {
-		paddingHorizontal: 20,
-		paddingVertical: Device.isMediumDevice() ? (Device.isIphone5() ? 4 : 8) : 12,
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	keypadButtonText: {
-		color: colors.textDefault,
-		textAlign: 'center',
-		fontSize: 30,
-	},
 	deleteIcon: {
 		fontSize: 25,
 		marginTop: 5,
@@ -35,11 +23,28 @@ const styles = StyleSheet.create({
 
 const KeypadContainer = (props) => <View style={styles.keypad} {...props} />;
 const KeypadRow = (props) => <View style={styles.keypadRow} {...props} />;
-const KeypadButton = ({ children, ...props }) => (
-	<TouchableOpacity style={styles.keypadButton} {...props}>
-		<Text style={styles.keypadButtonText}>{children}</Text>
-	</TouchableOpacity>
-);
+const KeypadButton = ({ children, ...props }) => {
+	const { colors } = useAppThemeFromContext();
+	const themeStyles = StyleSheet.create({
+		keypadButton: {
+			paddingHorizontal: 20,
+			paddingVertical: Device.isMediumDevice() ? (Device.isIphone5() ? 4 : 8) : 12,
+			flex: 1,
+			justifyContent: 'center',
+			alignItems: 'center',
+		},
+		keypadButtonText: {
+			color: colors.textDefault,
+			textAlign: 'center',
+			fontSize: 30,
+		},
+	});
+	return (
+		<TouchableOpacity style={themeStyles.keypadButton} {...props}>
+			<Text style={themeStyles.keypadButtonText}>{children}</Text>
+		</TouchableOpacity>
+	);
+};
 
 KeypadButton.propTypes = {
 	children: PropTypes.node,
