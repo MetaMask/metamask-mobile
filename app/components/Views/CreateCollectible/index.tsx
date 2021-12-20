@@ -56,11 +56,11 @@ const CreateCollectible = ({ navigation }) => {
 	const [media, setMedia] = useState('');
 	const [name, setName] = useState('');
 	const [description, setDescription] = useState('');
-	const [traits, setTraits] = useState([{ name: '', value: '' }]);
+	const [traits, setTraits] = useState([{ type: '', value: '' }]);
 	const [isUploading, setIsUploading] = useState(false);
 
 	const addTrait = useCallback(() => {
-		const newTraits = [...traits, { name: '', value: '' }];
+		const newTraits = [...traits, { type: '', value: '' }];
 		setTraits(newTraits);
 	}, [traits]);
 
@@ -76,7 +76,7 @@ const CreateCollectible = ({ navigation }) => {
 	const changeTraitType = useCallback(
 		(index, value) => {
 			const newTraits = [...traits];
-			newTraits[index].name = value;
+			newTraits[index].type = value;
 			setTraits(newTraits);
 		},
 		[traits]
@@ -162,7 +162,7 @@ const CreateCollectible = ({ navigation }) => {
 							style={[styles.textInput, styles.traitKey]}
 							placeholder={strings('wallet.type')}
 							placeholderTextColor={colors.grey100}
-							value={trait.trait_type}
+							value={trait.type}
 							onChangeText={(value) => changeTraitType(index, value)}
 						/>
 						<TextInput

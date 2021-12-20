@@ -133,7 +133,7 @@ const MediaSelector = ({ setMediaToSend, isLoading, selectedMedia }) => {
 
 MediaSelector.propTypes = {
 	setMediaToSend: PropTypes.func,
-	selectedMedia: PropTypes.string,
+	selectedMedia: PropTypes.object,
 	isLoading: PropTypes.bool,
 };
 

@@ -139,9 +139,9 @@ const CollectibleNetworkPrompt = ({ route }) => {
 					</Text>
 					<Text bold>{'Description'}</Text>
 					<Text style={styles.description}>{description}</Text>
-					{traits.map(({ title, value }, index) => (
+					{traits.map(({ type, value }, index) => (
 						<View style={styles.row} key={index}>
-							<Text bold>{title}</Text>
+							<Text bold>{type}</Text>
 							<Text>{value}</Text>
 						</View>
 					))}
