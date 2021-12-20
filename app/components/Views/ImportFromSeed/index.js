@@ -316,10 +316,10 @@ class ImportFromSeed extends PureComponent {
 					});
 				});
 				if (onboardingWizard) {
-					this.props.navigation.navigate('ManualBackupStep3');
+					this.props.navigation.replace('ManualBackupStep3');
 				} else {
 					this.props.setOnboardingWizardStep(1);
-					this.props.navigation.navigate('HomeNav', { screen: 'WalletView' });
+					this.props.navigation.replace('HomeNav', { screen: 'WalletView' });
 				}
 				await importAdditionalAccounts();
 			} catch (error) {
