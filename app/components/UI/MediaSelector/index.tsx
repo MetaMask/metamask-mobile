@@ -37,8 +37,8 @@ const styles = StyleSheet.create({
 	},
 });
 
-const MediaSelector = ({ setMediaToSend, isLoading }) => {
-	const [media, setMedia] = useState(null);
+const MediaSelector = ({ setMediaToSend, isLoading, selectedMedia }) => {
+	const [media, setMedia] = useState(selectedMedia);
 	const actionSheetRef = useRef();
 
 	const handleChooseMedia = (index: number) => {
@@ -133,6 +133,7 @@ const MediaSelector = ({ setMediaToSend, isLoading }) => {
 
 MediaSelector.propTypes = {
 	setMediaToSend: PropTypes.func,
+	selectedMedia: PropTypes.string,
 	isLoading: PropTypes.bool,
 };
 

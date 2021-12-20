@@ -136,7 +136,7 @@ const CreateCollectible = ({ navigation }) => {
 			confirmButtonMode={'sign'}
 		>
 			<View style={styles.container}>
-				<MediaSelector setMediaToSend={setMediaToSend} />
+				<MediaSelector setMediaToSend={setMediaToSend} selectedMedia={media} />
 				<Text bold>{`${strings('wallet.name')}*`}</Text>
 				<TextInput
 					style={styles.textInput}
