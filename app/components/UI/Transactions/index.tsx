@@ -308,7 +308,7 @@ const Transactions = ({
 	const retry = () => {
 		setRetryIsOpen(!retryIsOpen);
 
-		// If the existing Tx ID true then it is a speed up retry
+		// If the speedUpTxId exists then it is a speed up retry
 		if (speedUpTxId) {
 			InteractionManager.runAfterInteractions(() => {
 				onSpeedUpAction(true, existingGas, existingTx);

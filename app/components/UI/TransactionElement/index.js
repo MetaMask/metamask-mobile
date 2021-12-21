@@ -97,14 +97,6 @@ class TransactionElement extends PureComponent {
 		*/
 		identities: PropTypes.object,
 		/**
-		 * Current element of the list index
-		 */
-		i: PropTypes.number,
-		/**
-		 * Callback to render transaction details view
-		 */
-		onPressItem: PropTypes.func,
-		/**
 		 * Callback to speed up tx
 		 */
 		onSpeedUpAction: PropTypes.func,
@@ -149,8 +141,6 @@ class TransactionElement extends PureComponent {
 	}
 
 	onPressItem = () => {
-		const { tx, i, onPressItem } = this.props;
-		onPressItem(tx.id, i);
 		this.setState({ detailsModalVisible: true });
 	};
 
