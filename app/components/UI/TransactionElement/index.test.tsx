@@ -28,6 +28,15 @@ const initialState = {
 			SwapsController: {
 				tokens: [],
 			},
+			CollectiblesController: {
+				allCollectibleContracts: [],
+			},
+			TokenRatesController: {
+				contractExchangeRates: null,
+			},
+			TokensController: {
+				tokens: [],
+			},
 		},
 	},
 	settings: {
@@ -40,10 +49,7 @@ describe('TransactionElement', () => {
 	it('should render correctly', () => {
 		const wrapper = shallow(
 			<Provider store={store}>
-				<TransactionElement
-					tx={{ transaction: { to: '0x0', from: '0x1', nonce: 1 }, status: 'CONFIRMED' }}
-					i={1}
-				/>
+				<TransactionElement tx={{ transaction: { to: '0x0', from: '0x1', nonce: 1 }, status: 'CONFIRMED' }} />
 			</Provider>
 		);
 		expect(wrapper.dive()).toMatchSnapshot();
