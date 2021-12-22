@@ -5,7 +5,6 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Browser from '../../Views/Browser';
 import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
-import Approval from '../../Views/Approval';
 import Settings from '../../Views/Settings';
 import GeneralSettings from '../../Views/Settings/GeneralSettings';
 import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
@@ -39,7 +38,6 @@ import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import PaymentRequest from '../../UI/PaymentRequest';
 import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
-import Approve from '../../Views/ApproveView/Approve';
 import Amount from '../../Views/SendFlow/Amount';
 import Confirm from '../../Views/SendFlow/Confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
@@ -214,18 +212,6 @@ const SendFlowView = () => (
 	</Stack.Navigator>
 );
 
-const ApprovalView = () => (
-	<Stack.Navigator>
-		<Stack.Screen name="Approval" component={Approval} options={Approval.navigationOptions} />
-	</Stack.Navigator>
-);
-
-const ApproveView = () => (
-	<Stack.Navigator>
-		<Stack.Screen name="Approve" component={Approve} options={Approve.navigationOptions} />
-	</Stack.Navigator>
-);
-
 const AddBookmarkView = () => (
 	<Stack.Navigator>
 		<Stack.Screen name="AddBookmark" component={AddBookmark} options={AddBookmark.navigationOptions} />
@@ -336,8 +322,6 @@ const MainNavigator = () => (
 		<Stack.Screen name="ImportPrivateKeyView" component={ImportPrivateKeyView} />
 		<Stack.Screen name="SendView" component={SendView} />
 		<Stack.Screen name="SendFlowView" component={SendFlowView} />
-		<Stack.Screen name="ApprovalView" component={ApprovalView} />
-		<Stack.Screen name="ApproveView" component={ApproveView} />
 		<Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />
 		<Stack.Screen name="OfflineModeView" component={OfflineModeView} />
 		<Stack.Screen name="QRScanner" component={QrScanner} />

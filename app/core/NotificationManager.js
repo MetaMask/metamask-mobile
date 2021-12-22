@@ -12,6 +12,7 @@ import AppConstants from './AppConstants';
 import { PUSH_NOTIFICATIONS_PROMPT_COUNT, PUSH_NOTIFICATIONS_PROMPT_TIME } from '../constants/storage';
 import { RPC } from '../constants/network';
 import { safeToChecksumAddress } from '../util/address';
+import ReviewManager from './ReviewManager';
 
 const constructTitleAndMessage = (data) => {
 	let title, message;
@@ -180,7 +181,12 @@ class NotificationManager {
 				// Clean up
 				this._removeListeners(transactionMeta.id);
 
-				const { TokenBalancesController, AssetsDetectionController, AccountTrackerController } = Engine.context;
+				const {
+					TokenBalancesController,
+					TokenDetectionController,
+					CollectibleDetectionController,
+					AccountTrackerController,
+				} = Engine.context;
 				// account balances for ETH txs
 				// Detect assets and tokens for ERC20 txs
 				// Detect assets for ERC721 txs
@@ -188,11 +194,11 @@ class NotificationManager {
 				const pollPromises = [AccountTrackerController.refresh()];
 				switch (originalTransaction.assetType) {
 					case 'ERC20': {
-						pollPromises.push(...[TokenBalancesController.poll(), AssetsDetectionController.poll()]);
+						pollPromises.push(...[TokenBalancesController.poll(), TokenDetectionController.start()]);
 						break;
 					}
 					case 'ERC721':
-						pollPromises.push(AssetsDetectionController.poll());
+						pollPromises.push(CollectibleDetectionController.start());
 						break;
 				}
 				Promise.all(pollPromises);
@@ -201,6 +207,9 @@ class NotificationManager {
 					setTimeout(() => {
 						this.requestPushNotificationsPermission();
 					}, 7000);
+
+				// Prompt review
+				ReviewManager.promptReview();
 
 				this._removeListeners(transactionMeta.id);
 				delete this._transactionsWatchTable[transactionMeta.transaction.nonce];

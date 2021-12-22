@@ -71,7 +71,10 @@ import { getTokenList } from '../../../reducers/tokens';
 import { toLowerCaseEquals } from '../../../util/general';
 import { ethers } from 'ethers';
 import abi from 'human-standard-token-abi';
+import { createStackNavigator } from '@react-navigation/stack';
+import ReviewModal from '../../UI/ReviewModal';
 
+const Stack = createStackNavigator();
 const hstInterface = new ethers.utils.Interface(abi);
 
 const styles = StyleSheet.create({
@@ -285,7 +288,6 @@ const Main = (props) => {
 			try {
 				TransactionController.hub.once(`${transactionMeta.id}:finished`, (transactionMeta) => {
 					if (transactionMeta.status === 'submitted') {
-						props.navigation.pop?.();
 						NotificationManager.watchSubmittedTransaction({
 							...transactionMeta,
 							assetType: transactionMeta.transaction.assetType,
@@ -310,7 +312,7 @@ const Main = (props) => {
 				Logger.error(error, 'error while trying to send transaction (Main)');
 			}
 		},
-		[props.navigation, props.swapsTransactions, trackSwaps]
+		[props.swapsTransactions, trackSwaps]
 	);
 
 	const onUnapprovedTransaction = useCallback(
@@ -323,6 +325,7 @@ const Main = (props) => {
 			// if approval data includes metaswap contract
 			// if destination address is metaswap contract
 			if (
+				transactionMeta.origin === process.env.MM_FOX_CODE &&
 				to &&
 				(swapsUtils.isValidContractAddress(props.chainId, to) ||
 					(data &&
@@ -330,9 +333,7 @@ const Main = (props) => {
 						decodeApproveData(data).spenderAddress?.toLowerCase() ===
 							swapsUtils.getSwapsContractAddress(props.chainId)))
 			) {
-				if (transactionMeta.origin === process.env.MM_FOX_CODE) {
-					autoSign(transactionMeta);
-				}
+				autoSign(transactionMeta);
 			} else {
 				const {
 					transaction: { value, gas, gasPrice, data },
@@ -809,4 +810,17 @@ const mapDispatchToProps = (dispatch) => ({
 	removeNotVisibleNotifications: () => dispatch(removeNotVisibleNotifications()),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Main);
+const ConnectedMain = connect(mapStateToProps, mapDispatchToProps)(Main);
+
+const MainFlow = () => (
+	<Stack.Navigator
+		initialRouteName={'Main'}
+		mode={'modal'}
+		screenOptions={{ headerShown: false, cardStyle: { backgroundColor: 'transparent' } }}
+	>
+		<Stack.Screen name={'Main'} component={ConnectedMain} />
+		<Stack.Screen name={'ReviewModal'} component={ReviewModal} options={{ animationEnabled: false }} />
+	</Stack.Navigator>
+);
+
+export default MainFlow;

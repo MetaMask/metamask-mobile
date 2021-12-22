@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { Image, ViewPropTypes, View } from 'react-native';
 import FadeIn from 'react-native-fade-in-image';
@@ -7,13 +7,28 @@ import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource'
 import { SvgCssUri } from 'react-native-svg';
 import isUrl from 'is-url';
 import ComponentErrorBoundary from '../../UI/ComponentErrorBoundary';
+import useIpfsGateway from '../../hooks/useIpfsGateway';
+import { util } from '@metamask/controllers';
 
 const RemoteImage = (props) => {
 	// Avoid using this component with animated SVG
 	const source = resolveAssetSource(props.source);
 	const isImageUrl = isUrl(props?.source?.uri);
+	const ipfsGateway = useIpfsGateway();
+	const resolvedIpfsUrl = useMemo(() => {
+		try {
+			const url = new URL(props.source.uri);
+			if (url.protocol !== 'ipfs:') return false;
+			const ipfsUrl = util.getFormattedIpfsUrl(ipfsGateway, props.source.uri, false);
+			return ipfsUrl;
+		} catch {
+			return false;
+		}
+	}, [props.source.uri, ipfsGateway]);
 
-	if (source && source.uri && source.uri.match('.svg') && isImageUrl) {
+	const uri = resolvedIpfsUrl || source.uri;
+
+	if (source && source.uri && source.uri.match('.svg') && (isImageUrl || resolvedIpfsUrl)) {
 		const style = props.style || {};
 		if (source.__packager_asset && typeof style !== 'number') {
 			if (!style.width) {
@@ -27,7 +42,7 @@ const RemoteImage = (props) => {
 		return (
 			<ComponentErrorBoundary onError={props.onError} componentLabel="RemoteImage-SVG">
 				<View style={style}>
-					<SvgCssUri {...props} uri={source.uri} width={'100%'} height={'100%'} fill={'black'} />
+					<SvgCssUri {...props} uri={uri} width={'100%'} height={'100%'} fill={'black'} />
 				</View>
 			</ComponentErrorBoundary>
 		);
@@ -36,11 +51,11 @@ const RemoteImage = (props) => {
 	if (props.fadeIn) {
 		return (
 			<FadeIn placeholderStyle={props.placeholderStyle}>
-				<Image {...props} source={{ uri: source.uri }} />
+				<Image {...props} source={{ uri }} />
 			</FadeIn>
 		);
 	}
-	return <Image {...props} source={{ uri: source.uri }} />;
+	return <Image {...props} source={{ uri }} />;
 };
 
 RemoteImage.propTypes = {

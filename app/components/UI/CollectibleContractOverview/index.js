@@ -11,6 +11,7 @@ import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { toLowerCaseEquals } from '../../../util/general';
+import { collectiblesSelector } from '../../../reducers/collectibles';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -140,7 +141,7 @@ class CollectibleContractOverview extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
+	collectibles: collectiblesSelector(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
