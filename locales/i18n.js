@@ -8,6 +8,7 @@ import en from './languages/en.json';
 import es from './languages/es.json';
 import hi from './languages/hi-in.json';
 import id from './languages/id-id.json';
+import it from './languages/it-it.json';
 import ja from './languages/ja-jp.json';
 import ko from './languages/ko-kr.json';
 import pt from './languages/pt-br.json';
@@ -24,6 +25,7 @@ I18n.translations = {
 	es,
 	hi,
 	id,
+	it,
 	ja,
 	ko,
 	pt,
@@ -54,6 +56,7 @@ export function getLanguages() {
 		es: 'Spanish',
 		hi: 'Hindi',
 		id: 'Bahasa Indonesian',
+		it: 'Italiano',
 		ja: 'Japanese',
 		ko: 'Korean',
 		pt: 'Portuguese - Brazil',
