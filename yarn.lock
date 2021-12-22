@@ -1577,7 +1577,7 @@
   dependencies:
     "@ethereumjs/common" "^2.3.1"
     "@ethereumjs/tx" "^3.2.1"
-    "@metamask/contract-metadata" "^1.30.0"
+    "@metamask/contract-metadata" "^1.29.0"
     "@types/uuid" "^8.3.0"
     abort-controller "^3.0.0"
     async-mutex "^0.2.6"
@@ -1607,9 +1607,9 @@
     web3 "^0.20.7"
     web3-provider-engine "^16.0.3"
 
-"@metamask/controllers@git+https://github.com/MetaMask/controllers.git#b2575f4c139cde1456397dbd5bce784198ac731b":
+"@metamask/controllers@git+https://github.com/MetaMask/controllers.git#56b2bfaa7c86864cf4ddd411e2c11bdd8172fb74":
   version "23.0.0"
-  resolved "git+https://github.com/MetaMask/controllers.git#b2575f4c139cde1456397dbd5bce784198ac731b"
+  resolved "git+https://github.com/MetaMask/controllers.git#56b2bfaa7c86864cf4ddd411e2c11bdd8172fb74"
   dependencies:
     "@ethereumjs/common" "^2.3.1"
     "@ethereumjs/tx" "^3.2.1"
@@ -1633,7 +1633,7 @@
     human-standard-collectible-abi "^1.0.2"
     human-standard-multi-collectible-abi "^1.0.4"
     human-standard-token-abi "^2.0.0"
-    immer "^8.0.1"
+    immer "^9.0.6"
     isomorphic-fetch "^3.0.0"
     jsonschema "^1.2.4"
     multiformats "^9.5.2"
