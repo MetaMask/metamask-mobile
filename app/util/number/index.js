@@ -255,14 +255,16 @@ export function fiatNumberToTokenMinimalUnit(fiat, conversionRate, exchangeRate,
  * If value is less than 5 precision decimals will show '< 0.00001'
  */
 export function renderFromWei(value, decimalsToShow = 5) {
-	const wei = fromWei(value);
-	const weiNumber = parseFloat(wei);
-	let renderWei;
-	if (weiNumber < 0.00001 && weiNumber > 0) {
-		renderWei = '< 0.00001';
-	} else {
-		const base = Math.pow(10, decimalsToShow);
-		renderWei = (Math.round(weiNumber * base) / base).toString();
+	let renderWei = 0;
+	if (value) {
+		const wei = fromWei(value);
+		const weiNumber = parseFloat(wei);
+		if (weiNumber < 0.00001 && weiNumber > 0) {
+			renderWei = '< 0.00001';
+		} else {
+			const base = Math.pow(10, decimalsToShow);
+			renderWei = (Math.round(weiNumber * base) / base).toString();
+		}
 	}
 	return renderWei;
 }

@@ -222,14 +222,12 @@ class TransactionDetails extends PureComponent {
 						</Text>
 					</DetailsModal.Column>
 				</DetailsModal.Section>
-				{!!nonce && (
-					<DetailsModal.Section>
-						<DetailsModal.Column>
-							<DetailsModal.SectionTitle upper>{strings('transactions.nonce')}</DetailsModal.SectionTitle>
-							<Text small primary>{`#${parseInt(nonce.replace(/^#/, ''), 16)}`}</Text>
-						</DetailsModal.Column>
-					</DetailsModal.Section>
-				)}
+				<DetailsModal.Section>
+					<DetailsModal.Column>
+						<DetailsModal.SectionTitle upper>{strings('transactions.nonce')}</DetailsModal.SectionTitle>
+						{!!nonce && <Text small primary>{`#${parseInt(nonce.replace(/^#/, ''), 16)}`}</Text>}
+					</DetailsModal.Column>
+				</DetailsModal.Section>
 				<View style={[styles.summaryWrapper, !nonce && styles.touchableViewOnEtherscan]}>
 					<TransactionSummary
 						amount={transactionDetails.summaryAmount}
