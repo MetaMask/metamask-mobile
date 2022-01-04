@@ -53,7 +53,7 @@ class WalletConnect {
 	redirect = null;
 	autosign = false;
 	redirectUrl = '';
-	walletConnector: RNWalletConnect | null;
+	walletConnector: RNWalletConnect;
 
 	constructor(options: any) {
 		if (options.redirect) {
@@ -93,6 +93,7 @@ class WalletConnect {
 					chainId: parseInt(network, 10),
 					accounts: [this.selectedAddress],
 				};
+
 				await this.walletConnector.approveSession(approveData as ISessionStatus);
 				persistSessions();
 				this.redirectIfNeeded();
@@ -166,7 +167,7 @@ class WalletConnect {
 								meta: {
 									title: meta?.name,
 									url: meta?.url,
-									icon: meta?.icons[0],
+									icon: meta?.icons && meta.icons[0],
 								},
 								origin: WALLET_CONNECT_ORIGIN,
 							});
@@ -228,7 +229,7 @@ class WalletConnect {
 								meta: {
 									title: meta?.name,
 									url: meta?.url,
-									icon: meta?.icons[0],
+									icon: meta?.icons && meta.icons[0],
 								},
 								origin: WALLET_CONNECT_ORIGIN,
 							},
@@ -253,9 +254,9 @@ class WalletConnect {
 								data: payload.params[1],
 								from: payload.params[0],
 								meta: {
-									title: meta && meta.name,
-									url: meta && meta.url,
-									icon: meta && meta.icons && meta.icons[0],
+									title: meta?.name,
+									url: meta?.url,
+									icon: meta?.icons && meta.icons[0],
 								},
 								origin: WALLET_CONNECT_ORIGIN,
 							},
