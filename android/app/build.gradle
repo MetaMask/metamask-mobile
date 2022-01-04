@@ -105,7 +105,7 @@ import com.android.build.OutputFile
 
 project.ext.react = [
 	entryFile: "index.js",
-	enableHermes: false
+	enableHermes: System.getenv('METAMASK_ENVIRONMENT') == 'production'
 ]
 
 apply from: "../../node_modules/react-native/react.gradle"
@@ -160,7 +160,7 @@ android {
 		applicationId "io.metamask"
 		minSdkVersion rootProject.ext.minSdkVersion
 		targetSdkVersion rootProject.ext.targetSdkVersion
-		versionCode 801
+		versionCode 802
 		versionName "3.8.0"
 		multiDexEnabled true
 		testBuildType System.getProperty('testBuildType', 'debug')
@@ -264,6 +264,20 @@ dependencies {
 	androidTestImplementation('com.wix:detox:+') { transitive = true }
 	androidTestImplementation 'junit:junit:4.12'
 	implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
+
+	debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
+        exclude group:'com.facebook.fbjni'
+    }
+
+    debugImplementation("com.facebook.flipper:flipper-network-plugin:${FLIPPER_VERSION}") {
+        exclude group:'com.facebook.flipper'
+        exclude group:'com.squareup.okhttp3', module:'okhttp'
+    }
+
+    debugImplementation("com.facebook.flipper:flipper-fresco-plugin:${FLIPPER_VERSION}") {
+        exclude group:'com.facebook.flipper'
+    }
+	
     if (enableHermes) {
         def hermesPath = "../../node_modules/hermes-engine/android/";
         debugImplementation files(hermesPath + "hermes-debug.aar")
