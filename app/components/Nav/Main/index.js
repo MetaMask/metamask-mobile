@@ -28,7 +28,7 @@ import { setEtherTransaction, setTransactionObject } from '../../../actions/tran
 import PersonalSign from '../../UI/PersonalSign';
 import TypedSign from '../../UI/TypedSign';
 import Modal from 'react-native-modal';
-import WalletConnect from '../../../core/WalletConnect';
+import WalletConnect from '../../../core/WalletConnect/WalletConnect';
 import Device from '../../../util/device';
 import {
 	getMethodData,

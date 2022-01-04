@@ -1,24 +1,30 @@
 import RNWalletConnect from '@walletconnect/client';
 import { parseWalletConnectUri } from '@walletconnect/utils';
-import Engine from './Engine';
-import Logger from '../util/Logger';
+import AsyncStorage from '@react-native-community/async-storage';
+import { WalletDevice } from '@metamask/controllers/';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
-import AsyncStorage from '@react-native-community/async-storage';
-import { CLIENT_OPTIONS, WALLET_CONNECT_ORIGIN } from '../util/walletconnect';
-import { WALLETCONNECT_SESSIONS } from '../constants/storage';
-import { WalletDevice } from '@metamask/controllers/';
+import Engine from '../Engine';
+import Logger from '../../util/Logger';
+import { CLIENT_OPTIONS, WALLET_CONNECT_ORIGIN } from '../../util/walletconnect';
+import { WALLETCONNECT_SESSIONS } from '../../constants/storage';
+import {
+	ETH_SEND_TRANSACTION,
+	ETH_SIGN,
+	PERSONAL_SIGN,
+	ETH_SIGN_TYPED_DATA,
+	ETH_SIGN_TYPED_DATA_V3,
+	ETH_SIGN_TYPED_DATA_V4,
+} from '../../constants/walletConnect';
 
 const hub = new EventEmitter();
-let connectors = [];
+let connectors: any[] = [];
 let initialized = false;
-const tempCallIds = [];
+const tempCallIds: any[] = [];
 
 const persistSessions = async () => {
 	const sessions = connectors
-		.filter(
-			(connector) => connector && connector.walletConnector && connector && connector.walletConnector.connected
-		)
+		.filter((connector) => connector?.walletConnector?.connected)
 		.map((connector) => connector.walletConnector.session);
 
 	await AsyncStorage.setItem(WALLETCONNECT_SESSIONS, JSON.stringify(sessions));
@@ -34,7 +40,7 @@ const waitForInitialization = async () => {
 
 const waitForKeychainUnlocked = async () => {
 	let i = 0;
-	const { KeyringController } = Engine.context;
+	const { KeyringController } = Engine.context as any;
 	while (!KeyringController.isUnlocked()) {
 		await new Promise((res) => setTimeout(() => res(), 1000));
 		if (i++ > 60) break;
@@ -46,8 +52,10 @@ class WalletConnect {
 	chainId = null;
 	redirect = null;
 	autosign = false;
+	redirectUrl = '';
+	walletConnector: RNWalletConnect | null;
 
-	constructor(options) {
+	constructor(options: any) {
 		if (options.redirect) {
 			this.redirectUrl = options.redirect;
 		}
@@ -78,13 +86,14 @@ class WalletConnect {
 				await waitForInitialization();
 				await this.sessionRequest(sessionData);
 
-				const { network } = Engine.context.NetworkController.state;
-				this.selectedAddress = Engine.context.PreferencesController.state.selectedAddress;
+				const { NetworkController, PreferencesController } = Engine.context as any;
+				const { network } = NetworkController.state;
+				this.selectedAddress = PreferencesController.state.selectedAddress;
 				const approveData = {
 					chainId: parseInt(network, 10),
 					accounts: [this.selectedAddress],
 				};
-				await this.walletConnector.approveSession(approveData);
+				await this.walletConnector.approveSession(approveData as ISessionStatus);
 				persistSessions();
 				this.redirectIfNeeded();
 			} catch (e) {
@@ -109,8 +118,8 @@ class WalletConnect {
 			const meta = this.walletConnector.session.peerMeta;
 
 			if (payload.method) {
-				if (payload.method === 'eth_sendTransaction') {
-					const { TransactionController } = Engine.context;
+				if (payload.method === ETH_SEND_TRANSACTION) {
+					const { TransactionController } = Engine.context as any;
 					try {
 						const txParams = {};
 						txParams.to = payload.params[0].to;
@@ -136,7 +145,7 @@ class WalletConnect {
 							error,
 						});
 					}
-				} else if (payload.method === 'eth_sign') {
+				} else if (payload.method === ETH_SIGN) {
 					const { MessageManager } = Engine.context;
 					let rawSig = null;
 					try {
@@ -155,9 +164,9 @@ class WalletConnect {
 								data,
 								from,
 								meta: {
-									title: meta && meta.name,
-									url: meta && meta.url,
-									icon: meta && meta.icons && meta.icons[0],
+									title: meta?.name,
+									url: meta?.url,
+									icon: meta?.icons[0],
 								},
 								origin: WALLET_CONNECT_ORIGIN,
 							});
@@ -172,8 +181,8 @@ class WalletConnect {
 							error,
 						});
 					}
-				} else if (payload.method === 'personal_sign') {
-					const { PersonalMessageManager } = Engine.context;
+				} else if (payload.method === PERSONAL_SIGN) {
+					const { PersonalMessageManager } = Engine.context as any;
 					let rawSig = null;
 					try {
 						if (payload.params[2]) {
@@ -192,9 +201,9 @@ class WalletConnect {
 								data,
 								from,
 								meta: {
-									title: meta && meta.name,
-									url: meta && meta.url,
-									icon: meta && meta.icons && meta.icons[0],
+									title: meta?.name,
+									url: meta?.url,
+									icon: meta?.icons,
 								},
 								origin: WALLET_CONNECT_ORIGIN,
 							});
@@ -209,17 +218,17 @@ class WalletConnect {
 							error,
 						});
 					}
-				} else if (payload.method === 'eth_signTypedData' || payload.method === 'eth_signTypedData_v3') {
-					const { TypedMessageManager } = Engine.context;
+				} else if (payload.method === ETH_SIGN_TYPED_DATA || payload.method === ETH_SIGN_TYPED_DATA_V3) {
+					const { TypedMessageManager } = Engine.context as any;
 					try {
 						const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
 							{
 								data: payload.params[1],
 								from: payload.params[0],
 								meta: {
-									title: meta && meta.name,
-									url: meta && meta.url,
-									icon: meta && meta.icons && meta.icons[0],
+									title: meta?.name,
+									url: meta?.url,
+									icon: meta?.icons[0],
 								},
 								origin: WALLET_CONNECT_ORIGIN,
 							},
@@ -236,8 +245,8 @@ class WalletConnect {
 							error,
 						});
 					}
-				} else if (payload.method === 'eth_signTypedData_v4') {
-					const { TypedMessageManager } = Engine.context;
+				} else if (payload.method === ETH_SIGN_TYPED_DATA_V4) {
+					const { TypedMessageManager } = Engine.context as any;
 					try {
 						const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
 							{
@@ -287,17 +296,19 @@ class WalletConnect {
 			}
 		});
 
-		Engine.context.TransactionController.hub.on('networkChange', this.onNetworkChange);
-		Engine.context.PreferencesController.subscribe(this.onAccountChange);
-		const { selectedAddress } = Engine.context.PreferencesController.state;
-		const { network } = Engine.context.NetworkController.state;
+		const { TransactionController, NetworkController, PreferencesController } = Engine.context as any;
+		TransactionController.hub.on('networkChange', this.onNetworkChange);
+		PreferencesController.subscribe(this.onAccountChange);
+		const { selectedAddress } = PreferencesController.state;
+		const { network } = NetworkController.state;
 
 		this.selectedAddress = selectedAddress;
 		this.chainId = network;
 	}
 
 	onAccountChange = () => {
-		const { selectedAddress } = Engine.context.PreferencesController.state;
+		const { PreferencesController } = Engine.context as any;
+		const { selectedAddress } = PreferencesController.state;
 
 		if (selectedAddress !== this.selectedAddress) {
 			this.selectedAddress = selectedAddress;
@@ -306,7 +317,8 @@ class WalletConnect {
 	};
 
 	onNetworkChange = () => {
-		const { network } = Engine.context.NetworkController.state;
+		const { NetworkController } = Engine.context as any;
+		const { network } = NetworkController.state;
 		// Wait while the network is set
 		if (network !== 'loading' && network !== this.chainId) {
 			this.chainId = network;
@@ -315,8 +327,9 @@ class WalletConnect {
 	};
 
 	updateSession = () => {
-		const { network } = Engine.context.NetworkController.state;
-		const { selectedAddress } = Engine.context.PreferencesController.state;
+		const { NetworkController, PreferencesController } = Engine.context as any;
+		const { network } = NetworkController.state;
+		const { selectedAddress } = PreferencesController.state;
 		const sessionData = {
 			chainId: parseInt(network, 10),
 			accounts: [selectedAddress],
@@ -329,7 +342,7 @@ class WalletConnect {
 	};
 
 	killSession = () => {
-		this.walletConnector && this.walletConnector.killSession();
+		this.walletConnector?.killSession();
 		this.walletConnector = null;
 	};
 
@@ -392,27 +405,22 @@ const instance = {
 	},
 	killSession: async (id) => {
 		// 1) First kill the session
-		const connectorToKill = connectors.find(
-			(connector) => connector && connector.walletConnector && connector.walletConnector.session.peerId === id
-		);
+		const connectorToKill = connectors.find((connector) => connector?.walletConnector?.session.peerId === id);
 		if (connectorToKill) {
 			await connectorToKill.killSession();
 		}
 		// 2) Remove from the list of connectors
 		connectors = connectors.filter(
-			(connector) =>
-				connector &&
-				connector.walletConnector &&
-				connector.walletConnector.connected &&
-				connector.walletConnector.session.peerId !== id
+			(connector) => connector?.walletConnector?.connected && connector.walletConnector.session.peerId !== id
 		);
 		// 3) Persist the list
 		await persistSessions();
 	},
 	hub,
 	shutdown() {
-		Engine.context.TransactionController.hub.removeAllListeners();
-		Engine.context.PreferencesController.unsubscribe();
+		const { TransactionController, PreferencesController } = Engine.context as any;
+		TransactionController.hub.removeAllListeners();
+		PreferencesController.unsubscribe();
 	},
 	isValidUri(uri) {
 		const result = parseWalletConnectUri(uri);
