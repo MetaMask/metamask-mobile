@@ -12,7 +12,6 @@
 		13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.m */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
-		15205D6321596BAA0049EA93 /* MetaMask.entitlements in Resources */ = {isa = PBXBuildFile; fileRef = 15205D6221596AD90049EA93 /* MetaMask.entitlements */; };
 		153C1ABB2217BCDC0088EFE0 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 153C1A742217BCDC0088EFE0 /* JavaScriptCore.framework */; };
 		153F84CA2319B8FD00C19B63 /* Branch.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 153F84C92319B8DB00C19B63 /* Branch.framework */; };
 		153F84CB2319B8FD00C19B63 /* Branch.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 153F84C92319B8DB00C19B63 /* Branch.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -634,7 +633,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				15205D6321596BAA0049EA93 /* MetaMask.entitlements in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				158B063B211A72F500DF3C74 /* InpageBridgeWeb3.js in Resources */,
 				15D158ED210BD912006982B5 /* Metamask.ttf in Resources */,
