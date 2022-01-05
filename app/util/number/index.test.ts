@@ -22,6 +22,7 @@ import {
 	handleWeiNumber,
 	toHexadecimal,
 	safeNumberToBN,
+	fastSplit,
 } from '.';
 
 describe('Number utils :: BNToHex', () => {
@@ -367,5 +368,13 @@ describe('toHexadecimal', () => {
 		expect(toHexadecimal(2)).toEqual('2');
 		expect(toHexadecimal()).toEqual(undefined);
 		expect(toHexadecimal(1232)).toEqual('4d0');
+	});
+});
+
+describe('Number utils :: fastSplit', () => {
+	it('should split ', () => {
+		expect(fastSplit('1650000007.7')).toEqual('1650000007');
+		expect(fastSplit('1650000007')).toEqual('1650000007');
+		expect(fastSplit('test string', ' ')).toEqual('test');
 	});
 });

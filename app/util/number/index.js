@@ -467,17 +467,16 @@ export function safeNumberToBN(value) {
 }
 
 /**
- * Performs a fast string split and returns selected value of the string based on the divider provided
+ * Performs a fast string split and returns the first item of the string based on the divider provided
  *
  * @param {number|string} value -  number/string to be splitted
  * @param {string} divider -  string value to use to split the string (default '.')
- * @param {number} position - position of the item in the array of splitted values (default 0 - first position)
  * @returns {string} - the selected splitted element
  */
 
-export function fastSplit(value, divider = '.', position = 0) {
-	const [from, to] = [value.indexOf(divider), position];
-	return value.substring(from, to);
+export function fastSplit(value, divider = '.') {
+	const [from, to] = [value.indexOf(divider), 0];
+	return value.substring(from, to) || value;
 }
 
 /**
