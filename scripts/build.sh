@@ -191,6 +191,7 @@ buildIosRelease(){
 		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
 		echo "Build started..."
 		brew install watchman
+		unset PREFIX
 		cd ios
 		generateArchivePackages
 		# Generate sourcemaps
