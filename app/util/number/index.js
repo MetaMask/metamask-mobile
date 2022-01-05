@@ -87,7 +87,7 @@ export function fromWei(value = 0, unit = 'ether') {
  */
 export function fromTokenMinimalUnit(minimalInput, decimals) {
 	minimalInput = addHexPrefix(Number(minimalInput).toString(16));
-	let minimal = numberToBN(minimalInput);
+	let minimal = safeNumberToBN(minimalInput);
 	const negative = minimal.lt(new BN(0));
 	const base = toBN(Math.pow(10, decimals).toString());
 
@@ -241,8 +241,8 @@ export function fiatNumberToTokenMinimalUnit(fiat, conversionRate, exchangeRate,
 	const base = Math.pow(10, decimals);
 	let weiNumber = floatFiatConverted * base;
 	// avoid decimals
-	weiNumber = weiNumber.toLocaleString('fullwide', { useGrouping: false }).split('.');
-	const weiBN = numberToBN(weiNumber[0]);
+	weiNumber = weiNumber.toLocaleString('fullwide', { useGrouping: false });
+	const weiBN = safeNumberToBN(weiNumber);
 	return weiBN;
 }
 
@@ -450,9 +450,20 @@ export function fiatNumberToWei(fiat, conversionRate) {
 	const base = Math.pow(10, 18);
 	let weiNumber = Math.trunc(base * floatFiatConverted);
 	// avoid decimals
-	weiNumber = weiNumber.toLocaleString('fullwide', { useGrouping: false }).split('.');
-	const weiBN = numberToBN(weiNumber[0]);
+	weiNumber = weiNumber.toLocaleString('fullwide', { useGrouping: false });
+	const weiBN = safeNumberToBN(weiNumber);
 	return weiBN;
+}
+
+/**
+ * Wraps 'numberToBN' method to avoid potential undefined and decimal values
+ *
+ * @param {number|string} value -  number
+ * @returns {Object} - The converted value as BN instance
+ */
+export function safeNumberToBN(value) {
+	const safeValue = value?.toString().split('.')[0] || '0';
+	return numberToBN(safeValue);
 }
 
 /**
