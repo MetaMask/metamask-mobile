@@ -256,6 +256,7 @@ export function fiatNumberToTokenMinimalUnit(fiat, conversionRate, exchangeRate,
  */
 export function renderFromWei(value, decimalsToShow = 5) {
 	let renderWei = '0';
+	// avoid undefined
 	if (value) {
 		const wei = fromWei(value);
 		const weiNumber = parseFloat(wei);
