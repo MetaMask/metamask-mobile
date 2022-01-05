@@ -209,7 +209,8 @@ function TransactionNotification(props) {
 			const existingGasPrice = new BigNumber(tx?.transaction?.gasPrice || '0x0');
 			const gasFee = existingGasPrice
 				.times(transactionAction === ACTION_CANCEL ? CANCEL_RATE : SPEED_UP_RATE)
-				.toString();
+				.toString()
+				.split('.')[0];
 			setGasFee(gasFee);
 			setTx(tx);
 			setTransactionElement(transactionElement);
