@@ -33,7 +33,7 @@ const TRANSAK_API_KEY_SECRET_PRODUCTION = process.env.TRANSAK_API_KEY_SECRET_PRO
  * @property {string} walletLink
  * @property {string} paymentOptionId Paymenth method ID, see: https://integrate.transak.com/Coverage-Payment-Methods-Fees-Limits-30c0954fbdf04beca68622d9734c59f9
  * @property {boolean} addressAdditionalData
- * @property {string} network this is NOT ethernet networks id
+ * @property {string} network this is NOT a chain id
  * @property {string} amountPaid
  * @property {number} referenceCode
  * @property {string} redirectURL Our redirect URL
@@ -69,6 +69,8 @@ const TRANSAK_API_KEY_SECRET_PRODUCTION = process.env.TRANSAK_API_KEY_SECRET_PRO
  */
 
 //* Constants
+
+export const TRANSAK_ALLOWED_NETWORKS = ['1', '56', '137'];
 
 const { TRANSAK_URL, TRANSAK_URL_STAGING, TRANSAK_API_URL_STAGING, TRANSAK_API_URL_PRODUCTION, TRANSAK_REDIRECT_URL } =
 	AppConstants.FIAT_ORDERS;
@@ -217,18 +219,22 @@ export async function processTransakOrder(order) {
 
 //* Hooks
 
-export const useTransakFlowURL = (address) => {
-	const params = useMemo(
-		() =>
-			qs.stringify({
-				apiKey: TRANSAK_API_KEY,
-				cryptoCurrencyCode: 'ETH',
-				networks: 'ethereum',
-				themeColor: '037dd6',
-				walletAddress: address,
-				redirectURL: TRANSAK_REDIRECT_URL,
-			}),
-		[address]
-	);
+export const useTransakFlowURL = (address, network) => {
+	const params = useMemo(() => {
+		let [networks, cryptoCurrencyCode] = ['ethereum', 'ETH'];
+		if (network === '56') {
+			[networks, cryptoCurrencyCode] = ['bsc', 'BNB'];
+		} else if (network === '137') {
+			[networks, cryptoCurrencyCode] = ['polygon', 'MATIC'];
+		}
+		return qs.stringify({
+			apiKey: TRANSAK_API_KEY,
+			cryptoCurrencyCode,
+			networks,
+			themeColor: '037dd6',
+			walletAddress: address,
+			redirectURL: TRANSAK_REDIRECT_URL,
+		});
+	}, [address, network]);
 	return `${isDevelopment ? TRANSAK_URL_STAGING : TRANSAK_URL}?${params}`;
 };

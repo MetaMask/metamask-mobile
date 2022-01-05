@@ -7,9 +7,10 @@ import { strings } from '../../../../../locales/i18n';
 import Analytics from '../../../../core/Analytics';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
+import Device from '../../../../util/device';
 import { FIAT_ORDER_PROVIDERS, PAYMENT_CATEGORY, PAYMENT_RAILS } from '../../../../constants/on-ramp';
 
-import { useTransakFlowURL } from '../orderProcessor/transak';
+import { TRANSAK_ALLOWED_NETWORKS, useTransakFlowURL } from '../orderProcessor/transak';
 import { WYRE_IS_PROMOTION } from '../orderProcessor/wyreApplePay';
 import { getPaymentSelectorMethodNavbar } from '../../Navbar';
 
@@ -32,7 +33,7 @@ function PaymentMethodSelectorView({
 	...props
 }) {
 	const navigation = useNavigation();
-	const transakURL = useTransakFlowURL(selectedAddress);
+	const transakURL = useTransakFlowURL(selectedAddress, network);
 
 	const onPressWyreApplePay = useCallback(() => {
 		const goToApplePay = () => navigation.navigate('PaymentMethodApplePay');
@@ -103,9 +104,10 @@ function PaymentMethodSelectorView({
 					<SubHeader centered>{strings('fiat_on_ramp.purchase_method_title.wyre_sub_header')}</SubHeader>
 				)}
 			</Heading>
-
-			<WyreApplePayPaymentMethod onPress={onPressWyreApplePay} />
-			{network === '1' && <TransakPaymentMethod onPress={onPressTransak} />}
+			{(network === '1' || (network === '42' && Device.isIos())) && (
+				<WyreApplePayPaymentMethod onPress={onPressWyreApplePay} />
+			)}
+			{TRANSAK_ALLOWED_NETWORKS.includes(network) && <TransakPaymentMethod onPress={onPressTransak} />}
 		</ScreenView>
 	);
 }

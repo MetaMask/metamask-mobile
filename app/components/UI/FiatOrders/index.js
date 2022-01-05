@@ -12,6 +12,7 @@ import { FIAT_ORDER_STATES } from '../../../constants/on-ramp';
 import { getPendingOrders, updateFiatOrder } from '../../../reducers/fiatOrders';
 import useInterval from '../../hooks/useInterval';
 import processOrder from './orderProcessor';
+import { TRANSAK_ALLOWED_NETWORKS } from './orderProcessor/transak';
 
 /**
  * @typedef {import('../../../reducers/fiatOrders').FiatOrder} FiatOrder
@@ -20,7 +21,8 @@ import processOrder from './orderProcessor';
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
 const NOTIFICATION_DURATION = 5000;
 
-export const allowedToBuy = (network) => network === '1' || (network === '42' && Device.isIos());
+export const allowedToBuy = (network) =>
+	network === '1' || (network === '42' && Device.isIos()) || TRANSAK_ALLOWED_NETWORKS.includes(network);
 
 const baseNotificationDetails = {
 	duration: NOTIFICATION_DURATION,
