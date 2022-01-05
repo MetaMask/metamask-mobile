@@ -9,7 +9,7 @@ const initialState = {
 	engine: {
 		backgroundState: {
 			PreferencesController: { selectedAddress: '0x' },
-			NetworkController: { network: '1' },
+			NetworkController: { network: '1', provider: { ticker: 'ETH' } },
 		},
 	},
 	modals: {
