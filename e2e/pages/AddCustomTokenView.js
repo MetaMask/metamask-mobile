@@ -34,8 +34,9 @@ export default class AddCustomTokenView {
 			await TestHelpers.tap(BACK_BUTTON_ID);
 		}
 	}
-	static async tapTokenSymbolText() {
-		await TestHelpers.tapByText('Token Address');
+	TOKEN_ADDRESS_SYMBOL_ID;
+	static async tapTokenSymbolInputBox() {
+		await TestHelpers.tap(TOKEN_ADDRESS_SYMBOL_ID);
 	}
 
 	static async typeTokenAddress(address) {
