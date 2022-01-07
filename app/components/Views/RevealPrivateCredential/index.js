@@ -133,9 +133,35 @@ const styles = StyleSheet.create({
 		letterSpacing: 0.5,
 		...fontStyles.bold,
 	},
+	holdButton: {
+		justifyContent: 'space-between',
+		alignItems: 'center',
+		flexDirection: 'row',
+		width: 180,
+		alignSelf: 'center',
+		backgroundColor: colors.blue,
+		borderRadius: 100,
+		marginTop: 30,
+		padding: 8,
+		paddingRight: 15,
+	},
+	buttonText: {
+		color: colors.white,
+	},
+	buttonIcon: {
+		justifyContent: 'center',
+		alignItems: 'center',
+		height: 30,
+		width: 30,
+		borderWidth: 3,
+		borderRadius: 20,
+		borderColor: colors.black + '66',
+		paddingLeft: 1,
+		paddingBottom: 1,
+	},
 });
 
-const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
+const WRONG_PASSWORD_ERROR = 'error: Invalid password';
 const PRIVATE_KEY = 'private_key';
 const SEED_PHRASE = 'seed_phrase';
 
@@ -257,18 +283,16 @@ class RevealPrivateCredential extends PureComponent {
 
 	tryUnlock = () => {
 		this.setState({ isModalVisible: true });
-		const { password } = this.state;
-		this.tryUnlockWithPassword(password);
 	};
 
 	onPasswordChange = (password) => {
 		this.setState({ password });
 	};
 
-	copyPrivateCredentialToClipboard = async () => {
+	copyPrivateCredentialToClipboard = async (privateCredentialName) => {
 		const { clipboardPrivateCredential } = this.state;
-		const privateCredentialName = this.props.privateCredentialName || this.props.route.params.privateCredentialName;
 		await ClipboardManager.setStringExpire(clipboardPrivateCredential);
+
 		this.props.showAlert({
 			isVisible: true,
 			autodismiss: 1500,
@@ -279,6 +303,16 @@ class RevealPrivateCredential extends PureComponent {
 				)}`,
 				width: '70%',
 			},
+		});
+	};
+
+	revearlSRP = () => {
+		const { password } = this.state;
+		this.tryUnlockWithPassword(password);
+
+		this.setState({
+			isUserUnlocked: true,
+			isModalVisible: false,
 		});
 	};
 
@@ -295,9 +329,8 @@ class RevealPrivateCredential extends PureComponent {
 		);
 	}
 
-	renderTabView() {
+	renderTabView(privateCredentialName) {
 		const { clipboardPrivateCredential } = this.state;
-		const privateCredentialName = this.props.privateCredentialName || this.props.route.params.privateCredentialName;
 
 		return (
 			<ScrollableTabView renderTabBar={this.renderTabBar}>
@@ -317,7 +350,7 @@ class RevealPrivateCredential extends PureComponent {
 						/>
 						<TouchableOpacity
 							style={styles.privateCredentialAction}
-							onPress={this.copyPrivateCredentialToClipboard}
+							onPress={() => this.copyPrivateCredentialToClipboard(privateCredentialName)}
 							testID={'private-credential-touchable'}
 						>
 							<Icon style={styles.actionIcon} name="copy" size={18} />
@@ -369,6 +402,13 @@ class RevealPrivateCredential extends PureComponent {
 							{'MetaMask Support will not request this, '}
 							<Text style={styles.blueText}>{'but phishers might.'}</Text>
 						</Text>
+
+						<TouchableOpacity style={styles.holdButton} onLongPress={this.revearlSRP} delayLongPress={2000}>
+							<View style={styles.buttonIcon}>
+								<Icon name={'lock'} size={10} color={colors.white} />
+							</View>
+							<Text style={styles.buttonText}>{'Hold to reveal SRP'}</Text>
+						</TouchableOpacity>
 					</>
 				}
 				title={'Keep your SRP safe'}
@@ -391,9 +431,7 @@ class RevealPrivateCredential extends PureComponent {
 		);
 	}
 
-	renderWarning() {
-		const privateCredentialName = this.props.privateCredentialName || this.props.route.params.privateCredentialName;
-
+	renderWarning(privateCredentialName) {
 		return (
 			<View style={styles.warningWrapper}>
 				<View style={[styles.rowWrapper, styles.warningRowWrapper]}>
@@ -414,7 +452,7 @@ class RevealPrivateCredential extends PureComponent {
 	}
 
 	render = () => {
-		const { unlocked, isUserUnlocked } = this.state;
+		const { unlocked, isUserUnlocked, password } = this.state;
 		const privateCredentialName = this.props.privateCredentialName || this.props.route.params.privateCredentialName;
 
 		return (
@@ -425,7 +463,7 @@ class RevealPrivateCredential extends PureComponent {
 					onCancelPress={this.cancel}
 					testID={`next-button`}
 					onConfirmPress={this.tryUnlock}
-					showConfirmButton={!unlocked}
+					confirmDisabled={!password.length}
 				>
 					<>
 						<View style={[styles.rowWrapper, styles.normalText]}>
@@ -437,10 +475,12 @@ class RevealPrivateCredential extends PureComponent {
 								this.renderSRPExplaination()
 							)}
 						</View>
-						{this.renderWarning()}
+						{this.renderWarning(privateCredentialName)}
 
 						<View style={styles.rowWrapper}>
-							{unlocked && isUserUnlocked ? this.renderTabView() : this.renderPasswordEntry()}
+							{unlocked && isUserUnlocked
+								? this.renderTabView(privateCredentialName)
+								: this.renderPasswordEntry()}
 						</View>
 					</>
 				</ActionView>
