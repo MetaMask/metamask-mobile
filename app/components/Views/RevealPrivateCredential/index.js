@@ -14,7 +14,7 @@ import { colors, fontStyles } from '../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
 import ActionView from '../../UI/ActionView';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 import Engine from '../../../core/Engine';
 import { connect } from 'react-redux';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
@@ -26,15 +26,14 @@ import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import { BIOMETRY_CHOICE } from '../../../constants/storage';
 import ClipboardManager from '../../../core/ClipboardManager';
+import InfoModal from '../../UI/Swaps/components/InfoModal';
 
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
 		flex: 1,
 	},
-	header: {
-		borderBottomColor: colors.grey400,
-		borderBottomWidth: 1,
+	normalText: {
 		...fontStyles.normal,
 	},
 	seedPhrase: {
@@ -67,12 +66,17 @@ const styles = StyleSheet.create({
 	},
 	warningWrapper: {
 		backgroundColor: colors.red000,
+		margin: 20,
+		marginTop: 10,
+		borderRadius: 8,
+		borderWidth: 1,
+		borderColor: colors.red100,
 	},
 	warningRowWrapper: {
 		flex: 1,
 		flexDirection: 'row',
-		alignContent: 'center',
-		alignItems: 'center',
+		alignItems: 'flex-start',
+		padding: 8,
 	},
 	warningText: {
 		marginTop: 10,
@@ -86,14 +90,13 @@ const styles = StyleSheet.create({
 		padding: 10,
 	},
 	icon: {
-		margin: 10,
 		color: colors.red,
 	},
 	actionIcon: {
 		margin: 10,
 		color: colors.blue,
 	},
-	actionText: {
+	blueText: {
 		color: colors.blue,
 	},
 	warningMessageText: {
@@ -102,7 +105,11 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 	},
 	enterPassword: {
-		marginBottom: 15,
+		marginBottom: 10,
+		...fontStyles.bold,
+	},
+	boldText: {
+		...fontStyles.bold,
 	},
 	tabContent: {
 		padding: 20,
@@ -129,16 +136,20 @@ const styles = StyleSheet.create({
 });
 
 const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
+const PRIVATE_KEY = 'private_key';
+const SEED_PHRASE = 'seed_phrase';
 
 /**
  * View that displays private account information as private key or seed phrase
  */
 class RevealPrivateCredential extends PureComponent {
 	state = {
-		privateCredential: '',
+		clipboardPrivateCredential: '',
 		unlocked: false,
+		isUserUnlocked: false,
 		password: '',
 		warningIncorrectPassword: '',
+		isModalVisible: false,
 	};
 
 	static navigationOptions = ({ navigation, route }) =>
@@ -146,6 +157,7 @@ class RevealPrivateCredential extends PureComponent {
 			strings(`reveal_credential.${route.params?.privateCredentialName ?? ''}_title`),
 			navigation
 		);
+
 	static propTypes = {
 		/**
 		/* navigation object required to push new views
@@ -216,14 +228,19 @@ class RevealPrivateCredential extends PureComponent {
 		const privateCredentialName = this.props.privateCredentialName || this.props.route.params.privateCredentialName;
 
 		try {
-			if (privateCredentialName === 'seed_phrase') {
+			let privateCredential;
+			if (privateCredentialName === SEED_PHRASE) {
 				const mnemonic = await KeyringController.exportSeedPhrase(password);
-				const privateCredential = JSON.stringify(mnemonic).replace(/"/g, '');
-				this.setState({ privateCredential, unlocked: true });
-			} else if (privateCredentialName === 'private_key') {
-				const privateCredential = await KeyringController.exportAccount(password, selectedAddress);
-				this.setState({ privateCredential, unlocked: true });
+				privateCredential = JSON.stringify(mnemonic).replace(/"/g, '');
+			} else if (privateCredentialName === PRIVATE_KEY) {
+				privateCredential = await KeyringController.exportAccount(password, selectedAddress);
 			}
+
+			if (privateCredential && this.state.isUserUnlocked)
+				this.setState({
+					clipboardPrivateCredential: privateCredential,
+					unlocked: true,
+				});
 		} catch (e) {
 			let msg = strings('reveal_credential.warning_incorrect_password');
 			if (e.toString().toLowerCase() !== WRONG_PASSWORD_ERROR.toLowerCase()) {
@@ -231,6 +248,7 @@ class RevealPrivateCredential extends PureComponent {
 			}
 
 			this.setState({
+				isModalVisible: false,
 				unlock: false,
 				warningIncorrectPassword: msg,
 			});
@@ -238,6 +256,7 @@ class RevealPrivateCredential extends PureComponent {
 	}
 
 	tryUnlock = () => {
+		this.setState({ isModalVisible: true });
 		const { password } = this.state;
 		this.tryUnlockWithPassword(password);
 	};
@@ -247,9 +266,9 @@ class RevealPrivateCredential extends PureComponent {
 	};
 
 	copyPrivateCredentialToClipboard = async () => {
-		const { privateCredential } = this.state;
+		const { clipboardPrivateCredential } = this.state;
 		const privateCredentialName = this.props.privateCredentialName || this.props.route.params.privateCredentialName;
-		await ClipboardManager.setStringExpire(privateCredential);
+		await ClipboardManager.setStringExpire(clipboardPrivateCredential);
 		this.props.showAlert({
 			isVisible: true,
 			autodismiss: 1500,
@@ -276,8 +295,126 @@ class RevealPrivateCredential extends PureComponent {
 		);
 	}
 
+	renderTabView() {
+		const { clipboardPrivateCredential } = this.state;
+		const privateCredentialName = this.props.privateCredentialName || this.props.route.params.privateCredentialName;
+
+		return (
+			<ScrollableTabView renderTabBar={this.renderTabBar}>
+				<View tabLabel={strings(`reveal_credential.text`)} style={styles.tabContent}>
+					<Text style={styles.secretRecoveryTitle}>
+						{strings(`reveal_credential.${privateCredentialName}`)}
+					</Text>
+					<View style={styles.seedPhraseView}>
+						<TextInput
+							value={clipboardPrivateCredential}
+							numberOfLines={3}
+							multiline
+							selectTextOnFocus
+							style={styles.seedPhrase}
+							editable={false}
+							testID={'private-credential-text'}
+						/>
+						<TouchableOpacity
+							style={styles.privateCredentialAction}
+							onPress={this.copyPrivateCredentialToClipboard}
+							testID={'private-credential-touchable'}
+						>
+							<Icon style={styles.actionIcon} name="copy" size={18} />
+							<Text style={styles.blueText}>{strings('reveal_credential.copy_to_clipboard')}</Text>
+						</TouchableOpacity>
+					</View>
+				</View>
+				<View tabLabel={strings(`reveal_credential.qr_code`)} style={styles.tabContent}>
+					<View style={styles.qrCodeWrapper}>
+						<QRCode value={clipboardPrivateCredential} size={Dimensions.get('window').width - 160} />
+					</View>
+				</View>
+			</ScrollableTabView>
+		);
+	}
+
+	renderPasswordEntry() {
+		return (
+			<>
+				<Text style={styles.enterPassword}>{strings('reveal_credential.enter_password')}</Text>
+				<TextInput
+					style={styles.input}
+					testID={'private-credential-password-text-input'}
+					placeholder={'Password'}
+					placeholderTextColor={colors.grey100}
+					onChangeText={this.onPasswordChange}
+					secureTextEntry
+					onSubmitEditing={this.tryUnlock}
+				/>
+				<Text style={styles.warningText} testID={'password-warning'}>
+					{this.state.warningIncorrectPassword}
+				</Text>
+			</>
+		);
+	}
+
+	renderModal() {
+		return (
+			<InfoModal
+				isVisible={this.state.isModalVisible}
+				toggleModal={() => this.setState({ isModalVisible: false })}
+				body={
+					<>
+						<Text style={styles.normalText}>
+							{'Your Secret Recovery Phrase provides '}
+							<Text style={styles.boldText}>
+								{'full access to your wallet and funds.\n\nDo not share this with anyone.\n'}
+							</Text>
+							{'MetaMask Support will not request this, '}
+							<Text style={styles.blueText}>{'but phishers might.'}</Text>
+						</Text>
+					</>
+				}
+				title={'Keep your SRP safe'}
+			/>
+		);
+	}
+
+	renderSRPExplaination() {
+		return (
+			<Text style={styles.normalText}>
+				{'The '}
+				<Text style={styles.blueText}>{'Secret Recovery Phrase (SRP)'}</Text>
+				{' gives '}
+				<Text style={styles.boldText}>{'full access to you wallet, funds and accounts.\n\n'}</Text>
+				{'MetaMask is a '}
+				<Text style={styles.blueText}>{'Non custodial wallet'}</Text>
+				{'. That means, '}
+				<Text style={styles.boldText}>{'you are the owner of your SRP.'}</Text>
+			</Text>
+		);
+	}
+
+	renderWarning() {
+		const privateCredentialName = this.props.privateCredentialName || this.props.route.params.privateCredentialName;
+
+		return (
+			<View style={styles.warningWrapper}>
+				<View style={[styles.rowWrapper, styles.warningRowWrapper]}>
+					<Icon style={styles.icon} name="eye-slash" size={20} solid />
+					{privateCredentialName === PRIVATE_KEY ? (
+						<Text style={styles.warningMessageText}>
+							{strings(`reveal_credential.${privateCredentialName}_warning_explanation`)}
+						</Text>
+					) : (
+						<Text style={styles.warningMessageText}>
+							{'Make sure nobody is looking at your screen. '}
+							<Text style={styles.boldText}>{'MetaMask Support will never request this.'}</Text>
+						</Text>
+					)}
+				</View>
+			</View>
+		);
+	}
+
 	render = () => {
-		const { unlocked, privateCredential } = this.state;
+		const { unlocked, isUserUnlocked } = this.state;
 		const privateCredentialName = this.props.privateCredentialName || this.props.route.params.privateCredentialName;
 
 		return (
@@ -290,77 +427,24 @@ class RevealPrivateCredential extends PureComponent {
 					onConfirmPress={this.tryUnlock}
 					showConfirmButton={!unlocked}
 				>
-					<View>
-						<View style={[styles.rowWrapper, styles.header]}>
-							<Text>{strings(`reveal_credential.${privateCredentialName}_explanation`)}</Text>
-						</View>
-						<View style={styles.warningWrapper}>
-							<View style={[styles.rowWrapper, styles.warningRowWrapper]}>
-								<Icon style={styles.icon} name="warning" size={22} />
-								<Text style={styles.warningMessageText}>
-									{strings(`reveal_credential.${privateCredentialName}_warning_explanation`)}
+					<>
+						<View style={[styles.rowWrapper, styles.normalText]}>
+							{privateCredentialName === PRIVATE_KEY ? (
+								<Text style={styles.normalText}>
+									{strings(`reveal_credential.private_key_explanation`)}
 								</Text>
-							</View>
-						</View>
-
-						<View style={styles.rowWrapper}>
-							{unlocked ? (
-								<ScrollableTabView renderTabBar={this.renderTabBar}>
-									<View tabLabel={strings(`reveal_credential.text`)} style={styles.tabContent}>
-										<Text>{strings(`reveal_credential.${privateCredentialName}`)}</Text>
-										<View style={styles.seedPhraseView}>
-											<TextInput
-												value={privateCredential}
-												numberOfLines={3}
-												multiline
-												selectTextOnFocus
-												style={styles.seedPhrase}
-												editable={false}
-												testID={'private-credential-text'}
-											/>
-											<TouchableOpacity
-												style={styles.privateCredentialAction}
-												onPress={this.copyPrivateCredentialToClipboard}
-												testID={'private-credential-touchable'}
-											>
-												<Icon style={styles.actionIcon} name="copy" size={18} />
-												<Text style={styles.actionText}>
-													{strings('reveal_credential.copy_to_clipboard')}
-												</Text>
-											</TouchableOpacity>
-										</View>
-									</View>
-									<View tabLabel={strings(`reveal_credential.qr_code`)} style={styles.tabContent}>
-										<View style={styles.qrCodeWrapper}>
-											<QRCode
-												value={privateCredential}
-												size={Dimensions.get('window').width - 160}
-											/>
-										</View>
-									</View>
-								</ScrollableTabView>
 							) : (
-								<View>
-									<Text style={styles.enterPassword}>
-										{strings('reveal_credential.enter_password')}
-									</Text>
-									<TextInput
-										style={styles.input}
-										testID={'private-credential-password-text-input'}
-										placeholder={'Password'}
-										placeholderTextColor={colors.grey100}
-										onChangeText={this.onPasswordChange}
-										secureTextEntry
-										onSubmitEditing={this.tryUnlock}
-									/>
-									<Text style={styles.warningText} testID={'password-warning'}>
-										{this.state.warningIncorrectPassword}
-									</Text>
-								</View>
+								this.renderSRPExplaination()
 							)}
 						</View>
-					</View>
+						{this.renderWarning()}
+
+						<View style={styles.rowWrapper}>
+							{unlocked && isUserUnlocked ? this.renderTabView() : this.renderPasswordEntry()}
+						</View>
+					</>
 				</ActionView>
+				{this.renderModal()}
 			</SafeAreaView>
 		);
 	};
