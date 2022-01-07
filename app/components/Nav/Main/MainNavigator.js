@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Image, StyleSheet } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -50,6 +50,7 @@ import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import GasEducationCarousel from '../../Views/GasEducationCarousel';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
+import Drawer from '../../UI/Drawer';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -58,9 +59,6 @@ const styles = StyleSheet.create({
 	headerLogo: {
 		width: 125,
 		height: 50,
-	},
-	hidden: {
-		opacity: 0,
 	},
 });
 /**
@@ -86,23 +84,33 @@ const WalletTabHome = () => (
 
 const BrowserTabHome = () => (
 	<Stack.Navigator>
-		<Stack.Screen name="BrowserView" component={Browser} options={Browser.navigationOptions} />
+		<Stack.Screen name="BrowserView" component={Browser} />
 	</Stack.Navigator>
 );
 
 const TransactionsHome = () => (
 	<Stack.Navigator>
-		<Stack.Screen name="TransactionsView" component={ActivityView} options={ActivityView.navigationOptions} />
+		<Stack.Screen name="TransactionsView" component={ActivityView} />
 	</Stack.Navigator>
 );
 
-const HomeTabs = () => (
-	<Tab.Navigator initialRouteName={'WalletTabHome'} tabBarOptions={{ style: styles.hidden }}>
-		<Tab.Screen name="WalletTabHome" component={WalletTabHome} options={{ tabBarVisible: false }} />
-		<Tab.Screen name="BrowserTabHome" component={BrowserTabHome} options={{ tabBarVisible: false }} />
-		<Tab.Screen name="TransactionsHome" component={TransactionsHome} options={{ tabBarVisible: false }} />
-	</Tab.Navigator>
-);
+export const DrawerContext = React.createContext({ drawerRef: null });
+
+const HomeTabs = () => {
+	const drawerRef = useRef(null);
+
+	return (
+		<Drawer ref={drawerRef}>
+			<DrawerContext.Provider value={{ drawerRef }}>
+				<Tab.Navigator initialRouteName={'WalletTabHome'} screenOptions={{ tabBarVisible: false }}>
+					<Tab.Screen name="WalletTabHome" component={WalletTabHome} />
+					<Tab.Screen name="BrowserTabHome" component={BrowserTabHome} />
+					<Tab.Screen name="TransactionsHome" component={TransactionsHome} />
+				</Tab.Navigator>
+			</DrawerContext.Provider>
+		</Drawer>
+	);
+};
 
 const Webview = () => (
 	<Stack.Navigator>

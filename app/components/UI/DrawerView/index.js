@@ -14,7 +14,6 @@ import AccountList from '../AccountList';
 import NetworkList from '../NetworkList';
 import { renderFromWei, renderFiat } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
-import { DrawerActions } from '@react-navigation/native';
 import Modal from 'react-native-modal';
 import SecureKeychain from '../../../core/SecureKeychain';
 import { toggleNetworkModal, toggleAccountsModal, toggleReceiveModal } from '../../../actions/modals';
@@ -43,10 +42,12 @@ import AnalyticsV2, { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
 import { isDefaultAccountName, doENSReverseLookup } from '../../../util/ENSUtils';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { collectiblesSelector } from '../../../reducers/collectibles';
+import { getCurrentRoute } from '../../../reducers/navigation';
 
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
+		width: 315,
 		backgroundColor: colors.white,
 	},
 	header: {
@@ -369,6 +370,14 @@ class DrawerView extends PureComponent {
 		 */
 		protectWalletModalVisible: PropTypes.func,
 		logOut: PropTypes.func,
+		/**
+		 * Callback to close drawer
+		 */
+		onCloseDrawer: PropTypes.func,
+		/**
+		 * Latest navigation route
+		 */
+		currentRoute: PropTypes.string,
 	};
 
 	state = {
@@ -652,12 +661,7 @@ class DrawerView extends PureComponent {
 	}
 
 	hideDrawer() {
-		return new Promise((resolve) => {
-			this.props.navigation.dispatch(DrawerActions.closeDrawer());
-			setTimeout(() => {
-				resolve();
-			}, 300);
-		});
+		this.props.onCloseDrawer();
 	}
 
 	onAccountChange = () => {
@@ -900,6 +904,7 @@ class DrawerView extends PureComponent {
 			currentCurrency,
 			ticker,
 			seedphraseBackedUp,
+			currentRoute,
 		} = this.props;
 
 		const {
@@ -916,7 +921,7 @@ class DrawerView extends PureComponent {
 		}
 		this.currentBalance = fiatBalance;
 		const fiatBalanceStr = renderFiat(this.currentBalance, currentCurrency);
-		const currentRoute = findRouteNameFromNavigatorState(this.props.navigation.dangerouslyGetState().routes);
+
 		return (
 			<View style={styles.wrapper} testID={'drawer-screen'}>
 				<ScrollView>
@@ -1144,6 +1149,7 @@ const mapStateToProps = (state) => ({
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	collectibles: collectiblesSelector(state),
 	seedphraseBackedUp: state.user.seedphraseBackedUp,
+	currentRoute: getCurrentRoute(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
