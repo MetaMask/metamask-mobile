@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Alert, TouchableOpacity, View, Image, StyleSheet, Text, ScrollView, InteractionManager } from 'react-native';
+import { Alert, TouchableOpacity, View, Image, StyleSheet, Text, InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Share from 'react-native-share';
@@ -43,6 +43,7 @@ import { isDefaultAccountName, doENSReverseLookup } from '../../../util/ENSUtils
 import ClipboardManager from '../../../core/ClipboardManager';
 import { collectiblesSelector } from '../../../reducers/collectibles';
 import { getCurrentRoute } from '../../../reducers/navigation';
+import { ScrollView } from 'react-native-gesture-handler';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -910,10 +911,17 @@ class DrawerView extends PureComponent {
 		const {
 			invalidCustomNetwork,
 			showProtectWalletModal,
-			account: { name, ens },
+			account: { name: nameFromState, ens: ensFromState },
 		} = this.state;
 
-		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
+		const account = {
+			address: selectedAddress,
+			name: nameFromState,
+			ens: ensFromState,
+			...identities[selectedAddress],
+			...accounts[selectedAddress],
+		};
+		const { name, ens } = account;
 		account.balance = (accounts[selectedAddress] && renderFromWei(accounts[selectedAddress].balance)) || 0;
 		const fiatBalance = Engine.getTotalFiatAccountBalance();
 		if (fiatBalance !== this.previousBalance) {
@@ -921,6 +929,7 @@ class DrawerView extends PureComponent {
 		}
 		this.currentBalance = fiatBalance;
 		const fiatBalanceStr = renderFiat(this.currentBalance, currentCurrency);
+		const accountName = isDefaultAccountName(name) && ens ? ens : name;
 
 		return (
 			<View style={styles.wrapper} testID={'drawer-screen'}>
@@ -949,7 +958,7 @@ class DrawerView extends PureComponent {
 							>
 								<View style={styles.accountNameWrapper}>
 									<Text style={styles.accountName} numberOfLines={1}>
-										{isDefaultAccountName(name) && ens ? ens : name}
+										{accountName}
 									</Text>
 									<Icon name="caret-down" size={24} style={styles.caretDown} />
 								</View>
