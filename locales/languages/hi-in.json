@@ -502,7 +502,7 @@
 		"third_party_title": "आने वाले लेनदेन प्राप्त करें",
 		"third_party_description": "इतिहास में आपके आने वाले लेनदेन को दर्शाने के लिए तृतीय पक्ष API (Etherscan) का उपयोग किया जाता है। यदि आप नहीं चाहते हैं कि हम उन सेवाओं से डेटा प्राप्त करें, तो बंद करें।",
 		"metametrics_opt_out": "MetaMetrics ऑप्ट-आउट",
-		"metrametrics_restart_required": "परिवर्तनों को प्रभावी करने के लिए आपको ऐप पुनरारंभ करना होगा।",
+		"metametrics_restart_required": "परिवर्तनों को प्रभावी करने के लिए आपको ऐप पुनरारंभ करना होगा।",
 		"create_password": "पासवर्ड बनाएँ",
 		"invalid_password": "अमान्य पासवर्ड",
 		"invalid_password_message": "पासवर्ड सही नहीं था। कृपया पुनः प्रयास करें।",

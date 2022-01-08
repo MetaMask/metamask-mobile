@@ -24,7 +24,7 @@ const initialState = {
 				contractExchangeRates: {},
 			},
 			CollectiblesController: {
-				collectibleContracts: {},
+				allCollectibleContracts: { '0x0': { 1: [] } },
 			},
 			CurrencyRateController: {
 				currentCurrency: 'USD',

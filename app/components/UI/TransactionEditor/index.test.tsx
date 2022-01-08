@@ -25,7 +25,7 @@ const initialState = {
 				tokens: [],
 			},
 			CollectiblesController: {
-				collectibles: [],
+				allCollectibles: { '0x0': { 1: [] } },
 			},
 			NetworkController: {
 				provider: {

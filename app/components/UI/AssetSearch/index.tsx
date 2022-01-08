@@ -57,12 +57,12 @@ interface Props {
 // eslint-disable-next-line react/display-name
 const AssetSearch = memo(({ onSearch, onFocus, onBlur }: Props) => {
 	const [searchQuery, setSearchQuery] = useState('');
-	const [inputWidth, setInputWidth] = useState('85%');
+	const [inputDimensions, setInputDimensions] = useState('85%');
 	const tokenList = useSelector<any, TokenListToken[]>(getTokenListArray);
 
 	useEffect(() => {
 		setTimeout(() => {
-			setInputWidth('86%');
+			setInputDimensions('86%');
 		}, 100);
 	}, []);
 
@@ -86,7 +86,7 @@ const AssetSearch = memo(({ onSearch, onFocus, onBlur }: Props) => {
 		<View style={styles.searchSection} testID={'add-searched-token-screen'}>
 			<Icon name="search" size={22} style={styles.icon} />
 			<TextInput
-				style={[styles.textInput, { width: inputWidth }]}
+				style={[styles.textInput, { height: inputDimensions, width: inputDimensions }]}
 				value={searchQuery}
 				onFocus={onFocus}
 				onBlur={onBlur}

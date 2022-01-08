@@ -179,7 +179,8 @@
 		"i_understand": "I understand that MetaMask cannot recover this password for me.",
 		"learn_more": "Learn more.",
 		"secure": "Secure wallet",
-		"confirm": "Confirm Secret Recovery Phrase"
+		"confirm": "Confirm Secret Recovery Phrase",
+		"disable_biometric_error": "You have disabled biometrics for the app. Update Remember Me settings and try again."
 	},
 	"reset_password": {
 		"title": "Change password",
@@ -379,13 +380,15 @@
 		"ownership_verification_error": "We could not verify ownership. This may be because the standard is not supported or the asset does not exist on your selected network.",
 		"powered_by_opensea": "Powered by",
 		"id_placeholder": "Enter the collectible ID",
+		"collectible_token_standard": "Token Standard",
 		"collectible_last_sold": "Last sold",
 		"collectible_last_price_sold": "Last price sold",
 		"collectible_source": "Source",
 		"collectible_link": "Link",
 		"collectible_asset_contract": "Asset contract",
 		"share_check_out_nft": "Check out my NFT!",
-		"share_via": "Shared via"
+		"share_via": "Shared via",
+		"untitled_collection": "Untitled Collection"
 	},
 	"transfer": {
 		"title": "Transfer",
@@ -518,7 +521,7 @@
 		"third_party_title": "Get incoming transactions",
 		"third_party_description": "Third party APIs (Etherscan) are used to show your incoming transactions in the history. Turn off if you don’t want us to pull data from those services.",
 		"metametrics_opt_out": "MetaMetrics Opt-out",
-		"metrametrics_restart_required": "You need to restart the app for the changes to take effect.",
+		"metametrics_restart_required": "You need to restart the app for the changes to take effect.",
 		"create_password": "Create Password",
 		"invalid_password": "Invalid password",
 		"invalid_password_message": "The password was not correct. Please try again.",
@@ -535,7 +538,7 @@
 		"hide_zero_balance_tokens_title": "Hide Tokens Without Balance",
 		"hide_zero_balance_tokens_desc": "Prevents tokens with no balance from displaying in your token listing.",
 		"token_detection_title": "Enhanced Token Detection",
-		"token_detection_description": "We use third-party APIs to detect and display new tokens sent to your wallet. Turn off if you don’t want the app to pull data from those those services."
+		"token_detection_description": "We use third-party APIs to detect and display new tokens sent to your wallet. Turn off if you don’t want the app to pull data from those services."
 	},
 	"app_information": {
 		"title": "Information",
@@ -1767,5 +1770,19 @@
 		"warning_low": "This lowers your maximum fee but if network traffic increases your transaction may be delayed or fail.",
 		"warning_low_title": "Low priority",
 		"warning_unknown_title": "Unknown processing time"
+	},
+	"review_prompt": {
+		"high_fees": "Why are fees so high?",
+		"missing_tokens": "I'm missing tokens...",
+		"swap_issues": "I'm unable to swap...",
+		"mobile_sentiment": "How do you feel about MetaMask mobile?",
+		"sentiment_good_face": "😁",
+		"sentiment_bad_face": "☹️",
+		"sentiment_good": "Love it!",
+		"sentiment_bad": "Not great...",
+		"help_title": "Oh no! Can we help?",
+		"help_description_1": "We're here to help! Check out the FAQs below or ",
+		"help_description_2": "contact support",
+		"help_description_3": " for help!"
 	}
 }
