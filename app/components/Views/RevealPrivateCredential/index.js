@@ -395,12 +395,10 @@ class RevealPrivateCredential extends PureComponent {
 				body={
 					<>
 						<Text style={styles.normalText}>
-							{'Your Secret Recovery Phrase provides '}
-							<Text style={styles.boldText}>
-								{'full access to your wallet and funds.\n\nDo not share this with anyone.\n'}
-							</Text>
-							{'MetaMask Support will not request this, '}
-							<Text style={styles.blueText}>{'but phishers might.'}</Text>
+							{strings('reveal_credential.seed_phrase_modal')[0]}
+							<Text style={styles.boldText}>{strings('reveal_credential.seed_phrase_modal')[1]}</Text>
+							{strings('reveal_credential.seed_phrase_modal')[2]}
+							<Text style={styles.blueText}>{strings('reveal_credential.seed_phrase_modal')[3]}</Text>
 						</Text>
 
 						<TouchableOpacity style={styles.holdButton} onLongPress={this.revearlSRP} delayLongPress={2000}>
@@ -419,14 +417,14 @@ class RevealPrivateCredential extends PureComponent {
 	renderSRPExplaination() {
 		return (
 			<Text style={styles.normalText}>
-				{'The '}
-				<Text style={styles.blueText}>{'Secret Recovery Phrase (SRP)'}</Text>
-				{' gives '}
-				<Text style={styles.boldText}>{'full access to you wallet, funds and accounts.\n\n'}</Text>
-				{'MetaMask is a '}
-				<Text style={styles.blueText}>{'Non custodial wallet'}</Text>
-				{'. That means, '}
-				<Text style={styles.boldText}>{'you are the owner of your SRP.'}</Text>
+				{strings('reveal_credential.seed_phrase_explanation')[0]}
+				<Text style={styles.blueText}>{strings('reveal_credential.seed_phrase_explanation')[1]}</Text>
+				{strings('reveal_credential.seed_phrase_explanation')[2]}
+				<Text style={styles.boldText}>{strings('reveal_credential.seed_phrase_explanation')[3]}</Text>
+				{strings('reveal_credential.seed_phrase_explanation')[4]}
+				<Text style={styles.blueText}>{strings('reveal_credential.seed_phrase_explanation')[5]}</Text>
+				{strings('reveal_credential.seed_phrase_explanation')[6]}
+				<Text style={styles.boldText}>{strings('reveal_credential.seed_phrase_explanation')[7]}</Text>
 			</Text>
 		);
 	}
@@ -442,8 +440,10 @@ class RevealPrivateCredential extends PureComponent {
 						</Text>
 					) : (
 						<Text style={styles.warningMessageText}>
-							{'Make sure nobody is looking at your screen. '}
-							<Text style={styles.boldText}>{'MetaMask Support will never request this.'}</Text>
+							{strings('reveal_credential.seed_phrase_warning_explanation')[0]}
+							<Text style={styles.boldText}>
+								{strings('reveal_credential.seed_phrase_warning_explanation')[1]}
+							</Text>
 						</Text>
 					)}
 				</View>
@@ -463,6 +463,7 @@ class RevealPrivateCredential extends PureComponent {
 					onCancelPress={this.cancel}
 					testID={`next-button`}
 					onConfirmPress={this.tryUnlock}
+					showConfirmButton={!unlocked}
 					confirmDisabled={!password.length}
 				>
 					<>

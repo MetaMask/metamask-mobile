@@ -564,11 +564,29 @@
 		"private_key_title_for_account": "Show private key for \"{{accountName}}\"",
 		"cancel": "Cancel",
 		"confirm": "Next",
-		"seed_phrase_explanation": "If you ever change browsers or move computers, you will need this Secret Recovery Phrase to access your accounts. Save them somewhere safe and secret.",
+		"seed_phrase_explanation": [
+			"The ",
+			"Secret Recovery Phrase (SRP)",
+			" gives ",
+			"full access to you wallet, funds and accounts.\n\n",
+			"MetaMask is a ",
+			"Non custodial wallet",
+			". That means, ",
+			"you are the owner of your SRP."
+		],
 		"private_key_explanation": "Save it somewhere safe and secret.",
 		"private_key_warning": "This is the private key for the current selected account: {{accountName}}. Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.",
-		"seed_phrase_warning_explanation": "DO NOT share this phrase with anyone! These words can be used to steal all your accounts.",
+		"seed_phrase_warning_explanation": [
+			"Make sure nobody is looking at your screen. ",
+			"MetaMask Support will never request this."
+		],
 		"private_key_warning_explanation": "Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.",
+		"seed_phrase_modal": [
+			"Your Secret Recovery Phrase provides ",
+			"full access to your wallet and funds.\n\nDo not share this with anyone.\n",
+			"MetaMask Support will not request this, ",
+			"but phishers might."
+		],
 		"seed_phrase": "Your Secret Recovery Phrase",
 		"private_key": "Your private key",
 		"copy_to_clipboard": "Copy to clipboard",
