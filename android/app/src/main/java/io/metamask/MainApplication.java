@@ -23,6 +23,8 @@ import androidx.multidex.MultiDexApplication;
 
 import android.database.CursorWindow;
 import java.lang.reflect.Field;
+import com.facebook.react.bridge.JSIModulePackage;
+import com.swmansion.reanimated.ReanimatedJSIModulePackage;
 
 public class MainApplication extends MultiDexApplication implements ShareApplication, ReactApplication {
 
@@ -48,6 +50,11 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 		@Override
 		protected String getJSMainModuleName() {
 			return "index";
+		}
+
+		@Override
+		protected JSIModulePackage getJSIModulePackage() {
+			return new ReanimatedJSIModulePackage();
 		}
   	};
 
