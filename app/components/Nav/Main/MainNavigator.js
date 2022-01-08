@@ -100,15 +100,15 @@ const HomeTabs = () => {
 	const drawerRef = useRef(null);
 
 	return (
-		<Drawer ref={drawerRef}>
-			<DrawerContext.Provider value={{ drawerRef }}>
+		<DrawerContext.Provider value={{ drawerRef }}>
+			<Drawer ref={drawerRef}>
 				<Tab.Navigator initialRouteName={'WalletTabHome'} screenOptions={{ tabBarVisible: false }}>
 					<Tab.Screen name="WalletTabHome" component={WalletTabHome} />
 					<Tab.Screen name="BrowserTabHome" component={BrowserTabHome} />
 					<Tab.Screen name="TransactionsHome" component={TransactionsHome} />
 				</Tab.Navigator>
-			</DrawerContext.Provider>
-		</Drawer>
+			</Drawer>
+		</DrawerContext.Provider>
 	);
 };
 

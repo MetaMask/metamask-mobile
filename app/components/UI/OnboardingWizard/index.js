@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { useContext } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, View, StyleSheet, Text, Dimensions, InteractionManager } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
@@ -10,7 +10,6 @@ import Step4 from './Step4';
 import Step5 from './Step5';
 import Step6 from './Step6';
 import setOnboardingWizardStep from '../../../actions/wizard';
-import { DrawerActions } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import DefaultPreference from 'react-native-default-preference';
 import ElevatedView from 'react-native-elevated-view';
@@ -19,6 +18,7 @@ import Device from '../../../util/device';
 import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../util/analytics';
 import { ONBOARDING_WIZARD, EXPLORED } from '../../../constants/storage';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
 
 const MIN_HEIGHT = Dimensions.get('window').height;
 const styles = StyleSheet.create({
@@ -72,38 +72,22 @@ const styles = StyleSheet.create({
 	},
 });
 
-class OnboardingWizard extends PureComponent {
-	static propTypes = {
-		/**
-		 * Object that represents the navigator
-		 */
-		navigation: PropTypes.object,
-		/**
-		 * Wizard state
-		 */
-		wizard: PropTypes.object,
-		/**
-		 * Dispatch set onboarding wizard step
-		 */
-		setOnboardingWizardStep: PropTypes.func,
-		/**
-		 * Coachmark ref to get position
-		 */
-		coachmarkRef: PropTypes.object,
-	};
+const OnboardingWizard = (props) => {
+	const {
+		setOnboardingWizardStep,
+		navigation,
+		wizard: { step },
+		coachmarkRef,
+	} = props;
+	const { drawerRef } = useContext(DrawerContext);
 
 	/**
 	 * Close onboarding wizard setting step to 0 and closing drawer
 	 */
-	closeOnboardingWizard = async () => {
-		const {
-			setOnboardingWizardStep,
-			navigation,
-			wizard: { step },
-		} = this.props;
+	const closeOnboardingWizard = async () => {
 		await DefaultPreference.set(ONBOARDING_WIZARD, EXPLORED);
 		setOnboardingWizardStep && setOnboardingWizardStep(0);
-		navigation && navigation.dispatch(DrawerActions.closeDrawer());
+		drawerRef?.current?.dismissDrawer?.();
 		InteractionManager.runAfterInteractions(() => {
 			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_SKIPPED, {
 				tutorial_step_count: step,
@@ -113,81 +97,65 @@ class OnboardingWizard extends PureComponent {
 		});
 	};
 
-	onboardingWizardNavigator = (step) => {
+	const onboardingWizardNavigator = (step) => {
 		const steps = {
-			1: <Step1 onClose={this.closeOnboardingWizard} />,
-			2: <Step2 coachmarkRef={this.props.coachmarkRef} />,
-			3: <Step3 coachmarkRef={this.props.coachmarkRef} />,
-			4: <Step4 coachmarkRef={this.props.coachmarkRef} navigation={this.props.navigation} />,
-			5: <Step5 coachmarkRef={this.props.coachmarkRef} navigation={this.props.navigation} />,
-			6: (
-				<Step6
-					coachmarkRef={this.props.coachmarkRef}
-					navigation={this.props.navigation}
-					onClose={this.closeOnboardingWizard}
-				/>
-			),
+			1: <Step1 onClose={closeOnboardingWizard} />,
+			2: <Step2 coachmarkRef={coachmarkRef} />,
+			3: <Step3 coachmarkRef={coachmarkRef} />,
+			4: <Step4 coachmarkRef={coachmarkRef} drawerRef={drawerRef} navigation={navigation} />,
+			5: <Step5 coachmarkRef={coachmarkRef} drawerRef={drawerRef} navigation={navigation} />,
+			6: <Step6 coachmarkRef={coachmarkRef} navigation={navigation} onClose={closeOnboardingWizard} />,
 		};
 		return steps[step];
 	};
 
-	getBackButtonBehavior = () => {
-		const {
-			wizard: { step },
-			navigation,
-			setOnboardingWizardStep,
-		} = this.props;
+	const getBackButtonBehavior = () => {
 		if (step === 1) {
-			return this.closeOnboardingWizard();
+			return closeOnboardingWizard();
 		} else if (step === 5) {
 			setOnboardingWizardStep(4);
 			navigation.navigate('WalletView');
-			navigation.dispatch(DrawerActions.closeDrawer());
+			drawerRef?.current?.dismissDrawer?.();
 		} else if (step === 6) {
-			navigation && navigation.openDrawer();
+			drawerRef?.current?.showDrawer?.();
 			setOnboardingWizardStep(5);
 		}
 		return setOnboardingWizardStep(step - 1);
 	};
 
-	render() {
-		const {
-			wizard: { step },
-		} = this.props;
-		return (
-			<Modal
-				animationIn={{ from: { opacity: 1 }, to: { opacity: 1 } }}
-				animationOut={{ from: { opacity: 0 }, to: { opacity: 0 } }}
-				isVisible
-				backdropOpacity={0}
-				disableAnimation
-				transparent
-				onBackButtonPress={this.getBackButtonBehavior}
-				style={[styles.root, Device.isAndroid() ? { minHeight: MIN_HEIGHT } : {}]}
-			>
-				<View style={styles.main}>{this.onboardingWizardNavigator(step)}</View>
-				{step !== 1 && (
-					<ElevatedView
-						elevation={10}
-						style={[
-							Device.isSmallDevice() ? styles.smallSkipWrapper : styles.largeSkipWrapper,
-							Device.isIos() ? {} : styles.androidElevated,
-						]}
+	return (
+		<Modal
+			animationIn={{ from: { opacity: 1 }, to: { opacity: 1 } }}
+			animationOut={{ from: { opacity: 0 }, to: { opacity: 0 } }}
+			isVisible
+			backdropOpacity={0}
+			disableAnimation
+			transparent
+			onBackButtonPress={getBackButtonBehavior}
+			style={[styles.root, Device.isAndroid() ? { minHeight: MIN_HEIGHT } : {}]}
+		>
+			<View style={styles.main}>{onboardingWizardNavigator(step)}</View>
+			{step !== 1 && (
+				<ElevatedView
+					elevation={10}
+					style={[
+						Device.isSmallDevice() ? styles.smallSkipWrapper : styles.largeSkipWrapper,
+						Device.isIos() ? {} : styles.androidElevated,
+					]}
+				>
+					<TouchableOpacity
+						style={[styles.skip, Device.isIos() ? styles.iosTouchable : {}]}
+						onPress={closeOnboardingWizard}
 					>
-						<TouchableOpacity
-							style={[styles.skip, Device.isIos() ? styles.iosTouchable : {}]}
-							onPress={this.closeOnboardingWizard}
-						>
-							<View style={styles.skipTextWrapper}>
-								<Text style={styles.skipText}>{strings('onboarding_wizard.skip_tutorial')}</Text>
-							</View>
-						</TouchableOpacity>
-					</ElevatedView>
-				)}
-			</Modal>
-		);
-	}
-}
+						<View style={styles.skipTextWrapper}>
+							<Text style={styles.skipText}>{strings('onboarding_wizard.skip_tutorial')}</Text>
+						</View>
+					</TouchableOpacity>
+				</ElevatedView>
+			)}
+		</Modal>
+	);
+};
 
 const mapDispatchToProps = (dispatch) => ({
 	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
@@ -196,5 +164,24 @@ const mapDispatchToProps = (dispatch) => ({
 const mapStateToProps = (state) => ({
 	wizard: state.wizard,
 });
+
+OnboardingWizard.propTypes = {
+	/**
+	 * Object that represents the navigator
+	 */
+	navigation: PropTypes.object,
+	/**
+	 * Wizard state
+	 */
+	wizard: PropTypes.object,
+	/**
+	 * Dispatch set onboarding wizard step
+	 */
+	setOnboardingWizardStep: PropTypes.func,
+	/**
+	 * Coachmark ref to get position
+	 */
+	coachmarkRef: PropTypes.object,
+};
 
 export default connect(mapStateToProps, mapDispatchToProps)(OnboardingWizard);
