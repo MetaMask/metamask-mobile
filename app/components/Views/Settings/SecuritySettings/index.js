@@ -11,6 +11,7 @@ import {
 	TouchableOpacity,
 	Keyboard,
 	InteractionManager,
+	Linking,
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
@@ -49,6 +50,8 @@ import AnalyticsV2, { trackErrorAsAnalytics } from '../../../../util/analyticsV2
 import SeedPhraseVideo from '../../../UI/SeedPhraseVideo';
 
 const isIos = Device.isIos();
+const LEARN_MORE_URL =
+	'https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-and-Security-Tips-for-MetaMask';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -77,6 +80,12 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		lineHeight: 20,
 		marginTop: 12,
+	},
+	learnMore: {
+		...fontStyles.normal,
+		color: colors.blue,
+		fontSize: 14,
+		lineHeight: 20,
 	},
 	switchElement: {
 		marginTop: 18,
@@ -113,7 +122,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'space-between',
 	},
 	col: {
-		width: '48%',
+		width: '100%',
 	},
 	inner: {
 		paddingBottom: 112,
@@ -527,10 +536,6 @@ class Settings extends PureComponent {
 		});
 	};
 
-	manualBackup = () => {
-		this.props.navigation.navigate('ManualBackupStep1');
-	};
-
 	resetPassword = () => {
 		this.props.navigation.navigate('ResetPassword');
 	};
@@ -615,7 +620,16 @@ class Settings extends PureComponent {
 							<Text style={[styles.title, styles.bump]}>{strings('app_settings.protect_title')}</Text>
 						</Text>
 						<SeedPhraseVideo onClose={this.onBack} />
-						<Text style={styles.desc}>{strings('app_settings.protect_desc')}</Text>
+						<Text style={styles.desc}>
+							{strings(
+								seedphraseBackedUp ? 'app_settings.protect_desc' : 'app_settings.protect_desc_no_backup'
+							)}
+						</Text>
+						{!seedphraseBackedUp && (
+							<TouchableOpacity onPress={() => Linking.openURL(LEARN_MORE_URL)}>
+								<Text style={styles.learnMore}>{strings('app_settings.learn_more')}</Text>
+							</TouchableOpacity>
+						)}
 						<SettingsNotification isWarning={!seedphraseBackedUp}>
 							<Text
 								style={[
@@ -646,13 +660,6 @@ class Settings extends PureComponent {
 							<View style={styles.protect}>
 								<StyledButton
 									type="normal"
-									onPress={this.manualBackup}
-									containerStyle={[styles.confirm, styles.col]}
-								>
-									{strings('app_settings.back_up_again')}
-								</StyledButton>
-								<StyledButton
-									type="blue"
 									onPress={this.goToRevealPrivateCredential}
 									containerStyle={[styles.confirm, styles.col]}
 									testID={'reveal-seed-button'}
