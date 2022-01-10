@@ -1,6 +1,6 @@
 import RNWalletConnect from '@walletconnect/client';
-import type { ISessionStatus, IClientMeta } from '@walletconnect/types';
 import { parseWalletConnectUri } from '@walletconnect/utils';
+import type { ISessionStatus, IClientMeta } from '@walletconnect/types';
 import AsyncStorage from '@react-native-community/async-storage';
 import { WalletDevice } from '@metamask/controllers/';
 // eslint-disable-next-line import/no-nodejs-modules
@@ -17,9 +17,22 @@ import {
 	ETH_SIGN_TYPED_DATA_V3,
 	ETH_SIGN_TYPED_DATA_V4,
 	PERSONAL_SIGN,
-	WALLET_ADD_ETHEREUM_CHAIN,
-	WALLET_SWITCH_ETHEREUM_CHAIN,
-} from '../../constants/walletConnect';
+} from '../../constants/RPCMethods';
+
+interface IPeerMeta {
+	name: string;
+	description: string;
+	icons: string[];
+	url: string;
+}
+
+interface ISessionData {
+	peerId: string;
+	chainId: number;
+	autosign: boolean;
+	userAddress: string;
+	peerMeta: IPeerMeta;
+}
 
 interface ITransactionParams {
 	to?: string;
@@ -33,7 +46,13 @@ interface ITransactionParams {
 interface IPayload {
 	id: number;
 	method: string;
-	params: any;
+	jsonrpc: string;
+	params: any[];
+}
+interface INewSessionData {
+	uri: string;
+	redirect?: string | undefined;
+	autosign?: boolean;
 }
 
 const hub = new EventEmitter();
@@ -66,7 +85,7 @@ const waitForKeychainUnlocked = async () => {
 	}
 };
 
-class WalletConnect {
+class WalletConnectSession {
 	redirectUrl = '';
 	selectedAddress: string;
 	chainId = null;
@@ -95,7 +114,7 @@ class WalletConnect {
 			await waitForKeychainUnlocked();
 
 			try {
-				const sessionData = {
+				const sessionData: ISessionData = {
 					...payload.params[0],
 					autosign: this.autosign,
 				};
@@ -143,32 +162,24 @@ class WalletConnect {
 			if (payload.method) {
 				switch (payload.method) {
 					case ETH_SEND_TRANSACTION:
-						await this.sendTransaction(payload, meta);
+						await this.eth_sendTransaction(payload, meta);
 						break;
 
 					case ETH_SIGN:
-						await this.sign(payload, meta);
-						break;
-
-					case PERSONAL_SIGN:
-						await this.personalSign(payload, meta);
+						await this.eth_sign(payload, meta);
 						break;
 
 					case ETH_SIGN_TYPED_DATA:
 					case ETH_SIGN_TYPED_DATA_V3:
-						await this.signTypedData(payload, meta);
+						await this.eth_signTypedData(payload, meta);
 						break;
 
 					case ETH_SIGN_TYPED_DATA_V4:
-						await this.signTypedDataV4(payload, meta);
+						await this.eth_signTypedDataV4(payload, meta);
 						break;
 
-					case WALLET_ADD_ETHEREUM_CHAIN:
-						this.addEthereumChain();
-						break;
-
-					case WALLET_SWITCH_ETHEREUM_CHAIN:
-						this.switchEthereumChain();
+					case PERSONAL_SIGN:
+						await this.personal_sign(payload, meta);
 						break;
 
 					default:
@@ -207,7 +218,7 @@ class WalletConnect {
 		this.chainId = network;
 	}
 
-	sendTransaction = async (payload: IPayload, meta: IClientMeta | null) => {
+	eth_sendTransaction = async (payload: IPayload, meta: IClientMeta | null) => {
 		const { TransactionController } = Engine.context as any;
 		try {
 			const txParams: ITransactionParams = {};
@@ -236,7 +247,7 @@ class WalletConnect {
 		}
 	};
 
-	sign = async (payload: IPayload, meta: IClientMeta | null) => {
+	eth_sign = async (payload: IPayload, meta: IClientMeta | null) => {
 		const { MessageManager } = Engine.context as any;
 		let rawSig = null;
 		try {
@@ -274,7 +285,7 @@ class WalletConnect {
 		}
 	};
 
-	personalSign = async (payload: IPayload, meta: IClientMeta | null) => {
+	personal_sign = async (payload: IPayload, meta: IClientMeta | null) => {
 		const { PersonalMessageManager } = Engine.context as any;
 		let rawSig = null;
 		try {
@@ -313,7 +324,7 @@ class WalletConnect {
 		}
 	};
 
-	signTypedData = async (payload: IPayload, meta: IClientMeta | null) => {
+	eth_signTypedData = async (payload: IPayload, meta: IClientMeta | null) => {
 		const { TypedMessageManager } = Engine.context as any;
 		try {
 			const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
@@ -342,7 +353,7 @@ class WalletConnect {
 		}
 	};
 
-	signTypedDataV4 = async (payload: IPayload, meta: IClientMeta | null) => {
+	eth_signTypedDataV4 = async (payload: IPayload, meta: IClientMeta | null) => {
 		const { TypedMessageManager } = Engine.context as any;
 		try {
 			const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
@@ -371,9 +382,11 @@ class WalletConnect {
 		}
 	};
 
-	addEthereumChain = async () => {};
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
+	wallet_addEthereumChain = async () => {};
 
-	switchEthereumChain = async () => {};
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
+	wallet_switchEthereumChain = async () => {};
 
 	onAccountChange = () => {
 		const { PreferencesController } = Engine.context as any;
@@ -415,7 +428,7 @@ class WalletConnect {
 		this.walletConnector = null;
 	};
 
-	sessionRequest = (peerInfo: any) =>
+	sessionRequest = (peerInfo: ISessionData) =>
 		new Promise((resolve, reject) => {
 			hub.emit('walletconnectSessionRequest', peerInfo);
 
@@ -441,30 +454,34 @@ class WalletConnect {
 }
 
 const instance = {
-	async init() {
+	async init(): Promise<void> {
 		const sessionData = await AsyncStorage.getItem(WALLETCONNECT_SESSIONS);
 		if (sessionData) {
 			const sessions = JSON.parse(sessionData);
 			sessions.forEach((session: any) => {
-				connectors.push(new WalletConnect({ session }));
+				connectors.push(new WalletConnectSession({ session }));
 			});
 		}
 		initialized = true;
 	},
-	connectors() {
+	connectors(): any[] {
 		return connectors;
 	},
-	newSession(uri: string, redirect: any, autosign: any) {
-		const data: { uri: string; redirect?: boolean; autosign?: boolean } = { uri };
+
+	newSession(uri: string, redirect: string | undefined, autosign: boolean): void {
+		const data: INewSessionData = { uri };
 		if (redirect) {
 			data.redirect = redirect;
 		}
 		if (autosign) {
 			data.autosign = autosign;
 		}
-		connectors.push(new WalletConnect(data));
+
+		const newSession = new WalletConnectSession(data);
+		connectors.push(newSession);
 	},
-	getSessions: async () => {
+
+	getSessions: async (): Promise<any[]> => {
 		let sessions = [];
 		const sessionData = await AsyncStorage.getItem(WALLETCONNECT_SESSIONS);
 		if (sessionData) {
@@ -472,7 +489,8 @@ const instance = {
 		}
 		return sessions;
 	},
-	killSession: async (id: number) => {
+
+	killSession: async (id: number): Promise<void> => {
 		// 1) First kill the session
 		const connectorToKill = connectors.find((connector) => connector?.walletConnector?.session.peerId === id);
 		if (connectorToKill) {
@@ -485,18 +503,29 @@ const instance = {
 		// 3) Persist the list
 		await persistSessions();
 	},
+
 	hub,
-	shutdown() {
+
+	shutdown(): void {
 		const { TransactionController, PreferencesController } = Engine.context as any;
 		TransactionController.hub.removeAllListeners();
 		PreferencesController.unsubscribe();
 	},
-	isValidUri(uri: string) {
+
+	isValidUri(uri: string): boolean {
 		const result = parseWalletConnectUri(uri);
 		if (!result.handshakeTopic || !result.bridge || !result.key) {
 			return false;
 		}
 		return true;
+	},
+
+	alreadyConnected(uri: string): boolean {
+		const wcUri = parseWalletConnectUri(uri);
+		const connected = connectors.some(
+			(session) => session.handshakeTopic === wcUri.handshakeTopic && session.key === wcUri.key
+		);
+		return connected;
 	},
 };
 

@@ -155,7 +155,12 @@ class DeeplinkManager {
 			// address, transactions, etc
 			case 'wc':
 				handled();
-				if (!WalletConnect.isValidUri(url)) return;
+				if (!WalletConnect.isValidUri(url)) {
+					throw new Error(
+						'URI is not a valid WalletConnect URI. Please check handshakeTopic, bridge and key.'
+					);
+				}
+
 				// eslint-disable-next-line no-case-declarations
 				const redirect = params && params.redirect;
 				// eslint-disable-next-line no-case-declarations
