@@ -42,8 +42,6 @@ const styles = StyleSheet.create({
 		paddingBottom: 20,
 		paddingLeft: 20,
 		paddingRight: 20,
-		borderColor: colors.grey400,
-		borderBottomWidth: 1,
 		fontSize: 20,
 		textAlign: 'center',
 		color: colors.black,
@@ -58,8 +56,14 @@ const styles = StyleSheet.create({
 	},
 	privateCredentialAction: {
 		flex: 1,
-		flexDirection: 'row',
 		alignItems: 'center',
+		justifyContent: 'center',
+		borderColor: colors.blue,
+		borderWidth: 1,
+		borderRadius: 20,
+		width: '90%',
+		paddingVertical: 10,
+		marginBottom: 15,
 	},
 	rowWrapper: {
 		padding: 20,
@@ -91,10 +95,6 @@ const styles = StyleSheet.create({
 	},
 	icon: {
 		color: colors.red,
-	},
-	actionIcon: {
-		margin: 10,
-		color: colors.blue,
 	},
 	blueText: {
 		color: colors.blue,
@@ -335,9 +335,7 @@ class RevealPrivateCredential extends PureComponent {
 		return (
 			<ScrollableTabView renderTabBar={this.renderTabBar}>
 				<View tabLabel={strings(`reveal_credential.text`)} style={styles.tabContent}>
-					<Text style={styles.secretRecoveryTitle}>
-						{strings(`reveal_credential.${privateCredentialName}`)}
-					</Text>
+					<Text style={styles.boldText}>{strings(`reveal_credential.${privateCredentialName}`)}</Text>
 					<View style={styles.seedPhraseView}>
 						<TextInput
 							value={clipboardPrivateCredential}
@@ -353,7 +351,6 @@ class RevealPrivateCredential extends PureComponent {
 							onPress={() => this.copyPrivateCredentialToClipboard(privateCredentialName)}
 							testID={'private-credential-touchable'}
 						>
-							<Icon style={styles.actionIcon} name="copy" size={18} />
 							<Text style={styles.blueText}>{strings('reveal_credential.copy_to_clipboard')}</Text>
 						</TouchableOpacity>
 					</View>
@@ -401,11 +398,16 @@ class RevealPrivateCredential extends PureComponent {
 							<Text style={styles.blueText}>{strings('reveal_credential.seed_phrase_modal')[3]}</Text>
 						</Text>
 
-						<TouchableOpacity style={styles.holdButton} onLongPress={this.revearlSRP} delayLongPress={2000}>
+						<TouchableOpacity
+							style={styles.holdButton}
+							onLongPress={this.revearlSRP}
+							delayLongPress={2000}
+							testID={'seed-phrase-hold-to-reveal'}
+						>
 							<View style={styles.buttonIcon}>
 								<Icon name={'lock'} size={10} color={colors.white} />
 							</View>
-							<Text style={styles.buttonText}>{'Hold to reveal SRP'}</Text>
+							<Text style={styles.buttonText}>{strings('reveal_credential.hold_to_reveal_srp')}</Text>
 						</TouchableOpacity>
 					</>
 				}
