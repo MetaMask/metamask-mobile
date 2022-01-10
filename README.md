@@ -125,43 +125,30 @@ First, make sure you have the following running:
 -   Your Android emulator or iOS simulator
 -   `yarn start:android` or `yarn start:ios`
 
-Next, check that the React Native Debugger is working:
+Next, install the [Flipper](https://fbflipper.com/) desktop app (verified working with v0.127.0)
 
--   Open your emulator or simulator, and select `Debug JS Remotely` (or something similar) from its developer menu
--   To open the developer menu:
-    -   iOS Simulator: `Cmd + D`
-    -   Android Emulator
-        -   macOS: `Cmd + M` - Windows, Linux: `Ctrl + M`
--   If it doesn't open automatically, try navigating to this URL in Chrome: http://localhost:8081/debugger-ui/
--   If these steps do not take you to the React Native Debugger, something is wrong
+-   Once Flipper is installed, configure your system as follows:
+    -   Install react-devtools: `npm i -g react-devtools@4.22.1`
+    -   Update Android SDK location settings by accessing Flipper's settings via the `Gear Icon` -> `Settings`
+        -   Example SDK path: `/Users/<USER_NAME>/Library/Android/sdk`
 
-#### Debugging iOS (macOS Only)
+Finally, check that the debugger is working:
 
-For more details, see [this page](https://medium.com/@mattcroak718/debugging-your-iphone-mobile-web-app-using-safari-development-tools-71240657c487).
+-   Open your emulator or simulator alongside the Flipper app
+-   Flipper should auto-detect the device and the application to debug
+-   You should now be able to access features such as `Logs`
 
--   You should be able to inspect the mobile app using the console in the React Native Debugger in Chrome
--   To debug a website (dapp) in the browser:
-    -   Navigate to the website in the app's browser
-    -   Open Safari
-        -   Go to: _Preferences -> Advanced_ and select `Show Develop menu in menu bar`
-    -   Select `Develop` in the menu bar
-        -   Find your simulator in the second section from the top
-        -   Select the relevant WebView from the list
-            -   The simulator will highlight the WebView when you hover over it in Safari
+#### Debugging Physical iOS devices
 
-#### Debugging Android
-
-For more details, see [this page](https://developers.google.com/web/tools/chrome-devtools/remote-debugging/webviews).
-
--   You should be able to inspect the mobile app using the console in the React Native Debugger in Chrome
--   To debug a website (dapp) in the browser:
-    -   Navigate to the website in the app's browser
-    -   Go to chrome://inspect
-    -   Select the relevant WebView under **Remote Target**
+-   Debugging physical iOS devices requires `idb` to be installed, which consists of 2 parts
+-   Install the two idb parts:
+    1. `brew tap facebook/fb` & `brew install idb-companion`
+    2. `pip3.9 install fb-idb` (This step may require that you install python3 via `python -m pip3 install --upgrade pip`)
 
 #### Miscellaneous
 
 -   [Troubleshooting for React Native](https://facebook.github.io/react-native/docs/troubleshooting#content)
+-   [Flipper Documentation](https://fbflipper.com/docs/features/react-native/)
 
 ### Running Tests
 
@@ -189,11 +176,11 @@ yarn test:e2e:android
 
 Whenever you change dependencies (adding, removing, or updating, either in `package.json` or `yarn.lock`), there are various files that must be kept up-to-date.
 
-* `yarn.lock`:
-  * Run `yarn setup` again after your changes to ensure `yarn.lock` has been properly updated.
-* The `allow-scripts` configuration in `package.json`
-  * Run `yarn allow-scripts auto` to update the `allow-scripts` configuration automatically. This config determines whether the package's install/postinstall scripts are allowed to run. Review each new package to determine whether the install script needs to run or not, testing if necessary.
-  * Unfortunately, `yarn allow-scripts auto` will behave inconsistently on different platforms. macOS and Windows users may see extraneous changes relating to optional dependencies.
+-   `yarn.lock`:
+    -   Run `yarn setup` again after your changes to ensure `yarn.lock` has been properly updated.
+-   The `allow-scripts` configuration in `package.json`
+    -   Run `yarn allow-scripts auto` to update the `allow-scripts` configuration automatically. This config determines whether the package's install/postinstall scripts are allowed to run. Review each new package to determine whether the install script needs to run or not, testing if necessary.
+    -   Unfortunately, `yarn allow-scripts auto` will behave inconsistently on different platforms. macOS and Windows users may see extraneous changes relating to optional dependencies.
 
 ### Architecture
 
