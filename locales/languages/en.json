@@ -563,6 +563,7 @@
 		"show_private_key": "Show private key",
 		"private_key_title_for_account": "Show private key for \"{{accountName}}\"",
 		"cancel": "Cancel",
+		"done": "Done",
 		"confirm": "Next",
 		"seed_phrase_explanation": [
 			"The ",

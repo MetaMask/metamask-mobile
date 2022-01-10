@@ -460,7 +460,7 @@ class RevealPrivateCredential extends PureComponent {
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'reveal-private-credential-screen'}>
 				<ActionView
-					cancelText={strings('reveal_credential.cancel')}
+					cancelText={unlocked ? strings('reveal_credential.done') : strings('reveal_credential.cancel')}
 					confirmText={strings('reveal_credential.confirm')}
 					onCancelPress={this.cancel}
 					testID={`next-button`}
