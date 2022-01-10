@@ -275,7 +275,7 @@ class RevealPrivateCredential extends PureComponent {
 
 			this.setState({
 				isModalVisible: false,
-				unlock: false,
+				unlocked: false,
 				warningIncorrectPassword: msg,
 			});
 		}
