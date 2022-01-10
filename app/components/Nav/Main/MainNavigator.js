@@ -60,6 +60,9 @@ const styles = StyleSheet.create({
 		width: 125,
 		height: 50,
 	},
+	hidden: {
+		opacity: 0,
+	},
 });
 /**
  * Navigator component that wraps
@@ -100,10 +103,18 @@ const HomeTabs = () => {
 	return (
 		<DrawerContext.Provider value={{ drawerRef }}>
 			<Drawer ref={drawerRef}>
-				<Tab.Navigator initialRouteName={'WalletTabHome'} screenOptions={{ tabBarVisible: false }}>
-					<Tab.Screen name="WalletTabHome" component={WalletTabHome} />
-					<Tab.Screen name="BrowserTabHome" component={BrowserTabHome} />
-					<Tab.Screen name="TransactionsHome" component={TransactionsHome} />
+				<Tab.Navigator
+					initialRouteName={'WalletTabHome'}
+					tabBarOptions={{ style: styles.hidden }}
+					screenOptions={{ tabBarVisible: false }}
+				>
+					<Tab.Screen name="WalletTabHome" component={WalletTabHome} options={{ tabBarVisible: false }} />
+					<Tab.Screen name="BrowserTabHome" component={BrowserTabHome} options={{ tabBarVisible: false }} />
+					<Tab.Screen
+						name="TransactionsHome"
+						component={TransactionsHome}
+						options={{ tabBarVisible: false }}
+					/>
 				</Tab.Navigator>
 			</Drawer>
 		</DrawerContext.Provider>
