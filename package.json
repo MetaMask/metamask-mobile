@@ -88,7 +88,8 @@
     "react-native-level-fs/**/semver": "^4.3.2",
     "@metamask/contract-metadata": "^1.30.0",
     "@exodus/react-native-payments/validator": "^13.7.0",
-    "react-devtools-core": "4.22.1"
+    "react-devtools-core": "4.22.1",
+    "web3": "1.6.1"
   },
   "dependencies": {
     "@exodus/react-native-payments": "git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5",
@@ -372,7 +373,12 @@
       "@lavamoat/preinstall-always-fail": false,
       "dtrace-provider": false,
       "core-js": false,
-      "sharp": true
+      "sharp": true,
+      "web3": false,
+      "web3-bzz": false,
+      "bufferutil": false,
+      "utf-8-validate": false,
+      "web3-shh": false
     }
   }
 }

@@ -18,7 +18,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { onGestureEvent, withSpring, clamp, timing } from 'react-native-redash';
 import { colors } from '../../../styles/common';
-import { useNavigation } from '@react-navigation/core';
+import { useNavigation } from '@react-navigation/native';
 const screenWidth = Dimensions.get('window').width;
 import DrawerView from '../DrawerView';
 import styles from './styles';
