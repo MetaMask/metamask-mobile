@@ -155,17 +155,18 @@ class DeeplinkManager {
 			// address, transactions, etc
 			case 'wc':
 				handled();
-				if (!WalletConnect.isValidUri(url)) {
+				// eslint-disable-next-line no-case-declarations
+				const wcUrl = url.replace('wc://wc?uri=', '');
+				if (!WalletConnect.isValidUri(wcUrl)) {
 					throw new Error(
 						'URI is not a valid WalletConnect URI. Please check handshakeTopic, bridge and key.'
 					);
 				}
-
 				// eslint-disable-next-line no-case-declarations
 				const redirect = params && params.redirect;
 				// eslint-disable-next-line no-case-declarations
 				const autosign = params && params.autosign;
-				WalletConnect.newSession(url, redirect, autosign);
+				WalletConnect.newSession(wcUrl, redirect, autosign);
 				break;
 			case 'ethereum':
 				handled();
