@@ -113,7 +113,6 @@ const styles = StyleSheet.create({
 	},
 	addressTitle: {
 		fontSize: 16,
-		marginBottom: 16,
 		...fontStyles.normal,
 	},
 	informationWrapper: {
@@ -124,11 +123,14 @@ const styles = StyleSheet.create({
 	},
 	titleQr: {
 		flexDirection: 'row',
+		alignItems: 'center',
+		marginBottom: Device.isIos() ? 8 : 10,
 	},
 	closeIcon: {
-		position: 'absolute',
-		right: Device.isIos() ? -30 : -40,
-		bottom: Device.isIos() ? 8 : 10,
+		// position: 'absolute',
+		right: Device.isIos() ? -20 : -40,
+		alignItems: 'center',
+		paddingHorizontal: 10,
 	},
 	qrCode: {
 		marginBottom: 16,
