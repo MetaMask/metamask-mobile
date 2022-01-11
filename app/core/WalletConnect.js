@@ -421,6 +421,10 @@ const instance = {
 		}
 		return true;
 	},
+	getValidUriFromDeeplink(uri) {
+		const prefix = 'wc://wc?uri=';
+		return uri.replace(prefix, '');
+	},
 };
 
 export default instance;
