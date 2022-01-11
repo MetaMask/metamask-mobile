@@ -10,7 +10,6 @@ import Logger from '../../util/Logger';
 import { CLIENT_OPTIONS, WALLET_CONNECT_ORIGIN } from '../../util/walletconnect';
 import { WALLETCONNECT_SESSIONS } from '../../constants/storage';
 import {
-	CALL_REQUEST,
 	ETH_SEND_TRANSACTION,
 	ETH_SIGN,
 	ETH_SIGN_TYPED_DATA,
@@ -19,6 +18,15 @@ import {
 	PERSONAL_SIGN,
 } from '../../constants/RPCMethods';
 
+/**
+ * @type IPeerMeta
+ *
+ * Peer metadata
+ * @property name - Dapp name
+ * @property description - Dapp description
+ * @property icons - Arrays with the icons url
+ * @property url - Dapp url
+ */
 interface IPeerMeta {
 	name: string;
 	description: string;
@@ -26,6 +34,16 @@ interface IPeerMeta {
 	url: string;
 }
 
+/**
+ * @type ISessionData
+ *
+ * WalletConnect session data
+ * @property peerId - Peer ID
+ * @property chainId - Chain ID
+ * @property autosign - Param indicating if autosign  is enabled
+ * @property userAddress - Client public address
+ * @property peerMeta - Peer metadata
+ */
 interface ISessionData {
 	peerId: string;
 	chainId: number;
@@ -34,6 +52,18 @@ interface ISessionData {
 	peerMeta: IPeerMeta;
 }
 
+/**
+ * @type ITransactionParams
+ *
+ * Transaction metadata. This should be replaced with the proper
+ * interface once it is defined.
+ * @property to - Recipient address
+ * @property from - Emiter address
+ * @property value - Quantity
+ * @property gas - Gas required for execution
+ * @property gasPrice - Gas price
+ * @property data - Relevant data to the transaction
+ */
 interface ITransactionParams {
 	to?: string;
 	from?: string;
@@ -43,13 +73,31 @@ interface ITransactionParams {
 	data?: string;
 }
 
+/**
+ * @type IPayload
+ *
+ * WalletConnect session request payload
+ * @property id - Session ID
+ * @property method - RPC method name
+ * @property jsonrpc - JSON RPC version
+ * @property params - Method params
+ */
 interface IPayload {
 	id: number;
 	method: string;
 	jsonrpc: string;
 	params: any[];
 }
-interface INewSessionData {
+
+/**
+ * @type IWCSessionParams
+ *
+ * Params to create a new WalletConnect session
+ * @property uri - WC dapp uri
+ * @property redirect - Uri to redirect after a session has started
+ * @property autosign - Param indicating if autosign  is enabled
+ */
+interface IWCSessionParams {
 	uri: string;
 	redirect?: string | undefined;
 	autosign?: boolean;
@@ -87,10 +135,10 @@ const waitForKeychainUnlocked = async () => {
 
 class WalletConnectSession {
 	redirectUrl = '';
-	selectedAddress: string;
-	chainId = null;
-	redirect = null;
 	autosign = false;
+	chainId: number | null = null;
+	redirect: boolean | null = null;
+	selectedAddress: string;
 	walletConnector: RNWalletConnect | null;
 
 	constructor(options: any) {
@@ -143,7 +191,7 @@ class WalletConnectSession {
 		/**
 		 *  Subscribe to call requests
 		 */
-		this.walletConnector.on(CALL_REQUEST, async (error, payload) => {
+		this.walletConnector.on('call_request', async (error, payload) => {
 			if (tempCallIds.includes(payload.id)) return;
 			tempCallIds.push(payload.id);
 
@@ -382,12 +430,6 @@ class WalletConnectSession {
 		}
 	};
 
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	wallet_addEthereumChain = async () => {};
-
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	wallet_switchEthereumChain = async () => {};
-
 	onAccountChange = () => {
 		const { PreferencesController } = Engine.context as any;
 		const { selectedAddress } = PreferencesController.state;
@@ -469,7 +511,7 @@ const instance = {
 	},
 
 	newSession(uri: string, redirect: string | undefined, autosign: boolean): void {
-		const data: INewSessionData = { uri };
+		const data: IWCSessionParams = { uri };
 		if (redirect) {
 			data.redirect = redirect;
 		}

@@ -1,5 +1,3 @@
-export const CALL_REQUEST = 'call_request';
-
 // namespace: eth
 export const ETH_SEND_TRANSACTION = 'eth_sendTransaction';
 export const ETH_SIGN = 'eth_sign';
