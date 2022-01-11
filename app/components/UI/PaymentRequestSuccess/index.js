@@ -128,7 +128,6 @@ const styles = StyleSheet.create({
 		marginBottom: isIos ? 8 : 10,
 	},
 	closeIcon: {
-		// position: 'absolute',
 		right: isIos ? -20 : -40,
 		alignItems: 'center',
 		paddingHorizontal: 10,
