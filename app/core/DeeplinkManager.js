@@ -84,6 +84,7 @@ class DeeplinkManager {
 					screen: 'BrowserView',
 					params: {
 						newTabUrl: url,
+						timestamp: Date.now(),
 					},
 				});
 			}

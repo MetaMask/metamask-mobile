@@ -34,7 +34,7 @@ const Browser = (props) => {
 		tabs,
 	} = props;
 	const { drawerRef } = useContext(DrawerContext);
-	const previousTabs = useRef([]);
+	const previousTabs = useRef(null);
 
 	useEffect(
 		() => {
@@ -46,14 +46,6 @@ const Browser = (props) => {
 
 	const newTab = (url) => {
 		createNewTab(url || AppConstants.HOMEPAGE_URL);
-	};
-
-	const goToNewTab = (url) => {
-		newTab(url);
-		navigation.setParams({
-			...route.params,
-			newTabUrl: null,
-		});
 	};
 
 	const updateTabInfo = (url, tabID) =>
@@ -80,10 +72,8 @@ const Browser = (props) => {
 	useEffect(
 		() => {
 			const currentUrl = route.params?.newTabUrl;
-			if (currentUrl) {
-				// Open new tab with preset url.
-				goToNewTab(currentUrl);
-			} else {
+			if (!currentUrl) {
+				// Nothing from deeplink, carry on.
 				const activeTab = tabs.find((tab) => tab.id === activeTabId);
 				if (activeTab) {
 					// Resume where last left off.
@@ -99,7 +89,6 @@ const Browser = (props) => {
 					}
 				}
 			}
-
 			// Initialize previous tabs. This prevents the next useEffect block from running the first time.
 			previousTabs.current = tabs || [];
 		},
@@ -119,6 +108,20 @@ const Browser = (props) => {
 		},
 		/* eslint-disable-next-line */
 		[tabs]
+	);
+
+	// Handle deeplinks.
+	useEffect(
+		() => {
+			const newTabUrl = route.params?.newTabUrl;
+			const deeplinkTimestamp = route.params?.timestamp;
+			if (newTabUrl && deeplinkTimestamp) {
+				// Open url from deeplink.
+				newTab(newTabUrl);
+			}
+		},
+		/* eslint-disable-next-line */
+		[route.params?.timestamp, route.params?.newTabUrl]
 	);
 
 	const takeScreenshot = (url, tabID) =>

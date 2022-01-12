@@ -140,8 +140,9 @@ const App = ({ userLoggedIn }) => {
 	const branchSubscriber = useMemo(
 		() =>
 			new BranchSubscriber({
-				onOpenStart: (opts) => handleDeeplink(opts),
-				onOpenComplete: (opts) => handleDeeplink(opts),
+				onOpenStart: (opts) => {
+					handleDeeplink(opts);
+				},
 			}),
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[]
