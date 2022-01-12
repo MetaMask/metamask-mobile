@@ -12,6 +12,7 @@ import ActionSheet from 'react-native-actionsheet';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
+import { collectibleContractsSelector } from '../../../reducers/collectibles';
 
 const DEVICE_WIDTH = Device.getDeviceWidth();
 const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
@@ -174,7 +175,11 @@ function CollectibleContractElement({
 					{!asset.favorites ? (
 						<CollectibleMedia
 							iconStyle={styles.collectibleContractIcon}
-							collectible={{ ...asset, image: asset.logo }}
+							collectible={{
+								name: strings('collectible.untitled_collection'),
+								...asset,
+								image: asset.logo,
+							}}
 							tiny
 						/>
 					) : (
@@ -185,7 +190,7 @@ function CollectibleContractElement({
 				</View>
 				<View style={styles.verticalAlignedContainer}>
 					<Text numberOfLines={1} style={styles.titleText}>
-						{asset.name}
+						{asset?.name || strings('collectible.untitled_collection')}
 					</Text>
 				</View>
 			</TouchableOpacity>
@@ -244,7 +249,7 @@ CollectibleContractElement.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-	collectibleContracts: state.engine.backgroundState.CollectiblesController.collectibleContracts,
+	collectibleContracts: collectibleContractsSelector(state),
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 });

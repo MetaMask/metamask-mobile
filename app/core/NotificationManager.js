@@ -12,6 +12,7 @@ import AppConstants from './AppConstants';
 import { PUSH_NOTIFICATIONS_PROMPT_COUNT, PUSH_NOTIFICATIONS_PROMPT_TIME } from '../constants/storage';
 import { RPC } from '../constants/network';
 import { safeToChecksumAddress } from '../util/address';
+import ReviewManager from './ReviewManager';
 
 const constructTitleAndMessage = (data) => {
 	let title, message;
@@ -206,6 +207,9 @@ class NotificationManager {
 					setTimeout(() => {
 						this.requestPushNotificationsPermission();
 					}, 7000);
+
+				// Prompt review
+				ReviewManager.promptReview();
 
 				this._removeListeners(transactionMeta.id);
 				delete this._transactionsWatchTable[transactionMeta.transaction.nonce];
