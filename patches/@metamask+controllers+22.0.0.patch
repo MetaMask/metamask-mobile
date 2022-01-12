@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/controllers/dist/assets/AssetsContractController.js b/node_modules/@metamask/controllers/dist/assets/AssetsContractController.js
-index 6f47110..369caec 100644
+index 6f47110..f0ba9fc 100644
 --- a/node_modules/@metamask/controllers/dist/assets/AssetsContractController.js
 +++ b/node_modules/@metamask/controllers/dist/assets/AssetsContractController.js
 @@ -67,9 +67,9 @@ class AssetsContractController extends BaseController_1.BaseController {
@@ -98,12 +98,14 @@ index 6f47110..369caec 100644
              return yield this.erc1155Standard.transferSingle(contract, collectibleAddress, senderAddress, recipientAddress, collectibleId, qty);
          });
      }
-@@ -217,10 +217,9 @@ class AssetsContractController extends BaseController_1.BaseController {
+@@ -216,11 +216,10 @@ class AssetsContractController extends BaseController_1.BaseController {
+      */
      getBalancesInSingleCall(selectedAddress, tokensToDetect) {
          return __awaiter(this, void 0, void 0, function* () {
-             const contract = this.web3.eth
+-            const contract = this.web3.eth
 -                .contract(single_call_balance_checker_abi_1.default)
 -                .at(SINGLE_CALL_BALANCES_ADDRESS);
++            const contract = new this.web3.eth
 +                .Contract(single_call_balance_checker_abi_1.default, SINGLE_CALL_BALANCES_ADDRESS);
              return new Promise((resolve, reject) => {
 -                contract.balances([selectedAddress], tokensToDetect, (error, result) => {
@@ -111,6 +113,15 @@ index 6f47110..369caec 100644
                      /* istanbul ignore if */
                      if (error) {
                          reject(error);
+@@ -232,7 +231,7 @@ class AssetsContractController extends BaseController_1.BaseController {
+                         tokensToDetect.forEach((tokenAddress, index) => {
+                             const balance = result[index];
+                             /* istanbul ignore else */
+-                            if (!balance.isZero()) {
++                            if (balance && balance !== '0') {
+                                 nonZeroBalances[tokenAddress] = balance;
+                             }
+                         });
 diff --git a/node_modules/@metamask/controllers/dist/assets/CollectibleStandards/ERC1155/ERC1155Standard.js b/node_modules/@metamask/controllers/dist/assets/CollectibleStandards/ERC1155/ERC1155Standard.js
 index 8eafb2d..32c5357 100644
 --- a/node_modules/@metamask/controllers/dist/assets/CollectibleStandards/ERC1155/ERC1155Standard.js
