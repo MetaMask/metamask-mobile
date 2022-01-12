@@ -20,12 +20,13 @@ import { setGasEducationCarouselSeen } from '../../../../actions/user';
 
 function PaymentMethodSelectorView({
 	selectedAddress,
+	chainId,
 	gasEducationCarouselSeen,
 	setGasEducationCarouselSeen,
 	...props
 }) {
 	const navigation = useNavigation();
-	const transakURL = useTransakFlowURL(selectedAddress);
+	const transakURL = useTransakFlowURL(selectedAddress, chainId);
 
 	const onPressTransak = useCallback(() => {
 		const goToTransakFlow = () =>
@@ -65,6 +66,7 @@ function PaymentMethodSelectorView({
 
 PaymentMethodSelectorView.propTypes = {
 	selectedAddress: PropTypes.string.isRequired,
+	chainId: PropTypes.string.isRequired,
 	gasEducationCarouselSeen: PropTypes.bool,
 	setGasEducationCarouselSeen: PropTypes.func,
 };
@@ -78,6 +80,7 @@ PaymentMethodSelectorView.navigationOptions = ({ navigation }) =>
 
 const mapStateToProps = (state) => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	gasEducationCarouselSeen: state.user.gasEducationCarouselSeen,
 });
 

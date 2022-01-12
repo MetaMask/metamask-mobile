@@ -7,11 +7,10 @@ import { strings } from '../../../../../locales/i18n';
 import Analytics from '../../../../core/Analytics';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
-import Device from '../../../../util/device';
 import { FIAT_ORDER_PROVIDERS, PAYMENT_CATEGORY, PAYMENT_RAILS } from '../../../../constants/on-ramp';
 
-import { TRANSAK_ALLOWED_NETWORKS, useTransakFlowURL } from '../orderProcessor/transak';
-import { WYRE_IS_PROMOTION } from '../orderProcessor/wyreApplePay';
+import { isTransakAllowedToBuy, useTransakFlowURL } from '../orderProcessor/transak';
+import { isWyreAllowedToBuy, WYRE_IS_PROMOTION } from '../orderProcessor/wyreApplePay';
 import { getPaymentSelectorMethodNavbar } from '../../Navbar';
 
 import ScreenView from '../components/ScreenView';
@@ -27,13 +26,13 @@ import { setGasEducationCarouselSeen } from '../../../../actions/user';
 
 function PaymentMethodSelectorView({
 	selectedAddress,
-	network,
+	chainId,
 	gasEducationCarouselSeen,
 	setGasEducationCarouselSeen,
 	...props
 }) {
 	const navigation = useNavigation();
-	const transakURL = useTransakFlowURL(selectedAddress, network);
+	const transakURL = useTransakFlowURL(selectedAddress, chainId);
 
 	const onPressWyreApplePay = useCallback(() => {
 		const goToApplePay = () => navigation.navigate('PaymentMethodApplePay');
@@ -104,17 +103,15 @@ function PaymentMethodSelectorView({
 					<SubHeader centered>{strings('fiat_on_ramp.purchase_method_title.wyre_sub_header')}</SubHeader>
 				)}
 			</Heading>
-			{(network === '1' || (network === '42' && Device.isIos())) && (
-				<WyreApplePayPaymentMethod onPress={onPressWyreApplePay} />
-			)}
-			{TRANSAK_ALLOWED_NETWORKS.includes(network) && <TransakPaymentMethod onPress={onPressTransak} />}
+			{isWyreAllowedToBuy(chainId) && <WyreApplePayPaymentMethod onPress={onPressWyreApplePay} />}
+			{isTransakAllowedToBuy(chainId) && <TransakPaymentMethod onPress={onPressTransak} />}
 		</ScreenView>
 	);
 }
 
 PaymentMethodSelectorView.propTypes = {
 	selectedAddress: PropTypes.string.isRequired,
-	network: PropTypes.string.isRequired,
+	chainId: PropTypes.string.isRequired,
 	gasEducationCarouselSeen: PropTypes.bool,
 	setGasEducationCarouselSeen: PropTypes.func,
 };
@@ -128,7 +125,7 @@ PaymentMethodSelectorView.navigationOptions = ({ navigation }) =>
 
 const mapStateToProps = (state) => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	network: state.engine.backgroundState.NetworkController.network,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	gasEducationCarouselSeen: state.user.gasEducationCarouselSeen,
 });
 
