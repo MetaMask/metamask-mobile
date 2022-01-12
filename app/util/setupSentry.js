@@ -8,7 +8,7 @@ const SENTRY_DSN_DEV = 'https://332890de43e44fe2bc070bb18d0934ea@sentry.io/26515
 /**
  * Required instrumentation for Sentry Performance to work with React Navigation
  */
-export const routingInstrumentation = new Sentry.ReactNavigationInstrumentation();
+export const routingInstrumentation = new Sentry.ReactNavigationV5Instrumentation();
 
 // Setup sentry remote error reporting
 export default function setupSentry() {

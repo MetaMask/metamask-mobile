@@ -8,8 +8,19 @@ const mockStore = configureMockStore();
 const initialState = {
 	engine: {
 		backgroundState: {
+			PreferencesController: {
+				selectedAddress: '0x0',
+			},
+			NetworkController: {
+				provider: {
+					type: 'mainnet',
+					chainId: '1',
+				},
+			},
 			CollectiblesController: {
-				collectibles: [{ address: '0x0', name: 'collectible', tokenId: 0, image: 'image' }],
+				allCollectibles: {
+					'0x0': { 1: [{ address: '0x0', name: 'collectible', tokenId: 0, image: 'image' }] },
+				},
 			},
 		},
 	},

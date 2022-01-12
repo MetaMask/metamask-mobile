@@ -25,6 +25,7 @@ describe('Start Exploring', () => {
 
 	it('should show the onboarding screen', async () => {
 		// Check that we are on the onboarding carousel screen
+		await device.launchApp({ newInstance: true }); // because of a flakey test step. We can improve this
 		await OnboardingCarouselView.isVisible();
 		await OnboardingCarouselView.isMetaMaskWelcomeTextVisible();
 		await OnboardingCarouselView.isWelcomeToMetaMaskImageVisible();
@@ -45,13 +46,16 @@ describe('Start Exploring', () => {
 		await OnboardingView.isVisible();
 	});
 
-	it('should create new wallet', async () => {
+	it('should be able to opt-out of the onboarding-wizard', async () => {
 		await OnboardingView.tapCreateWallet();
 
 		await MetaMetricsOptIn.isVisible();
-		await MetaMetricsOptIn.tapAgreeButton();
+		await MetaMetricsOptIn.tapNoThanksButton();
 
 		await CreatePasswordView.isVisible();
+	});
+
+	it('should be able to create a new wallet', async () => {
 		await CreatePasswordView.enterPassword(PASSWORD);
 		await CreatePasswordView.reEnterPassword(PASSWORD);
 		await CreatePasswordView.tapIUnderstandCheckBox();

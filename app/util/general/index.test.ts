@@ -1,4 +1,4 @@
-import { capitalize, tlc, toLowerCaseEquals } from '.';
+import { capitalize, tlc, toLowerCaseEquals, renderShortText } from '.';
 
 describe('capitalize', () => {
 	const my_string = 'string';
@@ -35,5 +35,18 @@ describe('toLowerCaseEquals', () => {
 		expect(toLowerCaseEquals(undefined, undefined)).toEqual(false);
 		expect(toLowerCaseEquals(null, null)).toEqual(false);
 		expect(toLowerCaseEquals(false, false)).toEqual(false);
+	});
+});
+
+describe('renderShortText', () => {
+	it('should return a shorter version of the text', () => {
+		const input = '123456789';
+		const expectedOutput = '123...9';
+		expect(renderShortText(input, 1)).toStrictEqual(expectedOutput);
+	});
+
+	it('should return the same text if the shorter version has the same length or bigger', () => {
+		const input = '123456789';
+		expect(renderShortText(input, 2)).toStrictEqual(input);
 	});
 });

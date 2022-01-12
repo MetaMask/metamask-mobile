@@ -7,7 +7,7 @@ const config = {
 		'^.+\\.js$': '<rootDir>jest.preprocessor.js',
 	},
 	transformIgnorePatterns: [
-		'node_modules/(?!(react-native|rn-fetch|redux-persist-filesystem|@react-navigation|@react-native-community|react-navigation|react-navigation-redux-helpers|@sentry))',
+		'node_modules/(?!(react-native|rn-fetch|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry))',
 	],
 	snapshotSerializers: ['enzyme-to-json/serializer'],
 	collectCoverage: false,
