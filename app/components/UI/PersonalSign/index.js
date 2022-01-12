@@ -143,6 +143,7 @@ export default class PersonalSign extends PureComponent {
 			.map((line, i) => (
 				<Text key={`txt_${i}`} style={[styles.messageText, !showExpandedMessage ? styles.textLeft : null]}>
 					{line}
+					{!showExpandedMessage && '\n'}
 				</Text>
 			));
 		let messageText;
