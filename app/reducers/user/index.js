@@ -8,6 +8,7 @@ const initialState = {
 	gasEducationCarouselSeen: false,
 	userLoggedIn: false,
 	isAuthChecked: false,
+	initialScreen: '',
 };
 
 const userReducer = (state = initialState, action) => {
@@ -16,6 +17,7 @@ const userReducer = (state = initialState, action) => {
 			return {
 				...state,
 				isAuthChecked: true,
+				initialScreen: action.payload.initialScreen,
 			};
 		case 'LOGIN':
 			return {

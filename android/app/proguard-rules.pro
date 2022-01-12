@@ -21,4 +21,7 @@
 # react native keychain https://github.com/oblador/react-native-keychain#proguard-rules
 -keep class com.facebook.crypto.** {
    *;
-} 
+}
+
+# react-native-svg https://github.com/react-native-svg/react-native-svg#problems-with-proguard
+-keep public class com.horcrux.svg.** {*;}
