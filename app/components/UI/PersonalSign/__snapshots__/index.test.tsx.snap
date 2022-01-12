@@ -39,7 +39,10 @@ exports[`PersonalSign should render correctly 1`] = `
             },
           ]
         }
-      />
+      >
+        
+
+      </Text>
     </Text>
   </View>
 </Connect(SignatureRequest)>
