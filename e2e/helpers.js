@@ -16,6 +16,11 @@ export default class TestHelpers {
 			.atIndex(index || 0)
 			.tap();
 	}
+	static doubleTapByText(text, index) {
+		return element(by.text(text))
+			.atIndex(index || 0)
+			.multiTap(2);
+	}
 
 	static tapAtPoint(elementId, point) {
 		return element(by.id(elementId)).tapAtPoint(point);
@@ -34,9 +39,7 @@ export default class TestHelpers {
 
 	static async typeNumbers(elementId, text, submitLabel) {
 		await element(by.id(elementId)).replaceText(text.replace('\n', ''));
-		return element(by.label(submitLabel))
-			.atIndex(0)
-			.tap();
+		return element(by.label(submitLabel)).atIndex(0).tap();
 	}
 
 	static async typeTextAndHideKeyboard(elementId, text) {
@@ -72,9 +75,7 @@ export default class TestHelpers {
 				.tap();
 		}
 
-		return element(by.label(text))
-			.atIndex(0)
-			.tap();
+		return element(by.label(text)).atIndex(0).tap();
 	}
 
 	static async swipe(elementId, direction, speed, percentage) {
@@ -131,12 +132,19 @@ export default class TestHelpers {
 		return expect(element(by.id(elementID))).toString(text);
 	}
 
+	static checkIfToggleIsOn(elementID) {
+		return expect(element(by.id(elementID))).toHaveToggleValue(true);
+	}
+	static checkIfToggleIsOff(elementID) {
+		return expect(element(by.id(elementID))).toHaveToggleValue(false);
+	}
+
 	static relaunchApp() {
 		return device.launchApp({ newInstance: true });
 	}
 
 	static delay(ms) {
-		return new Promise(resolve => {
+		return new Promise((resolve) => {
 			setTimeout(() => {
 				resolve();
 			}, ms);

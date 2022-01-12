@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AccountApproval should render correctly 1`] = `
+<AccountApproval
+  accountsLength={1}
+  currentPageInformation={
+    Object {
+      "icon": "",
+      "title": "",
+      "url": "",
+    }
+  }
+  dispatch={[Function]}
+  networkType="ropsten"
+  tokensLength={0}
+/>
+`;

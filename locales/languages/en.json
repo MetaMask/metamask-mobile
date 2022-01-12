@@ -133,7 +133,7 @@
 		"reset_wallet": "Reset Wallet",
 		"cant_proceed": "You can’t proceed till you type the word ‘Delete’. With this action you are opting in to erase your current wallet.",
 		"invalid_password": "Invalid password",
-		"type_delete": "Type ‘delete’ to erase current wallet permanently",
+		"type_delete": "Type ‘%{delete}’ to erase current wallet permanently",
 		"delete_my": "Delete my wallet",
 		"are_you_sure": "Are you sure you want to erase your wallet?",
 		"your_current_wallet": "Your current wallet, accounts and assets will be ",
@@ -179,7 +179,8 @@
 		"i_understand": "I understand that MetaMask cannot recover this password for me.",
 		"learn_more": "Learn more.",
 		"secure": "Secure wallet",
-		"confirm": "Confirm Secret Recovery Phrase"
+		"confirm": "Confirm Secret Recovery Phrase",
+		"disable_biometric_error": "You have disabled biometrics for the app. Update Remember Me settings and try again."
 	},
 	"reset_password": {
 		"title": "Change password",
@@ -274,23 +275,27 @@
 		"collectible": "Collectible",
 		"collectibles": "NFTs",
 		"transactions": "TRANSACTIONS",
-		"no_collectibles": "Your NFTs will show up here. If you don’t see your NFT, try importing manually.",
-		"add_tokens": "ADD TOKENS",
+		"no_collectibles": "Don’t see your NFT?",
+		"no_available_tokens": "Don't see your token?",
+		"add_tokens": "Import Tokens",
 		"no_tokens": "You don't have any tokens!",
-		"no_nfts_to_show": "No NFTs to show",
+		"no_nfts_yet": "No NFTs yet",
 		"learn_more": "Learn more",
-		"add_collectibles": "ADD NFTs",
-		"manually_import_nfts": "Import manually",
+		"add_collectibles": "Import NFTs",
 		"no_transactions": "You have no transactions!",
 		"send_button": "Send",
 		"deposit_button": "Deposit",
 		"copy_address": "Copy",
+		"collectible_action_title": "Collectible Options",
 		"remove_token_title": "Do you want to remove this token?",
 		"remove_collectible_title": "Do you want to remove this collectible?",
+		"refresh_metadata": "Refresh Metadata",
+		"token_removal_issue_title": "Issue removing token.",
+		"token_removal_issue_desc": "There was a problem when trying to remove the token. Try again.",
 		"token_removed_title": "Token removed!",
-		"token_removed_desc": "If you change your mind, you can add it back by tapping on \"+ ADD TOKENS\"",
+		"token_removed_desc": "If you change your mind, you can add it back by tapping on \"Import Tokens\"",
 		"collectible_removed_title": "Collectible removed!",
-		"collectible_removed_desc": "If you change your mind, you can add it back by tapping on \"+ ADD NFTs\"",
+		"collectible_removed_desc": "If you change your mind, you can add it back by tapping on \"Import NFTs\"",
 		"remove": "Remove",
 		"cancel": "Cancel",
 		"yes": "Yes",
@@ -308,18 +313,23 @@
 		"title": "Transactions"
 	},
 	"add_asset": {
-		"title": "Add Asset",
-		"title_nft": "Add NFT",
+		"title": "Import tokens",
+		"title_nft": "Import NFT",
 		"search_token": "SEARCH",
 		"custom_token": "CUSTOM TOKEN",
 		"tokens": {
 			"cancel_add_token": "CANCEL",
-			"add_token": "ADD TOKEN"
+			"add_token": "IMPORT"
 		},
 		"collectibles": {
 			"cancel_add_collectible": "CANCEL",
-			"add_collectible": "ADD"
-		}
+			"add_collectible": "IMPORT"
+		},
+		"warning_body_description": "Anyone can create a token, including creating fake versions of existing tokens. Learn more about ",
+		"warning_link": "scams and security risks.",
+		"security_tips": "Security Tips",
+		"token_detection_feature": "New! Improved token detection is available on Ethereum Mainnet as an experimental feature. ",
+		"token_detection_link": "Enable it from Settings."
 	},
 	"terms_and_conditions": {
 		"title": "Terms and Conditions",
@@ -364,17 +374,21 @@
 		"address_must_be_smart_contract": "Personal address detected. Input the collectible contract address.",
 		"address_cant_be_empty": "Collectible address can't be empty.",
 		"token_id_cant_be_empty": "Collectible identifier can't be empty.",
-		"ownership_error_title": "Ooops! Something happened.",
-		"ownership_error": "You are not the owner of this collectible, so you can't add it.",
+		"not_owner_error_title": "Ooops! Something happened.",
+		"not_owner_error": "You are not the owner of this collectible, so you can't add it.",
+		"ownership_verification_error_title": "Unable to add NFT",
+		"ownership_verification_error": "We could not verify ownership. This may be because the standard is not supported or the asset does not exist on your selected network.",
 		"powered_by_opensea": "Powered by",
 		"id_placeholder": "Enter the collectible ID",
+		"collectible_token_standard": "Token Standard",
 		"collectible_last_sold": "Last sold",
 		"collectible_last_price_sold": "Last price sold",
 		"collectible_source": "Source",
 		"collectible_link": "Link",
 		"collectible_asset_contract": "Asset contract",
 		"share_check_out_nft": "Check out my NFT!",
-		"share_via": "Shared via"
+		"share_via": "Shared via",
+		"untitled_collection": "Untitled Collection"
 	},
 	"transfer": {
 		"title": "Transfer",
@@ -507,7 +521,7 @@
 		"third_party_title": "Get incoming transactions",
 		"third_party_description": "Third party APIs (Etherscan) are used to show your incoming transactions in the history. Turn off if you don’t want us to pull data from those services.",
 		"metametrics_opt_out": "MetaMetrics Opt-out",
-		"metrametrics_restart_required": "You need to restart the app for the changes to take effect.",
+		"metametrics_restart_required": "You need to restart the app for the changes to take effect.",
 		"create_password": "Create Password",
 		"invalid_password": "Invalid password",
 		"invalid_password_message": "The password was not correct. Please try again.",
@@ -522,7 +536,9 @@
 		"invalid_number_leading_zeros": "Invalid number. Remove any leading zeros.",
 		"invalid_number_range": "Invalid number. Enter a number between 1 and %{maxSafeChainId}",
 		"hide_zero_balance_tokens_title": "Hide Tokens Without Balance",
-		"hide_zero_balance_tokens_desc": "Prevents tokens with no balance from displaying in your token listing."
+		"hide_zero_balance_tokens_desc": "Prevents tokens with no balance from displaying in your token listing.",
+		"token_detection_title": "Enhanced Token Detection",
+		"token_detection_description": "We use third-party APIs to detect and display new tokens sent to your wallet. Turn off if you don’t want the app to pull data from those services."
 	},
 	"app_information": {
 		"title": "Information",
@@ -550,8 +566,10 @@
 		"private_key": "Your private key",
 		"copy_to_clipboard": "Copy to clipboard",
 		"enter_password": "Enter password to continue",
-		"seed_phrase_copied": "Secret Recovery Phrase copied to clipboard",
-		"private_key_copied": "Private key copied to clipboard",
+		"seed_phrase_copied": "Secret Recovery Phrase temporarily copied to clipboard",
+		"seed_phrase_copied_time": "(stored for 1 minute)",
+		"private_key_copied": "Private key temporarily copied to clipboard",
+		"private_key_copied_time": "(stored for 1 minute)",
 		"warning_incorrect_password": "Incorrect password",
 		"unknown_error": "Couldn't unlock your account. Please try again.",
 		"seed_warning": "This is your wallet's 12 word phrase. This phrase can be used to take control of all of your current and future accounts, including the ability to send away any of their funds. Keep this phrase stored safely, DO NOT share it with anyone.",
@@ -679,6 +697,7 @@
 		"could_not_resolve_ens": "Couldn't resolve ENS",
 		"asset": "Asset",
 		"balance": "Balance",
+		"token_id": "Token ID",
 		"not_enough_for_gas": "You have 0 {{ticker}} in your account to pay for transaction fees. Buy some {{ticker}} or deposit from another account.",
 		"send": "Send",
 		"confirmed": "Confirmed",
@@ -847,6 +866,8 @@
 		"total": "Total",
 		"view_on": "VIEW ON",
 		"view_on_etherscan": "View on Etherscan",
+		"view_full_history_on": "View full history on",
+		"view_full_history_on_etherscan": "View full history on Etherscan",
 		"hash_copied_to_clipboard": "Transaction hash copied to clipboard",
 		"address_copied_to_clipboard": "Address copied to clipboard",
 		"transaction_error": "Transaction error",
@@ -896,7 +917,7 @@
 		"label": "Open the MetaMask extension in your desktop browser, then go to \"Settings\" > \"Advanced\", click on \"Sync with Mobile\" and then enter your password to see the QR Code",
 		"button_continue": "Continue",
 		"please_wait": "Please wait while we sync your data...",
-		"error_title": "Bummer!",
+		"error_title": "We're sorry!",
 		"error_message": "Something went wrong... Please try again",
 		"warning_title": "Warning!",
 		"warning_message": "This will override all your current accounts and transaction history in your mobile phone. Are you sure?",
@@ -942,7 +963,7 @@
 		"message_from": "Message from",
 		"learn_more": "Learn More",
 		"read_more": "Read more",
-		"eth_sign_warning": "Proceed with caution. This action can potentially be used to withdraw assets from your account. Make sure you trust this site."
+		"eth_sign_warning": "Signing this message can be dangerous. This signature could potentially perform any operation on your account's behalf, including granting complete control of your account and all of its assets to the requesting site. Only sign this message if you know what you're doing or completely trust the requesting site."
 	},
 	"watch_asset_request": {
 		"title": "Add Suggested Token",
@@ -1222,6 +1243,12 @@
 		"body_for_seedphrase": "Now that value was added to your wallet, protect your wallet by setting a password and saving your Secret Recovery Phrase (required).",
 		"button": "Protect wallet"
 	},
+	"transaction_update_retry_modal": {
+		"title": "Transaction Update Failed",
+		"text": "Would you like to try again?",
+		"cancel_button": "Cancel",
+		"retry_button": "Retry"
+	},
 	"payment_request": {
 		"title": "Request",
 		"search_top_picks": "Top picks",
@@ -1440,7 +1467,7 @@
 		"verify_address_on": "Verify token address on",
 		"added_manually": "This token has been added manually.",
 		"verify_this_token_on": "Verify this token on",
-		"only_verified_on": "{{symbol}} is only verified on {{occurances}} source.",
+		"only_verified_on": "{{symbol}} is only verified on {{occurrences}} source.",
 		"block_explorer": "block explorer",
 		"a_block_explorer": "a block explorer",
 		"make_sure_trade": "and make sure this is the token you want to trade.",
@@ -1454,7 +1481,7 @@
 		"no_tokens_result": "No tokens match “{{searchString}}”",
 		"find_token_address": "Find token address",
 		"cant_find_token": "Can’t find a token?",
-		"manually_pasting": "You can manually add any token by pasting its address.",
+		"manually_pasting": "Manually add a token by pasting its address.",
 		"token_address_can_be_found": "Token contract addresses can be found on",
 		"gathering_token_details": "Gathering token details...",
 		"error_gathering_token_details": "Oops, there was an error gathering token details.",
@@ -1474,6 +1501,7 @@
 		"allows_up_to_decimals": "{{symbol}} allows up to {{decimals}} decimals",
 		"get_quotes": "Get quotes",
 		"starting": "Starting...",
+		"fetching_quotes": "Fetching quotes",
 		"finalizing": "Finalizing...",
 		"quote": "Quote",
 		"of": "of",
@@ -1547,6 +1575,11 @@
 			"1": "This quote comes from an",
 			"2": "aggregator",
 			"3": "which finds the best price by splitting your order between different decentralized exchanges."
+		},
+		"quote_source_cnt": {
+			"1": "This quote comes directly from a",
+			"2": "smart contract",
+			"3": "that wraps and unwraps native tokens which can save on gas costs."
 		},
 		"quotes_timeout": "Quotes timeout",
 		"request_new_quotes": "Please request new quotes to get the latest best rate.",
@@ -1659,7 +1692,7 @@
 	"secret_phrase_video_subtitle": {
 		"title": "EN CC",
 		"language": "en",
-		"uri": "https://github.com/MetaMask/metamask-mobile/blob/feature/secret_recovery_translations/app/videos/subtitles/subtitles-en.vtt"
+		"uri": "https://github.com/MetaMask/metamask-mobile/blob/develop/app/videos/subtitles/secretPhrase/subtitles-en.vtt?raw=true"
 	},
 	"edit_gas_fee_eip1559": {
 		"advanced_options": "Advanced options",
@@ -1682,17 +1715,27 @@
 			"link": "Learn more about customizing gas."
 		},
 		"save": "Save",
+		"submit": "Submit",
 		"max_priority_fee_low": "Max Priority Fee is low for current network conditions",
 		"max_priority_fee_high": "Max Priority Fee is higher than necessary",
+		"max_priority_fee_speed_up_low": "Max Priority Fee must be at least {{speed_up_floor_value}} GWEI (10% higher than intial transaction)",
+		"max_priority_fee_cancel_low": "Max Priority Fee must be at least {{cancel_value}} GWEI (50% higher than intial transaction)",
 		"max_fee_low": "Max Fee is low for current network conditions",
 		"max_fee_high": "Max Fee is higher than necessary",
+		"max_fee_speed_up_low": "Max Fee must be at least {{speed_up_floor_value}} GWEI (10% higher than intial transaction)",
+		"max_fee_cancel_low": "Max Fee must be at least {{cancel_value}} GWEI (50% higher than intial transaction)",
 		"learn_more_gas_limit": "Gas limit is the maximum units of gas you are willing to use. Units of gas are a multiplier to “Max priority fee” and “Max fee”. ",
 		"learn_more_max_priority_fee": "Max priority fee (aka “miner tip”) goes directly to miners and incentivizes them to prioritize your transaction. You’ll most often pay your max setting. ",
 		"learn_more_max_fee": "The max fee is the most you’ll pay (base fee + priority fee). ",
+		"learn_more_new_gas_fee": "We have updated the gas fee based on current network conditions and have increased it by at least 10% (required by the network). ",
+		"learn_more_cancel_gas_fee": "We have updated the gas fee based on current network conditions and have increased it by at least 50% (required by the network). ",
 		"low": "Low",
 		"medium": "Medium",
 		"high": "High",
 		"edit_priority": "Edit priority",
+		"speed_up_transaction": "Speed up transaction",
+		"cancel_transaction": "Cancel transaction",
+		"new_gas_fee": "New gas fee",
 		"edit_suggested_gas_fee": "Edit suggested gas fee",
 		"gas_price": "Gas price",
 		"learn_more_gas_limit_legacy": "Gas limit is the maximum units of gas you are willing to use. Units of gas are a multiplier to “Gas price”.",
@@ -1727,5 +1770,19 @@
 		"warning_low": "This lowers your maximum fee but if network traffic increases your transaction may be delayed or fail.",
 		"warning_low_title": "Low priority",
 		"warning_unknown_title": "Unknown processing time"
+	},
+	"review_prompt": {
+		"high_fees": "Why are fees so high?",
+		"missing_tokens": "I'm missing tokens...",
+		"swap_issues": "I'm unable to swap...",
+		"mobile_sentiment": "How do you feel about MetaMask mobile?",
+		"sentiment_good_face": "😁",
+		"sentiment_bad_face": "☹️",
+		"sentiment_good": "Love it!",
+		"sentiment_bad": "Not great...",
+		"help_title": "Oh no! Can we help?",
+		"help_description_1": "We're here to help! Check out the FAQs below or ",
+		"help_description_2": "contact support",
+		"help_description_3": " for help!"
 	}
 }

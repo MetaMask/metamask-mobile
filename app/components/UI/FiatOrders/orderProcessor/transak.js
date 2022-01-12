@@ -2,8 +2,8 @@ import { useMemo } from 'react';
 import axios from 'axios';
 import qs from 'query-string';
 import AppConstants from '../../../../core/AppConstants';
-import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../../../reducers/fiatOrders';
 import Logger from '../../../../util/Logger';
+import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
 
 //* env vars
 
@@ -19,6 +19,7 @@ const TRANSAK_API_KEY_SECRET_PRODUCTION = process.env.TRANSAK_API_KEY_SECRET_PRO
  */
 
 /**
+ * https://transak.stoplight.io/docs/transak-docs/1.swagger.yaml/paths/~1partners~1order~1%7BorderId%7D/get
  * @typedef TransakOrder
  * @type {object}
  * @property {string} id
@@ -28,6 +29,7 @@ const TRANSAK_API_KEY_SECRET_PRODUCTION = process.env.TRANSAK_API_KEY_SECRET_PRO
  * @property {string} fiatCurrency
  * @property {string} cryptoCurrency
  * @property {number} fiatAmount
+ * @property {number} fiatAmountInUsd
  * @property {string} walletLink
  * @property {string} paymentOptionId Paymenth method ID, see: https://integrate.transak.com/Coverage-Payment-Methods-Fees-Limits-30c0954fbdf04beca68622d9734c59f9
  * @property {boolean} addressAdditionalData
@@ -68,13 +70,8 @@ const TRANSAK_API_KEY_SECRET_PRODUCTION = process.env.TRANSAK_API_KEY_SECRET_PRO
 
 //* Constants
 
-const {
-	TRANSAK_URL,
-	TRANSAK_URL_STAGING,
-	TRANSAK_API_URL_STAGING,
-	TRANSAK_API_URL_PRODUCTION,
-	TRANSAK_REDIRECT_URL
-} = AppConstants.FIAT_ORDERS;
+const { TRANSAK_URL, TRANSAK_URL_STAGING, TRANSAK_API_URL_STAGING, TRANSAK_API_URL_PRODUCTION, TRANSAK_REDIRECT_URL } =
+	AppConstants.FIAT_ORDERS;
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
@@ -94,17 +91,17 @@ export const TRANSAK_ORDER_STATES = {
 	COMPLETED: 'COMPLETED',
 	EXPIRED: 'EXPIRED',
 	FAILED: 'FAILED',
-	CANCELLED: 'CANCELLED'
+	CANCELLED: 'CANCELLED',
 };
 
 //* API
 
 const transakApi = axios.create({
-	baseURL: TRANSAK_API_BASE_URL
+	baseURL: TRANSAK_API_BASE_URL,
 });
 
 // const getPartnerStatus = () => transakApi.get(`partners/${TRANSAK_API_KEY}`);
-const getOrderStatus = orderId =>
+const getOrderStatus = (orderId) =>
 	transakApi.get(`partners/order/${orderId}`, { params: { partnerAPISecret: TRANSAK_API_KEY_SECRET } });
 
 //* Helpers
@@ -113,7 +110,7 @@ const getOrderStatus = orderId =>
  * Transforms a TransakOrder state into a FiatOrder state
  * @param {TRANSAK_ORDER_STATES} transakOrderState
  */
-const transakOrderStateToFiatOrderState = transakOrderState => {
+const transakOrderStateToFiatOrderState = (transakOrderState) => {
 	switch (transakOrderState) {
 		case TRANSAK_ORDER_STATES.COMPLETED: {
 			return FIAT_ORDER_STATES.COMPLETED;
@@ -140,7 +137,7 @@ const transakOrderStateToFiatOrderState = transakOrderState => {
  * @param {TransakOrder} transakOrder Transak order object
  * @returns {FiatOrder} Fiat order object to store in the state
  */
-const transakOrderToFiatOrder = transakOrder => ({
+const transakOrderToFiatOrder = (transakOrder) => ({
 	id: transakOrder.id,
 	provider: FIAT_ORDER_PROVIDERS.TRANSAK,
 	createdAt: new Date(transakOrder.createdAt).getTime(),
@@ -150,10 +147,11 @@ const transakOrderToFiatOrder = transakOrder => ({
 	cryptoFee: transakOrder.totalFeeInCrypto,
 	currency: transakOrder.fiatCurrency,
 	cryptocurrency: transakOrder.cryptoCurrency,
+	amountInUSD: transakOrder.fiatAmountInUsd,
 	state: transakOrderStateToFiatOrderState(transakOrder.status),
 	account: transakOrder.walletAddress,
 	txHash: transakOrder.transactionHash || null,
-	data: transakOrder
+	data: transakOrder,
 });
 
 /**
@@ -161,7 +159,7 @@ const transakOrderToFiatOrder = transakOrder => ({
  * @param {TransakRedirectOrder} transakRedirectOrder Transak order object
  * @returns {FiatOrder} Fiat order object to store in the state
  */
-const transakCallbackOrderToFiatOrder = transakRedirectOrder => ({
+const transakCallbackOrderToFiatOrder = (transakRedirectOrder) => ({
 	id: transakRedirectOrder.orderId,
 	provider: FIAT_ORDER_PROVIDERS.TRANSAK,
 	createdAt: Date.now(),
@@ -172,7 +170,7 @@ const transakCallbackOrderToFiatOrder = transakRedirectOrder => ({
 	cryptocurrency: transakRedirectOrder.cryptoCurrency,
 	state: transakOrderStateToFiatOrderState(transakRedirectOrder.status),
 	account: transakRedirectOrder.walletAddress,
-	data: transakRedirectOrder
+	data: transakRedirectOrder,
 });
 
 //* Handlers
@@ -202,14 +200,14 @@ export const handleTransakRedirect = (url, network) => {
 export async function processTransakOrder(order) {
 	try {
 		const {
-			data: { response }
+			data: { response },
 		} = await getOrderStatus(order.id);
 		if (!response) {
 			throw new Error('Payment Request Failed: empty transak response');
 		}
 		return {
 			...order,
-			...transakOrderToFiatOrder(response)
+			...transakOrderToFiatOrder(response),
 		};
 	} catch (error) {
 		Logger.error(error, { message: 'FiatOrders::TransakProcessor error while processing order', order });
@@ -219,7 +217,7 @@ export async function processTransakOrder(order) {
 
 //* Hooks
 
-export const useTransakFlowURL = address => {
+export const useTransakFlowURL = (address) => {
 	const params = useMemo(
 		() =>
 			qs.stringify({
@@ -228,7 +226,7 @@ export const useTransakFlowURL = address => {
 				networks: 'ethereum',
 				themeColor: '037dd6',
 				walletAddress: address,
-				redirectURL: TRANSAK_REDIRECT_URL
+				redirectURL: TRANSAK_REDIRECT_URL,
 			}),
 		[address]
 	);

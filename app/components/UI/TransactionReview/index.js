@@ -9,18 +9,17 @@ import {
 	getNormalizedTxState,
 	APPROVE_FUNCTION_SIGNATURE,
 	decodeTransferData,
-	getTicker
+	getTicker,
 } from '../../../util/transactions';
 import {
 	weiToFiat,
 	balanceToFiat,
 	renderFromTokenMinimalUnit,
 	renderFromWei,
-	fromTokenMinimalUnit
+	fromTokenMinimalUnit,
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
-import Device from '../../../util/Device';
-import contractMap from '@metamask/contract-metadata';
+import Device from '../../../util/device';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewSummary from './TransactionReviewSummary';
@@ -31,40 +30,41 @@ import TransactionHeader from '../TransactionHeader';
 import AccountInfoCard from '../AccountInfoCard';
 import ActionView from '../ActionView';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
+import { getTokenList } from '../../../reducers/tokens';
 
 const styles = StyleSheet.create({
 	tabUnderlineStyle: {
 		height: 2,
-		backgroundColor: colors.blue
+		backgroundColor: colors.blue,
 	},
 	tabStyle: {
 		paddingBottom: 0,
-		backgroundColor: colors.beige
+		backgroundColor: colors.beige,
 	},
 	textStyle: {
 		fontSize: 12,
 		letterSpacing: 0.5,
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	actionViewWrapper: {
-		height: Device.isMediumDevice() ? 230 : 415
+		height: Device.isMediumDevice() ? 230 : 415,
 	},
 	actionViewChildren: {
-		height: 330
+		height: 330,
 	},
 	accountInfoCardWrapper: {
 		paddingHorizontal: 24,
-		paddingBottom: 12
+		paddingBottom: 12,
 	},
 	transactionData: {
 		position: 'absolute',
 		width: '100%',
-		height: '100%'
+		height: '100%',
 	},
 	hidden: {
 		opacity: 0,
-		height: 0
-	}
+		height: 0,
+	},
 });
 
 /**
@@ -180,13 +180,17 @@ class TransactionReview extends PureComponent {
 		isAnimating: PropTypes.bool,
 		dappSuggestedGas: PropTypes.bool,
 		/**
+		 * List of tokens from TokenListController
+		 */
+		tokenList: PropTypes.object,
+		/**
 		 * Object that represents the navigator
 		 */
 		navigation: PropTypes.object,
 		/**
 		 * If it's a eip1559 network and dapp suggest legact gas then it should show a warning
 		 */
-		dappSuggestedGasWarning: PropTypes.bool
+		dappSuggestedGasWarning: PropTypes.bool,
 	};
 
 	state = {
@@ -197,7 +201,7 @@ class TransactionReview extends PureComponent {
 		error: undefined,
 		assetAmount: undefined,
 		conversionRate: undefined,
-		fiatValue: undefined
+		fiatValue: undefined,
 	};
 
 	componentDidMount = async () => {
@@ -207,7 +211,8 @@ class TransactionReview extends PureComponent {
 			transaction: { data, to },
 			tokens,
 			chainId,
-			ready
+			tokenList,
+			ready,
 		} = this.props;
 		let { showHexData } = this.props;
 		let assetAmount, conversionRate, fiatValue;
@@ -216,7 +221,7 @@ class TransactionReview extends PureComponent {
 		const error = ready && validate && (await validate());
 		const actionKey = await getTransactionReviewActionKey(transaction, chainId);
 		if (approveTransaction) {
-			let contract = contractMap[safeToChecksumAddress(to)];
+			let contract = tokenList[safeToChecksumAddress(to)];
 			if (!contract) {
 				contract = tokens.find(({ address }) => address === safeToChecksumAddress(to));
 			}
@@ -244,7 +249,7 @@ class TransactionReview extends PureComponent {
 			transaction: { value, selectedAsset, assetType },
 			currentCurrency,
 			contractExchangeRates,
-			ticker
+			ticker,
 		} = this.props;
 		const values = {
 			ETH: () => {
@@ -272,7 +277,7 @@ class TransactionReview extends PureComponent {
 				const fiatValue = selectedAsset.name;
 				return [assetAmount, conversionRate, fiatValue];
 			},
-			default: () => [undefined, undefined, undefined]
+			default: () => [undefined, undefined, undefined],
 		};
 		return values[assetType] || values.default;
 	};
@@ -313,7 +318,7 @@ class TransactionReview extends PureComponent {
 		if (transaction.origin && transaction.origin.includes(WALLET_CONNECT_ORIGIN)) {
 			return transaction.origin.split(WALLET_CONNECT_ORIGIN)[1];
 		}
-		browser.tabs.forEach(tab => {
+		browser.tabs.forEach((tab) => {
 			if (tab.id === browser.activeTab) {
 				url = tab.url;
 			}
@@ -339,7 +344,7 @@ class TransactionReview extends PureComponent {
 			isAnimating,
 			dappSuggestedGas,
 			navigation,
-			dappSuggestedGasWarning
+			dappSuggestedGasWarning,
 		} = this.props;
 		const { actionKey, error, assetAmount, conversionRate, fiatValue, approveTransaction } = this.state;
 		const currentPageInformation = { url: this.getUrlFromBrowser() };
@@ -362,7 +367,7 @@ class TransactionReview extends PureComponent {
 							onCancelPress={this.props.onCancel}
 							onConfirmPress={this.props.onConfirm}
 							confirmed={transactionConfirmed}
-							confirmDisabled={error !== undefined || isAnimating}
+							confirmDisabled={transactionConfirmed || error !== undefined || isAnimating}
 						>
 							<View style={styles.actionViewChildren}>
 								<View style={styles.accountInfoCardWrapper}>
@@ -395,7 +400,7 @@ class TransactionReview extends PureComponent {
 					style={[
 						styles.transactionData,
 						generateTransform('reviewToData', [Device.getDeviceWidth(), 0]),
-						hideData && styles.hidden
+						hideData && styles.hidden,
 					]}
 				>
 					<TransactionReviewData
@@ -410,7 +415,7 @@ class TransactionReview extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	tokens: state.engine.backgroundState.TokensController.tokens,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
@@ -421,7 +426,8 @@ const mapStateToProps = state => ({
 	showHexData: state.settings.showHexData,
 	transaction: getNormalizedTxState(state),
 	browser: state.browser,
-	primaryCurrency: state.settings.primaryCurrency
+	primaryCurrency: state.settings.primaryCurrency,
+	tokenList: getTokenList(state),
 });
 
 export default connect(mapStateToProps)(TransactionReview);

@@ -1,17 +1,11 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { swapsUtils } from '@metamask/swaps-controller';
 
 const defaultTokenMetadata = {
 	valid: null,
 	error: false,
-	metadata: null
-};
-
-// TODO: change this with a multi chain endpoint in the future
-const SWAPS_TOKEN_API = {
-	'1': 'https://api.metaswap.codefi.network',
-	'1337': 'https://metaswap-api.airswap-dev.codefi.network',
-	'56': 'https://bsc-api.metaswap.codefi.network'
+	metadata: null,
 };
 
 function useFetchTokenMetadata(address, chainId) {
@@ -30,12 +24,11 @@ function useFetchTokenMetadata(address, chainId) {
 				setTokenMetadata(defaultTokenMetadata);
 				setIsLoading(true);
 				const { data } = await axios.request({
-					url: '/token',
-					baseURL: SWAPS_TOKEN_API[chainId],
+					url: swapsUtils.getTokenMetadataURL(chainId),
 					params: {
-						address
+						address,
 					},
-					cancelToken: cancelTokenSource.token
+					cancelToken: cancelTokenSource.token,
 				});
 				setTokenMetadata({ error: false, valid: true, metadata: data });
 			} catch (error) {

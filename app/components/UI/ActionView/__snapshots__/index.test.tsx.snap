@@ -1,0 +1,109 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ActionView should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "flex": 1,
+    }
+  }
+>
+  <KeyboardAwareScrollView
+    enableAutomaticScroll={true}
+    enableOnAndroid={false}
+    enableResetScrollToCoords={true}
+    extraHeight={75}
+    extraScrollHeight={0}
+    keyboardOpeningTime={250}
+    keyboardShouldPersistTaps="never"
+    resetScrollToCoords={
+      Object {
+        "x": 0,
+        "y": 0,
+      }
+    }
+    style={
+      Array [
+        Object {
+          "flex": 1,
+        },
+        undefined,
+      ]
+    }
+    viewIsInsideTabBar={false}
+  >
+    <TouchableWithoutFeedback
+      onPress={[Function]}
+      style={
+        Object {
+          "flex": 1,
+        }
+      }
+    />
+    <View
+      style={
+        Object {
+          "flex": 0,
+          "flexDirection": "row",
+          "paddingHorizontal": 24,
+          "paddingVertical": 16,
+        }
+      }
+    >
+      <StyledButton
+        containerStyle={
+          Array [
+            Object {
+              "flex": 1,
+            },
+            Object {
+              "marginRight": 8,
+            },
+          ]
+        }
+        disabled={false}
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        testID=""
+        type="cancel"
+      >
+        Cancel
+      </StyledButton>
+      <StyledButton
+        containerStyle={
+          Array [
+            Object {
+              "flex": 1,
+            },
+            Object {
+              "marginLeft": 8,
+            },
+          ]
+        }
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        testID=""
+        type="normal"
+      >
+        Confirm
+      </StyledButton>
+    </View>
+  </KeyboardAwareScrollView>
+</View>
+`;

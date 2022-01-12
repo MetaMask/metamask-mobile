@@ -7,7 +7,7 @@ import {
 	InteractionManager,
 	View,
 	ScrollView,
-	TouchableOpacity
+	TouchableOpacity,
 } from 'react-native';
 import { getApplicationName, getVersion, getBuildNumber } from 'react-native-device-info';
 import { colors, fontStyles } from '../../../../styles/common';
@@ -19,35 +19,35 @@ import AppConstants from '../../../../core/AppConstants';
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
-		flex: 1
+		flex: 1,
 	},
 	wrapperContent: {
 		paddingLeft: 24,
 		paddingRight: 24,
-		paddingVertical: 24
+		paddingVertical: 24,
 	},
 	title: {
 		fontSize: 18,
 		textAlign: 'left',
 		marginBottom: 20,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	link: {
 		fontSize: 18,
 		textAlign: 'left',
 		marginBottom: 20,
 		...fontStyles.normal,
-		color: colors.blue
+		color: colors.blue,
 	},
 	division: {
 		borderBottomColor: colors.grey400,
 		borderBottomWidth: 1,
 		width: '30%',
-		marginBottom: 20
+		marginBottom: 20,
 	},
 	image: {
 		width: 100,
-		height: 100
+		height: 100,
 	},
 	logoWrapper: {
 		flex: 1,
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		top: 20,
-		marginBottom: 40
+		marginBottom: 40,
 	},
 	versionInfo: {
 		marginTop: 20,
@@ -63,8 +63,8 @@ const styles = StyleSheet.create({
 		textAlign: 'left',
 		marginBottom: 20,
 		color: colors.fontSecondary,
-		...fontStyles.normal
-	}
+		...fontStyles.normal,
+	},
 });
 
 const foxImage = require('../../../../images/fox.png'); // eslint-disable-line import/no-commonjs
@@ -80,11 +80,11 @@ export default class AppInformation extends PureComponent {
 		/**
 		/* navigation object required to push new views
 		*/
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
 	};
 
 	state = {
-		appInfo: ''
+		appInfo: '',
 	};
 
 	componentDidMount = async () => {
@@ -100,8 +100,8 @@ export default class AppInformation extends PureComponent {
 				screen: 'SimpleWebview',
 				params: {
 					url,
-					title
-				}
+					title,
+				},
 			});
 		});
 	};

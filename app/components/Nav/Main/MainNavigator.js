@@ -5,7 +5,6 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Browser from '../../Views/Browser';
 import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
-import Approval from '../../Views/Approval';
 import Settings from '../../Views/Settings';
 import GeneralSettings from '../../Views/Settings/GeneralSettings';
 import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
@@ -39,7 +38,6 @@ import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import PaymentRequest from '../../UI/PaymentRequest';
 import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
-import Approve from '../../Views/ApproveView/Approve';
 import Amount from '../../Views/SendFlow/Amount';
 import Confirm from '../../Views/SendFlow/Confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
@@ -59,11 +57,11 @@ const Tab = createBottomTabNavigator();
 const styles = StyleSheet.create({
 	headerLogo: {
 		width: 125,
-		height: 50
+		height: 50,
 	},
 	hidden: {
-		opacity: 0
-	}
+		opacity: 0,
+	},
 });
 /**
  * Navigator component that wraps
@@ -72,7 +70,7 @@ const styles = StyleSheet.create({
 
 const WalletTabHome = () => (
 	<Stack.Navigator initialRouteName={'WalletView'}>
-		<Stack.Screen name="WalletView" component={Wallet} options={Wallet.navigationOptions} />
+		<Stack.Screen name="WalletView" component={Wallet} />
 		<Stack.Screen name="Asset" component={Asset} options={Asset.navigationOptions} />
 		<Stack.Screen name="AddAsset" component={AddAsset} options={AddAsset.navigationOptions} />
 
@@ -162,6 +160,11 @@ const SettingsView = () => (
 		/>
 		<Stack.Screen name="ResetPassword" component={ResetPassword} options={ResetPassword.navigationOptions} />
 		<Stack.Screen
+			name="AccountBackupStep1B"
+			component={AccountBackupStep1B}
+			options={AccountBackupStep1B.navigationOptions}
+		/>
+		<Stack.Screen
 			name="ManualBackupStep1"
 			component={ManualBackupStep1}
 			options={ManualBackupStep1.navigationOptions}
@@ -187,7 +190,7 @@ const SettingsView = () => (
 const ImportPrivateKeyView = () => (
 	<Stack.Navigator
 		screenOptions={{
-			headerShown: false
+			headerShown: false,
 		}}
 	>
 		<Stack.Screen name="ImportPrivateKey" component={ImportPrivateKey} />
@@ -206,18 +209,6 @@ const SendFlowView = () => (
 		<Stack.Screen name="SendTo" component={SendTo} options={SendTo.navigationOptions} />
 		<Stack.Screen name="Amount" component={Amount} options={Amount.navigationOptions} />
 		<Stack.Screen name="Confirm" component={Confirm} options={Confirm.navigationOptions} />
-	</Stack.Navigator>
-);
-
-const ApprovalView = () => (
-	<Stack.Navigator>
-		<Stack.Screen name="Approval" component={Approval} options={Approval.navigationOptions} />
-	</Stack.Navigator>
-);
-
-const ApproveView = () => (
-	<Stack.Navigator>
-		<Stack.Screen name="Approve" component={Approve} options={Approve.navigationOptions} />
 	</Stack.Navigator>
 );
 
@@ -307,7 +298,7 @@ const SetPasswordFlow = () => (
 const MainNavigator = () => (
 	<Stack.Navigator
 		screenOptions={{
-			headerShown: false
+			headerShown: false,
 		}}
 		mode={'modal'}
 		initialRouteName={'Home'}
@@ -320,9 +311,9 @@ const MainNavigator = () => (
 				cardStyle: { backgroundColor: 'transparent' },
 				cardStyleInterpolator: () => ({
 					overlayStyle: {
-						opacity: 0
-					}
-				})
+						opacity: 0,
+					},
+				}),
 			}}
 		/>
 		<Stack.Screen name="Home" tabBarVisible={false} component={HomeTabs} />
@@ -331,8 +322,6 @@ const MainNavigator = () => (
 		<Stack.Screen name="ImportPrivateKeyView" component={ImportPrivateKeyView} />
 		<Stack.Screen name="SendView" component={SendView} />
 		<Stack.Screen name="SendFlowView" component={SendFlowView} />
-		<Stack.Screen name="ApprovalView" component={ApprovalView} />
-		<Stack.Screen name="ApproveView" component={ApproveView} />
 		<Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />
 		<Stack.Screen name="OfflineModeView" component={OfflineModeView} />
 		<Stack.Screen name="QRScanner" component={QrScanner} />

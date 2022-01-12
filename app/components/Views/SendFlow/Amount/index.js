@@ -3,14 +3,13 @@ import { colors, fontStyles } from '../../../../styles/common';
 import {
 	StyleSheet,
 	Text,
-	SafeAreaView,
 	View,
 	TouchableOpacity,
 	TextInput,
 	KeyboardAvoidingView,
 	FlatList,
 	InteractionManager,
-	ScrollView
+	ScrollView,
 } from 'react-native';
 import { connect } from 'react-redux';
 import { setSelectedAsset, prepareTransaction, setTransactionObject } from '../../../../actions/transaction';
@@ -37,7 +36,7 @@ import {
 	getCurrencySymbol,
 	handleWeiNumber,
 	fromTokenMinimalUnitString,
-	toHexadecimal
+	toHexadecimal,
 } from '../../../../util/number';
 import { getTicker, generateTransferData, getEther, calculateEIP1559GasFeeHexes } from '../../../../util/transactions';
 import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
@@ -47,16 +46,18 @@ import Engine from '../../../../core/Engine';
 import CollectibleMedia from '../../../UI/CollectibleMedia';
 import collectiblesTransferInformation from '../../../../util/collectibles-transfer';
 import { strings } from '../../../../../locales/i18n';
-import Device from '../../../../util/Device';
+import Device from '../../../../util/device';
 import { BN } from 'ethereumjs-util';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import NetworkMainAssetLogo from '../../../UI/NetworkMainAssetLogo';
 import { isMainNet } from '../../../../util/networks';
-import { toLowerCaseEquals } from '../../../../util/general';
+import { renderShortText } from '../../../../util/general';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { decGWEIToHexWEI } from '../../../../util/conversions';
 import AppConstants from '../../../../core/AppConstants';
+import { collectibleContractsSelector, collectiblesSelector } from '../../../../reducers/collectibles';
 
 const { hexToBN, BNToHex } = util;
 
@@ -65,34 +66,34 @@ const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
-		backgroundColor: colors.white
+		backgroundColor: colors.white,
 	},
 	scrollWrapper: {
-		marginBottom: 60
+		marginBottom: 60,
 	},
 	buttonNextWrapper: {
 		flex: 1,
 		flexDirection: 'row',
-		alignItems: 'flex-end'
+		alignItems: 'flex-end',
 	},
 	buttonNext: {
 		flex: 1,
-		marginHorizontal: 24
+		marginHorizontal: 24,
 	},
 	inputWrapper: {
 		flex: 1,
 		marginTop: 30,
-		marginHorizontal: 24
+		marginHorizontal: 24,
 	},
 	actionsWrapper: {
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	action: {
 		flex: 1,
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	actionBorder: {
-		flex: 0.8
+		flex: 0.8,
 	},
 	actionDropdown: {
 		...fontStyles.normal,
@@ -101,36 +102,36 @@ const styles = StyleSheet.create({
 		paddingVertical: 2,
 		borderRadius: 100,
 		flexDirection: 'row',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	textDropdown: {
 		...fontStyles.normal,
 		fontSize: 14,
 		color: colors.white,
-		paddingVertical: 2
+		paddingVertical: 2,
 	},
 	iconDropdown: {
-		paddingLeft: 10
+		paddingLeft: 10,
 	},
 	maxText: {
 		...fontStyles.normal,
 		fontSize: 12,
 		color: colors.blue,
 		alignSelf: 'flex-end',
-		textTransform: 'uppercase'
+		textTransform: 'uppercase',
 	},
 	actionMax: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		justifyContent: 'flex-end'
+		justifyContent: 'flex-end',
 	},
 	actionMaxTouchable: {},
 	inputContainerWrapper: {
 		marginVertical: 16,
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	inputContainer: {
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	inputCurrencyText: {
 		...fontStyles.normal,
@@ -141,18 +142,18 @@ const styles = StyleSheet.create({
 		paddingVertical: Device.isIos() ? 0 : 8,
 		justifyContent: 'center',
 		alignItems: 'center',
-		textTransform: 'uppercase'
+		textTransform: 'uppercase',
 	},
 	textInput: {
 		...fontStyles.normal,
 		fontWeight: fontStyles.light.fontWeight,
 		fontSize: 44,
 		textAlign: 'center',
-		color: colors.black
+		color: colors.black,
 	},
 	switch: {
 		flex: 1,
-		marginTop: Device.isIos() ? 0 : 2
+		marginTop: Device.isIos() ? 0 : 2,
 	},
 	actionSwitch: {
 		paddingHorizontal: 8,
@@ -161,26 +162,26 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		borderColor: colors.grey500,
 		borderWidth: 1,
-		right: -2
+		right: -2,
 	},
 	textSwitch: {
 		...fontStyles.normal,
 		fontSize: 14,
 		color: colors.grey500,
-		textTransform: 'uppercase'
+		textTransform: 'uppercase',
 	},
 	switchWrapper: {
 		flexDirection: 'row',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	bottomModal: {
 		justifyContent: 'flex-end',
-		margin: 0
+		margin: 0,
 	},
 	tokenImage: {
 		width: 36,
 		height: 36,
-		overflow: 'hidden'
+		overflow: 'hidden',
 	},
 	assetElementWrapper: {
 		height: 70,
@@ -189,17 +190,17 @@ const styles = StyleSheet.create({
 		borderColor: colors.grey000,
 		flexDirection: 'row',
 		alignItems: 'center',
-		paddingHorizontal: 24
+		paddingHorizontal: 24,
 	},
 	assetElement: {
 		flexDirection: 'row',
-		flex: 1
+		flex: 1,
 	},
 	assetsModalWrapper: {
 		backgroundColor: colors.white,
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
-		height: 450
+		height: 450,
 	},
 	titleWrapper: {
 		width: '100%',
@@ -207,84 +208,84 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100
+		borderColor: colors.grey100,
 	},
 	dragger: {
 		width: 48,
 		height: 5,
 		borderRadius: 4,
 		backgroundColor: colors.grey400,
-		opacity: Device.isAndroid() ? 0.6 : 0.5
+		opacity: Device.isAndroid() ? 0.6 : 0.5,
 	},
 	textAssetTitle: {
 		...fontStyles.normal,
-		fontSize: 18
+		fontSize: 18,
 	},
 	assetInformationWrapper: {
 		flex: 1,
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'space-between',
-		marginLeft: 16
+		marginLeft: 16,
 	},
 	assetBalanceWrapper: {
-		flexDirection: 'column'
+		flexDirection: 'column',
 	},
 	textAssetBalance: {
 		...fontStyles.normal,
 		fontSize: 18,
-		textAlign: 'right'
+		textAlign: 'right',
 	},
 	textAssetFiat: {
 		...fontStyles.normal,
 		fontSize: 12,
 		color: colors.grey500,
 		textAlign: 'right',
-		textTransform: 'uppercase'
+		textTransform: 'uppercase',
 	},
 	errorMessageWrapper: {
-		marginVertical: 16
+		marginVertical: 16,
 	},
 	CollectibleMedia: {
 		width: 120,
-		height: 120
+		height: 120,
 	},
 	collectibleName: {
 		...fontStyles.normal,
 		fontSize: 32,
 		color: colors.grey500,
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	collectibleId: {
 		...fontStyles.normal,
 		fontSize: 14,
 		color: colors.grey500,
 		marginTop: 8,
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	collectibleInputWrapper: {
-		margin: 24
+		margin: 24,
 	},
 	collectibleInputImageWrapper: {
 		flexDirection: 'column',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	collectibleInputInformationWrapper: {
-		marginTop: 12
+		marginTop: 12,
 	},
 	nextActionWrapper: {
 		flex: 1,
-		marginBottom: 16
+		marginBottom: 16,
 	},
 	balanceWrapper: {
-		marginVertical: 16
+		marginVertical: 16,
 	},
 	balanceText: {
 		...fontStyles.normal,
 		alignSelf: 'center',
 		fontSize: 12,
-		lineHeight: 16
-	}
+		lineHeight: 16,
+	},
 });
 
 /**
@@ -377,7 +378,7 @@ class Amount extends PureComponent {
 		/**
 		 * Indicates whether the current transaction is a deep link transaction
 		 */
-		isPaymentRequest: PropTypes.bool
+		isPaymentRequest: PropTypes.bool,
 	};
 
 	state = {
@@ -388,7 +389,7 @@ class Amount extends PureComponent {
 		assetsModalVisible: false,
 		internalPrimaryCurrencyIsCrypto: this.props.primaryCurrency === 'ETH',
 		estimatedTotalGas: undefined,
-		hasExchangeRate: false
+		hasExchangeRate: false,
 	};
 
 	amountInput = React.createRef();
@@ -403,21 +404,22 @@ class Amount extends PureComponent {
 			navigation,
 			providerType,
 			selectedAsset,
-			isPaymentRequest
+			isPaymentRequest,
 		} = this.props;
 		// For analytics
 		navigation.setParams({ providerType, isPaymentRequest });
 
 		this.tokens = [getEther(ticker), ...tokens];
 		this.collectibles = this.processCollectibles();
-		this.amountInput && this.amountInput.current && this.amountInput.current.focus();
+		// Wait until navigation finishes to focus
+		InteractionManager.runAfterInteractions(() => this.amountInput?.current?.focus?.());
 		this.onInputChange(readableValue);
 		!selectedAsset.tokenId && this.handleSelectedAssetBalance(selectedAsset);
 
 		const { GasFeeController } = Engine.context;
 		const [gasEstimates, gas] = await Promise.all([
 			GasFeeController.fetchGasFeeEstimates({ shouldUpdateState: false }),
-			this.estimateGasLimit()
+			this.estimateGasLimit(),
 		]);
 
 		if (gasEstimates.gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
@@ -430,10 +432,10 @@ class Amount extends PureComponent {
 				gasLimitHex,
 				estimatedBaseFeeHex,
 				suggestedMaxFeePerGasHex,
-				suggestedMaxPriorityFeePerGasHex
+				suggestedMaxPriorityFeePerGasHex,
 			});
 			this.setState({
-				estimatedTotalGas: hexToBN(gasHexes.gasFeeMaxHex)
+				estimatedTotalGas: hexToBN(gasHexes.gasFeeMaxHex),
 			});
 		} else if (gasEstimates.gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY) {
 			const gasPrice = hexToBN(decGWEIToHexWEI(gasEstimates.gasFeeEstimates[AppConstants.GAS_OPTIONS.MEDIUM]));
@@ -444,25 +446,25 @@ class Amount extends PureComponent {
 		}
 
 		this.setState({
-			inputValue: readableValue
+			inputValue: readableValue,
 		});
 	};
 
+	/**
+	 * Method to validate collectible ownership.
+	 *
+	 * @returns Promise that resolves ownershio as a boolean.
+	 */
 	validateCollectibleOwnership = async () => {
-		const { AssetsContractController } = Engine.context;
+		const { CollectiblesController } = Engine.context;
 		const {
 			transactionState: {
-				selectedAsset: { address, tokenId }
+				selectedAsset: { address, tokenId },
 			},
-			selectedAddress
+			selectedAddress,
 		} = this.props;
 		try {
-			const owner = await AssetsContractController.getOwnerOf(address, tokenId);
-			const isOwner = toLowerCaseEquals(owner, selectedAddress);
-			if (!isOwner) {
-				return strings('transaction.invalid_collectible_ownership');
-			}
-			return undefined;
+			return await CollectiblesController.isCollectibleOwner(selectedAddress, address, tokenId);
 		} catch (e) {
 			return false;
 		}
@@ -475,15 +477,10 @@ class Amount extends PureComponent {
 			setSelectedAsset,
 			transactionState: { transaction },
 			providerType,
-			onConfirm
+			onConfirm,
 		} = this.props;
-		const {
-			inputValue,
-			inputValueConversion,
-			internalPrimaryCurrencyIsCrypto,
-			hasExchangeRate,
-			maxFiatInput
-		} = this.state;
+		const { inputValue, inputValueConversion, internalPrimaryCurrencyIsCrypto, hasExchangeRate, maxFiatInput } =
+			this.state;
 
 		let value;
 		if (internalPrimaryCurrencyIsCrypto || !hasExchangeRate) {
@@ -503,10 +500,11 @@ class Amount extends PureComponent {
 		if (!selectedAsset.tokenId && this.validateAmount(value)) {
 			return;
 		} else if (selectedAsset.tokenId) {
-			const invalidCollectibleOwnership = await this.validateCollectibleOwnership();
-			if (invalidCollectibleOwnership) {
-				this.setState({ amountError: invalidCollectibleOwnership });
+			const isOwner = await this.validateCollectibleOwnership();
+			if (!isOwner) {
+				this.setState({ amountError: strings('transaction.invalid_collectible_ownership') });
 				dismissKeyboard();
+				return;
 			}
 		}
 
@@ -530,7 +528,7 @@ class Amount extends PureComponent {
 	getCollectibleTranferTransactionProperties() {
 		const {
 			selectedAsset,
-			transactionState: { transaction, transactionTo }
+			transactionState: { transaction, transactionTo },
 		} = this.props;
 
 		const collectibleTransferTransactionProperties = {};
@@ -543,12 +541,12 @@ class Amount extends PureComponent {
 			collectibleTransferTransactionProperties.data = generateTransferData('transferFrom', {
 				fromAddress: transaction.from,
 				toAddress: transactionTo,
-				tokenId: toHexadecimal(selectedAsset.tokenId)
+				tokenId: toHexadecimal(selectedAsset.tokenId),
 			});
 		} else if (collectibleTransferInformation.tradable && collectibleTransferInformation.method === 'transfer') {
 			collectibleTransferTransactionProperties.data = generateTransferData('transfer', {
 				toAddress: transactionTo,
-				amount: selectedAsset.tokenId.toString(16)
+				amount: selectedAsset.tokenId.toString(16),
 			});
 		}
 		collectibleTransferTransactionProperties.to = selectedAsset.address;
@@ -562,14 +560,14 @@ class Amount extends PureComponent {
 			selectedAsset,
 			transactionState: { transaction, transactionTo },
 			setTransactionObject,
-			selectedAddress
+			selectedAddress,
 		} = this.props;
 
 		const transactionObject = {
 			...transaction,
 			value: BNToHex(toWei(value)),
 			selectedAsset,
-			from: selectedAddress
+			from: selectedAddress,
 		};
 
 		if (selectedAsset.tokenId) {
@@ -581,7 +579,7 @@ class Amount extends PureComponent {
 			const tokenAmount = toTokenMinimalUnit(value, selectedAsset.decimals);
 			transactionObject.data = generateTransferData('transfer', {
 				toAddress: transactionTo,
-				amount: BNToHex(tokenAmount)
+				amount: BNToHex(tokenAmount),
 			});
 			transactionObject.value = '0x0';
 		}
@@ -593,11 +591,11 @@ class Amount extends PureComponent {
 		setTransactionObject(transactionObject);
 	};
 
-	prepareTransaction = async value => {
+	prepareTransaction = async (value) => {
 		const {
 			prepareTransaction,
 			selectedAsset,
-			transactionState: { transaction, transactionTo }
+			transactionState: { transaction, transactionTo },
 		} = this.props;
 
 		if (selectedAsset.isETH) {
@@ -613,7 +611,7 @@ class Amount extends PureComponent {
 			const tokenAmount = toTokenMinimalUnit(value, selectedAsset.decimals);
 			transaction.data = generateTransferData('transfer', {
 				toAddress: transactionTo,
-				amount: BNToHex(tokenAmount)
+				amount: BNToHex(tokenAmount),
 			});
 			transaction.to = selectedAsset.address;
 			transaction.value = '0x0';
@@ -628,7 +626,7 @@ class Amount extends PureComponent {
 	 * @param {string} - Crypto value
 	 * @returns - Whether there is an error with the amount
 	 */
-	validateAmount = inputValue => {
+	validateAmount = (inputValue) => {
 		const { accounts, selectedAddress, contractBalances, selectedAsset } = this.props;
 		const { estimatedTotalGas } = this.state;
 		let weiBalance, weiInput, amountError;
@@ -657,25 +655,19 @@ class Amount extends PureComponent {
 	estimateGasLimit = async () => {
 		const {
 			transaction: { from },
-			transactionTo
+			transactionTo,
 		} = this.props.transactionState;
 		const { gas } = await getGasPriceByChainId({
 			from,
-			to: transactionTo
+			to: transactionTo,
 		});
 
 		return gas;
 	};
 
 	useMax = () => {
-		const {
-			accounts,
-			selectedAddress,
-			contractBalances,
-			selectedAsset,
-			conversionRate,
-			contractExchangeRates
-		} = this.props;
+		const { accounts, selectedAddress, contractBalances, selectedAsset, conversionRate, contractExchangeRates } =
+			this.props;
 		const { internalPrimaryCurrencyIsCrypto, estimatedTotalGas } = this.state;
 		let input;
 		if (selectedAsset.isETH) {
@@ -769,7 +761,7 @@ class Amount extends PureComponent {
 			renderableInputValueConversion,
 			amountError: undefined,
 			hasExchangeRate,
-			maxFiatInput: !useMax && undefined
+			maxFiatInput: !useMax && undefined,
 		});
 	};
 
@@ -791,7 +783,7 @@ class Amount extends PureComponent {
 		this.setState({ currentBalance });
 	};
 
-	pickSelectedAsset = selectedAsset => {
+	pickSelectedAsset = (selectedAsset) => {
 		this.toggleAssetsModal();
 		this.props.setSelectedAsset(selectedAsset);
 		if (!selectedAsset.tokenId) {
@@ -802,7 +794,7 @@ class Amount extends PureComponent {
 		}
 	};
 
-	assetKeyExtractor = asset => {
+	assetKeyExtractor = (asset) => {
 		if (asset.tokenId) {
 			return asset.address + asset.tokenId;
 		}
@@ -810,14 +802,8 @@ class Amount extends PureComponent {
 	};
 
 	renderToken = (token, index) => {
-		const {
-			accounts,
-			selectedAddress,
-			conversionRate,
-			currentCurrency,
-			contractBalances,
-			contractExchangeRates
-		} = this.props;
+		const { accounts, selectedAddress, conversionRate, currentCurrency, contractBalances, contractExchangeRates } =
+			this.props;
 		let balance, balanceFiat;
 		const { address, decimals, symbol } = token;
 		if (token.isETH) {
@@ -828,6 +814,7 @@ class Amount extends PureComponent {
 			const exchangeRate = contractExchangeRates[address];
 			balanceFiat = balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
 		}
+
 		return (
 			<TouchableOpacity
 				key={index}
@@ -877,7 +864,7 @@ class Amount extends PureComponent {
 		);
 	};
 
-	renderAsset = props => {
+	renderAsset = (props) => {
 		const { item: asset, index } = props;
 		if (!asset.tokenId) {
 			return this.renderToken(asset, index);
@@ -890,13 +877,13 @@ class Amount extends PureComponent {
 		const collectibles = [];
 		this.props.collectibles
 			.sort((a, b) => a.address < b.address)
-			.forEach(collectible => {
+			.forEach((collectible) => {
 				const address = collectible.address.toLowerCase();
 				const isTradable =
 					!collectiblesTransferInformation[address] || collectiblesTransferInformation[address].tradable;
 				if (!isTradable) return;
 				const collectibleContract = collectibleContracts.find(
-					contract => contract.address.toLowerCase() === address
+					(contract) => contract.address.toLowerCase() === address
 				);
 				if (!collectible.name) collectible.name = collectibleContract.name;
 				if (!collectible.image) collectible.image = collectibleContract.logo;
@@ -907,6 +894,7 @@ class Amount extends PureComponent {
 
 	renderAssetsModal = () => {
 		const { assetsModalVisible } = this.state;
+		const tradableCollectibles = this.collectibles.filter(({ standard }) => standard === 'ERC721');
 
 		return (
 			<Modal
@@ -923,7 +911,7 @@ class Amount extends PureComponent {
 						<View style={styles.dragger} />
 					</View>
 					<FlatList
-						data={[...this.tokens, ...this.collectibles]}
+						data={[...this.tokens, ...tradableCollectibles]}
 						keyExtractor={this.assetKeyExtractor}
 						renderItem={this.renderAsset}
 					/>
@@ -945,7 +933,7 @@ class Amount extends PureComponent {
 			amountError,
 			hasExchangeRate,
 			internalPrimaryCurrencyIsCrypto,
-			currentBalance
+			currentBalance,
 		} = this.state;
 		const { currentCurrency } = this.props;
 		return (
@@ -998,6 +986,7 @@ class Amount extends PureComponent {
 	};
 
 	renderCollectibleInput = () => {
+		const { amountError } = this.state;
 		const { selectedAsset } = this.props;
 		return (
 			<View style={styles.collectibleInputWrapper}>
@@ -1011,8 +1000,13 @@ class Amount extends PureComponent {
 				</View>
 				<View style={styles.collectibleInputInformationWrapper}>
 					<Text style={styles.collectibleName}>{selectedAsset.name}</Text>
-					<Text style={styles.collectibleId}>{`#${selectedAsset.tokenId}`}</Text>
+					<Text style={styles.collectibleId}>{`#${renderShortText(selectedAsset.tokenId, 10)}`}</Text>
 				</View>
+				{amountError && (
+					<View style={styles.errorMessageWrapper} testID={'amount-error'}>
+						<ErrorMessage errorMessage={amountError} />
+					</View>
+				)}
 			</View>
 		);
 	};
@@ -1021,11 +1015,11 @@ class Amount extends PureComponent {
 		const { estimatedTotalGas } = this.state;
 		const {
 			selectedAsset,
-			transactionState: { isPaymentRequest }
+			transactionState: { isPaymentRequest },
 		} = this.props;
 
 		return (
-			<SafeAreaView style={styles.wrapper} testID={'amount-screen'}>
+			<SafeAreaView edges={['bottom']} style={styles.wrapper} testID={'amount-screen'}>
 				<ScrollView style={styles.scrollWrapper}>
 					<View style={styles.inputWrapper}>
 						<View style={styles.actionsWrapper}>
@@ -1093,8 +1087,8 @@ const mapStateToProps = (state, ownProps) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
-	collectibleContracts: state.engine.backgroundState.CollectiblesController.collectibleContracts,
+	collectibles: collectiblesSelector(state),
+	collectibleContracts: collectibleContractsSelector(state),
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	providerType: state.engine.backgroundState.NetworkController.provider.type,
@@ -1105,16 +1099,13 @@ const mapStateToProps = (state, ownProps) => ({
 	tokens: state.engine.backgroundState.TokensController.tokens,
 	transactionState: ownProps.transaction || state.transaction,
 	selectedAsset: state.transaction.selectedAsset,
-	isPaymentRequest: state.transaction.paymentRequest
+	isPaymentRequest: state.transaction.paymentRequest,
 });
 
-const mapDispatchToProps = dispatch => ({
-	setTransactionObject: transaction => dispatch(setTransactionObject(transaction)),
-	prepareTransaction: transaction => dispatch(prepareTransaction(transaction)),
-	setSelectedAsset: selectedAsset => dispatch(setSelectedAsset(selectedAsset))
+const mapDispatchToProps = (dispatch) => ({
+	setTransactionObject: (transaction) => dispatch(setTransactionObject(transaction)),
+	prepareTransaction: (transaction) => dispatch(prepareTransaction(transaction)),
+	setSelectedAsset: (selectedAsset) => dispatch(setSelectedAsset(selectedAsset)),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(Amount);
+export default connect(mapStateToProps, mapDispatchToProps)(Amount);

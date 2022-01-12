@@ -1,5 +1,3 @@
-import { REHYDRATE } from 'redux-persist';
-
 const initialState = {
 	loadingMsg: '',
 	loadingSet: false,
@@ -7,76 +5,90 @@ const initialState = {
 	seedphraseBackedUp: false,
 	backUpSeedphraseVisible: false,
 	protectWalletModalVisible: false,
-	gasEducationCarouselSeen: false
+	gasEducationCarouselSeen: false,
+	userLoggedIn: false,
+	isAuthChecked: false,
+	initialScreen: '',
 };
 
 const userReducer = (state = initialState, action) => {
 	switch (action.type) {
-		case REHYDRATE:
-			if (action.payload && action.payload.user) {
-				return { ...state, ...action.payload.user };
-			}
-			return state;
+		case 'CHECKED_AUTH':
+			return {
+				...state,
+				isAuthChecked: true,
+				initialScreen: action.payload.initialScreen,
+			};
+		case 'LOGIN':
+			return {
+				...state,
+				userLoggedIn: true,
+			};
+		case 'LOGOUT':
+			return {
+				...state,
+				userLoggedIn: false,
+			};
 		case 'LOADING_SET':
 			return {
 				...state,
 				loadingSet: true,
-				loadingMsg: action.loadingMsg
+				loadingMsg: action.loadingMsg,
 			};
 		case 'LOADING_UNSET':
 			return {
 				...state,
-				loadingSet: false
+				loadingSet: false,
 			};
 		case 'PASSWORD_SET':
 			return {
 				...state,
-				passwordSet: true
+				passwordSet: true,
 			};
 		case 'PASSWORD_UNSET':
 			return {
 				...state,
-				passwordSet: false
+				passwordSet: false,
 			};
 		case 'SEEDPHRASE_NOT_BACKED_UP':
 			return {
 				...state,
 				seedphraseBackedUp: false,
-				backUpSeedphraseVisible: true
+				backUpSeedphraseVisible: true,
 			};
 		case 'SEEDPHRASE_BACKED_UP':
 			return {
 				...state,
 				seedphraseBackedUp: true,
-				backUpSeedphraseVisible: false
+				backUpSeedphraseVisible: false,
 			};
 		case 'BACK_UP_SEEDPHRASE_VISIBLE':
 			return {
 				...state,
-				backUpSeedphraseVisible: true
+				backUpSeedphraseVisible: true,
 			};
 		case 'BACK_UP_SEEDPHRASE_NOT_VISIBLE':
 			return {
 				...state,
-				backUpSeedphraseVisible: false
+				backUpSeedphraseVisible: false,
 			};
 		case 'PROTECT_MODAL_VISIBLE':
 			if (!state.seedphraseBackedUp) {
 				return {
 					...state,
-					protectWalletModalVisible: true
+					protectWalletModalVisible: true,
 				};
 			}
 			return state;
 		case 'PROTECT_MODAL_NOT_VISIBLE':
 			return {
 				...state,
-				protectWalletModalVisible: false
+				protectWalletModalVisible: false,
 			};
 		case 'SET_GAS_EDUCATION_CAROUSEL_SEEN':
 			return {
 				...state,
-				gasEducationCarouselSeen: true
+				gasEducationCarouselSeen: true,
 			};
 		default:
 			return state;

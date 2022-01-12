@@ -2,7 +2,7 @@ import {
 	AccountTrackerController,
 	AddressBookController,
 	AssetsContractController,
-	AssetsDetectionController,
+	TokenListController,
 	ControllerMessenger,
 	ComposableController,
 	CurrencyRateController,
@@ -14,16 +14,17 @@ import {
 	PreferencesController,
 	TokenBalancesController,
 	TokenRatesController,
+	Transaction,
 	TransactionController,
 	TypedMessageManager,
 	WalletDevice,
 	GasFeeController,
 	TokensController,
-	CollectiblesController
+	CollectiblesController,
+	TokenDetectionController,
+	CollectibleDetectionController,
 } from '@metamask/controllers';
-
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
-
 import AsyncStorage from '@react-native-community/async-storage';
 import Encryptor from './Encryptor';
 import { toChecksumAddress } from 'ethereumjs-util';
@@ -32,14 +33,13 @@ import AppConstants from './AppConstants';
 import { store } from '../store';
 import { renderFromTokenMinimalUnit, balanceToFiatNumber, weiToFiatNumber } from '../util/number';
 import NotificationManager from './NotificationManager';
-import contractMap from '@metamask/contract-metadata';
 import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
 
 const NON_EMPTY = 'NON_EMPTY';
 
 const encryptor = new Encryptor();
-let currentChainId;
+let currentChainId: any;
 
 /**
  * Core controller responsible for composing other metamask controllers together
@@ -55,7 +55,7 @@ class Engine {
 	 * Object containing the info for the latest incoming tx block
 	 * for each address and network
 	 */
-	lastIncomingTxBlockInfo;
+	lastIncomingTxBlockInfo: any;
 
 	/**
 	 * Creates a CoreController instance
@@ -65,69 +65,103 @@ class Engine {
 			const preferencesController = new PreferencesController(
 				{},
 				{
-					ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL
+					ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL,
+					useStaticTokenList:
+						initialState?.PreferencesController?.useStaticTokenList === undefined ||
+						initialState.PreferencesController.useStaticTokenList,
+					// TODO: Use previous value when preferences UI is available
+					useCollectibleDetection: true,
+					openSeaEnabled: true,
 				}
 			);
 			const networkController = new NetworkController({
 				infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
 				providerConfig: {
 					static: {
-						eth_sendTransaction: async (payload, next, end) => {
+						eth_sendTransaction: async (
+							payload: { params: any[], origin: any },
+							next: any,
+							end: (arg0: undefined, arg1: undefined) => void
+						) => {
 							const { TransactionController } = this.context;
 							try {
-								const hash = await (await TransactionController.addTransaction(
-									payload.params[0],
-									payload.origin,
-									WalletDevice.MM_MOBILE
-								)).result;
+								const hash = await (
+									await TransactionController.addTransaction(
+										payload.params[0],
+										payload.origin,
+										WalletDevice.MM_MOBILE
+									)
+								).result;
 								end(undefined, hash);
 							} catch (error) {
 								end(error);
 							}
-						}
+						},
 					},
-					getAccounts: (end, payload) => {
+					getAccounts: (end: (arg0: null, arg1: any[]) => void, payload: { hostname: string | number }) => {
 						const { approvedHosts, privacyMode } = store.getState();
 						const isEnabled = !privacyMode || approvedHosts[payload.hostname];
 						const { KeyringController } = this.context;
 						const isUnlocked = KeyringController.isUnlocked();
 						const selectedAddress = this.context.PreferencesController.state.selectedAddress;
 						end(null, isUnlocked && isEnabled && selectedAddress ? [selectedAddress] : []);
-					}
-				}
+					},
+				},
 			});
 			const assetsContractController = new AssetsContractController();
-			const collectiblesController = new CollectiblesController({
-				onPreferencesStateChange: listener => preferencesController.subscribe(listener),
-				onNetworkStateChange: listener => networkController.subscribe(listener),
-				getAssetName: assetsContractController.getAssetName.bind(assetsContractController),
-				getAssetSymbol: assetsContractController.getAssetSymbol.bind(assetsContractController),
-				getCollectibleTokenURI: assetsContractController.getCollectibleTokenURI.bind(assetsContractController)
-			});
-
+			const collectiblesController = new CollectiblesController(
+				{
+					onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
+					onNetworkStateChange: (listener) => networkController.subscribe(listener),
+					getAssetName: assetsContractController.getAssetName.bind(assetsContractController),
+					getAssetSymbol: assetsContractController.getAssetSymbol.bind(assetsContractController),
+					getCollectibleTokenURI:
+						assetsContractController.getCollectibleTokenURI.bind(assetsContractController),
+					getOwnerOf: assetsContractController.getOwnerOf.bind(assetsContractController),
+					balanceOfERC1155Collectible:
+						assetsContractController.balanceOfERC1155Collectible.bind(assetsContractController),
+					uriERC1155Collectible:
+						assetsContractController.uriERC1155Collectible.bind(assetsContractController),
+				},
+				{
+					useIPFSSubdomains: false,
+				}
+			);
 			const tokensController = new TokensController({
-				onPreferencesStateChange: listener => preferencesController.subscribe(listener),
-				onNetworkStateChange: listener => networkController.subscribe(listener),
-				config: { provider: networkController.provider }
+				onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
+				onNetworkStateChange: (listener) => networkController.subscribe(listener),
+				config: { provider: networkController.provider },
 			});
 			this.controllerMessenger = new ControllerMessenger();
+			const tokenListController = new TokenListController({
+				chainId: networkController.provider.chainId,
+				onNetworkStateChange: (listener) => networkController.subscribe(listener),
+				useStaticTokenList: preferencesController.state.useStaticTokenList,
+				onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
+				messenger: this.controllerMessenger,
+			});
 			const currencyRateController = new CurrencyRateController({
 				messenger: this.controllerMessenger,
-				state: initialState.CurrencyRateController
+				state: initialState.CurrencyRateController,
 			});
 			currencyRateController.start();
 
 			const gasFeeController = new GasFeeController({
 				messenger: this.controllerMessenger,
 				getProvider: () => networkController.provider,
-				onNetworkStateChange: listener => networkController.subscribe(listener),
+				onNetworkStateChange: (listener) => networkController.subscribe(listener),
 				getCurrentNetworkEIP1559Compatibility: async () => await networkController.getEIP1559Compatibility(),
 				getChainId: () => networkController.state.provider.chainId,
-				getCurrentNetworkLegacyGasAPICompatibility: () =>
-					isMainnetByChainId(networkController.state.provider.chainId) ||
-					networkController.state.provider.chainId === swapsUtils.BSC_CHAIN_ID,
+				getCurrentNetworkLegacyGasAPICompatibility: () => {
+					const chainId = networkController.state.provider.chainId;
+					return (
+						isMainnetByChainId(chainId) ||
+						chainId === swapsUtils.BSC_CHAIN_ID ||
+						chainId === swapsUtils.POLYGON_CHAIN_ID
+					);
+				},
 				legacyAPIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/gasPrices',
-				EIP1559APIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees'
+				EIP1559APIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
 			});
 
 			const controllers = [
@@ -136,41 +170,37 @@ class Engine {
 						removeIdentity: preferencesController.removeIdentity.bind(preferencesController),
 						syncIdentities: preferencesController.syncIdentities.bind(preferencesController),
 						updateIdentities: preferencesController.updateIdentities.bind(preferencesController),
-						setSelectedAddress: preferencesController.setSelectedAddress.bind(preferencesController)
+						setSelectedAddress: preferencesController.setSelectedAddress.bind(preferencesController),
 					},
 					{ encryptor },
 					initialState.KeyringController
 				),
 				new AccountTrackerController({
-					onPreferencesStateChange: listener => preferencesController.subscribe(listener),
-					getIdentities: () => preferencesController.state.identities
+					onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
+					getIdentities: () => preferencesController.state.identities,
 				}),
 				new AddressBookController(),
 				assetsContractController,
 				collectiblesController,
 				tokensController,
-				new AssetsDetectionController({
-					onCollectiblesStateChange: listener => collectiblesController.subscribe(listener),
-					onTokensStateChange: listener => tokensController.subscribe(listener),
-					onPreferencesStateChange: listener => preferencesController.subscribe(listener),
-					onNetworkStateChange: listener => networkController.subscribe(listener),
-					getOpenSeaApiKey: () => collectiblesController.openSeaApiKey,
-					getBalancesInSingleCall: assetsContractController.getBalancesInSingleCall.bind(
-						assetsContractController
-					),
+				tokenListController,
+				new TokenDetectionController({
+					onTokensStateChange: (listener) => tokensController.subscribe(listener),
+					onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
+					onNetworkStateChange: (listener) => networkController.subscribe(listener),
 					addTokens: tokensController.addTokens.bind(tokensController),
+					getTokensState: () => tokensController.state,
+					getTokenListState: () => tokenListController.state,
+					getBalancesInSingleCall:
+						assetsContractController.getBalancesInSingleCall.bind(assetsContractController),
+				}),
+				new CollectibleDetectionController({
+					onCollectiblesStateChange: (listener) => collectiblesController.subscribe(listener),
+					onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
+					onNetworkStateChange: (listener) => networkController.subscribe(listener),
+					getOpenSeaApiKey: () => collectiblesController.openSeaApiKey,
 					addCollectible: collectiblesController.addCollectible.bind(collectiblesController),
 					getCollectiblesState: () => collectiblesController.state,
-					getTokensState: () => tokensController.state,
-					getTokenListState: () => {
-						const tokenList = Object.entries(contractMap).reduce((final, [key, value]) => {
-							if (value.erc20) {
-								final[key] = value;
-							}
-							return final;
-						}, {});
-						return { tokenList };
-					}
 				}),
 				currencyRateController,
 				new PersonalMessageManager(),
@@ -180,32 +210,34 @@ class Engine {
 				preferencesController,
 				new TokenBalancesController(
 					{
-						onTokensStateChange: listener => tokensController.subscribe(listener),
+						onTokensStateChange: (listener) => tokensController.subscribe(listener),
 						getSelectedAddress: () => preferencesController.state.selectedAddress,
-						getBalanceOf: assetsContractController.getBalanceOf.bind(assetsContractController)
+						getBalanceOf: assetsContractController.getBalanceOf.bind(assetsContractController),
 					},
 					{ interval: 10000 }
 				),
 				new TokenRatesController({
-					onTokensStateChange: listener => tokensController.subscribe(listener),
-					onCurrencyRateStateChange: listener =>
+					onTokensStateChange: (listener) => tokensController.subscribe(listener),
+					onCurrencyRateStateChange: (listener) =>
 						this.controllerMessenger.subscribe(`${currencyRateController.name}:stateChange`, listener),
-					onNetworkStateChange: listener => networkController.subscribe(listener)
+					onNetworkStateChange: (listener) => networkController.subscribe(listener),
 				}),
 				new TransactionController({
 					getNetworkState: () => networkController.state,
-					onNetworkStateChange: listener => networkController.subscribe(listener),
-					getProvider: () => networkController.provider
+					onNetworkStateChange: (listener) => networkController.subscribe(listener),
+					getProvider: () => networkController.provider,
 				}),
 				new TypedMessageManager(),
-				new SwapsController({
-					clientId: AppConstants.SWAPS.CLIENT_ID,
-					fetchAggregatorMetadataThreshold: AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
-					fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
-					fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD,
-					fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates()
-				}),
-				gasFeeController
+				new SwapsController(
+					{ fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates() },
+					{
+						clientId: AppConstants.SWAPS.CLIENT_ID,
+						fetchAggregatorMetadataThreshold: AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
+						fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
+						fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD,
+					}
+				),
+				gasFeeController,
 			];
 			// set initial state
 			// TODO: Pass initial state into each controller constructor instead
@@ -229,13 +261,13 @@ class Engine {
 				CollectiblesController: collectibles,
 				KeyringController: keyring,
 				NetworkController: network,
-				TransactionController: transaction
+				TransactionController: transaction,
 			} = this.context;
 
 			collectibles.setApiKey(process.env.MM_OPENSEA_KEY);
 			network.refreshNetwork();
 			transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
-			network.subscribe(state => {
+			network.subscribe((state: { network: string, provider: { chainId: any } }) => {
 				if (state.network !== 'loading' && state.provider.chainId !== currentChainId) {
 					// We should add a state or event emitter saying the provider changed
 					setTimeout(() => {
@@ -245,19 +277,28 @@ class Engine {
 				}
 			});
 			this.configureControllersOnNetworkChange();
+			this.startPolling();
 			Engine.instance = this;
 		}
 		return Engine.instance;
+	}
+
+	startPolling() {
+		const { CollectibleDetectionController, TokenDetectionController, TokenListController } = this.context;
+		TokenListController.start();
+		CollectibleDetectionController.start();
+		TokenDetectionController.start();
 	}
 
 	configureControllersOnNetworkChange() {
 		const {
 			AccountTrackerController,
 			AssetsContractController,
-			AssetsDetectionController,
+			TokenDetectionController,
+			CollectibleDetectionController,
 			NetworkController: { provider, state: NetworkControllerState },
 			TransactionController,
-			SwapsController
+			SwapsController,
 		} = this.context;
 
 		provider.sendAsync = provider.sendAsync.bind(provider);
@@ -268,15 +309,15 @@ class Engine {
 			provider,
 			chainId: NetworkControllerState?.provider?.chainId,
 			pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
-			quotePollingInterval: AppConstants.SWAPS.POLLING_INTERVAL
 		});
 		TransactionController.configure({ provider });
 		TransactionController.hub.emit('networkChange');
-		AssetsDetectionController.detectAssets();
+		TokenDetectionController.detectTokens();
+		CollectibleDetectionController.detectCollectibles();
 		AccountTrackerController.refresh();
 	}
 
-	refreshTransactionHistory = async forceCheck => {
+	refreshTransactionHistory = async (forceCheck: any) => {
 		const { TransactionController, PreferencesController, NetworkController } = this.context;
 		const { selectedAddress } = PreferencesController.state;
 		const { type: networkType } = NetworkController.state.provider;
@@ -303,7 +344,7 @@ class Engine {
 			//Fetch txs and get the new lastIncomingTxBlock number
 			const newlastIncomingTxBlock = await TransactionController.fetchAll(selectedAddress, {
 				blockNumber,
-				etherscanApiKey: process.env.MM_ETHERSCAN_KEY
+				etherscanApiKey: process.env.MM_ETHERSCAN_KEY,
 			});
 			// Check if it's a newer block and store it so next time we ask for the newer txs only
 			if (
@@ -314,14 +355,14 @@ class Engine {
 			) {
 				allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`] = {
 					blockNumber: newlastIncomingTxBlock,
-					lastCheck: Date.now()
+					lastCheck: Date.now(),
 				};
 
 				NotificationManager.gotIncomingTransaction(newlastIncomingTxBlock);
 			} else {
 				allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`] = {
 					...allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`],
-					lastCheck: Date.now()
+					lastCheck: Date.now(),
 				};
 			}
 			await AsyncStorage.setItem(LAST_INCOMING_TX_BLOCK_INFO, JSON.stringify(allLastIncomingTxBlocks));
@@ -337,7 +378,7 @@ class Engine {
 			AccountTrackerController,
 			TokenBalancesController,
 			TokenRatesController,
-			TokensController
+			TokensController,
 		} = this.context;
 		const { selectedAddress } = PreferencesController.state;
 		const { currentCurrency } = CurrencyRateController.state;
@@ -354,7 +395,7 @@ class Engine {
 		if (tokens.length > 0) {
 			const { contractBalances: tokenBalances } = TokenBalancesController.state;
 			const { contractExchangeRates: tokenExchangeRates } = TokenRatesController.state;
-			tokens.forEach(item => {
+			tokens.forEach((item: { address: string, balance: string | undefined, decimals: number }) => {
 				const exchangeRate = item.address in tokenExchangeRates ? tokenExchangeRates[item.address] : undefined;
 				const tokenBalance =
 					item.balance ||
@@ -381,14 +422,14 @@ class Engine {
 	hasFunds = () => {
 		try {
 			const {
-				engine: { backgroundState }
+				engine: { backgroundState },
 			} = store.getState();
 			const collectibles = backgroundState.CollectiblesController.collectibles;
 			const tokens = backgroundState.TokensController.tokens;
 			const tokenBalances = backgroundState.TokenBalancesController.contractBalances;
 
 			let tokenFound = false;
-			tokens.forEach(token => {
+			tokens.forEach((token: { address: string | number }) => {
 				if (tokenBalances[token.address] && !tokenBalances[token.address]?.isZero()) {
 					tokenFound = true;
 				}
@@ -408,26 +449,33 @@ class Engine {
 		// get rid of the old data from state
 		const {
 			TransactionController,
+			TokensController,
 			CollectiblesController,
 			TokenBalancesController,
 			TokenRatesController,
-			TokensController
 		} = this.context;
 
 		//Clear assets info
+		TokensController.update({
+			allTokens: {},
+			ignoredTokens: [],
+			tokens: [],
+			suggestedAssets: [],
+		});
 		CollectiblesController.update({
 			allCollectibleContracts: {},
 			allCollectibles: {},
 			collectibleContracts: [],
 			collectibles: [],
-			ignoredCollectibles: []
+			ignoredCollectibles: [],
 		});
 
 		TokensController.update({
 			allTokens: {},
+			allIgnoredTokens: {},
 			ignoredTokens: [],
 			tokens: [],
-			suggestedAssets: []
+			suggestedAssets: [],
 		});
 
 		TokenBalancesController.update({ contractBalances: {} });
@@ -437,18 +485,22 @@ class Engine {
 			internalTransactions: [],
 			swapsTransactions: {},
 			methodData: {},
-			transactions: []
+			transactions: [],
 		});
 	};
 
-	sync = async ({ accounts, preferences, network, transactions, seed, pass, importedAccounts }) => {
-		const {
-			KeyringController,
-			PreferencesController,
-			NetworkController,
-			TransactionController,
-			TokensController
-		} = this.context;
+	sync = async ({
+		accounts,
+		preferences,
+		network,
+		transactions,
+		seed,
+		pass,
+		importedAccounts,
+		tokens: { allTokens, allIgnoredTokens },
+	}) => {
+		const { KeyringController, PreferencesController, NetworkController, TransactionController, TokensController } =
+			this.context;
 
 		// Select same network ?
 		await NetworkController.setProviderType(network.provider.type);
@@ -465,35 +517,13 @@ class Engine {
 				await KeyringController.importAccountWithStrategy('privateKey', [importedAccounts[i]]);
 			}
 		}
-		// Sync tokens
-		const allTokens = {};
-		Object.keys(preferences.accountTokens).forEach(address => {
-			const checksummedAddress = toChecksumAddress(address);
-			allTokens[checksummedAddress] = {};
-			Object.keys(preferences.accountTokens[address]).forEach(chainId => {
-				const network = Object.values(Networks).find(
-					({ hexChainId: networkChainId }) => networkChainId === chainId
-				);
-				const networkType = network?.networkType;
-				// !networkType this will probably happen on custom rpc networks
-				if (!networkType) return;
-				allTokens[checksummedAddress][networkType] =
-					chainId !== `0x1`
-						? preferences.accountTokens[address][chainId]
-						: preferences.accountTokens[address][chainId]
-								.filter(({ address }) =>
-									contractMap[toChecksumAddress(address)]
-										? contractMap[toChecksumAddress(address)].erc20
-										: true
-								)
-								.map(token => ({ ...token, address: toChecksumAddress(token.address) }));
-			});
-		});
-		await TokensController.update({ allTokens });
+
+		// Restore tokens
+		await TokensController.update({ allTokens, allIgnoredTokens });
 
 		// Restore preferences
 		const updatedPref = { ...preferences, identities: {} };
-		Object.keys(preferences.identities).forEach(address => {
+		Object.keys(preferences.identities).forEach((address) => {
 			const checksummedAddress = toChecksumAddress(address);
 			if (accounts.hd.includes(checksummedAddress) || accounts.simpleKeyPair.includes(checksummedAddress)) {
 				updatedPref.identities[checksummedAddress] = preferences.identities[address];
@@ -508,35 +538,44 @@ class Engine {
 			PreferencesController.setSelectedAddress(accounts.hd[0]);
 		}
 
-		const mapTx = tx => ({
-			id: tx.id,
-			networkID: tx.metamaskNetworkId,
-			origin: tx.origin,
-			status: tx.status,
-			time: tx.time,
-			transactionHash: tx.hash,
-			rawTx: tx.rawTx,
-			transaction: {
-				from: tx.txParams.from,
-				to: tx.txParams.to,
-				nonce: tx.txParams.nonce,
-				gas: tx.txParams.gas,
-				gasPrice: tx.txParams.gasPrice,
-				value: tx.txParams.value,
-				maxFeePerGas: tx.txParams.maxFeePerGas,
-				maxPriorityFeePerGas: tx.txParams.maxPriorityFeePerGas
-			}
+		const mapTx = ({
+			id,
+			metamaskNetworkId,
+			origin,
+			status,
+			time,
+			hash,
+			rawTx,
+			txParams,
+		}: {
+			id: any,
+			metamaskNetworkId: string,
+			origin: string,
+			status: string,
+			time: any,
+			hash: string,
+			rawTx: string,
+			txParams: Transaction,
+		}) => ({
+			id,
+			networkID: metamaskNetworkId,
+			origin,
+			status,
+			time,
+			transactionHash: hash,
+			rawTx,
+			transaction: { ...txParams },
 		});
 
 		await TransactionController.update({
-			transactions: transactions.map(mapTx)
+			transactions: transactions.map(mapTx),
 		});
 
 		return true;
 	};
 }
 
-let instance;
+let instance: Engine;
 
 export default {
 	get context() {
@@ -551,7 +590,7 @@ export default {
 			AddressBookController,
 			AssetsContractController,
 			CollectiblesController,
-			AssetsDetectionController,
+			TokenListController,
 			CurrencyRateController,
 			KeyringController,
 			PersonalMessageManager,
@@ -564,14 +603,16 @@ export default {
 			TypedMessageManager,
 			SwapsController,
 			GasFeeController,
-			TokensController
+			TokensController,
+			TokenDetectionController,
+			CollectibleDetectionController,
 		} = instance.datamodel.state;
 
 		// normalize `null` currencyRate to `0`
 		// TODO: handle `null` currencyRate by hiding fiat values instead
 		const modifiedCurrencyRateControllerState = {
 			...CurrencyRateController,
-			conversionRate: CurrencyRateController.conversionRate === null ? 0 : CurrencyRateController.conversionRate
+			conversionRate: CurrencyRateController.conversionRate === null ? 0 : CurrencyRateController.conversionRate,
 		};
 
 		return {
@@ -579,7 +620,7 @@ export default {
 			AddressBookController,
 			AssetsContractController,
 			CollectiblesController,
-			AssetsDetectionController,
+			TokenListController,
 			CurrencyRateController: modifiedCurrencyRateControllerState,
 			KeyringController,
 			PersonalMessageManager,
@@ -592,7 +633,9 @@ export default {
 			TransactionController,
 			TypedMessageManager,
 			SwapsController,
-			GasFeeController
+			GasFeeController,
+			TokenDetectionController,
+			CollectibleDetectionController,
 		};
 	},
 	get datamodel() {
@@ -607,15 +650,15 @@ export default {
 	resetState() {
 		return instance.resetState();
 	},
-	sync(data) {
+	sync(data: any) {
 		return instance.sync(data);
 	},
 	refreshTransactionHistory(forceCheck = false) {
 		return instance.refreshTransactionHistory(forceCheck);
 	},
-	init(state) {
+	init(state: {} | undefined) {
 		instance = new Engine(state);
 		Object.freeze(instance);
 		return instance;
-	}
+	},
 };

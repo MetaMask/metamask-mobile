@@ -8,6 +8,7 @@ import SecureKeychain from '../../../core/SecureKeychain';
 import { baseStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
+import { logOut } from '../../../actions/user';
 
 const LOGO_SIZE = 175;
 const styles = StyleSheet.create({
@@ -17,31 +18,31 @@ const styles = StyleSheet.create({
 		width: 170,
 		alignSelf: 'center',
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	logoWrapper: {
 		marginTop: Dimensions.get('window').height / 2 - LOGO_SIZE / 2,
-		height: LOGO_SIZE
+		height: LOGO_SIZE,
 	},
 	foxAndName: {
 		alignSelf: 'center',
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	animation: {
 		width: 110,
 		height: 110,
 		alignSelf: 'center',
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	fox: {
 		width: 110,
 		height: 110,
 		alignSelf: 'center',
 		alignItems: 'center',
-		justifyContent: 'center'
-	}
+		justifyContent: 'center',
+	},
 });
 /**
  * Main view component for the Lock screen
@@ -55,11 +56,12 @@ class LockScreen extends PureComponent {
 		/**
 		 * Boolean flag that determines if password has been set
 		 */
-		passwordSet: PropTypes.bool
+		passwordSet: PropTypes.bool,
+		logOut: PropTypes.func,
 	};
 
 	state = {
-		ready: false
+		ready: false,
 	};
 
 	appState = 'active';
@@ -78,7 +80,7 @@ class LockScreen extends PureComponent {
 		this.mounted = true;
 	}
 
-	handleAppStateChange = async nextAppState => {
+	handleAppStateChange = async (nextAppState) => {
 		// Try to unlock when coming from the background
 		if (this.locked && this.appState !== 'active' && nextAppState === 'active') {
 			this.firstAnimation.play();
@@ -92,6 +94,11 @@ class LockScreen extends PureComponent {
 		this.mounted = false;
 		AppState.removeEventListener('change', this.handleAppStateChange);
 	}
+
+	logOut = () => {
+		this.props.navigation.navigate('Login');
+		this.props.logOut();
+	};
 
 	async unlockKeychain() {
 		this.unlockAttempts++;
@@ -117,11 +124,11 @@ class LockScreen extends PureComponent {
 				this.animationName && this.animationName.play();
 				Logger.log('Lockscreen::unlockKeychain - playing animations');
 			} else if (this.props.passwordSet) {
-				this.props.navigation.navigate('Login');
+				this.logOut();
 			} else {
 				this.props.navigation.navigate('OnboardingRootNav', {
 					screen: 'OnboardingNav',
-					params: { screen: 'Onboarding' }
+					params: { screen: 'Onboarding' },
 				});
 			}
 		} catch (error) {
@@ -133,7 +140,7 @@ class LockScreen extends PureComponent {
 					error?.message,
 					`Unlock attempts: ${this.unlockAttempts}`
 				);
-				this.props.navigation.navigate('Login');
+				this.logOut();
 			}
 		}
 	}
@@ -144,7 +151,7 @@ class LockScreen extends PureComponent {
 				toValue: 0,
 				duration: 300,
 				useNativeDriver: true,
-				isInteraction: false
+				isInteraction: false,
 			}).start(() => {
 				this.props.navigation.goBack();
 			});
@@ -156,7 +163,7 @@ class LockScreen extends PureComponent {
 			return (
 				<LottieView
 					// eslint-disable-next-line react/jsx-no-bind
-					ref={animation => {
+					ref={(animation) => {
 						this.firstAnimation = animation;
 					}}
 					style={styles.animation}
@@ -169,7 +176,7 @@ class LockScreen extends PureComponent {
 			<View style={styles.foxAndName}>
 				<LottieView
 					// eslint-disable-next-line react/jsx-no-bind
-					ref={animation => {
+					ref={(animation) => {
 						this.secondAnimation = animation;
 					}}
 					style={styles.animation}
@@ -179,7 +186,7 @@ class LockScreen extends PureComponent {
 				/>
 				<LottieView
 					// eslint-disable-next-line react/jsx-no-bind
-					ref={animation => {
+					ref={(animation) => {
 						this.animationName = animation;
 					}}
 					style={styles.metamaskName}
@@ -201,11 +208,12 @@ class LockScreen extends PureComponent {
 	}
 }
 
-const mapStateToProps = state => ({
-	passwordSet: state.user.passwordSet
+const mapStateToProps = (state) => ({
+	passwordSet: state.user.passwordSet,
 });
 
-export default connect(
-	mapStateToProps,
-	null
-)(LockScreen);
+const mapDispatchToProps = (dispatch) => ({
+	logOut: () => dispatch(logOut()),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(LockScreen);

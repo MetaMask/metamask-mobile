@@ -4,7 +4,8 @@ import { connect } from 'react-redux';
 import { TouchableOpacity, StyleSheet } from 'react-native';
 import Identicon from '../Identicon';
 import { toggleAccountsModal } from '../../../actions/modals';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	leftButton: {
@@ -13,8 +14,8 @@ const styles = StyleSheet.create({
 		marginLeft: Device.isAndroid() ? 7 : 0,
 		marginBottom: 12,
 		alignItems: 'center',
-		justifyContent: 'center'
-	}
+		justifyContent: 'center',
+	},
 });
 
 /**
@@ -30,12 +31,17 @@ class AccountRightButton extends PureComponent {
 		/**
 		 * Action that toggles the account modal
 		 */
-		toggleAccountsModal: PropTypes.func
+		toggleAccountsModal: PropTypes.func,
+		/**
+		 * List of accounts from the AccountTrackerController
+		 */
+		accounts: PropTypes.object,
 	};
 
 	animating = false;
 
 	toggleAccountsModal = () => {
+		const { accounts } = this.props;
 		if (!this.animating) {
 			this.animating = true;
 			this.props.toggleAccountsModal();
@@ -43,6 +49,10 @@ class AccountRightButton extends PureComponent {
 				this.animating = false;
 			}, 500);
 		}
+		// Track Event: "Opened Acount Switcher"
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_OPEN_ACCOUNT_SWITCH, {
+			number_of_accounts: Object.keys(accounts ?? {}).length,
+		});
 	};
 
 	render = () => {
@@ -59,11 +69,13 @@ class AccountRightButton extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({ address: state.engine.backgroundState.PreferencesController.selectedAddress });
-const mapDispatchToProps = dispatch => ({
-	toggleAccountsModal: () => dispatch(toggleAccountsModal())
+const mapStateToProps = (state) => ({
+	address: state.engine.backgroundState.PreferencesController.selectedAddress,
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 });
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(AccountRightButton);
+
+const mapDispatchToProps = (dispatch) => ({
+	toggleAccountsModal: () => dispatch(toggleAccountsModal()),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(AccountRightButton);

@@ -133,7 +133,7 @@
 		"reset_wallet": "Сбросить кошелек",
 		"cant_proceed": "Чтобы продолжить, введите слово «delete». Так вы инициируете удаление текущего кошелька.",
 		"invalid_password": "Недопустимый пароль",
-		"type_delete": "Введите «delete», чтобы удалить текущий кошелек навсегда",
+		"type_delete": "Введите «%{delete}», чтобы удалить текущий кошелек навсегда",
 		"delete_my": "Удалить мой кошелек",
 		"are_you_sure": "Вы уверены, что хотите удалить свой кошелек?",
 		"your_current_wallet": "Ваш текущий кошелек, счета и активы будут ",
@@ -143,10 +143,6 @@
 		"recovery_phrase": "секретной фразы восстановления ",
 		"metamask_does_not": "Ваша секретная фраза восстановления не сохранена в MetaMask.",
 		"i_understand": "Я понимаю, продолжайте",
-		"passcode_not_set_error": "Ошибка: Пароль не установлен.",
-		"wrong_password_error": "Ошибка: Не удалось расшифровать",
-		"wrong_password_error_android": "Ошибка: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
-		"vault_error": "Ошибка: Не удалось разблокировать без предыдущего сейфа.",
 		"clean_vault_error": "MetaMask обнаружил ошибку, связанную с достижением предела хранилища. Локальные данные повреждены. Переустановите MetaMask и выполните восстановление с помощью секретной фразы восстановления."
 	},
 	"enter_password": {
@@ -287,9 +283,9 @@
 		"remove_token_title": "Вы хотите удалить этот токен?",
 		"remove_collectible_title": "Вы хотите удалить этот предмет коллекционирования?",
 		"token_removed_title": "Токен удален!",
-		"token_removed_desc": "Если вы передумаете, то сможете добавить его обратно, нажав «+ ДОБАВИТЬ ТОКЕНЫ»",
+		"token_removed_desc": "Если вы передумаете, то сможете добавить его обратно, нажав «Import ТОКЕНЫ»",
 		"collectible_removed_title": "Предмет коллекционирования удален!",
-		"collectible_removed_desc": "Если вы передумаете, вы можете добавить его обратно, нажав на +\"+ ADD NFTs\" (добавить не взаимозаменяемые токены)",
+		"collectible_removed_desc": "Если вы передумаете, вы можете добавить его обратно, нажав на \"Import NFTs\" (добавить не взаимозаменяемые токены)",
 		"remove": "Удалить",
 		"cancel": "Отмена",
 		"yes": "Да",
@@ -363,8 +359,8 @@
 		"address_must_be_smart_contract": "Обнаружен личный адрес. Введите адрес контракта предмета коллекционирования.",
 		"address_cant_be_empty": "Адрес предмета коллекционирования не может быть пустым.",
 		"token_id_cant_be_empty": "Идентификатор предмета коллекционирования не может быть пустым.",
-		"ownership_error_title": "Упс! Что-то произошло.",
-		"ownership_error": "Вы не являетесь владельцем этого предмета коллекционирования, поэтому вы не можете его добавить.",
+		"not_owner_error_title": "Упс! Что-то произошло.",
+		"not_owner_error": "Вы не являетесь владельцем этого предмета коллекционирования, поэтому вы не можете его добавить.",
 		"powered_by_opensea": "Питается от",
 		"id_placeholder": "Введите идентификатор предмета коллекционирования",
 		"collectible_last_sold": "Последняя продажа",
@@ -506,7 +502,7 @@
 		"third_party_title": "Получите входящие транзакции",
 		"third_party_description": "Сторонние API (Etherscan) используются для отображения ваших входящих транзакций в истории. Отключите их, если вы не хотите, чтобы мы извлекали данные из этих служб.",
 		"metametrics_opt_out": "Отключение MetaMetrics",
-		"metrametrics_restart_required": "Вам необходимо перезапустить приложение, чтобы изменения вступили в силу.",
+		"metametrics_restart_required": "Вам необходимо перезапустить приложение, чтобы изменения вступили в силу.",
 		"create_password": "Создать пароль",
 		"invalid_password": "Недопустимый пароль",
 		"invalid_password_message": "Пароль был неверным. Попробуйте еще раз.",
@@ -1438,7 +1434,7 @@
 		"verified_on_sources": "Токен проверен в таком количестве источников: {{sources}.",
 		"verify_on": "Всегда проверяйте адрес токена в",
 		"verify_address_on": "Проверьте адрес токена в",
-		"only_verified_on": "Токен {{symbol}} проверен только в источнике {{occurances}}.",
+		"only_verified_on": "Токен {{symbol}} проверен только в источнике {{occurrences}}.",
 		"block_explorer": "проводнике блоков",
 		"a_block_explorer": "проводнике блоков",
 		"token_verification": "Проверка токенов",
@@ -1626,6 +1622,6 @@
 	"secret_phrase_video_subtitle": {
 		"title": "RU RU CC",
 		"language": "ru-ru",
-		"uri": "https://github.com/MetaMask/metamask-mobile/blob/feature/secret_recovery_translations/app/videos/subtitles/subtitles-ru-ru.vtt"
+		"uri": "https://github.com/MetaMask/metamask-mobile/blob/develop/app/videos/subtitles/secretPhrase/subtitles-ru-ru.vtt?raw=true"
 	}
 }

@@ -1,0 +1,464 @@
+diff --git a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
+index f743bbc..fb6b4c1 100644
+--- a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
++++ b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
+@@ -5,6 +5,7 @@ import android.annotation.TargetApi;
+ import android.app.Activity;
+ import android.app.DownloadManager;
+ import android.content.Context;
++import android.content.Intent;
+ import android.content.pm.ActivityInfo;
+ import android.content.pm.PackageManager;
+ import android.graphics.Bitmap;
+@@ -24,12 +25,15 @@ import android.view.View;
+ import android.view.ViewGroup;
+ import android.view.ViewGroup.LayoutParams;
+ import android.view.WindowManager;
++import android.view.inputmethod.InputMethodManager;
+ import android.webkit.ConsoleMessage;
+ import android.webkit.CookieManager;
+ import android.webkit.DownloadListener;
+ import android.webkit.GeolocationPermissions;
+ import android.webkit.JavascriptInterface;
+ import android.webkit.RenderProcessGoneDetail;
++import android.webkit.ServiceWorkerClient;
++import android.webkit.ServiceWorkerController;
+ import android.webkit.SslErrorHandler;
+ import android.webkit.PermissionRequest;
+ import android.webkit.URLUtil;
+@@ -88,18 +92,37 @@ import com.reactnativecommunity.webview.events.TopRenderProcessGoneEvent;
+ import org.json.JSONException;
+ import org.json.JSONObject;
+ 
++import java.io.ByteArrayInputStream;
++import java.io.IOException;
++import java.io.InputStream;
+ import java.io.UnsupportedEncodingException;
++import java.lang.reflect.Field;
++import java.net.HttpURLConnection;
+ import java.net.MalformedURLException;
+ import java.net.URL;
+ import java.net.URLEncoder;
++import java.nio.charset.Charset;
++import java.nio.charset.StandardCharsets;
++import java.nio.charset.UnsupportedCharsetException;
+ import java.util.ArrayList;
++import java.util.Arrays;
+ import java.util.Collections;
+ import java.util.HashMap;
+ import java.util.List;
+ import java.util.Locale;
+ import java.util.Map;
++import java.util.Objects;
+ import java.util.concurrent.atomic.AtomicReference;
+ 
++import okhttp3.MediaType;
++import okhttp3.OkHttpClient;
++import okhttp3.Request;
++import okhttp3.Response;
++
++import android.view.inputmethod.BaseInputConnection;
++import android.view.inputmethod.EditorInfo;
++import android.view.inputmethod.InputConnection;
++
+ /**
+  * Manages instances of {@link WebView}
+  * <p>
+@@ -137,13 +160,19 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+   public static final int COMMAND_LOAD_URL = 7;
+   public static final int COMMAND_FOCUS = 8;
+ 
++  protected static final String MIME_UNKNOWN = "application/octet-stream";
++  protected static final String HTML_ENCODING = "UTF-8";
++  protected static final long BYTES_IN_MEGABYTE = 1000000;
++
+   // android commands
+   public static final int COMMAND_CLEAR_FORM_DATA = 1000;
+   public static final int COMMAND_CLEAR_CACHE = 1001;
+   public static final int COMMAND_CLEAR_HISTORY = 1002;
+ 
+   protected static final String REACT_CLASS = "RNCWebView";
+-  protected static final String HTML_ENCODING = "UTF-8";
++
++  protected static final String HEADER_CONTENT_TYPE = "content-type";
++
+   protected static final String HTML_MIME_TYPE = "text/html";
+   protected static final String JAVASCRIPT_INTERFACE = "ReactNativeWebView";
+   protected static final String HTTP_METHOD_POST = "POST";
+@@ -158,11 +187,20 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+   protected @Nullable String mUserAgent = null;
+   protected @Nullable String mUserAgentWithApplicationName = null;
+ 
++  protected static String userAgent;
++
++  protected static OkHttpClient httpClient;
++
+   public RNCWebViewManager() {
+     mWebViewConfig = new WebViewConfig() {
+       public void configWebView(WebView webView) {
+       }
+     };
++
++    httpClient = new OkHttpClient.Builder()
++    .followRedirects(false)
++    .followSslRedirects(false)
++    .build();
+   }
+ 
+   public RNCWebViewManager(WebViewConfig webViewConfig) {
+@@ -182,6 +220,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+   @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+   protected WebView createViewInstance(ThemedReactContext reactContext) {
+     RNCWebView webView = createRNCWebViewInstance(reactContext);
++    userAgent = webView.getSettings().getUserAgentString();
+     setupWebChromeClient(reactContext, webView);
+     reactContext.addLifecycleEventListener(webView);
+     mWebViewConfig.configWebView(webView);
+@@ -247,9 +286,96 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+       }
+     });
+ 
++    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
++        ServiceWorkerController swController = ServiceWorkerController.getInstance();
++        swController.setServiceWorkerClient(new ServiceWorkerClient() {
++            @Override
++            public WebResourceResponse shouldInterceptRequest(WebResourceRequest request) {
++                WebResourceResponse response = RNCWebViewManager.this.shouldInterceptRequest(request, false, webView);
++                if (response != null) {
++                    return response;
++                }
++
++                return super.shouldInterceptRequest(request);
++            }
++        });
++    }
++
+     return webView;
+   }
+ 
++  private Boolean urlStringLooksInvalid(String urlString) {
++    return urlString == null ||
++        urlString.trim().equals("") ||
++        !(urlString.startsWith("http") && !urlString.startsWith("www")) ||
++        urlString.contains("|");
++  }
++
++  public static Boolean responseRequiresJSInjection(Response response) {
++    if (response.isRedirect()) {
++      return false;
++    }
++    final String contentTypeAndCharset = response.header(HEADER_CONTENT_TYPE, MIME_UNKNOWN);
++    final int responseCode = response.code();
++
++    boolean contentTypeIsHtml = contentTypeAndCharset.startsWith(HTML_MIME_TYPE);
++    boolean responseCodeIsInjectible = responseCode == 200;
++    String responseBody = "";
++
++    if (contentTypeIsHtml && responseCodeIsInjectible) {
++      try {
++        assert response.body() != null;
++        responseBody = response.peekBody(BYTES_IN_MEGABYTE).string();
++      } catch (IOException e) {
++        e.printStackTrace();
++        return false;
++      }
++
++
++      boolean responseBodyContainsHTMLLikeString = responseBody.matches("[\\S\\s]*<[a-z]+[\\S\\s]*>[\\S\\s]*");
++      return responseBodyContainsHTMLLikeString;
++    } else {
++      return false;
++    }
++  }
++
++  public WebResourceResponse shouldInterceptRequest(WebResourceRequest request, Boolean onlyMainFrame, RNCWebView webView) {
++    Uri url = request.getUrl();
++    String urlStr = url.toString();
++
++    if (onlyMainFrame && !request.isForMainFrame() ||
++      urlStringLooksInvalid(urlStr)) {
++      return null;//super.shouldInterceptRequest(webView, request);
++    }
++
++    try {
++      Request req = new Request.Builder()
++      .url(urlStr)
++      .header("User-Agent", userAgent)
++      .build();
++
++      Response response = httpClient.newCall(req).execute();
++
++
++      if (!responseRequiresJSInjection(response)) {
++        return null;
++      }
++
++      InputStream is = response.body().byteStream();
++      MediaType contentType = response.body().contentType();
++      Charset charset = contentType != null ? contentType.charset(StandardCharsets.UTF_8) : StandardCharsets.UTF_8;
++
++      RNCWebView reactWebView = (RNCWebView) webView;
++      if (response.code() == HttpURLConnection.HTTP_OK) {
++      is = new InputStreamWithInjectedJS(is, reactWebView.injectedJSBeforeContentLoaded, charset);
++      }
++
++      return new WebResourceResponse("text/html", charset.name(), is);
++    } catch (IOException e) {
++      return null;
++    }
++  }
++
+   @ReactProp(name = "javaScriptEnabled")
+   public void setJavaScriptEnabled(WebView view, boolean enabled) {
+     view.getSettings().setJavaScriptEnabled(enabled);
+@@ -842,13 +968,102 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+     }
+   }
+ 
+-  protected static class RNCWebViewClient extends WebViewClient {
++  public static class InputStreamWithInjectedJS extends InputStream {
++    private InputStream pageIS;
++    private InputStream scriptIS;
++    private Charset charset;
++    private static final String REACT_CLASS = "InputStreamWithInjectedJS";
++    private static Map<Charset, String> script = new HashMap<>();
++
++    private boolean hasJS = false;
++    private boolean headWasFound = false;
++    private boolean scriptWasInjected = false;
++    private StringBuffer contentBuffer = new StringBuffer();
++
++    @SuppressLint("LongLogTag")
++    private static Charset getCharset(String charsetName) {
++        Charset cs = StandardCharsets.UTF_8;
++        try {
++            if (charsetName != null) {
++                cs = Charset.forName(charsetName);
++            }
++        } catch (UnsupportedCharsetException e) {
++            Log.d(REACT_CLASS, "wrong charset: " + charsetName);
++        }
++
++        return cs;
++    }
++
++    private static InputStream getScript(Charset charset) {
++        String js = script.get(charset);
++        if (js == null) {
++            String defaultJs = script.get(StandardCharsets.UTF_8);
++            js = new String(defaultJs.getBytes(StandardCharsets.UTF_8), charset);
++            script.put(charset, js);
++        }
++
++        return new ByteArrayInputStream(js.getBytes(charset));
++    }
++
++    InputStreamWithInjectedJS(InputStream is, String js, Charset charset) {
++        if (js == null) {
++            this.pageIS = is;
++        } else {
++            this.hasJS = true;
++            this.charset = charset;
++            Charset cs = StandardCharsets.UTF_8;
++            String jsScript = "<script>" + js + "</script>";
++            script.put(cs, jsScript);
++            this.pageIS = is;
++        }
++    }
++
++    @Override
++    public int read() throws IOException {
++        if (scriptWasInjected || !hasJS) {
++            return pageIS.read();
++        }
++
++        if (!scriptWasInjected && headWasFound) {
++            int nextByte = scriptIS.read();
++            if (nextByte == -1) {
++                scriptIS.close();
++                scriptWasInjected = true;
++                return pageIS.read();
++            } else {
++                return nextByte;
++            }
++        }
++
++        if (!headWasFound) {
++            int nextByte = pageIS.read();
++            contentBuffer.append((char) nextByte);
++            int bufferLength = contentBuffer.length();
++            if (nextByte == 62 && bufferLength >= 6) {
++                if (contentBuffer.substring(bufferLength - 6).equals("<head>")) {
++                    this.scriptIS = getScript(this.charset);
++                    headWasFound = true;
++                }
++            }
++
++            return nextByte;
++        }
++
++        return pageIS.read();
++    }
++
++  }
++
++  protected class RNCWebViewClient extends WebViewClient {
+ 
++    protected static final String REACT_CLASS = "RNCWebViewClient";
+     protected boolean mLastLoadFailed = false;
+     protected @Nullable
+     ReadableArray mUrlPrefixesForDefaultIntent;
+     protected RNCWebView.ProgressChangedFilter progressChangedFilter = null;
+     protected @Nullable String ignoreErrFailedForThisURL = null;
++    //Allow list is used to support specific deeplinks in the webview.
++    private final String[] DEEPLINK_ALLOW_LIST = new String[] {"https://twitter.com/i/wallet/verify"};
+ 
+     public void setIgnoreErrFailedForThisURL(@Nullable String url) {
+       ignoreErrFailedForThisURL = url;
+@@ -872,9 +1087,6 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+       super.onPageStarted(webView, url, favicon);
+       mLastLoadFailed = false;
+ 
+-      RNCWebView reactWebView = (RNCWebView) webView;
+-      reactWebView.callInjectedJavaScriptBeforeContentLoaded();
+-
+       ((RNCWebView) webView).dispatchEvent(
+         webView,
+         new TopLoadingStartEvent(
+@@ -882,6 +1094,16 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+           createWebViewEvent(webView, url)));
+     }
+ 
++    @Override
++    public WebResourceResponse shouldInterceptRequest(WebView webView, WebResourceRequest request) {
++        WebResourceResponse response = RNCWebViewManager.this.shouldInterceptRequest(request, true, (RNCWebView)webView);
++        if (response != null) {
++            return response;
++        }
++
++        return super.shouldInterceptRequest(webView, request);
++    }
++
+     @Override
+     public boolean shouldOverrideUrlLoading(WebView view, String url) {
+       final RNCWebView rncWebView = (RNCWebView) view;
+@@ -919,6 +1141,17 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+         RNCWebViewModule.shouldOverrideUrlLoadingLock.removeLock(lockIdentifier);
+ 
+         return shouldOverride;
++      } else if (url != null && Arrays.asList(DEEPLINK_ALLOW_LIST).contains(url)) {
++        // This case is used to support deeplinking within the webview. We are limiting this but
++        // if more links are to be supported we should consider a more scaleable solution. That is
++        // secure and scaleable.
++        Intent intent = new Intent(Intent.ACTION_VIEW);
++        intent.setData(Uri.parse(url));
++        if(intent.resolveActivity(view.getContext().getPackageManager()) != null) {
++          view.getContext().startActivity(intent);
++          return true;
++        } else
++          return false;
+       } else {
+         FLog.w(TAG, "Couldn't use blocking synchronous call for onShouldStartLoadWithRequest due to debugging or missing Catalyst instance, falling back to old event-and-load.");
+         progressChangedFilter.setWaitingForCommandLoadUrl(true);
+@@ -934,6 +1167,21 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+     @TargetApi(Build.VERSION_CODES.N)
+     @Override
+     public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
++
++      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
++
++             /*
++              * In order to follow redirects properly, we return null in interceptRequest().
++              * Doing this breaks the web3 injection on the resulting page, so we have to reload to
++              * make sure web3 is available.
++              * */
++
++          if (request.isForMainFrame() && request.isRedirect()) {
++              view.loadUrl(request.getUrl().toString());
++              return true;
++          }
++      }
++
+       final String url = request.getUrl().toString();
+       return this.shouldOverrideUrlLoading(view, url);
+     }
+@@ -1447,6 +1695,13 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+     protected boolean nestedScrollEnabled = false;
+     protected ProgressChangedFilter progressChangedFilter;
+ 
++    /**
++     * Taken from EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING We can't use that
++     * value directly as it was only added on Oreo, but we can apply the value
++     * anyway.
++     */
++    private static final int IME_FLAG_NO_PERSONALIZED_LEARNING = 0x1000000;
++
+     /**
+      * WebView must be created with an context of the current activity
+      * <p>
+@@ -1475,6 +1730,42 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+       this.nestedScrollEnabled = nestedScrollEnabled;
+     }
+ 
++    @Override
++    public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
++      InputConnection inputConnection;
++      if (!usingGoogleKeyboard()) {
++        inputConnection = super.onCreateInputConnection(outAttrs);
++      } else {
++        inputConnection = new BaseInputConnection(this, false);
++        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
++          outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING;
++        } else {
++          // Cover OS versions below Oreo
++          outAttrs.imeOptions = IME_FLAG_NO_PERSONALIZED_LEARNING;
++        }
++      }
++
++      return inputConnection;
++    }
++
++    public boolean usingGoogleKeyboard() {
++      final InputMethodManager richImm =
++        (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
++
++      boolean isKeyboard = false;
++
++      final Field field;
++      try {
++        field = richImm.getClass().getDeclaredField("mCurId");
++        field.setAccessible(true);
++        Object value = field.get(richImm);
++        isKeyboard = Objects.equals(value, "com.google.android.inputmethod.latin/com.android.inputmethod.latin.LatinIME");
++      } catch (IllegalAccessException | NoSuchFieldException e) {
++        return false;
++      }
++      return isKeyboard;
++    }
++
+     @Override
+     public void onHostResume() {
+       // do nothing
+diff --git a/node_modules/react-native-webview/apple/RNCWebView.m b/node_modules/react-native-webview/apple/RNCWebView.m
+index 28c078a..6939753 100644
+--- a/node_modules/react-native-webview/apple/RNCWebView.m
++++ b/node_modules/react-native-webview/apple/RNCWebView.m
+@@ -851,11 +851,13 @@ - (void)                    webView:(WKWebView *)webView
+ - (void)webView:(WKWebView *)webView runJavaScriptAlertPanelWithMessage:(NSString *)message initiatedByFrame:(WKFrameInfo *)frame completionHandler:(void (^)(void))completionHandler
+ {
+ #if !TARGET_OS_OSX
+-  UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"" message:message preferredStyle:UIAlertControllerStyleAlert];
+-  [alert addAction:[UIAlertAction actionWithTitle:@"Ok" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+-    completionHandler();
+-  }]];
+-  [[self topViewController] presentViewController:alert animated:YES completion:NULL];
++  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.7 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{	
++    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"" message:message preferredStyle:UIAlertControllerStyleAlert];	
++    [alert addAction:[UIAlertAction actionWithTitle:@"Ok" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {	
++      completionHandler();	
++    }]];	
++    [[self topViewController] presentViewController:alert animated:YES completion:NULL];	
++  });
+ #else
+   NSAlert *alert = [[NSAlert alloc] init];
+   [alert setMessageText:message];

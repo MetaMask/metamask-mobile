@@ -1,74 +1,87 @@
-import React, { useCallback } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, View, InteractionManager, Image } from 'react-native';
 import { connect } from 'react-redux';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { baseStyles, colors, fontStyles } from '../../../styles/common';
+import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
+import Engine from '../../../core/Engine';
 import CollectibleContractElement from '../CollectibleContractElement';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
-import { favoritesCollectiblesObjectSelector } from '../../../reducers/collectibles';
+import {
+	collectibleContractsSelector,
+	collectiblesSelector,
+	favoritesCollectiblesSelector,
+} from '../../../reducers/collectibles';
+import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import Text from '../../Base/Text';
 import AppConstants from '../../../core/AppConstants';
-import StyledButton from '../StyledButton';
 import { toLowerCaseEquals } from '../../../util/general';
+import { compareTokenIds } from '../../../util/tokens';
 
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
 		flex: 1,
 		minHeight: 500,
-		marginTop: 16
+		marginTop: 16,
 	},
 	emptyView: {
 		justifyContent: 'center',
 		alignItems: 'center',
-		marginTop: 40
+		marginTop: 40,
 	},
 	add: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	addText: {
-		fontSize: 15,
+		fontSize: 14,
 		color: colors.blue,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	footer: {
 		flex: 1,
-		paddingBottom: 30
+		paddingBottom: 30,
+		alignItems: 'center',
+		marginTop: 24,
 	},
 	emptyContainer: {
 		flex: 1,
-		marginBottom: 42,
-		marginHorizontal: 56,
+		marginBottom: 18,
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	emptyImageContainer: {
-		width: 47,
-		height: 47
+		width: 76,
+		height: 76,
+		marginBottom: 12,
 	},
 	emptyTitleText: {
 		fontSize: 24,
-		color: colors.grey200
+		color: colors.grey200,
 	},
 	emptyText: {
-		color: colors.grey200,
-		textAlign: 'center'
+		color: colors.greyAssetVisibility,
+		marginBottom: 8,
+		fontSize: 14,
 	},
-	emptySectionText: {
-		marginVertical: 8
-	}
 });
 
 /**
  * View that renders a list of CollectibleContract
- * also known as ERC-721 Tokens
+ * ERC-721 and ERC-1155
  */
-const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, favoriteCollectibles }) => {
+const CollectibleContracts = ({
+	selectedAddress,
+	chainId,
+	navigation,
+	collectibleContracts,
+	collectibles,
+	favoriteCollectibles,
+	removeFavoriteCollectible,
+}) => {
 	const onItemPress = useCallback(
 		(collectible, contractName) => {
 			navigation.navigate('CollectiblesDetails', { collectible, contractName });
@@ -76,28 +89,58 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 		[navigation]
 	);
 
-	const goToAddCollectible = useCallback(() => {
+	/**
+	 *	Method to check the token id data type of the current collectibles.
+	 *
+	 * @param collectible - Collectible object.
+	 * @returns Boolean indicating if the collectible should be updated.
+	 */
+	const shouldUpdateCollectibleMetadata = (collectible) => typeof collectible.tokenId === 'number';
+
+	/**
+	 * Method to updated collectible and avoid backwards compatibility issues.
+	 * @param address - Collectible address.
+	 * @param tokenId - Collectible token ID.
+	 */
+	const updateCollectibleMetadata = (collectible) => {
+		const { CollectiblesController } = Engine.context;
+		const { address, tokenId } = collectible;
+		CollectiblesController.removeCollectible(address, tokenId);
+		if (String(tokenId).includes('e+')) {
+			removeFavoriteCollectible(selectedAddress, chainId, collectible);
+		} else {
+			CollectiblesController.addCollectible(address, String(tokenId));
+		}
+	};
+
+	useEffect(() => {
+		// TO DO: Move this fix to the controllers layer
+		collectibles.forEach((collectible) => {
+			if (shouldUpdateCollectibleMetadata(collectible)) {
+				updateCollectibleMetadata(collectible);
+			}
+		});
+	});
+
+	const goToAddCollectible = () => {
 		navigation.push('AddAsset', { assetType: 'collectible' });
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_ADD_COLLECTIBLES);
 		});
-	}, [navigation]);
+	};
 
-	const renderFooter = useCallback(
-		() => (
-			<View style={styles.footer} key={'collectible-contracts-footer'}>
-				<TouchableOpacity style={styles.add} onPress={goToAddCollectible} testID={'add-collectible-button'}>
-					<Icon name="plus" size={16} color={colors.blue} />
-					<Text style={styles.addText}>{strings('wallet.add_collectibles')}</Text>
-				</TouchableOpacity>
-			</View>
-		),
-		[goToAddCollectible]
+	const renderFooter = () => (
+		<View style={styles.footer} key={'collectible-contracts-footer'}>
+			<Text style={styles.emptyText}>{strings('wallet.no_collectibles')}</Text>
+			<TouchableOpacity style={styles.add} onPress={goToAddCollectible} testID={'add-collectible-button'}>
+				<Text style={styles.addText}>{strings('wallet.add_collectibles')}</Text>
+			</TouchableOpacity>
+		</View>
 	);
 
 	const renderCollectibleContract = useCallback(
 		(item, index) => {
-			const contractCollectibles = collectibles?.filter(collectible =>
+			const contractCollectibles = collectibles?.filter((collectible) =>
 				toLowerCaseEquals(collectible.address, item.address)
 			);
 			return (
@@ -114,9 +157,10 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 	);
 
 	const renderFavoriteCollectibles = useCallback(() => {
-		const filteredCollectibles = favoriteCollectibles.map(collectible =>
+		const filteredCollectibles = favoriteCollectibles.map((collectible) =>
 			collectibles.find(
-				({ tokenId, address }) => collectible.tokenId === tokenId && collectible.address === address
+				({ tokenId, address }) =>
+					compareTokenIds(collectible.tokenId, tokenId) && collectible.address === address
 			)
 		);
 		return (
@@ -137,10 +181,9 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 			<View>
 				{renderFavoriteCollectibles()}
 				<View>{collectibleContracts?.map((item, index) => renderCollectibleContract(item, index))}</View>
-				{renderFooter()}
 			</View>
 		),
-		[collectibleContracts, renderFavoriteCollectibles, renderCollectibleContract, renderFooter]
+		[collectibleContracts, renderFavoriteCollectibles, renderCollectibleContract]
 	);
 
 	const goToLearnMore = () =>
@@ -154,21 +197,10 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 					source={require('../../../images/no-nfts-placeholder.png')}
 					resizeMode={'contain'}
 				/>
-				<Text center style={[styles.emptyTitleText, styles.emptySectionText]}>
-					{strings('wallet.no_nfts_to_show')}
+				<Text center style={styles.emptyTitleText} bold>
+					{strings('wallet.no_nfts_yet')}
 				</Text>
-
-				<Text center style={[styles.emptyText, styles.emptySectionText]}>
-					{strings('wallet.no_collectibles')}
-				</Text>
-				<StyledButton
-					type={'blue'}
-					onPress={goToAddCollectible}
-					containerStyle={[baseStyles.flexGrow, styles.emptySectionText]}
-				>
-					{strings('wallet.manually_import_nfts')}
-				</StyledButton>
-				<Text center big link style={styles.emptySectionText} onPress={goToLearnMore}>
+				<Text center big link onPress={goToLearnMore}>
 					{strings('wallet.learn_more')}
 				</Text>
 			</View>
@@ -177,12 +209,21 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 
 	return (
 		<View style={styles.wrapper} testID={'collectible-contracts'}>
-			{collectibles.length ? renderList() : renderEmpty()}
+			{collectibleContracts.length > 0 ? renderList() : renderEmpty()}
+			{renderFooter()}
 		</View>
 	);
 };
 
 CollectibleContracts.propTypes = {
+	/**
+	 * Chain id
+	 */
+	chainId: PropTypes.string,
+	/**
+	 * Selected address
+	 */
+	selectedAddress: PropTypes.string,
 	/**
 	 * Array of collectibleContract objects
 	 */
@@ -199,13 +240,24 @@ CollectibleContracts.propTypes = {
 	/**
 	 * Object of collectibles
 	 */
-	favoriteCollectibles: PropTypes.array
+	favoriteCollectibles: PropTypes.array,
+	/**
+	 * Dispatch remove collectible from favorites action
+	 */
+	removeFavoriteCollectible: PropTypes.func,
 };
 
-const mapStateToProps = state => ({
-	collectibleContracts: state.engine.backgroundState.CollectiblesController.collectibleContracts,
-	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
-	favoriteCollectibles: favoritesCollectiblesObjectSelector(state)
+const mapStateToProps = (state) => ({
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	collectibleContracts: collectibleContractsSelector(state),
+	collectibles: collectiblesSelector(state),
+	favoriteCollectibles: favoritesCollectiblesSelector(state),
 });
 
-export default connect(mapStateToProps)(CollectibleContracts);
+const mapDispatchToProps = (dispatch) => ({
+	removeFavoriteCollectible: (selectedAddress, chainId, collectible) =>
+		dispatch(removeFavoriteCollectible(selectedAddress, chainId, collectible)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(CollectibleContracts);

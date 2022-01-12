@@ -1,47 +1,40 @@
-import { REHYDRATE } from 'redux-persist';
-
 const initialState = {
 	approvedHosts: {},
 	privacyMode: true,
-	thirdPartyApiMode: true
+	thirdPartyApiMode: true,
 };
 
 const privacyReducer = (state = initialState, action) => {
 	const newHosts = { ...state.approvedHosts };
 	switch (action.type) {
-		case REHYDRATE:
-			if (action.payload && action.payload.privacy) {
-				return { ...state, ...action.payload.privacy };
-			}
-			return state;
 		case 'APPROVE_HOST':
 			return {
 				...state,
 				approvedHosts: {
 					...state.approvedHosts,
-					[action.hostname]: true
-				}
+					[action.hostname]: true,
+				},
 			};
 		case 'REJECT_HOST':
 			delete newHosts[action.hostname];
 			return {
 				...state,
-				approvedHosts: newHosts
+				approvedHosts: newHosts,
 			};
 		case 'CLEAR_HOSTS':
 			return {
 				...state,
-				approvedHosts: {}
+				approvedHosts: {},
 			};
 		case 'SET_PRIVACY_MODE':
 			return {
 				...state,
-				privacyMode: action.enabled
+				privacyMode: action.enabled,
 			};
 		case 'SET_THIRD_PARTY_API_MODE':
 			return {
 				...state,
-				thirdPartyApiMode: action.enabled
+				thirdPartyApiMode: action.enabled,
 			};
 		default:
 			return state;

@@ -10,15 +10,17 @@ import {
 	StyleSheet,
 	Text,
 	View,
-	SafeAreaView
+	SafeAreaView,
 } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
 import Analytics from '../../../core/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { doENSReverseLookup } from '../../../util/ENSUtils';
 import AccountElement from './AccountElement';
 import { connect } from 'react-redux';
 
@@ -27,7 +29,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
-		minHeight: 450
+		minHeight: 450,
 	},
 	titleWrapper: {
 		width: '100%',
@@ -35,29 +37,29 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100
+		borderColor: colors.grey100,
 	},
 	dragger: {
 		width: 48,
 		height: 5,
 		borderRadius: 4,
 		backgroundColor: colors.grey400,
-		opacity: Device.isAndroid() ? 0.6 : 0.5
+		opacity: Device.isAndroid() ? 0.6 : 0.5,
 	},
 	accountsWrapper: {
-		flex: 1
+		flex: 1,
 	},
 	footer: {
 		height: Device.isIphoneX() ? 140 : 110,
 		paddingBottom: Device.isIphoneX() ? 30 : 0,
 		justifyContent: 'center',
 		flexDirection: 'column',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	btnText: {
 		fontSize: 14,
 		color: colors.blue,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	footerButton: {
 		width: '100%',
@@ -65,8 +67,8 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		borderTopWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100
-	}
+		borderColor: colors.grey100,
+	},
 });
 
 /**
@@ -113,13 +115,18 @@ class AccountList extends PureComponent {
 		/**
 		 * Indicates whether third party API mode is enabled
 		 */
-		thirdPartyApiMode: PropTypes.bool
+		thirdPartyApiMode: PropTypes.bool,
+		/**
+		 * ID of the current network
+		 */
+		network: PropTypes.string,
 	};
 
 	state = {
 		selectedAccountIndex: 0,
 		loading: false,
-		orderedAccounts: {}
+		orderedAccounts: {},
+		accountsENS: {},
 	};
 
 	flatList = React.createRef();
@@ -140,6 +147,7 @@ class AccountList extends PureComponent {
 		this.getInitialSelectedAccountIndex();
 		const orderedAccounts = this.getAccounts();
 		InteractionManager.runAfterInteractions(() => {
+			this.assignENSToAccounts(orderedAccounts);
 			if (orderedAccounts.length > 4) {
 				this.scrollToCurrentAccount();
 			}
@@ -156,10 +164,10 @@ class AccountList extends PureComponent {
 		this.flatList?.current?.scrollToIndex({ index: this.state.selectedAccountIndex, animated: true });
 	}
 
-	onAccountChange = async newIndex => {
+	onAccountChange = async (newIndex) => {
 		const previousIndex = this.state.selectedAccountIndex;
 		const { PreferencesController } = Engine.context;
-		const { keyrings } = this.props;
+		const { keyrings, accounts } = this.props;
 
 		requestAnimationFrame(async () => {
 			try {
@@ -194,7 +202,10 @@ class AccountList extends PureComponent {
 			}
 			InteractionManager.runAfterInteractions(() => {
 				setTimeout(() => {
-					Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ACCOUNTS_SWITCHED_ACCOUNTS);
+					// Track Event: "Switched Account"
+					AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SWITCHED_ACCOUNT, {
+						number_of_accounts: Object.keys(accounts ?? {}).length,
+					});
 				}, 1000);
 			});
 			const orderedAccounts = this.getAccounts();
@@ -258,7 +269,7 @@ class AccountList extends PureComponent {
 				{
 					text: strings('accounts.no'),
 					onPress: () => false,
-					style: 'cancel'
+					style: 'cancel',
 				},
 				{
 					text: strings('accounts.yes_remove_it'),
@@ -266,8 +277,8 @@ class AccountList extends PureComponent {
 						await Engine.context.KeyringController.removeAccount(address);
 						// Default to the previous account in the list
 						this.onAccountChange(index - 1);
-					}
-				}
+					},
+				},
 			],
 			{ cancelable: false }
 		);
@@ -275,11 +286,12 @@ class AccountList extends PureComponent {
 
 	renderItem = ({ item }) => {
 		const { ticker } = this.props;
+		const { accountsENS } = this.state;
 		return (
 			<AccountElement
 				onPress={this.onAccountChange}
 				onLongPress={this.onLongPress}
-				item={item}
+				item={{ ...item, ens: accountsENS[item.address] }}
 				ticker={ticker}
 				disabled={Boolean(item.balanceError)}
 			/>
@@ -293,7 +305,7 @@ class AccountList extends PureComponent {
 
 		const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
 		return accountsOrdered
-			.filter(address => !!identities[toChecksumAddress(address)])
+			.filter((address) => !!identities[toChecksumAddress(address)])
 			.map((addr, index) => {
 				const checksummedAddress = toChecksumAddress(addr);
 				const identity = identities[checksummedAddress];
@@ -314,12 +326,29 @@ class AccountList extends PureComponent {
 					balance,
 					isSelected,
 					isImported,
-					balanceError
+					balanceError,
 				};
 			});
 	}
 
-	keyExtractor = item => item.address;
+	assignENSToAccounts = (orderedAccounts) => {
+		const { network } = this.props;
+		orderedAccounts.forEach(async (account) => {
+			try {
+				const ens = await doENSReverseLookup(account.address, network);
+				this.setState((state) => ({
+					accountsENS: {
+						...state.accountsENS,
+						[account.address]: ens,
+					},
+				}));
+			} catch {
+				// Error
+			}
+		});
+	};
+
+	keyExtractor = (item) => item.address;
 
 	render() {
 		const { orderedAccounts } = this.state;
@@ -365,10 +394,11 @@ class AccountList extends PureComponent {
 	}
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
-	keyrings: state.engine.backgroundState.KeyringController.keyrings
+	keyrings: state.engine.backgroundState.KeyringController.keyrings,
+	network: state.engine.backgroundState.NetworkController.network,
 });
 
 export default connect(mapStateToProps)(AccountList);

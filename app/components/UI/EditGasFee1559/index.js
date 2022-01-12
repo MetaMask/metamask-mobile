@@ -1,3 +1,4 @@
+/* eslint-disable no-mixed-spaces-and-tabs */
 /* eslint-disable react/display-name */
 import React, { useCallback, useState, useMemo } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView, TouchableWithoutFeedback } from 'react-native';
@@ -9,9 +10,9 @@ import { colors } from '../../../styles/common';
 import InfoModal from '../Swaps/components/InfoModal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../locales/i18n';
-import Alert from '../../Base/Alert';
+import Alert, { AlertType } from '../../Base/Alert';
 import HorizontalSelector from '../../Base/HorizontalSelector';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import { isMainnetByChainId } from '../../../util/networks';
 import PropTypes from 'prop-types';
 import BigNumber from 'bignumber.js';
@@ -34,67 +35,73 @@ const styles = StyleSheet.create({
 		minHeight: 200,
 		maxHeight: '95%',
 		paddingTop: 24,
-		paddingBottom: Device.isIphoneX() ? 32 : 24
+		paddingBottom: Device.isIphoneX() ? 32 : 24,
 	},
 	wrapper: {
-		paddingHorizontal: 24
+		paddingHorizontal: 24,
 	},
 	customGasHeader: {
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 		alignItems: 'center',
 		width: '100%',
-		paddingBottom: 20
+		paddingBottom: 20,
+	},
+	newGasFeeHeader: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		width: '100%',
+		justifyContent: 'center',
 	},
 	headerContainer: {
 		alignItems: 'center',
-		marginBottom: 22
+		marginBottom: 22,
 	},
 	headerText: {
 		fontSize: 48,
 		flex: 1,
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	headerTitle: {
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	saveButton: {
-		marginBottom: 20
+		marginBottom: 20,
 	},
 	labelTextContainer: {
 		flexDirection: 'row',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	hitSlop: {
 		top: 10,
 		left: 10,
 		bottom: 10,
-		right: 10
+		right: 10,
 	},
 	labelInfo: {
-		color: colors.grey200
+		color: colors.grey200,
 	},
 	advancedOptionsContainer: {
 		marginTop: 25,
-		marginBottom: 30
+		marginBottom: 30,
 	},
 	advancedOptionsInputsContainer: {
-		marginTop: 14
+		marginTop: 14,
 	},
 	rangeInputContainer: {
-		marginBottom: 20
+		marginBottom: 20,
 	},
 	advancedOptionsButton: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	advancedOptionsIcon: {
 		paddingTop: 1,
-		marginLeft: 5
+		marginLeft: 5,
 	},
 	learnMoreLabels: {
-		marginTop: 9
+		marginTop: 9,
 	},
 	/* Add when the learn more link is ready
 	learnMoreLink: {
@@ -103,28 +110,28 @@ const styles = StyleSheet.create({
 	warningTextContainer: {
 		lineHeight: 20,
 		paddingLeft: 4,
-		flex: 1
+		flex: 1,
 	},
 	warningText: {
 		lineHeight: 20,
-		flex: 1
+		flex: 1,
 	},
 	warningContainer: {
-		marginBottom: 20
+		marginBottom: 20,
 	},
 	dappEditGasContainer: {
-		marginVertical: 20
+		marginVertical: 20,
 	},
 	subheader: {
-		marginBottom: 6
+		marginBottom: 6,
 	},
 	learnMoreModal: {
-		maxHeight: Device.getDeviceHeight() * 0.7
+		maxHeight: Device.getDeviceHeight() * 0.7,
 	},
 	redInfo: {
 		marginLeft: 2,
-		color: colors.red
-	}
+		color: colors.red,
+	},
 });
 
 const EditGasFee1559 = ({
@@ -151,6 +158,7 @@ const EditGasFee1559 = ({
 	warning,
 	dappSuggestedGas,
 	ignoreOptions,
+	updateOption,
 	extendOptions = {},
 	recommended,
 	warningMinimumEstimateOption,
@@ -160,18 +168,17 @@ const EditGasFee1559 = ({
 	onUpdatingValuesStart,
 	onUpdatingValuesEnd,
 	analyticsParams,
-	view
+	view,
 }) => {
-	const [showRangeInfoModal, setShowRangeInfoModal] = useState(false);
+	const [showInfoModal, setShowInfoModal] = useState(false);
 	const [showAdvancedOptions, setShowAdvancedOptions] = useState(!selected);
 	const [maxPriorityFeeError, setMaxPriorityFeeError] = useState(null);
 	const [maxFeeError, setMaxFeeError] = useState(null);
 	const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
 	const [selectedOption, setSelectedOption] = useState(selected);
 	const [showInputs, setShowInputs] = useState(!dappSuggestedGas);
-	const [isVisibleTimeEstimateInfoModal, , showTimeEstimateInfoModal, hideTimeEstimateInfoModal] = useModalHandler(
-		false
-	);
+	const [isVisibleTimeEstimateInfoModal, , showTimeEstimateInfoModal, hideTimeEstimateInfoModal] =
+		useModalHandler(false);
 
 	const getAnalyticsParams = useCallback(() => {
 		try {
@@ -180,7 +187,7 @@ const EditGasFee1559 = ({
 				chain_id: chainId,
 				function_type: view,
 				gas_mode: selectedOption ? 'Basic' : 'Advanced',
-				speed_set: selectedOption || undefined
+				speed_set: selectedOption || undefined,
 			};
 		} catch (error) {
 			return {};
@@ -191,11 +198,11 @@ const EditGasFee1559 = ({
 		if (!showAdvancedOptions) {
 			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.GAS_ADVANCED_OPTIONS_CLICKED, getAnalyticsParams());
 		}
-		setShowAdvancedOptions(showAdvancedOptions => !showAdvancedOptions);
+		setShowAdvancedOptions((showAdvancedOptions) => !showAdvancedOptions);
 	}, [getAnalyticsParams, showAdvancedOptions]);
 
 	const toggleLearnMoreModal = useCallback(() => {
-		setShowLearnMoreModal(showLearnMoreModal => !showLearnMoreModal);
+		setShowLearnMoreModal((showLearnMoreModal) => !showLearnMoreModal);
 	}, []);
 
 	const save = useCallback(() => {
@@ -213,15 +220,26 @@ const EditGasFee1559 = ({
 	);
 
 	const changedMaxPriorityFee = useCallback(
-		value => {
+		(value) => {
 			const lowerValue = new BigNumber(gasOptions?.[warningMinimumEstimateOption]?.suggestedMaxPriorityFeePerGas);
 			const higherValue = new BigNumber(gasOptions?.high?.suggestedMaxPriorityFeePerGas).multipliedBy(
 				new BigNumber(1.5)
 			);
+			const updateFloor = new BigNumber(updateOption?.maxPriortyFeeThreshold);
 
 			const valueBN = new BigNumber(value);
 
-			if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
+			if (updateFloor && !updateFloor.isNaN() && valueBN.lt(updateFloor)) {
+				setMaxPriorityFeeError(
+					updateOption?.isCancel
+						? strings('edit_gas_fee_eip1559.max_priority_fee_cancel_low', {
+								cancel_value: updateFloor,
+						  })
+						: strings('edit_gas_fee_eip1559.max_priority_fee_speed_up_low', {
+								speed_up_floor_value: updateFloor,
+						  })
+				);
+			} else if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
 				setMaxPriorityFeeError(strings('edit_gas_fee_eip1559.max_priority_fee_low'));
 			} else if (!higherValue.isNaN() && valueBN.gt(higherValue)) {
 				setMaxPriorityFeeError(strings('edit_gas_fee_eip1559.max_priority_fee_high'));
@@ -233,17 +251,28 @@ const EditGasFee1559 = ({
 
 			changeGas(newGas, null);
 		},
-		[changeGas, gasFee, gasOptions, warningMinimumEstimateOption]
+		[changeGas, gasFee, gasOptions, updateOption, warningMinimumEstimateOption]
 	);
 
 	const changedMaxFeePerGas = useCallback(
-		value => {
+		(value) => {
 			const lowerValue = new BigNumber(gasOptions?.[warningMinimumEstimateOption]?.suggestedMaxFeePerGas);
 			const higherValue = new BigNumber(gasOptions?.high?.suggestedMaxFeePerGas).multipliedBy(new BigNumber(1.5));
+			const updateFloor = new BigNumber(updateOption?.maxFeeThreshold);
 
 			const valueBN = new BigNumber(value);
 
-			if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
+			if (updateFloor && !updateFloor.isNaN() && valueBN.lt(updateFloor)) {
+				setMaxFeeError(
+					updateOption?.isCancel
+						? strings('edit_gas_fee_eip1559.max_fee_cancel_low', {
+								cancel_value: updateFloor,
+						  })
+						: strings('edit_gas_fee_eip1559.max_fee_speed_up_low', {
+								speed_up_floor_value: updateFloor,
+						  })
+				);
+			} else if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
 				setMaxFeeError(strings('edit_gas_fee_eip1559.max_fee_low'));
 			} else if (!higherValue.isNaN() && valueBN.gt(higherValue)) {
 				setMaxFeeError(strings('edit_gas_fee_eip1559.max_fee_high'));
@@ -254,11 +283,11 @@ const EditGasFee1559 = ({
 			const newGas = { ...gasFee, suggestedMaxFeePerGas: value };
 			changeGas(newGas, null);
 		},
-		[changeGas, gasFee, gasOptions, warningMinimumEstimateOption]
+		[changeGas, gasFee, gasOptions, updateOption, warningMinimumEstimateOption]
 	);
 
 	const changedGasLimit = useCallback(
-		value => {
+		(value) => {
 			const newGas = { ...gasFee, suggestedGasLimit: value };
 			changeGas(newGas, null);
 		},
@@ -266,7 +295,7 @@ const EditGasFee1559 = ({
 	);
 
 	const selectOption = useCallback(
-		option => {
+		(option) => {
 			setSelectedOption(option);
 			setMaxFeeError('');
 			setMaxPriorityFeeError('');
@@ -275,14 +304,14 @@ const EditGasFee1559 = ({
 		[changeGas, gasOptions]
 	);
 
-	const shouldIgnore = useCallback(option => ignoreOptions.find(item => item === option), [ignoreOptions]);
+	const shouldIgnore = useCallback((option) => ignoreOptions.find((item) => item === option), [ignoreOptions]);
 
 	const renderOptions = useMemo(
 		() =>
 			[
 				{ name: AppConstants.GAS_OPTIONS.LOW, label: strings('edit_gas_fee_eip1559.low') },
 				{ name: AppConstants.GAS_OPTIONS.MEDIUM, label: strings('edit_gas_fee_eip1559.medium') },
-				{ name: AppConstants.GAS_OPTIONS.HIGH, label: strings('edit_gas_fee_eip1559.high') }
+				{ name: AppConstants.GAS_OPTIONS.HIGH, label: strings('edit_gas_fee_eip1559.high') },
 			]
 				.filter(({ name }) => !shouldIgnore(name))
 				.map(({ name, label, ...option }) => ({
@@ -294,7 +323,7 @@ const EditGasFee1559 = ({
 					),
 					topLabel: recommended?.name === name && recommended.render,
 					...option,
-					...extendOptions[name]
+					...extendOptions[name],
 				})),
 		[recommended, extendOptions, shouldIgnore]
 	);
@@ -331,7 +360,11 @@ const EditGasFee1559 = ({
 					<HorizontalSelector selected={selectedOption} onPress={selectOption} options={renderOptions} />
 				</View>
 				<View style={styles.advancedOptionsContainer}>
-					<TouchableOpacity onPress={toggleAdvancedOptions} style={styles.advancedOptionsButton}>
+					<TouchableOpacity
+						disable={updateOption?.showAdvanced}
+						onPress={toggleAdvancedOptions}
+						style={styles.advancedOptionsButton}
+					>
 						<Text noMargin link bold>
 							{strings('edit_gas_fee_eip1559.advanced_options')}
 						</Text>
@@ -339,7 +372,7 @@ const EditGasFee1559 = ({
 							<Icon name={`ios-arrow-${showAdvancedOptions ? 'up' : 'down'}`} />
 						</Text>
 					</TouchableOpacity>
-					{showAdvancedOptions && (
+					{(showAdvancedOptions || updateOption?.showAdvanced) && (
 						<View style={styles.advancedOptionsInputsContainer}>
 							<View style={styles.rangeInputContainer}>
 								<RangeInput
@@ -351,7 +384,7 @@ const EditGasFee1559 = ({
 
 											<TouchableOpacity
 												hitSlop={styles.hitSlop}
-												onPress={() => setShowRangeInfoModal('gas_limit')}
+												onPress={() => setShowInfoModal('gas_limit')}
 											>
 												<MaterialCommunityIcon
 													name="information"
@@ -378,7 +411,7 @@ const EditGasFee1559 = ({
 
 											<TouchableOpacity
 												hitSlop={styles.hitSlop}
-												onPress={() => setShowRangeInfoModal('max_priority_fee')}
+												onPress={() => setShowInfoModal('max_priority_fee')}
 											>
 												<MaterialCommunityIcon
 													name="information"
@@ -416,7 +449,7 @@ const EditGasFee1559 = ({
 
 											<TouchableOpacity
 												hitSlop={styles.hitSlop}
-												onPress={() => setShowRangeInfoModal('max_fee')}
+												onPress={() => setShowInfoModal('max_fee')}
 											>
 												<MaterialCommunityIcon
 													name="information"
@@ -455,7 +488,7 @@ const EditGasFee1559 = ({
 					</Text>
 				</TouchableOpacity>
 				<StyledButton type={'confirm'} onPress={save} disabled={Boolean(error) || isAnimating}>
-					{strings('edit_gas_fee_eip1559.save')}
+					{updateOption ? strings('edit_gas_fee_eip1559.submit') : strings('edit_gas_fee_eip1559.save')}
 				</StyledButton>
 			</View>
 		</View>
@@ -467,7 +500,7 @@ const EditGasFee1559 = ({
 			return (
 				<Alert
 					small
-					type="warning"
+					type={AlertType.Warning}
 					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.yellow} />}
 					style={styles.warningContainer}
 				>
@@ -490,7 +523,7 @@ const EditGasFee1559 = ({
 			return (
 				<Alert
 					small
-					type="error"
+					type={AlertType.Error}
 					renderIcon={() => <MaterialCommunityIcon name="information" size={20} color={colors.red} />}
 					style={styles.warningContainer}
 				>
@@ -507,6 +540,14 @@ const EditGasFee1559 = ({
 		return error;
 	}, [error]);
 
+	const renderDisplayTitle = useMemo(() => {
+		if (updateOption)
+			return updateOption.isCancel
+				? strings('edit_gas_fee_eip1559.cancel_transaction')
+				: strings('edit_gas_fee_eip1559.speed_up_transaction');
+		return strings('edit_gas_fee_eip1559.edit_priority');
+	}, [updateOption]);
+
 	return (
 		<View style={styles.root}>
 			<ScrollView style={styles.wrapper}>
@@ -518,10 +559,24 @@ const EditGasFee1559 = ({
 									<Icon name={'ios-arrow-back'} size={24} color={colors.black} />
 								</TouchableOpacity>
 								<Text bold black>
-									{strings('edit_gas_fee_eip1559.edit_priority')}
+									{renderDisplayTitle}
 								</Text>
 								<Icon name={'ios-arrow-back'} size={24} color={colors.white} />
 							</View>
+							{updateOption && (
+								<View style={styles.newGasFeeHeader}>
+									<Text black bold noMargin>
+										{strings('edit_gas_fee_eip1559.new_gas_fee')}{' '}
+									</Text>
+
+									<TouchableOpacity
+										hitSlop={styles.hitSlop}
+										onPress={() => setShowInfoModal('new_gas_fee')}
+									>
+										<MaterialCommunityIcon name="information" size={14} style={styles.labelInfo} />
+									</TouchableOpacity>
+								</View>
+							)}
 						</View>
 						{renderWarning}
 						{renderError}
@@ -563,26 +618,31 @@ const EditGasFee1559 = ({
 							renderInputs()
 						)}
 						<InfoModal
-							isVisible={Boolean(showRangeInfoModal)}
+							isVisible={Boolean(showInfoModal)}
 							title={
-								showRangeInfoModal === 'gas_limit'
+								showInfoModal === 'gas_limit'
 									? strings('edit_gas_fee_eip1559.gas_limit')
-									: showRangeInfoModal === 'max_priority_fee'
+									: showInfoModal === 'max_priority_fee'
 									? strings('edit_gas_fee_eip1559.max_priority_fee')
-									: showRangeInfoModal === 'max_fee'
+									: showInfoModal === 'max_fee'
 									? strings('edit_gas_fee_eip1559.max_fee')
+									: showInfoModal === 'new_gas_fee'
+									? strings('edit_gas_fee_eip1559.new_gas_fee')
 									: null
 							}
-							toggleModal={() => setShowRangeInfoModal(null)}
+							toggleModal={() => setShowInfoModal(null)}
 							body={
 								<View>
 									<Text grey infoModal>
-										{showRangeInfoModal === 'gas_limit' &&
+										{showInfoModal === 'gas_limit' &&
 											strings('edit_gas_fee_eip1559.learn_more_gas_limit')}
-										{showRangeInfoModal === 'max_priority_fee' &&
+										{showInfoModal === 'max_priority_fee' &&
 											strings('edit_gas_fee_eip1559.learn_more_max_priority_fee')}
-										{showRangeInfoModal === 'max_fee' &&
+										{showInfoModal === 'max_fee' &&
 											strings('edit_gas_fee_eip1559.learn_more_max_fee')}
+										{showInfoModal === 'new_gas_fee' && updateOption && updateOption.isCancel
+											? strings('edit_gas_fee_eip1559.learn_more_cancel_gas_fee')
+											: strings('edit_gas_fee_eip1559.learn_more_new_gas_fee')}
 									</Text>
 								</View>
 							}
@@ -645,7 +705,7 @@ const EditGasFee1559 = ({
 EditGasFee1559.defaultProps = {
 	ignoreOptions: [],
 	warningMinimumEstimateOption: AppConstants.GAS_OPTIONS.LOW,
-	suggestedEstimateOption: AppConstants.GAS_OPTIONS.MEDIUM
+	suggestedEstimateOption: AppConstants.GAS_OPTIONS.MEDIUM,
 };
 
 EditGasFee1559.propTypes = {
@@ -742,6 +802,10 @@ EditGasFee1559.propTypes = {
 	 */
 	ignoreOptions: PropTypes.array,
 	/**
+	 * Option to display speed up/cancel view
+	 */
+	updateOption: PropTypes.object,
+	/**
 	 * Extend options object. Object has option keys and properties will be spread
 	 */
 	extendOptions: PropTypes.object,
@@ -780,7 +844,7 @@ EditGasFee1559.propTypes = {
 	/**
 	 * (For analytics purposes) View (Approve, Transfer, Confirm) where this component is being used
 	 */
-	view: PropTypes.string.isRequired
+	view: PropTypes.string.isRequired,
 };
 
 export default EditGasFee1559;

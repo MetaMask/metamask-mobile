@@ -11,7 +11,8 @@ import {
 	Image,
 	InteractionManager,
 	TouchableWithoutFeedback,
-	Keyboard
+	Keyboard,
+	BackHandler,
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -24,8 +25,9 @@ import { strings } from '../../../../locales/i18n';
 import SecureKeychain from '../../../core/SecureKeychain';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import setOnboardingWizardStep from '../../../actions/wizard';
+import { logIn, logOut, checkedAuth } from '../../../actions/user';
 import { connect } from 'react-redux';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import BiometryButton from '../../UI/BiometryButton';
 import { recreateVaultWithSamePassword } from '../../../core/Vault';
@@ -33,11 +35,10 @@ import Logger from '../../../util/Logger';
 import {
 	BIOMETRY_CHOICE_DISABLED,
 	ONBOARDING_WIZARD,
-	METRICS_OPT_IN,
 	ENCRYPTION_LIB,
 	TRUE,
 	ORIGINAL,
-	EXISTING_USER
+	EXISTING_USER,
 } from '../../../constants/storage';
 import { passwordRequirementsMet } from '../../../util/password';
 import ErrorBoundary from '../ErrorBoundary';
@@ -45,31 +46,31 @@ import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { tlc, toLowerCaseEquals } from '../../../util/general';
+import DefaultPreference from 'react-native-default-preference';
 
-const isTextDelete = text => tlc(text) === 'delete';
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
 
 const styles = StyleSheet.create({
 	mainWrapper: {
 		backgroundColor: colors.white,
-		flex: 1
+		flex: 1,
 	},
 	wrapper: {
 		flex: 1,
-		paddingHorizontal: 32
+		paddingHorizontal: 32,
 	},
 	foxWrapper: {
 		justifyContent: 'center',
 		alignSelf: 'center',
 		width: Device.isIos() ? 130 : 100,
 		height: Device.isIos() ? 130 : 100,
-		marginTop: 100
+		marginTop: 100,
 	},
 	image: {
 		alignSelf: 'center',
 		width: Device.isIos() ? 130 : 100,
-		height: Device.isIos() ? 130 : 100
+		height: Device.isIos() ? 130 : 100,
 	},
 	title: {
 		fontSize: Device.isAndroid() ? 30 : 35,
@@ -78,54 +79,54 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		justifyContent: 'center',
 		textAlign: 'center',
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	field: {
 		flex: 1,
 		marginBottom: Device.isAndroid() ? 0 : 10,
-		flexDirection: 'column'
+		flexDirection: 'column',
 	},
 	label: {
 		color: colors.black,
 		fontSize: 16,
 		marginBottom: 12,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	ctaWrapper: {
-		marginTop: 20
+		marginTop: 20,
 	},
 	footer: {
-		marginVertical: 40
+		marginVertical: 40,
 	},
 	errorMsg: {
 		color: colors.red,
 		...fontStyles.normal,
-		lineHeight: 20
+		lineHeight: 20,
 	},
 	goBack: {
 		marginVertical: 14,
 		color: colors.blue,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	biometrics: {
 		flexDirection: 'row',
 		alignItems: 'center',
 		marginTop: 20,
-		marginBottom: 30
+		marginBottom: 30,
 	},
 	biometryLabel: {
 		flex: 1,
 		fontSize: 16,
 		color: colors.black,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	biometrySwitch: {
-		flex: 0
+		flex: 0,
 	},
 	input: {
 		...fontStyles.normal,
 		fontSize: 16,
-		paddingTop: 2
+		paddingTop: 2,
 	},
 	cant: {
 		width: 280,
@@ -135,13 +136,13 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		fontSize: 16,
 		lineHeight: 24,
-		color: colors.black
+		color: colors.black,
 	},
 	areYouSure: {
 		width: '100%',
 		padding: breakPoint ? 16 : 24,
 		justifyContent: 'center',
-		alignSelf: 'center'
+		alignSelf: 'center',
 	},
 	heading: {
 		marginHorizontal: 6,
@@ -149,11 +150,11 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 		fontSize: 20,
 		textAlign: 'center',
-		lineHeight: breakPoint ? 24 : 26
+		lineHeight: breakPoint ? 24 : 26,
 	},
 	red: {
 		marginHorizontal: 24,
-		color: colors.red
+		color: colors.red,
 	},
 	warningText: {
 		...fontStyles.normal,
@@ -161,33 +162,34 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		lineHeight: breakPoint ? 18 : 22,
 		color: colors.black,
-		marginTop: 20
+		marginTop: 20,
 	},
 	warningIcon: {
 		alignSelf: 'center',
 		color: colors.red,
-		marginVertical: 10
+		marginVertical: 10,
 	},
 	bold: {
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	delete: {
-		marginBottom: 20
+		marginBottom: 20,
 	},
 	deleteWarningMsg: {
 		...fontStyles.normal,
 		fontSize: 16,
 		lineHeight: 20,
 		marginTop: 10,
-		color: colors.red
-	}
+		color: colors.red,
+	},
 });
 
-const PASSCODE_NOT_SET_ERROR = strings('login.passcode_not_set_error');
-const WRONG_PASSWORD_ERROR = strings('login.wrong_password_error');
-const WRONG_PASSWORD_ERROR_ANDROID = strings('login.wrong_password_error_android');
-const VAULT_ERROR = strings('login.vault_error');
-const CLEAN_VAULT_ERROR = strings('login.clean_vault_error');
+const DELETE = 'delete';
+const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
+const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
+const WRONG_PASSWORD_ERROR_ANDROID = 'Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT';
+const VAULT_ERROR = 'Error: Cannot unlock without a previous vault.';
+const isTextDelete = (text) => tlc(text) === DELETE;
 
 /**
  * View where returning users can authenticate
@@ -203,13 +205,19 @@ class Login extends PureComponent {
 		 */
 		setOnboardingWizardStep: PropTypes.func,
 		/**
-		 * Boolean flag that determines if password has been set
+		 * Temporary string that controls if componentDidMount should handle initial auth logic on mount
 		 */
-		passwordSet: PropTypes.bool,
+		initialScreen: PropTypes.string,
 		/**
 		 * A string representing the selected address => account
 		 */
-		selectedAddress: PropTypes.string
+		selectedAddress: PropTypes.string,
+		logIn: PropTypes.func,
+		logOut: PropTypes.func,
+		/**
+		 * TEMPORARY state for animation control on Nav/App/index.js
+		 */
+		checkedAuth: PropTypes.func,
 	};
 
 	state = {
@@ -224,63 +232,100 @@ class Login extends PureComponent {
 		deleteModalVisible: false,
 		disableDelete: true,
 		deleteText: '',
-		showDeleteWarning: false
+		showDeleteWarning: false,
+		hasBiometricCredentials: false,
 	};
-
-	mounted = true;
 
 	fieldRef = React.createRef();
 
 	async componentDidMount() {
-		if (!this.props.passwordSet) {
-			try {
-				const { KeyringController } = Engine.context;
-				await KeyringController.submitPassword('');
-				await SecureKeychain.resetGenericPassword();
-				this.props.navigation.navigate('HomeNav');
-			} catch (e) {
-				//
-			}
-		} else {
-			const biometryType = await SecureKeychain.getSupportedBiometryType();
-			if (biometryType) {
-				let enabled = true;
-				const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
-				if (previouslyDisabled && previouslyDisabled === TRUE) {
-					enabled = false;
-				}
+		const { initialScreen } = this.props;
+		const { KeyringController } = Engine.context;
+		const shouldHandleInitialAuth = initialScreen !== 'onboarding';
+		BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 
-				this.setState({
-					biometryType: Device.isAndroid() ? 'biometrics' : biometryType,
-					biometryChoice: enabled,
-					biometryPreviouslyDisabled: !!previouslyDisabled
-				});
+		// Lock keyring just in case
+		if (KeyringController.isUnlocked()) {
+			await KeyringController.setLocked();
+		}
 
+		const biometryType = await SecureKeychain.getSupportedBiometryType();
+		if (biometryType) {
+			const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
+			const enabled = !(previouslyDisabled && previouslyDisabled === TRUE);
+
+			this.setState({
+				biometryType: Device.isAndroid() ? 'biometrics' : biometryType,
+				biometryChoice: enabled,
+				biometryPreviouslyDisabled: !!previouslyDisabled,
+			});
+			if (shouldHandleInitialAuth) {
 				try {
 					if (enabled && !previouslyDisabled) {
-						const hasCredentials = await this.tryBiometric();
-						this.setState({ hasCredentials });
+						await this.tryBiometric();
 					}
 				} catch (e) {
 					console.warn(e);
 				}
+				if (!enabled) {
+					await this.checkIfRememberMeEnabled();
+				}
 			}
+		} else {
+			shouldHandleInitialAuth && (await this.checkIfRememberMeEnabled());
 		}
+
+		this.props.checkedAuth();
 	}
 
 	componentWillUnmount() {
-		this.mounted = false;
+		BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
 	}
 
-	onLogin = async () => {
+	handleBackPress = () => {
+		this.props.logOut();
+		return false;
+	};
+
+	/**
+	 * Checks to see if the user has enabled Remember Me and logs
+	 * into the application if it is enabled.
+	 */
+	checkIfRememberMeEnabled = async () => {
+		const credentials = await SecureKeychain.getGenericPassword();
+		if (credentials) {
+			this.setState({ rememberMe: true });
+			// Restore vault with existing credentials
+			const { KeyringController } = Engine.context;
+			await KeyringController.submitPassword(credentials.password);
+			const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
+			if (encryptionLib !== ORIGINAL) {
+				await recreateVaultWithSamePassword(credentials.password, this.props.selectedAddress);
+				await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
+			}
+			// Get onboarding wizard state
+			const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
+			if (!onboardingWizard) {
+				this.props.setOnboardingWizardStep(1);
+			}
+
+			// Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
+			this.setState({ hasBiometricCredentials: false });
+			delete credentials.password;
+			this.props.logIn();
+			this.props.navigation.replace('HomeNav');
+		}
+	};
+
+	onLogin = async (hasCredentials = false) => {
 		const { password } = this.state;
+		const { current: field } = this.fieldRef;
 		const locked = !passwordRequirementsMet(password);
 		if (locked) this.setState({ error: strings('login.invalid_password') });
 		if (this.state.loading || locked) return;
 		try {
 			this.setState({ loading: true, error: null });
 			const { KeyringController } = Engine.context;
-
 			// Restore vault with user entered password
 			await KeyringController.submitPassword(this.state.password);
 			const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
@@ -289,30 +334,30 @@ class Login extends PureComponent {
 				await recreateVaultWithSamePassword(this.state.password, this.props.selectedAddress);
 				await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
 			}
-			if (this.state.biometryChoice && this.state.biometryType) {
-				await SecureKeychain.setGenericPassword(this.state.password, SecureKeychain.TYPES.BIOMETRICS);
-			} else if (this.state.rememberMe) {
-				await SecureKeychain.setGenericPassword(this.state.password, SecureKeychain.TYPES.REMEMBER_ME);
-			} else {
-				await SecureKeychain.resetGenericPassword();
+			// If the tryBiometric has been called and they password was retrived don't set it again
+			if (!hasCredentials) {
+				if (this.state.biometryChoice && this.state.biometryType) {
+					await SecureKeychain.setGenericPassword(this.state.password, SecureKeychain.TYPES.BIOMETRICS);
+				} else if (this.state.rememberMe) {
+					await SecureKeychain.setGenericPassword(this.state.password, SecureKeychain.TYPES.REMEMBER_ME);
+				} else {
+					await SecureKeychain.resetGenericPassword();
+				}
 			}
 
+			this.props.logIn();
+
 			// Get onboarding wizard state
-			const onboardingWizard = await AsyncStorage.getItem(ONBOARDING_WIZARD);
-			// Check if user passed through metrics opt-in screen
-			const metricsOptIn = await AsyncStorage.getItem(METRICS_OPT_IN);
-			if (!metricsOptIn) {
-				this.props.navigation.navigate('OnboardingRootNav', {
-					screen: 'OnboardingNav',
-					params: { screen: 'OptinMetrics' }
-				});
-			} else if (onboardingWizard) {
-				this.props.navigation.navigate('HomeNav');
+			const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
+			if (onboardingWizard) {
+				this.props.navigation.replace('HomeNav');
 			} else {
 				this.props.setOnboardingWizardStep(1);
-				this.props.navigation.navigate('HomeNav');
+				this.props.navigation.replace('HomeNav');
 			}
-			this.setState({ loading: false });
+			// Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
+			this.setState({ loading: false, password: '', hasBiometricCredentials: false });
+			field.setValue('');
 		} catch (e) {
 			// Should we force people to enable passcode / biometrics?
 			const error = e.toString();
@@ -334,13 +379,17 @@ class Login extends PureComponent {
 			} else if (toLowerCaseEquals(error, VAULT_ERROR)) {
 				this.setState({
 					loading: false,
-					error: CLEAN_VAULT_ERROR
+					error: strings('login.clean_vault_error'),
 				});
 			} else {
 				this.setState({ loading: false, error });
 			}
 			Logger.error(error, 'Failed to login');
 		}
+	};
+
+	triggerLogIn = () => {
+		this.onLogin();
 	};
 
 	delete = async () => {
@@ -358,24 +407,33 @@ class Login extends PureComponent {
 	deleteExistingUser = async () => {
 		try {
 			await AsyncStorage.removeItem(EXISTING_USER);
-			this.props.navigation.navigate('OnboardingRootNav', {
-				screen: 'OnboardingNav',
-				params: { screen: 'Onboarding', params: { delete: true } }
+			// We need to reset instead of navigate here otherwise, OnboardingRootNav remembers the last screen that it was on, which is most likely not OnboardingNav.
+			this.props.navigation?.reset({
+				routes: [
+					{
+						name: 'OnboardingRootNav',
+						state: {
+							routes: [
+								{ name: 'OnboardingNav', params: { screen: 'Onboarding', params: { delete: true } } },
+							],
+						},
+					},
+				],
 			});
 		} catch (error) {
 			Logger.log(error, `Failed to remove key: ${EXISTING_USER} from AsyncStorage`);
 		}
 	};
 
-	toggleWarningModal = () => this.setState(state => ({ warningModalVisible: !state.warningModalVisible }));
+	toggleWarningModal = () => this.setState((state) => ({ warningModalVisible: !state.warningModalVisible }));
 
-	toggleDeleteModal = () => this.setState(state => ({ deleteModalVisible: !state.deleteModalVisible }));
+	toggleDeleteModal = () => this.setState((state) => ({ deleteModalVisible: !state.deleteModalVisible }));
 
-	checkDelete = text => {
+	checkDelete = (text) => {
 		this.setState({
 			deleteText: text,
 			showDeleteWarning: false,
-			disableDelete: !isTextDelete(text)
+			disableDelete: !isTextDelete(text),
 		});
 	};
 
@@ -385,7 +443,7 @@ class Login extends PureComponent {
 		if (isTextDelete(deleteText)) this.delete();
 	};
 
-	updateBiometryChoice = async biometryChoice => {
+	updateBiometryChoice = async (biometryChoice) => {
 		if (!biometryChoice) {
 			await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 		} else {
@@ -402,7 +460,7 @@ class Login extends PureComponent {
 						{strings(`biometrics.enable_${this.state.biometryType.toLowerCase()}`)}
 					</Text>
 					<Switch
-						onValueChange={biometryChoice => this.updateBiometryChoice(biometryChoice)} // eslint-disable-line react/jsx-no-bind
+						onValueChange={(biometryChoice) => this.updateBiometryChoice(biometryChoice)} // eslint-disable-line react/jsx-no-bind
 						value={this.state.biometryChoice}
 						style={styles.biometrySwitch}
 						trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
@@ -416,7 +474,7 @@ class Login extends PureComponent {
 			<View style={styles.biometrics}>
 				<Text style={styles.biometryLabel}>{strings(`choose_password.remember_me`)}</Text>
 				<Switch
-					onValueChange={rememberMe => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
+					onValueChange={(rememberMe) => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
 					value={this.state.rememberMe}
 					style={styles.biometrySwitch}
 					trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
@@ -426,30 +484,33 @@ class Login extends PureComponent {
 		);
 	};
 
-	setPassword = val => this.setState({ password: val });
+	setPassword = (val) => this.setState({ password: val });
 
 	onCancelPress = () => {
 		this.toggleWarningModal();
 		InteractionManager.runAfterInteractions(this.toggleDeleteModal);
 	};
 
-	tryBiometric = async e => {
+	tryBiometric = async (e) => {
 		if (e) e.preventDefault();
 		const { current: field } = this.fieldRef;
 		field.blur();
 		try {
 			const credentials = await SecureKeychain.getGenericPassword();
-			if (!credentials) return false;
+			if (!credentials) {
+				this.setState({ hasBiometricCredentials: false });
+				return;
+			}
 			field.blur();
 			this.setState({ password: credentials.password });
 			field.setValue(credentials.password);
 			field.blur();
-			this.onLogin();
+			await this.onLogin(true);
 		} catch (error) {
+			this.setState({ hasBiometricCredentials: true });
 			Logger.log(error);
 		}
 		field.blur();
-		return true;
 	};
 
 	render = () => (
@@ -461,7 +522,7 @@ class Login extends PureComponent {
 				onRequestClose={this.toggleWarningModal}
 				onConfirmPress={this.toggleWarningModal}
 			>
-				<View style={styles.areYouSure}>
+				<View style={styles.areYouSure} testID={'delete-wallet-modal-container'}>
 					<Icon style={styles.warningIcon} size={46} color={colors.red} name="exclamation-triangle" />
 					<Text style={[styles.heading, styles.red]}>{strings('login.are_you_sure')}</Text>
 					<Text style={styles.warningText}>
@@ -488,9 +549,12 @@ class Login extends PureComponent {
 			>
 				<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
 					<View style={styles.areYouSure}>
-						<Text style={[styles.heading, styles.delete]}>{strings('login.type_delete')}</Text>
+						<Text style={[styles.heading, styles.delete]}>
+							{strings('login.type_delete', { [DELETE]: DELETE })}
+						</Text>
 						<OutlinedTextField
 							style={styles.input}
+							testID={'delete-wallet-inputbox'}
 							autoFocus
 							returnKeyType={'done'}
 							onChangeText={this.checkDelete}
@@ -526,7 +590,7 @@ class Login extends PureComponent {
 							<Text style={styles.label}>{strings('login.password')}</Text>
 							<OutlinedTextField
 								style={styles.input}
-								placeholder={'Password'}
+								placeholder={strings('login.password')}
 								testID={'login-password-input'}
 								returnKeyType={'done'}
 								autoCapitalize="none"
@@ -536,7 +600,7 @@ class Login extends PureComponent {
 								value={this.state.password}
 								baseColor={colors.grey500}
 								tintColor={colors.blue}
-								onSubmitEditing={this.onLogin}
+								onSubmitEditing={this.triggerLogIn}
 								renderRightAccessory={() => (
 									<BiometryButton
 										onPress={this.tryBiometric}
@@ -544,7 +608,7 @@ class Login extends PureComponent {
 											!(
 												this.state.biometryChoice &&
 												this.state.biometryType &&
-												this.state.hasCredentials
+												this.state.hasBiometricCredentials
 											)
 										}
 										type={this.state.biometryType}
@@ -562,7 +626,7 @@ class Login extends PureComponent {
 						)}
 
 						<View style={styles.ctaWrapper} testID={'log-in-button'}>
-							<StyledButton type={'confirm'} onPress={this.onLogin}>
+							<StyledButton type={'confirm'} onPress={this.triggerLogIn}>
 								{this.state.loading ? (
 									<ActivityIndicator size="small" color="white" />
 								) : (
@@ -573,7 +637,11 @@ class Login extends PureComponent {
 
 						<View style={styles.footer}>
 							<Text style={styles.cant}>{strings('login.go_back')}</Text>
-							<Button style={styles.goBack} onPress={this.toggleWarningModal}>
+							<Button
+								style={styles.goBack}
+								onPress={this.toggleWarningModal}
+								testID={'reset-wallet-button'}
+							>
 								{strings('login.reset_wallet')}
 							</Button>
 						</View>
@@ -585,16 +653,16 @@ class Login extends PureComponent {
 	);
 }
 
-const mapStateToProps = state => ({
-	passwordSet: state.user.passwordSet,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
+const mapStateToProps = (state) => ({
+	selectedAddress: state.engine.backgroundState.PreferencesController?.selectedAddress,
+	initialScreen: state.user.initialScreen,
 });
 
-const mapDispatchToProps = dispatch => ({
-	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
+const mapDispatchToProps = (dispatch) => ({
+	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
+	logIn: () => dispatch(logIn()),
+	logOut: () => dispatch(logOut()),
+	checkedAuth: () => dispatch(checkedAuth('login')),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(Login);
+export default connect(mapStateToProps, mapDispatchToProps)(Login);

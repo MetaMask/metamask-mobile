@@ -3,6 +3,12 @@ module.exports = {
 	root: true,
 	parser: 'babel-eslint',
 	extends: ['@react-native-community', 'eslint:recommended', 'plugin:import/warnings', 'plugin:react/recommended'],
+	overrides: [
+		{
+			files: ['*.{ts,tsx}'],
+			extends: ['@metamask/eslint-config-typescript'],
+		},
+	],
 	globals: {
 		process: true,
 		beforeAll: true,
@@ -18,23 +24,23 @@ module.exports = {
 		beforeEach: true,
 		device: true,
 		waitFor: true,
-		__DEV__: true
+		__DEV__: true,
 	},
 	settings: {
 		'import/resolver': {
-			typescript: {} // this loads <rootdir>/tsconfig.json to eslint
-		}
+			typescript: {}, // this loads <rootdir>/tsconfig.json to eslint
+		},
 	},
 	rules: {
 		'no-catch-shadow': 0,
-		'no-console': ['warn', { allow: ['warn', 'error'] }],
+		'no-console': ['error', { allow: ['warn', 'error'] }],
 		quotes: [
 			'error',
 			'single',
 			{
 				avoidEscape: true,
-				allowTemplateLiterals: true
-			}
+				allowTemplateLiterals: true,
+			},
 		],
 		'comma-dangle': 0,
 		curly: 0,
@@ -65,8 +71,8 @@ module.exports = {
 		'no-constant-condition': [
 			2,
 			{
-				checkLoops: false
-			}
+				checkLoops: false,
+			},
 		],
 		'no-duplicate-imports': 2,
 		'no-empty-function': 2,
@@ -89,8 +95,8 @@ module.exports = {
 		'no-unneeded-ternary': [
 			2,
 			{
-				defaultAssignment: false
-			}
+				defaultAssignment: false,
+			},
 		],
 		'no-unsafe-negation': 2,
 		'no-unused-expressions': 'off',
@@ -126,13 +132,13 @@ module.exports = {
 		'react/no-multi-comp': [
 			2,
 			{
-				ignoreStateless: true
-			}
+				ignoreStateless: true,
+			},
 		],
 		'react/no-render-return-value': 2,
 		'react/no-string-refs': 2,
 		'react/no-unused-prop-types': 2,
 		'react/prefer-es6-class': 2,
-		radix: 0
-	}
+		radix: 0,
+	},
 };

@@ -1,13 +1,11 @@
 import React, { PureComponent } from 'react';
 import { StyleSheet, View, TouchableOpacity, InteractionManager, Linking } from 'react-native';
 import ActionView from '../../UI/ActionView';
-import Clipboard from '@react-native-community/clipboard';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../UI/Navbar';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { getHost } from '../../../util/browser';
-import contractMap from '@metamask/contract-metadata';
 import { safeToChecksumAddress, renderShortAddress } from '../../../util/address';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
@@ -20,7 +18,7 @@ import {
 	getActiveTabUrl,
 	getMethodData,
 	decodeApproveData,
-	generateApproveData
+	generateApproveData,
 } from '../../../util/transactions';
 import { showAlert } from '../../../actions/alert';
 import Analytics from '../../../core/Analytics';
@@ -29,7 +27,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import TransactionHeader from '../../UI/TransactionHeader';
 import AccountInfoCard from '../../UI/AccountInfoCard';
 import TransactionReviewDetailsCard from '../../UI/TransactionReview/TransactionReivewDetailsCard';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { withNavigation } from '@react-navigation/compat';
@@ -40,14 +38,16 @@ import EditPermission, { MINIMUM_VALUE } from './EditPermission';
 import Logger from '../../../util/Logger';
 import InfoModal from '../Swaps/components/InfoModal';
 import Text from '../../Base/Text';
+import { getTokenList } from '../../../reducers/tokens';
 import TransactionReviewEIP1559 from '../../UI/TransactionReview/TransactionReviewEIP1559';
+import ClipboardManager from '../../../core/ClipboardManager';
 
 const { hexToBN } = util;
 const styles = StyleSheet.create({
 	section: {
 		minWidth: '100%',
 		width: '100%',
-		paddingVertical: 10
+		paddingVertical: 10,
 	},
 	title: {
 		...fontStyles.bold,
@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
 		color: colors.black,
 		lineHeight: 34,
 		marginVertical: 16,
-		paddingHorizontal: 16
+		paddingHorizontal: 16,
 	},
 	explanation: {
 		...fontStyles.normal,
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		color: colors.black,
 		lineHeight: 20,
-		paddingHorizontal: 16
+		paddingHorizontal: 16,
 	},
 	editPermissionText: {
 		...fontStyles.bold,
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
 		borderRadius: 20,
 		borderColor: colors.blue,
 		paddingVertical: 8,
-		paddingHorizontal: 16
+		paddingHorizontal: 16,
 	},
 	viewDetailsText: {
 		...fontStyles.normal,
@@ -85,11 +85,11 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		lineHeight: 16,
 		marginTop: 8,
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	actionTouchable: {
 		flexDirection: 'column',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	errorWrapper: {
 		marginTop: 12,
@@ -100,28 +100,28 @@ const styles = StyleSheet.create({
 		borderRadius: 8,
 		borderWidth: 1,
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	error: {
 		color: colors.red,
 		fontSize: 12,
 		lineHeight: 16,
 		...fontStyles.normal,
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	underline: {
 		textDecorationLine: 'underline',
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	actionViewWrapper: {
-		height: Device.isMediumDevice() ? 200 : 350
+		height: Device.isMediumDevice() ? 200 : 350,
 	},
 	actionViewChildren: {
-		height: 300
+		height: 300,
 	},
 	paddingHorizontal: {
-		paddingHorizontal: 16
-	}
+		paddingHorizontal: 16,
+	},
 });
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
@@ -177,10 +177,6 @@ class ApproveTransactionReview extends PureComponent {
 		 * Error coming from gas component
 		 */
 		gasError: PropTypes.string,
-		/**
-		 * Warning coming from high gas set in CustomGas component
-		 */
-		warningGasPriceHigh: PropTypes.string,
 		/**
 		 * Primary currency, either ETH or Fiat
 		 */
@@ -240,7 +236,15 @@ class ApproveTransactionReview extends PureComponent {
 		/**
 		 * If the gas estimations are ready
 		 */
-		gasEstimationReady: PropTypes.bool
+		gasEstimationReady: PropTypes.bool,
+		/**
+		 * List of tokens from TokenListController
+		 */
+		tokenList: PropTypes.object,
+		/**
+		 * Whether the transaction was confirmed or not
+		 */
+		transactionConfirmed: PropTypes.bool,
 	};
 
 	state = {
@@ -258,7 +262,7 @@ class ApproveTransactionReview extends PureComponent {
 		spenderAddress: '0x...',
 		transaction: this.props.transaction,
 		token: {},
-		showGasTooltip: false
+		showGasTooltip: false,
 	};
 
 	customSpendLimitInput = React.createRef();
@@ -267,12 +271,13 @@ class ApproveTransactionReview extends PureComponent {
 	componentDidMount = async () => {
 		const {
 			transaction: { origin, to, gas, gasPrice, data },
-			conversionRate
+			conversionRate,
+			tokenList,
 		} = this.props;
 		const { AssetsContractController } = Engine.context;
 		const host = getHost(this.originIsWalletConnect ? origin.split(WALLET_CONNECT_ORIGIN)[1] : origin);
 		let tokenSymbol, tokenDecimals;
-		const contract = contractMap[safeToChecksumAddress(to)];
+		const contract = tokenList[safeToChecksumAddress(to)];
 		if (!contract) {
 			try {
 				tokenDecimals = await AssetsContractController.getTokenDecimals(to);
@@ -300,7 +305,7 @@ class ApproveTransactionReview extends PureComponent {
 				totalGas: renderFromWei(totalGas),
 				totalGasFiat: weiToFiatNumber(totalGas, conversionRate),
 				spenderAddress,
-				encodedAmount
+				encodedAmount,
 			},
 			() => {
 				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_STARTED, this.getAnalyticsParams());
@@ -311,7 +316,7 @@ class ApproveTransactionReview extends PureComponent {
 	componentDidUpdate(previousProps) {
 		const {
 			transaction: { gas, gasPrice },
-			conversionRate
+			conversionRate,
 		} = this.props;
 		const totalGas = gas?.mul(gasPrice);
 		if (
@@ -321,7 +326,7 @@ class ApproveTransactionReview extends PureComponent {
 			// eslint-disable-next-line react/no-did-update-set-state
 			this.setState({
 				totalGas: renderFromWei(totalGas),
-				totalGasFiat: weiToFiatNumber(totalGas, conversionRate)
+				totalGasFiat: weiToFiatNumber(totalGas, conversionRate),
 			});
 		}
 	}
@@ -342,7 +347,7 @@ class ApproveTransactionReview extends PureComponent {
 				active_currency: { value: tokenSymbol, anonymous: true },
 				number_tokens_requested: { value: originalApproveAmount, anonymous: true },
 				unlimited_permission_requested: unlimited,
-				referral_type: isDapp ? 'dapp' : transaction?.origin
+				referral_type: isDapp ? 'dapp' : transaction?.origin,
 			};
 			// Send analytics params to parent component so it's available when cancelling and confirming
 			onSetAnalyticsParams && onSetAnalyticsParams(params);
@@ -353,14 +358,14 @@ class ApproveTransactionReview extends PureComponent {
 		}
 	};
 
-	trackApproveEvent = event => {
+	trackApproveEvent = (event) => {
 		const { transaction, tokensLength, accountsLength, providerType } = this.props;
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEventWithParameters(event, {
 				view: transaction.origin,
 				numberOfTokens: tokensLength,
 				numberOfAccounts: accountsLength,
-				network: providerType
+				network: providerType,
 			});
 		});
 	};
@@ -397,18 +402,18 @@ class ApproveTransactionReview extends PureComponent {
 		);
 	};
 
-	onSpendLimitCustomValueChange = value => {
+	onSpendLimitCustomValueChange = (value) => {
 		this.setState({ spendLimitCustomValue: value });
 	};
 
 	copyContractAddress = async () => {
 		const { transaction } = this.props;
-		await Clipboard.setString(transaction.to);
+		await ClipboardManager.setString(transaction.to);
 		this.props.showAlert({
 			isVisible: true,
 			autodismiss: 1500,
 			content: 'clipboard-alert',
-			data: { msg: strings('transactions.address_copied_to_clipboard') }
+			data: { msg: strings('transactions.address_copied_to_clipboard') },
 		});
 	};
 
@@ -425,7 +430,7 @@ class ApproveTransactionReview extends PureComponent {
 			spendLimitUnlimitedSelected,
 			originalApproveAmount,
 			spendLimitCustomValue,
-			transaction
+			transaction,
 		} = this.state;
 
 		try {
@@ -436,7 +441,7 @@ class ApproveTransactionReview extends PureComponent {
 
 			const approvalData = generateApproveData({
 				spender: spenderAddress,
-				value: Number(uint).toString(16)
+				value: Number(uint).toString(16),
 			});
 			const newApprovalTransaction = { ...transaction, data: approvalData };
 			setTransactionObject(newApprovalTransaction);
@@ -450,7 +455,7 @@ class ApproveTransactionReview extends PureComponent {
 	openLinkAboutGas = () =>
 		Linking.openURL('https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172');
 
-	toggleGasTooltip = () => this.setState(state => ({ showGasTooltip: !state.showGasTooltip }));
+	toggleGasTooltip = () => this.setState((state) => ({ showGasTooltip: !state.showGasTooltip }));
 
 	renderGasTooltip = () => {
 		const isMainnet = isMainnetByChainId(this.props.chainId);
@@ -481,13 +486,8 @@ class ApproveTransactionReview extends PureComponent {
 	};
 
 	renderEditPermission = () => {
-		const {
-			host,
-			spendLimitUnlimitedSelected,
-			tokenSymbol,
-			spendLimitCustomValue,
-			originalApproveAmount
-		} = this.state;
+		const { host, spendLimitUnlimitedSelected, tokenSymbol, spendLimitCustomValue, originalApproveAmount } =
+			this.state;
 
 		const _spendLimitCustomValue = spendLimitCustomValue ?? MINIMUM_VALUE;
 
@@ -517,7 +517,6 @@ class ApproveTransactionReview extends PureComponent {
 			transaction: { origin },
 			network,
 			over,
-			warningGasPriceHigh,
 			EIP1559GasData,
 			LegacyGasData,
 			gasEstimateType,
@@ -525,7 +524,8 @@ class ApproveTransactionReview extends PureComponent {
 			onUpdatingValuesEnd,
 			animateOnChange,
 			isAnimating,
-			gasEstimationReady
+			gasEstimationReady,
+			transactionConfirmed,
 		} = this.props;
 		const is_main_net = isMainNet(network);
 		const originIsDeeplink = origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
@@ -564,7 +564,7 @@ class ApproveTransactionReview extends PureComponent {
 							confirmText={strings('transactions.approve')}
 							onCancelPress={this.onCancelPress}
 							onConfirmPress={this.onConfirmPress}
-							confirmDisabled={Boolean(gasError)}
+							confirmDisabled={Boolean(gasError) || transactionConfirmed}
 						>
 							<View style={styles.actionViewChildren}>
 								<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleEditPermission}>
@@ -632,13 +632,6 @@ class ApproveTransactionReview extends PureComponent {
 												</TouchableOpacity>
 											</View>
 										)}
-										{!!warningGasPriceHigh && (
-											<View style={styles.errorWrapper}>
-												<Text reset style={styles.error}>
-													{warningGasPriceHigh}
-												</Text>
-											</View>
-										)}
 										{!gasError && (
 											<TouchableOpacity
 												style={styles.actionTouchable}
@@ -671,7 +664,7 @@ class ApproveTransactionReview extends PureComponent {
 			originalApproveAmount,
 			spendLimitUnlimitedSelected,
 			spendLimitCustomValue,
-			transaction: { to, data }
+			transaction: { to, data },
 		} = this.state;
 		const allowance = (!spendLimitUnlimitedSelected && spendLimitCustomValue) || originalApproveAmount;
 		return (
@@ -694,7 +687,11 @@ class ApproveTransactionReview extends PureComponent {
 		const { navigation } = this.props;
 		/* this is kinda weird, we have to reject the transaction to collapse the modal */
 		this.onCancelPress();
-		navigation.navigate('FiatOnRamp');
+		try {
+			navigation.navigate('FiatOnRamp');
+		} catch (error) {
+			Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
+		}
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST);
 		});
@@ -715,7 +712,7 @@ class ApproveTransactionReview extends PureComponent {
 		InteractionManager.runAfterInteractions(() => {
 			this.onCancelPress();
 			this.props.navigation.navigate('BrowserView', {
-				newTabUrl: mmFaucetUrl
+				newTabUrl: mmFaucetUrl,
 			});
 		});
 	};
@@ -735,7 +732,7 @@ class ApproveTransactionReview extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
@@ -746,15 +743,13 @@ const mapStateToProps = state => ({
 	primaryCurrency: state.settings.primaryCurrency,
 	activeTabUrl: getActiveTabUrl(state),
 	network: state.engine.backgroundState.NetworkController.network,
-	chainId: state.engine.backgroundState.NetworkController.provider.chainId
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+	tokenList: getTokenList(state),
 });
 
-const mapDispatchToProps = dispatch => ({
-	setTransactionObject: transaction => dispatch(setTransactionObject(transaction)),
-	showAlert: config => dispatch(showAlert(config))
+const mapDispatchToProps = (dispatch) => ({
+	setTransactionObject: (transaction) => dispatch(setTransactionObject(transaction)),
+	showAlert: (config) => dispatch(showAlert(config)),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(withNavigation(ApproveTransactionReview));
+export default connect(mapStateToProps, mapDispatchToProps)(withNavigation(ApproveTransactionReview));

@@ -1,9 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { InteractionManager, Text } from 'react-native';
-import { connect } from 'react-redux';
+import { Text } from 'react-native';
 import { renderShortAddress, renderFullAddress } from '../../../util/address';
-import { doENSReverseLookup } from '../../../util/ENSUtils';
 import { isValidAddress } from 'ethereumjs-util';
 
 /**
@@ -25,10 +23,6 @@ class EthereumAddress extends PureComponent {
 		 * can be "short" or "full"
 		 */
 		type: PropTypes.string,
-		/**
-		 * ID of the current network
-		 */
-		network: PropTypes.string
 	};
 
 	ens = null;
@@ -38,7 +32,7 @@ class EthereumAddress extends PureComponent {
 
 		this.state = {
 			ensName: null,
-			address: this.formatAddress(address, type)
+			address: this.formatAddress(address, type),
 		};
 	}
 
@@ -55,12 +49,6 @@ class EthereumAddress extends PureComponent {
 		return formattedAddress;
 	}
 
-	componentDidMount() {
-		InteractionManager.runAfterInteractions(() => {
-			this.doReverseLookup();
-		});
-	}
-
 	componentDidUpdate(prevProps) {
 		if (prevProps.address !== this.props.address) {
 			requestAnimationFrame(() => {
@@ -73,22 +61,12 @@ class EthereumAddress extends PureComponent {
 		const { address, type } = this.props;
 		const formattedAddress = this.formatAddress(address, type);
 		this.setState({ address: formattedAddress, ensName: null });
-		this.doReverseLookup();
 	}
-
-	doReverseLookup = async () => {
-		const { network, address } = this.props;
-		try {
-			const name = await doENSReverseLookup(address, network);
-			this.setState({ ensName: name });
-			// eslint-disable-next-line no-empty
-		} catch (e) {}
-	};
 
 	render() {
 		return (
 			<Text style={this.props.style} numberOfLines={1}>
-				{this.state.ensName ? this.state.ensName : this.state.address}
+				{this.state.address}
 			</Text>
 		);
 	}
@@ -96,11 +74,7 @@ class EthereumAddress extends PureComponent {
 
 EthereumAddress.defaultProps = {
 	style: null,
-	type: 'full'
+	type: 'full',
 };
 
-const mapStateToProps = state => ({
-	network: state.engine.backgroundState.NetworkController.network
-});
-
-export default connect(mapStateToProps)(EthereumAddress);
+export default EthereumAddress;

@@ -17,42 +17,42 @@ const styles = StyleSheet.create({
 		flex: 1,
 		paddingVertical: 12,
 		paddingHorizontal: 24,
-		marginBottom: 24
+		marginBottom: 24,
 	},
 	networkIcon: {
 		width: 15,
 		height: 15,
 		borderRadius: 100,
 		marginTop: 2,
-		marginRight: 16
+		marginRight: 16,
 	},
 	otherNetworkIcon: {
 		width: 15,
 		height: 15,
 		borderRadius: 100,
 		marginTop: 2,
-		backgroundColor: colors.grey100
+		backgroundColor: colors.grey100,
 	},
 	network: {
 		flex: 1,
 		flexDirection: 'row',
-		paddingVertical: 12
+		paddingVertical: 12,
 	},
 	networkWrapper: {
 		flex: 0,
-		flexDirection: 'row'
+		flexDirection: 'row',
 	},
 	networkLabel: {
 		fontSize: 16,
 		color: colors.fontPrimary,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	sectionLabel: {
 		fontSize: 14,
 		paddingVertical: 12,
 		color: colors.fontPrimary,
-		...fontStyles.bold
-	}
+		...fontStyles.bold,
+	},
 });
 
 /**
@@ -75,7 +75,7 @@ class NetworksSettings extends PureComponent {
 		/**
 		 * Indicates whether third party API mode is enabled
 		 */
-		thirdPartyApiMode: PropTypes.bool
+		thirdPartyApiMode: PropTypes.bool,
 	};
 
 	actionSheet = null;
@@ -88,7 +88,7 @@ class NetworksSettings extends PureComponent {
 
 	getOtherNetworks = () => getAllNetworks().slice(1);
 
-	onPress = network => {
+	onPress = (network) => {
 		const { navigation } = this.props;
 		navigation.navigate('NetworkSettings', { network });
 	};
@@ -98,7 +98,7 @@ class NetworksSettings extends PureComponent {
 		navigation.navigate('NetworkSettings');
 	};
 
-	showRemoveMenu = network => {
+	showRemoveMenu = (network) => {
 		this.networkToRemove = network;
 		this.actionSheet.show();
 	};
@@ -123,11 +123,11 @@ class NetworksSettings extends PureComponent {
 		PreferencesController.removeFromFrequentRpcList(this.networkToRemove);
 	};
 
-	createActionSheetRef = ref => {
+	createActionSheetRef = (ref) => {
 		this.actionSheet = ref;
 	};
 
-	onActionSheetPress = index => (index === 0 ? this.removeNetwork() : null);
+	onActionSheetPress = (index) => (index === 0 ? this.removeNetwork() : null);
 
 	networkElement(name, color, i, network, isCustomRPC) {
 		return (
@@ -225,10 +225,10 @@ class NetworksSettings extends PureComponent {
 	}
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	provider: state.engine.backgroundState.NetworkController.provider,
 	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList,
-	thirdPartyApiMode: state.privacy.thirdPartyApiMode
+	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
 });
 
 export default connect(mapStateToProps)(NetworksSettings);

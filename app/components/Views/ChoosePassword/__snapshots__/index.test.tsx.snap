@@ -1,0 +1,20 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ChoosePassword should render correctly 1`] = `
+<ChoosePassword
+  logIn={[Function]}
+  passwordSet={[Function]}
+  passwordUnset={[Function]}
+  route={
+    Object {
+      "params": Array [
+        "onboarding",
+        "protect",
+      ],
+    }
+  }
+  seedphraseNotBackedUp={[Function]}
+  selectedAddress="0xe7E125654064EEa56229f273dA586F10DF96B0a1"
+  setLockTime={[Function]}
+/>
+`;

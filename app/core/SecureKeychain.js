@@ -8,8 +8,10 @@ import {
 	BIOMETRY_CHOICE_DISABLED,
 	PASSCODE_CHOICE,
 	PASSCODE_DISABLED,
-	TRUE
+	TRUE,
 } from '../constants/storage';
+import Device from '../util/device';
+import AnalyticsV2 from '../util/analyticsV2';
 
 const privates = new WeakMap();
 const encryptor = new Encryptor();
@@ -20,7 +22,7 @@ const defaultOptions = {
 	authenticationPromptDesc: strings('authentication.auth_prompt_desc'),
 	fingerprintPromptTitle: strings('authentication.fingerprint_prompt_title'),
 	fingerprintPromptDesc: strings('authentication.fingerprint_prompt_desc'),
-	fingerprintPromptCancel: strings('authentication.fingerprint_prompt_cancel')
+	fingerprintPromptCancel: strings('authentication.fingerprint_prompt_cancel'),
 };
 
 /**
@@ -37,6 +39,7 @@ class SecureKeychain {
 			privates.set(this, { code });
 			SecureKeychain.instance = this;
 		}
+
 		return SecureKeychain.instance;
 	}
 
@@ -53,6 +56,10 @@ let instance;
 export default {
 	init(salt) {
 		instance = new SecureKeychain(salt);
+
+		if (Device.isAndroid && Keychain.SECURITY_LEVEL?.SECURE_HARDWARE)
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ANDROID_HARDWARE_KEYSTORE);
+
 		Object.freeze(instance);
 		return instance;
 	},
@@ -90,7 +97,7 @@ export default {
 
 	async setGenericPassword(password, type) {
 		const authOptions = {
-			accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY
+			accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
 		};
 
 		if (type === this.TYPES.BIOMETRICS) {
@@ -137,6 +144,6 @@ export default {
 	TYPES: {
 		BIOMETRICS: 'BIOMETRICS',
 		PASSCODE: 'PASSCODE',
-		REMEMBER_ME: 'REMEMBER_ME'
-	}
+		REMEMBER_ME: 'REMEMBER_ME',
+	},
 };

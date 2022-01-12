@@ -8,27 +8,31 @@ import { isValidAddress } from 'ethereumjs-util';
 import ActionView from '../ActionView';
 import { isSmartContractAddress } from '../../../util/transactions';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import WarningMessage from '../../Views/SendFlow/WarningMessage';
+import AppConstants from '../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
-		flex: 1
+		flex: 1,
 	},
 	rowWrapper: {
-		padding: 20
+		padding: 20,
 	},
 	textInput: {
 		borderWidth: 1,
 		borderRadius: 4,
 		borderColor: colors.grey100,
 		padding: 16,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	warningText: {
 		marginTop: 15,
 		color: colors.red,
-		...fontStyles.normal
-	}
+		...fontStyles.normal,
+	},
+	warningContainer: { marginHorizontal: 20, marginTop: 20, paddingRight: 0 },
+	warningLink: { color: colors.blue },
 });
 
 /**
@@ -41,14 +45,14 @@ export default class AddCustomToken extends PureComponent {
 		decimals: '',
 		warningAddress: '',
 		warningSymbol: '',
-		warningDecimals: ''
+		warningDecimals: '',
 	};
 
 	static propTypes = {
 		/**
 		/* navigation object required to push new views
 		*/
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
 	};
 
 	getAnalyticsParams = () => {
@@ -61,7 +65,7 @@ export default class AddCustomToken extends PureComponent {
 				token_symbol: symbol,
 				network_name: type,
 				chain_id: chainId,
-				source: 'Custom token'
+				source: 'Custom token',
 			};
 		} catch (error) {
 			return {};
@@ -84,7 +88,7 @@ export default class AddCustomToken extends PureComponent {
 				decimals: '',
 				warningAddress: '',
 				warningSymbol: '',
-				warningDecimals: ''
+				warningDecimals: '',
 			},
 			() => {
 				InteractionManager.runAfterInteractions(() => {
@@ -98,15 +102,15 @@ export default class AddCustomToken extends PureComponent {
 		this.props.navigation.goBack();
 	};
 
-	onAddressChange = address => {
+	onAddressChange = (address) => {
 		this.setState({ address });
 	};
 
-	onSymbolChange = symbol => {
+	onSymbolChange = (symbol) => {
 		this.setState({ symbol });
 	};
 
-	onDecimalsChange = decimals => {
+	onDecimalsChange = (decimals) => {
 		this.setState({ decimals });
 	};
 
@@ -187,6 +191,33 @@ export default class AddCustomToken extends PureComponent {
 		current && current.focus();
 	};
 
+	renderWarning = () => (
+		<WarningMessage
+			style={styles.warningContainer}
+			warningMessage={
+				<>
+					{strings('add_asset.warning_body_description')}
+					<Text
+						suppressHighlighting
+						onPress={() => {
+							// TODO: This functionality exists in a bunch of other places. We need to unify this into a utils function
+							this.props.navigation.navigate('Webview', {
+								screen: 'SimpleWebview',
+								params: {
+									url: AppConstants.URLS.SECURITY,
+									title: strings('add_asset.security_tips'),
+								},
+							});
+						}}
+						style={styles.warningLink}
+					>
+						{strings('add_asset.warning_link')}
+					</Text>
+				</>
+			}
+		/>
+	);
+
 	render = () => {
 		const { address, symbol, decimals } = this.state;
 		return (
@@ -202,6 +233,7 @@ export default class AddCustomToken extends PureComponent {
 					confirmDisabled={!(address && symbol && decimals)}
 				>
 					<View>
+						{this.renderWarning()}
 						<View style={styles.rowWrapper}>
 							<Text style={fontStyles.normal}>{strings('token.token_address')}</Text>
 							<TextInput

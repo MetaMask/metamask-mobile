@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
 import { colors } from '../../styles/common';
-import Device from '../../util/Device';
+import Device from '../../util/device';
 
 const styles = StyleSheet.create({
 	draggerWrapper: {
@@ -11,18 +11,18 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100
+		borderColor: colors.grey100,
 	},
 	borderless: {
-		borderColor: colors.transparent
+		borderColor: colors.transparent,
 	},
 	dragger: {
 		width: 48,
 		height: 5,
 		borderRadius: 4,
 		backgroundColor: colors.grey400,
-		opacity: Device.isAndroid() ? 0.6 : 0.5
-	}
+		opacity: Device.isAndroid() ? 0.6 : 0.5,
+	},
 });
 
 function ModalDragger({ borderless }) {
@@ -34,7 +34,7 @@ function ModalDragger({ borderless }) {
 }
 
 ModalDragger.propTypes = {
-	borderless: PropTypes.bool
+	borderless: PropTypes.bool,
 };
 
 export default ModalDragger;

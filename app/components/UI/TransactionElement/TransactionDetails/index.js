@@ -7,7 +7,7 @@ import {
 	getNetworkTypeById,
 	findBlockExplorerForRpc,
 	getBlockExplorerName,
-	isMainNet
+	isMainNet,
 } from '../../../../util/networks';
 import { getEtherscanTransactionUrl, getEtherscanBaseUrl } from '../../../../util/etherscan';
 import Logger from '../../../../util/Logger';
@@ -20,7 +20,7 @@ import StyledButton from '../../StyledButton';
 import StatusText from '../../../Base/StatusText';
 import Text from '../../../Base/Text';
 import DetailsModal from '../../../Base/DetailsModal';
-import { RPC } from '../../../../constants/network';
+import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../../constants/network';
 import { withNavigation } from '@react-navigation/compat';
 
 const styles = StyleSheet.create({
@@ -28,35 +28,33 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		color: colors.blue,
 		...fontStyles.normal,
-		textAlign: 'center'
+		textAlign: 'center',
 	},
 	touchableViewOnEtherscan: {
 		marginBottom: 24,
-		marginTop: 12
+		marginTop: 12,
 	},
 	summaryWrapper: {
-		marginVertical: 8
+		marginVertical: 8,
 	},
 	actionContainerStyle: {
 		height: 25,
 		width: 70,
-		padding: 0
+		padding: 0,
 	},
 	speedupActionContainerStyle: {
-		marginRight: 10
+		marginRight: 10,
 	},
 	actionStyle: {
 		fontSize: 10,
 		padding: 0,
-		paddingHorizontal: 10
+		paddingHorizontal: 10,
 	},
 	transactionActionsContainer: {
 		flexDirection: 'row',
-		paddingTop: 10
-	}
+		paddingTop: 10,
+	},
 });
-
-const NO_RPC_BLOCK_EXPLORER = 'NO_BLOCK_EXPLORER';
 
 /**
  * View that renders a transaction details as part of transactions list
@@ -95,20 +93,20 @@ class TransactionDetails extends PureComponent {
 		 * A string representing the network name
 		 */
 		showSpeedUpModal: PropTypes.func,
-		showCancelModal: PropTypes.func
+		showCancelModal: PropTypes.func,
 	};
 
 	state = {
 		rpcBlockExplorer: undefined,
-		renderTxActions: true
+		renderTxActions: true,
 	};
 
 	componentDidMount = () => {
 		const {
 			network: {
-				provider: { rpcTarget, type }
+				provider: { rpcTarget, type },
 			},
-			frequentRpcList
+			frequentRpcList,
 		} = this.props;
 		let blockExplorer;
 		if (type === RPC) {
@@ -123,9 +121,9 @@ class TransactionDetails extends PureComponent {
 			transactionObject: { networkID },
 			transactionDetails: { transactionHash },
 			network: {
-				provider: { type }
+				provider: { type },
 			},
-			close
+			close,
 		} = this.props;
 		const { rpcBlockExplorer } = this.state;
 		try {
@@ -134,7 +132,7 @@ class TransactionDetails extends PureComponent {
 				const title = new URL(rpcBlockExplorer).hostname;
 				navigation.push('Webview', {
 					screen: 'SimpleWebview',
-					params: { url, title }
+					params: { url, title },
 				});
 			} else {
 				const network = getNetworkTypeById(networkID);
@@ -144,8 +142,8 @@ class TransactionDetails extends PureComponent {
 					screen: 'SimpleWebview',
 					params: {
 						url,
-						title: etherscan_url
-					}
+						title: etherscan_url,
+					},
 				});
 			}
 			close && close();
@@ -185,8 +183,8 @@ class TransactionDetails extends PureComponent {
 			transactionObject: {
 				status,
 				time,
-				transaction: { nonce }
-			}
+				transaction: { nonce },
+			},
 		} = this.props;
 		const renderTxActions = status === 'submitted' || status === 'approved';
 		const { rpcBlockExplorer } = this.state;
@@ -261,9 +259,9 @@ class TransactionDetails extends PureComponent {
 	};
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	network: state.engine.backgroundState.NetworkController,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList
+	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList,
 });
 export default connect(mapStateToProps)(withNavigation(TransactionDetails));

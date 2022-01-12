@@ -1,0 +1,88 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
+<Tokens
+  conversionRate={1}
+  currentCurrency="USD"
+  dispatch={[Function]}
+  hideZeroBalanceTokens={true}
+  primaryCurrency="usd"
+  tokenBalances={
+    Object {
+      "0x01": "2",
+      "0x02": "0",
+    }
+  }
+  tokenExchangeRates={Object {}}
+  tokenList={Object {}}
+  tokens={
+    Array [
+      Object {
+        "address": "0x0",
+        "decimals": 18,
+        "isETH": true,
+        "symbol": "ETH",
+      },
+      Object {
+        "address": "0x01",
+        "decimals": 18,
+        "symbol": "BAT",
+      },
+      Object {
+        "address": "0x02",
+        "decimals": 18,
+        "symbol": "LINK",
+      },
+    ]
+  }
+/>
+`;
+
+exports[`Tokens should render correctly 1`] = `
+<Tokens
+  conversionRate={1}
+  currentCurrency="USD"
+  dispatch={[Function]}
+  primaryCurrency="usd"
+  tokenExchangeRates={Object {}}
+  tokenList={Object {}}
+/>
+`;
+
+exports[`Tokens should show all balance tokens when hideZeroBalanceTokens setting is off 1`] = `
+<Tokens
+  conversionRate={1}
+  currentCurrency="USD"
+  dispatch={[Function]}
+  hideZeroBalanceTokens={false}
+  primaryCurrency="usd"
+  tokenBalances={
+    Object {
+      "0x01": "2",
+      "0x02": "0",
+    }
+  }
+  tokenExchangeRates={Object {}}
+  tokenList={Object {}}
+  tokens={
+    Array [
+      Object {
+        "address": "0x0",
+        "decimals": 18,
+        "isETH": true,
+        "symbol": "ETH",
+      },
+      Object {
+        "address": "0x01",
+        "decimals": 18,
+        "symbol": "BAT",
+      },
+      Object {
+        "address": "0x02",
+        "decimals": 18,
+        "symbol": "LINK",
+      },
+    ]
+  }
+/>
+`;

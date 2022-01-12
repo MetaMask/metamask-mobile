@@ -4,9 +4,11 @@ import { StyleSheet, View, ViewPropTypes } from 'react-native';
 import RemoteImage from '../../Base/RemoteImage';
 import MediaPlayer from '../../Views/MediaPlayer';
 import { colors } from '../../../styles/common';
+import AppConstants from '../../../core/AppConstants';
 import scaling from '../../../util/scaling';
+import { toLowerCaseEquals } from '../../../util/general';
 import Text from '../../Base/Text';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 
 const MEDIA_WIDTH_MARGIN = Device.isMediumDevice() ? 32 : 0;
 
@@ -15,67 +17,65 @@ const styles = StyleSheet.create({
 		return {
 			flex: 0,
 			borderRadius: 12,
-			backgroundColor: `#${backgroundColor}`
+			backgroundColor: `#${backgroundColor}`,
 		};
 	},
 	tinyImage: {
 		width: 32,
-		height: 32
+		height: 32,
 	},
 	smallImage: {
 		width: 50,
-		height: 50
+		height: 50,
 	},
 	bigImage: {
 		height: 260,
-		width: 260
+		width: 260,
 	},
 	cover: {
-		height: scaling.scale(Device.getDeviceWidth() - MEDIA_WIDTH_MARGIN, { baseModel: 2 })
+		height: scaling.scale(Device.getDeviceWidth() - MEDIA_WIDTH_MARGIN, { baseModel: 2 }),
 	},
 	image: {
-		borderRadius: 12
+		borderRadius: 12,
 	},
 	textContainer: {
 		alignItems: 'center',
 		justifyContent: 'center',
 		backgroundColor: colors.grey100,
-		borderRadius: 8
+		borderRadius: 8,
 	},
 	textWrapper: {
-		textAlign: 'center'
+		textAlign: 'center',
+	},
+	textWrapperIcon: {
+		textAlign: 'center',
+		fontSize: 18,
 	},
 	mediaPlayer: {
-		minHeight: 10
-	}
+		minHeight: 10,
+	},
 });
 
 /**
  * View that renders an ERC-721 Token image
  */
-export default function CollectibleMedia({
-	collectible,
-	renderAnimation,
-	resizeMode,
-	style,
-	tiny,
-	small,
-	big,
-	cover,
-	onClose
-}) {
+export default function CollectibleMedia({ collectible, renderAnimation, style, tiny, small, big, cover, onClose }) {
 	const [sourceUri, setSourceUri] = useState(null);
+	const [isUniV3NFT, setIsUniV3NFT] = useState(false);
 
 	const fallback = () => setSourceUri(null);
 
 	useEffect(() => {
-		const { image, imagePreview } = collectible;
-		if (small && imagePreview && imagePreview !== '') setSourceUri(imagePreview);
-		else setSourceUri(image);
-	}, [collectible, small, big, setSourceUri]);
+		const { image, imagePreview, address } = collectible;
+		if (address) {
+			setIsUniV3NFT(toLowerCaseEquals(address, AppConstants.UNIV3_NFT_CONTRACT_ADDRESS));
+			if (small && imagePreview && imagePreview !== '') setSourceUri(imagePreview);
+			else setSourceUri(image);
+		}
+	}, [collectible, small, big, setSourceUri, setIsUniV3NFT]);
 
 	const renderMedia = useCallback(() => {
-		if (renderAnimation && collectible.animation?.includes('.mp4')) {
+		if (renderAnimation && collectible.animation && collectible.animation.includes('.mp4')) {
 			return (
 				<MediaPlayer
 					onClose={onClose}
@@ -83,11 +83,14 @@ export default function CollectibleMedia({
 					style={[styles.mediaPlayer, cover && styles.cover, style]}
 				/>
 			);
-		} else if (sourceUri) {
+		} else if (sourceUri && (!isUniV3NFT || tiny)) {
+			/*
+			 * the tiny boolean is used to indicate when the image is the NFT source icon
+			 */
 			return (
 				<RemoteImage
 					fadeIn
-					resizeMode={resizeMode || 'cover'}
+					resizeMode={'contain'}
 					source={{ uri: sourceUri }}
 					style={[
 						styles.image,
@@ -95,7 +98,7 @@ export default function CollectibleMedia({
 						small && styles.smallImage,
 						big && styles.bigImage,
 						cover && styles.cover,
-						style
+						style,
 					]}
 					onError={fallback}
 				/>
@@ -109,15 +112,15 @@ export default function CollectibleMedia({
 					tiny && styles.tinyImage,
 					small && styles.smallImage,
 					big && styles.bigImage,
-					cover && styles.cover
+					cover && styles.cover,
 				]}
 			>
-				<Text big={big} small={tiny || small} style={styles.textWrapper}>{`${collectible.name || ''} #${
-					collectible.tokenId
-				}`}</Text>
+				<Text big={big} small={tiny || small} style={tiny ? styles.textWrapperIcon : styles.textWrapper}>
+					{tiny ? collectible.name[0] || 'C' : `${collectible.name || ''} #${collectible.tokenId}`}
+				</Text>
 			</View>
 		);
-	}, [collectible, sourceUri, onClose, renderAnimation, style, tiny, small, big, cover, resizeMode]);
+	}, [collectible, sourceUri, isUniV3NFT, onClose, renderAnimation, style, tiny, small, big, cover]);
 
 	return <View style={styles.container(collectible.backgroundColor)}>{renderMedia()}</View>;
 }
@@ -155,8 +158,4 @@ CollectibleMedia.propTypes = {
 	 * On close callback
 	 */
 	onClose: PropTypes.func,
-	/**
-	 * Image resize mode
-	 */
-	resizeMode: PropTypes.string
 };

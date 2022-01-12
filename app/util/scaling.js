@@ -12,7 +12,7 @@ const IPHONE_11_PRO_HEIGHT = 812;
 const IPHONE_11_PRO_MAX_WIDTH = 414;
 const IPHONE_11_PRO_MAX_HEIGHT = 896;
 
-const getBaseModel = baseModel => {
+const getBaseModel = (baseModel) => {
 	if (baseModel === 1) {
 		return { width: IPHONE_11_PRO_WIDTH, height: IPHONE_11_PRO_HEIGHT };
 	} else if (baseModel === 2) {

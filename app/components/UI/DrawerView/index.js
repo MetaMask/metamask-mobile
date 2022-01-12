@@ -1,6 +1,5 @@
 import React, { PureComponent } from 'react';
 import { Alert, TouchableOpacity, View, Image, StyleSheet, Text, ScrollView, InteractionManager } from 'react-native';
-import Clipboard from '@react-native-community/clipboard';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Share from 'react-native-share';
@@ -23,7 +22,7 @@ import { showAlert } from '../../../actions/alert';
 import { getEtherscanAddressUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 import OnboardingWizard from '../OnboardingWizard';
 import ReceiveRequest from '../ReceiveRequest';
 import Analytics from '../../../core/Analytics';
@@ -33,94 +32,97 @@ import URL from 'url-parse';
 import EthereumAddress from '../EthereumAddress';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
-import { protectWalletModalVisible } from '../../../actions/user';
+import { logOut, protectWalletModalVisible } from '../../../actions/user';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import SettingsNotification from '../SettingsNotification';
 import WhatsNewModal from '../WhatsNewModal';
 import InvalidCustomNetworkAlert from '../InvalidCustomNetworkAlert';
 import { RPC } from '../../../constants/network';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
-import { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
+import AnalyticsV2, { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
+import { isDefaultAccountName, doENSReverseLookup } from '../../../util/ENSUtils';
+import ClipboardManager from '../../../core/ClipboardManager';
+import { collectiblesSelector } from '../../../reducers/collectibles';
 
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
-		backgroundColor: colors.white
+		backgroundColor: colors.white,
 	},
 	header: {
 		paddingTop: Device.isIphoneX() ? 60 : 24,
 		backgroundColor: colors.grey000,
 		height: Device.isIphoneX() ? 110 : 74,
 		flexDirection: 'column',
-		paddingBottom: 0
+		paddingBottom: 0,
 	},
 	metamaskLogo: {
 		flexDirection: 'row',
 		flex: 1,
 		marginTop: Device.isAndroid() ? 0 : 12,
 		marginLeft: 15,
-		paddingTop: Device.isAndroid() ? 10 : 0
+		paddingTop: Device.isAndroid() ? 10 : 0,
 	},
 	metamaskFox: {
 		height: 27,
 		width: 27,
-		marginRight: 15
+		marginRight: 15,
 	},
 	metamaskName: {
 		marginTop: 4,
 		width: 90,
-		height: 18
+		height: 18,
 	},
 	account: {
 		flex: 1,
-		backgroundColor: colors.grey000
+		backgroundColor: colors.grey000,
 	},
 	accountBgOverlay: {
 		borderBottomColor: colors.grey100,
 		borderBottomWidth: 1,
-		padding: 17
+		padding: 17,
 	},
 	identiconWrapper: {
 		marginBottom: 12,
 		width: 56,
-		height: 56
+		height: 56,
 	},
 	identiconBorder: {
 		borderRadius: 96,
 		borderWidth: 2,
 		padding: 2,
-		borderColor: colors.blue
+		borderColor: colors.blue,
 	},
 	accountNameWrapper: {
 		flexDirection: 'row',
-		paddingRight: 17
+		paddingRight: 17,
 	},
 	accountName: {
 		fontSize: 20,
 		lineHeight: 24,
 		marginBottom: 5,
 		color: colors.fontPrimary,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	caretDown: {
 		textAlign: 'right',
 		marginLeft: 7,
 		marginTop: 3,
 		fontSize: 18,
-		color: colors.fontPrimary
+		color: colors.fontPrimary,
 	},
 	accountBalance: {
 		fontSize: 14,
 		lineHeight: 17,
 		marginBottom: 5,
 		color: colors.fontPrimary,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	accountAddress: {
 		fontSize: 12,
 		lineHeight: 17,
 		color: colors.fontSecondary,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	buttons: {
 		flexDirection: 'row',
@@ -128,7 +130,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		borderBottomColor: colors.grey100,
 		borderBottomWidth: 1,
-		padding: 15
+		padding: 15,
 	},
 	button: {
 		flex: 1,
@@ -136,54 +138,54 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		borderRadius: 30,
-		borderWidth: 1.5
+		borderWidth: 1.5,
 	},
 	leftButton: {
-		marginRight: 5
+		marginRight: 5,
 	},
 	rightButton: {
-		marginLeft: 5
+		marginLeft: 5,
 	},
 	buttonText: {
 		paddingLeft: 8,
 		fontSize: 15,
 		color: colors.blue,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	buttonContent: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	buttonIcon: {
-		marginTop: 0
+		marginTop: 0,
 	},
 	buttonReceive: {
-		transform: [{ rotate: '90deg' }]
+		transform: [{ rotate: '90deg' }],
 	},
 	menu: {},
 	noTopBorder: {
-		borderTopWidth: 0
+		borderTopWidth: 0,
 	},
 	menuSection: {
 		borderTopWidth: 1,
 		borderColor: colors.grey100,
-		paddingVertical: 10
+		paddingVertical: 10,
 	},
 	menuItem: {
 		flex: 1,
 		flexDirection: 'row',
 		paddingVertical: 9,
-		paddingLeft: 17
+		paddingLeft: 17,
 	},
 	selectedRoute: {
 		backgroundColor: colors.blue000,
 		marginRight: 10,
 		borderTopRightRadius: 20,
-		borderBottomRightRadius: 20
+		borderBottomRightRadius: 20,
 	},
 	selectedName: {
-		color: colors.blue
+		color: colors.blue,
 	},
 	menuItemName: {
 		flex: 1,
@@ -191,23 +193,23 @@ const styles = StyleSheet.create({
 		paddingTop: 2,
 		fontSize: 16,
 		color: colors.grey400,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	menuItemWarningText: {
 		color: colors.red,
 		fontSize: 12,
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
 	noIcon: {
-		paddingLeft: 0
+		paddingLeft: 0,
 	},
 	menuItemIconImage: {
 		width: 22,
-		height: 22
+		height: 22,
 	},
 	bottomModal: {
 		justifyContent: 'flex-end',
-		margin: 0
+		margin: 0,
 	},
 	importedWrapper: {
 		marginTop: 10,
@@ -216,12 +218,12 @@ const styles = StyleSheet.create({
 		paddingVertical: 3,
 		borderRadius: 10,
 		borderWidth: 1,
-		borderColor: colors.grey400
+		borderColor: colors.grey400,
 	},
 	importedText: {
 		color: colors.grey400,
 		fontSize: 10,
-		...fontStyles.bold
+		...fontStyles.bold,
 	},
 	protectWalletContainer: {
 		backgroundColor: colors.white,
@@ -230,7 +232,7 @@ const styles = StyleSheet.create({
 		borderTopRightRadius: 20,
 		paddingVertical: 16,
 		paddingBottom: Device.isIphoneX() ? 20 : 0,
-		paddingHorizontal: 40
+		paddingHorizontal: 40,
 	},
 	protectWalletIconContainer: {
 		alignSelf: 'center',
@@ -242,7 +244,7 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		flexDirection: 'row',
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
 	},
 	protectWalletIcon: { alignSelf: 'center', color: colors.red },
 	protectWalletTitle: { textAlign: 'center', fontSize: 18, marginVertical: 8, ...fontStyles.bold },
@@ -251,16 +253,16 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		marginVertical: 8,
 		justifyContent: 'center',
-		...fontStyles.normal
+		...fontStyles.normal,
 	},
-	protectWalletButtonWrapper: { marginVertical: 8 }
+	protectWalletButtonWrapper: { marginVertical: 8 },
 });
 
 const metamask_name = require('../../../images/metamask-name.png'); // eslint-disable-line
 const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
 const ICON_IMAGES = {
-	wallet: require('../../../images/wallet-icon.png'),
-	'selected-wallet': require('../../../images/selected-wallet-icon.png')
+	wallet: require('../../../images/wallet-icon.png'), // eslint-disable-line
+	'selected-wallet': require('../../../images/selected-wallet-icon.png'), // eslint-disable-line
 };
 
 /**
@@ -365,11 +367,18 @@ class DrawerView extends PureComponent {
 		/**
 		 * Prompts protect wallet modal
 		 */
-		protectWalletModalVisible: PropTypes.func
+		protectWalletModalVisible: PropTypes.func,
+		logOut: PropTypes.func,
 	};
 
 	state = {
-		showProtectWalletModal: undefined
+		showProtectWalletModal: undefined,
+		account: {
+			ens: undefined,
+			name: undefined,
+			address: undefined,
+			currentNetwork: undefined,
+		},
 	};
 
 	browserSectionRef = React.createRef();
@@ -394,7 +403,7 @@ class DrawerView extends PureComponent {
 		return ret;
 	}
 
-	componentDidUpdate() {
+	async componentDidUpdate() {
 		const route = findRouteNameFromNavigatorState(this.props.navigation.dangerouslyGetState().routes);
 		if (!this.props.passwordSet || !this.props.seedphraseBackedUp) {
 			if (
@@ -407,7 +416,7 @@ class DrawerView extends PureComponent {
 					'ManualBackupStep2',
 					'ManualBackupStep3',
 					'Webview',
-					'LockScreen'
+					'LockScreen',
 				].includes(route)
 			) {
 				// eslint-disable-next-line react/no-did-update-set-state
@@ -416,7 +425,7 @@ class DrawerView extends PureComponent {
 			}
 			let tokenFound = false;
 
-			this.props.tokens.forEach(token => {
+			this.props.tokens.forEach((token) => {
 				if (this.props.tokenBalances[token.address] && !this.props.tokenBalances[token.address]?.isZero()) {
 					tokenFound = true;
 				}
@@ -429,6 +438,12 @@ class DrawerView extends PureComponent {
 			) {
 				// eslint-disable-next-line react/no-did-update-set-state
 				this.setState({ showProtectWalletModal: true });
+				InteractionManager.runAfterInteractions(() => {
+					AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_VIEWED, {
+						wallet_protection_required: false,
+						source: 'Backup Alert',
+					});
+				});
 			} else {
 				// eslint-disable-next-line react/no-did-update-set-state
 				this.setState({ showProtectWalletModal: false });
@@ -443,9 +458,27 @@ class DrawerView extends PureComponent {
 			DeeplinkManager.expireDeeplink();
 			DeeplinkManager.parse(pendingDeeplink, { origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK });
 		}
+		await this.updateAccountInfo();
 	}
 
-	toggleAccountsModal = () => {
+	updateAccountInfo = async () => {
+		const { identities, network, selectedAddress } = this.props;
+		const { currentNetwork, address, name } = this.state.account;
+		const accountName = identities[selectedAddress].name;
+		if (currentNetwork !== network || address !== selectedAddress || name !== accountName) {
+			const ens = await doENSReverseLookup(selectedAddress, network.provider.chainId);
+			this.setState((state) => ({
+				account: {
+					ens,
+					name: accountName,
+					currentNetwork: network,
+					address: selectedAddress,
+				},
+			}));
+		}
+	};
+
+	toggleAccountsModal = async () => {
 		if (!this.animatingAccountsModal) {
 			this.animatingAccountsModal = true;
 			this.props.toggleAccountsModal();
@@ -460,7 +493,7 @@ class DrawerView extends PureComponent {
 		this.props.toggleReceiveModal();
 	};
 
-	onNetworksModalClose = async manualClose => {
+	onNetworksModalClose = async (manualClose) => {
 		this.toggleNetworksModal();
 		if (!manualClose) {
 			await this.hideDrawer();
@@ -481,9 +514,17 @@ class DrawerView extends PureComponent {
 		this.toggleReceiveModal();
 	};
 
-	trackEvent = event => {
+	trackEvent = (event) => {
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(event);
+		});
+	};
+
+	trackOpenBrowserEvent = () => {
+		const { network } = this.props;
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_OPENED, {
+			referral_source: 'In-app Navigation',
+			chain_id: network,
 		});
 	};
 
@@ -502,6 +543,7 @@ class DrawerView extends PureComponent {
 	goToBrowser = () => {
 		this.props.navigation.navigate('BrowserTabHome');
 		this.hideDrawer();
+		this.trackOpenBrowserEvent();
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_BROWSER);
 	};
 
@@ -523,6 +565,11 @@ class DrawerView extends PureComponent {
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SETTINGS);
 	};
 
+	logOut = () => {
+		this.props.navigation.navigate('Login');
+		this.props.logOut();
+	};
+
 	onPress = async () => {
 		const { passwordSet } = this.props;
 		const { KeyringController } = Engine.context;
@@ -531,10 +578,10 @@ class DrawerView extends PureComponent {
 		if (!passwordSet) {
 			this.props.navigation.navigate('OnboardingRootNav', {
 				screen: 'OnboardingNav',
-				params: { screen: 'Onboarding' }
+				params: { screen: 'Onboarding' },
 			});
 		} else {
-			this.props.navigation.navigate('Login');
+			this.logOut();
 		}
 	};
 
@@ -546,12 +593,12 @@ class DrawerView extends PureComponent {
 				{
 					text: strings('drawer.logout_cancel'),
 					onPress: () => null,
-					style: 'cancel'
+					style: 'cancel',
 				},
 				{
 					text: strings('drawer.logout_ok'),
-					onPress: this.onPress
-				}
+					onPress: this.onPress,
+				},
 			],
 			{ cancelable: false }
 		);
@@ -563,9 +610,9 @@ class DrawerView extends PureComponent {
 			selectedAddress,
 			network,
 			network: {
-				provider: { rpcTarget }
+				provider: { rpcTarget },
 			},
-			frequentRpcList
+			frequentRpcList,
 		} = this.props;
 		if (network.provider.type === RPC) {
 			const blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList);
@@ -598,14 +645,14 @@ class DrawerView extends PureComponent {
 			screen: 'SimpleWebview',
 			params: {
 				url,
-				title
-			}
+				title,
+			},
 		});
 		this.hideDrawer();
 	}
 
 	hideDrawer() {
-		return new Promise(resolve => {
+		return new Promise((resolve) => {
 			this.props.navigation.dispatch(DrawerActions.closeDrawer());
 			setTimeout(() => {
 				resolve();
@@ -626,13 +673,13 @@ class DrawerView extends PureComponent {
 		this.hideDrawer();
 	};
 
-	hasBlockExplorer = providerType => {
+	hasBlockExplorer = (providerType) => {
 		const { frequentRpcList } = this.props;
 		if (providerType === RPC) {
 			const {
 				network: {
-					provider: { rpcTarget }
-				}
+					provider: { rpcTarget },
+				},
 			} = this.props;
 			const blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList);
 			if (blockExplorer) {
@@ -677,9 +724,9 @@ class DrawerView extends PureComponent {
 	getSections = () => {
 		const {
 			network: {
-				provider: { type, rpcTarget }
+				provider: { type, rpcTarget },
 			},
-			frequentRpcList
+			frequentRpcList,
 		} = this.props;
 		let blockExplorer, blockExplorerName;
 		if (type === RPC) {
@@ -693,73 +740,73 @@ class DrawerView extends PureComponent {
 					icon: this.getIcon('globe'),
 					selectedIcon: this.getSelectedIcon('globe'),
 					action: this.goToBrowser,
-					routeNames: ['BrowserView', 'AddBookmark']
+					routeNames: ['BrowserView', 'AddBookmark'],
 				},
 				{
 					name: strings('drawer.wallet'),
 					icon: this.getImageIcon('wallet'),
 					selectedIcon: this.getSelectedImageIcon('wallet'),
 					action: this.showWallet,
-					routeNames: ['WalletView', 'Asset', 'AddAsset', 'Collectible']
+					routeNames: ['WalletView', 'Asset', 'AddAsset', 'Collectible'],
 				},
 				{
 					name: strings('drawer.transaction_history'),
 					icon: this.getFeatherIcon('list'),
 					selectedIcon: this.getSelectedFeatherIcon('list'),
 					action: this.goToTransactionHistory,
-					routeNames: ['TransactionsView']
-				}
+					routeNames: ['TransactionsView'],
+				},
 			],
 			[
 				{
 					name: strings('drawer.share_address'),
 					icon: this.getMaterialIcon('share-variant'),
-					action: this.onShare
+					action: this.onShare,
 				},
 				{
 					name:
 						(blockExplorer && `${strings('drawer.view_in')} ${blockExplorerName}`) ||
 						strings('drawer.view_in_etherscan'),
 					icon: this.getIcon('eye'),
-					action: this.viewInEtherscan
-				}
+					action: this.viewInEtherscan,
+				},
 			],
 			[
 				{
 					name: strings('drawer.settings'),
 					icon: this.getFeatherIcon('settings'),
 					warning: strings('drawer.settings_warning_short'),
-					action: this.showSettings
+					action: this.showSettings,
 				},
 				{
 					name: strings('drawer.help'),
 					icon: this.getFeatherIcon('help-circle'),
-					action: this.showHelp
+					action: this.showHelp,
 				},
 				{
 					name: strings('drawer.request_feature'),
 					icon: this.getFeatherIcon('message-square'),
-					action: this.submitFeedback
+					action: this.submitFeedback,
 				},
 				{
 					name: strings('drawer.logout'),
 					icon: this.getFeatherIcon('log-out'),
-					action: this.logout
-				}
-			]
+					action: this.logout,
+				},
+			],
 		];
 	};
 
 	copyAccountToClipboard = async () => {
 		const { selectedAddress } = this.props;
-		await Clipboard.setString(selectedAddress);
+		await ClipboardManager.setString(selectedAddress);
 		this.toggleReceiveModal();
 		InteractionManager.runAfterInteractions(() => {
 			this.props.showAlert({
 				isVisible: true,
 				autodismiss: 1500,
 				content: 'clipboard-alert',
-				data: { msg: strings('account_details.account_copied_to_clipboard') }
+				data: { msg: strings('account_details.account_copied_to_clipboard') },
 			});
 		});
 	};
@@ -767,12 +814,12 @@ class DrawerView extends PureComponent {
 	onShare = () => {
 		const { selectedAddress } = this.props;
 		Share.open({
-			message: selectedAddress
+			message: selectedAddress,
 		})
 			.then(() => {
 				this.props.protectWalletModalVisible();
 			})
-			.catch(err => {
+			.catch((err) => {
 				Logger.log('Error while trying to share address', err);
 			});
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SHARE_PUBLIC_ADDRESS);
@@ -782,7 +829,7 @@ class DrawerView extends PureComponent {
 		this.setState({ invalidCustomNetwork: null });
 	};
 
-	showInvalidCustomNetworkAlert = network => {
+	showInvalidCustomNetworkAlert = (network) => {
 		InteractionManager.runAfterInteractions(() => {
 			this.setState({ invalidCustomNetwork: network });
 		});
@@ -793,7 +840,7 @@ class DrawerView extends PureComponent {
 	 */
 	renderOnboardingWizard = () => {
 		const {
-			wizard: { step }
+			wizard: { step },
 		} = this.props;
 		return (
 			step === 5 && <OnboardingWizard navigation={this.props.navigation} coachmarkRef={this.browserSectionRef} />
@@ -806,6 +853,12 @@ class DrawerView extends PureComponent {
 			'SetPasswordFlow',
 			this.props.passwordSet ? { screen: 'AccountBackupStep1' } : undefined
 		);
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_ENGAGED, {
+				wallet_protection_required: true,
+				source: 'Modal',
+			});
+		});
 	};
 
 	renderProtectModal = () => (
@@ -846,10 +899,14 @@ class DrawerView extends PureComponent {
 			keyrings,
 			currentCurrency,
 			ticker,
-			seedphraseBackedUp
+			seedphraseBackedUp,
 		} = this.props;
 
-		const { invalidCustomNetwork, showProtectWalletModal } = this.state;
+		const {
+			invalidCustomNetwork,
+			showProtectWalletModal,
+			account: { name, ens },
+		} = this.state;
 
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
 		account.balance = (accounts[selectedAddress] && renderFromWei(accounts[selectedAddress].balance)) || 0;
@@ -887,7 +944,7 @@ class DrawerView extends PureComponent {
 							>
 								<View style={styles.accountNameWrapper}>
 									<Text style={styles.accountName} numberOfLines={1}>
-										{account.name}
+										{isDefaultAccountName(name) && ens ? ens : name}
 									</Text>
 									<Icon name="caret-down" size={24} style={styles.caretDown} />
 								</View>
@@ -950,7 +1007,7 @@ class DrawerView extends PureComponent {
 										style={[styles.menuSection, i === 0 ? styles.noTopBorder : null]}
 									>
 										{section
-											.filter(item => {
+											.filter((item) => {
 												if (!item) return undefined;
 												const { name = undefined } = item;
 												if (name && name.toLowerCase().indexOf('etherscan') !== -1) {
@@ -966,7 +1023,7 @@ class DrawerView extends PureComponent {
 														styles.menuItem,
 														item.routeNames && item.routeNames.includes(currentRoute)
 															? styles.selectedRoute
-															: null
+															: null,
 													]}
 													ref={
 														item.name === strings('drawer.browser') &&
@@ -985,7 +1042,7 @@ class DrawerView extends PureComponent {
 															!item.icon ? styles.noIcon : null,
 															item.routeNames && item.routeNames.includes(currentRoute)
 																? styles.selectedName
-																: null
+																: null,
 														]}
 														numberOfLines={1}
 													>
@@ -1069,7 +1126,7 @@ class DrawerView extends PureComponent {
 	}
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	network: state.engine.backgroundState.NetworkController,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
@@ -1085,20 +1142,18 @@ const mapStateToProps = state => ({
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	tokens: state.engine.backgroundState.TokensController.tokens,
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
-	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
-	seedphraseBackedUp: state.user.seedphraseBackedUp
+	collectibles: collectiblesSelector(state),
+	seedphraseBackedUp: state.user.seedphraseBackedUp,
 });
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch) => ({
 	toggleNetworkModal: () => dispatch(toggleNetworkModal()),
 	toggleAccountsModal: () => dispatch(toggleAccountsModal()),
 	toggleReceiveModal: () => dispatch(toggleReceiveModal()),
-	showAlert: config => dispatch(showAlert(config)),
-	newAssetTransaction: selectedAsset => dispatch(newAssetTransaction(selectedAsset)),
-	protectWalletModalVisible: () => dispatch(protectWalletModalVisible())
+	showAlert: (config) => dispatch(showAlert(config)),
+	newAssetTransaction: (selectedAsset) => dispatch(newAssetTransaction(selectedAsset)),
+	protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
+	logOut: () => dispatch(logOut()),
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(DrawerView);
+export default connect(mapStateToProps, mapDispatchToProps)(DrawerView);

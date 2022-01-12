@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, Animated, Easing } from 'react-native';
 import { colors } from '../../../styles/common';
-import Device from '../../../util/Device';
+import Device from '../../../util/device';
 
 const styles = StyleSheet.create({
 	root: {
@@ -10,17 +10,21 @@ const styles = StyleSheet.create({
 		minHeight: 200,
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
-		paddingBottom: Device.isIphoneX() ? 24 : 0
+		paddingBottom: Device.isIphoneX() ? 24 : 0,
 	},
 	transactionEdit: {
 		position: 'absolute',
 		width: '100%',
-		height: '100%'
+		height: '100%',
 	},
 	transactionReview: {
-		paddingTop: 24
-	}
+		paddingTop: 24,
+	},
 });
+
+//This is a placeholder to represent the custom gas modal.
+//TODO this custom gas modal needs to be removed from the animated tx modal.
+const customGasHeightPlaceHolder = 400;
 
 /**
  * PureComponent that handles most of the animation/transition logic
@@ -42,7 +46,7 @@ class AnimatedTransactionModal extends PureComponent {
 		/**
 		 * Children components
 		 */
-		children: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node), PropTypes.node]).isRequired
+		children: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node), PropTypes.node]).isRequired,
 	};
 
 	state = {
@@ -51,13 +55,13 @@ class AnimatedTransactionModal extends PureComponent {
 			React.Children.toArray(this.props?.children).length > 1 ? new Animated.Value(1) : new Animated.Value(0),
 		width: Device.getDeviceWidth(),
 		rootHeight: null,
-		customGasHeight: null,
+		customGasHeight: customGasHeightPlaceHolder,
 		transactionReviewDataHeight: null,
 		hideGasSelectors: false,
 		hideData: true,
 		advancedCustomGas: false,
 		toAdvancedFrom: 'edit',
-		mode: 'review'
+		mode: 'review',
 	};
 
 	reviewToEditValue = new Animated.Value(0);
@@ -67,7 +71,7 @@ class AnimatedTransactionModal extends PureComponent {
 	xTranslationMappings = {
 		reviewToEdit: this.reviewToEditValue,
 		editToAdvanced: this.editToAdvancedValue,
-		reviewToData: this.reviewToDataValue
+		reviewToData: this.reviewToDataValue,
 	};
 
 	review = () => {
@@ -75,19 +79,19 @@ class AnimatedTransactionModal extends PureComponent {
 		this.onModeChange('review');
 	};
 
-	onModeChange = mode => {
+	onModeChange = (mode) => {
 		if (mode === 'edit') {
 			this.setState({ toAdvancedFrom: 'review' });
 			this.animate({
 				modalEndValue: this.state.advancedCustomGas ? this.getAnimatedModalValueForAdvancedCG() : 0,
 				xTranslationName: 'reviewToEdit',
-				xTranslationEndValue: 1
+				xTranslationEndValue: 1,
 			});
 		} else {
 			this.animate({
 				modalEndValue: 1,
 				xTranslationName: 'reviewToEdit',
-				xTranslationEndValue: 0
+				xTranslationEndValue: 0,
 			});
 		}
 		this.props.onModeChange(mode);
@@ -101,14 +105,14 @@ class AnimatedTransactionModal extends PureComponent {
 				toValue: modalEndValue,
 				duration: 250,
 				easing: Easing.ease,
-				useNativeDriver: true
+				useNativeDriver: true,
 			}),
 			Animated.timing(this.xTranslationMappings[xTranslationName], {
 				toValue: xTranslationEndValue,
 				duration: 250,
 				easing: Easing.ease,
-				useNativeDriver: true
-			})
+				useNativeDriver: true,
+			}),
 		]).start(() => {
 			this.hideComponents(xTranslationName, xTranslationEndValue, 'end');
 		});
@@ -123,12 +127,12 @@ class AnimatedTransactionModal extends PureComponent {
 		//data view is hidden by default because when we switch from review to edit, since view is nested in review, it also gets transformed. It's shown if it's the animation's destination.
 		if (xTranslationName === 'editToAdvanced') {
 			this.setState({
-				hideGasSelectors: xTranslationEndValue === 1 && animationTime === 'end'
+				hideGasSelectors: xTranslationEndValue === 1 && animationTime === 'end',
 			});
 		}
 		if (xTranslationName === 'reviewToData') {
 			this.setState({
-				hideData: xTranslationEndValue === 0 && animationTime === 'end'
+				hideData: xTranslationEndValue === 0 && animationTime === 'end',
 			});
 		}
 	};
@@ -141,10 +145,10 @@ class AnimatedTransactionModal extends PureComponent {
 					{
 						translateY: modalValue.interpolate({
 							inputRange: [0, valueType === 'saveButton' ? this.getAnimatedModalValueForAdvancedCG() : 1],
-							outputRange: outRange
-						})
-					}
-				]
+							outputRange: outRange,
+						}),
+					},
+				],
 			};
 		}
 		let value;
@@ -156,10 +160,10 @@ class AnimatedTransactionModal extends PureComponent {
 				{
 					translateX: value.interpolate({
 						inputRange: [0, 1],
-						outputRange: outRange
-					})
-				}
-			]
+						outputRange: outRange,
+					}),
+				},
+			],
 		};
 	};
 
@@ -170,11 +174,11 @@ class AnimatedTransactionModal extends PureComponent {
 		return 70 / (rootHeight - customGasHeight);
 	};
 
-	saveRootHeight = event => this.setState({ rootHeight: event.nativeEvent.layout.height });
+	saveRootHeight = (event) => this.setState({ rootHeight: event.nativeEvent.layout.height });
 
-	saveCustomGasHeight = event => this.setState({ customGasHeight: event.nativeEvent.layout.height });
+	saveCustomGasHeight = (event) => this.setState({ customGasHeight: event.nativeEvent.layout.height });
 
-	saveTransactionReviewDataHeight = event =>
+	saveTransactionReviewDataHeight = (event) =>
 		!this.state.transactionReviewDataHeight &&
 		this.setState({ transactionReviewDataHeight: event.nativeEvent.layout.height });
 
@@ -191,7 +195,7 @@ class AnimatedTransactionModal extends PureComponent {
 			customGasHeight,
 			advancedCustomGas,
 			hideGasSelectors,
-			toAdvancedFrom
+			toAdvancedFrom,
 		} = this.state;
 		const { ready, children } = this.props;
 		const components = React.Children.toArray(children);
@@ -213,7 +217,7 @@ class AnimatedTransactionModal extends PureComponent {
 				style={[
 					styles.root,
 					modalTransformStyle,
-					originComponent === 'wallet' && { height: customGasHeight + 70 }
+					originComponent === 'wallet' && { height: customGasHeight + 70 },
 				]}
 				onLayout={this.saveRootHeight}
 			>
@@ -228,7 +232,7 @@ class AnimatedTransactionModal extends PureComponent {
 							generateTransform: this.generateTransform,
 							animate: this.animate,
 							saveTransactionReviewDataHeight: this.saveTransactionReviewDataHeight,
-							onModeChange: this.onModeChange
+							onModeChange: this.onModeChange,
 						})}
 					</Animated.View>
 				)}
@@ -246,7 +250,7 @@ class AnimatedTransactionModal extends PureComponent {
 							animate: this.animate,
 							generateTransform: this.generateTransform,
 							getAnimatedModalValueForAdvancedCG: this.getAnimatedModalValueForAdvancedCG,
-							review: this.review
+							review: this.review,
 						})}
 					</Animated.View>
 				)}

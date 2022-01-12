@@ -12,26 +12,26 @@ import { passwordRequirementsMet } from '../../../util/password';
 const styles = StyleSheet.create({
 	mainWrapper: {
 		backgroundColor: colors.white,
-		flex: 1
+		flex: 1,
 	},
 	wrapper: {
 		flex: 1,
-		padding: 16
+		padding: 16,
 	},
 	input: {
 		borderWidth: 2,
 		borderRadius: 5,
 		borderColor: colors.grey000,
-		padding: 10
+		padding: 10,
 	},
 	ctaWrapper: {
-		marginTop: 10
+		marginTop: 10,
 	},
 	enterPassword: {
 		color: colors.black,
 		fontSize: 16,
-		marginBottom: 15
-	}
+		marginBottom: 15,
+	},
 });
 
 /**
@@ -49,13 +49,13 @@ export default class EnterPasswordSimple extends PureComponent {
 		/**
 		 * Object that represents the current route info like params passed to it
 		 */
-		route: PropTypes.object
+		route: PropTypes.object,
 	};
 
 	state = {
 		password: '',
 		loading: false,
-		error: null
+		error: null,
 	};
 
 	mounted = true;
@@ -75,7 +75,7 @@ export default class EnterPasswordSimple extends PureComponent {
 		}
 	};
 
-	onPasswordChange = val => {
+	onPasswordChange = (val) => {
 		this.setState({ password: val });
 	};
 

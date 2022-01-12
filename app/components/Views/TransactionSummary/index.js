@@ -10,8 +10,8 @@ import Text from '../../Base/Text';
 const styles = StyleSheet.create({
 	loader: {
 		backgroundColor: colors.white,
-		height: 10
-	}
+		height: 10,
+	},
 });
 
 export default class TransactionSummary extends PureComponent {
@@ -22,10 +22,10 @@ export default class TransactionSummary extends PureComponent {
 		secondaryTotalAmount: PropTypes.string,
 		gasEstimationReady: PropTypes.bool,
 		onEditPress: PropTypes.func,
-		transactionType: PropTypes.string
+		transactionType: PropTypes.string,
 	};
 
-	renderIfGastEstimationReady = children => {
+	renderIfGastEstimationReady = (children) => {
 		const { gasEstimationReady } = this.props;
 		return !gasEstimationReady ? (
 			<View style={styles.loader}>
@@ -34,6 +34,17 @@ export default class TransactionSummary extends PureComponent {
 		) : (
 			children
 		);
+	};
+
+	renderAmountTitle = () => {
+		const { transactionType } = this.props;
+		if (
+			transactionType === TRANSACTION_TYPES.SENT_COLLECTIBLE ||
+			transactionType === TRANSACTION_TYPES.RECEIVED_COLLECTIBLE
+		) {
+			return strings('transaction.token_id');
+		}
+		return strings('transaction.amount');
 	};
 
 	render = () => {
@@ -66,7 +77,7 @@ export default class TransactionSummary extends PureComponent {
 			<Summary>
 				<Summary.Row>
 					<Text small primary>
-						{strings('transaction.amount')}
+						{this.renderAmountTitle()}
 					</Text>
 					<Text small primary upper>
 						{amount}

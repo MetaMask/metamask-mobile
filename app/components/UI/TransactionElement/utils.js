@@ -10,7 +10,7 @@ import {
 	balanceToFiatNumber,
 	weiToFiatNumber,
 	addCurrencySymbol,
-	toBN
+	toBN,
 } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import { renderFullAddress, safeToChecksumAddress } from '../../../util/address';
@@ -20,34 +20,43 @@ import {
 	getTicker,
 	getActionKey,
 	TRANSACTION_TYPES,
-	calculateEIP1559GasFeeHexes
+	calculateEIP1559GasFeeHexes,
 } from '../../../util/transactions';
-import contractMap from '@metamask/contract-metadata';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { isSwapsNativeAsset } from '../Swaps/utils';
 import { toLowerCaseEquals } from '../../../util/general';
+import Engine from '../../../core/Engine';
 import { util } from '@metamask/controllers';
 const { isEIP1559Transaction } = util;
 
 const { getSwapsContractAddress } = swapsUtils;
 
 function calculateTotalGas(transaction) {
-	const { gas, gasPrice, estimatedBaseFee, maxPriorityFeePerGas, maxFeePerGas } = transaction;
+	const { gas, gasPrice, gasUsed, estimatedBaseFee, maxPriorityFeePerGas, maxFeePerGas } = transaction;
 
 	if (isEIP1559Transaction(transaction)) {
 		const eip1559GasHex = calculateEIP1559GasFeeHexes({
-			gasLimitHex: gas,
+			gasLimitHex: gasUsed || gas,
 			estimatedBaseFeeHex: estimatedBaseFee || '0x0',
 			suggestedMaxPriorityFeePerGasHex: maxPriorityFeePerGas,
-			suggestedMaxFeePerGasHex: maxFeePerGas
+			suggestedMaxFeePerGasHex: maxFeePerGas,
 		});
 		return hexToBN(eip1559GasHex.gasFeeMinHex);
 	}
 	const gasBN = hexToBN(gas);
 	const gasPriceBN = hexToBN(gasPrice);
+	const gasUsedBN = gasUsed ? hexToBN(gasUsed) : null;
 
-	return isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
+	if (gasUsedBN && isBN(gasUsedBN) && isBN(gasPriceBN)) {
+		return gasUsedBN.mul(gasPriceBN);
+	}
+
+	if (isBN(gasBN) && isBN(gasPriceBN)) {
+		return gasBN.mul(gasPriceBN);
+	}
+
+	return toBN('0x0');
 }
 
 function renderGwei(transaction) {
@@ -58,7 +67,7 @@ function renderGwei(transaction) {
 			gasLimitHex: gas,
 			estimatedBaseFeeHex: estimatedBaseFee || '0x0',
 			suggestedMaxPriorityFeePerGasHex: maxPriorityFeePerGas,
-			suggestedMaxFeePerGasHex: maxFeePerGas
+			suggestedMaxFeePerGasHex: maxFeePerGas,
 		});
 
 		return renderToGwei(eip1559GasHex.estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex);
@@ -69,7 +78,7 @@ function renderGwei(transaction) {
 function getTokenTransfer(args) {
 	const {
 		tx: {
-			transaction: { from, to, data, nonce }
+			transaction: { from, to, data, nonce },
 		},
 		conversionRate,
 		currentCurrency,
@@ -78,7 +87,7 @@ function getTokenTransfer(args) {
 		totalGas,
 		actionKey,
 		primaryCurrency,
-		selectedAddress
+		selectedAddress,
 	} = args;
 
 	const [, , encodedAmount] = decodeTransferData('transfer', data);
@@ -116,7 +125,7 @@ function getTokenTransfer(args) {
 
 	let transactionDetails = {
 		renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
-		renderValue: renderToken
+		renderValue: renderToken,
 	};
 	if (primaryCurrency === 'ETH') {
 		transactionDetails = {
@@ -126,7 +135,7 @@ function getTokenTransfer(args) {
 			summaryTotalAmount: `${renderToken} ${strings('unit.divisor')} ${renderFromWei(totalGas)} ${ticker}`,
 			summarySecondaryTotalAmount: totalFiatNumber
 				? `${addCurrencySymbol(totalFiatNumber, currentCurrency)}`
-				: undefined
+				: undefined,
 		};
 	} else {
 		transactionDetails = {
@@ -138,7 +147,7 @@ function getTokenTransfer(args) {
 			summaryTotalAmount: totalFiatNumber ? `${addCurrencySymbol(totalFiatNumber, currentCurrency)}` : undefined,
 			summarySecondaryTotalAmount: `${renderToken} ${strings('unit.divisor')} ${renderFromWei(
 				totalGas
-			)} ${ticker}`
+			)} ${ticker}`,
 		};
 	}
 
@@ -149,7 +158,7 @@ function getTokenTransfer(args) {
 		value: !renderTokenAmount ? strings('transaction.value_not_available') : renderTokenAmount,
 		fiatValue: !!renderTokenFiatAmount && `- ${renderTokenFiatAmount}`,
 		transactionType,
-		nonce
+		nonce,
 	};
 
 	return [transactionElement, transactionDetails];
@@ -158,19 +167,19 @@ function getTokenTransfer(args) {
 function getCollectibleTransfer(args) {
 	const {
 		tx: {
-			transaction: { from, to, data }
+			transaction: { from, to, data },
 		},
 		collectibleContracts,
 		totalGas,
 		conversionRate,
 		currentCurrency,
 		primaryCurrency,
-		selectedAddress
+		selectedAddress,
 	} = args;
 	let actionKey;
 	const [, tokenId] = decodeTransferData('transfer', data);
 	const ticker = getTicker(args.ticker);
-	const collectible = collectibleContracts.find(collectible => toLowerCaseEquals(collectible.address, to));
+	const collectible = collectibleContracts.find((collectible) => toLowerCaseEquals(collectible.address, to));
 	if (collectible) {
 		actionKey = `${strings('transactions.sent')} ${collectible.name}`;
 	} else {
@@ -191,7 +200,7 @@ function getCollectibleTransfer(args) {
 			summaryTotalAmount: `${renderCollectible} ${strings('unit.divisor')} ${renderFromWei(totalGas)} ${strings(
 				'unit.eth'
 			)}`,
-			summarySecondaryTotalAmount: weiToFiat(totalGas, conversionRate, currentCurrency)
+			summarySecondaryTotalAmount: weiToFiat(totalGas, conversionRate, currentCurrency),
 		};
 	} else {
 		transactionDetails = {
@@ -201,7 +210,7 @@ function getCollectibleTransfer(args) {
 			summaryTotalAmount: weiToFiat(totalGas, conversionRate, currentCurrency),
 			summarySecondaryTotalAmount: `${renderCollectible} ${strings('unit.divisor')} ${renderFromWei(
 				totalGas
-			)} ${strings('unit.eth')}`
+			)} ${strings('unit.eth')}`,
 		};
 	}
 
@@ -213,7 +222,7 @@ function getCollectibleTransfer(args) {
 		actionKey,
 		value: `${strings('unit.token_id')}${tokenId}`,
 		fiatValue: collectible ? collectible.symbol : undefined,
-		transactionType
+		transactionType,
 	};
 
 	return [transactionElement, transactionDetails];
@@ -224,7 +233,7 @@ function decodeIncomingTransfer(args) {
 		tx: {
 			transaction: { to, from, value },
 			transferInformation: { symbol, decimals, contractAddress },
-			transactionHash
+			transactionHash,
 		},
 		conversionRate,
 		currentCurrency,
@@ -232,7 +241,7 @@ function decodeIncomingTransfer(args) {
 		totalGas,
 		actionKey,
 		primaryCurrency,
-		selectedAddress
+		selectedAddress,
 	} = args;
 
 	const amount = toBN(value);
@@ -276,7 +285,7 @@ function decodeIncomingTransfer(args) {
 		renderFrom: renderFullAddress(from),
 		renderTo: renderFullAddress(to),
 		transactionHash,
-		transactionType
+		transactionType,
 	};
 	if (primaryCurrency === 'ETH') {
 		transactionDetails = {
@@ -286,7 +295,7 @@ function decodeIncomingTransfer(args) {
 			summaryTotalAmount: `${renderToken} ${strings('unit.divisor')} ${renderFromWei(totalGas)} ${ticker}`,
 			summarySecondaryTotalAmount: totalFiatNumber
 				? `${addCurrencySymbol(totalFiatNumber, currentCurrency)}`
-				: undefined
+				: undefined,
 		};
 	} else {
 		transactionDetails = {
@@ -298,7 +307,7 @@ function decodeIncomingTransfer(args) {
 			summaryTotalAmount: totalFiatNumber ? `${addCurrencySymbol(totalFiatNumber, currentCurrency)}` : undefined,
 			summarySecondaryTotalAmount: `${renderToken} ${strings('unit.divisor')} ${renderFromWei(
 				totalGas
-			)} ${ticker}`
+			)} ${ticker}`,
 		};
 	}
 
@@ -309,7 +318,7 @@ function decodeIncomingTransfer(args) {
 		value: !renderTokenAmount ? strings('transaction.value_not_available') : renderTokenAmount,
 		fiatValue: renderTokenFiatAmount ? `${renderTokenFiatAmount}` : renderTokenFiatAmount,
 		isIncomingTransfer: true,
-		transactionType
+		transactionType,
 	};
 
 	return [transactionElement, transactionDetails];
@@ -320,8 +329,8 @@ async function decodeTransferTx(args) {
 		tx: {
 			transaction,
 			transaction: { from, gas, data, to },
-			transactionHash
-		}
+			transactionHash,
+		},
 	} = args;
 
 	const decodedData = decodeTransferData('transfer', data);
@@ -347,8 +356,8 @@ async function decodeTransferTx(args) {
 			renderTo: renderFullAddress(addressTo),
 			transactionHash,
 			renderGas,
-			renderGasPrice
-		}
+			renderGasPrice,
+		},
 	};
 	return [transactionElement, transactionDetails];
 }
@@ -358,16 +367,16 @@ function decodeTransferFromTx(args) {
 		tx: {
 			transaction,
 			transaction: { gas, data, to },
-			transactionHash
+			transactionHash,
 		},
 		collectibleContracts,
 		conversionRate,
 		currentCurrency,
 		primaryCurrency,
-		selectedAddress
+		selectedAddress,
 	} = args;
 	const [addressFrom, addressTo, tokenId] = decodeTransferData('transferFrom', data);
-	const collectible = collectibleContracts.find(collectible => toLowerCaseEquals(collectible.address, to));
+	const collectible = collectibleContracts.find((collectible) => toLowerCaseEquals(collectible.address, to));
 	let actionKey = args.actionKey;
 	if (collectible) {
 		actionKey = `${strings('transactions.sent')} ${collectible.name}`;
@@ -392,7 +401,7 @@ function decodeTransferFromTx(args) {
 		renderValue: renderCollectible,
 		renderGas: parseInt(gas, 16).toString(),
 		renderGasPrice: renderGwei(transaction),
-		renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`
+		renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
 	};
 
 	if (primaryCurrency === 'ETH') {
@@ -401,7 +410,8 @@ function decodeTransferFromTx(args) {
 			summaryAmount: renderCollectible,
 			summaryFee: `${renderFromWei(totalGas)} ${ticker}`,
 			summarySecondaryTotalAmount: weiToFiat(totalGas, conversionRate, currentCurrency),
-			summaryTotalAmount: `${renderCollectible} ${strings('unit.divisor')} ${renderFromWei(totalGas)} ${ticker}`
+			summaryTotalAmount: `${renderCollectible} ${strings('unit.divisor')} ${renderFromWei(totalGas)} ${ticker}`,
+			transactionType,
 		};
 	} else {
 		transactionDetails = {
@@ -411,7 +421,8 @@ function decodeTransferFromTx(args) {
 			summarySecondaryTotalAmount: `${renderCollectible} ${strings('unit.divisor')} ${renderFromWei(
 				totalGas
 			)} ${ticker}`,
-			summaryTotalAmount: weiToFiat(totalGas, conversionRate, currentCurrency)
+			summaryTotalAmount: weiToFiat(totalGas, conversionRate, currentCurrency),
+			transactionType,
 		};
 	}
 
@@ -421,7 +432,7 @@ function decodeTransferFromTx(args) {
 		actionKey,
 		value: `${strings('unit.token_id')}${tokenId}`,
 		fiatValue: collectible ? collectible.symbol : undefined,
-		transactionType
+		transactionType,
 	};
 
 	return [transactionElement, transactionDetails];
@@ -432,12 +443,12 @@ function decodeDeploymentTx(args) {
 		tx: {
 			transaction,
 			transaction: { value, gas, from },
-			transactionHash
+			transactionHash,
 		},
 		conversionRate,
 		currentCurrency,
 		actionKey,
-		primaryCurrency
+		primaryCurrency,
 	} = args;
 	const ticker = getTicker(args.ticker);
 
@@ -456,7 +467,7 @@ function decodeDeploymentTx(args) {
 		value: renderTotalEth,
 		fiatValue: renderTotalEthFiat,
 		contractDeployment: true,
-		transactionType: TRANSACTION_TYPES.SITE_INTERACTION
+		transactionType: TRANSACTION_TYPES.SITE_INTERACTION,
 	};
 	let transactionDetails = {
 		renderFrom,
@@ -465,7 +476,7 @@ function decodeDeploymentTx(args) {
 		renderValue: `${renderFromWei(value)} ${ticker}`,
 		renderGas: parseInt(gas, 16).toString(),
 		renderGasPrice: renderGwei(transaction),
-		renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`
+		renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
 	};
 
 	if (primaryCurrency === 'ETH') {
@@ -474,7 +485,7 @@ function decodeDeploymentTx(args) {
 			summaryAmount: `${renderFromWei(value)} ${ticker}`,
 			summaryFee: `${renderFromWei(totalGas)} ${ticker}`,
 			summarySecondaryTotalAmount: weiToFiat(totalEth, conversionRate, currentCurrency),
-			summaryTotalAmount: `${renderFromWei(totalEth)} ${ticker}`
+			summaryTotalAmount: `${renderFromWei(totalEth)} ${ticker}`,
 		};
 	} else {
 		transactionDetails = {
@@ -482,7 +493,7 @@ function decodeDeploymentTx(args) {
 			summaryAmount: weiToFiat(value, conversionRate, currentCurrency),
 			summaryFee: weiToFiat(totalGas, conversionRate, currentCurrency),
 			summarySecondaryTotalAmount: `${renderFromWei(totalEth)} ${ticker}`,
-			summaryTotalAmount: weiToFiat(totalEth, conversionRate, currentCurrency)
+			summaryTotalAmount: weiToFiat(totalEth, conversionRate, currentCurrency),
 		};
 	}
 
@@ -494,13 +505,13 @@ function decodeConfirmTx(args) {
 		tx: {
 			transaction,
 			transaction: { value, gas, from, to },
-			transactionHash
+			transactionHash,
 		},
 		conversionRate,
 		currentCurrency,
 		actionKey,
 		primaryCurrency,
-		selectedAddress
+		selectedAddress,
 	} = args;
 
 	const ticker = getTicker(args.ticker);
@@ -514,9 +525,10 @@ function decodeConfirmTx(args) {
 	const renderFrom = renderFullAddress(from);
 	const renderTo = renderFullAddress(to);
 
+	const tokenList = Engine.context.TokenListController.state.tokenList;
 	let symbol;
-	if (renderTo in contractMap) {
-		symbol = contractMap[renderTo].symbol;
+	if (renderTo in tokenList) {
+		symbol = tokenList[renderTo].symbol;
 	}
 	let transactionType;
 	if (actionKey === strings('transactions.approve')) transactionType = TRANSACTION_TYPES.APPROVE;
@@ -535,7 +547,7 @@ function decodeConfirmTx(args) {
 		actionKey: symbol ? `${symbol} ${actionKey}` : actionKey,
 		value: renderTotalEth,
 		fiatValue: renderTotalEthFiat,
-		transactionType
+		transactionType,
 	};
 	let transactionDetails = {
 		renderFrom,
@@ -545,7 +557,7 @@ function decodeConfirmTx(args) {
 		renderGas: parseInt(gas, 16).toString(),
 		renderGasPrice: renderGwei(transaction),
 		renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
-		transactionType
+		transactionType,
 	};
 
 	if (primaryCurrency === 'ETH') {
@@ -554,7 +566,7 @@ function decodeConfirmTx(args) {
 			summaryAmount: renderTotalEth,
 			summaryFee: `${renderFromWei(totalGas)} ${ticker}`,
 			summarySecondaryTotalAmount: weiToFiat(totalValue, conversionRate, currentCurrency),
-			summaryTotalAmount: `${renderFromWei(totalValue)} ${ticker}`
+			summaryTotalAmount: `${renderFromWei(totalValue)} ${ticker}`,
 		};
 	} else {
 		transactionDetails = {
@@ -562,7 +574,7 @@ function decodeConfirmTx(args) {
 			summaryAmount: weiToFiat(totalEth, conversionRate, currentCurrency),
 			summaryFee: weiToFiat(totalGas, conversionRate, currentCurrency),
 			summarySecondaryTotalAmount: `${renderFromWei(totalValue)} ${ticker}`,
-			summaryTotalAmount: weiToFiat(totalValue, conversionRate, currentCurrency)
+			summaryTotalAmount: weiToFiat(totalValue, conversionRate, currentCurrency),
 		};
 	}
 	return [transactionElement, transactionDetails];
@@ -579,16 +591,16 @@ function decodeSwapsTx(args) {
 			id,
 			transaction,
 			transaction: { gas, from, to },
-			transactionHash
+			transactionHash,
 		},
 		tx,
 		contractExchangeRates,
-		assetSymbol
+		assetSymbol,
 	} = args;
 	const swapTransaction = (swapsTransactions && swapsTransactions[id]) || {};
 	const totalGas = calculateTotalGas({
 		...transaction,
-		gas: swapTransaction.gasUsed || gas
+		gas: swapTransaction.gasUsed || gas,
 	});
 	const sourceToken = swapsTokens?.find(({ address }) => address === swapTransaction?.sourceToken?.address);
 	const destinationToken =
@@ -623,7 +635,7 @@ function decodeSwapsTx(args) {
 	if (isSwap) {
 		actionKey = strings('swaps.transaction_label.swap', {
 			sourceToken: sourceToken.symbol,
-			destinationToken: destinationToken.symbol
+			destinationToken: destinationToken.symbol,
 		});
 		notificationKey = strings(
 			`swaps.notification_label.${tx.status === 'submitted' ? 'swap_pending' : 'swap_confirmed'}`,
@@ -632,7 +644,7 @@ function decodeSwapsTx(args) {
 	} else {
 		actionKey = strings('swaps.transaction_label.approve', {
 			sourceToken: sourceToken.symbol,
-			upTo: renderFromTokenMinimalUnit(swapTransaction.upTo, sourceToken.decimals)
+			upTo: renderFromTokenMinimalUnit(swapTransaction.upTo, sourceToken.decimals),
 		});
 		notificationKey = strings(
 			`swaps.notification_label.${tx.status === 'submitted' ? 'approve_pending' : 'approve_confirmed'}`,
@@ -670,7 +682,7 @@ function decodeSwapsTx(args) {
 		notificationKey,
 		value,
 		fiatValue,
-		transactionType: isSwap ? TRANSACTION_TYPES.SITE_INTERACTION : TRANSACTION_TYPES.APPROVE
+		transactionType: isSwap ? TRANSACTION_TYPES.SITE_INTERACTION : TRANSACTION_TYPES.APPROVE,
 	};
 
 	let transactionDetails = {
@@ -680,7 +692,7 @@ function decodeSwapsTx(args) {
 		renderValue: decimalSourceAmount ? `${decimalSourceAmount} ${sourceToken.symbol}` : `0 ${ticker}`,
 		renderGas: parseInt(gas, 16),
 		renderGasPrice: renderGwei(transaction),
-		renderTotalGas: `${totalEthGas} ${ticker}`
+		renderTotalGas: `${totalEthGas} ${ticker}`,
 	};
 
 	if (primaryCurrency === 'ETH') {
@@ -692,7 +704,7 @@ function decodeSwapsTx(args) {
 			summarySecondaryTotalAmount: addCurrencySymbol(
 				renderSourceTokenFiatNumber + weiToFiatNumber(totalGas, conversionRate),
 				currentCurrency
-			)
+			),
 		};
 	} else {
 		transactionDetails = {
@@ -703,7 +715,7 @@ function decodeSwapsTx(args) {
 				renderSourceTokenFiatNumber + weiToFiatNumber(totalGas, conversionRate),
 				currentCurrency
 			),
-			summarySecondaryTotalAmount: cryptoSummaryTotalAmount
+			summarySecondaryTotalAmount: cryptoSummaryTotalAmount,
 		};
 	}
 	return [transactionElement, transactionDetails];

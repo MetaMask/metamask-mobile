@@ -16,7 +16,7 @@ export default class LockManager {
 		this.lockTime = lockTime;
 	}
 
-	handleAppStateChange = async nextAppState => {
+	handleAppStateChange = async (nextAppState) => {
 		// Don't auto-lock
 		if (this.lockTime === -1) {
 			return;
@@ -45,7 +45,7 @@ export default class LockManager {
 		this.appState = nextAppState;
 	};
 
-	setLockedError = error => {
+	setLockedError = (error) => {
 		Logger.log('Failed to lock KeyringController', error);
 	};
 

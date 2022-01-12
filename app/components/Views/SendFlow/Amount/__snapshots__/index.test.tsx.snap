@@ -1,0 +1,33 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Amount should render correctly 1`] = `
+<Amount
+  accounts={
+    Object {
+      "0x2": Object {
+        "balance": "0",
+      },
+    }
+  }
+  chainId="1"
+  collectibleContracts={Array []}
+  collectibles={Array []}
+  contractExchangeRates={Object {}}
+  conversionRate={1}
+  currentCurrency="USD"
+  prepareTransaction={[Function]}
+  primaryCurrency="fiat"
+  providerType="mainnet"
+  selectedAddress="0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b"
+  selectedAsset={Object {}}
+  setSelectedAsset={[Function]}
+  setTransactionObject={[Function]}
+  ticker="ETH"
+  tokens={Array []}
+  transactionState={
+    Object {
+      "selectedAsset": Object {},
+    }
+  }
+/>
+`;

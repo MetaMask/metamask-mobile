@@ -13,12 +13,12 @@ import ActionSheet from 'react-native-actionsheet';
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
-		flex: 1
+		flex: 1,
 	},
 	addContact: {
 		marginHorizontal: 24,
-		marginBottom: 16
-	}
+		marginBottom: 16,
+	},
 });
 
 const EDIT = 'edit';
@@ -43,17 +43,17 @@ class Contacts extends PureComponent {
 		/**
 		 * Network id
 		 */
-		network: PropTypes.string
+		network: PropTypes.string,
 	};
 
 	state = {
-		reloadAddressList: false
+		reloadAddressList: false,
 	};
 
 	actionSheet;
 	contactAddressToRemove;
 
-	componentDidUpdate = prevProps => {
+	componentDidUpdate = (prevProps) => {
 		const { network } = this.props;
 		if (
 			prevProps.addressBook &&
@@ -70,7 +70,7 @@ class Contacts extends PureComponent {
 		}, 100);
 	};
 
-	onAddressLongPress = address => {
+	onAddressLongPress = (address) => {
 		this.contactAddressToRemove = address;
 		this.actionSheet && this.actionSheet.show();
 	};
@@ -83,12 +83,12 @@ class Contacts extends PureComponent {
 		this.setState({ reloadAddressList: false });
 	};
 
-	onAddressPress = address => {
+	onAddressPress = (address) => {
 		this.props.navigation.navigate('ContactForm', {
 			mode: EDIT,
 			editMode: EDIT,
 			address,
-			onDelete: () => this.updateAddressList()
+			onDelete: () => this.updateAddressList(),
 		});
 	};
 
@@ -100,7 +100,7 @@ class Contacts extends PureComponent {
 		this.props.navigation.navigate('ContactsEdit');
 	};
 
-	createActionSheetRef = ref => {
+	createActionSheetRef = (ref) => {
 		this.actionSheet = ref;
 	};
 
@@ -129,16 +129,16 @@ class Contacts extends PureComponent {
 					cancelButtonIndex={1}
 					destructiveButtonIndex={0}
 					// eslint-disable-next-line react/jsx-no-bind
-					onPress={index => (index === 0 ? this.deleteContact() : null)}
+					onPress={(index) => (index === 0 ? this.deleteContact() : null)}
 				/>
 			</SafeAreaView>
 		);
 	};
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
 	addressBook: state.engine.backgroundState.AddressBookController.addressBook,
-	network: state.engine.backgroundState.NetworkController.network
+	network: state.engine.backgroundState.NetworkController.network,
 });
 
 export default connect(mapStateToProps)(Contacts);
