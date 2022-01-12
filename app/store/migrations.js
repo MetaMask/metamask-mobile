@@ -240,6 +240,13 @@ export const migrations = {
 
 		return state;
 	},
+	9: (state) => {
+		state.engine.backgroundState.PreferencesController = {
+			...state.engine.backgroundState.PreferencesController,
+			useStaticTokenList: true,
+		};
+		return state;
+	},
 };
 
-export const version = 8;
+export const version = 9;

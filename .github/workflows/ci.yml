@@ -1,0 +1,47 @@
+name: CI
+on: [push,pull_request]
+jobs:
+  build-lint-audit-test:
+    name: Build, Lint, Audit, and Test
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        node-version: [14.x]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Get Yarn cache directory
+        run: |
+          YARN_CACHE_DIR=$(yarn cache dir)
+          echo $YARN_CACHE_DIR
+          echo "::set-output name=YARN_CACHE_DIR::$YARN_CACHE_DIR"
+        id: yarn-cache-dir
+      - name: Get Node version
+        run: |
+          node -v
+      - name: Get Yarn version
+        run: |
+          YARN_VERSION=$(yarn --version)
+          echo $YARN_VERSION
+          echo "::set-output name=YARN_VERSION::$YARN_VERSION"
+        id: yarn-version
+      - name: Cache yarn dependencies
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.yarn-cache-dir.outputs.YARN_CACHE_DIR }}
+          key: yarn-cache-${{ runner.os }}-${{ steps.yarn-version.outputs.YARN_VERSION }}-${{ hashFiles('yarn.lock') }}
+      - run: yarn setup
+      - run: yarn lint
+      - run: yarn audit:ci
+      - run: yarn test:tgz-check
+      - run: NODE_OPTIONS=--max_old_space_size=20480 yarn test:unit --forceExit --silent
+  all-jobs-pass:
+    name: All jobs pass
+    runs-on: ubuntu-20.04
+    needs:
+      - build-lint-audit-test
+    steps:
+      - run: echo "Great success!"

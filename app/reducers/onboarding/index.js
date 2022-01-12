@@ -1,5 +1,3 @@
-import { REHYDRATE } from 'redux-persist';
-
 const initialState = {
 	events: [],
 };
@@ -10,11 +8,6 @@ const initialState = {
  */
 const onboardingReducer = (state = initialState, action) => {
 	switch (action.type) {
-		case REHYDRATE:
-			if (action.payload && action.payload.onboarding) {
-				return { ...state, ...action.payload.onboarding };
-			}
-			return state;
 		case 'SAVE_EVENT':
 			return {
 				...state,

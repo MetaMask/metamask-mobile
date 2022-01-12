@@ -10,12 +10,14 @@ import StyledButton from '../../UI/StyledButton';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import AntIcons from 'react-native-vector-icons/AntDesign';
 import Device from '../../../util/device';
+import { renderShortText } from '../../../util/general';
 import { toLocaleDate } from '../../../util/date';
 import { renderFromWei } from '../../../util/number';
 import { renderShortAddress } from '../../../util/address';
+import { isMainNet } from '../../../util/networks';
 import etherscanLink from '@metamask/etherscan-link';
 import { addFavoriteCollectible, removeFavoriteCollectible } from '../../../actions/collectibles';
-import { favoritesCollectiblesObjectSelector, isCollectibleInFavorites } from '../../../reducers/collectibles';
+import { isCollectibleInFavoritesSelector } from '../../../reducers/collectibles';
 import Share from 'react-native-share';
 import { PanGestureHandler, gestureHandlerRootHOC, ScrollView } from 'react-native-gesture-handler';
 import AppConstants from '../../../core/AppConstants';
@@ -163,6 +165,7 @@ const CollectibleOverview = ({
 	}, []);
 
 	const renderCollectibleInfo = () => [
+		renderCollectibleInfoRow(strings('collectible.collectible_token_standard'), collectible?.standard),
 		renderCollectibleInfoRow(
 			strings('collectible.collectible_last_sold'),
 			collectible?.lastSale?.event_timestamp &&
@@ -181,7 +184,9 @@ const CollectibleOverview = ({
 		renderCollectibleInfoRow(
 			strings('collectible.collectible_asset_contract'),
 			renderShortAddress(collectible?.address),
-			() => openLink(etherscanLink.createTokenTrackerLink(collectible?.address, chainId))
+			() => {
+				if (isMainNet(chainId)) openLink(etherscanLink.createTokenTrackerLink(collectible?.address, chainId));
+			}
 		),
 	];
 
@@ -303,7 +308,7 @@ const CollectibleOverview = ({
 						</Text>
 						<Text primary noMargin big>
 							{strings('unit.token_id')}
-							{collectible.tokenId}
+							{renderShortText(collectible.tokenId, 8)}
 						</Text>
 					</View>
 
@@ -423,14 +428,12 @@ CollectibleOverview.propTypes = {
 	onTranslation: PropTypes.func,
 };
 
-const mapStateToProps = (state, props) => {
-	const favoriteCollectibles = favoritesCollectiblesObjectSelector(state);
-	return {
-		chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-		selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-		isInFavorites: isCollectibleInFavorites(favoriteCollectibles, props.collectible),
-	};
-};
+const mapStateToProps = (state, props) => ({
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	isInFavorites: isCollectibleInFavoritesSelector(state, props.collectible),
+});
+
 const mapDispatchToProps = (dispatch) => ({
 	addFavoriteCollectible: (selectedAddress, chainId, collectible) =>
 		dispatch(addFavoriteCollectible(selectedAddress, chainId, collectible)),

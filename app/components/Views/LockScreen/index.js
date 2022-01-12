@@ -8,6 +8,7 @@ import SecureKeychain from '../../../core/SecureKeychain';
 import { baseStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
+import { logOut } from '../../../actions/user';
 
 const LOGO_SIZE = 175;
 const styles = StyleSheet.create({
@@ -56,6 +57,7 @@ class LockScreen extends PureComponent {
 		 * Boolean flag that determines if password has been set
 		 */
 		passwordSet: PropTypes.bool,
+		logOut: PropTypes.func,
 	};
 
 	state = {
@@ -93,6 +95,11 @@ class LockScreen extends PureComponent {
 		AppState.removeEventListener('change', this.handleAppStateChange);
 	}
 
+	logOut = () => {
+		this.props.navigation.navigate('Login');
+		this.props.logOut();
+	};
+
 	async unlockKeychain() {
 		this.unlockAttempts++;
 		let credentials = null;
@@ -117,7 +124,7 @@ class LockScreen extends PureComponent {
 				this.animationName && this.animationName.play();
 				Logger.log('Lockscreen::unlockKeychain - playing animations');
 			} else if (this.props.passwordSet) {
-				this.props.navigation.navigate('Login');
+				this.logOut();
 			} else {
 				this.props.navigation.navigate('OnboardingRootNav', {
 					screen: 'OnboardingNav',
@@ -133,7 +140,7 @@ class LockScreen extends PureComponent {
 					error?.message,
 					`Unlock attempts: ${this.unlockAttempts}`
 				);
-				this.props.navigation.navigate('Login');
+				this.logOut();
 			}
 		}
 	}
@@ -205,4 +212,8 @@ const mapStateToProps = (state) => ({
 	passwordSet: state.user.passwordSet,
 });
 
-export default connect(mapStateToProps, null)(LockScreen);
+const mapDispatchToProps = (dispatch) => ({
+	logOut: () => dispatch(logOut()),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(LockScreen);

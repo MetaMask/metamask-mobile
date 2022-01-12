@@ -20,24 +20,32 @@ const initialState = {
 				selectedAddress: '0x1',
 			},
 			CollectiblesController: {
-				collectibleContracts: [
-					{
-						name: 'name',
-						logo: 'logo',
-						address: '0x0',
-						symbol: 'NM',
-						description: 'description',
-						totalSupply: 10,
+				allCollectibleContracts: {
+					'0x1': {
+						1: [
+							{
+								name: 'name',
+								logo: 'logo',
+								address: '0x0',
+								symbol: 'NM',
+								description: 'description',
+								totalSupply: 10,
+							},
+						],
 					},
-				],
-				collectibles: [
-					{
-						address: '0x0',
-						tokenId: 10,
-						name: 'name',
-						image: 'image',
+				},
+				allCollectibles: {
+					'0x1': {
+						1: [
+							{
+								address: '0x0',
+								tokenId: 10,
+								name: 'name',
+								image: 'image',
+							},
+						],
 					},
-				],
+				},
 			},
 		},
 	},

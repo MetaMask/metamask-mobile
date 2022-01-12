@@ -128,6 +128,7 @@ class Approve extends PureComponent {
 		EIP1559GasDataTemp: {},
 		LegacyGasData: {},
 		LegacyGasDataTemp: {},
+		transactionConfirmed: false,
 	};
 
 	computeGasEstimates = (overrideGasPrice, overrideGasLimit, gasEstimateTypeChanged) => {
@@ -413,12 +414,13 @@ class Approve extends PureComponent {
 	onConfirm = async () => {
 		const { TransactionController } = Engine.context;
 		const { transactions, gasEstimateType } = this.props;
-		const { EIP1559GasData, LegacyGasData } = this.state;
+		const { EIP1559GasData, LegacyGasData, transactionConfirmed } = this.state;
 
 		if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
 			if (this.validateGas(EIP1559GasData.totalMaxHex)) return;
 		} else if (this.validateGas(LegacyGasData.totalHex)) return;
-
+		if (transactionConfirmed) return;
+		this.setState({ transactionConfirmed: true });
 		try {
 			const transaction = this.prepareTransaction(this.props.transaction);
 			TransactionController.hub.once(`${transaction.id}:finished`, (transactionMeta) => {
@@ -444,6 +446,7 @@ class Approve extends PureComponent {
 			Logger.error(error, 'error while trying to send transaction (Approve)');
 			this.setState({ transactionHandled: false });
 		}
+		this.setState({ transactionConfirmed: true });
 	};
 
 	onCancel = () => {
@@ -527,6 +530,7 @@ class Approve extends PureComponent {
 			gasSelected,
 			animateOnChange,
 			isAnimating,
+			transactionConfirmed,
 		} = this.state;
 		const { transaction, gasEstimateType, gasFeeEstimates, primaryCurrency, chainId } = this.props;
 
@@ -563,6 +567,7 @@ class Approve extends PureComponent {
 								animateOnChange={animateOnChange}
 								isAnimating={isAnimating}
 								gasEstimationReady={ready}
+								transactionConfirmed={transactionConfirmed}
 							/>
 							{/** View fixes layout issue after removing <CustomGas/> */}
 							<View />

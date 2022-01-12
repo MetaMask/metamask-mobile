@@ -37,3 +37,7 @@ export const LAST_APP_VERSION = `${prefix}LastAppVersion`;
 export const CURRENT_APP_VERSION = `${prefix}CurrentAppVersion`;
 
 export const WHATS_NEW_APP_VERSION_SEEN = `${prefix}WhatsNewAppVersionSeen`;
+
+export const REVIEW_EVENT_COUNT = 'reviewEventCount';
+
+export const REVIEW_SHOWN_TIME = 'reviewShownTime';

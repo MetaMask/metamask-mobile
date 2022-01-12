@@ -48,7 +48,7 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
-import { capitalize, shallowEqual } from '../../../../util/general';
+import { capitalize, shallowEqual, renderShortText } from '../../../../util/general';
 import { isMainNet, getNetworkName, getNetworkNonce, isMainnetByChainId } from '../../../../util/networks';
 import Text from '../../../Base/Text';
 import AnalyticsV2 from '../../../../util/analyticsV2';
@@ -813,7 +813,8 @@ class Confirm extends PureComponent {
 			resetTransaction,
 			gasEstimateType,
 		} = this.props;
-		const { EIP1559TransactionData, LegacyTransactionData } = this.state;
+		const { EIP1559TransactionData, LegacyTransactionData, transactionConfirmed } = this.state;
+		if (transactionConfirmed) return;
 		this.setState({ transactionConfirmed: true, stopUpdateGas: true });
 		try {
 			const transaction = this.prepareTransactionToSend();
@@ -1254,7 +1255,10 @@ class Confirm extends PureComponent {
 							</View>
 							<View>
 								<Text style={styles.collectibleName}>{selectedAsset.name}</Text>
-								<Text style={styles.collectibleTokenId}>{`#${selectedAsset.tokenId}`}</Text>
+								<Text style={styles.collectibleTokenId}>{`#${renderShortText(
+									selectedAsset.tokenId,
+									10
+								)}`}</Text>
 							</View>
 						</View>
 					)}
@@ -1326,7 +1330,7 @@ class Confirm extends PureComponent {
 				<View style={styles.buttonNextWrapper}>
 					<StyledButton
 						type={'confirm'}
-						disabled={!gasEstimationReady || Boolean(errorMessage) || isAnimating}
+						disabled={transactionConfirmed || !gasEstimationReady || Boolean(errorMessage) || isAnimating}
 						containerStyle={styles.buttonNext}
 						onPress={this.onNext}
 						testID={'txn-confirm-send-button'}

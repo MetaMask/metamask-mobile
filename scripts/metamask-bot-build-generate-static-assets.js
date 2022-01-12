@@ -11,6 +11,8 @@ const IMAGES_DIR = 'app/images';
 const IMAGES_MODULES = 'static-logos.js';
 const PACKAGE_JSON = 'package.json';
 
+const blacklistedLogos = { 'DG.svg': true, 'c20.svg': true, 'loom.svg': true, 'USDx.svg': true };
+
 const main = async () => {
 	const cmKeys = Object.keys(contractMetadata);
 	const numberOfAssets = cmKeys.length;
@@ -34,9 +36,12 @@ const main = async () => {
 	for (let i = 0; i < cmKeys.length; i++) {
 		const address = cmKeys[i];
 		const token = contractMetadata[address];
+		const isBlacklisted = blacklistedLogos[token.logo];
 		await fs.appendFileSync(
 			imageModulesPath,
-			`\n\t'${token.logo}': require('metamask/node_modules/@metamask/contract-metadata/images/${token.logo}'),`
+			`\n\t${isBlacklisted ? '//' : ''}'${
+				token.logo
+			}': require('metamask/node_modules/@metamask/contract-metadata/images/${token.logo}'),`
 		);
 	}
 	await fs.appendFileSync(imageModulesPath, '\n};\n');
