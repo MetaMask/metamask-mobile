@@ -99,6 +99,14 @@ export const ANALYTICS_EVENTS_V2 = {
 	// SETTINGS
 	SETTINGS_TOKEN_DETECTION_ON: generateOpt(`Token detection turned ON`),
 	SETTINGS_TOKEN_DETECTION_OFF: generateOpt(`Token detection turned OFF`),
+	SETTINGS_REVEAL_SRP: generateOpt(`Reveal Secret Recovery Phrase Tapped`),
+	// REVEAL_SRP
+	REVEAL_SRP_BACK: generateOpt(`From RevealSRP back to Settings`),
+	REVEAL_SRP_HOLD_TO_REVEAL_MODAL: generateOpt(`Hold To Reveal Modal Opened`),
+	REVEAL_SRP_HOLD_CLOSED: generateOpt(`Hold To Reveal Modal Closed`),
+	REVEAL_SRP_HOLD_CLOSED_AFTER_HOLD: generateOpt(`Hold To Reveal Modal Closed after Holding Button`),
+	REVEAL_SRP_HOLD_SUCCESSFUL: generateOpt(`Hold To Reveal Button Pressed Successfully`),
+	REVEAL_SRP_COPIED: generateOpt(`SRP Copied to Clipboard`),
 	// KEY MANAGMENT INVESTIGATION
 	ANDROID_HARDWARE_KEYSTORE: generateOpt('Android Hardware Keystore'),
 };

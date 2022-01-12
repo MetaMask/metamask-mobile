@@ -27,6 +27,7 @@ import PreventScreenshot from '../../../core/PreventScreenshot';
 import { BIOMETRY_CHOICE } from '../../../constants/storage';
 import ClipboardManager from '../../../core/ClipboardManager';
 import InfoModal from '../../UI/Swaps/components/InfoModal';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -176,6 +177,7 @@ class RevealPrivateCredential extends PureComponent {
 		password: '',
 		warningIncorrectPassword: '',
 		isModalVisible: false,
+		didUserTryHoldButton: false,
 	};
 
 	static navigationOptions = ({ navigation, route }) =>
@@ -242,6 +244,8 @@ class RevealPrivateCredential extends PureComponent {
 	};
 
 	cancel = () => {
+		if (!this.unlocked) AnalyticsV2.trackEvent(AnalyticsV2.REVEAL_SRP_BACK);
+
 		if (this.props.cancel) return this.props.cancel();
 		const { navigation } = this.props;
 		navigation.pop();
@@ -273,6 +277,8 @@ class RevealPrivateCredential extends PureComponent {
 				msg = strings('reveal_credential.unknown_error');
 			}
 
+			AnalyticsV2.trackEvent(AnalyticsV2.REVEAL_SRP_HOLD_CLOSED);
+
 			this.setState({
 				isModalVisible: false,
 				unlocked: false,
@@ -282,6 +288,7 @@ class RevealPrivateCredential extends PureComponent {
 	}
 
 	tryUnlock = () => {
+		AnalyticsV2.trackEvent(AnalyticsV2.REVEAL_SRP_HOLD_TO_REVEAL_MODAL);
 		this.setState({ isModalVisible: true });
 	};
 
@@ -290,6 +297,8 @@ class RevealPrivateCredential extends PureComponent {
 	};
 
 	copyPrivateCredentialToClipboard = async (privateCredentialName) => {
+		AnalyticsV2.trackEvent(AnalyticsV2.REVEAL_SRP_COPIED);
+
 		const { clipboardPrivateCredential } = this.state;
 		await ClipboardManager.setStringExpire(clipboardPrivateCredential);
 
@@ -310,9 +319,12 @@ class RevealPrivateCredential extends PureComponent {
 		const { password } = this.state;
 		this.tryUnlockWithPassword(password);
 
+		AnalyticsV2.trackEvent(AnalyticsV2.REVEAL_SRP_HOLD_SUCCESSFUL);
+
 		this.setState({
 			isUserUnlocked: true,
 			isModalVisible: false,
+			didUserTryHoldButton: false,
 		});
 	};
 
@@ -384,11 +396,24 @@ class RevealPrivateCredential extends PureComponent {
 		);
 	}
 
+	closeModal = () => {
+		if (!this.state.didUserTryHoldButton) {
+			AnalyticsV2.trackEvent(AnalyticsV2.REVEAL_SRP_HOLD_CLOSED_AFTER_HOLD);
+		} else {
+			AnalyticsV2.trackEvent(AnalyticsV2.REVEAL_SRP_HOLD_CLOSED);
+		}
+
+		this.setState({
+			isModalVisible: false,
+			didUserTryHoldButton: false,
+		});
+	};
+
 	renderModal() {
 		return (
 			<InfoModal
 				isVisible={this.state.isModalVisible}
-				toggleModal={() => this.setState({ isModalVisible: false })}
+				toggleModal={this.closeModal}
 				body={
 					<>
 						<Text style={styles.normalText}>
@@ -400,6 +425,7 @@ class RevealPrivateCredential extends PureComponent {
 
 						<TouchableOpacity
 							style={styles.holdButton}
+							onPress={() => this.setState({ didUserTryHoldButton: true })}
 							onLongPress={this.revearlSRP}
 							delayLongPress={2000}
 							testID={'seed-phrase-hold-to-reveal'}

@@ -516,6 +516,7 @@ class Settings extends PureComponent {
 	};
 
 	goToRevealPrivateCredential = () => {
+		AnalyticsV2.trackEvent(AnalyticsV2.SETTINGS_REVEAL_SRP);
 		this.props.navigation.navigate('RevealPrivateCredentialView', { privateCredentialName: 'seed_phrase' });
 	};
 
