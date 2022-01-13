@@ -16,6 +16,11 @@ const initialState = {
 };
 const store = mockStore(initialState);
 
+jest.mock('react-redux', () => ({
+	...jest.requireActual('react-redux'),
+	useSelector: jest.fn().mockImplementation(() => ''),
+}));
+
 describe('AddCustomCollectible', () => {
 	it('should render correctly', () => {
 		const wrapper = shallow(
@@ -23,6 +28,6 @@ describe('AddCustomCollectible', () => {
 				<AddCustomCollectible />
 			</Provider>
 		);
-		expect(wrapper.dive()).toMatchSnapshot();
+		expect(wrapper).toMatchSnapshot();
 	});
 });

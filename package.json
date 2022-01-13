@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "3.2.0",
+  "version": "3.8.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh audit dependencies",
@@ -9,12 +9,13 @@
     "clean:ios": "rm -rf ios/build",
     "pod:install": "command -v pod && (cd ios/ && pod install && cd ..) || echo \"pod command not found\"",
     "clean:android": "rm -rf android/app/build",
-    "clean:node": "rm -rf node_modules && yarn install",
+    "clean:node": "rm -rf node_modules && yarn --frozen-lockfile",
     "clean": "yarn clean:ios && yarn clean:android && yarn clean:node && yarn pod:install",
     "clean-android": "yarn clean:android && yarn clean:node",
     "lint": "eslint '**/*.js' --ignore-path=.prettierignore",
     "lint:fix": "eslint '**/*.js' --fix --ignore-path=.prettierignore",
     "format": "prettier '**/*.{js,json}' --write",
+    "setup": "yarn clean && yarn allow-scripts && ./scripts/postinstall.sh",
     "start:ios": "./scripts/build.sh ios debug",
     "start:ios:e2e": "./scripts/build.sh ios debugE2E",
     "start:ios:device": "./scripts/build.sh ios debug --device",
@@ -37,9 +38,9 @@
     "test:unit": "jest ./app/",
     "test:unit:update": "time jest -u ./app/",
     "test:e2e": "yarn test:e2e:ios && yarn test:e2e:android",
-    "test:e2e:ios": "detox build -c ios.sim.release && detox test -c ios.sim.release",
-    "test:e2e:android": "detox build -c android.emu.release && detox test -c android.emu.release",
-    "postinstall": "./scripts/postinstall.sh",
+    "test:e2e:ios": "detox build -c ios.sim.release && detox test -c ios.sim.release --record-videos failing",
+    "test:e2e:android": "detox build -c android.emu.release && detox test -c android.emu.release --record-videos failing",
+    "test:tgz-check": "./scripts/tgz-check.sh",
     "sourcemaps:android": "node_modules/.bin/react-native bundle --platform android --entry-file index.js --dev false --reset-cache --bundle-output /tmp/bundle.android.js --assets-dest /tmp/ --sourcemap-output sourcemaps/android/index.js.map",
     "sourcemaps:ios": "node_modules/.bin/react-native bundle --platform ios --entry-file index.js --dev false --reset-cache --bundle-output /tmp/bundle.ios.js --assets-dest /tmp/ --sourcemap-output sourcemaps/ios/index.js.map",
     "stacktrace:android": "stack-beautifier sourcemaps/android/index.js.map -t sourcemaps/trace.txt",
@@ -67,6 +68,16 @@
     ]
   },
   "resolutions": {
+    "**/json-schema": "^0.4.0",
+    "@sentry/react-native/**/xmldom": "^0.6.0",
+    "@walletconnect/**/ws": "^7.4.6",
+    "react-native-svg/**/nth-check": "^2.0.1",
+    "**/set-value": "^4.0.1",
+    "**/pac-resolver": "^5.0.0",
+    "**/ansi-regex": "^5.0.1",
+    "**/immer": "^9.0.6",
+    "**/node-fetch": "^2.6.1",
+    "**/node-notifier": "^8.0.1",
     "**/lodash": "^4.17.21",
     "**/ua-parser-js": "^0.7.24",
     "**/elliptic": "^6.5.4",
@@ -75,12 +86,13 @@
     "**/optimist/minimist": "^1.2.5",
     "react-native-level-fs/**/bl": "^1.2.3",
     "react-native-level-fs/**/semver": "^4.3.2",
-    "@metamask/contract-metadata": "^1.30.0"
+    "@metamask/contract-metadata": "^1.30.0",
+    "@exodus/react-native-payments/validator": "^13.7.0"
   },
   "dependencies": {
-    "@exodus/react-native-payments": "https://github.com/wachunei/react-native-payments.git#package-json-hack",
+    "@exodus/react-native-payments": "git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5",
     "@metamask/contract-metadata": "^1.30.0",
-    "@metamask/controllers": "^17.0.0",
+    "@metamask/controllers": "^22.0.0",
     "@metamask/etherscan-link": "^2.0.0",
     "@metamask/swaps-controller": "^6.3.0",
     "@react-native-clipboard/clipboard": "^1.8.4",
@@ -88,10 +100,10 @@
     "@react-native-community/blur": "^3.6.0",
     "@react-native-community/checkbox": "^0.4.2",
     "@react-native-community/cookies": "^5.0.1",
-    "@react-native-community/masked-view": "^0.1.10",
     "@react-native-community/netinfo": "6.0.0",
     "@react-native-community/picker": "^1.8.1",
     "@react-native-community/viewpager": "^3.3.0",
+    "@react-native-masked-view/masked-view": "^0.2.6",
     "@react-navigation/bottom-tabs": "^5.11.11",
     "@react-navigation/compat": "^5.3.20",
     "@react-navigation/drawer": "^5.12.5",
@@ -104,7 +116,7 @@
     "@walletconnect/client": "^1.5.1",
     "@walletconnect/utils": "^1.5.1",
     "asyncstorage-down": "4.2.0",
-    "axios": "^0.21.1",
+    "axios": "^0.21.2",
     "babel-plugin-transform-inline-environment-variables": "0.4.3",
     "babel-plugin-transform-remove-console": "6.9.4",
     "base-64": "1.0.0",
@@ -133,7 +145,7 @@
     "https-browserify": "0.0.1",
     "human-standard-token-abi": "^2.0.0",
     "humanize-duration": "^3.27.0",
-    "improved-yarn-audit": "^2.3.3",
+    "improved-yarn-audit": "^3.0.0",
     "is-url": "^1.2.4",
     "json-rpc-engine": "^6.1.0",
     "json-rpc-middleware-stream": "3.0.0",
@@ -174,15 +186,17 @@
     "react-native-fs": "^2.16.6",
     "react-native-gesture-handler": "^1.10.3",
     "react-native-i18n": "2.0.15",
+    "react-native-in-app-review": "^3.2.3",
     "react-native-jazzicon": "^0.1.2",
     "react-native-keyboard-aware-scroll-view": "^0.9.3",
     "react-native-keychain": "^6.2.0",
     "react-native-level-fs": "3.0.1",
+    "react-native-linear-gradient": "2.5.6",
     "react-native-material-textfield": "0.16.1",
-    "react-native-modal": "^11.5.6",
+    "react-native-modal": "^12.1.0",
     "react-native-os": "^1.2.6",
     "react-native-progress": "3.5.0",
-    "react-native-push-notification": "git+https://github.com/MetaMask/react-native-push-notification.git#androidx",
+    "react-native-push-notification": "git+https://github.com/MetaMask/react-native-push-notification.git#975e0e6757c40e3dce2d1b6dd3d66fc91127ac4c",
     "react-native-qrcode-svg": "5.1.2",
     "react-native-randombytes": "^3.5.3",
     "react-native-reanimated": "^1.13.2",
@@ -193,8 +207,8 @@
     "react-native-search-api": "ombori/react-native-search-api#8/head",
     "react-native-sensors": "5.3.0",
     "react-native-share": "^5.2.2",
-    "react-native-skeleton-placeholder": "^4.0.0",
-    "react-native-splash-screen": "git+https://github.com/MetaMask/react-native-splash-screen.git",
+    "react-native-skeleton-placeholder": "^5.0.0",
+    "react-native-splash-screen": "git+https://github.com/MetaMask/react-native-splash-screen.git#1f45c08c0824cd94fdc6fb699529688a73614fee",
     "react-native-step-indicator": "^1.0.3",
     "react-native-svg": "12.1.1",
     "react-native-swipe-gestures": "1.0.3",
@@ -225,6 +239,7 @@
   "devDependencies": {
     "@babel/core": "^7.8.4",
     "@babel/runtime": "^7.8.4",
+    "@lavamoat/allow-scripts": "^1.0.6",
     "@metamask/eslint-config": "^7.0.0",
     "@metamask/eslint-config-typescript": "^7.0.0",
     "@metamask/mobile-provider": "^2.1.0",
@@ -242,12 +257,11 @@
     "babel-eslint": "10.1.0",
     "babel-jest": "^26.6.3",
     "concat-cli": "4.0.0",
-    "detox": "17.14.9",
-    "enzyme": "3.11.0",
-    "enzyme-adapter-react-16": "1.15.6",
-    "enzyme-to-json": "3.6.2",
-    "eslint": "^7.23.0",
-    "eslint-config-prettier": "^8.1.0",
+    "detox": "18.20.2",
+    "enzyme": "3.9.0",
+    "enzyme-adapter-react-16": "1.10.0",
+    "enzyme-to-json": "3.3.5",
+    "eslint": "^7.14.0",
     "eslint-config-react-native": "4.0.0",
     "eslint-import-resolver-typescript": "^2.4.0",
     "eslint-plugin-import": "^2.22.1",
@@ -305,7 +319,7 @@
         "build": "METAMASK_ENVIRONMENT='production' yarn build:android:release:e2e",
         "type": "android.emulator",
         "device": {
-          "avdName": "Pixel_3_API_29"
+          "avdName": "emulator"
         }
       }
     },
@@ -346,9 +360,19 @@
     "node": "^14.0.0",
     "yarn": "^1.22.0"
   },
-  "rnpm": {
-    "assets": [
-      "./app/fonts"
-    ]
+  "lavamoat": {
+    "allowScripts": {
+      "@sentry/cli": true,
+      "detox": true,
+      "husky": true,
+      "secp256k1": true,
+      "keccak": true,
+      "@lavamoat/preinstall-always-fail": false,
+      "core-js-pure": false,
+      "dtrace-provider": false,
+      "core-js": false,
+      "fsevents": false,
+      "sharp": true
+    }
   }
 }

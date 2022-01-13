@@ -22,6 +22,10 @@ const styles = StyleSheet.create({
 	},
 });
 
+//This is a placeholder to represent the custom gas modal.
+//TODO this custom gas modal needs to be removed from the animated tx modal.
+const customGasHeightPlaceHolder = 400;
+
 /**
  * PureComponent that handles most of the animation/transition logic
  */
@@ -51,7 +55,7 @@ class AnimatedTransactionModal extends PureComponent {
 			React.Children.toArray(this.props?.children).length > 1 ? new Animated.Value(1) : new Animated.Value(0),
 		width: Device.getDeviceWidth(),
 		rootHeight: null,
-		customGasHeight: null,
+		customGasHeight: customGasHeightPlaceHolder,
 		transactionReviewDataHeight: null,
 		hideGasSelectors: false,
 		hideData: true,

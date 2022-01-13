@@ -90,8 +90,10 @@ const Wallet = ({ navigation }: any) => {
 	useEffect(() => {
 		navigation.setOptions(getWalletNavbarOptions('wallet.title', navigation));
 		requestAnimationFrame(async () => {
-			const { AssetsDetectionController, AccountTrackerController } = Engine.context as any;
-			AssetsDetectionController.detectAssets();
+			const { TokenDetectionController, CollectibleDetectionController, AccountTrackerController } =
+				Engine.context as any;
+			TokenDetectionController.detectTokens();
+			CollectibleDetectionController.detectCollectibles();
 			AccountTrackerController.refresh();
 		});
 	}, [navigation]);
@@ -100,13 +102,15 @@ const Wallet = ({ navigation }: any) => {
 		requestAnimationFrame(async () => {
 			setRefreshing(true);
 			const {
-				AssetsDetectionController,
+				TokenDetectionController,
+				CollectibleDetectionController,
 				AccountTrackerController,
 				CurrencyRateController,
 				TokenRatesController,
 			} = Engine.context as any;
 			const actions = [
-				AssetsDetectionController.detectAssets(),
+				TokenDetectionController.detectTokens(),
+				CollectibleDetectionController.detectCollectibles(),
 				AccountTrackerController.refresh(),
 				CurrencyRateController.start(),
 				TokenRatesController.poll(),

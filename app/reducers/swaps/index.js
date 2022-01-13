@@ -52,7 +52,7 @@ export const swapsHasOnboardedSelector = createSelector(swapsStateSelector, (swa
 /**
  * Returns the swaps tokens from the state
  */
-const swapsControllerTokens = (state) => state.engine.backgroundState.SwapsController.tokens;
+export const swapsControllerTokens = (state) => state.engine.backgroundState.SwapsController.tokens;
 const tokensSelectors = (state) => state.engine.backgroundState.TokensController.tokens;
 
 const swapsControllerAndUserTokens = createSelector(swapsControllerTokens, tokensSelectors, (swapsTokens, tokens) => {

@@ -2,7 +2,7 @@
 
 # MetaMask
 
-![BitriseCI](https://app.bitrise.io/app/be69d4368ee7e86d/status.svg?token=OBhpG-OxuDtWGezLhceqhw&branch=develop)
+[![CI](https://github.com/MetaMask/metamask-mobile/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/MetaMask/metamask-mobile/actions/workflows/ci.yml) [![CLA](https://github.com/MetaMask/metamask-mobile/actions/workflows/cla.yml/badge.svg?branch=develop)](https://github.com/MetaMask/metamask-mobile/actions/workflows/cla.yml)
 
 MetaMask is a mobile web browser that provides easy access to websites that use the [Ethereum](https://ethereum.org/) blockchain.
 
@@ -18,14 +18,11 @@ The code is built using React-Native and running code locally requires a Mac or 
 
 -   Install [sentry-cli](https://github.com/getsentry/sentry-cli) tools: `brew install getsentry/tools/sentry-cli`
 
--   Install [Node.js](https://nodejs.org) **version 10 (latest stable) and yarn@1 (latest)**
+-   Install [Node.js](https://nodejs.org) **version 14 (latest stable) and yarn@1 (latest)**
 
     -   If you are using [nvm](https://github.com/creationix/nvm#installation) (recommended) running `nvm use` will automatically choose the right node version for you.
 
--   Install the shared React Native dependencies (`React Native CLI`, _not_ `Expo CLI`)
-
-    -   [macOS](https://facebook.github.io/react-native/docs/getting-started.html#installing-dependencies-1)
-    -   [Linux](https://facebook.github.io/react-native/docs/getting-started.html#installing-dependencies-2)
+-   Install the shared [React Native dependencies](https://reactnative.dev/docs/environment-setup#installing-dependencies) (`React Native CLI`, _not_ `Expo CLI`)
 
 -   Install [cocoapods](https://guides.cocoapods.org/using/getting-started.html) by running:
 
@@ -40,7 +37,7 @@ sudo gem install cocoapods
 ```bash
 git clone ...
 cd metamask-mobile
-yarn install # this will run a lengthy postinstall flow
+yarn setup # not the usual install command, this will run a lengthy postinstall flow
 cd ios && pod install && cd .. # install pods for iOS
 ```
 
@@ -76,7 +73,7 @@ yarn watch
         -   Part of the [libsecret-tools](https://launchpad.net/ubuntu/bionic/+package/libsecret-tools) package on Debian/Ubuntu based distributions.
 -   Install the correct emulator
     -   Follow the instructions at:
-        -   [React Native Getting Started - Android](https://facebook.github.io/react-native/docs/getting-started.html#installing-dependencies-1) _(React Native CLI Quickstart -> [your OS] -> Android)_
+        -   [React Native Getting Started - Android](https://reactnative.dev/docs/environment-setup#installing-dependencies) _(React Native CLI Quickstart -> [your OS] -> Android)_
         -   More details can be found [on the Android Developer site](https://developer.android.com/studio/run/emulator)
     -   You should use the following:
         -   **Android OS Version:** Latest, unless told otherwise
@@ -90,7 +87,7 @@ yarn start:android
 #### iOS
 
 -   Install the iOS dependencies
-    -   [React Native Getting Started - iOS](https://facebook.github.io/react-native/docs/getting-started.html#installing-dependencies-1) _(React Native CLI Quickstart -> [your OS] -> iOS)_
+    -   [React Native Getting Started - iOS](https://reactnative.dev/docs/environment-setup#installing-dependencies) _(React Native CLI Quickstart -> [your OS] -> iOS)_
         -   You do **not** need CocoaPods
 -   Install the correct simulator
     -   **iOS OS Version:** Latest, unless told otherwise
@@ -193,16 +190,16 @@ yarn test:e2e:ios
 yarn test:e2e:android
 ```
 
+### Changing dependencies
+
+Whenever you change dependencies (adding, removing, or updating, either in `package.json` or `yarn.lock`), there are various files that must be kept up-to-date.
+
+* `yarn.lock`:
+  * Run `yarn setup` again after your changes to ensure `yarn.lock` has been properly updated.
+* The `allow-scripts` configuration in `package.json`
+  * Run `yarn allow-scripts auto` to update the `allow-scripts` configuration automatically. This config determines whether the package's install/postinstall scripts are allowed to run. Review each new package to determine whether the install script needs to run or not, testing if necessary.
+  * Unfortunately, `yarn allow-scripts auto` will behave inconsistently on different platforms. macOS and Windows users may see extraneous changes relating to optional dependencies.
+
 ### Architecture
 
 To get a better understanding of the internal architecture of this app take a look at [this diagram](https://github.com/MetaMask/metamask-mobile/blob/develop/architecture.svg).
-
-## License
-
-MetaMask Mobile is an exciting development for our team and our ecosystem. We've always been proud to offer the MetaMask browser extension under the MIT open source software license. We are still working through licensing considerations for the mobile application in light of a new delivery medium and our business goals. We are exploring many models, all with a significant open component, but we have not made any final decisions.
-
-The source code for this beta is currently viewable under the below copyright. A license to use the mobile version will be distributed along with the mobile application. We believe it is important for our users to be able inspect and verify our code for trustworthiness, but we also wish to preserve our licensing options until we're certain what is best for MetaMask, our community, and our ecosystem. If you have any questions or comments, we would really appreciate hearing your feedback – you can reach us at mobile@metamask.io
-
-© ConsenSys AG, 2016-2019
-
-You are granted a limited non-exclusive license to inspect and study the code in this repository. There is no associated right to reproduction granted under this license except where reproduction is necessary for inspection and study of the code. You may not otherwise reproduce, distribute, modify or create derivative works of the code without our prior consent. All other rights are expressly reserved.

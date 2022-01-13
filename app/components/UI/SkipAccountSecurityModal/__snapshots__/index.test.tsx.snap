@@ -96,6 +96,7 @@ exports[`HintModal should render correctly 1`] = `
           "flexDirection": "row",
         }
       }
+      testID="skip-backup-modal"
     >
       <ForwardRef(CheckBoxWithRef)
         boxType="square"
