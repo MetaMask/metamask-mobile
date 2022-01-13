@@ -161,6 +161,7 @@ class Send extends PureComponent {
 	checkForDeeplinks() {
 		const { route } = this.props;
 		const txMeta = route.params?.txMeta;
+		console.log('SEND -- DEEP LINKS', this.props);
 		if (txMeta) {
 			this.handleNewTxMeta(txMeta);
 		} else {
@@ -179,6 +180,7 @@ class Send extends PureComponent {
 			dappTransactionModalVisible,
 			toggleDappTransactionModal,
 		} = this.props;
+		console.log('SEND', this.props);
 		navigation &&
 			navigation.setParams({
 				mode: REVIEW,
