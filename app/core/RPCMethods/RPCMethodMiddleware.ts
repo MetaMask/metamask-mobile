@@ -318,12 +318,10 @@ export const getRpcMethodMiddleware = ({
 			},
 
 			web3_clientVersion: async () => {
-				let version = appVersion;
-				if (!version) {
+				if (!appVersion) {
 					appVersion = await getVersion();
-					version = appVersion;
 				}
-				res.result = `MetaMask/${version}/Beta/Mobile`;
+				res.result = `MetaMask/${appVersion}/Beta/Mobile`;
 			},
 
 			wallet_scanQRCode: () =>
