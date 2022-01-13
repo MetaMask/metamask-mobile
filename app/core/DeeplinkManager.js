@@ -34,12 +34,15 @@ class DeeplinkManager {
 		}
 
 		const functionName = ethUrl.function_name;
+		console.log('DEEP LINK', functionName);
 		if (!functionName) {
 			const txMeta = { ...ethUrl, source: url };
 			if (ethUrl.parameters?.value) {
+				const meta = { ...txMeta, action: 'send-eth' };
+				console.log(meta);
 				this.navigation.navigate('SendView', {
 					screen: 'Send',
-					params: { txMeta: { ...txMeta, action: 'send-eth' } },
+					params: { txMeta: meta },
 				});
 			} else {
 				this.navigation.navigate('SendFlowView', { screen: 'SendTo', params: { txMeta } });
