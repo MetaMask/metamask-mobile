@@ -161,7 +161,6 @@ class Send extends PureComponent {
 	checkForDeeplinks() {
 		const { route } = this.props;
 		const txMeta = route.params?.txMeta;
-
 		if (txMeta) {
 			this.handleNewTxMeta(txMeta);
 		} else {
