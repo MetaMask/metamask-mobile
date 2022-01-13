@@ -44,6 +44,7 @@ import ClipboardManager from '../../../core/ClipboardManager';
 import { collectiblesSelector } from '../../../reducers/collectibles';
 import { getCurrentRoute } from '../../../reducers/navigation';
 import { ScrollView } from 'react-native-gesture-handler';
+import { isZero } from '../../../util/lodash';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -436,7 +437,7 @@ class DrawerView extends PureComponent {
 			let tokenFound = false;
 
 			this.props.tokens.forEach((token) => {
-				if (this.props.tokenBalances[token.address] && !this.props.tokenBalances[token.address]?.isZero()) {
+				if (this.props.tokenBalances[token.address] && !isZero(this.props.tokenBalances[token.address])) {
 					tokenFound = true;
 				}
 			});
