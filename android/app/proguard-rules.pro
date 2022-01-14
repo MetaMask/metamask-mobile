@@ -28,3 +28,7 @@
 
 # react-native-reanimated https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/installation
 -keep class com.facebook.react.turbomodule.** { *; }
+
+# Hermes
+# -keep class com.facebook.hermes.unicode.** { *; }
+# -keep class com.facebook.jni.** { *; }#
