@@ -177,7 +177,6 @@ class RevealPrivateCredential extends PureComponent {
 		password: '',
 		warningIncorrectPassword: '',
 		isModalVisible: false,
-		didUserTryHoldButton: false,
 	};
 
 	static navigationOptions = ({ navigation, route }) =>
@@ -244,7 +243,7 @@ class RevealPrivateCredential extends PureComponent {
 	};
 
 	cancel = () => {
-		if (!this.unlocked) AnalyticsV2.trackEvent(AnalyticsV2.REVEAL_SRP_BACK);
+		if (!this.unlocked) AnalyticsV2.trackEvent(AnalyticsV2.REVEAL_SRP_CANCELLED, { view: 'Enter password' });
 
 		if (this.props.cancel) return this.props.cancel();
 		const { navigation } = this.props;
@@ -266,18 +265,19 @@ class RevealPrivateCredential extends PureComponent {
 				privateCredential = await KeyringController.exportAccount(password, selectedAddress);
 			}
 
-			if (privateCredential && this.state.isUserUnlocked)
+			if (privateCredential && this.state.isUserUnlocked) {
+				AnalyticsV2.trackEvent(AnalyticsV2.REVEAL_SRP_COMPLETED, { action: 'viewed' });
+
 				this.setState({
 					clipboardPrivateCredential: privateCredential,
 					unlocked: true,
 				});
+			}
 		} catch (e) {
 			let msg = strings('reveal_credential.warning_incorrect_password');
 			if (e.toString().toLowerCase() !== WRONG_PASSWORD_ERROR.toLowerCase()) {
 				msg = strings('reveal_credential.unknown_error');
 			}
-
-			AnalyticsV2.trackEvent(AnalyticsV2.REVEAL_SRP_HOLD_CLOSED);
 
 			this.setState({
 				isModalVisible: false,
@@ -287,17 +287,14 @@ class RevealPrivateCredential extends PureComponent {
 		}
 	}
 
-	tryUnlock = () => {
-		AnalyticsV2.trackEvent(AnalyticsV2.REVEAL_SRP_HOLD_TO_REVEAL_MODAL);
-		this.setState({ isModalVisible: true });
-	};
+	tryUnlock = () => this.setState({ isModalVisible: true });
 
 	onPasswordChange = (password) => {
 		this.setState({ password });
 	};
 
 	copyPrivateCredentialToClipboard = async (privateCredentialName) => {
-		AnalyticsV2.trackEvent(AnalyticsV2.REVEAL_SRP_COPIED);
+		AnalyticsV2.trackEvent(AnalyticsV2.REVEAL_SRP_COMPLETED, { action: 'copied to clipboard' });
 
 		const { clipboardPrivateCredential } = this.state;
 		await ClipboardManager.setStringExpire(clipboardPrivateCredential);
@@ -319,12 +316,9 @@ class RevealPrivateCredential extends PureComponent {
 		const { password } = this.state;
 		this.tryUnlockWithPassword(password);
 
-		AnalyticsV2.trackEvent(AnalyticsV2.REVEAL_SRP_HOLD_SUCCESSFUL);
-
 		this.setState({
 			isUserUnlocked: true,
 			isModalVisible: false,
-			didUserTryHoldButton: false,
 		});
 	};
 
@@ -397,15 +391,10 @@ class RevealPrivateCredential extends PureComponent {
 	}
 
 	closeModal = () => {
-		if (!this.state.didUserTryHoldButton) {
-			AnalyticsV2.trackEvent(AnalyticsV2.REVEAL_SRP_HOLD_CLOSED_AFTER_HOLD);
-		} else {
-			AnalyticsV2.trackEvent(AnalyticsV2.REVEAL_SRP_HOLD_CLOSED);
-		}
+		AnalyticsV2.trackEvent(AnalyticsV2.REVEAL_SRP_CANCELLED, { view: 'Hold to reveal' });
 
 		this.setState({
 			isModalVisible: false,
-			didUserTryHoldButton: false,
 		});
 	};
 
@@ -425,7 +414,6 @@ class RevealPrivateCredential extends PureComponent {
 
 						<TouchableOpacity
 							style={styles.holdButton}
-							onPress={() => this.setState({ didUserTryHoldButton: true })}
 							onLongPress={this.revearlSRP}
 							delayLongPress={2000}
 							testID={'seed-phrase-hold-to-reveal'}
