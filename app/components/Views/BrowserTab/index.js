@@ -686,10 +686,6 @@ export const BrowserTab = (props) => {
 				},
 
 				metamask_removeFavorite: async () => {
-					// TODO: Figure out how to handle the asynchronous resolve behavior while waiting for user to confirm Alert
-					// While waiting for Alert confirmation, react-native-webview blocks the main thread, which prevents app interaction
-					// Temp solution to resolve immediately.
-					res.result = { favorites: props.bookmarks };
 					if (!isHomepage()) {
 						throw ethErrors.provider.unauthorized('Forbidden.');
 					}
@@ -708,9 +704,9 @@ export const BrowserTab = (props) => {
 							onPress: () => {
 								const bookmark = { url: req.params[0] };
 								props.removeBookmark(bookmark);
-								// res.result = {
-								// 	favorites: props.bookmarks,
-								// };
+								res.result = {
+									favorites: props.bookmarks,
+								};
 							},
 						},
 					]);

@@ -75,7 +75,6 @@ PODS:
     - FlipperKit/FlipperKitNetworkPlugin
   - fmt (6.2.1)
   - glog (0.3.5)
-  - hermes-engine (0.9.0)
   - libevent (2.1.12)
   - lottie-ios (2.5.3)
   - lottie-react-native (3.1.0):
@@ -93,12 +92,6 @@ PODS:
     - DoubleConversion
     - fmt (~> 6.2.1)
     - glog
-  - RCT-Folly/Futures (2021.06.28.00-v2):
-    - boost
-    - DoubleConversion
-    - fmt (~> 6.2.1)
-    - glog
-    - libevent
   - RCTRequired (0.66.3)
   - RCTSearchApi (1.0.1):
     - React
@@ -277,17 +270,6 @@ PODS:
     - React-logger (= 0.66.3)
     - React-perflogger (= 0.66.3)
     - React-runtimeexecutor (= 0.66.3)
-  - React-hermes (0.66.3):
-    - DoubleConversion
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2021.06.28.00-v2)
-    - RCT-Folly/Futures (= 2021.06.28.00-v2)
-    - React-cxxreact (= 0.66.3)
-    - React-jsi (= 0.66.3)
-    - React-jsiexecutor (= 0.66.3)
-    - React-jsinspector (= 0.66.3)
-    - React-perflogger (= 0.66.3)
   - React-jsi (0.66.3):
     - boost (= 1.76.0)
     - DoubleConversion
@@ -529,8 +511,6 @@ DEPENDENCIES:
   - FlipperKit/FlipperKitUserDefaultsPlugin (= 0.93.0)
   - FlipperKit/SKIOSNetworkPlugin (= 0.93.0)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
-  - hermes-engine (~> 0.9.0)
-  - libevent (~> 2.1.12)
   - lottie-react-native (from `../node_modules/lottie-react-native`)
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCTRequired (from `../node_modules/react-native/Libraries/RCTRequired`)
@@ -543,7 +523,6 @@ DEPENDENCIES:
   - React-Core/RCTWebSocket (from `../node_modules/react-native/`)
   - React-CoreModules (from `../node_modules/react-native/React/CoreModules`)
   - React-cxxreact (from `../node_modules/react-native/ReactCommon/cxxreact`)
-  - React-hermes (from `../node_modules/react-native/ReactCommon/hermes`)
   - React-jsi (from `../node_modules/react-native/ReactCommon/jsi`)
   - React-jsiexecutor (from `../node_modules/react-native/ReactCommon/jsiexecutor`)
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector`)
@@ -614,7 +593,6 @@ SPEC REPOS:
     - Flipper-RSocket
     - FlipperKit
     - fmt
-    - hermes-engine
     - libevent
     - lottie-ios
     - OpenSSL-Universal
@@ -654,8 +632,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/React/CoreModules"
   React-cxxreact:
     :path: "../node_modules/react-native/ReactCommon/cxxreact"
-  React-hermes:
-    :path: "../node_modules/react-native/ReactCommon/hermes"
   React-jsi:
     :path: "../node_modules/react-native/ReactCommon/jsi"
   React-jsiexecutor:
@@ -786,7 +762,6 @@ SPEC CHECKSUMS:
   FlipperKit: aec2d931adeee48a07bab1ea8bcc8a6bb87dfce4
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
   glog: 5337263514dd6f09803962437687240c5dc39aa4
-  hermes-engine: bf7577d12ac6ccf53ab8b5af3c6ccf0dd8458c5c
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   lottie-ios: a50d5c0160425cd4b01b852bb9578963e6d92d31
   lottie-react-native: 7ca15c46249b61e3f9ffcf114cb4123e907a2156
@@ -800,7 +775,6 @@ SPEC CHECKSUMS:
   React-Core: 008d2638c4f80b189c8e170ff2d241027ec517fd
   React-CoreModules: 91c9a03f4e1b74494c087d9c9a29e89a3145c228
   React-cxxreact: 9c462fb6d59f865855e2dee2097c7d87b3d2de49
-  React-hermes: 79103a3907b81b7eeb394b37612b991076d27472
   React-jsi: 4de8b8d70ba4ed841eb9b772bdb719f176387e21
   React-jsiexecutor: 433a691aee158533a6a6ee9c86cb4a1684fa2853
   React-jsinspector: d9c8eb0b53f0da206fed56612b289fec84991157
@@ -859,6 +833,6 @@ SPEC CHECKSUMS:
   Yoga: 32a18c0e845e185f4a2a66ec76e1fd1f958f22fa
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: d0772dd19245ca889758f0486fc3c33665528bc5
+PODFILE CHECKSUM: 10c5b5566b01b38288b437803f95550bbf46f130
 
 COCOAPODS: 1.11.2
