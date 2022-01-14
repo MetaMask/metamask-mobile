@@ -10,6 +10,7 @@ import SimpleNotification from './SimpleNotification';
 import { currentNotificationSelector } from '../../../reducers/notification';
 
 import { findRouteNameFromNavigatorState } from '../../../util/general';
+import usePrevious from '../../hooks/usePrevious';
 
 const { TRANSACTION, SIMPLE } = notificationTypes;
 
@@ -24,14 +25,6 @@ function Notification({
 }) {
 	const notificationAnimated = useRef(new Animated.Value(200)).current;
 	const routes = useNavigationState((state) => state.routes);
-
-	const usePrevious = (value) => {
-		const ref = useRef();
-		useEffect(() => {
-			ref.current = value;
-		});
-		return ref.current;
-	};
 
 	const prevNotificationIsVisible = usePrevious(currentNotificationIsVisible);
 
