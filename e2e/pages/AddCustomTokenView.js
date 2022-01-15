@@ -3,7 +3,6 @@ import TestHelpers from '../helpers';
 const CUSTOM_TOKEN_CONTAINER_ID = 'add-custom-token-screen';
 const TOKEN_ADDRESS_INPUT_BOX_ID = 'input-token-address';
 const TOKEN_ADDRESS_SYMBOL_ID = 'input-token-symbol';
-
 const NFT_ADDRESS_INPUT_BOX_ID = 'input-collectible-address';
 const NFT_ADDRESS_WARNING_MESSAGE_ID = 'collectible-address-warning';
 const NFT_IDENTIFIER_WARNING_MESSAGE_ID = 'collectible-identifier-warning';
@@ -36,6 +35,10 @@ export default class AddCustomTokenView {
 	}
 	static async tapTokenSymbolInputBox() {
 		await TestHelpers.tap(TOKEN_ADDRESS_SYMBOL_ID);
+	}
+
+	static async tapTokenSymbolText() {
+		await TestHelpers.tapByText('Token Symbol');
 	}
 
 	static async typeTokenAddress(address) {

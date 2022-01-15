@@ -225,7 +225,7 @@ describe('Wallet Tests', () => {
 
 		// Tap to focus outside of text input field
 		await TestHelpers.delay(700);
-		await AddCustomTokenView.tapCustomTokenTab();
+		await AddCustomTokenView.tapTokenSymbolText();
 		await TestHelpers.delay(700);
 		// Check that token decimals warning is displayed
 		await AddCustomTokenView.isTokenPrecisionWarningVisible();
@@ -241,7 +241,7 @@ describe('Wallet Tests', () => {
 		// Type correct token address
 
 		await AddCustomTokenView.typeTokenAddress(TOKEN_ADDRESS);
-		await AddCustomTokenView.tapTokenSymbolInputBox();
+		await AddCustomTokenView.tapTokenSymbolText();
 		await AddCustomTokenView.tapCustomTokenImportButton();
 
 		// Check that we are on the wallet screen
