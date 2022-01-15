@@ -9,7 +9,7 @@ const NFT_ADDRESS_WARNING_MESSAGE_ID = 'collectible-address-warning';
 const NFT_IDENTIFIER_WARNING_MESSAGE_ID = 'collectible-identifier-warning';
 
 const TOKEN_ADDRESS_WARNING_MESSAGE_ID = 'token-address-warning';
-const TOKEN_SYMBOL_WARNING_MESSAGE_ID = 'token-decimals-warning';
+const TOKEN_PRECISION_WARNING_MESSAGE_ID = 'token-decimals-warning';
 const BACK_BUTTON_ID = 'asset-back-button';
 const NFT_IDENTIFIER_INPUT_BOX_ID = 'input-token-decimals';
 const TOKEN_IMPORT_BUTTON_ID = 'add-custom-asset-confirm-button';
@@ -34,7 +34,6 @@ export default class AddCustomTokenView {
 			await TestHelpers.tap(BACK_BUTTON_ID);
 		}
 	}
-	TOKEN_ADDRESS_SYMBOL_ID;
 	static async tapTokenSymbolInputBox() {
 		await TestHelpers.tap(TOKEN_ADDRESS_SYMBOL_ID);
 	}
@@ -83,7 +82,7 @@ export default class AddCustomTokenView {
 	static async isTokenAddressWarningVisible() {
 		await TestHelpers.checkIfVisible(TOKEN_ADDRESS_WARNING_MESSAGE_ID);
 	}
-	static async isTokenSymbolWarningVisible() {
-		await TestHelpers.checkIfVisible(TOKEN_SYMBOL_WARNING_MESSAGE_ID);
+	static async isTokenPrecisionWarningVisible() {
+		await TestHelpers.checkIfVisible(TOKEN_PRECISION_WARNING_MESSAGE_ID);
 	}
 }
