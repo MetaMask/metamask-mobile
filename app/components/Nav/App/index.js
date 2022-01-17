@@ -22,7 +22,7 @@ import MetaMaskAnimation from '../../UI/MetaMaskAnimation';
 import SimpleWebview from '../../Views/SimpleWebview';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager';
 import Engine from '../../../core/Engine';
-import { BranchSubscriber } from 'react-native-branch';
+import branch from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
@@ -104,8 +104,6 @@ const OnboardingRootNav = () => (
 );
 
 const App = ({ userLoggedIn }) => {
-	const unsubscribeFromBranch = useRef();
-
 	const animation = useRef(null);
 	const animationName = useRef(null);
 	const opacity = useRef(new Animated.Value(1)).current;
@@ -119,23 +117,27 @@ const App = ({ userLoggedIn }) => {
 	const triggerCheckedAuth = () => dispatch(checkedAuth('onboarding'));
 	const triggerSetCurrentRoute = (route) => dispatch(setCurrentRoute(route));
 
-	const handleDeeplink = useCallback(({ error, params, uri }) => {
-		if (error) {
-			trackErrorAsAnalytics(error, 'Branch:');
-		}
-		const deeplink = params?.['+non_branch_link'] || uri || null;
-		try {
-			if (deeplink) {
-				const { KeyringController } = Engine.context;
-				const isUnlocked = KeyringController.isUnlocked();
-				isUnlocked
-					? SharedDeeplinkManager.parse(deeplink, { origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK })
-					: SharedDeeplinkManager.setDeeplink(deeplink);
-			}
-		} catch (e) {
-			Logger.error(e, `Deeplink: Error parsing deeplink`);
-		}
-	}, []);
+	useEffect(
+		() =>
+			branch.subscribe(({ error, params, uri }) => {
+				if (error) {
+					trackErrorAsAnalytics(error, 'Branch:');
+				}
+				const deeplink = params?.['+non_branch_link'] || uri || null;
+				try {
+					if (deeplink) {
+						const { KeyringController } = Engine.context;
+						const isUnlocked = KeyringController.isUnlocked();
+						isUnlocked
+							? SharedDeeplinkManager.parse(deeplink, { origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK })
+							: SharedDeeplinkManager.setDeeplink(deeplink);
+					}
+				} catch (e) {
+					Logger.error(e, `Deeplink: Error parsing deeplink`);
+				}
+			}),
+		[]
+	);
 
 	const branchSubscriber = useMemo(
 		() =>
@@ -155,10 +157,6 @@ const App = ({ userLoggedIn }) => {
 				navigator.current?.dispatch?.(CommonActions.navigate(params));
 			},
 		});
-
-		unsubscribeFromBranch.current = branchSubscriber.subscribe();
-
-		return () => unsubscribeFromBranch.current?.();
 	}, [branchSubscriber]);
 
 	useEffect(() => {
