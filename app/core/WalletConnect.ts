@@ -5,10 +5,10 @@ import AsyncStorage from '@react-native-community/async-storage';
 import { WalletDevice } from '@metamask/controllers/';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
-import Engine from '../Engine';
-import Logger from '../../util/Logger';
-import { CLIENT_OPTIONS, WALLET_CONNECT_ORIGIN } from '../../util/walletconnect';
-import { WALLETCONNECT_SESSIONS } from '../../constants/storage';
+import Engine from './Engine';
+import Logger from '../util/Logger';
+import { CLIENT_OPTIONS, WALLET_CONNECT_ORIGIN } from '../util/walletconnect';
+import { WALLETCONNECT_SESSIONS } from '../constants/storage';
 import {
 	ETH_SEND_TRANSACTION,
 	ETH_SIGN,
@@ -16,7 +16,7 @@ import {
 	ETH_SIGN_TYPED_DATA_V3,
 	ETH_SIGN_TYPED_DATA_V4,
 	PERSONAL_SIGN,
-} from '../../constants/RPCMethods';
+} from '../constants/RPCMethods';
 
 /**
  * @type IPeerMeta

@@ -1,64 +1,14 @@
 import React, { PureComponent } from 'react';
-import { Alert, ScrollView, SafeAreaView, StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { Alert, ScrollView, SafeAreaView, View, Text, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import WebsiteIcon from '../../UI/WebsiteIcon';
 import AsyncStorage from '@react-native-community/async-storage';
 import ActionSheet from 'react-native-actionsheet';
-import WalletConnect from '../../../core/WalletConnect/WalletConnect';
+import WalletConnect from '../../../core/WalletConnect';
 import Logger from '../../../util/Logger';
 import { WALLETCONNECT_SESSIONS } from '../../../constants/storage';
-
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-	},
-	scrollviewContent: {
-		paddingTop: 20,
-	},
-	websiteIcon: {
-		width: 44,
-		height: 44,
-	},
-	row: {
-		flexDirection: 'row',
-		paddingVertical: 10,
-		paddingHorizontal: 20,
-		borderBottomColor: colors.grey000,
-		borderBottomWidth: 1,
-	},
-	info: {
-		marginLeft: 20,
-		flex: 1,
-	},
-	name: {
-		...fontStyles.bold,
-		fontSize: 16,
-		marginBottom: 10,
-	},
-	desc: {
-		marginBottom: 10,
-		...fontStyles.normal,
-		fontSize: 12,
-	},
-	url: {
-		marginBottom: 10,
-		...fontStyles.normal,
-		fontSize: 12,
-		color: colors.fontSecondary,
-	},
-	emptyWrapper: {
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	emptyText: {
-		...fontStyles.normal,
-		fontSize: 16,
-	},
-});
+import styles from './styles';
 
 /**
  * View that displays all the active WalletConnect Sessions

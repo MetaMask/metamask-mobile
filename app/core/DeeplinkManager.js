@@ -4,7 +4,7 @@ import URL from 'url-parse';
 import qs from 'qs';
 import { InteractionManager, Alert } from 'react-native';
 import { parse } from 'eth-url-parser';
-import WalletConnect from './WalletConnect/WalletConnect';
+import WalletConnect from './WalletConnect';
 import AppConstants from './AppConstants';
 import Engine from './Engine';
 import { generateApproveData } from '../util/transactions';
