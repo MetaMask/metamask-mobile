@@ -147,7 +147,6 @@
     "human-standard-token-abi": "^2.0.0",
     "humanize-duration": "^3.27.0",
     "improved-yarn-audit": "^3.0.0",
-    "intl": "^1.2.5",
     "is-url": "^1.2.4",
     "json-rpc-engine": "^6.1.0",
     "json-rpc-middleware-stream": "3.0.0",
