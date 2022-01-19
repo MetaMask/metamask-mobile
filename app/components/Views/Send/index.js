@@ -370,7 +370,7 @@ class Send extends PureComponent {
 		} catch (e) {
 			/**
 			 * If we can't get the network type we don't need to throw an error,
-			 * since it can still be a RPC network
+			 * since it can still be a custom RPC network
 			 */
 		}
 
