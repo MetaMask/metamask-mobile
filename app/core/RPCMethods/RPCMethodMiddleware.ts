@@ -4,10 +4,10 @@ import { createAsyncMiddleware } from 'json-rpc-engine';
 import { ethErrors } from 'eth-json-rpc-errors';
 import RPCMethods from './index.js';
 import { RPC } from '../../constants/network';
-import { NetworksChainId } from '@metamask/controllers';
+import { NetworksChainId, NetworkType } from '@metamask/controllers';
 import Networks, { blockTagParamIndex, getAllNetworks } from '../../util/networks';
 import { polyfillGasPrice } from './utils';
-import Engine from '../Engine';
+import ImportedEngine from '../Engine';
 import { strings } from '../../../locales/i18n';
 import { resemblesAddress } from '../../util/address';
 import { store } from '../../store';
@@ -85,6 +85,7 @@ export const getRpcMethodMiddleware = ({
 }: RPCMethodsMiddleParameters) =>
 	// all user facing RPC calls not implemented by the provider
 	createAsyncMiddleware(async (req: any, res: any, next: any) => {
+		const Engine = ImportedEngine as any;
 		const getAccounts = async () => {
 			const {
 				privacy: { privacyMode },
@@ -109,7 +110,7 @@ export const getRpcMethodMiddleware = ({
 			eth_chainId: async () => {
 				const { provider } = Engine.context.NetworkController.state;
 				const networkProvider = provider;
-				const networkType = provider.type;
+				const networkType = provider.type as NetworkType;
 				const isInitialNetwork = networkType && getAllNetworks().includes(networkType);
 				let chainId;
 
@@ -131,7 +132,7 @@ export const getRpcMethodMiddleware = ({
 
 				const isInitialNetwork = networkType && getAllNetworks().includes(networkType);
 				if (isInitialNetwork) {
-					res.result = Networks[networkType].networkId;
+					res.result = (Networks as any)[networkType].networkId;
 				} else {
 					return next();
 				}
@@ -251,7 +252,7 @@ export const getRpcMethodMiddleware = ({
 					network,
 				} = Engine.context.NetworkController.state;
 
-				const activeChainId = networkType === RPC ? network : Networks[networkType].networkId;
+				const activeChainId = networkType === RPC ? network : (Networks as any)[networkType].networkId;
 				// eslint-disable-next-line
 				if (chainId && chainId != activeChainId) {
 					throw ethErrors.rpc.invalidRequest(
@@ -289,7 +290,7 @@ export const getRpcMethodMiddleware = ({
 					network,
 				} = Engine.context.NetworkController.state;
 
-				const activeChainId = networkType === RPC ? network : Networks[networkType].networkId;
+				const activeChainId = networkType === RPC ? network : (Networks as any)[networkType].networkId;
 
 				// eslint-disable-next-line eqeqeq
 				if (chainId && chainId != activeChainId) {
