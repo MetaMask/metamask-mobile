@@ -321,7 +321,7 @@ export const getRpcMethodMiddleware = ({
 				if (!appVersion) {
 					appVersion = await getVersion();
 				}
-				res.result = `MetaMask/${appVersion}/Beta/Mobile`;
+				res.result = `MetaMask/${appVersion}/Mobile`;
 			},
 
 			wallet_scanQRCode: () =>
