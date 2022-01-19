@@ -29,6 +29,7 @@ import { MAINNET } from '../../../constants/network';
 import BigNumber from 'bignumber.js';
 import { WalletDevice } from '@metamask/controllers/';
 import { getTokenList } from '../../../reducers/tokens';
+import { getNetworkTypeById } from '../../../util/networks';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -352,8 +353,31 @@ class Send extends PureComponent {
 	 * @param switchToChainId - Corresponding chain id for new network
 	 */
 	handleNetworkSwitch = (switchToChainId) => {
+		try {
+			const networkType = getNetworkTypeById(switchToChainId);
+			if (networkType) {
+				const { NetworkController, CurrencyRateController } = Engine.context;
+				CurrencyRateController.setNativeCurrency('ETH');
+				NetworkController.setProviderType(networkType);
+				this.props.showAlert({
+					isVisible: true,
+					autodismiss: 5000,
+					content: 'clipboard-alert',
+					data: { msg: strings('send.warn_network_change') + networkType },
+				});
+				return;
+			}
+		} catch (e) {
+			/**
+			 * If we can't get the network type we don't need to throw an error,
+			 * since it can still be a RPC network
+			 */
+		}
+
 		const { frequentRpcList } = this.props;
+
 		const rpc = frequentRpcList.find(({ chainId }) => chainId === switchToChainId);
+
 		if (rpc) {
 			const { rpcUrl, chainId, ticker, nickname } = rpc;
 			const { NetworkController, CurrencyRateController } = Engine.context;
