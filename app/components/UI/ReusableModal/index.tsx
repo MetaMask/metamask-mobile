@@ -7,13 +7,13 @@ import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import Animated, {
 	call,
 	eq,
-	Easing,
+	EasingNode,
 	not,
 	block,
 	cond,
 	clockRunning,
 	Value,
-	interpolate,
+	interpolateNode,
 	useCode,
 	set,
 } from 'react-native-reanimated';
@@ -106,7 +106,7 @@ const ReusableModal = forwardRef<ReusableModalRef, Props>((props, ref) => {
 	const animatedStyles: StyleSheet.NamedStyles<any> = useMemo(() => {
 		return {
 			overlayBackground: {
-				opacity: interpolate(translateY, {
+				opacity: interpolateNode(translateY, {
 					inputRange: [topOffset, bottomOffset],
 					outputRange: [1, 0],
 				}) as any,
@@ -115,7 +115,7 @@ const ReusableModal = forwardRef<ReusableModalRef, Props>((props, ref) => {
 				...StyleSheet.absoluteFillObject,
 				transform: [
 					{
-						translateY: interpolate(translateY, {
+						translateY: interpolateNode(translateY, {
 							inputRange: [0, 1],
 							outputRange: [0, bottomOffset],
 						}) as any,
@@ -142,7 +142,7 @@ const ReusableModal = forwardRef<ReusableModalRef, Props>((props, ref) => {
 						timing({
 							clock,
 							from: offset,
-							easing: Easing.inOut(Easing.ease),
+							easing: EasingNode.inOut(EasingNode.ease) as any,
 							duration: 250,
 							to: topOffset,
 						})
@@ -157,7 +157,7 @@ const ReusableModal = forwardRef<ReusableModalRef, Props>((props, ref) => {
 						timing({
 							clock,
 							from: offset,
-							easing: Easing.inOut(Easing.ease),
+							easing: EasingNode.inOut(EasingNode.ease) as any,
 							duration: 200,
 							to: bottomOffset,
 						})

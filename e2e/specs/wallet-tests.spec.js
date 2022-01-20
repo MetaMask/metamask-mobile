@@ -222,12 +222,13 @@ describe('Wallet Tests', () => {
 
 		// Type incorrect token symbol
 		await AddCustomTokenView.typeTokenSymbol('ROCK');
+
 		// Tap to focus outside of text input field
 		await TestHelpers.delay(700);
 		await AddCustomTokenView.tapTokenSymbolText();
 		await TestHelpers.delay(700);
 		// Check that token decimals warning is displayed
-		await AddCustomTokenView.isTokenSymbolWarningVisible();
+		await AddCustomTokenView.isTokenPrecisionWarningVisible();
 		// Go back
 		await AddCustomTokenView.tapBackButton();
 

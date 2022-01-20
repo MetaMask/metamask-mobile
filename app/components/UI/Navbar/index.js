@@ -128,10 +128,10 @@ const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
  * @param {bool} disableNetwork - Boolean that specifies if the network can be changed, defaults to false
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerLeft, headerTruncatedBackTitle and headerRight
  */
-export default function getNavbarOptions(title, navigation, disableNetwork = false) {
+export default function getNavbarOptions(title, disableNetwork = false, drawerRef) {
 	function onPress() {
 		Keyboard.dismiss();
-		navigation.openDrawer();
+		drawerRef.current?.showDrawer?.();
 		trackEvent(ANALYTICS_EVENT_OPTS.COMMON_TAPS_HAMBURGER_MENU);
 	}
 
@@ -415,7 +415,7 @@ export function getSendFlowTitle(title, navigation, route) {
  * @param {Object} navigation - Navigation object required to push new views
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerLeft and headerRight
  */
-export function getBrowserViewNavbarOptions(navigation, route) {
+export function getBrowserViewNavbarOptions(navigation, route, drawerRef) {
 	const url = route.params?.url ?? '';
 	let host = null;
 	let isHttps = false;
@@ -441,7 +441,7 @@ export function getBrowserViewNavbarOptions(navigation, route) {
 
 	function onPress() {
 		Keyboard.dismiss();
-		navigation.openDrawer();
+		drawerRef.current?.showDrawer?.();
 		trackEvent(ANALYTICS_EVENT_OPTS.COMMON_TAPS_HAMBURGER_MENU);
 	}
 
@@ -627,7 +627,7 @@ export function getOfflineModalNavbar() {
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
  */
-export function getWalletNavbarOptions(title, navigation) {
+export function getWalletNavbarOptions(title, navigation, drawerRef) {
 	const onScanSuccess = (data, content) => {
 		if (data.private_key) {
 			Alert.alert(
@@ -666,7 +666,7 @@ export function getWalletNavbarOptions(title, navigation) {
 	};
 
 	function openDrawer() {
-		navigation.openDrawer();
+		drawerRef.current?.showDrawer?.();
 		trackEvent(ANALYTICS_EVENT_OPTS.COMMON_TAPS_HAMBURGER_MENU);
 	}
 
