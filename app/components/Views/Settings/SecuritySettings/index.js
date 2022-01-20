@@ -20,7 +20,13 @@ import SelectComponent from '../../../UI/SelectComponent';
 import StyledButton from '../../../UI/StyledButton';
 import SettingsNotification from '../../../UI/SettingsNotification';
 import { clearHistory } from '../../../../actions/browser';
-import { clearHosts, setPrivacyMode, setThirdPartyApiMode } from '../../../../actions/privacy';
+import {
+	clearHosts,
+	setPrivacyMode,
+	setThirdPartyApiMode,
+	setOpenSeaMode,
+	setCollectibleDetectionMode,
+} from '../../../../actions/privacy';
 import { colors, fontStyles } from '../../../../styles/common';
 import Logger from '../../../../util/Logger';
 import Device from '../../../../util/device';
@@ -232,6 +238,14 @@ class Settings extends PureComponent {
 		 * completed the seed phrase backup flow
 		 */
 		seedphraseBackedUp: PropTypes.bool,
+		/**
+		 *
+		 */
+		openSeaEnabled: PropTypes.bool,
+		/**
+		 *
+		 */
+		useCollectibleDetection: PropTypes.bool,
 	};
 
 	static navigationOptions = ({ navigation }) =>
@@ -443,6 +457,23 @@ class Settings extends PureComponent {
 		this.props.setThirdPartyApiMode(value);
 	};
 
+	toggleOpenSeaApi = (value) => {
+		console.log('OS', this.props.openSeaEnabled);
+		const { PreferencesController } = Engine.context;
+		if (value) PreferencesController.setOpenSeaEnabled(value);
+		else {
+			PreferencesController.setOpenSeaEnabled(value);
+			PreferencesController.setUseCollectibleDetection(value);
+		}
+	};
+
+	toggleNftAutodetect = (value) => {
+		console.log('CD', this.props.useCollectibleDetection);
+		console.log('OS', this.props.openSeaEnabled);
+		const { PreferencesController } = Engine.context;
+		PreferencesController.setUseCollectibleDetection(value);
+	};
+
 	/**
 	 * Track the event of opt in or opt out.
 	 * @param AnalyticsOptionSelected - User selected option regarding the tracking of events
@@ -533,7 +564,15 @@ class Settings extends PureComponent {
 	onBack = () => this.props.navigation.goBack();
 
 	render = () => {
-		const { approvedHosts, seedphraseBackedUp, browserHistory, privacyMode, thirdPartyApiMode } = this.props;
+		const {
+			approvedHosts,
+			seedphraseBackedUp,
+			browserHistory,
+			privacyMode,
+			thirdPartyApiMode,
+			openSeaEnabled,
+			useCollectibleDetection,
+		} = this.props;
 		const {
 			approvalModalVisible,
 			biometryType,
@@ -753,30 +792,6 @@ class Settings extends PureComponent {
 							/>
 						</View>
 					</View>
-					<View style={styles.setting} testID={'nft-opensea-mode-section'}>
-						<Text style={styles.title}>{strings('app_settings.nft_opensea_mode')}</Text>
-						<Text style={styles.desc}>{strings('app_settings.nft_opensea_desc')}</Text>
-						<View style={styles.switchElement}>
-							<Switch
-								value={privacyMode}
-								onValueChange={this.togglePrivacy}
-								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
-								ios_backgroundColor={colors.grey000}
-							/>
-						</View>
-					</View>
-					<View style={styles.setting} testID={'nft-opensea-autodetect-mode-section'}>
-						<Text style={styles.title}>{strings('app_settings.nft_autodetect_mode')}</Text>
-						<Text style={styles.desc}>{strings('app_settings.nft_autodetect_desc')}</Text>
-						<View style={styles.switchElement}>
-							<Switch
-								value={privacyMode}
-								onValueChange={this.togglePrivacy}
-								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
-								ios_backgroundColor={colors.grey000}
-							/>
-						</View>
-					</View>
 					<ActionModal
 						modalVisible={approvalModalVisible}
 						confirmText={strings('app_settings.clear')}
@@ -822,6 +837,31 @@ class Settings extends PureComponent {
 							<Text style={styles.modalText}>{strings('app_settings.clear_cookies_modal_message')}</Text>
 						</View>
 					</ActionModal>
+					<View style={styles.setting} testID={'nft-opensea-mode-section'}>
+						<Text style={styles.title}>{strings('app_settings.nft_opensea_mode')}</Text>
+						<Text style={styles.desc}>{strings('app_settings.nft_opensea_desc')}</Text>
+						<View style={styles.switchElement}>
+							<Switch
+								value={openSeaEnabled}
+								onValueChange={this.toggleOpenSeaApi}
+								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
+								ios_backgroundColor={colors.grey000}
+							/>
+						</View>
+					</View>
+					<View style={styles.setting} testID={'nft-opensea-autodetect-mode-section'}>
+						<Text style={styles.title}>{strings('app_settings.nft_autodetect_mode')}</Text>
+						<Text style={styles.desc}>{strings('app_settings.nft_autodetect_desc')}</Text>
+						<View style={styles.switchElement}>
+							<Switch
+								value={useCollectibleDetection}
+								onValueChange={this.toggleNftAutodetect}
+								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
+								ios_backgroundColor={colors.grey000}
+								disabled={!openSeaEnabled}
+							/>
+						</View>
+					</View>
 					{this.renderHint()}
 				</View>
 			</ScrollView>
@@ -839,6 +879,8 @@ const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
+	openSeaEnabled: state.engine.backgroundState.PreferencesController.openSeaEnabled,
+	useCollectibleDetection: state.engine.backgroundState.PreferencesController.useCollectibleDetection,
 	passwordHasBeenSet: state.user.passwordSet,
 	seedphraseBackedUp: state.user.seedphraseBackedUp,
 });

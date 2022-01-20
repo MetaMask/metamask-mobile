@@ -251,11 +251,16 @@ CollectibleContracts.propTypes = {
 	 * Dispatch remove collectible from favorites action
 	 */
 	removeFavoriteCollectible: PropTypes.func,
+	/**
+	 * Boolean to show if NFT detection is enabled
+	 */
+	nftDetectionEnabled: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	nftDetectionEnabled: state.engine.backgroundState.CollectiblesController,
 	collectibleContracts: collectibleContractsSelector(state),
 	collectibles: collectiblesSelector(state),
 	favoriteCollectibles: favoritesCollectiblesSelector(state),
