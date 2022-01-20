@@ -71,9 +71,6 @@ exports[`BlockingActionModal should render correctly 1`] = `
         Please wait
       </Text>
       <ActivityIndicator
-        animating={true}
-        color="#999999"
-        hidesWhenStopped={true}
         size="small"
         style={
           Object {
