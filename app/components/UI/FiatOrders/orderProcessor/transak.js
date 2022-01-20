@@ -69,7 +69,12 @@ const TRANSAK_API_KEY_SECRET_PRODUCTION = process.env.TRANSAK_API_KEY_SECRET_PRO
  */
 
 //* Functions
-const TRANSAK_ALLOWED_NETWORKS = [NETWORKS_CHAIN_ID.MAINNET, NETWORKS_CHAIN_ID.BSC, NETWORKS_CHAIN_ID.POLYGON];
+const TRANSAK_ALLOWED_NETWORKS = [
+	NETWORKS_CHAIN_ID.MAINNET,
+	NETWORKS_CHAIN_ID.BSC,
+	NETWORKS_CHAIN_ID.POLYGON,
+	NETWORKS_CHAIN_ID.AVAXCCHAIN,
+];
 export const isTransakAllowedToBuy = (chainId) => TRANSAK_ALLOWED_NETWORKS.includes(chainId);
 
 //* Constants
@@ -96,6 +101,13 @@ export const TRANSAK_ORDER_STATES = {
 	EXPIRED: 'EXPIRED',
 	FAILED: 'FAILED',
 	CANCELLED: 'CANCELLED',
+};
+
+const NETWORK_CRYPTOCURRENCIES = {
+	[NETWORKS_CHAIN_ID.MAINNET]: ['ethereum', 'ETH', 'ETH,USDT,USDC,DAI'],
+	[NETWORKS_CHAIN_ID.BSC]: ['bsc', 'BNB', 'BNB,BUSD'],
+	[NETWORKS_CHAIN_ID.POLYGON]: ['polygon', 'MATIC', 'MATIC,USDT,USDC,DAI'],
+	[NETWORKS_CHAIN_ID.AVAXCCHAIN]: ['avaxcchain', 'AVAX', 'AVAX'],
 };
 
 //* API
@@ -223,16 +235,13 @@ export async function processTransakOrder(order) {
 
 export const useTransakFlowURL = (address, chainId) => {
 	const params = useMemo(() => {
-		let [networks, cryptoCurrencyCode] = ['ethereum', 'ETH'];
-		if (chainId === NETWORKS_CHAIN_ID.BSC) {
-			[networks, cryptoCurrencyCode] = ['bsc', 'BNB'];
-		} else if (chainId === NETWORKS_CHAIN_ID.POLYGON) {
-			[networks, cryptoCurrencyCode] = ['polygon', 'MATIC'];
-		}
+		const selectedChainId = isTransakAllowedToBuy(chainId) ? chainId : NETWORKS_CHAIN_ID.MAINNET;
+		const [network, defaultCryptoCurrency, cryptoCurrencyList] = NETWORK_CRYPTOCURRENCIES[selectedChainId];
 		return qs.stringify({
 			apiKey: TRANSAK_API_KEY,
-			cryptoCurrencyCode,
-			networks,
+			defaultCryptoCurrency,
+			cryptoCurrencyList,
+			network,
 			themeColor: '037dd6',
 			walletAddress: address,
 			redirectURL: TRANSAK_REDIRECT_URL,

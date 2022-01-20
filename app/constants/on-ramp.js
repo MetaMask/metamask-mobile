@@ -43,4 +43,5 @@ export const NETWORKS_CHAIN_ID = {
 	KOVAN: '42',
 	BSC: '56',
 	POLYGON: '137',
+	AVAXCCHAIN: '43114',
 };
