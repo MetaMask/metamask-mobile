@@ -18,9 +18,10 @@ The code is built using React-Native and running code locally requires a Mac or 
 
 -   Install [sentry-cli](https://github.com/getsentry/sentry-cli) tools: `brew install getsentry/tools/sentry-cli`
 
--   Install [Node.js](https://nodejs.org) **version 14 (latest stable) and yarn@1 (latest)**
+-   Install [Node.js](https://nodejs.org) **version 14 (latest stable) 
 
     -   If you are using [nvm](https://github.com/creationix/nvm#installation) (recommended) running `nvm use` will automatically choose the right node version for you.
+-   Install yarn with homebrew: brew install yarn
 
 -   Install the shared [React Native dependencies](https://reactnative.dev/docs/environment-setup#installing-dependencies) (`React Native CLI`, _not_ `Expo CLI`)
 
