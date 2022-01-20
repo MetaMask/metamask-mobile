@@ -16,6 +16,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { getTokenList } from '../../../reducers/tokens';
+import { isZero } from '../../../util/lodash';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -223,7 +224,7 @@ class Tokens extends PureComponent {
 		const tokensToDisplay = hideZeroBalanceTokens
 			? tokens.filter((token) => {
 					const { address, isETH } = token;
-					return (tokenBalances[address] && !tokenBalances[address]?.isZero?.()) || isETH;
+					return !isZero(tokenBalances[address]) || isETH;
 					// eslint-disable-next-line no-mixed-spaces-and-tabs
 			  })
 			: tokens;
