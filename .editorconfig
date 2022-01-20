@@ -15,3 +15,7 @@ trim_trailing_whitespace = false
 [{package,package-lock}.json]
 indent_size = 2
 indent_style = space
+
+# Windows files
+[*.bat]
+end_of_line = crlf
