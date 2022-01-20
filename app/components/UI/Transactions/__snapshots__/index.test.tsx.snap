@@ -4,7 +4,7 @@ exports[`Transactions should render correctly 1`] = `
 <Transactions
   accounts={Object {}}
   chainId="1"
-  collectibleContracts={Object {}}
+  collectibleContracts={Array []}
   contractExchangeRates={Object {}}
   conversionRate={1}
   currentCurrency="USD"
