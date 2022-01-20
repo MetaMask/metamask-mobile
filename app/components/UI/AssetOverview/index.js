@@ -200,6 +200,7 @@ class AssetOverview extends PureComponent {
 			screen: 'BrowserView',
 			params: {
 				newTabUrl: url,
+				timestamp: Date.now(),
 			},
 		});
 	}

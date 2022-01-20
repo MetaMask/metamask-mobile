@@ -15,6 +15,7 @@ import notificationReducer from './notification';
 import infuraAvailabilityReducer from './infuraAvailability';
 import collectiblesReducer from './collectibles';
 import recentsReducer from './recents';
+import navigationReducer from './navigation';
 import { combineReducers } from 'redux';
 
 const rootReducer = combineReducers({
@@ -35,6 +36,7 @@ const rootReducer = combineReducers({
 	swaps: swapsReducer,
 	fiatOrders,
 	infuraAvailability: infuraAvailabilityReducer,
+	navigation: navigationReducer,
 });
 
 export default rootReducer;
