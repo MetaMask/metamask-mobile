@@ -1110,6 +1110,7 @@ class Confirm extends PureComponent {
 		InteractionManager.runAfterInteractions(() => {
 			this.props.navigation.navigate('BrowserView', {
 				newTabUrl: mmFaucetUrl,
+				timestamp: Date.now(),
 			});
 		});
 	};
