@@ -210,6 +210,7 @@ export default class AddCustomToken extends PureComponent {
 							});
 						}}
 						style={styles.warningLink}
+						testID={'add-asset-warning-message'}
 					>
 						{strings('add_asset.warning_link')}
 					</Text>

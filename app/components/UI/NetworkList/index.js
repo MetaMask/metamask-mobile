@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { InteractionManager, ScrollView, TouchableOpacity, StyleSheet, Text, View, SafeAreaView } from 'react-native';
+import { ScrollView, TouchableOpacity, StyleSheet, Text, View, SafeAreaView } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Networks, { getAllNetworks, isSafeChainId } from '../../../util/networks';
@@ -141,23 +141,19 @@ export class NetworkList extends PureComponent {
 	getOtherNetworks = () => getAllNetworks().slice(1);
 
 	onNetworkChange = (type) => {
-		requestAnimationFrame(() => {
-			this.props.onClose(false);
-			InteractionManager.runAfterInteractions(() => {
-				const { NetworkController, CurrencyRateController } = Engine.context;
-				CurrencyRateController.setNativeCurrency('ETH');
-				NetworkController.setProviderType(type);
-				this.props.thirdPartyApiMode &&
-					setTimeout(() => {
-						Engine.refreshTransactionHistory();
-					}, 1000);
+		this.props.onClose(false);
+		const { NetworkController, CurrencyRateController } = Engine.context;
+		CurrencyRateController.setNativeCurrency('ETH');
+		NetworkController.setProviderType(type);
+		this.props.thirdPartyApiMode &&
+			setTimeout(() => {
+				Engine.refreshTransactionHistory();
+			}, 1000);
 
-				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_SWITCHED, {
-					network_name: type,
-					chain_id: String(Networks[type].chainId),
-					source: 'Settings',
-				});
-			});
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_SWITCHED, {
+			network_name: type,
+			chain_id: String(Networks[type].chainId),
+			source: 'Settings',
 		});
 	};
 
