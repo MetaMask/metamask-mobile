@@ -753,6 +753,30 @@ class Settings extends PureComponent {
 							/>
 						</View>
 					</View>
+					<View style={styles.setting} testID={'nft-opensea-mode-section'}>
+						<Text style={styles.title}>{strings('app_settings.nft_opensea_mode')}</Text>
+						<Text style={styles.desc}>{strings('app_settings.nft_opensea_desc')}</Text>
+						<View style={styles.switchElement}>
+							<Switch
+								value={privacyMode}
+								onValueChange={this.togglePrivacy}
+								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
+								ios_backgroundColor={colors.grey000}
+							/>
+						</View>
+					</View>
+					<View style={styles.setting} testID={'nft-opensea-autodetect-mode-section'}>
+						<Text style={styles.title}>{strings('app_settings.nft_autodetect_mode')}</Text>
+						<Text style={styles.desc}>{strings('app_settings.nft_autodetect_desc')}</Text>
+						<View style={styles.switchElement}>
+							<Switch
+								value={privacyMode}
+								onValueChange={this.togglePrivacy}
+								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
+								ios_backgroundColor={colors.grey000}
+							/>
+						</View>
+					</View>
 					<ActionModal
 						modalVisible={approvalModalVisible}
 						confirmText={strings('app_settings.clear')}

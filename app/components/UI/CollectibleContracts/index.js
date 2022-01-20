@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, View, InteractionManager, Image } from 'react-native';
 import { connect } from 'react-redux';
@@ -18,6 +18,7 @@ import Text from '../../Base/Text';
 import AppConstants from '../../../core/AppConstants';
 import { toLowerCaseEquals } from '../../../util/general';
 import { compareTokenIds } from '../../../util/tokens';
+import CollectibleDetectionModal from '../CollectibleDetectionModal';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -29,7 +30,7 @@ const styles = StyleSheet.create({
 	emptyView: {
 		justifyContent: 'center',
 		alignItems: 'center',
-		marginTop: 40,
+		marginTop: 10,
 	},
 	add: {
 		flexDirection: 'row',
@@ -88,7 +89,7 @@ const CollectibleContracts = ({
 		},
 		[navigation]
 	);
-
+	const [displayNftInfo, setDisplayNftInfo] = useState(true);
 	/**
 	 *	Method to check the token id data type of the current collectibles.
 	 *
@@ -189,8 +190,13 @@ const CollectibleContracts = ({
 	const goToLearnMore = () =>
 		navigation.navigate('Webview', { screen: 'SimpleWebview', params: { url: AppConstants.URLS.NFT } });
 
+	const dismissNftInfo = () => {
+		setDisplayNftInfo(false);
+	};
+
 	const renderEmpty = () => (
 		<View style={styles.emptyView}>
+			{displayNftInfo && <CollectibleDetectionModal onDismiss={dismissNftInfo} navigation={navigation} />}
 			<View style={styles.emptyContainer}>
 				<Image
 					style={styles.emptyImageContainer}
