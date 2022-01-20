@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { SafeAreaView, StyleSheet } from 'react-native';
+import { SafeAreaView, View, StyleSheet } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
@@ -11,11 +11,16 @@ import { strings } from '../../../../locales/i18n';
 import AddCustomCollectible from '../../UI/AddCustomCollectible';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import { NetworksChainId } from '@metamask/controllers';
+import CollectibleDetectionModal from '../../UI/CollectibleDetectionModal';
 
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
 		backgroundColor: colors.white,
+	},
+	infoWrapper: {
+		alignItems: 'center',
+		marginTop: 10,
 	},
 	tabUnderlineStyle: {
 		height: 2,
@@ -46,6 +51,7 @@ class AddAsset extends PureComponent {
 		address: '',
 		symbol: '',
 		decimals: '',
+		dismissNftInfo: true,
 	};
 
 	static propTypes = {
@@ -76,6 +82,10 @@ class AddAsset extends PureComponent {
 		);
 	}
 
+	dismissNftInfo = () => {
+		console.log('dismiss');
+	};
+
 	render = () => {
 		const {
 			route: {
@@ -85,6 +95,9 @@ class AddAsset extends PureComponent {
 		} = this.props;
 		return (
 			<SafeAreaView style={styles.wrapper} testID={`add-${assetType}-screen`}>
+				<View style={styles.infoWrapper}>
+					{true && <CollectibleDetectionModal onDismiss={this.dismissNftInfo} navigation={navigation} />}
+				</View>
 				{assetType === 'token' ? (
 					<ScrollableTabView renderTabBar={this.renderTabBar}>
 						{NetworksChainId.mainnet === this.props.chainId && (
