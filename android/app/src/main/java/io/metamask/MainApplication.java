@@ -81,7 +81,6 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 		}
 
 		SoLoader.init(this, /* native exopackage */ false);
-		RNBranchModule.getAutoInstance(this);
 		initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
     }
 
