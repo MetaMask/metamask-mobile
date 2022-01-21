@@ -101,7 +101,6 @@
 				<data android:scheme="https" android:host="metamask.io" />
 			</intent-filter>
 		</activity>
-		<activity android:name="com.facebook.react.devsupport.DevSettingsActivity" />
 		<!-- Explicitly opt-in to safe browsing -->
 		<meta-data android:name="android.webkit.WebView.EnableSafeBrowsing" android:value="true" />
 		<!-- Branch init -->
