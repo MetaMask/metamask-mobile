@@ -20,13 +20,7 @@ import SelectComponent from '../../../UI/SelectComponent';
 import StyledButton from '../../../UI/StyledButton';
 import SettingsNotification from '../../../UI/SettingsNotification';
 import { clearHistory } from '../../../../actions/browser';
-import {
-	clearHosts,
-	setPrivacyMode,
-	setThirdPartyApiMode,
-	setOpenSeaMode,
-	setCollectibleDetectionMode,
-} from '../../../../actions/privacy';
+import { clearHosts, setPrivacyMode, setThirdPartyApiMode } from '../../../../actions/privacy';
 import { colors, fontStyles } from '../../../../styles/common';
 import Logger from '../../../../util/Logger';
 import Device from '../../../../util/device';
@@ -246,6 +240,7 @@ class Settings extends PureComponent {
 		 *
 		 */
 		useCollectibleDetection: PropTypes.bool,
+		route: PropTypes.object,
 	};
 
 	static navigationOptions = ({ navigation }) =>
@@ -306,6 +301,8 @@ class Settings extends PureComponent {
 		},
 	];
 
+	scrollView = undefined;
+
 	componentDidMount = async () => {
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
 		const analyticsEnabled = Analytics.getEnabled();
@@ -335,6 +332,8 @@ class Settings extends PureComponent {
 				hintText: manualBackup,
 			});
 		}
+
+		if (this.props.route?.params?.scrollToBottom) this.scrollView?.scrollToEnd({ animated: false });
 	};
 
 	onSingInWithBiometrics = async (enabled) => {
@@ -458,7 +457,6 @@ class Settings extends PureComponent {
 	};
 
 	toggleOpenSeaApi = (value) => {
-		console.log('OS', this.props.openSeaEnabled);
 		const { PreferencesController } = Engine.context;
 		if (value) PreferencesController.setOpenSeaEnabled(value);
 		else {
@@ -468,8 +466,6 @@ class Settings extends PureComponent {
 	};
 
 	toggleNftAutodetect = (value) => {
-		console.log('CD', this.props.useCollectibleDetection);
-		console.log('OS', this.props.openSeaEnabled);
 		const { PreferencesController } = Engine.context;
 		PreferencesController.setUseCollectibleDetection(value);
 	};
@@ -593,7 +589,13 @@ class Settings extends PureComponent {
 			);
 
 		return (
-			<ScrollView style={styles.wrapper} testID={'security-settings-scrollview'}>
+			<ScrollView
+				style={styles.wrapper}
+				testID={'security-settings-scrollview'}
+				ref={(view) => {
+					this.scrollView = view;
+				}}
+			>
 				<View style={styles.inner}>
 					<Heading first>{strings('app_settings.security_heading')}</Heading>
 					<View style={[styles.setting, styles.firstSetting]}>

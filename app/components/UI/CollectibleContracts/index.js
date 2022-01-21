@@ -200,9 +200,6 @@ const CollectibleContracts = ({
 
 	const renderEmpty = () => (
 		<View style={styles.emptyView}>
-			{!nftDetectionDismissed && !useCollectibleDetection && (
-				<CollectibleDetectionModal onDismiss={dismissNftInfo} navigation={navigation} />
-			)}
 			<View style={styles.emptyContainer}>
 				<Image
 					style={styles.emptyImageContainer}

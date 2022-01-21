@@ -24,7 +24,7 @@ const CollectibleDetectionModal = ({ onDismiss, navigation }: Props) => {
 		navigation.navigate('SettingsView', {
 			screen: 'SecuritySettings',
 			params: {
-				isFullScreenModal: true,
+				scrollToBottom: true,
 			},
 		});
 	};
