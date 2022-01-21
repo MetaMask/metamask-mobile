@@ -9,9 +9,6 @@ const styles = StyleSheet.create({
 		width: '95%',
 		marginBottom: 15,
 	},
-	alertText: {
-		paddingBottom: 20,
-	},
 });
 
 interface Props {
@@ -32,15 +29,15 @@ const CollectibleDetectionModal = ({ onDismiss, navigation }: Props) => {
 	return (
 		<View style={styles.alertBar}>
 			<Alert small onDismiss={onDismiss} type={AlertType.Info}>
-				<Text style={styles.alertText} bold small>
+				<Text infoModal bold small>
 					{strings('wallet.nfts_autodetection_title')}
 				</Text>
 				{'\n'}
-				<Text style={styles.alertText} small>
+				<Text infoModal small>
 					{strings('wallet.nfts_autodetection_desc')}
 				</Text>
 				{'\n'}
-				<Text style={styles.alertText} link bold small onPress={goToSecuritySettings}>
+				<Text infoModal link bold small onPress={goToSecuritySettings}>
 					{strings('wallet.nfts_autodetection_cta')}
 				</Text>
 			</Alert>
