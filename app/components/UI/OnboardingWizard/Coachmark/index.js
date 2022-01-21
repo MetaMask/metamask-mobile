@@ -243,7 +243,7 @@ export default class Coachmark extends PureComponent {
 					{strings('onboarding_wizard.coachmark.progress_back')}
 				</StyledButton>
 				<View style={styles.progessContainer}>
-					{[1, 2, 3, 4, 5, 6].map((i) => (
+					{[1, 2, 3, 4, 5].map((i) => (
 						<View key={i} style={[styles.circle, currentStep === i ? styles.solidCircle : {}]} />
 					))}
 				</View>
