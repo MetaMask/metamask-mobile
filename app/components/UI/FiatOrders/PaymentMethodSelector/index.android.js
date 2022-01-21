@@ -7,6 +7,7 @@ import { strings } from '../../../../../locales/i18n';
 import Analytics from '../../../../core/Analytics';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
+import { getTicker } from '../../../../util/transactions';
 import { FIAT_ORDER_PROVIDERS, PAYMENT_CATEGORY, PAYMENT_RAILS } from '../../../../constants/on-ramp';
 
 import { useTransakFlowURL } from '../orderProcessor/transak';
@@ -21,6 +22,7 @@ import { setGasEducationCarouselSeen } from '../../../../actions/user';
 function PaymentMethodSelectorView({
 	selectedAddress,
 	chainId,
+	ticker,
 	gasEducationCarouselSeen,
 	setGasEducationCarouselSeen,
 	...props
@@ -59,7 +61,7 @@ function PaymentMethodSelectorView({
 	return (
 		<ScreenView>
 			<Title />
-			<TransakPaymentMethod onPress={onPressTransak} />
+			<TransakPaymentMethod onPress={onPressTransak} ticker={getTicker(ticker)} />
 		</ScreenView>
 	);
 }
@@ -67,6 +69,7 @@ function PaymentMethodSelectorView({
 PaymentMethodSelectorView.propTypes = {
 	selectedAddress: PropTypes.string.isRequired,
 	chainId: PropTypes.string.isRequired,
+	ticker: PropTypes.string.isRequired,
 	gasEducationCarouselSeen: PropTypes.bool,
 	setGasEducationCarouselSeen: PropTypes.func,
 };
@@ -81,6 +84,7 @@ PaymentMethodSelectorView.navigationOptions = ({ navigation }) =>
 const mapStateToProps = (state) => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	gasEducationCarouselSeen: state.user.gasEducationCarouselSeen,
 });
 

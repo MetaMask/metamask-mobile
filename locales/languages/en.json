@@ -1361,6 +1361,7 @@
 		"modal_transak_support": "Transak Support & fees",
 		"modal_wyre_support": "Wyre Support & fees",
 		"transak_cta": "Buy ETH with Transak",
+		"transak_cta_ticker": "Buy {{ticker}} with Transak",
 		"transak_modal_text": "Exact payment methods and fees vary depending on location. Fees are shown in Transak.",
 		"apple_pay": "Apple Pay",
 		"via": "via",
