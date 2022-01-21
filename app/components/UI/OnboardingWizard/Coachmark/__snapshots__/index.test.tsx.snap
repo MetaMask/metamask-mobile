@@ -199,22 +199,6 @@ exports[`Coachmark should render correctly 1`] = `
             ]
           }
         />
-        <View
-          key="6"
-          style={
-            Array [
-              Object {
-                "backgroundColor": "#FFFFFF",
-                "borderRadius": 3,
-                "height": 6,
-                "margin": 3,
-                "opacity": 0.4,
-                "width": 6,
-              },
-              Object {},
-            ]
-          }
-        />
       </View>
       <StyledButton
         containerStyle={
