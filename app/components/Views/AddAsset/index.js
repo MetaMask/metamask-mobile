@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { PureComponent, setState } from 'react';
 import { SafeAreaView, View, StyleSheet } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
@@ -51,7 +51,7 @@ class AddAsset extends PureComponent {
 		address: '',
 		symbol: '',
 		decimals: '',
-		dismissNftInfo: true,
+		dismissNftInfo: false,
 	};
 
 	static propTypes = {
@@ -67,6 +67,10 @@ class AddAsset extends PureComponent {
 		 * Object that represents the current route info like params passed to it
 		 */
 		route: PropTypes.object,
+		/**
+		 * Boolean to show if NFT detection is enabled
+		 */
+		useCollectibleDetection: PropTypes.bool,
 	};
 
 	renderTabBar() {
@@ -82,8 +86,8 @@ class AddAsset extends PureComponent {
 		);
 	}
 
-	dismissNftInfo = () => {
-		console.log('dismiss');
+	dismissNftInfo = async () => {
+		this.setState({ dismissNftInfo: true });
 	};
 
 	render = () => {
@@ -96,7 +100,9 @@ class AddAsset extends PureComponent {
 		return (
 			<SafeAreaView style={styles.wrapper} testID={`add-${assetType}-screen`}>
 				<View style={styles.infoWrapper}>
-					{true && <CollectibleDetectionModal onDismiss={this.dismissNftInfo} navigation={navigation} />}
+					{!this.state.dismissNftInfo && !this.props.useCollectibleDetection && (
+						<CollectibleDetectionModal onDismiss={this.dismissNftInfo} navigation={navigation} />
+					)}
 				</View>
 				{assetType === 'token' ? (
 					<ScrollableTabView renderTabBar={this.renderTabBar}>
@@ -127,6 +133,7 @@ class AddAsset extends PureComponent {
 
 const mapStateToProps = (state) => ({
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+	useCollectibleDetection: state.engine.backgroundState.PreferencesController.useCollectibleDetection,
 });
 
 export default connect(mapStateToProps)(AddAsset);

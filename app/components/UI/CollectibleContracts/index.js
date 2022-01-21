@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, View, InteractionManager, Image } from 'react-native';
 import { connect } from 'react-redux';
@@ -19,6 +19,8 @@ import AppConstants from '../../../core/AppConstants';
 import { toLowerCaseEquals } from '../../../util/general';
 import { compareTokenIds } from '../../../util/tokens';
 import CollectibleDetectionModal from '../CollectibleDetectionModal';
+import DefaultPreference from 'react-native-default-preference';
+import { NFT_DISMISS_INFO } from '../../../constants/storage';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -82,6 +84,7 @@ const CollectibleContracts = ({
 	collectibles,
 	favoriteCollectibles,
 	removeFavoriteCollectible,
+	useCollectibleDetection,
 }) => {
 	const onItemPress = useCallback(
 		(collectible, contractName) => {
@@ -89,7 +92,7 @@ const CollectibleContracts = ({
 		},
 		[navigation]
 	);
-	const [displayNftInfo, setDisplayNftInfo] = useState(true);
+
 	/**
 	 *	Method to check the token id data type of the current collectibles.
 	 *
@@ -98,6 +101,7 @@ const CollectibleContracts = ({
 	 */
 	const shouldUpdateCollectibleMetadata = (collectible) => typeof collectible.tokenId === 'number';
 
+	const dimissNftInfo = await DefaultPreference.get(NFT_DISMISS_INFO);
 	/**
 	 * Method to updated collectible and avoid backwards compatibility issues.
 	 * @param address - Collectible address.
@@ -190,13 +194,20 @@ const CollectibleContracts = ({
 	const goToLearnMore = () =>
 		navigation.navigate('Webview', { screen: 'SimpleWebview', params: { url: AppConstants.URLS.NFT } });
 
-	const dismissNftInfo = () => {
-		setDisplayNftInfo(false);
+	const dismissNftInfo = async () => {
+		console.log('DISMISS NFT');
+		await DefaultPreference.set(NFT_DISMISS_INFO, NFT_DISMISS_INFO);
+	};
+
+	const dispalyNftInfo = async () => {
+		const ignore = (await DefaultPreference.get(NFT_DISMISS_INFO)) === NFT_DISMISS_INFO;
+		console.log('DISPLAY NFT', ignore, !useCollectibleDetection);
+		return ignore && !useCollectibleDetection;
 	};
 
 	const renderEmpty = () => (
 		<View style={styles.emptyView}>
-			{displayNftInfo && <CollectibleDetectionModal onDismiss={dismissNftInfo} navigation={navigation} />}
+			{await dispalyNftInfo() && <CollectibleDetectionModal onDismiss={dismissNftInfo} navigation={navigation} />}
 			<View style={styles.emptyContainer}>
 				<Image
 					style={styles.emptyImageContainer}
@@ -215,6 +226,11 @@ const CollectibleContracts = ({
 
 	return (
 		<View style={styles.wrapper} testID={'collectible-contracts'}>
+			{await dispalyNftInfo() && (
+				<View style={styles.emptyView}>
+					<CollectibleDetectionModal onDismiss={dismissNftInfo} navigation={navigation} />
+				</View>
+			)}
 			{collectibleContracts.length > 0 ? renderList() : renderEmpty()}
 			{renderFooter()}
 		</View>
@@ -254,13 +270,13 @@ CollectibleContracts.propTypes = {
 	/**
 	 * Boolean to show if NFT detection is enabled
 	 */
-	nftDetectionEnabled: PropTypes.object,
+	useCollectibleDetection: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	nftDetectionEnabled: state.engine.backgroundState.CollectiblesController,
+	useCollectibleDetection: state.engine.backgroundState.PreferencesController.useCollectibleDetection,
 	collectibleContracts: collectibleContractsSelector(state),
 	collectibles: collectiblesSelector(state),
 	favoriteCollectibles: favoritesCollectiblesSelector(state),
