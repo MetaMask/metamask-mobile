@@ -58,6 +58,7 @@ const styles = StyleSheet.create({
 	emptyImageContainer: {
 		width: 76,
 		height: 76,
+		marginTop: 30,
 		marginBottom: 12,
 	},
 	emptyTitleText: {
@@ -264,11 +265,11 @@ CollectibleContracts.propTypes = {
 	 */
 	useCollectibleDetection: PropTypes.bool,
 	/**
-	 *
+	 * Setter for NFT detection state
 	 */
 	setNftDetectionDismissed: PropTypes.func,
 	/**
-	 *
+	 * State to manage display of modal
 	 */
 	nftDetectionDismissed: PropTypes.bool,
 };

@@ -12,7 +12,13 @@ const styles = StyleSheet.create({
 });
 
 interface Props {
+	/**
+	 * Function for dismissing of modal
+	 */
 	onDismiss: () => void;
+	/**
+	 * Navigation object needed to link to settings
+	 */
 	navigation: any;
 }
 

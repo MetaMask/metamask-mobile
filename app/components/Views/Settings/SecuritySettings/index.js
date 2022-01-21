@@ -233,13 +233,16 @@ class Settings extends PureComponent {
 		 */
 		seedphraseBackedUp: PropTypes.bool,
 		/**
-		 *
+		 * State of OpenSea Enable toggle
 		 */
 		openSeaEnabled: PropTypes.bool,
 		/**
-		 *
+		 * State of NFT detection toggle
 		 */
 		useCollectibleDetection: PropTypes.bool,
+		/**
+		 * Route passed in props from navigation
+		 */
 		route: PropTypes.object,
 	};
 
