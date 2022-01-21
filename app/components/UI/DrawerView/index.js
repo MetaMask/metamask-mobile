@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Alert, TouchableOpacity, View, Image, StyleSheet, Text, ScrollView, InteractionManager } from 'react-native';
+import { Alert, TouchableOpacity, View, Image, StyleSheet, Text, InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Share from 'react-native-share';
@@ -14,7 +14,6 @@ import AccountList from '../AccountList';
 import NetworkList from '../NetworkList';
 import { renderFromWei, renderFiat } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
-import { DrawerActions } from '@react-navigation/native';
 import Modal from 'react-native-modal';
 import SecureKeychain from '../../../core/SecureKeychain';
 import { toggleNetworkModal, toggleAccountsModal, toggleReceiveModal } from '../../../actions/modals';
@@ -43,10 +42,14 @@ import AnalyticsV2, { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
 import { isDefaultAccountName, doENSReverseLookup } from '../../../util/ENSUtils';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { collectiblesSelector } from '../../../reducers/collectibles';
+import { getCurrentRoute } from '../../../reducers/navigation';
+import { ScrollView } from 'react-native-gesture-handler';
+import { isZero } from '../../../util/lodash';
 
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
+		width: 315,
 		backgroundColor: colors.white,
 	},
 	header: {
@@ -369,6 +372,14 @@ class DrawerView extends PureComponent {
 		 */
 		protectWalletModalVisible: PropTypes.func,
 		logOut: PropTypes.func,
+		/**
+		 * Callback to close drawer
+		 */
+		onCloseDrawer: PropTypes.func,
+		/**
+		 * Latest navigation route
+		 */
+		currentRoute: PropTypes.string,
 	};
 
 	state = {
@@ -426,7 +437,7 @@ class DrawerView extends PureComponent {
 			let tokenFound = false;
 
 			this.props.tokens.forEach((token) => {
-				if (this.props.tokenBalances[token.address] && !this.props.tokenBalances[token.address]?.isZero()) {
+				if (this.props.tokenBalances[token.address] && !isZero(this.props.tokenBalances[token.address])) {
 					tokenFound = true;
 				}
 			});
@@ -652,12 +663,7 @@ class DrawerView extends PureComponent {
 	}
 
 	hideDrawer() {
-		return new Promise((resolve) => {
-			this.props.navigation.dispatch(DrawerActions.closeDrawer());
-			setTimeout(() => {
-				resolve();
-			}, 300);
-		});
+		this.props.onCloseDrawer();
 	}
 
 	onAccountChange = () => {
@@ -900,15 +906,23 @@ class DrawerView extends PureComponent {
 			currentCurrency,
 			ticker,
 			seedphraseBackedUp,
+			currentRoute,
 		} = this.props;
 
 		const {
 			invalidCustomNetwork,
 			showProtectWalletModal,
-			account: { name, ens },
+			account: { name: nameFromState, ens: ensFromState },
 		} = this.state;
 
-		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
+		const account = {
+			address: selectedAddress,
+			name: nameFromState,
+			ens: ensFromState,
+			...identities[selectedAddress],
+			...accounts[selectedAddress],
+		};
+		const { name, ens } = account;
 		account.balance = (accounts[selectedAddress] && renderFromWei(accounts[selectedAddress].balance)) || 0;
 		const fiatBalance = Engine.getTotalFiatAccountBalance();
 		if (fiatBalance !== this.previousBalance) {
@@ -916,7 +930,8 @@ class DrawerView extends PureComponent {
 		}
 		this.currentBalance = fiatBalance;
 		const fiatBalanceStr = renderFiat(this.currentBalance, currentCurrency);
-		const currentRoute = findRouteNameFromNavigatorState(this.props.navigation.dangerouslyGetState().routes);
+		const accountName = isDefaultAccountName(name) && ens ? ens : name;
+
 		return (
 			<View style={styles.wrapper} testID={'drawer-screen'}>
 				<ScrollView>
@@ -944,7 +959,7 @@ class DrawerView extends PureComponent {
 							>
 								<View style={styles.accountNameWrapper}>
 									<Text style={styles.accountName} numberOfLines={1}>
-										{isDefaultAccountName(name) && ens ? ens : name}
+										{accountName}
 									</Text>
 									<Icon name="caret-down" size={24} style={styles.caretDown} />
 								</View>
@@ -1144,6 +1159,7 @@ const mapStateToProps = (state) => ({
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	collectibles: collectiblesSelector(state),
 	seedphraseBackedUp: state.user.seedphraseBackedUp,
+	currentRoute: getCurrentRoute(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

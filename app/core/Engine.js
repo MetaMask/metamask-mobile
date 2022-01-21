@@ -35,6 +35,7 @@ import { renderFromTokenMinimalUnit, balanceToFiatNumber, weiToFiatNumber } from
 import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
+import { isZero } from '../util/lodash';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -430,7 +431,7 @@ class Engine {
 
 			let tokenFound = false;
 			tokens.forEach((token: { address: string | number }) => {
-				if (tokenBalances[token.address] && !tokenBalances[token.address]?.isZero()) {
+				if (tokenBalances[token.address] && !isZero(tokenBalances[token.address])) {
 					tokenFound = true;
 				}
 			});

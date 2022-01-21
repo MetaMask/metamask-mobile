@@ -27,7 +27,7 @@ import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { getTransparentBackOnboardingNavbarOptions, getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
-import Animated, { Easing } from 'react-native-reanimated';
+import Animated, { EasingNode } from 'react-native-reanimated';
 import ElevatedView from 'react-native-elevated-view';
 import { loadingSet, loadingUnset } from '../../../actions/user';
 import AnimatedFox from 'react-native-animated-fox';
@@ -181,7 +181,7 @@ class Onboarding extends PureComponent {
 		Animated.timing(animatedRef, {
 			toValue,
 			duration: 500,
-			easing: Easing.linear,
+			easing: EasingNode.linear,
 			useNativeDriver: true,
 		}).start();
 	};
