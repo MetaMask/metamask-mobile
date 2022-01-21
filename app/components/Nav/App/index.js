@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { NavigationContainer, CommonActions } from '@react-navigation/native';
 import { Animated, StyleSheet, View } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -117,36 +117,25 @@ const App = ({ userLoggedIn }) => {
 	const triggerCheckedAuth = () => dispatch(checkedAuth('onboarding'));
 	const triggerSetCurrentRoute = (route) => dispatch(setCurrentRoute(route));
 
-	const branchSubscribe = () => {
-		branch.subscribe(({ error, params, uri }) => {
-			if (error) {
-				trackErrorAsAnalytics(error, 'Branch:');
-			}
-			const deeplink = params?.['+non_branch_link'] || uri || null;
-			try {
-				if (deeplink) {
-					const { KeyringController } = Engine.context;
-					const isUnlocked = KeyringController.isUnlocked();
-					isUnlocked
-						? SharedDeeplinkManager.parse(deeplink, { origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK })
-						: SharedDeeplinkManager.setDeeplink(deeplink);
-				}
-			} catch (e) {
-				Logger.error(e, `Deeplink: Error parsing deeplink`);
-			}
-		});
-	};
-
-	useEffect(() => branchSubscribe(), []);
-
-	const branchSubscriber = useMemo(
+	useEffect(
 		() =>
-			new BranchSubscriber({
-				onOpenStart: (opts) => {
-					handleDeeplink(opts);
-				},
+			branch.subscribe(({ error, params, uri }) => {
+				if (error) {
+					trackErrorAsAnalytics(error, 'Branch:');
+				}
+				const deeplink = params?.['+non_branch_link'] || uri || null;
+				try {
+					if (deeplink) {
+						const { KeyringController } = Engine.context;
+						const isUnlocked = KeyringController.isUnlocked();
+						isUnlocked
+							? SharedDeeplinkManager.parse(deeplink, { origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK })
+							: SharedDeeplinkManager.setDeeplink(deeplink);
+					}
+				} catch (e) {
+					Logger.error(e, `Deeplink: Error parsing deeplink`);
+				}
 			}),
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[]
 	);
 
@@ -157,7 +146,7 @@ const App = ({ userLoggedIn }) => {
 				navigator.current?.dispatch?.(CommonActions.navigate(params));
 			},
 		});
-	}, [branchSubscriber]);
+	}, []);
 
 	useEffect(() => {
 		const initAnalytics = async () => {
