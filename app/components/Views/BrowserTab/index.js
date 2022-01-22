@@ -25,7 +25,7 @@ import { NetworksChainId, util } from '@metamask/controllers';
 
 import BackgroundBridge from '../../../core/BackgroundBridge';
 import Engine from '../../../core/Engine';
-import PhishingModal from '../../UI/PhishingModal';
+import PhishingModal from './PhishingModal';
 import WebviewProgressBar from '../../UI/WebviewProgressBar';
 import { colors, baseStyles, fontStyles } from '../../../styles/common';
 import Networks, { blockTagParamIndex, getAllNetworks } from '../../../util/networks';
@@ -221,9 +221,6 @@ const styles = StyleSheet.create({
 	bottomModal: {
 		justifyContent: 'flex-end',
 		margin: 0,
-	},
-	fullScreenModal: {
-		flex: 1,
 	},
 });
 
@@ -1188,78 +1185,19 @@ export const BrowserTab = (props) => {
 	};
 
 	/**
-	 * Go to eth-phishing-detect page
-	 */
-	const goToETHPhishingDetector = () => {
-		setShowPhishingModal(false);
-		go(`https://github.com/metamask/eth-phishing-detect`);
-	};
-
-	/**
-	 * Continue to phishing website
-	 */
-	const continueToPhishingSite = () => {
-		const urlObj = new URL(blockedUrl);
-		props.addToWhitelist(urlObj.hostname);
-		setShowPhishingModal(false);
-		blockedUrl !== url.current &&
-			setTimeout(() => {
-				go(blockedUrl);
-				setBlockedUrl(undefined);
-			}, 1000);
-	};
-
-	/**
-	 * Go to etherscam website
-	 */
-	const goToEtherscam = () => {
-		setShowPhishingModal(false);
-		go(`https://etherscamdb.info/domain/meta-mask.com`);
-	};
-
-	/**
-	 * Go to eth-phishing-detect issue
-	 */
-	const goToFilePhishingIssue = () => {
-		setShowPhishingModal(false);
-		go(`https://github.com/metamask/eth-phishing-detect/issues/new`);
-	};
-
-	/**
-	 * Go back from phishing website alert
-	 */
-	const goBackToSafety = () => {
-		blockedUrl === url.current && goBack();
-		setTimeout(() => {
-			setShowPhishingModal(false);
-			setBlockedUrl(undefined);
-		}, 500);
-	};
-
-	/**
 	 * Renders the phishing modal
 	 */
 	const renderPhishingModal = () => (
-		<Modal
-			isVisible={showPhishingModal}
-			animationIn="slideInUp"
-			animationOut="slideOutDown"
-			style={styles.fullScreenModal}
-			backdropOpacity={1}
-			backdropColor={colors.red}
-			animationInTiming={300}
-			animationOutTiming={300}
-			useNativeDriver
-		>
-			<PhishingModal
-				fullUrl={blockedUrl}
-				goToETHPhishingDetector={goToETHPhishingDetector}
-				continueToPhishingSite={continueToPhishingSite}
-				goToEtherscam={goToEtherscam}
-				goToFilePhishingIssue={goToFilePhishingIssue}
-				goBackToSafety={goBackToSafety}
-			/>
-		</Modal>
+		<PhishingModal
+			currentUrl={url.current}
+			go={go}
+			goBack={goBack}
+			addToWhitelist={props.addToWhitelist}
+			blockedUrl={blockedUrl}
+			setBlockedUrl={setBlockedUrl}
+			showPhishingModal={showPhishingModal}
+			setShowPhishingModal={setShowPhishingModal}
+		/>
 	);
 
 	const trackEventSearchUsed = () => {
