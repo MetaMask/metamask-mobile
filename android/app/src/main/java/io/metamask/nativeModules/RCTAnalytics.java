@@ -77,6 +77,13 @@ public class RCTAnalytics extends ReactContextBaseJavaModule {
 	}
 
 	@ReactMethod
+	public void setUserProfileProperty(String propertyName, String propertyValue) {
+		String distinctId = this.mixpanel.getDistinctId();
+		this.mixpanel.getPeople().identify(distinctId);
+		this.mixpanel.getPeople().set(propertyName, propertyValue);
+	}
+
+	@ReactMethod
 	public void optIn(boolean val) {
 		if(val){
 			this.mixpanel.optInTracking();
