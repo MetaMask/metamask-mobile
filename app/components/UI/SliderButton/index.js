@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
 	},
 });
 
-function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
+function SliderButton({ incompleteText, completeText, onComplete, disabled, onSwipeChange }) {
 	const [componentWidth, setComponentWidth] = useState(0);
 	const [hasCompletedCalled, setHasCompletedCalled] = useState(false);
 	const [hasStartedCompleteAnimation, setHasStartedCompleteAnimation] = useState(false);
@@ -92,6 +92,14 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 	const shineOffset = useRef(new Animated.Value(0)).current;
 	const pan = useRef(new Animated.ValueXY(0, 0)).current;
 	const completion = useRef(new Animated.Value(0)).current;
+
+	const handleIsPressed = useCallback(
+		(isPressed) => {
+			onSwipeChange?.(isPressed);
+			setIsPressed(isPressed);
+		},
+		[onSwipeChange]
+	);
 
 	const sliderPosition = useMemo(
 		() =>
@@ -144,10 +152,14 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 			PanResponder.create({
 				onStartShouldSetPanResponder: () => !disabled && !hasCompletedCalled,
 				onMoveShouldSetPanResponder: () => !disabled && !hasCompletedCalled,
-				onPanResponderGrant: () => setIsPressed(true),
+				onPanResponderGrant: () => handleIsPressed(true),
 				onPanResponderMove: Animated.event([null, { dx: pan.x, dy: pan.y }], { useNativeDriver: false }),
+				onPanResponderTerminate: () => {
+					handleIsPressed(false);
+					Animated.spring(pan, { toValue: { x: 0, y: 0 }, useNativeDriver: false }).start();
+				},
 				onPanResponderRelease: (evt, gestureState) => {
-					setIsPressed(false);
+					handleIsPressed(false);
 					if (
 						Math.abs(gestureState.dy) < COMPLETE_VERTICAL_THRESHOLD &&
 						gestureState.dx / (componentWidth - DIAMETER) >= COMPLETE_THRESHOLD
@@ -158,7 +170,7 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 					}
 				},
 			}),
-		[componentWidth, disabled, hasCompletedCalled, pan, startCompleteAnimation]
+		[componentWidth, disabled, handleIsPressed, hasCompletedCalled, pan, startCompleteAnimation]
 	);
 
 	useEffect(() => {
@@ -258,6 +270,10 @@ SliderButton.propTypes = {
 	 * Action to execute once button completes sliding
 	 */
 	onComplete: PropTypes.func,
+	/**
+	 * Callback that gets called when the button is being swiped
+	 */
+	onSwipeChange: PropTypes.func,
 	/**
 	 * Value that decides whether or not the slider is disabled
 	 */
