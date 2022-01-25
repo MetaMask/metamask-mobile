@@ -434,7 +434,7 @@ const instance = {
 	getValidUriFromDeeplink(uri) {
 		const prefix = 'wc://wc?uri=';
 		return uri.replace(prefix, '');
-  },
+	},
 	isSessionConnected(uri) {
 		const wcUri = parseWalletConnectUri(uri);
 		return connectors.some(({ walletConnector }) => {
