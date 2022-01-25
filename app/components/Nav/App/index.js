@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useMemo, useState } from 'react';
 import { NavigationContainer, CommonActions } from '@react-navigation/native';
-import { Animated, StyleSheet, View } from 'react-native';
+import { Animated, StyleSheet, View, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-community/async-storage';
 import Login from '../../Views/Login';
@@ -141,7 +141,12 @@ const App = ({ userLoggedIn }) => {
 		() =>
 			new BranchSubscriber({
 				onOpenStart: (opts) => {
-					handleDeeplink(opts);
+					// Called reliably on iOS deeplink instances
+					Platform.OS === 'ios' && handleDeeplink(opts);
+				},
+				onOpenComplete: (opts) => {
+					// Called reliably on Android deeplink instances
+					Platform.OS === 'android' && handleDeeplink(opts);
 				},
 			}),
 		// eslint-disable-next-line react-hooks/exhaustive-deps
