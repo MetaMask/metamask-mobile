@@ -28,13 +28,6 @@ import Logger from '../../../util/Logger';
 import MessageSign from '../../UI/MessageSign';
 import Approve from '../../Views/ApproveView/Approve';
 import TransactionTypes from '../../../core/TransactionTypes';
-import {
-	showTransactionNotification,
-	hideCurrentNotification,
-	showSimpleNotification,
-	removeNotificationById,
-	removeNotVisibleNotifications,
-} from '../../../actions/notification';
 import { toggleDappTransactionModal, toggleApproveModal } from '../../../actions/modals';
 import AccountApproval from '../../UI/AccountApproval';
 import { swapsUtils } from '@metamask/swaps-controller';
@@ -42,11 +35,13 @@ import { util } from '@metamask/controllers';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import BigNumber from 'bignumber.js';
-import { setInfuraAvailabilityBlocked, setInfuraAvailabilityNotBlocked } from '../../../actions/infuraAvailability';
 import { getTokenList } from '../../../reducers/tokens';
 import { toLowerCaseEquals } from '../../../util/general';
 import { ethers } from 'ethers';
 import abi from 'human-standard-token-abi';
+import AddCustomNetwork from '../../UI/AddCustomNetwork';
+import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
+import { ethErrors } from 'eth-json-rpc-errors';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -63,10 +58,14 @@ const RootComponents = (props) => {
 	const [walletConnectRequest, setWalletConnectRequest] = useState(false);
 	const [walletConnectRequestInfo, setWalletConnectRequestInfo] = useState(false);
 	const [showExpandedMessage, setShowExpandedMessage] = useState(false);
-	const [currentPageTitle, setCurrentPageTitle] = useState('');
-	const [currentPageUrl, setCurrentPageUrl] = useState('');
+	const [currentPageMeta, setCurrentPageMeta] = useState({});
 
 	const tokenList = useSelector(getTokenList);
+
+	const [customNetworkToAdd, setCustomNetworkToAdd] = useState(null);
+	const [showAddCustomNetworkDialog, setShowAddCustomNetworkDialog] = useState(false);
+	const [customNetworkToSwitch, setCustomNetworkToSwitch] = useState(null);
+	const [showSwitchCustomNetworkDialog, setShowSwitchCustomNetworkDialog] = useState(undefined);
 
 	const setTransactionObject = props.setTransactionObject;
 	const toggleApproveModal = props.toggleApproveModal;
@@ -74,12 +73,10 @@ const RootComponents = (props) => {
 	const setEtherTransaction = props.setEtherTransaction;
 
 	const onUnapprovedMessage = (messageParams, type) => {
-		const { title: currentPageTitle, url: currentPageUrl } = messageParams.meta;
+		setCurrentPageMeta(messageParams.meta);
 		delete messageParams.meta;
 		setSignMessageParams(messageParams);
 		setSignType(type);
-		setCurrentPageTitle(currentPageTitle);
-		setCurrentPageUrl(currentPageUrl);
 		setSignMessage(true);
 	};
 
@@ -335,7 +332,7 @@ const RootComponents = (props) => {
 					messageParams={signMessageParams}
 					onCancel={onSignAction}
 					onConfirm={onSignAction}
-					currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
+					currentPageInformation={currentPageMeta}
 					toggleExpandedMessage={toggleExpandedMessage}
 					showExpandedMessage={showExpandedMessage}
 				/>
@@ -346,7 +343,7 @@ const RootComponents = (props) => {
 					messageParams={signMessageParams}
 					onCancel={onSignAction}
 					onConfirm={onSignAction}
-					currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
+					currentPageInformation={currentPageMeta}
 					toggleExpandedMessage={toggleExpandedMessage}
 					showExpandedMessage={showExpandedMessage}
 				/>
@@ -357,7 +354,7 @@ const RootComponents = (props) => {
 					messageParams={signMessageParams}
 					onCancel={onSignAction}
 					onConfirm={onSignAction}
-					currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
+					currentPageInformation={currentPageMeta}
 					toggleExpandedMessage={toggleExpandedMessage}
 					showExpandedMessage={showExpandedMessage}
 				/>
@@ -419,6 +416,86 @@ const RootComponents = (props) => {
 	const renderApproveModal = () =>
 		props.approveModalVisible && <Approve modalVisible toggleApproveModal={props.toggleApproveModal} />;
 
+	const rejectPendingApproval = (id, error) => {
+		const { ApprovalController } = Engine.context;
+		ApprovalController.reject(id, error);
+	};
+
+	const acceptPendingApproval = (id, requestData) => {
+		const { ApprovalController } = Engine.context;
+		ApprovalController.accept(id, requestData);
+	};
+
+	const onAddCustomNetworkReject = () => {
+		setShowAddCustomNetworkDialog(false);
+		rejectPendingApproval(customNetworkToAdd.id, ethErrors.provider.userRejectedRequest());
+	};
+
+	const onAddCustomNetworkConfirm = () => {
+		setShowAddCustomNetworkDialog(false);
+		acceptPendingApproval(customNetworkToAdd.id, customNetworkToAdd.data);
+	};
+
+	/**
+	 * Render the modal that asks the user to approve/reject connections to a dapp
+	 */
+	const renderAddCustomNetworkModal = () => (
+		<Modal
+			isVisible={showAddCustomNetworkDialog}
+			animationIn="slideInUp"
+			animationOut="slideOutDown"
+			style={styles.bottomModal}
+			backdropOpacity={0.7}
+			animationInTiming={300}
+			animationOutTiming={300}
+			onSwipeComplete={onAddCustomNetworkReject}
+			onBackdropPress={onAddCustomNetworkReject}
+		>
+			<AddCustomNetwork
+				onCancel={onAddCustomNetworkReject}
+				onConfirm={onAddCustomNetworkConfirm}
+				currentPageInformation={currentPageMeta}
+				customNetworkInformation={customNetworkToAdd?.data}
+			/>
+		</Modal>
+	);
+
+	const onSwitchCustomNetworkReject = () => {
+		setShowSwitchCustomNetworkDialog(undefined);
+		rejectPendingApproval(customNetworkToSwitch.id, ethErrors.provider.userRejectedRequest());
+	};
+
+	const onSwitchCustomNetworkConfirm = () => {
+		setShowSwitchCustomNetworkDialog(undefined);
+		acceptPendingApproval(customNetworkToSwitch.id, customNetworkToSwitch.data);
+	};
+
+	/**
+	 * Render the modal that asks the user to approve/reject connections to a dapp
+	 */
+	const renderSwitchCustomNetworkModal = () => (
+		<Modal
+			isVisible={!!showSwitchCustomNetworkDialog}
+			animationIn="slideInUp"
+			animationOut="slideOutDown"
+			style={styles.bottomModal}
+			backdropOpacity={0.7}
+			animationInTiming={300}
+			animationOutTiming={300}
+			onSwipeComplete={onSwitchCustomNetworkReject}
+			onBackdropPress={onSwitchCustomNetworkReject}
+			swipeDirection={'down'}
+		>
+			<SwitchCustomNetwork
+				onCancel={onSwitchCustomNetworkReject}
+				onConfirm={onSwitchCustomNetworkConfirm}
+				currentPageInformation={currentPageMeta}
+				customNetworkInformation={customNetworkToSwitch?.data}
+				type={showSwitchCustomNetworkDialog}
+			/>
+		</Modal>
+	);
+
 	// unapprovedTransaction effect
 	useEffect(() => {
 		Engine.context.TransactionController.hub.on('unapprovedTransaction', onUnapprovedTransaction);
@@ -426,6 +503,29 @@ const RootComponents = (props) => {
 			Engine.context.TransactionController.hub.removeListener('unapprovedTransaction', onUnapprovedTransaction);
 		};
 	}, [onUnapprovedTransaction]);
+
+	const handlePendingApprovals = async (approval) => {
+		if (approval.pendingApprovalCount > 0) {
+			const key = Object.keys(approval.pendingApprovals)[0];
+			const request = approval.pendingApprovals[key];
+			const requestData = request.requestData;
+			if (requestData.pageMeta) {
+				setCurrentPageMeta(requestData.pageMeta);
+			}
+			switch (request.type) {
+				case 'SWITCH_ETHEREUM_CHAIN':
+					setCustomNetworkToSwitch({ data: requestData, id: request.id });
+					setShowSwitchCustomNetworkDialog(requestData.type);
+					break;
+				case 'ADD_ETHEREUM_CHAIN':
+					setCustomNetworkToAdd({ data: requestData, id: request.id });
+					setShowAddCustomNetworkDialog(true);
+					break;
+				default:
+					break;
+			}
+		}
+	};
 
 	useEffect(() => {
 		initializeWalletConnect();
@@ -442,9 +542,12 @@ const RootComponents = (props) => {
 			onUnapprovedMessage(messageParams, 'typed')
 		);
 
+		Engine.controllerMessenger.subscribe('ApprovalController:stateChange', handlePendingApprovals);
+
 		return function cleanup() {
 			Engine.context.PersonalMessageManager.hub.removeAllListeners();
 			Engine.context.TypedMessageManager.hub.removeAllListeners();
+			Engine.controllerMessenger.unsubscribe('ApprovalController:stateChange', handlePendingApprovals);
 			WalletConnect.hub.removeAllListeners();
 		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -456,6 +559,8 @@ const RootComponents = (props) => {
 			{renderWalletConnectSessionRequestModal()}
 			{renderDappTransactionModal()}
 			{renderApproveModal()}
+			{renderAddCustomNetworkModal()}
+			{renderSwitchCustomNetworkModal()}
 		</React.Fragment>
 	);
 };
@@ -505,8 +610,6 @@ RootComponents.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-	lockTime: state.settings.lockTime,
-	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	tokens: state.engine.backgroundState.TokensController.tokens,
@@ -519,15 +622,8 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
 	setEtherTransaction: (transaction) => dispatch(setEtherTransaction(transaction)),
 	setTransactionObject: (transaction) => dispatch(setTransactionObject(transaction)),
-	showTransactionNotification: (args) => dispatch(showTransactionNotification(args)),
-	showSimpleNotification: (args) => dispatch(showSimpleNotification(args)),
-	hideCurrentNotification: () => dispatch(hideCurrentNotification()),
-	removeNotificationById: (id) => dispatch(removeNotificationById(id)),
 	toggleDappTransactionModal: (show = null) => dispatch(toggleDappTransactionModal(show)),
 	toggleApproveModal: (show) => dispatch(toggleApproveModal(show)),
-	setInfuraAvailabilityBlocked: () => dispatch(setInfuraAvailabilityBlocked()),
-	setInfuraAvailabilityNotBlocked: () => dispatch(setInfuraAvailabilityNotBlocked()),
-	removeNotVisibleNotifications: () => dispatch(removeNotVisibleNotifications()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(RootComponents);

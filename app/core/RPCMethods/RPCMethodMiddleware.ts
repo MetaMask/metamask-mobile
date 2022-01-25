@@ -13,6 +13,7 @@ import { resemblesAddress } from '../../util/address';
 import { store } from '../../store';
 import { removeBookmark } from '../../actions/bookmarks';
 import setOnboardingWizardStep from '../../actions/wizard';
+import { v1 as random } from 'uuid';
 
 let appVersion = '';
 
@@ -37,15 +38,6 @@ interface RPCMethodsMiddleParameters {
 	setShowUrlModal: (showUrlModal: boolean) => void;
 	// Wizard
 	wizardScrollAdjusted: { current: boolean };
-	// wallet_addEthereumChain && wallet_switchEthereumChain
-	showAddCustomNetworkDialog: (addCustomNetworkDialog: boolean) => void;
-	showSwitchCustomNetworkDialog: (switchCustomNetworkDialog: boolean) => void;
-	addCustomNetworkRequest: { current: boolean | null };
-	switchCustomNetworkRequest: { current: boolean | null };
-	setCustomNetworkToSwitch: (customNetworkToSwitch: any) => void;
-	setShowSwitchCustomNetworkDialog: (showSwitchCustomNetworkDialog: string | undefined) => void;
-	setCustomNetworkToAdd: (customNetworkToAdd: any) => void;
-	setShowAddCustomNetworkDialog: (showAddCustomNetworkDialog: boolean) => void;
 }
 
 /**
@@ -73,15 +65,6 @@ export const getRpcMethodMiddleware = ({
 	setShowUrlModal,
 	// Wizard
 	wizardScrollAdjusted,
-	// wallet_addEthereumChain && wallet_switchEthereumChain
-	showAddCustomNetworkDialog,
-	showSwitchCustomNetworkDialog,
-	addCustomNetworkRequest,
-	switchCustomNetworkRequest,
-	setCustomNetworkToSwitch,
-	setShowSwitchCustomNetworkDialog,
-	setCustomNetworkToAdd,
-	setShowAddCustomNetworkDialog,
 }: RPCMethodsMiddleParameters) =>
 	// all user facing RPC calls not implemented by the provider
 	createAsyncMiddleware(async (req: any, res: any, next: any) => {
@@ -95,6 +78,20 @@ export const getRpcMethodMiddleware = ({
 			const isEnabled = !privacyMode || getApprovedHosts()[hostname];
 
 			return isEnabled && selectedAddress ? [selectedAddress] : [];
+		};
+
+		const requestUserApproval = async ({ type, requestData = {} }) => {
+			await Engine.context.ApprovalController.clear(ethErrors.provider.userRejectedRequest());
+			const responseData = await Engine.context.ApprovalController.add({
+				origin: hostname,
+				type,
+				requestData: {
+					...requestData,
+					pageMeta: { url: url.current, title: title.current, icon: icon.current },
+				},
+				id: random(),
+			});
+			return responseData;
 		};
 
 		const rpcMethods: any = {
@@ -444,23 +441,13 @@ export const getRpcMethodMiddleware = ({
 				RPCMethods.wallet_addEthereumChain({
 					req,
 					res,
-					showAddCustomNetworkDialog,
-					showSwitchCustomNetworkDialog,
-					addCustomNetworkRequest,
-					switchCustomNetworkRequest,
-					setCustomNetworkToSwitch,
-					setShowSwitchCustomNetworkDialog,
-					setCustomNetworkToAdd,
-					setShowAddCustomNetworkDialog,
+					requestUserApproval,
 				}),
 			wallet_switchEthereumChain: () =>
 				RPCMethods.wallet_switchEthereumChain({
 					req,
 					res,
-					showSwitchCustomNetworkDialog,
-					switchCustomNetworkRequest,
-					setCustomNetworkToSwitch,
-					setShowSwitchCustomNetworkDialog,
+					requestUserApproval,
 				}),
 		};
 

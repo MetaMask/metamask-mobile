@@ -55,8 +55,6 @@ import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import { isEmulatorSync } from 'react-native-device-info';
 import ErrorBoundary from '../ErrorBoundary';
-import AddCustomNetwork from '../../UI/AddCustomNetwork';
-import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
 
 import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddleware';
 
@@ -243,11 +241,6 @@ export const BrowserTab = (props) => {
 	const [watchAsset, setWatchAsset] = useState(false);
 	const [suggestedAssetMeta, setSuggestedAssetMeta] = useState(undefined);
 
-	const [customNetworkToAdd, setCustomNetworkToAdd] = useState(null);
-	const [showAddCustomNetworkDialog, setShowAddCustomNetworkDialog] = useState(false);
-	const [customNetworkToSwitch, setCustomNetworkToSwitch] = useState(null);
-	const [showSwitchCustomNetworkDialog, setShowSwitchCustomNetworkDialog] = useState(undefined);
-
 	const webviewRef = useRef(null);
 	const inputRef = useRef(null);
 
@@ -258,8 +251,6 @@ export const BrowserTab = (props) => {
 	const backgroundBridges = useRef([]);
 	const approvalRequest = useRef(null);
 	const fromHomepage = useRef(false);
-	const addCustomNetworkRequest = useRef(null);
-	const switchCustomNetworkRequest = useRef(null);
 	const wizardScrollAdjusted = useRef(false);
 
 	/**
@@ -427,15 +418,6 @@ export const BrowserTab = (props) => {
 					setShowUrlModal,
 					// Wizard
 					wizardScrollAdjusted,
-					// wallet_addEthereumChain && wallet_switchEthereumChain
-					showAddCustomNetworkDialog,
-					showSwitchCustomNetworkDialog,
-					addCustomNetworkRequest,
-					switchCustomNetworkRequest,
-					setCustomNetworkToSwitch,
-					setShowSwitchCustomNetworkDialog,
-					setCustomNetworkToAdd,
-					setShowAddCustomNetworkDialog,
 				}),
 			isMainFrame,
 		});
@@ -1409,84 +1391,6 @@ export const BrowserTab = (props) => {
 		);
 	};
 
-	const onAddCustomNetworkReject = () => {
-		setShowAddCustomNetworkDialog(false);
-		addCustomNetworkRequest?.current?.resolve?.(false);
-	};
-
-	const onAddCustomNetworkConfirm = () => {
-		setShowAddCustomNetworkDialog(false);
-		addCustomNetworkRequest?.current?.resolve?.(true);
-	};
-
-	/**
-	 * Render the modal that asks the user to approve/reject connections to a dapp
-	 */
-	const renderAddCustomNetworkModal = () => (
-		<Modal
-			isVisible={showAddCustomNetworkDialog}
-			animationIn="slideInUp"
-			animationOut="slideOutDown"
-			style={styles.bottomModal}
-			backdropOpacity={0.7}
-			animationInTiming={300}
-			animationOutTiming={300}
-			onSwipeComplete={onAddCustomNetworkReject}
-			onBackdropPress={onAddCustomNetworkReject}
-		>
-			<AddCustomNetwork
-				onCancel={onAddCustomNetworkReject}
-				onConfirm={onAddCustomNetworkConfirm}
-				currentPageInformation={{
-					title: title.current,
-					url: getMaskedUrl(url.current),
-					icon: icon.current,
-				}}
-				customNetworkInformation={customNetworkToAdd}
-			/>
-		</Modal>
-	);
-
-	const onSwitchCustomNetworkReject = () => {
-		setShowSwitchCustomNetworkDialog(undefined);
-		switchCustomNetworkRequest?.current?.resolve?.(false);
-	};
-
-	const onSwitchCustomNetworkConfirm = () => {
-		setShowSwitchCustomNetworkDialog(undefined);
-		switchCustomNetworkRequest?.current?.resolve?.(true);
-	};
-
-	/**
-	 * Render the modal that asks the user to approve/reject connections to a dapp
-	 */
-	const renderSwitchCustomNetworkModal = () => (
-		<Modal
-			isVisible={!!showSwitchCustomNetworkDialog}
-			animationIn="slideInUp"
-			animationOut="slideOutDown"
-			style={styles.bottomModal}
-			backdropOpacity={0.7}
-			animationInTiming={300}
-			animationOutTiming={300}
-			onSwipeComplete={onSwitchCustomNetworkReject}
-			onBackdropPress={onSwitchCustomNetworkReject}
-			swipeDirection={'down'}
-		>
-			<SwitchCustomNetwork
-				onCancel={onSwitchCustomNetworkReject}
-				onConfirm={onSwitchCustomNetworkConfirm}
-				currentPageInformation={{
-					title: title.current,
-					url: getMaskedUrl(url.current),
-					icon: icon.current,
-				}}
-				customNetworkInformation={customNetworkToSwitch}
-				type={showSwitchCustomNetworkDialog}
-			/>
-		</Modal>
-	);
-
 	/**
 	 * On rejection addinga an asset
 	 */
@@ -1583,8 +1487,6 @@ export const BrowserTab = (props) => {
 				{isTabActive() && renderOptions()}
 				{isTabActive() && renderBottomBar()}
 				{isTabActive() && renderOnboardingWizard()}
-				{isTabActive() && renderAddCustomNetworkModal()}
-				{isTabActive() && renderSwitchCustomNetworkModal()}
 			</View>
 		</ErrorBoundary>
 	);
