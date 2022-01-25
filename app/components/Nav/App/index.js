@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { NavigationContainer, CommonActions } from '@react-navigation/native';
-import { Animated, StyleSheet, View } from 'react-native';
+import { Animated, StyleSheet, View, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-community/async-storage';
 import Login from '../../Views/Login';
@@ -34,6 +34,8 @@ import { getVersion } from 'react-native-device-info';
 import { checkedAuth } from '../../../actions/user';
 import { setCurrentRoute } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
+
+const isIos = Platform.OS === 'ios';
 
 const styles = StyleSheet.create({
 	fill: { flex: 1 },
@@ -117,26 +119,37 @@ const App = ({ userLoggedIn }) => {
 	const triggerCheckedAuth = () => dispatch(checkedAuth('onboarding'));
 	const triggerSetCurrentRoute = (route) => dispatch(setCurrentRoute(route));
 
+	const handleDeeplink = useCallback(({ error, params, uri }) => {
+		if (error) {
+			trackErrorAsAnalytics(error, 'Branch:');
+		}
+		const deeplink = params?.['+non_branch_link'] || uri || null;
+		try {
+			if (deeplink) {
+				const { KeyringController } = Engine.context;
+				const isUnlocked = KeyringController.isUnlocked();
+				isUnlocked
+					? SharedDeeplinkManager.parse(deeplink, { origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK })
+					: SharedDeeplinkManager.setDeeplink(deeplink);
+			}
+		} catch (e) {
+			Logger.error(e, `Deeplink: Error parsing deeplink`);
+		}
+	}, []);
+
 	useEffect(
 		() =>
-			branch.subscribe(({ error, params, uri }) => {
-				if (error) {
-					trackErrorAsAnalytics(error, 'Branch:');
-				}
-				const deeplink = params?.['+non_branch_link'] || uri || null;
-				try {
-					if (deeplink) {
-						const { KeyringController } = Engine.context;
-						const isUnlocked = KeyringController.isUnlocked();
-						isUnlocked
-							? SharedDeeplinkManager.parse(deeplink, { origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK })
-							: SharedDeeplinkManager.setDeeplink(deeplink);
-					}
-				} catch (e) {
-					Logger.error(e, `Deeplink: Error parsing deeplink`);
-				}
+			branch.subscribe({
+				onOpenStart: (opts) => {
+					// Called reliably on iOS deeplink instances
+					isIos && handleDeeplink(opts);
+				},
+				onOpenComplete: (opts) => {
+					// Called reliably on Android deeplink instances
+					!isIos && handleDeeplink(opts);
+				},
 			}),
-		[]
+		[handleDeeplink]
 	);
 
 	useEffect(() => {
