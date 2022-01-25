@@ -1,4 +1,4 @@
-import React, { PureComponent, setState } from 'react';
+import React, { PureComponent } from 'react';
 import { SafeAreaView, View, StyleSheet } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
