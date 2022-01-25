@@ -52,14 +52,14 @@ class Analytics {
 	 * Set the user profile state for current user to mixpanel
 	 */
 	_setUserProfileProperties = () => {
-		const preferencesController = Engine.context.PreferencesController;
+		const state = Engine.context.PreferencesController.internalState;
 		RCTAnalytics.setUserProfileProperty(
 			USER_PROFILE_PROPERTY.ENABLE_OPENSEA_API,
-			preferencesController?.openSeaEnabled ? USER_PROFILE_PROPERTY.ON : USER_PROFILE_PROPERTY.OFF
+			state?.openSeaEnabled ? USER_PROFILE_PROPERTY.ON : USER_PROFILE_PROPERTY.OFF
 		);
 		RCTAnalytics.setUserProfileProperty(
 			USER_PROFILE_PROPERTY.NFT_AUTODETECTION,
-			preferencesController?.useCollectibleDetection ? USER_PROFILE_PROPERTY.ON : USER_PROFILE_PROPERTY.OFF
+			state?.useCollectibleDetection ? USER_PROFILE_PROPERTY.ON : USER_PROFILE_PROPERTY.OFF
 		);
 	};
 
