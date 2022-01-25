@@ -42,6 +42,7 @@ import abi from 'human-standard-token-abi';
 import AddCustomNetwork from '../../UI/AddCustomNetwork';
 import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
 import { ethErrors } from 'eth-json-rpc-errors';
+import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -52,7 +53,7 @@ const styles = StyleSheet.create({
 	},
 });
 const RootComponents = (props) => {
-	const [signMessage, setSignMessage] = useState(false);
+	const [showPendingApproval, setShowPendingApproval] = useState(false);
 	const [signMessageParams, setSignMessageParams] = useState({ data: '' });
 	const [signType, setSignType] = useState(false);
 	const [walletConnectRequest, setWalletConnectRequest] = useState(false);
@@ -63,21 +64,25 @@ const RootComponents = (props) => {
 	const tokenList = useSelector(getTokenList);
 
 	const [customNetworkToAdd, setCustomNetworkToAdd] = useState(null);
-	const [showAddCustomNetworkDialog, setShowAddCustomNetworkDialog] = useState(false);
 	const [customNetworkToSwitch, setCustomNetworkToSwitch] = useState(null);
-	const [showSwitchCustomNetworkDialog, setShowSwitchCustomNetworkDialog] = useState(undefined);
 
 	const setTransactionObject = props.setTransactionObject;
 	const toggleApproveModal = props.toggleApproveModal;
 	const toggleDappTransactionModal = props.toggleDappTransactionModal;
 	const setEtherTransaction = props.setEtherTransaction;
 
-	const onUnapprovedMessage = (messageParams, type) => {
+	const showPendingApprovalModal = ({ type, origin }) => {
+		InteractionManager.runAfterInteractions(() => {
+			setShowPendingApproval({ type, origin });
+		});
+	};
+
+	const onUnapprovedMessage = (messageParams, type, origin) => {
 		setCurrentPageMeta(messageParams.meta);
 		delete messageParams.meta;
 		setSignMessageParams(messageParams);
 		setSignType(type);
-		setSignMessage(true);
+		showPendingApprovalModal({ type: ApprovalTypes.SIGN_MESSAGE, origin: messageParams.origin });
 	};
 
 	const initializeWalletConnect = () => {
@@ -307,13 +312,13 @@ const RootComponents = (props) => {
 		]
 	);
 
-	const onSignAction = () => setSignMessage(false);
+	const onSignAction = () => setShowPendingApproval(false);
 
 	const toggleExpandedMessage = () => setShowExpandedMessage(!showExpandedMessage);
 
 	const renderSigningModal = () => (
 		<Modal
-			isVisible={signMessage}
+			isVisible={showPendingApproval?.type === ApprovalTypes.SIGN_MESSAGE}
 			animationIn="slideInUp"
 			animationOut="slideOutDown"
 			style={styles.bottomModal}
@@ -427,12 +432,12 @@ const RootComponents = (props) => {
 	};
 
 	const onAddCustomNetworkReject = () => {
-		setShowAddCustomNetworkDialog(false);
+		setShowPendingApproval(false);
 		rejectPendingApproval(customNetworkToAdd.id, ethErrors.provider.userRejectedRequest());
 	};
 
 	const onAddCustomNetworkConfirm = () => {
-		setShowAddCustomNetworkDialog(false);
+		setShowPendingApproval(false);
 		acceptPendingApproval(customNetworkToAdd.id, customNetworkToAdd.data);
 	};
 
@@ -441,7 +446,7 @@ const RootComponents = (props) => {
 	 */
 	const renderAddCustomNetworkModal = () => (
 		<Modal
-			isVisible={showAddCustomNetworkDialog}
+			isVisible={showPendingApproval?.type === ApprovalTypes.ADD_ETHEREUM_CHAIN}
 			animationIn="slideInUp"
 			animationOut="slideOutDown"
 			style={styles.bottomModal}
@@ -461,12 +466,12 @@ const RootComponents = (props) => {
 	);
 
 	const onSwitchCustomNetworkReject = () => {
-		setShowSwitchCustomNetworkDialog(undefined);
+		setShowPendingApproval(false);
 		rejectPendingApproval(customNetworkToSwitch.id, ethErrors.provider.userRejectedRequest());
 	};
 
 	const onSwitchCustomNetworkConfirm = () => {
-		setShowSwitchCustomNetworkDialog(undefined);
+		setShowPendingApproval(false);
 		acceptPendingApproval(customNetworkToSwitch.id, customNetworkToSwitch.data);
 	};
 
@@ -475,7 +480,7 @@ const RootComponents = (props) => {
 	 */
 	const renderSwitchCustomNetworkModal = () => (
 		<Modal
-			isVisible={!!showSwitchCustomNetworkDialog}
+			isVisible={showPendingApproval?.type === ApprovalTypes.SWITCH_ETHEREUM_CHAIN}
 			animationIn="slideInUp"
 			animationOut="slideOutDown"
 			style={styles.bottomModal}
@@ -491,7 +496,7 @@ const RootComponents = (props) => {
 				onConfirm={onSwitchCustomNetworkConfirm}
 				currentPageInformation={currentPageMeta}
 				customNetworkInformation={customNetworkToSwitch?.data}
-				type={showSwitchCustomNetworkDialog}
+				type={customNetworkToSwitch?.data.type}
 			/>
 		</Modal>
 	);
@@ -505,6 +510,8 @@ const RootComponents = (props) => {
 	}, [onUnapprovedTransaction]);
 
 	const handlePendingApprovals = async (approval) => {
+		//TODO: IF WE RECEIVE AN APPROVAL REQUEST, AND WE HAVE ONE ACTIVE, SHOULD WE HIDE THE CURRENT ONE OR NOT?
+
 		if (approval.pendingApprovalCount > 0) {
 			const key = Object.keys(approval.pendingApprovals)[0];
 			const request = approval.pendingApprovals[key];
@@ -515,15 +522,17 @@ const RootComponents = (props) => {
 			switch (request.type) {
 				case 'SWITCH_ETHEREUM_CHAIN':
 					setCustomNetworkToSwitch({ data: requestData, id: request.id });
-					setShowSwitchCustomNetworkDialog(requestData.type);
+					showPendingApprovalModal({ type: ApprovalTypes.SWITCH_ETHEREUM_CHAIN, origin: request.origin });
 					break;
 				case 'ADD_ETHEREUM_CHAIN':
 					setCustomNetworkToAdd({ data: requestData, id: request.id });
-					setShowAddCustomNetworkDialog(true);
+					showPendingApprovalModal({ type: ApprovalTypes.ADD_ETHEREUM_CHAIN, origin: request.origin });
 					break;
 				default:
 					break;
 			}
+		} else {
+			setShowPendingApproval(false);
 		}
 	};
 

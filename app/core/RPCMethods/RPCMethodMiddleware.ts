@@ -17,6 +17,12 @@ import { v1 as random } from 'uuid';
 
 let appVersion = '';
 
+export enum ApprovalTypes {
+	SIGN_MESSAGE = 'SIGN_MESSAGE',
+	ADD_ETHEREUM_CHAIN = 'ADD_ETHEREUM_CHAIN',
+	SWITCH_ETHEREUM_CHAIN = 'SWITCH_ETHEREUM_CHAIN',
+}
+
 interface RPCMethodsMiddleParameters {
 	hostname: string;
 	getProviderState: () => any;
@@ -184,6 +190,7 @@ export const getRpcMethodMiddleware = ({
 					data: req.params[1],
 					from: req.params[0],
 					...pageMeta,
+					origin: hostname,
 				});
 
 				res.result = rawSig;
@@ -213,6 +220,7 @@ export const getRpcMethodMiddleware = ({
 				const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
 					...params,
 					...pageMeta,
+					origin: hostname,
 				});
 
 				res.result = rawSig;
@@ -232,6 +240,7 @@ export const getRpcMethodMiddleware = ({
 						data: req.params[0],
 						from: req.params[1],
 						...pageMeta,
+						origin: hostname,
 					},
 					'V1'
 				);
@@ -270,6 +279,7 @@ export const getRpcMethodMiddleware = ({
 						data: req.params[1],
 						from: req.params[0],
 						...pageMeta,
+						origin: hostname,
 					},
 					'V3'
 				);
@@ -308,6 +318,7 @@ export const getRpcMethodMiddleware = ({
 						data: req.params[1],
 						from: req.params[0],
 						...pageMeta,
+						origin: hostname,
 					},
 					'V4'
 				);
