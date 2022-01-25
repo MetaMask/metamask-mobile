@@ -157,12 +157,14 @@ class DeeplinkManager {
 			// address, transactions, etc
 			case 'wc':
 				handled();
-				if (!WalletConnect.isValidUri(url)) return;
+				// eslint-disable-next-line no-case-declarations
+				const wcUrl = WalletConnect.getValidUriFromDeeplink(url);
+				if (!WalletConnect.isValidUri(wcUrl)) return;
 				// eslint-disable-next-line no-case-declarations
 				const redirect = params && params.redirect;
 				// eslint-disable-next-line no-case-declarations
 				const autosign = params && params.autosign;
-				WalletConnect.newSession(url, redirect, autosign);
+				WalletConnect.newSession(wcUrl, redirect, autosign);
 				break;
 			case 'ethereum':
 				handled();
