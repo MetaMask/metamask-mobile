@@ -3,7 +3,7 @@
   "version": "4.0.0",
   "private": true,
   "scripts": {
-    "audit:ci": "./scripts/yarn-audit.sh audit dependencies",
+    "audit:ci": "./scripts/yarn-audit.sh",
     "watch": "./scripts/build.sh watcher watch",
     "watch:clean": "./scripts/build.sh watcher clean",
     "clean:ios": "rm -rf ios/build",
