@@ -93,6 +93,8 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled, onSw
 	const pan = useRef(new Animated.ValueXY(0, 0)).current;
 	const completion = useRef(new Animated.Value(0)).current;
 
+	const onCompleteCallback = useRef(onComplete);
+
 	const handleIsPressed = useCallback(
 		(isPressed) => {
 			onSwipeChange?.(isPressed);
@@ -128,6 +130,10 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled, onSw
 		outputRange: [colors.blue600, colors.success],
 	});
 
+	useEffect(() => {
+		onCompleteCallback.current = onComplete;
+	}, [onComplete, onCompleteCallback]);
+
 	const startCompleteAnimation = useCallback(() => {
 		if (!hasStartedCompleteAnimation) {
 			setHasStartedCompleteAnimation(true);
@@ -139,13 +145,13 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled, onSw
 					isInteraction: false,
 				}),
 			]).start(() => {
-				if (onComplete && !hasCompletedCalled) {
+				if (onCompleteCallback.current && !hasCompletedCalled) {
 					setHasCompletedCalled(true);
-					onComplete();
+					onCompleteCallback.current?.();
 				}
 			});
 		}
-	}, [completion, componentWidth, hasCompletedCalled, hasStartedCompleteAnimation, onComplete, pan]);
+	}, [completion, componentWidth, hasCompletedCalled, hasStartedCompleteAnimation, onCompleteCallback, pan]);
 
 	const panResponder = useMemo(
 		() =>
