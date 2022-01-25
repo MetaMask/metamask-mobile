@@ -270,13 +270,14 @@ class WalletConnect {
 			tempCallIds.length = 0;
 		});
 
+		/**
+		 *	Subscribe to disconnect
+		 */
 		this.walletConnector.on('disconnect', (error) => {
 			if (error) {
 				throw error;
 			}
-
-			// delete walletConnector
-			this.walletConnector = null;
+			this.killSession();
 			persistSessions();
 		});
 
@@ -373,6 +374,11 @@ const instance = {
 		return connectors;
 	},
 	newSession(uri, redirect, autosign) {
+		const alreadyConnected = this.isSessionConnected(uri);
+		if (alreadyConnected) {
+			const errorMsg = 'This session is already connected. Close the current session before starting a new one.';
+			throw new Error(errorMsg);
+		}
 		const data = { uri };
 		if (redirect) {
 			data.redirect = redirect;
@@ -420,6 +426,16 @@ const instance = {
 			return false;
 		}
 		return true;
+	},
+	isSessionConnected(uri) {
+		const wcUri = parseWalletConnectUri(uri);
+		return connectors.some(({ walletConnector }) => {
+			if (!walletConnector) {
+				return false;
+			}
+			const { handshakeTopic, key } = walletConnector.session;
+			return handshakeTopic === wcUri.handshakeTopic && key === wcUri.key;
+		});
 	},
 };
 
