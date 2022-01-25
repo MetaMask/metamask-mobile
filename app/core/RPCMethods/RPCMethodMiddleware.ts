@@ -396,6 +396,9 @@ export const getRpcMethodMiddleware = ({
 			},
 
 			metamask_showTutorial: async () => {
+				if (!isHomepage()) {
+					throw ethErrors.provider.unauthorized('Forbidden.');
+				}
 				wizardScrollAdjusted.current = false;
 
 				store.dispatch(setOnboardingWizardStep(1));
