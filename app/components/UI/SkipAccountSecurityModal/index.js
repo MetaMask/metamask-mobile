@@ -11,8 +11,8 @@ const warning_skip_backup = require('../../../images/warning.png'); // eslint-di
 
 const styles = StyleSheet.create({
 	imageWarning: {
-		width: 56,
-		height: 56,
+		width: 60,
+		height: 60,
 		alignSelf: 'center',
 	},
 	modalNoBorder: {

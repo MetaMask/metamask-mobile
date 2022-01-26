@@ -68,8 +68,8 @@ exports[`HintModal should render correctly 1`] = `
       style={
         Object {
           "alignSelf": "center",
-          "height": 56,
-          "width": 56,
+          "height": 60,
+          "width": 60,
         }
       }
       testID="skip_backup_warning"
