@@ -367,7 +367,7 @@ class TransactionReview extends PureComponent {
 							onCancelPress={this.props.onCancel}
 							onConfirmPress={this.props.onConfirm}
 							confirmed={transactionConfirmed}
-							confirmDisabled={transactionConfirmed || error || isAnimating}
+							confirmDisabled={transactionConfirmed || Boolean(error) || isAnimating}
 						>
 							<View style={styles.actionViewChildren}>
 								<View style={styles.accountInfoCardWrapper}>
