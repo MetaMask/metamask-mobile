@@ -5,6 +5,7 @@ import { renderFromTokenMinimalUnit, renderFromWei } from '../../../../util/numb
 import { safeToChecksumAddress } from '../../../../util/address';
 
 function useBalance(accounts, balances, selectedAddress, sourceToken, { asUnits = false } = {}) {
+	// TODO: This doesn't always return type BN. Objects down the line may attempt to call functions on the BN object.
 	const balance = useMemo(() => {
 		if (!sourceToken) {
 			return null;

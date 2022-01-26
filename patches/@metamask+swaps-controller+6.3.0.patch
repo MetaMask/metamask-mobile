@@ -1,0 +1,21 @@
+diff --git a/node_modules/@metamask/swaps-controller/dist/SwapsController.js b/node_modules/@metamask/swaps-controller/dist/SwapsController.js
+index 7ca5258..e5f0a1c 100644
+--- a/node_modules/@metamask/swaps-controller/dist/SwapsController.js
++++ b/node_modules/@metamask/swaps-controller/dist/SwapsController.js
+@@ -309,14 +309,14 @@ class SwapsController extends controllers_1.BaseController {
+      */
+     /* istanbul ignore next */
+     async getERC20Allowance(contractAddress, walletAddress) {
+-        const contract = this.web3.eth.contract(human_standard_token_abi_1.default).at(contractAddress);
++        const contract = new this.web3.eth.Contract(human_standard_token_abi_1.default, contractAddress);
+         const allowanceTimeout = new Promise((_, reject) => {
+             setTimeout(() => {
+                 reject(new Error(swapsUtil_1.SwapsError.SWAPS_ALLOWANCE_TIMEOUT));
+             }, 10000);
+         });
+         const allowancePromise = new Promise((resolve, reject) => {
+-            contract.allowance(walletAddress, swapsUtil_1.getSwapsContractAddress(this.config.chainId), (error, result) => {
++            contract.methods.allowance(walletAddress, swapsUtil_1.getSwapsContractAddress(this.config.chainId)).call((error, result) => {
+                 /* istanbul ignore if */
+                 if (error) {
+                     reject(error);
