@@ -29,6 +29,7 @@ import { protectWalletModalVisible } from '../../../actions/user';
 import ClipboardManager from '../../../core/ClipboardManager';
 
 const isIos = Device.isIos();
+
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
