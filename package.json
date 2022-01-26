@@ -3,7 +3,7 @@
   "version": "4.0.0",
   "private": true,
   "scripts": {
-    "audit:ci": "./scripts/yarn-audit.sh audit dependencies",
+    "audit:ci": "./scripts/yarn-audit.sh",
     "watch": "./scripts/build.sh watcher watch",
     "watch:clean": "./scripts/build.sh watcher clean",
     "clean:ios": "rm -rf ios/build",
@@ -68,6 +68,7 @@
     ]
   },
   "resolutions": {
+    "**/nanoid": "^3.1.31",
     "**/json-schema": "^0.4.0",
     "@sentry/react-native/**/xmldom": "^0.6.0",
     "@walletconnect/**/ws": "^7.4.6",
@@ -76,7 +77,7 @@
     "**/pac-resolver": "^5.0.0",
     "**/ansi-regex": "^5.0.1",
     "**/immer": "^9.0.6",
-    "**/node-fetch": "^2.6.1",
+    "**/node-fetch": "^2.6.7",
     "**/node-notifier": "^8.0.1",
     "**/lodash": "^4.17.21",
     "**/ua-parser-js": "^0.7.24",
@@ -117,7 +118,7 @@
     "@walletconnect/client": "^1.5.1",
     "@walletconnect/utils": "^1.5.1",
     "asyncstorage-down": "4.2.0",
-    "axios": "^0.21.2",
+    "axios": "^0.25",
     "babel-plugin-transform-inline-environment-variables": "0.4.3",
     "babel-plugin-transform-remove-console": "6.9.4",
     "base-64": "1.0.0",
