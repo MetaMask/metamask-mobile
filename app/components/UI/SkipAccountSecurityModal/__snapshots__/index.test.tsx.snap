@@ -61,7 +61,6 @@ exports[`HintModal should render correctly 1`] = `
     <Icon
       allowFontScaling={false}
       name="alert-triangle"
-      resizeMethod="auto"
       size={38}
       style={
         Object {
