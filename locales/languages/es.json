@@ -1639,6 +1639,6 @@
 	"secret_phrase_video_subtitle": {
 		"title": "ES CC",
 		"language": "es",
-		"uri": "https://github.com/MetaMask/metamask-mobile/blob/develop/app/videos/subtitles/secretPhrase/subtitles-es.vtt?raw=true"
+		"uri": "https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/subtitles/secretPhrase/subtitles-es.vtt?raw=true"
 	}
 }
