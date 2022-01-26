@@ -66,6 +66,8 @@ const RootComponents = (props) => {
 	const [customNetworkToAdd, setCustomNetworkToAdd] = useState(null);
 	const [customNetworkToSwitch, setCustomNetworkToSwitch] = useState(null);
 
+	const [hostToApprove, setHostToApprove] = useState(null);
+
 	const setTransactionObject = props.setTransactionObject;
 	const toggleApproveModal = props.toggleApproveModal;
 	const toggleDappTransactionModal = props.toggleDappTransactionModal;
@@ -501,6 +503,46 @@ const RootComponents = (props) => {
 		</Modal>
 	);
 
+	/**
+	 * When user clicks on approve to connect with a dapp
+	 */
+	const onAccountsConfirm = () => {
+		acceptPendingApproval(hostToApprove.id, hostToApprove.requestData);
+		setShowPendingApproval(false);
+	};
+
+	/**
+	 * When user clicks on reject to connect with a dapp
+	 */
+	const onAccountsReject = () => {
+		rejectPendingApproval(hostToApprove.id, hostToApprove.requestData);
+		setShowPendingApproval(false);
+	};
+
+	/**
+	 * Render the modal that asks the user to approve/reject connections to a dapp
+	 */
+	const renderAccountsApprovalModal = () => (
+		<Modal
+			isVisible={showPendingApproval?.type === ApprovalTypes.CONNECT_ACCOUNTS}
+			animationIn="slideInUp"
+			animationOut="slideOutDown"
+			style={styles.bottomModal}
+			backdropOpacity={0.7}
+			animationInTiming={300}
+			animationOutTiming={300}
+			onSwipeComplete={onAccountsReject}
+			onBackdropPress={onAccountsReject}
+			swipeDirection={'down'}
+		>
+			<AccountApproval
+				onCancel={onAccountsReject}
+				onConfirm={onAccountsConfirm}
+				currentPageInformation={currentPageMeta}
+			/>
+		</Modal>
+	);
+
 	// unapprovedTransaction effect
 	useEffect(() => {
 		Engine.context.TransactionController.hub.on('unapprovedTransaction', onUnapprovedTransaction);
@@ -520,11 +562,15 @@ const RootComponents = (props) => {
 				setCurrentPageMeta(requestData.pageMeta);
 			}
 			switch (request.type) {
-				case 'SWITCH_ETHEREUM_CHAIN':
+				case ApprovalTypes.CONNECT_ACCOUNTS:
+					setHostToApprove({ data: requestData, id: request.id });
+					showPendingApprovalModal({ type: ApprovalTypes.CONNECT_ACCOUNTS, origin: request.origin });
+					break;
+				case ApprovalTypes.SWITCH_ETHEREUM_CHAIN:
 					setCustomNetworkToSwitch({ data: requestData, id: request.id });
 					showPendingApprovalModal({ type: ApprovalTypes.SWITCH_ETHEREUM_CHAIN, origin: request.origin });
 					break;
-				case 'ADD_ETHEREUM_CHAIN':
+				case ApprovalTypes.ADD_ETHEREUM_CHAIN:
 					setCustomNetworkToAdd({ data: requestData, id: request.id });
 					showPendingApprovalModal({ type: ApprovalTypes.ADD_ETHEREUM_CHAIN, origin: request.origin });
 					break;
@@ -570,6 +616,7 @@ const RootComponents = (props) => {
 			{renderApproveModal()}
 			{renderAddCustomNetworkModal()}
 			{renderSwitchCustomNetworkModal()}
+			{renderAccountsApprovalModal()}
 		</React.Fragment>
 	);
 };

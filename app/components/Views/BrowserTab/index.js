@@ -36,7 +36,6 @@ import { strings } from '../../../../locales/i18n';
 import URL from 'url-parse';
 import Modal from 'react-native-modal';
 import UrlAutocomplete from '../../UI/UrlAutocomplete';
-import AccountApproval from '../../UI/AccountApproval';
 import WebviewError from '../../UI/WebviewError';
 import { approveHost } from '../../../actions/privacy';
 import { addBookmark } from '../../../actions/bookmarks';
@@ -222,6 +221,9 @@ const ensIgnoreList = [];
 let approvedHosts = {};
 
 const getApprovedHosts = () => approvedHosts;
+const setApprovedHosts = (hosts) => {
+	approvedHosts = hosts;
+};
 
 export const BrowserTab = (props) => {
 	const [backEnabled, setBackEnabled] = useState(false);
@@ -234,8 +236,6 @@ export const BrowserTab = (props) => {
 	const [showUrlModal, setShowUrlModal] = useState(false);
 	const [showOptions, setShowOptions] = useState(false);
 	const [entryScriptWeb3, setEntryScriptWeb3] = useState(null);
-	const [showApprovalDialog, setShowApprovalDialog] = useState(false);
-	const [showApprovalDialogHostname, setShowApprovalDialogHostname] = useState(undefined);
 	const [showPhishingModal, setShowPhishingModal] = useState(false);
 	const [blockedUrl, setBlockedUrl] = useState(undefined);
 	const [watchAsset, setWatchAsset] = useState(false);
@@ -249,7 +249,6 @@ export const BrowserTab = (props) => {
 	const icon = useRef(null);
 	const webviewUrlPostMessagePromiseResolve = useRef(null);
 	const backgroundBridges = useRef([]);
-	const approvalRequest = useRef(null);
 	const fromHomepage = useRef(false);
 	const wizardScrollAdjusted = useRef(false);
 
@@ -317,32 +316,6 @@ export const BrowserTab = (props) => {
 		return currentHost === HOMEPAGE_HOST;
 	}, []);
 
-	/**
-	 * When user clicks on approve to connect with a dapp
-	 */
-	const onAccountsConfirm = () => {
-		const { approveHost, selectedAddress } = props;
-		const fullHostname = new URL(url.current).hostname;
-		setShowApprovalDialog(false);
-		setShowApprovalDialogHostname(undefined);
-		approveHost(fullHostname);
-		approvedHosts = { ...approvedHosts, [fullHostname]: true };
-		approvalRequest.current &&
-			approvalRequest.current.resolve &&
-			approvalRequest.current.resolve([selectedAddress]);
-	};
-
-	/**
-	 * When user clicks on reject to connect with a dapp
-	 */
-	const onAccountsReject = () => {
-		setShowApprovalDialog(false);
-		setShowApprovalDialogHostname(undefined);
-		approvalRequest.current &&
-			approvalRequest.current.reject &&
-			approvalRequest.current.reject(new Error('User rejected account access'));
-	};
-
 	const notifyAllConnections = useCallback(
 		(payload, restricted = true) => {
 			const fullHostname = new URL(url.current).hostname;
@@ -401,15 +374,12 @@ export const BrowserTab = (props) => {
 					getProviderState,
 					navigation: props.navigation,
 					getApprovedHosts,
+					setApprovedHosts,
+					approveHost: props.approveHost,
 					// Website info
 					url,
 					title,
 					icon,
-					// eth_requestAccounts
-					showApprovalDialog,
-					setShowApprovalDialog,
-					setShowApprovalDialogHostname,
-					approvalRequest,
 					// Bookmarks
 					isHomepage,
 					// Show autocomplete
@@ -1360,38 +1330,6 @@ export const BrowserTab = (props) => {
 	);
 
 	/**
-	 * Render the modal that asks the user to approve/reject connections to a dapp
-	 */
-	const renderApprovalModal = () => {
-		const showApprovalDialogNow =
-			showApprovalDialog && showApprovalDialogHostname === new URL(url.current).hostname;
-		return (
-			<Modal
-				isVisible={showApprovalDialogNow}
-				animationIn="slideInUp"
-				animationOut="slideOutDown"
-				style={styles.bottomModal}
-				backdropOpacity={0.7}
-				animationInTiming={300}
-				animationOutTiming={300}
-				onSwipeComplete={onAccountsReject}
-				onBackdropPress={onAccountsReject}
-				swipeDirection={'down'}
-			>
-				<AccountApproval
-					onCancel={onAccountsReject}
-					onConfirm={onAccountsConfirm}
-					currentPageInformation={{
-						title: title.current,
-						url: getMaskedUrl(url.current),
-						icon: icon.current,
-					}}
-				/>
-			</Modal>
-		);
-	};
-
-	/**
 	 * On rejection addinga an asset
 	 */
 	const onCancelWatchAsset = () => {
@@ -1482,7 +1420,6 @@ export const BrowserTab = (props) => {
 				{renderProgressBar()}
 				{isTabActive() && renderPhishingModal()}
 				{isTabActive() && renderUrlModal()}
-				{isTabActive() && renderApprovalModal()}
 				{isTabActive() && renderWatchAssetModal()}
 				{isTabActive() && renderOptions()}
 				{isTabActive() && renderBottomBar()}

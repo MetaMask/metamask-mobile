@@ -18,6 +18,7 @@ import { v1 as random } from 'uuid';
 let appVersion = '';
 
 export enum ApprovalTypes {
+	CONNECT_ACCOUNTS = 'CONNECT_ACCOUNTS',
 	SIGN_MESSAGE = 'SIGN_MESSAGE',
 	ADD_ETHEREUM_CHAIN = 'ADD_ETHEREUM_CHAIN',
 	SWITCH_ETHEREUM_CHAIN = 'SWITCH_ETHEREUM_CHAIN',
@@ -31,10 +32,6 @@ interface RPCMethodsMiddleParameters {
 	url: { current: string };
 	title: { current: string };
 	icon: { current: string };
-	// eth_requestAccounts
-	showApprovalDialog: boolean;
-	setShowApprovalDialog: (showApprovalDialog: boolean) => void;
-	setShowApprovalDialogHostname: (hostname: string) => void;
 	approvalRequest: { current: { resolve: (value: boolean) => void; reject: () => void } };
 	// Bookmarks
 	isHomepage: () => boolean;
@@ -54,15 +51,12 @@ export const getRpcMethodMiddleware = ({
 	getProviderState,
 	navigation,
 	getApprovedHosts,
+	setApprovedHosts,
+	approveHost,
 	// Website info
 	url,
 	title,
 	icon,
-	// eth_requestAccounts
-	showApprovalDialog,
-	setShowApprovalDialog,
-	setShowApprovalDialogHostname,
-	approvalRequest,
 	// Bookmarks
 	isHomepage,
 	// Show autocomplete
@@ -153,17 +147,14 @@ export const getRpcMethodMiddleware = ({
 				if (!privacyMode || ((!params || !params.force) && getApprovedHosts()[hostname])) {
 					res.result = [selectedAddress];
 				} else {
-					if (showApprovalDialog) return;
-					setShowApprovalDialog(true);
-					setShowApprovalDialogHostname(hostname);
+					try {
+						await requestUserApproval({ type: ApprovalTypes.CONNECT_ACCOUNTS, requestData: { hostname } });
+						const fullHostname = new URL(url.current).hostname;
+						approveHost(fullHostname);
+						setApprovedHosts({ ...getApprovedHosts(), [fullHostname]: true });
 
-					const approved = await new Promise((resolve, reject) => {
-						approvalRequest.current = { resolve, reject };
-					});
-
-					if (approved) {
 						res.result = selectedAddress ? [selectedAddress] : [];
-					} else {
+					} catch (e) {
 						throw ethErrors.provider.userRejectedRequest('User denied account authorization.');
 					}
 				}
