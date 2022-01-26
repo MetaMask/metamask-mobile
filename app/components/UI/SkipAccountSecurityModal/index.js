@@ -77,13 +77,7 @@ const SkipAccountSecurityModal = ({ modalVisible, onConfirm, onCancel, onPress, 
 			>
 				<Icon name="times" style={styles.skipModalXIcon} />
 			</TouchableOpacity>
-			<FeatherIcon
-				name="alert-triangle"
-				size={38}
-				style={styles.imageWarning}
-				resizeMethod={'auto'}
-				testID={'skip_backup_warning'}
-			/>
+			<FeatherIcon name="alert-triangle" size={38} style={styles.imageWarning} testID={'skip_backup_warning'} />
 			<Text style={styles.skipTitle}>{strings('account_backup_step_1.skip_title')}</Text>
 			<View style={styles.skipModalActionButtons} testID={'skip-backup-modal'}>
 				<CheckBox
