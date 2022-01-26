@@ -65,6 +65,7 @@ export const getRpcMethodMiddleware = ({
 	setShowUrlModal,
 	// Wizard
 	wizardScrollAdjusted,
+	isTabActive,
 }: RPCMethodsMiddleParameters) =>
 	// all user facing RPC calls not implemented by the provider
 	createAsyncMiddleware(async (req: any, res: any, next: any) => {
@@ -80,8 +81,14 @@ export const getRpcMethodMiddleware = ({
 			return isEnabled && selectedAddress ? [selectedAddress] : [];
 		};
 
+		const checkTabActive = () => {
+			if (!isTabActive()) throw ethErrors.provider.userRejectedRequest();
+		};
+
 		const requestUserApproval = async ({ type, requestData = {} }) => {
+			checkTabActive();
 			await Engine.context.ApprovalController.clear(ethErrors.provider.userRejectedRequest());
+
 			const responseData = await Engine.context.ApprovalController.add({
 				origin: hostname,
 				type,
@@ -177,6 +184,8 @@ export const getRpcMethodMiddleware = ({
 						icon: icon.current,
 					},
 				};
+
+				checkTabActive();
 				const rawSig = await MessageManager.addUnapprovedMessageAsync({
 					data: req.params[1],
 					from: req.params[0],
@@ -208,6 +217,8 @@ export const getRpcMethodMiddleware = ({
 						icon: icon.current,
 					},
 				};
+
+				checkTabActive();
 				const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
 					...params,
 					...pageMeta,
@@ -226,6 +237,8 @@ export const getRpcMethodMiddleware = ({
 						icon: icon.current,
 					},
 				};
+
+				checkTabActive();
 				const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
 					{
 						data: req.params[0],
@@ -265,6 +278,7 @@ export const getRpcMethodMiddleware = ({
 					},
 				};
 
+				checkTabActive();
 				const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
 					{
 						data: req.params[1],
@@ -304,6 +318,8 @@ export const getRpcMethodMiddleware = ({
 						icon: icon.current,
 					},
 				};
+
+				checkTabActive();
 				const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
 					{
 						data: req.params[1],
@@ -326,6 +342,7 @@ export const getRpcMethodMiddleware = ({
 
 			wallet_scanQRCode: () =>
 				new Promise<void>((resolve, reject) => {
+					checkTabActive();
 					navigation.navigate('QRScanner', {
 						onScanSuccess: (data: any) => {
 							const regex = new RegExp(req.params[0]);
@@ -357,12 +374,15 @@ export const getRpcMethodMiddleware = ({
 					},
 				} = req;
 				const { TokensController } = Engine.context;
+
+				checkTabActive();
 				const suggestionResult = await TokensController.watchAsset({ address, symbol, decimals, image }, type);
 
 				res.result = suggestionResult.result;
 			},
 
 			metamask_removeFavorite: async () => {
+				checkTabActive();
 				if (!isHomepage()) {
 					throw ethErrors.provider.unauthorized('Forbidden.');
 				}
@@ -395,6 +415,7 @@ export const getRpcMethodMiddleware = ({
 			},
 
 			metamask_showTutorial: async () => {
+				checkTabActive();
 				if (!isHomepage()) {
 					throw ethErrors.provider.unauthorized('Forbidden.');
 				}
@@ -408,6 +429,10 @@ export const getRpcMethodMiddleware = ({
 			},
 
 			metamask_showAutocomplete: async () => {
+				checkTabActive();
+				if (!isHomepage()) {
+					throw ethErrors.provider.unauthorized('Forbidden.');
+				}
 				fromHomepage.current = true;
 				setAutocompleteValue('');
 				setShowUrlModal(true);
@@ -439,18 +464,23 @@ export const getRpcMethodMiddleware = ({
 			 * the page, and we implement it as a no-op.
 			 */
 			metamask_logWeb3ShimUsage: () => (res.result = null),
-			wallet_addEthereumChain: () =>
-				RPCMethods.wallet_addEthereumChain({
+			wallet_addEthereumChain: () => {
+				checkTabActive();
+				return RPCMethods.wallet_addEthereumChain({
 					req,
 					res,
 					requestUserApproval,
-				}),
-			wallet_switchEthereumChain: () =>
-				RPCMethods.wallet_switchEthereumChain({
+				});
+			},
+
+			wallet_switchEthereumChain: () => {
+				checkTabActive();
+				return RPCMethods.wallet_switchEthereumChain({
 					req,
 					res,
 					requestUserApproval,
-				}),
+				});
+			},
 		};
 
 		const blockRefIndex = blockTagParamIndex(req);

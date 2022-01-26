@@ -246,6 +246,11 @@ export const BrowserTab = (props) => {
 	const wizardScrollAdjusted = useRef(false);
 
 	/**
+	 * Is the current tab the active tab
+	 */
+	const isTabActive = useCallback(() => props.activeTab === props.id, [props.activeTab, props.id]);
+
+	/**
 	 * Gets the url to be displayed to the user
 	 * For example, if it's ens then show [site].eth instead of ipfs url
 	 */
@@ -381,6 +386,7 @@ export const BrowserTab = (props) => {
 					setShowUrlModal,
 					// Wizard
 					wizardScrollAdjusted,
+					isTabActive,
 				}),
 			isMainFrame,
 		});
@@ -393,11 +399,6 @@ export const BrowserTab = (props) => {
 		url && initializeBackgroundBridge(url, false);
 	};
 	*/
-
-	/**
-	 * Is the current tab the active tab
-	 */
-	const isTabActive = useCallback(() => props.activeTab === props.id, [props.activeTab, props.id]);
 
 	/**
 	 * Dismiss the text selection on the current website
@@ -870,6 +871,7 @@ export const BrowserTab = (props) => {
 		if (isHomepage(nativeEvent.url)) {
 			injectHomePageScripts();
 		}
+
 		// Reset the previous bridges
 		backgroundBridges.current.length && backgroundBridges.current.forEach((bridge) => bridge.onDisconnect());
 		backgroundBridges.current = [];
@@ -917,7 +919,6 @@ export const BrowserTab = (props) => {
 	 */
 	const onMessage = ({ nativeEvent }) => {
 		let data = nativeEvent.data;
-
 		try {
 			data = typeof data === 'string' ? JSON.parse(data) : data;
 			if (!data || (!data.type && !data.name)) {
