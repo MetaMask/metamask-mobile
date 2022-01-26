@@ -1622,6 +1622,6 @@
 	"secret_phrase_video_subtitle": {
 		"title": "RU RU CC",
 		"language": "ru-ru",
-		"uri": "https://github.com/MetaMask/metamask-mobile/blob/develop/app/videos/subtitles/secretPhrase/subtitles-ru-ru.vtt?raw=true"
+		"uri": "https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/subtitles/secretPhrase/subtitles-ru-ru.vtt?raw=true"
 	}
 }
