@@ -1832,5 +1832,16 @@
 		"name_placeholder": "Add a nickname to this address",
 		"contract": "Contract",
 		"nickname": "nickname"
+	},
+	"network_information": {
+		"description_1a": "The native token on this network is",
+		"description_1b": "It is the token used for gas fees.",
+		"description_2": "If you attempt to send assets directly from one network to another, this may result in permanent asset loss. Make sure to use a bridge.",
+		"description_3": "Your wallet may not automatically show up in your wallet.",
+		"learn_more": "Learn more",
+		"add_token": "Click here to manually add the tokens",
+		"got_it": "Got it",
+		"error_title": "Oops! Something went wrong.",
+		"error_message": "There was an error loading the network information. Please try again later."
 	}
 }
