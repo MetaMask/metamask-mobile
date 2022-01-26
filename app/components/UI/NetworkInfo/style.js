@@ -7,14 +7,15 @@ const styles = StyleSheet.create({
 		borderRadius: 10,
 	},
 	closeIcon: {
-		position: 'absolute',
-		top: 10,
-		right: 10,
+		...StyleSheet.absoluteFillObject,
+		alignSelf: 'flex-end',
+		marginTop: 10,
+		marginRight: 10,
+		position: 'relative',
 		padding: 10,
 	},
 	modalContentView: {
 		padding: 20,
-		top: 20,
 	},
 	title: {
 		fontSize: 16,
