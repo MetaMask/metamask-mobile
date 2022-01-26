@@ -46,6 +46,7 @@ import { getCurrentRoute } from '../../../reducers/navigation';
 import { ScrollView } from 'react-native-gesture-handler';
 import { isZero } from '../../../util/lodash';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import NetworkInfo from '../NetworkInfo';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -406,6 +407,9 @@ class DrawerView extends PureComponent {
 			address: undefined,
 			currentNetwork: undefined,
 		},
+		networkSelected: false,
+		networkType: undefined,
+		networkCurrency: undefined,
 	};
 
 	browserSectionRef = React.createRef();
@@ -527,6 +531,15 @@ class DrawerView extends PureComponent {
 		}
 	};
 
+	onNetworksModalCloses = async (manualClose) => {
+		this.toggleNetworksModal();
+		this.setState({ networkSelected: !this.state.networkSelected });
+		if (!manualClose) {
+			await this.hideDrawer();
+			await this.setState({ networkSelected: !this.state.networkSelected });
+		}
+	};
+
 	toggleNetworksModal = () => {
 		if (!this.animatingNetworksModal) {
 			this.animatingNetworksModal = true;
@@ -535,6 +548,14 @@ class DrawerView extends PureComponent {
 				this.animatingNetworksModal = false;
 			}, 500);
 		}
+	};
+
+	onNetworkSelected = (type, currency) => {
+		this.setState({
+			networkType: type,
+			networkCurrency: currency,
+			networkSelected: true,
+		});
 	};
 
 	showReceiveModal = () => {
@@ -1129,11 +1150,20 @@ class DrawerView extends PureComponent {
 					backdropColor={colors.overlay.default}
 					backdropOpacity={1}
 				>
-					<NetworkList
-						navigation={this.props.navigation}
-						onClose={this.onNetworksModalClose}
-						showInvalidCustomNetworkAlert={this.showInvalidCustomNetworkAlert}
-					/>
+					{this.state.networkSelected ? (
+						<NetworkInfo
+							onClose={this.onNetworksModalCloses}
+							type={this.state.networkType}
+							currency={this.state.networkCurrency}
+						/>
+					) : (
+						<NetworkList
+							navigation={this.props.navigation}
+							onClose={this.onNetworksModalClose}
+							onNetworkSelected={this.onNetworkSelected}
+							showInvalidCustomNetworkAlert={this.showInvalidCustomNetworkAlert}
+						/>
+					)}
 				</Modal>
 				<Modal backdropColor={colors.overlay.default} backdropOpacity={1} isVisible={!!invalidCustomNetwork}>
 					<InvalidCustomNetworkAlert
