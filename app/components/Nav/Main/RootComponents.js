@@ -3,6 +3,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, Alert, InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';
+import { ethers } from 'ethers';
+import abi from 'human-standard-token-abi';
+import { ethErrors } from 'eth-json-rpc-errors';
+
 import Approval from '../../Views/Approval';
 import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
@@ -27,9 +31,12 @@ import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
 import MessageSign from '../../UI/MessageSign';
 import Approve from '../../Views/ApproveView/Approve';
-import TransactionTypes from '../../../core/TransactionTypes';
-import { toggleDappTransactionModal, toggleApproveModal } from '../../../actions/modals';
+import WatchAssetRequest from '../../UI/WatchAssetRequest';
 import AccountApproval from '../../UI/AccountApproval';
+import TransactionTypes from '../../../core/TransactionTypes';
+import AddCustomNetwork from '../../UI/AddCustomNetwork';
+import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
+import { toggleDappTransactionModal, toggleApproveModal } from '../../../actions/modals';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { util } from '@metamask/controllers';
 import Analytics from '../../../core/Analytics';
@@ -37,11 +44,6 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import BigNumber from 'bignumber.js';
 import { getTokenList } from '../../../reducers/tokens';
 import { toLowerCaseEquals } from '../../../util/general';
-import { ethers } from 'ethers';
-import abi from 'human-standard-token-abi';
-import AddCustomNetwork from '../../UI/AddCustomNetwork';
-import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
-import { ethErrors } from 'eth-json-rpc-errors';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 
 const hstInterface = new ethers.utils.Interface(abi);
@@ -67,6 +69,9 @@ const RootComponents = (props) => {
 	const [customNetworkToSwitch, setCustomNetworkToSwitch] = useState(null);
 
 	const [hostToApprove, setHostToApprove] = useState(null);
+
+	const [watchAsset, setWatchAsset] = useState(false);
+	const [suggestedAssetMeta, setSuggestedAssetMeta] = useState(undefined);
 
 	const setTransactionObject = props.setTransactionObject;
 	const toggleApproveModal = props.toggleApproveModal;
@@ -543,6 +548,39 @@ const RootComponents = (props) => {
 		</Modal>
 	);
 
+	/**
+	 * On rejection addinga an asset
+	 */
+	const onCancelWatchAsset = () => {
+		setWatchAsset(false);
+	};
+
+	/**
+	 * Render the add asset modal
+	 */
+	const renderWatchAssetModal = () => (
+		<Modal
+			isVisible={watchAsset}
+			animationIn="slideInUp"
+			animationOut="slideOutDown"
+			style={styles.bottomModal}
+			backdropOpacity={0.7}
+			animationInTiming={600}
+			animationOutTiming={600}
+			onBackdropPress={onCancelWatchAsset}
+			onSwipeComplete={onCancelWatchAsset}
+			swipeDirection={'down'}
+			propagateSwipe
+		>
+			<WatchAssetRequest
+				onCancel={onCancelWatchAsset}
+				onConfirm={onCancelWatchAsset}
+				suggestedAssetMeta={suggestedAssetMeta}
+				currentPageInformation={currentPageMeta}
+			/>
+		</Modal>
+	);
+
 	// unapprovedTransaction effect
 	useEffect(() => {
 		Engine.context.TransactionController.hub.on('unapprovedTransaction', onUnapprovedTransaction);
@@ -599,9 +637,15 @@ const RootComponents = (props) => {
 
 		Engine.controllerMessenger.subscribe('ApprovalController:stateChange', handlePendingApprovals);
 
+		Engine.context.TokensController.hub.on('pendingSuggestedAsset', (suggestedAssetMeta) => {
+			setSuggestedAssetMeta(suggestedAssetMeta);
+			setWatchAsset(true);
+		});
+
 		return function cleanup() {
 			Engine.context.PersonalMessageManager.hub.removeAllListeners();
 			Engine.context.TypedMessageManager.hub.removeAllListeners();
+			Engine.context.TokensController.hub.removeAllListeners();
 			Engine.controllerMessenger.unsubscribe('ApprovalController:stateChange', handlePendingApprovals);
 			WalletConnect.hub.removeAllListeners();
 		};
@@ -617,6 +661,7 @@ const RootComponents = (props) => {
 			{renderAddCustomNetworkModal()}
 			{renderSwitchCustomNetworkModal()}
 			{renderAccountsApprovalModal()}
+			{renderWatchAssetModal()}
 		</React.Fragment>
 	);
 };

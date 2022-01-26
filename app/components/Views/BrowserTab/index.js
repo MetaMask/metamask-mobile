@@ -43,7 +43,6 @@ import { addToHistory, addToWhitelist } from '../../../actions/browser';
 import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
 import SearchApi from 'react-native-search-api';
-import WatchAssetRequest from '../../UI/WatchAssetRequest';
 import Analytics from '../../../core/Analytics';
 import AnalyticsV2, { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
@@ -207,10 +206,6 @@ const styles = StyleSheet.create({
 		color: colors.white,
 		fontSize: 18,
 	},
-	bottomModal: {
-		justifyContent: 'flex-end',
-		margin: 0,
-	},
 	fullScreenModal: {
 		flex: 1,
 	},
@@ -238,8 +233,6 @@ export const BrowserTab = (props) => {
 	const [entryScriptWeb3, setEntryScriptWeb3] = useState(null);
 	const [showPhishingModal, setShowPhishingModal] = useState(false);
 	const [blockedUrl, setBlockedUrl] = useState(undefined);
-	const [watchAsset, setWatchAsset] = useState(false);
-	const [suggestedAssetMeta, setSuggestedAssetMeta] = useState(undefined);
 
 	const webviewRef = useRef(null);
 	const inputRef = useRef(null);
@@ -671,12 +664,6 @@ export const BrowserTab = (props) => {
 		};
 
 		getEntryScriptWeb3();
-
-		Engine.context.TokensController.hub.on('pendingSuggestedAsset', (suggestedAssetMeta) => {
-			if (!isTabActive()) return false;
-			setSuggestedAssetMeta(suggestedAssetMeta);
-			setWatchAsset(true);
-		});
 
 		// Specify how to clean up after this effect:
 		return function cleanup() {
@@ -1330,43 +1317,6 @@ export const BrowserTab = (props) => {
 	);
 
 	/**
-	 * On rejection addinga an asset
-	 */
-	const onCancelWatchAsset = () => {
-		setWatchAsset(false);
-	};
-
-	/**
-	 * Render the add asset modal
-	 */
-	const renderWatchAssetModal = () => (
-		<Modal
-			isVisible={watchAsset}
-			animationIn="slideInUp"
-			animationOut="slideOutDown"
-			style={styles.bottomModal}
-			backdropOpacity={0.7}
-			animationInTiming={600}
-			animationOutTiming={600}
-			onBackdropPress={onCancelWatchAsset}
-			onSwipeComplete={onCancelWatchAsset}
-			swipeDirection={'down'}
-			propagateSwipe
-		>
-			<WatchAssetRequest
-				onCancel={onCancelWatchAsset}
-				onConfirm={onCancelWatchAsset}
-				suggestedAssetMeta={suggestedAssetMeta}
-				currentPageInformation={{
-					title: title.current,
-					url: getMaskedUrl(url.current),
-					icon: icon.current,
-				}}
-			/>
-		</Modal>
-	);
-
-	/**
 	 * Render the onboarding wizard browser step
 	 */
 	const renderOnboardingWizard = () => {
@@ -1420,7 +1370,6 @@ export const BrowserTab = (props) => {
 				{renderProgressBar()}
 				{isTabActive() && renderPhishingModal()}
 				{isTabActive() && renderUrlModal()}
-				{isTabActive() && renderWatchAssetModal()}
 				{isTabActive() && renderOptions()}
 				{isTabActive() && renderBottomBar()}
 				{isTabActive() && renderOnboardingWizard()}
