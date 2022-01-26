@@ -2,7 +2,7 @@
 
 import URL from 'url-parse';
 import qs from 'qs';
-import { InteractionManager, Alert } from 'react-native';
+import { Alert } from 'react-native';
 import { parse } from 'eth-url-parser';
 import WalletConnect from '../core/WalletConnect';
 import AppConstants from './AppConstants';
@@ -25,7 +25,7 @@ class DeeplinkManager {
 
 	expireDeeplink = () => (this.pendingDeeplink = null);
 
-	approveTransaction = (ethUrl, origin) => {
+	_approveTransaction = (ethUrl, origin) => {
 		const {
 			parameters: { address, uint256 },
 			target_address,
@@ -38,11 +38,6 @@ class DeeplinkManager {
 			NetworkController.setProviderType(newNetworkType);
 		}
 
-		const txParams = {
-			to: `${target_address}`,
-			from: `${PreferencesController.state.selectedAddress}`,
-			value: '0x0',
-		};
 		const uint256Number = Number(uint256);
 
 		if (Number.isNaN(uint256Number)) throw new Error('The parameter uint256 should be a number');
@@ -50,11 +45,17 @@ class DeeplinkManager {
 
 		const value = uint256Number.toString(16);
 
-		txParams.data = generateApproveData({ spender: address, value });
+		const txParams = {
+			to: `${target_address}`,
+			from: `${PreferencesController.state.selectedAddress}`,
+			value: '0x0',
+			data: generateApproveData({ spender: address, value }),
+		};
+
 		TransactionController.addTransaction(txParams, origin, WalletDevice.MM_MOBILE);
 	};
 
-	async handleEthereumUrl(url, origin) {
+	async _handleEthereumUrl(url, origin) {
 		let ethUrl = '';
 
 		try {
@@ -75,7 +76,7 @@ class DeeplinkManager {
 				break;
 			}
 			case ETH_ACTIONS.APPROVE: {
-				this.approveTransaction(ethUrl, origin);
+				this._approveTransaction(ethUrl, origin);
 				break;
 			}
 			default: {
@@ -91,22 +92,13 @@ class DeeplinkManager {
 		}
 	}
 
-	handleBrowserUrl(url, callback) {
-		this.navigation.navigate('BrowserTabHome');
+	_handleBrowserUrl(url, callback) {
+		this.navigation.navigate(
+			'BrowserTabHome',
+			callback ? null : { screen: 'BrowserView', params: { newTabUrl: url, timestamp: Date.now() } }
+		);
 
-		InteractionManager.runAfterInteractions(() => {
-			if (callback) {
-				callback(url);
-			} else {
-				this.navigation.navigate('BrowserTabHome', {
-					screen: 'BrowserView',
-					params: {
-						newTabUrl: url,
-						timestamp: Date.now(),
-					},
-				});
-			}
-		});
+		if (callback) callback(url);
 	}
 
 	parse(url, { browserCallBack, origin, onHandled }) {
@@ -139,7 +131,7 @@ class DeeplinkManager {
 					if (action === ACTIONS.WC && params?.uri) {
 						WalletConnect.newSession(params.uri, params.redirectUrl, false);
 					} else if (PREFIXES[action]) {
-						this.handleBrowserUrl(
+						this._handleBrowserUrl(
 							urlObj.href.replace(`https://${MM_UNIVERSAL_LINK_HOST}/${action}/`, PREFIXES[action]),
 							browserCallBack
 						);
@@ -149,7 +141,7 @@ class DeeplinkManager {
 				} else {
 					// Normal links (same as dapp)
 					urlObj.set('protocol', 'https:');
-					this.handleBrowserUrl(urlObj.href, browserCallBack);
+					this._handleBrowserUrl(urlObj.href, browserCallBack);
 				}
 				break;
 
@@ -167,7 +159,7 @@ class DeeplinkManager {
 				break;
 			case PROTOCOLS.ETHEREUM:
 				handled();
-				this.handleEthereumUrl(url, origin);
+				this._handleEthereumUrl(url, origin);
 				break;
 
 			// Specific to the browser screen
@@ -176,7 +168,7 @@ class DeeplinkManager {
 				// Enforce https
 				handled();
 				urlObj.set('protocol', 'https:');
-				this.handleBrowserUrl(urlObj.href, browserCallBack);
+				this._handleBrowserUrl(urlObj.href, browserCallBack);
 				break;
 
 			// Specific to the MetaMask app
