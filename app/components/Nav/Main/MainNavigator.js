@@ -24,6 +24,7 @@ import RevealPrivateCredential from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
 import QrScanner from '../../Views/QRScanner';
+import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import LockScreen from '../../Views/LockScreen';
 import ChoosePasswordSimple from '../../Views/ChoosePasswordSimple';
 import EnterPasswordSimple from '../../Views/EnterPasswordSimple';
@@ -312,6 +313,16 @@ const SetPasswordFlow = () => (
 	</Stack.Navigator>
 );
 
+const ConnectQRHardwareFlow = () => (
+	<Stack.Navigator
+		screenOptions={{
+			headerShown: false,
+		}}
+	>
+		<Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
+	</Stack.Navigator>
+);
+
 const MainNavigator = () => (
 	<Stack.Navigator
 		screenOptions={{
@@ -337,6 +348,7 @@ const MainNavigator = () => (
 		<Stack.Screen name="Webview" component={Webview} />
 		<Stack.Screen name="SettingsView" component={SettingsView} />
 		<Stack.Screen name="ImportPrivateKeyView" component={ImportPrivateKeyView} />
+		<Stack.Screen name="ConnectQRHardwareFlow" component={ConnectQRHardwareFlow} />
 		<Stack.Screen name="SendView" component={SendView} />
 		<Stack.Screen name="SendFlowView" component={SendFlowView} />
 		<Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />

@@ -15,6 +15,7 @@ export const colors = {
 	black: '#24292E',
 	white: '#FFFFFF',
 	white100: '#F9FAFB',
+	whitetransparent: 'rgba(255, 255, 255, 0.3)',
 	greyAssetVisibility: '#6A737D',
 	grey450: '#8E8E93',
 	grey700: '#3C3F42',
