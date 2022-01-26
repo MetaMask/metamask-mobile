@@ -1,10 +1,11 @@
 'use strict';
 
+// eslint-disable-next-line @typescript-eslint/no-shadow
 import URL from 'url-parse';
 import qs from 'qs';
 import { Alert } from 'react-native';
 import { parse } from 'eth-url-parser';
-import WalletConnect from '../core/WalletConnect';
+import WalletConnect from './WalletConnect';
 import AppConstants from './AppConstants';
 import Engine from './Engine';
 import { generateApproveData } from '../util/transactions';
@@ -13,25 +14,45 @@ import { getNetworkTypeById } from '../util/networks';
 import { WalletDevice } from '@metamask/controllers/';
 import { ACTIONS, ETH_ACTIONS, PROTOCOLS, PREFIXES } from '../constants/deeplinks';
 
+interface ethUrl {
+	parameters: {
+		address: string;
+		uint256: string;
+		value: any;
+	};
+	target_address: string;
+	chain_id: string;
+	function_name: string;
+}
+
+interface parseArgs {
+	browserCallBack?: () => void;
+	origin: string;
+	onHandled: () => void;
+}
+
 class DeeplinkManager {
-	constructor(_navigation) {
+	navigation: any;
+	pendingDeeplink: string | null;
+
+	constructor(_navigation: any) {
 		this.navigation = _navigation;
 		this.pendingDeeplink = null;
 	}
 
-	setDeeplink = (url) => (this.pendingDeeplink = url);
+	setDeeplink = (url: string) => (this.pendingDeeplink = url);
 
 	getPendingDeeplink = () => this.pendingDeeplink;
 
 	expireDeeplink = () => (this.pendingDeeplink = null);
 
-	_approveTransaction = (ethUrl, origin) => {
+	_approveTransaction = (ethUrl: ethUrl, origin: string) => {
 		const {
 			parameters: { address, uint256 },
 			target_address,
 			chain_id,
 		} = ethUrl;
-		const { TransactionController, PreferencesController, NetworkController } = Engine.context;
+		const { TransactionController, PreferencesController, NetworkController }: any = Engine.context;
 
 		if (chain_id) {
 			const newNetworkType = getNetworkTypeById(chain_id);
@@ -46,8 +67,8 @@ class DeeplinkManager {
 		const value = uint256Number.toString(16);
 
 		const txParams = {
-			to: `${target_address}`,
-			from: `${PreferencesController.state.selectedAddress}`,
+			to: target_address.toString(),
+			from: PreferencesController.state.selectedAddress.toString(),
 			value: '0x0',
 			data: generateApproveData({ spender: address, value }),
 		};
@@ -55,12 +76,12 @@ class DeeplinkManager {
 		TransactionController.addTransaction(txParams, origin, WalletDevice.MM_MOBILE);
 	};
 
-	async _handleEthereumUrl(url, origin) {
-		let ethUrl = '';
+	async _handleEthereumUrl(url: string, origin: string) {
+		let ethUrl: ethUrl;
 
 		try {
 			ethUrl = parse(url);
-		} catch (e) {
+		} catch (e: any) {
 			Alert.alert(strings('deeplink.invalid'), e.toString());
 			return;
 		}
@@ -92,7 +113,7 @@ class DeeplinkManager {
 		}
 	}
 
-	_handleBrowserUrl(url, callback) {
+	_handleBrowserUrl(url: string, callback?: (url: string) => void) {
 		this.navigation.navigate(
 			'BrowserTabHome',
 			callback ? null : { screen: 'BrowserView', params: { newTabUrl: url, timestamp: Date.now() } }
@@ -101,21 +122,21 @@ class DeeplinkManager {
 		if (callback) callback(url);
 	}
 
-	parse(url, { browserCallBack, origin, onHandled }) {
-		const urlObj = new URL(url.replace('https://', '').replace('http://', ''));
+	parse(url: string, { browserCallBack, origin, onHandled }: parseArgs) {
+		const urlObj = new URL(url);
 		let params;
 		let wcCleanUrl;
 
 		if (urlObj.query) {
 			try {
 				params = qs.parse(urlObj.query.substring(1));
-			} catch (e) {
+			} catch (e: any) {
 				Alert.alert(strings('deeplink.invalid'), e.toString());
 				//TODO: check if we have to return false here
 			}
 		}
 
-		const handled = () => onHandled?.() || false;
+		const handled = () => (onHandled ? onHandled() : false);
 		const { MM_UNIVERSAL_LINK_HOST } = AppConstants;
 
 		switch (urlObj.protocol.replace(':', '')) {
@@ -194,14 +215,14 @@ class DeeplinkManager {
 	}
 }
 
-let instance = null;
+let instance: any = null;
 
 const SharedDeeplinkManager = {
-	init: (navigation) => {
+	init: (navigation: any) => {
 		instance = new DeeplinkManager(navigation);
 	},
-	parse: (url, args) => instance.parse(url, args),
-	setDeeplink: (url) => instance.setDeeplink(url),
+	parse: (url: string, args: parseArgs) => instance.parse(url, args),
+	setDeeplink: (url: string) => instance.setDeeplink(url),
 	getPendingDeeplink: () => instance.getPendingDeeplink(),
 	expireDeeplink: () => instance.expireDeeplink(),
 };

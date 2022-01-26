@@ -26,6 +26,6 @@ export const PREFIXES = {
 	[ACTIONS.DAPP]: 'https://',
 	[ACTIONS.SEND]: 'ethereum:',
 	[ACTIONS.APPROVE]: 'ethereum:',
-	[ACTIONS.FOCUS]: false,
-	[ACTIONS.EMPTY]: false,
+	[ACTIONS.FOCUS]: '',
+	[ACTIONS.EMPTY]: '',
 };
