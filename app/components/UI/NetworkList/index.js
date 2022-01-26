@@ -136,12 +136,16 @@ export class NetworkList extends PureComponent {
 		 * Show invalid custom network alert for networks without a chain ID
 		 */
 		showInvalidCustomNetworkAlert: PropTypes.func,
+		/**
+		 * A function that handles the network selection
+		 */
+		onNetworkSelected: PropTypes.func,
 	};
 
 	getOtherNetworks = () => getAllNetworks().slice(1);
 
 	onNetworkChange = (type) => {
-		this.props.onClose(false);
+		this.props.onNetworkSelected(type, 'ETH');
 		const { NetworkController, CurrencyRateController } = Engine.context;
 		CurrencyRateController.setNativeCurrency('ETH');
 		NetworkController.setProviderType(type);
@@ -172,6 +176,9 @@ export class NetworkList extends PureComponent {
 			nickname,
 			rpcPrefs: { blockExplorerUrl },
 		} = rpc;
+		const useRpcName = nickname || rpcUrl;
+		const useTicker = ticker || 'UNKNOWN';
+		this.props.onNetworkSelected(useRpcName, useTicker);
 
 		// If the network does not have chainId then show invalid custom network alert
 		const chainIdNumber = parseInt(chainId, 10);
@@ -192,8 +199,6 @@ export class NetworkList extends PureComponent {
 			block_explorer_url: blockExplorerUrl,
 			network_name: 'rpc',
 		});
-
-		this.props.onClose(false);
 	};
 
 	networkElement = (selected, onPress, name, color, i, network) => (
