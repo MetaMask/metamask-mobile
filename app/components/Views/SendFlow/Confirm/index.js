@@ -62,6 +62,7 @@ import EditGasFee1559 from '../../../UI/EditGasFee1559';
 import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacy';
 import CustomNonce from '../../../UI/CustomNonce';
 import AppConstants from '../../../../core/AppConstants';
+import { gte } from '../../../../util/lodash';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -776,7 +777,7 @@ class Confirm extends PureComponent {
 			if (selectedAsset.isETH || selectedAsset.tokenId) {
 				weiBalance = hexToBN(accounts[selectedAddress].balance);
 				const totalTransactionValue = hexToBN(total);
-				if (!weiBalance.gte(totalTransactionValue)) {
+				if (!gte(weiBalance, totalTransactionValue)) {
 					const amount = renderFromWei(totalTransactionValue.sub(weiBalance));
 					const tokenSymbol = getTicker(ticker);
 					error = strings('transaction.insufficient_amount', { amount, tokenSymbol });
@@ -786,7 +787,7 @@ class Confirm extends PureComponent {
 				weiBalance = contractBalances[selectedAsset.address];
 				weiInput = hexToBN(amount);
 				error =
-					weiBalance && weiBalance.gte(weiInput)
+					weiBalance && gte(weiBalance, weiInput)
 						? undefined
 						: strings('transaction.insufficient_tokens', { token: selectedAsset.symbol });
 			}

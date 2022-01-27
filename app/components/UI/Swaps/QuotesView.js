@@ -56,6 +56,7 @@ import { swapsTokensSelector } from '../../../reducers/swaps';
 import { decGWEIToHexWEI } from '../../../util/conversions';
 import FadeAnimationView from '../FadeAnimationView';
 import Logger from '../../../util/Logger';
+import { gte } from '../../../util/lodash';
 
 const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
@@ -420,7 +421,7 @@ function SwapsQuotesView({
 			const gasBN = new BigNumber(gasAmountHex || '0', 16);
 			const ethAmountBN = isSwapsNativeAsset(sourceToken) ? new BigNumber(sourceAmount) : new BigNumber(0);
 			const ethBalanceBN = new BigNumber(accounts[selectedAddress].balance);
-			const hasEnoughEthBalance = ethBalanceBN.gte(ethAmountBN.plus(gasBN));
+			const hasEnoughEthBalance = gte(ethBalanceBN, ethAmountBN.plus(gasBN));
 			return hasEnoughEthBalance;
 		},
 		[accounts, selectedAddress, sourceAmount, sourceToken]
@@ -431,13 +432,13 @@ function SwapsQuotesView({
 		// Token
 		const sourceBN = new BigNumber(sourceAmount);
 		const tokenBalanceBN = new BigNumber(balance.toString(10));
-		const hasEnoughTokenBalance = tokenBalanceBN.gte(sourceBN);
+		const hasEnoughTokenBalance = gte(tokenBalanceBN, sourceBN);
 		const missingTokenBalance = hasEnoughTokenBalance ? null : sourceBN.minus(tokenBalanceBN);
 
 		const ethAmountBN = isSwapsNativeAsset(sourceToken) ? sourceBN : new BigNumber(0);
 		const ethBalanceBN = new BigNumber(accounts[selectedAddress].balance);
 		const gasBN = toWei(selectedQuoteValue?.maxEthFee || '0');
-		const hasEnoughEthBalance = ethBalanceBN.gte(ethAmountBN.plus(gasBN));
+		const hasEnoughEthBalance = gte(ethBalanceBN, ethAmountBN.plus(gasBN));
 		const missingEthBalance = hasEnoughEthBalance ? null : ethAmountBN.plus(gasBN).minus(ethBalanceBN);
 
 		return [hasEnoughTokenBalance, missingTokenBalance, hasEnoughEthBalance, missingEthBalance];
