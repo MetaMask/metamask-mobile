@@ -783,7 +783,7 @@ class Confirm extends PureComponent {
 				}
 			} else {
 				const [, , amount] = decodeTransferData('transfer', transaction.data);
-				weiBalance = contractBalances[selectedAsset.address];
+				weiBalance = hexToBN(contractBalances[selectedAsset.address]);
 				weiInput = hexToBN(amount);
 				error =
 					weiBalance && weiBalance.gte(weiInput)
