@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { NavigationContainer, CommonActions } from '@react-navigation/native';
 import { Animated, StyleSheet, View, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -22,7 +22,7 @@ import MetaMaskAnimation from '../../UI/MetaMaskAnimation';
 import SimpleWebview from '../../Views/SimpleWebview';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager';
 import Engine from '../../../core/Engine';
-import { BranchSubscriber } from 'react-native-branch';
+import branch from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
@@ -34,6 +34,8 @@ import { getVersion } from 'react-native-device-info';
 import { checkedAuth } from '../../../actions/user';
 import { setCurrentRoute } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
+
+const isIos = Platform.OS === 'ios';
 
 const styles = StyleSheet.create({
 	fill: { flex: 1 },
@@ -104,8 +106,6 @@ const OnboardingRootNav = () => (
 );
 
 const App = ({ userLoggedIn }) => {
-	const unsubscribeFromBranch = useRef();
-
 	const animation = useRef(null);
 	const animationName = useRef(null);
 	const opacity = useRef(new Animated.Value(1)).current;
@@ -137,20 +137,19 @@ const App = ({ userLoggedIn }) => {
 		}
 	}, []);
 
-	const branchSubscriber = useMemo(
+	useEffect(
 		() =>
-			new BranchSubscriber({
+			branch.subscribe({
 				onOpenStart: (opts) => {
 					// Called reliably on iOS deeplink instances
-					Platform.OS === 'ios' && handleDeeplink(opts);
+					isIos && handleDeeplink(opts);
 				},
 				onOpenComplete: (opts) => {
 					// Called reliably on Android deeplink instances
-					Platform.OS === 'android' && handleDeeplink(opts);
+					!isIos && handleDeeplink(opts);
 				},
 			}),
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[]
+		[handleDeeplink]
 	);
 
 	useEffect(() => {
@@ -160,11 +159,7 @@ const App = ({ userLoggedIn }) => {
 				navigator.current?.dispatch?.(CommonActions.navigate(params));
 			},
 		});
-
-		unsubscribeFromBranch.current = branchSubscriber.subscribe();
-
-		return () => unsubscribeFromBranch.current?.();
-	}, [branchSubscriber]);
+	}, []);
 
 	useEffect(() => {
 		const initAnalytics = async () => {
