@@ -461,8 +461,8 @@ class Settings extends PureComponent {
 
 	toggleOpenSeaApi = (value) => {
 		const { PreferencesController } = Engine.context;
-		PreferencesController.setOpenSeaEnabled(value);
-		if (!value) PreferencesController.setUseCollectibleDetection(value);
+		PreferencesController?.setOpenSeaEnabled(value);
+		if (!value) PreferencesController?.setUseCollectibleDetection(value);
 	};
 
 	toggleNftAutodetect = (value) => {
