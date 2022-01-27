@@ -151,7 +151,7 @@ exports[`SelectComponent should render correctly 1`] = `
             style={
               Object {
                 "flex": 1,
-                "paddingBottom": 10,
+                "paddingVertical": 10,
               }
             }
           >
@@ -160,10 +160,10 @@ exports[`SelectComponent should render correctly 1`] = `
               onPress={[Function]}
               style={
                 Object {
+                  "alignItems": "center",
                   "flexDirection": "row",
                   "height": 35,
                   "paddingHorizontal": 15,
-                  "paddingVertical": 8,
                 }
               }
             >
@@ -175,7 +175,6 @@ exports[`SelectComponent should render correctly 1`] = `
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
-                    "paddingVertical": 10,
                   }
                 }
               >
@@ -187,10 +186,10 @@ exports[`SelectComponent should render correctly 1`] = `
               onPress={[Function]}
               style={
                 Object {
+                  "alignItems": "center",
                   "flexDirection": "row",
                   "height": 35,
                   "paddingHorizontal": 15,
-                  "paddingVertical": 8,
                 }
               }
             >
@@ -202,7 +201,6 @@ exports[`SelectComponent should render correctly 1`] = `
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
-                    "paddingVertical": 10,
                   }
                 }
               >

@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import { ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { Picker } from '@react-native-community/picker';
 import { fontStyles, colors, baseStyles } from '../../../styles/common';
-import { RFValue } from 'react-native-responsive-fontsize';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Modal from 'react-native-modal';
 import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
@@ -63,12 +62,11 @@ const styles = StyleSheet.create({
 	},
 	optionButton: {
 		paddingHorizontal: 15,
-		paddingVertical: RFValue(4),
+		alignItems: 'center',
 		flexDirection: 'row',
 		height: ROW_HEIGHT,
 	},
 	optionLabel: {
-		paddingVertical: 10,
 		flex: 1,
 		fontSize: 14,
 		...fontStyles.normal,
@@ -79,7 +77,7 @@ const styles = StyleSheet.create({
 	},
 	listWrapper: {
 		flex: 1,
-		paddingBottom: 10,
+		paddingVertical: 10,
 	},
 });
 

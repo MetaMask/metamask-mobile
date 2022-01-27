@@ -58,7 +58,6 @@ import { resemblesAddress } from '../../../util/address';
 
 import { createAsyncMiddleware } from 'json-rpc-engine';
 import { ethErrors } from 'eth-json-rpc-errors';
-import { RFValue } from 'react-native-responsive-fontsize';
 
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import { getVersion, isEmulatorSync } from 'react-native-device-info';
@@ -185,12 +184,11 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		backgroundColor: Device.isAndroid() ? colors.white : colors.grey000,
 		borderRadius: 30,
-		fontSize: Device.isAndroid() ? 16 : RFValue(13),
-		padding: 8,
+		fontSize: Device.isAndroid() ? 16 : 14,
 		paddingLeft: 15,
 		textAlign: 'left',
 		flex: 1,
-		height: Device.isAndroid() ? 40 : RFValue(30),
+		height: Device.isAndroid() ? 40 : 30,
 	},
 	cancelButton: {
 		marginTop: 7,
