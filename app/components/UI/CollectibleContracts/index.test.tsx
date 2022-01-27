@@ -49,6 +49,9 @@ const initialState = {
 			},
 		},
 	},
+	users: {
+		nftDetectionDismissed: true,
+	},
 };
 const store = mockStore(initialState);
 
