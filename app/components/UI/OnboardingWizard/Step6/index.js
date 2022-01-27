@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { View, Text, StyleSheet } from 'react-native';
@@ -9,6 +9,7 @@ import onboardingStyles from './../styles';
 import Device from '../../../../util/device';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../../util/analytics';
+import { DrawerContext } from '../../../../components/Nav/Main/MainNavigator';
 
 const styles = StyleSheet.create({
 	main: {
@@ -22,48 +23,33 @@ const styles = StyleSheet.create({
 	},
 });
 
-class Step6 extends PureComponent {
-	static propTypes = {
-		/**
-		 * Object that represents the navigator
-		 */
-		navigation: PropTypes.object,
-		/**
-		 * Dispatch set onboarding wizard step
-		 */
-		setOnboardingWizardStep: PropTypes.func,
-		/**
-		 * Callback to call when closing
-		 */
-		onClose: PropTypes.func,
-	};
-
-	state = {
-		ready: false,
-		coachmarkTop: 0,
-	};
-
-	componentDidMount() {
-		// As we're changing the view on this step, we have to make sure Browser is rendered
-		setTimeout(() => {
-			this.getPosition();
-		}, 1200);
-	}
+const Step6 = (props) => {
+	const { setOnboardingWizardStep, onClose } = props;
+	const [ready, setReady] = useState(false);
+	const [coachmarkTop, setCoachmarkTop] = useState(0);
+	const { drawerRef } = useContext(DrawerContext);
 
 	/**
 	 * If component ref defined, calculate its position and position coachmark accordingly
 	 */
-	getPosition = () => {
+	const getPosition = () => {
 		const position = Device.isAndroid() ? 270 : Device.isIphoneX() ? 300 : 270;
-		this.setState({ coachmarkTop: position, ready: true });
+		setCoachmarkTop(position);
+		setReady(true);
 	};
+
+	useEffect(() => {
+		// As we're changing the view on this step, we have to make sure Browser is rendered
+		setTimeout(() => {
+			getPosition();
+		}, 1200);
+	}, []);
 
 	/**
 	 * Dispatches 'setOnboardingWizardStep' with back step, opening drawer
 	 */
-	onBack = () => {
-		const { setOnboardingWizardStep, navigation } = this.props;
-		navigation && navigation.openDrawer();
+	const onBack = () => {
+		drawerRef?.current?.showDrawer?.();
 		setOnboardingWizardStep && setOnboardingWizardStep(5);
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_STEP_REVISITED, {
 			tutorial_step_count: 6,
@@ -74,15 +60,14 @@ class Step6 extends PureComponent {
 	/**
 	 * Calls props onClose
 	 */
-	onClose = () => {
-		const { onClose } = this.props;
+	const triggerOnClose = () => {
 		onClose && onClose(false);
 	};
 
 	/**
 	 * Returns content for this step
 	 */
-	content = () => (
+	const content = () => (
 		<View style={onboardingStyles.contentContainer}>
 			<Text style={onboardingStyles.content} testID={'step6-title'}>
 				{strings('onboarding_wizard.step6.content')}
@@ -90,30 +75,39 @@ class Step6 extends PureComponent {
 		</View>
 	);
 
-	render() {
-		const { ready } = this.state;
-		if (!ready) return null;
-		return (
-			<View style={styles.main}>
-				<View style={[styles.coachmarkContainer, { top: this.state.coachmarkTop }]}>
-					<Coachmark
-						title={strings('onboarding_wizard.step6.title')}
-						content={this.content()}
-						onNext={this.onClose}
-						onBack={this.onBack}
-						style={onboardingStyles.coachmark}
-						topIndicatorPosition={'topCenter'}
-						onClose={this.onClose}
-						currentStep={5}
-					/>
-				</View>
+	if (!ready) return null;
+
+	return (
+		<View style={styles.main}>
+			<View style={[styles.coachmarkContainer, { top: coachmarkTop }]}>
+				<Coachmark
+					title={strings('onboarding_wizard.step6.title')}
+					content={content()}
+					onNext={triggerOnClose}
+					onBack={onBack}
+					style={onboardingStyles.coachmark}
+					topIndicatorPosition={'topCenter'}
+					onClose={onClose}
+					currentStep={5}
+				/>
 			</View>
-		);
-	}
-}
+		</View>
+	);
+};
 
 const mapDispatchToProps = (dispatch) => ({
 	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 });
+
+Step6.propTypes = {
+	/**
+	 * Dispatch set onboarding wizard step
+	 */
+	setOnboardingWizardStep: PropTypes.func,
+	/**
+	 * Callback to call when closing
+	 */
+	onClose: PropTypes.func,
+};
 
 export default connect(null, mapDispatchToProps)(Step6);
