@@ -29,7 +29,6 @@ import EditGasFee1559 from '../../../UI/EditGasFee1559';
 import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacy';
 import AppConstants from '../../../../core/AppConstants';
 import { shallowEqual } from '../../../../util/general';
-import { gte } from '../../../../util/lodash';
 
 const { BNToHex, hexToBN } = util;
 
@@ -365,7 +364,7 @@ class Approve extends PureComponent {
 
 		const weiBalance = hexToBN(fromAccount.balance);
 		const totalTransactionValue = hexToBN(total);
-		if (!gte(weiBalance, totalTransactionValue)) {
+		if (!weiBalance.gte(totalTransactionValue)) {
 			const amount = renderFromWei(totalTransactionValue.sub(weiBalance));
 			const tokenSymbol = getTicker(ticker);
 			error = strings('transaction.insufficient_amount', { amount, tokenSymbol });
