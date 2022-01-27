@@ -12,6 +12,7 @@ import AddCustomCollectible from '../../UI/AddCustomCollectible';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import { NetworksChainId } from '@metamask/controllers';
 import CollectibleDetectionModal from '../../UI/CollectibleDetectionModal';
+import { isMainNet } from '../../../util/networks';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -96,14 +97,17 @@ class AddAsset extends PureComponent {
 				params: { assetType, collectibleContract },
 			},
 			navigation,
+			chainId,
 		} = this.props;
 		return (
 			<SafeAreaView style={styles.wrapper} testID={`add-${assetType}-screen`}>
-				<View style={styles.infoWrapper}>
-					{!this.state.dismissNftInfo && !this.props.useCollectibleDetection && (
-						<CollectibleDetectionModal onDismiss={this.dismissNftInfo} navigation={navigation} />
-					)}
-				</View>
+				{isMainNet(chainId) && (
+					<View style={styles.infoWrapper}>
+						{!this.state.dismissNftInfo && !this.props.useCollectibleDetection && (
+							<CollectibleDetectionModal onDismiss={this.dismissNftInfo} navigation={navigation} />
+						)}
+					</View>
+				)}
 				{assetType === 'token' ? (
 					<ScrollableTabView renderTabBar={this.renderTabBar}>
 						{NetworksChainId.mainnet === this.props.chainId && (

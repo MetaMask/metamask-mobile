@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
+import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
 import SecureKeychain from '../../../../core/SecureKeychain';
 import SelectComponent from '../../../UI/SelectComponent';
@@ -244,6 +245,10 @@ class Settings extends PureComponent {
 		 * Route passed in props from navigation
 		 */
 		route: PropTypes.object,
+		/**
+		 * Type of network
+		 */
+		type: PropTypes.string,
 	};
 
 	static navigationOptions = ({ navigation }) =>
@@ -358,6 +363,8 @@ class Settings extends PureComponent {
 			}
 		});
 	};
+
+	isMainnet = () => this.props.type === MAINNET;
 
 	onSignInWithPasscode = async (enabled) => {
 		this.setState({ loading: true }, async () => {
@@ -839,31 +846,39 @@ class Settings extends PureComponent {
 							<Text style={styles.modalText}>{strings('app_settings.clear_cookies_modal_message')}</Text>
 						</View>
 					</ActionModal>
-					<View style={styles.setting} testID={'nft-opensea-mode-section'}>
-						<Text style={styles.title}>{strings('app_settings.nft_opensea_mode')}</Text>
-						<Text style={styles.desc}>{strings('app_settings.nft_opensea_desc')}</Text>
-						<View style={styles.switchElement}>
-							<Switch
-								value={openSeaEnabled}
-								onValueChange={this.toggleOpenSeaApi}
-								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
-								ios_backgroundColor={colors.grey000}
-							/>
-						</View>
-					</View>
-					<View style={styles.setting} testID={'nft-opensea-autodetect-mode-section'}>
-						<Text style={styles.title}>{strings('app_settings.nft_autodetect_mode')}</Text>
-						<Text style={styles.desc}>{strings('app_settings.nft_autodetect_desc')}</Text>
-						<View style={styles.switchElement}>
-							<Switch
-								value={useCollectibleDetection}
-								onValueChange={this.toggleNftAutodetect}
-								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
-								ios_backgroundColor={colors.grey000}
-								disabled={!openSeaEnabled}
-							/>
-						</View>
-					</View>
+					{this.isMainnet() && (
+						<>
+							<View style={styles.setting} testID={'nft-opensea-mode-section'}>
+								<Text style={styles.title}>{strings('app_settings.nft_opensea_mode')}</Text>
+								<Text style={styles.desc}>{strings('app_settings.nft_opensea_desc')}</Text>
+								<View style={styles.switchElement}>
+									<Switch
+										value={openSeaEnabled}
+										onValueChange={this.toggleOpenSeaApi}
+										trackColor={
+											Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null
+										}
+										ios_backgroundColor={colors.grey000}
+									/>
+								</View>
+							</View>
+							<View style={styles.setting} testID={'nft-opensea-autodetect-mode-section'}>
+								<Text style={styles.title}>{strings('app_settings.nft_autodetect_mode')}</Text>
+								<Text style={styles.desc}>{strings('app_settings.nft_autodetect_desc')}</Text>
+								<View style={styles.switchElement}>
+									<Switch
+										value={useCollectibleDetection}
+										onValueChange={this.toggleNftAutodetect}
+										trackColor={
+											Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null
+										}
+										ios_backgroundColor={colors.grey000}
+										disabled={!openSeaEnabled}
+									/>
+								</View>
+							</View>
+						</>
+					)}
 					{this.renderHint()}
 				</View>
 			</ScrollView>
@@ -885,6 +900,7 @@ const mapStateToProps = (state) => ({
 	useCollectibleDetection: state.engine.backgroundState.PreferencesController.useCollectibleDetection,
 	passwordHasBeenSet: state.user.passwordSet,
 	seedphraseBackedUp: state.user.seedphraseBackedUp,
+	type: state.engine.backgroundState.NetworkController.provider.type,
 });
 
 const mapDispatchToProps = (dispatch) => ({

@@ -20,6 +20,7 @@ import AppConstants from '../../../core/AppConstants';
 import { toLowerCaseEquals } from '../../../util/general';
 import { compareTokenIds } from '../../../util/tokens';
 import CollectibleDetectionModal from '../CollectibleDetectionModal';
+import { isMainNet } from '../../../util/networks';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -219,7 +220,7 @@ const CollectibleContracts = ({
 
 	return (
 		<View style={styles.wrapper} testID={'collectible-contracts'}>
-			{!nftDetectionDismissed && !useCollectibleDetection && (
+			{isMainNet(chainId) && !nftDetectionDismissed && !useCollectibleDetection && (
 				<View style={styles.emptyView}>
 					<CollectibleDetectionModal onDismiss={dismissNftInfo} navigation={navigation} />
 				</View>
