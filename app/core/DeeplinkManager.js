@@ -106,6 +106,7 @@ class DeeplinkManager {
 		const handled = () => onHandled?.();
 
 		const { MM_UNIVERSAL_LINK_HOST } = AppConstants;
+
 		switch (urlObj.protocol.replace(':', '')) {
 			case 'http':
 			case 'https':
