@@ -49,7 +49,7 @@ const initialState = {
 			},
 		},
 	},
-	users: {
+	user: {
 		nftDetectionDismissed: true,
 	},
 };
