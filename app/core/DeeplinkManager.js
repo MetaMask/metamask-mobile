@@ -94,6 +94,7 @@ class DeeplinkManager {
 	parse(url, { browserCallBack, origin, onHandled }) {
 		const urlObj = new URL(url);
 		let params;
+		let wcCleanUrl;
 
 		if (urlObj.query.length) {
 			try {
@@ -157,12 +158,18 @@ class DeeplinkManager {
 			// address, transactions, etc
 			case 'wc':
 				handled();
-				if (!WalletConnect.isValidUri(url)) return;
+
+				wcCleanUrl = url.replace('wc://wc?uri=', '');
+				if (!WalletConnect.isValidUri(wcCleanUrl)) {
+					Alert.alert(strings('deeplink.invalid'));
+					return;
+				}
+
 				// eslint-disable-next-line no-case-declarations
 				const redirect = params && params.redirect;
 				// eslint-disable-next-line no-case-declarations
 				const autosign = params && params.autosign;
-				WalletConnect.newSession(url, redirect, autosign);
+				WalletConnect.newSession(wcCleanUrl, redirect, autosign);
 				break;
 			case 'ethereum':
 				handled();
@@ -182,10 +189,12 @@ class DeeplinkManager {
 			// For ex. go to settings
 			case 'metamask':
 				handled();
-				if (urlObj.origin === 'metamask://wc') {
+				if (url.startsWith('metamask://wc')) {
 					const cleanUrlObj = new URL(urlObj.query.replace('?uri=', ''));
 					const href = cleanUrlObj.href;
+
 					if (!WalletConnect.isValidUri(href)) return;
+
 					const redirect = params && params.redirect;
 					const autosign = params && params.autosign;
 					WalletConnect.newSession(href, redirect, autosign);
