@@ -98,14 +98,15 @@ class AddAsset extends PureComponent {
 			},
 			navigation,
 			chainId,
+			useCollectibleDetection,
 		} = this.props;
+		const { dismissNftInfo } = this.state;
+
 		return (
 			<SafeAreaView style={styles.wrapper} testID={`add-${assetType}-screen`}>
-				{isMainNet(chainId) && (
+				{isMainNet(chainId) && !dismissNftInfo && !useCollectibleDetection && (
 					<View style={styles.infoWrapper}>
-						{!this.state.dismissNftInfo && !this.props.useCollectibleDetection && (
-							<CollectibleDetectionModal onDismiss={this.dismissNftInfo} navigation={navigation} />
-						)}
+						<CollectibleDetectionModal onDismiss={this.dismissNftInfo} navigation={navigation} />
 					</View>
 				)}
 				{assetType === 'token' ? (
