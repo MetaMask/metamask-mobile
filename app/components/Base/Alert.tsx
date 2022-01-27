@@ -86,7 +86,7 @@ const getAlertStyles: (alertType: AlertType) => [StyleProp<ViewStyle>, StyleProp
 const Alert = ({ type = AlertType.Info, small, renderIcon, style, onPress, onDismiss, children, ...props }: Props) => {
 	const Wrapper: React.ComponentClass<TouchableOpacityProps | ViewProps> = onPress ? TouchableOpacity : View;
 
-	const [wrapperStyle, textStyle] = getStyles(type);
+	const [wrapperStyle, textStyle] = getAlertStyles(type);
 
 	return (
 		<Wrapper style={[styles.base, small && styles.baseSmall, wrapperStyle, style]} onPress={onPress} {...props}>
@@ -108,5 +108,5 @@ const Alert = ({ type = AlertType.Info, small, renderIcon, style, onPress, onDis
 		</Wrapper>
 	);
 };
-  
+
 export default Alert;
