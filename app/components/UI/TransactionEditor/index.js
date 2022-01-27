@@ -26,6 +26,7 @@ import EditGasFee1559 from '../EditGasFee1559';
 import EditGasFeeLegacy from '../EditGasFeeLegacy';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import AppConstants from '../../../core/AppConstants';
+import { gte } from '../../../util/lodash';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -535,7 +536,7 @@ class TransactionEditor extends PureComponent {
 			valueBN = hexToBN(value);
 		}
 		const total = valueBN.add(totalGasValue);
-		if (!weiBalance.gte(total)) {
+		if (!gte(weiBalance.total)) {
 			const amount = renderFromWei(total.sub(weiBalance));
 			const tokenSymbol = getTicker(ticker);
 			this.setState({ over: true });
