@@ -182,7 +182,7 @@ class DeeplinkManager {
 			// For ex. go to settings
 			case 'metamask':
 				handled();
-				if (urlObj.origin === 'metamask://wc') {
+				if (url.startsWith('metamask://wc')) {
 					const cleanUrlObj = new URL(urlObj.query.replace('?uri=', ''));
 					const href = cleanUrlObj.href;
 					if (!WalletConnect.isValidUri(href)) return;
