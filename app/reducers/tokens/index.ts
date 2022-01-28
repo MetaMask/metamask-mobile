@@ -8,16 +8,10 @@ const tokenListSelector = (state: any) => state.engine.backgroundState.TokenList
  * Return token list from TokenListController.
  * Can pass directly into useSelector.
  */
-export const getTokenList = createSelector(
-	tokenListSelector,
-	(tokenList: TokenListMap) => tokenList
-);
+export const getTokenList = createSelector(tokenListSelector, (tokenList: TokenListMap) => tokenList);
 
 /**
  * Return token list array from TokenListController.
  * Can pass directly into useSelector.
  */
-export const getTokenListArray = createSelector(
-	tokenListSelector,
-	tokenListToArray
-);
+export const getTokenListArray = createSelector(tokenListSelector, tokenListToArray);
