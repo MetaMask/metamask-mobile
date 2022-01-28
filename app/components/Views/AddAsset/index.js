@@ -104,7 +104,7 @@ class AddAsset extends PureComponent {
 
 		return (
 			<SafeAreaView style={styles.wrapper} testID={`add-${assetType}-screen`}>
-				{isMainNet(chainId) && !dismissNftInfo && !useCollectibleDetection && (
+				{isMainNet(chainId) && assetType !== 'token' && !dismissNftInfo && !useCollectibleDetection && (
 					<View style={styles.infoWrapper}>
 						<CollectibleDetectionModal onDismiss={this.dismissNftInfo} navigation={navigation} />
 					</View>

@@ -341,7 +341,7 @@ class Settings extends PureComponent {
 			});
 		}
 
-		if (this.props.route?.params?.scrollToBottom) this.scrollView?.scrollToEnd({ animated: false });
+		if (this.props.route?.params?.scrollToBottom) this.scrollView?.scrollToEnd({ animated: true });
 	};
 
 	onSingInWithBiometrics = async (enabled) => {
