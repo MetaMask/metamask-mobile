@@ -11,6 +11,7 @@ import { getAllNetworks } from '../util/networks';
 import Logger from '../util/Logger';
 import AppConstants from './AppConstants';
 import { createEngineStream } from 'json-rpc-middleware-stream';
+import { createSwappableProxy, createEventEmitterProxy } from 'swappable-obj-proxy';
 
 const createFilterMiddleware = require('eth-json-rpc-filters');
 const createSubscriptionManager = require('eth-json-rpc-filters/subscriptionManager');
@@ -50,8 +51,16 @@ export class BackgroundBridge extends EventEmitter {
 		this._webviewRef = webview && webview.current;
 
 		this.createMiddleware = getRpcMethodMiddleware;
-		this.provider = Engine.context.NetworkController.provider;
-		this.blockTracker = this.provider._blockTracker;
+
+		const provider = Engine.context.NetworkController.provider;
+		const blockTracker = provider._blockTracker;
+
+		// provider and block tracker proxies - because the network changes
+		this._providerProxy = null;
+		this._blockTrackerProxy = null;
+
+		this.setProviderAndBlockTracker({ provider, blockTracker });
+
 		this.port = new Port(this._webviewRef, isMainFrame);
 
 		this.engine = null;
@@ -72,6 +81,25 @@ export class BackgroundBridge extends EventEmitter {
 		Engine.context.KeyringController.onUnlock(this.onUnlock.bind(this));
 
 		this.on('update', this.onStateUpdate);
+	}
+
+	setProviderAndBlockTracker({ provider, blockTracker }) {
+		// update or intialize proxies
+		if (this._providerProxy) {
+			this._providerProxy.setTarget(provider);
+		} else {
+			this._providerProxy = createSwappableProxy(provider);
+		}
+		if (this._blockTrackerProxy) {
+			this._blockTrackerProxy.setTarget(blockTracker);
+		} else {
+			this._blockTrackerProxy = createEventEmitterProxy(blockTracker, {
+				eventFilter: 'skipInternal',
+			});
+		}
+		// set new provider and blockTracker
+		this.provider = provider;
+		this.blockTracker = blockTracker;
 	}
 
 	onUnlock() {
@@ -113,6 +141,9 @@ export class BackgroundBridge extends EventEmitter {
 	}
 
 	onStateUpdate(memState) {
+		const provider = Engine.context.NetworkController.provider;
+		const blockTracker = provider._blockTracker;
+		this.setProviderAndBlockTracker({ provider, blockTracker });
 		if (!memState) {
 			memState = this.getState();
 		}
@@ -185,9 +216,9 @@ export class BackgroundBridge extends EventEmitter {
 		const origin = this.hostname;
 		// setup json rpc engine stack
 		const engine = new JsonRpcEngine();
-		const provider = this.provider;
+		const provider = this._providerProxy;
 
-		const blockTracker = this.blockTracker;
+		const blockTracker = this._blockTrackerProxy;
 
 		// create filter polyfill middleware
 		const filterMiddleware = createFilterMiddleware({ provider, blockTracker });
