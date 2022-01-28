@@ -166,10 +166,9 @@ exports[`Browser should render correctly 1`] = `
               "borderRadius": 30,
               "flex": 1,
               "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 26,
+              "fontSize": 14,
               "fontWeight": "400",
-              "height": 59,
-              "padding": 8,
+              "height": 30,
               "paddingLeft": 15,
               "textAlign": "left",
             }
