@@ -257,4 +257,4 @@ export const migrations = {
 	},
 };
 
-export const version = 9;
+export const version = 10;
