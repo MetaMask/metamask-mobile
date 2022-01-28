@@ -83,12 +83,12 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 	const { visible, onScanError, purpose, onScanSuccess, hideModal } = props;
 	const [urDecoder, setURDecoder] = useState(new URRegistryDecoder());
 
-	const expectedURTypes = useMemo(() => {
-		if (purpose === 'sync') {
-			return ['crypto-hdkey'];
-		}
-		return ['eth-signature'];
-	}, [purpose]);
+	let expectedURTypes: string[];
+	if (purpose === 'sync') {
+		expectedURTypes = ['crypto-hdkey'];
+	} else {
+		expectedURTypes = ['eth-signature'];
+	}
 
 	const hintText = useMemo(
 		() => (

@@ -4,9 +4,11 @@ import { strings } from '../../../../../locales/i18n';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { colors } from '../../../../styles/common';
 import CheckBox from '@react-native-community/checkbox';
+import util from './util';
+import { IAccount } from '../types';
 
-interface Props {
-	accounts: { address: string; index: number; checked: boolean; exist: boolean }[];
+interface ISelectQRAccountsProps {
+	accounts: IAccount[];
 	nextPage: () => void;
 	prevPage: () => void;
 	toggleAccount: (index: number) => void;
@@ -32,10 +34,10 @@ const styles = StyleSheet.create({
 		paddingVertical: 4,
 		marginBottom: -2,
 	},
-	account_unchecked: {
+	accountUnchecked: {
 		backgroundColor: colors.grey000,
 	},
-	account_checked: {
+	accountChecked: {
 		backgroundColor: colors.grey050,
 	},
 	address: {
@@ -43,18 +45,16 @@ const styles = StyleSheet.create({
 		fontSize: 15,
 		flexGrow: 1,
 	},
-	checkbox: {},
-	external_link: {},
 	pagination: {
 		alignSelf: 'flex-end',
 		flexDirection: 'row',
 		alignItems: 'center',
 	},
-	pagination_text: {
+	paginationText: {
 		fontSize: 18,
 		color: colors.blue200,
 	},
-	pagination_item: {
+	paginationItem: {
 		flexDirection: 'row',
 		alignItems: 'center',
 		marginRight: 8,
@@ -72,24 +72,18 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		padding: 12,
 	},
-	button_blue: {
+	backgroundBlue: {
 		backgroundColor: colors.blue,
 	},
-	button_white: {},
-	button_text_blue: {
+	textBlue: {
 		color: colors.blue,
 	},
-	button_text_white: {
+	textWhite: {
 		color: colors.white,
 	},
 });
 
-const dealWithAddress = (address: string) => {
-	const length = address.length;
-	return `${address.slice(0, 8)}......${address.slice(length - 8, length)}`;
-};
-
-const SelectQRAccounts = (props: Props) => {
+const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
 	const { accounts, prevPage, nextPage, toggleAccount, onForget, onUnlock } = props;
 
 	return (
@@ -99,38 +93,37 @@ const SelectQRAccounts = (props: Props) => {
 				data={accounts}
 				keyExtractor={(item) => `address-${item.index}`}
 				renderItem={({ item }) => (
-					<View style={[styles.account, item.checked ? styles.account_checked : styles.account_unchecked]}>
+					<View style={[styles.account, item.checked ? styles.accountChecked : styles.accountUnchecked]}>
 						<CheckBox
 							disabled={item.exist}
-							style={styles.checkbox}
 							value={item.checked}
 							onValueChange={() => toggleAccount(item.index)}
 							boxType={'square'}
 							tintColors={{ true: colors.grey200, false: colors.grey100 }}
 							testID={'skip-backup-check'}
 						/>
-						<Text style={styles.address}>{dealWithAddress(item.address)}</Text>
-						<Icon style={styles.external_link} size={18} name={'external-link'} />
+						<Text style={styles.address}>{util.clipAddress(item.address, 8, 8)}</Text>
+						<Icon size={18} name={'external-link'} />
 					</View>
 				)}
 			/>
 			<View style={styles.pagination}>
-				<TouchableOpacity style={styles.pagination_item} onPress={prevPage}>
+				<TouchableOpacity style={styles.paginationItem} onPress={prevPage}>
 					<Icon name={'chevron-left'} color={colors.blue200} />
-					<Text style={styles.pagination_text}>{strings('connect_qr_hardware.prev')}</Text>
+					<Text style={styles.paginationText}>{strings('connect_qr_hardware.prev')}</Text>
 				</TouchableOpacity>
-				<TouchableOpacity style={styles.pagination_item} onPress={nextPage}>
-					<Text style={styles.pagination_text}>{strings('connect_qr_hardware.next')}</Text>
+				<TouchableOpacity style={styles.paginationItem} onPress={nextPage}>
+					<Text style={styles.paginationText}>{strings('connect_qr_hardware.next')}</Text>
 					<Icon name={'chevron-right'} color={colors.blue200} />
 				</TouchableOpacity>
 			</View>
 
 			<View style={styles.bottom}>
-				<TouchableOpacity onPress={onUnlock} style={[styles.button, styles.button_blue]}>
-					<Text style={styles.button_text_white}>{strings('connect_qr_hardware.unlock')}</Text>
+				<TouchableOpacity onPress={onUnlock} style={[styles.button, styles.backgroundBlue]}>
+					<Text style={styles.textWhite}>{strings('connect_qr_hardware.unlock')}</Text>
 				</TouchableOpacity>
-				<TouchableOpacity onPress={onForget} style={[styles.button, styles.button_white]}>
-					<Text style={styles.button_text_blue}>{strings('connect_qr_hardware.forget')}</Text>
+				<TouchableOpacity onPress={onForget} style={styles.button}>
+					<Text style={styles.textBlue}>{strings('connect_qr_hardware.forget')}</Text>
 				</TouchableOpacity>
 			</View>
 		</View>

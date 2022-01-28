@@ -1,12 +1,16 @@
+/* eslint @typescript-eslint/no-var-requires: "off" */
+/* eslint @typescript-eslint/no-require-imports: "off" */
+
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import { colors } from '../../../../styles/common';
 
-interface Props {
+interface IConnectQRInstructionProps {
 	onConnect: () => void;
-	navigation: any;
 }
+
+const connectQRHardwareImg = require('images/connect-qr-hardware.png'); // eslint-disable-line import/no-commonjs
 
 const styles = StyleSheet.create({
 	container: {
@@ -37,6 +41,7 @@ const styles = StyleSheet.create({
 		borderRadius: 25,
 		height: 50,
 		alignItems: 'center',
+		justifyContent: 'center',
 		padding: 12,
 	},
 	buttonText: {
@@ -50,7 +55,7 @@ const styles = StyleSheet.create({
 	},
 });
 
-const ConnectQRInstruction = (props: Props) => {
+const ConnectQRInstruction = (props: IConnectQRInstructionProps) => {
 	const { onConnect } = props;
 	return (
 		<View style={styles.container}>
@@ -61,12 +66,7 @@ const ConnectQRInstruction = (props: Props) => {
 				<Text style={styles.text}>{strings('connect_qr_hardware.description3')}</Text>
 				<Text style={[styles.text, styles.link]}>{strings('connect_qr_hardware.description4')}</Text>
 			</View>
-			<Image
-				style={styles.image}
-				/* eslint-disable-next-line @typescript-eslint/no-require-imports */
-				source={require('../../../../images/connect-qr-hardware.png')}
-				resizeMode={'contain'}
-			/>
+			<Image style={styles.image} source={connectQRHardwareImg} resizeMode={'contain'} />
 			<TouchableOpacity onPress={onConnect} style={styles.button}>
 				<Text style={styles.buttonText}>{strings('connect_qr_hardware.button_continue')}</Text>
 			</TouchableOpacity>
