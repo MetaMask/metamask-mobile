@@ -52,6 +52,9 @@ import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 import Drawer from '../../UI/Drawer';
 
+import { FiatOnRampSDKProvider } from '../../../components/UI/FiatOnRampAggregator/SDK';
+import GetStarted from '../../../components/UI/FiatOnRampAggregator/Views/GetStarted';
+
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -273,6 +276,29 @@ const FiatOnRamp = () => (
 	</Stack.Navigator>
 );
 
+const FiatOnRampAggregator = () => (
+	<FiatOnRampSDKProvider>
+		<Stack.Navigator>
+			<Stack.Screen
+				name="GetStarted"
+				component={GetStarted}
+				// options={.navigationOptions}
+			/>
+			{/*
+			<Stack.Screen
+				name=""
+				component={null}
+				options={.navigationOptions}
+			/> */}
+			{/* <Stack.Screen
+				name="FiatOnRampAggregatorWebview"
+				component={null}
+				options={TransakWebView.navigationOptions}
+			/> */}
+		</Stack.Navigator>
+	</FiatOnRampSDKProvider>
+);
+
 const Swaps = () => (
 	<Stack.Navigator>
 		<Stack.Screen name="SwapsAmountView" component={SwapsAmountView} options={SwapsAmountView.navigationOptions} />
@@ -345,6 +371,7 @@ const MainNavigator = () => (
 		<Stack.Screen name="LockScreen" component={LockScreen} />
 		<Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
 		<Stack.Screen name="FiatOnRamp" component={FiatOnRamp} />
+		<Stack.Screen name="FiatOnRampAggregator" component={FiatOnRampAggregator} />
 		<Stack.Screen name="Swaps" component={Swaps} />
 		<Stack.Screen
 			name="SetPasswordFlow"

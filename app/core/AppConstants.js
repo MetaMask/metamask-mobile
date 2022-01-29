@@ -53,6 +53,9 @@ export default {
 		WYRE_MERCHANT_ID_TEST: 'merchant.io.metamask.wyre.test',
 		POLLING_FREQUENCY: 10000,
 	},
+	FIAT_ON_RAMP_AGGREGATOR: {
+		ACTIVE: true,
+	},
 	DEEPLINKS: {
 		ORIGIN_DEEPLINK: 'deeplink',
 		ORIGIN_QR_CODE: 'qr-code',
