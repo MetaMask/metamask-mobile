@@ -570,6 +570,11 @@ class DrawerView extends PureComponent {
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_TRANSACTION_HISTORY);
 	};
 
+	goToFiatOnRampAggregator = () => {
+		this.props.navigation.navigate('FiatOnRampAggregator');
+		this.hideDrawer();
+	};
+
 	showSettings = async () => {
 		this.props.navigation.navigate('SettingsView');
 		this.hideDrawer();
@@ -761,6 +766,15 @@ class DrawerView extends PureComponent {
 					selectedIcon: this.getSelectedFeatherIcon('list'),
 					action: this.goToTransactionHistory,
 					routeNames: ['TransactionsView'],
+				},
+			],
+			AppConstants.FIAT_ON_RAMP_AGGREGATOR.ACTIVE && [
+				{
+					name: 'On Ramp Aggregator',
+					icon: this.getFeatherIcon('layers'),
+					selectedIcon: this.getSelectedFeatherIcon('layers'),
+					action: this.goToFiatOnRampAggregator,
+					routeNames: ['FiatOnRampAggregator'],
 				},
 			],
 			[
