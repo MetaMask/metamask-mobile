@@ -108,7 +108,7 @@ describe('Deep linking Tests', () => {
 		await WalletView.tapDrawerButton(); // tapping burger menu
 	});
 
-	it('should go to settings then networks', async () => {
+	it('should return to settings then networks', async () => {
 		// Open Drawer
 		await DrawerView.isVisible();
 		await DrawerView.tapSettings();
