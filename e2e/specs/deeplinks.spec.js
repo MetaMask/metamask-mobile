@@ -142,22 +142,22 @@ describe('Deep linking Tests', () => {
 
 		await TestHelpers.delay(4500);
 		await TransactionConfirmationView.isVisible();
-		await WalletView.isNetworkNameVisible('Polygon Mainnet');
+		await TransactionConfirmationView.isNetworkNameVisible('Polygon Mainnet');
 		await TestHelpers.delay(1500);
-		await TestHelpers.tapByText('Cancel');
+		await TransactionConfirmationView.tapCancelButton();
 	});
 	it('should deep link to the send flow on BSC', async () => {
 		await TestHelpers.openDeepLink(binanceDeepLink);
 		await TestHelpers.delay(4500);
 		await TransactionConfirmationView.isVisible();
-		await WalletView.isNetworkNameVisible('Binance Smart Chain Mainnet');
+		await TransactionConfirmationView.isNetworkNameVisible('Binance Smart Chain Mainnet');
 	});
 
 	it('should deep link to the send flow on Rinkeby and submit the transaction', async () => {
 		await TestHelpers.openDeepLink(rinkebyDeepLink);
 		await TestHelpers.delay(4500);
 		await TransactionConfirmationView.isVisible();
-		await WalletView.isNetworkNameVisible('Rinkeby Test Network');
+		await TransactionConfirmationView.isNetworkNameVisible('Rinkeby Test Network');
 		await TransactionConfirmationView.isTransactionTotalCorrect('0.00001 ETH');
 		// Tap on the Send CTA
 		await TransactionConfirmationView.tapConfirmButton();
@@ -170,7 +170,7 @@ describe('Deep linking Tests', () => {
 		await TestHelpers.delay(4500);
 
 		await TransactionConfirmationView.isVisible();
-		await WalletView.isNetworkNameVisible('Ethereum Main Network');
+		await TransactionConfirmationView.isNetworkNameVisible('Ethereum Main Network');
 	});
 
 	it('should deep link to a dapp (Uniswap)', async () => {
