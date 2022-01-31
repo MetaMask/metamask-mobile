@@ -9,6 +9,7 @@ import {
 	ViewProps,
 	TextStyle,
 } from 'react-native';
+import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { colors } from '../../styles/common';
 import CustomText from './Text';
 // TODO: Convert into typescript and correctly type optionals
@@ -27,6 +28,7 @@ interface Props {
 	small?: boolean;
 	renderIcon?: () => ReactNode;
 	onPress?: () => void;
+	onDismiss?: () => void;
 	children?: ReactNode;
 }
 
@@ -53,6 +55,9 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.red000,
 		borderColor: colors.red,
 	},
+	closeIcon: {
+		color: colors.black,
+	},
 	baseTextStyle: { fontSize: 14, flex: 1, lineHeight: 17 },
 	textInfo: { color: colors.blue },
 	textWarning: { color: colors.black },
@@ -78,7 +83,7 @@ const getAlertStyles: (alertType: AlertType) => [StyleProp<ViewStyle>, StyleProp
 	}
 };
 
-const Alert = ({ type = AlertType.Info, small, renderIcon, style, onPress, children, ...props }: Props) => {
+const Alert = ({ type = AlertType.Info, small, renderIcon, style, onPress, onDismiss, children, ...props }: Props) => {
 	const Wrapper: React.ComponentClass<TouchableOpacityProps | ViewProps> = onPress ? TouchableOpacity : View;
 
 	const [wrapperStyle, textStyle] = getAlertStyles(type);
@@ -92,6 +97,13 @@ const Alert = ({ type = AlertType.Info, small, renderIcon, style, onPress, child
 				<Text small={small} style={[textStyle, !!renderIcon && styles.textIconStyle]}>
 					{children}
 				</Text>
+			)}
+			{onDismiss && (
+				<View style={styles.iconWrapper}>
+					<TouchableOpacity onPress={onDismiss} hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}>
+						<IonicIcon name="ios-close" style={styles.closeIcon} size={30} />
+					</TouchableOpacity>
+				</View>
 			)}
 		</Wrapper>
 	);
