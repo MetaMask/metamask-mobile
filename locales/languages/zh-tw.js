@@ -693,6 +693,7 @@
 		"use_max": "使用最大值",
 		"set_gas": "設定",
 		"cancel_gas": "取消",
+												   
 		"transaction_fee": "網路費",
 							   
 		"transaction_fee_less": "不收費",
@@ -702,6 +703,7 @@
 		"could_not_resolve_ens": "無法解析 ENS",
 		"asset": "資產",
 		"balance": "餘額",
+						 
 		"not_enough_for_gas": "您的帳戶中有 0 {{ticker}} 可用于支付交易費。購買一些 {{ticker}} 或從其它帳戶存入。",
 																																				  
 		"send": "發送",
@@ -1785,7 +1787,7 @@
 	"secret_phrase_video_subtitle": {
 		"title": "EN CC",
 		"language": "en",
-		"uri": "https://github.com/MetaMask/metamask-mobile/blob/develop/app/videos/subtitles/secretPhrase/subtitles-en.vtt?raw=true"
+		"uri": "https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/subtitles/secretPhrase/subtitles-en.vtt?raw=true"
 	},
 	"edit_gas_fee_eip1559": {
 		"advanced_options": "Advanced options",
