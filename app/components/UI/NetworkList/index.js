@@ -146,6 +146,7 @@ export class NetworkList extends PureComponent {
 
 	onNetworkChange = (type) => {
 		this.props.onNetworkSelected(type, 'ETH');
+		this.props.onClose(false);
 		const { NetworkController, CurrencyRateController } = Engine.context;
 		CurrencyRateController.setNativeCurrency('ETH');
 		NetworkController.setProviderType(type);
@@ -199,6 +200,8 @@ export class NetworkList extends PureComponent {
 			block_explorer_url: blockExplorerUrl,
 			network_name: 'rpc',
 		});
+
+		this.props.onClose(false);
 	};
 
 	networkElement = (selected, onPress, name, color, i, network) => (

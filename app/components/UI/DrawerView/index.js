@@ -394,6 +394,8 @@ class DrawerView extends PureComponent {
 		networkSelected: false,
 		networkType: undefined,
 		networkCurrency: undefined,
+		balance: null,
+		balanceUpdated: false,
 	};
 
 	browserSectionRef = React.createRef();
@@ -516,8 +518,7 @@ class DrawerView extends PureComponent {
 	};
 
 	onNetworksModalCloses = async (manualClose) => {
-		this.toggleNetworksModal();
-		this.setState({ networkSelected: !this.state.networkSelected });
+		this.setState({ networkSelected: !this.state.networkSelected, balanceUpdated: false });
 		if (!manualClose) {
 			await this.hideDrawer();
 			await this.setState({ networkSelected: !this.state.networkSelected });
@@ -534,7 +535,16 @@ class DrawerView extends PureComponent {
 		}
 	};
 
+	accountBalanceUpdated = () => {
+		const that = this;
+		setTimeout(() => {
+			that.setState({ balanceUpdated: true });
+		}, 10000);
+	};
+
 	onNetworkSelected = (type, currency) => {
+		this.setState({ balanceUpdated: false });
+		this.accountBalanceUpdated();
 		this.setState({
 			networkType: type,
 			networkCurrency: currency,
@@ -945,6 +955,7 @@ class DrawerView extends PureComponent {
 		};
 		const { name, ens } = account;
 		account.balance = (accounts[selectedAddress] && renderFromWei(accounts[selectedAddress].balance)) || 0;
+		this.setState({ balance: account.balance });
 		const fiatBalance = Engine.getTotalFiatAccountBalance();
 		if (fiatBalance !== this.previousBalance) {
 			this.previousBalance = this.currentBalance;
@@ -952,6 +963,8 @@ class DrawerView extends PureComponent {
 		this.currentBalance = fiatBalance;
 		const fiatBalanceStr = renderFiat(this.currentBalance, currentCurrency);
 		const accountName = isDefaultAccountName(name) && ens ? ens : name;
+		const showInfoModal =
+			this.state.networkSelected && Number(this.state.balance) === 0 && this.state.balanceUpdated;
 
 		return (
 			<View style={styles.wrapper} testID={'drawer-screen'}>
@@ -1106,21 +1119,29 @@ class DrawerView extends PureComponent {
 					swipeDirection={'down'}
 					propagateSwipe
 				>
-					{this.state.networkSelected ? (
+					<NetworkList
+						navigation={this.props.navigation}
+						onClose={this.onNetworksModalClose}
+						onNetworkSelected={this.onNetworkSelected}
+						showInvalidCustomNetworkAlert={this.showInvalidCustomNetworkAlert}
+					/>
+				</Modal>
+				{showInfoModal && (
+					<Modal
+						isVisible={showInfoModal}
+						onBackdropPress={this.onNetworksModalCloses}
+						onBackButtonPress={this.onNetworksModalCloses}
+						onSwipeComplete={this.onNetworksModalCloses}
+						swipeDirection={'down'}
+						propagateSwipe
+					>
 						<NetworkInfo
 							onClose={this.onNetworksModalCloses}
 							type={this.state.networkType}
 							currency={this.state.networkCurrency}
 						/>
-					) : (
-						<NetworkList
-							navigation={this.props.navigation}
-							onClose={this.onNetworksModalClose}
-							onNetworkSelected={this.onNetworkSelected}
-							showInvalidCustomNetworkAlert={this.showInvalidCustomNetworkAlert}
-						/>
-					)}
-				</Modal>
+					</Modal>
+				)}
 				<Modal isVisible={!!invalidCustomNetwork}>
 					<InvalidCustomNetworkAlert
 						navigation={this.props.navigation}
