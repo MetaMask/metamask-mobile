@@ -13,11 +13,22 @@ In the React Native Storybook [Getting Started](https://github.com/storybookjs/r
 **Prerequisite**
 Make sure you have your environment set up first. To do that follow the set up instructions in the main [README.md](https://github.com/MetaMask/metamask-mobile)
 
-1. In the root `./index.js` file comment out `AppRegistry.registerComponent(name, () => Root);` and add:
+1. In the root `./index.js` file **uncomment**:
 
 ```
-export { default } from "./storybook";
+// import Storybook from './storybook';
+// AppRegistry.registerComponent(name, () => Storybook);
 ```
+
+and add **comment** out:
+
+```
+AppRegistry.registerComponent(name, () => Root);
+```
+
+It should look like the below screenshot
+
+![React Native Storybook Preview](./images/rn.sb.0.png)
 
 this will replace the entry point of the app with storybook.
 
