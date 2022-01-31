@@ -92,7 +92,7 @@ class DeeplinkManager {
 	}
 
 	parse(url, { browserCallBack, origin, onHandled }) {
-		const urlObj = new URL(url.replace('http://', '').replace('http://', ''));
+		const urlObj = new URL(url.replace('https://', '').replace('http://', ''));
 		let params;
 
 		if (urlObj.query.length) {
