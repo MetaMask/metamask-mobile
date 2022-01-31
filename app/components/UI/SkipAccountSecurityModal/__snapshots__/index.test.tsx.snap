@@ -58,18 +58,14 @@ exports[`HintModal should render correctly 1`] = `
         }
       />
     </TouchableOpacity>
-    <Image
-      resizeMethod="auto"
-      source={
-        Object {
-          "testUri": "../../../app/images/warning.png",
-        }
-      }
+    <Icon
+      allowFontScaling={false}
+      name="alert-triangle"
+      size={38}
       style={
         Object {
           "alignSelf": "center",
-          "height": 56,
-          "width": 56,
+          "color": "#D73A49",
         }
       }
       testID="skip_backup_warning"

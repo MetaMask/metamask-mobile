@@ -4,6 +4,7 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import { toBN, hexToBN, renderFromWei, renderFromTokenMinimalUnit } from './number';
 import { strings } from '../../locales/i18n';
 import { RPC } from '../constants/network';
+import { gt } from './lodash';
 
 export default async function findFirstIncomingTransaction(networkType, selectedAddress, thirPartyApiMode) {
 	// Pull txs if allowed
@@ -35,7 +36,7 @@ export default async function findFirstIncomingTransaction(networkType, selected
 	const { tokens } = TokensController.state;
 	let tokenFound = null;
 	tokens.forEach((token) => {
-		if (tokenBalances[token.address].gt(toBN('0'))) {
+		if (gt(tokenBalances[token.address], toBN('0'))) {
 			tokenFound = {
 				asset: token.symbol,
 				amount: `${renderFromTokenMinimalUnit(tokenBalances[token.address], token.decimals)} ${token.symbol}`,
