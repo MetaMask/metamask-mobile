@@ -10,6 +10,8 @@ const style = StyleSheet.create({
 	},
 });
 
-const LineDivide = () => <View style={style.divide} />;
+function LineDivide(): JSX.Element {
+	return <View style={style.divide} />;
+}
 
 export default LineDivide;
