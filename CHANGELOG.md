@@ -3,7 +3,7 @@
 ## Current Develop Branch
 
 ## v4.0.1 - January 31, 2022
-- [#3658](https://github.com/MetaMask/metamask-mobile/pull/3658): [HOTFIX] 4.0.1 - RC2
+- [#3658](https://github.com/MetaMask/metamask-mobile/pull/3658): [HOTFIX] 4.0.1 - BN crash and NFT Improvement
 
 ## v4.0.0 - January 20, 2022
 - [#3509](https://github.com/MetaMask/metamask-mobile/pull/3509): [IMPROVEMENT] Upgrade to React Native 0.66.3
