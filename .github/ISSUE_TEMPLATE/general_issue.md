@@ -18,6 +18,7 @@ Describe the task. What does this aim to solve?
 
 ### **Acceptance Criteria**
 
+-   Check with product on metrics
 -   Cases to satisfy
 -   XYZ should work
 -   Etc.
