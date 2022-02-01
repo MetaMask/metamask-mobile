@@ -352,11 +352,12 @@ class ImportFromSeed extends PureComponent {
 	clearSecretRecoveryPhrase = async (seed) => {
 		// get clipboard contents
 		const clipboardContents = await Clipboard.getString();
-		// only clear clipboard if contents isValidMnemonic
 		const parsedClipboardContents = parseSeedPhrase(clipboardContents);
 		if (
+			// only clear clipboard if contents isValidMnemonic
 			!failedSeedPhraseRequirements(parsedClipboardContents) &&
 			isValidMnemonic(parsedClipboardContents) &&
+			// only clear clipboard if the seed phrase entered matches what's in the clipboard
 			parseSeedPhrase(seed) === parsedClipboardContents
 		) {
 			await Clipboard.clearString();
