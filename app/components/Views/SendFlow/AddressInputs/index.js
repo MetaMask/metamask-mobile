@@ -5,10 +5,9 @@ import AntIcon from 'react-native-vector-icons/AntDesign';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
 import Identicon from '../../../UI/Identicon';
-import { renderShortAddress } from '../../../../util/address';
+
 import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
-import { hasZeroWidthPoints } from '../../../../util/validators';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -50,6 +49,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		position: 'relative',
 	},
+	identIcon: { marginRight: 8 },
 	exclamation: {
 		backgroundColor: colors.white,
 		borderRadius: 12,
@@ -62,7 +62,6 @@ const styles = StyleSheet.create({
 		alignItems: 'flex-start',
 		marginHorizontal: 8,
 	},
-	addressWrapper: { flexDirection: 'row' },
 	textAddress: {
 		...fontStyles.normal,
 		color: colors.black,
@@ -116,55 +115,9 @@ const styles = StyleSheet.create({
 	dropdownIcon: {
 		alignSelf: 'center',
 	},
-	checkIconWrapper: {
-		flexDirection: 'row',
-		alignItems: 'center',
-	},
-	checkAddress: {
-		flex: 0.9,
-		// maxWidth: '90%'
-	},
-	toInputWrapper: {
-		flexDirection: 'row',
-	},
+	checkCleanWrapper: { flexDirection: 'row', alignItems: 'center' },
+	checkIcon: { paddingRight: 4 },
 });
-
-const AddressName = ({ toAddressName, confusableCollection = [] }) => {
-	if (confusableCollection.length) {
-		const texts = toAddressName.split('').map((char, index) => {
-			// if text has a confusable highlight it red
-			if (confusableCollection.includes(char)) {
-				// if the confusable is zero width, replace it with `?`
-				const replacement = hasZeroWidthPoints(char) ? '?' : char;
-				return (
-					<Text red key={index}>
-						{replacement}
-					</Text>
-				);
-			}
-			return (
-				<Text black key={index}>
-					{char}
-				</Text>
-			);
-		});
-		return (
-			<Text style={styles.textAddress} numberOfLines={1}>
-				{texts}
-			</Text>
-		);
-	}
-	return (
-		<Text style={styles.textAddress} numberOfLines={1}>
-			{toAddressName}
-		</Text>
-	);
-};
-
-AddressName.propTypes = {
-	toAddressName: PropTypes.string,
-	confusableCollection: PropTypes.array,
-};
 
 export const AddressTo = (props) => {
 	const {
@@ -180,9 +133,9 @@ export const AddressTo = (props) => {
 		onSubmit,
 		onInputBlur,
 		inputWidth,
-		confusableCollection,
 		displayExclamation,
 	} = props;
+
 	return (
 		<View style={styles.wrapper}>
 			<View style={styles.label}>
@@ -202,16 +155,25 @@ export const AddressTo = (props) => {
 							style={[styles.textInput, inputWidth]}
 							numberOfLines={1}
 							onFocus={onInputFocus}
+							autoFocus
 							onBlur={onInputBlur}
 							onSubmitEditing={onSubmit}
 							value={toSelectedAddress}
 							testID={'txn-to-address-input'}
 						/>
 					</View>
-					{!!onScan && (
+					{!toSelectedAddress?.length > 0 ? (
 						<TouchableOpacity onPress={onScan} style={styles.iconWrapper}>
 							<AntIcon
 								name="scan1"
+								size={20}
+								style={[styles.scanIcon, highlighted ? styles.iconHighlighted : styles.iconOpaque]}
+							/>
+						</TouchableOpacity>
+					) : (
+						<TouchableOpacity onPress={onClear} style={styles.iconWrapper} testID={'clear-address-button'}>
+							<AntIcon
+								name="close"
 								size={20}
 								style={[styles.scanIcon, highlighted ? styles.iconHighlighted : styles.iconOpaque]}
 							/>
@@ -221,42 +183,47 @@ export const AddressTo = (props) => {
 			) : (
 				<View style={[styles.selectWrapper, highlighted ? styles.borderHighlighted : styles.borderOpaque]}>
 					<View style={styles.addressToInformation}>
-						<Identicon address={toSelectedAddress} diameter={30} />
+						<Identicon address={toSelectedAddress} diameter={30} customStyle={styles.identIcon} />
 						{displayExclamation && (
 							<View style={styles.exclamation}>
 								<FontAwesome color={colors.red} name="exclamation-circle" size={14} />
 							</View>
 						)}
-						<View style={styles.toInputWrapper}>
-							<View style={[styles.address, styles.checkAddress]}>
-								{toAddressName && (
-									<AddressName
-										toAddressName={toAddressName}
-										confusableCollection={confusableCollection}
-									/>
-								)}
-								<View style={styles.addressWrapper}>
-									<Text
-										style={toAddressName ? styles.textBalance : styles.textAddress}
-										numberOfLines={1}
-									>
-										{renderShortAddress(toSelectedAddress)}
-									</Text>
-									<View style={(styles.checkIconWrapper, toAddressName ? {} : { paddingTop: 2 })}>
-										<AntIcon name="check" color={colors.green600} size={15} />
-									</View>
-								</View>
-							</View>
-						</View>
+
+						<TextInput
+							ref={inputRef}
+							autoCapitalize="none"
+							autoCorrect={false}
+							onChangeText={onToSelectedAddressChange}
+							placeholder={strings('transactions.address_to_placeholder')}
+							placeholderTextColor={colors.grey100}
+							spellCheck={false}
+							style={[styles.textInput, inputWidth]}
+							numberOfLines={1}
+							autoFocus
+							onFocus={onInputFocus}
+							onBlur={onInputBlur}
+							onSubmitEditing={onSubmit}
+							value={toAddressName}
+							testID={'txn-to-address-input'}
+						/>
 					</View>
 					{!!onClear && (
-						<TouchableOpacity onPress={onClear} style={styles.iconWrapper} testID={'clear-address-button'}>
-							<AntIcon
-								name="close"
-								size={20}
-								style={[styles.scanIcon, highlighted ? styles.iconHighlighted : styles.iconOpaque]}
-							/>
-						</TouchableOpacity>
+						<View style={styles.checkCleanWrapper}>
+							<AntIcon name="check" color={colors.green600} size={15} style={styles.checkIcon} />
+
+							<TouchableOpacity
+								onPress={onClear}
+								style={styles.iconWrapper}
+								testID={'clear-address-button'}
+							>
+								<AntIcon
+									name="close"
+									size={20}
+									style={[styles.scanIcon, highlighted ? styles.iconHighlighted : styles.iconOpaque]}
+								/>
+							</TouchableOpacity>
+						</View>
 					)}
 				</View>
 			)}
@@ -314,10 +281,6 @@ AddressTo.propTypes = {
 	 * https://github.com/facebook/react-native/issues/9958
 	 */
 	inputWidth: PropTypes.object,
-	/**
-	 * Array of confusables
-	 */
-	confusableCollection: PropTypes.array,
 	/**
 	 * Display Exclamation Icon
 	 */
