@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -12,9 +12,9 @@
     "clean:node": "rm -rf node_modules && yarn --frozen-lockfile",
     "clean": "yarn clean:ios && yarn clean:android && yarn clean:node && yarn pod:install",
     "clean-android": "yarn clean:android && yarn clean:node",
-    "lint": "eslint '**/*.js' --ignore-path=.prettierignore",
-    "lint:fix": "eslint '**/*.js' --fix --ignore-path=.prettierignore",
-    "format": "prettier '**/*.{js,json}' --write",
+    "lint": "eslint '**/*.{js,ts,tsx}' --ignore-path=.prettierignore",
+    "lint:fix": "eslint '**/*.{js,ts,tsx}' --fix --ignore-path=.prettierignore",
+    "format": "prettier '**/*.{js,ts,tsx,json}' --write",
     "setup": "yarn clean && yarn allow-scripts && ./scripts/postinstall.sh",
     "start:ios": "./scripts/build.sh ios debug",
     "start:ios:e2e": "./scripts/build.sh ios debugE2E",
@@ -90,7 +90,8 @@
     "@metamask/contract-metadata": "^1.30.0",
     "@exodus/react-native-payments/validator": "^13.7.0",
     "react-devtools-core": "4.22.1",
-    "web3": "1.6.1"
+    "web3": "1.6.1",
+    "simple-get": "4.0.1"
   },
   "dependencies": {
     "@exodus/react-native-payments": "git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5",
@@ -230,6 +231,7 @@
     "reselect": "^4.0.0",
     "rn-fetch-blob": "^0.12.0",
     "stream-browserify": "1.0.0",
+    "swappable-obj-proxy": "^1.1.0",
     "through2": "3.0.1",
     "unicode-confusables": "^0.1.1",
     "url": "0.11.0",

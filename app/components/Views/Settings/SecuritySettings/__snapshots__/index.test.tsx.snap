@@ -32,5 +32,6 @@ exports[`SecuritySettings should render correctly 1`] = `
   setLockTime={[Function]}
   setPrivacyMode={[Function]}
   setThirdPartyApiMode={[Function]}
+  type="mainnet"
 />
 `;
