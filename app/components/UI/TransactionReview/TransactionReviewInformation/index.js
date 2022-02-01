@@ -451,6 +451,7 @@ class TransactionReviewInformation extends PureComponent {
 			this.onCancelPress();
 			this.props.navigation.navigate('BrowserView', {
 				newTabUrl: mmFaucetUrl,
+				timestamp: Date.now(),
 			});
 		});
 	};
