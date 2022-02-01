@@ -69,7 +69,7 @@ function PaymentMethodSelectorView({
 PaymentMethodSelectorView.propTypes = {
 	selectedAddress: PropTypes.string.isRequired,
 	chainId: PropTypes.string.isRequired,
-	ticker: PropTypes.string.isRequired,
+	ticker: PropTypes.string,
 	gasEducationCarouselSeen: PropTypes.bool,
 	setGasEducationCarouselSeen: PropTypes.func,
 };
