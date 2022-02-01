@@ -29,6 +29,7 @@ app/bin
 .gradle
 local.properties
 *.iml
+*.hprof
 android/.project
 android/app/.project
 android/app/bin/

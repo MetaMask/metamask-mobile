@@ -1,17 +1,17 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useContext } from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { connect } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { getHasOrders } from '../../../reducers/fiatOrders';
-
 import getNavbarOptions from '../../UI/Navbar';
 import TransactionsView from '../TransactionsView';
 import TabBar from '../../Base/TabBar';
 import { strings } from '../../../../locales/i18n';
 import FiatOrdersView from '../FiatOrdersView';
 import ErrorBoundary from '../ErrorBoundary';
+import { DrawerContext } from '../../Nav/Main/MainNavigator';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -19,15 +19,17 @@ const styles = StyleSheet.create({
 	},
 });
 
-function ActivityView({ hasOrders, ...props }) {
+function ActivityView({ hasOrders }) {
+	const { drawerRef } = useContext(DrawerContext);
 	const navigation = useNavigation();
 
 	useEffect(
 		() => {
-			navigation.setParams({ hasOrders });
+			const title = hasOrders ?? false ? 'activity_view.title' : 'transactions_view.title';
+			navigation.setOptions(getNavbarOptions(title, false, drawerRef));
 		},
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[hasOrders]
+		/* eslint-disable-next-line */
+		[navigation, hasOrders]
 	);
 
 	return (
@@ -52,11 +54,6 @@ ActivityView.defaultProps = {
 
 ActivityView.propTypes = {
 	hasOrders: PropTypes.bool,
-};
-
-ActivityView.navigationOptions = ({ navigation, route }) => {
-	const title = route.params?.hasOrders ?? false ? 'activity_view.title' : 'transactions_view.title';
-	return getNavbarOptions(title, navigation);
 };
 
 const mapStateToProps = (state) => ({

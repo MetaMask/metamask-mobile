@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView, FlatList } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -198,18 +198,15 @@ class AddressList extends PureComponent {
 		);
 	};
 
-	elementKeyExtractor = (element) => {
-		if (typeof element === 'string') return element;
-		return element.address + element.name;
-	};
-
-	renderElement = ({ item: element }) => {
+	renderElement = (element) => {
 		const { onAccountPress, onAccountLongPress } = this.props;
 		if (typeof element === 'string') {
 			return LabelElement(element);
 		}
+		const key = element.address + element.name;
 		return (
 			<AddressElement
+				key={key}
 				address={element.address}
 				name={element.name}
 				onAccountPress={onAccountPress}
@@ -246,13 +243,7 @@ class AddressList extends PureComponent {
 				<ScrollView style={styles.myAccountsWrapper}>
 					{!onlyRenderAddressBook && this.renderMyAccounts()}
 					{!onlyRenderAddressBook && this.renderRecents()}
-					{contactElements.length ? (
-						<FlatList
-							data={contactElements}
-							keyExtractor={this.elementKeyExtractor}
-							renderItem={this.renderElement}
-						/>
-					) : null}
+					{contactElements.length ? contactElements.map(this.renderElement) : null}
 				</ScrollView>
 			</View>
 		);
