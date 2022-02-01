@@ -45,7 +45,8 @@
     "sourcemaps:ios": "node_modules/.bin/react-native bundle --platform ios --entry-file index.js --dev false --reset-cache --bundle-output /tmp/bundle.ios.js --assets-dest /tmp/ --sourcemap-output sourcemaps/ios/index.js.map",
     "stacktrace:android": "stack-beautifier sourcemaps/android/index.js.map -t sourcemaps/trace.txt",
     "stacktrace:ios": "stack-beautifier sourcemaps/ios/index.js.map -t sourcemaps/trace.txt",
-    "update-changelog": "./scripts/auto-changelog.sh"
+    "update-changelog": "./scripts/auto-changelog.sh",
+    "prestorybook": "rnstl"
   },
   "prettier": {
     "printWidth": 120,
@@ -248,6 +249,12 @@
     "@metamask/eslint-config-typescript": "^7.0.0",
     "@metamask/mobile-provider": "^2.1.0",
     "@react-native-community/eslint-config": "^2.0.0",
+    "@storybook/addon-actions": "^5.3",
+    "@storybook/addon-knobs": "^5.3",
+    "@storybook/addon-links": "^5.3",
+    "@storybook/addon-ondevice-actions": "^5.3.23",
+    "@storybook/addon-ondevice-knobs": "^5.3.25",
+    "@storybook/react-native": "^5.3.25",
     "@types/enzyme": "^3.10.9",
     "@types/jest": "^27.0.1",
     "@types/react": "^17.0.11",
@@ -260,6 +267,7 @@
     "babel-core": "7.0.0-bridge.0",
     "babel-eslint": "10.1.0",
     "babel-jest": "^26.6.3",
+    "babel-loader": "^8.2.3",
     "concat-cli": "4.0.0",
     "detox": "19.4.0",
     "enzyme": "3.9.0",
@@ -285,6 +293,7 @@
     "prettier": "^2.2.1",
     "react-dom": "16.8.4",
     "react-native-cli": "2.0.1",
+    "react-native-storybook-loader": "^2.0.4",
     "react-native-svg-asset-plugin": "^0.5.0",
     "react-redux-test": "npm:react-redux@5.1.1",
     "react-test-renderer": "17.0.2",
@@ -292,6 +301,15 @@
     "rn-nodeify": "10.0.1",
     "stack-beautifier": "1.0.2",
     "typescript": "^4.4.2"
+  },
+  "config": {
+    "react-native-storybook-loader": {
+      "searchDir": [
+        "./app/components"
+      ],
+      "pattern": "**/*.stories.@(js|tsx)",
+      "outputFile": "./storybook/storyLoader.js"
+    }
   },
   "detox": {
     "configurations": {
@@ -380,7 +398,8 @@
       "web3-bzz": false,
       "bufferutil": false,
       "utf-8-validate": false,
-      "web3-shh": false
+      "web3-shh": false,
+      "highlight.js": false
     }
   }
 }
