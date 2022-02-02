@@ -1834,14 +1834,17 @@
 		"nickname": "nickname"
 	},
 	"network_information": {
-		"description_1a": "The native token on this network is",
-		"description_1b": "It is the token used for gas fees.",
-		"description_2": "If you attempt to send assets directly from one network to another, this may result in permanent asset loss. Make sure to use a bridge.",
-		"description_3": "Your wallet may not automatically show up in your wallet.",
+		"first_description": "The native token on this network is {{nativeToken}}. It is the token used for gas fees.",
+		"second_description": "If you attempt to send assets directly from one network to another, this may result in permanent asset loss. Make sure to use a bridge.",
+		"third_description": "Your wallet may not automatically show up in your wallet.",
+		"private_network": "This network is unknown and may use a special token for gas fees.",
+		"unknown_network": "Unknown network",
 		"learn_more": "Learn more",
 		"add_token": "Click here to manually add the tokens",
+		"add_token_manually": "Add token manually",
 		"got_it": "Got it",
 		"error_title": "Oops! Something went wrong.",
-		"error_message": "There was an error loading the network information. Please try again later."
+		"error_message": "There was an error loading the network information. Please try again later.",
+		"private_network_third_description": "Please enter a name for this network to make it easy to identify."
 	}
 }

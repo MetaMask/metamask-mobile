@@ -6,6 +6,8 @@ import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import LineDivide from '../../Base/LineDivide';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
+import { ETH, PRIVATE_NETWORK } from '../../../util/custom-gas';
+import AssetIcon from '../../UI/AssetIcon';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -29,6 +31,9 @@ const styles = StyleSheet.create({
 		marginVertical: 10,
 		textAlign: 'center',
 	},
+	tokenView: {
+		marginBottom: 30,
+	},
 	tokenType: {
 		backgroundColor: colors.grey100,
 		marginRight: 50,
@@ -37,7 +42,6 @@ const styles = StyleSheet.create({
 		borderRadius: 40,
 		alignItems: 'center',
 		justifyContent: 'center',
-		marginBottom: 30,
 		flexDirection: 'row',
 	},
 	ethLogo: {
@@ -79,37 +83,54 @@ const styles = StyleSheet.create({
 	link: {
 		color: colors.blue,
 	},
+	rpcUrl: {
+		fontSize: 10,
+		color: colors.grey500,
+		textAlign: 'center',
+		paddingVertical: 5,
+	},
 });
 
 interface NetworkInfoProps {
 	onClose: () => void;
 	type: string;
-	currency: string;
+	nativeToken: string;
 }
 
 interface DescriptionProps {
 	description: string;
-	action: string | undefined;
-	currency: string | undefined;
-	description_2: string | undefined;
+	clickable_text: string | undefined;
 	number: number;
-	onPress: () => void | undefined;
 }
 
+const learn_more_url = 'https://metamask.zendesk.com/hc/en-us/articles/4404424659995';
+
+const showAlertView = () => {
+	Alert.alert(strings('network_information.error_title'), strings('network_information.error_message'));
+};
+
+const openUrl = () => {
+	Linking.canOpenURL(learn_more_url).then((supported) => {
+		if (supported) {
+			Linking.openURL(learn_more_url);
+		} else {
+			showAlertView();
+		}
+	});
+};
+
 const Description = (props: DescriptionProps) => {
-	const { description, action, currency, description_2, number, onPress } = props;
+	const { description, clickable_text, number } = props;
 	return (
 		<View style={styles.descriptionContainer}>
 			<View style={styles.contentContainer}>
 				<Text style={styles.numberStyle}>{number}.</Text>
 				<Text style={styles.description}>
 					<Text>{description}</Text>
-					{currency && <Text> {currency}. </Text>}
-					<Text>{description_2}</Text>
-					{action && (
-						<Text onPress={onPress} style={styles.link}>
+					{clickable_text && (
+						<Text onPress={openUrl} style={styles.link}>
 							{' '}
-							{action}
+							{clickable_text}
 						</Text>
 					)}
 				</Text>
@@ -119,58 +140,66 @@ const Description = (props: DescriptionProps) => {
 	);
 };
 
-const showAlertView = () => {
-	Alert.alert(strings('network_information.error_title'), strings('network_information.error_message'));
-};
-
-const openUrl = (url: string) => {
-	Linking.canOpenURL(url).then((supported) => {
-		if (supported) {
-			Linking.openURL(url);
-		} else {
-			showAlertView();
-		}
-	});
-};
-
 const NetworkInfo = (props: NetworkInfoProps): JSX.Element => {
-	const { onClose, type, currency } = props;
+	const { onClose, type, nativeToken } = props;
 	return (
 		<View style={styles.wrapper}>
 			<AntIcon name="close" onPress={onClose} size={18} style={styles.closeIcon} />
 			<View style={styles.modalContentView}>
 				<Text style={styles.title}>You have switched to</Text>
-				<View style={styles.tokenType}>
-					<NetworkMainAssetLogo big style={styles.ethLogo} testID={'eth-logo'} symbol={currency} />
-					<Text style={styles.tokenText}>
-						{currency === 'ETH' ? [type === 'mainnet' ? `Ethereum ${type}` : `${type} testnet`] : type}
-					</Text>
+				<View style={styles.tokenView}>
+					<View style={styles.tokenType}>
+						{nativeToken === PRIVATE_NETWORK ? (
+							<>
+								<AssetIcon />
+								<Text style={styles.tokenText}>{strings('network_information.unknown_network')}</Text>
+							</>
+						) : (
+							<>
+								<NetworkMainAssetLogo
+									big
+									style={styles.ethLogo}
+									testID={'eth-logo'}
+									symbol={nativeToken}
+								/>
+								<Text style={styles.tokenText}>
+									{nativeToken === ETH
+										? [type === 'mainnet' ? `Ethereum ${type}` : `${type} testnet`]
+										: type}
+								</Text>
+							</>
+						)}
+					</View>
+					{nativeToken === PRIVATE_NETWORK && <Text style={styles.rpcUrl}>{type}</Text>}
 				</View>
 				<Text style={styles.messageTitle}>Things to keep in mind:</Text>
 				<View style={styles.descriptionViews}>
 					<Description
-						description={strings('network_information.description_1a')}
-						currency={currency}
-						description_2={strings('network_information.description_1b')}
+						description={
+							nativeToken === PRIVATE_NETWORK
+								? strings('network_information.private_network')
+								: strings('network_information.first_description', { nativeToken })
+						}
 						number={1}
-						action={undefined}
-						onPress={undefined}
+						clickable_text={
+							nativeToken === PRIVATE_NETWORK
+								? strings('network_information.add_token_manually')
+								: undefined
+						}
 					/>
 					<Description
-						description={strings('network_information.description_2')}
-						action={strings('network_information.learn_more')}
+						description={strings('network_information.second_description')}
+						clickable_text={strings('network_information.learn_more')}
 						number={2}
-						onPress={() => openUrl('https://metamask.zendesk.com/hc/en-us/articles/4404424659995')}
-						currency={undefined}
-						description_2={undefined}
 					/>
 					<Description
-						description={strings('network_information.description_3')}
-						action={strings('network_information.add_token')}
+						description={
+							nativeToken === PRIVATE_NETWORK
+								? strings('network_information.private_network_third_description')
+								: strings('network_information.third_description')
+						}
+						clickable_text={strings('network_information.add_token')}
 						number={3}
-						onPress={() => openUrl('https://metamask.zendesk.com/hc/en-us/articles/4404424659995')}
-						currency={undefined}
-						description_2={undefined}
 					/>
 				</View>
 				<StyledButton

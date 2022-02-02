@@ -9,6 +9,7 @@ const { hexToBN } = util;
 export const ETH = 'ETH';
 export const GWEI = 'GWEI';
 export const WEI = 'WEI';
+export const PRIVATE_NETWORK = 'PRIVATE_NETWORK';
 
 /**
  * Calculates wei value of estimate gas price in gwei
