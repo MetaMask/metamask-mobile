@@ -42,13 +42,59 @@ class Port extends EventEmitter {
 	};
 }
 
+class WalletConnectPort extends EventEmitter {
+	constructor(walletConnector) {
+		super();
+		this._walletConnector = walletConnector;
+	}
+
+	postMessage = (msg) => {
+		try {
+			if (msg?.data?.result || msg?.data?.error) {
+				if (msg.data.error) {
+					this._walletConnector.rejectRequest({
+						id: msg.data.id,
+						error: msg.data.error,
+					});
+				} else {
+					this._walletConnector.approveRequest({
+						id: msg.data.id,
+						result: msg.data.result,
+					});
+				}
+			} else if (msg?.data?.method === NOTIFICATION_NAMES.chainChanged) {
+				const { selectedAddress } = Engine.datamodel.flatState;
+				this._walletConnector.updateSession({
+					chainId: parseInt(msg.data.params.chainId, 16),
+					accounts: [selectedAddress],
+				});
+			} else if (msg?.data?.method === NOTIFICATION_NAMES.accountsChanged) {
+				const chainId = Engine.context.NetworkController.state.provider.chainId;
+				this._walletConnector.updateSession({
+					chainId: parseInt(chainId, 10),
+					accounts: msg.data.params,
+				});
+			} else if (msg?.data?.method === NOTIFICATION_NAMES.unlockStateChanged) {
+				// WC DOESN'T NEED THIS EVENT
+			} else {
+				console.warn('WC REQUEST NOT HANDLED', msg);
+			}
+		} catch (e) {
+			console.warn(e);
+		}
+	};
+}
+
 export class BackgroundBridge extends EventEmitter {
-	constructor({ webview, url, getRpcMethodMiddleware, isMainFrame }) {
+	constructor({ webview, url, getRpcMethodMiddleware, isMainFrame, isWalletConnect, wcWalletConnector }) {
 		super();
 		this.url = url;
 		this.hostname = new URL(url).hostname;
 		this.isMainFrame = isMainFrame;
+		this.isWalletConnect = isWalletConnect;
+		this.wcWalletConnector = wcWalletConnector;
 		this._webviewRef = webview && webview.current;
+		this.disconnected = false;
 
 		this.createMiddleware = getRpcMethodMiddleware;
 
@@ -61,18 +107,25 @@ export class BackgroundBridge extends EventEmitter {
 
 		this.setProviderAndBlockTracker({ provider, blockTracker });
 
-		this.port = new Port(this._webviewRef, isMainFrame);
+		this.port = this.isWalletConnect
+			? new WalletConnectPort(wcWalletConnector)
+			: new Port(this._webviewRef, isMainFrame);
 
 		this.engine = null;
 
 		this.chainIdSent = Engine.context.NetworkController.state.provider.chainId;
 		this.networkVersionSent = Engine.context.NetworkController.state.network;
 
+		// This will only be used for WalletConnect for now
+		this.addressSent = Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
+
 		const portStream = new MobilePortStream(this.port, url);
 		// setup multiplexing
 		const mux = setupMultiplex(portStream);
 		// connect features
-		this.setupProviderConnection(mux.createStream('metamask-provider'));
+		this.setupProviderConnection(
+			mux.createStream(isWalletConnect ? 'walletconnect-provider' : 'metamask-provider')
+		);
 
 		Engine.context.NetworkController.subscribe(this.sendStateUpdate);
 		Engine.context.PreferencesController.subscribe(this.sendStateUpdate);
@@ -103,6 +156,9 @@ export class BackgroundBridge extends EventEmitter {
 	}
 
 	onUnlock() {
+		// TODO UNSUBSCRIBE EVENT INSTEAD
+		if (this.disconnected) return;
+
 		this.sendNotification({
 			method: NOTIFICATION_NAMES.unlockStateChanged,
 			params: true,
@@ -110,6 +166,9 @@ export class BackgroundBridge extends EventEmitter {
 	}
 
 	onLock() {
+		// TODO UNSUBSCRIBE EVENT INSTEAD
+		if (this.disconnected) return;
+
 		this.sendNotification({
 			method: NOTIFICATION_NAMES.unlockStateChanged,
 			params: false,
@@ -162,6 +221,17 @@ export class BackgroundBridge extends EventEmitter {
 				params: publicState,
 			});
 		}
+
+		// ONLY NEEDED FOR WC FOR NOW, THE BROWSER HANDLES THIS NOTIFICATION BY ITSELF
+		if (this.isWalletConnect) {
+			if (this.addressSent !== memState.selectedAddress) {
+				this.addressSent = memState.selectedAddress;
+				this.sendNotification({
+					method: NOTIFICATION_NAMES.accountsChanged,
+					params: [memState.selectedAddress],
+				});
+			}
+		}
 	}
 
 	isUnlocked() {
@@ -185,6 +255,9 @@ export class BackgroundBridge extends EventEmitter {
 	};
 
 	onDisconnect = () => {
+		this.disconnected = true;
+		Engine.context.NetworkController.unsubscribe(this.sendStateUpdate);
+		Engine.context.PreferencesController.unsubscribe(this.sendStateUpdate);
 		this.port.emit('disconnect', { name: this.port.name, data: null });
 	};
 
