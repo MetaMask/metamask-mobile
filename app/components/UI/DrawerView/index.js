@@ -1182,7 +1182,7 @@ class DrawerView extends PureComponent {
 						<NetworkInfo
 							onClose={this.onNetworksModalCloses}
 							type={this.state.networkType}
-							currency={this.state.networkCurrency}
+							nativeToken={this.state.networkCurrency}
 						/>
 					) : (
 						<NetworkList
