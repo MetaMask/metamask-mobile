@@ -738,12 +738,17 @@ export const BrowserTab = (props) => {
 	 * Handles state changes for when the url changes
 	 */
 	const changeUrl = (siteInfo, type) => {
-		setBackEnabled(siteInfo.canGoBack);
-		setForwardEnabled(siteInfo.canGoForward);
-
 		url.current = siteInfo.url;
 		title.current = siteInfo.title;
 		if (siteInfo.icon) icon.current = siteInfo.icon;
+	};
+
+	/**
+	 * Handles state changes for when the url changes
+	 */
+	const changeAddressBar = (siteInfo, type) => {
+		setBackEnabled(siteInfo.canGoBack);
+		setForwardEnabled(siteInfo.canGoForward);
 
 		isTabActive() &&
 			props.navigation.setParams({
@@ -864,8 +869,12 @@ export const BrowserTab = (props) => {
 		webviewUrlPostMessagePromiseResolve.current = null;
 		setError(false);
 
+		changeUrl(nativeEvent, 'start');
+
 		//For Android url on the navigation bar should only update upon load.
-		if (Device.isAndroid()) changeUrl(nativeEvent, 'start');
+		if (Device.isAndroid()) {
+			changeAddressBar(nativeEvent, 'start');
+		}
 
 		icon.current = null;
 		if (isHomepage(nativeEvent.url)) {
@@ -888,7 +897,10 @@ export const BrowserTab = (props) => {
 
 	const onLoad = ({ nativeEvent }) => {
 		//For iOS url on the navigation bar should only update upon load.
-		if (Device.isIos()) changeUrl(nativeEvent, 'start');
+		if (Device.isIos()) {
+			changeUrl(nativeEvent, 'start');
+			changeAddressBar(nativeEvent, 'start');
+		}
 	};
 
 	/**
@@ -910,6 +922,7 @@ export const BrowserTab = (props) => {
 			const { hostname } = new URL(nativeEvent.url);
 			if (info.url === nativeEvent.url && currentHostname === hostname) {
 				changeUrl({ ...nativeEvent, icon: info.icon }, 'end-promise');
+				changeAddressBar({ ...nativeEvent, icon: info.icon }, 'end-promise');
 			}
 		});
 	};
