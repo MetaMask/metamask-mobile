@@ -241,6 +241,7 @@ class Login extends PureComponent {
 	async componentDidMount() {
 		const { initialScreen } = this.props;
 		const { KeyringController } = Engine.context;
+		//TODO: AUTH REFACTOR - logic that checks for auth type and then uses it to login
 		const shouldHandleInitialAuth = initialScreen !== 'onboarding';
 		BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 
@@ -287,6 +288,7 @@ class Login extends PureComponent {
 		return false;
 	};
 
+	//TODO: AUTH REFACTOR - move to authmanager and remove ref of secure keychain in this component
 	/**
 	 * Checks to see if the user has enabled Remember Me and logs
 	 * into the application if it is enabled.
@@ -317,6 +319,7 @@ class Login extends PureComponent {
 		}
 	};
 
+	//TODO: AUTH REFACTOR - move login logic to auth manager and only have UI in this method
 	onLogin = async (hasCredentials = false) => {
 		const { password } = this.state;
 		const { current: field } = this.fieldRef;
@@ -491,6 +494,7 @@ class Login extends PureComponent {
 		InteractionManager.runAfterInteractions(this.toggleDeleteModal);
 	};
 
+	//TODO: AUTH REFACTOR - move biometric to auth manager and only have UI in this method
 	tryBiometric = async (e) => {
 		if (e) e.preventDefault();
 		const { current: field } = this.fieldRef;
