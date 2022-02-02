@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { NavigationContainer, CommonActions } from '@react-navigation/native';
-import { Animated, StyleSheet, View, Platform } from 'react-native';
+import { Animated, StyleSheet, View } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-community/async-storage';
 import Login from '../../Views/Login';
@@ -25,6 +25,7 @@ import Engine from '../../../core/Engine';
 import branch from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
+import Device from '../../../util/device';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { routingInstrumentation } from '../../../util/setupSentry';
 import Analytics from '../../../core/Analytics';
@@ -34,8 +35,6 @@ import { getVersion } from 'react-native-device-info';
 import { checkedAuth } from '../../../actions/user';
 import { setCurrentRoute } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
-
-const isIos = Platform.OS === 'ios';
 
 const styles = StyleSheet.create({
 	fill: { flex: 1 },
@@ -142,11 +141,11 @@ const App = ({ userLoggedIn }) => {
 			branch.subscribe({
 				onOpenStart: (opts) => {
 					// Called reliably on iOS deeplink instances
-					isIos && handleDeeplink(opts);
+					Device.isIos() && handleDeeplink(opts);
 				},
 				onOpenComplete: (opts) => {
 					// Called reliably on Android deeplink instances
-					!isIos && handleDeeplink(opts);
+					Device.isAndroid() && handleDeeplink(opts);
 				},
 			}),
 		[handleDeeplink]
