@@ -688,6 +688,7 @@ class PaymentRequest extends PureComponent {
 				<KeyboardAwareScrollView
 					style={styles.contentWrapper}
 					contentContainerStyle={styles.scrollViewContainer}
+					keyboardShouldPersistTaps="handled"
 				>
 					{mode === MODE_SELECT ? this.renderSelectAssets() : this.renderEnterAmount()}
 				</KeyboardAwareScrollView>
