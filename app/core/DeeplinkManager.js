@@ -134,8 +134,6 @@ class DeeplinkManager {
 							urlObj.href.replace(`https://${MM_UNIVERSAL_LINK_HOST}/${action}/`, PREFIXES[action]),
 							browserCallBack
 						);
-					} else {
-						Alert.alert(strings('deeplink.not_supported'));
 					}
 				} else {
 					// Normal links (same as dapp)
@@ -180,7 +178,10 @@ class DeeplinkManager {
 					const cleanUrlObj = new URL(urlObj.query.replace('?uri=', ''));
 					const href = cleanUrlObj.href;
 
-					if (!WalletConnect.isValidUri(href)) return;
+					if (!WalletConnect.isValidUri(href)) {
+						Alert.alert(strings('deeplink.not_supported'));
+						return;
+					}
 
 					WalletConnect.newSession(href, params?.redirect, params?.autosign);
 				}

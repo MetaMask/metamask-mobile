@@ -43,39 +43,39 @@ class Port extends EventEmitter {
 }
 
 class WalletConnectPort extends EventEmitter {
-	constructor(walletConnector) {
+	constructor(wcRequestActions) {
 		super();
-		this._walletConnector = walletConnector;
+		this._wcRequestActions = wcRequestActions;
 	}
 
 	postMessage = (msg) => {
 		try {
-			if (msg?.data?.result || msg?.data?.error) {
-				if (msg.data.error) {
-					this._walletConnector.rejectRequest({
-						id: msg.data.id,
-						error: msg.data.error,
-					});
-				} else {
-					this._walletConnector.approveRequest({
-						id: msg.data.id,
-						result: msg.data.result,
-					});
-				}
-			} else if (msg?.data?.method === NOTIFICATION_NAMES.chainChanged) {
+			if (msg?.data?.method === NOTIFICATION_NAMES.chainChanged) {
 				const { selectedAddress } = Engine.datamodel.flatState;
-				this._walletConnector.updateSession({
+				this._wcRequestActions?.updateSession?.({
 					chainId: parseInt(msg.data.params.chainId, 16),
 					accounts: [selectedAddress],
 				});
 			} else if (msg?.data?.method === NOTIFICATION_NAMES.accountsChanged) {
 				const chainId = Engine.context.NetworkController.state.provider.chainId;
-				this._walletConnector.updateSession({
+				this._wcRequestActions?.updateSession?.({
 					chainId: parseInt(chainId, 10),
 					accounts: msg.data.params,
 				});
 			} else if (msg?.data?.method === NOTIFICATION_NAMES.unlockStateChanged) {
 				// WC DOESN'T NEED THIS EVENT
+			} else if (msg?.data?.result || msg?.data?.error) {
+				if (msg.data.error) {
+					this._wcRequestActions?.rejectRequest?.({
+						id: msg.data.id,
+						error: msg.data.error,
+					});
+				} else {
+					this._wcRequestActions?.approveRequest?.({
+						id: msg.data.id,
+						result: msg.data.result,
+					});
+				}
 			} else {
 				console.warn('WC REQUEST NOT HANDLED', msg);
 			}
@@ -86,13 +86,12 @@ class WalletConnectPort extends EventEmitter {
 }
 
 export class BackgroundBridge extends EventEmitter {
-	constructor({ webview, url, getRpcMethodMiddleware, isMainFrame, isWalletConnect, wcWalletConnector }) {
+	constructor({ webview, url, getRpcMethodMiddleware, isMainFrame, isWalletConnect, wcRequestActions }) {
 		super();
 		this.url = url;
 		this.hostname = new URL(url).hostname;
 		this.isMainFrame = isMainFrame;
 		this.isWalletConnect = isWalletConnect;
-		this.wcWalletConnector = wcWalletConnector;
 		this._webviewRef = webview && webview.current;
 		this.disconnected = false;
 
@@ -108,7 +107,7 @@ export class BackgroundBridge extends EventEmitter {
 		this.setProviderAndBlockTracker({ provider, blockTracker });
 
 		this.port = this.isWalletConnect
-			? new WalletConnectPort(wcWalletConnector)
+			? new WalletConnectPort(wcRequestActions)
 			: new Port(this._webviewRef, isMainFrame);
 
 		this.engine = null;

@@ -18,6 +18,17 @@ let connectors = [];
 let initialized = false;
 const tempCallIds = [];
 
+const METHODS_TO_REDIRECT = {
+	eth_requestAccounts: true,
+	eth_sign: true,
+	personal_sign: true,
+	eth_signTypedData: true,
+	eth_signTypedData_v3: true,
+	eth_signTypedData_v4: true,
+	wallet_watchAsset: true,
+	wallet_addEthereumChain: true,
+};
+
 const persistSessions = async () => {
 	const sessions = connectors
 		.filter(
@@ -53,6 +64,7 @@ class WalletConnect {
 	title = { current: null };
 	icon = { current: null };
 	dappScheme = { current: null };
+	requestsToRedirect = {};
 	hostname = null;
 
 	constructor(options, existing) {
@@ -88,7 +100,7 @@ class WalletConnect {
 
 				this.startSession(sessionData, existing);
 
-				this.redirectIfNeeded();
+				this.redirect();
 			} catch (e) {
 				this.walletConnector.rejectSession();
 			}
@@ -112,10 +124,15 @@ class WalletConnect {
 				const payloadUrl = this.walletConnector.session.peerMeta.url;
 
 				if (new URL(payloadUrl).hostname === this.backgroundBridge.url) {
+					if (METHODS_TO_REDIRECT[payload.method]) {
+						this.requestsToRedirect[payload.id] = true;
+					}
+
 					if (payload.method === 'eth_signTypedData') {
 						payload.method = 'eth_signTypedData_v3';
 					}
 
+					// Engine eth_sendTransaction not working - can't send correct origin
 					if (payload.method === 'eth_sendTransaction') {
 						const { TransactionController } = Engine.context;
 						try {
@@ -126,12 +143,12 @@ class WalletConnect {
 									WalletDevice.MM_MOBILE
 								)
 							).result;
-							this.walletConnector.approveRequest({
+							this.approveRequest({
 								id: payload.id,
 								result: hash,
 							});
 						} catch (error) {
-							this.walletConnector.rejectRequest({
+							this.rejectRequest({
 								id: payload.id,
 								error,
 							});
@@ -174,6 +191,46 @@ class WalletConnect {
 		}
 	}
 
+	redirect = () => {
+		setTimeout(() => {
+			if (this.dappScheme.current || this.redirectUrl) {
+				Linking.openURL(this.dappScheme.current ? `${this.dappScheme.current}://` : this.redirectUrl);
+			} else {
+				Minimizer.goBack();
+			}
+		}, 300);
+	};
+
+	needsRedirect = (id) => {
+		if (this.requestsToRedirect[id]) {
+			delete this.requestsToRedirect[id];
+			this.redirect();
+		}
+	};
+
+	approveRequest = ({ id, result }) => {
+		this.walletConnector.approveRequest({
+			id,
+			result,
+		});
+		this.needsRedirect(id);
+	};
+
+	rejectRequest = ({ id, error }) => {
+		this.walletConnector.rejectRequest({
+			id,
+			error,
+		});
+		this.needsRedirect(id);
+	};
+
+	updateSession = ({ chainId, accounts }) => {
+		this.walletConnector.updateSession({
+			chainId,
+			accounts,
+		});
+	};
+
 	startSession = async (sessionData, existing) => {
 		const chainId = Engine.context.NetworkController.state.provider.chainId;
 		const selectedAddress = Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
@@ -200,6 +257,11 @@ class WalletConnect {
 			url: this.hostname,
 			isWalletConnect: true,
 			wcWalletConnector: this.walletConnector,
+			wcRequestActions: {
+				approveRequest: this.approveRequest,
+				rejectRequest: this.rejectRequest,
+				updateSession: this.updateSession,
+			},
 			getRpcMethodMiddleware: ({ hostname, getProviderState }) =>
 				getRpcMethodMiddleware({
 					hostname: WALLET_CONNECT_ORIGIN + this.hostname,
@@ -207,7 +269,7 @@ class WalletConnect {
 					navigation: null, //props.navigation,
 					getApprovedHosts: () => null,
 					setApprovedHosts: () => null,
-					approveHost: null, //props.approveHost,
+					approveHost: () => null, //props.approveHost,
 					// Website info
 					url: this.url,
 					title: this.title,
@@ -247,16 +309,6 @@ class WalletConnect {
 				}
 			});
 		});
-
-	redirectIfNeeded = () => {
-		setTimeout(() => {
-			if (this.dappScheme.current || this.redirectUrl) {
-				Linking.openURL(this.dappScheme.current ? `${this.dappScheme.current}://` : this.redirectUrl);
-			} else {
-				Minimizer.goBack();
-			}
-		}, 300);
-	};
 }
 
 const instance = {

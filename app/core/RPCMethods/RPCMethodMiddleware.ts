@@ -29,6 +29,8 @@ interface RPCMethodsMiddleParameters {
 	getProviderState: () => any;
 	navigation: any;
 	getApprovedHosts: any;
+	setApprovedHosts: (approvedHosts: any) => void;
+	approveHost: (fullHostname: string) => void;
 	url: { current: string };
 	title: { current: string };
 	icon: { current: string };
@@ -41,6 +43,8 @@ interface RPCMethodsMiddleParameters {
 	setShowUrlModal: (showUrlModal: boolean) => void;
 	// Wizard
 	wizardScrollAdjusted: { current: boolean };
+	// For the browser
+	isTabActive: () => boolean;
 }
 
 /**
@@ -65,6 +69,7 @@ export const getRpcMethodMiddleware = ({
 	setShowUrlModal,
 	// Wizard
 	wizardScrollAdjusted,
+	// For the browser
 	isTabActive,
 }: RPCMethodsMiddleParameters) =>
 	// all user facing RPC calls not implemented by the provider
@@ -85,7 +90,7 @@ export const getRpcMethodMiddleware = ({
 			if (!isTabActive()) throw ethErrors.provider.userRejectedRequest();
 		};
 
-		const requestUserApproval = async ({ type, requestData = {} }) => {
+		const requestUserApproval = async ({ type = '', requestData = {} }) => {
 			checkTabActive();
 			await Engine.context.ApprovalController.clear(ethErrors.provider.userRejectedRequest());
 
@@ -157,8 +162,8 @@ export const getRpcMethodMiddleware = ({
 					try {
 						await requestUserApproval({ type: ApprovalTypes.CONNECT_ACCOUNTS, requestData: { hostname } });
 						const fullHostname = new URL(url.current).hostname;
-						approveHost(fullHostname);
-						setApprovedHosts({ ...getApprovedHosts(), [fullHostname]: true });
+						approveHost?.(fullHostname);
+						setApprovedHosts?.({ ...getApprovedHosts?.(), [fullHostname]: true });
 
 						res.result = selectedAddress ? [selectedAddress] : [];
 					} catch (e) {
