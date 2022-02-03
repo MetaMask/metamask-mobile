@@ -145,6 +145,23 @@ Finally, check that the debugger is working:
     1. `brew tap facebook/fb` & `brew install idb-companion`
     2. `pip3.9 install fb-idb` (This step may require that you install python3 via `python -m pip3 install --upgrade pip`)
 
+#### Debug a website inside the WebView (in-app browser)
+
+Android
+
+-   Run the app in debug mode (for example, in a simulator)
+-   Open Chrome on your desktop
+-   Go to `chrome://inspect/#devices`
+-   Look for the device and click inspect
+
+iOS
+
+-   Run the app in debug mode (for example, in a simulator)
+-   Open Safari on your desktop
+-   Go to the menu Develop -> [Your device] -> [Website]
+
+You should see the console for the website that is running inside the WebView
+
 #### Miscellaneous
 
 -   [Troubleshooting for React Native](https://facebook.github.io/react-native/docs/troubleshooting#content)
