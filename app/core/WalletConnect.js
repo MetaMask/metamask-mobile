@@ -27,6 +27,7 @@ const METHODS_TO_REDIRECT = {
 	eth_signTypedData_v4: true,
 	wallet_watchAsset: true,
 	wallet_addEthereumChain: true,
+	wallet_switchEthereumChain: true,
 };
 
 const persistSessions = async () => {

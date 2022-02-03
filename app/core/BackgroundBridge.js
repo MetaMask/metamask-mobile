@@ -64,20 +64,16 @@ class WalletConnectPort extends EventEmitter {
 				});
 			} else if (msg?.data?.method === NOTIFICATION_NAMES.unlockStateChanged) {
 				// WC DOESN'T NEED THIS EVENT
-			} else if (msg?.data?.result || msg?.data?.error) {
-				if (msg.data.error) {
-					this._wcRequestActions?.rejectRequest?.({
-						id: msg.data.id,
-						error: msg.data.error,
-					});
-				} else {
-					this._wcRequestActions?.approveRequest?.({
-						id: msg.data.id,
-						result: msg.data.result,
-					});
-				}
+			} else if (msg?.data?.error) {
+				this._wcRequestActions?.rejectRequest?.({
+					id: msg.data.id,
+					error: msg.data.error,
+				});
 			} else {
-				console.warn('WC REQUEST NOT HANDLED', msg);
+				this._wcRequestActions?.approveRequest?.({
+					id: msg.data.id,
+					result: msg.data.result,
+				});
 			}
 		} catch (e) {
 			console.warn(e);
