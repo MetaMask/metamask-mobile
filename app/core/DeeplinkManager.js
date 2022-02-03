@@ -2,7 +2,7 @@
 
 import URL from 'url-parse';
 import qs from 'qs';
-import { InteractionManager, Alert } from 'react-native';
+import { Alert } from 'react-native';
 import { parse } from 'eth-url-parser';
 import WalletConnect from '../core/WalletConnect';
 import AppConstants from './AppConstants';
@@ -11,6 +11,7 @@ import { generateApproveData } from '../util/transactions';
 import { strings } from '../../locales/i18n';
 import { getNetworkTypeById } from '../util/networks';
 import { WalletDevice } from '@metamask/controllers/';
+import { ACTIONS, ETH_ACTIONS, PROTOCOLS, PREFIXES } from '../constants/deeplinks';
 
 class DeeplinkManager {
 	constructor(_navigation) {
@@ -24,7 +25,37 @@ class DeeplinkManager {
 
 	expireDeeplink = () => (this.pendingDeeplink = null);
 
-	async handleEthereumUrl(url, origin) {
+	_approveTransaction = (ethUrl, origin) => {
+		const {
+			parameters: { address, uint256 },
+			target_address,
+			chain_id,
+		} = ethUrl;
+		const { TransactionController, PreferencesController, NetworkController } = Engine.context;
+
+		if (chain_id) {
+			const newNetworkType = getNetworkTypeById(chain_id);
+			NetworkController.setProviderType(newNetworkType);
+		}
+
+		const uint256Number = Number(uint256);
+
+		if (Number.isNaN(uint256Number)) throw new Error('The parameter uint256 should be a number');
+		if (!Number.isInteger(uint256Number)) throw new Error('The parameter uint256 should be an integer');
+
+		const value = uint256Number.toString(16);
+
+		const txParams = {
+			to: target_address.toString(),
+			from: PreferencesController.state.selectedAddress.toString(),
+			value: '0x0',
+			data: generateApproveData({ spender: address, value }),
+		};
+
+		TransactionController.addTransaction(txParams, origin, WalletDevice.MM_MOBILE);
+	};
+
+	async _handleEthereumUrl(url, origin) {
 		let ethUrl = '';
 		try {
 			ethUrl = parse(url);
@@ -33,67 +64,46 @@ class DeeplinkManager {
 			return;
 		}
 
-		const functionName = ethUrl.function_name;
-		if (!functionName) {
-			const txMeta = { ...ethUrl, source: url };
-			if (ethUrl.parameters?.value) {
+		const txMeta = { ...ethUrl, source: url };
+
+		switch (ethUrl.function_name) {
+			case ETH_ACTIONS.TRANSFER: {
 				this.navigation.navigate('SendView', {
 					screen: 'Send',
-					params: { txMeta: { ...txMeta, action: 'send-eth' } },
+					params: { txMeta: { ...txMeta, action: 'send-token' } },
 				});
-			} else {
-				this.navigation.navigate('SendFlowView', { screen: 'SendTo', params: { txMeta } });
+				break;
 			}
-		} else if (functionName === 'transfer') {
-			const txMeta = { ...ethUrl, source: url };
-			this.navigation.navigate('SendView', {
-				screen: 'Send',
-				params: { txMeta: { ...txMeta, action: 'send-token' } },
-			});
-		} else if (functionName === 'approve') {
-			// add approve transaction
-			const {
-				parameters: { address, uint256 },
-				target_address,
-				chain_id,
-			} = ethUrl;
-			const { TransactionController, PreferencesController, NetworkController } = Engine.context;
-			if (chain_id) {
-				const newNetworkType = getNetworkTypeById(chain_id);
-				NetworkController.setProviderType(newNetworkType);
+			case ETH_ACTIONS.APPROVE: {
+				this._approveTransaction(ethUrl, origin);
+				break;
 			}
-			const txParams = {};
-			txParams.to = `${target_address}`;
-			txParams.from = `${PreferencesController.state.selectedAddress}`;
-			txParams.value = '0x0';
-			const uint256Number = Number(uint256);
-			if (Number.isNaN(uint256Number)) throw new Error('The parameter uint256 should be a number');
-			if (!Number.isInteger(uint256Number)) throw new Error('The parameter uint256 should be an integer');
-			const value = uint256Number.toString(16);
-			txParams.data = generateApproveData({ spender: address, value });
-			TransactionController.addTransaction(txParams, origin, WalletDevice.MM_MOBILE);
+			default: {
+				if (ethUrl.parameters?.value) {
+					this.navigation.navigate('SendView', {
+						screen: 'Send',
+						params: { txMeta: { ...txMeta, action: 'send-eth' } },
+					});
+				} else {
+					this.navigation.navigate('SendFlowView', { screen: 'SendTo', params: { txMeta } });
+				}
+			}
 		}
 	}
 
-	handleBrowserUrl(url, callback) {
-		InteractionManager.runAfterInteractions(() => {
-			if (callback) {
-				callback(url);
-			} else {
-				this.navigation.navigate('BrowserTabHome', {
-					screen: 'BrowserView',
-					params: {
-						newTabUrl: url,
-						timestamp: Date.now(),
-					},
-				});
-			}
-		});
+	_handleBrowserUrl(url, callback) {
+		this.navigation.navigate(
+			'BrowserTabHome',
+			callback ? null : { screen: 'BrowserView', params: { newTabUrl: url, timestamp: Date.now() } }
+		);
+
+		if (callback) callback(url);
 	}
 
 	parse(url, { browserCallBack, origin, onHandled }) {
-		const urlObj = new URL(url);
+		const urlObj = new URL(url.replace('https://', '').replace('http://', ''));
 		let params;
+		let wcCleanUrl;
 
 		if (urlObj.query.length) {
 			try {
@@ -103,70 +113,54 @@ class DeeplinkManager {
 			}
 		}
 
-		const handled = () => onHandled?.();
+		const handled = () => (onHandled ? onHandled() : false);
 
 		const { MM_UNIVERSAL_LINK_HOST } = AppConstants;
+
 		switch (urlObj.protocol.replace(':', '')) {
-			case 'http':
-			case 'https':
+			case PROTOCOLS.HTTP:
+			case PROTOCOLS.HTTPS:
 				// Universal links
 				handled();
+
 				if (urlObj.hostname === MM_UNIVERSAL_LINK_HOST) {
-					// action is the first parth of the pathname
+					// action is the first part of the pathname
 					const action = urlObj.pathname.split('/')[1];
 
-					switch (action) {
-						case 'wc':
-							params && params.uri && WalletConnect.newSession(params.uri, params.redirectUrl, false);
-							break;
-						case 'dapp':
-							this.handleBrowserUrl(
-								urlObj.href.replace(`https://${MM_UNIVERSAL_LINK_HOST}/dapp/`, 'https://'),
-								browserCallBack
-							);
-							break;
-						case 'send':
-							this.handleEthereumUrl(
-								urlObj.href.replace(`https://${MM_UNIVERSAL_LINK_HOST}/send/`, 'ethereum:'),
-								origin
-							);
-							break;
-						case 'approve':
-							this.handleEthereumUrl(
-								urlObj.href.replace(`https://${MM_UNIVERSAL_LINK_HOST}/approve/`, 'ethereum:'),
-								origin
-							);
-							break;
-						case 'payment':
-						case 'focus':
-						case '':
-							break;
-
-						default:
-							Alert.alert(strings('deeplink.not_supported'));
+					if (action === ACTIONS.WC && params?.uri) {
+						WalletConnect.newSession(params.uri, params.redirectUrl, false);
+					} else if (PREFIXES[action]) {
+						this._handleBrowserUrl(
+							urlObj.href.replace(`https://${MM_UNIVERSAL_LINK_HOST}/${action}/`, PREFIXES[action]),
+							browserCallBack
+						);
+					} else {
+						Alert.alert(strings('deeplink.not_supported'));
 					}
 				} else {
 					// Normal links (same as dapp)
-					handled();
 					urlObj.set('protocol', 'https:');
-					this.handleBrowserUrl(urlObj.href, browserCallBack);
+					this._handleBrowserUrl(urlObj.href, browserCallBack);
 				}
 				break;
 
 			// walletconnect related deeplinks
 			// address, transactions, etc
-			case 'wc':
-				handled();
-				if (!WalletConnect.isValidUri(url)) return;
-				// eslint-disable-next-line no-case-declarations
-				const redirect = params && params.redirect;
-				// eslint-disable-next-line no-case-declarations
-				const autosign = params && params.autosign;
-				WalletConnect.newSession(url, redirect, autosign);
+			case PROTOCOLS.WC:
+				handled(); //TODO: check if we have to handle it here or handle after the next isValidUri check
+
+				wcCleanUrl = url.replace('wc://wc?uri=', '');
+				if (!WalletConnect.isValidUri(wcCleanUrl)) {
+					Alert.alert(strings('deeplink.invalid'));
+					return;
+				}
+
+				WalletConnect.newSession(wcCleanUrl, params?.redirect, params?.autosign);
 				break;
-			case 'ethereum':
+
+			case PROTOCOLS.ETHEREUM:
 				handled();
-				this.handleEthereumUrl(url, origin);
+				this._handleEthereumUrl(url, origin);
 				break;
 
 			// Specific to the browser screen
@@ -175,20 +169,20 @@ class DeeplinkManager {
 				// Enforce https
 				handled();
 				urlObj.set('protocol', 'https:');
-				this.handleBrowserUrl(urlObj.href, browserCallBack);
+				this._handleBrowserUrl(urlObj.href, browserCallBack);
 				break;
 
 			// Specific to the MetaMask app
 			// For ex. go to settings
-			case 'metamask':
+			case PROTOCOLS.METAMASK:
 				handled();
-				if (urlObj.origin === 'metamask://wc') {
+				if (url.startsWith('metamask://wc')) {
 					const cleanUrlObj = new URL(urlObj.query.replace('?uri=', ''));
 					const href = cleanUrlObj.href;
+
 					if (!WalletConnect.isValidUri(href)) return;
-					const redirect = params && params.redirect;
-					const autosign = params && params.autosign;
-					WalletConnect.newSession(href, redirect, autosign);
+
+					WalletConnect.newSession(href, params?.redirect, params?.autosign);
 				}
 				break;
 			default:

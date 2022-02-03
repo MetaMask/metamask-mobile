@@ -8,6 +8,10 @@ import AsyncStorage from '@react-native-community/async-storage';
 import { CLIENT_OPTIONS, WALLET_CONNECT_ORIGIN } from '../util/walletconnect';
 import { WALLETCONNECT_SESSIONS } from '../constants/storage';
 import { WalletDevice } from '@metamask/controllers/';
+import BackgroundBridge from './BackgroundBridge';
+import getRpcMethodMiddleware from './RPCMethods/RPCMethodMiddleware';
+import { Linking } from 'react-native';
+import Minimizer from 'react-native-minimizer';
 
 const hub = new EventEmitter();
 let connectors = [];
@@ -42,12 +46,16 @@ const waitForKeychainUnlocked = async () => {
 };
 
 class WalletConnect {
-	selectedAddress = null;
-	chainId = null;
 	redirect = null;
 	autosign = false;
+	backgroundBridge = null;
+	url = { current: null };
+	title = { current: null };
+	icon = { current: null };
+	dappScheme = { current: null };
+	hostname = null;
 
-	constructor(options) {
+	constructor(options, existing) {
 		if (options.redirect) {
 			this.redirectUrl = options.redirect;
 		}
@@ -78,14 +86,8 @@ class WalletConnect {
 				await waitForInitialization();
 				await this.sessionRequest(sessionData);
 
-				const { network } = Engine.context.NetworkController.state;
-				this.selectedAddress = Engine.context.PreferencesController.state.selectedAddress;
-				const approveData = {
-					chainId: parseInt(network, 10),
-					accounts: [this.selectedAddress],
-				};
-				await this.walletConnector.approveSession(approveData);
-				persistSessions();
+				this.startSession(sessionData, existing);
+
 				this.redirectIfNeeded();
 			} catch (e) {
 				this.walletConnector.rejectSession();
@@ -106,177 +108,57 @@ class WalletConnect {
 				throw error;
 			}
 
-			const meta = this.walletConnector.session.peerMeta;
-
 			if (payload.method) {
-				if (payload.method === 'eth_sendTransaction') {
-					const { TransactionController } = Engine.context;
-					try {
-						const txParams = {};
-						txParams.to = payload.params[0].to;
-						txParams.from = payload.params[0].from;
-						txParams.value = payload.params[0].value;
-						txParams.gas = payload.params[0].gas;
-						txParams.gasPrice = payload.params[0].gasPrice;
-						txParams.data = payload.params[0].data;
-						const hash = await (
-							await TransactionController.addTransaction(
-								txParams,
-								meta ? WALLET_CONNECT_ORIGIN + meta.url : undefined,
-								WalletDevice.MM_MOBILE
-							)
-						).result;
-						this.walletConnector.approveRequest({
-							id: payload.id,
-							result: hash,
-						});
-					} catch (error) {
-						this.walletConnector.rejectRequest({
-							id: payload.id,
-							error,
-						});
+				const payloadUrl = this.walletConnector.session.peerMeta.url;
+
+				if (new URL(payloadUrl).hostname === this.backgroundBridge.url) {
+					if (payload.method === 'eth_signTypedData') {
+						payload.method = 'eth_signTypedData_v3';
 					}
-				} else if (payload.method === 'eth_sign') {
-					const { MessageManager } = Engine.context;
-					let rawSig = null;
-					try {
-						if (payload.params[2]) {
-							throw new Error('Autosign is not currently supported');
-							// Leaving this in case we want to enable it in the future
-							// once WCIP-4 is defined: https://github.com/WalletConnect/WCIPs/issues/4
-							// rawSig = await KeyringController.signPersonalMessage({
-							// 	data: payload.params[1],
-							// 	from: payload.params[0]
-							// });
-						} else {
-							const data = payload.params[1];
-							const from = payload.params[0];
-							rawSig = await MessageManager.addUnapprovedMessageAsync({
-								data,
-								from,
-								meta: {
-									title: meta && meta.name,
-									url: meta && meta.url,
-									icon: meta && meta.icons && meta.icons[0],
-								},
-								origin: WALLET_CONNECT_ORIGIN,
+
+					if (payload.method === 'eth_sendTransaction') {
+						const { TransactionController } = Engine.context;
+						try {
+							const hash = await (
+								await TransactionController.addTransaction(
+									payload.params[0],
+									this.url.current ? WALLET_CONNECT_ORIGIN + this.url.current : undefined,
+									WalletDevice.MM_MOBILE
+								)
+							).result;
+							this.walletConnector.approveRequest({
+								id: payload.id,
+								result: hash,
+							});
+						} catch (error) {
+							this.walletConnector.rejectRequest({
+								id: payload.id,
+								error,
 							});
 						}
-						this.walletConnector.approveRequest({
-							id: payload.id,
-							result: rawSig,
-						});
-					} catch (error) {
-						this.walletConnector.rejectRequest({
-							id: payload.id,
-							error,
-						});
+						return;
 					}
-				} else if (payload.method === 'personal_sign') {
-					const { PersonalMessageManager } = Engine.context;
-					let rawSig = null;
-					try {
-						if (payload.params[2]) {
-							throw new Error('Autosign is not currently supported');
-							// Leaving this in case we want to enable it in the future
-							// once WCIP-4 is defined: https://github.com/WalletConnect/WCIPs/issues/4
-							// rawSig = await KeyringController.signPersonalMessage({
-							// 	data: payload.params[1],
-							// 	from: payload.params[0]
-							// });
-						} else {
-							const data = payload.params[0];
-							const from = payload.params[1];
 
-							rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
-								data,
-								from,
-								meta: {
-									title: meta && meta.name,
-									url: meta && meta.url,
-									icon: meta && meta.icons && meta.icons[0],
-								},
-								origin: WALLET_CONNECT_ORIGIN,
-							});
-						}
-						this.walletConnector.approveRequest({
-							id: payload.id,
-							result: rawSig,
-						});
-					} catch (error) {
-						this.walletConnector.rejectRequest({
-							id: payload.id,
-							error,
-						});
-					}
-				} else if (payload.method === 'eth_signTypedData' || payload.method === 'eth_signTypedData_v3') {
-					const { TypedMessageManager } = Engine.context;
-					try {
-						const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
-							{
-								data: payload.params[1],
-								from: payload.params[0],
-								meta: {
-									title: meta && meta.name,
-									url: meta && meta.url,
-									icon: meta && meta.icons && meta.icons[0],
-								},
-								origin: WALLET_CONNECT_ORIGIN,
-							},
-							'V3'
-						);
-
-						this.walletConnector.approveRequest({
-							id: payload.id,
-							result: rawSig,
-						});
-					} catch (error) {
-						this.walletConnector.rejectRequest({
-							id: payload.id,
-							error,
-						});
-					}
-				} else if (payload.method === 'eth_signTypedData_v4') {
-					const { TypedMessageManager } = Engine.context;
-					try {
-						const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
-							{
-								data: payload.params[1],
-								from: payload.params[0],
-								meta: {
-									title: meta && meta.name,
-									url: meta && meta.url,
-									icon: meta && meta.icons && meta.icons[0],
-								},
-								origin: WALLET_CONNECT_ORIGIN,
-							},
-							'V4'
-						);
-
-						this.walletConnector.approveRequest({
-							id: payload.id,
-							result: rawSig,
-						});
-					} catch (error) {
-						this.walletConnector.rejectRequest({
-							id: payload.id,
-							error,
-						});
-					}
+					this.backgroundBridge.onMessage({
+						name: 'walletconnect-provider',
+						data: payload,
+						origin: this.hostname,
+					});
 				}
-				this.redirectIfNeeded();
 			}
+
 			// Clean call ids
 			tempCallIds.length = 0;
 		});
 
+		/**
+		 *	Subscribe to disconnect
+		 */
 		this.walletConnector.on('disconnect', (error) => {
 			if (error) {
 				throw error;
 			}
-
-			// delete walletConnector
-			this.walletConnector = null;
+			this.killSession();
 			persistSessions();
 		});
 
@@ -287,48 +169,65 @@ class WalletConnect {
 			}
 		});
 
-		Engine.context.TransactionController.hub.on('networkChange', this.onNetworkChange);
-		Engine.context.PreferencesController.subscribe(this.onAccountChange);
-		const { selectedAddress } = Engine.context.PreferencesController.state;
-		const { network } = Engine.context.NetworkController.state;
-
-		this.selectedAddress = selectedAddress;
-		this.chainId = network;
+		if (existing) {
+			this.startSession(options.session, existing);
+		}
 	}
 
-	onAccountChange = () => {
-		const { selectedAddress } = Engine.context.PreferencesController.state;
-
-		if (selectedAddress !== this.selectedAddress) {
-			this.selectedAddress = selectedAddress;
-			this.updateSession();
-		}
-	};
-
-	onNetworkChange = () => {
-		const { network } = Engine.context.NetworkController.state;
-		// Wait while the network is set
-		if (network !== 'loading' && network !== this.chainId) {
-			this.chainId = network;
-			this.updateSession();
-		}
-	};
-
-	updateSession = () => {
-		const { network } = Engine.context.NetworkController.state;
-		const { selectedAddress } = Engine.context.PreferencesController.state;
-		const sessionData = {
-			chainId: parseInt(network, 10),
+	startSession = async (sessionData, existing) => {
+		const chainId = Engine.context.NetworkController.state.provider.chainId;
+		const selectedAddress = Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
+		const approveData = {
+			chainId: parseInt(chainId, 10),
 			accounts: [selectedAddress],
 		};
-		try {
-			this.walletConnector.updateSession(sessionData);
-		} catch (e) {
-			Logger.log('Error while updating session', e);
+		if (existing) {
+			this.walletConnector.updateSession(approveData);
+		} else {
+			await this.walletConnector.approveSession(approveData);
+			persistSessions();
 		}
+
+		this.url.current = sessionData.peerMeta.url;
+		this.title.current = sessionData.peerMeta?.name;
+		this.icon.current = sessionData.peerMeta?.icons?.[0];
+		this.dappScheme.current = sessionData.peerMeta?.dappScheme;
+
+		this.hostname = new URL(this.url.current).hostname;
+
+		this.backgroundBridge = new BackgroundBridge({
+			webview: null,
+			url: this.hostname,
+			isWalletConnect: true,
+			wcWalletConnector: this.walletConnector,
+			getRpcMethodMiddleware: ({ hostname, getProviderState }) =>
+				getRpcMethodMiddleware({
+					hostname: WALLET_CONNECT_ORIGIN + this.hostname,
+					getProviderState,
+					navigation: null, //props.navigation,
+					getApprovedHosts: () => null,
+					setApprovedHosts: () => null,
+					approveHost: null, //props.approveHost,
+					// Website info
+					url: this.url,
+					title: this.title,
+					icon: this.icon,
+					// Bookmarks
+					isHomepage: false,
+					// Show autocomplete
+					fromHomepage: false,
+					setAutocompleteValue: () => null,
+					setShowUrlModal: () => null,
+					// Wizard
+					wizardScrollAdjusted: () => null,
+					isTabActive: () => true,
+				}),
+			isMainFrame: true,
+		});
 	};
 
 	killSession = () => {
+		this.backgroundBridge.onDisconnect();
 		this.walletConnector && this.walletConnector.killSession();
 		this.walletConnector = null;
 	};
@@ -350,11 +249,13 @@ class WalletConnect {
 		});
 
 	redirectIfNeeded = () => {
-		if (this.redirectUrl) {
-			setTimeout(() => {
-				hub.emit('walletconnect:return');
-			}, 1500);
-		}
+		setTimeout(() => {
+			if (this.dappScheme.current || this.redirectUrl) {
+				Linking.openURL(this.dappScheme.current ? `${this.dappScheme.current}://` : this.redirectUrl);
+			} else {
+				Minimizer.goBack();
+			}
+		}, 300);
 	};
 }
 
@@ -364,7 +265,7 @@ const instance = {
 		if (sessionData) {
 			const sessions = JSON.parse(sessionData);
 			sessions.forEach((session) => {
-				connectors.push(new WalletConnect({ session }));
+				connectors.push(new WalletConnect({ session }, true));
 			});
 		}
 		initialized = true;
@@ -373,6 +274,11 @@ const instance = {
 		return connectors;
 	},
 	newSession(uri, redirect, autosign) {
+		const alreadyConnected = this.isSessionConnected(uri);
+		if (alreadyConnected) {
+			const errorMsg = 'This session is already connected. Close the current session before starting a new one.';
+			throw new Error(errorMsg);
+		}
 		const data = { uri };
 		if (redirect) {
 			data.redirect = redirect;
@@ -410,16 +316,26 @@ const instance = {
 		await persistSessions();
 	},
 	hub,
-	shutdown() {
-		Engine.context.TransactionController.hub.removeAllListeners();
-		Engine.context.PreferencesController.unsubscribe();
-	},
 	isValidUri(uri) {
 		const result = parseWalletConnectUri(uri);
 		if (!result.handshakeTopic || !result.bridge || !result.key) {
 			return false;
 		}
 		return true;
+	},
+	getValidUriFromDeeplink(uri) {
+		const prefix = 'wc://wc?uri=';
+		return uri.replace(prefix, '');
+	},
+	isSessionConnected(uri) {
+		const wcUri = parseWalletConnectUri(uri);
+		return connectors.some(({ walletConnector }) => {
+			if (!walletConnector) {
+				return false;
+			}
+			const { handshakeTopic, key } = walletConnector.session;
+			return handshakeTopic === wcUri.handshakeTopic && key === wcUri.key;
+		});
 	},
 };
 

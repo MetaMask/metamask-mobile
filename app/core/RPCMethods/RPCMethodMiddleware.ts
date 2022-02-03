@@ -13,8 +13,16 @@ import { resemblesAddress } from '../../util/address';
 import { store } from '../../store';
 import { removeBookmark } from '../../actions/bookmarks';
 import setOnboardingWizardStep from '../../actions/wizard';
+import { v1 as random } from 'uuid';
 
 let appVersion = '';
+
+export enum ApprovalTypes {
+	CONNECT_ACCOUNTS = 'CONNECT_ACCOUNTS',
+	SIGN_MESSAGE = 'SIGN_MESSAGE',
+	ADD_ETHEREUM_CHAIN = 'ADD_ETHEREUM_CHAIN',
+	SWITCH_ETHEREUM_CHAIN = 'SWITCH_ETHEREUM_CHAIN',
+}
 
 interface RPCMethodsMiddleParameters {
 	hostname: string;
@@ -24,10 +32,6 @@ interface RPCMethodsMiddleParameters {
 	url: { current: string };
 	title: { current: string };
 	icon: { current: string };
-	// eth_requestAccounts
-	showApprovalDialog: boolean;
-	setShowApprovalDialog: (showApprovalDialog: boolean) => void;
-	setShowApprovalDialogHostname: (hostname: string) => void;
 	approvalRequest: { current: { resolve: (value: boolean) => void; reject: () => void } };
 	// Bookmarks
 	isHomepage: () => boolean;
@@ -37,15 +41,6 @@ interface RPCMethodsMiddleParameters {
 	setShowUrlModal: (showUrlModal: boolean) => void;
 	// Wizard
 	wizardScrollAdjusted: { current: boolean };
-	// wallet_addEthereumChain && wallet_switchEthereumChain
-	showAddCustomNetworkDialog: (addCustomNetworkDialog: boolean) => void;
-	showSwitchCustomNetworkDialog: (switchCustomNetworkDialog: boolean) => void;
-	addCustomNetworkRequest: { current: boolean | null };
-	switchCustomNetworkRequest: { current: boolean | null };
-	setCustomNetworkToSwitch: (customNetworkToSwitch: any) => void;
-	setShowSwitchCustomNetworkDialog: (showSwitchCustomNetworkDialog: string | undefined) => void;
-	setCustomNetworkToAdd: (customNetworkToAdd: any) => void;
-	setShowAddCustomNetworkDialog: (showAddCustomNetworkDialog: boolean) => void;
 }
 
 /**
@@ -56,15 +51,12 @@ export const getRpcMethodMiddleware = ({
 	getProviderState,
 	navigation,
 	getApprovedHosts,
+	setApprovedHosts,
+	approveHost,
 	// Website info
 	url,
 	title,
 	icon,
-	// eth_requestAccounts
-	showApprovalDialog,
-	setShowApprovalDialog,
-	setShowApprovalDialogHostname,
-	approvalRequest,
 	// Bookmarks
 	isHomepage,
 	// Show autocomplete
@@ -73,15 +65,7 @@ export const getRpcMethodMiddleware = ({
 	setShowUrlModal,
 	// Wizard
 	wizardScrollAdjusted,
-	// wallet_addEthereumChain && wallet_switchEthereumChain
-	showAddCustomNetworkDialog,
-	showSwitchCustomNetworkDialog,
-	addCustomNetworkRequest,
-	switchCustomNetworkRequest,
-	setCustomNetworkToSwitch,
-	setShowSwitchCustomNetworkDialog,
-	setCustomNetworkToAdd,
-	setShowAddCustomNetworkDialog,
+	isTabActive,
 }: RPCMethodsMiddleParameters) =>
 	// all user facing RPC calls not implemented by the provider
 	createAsyncMiddleware(async (req: any, res: any, next: any) => {
@@ -95,6 +79,26 @@ export const getRpcMethodMiddleware = ({
 			const isEnabled = !privacyMode || getApprovedHosts()[hostname];
 
 			return isEnabled && selectedAddress ? [selectedAddress] : [];
+		};
+
+		const checkTabActive = () => {
+			if (!isTabActive()) throw ethErrors.provider.userRejectedRequest();
+		};
+
+		const requestUserApproval = async ({ type, requestData = {} }) => {
+			checkTabActive();
+			await Engine.context.ApprovalController.clear(ethErrors.provider.userRejectedRequest());
+
+			const responseData = await Engine.context.ApprovalController.add({
+				origin: hostname,
+				type,
+				requestData: {
+					...requestData,
+					pageMeta: { url: url.current, title: title.current, icon: icon.current },
+				},
+				id: random(),
+			});
+			return responseData;
 		};
 
 		const rpcMethods: any = {
@@ -150,17 +154,14 @@ export const getRpcMethodMiddleware = ({
 				if (!privacyMode || ((!params || !params.force) && getApprovedHosts()[hostname])) {
 					res.result = [selectedAddress];
 				} else {
-					if (showApprovalDialog) return;
-					setShowApprovalDialog(true);
-					setShowApprovalDialogHostname(hostname);
+					try {
+						await requestUserApproval({ type: ApprovalTypes.CONNECT_ACCOUNTS, requestData: { hostname } });
+						const fullHostname = new URL(url.current).hostname;
+						approveHost(fullHostname);
+						setApprovedHosts({ ...getApprovedHosts(), [fullHostname]: true });
 
-					const approved = await new Promise((resolve, reject) => {
-						approvalRequest.current = { resolve, reject };
-					});
-
-					if (approved) {
 						res.result = selectedAddress ? [selectedAddress] : [];
-					} else {
+					} catch (e) {
 						throw ethErrors.provider.userRejectedRequest('User denied account authorization.');
 					}
 				}
@@ -183,10 +184,13 @@ export const getRpcMethodMiddleware = ({
 						icon: icon.current,
 					},
 				};
+
+				checkTabActive();
 				const rawSig = await MessageManager.addUnapprovedMessageAsync({
 					data: req.params[1],
 					from: req.params[0],
 					...pageMeta,
+					origin: hostname,
 				});
 
 				res.result = rawSig;
@@ -213,9 +217,12 @@ export const getRpcMethodMiddleware = ({
 						icon: icon.current,
 					},
 				};
+
+				checkTabActive();
 				const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
 					...params,
 					...pageMeta,
+					origin: hostname,
 				});
 
 				res.result = rawSig;
@@ -230,11 +237,14 @@ export const getRpcMethodMiddleware = ({
 						icon: icon.current,
 					},
 				};
+
+				checkTabActive();
 				const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
 					{
 						data: req.params[0],
 						from: req.params[1],
 						...pageMeta,
+						origin: hostname,
 					},
 					'V1'
 				);
@@ -268,11 +278,13 @@ export const getRpcMethodMiddleware = ({
 					},
 				};
 
+				checkTabActive();
 				const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
 					{
 						data: req.params[1],
 						from: req.params[0],
 						...pageMeta,
+						origin: hostname,
 					},
 					'V3'
 				);
@@ -306,11 +318,14 @@ export const getRpcMethodMiddleware = ({
 						icon: icon.current,
 					},
 				};
+
+				checkTabActive();
 				const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
 					{
 						data: req.params[1],
 						from: req.params[0],
 						...pageMeta,
+						origin: hostname,
 					},
 					'V4'
 				);
@@ -327,6 +342,7 @@ export const getRpcMethodMiddleware = ({
 
 			wallet_scanQRCode: () =>
 				new Promise<void>((resolve, reject) => {
+					checkTabActive();
 					navigation.navigate('QRScanner', {
 						onScanSuccess: (data: any) => {
 							const regex = new RegExp(req.params[0]);
@@ -358,12 +374,15 @@ export const getRpcMethodMiddleware = ({
 					},
 				} = req;
 				const { TokensController } = Engine.context;
+
+				checkTabActive();
 				const suggestionResult = await TokensController.watchAsset({ address, symbol, decimals, image }, type);
 
 				res.result = suggestionResult.result;
 			},
 
 			metamask_removeFavorite: async () => {
+				checkTabActive();
 				if (!isHomepage()) {
 					throw ethErrors.provider.unauthorized('Forbidden.');
 				}
@@ -396,6 +415,10 @@ export const getRpcMethodMiddleware = ({
 			},
 
 			metamask_showTutorial: async () => {
+				checkTabActive();
+				if (!isHomepage()) {
+					throw ethErrors.provider.unauthorized('Forbidden.');
+				}
 				wizardScrollAdjusted.current = false;
 
 				store.dispatch(setOnboardingWizardStep(1));
@@ -406,6 +429,10 @@ export const getRpcMethodMiddleware = ({
 			},
 
 			metamask_showAutocomplete: async () => {
+				checkTabActive();
+				if (!isHomepage()) {
+					throw ethErrors.provider.unauthorized('Forbidden.');
+				}
 				fromHomepage.current = true;
 				setAutocompleteValue('');
 				setShowUrlModal(true);
@@ -437,28 +464,23 @@ export const getRpcMethodMiddleware = ({
 			 * the page, and we implement it as a no-op.
 			 */
 			metamask_logWeb3ShimUsage: () => (res.result = null),
-			wallet_addEthereumChain: () =>
-				RPCMethods.wallet_addEthereumChain({
+			wallet_addEthereumChain: () => {
+				checkTabActive();
+				return RPCMethods.wallet_addEthereumChain({
 					req,
 					res,
-					showAddCustomNetworkDialog,
-					showSwitchCustomNetworkDialog,
-					addCustomNetworkRequest,
-					switchCustomNetworkRequest,
-					setCustomNetworkToSwitch,
-					setShowSwitchCustomNetworkDialog,
-					setCustomNetworkToAdd,
-					setShowAddCustomNetworkDialog,
-				}),
-			wallet_switchEthereumChain: () =>
-				RPCMethods.wallet_switchEthereumChain({
+					requestUserApproval,
+				});
+			},
+
+			wallet_switchEthereumChain: () => {
+				checkTabActive();
+				return RPCMethods.wallet_switchEthereumChain({
 					req,
 					res,
-					showSwitchCustomNetworkDialog,
-					switchCustomNetworkRequest,
-					setCustomNetworkToSwitch,
-					setShowSwitchCustomNetworkDialog,
-				}),
+					requestUserApproval,
+				});
+			},
 		};
 
 		const blockRefIndex = blockTagParamIndex(req);
