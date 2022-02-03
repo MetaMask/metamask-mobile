@@ -101,7 +101,11 @@ class DeeplinkManager {
 	}
 
 	parse(url, { browserCallBack, origin, onHandled }) {
-		const urlObj = new URL(url.replace('https://', '').replace('http://', ''));
+		const urlObj = new URL(
+			url
+				.replace(`${PROTOCOLS.DAPP}/${PROTOCOLS.HTTPS}://`, `${PROTOCOLS.DAPP}/`)
+				.replace(`${PROTOCOLS.DAPP}/${PROTOCOLS.HTTP}://`, `${PROTOCOLS.DAPP}/`)
+		);
 		let params;
 		let wcCleanUrl;
 
@@ -165,7 +169,7 @@ class DeeplinkManager {
 
 			// Specific to the browser screen
 			// For ex. navigate to a specific dapp
-			case 'dapp':
+			case PROTOCOLS.DAPP:
 				// Enforce https
 				handled();
 				urlObj.set('protocol', 'https:');
