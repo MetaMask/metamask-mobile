@@ -12,6 +12,7 @@ import BackgroundBridge from './BackgroundBridge';
 import getRpcMethodMiddleware from './RPCMethods/RPCMethodMiddleware';
 import { Linking } from 'react-native';
 import Minimizer from 'react-native-minimizer';
+import AppConstants from './AppConstants';
 
 const hub = new EventEmitter();
 let connectors = [];
@@ -35,7 +36,12 @@ const persistSessions = async () => {
 		.filter(
 			(connector) => connector && connector.walletConnector && connector && connector.walletConnector.connected
 		)
-		.map((connector) => connector.walletConnector.session);
+		.map((connector) => ({
+			...connector.walletConnector.session,
+			autosign: connector.autosign,
+			redirectUrl: connector.redirectUrl,
+			requestOriginatedFrom: connector.requestOriginatedFrom,
+		}));
 
 	await AsyncStorage.setItem(WALLETCONNECT_SESSIONS, JSON.stringify(sessions));
 };
@@ -58,7 +64,7 @@ const waitForKeychainUnlocked = async () => {
 };
 
 class WalletConnect {
-	redirect = null;
+	redirectUrl = null;
 	autosign = false;
 	backgroundBridge = null;
 	url = { current: null };
@@ -67,15 +73,21 @@ class WalletConnect {
 	dappScheme = { current: null };
 	requestsToRedirect = {};
 	hostname = null;
+	requestOriginatedFrom = null;
 
 	constructor(options, existing) {
-		if (options.redirect) {
-			this.redirectUrl = options.redirect;
+		if (options.session.redirectUrl) {
+			this.redirectUrl = options.session.redirectUrl;
 		}
 
-		if (options.autosign) {
-			this.autosign = true;
+		if (options.session.autosign) {
+			this.autosign = options.session.autosign;
 		}
+
+		if (options.session.requestOriginatedFrom) {
+			this.requestOriginatedFrom = options.session.requestOriginatedFrom;
+		}
+
 		this.walletConnector = new RNWalletConnect({ ...options, ...CLIENT_OPTIONS });
 		/**
 		 *  Subscribe to session requests
@@ -92,6 +104,8 @@ class WalletConnect {
 				const sessionData = {
 					...payload.params[0],
 					autosign: this.autosign,
+					redirectUrl: this.redirectUrl,
+					requestOriginatedFrom: this.requestOriginatedFrom,
 				};
 
 				Logger.log('WC:', sessionData);
@@ -193,6 +207,8 @@ class WalletConnect {
 	}
 
 	redirect = () => {
+		if (this.requestOriginatedFrom === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) return;
+
 		setTimeout(() => {
 			if (this.dappScheme.current || this.redirectUrl) {
 				Linking.openURL(this.dappScheme.current ? `${this.dappScheme.current}://` : this.redirectUrl);
@@ -326,18 +342,21 @@ const instance = {
 	connectors() {
 		return connectors;
 	},
-	newSession(uri, redirect, autosign) {
+	newSession(uri, redirectUrl, autosign, requestOriginatedFrom) {
 		const alreadyConnected = this.isSessionConnected(uri);
 		if (alreadyConnected) {
 			const errorMsg = 'This session is already connected. Close the current session before starting a new one.';
 			throw new Error(errorMsg);
 		}
-		const data = { uri };
-		if (redirect) {
-			data.redirect = redirect;
+		const data = { uri, session: {} };
+		if (redirectUrl) {
+			data.session.redirectUrl = redirectUrl;
 		}
 		if (autosign) {
-			data.autosign = autosign;
+			data.session.autosign = autosign;
+		}
+		if (requestOriginatedFrom) {
+			data.session.requestOriginatedFrom = requestOriginatedFrom;
 		}
 		connectors.push(new WalletConnect(data));
 	},

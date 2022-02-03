@@ -1137,8 +1137,7 @@
 		"wc_sent_tx_title": "已发送交易",
 		"wc_connected_rejected_title": "您已拒绝连接请求",
 		"wc_signed_rejected_title": "您已拒绝签名请求",
-		"wc_sent_tx_rejected_title": "您已拒绝交易请求",
-		"wc_description": "返回浏览器"
+		"wc_sent_tx_rejected_title": "您已拒绝交易请求"
 	},
 	"protect_your_wallet_modal": {
 		"title": "保护您的钱包",

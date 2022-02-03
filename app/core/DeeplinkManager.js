@@ -132,7 +132,7 @@ class DeeplinkManager {
 					const action = urlObj.pathname.split('/')[1];
 
 					if (action === ACTIONS.WC && params?.uri) {
-						WalletConnect.newSession(params.uri, params.redirectUrl, false);
+						WalletConnect.newSession(params.uri, params.redirectUrl, false, origin);
 					} else if (PREFIXES[action]) {
 						this._handleBrowserUrl(
 							urlObj.href.replace(`https://${MM_UNIVERSAL_LINK_HOST}/${action}/`, PREFIXES[action]),
@@ -157,7 +157,7 @@ class DeeplinkManager {
 					return;
 				}
 
-				WalletConnect.newSession(wcCleanUrl, params?.redirect, params?.autosign);
+				WalletConnect.newSession(wcCleanUrl, params?.redirect, params?.autosign, origin);
 				break;
 
 			case PROTOCOLS.ETHEREUM:
@@ -187,7 +187,7 @@ class DeeplinkManager {
 						return;
 					}
 
-					WalletConnect.newSession(href, params?.redirect, params?.autosign);
+					WalletConnect.newSession(href, params?.redirect, params?.autosign, origin);
 				}
 				break;
 			default:

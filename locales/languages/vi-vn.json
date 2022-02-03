@@ -1205,8 +1205,7 @@
 		"wc_sent_tx_title": "Đã gửi giao dịch",
 		"wc_connected_rejected_title": "Bạn đã từ chối yêu cầu kết nối",
 		"wc_signed_rejected_title": "Bạn đã từ chối yêu cầu ký tên",
-		"wc_sent_tx_rejected_title": "Bạn đã từ chối yêu cầu giao dịch",
-		"wc_description": "Quay lại trình duyệt"
+		"wc_sent_tx_rejected_title": "Bạn đã từ chối yêu cầu giao dịch"
 	},
 	"protect_your_wallet_modal": {
 		"title": "Bảo vệ ví của bạn",

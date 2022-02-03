@@ -1205,8 +1205,7 @@
 		"wc_sent_tx_title": "Transação enviada",
 		"wc_connected_rejected_title": "Você rejeitou a solicitação de conexão",
 		"wc_signed_rejected_title": "Você rejeitou a solicitação de assinatura",
-		"wc_sent_tx_rejected_title": "Você rejeitou a solicitação de transação",
-		"wc_description": "Voltar para o navegador"
+		"wc_sent_tx_rejected_title": "Você rejeitou a solicitação de transação"
 	},
 	"protect_your_wallet_modal": {
 		"title": "Proteja sua carteira",

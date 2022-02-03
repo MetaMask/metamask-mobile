@@ -1205,8 +1205,7 @@
 		"wc_sent_tx_title": "भेजा गया लेनदेन",
 		"wc_connected_rejected_title": "आपने कनेक्ट करने के अनुरोध को अस्वीकार कर दिया है",
 		"wc_signed_rejected_title": "आपने हस्ताक्षर करने के अनुरोध को अस्वीकार कर दिया है",
-		"wc_sent_tx_rejected_title": "आपने लेनदेन का अनुरोध अस्वीकार कर दिया है",
-		"wc_description": "ब्राउज़र पर वापस जाएँ"
+		"wc_sent_tx_rejected_title": "आपने लेनदेन का अनुरोध अस्वीकार कर दिया है"
 	},
 	"protect_your_wallet_modal": {
 		"title": "अपने वॉलेट को सुरक्षित रखें",
