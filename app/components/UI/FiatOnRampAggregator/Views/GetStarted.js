@@ -1,21 +1,49 @@
 import React from 'react';
+import { View, StyleSheet } from 'react-native';
 import Text from '../../../Base/Text';
-import ScreenView from '../../FiatOrders/components/ScreenView';
-import { useFiatOnRampSDK } from '../SDK';
+import StyledButton from '../../StyledButton';
+import PropTypes from 'prop-types';
 
-const GetStarted = () => {
-	const SDK = useFiatOnRampSDK();
+const styles = StyleSheet.create({
+	header: {
+		marginTop: 20,
+	},
+	container: {
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center',
+	},
+	caption: {
+		marginBottom: 10,
+	},
+	button: {
+		flex: 1,
+		width: 200,
+	},
+});
 
-	return (
-		<ScreenView>
-			<Text>Get Started Screen</Text>
-			<Text centered big black>
-				Typeof SDK
-			</Text>
-			<Text>SDK: {typeof SDK}</Text>
-			<Text>SDK.getCountries: {typeof SDK.getCountries}</Text>
-		</ScreenView>
-	);
+const GetStarted = ({ navigation }) => (
+	<View style={styles.container}>
+		<Text centered big black style={styles.header}>
+			Critical Path (Fiat On-Ramp)
+		</Text>
+		<View style={styles.container}>
+			<Text style={styles.caption}>Lets APE into some hidden gems!</Text>
+			<StyledButton
+				type={'confirm'}
+				onPress={() => navigation.navigate('PaymentMethod', { title: 'Payment Methods' })}
+				style={styles.button}
+			>
+				Start
+			</StyledButton>
+		</View>
+	</View>
+);
+
+GetStarted.navigationOptions = ({ navigation, route }) => ({ headerLeft: () => null });
+
+GetStarted.propTypes = {
+	navigation: PropTypes.object,
 };
 
 export default GetStarted;

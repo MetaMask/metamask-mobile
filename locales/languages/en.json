@@ -1444,6 +1444,14 @@
 			}
 		}
 	},
+	"fiat_on_ramp_aggregator": {
+		"payment_method": {
+			"title": "Payment Method"
+		},
+		"amount_to_buy": {
+			"title": "Amount to Buy"
+		}
+	},
 	"swaps": {
 		"onboarding": {
 			"get_the": "Get the",

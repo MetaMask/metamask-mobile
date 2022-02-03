@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Image, StyleSheet } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Browser from '../../Views/Browser';
@@ -52,8 +52,13 @@ import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 import Drawer from '../../UI/Drawer';
 
+import { strings } from '../../../../locales/i18n';
+
 import { FiatOnRampSDKProvider } from '../../../components/UI/FiatOnRampAggregator/SDK';
 import GetStarted from '../../../components/UI/FiatOnRampAggregator/Views/GetStarted';
+import PaymentMethod from '../../../components/UI/FiatOnRampAggregator/Views/PaymentMethod';
+import Device from '../../../util/device';
+import { fontStyles, colors } from '../../../styles/common';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -276,28 +281,47 @@ const FiatOnRamp = () => (
 	</Stack.Navigator>
 );
 
-const FiatOnRampAggregator = () => (
-	<FiatOnRampSDKProvider>
-		<Stack.Navigator>
-			<Stack.Screen
-				name="GetStarted"
-				component={GetStarted}
-				// options={.navigationOptions}
-			/>
-			{/*
-			<Stack.Screen
-				name=""
-				component={null}
-				options={.navigationOptions}
-			/> */}
-			{/* <Stack.Screen
-				name="FiatOnRampAggregatorWebview"
-				component={null}
-				options={TransakWebView.navigationOptions}
-			/> */}
-		</Stack.Navigator>
-	</FiatOnRampSDKProvider>
-);
+const FiatOnRampAggregator = () => {
+	const styles = StyleSheet.create({
+		closeButton: {
+			paddingHorizontal: Device.isAndroid() ? 22 : 18,
+			paddingVertical: Device.isAndroid() ? 14 : 8,
+		},
+		closeButtonText: {
+			color: colors.blue,
+			fontSize: 14,
+			...fontStyles.normal,
+		},
+	});
+
+	return (
+		<FiatOnRampSDKProvider>
+			<Stack.Navigator
+				initialRouteName="GetStarted"
+				screenOptions={({ navigation }) => ({
+					headerBackTitle: strings('navigation.back'),
+					// eslint-disable-next-line react/display-name
+					headerRight: () => (
+						// eslint-disable-next-line react/jsx-no-bind
+						<TouchableOpacity
+							style={styles.closeButton}
+							onPress={() => navigation.dangerouslyGetParent()?.pop()}
+						>
+							<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
+						</TouchableOpacity>
+					),
+				})}
+			>
+				<Stack.Screen name="GetStarted" component={GetStarted} options={GetStarted.navigationOptions} />
+				<Stack.Screen
+					name="PaymentMethod"
+					component={PaymentMethod}
+					options={PaymentMethod.navigationOptions}
+				/>
+			</Stack.Navigator>
+		</FiatOnRampSDKProvider>
+	);
+};
 
 const Swaps = () => (
 	<Stack.Navigator>
