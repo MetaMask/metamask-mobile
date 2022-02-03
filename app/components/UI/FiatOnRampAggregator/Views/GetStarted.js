@@ -1,8 +1,8 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { View, StyleSheet } from 'react-native';
 import Text from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
-import PropTypes from 'prop-types';
 
 const styles = StyleSheet.create({
 	header: {
@@ -29,11 +29,7 @@ const GetStarted = ({ navigation }) => (
 		</Text>
 		<View style={styles.container}>
 			<Text style={styles.caption}>Lets APE into some hidden gems!</Text>
-			<StyledButton
-				type={'confirm'}
-				onPress={() => navigation.navigate('PaymentMethod', { title: 'Payment Methods' })}
-				style={styles.button}
-			>
+			<StyledButton type={'confirm'} onPress={() => navigation.navigate('PaymentMethod')} style={styles.button}>
 				Start
 			</StyledButton>
 		</View>

@@ -1,11 +1,23 @@
 import React from 'react';
-import Text from '../../../Base/Text';
+import PropTypes from 'prop-types';
 import ScreenView from '../../FiatOrders/components/ScreenView';
+import WyreApplePayPaymentMethod from '../../FiatOrders/PaymentMethodSelector/wyreApplePay';
+import { strings } from '../../../../../locales/i18n';
 
-const PaymentMethod = () => (
+const PaymentMethod = ({ navigation }) => (
 	<ScreenView>
-		<Text>Payment Method Screen Content</Text>
+		<WyreApplePayPaymentMethod onPress={() => navigation.navigate('AmountToBuy')} />
+		<WyreApplePayPaymentMethod />
+		<WyreApplePayPaymentMethod />
 	</ScreenView>
 );
+
+PaymentMethod.navigationOptions = ({ navigation, route }) => ({
+	title: strings('fiat_on_ramp_aggregator.payment_method.title'),
+});
+
+PaymentMethod.propTypes = {
+	navigation: PropTypes.object,
+};
 
 export default PaymentMethod;

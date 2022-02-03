@@ -1449,7 +1449,11 @@
 			"title": "Payment Method"
 		},
 		"amount_to_buy": {
-			"title": "Amount to Buy"
+			"title": "Amount to Buy",
+			"action": "Get quotes"
+		},
+		"get_quotes": {
+			"title": "Select a quote"
 		}
 	},
 	"swaps": {

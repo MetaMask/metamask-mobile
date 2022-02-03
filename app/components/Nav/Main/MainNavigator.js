@@ -51,13 +51,14 @@ import GasEducationCarousel from '../../Views/GasEducationCarousel';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 import Drawer from '../../UI/Drawer';
-
+import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
 
 import { FiatOnRampSDKProvider } from '../../../components/UI/FiatOnRampAggregator/SDK';
 import GetStarted from '../../../components/UI/FiatOnRampAggregator/Views/GetStarted';
 import PaymentMethod from '../../../components/UI/FiatOnRampAggregator/Views/PaymentMethod';
-import Device from '../../../util/device';
+import AmountToBuy from '../../../components/UI/FiatOnRampAggregator/Views/AmountToBuy';
+import GetQuotes from '../../../components/UI/FiatOnRampAggregator/Views/GetQuotes';
 import { fontStyles, colors } from '../../../styles/common';
 
 const Stack = createStackNavigator();
@@ -318,6 +319,8 @@ const FiatOnRampAggregator = () => {
 					component={PaymentMethod}
 					options={PaymentMethod.navigationOptions}
 				/>
+				<Stack.Screen name="AmountToBuy" component={AmountToBuy} options={AmountToBuy.navigationOptions} />
+				<Stack.Screen name="GetQuotes" component={GetQuotes} />
 			</Stack.Navigator>
 		</FiatOnRampSDKProvider>
 	);
