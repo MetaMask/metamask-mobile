@@ -29,7 +29,6 @@ import { MAINNET } from '../../../constants/network';
 import BigNumber from 'bignumber.js';
 import { WalletDevice } from '@metamask/controllers/';
 import { getTokenList } from '../../../reducers/tokens';
-import { getNetworkTypeById } from '../../../util/networks';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -111,10 +110,6 @@ class Send extends PureComponent {
 		/* dApp transaction modal visible or not
 		*/
 		dappTransactionModalVisible: PropTypes.bool,
-		/**
-		 * A list of custom RPCs to provide the user
-		 */
-		frequentRpcList: PropTypes.array,
 		/**
 		 * List of tokens from TokenListController
 		 */
@@ -261,9 +256,6 @@ class Send extends PureComponent {
 		parameters = null,
 	}) => {
 		const { addressBook, network, identities, selectedAddress } = this.props;
-		if (chain_id) {
-			this.handleNetworkSwitch(chain_id);
-		}
 
 		let newTxMeta = {};
 		switch (action) {
@@ -345,51 +337,6 @@ class Send extends PureComponent {
 		newTxMeta.transactionFromName = identities[selectedAddress].name;
 		this.props.setTransactionObject(newTxMeta);
 		this.mounted && this.setState({ ready: true, transactionKey: Date.now() });
-	};
-
-	/**
-	 * Method in charge of changing network if is needed
-	 *
-	 * @param switchToChainId - Corresponding chain id for new network
-	 */
-	handleNetworkSwitch = (switchToChainId) => {
-		try {
-			const networkType = getNetworkTypeById(switchToChainId);
-			if (networkType) {
-				const { NetworkController, CurrencyRateController } = Engine.context;
-				CurrencyRateController.setNativeCurrency('ETH');
-				NetworkController.setProviderType(networkType);
-				this.props.showAlert({
-					isVisible: true,
-					autodismiss: 5000,
-					content: 'clipboard-alert',
-					data: { msg: strings('send.warn_network_change') + networkType },
-				});
-				return;
-			}
-		} catch (e) {
-			/**
-			 * If we can't get the network type we don't need to throw an error,
-			 * since it can still be a custom RPC network
-			 */
-		}
-
-		const { frequentRpcList } = this.props;
-
-		const rpc = frequentRpcList.find(({ chainId }) => chainId === switchToChainId);
-
-		if (rpc) {
-			const { rpcUrl, chainId, ticker, nickname } = rpc;
-			const { NetworkController, CurrencyRateController } = Engine.context;
-			CurrencyRateController.setNativeCurrency(ticker);
-			NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
-			this.props.showAlert({
-				isVisible: true,
-				autodismiss: 5000,
-				content: 'clipboard-alert',
-				data: { msg: strings('send.warn_network_change') + nickname },
-			});
-		}
 	};
 
 	/**

@@ -11,11 +11,14 @@ import { generateApproveData } from '../util/transactions';
 import { strings } from '../../locales/i18n';
 import { getNetworkTypeById } from '../util/networks';
 import { WalletDevice } from '@metamask/controllers/';
+import { showAlert } from '../actions/alert';
 
 class DeeplinkManager {
-	constructor(_navigation) {
-		this.navigation = _navigation;
+	constructor({ navigation, frequentRpcList, dispatch }) {
+		this.navigation = navigation;
 		this.pendingDeeplink = null;
+		this.frequentRpcList = frequentRpcList;
+		this.dispatch = dispatch;
 	}
 
 	setDeeplink = (url) => (this.pendingDeeplink = url);
@@ -23,6 +26,47 @@ class DeeplinkManager {
 	getPendingDeeplink = () => this.pendingDeeplink;
 
 	expireDeeplink = () => (this.pendingDeeplink = null);
+
+	/**
+	 * Method in charge of changing network if is needed
+	 *
+	 * @param switchToChainId - Corresponding chain id for new network
+	 */
+	handleNetworkSwitch = (switchToChainId) => {
+		const rpc = this.frequentRpcList.find(({ chainId }) => chainId === switchToChainId);
+
+		if (rpc) {
+			const { rpcUrl, chainId, ticker, nickname } = rpc;
+			const { NetworkController, CurrencyRateController } = Engine.context;
+			CurrencyRateController.setNativeCurrency(ticker);
+			NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
+			this.dispatch(
+				showAlert({
+					isVisible: true,
+					autodismiss: 5000,
+					content: 'clipboard-alert',
+					data: { msg: strings('send.warn_network_change') + nickname },
+				})
+			);
+			return;
+		}
+
+		const networkType = getNetworkTypeById(switchToChainId);
+
+		if (networkType) {
+			const { NetworkController, CurrencyRateController } = Engine.context;
+			CurrencyRateController.setNativeCurrency('ETH');
+			NetworkController.setProviderType(networkType);
+			this.dispatch(
+				showAlert({
+					isVisible: true,
+					autodismiss: 5000,
+					content: 'clipboard-alert',
+					data: { msg: strings('send.warn_network_change') + networkType },
+				})
+			);
+		}
+	};
 
 	async handleEthereumUrl(url, origin) {
 		let ethUrl = '';
@@ -36,13 +80,23 @@ class DeeplinkManager {
 		const functionName = ethUrl.function_name;
 		if (!functionName) {
 			const txMeta = { ...ethUrl, source: url };
-			if (ethUrl.parameters?.value) {
-				this.navigation.navigate('SendView', {
-					screen: 'Send',
-					params: { txMeta: { ...txMeta, action: 'send-eth' } },
-				});
-			} else {
-				this.navigation.navigate('SendFlowView', { screen: 'SendTo', params: { txMeta } });
+			// Validate if network exists before navigating to Send views
+			try {
+				this.handleNetworkSwitch(txMeta.chain_id);
+
+				if (ethUrl.parameters?.value) {
+					this.navigation.navigate('SendView', {
+						screen: 'Send',
+						params: { txMeta: { ...txMeta, action: 'send-eth' } },
+					});
+				} else {
+					this.navigation.navigate('SendFlowView', { screen: 'SendTo', params: { txMeta } });
+				}
+			} catch (e) {
+				Alert.alert(
+					strings('send.network_not_found_title'),
+					strings('send.network_not_found_description', { chain_id: txMeta.chain_id })
+				);
 			}
 		} else if (functionName === 'transfer') {
 			const txMeta = { ...ethUrl, source: url };
@@ -202,8 +256,8 @@ class DeeplinkManager {
 let instance = null;
 
 const SharedDeeplinkManager = {
-	init: (navigation) => {
-		instance = new DeeplinkManager(navigation);
+	init: ({ navigation, frequentRpcList, dispatch }) => {
+		instance = new DeeplinkManager({ navigation, frequentRpcList, dispatch });
 	},
 	parse: (url, args) => instance.parse(url, args),
 	setDeeplink: (url) => instance.setDeeplink(url),
