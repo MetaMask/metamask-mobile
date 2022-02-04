@@ -6,7 +6,7 @@ import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import LineDivide from '../../Base/LineDivide';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
-import { ETH, PRIVATE_NETWORK } from '../../../util/custom-gas';
+import { ETH, PRIVATENETWORK } from '../../../util/custom-gas';
 import AssetIcon from '../../UI/AssetIcon';
 
 const styles = StyleSheet.create({
@@ -99,20 +99,20 @@ interface NetworkInfoProps {
 
 interface DescriptionProps {
 	description: string;
-	clickable_text: string | undefined;
+	clickableText: string | undefined;
 	number: number;
 }
 
-const learn_more_url = 'https://metamask.zendesk.com/hc/en-us/articles/4404424659995';
+const learnMoreUrl = 'https://metamask.zendesk.com/hc/en-us/articles/4404424659995';
 
 const showAlertView = () => {
 	Alert.alert(strings('network_information.error_title'), strings('network_information.error_message'));
 };
 
 const openUrl = () => {
-	Linking.canOpenURL(learn_more_url).then((supported) => {
+	Linking.canOpenURL(learnMoreUrl).then((supported) => {
 		if (supported) {
-			Linking.openURL(learn_more_url);
+			Linking.openURL(learnMoreUrl);
 		} else {
 			showAlertView();
 		}
@@ -120,17 +120,17 @@ const openUrl = () => {
 };
 
 const Description = (props: DescriptionProps) => {
-	const { description, clickable_text, number } = props;
+	const { description, clickableText, number } = props;
 	return (
 		<View style={styles.descriptionContainer}>
 			<View style={styles.contentContainer}>
 				<Text style={styles.numberStyle}>{number}.</Text>
 				<Text style={styles.description}>
 					<Text>{description}</Text>
-					{clickable_text && (
+					{clickableText && (
 						<Text onPress={openUrl} style={styles.link}>
 							{' '}
-							{clickable_text}
+							{clickableText}
 						</Text>
 					)}
 				</Text>
@@ -149,7 +149,7 @@ const NetworkInfo = (props: NetworkInfoProps): JSX.Element => {
 				<Text style={styles.title}>You have switched to</Text>
 				<View style={styles.tokenView}>
 					<View style={styles.tokenType}>
-						{nativeToken === PRIVATE_NETWORK ? (
+						{nativeToken === PRIVATENETWORK ? (
 							<>
 								<AssetIcon />
 								<Text style={styles.tokenText}>{strings('network_information.unknown_network')}</Text>
@@ -170,35 +170,35 @@ const NetworkInfo = (props: NetworkInfoProps): JSX.Element => {
 							</>
 						)}
 					</View>
-					{nativeToken === PRIVATE_NETWORK && <Text style={styles.rpcUrl}>{type}</Text>}
+					{nativeToken === PRIVATENETWORK && <Text style={styles.rpcUrl}>{type}</Text>}
 				</View>
 				<Text style={styles.messageTitle}>Things to keep in mind:</Text>
 				<View style={styles.descriptionViews}>
 					<Description
 						description={
-							nativeToken === PRIVATE_NETWORK
+							nativeToken === PRIVATENETWORK
 								? strings('network_information.private_network')
 								: strings('network_information.first_description', { nativeToken })
 						}
 						number={1}
-						clickable_text={
-							nativeToken === PRIVATE_NETWORK
+						clickableText={
+							nativeToken === PRIVATENETWORK
 								? strings('network_information.add_token_manually')
 								: undefined
 						}
 					/>
 					<Description
 						description={strings('network_information.second_description')}
-						clickable_text={strings('network_information.learn_more')}
+						clickableText={strings('network_information.learn_more')}
 						number={2}
 					/>
 					<Description
 						description={
-							nativeToken === PRIVATE_NETWORK
+							nativeToken === PRIVATENETWORK
 								? strings('network_information.private_network_third_description')
 								: strings('network_information.third_description')
 						}
-						clickable_text={strings('network_information.add_token')}
+						clickableText={strings('network_information.add_token')}
 						number={3}
 					/>
 				</View>

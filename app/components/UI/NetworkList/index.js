@@ -9,7 +9,7 @@ import Networks, { getAllNetworks, isSafeChainId } from '../../../util/networks'
 import { connect } from 'react-redux';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { MAINNET, RPC } from '../../../constants/network';
-import { ETH, PRIVATE_NETWORK } from '../../../util/custom-gas';
+import { ETH, PRIVATENETWORK } from '../../../util/custom-gas';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -179,7 +179,7 @@ export class NetworkList extends PureComponent {
 			rpcPrefs: { blockExplorerUrl },
 		} = rpc;
 		const useRpcName = nickname || rpcUrl;
-		const useTicker = ticker || PRIVATE_NETWORK;
+		const useTicker = ticker || PRIVATENETWORK;
 		this.props.onNetworkSelected(useRpcName, useTicker);
 
 		// If the network does not have chainId then show invalid custom network alert
