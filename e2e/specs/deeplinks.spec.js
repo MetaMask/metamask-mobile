@@ -3,6 +3,7 @@ import TestHelpers from '../helpers';
 
 import OnboardingView from '../pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
+import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import ImportWalletView from '../pages/Onboarding/ImportWalletView';
 import { Browser } from '../pages/Drawer/Browser';
 import TransactionConfirmationView from '../pages/TransactionConfirmView';
@@ -59,24 +60,28 @@ describe('Deep linking Tests', () => {
 	});
 
 	it('should dismiss the onboarding wizard', async () => {
-		// dealing with flakiness
+		// dealing with flakiness on bitrise.
 		await TestHelpers.delay(1000);
 		try {
-			// Check that the onboarding wizard is present
-			await TestHelpers.checkIfVisible('onboarding-wizard-step1-view');
-			// Check that No thanks CTA is visible and tap it
-			await TestHelpers.waitAndTap('onboarding-wizard-back-button');
-			// Check that the onboarding wizard is gone
-			await TestHelpers.checkIfNotVisible('onboarding-wizard-step1-view');
-		} catch (e) {
+			await OnboardingWizardModal.isVisible();
+			await OnboardingWizardModal.tapNoThanksButton();
+			await OnboardingWizardModal.isNotVisible();
+		} catch {
 			//
 		}
 	});
 
-	// it('should attempt to deep link to the send flow with a custom network not added to wallet', async () => {
-	// 	await TestHelpers.openDeepLink(binanceDeepLink);
-	// 	await TestHelpers.delay(3000);
-	// });
+	it('should attempt to deep link to the send flow with a custom network not added to wallet', async () => {
+		const networkNotFoundText = 'Network not found';
+		const networkErrorBodyMessage = 'Network with chain id 56 not found in your wallet. Please add it first.';
+
+		await TestHelpers.openDeepLink(binanceDeepLink);
+		await TestHelpers.delay(3000);
+		await TestHelpers.checkIfElementWithTextIsVisible(networkNotFoundText);
+		await TestHelpers.checkIfElementWithTextIsVisible(networkErrorBodyMessage);
+
+		await WalletView.tapOKAlertButton();
+	});
 
 	it('should go to settings then networks', async () => {
 		// Open Drawer
