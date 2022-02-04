@@ -7,6 +7,7 @@ import { safeToChecksumAddress } from '../../../../util/address';
 import Engine from '../../../../core/Engine';
 import AnimatedTransactionModal from '../../../UI/AnimatedTransactionModal';
 import ApproveTransactionReview from '../../../UI/ApproveTransactionReview';
+import AddNickname from '../../../UI/ApproveTransactionReview/AddNickname';
 import Modal from 'react-native-modal';
 import { strings } from '../../../../../locales/i18n';
 import { setTransactionObject } from '../../../../actions/transaction';
@@ -43,6 +44,10 @@ const styles = StyleSheet.create({
 	bottomModal: {
 		justifyContent: 'flex-end',
 		margin: 0,
+	},
+	updateNickView: {
+		margin: 0,
+		// backgroundColor: '#fff',
 	},
 });
 
@@ -129,6 +134,7 @@ class Approve extends PureComponent {
 		LegacyGasData: {},
 		LegacyGasDataTemp: {},
 		transactionConfirmed: false,
+		addNickname: false,
 	};
 
 	computeGasEstimates = (overrideGasPrice, overrideGasLimit, gasEstimateTypeChanged) => {
@@ -232,6 +238,10 @@ class Approve extends PureComponent {
 				}
 			);
 		}
+	};
+
+	onUpdateContractNickname = () => {
+		this.setState({ addNickname: !this.state.addNickname });
 	};
 
 	startPolling = async () => {
@@ -541,7 +551,7 @@ class Approve extends PureComponent {
 				isVisible={this.props.modalVisible}
 				animationIn="slideInUp"
 				animationOut="slideOutDown"
-				style={styles.bottomModal}
+				style={this.state.addNickname ? styles.updateNickView : styles.bottomModal}
 				backdropOpacity={0.7}
 				animationInTiming={600}
 				animationOutTiming={600}
@@ -551,84 +561,96 @@ class Approve extends PureComponent {
 				swipeDirection={'down'}
 				propagateSwipe
 			>
-				<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
-					{mode === 'review' && (
-						<AnimatedTransactionModal onModeChange={this.onModeChange} ready={ready} review={this.review}>
-							<ApproveTransactionReview
-								gasError={EIP1559GasData.error || LegacyGasData.error}
-								onCancel={this.onCancel}
-								onConfirm={this.onConfirm}
-								over={over}
-								onSetAnalyticsParams={this.setAnalyticsParams}
-								EIP1559GasData={EIP1559GasData}
-								LegacyGasData={LegacyGasData}
-								gasEstimateType={gasEstimateType}
-								onUpdatingValuesStart={this.onUpdatingValuesStart}
-								onUpdatingValuesEnd={this.onUpdatingValuesEnd}
-								animateOnChange={animateOnChange}
-								isAnimating={isAnimating}
-								gasEstimationReady={ready}
-								transactionConfirmed={transactionConfirmed}
-							/>
-							{/** View fixes layout issue after removing <CustomGas/> */}
-							<View />
-						</AnimatedTransactionModal>
-					)}
+				{this.state.addNickname ? (
+					<AddNickname
+						onUpdateContractNickname={this.onUpdateContractNickname}
+						contractAddress={transaction.to}
+					/>
+				) : (
+					<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
+						{mode === 'review' && (
+							<AnimatedTransactionModal
+								onModeChange={this.onModeChange}
+								ready={ready}
+								review={this.review}
+							>
+								<ApproveTransactionReview
+									gasError={EIP1559GasData.error || LegacyGasData.error}
+									onCancel={this.onCancel}
+									onConfirm={this.onConfirm}
+									over={over}
+									onSetAnalyticsParams={this.setAnalyticsParams}
+									EIP1559GasData={EIP1559GasData}
+									LegacyGasData={LegacyGasData}
+									gasEstimateType={gasEstimateType}
+									onUpdatingValuesStart={this.onUpdatingValuesStart}
+									onUpdatingValuesEnd={this.onUpdatingValuesEnd}
+									animateOnChange={animateOnChange}
+									isAnimating={isAnimating}
+									gasEstimationReady={ready}
+									transactionConfirmed={transactionConfirmed}
+									onUpdateContractNickname={this.onUpdateContractNickname}
+								/>
+								{/** View fixes layout issue after removing <CustomGas/> */}
+								<View />
+							</AnimatedTransactionModal>
+						)}
 
-					{mode !== 'review' &&
-						(gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ? (
-							<EditGasFee1559
-								selected={gasSelected}
-								gasFee={EIP1559GasDataTemp}
-								gasOptions={gasFeeEstimates}
-								onChange={this.calculateTempGasFee}
-								gasFeeNative={EIP1559GasDataTemp.renderableGasFeeMinNative}
-								gasFeeConversion={EIP1559GasDataTemp.renderableGasFeeMinConversion}
-								gasFeeMaxNative={EIP1559GasDataTemp.renderableGasFeeMaxNative}
-								gasFeeMaxConversion={EIP1559GasDataTemp.renderableGasFeeMaxConversion}
-								maxPriorityFeeNative={EIP1559GasDataTemp.renderableMaxPriorityFeeNative}
-								maxPriorityFeeConversion={EIP1559GasDataTemp.renderableMaxPriorityFeeConversion}
-								maxFeePerGasNative={EIP1559GasDataTemp.renderableMaxFeePerGasNative}
-								maxFeePerGasConversion={EIP1559GasDataTemp.renderableMaxFeePerGasConversion}
-								primaryCurrency={primaryCurrency}
-								chainId={chainId}
-								timeEstimate={EIP1559GasDataTemp.timeEstimate}
-								timeEstimateColor={EIP1559GasDataTemp.timeEstimateColor}
-								timeEstimateId={EIP1559GasDataTemp.timeEstimateId}
-								onCancel={this.cancelGasEdition}
-								onSave={this.saveGasEdition}
-								error={EIP1559GasDataTemp.error}
-								onUpdatingValuesStart={this.onUpdatingValuesStart}
-								onUpdatingValuesEnd={this.onUpdatingValuesEnd}
-								animateOnChange={animateOnChange}
-								isAnimating={isAnimating}
-								view={'Approve'}
-								analyticsParams={this.getGasAnalyticsParams()}
-							/>
-						) : (
-							<EditGasFeeLegacy
-								selected={gasSelected}
-								gasFee={LegacyGasDataTemp}
-								gasEstimateType={gasEstimateType}
-								gasOptions={gasFeeEstimates}
-								onChange={this.calculateTempGasFeeLegacy}
-								gasFeeNative={LegacyGasDataTemp.transactionFee}
-								gasFeeConversion={LegacyGasDataTemp.transactionFeeFiat}
-								gasPriceConversion={LegacyGasDataTemp.transactionFeeFiat}
-								primaryCurrency={primaryCurrency}
-								chainId={chainId}
-								onCancel={this.cancelGasEdition}
-								onSave={this.saveGasEdition}
-								error={LegacyGasDataTemp.error}
-								onUpdatingValuesStart={this.onUpdatingValuesStart}
-								onUpdatingValuesEnd={this.onUpdatingValuesEnd}
-								animateOnChange={animateOnChange}
-								isAnimating={isAnimating}
-								view={'Approve'}
-								analyticsParams={this.getGasAnalyticsParams()}
-							/>
-						))}
-				</KeyboardAwareScrollView>
+						{mode !== 'review' &&
+							(gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ? (
+								<EditGasFee1559
+									selected={gasSelected}
+									gasFee={EIP1559GasDataTemp}
+									gasOptions={gasFeeEstimates}
+									onChange={this.calculateTempGasFee}
+									gasFeeNative={EIP1559GasDataTemp.renderableGasFeeMinNative}
+									gasFeeConversion={EIP1559GasDataTemp.renderableGasFeeMinConversion}
+									gasFeeMaxNative={EIP1559GasDataTemp.renderableGasFeeMaxNative}
+									gasFeeMaxConversion={EIP1559GasDataTemp.renderableGasFeeMaxConversion}
+									maxPriorityFeeNative={EIP1559GasDataTemp.renderableMaxPriorityFeeNative}
+									maxPriorityFeeConversion={EIP1559GasDataTemp.renderableMaxPriorityFeeConversion}
+									maxFeePerGasNative={EIP1559GasDataTemp.renderableMaxFeePerGasNative}
+									maxFeePerGasConversion={EIP1559GasDataTemp.renderableMaxFeePerGasConversion}
+									primaryCurrency={primaryCurrency}
+									chainId={chainId}
+									timeEstimate={EIP1559GasDataTemp.timeEstimate}
+									timeEstimateColor={EIP1559GasDataTemp.timeEstimateColor}
+									timeEstimateId={EIP1559GasDataTemp.timeEstimateId}
+									onCancel={this.cancelGasEdition}
+									onSave={this.saveGasEdition}
+									error={EIP1559GasDataTemp.error}
+									onUpdatingValuesStart={this.onUpdatingValuesStart}
+									onUpdatingValuesEnd={this.onUpdatingValuesEnd}
+									animateOnChange={animateOnChange}
+									isAnimating={isAnimating}
+									view={'Approve'}
+									analyticsParams={this.getGasAnalyticsParams()}
+								/>
+							) : (
+								<EditGasFeeLegacy
+									selected={gasSelected}
+									gasFee={LegacyGasDataTemp}
+									gasEstimateType={gasEstimateType}
+									gasOptions={gasFeeEstimates}
+									onChange={this.calculateTempGasFeeLegacy}
+									gasFeeNative={LegacyGasDataTemp.transactionFee}
+									gasFeeConversion={LegacyGasDataTemp.transactionFeeFiat}
+									gasPriceConversion={LegacyGasDataTemp.transactionFeeFiat}
+									primaryCurrency={primaryCurrency}
+									chainId={chainId}
+									onCancel={this.cancelGasEdition}
+									onSave={this.saveGasEdition}
+									error={LegacyGasDataTemp.error}
+									onUpdatingValuesStart={this.onUpdatingValuesStart}
+									onUpdatingValuesEnd={this.onUpdatingValuesEnd}
+									animateOnChange={animateOnChange}
+									isAnimating={isAnimating}
+									view={'Approve'}
+									analyticsParams={this.getGasAnalyticsParams()}
+								/>
+							))}
+					</KeyboardAwareScrollView>
+				)}
 			</Modal>
 		);
 	};

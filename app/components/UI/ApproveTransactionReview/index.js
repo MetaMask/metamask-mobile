@@ -12,6 +12,7 @@ import { strings } from '../../../../locales/i18n';
 import { setTransactionObject } from '../../../actions/transaction';
 import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
 import { renderFromWei, weiToFiatNumber, fromTokenMinimalUnit, toTokenMinimalUnit } from '../../../util/number';
+import EthereumAddress from '../EthereumAddress';
 import {
 	getTicker,
 	getNormalizedTxState,
@@ -55,7 +56,7 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		color: colors.black,
 		lineHeight: 34,
-		marginVertical: 16,
+		marginVertical: 8,
 		paddingHorizontal: 16,
 	},
 	explanation: {
@@ -72,7 +73,7 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		lineHeight: 20,
 		textAlign: 'center',
-		marginVertical: 20,
+		marginVertical: 10,
 		borderWidth: 1,
 		borderRadius: 20,
 		borderColor: colors.blue,
@@ -90,6 +91,18 @@ const styles = StyleSheet.create({
 	actionTouchable: {
 		flexDirection: 'column',
 		alignItems: 'center',
+	},
+	addressWrapper: {
+		backgroundColor: colors.blue000,
+		borderRadius: 40,
+		paddingVertical: 5,
+		paddingHorizontal: 15,
+	},
+	address: {
+		fontSize: 12,
+		color: colors.grey400,
+		...fontStyles.normal,
+		letterSpacing: 0.8,
 	},
 	errorWrapper: {
 		marginTop: 12,
@@ -114,13 +127,26 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 	},
 	actionViewWrapper: {
-		height: Device.isMediumDevice() ? 200 : 350,
+		height: Device.isMediumDevice() ? 200 : 280,
 	},
 	actionViewChildren: {
-		height: 300,
+		// height: 300,
+		// backgroundColor: 'red'
 	},
 	paddingHorizontal: {
 		paddingHorizontal: 16,
+	},
+	contactWrapper: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center',
+		marginVertical: 15,
+	},
+	nickname: {
+		...fontStyles.normal,
+		textAlign: 'center',
+		color: colors.blue500,
+		marginBottom: 10,
 	},
 });
 
@@ -249,6 +275,10 @@ class ApproveTransactionReview extends PureComponent {
 		 * Dispatch set transaction object from transaction action
 		 */
 		setTransactionObject: PropTypes.func,
+		/**
+		 * Update contract nickname
+		 */
+		onUpdateContractNickname: PropTypes.func,
 	};
 
 	state = {
@@ -518,6 +548,10 @@ class ApproveTransactionReview extends PureComponent {
 		);
 	};
 
+	toggleDisplay = () => {
+		this.props.onUpdateContractNickname();
+	};
+
 	renderDetails = () => {
 		const { host, tokenSymbol, spenderAddress } = this.state;
 
@@ -563,10 +597,28 @@ class ApproveTransactionReview extends PureComponent {
 							{ tokenSymbol }
 						)}
 					</Text>
+					<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleEditPermission}>
+						<Text reset style={styles.editPermissionText}>
+							{strings('spend_limit_edition.edit_permission')}
+						</Text>
+					</TouchableOpacity>
 					<Text reset style={styles.explanation}>
 						{`${strings(
 							`spend_limit_edition.${originIsDeeplink ? 'you_trust_this_address' : 'you_trust_this_site'}`
 						)}`}
+					</Text>
+					<View style={styles.contactWrapper}>
+						<Text>Contract: </Text>
+						<TouchableOpacity style={styles.addressWrapper}>
+							<EthereumAddress
+								address={this.state.transaction.to}
+								style={styles.address}
+								type={'short'}
+							/>
+						</TouchableOpacity>
+					</View>
+					<Text style={styles.nickname} onPress={this.toggleDisplay}>
+						Add nickname
 					</Text>
 					<View style={styles.actionViewWrapper}>
 						<ActionView
@@ -578,11 +630,6 @@ class ApproveTransactionReview extends PureComponent {
 							confirmDisabled={Boolean(gasError) || transactionConfirmed}
 						>
 							<View style={styles.actionViewChildren}>
-								<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleEditPermission}>
-									<Text reset style={styles.editPermissionText}>
-										{strings('spend_limit_edition.edit_permission')}
-									</Text>
-								</TouchableOpacity>
 								<View style={styles.paddingHorizontal}>
 									<AccountInfoCard />
 									<View style={styles.section}>
