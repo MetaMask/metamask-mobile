@@ -77,13 +77,12 @@ class DeeplinkManager {
 			return;
 		}
 
-		const functionName = ethUrl.function_name;
-		if (!functionName) {
-			const txMeta = { ...ethUrl, source: url };
-			// Validate if network exists before navigating to Send views
-			try {
-				this.handleNetworkSwitch(txMeta.chain_id);
-
+		try {
+			// Validate and switch network before performing any other action
+			this.handleNetworkSwitch(ethUrl.chain_id);
+			const functionName = ethUrl.function_name;
+			if (!functionName) {
+				const txMeta = { ...ethUrl, source: url };
 				if (ethUrl.parameters?.value) {
 					this.navigation.navigate('SendView', {
 						screen: 'Send',
@@ -92,40 +91,35 @@ class DeeplinkManager {
 				} else {
 					this.navigation.navigate('SendFlowView', { screen: 'SendTo', params: { txMeta } });
 				}
-			} catch (e) {
-				Alert.alert(
-					strings('send.network_not_found_title'),
-					strings('send.network_not_found_description', { chain_id: txMeta.chain_id })
-				);
+			} else if (functionName === 'transfer') {
+				const txMeta = { ...ethUrl, source: url };
+				this.navigation.navigate('SendView', {
+					screen: 'Send',
+					params: { txMeta: { ...txMeta, action: 'send-token' } },
+				});
+			} else if (functionName === 'approve') {
+				// add approve transaction
+				const {
+					parameters: { address, uint256 },
+					target_address,
+				} = ethUrl;
+				const { TransactionController, PreferencesController } = Engine.context;
+				const txParams = {};
+				txParams.to = `${target_address}`;
+				txParams.from = `${PreferencesController.state.selectedAddress}`;
+				txParams.value = '0x0';
+				const uint256Number = Number(uint256);
+				if (Number.isNaN(uint256Number)) throw new Error('The parameter uint256 should be a number');
+				if (!Number.isInteger(uint256Number)) throw new Error('The parameter uint256 should be an integer');
+				const value = uint256Number.toString(16);
+				txParams.data = generateApproveData({ spender: address, value });
+				TransactionController.addTransaction(txParams, origin, WalletDevice.MM_MOBILE);
 			}
-		} else if (functionName === 'transfer') {
-			const txMeta = { ...ethUrl, source: url };
-			this.navigation.navigate('SendView', {
-				screen: 'Send',
-				params: { txMeta: { ...txMeta, action: 'send-token' } },
-			});
-		} else if (functionName === 'approve') {
-			// add approve transaction
-			const {
-				parameters: { address, uint256 },
-				target_address,
-				chain_id,
-			} = ethUrl;
-			const { TransactionController, PreferencesController, NetworkController } = Engine.context;
-			if (chain_id) {
-				const newNetworkType = getNetworkTypeById(chain_id);
-				NetworkController.setProviderType(newNetworkType);
-			}
-			const txParams = {};
-			txParams.to = `${target_address}`;
-			txParams.from = `${PreferencesController.state.selectedAddress}`;
-			txParams.value = '0x0';
-			const uint256Number = Number(uint256);
-			if (Number.isNaN(uint256Number)) throw new Error('The parameter uint256 should be a number');
-			if (!Number.isInteger(uint256Number)) throw new Error('The parameter uint256 should be an integer');
-			const value = uint256Number.toString(16);
-			txParams.data = generateApproveData({ spender: address, value });
-			TransactionController.addTransaction(txParams, origin, WalletDevice.MM_MOBILE);
+		} catch (e) {
+			Alert.alert(
+				strings('send.network_not_found_title'),
+				strings('send.network_not_found_description', { chain_id: ethUrl.chain_id })
+			);
 		}
 	}
 
