@@ -5,7 +5,16 @@ import { NativeModules } from 'react-native';
 import DefaultPreference from 'react-native-default-preference';
 import Logger from '../util/Logger';
 import { ANALYTICS_EVENTS_V2 } from '../util/analyticsV2';
+import Engine from './Engine';
 const RCTAnalytics = NativeModules.Analytics;
+
+const USER_PROFILE_PROPERTY = {
+	ENABLE_OPENSEA_API: 'Enable OpenSea API',
+	NFT_AUTODETECTION: 'NFT Autodetection',
+
+	ON: 'ON',
+	OFF: 'OFF',
+};
 
 /**
  * Class to handle analytics through the app
@@ -40,11 +49,27 @@ class Analytics {
 	};
 
 	/**
+	 * Set the user profile state for current user to mixpanel
+	 */
+	_setUserProfileProperties = () => {
+		const state = Engine.context.PreferencesController.internalState;
+		RCTAnalytics.setUserProfileProperty(
+			USER_PROFILE_PROPERTY.ENABLE_OPENSEA_API,
+			state?.openSeaEnabled ? USER_PROFILE_PROPERTY.ON : USER_PROFILE_PROPERTY.OFF
+		);
+		RCTAnalytics.setUserProfileProperty(
+			USER_PROFILE_PROPERTY.NFT_AUTODETECTION,
+			state?.useCollectibleDetection ? USER_PROFILE_PROPERTY.ON : USER_PROFILE_PROPERTY.OFF
+		);
+	};
+
+	/**
 	 * Track event if enabled and not DEV mode
 	 */
 	_trackEvent(name, { event, params = {}, value, info, anonymously = false }) {
 		const isAnalyticsPreferenceSelectedEvent = ANALYTICS_EVENTS_V2.ANALYTICS_PREFERENCE_SELECTED === event;
 		if (!this.enabled && !isAnalyticsPreferenceSelectedEvent) return;
+		this._setUserProfileProperties();
 		if (!__DEV__) {
 			if (!anonymously) {
 				RCTAnalytics.trackEvent({

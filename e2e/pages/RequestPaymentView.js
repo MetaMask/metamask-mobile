@@ -22,9 +22,6 @@ export default class RequestPaymentView {
 		}
 	}
 	static async tapOnToken(token) {
-		if (device.getPlatform() === 'ios') {
-			await TestHelpers.tapByText(token, 1);
-		}
 		await TestHelpers.tapByText(token, 1);
 	}
 	static async typeInTokenAmount(amount) {
