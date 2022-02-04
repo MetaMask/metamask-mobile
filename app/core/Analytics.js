@@ -1,8 +1,20 @@
 'use strict';
 
+import { METRICS_OPT_IN, AGREED, DENIED } from '../constants/storage';
 import { NativeModules } from 'react-native';
+import DefaultPreference from 'react-native-default-preference';
 import Logger from '../util/Logger';
+import { ANALYTICS_EVENTS_V2 } from '../util/analyticsV2';
+import Engine from './Engine';
 const RCTAnalytics = NativeModules.Analytics;
+
+const USER_PROFILE_PROPERTY = {
+	ENABLE_OPENSEA_API: 'Enable OpenSea API',
+	NFT_AUTODETECTION: 'NFT Autodetection',
+
+	ON: 'ON',
+	OFF: 'OFF',
+};
 
 /**
  * Class to handle analytics through the app
@@ -12,23 +24,21 @@ class Analytics {
 	 * Variables defined in Mixpanel
 	 */
 	remoteVariables = {};
+
 	/**
 	 * Whether the manager has permission to send analytics
 	 */
 	enabled;
 
 	/**
-	 * State change callbacks
+	 * Persist current Metrics OptIn flag in user preferences datastore
 	 */
-	listeners;
-
-	/**
-	 * Notifies subscribers of current enabled
-	 */
-	_notify = () => {
-		this.listeners.forEach((listener) => {
-			listener(this.enabled);
-		});
+	_storeMetricsOptInPreference = async () => {
+		try {
+			await DefaultPreference.set(METRICS_OPT_IN, this.enabled ? AGREED : DENIED);
+		} catch (e) {
+			Logger.error(e, 'Error storing Metrics OptIn flag in user preferences');
+		}
 	};
 
 	/**
@@ -39,10 +49,27 @@ class Analytics {
 	};
 
 	/**
+	 * Set the user profile state for current user to mixpanel
+	 */
+	_setUserProfileProperties = () => {
+		const state = Engine.context.PreferencesController.internalState;
+		RCTAnalytics.setUserProfileProperty(
+			USER_PROFILE_PROPERTY.ENABLE_OPENSEA_API,
+			state?.openSeaEnabled ? USER_PROFILE_PROPERTY.ON : USER_PROFILE_PROPERTY.OFF
+		);
+		RCTAnalytics.setUserProfileProperty(
+			USER_PROFILE_PROPERTY.NFT_AUTODETECTION,
+			state?.useCollectibleDetection ? USER_PROFILE_PROPERTY.ON : USER_PROFILE_PROPERTY.OFF
+		);
+	};
+
+	/**
 	 * Track event if enabled and not DEV mode
 	 */
 	_trackEvent(name, { event, params = {}, value, info, anonymously = false }) {
-		if (!this.enabled) return;
+		const isAnalyticsPreferenceSelectedEvent = ANALYTICS_EVENTS_V2.ANALYTICS_PREFERENCE_SELECTED === event;
+		if (!this.enabled && !isAnalyticsPreferenceSelectedEvent) return;
+		this._setUserProfileProperties();
 		if (!__DEV__) {
 			if (!anonymously) {
 				RCTAnalytics.trackEvent({
@@ -67,9 +94,9 @@ class Analytics {
 	/**
 	 * Creates a Analytics instance
 	 */
-	constructor(enabled) {
+	constructor(metricsOptIn) {
 		if (!Analytics.instance) {
-			this.enabled = enabled;
+			this.enabled = metricsOptIn === AGREED;
 			this.listeners = [];
 			Analytics.instance = this;
 			if (!__DEV__) {
@@ -86,7 +113,7 @@ class Analytics {
 	enable = () => {
 		this.enabled = true;
 		RCTAnalytics.optIn(this.enabled);
-		this._notify();
+		this._storeMetricsOptInPreference();
 	};
 
 	/**
@@ -95,7 +122,7 @@ class Analytics {
 	disable = () => {
 		this.enabled = false;
 		RCTAnalytics.optIn(this.enabled);
-		this._notify();
+		this._storeMetricsOptInPreference();
 	};
 
 	/**
@@ -104,16 +131,7 @@ class Analytics {
 	 */
 	disableInstance = () => {
 		this.enabled = false;
-		this._notify();
-	};
-
-	/**
-	 * Subscribe for enabled changes
-	 *
-	 * @param listener - Callback to add to listeners
-	 */
-	subscribe = (listener) => {
-		this.listeners.push(listener);
+		this._storeMetricsOptInPreference();
 	};
 
 	/**
@@ -208,8 +226,9 @@ class Analytics {
 let instance;
 
 export default {
-	init: async (enabled) => {
-		instance = new Analytics(enabled);
+	init: async () => {
+		const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
+		instance = new Analytics(metricsOptIn);
 		try {
 			const vars = await RCTAnalytics.getRemoteVariables();
 			instance.remoteVariables = JSON.parse(vars);
@@ -229,9 +248,6 @@ export default {
 	},
 	getEnabled() {
 		return instance && instance.enabled;
-	},
-	subscribe(listener) {
-		return instance && instance.subscribe(listener);
 	},
 	getDistinctId() {
 		return instance && instance.getDistinctId();

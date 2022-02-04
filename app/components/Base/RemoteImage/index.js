@@ -4,7 +4,7 @@ import { Image, ViewPropTypes, View } from 'react-native';
 import FadeIn from 'react-native-fade-in-image';
 // eslint-disable-next-line import/default
 import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
-import { SvgCssUri } from 'react-native-svg';
+import { SvgUri } from 'react-native-svg';
 import isUrl from 'is-url';
 import ComponentErrorBoundary from '../../UI/ComponentErrorBoundary';
 import useIpfsGateway from '../../hooks/useIpfsGateway';
@@ -15,20 +15,20 @@ const RemoteImage = (props) => {
 	const source = resolveAssetSource(props.source);
 	const isImageUrl = isUrl(props?.source?.uri);
 	const ipfsGateway = useIpfsGateway();
-	const ipfsHash = useMemo(() => {
+	const resolvedIpfsUrl = useMemo(() => {
 		try {
 			const url = new URL(props.source.uri);
 			if (url.protocol !== 'ipfs:') return false;
-			const contentIdentifier = util.getIpfsUrlContentIdentifier(props.source.uri);
-			return contentIdentifier;
+			const ipfsUrl = util.getFormattedIpfsUrl(ipfsGateway, props.source.uri, false);
+			return ipfsUrl;
 		} catch {
 			return false;
 		}
-	}, [props.source.uri]);
+	}, [props.source.uri, ipfsGateway]);
 
-	const uri = ipfsHash ? `${ipfsGateway}${ipfsHash}` : source.uri;
+	const uri = resolvedIpfsUrl || source.uri;
 
-	if (source && source.uri && source.uri.match('.svg') && (isImageUrl || ipfsHash)) {
+	if (source && source.uri && source.uri.match('.svg') && (isImageUrl || resolvedIpfsUrl)) {
 		const style = props.style || {};
 		if (source.__packager_asset && typeof style !== 'number') {
 			if (!style.width) {
@@ -42,7 +42,7 @@ const RemoteImage = (props) => {
 		return (
 			<ComponentErrorBoundary onError={props.onError} componentLabel="RemoteImage-SVG">
 				<View style={style}>
-					<SvgCssUri {...props} uri={uri} width={'100%'} height={'100%'} fill={'black'} />
+					<SvgUri {...props} uri={uri} width={'100%'} height={'100%'} fill={'black'} />
 				</View>
 			</ComponentErrorBoundary>
 		);

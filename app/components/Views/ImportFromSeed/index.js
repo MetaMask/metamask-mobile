@@ -16,7 +16,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { connect } from 'react-redux';
-import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
+import { logIn, passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
@@ -29,7 +29,12 @@ import TermsAndConditions from '../TermsAndConditions';
 import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Device from '../../../util/device';
-import { failedSeedPhraseRequirements, isValidMnemonic, parseSeedPhrase } from '../../../util/validators';
+import {
+	failedSeedPhraseRequirements,
+	isValidMnemonic,
+	parseSeedPhrase,
+	parseVaultValue,
+} from '../../../util/validators';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import {
 	SEED_PHRASE_HINTS,
@@ -44,6 +49,7 @@ import { getPasswordStrengthWord, passwordRequirementsMet, MIN_PASSWORD_LENGTH }
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
+import Clipboard from '@react-native-clipboard/clipboard';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -205,6 +211,7 @@ class ImportFromSeed extends PureComponent {
 		 * Action to set onboarding wizard step
 		 */
 		setOnboardingWizardStep: PropTypes.func,
+		logIn: PropTypes.func,
 	};
 
 	state = {
@@ -243,7 +250,11 @@ class ImportFromSeed extends PureComponent {
 
 	onPressImport = async () => {
 		const { loading, seed, password, confirmPassword } = this.state;
-		const parsedSeed = parseSeedPhrase(seed);
+
+		const vaultSeed = await parseVaultValue(password, seed);
+		const parsedSeed = parseSeedPhrase(vaultSeed || seed);
+		//Set the seed state with a valid parsed seed phrase (handle vault scenario)
+		this.setState({ seed: parsedSeed });
 
 		if (loading) return;
 		InteractionManager.runAfterInteractions(() => {
@@ -295,6 +306,7 @@ class ImportFromSeed extends PureComponent {
 				this.props.passwordSet();
 				this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 				this.props.seedphraseBackedUp();
+				this.props.logIn();
 				InteractionManager.runAfterInteractions(() => {
 					AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_IMPORTED, {
 						biometrics_enabled: Boolean(this.state.biometryType),
@@ -305,10 +317,10 @@ class ImportFromSeed extends PureComponent {
 					});
 				});
 				if (onboardingWizard) {
-					this.props.navigation.navigate('ManualBackupStep3');
+					this.props.navigation.replace('ManualBackupStep3');
 				} else {
 					this.props.setOnboardingWizardStep(1);
-					this.props.navigation.navigate('HomeNav', { screen: 'WalletView' });
+					this.props.navigation.replace('HomeNav', { screen: 'WalletView' });
 				}
 				await importAdditionalAccounts();
 			} catch (error) {
@@ -337,8 +349,27 @@ class ImportFromSeed extends PureComponent {
 		this.setState({ biometryChoice: value });
 	};
 
-	onSeedWordsChange = (seed) => {
+	clearSecretRecoveryPhrase = async (seed) => {
+		// get clipboard contents
+		const clipboardContents = await Clipboard.getString();
+		const parsedClipboardContents = parseSeedPhrase(clipboardContents);
+		if (
+			// only clear clipboard if contents isValidMnemonic
+			!failedSeedPhraseRequirements(parsedClipboardContents) &&
+			isValidMnemonic(parsedClipboardContents) &&
+			// only clear clipboard if the seed phrase entered matches what's in the clipboard
+			parseSeedPhrase(seed) === parsedClipboardContents
+		) {
+			await Clipboard.clearString();
+		}
+	};
+
+	onSeedWordsChange = async (seed) => {
 		this.setState({ seed });
+		// only clear on android since iOS will notify users when we getString()
+		if (Device.isAndroid()) {
+			await this.clearSecretRecoveryPhrase(seed);
+		}
 	};
 
 	onPasswordChange = (val) => {
@@ -615,6 +646,7 @@ const mapDispatchToProps = (dispatch) => ({
 	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 	passwordSet: () => dispatch(passwordSet()),
 	seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
+	logIn: () => dispatch(logIn()),
 });
 
 export default connect(null, mapDispatchToProps)(ImportFromSeed);

@@ -7,7 +7,6 @@ import rootReducer from '../reducers';
 import { migrations, version } from './migrations';
 import Logger from '../util/Logger';
 import EngineService from '../core/EngineService';
-import AnalyticsService from '../core/AnalyticsService';
 
 const TIMEOUT = 40000;
 
@@ -86,12 +85,22 @@ const persistTransform = createTransform(
 	{ whitelist: ['engine'] }
 );
 
+const persistUserTransform = createTransform(
+	(inboundState) => {
+		const { initialScreen, isAuthChecked, ...state } = inboundState;
+		// Reconstruct data to persist
+		return state;
+	},
+	null,
+	{ whitelist: ['user'] }
+);
+
 const persistConfig = {
 	key: 'root',
 	version,
-	blacklist: ['onboarding', 'analytics'],
+	blacklist: ['onboarding'],
 	storage: MigratedStorage,
-	transforms: [persistTransform],
+	transforms: [persistTransform, persistUserTransform],
 	stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
 	migrate: createMigrate(migrations, { debug: false }),
 	timeout: TIMEOUT,
@@ -107,7 +116,6 @@ export const store = createStore(pReducer);
  */
 const onPersistComplete = () => {
 	EngineService.initalizeEngine(store);
-	AnalyticsService.initalizeAnalytics(store);
 };
 
 export const persistor = persistStore(store, null, onPersistComplete);

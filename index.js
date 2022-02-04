@@ -53,9 +53,17 @@ LogBox.ignoreLogs([
 	'componentWillUpdate',
 	'componentWillReceiveProps',
 	'getNode()',
-	'VirtualizedLists should never be nested inside plain ScrollViews',
 	'Non-serializable values were found in the navigation state.', // We are not saving navigation state so we can ignore this
+	'new NativeEventEmitter', // New libraries have not yet implemented native methods to handle warnings (https://stackoverflow.com/questions/69538962/new-nativeeventemitter-was-called-with-a-non-null-argument-without-the-requir)
+	'EventEmitter.removeListener',
+	'Module TcpSockets requires main queue setup',
+	'Module RCTSearchApiManager requires main queue setup',
+	'PushNotificationIOS has been extracted', // RNC PushNotification iOS issue - https://github.com/react-native-push-notification/ios/issues/43
 ]);
+
+/* Uncomment and comment regular registration below */
+// import Storybook from './storybook';
+// AppRegistry.registerComponent(name, () => Storybook);
 
 /**
  * Application entry point responsible for registering root component

@@ -1,11 +1,10 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Image, StyleSheet } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Browser from '../../Views/Browser';
 import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
-import Approval from '../../Views/Approval';
 import Settings from '../../Views/Settings';
 import GeneralSettings from '../../Views/Settings/GeneralSettings';
 import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
@@ -39,7 +38,6 @@ import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import PaymentRequest from '../../UI/PaymentRequest';
 import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
-import Approve from '../../Views/ApproveView/Approve';
 import Amount from '../../Views/SendFlow/Amount';
 import Confirm from '../../Views/SendFlow/Confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
@@ -52,6 +50,7 @@ import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import GasEducationCarousel from '../../Views/GasEducationCarousel';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
+import Drawer from '../../UI/Drawer';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -75,9 +74,7 @@ const WalletTabHome = () => (
 		<Stack.Screen name="WalletView" component={Wallet} />
 		<Stack.Screen name="Asset" component={Asset} options={Asset.navigationOptions} />
 		<Stack.Screen name="AddAsset" component={AddAsset} options={AddAsset.navigationOptions} />
-
 		<Stack.Screen name="Collectible" component={Collectible} options={Collectible.navigationOptions} />
-
 		<Stack.Screen
 			name="RevealPrivateCredentialView"
 			component={RevealPrivateCredential}
@@ -88,23 +85,41 @@ const WalletTabHome = () => (
 
 const BrowserTabHome = () => (
 	<Stack.Navigator>
-		<Stack.Screen name="BrowserView" component={Browser} options={Browser.navigationOptions} />
+		<Stack.Screen name="BrowserView" component={Browser} />
 	</Stack.Navigator>
 );
 
 const TransactionsHome = () => (
 	<Stack.Navigator>
-		<Stack.Screen name="TransactionsView" component={ActivityView} options={ActivityView.navigationOptions} />
+		<Stack.Screen name="TransactionsView" component={ActivityView} />
 	</Stack.Navigator>
 );
 
-const HomeTabs = () => (
-	<Tab.Navigator initialRouteName={'WalletTabHome'} tabBarOptions={{ style: styles.hidden }}>
-		<Tab.Screen name="WalletTabHome" component={WalletTabHome} options={{ tabBarVisible: false }} />
-		<Tab.Screen name="BrowserTabHome" component={BrowserTabHome} options={{ tabBarVisible: false }} />
-		<Tab.Screen name="TransactionsHome" component={TransactionsHome} options={{ tabBarVisible: false }} />
-	</Tab.Navigator>
-);
+export const DrawerContext = React.createContext({ drawerRef: null });
+
+const HomeTabs = () => {
+	const drawerRef = useRef(null);
+
+	return (
+		<DrawerContext.Provider value={{ drawerRef }}>
+			<Drawer ref={drawerRef}>
+				<Tab.Navigator
+					initialRouteName={'WalletTabHome'}
+					tabBarOptions={{ style: styles.hidden }}
+					screenOptions={{ tabBarVisible: false }}
+				>
+					<Tab.Screen name="WalletTabHome" component={WalletTabHome} options={{ tabBarVisible: false }} />
+					<Tab.Screen name="BrowserTabHome" component={BrowserTabHome} options={{ tabBarVisible: false }} />
+					<Tab.Screen
+						name="TransactionsHome"
+						component={TransactionsHome}
+						options={{ tabBarVisible: false }}
+					/>
+				</Tab.Navigator>
+			</Drawer>
+		</DrawerContext.Provider>
+	);
+};
 
 const Webview = () => (
 	<Stack.Navigator>
@@ -211,18 +226,6 @@ const SendFlowView = () => (
 		<Stack.Screen name="SendTo" component={SendTo} options={SendTo.navigationOptions} />
 		<Stack.Screen name="Amount" component={Amount} options={Amount.navigationOptions} />
 		<Stack.Screen name="Confirm" component={Confirm} options={Confirm.navigationOptions} />
-	</Stack.Navigator>
-);
-
-const ApprovalView = () => (
-	<Stack.Navigator>
-		<Stack.Screen name="Approval" component={Approval} options={Approval.navigationOptions} />
-	</Stack.Navigator>
-);
-
-const ApproveView = () => (
-	<Stack.Navigator>
-		<Stack.Screen name="Approve" component={Approve} options={Approve.navigationOptions} />
 	</Stack.Navigator>
 );
 
@@ -336,8 +339,6 @@ const MainNavigator = () => (
 		<Stack.Screen name="ImportPrivateKeyView" component={ImportPrivateKeyView} />
 		<Stack.Screen name="SendView" component={SendView} />
 		<Stack.Screen name="SendFlowView" component={SendFlowView} />
-		<Stack.Screen name="ApprovalView" component={ApprovalView} />
-		<Stack.Screen name="ApproveView" component={ApproveView} />
 		<Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />
 		<Stack.Screen name="OfflineModeView" component={OfflineModeView} />
 		<Stack.Screen name="QRScanner" component={QrScanner} />

@@ -105,7 +105,7 @@ import com.android.build.OutputFile
 
 project.ext.react = [
 	entryFile: "index.js",
-	enableHermes: false,  // clean and rebuild if changing
+	enableHermes: false //System.getenv('METAMASK_ENVIRONMENT') == 'production'
 ]
 
 apply from: "../../node_modules/react-native/react.gradle"
@@ -125,12 +125,7 @@ apply from: "../../node_modules/@sentry/react-native/sentry.gradle"
  * Upload all the APKs to the Play Store and people will download
  * the correct one based on the CPU architecture of their device.
  */
-def enableSeparateBuildPerCPUArchitecture = false
-
-/**
- * Run Proguard to shrink the Java bytecode in release builds.
- */
-def enableProguardInReleaseBuilds = false
+def enableSeparateBuildPerCPUArchitecture = true
 
 /**
  * The preferred build flavor of JavaScriptCore.
@@ -153,21 +148,20 @@ def jscFlavor = 'org.webkit:android-jsc:+'
  */
 def enableHermes = project.ext.react.get("enableHermes", false)
 
+/**
+ * Architectures to build native code for in debug.
+ */
+def nativeArchitectures = project.getProperties().get("reactNativeDebugArchitectures")
+
 android {
-
-	compileSdkVersion rootProject.ext.compileSdkVersion
-
-	compileOptions {
-		sourceCompatibility JavaVersion.VERSION_1_8
-		targetCompatibility JavaVersion.VERSION_1_8
-	}
+    compileSdkVersion rootProject.ext.compileSdkVersion
 
 	defaultConfig {
 		applicationId "io.metamask"
 		minSdkVersion rootProject.ext.minSdkVersion
 		targetSdkVersion rootProject.ext.targetSdkVersion
-		versionCode 790
-		versionName "3.6.0"
+		versionCode 814
+		versionName "4.0.1"
 		multiDexEnabled true
 		testBuildType System.getProperty('testBuildType', 'debug')
 		missingDimensionStrategy "minReactNative", "minReactNative46"
@@ -189,7 +183,6 @@ android {
 	}
 
 	signingConfigs {
-		def pass = ""
 		release {
 			storeFile file('../keystores/release.keystore')
 			storePassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PASSWORD")
@@ -209,7 +202,6 @@ android {
 			reset()
 			enable enableSeparateBuildPerCPUArchitecture
 			universalApk false  // If true, also generate a universal APK
-			include "armeabi-v7a", "x86", "arm64-v8a", "x86_64"
 		}
 	}
 
@@ -217,10 +209,18 @@ android {
 		debug {
 			manifestPlaceholders = [isDebug:true]
 			signingConfig signingConfigs.debug
+			if (nativeArchitectures) {
+                ndk {
+                    abiFilters nativeArchitectures.split(',')
+                }
+            }
+			multiDexEnabled true
 		}
 		release {
 			manifestPlaceholders = [isDebug:false]
-			minifyEnabled enableProguardInReleaseBuilds
+			minifyEnabled true
+			multiDexEnabled true
+			shrinkResources true
 			proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
 			signingConfig signingConfigs.release
 		}
@@ -237,7 +237,7 @@ android {
 			def abi = output.getFilter(OutputFile.ABI)
 			if (abi != null) {  // null for the universal-debug, universal-release variants
 				output.versionCodeOverride =
-					versionCodes.get(abi) * 1048576 + defaultConfig.versionCode
+					defaultConfig.versionCode * 1000 + versionCodes.get(abi)
 			}
 		}
 	}
@@ -264,16 +264,20 @@ dependencies {
 	androidTestImplementation('com.wix:detox:+') { transitive = true }
 	androidTestImplementation 'junit:junit:4.12'
 	implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
-    debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
-      exclude group:'com.facebook.fbjni'
+
+	debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
+        exclude group:'com.facebook.fbjni'
     }
+
     debugImplementation("com.facebook.flipper:flipper-network-plugin:${FLIPPER_VERSION}") {
         exclude group:'com.facebook.flipper'
-		exclude group:'com.squareup.okhttp3', module:'okhttp'
+        exclude group:'com.squareup.okhttp3', module:'okhttp'
     }
+
     debugImplementation("com.facebook.flipper:flipper-fresco-plugin:${FLIPPER_VERSION}") {
         exclude group:'com.facebook.flipper'
     }
+	
     if (enableHermes) {
         def hermesPath = "../../node_modules/hermes-engine/android/";
         debugImplementation files(hermesPath + "hermes-debug.aar")
@@ -286,7 +290,7 @@ dependencies {
 // Run this once to be able to run the application with BUCK
 // puts all compile dependencies into folder libs for BUCK to use
 task copyDownloadableDepsToLibs(type: Copy) {
-	from configurations.compile
+	from configurations.implementation
 	into 'libs'
 }
 

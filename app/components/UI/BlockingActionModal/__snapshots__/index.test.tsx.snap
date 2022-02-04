@@ -30,6 +30,7 @@ exports[`BlockingActionModal should render correctly 1`] = `
   scrollOffset={0}
   scrollOffsetMax={0}
   scrollTo={null}
+  statusBarTranslucent={false}
   style={
     Object {
       "margin": 0,
@@ -70,9 +71,6 @@ exports[`BlockingActionModal should render correctly 1`] = `
         Please wait
       </Text>
       <ActivityIndicator
-        animating={true}
-        color="#999999"
-        hidesWhenStopped={true}
         size="small"
         style={
           Object {

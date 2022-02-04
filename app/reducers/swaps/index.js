@@ -3,6 +3,7 @@ import { isMainnetByChainId } from '../../util/networks';
 import { safeToChecksumAddress } from '../../util/address';
 import { toLowerCaseEquals } from '../../util/general';
 import Engine from '../../core/Engine';
+import { lte } from '../../util/lodash';
 
 // * Constants
 export const SWAPS_SET_LIVENESS = 'SWAPS_SET_LIVENESS';
@@ -52,7 +53,7 @@ export const swapsHasOnboardedSelector = createSelector(swapsStateSelector, (swa
 /**
  * Returns the swaps tokens from the state
  */
-const swapsControllerTokens = (state) => state.engine.backgroundState.SwapsController.tokens;
+export const swapsControllerTokens = (state) => state.engine.backgroundState.SwapsController.tokens;
 const tokensSelectors = (state) => state.engine.backgroundState.TokensController.tokens;
 
 const swapsControllerAndUserTokens = createSelector(swapsControllerTokens, tokensSelectors, (swapsTokens, tokens) => {
@@ -113,8 +114,8 @@ export const swapsTokensWithBalanceSelector = createSelector(
 		}
 		const baseTokens = tokens;
 		const tokensAddressesWithBalance = Object.entries(balances)
-			.filter(([, balance]) => Boolean(balance) && balance?.isZero && !balance.isZero())
-			.sort(([, balanceA], [, balanceB]) => (balanceB.lte(balanceA) ? -1 : 1))
+			.filter(([, balance]) => balance !== 0)
+			.sort(([, balanceA], [, balanceB]) => (lte(balanceB, balanceA) ? -1 : 1))
 			.map(([address]) => address.toLowerCase());
 		const tokensWithBalance = [];
 		const originalTokens = [];

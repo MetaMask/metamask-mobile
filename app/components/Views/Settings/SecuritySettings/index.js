@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
+import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
 import SecureKeychain from '../../../../core/SecureKeychain';
 import SelectComponent from '../../../UI/SelectComponent';
@@ -232,6 +233,22 @@ class Settings extends PureComponent {
 		 * completed the seed phrase backup flow
 		 */
 		seedphraseBackedUp: PropTypes.bool,
+		/**
+		 * State of OpenSea Enable toggle
+		 */
+		openSeaEnabled: PropTypes.bool,
+		/**
+		 * State of NFT detection toggle
+		 */
+		useCollectibleDetection: PropTypes.bool,
+		/**
+		 * Route passed in props from navigation
+		 */
+		route: PropTypes.object,
+		/**
+		 * Type of network
+		 */
+		type: PropTypes.string,
 	};
 
 	static navigationOptions = ({ navigation }) =>
@@ -243,7 +260,7 @@ class Settings extends PureComponent {
 		biometryType: false,
 		browserHistoryModalVisible: false,
 		cookiesModalVisible: false,
-		metricsOptIn: false,
+		analyticsEnabled: false,
 		passcodeChoice: false,
 		showHint: false,
 		hintText: '',
@@ -292,10 +309,11 @@ class Settings extends PureComponent {
 		},
 	];
 
+	scrollView = undefined;
+
 	componentDidMount = async () => {
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
-		const metricsOptIn = Analytics.getEnabled();
-
+		const analyticsEnabled = Analytics.getEnabled();
 		const currentSeedphraseHints = await AsyncStorage.getItem(SEED_PHRASE_HINTS);
 		const parsedHints = currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
 		const manualBackup = parsedHints?.manualBackup;
@@ -312,16 +330,18 @@ class Settings extends PureComponent {
 			this.setState({
 				biometryType: biometryType && Device.isAndroid() ? 'biometrics' : biometryType,
 				biometryChoice: !!biometryChoice,
-				metricsOptIn,
+				analyticsEnabled,
 				passcodeChoice: passcodeEnabled,
 				hintText: manualBackup,
 			});
 		} else {
 			this.setState({
-				metricsOptIn,
+				analyticsEnabled,
 				hintText: manualBackup,
 			});
 		}
+
+		if (this.props.route?.params?.scrollToBottom) this.scrollView?.scrollToEnd({ animated: true });
 	};
 
 	onSingInWithBiometrics = async (enabled) => {
@@ -343,6 +363,8 @@ class Settings extends PureComponent {
 			}
 		});
 	};
+
+	isMainnet = () => this.props.type === MAINNET;
 
 	onSignInWithPasscode = async (enabled) => {
 		this.setState({ loading: true }, async () => {
@@ -444,6 +466,17 @@ class Settings extends PureComponent {
 		this.props.setThirdPartyApiMode(value);
 	};
 
+	toggleOpenSeaApi = (value) => {
+		const { PreferencesController } = Engine.context;
+		PreferencesController?.setOpenSeaEnabled(value);
+		if (!value) PreferencesController?.setUseCollectibleDetection(value);
+	};
+
+	toggleNftAutodetect = (value) => {
+		const { PreferencesController } = Engine.context;
+		PreferencesController.setUseCollectibleDetection(value);
+	};
+
 	/**
 	 * Track the event of opt in or opt out.
 	 * @param AnalyticsOptionSelected - User selected option regarding the tracking of events
@@ -460,15 +493,15 @@ class Settings extends PureComponent {
 	toggleMetricsOptIn = async (value) => {
 		if (value) {
 			Analytics.enable();
-			this.setState({ metricsOptIn: true });
+			this.setState({ analyticsEnabled: true });
 			await this.trackOptInEvent('Metrics Opt In');
 		} else {
 			await this.trackOptInEvent('Metrics Opt Out');
 			Analytics.disable();
-			this.setState({ metricsOptIn: false });
+			this.setState({ analyticsEnabled: false });
 			Alert.alert(
 				strings('app_settings.metametrics_opt_out'),
-				strings('app_settings.metrametrics_restart_required')
+				strings('app_settings.metametrics_restart_required')
 			);
 		}
 	};
@@ -534,13 +567,21 @@ class Settings extends PureComponent {
 	onBack = () => this.props.navigation.goBack();
 
 	render = () => {
-		const { approvedHosts, seedphraseBackedUp, browserHistory, privacyMode, thirdPartyApiMode } = this.props;
+		const {
+			approvedHosts,
+			seedphraseBackedUp,
+			browserHistory,
+			privacyMode,
+			thirdPartyApiMode,
+			openSeaEnabled,
+			useCollectibleDetection,
+		} = this.props;
 		const {
 			approvalModalVisible,
 			biometryType,
 			browserHistoryModalVisible,
 			cookiesModalVisible,
-			metricsOptIn,
+			analyticsEnabled,
 			loading,
 			hintText,
 		} = this.state;
@@ -555,7 +596,13 @@ class Settings extends PureComponent {
 			);
 
 		return (
-			<ScrollView style={styles.wrapper} testID={'security-settings-scrollview'}>
+			<ScrollView
+				style={styles.wrapper}
+				testID={'security-settings-scrollview'}
+				ref={(view) => {
+					this.scrollView = view;
+				}}
+			>
 				<View style={styles.inner}>
 					<Heading first>{strings('app_settings.security_heading')}</Heading>
 					<View style={[styles.setting, styles.firstSetting]}>
@@ -734,7 +781,7 @@ class Settings extends PureComponent {
 						<Text style={styles.desc}>{strings('app_settings.metametrics_description')}</Text>
 						<View style={styles.switchElement}>
 							<Switch
-								value={metricsOptIn}
+								value={analyticsEnabled}
 								onValueChange={this.toggleMetricsOptIn}
 								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
 								ios_backgroundColor={colors.grey000}
@@ -799,6 +846,39 @@ class Settings extends PureComponent {
 							<Text style={styles.modalText}>{strings('app_settings.clear_cookies_modal_message')}</Text>
 						</View>
 					</ActionModal>
+					{this.isMainnet() && (
+						<>
+							<View style={styles.setting} testID={'nft-opensea-mode-section'}>
+								<Text style={styles.title}>{strings('app_settings.nft_opensea_mode')}</Text>
+								<Text style={styles.desc}>{strings('app_settings.nft_opensea_desc')}</Text>
+								<View style={styles.switchElement}>
+									<Switch
+										value={openSeaEnabled}
+										onValueChange={this.toggleOpenSeaApi}
+										trackColor={
+											Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null
+										}
+										ios_backgroundColor={colors.grey000}
+									/>
+								</View>
+							</View>
+							<View style={styles.setting} testID={'nft-opensea-autodetect-mode-section'}>
+								<Text style={styles.title}>{strings('app_settings.nft_autodetect_mode')}</Text>
+								<Text style={styles.desc}>{strings('app_settings.nft_autodetect_desc')}</Text>
+								<View style={styles.switchElement}>
+									<Switch
+										value={useCollectibleDetection}
+										onValueChange={this.toggleNftAutodetect}
+										trackColor={
+											Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null
+										}
+										ios_backgroundColor={colors.grey000}
+										disabled={!openSeaEnabled}
+									/>
+								</View>
+							</View>
+						</>
+					)}
 					{this.renderHint()}
 				</View>
 			</ScrollView>
@@ -816,8 +896,11 @@ const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
+	openSeaEnabled: state.engine.backgroundState.PreferencesController.openSeaEnabled,
+	useCollectibleDetection: state.engine.backgroundState.PreferencesController.useCollectibleDetection,
 	passwordHasBeenSet: state.user.passwordSet,
 	seedphraseBackedUp: state.user.seedphraseBackedUp,
+	type: state.engine.backgroundState.NetworkController.provider.type,
 });
 
 const mapDispatchToProps = (dispatch) => ({

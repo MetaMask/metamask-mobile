@@ -21,6 +21,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import {
 	setSwapsHasOnboarded,
 	setSwapsLiveness,
+	swapsControllerTokens,
 	swapsHasOnboardedSelector,
 	swapsTokensSelector,
 	swapsTokensWithBalanceSelector,
@@ -51,6 +52,7 @@ import useBlockExplorer from './utils/useBlockExplorer';
 import InfoModal from './components/InfoModal';
 import { toLowerCaseEquals } from '../../../util/general';
 import { AlertType } from '../../Base/Alert';
+import { isZero, gte } from '../../../util/lodash';
 
 const styles = StyleSheet.create({
 	screen: {
@@ -139,6 +141,7 @@ const MAX_TOP_ASSETS = 20;
 
 function SwapsAmountView({
 	swapsTokens,
+	swapsControllerTokens,
 	accounts,
 	selectedAddress,
 	chainId,
@@ -231,7 +234,7 @@ function SwapsAmountView({
 		(async () => {
 			const { SwapsController } = Engine.context;
 			try {
-				if (swapsTokens === null) {
+				if (!swapsControllerTokens || !swapsTokens || swapsTokens?.length === 0) {
 					setInitialLoadingTokens(true);
 				}
 				setLoadingTokens(true);
@@ -245,14 +248,14 @@ function SwapsAmountView({
 				setInitialLoadingTokens(false);
 			}
 		})();
-	}, [swapsTokens]);
+	}, [swapsControllerTokens, swapsTokens]);
 
 	useEffect(() => {
-		if (!isSourceSet && initialSource && swapsTokens && !sourceToken) {
+		if (!isSourceSet && initialSource && swapsControllerTokens && swapsTokens?.length > 0 && !sourceToken) {
 			setIsSourceSet(true);
 			setSourceToken(swapsTokens.find((token) => toLowerCaseEquals(token.address, initialSource)));
 		}
-	}, [initialSource, isSourceSet, sourceToken, swapsTokens]);
+	}, [initialSource, isSourceSet, sourceToken, swapsControllerTokens, swapsTokens]);
 
 	useEffect(() => {
 		setHasDismissedTokenAlert(false);
@@ -297,19 +300,25 @@ function SwapsAmountView({
 	const balance = isSwapsNativeAsset(sourceToken) || isTokenInBalances ? controllerBalance : contractBalance;
 	const balanceAsUnits =
 		isSwapsNativeAsset(sourceToken) || isTokenInBalances ? controllerBalanceAsUnits : contractBalanceAsUnits;
+
+	const isBalanceZero = isZero(balanceAsUnits);
+	const isAmountZero = isZero(amountAsUnits);
+
 	const hasBalance = useMemo(() => {
 		if (!balanceAsUnits || !sourceToken) {
 			return false;
 		}
 
-		return !(balanceAsUnits.isZero?.() ?? true);
-	}, [balanceAsUnits, sourceToken]);
+		return !(isBalanceZero ?? true);
+	}, [balanceAsUnits, sourceToken, isBalanceZero]);
 
 	const hasEnoughBalance = useMemo(() => {
 		if (hasInvalidDecimals || !hasBalance || !balanceAsUnits) {
 			return false;
 		}
-		return balanceAsUnits.gte?.(amountAsUnits) ?? false;
+
+		// TODO: Cannot call .gte on balanceAsUnits since it isn't always guaranteed to be type BN. Should consolidate into one type.
+		return gte(balanceAsUnits, amountAsUnits) ?? false;
 	}, [amountAsUnits, balanceAsUnits, hasBalance, hasInvalidDecimals]);
 
 	const currencyAmount = useMemo(() => {
@@ -339,7 +348,7 @@ function SwapsAmountView({
 		if (hasInvalidDecimals) {
 			return;
 		}
-		if (!isSwapsNativeAsset(sourceToken) && !isTokenInBalances && !balanceAsUnits?.isZero()) {
+		if (!isSwapsNativeAsset(sourceToken) && !isTokenInBalances && !isBalanceZero) {
 			const { TokensController } = Engine.context;
 			const { address, symbol, decimals } = sourceToken;
 			await TokensController.addToken(address, symbol, decimals);
@@ -356,13 +365,13 @@ function SwapsAmountView({
 		);
 	}, [
 		amount,
-		balanceAsUnits,
 		destinationToken,
 		hasInvalidDecimals,
 		isTokenInBalances,
 		navigation,
 		slippage,
 		sourceToken,
+		isBalanceZero,
 	]);
 
 	/* Keypad Handlers */
@@ -497,7 +506,7 @@ function SwapsAmountView({
 						</Text>
 					</TouchableOpacity>
 					{!!sourceToken &&
-						(hasInvalidDecimals || (!amountAsUnits?.isZero() && !hasEnoughBalance) ? (
+						(hasInvalidDecimals || (!isAmountZero && !hasEnoughBalance) ? (
 							<Text style={styles.amountInvalid}>
 								{hasInvalidDecimals
 									? strings('swaps.allows_up_to_decimals', {
@@ -507,7 +516,7 @@ function SwapsAmountView({
 									  })
 									: strings('swaps.not_enough', { symbol: sourceToken.symbol })}
 							</Text>
-						) : amountAsUnits?.isZero() ? (
+						) : isAmountZero ? (
 							<Text>
 								{!!sourceToken &&
 									balance !== null &&
@@ -678,7 +687,7 @@ function SwapsAmountView({
 									!sourceToken ||
 									!destinationToken ||
 									hasInvalidDecimals ||
-									amountAsUnits.isZero()
+									isAmountZero
 								}
 							>
 								{strings('swaps.get_quotes')}
@@ -720,6 +729,7 @@ SwapsAmountView.navigationOptions = ({ navigation, route }) => getSwapsAmountNav
 
 SwapsAmountView.propTypes = {
 	swapsTokens: PropTypes.arrayOf(PropTypes.object),
+	swapsControllerTokens: PropTypes.arrayOf(PropTypes.object),
 	tokensWithBalance: PropTypes.arrayOf(PropTypes.object),
 	tokensTopAssets: PropTypes.arrayOf(PropTypes.object),
 	/**
@@ -774,6 +784,7 @@ SwapsAmountView.propTypes = {
 
 const mapStateToProps = (state) => ({
 	swapsTokens: swapsTokensSelector(state),
+	swapsControllerTokens: swapsControllerTokens(state),
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	balances: state.engine.backgroundState.TokenBalancesController.contractBalances,

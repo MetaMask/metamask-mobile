@@ -2,6 +2,42 @@
 
 ## Current Develop Branch
 
+## v4.0.1 - January 31, 2022
+- [#3658](https://github.com/MetaMask/metamask-mobile/pull/3658): [HOTFIX] 4.0.1 - BN crash and NFT Improvement
+
+## v4.0.0 - January 20, 2022
+- [#3509](https://github.com/MetaMask/metamask-mobile/pull/3509): [IMPROVEMENT] Upgrade to React Native 0.66.3
+- [#3623](https://github.com/MetaMask/metamask-mobile/pull/3623): [FIX] Fix swaps slider button re-rendering
+- [#3481](https://github.com/MetaMask/metamask-mobile/pull/3481): [FIX] Fix confirm button disabled on txn confirmation
+- [#3495](https://github.com/MetaMask/metamask-mobile/pull/3495): [IMPROVEMENT] Reduce png file image weight using TinyPng cli tool
+
+## v3.8.0 - December 3 2021
+- [#3457](https://github.com/MetaMask/metamask-mobile/pull/3457): [FEAT] User review prompt
+- [#3465](https://github.com/MetaMask/metamask-mobile/pull/3465): [FIX] 3464 fix login bug
+- [#3430](https://github.com/MetaMask/metamask-mobile/pull/3430): [IMPROVEMENT] Add better initial state for swaps loading tokens
+- [#3387](https://github.com/MetaMask/metamask-mobile/pull/3387): [FIX] Minor NFTs bugs
+- [#3458](https://github.com/MetaMask/metamask-mobile/pull/3458): [FIX] Collectibles Autodetection
+- [#3459](https://github.com/MetaMask/metamask-mobile/pull/3459): [FIX] Android Keyboard Text Entry
+- [#3452](https://github.com/MetaMask/metamask-mobile/pull/3452): [FIX] `this.existingTxId` always false
+- [#3423](https://github.com/MetaMask/metamask-mobile/pull/3423): [IMPROVEMENT] Android APK Size, App Load Time
+- [#3443](https://github.com/MetaMask/metamask-mobile/pull/3443): [UPDATE] Disable Sync with Extension
+- [#3430](https://github.com/MetaMask/metamask-mobile/pull/3430): [IMPROVEMENT] Add better initial state for swaps loading tokens
+
+## v3.7.0 - November 16 2021
+- [#3405](https://github.com/MetaMask/metamask-mobile/pull/3405): [FIX] Remove Metric Opt In event
+- [#3412](https://github.com/MetaMask/metamask-mobile/pull/3412): [UPGRADE] Android SDK and dependencies to support SDK 30
+- [#3371](https://github.com/MetaMask/metamask-mobile/pull/3371): [FIX] iOS FaceID Deny Handler
+- [#3346](https://github.com/MetaMask/metamask-mobile/pull/3346): [FEATURE] Mobile Vault Decryptor Functionality
+- [#3397](https://github.com/MetaMask/metamask-mobile/pull/3397): [IMPROVEMENT] Enable sentry performance
+- [#3394](https://github.com/MetaMask/metamask-mobile/pull/3394): [FIX] Persistence of analytics preference
+- [#3350](https://github.com/MetaMask/metamask-mobile/pull/3350): [FEATURE] WalletConnect support signTypedData_v4 and use signTypedData_v3 by default
+- [#3144](https://github.com/MetaMask/metamask-mobile/pull/3144): [IMPROVEMENT] use empty string quotes for anonymous id
+- [#3413](https://github.com/MetaMask/metamask-mobile/pull/3413): [FIX] Pin git dependencies to SHA to be safe
+- [#3392](https://github.com/MetaMask/metamask-mobile/pull/3392): [FIX] Allow sharp
+- [#3367](https://github.com/MetaMask/metamask-mobile/pull/3367): [FEATURE] Add LavaMoat Allow-Scripts
+- [#3378](https://github.com/MetaMask/metamask-mobile/pull/3378): [FIX] patch validator via resolution
+- [#3357](https://github.com/MetaMask/metamask-mobile/pull/3357): [FIX] 404 dead links in readme
+
 ## v3.6.0 - November 1 2021
 - [#3301](https://github.com/MetaMask/metamask-mobile/pull/3301): [FEATURE] ERC-1155 and custom network support
 - [#3343](https://github.com/MetaMask/metamask-mobile/pull/3343): [IMPROVEMENT] Add IPFS support for NFTs

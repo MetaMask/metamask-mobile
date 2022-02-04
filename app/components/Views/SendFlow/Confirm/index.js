@@ -783,7 +783,7 @@ class Confirm extends PureComponent {
 				}
 			} else {
 				const [, , amount] = decodeTransferData('transfer', transaction.data);
-				weiBalance = contractBalances[selectedAsset.address];
+				weiBalance = hexToBN(contractBalances[selectedAsset.address]);
 				weiInput = hexToBN(amount);
 				error =
 					weiBalance && weiBalance.gte(weiInput)
@@ -1110,6 +1110,7 @@ class Confirm extends PureComponent {
 		InteractionManager.runAfterInteractions(() => {
 			this.props.navigation.navigate('BrowserView', {
 				newTabUrl: mmFaucetUrl,
+				timestamp: Date.now(),
 			});
 		});
 	};

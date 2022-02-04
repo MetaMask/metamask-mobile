@@ -195,7 +195,8 @@ class AdvancedSettings extends PureComponent {
 		delete fullState.engine.backgroundState.CollectiblesController;
 		delete fullState.engine.backgroundState.TokensController;
 		delete fullState.engine.backgroundState.AssetsContractController;
-		delete fullState.engine.backgroundState.AssetsDetectionController;
+		delete fullState.engine.backgroundState.TokenDetectionController;
+		delete fullState.engine.backgroundState.CollectibleDetectionController;
 		delete fullState.engine.backgroundState.PhishingController;
 		delete fullState.engine.backgroundState.AssetsContractController;
 

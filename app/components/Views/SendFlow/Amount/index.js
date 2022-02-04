@@ -57,6 +57,8 @@ import { renderShortText } from '../../../../util/general';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { decGWEIToHexWEI } from '../../../../util/conversions';
 import AppConstants from '../../../../core/AppConstants';
+import { collectibleContractsSelector, collectiblesSelector } from '../../../../reducers/collectibles';
+import { gte } from '../../../../util/lodash';
 
 const { hexToBN, BNToHex } = util;
 
@@ -637,7 +639,8 @@ class Amount extends PureComponent {
 				weiBalance = contractBalances[selectedAsset.address];
 				weiInput = toTokenMinimalUnit(inputValue, selectedAsset.decimals);
 			}
-			amountError = weiBalance.gte(weiInput) ? undefined : strings('transaction.insufficient');
+			// TODO: weiBalance is not always guaranteed to be type BN. Need to consolidate type.
+			amountError = gte(weiBalance, weiInput) ? undefined : strings('transaction.insufficient');
 		} else {
 			amountError = strings('transaction.invalid_amount');
 		}
@@ -1086,8 +1089,8 @@ const mapStateToProps = (state, ownProps) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
-	collectibleContracts: state.engine.backgroundState.CollectiblesController.collectibleContracts,
+	collectibles: collectiblesSelector(state),
+	collectibleContracts: collectibleContractsSelector(state),
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	providerType: state.engine.backgroundState.NetworkController.provider.type,
