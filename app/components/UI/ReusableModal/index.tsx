@@ -1,7 +1,7 @@
 /* eslint-disable */
 import React, { useEffect, ReactNode, forwardRef, useImperativeHandle, useMemo, useCallback, useRef } from 'react';
 import { View, TouchableOpacity, StyleSheet, ViewStyle, Dimensions, StyleProp } from 'react-native';
-import { useNavigation } from '@react-navigation/core';
+import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import Animated, {
