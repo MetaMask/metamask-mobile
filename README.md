@@ -2,7 +2,7 @@
 
 # MetaMask
 
-[![CI](https://github.com/MetaMask/metamask-mobile/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/MetaMask/metamask-mobile/actions/workflows/ci.yml) [![CLA](https://github.com/MetaMask/metamask-mobile/actions/workflows/cla.yml/badge.svg?branch=develop)](https://github.com/MetaMask/metamask-mobile/actions/workflows/cla.yml)
+[![CI](https://github.com/MetaMask/metamask-mobile/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/MetaMask/metamask-mobile/actions/workflows/ci.yml) [![CLA](https://github.com/MetaMask/metamask-mobile/actions/workflows/cla.yml/badge.svg?branch=main)](https://github.com/MetaMask/metamask-mobile/actions/workflows/cla.yml)
 
 MetaMask is a mobile web browser that provides easy access to websites that use the [Ethereum](https://ethereum.org/) blockchain.
 
@@ -145,6 +145,23 @@ Finally, check that the debugger is working:
     1. `brew tap facebook/fb` & `brew install idb-companion`
     2. `pip3.9 install fb-idb` (This step may require that you install python3 via `python -m pip3 install --upgrade pip`)
 
+#### Debug a website inside the WebView (in-app browser)
+
+Android
+
+-   Run the app in debug mode (for example, in a simulator)
+-   Open Chrome on your desktop
+-   Go to `chrome://inspect/#devices`
+-   Look for the device and click inspect
+
+iOS
+
+-   Run the app in debug mode (for example, in a simulator)
+-   Open Safari on your desktop
+-   Go to the menu Develop -> [Your device] -> [Website]
+
+You should see the console for the website that is running inside the WebView
+
 #### Miscellaneous
 
 -   [Troubleshooting for React Native](https://facebook.github.io/react-native/docs/troubleshooting#content)
@@ -184,4 +201,8 @@ Whenever you change dependencies (adding, removing, or updating, either in `pack
 
 ### Architecture
 
-To get a better understanding of the internal architecture of this app take a look at [this diagram](https://github.com/MetaMask/metamask-mobile/blob/develop/architecture.svg).
+To get a better understanding of the internal architecture of this app take a look at [this diagram](https://github.com/MetaMask/metamask-mobile/blob/main/architecture.svg).
+
+### Storybook
+
+We have begun documenting our components using storybook please read the [Documentation Guidelines](./storybook/DOCUMENTATION_GUIDELINES.md) to get up and running.

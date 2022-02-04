@@ -1,9 +1,9 @@
 {
   "name": "metamask",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "private": true,
   "scripts": {
-    "audit:ci": "./scripts/yarn-audit.sh audit dependencies",
+    "audit:ci": "./scripts/yarn-audit.sh",
     "watch": "./scripts/build.sh watcher watch",
     "watch:clean": "./scripts/build.sh watcher clean",
     "clean:ios": "rm -rf ios/build",
@@ -12,9 +12,9 @@
     "clean:node": "rm -rf node_modules && yarn --frozen-lockfile",
     "clean": "yarn clean:ios && yarn clean:android && yarn clean:node && yarn pod:install",
     "clean-android": "yarn clean:android && yarn clean:node",
-    "lint": "eslint '**/*.js' --ignore-path=.prettierignore",
-    "lint:fix": "eslint '**/*.js' --fix --ignore-path=.prettierignore",
-    "format": "prettier '**/*.{js,json}' --write",
+    "lint": "eslint '**/*.{js,ts,tsx}' --ignore-path=.prettierignore",
+    "lint:fix": "eslint '**/*.{js,ts,tsx}' --fix --ignore-path=.prettierignore",
+    "format": "prettier '**/*.{js,ts,tsx,json}' --write",
     "setup": "yarn clean && yarn allow-scripts && ./scripts/postinstall.sh",
     "start:ios": "./scripts/build.sh ios debug",
     "start:ios:e2e": "./scripts/build.sh ios debugE2E",
@@ -45,7 +45,8 @@
     "sourcemaps:ios": "node_modules/.bin/react-native bundle --platform ios --entry-file index.js --dev false --reset-cache --bundle-output /tmp/bundle.ios.js --assets-dest /tmp/ --sourcemap-output sourcemaps/ios/index.js.map",
     "stacktrace:android": "stack-beautifier sourcemaps/android/index.js.map -t sourcemaps/trace.txt",
     "stacktrace:ios": "stack-beautifier sourcemaps/ios/index.js.map -t sourcemaps/trace.txt",
-    "update-changelog": "./scripts/auto-changelog.sh"
+    "update-changelog": "./scripts/auto-changelog.sh",
+    "prestorybook": "rnstl"
   },
   "prettier": {
     "printWidth": 120,
@@ -68,6 +69,7 @@
     ]
   },
   "resolutions": {
+    "**/nanoid": "^3.1.31",
     "**/json-schema": "^0.4.0",
     "@sentry/react-native/**/xmldom": "^0.6.0",
     "@walletconnect/**/ws": "^7.4.6",
@@ -76,7 +78,7 @@
     "**/pac-resolver": "^5.0.0",
     "**/ansi-regex": "^5.0.1",
     "**/immer": "^9.0.6",
-    "**/node-fetch": "^2.6.1",
+    "**/node-fetch": "^2.6.7",
     "**/node-notifier": "^8.0.1",
     "**/lodash": "^4.17.21",
     "**/ua-parser-js": "^0.7.24",
@@ -89,7 +91,8 @@
     "@metamask/contract-metadata": "^1.30.0",
     "@exodus/react-native-payments/validator": "^13.7.0",
     "react-devtools-core": "4.22.1",
-    "web3": "1.6.1"
+    "web3": "1.6.1",
+    "simple-get": "4.0.1"
   },
   "dependencies": {
     "@exodus/react-native-payments": "git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5",
@@ -117,7 +120,7 @@
     "@walletconnect/client": "^1.5.1",
     "@walletconnect/utils": "^1.5.1",
     "asyncstorage-down": "4.2.0",
-    "axios": "^0.21.2",
+    "axios": "^0.25",
     "babel-plugin-transform-inline-environment-variables": "0.4.3",
     "babel-plugin-transform-remove-console": "6.9.4",
     "base-64": "1.0.0",
@@ -229,6 +232,7 @@
     "reselect": "^4.0.0",
     "rn-fetch-blob": "^0.12.0",
     "stream-browserify": "1.0.0",
+    "swappable-obj-proxy": "^1.1.0",
     "through2": "3.0.1",
     "unicode-confusables": "^0.1.1",
     "url": "0.11.0",
@@ -245,6 +249,12 @@
     "@metamask/eslint-config-typescript": "^7.0.0",
     "@metamask/mobile-provider": "^2.1.0",
     "@react-native-community/eslint-config": "^2.0.0",
+    "@storybook/addon-actions": "^5.3",
+    "@storybook/addon-knobs": "^5.3",
+    "@storybook/addon-links": "^5.3",
+    "@storybook/addon-ondevice-actions": "^5.3.23",
+    "@storybook/addon-ondevice-knobs": "^5.3.25",
+    "@storybook/react-native": "^5.3.25",
     "@types/enzyme": "^3.10.9",
     "@types/jest": "^27.0.1",
     "@types/react": "^17.0.11",
@@ -257,6 +267,7 @@
     "babel-core": "7.0.0-bridge.0",
     "babel-eslint": "10.1.0",
     "babel-jest": "^26.6.3",
+    "babel-loader": "^8.2.3",
     "concat-cli": "4.0.0",
     "detox": "19.4.0",
     "enzyme": "3.9.0",
@@ -282,6 +293,7 @@
     "prettier": "^2.2.1",
     "react-dom": "16.8.4",
     "react-native-cli": "2.0.1",
+    "react-native-storybook-loader": "^2.0.4",
     "react-native-svg-asset-plugin": "^0.5.0",
     "react-redux-test": "npm:react-redux@5.1.1",
     "react-test-renderer": "17.0.2",
@@ -289,6 +301,15 @@
     "rn-nodeify": "10.0.1",
     "stack-beautifier": "1.0.2",
     "typescript": "^4.4.2"
+  },
+  "config": {
+    "react-native-storybook-loader": {
+      "searchDir": [
+        "./app/components"
+      ],
+      "pattern": "**/*.stories.@(js|tsx)",
+      "outputFile": "./storybook/storyLoader.js"
+    }
   },
   "detox": {
     "configurations": {
@@ -377,7 +398,8 @@
       "web3-bzz": false,
       "bufferutil": false,
       "utf-8-validate": false,
-      "web3-shh": false
+      "web3-shh": false,
+      "highlight.js": false
     }
   }
 }
