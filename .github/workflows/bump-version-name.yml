@@ -19,8 +19,8 @@ jobs:
       run: |
         ./scripts/bump-version.sh "$HEAD_REF"
         git diff
-        git config user.name github-actions
-        git config user.email github-actions@github.com
+        git config user.name metamaskbot
+        git config user.email metamaskbot@users.noreply.github.com
         git add bitrise.yml
         git add package.json
         git commit -m "Bump version name"
