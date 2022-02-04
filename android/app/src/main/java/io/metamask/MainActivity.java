@@ -1,7 +1,7 @@
 package io.metamask;
 
 import com.facebook.react.ReactActivityDelegate;
-import com.facebook.react.ReactFragmentActivity;
+import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactRootView;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.swmansion.gesturehandler.react.RNGestureHandlerEnabledRootView;
@@ -18,7 +18,7 @@ import androidx.annotation.NonNull;
 
 import org.devio.rn.splashscreen.SplashScreen;
 
-public class MainActivity extends ReactFragmentActivity {
+public class MainActivity extends ReactActivity {
 
 	/**
 	* Returns the name of the main component registered from JavaScript. This is used to schedule
@@ -46,7 +46,7 @@ public class MainActivity extends ReactFragmentActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		SplashScreen.show(this); 
+		SplashScreen.show(this);
 		super.onCreate(null);
 	}
 	@Override

@@ -76,20 +76,23 @@ class DeeplinkManager {
 	}
 
 	handleBrowserUrl(url, callback) {
-		this.navigation.navigate('BrowserTabHome');
 		InteractionManager.runAfterInteractions(() => {
 			if (callback) {
 				callback(url);
 			} else {
-				this.navigation.navigate('BrowserView', {
-					newTabUrl: url,
+				this.navigation.navigate('BrowserTabHome', {
+					screen: 'BrowserView',
+					params: {
+						newTabUrl: url,
+						timestamp: Date.now(),
+					},
 				});
 			}
 		});
 	}
 
 	parse(url, { browserCallBack, origin, onHandled }) {
-		const urlObj = new URL(url);
+		const urlObj = new URL(url.replace('dapp/https://', 'dapp/').replace('dapp/http://', 'dapp/'));
 		let params;
 
 		if (urlObj.query.length) {
@@ -144,7 +147,6 @@ class DeeplinkManager {
 					}
 				} else {
 					// Normal links (same as dapp)
-
 					handled();
 					urlObj.set('protocol', 'https:');
 					this.handleBrowserUrl(urlObj.href, browserCallBack);

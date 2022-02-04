@@ -451,7 +451,7 @@
 		"general_title": "Umum",
 		"general_desc": "Konversi mata uang, mata uang utama, bahasa, mesin pencarian",
 		"advanced_title": "Tingkat Lanjut",
-		"advanced_desc": "Akses fitur pengembang, atur ulang akun, siapkan testnet, sinkronkan dengan ekstensi, log status, gateway IPFS, dan sesuaikan RPC",
+		"advanced_desc": "Akses fitur pengembang, atur ulang akun, siapkan testnet, log status, gateway IPFS, dan sesuaikan RPC",
 		"contacts_title": "Kontak",
 		"contacts_desc": "Tambah, edit, hapus, dan kelola akun Anda",
 		"security_title": "Keamanan & Privasi",
@@ -1622,6 +1622,6 @@
 	"secret_phrase_video_subtitle": {
 		"title": "ID ID CC",
 		"language": "id-id",
-		"uri": "https://github.com/MetaMask/metamask-mobile/blob/develop/app/videos/subtitles/secretPhrase/subtitles-id-id.vtt?raw=true"
+		"uri": "https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/subtitles/secretPhrase/subtitles-id-id.vtt?raw=true"
 	}
 }

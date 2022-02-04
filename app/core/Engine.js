@@ -35,6 +35,7 @@ import { renderFromTokenMinimalUnit, balanceToFiatNumber, weiToFiatNumber } from
 import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
+import { isZero } from '../util/lodash';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -70,8 +71,8 @@ class Engine {
 						initialState?.PreferencesController?.useStaticTokenList === undefined ||
 						initialState.PreferencesController.useStaticTokenList,
 					// TODO: Use previous value when preferences UI is available
-					useCollectibleDetection: true,
-					openSeaEnabled: true,
+					useCollectibleDetection: false,
+					openSeaEnabled: false,
 				}
 			);
 			const networkController = new NetworkController({
@@ -160,6 +161,7 @@ class Engine {
 						chainId === swapsUtils.POLYGON_CHAIN_ID
 					);
 				},
+				clientId: AppConstants.SWAPS.CLIENT_ID,
 				legacyAPIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/gasPrices',
 				EIP1559APIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
 			});
@@ -430,7 +432,7 @@ class Engine {
 
 			let tokenFound = false;
 			tokens.forEach((token: { address: string | number }) => {
-				if (tokenBalances[token.address] && !tokenBalances[token.address]?.isZero()) {
+				if (tokenBalances[token.address] && !isZero(tokenBalances[token.address])) {
 					tokenFound = true;
 				}
 			});

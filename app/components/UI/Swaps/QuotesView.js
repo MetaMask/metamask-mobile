@@ -350,6 +350,8 @@ function SwapsQuotesView({
 	const [customGasEstimate, setCustomGasEstimate] = useState(null);
 	const [customGasLimit, setCustomGasLimit] = useState(null);
 
+	const [isSwiping, setIsSwiping] = useState(false);
+
 	// TODO: use this variable in the future when calculating savings
 	const [isSaving] = useState(false);
 	const [isInFetch, setIsInFetch] = useState(false);
@@ -1183,7 +1185,11 @@ function SwapsQuotesView({
 		shouldDisplaySlippage && !hasDismissedSlippageAlert && hasEnoughTokenBalance && hasEnoughEthBalance;
 
 	return (
-		<ScreenView contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
+		<ScreenView
+			contentContainerStyle={styles.screen}
+			keyboardShouldPersistTaps="handled"
+			scrollEnabled={!isSwiping}
+		>
 			<View style={styles.topBar}>
 				{(!hasEnoughTokenBalance || !hasEnoughEthBalance) && (
 					<View style={styles.alertBar}>
@@ -1557,6 +1563,7 @@ function SwapsQuotesView({
 							</Text>
 						</Text>
 					}
+					onSwipeChange={setIsSwiping}
 					completeText={<Text style={styles.sliderButtonText}>{strings('swaps.completed_swap')}</Text>}
 					disabled={unableToSwap || isAnimating}
 					onComplete={handleCompleteSwap}

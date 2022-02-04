@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useContext } from 'react';
 import { RefreshControl, ScrollView, InteractionManager, ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
@@ -16,6 +16,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import ErrorBoundary from '../ErrorBoundary';
+import { DrawerContext } from '../../Nav/Main/MainNavigator';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -46,6 +47,7 @@ const styles = StyleSheet.create({
  * Main view for the wallet
  */
 const Wallet = ({ navigation }: any) => {
+	const { drawerRef } = useContext(DrawerContext);
 	const [refreshing, setRefreshing] = useState(false);
 	const accountOverviewRef = useRef(null);
 	/**
@@ -87,16 +89,20 @@ const Wallet = ({ navigation }: any) => {
 	 */
 	const wizardStep = useSelector((state: any) => state.wizard.step);
 
-	useEffect(() => {
-		navigation.setOptions(getWalletNavbarOptions('wallet.title', navigation));
-		requestAnimationFrame(async () => {
-			const { TokenDetectionController, CollectibleDetectionController, AccountTrackerController } =
-				Engine.context as any;
-			TokenDetectionController.detectTokens();
-			CollectibleDetectionController.detectCollectibles();
-			AccountTrackerController.refresh();
-		});
-	}, [navigation]);
+	useEffect(
+		() => {
+			navigation.setOptions(getWalletNavbarOptions('wallet.title', navigation, drawerRef));
+			requestAnimationFrame(async () => {
+				const { TokenDetectionController, CollectibleDetectionController, AccountTrackerController } =
+					Engine.context as any;
+				TokenDetectionController.detectTokens();
+				CollectibleDetectionController.detectCollectibles();
+				AccountTrackerController.refresh();
+			});
+		},
+		/* eslint-disable-next-line */
+		[navigation]
+	);
 
 	const onRefresh = useCallback(async () => {
 		requestAnimationFrame(async () => {
