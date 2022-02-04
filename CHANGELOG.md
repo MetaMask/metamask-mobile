@@ -2,6 +2,15 @@
 
 ## Current Develop Branch
 
+## v4.0.1 - January 31, 2022
+- [#3658](https://github.com/MetaMask/metamask-mobile/pull/3658): [HOTFIX] 4.0.1 - BN crash and NFT Improvement
+
+## v4.0.0 - January 20, 2022
+- [#3509](https://github.com/MetaMask/metamask-mobile/pull/3509): [IMPROVEMENT] Upgrade to React Native 0.66.3
+- [#3623](https://github.com/MetaMask/metamask-mobile/pull/3623): [FIX] Fix swaps slider button re-rendering
+- [#3481](https://github.com/MetaMask/metamask-mobile/pull/3481): [FIX] Fix confirm button disabled on txn confirmation
+- [#3495](https://github.com/MetaMask/metamask-mobile/pull/3495): [IMPROVEMENT] Reduce png file image weight using TinyPng cli tool
+
 ## v3.8.0 - December 3 2021
 - [#3457](https://github.com/MetaMask/metamask-mobile/pull/3457): [FEAT] User review prompt
 - [#3465](https://github.com/MetaMask/metamask-mobile/pull/3465): [FIX] 3464 fix login bug
