@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import Animated from 'react-native-reanimated';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
-import { renderFromWei } from '../../../../util/number';
+import { renderFromWei, fastSplit } from '../../../../util/number';
 import { validateTransactionActionBalance } from '../../../../util/transactions';
 import { colors, fontStyles } from '../../../../styles/common';
 import decodeTransaction from '../../TransactionElement/utils';
@@ -207,10 +207,10 @@ function TransactionNotification(props) {
 				swapsTokens,
 			});
 			const existingGasPrice = new BigNumber(tx?.transaction?.gasPrice || '0x0');
-			const gasFee = existingGasPrice
-				.times(transactionAction === ACTION_CANCEL ? CANCEL_RATE : SPEED_UP_RATE)
-				.toString();
-			setGasFee(gasFee);
+			const gasFeeValue = fastSplit(
+				existingGasPrice.times(transactionAction === ACTION_CANCEL ? CANCEL_RATE : SPEED_UP_RATE).toString()
+			); // strips decimals if any, coming from the 'times' operation
+			setGasFee(gasFeeValue);
 			setTx(tx);
 			setTransactionElement(transactionElement);
 			setTransactionDetails(transactionDetails);
