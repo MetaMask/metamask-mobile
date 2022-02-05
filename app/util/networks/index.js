@@ -5,7 +5,7 @@ import { MAINNET, ROPSTEN, KOVAN, RINKEBY, GOERLI, RPC } from '../../../app/cons
 import { util } from '@metamask/controllers';
 import Engine from '../../core/Engine';
 import { toLowerCaseEquals } from './../general';
-
+import { fastSplit } from '../../util/number';
 /**
  * List of the supported networks
  * including name, id, and color
@@ -153,7 +153,7 @@ export function getBlockExplorerName(blockExplorerUrl) {
 	if (!blockExplorerUrl) return undefined;
 	const hostname = new URL(blockExplorerUrl).hostname;
 	if (!hostname) return undefined;
-	const tempBlockExplorerName = hostname.split('.')[0];
+	const tempBlockExplorerName = fastSplit(hostname);
 	if (!tempBlockExplorerName || !tempBlockExplorerName[0]) return undefined;
 	return tempBlockExplorerName[0].toUpperCase() + tempBlockExplorerName.slice(1);
 }
