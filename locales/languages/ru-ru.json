@@ -451,7 +451,7 @@
 		"general_title": "Общий",
 		"general_desc": "Обмен валюты, основная валюта, язык и поисковик",
 		"advanced_title": "Дополнительно",
-		"advanced_desc": "Доступ к функциям разработчика, сброс счета, настройка тестовых сетей, синхронизация с расширением, журналы состояний, шлюз IPFS и настраиваемый RPC",
+		"advanced_desc": "Доступ к функциям разработчика, сброс счета, настройка тестовых сетей, журналы состояний, шлюз IPFS и настраиваемый RPC",
 		"contacts_title": "Контактная информация",
 		"contacts_desc": "Добавляйте, редактируйте, удаляйте и управляйте своими счетами",
 		"security_title": "Безопасность и конфиденциальность",
@@ -1622,6 +1622,6 @@
 	"secret_phrase_video_subtitle": {
 		"title": "RU RU CC",
 		"language": "ru-ru",
-		"uri": "https://github.com/MetaMask/metamask-mobile/blob/develop/app/videos/subtitles/secretPhrase/subtitles-ru-ru.vtt?raw=true"
+		"uri": "https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/subtitles/secretPhrase/subtitles-ru-ru.vtt?raw=true"
 	}
 }

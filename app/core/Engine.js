@@ -71,8 +71,8 @@ class Engine {
 						initialState?.PreferencesController?.useStaticTokenList === undefined ||
 						initialState.PreferencesController.useStaticTokenList,
 					// TODO: Use previous value when preferences UI is available
-					useCollectibleDetection: true,
-					openSeaEnabled: true,
+					useCollectibleDetection: false,
+					openSeaEnabled: false,
 				}
 			);
 			const networkController = new NetworkController({
@@ -161,6 +161,7 @@ class Engine {
 						chainId === swapsUtils.POLYGON_CHAIN_ID
 					);
 				},
+				clientId: AppConstants.SWAPS.CLIENT_ID,
 				legacyAPIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/gasPrices',
 				EIP1559APIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
 			});
