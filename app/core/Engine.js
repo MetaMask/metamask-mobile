@@ -161,6 +161,7 @@ class Engine {
 						chainId === swapsUtils.POLYGON_CHAIN_ID
 					);
 				},
+				clientId: AppConstants.SWAPS.CLIENT_ID,
 				legacyAPIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/gasPrices',
 				EIP1559APIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
 			});
