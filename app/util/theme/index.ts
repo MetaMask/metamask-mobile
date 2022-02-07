@@ -2,22 +2,23 @@ import React, { useContext } from 'react';
 import { useColorScheme, StatusBar } from 'react-native';
 import { Colors, AppThemeNames, Theme } from './models';
 import colorTheme from './colors';
-// import { useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 
 export const ThemeContext = React.createContext<any>(undefined);
 
-/* eslint-disable  import/prefer-default-export, no-case-declarations */
+/* eslint-disable  import/prefer-default-export */
 export const useAppTheme = (): Theme => {
 	const osThemeName = useColorScheme();
-	// const appTheme: AppThemeNames = useSelector((state: any) => state.user.appTheme);
-	const appTheme = AppThemeNames.Dark;
+	const appTheme: AppThemeNames = useSelector((state: any) => state.user.appTheme);
 	let colors: Colors;
 
 	switch (appTheme) {
 		case AppThemeNames.OS:
-			const isDarkTheme = osThemeName === 'dark';
-			colors = isDarkTheme ? colorTheme.darkTheme : colorTheme.lightTheme;
-			StatusBar.setBarStyle('default', true);
+			{
+				const isDarkTheme = osThemeName === 'dark';
+				colors = isDarkTheme ? colorTheme.darkTheme : colorTheme.lightTheme;
+				StatusBar.setBarStyle('default', true);
+			}
 			break;
 		case AppThemeNames.Light:
 			colors = colorTheme.lightTheme;
