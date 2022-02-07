@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
 		margin: 0,
 	},
 });
-const RootComponents = (props) => {
+const RootRPCMethodsUI = (props) => {
 	const [showPendingApproval, setShowPendingApproval] = useState(false);
 	const [signMessageParams, setSignMessageParams] = useState({ data: '' });
 	const [signType, setSignType] = useState(false);
@@ -666,7 +666,7 @@ const RootComponents = (props) => {
 	);
 };
 
-RootComponents.propTypes = {
+RootRPCMethodsUI.propTypes = {
 	swapsTransactions: PropTypes.object,
 	/**
 	 * Object that represents the navigator
@@ -727,4 +727,4 @@ const mapDispatchToProps = (dispatch) => ({
 	toggleApproveModal: (show) => dispatch(toggleApproveModal(show)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(RootComponents);
+export default connect(mapStateToProps, mapDispatchToProps)(RootRPCMethodsUI);

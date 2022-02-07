@@ -41,7 +41,7 @@ import { setInfuraAvailabilityBlocked, setInfuraAvailabilityNotBlocked } from '.
 
 import { createStackNavigator } from '@react-navigation/stack';
 import ReviewModal from '../../UI/ReviewModal';
-import RootComponents from './RootComponents';
+import RootRPCMethodsUI from './RootRPCMethodsUI';
 
 const Stack = createStackNavigator();
 
@@ -268,7 +268,7 @@ const Main = (props) => {
 					toggleSkipCheckbox={toggleSkipCheckbox}
 				/>
 				<ProtectYourWalletModal navigation={props.navigation} />
-				<RootComponents navigation={props.navigation} />
+				<RootRPCMethodsUI navigation={props.navigation} />
 			</View>
 		</React.Fragment>
 	);
