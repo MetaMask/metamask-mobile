@@ -8,9 +8,12 @@ import CollectibleContractElement from '../CollectibleContractElement';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { collectibleContractsSelector, collectiblesSelector } from '../../../reducers/collectibles';
+import { setNftDetectionDismissed } from '../../../actions/user';
 import Text from '../../Base/Text';
 import AppConstants from '../../../core/AppConstants';
 import { toLowerCaseEquals } from '../../../util/general';
+import CollectibleDetectionModal from '../CollectibleDetectionModal';
+import { isMainNet } from '../../../util/networks';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -22,7 +25,7 @@ const styles = StyleSheet.create({
 	emptyView: {
 		justifyContent: 'center',
 		alignItems: 'center',
-		marginTop: 40,
+		marginTop: 10,
 	},
 	add: {
 		flexDirection: 'row',
@@ -49,6 +52,7 @@ const styles = StyleSheet.create({
 	emptyImageContainer: {
 		width: 76,
 		height: 76,
+		marginTop: 30,
 		marginBottom: 12,
 	},
 	emptyTitleText: {
@@ -66,7 +70,15 @@ const styles = StyleSheet.create({
  * View that renders a list of CollectibleContract
  * ERC-721 and ERC-1155
  */
-const CollectibleContracts = ({ navigation, collectibleContracts, collectibles }) => {
+const CollectibleContracts = ({
+	chainId,
+	navigation,
+	collectibleContracts,
+	collectibles,
+	useCollectibleDetection,
+	setNftDetectionDismissed,
+	nftDetectionDismissed,
+}) => {
 	const onItemPress = useCallback(
 		(collectible, contractName) => {
 			navigation.navigate('CollectiblesDetails', { collectible, contractName });
@@ -136,6 +148,10 @@ const CollectibleContracts = ({ navigation, collectibleContracts, collectibles }
 	const goToLearnMore = () =>
 		navigation.navigate('Webview', { screen: 'SimpleWebview', params: { url: AppConstants.URLS.NFT } });
 
+	const dismissNftInfo = async () => {
+		setNftDetectionDismissed(true);
+	};
+
 	const renderEmpty = () => (
 		<View style={styles.emptyView}>
 			<View style={styles.emptyContainer}>
@@ -156,6 +172,11 @@ const CollectibleContracts = ({ navigation, collectibleContracts, collectibles }
 
 	return (
 		<View style={styles.wrapper} testID={'collectible-contracts'}>
+			{isMainNet(chainId) && !nftDetectionDismissed && !useCollectibleDetection && (
+				<View style={styles.emptyView}>
+					<CollectibleDetectionModal onDismiss={dismissNftInfo} navigation={navigation} />
+				</View>
+			)}
 			{collectibleContracts.length > 0 ? renderList() : renderEmpty()}
 			{renderFooter()}
 		</View>
@@ -163,6 +184,10 @@ const CollectibleContracts = ({ navigation, collectibleContracts, collectibles }
 };
 
 CollectibleContracts.propTypes = {
+	/**
+	 * Chain id
+	 */
+	chainId: PropTypes.string,
 	/**
 	 * Navigation object required to push
 	 * the Asset detail view
@@ -176,11 +201,31 @@ CollectibleContracts.propTypes = {
 	 * Array of collectibles objects
 	 */
 	collectibles: PropTypes.array,
+	/**
+	 * Boolean to show if NFT detection is enabled
+	 */
+	useCollectibleDetection: PropTypes.bool,
+	/**
+	 * Setter for NFT detection state
+	 */
+	setNftDetectionDismissed: PropTypes.func,
+	/**
+	 * State to manage display of modal
+	 */
+	nftDetectionDismissed: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	useCollectibleDetection: state.engine.backgroundState.PreferencesController.useCollectibleDetection,
+	nftDetectionDismissed: state.user.nftDetectionDismissed,
 	collectibleContracts: collectibleContractsSelector(state),
 	collectibles: collectiblesSelector(state),
 });
 
-export default connect(mapStateToProps)(CollectibleContracts);
+const mapDispatchToProps = (dispatch) => ({
+	setNftDetectionDismissed: () => dispatch(setNftDetectionDismissed()),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(CollectibleContracts);

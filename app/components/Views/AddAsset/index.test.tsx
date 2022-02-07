@@ -13,6 +13,9 @@ const initialState = {
 					chainId: '1',
 				},
 			},
+			PreferencesController: {
+				useCollectibleDetection: true,
+			},
 		},
 	},
 };

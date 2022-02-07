@@ -248,6 +248,14 @@ export const migrations = {
 		return state;
 	},
 	10: (state) => {
+		state.engine.backgroundState.PreferencesController = {
+			...state.engine.backgroundState.PreferencesController,
+			useCollectibleDetection: false,
+			openSeaEnabled: false,
+		};
+		return state;
+	},
+	11: (state) => {
 		const allCollectibles = state.engine.backgroundState.CollectiblesController.allCollectibles;
 		const favorites = state.collectibles.favorites;
 
@@ -292,9 +300,7 @@ export const migrations = {
 			...state.engine.backgroundState.CollectiblesController,
 			allCollectibles: migratedColletibles,
 		};
-
-		return state;
 	},
 };
 
-export const version = 10;
+export const version = 11;

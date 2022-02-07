@@ -2,6 +2,7 @@
 
 exports[`CollectibleContracts should render correctly 1`] = `
 <CollectibleContracts
+  chainId={1}
   collectibleContracts={
     Array [
       Object {
@@ -24,6 +25,8 @@ exports[`CollectibleContracts should render correctly 1`] = `
       },
     ]
   }
-  dispatch={[Function]}
+  nftDetectionDismissed={true}
+  selectedAddress="0x1"
+  setNftDetectionDismissed={[Function]}
 />
 `;
