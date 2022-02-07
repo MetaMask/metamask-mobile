@@ -70,7 +70,6 @@ const styles = StyleSheet.create({
 	textInput: {
 		...fontStyles.normal,
 		padding: 0,
-		paddingRight: 8,
 		color: colors.black,
 	},
 	inputWrapper: {
