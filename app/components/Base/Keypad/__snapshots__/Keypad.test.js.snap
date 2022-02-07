@@ -3,9 +3,12 @@
 exports[`Keypad component components should render correctly 1`] = `
 <View
   style={
-    Object {
-      "paddingHorizontal": 25,
-    }
+    Array [
+      Object {
+        "paddingHorizontal": 25,
+      },
+      undefined,
+    ]
   }
 >
   <KeypadRow>
