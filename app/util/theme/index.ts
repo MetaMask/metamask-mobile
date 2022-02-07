@@ -14,11 +14,8 @@ export const useAppTheme = (): Theme => {
 
 	switch (appTheme) {
 		case AppThemeNames.OS:
-			{
-				const isDarkTheme = osThemeName === 'dark';
-				colors = isDarkTheme ? colorTheme.darkTheme : colorTheme.lightTheme;
-				StatusBar.setBarStyle('default', true);
-			}
+			colors = osThemeName === 'dark' ? colorTheme.darkTheme : colorTheme.lightTheme;
+			StatusBar.setBarStyle('default', true);
 			break;
 		case AppThemeNames.Light:
 			colors = colorTheme.lightTheme;
