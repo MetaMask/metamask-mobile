@@ -147,7 +147,7 @@ class WalletConnect {
 						payload.method = 'eth_signTypedData_v3';
 					}
 
-					// Engine eth_sendTransaction not working - can't send correct origin
+					// We have to implement this method here since the eth_sendTransaction in Engine is not working because we can't send correct origin
 					if (payload.method === 'eth_sendTransaction') {
 						const { TransactionController } = Engine.context;
 						try {
