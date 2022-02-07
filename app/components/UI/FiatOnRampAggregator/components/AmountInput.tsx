@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import Box from './Box';
 import BaseListItem from '../../../Base/ListItem';
 import CustomText from '../../../Base/Text';
@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
 
 interface Props {
 	label?: string;
-	currencySymbol: string;
+	currencySymbol?: string;
 	amount: string;
 	currencyCode: string;
 	highlighted?: boolean;
@@ -40,25 +40,23 @@ const AmountInput: React.FC<Props> = ({
 	onCurrencyPress,
 }: Props) => (
 	<Box label={label} onPress={onPress} highlighted={highlighted}>
-		<View>
-			<ListItem.Content>
-				<ListItem.Body>
-					<Text black bold style={styles.amount} numberOfLines={1} adjustsFontSizeToFit>
-						{currencySymbol}
-						{amount}
-					</Text>
-				</ListItem.Body>
-				<ListItem.Amounts style={styles.chevron}>
-					<TouchableOpacity
-						disabled={!onCurrencyPress}
-						onPress={onCurrencyPress}
-						hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}
-					>
-						<CurrencyChevron currency={currencyCode} />
-					</TouchableOpacity>
-				</ListItem.Amounts>
-			</ListItem.Content>
-		</View>
+		<ListItem.Content>
+			<ListItem.Body>
+				<Text black bold style={styles.amount} numberOfLines={1} adjustsFontSizeToFit>
+					{currencySymbol || ''}
+					{amount}
+				</Text>
+			</ListItem.Body>
+			<ListItem.Amounts style={styles.chevron}>
+				<TouchableOpacity
+					disabled={!onCurrencyPress}
+					onPress={onCurrencyPress}
+					hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}
+				>
+					<CurrencyChevron currency={currencyCode} />
+				</TouchableOpacity>
+			</ListItem.Amounts>
+		</ListItem.Content>
 	</Box>
 );
 

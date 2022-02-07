@@ -1,5 +1,5 @@
 import React from 'react';
-import { SafeAreaView, View } from 'react-native';
+import { SafeAreaView } from 'react-native';
 
 import { storiesOf } from '@storybook/react-native';
 
@@ -42,20 +42,18 @@ storiesOf('FiatOnRamp / Box', module)
 
 				<Text primary>{'<Box>'} as ListItem wrapper</Text>
 				<Box>
-					<View>
-						<ListItem.Content>
-							<ListItem.Icon>
-								<FontAwesome name="circle" size={25} />
-							</ListItem.Icon>
-							<ListItem.Body>
-								<ListItem.Title>Item title</ListItem.Title>
-								<Text>description</Text>
-							</ListItem.Body>
-							<ListItem.Amounts>
-								<ListItem.Amount>12345</ListItem.Amount>
-							</ListItem.Amounts>
-						</ListItem.Content>
-					</View>
+					<ListItem.Content>
+						<ListItem.Icon>
+							<FontAwesome name="circle" size={25} />
+						</ListItem.Icon>
+						<ListItem.Body>
+							<ListItem.Title>Item title</ListItem.Title>
+							<Text>description</Text>
+						</ListItem.Body>
+						<ListItem.Amounts>
+							<ListItem.Amount>12345</ListItem.Amount>
+						</ListItem.Amounts>
+					</ListItem.Content>
 				</Box>
 			</SafeAreaView>
 		);
