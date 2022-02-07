@@ -149,7 +149,7 @@ class DeeplinkManager {
 			// walletconnect related deeplinks
 			// address, transactions, etc
 			case PROTOCOLS.WC:
-				handled(); //TODO: check if we have to handle it here or handle after the next isValidUri check
+				handled();
 
 				wcCleanUrl = url.replace('wc://wc?uri=', '');
 				if (!WalletConnect.isValidUri(wcCleanUrl)) {
