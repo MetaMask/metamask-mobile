@@ -62,6 +62,8 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		fontSize: 20,
 		lineHeight: 20,
+		paddingTop: 4,
+		marginTop: -4,
 	},
 	bump: {
 		marginBottom: 10,
