@@ -1,40 +1,95 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import Text from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
+import ScreenRegion from '../components/ScreenRegion';
 
 const styles = StyleSheet.create({
-	header: {
-		marginTop: 20,
-	},
-	container: {
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	caption: {
-		marginBottom: 10,
-	},
 	button: {
-		flex: 1,
 		width: 200,
 	},
 });
 
-const GetStarted = ({ navigation }) => (
-	<View style={styles.container}>
-		<Text centered big black style={styles.header}>
-			Critical Path (Fiat On-Ramp)
-		</Text>
-		<View style={styles.container}>
-			<Text style={styles.caption}>Lets APE into some hidden gems!</Text>
-			<StyledButton type={'confirm'} onPress={() => navigation.navigate('PaymentMethod')} style={styles.button}>
-				Start
-			</StyledButton>
-		</View>
-	</View>
-);
+const GetStarted = ({ navigation }) => {
+	const handleOnPress = useCallback(() => {
+		navigation.navigate('PaymentMethod');
+	}, [navigation]);
+
+	return (
+		<ScreenRegion>
+			<ScreenRegion.Header
+				bold
+				title="Your Region"
+				description="Text here about how certain payment methods will be available depending on your region"
+			/>
+
+			<ScreenRegion.Body>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+				<Text>Critical Path (Fiat On-Ramp)</Text>
+			</ScreenRegion.Body>
+
+			<ScreenRegion.Footer>
+				<StyledButton type={'confirm'} onPress={handleOnPress} style={styles.button}>
+					Start
+				</StyledButton>
+			</ScreenRegion.Footer>
+		</ScreenRegion>
+	);
+};
 
 GetStarted.navigationOptions = ({ navigation, route }) => ({ headerLeft: () => null });
 
