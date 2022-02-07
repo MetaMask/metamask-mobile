@@ -25,14 +25,14 @@ const AmountToBuy = ({ navigation }) => (
 
 		<View style={styles.container}>
 			<StyledButton type={'confirm'} style={styles.button} onPress={() => navigation.navigate('GetQuotes')}>
-				{strings('fiat_on_ramp_aggregator.amount_to_buy.action')}
+				{strings('fiat_on_ramp_aggregator.get_quotes')}
 			</StyledButton>
 		</View>
 	</ScreenView>
 );
 
 AmountToBuy.navigationOptions = ({ navigation, route }) => ({
-	title: strings('fiat_on_ramp_aggregator.amount_to_buy.title'),
+	title: strings('fiat_on_ramp_aggregator.amount_to_buy'),
 });
 
 AmountToBuy.propTypes = {

@@ -13,7 +13,7 @@ const PaymentMethod = ({ navigation }) => (
 );
 
 PaymentMethod.navigationOptions = ({ navigation, route }) => ({
-	title: strings('fiat_on_ramp_aggregator.payment_method.title'),
+	title: strings('fiat_on_ramp_aggregator.payment_method'),
 });
 
 PaymentMethod.propTypes = {

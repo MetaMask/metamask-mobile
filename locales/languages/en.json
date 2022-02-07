@@ -1445,16 +1445,10 @@
 		}
 	},
 	"fiat_on_ramp_aggregator": {
-		"payment_method": {
-			"title": "Payment Method"
-		},
-		"amount_to_buy": {
-			"title": "Amount to Buy",
-			"action": "Get quotes"
-		},
-		"get_quotes": {
-			"title": "Select a quote"
-		}
+		"payment_method": "Payment Method",
+		"amount_to_buy": "Amount to Buy",
+		"get_quotes": "Get quotes",
+		"select_a_quote": "Select a quote"
 	},
 	"swaps": {
 		"onboarding": {
