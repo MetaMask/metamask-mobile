@@ -161,9 +161,32 @@ export default class SelectComponent extends PureComponent {
 				onValueChange={this.onValueChange}
 				prompt={this.props.label}
 			>
-				{this.props.options.map((option) => (
-					<PickerItem value={option.value} label={option.label} key={option.key} />
-				))}
+				{this.props.options
+					/**
+					 * Select value always comes first
+					 */
+					.sort((a, b) => {
+						if (a.value === this.props.selectedValue) {
+							return -1;
+						}
+
+						if (b.value === this.props.selectedValue) {
+							return 0;
+						}
+
+						if (a.value > b.value) {
+							return 1;
+						}
+
+						if (a.value < b.value) {
+							return -1;
+						}
+
+						return 0;
+					})
+					.map((option) => (
+						<PickerItem value={option.value} label={option.label} key={option.key} />
+					))}
 			</Picker>
 		</View>
 	);
