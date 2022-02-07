@@ -118,6 +118,9 @@ const App = ({ userLoggedIn }) => {
 	const dispatch = useDispatch();
 	const triggerCheckedAuth = () => dispatch(checkedAuth('onboarding'));
 	const triggerSetCurrentRoute = (route) => dispatch(setCurrentRoute(route));
+	const frequentRpcList = useSelector(
+		(state) => state?.engine?.backgroundState?.PreferencesController?.frequentRpcList
+	);
 
 	const handleDeeplink = useCallback(({ error, params, uri }) => {
 		if (error) {
@@ -153,8 +156,6 @@ const App = ({ userLoggedIn }) => {
 		[]
 	);
 
-	const frequentRpcList = useSelector((state) => state.engine.backgroundState.PreferencesController.frequentRpcList);
-
 	useEffect(() => {
 		SharedDeeplinkManager.init({
 			navigation: {
@@ -168,7 +169,6 @@ const App = ({ userLoggedIn }) => {
 		});
 
 		unsubscribeFromBranch.current = branchSubscriber.subscribe();
-
 		return () => unsubscribeFromBranch.current?.();
 	}, [branchSubscriber, frequentRpcList, dispatch]);
 
