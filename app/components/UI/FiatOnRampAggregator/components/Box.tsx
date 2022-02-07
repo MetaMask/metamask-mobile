@@ -1,6 +1,6 @@
-import { colors } from '../../../../styles/common';
 import React from 'react';
 import { StyleProp, StyleSheet, TouchableOpacity, View, ViewStyle } from 'react-native';
+import { colors } from '../../../../styles/common';
 import CustomText from '../../../Base/Text';
 // TODO: Convert into typescript and correctly type optionals
 const Text = CustomText as any;
