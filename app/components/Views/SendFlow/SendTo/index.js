@@ -346,7 +346,7 @@ class SendFlow extends PureComponent {
 			const networkId = NetworkList[providerType].networkId;
 			if (networkId === 1) {
 				try {
-					const symbol = await AssetsContractController.getAssetSymbol(toSelectedAddress);
+					const symbol = await AssetsContractController.getERC721AssetSymbol(toSelectedAddress);
 					if (symbol) {
 						addressError = (
 							<Text>
