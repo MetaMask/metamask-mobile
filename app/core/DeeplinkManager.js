@@ -113,7 +113,7 @@ class DeeplinkManager {
 			try {
 				params = qs.parse(urlObj.query.substring(1));
 			} catch (e) {
-				Alert.alert(strings('deeplink.invalid'), e.toString());
+				if (e) Alert.alert(strings('deeplink.invalid'), e.toString());
 			}
 		}
 
