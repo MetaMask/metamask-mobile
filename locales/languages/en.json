@@ -263,7 +263,7 @@
 		"amount": "Amount",
 		"confirm": "Confirm",
 		"network_not_found_title": "Network not found",
-		"network_not_found_description": "Network with chain id {{chain_id}} not found in your wallet. Please add it first."
+		"network_not_found_description": "Network with chain id {{chain_id}} not found in your wallet. Please add the network first."
 	},
 	"deposit": {
 		"title": "Deposit"
