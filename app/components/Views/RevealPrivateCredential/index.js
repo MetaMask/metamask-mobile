@@ -26,6 +26,7 @@ import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import { BIOMETRY_CHOICE } from '../../../constants/storage';
 import ClipboardManager from '../../../core/ClipboardManager';
+import { ThemeContext } from '../../../util/theme';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -141,11 +142,6 @@ class RevealPrivateCredential extends PureComponent {
 		warningIncorrectPassword: '',
 	};
 
-	static navigationOptions = ({ navigation, route }) =>
-		getNavigationOptionsTitle(
-			strings(`reveal_credential.${route.params?.privateCredentialName ?? ''}_title`),
-			navigation
-		);
 	static propTypes = {
 		/**
 		/* navigation object required to push new views
@@ -177,7 +173,21 @@ class RevealPrivateCredential extends PureComponent {
 		route: PropTypes.object,
 	};
 
+	updateNavBar = () => {
+		const { navigation, route } = this.props;
+		const { colors } = this.context;
+		navigation.setOptions(
+			getNavigationOptionsTitle(
+				strings(`reveal_credential.${route.params?.privateCredentialName ?? ''}_title`),
+				navigation,
+				false,
+				colors
+			)
+		);
+	};
+
 	async componentDidMount() {
+		this.updateNavBar();
 		// Try to use biometrics to unloc
 		// (if available)
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
@@ -196,6 +206,10 @@ class RevealPrivateCredential extends PureComponent {
 			PreventScreenshot.forbid();
 		});
 	}
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
+	};
 
 	componentWillUnmount = () => {
 		InteractionManager.runAfterInteractions(() => {
@@ -365,6 +379,8 @@ class RevealPrivateCredential extends PureComponent {
 		);
 	};
 }
+
+RevealPrivateCredential.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,

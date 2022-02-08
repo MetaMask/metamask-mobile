@@ -14,6 +14,7 @@ import { isENS, renderShortAddress } from '../../../../../util/address';
 import ErrorMessage from '../../../SendFlow/ErrorMessage';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import ActionSheet from 'react-native-actionsheet';
+import { ThemeContext } from '../../../../../util/theme';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -92,9 +93,6 @@ const EDIT = 'edit';
  * View that contains app information
  */
 class ContactForm extends PureComponent {
-	static navigationOptions = ({ navigation, route }) =>
-		getEditableOptions(strings(`address_book.${route.params?.mode ?? ADD}_contact_title`), navigation, route);
-
 	static propTypes = {
 		/**
 		 * Object that represents the navigator
@@ -134,9 +132,23 @@ class ContactForm extends PureComponent {
 	addressInput = React.createRef();
 	memoInput = React.createRef();
 
+	updateNavBar = () => {
+		const { navigation, route } = this.props;
+		const { colors } = this.context;
+		navigation.setOptions(
+			getEditableOptions(
+				strings(`address_book.${route.params?.mode ?? ADD}_contact_title`),
+				navigation,
+				route,
+				colors
+			)
+		);
+	};
+
 	componentDidMount = () => {
 		const { mode } = this.state;
 		const { navigation } = this.props;
+		this.updateNavBar();
 		// Workaround https://github.com/facebook/react-native/issues/9958
 		this.state.inputWidth &&
 			setTimeout(() => {
@@ -150,6 +162,10 @@ class ContactForm extends PureComponent {
 			this.setState({ address, name: contact.name, memo: contact.memo, addressReady: true, editable: false });
 			navigation && navigation.setParams({ dispatch: this.onEdit, mode: EDIT });
 		}
+	};
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
 	};
 
 	onEdit = () => {
@@ -373,6 +389,8 @@ class ContactForm extends PureComponent {
 		);
 	};
 }
+
+ContactForm.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	addressBook: state.engine.backgroundState.AddressBookController.addressBook,

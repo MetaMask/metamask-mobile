@@ -154,22 +154,31 @@ export default function getNavbarOptions(title, disableNetwork = false, drawerRe
  * @param {Object} navigation - Navigation object required to push new views
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
-export function getNavigationOptionsTitle(title, navigation, isFullScreenModal) {
+export function getNavigationOptionsTitle(title, navigation, isFullScreenModal, themeColors) {
+	const innerStyles = StyleSheet.create({
+		headerTitleStyle: {
+			fontSize: 20,
+			color: themeColors.textDefault,
+			...fontStyles.normal,
+		},
+		headerIcon: {
+			color: themeColors.primary,
+		},
+		headerStyle: {
+			backgroundColor: themeColors.backgroundDefault,
+		},
+	});
 	function navigationPop() {
 		navigation.pop();
 	}
 	return {
 		title,
-		headerTitleStyle: {
-			fontSize: 20,
-			color: colors.fontPrimary,
-			...fontStyles.normal,
-		},
-		headerTintColor: colors.blue,
+		headerTitleStyle: innerStyles.headerTitleStyle,
+		headerTintColor: themeColors.primary,
 		headerRight: () =>
 			isFullScreenModal ? (
 				<TouchableOpacity onPress={navigationPop} style={styles.closeButton}>
-					<IonicIcon name={'ios-close'} size={38} style={[styles.backIcon, styles.backIconIOS]} />
+					<IonicIcon name={'ios-close'} size={38} style={[innerStyles.headerIcon, styles.backIconIOS]} />
 				</TouchableOpacity>
 			) : null,
 		headerLeft: () =>
@@ -178,10 +187,11 @@ export function getNavigationOptionsTitle(title, navigation, isFullScreenModal) 
 					<IonicIcon
 						name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
 						size={Device.isAndroid() ? 24 : 28}
-						style={styles.backIcon}
+						style={innerStyles.headerIcon}
 					/>
 				</TouchableOpacity>
 			),
+		headerStyle: innerStyles.headerStyle,
 	};
 }
 
@@ -193,7 +203,25 @@ export function getNavigationOptionsTitle(title, navigation, isFullScreenModal) 
  * @param {Object} navigation - Navigation object required to push new views
  * @returns {Object} - Corresponding navbar options
  */
-export function getEditableOptions(title, navigation, route) {
+export function getEditableOptions(title, navigation, route, themeColors) {
+	const innerStyles = StyleSheet.create({
+		headerTitleStyle: {
+			fontSize: 20,
+			color: themeColors.textDefault,
+			...fontStyles.normal,
+		},
+		headerIcon: {
+			color: themeColors.primary,
+		},
+		headerButtonText: {
+			color: themeColors.primary,
+			fontSize: 14,
+			...fontStyles.normal,
+		},
+		headerStyle: {
+			backgroundColor: themeColors.backgroundDefault,
+		},
+	});
 	function navigationPop() {
 		navigation.pop();
 	}
@@ -202,31 +230,28 @@ export function getEditableOptions(title, navigation, route) {
 	const addMode = route.params?.mode === 'add';
 	return {
 		title,
-		headerTitleStyle: {
-			fontSize: 20,
-			color: colors.fontPrimary,
-			...fontStyles.normal,
-		},
-		headerTintColor: colors.blue,
+		headerTitleStyle: innerStyles.headerTitleStyle,
+		headerTintColor: themeColors.primary,
 		headerLeft: () => (
 			<TouchableOpacity onPress={navigationPop} style={styles.backButton} testID={'edit-contact-back-button'}>
 				<IonicIcon
 					name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
 					size={Device.isAndroid() ? 24 : 28}
-					style={styles.backIcon}
+					style={innerStyles.headerIcon}
 				/>
 			</TouchableOpacity>
 		),
 		headerRight: () =>
 			!addMode ? (
 				<TouchableOpacity onPress={rightAction} style={styles.backButton}>
-					<Text style={styles.closeButtonText}>
+					<Text style={innerStyles.headerButtonText}>
 						{editMode ? strings('address_book.edit') : strings('address_book.cancel')}
 					</Text>
 				</TouchableOpacity>
 			) : (
 				<View />
 			),
+		headerStyle: innerStyles.headerStyle,
 	};
 }
 
@@ -614,26 +639,42 @@ export function getOptinMetricsNavbarOptions() {
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
  */
-export function getClosableNavigationOptions(title, backButtonText, navigation) {
+export function getClosableNavigationOptions(title, backButtonText, navigation, themeColors) {
+	const innerStyles = StyleSheet.create({
+		headerButtonText: {
+			color: themeColors.primary,
+			fontSize: 14,
+			...fontStyles.normal,
+		},
+		headerIcon: {
+			color: themeColors.primary,
+		},
+		headerStyle: {
+			backgroundColor: themeColors.backgroundDefault,
+		},
+		headerTitleStyle: {
+			fontSize: 20,
+			...fontStyles.normal,
+			color: themeColors.textDefault,
+		},
+	});
 	function navigationPop() {
 		navigation.pop();
 	}
 	return {
 		title,
-		headerTitleStyle: {
-			fontSize: 20,
-			...fontStyles.normal,
-		},
+		headerTitleStyle: innerStyles.headerTitleStyle,
 		headerLeft: () =>
 			Device.isIos() ? (
 				<TouchableOpacity onPress={navigationPop} style={styles.closeButton} testID={'nav-ios-back'}>
-					<Text style={styles.closeButtonText}>{backButtonText}</Text>
+					<Text style={innerStyles.headerButtonText}>{backButtonText}</Text>
 				</TouchableOpacity>
 			) : (
 				<TouchableOpacity onPress={navigationPop} style={styles.backButton} testID={'nav-android-back'}>
-					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
+					<IonicIcon name={'md-arrow-back'} size={24} style={innerStyles.headerIcon} />
 				</TouchableOpacity>
 			),
+		headerStyle: innerStyles.headerStyle,
 	};
 }
 

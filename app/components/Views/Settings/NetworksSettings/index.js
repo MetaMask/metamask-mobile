@@ -10,6 +10,7 @@ import Networks, { getAllNetworks } from '../../../../util/networks';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
 import { MAINNET, RPC } from '../../../../constants/network';
+import { ThemeContext } from '../../../../util/theme';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -81,10 +82,23 @@ class NetworksSettings extends PureComponent {
 	actionSheet = null;
 	networkToRemove = null;
 
-	static navigationOptions = ({ navigation }) =>
-		getNavigationOptionsTitle(strings('app_settings.networks_title'), navigation);
-
 	state = {};
+
+	updateNavBar = () => {
+		const { navigation } = this.props;
+		const { colors } = this.context;
+		navigation.setOptions(
+			getNavigationOptionsTitle(strings('app_settings.networks_title'), navigation, false, colors)
+		);
+	};
+
+	componentDidMount = () => {
+		this.updateNavBar();
+	};
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
+	};
 
 	getOtherNetworks = () => getAllNetworks().slice(1);
 
@@ -224,6 +238,8 @@ class NetworksSettings extends PureComponent {
 		);
 	}
 }
+
+NetworksSettings.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	provider: state.engine.backgroundState.NetworkController.provider,

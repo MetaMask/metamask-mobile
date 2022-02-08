@@ -15,6 +15,7 @@ import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import AppConstants from '../../../../core/AppConstants';
+import { ThemeContext } from '../../../../util/theme';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -73,9 +74,6 @@ const foxImage = require('../../../../images/fox.png'); // eslint-disable-line i
  * View that contains app information
  */
 export default class AppInformation extends PureComponent {
-	static navigationOptions = ({ navigation }) =>
-		getNavigationOptionsTitle(strings('app_settings.info_title'), navigation);
-
 	static propTypes = {
 		/**
 		/* navigation object required to push new views
@@ -87,11 +85,22 @@ export default class AppInformation extends PureComponent {
 		appInfo: '',
 	};
 
+	updateNavBar = () => {
+		const { navigation } = this.props;
+		const { colors } = this.context;
+		navigation.setOptions(getNavigationOptionsTitle(strings('app_settings.info_title'), navigation, false, colors));
+	};
+
 	componentDidMount = async () => {
+		this.updateNavBar();
 		const appName = await getApplicationName();
 		const appVersion = await getVersion();
 		const buildNumber = await getBuildNumber();
 		this.setState({ appInfo: `${appName} v${appVersion} (${buildNumber})` });
+	};
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
 	};
 
 	goTo = (url, title) => {
@@ -171,3 +180,5 @@ export default class AppInformation extends PureComponent {
 		</SafeAreaView>
 	);
 }
+
+AppInformation.contextType = ThemeContext;

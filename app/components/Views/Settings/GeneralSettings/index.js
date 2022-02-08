@@ -19,6 +19,7 @@ import PickComponent from '../../PickComponent';
 import { toDataUrl } from '../../../../util/blockies.js';
 import Device from '../../../../util/device';
 import Jazzicon from 'react-native-jazzicon';
+import { ThemeContext } from '../../../../util/theme';
 
 const diameter = 40;
 const spacing = 8;
@@ -163,9 +164,6 @@ class Settings extends PureComponent {
 		setHideZeroBalanceTokens: PropTypes.func,
 	};
 
-	static navigationOptions = ({ navigation }) =>
-		getNavigationOptionsTitle(strings('app_settings.general_title'), navigation);
-
 	state = {
 		currentLanguage: I18n.locale.substr(0, 2),
 		languages: {},
@@ -195,7 +193,16 @@ class Settings extends PureComponent {
 		this.props.setHideZeroBalanceTokens(toggleHideZeroBalanceTokens);
 	};
 
+	updateNavBar = () => {
+		const { navigation } = this.props;
+		const { colors } = this.context;
+		navigation.setOptions(
+			getNavigationOptionsTitle(strings('app_settings.general_title'), navigation, false, colors)
+		);
+	};
+
 	componentDidMount = () => {
+		this.updateNavBar();
 		const languages = getLanguages();
 		this.setState({ languages });
 		this.languageOptions = Object.keys(languages).map((key) => ({ value: key, label: languages[key], key }));
@@ -207,6 +214,10 @@ class Settings extends PureComponent {
 			{ value: 'ETH', label: strings('app_settings.primary_currency_text_first'), key: 'Native' },
 			{ value: 'Fiat', label: strings('app_settings.primary_currency_text_second'), key: 'Fiat' },
 		];
+	};
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
 	};
 
 	render() {
@@ -316,6 +327,8 @@ class Settings extends PureComponent {
 		);
 	}
 }
+
+Settings.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
