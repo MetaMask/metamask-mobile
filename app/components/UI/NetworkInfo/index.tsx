@@ -1,26 +1,16 @@
 import React from 'react';
 import { View, Text, Linking, Alert, StyleSheet } from 'react-native';
 import { colors } from '../../../styles/common';
-import AntIcon from 'react-native-vector-icons/AntDesign';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import LineDivide from '../../Base/LineDivide';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { ETH, PRIVATENETWORK } from '../../../util/custom-gas';
-import AssetIcon from '../../UI/AssetIcon';
 
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
 		borderRadius: 10,
-	},
-	closeIcon: {
-		...StyleSheet.absoluteFillObject,
-		alignSelf: 'flex-end',
-		marginTop: 10,
-		marginRight: 10,
-		position: 'relative',
-		padding: 10,
 	},
 	modalContentView: {
 		padding: 20,
@@ -89,6 +79,19 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		paddingVertical: 5,
 	},
+	unknownWrapper: {
+		backgroundColor: colors.grey300,
+		marginRight: 6,
+		height: 20,
+		width: 20,
+		borderRadius: 10,
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
+	unknownText: {
+		color: colors.white,
+		fontSize: 13,
+	},
 });
 
 interface NetworkInfoProps {
@@ -140,18 +143,23 @@ const Description = (props: DescriptionProps) => {
 	);
 };
 
+const UnknownAsset = () => (
+	<View style={styles.unknownWrapper}>
+		<Text style={styles.unknownText}>?</Text>
+	</View>
+);
+
 const NetworkInfo = (props: NetworkInfoProps): JSX.Element => {
 	const { onClose, type, nativeToken } = props;
 	return (
 		<View style={styles.wrapper}>
-			<AntIcon name="close" onPress={onClose} size={18} style={styles.closeIcon} />
 			<View style={styles.modalContentView}>
 				<Text style={styles.title}>You have switched to</Text>
 				<View style={styles.tokenView}>
 					<View style={styles.tokenType}>
 						{nativeToken === PRIVATENETWORK ? (
 							<>
-								<AssetIcon />
+								<UnknownAsset />
 								<Text style={styles.tokenText}>{strings('network_information.unknown_network')}</Text>
 							</>
 						) : (
@@ -181,11 +189,7 @@ const NetworkInfo = (props: NetworkInfoProps): JSX.Element => {
 								: strings('network_information.first_description', { nativeToken })
 						}
 						number={1}
-						clickableText={
-							nativeToken === PRIVATENETWORK
-								? strings('network_information.add_token_manually')
-								: undefined
-						}
+						clickableText={undefined}
 					/>
 					<Description
 						description={strings('network_information.second_description')}
