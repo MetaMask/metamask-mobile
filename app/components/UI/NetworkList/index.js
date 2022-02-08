@@ -142,13 +142,31 @@ export class NetworkList extends PureComponent {
 		 * A function that handles the network selection
 		 */
 		onNetworkSelected: PropTypes.func,
+		/**
+		 * 	A function that handles switching to info modal
+		 */
+		switchModalContent: PropTypes.func,
+		/**
+		 * 	returns the network onboarding state
+		 */
+		networkOnboardedState: PropTypes.array,
 	};
 
 	getOtherNetworks = () => getAllNetworks().slice(1);
 
+	handleNetworkSelected = (type, ticker) => {
+		const { networkOnboardedState, switchModalContent, onClose, onNetworkSelected } = this.props;
+		const networkOnboarded = networkOnboardedState.filter((item) => item.network === type);
+		if (networkOnboarded.length === 0) {
+			switchModalContent();
+		} else {
+			onClose(false);
+		}
+		return onNetworkSelected(type, ticker, networkOnboardedState);
+	};
+
 	onNetworkChange = (type) => {
-		this.props.onNetworkSelected(type, ETH);
-		this.props.onClose(false);
+		this.handleNetworkSelected(type, ETH);
 		const { NetworkController, CurrencyRateController } = Engine.context;
 		CurrencyRateController.setNativeCurrency('ETH');
 		NetworkController.setProviderType(type);
@@ -181,7 +199,7 @@ export class NetworkList extends PureComponent {
 		} = rpc;
 		const useRpcName = nickname || rpcUrl;
 		const useTicker = ticker || PRIVATENETWORK;
-		this.props.onNetworkSelected(useRpcName, useTicker);
+		this.handleNetworkSelected(useRpcName, useTicker);
 
 		// If the network does not have chainId then show invalid custom network alert
 		const chainIdNumber = parseInt(chainId, 10);
@@ -300,6 +318,7 @@ const mapStateToProps = (state) => ({
 	provider: state.engine.backgroundState.NetworkController.provider,
 	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList,
 	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
+	networkOnboardedState: state.networkOnboarded.networkOnboardedState,
 });
 
 export default connect(mapStateToProps)(NetworkList);
