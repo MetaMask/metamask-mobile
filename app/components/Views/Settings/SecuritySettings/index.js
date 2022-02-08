@@ -47,6 +47,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import HintModal from '../../../UI/HintModal';
 import AnalyticsV2, { trackErrorAsAnalytics } from '../../../../util/analyticsV2';
 import SeedPhraseVideo from '../../../UI/SeedPhraseVideo';
+import { ThemeContext } from '../../../../util/theme';
 
 const isIos = Device.isIos();
 
@@ -251,9 +252,6 @@ class Settings extends PureComponent {
 		type: PropTypes.string,
 	};
 
-	static navigationOptions = ({ navigation }) =>
-		getNavigationOptionsTitle(strings('app_settings.security_title'), navigation);
-
 	state = {
 		approvalModalVisible: false,
 		biometryChoice: null,
@@ -311,7 +309,16 @@ class Settings extends PureComponent {
 
 	scrollView = undefined;
 
+	updateNavBar = () => {
+		const { navigation } = this.props;
+		const { colors } = this.context;
+		navigation.setOptions(
+			getNavigationOptionsTitle(strings('app_settings.security_title'), navigation, false, colors)
+		);
+	};
+
 	componentDidMount = async () => {
+		this.updateNavBar();
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
 		const analyticsEnabled = Analytics.getEnabled();
 		const currentSeedphraseHints = await AsyncStorage.getItem(SEED_PHRASE_HINTS);
@@ -342,6 +349,10 @@ class Settings extends PureComponent {
 		}
 
 		if (this.props.route?.params?.scrollToBottom) this.scrollView?.scrollToEnd({ animated: true });
+	};
+
+	componentDidUpdate = async () => {
+		this.updateNavBar();
 	};
 
 	onSingInWithBiometrics = async (enabled) => {
@@ -885,6 +896,8 @@ class Settings extends PureComponent {
 		);
 	};
 }
+
+Settings.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	approvedHosts: state.privacy.approvedHosts,

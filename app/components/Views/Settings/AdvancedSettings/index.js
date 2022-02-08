@@ -20,6 +20,7 @@ import ipfsGateways from '../../../../util/ipfs-gateways.json';
 import SelectComponent from '../../../UI/SelectComponent';
 import { timeoutFetch } from '../../../../util/general';
 import Device from '../../../../util/device';
+import { ThemeContext } from '../../../../util/theme';
 
 const HASH_TO_TEST = 'Qmaisz6NMhDB51cCvNWa1GMS7LU1pAxdF4Ld6Ft9kZEP2a';
 const HASH_STRING = 'Hello from IPFS Gateway Checker';
@@ -124,9 +125,6 @@ class AdvancedSettings extends PureComponent {
 		fullState: PropTypes.object,
 	};
 
-	static navigationOptions = ({ navigation }) =>
-		getNavigationOptionsTitle(strings('app_settings.advanced_title'), navigation);
-
 	state = {
 		resetModalVisible: false,
 		inputWidth: Device.isAndroid() ? '99%' : undefined,
@@ -134,7 +132,16 @@ class AdvancedSettings extends PureComponent {
 		gotAvailableGateways: false,
 	};
 
+	updateNavBar = () => {
+		const { navigation } = this.props;
+		const { colors } = this.context;
+		navigation.setOptions(
+			getNavigationOptionsTitle(strings('app_settings.advanced_title'), navigation, false, colors)
+		);
+	};
+
 	componentDidMount = async () => {
+		this.updateNavBar();
 		await this.handleAvailableIpfsGateways();
 		this.mounted = true;
 		// Workaround https://github.com/facebook/react-native/issues/9958
@@ -142,6 +149,10 @@ class AdvancedSettings extends PureComponent {
 			setTimeout(() => {
 				this.mounted && this.setState({ inputWidth: '100%' });
 			}, 100);
+	};
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
 	};
 
 	componentWillUnmount = () => {
@@ -325,6 +336,8 @@ class AdvancedSettings extends PureComponent {
 		);
 	};
 }
+
+AdvancedSettings.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	ipfsGateway: state.engine.backgroundState.PreferencesController.ipfsGateway,

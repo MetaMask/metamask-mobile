@@ -38,6 +38,7 @@ import { EXISTING_USER, TRUE, BIOMETRY_CHOICE_DISABLED } from '../../../constant
 import { getPasswordStrengthWord, passwordRequirementsMet } from '../../../util/password';
 import NotificationManager from '../../../core/NotificationManager';
 import { syncPrefs } from '../../../util/sync';
+import { ThemeContext } from '../../../util/theme';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -252,9 +253,6 @@ const CONFIRM_PASSWORD = 'confirm_password';
  * View where users can set their password for the first time
  */
 class ResetPassword extends PureComponent {
-	static navigationOptions = ({ navigation }) =>
-		getNavigationOptionsTitle(strings('password_reset.change_password'), navigation);
-
 	static propTypes = {
 		/**
 		 * The navigator object
@@ -300,7 +298,16 @@ class ResetPassword extends PureComponent {
 
 	confirmPasswordInput = React.createRef();
 
+	updateNavBar = () => {
+		const { navigation } = this.props;
+		const { colors } = this.context;
+		navigation.setOptions(
+			getNavigationOptionsTitle(strings('password_reset.change_password'), navigation, false, colors)
+		);
+	};
+
 	async componentDidMount() {
+		this.updateNavBar();
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
 
 		const state = { view: CONFIRM_PASSWORD };
@@ -319,6 +326,7 @@ class ResetPassword extends PureComponent {
 	}
 
 	componentDidUpdate(prevProps, prevState) {
+		this.updateNavBar();
 		const prevLoading = prevState.loading;
 		const { loading } = this.state;
 		const { navigation } = this.props;
@@ -776,6 +784,8 @@ class ResetPassword extends PureComponent {
 		);
 	}
 }
+
+ResetPassword.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,

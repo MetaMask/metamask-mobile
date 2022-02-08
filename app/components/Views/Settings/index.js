@@ -8,6 +8,7 @@ import { strings } from '../../../../locales/i18n';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { connect } from 'react-redux';
+import { ThemeContext } from '../../../util/theme';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -22,9 +23,6 @@ const styles = StyleSheet.create({
  * Main view for app configurations
  */
 class Settings extends PureComponent {
-	static navigationOptions = ({ navigation }) =>
-		getClosableNavigationOptions(strings('app_settings.title'), strings('navigation.close'), navigation);
-
 	static propTypes = {
 		/**
 		/* navigation object required to push new views
@@ -35,6 +33,22 @@ class Settings extends PureComponent {
 		 * completed the seed phrase backup flow
 		 */
 		seedphraseBackedUp: PropTypes.bool,
+	};
+
+	updateNavBar = () => {
+		const { navigation } = this.props;
+		const { colors } = this.context;
+		navigation.setOptions(
+			getClosableNavigationOptions(strings('app_settings.title'), strings('navigation.close'), navigation, colors)
+		);
+	};
+
+	componentDidMount = () => {
+		this.updateNavBar();
+	};
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
 	};
 
 	onPressGeneral = () => {
@@ -112,6 +126,8 @@ class Settings extends PureComponent {
 		);
 	};
 }
+
+Settings.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	seedphraseBackedUp: state.user.seedphraseBackedUp,

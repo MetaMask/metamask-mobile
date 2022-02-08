@@ -9,6 +9,8 @@ import ActionSheet from 'react-native-actionsheet';
 import WalletConnect from '../../../core/WalletConnect';
 import Logger from '../../../util/Logger';
 import { WALLETCONNECT_SESSIONS } from '../../../constants/storage';
+import { ThemeContext } from '../../../util/theme';
+import PropTypes from 'prop-types';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -64,9 +66,6 @@ const styles = StyleSheet.create({
  * View that displays all the active WalletConnect Sessions
  */
 export default class WalletConnectSessions extends PureComponent {
-	static navigationOptions = ({ navigation }) =>
-		getNavigationOptionsTitle(strings(`experimental_settings.wallet_connect_dapps`), navigation);
-
 	state = {
 		sessions: [],
 	};
@@ -75,9 +74,22 @@ export default class WalletConnectSessions extends PureComponent {
 
 	sessionToRemove = null;
 
+	updateNavBar = () => {
+		const { navigation } = this.props;
+		const { colors } = this.context;
+		navigation.setOptions(
+			getNavigationOptionsTitle(strings('experimental_settings.wallet_connect_dapps'), navigation, false, colors)
+		);
+	};
+
 	componentDidMount() {
+		this.updateNavBar();
 		this.loadSessions();
 	}
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
+	};
 
 	loadSessions = async () => {
 		let sessions = [];
@@ -167,3 +179,12 @@ export default class WalletConnectSessions extends PureComponent {
 		);
 	};
 }
+
+WalletConnectSessions.contextType = ThemeContext;
+
+WalletConnectSessions.propTypes = {
+	/**
+	 * Navigation object
+	 */
+	navigation: PropTypes.object,
+};

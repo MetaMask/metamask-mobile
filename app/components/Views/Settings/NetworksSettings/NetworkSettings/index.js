@@ -18,6 +18,7 @@ import Logger from '../../../../../util/Logger';
 import { isPrefixedFormattedHexString } from '../../../../../util/number';
 import AppConstants from '../../../../../core/AppConstants';
 import AnalyticsV2 from '../../../../../util/analyticsV2';
+import { ThemeContext } from '../../../../../util/theme';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -102,9 +103,6 @@ class NetworkSettings extends PureComponent {
 		route: PropTypes.object,
 	};
 
-	static navigationOptions = ({ navigation }) =>
-		getNavigationOptionsTitle(strings('app_settings.networks_title'), navigation);
-
 	state = {
 		rpcUrl: undefined,
 		blockExplorerUrl: undefined,
@@ -129,7 +127,16 @@ class NetworkSettings extends PureComponent {
 
 	getOtherNetworks = () => allNetworks.slice(1);
 
+	updateNavBar = () => {
+		const { navigation } = this.props;
+		const { colors } = this.context;
+		navigation.setOptions(
+			getNavigationOptionsTitle(strings('app_settings.networks_title'), navigation, false, colors)
+		);
+	};
+
 	componentDidMount = () => {
+		this.updateNavBar();
 		const { route, frequentRpcList } = this.props;
 		const network = route.params?.network;
 		let blockExplorerUrl, chainId, nickname, ticker, editable, rpcUrl;
@@ -162,6 +169,10 @@ class NetworkSettings extends PureComponent {
 				inputWidth: { width: '100%' },
 			});
 		}, 100);
+	};
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
 	};
 
 	/**
@@ -570,6 +581,8 @@ class NetworkSettings extends PureComponent {
 		);
 	}
 }
+
+NetworkSettings.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList,

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect } from 'react';
 import { StyleSheet, Text, ScrollView, View, Switch, InteractionManager } from 'react-native';
 import StyledButton from '../../../UI/StyledButton';
-import { colors, fontStyles } from '../../../../styles/common';
+import { colors as importedColors, fontStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { strings } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
@@ -9,23 +9,24 @@ import Engine from '../../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
 import AnalyticsV2 from '../../../../util/analyticsV2';
+import { useAppThemeFromContext } from '../../../../util/theme';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
+		backgroundColor: importedColors.white,
 		flex: 1,
 		padding: 24,
 		paddingBottom: 48,
 	},
 	title: {
 		...(fontStyles.normal as any),
-		color: colors.fontPrimary,
+		color: importedColors.fontPrimary,
 		fontSize: 20,
 		lineHeight: 20,
 	},
 	desc: {
 		...(fontStyles.normal as any),
-		color: colors.grey500,
+		color: importedColors.grey500,
 		fontSize: 14,
 		lineHeight: 20,
 		marginTop: 12,
@@ -65,14 +66,21 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 	);
 	const chainId = useSelector((state: any) => state.engine.backgroundState.NetworkController.provider.chainId);
 
+	const { colors } = useAppThemeFromContext();
+
 	useEffect(
 		() => {
 			navigation.setOptions(
-				getNavigationOptionsTitle(strings('app_settings.experimental_title'), navigation, isFullScreenModal)
+				getNavigationOptionsTitle(
+					strings('app_settings.experimental_title'),
+					navigation,
+					isFullScreenModal,
+					colors
+				)
 			);
 		},
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[]
+		[colors]
 	);
 
 	const goToWalletConnectSessions = useCallback(() => {
@@ -104,8 +112,12 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 						<Switch
 							value={isTokenDetectionEnabled}
 							onValueChange={toggleTokenDetection}
-							trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : undefined}
-							ios_backgroundColor={colors.grey000}
+							trackColor={
+								Device.isIos()
+									? { true: importedColors.blue, false: importedColors.grey000 }
+									: undefined
+							}
+							ios_backgroundColor={importedColors.grey000}
 						/>
 					</View>
 				</View>
