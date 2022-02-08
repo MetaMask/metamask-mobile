@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import { InteractionManager } from 'react-native';
 import { connect } from 'react-redux';
-import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import NotificationManager from '../../../core/NotificationManager';
@@ -12,6 +11,8 @@ import { FIAT_ORDER_STATES } from '../../../constants/on-ramp';
 import { getPendingOrders, updateFiatOrder } from '../../../reducers/fiatOrders';
 import useInterval from '../../hooks/useInterval';
 import processOrder from './orderProcessor';
+import { isTransakAllowedToBuy } from './orderProcessor/transak';
+import { isWyreAllowedToBuy } from './orderProcessor/wyreApplePay';
 
 /**
  * @typedef {import('../../../reducers/fiatOrders').FiatOrder} FiatOrder
@@ -20,7 +21,7 @@ import processOrder from './orderProcessor';
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
 const NOTIFICATION_DURATION = 5000;
 
-export const allowedToBuy = (network) => network === '1' || (network === '42' && Device.isIos());
+export const allowedToBuy = (chainId) => isWyreAllowedToBuy(chainId) || isTransakAllowedToBuy(chainId);
 
 const baseNotificationDetails = {
 	duration: NOTIFICATION_DURATION,

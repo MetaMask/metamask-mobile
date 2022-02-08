@@ -21,8 +21,9 @@ import {
 	renderFiat,
 	handleWeiNumber,
 	toHexadecimal,
+	safeNumberToBN,
+	fastSplit,
 } from '.';
-import numberToBN from 'number-to-bn';
 
 describe('Number utils :: BNToHex', () => {
 	it('BNToHex', () => {
@@ -293,10 +294,10 @@ describe('Number utils :: handleWeiNumber', () => {
 
 describe('Number utils :: fiatNumberToWei', () => {
 	it('fiatNumberToWei', () => {
-		const one = numberToBN(Math.pow(10, 18));
-		const ten = numberToBN(Math.pow(10, 19));
-		const decimal = numberToBN(Math.pow(10, 17));
-		const aThird = numberToBN('4a03ce68d215534');
+		const one = safeNumberToBN(Math.pow(10, 18));
+		const ten = safeNumberToBN(Math.pow(10, 19));
+		const decimal = safeNumberToBN(Math.pow(10, 17));
+		const aThird = safeNumberToBN('4a03ce68d215534');
 		expect(fiatNumberToWei('0.1234512345', 0.1234512345)).toEqual(one);
 		expect(fiatNumberToWei('0.5', 0.5)).toEqual(one);
 		expect(fiatNumberToWei('100', 10)).toEqual(ten);
@@ -314,27 +315,27 @@ describe('Number utils :: fiatNumberToTokenMinimalUnit', () => {
 		let i = 0;
 
 		expect(fiatNumberToTokenMinimalUnit(fiatValues[i], conversionRates[i], exchangeRates[i], decimals[i])).toEqual(
-			numberToBN('1000000000000000000')
+			safeNumberToBN('1000000000000000000')
 		);
 		i = 1;
 		expect(fiatNumberToTokenMinimalUnit(fiatValues[i], conversionRates[i], exchangeRates[i], decimals[i])).toEqual(
-			numberToBN('15375')
+			safeNumberToBN('15375')
 		);
 		i = 2;
 		expect(fiatNumberToTokenMinimalUnit(fiatValues[i], conversionRates[i], exchangeRates[i], decimals[i])).toEqual(
-			numberToBN('4761904761904')
+			safeNumberToBN('4761904761904')
 		);
 		i = 3;
 		expect(fiatNumberToTokenMinimalUnit(fiatValues[i], conversionRates[i], exchangeRates[i], decimals[i])).toEqual(
-			numberToBN('205761296296296300')
+			safeNumberToBN('205761296296296300')
 		);
 		i = 4;
 		expect(fiatNumberToTokenMinimalUnit(fiatValues[i], conversionRates[i], exchangeRates[i], decimals[i])).toEqual(
-			numberToBN('4761')
+			safeNumberToBN('4761')
 		);
 		i = 5;
 		expect(fiatNumberToTokenMinimalUnit(fiatValues[i], conversionRates[i], exchangeRates[i], decimals[i])).toEqual(
-			numberToBN('56822378925')
+			safeNumberToBN('56822378925')
 		);
 	});
 });
@@ -367,5 +368,13 @@ describe('toHexadecimal', () => {
 		expect(toHexadecimal(2)).toEqual('2');
 		expect(toHexadecimal()).toEqual(undefined);
 		expect(toHexadecimal(1232)).toEqual('4d0');
+	});
+});
+
+describe('Number utils :: fastSplit', () => {
+	it('should split ', () => {
+		expect(fastSplit('1650000007.7')).toEqual('1650000007');
+		expect(fastSplit('1650000007')).toEqual('1650000007');
+		expect(fastSplit('test string', ' ')).toEqual('test');
 	});
 });
