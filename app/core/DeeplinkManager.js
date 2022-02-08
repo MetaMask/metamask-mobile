@@ -134,14 +134,18 @@ class DeeplinkManager {
 					if (action === ACTIONS.WC && params?.uri) {
 						WalletConnect.newSession(params.uri, params.redirectUrl, false, origin);
 					} else if (PREFIXES[action]) {
-						this._handleBrowserUrl(
-							urlObj.href.replace(`https://${MM_UNIVERSAL_LINK_HOST}/${action}/`, PREFIXES[action]),
-							browserCallBack
+						const url = urlObj.href.replace(
+							`https://${MM_UNIVERSAL_LINK_HOST}/${action}/`,
+							PREFIXES[action]
 						);
+						// loops back to open the link with the right protocol
+						this.parse(url, { browserCallBack });
+					} else {
+						// Normal links (same as dapp)
+						this._handleBrowserUrl(urlObj.href, browserCallBack);
 					}
 				} else {
 					// Normal links (same as dapp)
-					urlObj.set('protocol', 'https:');
 					this._handleBrowserUrl(urlObj.href, browserCallBack);
 				}
 				break;
@@ -170,7 +174,6 @@ class DeeplinkManager {
 			case PROTOCOLS.DAPP:
 				// Enforce https
 				handled();
-				urlObj.set('protocol', 'https:');
 				this._handleBrowserUrl(urlObj.href, browserCallBack);
 				break;
 
