@@ -37,6 +37,7 @@ import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { EXISTING_USER, METRICS_OPT_IN } from '../../../constants/storage';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
+import { ThemeContext } from '../../../util/theme';
 
 const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 
@@ -131,11 +132,6 @@ const styles = StyleSheet.create({
  * View that is displayed to first time (new) users
  */
 class Onboarding extends PureComponent {
-	static navigationOptions = ({ navigation, route }) =>
-		route.params?.delete
-			? getTransparentOnboardingNavbarOptions(navigation)
-			: getTransparentBackOnboardingNavbarOptions(navigation);
-
 	static propTypes = {
 		/**
 		 * The navigator object
@@ -217,7 +213,18 @@ class Onboarding extends PureComponent {
 		BackHandler.addEventListener('hardwareBackPress', hardwareBackPress);
 	};
 
+	updateNavBar = () => {
+		const { route, navigation } = this.props;
+		const { colors } = this.context;
+		navigation.setOptions(
+			route.params?.delete
+				? getTransparentOnboardingNavbarOptions(colors)
+				: getTransparentBackOnboardingNavbarOptions(colors)
+		);
+	};
+
 	componentDidMount() {
+		this.updateNavBar();
 		this.mounted = true;
 		this.checkIfExistingUser();
 		InteractionManager.runAfterInteractions(() => {
@@ -238,6 +245,10 @@ class Onboarding extends PureComponent {
 		this.props.unsetLoading();
 		InteractionManager.runAfterInteractions(PreventScreenshot.allow);
 	}
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
+	};
 
 	async checkIfExistingUser() {
 		const existingUser = await AsyncStorage.getItem(EXISTING_USER);
@@ -491,6 +502,8 @@ class Onboarding extends PureComponent {
 		);
 	}
 }
+
+Onboarding.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,

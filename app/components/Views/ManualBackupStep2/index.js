@@ -11,6 +11,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Device from '../../../util/device';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import { ThemeContext } from '../../../util/theme';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -150,8 +151,6 @@ const styles = StyleSheet.create({
  * the backup seed phrase flow
  */
 class ManualBackupStep2 extends PureComponent {
-	static navigationOptions = ({ navigation, route }) => getOnboardingNavbarOptions(navigation, route);
-
 	static propTypes = {
 		/**
 		/* navigation object required to push and pop other views
@@ -187,6 +186,12 @@ class ManualBackupStep2 extends PureComponent {
 		currentStep: 2,
 	};
 
+	updateNavBar = () => {
+		const { route, navigation } = this.props;
+		const { colors } = this.context;
+		navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
+	};
+
 	componentDidMount = () => {
 		const { route } = this.props;
 		const words = route.params?.words ?? [];
@@ -196,6 +201,10 @@ class ManualBackupStep2 extends PureComponent {
 			},
 			this.createWordsDictionary
 		);
+	};
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
 	};
 
 	createWordsDictionary = () => {
@@ -373,6 +382,8 @@ class ManualBackupStep2 extends PureComponent {
 		);
 	};
 }
+
+ManualBackupStep2.contextType = ThemeContext;
 
 const mapDispatchToProps = (dispatch) => ({
 	seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),

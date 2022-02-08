@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { ViewPropTypes, Text } from 'react-native';
 import Button from 'react-native-button';
 import getStyles from './styledButtonStyles';
+import { ThemeContext } from '../../../util/theme';
 
 /**
  * UI component that renders a styled button
@@ -82,3 +83,5 @@ export default class StyledButton extends PureComponent {
 		);
 	};
 }
+
+StyledButton.contextType = ThemeContext;

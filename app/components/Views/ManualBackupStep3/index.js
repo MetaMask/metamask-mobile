@@ -26,6 +26,7 @@ import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import { ONBOARDING_WIZARD, SEED_PHRASE_HINTS } from '../../../constants/storage';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
+import { ThemeContext } from '../../../util/theme';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -84,8 +85,6 @@ const HARDWARE_BACK_PRESS = 'hardwareBackPress';
  * the backup seed phrase flow
  */
 class ManualBackupStep3 extends PureComponent {
-	static navigationOptions = ({ navigation }) => getTransparentOnboardingNavbarOptions(navigation);
-
 	constructor(props) {
 		super(props);
 		this.steps = props.route.params?.steps;
@@ -108,11 +107,18 @@ class ManualBackupStep3 extends PureComponent {
 		route: PropTypes.object,
 	};
 
+	updateNavBar = () => {
+		const { navigation } = this.props;
+		const { colors } = this.context;
+		navigation.setOptions(getTransparentOnboardingNavbarOptions(colors));
+	};
+
 	componentWillUnmount = () => {
 		BackHandler.removeEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
 	};
 
 	componentDidMount = async () => {
+		this.updateNavBar();
 		const currentSeedphraseHints = await AsyncStorage.getItem(SEED_PHRASE_HINTS);
 		const parsedHints = currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
 		const manualBackup = parsedHints?.manualBackup;
@@ -123,6 +129,10 @@ class ManualBackupStep3 extends PureComponent {
 			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_COMPLETED);
 		});
 		BackHandler.addEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
+	};
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
 	};
 
 	toggleHint = () => {
@@ -232,6 +242,8 @@ class ManualBackupStep3 extends PureComponent {
 		);
 	}
 }
+
+ManualBackupStep3.contextType = ThemeContext;
 
 const mapDispatchToProps = (dispatch) => ({
 	showAlert: (config) => dispatch(showAlert(config)),

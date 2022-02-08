@@ -36,10 +36,6 @@ const trackEventWithParameters = (event, params) => {
 };
 
 const styles = StyleSheet.create({
-	headerStyle: {
-		shadowColor: colors.transparent,
-		elevation: 0,
-	},
 	metamaskName: {
 		width: 122,
 		height: 15,
@@ -495,19 +491,27 @@ export function getModalNavbarOptions(title) {
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
  */
-export function getOnboardingNavbarOptions(navigation, route, { headerLeft } = {}) {
+export function getOnboardingNavbarOptions(route, { headerLeft } = {}, themeColors) {
 	const headerLeftHide = headerLeft || route.params?.headerLeft;
-
-	return {
+	const innerStyles = StyleSheet.create({
 		headerStyle: {
 			shadowColor: colors.transparent,
 			elevation: 0,
-			backgroundColor: colors.white,
+			backgroundColor: themeColors.backgroundDefault,
 			borderBottomWidth: 0,
 		},
+		metamaskName: {
+			width: 122,
+			height: 15,
+			tintColor: themeColors.textDefault,
+		},
+	});
+
+	return {
+		headerStyle: innerStyles.headerStyle,
 		headerTitle: () => (
 			<View style={styles.metamaskNameTransparentWrapper}>
-				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+				<Image source={metamask_name} style={innerStyles.metamaskName} resizeMethod={'auto'} />
 			</View>
 		),
 		headerBackTitle: strings('navigation.back'),
@@ -521,16 +525,28 @@ export function getOnboardingNavbarOptions(navigation, route, { headerLeft } = {
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle
  */
-export function getTransparentOnboardingNavbarOptions() {
+export function getTransparentOnboardingNavbarOptions(themeColors) {
+	const innerStyles = StyleSheet.create({
+		headerStyle: {
+			shadowColor: colors.transparent,
+			elevation: 0,
+			backgroundColor: themeColors.backgroundDefault,
+		},
+		metamaskName: {
+			width: 122,
+			height: 15,
+			tintColor: themeColors.textDefault,
+		},
+	});
 	return {
 		headerTitle: () => (
 			<View style={styles.metamaskNameTransparentWrapper}>
-				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+				<Image source={metamask_name} style={innerStyles.metamaskName} resizeMethod={'auto'} />
 			</View>
 		),
 		headerLeft: () => <View />,
 		headerRight: () => <View />,
-		headerStyle: styles.headerStyle,
+		headerStyle: innerStyles.headerStyle,
 	};
 }
 
@@ -539,16 +555,28 @@ export function getTransparentOnboardingNavbarOptions() {
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle and a back button
  */
-export function getTransparentBackOnboardingNavbarOptions() {
+export function getTransparentBackOnboardingNavbarOptions(themeColors) {
+	const innerStyles = StyleSheet.create({
+		headerStyle: {
+			shadowColor: colors.transparent,
+			elevation: 0,
+			backgroundColor: themeColors.backgroundDefault,
+		},
+		metamaskName: {
+			width: 122,
+			height: 15,
+			tintColor: themeColors.textDefault,
+		},
+	});
 	return {
 		headerTitle: () => (
 			<View style={styles.metamaskNameTransparentWrapper}>
-				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+				<Image source={metamask_name} style={innerStyles.metamaskName} resizeMethod={'auto'} />
 			</View>
 		),
 		headerBackTitle: strings('navigation.back'),
 		headerRight: () => <View />,
-		headerStyle: styles.headerStyle,
+		headerStyle: innerStyles.headerStyle,
 	};
 }
 
