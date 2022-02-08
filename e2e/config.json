@@ -5,5 +5,10 @@
 	"forceExit": true,
 	"transform": {
 		"^.+\\.js$": "<rootDir>/node_modules/react-native/jest/preprocessor.js"
-	}
+	},
+	"testRunner": "jest-circus/runner",
+	"testTimeout": 120000,
+	"testRegex": "\\.e2e\\.js$",
+	"reporters": ["detox/runners/jest/streamlineReporter"],
+	"verbose": true
 }
