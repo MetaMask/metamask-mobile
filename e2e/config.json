@@ -8,7 +8,7 @@
 	},
 	"testRunner": "jest-circus/runner",
 	"testTimeout": 120000,
-	"testRegex": "\\.e2e\\.js$",
+	"testRegex": "\\.spec\\.js$",
 	"reporters": ["detox/runners/jest/streamlineReporter"],
 	"verbose": true
 }

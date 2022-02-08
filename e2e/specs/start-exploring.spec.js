@@ -19,13 +19,13 @@ const ACCOUNT = 'Test Account One';
 const PASSWORD = '12345678';
 
 describe('Start Exploring', () => {
-	beforeEach(() => {
-		jest.setTimeout(150000);
-	});
+	// beforeEach(() => {
+	// 	jest.setTimeout(150000);
+	// });
 
 	it('should show the onboarding screen', async () => {
 		// Check that we are on the onboarding carousel screen
-		await device.launchApp({ newInstance: true }); // because of a flakey test step. We can improve this
+		// await device.launchApp({ newInstance: true }); // because of a flakey test step. We can improve this
 		await OnboardingCarouselView.isVisible();
 		await OnboardingCarouselView.isMetaMaskWelcomeTextVisible();
 		await OnboardingCarouselView.isWelcomeToMetaMaskImageVisible();
