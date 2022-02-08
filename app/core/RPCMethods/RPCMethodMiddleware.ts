@@ -125,7 +125,7 @@ export const getRpcMethodMiddleware = ({
 
 				if (isInitialNetwork) {
 					chainId = NetworksChainId[networkType];
-				} else if (networkType === 'rpc') {
+				} else if (networkType === RPC) {
 					chainId = networkProvider.chainId;
 				}
 
@@ -259,15 +259,23 @@ export const getRpcMethodMiddleware = ({
 
 			eth_signTypedData_v3: async () => {
 				const { TypedMessageManager } = Engine.context;
+
+				const { provider } = Engine.context.NetworkController.state;
+				const networkProvider = provider;
+				const networkType = provider.type as NetworkType;
+				const isInitialNetwork = networkType && getAllNetworks().includes(networkType);
+
+				let activeChainId;
+
+				if (isInitialNetwork) {
+					activeChainId = NetworksChainId[networkType];
+				} else if (networkType === RPC) {
+					activeChainId = networkProvider.chainId;
+				}
+
 				const data = JSON.parse(req.params[1]);
 				const chainId = data.domain.chainId;
 
-				const {
-					provider: { type: networkType },
-					network,
-				} = Engine.context.NetworkController.state;
-
-				const activeChainId = networkType === RPC ? network : (Networks as any)[networkType].networkId;
 				// eslint-disable-next-line
 				if (chainId && chainId != activeChainId) {
 					throw ethErrors.rpc.invalidRequest(
@@ -299,15 +307,22 @@ export const getRpcMethodMiddleware = ({
 
 			eth_signTypedData_v4: async () => {
 				const { TypedMessageManager } = Engine.context;
+
+				const { provider } = Engine.context.NetworkController.state;
+				const networkProvider = provider;
+				const networkType = provider.type as NetworkType;
+				const isInitialNetwork = networkType && getAllNetworks().includes(networkType);
+
+				let activeChainId;
+
+				if (isInitialNetwork) {
+					activeChainId = NetworksChainId[networkType];
+				} else if (networkType === RPC) {
+					activeChainId = networkProvider.chainId;
+				}
+
 				const data = JSON.parse(req.params[1]);
 				const chainId = data.domain.chainId;
-
-				const {
-					provider: { type: networkType },
-					network,
-				} = Engine.context.NetworkController.state;
-
-				const activeChainId = networkType === RPC ? network : (Networks as any)[networkType].networkId;
 
 				// eslint-disable-next-line eqeqeq
 				if (chainId && chainId != activeChainId) {
