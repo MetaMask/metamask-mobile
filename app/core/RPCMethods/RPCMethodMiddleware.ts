@@ -179,7 +179,11 @@ export const getRpcMethodMiddleware = ({
 				const accounts = await getAccounts();
 				res.result = accounts.length > 0 ? accounts[0] : null;
 			},
-
+			eth_signTransaction: async () => {
+				// This is implemented later in our middleware stack – specifically, in
+				// eth-json-rpc-middleware – but our UI does not support it.
+				throw ethErrors.rpc.methodNotSupported();
+			},
 			eth_sign: async () => {
 				const { MessageManager } = Engine.context;
 				const pageMeta = {
@@ -191,14 +195,19 @@ export const getRpcMethodMiddleware = ({
 				};
 
 				checkTabActive();
-				const rawSig = await MessageManager.addUnapprovedMessageAsync({
-					data: req.params[1],
-					from: req.params[0],
-					...pageMeta,
-					origin: hostname,
-				});
 
-				res.result = rawSig;
+				if (req.params[1].length === 66 || req.params[1].length === 67) {
+					const rawSig = await MessageManager.addUnapprovedMessageAsync({
+						data: req.params[1],
+						from: req.params[0],
+						...pageMeta,
+						origin: hostname,
+					});
+
+					res.result = rawSig;
+				} else {
+					throw ethErrors.rpc.invalidParams('eth_sign requires 32 byte message hash');
+				}
 			},
 
 			personal_sign: async () => {
