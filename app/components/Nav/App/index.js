@@ -257,10 +257,7 @@ const App = ({ userLoggedIn }) => {
 	const appTheme = useSelector((state) => state.user.appTheme);
 	const theme = useAppTheme();
 	useEffect(() => {
-		const newAppTheme =
-			appTheme === AppThemeNames.Light || appTheme === AppThemeNames.OS
-				? AppThemeNames.Dark
-				: AppThemeNames.Light;
+		const newAppTheme = appTheme === AppThemeNames.Light ? AppThemeNames.Dark : AppThemeNames.Light;
 		if (__DEV__) {
 			DevSettings.addMenuItem('Toggle Theme', () => {
 				dispatch(setAppTheme(newAppTheme));
