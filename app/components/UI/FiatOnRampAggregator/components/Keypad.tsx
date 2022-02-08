@@ -1,10 +1,11 @@
 import React from 'react';
-import { StyleSheet, ViewPropTypes } from 'react-native';
-import KeypadComponent from '../../../../components/Base/Keypad';
+import { StyleSheet, ViewStyle } from 'react-native';
+import KeypadComponent from '../../../Base/Keypad';
 import { colors } from '../../../../styles/common';
 import Feather from 'react-native-vector-icons/Feather';
 
 const styles = StyleSheet.create({
+	// TODO: change background color to theme color
 	// eslint-disable-next-line react-native/no-color-literals
 	keypad: {
 		paddingHorizontal: 24,
@@ -38,7 +39,15 @@ const styles = StyleSheet.create({
 		margin: 3.5,
 	},
 });
-const Keypad = ({ style, ...props }) => (
+
+interface Props {
+	/**
+	 * Custom style for container
+	 */
+	style: ViewStyle;
+}
+
+const Keypad: React.FC<Props> = ({ style, ...props }: Props) => (
 	<KeypadComponent
 		{...props}
 		style={[styles.keypad, style]}
@@ -50,12 +59,5 @@ const Keypad = ({ style, ...props }) => (
 		deleteIcon={<Feather name="delete" size={24} />}
 	/>
 );
-
-Keypad.propTypes = {
-	/**
-	 * Custom style for container
-	 */
-	style: ViewPropTypes.style,
-};
 
 export default Keypad;
