@@ -1,11 +1,11 @@
 import React, { useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, ScrollView } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Text from '../../../Base/Text';
 import ListItem from '../../../Base/ListItem';
 import StyledButton from '../../StyledButton';
-import ScreenRegion from '../components/ScreenRegion';
+import ScreenRegion, { Content } from '../components/ScreenRegion';
 import { strings } from '../../../../../locales/i18n';
 import { colors } from '../../../../styles/common';
 
@@ -56,19 +56,25 @@ const GetStarted = ({ navigation }) => {
 			<ScreenRegion.Header title="What to expect" />
 
 			<ScreenRegion.Body>
-				{whatToExpectList.map(({ id, title, description }) => (
-					<ListItem.Content key={id} style={styles.listItem}>
-						<ListItem.Icon style={styles.icon}>
-							<FontAwesome name="circle" size={32} color={colors.grey100} />
-						</ListItem.Icon>
-						<ListItem.Body>
-							<ListItem.Title bold style={styles.title}>
-								{title}
-							</ListItem.Title>
-							<Text style={styles.description}>{description}</Text>
-						</ListItem.Body>
-					</ListItem.Content>
-				))}
+				<ScrollView>
+					<Content>
+						{[...whatToExpectList, ...whatToExpectList, ...whatToExpectList].map(
+							({ id, title, description }, index) => (
+								<ListItem.Content key={index} style={styles.listItem}>
+									<ListItem.Icon style={styles.icon}>
+										<FontAwesome name="circle" size={32} color={colors.grey100} />
+									</ListItem.Icon>
+									<ListItem.Body>
+										<ListItem.Title bold style={styles.title}>
+											{title}
+										</ListItem.Title>
+										<Text style={styles.description}>{description}</Text>
+									</ListItem.Body>
+								</ListItem.Content>
+							)
+						)}
+					</Content>
+				</ScrollView>
 			</ScreenRegion.Body>
 
 			<ScreenRegion.Footer>

@@ -4,14 +4,16 @@ import { StyleSheet, View, SafeAreaView, ScrollView } from 'react-native';
 import { colors } from '../../../../styles/common';
 import Text from '../../../Base/Text';
 
-const styles = StyleSheet.create({
+export const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
 	},
 	container: {
 		backgroundColor: colors.white,
-		padding: 15,
 		flex: 1,
+	},
+	content: {
+		padding: 15,
 	},
 	header: {
 		marginTop: 10,
@@ -48,6 +50,7 @@ const Header = ({ style, children, title, description, bold, ...props }) => (
 );
 const Body = ({ style, ...props }) => <View style={[styles.body, style]} {...props} />;
 const Footer = ({ style, ...props }) => <View style={[styles.footer, style]} {...props} />;
+export const Content = ({ style, ...props }) => <View style={[styles.content, style]} {...props} />;
 
 ScreenRegion.Header = Header;
 ScreenRegion.Body = Body;
@@ -74,6 +77,9 @@ Header.propTypes = {
 Body.propTypes = {
 	style: stylePropType,
 	children: PropTypes.any,
+};
+Content.propTypes = {
+	style: stylePropType,
 };
 Footer.propTypes = {
 	style: stylePropType,
