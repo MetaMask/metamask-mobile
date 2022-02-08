@@ -73,7 +73,8 @@ describe('Deep linking Tests', () => {
 
 	it('should attempt to deep link to the send flow with a custom network not added to wallet', async () => {
 		const networkNotFoundText = 'Network not found';
-		const networkErrorBodyMessage = 'Network with chain id 56 not found in your wallet. Please add it first.';
+		const networkErrorBodyMessage =
+			'Network with chain id 56 not found in your wallet. Please add the network first.';
 
 		await TestHelpers.openDeepLink(binanceDeepLink);
 		await TestHelpers.delay(3000);

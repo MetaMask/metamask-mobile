@@ -97,7 +97,7 @@
 		"step4": {
 			"title": "Main Navigation",
 			"content1": "Tap here",
-			"content2": "to access your Wallet, Browser, and Transaction history.",
+			"content2": "to access your Wallet, Browser, and Transaction activity.",
 			"content3": "You can take more actions with your accounts & access MetaMask settings."
 		},
 		"step5": {
@@ -234,7 +234,7 @@
 		"receive_button": "Add funds",
 		"coming_soon": "Coming soon...",
 		"wallet": "Wallet",
-		"transaction_history": "Transaction History",
+		"transaction_activity": "Activity",
 		"request_feature": "Request a Feature",
 		"submit_feedback_message": "Choose the type of feedback to send.",
 		"submit_bug": "Bug Report",
@@ -246,7 +246,7 @@
 		"settings": "Settings",
 		"settings_warning": "Wallet unprotected",
 		"settings_warning_short": "Unprotected",
-		"help": "Get Help",
+		"help": "Support",
 		"logout": "Log Out",
 		"logout_title": "Do you really want to log out?",
 		"logout_ok": "YES",
@@ -261,7 +261,9 @@
 		"warn_network_change": "Network changed to ",
 		"send_to": "Send to",
 		"amount": "Amount",
-		"confirm": "Confirm"
+		"confirm": "Confirm",
+		"network_not_found_title": "Network not found",
+		"network_not_found_description": "Network with chain id {{chain_id}} not found in your wallet. Please add the network first."
 	},
 	"deposit": {
 		"title": "Deposit"
@@ -438,7 +440,7 @@
 		"clear_browser_history_modal_message": "We are about to remove all your browser history. Are you sure?",
 		"clear_cookies_modal_title": "Clear Browser Cookies",
 		"clear_cookies_modal_message": "We are about to remove your browser's cookies. Are you sure?",
-		"reset_account_modal_message": "Resetting your account will clear your transaction history.",
+		"reset_account_modal_message": "Resetting your account will clear your transaction activity.",
 		"save_rpc_url": "SAVE",
 		"invalid_rpc_prefix": "URIs require the appropriate HTTPS prefix",
 		"invalid_rpc_url": "Invalid RPC URL",
@@ -477,7 +479,7 @@
 		"general_title": "General",
 		"general_desc": "Currency conversion, primary currency, language and search engine",
 		"advanced_title": "Advanced",
-		"advanced_desc": "Access developer features, reset account, setup testnets, sync with extension, state logs, IPFS gateway and custom RPC",
+		"advanced_desc": "Access developer features, reset account, setup testnets, state logs, IPFS gateway and custom RPC",
 		"contacts_title": "Contacts",
 		"contacts_desc": "Add, edit, remove, and manage your accounts",
 		"security_title": "Security & Privacy",
@@ -516,7 +518,7 @@
 		"primary_currency_text_second": "Fiat",
 		"language_desc": "Translate the application to a different supported language.",
 		"engine_desc": "Change the default search engine used when entering search terms in the URL bar.",
-		"reset_desc": "This action will clear your transaction history. This data might not be retrievable.",
+		"reset_desc": "This action will clear your transaction activity. This data might not be retrievable.",
 		"rpc_desc": "Use a custom RPC-capable network via URL instead of one of the provided networks.",
 		"hex_desc": "Select this to show the hex data field on the send screen.",
 		"clear_privacy_title": "Clear privacy data",
@@ -927,7 +929,7 @@
 		"error_title": "We're sorry!",
 		"error_message": "Something went wrong... Please try again",
 		"warning_title": "Warning!",
-		"warning_message": "This will override all your current accounts and transaction history in your mobile phone. Are you sure?",
+		"warning_message": "This will override all your current accounts and transaction activity in your mobile phone. Are you sure?",
 		"warning_ok_button": "YES",
 		"warning_cancel_button": "NO",
 		"invalid_qr_code": "Invalid QR Code",
@@ -1340,6 +1342,7 @@
 	},
 	"fiat_on_ramp": {
 		"buy_eth": "Buy ETH",
+		"buy": "Buy {{ticker}}",
 		"purchased_currency": "Purchased {{currency}}",
 		"network_not_supported": "Current network not supported",
 		"switch_network": "Please switch to Mainnet",
@@ -1367,6 +1370,7 @@
 		"modal_transak_support": "Transak Support & fees",
 		"modal_wyre_support": "Wyre Support & fees",
 		"transak_cta": "Buy ETH with Transak",
+		"transak_cta_ticker": "Buy {{ticker}} with Transak",
 		"transak_modal_text": "Exact payment methods and fees vary depending on location. Fees are shown in Transak.",
 		"apple_pay": "Apple Pay",
 		"via": "via",
@@ -1518,6 +1522,7 @@
 		"more_to_complete": "more to complete this swap.",
 		"more_gas_to_complete": "more for gas to complete this swap.",
 		"buy_more_eth": "Buy more ETH.",
+		"buy_more": "Buy more {{ticker}}.",
 		"market_price_unavailable_title": "Check your rate before proceeding",
 		"market_price_unavailable": "Market price is unavailable and price impact is therefore unknown. Please verify that you are comfortable with the amount of tokens you will receive before swapping.",
 		"price_difference": "Price difference of {{amount}}",
