@@ -32,9 +32,6 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		color: colors.black,
 	},
-	headerTitleBold: {
-		fontWeight: '700',
-	},
 	headerDescription: {
 		textAlign: 'center',
 	},
@@ -57,7 +54,11 @@ const ScreenRegion = ({ style, ...props }) => (
 
 const ScreenRegionHeader = ({ style, children, title, description, bold, ...props }) => (
 	<View style={[styles.header, style]} {...props}>
-		{title && <Text style={bold ? [styles.headerTitle, styles.headerTitleBold] : styles.headerTitle}>{title}</Text>}
+		{title && (
+			<Text bold={bold} style={styles.headerTitle}>
+				{title}
+			</Text>
+		)}
 		{description && <Text style={styles.headerDescription}>{description}</Text>}
 		{children}
 	</View>
