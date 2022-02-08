@@ -1,15 +1,50 @@
 import React, { useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Text from '../../../Base/Text';
+import ListItem from '../../../Base/ListItem';
 import StyledButton from '../../StyledButton';
 import ScreenRegion from '../components/ScreenRegion';
+import { strings } from '../../../../../locales/i18n';
+import { colors } from '../../../../styles/common';
 
 const styles = StyleSheet.create({
 	button: {
 		width: 200,
 	},
+	listItem: {
+		marginBottom: 20,
+	},
+	title: {
+		fontSize: 14,
+	},
+	description: {
+		fontSize: 12,
+		marginVertical: 5,
+	},
+	icon: {
+		alignSelf: 'flex-start',
+	},
 });
+
+const whatToExpectList = [
+	{
+		id: 1,
+		title: strings('fiat_on_ramp_aggregator.onboarding.save_time_money'),
+		description: strings('fiat_on_ramp_aggregator.onboarding.save_time_money_description'),
+	},
+	{
+		id: 2,
+		title: strings('fiat_on_ramp_aggregator.onboarding.full_control_at_your_hands'),
+		description: strings('fiat_on_ramp_aggregator.onboarding.full_control_at_your_hands_description'),
+	},
+	{
+		id: 3,
+		title: strings('fiat_on_ramp_aggregator.onboarding.growing_collection_of_tokens'),
+		description: strings('fiat_on_ramp_aggregator.onboarding.growing_collection_of_tokens_description'),
+	},
+];
 
 const GetStarted = ({ navigation }) => {
 	const handleOnPress = useCallback(() => {
@@ -18,80 +53,37 @@ const GetStarted = ({ navigation }) => {
 
 	return (
 		<ScreenRegion>
-			<ScreenRegion.Header
-				bold
-				title="Your Region"
-				description="Text here about how certain payment methods will be available depending on your region"
-			/>
+			<ScreenRegion.Header title="What to expect" />
 
 			<ScreenRegion.Body>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
-				<Text>Critical Path (Fiat On-Ramp)</Text>
+				{whatToExpectList.map(({ id, title, description }) => (
+					<ListItem.Content key={id} style={styles.listItem}>
+						<ListItem.Icon style={styles.icon}>
+							<FontAwesome name="circle" size={32} color={colors.grey100} />
+						</ListItem.Icon>
+						<ListItem.Body>
+							<ListItem.Title bold style={styles.title}>
+								{title}
+							</ListItem.Title>
+							<Text style={styles.description}>{description}</Text>
+						</ListItem.Body>
+					</ListItem.Content>
+				))}
 			</ScreenRegion.Body>
 
 			<ScreenRegion.Footer>
 				<StyledButton type={'confirm'} onPress={handleOnPress} style={styles.button}>
-					Start
+					{strings('fiat_on_ramp_aggregator.onboarding.get_started')}
 				</StyledButton>
 			</ScreenRegion.Footer>
 		</ScreenRegion>
 	);
 };
 
-GetStarted.navigationOptions = ({ navigation, route }) => ({ headerLeft: () => null });
+GetStarted.navigationOptions = () => ({
+	headerLeft: () => null,
+	title: strings('fiat_on_ramp_aggregator.onboarding.buy_crypto_token'),
+});
 
 GetStarted.propTypes = {
 	navigation: PropTypes.object,
