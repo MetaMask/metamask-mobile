@@ -21,11 +21,13 @@ const userReducer = (state = initialState, action) => {
 				initialScreen: action.payload.initialScreen,
 			};
 		case 'LOGIN':
+			console.log('LOGIN');
 			return {
 				...state,
 				userLoggedIn: true,
 			};
 		case 'LOGOUT':
+			console.log('LOGOUT');
 			return {
 				...state,
 				userLoggedIn: false,

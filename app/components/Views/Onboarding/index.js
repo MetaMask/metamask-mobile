@@ -37,6 +37,7 @@ import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { EXISTING_USER, METRICS_OPT_IN } from '../../../constants/storage';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
+import AuthenticationService from '../../../core/AuthenticationService';
 
 const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 
@@ -169,7 +170,6 @@ class Onboarding extends PureComponent {
 		 * Object that represents the current route info like params passed to it
 		 */
 		route: PropTypes.object,
-		logOut: PropTypes.func,
 	};
 
 	notificationAnimated = new Animated.Value(100);
@@ -246,9 +246,9 @@ class Onboarding extends PureComponent {
 		}
 	}
 
-	logOut = () => {
+	logOut = async () => {
 		this.props.navigation.navigate('Login');
-		this.props.logOut();
+		await AuthenticationService.logout();
 	};
 
 	onLogin = async () => {

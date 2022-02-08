@@ -25,7 +25,7 @@ import { strings } from '../../../../locales/i18n';
 import SecureKeychain from '../../../core/SecureKeychain';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import setOnboardingWizardStep from '../../../actions/wizard';
-import { logIn, logOut, checkedAuth } from '../../../actions/user';
+import { logIn, checkedAuth } from '../../../actions/user';
 import { connect } from 'react-redux';
 import Device from '../../../util/device';
 import { OutlinedTextField } from 'react-native-material-textfield';
@@ -47,6 +47,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { tlc, toLowerCaseEquals } from '../../../util/general';
 import DefaultPreference from 'react-native-default-preference';
+import AuthenticationService, { AuthenticationType } from '../../../core/AuthenticationService';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -213,7 +214,6 @@ class Login extends PureComponent {
 		 */
 		selectedAddress: PropTypes.string,
 		logIn: PropTypes.func,
-		logOut: PropTypes.func,
 		/**
 		 * TEMPORARY state for animation control on Nav/App/index.js
 		 */
@@ -239,52 +239,56 @@ class Login extends PureComponent {
 	fieldRef = React.createRef();
 
 	async componentDidMount() {
-		const { initialScreen } = this.props;
-		const { KeyringController } = Engine.context;
+		// const { initialScreen } = this.props;
+		// const { KeyringController } = Engine.context;
 		//TODO: AUTH REFACTOR - logic that checks for auth type and then uses it to login
-		const shouldHandleInitialAuth = initialScreen !== 'onboarding';
+		// const shouldHandleInitialAuth = initialScreen !== 'onboarding';
 		BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 
 		// Lock keyring just in case
-		if (KeyringController.isUnlocked()) {
-			await KeyringController.setLocked();
-		}
+		// if (KeyringController.isUnlocked()) {
+		// 	await KeyringController.setLocked();
+		// }
 
-		const biometryType = await SecureKeychain.getSupportedBiometryType();
-		if (biometryType) {
-			const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
-			const enabled = !(previouslyDisabled && previouslyDisabled === TRUE);
+		// const biometryType = await SecureKeychain.getSupportedBiometryType();
+		// console.log('Login Index biometryType', biometryType);
 
-			this.setState({
-				biometryType: Device.isAndroid() ? 'biometrics' : biometryType,
-				biometryChoice: enabled,
-				biometryPreviouslyDisabled: !!previouslyDisabled,
-			});
-			if (shouldHandleInitialAuth) {
-				try {
-					if (enabled && !previouslyDisabled) {
-						await this.tryBiometric();
-					}
-				} catch (e) {
-					console.warn(e);
-				}
-				if (!enabled) {
-					await this.checkIfRememberMeEnabled();
-				}
-			}
-		} else {
-			shouldHandleInitialAuth && (await this.checkIfRememberMeEnabled());
-		}
+		// if (biometryType) {
+		// 	const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
+		// 	const enabled = !(previouslyDisabled && previouslyDisabled === TRUE);
 
-		this.props.checkedAuth();
+		// 	this.setState({
+		// 		biometryType: Device.isAndroid() ? 'biometrics' : biometryType,
+		// 		biometryChoice: enabled,
+		// 		biometryPreviouslyDisabled: !!previouslyDisabled,
+		// 	});
+
+		// 	console.log('Login Index shouldHandleInitialAuth', shouldHandleInitialAuth);
+		// 	if (shouldHandleInitialAuth) {
+		// 		try {
+		// 			if (enabled && !previouslyDisabled) {
+		// 				await this.tryBiometric();
+		// 			}
+		// 		} catch (e) {
+		// 			console.warn(e);
+		// 		}
+		// 		if (!enabled) {
+		// 			await this.checkIfRememberMeEnabled();
+		// 		}
+		// 	}
+		// } else {
+		// 	shouldHandleInitialAuth && (await this.checkIfRememberMeEnabled());
+		// }
+
+		// this.props.checkedAuth();
 	}
 
 	componentWillUnmount() {
 		BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
 	}
 
-	handleBackPress = () => {
-		this.props.logOut();
+	handleBackPress = async () => {
+		await AuthenticationService.logout();
 		return false;
 	};
 
@@ -293,31 +297,32 @@ class Login extends PureComponent {
 	 * Checks to see if the user has enabled Remember Me and logs
 	 * into the application if it is enabled.
 	 */
-	checkIfRememberMeEnabled = async () => {
-		const credentials = await SecureKeychain.getGenericPassword();
-		if (credentials) {
-			this.setState({ rememberMe: true });
-			// Restore vault with existing credentials
-			const { KeyringController } = Engine.context;
-			await KeyringController.submitPassword(credentials.password);
-			const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
-			if (encryptionLib !== ORIGINAL) {
-				await recreateVaultWithSamePassword(credentials.password, this.props.selectedAddress);
-				await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
-			}
-			// Get onboarding wizard state
-			const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
-			if (!onboardingWizard) {
-				this.props.setOnboardingWizardStep(1);
-			}
+	// checkIfRememberMeEnabled = async () => {
+	// 	const credentials = await SecureKeychain.getGenericPassword();
+	// 	console.log('Login Index - Remember Me - credentials', credentials);
+	// 	if (credentials) {
+	// 		this.setState({ rememberMe: true });
+	// 		// Restore vault with existing credentials
+	// 		const { KeyringController } = Engine.context;
+	// 		await KeyringController.submitPassword(credentials.password);
+	// 		const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
+	// 		if (encryptionLib !== ORIGINAL) {
+	// 			await recreateVaultWithSamePassword(credentials.password, this.props.selectedAddress);
+	// 			await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
+	// 		}
+	// 		// Get onboarding wizard state
+	// 		const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
+	// 		if (!onboardingWizard) {
+	// 			this.props.setOnboardingWizardStep(1);
+	// 		}
 
-			// Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
-			this.setState({ hasBiometricCredentials: false });
-			delete credentials.password;
-			this.props.logIn();
-			this.props.navigation.replace('HomeNav');
-		}
-	};
+	// 		// Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
+	// 		this.setState({ hasBiometricCredentials: false });
+	// 		delete credentials.password;
+	// 		this.props.logIn();
+	// 		this.props.navigation.replace('HomeNav');
+	// 	}
+	// };
 
 	//TODO: AUTH REFACTOR - move login logic to auth manager and only have UI in this method
 	onLogin = async (hasCredentials = false) => {
@@ -326,31 +331,15 @@ class Login extends PureComponent {
 		const locked = !passwordRequirementsMet(password);
 		if (locked) this.setState({ error: strings('login.invalid_password') });
 		if (this.state.loading || locked) return;
+
+		let authType;
+		if (this.state.biometryChoice) authType = AuthenticationType.BIOMETRIC;
+		else if (this.state.rememberMe) authType = AuthenticationType.REMEMBER_ME;
+		else authType = AuthenticationType.PASSWORD;
+
 		try {
-			this.setState({ loading: true, error: null });
-			const { KeyringController } = Engine.context;
-			// Restore vault with user entered password
-			await KeyringController.submitPassword(this.state.password);
-			const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
-			const existingUser = await AsyncStorage.getItem(EXISTING_USER);
-			if (encryptionLib !== ORIGINAL && existingUser) {
-				await recreateVaultWithSamePassword(this.state.password, this.props.selectedAddress);
-				await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
-			}
-			// If the tryBiometric has been called and they password was retrived don't set it again
-			if (!hasCredentials) {
-				if (this.state.biometryChoice && this.state.biometryType) {
-					await SecureKeychain.setGenericPassword(this.state.password, SecureKeychain.TYPES.BIOMETRICS);
-				} else if (this.state.rememberMe) {
-					await SecureKeychain.setGenericPassword(this.state.password, SecureKeychain.TYPES.REMEMBER_ME);
-				} else {
-					await SecureKeychain.resetGenericPassword();
-				}
-			}
-
-			this.props.logIn();
-
-			// Get onboarding wizard state
+			console.log('LOGIN on onLogin', authType);
+			await AuthenticationService.manualAuth(password, authType);
 			const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
 			if (onboardingWizard) {
 				this.props.navigation.replace('HomeNav');
@@ -362,7 +351,6 @@ class Login extends PureComponent {
 			this.setState({ loading: false, password: '', hasBiometricCredentials: false });
 			field.setValue('');
 		} catch (e) {
-			// Should we force people to enable passcode / biometrics?
 			const error = e.toString();
 			if (
 				toLowerCaseEquals(error, WRONG_PASSWORD_ERROR) ||
@@ -385,10 +373,68 @@ class Login extends PureComponent {
 					error: strings('login.clean_vault_error'),
 				});
 			} else {
+				console.log('ERROR LOGIN', error);
 				this.setState({ loading: false, error });
 			}
-			Logger.error(error, 'Failed to login');
 		}
+
+		// try {
+		// 	const { KeyringController } = Engine.context;
+		// 	// Restore vault with user entered password
+		// 	await KeyringController.submitPassword(this.state.password);
+		// 	const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
+		// 	const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+		// 	if (encryptionLib !== ORIGINAL && existingUser) {
+		// 		await recreateVaultWithSamePassword(this.state.password, this.props.selectedAddress);
+		// 		await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
+		// 	}
+		// 	// If the tryBiometric has been called and they password was retrived don't set it again
+		// 	if (!hasCredentials) {
+		// 		if (this.state.biometryChoice && this.state.biometryType) {
+		// 			await SecureKeychain.setGenericPassword(this.state.password, SecureKeychain.TYPES.BIOMETRICS);
+		// 		} else if (this.state.rememberMe) {
+		// 			await SecureKeychain.setGenericPassword(this.state.password, SecureKeychain.TYPES.REMEMBER_ME);
+		// 		} else {
+		// 			await SecureKeychain.resetGenericPassword();
+		// 		}
+		// 	}
+		// 	this.props.logIn();
+		// 	// Get onboarding wizard state
+		// 	const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
+		// 	if (onboardingWizard) {
+		// 		this.props.navigation.replace('HomeNav');
+		// 	} else {
+		// 		this.props.setOnboardingWizardStep(1);
+		// 		this.props.navigation.replace('HomeNav');
+		// 	}
+		// 	// Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
+		// 	this.setState({ loading: false, password: '', hasBiometricCredentials: false });
+		// 	field.setValue('');
+		// } catch (e) {
+		// 	// Should we force people to enable passcode / biometrics?
+		// 	const error = e.toString();
+		// 	if (
+		// 		toLowerCaseEquals(error, WRONG_PASSWORD_ERROR) ||
+		// 		toLowerCaseEquals(error, WRONG_PASSWORD_ERROR_ANDROID)
+		// 	) {
+		// 		this.setState({ loading: false, error: strings('login.invalid_password') });
+		// 		trackErrorAsAnalytics('Login: Invalid Password', error);
+		// 		return;
+		// 	} else if (error === PASSCODE_NOT_SET_ERROR) {
+		// 		Alert.alert(
+		// 			'Security Alert',
+		// 			'In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)'
+		// 		);
+		// 		this.setState({ loading: false });
+		// 	} else if (toLowerCaseEquals(error, VAULT_ERROR)) {
+		// 		this.setState({
+		// 			loading: false,
+		// 			error: strings('login.clean_vault_error'),
+		// 		});
+		// 	} else {
+		// 		this.setState({ loading: false, error });
+		// 	}
+		// }
 	};
 
 	triggerLogIn = () => {
@@ -665,7 +711,6 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
 	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 	logIn: () => dispatch(logIn()),
-	logOut: () => dispatch(logOut()),
 	checkedAuth: () => dispatch(checkedAuth('login')),
 });
 

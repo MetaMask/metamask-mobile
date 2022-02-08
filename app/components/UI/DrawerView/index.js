@@ -31,7 +31,7 @@ import URL from 'url-parse';
 import EthereumAddress from '../EthereumAddress';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
-import { logOut, protectWalletModalVisible } from '../../../actions/user';
+import { protectWalletModalVisible } from '../../../actions/user';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import SettingsNotification from '../SettingsNotification';
 import WhatsNewModal from '../WhatsNewModal';
@@ -45,6 +45,7 @@ import { collectiblesSelector } from '../../../reducers/collectibles';
 import { getCurrentRoute } from '../../../reducers/navigation';
 import { ScrollView } from 'react-native-gesture-handler';
 import { isZero } from '../../../util/lodash';
+import AuthenticationService from '../../../core/AuthenticationService';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -371,7 +372,6 @@ class DrawerView extends PureComponent {
 		 * Prompts protect wallet modal
 		 */
 		protectWalletModalVisible: PropTypes.func,
-		logOut: PropTypes.func,
 		/**
 		 * Callback to close drawer
 		 */
@@ -576,9 +576,9 @@ class DrawerView extends PureComponent {
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SETTINGS);
 	};
 
-	logOut = () => {
+	logOut = async () => {
 		this.props.navigation.navigate('Login');
-		this.props.logOut();
+		await AuthenticationService.logout();
 	};
 
 	onPress = async () => {
@@ -1169,7 +1169,6 @@ const mapDispatchToProps = (dispatch) => ({
 	showAlert: (config) => dispatch(showAlert(config)),
 	newAssetTransaction: (selectedAsset) => dispatch(newAssetTransaction(selectedAsset)),
 	protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
-	logOut: () => dispatch(logOut()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(DrawerView);

@@ -28,12 +28,12 @@ import Logger from '../../../util/Logger';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { routingInstrumentation } from '../../../util/setupSentry';
 import Analytics from '../../../core/Analytics';
-import { connect, useSelector, useDispatch } from 'react-redux';
+import { connect, useDispatch } from 'react-redux';
 import { EXISTING_USER, CURRENT_APP_VERSION, LAST_APP_VERSION } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
-import { checkedAuth } from '../../../actions/user';
 import { setCurrentRoute } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
+import AuthenticationService from '../../../core/AuthenticationService';
 
 const styles = StyleSheet.create({
 	fill: { flex: 1 },
@@ -103,7 +103,7 @@ const OnboardingRootNav = () => (
 	</Stack.Navigator>
 );
 
-const App = ({ userLoggedIn }) => {
+const App = ({ userLoggedIn, selectedAddress }) => {
 	const unsubscribeFromBranch = useRef();
 
 	const animation = useRef(null);
@@ -113,10 +113,7 @@ const App = ({ userLoggedIn }) => {
 
 	const [route, setRoute] = useState();
 	const [animationPlayed, setAnimationPlayed] = useState();
-
-	const isAuthChecked = useSelector((state) => state.user.isAuthChecked);
 	const dispatch = useDispatch();
-	const triggerCheckedAuth = () => dispatch(checkedAuth('onboarding'));
 	const triggerSetCurrentRoute = (route) => dispatch(setCurrentRoute(route));
 
 	const handleDeeplink = useCallback(({ error, params, uri }) => {
@@ -175,15 +172,20 @@ const App = ({ userLoggedIn }) => {
 	}, []);
 
 	useEffect(() => {
+		console.log('User State', userLoggedIn);
+	}, [userLoggedIn]);
+
+	useEffect(() => {
 		async function checkExsiting() {
 			const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+			try {
+				await AuthenticationService.autoAuth();
+			} catch (error) {
+				Logger.error(error.message);
+			}
 			const route = !existingUser ? 'OnboardingRootNav' : 'Login';
 			setRoute(route);
-			if (!existingUser) {
-				triggerCheckedAuth();
-			}
 		}
-
 		checkExsiting();
 	});
 
@@ -217,16 +219,12 @@ const App = ({ userLoggedIn }) => {
 	}, []);
 
 	useEffect(() => {
-		if (!isAuthChecked) {
-			return;
-		}
 		const startAnimation = async () => {
-			await new Promise((res) => setTimeout(res, 50));
 			animation?.current?.play();
 			animationName?.current?.play();
 		};
 		startAnimation();
-	}, [isAuthChecked]);
+	});
 
 	const onAnimationFinished = useCallback(() => {
 		Animated.timing(opacity, {
@@ -255,6 +253,7 @@ const App = ({ userLoggedIn }) => {
 
 	return (
 		// do not render unless a route is defined
+		//TODO: AUTH REFACTOR - confirm login behavior
 		(route && (
 			<View style={styles.fill}>
 				<NavigationContainer

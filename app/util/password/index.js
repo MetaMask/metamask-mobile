@@ -14,4 +14,4 @@ export const getPasswordStrengthWord = (strength) => {
 	}
 };
 
-export const passwordRequirementsMet = (password) => password.length >= MIN_PASSWORD_LENGTH;
+export const passwordRequirementsMet = (password) => password?.length >= MIN_PASSWORD_LENGTH;
