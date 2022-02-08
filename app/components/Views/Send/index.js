@@ -111,10 +111,6 @@ class Send extends PureComponent {
 		*/
 		dappTransactionModalVisible: PropTypes.bool,
 		/**
-		 * A list of custom RPCs to provide the user
-		 */
-		frequentRpcList: PropTypes.array,
-		/**
 		 * List of tokens from TokenListController
 		 */
 		tokenList: PropTypes.object,
@@ -260,9 +256,6 @@ class Send extends PureComponent {
 		parameters = null,
 	}) => {
 		const { addressBook, network, identities, selectedAddress } = this.props;
-		if (chain_id) {
-			this.handleNetworkSwitch(chain_id);
-		}
 
 		let newTxMeta = {};
 		switch (action) {
@@ -344,28 +337,6 @@ class Send extends PureComponent {
 		newTxMeta.transactionFromName = identities[selectedAddress].name;
 		this.props.setTransactionObject(newTxMeta);
 		this.mounted && this.setState({ ready: true, transactionKey: Date.now() });
-	};
-
-	/**
-	 * Method in charge of changing network if is needed
-	 *
-	 * @param switchToChainId - Corresponding chain id for new network
-	 */
-	handleNetworkSwitch = (switchToChainId) => {
-		const { frequentRpcList } = this.props;
-		const rpc = frequentRpcList.find(({ chainId }) => chainId === switchToChainId);
-		if (rpc) {
-			const { rpcUrl, chainId, ticker, nickname } = rpc;
-			const { NetworkController, CurrencyRateController } = Engine.context;
-			CurrencyRateController.setNativeCurrency(ticker);
-			NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
-			this.props.showAlert({
-				isVisible: true,
-				autodismiss: 5000,
-				content: 'clipboard-alert',
-				data: { msg: strings('send.warn_network_change') + nickname },
-			});
-		}
 	};
 
 	/**
