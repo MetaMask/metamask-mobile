@@ -28,6 +28,7 @@ import { connect } from 'react-redux';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
+import { useAppThemeFromContext } from '../../../util/theme';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -115,10 +116,20 @@ const styles = StyleSheet.create({
  * the backup seed phrase flow
  */
 const AccountBackupStep1 = (props) => {
+	const { navigation, route } = props;
 	const [showRemindLaterModal, setRemindLaterModal] = useState(false);
 	const [showWhatIsSeedphraseModal, setWhatIsSeedphraseModal] = useState(false);
 	const [skipCheckbox, setToggleSkipCheckbox] = useState(false);
 	const [hasFunds, setHasFunds] = useState(false);
+	const { colors } = useAppThemeFromContext();
+
+	useEffect(() => {
+		navigation.setOptions({
+			// eslint-disable-next-line react/display-name
+			...getOnboardingNavbarOptions(route, { headerLeft: () => <View /> }, colors),
+			gesturesEnabled: false,
+		});
+	}, [navigation, route, colors]);
 
 	useEffect(
 		() => {
@@ -272,12 +283,6 @@ AccountBackupStep1.propTypes = {
 	 */
 	setOnboardingWizardStep: PropTypes.func,
 };
-
-AccountBackupStep1.navigationOptions = ({ navigation, route }) => ({
-	// eslint-disable-next-line react/display-name
-	...getOnboardingNavbarOptions(navigation, route, { headerLeft: () => <View /> }),
-	gesturesEnabled: false,
-});
 
 const mapDispatchToProps = (dispatch) => ({
 	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),

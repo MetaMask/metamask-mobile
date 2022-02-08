@@ -44,6 +44,7 @@ import { getPasswordStrengthWord, passwordRequirementsMet, MIN_PASSWORD_LENGTH }
 
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import { ThemeContext } from '../../../util/theme';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -212,8 +213,6 @@ const IOS_DENY_BIOMETRIC_ERROR = 'The user name or passphrase you entered is not
  * View where users can set their password for the first time
  */
 class ChoosePassword extends PureComponent {
-	static navigationOptions = ({ navigation, route }) => getOnboardingNavbarOptions(navigation, route);
-
 	static propTypes = {
 		/**
 		 * The navigator object
@@ -268,7 +267,14 @@ class ChoosePassword extends PureComponent {
 	// Flag to know if password in keyring was set or not
 	keyringControllerPasswordSet = false;
 
+	updateNavBar = () => {
+		const { route, navigation } = this.props;
+		const { colors } = this.context;
+		navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
+	};
+
 	async componentDidMount() {
+		this.updateNavBar();
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
 		if (biometryType) {
 			this.setState({ biometryType: Device.isAndroid() ? 'biometrics' : biometryType, biometryChoice: true });
@@ -281,6 +287,7 @@ class ChoosePassword extends PureComponent {
 	}
 
 	componentDidUpdate(prevProps, prevState) {
+		this.updateNavBar();
 		const prevLoading = prevState.loading;
 		const { loading } = this.state;
 		const { navigation } = this.props;
@@ -700,6 +707,8 @@ class ChoosePassword extends PureComponent {
 		);
 	}
 }
+
+ChoosePassword.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,

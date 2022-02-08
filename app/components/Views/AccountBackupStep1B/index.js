@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
 	ScrollView,
 	TouchableOpacity,
@@ -23,6 +23,7 @@ import SeedphraseModal from '../../UI/SeedphraseModal';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import { useAppThemeFromContext } from '../../../util/theme';
 
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 
@@ -202,8 +203,14 @@ const styles = StyleSheet.create({
  * the backup seed phrase flow
  */
 const AccountBackupStep1B = (props) => {
+	const { navigation, route } = props;
 	const [showWhySecureWalletModal, setWhySecureWalletModal] = useState(false);
 	const [showWhatIsSeedphraseModal, setWhatIsSeedphraseModal] = useState(false);
+	const { colors } = useAppThemeFromContext();
+
+	useEffect(() => {
+		navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
+	}, [navigation, route, colors]);
 
 	const goNext = () => {
 		props.navigation.navigate('ManualBackupStep1', { ...props.route.params });
@@ -347,7 +354,5 @@ AccountBackupStep1B.propTypes = {
 	 */
 	route: PropTypes.object,
 };
-
-AccountBackupStep1B.navigationOptions = ({ navigation, route }) => getOnboardingNavbarOptions(navigation, route);
 
 export default AccountBackupStep1B;

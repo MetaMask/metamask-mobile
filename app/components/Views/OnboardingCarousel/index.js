@@ -14,6 +14,7 @@ import { connect } from 'react-redux';
 import AnalyticsV2, { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import { METRICS_OPT_IN } from '../../../constants/storage';
+import { ThemeContext } from '../../../util/theme';
 
 const IMAGE_3_RATIO = 215 / 315;
 const IMAGE_2_RATIO = 222 / 239;
@@ -110,8 +111,6 @@ const carousel_images = [onboarding_carousel_1, onboarding_carousel_2, onboardin
  * View that is displayed to first time (new) users
  */
 class OnboardingCarousel extends PureComponent {
-	static navigationOptions = ({ navigation }) => getTransparentOnboardingNavbarOptions(navigation);
-
 	static propTypes = {
 		/**
 		 * The navigator object
@@ -152,12 +151,23 @@ class OnboardingCarousel extends PureComponent {
 		});
 	};
 
+	updateNavBar = () => {
+		const { colors } = this.context;
+		this.props.navigation.setOptions(getTransparentOnboardingNavbarOptions(colors));
+	};
+
 	componentDidMount = () => {
+		this.updateNavBar();
 		this.trackEvent(ANALYTICS_EVENTS_V2.ONBOARDING_WELCOME_MESSAGE_VIEWED);
+	};
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
 	};
 
 	render() {
 		const { currentTab } = this.state;
+
 		return (
 			<View style={baseStyles.flexGrow} testID={'onboarding-carousel-screen'}>
 				<OnboardingScreenWithBg screen={'carousel'}>
@@ -218,6 +228,8 @@ class OnboardingCarousel extends PureComponent {
 		);
 	}
 }
+
+OnboardingCarousel.contextType = ThemeContext;
 
 const mapDispatchToProps = (dispatch) => ({
 	saveOnboardingEvent: (...eventArgs) => dispatch(saveOnboardingEvent(eventArgs)),

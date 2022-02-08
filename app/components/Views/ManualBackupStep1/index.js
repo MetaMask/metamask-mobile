@@ -31,6 +31,7 @@ import {
 	WRONG_PASSWORD_ERROR,
 } from '../../../constants/onboarding';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import { ThemeContext } from '../../../util/theme';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -216,8 +217,6 @@ const styles = StyleSheet.create({
  * the backup seed phrase flow
  */
 export default class ManualBackupStep1 extends PureComponent {
-	static navigationOptions = ({ navigation, route }) => getOnboardingNavbarOptions(navigation, route);
-
 	static propTypes = {
 		/**
 		/* navigation object required to push and pop other views
@@ -240,7 +239,14 @@ export default class ManualBackupStep1 extends PureComponent {
 		view: SEED_PHRASE,
 	};
 
+	updateNavBar = () => {
+		const { route, navigation } = this.props;
+		const { colors } = this.context;
+		navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
+	};
+
 	async componentDidMount() {
+		this.updateNavBar();
 		this.words = this.props.route.params?.words ?? [];
 
 		if (!this.words.length) {
@@ -258,6 +264,10 @@ export default class ManualBackupStep1 extends PureComponent {
 		this.setState({ ready: true });
 		InteractionManager.runAfterInteractions(() => PreventScreenshot.forbid());
 	}
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
+	};
 
 	onPasswordChange = (password) => {
 		this.setState({ password });
@@ -425,3 +435,5 @@ export default class ManualBackupStep1 extends PureComponent {
 		);
 	}
 }
+
+ManualBackupStep1.contextType = ThemeContext;

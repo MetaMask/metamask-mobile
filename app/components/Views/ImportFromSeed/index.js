@@ -50,6 +50,7 @@ import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import Clipboard from '@react-native-clipboard/clipboard';
+import { ThemeContext } from '../../../util/theme';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -185,8 +186,6 @@ const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
  * using a seed phrase
  */
 class ImportFromSeed extends PureComponent {
-	static navigationOptions = ({ navigation, route }) => getOnboardingNavbarOptions(navigation, route);
-
 	static propTypes = {
 		/**
 		 * The navigator object
@@ -212,6 +211,7 @@ class ImportFromSeed extends PureComponent {
 		 */
 		setOnboardingWizardStep: PropTypes.func,
 		logIn: PropTypes.func,
+		route: PropTypes.func,
 	};
 
 	state = {
@@ -232,7 +232,14 @@ class ImportFromSeed extends PureComponent {
 	passwordInput = React.createRef();
 	confirmPasswordInput = React.createRef();
 
+	updateNavBar = () => {
+		const { route, navigation } = this.props;
+		const { colors } = this.context;
+		navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
+	};
+
 	async componentDidMount() {
+		this.updateNavBar();
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
 		if (biometryType) {
 			let enabled = true;
@@ -247,6 +254,10 @@ class ImportFromSeed extends PureComponent {
 			this.setState({ inputWidth: { width: '100%' } });
 		}, 100);
 	}
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
+	};
 
 	onPressImport = async () => {
 		const { loading, seed, password, confirmPassword } = this.state;
@@ -640,6 +651,8 @@ class ImportFromSeed extends PureComponent {
 		);
 	}
 }
+
+ImportFromSeed.contextType = ThemeContext;
 
 const mapDispatchToProps = (dispatch) => ({
 	setLockTime: (time) => dispatch(setLockTime(time)),
