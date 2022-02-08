@@ -14,6 +14,7 @@ import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
+import { getTicker } from '../../../util/transactions';
 import { allowedToBuy } from '../FiatOrders';
 import { showAlert } from '../../../actions/alert';
 import { toggleReceiveModal } from '../../../actions/modals';
@@ -110,6 +111,10 @@ class ReceiveRequest extends PureComponent {
 		 */
 		network: PropTypes.string,
 		/**
+		 * Native asset ticker
+		 */
+		ticker: PropTypes.string,
+		/**
 		 * Prompts protect wallet modal
 		 */
 		protectWalletModalVisible: PropTypes.func,
@@ -163,7 +168,7 @@ class ReceiveRequest extends PureComponent {
 				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
 				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_OPENED, {
 					button_location: 'Receive Modal',
-					button_copy: 'Buy ETH',
+					button_copy: `Buy ${this.props.ticker}`,
 				});
 			});
 		}
@@ -280,7 +285,7 @@ class ReceiveRequest extends PureComponent {
 					<View style={styles.actionRow}>
 						{allowedToBuy(this.props.network) && (
 							<StyledButton type={'blue'} containerStyle={styles.actionButton} onPress={this.onBuy}>
-								{strings('fiat_on_ramp.buy_eth')}
+								{strings('fiat_on_ramp.buy', { ticker: getTicker(this.props.ticker) })}
 							</StyledButton>
 						)}
 						<StyledButton
@@ -302,6 +307,7 @@ class ReceiveRequest extends PureComponent {
 
 const mapStateToProps = (state) => ({
 	network: state.engine.backgroundState.NetworkController.network,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	receiveAsset: state.modals.receiveAsset,
 	seedphraseBackedUp: state.user.seedphraseBackedUp,
