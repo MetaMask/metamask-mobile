@@ -1,22 +1,22 @@
-const config = require('../package.json').detox; // eslint-disable-line
+// const config = require('../package.json').detox; // eslint-disable-line
 
 import detox from 'detox';
-import adapter from 'detox/runners/jest/adapter';
+// import adapter from 'detox/runners/jest/adapter';
 
 jest.setTimeout(2250000);
-jasmine.getEnv().addReporter(adapter);
+// jasmine.getEnv().addReporter(adapter);
 
 beforeAll(async () => {
-	await detox.init(config);
+	await detox.init();
 	await device.launchApp();
 });
 
-beforeEach(async () => {
-	await adapter.beforeEach();
-});
+// beforeEach(async () => {
+// 	await adapter.beforeEach();
+// });
 
 afterAll(async () => {
-	await adapter.afterAll();
+	// await adapter.afterAll();
 	await detox.cleanup();
 	jest.setTimeout(3000);
 });
