@@ -33,11 +33,17 @@ class DeeplinkManager {
 	 * @param switchToChainId - Corresponding chain id for new network
 	 */
 	handleNetworkSwitch = (switchToChainId) => {
+		const { NetworkController, CurrencyRateController } = Engine.context;
+
+		// If current network is the same as the one we want to switch to, do nothing
+		if (NetworkController?.state?.provider?.chainId === switchToChainId) {
+			return;
+		}
+
 		const rpc = this.frequentRpcList.find(({ chainId }) => chainId === switchToChainId);
 
 		if (rpc) {
 			const { rpcUrl, chainId, ticker, nickname } = rpc;
-			const { NetworkController, CurrencyRateController } = Engine.context;
 			CurrencyRateController.setNativeCurrency(ticker);
 			NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
 			this.dispatch(
@@ -54,7 +60,6 @@ class DeeplinkManager {
 		const networkType = getNetworkTypeById(switchToChainId);
 
 		if (networkType) {
-			const { NetworkController, CurrencyRateController } = Engine.context;
 			CurrencyRateController.setNativeCurrency('ETH');
 			NetworkController.setProviderType(networkType);
 			this.dispatch(
