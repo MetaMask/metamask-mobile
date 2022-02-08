@@ -46,6 +46,7 @@ import { getCurrentRoute } from '../../../reducers/navigation';
 import { ScrollView } from 'react-native-gesture-handler';
 import { isZero } from '../../../util/lodash';
 import NetworkInfo from '../NetworkInfo';
+import { onboardNetworkAction } from '../../../reducers/networkSelector';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -381,6 +382,10 @@ class DrawerView extends PureComponent {
 		 * Latest navigation route
 		 */
 		currentRoute: PropTypes.string,
+		/**
+		 * handles action for onboarding to a network
+		 */
+		onboardNetworkAction: PropTypes.func,
 	};
 
 	state = {
@@ -396,6 +401,7 @@ class DrawerView extends PureComponent {
 		networkCurrency: undefined,
 		balance: null,
 		balanceUpdated: false,
+		showModal: false,
 	};
 
 	browserSectionRef = React.createRef();
@@ -517,8 +523,10 @@ class DrawerView extends PureComponent {
 		}
 	};
 
-	onNetworksModalCloses = async (manualClose) => {
-		this.setState({ networkSelected: !this.state.networkSelected, balanceUpdated: false });
+	onInfoNetworksModalClose = async (manualClose) => {
+		this.setState({ networkSelected: !this.state.networkSelected, showModal: false });
+		this.toggleNetworksModal();
+		this.props.onboardNetworkAction(this.state.networkType);
 		if (!manualClose) {
 			await this.hideDrawer();
 			await this.setState({ networkSelected: !this.state.networkSelected });
@@ -535,21 +543,16 @@ class DrawerView extends PureComponent {
 		}
 	};
 
-	accountBalanceUpdated = () => {
-		const that = this;
-		setTimeout(() => {
-			that.setState({ balanceUpdated: true });
-		}, 10000);
-	};
-
 	onNetworkSelected = (type, currency) => {
-		this.setState({ balanceUpdated: false });
-		this.accountBalanceUpdated();
 		this.setState({
 			networkType: type,
 			networkCurrency: currency,
 			networkSelected: true,
 		});
+	};
+
+	switchModalContent = () => {
+		this.setState({ showModal: true });
 	};
 
 	showReceiveModal = () => {
@@ -963,8 +966,6 @@ class DrawerView extends PureComponent {
 		this.currentBalance = fiatBalance;
 		const fiatBalanceStr = renderFiat(this.currentBalance, currentCurrency);
 		const accountName = isDefaultAccountName(name) && ens ? ens : name;
-		const showInfoModal =
-			this.state.networkSelected && Number(this.state.balance) === 0 && this.state.balanceUpdated;
 
 		return (
 			<View style={styles.wrapper} testID={'drawer-screen'}>
@@ -1113,35 +1114,28 @@ class DrawerView extends PureComponent {
 				</ScrollView>
 				<Modal
 					isVisible={this.props.networkModalVisible}
-					onBackdropPress={this.toggleNetworksModal}
-					onBackButtonPress={this.toggleNetworksModal}
-					onSwipeComplete={this.toggleNetworksModal}
+					onBackdropPress={this.state.showModal ? null : this.toggleNetworksModal}
+					onBackButtonPress={this.state.showModal ? null : this.toggleNetworksModa}
+					onSwipeComplete={this.state.showModal ? null : this.toggleNetworksModa}
 					swipeDirection={'down'}
 					propagateSwipe
 				>
-					<NetworkList
-						navigation={this.props.navigation}
-						onClose={this.onNetworksModalClose}
-						onNetworkSelected={this.onNetworkSelected}
-						showInvalidCustomNetworkAlert={this.showInvalidCustomNetworkAlert}
-					/>
-				</Modal>
-				{showInfoModal && (
-					<Modal
-						isVisible={showInfoModal}
-						onBackdropPress={this.onNetworksModalCloses}
-						onBackButtonPress={this.onNetworksModalCloses}
-						onSwipeComplete={this.onNetworksModalCloses}
-						swipeDirection={'down'}
-						propagateSwipe
-					>
+					{this.state.showModal ? (
 						<NetworkInfo
-							onClose={this.onNetworksModalCloses}
+							onClose={this.onInfoNetworksModalClose}
 							type={this.state.networkType}
 							nativeToken={this.state.networkCurrency}
 						/>
-					</Modal>
-				)}
+					) : (
+						<NetworkList
+							navigation={this.props.navigation}
+							onClose={this.onNetworksModalClose}
+							onNetworkSelected={this.onNetworkSelected}
+							showInvalidCustomNetworkAlert={this.showInvalidCustomNetworkAlert}
+							switchModalContent={this.switchModalContent}
+						/>
+					)}
+				</Modal>
 				<Modal isVisible={!!invalidCustomNetwork}>
 					<InvalidCustomNetworkAlert
 						navigation={this.props.navigation}
@@ -1221,6 +1215,7 @@ const mapDispatchToProps = (dispatch) => ({
 	newAssetTransaction: (selectedAsset) => dispatch(newAssetTransaction(selectedAsset)),
 	protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
 	logOut: () => dispatch(logOut()),
+	onboardNetworkAction: (network) => dispatch(onboardNetworkAction(network)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(DrawerView);
