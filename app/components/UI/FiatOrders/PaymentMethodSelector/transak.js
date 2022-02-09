@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
 const TransakLogoIcon = require('../../../../images/TransakLogo.png');
 const TransakLogo = () => <Image source={TransakLogoIcon} style={styles.logo} />;
 
-const TransakPaymentMethod = ({ onPress }) => {
+const TransakPaymentMethod = ({ onPress, ticker }) => {
 	const [isVisible, , showModal, hideModal] = useModalHandler(false);
 	return (
 		<PaymentMethod onPress={onPress}>
@@ -146,7 +146,7 @@ const TransakPaymentMethod = ({ onPress }) => {
 			{Device.isAndroid() && (
 				<View>
 					<StyledButton type={'blue'} containerStyle={styles.cta} onPress={onPress}>
-						{strings('fiat_on_ramp.transak_cta')}
+						{strings('fiat_on_ramp.transak_cta_ticker', { ticker })}
 					</StyledButton>
 				</View>
 			)}
@@ -156,6 +156,7 @@ const TransakPaymentMethod = ({ onPress }) => {
 
 TransakPaymentMethod.propTypes = {
 	onPress: PropTypes.func,
+	ticker: PropTypes.string,
 };
 TransakPaymentMethod.defaultProps = {
 	onPress: undefined,

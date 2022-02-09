@@ -28,6 +28,8 @@ import { strings } from '../../../../locales/i18n';
 import { protectWalletModalVisible } from '../../../actions/user';
 import ClipboardManager from '../../../core/ClipboardManager';
 
+const isIos = Device.isIos();
+
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
@@ -113,7 +115,6 @@ const styles = StyleSheet.create({
 	},
 	addressTitle: {
 		fontSize: 16,
-		marginBottom: 16,
 		...fontStyles.normal,
 	},
 	informationWrapper: {
@@ -124,11 +125,13 @@ const styles = StyleSheet.create({
 	},
 	titleQr: {
 		flexDirection: 'row',
+		alignItems: 'center',
+		marginBottom: isIos ? 8 : 10,
 	},
 	closeIcon: {
-		position: 'absolute',
-		right: Device.isIos() ? -30 : -40,
-		bottom: Device.isIos() ? 8 : 10,
+		right: isIos ? -20 : -40,
+		alignItems: 'center',
+		paddingHorizontal: 10,
 	},
 	qrCode: {
 		marginBottom: 16,

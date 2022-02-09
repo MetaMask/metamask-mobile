@@ -3,8 +3,7 @@ import { View, Image, Text, TouchableOpacity, LayoutAnimation } from 'react-nati
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import Icon from 'react-native-vector-icons/Feather';
 import { colors } from '../../../styles/common';
-/* eslint-disable-next-line */
-import { useNavigation } from '@react-navigation/core';
+import { useNavigation } from '@react-navigation/native';
 import AppConstants from '../../../core/AppConstants';
 import { strings } from '../../../../locales/i18n';
 import ReviewManager from '../../../core/ReviewManager';
