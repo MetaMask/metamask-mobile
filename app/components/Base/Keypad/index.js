@@ -3,7 +3,19 @@ import PropTypes from 'prop-types';
 import Keypad from './components';
 import { KEYS } from './constants';
 import useCurrency from './useCurrency';
-function KeypadComponent({ onChange, value, currency }) {
+import { ViewPropTypes } from 'react-native';
+function KeypadComponent({
+	onChange,
+	value,
+	currency,
+	style,
+	digitButtonStyle,
+	digitTextStyle,
+	periodButtonStyle,
+	periodTextStyle,
+	deleteButtonStyle,
+	deleteIcon,
+}) {
 	const { handler, decimalSeparator } = useCurrency(currency);
 	const handleKeypadPress = useCallback(
 		(pressedKey) => {
@@ -30,26 +42,50 @@ function KeypadComponent({ onChange, value, currency }) {
 	const handleKeypadLongPressBack = useCallback(() => handleKeypadPress(KEYS.INITIAL), [handleKeypadPress]);
 
 	return (
-		<Keypad>
+		<Keypad style={style}>
 			<Keypad.Row>
-				<Keypad.Button onPress={handleKeypadPress1}>1</Keypad.Button>
-				<Keypad.Button onPress={handleKeypadPress2}>2</Keypad.Button>
-				<Keypad.Button onPress={handleKeypadPress3}>3</Keypad.Button>
+				<Keypad.Button style={digitButtonStyle} textStyle={digitTextStyle} onPress={handleKeypadPress1}>
+					1
+				</Keypad.Button>
+				<Keypad.Button style={digitButtonStyle} textStyle={digitTextStyle} onPress={handleKeypadPress2}>
+					2
+				</Keypad.Button>
+				<Keypad.Button style={digitButtonStyle} textStyle={digitTextStyle} onPress={handleKeypadPress3}>
+					3
+				</Keypad.Button>
 			</Keypad.Row>
 			<Keypad.Row>
-				<Keypad.Button onPress={handleKeypadPress4}>4</Keypad.Button>
-				<Keypad.Button onPress={handleKeypadPress5}>5</Keypad.Button>
-				<Keypad.Button onPress={handleKeypadPress6}>6</Keypad.Button>
+				<Keypad.Button style={digitButtonStyle} textStyle={digitTextStyle} onPress={handleKeypadPress4}>
+					4
+				</Keypad.Button>
+				<Keypad.Button style={digitButtonStyle} textStyle={digitTextStyle} onPress={handleKeypadPress5}>
+					5
+				</Keypad.Button>
+				<Keypad.Button style={digitButtonStyle} textStyle={digitTextStyle} onPress={handleKeypadPress6}>
+					6
+				</Keypad.Button>
 			</Keypad.Row>
 			<Keypad.Row>
-				<Keypad.Button onPress={handleKeypadPress7}>7</Keypad.Button>
-				<Keypad.Button onPress={handleKeypadPress8}>8</Keypad.Button>
-				<Keypad.Button onPress={handleKeypadPress9}>9</Keypad.Button>
+				<Keypad.Button style={digitButtonStyle} textStyle={digitTextStyle} onPress={handleKeypadPress7}>
+					7
+				</Keypad.Button>
+				<Keypad.Button style={digitButtonStyle} textStyle={digitTextStyle} onPress={handleKeypadPress8}>
+					8
+				</Keypad.Button>
+				<Keypad.Button style={digitButtonStyle} textStyle={digitTextStyle} onPress={handleKeypadPress9}>
+					9
+				</Keypad.Button>
 			</Keypad.Row>
 			<Keypad.Row>
-				<Keypad.Button onPress={handleKeypadPressPeriod}>{decimalSeparator}</Keypad.Button>
-				<Keypad.Button onPress={handleKeypadPress0}>0</Keypad.Button>
+				<Keypad.Button style={periodButtonStyle} textStyle={periodTextStyle} onPress={handleKeypadPressPeriod}>
+					{decimalSeparator}
+				</Keypad.Button>
+				<Keypad.Button style={digitButtonStyle} textStyle={digitTextStyle} onPress={handleKeypadPress0}>
+					0
+				</Keypad.Button>
 				<Keypad.DeleteButton
+					style={deleteButtonStyle}
+					icon={deleteIcon}
 					onPress={handleKeypadPressBack}
 					onLongPress={handleKeypadLongPressBack}
 					delayLongPress={500}
@@ -72,6 +108,34 @@ KeypadComponent.propTypes = {
 	 * Current value used to create new value when a key is pressed.
 	 */
 	value: PropTypes.string,
+	/**
+	 * Custom style for container
+	 */
+	style: ViewPropTypes.style,
+	/**
+	 * Custom style for digit buttons
+	 */
+	digitButtonStyle: ViewPropTypes.style,
+	/**
+	 * Custom style for digit text
+	 */
+	digitTextStyle: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
+	/**
+	 * Custom style for period button
+	 */
+	periodButtonStyle: ViewPropTypes.style,
+	/**
+	 * Custom style for period text
+	 */
+	periodTextStyle: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
+	/**
+	 * Custom style for delete button
+	 */
+	deleteButtonStyle: ViewPropTypes.style,
+	/**
+	 * Custom icon for delete button
+	 */
+	deleteIcon: PropTypes.node,
 };
 
 export { KEYS };
