@@ -319,6 +319,8 @@ class Login extends PureComponent {
 				this.setState({ rememberMe: false });
 				Logger.error(error, 'Failed to login using Remember Me');
 			}
+		} else {
+			this.setState({ rememberMe: false });
 		}
 	};
 
