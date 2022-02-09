@@ -806,7 +806,15 @@ export function getWalletNavbarOptions(title, navigation, drawerRef) {
  * @param {Object} navigation - Navigation object required to push new views
  * @returns {Object} - Corresponding navbar options containing headerTitle and headerTitle
  */
-export function getNetworkNavbarOptions(title, translate, navigation) {
+export function getNetworkNavbarOptions(title, translate, navigation, themeColors) {
+	const innerStyles = StyleSheet.create({
+		headerStyle: {
+			backgroundColor: themeColors.backgroundDefault,
+		},
+		headerIcon: {
+			color: themeColors.primary,
+		},
+	});
 	return {
 		headerTitle: () => <NavbarTitle title={title} translate={translate} />,
 		headerLeft: () => (
@@ -815,11 +823,12 @@ export function getNetworkNavbarOptions(title, translate, navigation) {
 				<IonicIcon
 					name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
 					size={Device.isAndroid() ? 24 : 28}
-					style={styles.backIcon}
+					style={innerStyles.headerIcon}
 				/>
 			</TouchableOpacity>
 		),
 		headerRight: () => <View />,
+		headerStyle: innerStyles.headerStyle,
 	};
 }
 

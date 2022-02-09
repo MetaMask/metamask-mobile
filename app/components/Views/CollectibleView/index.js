@@ -9,6 +9,7 @@ import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import { newAssetTransaction } from '../../../actions/transaction';
+import { ThemeContext } from '../../../util/theme';
 
 const styles = StyleSheet.create({
 	root: {
@@ -55,8 +56,19 @@ class CollectibleView extends PureComponent {
 		route: PropTypes.object,
 	};
 
-	static navigationOptions = ({ navigation, route }) =>
-		getNetworkNavbarOptions(route.params?.contractName ?? '', false, navigation);
+	updateNavBar = () => {
+		const { navigation, route } = this.props;
+		const { colors } = this.context;
+		getNetworkNavbarOptions(route.params?.contractName ?? '', false, navigation, colors);
+	};
+
+	componentDidMount = () => {
+		this.updateNavBar();
+	};
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
+	};
 
 	onSend = async () => {
 		const {
@@ -102,6 +114,8 @@ class CollectibleView extends PureComponent {
 		);
 	}
 }
+
+CollectibleView.contextType = ThemeContext;
 
 const mapDispatchToProps = (dispatch) => ({
 	newAssetTransaction: (selectedAsset) => dispatch(newAssetTransaction(selectedAsset)),

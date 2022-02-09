@@ -13,6 +13,7 @@ import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import { NetworksChainId } from '@metamask/controllers';
 import CollectibleDetectionModal from '../../UI/CollectibleDetectionModal';
 import { isMainNet } from '../../../util/networks';
+import { ThemeContext } from '../../../util/theme';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -41,13 +42,6 @@ const styles = StyleSheet.create({
  * PureComponent that provides ability to add assets.
  */
 class AddAsset extends PureComponent {
-	static navigationOptions = ({ navigation, route }) =>
-		getNetworkNavbarOptions(
-			`add_asset.${route.params.assetType === 'token' ? 'title' : 'title_nft'}`,
-			true,
-			navigation
-		);
-
 	state = {
 		address: '',
 		symbol: '',
@@ -72,6 +66,27 @@ class AddAsset extends PureComponent {
 		 * Boolean to show if NFT detection is enabled
 		 */
 		useCollectibleDetection: PropTypes.bool,
+	};
+
+	updateNavBar = () => {
+		const { navigation, route } = this.props;
+		const { colors } = this.context;
+		navigation.setOptions(
+			getNetworkNavbarOptions(
+				`add_asset.${route.params.assetType === 'token' ? 'title' : 'title_nft'}`,
+				true,
+				navigation,
+				colors
+			)
+		);
+	};
+
+	componentDidMount = () => {
+		this.updateNavBar();
+	};
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
 	};
 
 	renderTabBar() {
@@ -135,6 +150,8 @@ class AddAsset extends PureComponent {
 		);
 	};
 }
+
+AddAsset.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,

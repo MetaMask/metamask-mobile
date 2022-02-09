@@ -12,6 +12,7 @@ import CollectibleContractInformation from '../../UI/CollectibleContractInformat
 import { toggleCollectibleContractModal } from '../../../actions/modals';
 import { toLowerCaseEquals } from '../../../util/general';
 import { collectiblesSelector } from '../../../reducers/collectibles';
+import { ThemeContext } from '../../../util/theme';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -55,8 +56,19 @@ class Collectible extends PureComponent {
 		collectibles: [],
 	};
 
-	static navigationOptions = ({ navigation, route }) =>
-		getNetworkNavbarOptions(route.params?.name ?? '', false, navigation);
+	updateNavBar = () => {
+		const { navigation, route } = this.props;
+		const { colors } = this.context;
+		getNetworkNavbarOptions(route.params?.name ?? '', false, navigation, colors);
+	};
+
+	componentDidMount = () => {
+		this.updateNavBar();
+	};
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
+	};
 
 	onRefresh = async () => {
 		this.setState({ refreshing: true });
@@ -132,6 +144,8 @@ class Collectible extends PureComponent {
 		);
 	};
 }
+
+Collectible.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	collectibles: collectiblesSelector(state),

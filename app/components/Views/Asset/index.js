@@ -12,6 +12,7 @@ import Engine from '../../../core/Engine';
 import { safeToChecksumAddress } from '../../../util/address';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
+import { ThemeContext } from '../../../util/theme';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -97,10 +98,14 @@ class Asset extends PureComponent {
 	navSymbol = undefined;
 	navAddress = undefined;
 
-	static navigationOptions = ({ navigation, route }) =>
-		getNetworkNavbarOptions(route.params?.symbol ?? '', false, navigation);
+	updateNavBar = () => {
+		const { navigation, route } = this.props;
+		const { colors } = this.context;
+		navigation.setOptions(getNetworkNavbarOptions(route.params?.symbol ?? '', false, navigation, colors));
+	};
 
 	componentDidMount() {
+		this.updateNavBar();
 		InteractionManager.runAfterInteractions(() => {
 			this.normalizeTransactions();
 			this.mounted = true;
@@ -115,6 +120,7 @@ class Asset extends PureComponent {
 	}
 
 	componentDidUpdate(prevProps) {
+		this.updateNavBar();
 		if (prevProps.chainId !== this.props.chainId || prevProps.selectedAddress !== this.props.selectedAddress) {
 			this.showLoaderAndNormalize();
 		} else {
@@ -317,6 +323,8 @@ class Asset extends PureComponent {
 		);
 	};
 }
+
+Asset.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {},
