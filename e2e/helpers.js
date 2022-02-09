@@ -53,15 +53,14 @@ export default class TestHelpers {
 		return element(by.id(elementId)).replaceText('');
 	}
 
-	static async tapAndLongPress(elementId) {
+	static async tapAndLongPressByID(elementId) {
 		await TestHelpers.tap(elementId);
-		return element(by.id(elementId)).longPress(2000);
+		return element(by.id(elementId)).longPress(5500);
 	}
-
 	static async tapAndLongPressAtIndex(elementId, index) {
 		return element(by.id(elementId, index))
 			.atIndex(index || 0)
-			.longPress(2000);
+			.longPress(5000);
 	}
 
 	static async replaceTextInField(elementId, text) {

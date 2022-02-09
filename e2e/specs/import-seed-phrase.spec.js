@@ -17,6 +17,7 @@ import DrawerView from '../pages/Drawer/DrawerView';
 import SettingsView from '../pages/Drawer/Settings/SettingsView';
 
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
+import KeepYourSRPSafeModal from '../pages/modals/KeepYourSRPSafeModal';
 
 const INCORRECT_SECRET_RECOVERY_PHRASE = 'fold media south add since false relax immense pause cloth just falcon';
 const CORRECT_SECRET_RECOVERY_PHRASE = 'fold media south add since false relax immense pause cloth just raven';
@@ -89,14 +90,19 @@ describe('Import seedphrase flow', () => {
 
 		await SecurityAndPrivacy.tapRevealSecretRecoveryPhrase();
 		await RevealSecretRecoveryPhrase.isVisible();
-		await RevealSecretRecoveryPhrase.enterPassword(SHORT_PASSWORD);
-		// Ensure error is displayed
-		await RevealSecretRecoveryPhrase.passwordWarningIsVisible();
-		await RevealSecretRecoveryPhrase.enterPassword(CORRECT_PASSWORD);
 
-		await RevealSecretRecoveryPhrase.passwordInputIsNotVisible();
+		// Ensure error is displayed
+		// await RevealSecretRecoveryPhrase.enterPassword(SHORT_PASSWORD);
+		// await RevealSecretRecoveryPhrase.passwordWarningIsVisible();
+
+		await RevealSecretRecoveryPhrase.enterPassword(CORRECT_PASSWORD);
+		await KeepYourSRPSafeModal.isVisible();
+		await KeepYourSRPSafeModal.tapAndHoldToRevealSecretRecoveryPhraseButton();
+
 		// Seed phrase should now be revealed
 		await RevealSecretRecoveryPhrase.isSecretRecoveryPhraseTouchableBoxVisible();
+		//comment next line out for SRP reveal changes in pr 3547
+		//await RevealSecretRecoveryPhrase.passwordInputIsNotVisible();
 		// Check that the seed phrase displayed matches what we inputted in the beginning
 		await RevealSecretRecoveryPhrase.isSecretRecoveryPhraseTextCorrect(CORRECT_SECRET_RECOVERY_PHRASE);
 	});
