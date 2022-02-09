@@ -62,6 +62,7 @@ import EditGasFee1559 from '../../../UI/EditGasFee1559';
 import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacy';
 import CustomNonce from '../../../UI/CustomNonce';
 import AppConstants from '../../../../core/AppConstants';
+import { ThemeContext } from '../../../../util/theme';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -222,13 +223,15 @@ const styles = StyleSheet.create({
  * View that wraps the wraps the "Send" screen
  */
 class Confirm extends PureComponent {
-	static navigationOptions = ({ navigation, route }) => getSendFlowTitle('send.confirm', navigation, route);
-
 	static propTypes = {
 		/**
 		 * Object that represents the navigator
 		 */
 		navigation: PropTypes.object,
+		/**
+		 * Object that contains navigation props
+		 */
+		route: PropTypes.object,
 		/**
 		 * Map of accounts to information objects including balances
 		 */
@@ -417,12 +420,19 @@ class Confirm extends PureComponent {
 
 	toggleWarningModal = () => this.setState((state) => ({ warningModalVisible: !state.warningModalVisible }));
 
+	updateNavBar = () => {
+		const { navigation, route } = this.props;
+		const { colors } = this.context;
+		navigation.setOptions(getSendFlowTitle('send.confirm', navigation, route, colors));
+	};
+
 	componentWillUnmount = () => {
 		const { GasFeeController } = Engine.context;
 		GasFeeController.stopPolling(this.state.pollToken);
 	};
 
 	componentDidMount = async () => {
+		this.updateNavBar();
 		this.getGasLimit();
 
 		const { GasFeeController } = Engine.context;
@@ -447,6 +457,7 @@ class Confirm extends PureComponent {
 			contractBalances,
 			selectedAsset,
 		} = this.props;
+		this.updateNavBar();
 
 		const { errorMessage, fromSelectedAddress } = this.state;
 		const valueChanged = prevProps.transactionState.transaction.value !== value;
@@ -1352,6 +1363,8 @@ class Confirm extends PureComponent {
 		);
 	};
 }
+
+Confirm.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,

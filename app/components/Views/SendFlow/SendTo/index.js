@@ -31,6 +31,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { collectConfusables, hasZeroWidthPoints } from '../../../../util/validators';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import addRecent from '../../../../actions/recents';
+import { ThemeContext } from '../../../../util/theme';
 
 const { hexToBN } = util;
 const styles = StyleSheet.create({
@@ -166,8 +167,6 @@ const dummy = () => true;
  * View that wraps the wraps the "Send" screen
  */
 class SendFlow extends PureComponent {
-	static navigationOptions = ({ navigation, route }) => getSendFlowTitle('send.send_to', navigation, route);
-
 	static propTypes = {
 		/**
 		 * Map of accounts to information objects including balances
@@ -248,6 +247,12 @@ class SendFlow extends PureComponent {
 		inputWidth: { width: '99%' },
 	};
 
+	updateNavBar = () => {
+		const { navigation, route } = this.props;
+		const { colors } = this.context;
+		navigation.setOptions(getSendFlowTitle('send.send_to', navigation, route, colors));
+	};
+
 	componentDidMount = async () => {
 		const {
 			addressBook,
@@ -261,6 +266,7 @@ class SendFlow extends PureComponent {
 			isPaymentRequest,
 		} = this.props;
 		const { fromAccountName } = this.state;
+		this.updateNavBar();
 		// For analytics
 		navigation.setParams({ providerType, isPaymentRequest });
 		const networkAddressBook = addressBook[network] || {};
@@ -286,6 +292,10 @@ class SendFlow extends PureComponent {
 			this.props.newAssetTransaction(getEther(ticker));
 			this.onToSelectedAddressChange(targetAddress);
 		}
+	};
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
 	};
 
 	toggleFromAccountModal = () => {
@@ -706,6 +716,8 @@ class SendFlow extends PureComponent {
 		);
 	};
 }
+
+SendFlow.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,

@@ -59,6 +59,7 @@ import { decGWEIToHexWEI } from '../../../../util/conversions';
 import AppConstants from '../../../../core/AppConstants';
 import { collectibleContractsSelector, collectiblesSelector } from '../../../../reducers/collectibles';
 import { gte } from '../../../../util/lodash';
+import { ThemeContext } from '../../../../util/theme';
 
 const { hexToBN, BNToHex } = util;
 
@@ -293,8 +294,6 @@ const styles = StyleSheet.create({
  * View that wraps the wraps the "Send" screen
  */
 class Amount extends PureComponent {
-	static navigationOptions = ({ navigation, route }) => getSendFlowTitle('send.amount', navigation, route);
-
 	static propTypes = {
 		/**
 		 * Map of accounts to information objects including balances
@@ -328,6 +327,10 @@ class Amount extends PureComponent {
 		 * Object that represents the navigator
 		 */
 		navigation: PropTypes.object,
+		/**
+		 * Object that contains navigation props
+		 */
+		route: PropTypes.object,
 		/**
 		 * A string that represents the selected address
 		 */
@@ -397,6 +400,12 @@ class Amount extends PureComponent {
 	tokens = [];
 	collectibles = [];
 
+	updateNavBar = () => {
+		const { navigation, route } = this.props;
+		const { colors } = this.context;
+		navigation.setOptions(getSendFlowTitle('send.amount', navigation, route, colors));
+	};
+
 	componentDidMount = async () => {
 		const {
 			tokens,
@@ -408,6 +417,7 @@ class Amount extends PureComponent {
 			isPaymentRequest,
 		} = this.props;
 		// For analytics
+		this.updateNavBar();
 		navigation.setParams({ providerType, isPaymentRequest });
 
 		this.tokens = [getEther(ticker), ...tokens];
@@ -449,6 +459,10 @@ class Amount extends PureComponent {
 		this.setState({
 			inputValue: readableValue,
 		});
+	};
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
 	};
 
 	/**
@@ -1084,6 +1098,8 @@ class Amount extends PureComponent {
 		);
 	};
 }
+
+Amount.contextType = ThemeContext;
 
 const mapStateToProps = (state, ownProps) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
