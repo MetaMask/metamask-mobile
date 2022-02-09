@@ -20,7 +20,7 @@ import {
 	toWei,
 	weiToFiat,
 } from '../../../util/number';
-import { isMainNet, isMainnetByChainId } from '../../../util/networks';
+import { isMainnetByChainId } from '../../../util/networks';
 import { getErrorMessage, getFetchParams, getQuotesNavigationsParams, isSwapsNativeAsset } from './utils';
 import { colors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -1206,13 +1206,11 @@ function SwapsQuotesView({
 							{!hasEnoughTokenBalance
 								? `${strings('swaps.more_to_complete')} `
 								: `${strings('swaps.more_gas_to_complete')} `}
-							{isMainNet(chainId) &&
-								(isSwapsNativeAsset(sourceToken) ||
-									(hasEnoughTokenBalance && !hasEnoughEthBalance)) && (
-									<Text link underline small onPress={buyEth}>
-										{strings('swaps.buy_more_eth')}
-									</Text>
-								)}
+							{(isSwapsNativeAsset(sourceToken) || (hasEnoughTokenBalance && !hasEnoughEthBalance)) && (
+								<Text link underline small onPress={buyEth}>
+									{strings('swaps.buy_more', { ticker: getTicker(ticker) })}
+								</Text>
+							)}
 						</Alert>
 					</View>
 				)}
