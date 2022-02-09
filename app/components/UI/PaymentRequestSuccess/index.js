@@ -27,6 +27,7 @@ import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
 import { protectWalletModalVisible } from '../../../actions/user';
 import ClipboardManager from '../../../core/ClipboardManager';
+import { ThemeContext } from '../../../util/theme';
 
 const isIos = Device.isIos();
 
@@ -155,9 +156,11 @@ const styles = StyleSheet.create({
  * View to interact with a previously generated payment request link
  */
 class PaymentRequestSuccess extends PureComponent {
-	static navigationOptions = ({ navigation }) => getPaymentRequestSuccessOptionsTitle(navigation);
-
 	static propTypes = {
+		/**
+		 * Navigation object
+		 */
+		navigation: PropTypes.object,
 		/**
 		 * Object that represents the current route info like params passed to it
 		 */
@@ -180,16 +183,27 @@ class PaymentRequestSuccess extends PureComponent {
 		qrModalVisible: false,
 	};
 
+	updateNavBar = () => {
+		const { navigation } = this.props;
+		const { colors } = this.context;
+		navigation.setOptions(getPaymentRequestSuccessOptionsTitle(navigation, colors));
+	};
+
 	/**
 	 * Sets payment request link, amount and symbol of the asset to state
 	 */
 	componentDidMount = () => {
 		const { route } = this.props;
+		this.updateNavBar();
 		const link = route?.params?.link ?? '';
 		const qrLink = route?.params?.qrLink ?? '';
 		const amount = route?.params?.amount ?? '';
 		const symbol = route?.params?.symbol ?? '';
 		this.setState({ link, qrLink, amount, symbol });
+	};
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
 	};
 
 	componentWillUnmount = () => {
@@ -337,6 +351,8 @@ class PaymentRequestSuccess extends PureComponent {
 		);
 	}
 }
+
+PaymentRequestSuccess.contextType = ThemeContext;
 
 const mapDispatchToProps = (dispatch) => ({
 	showAlert: (config) => dispatch(showAlert(config)),
