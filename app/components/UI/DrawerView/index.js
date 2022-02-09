@@ -415,8 +415,6 @@ class DrawerView extends PureComponent {
 		networkSelected: false,
 		networkType: undefined,
 		networkCurrency: undefined,
-		balance: null,
-		balanceUpdated: false,
 		showModal: false,
 	};
 
@@ -545,7 +543,6 @@ class DrawerView extends PureComponent {
 		this.props.onboardNetworkAction(this.state.networkType);
 		if (!manualClose) {
 			await this.hideDrawer();
-			await this.setState({ networkSelected: !this.state.networkSelected });
 		}
 	};
 
@@ -1000,7 +997,6 @@ class DrawerView extends PureComponent {
 		};
 		const { name, ens } = account;
 		account.balance = (accounts[selectedAddress] && renderFromWei(accounts[selectedAddress].balance)) || 0;
-		this.setState({ balance: account.balance });
 		const fiatBalance = Engine.getTotalFiatAccountBalance();
 		if (fiatBalance !== this.previousBalance) {
 			this.previousBalance = this.currentBalance;
