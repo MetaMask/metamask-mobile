@@ -298,7 +298,7 @@ class Login extends PureComponent {
 			// Restore vault with existing credentials
 			const { KeyringController } = Engine.context;
 			try {
-				await KeyringController.submitPassword(credentials.password + 123);
+				await KeyringController.submitPassword(credentials.password);
 				const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
 				if (encryptionLib !== ORIGINAL) {
 					await recreateVaultWithSamePassword(credentials.password, this.props.selectedAddress);
