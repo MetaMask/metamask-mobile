@@ -17,6 +17,7 @@ import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import ErrorBoundary from '../ErrorBoundary';
 import { DrawerContext } from '../../Nav/Main/MainNavigator';
+import { useAppThemeFromContext } from '../../../util/theme';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -89,9 +90,10 @@ const Wallet = ({ navigation }: any) => {
 	 */
 	const wizardStep = useSelector((state: any) => state.wizard.step);
 
+	const { colors: themeColors } = useAppThemeFromContext();
+
 	useEffect(
 		() => {
-			navigation.setOptions(getWalletNavbarOptions('wallet.title', navigation, drawerRef));
 			requestAnimationFrame(async () => {
 				const { TokenDetectionController, CollectibleDetectionController, AccountTrackerController } =
 					Engine.context as any;
@@ -103,6 +105,11 @@ const Wallet = ({ navigation }: any) => {
 		/* eslint-disable-next-line */
 		[navigation]
 	);
+
+	useEffect(() => {
+		navigation.setOptions(getWalletNavbarOptions('wallet.title', navigation, drawerRef, themeColors));
+		/* eslint-disable-next-line */
+	}, [navigation, themeColors]);
 
 	const onRefresh = useCallback(async () => {
 		requestAnimationFrame(async () => {

@@ -79,9 +79,6 @@ const styles = StyleSheet.create({
 		paddingRight: Device.isAndroid() ? 22 : 18,
 		marginTop: 5,
 	},
-	infoIcon: {
-		color: colors.blue,
-	},
 	closeButtonText: {
 		color: colors.blue,
 		fontSize: 14,
@@ -128,7 +125,16 @@ const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
  * @param {bool} disableNetwork - Boolean that specifies if the network can be changed, defaults to false
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerLeft, headerTruncatedBackTitle and headerRight
  */
-export default function getNavbarOptions(title, disableNetwork = false, drawerRef) {
+export default function getNavbarOptions(title, disableNetwork = false, drawerRef, themeColors) {
+	const innerStyles = StyleSheet.create({
+		headerStyle: {
+			backgroundColor: themeColors.backgroundDefault,
+		},
+		headerIcon: {
+			color: themeColors.primary,
+		},
+	});
+
 	function onPress() {
 		Keyboard.dismiss();
 		drawerRef.current?.showDrawer?.();
@@ -142,11 +148,12 @@ export default function getNavbarOptions(title, disableNetwork = false, drawerRe
 				<IonicIcon
 					name={Device.isAndroid() ? 'md-menu' : 'ios-menu'}
 					size={Device.isAndroid() ? 24 : 28}
-					style={styles.backIcon}
+					style={innerStyles.headerIcon}
 				/>
 			</TouchableOpacity>
 		),
 		headerRight: () => <AccountRightButton />,
+		headerStyle: innerStyles.headerStyle,
 	};
 }
 
@@ -415,7 +422,16 @@ export function getSendFlowTitle(title, navigation, route) {
  * @param {Object} navigation - Navigation object required to push new views
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerLeft and headerRight
  */
-export function getBrowserViewNavbarOptions(navigation, route, drawerRef) {
+export function getBrowserViewNavbarOptions(navigation, route, drawerRef, themeColors) {
+	const innerStyles = StyleSheet.create({
+		headerStyle: {
+			backgroundColor: themeColors.backgroundDefault,
+		},
+		headerIcon: {
+			color: themeColors.primary,
+		},
+	});
+
 	const url = route.params?.url ?? '';
 	let host = null;
 	let isHttps = false;
@@ -452,7 +468,7 @@ export function getBrowserViewNavbarOptions(navigation, route, drawerRef) {
 				<IonicIcon
 					name={Device.isAndroid() ? 'md-menu' : 'ios-menu'}
 					size={Device.isAndroid() ? 24 : 28}
-					style={styles.backIcon}
+					style={innerStyles.headerIcon}
 				/>
 			</TouchableOpacity>
 		),
@@ -472,6 +488,7 @@ export function getBrowserViewNavbarOptions(navigation, route, drawerRef) {
 				<AccountRightButton />
 			</View>
 		),
+		headerStyle: innerStyles.headerStyle,
 	};
 }
 
@@ -627,7 +644,16 @@ export function getOfflineModalNavbar() {
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
  */
-export function getWalletNavbarOptions(title, navigation, drawerRef) {
+export function getWalletNavbarOptions(title, navigation, drawerRef, themeColors) {
+	const innerStyles = StyleSheet.create({
+		headerStyle: {
+			backgroundColor: themeColors.backgroundDefault,
+		},
+		headerIcon: {
+			color: themeColors.primary,
+		},
+	});
+
 	const onScanSuccess = (data, content) => {
 		if (data.private_key) {
 			Alert.alert(
@@ -684,7 +710,7 @@ export function getWalletNavbarOptions(title, navigation, drawerRef) {
 				<IonicIcon
 					name={Device.isAndroid() ? 'md-menu' : 'ios-menu'}
 					size={Device.isAndroid() ? 24 : 28}
-					style={styles.backIcon}
+					style={innerStyles.headerIcon}
 				/>
 			</TouchableOpacity>
 		),
@@ -694,9 +720,10 @@ export function getWalletNavbarOptions(title, navigation, drawerRef) {
 				// eslint-disable-next-line
 				onPress={openQRScanner}
 			>
-				<AntIcon name="scan1" size={28} style={styles.infoIcon} />
+				<AntIcon name="scan1" size={28} style={innerStyles.headerIcon} />
 			</TouchableOpacity>
 		),
+		headerStyle: innerStyles.headerStyle,
 	};
 }
 
