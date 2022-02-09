@@ -30,16 +30,14 @@ interface DescriptionProps {
 	number: number;
 }
 
-const learnMoreUrl = 'https://metamask.zendesk.com/hc/en-us/articles/4404424659995';
-
 const showAlertView = () => {
 	Alert.alert(strings('network_information.error_title'), strings('network_information.error_message'));
 };
 
 const openUrl = () => {
-	Linking.canOpenURL(learnMoreUrl).then((supported) => {
+	Linking.canOpenURL(strings('network_information.learn_more_url')).then((supported) => {
 		if (supported) {
-			Linking.openURL(learnMoreUrl);
+			Linking.openURL(strings('network_information.learn_more_url'));
 		} else {
 			showAlertView();
 		}
