@@ -28,6 +28,7 @@ import EthereumAddress from '../EthereumAddress';
 import GlobalAlert from '../GlobalAlert';
 import StyledButton from '../StyledButton';
 import ClipboardManager from '../../../core/ClipboardManager';
+import { ThemeContext } from '../../../util/theme';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -299,6 +300,8 @@ class ReceiveRequest extends PureComponent {
 		);
 	}
 }
+
+ReceiveRequest.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	network: state.engine.backgroundState.NetworkController.network,

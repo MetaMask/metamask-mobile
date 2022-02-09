@@ -41,6 +41,7 @@ import { getTicker } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
 import { getTokenListArray } from '../../../reducers/tokens';
 import { utils as ethersUtils } from 'ethers';
+import { ThemeContext } from '../../../util/theme';
 
 const KEYBOARD_OFFSET = 120;
 const styles = StyleSheet.create({
@@ -223,9 +224,6 @@ const MODE_AMOUNT = 'amount';
  * View to generate a payment request link
  */
 class PaymentRequest extends PureComponent {
-	static navigationOptions = ({ navigation, route }) =>
-		getPaymentRequestOptionsTitle(strings('payment_request.title'), navigation, route);
-
 	static propTypes = {
 		/**
 		 * Object that represents the navigator
@@ -289,11 +287,20 @@ class PaymentRequest extends PureComponent {
 		inputWidth: { width: '99%' },
 	};
 
+	updateNavBar = () => {
+		const { navigation, route } = this.props;
+		const { colors } = this.context;
+		navigation.setOptions(
+			getPaymentRequestOptionsTitle(strings('payment_request.title'), navigation, route, colors)
+		);
+	};
+
 	/**
 	 * Set chainId, internalPrimaryCurrency and receiveAssets, if there is an asset set to this payment request chose it automatically, to state
 	 */
 	componentDidMount = () => {
 		const { primaryCurrency, route, tokenList } = this.props;
+		this.updateNavBar();
 		const receiveAsset = route?.params?.receiveAsset;
 		this.setState({
 			internalPrimaryCurrency: primaryCurrency,
@@ -308,6 +315,7 @@ class PaymentRequest extends PureComponent {
 	};
 
 	componentDidUpdate = () => {
+		this.updateNavBar();
 		InteractionManager.runAfterInteractions(() => {
 			this.amountInput.current && this.amountInput.current.focus();
 		});
@@ -696,6 +704,8 @@ class PaymentRequest extends PureComponent {
 		);
 	}
 }
+
+PaymentRequest.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,

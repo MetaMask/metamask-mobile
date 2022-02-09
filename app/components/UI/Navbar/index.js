@@ -107,13 +107,13 @@ const styles = StyleSheet.create({
 	metamaskNameWrapper: {
 		marginLeft: Device.isAndroid() ? 20 : 0,
 	},
-	centeredTitle: {
-		fontSize: 20,
-		color: colors.fontPrimary,
-		textAlign: 'center',
-		...fontStyles.normal,
-		alignItems: 'center',
-	},
+	// centeredTitle: {
+	// 	fontSize: 20,
+	// 	color: colors.fontPrimary,
+	// 	textAlign: 'center',
+	// 	...fontStyles.normal,
+	// 	alignItems: 'center',
+	// },
 });
 
 const metamask_name = require('../../../images/metamask-name.png'); // eslint-disable-line
@@ -242,16 +242,26 @@ export function getEditableOptions(title, navigation, route) {
  * @param {Object} navigation - Navigation object required to push new views
  * @returns {Object} - Corresponding navbar options containing title, headerLeft and headerRight
  */
-export function getPaymentRequestOptionsTitle(title, navigation, route) {
+export function getPaymentRequestOptionsTitle(title, navigation, route, themeColors) {
 	const goBack = route.params?.dispatch;
-	return {
-		title,
+	const innerStyles = StyleSheet.create({
 		headerTitleStyle: {
 			fontSize: 20,
-			color: colors.fontPrimary,
+			color: themeColors.textDefault,
 			...fontStyles.normal,
 		},
-		headerTintColor: colors.blue,
+		headerIcon: {
+			color: themeColors.primary,
+		},
+		headerStyle: {
+			backgroundColor: themeColors.backgroundDefault,
+		},
+	});
+
+	return {
+		title,
+		headerTitleStyle: innerStyles.headerTitleStyle,
+		headerTintColor: themeColors.primary,
 		headerLeft: () =>
 			goBack ? (
 				// eslint-disable-next-line react/jsx-no-bind
@@ -263,7 +273,7 @@ export function getPaymentRequestOptionsTitle(title, navigation, route) {
 					<IonicIcon
 						name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
 						size={Device.isAndroid() ? 24 : 28}
-						style={styles.backIcon}
+						style={innerStyles.headerIcon}
 					/>
 				</TouchableOpacity>
 			) : (
@@ -272,9 +282,10 @@ export function getPaymentRequestOptionsTitle(title, navigation, route) {
 		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
-				<IonicIcon name={'ios-close'} size={38} style={[styles.backIcon, styles.backIconIOS]} />
+				<IonicIcon name={'ios-close'} size={38} style={[innerStyles.headerIcon, styles.backIconIOS]} />
 			</TouchableOpacity>
 		),
+		headerStyle: innerStyles.headerStyle,
 	};
 }
 
@@ -284,16 +295,23 @@ export function getPaymentRequestOptionsTitle(title, navigation, route) {
  *
  * @returns {Object} - Corresponding navbar options containing title, and headerRight
  */
-export function getPaymentRequestSuccessOptionsTitle(navigation) {
-	return {
+export function getPaymentRequestSuccessOptionsTitle(navigation, themeColors) {
+	const innerStyles = StyleSheet.create({
 		headerStyle: {
 			shadowColor: colors.transparent,
 			elevation: 0,
-			backgroundColor: colors.white,
+			backgroundColor: themeColors.backgroundDefault,
 			borderBottomWidth: 0,
 		},
+		headerIcon: {
+			color: themeColors.primary,
+		},
+	});
+
+	return {
+		headerStyle: innerStyles.headerStyle,
 		title: null,
-		headerTintColor: colors.blue,
+		headerTintColor: themeColors.primary,
 		headerLeft: () => <View />,
 		headerRight: () => (
 			<TouchableOpacity
@@ -302,7 +320,7 @@ export function getPaymentRequestSuccessOptionsTitle(navigation) {
 				style={styles.closeButton}
 				testID={'send-link-close-button'}
 			>
-				<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
+				<IonicIcon name="ios-close" size={38} style={[innerStyles.headerIcon, styles.backIconIOS]} />
 			</TouchableOpacity>
 		),
 	};
@@ -730,39 +748,71 @@ export function getNetworkNavbarOptions(title, translate, navigation) {
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle and headerTitle
  */
-export function getWebviewNavbar(navigation, route) {
+export function getWebviewNavbar(navigation, route, themeColors) {
+	const innerStyles = StyleSheet.create({
+		headerTitleStyle: {
+			fontSize: 20,
+			color: themeColors.textDefault,
+			textAlign: 'center',
+			...fontStyles.normal,
+			alignItems: 'center',
+		},
+		headerStyle: {
+			backgroundColor: themeColors.backgroundDefault,
+		},
+		headerIcon: {
+			color: themeColors.primary,
+		},
+	});
+
 	const title = route.params?.title ?? '';
 	const share = route.params?.dispatch;
 	return {
-		headerTitle: () => <Text style={styles.centeredTitle}>{title}</Text>,
+		headerTitle: () => <Text style={innerStyles.headerTitleStyle}>{title}</Text>,
 		headerLeft: () =>
 			Device.isAndroid() ? (
 				// eslint-disable-next-line react/jsx-no-bind
 				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
-					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
+					<IonicIcon name={'md-arrow-back'} size={24} style={innerStyles.headerIcon} />
 				</TouchableOpacity>
 			) : (
 				// eslint-disable-next-line react/jsx-no-bind
 				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
-					<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
+					<IonicIcon name="ios-close" size={38} style={[innerStyles.headerIcon, styles.backIconIOS]} />
 				</TouchableOpacity>
 			),
 		headerRight: () =>
 			Device.isAndroid() ? (
 				<TouchableOpacity onPress={share} style={styles.backButton}>
-					<MaterialCommunityIcon name="share-variant" size={24} style={styles.backIcon} />
+					<MaterialCommunityIcon name="share-variant" size={24} style={innerStyles.headerIcon} />
 				</TouchableOpacity>
 			) : (
 				<TouchableOpacity onPress={share} style={styles.backButton}>
-					<EvilIcons name="share-apple" size={32} style={[styles.backIcon, styles.shareIconIOS]} />
+					<EvilIcons name="share-apple" size={32} style={[innerStyles.headerIcon, styles.shareIconIOS]} />
 				</TouchableOpacity>
 			),
+		headerStyle: innerStyles.headerStyle,
 	};
 }
 
-export function getPaymentSelectorMethodNavbar(navigation, onPop) {
+export function getPaymentSelectorMethodNavbar(navigation, onPop, themeColors) {
+	const innerStyles = StyleSheet.create({
+		headerButtonText: {
+			color: themeColors.primary,
+		},
+		headerTitleStyle: {
+			fontSize: 20,
+			color: themeColors.textDefault,
+			textAlign: 'center',
+			...fontStyles.normal,
+			alignItems: 'center',
+		},
+		headerStyle: {
+			backgroundColor: themeColors.backgroundDefault,
+		},
+	});
 	return {
-		headerTitle: () => <Text style={styles.centeredTitle}>{strings('fiat_on_ramp.purchase_method')}</Text>,
+		headerTitle: () => <Text style={innerStyles.headerTitleStyle}>{strings('fiat_on_ramp.purchase_method')}</Text>,
 		headerLeft: () => <View />,
 		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
@@ -773,20 +823,33 @@ export function getPaymentSelectorMethodNavbar(navigation, onPop) {
 				}}
 				style={styles.closeButton}
 			>
-				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
+				<Text style={innerStyles.headerButtonText}>{strings('navigation.cancel')}</Text>
 			</TouchableOpacity>
 		),
+		headerStyle: innerStyles.headerStyle,
 	};
 }
 
-export function getPaymentMethodApplePayNavbar(navigation, onPop, onExit) {
-	return {
-		title: strings('fiat_on_ramp.amount_to_buy'),
+export function getPaymentMethodApplePayNavbar(navigation, onPop, onExit, themeColors) {
+	const innerStyles = StyleSheet.create({
 		headerTitleStyle: {
 			fontSize: 20,
-			color: colors.fontPrimary,
+			color: themeColors.textDefault,
 			...fontStyles.normal,
 		},
+		headerStyle: {
+			backgroundColor: themeColors.backgroundDefault,
+		},
+		headerButtonText: {
+			color: themeColors.primary,
+		},
+		headerIcon: {
+			color: themeColors.primary,
+		},
+	});
+	return {
+		title: strings('fiat_on_ramp.amount_to_buy'),
+		headerTitleStyle: innerStyles.headerTitleStyle,
 		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity
@@ -796,7 +859,7 @@ export function getPaymentMethodApplePayNavbar(navigation, onPop, onExit) {
 				}}
 				style={styles.closeButton}
 			>
-				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
+				<Text style={innerStyles.headerButtonText}>{strings('navigation.cancel')}</Text>
 			</TouchableOpacity>
 		),
 		headerLeft: () =>
@@ -809,7 +872,7 @@ export function getPaymentMethodApplePayNavbar(navigation, onPop, onExit) {
 					}}
 					style={styles.backButton}
 				>
-					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
+					<IonicIcon name={'md-arrow-back'} size={24} style={innerStyles.headerIcon} />
 				</TouchableOpacity>
 			) : (
 				// eslint-disable-next-line react/jsx-no-bind
@@ -820,21 +883,32 @@ export function getPaymentMethodApplePayNavbar(navigation, onPop, onExit) {
 					}}
 					style={styles.closeButton}
 				>
-					<Text style={styles.closeButtonText}>{strings('navigation.back')}</Text>
+					<Text style={innerStyles.headerButtonText}>{strings('navigation.back')}</Text>
 				</TouchableOpacity>
 			),
+		headerStyle: innerStyles.headerStyle,
 	};
 }
 
-export function getTransakWebviewNavbar(navigation, route, onPop) {
+export function getTransakWebviewNavbar(navigation, route, onPop, themeColors) {
+	const innerStyles = StyleSheet.create({
+		headerTitleStyle: {
+			fontSize: 20,
+			color: themeColors.textDefault,
+			...fontStyles.normal,
+		},
+		headerStyle: {
+			backgroundColor: themeColors.backgroundDefault,
+		},
+		headerIcon: {
+			color: themeColors.primary,
+		},
+	});
+
 	const title = route.params?.title ?? '';
 	return {
 		title,
-		headerTitleStyle: {
-			fontSize: 20,
-			color: colors.fontPrimary,
-			...fontStyles.normal,
-		},
+		headerTitleStyle: innerStyles.headerTitleStyle,
 		headerLeft: () =>
 			Device.isAndroid() ? (
 				// eslint-disable-next-line react/jsx-no-bind
@@ -845,7 +919,7 @@ export function getTransakWebviewNavbar(navigation, route, onPop) {
 					}}
 					style={styles.backButton}
 				>
-					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
+					<IonicIcon name={'md-arrow-back'} size={24} style={innerStyles.headerIcon} />
 				</TouchableOpacity>
 			) : (
 				// eslint-disable-next-line react/jsx-no-bind
@@ -856,9 +930,10 @@ export function getTransakWebviewNavbar(navigation, route, onPop) {
 					}}
 					style={styles.backButton}
 				>
-					<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
+					<IonicIcon name="ios-close" size={38} style={[innerStyles.headerIcon, styles.backIconIOS]} />
 				</TouchableOpacity>
 			),
+		headerStyle: innerStyles.headerStyle,
 	};
 }
 

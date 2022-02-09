@@ -32,6 +32,7 @@ import StyledButton from '../../StyledButton';
 import { colors, fontStyles } from '../../../../styles/common';
 import { protectWalletModalVisible } from '../../../../actions/user';
 import { addFiatOrder, fiatOrdersCountrySelector, setFiatOrdersCountry } from '../../../../reducers/fiatOrders';
+import { useAppThemeFromContext } from '../../../../util/theme';
 
 //* styles and components  */
 
@@ -195,6 +196,7 @@ function PaymentMethodApplePay({
 				: amountWithPeriod,
 		[amountWithPeriod]
 	);
+	const { colors } = useAppThemeFromContext();
 
 	const handleWyreTerms = useWyreTerms(navigation);
 	const wyreCurrencies = useMemo(() => [`${selectedCurrency}ETH`, `USD${selectedCurrency}`], [selectedCurrency]);
@@ -328,6 +330,29 @@ function PaymentMethodApplePay({
 			}).format(number),
 		[selectedCurrency]
 	);
+
+	useEffect(() => {
+		navigation.setOptions(
+			getPaymentMethodApplePayNavbar(
+				navigation,
+				() => {
+					InteractionManager.runAfterInteractions(() => {
+						AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_EXITED, {
+							payment_rails: PAYMENT_RAILS.APPLE_PAY,
+							payment_category: PAYMENT_CATEGORY.CARD_PAYMENT,
+							'on-ramp_provider': FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY,
+						});
+					});
+				},
+				() => {
+					InteractionManager.runAfterInteractions(() => {
+						AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_CLOSED);
+					});
+				},
+				colors
+			)
+		);
+	}, [navigation, colors]);
 
 	useEffect(() => {
 		setAmount('0');
@@ -497,25 +522,6 @@ PaymentMethodApplePay.propTypes = {
 	 */
 	protectWalletModalVisible: PropTypes.func,
 };
-
-PaymentMethodApplePay.navigationOptions = ({ navigation }) =>
-	getPaymentMethodApplePayNavbar(
-		navigation,
-		() => {
-			InteractionManager.runAfterInteractions(() => {
-				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_EXITED, {
-					payment_rails: PAYMENT_RAILS.APPLE_PAY,
-					payment_category: PAYMENT_CATEGORY.CARD_PAYMENT,
-					'on-ramp_provider': FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY,
-				});
-			});
-		},
-		() => {
-			InteractionManager.runAfterInteractions(() => {
-				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_CLOSED);
-			});
-		}
-	);
 
 const mapStateToProps = (state) => ({
 	lockTime: state.settings.lockTime,
