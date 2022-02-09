@@ -9,24 +9,6 @@ exports[`NetworkInfo should render correctly 1`] = `
     }
   }
 >
-  <Icon
-    allowFontScaling={false}
-    name="close"
-    size={18}
-    style={
-      Object {
-        "alignSelf": "flex-end",
-        "bottom": 0,
-        "left": 0,
-        "marginRight": 10,
-        "marginTop": 10,
-        "padding": 10,
-        "position": "relative",
-        "right": 0,
-        "top": 0,
-      }
-    }
-  />
   <View
     style={
       Object {
