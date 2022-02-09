@@ -393,7 +393,17 @@ export function getApproveNavbar(title) {
  * @param {string} title - Title in string format
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
-export function getSendFlowTitle(title, navigation, route) {
+export function getSendFlowTitle(title, navigation, route, themeColors) {
+	const innerStyles = StyleSheet.create({
+		headerButtonText: {
+			color: themeColors.primary,
+			fontSize: 14,
+			...fontStyles.normal,
+		},
+		headerStyle: {
+			backgroundColor: themeColors.backgroundDefault,
+		},
+	});
 	const rightAction = () => {
 		const providerType = route.params?.providerType ?? '';
 		trackEventWithParameters(ANALYTICS_EVENT_OPTS.SEND_FLOW_CANCEL, {
@@ -413,18 +423,19 @@ export function getSendFlowTitle(title, navigation, route) {
 		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={rightAction} style={styles.closeButton} testID={'send-cancel-button'}>
-				<Text style={styles.closeButtonText}>{strings('transaction.cancel')}</Text>
+				<Text style={innerStyles.headerButtonText}>{strings('transaction.cancel')}</Text>
 			</TouchableOpacity>
 		),
 		headerLeft: () =>
 			canGoBack ? (
 				// eslint-disable-next-line react/jsx-no-bind
 				<TouchableOpacity onPress={leftAction} style={styles.closeButton}>
-					<Text style={styles.closeButtonText}>{strings('transaction.back')}</Text>
+					<Text style={innerStyles.headerButtonText}>{strings('transaction.back')}</Text>
 				</TouchableOpacity>
 			) : (
 				<View />
 			),
+		headerStyle: innerStyles.headerStyle,
 	};
 }
 

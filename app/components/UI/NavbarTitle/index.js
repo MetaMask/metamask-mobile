@@ -7,6 +7,7 @@ import Networks from '../../../util/networks';
 import { toggleNetworkModal } from '../../../actions/modals';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
+import { ThemeContext } from '../../../util/theme';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -123,6 +124,8 @@ class NavbarTitle extends PureComponent {
 		);
 	};
 }
+
+NavbarTitle.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	network: state.engine.backgroundState.NetworkController,
