@@ -33,3 +33,15 @@ export const PAYMENT_CATEGORY = {
 	BANK_TRANSFER: 'Bank Transfer',
 	MULTIPLE: 'Multiple Options',
 };
+
+/**
+ * @enum {string}
+ */
+
+export const NETWORKS_CHAIN_ID = {
+	MAINNET: '1',
+	KOVAN: '42',
+	BSC: '56',
+	POLYGON: '137',
+	AVAXCCHAIN: '43114',
+};
