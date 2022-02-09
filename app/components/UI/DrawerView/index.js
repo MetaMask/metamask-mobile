@@ -47,7 +47,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { isZero } from '../../../util/lodash';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import NetworkInfo from '../NetworkInfo';
-import { onboardNetworkAction } from '../../../reducers/networkSelector';
+import onboardNetworkAction from '../../../actions/onboardNetwork';
 
 const createStyles = (colors) =>
 	StyleSheet.create({

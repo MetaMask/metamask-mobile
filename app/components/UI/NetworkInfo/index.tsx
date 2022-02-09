@@ -1,11 +1,12 @@
 import React from 'react';
-import { View, Text, Linking, Alert, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { colors } from '../../../styles/common';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
-import LineDivide from '../../Base/LineDivide';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
-import { ETH, PRIVATENETWORK } from '../../../util/custom-gas';
+import { PRIVATENETWORK } from '../../../constants/network';
+import { ETH } from '../../../util/custom-gas';
+import Description from './InfoDescription';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -53,25 +54,8 @@ const styles = StyleSheet.create({
 	descriptionViews: {
 		marginBottom: 15,
 	},
-	descriptionContainer: {
-		marginBottom: 10,
-	},
-	contentContainer: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		marginBottom: 4,
-	},
-	numberStyle: {
-		marginRight: 10,
-	},
-	description: {
-		width: '94%',
-	},
 	closeButton: {
 		marginVertical: 20,
-	},
-	link: {
-		color: colors.blue,
 	},
 	rpcUrl: {
 		fontSize: 10,
@@ -100,55 +84,6 @@ interface NetworkInfoProps {
 	nativeToken: string;
 }
 
-interface DescriptionProps {
-	description: string;
-	clickableText: string | undefined;
-	number: number;
-}
-
-const learnMoreUrl = 'https://metamask.zendesk.com/hc/en-us/articles/4404424659995';
-
-const showAlertView = () => {
-	Alert.alert(strings('network_information.error_title'), strings('network_information.error_message'));
-};
-
-const openUrl = () => {
-	Linking.canOpenURL(learnMoreUrl).then((supported) => {
-		if (supported) {
-			Linking.openURL(learnMoreUrl);
-		} else {
-			showAlertView();
-		}
-	});
-};
-
-const Description = (props: DescriptionProps) => {
-	const { description, clickableText, number } = props;
-	return (
-		<View style={styles.descriptionContainer}>
-			<View style={styles.contentContainer}>
-				<Text style={styles.numberStyle}>{number}.</Text>
-				<Text style={styles.description}>
-					<Text>{description}</Text>
-					{clickableText && (
-						<Text onPress={openUrl} style={styles.link}>
-							{' '}
-							{clickableText}
-						</Text>
-					)}
-				</Text>
-			</View>
-			<LineDivide />
-		</View>
-	);
-};
-
-const UnknownAsset = () => (
-	<View style={styles.unknownWrapper}>
-		<Text style={styles.unknownText}>?</Text>
-	</View>
-);
-
 const NetworkInfo = (props: NetworkInfoProps): JSX.Element => {
 	const { onClose, type, nativeToken } = props;
 	return (
@@ -159,7 +94,9 @@ const NetworkInfo = (props: NetworkInfoProps): JSX.Element => {
 					<View style={styles.tokenType}>
 						{nativeToken === PRIVATENETWORK ? (
 							<>
-								<UnknownAsset />
+								<View style={styles.unknownWrapper}>
+									<Text style={styles.unknownText}>?</Text>
+								</View>
 								<Text style={styles.tokenText}>{strings('network_information.unknown_network')}</Text>
 							</>
 						) : (

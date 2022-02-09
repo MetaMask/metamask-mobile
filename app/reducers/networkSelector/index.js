@@ -1,17 +1,16 @@
-export const NETWORK_ONBOARDED = 'NETWORK_ONBOARDED';
-
 export const initialState = {
 	networkOnboardedState: [],
 };
 
-export const onboardNetworkAction = (data) => ({
-	type: NETWORK_ONBOARDED,
-	payload: data,
-});
+/**
+ *
+ * Network onboarding reducer
+ * @returns
+ */
 
 function networkOnboardReducer(state = initialState, action) {
 	switch (action.type) {
-		case NETWORK_ONBOARDED:
+		case 'NETWORK_ONBOARDED':
 			return {
 				...state,
 				networkOnboardedState: [{ network: action.payload, onboarded: true }, ...state.networkOnboardedState],
