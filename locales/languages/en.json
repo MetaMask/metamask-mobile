@@ -1804,6 +1804,7 @@
 		"got_it": "Got it",
 		"error_title": "Oops! Something went wrong.",
 		"error_message": "There was an error loading the network information. Please try again later.",
-		"private_network_third_description": "Please enter a name for this network to make it easy to identify."
+		"private_network_third_description": "Please enter a name for this network to make it easy to identify.",
+		"learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995"
 	}
 }
