@@ -28,6 +28,7 @@ export const styles = StyleSheet.create<Style>({
 	header: {
 		marginTop: 22,
 		marginBottom: 22,
+		alignItems: 'center',
 	},
 	body: {
 		flex: 1,
