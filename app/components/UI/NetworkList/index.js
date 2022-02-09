@@ -159,7 +159,7 @@ export class NetworkList extends PureComponent {
 	handleNetworkSelected = (type, ticker) => {
 		const { networkOnboardedState, switchModalContent, onClose, onNetworkSelected } = this.props;
 		const networkOnboarded = networkOnboardedState.filter((item) => item.network === type);
-		if (networkOnboarded.length === 0) {
+		if (!networkOnboarded.length === 0) {
 			switchModalContent();
 		} else {
 			onClose(false);
