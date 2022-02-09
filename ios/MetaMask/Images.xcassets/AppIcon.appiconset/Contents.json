@@ -1,11 +1,7 @@
 {
   "images" : [
     {
-<<<<<<< HEAD
       "filename" : "iOS App Icon_20pt@2x.png",
-=======
-      "filename" : "iOS App Icon_20pt@2x-1.png",
->>>>>>> main
       "idiom" : "iphone",
       "scale" : "2x",
       "size" : "20x20"
@@ -77,11 +73,7 @@
       "size" : "20x20"
     },
     {
-<<<<<<< HEAD
       "filename" : "iOS App Icon_20pt@2x-1.png",
-=======
-      "filename" : "iOS App Icon_20pt@2x.png",
->>>>>>> main
       "idiom" : "ipad",
       "scale" : "2x",
       "size" : "20x20"
