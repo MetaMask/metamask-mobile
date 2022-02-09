@@ -11,11 +11,14 @@ import { generateApproveData } from '../util/transactions';
 import { strings } from '../../locales/i18n';
 import { getNetworkTypeById } from '../util/networks';
 import { WalletDevice } from '@metamask/controllers/';
+import { showAlert } from '../actions/alert';
 
 class DeeplinkManager {
-	constructor(_navigation) {
-		this.navigation = _navigation;
+	constructor({ navigation, frequentRpcList, dispatch }) {
+		this.navigation = navigation;
 		this.pendingDeeplink = null;
+		this.frequentRpcList = frequentRpcList;
+		this.dispatch = dispatch;
 	}
 
 	setDeeplink = (url) => (this.pendingDeeplink = url);
@@ -23,6 +26,52 @@ class DeeplinkManager {
 	getPendingDeeplink = () => this.pendingDeeplink;
 
 	expireDeeplink = () => (this.pendingDeeplink = null);
+
+	/**
+	 * Method in charge of changing network if is needed
+	 *
+	 * @param switchToChainId - Corresponding chain id for new network
+	 */
+	handleNetworkSwitch = (switchToChainId) => {
+		const { NetworkController, CurrencyRateController } = Engine.context;
+
+		// If current network is the same as the one we want to switch to, do nothing
+		if (NetworkController?.state?.provider?.chainId === switchToChainId) {
+			return;
+		}
+
+		const rpc = this.frequentRpcList.find(({ chainId }) => chainId === switchToChainId);
+
+		if (rpc) {
+			const { rpcUrl, chainId, ticker, nickname } = rpc;
+			CurrencyRateController.setNativeCurrency(ticker);
+			NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
+			this.dispatch(
+				showAlert({
+					isVisible: true,
+					autodismiss: 5000,
+					content: 'clipboard-alert',
+					data: { msg: strings('send.warn_network_change') + nickname },
+				})
+			);
+			return;
+		}
+
+		const networkType = getNetworkTypeById(switchToChainId);
+
+		if (networkType) {
+			CurrencyRateController.setNativeCurrency('ETH');
+			NetworkController.setProviderType(networkType);
+			this.dispatch(
+				showAlert({
+					isVisible: true,
+					autodismiss: 5000,
+					content: 'clipboard-alert',
+					data: { msg: strings('send.warn_network_change') + networkType },
+				})
+			);
+		}
+	};
 
 	async handleEthereumUrl(url, origin) {
 		let ethUrl = '';
@@ -33,45 +82,49 @@ class DeeplinkManager {
 			return;
 		}
 
-		const functionName = ethUrl.function_name;
-		if (!functionName) {
-			const txMeta = { ...ethUrl, source: url };
-			if (ethUrl.parameters?.value) {
+		try {
+			// Validate and switch network before performing any other action
+			this.handleNetworkSwitch(ethUrl.chain_id);
+			const functionName = ethUrl.function_name;
+			if (!functionName) {
+				const txMeta = { ...ethUrl, source: url };
+				if (ethUrl.parameters?.value) {
+					this.navigation.navigate('SendView', {
+						screen: 'Send',
+						params: { txMeta: { ...txMeta, action: 'send-eth' } },
+					});
+				} else {
+					this.navigation.navigate('SendFlowView', { screen: 'SendTo', params: { txMeta } });
+				}
+			} else if (functionName === 'transfer') {
+				const txMeta = { ...ethUrl, source: url };
 				this.navigation.navigate('SendView', {
 					screen: 'Send',
-					params: { txMeta: { ...txMeta, action: 'send-eth' } },
+					params: { txMeta: { ...txMeta, action: 'send-token' } },
 				});
-			} else {
-				this.navigation.navigate('SendFlowView', { screen: 'SendTo', params: { txMeta } });
+			} else if (functionName === 'approve') {
+				// add approve transaction
+				const {
+					parameters: { address, uint256 },
+					target_address,
+				} = ethUrl;
+				const { TransactionController, PreferencesController } = Engine.context;
+				const txParams = {};
+				txParams.to = `${target_address}`;
+				txParams.from = `${PreferencesController.state.selectedAddress}`;
+				txParams.value = '0x0';
+				const uint256Number = Number(uint256);
+				if (Number.isNaN(uint256Number)) throw new Error('The parameter uint256 should be a number');
+				if (!Number.isInteger(uint256Number)) throw new Error('The parameter uint256 should be an integer');
+				const value = uint256Number.toString(16);
+				txParams.data = generateApproveData({ spender: address, value });
+				TransactionController.addTransaction(txParams, origin, WalletDevice.MM_MOBILE);
 			}
-		} else if (functionName === 'transfer') {
-			const txMeta = { ...ethUrl, source: url };
-			this.navigation.navigate('SendView', {
-				screen: 'Send',
-				params: { txMeta: { ...txMeta, action: 'send-token' } },
-			});
-		} else if (functionName === 'approve') {
-			// add approve transaction
-			const {
-				parameters: { address, uint256 },
-				target_address,
-				chain_id,
-			} = ethUrl;
-			const { TransactionController, PreferencesController, NetworkController } = Engine.context;
-			if (chain_id) {
-				const newNetworkType = getNetworkTypeById(chain_id);
-				NetworkController.setProviderType(newNetworkType);
-			}
-			const txParams = {};
-			txParams.to = `${target_address}`;
-			txParams.from = `${PreferencesController.state.selectedAddress}`;
-			txParams.value = '0x0';
-			const uint256Number = Number(uint256);
-			if (Number.isNaN(uint256Number)) throw new Error('The parameter uint256 should be a number');
-			if (!Number.isInteger(uint256Number)) throw new Error('The parameter uint256 should be an integer');
-			const value = uint256Number.toString(16);
-			txParams.data = generateApproveData({ spender: address, value });
-			TransactionController.addTransaction(txParams, origin, WalletDevice.MM_MOBILE);
+		} catch (e) {
+			Alert.alert(
+				strings('send.network_not_found_title'),
+				strings('send.network_not_found_description', { chain_id: ethUrl.chain_id })
+			);
 		}
 	}
 
@@ -202,8 +255,8 @@ class DeeplinkManager {
 let instance = null;
 
 const SharedDeeplinkManager = {
-	init: (navigation) => {
-		instance = new DeeplinkManager(navigation);
+	init: ({ navigation, frequentRpcList, dispatch }) => {
+		instance = new DeeplinkManager({ navigation, frequentRpcList, dispatch });
 	},
 	parse: (url, args) => instance.parse(url, args),
 	setDeeplink: (url) => instance.setDeeplink(url),

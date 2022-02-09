@@ -560,7 +560,7 @@ class SendFlow extends PureComponent {
 			<>
 				{'\n'}
 				<Text bold style={styles.buyEth} onPress={this.goToBuy}>
-					{strings('fiat_on_ramp.buy_eth')}
+					{strings('fiat_on_ramp.buy', { ticker: getTicker(this.props.ticker) })}
 				</Text>
 			</>
 		);

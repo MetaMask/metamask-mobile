@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
 	},
 	optionButton: {
 		paddingHorizontal: 15,
-		paddingVertical: 5,
+		paddingVertical: 4,
 		flexDirection: 'row',
 		height: ROW_HEIGHT,
 	},
