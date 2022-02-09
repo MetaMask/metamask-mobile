@@ -8,8 +8,8 @@ import { strings } from '../../../../locales/i18n';
 import Networks, { getAllNetworks, isSafeChainId } from '../../../util/networks';
 import { connect } from 'react-redux';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { MAINNET, RPC } from '../../../constants/network';
-import { ETH, PRIVATENETWORK } from '../../../util/custom-gas';
+import { MAINNET, RPC, PRIVATENETWORK } from '../../../constants/network';
+import { ETH } from '../../../util/custom-gas';
 
 const styles = StyleSheet.create({
 	wrapper: {
