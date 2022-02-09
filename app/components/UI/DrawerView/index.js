@@ -46,7 +46,7 @@ import { getCurrentRoute } from '../../../reducers/navigation';
 import { ScrollView } from 'react-native-gesture-handler';
 import { isZero } from '../../../util/lodash';
 import NetworkInfo from '../NetworkInfo';
-import { onboardNetworkAction } from '../../../reducers/networkSelector';
+import onboardNetworkAction from '../../../actions/onboardNetwork';
 
 const styles = StyleSheet.create({
 	wrapper: {

@@ -8,9 +8,9 @@ import { strings } from '../../../../locales/i18n';
 import Networks, { getAllNetworks, isSafeChainId } from '../../../util/networks';
 import { connect } from 'react-redux';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { MAINNET, RPC } from '../../../constants/network';
 import { NETWORK_LIST_MODAL_CONTAINER_ID, OTHER_NETWORK_LIST_ID, NETWORK_SCROLL_ID } from '../../../constants/test-ids';
-import { ETH, PRIVATENETWORK } from '../../../util/custom-gas';
+import { MAINNET, RPC, PRIVATENETWORK } from '../../../constants/network';
+import { ETH } from '../../../util/custom-gas';
 
 const styles = StyleSheet.create({
 	wrapper: {
