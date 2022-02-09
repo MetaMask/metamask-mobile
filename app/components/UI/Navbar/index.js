@@ -862,7 +862,17 @@ export function getTransakWebviewNavbar(navigation, route, onPop) {
 	};
 }
 
-export function getSwapsAmountNavbar(navigation, route) {
+export function getSwapsAmountNavbar(navigation, route, themeColors) {
+	const innerStyles = StyleSheet.create({
+		headerButtonText: {
+			color: themeColors.primary,
+			fontSize: 14,
+			...fontStyles.normal,
+		},
+		headerStyle: {
+			backgroundColor: themeColors.backgroundDefault,
+		},
+	});
 	const title = route.params?.title ?? 'Swap';
 	return {
 		headerTitle: () => <NavbarTitle title={title} disableNetwork translate={false} />,
@@ -870,12 +880,26 @@ export function getSwapsAmountNavbar(navigation, route) {
 		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={() => navigation.dangerouslyGetParent()?.pop()} style={styles.closeButton}>
-				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
+				<Text style={innerStyles.headerButtonText}>{strings('navigation.cancel')}</Text>
 			</TouchableOpacity>
 		),
+		headerStyle: innerStyles.headerStyle,
 	};
 }
-export function getSwapsQuotesNavbar(navigation, route) {
+export function getSwapsQuotesNavbar(navigation, route, themeColors) {
+	const innerStyles = StyleSheet.create({
+		headerButtonText: {
+			color: themeColors.primary,
+			fontSize: 14,
+			...fontStyles.normal,
+		},
+		headerIcon: {
+			color: themeColors.primary,
+		},
+		headerStyle: {
+			backgroundColor: themeColors.backgroundDefault,
+		},
+	});
 	const title = route.params?.title ?? 'Swap';
 	const leftActionText = route.params?.leftAction ?? strings('navigation.back');
 
@@ -915,19 +939,20 @@ export function getSwapsQuotesNavbar(navigation, route) {
 			Device.isAndroid() ? (
 				// eslint-disable-next-line react/jsx-no-bind
 				<TouchableOpacity onPress={leftAction} style={styles.backButton}>
-					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
+					<IonicIcon name={'md-arrow-back'} size={24} style={innerStyles.headerIcon} />
 				</TouchableOpacity>
 			) : (
 				// eslint-disable-next-line react/jsx-no-bind
 				<TouchableOpacity onPress={leftAction} style={styles.closeButton}>
-					<Text style={styles.closeButtonText}>{leftActionText}</Text>
+					<Text style={innerStyles.headerButtonText}>{leftActionText}</Text>
 				</TouchableOpacity>
 			),
 		headerRight: () => (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={rightAction} style={styles.closeButton}>
-				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
+				<Text style={innerStyles.headerButtonText}>{strings('navigation.cancel')}</Text>
 			</TouchableOpacity>
 		),
+		headerStyle: innerStyles.headerStyle,
 	};
 }

@@ -53,6 +53,7 @@ import InfoModal from './components/InfoModal';
 import { toLowerCaseEquals } from '../../../util/general';
 import { AlertType } from '../../Base/Alert';
 import { isZero, gte } from '../../../util/lodash';
+import { useAppThemeFromContext } from '../../../util/theme';
 
 const styles = StyleSheet.create({
 	screen: {
@@ -159,6 +160,7 @@ function SwapsAmountView({
 }) {
 	const navigation = useNavigation();
 	const route = useRoute();
+	const { colors } = useAppThemeFromContext();
 
 	const explorer = useBlockExplorer(provider, frequentRpcList);
 	const initialSource = route.params?.sourceToken ?? SWAPS_NATIVE_ADDRESS;
@@ -184,6 +186,10 @@ function SwapsAmountView({
 	const [isSlippageModalVisible, toggleSlippageModal] = useModalHandler(false);
 	const [isTokenVerificationModalVisisble, toggleTokenVerificationModal, , hideTokenVerificationModal] =
 		useModalHandler(false);
+
+	useEffect(() => {
+		navigation.setOptions(getSwapsAmountNavbar(navigation, route, colors));
+	}, [navigation, route, colors]);
 
 	useEffect(() => {
 		(async () => {
@@ -724,8 +730,6 @@ function SwapsAmountView({
 		</ScreenView>
 	);
 }
-
-SwapsAmountView.navigationOptions = ({ navigation, route }) => getSwapsAmountNavbar(navigation, route);
 
 SwapsAmountView.propTypes = {
 	swapsTokens: PropTypes.arrayOf(PropTypes.object),

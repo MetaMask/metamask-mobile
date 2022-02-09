@@ -56,6 +56,7 @@ import { swapsTokensSelector } from '../../../reducers/swaps';
 import { decGWEIToHexWEI } from '../../../util/conversions';
 import FadeAnimationView from '../FadeAnimationView';
 import Logger from '../../../util/Logger';
+import { useAppThemeFromContext } from '../../../util/theme';
 
 const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
@@ -309,8 +310,10 @@ function SwapsQuotesView({
 	usedCustomGas,
 }) {
 	const navigation = useNavigation();
-	const route = useRoute();
 	/* Get params from navigation */
+	const route = useRoute();
+
+	const { colors } = useAppThemeFromContext();
 
 	const { sourceTokenAddress, destinationTokenAddress, sourceAmount, slippage, tokens } = useMemo(
 		() => getQuotesNavigationsParams(route),
@@ -355,6 +358,10 @@ function SwapsQuotesView({
 	// TODO: use this variable in the future when calculating savings
 	const [isSaving] = useState(false);
 	const [isInFetch, setIsInFetch] = useState(false);
+
+	useEffect(() => {
+		navigation.setOptions(getSwapsQuotesNavbar(navigation, route, colors));
+	}, [navigation, route, colors]);
 
 	const hasConversionRate = useMemo(
 		() =>
@@ -1678,8 +1685,6 @@ function SwapsQuotesView({
 		</ScreenView>
 	);
 }
-
-SwapsQuotesView.navigationOptions = ({ navigation, route }) => getSwapsQuotesNavbar(navigation, route);
 
 SwapsQuotesView.propTypes = {
 	swapsTokens: PropTypes.arrayOf(PropTypes.object),
