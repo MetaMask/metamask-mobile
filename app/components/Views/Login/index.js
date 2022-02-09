@@ -297,23 +297,28 @@ class Login extends PureComponent {
 			this.setState({ rememberMe: true });
 			// Restore vault with existing credentials
 			const { KeyringController } = Engine.context;
-			await KeyringController.submitPassword(credentials.password);
-			const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
-			if (encryptionLib !== ORIGINAL) {
-				await recreateVaultWithSamePassword(credentials.password, this.props.selectedAddress);
-				await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
-			}
-			// Get onboarding wizard state
-			const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
-			if (!onboardingWizard) {
-				this.props.setOnboardingWizardStep(1);
-			}
+			try {
+				await KeyringController.submitPassword(credentials.password);
+				const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
+				if (encryptionLib !== ORIGINAL) {
+					await recreateVaultWithSamePassword(credentials.password, this.props.selectedAddress);
+					await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
+				}
+				// Get onboarding wizard state
+				const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
+				if (!onboardingWizard) {
+					this.props.setOnboardingWizardStep(1);
+				}
 
-			// Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
-			this.setState({ hasBiometricCredentials: false });
-			delete credentials.password;
-			this.props.logIn();
-			this.props.navigation.replace('HomeNav');
+				// Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
+				this.setState({ hasBiometricCredentials: false });
+				delete credentials.password;
+				this.props.logIn();
+				this.props.navigation.replace('HomeNav');
+			} catch (error) {
+				this.setState({ rememberMe: false });
+				Logger.error(error, 'Failed to login using Remember Me');
+			}
 		}
 	};
 
