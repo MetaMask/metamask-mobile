@@ -261,7 +261,9 @@
 		"warn_network_change": "Network changed to ",
 		"send_to": "Send to",
 		"amount": "Amount",
-		"confirm": "Confirm"
+		"confirm": "Confirm",
+		"network_not_found_title": "Network not found",
+		"network_not_found_description": "Network with chain id {{chain_id}} not found in your wallet. Please add the network first."
 	},
 	"deposit": {
 		"title": "Deposit"
