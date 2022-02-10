@@ -1,8 +1,8 @@
 import React, { useContext } from 'react';
 import { useColorScheme, StatusBar } from 'react-native';
 import { Colors, AppThemeNames, Theme } from './models';
-import colorTheme from './colors';
 import { useSelector } from 'react-redux';
+import { colors as colorTheme } from '@metamask/design-tokens';
 
 export const ThemeContext = React.createContext<any>(undefined);
 
@@ -14,20 +14,20 @@ export const useAppTheme = (): Theme => {
 
 	switch (appTheme) {
 		case AppThemeNames.OS:
-			colors = osThemeName === 'dark' ? colorTheme.darkTheme : colorTheme.lightTheme;
+			colors = osThemeName === 'dark' ? colorTheme.dark : colorTheme.light;
 			StatusBar.setBarStyle('default', true);
 			break;
 		case AppThemeNames.Light:
-			colors = colorTheme.lightTheme;
+			colors = colorTheme.light;
 			StatusBar.setBarStyle('dark-content', true);
 			break;
 		case AppThemeNames.Dark:
-			colors = colorTheme.darkTheme;
+			colors = colorTheme.dark;
 			StatusBar.setBarStyle('light-content', true);
 			break;
 		default:
 			// Default uses light theme
-			colors = colorTheme.lightTheme;
+			colors = colorTheme.light;
 			StatusBar.setBarStyle('dark-content', true);
 	}
 
