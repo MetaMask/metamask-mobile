@@ -931,3 +931,13 @@ export function getSwapsQuotesNavbar(navigation, route) {
 		),
 	};
 }
+export function getFiatOnRampNavbar(navigation) {
+	return {
+		headerBackTitle: strings('navigation.back'),
+		headerRight: () => (
+			<TouchableOpacity style={styles.closeButton} onPress={() => navigation.dangerouslyGetParent()?.pop()}>
+				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
+			</TouchableOpacity>
+		),
+	};
+}

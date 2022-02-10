@@ -26,8 +26,7 @@ export const styles = StyleSheet.create<Style>({
 		padding: 15,
 	},
 	header: {
-		marginTop: 22,
-		marginBottom: 22,
+		marginVertical: 16,
 		alignItems: 'center',
 	},
 	body: {

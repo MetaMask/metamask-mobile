@@ -10,7 +10,7 @@ import { boolean } from '@storybook/addon-knobs';
 // import AmountInput from './AmountInput';
 import Text from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
-import ScreenRegion from './ScreenRegion';
+import ScreenRegion, { styles } from './ScreenRegion';
 
 storiesOf('FiatOnRamp / ScreenRegion', module)
 	.addDecorator((getStory) => getStory())
@@ -23,7 +23,7 @@ storiesOf('FiatOnRamp / ScreenRegion', module)
 
 		return (
 			// eslint-disable-next-line react-native/no-inline-styles
-			<SafeAreaView style={{ flex: 1 }}>
+			<SafeAreaView style={styles.wrapper}>
 				<ScreenRegion>
 					{showHeader && (
 						<ScreenRegion.Header
@@ -62,10 +62,12 @@ storiesOf('FiatOnRamp / ScreenRegion', module)
 
 					{showFooter && (
 						<ScreenRegion.Footer>
-							<ScreenRegion.Content>
-								<StyledButton type={'confirm'} style={{ width: 200 }}>
-									Get Started
-								</StyledButton>
+							<ScreenRegion.Content
+								style={{
+									width: '80%',
+								}}
+							>
+								<StyledButton type={'confirm'}>Get Started</StyledButton>
 							</ScreenRegion.Content>
 						</ScreenRegion.Footer>
 					)}
@@ -79,7 +81,7 @@ storiesOf('FiatOnRamp / ScreenRegion', module)
 
 		return (
 			// eslint-disable-next-line react-native/no-inline-styles
-			<SafeAreaView style={{ flex: 1 }}>
+			<SafeAreaView style={styles.wrapper}>
 				<ScreenRegion>
 					{showHeader && (
 						<ScreenRegion.Header
@@ -142,10 +144,12 @@ storiesOf('FiatOnRamp / ScreenRegion', module)
 
 					{showFooter && (
 						<ScreenRegion.Footer>
-							<ScreenRegion.Content>
-								<StyledButton type={'confirm'} style={{ width: 200 }}>
-									Get Started
-								</StyledButton>
+							<ScreenRegion.Content
+								style={{
+									width: '80%',
+								}}
+							>
+								<StyledButton type={'confirm'}>Get Started</StyledButton>
 							</ScreenRegion.Content>
 						</ScreenRegion.Footer>
 					)}
@@ -158,7 +162,7 @@ storiesOf('FiatOnRamp / ScreenRegion', module)
 		const showFooter = boolean('Show footer', true);
 		return (
 			// eslint-disable-next-line react-native/no-inline-styles
-			<SafeAreaView style={{ flex: 1 }}>
+			<SafeAreaView style={styles.wrapper}>
 				<ScreenRegion scrollable>
 					{showHeader && (
 						<ScreenRegion.Header
@@ -217,10 +221,12 @@ storiesOf('FiatOnRamp / ScreenRegion', module)
 
 					{showFooter && (
 						<ScreenRegion.Footer>
-							<ScreenRegion.Content>
-								<StyledButton type={'confirm'} style={{ width: 200 }}>
-									Get Started
-								</StyledButton>
+							<ScreenRegion.Content
+								style={{
+									width: '80%',
+								}}
+							>
+								<StyledButton type={'confirm'}>Get Started</StyledButton>
 							</ScreenRegion.Content>
 						</ScreenRegion.Footer>
 					)}
@@ -235,7 +241,7 @@ storiesOf('FiatOnRamp / ScreenRegion', module)
 		const showFooter = boolean('Show footer', true);
 		return (
 			// eslint-disable-next-line react-native/no-inline-styles
-			<SafeAreaView style={{ flex: 1 }}>
+			<SafeAreaView style={styles.wrapper}>
 				<ScreenRegion>
 					{showHeader && (
 						<ScreenRegion.Header
@@ -293,10 +299,12 @@ storiesOf('FiatOnRamp / ScreenRegion', module)
 
 					{showFooter && (
 						<ScreenRegion.Footer>
-							<ScreenRegion.Content>
-								<StyledButton type={'confirm'} style={{ width: 200 }}>
-									Get Started
-								</StyledButton>
+							<ScreenRegion.Content
+								style={{
+									width: '80%',
+								}}
+							>
+								<StyledButton type={'confirm'}>Get Started</StyledButton>
 							</ScreenRegion.Content>
 						</ScreenRegion.Footer>
 					)}

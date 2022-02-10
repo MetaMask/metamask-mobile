@@ -8,7 +8,9 @@ import StyledButton from '../../StyledButton';
 import ScreenRegion from '../components/ScreenRegion';
 import { strings } from '../../../../../locales/i18n';
 import { colors } from '../../../../styles/common';
+import { getFiatOnRampNavbar } from '../../Navbar';
 
+// TODO: Convert into typescript and correctly type optionals
 const Text = TextJS as any;
 const ListItem = ListItemJS as any;
 
@@ -55,6 +57,7 @@ interface IProps {
 
 interface IStaticComponents {
 	navigationOptions: () => void;
+	screenOptions: (navigation: any) => void;
 }
 
 const GetStarted: React.FC<IProps> & IStaticComponents = ({ navigation }: IProps) => {
@@ -94,6 +97,8 @@ const GetStarted: React.FC<IProps> & IStaticComponents = ({ navigation }: IProps
 		</ScreenRegion>
 	);
 };
+
+GetStarted.screenOptions = ({ navigation }) => getFiatOnRampNavbar(navigation);
 
 GetStarted.navigationOptions = () => ({
 	headerLeft: () => null,
