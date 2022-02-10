@@ -205,7 +205,9 @@ export class NetworkList extends PureComponent {
 			<View style={styles.selected}>{selected}</View>
 			<View style={[styles.networkIcon, color ? { backgroundColor: color } : styles.otherNetworkIcon]} />
 			<View style={styles.networkInfo}>
-				<Text style={styles.networkLabel}>{name}</Text>
+				<Text numberOfLines={1} style={styles.networkLabel}>
+					{name}
+				</Text>
 			</View>
 		</TouchableOpacity>
 	);
