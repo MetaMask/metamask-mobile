@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { NavigationContainer, CommonActions } from '@react-navigation/native';
 import { Animated, StyleSheet, View } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { createDrawerNavigator } from '@react-navigation/drawer';
 import AsyncStorage from '@react-native-community/async-storage';
 import Login from '../../Views/Login';
 import QRScanner from '../../Views/QRScanner';
@@ -18,15 +17,15 @@ import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ImportFromSeed from '../../Views/ImportFromSeed';
 import SyncWithExtensionSuccess from '../../Views/SyncWithExtensionSuccess';
 import Main from '../Main';
-import DrawerView from '../../UI/DrawerView';
 import OptinMetrics from '../../UI/OptinMetrics';
 import MetaMaskAnimation from '../../UI/MetaMaskAnimation';
 import SimpleWebview from '../../Views/SimpleWebview';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager';
 import Engine from '../../../core/Engine';
-import { BranchSubscriber } from 'react-native-branch';
+import branch from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
+import Device from '../../../util/device';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { routingInstrumentation } from '../../../util/setupSentry';
 import Analytics from '../../../core/Analytics';
@@ -34,14 +33,15 @@ import { connect, useSelector, useDispatch } from 'react-redux';
 import { EXISTING_USER, CURRENT_APP_VERSION, LAST_APP_VERSION } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
 import { checkedAuth } from '../../../actions/user';
-import Device from '../../../util/device';
+// import Device from '../../../util/device';
+import { setCurrentRoute } from '../../../actions/navigation';
+import { findRouteNameFromNavigatorState } from '../../../util/general';
 
 const styles = StyleSheet.create({
 	fill: { flex: 1 },
 });
 
 const Stack = createStackNavigator();
-const Drawer = createDrawerNavigator();
 /**
  * Stack navigator responsible for the onboarding process
  * Create Wallet, Import from Seed and Sync
@@ -105,46 +105,7 @@ const OnboardingRootNav = () => (
 	</Stack.Navigator>
 );
 
-/**
- * Main app navigator which handles all the screens
- * after the user is already onboarded
- */
-
-const HomeNav = () => (
-	<Drawer.Navigator
-		drawerContent={(props) => <DrawerView {...props} />}
-		drawerType={Device.isIpad() ? 'slide' : 'front'}
-		// eslint-disable-next-line
-		drawerStyle={{
-			backgroundColor: 'rgba(0, 0, 0, 0.5)',
-			width: 315,
-		}}
-	>
-		<Drawer.Screen name="Main" component={Main} />
-	</Drawer.Navigator>
-);
-
-// Is this necessary?
-/**
- * Drawer status tracking
-const defaultGetStateForAction = HomeNav.router.getStateForAction;
-DrawerStatusTracker.init();
-HomeNav.router.getStateForAction = (action, state) => {
-	if (action) {
-		if (action.type === 'Navigation/MARK_DRAWER_SETTLING' && action.willShow) {
-			DrawerStatusTracker.setStatus('open');
-		} else if (action.type === 'Navigation/MARK_DRAWER_SETTLING' && !action.willShow) {
-			DrawerStatusTracker.setStatus('closed');
-		}
-	}
-
-	return defaultGetStateForAction(action, state);
-};
-*/
-
 const App = ({ userLoggedIn }) => {
-	const unsubscribeFromBranch = useRef();
-
 	const animation = useRef(null);
 	const animationName = useRef(null);
 	const opacity = useRef(new Animated.Value(1)).current;
@@ -156,6 +117,10 @@ const App = ({ userLoggedIn }) => {
 	const isAuthChecked = useSelector((state) => state.user.isAuthChecked);
 	const dispatch = useDispatch();
 	const triggerCheckedAuth = () => dispatch(checkedAuth('onboarding'));
+	const triggerSetCurrentRoute = (route) => dispatch(setCurrentRoute(route));
+	const frequentRpcList = useSelector(
+		(state) => state?.engine?.backgroundState?.PreferencesController?.frequentRpcList
+	);
 
 	const handleDeeplink = useCallback(({ error, params, uri }) => {
 		if (error) {
@@ -175,23 +140,33 @@ const App = ({ userLoggedIn }) => {
 		}
 	}, []);
 
-	const branchSubscriber = new BranchSubscriber({
-		onOpenStart: (opts) => handleDeeplink(opts),
-		onOpenComplete: (opts) => handleDeeplink(opts),
-	});
+	useEffect(
+		() =>
+			branch.subscribe({
+				onOpenStart: (opts) => {
+					// Called reliably on iOS deeplink instances
+					Device.isIos() && handleDeeplink(opts);
+				},
+				onOpenComplete: (opts) => {
+					// Called reliably on Android deeplink instances
+					Device.isAndroid() && handleDeeplink(opts);
+				},
+			}),
+		[handleDeeplink]
+	);
 
 	useEffect(() => {
 		SharedDeeplinkManager.init({
-			navigate: (routeName, opts) => {
-				const params = { name: routeName, params: opts };
-				navigator.current?.dispatch?.(CommonActions.navigate(params));
+			navigation: {
+				navigate: (routeName, opts) => {
+					const params = { name: routeName, params: opts };
+					navigator.current?.dispatch?.(CommonActions.navigate(params));
+				},
 			},
+			frequentRpcList,
+			dispatch,
 		});
-
-		unsubscribeFromBranch.current = branchSubscriber.subscribe();
-
-		return () => unsubscribeFromBranch.current?.();
-	}, [branchSubscriber]);
+	}, [dispatch, frequentRpcList]);
 
 	useEffect(() => {
 		const initAnalytics = async () => {
@@ -289,6 +264,11 @@ const App = ({ userLoggedIn }) => {
 					onReady={() => {
 						routingInstrumentation.registerNavigationContainer(navigator);
 					}}
+					onStateChange={(state) => {
+						// Updates redux with latest route. Used by DrawerView component.
+						const currentRoute = findRouteNameFromNavigatorState(state.routes);
+						triggerSetCurrentRoute(currentRoute);
+					}}
 				>
 					<Stack.Navigator route={route} initialRouteName={route}>
 						<Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
@@ -298,7 +278,7 @@ const App = ({ userLoggedIn }) => {
 							options={{ headerShown: false }}
 						/>
 						{userLoggedIn && (
-							<Stack.Screen name="HomeNav" component={HomeNav} options={{ headerShown: false }} />
+							<Stack.Screen name="HomeNav" component={Main} options={{ headerShown: false }} />
 						)}
 					</Stack.Navigator>
 				</NavigationContainer>

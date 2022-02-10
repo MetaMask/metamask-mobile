@@ -20,7 +20,7 @@ import {
 	toWei,
 	weiToFiat,
 } from '../../../util/number';
-import { isMainNet, isMainnetByChainId } from '../../../util/networks';
+import { isMainnetByChainId } from '../../../util/networks';
 import { getErrorMessage, getFetchParams, getQuotesNavigationsParams, isSwapsNativeAsset } from './utils';
 import { colors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -350,6 +350,8 @@ function SwapsQuotesView({
 
 	const [customGasEstimate, setCustomGasEstimate] = useState(null);
 	const [customGasLimit, setCustomGasLimit] = useState(null);
+
+	const [isSwiping, setIsSwiping] = useState(false);
 
 	// TODO: use this variable in the future when calculating savings
 	const [isSaving] = useState(false);
@@ -1184,7 +1186,11 @@ function SwapsQuotesView({
 		shouldDisplaySlippage && !hasDismissedSlippageAlert && hasEnoughTokenBalance && hasEnoughEthBalance;
 
 	return (
-		<ScreenView contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
+		<ScreenView
+			contentContainerStyle={styles.screen}
+			keyboardShouldPersistTaps="handled"
+			scrollEnabled={!isSwiping}
+		>
 			<View style={styles.topBar}>
 				{(!hasEnoughTokenBalance || !hasEnoughEthBalance) && (
 					<View style={styles.alertBar}>
@@ -1201,13 +1207,11 @@ function SwapsQuotesView({
 							{!hasEnoughTokenBalance
 								? `${strings('swaps.more_to_complete')} `
 								: `${strings('swaps.more_gas_to_complete')} `}
-							{isMainNet(chainId) &&
-								(isSwapsNativeAsset(sourceToken) ||
-									(hasEnoughTokenBalance && !hasEnoughEthBalance)) && (
-									<Text link underline small onPress={buyEth}>
-										{strings('swaps.buy_more_eth')}
-									</Text>
-								)}
+							{(isSwapsNativeAsset(sourceToken) || (hasEnoughTokenBalance && !hasEnoughEthBalance)) && (
+								<Text link underline small onPress={buyEth}>
+									{strings('swaps.buy_more', { ticker: getTicker(ticker) })}
+								</Text>
+							)}
 						</Alert>
 					</View>
 				)}
@@ -1558,6 +1562,7 @@ function SwapsQuotesView({
 							</Text>
 						</Text>
 					}
+					onSwipeChange={setIsSwiping}
 					completeText={<Text style={styles.sliderButtonText}>{strings('swaps.completed_swap')}</Text>}
 					disabled={unableToSwap || isAnimating}
 					onComplete={handleCompleteSwap}
