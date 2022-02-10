@@ -10,7 +10,7 @@ import {
 	InteractionManager,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import OnboardingProgress from '../../UI/OnboardingProgress';
 import { strings } from '../../../../locales/i18n';
@@ -30,86 +30,87 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import { useAppThemeFromContext } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	mainWrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-	},
-	scrollviewWrapper: {
-		flexGrow: 1,
-	},
-	wrapper: {
-		flex: 1,
-		padding: 20,
-		paddingTop: 0,
-		paddingBottom: 0,
-	},
-	content: {
-		alignItems: 'center',
-		justifyContent: 'flex-start',
-		flex: 1,
-		marginBottom: 10,
-	},
-	title: {
-		fontSize: 24,
-		marginBottom: 24,
-		color: colors.fontPrimary,
-		textAlign: 'center',
-		...fontStyles.bold,
-	},
-	text: {
-		marginTop: 32,
-		justifyContent: 'center',
-	},
-	label: {
-		lineHeight: scaling.scale(20),
-		fontSize: scaling.scale(14),
-		color: colors.fontPrimary,
-		textAlign: 'center',
-		...fontStyles.normal,
-	},
-	buttonWrapper: {
-		flex: 1,
-		justifyContent: 'flex-end',
-	},
-	bold: {
-		...fontStyles.bold,
-	},
-	blue: {
-		color: colors.blue,
-	},
-	remindLaterText: {
-		textAlign: 'center',
-		fontSize: 15,
-		lineHeight: 20,
-		color: colors.blue,
-		...fontStyles.normal,
-	},
-	remindLaterSubText: {
-		textAlign: 'center',
-		fontSize: 11,
-		lineHeight: 20,
-		color: colors.grey600,
-		...fontStyles.normal,
-	},
-	startSubText: {
-		textAlign: 'center',
-		fontSize: 11,
-		marginTop: 12,
-		color: colors.grey600,
-		...fontStyles.normal,
-	},
-	remindLaterContainer: {
-		marginBottom: 34,
-	},
-	remindLaterButton: {
-		elevation: 10,
-		zIndex: 10,
-	},
-	ctaContainer: {
-		marginBottom: 30,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		mainWrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+		},
+		scrollviewWrapper: {
+			flexGrow: 1,
+		},
+		wrapper: {
+			flex: 1,
+			padding: 20,
+			paddingTop: 0,
+			paddingBottom: 0,
+		},
+		content: {
+			alignItems: 'center',
+			justifyContent: 'flex-start',
+			flex: 1,
+			marginBottom: 10,
+		},
+		title: {
+			fontSize: 24,
+			marginBottom: 24,
+			color: colors.text.default,
+			textAlign: 'center',
+			...fontStyles.bold,
+		},
+		text: {
+			marginTop: 32,
+			justifyContent: 'center',
+		},
+		label: {
+			lineHeight: scaling.scale(20),
+			fontSize: scaling.scale(14),
+			color: colors.text.default,
+			textAlign: 'center',
+			...fontStyles.normal,
+		},
+		buttonWrapper: {
+			flex: 1,
+			justifyContent: 'flex-end',
+		},
+		bold: {
+			...fontStyles.bold,
+		},
+		blue: {
+			color: colors.primary.default,
+		},
+		remindLaterText: {
+			textAlign: 'center',
+			fontSize: 15,
+			lineHeight: 20,
+			color: colors.primary.default,
+			...fontStyles.normal,
+		},
+		remindLaterSubText: {
+			textAlign: 'center',
+			fontSize: 11,
+			lineHeight: 20,
+			color: colors.text.alternative,
+			...fontStyles.normal,
+		},
+		startSubText: {
+			textAlign: 'center',
+			fontSize: 11,
+			marginTop: 12,
+			color: colors.text.alternative,
+			...fontStyles.normal,
+		},
+		remindLaterContainer: {
+			marginBottom: 34,
+		},
+		remindLaterButton: {
+			elevation: 10,
+			zIndex: 10,
+		},
+		ctaContainer: {
+			marginBottom: 30,
+		},
+	});
 
 /**
  * View that's shown during the first step of
@@ -122,6 +123,7 @@ const AccountBackupStep1 = (props) => {
 	const [skipCheckbox, setToggleSkipCheckbox] = useState(false);
 	const [hasFunds, setHasFunds] = useState(false);
 	const { colors } = useAppThemeFromContext();
+	const styles = createStyles(colors);
 
 	useEffect(() => {
 		navigation.setOptions({
