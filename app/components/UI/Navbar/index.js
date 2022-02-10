@@ -568,13 +568,13 @@ export function getOnboardingNavbarOptions(route, { headerLeft } = {}, themeColo
 		headerStyle: {
 			shadowColor: colors.transparent,
 			elevation: 0,
-			backgroundColor: themeColors.backgroundDefault,
+			backgroundColor: themeColors.background.default,
 			borderBottomWidth: 0,
 		},
 		metamaskName: {
 			width: 122,
 			height: 15,
-			tintColor: themeColors.textDefault,
+			tintColor: themeColors.text.default,
 		},
 	});
 
@@ -601,12 +601,12 @@ export function getTransparentOnboardingNavbarOptions(themeColors) {
 		headerStyle: {
 			shadowColor: colors.transparent,
 			elevation: 0,
-			backgroundColor: themeColors.backgroundDefault,
+			backgroundColor: themeColors.background.default,
 		},
 		metamaskName: {
 			width: 122,
 			height: 15,
-			tintColor: themeColors.textDefault,
+			tintColor: themeColors.text.default,
 		},
 	});
 	return {
@@ -631,12 +631,12 @@ export function getTransparentBackOnboardingNavbarOptions(themeColors) {
 		headerStyle: {
 			shadowColor: colors.transparent,
 			elevation: 0,
-			backgroundColor: themeColors.backgroundDefault,
+			backgroundColor: themeColors.background.default,
 		},
 		metamaskName: {
 			width: 122,
 			height: 15,
-			tintColor: themeColors.textDefault,
+			tintColor: themeColors.text.default,
 		},
 	});
 	return {
@@ -657,15 +657,24 @@ export function getTransparentBackOnboardingNavbarOptions(themeColors) {
  *
  * @returns {Object} - Corresponding navbar options containing headerLeft
  */
-export function getOptinMetricsNavbarOptions() {
-	return {
+export function getOptinMetricsNavbarOptions(themeColors) {
+	const innerStyles = StyleSheet.create({
 		headerStyle: {
 			shadowColor: colors.transparent,
 			elevation: 0,
-			backgroundColor: colors.white,
+			backgroundColor: themeColors.background.default,
 			borderBottomWidth: 0,
 			height: 100,
 		},
+		metamaskName: {
+			width: 122,
+			height: 15,
+			tintColor: themeColors.text.default,
+		},
+	});
+
+	return {
+		headerStyle: innerStyles.headerStyle,
 		title: null,
 		headerLeft: () => (
 			<View style={styles.optinHeaderLeft}>
@@ -673,7 +682,7 @@ export function getOptinMetricsNavbarOptions() {
 					<Image source={metamask_fox} style={styles.metamaskFox} resizeMethod={'auto'} />
 				</View>
 				<View style={styles.metamaskNameWrapper}>
-					<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+					<Image source={metamask_name} style={innerStyles.metamaskName} resizeMethod={'auto'} />
 				</View>
 			</View>
 		),

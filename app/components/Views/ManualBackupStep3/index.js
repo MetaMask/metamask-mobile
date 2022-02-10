@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import Emoji from 'react-native-emoji';
 import AsyncStorage from '@react-native-community/async-storage';
 import OnboardingProgress from '../../UI/OnboardingProgress';
@@ -28,54 +28,55 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	mainWrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-	},
-	actionView: {
-		paddingTop: 40,
-	},
-	wrapper: {
-		flex: 1,
-		paddingHorizontal: 50,
-	},
-	onBoardingWrapper: {
-		paddingHorizontal: 20,
-	},
-	congratulations: {
-		fontSize: Device.isMediumDevice() ? 28 : 32,
-		marginBottom: 12,
-		color: colors.fontPrimary,
-		justifyContent: 'center',
-		textAlign: 'center',
-		...fontStyles.bold,
-	},
-	baseText: {
-		fontSize: 16,
-		color: colors.fontPrimary,
-		textAlign: 'center',
-		...fontStyles.normal,
-	},
-	successText: {
-		marginBottom: 32,
-	},
-	hintText: {
-		marginBottom: 26,
-		color: colors.blue,
-	},
-	learnText: {
-		color: colors.blue,
-	},
-	recoverText: {
-		marginBottom: 26,
-	},
-	emoji: {
-		textAlign: 'center',
-		fontSize: 65,
-		marginBottom: 16,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		mainWrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+		},
+		actionView: {
+			paddingTop: 40,
+		},
+		wrapper: {
+			flex: 1,
+			paddingHorizontal: 50,
+		},
+		onBoardingWrapper: {
+			paddingHorizontal: 20,
+		},
+		congratulations: {
+			fontSize: Device.isMediumDevice() ? 28 : 32,
+			marginBottom: 12,
+			color: colors.text.default,
+			justifyContent: 'center',
+			textAlign: 'center',
+			...fontStyles.bold,
+		},
+		baseText: {
+			fontSize: 16,
+			color: colors.text.default,
+			textAlign: 'center',
+			...fontStyles.normal,
+		},
+		successText: {
+			marginBottom: 32,
+		},
+		hintText: {
+			marginBottom: 26,
+			color: colors.primary.default,
+		},
+		learnText: {
+			color: colors.primary.default,
+		},
+		recoverText: {
+			marginBottom: 26,
+		},
+		emoji: {
+			textAlign: 'center',
+			fontSize: 65,
+			marginBottom: 16,
+		},
+	});
 
 const hardwareBackPress = () => ({});
 const HARDWARE_BACK_PRESS = 'hardwareBackPress';
@@ -199,6 +200,9 @@ class ManualBackupStep3 extends PureComponent {
 	};
 
 	render() {
+		const { colors } = this.context;
+		const styles = createStyles(colors);
+
 		return (
 			<View style={styles.mainWrapper}>
 				<Confetti />
