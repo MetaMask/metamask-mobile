@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
 
 const WRONG_PASSWORD_ERROR = 'error: Invalid password';
 const PRIVATE_KEY = 'private_key';
-const SEED_PHRASE = 'seed_phrase';
+// const SEED_PHRASE = 'seed_phrase';
 
 /**
  * View that displays private account information as private key or seed phrase
@@ -250,22 +250,21 @@ class RevealPrivateCredential extends PureComponent {
 		navigation.pop();
 	};
 
-	async tryUnlockWithPassword(password) {
+	async tryUnlockWithPassword(password, privateCredentialName) {
 		const { KeyringController } = Engine.context;
 		const { selectedAddress } = this.props;
-
-		const privateCredentialName = this.props.privateCredentialName || this.props.route.params.privateCredentialName;
+		const isPrivateKeyReveal = privateCredentialName === PRIVATE_KEY;
 
 		try {
 			let privateCredential;
-			if (privateCredentialName === SEED_PHRASE) {
+			if (!isPrivateKeyReveal) {
 				const mnemonic = await KeyringController.exportSeedPhrase(password);
 				privateCredential = JSON.stringify(mnemonic).replace(/"/g, '');
-			} else if (privateCredentialName === PRIVATE_KEY) {
+			} else {
 				privateCredential = await KeyringController.exportAccount(password, selectedAddress);
 			}
 
-			if (privateCredential && this.state.isUserUnlocked) {
+			if (privateCredential && (this.state.isUserUnlocked || isPrivateKeyReveal)) {
 				AnalyticsV2.trackEvent(AnalyticsV2.REVEAL_SRP_COMPLETED, { action: 'viewed' });
 
 				this.setState({
@@ -287,7 +286,14 @@ class RevealPrivateCredential extends PureComponent {
 		}
 	}
 
-	tryUnlock = () => this.setState({ isModalVisible: true });
+	tryUnlock = (privateCredentialName) => {
+		if (privateCredentialName === PRIVATE_KEY) {
+			const { password } = this.state;
+			this.tryUnlockWithPassword(password, privateCredentialName);
+		} else {
+			this.setState({ isModalVisible: true });
+		}
+	};
 
 	onPasswordChange = (password) => {
 		this.setState({ password });
@@ -470,6 +476,7 @@ class RevealPrivateCredential extends PureComponent {
 	render = () => {
 		const { unlocked, isUserUnlocked, password } = this.state;
 		const privateCredentialName = this.props.privateCredentialName || this.props.route.params.privateCredentialName;
+		const isPrivateKeyReveal = privateCredentialName === PRIVATE_KEY;
 
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'reveal-private-credential-screen'}>
@@ -478,13 +485,13 @@ class RevealPrivateCredential extends PureComponent {
 					confirmText={strings('reveal_credential.confirm')}
 					onCancelPress={this.cancel}
 					testID={`next-button`}
-					onConfirmPress={this.tryUnlock}
+					onConfirmPress={() => this.tryUnlock(privateCredentialName)}
 					showConfirmButton={!unlocked}
 					confirmDisabled={!password.length}
 				>
 					<>
 						<View style={[styles.rowWrapper, styles.normalText]}>
-							{privateCredentialName === PRIVATE_KEY ? (
+							{isPrivateKeyReveal ? (
 								<Text style={styles.normalText}>
 									{strings(`reveal_credential.private_key_explanation`)}
 								</Text>
@@ -495,13 +502,13 @@ class RevealPrivateCredential extends PureComponent {
 						{this.renderWarning(privateCredentialName)}
 
 						<View style={styles.rowWrapper}>
-							{unlocked && isUserUnlocked
+							{unlocked && (isUserUnlocked || isPrivateKeyReveal)
 								? this.renderTabView(privateCredentialName)
 								: this.renderPasswordEntry()}
 						</View>
 					</>
 				</ActionView>
-				{this.renderModal()}
+				{!isPrivateKeyReveal && this.renderModal()}
 			</SafeAreaView>
 		);
 	};
