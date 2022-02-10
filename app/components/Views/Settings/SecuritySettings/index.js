@@ -22,7 +22,7 @@ import StyledButton from '../../../UI/StyledButton';
 import SettingsNotification from '../../../UI/SettingsNotification';
 import { clearHistory } from '../../../../actions/browser';
 import { clearHosts, setPrivacyMode, setThirdPartyApiMode } from '../../../../actions/privacy';
-import { colors, fontStyles } from '../../../../styles/common';
+import { fontStyles } from '../../../../styles/common';
 import Logger from '../../../../util/Logger';
 import Device from '../../../../util/device';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
@@ -47,117 +47,127 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import HintModal from '../../../UI/HintModal';
 import AnalyticsV2, { trackErrorAsAnalytics } from '../../../../util/analyticsV2';
 import SeedPhraseVideo from '../../../UI/SeedPhraseVideo';
-import { ThemeContext } from '../../../../util/theme';
+import { ThemeContext, useAppThemeFromContext } from '../../../../util/theme';
 
 const isIos = Device.isIos();
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-		padding: 24,
-		paddingBottom: 48,
-	},
-	title: {
-		...fontStyles.normal,
-		color: colors.fontPrimary,
-		fontSize: 20,
-		lineHeight: 20,
-	},
-	bump: {
-		marginBottom: 10,
-	},
-	heading: {
-		fontSize: 24,
-		lineHeight: 30,
-		marginBottom: 24,
-	},
-	desc: {
-		...fontStyles.normal,
-		color: colors.grey500,
-		fontSize: 14,
-		lineHeight: 20,
-		marginTop: 12,
-	},
-	switchElement: {
-		marginTop: 18,
-	},
-	setting: {
-		marginTop: 50,
-	},
-	firstSetting: {
-		marginTop: 0,
-	},
-	modalView: {
-		alignItems: 'center',
-		flex: 1,
-		flexDirection: 'column',
-		justifyContent: 'center',
-		padding: 20,
-	},
-	modalText: {
-		...fontStyles.normal,
-		fontSize: 18,
-		textAlign: 'center',
-	},
-	modalTitle: {
-		...fontStyles.bold,
-		fontSize: 22,
-		textAlign: 'center',
-		marginBottom: 20,
-	},
-	confirm: {
-		marginTop: 18,
-	},
-	protect: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-	},
-	col: {
-		width: '48%',
-	},
-	inner: {
-		paddingBottom: 112,
-	},
-	picker: {
-		borderColor: colors.grey200,
-		borderRadius: 5,
-		borderWidth: 2,
-		marginTop: 16,
-	},
-	loader: {
-		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	warningText: {
-		color: colors.black,
-		fontSize: 12,
-		flex: 1,
-		...fontStyles.normal,
-	},
-	warningTextRed: {
-		color: colors.red,
-	},
-	warningTextGreen: {
-		color: colors.black,
-	},
-	warningBold: {
-		...fontStyles.bold,
-		color: colors.blue,
-	},
-	viewHint: {
-		padding: 5,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+			padding: 24,
+			paddingBottom: 48,
+		},
+		title: {
+			...fontStyles.normal,
+			color: colors.text.default,
+			fontSize: 20,
+			lineHeight: 20,
+		},
+		bump: {
+			marginBottom: 10,
+		},
+		heading: {
+			fontSize: 24,
+			lineHeight: 30,
+			marginBottom: 24,
+		},
+		desc: {
+			...fontStyles.normal,
+			color: colors.text.alternative,
+			fontSize: 14,
+			lineHeight: 20,
+			marginTop: 12,
+		},
+		switchElement: {
+			marginTop: 18,
+		},
+		setting: {
+			marginTop: 50,
+		},
+		firstSetting: {
+			marginTop: 0,
+		},
+		modalView: {
+			alignItems: 'center',
+			flex: 1,
+			flexDirection: 'column',
+			justifyContent: 'center',
+			padding: 20,
+		},
+		modalText: {
+			...fontStyles.normal,
+			fontSize: 18,
+			textAlign: 'center',
+		},
+		modalTitle: {
+			...fontStyles.bold,
+			fontSize: 22,
+			textAlign: 'center',
+			marginBottom: 20,
+		},
+		confirm: {
+			marginTop: 18,
+		},
+		protect: {
+			flexDirection: 'row',
+			justifyContent: 'space-between',
+		},
+		col: {
+			width: '48%',
+		},
+		inner: {
+			paddingBottom: 112,
+		},
+		picker: {
+			borderColor: colors.border.default,
+			borderRadius: 5,
+			borderWidth: 2,
+			marginTop: 16,
+		},
+		loader: {
+			flex: 1,
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+		warningText: {
+			color: colors.text.default,
+			fontSize: 12,
+			flex: 1,
+			...fontStyles.normal,
+		},
+		warningTextRed: {
+			color: colors.error.default,
+		},
+		warningTextGreen: {
+			color: colors.text.default,
+		},
+		warningBold: {
+			...fontStyles.bold,
+			color: colors.primary.default,
+		},
+		viewHint: {
+			padding: 5,
+		},
+	});
 
-const Heading = ({ children, first }) => (
-	<View style={[styles.setting, first && styles.firstSetting]}>
-		<Text style={[styles.title, styles.heading]}>{children}</Text>
-	</View>
-);
+const Heading = ({ children, first }) => {
+	const { colors } = useAppThemeFromContext();
+	const styles = createStyles(colors);
 
-const WarningIcon = () => <Icon size={16} color={colors.red} name="exclamation-triangle" />;
+	return (
+		<View style={[styles.setting, first && styles.firstSetting]}>
+			<Text style={[styles.title, styles.heading]}>{children}</Text>
+		</View>
+	);
+};
+
+const WarningIcon = () => {
+	const { colors } = useAppThemeFromContext();
+
+	return <Icon size={16} color={colors.error.default} name="exclamation-triangle" />;
+};
 
 Heading.propTypes = {
 	children: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node), PropTypes.node]),
@@ -598,6 +608,8 @@ class Settings extends PureComponent {
 		} = this.state;
 		const { accounts, identities, selectedAddress } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
+		const { colors } = this.context;
+		const styles = createStyles(colors);
 
 		if (loading)
 			return (
@@ -703,7 +715,7 @@ class Settings extends PureComponent {
 								<Switch
 									onValueChange={this.onSingInWithBiometrics}
 									value={this.state.biometryChoice}
-									trackColor={isIos ? { true: colors.blue, false: colors.grey000 } : null}
+									trackColor={isIos ? { true: colors.primary.default, false: colors.grey000 } : null}
 									ios_backgroundColor={colors.grey000}
 								/>
 							</View>
@@ -720,7 +732,7 @@ class Settings extends PureComponent {
 								<Switch
 									onValueChange={this.onSignInWithPasscode}
 									value={this.state.passcodeChoice}
-									trackColor={isIos ? { true: colors.blue, false: colors.grey000 } : null}
+									trackColor={isIos ? { true: colors.primary.default, false: colors.grey000 } : null}
 									ios_backgroundColor={colors.grey000}
 								/>
 							</View>
@@ -782,7 +794,9 @@ class Settings extends PureComponent {
 							<Switch
 								value={privacyMode}
 								onValueChange={this.togglePrivacy}
-								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
+								trackColor={
+									Device.isIos() ? { true: colors.primary.default, false: colors.grey000 } : null
+								}
 								ios_backgroundColor={colors.grey000}
 							/>
 						</View>
@@ -794,7 +808,9 @@ class Settings extends PureComponent {
 							<Switch
 								value={analyticsEnabled}
 								onValueChange={this.toggleMetricsOptIn}
-								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
+								trackColor={
+									Device.isIos() ? { true: colors.primary.default, false: colors.grey000 } : null
+								}
 								ios_backgroundColor={colors.grey000}
 								testID={'metametrics-switch'}
 							/>
@@ -807,7 +823,9 @@ class Settings extends PureComponent {
 							<Switch
 								value={thirdPartyApiMode}
 								onValueChange={this.toggleThirdPartyAPI}
-								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
+								trackColor={
+									Device.isIos() ? { true: colors.primary.default, false: colors.grey000 } : null
+								}
 								ios_backgroundColor={colors.grey000}
 							/>
 						</View>
@@ -867,7 +885,9 @@ class Settings extends PureComponent {
 										value={openSeaEnabled}
 										onValueChange={this.toggleOpenSeaApi}
 										trackColor={
-											Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null
+											Device.isIos()
+												? { true: colors.primary.default, false: colors.grey000 }
+												: null
 										}
 										ios_backgroundColor={colors.grey000}
 									/>
@@ -881,7 +901,9 @@ class Settings extends PureComponent {
 										value={useCollectibleDetection}
 										onValueChange={this.toggleNftAutodetect}
 										trackColor={
-											Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null
+											Device.isIos()
+												? { true: colors.primary.default, false: colors.grey000 }
+												: null
 										}
 										ios_backgroundColor={colors.grey000}
 										disabled={!openSeaEnabled}

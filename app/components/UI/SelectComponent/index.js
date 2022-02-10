@@ -38,7 +38,7 @@ const createStyles = (colors) =>
 			width: '100%',
 			paddingTop: 5,
 			height: 50,
-			borderBottomColor: colors.grey100,
+			borderBottomColor: colors.border.muted,
 			borderBottomWidth: 1,
 		},
 		label: {
