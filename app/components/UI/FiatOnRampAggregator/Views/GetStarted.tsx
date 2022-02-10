@@ -5,7 +5,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import TextJS from '../../../Base/Text';
 import ListItemJS from '../../../Base/ListItem';
 import StyledButton from '../../StyledButton';
-import ScreenRegion from '../components/ScreenRegion';
+import ScreenLayout from '../components/ScreenLayout';
 import { strings } from '../../../../../locales/i18n';
 import { colors } from '../../../../styles/common';
 import { getFiatOnRampNavbar } from '../../Navbar';
@@ -66,11 +66,11 @@ const GetStarted: React.FC<IProps> & IStaticComponents = ({ navigation }: IProps
 	}, [navigation]);
 
 	return (
-		<ScreenRegion>
-			<ScreenRegion.Header title="What to expect" />
+		<ScreenLayout>
+			<ScreenLayout.Header title="What to expect" />
 
-			<ScreenRegion.Body>
-				<ScreenRegion.Content>
+			<ScreenLayout.Body>
+				<ScreenLayout.Content>
 					{whatToExpectList.map(({ id, title, description }) => (
 						<ListItem.Content key={id} style={styles.listItem}>
 							<ListItem.Icon style={styles.icon}>
@@ -84,17 +84,17 @@ const GetStarted: React.FC<IProps> & IStaticComponents = ({ navigation }: IProps
 							</ListItem.Body>
 						</ListItem.Content>
 					))}
-				</ScreenRegion.Content>
-			</ScreenRegion.Body>
+				</ScreenLayout.Content>
+			</ScreenLayout.Body>
 
-			<ScreenRegion.Footer>
-				<ScreenRegion.Content>
+			<ScreenLayout.Footer>
+				<ScreenLayout.Content>
 					<StyledButton type={'confirm'} onPress={handleOnPress} style={styles.button}>
 						{strings('fiat_on_ramp_aggregator.onboarding.get_started')}
 					</StyledButton>
-				</ScreenRegion.Content>
-			</ScreenRegion.Footer>
-		</ScreenRegion>
+				</ScreenLayout.Content>
+			</ScreenLayout.Footer>
+		</ScreenLayout>
 	);
 };
 

@@ -10,9 +10,9 @@ import { boolean } from '@storybook/addon-knobs';
 // import AmountInput from './AmountInput';
 import Text from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
-import ScreenRegion, { styles } from './ScreenRegion';
+import ScreenLayout, { styles } from './ScreenLayout';
 
-storiesOf('FiatOnRamp / ScreenRegion', module)
+storiesOf('FiatOnRamp / ScreenLayout', module)
 	.addDecorator((getStory) => getStory())
 	.add('Default', () => {
 		// const scrollable = boolean('Scrollable', false);
@@ -24,9 +24,9 @@ storiesOf('FiatOnRamp / ScreenRegion', module)
 		return (
 			// eslint-disable-next-line react-native/no-inline-styles
 			<SafeAreaView style={styles.wrapper}>
-				<ScreenRegion>
+				<ScreenLayout>
 					{showHeader && (
-						<ScreenRegion.Header
+						<ScreenLayout.Header
 							title={showTitle && 'Payment Method'}
 							description={
 								showDescription &&
@@ -35,8 +35,8 @@ storiesOf('FiatOnRamp / ScreenRegion', module)
 						/>
 					)}
 
-					<ScreenRegion.Body>
-						<ScreenRegion.Content>
+					<ScreenLayout.Body>
+						<ScreenLayout.Content>
 							<Text>
 								Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum
 								has been the industrys standard dummy text ever since the 1500s, when an unknown printer
@@ -57,21 +57,21 @@ storiesOf('FiatOnRamp / ScreenRegion', module)
 								over the years, sometimes by accident, sometimes on purpose (injected humour and the
 								like).
 							</Text>
-						</ScreenRegion.Content>
-					</ScreenRegion.Body>
+						</ScreenLayout.Content>
+					</ScreenLayout.Body>
 
 					{showFooter && (
-						<ScreenRegion.Footer>
-							<ScreenRegion.Content
+						<ScreenLayout.Footer>
+							<ScreenLayout.Content
 								style={{
 									width: '80%',
 								}}
 							>
 								<StyledButton type={'confirm'}>Get Started</StyledButton>
-							</ScreenRegion.Content>
-						</ScreenRegion.Footer>
+							</ScreenLayout.Content>
+						</ScreenLayout.Footer>
 					)}
-				</ScreenRegion>
+				</ScreenLayout>
 			</SafeAreaView>
 		);
 	})
@@ -82,9 +82,9 @@ storiesOf('FiatOnRamp / ScreenRegion', module)
 		return (
 			// eslint-disable-next-line react-native/no-inline-styles
 			<SafeAreaView style={styles.wrapper}>
-				<ScreenRegion>
+				<ScreenLayout>
 					{showHeader && (
-						<ScreenRegion.Header
+						<ScreenLayout.Header
 							title={'Payment Method'}
 							description={
 								'Text here about how certain payment methods will be available depending on your region'
@@ -92,9 +92,9 @@ storiesOf('FiatOnRamp / ScreenRegion', module)
 						/>
 					)}
 
-					<ScreenRegion.Body>
+					<ScreenLayout.Body>
 						<ScrollView>
-							<ScreenRegion.Content>
+							<ScreenLayout.Content>
 								<Text>
 									Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem
 									Ipsum has been the industrys standard dummy text ever since the 1500s, when an
@@ -138,22 +138,22 @@ storiesOf('FiatOnRamp / ScreenRegion', module)
 									versions have evolved over the years, sometimes by accident, sometimes on purpose
 									(injected humour and the like).
 								</Text>
-							</ScreenRegion.Content>
+							</ScreenLayout.Content>
 						</ScrollView>
-					</ScreenRegion.Body>
+					</ScreenLayout.Body>
 
 					{showFooter && (
-						<ScreenRegion.Footer>
-							<ScreenRegion.Content
+						<ScreenLayout.Footer>
+							<ScreenLayout.Content
 								style={{
 									width: '80%',
 								}}
 							>
 								<StyledButton type={'confirm'}>Get Started</StyledButton>
-							</ScreenRegion.Content>
-						</ScreenRegion.Footer>
+							</ScreenLayout.Content>
+						</ScreenLayout.Footer>
 					)}
-				</ScreenRegion>
+				</ScreenLayout>
 			</SafeAreaView>
 		);
 	})
@@ -163,9 +163,9 @@ storiesOf('FiatOnRamp / ScreenRegion', module)
 		return (
 			// eslint-disable-next-line react-native/no-inline-styles
 			<SafeAreaView style={styles.wrapper}>
-				<ScreenRegion scrollable>
+				<ScreenLayout scrollable>
 					{showHeader && (
-						<ScreenRegion.Header
+						<ScreenLayout.Header
 							title={'Payment Method'}
 							description={
 								'Text here about how certain payment methods will be available depending on your region'
@@ -173,8 +173,8 @@ storiesOf('FiatOnRamp / ScreenRegion', module)
 						/>
 					)}
 
-					<ScreenRegion.Body>
-						<ScreenRegion.Content>
+					<ScreenLayout.Body>
+						<ScreenLayout.Content>
 							<Text>
 								Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum
 								has been the industrys standard dummy text ever since the 1500s, when an unknown printer
@@ -216,21 +216,21 @@ storiesOf('FiatOnRamp / ScreenRegion', module)
 								over the years, sometimes by accident, sometimes on purpose (injected humour and the
 								like).
 							</Text>
-						</ScreenRegion.Content>
-					</ScreenRegion.Body>
+						</ScreenLayout.Content>
+					</ScreenLayout.Body>
 
 					{showFooter && (
-						<ScreenRegion.Footer>
-							<ScreenRegion.Content
+						<ScreenLayout.Footer>
+							<ScreenLayout.Content
 								style={{
 									width: '80%',
 								}}
 							>
 								<StyledButton type={'confirm'}>Get Started</StyledButton>
-							</ScreenRegion.Content>
-						</ScreenRegion.Footer>
+							</ScreenLayout.Content>
+						</ScreenLayout.Footer>
 					)}
-				</ScreenRegion>
+				</ScreenLayout>
 			</SafeAreaView>
 		);
 	})
@@ -242,9 +242,9 @@ storiesOf('FiatOnRamp / ScreenRegion', module)
 		return (
 			// eslint-disable-next-line react-native/no-inline-styles
 			<SafeAreaView style={styles.wrapper}>
-				<ScreenRegion>
+				<ScreenLayout>
 					{showHeader && (
-						<ScreenRegion.Header
+						<ScreenLayout.Header
 							title={showTitle && 'Payment Method'}
 							description={
 								showDescription &&
@@ -255,12 +255,12 @@ storiesOf('FiatOnRamp / ScreenRegion', module)
 							<StyledButton type={'confirm'} style={{ width: 200 }}>
 								Before you start
 							</StyledButton>
-						</ScreenRegion.Header>
+						</ScreenLayout.Header>
 					)}
 
-					<ScreenRegion.Body>
+					<ScreenLayout.Body>
 						<ScrollView>
-							<ScreenRegion.Content>
+							<ScreenLayout.Content>
 								<Text>
 									Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem
 									Ipsum has been the industrys standard dummy text ever since the 1500s, when an
@@ -293,22 +293,22 @@ storiesOf('FiatOnRamp / ScreenRegion', module)
 									with desktop publishing software like Aldus PageMaker including versions of Lorem
 									Ipsum.
 								</Text>
-							</ScreenRegion.Content>
+							</ScreenLayout.Content>
 						</ScrollView>
-					</ScreenRegion.Body>
+					</ScreenLayout.Body>
 
 					{showFooter && (
-						<ScreenRegion.Footer>
-							<ScreenRegion.Content
+						<ScreenLayout.Footer>
+							<ScreenLayout.Content
 								style={{
 									width: '80%',
 								}}
 							>
 								<StyledButton type={'confirm'}>Get Started</StyledButton>
-							</ScreenRegion.Content>
-						</ScreenRegion.Footer>
+							</ScreenLayout.Content>
+						</ScreenLayout.Footer>
 					)}
-				</ScreenRegion>
+				</ScreenLayout>
 			</SafeAreaView>
 		);
 	});

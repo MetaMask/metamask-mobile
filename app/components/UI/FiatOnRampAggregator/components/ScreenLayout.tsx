@@ -38,7 +38,7 @@ export const styles = StyleSheet.create<Style>({
 	},
 });
 
-interface IPropsScreenRegion {
+interface IPropsScreenLayout {
 	scrollable?: boolean;
 	style?: ViewStyle;
 }
@@ -70,11 +70,11 @@ interface IPropsContent {
 	style?: ViewStyle;
 }
 
-const ScreenRegion: React.FC<IPropsScreenRegion> & IStaticComponents = ({
+const ScreenLayout: React.FC<IPropsScreenLayout> & IStaticComponents = ({
 	style,
 	scrollable,
 	...props
-}: IPropsScreenRegion) => {
+}: IPropsScreenLayout) => {
 	const Component = scrollable ? ScrollView : View;
 	return (
 		<SafeAreaView style={styles.wrapper}>
@@ -106,9 +106,9 @@ const Content: React.FC<IPropsContent> = ({ style, ...props }: IPropsContent) =>
 	<View style={[styles.content, style]} {...props} />
 );
 
-ScreenRegion.Header = Header;
-ScreenRegion.Body = Body;
-ScreenRegion.Footer = Footer;
-ScreenRegion.Content = Content;
+ScreenLayout.Header = Header;
+ScreenLayout.Body = Body;
+ScreenLayout.Footer = Footer;
+ScreenLayout.Content = Content;
 
-export default ScreenRegion;
+export default ScreenLayout;
