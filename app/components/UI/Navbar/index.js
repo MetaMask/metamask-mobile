@@ -162,14 +162,14 @@ export function getNavigationOptionsTitle(title, navigation, isFullScreenModal, 
 	const innerStyles = StyleSheet.create({
 		headerTitleStyle: {
 			fontSize: 20,
-			color: themeColors.textDefault,
+			color: themeColors.text.default,
 			...fontStyles.normal,
 		},
 		headerIcon: {
-			color: themeColors.primary,
+			color: themeColors.primary.default,
 		},
 		headerStyle: {
-			backgroundColor: themeColors.backgroundDefault,
+			backgroundColor: themeColors.background.default,
 		},
 	});
 	function navigationPop() {
@@ -178,7 +178,7 @@ export function getNavigationOptionsTitle(title, navigation, isFullScreenModal, 
 	return {
 		title,
 		headerTitleStyle: innerStyles.headerTitleStyle,
-		headerTintColor: themeColors.primary,
+		headerTintColor: themeColors.primary.default,
 		headerRight: () =>
 			isFullScreenModal ? (
 				<TouchableOpacity onPress={navigationPop} style={styles.closeButton}>
@@ -211,19 +211,19 @@ export function getEditableOptions(title, navigation, route, themeColors) {
 	const innerStyles = StyleSheet.create({
 		headerTitleStyle: {
 			fontSize: 20,
-			color: themeColors.textDefault,
+			color: themeColors.text.default,
 			...fontStyles.normal,
 		},
 		headerIcon: {
-			color: themeColors.primary,
+			color: themeColors.primary.default,
 		},
 		headerButtonText: {
-			color: themeColors.primary,
+			color: themeColors.primary.default,
 			fontSize: 14,
 			...fontStyles.normal,
 		},
 		headerStyle: {
-			backgroundColor: themeColors.backgroundDefault,
+			backgroundColor: themeColors.background.default,
 		},
 	});
 	function navigationPop() {
@@ -235,7 +235,7 @@ export function getEditableOptions(title, navigation, route, themeColors) {
 	return {
 		title,
 		headerTitleStyle: innerStyles.headerTitleStyle,
-		headerTintColor: themeColors.primary,
+		headerTintColor: themeColors.primary.default,
 		headerLeft: () => (
 			<TouchableOpacity onPress={navigationPop} style={styles.backButton} testID={'edit-contact-back-button'}>
 				<IonicIcon
@@ -614,20 +614,20 @@ export function getOptinMetricsNavbarOptions() {
 export function getClosableNavigationOptions(title, backButtonText, navigation, themeColors) {
 	const innerStyles = StyleSheet.create({
 		headerButtonText: {
-			color: themeColors.primary,
+			color: themeColors.primary.default,
 			fontSize: 14,
 			...fontStyles.normal,
 		},
 		headerIcon: {
-			color: themeColors.primary,
+			color: themeColors.primary.default,
 		},
 		headerStyle: {
-			backgroundColor: themeColors.backgroundDefault,
+			backgroundColor: themeColors.background.default,
 		},
 		headerTitleStyle: {
 			fontSize: 20,
 			...fontStyles.normal,
-			color: themeColors.textDefault,
+			color: themeColors.text.default,
 		},
 	});
 	function navigationPop() {

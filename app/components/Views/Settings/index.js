@@ -2,7 +2,6 @@ import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import { StyleSheet, ScrollView, InteractionManager } from 'react-native';
 import SettingsDrawer from '../../UI/SettingsDrawer';
-import { colors } from '../../../styles/common';
 import { getClosableNavigationOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
 import Analytics from '../../../core/Analytics';
@@ -10,14 +9,15 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { connect } from 'react-redux';
 import { ThemeContext } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-		paddingLeft: 18,
-		zIndex: 99999999999999,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+			paddingLeft: 18,
+			zIndex: 99999999999999,
+		},
+	});
 
 /**
  * Main view for app configurations
@@ -88,6 +88,9 @@ class Settings extends PureComponent {
 
 	render = () => {
 		const { seedphraseBackedUp } = this.props;
+		const { colors } = this.context;
+		const styles = createStyles(colors);
+
 		return (
 			<ScrollView style={styles.wrapper}>
 				<SettingsDrawer
