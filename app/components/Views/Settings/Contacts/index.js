@@ -1,6 +1,5 @@
 import React, { PureComponent } from 'react';
 import { SafeAreaView, StyleSheet } from 'react-native';
-import { colors } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
@@ -11,16 +10,17 @@ import Engine from '../../../../core/Engine';
 import ActionSheet from 'react-native-actionsheet';
 import { ThemeContext } from '../../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-	},
-	addContact: {
-		marginHorizontal: 24,
-		marginBottom: 16,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+		},
+		addContact: {
+			marginHorizontal: 24,
+			marginBottom: 16,
+		},
+	});
 
 const EDIT = 'edit';
 const ADD = 'add';
@@ -113,6 +113,9 @@ class Contacts extends PureComponent {
 
 	render = () => {
 		const { reloadAddressList } = this.state;
+		const { colors } = this.context;
+		const styles = createStyles(colors);
+
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'contacts-screen'}>
 				<AddressList

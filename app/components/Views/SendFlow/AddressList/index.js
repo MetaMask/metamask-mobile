@@ -1,58 +1,67 @@
 import React, { PureComponent } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { colors, fontStyles } from '../../../../styles/common';
+import { fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Fuse from 'fuse.js';
 import { strings } from '../../../../../locales/i18n';
 import AddressElement from '../AddressElement';
+import { ThemeContext, useAppThemeFromContext } from '../../../../util/theme';
 
-const styles = StyleSheet.create({
-	root: {
-		flex: 1,
-		backgroundColor: colors.white,
-	},
-	messageText: {
-		...fontStyles.normal,
-		color: colors.blue,
-		fontSize: 16,
-		textAlign: 'center',
-	},
-	messageLeft: {
-		textAlign: 'left',
-	},
-	myAccountsWrapper: {
-		flexGrow: 1,
-	},
-	myAccountsTouchable: {
-		borderBottomWidth: 1,
-		borderBottomColor: colors.grey050,
-		padding: 16,
-	},
-	labelElementWrapper: {
-		backgroundColor: colors.grey000,
-		flexDirection: 'row',
-		alignItems: 'center',
-		borderBottomWidth: 1,
-		borderBottomColor: colors.grey050,
-		padding: 8,
-	},
-	labelElementInitialText: {
-		textTransform: 'uppercase',
-	},
-	labelElementText: {
-		...fontStyles.normal,
-		fontSize: 12,
-		marginHorizontal: 8,
-		color: colors.grey600,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		root: {
+			flex: 1,
+			backgroundColor: colors.background.default,
+		},
+		messageText: {
+			...fontStyles.normal,
+			color: colors.primary.default,
+			fontSize: 16,
+			textAlign: 'center',
+		},
+		messageLeft: {
+			textAlign: 'left',
+		},
+		myAccountsWrapper: {
+			flexGrow: 1,
+		},
+		myAccountsTouchable: {
+			borderBottomWidth: 1,
+			borderBottomColor: colors.grey050,
+			padding: 16,
+		},
+		labelElementWrapper: {
+			backgroundColor: colors.grey000,
+			flexDirection: 'row',
+			alignItems: 'center',
+			borderBottomWidth: 1,
+			borderBottomColor: colors.grey050,
+			padding: 8,
+		},
+		labelElementInitialText: {
+			textTransform: 'uppercase',
+		},
+		labelElementText: {
+			...fontStyles.normal,
+			fontSize: 12,
+			marginHorizontal: 8,
+			color: colors.text.alternative,
+		},
+	});
 
-const LabelElement = (label) => (
-	<View key={label} style={styles.labelElementWrapper}>
-		<Text style={[styles.labelElementText, label.length > 1 ? {} : styles.labelElementInitialText]}>{label}</Text>
-	</View>
-);
+const LabelElement = (label) => {
+	const { colors } = useAppThemeFromContext();
+	const styles = createStyles(colors);
+
+	return (
+		<View key={label} style={styles.labelElementWrapper}>
+			<Text style={[styles.labelElementText, label.length > 1 ? {} : styles.labelElementInitialText]}>
+				{label}
+			</Text>
+		</View>
+	);
+};
 
 /**
  * View that wraps the wraps the "Send" screen
@@ -173,6 +182,9 @@ class AddressList extends PureComponent {
 	renderMyAccounts = () => {
 		const { identities, onAccountPress, inputSearch, onAccountLongPress } = this.props;
 		const { myAccountsOpened } = this.state;
+		const { colors } = this.context;
+		const styles = createStyles(colors);
+
 		if (inputSearch) return;
 		return !myAccountsOpened ? (
 			<TouchableOpacity
@@ -238,6 +250,9 @@ class AddressList extends PureComponent {
 	render = () => {
 		const { contactElements } = this.state;
 		const { onlyRenderAddressBook } = this.props;
+		const { colors } = this.context;
+		const styles = createStyles(colors);
+
 		return (
 			<View style={styles.root}>
 				<ScrollView style={styles.myAccountsWrapper}>
@@ -249,6 +264,8 @@ class AddressList extends PureComponent {
 		);
 	};
 }
+
+AddressList.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	recents: state.recents,
