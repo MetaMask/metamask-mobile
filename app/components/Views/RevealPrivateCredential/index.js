@@ -101,6 +101,9 @@ const styles = StyleSheet.create({
 	blueText: {
 		color: colors.blue,
 	},
+	link: {
+		top: 2.5,
+	},
 	warningMessageText: {
 		marginLeft: 10,
 		marginRight: 40,
@@ -423,7 +426,9 @@ class RevealPrivateCredential extends PureComponent {
 							<Text style={styles.boldText}>{strings('reveal_credential.seed_phrase_modal')[1]}</Text>
 							{strings('reveal_credential.seed_phrase_modal')[2]}
 							<TouchableOpacity onPress={() => Linking.openURL(KEEP_SRP_SAFE_URL)}>
-								<Text style={styles.blueText}>{strings('reveal_credential.seed_phrase_modal')[3]}</Text>
+								<Text style={[styles.blueText, styles.link]}>
+									{strings('reveal_credential.seed_phrase_modal')[3]}
+								</Text>
 							</TouchableOpacity>
 						</Text>
 
@@ -450,13 +455,17 @@ class RevealPrivateCredential extends PureComponent {
 			<Text style={styles.normalText}>
 				{strings('reveal_credential.seed_phrase_explanation')[0]}
 				<TouchableOpacity onPress={() => Linking.openURL(SRP_URL)}>
-					<Text style={styles.blueText}>{strings('reveal_credential.seed_phrase_explanation')[1]}</Text>
+					<Text style={[styles.blueText, styles.link]}>
+						{strings('reveal_credential.seed_phrase_explanation')[1]}
+					</Text>
 				</TouchableOpacity>
 				{strings('reveal_credential.seed_phrase_explanation')[2]}
 				<Text style={styles.boldText}>{strings('reveal_credential.seed_phrase_explanation')[3]}</Text>
 				{strings('reveal_credential.seed_phrase_explanation')[4]}
 				<TouchableOpacity onPress={() => Linking.openURL(NON_CUSTODIAL_WALLET_URL)}>
-					<Text style={styles.blueText}>{strings('reveal_credential.seed_phrase_explanation')[5]}</Text>
+					<Text style={[styles.blueText, styles.link]}>
+						{strings('reveal_credential.seed_phrase_explanation')[5]}
+					</Text>
 				</TouchableOpacity>
 				{strings('reveal_credential.seed_phrase_explanation')[6]}
 				<Text style={styles.boldText}>{strings('reveal_credential.seed_phrase_explanation')[7]}</Text>
