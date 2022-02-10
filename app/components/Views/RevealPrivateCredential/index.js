@@ -8,6 +8,7 @@ import {
 	TextInput,
 	TouchableOpacity,
 	InteractionManager,
+	Linking,
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { colors, fontStyles } from '../../../styles/common';
@@ -165,6 +166,12 @@ const styles = StyleSheet.create({
 const WRONG_PASSWORD_ERROR = 'error: Invalid password';
 const PRIVATE_KEY = 'private_key';
 // const SEED_PHRASE = 'seed_phrase';
+const SRP_URL =
+	'https://metamask.zendesk.com/hc/en-us/articles/4404722782107-User-guide-Secret-Recovery-Phrase-password-and-private-keys';
+const NON_CUSTODIAL_WALLET_URL =
+	'https://metamask.zendesk.com/hc/en-us/articles/360059952212-MetaMask-is-a-non-custodial-wallet';
+const KEEP_SRP_SAFE_URL =
+	'https://metamask.zendesk.com/hc/en-us/articles/4407169552667-Scammers-and-Phishers-Rugpulls-and-airdrop-scams';
 
 /**
  * View that displays private account information as private key or seed phrase
@@ -415,7 +422,9 @@ class RevealPrivateCredential extends PureComponent {
 							{strings('reveal_credential.seed_phrase_modal')[0]}
 							<Text style={styles.boldText}>{strings('reveal_credential.seed_phrase_modal')[1]}</Text>
 							{strings('reveal_credential.seed_phrase_modal')[2]}
-							<Text style={styles.blueText}>{strings('reveal_credential.seed_phrase_modal')[3]}</Text>
+							<TouchableOpacity onPress={() => Linking.openURL(KEEP_SRP_SAFE_URL)}>
+								<Text style={styles.blueText}>{strings('reveal_credential.seed_phrase_modal')[3]}</Text>
+							</TouchableOpacity>
 						</Text>
 
 						<TouchableOpacity
@@ -440,11 +449,15 @@ class RevealPrivateCredential extends PureComponent {
 		return (
 			<Text style={styles.normalText}>
 				{strings('reveal_credential.seed_phrase_explanation')[0]}
-				<Text style={styles.blueText}>{strings('reveal_credential.seed_phrase_explanation')[1]}</Text>
+				<TouchableOpacity onPress={() => Linking.openURL(SRP_URL)}>
+					<Text style={styles.blueText}>{strings('reveal_credential.seed_phrase_explanation')[1]}</Text>
+				</TouchableOpacity>
 				{strings('reveal_credential.seed_phrase_explanation')[2]}
 				<Text style={styles.boldText}>{strings('reveal_credential.seed_phrase_explanation')[3]}</Text>
 				{strings('reveal_credential.seed_phrase_explanation')[4]}
-				<Text style={styles.blueText}>{strings('reveal_credential.seed_phrase_explanation')[5]}</Text>
+				<TouchableOpacity onPress={() => Linking.openURL(NON_CUSTODIAL_WALLET_URL)}>
+					<Text style={styles.blueText}>{strings('reveal_credential.seed_phrase_explanation')[5]}</Text>
+				</TouchableOpacity>
 				{strings('reveal_credential.seed_phrase_explanation')[6]}
 				<Text style={styles.boldText}>{strings('reveal_credential.seed_phrase_explanation')[7]}</Text>
 			</Text>
