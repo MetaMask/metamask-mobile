@@ -6,7 +6,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import ActionModal from '../../../UI/ActionModal';
 import Engine from '../../../../core/Engine';
 import StyledButton from '../../../UI/StyledButton';
-import { colors, fontStyles, baseStyles } from '../../../../styles/common';
+import { fontStyles, baseStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setShowCustomNonce, setShowHexData } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
@@ -25,70 +25,71 @@ import { ThemeContext } from '../../../../util/theme';
 const HASH_TO_TEST = 'Qmaisz6NMhDB51cCvNWa1GMS7LU1pAxdF4Ld6Ft9kZEP2a';
 const HASH_STRING = 'Hello from IPFS Gateway Checker';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-		padding: 24,
-		paddingBottom: 48,
-	},
-	title: {
-		...fontStyles.normal,
-		color: colors.fontPrimary,
-		fontSize: 20,
-		lineHeight: 20,
-	},
-	desc: {
-		...fontStyles.normal,
-		color: colors.grey500,
-		fontSize: 14,
-		lineHeight: 20,
-		marginTop: 12,
-	},
-	marginTop: {
-		marginTop: 18,
-	},
-	setting: {
-		marginTop: 50,
-	},
-	firstSetting: {
-		marginTop: 0,
-	},
-	modalView: {
-		alignItems: 'center',
-		flex: 1,
-		flexDirection: 'column',
-		justifyContent: 'center',
-		padding: 20,
-	},
-	modalText: {
-		...fontStyles.normal,
-		fontSize: 16,
-		textAlign: 'center',
-		color: colors.black,
-	},
-	modalTitle: {
-		...fontStyles.bold,
-		fontSize: 24,
-		textAlign: 'center',
-		marginBottom: 20,
-		color: colors.black,
-	},
-	picker: {
-		borderColor: colors.grey200,
-		borderRadius: 5,
-		borderWidth: 2,
-		marginTop: 16,
-	},
-	inner: {
-		paddingBottom: 48,
-	},
-	ipfsGatewayLoadingWrapper: {
-		height: 37,
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+			padding: 24,
+			paddingBottom: 48,
+		},
+		title: {
+			...fontStyles.normal,
+			color: colors.text.default,
+			fontSize: 20,
+			lineHeight: 20,
+		},
+		desc: {
+			...fontStyles.normal,
+			color: colors.text.alternative,
+			fontSize: 14,
+			lineHeight: 20,
+			marginTop: 12,
+		},
+		marginTop: {
+			marginTop: 18,
+		},
+		setting: {
+			marginTop: 50,
+		},
+		firstSetting: {
+			marginTop: 0,
+		},
+		modalView: {
+			alignItems: 'center',
+			flex: 1,
+			flexDirection: 'column',
+			justifyContent: 'center',
+			padding: 20,
+		},
+		modalText: {
+			...fontStyles.normal,
+			fontSize: 16,
+			textAlign: 'center',
+			color: colors.text.default,
+		},
+		modalTitle: {
+			...fontStyles.bold,
+			fontSize: 24,
+			textAlign: 'center',
+			marginBottom: 20,
+			color: colors.text.default,
+		},
+		picker: {
+			borderColor: colors.border.default,
+			borderRadius: 5,
+			borderWidth: 2,
+			marginTop: 16,
+		},
+		inner: {
+			paddingBottom: 48,
+		},
+		ipfsGatewayLoadingWrapper: {
+			height: 37,
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+	});
 
 /**
  * Main view for app configurations
@@ -244,6 +245,9 @@ class AdvancedSettings extends PureComponent {
 	render = () => {
 		const { showHexData, showCustomNonce, setShowHexData, setShowCustomNonce, ipfsGateway } = this.props;
 		const { resetModalVisible, onlineIpfsGateways } = this.state;
+		const { colors } = this.context;
+		const styles = createStyles(colors);
+
 		return (
 			<SafeAreaView style={baseStyles.flexGrow}>
 				<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>

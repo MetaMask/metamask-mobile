@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import { Platform, SafeAreaView, StyleSheet, TextInput, View, Text, TouchableOpacity } from 'react-native';
-import { colors, fontStyles } from '../../../../../styles/common';
+import { fontStyles } from '../../../../../styles/common';
 import PropTypes from 'prop-types';
 import { getEditableOptions } from '../../../../UI/Navbar';
 import StyledButton from '../../../../UI/StyledButton';
@@ -16,75 +16,78 @@ import AntIcon from 'react-native-vector-icons/AntDesign';
 import ActionSheet from 'react-native-actionsheet';
 import { ThemeContext } from '../../../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-		flexDirection: 'column',
-	},
-	scrollWrapper: {
-		flex: 1,
-		paddingVertical: 12,
-	},
-	input: {
-		...fontStyles.normal,
-		flex: 1,
-		fontSize: 12,
-		borderColor: colors.grey200,
-		borderRadius: 5,
-		borderWidth: 2,
-		padding: 10,
-		flexDirection: 'row',
-		alignItems: 'center',
-	},
-	resolvedInput: {
-		...fontStyles.normal,
-		fontSize: 10,
-	},
-	informationWrapper: {
-		flex: 1,
-		paddingHorizontal: 24,
-	},
-	label: {
-		fontSize: 14,
-		paddingVertical: 12,
-		color: colors.fontPrimary,
-		...fontStyles.bold,
-	},
-	buttonsWrapper: {
-		marginVertical: 12,
-		flexDirection: 'row',
-		alignSelf: 'flex-end',
-	},
-	buttonsContainer: {
-		flex: 1,
-		flexDirection: 'column',
-		alignSelf: 'flex-end',
-	},
-	scanIcon: {
-		flexDirection: 'column',
-		alignItems: 'center',
-	},
-	iconWrapper: {
-		alignItems: 'flex-end',
-	},
-	textInput: {
-		...fontStyles.normal,
-		padding: 0,
-		paddingRight: 8,
-		color: colors.black,
-	},
-	inputWrapper: {
-		flex: 1,
-		flexDirection: 'column',
-	},
-	textInputDisaled: {
-		borderColor: colors.transparent,
-	},
-	actionButton: {
-		marginVertical: 4,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+			flexDirection: 'column',
+		},
+		scrollWrapper: {
+			flex: 1,
+			paddingVertical: 12,
+		},
+		input: {
+			...fontStyles.normal,
+			flex: 1,
+			fontSize: 12,
+			borderColor: colors.border.default,
+			borderRadius: 5,
+			borderWidth: 2,
+			padding: 10,
+			flexDirection: 'row',
+			alignItems: 'center',
+			color: colors.text.default,
+		},
+		resolvedInput: {
+			...fontStyles.normal,
+			fontSize: 10,
+			color: colors.text.default,
+		},
+		informationWrapper: {
+			flex: 1,
+			paddingHorizontal: 24,
+		},
+		label: {
+			fontSize: 14,
+			paddingVertical: 12,
+			color: colors.text.default,
+			...fontStyles.bold,
+		},
+		buttonsWrapper: {
+			marginVertical: 12,
+			flexDirection: 'row',
+			alignSelf: 'flex-end',
+		},
+		buttonsContainer: {
+			flex: 1,
+			flexDirection: 'column',
+			alignSelf: 'flex-end',
+		},
+		scanIcon: {
+			flexDirection: 'column',
+			alignItems: 'center',
+		},
+		iconWrapper: {
+			alignItems: 'flex-end',
+		},
+		textInput: {
+			...fontStyles.normal,
+			padding: 0,
+			paddingRight: 8,
+			color: colors.text.default,
+		},
+		inputWrapper: {
+			flex: 1,
+			flexDirection: 'column',
+		},
+		textInputDisaled: {
+			borderColor: colors.transparent,
+		},
+		actionButton: {
+			marginVertical: 4,
+		},
+	});
 
 const ADD = 'add';
 const EDIT = 'edit';
@@ -271,6 +274,9 @@ class ContactForm extends PureComponent {
 
 	render = () => {
 		const { address, addressError, toEnsName, name, mode, addressReady, memo, editable, inputWidth } = this.state;
+		const { colors } = this.context;
+		const styles = createStyles(colors);
+
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'add-contact-screen'}>
 				<KeyboardAwareScrollView style={styles.informationWrapper}>
@@ -282,7 +288,7 @@ class ContactForm extends PureComponent {
 							autoCorrect={false}
 							onChangeText={this.onChangeName}
 							placeholder={strings('address_book.nickname')}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.text.muted}
 							spellCheck={false}
 							numberOfLines={1}
 							style={[
@@ -304,7 +310,7 @@ class ContactForm extends PureComponent {
 									autoCorrect={false}
 									onChangeText={this.onChangeAddress}
 									placeholder={strings('address_book.add_input_placeholder')}
-									placeholderTextColor={colors.grey100}
+									placeholderTextColor={colors.text.muted}
 									spellCheck={false}
 									numberOfLines={1}
 									style={[styles.textInput, inputWidth ? { width: inputWidth } : {}]}
@@ -318,7 +324,12 @@ class ContactForm extends PureComponent {
 
 							{editable && (
 								<TouchableOpacity onPress={this.onScan} style={styles.iconWrapper}>
-									<AntIcon name="scan1" size={20} color={colors.grey500} style={styles.scanIcon} />
+									<AntIcon
+										name="scan1"
+										size={20}
+										color={colors.text.alternative}
+										style={styles.scanIcon}
+									/>
 								</TouchableOpacity>
 							)}
 						</View>
@@ -333,7 +344,7 @@ class ContactForm extends PureComponent {
 									autoCorrect={false}
 									onChangeText={this.onChangeMemo}
 									placeholder={strings('address_book.memo')}
-									placeholderTextColor={colors.grey100}
+									placeholderTextColor={colors.text.muted}
 									spellCheck={false}
 									numberOfLines={1}
 									style={[styles.textInput, inputWidth ? { width: inputWidth } : {}]}
