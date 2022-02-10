@@ -244,7 +244,7 @@
 		"help": "Obtener ayuda",
 		"lock": "Bloquear",
 		"lock_title": "¿Está seguro de que quieres bloquear tu cartera?",
-		"logoutlock_ok_ok": "SÍ",
+		"lock_ok": "SÍ",
 		"lock_cancel": "NO",
 		"feedback": "Comentarios",
 		"metamask_support": "Soporte de MetaMask",
