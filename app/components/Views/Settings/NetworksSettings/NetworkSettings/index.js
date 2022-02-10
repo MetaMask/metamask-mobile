@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import { StyleSheet, Text, View, TextInput, SafeAreaView } from 'react-native';
 import { connect } from 'react-redux';
-import { colors, fontStyles } from '../../../../../styles/common';
+import { fontStyles } from '../../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../../UI/Navbar';
 import { strings } from '../../../../../../locales/i18n';
 import Networks, { isprivateConnection, getAllNetworks, isSafeChainId } from '../../../../../util/networks';
@@ -20,67 +20,68 @@ import AppConstants from '../../../../../core/AppConstants';
 import AnalyticsV2 from '../../../../../util/analyticsV2';
 import { ThemeContext } from '../../../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-		flexDirection: 'column',
-	},
-	informationWrapper: {
-		flex: 1,
-		paddingHorizontal: 24,
-	},
-	scrollWrapper: {
-		flex: 1,
-		paddingVertical: 12,
-	},
-	input: {
-		...fontStyles.normal,
-		borderColor: colors.grey200,
-		borderRadius: 5,
-		borderWidth: 2,
-		padding: 10,
-	},
-	warningText: {
-		...fontStyles.normal,
-		color: colors.red,
-		marginTop: 4,
-		paddingLeft: 2,
-		paddingRight: 4,
-	},
-	warningContainer: {
-		marginTop: 4,
-		flexGrow: 1,
-		flexShrink: 1,
-	},
-	label: {
-		fontSize: 14,
-		paddingVertical: 12,
-		color: colors.fontPrimary,
-		...fontStyles.bold,
-	},
-	title: {
-		fontSize: 20,
-		paddingVertical: 12,
-		color: colors.fontPrimary,
-		...fontStyles.bold,
-	},
-	desc: {
-		fontSize: 14,
-		color: colors.fontPrimary,
-		...fontStyles.normal,
-	},
-	buttonsWrapper: {
-		marginVertical: 12,
-		flexDirection: 'row',
-		alignSelf: 'flex-end',
-	},
-	buttonsContainer: {
-		flex: 1,
-		flexDirection: 'column',
-		alignSelf: 'flex-end',
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+			flexDirection: 'column',
+		},
+		informationWrapper: {
+			flex: 1,
+			paddingHorizontal: 24,
+		},
+		scrollWrapper: {
+			flex: 1,
+			paddingVertical: 12,
+		},
+		input: {
+			...fontStyles.normal,
+			borderColor: colors.border.default,
+			borderRadius: 5,
+			borderWidth: 2,
+			padding: 10,
+		},
+		warningText: {
+			...fontStyles.normal,
+			color: colors.error.default,
+			marginTop: 4,
+			paddingLeft: 2,
+			paddingRight: 4,
+		},
+		warningContainer: {
+			marginTop: 4,
+			flexGrow: 1,
+			flexShrink: 1,
+		},
+		label: {
+			fontSize: 14,
+			paddingVertical: 12,
+			color: colors.text.default,
+			...fontStyles.bold,
+		},
+		title: {
+			fontSize: 20,
+			paddingVertical: 12,
+			color: colors.text.default,
+			...fontStyles.bold,
+		},
+		desc: {
+			fontSize: 14,
+			color: colors.text.default,
+			...fontStyles.normal,
+		},
+		buttonsWrapper: {
+			marginVertical: 12,
+			flexDirection: 'row',
+			alignSelf: 'flex-end',
+		},
+		buttonsContainer: {
+			flex: 1,
+			flexDirection: 'column',
+			alignSelf: 'flex-end',
+		},
+	});
 
 const allNetworks = getAllNetworks();
 const allNetworksblockExplorerUrl = `https://api.infura.io/v1/jsonrpc/`;
@@ -462,6 +463,9 @@ class NetworkSettings extends PureComponent {
 			enableAction,
 			inputWidth,
 		} = this.state;
+		const { colors } = this.context;
+		const styles = createStyles(colors);
+
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'new-rpc-screen'}>
 				<KeyboardAwareScrollView style={styles.informationWrapper}>
@@ -482,7 +486,7 @@ class NetworkSettings extends PureComponent {
 							editable={editable}
 							onChangeText={this.onNicknameChange}
 							placeholder={strings('app_settings.network_name_placeholder')}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.text.muted}
 							onSubmitEditing={this.jumpToRpcURL}
 							testID={'input-network-name'}
 						/>
@@ -498,7 +502,7 @@ class NetworkSettings extends PureComponent {
 							onChangeText={this.onRpcUrlChange}
 							onBlur={this.validateRpcUrl}
 							placeholder={strings('app_settings.network_rpc_placeholder')}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.text.muted}
 							onSubmitEditing={this.jumpToChainId}
 							testID={'input-rpc-url'}
 						/>
@@ -519,7 +523,7 @@ class NetworkSettings extends PureComponent {
 							onChangeText={this.onChainIDChange}
 							onBlur={this.validateChainId}
 							placeholder={strings('app_settings.network_chain_id_placeholder')}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.text.muted}
 							onSubmitEditing={this.jumpToSymbol}
 							keyboardType={'numbers-and-punctuation'}
 							testID={'input-chain-id'}
@@ -540,7 +544,7 @@ class NetworkSettings extends PureComponent {
 							editable={editable}
 							onChangeText={this.onTickerChange}
 							placeholder={strings('app_settings.network_symbol_placeholder')}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.text.muted}
 							onSubmitEditing={this.jumpBlockExplorerURL}
 							testID={'input-network-symbol'}
 						/>
@@ -555,7 +559,7 @@ class NetworkSettings extends PureComponent {
 							editable={editable}
 							onChangeText={this.onBlockExplorerUrlChange}
 							placeholder={strings('app_settings.network_block_explorer_placeholder')}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.text.muted}
 							onSubmitEditing={this.addRpcUrl}
 						/>
 					</View>
