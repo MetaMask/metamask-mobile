@@ -17,7 +17,7 @@ const OnboardingScreenWithBg = (props) => {
 	const styles = StyleSheet.create({
 		flex: {
 			flex: 1,
-			backgroundColor: colors.backgroundDefault,
+			backgroundColor: colors.background.default,
 		},
 		wrapper: {
 			top: 0,

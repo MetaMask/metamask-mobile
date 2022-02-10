@@ -497,13 +497,13 @@ export function getOnboardingNavbarOptions(route, { headerLeft } = {}, themeColo
 		headerStyle: {
 			shadowColor: colors.transparent,
 			elevation: 0,
-			backgroundColor: themeColors.backgroundDefault,
+			backgroundColor: themeColors.background.default,
 			borderBottomWidth: 0,
 		},
 		metamaskName: {
 			width: 122,
 			height: 15,
-			tintColor: themeColors.textDefault,
+			tintColor: themeColors.text.default,
 		},
 	});
 
@@ -530,12 +530,12 @@ export function getTransparentOnboardingNavbarOptions(themeColors) {
 		headerStyle: {
 			shadowColor: colors.transparent,
 			elevation: 0,
-			backgroundColor: themeColors.backgroundDefault,
+			backgroundColor: themeColors.background.default,
 		},
 		metamaskName: {
 			width: 122,
 			height: 15,
-			tintColor: themeColors.textDefault,
+			tintColor: themeColors.text.default,
 		},
 	});
 	return {
@@ -560,12 +560,12 @@ export function getTransparentBackOnboardingNavbarOptions(themeColors) {
 		headerStyle: {
 			shadowColor: colors.transparent,
 			elevation: 0,
-			backgroundColor: themeColors.backgroundDefault,
+			backgroundColor: themeColors.background.default,
 		},
 		metamaskName: {
 			width: 122,
 			height: 15,
-			tintColor: themeColors.textDefault,
+			tintColor: themeColors.text.default,
 		},
 	});
 	return {
