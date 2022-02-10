@@ -33,7 +33,6 @@ import { connect, useSelector, useDispatch } from 'react-redux';
 import { EXISTING_USER, CURRENT_APP_VERSION, LAST_APP_VERSION } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
 import { checkedAuth } from '../../../actions/user';
-// import Device from '../../../util/device';
 import { setCurrentRoute } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 
