@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect } from 'react';
 import { StyleSheet, Text, ScrollView, View, Switch, InteractionManager } from 'react-native';
 import StyledButton from '../../../UI/StyledButton';
-import { colors as importedColors, fontStyles } from '../../../../styles/common';
+import { fontStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { strings } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
@@ -11,36 +11,37 @@ import { MAINNET } from '../../../../constants/network';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { useAppThemeFromContext } from '../../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: importedColors.white,
-		flex: 1,
-		padding: 24,
-		paddingBottom: 48,
-	},
-	title: {
-		...(fontStyles.normal as any),
-		color: importedColors.fontPrimary,
-		fontSize: 20,
-		lineHeight: 20,
-	},
-	desc: {
-		...(fontStyles.normal as any),
-		color: importedColors.grey500,
-		fontSize: 14,
-		lineHeight: 20,
-		marginTop: 12,
-	},
-	setting: {
-		marginVertical: 18,
-	},
-	clearHistoryConfirm: {
-		marginTop: 18,
-	},
-	switchElement: {
-		marginTop: 18,
-	},
-});
+const createStyles = (colors: any) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+			padding: 24,
+			paddingBottom: 48,
+		},
+		title: {
+			...(fontStyles.normal as any),
+			color: colors.text.default,
+			fontSize: 20,
+			lineHeight: 20,
+		},
+		desc: {
+			...(fontStyles.normal as any),
+			color: colors.text.alternative,
+			fontSize: 14,
+			lineHeight: 20,
+			marginTop: 12,
+		},
+		setting: {
+			marginVertical: 18,
+		},
+		clearHistoryConfirm: {
+			marginTop: 18,
+		},
+		switchElement: {
+			marginTop: 18,
+		},
+	});
 
 interface Props {
 	/**
@@ -67,6 +68,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 	const chainId = useSelector((state: any) => state.engine.backgroundState.NetworkController.provider.chainId);
 
 	const { colors } = useAppThemeFromContext();
+	const styles = createStyles(colors);
 
 	useEffect(
 		() => {
@@ -113,16 +115,14 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 							value={isTokenDetectionEnabled}
 							onValueChange={toggleTokenDetection}
 							trackColor={
-								Device.isIos()
-									? { true: importedColors.blue, false: importedColors.grey000 }
-									: undefined
+								Device.isIos() ? { true: colors.primary.default, false: colors.grey000 } : undefined
 							}
-							ios_backgroundColor={importedColors.grey000}
+							ios_backgroundColor={colors.grey000}
 						/>
 					</View>
 				</View>
 			) : null,
-		[isTokenDetectionEnabled, toggleTokenDetection, isMainnet]
+		[isTokenDetectionEnabled, toggleTokenDetection, isMainnet, colors, styles]
 	);
 
 	return (
