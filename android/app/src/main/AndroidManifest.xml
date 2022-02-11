@@ -51,6 +51,8 @@
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
+				<!-- The following document explains reasons behind this strange subdomain declarations -->
+				<!-- https://developer.android.com/training/app-links/verify-site-associations#multi-subdomain -->
 				<data android:scheme="https" />
 				<data android:scheme="https" />
 				<data android:scheme="https" />

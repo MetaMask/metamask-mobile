@@ -42,6 +42,7 @@ import { setInfuraAvailabilityBlocked, setInfuraAvailabilityNotBlocked } from '.
 import { createStackNavigator } from '@react-navigation/stack';
 import ReviewModal from '../../UI/ReviewModal';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
+import usePrevious from '../../hooks/usePrevious';
 
 const Stack = createStackNavigator();
 
@@ -68,14 +69,6 @@ const Main = (props) => {
 	const removeConnectionStatusListener = useRef();
 
 	const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
-
-	const usePrevious = (value) => {
-		const ref = useRef();
-		useEffect(() => {
-			ref.current = value;
-		});
-		return ref.current;
-	};
 
 	const prevLockTime = usePrevious(props.lockTime);
 
