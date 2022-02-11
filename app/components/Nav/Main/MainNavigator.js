@@ -51,9 +51,11 @@ import GasEducationCarousel from '../../Views/GasEducationCarousel';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 import Drawer from '../../UI/Drawer';
-
 import { FiatOnRampSDKProvider } from '../../../components/UI/FiatOnRampAggregator/SDK';
 import GetStarted from '../../../components/UI/FiatOnRampAggregator/Views/GetStarted';
+import PaymentMethod from '../../../components/UI/FiatOnRampAggregator/Views/PaymentMethod';
+import AmountToBuy from '../../../components/UI/FiatOnRampAggregator/Views/AmountToBuy';
+import GetQuotes from '../../../components/UI/FiatOnRampAggregator/Views/GetQuotes';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -278,23 +280,11 @@ const FiatOnRamp = () => (
 
 const FiatOnRampAggregator = () => (
 	<FiatOnRampSDKProvider>
-		<Stack.Navigator>
-			<Stack.Screen
-				name="GetStarted"
-				component={GetStarted}
-				// options={.navigationOptions}
-			/>
-			{/*
-			<Stack.Screen
-				name=""
-				component={null}
-				options={.navigationOptions}
-			/> */}
-			{/* <Stack.Screen
-				name="FiatOnRampAggregatorWebview"
-				component={null}
-				options={TransakWebView.navigationOptions}
-			/> */}
+		<Stack.Navigator initialRouteName="GetStarted" screenOptions={GetStarted.screenOptions}>
+			<Stack.Screen name="GetStarted" component={GetStarted} options={GetStarted.navigationOptions} />
+			<Stack.Screen name="PaymentMethod" component={PaymentMethod} options={PaymentMethod.navigationOptions} />
+			<Stack.Screen name="AmountToBuy" component={AmountToBuy} options={AmountToBuy.navigationOptions} />
+			<Stack.Screen name="GetQuotes" component={GetQuotes} />
 		</Stack.Navigator>
 	</FiatOnRampSDKProvider>
 );
