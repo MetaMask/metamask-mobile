@@ -10,7 +10,7 @@ import {
 	TouchableOpacity,
 } from 'react-native';
 import { connect } from 'react-redux';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { getPaymentRequestSuccessOptionsTitle } from '../../UI/Navbar';
 import PropTypes from 'prop-types';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
@@ -31,126 +31,130 @@ import { ThemeContext } from '../../../util/theme';
 
 const isIos = Device.isIos();
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-	},
-	contentWrapper: {
-		padding: 24,
-	},
-	button: {
-		marginBottom: 16,
-	},
-	titleText: {
-		...fontStyles.bold,
-		fontSize: 24,
-		marginVertical: 16,
-		alignSelf: 'center',
-	},
-	descriptionText: {
-		...fontStyles.normal,
-		fontSize: 14,
-		alignSelf: 'center',
-		textAlign: 'center',
-		marginVertical: 8,
-	},
-	linkText: {
-		...fontStyles.normal,
-		fontSize: 14,
-		color: colors.blue,
-		alignSelf: 'center',
-		textAlign: 'center',
-		marginVertical: 16,
-	},
-	buttonsWrapper: {
-		flex: 1,
-		flexDirection: 'row',
-		alignSelf: 'center',
-	},
-	buttonsContainer: {
-		flex: 1,
-		flexDirection: 'column',
-		alignSelf: 'flex-end',
-	},
-	scrollViewContainer: {
-		flexGrow: 1,
-	},
-	icon: {
-		color: colors.blue,
-		marginBottom: 16,
-	},
-	blueIcon: {
-		color: colors.white,
-	},
-	iconWrapper: {
-		alignItems: 'center',
-	},
-	buttonText: {
-		...fontStyles.bold,
-		color: colors.blue,
-		fontSize: 14,
-		marginLeft: 8,
-	},
-	blueButtonText: {
-		...fontStyles.bold,
-		color: colors.white,
-		fontSize: 14,
-		marginLeft: 8,
-	},
-	buttonContent: {
-		flexDirection: 'row',
-		alignSelf: 'center',
-	},
-	buttonIconWrapper: {
-		flexDirection: 'column',
-		alignSelf: 'center',
-	},
-	buttonTextWrapper: {
-		flexDirection: 'column',
-		alignSelf: 'center',
-	},
-	detailsWrapper: {
-		padding: 10,
-		alignItems: 'center',
-	},
-	addressTitle: {
-		fontSize: 16,
-		...fontStyles.normal,
-	},
-	informationWrapper: {
-		paddingHorizontal: 40,
-	},
-	linkWrapper: {
-		paddingHorizontal: 24,
-	},
-	titleQr: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		marginBottom: isIos ? 8 : 10,
-	},
-	closeIcon: {
-		right: isIos ? -20 : -40,
-		alignItems: 'center',
-		paddingHorizontal: 10,
-	},
-	qrCode: {
-		marginBottom: 16,
-		alignItems: 'center',
-		justifyContent: 'center',
-		paddingHorizontal: 36,
-		paddingBottom: 24,
-		paddingTop: 16,
-		backgroundColor: colors.grey000,
-		borderRadius: 8,
-	},
-	qrCodeWrapper: {
-		borderColor: colors.grey300,
-		borderRadius: 8,
-		borderWidth: 1,
-		padding: 15,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+		},
+		contentWrapper: {
+			padding: 24,
+		},
+		button: {
+			marginBottom: 16,
+		},
+		titleText: {
+			...fontStyles.bold,
+			fontSize: 24,
+			marginVertical: 16,
+			alignSelf: 'center',
+			color: colors.text.default,
+		},
+		descriptionText: {
+			...fontStyles.normal,
+			fontSize: 14,
+			alignSelf: 'center',
+			textAlign: 'center',
+			marginVertical: 8,
+			color: colors.text.default,
+		},
+		linkText: {
+			...fontStyles.normal,
+			fontSize: 14,
+			color: colors.primary.default,
+			alignSelf: 'center',
+			textAlign: 'center',
+			marginVertical: 16,
+		},
+		buttonsWrapper: {
+			flex: 1,
+			flexDirection: 'row',
+			alignSelf: 'center',
+		},
+		buttonsContainer: {
+			flex: 1,
+			flexDirection: 'column',
+			alignSelf: 'flex-end',
+		},
+		scrollViewContainer: {
+			flexGrow: 1,
+		},
+		icon: {
+			color: colors.primary.default,
+			marginBottom: 16,
+		},
+		blueIcon: {
+			color: colors.primary.inverse,
+		},
+		iconWrapper: {
+			alignItems: 'center',
+		},
+		buttonText: {
+			...fontStyles.bold,
+			color: colors.primary.default,
+			fontSize: 14,
+			marginLeft: 8,
+		},
+		blueButtonText: {
+			...fontStyles.bold,
+			color: colors.primary.inverse,
+			fontSize: 14,
+			marginLeft: 8,
+		},
+		buttonContent: {
+			flexDirection: 'row',
+			alignSelf: 'center',
+		},
+		buttonIconWrapper: {
+			flexDirection: 'column',
+			alignSelf: 'center',
+		},
+		buttonTextWrapper: {
+			flexDirection: 'column',
+			alignSelf: 'center',
+		},
+		detailsWrapper: {
+			padding: 10,
+			alignItems: 'center',
+		},
+		addressTitle: {
+			fontSize: 16,
+			...fontStyles.normal,
+			color: colors.text.default,
+		},
+		informationWrapper: {
+			paddingHorizontal: 40,
+		},
+		linkWrapper: {
+			paddingHorizontal: 24,
+		},
+		titleQr: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			marginBottom: isIos ? 8 : 10,
+		},
+		closeIcon: {
+			right: isIos ? -20 : -40,
+			alignItems: 'center',
+			paddingHorizontal: 10,
+		},
+		qrCode: {
+			marginBottom: 16,
+			alignItems: 'center',
+			justifyContent: 'center',
+			paddingHorizontal: 36,
+			paddingBottom: 24,
+			paddingTop: 16,
+			backgroundColor: colors.background.alternative,
+			borderRadius: 8,
+		},
+		qrCodeWrapper: {
+			borderColor: colors.border.default,
+			borderRadius: 8,
+			borderWidth: 1,
+			padding: 15,
+		},
+	});
 
 /**
  * View to interact with a previously generated payment request link
@@ -254,6 +258,9 @@ class PaymentRequestSuccess extends PureComponent {
 
 	render() {
 		const { link, amount, symbol, qrModalVisible } = this.state;
+		const { colors } = this.context;
+		const styles = createStyles(colors);
+
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'send-link-screen'}>
 				<ScrollView style={styles.contentWrapper} contentContainerStyle={styles.scrollViewContainer}>
@@ -281,7 +288,7 @@ class PaymentRequestSuccess extends PureComponent {
 							>
 								<View style={styles.buttonContent}>
 									<View style={styles.buttonIconWrapper}>
-										<IonicIcon name={'ios-link'} size={18} color={colors.blue} />
+										<IonicIcon name={'ios-link'} size={18} color={colors.primary.default} />
 									</View>
 									<View style={styles.buttonTextWrapper}>
 										<Text style={styles.buttonText}>
@@ -298,7 +305,7 @@ class PaymentRequestSuccess extends PureComponent {
 							>
 								<View style={styles.buttonContent}>
 									<View style={styles.buttonIconWrapper}>
-										<FontAwesome name={'qrcode'} size={18} color={colors.blue} />
+										<FontAwesome name={'qrcode'} size={18} color={colors.primary.default} />
 									</View>
 									<View style={styles.buttonTextWrapper}>
 										<Text style={styles.buttonText}>{strings('payment_request.qr_code')}</Text>
@@ -338,7 +345,7 @@ class PaymentRequestSuccess extends PureComponent {
 									onPress={this.closeQRModal}
 									testID={'payment-request-qrcode-close-button'}
 								>
-									<IonicIcon name={'ios-close'} size={28} color={colors.black} />
+									<IonicIcon name={'ios-close'} size={28} color={colors.text.default} />
 								</TouchableOpacity>
 							</View>
 							<View style={styles.qrCodeWrapper}>

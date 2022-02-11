@@ -10,7 +10,7 @@ import {
 	InteractionManager,
 } from 'react-native';
 import { connect } from 'react-redux';
-import { colors, fontStyles, baseStyles } from '../../../styles/common';
+import { fontStyles, baseStyles } from '../../../styles/common';
 import { getPaymentRequestOptionsTitle } from '../../UI/Navbar';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import Fuse from 'fuse.js';
@@ -44,148 +44,156 @@ import { utils as ethersUtils } from 'ethers';
 import { ThemeContext } from '../../../util/theme';
 
 const KEYBOARD_OFFSET = 120;
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-	},
-	contentWrapper: {
-		paddingTop: 24,
-		paddingHorizontal: 24,
-	},
-	title: {
-		...fontStyles.normal,
-		fontSize: 16,
-	},
-	searchWrapper: {
-		marginVertical: 8,
-	},
-	searchInput: {
-		marginHorizontal: 0,
-		paddingTop: Device.isAndroid() ? 12 : 2,
-		borderRadius: 8,
-		paddingHorizontal: 38,
-		fontSize: 16,
-		backgroundColor: colors.white,
-		height: 40,
-		width: '100%',
-		color: colors.grey400,
-		borderColor: colors.grey100,
-		borderWidth: 1,
-		...fontStyles.normal,
-	},
-	searchIcon: {
-		position: 'absolute',
-		textAlignVertical: 'center',
-		marginTop: Device.isAndroid() ? 9 : 10,
-		marginLeft: 12,
-	},
-	input: {
-		...fontStyles.normal,
-		backgroundColor: colors.white,
-		borderWidth: 0,
-		fontSize: 24,
-		paddingBottom: 0,
-		paddingRight: 0,
-		paddingLeft: 0,
-		paddingTop: 0,
-	},
-	eth: {
-		...fontStyles.normal,
-		fontSize: 24,
-		paddingTop: Device.isAndroid() ? 3 : 0,
-		paddingLeft: 10,
-		textTransform: 'uppercase',
-	},
-	fiatValue: {
-		...fontStyles.normal,
-		fontSize: 18,
-	},
-	split: {
-		flex: 1,
-		flexDirection: 'row',
-	},
-	ethContainer: {
-		flex: 1,
-		flexDirection: 'row',
-		paddingLeft: 6,
-		paddingRight: 10,
-	},
-	container: {
-		flex: 1,
-		flexDirection: 'row',
-		paddingRight: 10,
-		paddingVertical: 10,
-		paddingLeft: 14,
-		position: 'relative',
-		backgroundColor: colors.white,
-		borderColor: colors.grey100,
-		borderRadius: 4,
-		borderWidth: 1,
-	},
-	amounts: {
-		maxWidth: '70%',
-	},
-	switchContainer: {
-		flex: 1,
-		flexDirection: 'column',
-		alignSelf: 'center',
-		right: 0,
-	},
-	switchTouchable: {
-		flexDirection: 'row',
-		alignSelf: 'flex-end',
-		right: 0,
-	},
-	enterAmountWrapper: {
-		flex: 1,
-		flexDirection: 'column',
-	},
-	button: {
-		marginBottom: 16,
-	},
-	buttonsWrapper: {
-		flex: 1,
-		flexDirection: 'row',
-		alignSelf: 'center',
-	},
-	buttonsContainer: {
-		flex: 1,
-		flexDirection: 'column',
-		alignSelf: 'flex-end',
-	},
-	scrollViewContainer: {
-		flexGrow: 1,
-	},
-	errorWrapper: {
-		backgroundColor: colors.red000,
-		borderRadius: 4,
-		marginTop: 8,
-	},
-	errorText: {
-		color: colors.fontError,
-		alignSelf: 'center',
-	},
-	assetsWrapper: {
-		marginTop: 16,
-	},
-	assetsTitle: {
-		...fontStyles.normal,
-		fontSize: 16,
-		marginBottom: 8,
-	},
-	secondaryAmount: {
-		flexDirection: 'row',
-	},
-	currencySymbol: {
-		...fontStyles.normal,
-		fontSize: 24,
-	},
-	currencySymbolSmall: {
-		...fontStyles.normal,
-		fontSize: 18,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+		},
+		contentWrapper: {
+			paddingTop: 24,
+			paddingHorizontal: 24,
+		},
+		title: {
+			...fontStyles.normal,
+			fontSize: 16,
+			color: colors.text.default,
+		},
+		searchWrapper: {
+			marginVertical: 8,
+		},
+		searchInput: {
+			marginHorizontal: 0,
+			paddingTop: Device.isAndroid() ? 12 : 2,
+			borderRadius: 8,
+			paddingHorizontal: 38,
+			fontSize: 16,
+			backgroundColor: colors.background.default,
+			height: 40,
+			width: '100%',
+			color: colors.text.default,
+			borderColor: colors.border.default,
+			borderWidth: 1,
+			...fontStyles.normal,
+		},
+		searchIcon: {
+			position: 'absolute',
+			textAlignVertical: 'center',
+			marginTop: Device.isAndroid() ? 9 : 10,
+			marginLeft: 12,
+		},
+		input: {
+			...fontStyles.normal,
+			backgroundColor: colors.background.default,
+			borderWidth: 0,
+			fontSize: 24,
+			paddingBottom: 0,
+			paddingRight: 0,
+			paddingLeft: 0,
+			paddingTop: 0,
+			color: colors.text.default,
+		},
+		eth: {
+			...fontStyles.normal,
+			fontSize: 24,
+			paddingTop: Device.isAndroid() ? 3 : 0,
+			paddingLeft: 10,
+			textTransform: 'uppercase',
+			color: colors.text.default,
+		},
+		fiatValue: {
+			...fontStyles.normal,
+			fontSize: 18,
+			color: colors.text.default,
+		},
+		split: {
+			flex: 1,
+			flexDirection: 'row',
+		},
+		ethContainer: {
+			flex: 1,
+			flexDirection: 'row',
+			paddingLeft: 6,
+			paddingRight: 10,
+		},
+		container: {
+			flex: 1,
+			flexDirection: 'row',
+			paddingRight: 10,
+			paddingVertical: 10,
+			paddingLeft: 14,
+			position: 'relative',
+			backgroundColor: colors.background.default,
+			borderColor: colors.border.default,
+			borderRadius: 4,
+			borderWidth: 1,
+		},
+		amounts: {
+			maxWidth: '70%',
+		},
+		switchContainer: {
+			flex: 1,
+			flexDirection: 'column',
+			alignSelf: 'center',
+			right: 0,
+		},
+		switchTouchable: {
+			flexDirection: 'row',
+			alignSelf: 'flex-end',
+			right: 0,
+		},
+		enterAmountWrapper: {
+			flex: 1,
+			flexDirection: 'column',
+		},
+		button: {
+			marginBottom: 16,
+		},
+		buttonsWrapper: {
+			flex: 1,
+			flexDirection: 'row',
+			alignSelf: 'center',
+		},
+		buttonsContainer: {
+			flex: 1,
+			flexDirection: 'column',
+			alignSelf: 'flex-end',
+		},
+		scrollViewContainer: {
+			flexGrow: 1,
+		},
+		errorWrapper: {
+			backgroundColor: colors.error.muted,
+			borderRadius: 4,
+			marginTop: 8,
+		},
+		errorText: {
+			color: colors.error.default,
+			alignSelf: 'center',
+		},
+		assetsWrapper: {
+			marginTop: 16,
+		},
+		assetsTitle: {
+			...fontStyles.normal,
+			fontSize: 16,
+			marginBottom: 8,
+			color: colors.text.default,
+		},
+		secondaryAmount: {
+			flexDirection: 'row',
+		},
+		currencySymbol: {
+			...fontStyles.normal,
+			fontSize: 24,
+			color: colors.text.default,
+		},
+		currencySymbolSmall: {
+			...fontStyles.normal,
+			fontSize: 18,
+			color: colors.text.default,
+		},
+	});
 
 const fuse = new Fuse([], {
 	shouldSort: true,
@@ -373,6 +381,8 @@ class PaymentRequest extends PureComponent {
 		const { tokens, chainId, ticker, tokenList } = this.props;
 		const { inputWidth } = this.state;
 		let results;
+		const { colors } = this.context;
+		const styles = createStyles(colors);
 
 		if (chainId === '1') {
 			results = this.state.searchInputValue ? this.state.results : defaultAssets;
@@ -402,7 +412,7 @@ class PaymentRequest extends PureComponent {
 							onChangeText={this.handleSearch}
 							onSubmitEditing={this.handleSearch}
 							placeholder={strings('payment_request.search_assets')}
-							placeholderTextColor={colors.grey400}
+							placeholderTextColor={colors.text.muted}
 							returnKeyType="go"
 							value={this.state.searchInputValue}
 							blurOnSubmit
@@ -412,7 +422,7 @@ class PaymentRequest extends PureComponent {
 							onPress={this.focusInput}
 							name="search"
 							size={18}
-							color={colors.grey400}
+							color={colors.text.muted}
 							style={styles.searchIcon}
 						/>
 					</View>
@@ -593,6 +603,9 @@ class PaymentRequest extends PureComponent {
 		const currencySymbol = currencySymbols[currentCurrency];
 		const exchangeRate = selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
 		let switchable = true;
+		const { colors } = this.context;
+		const styles = createStyles(colors);
+
 		if (!conversionRate) {
 			switchable = false;
 		} else if (selectedAsset.symbol !== 'ETH' && !exchangeRate) {
@@ -618,7 +631,7 @@ class PaymentRequest extends PureComponent {
 										numberOfLines={1}
 										onChangeText={this.updateAmount}
 										placeholder={strings('payment_request.amount_placeholder')}
-										placeholderTextColor={colors.grey100}
+										placeholderTextColor={colors.text.muted}
 										spellCheck={false}
 										style={styles.input}
 										value={amount}
@@ -651,7 +664,7 @@ class PaymentRequest extends PureComponent {
 											onPress={this.focusInput}
 											name="exchange"
 											size={18}
-											color={colors.grey200}
+											color={colors.text.muted}
 											style={{ transform: [{ rotate: '270deg' }] }}
 										/>
 									</TouchableOpacity>
@@ -691,6 +704,9 @@ class PaymentRequest extends PureComponent {
 
 	render() {
 		const { mode } = this.state;
+		const { colors } = this.context;
+		const styles = createStyles(colors);
+
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<KeyboardAwareScrollView
