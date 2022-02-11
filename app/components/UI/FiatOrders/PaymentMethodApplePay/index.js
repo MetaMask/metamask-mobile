@@ -29,108 +29,122 @@ import CountrySelector from '../components/CountrySelector';
 import Keypad, { KEYS } from '../../../Base/Keypad';
 import Text from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
-import { colors, fontStyles } from '../../../../styles/common';
+import { fontStyles } from '../../../../styles/common';
 import { protectWalletModalVisible } from '../../../../actions/user';
 import { addFiatOrder, fiatOrdersCountrySelector, setFiatOrdersCountry } from '../../../../reducers/fiatOrders';
 import { useAppThemeFromContext } from '../../../../util/theme';
 
 //* styles and components  */
 
-const styles = StyleSheet.create({
-	screen: {
-		flexGrow: 1,
-		justifyContent: 'space-between',
-	},
-	selectors: {
-		flexDirection: 'row',
-		marginTop: Device.isIphone5() ? 12 : 18,
-		marginHorizontal: 25,
-		justifyContent: 'space-between',
-		alignItems: 'center',
-	},
-	spacer: {
-		minWidth: 8,
-	},
-	amountContainer: {
-		margin: Device.isIphone5() ? 0 : 12,
-		padding: Device.isMediumDevice() ? (Device.isIphone5() ? 5 : 10) : 15,
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	amount: {
-		...fontStyles.light,
-		color: colors.black,
-		fontSize: Device.isIphone5() ? 48 : 48,
-		height: Device.isIphone5() ? 50 : 60,
-	},
-	amountDescription: {
-		minHeight: 22,
-	},
-	amountError: {
-		color: colors.red,
-	},
-	content: {
-		flexGrow: 1,
-		justifyContent: 'space-around',
-	},
-	quickAmounts: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'space-around',
-		marginHorizontal: 70,
-	},
-	quickAmount: {
-		borderRadius: 18,
-		borderColor: colors.grey200,
-		borderWidth: 1,
-		paddingVertical: 5,
-		paddingHorizontal: 8,
-		alignItems: 'center',
-		minWidth: 49,
-	},
-	quickAmountPlaceholder: {
-		backgroundColor: colors.grey000,
-		borderColor: colors.grey000,
-	},
-	quickAmountSelected: {
-		backgroundColor: colors.blue,
-		borderColor: colors.blue,
-	},
-	quickAmountSelectedText: {
-		color: colors.white,
-	},
-	buttonContainer: {
-		paddingBottom: 20,
-	},
-	applePayButton: {
-		backgroundColor: colors.black,
-		padding: 10,
-		margin: Device.isIphone5() ? 5 : 10,
-		marginHorizontal: 25,
-		alignItems: 'center',
-	},
-	applePayButtonText: {
-		color: colors.white,
-	},
-	applePayButtonContentDisabled: {
-		opacity: 0.6,
-	},
-	applePayLogo: {
-		marginLeft: 4,
-	},
-});
+const applePayBackgroundColor = 'black';
+const applePayTextColor = 'white';
+const createStyles = (colors) =>
+	StyleSheet.create({
+		screen: {
+			flexGrow: 1,
+			justifyContent: 'space-between',
+			backgroundColor: colors.background.default,
+		},
+		selectors: {
+			flexDirection: 'row',
+			marginTop: Device.isIphone5() ? 12 : 18,
+			marginHorizontal: 25,
+			justifyContent: 'space-between',
+			alignItems: 'center',
+		},
+		spacer: {
+			minWidth: 8,
+		},
+		amountContainer: {
+			margin: Device.isIphone5() ? 0 : 12,
+			padding: Device.isMediumDevice() ? (Device.isIphone5() ? 5 : 10) : 15,
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+		amount: {
+			...fontStyles.light,
+			color: colors.text.default,
+			fontSize: Device.isIphone5() ? 48 : 48,
+			height: Device.isIphone5() ? 50 : 60,
+		},
+		amountDescription: {
+			minHeight: 22,
+		},
+		amountError: {
+			color: colors.error.default,
+		},
+		content: {
+			flexGrow: 1,
+			justifyContent: 'space-around',
+		},
+		quickAmounts: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'space-around',
+			marginHorizontal: 70,
+		},
+		quickAmount: {
+			borderRadius: 18,
+			borderColor: colors.border.default,
+			borderWidth: 1,
+			paddingVertical: 5,
+			paddingHorizontal: 8,
+			alignItems: 'center',
+			minWidth: 49,
+		},
+		quickAmountPlaceholder: {
+			backgroundColor: colors.background.alternative,
+			borderColor: colors.background.alternative,
+		},
+		quickAmountSelected: {
+			backgroundColor: colors.primary.default,
+			borderColor: colors.primary.default,
+		},
+		quickAmountSelectedText: {
+			color: colors.primary.inverse,
+		},
+		buttonContainer: {
+			paddingBottom: 20,
+		},
+		applePayButton: {
+			// FIXED APPLE BUTTON COLOR. DO NOT CHANGE
+			backgroundColor: applePayBackgroundColor,
+			padding: 10,
+			margin: Device.isIphone5() ? 5 : 10,
+			marginHorizontal: 25,
+			alignItems: 'center',
+		},
+		applePayButtonText: {
+			// FIXED APPLE BUTTON COLOR. DO NOT CHANGE
+			color: applePayTextColor,
+		},
+		applePayButtonContentDisabled: {
+			opacity: 0.6,
+		},
+		applePayLogo: {
+			marginLeft: 4,
+		},
+	});
 
 /* eslint-disable import/no-commonjs */
 const ApplePayLogo = require('../../../../images/ApplePayLogo.png');
-const ApplePay = ({ disabled }) => (
-	<Image source={ApplePayLogo} style={[styles.applePayLogo, disabled && styles.applePayButtonContentDisabled]} />
-);
+const ApplePay = ({ disabled }) => {
+	const { colors } = useAppThemeFromContext();
+	const styles = createStyles(colors);
+
+	return (
+		<Image source={ApplePayLogo} style={[styles.applePayLogo, disabled && styles.applePayButtonContentDisabled]} />
+	);
+};
 
 ApplePay.propTypes = {
 	disabled: PropTypes.bool,
 };
 
 const QuickAmount = ({ amount, current, currencySymbol, placeholder, ...props }) => {
+	const { colors } = useAppThemeFromContext();
+	const styles = createStyles(colors);
+
 	if (placeholder) {
 		return (
 			<View style={[styles.quickAmount, styles.quickAmountPlaceholder]} {...props}>
@@ -181,6 +195,9 @@ function PaymentMethodApplePay({
 }) {
 	const navigation = useNavigation();
 	const [amount, setAmount] = useState('0');
+	const { colors } = useAppThemeFromContext();
+	const styles = createStyles(colors);
+
 	const {
 		symbol: currencySymbol,
 		decimalSeparator,
@@ -196,7 +213,6 @@ function PaymentMethodApplePay({
 				: amountWithPeriod,
 		[amountWithPeriod]
 	);
-	const { colors } = useAppThemeFromContext();
 
 	const handleWyreTerms = useWyreTerms(navigation);
 	const wyreCurrencies = useMemo(() => [`${selectedCurrency}ETH`, `USD${selectedCurrency}`], [selectedCurrency]);

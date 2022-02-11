@@ -1,31 +1,35 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
-import { colors } from '../../styles/common';
 import Device from '../../util/device';
+import { useAppThemeFromContext } from '../../util/theme';
 
-const styles = StyleSheet.create({
-	draggerWrapper: {
-		width: '100%',
-		height: 33,
-		alignItems: 'center',
-		justifyContent: 'center',
-		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
-	},
-	borderless: {
-		borderColor: colors.transparent,
-	},
-	dragger: {
-		width: 48,
-		height: 5,
-		borderRadius: 4,
-		backgroundColor: colors.grey400,
-		opacity: Device.isAndroid() ? 0.6 : 0.5,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		draggerWrapper: {
+			width: '100%',
+			height: 33,
+			alignItems: 'center',
+			justifyContent: 'center',
+			borderBottomWidth: StyleSheet.hairlineWidth,
+			borderColor: colors.border.muted,
+		},
+		borderless: {
+			borderColor: colors.transparent,
+		},
+		dragger: {
+			width: 48,
+			height: 5,
+			borderRadius: 4,
+			backgroundColor: colors.border.default,
+			opacity: Device.isAndroid() ? 0.6 : 0.5,
+		},
+	});
 
 function ModalDragger({ borderless }) {
+	const { colors } = useAppThemeFromContext();
+	const styles = createStyles(colors);
+
 	return (
 		<View style={[styles.draggerWrapper, borderless && styles.borderless]}>
 			<View style={styles.dragger} />

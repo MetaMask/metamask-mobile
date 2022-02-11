@@ -19,7 +19,7 @@ import { showAlert } from '../../../actions/alert';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { protectWalletModalVisible } from '../../../actions/user';
 
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import Text from '../../Base/Text';
 import ModalHandler from '../../Base/ModalHandler';
 import ModalDragger from '../../Base/ModalDragger';
@@ -30,56 +30,57 @@ import StyledButton from '../StyledButton';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		borderTopLeftRadius: 10,
-		borderTopRightRadius: 10,
-	},
-	body: {
-		alignItems: 'center',
-		paddingHorizontal: 15,
-	},
-	qrWrapper: {
-		margin: 15,
-	},
-	addressWrapper: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		margin: 15,
-		padding: 9,
-		paddingHorizontal: 15,
-		backgroundColor: colors.grey000,
-		borderRadius: 30,
-	},
-	copyButton: {
-		backgroundColor: colors.grey050,
-		color: colors.fontPrimary,
-		borderRadius: 12,
-		overflow: 'hidden',
-		paddingVertical: 3,
-		paddingHorizontal: 6,
-		marginHorizontal: 6,
-	},
-	actionRow: {
-		flexDirection: 'row',
-		marginBottom: 15,
-	},
-	actionButton: {
-		flex: 1,
-		marginHorizontal: 8,
-	},
-	title: {
-		...fontStyles.normal,
-		color: colors.fontPrimary,
-		fontSize: 18,
-		flexDirection: 'row',
-		alignSelf: 'center',
-	},
-	titleWrapper: {
-		marginTop: 10,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			borderTopLeftRadius: 10,
+			borderTopRightRadius: 10,
+		},
+		body: {
+			alignItems: 'center',
+			paddingHorizontal: 15,
+		},
+		qrWrapper: {
+			margin: 15,
+		},
+		addressWrapper: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			margin: 15,
+			padding: 9,
+			paddingHorizontal: 15,
+			backgroundColor: colors.background.alternative,
+			borderRadius: 30,
+		},
+		copyButton: {
+			backgroundColor: colors.border.muted,
+			color: colors.text.default,
+			borderRadius: 12,
+			overflow: 'hidden',
+			paddingVertical: 3,
+			paddingHorizontal: 6,
+			marginHorizontal: 6,
+		},
+		actionRow: {
+			flexDirection: 'row',
+			marginBottom: 15,
+		},
+		actionButton: {
+			flex: 1,
+			marginHorizontal: 8,
+		},
+		title: {
+			...fontStyles.normal,
+			color: colors.text.default,
+			fontSize: 18,
+			flexDirection: 'row',
+			alignSelf: 'center',
+		},
+		titleWrapper: {
+			marginTop: 10,
+		},
+	});
 
 /**
  * PureComponent that renders receive options
@@ -215,6 +216,9 @@ class ReceiveRequest extends PureComponent {
 	};
 
 	render() {
+		const { colors } = this.context;
+		const styles = createStyles(colors);
+
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<ModalDragger />
@@ -240,6 +244,8 @@ class ReceiveRequest extends PureComponent {
 									<QRCode
 										value={`ethereum:${this.props.selectedAddress}`}
 										size={Dimensions.get('window').width / 2}
+										color={colors.text.default}
+										backgroundColor={colors.background.default}
 									/>
 								</TouchableOpacity>
 								<Modal
@@ -274,7 +280,7 @@ class ReceiveRequest extends PureComponent {
 							<EvilIcons
 								name={Device.isIos() ? 'share-apple' : 'share-google'}
 								size={25}
-								color={colors.grey600}
+								color={colors.text.alternative}
 							/>
 						</TouchableOpacity>
 					</TouchableOpacity>

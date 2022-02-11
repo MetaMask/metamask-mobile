@@ -275,21 +275,21 @@ export function getPaymentRequestOptionsTitle(title, navigation, route, themeCol
 	const innerStyles = StyleSheet.create({
 		headerTitleStyle: {
 			fontSize: 20,
-			color: themeColors.textDefault,
+			color: themeColors.text.default,
 			...fontStyles.normal,
 		},
 		headerIcon: {
-			color: themeColors.primary,
+			color: themeColors.primary.default,
 		},
 		headerStyle: {
-			backgroundColor: themeColors.backgroundDefault,
+			backgroundColor: themeColors.background.default,
 		},
 	});
 
 	return {
 		title,
 		headerTitleStyle: innerStyles.headerTitleStyle,
-		headerTintColor: themeColors.primary,
+		headerTintColor: themeColors.primary.default,
 		headerLeft: () =>
 			goBack ? (
 				// eslint-disable-next-line react/jsx-no-bind
@@ -328,18 +328,18 @@ export function getPaymentRequestSuccessOptionsTitle(navigation, themeColors) {
 		headerStyle: {
 			shadowColor: colors.transparent,
 			elevation: 0,
-			backgroundColor: themeColors.backgroundDefault,
+			backgroundColor: themeColors.background.default,
 			borderBottomWidth: 0,
 		},
 		headerIcon: {
-			color: themeColors.primary,
+			color: themeColors.primary.default,
 		},
 	});
 
 	return {
 		headerStyle: innerStyles.headerStyle,
 		title: null,
-		headerTintColor: themeColors.primary,
+		headerTintColor: themeColors.primary.default,
 		headerLeft: () => <View />,
 		headerRight: () => (
 			<TouchableOpacity
@@ -877,16 +877,16 @@ export function getWebviewNavbar(navigation, route, themeColors) {
 	const innerStyles = StyleSheet.create({
 		headerTitleStyle: {
 			fontSize: 20,
-			color: themeColors.textDefault,
+			color: themeColors.text.default,
 			textAlign: 'center',
 			...fontStyles.normal,
 			alignItems: 'center',
 		},
 		headerStyle: {
-			backgroundColor: themeColors.backgroundDefault,
+			backgroundColor: themeColors.background.default,
 		},
 		headerIcon: {
-			color: themeColors.primary,
+			color: themeColors.primary.default,
 		},
 	});
 
@@ -923,17 +923,17 @@ export function getWebviewNavbar(navigation, route, themeColors) {
 export function getPaymentSelectorMethodNavbar(navigation, onPop, themeColors) {
 	const innerStyles = StyleSheet.create({
 		headerButtonText: {
-			color: themeColors.primary,
+			color: themeColors.primary.default,
 		},
 		headerTitleStyle: {
 			fontSize: 20,
-			color: themeColors.textDefault,
+			color: themeColors.text.default,
 			textAlign: 'center',
 			...fontStyles.normal,
 			alignItems: 'center',
 		},
 		headerStyle: {
-			backgroundColor: themeColors.backgroundDefault,
+			backgroundColor: themeColors.background.default,
 		},
 	});
 	return {
@@ -959,17 +959,17 @@ export function getPaymentMethodApplePayNavbar(navigation, onPop, onExit, themeC
 	const innerStyles = StyleSheet.create({
 		headerTitleStyle: {
 			fontSize: 20,
-			color: themeColors.textDefault,
+			color: themeColors.text.default,
 			...fontStyles.normal,
 		},
 		headerStyle: {
-			backgroundColor: themeColors.backgroundDefault,
+			backgroundColor: themeColors.background.default,
 		},
 		headerButtonText: {
-			color: themeColors.primary,
+			color: themeColors.primary.default,
 		},
 		headerIcon: {
-			color: themeColors.primary,
+			color: themeColors.primary.default,
 		},
 	});
 	return {
@@ -1019,14 +1019,14 @@ export function getTransakWebviewNavbar(navigation, route, onPop, themeColors) {
 	const innerStyles = StyleSheet.create({
 		headerTitleStyle: {
 			fontSize: 20,
-			color: themeColors.textDefault,
+			color: themeColors.text.default,
 			...fontStyles.normal,
 		},
 		headerStyle: {
-			backgroundColor: themeColors.backgroundDefault,
+			backgroundColor: themeColors.background.default,
 		},
 		headerIcon: {
-			color: themeColors.primary,
+			color: themeColors.primary.default,
 		},
 	});
 
