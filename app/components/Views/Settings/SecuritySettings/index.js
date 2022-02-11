@@ -47,6 +47,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import HintModal from '../../../UI/HintModal';
 import AnalyticsV2, { trackErrorAsAnalytics } from '../../../../util/analyticsV2';
 import SeedPhraseVideo from '../../../UI/SeedPhraseVideo';
+import AuthenticationService, { AuthenticationType } from '../../../../core/AuthenticationService';
 
 const isIos = Device.isIos();
 
@@ -406,10 +407,24 @@ class Settings extends PureComponent {
 				return;
 			}
 
-			if (type === 'passcodeChoice')
-				await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.PASSCODE);
-			else if (type === 'biometryChoice')
-				await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.BIOMETRICS);
+			// if (type === 'passcodeChoice')
+			// 	await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.PASSCODE);
+			// else if (type === 'biometryChoice')
+			// 	await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.BIOMETRICS);
+
+			try {
+				let type;
+				if (type === 'biometryChoice') {
+					type = AuthenticationType.BIOMETRIC;
+				} else if (type === 'passcodeChoice') {
+					type = AuthenticationType.PASSCODE;
+				} else {
+					type = AuthenticationType.PASSWORD;
+				}
+				await AuthenticationService.storePassword(password, type);
+			} catch (error) {
+				Logger.error(error);
+			}
 
 			this.props.passwordSet();
 

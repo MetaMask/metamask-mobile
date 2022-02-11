@@ -15,7 +15,6 @@ import NetworkList from '../NetworkList';
 import { renderFromWei, renderFiat } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import Modal from 'react-native-modal';
-import SecureKeychain from '../../../core/SecureKeychain';
 import { toggleNetworkModal, toggleAccountsModal, toggleReceiveModal } from '../../../actions/modals';
 import { showAlert } from '../../../actions/alert';
 import { getEtherscanAddressUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
@@ -576,23 +575,16 @@ class DrawerView extends PureComponent {
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SETTINGS);
 	};
 
-	logOut = async () => {
-		this.props.navigation.navigate('Login');
-		await AuthenticationService.logout();
-	};
-
-	onPress = async () => {
+	onPressLogout = async () => {
 		const { passwordSet } = this.props;
-		const { KeyringController } = Engine.context;
-		await SecureKeychain.resetGenericPassword();
-		await KeyringController.setLocked();
+		await AuthenticationService.logout();
 		if (!passwordSet) {
 			this.props.navigation.navigate('OnboardingRootNav', {
 				screen: 'OnboardingNav',
 				params: { screen: 'Onboarding' },
 			});
 		} else {
-			this.logOut();
+			this.props.navigation.navigate('Login');
 		}
 	};
 
@@ -608,7 +600,7 @@ class DrawerView extends PureComponent {
 				},
 				{
 					text: strings('drawer.logout_ok'),
-					onPress: this.onPress,
+					onPress: this.onPressLogout,
 				},
 			],
 			{ cancelable: false }

@@ -22,24 +22,14 @@ import StyledButton from '../../UI/StyledButton';
 import AnimatedFox from 'react-native-animated-fox';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import SecureKeychain from '../../../core/SecureKeychain';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import setOnboardingWizardStep from '../../../actions/wizard';
-import { logIn, checkedAuth } from '../../../actions/user';
 import { connect } from 'react-redux';
 import Device from '../../../util/device';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import BiometryButton from '../../UI/BiometryButton';
-import { recreateVaultWithSamePassword } from '../../../core/Vault';
 import Logger from '../../../util/Logger';
-import {
-	BIOMETRY_CHOICE_DISABLED,
-	ONBOARDING_WIZARD,
-	ENCRYPTION_LIB,
-	TRUE,
-	ORIGINAL,
-	EXISTING_USER,
-} from '../../../constants/storage';
+import { BIOMETRY_CHOICE_DISABLED, ONBOARDING_WIZARD, TRUE, EXISTING_USER } from '../../../constants/storage';
 import { passwordRequirementsMet } from '../../../util/password';
 import ErrorBoundary from '../ErrorBoundary';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
@@ -205,19 +195,7 @@ class Login extends PureComponent {
 		 * Action to set onboarding wizard step
 		 */
 		setOnboardingWizardStep: PropTypes.func,
-		/**
-		 * Temporary string that controls if componentDidMount should handle initial auth logic on mount
-		 */
-		initialScreen: PropTypes.string,
-		/**
-		 * A string representing the selected address => account
-		 */
-		selectedAddress: PropTypes.string,
-		logIn: PropTypes.func,
-		/**
-		 * TEMPORARY state for animation control on Nav/App/index.js
-		 */
-		checkedAuth: PropTypes.func,
+		userLoggedIn: PropTypes.bool,
 	};
 
 	state = {
@@ -239,48 +217,22 @@ class Login extends PureComponent {
 	fieldRef = React.createRef();
 
 	async componentDidMount() {
-		// const { initialScreen } = this.props;
-		// const { KeyringController } = Engine.context;
-		//TODO: AUTH REFACTOR - logic that checks for auth type and then uses it to login
-		// const shouldHandleInitialAuth = initialScreen !== 'onboarding';
 		BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 
-		// Lock keyring just in case
-		// if (KeyringController.isUnlocked()) {
-		// 	await KeyringController.setLocked();
-		// }
+		if (this.props.userLoggedIn) {
+			this.props.navigation.replace('HomeNav');
+			return;
+		}
+		const type = await AuthenticationService.getType();
+		const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
+		const enabled = !(previouslyDisabled && previouslyDisabled === TRUE);
 
-		// const biometryType = await SecureKeychain.getSupportedBiometryType();
-		// console.log('Login Index biometryType', biometryType);
-
-		// if (biometryType) {
-		// 	const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
-		// 	const enabled = !(previouslyDisabled && previouslyDisabled === TRUE);
-
-		// 	this.setState({
-		// 		biometryType: Device.isAndroid() ? 'biometrics' : biometryType,
-		// 		biometryChoice: enabled,
-		// 		biometryPreviouslyDisabled: !!previouslyDisabled,
-		// 	});
-
-		// 	console.log('Login Index shouldHandleInitialAuth', shouldHandleInitialAuth);
-		// 	if (shouldHandleInitialAuth) {
-		// 		try {
-		// 			if (enabled && !previouslyDisabled) {
-		// 				await this.tryBiometric();
-		// 			}
-		// 		} catch (e) {
-		// 			console.warn(e);
-		// 		}
-		// 		if (!enabled) {
-		// 			await this.checkIfRememberMeEnabled();
-		// 		}
-		// 	}
-		// } else {
-		// 	shouldHandleInitialAuth && (await this.checkIfRememberMeEnabled());
-		// }
-
-		// this.props.checkedAuth();
+		if (type === AuthenticationType.BIOMETRIC)
+			this.setState({
+				biometryType: type,
+				biometryChoice: enabled,
+				biometryPreviouslyDisabled: !!previouslyDisabled,
+			});
 	}
 
 	componentWillUnmount() {
@@ -338,7 +290,6 @@ class Login extends PureComponent {
 		else authType = AuthenticationType.PASSWORD;
 
 		try {
-			console.log('LOGIN on onLogin', authType);
 			await AuthenticationService.manualAuth(password, authType);
 			const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
 			if (onboardingWizard) {
@@ -541,27 +492,27 @@ class Login extends PureComponent {
 	};
 
 	//TODO: AUTH REFACTOR - move biometric to auth manager and only have UI in this method
-	tryBiometric = async (e) => {
-		if (e) e.preventDefault();
-		const { current: field } = this.fieldRef;
-		field.blur();
-		try {
-			const credentials = await SecureKeychain.getGenericPassword();
-			if (!credentials) {
-				this.setState({ hasBiometricCredentials: false });
-				return;
-			}
-			field.blur();
-			this.setState({ password: credentials.password });
-			field.setValue(credentials.password);
-			field.blur();
-			await this.onLogin(true);
-		} catch (error) {
-			this.setState({ hasBiometricCredentials: true });
-			Logger.log(error);
-		}
-		field.blur();
-	};
+	// tryBiometric = async (e) => {
+	// 	if (e) e.preventDefault();
+	// 	const { current: field } = this.fieldRef;
+	// 	field.blur();
+	// 	try {
+	// 		const credentials = await SecureKeychain.getGenericPassword();
+	// 		if (!credentials) {
+	// 			this.setState({ hasBiometricCredentials: false });
+	// 			return;
+	// 		}
+	// 		field.blur();
+	// 		this.setState({ password: credentials.password });
+	// 		field.setValue(credentials.password);
+	// 		field.blur();
+	// 		await this.onLogin(true);
+	// 	} catch (error) {
+	// 		this.setState({ hasBiometricCredentials: true });
+	// 		Logger.log(error);
+	// 	}
+	// 	field.blur();
+	// };
 
 	render = () => (
 		<ErrorBoundary view="Login">
@@ -705,13 +656,11 @@ class Login extends PureComponent {
 
 const mapStateToProps = (state) => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController?.selectedAddress,
-	initialScreen: state.user.initialScreen,
+	userLoggedIn: state.user.userLoggedIn,
 });
 
 const mapDispatchToProps = (dispatch) => ({
 	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
-	logIn: () => dispatch(logIn()),
-	checkedAuth: () => dispatch(checkedAuth('login')),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Login);

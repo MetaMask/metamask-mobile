@@ -14,20 +14,12 @@ const initialState = {
 
 const userReducer = (state = initialState, action) => {
 	switch (action.type) {
-		case 'CHECKED_AUTH':
-			return {
-				...state,
-				isAuthChecked: true,
-				initialScreen: action.payload.initialScreen,
-			};
 		case 'LOGIN':
-			console.log('LOGIN');
 			return {
 				...state,
 				userLoggedIn: true,
 			};
 		case 'LOGOUT':
-			console.log('LOGOUT');
 			return {
 				...state,
 				userLoggedIn: false,

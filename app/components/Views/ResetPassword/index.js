@@ -38,6 +38,7 @@ import { EXISTING_USER, TRUE, BIOMETRY_CHOICE_DISABLED } from '../../../constant
 import { getPasswordStrengthWord, passwordRequirementsMet } from '../../../util/password';
 import NotificationManager from '../../../core/NotificationManager';
 import { syncPrefs } from '../../../util/sync';
+import AuthenticationService, { AuthenticationType } from '../../../core/AuthenticationService';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -357,14 +358,16 @@ class ResetPassword extends PureComponent {
 			this.setState({ loading: true });
 
 			await this.recreateVault(originalPassword);
-			// Set biometrics for new password
-			await SecureKeychain.resetGenericPassword();
 			try {
+				let type;
 				if (this.state.biometryType && this.state.biometryChoice) {
-					await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.BIOMETRICS);
+					type = AuthenticationType.BIOMETRIC;
 				} else if (this.state.rememberMe) {
-					await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.REMEMBER_ME);
+					type = AuthenticationType.REMEMBER_ME;
+				} else {
+					type = AuthenticationType.PASSWORD;
 				}
+				await AuthenticationService.storePassword(password, type);
 			} catch (error) {
 				Logger.error(error);
 			}

@@ -103,19 +103,19 @@ const OnboardingRootNav = () => (
 	</Stack.Navigator>
 );
 
-const App = ({ userLoggedIn, selectedAddress }) => {
+const App = ({ userLoggedIn }) => {
 	const unsubscribeFromBranch = useRef();
 
 	const animation = useRef(null);
 	const animationName = useRef(null);
 	const opacity = useRef(new Animated.Value(1)).current;
 	const navigator = useRef();
-
+	const locked = useRef(true);
+	const unlockAttempts = useRef(0);
 	const [route, setRoute] = useState();
 	const [animationPlayed, setAnimationPlayed] = useState();
 	const dispatch = useDispatch();
 	const triggerSetCurrentRoute = (route) => dispatch(setCurrentRoute(route));
-
 	const handleDeeplink = useCallback(({ error, params, uri }) => {
 		if (error) {
 			trackErrorAsAnalytics(error, 'Branch:');
@@ -172,17 +172,33 @@ const App = ({ userLoggedIn, selectedAddress }) => {
 	}, []);
 
 	useEffect(() => {
-		console.log('User State', userLoggedIn);
-	}, [userLoggedIn]);
+		const unlockKeychain = async () => {
+			if (!userLoggedIn) {
+				unlockAttempts.current++;
+				try {
+					await AuthenticationService.autoAuth();
+					locked.current = false;
+				} catch (error) {
+					if (unlockAttempts <= 3) {
+						unlockKeychain();
+					} else {
+						trackErrorAsAnalytics(
+							'Lockscreen: Max Attempts Reached',
+							error?.message,
+							`Unlock attempts: ${unlockAttempts}`
+						);
+					}
+				}
+			} else {
+				await AuthenticationService.logout();
+			}
+		};
+		unlockKeychain();
+	});
 
 	useEffect(() => {
 		async function checkExsiting() {
 			const existingUser = await AsyncStorage.getItem(EXISTING_USER);
-			try {
-				await AuthenticationService.autoAuth();
-			} catch (error) {
-				Logger.error(error.message);
-			}
 			const route = !existingUser ? 'OnboardingRootNav' : 'Login';
 			setRoute(route);
 		}
@@ -250,6 +266,8 @@ const App = ({ userLoggedIn, selectedAddress }) => {
 		}
 		return null;
 	};
+
+	console.log('userLoggedIn', userLoggedIn);
 
 	return (
 		// do not render unless a route is defined

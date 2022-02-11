@@ -55,10 +55,6 @@ class LockScreen extends PureComponent {
 		 * Boolean flag that determines if password has been set
 		 */
 		passwordSet: PropTypes.bool,
-		/**
-		 * Current address selected in wallet
-		 */
-		selectedAddress: PropTypes.string,
 	};
 
 	state = {
@@ -107,10 +103,9 @@ class LockScreen extends PureComponent {
 		try {
 			// Retreive the credentials
 			Logger.log('Lockscreen::unlockKeychain - getting credentials');
-
-			await AuthenticationService.autoAuth(this.props.selectedAddress);
+			await AuthenticationService.autoAuth();
 			this.locked = false;
-			await this.setState({ ready: true });
+			this.setState({ ready: true });
 			Logger.log('Lockscreen::unlockKeychain - state: ready');
 			this.secondAnimation?.play();
 			this.animationName?.play();
@@ -201,7 +196,6 @@ class LockScreen extends PureComponent {
 
 const mapStateToProps = (state) => ({
 	passwordSet: state.user.passwordSet,
-	selectedAddress: state.engine.backgroundState.PreferencesController?.selectedAddress,
 });
 
 export default connect(mapStateToProps)(LockScreen);

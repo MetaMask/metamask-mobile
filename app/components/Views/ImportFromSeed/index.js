@@ -49,6 +49,7 @@ import { getPasswordStrengthWord, passwordRequirementsMet, MIN_PASSWORD_LENGTH }
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
+import AuthenticationService, { AuthenticationType } from '../../../core/AuthenticationService';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -192,11 +193,6 @@ class ImportFromSeed extends PureComponent {
 		 */
 		navigation: PropTypes.object,
 		/**
-		 * The action to update the password set flag
-		 * in the redux store
-		 */
-		passwordSet: PropTypes.func,
-		/**
 		 * The action to set the locktime
 		 * in the redux store
 		 */
@@ -210,7 +206,6 @@ class ImportFromSeed extends PureComponent {
 		 * Action to set onboarding wizard step
 		 */
 		setOnboardingWizardStep: PropTypes.func,
-		logIn: PropTypes.func,
 	};
 
 	state = {
@@ -284,28 +279,20 @@ class ImportFromSeed extends PureComponent {
 			try {
 				this.setState({ loading: true });
 
-				const { KeyringController } = Engine.context;
-				await Engine.resetState();
-				await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
-				await KeyringController.createNewVaultAndRestore(password, parsedSeed);
+				const type = await AuthenticationService.componentAuthenticationType(
+					this.state.biometryChoice,
+					this.state.rememberMe
+				);
+				await AuthenticationService.walletSetup(password, parsedSeed, type);
 
-				if (this.state.biometryType && this.state.biometryChoice) {
-					await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.BIOMETRICS);
-				} else if (this.state.rememberMe) {
-					await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.REMEMBER_ME);
-				} else {
-					await SecureKeychain.resetGenericPassword();
-				}
 				// Get onboarding wizard state
 				const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
 				// mark the user as existing so it doesn't see the create password screen again
 				await AsyncStorage.setItem(EXISTING_USER, TRUE);
 				await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
 				this.setState({ loading: false });
-				this.props.passwordSet();
 				this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 				this.props.seedphraseBackedUp();
-				this.props.logIn();
 				InteractionManager.runAfterInteractions(() => {
 					AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_IMPORTED, {
 						biometrics_enabled: Boolean(this.state.biometryType),

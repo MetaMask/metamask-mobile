@@ -44,6 +44,7 @@ import { getPasswordStrengthWord, passwordRequirementsMet, MIN_PASSWORD_LENGTH }
 
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import AuthenticationService, { AuthenticationType } from '../../../core/AuthenticationService';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -340,20 +341,21 @@ class ChoosePassword extends PureComponent {
 				await this.recreateVault(password);
 			}
 
-			// Set state in app as it was with password
-			await SecureKeychain.resetGenericPassword();
-			if (this.state.biometryType && this.state.biometryChoice) {
-				try {
-					await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.BIOMETRICS);
-				} catch (error) {
-					if (Device.isIos) await this.handleRejectedOsBiometricPrompt(error);
-					throw error;
+			try {
+				let type;
+				if (this.state.biometryType && this.state.biometryChoice) {
+					type = AuthenticationType.BIOMETRIC;
+				} else if (this.state.rememberMe) {
+					type = AuthenticationType.REMEMBER_ME;
+				} else {
+					type = AuthenticationType.PASSWORD;
 				}
-			} else if (this.state.rememberMe) {
-				await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.REMEMBER_ME);
-			} else {
-				await SecureKeychain.resetGenericPassword();
+				await AuthenticationService.storePassword(password, type);
+			} catch (error) {
+				if (Device.isIos) await this.handleRejectedOsBiometricPrompt(error);
+				throw error;
 			}
+
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
 			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
 			this.props.passwordSet();
