@@ -1,16 +1,23 @@
-/* eslint-disable react-native/no-inline-styles */
 import React from 'react';
-import { SafeAreaView, ScrollView } from 'react-native';
-
+import { SafeAreaView, ScrollView, StyleSheet } from 'react-native';
 import { storiesOf } from '@storybook/react-native';
-
-// import { action } from '@storybook/addon-actions';
 import { boolean } from '@storybook/addon-knobs';
 
-// import AmountInput from './AmountInput';
 import Text from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
-import ScreenLayout, { styles } from './ScreenLayout';
+import ScreenLayout from './ScreenLayout';
+
+const styles = StyleSheet.create({
+	wrapper: {
+		flex: 1,
+	},
+	content: {
+		width: '100%',
+	},
+	header: {
+		alignItems: 'stretch',
+	},
+});
 
 storiesOf('FiatOnRamp / ScreenLayout', module)
 	.addDecorator((getStory) => getStory())
@@ -22,7 +29,6 @@ storiesOf('FiatOnRamp / ScreenLayout', module)
 		const showFooter = boolean('Show footer', true);
 
 		return (
-			// eslint-disable-next-line react-native/no-inline-styles
 			<SafeAreaView style={styles.wrapper}>
 				<ScreenLayout>
 					{showHeader && (
@@ -62,11 +68,7 @@ storiesOf('FiatOnRamp / ScreenLayout', module)
 
 					{showFooter && (
 						<ScreenLayout.Footer>
-							<ScreenLayout.Content
-								style={{
-									width: '80%',
-								}}
-							>
+							<ScreenLayout.Content style={styles.content}>
 								<StyledButton type={'confirm'}>Get Started</StyledButton>
 							</ScreenLayout.Content>
 						</ScreenLayout.Footer>
@@ -80,7 +82,6 @@ storiesOf('FiatOnRamp / ScreenLayout', module)
 		const showFooter = boolean('Show footer', true);
 
 		return (
-			// eslint-disable-next-line react-native/no-inline-styles
 			<SafeAreaView style={styles.wrapper}>
 				<ScreenLayout>
 					{showHeader && (
@@ -144,11 +145,7 @@ storiesOf('FiatOnRamp / ScreenLayout', module)
 
 					{showFooter && (
 						<ScreenLayout.Footer>
-							<ScreenLayout.Content
-								style={{
-									width: '80%',
-								}}
-							>
+							<ScreenLayout.Content style={styles.content}>
 								<StyledButton type={'confirm'}>Get Started</StyledButton>
 							</ScreenLayout.Content>
 						</ScreenLayout.Footer>
@@ -161,7 +158,6 @@ storiesOf('FiatOnRamp / ScreenLayout', module)
 		const showHeader = boolean('Show header', true);
 		const showFooter = boolean('Show footer', true);
 		return (
-			// eslint-disable-next-line react-native/no-inline-styles
 			<SafeAreaView style={styles.wrapper}>
 				<ScreenLayout scrollable>
 					{showHeader && (
@@ -221,11 +217,7 @@ storiesOf('FiatOnRamp / ScreenLayout', module)
 
 					{showFooter && (
 						<ScreenLayout.Footer>
-							<ScreenLayout.Content
-								style={{
-									width: '80%',
-								}}
-							>
+							<ScreenLayout.Content style={styles.content}>
 								<StyledButton type={'confirm'}>Get Started</StyledButton>
 							</ScreenLayout.Content>
 						</ScreenLayout.Footer>
@@ -240,7 +232,6 @@ storiesOf('FiatOnRamp / ScreenLayout', module)
 		const showHeader = boolean('Show header', true);
 		const showFooter = boolean('Show footer', true);
 		return (
-			// eslint-disable-next-line react-native/no-inline-styles
 			<SafeAreaView style={styles.wrapper}>
 				<ScreenLayout>
 					{showHeader && (
@@ -250,11 +241,11 @@ storiesOf('FiatOnRamp / ScreenLayout', module)
 								showDescription &&
 								'Text here about how certain payment methods will be available depending on your region'
 							}
+							style={styles.header}
 						>
-							<Text />
-							<StyledButton type={'confirm'} style={{ width: 200 }}>
-								Before you start
-							</StyledButton>
+							<ScreenLayout.Content>
+								<StyledButton type={'confirm'}>Before you start</StyledButton>
+							</ScreenLayout.Content>
 						</ScreenLayout.Header>
 					)}
 
@@ -299,11 +290,7 @@ storiesOf('FiatOnRamp / ScreenLayout', module)
 
 					{showFooter && (
 						<ScreenLayout.Footer>
-							<ScreenLayout.Content
-								style={{
-									width: '80%',
-								}}
-							>
+							<ScreenLayout.Content style={styles.content}>
 								<StyledButton type={'confirm'}>Get Started</StyledButton>
 							</ScreenLayout.Content>
 						</ScreenLayout.Footer>

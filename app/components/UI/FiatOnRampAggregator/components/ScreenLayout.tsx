@@ -14,7 +14,7 @@ interface Style {
 	footer: ViewStyle;
 }
 
-export const styles = StyleSheet.create<Style>({
+const styles = StyleSheet.create<Style>({
 	wrapper: {
 		flex: 1,
 	},
