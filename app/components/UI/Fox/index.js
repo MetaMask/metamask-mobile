@@ -2,14 +2,20 @@ import React, { forwardRef } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
+import { useAppThemeFromContext } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	webView: {
-		flex: 1,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		webView: {
+			flex: 1,
+			backgroundColor: colors.background.default,
+		},
+	});
 
 function Fox({ style, customStyle, customContent = '', forwardedRef, ...props }) {
+	const { colors } = useAppThemeFromContext();
+	const styles = createStyles(colors);
+
 	return (
 		<WebView
 			ref={forwardedRef}
