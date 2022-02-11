@@ -2,7 +2,7 @@
 
 import URL from 'url-parse';
 import qs from 'qs';
-import { Alert } from 'react-native';
+import { InteractionManager, Alert } from 'react-native';
 import { parse } from 'eth-url-parser';
 import WalletConnect from '../core/WalletConnect';
 import AppConstants from './AppConstants';
@@ -12,11 +12,14 @@ import { strings } from '../../locales/i18n';
 import { getNetworkTypeById } from '../util/networks';
 import { WalletDevice } from '@metamask/controllers/';
 import { ACTIONS, ETH_ACTIONS, PROTOCOLS, PREFIXES } from '../constants/deeplinks';
+import { showAlert } from '../actions/alert';
 
 class DeeplinkManager {
-	constructor(_navigation) {
-		this.navigation = _navigation;
+	constructor({ navigation, frequentRpcList, dispatch }) {
+		this.navigation = navigation;
 		this.pendingDeeplink = null;
+		this.frequentRpcList = frequentRpcList;
+		this.dispatch = dispatch;
 	}
 
 	setDeeplink = (url) => (this.pendingDeeplink = url);
@@ -24,6 +27,52 @@ class DeeplinkManager {
 	getPendingDeeplink = () => this.pendingDeeplink;
 
 	expireDeeplink = () => (this.pendingDeeplink = null);
+
+	/**
+	 * Method in charge of changing network if is needed
+	 *
+	 * @param switchToChainId - Corresponding chain id for new network
+	 */
+	_handleNetworkSwitch = (switchToChainId) => {
+		const { NetworkController, CurrencyRateController } = Engine.context;
+
+		// If current network is the same as the one we want to switch to, do nothing
+		if (NetworkController?.state?.provider?.chainId === switchToChainId) {
+			return;
+		}
+
+		const rpc = this.frequentRpcList.find(({ chainId }) => chainId === switchToChainId);
+
+		if (rpc) {
+			const { rpcUrl, chainId, ticker, nickname } = rpc;
+			CurrencyRateController.setNativeCurrency(ticker);
+			NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
+			this.dispatch(
+				showAlert({
+					isVisible: true,
+					autodismiss: 5000,
+					content: 'clipboard-alert',
+					data: { msg: strings('send.warn_network_change') + nickname },
+				})
+			);
+			return;
+		}
+
+		const networkType = getNetworkTypeById(switchToChainId);
+
+		if (networkType) {
+			CurrencyRateController.setNativeCurrency('ETH');
+			NetworkController.setProviderType(networkType);
+			this.dispatch(
+				showAlert({
+					isVisible: true,
+					autodismiss: 5000,
+					content: 'clipboard-alert',
+					data: { msg: strings('send.warn_network_change') + networkType },
+				})
+			);
+		}
+	};
 
 	_approveTransaction = (ethUrl, origin) => {
 		const {
@@ -60,44 +109,61 @@ class DeeplinkManager {
 		try {
 			ethUrl = parse(url);
 		} catch (e) {
-			Alert.alert(strings('deeplink.invalid'), e.toString());
+			if (e) Alert.alert(strings('deeplink.invalid'), e.toString());
 			return;
 		}
 
 		const txMeta = { ...ethUrl, source: url };
 
-		switch (ethUrl.function_name) {
-			case ETH_ACTIONS.TRANSFER: {
-				this.navigation.navigate('SendView', {
-					screen: 'Send',
-					params: { txMeta: { ...txMeta, action: 'send-token' } },
-				});
-				break;
-			}
-			case ETH_ACTIONS.APPROVE: {
-				this._approveTransaction(ethUrl, origin);
-				break;
-			}
-			default: {
-				if (ethUrl.parameters?.value) {
+		try {
+			// Validate and switch network before performing any other action
+			this._handleNetworkSwitch(ethUrl.chain_id);
+
+			switch (ethUrl.function_name) {
+				case ETH_ACTIONS.TRANSFER: {
 					this.navigation.navigate('SendView', {
 						screen: 'Send',
-						params: { txMeta: { ...txMeta, action: 'send-eth' } },
+						params: { txMeta: { ...txMeta, action: 'send-token' } },
 					});
-				} else {
-					this.navigation.navigate('SendFlowView', { screen: 'SendTo', params: { txMeta } });
+					break;
+				}
+				case ETH_ACTIONS.APPROVE: {
+					this._approveTransaction(ethUrl, origin);
+					break;
+				}
+				default: {
+					if (ethUrl.parameters?.value) {
+						this.navigation.navigate('SendView', {
+							screen: 'Send',
+							params: { txMeta: { ...txMeta, action: 'send-eth' } },
+						});
+					} else {
+						this.navigation.navigate('SendFlowView', { screen: 'SendTo', params: { txMeta } });
+					}
 				}
 			}
+		} catch (e) {
+			Alert.alert(
+				strings('send.network_not_found_title'),
+				strings('send.network_not_found_description', { chain_id: ethUrl.chain_id })
+			);
 		}
 	}
 
 	_handleBrowserUrl(url, callback) {
-		this.navigation.navigate(
-			'BrowserTabHome',
-			callback ? null : { screen: 'BrowserView', params: { newTabUrl: url, timestamp: Date.now() } }
-		);
-
-		if (callback) callback(url);
+		InteractionManager.runAfterInteractions(() => {
+			if (callback) {
+				callback(url);
+			} else {
+				this.navigation.navigate('BrowserTabHome', {
+					screen: 'BrowserView',
+					params: {
+						newTabUrl: url,
+						timestamp: Date.now(),
+					},
+				});
+			}
+		});
 	}
 
 	parse(url, { browserCallBack, origin, onHandled }) {
@@ -156,10 +222,7 @@ class DeeplinkManager {
 				handled();
 
 				wcCleanUrl = url.replace('wc://wc?uri=', '');
-				if (!WalletConnect.isValidUri(wcCleanUrl)) {
-					Alert.alert(strings('deeplink.invalid'));
-					return;
-				}
+				if (!WalletConnect.isValidUri(wcCleanUrl)) return;
 
 				WalletConnect.newSession(wcCleanUrl, params?.redirect, params?.autosign, origin);
 				break;
@@ -174,6 +237,7 @@ class DeeplinkManager {
 			case PROTOCOLS.DAPP:
 				// Enforce https
 				handled();
+				urlObj.set('protocol', 'https:');
 				this._handleBrowserUrl(urlObj.href, browserCallBack);
 				break;
 
@@ -185,10 +249,7 @@ class DeeplinkManager {
 					const cleanUrlObj = new URL(urlObj.query.replace('?uri=', ''));
 					const href = cleanUrlObj.href;
 
-					if (!WalletConnect.isValidUri(href)) {
-						Alert.alert(strings('deeplink.not_supported'));
-						return;
-					}
+					if (!WalletConnect.isValidUri(href)) return;
 
 					WalletConnect.newSession(href, params?.redirect, params?.autosign, origin);
 				}
@@ -204,8 +265,8 @@ class DeeplinkManager {
 let instance = null;
 
 const SharedDeeplinkManager = {
-	init: (navigation) => {
-		instance = new DeeplinkManager(navigation);
+	init: ({ navigation, frequentRpcList, dispatch }) => {
+		instance = new DeeplinkManager({ navigation, frequentRpcList, dispatch });
 	},
 	parse: (url, args) => instance.parse(url, args),
 	setDeeplink: (url) => instance.setDeeplink(url),
