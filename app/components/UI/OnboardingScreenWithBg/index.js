@@ -4,10 +4,10 @@ import { StyleSheet, ImageBackground, View } from 'react-native';
 import { useAppThemeFromContext } from '../../../util/theme';
 
 const images = {
-	a: require('../../../images/welcome-bg1.jpg'), // eslint-disable-line
-	b: require('../../../images/welcome-bg2.jpg'), // eslint-disable-line
-	c: require('../../../images/welcome-bg3.jpg'), // eslint-disable-line
-	d: require('../../../images/welcome-bg4.jpg'), // eslint-disable-line
+	a: require('../../../images/welcome-bg1.png'), // eslint-disable-line
+	b: require('../../../images/welcome-bg2.png'), // eslint-disable-line
+	c: require('../../../images/welcome-bg3.png'), // eslint-disable-line
+	d: require('../../../images/welcome-bg4.png'), // eslint-disable-line
 	carousel: null,
 };
 
