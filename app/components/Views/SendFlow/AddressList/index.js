@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import Fuse from 'fuse.js';
 import { strings } from '../../../../../locales/i18n';
 import AddressElement from '../AddressElement';
-import { ThemeContext, useAppThemeFromContext } from '../../../../util/theme';
+import { ThemeContext } from '../../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -28,15 +28,15 @@ const createStyles = (colors) =>
 		},
 		myAccountsTouchable: {
 			borderBottomWidth: 1,
-			borderBottomColor: colors.grey050,
+			borderBottomColor: colors.border.muted,
 			padding: 16,
 		},
 		labelElementWrapper: {
-			backgroundColor: colors.grey000,
+			backgroundColor: colors.background.default,
 			flexDirection: 'row',
 			alignItems: 'center',
 			borderBottomWidth: 1,
-			borderBottomColor: colors.grey050,
+			borderBottomColor: colors.border.muted,
 			padding: 8,
 		},
 		labelElementInitialText: {
@@ -50,18 +50,11 @@ const createStyles = (colors) =>
 		},
 	});
 
-const LabelElement = (label) => {
-	const { colors } = useAppThemeFromContext();
-	const styles = createStyles(colors);
-
-	return (
-		<View key={label} style={styles.labelElementWrapper}>
-			<Text style={[styles.labelElementText, label.length > 1 ? {} : styles.labelElementInitialText]}>
-				{label}
-			</Text>
-		</View>
-	);
-};
+const LabelElement = (label, styles) => (
+	<View key={label} style={styles.labelElementWrapper}>
+		<Text style={[styles.labelElementText, label.length > 1 ? {} : styles.labelElementInitialText]}>{label}</Text>
+	</View>
+);
 
 /**
  * View that wraps the wraps the "Send" screen
@@ -212,8 +205,11 @@ class AddressList extends PureComponent {
 
 	renderElement = (element) => {
 		const { onAccountPress, onAccountLongPress } = this.props;
+		const { colors } = this.context;
+		const styles = createStyles(colors);
+
 		if (typeof element === 'string') {
-			return LabelElement(element);
+			return LabelElement(element, styles);
 		}
 		const key = element.address + element.name;
 		return (
@@ -229,10 +225,13 @@ class AddressList extends PureComponent {
 
 	renderRecents = () => {
 		const { recents, onAccountPress, onAccountLongPress, inputSearch } = this.props;
+		const { colors } = this.context;
+		const styles = createStyles(colors);
+
 		if (!recents.length || inputSearch) return;
 		return (
 			<>
-				{LabelElement(strings('address_book.recents'))}
+				{LabelElement(strings('address_book.recents'), styles)}
 				{recents
 					.filter((recent) => recent != null)
 					.map((address, index) => (

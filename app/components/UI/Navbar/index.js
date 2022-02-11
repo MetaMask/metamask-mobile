@@ -421,12 +421,12 @@ export function getApproveNavbar(title) {
 export function getSendFlowTitle(title, navigation, route, themeColors) {
 	const innerStyles = StyleSheet.create({
 		headerButtonText: {
-			color: themeColors.primary,
+			color: themeColors.primary.default,
 			fontSize: 14,
 			...fontStyles.normal,
 		},
 		headerStyle: {
-			backgroundColor: themeColors.backgroundDefault,
+			backgroundColor: themeColors.background.default,
 		},
 	});
 	const rightAction = () => {

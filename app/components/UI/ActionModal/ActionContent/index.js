@@ -22,7 +22,7 @@ const createStyles = (colors) =>
 			flexDirection: 'row',
 			padding: 16,
 			borderTopWidth: 1,
-			borderTopColor: colors.grey200,
+			borderTopColor: colors.border.muted,
 		},
 		actionVerticalContainer: {
 			flexDirection: 'column',
