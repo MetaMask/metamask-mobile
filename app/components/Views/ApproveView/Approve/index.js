@@ -31,6 +31,7 @@ import EditGasFee1559 from '../../../UI/EditGasFee1559';
 import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacy';
 import AppConstants from '../../../../core/AppConstants';
 import { shallowEqual } from '../../../../util/general';
+import GlobalAlert from '../../../UI/GlobalAlert';
 
 const { BNToHex, hexToBN } = util;
 
@@ -684,6 +685,7 @@ class Approve extends PureComponent {
 							))}
 					</KeyboardAwareScrollView>
 				)}
+				<GlobalAlert />
 			</Modal>
 		);
 	};
