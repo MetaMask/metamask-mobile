@@ -242,8 +242,7 @@ describe('Wallet Tests', () => {
 
 		await AddCustomTokenView.typeTokenAddress(TOKEN_ADDRESS);
 		await AddCustomTokenView.tapTokenSymbolInputBox();
-
-    await AddCustomTokenView.tapTokenSymbolText();
+		await AddCustomTokenView.tapTokenSymbolText();
 		await AddCustomTokenView.tapCustomTokenImportButton();
 
 		// Check that we are on the wallet screen
