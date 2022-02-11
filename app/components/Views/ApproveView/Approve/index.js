@@ -3,6 +3,7 @@ import { StyleSheet, Alert, InteractionManager, AppState, View } from 'react-nat
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../../UI/Navbar';
 import { connect } from 'react-redux';
+import { toChecksumAddress } from 'ethereumjs-util';
 import { safeToChecksumAddress } from '../../../../util/address';
 import Engine from '../../../../core/Engine';
 import AnimatedTransactionModal from '../../../UI/AnimatedTransactionModal';
@@ -118,6 +119,14 @@ class Approve extends PureComponent {
 		 * A string representing the network type
 		 */
 		networkType: PropTypes.string,
+		/**
+		 * An object of all saved addresses
+		 */
+		addressBook: PropTypes.object,
+		/**
+		 * The current network of the app
+		 */
+		network: PropTypes.number,
 	};
 
 	state = {
@@ -135,6 +144,8 @@ class Approve extends PureComponent {
 		LegacyGasDataTemp: {},
 		transactionConfirmed: false,
 		addNickname: false,
+		nicknameExists: false,
+		nickname: '',
 	};
 
 	computeGasEstimates = (overrideGasPrice, overrideGasLimit, gasEstimateTypeChanged) => {
@@ -529,7 +540,25 @@ class Approve extends PureComponent {
 		this.setState({ isAnimating: false });
 	};
 
+	checkIfAddressIsSaved = () => {
+		const { addressBook, network, transaction } = this.props;
+		for (const [key, value] of Object.entries(addressBook)) {
+			if (key === network) {
+				Object.entries(value).forEach(([address, data]) => {
+					if (toChecksumAddress(address) === toChecksumAddress(transaction.to)) {
+						this.setState({ nicknameExists: true, nickname: data.name });
+					} else {
+						this.setState({ nicknameExists: false });
+					}
+				});
+			} else {
+				return this.setState({ nicknameExists: false });
+			}
+		}
+	};
+
 	render = () => {
+		this.checkIfAddressIsSaved();
 		const {
 			mode,
 			ready,
@@ -565,6 +594,8 @@ class Approve extends PureComponent {
 					<AddNickname
 						onUpdateContractNickname={this.onUpdateContractNickname}
 						contractAddress={transaction.to}
+						nicknameExists={this.state.nicknameExists}
+						nickname={this.state.nickname}
 					/>
 				) : (
 					<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
@@ -590,6 +621,8 @@ class Approve extends PureComponent {
 									gasEstimationReady={ready}
 									transactionConfirmed={transactionConfirmed}
 									onUpdateContractNickname={this.onUpdateContractNickname}
+									nicknameExists={this.state.nicknameExists}
+									nickname={this.state.nickname}
 								/>
 								{/** View fixes layout issue after removing <CustomGas/> */}
 								<View />
@@ -671,6 +704,8 @@ const mapStateToProps = (state) => ({
 	nativeCurrency: state.engine.backgroundState.CurrencyRateController.nativeCurrency,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
+	addressBook: state.engine.backgroundState.AddressBookController.addressBook,
+	network: state.engine.backgroundState.NetworkController.network,
 });
 
 const mapDispatchToProps = (dispatch) => ({

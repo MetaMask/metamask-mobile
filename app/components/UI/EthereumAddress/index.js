@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Text } from 'react-native';
-import { renderShortAddress, renderFullAddress } from '../../../util/address';
+import { renderShortAddress, renderFullAddress, renderSlightlyLongAddress } from '../../../util/address';
 import { isValidAddress } from 'ethereumjs-util';
 
 /**
@@ -42,6 +42,8 @@ class EthereumAddress extends PureComponent {
 		if (isValidAddress(rawAddress)) {
 			if (type && type === 'short') {
 				formattedAddress = renderShortAddress(rawAddress);
+			} else if (type && type === 'mid') {
+				formattedAddress = renderSlightlyLongAddress(rawAddress);
 			} else {
 				formattedAddress = renderFullAddress(rawAddress);
 			}

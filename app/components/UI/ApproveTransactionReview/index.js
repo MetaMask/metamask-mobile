@@ -21,7 +21,10 @@ import {
 	decodeApproveData,
 	generateApproveData,
 } from '../../../util/transactions';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import Identicon from '../../UI/Identicon';
 import { showAlert } from '../../../actions/alert';
+import { protectWalletModalVisible } from '../../../actions/user';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
@@ -94,13 +97,16 @@ const styles = StyleSheet.create({
 	},
 	addressWrapper: {
 		backgroundColor: colors.blue000,
+		flexDirection: 'row',
+		alignItems: 'center',
 		borderRadius: 40,
+		paddingHorizontal: 10,
 		paddingVertical: 5,
-		paddingHorizontal: 15,
 	},
 	address: {
-		fontSize: 12,
-		color: colors.grey400,
+		fontSize: 13,
+		marginHorizontal: 8,
+		color: colors.blue700,
 		...fontStyles.normal,
 		letterSpacing: 0.8,
 	},
@@ -129,10 +135,6 @@ const styles = StyleSheet.create({
 	actionViewWrapper: {
 		height: Device.isMediumDevice() ? 200 : 280,
 	},
-	actionViewChildren: {
-		// height: 300,
-		// backgroundColor: 'red'
-	},
 	paddingHorizontal: {
 		paddingHorizontal: 16,
 	},
@@ -147,6 +149,9 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		color: colors.blue500,
 		marginBottom: 10,
+	},
+	actionIcon: {
+		color: colors.blue,
 	},
 });
 
@@ -279,6 +284,18 @@ class ApproveTransactionReview extends PureComponent {
 		 * Update contract nickname
 		 */
 		onUpdateContractNickname: PropTypes.func,
+		/**
+		 * Prompts protect modal
+		 */
+		protectWalletModalVisible: PropTypes.bool,
+		/**
+		 * The saved nickname of the address
+		 */
+		nickname: PropTypes.string,
+		/**
+		 * Check if nickname is saved
+		 */
+		nicknameExists: PropTypes.bool,
 	};
 
 	state = {
@@ -449,6 +466,8 @@ class ApproveTransactionReview extends PureComponent {
 			content: 'clipboard-alert',
 			data: { msg: strings('transactions.address_copied_to_clipboard') },
 		});
+		setTimeout(() => this.props.protectWalletModalVisible(), 2000);
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.CONTRACT_ADDRESS_COPIED, this.getAnalyticsParams());
 	};
 
 	edit = () => {
@@ -609,16 +628,22 @@ class ApproveTransactionReview extends PureComponent {
 					</Text>
 					<View style={styles.contactWrapper}>
 						<Text>Contract: </Text>
-						<TouchableOpacity style={styles.addressWrapper}>
-							<EthereumAddress
-								address={this.state.transaction.to}
-								style={styles.address}
-								type={'short'}
-							/>
+						<TouchableOpacity style={styles.addressWrapper} onPress={this.copyContractAddress}>
+							<Identicon address={this.state.transaction.to} diameter={20} />
+							{this.props.nicknameExists ? (
+								<Text style={styles.address}>{this.props.nickname}</Text>
+							) : (
+								<EthereumAddress
+									address={this.state.transaction.to}
+									style={styles.address}
+									type={'short'}
+								/>
+							)}
+							<Icon style={styles.actionIcon} name="copy" size={18} />
 						</TouchableOpacity>
 					</View>
 					<Text style={styles.nickname} onPress={this.toggleDisplay}>
-						Add nickname
+						{this.props.nicknameExists ? 'Edit' : 'Add'} nickname
 					</Text>
 					<View style={styles.actionViewWrapper}>
 						<ActionView
@@ -714,6 +739,7 @@ class ApproveTransactionReview extends PureComponent {
 	};
 
 	renderTransactionReview = () => {
+		const { nickname, nicknameExists } = this.props;
 		const {
 			host,
 			method,
@@ -732,6 +758,8 @@ class ApproveTransactionReview extends PureComponent {
 				toggleViewDetails={this.toggleViewDetails}
 				toggleViewData={this.toggleViewData}
 				copyContractAddress={this.copyContractAddress}
+				nickname={nickname}
+				nicknameExists={nicknameExists}
 				address={renderShortAddress(to)}
 				host={host}
 				allowance={allowance}
@@ -811,6 +839,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
 	setTransactionObject: (transaction) => dispatch(setTransactionObject(transaction)),
 	showAlert: (config) => dispatch(showAlert(config)),
+	protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(withNavigation(ApproveTransactionReview));
