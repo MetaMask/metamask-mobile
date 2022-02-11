@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleProp, StyleSheet, TextStyle, View } from 'react-native';
 import Box from './Box';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Feather from 'react-native-vector-icons/Feather';
@@ -17,17 +17,44 @@ interface Props {
 	time?: string;
 	lowestLimit?: boolean;
 	idRequired?: boolean;
-	paymentIcon: string;
+	paymentType: Icon;
+	paymentNetworks: [string];
 	onPress?: () => any;
 }
+
+interface iconParams {
+	iconType: Icon;
+	style: StyleProp<TextStyle>;
+	size: number;
+}
+
+export enum Icon {
+	Apple = 'apple',
+	Card = 'credit-card',
+	Bank = 'bank',
+}
+
+export const PaymentIcon: React.FC<iconParams> = ({ iconType, style, size }: iconParams) => {
+	switch (iconType) {
+		case Icon.Apple: {
+			return <FontAwesome name={Icon.Apple} size={size} style={style} />;
+		}
+		case Icon.Card: {
+			return <MaterialsIcons name={Icon.Card} size={size} style={style} />;
+		}
+		case Icon.Bank: {
+			return <MaterialsCommunityIcons name={Icon.Bank} size={size} style={style} />;
+		}
+	}
+};
 
 const styles = StyleSheet.create({
 	name: {
 		fontSize: 15,
-		bottom: 15,
+		bottom: 18,
 		fontWeight: '600',
 		fontFamily: 'Euclid Circular B',
-		right: 35,
+		right: 36,
 	},
 	icon: {
 		bottom: 15,
@@ -50,10 +77,19 @@ const styles = StyleSheet.create({
 		marginTop: 10,
 	},
 	cardImage: {
-		bottom: 12,
+		bottom: 24,
 		left: 18,
 		flexDirection: 'row',
 		justifyContent: 'flex-end',
+	},
+	idPosition: {
+		right: 38,
+		bottom: 12,
+	},
+	idFont: {
+		color: colors.grey500,
+		fontSize: 10.5,
+		fontFamily: 'Euclid Circular B',
 	},
 	line: {
 		borderBottomColor: colors.grey050,
@@ -65,7 +101,7 @@ const styles = StyleSheet.create({
 	bottomContainer: {
 		flexDirection: 'row',
 		justifyContent: 'flex-start',
-		width: 100,
+		width: '100%',
 		top: 12,
 	},
 	leftDot: {
@@ -121,6 +157,7 @@ const styles = StyleSheet.create({
 });
 
 const Text = CustomText as any;
+// TODO: Convert into typescript and correctly type optionals
 const ListItem = BaseListItem as any;
 
 const PaymentOption: React.FC<Props> = ({
@@ -129,44 +166,43 @@ const PaymentOption: React.FC<Props> = ({
 	cardImage,
 	lowestLimit,
 	idRequired,
-	paymentIcon,
+	paymentType,
+	paymentNetworks,
 	onPress,
 }: Props) => {
-	let payImage;
-	if (paymentIcon === 'apple') {
-		payImage = <FontAwesome name={paymentIcon} size={20} style={styles.apple} />;
-	} else if (paymentIcon === 'credit-card') {
-		payImage = <MaterialsIcons name={paymentIcon} size={20} style={styles.cardAndBank} />;
-	} else {
-		payImage = <MaterialsCommunityIcons name={paymentIcon} size={20} style={styles.cardAndBank} />;
-	}
-
 	return (
-		<Box style={styles.box} onPress={onPress}>
+		<Box style={styles.box} onPress={onPress} highlighted={false}>
 			<View>
 				<ListItem.Content>
 					<ListItem.Icon style={styles.icon}>
-						<FontAwesome name="square" size={50} color="#F0F0F2" />
-						{payImage}
+						<FontAwesome name="square" size={50} color={colors.grey000} />
+						<PaymentIcon
+							iconType={paymentType}
+							size={20}
+							style={paymentType === Icon.Apple ? styles.apple : styles.cardAndBank}
+						></PaymentIcon>
 					</ListItem.Icon>
 					<ListItem.Body>
 						<ListItem.Title style={styles.name}>{title}</ListItem.Title>
+						<View style={styles.idPosition}>
+							{idRequired ? (
+								<Text style={styles.idFont}> ID required</Text>
+							) : (
+								<Text style={styles.idFont}> No ID required</Text>
+							)}
+						</View>
 					</ListItem.Body>
 					<ListItem.Amounts style={styles.cardImage}>
 						<ListItem.Amount>
 							{cardImage ? (
-								<>
-									<View style={styles.visa}>
-										<Image source={require('./images/visa.png')} />
-										<Image source={require('./images/mastercard.png')} style={styles.mastercard} />
-									</View>
-								</>
+								<View style={styles.visa}>
+									<Image source={require('./images/visa.png')} />
+									<Image source={require('./images/mastercard.png')} style={styles.mastercard} />
+								</View>
 							) : (
-								<>
-									<View style={styles.sepa}>
-										<Image source={require('./images/sepa.png')} />
-									</View>
-								</>
+								<View style={styles.sepa}>
+									<Image source={require('./images/sepa.png')} />
+								</View>
 							)}
 						</ListItem.Amount>
 					</ListItem.Amounts>
@@ -220,16 +256,6 @@ const PaymentOption: React.FC<Props> = ({
 						</>
 					)}
 				</View>
-				{idRequired ? (
-					<>
-						<View>
-							<FontAwesome name="circle" size={4} style={styles.rightDot} />
-						</View>
-						<Text style={styles.descFont}> ID Required</Text>
-					</>
-				) : (
-					<View />
-				)}
 			</View>
 		</Box>
 	);
