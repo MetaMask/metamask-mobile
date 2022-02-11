@@ -1065,12 +1065,12 @@ export function getTransakWebviewNavbar(navigation, route, onPop, themeColors) {
 export function getSwapsAmountNavbar(navigation, route, themeColors) {
 	const innerStyles = StyleSheet.create({
 		headerButtonText: {
-			color: themeColors.primary,
+			color: themeColors.primary.default,
 			fontSize: 14,
 			...fontStyles.normal,
 		},
 		headerStyle: {
-			backgroundColor: themeColors.backgroundDefault,
+			backgroundColor: themeColors.background.default,
 		},
 	});
 	const title = route.params?.title ?? 'Swap';
@@ -1089,15 +1089,15 @@ export function getSwapsAmountNavbar(navigation, route, themeColors) {
 export function getSwapsQuotesNavbar(navigation, route, themeColors) {
 	const innerStyles = StyleSheet.create({
 		headerButtonText: {
-			color: themeColors.primary,
+			color: themeColors.primary.default,
 			fontSize: 14,
 			...fontStyles.normal,
 		},
 		headerIcon: {
-			color: themeColors.primary,
+			color: themeColors.primary.default,
 		},
 		headerStyle: {
-			backgroundColor: themeColors.backgroundDefault,
+			backgroundColor: themeColors.background.default,
 		},
 	});
 	const title = route.params?.title ?? 'Swap';

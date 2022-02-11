@@ -5,50 +5,55 @@ import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 
 import Title from '../../../Base/Title';
-import { colors } from '../../../../styles/common';
+import { useAppThemeFromContext } from '../../../../util/theme';
 
-const styles = StyleSheet.create({
-	modalView: {
-		backgroundColor: colors.white,
-		justifyContent: 'center',
-		alignItems: 'center',
-		marginVertical: 50,
-		borderRadius: 10,
-		shadowColor: colors.black,
-		shadowOffset: {
-			width: 0,
-			height: 5,
+const createStyles = (colors) =>
+	StyleSheet.create({
+		modalView: {
+			backgroundColor: colors.background.default,
+			justifyContent: 'center',
+			alignItems: 'center',
+			marginVertical: 50,
+			borderRadius: 10,
+			shadowColor: colors.black,
+			shadowOffset: {
+				width: 0,
+				height: 5,
+			},
+			shadowOpacity: 0.36,
+			shadowRadius: 6.68,
+			elevation: 11,
 		},
-		shadowOpacity: 0.36,
-		shadowRadius: 6.68,
-		elevation: 11,
-	},
-	modal: {
-		margin: 0,
-		width: '100%',
-		padding: 25,
-	},
-	title: {
-		width: '100%',
-		paddingVertical: 15,
-		paddingHorizontal: 20,
-		paddingBottom: 5,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'space-between',
-	},
-	closeIcon: {
-		color: colors.black,
-	},
-	body: {
-		width: '100%',
-		paddingVertical: 5,
-		marginBottom: 15,
-		paddingHorizontal: 20,
-	},
-});
+		modal: {
+			margin: 0,
+			width: '100%',
+			padding: 25,
+		},
+		title: {
+			width: '100%',
+			paddingVertical: 15,
+			paddingHorizontal: 20,
+			paddingBottom: 5,
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'space-between',
+			color: colors.text.default,
+		},
+		closeIcon: {
+			color: colors.text.default,
+		},
+		body: {
+			width: '100%',
+			paddingVertical: 5,
+			marginBottom: 15,
+			paddingHorizontal: 20,
+		},
+	});
 
 function InfoModal({ title, body, isVisible, toggleModal, propagateSwipe }) {
+	const { colors } = useAppThemeFromContext();
+	const styles = createStyles(colors);
+
 	return (
 		<Modal
 			isVisible={isVisible}
