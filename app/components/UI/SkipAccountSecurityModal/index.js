@@ -33,11 +33,11 @@ const createStyles = (colors) =>
 			flexDirection: 'column',
 		},
 		skipModalXButton: {
-			flex: 1,
 			alignItems: 'flex-end',
 		},
 		skipModalXIcon: {
 			fontSize: 16,
+			color: colors.text.default,
 		},
 		skipModalActionButtons: {
 			flexDirection: 'row',

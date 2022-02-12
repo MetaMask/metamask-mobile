@@ -37,7 +37,7 @@ const createStyles = (colors) =>
 			color: colors.primary.inverse,
 		},
 		roundedNormal: {
-			backgroundColor: colors.white,
+			backgroundColor: colors.background.default,
 			borderWidth: 1,
 			borderColor: colors.primary.default,
 			padding: 8,
@@ -46,7 +46,7 @@ const createStyles = (colors) =>
 			color: colors.primary.default,
 		},
 		normal: {
-			backgroundColor: colors.white,
+			backgroundColor: colors.background.default,
 			borderWidth: 1,
 			borderColor: colors.primary.default,
 		},
@@ -59,7 +59,7 @@ const createStyles = (colors) =>
 			borderColor: colors.transparent,
 		},
 		cancel: {
-			backgroundColor: colors.white,
+			backgroundColor: colors.background.default,
 			borderWidth: 1,
 			borderColor: colors.text.alternative,
 		},
@@ -67,7 +67,7 @@ const createStyles = (colors) =>
 			color: colors.text.alternative,
 		},
 		signingCancel: {
-			backgroundColor: colors.white,
+			backgroundColor: colors.background.default,
 			borderWidth: 1,
 			borderColor: colors.primary.default,
 		},
@@ -78,7 +78,7 @@ const createStyles = (colors) =>
 			backgroundColor: colors.error.default,
 		},
 		info: {
-			backgroundColor: colors.white,
+			backgroundColor: colors.background.default,
 			borderWidth: 1,
 			borderColor: colors.primary.default,
 		},
@@ -102,7 +102,7 @@ const createStyles = (colors) =>
 			borderColor: colors.primary.default,
 		},
 		signText: {
-			color: colors.white,
+			color: colors.primary.inverse,
 		},
 		danger: {
 			backgroundColor: colors.error.default,

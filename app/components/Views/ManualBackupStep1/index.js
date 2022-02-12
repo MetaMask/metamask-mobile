@@ -76,7 +76,7 @@ const createStyles = (colors) =>
 			position: 'absolute',
 			width: '100%',
 			height: '100%',
-			backgroundColor: colors.grey700,
+			backgroundColor: colors.text.alternative,
 			opacity: 0.7,
 			alignItems: 'center',
 			borderRadius: 8,
@@ -100,21 +100,21 @@ const createStyles = (colors) =>
 		icon: {
 			width: 24,
 			height: 24,
-			color: colors.white,
+			color: colors.text.default,
 			textAlign: 'center',
 			marginBottom: 32,
 		},
 		reveal: {
 			fontSize: Device.isMediumDevice() ? 13 : 16,
 			...fontStyles.bold,
-			color: colors.white,
+			color: colors.text.default,
 			lineHeight: 22,
 			marginBottom: 8,
 			textAlign: 'center',
 		},
 		watching: {
 			fontSize: Device.isMediumDevice() ? 10 : 12,
-			color: colors.white,
+			color: colors.text.default,
 			lineHeight: 17,
 			marginBottom: 32,
 			textAlign: 'center',
@@ -124,10 +124,10 @@ const createStyles = (colors) =>
 			padding: 12,
 		},
 		seedPhraseWrapper: {
-			backgroundColor: colors.white,
+			backgroundColor: colors.background.default,
 			borderRadius: 8,
 			flexDirection: 'row',
-			borderColor: colors.grey100,
+			borderColor: colors.border.default,
 			borderWidth: 1,
 			marginBottom: 64,
 			minHeight: 275,
@@ -197,7 +197,7 @@ const createStyles = (colors) =>
 			borderWidth: 2,
 			borderRadius: 5,
 			width: '100%',
-			borderColor: colors.grey000,
+			borderColor: colors.border.default,
 			padding: 10,
 			height: 40,
 		},
@@ -370,7 +370,7 @@ export default class ManualBackupStep1 extends PureComponent {
 							<TextInput
 								style={styles.input}
 								placeholder={'Password'}
-								placeholderTextColor={colors.grey100}
+								placeholderTextColor={colors.text.muted}
 								onChangeText={this.onPasswordChange}
 								secureTextEntry
 								onSubmitEditing={this.tryUnlock}

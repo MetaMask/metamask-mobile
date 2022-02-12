@@ -110,7 +110,7 @@ const createStyles = (colors) =>
 			minHeight: 110,
 			height: 'auto',
 			borderWidth: 1,
-			borderColor: colors.grey500,
+			borderColor: colors.border.default,
 			backgroundColor: colors.background.default,
 			...fontStyles.normal,
 		},
@@ -428,8 +428,10 @@ class ImportFromSeed extends PureComponent {
 						onValueChange={this.updateBiometryChoice}
 						value={this.state.biometryChoice}
 						style={styles.biometrySwitch}
-						trackColor={Device.isIos() ? { true: colors.success.default, false: colors.grey300 } : null}
-						ios_backgroundColor={colors.grey300}
+						trackColor={
+							Device.isIos() ? { true: colors.primary.default, false: colors.border.muted } : null
+						}
+						ios_backgroundColor={colors.border.muted}
 					/>
 				</View>
 			);
@@ -442,8 +444,8 @@ class ImportFromSeed extends PureComponent {
 					onValueChange={(rememberMe) => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
 					value={this.state.rememberMe}
 					style={styles.biometrySwitch}
-					trackColor={Device.isIos() ? { true: colors.success.default, false: colors.grey300 } : null}
-					ios_backgroundColor={colors.grey300}
+					trackColor={Device.isIos() ? { true: colors.primary.default, false: colors.border.muted } : null}
+					ios_backgroundColor={colors.border.muted}
 				/>
 			</View>
 		);
@@ -526,7 +528,7 @@ class ImportFromSeed extends PureComponent {
 								secureTextEntry={hideSeedPhraseInput}
 								onChangeText={this.onSeedWordsChange}
 								value={seed}
-								baseColor={colors.grey500}
+								baseColor={colors.border.default}
 								tintColor={colors.primary.default}
 								onSubmitEditing={this.jumpToPassword}
 							/>
@@ -538,7 +540,7 @@ class ImportFromSeed extends PureComponent {
 								secureTextEntry
 								multiline={!hideSeedPhraseInput}
 								placeholder={strings('import_from_seed.seed_phrase_placeholder')}
-								placeholderTextColor={colors.grey200}
+								placeholderTextColor={colors.text.muted}
 								onChangeText={this.onSeedWordsChange}
 								testID="input-seed-phrase"
 								blurOnSubmit
@@ -580,7 +582,7 @@ class ImportFromSeed extends PureComponent {
 								secureTextEntry={secureTextEntry}
 								onChangeText={this.onPasswordChange}
 								value={password}
-								baseColor={colors.grey500}
+								baseColor={colors.border.default}
 								tintColor={colors.primary.default}
 								onSubmitEditing={this.jumpToConfirmPassword}
 							/>
@@ -609,7 +611,7 @@ class ImportFromSeed extends PureComponent {
 								secureTextEntry={secureTextEntry}
 								placeholder={strings('import_from_seed.confirm_password')}
 								value={confirmPassword}
-								baseColor={colors.grey500}
+								baseColor={colors.border.default}
 								tintColor={colors.primary.default}
 								onSubmitEditing={this.onPressImport}
 							/>

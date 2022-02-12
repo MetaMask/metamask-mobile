@@ -50,12 +50,12 @@ const createStyles = (colors) =>
 			borderRadius: 8,
 			flexDirection: 'row',
 			justifyContent: 'space-between',
-			borderColor: colors.grey100,
+			borderColor: colors.border.default,
 			borderWidth: 1,
 			marginBottom: 24,
 		},
 		seedPhraseWrapperComplete: {
-			borderColor: colors.green500,
+			borderColor: colors.success.default,
 		},
 		seedPhraseWrapperError: {
 			borderColor: colors.error.default,
@@ -83,7 +83,7 @@ const createStyles = (colors) =>
 			paddingVertical: 6,
 			width: Device.isMediumDevice() ? 75 : 95,
 			backgroundColor: colors.background.default,
-			borderColor: colors.grey050,
+			borderColor: colors.border.default,
 			borderWidth: 1,
 			borderRadius: 34,
 			borderStyle: 'dashed',
@@ -129,12 +129,12 @@ const createStyles = (colors) =>
 			marginLeft: 4,
 		},
 		selectedWord: {
-			backgroundColor: colors.grey400,
+			backgroundColor: colors.border.muted,
 			borderWidth: 1,
-			borderColor: colors.grey400,
+			borderColor: colors.border.muted,
 		},
 		selectedWordText: {
-			color: colors.white,
+			color: colors.text.default,
 		},
 		currentWord: {
 			borderWidth: 1,
@@ -144,6 +144,9 @@ const createStyles = (colors) =>
 			borderWidth: 1,
 			borderColor: colors.primary.default,
 			borderStyle: 'solid',
+		},
+		wordBoxIndex: {
+			color: colors.text.default,
 		},
 	});
 
@@ -303,7 +306,7 @@ class ManualBackupStep2 extends PureComponent {
 
 		return (
 			<View style={styles.successRow}>
-				<MaterialIcon name="check-circle" size={15} color={colors.green500} />
+				<MaterialIcon name="check-circle" size={15} color={colors.success.default} />
 				<Text style={styles.successText}>{strings('manual_backup_step_2.success')}</Text>
 			</View>
 		);
@@ -316,7 +319,7 @@ class ManualBackupStep2 extends PureComponent {
 
 		return (
 			<View key={`word_${i}`} style={styles.wordBoxWrapper}>
-				<Text>{i + 1}.</Text>
+				<Text style={styles.wordBoxIndex}>{i + 1}.</Text>
 				<TouchableOpacity
 					// eslint-disable-next-line react/jsx-no-bind
 					onPress={() => {

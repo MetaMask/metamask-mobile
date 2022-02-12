@@ -14,7 +14,6 @@ import {
 } from 'react-native';
 // eslint-disable-next-line import/no-unresolved
 import CheckBox from '@react-native-community/checkbox';
-import AnimatedFox from 'react-native-animated-fox';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
@@ -137,7 +136,7 @@ const createStyles = (colors) =>
 		},
 		input: {
 			borderWidth: 1,
-			borderColor: colors.grey500,
+			borderColor: colors.border.default,
 			padding: 10,
 			borderRadius: 6,
 			fontSize: 14,
@@ -534,9 +533,9 @@ class ChoosePassword extends PureComponent {
 								value={biometryChoice}
 								style={styles.biometrySwitch}
 								trackColor={
-									Device.isIos() ? { true: colors.success.default, false: colors.grey300 } : null
+									Device.isIos() ? { true: colors.primary.default, false: colors.border.muted } : null
 								}
-								ios_backgroundColor={colors.grey300}
+								ios_backgroundColor={colors.border.muted}
 							/>
 						</View>
 					</>
@@ -547,8 +546,10 @@ class ChoosePassword extends PureComponent {
 							onValueChange={(rememberMe) => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
 							value={rememberMe}
 							style={styles.biometrySwitch}
-							trackColor={Device.isIos() ? { true: colors.success.default, false: colors.grey300 } : null}
-							ios_backgroundColor={colors.grey300}
+							trackColor={
+								Device.isIos() ? { true: colors.primary.default, false: colors.border.muted } : null
+							}
+							ios_backgroundColor={colors.border.muted}
 						/>
 					</>
 				)}
@@ -593,20 +594,15 @@ class ChoosePassword extends PureComponent {
 				{loading ? (
 					<View style={styles.loadingWrapper}>
 						<View style={styles.foxWrapper}>
-							{Device.isAndroid() ? (
-								<Image
-									source={require('../../../images/fox.png')}
-									style={styles.image}
-									resizeMethod={'auto'}
-								/>
-							) : (
-								<AnimatedFox />
-							)}
+							<Image
+								source={require('../../../images/fox.png')}
+								style={styles.image}
+								resizeMethod={'auto'}
+							/>
+							{/** Disable animated fox since not yet theme compatible */}
+							{/* <AnimatedFox /> */}
 						</View>
-						<ActivityIndicator
-							size="large"
-							color={Device.isAndroid() ? colors.primary.default : colors.grey}
-						/>
+						<ActivityIndicator size="large" color={colors.text.default} />
 						<Text style={styles.title}>
 							{strings(
 								previousScreen === ONBOARDING
@@ -666,7 +662,7 @@ class ChoosePassword extends PureComponent {
 										onChangeText={this.setConfirmPassword}
 										secureTextEntry={secureTextEntry}
 										placeholder={''}
-										placeholderTextColor={colors.grey100}
+										placeholderTextColor={colors.text.muted}
 										testID={'input-password-confirm'}
 										onSubmitEditing={this.onPressCreate}
 										returnKeyType={'done'}

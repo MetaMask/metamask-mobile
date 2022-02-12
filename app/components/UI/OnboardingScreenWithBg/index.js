@@ -3,18 +3,8 @@ import PropTypes from 'prop-types';
 import { StyleSheet, ImageBackground, View } from 'react-native';
 import { useAppThemeFromContext } from '../../../util/theme';
 
-const images = {
-	a: require('../../../images/welcome-bg1.png'), // eslint-disable-line
-	b: require('../../../images/welcome-bg2.png'), // eslint-disable-line
-	c: require('../../../images/welcome-bg3.png'), // eslint-disable-line
-	d: require('../../../images/welcome-bg4.png'), // eslint-disable-line
-	carousel: null,
-};
-
-const OnboardingScreenWithBg = (props) => {
-	const { colors } = useAppThemeFromContext();
-
-	const styles = StyleSheet.create({
+const createStyles = (colors) =>
+	StyleSheet.create({
 		flex: {
 			flex: 1,
 			backgroundColor: colors.background.default,
@@ -31,6 +21,18 @@ const OnboardingScreenWithBg = (props) => {
 			height: null,
 		},
 	});
+
+const images = {
+	a: require('../../../images/welcome-bg1.png'), // eslint-disable-line
+	b: require('../../../images/welcome-bg2.png'), // eslint-disable-line
+	c: require('../../../images/welcome-bg3.png'), // eslint-disable-line
+	d: require('../../../images/welcome-bg4.png'), // eslint-disable-line
+	carousel: null,
+};
+
+const OnboardingScreenWithBg = (props) => {
+	const { colors } = useAppThemeFromContext();
+	const styles = createStyles(colors);
 
 	return (
 		<View style={styles.flex}>

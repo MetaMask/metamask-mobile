@@ -1,11 +1,9 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Image, StyleSheet, View, Text } from 'react-native';
-import AnimatedFox from 'react-native-animated-fox';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import { fontStyles, colors } from '../../../styles/common';
-import Device from '../../../util/device';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -84,11 +82,9 @@ export default class WebviewError extends PureComponent {
 		return error ? (
 			<View style={styles.wrapper}>
 				<View style={styles.foxWrapper}>
-					{Device.isAndroid() ? (
-						<Image source={require('../../../images/fox.png')} style={styles.image} resizeMethod={'auto'} />
-					) : (
-						<AnimatedFox />
-					)}
+					<Image source={require('../../../images/fox.png')} style={styles.image} resizeMethod={'auto'} />
+					{/** Disable animated fox since not yet theme compatible */}
+					{/* <AnimatedFox /> */}
 				</View>
 				<View style={styles.textWrapper}>
 					<Text style={styles.errorTitle}>{strings('webview_error.title')}</Text>
