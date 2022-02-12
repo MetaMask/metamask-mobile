@@ -306,8 +306,10 @@ class AdvancedSettings extends PureComponent {
 								<Switch
 									value={showHexData}
 									onValueChange={setShowHexData}
-									trackColor={Device.isIos() && { true: colors.blue, false: colors.grey000 }}
-									ios_backgroundColor={colors.grey000}
+									trackColor={
+										Device.isIos() && { true: colors.primary.default, false: colors.border.muted }
+									}
+									ios_backgroundColor={colors.border.muted}
 								/>
 							</View>
 						</View>
@@ -318,8 +320,10 @@ class AdvancedSettings extends PureComponent {
 								<Switch
 									value={showCustomNonce}
 									onValueChange={setShowCustomNonce}
-									trackColor={Device.isIos() && { true: colors.blue, false: colors.grey000 }}
-									ios_backgroundColor={colors.grey000}
+									trackColor={
+										Device.isIos() && { true: colors.primary.default, false: colors.border.muted }
+									}
+									ios_backgroundColor={colors.border.muted}
 								/>
 							</View>
 						</View>

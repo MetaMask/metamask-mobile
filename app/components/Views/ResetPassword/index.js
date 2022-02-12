@@ -25,7 +25,7 @@ import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
 import Device from '../../../util/device';
-import { colors, fontStyles, baseStyles } from '../../../styles/common';
+import { fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import SecureKeychain from '../../../core/SecureKeychain';
@@ -40,210 +40,213 @@ import NotificationManager from '../../../core/NotificationManager';
 import { syncPrefs } from '../../../util/sync';
 import { ThemeContext } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	mainWrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-	},
-	scrollviewWrapper: {
-		flexGrow: 1,
-	},
-	confirm_title: {
-		fontSize: 32,
-		marginTop: 10,
-		marginBottom: 10,
-		color: colors.fontPrimary,
-		justifyContent: 'center',
-		textAlign: 'left',
-		...fontStyles.normal,
-	},
-	confirm_input: {
-		borderWidth: 2,
-		borderRadius: 5,
-		width: '100%',
-		borderColor: colors.grey000,
-		padding: 10,
-		height: 40,
-	},
-	confirm_label: {
-		fontSize: 16,
-		lineHeight: 23,
-		color: colors.fontPrimary,
-		textAlign: 'left',
-		...fontStyles.normal,
-	},
-	wrapper: {
-		flex: 1,
-		marginBottom: 10,
-	},
-	scrollableWrapper: {
-		flex: 1,
-		paddingHorizontal: 32,
-	},
-	keyboardScrollableWrapper: {
-		flexGrow: 1,
-	},
-	loadingWrapper: {
-		paddingHorizontal: 40,
-		paddingBottom: 30,
-		alignItems: 'center',
-		flex: 1,
-	},
-	foxWrapper: {
-		width: Device.isIos() ? 90 : 80,
-		height: Device.isIos() ? 90 : 80,
-		marginTop: 30,
-		marginBottom: 30,
-	},
-	image: {
-		alignSelf: 'center',
-		width: 80,
-		height: 80,
-	},
-	passwordRequiredContent: {
-		marginBottom: 20,
-	},
-	content: {
-		alignItems: 'flex-start',
-	},
-	title: {
-		fontSize: 24,
-		marginTop: 20,
-		marginBottom: 20,
-		color: colors.fontPrimary,
-		justifyContent: 'center',
-		textAlign: 'center',
-		width: '100%',
-		...fontStyles.normal,
-	},
-	subtitle: {
-		fontSize: 16,
-		lineHeight: 23,
-		color: colors.fontPrimary,
-		textAlign: 'center',
-		...fontStyles.normal,
-	},
-	text: {
-		marginBottom: 10,
-		justifyContent: 'center',
-		...fontStyles.normal,
-	},
-	checkboxContainer: {
-		marginTop: 10,
-		marginHorizontal: 10,
-		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'center',
-		flexDirection: 'row',
-	},
-	checkbox: {
-		width: 18,
-		height: 18,
-		margin: 10,
-		marginTop: -5,
-	},
-	label: {
-		...fontStyles.normal,
-		fontSize: 14,
-		color: colors.black,
-		paddingHorizontal: 10,
-		lineHeight: 18,
-	},
-	learnMore: {
-		color: colors.blue,
-		textDecorationLine: 'underline',
-		textDecorationColor: colors.blue,
-	},
-	field: {
-		position: 'relative',
-	},
-	input: {
-		borderWidth: 1,
-		borderColor: colors.grey500,
-		padding: 10,
-		borderRadius: 6,
-		fontSize: 14,
-		height: 50,
-		...fontStyles.normal,
-	},
-	ctaWrapper: {
-		flex: 1,
-		marginTop: 20,
-		paddingHorizontal: 10,
-	},
-	errorMsg: {
-		color: colors.red,
-		...fontStyles.normal,
-	},
-	biometrics: {
-		position: 'relative',
-		marginTop: 20,
-		marginBottom: 30,
-	},
-	biometryLabel: {
-		fontSize: 14,
-		color: colors.fontPrimary,
-		position: 'absolute',
-		top: 0,
-		left: 0,
-	},
-	biometrySwitch: {
-		position: 'absolute',
-		top: 0,
-		right: 0,
-	},
-	hintLabel: {
-		height: 20,
-		marginTop: 14,
-		fontSize: 12,
-		color: colors.grey450,
-		textAlign: 'left',
-		...fontStyles.normal,
-	},
-	showPassword: {
-		position: 'absolute',
-		top: 0,
-		right: 0,
-	},
-	// eslint-disable-next-line react-native/no-unused-styles
-	strength_weak: {
-		color: colors.red,
-	},
-	// eslint-disable-next-line react-native/no-unused-styles
-	strength_good: {
-		color: colors.blue,
-	},
-	// eslint-disable-next-line react-native/no-unused-styles
-	strength_strong: {
-		color: colors.green300,
-	},
-	showMatchingPasswords: {
-		position: 'absolute',
-		top: 50,
-		right: 17,
-		alignSelf: 'flex-end',
-	},
-	confirmPasswordWrapper: {
-		flex: 1,
-		padding: 30,
-		paddingTop: 0,
-	},
-	buttonWrapper: {
-		flex: 1,
-		marginTop: 20,
-		justifyContent: 'flex-end',
-	},
-	warningMessageText: {
-		paddingVertical: 10,
-		color: colors.red,
-		...fontStyles.normal,
-	},
-	keyboardAvoidingView: {
-		flex: 1,
-		flexDirection: 'row',
-		alignSelf: 'center',
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		mainWrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+		},
+		scrollviewWrapper: {
+			flexGrow: 1,
+		},
+		confirm_title: {
+			fontSize: 32,
+			marginTop: 10,
+			marginBottom: 10,
+			color: colors.text.default,
+			justifyContent: 'center',
+			textAlign: 'left',
+			...fontStyles.normal,
+		},
+		confirm_input: {
+			borderWidth: 2,
+			borderRadius: 5,
+			width: '100%',
+			borderColor: colors.border.default,
+			padding: 10,
+			height: 40,
+			color: colors.text.default,
+		},
+		confirm_label: {
+			fontSize: 16,
+			lineHeight: 23,
+			color: colors.text.default,
+			textAlign: 'left',
+			...fontStyles.normal,
+		},
+		wrapper: {
+			flex: 1,
+			marginBottom: 10,
+		},
+		scrollableWrapper: {
+			flex: 1,
+			paddingHorizontal: 32,
+		},
+		keyboardScrollableWrapper: {
+			flexGrow: 1,
+		},
+		loadingWrapper: {
+			paddingHorizontal: 40,
+			paddingBottom: 30,
+			alignItems: 'center',
+			flex: 1,
+		},
+		foxWrapper: {
+			width: Device.isIos() ? 90 : 80,
+			height: Device.isIos() ? 90 : 80,
+			marginTop: 30,
+			marginBottom: 30,
+		},
+		image: {
+			alignSelf: 'center',
+			width: 80,
+			height: 80,
+		},
+		passwordRequiredContent: {
+			marginBottom: 20,
+		},
+		content: {
+			alignItems: 'flex-start',
+		},
+		title: {
+			fontSize: 24,
+			marginTop: 20,
+			marginBottom: 20,
+			color: colors.text.default,
+			justifyContent: 'center',
+			textAlign: 'center',
+			width: '100%',
+			...fontStyles.normal,
+		},
+		subtitle: {
+			fontSize: 16,
+			lineHeight: 23,
+			color: colors.text.default,
+			textAlign: 'center',
+			...fontStyles.normal,
+		},
+		text: {
+			marginBottom: 10,
+			justifyContent: 'center',
+			...fontStyles.normal,
+		},
+		checkboxContainer: {
+			marginTop: 10,
+			marginHorizontal: 10,
+			flex: 1,
+			alignItems: 'center',
+			justifyContent: 'center',
+			flexDirection: 'row',
+		},
+		checkbox: {
+			width: 18,
+			height: 18,
+			margin: 10,
+			marginTop: -5,
+		},
+		label: {
+			...fontStyles.normal,
+			fontSize: 14,
+			color: colors.text.default,
+			paddingHorizontal: 10,
+			lineHeight: 18,
+		},
+		learnMore: {
+			color: colors.primary.default,
+			textDecorationLine: 'underline',
+			textDecorationColor: colors.primary.default,
+		},
+		field: {
+			position: 'relative',
+		},
+		input: {
+			borderWidth: 1,
+			borderColor: colors.border.default,
+			padding: 10,
+			borderRadius: 6,
+			fontSize: 14,
+			height: 50,
+			...fontStyles.normal,
+			color: colors.text.default,
+		},
+		ctaWrapper: {
+			flex: 1,
+			marginTop: 20,
+			paddingHorizontal: 10,
+		},
+		errorMsg: {
+			color: colors.error.default,
+			...fontStyles.normal,
+		},
+		biometrics: {
+			position: 'relative',
+			marginTop: 20,
+			marginBottom: 30,
+		},
+		biometryLabel: {
+			fontSize: 14,
+			color: colors.text.default,
+			position: 'absolute',
+			top: 0,
+			left: 0,
+		},
+		biometrySwitch: {
+			position: 'absolute',
+			top: 0,
+			right: 0,
+		},
+		hintLabel: {
+			height: 20,
+			marginTop: 14,
+			fontSize: 12,
+			color: colors.text.default,
+			textAlign: 'left',
+			...fontStyles.normal,
+		},
+		showPassword: {
+			position: 'absolute',
+			top: 0,
+			right: 0,
+		},
+		// eslint-disable-next-line react-native/no-unused-styles
+		strength_weak: {
+			color: colors.error.default,
+		},
+		// eslint-disable-next-line react-native/no-unused-styles
+		strength_good: {
+			color: colors.primary.default,
+		},
+		// eslint-disable-next-line react-native/no-unused-styles
+		strength_strong: {
+			color: colors.success.default,
+		},
+		showMatchingPasswords: {
+			position: 'absolute',
+			top: 50,
+			right: 17,
+			alignSelf: 'flex-end',
+		},
+		confirmPasswordWrapper: {
+			flex: 1,
+			padding: 30,
+			paddingTop: 0,
+		},
+		buttonWrapper: {
+			flex: 1,
+			marginTop: 20,
+			justifyContent: 'flex-end',
+		},
+		warningMessageText: {
+			paddingVertical: 10,
+			color: colors.error.default,
+			...fontStyles.normal,
+		},
+		keyboardAvoidingView: {
+			flex: 1,
+			flexDirection: 'row',
+			alignSelf: 'center',
+		},
+	});
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 const RESET_PASSWORD = 'reset_password';
@@ -499,6 +502,9 @@ class ResetPassword extends PureComponent {
 
 	renderSwitch = () => {
 		const { biometryType, rememberMe, biometryChoice } = this.state;
+		const { colors } = this.context;
+		const styles = createStyles(colors);
+
 		return (
 			<View style={styles.biometrics}>
 				{biometryType ? (
@@ -511,7 +517,9 @@ class ResetPassword extends PureComponent {
 								onValueChange={this.updateBiometryChoice} // eslint-disable-line react/jsx-no-bind
 								value={biometryChoice}
 								style={styles.biometrySwitch}
-								trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
+								trackColor={
+									Device.isIos() ? { true: colors.success.default, false: colors.grey300 } : null
+								}
 								ios_backgroundColor={colors.grey300}
 							/>
 						</View>
@@ -523,7 +531,7 @@ class ResetPassword extends PureComponent {
 							onValueChange={(rememberMe) => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
 							value={rememberMe}
 							style={styles.biometrySwitch}
-							trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
+							trackColor={Device.isIos() ? { true: colors.success.default, false: colors.grey300 } : null}
 							ios_backgroundColor={colors.grey300}
 						/>
 					</>
@@ -583,16 +591,24 @@ class ResetPassword extends PureComponent {
 		});
 	};
 
-	renderLoader = () => (
-		<View style={styles.loader}>
-			<ActivityIndicator size="small" />
-		</View>
-	);
+	renderLoader = () => {
+		const { colors } = this.context;
+		const styles = createStyles(colors);
+
+		return (
+			<View style={styles.loader}>
+				<ActivityIndicator size="small" />
+			</View>
+		);
+	};
 
 	setConfirmPassword = (val) => this.setState({ confirmPassword: val });
 
 	renderConfirmPassword() {
 		const { warningIncorrectPassword } = this.state;
+		const { colors } = this.context;
+		const styles = createStyles(colors);
+
 		return (
 			<KeyboardAvoidingView style={styles.keyboardAvoidingView} behavior={'padding'}>
 				<KeyboardAwareScrollView style={baseStyles.flexGrow} enableOnAndroid>
@@ -607,7 +623,7 @@ class ResetPassword extends PureComponent {
 							<TextInput
 								style={styles.confirm_input}
 								placeholder={'Password'}
-								placeholderTextColor={colors.grey100}
+								placeholderTextColor={colors.text.muted}
 								onChangeText={this.onPasswordChange}
 								secureTextEntry
 								onSubmitEditing={this.tryUnlock}
@@ -636,6 +652,8 @@ class ResetPassword extends PureComponent {
 	renderResetPassword() {
 		const { isSelected, inputWidth, password, passwordStrength, confirmPassword, secureTextEntry, error, loading } =
 			this.state;
+		const { colors } = this.context;
+		const styles = createStyles(colors);
 		const passwordsMatch = password !== '' && password === confirmPassword;
 		const canSubmit = passwordsMatch && isSelected;
 		const previousScreen = this.props.route.params?.[PREVIOUS_SCREEN];
@@ -656,7 +674,10 @@ class ResetPassword extends PureComponent {
 								<AnimatedFox />
 							)}
 						</View>
-						<ActivityIndicator size="large" color={Device.isAndroid() ? colors.blue : colors.grey} />
+						<ActivityIndicator
+							size="large"
+							color={Device.isAndroid() ? colors.primary.default : colors.grey}
+						/>
 						<Text style={styles.title}>
 							{strings(
 								previousScreen === ONBOARDING
@@ -715,7 +736,7 @@ class ResetPassword extends PureComponent {
 										onChangeText={this.setConfirmPassword}
 										secureTextEntry={secureTextEntry}
 										placeholder={''}
-										placeholderTextColor={colors.grey100}
+										placeholderTextColor={colors.text.muted}
 										testID={'input-password-confirm'}
 										onSubmitEditing={this.onPressCreate}
 										returnKeyType={'done'}
@@ -723,7 +744,7 @@ class ResetPassword extends PureComponent {
 									/>
 									<View style={styles.showMatchingPasswords}>
 										{passwordsMatch ? (
-											<Icon name="check" size={16} color={colors.green300} />
+											<Icon name="check" size={16} color={colors.success.default} />
 										) : null}
 									</View>
 									<Text style={styles.hintLabel}>
@@ -736,7 +757,7 @@ class ResetPassword extends PureComponent {
 										value={isSelected}
 										onValueChange={this.setSelection}
 										style={styles.checkbox}
-										tintColors={{ true: colors.blue }}
+										tintColors={{ true: colors.primary.default }}
 										boxType="square"
 										testID={'password-understand-box'}
 									/>
@@ -770,6 +791,9 @@ class ResetPassword extends PureComponent {
 
 	render() {
 		const { view, ready } = this.state;
+		const { colors } = this.context;
+		const styles = createStyles(colors);
+
 		if (!ready) return this.renderLoader();
 		return (
 			<SafeAreaView style={styles.mainWrapper}>

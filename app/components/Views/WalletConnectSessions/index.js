@@ -29,7 +29,7 @@ const createStyles = (colors) =>
 			flexDirection: 'row',
 			paddingVertical: 10,
 			paddingHorizontal: 20,
-			borderBottomColor: colors.grey000,
+			borderBottomColor: colors.border.muted,
 			borderBottomWidth: 1,
 		},
 		info: {

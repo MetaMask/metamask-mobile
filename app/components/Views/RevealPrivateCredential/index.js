@@ -10,7 +10,7 @@ import {
 	InteractionManager,
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
 import ActionView from '../../UI/ActionView';
@@ -28,106 +28,109 @@ import { BIOMETRY_CHOICE } from '../../../constants/storage';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-	},
-	header: {
-		borderBottomColor: colors.grey400,
-		borderBottomWidth: 1,
-		...fontStyles.normal,
-	},
-	seedPhrase: {
-		backgroundColor: colors.white,
-		marginTop: 10,
-		paddingBottom: 20,
-		paddingLeft: 20,
-		paddingRight: 20,
-		borderColor: colors.grey400,
-		borderBottomWidth: 1,
-		fontSize: 20,
-		textAlign: 'center',
-		color: colors.black,
-		...fontStyles.normal,
-	},
-	seedPhraseView: {
-		borderRadius: 10,
-		borderWidth: 1,
-		borderColor: colors.grey400,
-		marginTop: 10,
-		alignItems: 'center',
-	},
-	privateCredentialAction: {
-		flex: 1,
-		flexDirection: 'row',
-		alignItems: 'center',
-	},
-	rowWrapper: {
-		padding: 20,
-	},
-	warningWrapper: {
-		backgroundColor: colors.red000,
-	},
-	warningRowWrapper: {
-		flex: 1,
-		flexDirection: 'row',
-		alignContent: 'center',
-		alignItems: 'center',
-	},
-	warningText: {
-		marginTop: 10,
-		color: colors.red,
-		...fontStyles.normal,
-	},
-	input: {
-		borderWidth: 2,
-		borderRadius: 5,
-		borderColor: colors.grey000,
-		padding: 10,
-	},
-	icon: {
-		margin: 10,
-		color: colors.red,
-	},
-	actionIcon: {
-		margin: 10,
-		color: colors.blue,
-	},
-	actionText: {
-		color: colors.blue,
-	},
-	warningMessageText: {
-		marginLeft: 10,
-		marginRight: 40,
-		...fontStyles.normal,
-	},
-	enterPassword: {
-		marginBottom: 15,
-	},
-	tabContent: {
-		padding: 20,
-	},
-	qrCodeWrapper: {
-		marginTop: 20,
-		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	tabUnderlineStyle: {
-		height: 2,
-		backgroundColor: colors.blue,
-	},
-	tabStyle: {
-		paddingBottom: 0,
-		backgroundColor: colors.beige,
-	},
-	textStyle: {
-		fontSize: 12,
-		letterSpacing: 0.5,
-		...fontStyles.bold,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+		},
+		header: {
+			borderBottomColor: colors.border.muted,
+			borderBottomWidth: 1,
+			...fontStyles.normal,
+		},
+		seedPhrase: {
+			backgroundColor: colors.background.default,
+			marginTop: 10,
+			paddingBottom: 20,
+			paddingLeft: 20,
+			paddingRight: 20,
+			borderColor: colors.border.default,
+			borderBottomWidth: 1,
+			fontSize: 20,
+			textAlign: 'center',
+			color: colors.text.default,
+			...fontStyles.normal,
+		},
+		seedPhraseView: {
+			borderRadius: 10,
+			borderWidth: 1,
+			borderColor: colors.grey400,
+			marginTop: 10,
+			alignItems: 'center',
+		},
+		privateCredentialAction: {
+			flex: 1,
+			flexDirection: 'row',
+			alignItems: 'center',
+		},
+		rowWrapper: {
+			padding: 20,
+		},
+		warningWrapper: {
+			backgroundColor: colors.error.muted,
+		},
+		warningRowWrapper: {
+			flex: 1,
+			flexDirection: 'row',
+			alignContent: 'center',
+			alignItems: 'center',
+		},
+		warningText: {
+			marginTop: 10,
+			color: colors.error.default,
+			...fontStyles.normal,
+		},
+		input: {
+			borderWidth: 2,
+			borderRadius: 5,
+			borderColor: colors.border.default,
+			padding: 10,
+		},
+		icon: {
+			margin: 10,
+			color: colors.error.default,
+		},
+		actionIcon: {
+			margin: 10,
+			color: colors.primary.default,
+		},
+		actionText: {
+			color: colors.primary.default,
+		},
+		warningMessageText: {
+			marginLeft: 10,
+			marginRight: 40,
+			...fontStyles.normal,
+			color: colors.error.default,
+		},
+		enterPassword: {
+			marginBottom: 15,
+		},
+		tabContent: {
+			padding: 20,
+		},
+		qrCodeWrapper: {
+			marginTop: 20,
+			flex: 1,
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+		tabUnderlineStyle: {
+			height: 2,
+			backgroundColor: colors.primary.default,
+		},
+		tabStyle: {
+			paddingBottom: 0,
+			backgroundColor: colors.beige,
+		},
+		textStyle: {
+			fontSize: 12,
+			letterSpacing: 0.5,
+			...fontStyles.bold,
+			color: colors.text.default,
+		},
+	});
 
 const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
 
@@ -278,11 +281,14 @@ class RevealPrivateCredential extends PureComponent {
 	};
 
 	renderTabBar() {
+		const { colors } = this.context;
+		const styles = createStyles(colors);
+
 		return (
 			<DefaultTabBar
 				underlineStyle={styles.tabUnderlineStyle}
-				activeTextColor={colors.blue}
-				inactiveTextColor={colors.fontTertiary}
+				activeTextColor={colors.primary.default}
+				inactiveTextColor={colors.text.muted}
 				backgroundColor={colors.white}
 				tabStyle={styles.tabStyle}
 				textStyle={styles.textStyle}
@@ -293,6 +299,8 @@ class RevealPrivateCredential extends PureComponent {
 	render = () => {
 		const { unlocked, privateCredential } = this.state;
 		const privateCredentialName = this.props.privateCredentialName || this.props.route.params.privateCredentialName;
+		const { colors } = this.context;
+		const styles = createStyles(colors);
 
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'reveal-private-credential-screen'}>
@@ -362,7 +370,7 @@ class RevealPrivateCredential extends PureComponent {
 										style={styles.input}
 										testID={'private-credential-password-text-input'}
 										placeholder={'Password'}
-										placeholderTextColor={colors.grey100}
+										placeholderTextColor={colors.text.muted}
 										onChangeText={this.onPasswordChange}
 										secureTextEntry
 										onSubmitEditing={this.tryUnlock}

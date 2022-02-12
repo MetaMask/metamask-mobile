@@ -715,8 +715,10 @@ class Settings extends PureComponent {
 								<Switch
 									onValueChange={this.onSingInWithBiometrics}
 									value={this.state.biometryChoice}
-									trackColor={isIos ? { true: colors.primary.default, false: colors.grey000 } : null}
-									ios_backgroundColor={colors.grey000}
+									trackColor={
+										isIos ? { true: colors.primary.default, false: colors.border.muted } : null
+									}
+									ios_backgroundColor={colors.border.muted}
 								/>
 							</View>
 						</View>
@@ -732,8 +734,10 @@ class Settings extends PureComponent {
 								<Switch
 									onValueChange={this.onSignInWithPasscode}
 									value={this.state.passcodeChoice}
-									trackColor={isIos ? { true: colors.primary.default, false: colors.grey000 } : null}
-									ios_backgroundColor={colors.grey000}
+									trackColor={
+										isIos ? { true: colors.primary.default, false: colors.border.muted } : null
+									}
+									ios_backgroundColor={colors.border.muted}
 								/>
 							</View>
 						</View>
@@ -795,9 +799,9 @@ class Settings extends PureComponent {
 								value={privacyMode}
 								onValueChange={this.togglePrivacy}
 								trackColor={
-									Device.isIos() ? { true: colors.primary.default, false: colors.grey000 } : null
+									Device.isIos() ? { true: colors.primary.default, false: colors.border.muted } : null
 								}
-								ios_backgroundColor={colors.grey000}
+								ios_backgroundColor={colors.border.muted}
 							/>
 						</View>
 					</View>
@@ -809,9 +813,9 @@ class Settings extends PureComponent {
 								value={analyticsEnabled}
 								onValueChange={this.toggleMetricsOptIn}
 								trackColor={
-									Device.isIos() ? { true: colors.primary.default, false: colors.grey000 } : null
+									Device.isIos() ? { true: colors.primary.default, false: colors.border.muted } : null
 								}
-								ios_backgroundColor={colors.grey000}
+								ios_backgroundColor={colors.border.muted}
 								testID={'metametrics-switch'}
 							/>
 						</View>
@@ -824,9 +828,9 @@ class Settings extends PureComponent {
 								value={thirdPartyApiMode}
 								onValueChange={this.toggleThirdPartyAPI}
 								trackColor={
-									Device.isIos() ? { true: colors.primary.default, false: colors.grey000 } : null
+									Device.isIos() ? { true: colors.primary.default, false: colors.border.muted } : null
 								}
-								ios_backgroundColor={colors.grey000}
+								ios_backgroundColor={colors.border.muted}
 							/>
 						</View>
 					</View>
@@ -886,10 +890,10 @@ class Settings extends PureComponent {
 										onValueChange={this.toggleOpenSeaApi}
 										trackColor={
 											Device.isIos()
-												? { true: colors.primary.default, false: colors.grey000 }
+												? { true: colors.primary.default, false: colors.border.muted }
 												: null
 										}
-										ios_backgroundColor={colors.grey000}
+										ios_backgroundColor={colors.border.muted}
 									/>
 								</View>
 							</View>
@@ -902,10 +906,10 @@ class Settings extends PureComponent {
 										onValueChange={this.toggleNftAutodetect}
 										trackColor={
 											Device.isIos()
-												? { true: colors.primary.default, false: colors.grey000 }
+												? { true: colors.primary.default, false: colors.border.muted }
 												: null
 										}
-										ios_backgroundColor={colors.grey000}
+										ios_backgroundColor={colors.border.muted}
 										disabled={!openSeaEnabled}
 									/>
 								</View>
