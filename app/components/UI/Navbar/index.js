@@ -845,10 +845,10 @@ export function getWalletNavbarOptions(title, navigation, drawerRef, themeColors
 export function getNetworkNavbarOptions(title, translate, navigation, themeColors) {
 	const innerStyles = StyleSheet.create({
 		headerStyle: {
-			backgroundColor: themeColors.backgroundDefault,
+			backgroundColor: themeColors.background.default,
 		},
 		headerIcon: {
-			color: themeColors.primary,
+			color: themeColors.primary.default,
 		},
 	});
 	return {

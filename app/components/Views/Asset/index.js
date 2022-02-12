@@ -3,8 +3,6 @@ import { ActivityIndicator, InteractionManager, View, StyleSheet } from 'react-n
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { swapsUtils } from '@metamask/swaps-controller/';
-
-import { colors } from '../../../styles/common';
 import AssetOverview from '../../UI/AssetOverview';
 import Transactions from '../../UI/Transactions';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
@@ -14,21 +12,22 @@ import { addAccountTimeFlagFilter } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
 import { ThemeContext } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-	},
-	assetOverviewWrapper: {
-		height: 280,
-	},
-	loader: {
-		backgroundColor: colors.white,
-		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+		},
+		assetOverviewWrapper: {
+			height: 280,
+		},
+		loader: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+	});
 
 /**
  * View that displays a specific asset (Token or ETH)
@@ -272,11 +271,16 @@ class Asset extends PureComponent {
 		this.chainId = chainId;
 	}
 
-	renderLoader = () => (
-		<View style={styles.loader}>
-			<ActivityIndicator style={styles.loader} size="small" />
-		</View>
-	);
+	renderLoader = () => {
+		const { colors } = this.context;
+		const styles = createStyles(colors);
+
+		return (
+			<View style={styles.loader}>
+				<ActivityIndicator style={styles.loader} size="small" />
+			</View>
+		);
+	};
 
 	onRefresh = async () => {
 		this.setState({ refreshing: true });
@@ -294,6 +298,8 @@ class Asset extends PureComponent {
 			selectedAddress,
 			chainId,
 		} = this.props;
+		const { colors } = this.context;
+		const styles = createStyles(colors);
 
 		return (
 			<View style={styles.wrapper}>

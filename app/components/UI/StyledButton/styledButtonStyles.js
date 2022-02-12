@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { fontStyles } from '../../../styles/common';
+import { colors as importedColors, fontStyles } from '../../../styles/common';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -54,9 +54,9 @@ const createStyles = (colors) =>
 			color: colors.primary.default,
 		},
 		transparent: {
-			backgroundColor: colors.transparent,
+			backgroundColor: importedColors.transparent,
 			borderWidth: 0,
-			borderColor: colors.transparent,
+			borderColor: importedColors.transparent,
 		},
 		cancel: {
 			backgroundColor: colors.background.default,
@@ -128,6 +128,7 @@ function getStyles(type, colors) {
 	const styles = createStyles(colors);
 
 	let fontStyle, containerStyle;
+
 	switch (type) {
 		case 'orange':
 			fontStyle = styles.orangeText;

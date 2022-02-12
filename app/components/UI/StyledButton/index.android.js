@@ -94,7 +94,8 @@ export default class StyledButton extends PureComponent {
 
 	render = () => {
 		const { type } = this.props;
-		const { fontStyle, containerStyle } = getStyles(type);
+		const { colors } = this.context;
+		const { fontStyle, containerStyle } = getStyles(type, colors);
 		const touchableProps = {};
 		const containerStyles = [
 			...containerStyle,
