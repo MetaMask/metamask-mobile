@@ -83,16 +83,8 @@ const createStyles = (colors) =>
 		card: {
 			backgroundColor: colors.background.default,
 			borderWidth: 1,
-			borderColor: colors.grey100,
+			borderColor: colors.border.default,
 			borderRadius: 10,
-			shadowColor: colors.black,
-			shadowOffset: {
-				width: 1,
-				height: 4,
-			},
-			shadowOpacity: 0.1,
-			shadowRadius: 2.62,
-
 			elevation: 4,
 			padding: 16,
 			marginBottom: 20,
@@ -178,6 +170,7 @@ const createStyles = (colors) =>
 		},
 		secureModalXIcon: {
 			fontSize: 16,
+			color: colors.text.default,
 		},
 		auxCenterView: {
 			width: 26,
@@ -261,7 +254,7 @@ const AccountBackupStep1B = (props) => {
 							</Text>
 						</View>
 						<TouchableOpacity onPress={showWhySecureWallet} style={styles.centerContent}>
-							<Icon name="info-circle" style={styles.infoIcon} color={colors.blue} />
+							<Icon name="info-circle" style={styles.infoIcon} color={colors.primary.default} />
 							<Text style={styles.whyImportantText}>
 								{strings('account_backup_step_1B.why_important')}
 							</Text>

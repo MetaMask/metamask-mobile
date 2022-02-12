@@ -30,7 +30,6 @@ import BaseNotification from '../../UI/Notification/BaseNotification';
 import Animated, { EasingNode } from 'react-native-reanimated';
 import ElevatedView from 'react-native-elevated-view';
 import { loadingSet, loadingUnset } from '../../../actions/user';
-import AnimatedFox from 'react-native-animated-fox';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
@@ -472,15 +471,13 @@ class Onboarding extends PureComponent {
 						<View style={styles.wrapper}>
 							{loading && (
 								<View style={styles.foxWrapper}>
-									{Device.isAndroid() ? (
-										<Image
-											source={require('../../../images/fox.png')}
-											style={styles.image}
-											resizeMethod={'auto'}
-										/>
-									) : (
-										<AnimatedFox />
-									)}
+									<Image
+										source={require('../../../images/fox.png')}
+										style={styles.image}
+										resizeMethod={'auto'}
+									/>
+									{/** Disable animated fox since not yet theme compatible */}
+									{/* <AnimatedFox /> */}
 								</View>
 							)}
 							{loading ? this.renderLoader() : this.renderContent()}

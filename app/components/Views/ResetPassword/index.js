@@ -16,7 +16,6 @@ import {
 } from 'react-native';
 // eslint-disable-next-line import/no-unresolved
 import CheckBox from '@react-native-community/checkbox';
-import AnimatedFox from 'react-native-animated-fox';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
@@ -664,15 +663,13 @@ class ResetPassword extends PureComponent {
 				{loading ? (
 					<View style={styles.loadingWrapper}>
 						<View style={styles.foxWrapper}>
-							{Device.isAndroid() ? (
-								<Image
-									source={require('../../../images/fox.png')}
-									style={styles.image}
-									resizeMethod={'auto'}
-								/>
-							) : (
-								<AnimatedFox />
-							)}
+							<Image
+								source={require('../../../images/fox.png')}
+								style={styles.image}
+								resizeMethod={'auto'}
+							/>
+							{/** Disable animated fox since not yet theme compatible */}
+							{/* <AnimatedFox /> */}
 						</View>
 						<ActivityIndicator
 							size="large"

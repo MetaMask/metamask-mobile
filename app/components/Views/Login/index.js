@@ -19,7 +19,6 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import Button from 'react-native-button';
 import Engine from '../../../core/Engine';
 import StyledButton from '../../UI/StyledButton';
-import AnimatedFox from 'react-native-animated-fox';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import SecureKeychain from '../../../core/SecureKeychain';
@@ -469,8 +468,10 @@ class Login extends PureComponent {
 						onValueChange={(biometryChoice) => this.updateBiometryChoice(biometryChoice)} // eslint-disable-line react/jsx-no-bind
 						value={this.state.biometryChoice}
 						style={styles.biometrySwitch}
-						trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
-						ios_backgroundColor={colors.grey300}
+						trackColor={
+							Device.isIos() ? { true: colors.primary.default, false: colors.border.muted } : null
+						}
+						ios_backgroundColor={colors.border.muted}
 					/>
 				</View>
 			);
@@ -483,8 +484,8 @@ class Login extends PureComponent {
 					onValueChange={(rememberMe) => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
 					value={this.state.rememberMe}
 					style={styles.biometrySwitch}
-					trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
-					ios_backgroundColor={colors.grey300}
+					trackColor={Device.isIos() ? { true: colors.primary.default, false: colors.border.muted } : null}
+					ios_backgroundColor={colors.border.muted}
 				/>
 			</View>
 		);
@@ -533,7 +534,12 @@ class Login extends PureComponent {
 					onConfirmPress={this.toggleWarningModal}
 				>
 					<View style={styles.areYouSure} testID={'delete-wallet-modal-container'}>
-						<Icon style={styles.warningIcon} size={46} color={colors.red} name="exclamation-triangle" />
+						<Icon
+							style={styles.warningIcon}
+							size={46}
+							color={colors.error.default}
+							name="exclamation-triangle"
+						/>
 						<Text style={[styles.heading, styles.red]}>{strings('login.are_you_sure')}</Text>
 						<Text style={styles.warningText}>
 							<Text>{strings('login.your_current_wallet')}</Text>
@@ -570,8 +576,8 @@ class Login extends PureComponent {
 								onChangeText={this.checkDelete}
 								autoCapitalize="none"
 								value={this.state.deleteText}
-								baseColor={colors.grey500}
-								tintColor={colors.blue}
+								baseColor={colors.border.default}
+								tintColor={colors.primary.default}
 								onSubmitEditing={this.submitDelete}
 							/>
 							{this.state.showDeleteWarning && (
@@ -585,15 +591,13 @@ class Login extends PureComponent {
 					<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
 						<View testID={'login'}>
 							<View style={styles.foxWrapper}>
-								{Device.isAndroid() ? (
-									<Image
-										source={require('../../../images/fox.png')}
-										style={styles.image}
-										resizeMethod={'auto'}
-									/>
-								) : (
-									<AnimatedFox />
-								)}
+								<Image
+									source={require('../../../images/fox.png')}
+									style={styles.image}
+									resizeMethod={'auto'}
+								/>
+								{/** Disable animated fox since not yet theme compatible */}
+								{/* <AnimatedFox /> */}
 							</View>
 							<Text style={styles.title}>{strings('login.title')}</Text>
 							<View style={styles.field}>
@@ -608,8 +612,8 @@ class Login extends PureComponent {
 									ref={this.fieldRef}
 									onChangeText={this.setPassword}
 									value={this.state.password}
-									baseColor={colors.grey500}
-									tintColor={colors.blue}
+									baseColor={colors.border.default}
+									tintColor={colors.primary.default}
 									onSubmitEditing={this.triggerLogIn}
 									renderRightAccessory={() => (
 										<BiometryButton
