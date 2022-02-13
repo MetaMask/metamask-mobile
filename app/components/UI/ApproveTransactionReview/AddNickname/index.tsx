@@ -11,9 +11,12 @@ import StyledButton from '../../StyledButton';
 import Text from '../../../Base/Text';
 import { showSimpleNotification } from '../../../../actions/notification';
 import Identicon from '../../../UI/Identicon';
-import CopyIcon from 'react-native-vector-icons/FontAwesome';
-import ExportIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Feather from 'react-native-vector-icons/Feather';
 import { strings } from '../../../../../locales/i18n';
+import GlobalAlert from '../../../UI/GlobalAlert';
+import { showAlert } from '../../../../actions/alert';
+import ClipboardManager from '../../../../core/ClipboardManager';
+import { protectWalletModalVisible } from '../../../../actions/user';
 
 const styles = StyleSheet.create({
 	container: {
@@ -103,6 +106,8 @@ interface AddNicknameProps {
 	nicknameExists: boolean;
 	nickname: string;
 	addressBook: [];
+	showModalAlert: (config: any) => void;
+	protectWalletVisible: () => void;
 }
 
 const Header = (props: HeaderProps) => {
@@ -130,8 +135,28 @@ const getAnalyticsParams = () => {
 };
 
 const AddNickname = (props: AddNicknameProps) => {
-	const { onUpdateContractNickname, contractAddress, network, nicknameExists, nickname } = props;
+	const {
+		onUpdateContractNickname,
+		contractAddress,
+		network,
+		nicknameExists,
+		nickname,
+		showModalAlert,
+		protectWalletVisible,
+	} = props;
 	const [newNickname, setNewNickname] = React.useState(nickname);
+
+	const copyContractAddress = async () => {
+		await ClipboardManager.setString(contractAddress);
+		showModalAlert({
+			isVisible: true,
+			autodismiss: 1500,
+			content: 'clipboard-alert',
+			data: { msg: strings('transactions.address_copied_to_clipboard') },
+		});
+		setTimeout(() => protectWalletVisible(), 2000);
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.CONTRACT_ADDRESS_COPIED, getAnalyticsParams());
+	};
 
 	const saveTokenNickname = () => {
 		const { AddressBookController } = Engine.context;
@@ -151,10 +176,16 @@ const AddNickname = (props: AddNicknameProps) => {
 				<Text style={styles.label}>{strings('nickname.address')}</Text>
 				<View style={styles.addressWrapperPrimary}>
 					<View style={styles.addressWrapper}>
-						<CopyIcon style={styles.actionIcon} name="copy" size={18} />
+						<Feather
+							name="copy"
+							size={18}
+							color={colors.blue}
+							style={styles.actionIcon}
+							onPress={copyContractAddress}
+						/>
 						<EthereumAddress address={contractAddress} type="mid" style={styles.address} />
 					</View>
-					<ExportIcon style={styles.actionIcon} name="export-variant" size={22} />
+					<AntDesignIcon style={styles.actionIcon} name="export" size={22} />
 				</View>
 				<Text style={styles.label}>{strings('nickname.name')}</Text>
 				<TextInput
@@ -180,6 +211,7 @@ const AddNickname = (props: AddNicknameProps) => {
 					{strings('nickname.save_nickname')}
 				</StyledButton>
 			</View>
+			<GlobalAlert />
 		</SafeAreaView>
 	);
 };
@@ -190,6 +222,8 @@ const mapStateToProps = (state: any) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => ({
+	showModalAlert: (config) => dispatch(showAlert(config)),
+	protectWalletVisible: () => dispatch(protectWalletModalVisible()),
 	showSimpleNotification: (notification: Notification) => dispatch(showSimpleNotification(notification)),
 });
 

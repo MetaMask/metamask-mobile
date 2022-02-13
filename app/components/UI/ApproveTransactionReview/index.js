@@ -21,7 +21,7 @@ import {
 	decodeApproveData,
 	generateApproveData,
 } from '../../../util/transactions';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Feather from 'react-native-vector-icons/Feather';
 import Identicon from '../../UI/Identicon';
 import { showAlert } from '../../../actions/alert';
 import { protectWalletModalVisible } from '../../../actions/user';
@@ -109,6 +109,8 @@ const styles = StyleSheet.create({
 		color: colors.blue700,
 		...fontStyles.normal,
 		letterSpacing: 0.8,
+		width: 70,
+		textAlign: 'center',
 	},
 	errorWrapper: {
 		marginTop: 12,
@@ -631,7 +633,9 @@ class ApproveTransactionReview extends PureComponent {
 						<TouchableOpacity style={styles.addressWrapper} onPress={this.copyContractAddress}>
 							<Identicon address={this.state.transaction.to} diameter={20} />
 							{this.props.nicknameExists ? (
-								<Text style={styles.address}>{this.props.nickname}</Text>
+								<Text numberOfLines={1} style={styles.address}>
+									{this.props.nickname}
+								</Text>
 							) : (
 								<EthereumAddress
 									address={this.state.transaction.to}
@@ -639,7 +643,7 @@ class ApproveTransactionReview extends PureComponent {
 									type={'short'}
 								/>
 							)}
-							<Icon style={styles.actionIcon} name="copy" size={18} />
+							<Feather name="copy" size={18} color={colors.blue} style={styles.actionIcon} />
 						</TouchableOpacity>
 					</View>
 					<Text style={styles.nickname} onPress={this.toggleDisplay}>

@@ -73,6 +73,7 @@ const styles = StyleSheet.create({
 	address: {
 		...fontStyles.bold,
 		color: colors.blue,
+		width: 100,
 	},
 });
 
@@ -122,7 +123,9 @@ export default class TransactionReviewDetailsCard extends Component {
 						</Text>
 						<View style={styles.transactionDetailsTextRight}>
 							{nicknameExists ? (
-								<Text style={styles.address}>{nickname}</Text>
+								<Text numberOfLines={1} style={styles.address}>
+									{nickname}
+								</Text>
 							) : (
 								<Text style={styles.address}>{address}</Text>
 							)}
