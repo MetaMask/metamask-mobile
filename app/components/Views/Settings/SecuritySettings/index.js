@@ -413,15 +413,18 @@ class Settings extends PureComponent {
 			// 	await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.BIOMETRICS);
 
 			try {
-				let type;
+				console.log('ChoosePassword this.state.biometryType', this.state.biometryType);
+				console.log('ChoosePassword this.state.biometryChoice', this.state.biometryChoice);
+				console.log('ChoosePassword this.state.rememberMe', this.state.rememberMe);
+				let authType;
 				if (type === 'biometryChoice') {
-					type = AuthenticationType.BIOMETRIC;
+					authType = AuthenticationType.BIOMETRIC;
 				} else if (type === 'passcodeChoice') {
-					type = AuthenticationType.PASSCODE;
+					authType = AuthenticationType.PASSCODE;
 				} else {
-					type = AuthenticationType.PASSWORD;
+					authType = AuthenticationType.PASSWORD;
 				}
-				await AuthenticationService.storePassword(password, type);
+				await AuthenticationService.storePassword(password, authType);
 			} catch (error) {
 				Logger.error(error);
 			}

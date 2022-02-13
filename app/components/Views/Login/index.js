@@ -29,7 +29,13 @@ import Device from '../../../util/device';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import BiometryButton from '../../UI/BiometryButton';
 import Logger from '../../../util/Logger';
-import { BIOMETRY_CHOICE_DISABLED, ONBOARDING_WIZARD, TRUE, EXISTING_USER } from '../../../constants/storage';
+import {
+	BIOMETRY_CHOICE_DISABLED,
+	ONBOARDING_WIZARD,
+	TRUE,
+	EXISTING_USER,
+	PASSCODE_DISABLED,
+} from '../../../constants/storage';
 import { passwordRequirementsMet } from '../../../util/password';
 import ErrorBoundary from '../ErrorBoundary';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
@@ -182,6 +188,8 @@ const WRONG_PASSWORD_ERROR_ANDROID = 'Error: error:1e000065:Cipher functions:OPE
 const VAULT_ERROR = 'Error: Cannot unlock without a previous vault.';
 const isTextDelete = (text) => tlc(text) === DELETE;
 
+//TODO Testing pincode login not working properly
+
 /**
  * View where returning users can authenticate
  */
@@ -196,6 +204,7 @@ class Login extends PureComponent {
 		 */
 		setOnboardingWizardStep: PropTypes.func,
 		userLoggedIn: PropTypes.bool,
+		selectedAddress: PropTypes.string,
 	};
 
 	state = {
@@ -223,15 +232,24 @@ class Login extends PureComponent {
 			this.props.navigation.replace('HomeNav');
 			return;
 		}
+
+		//Setup UI to handle Biometric
 		const type = await AuthenticationService.getType();
 		const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
-		const enabled = !(previouslyDisabled && previouslyDisabled === TRUE);
-
+		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
 		if (type === AuthenticationType.BIOMETRIC)
 			this.setState({
 				biometryType: type,
-				biometryChoice: enabled,
+				biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
 				biometryPreviouslyDisabled: !!previouslyDisabled,
+				hasBiometricCredentials: true,
+			});
+		else if (type === AuthenticationType.PASSCODE)
+			this.setState({
+				biometryType: Device.isIos() ? type + '_ios' : type + '_android',
+				biometryChoice: !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
+				biometryPreviouslyDisabled: !!passcodePreviouslyDisabled,
+				hasBiometricCredentials: true,
 			});
 	}
 
@@ -244,53 +262,20 @@ class Login extends PureComponent {
 		return false;
 	};
 
-	//TODO: AUTH REFACTOR - move to authmanager and remove ref of secure keychain in this component
-	/**
-	 * Checks to see if the user has enabled Remember Me and logs
-	 * into the application if it is enabled.
-	 */
-	// checkIfRememberMeEnabled = async () => {
-	// 	const credentials = await SecureKeychain.getGenericPassword();
-	// 	console.log('Login Index - Remember Me - credentials', credentials);
-	// 	if (credentials) {
-	// 		this.setState({ rememberMe: true });
-	// 		// Restore vault with existing credentials
-	// 		const { KeyringController } = Engine.context;
-	// 		await KeyringController.submitPassword(credentials.password);
-	// 		const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
-	// 		if (encryptionLib !== ORIGINAL) {
-	// 			await recreateVaultWithSamePassword(credentials.password, this.props.selectedAddress);
-	// 			await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
-	// 		}
-	// 		// Get onboarding wizard state
-	// 		const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
-	// 		if (!onboardingWizard) {
-	// 			this.props.setOnboardingWizardStep(1);
-	// 		}
-
-	// 		// Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
-	// 		this.setState({ hasBiometricCredentials: false });
-	// 		delete credentials.password;
-	// 		this.props.logIn();
-	// 		this.props.navigation.replace('HomeNav');
-	// 	}
-	// };
-
-	//TODO: AUTH REFACTOR - move login logic to auth manager and only have UI in this method
-	onLogin = async (hasCredentials = false) => {
+	onLogin = async () => {
 		const { password } = this.state;
 		const { current: field } = this.fieldRef;
 		const locked = !passwordRequirementsMet(password);
 		if (locked) this.setState({ error: strings('login.invalid_password') });
 		if (this.state.loading || locked) return;
 
-		let authType;
-		if (this.state.biometryChoice) authType = AuthenticationType.BIOMETRIC;
-		else if (this.state.rememberMe) authType = AuthenticationType.REMEMBER_ME;
-		else authType = AuthenticationType.PASSWORD;
+		const authType = await AuthenticationService.componentAuthenticationType(
+			this.state.biometryChoice,
+			this.state.rememberMe
+		);
 
 		try {
-			await AuthenticationService.manualAuth(password, authType);
+			await AuthenticationService.manualAuth(password, authType, this.props.selectedAddress);
 			const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
 			if (onboardingWizard) {
 				this.props.navigation.replace('HomeNav');
@@ -324,68 +309,32 @@ class Login extends PureComponent {
 					error: strings('login.clean_vault_error'),
 				});
 			} else {
-				console.log('ERROR LOGIN', error);
 				this.setState({ loading: false, error });
 			}
 		}
+	};
 
-		// try {
-		// 	const { KeyringController } = Engine.context;
-		// 	// Restore vault with user entered password
-		// 	await KeyringController.submitPassword(this.state.password);
-		// 	const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
-		// 	const existingUser = await AsyncStorage.getItem(EXISTING_USER);
-		// 	if (encryptionLib !== ORIGINAL && existingUser) {
-		// 		await recreateVaultWithSamePassword(this.state.password, this.props.selectedAddress);
-		// 		await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
-		// 	}
-		// 	// If the tryBiometric has been called and they password was retrived don't set it again
-		// 	if (!hasCredentials) {
-		// 		if (this.state.biometryChoice && this.state.biometryType) {
-		// 			await SecureKeychain.setGenericPassword(this.state.password, SecureKeychain.TYPES.BIOMETRICS);
-		// 		} else if (this.state.rememberMe) {
-		// 			await SecureKeychain.setGenericPassword(this.state.password, SecureKeychain.TYPES.REMEMBER_ME);
-		// 		} else {
-		// 			await SecureKeychain.resetGenericPassword();
-		// 		}
-		// 	}
-		// 	this.props.logIn();
-		// 	// Get onboarding wizard state
-		// 	const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
-		// 	if (onboardingWizard) {
-		// 		this.props.navigation.replace('HomeNav');
-		// 	} else {
-		// 		this.props.setOnboardingWizardStep(1);
-		// 		this.props.navigation.replace('HomeNav');
-		// 	}
-		// 	// Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
-		// 	this.setState({ loading: false, password: '', hasBiometricCredentials: false });
-		// 	field.setValue('');
-		// } catch (e) {
-		// 	// Should we force people to enable passcode / biometrics?
-		// 	const error = e.toString();
-		// 	if (
-		// 		toLowerCaseEquals(error, WRONG_PASSWORD_ERROR) ||
-		// 		toLowerCaseEquals(error, WRONG_PASSWORD_ERROR_ANDROID)
-		// 	) {
-		// 		this.setState({ loading: false, error: strings('login.invalid_password') });
-		// 		trackErrorAsAnalytics('Login: Invalid Password', error);
-		// 		return;
-		// 	} else if (error === PASSCODE_NOT_SET_ERROR) {
-		// 		Alert.alert(
-		// 			'Security Alert',
-		// 			'In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)'
-		// 		);
-		// 		this.setState({ loading: false });
-		// 	} else if (toLowerCaseEquals(error, VAULT_ERROR)) {
-		// 		this.setState({
-		// 			loading: false,
-		// 			error: strings('login.clean_vault_error'),
-		// 		});
-		// 	} else {
-		// 		this.setState({ loading: false, error });
-		// 	}
-		// }
+	tryBiometric = async (e) => {
+		if (e) e.preventDefault();
+		const { current: field } = this.fieldRef;
+		field.blur();
+		try {
+			await AuthenticationService.autoAuth(this.props.selectedAddress);
+			const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
+			if (onboardingWizard) {
+				this.props.navigation.replace('HomeNav');
+			} else {
+				this.props.setOnboardingWizardStep(1);
+				this.props.navigation.replace('HomeNav');
+			}
+			// Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
+			this.setState({ loading: false, password: '', hasBiometricCredentials: false });
+			field.setValue('');
+		} catch (error) {
+			this.setState({ hasBiometricCredentials: true });
+			Logger.log(error);
+		}
+		field.blur();
 	};
 
 	triggerLogIn = () => {
@@ -490,29 +439,6 @@ class Login extends PureComponent {
 		this.toggleWarningModal();
 		InteractionManager.runAfterInteractions(this.toggleDeleteModal);
 	};
-
-	//TODO: AUTH REFACTOR - move biometric to auth manager and only have UI in this method
-	// tryBiometric = async (e) => {
-	// 	if (e) e.preventDefault();
-	// 	const { current: field } = this.fieldRef;
-	// 	field.blur();
-	// 	try {
-	// 		const credentials = await SecureKeychain.getGenericPassword();
-	// 		if (!credentials) {
-	// 			this.setState({ hasBiometricCredentials: false });
-	// 			return;
-	// 		}
-	// 		field.blur();
-	// 		this.setState({ password: credentials.password });
-	// 		field.setValue(credentials.password);
-	// 		field.blur();
-	// 		await this.onLogin(true);
-	// 	} catch (error) {
-	// 		this.setState({ hasBiometricCredentials: true });
-	// 		Logger.log(error);
-	// 	}
-	// 	field.blur();
-	// };
 
 	render = () => (
 		<ErrorBoundary view="Login">

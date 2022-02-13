@@ -103,19 +103,38 @@ const OnboardingRootNav = () => (
 	</Stack.Navigator>
 );
 
-const App = ({ userLoggedIn }) => {
+const App = ({ selectedAddress, userLoggedIn }) => {
 	const unsubscribeFromBranch = useRef();
 
 	const animation = useRef(null);
 	const animationName = useRef(null);
 	const opacity = useRef(new Animated.Value(1)).current;
 	const navigator = useRef();
-	const locked = useRef(true);
-	const unlockAttempts = useRef(0);
+	const locked = useRef(false);
 	const [route, setRoute] = useState();
+	const [authCancelled, setAuthCancelled] = useState(false);
 	const [animationPlayed, setAnimationPlayed] = useState();
 	const dispatch = useDispatch();
 	const triggerSetCurrentRoute = (route) => dispatch(setCurrentRoute(route));
+
+	useEffect(() => {
+		const autoAuth = async () => {
+			const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+
+			try {
+				if (existingUser && !userLoggedIn && !locked.current) {
+					await AuthenticationService.autoAuth(selectedAddress);
+					locked.current = true;
+				}
+			} catch (error) {
+				trackErrorAsAnalytics('Lockscreen: Max Attempts Reached', error?.message, `Unlock attempts: 1`);
+				setAuthCancelled(true);
+			}
+		};
+
+		autoAuth();
+	}, [userLoggedIn, selectedAddress]);
+
 	const handleDeeplink = useCallback(({ error, params, uri }) => {
 		if (error) {
 			trackErrorAsAnalytics(error, 'Branch:');
@@ -172,37 +191,12 @@ const App = ({ userLoggedIn }) => {
 	}, []);
 
 	useEffect(() => {
-		const unlockKeychain = async () => {
-			if (!userLoggedIn) {
-				unlockAttempts.current++;
-				try {
-					await AuthenticationService.autoAuth();
-					locked.current = false;
-				} catch (error) {
-					if (unlockAttempts <= 3) {
-						unlockKeychain();
-					} else {
-						trackErrorAsAnalytics(
-							'Lockscreen: Max Attempts Reached',
-							error?.message,
-							`Unlock attempts: ${unlockAttempts}`
-						);
-					}
-				}
-			} else {
-				await AuthenticationService.logout();
-			}
-		};
-		unlockKeychain();
-	});
-
-	useEffect(() => {
 		async function checkExsiting() {
 			const existingUser = await AsyncStorage.getItem(EXISTING_USER);
 			const route = !existingUser ? 'OnboardingRootNav' : 'Login';
 			setRoute(route);
 		}
-		checkExsiting();
+		if (locked.current || authCancelled) checkExsiting();
 	});
 
 	useEffect(() => {
@@ -267,8 +261,6 @@ const App = ({ userLoggedIn }) => {
 		return null;
 	};
 
-	console.log('userLoggedIn', userLoggedIn);
-
 	return (
 		// do not render unless a route is defined
 		//TODO: AUTH REFACTOR - confirm login behavior
@@ -306,6 +298,7 @@ const App = ({ userLoggedIn }) => {
 
 const mapStateToProps = (state) => ({
 	userLoggedIn: state.user.userLoggedIn,
+	selectedAddress: state.engine.backgroundState?.PreferencesController?.selectedAddress,
 });
 
 export default connect(mapStateToProps)(App);

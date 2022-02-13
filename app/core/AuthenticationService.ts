@@ -17,7 +17,7 @@ import { strings } from '../../locales/i18n';
 
 export enum AuthenticationType {
 	BIOMETRIC = 'biometrics',
-	PASSCODE = 'password',
+	PASSCODE = 'device_passcode',
 	PASSWORD = 'password',
 	REMEMBER_ME = 'rememberMe',
 	UNKNOWN = 'UNKNOWN',
@@ -32,15 +32,14 @@ class AuthenticationService {
 	 * @param password
 	 * @param type
 	 */
-	_loginVaultCreation = async (password: string) => {
+	_loginVaultCreation = async (password: string, selectedAddress: string) => {
 		// Restore vault with user entered password
 		const { KeyringController }: any = Engine.context;
-		const { PreferencesController }: any = Engine.context;
 		await KeyringController.submitPassword(password);
 		const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
 		const existingUser = await AsyncStorage.getItem(EXISTING_USER);
 		if (encryptionLib !== ORIGINAL && existingUser) {
-			await recreateVaultWithSamePassword(String(password), PreferencesController.selectedAddress);
+			await recreateVaultWithSamePassword(password, selectedAddress);
 			await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
 		}
 	};
@@ -56,7 +55,7 @@ class AuthenticationService {
 			await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.BIOMETRICS);
 		} else if (authType === AuthenticationType.PASSCODE) {
 			console.log('PASSCODE SET');
-			await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.REMEMBER_ME);
+			await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.PASSCODE);
 		} else if (authType === AuthenticationType.REMEMBER_ME) {
 			console.log('REMEMBER_ME_SET');
 			await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.REMEMBER_ME);
@@ -70,10 +69,11 @@ class AuthenticationService {
 	 */
 	logout = async () => {
 		const { KeyringController }: any = Engine.context;
+		console.log('Auth LOGOUT KEYRING STATE PRIOR IS LOCKED', KeyringController.isUnlocked());
 		if (KeyringController.isUnlocked()) {
 			await KeyringController.setLocked();
 		}
-		console.log('Auth LOGOUT', this.store?.dispatch);
+		console.log('Auth LOGOUT KEYRING STATE POST IS LOCKED', KeyringController.isUnlocked());
 		this.store?.dispatch(logOut());
 	};
 
@@ -84,20 +84,15 @@ class AuthenticationService {
 	 * @returns
 	 */
 	checkAuthenticationMethod = async (credentials: any) => {
-		if (!credentials) credentials = await SecureKeychain.getGenericPassword();
 		const biometryType: any = await SecureKeychain.getSupportedBiometryType();
 		const biometryPreviouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
 		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
 
 		console.log('CHECK AUTH', biometryType, biometryPreviouslyDisabled, passcodePreviouslyDisabled);
 
-		if (biometryType && !(biometryPreviouslyDisabled && biometryPreviouslyDisabled === TRUE) && credentials) {
+		if (biometryType && !(biometryPreviouslyDisabled && biometryPreviouslyDisabled === TRUE)) {
 			return AuthenticationType.BIOMETRIC;
-		} else if (
-			biometryType &&
-			!(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE) &&
-			credentials
-		) {
+		} else if (biometryType && !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE)) {
 			return AuthenticationType.PASSCODE;
 		} else if (credentials) {
 			return AuthenticationType.REMEMBER_ME;
@@ -131,14 +126,14 @@ class AuthenticationService {
 	 * @param selectedAddress
 	 * @returns
 	 */
-	manualAuth = async (password: string, authType: AuthenticationType) => {
+	manualAuth = async (password: string, authType: AuthenticationType, selectedAddress: string) => {
 		console.log('Authservice manualAuth');
 		if (!password) throw new Error('Password not found');
 		const locked = !passwordRequirementsMet(password);
 		if (locked) throw new Error(strings('login.invalid_password'));
 
 		try {
-			await this._loginVaultCreation(password);
+			await this._loginVaultCreation(password, selectedAddress);
 			await this.storePassword(password, authType);
 			this.store?.dispatch(logIn());
 			this.type = authType;
@@ -155,9 +150,10 @@ class AuthenticationService {
 	 * @param selectedAddress
 	 * @returns
 	 */
-	autoAuth = async () => {
+	autoAuth = async (selectedAddress: string) => {
 		console.log('Authservice autoAuth');
 		const credentials: any = await SecureKeychain.getGenericPassword();
+		console.log('Authservice autoAuth cred', credentials);
 		this.type = await this.checkAuthenticationMethod(credentials);
 
 		console.log('Authservice autoAuth type', this.type);
@@ -169,10 +165,9 @@ class AuthenticationService {
 		if (locked) throw new Error(strings('login.invalid_password'));
 
 		try {
-			await this._loginVaultCreation(password);
-			await this.storePassword(password, this.type);
-			this.store?.dispatch(logIn());
-			return;
+			await this._loginVaultCreation(password, selectedAddress);
+			if (!credentials) await this.storePassword(password, this.type);
+			await this.store?.dispatch(logIn());
 		} catch (e: any) {
 			console.log('Authservice autoAuth', e);
 			this.logout();
@@ -189,20 +184,19 @@ export default {
 		if (!instance) {
 			instance = new AuthenticationService();
 			instance.store = store;
+			instance.store.dispatch(logOut());
 		}
 		return instance;
 	},
-	manualAuth: async (password: string, authType: AuthenticationType) => instance?.manualAuth(password, authType),
-	autoAuth: async () => instance?.autoAuth(),
+	manualAuth: async (password: string, authType: AuthenticationType, selectedAddress: string) =>
+		instance?.manualAuth(password, authType, selectedAddress),
+	autoAuth: async (selectedAddress: string) => instance?.autoAuth(selectedAddress),
 	logout: async () => instance?.logout(),
-	getType: async () => {
-		await instance.checkAuthenticationMethod(undefined);
-		return instance?.type;
-	},
+	getType: async () => instance.checkAuthenticationMethod(undefined),
 	storePassword: async (password: string, authType: AuthenticationType) => {
-		await instance.storePassword(password, authType);
+		await instance?.storePassword(password, authType);
 	},
 	componentAuthenticationType: async (biometryChoice: boolean, rememberMe: boolean) => {
-		await instance.componentAuthenticationType(biometryChoice, rememberMe);
+		await instance?.componentAuthenticationType(biometryChoice, rememberMe);
 	},
 };

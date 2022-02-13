@@ -343,6 +343,9 @@ class ChoosePassword extends PureComponent {
 
 			try {
 				let type;
+				console.log('ChoosePassword this.state.biometryType', this.state.biometryType);
+				console.log('ChoosePassword this.state.biometryChoice', this.state.biometryChoice);
+				console.log('ChoosePassword this.state.rememberMe', this.state.rememberMe);
 				if (this.state.biometryType && this.state.biometryChoice) {
 					type = AuthenticationType.BIOMETRIC;
 				} else if (this.state.rememberMe) {
@@ -350,6 +353,7 @@ class ChoosePassword extends PureComponent {
 				} else {
 					type = AuthenticationType.PASSWORD;
 				}
+				console.log('ChoosePassword type', type);
 				await AuthenticationService.storePassword(password, type);
 			} catch (error) {
 				if (Device.isIos) await this.handleRejectedOsBiometricPrompt(error);
