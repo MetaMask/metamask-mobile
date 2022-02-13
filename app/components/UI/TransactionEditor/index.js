@@ -26,6 +26,7 @@ import EditGasFee1559 from '../EditGasFee1559';
 import EditGasFeeLegacy from '../EditGasFeeLegacy';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import AppConstants from '../../../core/AppConstants';
+import { lt } from '../../../util/lodash';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -640,7 +641,7 @@ class TransactionEditor extends PureComponent {
 				}
 			}
 			if (value && !isBN(value)) return strings('transaction.invalid_amount');
-			const validateAssetAmount = contractBalanceForAddress && contractBalanceForAddress.lt(value);
+			const validateAssetAmount = contractBalanceForAddress && lt(contractBalanceForAddress, value);
 			if (validateAssetAmount) return strings('transaction.insufficient');
 		}
 		return error;
