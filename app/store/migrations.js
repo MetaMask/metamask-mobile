@@ -247,6 +247,14 @@ export const migrations = {
 		};
 		return state;
 	},
+	10: (state) => {
+		state.engine.backgroundState.PreferencesController = {
+			...state.engine.backgroundState.PreferencesController,
+			useCollectibleDetection: false,
+			openSeaEnabled: false,
+		};
+		return state;
+	},
 };
 
-export const version = 9;
+export const version = 10;

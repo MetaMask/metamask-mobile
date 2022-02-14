@@ -14,3 +14,5 @@ metro.config.js
 jest.preprocessor.js
 scripts/metamask-bot-build-announce.js
 CHANGELOG.md
+# Ignore auto generated file used for react-native-storybook-loader
+/storybook/storyLoader.js
