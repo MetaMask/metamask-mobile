@@ -847,12 +847,10 @@ class Confirm extends PureComponent {
 					...transactionMeta,
 					assetType,
 				});
-				const persistedAssetType = assetType;
-				const persistedSelectedAsset = selectedAsset;
 
 				//Listening if the transaction it's confirmed to remove the collectible
 				TransactionController.hub.once(`${transactionMeta.id}:confirmed`, () => {
-					this.checkRemoveCollectible(persistedSelectedAsset, persistedAssetType);
+					this.checkRemoveCollectible(selectedAsset, assetType);
 				});
 
 				AnalyticsV2.trackEvent(
