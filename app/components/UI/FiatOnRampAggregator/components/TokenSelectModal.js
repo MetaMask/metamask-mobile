@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
 	},
 	resultsView: {
 		height: Device.isSmallDevice() ? 200 : 280,
-		marginTop: 10,
+		marginTop: 0,
 	},
 	resultRow: {
 		borderTopWidth: StyleSheet.hairlineWidth,
@@ -99,9 +99,6 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'center',
 		flexDirection: 'row',
-	},
-	footer: {
-		padding: 30,
 	},
 });
 
@@ -376,7 +373,7 @@ function TokenSelectModal({
 								)}
 							</View>
 						) : (
-							<ScreenLayout.Content>
+							<ScreenLayout.Content grow>
 								<FlatList
 									ref={list}
 									style={styles.resultsView}
@@ -386,7 +383,6 @@ function TokenSelectModal({
 									renderItem={renderItem}
 									keyExtractor={(item) => item.address}
 									ListEmptyComponent={renderEmptyList}
-									ListFooterComponentStyle={[styles.resultRow, styles.footer]}
 								/>
 							</ScreenLayout.Content>
 						)}

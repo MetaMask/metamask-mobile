@@ -11,6 +11,7 @@ interface Style {
 	content: ViewStyle;
 	header: ViewStyle;
 	body: ViewStyle;
+	grow: ViewStyle;
 }
 
 const styles = StyleSheet.create<Style>({
@@ -23,6 +24,9 @@ const styles = StyleSheet.create<Style>({
 	},
 	content: {
 		padding: 15,
+	},
+	grow: {
+		flex: 1,
 	},
 	header: {
 		marginVertical: 16,
@@ -64,6 +68,7 @@ interface IPropsFooter {
 }
 
 interface IPropsContent {
+	grow?: boolean;
 	style?: ViewStyle;
 }
 
@@ -110,8 +115,8 @@ const Body: React.FC<IPropsBody> = ({ style, ...props }: IPropsBody) => (
 );
 
 const Footer: React.FC<IPropsFooter> = ({ style, ...props }: IPropsFooter) => <View style={style} {...props} />;
-const Content: React.FC<IPropsContent> = ({ style, ...props }: IPropsContent) => (
-	<View style={[styles.content, style]} {...props} />
+const Content: React.FC<IPropsContent> = ({ style, grow, ...props }: IPropsContent) => (
+	<View style={grow ? [styles.content, styles.grow, style] : [styles.content, style]} {...props} />
 );
 
 ScreenLayout.Header = Header;
