@@ -184,78 +184,74 @@ class TransactionDetails extends PureComponent {
 		const renderTxActions = status === 'submitted' || status === 'approved';
 		const { rpcBlockExplorer } = this.state;
 
-		return (
-			transactionDetails && (
-				<DetailsModal.Body>
-					<DetailsModal.Section borderBottom>
-						<DetailsModal.Column>
-							<DetailsModal.SectionTitle>{strings('transactions.status')}</DetailsModal.SectionTitle>
-							<StatusText status={status} />
-							{!!renderTxActions && (
-								<View style={styles.transactionActionsContainer}>
-									{this.renderSpeedUpButton()}
-									{this.renderCancelButton()}
-								</View>
-							)}
-						</DetailsModal.Column>
-						<DetailsModal.Column end>
-							<DetailsModal.SectionTitle>{strings('transactions.date')}</DetailsModal.SectionTitle>
-							<Text small primary>
-								{toDateFormat(time)}
-							</Text>
-						</DetailsModal.Column>
-					</DetailsModal.Section>
-					<DetailsModal.Section borderBottom={!!transaction?.nonce}>
-						<DetailsModal.Column>
-							<DetailsModal.SectionTitle>{strings('transactions.from')}</DetailsModal.SectionTitle>
-							<Text small primary>
-								<EthereumAddress type="short" address={transactionDetails.renderFrom} />
-							</Text>
-						</DetailsModal.Column>
-						<DetailsModal.Column end>
-							<DetailsModal.SectionTitle>{strings('transactions.to')}</DetailsModal.SectionTitle>
-							<Text small primary>
-								<EthereumAddress type="short" address={transactionDetails.renderTo} />
-							</Text>
-						</DetailsModal.Column>
-					</DetailsModal.Section>
-					<DetailsModal.Section>
-						<DetailsModal.Column>
-							<DetailsModal.SectionTitle upper>{strings('transactions.nonce')}</DetailsModal.SectionTitle>
-							{!!transaction?.nonce && (
-								<Text small primary>{`#${parseInt(transaction.nonce.replace(/^#/, ''), 16)}`}</Text>
-							)}
-						</DetailsModal.Column>
-					</DetailsModal.Section>
-					<View style={[styles.summaryWrapper, !transaction?.nonce && styles.touchableViewOnEtherscan]}>
-						<TransactionSummary
-							amount={transactionDetails.summaryAmount}
-							fee={transactionDetails.summaryFee}
-							totalAmount={transactionDetails.summaryTotalAmount}
-							secondaryTotalAmount={
-								isMainNet(chainId) ? transactionDetails.summarySecondaryTotalAmount : undefined
-							}
-							gasEstimationReady
-							transactionType={transactionDetails.transactionType}
-						/>
-					</View>
-
-					{transactionDetails.transactionHash &&
-						status !== 'cancelled' &&
-						rpcBlockExplorer !== NO_RPC_BLOCK_EXPLORER && (
-							<TouchableOpacity onPress={this.viewOnEtherscan} style={styles.touchableViewOnEtherscan}>
-								<Text reset style={styles.viewOnEtherscan}>
-									{(rpcBlockExplorer &&
-										`${strings('transactions.view_on')} ${getBlockExplorerName(
-											rpcBlockExplorer
-										)}`) ||
-										strings('transactions.view_on_etherscan')}
-								</Text>
-							</TouchableOpacity>
+		return transactionDetails ? (
+			<DetailsModal.Body>
+				<DetailsModal.Section borderBottom>
+					<DetailsModal.Column>
+						<DetailsModal.SectionTitle>{strings('transactions.status')}</DetailsModal.SectionTitle>
+						<StatusText status={status} />
+						{!!renderTxActions && (
+							<View style={styles.transactionActionsContainer}>
+								{this.renderSpeedUpButton()}
+								{this.renderCancelButton()}
+							</View>
 						)}
-				</DetailsModal.Body>
-			)
-		);
+					</DetailsModal.Column>
+					<DetailsModal.Column end>
+						<DetailsModal.SectionTitle>{strings('transactions.date')}</DetailsModal.SectionTitle>
+						<Text small primary>
+							{toDateFormat(time)}
+						</Text>
+					</DetailsModal.Column>
+				</DetailsModal.Section>
+				<DetailsModal.Section borderBottom={!!transaction?.nonce}>
+					<DetailsModal.Column>
+						<DetailsModal.SectionTitle>{strings('transactions.from')}</DetailsModal.SectionTitle>
+						<Text small primary>
+							<EthereumAddress type="short" address={transactionDetails.renderFrom} />
+						</Text>
+					</DetailsModal.Column>
+					<DetailsModal.Column end>
+						<DetailsModal.SectionTitle>{strings('transactions.to')}</DetailsModal.SectionTitle>
+						<Text small primary>
+							<EthereumAddress type="short" address={transactionDetails.renderTo} />
+						</Text>
+					</DetailsModal.Column>
+				</DetailsModal.Section>
+				<DetailsModal.Section>
+					<DetailsModal.Column>
+						<DetailsModal.SectionTitle upper>{strings('transactions.nonce')}</DetailsModal.SectionTitle>
+						{!!transaction?.nonce && (
+							<Text small primary>{`#${parseInt(transaction.nonce.replace(/^#/, ''), 16)}`}</Text>
+						)}
+					</DetailsModal.Column>
+				</DetailsModal.Section>
+				<View style={[styles.summaryWrapper, !transaction?.nonce && styles.touchableViewOnEtherscan]}>
+					<TransactionSummary
+						amount={transactionDetails.summaryAmount}
+						fee={transactionDetails.summaryFee}
+						totalAmount={transactionDetails.summaryTotalAmount}
+						secondaryTotalAmount={
+							isMainNet(chainId) ? transactionDetails.summarySecondaryTotalAmount : undefined
+						}
+						gasEstimationReady
+						transactionType={transactionDetails.transactionType}
+					/>
+				</View>
+
+				{transactionDetails.transactionHash &&
+					status !== 'cancelled' &&
+					rpcBlockExplorer !== NO_RPC_BLOCK_EXPLORER && (
+						<TouchableOpacity onPress={this.viewOnEtherscan} style={styles.touchableViewOnEtherscan}>
+							<Text reset style={styles.viewOnEtherscan}>
+								{(rpcBlockExplorer &&
+									`${strings('transactions.view_on')} ${getBlockExplorerName(rpcBlockExplorer)}`) ||
+									strings('transactions.view_on_etherscan')}
+							</Text>
+						</TouchableOpacity>
+					)}
+			</DetailsModal.Body>
+		) : null;
 	};
 }
 
