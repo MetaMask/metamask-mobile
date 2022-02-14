@@ -428,6 +428,7 @@ class ImportFromSeed extends PureComponent {
 					style={styles.biometrySwitch}
 					trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
 					ios_backgroundColor={colors.grey300}
+					testID={'remember-me-toggle'}
 				/>
 			</View>
 		);
