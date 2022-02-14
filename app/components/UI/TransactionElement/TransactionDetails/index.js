@@ -255,22 +255,6 @@ class TransactionDetails extends PureComponent {
 	};
 }
 
-TransactionDetails.defaultProps = {
-	transactionObject: {
-		status: '',
-		networkID: '',
-	},
-	transactionDetails: {
-		renderFrom: '',
-		renderTo: '',
-		summaryAmount: '',
-		summaryFee: '',
-		summaryTotalAmount: '',
-		summarySecondaryTotalAmount: '',
-		transactionType: '',
-	},
-};
-
 const mapStateToProps = (state) => ({
 	network: state.engine.backgroundState.NetworkController,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
