@@ -739,14 +739,13 @@ class Confirm extends PureComponent {
 	/**
 	 * Removes collectible in case an ERC721 asset is being sent, when not in mainnet
 	 */
-	checkRemoveCollectible = () => {
-		const {
-			transactionState: { selectedAsset, assetType },
-			chainId,
-		} = this.props;
+	checkRemoveCollectible = (selectedAsset, assetType) => {
+		const { chainId } = this.props;
 		const { fromSelectedAddress } = this.state;
+
 		if (assetType === 'ERC721' && chainId !== NetworksChainId.mainnet) {
 			const { CollectiblesController } = Engine.context;
+
 			removeFavoriteCollectible(fromSelectedAddress, chainId, selectedAsset);
 			CollectiblesController.removeCollectible(selectedAsset.address, selectedAsset.tokenId);
 		}
@@ -808,7 +807,7 @@ class Confirm extends PureComponent {
 	onNext = async () => {
 		const { TransactionController } = Engine.context;
 		const {
-			transactionState: { assetType },
+			transactionState: { assetType, selectedAsset },
 			navigation,
 			resetTransaction,
 			gasEstimateType,
@@ -818,6 +817,7 @@ class Confirm extends PureComponent {
 		this.setState({ transactionConfirmed: true, stopUpdateGas: true });
 		try {
 			const transaction = this.prepareTransactionToSend();
+
 			let error;
 			if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
 				error = this.validateAmount({ transaction, total: EIP1559TransactionData.totalMaxHex });
@@ -847,7 +847,13 @@ class Confirm extends PureComponent {
 					...transactionMeta,
 					assetType,
 				});
-				this.checkRemoveCollectible();
+				const persistedAssetType = assetType;
+				const persistedSelectedAsset = selectedAsset;
+
+				TransactionController.hub.once(`${transactionMeta.id}:confirmed`, () => {
+					this.checkRemoveCollectible(persistedSelectedAsset, persistedAssetType);
+				});
+
 				AnalyticsV2.trackEvent(
 					AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_COMPLETED,
 					this.getAnalyticsParams()
