@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, SafeAreaView, ScrollView, ViewStyle } from 'react-native';
+import { StyleSheet, View, SafeAreaView, ScrollView, ViewStyle, TextStyle } from 'react-native';
 import { colors } from '../../../../styles/common';
 import TextJS from '../../../Base/Text';
 
@@ -48,6 +48,8 @@ interface IStaticComponents {
 interface IPropsHeader {
 	title?: string;
 	description?: string;
+	titleStyle?: TextStyle;
+	descriptionStyle?: TextStyle;
 	bold?: boolean;
 	children?: React.ReactNode;
 	style?: ViewStyle;
@@ -78,14 +80,27 @@ const ScreenLayout: React.FC<IPropsScreenLayout> & IStaticComponents = ({
 	);
 };
 
-const Header: React.FC<IPropsHeader> = ({ title, description, bold, children, style, ...props }: IPropsHeader) => (
+const Header: React.FC<IPropsHeader> = ({
+	title,
+	description,
+	bold,
+	children,
+	style,
+	titleStyle,
+	descriptionStyle,
+	...props
+}: IPropsHeader) => (
 	<View style={[styles.header, style]} {...props}>
 		{title && (
-			<Text big black centered bold={bold}>
+			<Text style={titleStyle} big black centered bold={bold}>
 				{title}
 			</Text>
 		)}
-		{description && <Text centered>{description}</Text>}
+		{description && (
+			<Text style={descriptionStyle} centered>
+				{description}
+			</Text>
+		)}
 		{children}
 	</View>
 );

@@ -15,9 +15,6 @@ const Text = TextJS as any;
 const ListItem = ListItemJS as any;
 
 const styles = StyleSheet.create({
-	button: {
-		width: 200,
-	},
 	listItem: {
 		marginBottom: 20,
 	},
@@ -89,7 +86,7 @@ const GetStarted: React.FC<IProps> & IStaticComponents = ({ navigation }: IProps
 
 			<ScreenLayout.Footer>
 				<ScreenLayout.Content>
-					<StyledButton type={'confirm'} onPress={handleOnPress} style={styles.button}>
+					<StyledButton type={'confirm'} onPress={handleOnPress}>
 						{strings('fiat_on_ramp_aggregator.onboarding.get_started')}
 					</StyledButton>
 				</ScreenLayout.Content>
